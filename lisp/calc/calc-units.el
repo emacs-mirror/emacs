@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -940,18 +939,23 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
     (math-simplify a)))
 (defalias 'calcFunc-usimplify 'math-simplify-units)
 
+;; The function created by math-defsimplify uses the variable
+;; math-simplify-expr, and so is used by functions in math-defsimplify
+(defvar math-simplify-expr)
+
 (math-defsimplify (+ -)
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 expr) nil)
-       (let* ((units (math-extract-units (nth 1 expr)))
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (let* ((units (math-extract-units (nth 1 math-simplify-expr)))
 	      (ratio (math-simplify (math-to-standard-units
-				     (list '/ (nth 2 expr) units) nil))))
+				     (list '/ (nth 2 math-simplify-expr) units) nil))))
 	 (if (math-units-in-expr-p ratio nil)
 	     (progn
-	       (calc-record-why "*Inconsistent units" expr)
-	       expr)
-	   (list '* (math-add (math-remove-units (nth 1 expr))
-			      (if (eq (car expr) '-) (math-neg ratio) ratio))
+	       (calc-record-why "*Inconsistent units" math-simplify-expr)
+	       math-simplify-expr)
+	   (list '* (math-add (math-remove-units (nth 1 math-simplify-expr))
+			      (if (eq (car math-simplify-expr) '-) 
+                                  (math-neg ratio) ratio))
 		 units)))))
 
 (math-defsimplify *
@@ -960,12 +964,12 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 (defun math-simplify-units-prod ()
   (and math-simplifying-units
        calc-autorange-units
-       (Math-realp (nth 1 expr))
-       (let* ((num (math-float (nth 1 expr)))
+       (Math-realp (nth 1 math-simplify-expr))
+       (let* ((num (math-float (nth 1 math-simplify-expr)))
 	      (xpon (calcFunc-xpon num))
-	      (unitp (cdr (cdr expr)))
+	      (unitp (cdr (cdr math-simplify-expr)))
 	      (unit (car unitp))
-	      (pow (if (eq (car expr) '*) 1 -1))
+	      (pow (if (eq (car math-simplify-expr) '*) 1 -1))
 	      u)
 	 (and (eq (car-safe unit) '*)
 	      (setq unitp (cdr unit)
@@ -1015,39 +1019,40 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		     (or (not (eq p pref))
 			 (< xpon (+ pxpon (* (math-abs pow) 3))))
 		     (progn
-		       (setcar (cdr expr)
+		       (setcar (cdr math-simplify-expr)
 			       (let ((calc-prefer-frac nil))
-				 (calcFunc-scf (nth 1 expr)
+				 (calcFunc-scf (nth 1 math-simplify-expr)
 					       (- uxpon pxpon))))
 		       (setcar unitp pname)
-		       expr)))))))
+		       math-simplify-expr)))))))
 
 (math-defsimplify /
   (and math-simplifying-units
-       (let ((np (cdr expr))
+       (let ((np (cdr math-simplify-expr))
 	     (try-cancel-units 0)
 	     n nn)
-	 (setq n (if (eq (car-safe (nth 2 expr)) '*)
-		     (cdr (nth 2 expr))
-		   (nthcdr 2 expr)))
+	 (setq n (if (eq (car-safe (nth 2 math-simplify-expr)) '*)
+		     (cdr (nth 2 math-simplify-expr))
+		   (nthcdr 2 math-simplify-expr)))
 	 (if (math-realp (car n))
 	     (progn
-	       (setcar (cdr expr) (math-mul (nth 1 expr)
+	       (setcar (cdr math-simplify-expr) (math-mul (nth 1 math-simplify-expr)
 					    (let ((calc-prefer-frac nil))
 					      (math-div 1 (car n)))))
 	       (setcar n 1)))
 	 (while (eq (car-safe (setq n (car np))) '*)
-	   (math-simplify-units-divisor (cdr n) (cdr (cdr expr)))
+	   (math-simplify-units-divisor (cdr n) (cdr (cdr math-simplify-expr)))
 	   (setq np (cdr (cdr n))))
-	 (math-simplify-units-divisor np (cdr (cdr expr)))
+	 (math-simplify-units-divisor np (cdr (cdr math-simplify-expr)))
 	 (if (eq try-cancel-units 0)
 	     (let* ((math-simplifying-units nil)
-		    (base (math-simplify (math-to-standard-units expr nil))))
+		    (base (math-simplify 
+                           (math-to-standard-units math-simplify-expr nil))))
 	       (if (Math-numberp base)
-		   (setq expr base))))
-	 (if (eq (car-safe expr) '/)
+		   (setq math-simplify-expr base))))
+	 (if (eq (car-safe math-simplify-expr) '/)
 	     (math-simplify-units-prod))
-	 expr)))
+	 math-simplify-expr)))
 
 (defun math-simplify-units-divisor (np dp)
   (let ((n (car np))
@@ -1094,20 +1099,23 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 
 (math-defsimplify ^
   (and math-simplifying-units
-       (math-realp (nth 2 expr))
-       (if (memq (car-safe (nth 1 expr)) '(* /))
-	   (list (car (nth 1 expr))
-		 (list '^ (nth 1 (nth 1 expr)) (nth 2 expr))
-		 (list '^ (nth 2 (nth 1 expr)) (nth 2 expr)))
-	 (math-simplify-units-pow (nth 1 expr) (nth 2 expr)))))
+       (math-realp (nth 2 math-simplify-expr))
+       (if (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
+	   (list (car (nth 1 math-simplify-expr))
+		 (list '^ (nth 1 (nth 1 math-simplify-expr)) 
+                       (nth 2 math-simplify-expr))
+		 (list '^ (nth 2 (nth 1 math-simplify-expr)) 
+                       (nth 2 math-simplify-expr)))
+	 (math-simplify-units-pow (nth 1 math-simplify-expr) 
+                                  (nth 2 math-simplify-expr)))))
 
 (math-defsimplify calcFunc-sqrt
   (and math-simplifying-units
-       (if (memq (car-safe (nth 1 expr)) '(* /))
-	   (list (car (nth 1 expr))
-		 (list 'calcFunc-sqrt (nth 1 (nth 1 expr)))
-		 (list 'calcFunc-sqrt (nth 2 (nth 1 expr))))
-	 (math-simplify-units-pow (nth 1 expr) '(frac 1 2)))))
+       (if (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
+	   (list (car (nth 1 math-simplify-expr))
+		 (list 'calcFunc-sqrt (nth 1 (nth 1 math-simplify-expr)))
+		 (list 'calcFunc-sqrt (nth 2 (nth 1 math-simplify-expr))))
+	 (math-simplify-units-pow (nth 1 math-simplify-expr) '(frac 1 2)))))
 
 (math-defsimplify (calcFunc-floor
 		   calcFunc-ceil
@@ -1120,21 +1128,21 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		   calcFunc-abs
 		   calcFunc-clean)
   (and math-simplifying-units
-       (= (length expr) 2)
-       (if (math-only-units-in-expr-p (nth 1 expr))
-	   (nth 1 expr)
-	 (if (and (memq (car-safe (nth 1 expr)) '(* /))
+       (= (length math-simplify-expr) 2)
+       (if (math-only-units-in-expr-p (nth 1 math-simplify-expr))
+	   (nth 1 math-simplify-expr)
+	 (if (and (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
 		  (or (math-only-units-in-expr-p
-		       (nth 1 (nth 1 expr)))
+		       (nth 1 (nth 1 math-simplify-expr)))
 		      (math-only-units-in-expr-p
-		       (nth 2 (nth 1 expr)))))
-	     (list (car (nth 1 expr))
-		   (cons (car expr)
-			 (cons (nth 1 (nth 1 expr))
-			       (cdr (cdr expr))))
-		   (cons (car expr)
-			 (cons (nth 2 (nth 1 expr))
-			       (cdr (cdr expr)))))))))
+		       (nth 2 (nth 1 math-simplify-expr)))))
+	     (list (car (nth 1 math-simplify-expr))
+		   (cons (car math-simplify-expr)
+			 (cons (nth 1 (nth 1 math-simplify-expr))
+			       (cdr (cdr math-simplify-expr))))
+		   (cons (car math-simplify-expr)
+			 (cons (nth 2 (nth 1 math-simplify-expr))
+			       (cdr (cdr math-simplify-expr)))))))))
 
 (defun math-simplify-units-pow (a pow)
   (if (and (eq (car-safe a) '^)
@@ -1157,10 +1165,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 
 (math-defsimplify calcFunc-sin
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 expr) nil)
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 expr) nil))))
+		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1170,10 +1178,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 
 (math-defsimplify calcFunc-cos
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 expr) nil)
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 expr) nil))))
+		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1183,10 +1191,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 
 (math-defsimplify calcFunc-tan
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 expr) nil)
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 expr) nil))))
+		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))

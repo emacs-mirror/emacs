@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/11 23:54:13 vinicius>
+;; Time-stamp: <2004/11/17 19:27:57 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.8.2
+;; Version: 6.8.3
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.8.2"
-  "printing.el, v 6.8.2 <2004/11/11 vinicius>
+(defconst pr-version "6.8.3"
+  "printing.el, v 6.8.3 <2004/11/17 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -440,15 +440,19 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Current global keyboard mapping for GNU Emacs is:
 ;;
-;;    (global-set-key [print]   'pr-ps-fast-fire)
-;;    (global-set-key [M-print] 'pr-ps-mode-using-ghostscript)
-;;    (global-set-key [C-print] 'pr-txt-fast-fire)
+;;    (global-set-key [print]     'pr-ps-fast-fire)
+;;    (global-set-key [M-print]   'pr-ps-mode-using-ghostscript)
+;;    (global-set-key [S-print]   'pr-ps-mode-using-ghostscript)
+;;    (global-set-key [C-print]   'pr-txt-fast-fire)
+;;    (global-set-key [C-M-print] 'pr-txt-fast-fire)
 ;;
 ;; And for XEmacs is:
 ;;
-;;    (global-set-key 'f22           'pr-ps-fast-fire)
-;;    (global-set-key '(meta f22)    'pr-ps-mode-using-ghostscript)
-;;    (global-set-key '(control f22) 'pr-txt-fast-fire)
+;;    (global-set-key 'f22                'pr-ps-fast-fire)
+;;    (global-set-key '(meta f22)         'pr-ps-mode-using-ghostscript)
+;;    (global-set-key '(shift f22)        'pr-ps-mode-using-ghostscript)
+;;    (global-set-key '(control f22)      'pr-txt-fast-fire)
+;;    (global-set-key '(control meta f22) 'pr-txt-fast-fire)
 ;;
 ;; As a suggestion of global keyboard mapping for some `printing' commands:
 ;;
@@ -484,7 +488,10 @@ Please send all bug fixes and enhancements to
 ;; `pr-temp-dir'		Specify a directory for temporary files during
 ;;				printing.
 ;;
-;; `pr-ps-temp-file'		Specify PostScript temporary file name.
+;; `pr-ps-temp-file'		Specify PostScript temporary file name prefix.
+;;
+;; `pr-file-modes'		Specify the file permission bits for newly
+;;				created files.
 ;;
 ;; `pr-gv-command'		Specify path and name of the gsview/gv
 ;;				utility.
@@ -943,6 +950,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
+;; Thanks to Stefan Monnier <monnier@iro.umontreal.ca> for GNU Emacs and XEmacs
+;; printing menu (in `pr-menu-spec') merging suggestion.
+;;
 ;; Thanks to Lennart Borgman <lennart.borgman.073@student.lu.se> for gsprint
 ;; suggestion (see tip 5 in section Tips).
 ;;
@@ -993,69 +1003,112 @@ Please send all bug fixes and enhancements to
      (error "`printing' requires `ps-print' package version 6.6.4 or later"))
 
 
-(eval-and-compile
-  (defconst pr-cygwin-system
-    (and ps-windows-system (getenv "OSTYPE")
-	 (string-match "cygwin" (getenv "OSTYPE")))))
+(defconst pr-cygwin-system
+  (and ps-windows-system (getenv "OSTYPE")
+       (string-match "cygwin" (getenv "OSTYPE"))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To avoid compilation gripes
 
 
-(eval-and-compile
+(or (fboundp 'easy-menu-intern)		; hacked from easymenu.el
+    (defsubst easy-menu-intern (s)
+      (if (stringp s) (intern s) s)))
 
-  (or (fboundp 'subst-char-in-string)
-      (defun subst-char-in-string (fromchar tochar string &optional inplace)
-	"Replace FROMCHAR with TOCHAR in STRING each time it occurs.
+
+
+(or (fboundp 'subst-char-in-string)	; hacked from subr.el
+    (defun subst-char-in-string (fromchar tochar string &optional inplace)
+      "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-	(let ((i (length string))
-	      (newstr (if inplace string (copy-sequence string))))
-	  (while (> (setq i (1- i)) 0)
-	    (if (eq (aref newstr i) fromchar)
-		(aset newstr i tochar)))
-	  newstr)))
+      (let ((i (length string))
+	    (newstr (if inplace string (copy-sequence string))))
+	(while (> (setq i (1- i)) 0)
+	  (if (eq (aref newstr i) fromchar)
+	      (aset newstr i tochar)))
+	newstr)))
 
-  ;; GNU Emacs
-  (defalias 'pr-e-frame-char-height    'frame-char-height)
-  (defalias 'pr-e-frame-char-width     'frame-char-width)
-  (defalias 'pr-e-mouse-pixel-position 'mouse-pixel-position)
-  ;; XEmacs
-  (defalias 'pr-x-add-submenu             'add-submenu)
-  (defalias 'pr-x-event-function          'event-function)
-  (defalias 'pr-x-event-object            'event-object)
-  (defalias 'pr-x-find-menu-item          'find-menu-item)
-  (defalias 'pr-x-font-height             'font-height)
-  (defalias 'pr-x-font-width              'font-width)
-  (defalias 'pr-x-get-popup-menu-response 'get-popup-menu-response)
-  (defalias 'pr-x-make-event              'make-event)
-  (defalias 'pr-x-misc-user-event-p       'misc-user-event-p)
-  (defalias 'pr-x-relabel-menu-item       'relabel-menu-item)
-  (defalias 'pr-x-event-x-pixel           'event-x-pixel)
-  (defalias 'pr-x-event-y-pixel           'event-y-pixel)
 
-  (cond
-   ((eq ps-print-emacs-type 'emacs)	; GNU Emacs
-    (defvar deactivate-mark nil)
-    (defalias 'pr-f-set-keymap-parents 'set-keymap-parent)
-    (defalias 'pr-f-set-keymap-name    'ignore)
-    (defalias 'pr-f-read-string        'read-string)
-    (defun pr-keep-region-active ()
-      (setq deactivate-mark nil)))
+(or (fboundp 'make-temp-file)		; hacked from subr.el
+    (defun make-temp-file (prefix &optional dir-flag suffix)
+      "Create a temporary file.
+The returned file name (created by appending some random characters at the end
+of PREFIX, and expanding against `temporary-file-directory' if necessary),
+is guaranteed to point to a newly created empty file.
+You can then use `write-region' to write new data into the file.
 
-   ((eq ps-print-emacs-type 'xemacs)	; XEmacs
-    (defvar current-menubar     nil)
-    (defvar current-mouse-event nil)
-    (defvar zmacs-region-stays  nil)
-    (defalias 'pr-f-set-keymap-parents 'set-keymap-parents)
-    (defalias 'pr-f-set-keymap-name    'set-keymap-name)
-    (defun pr-f-read-string (prompt initial history default)
-      (let ((str (read-string prompt initial)))
-	(if (and str (not (string= str "")))
-	    str
-	  default)))
-    (defun pr-keep-region-active ()
-      (setq zmacs-region-stays t)))))
+If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+
+If SUFFIX is non-nil, add that at the end of the file name."
+      (let ((umask (default-file-modes))
+	    file)
+	(unwind-protect
+	    (progn
+	      ;; Create temp files with strict access rights.  It's easy to
+	      ;; loosen them later, whereas it's impossible to close the
+	      ;; time-window of loose permissions otherwise.
+	      (set-default-file-modes ?\700)
+	      (while (condition-case ()
+			 (progn
+			   (setq file
+				 (make-temp-name
+				  (expand-file-name prefix temporary-file-directory)))
+			   (if suffix
+			       (setq file (concat file suffix)))
+			   (if dir-flag
+			       (make-directory file)
+			     (write-region "" nil file nil 'silent nil 'excl))
+			   nil)
+		       (file-already-exists t))
+		;; the file was somehow created by someone else between
+		;; `make-temp-name' and `write-region', let's try again.
+		nil)
+	      file)
+	  ;; Reset the umask.
+	  (set-default-file-modes umask)))))
+
+
+;; GNU Emacs
+(defalias 'pr-e-frame-char-height    'frame-char-height)
+(defalias 'pr-e-frame-char-width     'frame-char-width)
+(defalias 'pr-e-mouse-pixel-position 'mouse-pixel-position)
+;; XEmacs
+(defalias 'pr-x-add-submenu             'add-submenu)
+(defalias 'pr-x-event-function          'event-function)
+(defalias 'pr-x-event-object            'event-object)
+(defalias 'pr-x-find-menu-item          'find-menu-item)
+(defalias 'pr-x-font-height             'font-height)
+(defalias 'pr-x-font-width              'font-width)
+(defalias 'pr-x-get-popup-menu-response 'get-popup-menu-response)
+(defalias 'pr-x-make-event              'make-event)
+(defalias 'pr-x-misc-user-event-p       'misc-user-event-p)
+(defalias 'pr-x-relabel-menu-item       'relabel-menu-item)
+(defalias 'pr-x-event-x-pixel           'event-x-pixel)
+(defalias 'pr-x-event-y-pixel           'event-y-pixel)
+
+(cond
+ ((featurep 'xemacs)			; XEmacs
+  (defvar current-menubar     nil)
+  (defvar current-mouse-event nil)
+  (defvar zmacs-region-stays  nil)
+  (defalias 'pr-f-set-keymap-parents 'set-keymap-parents)
+  (defalias 'pr-f-set-keymap-name    'set-keymap-name)
+  (defun pr-f-read-string (prompt initial history default)
+    (let ((str (read-string prompt initial)))
+      (if (and str (not (string= str "")))
+	  str
+	default)))
+  (defun pr-keep-region-active ()
+    (setq zmacs-region-stays t)))
+
+ (t					; GNU Emacs
+  (defvar deactivate-mark nil)
+  (defalias 'pr-f-set-keymap-parents 'set-keymap-parent)
+  (defalias 'pr-f-set-keymap-name    'ignore)
+  (defalias 'pr-f-read-string        'read-string)
+  (defun pr-keep-region-active ()
+    (setq deactivate-mark nil))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1119,6 +1172,7 @@ Valid values are:
   :type '(choice :tag "Path style"
 		 (const :tag "Windows 9x/NT Style (\\)" :value windows)
 		 (const :tag "Unix Style (/)" :value unix))
+  :version "20"
   :group 'printing)
 
 
@@ -1230,6 +1284,7 @@ Examples:
 				:tag "Directory"
 				(string :value "")
 				(symbol :value symbol)))))
+  :version "20"
   :group 'printing)
 
 
@@ -1244,6 +1299,7 @@ modified by other means (for example, a lisp function), use `pr-update-menus'
 function (see it for documentation) to update text printer menu."
   :type 'symbol
   :set 'pr-txt-name-custom-set
+  :version "20"
   :group 'printing)
 
 
@@ -1356,6 +1412,7 @@ Examples:
 			(const :tag "None" nil)
 			string)))
   :set 'pr-alist-custom-set
+  :version "20"
   :group 'printing)
 
 
@@ -1370,6 +1427,7 @@ modified by other means (for example, a lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript printer menu."
   :type 'symbol
   :set 'pr-ps-name-custom-set
+  :version "20"
   :group 'printing)
 
 
@@ -1564,6 +1622,7 @@ Examples:
 	     (sexp :tag "Value")))
 	   ))
   :set 'pr-alist-custom-set
+  :version "20"
   :group 'printing)
 
 
@@ -1578,14 +1637,34 @@ Examples:
 		((memq system-type '(vax-vms axp-vms)) "SYS$SCRATCH:")
 		(t "/tmp")
 		)))))
-  "*Specify a directory for temporary files during printing."
+  "*Specify a directory for temporary files during printing.
+
+See also `pr-ps-temp-file' and `pr-file-modes'."
   :type '(directory :tag "Temporary Directory")
+  :version "20"
   :group 'printing)
 
 
-(defcustom pr-ps-temp-file "prspool.ps"
-  "*Specify PostScript temporary file name."
+(defcustom pr-ps-temp-file "prspool-"
+  "*Specify PostScript temporary file name prefix.
+
+See also `pr-temp-dir' and `pr-file-modes'."
   :type '(file :tag "PostScript Temporary File Name")
+  :version "21"
+  :group 'printing)
+
+
+;; It uses 0600 as default instead of (default-file-modes).
+;; So, by default, only the session owner have permission to deal with files
+;; generated by `printing'.
+(defcustom pr-file-modes ?\600
+  "*Specify the file permission bits for newly created files.
+
+It should be an integer; only the low 9 bits are used.
+
+See also `pr-temp-dir' and `pr-ps-temp-file'."
+  :type '(integer :tag "File Permission Bits")
+  :version "21.3"
   :group 'printing)
 
 
@@ -1597,6 +1676,7 @@ Examples:
 
 See also `pr-path-alist'."
   :type '(string :tag "Ghostview Utility")
+  :version "20"
   :group 'printing)
 
 
@@ -1608,6 +1688,7 @@ See also `pr-path-alist'."
 
 See also `pr-path-alist'."
   :type '(string :tag "Ghostscript Utility")
+  :version "20"
   :group 'printing)
 
 
@@ -1638,6 +1719,7 @@ To see ghostscript documentation for more information:
      located in the same directory as gswin32.exe.
    - for brief documentation, type: gswin32.exe -h"
   :type '(repeat (string :tag "Ghostscript Switch"))
+  :version "20"
   :group 'printing)
 
 
@@ -1654,6 +1736,7 @@ A note on the gs switches:
 See `pr-gs-switches' for documentation.
 See also `pr-ps-printer-alist'."
   :type '(string :tag "Ghostscript Device")
+  :version "20"
   :group 'printing)
 
 
@@ -1667,6 +1750,7 @@ A note on the gs switches:
 See `pr-gs-switches' for documentation.
 See also `pr-ps-printer-alist'."
   :type '(integer :tag "Ghostscript Resolution")
+  :version "20"
   :group 'printing)
 
 
@@ -1679,30 +1763,35 @@ ghostscript to print a PostScript file.
 In GNU or Unix system, if ghostscript is set as a PostScript filter, this
 variable should be nil."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
 (defcustom pr-faces-p nil
   "*Non-nil means print with face attributes."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
 (defcustom pr-spool-p nil
   "*Non-nil means spool printing in a buffer."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
 (defcustom pr-file-landscape nil
   "*Non-nil means print PostScript file in landscape orientation."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
 (defcustom pr-file-duplex nil
   "*Non-nil means print PostScript file in duplex mode."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -1714,6 +1803,7 @@ right.
 If tumble is on, produces a printing suitable for binding at the top or
 bottom."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -1726,6 +1816,7 @@ When this variable is non-nil, the `*-buffer*' commands will behave like
 `*-region*' commands, that is, `*-buffer*' commands will print only the region
 marked instead of all buffer."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -1737,6 +1828,7 @@ and `*-region*' commands will behave like `*-mode*' commands; otherwise,
 `*-buffer*' commands will print the current buffer and `*-region*' commands
 will print the current region."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -1937,6 +2029,7 @@ DEFAULT		It's a way to set default values when this entry is selected.
 	      (variable :tag "Other"))
 	     (sexp :tag "Value")))
 	   ))
+  :version "20"
   :group 'printing)
 
 
@@ -1954,6 +2047,7 @@ NOTE: Don't forget to download and install the utilities declared on
       `pr-ps-utility-alist'."
   :type '(symbol :tag "PS File Utility")
   :set 'pr-ps-utility-custom-set
+  :version "20"
   :group 'printing)
 
 
@@ -2138,6 +2232,7 @@ Examples:
 		  (sexp :tag "Value")))
 		))
   :set 'pr-alist-custom-set
+  :version "20"
   :group 'printing)
 
 
@@ -2146,14 +2241,15 @@ Examples:
 
 See also `pr-menu-char-height' and `pr-menu-char-width'."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
 (defcustom pr-menu-char-height
-  (cond ((eq ps-print-emacs-type 'emacs) ; GNU Emacs
-	 (pr-e-frame-char-height))
-	((eq ps-print-emacs-type 'xemacs) ; XEmacs
-	 (pr-x-font-height (face-font 'default))))
+  (cond ((featurep 'xemacs)		; XEmacs
+	 (pr-x-font-height (face-font 'default)))
+	(t				; GNU Emacs
+	 (pr-e-frame-char-height)))
   "*Specify menu char height in pixels.
 
 This variable is used to guess which vertical position should be locked the
@@ -2161,14 +2257,15 @@ menu, so don't forget to adjust it if menu position is not ok.
 
 See also `pr-menu-lock' and `pr-menu-char-width'."
   :type 'integer
+  :version "20"
   :group 'printing)
 
 
 (defcustom pr-menu-char-width
-  (cond ((eq ps-print-emacs-type 'emacs) ; GNU Emacs
-	 (pr-e-frame-char-width))
-	((eq ps-print-emacs-type 'xemacs) ; XEmacs
-	 (pr-x-font-width (face-font 'default))))
+  (cond ((featurep 'xemacs)		; XEmacs
+	 (pr-x-font-width (face-font 'default)))
+	(t				; GNU Emacs
+	 (pr-e-frame-char-width)))
   "*Specify menu char width in pixels.
 
 This variable is used to guess which horizontal position should be locked the
@@ -2176,6 +2273,7 @@ menu, so don't forget to adjust it if menu position is not ok.
 
 See also `pr-menu-lock' and `pr-menu-char-height'."
   :type 'integer
+  :version "20"
   :group 'printing)
 
 
@@ -2292,6 +2390,7 @@ SETTING		It's a cons like:
 	      (variable :tag "Other"))
 	     (sexp :tag "Value")))
 	   ))
+  :version "20"
   :group 'printing)
 
 
@@ -2345,6 +2444,7 @@ Any other value is ignored."
 			 (const postscript-process)
 			 (const printing)
 			 (const help)))
+  :version "20"
   :group 'printing)
 
 
@@ -2356,6 +2456,7 @@ happens when printing:
 
    Error: could not open \"c:\\temp\\prspool.ps\" for reading."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -2369,6 +2470,7 @@ It's used by `pr-ps-directory-preview', `pr-ps-directory-using-ghostscript',
 `pr-ps-directory-print', `pr-ps-directory-ps-print', `pr-printify-directory'
 and `pr-txt-directory'."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -2377,6 +2479,7 @@ and `pr-txt-directory'."
 
 It's used by `pr-interface'."
   :type 'string
+  :version "20"
   :group 'printing)
 
 
@@ -2390,6 +2493,7 @@ NOTE: Case is important for matching, that is, `case-fold-search' is always
 
 It's used by `pr-interface'."
   :type '(repeat (regexp :tag "Buffer Name Regexp"))
+  :version "20"
   :group 'printing)
 
 
@@ -2398,6 +2502,7 @@ It's used by `pr-interface'."
 
 It's used by `pr-interface'."
   :type 'boolean
+  :version "20"
   :group 'printing)
 
 
@@ -2445,6 +2550,18 @@ See `pr-ps-printer-alist'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Macros
+
+
+(defmacro pr-save-file-modes (&rest body)
+  "Set temporally file modes to `pr-file-modes'."
+  `(let ((pr--default-file-modes (default-file-modes)))	; save default
+     (set-default-file-modes pr-file-modes)
+     ,@body
+     (set-default-file-modes pr--default-file-modes))) ; restore default
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Keys & Menus
 
 
@@ -2473,465 +2590,313 @@ See `pr-ps-printer-alist'.")
   (and pr-print-using-ghostscript (not pr-spool-p)))
 
 
-(eval-and-compile
-  (defun pr-get-symbol (name)
-    (easy-menu-intern name))
+(defun pr-get-symbol (name)
+  (easy-menu-intern name))
 
+(cond
+ ((featurep 'xemacs)			; XEmacs
+  (defvar zmacs-region-stays nil)	; to avoid compilation gripes
+  (defun pr-region-active-p ()
+    (and pr-auto-region (not zmacs-region-stays) (ps-mark-active-p))))
+
+ (t					; GNU Emacs
+  (defun pr-region-active-p ()
+    (and pr-auto-region transient-mark-mode mark-active))))
+
+
+(defconst pr-menu-spec
+  ;; Menu mapping:
+  ;;   unfortunately XEmacs doesn't support :active for submenus,
+  ;;   only for items.
+  ;;   So, it uses :included instead of :active.
+  ;;   Also, XEmacs doesn't support :help tag.
+  (let ((pr-:active  (if (featurep 'xemacs)
+			 :included	; XEmacs
+		       :active))	; GNU Emacs
+	(pr-:help    (if (featurep 'xemacs)
+			 'ignore				; XEmacs
+		       #'(lambda (text) (list :help text)))))	; GNU Emacs
+    `(
+      ["Printing Interface" pr-interface
+       ,@(funcall
+	  pr-:help "Use buffer interface instead of menu interface")]
+      "--"
+      ("PostScript Preview" :included (pr-visible-p 'postscript)
+       ,@(funcall
+	  pr-:help "Preview PostScript instead of sending to printer")
+       ("Directory" ,pr-:active (not pr-spool-p)
+	["1-up"     (pr-ps-directory-preview 1   nil nil t) t]
+	["2-up"     (pr-ps-directory-preview 2   nil nil t) t]
+	["4-up"     (pr-ps-directory-preview 4   nil nil t) t]
+	["Other..." (pr-ps-directory-preview nil nil nil t)
+	 :keys "\\[pr-ps-buffer-preview]"])
+       ("Buffer" ,pr-:active (not pr-spool-p)
+	["1-up"     (pr-ps-buffer-preview 1   t) t]
+	["2-up"     (pr-ps-buffer-preview 2   t) t]
+	["4-up"     (pr-ps-buffer-preview 4   t) t]
+	["Other..." (pr-ps-buffer-preview nil t)
+	 :keys "\\[pr-ps-buffer-preview]"])
+       ("Region" ,pr-:active (and (not pr-spool-p) (ps-mark-active-p))
+	["1-up"     (pr-ps-region-preview 1   t) t]
+	["2-up"     (pr-ps-region-preview 2   t) t]
+	["4-up"     (pr-ps-region-preview 4   t) t]
+	["Other..." (pr-ps-region-preview nil t)
+	 :keys "\\[pr-ps-region-preview]"])
+       ("Mode" ,pr-:active (and (not pr-spool-p) (pr-mode-alist-p))
+	["1-up"     (pr-ps-mode-preview 1   t) t]
+	["2-up"     (pr-ps-mode-preview 2   t) t]
+	["4-up"     (pr-ps-mode-preview 4   t) t]
+	["Other..." (pr-ps-mode-preview nil t)
+	 :keys "\\[pr-ps-mode-preview]"])
+       ("File"
+	["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
+	 :keys "\\[pr-ps-file-preview]"
+	 ,@(funcall
+	    pr-:help "Preview PostScript file")]
+	"--"
+	["PostScript Utility" pr-update-menus :active pr-ps-utility-alist
+	 ,@(funcall
+	    pr-:help "Select PostScript utility")]
+	"--"
+	["1-up..."   (pr-ps-file-up-preview 1   t t) pr-ps-utility-alist]
+	["2-up..."   (pr-ps-file-up-preview 2   t t) pr-ps-utility-alist]
+	["4-up..."   (pr-ps-file-up-preview 4   t t) pr-ps-utility-alist]
+	["Other..."  (pr-ps-file-up-preview nil t t)
+	 :keys "\\[pr-ps-file-up-preview]" :active pr-ps-utility-alist]
+	"--"
+	["Landscape" pr-toggle-file-landscape-menu
+	 :style toggle :selected pr-file-landscape
+	 ,@(funcall
+	    pr-:help "Toggle landscape for PostScript file")
+	 :active pr-ps-utility-alist]
+	["Duplex"    pr-toggle-file-duplex-menu
+	 :style toggle :selected pr-file-duplex
+	 ,@(funcall
+	    pr-:help "Toggle duplex for PostScript file")
+	 :active pr-ps-utility-alist]
+	["Tumble"    pr-toggle-file-tumble-menu
+	 :style toggle :selected pr-file-tumble
+	 ,@(funcall
+	    pr-:help "Toggle tumble for PostScript file")
+	 :active (and pr-file-duplex pr-ps-utility-alist)])
+       ["Despool..." (call-interactively 'pr-despool-preview)
+	:active pr-spool-p :keys "\\[pr-despool-preview]"
+	,@(funcall
+	   pr-:help "Despool PostScript buffer to printer or file (C-u)")])
+      ("PostScript Print" :included (pr-visible-p 'postscript)
+       ,@(funcall
+	  pr-:help "Send PostScript to printer or file (C-u)")
+       ("Directory"
+	["1-up"     (pr-ps-directory-ps-print 1   nil nil t) t]
+	["2-up"     (pr-ps-directory-ps-print 2   nil nil t) t]
+	["4-up"     (pr-ps-directory-ps-print 4   nil nil t) t]
+	["Other..." (pr-ps-directory-ps-print nil nil nil t)
+	 :keys "\\[pr-ps-buffer-ps-print]"])
+       ("Buffer"
+	["1-up"     (pr-ps-buffer-ps-print 1   t) t]
+	["2-up"     (pr-ps-buffer-ps-print 2   t) t]
+	["4-up"     (pr-ps-buffer-ps-print 4   t) t]
+	["Other..." (pr-ps-buffer-ps-print nil t)
+	 :keys "\\[pr-ps-buffer-ps-print]"])
+       ("Region" ,pr-:active (ps-mark-active-p)
+	["1-up"     (pr-ps-region-ps-print 1   t) t]
+	["2-up"     (pr-ps-region-ps-print 2   t) t]
+	["4-up"     (pr-ps-region-ps-print 4   t) t]
+	["Other..." (pr-ps-region-ps-print nil t)
+	 :keys "\\[pr-ps-region-ps-print]"])
+       ("Mode" ,pr-:active (pr-mode-alist-p)
+	["1-up"     (pr-ps-mode-ps-print 1   t) t]
+	["2-up"     (pr-ps-mode-ps-print 2   t) t]
+	["4-up"     (pr-ps-mode-ps-print 4   t) t]
+	["Other..." (pr-ps-mode-ps-print nil t)
+	 :keys "\\[pr-ps-mode-ps-print]"])
+       ("File"
+	["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
+	 :keys "\\[pr-ps-file-ps-print]"
+	 ,@(funcall
+	    pr-:help "Send PostScript file to printer")]
+	"--"
+	["PostScript Utility" pr-update-menus :active pr-ps-utility-alist
+	 ,@(funcall
+	    pr-:help "Select PostScript utility")]
+	"--"
+	["1-up..."   (pr-ps-file-up-ps-print 1   t t) pr-ps-utility-alist]
+	["2-up..."   (pr-ps-file-up-ps-print 2   t t) pr-ps-utility-alist]
+	["4-up..."   (pr-ps-file-up-ps-print 4   t t) pr-ps-utility-alist]
+	["Other..."  (pr-ps-file-up-ps-print nil t t)
+	 :keys "\\[pr-ps-file-up-ps-print]" :active pr-ps-utility-alist]
+	"--"
+	["Landscape" pr-toggle-file-landscape-menu
+	 :style toggle :selected pr-file-landscape
+	 ,@(funcall
+	    pr-:help "Toggle landscape for PostScript file")
+	 :active pr-ps-utility-alist]
+	["Duplex"    pr-toggle-file-duplex-menu
+	 :style toggle :selected pr-file-duplex
+	 ,@(funcall
+	    pr-:help "Toggle duplex for PostScript file")
+	 :active pr-ps-utility-alist]
+	["Tumble"    pr-toggle-file-tumble-menu
+	 :style toggle :selected pr-file-tumble
+	 ,@(funcall
+	    pr-:help "Toggle tumble for PostScript file")
+	 :active (and pr-file-duplex pr-ps-utility-alist)])
+       ["Despool..." (call-interactively 'pr-despool-ps-print)
+	:active pr-spool-p :keys "\\[pr-despool-ps-print]"
+	,@(funcall
+	   pr-:help "Despool PostScript buffer to printer or file (C-u)")])
+      ["PostScript Printers" pr-update-menus
+       :active pr-ps-printer-alist :included (pr-visible-p 'postscript)
+       ,@(funcall
+	  pr-:help "Select PostScript printer")]
+      "--"
+      ("Printify" :included (pr-visible-p 'text)
+       ,@(funcall
+	  pr-:help
+	  "Replace non-printing chars with printable representations.")
+       ["Directory" pr-printify-directory t]
+       ["Buffer"    pr-printify-buffer    t]
+       ["Region"    pr-printify-region    (ps-mark-active-p)])
+      ("Print" :included (pr-visible-p 'text)
+       ,@(funcall
+	  pr-:help "Send text to printer")
+       ["Directory" pr-txt-directory t]
+       ["Buffer"    pr-txt-buffer    t]
+       ["Region"    pr-txt-region    (ps-mark-active-p)]
+       ["Mode"      pr-txt-mode      (pr-mode-alist-p)])
+      ["Text Printers" pr-update-menus
+       :active pr-txt-printer-alist :included (pr-visible-p 'text)
+       ,@(funcall
+	  pr-:help "Select text printer")]
+      "--"
+      ["Landscape"               pr-toggle-landscape-menu
+       :style toggle :selected ps-landscape-mode
+       :included (pr-visible-p 'postscript-options)]
+      ["Print Header"            pr-toggle-header-menu
+       :style toggle :selected ps-print-header
+       :included (pr-visible-p 'postscript-options)]
+      ["Print Header Frame"      pr-toggle-header-frame-menu
+       :style toggle :selected ps-print-header-frame :active ps-print-header
+       :included (pr-visible-p 'postscript-options)]
+      ["Line Number"             pr-toggle-line-menu
+       :style toggle :selected ps-line-number
+       :included (pr-visible-p 'postscript-options)]
+      ["Zebra Stripes"           pr-toggle-zebra-menu
+       :style toggle :selected ps-zebra-stripes
+       :included (pr-visible-p 'postscript-options)]
+      ["Duplex"                  pr-toggle-duplex-menu
+       :style toggle :selected ps-spool-duplex
+       :included (pr-visible-p 'postscript-options)]
+      ["Tumble"                  pr-toggle-tumble-menu
+       :style toggle :selected ps-spool-tumble :active ps-spool-duplex
+       :included (pr-visible-p 'postscript-options)]
+      ["Upside-Down"             pr-toggle-upside-down-menu
+       :style toggle :selected ps-print-upside-down
+       :included (pr-visible-p 'postscript-options)]
+      ("Print All Pages" :included (pr-visible-p 'postscript-options)
+       ,@(funcall
+	  pr-:help "Select odd/even pages/sheets to print")
+       ["All Pages"   (pr-even-or-odd-pages nil)
+	:style radio :selected (eq ps-even-or-odd-pages nil)]
+       ["Even Pages"  (pr-even-or-odd-pages 'even-page)
+	:style radio :selected (eq ps-even-or-odd-pages 'even-page)]
+       ["Odd Pages"   (pr-even-or-odd-pages 'odd-page)
+	:style radio :selected (eq ps-even-or-odd-pages 'odd-page)]
+       ["Even Sheets" (pr-even-or-odd-pages 'even-sheet)
+	:style radio :selected (eq ps-even-or-odd-pages 'even-sheet)]
+       ["Odd Sheets"  (pr-even-or-odd-pages 'odd-sheet)
+	:style radio :selected (eq ps-even-or-odd-pages 'odd-sheet)])
+      "--"
+      ["Spool Buffer"            pr-toggle-spool-menu
+       :style toggle :selected pr-spool-p
+       :included (pr-visible-p 'postscript-process)
+       ,@(funcall
+	  pr-:help "Toggle PostScript spooling")]
+      ["Print with faces"        pr-toggle-faces-menu
+       :style toggle :selected pr-faces-p
+       :included (pr-visible-p 'postscript-process)
+       ,@(funcall
+	  pr-:help "Toggle PostScript printing with faces")]
+      ["Print via Ghostscript" pr-toggle-ghostscript-menu
+       :style toggle :selected pr-print-using-ghostscript
+       :included (pr-visible-p 'postscript-process)
+       ,@(funcall
+	  pr-:help "Toggle PostScript generation using ghostscript")]
+      "--"
+      ["Auto Region" pr-toggle-region-menu
+       :style toggle :selected pr-auto-region
+       :included (pr-visible-p 'printing)]
+      ["Auto Mode"   pr-toggle-mode-menu
+       :style toggle :selected pr-auto-mode
+       :included (pr-visible-p 'printing)]
+      ["Menu Lock"   pr-toggle-lock-menu
+       :style toggle :selected pr-menu-lock
+       :included (pr-visible-p 'printing)]
+      "--"
+      ("Customize" :included (pr-visible-p 'help)
+       ["printing" pr-customize       t]
+       ["ps-print" ps-print-customize t]
+       ["lpr"      lpr-customize      t])
+      ("Show Settings" :included (pr-visible-p 'help)
+       ["printing" pr-show-pr-setup  t]
+       ["ps-print" pr-show-ps-setup  t]
+       ["lpr"      pr-show-lpr-setup t])
+      ["Help" pr-help :active t :included (pr-visible-p 'help)]
+      )))
+
+
+(cond
+ ((featurep 'xemacs)			; XEmacs
+  ;; Menu binding
+  (pr-xemacs-global-menubar
+   (pr-x-add-submenu nil (cons "Printing" pr-menu-spec) "Apps")))
+
+
+ (t					; GNU Emacs
+  ;; Menu binding
+  (require 'easymenu)
+  ;; Replace existing "print" item by "Printing" item.
+  ;; If you're changing this file, you'll load it a second,
+  ;; third... time, but "print" item exists only in the first load.
+  (defvar pr-menu-print-item "print")
   (cond
-   ((eq ps-print-emacs-type 'emacs)	; GNU Emacs
-    (defun pr-region-active-p ()
-      (and pr-auto-region transient-mark-mode mark-active)))
-
-   ((eq ps-print-emacs-type 'xemacs)	; XEmacs
-    (defvar zmacs-region-stays nil)	; to avoid compilation gripes
-    (defun pr-region-active-p ()
-      (and pr-auto-region (not zmacs-region-stays) (ps-mark-active-p)))))
-
-
-  (defconst pr-menu-spec
-    (cond
-     ((eq ps-print-emacs-type 'emacs)	; GNU Emacs
-      '(
-	["Printing Interface" pr-interface
-	 :help "Use buffer interface instead of menu interface"]
-	"--"
-	("PostScript Preview" :visible (pr-visible-p 'postscript)
-	 :help "Preview PostScript instead of sending to printer"
-	 ("Directory" :active (not pr-spool-p)
-	  ["1-up"     (pr-ps-directory-preview 1   nil nil t) t]
-	  ["2-up"     (pr-ps-directory-preview 2   nil nil t) t]
-	  ["4-up"     (pr-ps-directory-preview 4   nil nil t) t]
-	  ["Other..." (pr-ps-directory-preview nil nil nil t)
-	   :keys "\\[pr-ps-buffer-preview]"])
-	 ("Buffer" :active (not pr-spool-p)
-	  ["1-up"     (pr-ps-buffer-preview 1   t) t]
-	  ["2-up"     (pr-ps-buffer-preview 2   t) t]
-	  ["4-up"     (pr-ps-buffer-preview 4   t) t]
-	  ["Other..." (pr-ps-buffer-preview nil t)
-	   :keys "\\[pr-ps-buffer-preview]"])
-	 ("Region" :active (and (not pr-spool-p) (ps-mark-active-p))
-	  ["1-up"     (pr-ps-region-preview 1   t) t]
-	  ["2-up"     (pr-ps-region-preview 2   t) t]
-	  ["4-up"     (pr-ps-region-preview 4   t) t]
-	  ["Other..." (pr-ps-region-preview nil t)
-	   :keys "\\[pr-ps-region-preview]"])
-	 ("Mode" :active (and (not pr-spool-p) (pr-mode-alist-p))
-	  ["1-up"     (pr-ps-mode-preview 1   t) t]
-	  ["2-up"     (pr-ps-mode-preview 2   t) t]
-	  ["4-up"     (pr-ps-mode-preview 4   t) t]
-	  ["Other..." (pr-ps-mode-preview nil t)
-	   :keys "\\[pr-ps-mode-preview]"])
-	 ("File"
-	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
-	   :keys "\\[pr-ps-file-preview]"
-	   :help "Preview PostScript file"]
-	  "--"
-	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist
-	   :help "Select PostScript utility"]
-	  "--"
-	  ["1-up..."   (pr-ps-file-up-preview 1   t t) pr-ps-utility-alist]
-	  ["2-up..."   (pr-ps-file-up-preview 2   t t) pr-ps-utility-alist]
-	  ["4-up..."   (pr-ps-file-up-preview 4   t t) pr-ps-utility-alist]
-	  ["Other..."  (pr-ps-file-up-preview nil t t)
-	   :keys "\\[pr-ps-file-up-preview]" :active pr-ps-utility-alist]
-	  "--"
-	  ["Landscape" pr-toggle-file-landscape
-	   :style toggle :selected pr-file-landscape
-	   :help "Toggle landscape for PostScript file"
-	   :active pr-ps-utility-alist]
-	  ["Duplex"    pr-toggle-file-duplex
-	   :style toggle :selected pr-file-duplex
-	   :help "Toggle duplex for PostScript file"
-	   :active pr-ps-utility-alist]
-	  ["Tumble"    pr-toggle-file-tumble
-	   :style toggle :selected pr-file-tumble
-	   :help "Toggle tumble for PostScript file"
-	   :active (and pr-file-duplex pr-ps-utility-alist)])
-	 ["Despool..." (call-interactively 'pr-despool-preview)
-	  :active pr-spool-p :keys "\\[pr-despool-preview]"
-	  :help "Despool PostScript buffer to printer or file (C-u)"])
-	("PostScript Print" :visible (pr-visible-p 'postscript)
-	 :help "Send PostScript to printer or file (C-u)"
-	 ("Directory"
-	  ["1-up"     (pr-ps-directory-ps-print 1   nil nil t) t]
-	  ["2-up"     (pr-ps-directory-ps-print 2   nil nil t) t]
-	  ["4-up"     (pr-ps-directory-ps-print 4   nil nil t) t]
-	  ["Other..." (pr-ps-directory-ps-print nil nil nil t)
-	   :keys "\\[pr-ps-buffer-ps-print]"])
-	 ("Buffer"
-	  ["1-up"     (pr-ps-buffer-ps-print 1   t) t]
-	  ["2-up"     (pr-ps-buffer-ps-print 2   t) t]
-	  ["4-up"     (pr-ps-buffer-ps-print 4   t) t]
-	  ["Other..." (pr-ps-buffer-ps-print nil t)
-	   :keys "\\[pr-ps-buffer-ps-print]"])
-	 ("Region" :active (ps-mark-active-p)
-	  ["1-up"     (pr-ps-region-ps-print 1   t) t]
-	  ["2-up"     (pr-ps-region-ps-print 2   t) t]
-	  ["4-up"     (pr-ps-region-ps-print 4   t) t]
-	  ["Other..." (pr-ps-region-ps-print nil t)
-	   :keys "\\[pr-ps-region-ps-print]"])
-	 ("Mode" :active (pr-mode-alist-p)
-	  ["1-up"     (pr-ps-mode-ps-print 1   t) t]
-	  ["2-up"     (pr-ps-mode-ps-print 2   t) t]
-	  ["4-up"     (pr-ps-mode-ps-print 4   t) t]
-	  ["Other..." (pr-ps-mode-ps-print nil t)
-	   :keys "\\[pr-ps-mode-ps-print]"])
-	 ("File"
-	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
-	   :keys "\\[pr-ps-file-ps-print]"
-	   :help "Send PostScript file to printer"]
-	  "--"
-	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist
-	   :help "Select PostScript utility"]
-	  "--"
-	  ["1-up..."   (pr-ps-file-up-ps-print 1   t t) pr-ps-utility-alist]
-	  ["2-up..."   (pr-ps-file-up-ps-print 2   t t) pr-ps-utility-alist]
-	  ["4-up..."   (pr-ps-file-up-ps-print 4   t t) pr-ps-utility-alist]
-	  ["Other..."  (pr-ps-file-up-ps-print nil t t)
-	   :keys "\\[pr-ps-file-up-ps-print]" :active pr-ps-utility-alist]
-	  "--"
-	  ["Landscape" pr-toggle-file-landscape
-	   :style toggle :selected pr-file-landscape
-	   :help "Toggle landscape for PostScript file"
-	   :active pr-ps-utility-alist]
-	  ["Duplex"    pr-toggle-file-duplex
-	   :style toggle :selected pr-file-duplex
-	   :help "Toggle duplex for PostScript file"
-	   :active pr-ps-utility-alist]
-	  ["Tumble"    pr-toggle-file-tumble
-	   :style toggle :selected pr-file-tumble
-	   :help "Toggle tumble for PostScript file"
-	   :active (and pr-file-duplex pr-ps-utility-alist)])
-	 ["Despool..." (call-interactively 'pr-despool-ps-print)
-	  :active pr-spool-p :keys "\\[pr-despool-ps-print]"
-	  :help "Despool PostScript buffer to printer or file (C-u)"])
-	["PostScript Printers" pr-update-menus
-	 :active pr-ps-printer-alist :included (pr-visible-p 'postscript)
-	 :help "Select PostScript printer"]
-	"--"
-	("Printify" :visible (pr-visible-p 'text)
-	 :help "Replace non-printing chars with printable representations."
-	 ["Directory" pr-printify-directory t]
-	 ["Buffer"    pr-printify-buffer    t]
-	 ["Region"    pr-printify-region    (ps-mark-active-p)])
-	("Print" :visible (pr-visible-p 'text)
-	 :help "Send text to printer"
-	 ["Directory" pr-txt-directory t]
-	 ["Buffer"    pr-txt-buffer    t]
-	 ["Region"    pr-txt-region    (ps-mark-active-p)]
-	 ["Mode"      pr-txt-mode      (pr-mode-alist-p)])
-	["Text Printers" pr-update-menus
-	 :active pr-txt-printer-alist :included (pr-visible-p 'text)
-	 :help "Select text printer"]
-	"--"
-	["Landscape"               pr-toggle-landscape
-	 :style toggle :selected ps-landscape-mode
-	 :included (pr-visible-p 'postscript-options)]
-	["Print Header"            pr-toggle-header
-	 :style toggle :selected ps-print-header
-	 :included (pr-visible-p 'postscript-options)]
-	["Print Header Frame"      pr-toggle-header-frame
-	 :style toggle :selected ps-print-header-frame :active ps-print-header
-	 :included (pr-visible-p 'postscript-options)]
-	["Line Number"             pr-toggle-line
-	 :style toggle :selected ps-line-number
-	 :included (pr-visible-p 'postscript-options)]
-	["Zebra Stripes"           pr-toggle-zebra
-	 :style toggle :selected ps-zebra-stripes
-	 :included (pr-visible-p 'postscript-options)]
-	["Duplex"                  pr-toggle-duplex
-	 :style toggle :selected ps-spool-duplex
-	 :included (pr-visible-p 'postscript-options)]
-	["Tumble"                  pr-toggle-tumble
-	 :style toggle :selected ps-spool-tumble :active ps-spool-duplex
-	 :included (pr-visible-p 'postscript-options)]
-	["Upside-Down"             pr-toggle-upside-down
-	 :style toggle :selected ps-print-upside-down
-	 :included (pr-visible-p 'postscript-options)]
-	("Print All Pages" :visible (pr-visible-p 'postscript-options)
-	 :help "Select odd/even pages/sheets to print"
-	 ["All Pages"   (pr-even-or-odd-pages nil)
-	  :style radio :selected (eq ps-even-or-odd-pages nil)]
-	 ["Even Pages"  (pr-even-or-odd-pages 'even-page)
-	  :style radio :selected (eq ps-even-or-odd-pages 'even-page)]
-	 ["Odd Pages"   (pr-even-or-odd-pages 'odd-page)
-	  :style radio :selected (eq ps-even-or-odd-pages 'odd-page)]
-	 ["Even Sheets" (pr-even-or-odd-pages 'even-sheet)
-	  :style radio :selected (eq ps-even-or-odd-pages 'even-sheet)]
-	 ["Odd Sheets"  (pr-even-or-odd-pages 'odd-sheet)
-	  :style radio :selected (eq ps-even-or-odd-pages 'odd-sheet)])
-	"--"
-	["Spool Buffer"            pr-toggle-spool
-	 :style toggle :selected pr-spool-p
-	 :included (pr-visible-p 'postscript-process)
-	 :help "Toggle PostScript spooling"]
-	["Print with faces"        pr-toggle-faces
-	 :style toggle :selected pr-faces-p
-	 :included (pr-visible-p 'postscript-process)
-	 :help "Toggle PostScript printing with faces"]
-	["Print via Ghostscript" pr-toggle-ghostscript
-	 :style toggle :selected pr-print-using-ghostscript
-	 :included (pr-visible-p 'postscript-process)
-	 :help "Toggle PostScript generation using ghostscript"]
-	"--"
-	["Auto Region" pr-toggle-region
-	 :style toggle :selected pr-auto-region
-	 :included (pr-visible-p 'printing)]
-	["Auto Mode"   pr-toggle-mode
-	 :style toggle :selected pr-auto-mode
-	 :included (pr-visible-p 'printing)]
-	["Menu Lock"   pr-toggle-lock
-	 :style toggle :selected pr-menu-lock
-	 :included (pr-visible-p 'printing)]
-	"--"
-	("Customize" :visible (pr-visible-p 'help)
-	 ["printing" pr-customize       t]
-	 ["ps-print" ps-print-customize t]
-	 ["lpr"      lpr-customize      t])
-	("Show Settings" :visible (pr-visible-p 'help)
-	 ["printing" pr-show-pr-setup  t]
-	 ["ps-print" pr-show-ps-setup  t]
-	 ["lpr"      pr-show-lpr-setup t])
-	["Help" pr-help :active t :included (pr-visible-p 'help)]
-	))
+   ;; Emacs 20
+   ((string< emacs-version "21.")
+    (easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
+    (when pr-menu-print-item
+      (easy-menu-remove-item nil '("tools") pr-menu-print-item)
+      (setq pr-menu-print-item nil
+	    pr-menu-bar (vector 'menu-bar 'tools
+				(pr-get-symbol "Printing")))))
+   ;; Emacs 21
+   (pr-menu-print-item
+    (easy-menu-change '("file") "Print" pr-menu-spec "print-buffer")
+    (let ((items '("print-buffer"          "print-region"
+		   "ps-print-buffer-faces" "ps-print-region-faces"
+		   "ps-print-buffer"       "ps-print-region")))
+      (while items
+	(easy-menu-remove-item nil '("file") (car items))
+	(setq items (cdr items)))
+      (setq pr-menu-print-item nil
+	    pr-menu-bar (vector 'menu-bar 'file
+				(pr-get-symbol "Print")))))
+   (t
+    (easy-menu-change '("file") "Print" pr-menu-spec)))))
 
 
-     ((eq ps-print-emacs-type 'xemacs)	; XEmacs
-      ;; Menu mapping:
-      ;;   unfortunately XEmacs doesn't support :active or :visible
-      ;;   for submenus, only for items.
-      ;;   It uses :included instead of :active or :visible.
-      ;;   Also, XEmacs doesn't support :help tag.
-      '(
-	["Printing Interface" pr-interface]
-	"--"
-	("PostScript Preview" :included (pr-visible-p 'postscript)
-	 ("Directory" :included (not pr-spool-p)
-	  ["1-up"     (pr-ps-directory-preview 1   nil nil t) t]
-	  ["2-up"     (pr-ps-directory-preview 2   nil nil t) t]
-	  ["4-up"     (pr-ps-directory-preview 4   nil nil t) t]
-	  ["Other..." (pr-ps-directory-preview nil nil nil t)
-	   :keys "\\[pr-ps-buffer-preview]"])
-	 ("Buffer" :included (not pr-spool-p)
-	  ["1-up"     (pr-ps-buffer-preview 1   t) t]
-	  ["2-up"     (pr-ps-buffer-preview 2   t) t]
-	  ["4-up"     (pr-ps-buffer-preview 4   t) t]
-	  ["Other..." (pr-ps-buffer-preview nil t)
-	   :keys "\\[pr-ps-buffer-preview]"])
-	 ("Region" :included (and (not pr-spool-p) (ps-mark-active-p))
-	  ["1-up"     (pr-ps-region-preview 1   t) t]
-	  ["2-up"     (pr-ps-region-preview 2   t) t]
-	  ["4-up"     (pr-ps-region-preview 4   t) t]
-	  ["Other..." (pr-ps-region-preview nil t)
-	   :keys "\\[pr-ps-region-preview]"])
-	 ("Mode" :included (and (not pr-spool-p) (pr-mode-alist-p))
-	  ["1-up"     (pr-ps-mode-preview 1   t) t]
-	  ["2-up"     (pr-ps-mode-preview 2   t) t]
-	  ["4-up"     (pr-ps-mode-preview 4   t) t]
-	  ["Other..." (pr-ps-mode-preview nil t)
-	   :keys "\\[pr-ps-mode-preview]"])
-	 ("File"
-	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
-	   :keys "\\[pr-ps-file-preview]"]
-	  "--"
-	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist]
-	  "--"
-	  ["1-up..."   (pr-ps-file-up-preview 1   t t) pr-ps-utility-alist]
-	  ["2-up..."   (pr-ps-file-up-preview 2   t t) pr-ps-utility-alist]
-	  ["4-up..."   (pr-ps-file-up-preview 4   t t) pr-ps-utility-alist]
-	  ["Other..."  (pr-ps-file-up-preview nil t t)
-	   :keys "\\[pr-ps-file-up-preview]" :active pr-ps-utility-alist]
-	  "--"
-	  ["Landscape" pr-toggle-file-landscape
-	   :style toggle :selected pr-file-landscape
-	   :active pr-ps-utility-alist]
-	  ["Duplex"    pr-toggle-file-duplex
-	   :style toggle :selected pr-file-duplex
-	   :active pr-ps-utility-alist]
-	  ["Tumble"    pr-toggle-file-tumble
-	   :style toggle :selected pr-file-tumble
-	   :active (and pr-file-duplex pr-ps-utility-alist)])
-	 ["Despool..." (call-interactively 'pr-despool-preview)
-	  :active pr-spool-p :keys "\\[pr-despool-preview]"])
-	("PostScript Print" :included (pr-visible-p 'postscript)
-	 ("Directory"
-	  ["1-up"     (pr-ps-directory-ps-print 1   nil nil t) t]
-	  ["2-up"     (pr-ps-directory-ps-print 2   nil nil t) t]
-	  ["4-up"     (pr-ps-directory-ps-print 4   nil nil t) t]
-	  ["Other..." (pr-ps-directory-ps-print nil nil nil t)
-	   :keys "\\[pr-ps-buffer-ps-print]"])
-	 ("Buffer"
-	  ["1-up"     (pr-ps-buffer-ps-print 1   t) t]
-	  ["2-up"     (pr-ps-buffer-ps-print 2   t) t]
-	  ["4-up"     (pr-ps-buffer-ps-print 4   t) t]
-	  ["Other..." (pr-ps-buffer-ps-print nil t)
-	   :keys "\\[pr-ps-buffer-ps-print]"])
-	 ("Region" :included (ps-mark-active-p)
-	  ["1-up"     (pr-ps-region-ps-print 1   t) t]
-	  ["2-up"     (pr-ps-region-ps-print 2   t) t]
-	  ["4-up"     (pr-ps-region-ps-print 4   t) t]
-	  ["Other..." (pr-ps-region-ps-print nil t)
-	   :keys "\\[pr-ps-region-ps-print]"])
-	 ("Mode" :included (pr-mode-alist-p)
-	  ["1-up"     (pr-ps-mode-ps-print 1   t) t]
-	  ["2-up"     (pr-ps-mode-ps-print 2   t) t]
-	  ["4-up"     (pr-ps-mode-ps-print 4   t) t]
-	  ["Other..." (pr-ps-mode-ps-print nil t)
-	   :keys "\\[pr-ps-mode-ps-print]"])
-	 ("File"
-	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
-	   :keys "\\[pr-ps-file-ps-print]"]
-	  "--"
-	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist]
-	  "--"
-	  ["1-up..."   (pr-ps-file-up-ps-print 1   t t) pr-ps-utility-alist]
-	  ["2-up..."   (pr-ps-file-up-ps-print 2   t t) pr-ps-utility-alist]
-	  ["4-up..."   (pr-ps-file-up-ps-print 4   t t) pr-ps-utility-alist]
-	  ["Other..."  (pr-ps-file-up-ps-print nil t t)
-	   :keys "\\[pr-ps-file-up-ps-print]" :active pr-ps-utility-alist]
-	  "--"
-	  ["Landscape" pr-toggle-file-landscape
-	   :style toggle :selected pr-file-landscape
-	   :active pr-ps-utility-alist]
-	  ["Duplex"    pr-toggle-file-duplex
-	   :style toggle :selected pr-file-duplex
-	   :active pr-ps-utility-alist]
-	  ["Tumble"    pr-toggle-file-tumble
-	   :style toggle :selected pr-file-tumble
-	   :active (and pr-file-duplex pr-ps-utility-alist)])
-	 ["Despool..." (call-interactively 'pr-despool-ps-print)
-	  :active pr-spool-p :keys "\\[pr-despool-ps-print]"])
-	["PostScript Printers" pr-update-menus
-	 :active pr-ps-printer-alist :included (pr-visible-p 'postscript)]
-	"--"
-	("Printify" :included (pr-visible-p 'text)
-	 ["Directory" pr-printify-directory t]
-	 ["Buffer"    pr-printify-buffer    t]
-	 ["Region"    pr-printify-region    (ps-mark-active-p)])
-	("Print" :included (pr-visible-p 'text)
-	 ["Directory" pr-txt-directory t]
-	 ["Buffer"    pr-txt-buffer    t]
-	 ["Region"    pr-txt-region    (ps-mark-active-p)]
-	 ["Mode"      pr-txt-mode      (pr-mode-alist-p)])
-	["Text Printers" pr-update-menus
-	 :active pr-txt-printer-alist :included (pr-visible-p 'text)]
-	"--"
-	["Landscape"               pr-toggle-landscape
-	 :style toggle :selected ps-landscape-mode
-	 :included (pr-visible-p 'postscript-options)]
-	["Print Header"            pr-toggle-header
-	 :style toggle :selected ps-print-header
-	 :included (pr-visible-p 'postscript-options)]
-	["Print Header Frame"      pr-toggle-header-frame
-	 :style toggle :selected ps-print-header-frame :active ps-print-header
-	 :included (pr-visible-p 'postscript-options)]
-	["Line Number"             pr-toggle-line
-	 :style toggle :selected ps-line-number
-	 :included (pr-visible-p 'postscript-options)]
-	["Zebra Stripes"           pr-toggle-zebra
-	 :style toggle :selected ps-zebra-stripes
-	 :included (pr-visible-p 'postscript-options)]
-	["Duplex"                  pr-toggle-duplex
-	 :style toggle :selected ps-spool-duplex
-	 :included (pr-visible-p 'postscript-options)]
-	["Tumble"                  pr-toggle-tumble
-	 :style toggle :selected ps-spool-tumble :active ps-spool-duplex
-	 :included (pr-visible-p 'postscript-options)]
-	["Upside-Down"             pr-toggle-upside-down
-	 :style toggle :selected ps-print-upside-down
-	 :included (pr-visible-p 'postscript-options)]
-	("Print All Pages" :included (pr-visible-p 'postscript-options)
-	 ["All Pages"   (pr-even-or-odd-pages nil)
-	  :style radio :selected (eq ps-even-or-odd-pages nil)]
-	 ["Even Pages"  (pr-even-or-odd-pages 'even-page)
-	  :style radio :selected (eq ps-even-or-odd-pages 'even-page)]
-	 ["Odd Pages"   (pr-even-or-odd-pages 'odd-page)
-	  :style radio :selected (eq ps-even-or-odd-pages 'odd-page)]
-	 ["Even Sheets" (pr-even-or-odd-pages 'even-sheet)
-	  :style radio :selected (eq ps-even-or-odd-pages 'even-sheet)]
-	 ["Odd Sheets"  (pr-even-or-odd-pages 'odd-sheet)
-	  :style radio :selected (eq ps-even-or-odd-pages 'odd-sheet)])
-	"--"
-	["Spool Buffer"            pr-toggle-spool
-	 :style toggle :selected pr-spool-p
-	 :included (pr-visible-p 'postscript-process)]
-	["Print with faces"        pr-toggle-faces
-	 :style toggle :selected pr-faces-p
-	 :included (pr-visible-p 'postscript-process)]
-	["Print via Ghostscript" pr-toggle-ghostscript
-	 :style toggle :selected pr-print-using-ghostscript
-	 :included (pr-visible-p 'postscript-process)]
-	"--"
-	["Auto Region" pr-toggle-region
-	 :style toggle :selected pr-auto-region
-	 :included (pr-visible-p 'printing)]
-	["Auto Mode"   pr-toggle-mode
-	 :style toggle :selected pr-auto-mode
-	 :included (pr-visible-p 'printing)]
-	["Menu Lock"   pr-toggle-lock
-	 :style toggle :selected pr-menu-lock
-	 :included (pr-visible-p 'printing)]
-	"--"
-	("Customize" :included (pr-visible-p 'help)
-	 ["printing" pr-customize       t]
-	 ["ps-print" ps-print-customize t]
-	 ["lpr"      lpr-customize      t])
-	("Show Settings" :included (pr-visible-p 'help)
-	 ["printing" pr-show-pr-setup  t]
-	 ["ps-print" pr-show-ps-setup  t]
-	 ["lpr"      pr-show-lpr-setup t])
-	["Help" pr-help :active t :included (pr-visible-p 'help)]
-	))
-     ))
-
-
-  (cond
-   ((eq ps-print-emacs-type 'emacs)	; GNU Emacs
-    ;; Menu binding
-    (require 'easymenu)
-    ;; Replace existing "print" item by "Printing" item.
-    ;; If you're changing this file, you'll load it a second,
-    ;; third... time, but "print" item exists only in the first load.
-    (defvar pr-menu-print-item "print")
-    (cond
-     ;; Emacs 20
-     ((string< emacs-version "21.")
-      (easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
-      (when pr-menu-print-item
-	(easy-menu-remove-item nil '("tools") pr-menu-print-item)
-	(setq pr-menu-print-item nil
-	      pr-menu-bar (vector 'menu-bar 'tools
-				  (pr-get-symbol "Printing")))))
-     ;; Emacs 21
-     (pr-menu-print-item
-      (easy-menu-change '("file") "Print" pr-menu-spec "print-buffer")
-      (let ((items '("print-buffer"          "print-region"
-		     "ps-print-buffer-faces" "ps-print-region-faces"
-		     "ps-print-buffer"       "ps-print-region")))
-	(while items
-	  (easy-menu-remove-item nil '("file") (car items))
-	  (setq items (cdr items)))
-	(setq pr-menu-print-item nil
-	      pr-menu-bar (vector 'menu-bar 'file
-				  (pr-get-symbol "Print")))))
-     (t
-      (easy-menu-change '("file") "Print" pr-menu-spec)))
-
-    ;; Key binding
-    (global-set-key [print]   'pr-ps-fast-fire)
-    (global-set-key [M-print] 'pr-ps-mode-using-ghostscript)
-    (global-set-key [C-print] 'pr-txt-fast-fire))
-
-
-   ((eq ps-print-emacs-type 'xemacs)	; XEmacs
-    ;; Menu binding
-    (pr-xemacs-global-menubar
-     (pr-x-add-submenu nil (cons "Printing" pr-menu-spec) "Apps"))
-
-    ;; Key binding
-    (global-set-key 'f22           'pr-ps-fast-fire)
-    (global-set-key '(meta f22)    'pr-ps-mode-using-ghostscript)
-    (global-set-key '(control f22) 'pr-txt-fast-fire))))
+;; Key binding
+(let ((pr-print-key (if (featurep 'xemacs)
+			'f22		; XEmacs
+		      'print)))		; GNU Emacs
+  (global-set-key `[,pr-print-key]                'pr-ps-fast-fire)
+  ;; Well, M-print and S-print are used because in my keyboard S-print works
+  ;; and M-print doesn't.  But M-print can work in other keyboard.
+  (global-set-key `[(meta ,pr-print-key)]         'pr-ps-mode-using-ghostscript)
+  (global-set-key `[(shift ,pr-print-key)]        'pr-ps-mode-using-ghostscript)
+  ;; Well, C-print and C-M-print are used because in my keyboard C-M-print works
+  ;; and C-print doesn't.  But C-print can work in other keyboard.
+  (global-set-key `[(control ,pr-print-key)]      'pr-txt-fast-fire)
+  (global-set-key `[(control meta ,pr-print-key)] 'pr-txt-fast-fire))
 
 
 ;;; You can also use something like:
@@ -3837,11 +3802,12 @@ Noninteractively, the argument FILENAME is treated as follows: if it is nil,
 send the image to the printer.  If FILENAME is a string, save the PostScript
 image in a file with that name."
   (interactive (list (ps-print-preprint current-prefix-arg)))
-  (let ((ps-lpr-command         (pr-command pr-ps-command))
-	(ps-lpr-switches        pr-ps-switches)
-	(ps-printer-name-option pr-ps-printer-switch)
-	(ps-printer-name        pr-ps-printer))
-    (ps-despool filename)))
+  (pr-save-file-modes
+   (let ((ps-lpr-command         (pr-command pr-ps-command))
+	 (ps-lpr-switches        pr-ps-switches)
+	 (ps-printer-name-option pr-ps-printer-switch)
+	 (ps-printer-name        pr-ps-printer))
+     (ps-despool filename))))
 
 
 ;;;###autoload
@@ -3908,15 +3874,17 @@ image in a file with that name."
        ;; printing
        (let ((file (pr-expand-file-name filename)))
 	 (if (string= pr-ps-command "")
+	     ;; default action
 	     (let ((ps-spool-buffer (get-buffer-create ps-spool-buffer-name)))
 	       (save-excursion
 		 (set-buffer ps-spool-buffer)
 		 (erase-buffer)
 		 (insert-file-contents-literally file))
 	       (pr-despool-print))
+	   ;; use `pr-ps-command' to print
 	   (apply 'pr-call-process
 		  pr-ps-command
-		  (pr-switches-string pr-ps-switches "pr-gs-switches")
+		  (pr-switches-string pr-ps-switches "pr-ps-switches")
 		  (if (string-match "cp" pr-ps-command)
 		      ;; for "cp" (cmd in out)
 		      (list file
@@ -3972,8 +3940,7 @@ file name."
 (defun pr-toggle-file-duplex ()
   "Toggle duplex for PostScript file."
   (interactive)
-  (pr-toggle 'pr-file-duplex "PS file duplex" nil 7 5 nil
-	     '("PostScript Print" "File")))
+  (pr-toggle-file-duplex-menu t))
 
 
 ;;;###autoload
@@ -3985,48 +3952,42 @@ right.
 If tumble is on, produces a printing suitable for binding at the top or
 bottom."
   (interactive)
-  (pr-toggle 'pr-file-tumble "PS file tumble" nil 8 5 nil
-	     '("PostScript Print" "File")))
+  (pr-toggle-file-tumble-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-file-landscape ()
   "Toggle landscape for PostScript file."
   (interactive)
-  (pr-toggle 'pr-file-landscape "PS file landscape" nil 6 5 nil
-	     '("PostScript Print" "File")))
+  (pr-toggle-file-landscape-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-ghostscript ()
   "Toggle printing using ghostscript."
   (interactive)
-  (pr-toggle 'pr-print-using-ghostscript "Printing using ghostscript"
-	     'postscript-process 2 12 'toggle))
+  (pr-toggle-ghostscript-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-faces ()
   "Toggle printing with faces."
   (interactive)
-  (pr-toggle 'pr-faces-p "Printing with faces"
-	     'postscript-process 1 12 'toggle))
+  (pr-toggle-faces-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-spool ()
   "Toggle spooling."
   (interactive)
-  (pr-toggle 'pr-spool-p "Spooling printing"
-	     'postscript-process 0 12 'toggle))
+  (pr-toggle-spool-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-duplex ()
   "Toggle duplex."
   (interactive)
-  (pr-toggle 'ps-spool-duplex "Printing duplex"
-	     'postcsript-options 5 12 'toggle))
+  (pr-toggle-duplex-menu t))
 
 
 ;;;###autoload
@@ -4038,80 +3999,70 @@ right.
 If tumble is on, produces a printing suitable for binding at the top or
 bottom."
   (interactive)
-  (pr-toggle 'ps-spool-tumble "Tumble"
-	     'postscript-options 6 12 'toggle))
+  (pr-toggle-tumble-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-landscape ()
   "Toggle landscape."
   (interactive)
-  (pr-toggle 'ps-landscape-mode "Landscape"
-	     'postscript-options 0 12 'toggle))
+  (pr-toggle-landscape-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-upside-down ()
   "Toggle upside-down."
   (interactive)
-  (pr-toggle 'ps-print-upside-down "Upside-Down"
-	     'postscript-options 7 12 'toggle))
+  (pr-toggle-upside-down-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-line ()
   "Toggle line number."
   (interactive)
-  (pr-toggle 'ps-line-number "Line number"
-	     'postscript-options 3 12 'toggle))
+  (pr-toggle-line-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-zebra ()
   "Toggle zebra stripes."
   (interactive)
-  (pr-toggle 'ps-zebra-stripes "Zebra stripe"
-	     'postscript-options 4 12 'toggle))
+  (pr-toggle-zebra-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-header ()
   "Toggle printing header."
   (interactive)
-  (pr-toggle 'ps-print-header "Print header"
-	     'postscript-options 1 12 'toggle))
+  (pr-toggle-header-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-header-frame ()
   "Toggle printing header frame."
   (interactive)
-  (pr-toggle 'ps-print-header-frame "Print header frame"
-	     'postscript-options 2 12 'toggle))
+  (pr-toggle-header-frame-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-lock ()
   "Toggle menu lock."
   (interactive)
-  (pr-toggle 'pr-menu-lock "Menu lock"
-	     'printing 2 12 'toggle))
+  (pr-toggle-lock-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-region ()
   "Toggle auto region."
   (interactive)
-  (pr-toggle 'pr-auto-region "Auto region"
-	     'printing 0 12 'toggle))
+  (pr-toggle-region-menu t))
 
 
 ;;;###autoload
 (defun pr-toggle-mode ()
   "Toggle auto mode."
   (interactive)
-  (pr-toggle 'pr-auto-mode "Auto mode"
-	     'printing 1 12 'toggle))
+  (pr-toggle-mode-menu t))
 
 
 ;;;###autoload
@@ -4140,7 +4091,8 @@ bottom."
   "Interactively select a PostScript printer."
   (interactive)
   (pr-menu-set-ps-title
-   (pr-complete-alist "PostScript printer" pr-ps-printer-alist pr-ps-name)))
+   (pr-complete-alist "PostScript printer"
+		      pr-ps-printer-alist pr-ps-name)))
 
 
 ;;;###autoload
@@ -4148,7 +4100,8 @@ bottom."
   "Interactively select a text printer."
   (interactive)
   (pr-menu-set-txt-title
-   (pr-complete-alist "Text printer" pr-txt-printer-alist pr-txt-name)))
+   (pr-complete-alist "Text printer"
+		      pr-txt-printer-alist pr-txt-name)))
 
 
 ;;;###autoload
@@ -4156,7 +4109,8 @@ bottom."
   "Interactively select a PostScript utility."
   (interactive)
   (pr-menu-set-utility-title
-   (pr-complete-alist "Postscript utility" pr-ps-utility-alist pr-ps-utility)))
+   (pr-complete-alist "Postscript utility"
+		      pr-ps-utility-alist pr-ps-utility)))
 
 
 ;;;###autoload
@@ -4350,6 +4304,7 @@ Or choose the menu option Printing/Show Settings/printing."
       nil
       '(20 . pr-temp-dir)
       '(20 . pr-ps-temp-file)
+      '(20 . pr-file-modes)
       '(20 . pr-delete-temp-file)
       '(20 . pr-list-directory)
       nil
@@ -4652,90 +4607,88 @@ See `pr-visible-entry-alist'.")
 (defvar pr-menu-state nil)
 
 
-(eval-and-compile
-  (cond
-   ((eq ps-print-emacs-type 'xemacs)
-    ;; XEmacs
-    (defvar current-mouse-event nil)	; to avoid compilation gripes
-    (defun pr-menu-position (entry index horizontal)
-      (pr-x-make-event
-       'button-release
-       (list 'button 1
-	     'x (- (pr-x-event-x-pixel current-mouse-event) ; X
-		   (* horizontal pr-menu-char-width))
-	     'y (- (pr-x-event-y-pixel current-mouse-event) ; Y
-		   (* (pr-menu-index entry index) pr-menu-char-height)))))
-    )
-   (ps-windows-system
-    ;; GNU Emacs for Windows 9x/NT
-    (defun pr-menu-position (entry index horizontal)
-      (let ((pos (cdr (pr-e-mouse-pixel-position))))
-	(list
-	 (list (or (car pos) 0)		; X
-	       (- (or (cdr pos) 0)	; Y
-		  (* (pr-menu-index entry index) pr-menu-char-height)))
-	 (selected-frame))))		; frame
-    )
-   (t
-    ;; GNU Emacs
-    (defun pr-menu-position (entry index horizontal)
-      (let ((pos (cdr (pr-e-mouse-pixel-position))))
-	(list
-	 (list (- (or (car pos) 0)	; X
-		  (* horizontal pr-menu-char-width))
-	       (- (or (cdr pos) 0)	; Y
-		  (* (pr-menu-index entry index) pr-menu-char-height)))
-	 (selected-frame))))		; frame
-    ))
+(cond
+ ((featurep 'xemacs)
+  ;; XEmacs
+  (defvar current-mouse-event nil)	; to avoid compilation gripes
+  (defun pr-menu-position (entry index horizontal)
+    (pr-x-make-event
+     'button-release
+     (list 'button 1
+	   'x (- (pr-x-event-x-pixel current-mouse-event) ; X
+		 (* horizontal pr-menu-char-width))
+	   'y (- (pr-x-event-y-pixel current-mouse-event) ; Y
+		 (* (pr-menu-index entry index) pr-menu-char-height)))))
+  )
+ (ps-windows-system
+  ;; GNU Emacs for Windows 9x/NT
+  (defun pr-menu-position (entry index horizontal)
+    (let ((pos (cdr (pr-e-mouse-pixel-position))))
+      (list
+       (list (or (car pos) 0)		; X
+	     (- (or (cdr pos) 0)	; Y
+		(* (pr-menu-index entry index) pr-menu-char-height)))
+       (selected-frame))))		; frame
+  )
+ (t
+  ;; GNU Emacs
+  (defun pr-menu-position (entry index horizontal)
+    (let ((pos (cdr (pr-e-mouse-pixel-position))))
+      (list
+       (list (- (or (car pos) 0)	; X
+		(* horizontal pr-menu-char-width))
+	     (- (or (cdr pos) 0)	; Y
+		(* (pr-menu-index entry index) pr-menu-char-height)))
+       (selected-frame))))		; frame
+  ))
 
-  (cond
-   ((eq ps-print-emacs-type 'emacs)
-    ;; GNU Emacs
-    (defun pr-menu-lookup (path)
-      (let ((ipath pr-menu-bar))
-	(lookup-key global-map
-		    (if path
-			(vconcat ipath
-				 (mapcar 'pr-get-symbol
-					 (if (listp path)
-					     path
-					   (list path))))
-		      ipath))))
+(cond
+ ((featurep 'xemacs)
+  ;; XEmacs
+  (defvar current-menubar nil)		; to avoid compilation gripes
+  (defun pr-menu-lookup (path)
+    (car (pr-x-find-menu-item current-menubar (cons "Printing" path))))
 
-    ;; GNU Emacs
-    (defun pr-menu-lock (entry index horizontal state path)
-      (when (and (not (interactive-p)) pr-menu-lock)
-	(or (and pr-menu-position (eq state pr-menu-state))
-	    (setq pr-menu-position (pr-menu-position entry index horizontal)
-		  pr-menu-state    state))
-	(let* ((menu   (pr-menu-lookup path))
-	       (result (x-popup-menu pr-menu-position menu)))
-	  (and result
-	       (let ((command (lookup-key menu (vconcat result))))
-		 (if (fboundp command)
-		     (funcall command)
-		   (eval command)))))
-	(setq pr-menu-position nil))))
+  ;; XEmacs
+  (defun pr-menu-lock (entry index horizontal state path)
+    (when pr-menu-lock
+      (or (and pr-menu-position (eq state pr-menu-state))
+	  (setq pr-menu-position (pr-menu-position entry index horizontal)
+		pr-menu-state    state))
+      (let* ((menu   (pr-menu-lookup path))
+	     (result (pr-x-get-popup-menu-response menu pr-menu-position)))
+	(and (pr-x-misc-user-event-p result)
+	     (funcall (pr-x-event-function result)
+		      (pr-x-event-object result))))
+      (setq pr-menu-position nil))))
 
 
-   ((eq ps-print-emacs-type 'xemacs)
-    ;; XEmacs
-    (defvar current-menubar nil)	; to avoid compilation gripes
-    (defun pr-menu-lookup (path)
-      (car (pr-x-find-menu-item current-menubar (cons "Printing" path))))
+ (t
+  ;; GNU Emacs
+  (defun pr-menu-lookup (path)
+    (lookup-key global-map
+		(if path
+		    (vconcat pr-menu-bar
+			     (mapcar 'pr-get-symbol
+				     (if (listp path)
+					 path
+				       (list path))))
+		  pr-menu-bar)))
 
-    ;; XEmacs
-    (defun pr-menu-lock (entry index horizontal state path)
-      (when (and (not (interactive-p)) pr-menu-lock)
-	(or (and pr-menu-position (eq state pr-menu-state))
-	    (setq pr-menu-position (pr-menu-position entry index horizontal)
-		  pr-menu-state    state))
-	(let* ((menu   (pr-menu-lookup path))
-	       (result (pr-x-get-popup-menu-response menu pr-menu-position)))
-	  (and (pr-x-misc-user-event-p result)
-	       (funcall (pr-x-event-function result)
-			(pr-x-event-object result))))
-	(setq pr-menu-position nil))))))
+  ;; GNU Emacs
+  (defun pr-menu-lock (entry index horizontal state path)
+    (when pr-menu-lock
+      (or (and pr-menu-position (eq state pr-menu-state))
+	  (setq pr-menu-position (pr-menu-position entry index horizontal)
+		pr-menu-state    state))
+      (let* ((menu   (pr-menu-lookup path))
+	     (result (x-popup-menu pr-menu-position menu)))
+	(and result
+	     (let ((command (lookup-key menu (vconcat result))))
+	       (if (fboundp command)
+		   (funcall command)
+		 (eval command)))))
+      (setq pr-menu-position nil)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4792,252 +4745,235 @@ non-nil."
 	 alist)))
 
 
-(eval-and-compile
-  (cond
-   ((eq ps-print-emacs-type 'emacs)
-    ;; GNU Emacs
-    (defalias 'pr-update-mode-line 'force-mode-line-update)
+(cond
+ ((featurep 'xemacs)
+  ;; XEmacs
+  (defalias 'pr-update-mode-line 'set-menubar-dirty-flag)
 
-    ;; GNU Emacs
-    (defun pr-do-update-menus (&optional force)
-      (pr-menu-alist pr-ps-printer-alist
-		     'pr-ps-name
-		     'pr-menu-set-ps-title
-		     "PostScript Printers"
-		     'pr-ps-printer-menu-modified
-		     force
-		     "PostScript Printers"
-		     'postscript 2)
-      (pr-menu-alist pr-txt-printer-alist
-		     'pr-txt-name
-		     'pr-menu-set-txt-title
-		     "Text Printers"
-		     'pr-txt-printer-menu-modified
-		     force
-		     "Text Printers"
-		     'text 2)
-      (let ((save-var pr-ps-utility-menu-modified))
-	(pr-menu-alist pr-ps-utility-alist
-		       'pr-ps-utility
-		       'pr-menu-set-utility-title
-		       '("PostScript Print"   "File" "PostScript Utility")
-		       'save-var
-		       force
-		       "PostScript Utility"
-		       nil 1))
+  ;; XEmacs
+  (defvar pr-ps-name-old     "PostScript Printers")
+  (defvar pr-txt-name-old    "Text Printers")
+  (defvar pr-ps-utility-old  "PostScript Utility")
+  (defvar pr-even-or-odd-old "Print All Pages")
+
+  ;; XEmacs
+  (defun pr-do-update-menus (&optional force)
+    (pr-menu-alist pr-ps-printer-alist
+		   'pr-ps-name
+		   'pr-menu-set-ps-title
+		   '("Printing")
+		   'pr-ps-printer-menu-modified
+		   force
+		   pr-ps-name-old
+		   'postscript 2)
+    (pr-menu-alist pr-txt-printer-alist
+		   'pr-txt-name
+		   'pr-menu-set-txt-title
+		   '("Printing")
+		   'pr-txt-printer-menu-modified
+		   force
+		   pr-txt-name-old
+		   'text 2)
+    (let ((save-var pr-ps-utility-menu-modified))
       (pr-menu-alist pr-ps-utility-alist
 		     'pr-ps-utility
 		     'pr-menu-set-utility-title
-		     '("PostScript Preview" "File" "PostScript Utility")
-		     'pr-ps-utility-menu-modified
-		     force
-		     "PostScript Utility"
-		     nil 1)
-      (pr-even-or-odd-pages ps-even-or-odd-pages force))
-
-    ;; GNU Emacs
-    (defvar pr-temp-menu nil)
-
-    ;; GNU Emacs
-    (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
-				entry index)
-      (when (and alist (or force (symbol-value modified-sym)))
-	(easy-menu-define pr-temp-menu nil ""
-	  (pr-menu-create name alist var-sym fun entry index))
-	(let ((item (pr-menu-get-item menu-path)))
-	  (and item
-	       (let* ((binding     (nthcdr 3 item))
-		      (key-binding (cdr binding)))
-		 (setcar binding pr-temp-menu)
-		 (and key-binding (listp (car key-binding))
-		      (setcdr binding (cdr key-binding))) ; skip KEY-BINDING
-		 (funcall fun (symbol-value var-sym) item))))
-	(set modified-sym nil)))
-
-    ;; GNU Emacs
-    (defun pr-menu-set-ps-title (value &optional item entry index)
-      (pr-menu-set-item-name (or item
-				 (pr-menu-get-item "PostScript Printers"))
-			     (format "PostScript Printer: %s" value))
-      (pr-ps-set-printer value)
-      (and index
-	   (pr-menu-lock entry index 12 'toggle nil)))
-
-    ;; GNU Emacs
-    (defun pr-menu-set-txt-title (value &optional item entry index)
-      (pr-menu-set-item-name (or item
-				 (pr-menu-get-item "Text Printers"))
-			     (format "Text Printer: %s" value))
-      (pr-txt-set-printer value)
-      (and index
-	   (pr-menu-lock entry index 12 'toggle nil)))
-
-    ;; GNU Emacs
-    (defun pr-menu-set-utility-title (value &optional item entry index)
-      (let ((name (symbol-name value)))
-	(if item
-	    (pr-menu-set-item-name item name)
-	  (pr-menu-set-item-name
-	   (pr-menu-get-item
-	    '("PostScript Print"   "File" "PostScript Utility"))
-	   name)
-	  (pr-menu-set-item-name
-	   (pr-menu-get-item
-	    '("PostScript Preview" "File" "PostScript Utility"))
-	   name)))
-      (pr-ps-set-utility value)
-      (and index
-	   (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
-
-    ;; GNU Emacs
-    (defun pr-even-or-odd-pages (value &optional no-lock)
-      (pr-menu-set-item-name (pr-menu-get-item "Print All Pages")
-			     (cdr (assq value pr-even-or-odd-alist)))
-      (setq ps-even-or-odd-pages value)
-      (or no-lock
-	  (pr-menu-lock 'postscript-options 8 12 'toggle nil))))
-
-
-   ((eq ps-print-emacs-type 'xemacs)
-    ;; XEmacs
-    (defalias 'pr-update-mode-line 'set-menubar-dirty-flag)
-
-    ;; XEmacs
-    (defvar pr-ps-name-old     "PostScript Printers")
-    (defvar pr-txt-name-old    "Text Printers")
-    (defvar pr-ps-utility-old  "PostScript Utility")
-    (defvar pr-even-or-odd-old "Print All Pages")
-
-    ;; XEmacs
-    (defun pr-do-update-menus (&optional force)
-      (pr-menu-alist pr-ps-printer-alist
-		     'pr-ps-name
-		     'pr-menu-set-ps-title
-		     '("Printing")
-		     'pr-ps-printer-menu-modified
-		     force
-		     pr-ps-name-old
-		     'postscript 2)
-      (pr-menu-alist pr-txt-printer-alist
-		     'pr-txt-name
-		     'pr-menu-set-txt-title
-		     '("Printing")
-		     'pr-txt-printer-menu-modified
-		     force
-		     pr-txt-name-old
-		     'text 2)
-      (let ((save-var pr-ps-utility-menu-modified))
-	(pr-menu-alist pr-ps-utility-alist
-		       'pr-ps-utility
-		       'pr-menu-set-utility-title
-		       '("Printing" "PostScript Print"   "File")
-		       'save-var
-		       force
-		       pr-ps-utility-old
-		       nil 1))
-      (pr-menu-alist pr-ps-utility-alist
-		     'pr-ps-utility
-		     'pr-menu-set-utility-title
-		     '("Printing" "PostScript Preview" "File")
-		     'pr-ps-utility-menu-modified
+		     '("Printing" "PostScript Print"   "File")
+		     'save-var
 		     force
 		     pr-ps-utility-old
-		     nil 1)
-      (pr-even-or-odd-pages ps-even-or-odd-pages force))
+		     nil 1))
+    (pr-menu-alist pr-ps-utility-alist
+		   'pr-ps-utility
+		   'pr-menu-set-utility-title
+		   '("Printing" "PostScript Preview" "File")
+		   'pr-ps-utility-menu-modified
+		   force
+		   pr-ps-utility-old
+		   nil 1)
+    (pr-even-or-odd-pages ps-even-or-odd-pages force))
 
-    ;; XEmacs
-    (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
-				entry index)
-      (when (and alist (or force (symbol-value modified-sym)))
-	(pr-xemacs-global-menubar
-	 (pr-x-add-submenu menu-path
-			   (pr-menu-create name alist var-sym
-					   fun entry index)))
-	(funcall fun (symbol-value var-sym))
-	(set modified-sym nil)))
-
-    ;; XEmacs
-    (defun pr-menu-set-ps-title (value &optional item entry index)
-      (pr-relabel-menu-item (format "PostScript Printer: %s" value)
-			    'pr-ps-name-old)
-      (pr-ps-set-printer value)
-      (and index
-	   (pr-menu-lock entry index 12 'toggle nil)))
-
-    ;; XEmacs
-    (defun pr-menu-set-txt-title (value &optional item entry index)
-      (pr-relabel-menu-item (format "Text Printer: %s" value)
-			    'pr-txt-name-old)
-      (pr-txt-set-printer value)
-      (and index
-	   (pr-menu-lock entry index 12 'toggle nil)))
-
-    ;; XEmacs
-    (defun pr-menu-set-utility-title (value &optional item entry index)
+  ;; XEmacs
+  (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
+			      entry index)
+    (when (and alist (or force (symbol-value modified-sym)))
       (pr-xemacs-global-menubar
-       (let ((newname (format "%s" value)))
-	 (pr-x-relabel-menu-item
-	  (list "Printing" "PostScript Print" "File" pr-ps-utility-old)
-	  newname)
-	 (pr-x-relabel-menu-item
-	  (list "Printing" "PostScript Preview" "File" pr-ps-utility-old)
-	  newname)
-	 (setq pr-ps-utility-old newname)))
-      (pr-ps-set-utility value)
-      (and index
-	   (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
+       (pr-x-add-submenu menu-path
+			 (pr-menu-create name alist var-sym
+					 fun entry index)))
+      (funcall fun (symbol-value var-sym))
+      (set modified-sym nil)))
 
-    ;; XEmacs
-    (defun pr-even-or-odd-pages (value &optional no-lock)
-      (pr-relabel-menu-item (cdr (assq value pr-even-or-odd-alist))
-			    'pr-even-or-odd-old)
-      (setq ps-even-or-odd-pages value)
-      (or no-lock
-	  (pr-menu-lock 'postscript-options 8 12 'toggle nil))))))
+  ;; XEmacs
+  (defun pr-relabel-menu-item (newname var-sym)
+    (pr-xemacs-global-menubar
+     (pr-x-relabel-menu-item
+      (list "Printing" (symbol-value var-sym))
+      newname)
+     (set var-sym newname)))
 
-;; XEmacs
-(defun pr-relabel-menu-item (newname var-sym)
-  (pr-xemacs-global-menubar
-   (pr-x-relabel-menu-item
-    (list "Printing" (symbol-value var-sym))
-    newname)
-   (set var-sym newname)))
+  ;; XEmacs
+  (defun pr-menu-set-ps-title (value &optional item entry index)
+    (pr-relabel-menu-item (format "PostScript Printer: %s" value)
+			  'pr-ps-name-old)
+    (pr-ps-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
 
-;; GNU Emacs
-(defun pr-menu-set-item-name (item name)
-  (and item
-       (setcar (nthcdr 2 item) name)))	; ITEM-NAME
+  ;; XEmacs
+  (defun pr-menu-set-txt-title (value &optional item entry index)
+    (pr-relabel-menu-item (format "Text Printer: %s" value)
+			  'pr-txt-name-old)
+    (pr-txt-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
 
-;; GNU Emacs
-(defun pr-menu-get-item (name-list)
-  ;; NAME-LIST is a string or a list of strings.
-  (let ((ipath pr-menu-bar)
-	(len   (and (listp name-list) (length name-list))))
-    (and len (= len 1)
-	 (setq name-list (car name-list)))
-    (cond
-     ((null name-list)
-      ;; nil
-      nil)
-     ((listp name-list)
-      ;; list and (length list) > 1
-      (let* ((copy (copy-sequence name-list))
-	     (name (pr-get-symbol (nth (1- len) copy)))
-	     (path (progn
-		     (setcdr (nthcdr (- len 2) copy) nil)
-		     copy))
-	     (menu (lookup-key
-		    global-map
-		    (if path
-			(vconcat ipath
-				 (mapcar 'pr-get-symbol path))
-		      ipath))))
-	(assq name (nthcdr 2 menu))))
-     (t
-      ;; string
-      (let ((name (pr-get-symbol name-list))
-	    (menu (lookup-key global-map ipath)))
-	(assq name (nthcdr 2 menu)))))))
+  ;; XEmacs
+  (defun pr-menu-set-utility-title (value &optional item entry index)
+    (pr-xemacs-global-menubar
+     (let ((newname (format "%s" value)))
+       (pr-x-relabel-menu-item
+	(list "Printing" "PostScript Print" "File" pr-ps-utility-old)
+	newname)
+       (pr-x-relabel-menu-item
+	(list "Printing" "PostScript Preview" "File" pr-ps-utility-old)
+	newname)
+       (setq pr-ps-utility-old newname)))
+    (pr-ps-set-utility value)
+    (and index
+	 (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
+
+  ;; XEmacs
+  (defun pr-even-or-odd-pages (value &optional no-lock)
+    (pr-relabel-menu-item (cdr (assq value pr-even-or-odd-alist))
+			  'pr-even-or-odd-old)
+    (setq ps-even-or-odd-pages value)
+    (or no-lock
+	(pr-menu-lock 'postscript-options 8 12 'toggle nil))))
+
+
+ (t
+  ;; GNU Emacs
+  (defalias 'pr-update-mode-line 'force-mode-line-update)
+
+  ;; GNU Emacs
+  (defun pr-do-update-menus (&optional force)
+    (pr-menu-alist pr-ps-printer-alist
+		   'pr-ps-name
+		   'pr-menu-set-ps-title
+		   "PostScript Printers"
+		   'pr-ps-printer-menu-modified
+		   force
+		   "PostScript Printers"
+		   'postscript 2)
+    (pr-menu-alist pr-txt-printer-alist
+		   'pr-txt-name
+		   'pr-menu-set-txt-title
+		   "Text Printers"
+		   'pr-txt-printer-menu-modified
+		   force
+		   "Text Printers"
+		   'text 2)
+    (let ((save-var pr-ps-utility-menu-modified))
+      (pr-menu-alist pr-ps-utility-alist
+		     'pr-ps-utility
+		     'pr-menu-set-utility-title
+		     '("PostScript Print"   "File" "PostScript Utility")
+		     'save-var
+		     force
+		     "PostScript Utility"
+		     nil 1))
+    (pr-menu-alist pr-ps-utility-alist
+		   'pr-ps-utility
+		   'pr-menu-set-utility-title
+		   '("PostScript Preview" "File" "PostScript Utility")
+		   'pr-ps-utility-menu-modified
+		   force
+		   "PostScript Utility"
+		   nil 1)
+    (pr-even-or-odd-pages ps-even-or-odd-pages force))
+
+  ;; GNU Emacs
+  (defun pr-menu-get-item (name-list)
+    ;; NAME-LIST is a string or a list of strings.
+    (or (listp name-list)
+	(setq name-list (list name-list)))
+    (and name-list
+	 (let* ((reversed (reverse name-list))
+		(name (pr-get-symbol (car reversed)))
+		(path (nreverse (cdr reversed)))
+		(menu (lookup-key
+		       global-map
+		       (vconcat pr-menu-bar
+				(mapcar 'pr-get-symbol path)))))
+	   (assq name (nthcdr 2 menu)))))
+
+  ;; GNU Emacs
+  (defvar pr-temp-menu nil)
+
+  ;; GNU Emacs
+  (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
+			      entry index)
+    (when (and alist (or force (symbol-value modified-sym)))
+      (easy-menu-define pr-temp-menu nil ""
+	(pr-menu-create name alist var-sym fun entry index))
+      (let ((item (pr-menu-get-item menu-path)))
+	(and item
+	     (let* ((binding     (nthcdr 3 item))
+		    (key-binding (cdr binding)))
+	       (setcar binding pr-temp-menu)
+	       (and key-binding (listp (car key-binding))
+		    (setcdr binding (cdr key-binding)))	; skip KEY-BINDING
+	       (funcall fun (symbol-value var-sym) item))))
+      (set modified-sym nil)))
+
+  ;; GNU Emacs
+  (defun pr-menu-set-item-name (item name)
+    (and item
+	 (setcar (nthcdr 2 item) name))) ; ITEM-NAME
+
+  ;; GNU Emacs
+  (defun pr-menu-set-ps-title (value &optional item entry index)
+    (pr-menu-set-item-name (or item
+			       (pr-menu-get-item "PostScript Printers"))
+			   (format "PostScript Printer: %s" value))
+    (pr-ps-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
+
+  ;; GNU Emacs
+  (defun pr-menu-set-txt-title (value &optional item entry index)
+    (pr-menu-set-item-name (or item
+			       (pr-menu-get-item "Text Printers"))
+			   (format "Text Printer: %s" value))
+    (pr-txt-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
+
+  ;; GNU Emacs
+  (defun pr-menu-set-utility-title (value &optional item entry index)
+    (let ((name (symbol-name value)))
+      (if item
+	  (pr-menu-set-item-name item name)
+	(pr-menu-set-item-name
+	 (pr-menu-get-item
+	  '("PostScript Print"   "File" "PostScript Utility"))
+	 name)
+	(pr-menu-set-item-name
+	 (pr-menu-get-item
+	  '("PostScript Preview" "File" "PostScript Utility"))
+	 name)))
+    (pr-ps-set-utility value)
+    (and index
+	 (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
+
+  ;; GNU Emacs
+  (defun pr-even-or-odd-pages (value &optional no-lock)
+    (pr-menu-set-item-name (pr-menu-get-item "Print All Pages")
+			   (cdr (assq value pr-even-or-odd-alist)))
+    (setq ps-even-or-odd-pages value)
+    (or no-lock
+	(pr-menu-lock 'postscript-options 8 12 'toggle nil)))))
 
 
 (defun pr-ps-set-utility (value)
@@ -5169,6 +5105,116 @@ non-nil."
 ;; Internal Functions (II)
 
 
+(defun pr-toggle (var-sym mess entry index horizontal state
+			  &optional path no-menu)
+  (set var-sym (not (symbol-value var-sym)))
+  (message "%s is %s" mess (if (symbol-value var-sym) "on" "off"))
+  (or no-menu
+      (pr-menu-lock entry index horizontal state path)))
+
+
+(defun pr-toggle-file-duplex-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-file-duplex "PS file duplex" nil 7 5 nil
+	     '("PostScript Print" "File") no-menu))
+
+
+(defun pr-toggle-file-tumble-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-file-tumble "PS file tumble" nil 8 5 nil
+	     '("PostScript Print" "File") no-menu))
+
+
+(defun pr-toggle-file-landscape-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-file-landscape "PS file landscape" nil 6 5 nil
+	     '("PostScript Print" "File") no-menu))
+
+
+(defun pr-toggle-ghostscript-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-print-using-ghostscript "Printing using ghostscript"
+	     'postscript-process 2 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-faces-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-faces-p "Printing with faces"
+	     'postscript-process 1 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-spool-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-spool-p "Spooling printing"
+	     'postscript-process 0 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-duplex-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-spool-duplex "Printing duplex"
+	     'postscript-options 5 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-tumble-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-spool-tumble "Tumble"
+	     'postscript-options 6 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-landscape-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-landscape-mode "Landscape"
+	     'postscript-options 0 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-upside-down-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-print-upside-down "Upside-Down"
+	     'postscript-options 7 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-line-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-line-number "Line number"
+	     'postscript-options 3 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-zebra-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-zebra-stripes "Zebra stripe"
+	     'postscript-options 4 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-header-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-print-header "Print header"
+	     'postscript-options 1 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-header-frame-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'ps-print-header-frame "Print header frame"
+	     'postscript-options 2 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-lock-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-menu-lock "Menu lock"
+	     'printing 2 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-region-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-auto-region "Auto region"
+	     'printing 0 12 'toggle nil no-menu))
+
+
+(defun pr-toggle-mode-menu (&optional no-menu)
+  (interactive)
+  (pr-toggle 'pr-auto-mode "Auto mode"
+	     'printing 1 12 'toggle nil no-menu))
+
+
 (defun pr-prompt (str)
   (if (pr-auto-mode-p)
       (concat str " mode")
@@ -5269,27 +5315,20 @@ non-nil."
     (pr-expand-file-name res)))
 
 
-(defun pr-toggle (var-sym mess entry index horizontal state &optional path)
-  (set var-sym (not (symbol-value var-sym)))
-  (message "%s is %s" mess (if (symbol-value var-sym) "on" "off"))
-  (pr-menu-lock entry index horizontal state path))
-
-
 (defun pr-ps-utility-args (n-up-sym infile-sym outfile-sym prompt)
+  ;; check arguments for PostScript file processing.
   ;; n-up
   (or (symbol-value n-up-sym)
       (set n-up-sym (pr-interactive-n-up prompt)))
-  (and (eq (symbol-value infile-sym) t)
-       (set infile-sym (and (not (interactive-p))
-			    (pr-ps-infile-preprint prompt))))
   ;; input file
+  (and (eq (symbol-value infile-sym) t)
+       (set infile-sym (pr-ps-infile-preprint prompt)))
   (or (symbol-value infile-sym)
       (error "%s: input PostScript file name is missing" prompt))
   (set infile-sym (pr-dosify-file-name (symbol-value infile-sym)))
   ;; output file
   (and (eq (symbol-value outfile-sym) t)
-       (set outfile-sym (and (not (interactive-p))
-			     current-prefix-arg
+       (set outfile-sym (and current-prefix-arg
 			     (pr-ps-outfile-preprint prompt))))
   (and (symbol-value outfile-sym)
        (set outfile-sym (pr-dosify-file-name (symbol-value outfile-sym))))
@@ -5297,6 +5336,7 @@ non-nil."
 
 
 (defun pr-ps-utility-process (n-up infile outfile)
+  ;; activate utility to process a PostScript file.
   (let (item)
     (and (stringp infile) (file-exists-p infile)
 	 (setq item (cdr (assq pr-ps-utility pr-ps-utility-alist)))
@@ -5335,19 +5375,29 @@ non-nil."
 	(cmd    (pr-command command))
 	status)
     (setq args (pr-remove-nil-from-list args))
+    ;; *Printing Command Output* == show command & args
     (save-excursion
       (set-buffer buffer)
       (goto-char (point-max))
       (insert (format "%s %S\n" cmd args)))
-    (setq status
-	  (condition-case data
-	      (apply 'call-process cmd nil buffer nil args)
-	    ((quit error)
-	     (error-message-string data))))
+    ;; *Printing Command Output* == show any return message from command
+    (pr-save-file-modes
+     (setq status
+	   (condition-case data
+	       (apply 'call-process cmd nil buffer nil args)
+	     ((quit error)
+	      (error-message-string data)))))
+    ;; *Printing Command Output* == show exit status
     (save-excursion
       (set-buffer buffer)
       (goto-char (point-max))
-      (insert (format "Exit status: %s\n" status)))))
+      (insert (format "Exit status: %s\n\n" status)))
+    ;; message if error status
+    (if (or (stringp status)
+	    (and (integerp status) (/= status 0)))
+	(message
+	 "Printing error status: %s (see *Printing Command Output* buffer)"
+	 status))))
 
 
 (defun pr-txt-print (from to)
@@ -5358,7 +5408,10 @@ non-nil."
 
 
 (defun pr-switches-string (switches mess)
-  (mapconcat 'identity (pr-switches switches mess) " "))
+  ;; If SWITCHES is nil, return nil.
+  ;; Otherwise, return the list of string in a string.
+  (and switches
+       (mapconcat 'identity (pr-switches switches mess) " ")))
 
 
 (defun pr-switches (switches mess)
@@ -5395,8 +5448,10 @@ non-nil."
 
 (defun pr-ps-file (&optional filename)
   (pr-dosify-file-name (or filename
-			   (convert-standard-filename
-			    (expand-file-name pr-ps-temp-file pr-temp-dir)))))
+			   (make-temp-file
+			    (convert-standard-filename
+			     (expand-file-name pr-ps-temp-file pr-temp-dir))
+			    nil ".ps"))))
 
 
 (defun pr-interactive-n-up (mess)
@@ -5485,8 +5540,7 @@ non-nil."
 (defun pr-set-outfilename (filename-sym)
   (and (not pr-spool-p)
        (eq (symbol-value filename-sym) t)
-       (set filename-sym (and (not (interactive-p))
-			      current-prefix-arg
+       (set filename-sym (and current-prefix-arg
 			      (ps-print-preprint current-prefix-arg))))
   (and (symbol-value filename-sym)
        (set filename-sym (pr-dosify-file-name (symbol-value filename-sym)))))
@@ -5580,41 +5634,42 @@ non-nil."
 
 
 (defun pr-text2ps (kind n-up filename &optional from to)
-  (let ((ps-n-up-printing n-up)
-	(ps-spool-config (and (eq ps-spool-config 'setpagedevice)
-			      'setpagedevice)))
-    (pr-delete-file-if-exists filename)
-    (cond (pr-faces-p
-	   (cond (pr-spool-p
-		  ;; pr-faces-p and pr-spool-p
-		  ;; here FILENAME arg is ignored
-		  (cond ((eq kind 'buffer)
-			 (ps-spool-buffer-with-faces))
-			((eq kind 'region)
-			 (ps-spool-region-with-faces (or from (point))
-						     (or to (mark))))
-			))
+  (pr-save-file-modes
+   (let ((ps-n-up-printing n-up)
+	 (ps-spool-config (and (eq ps-spool-config 'setpagedevice)
+			       'setpagedevice)))
+     (pr-delete-file-if-exists filename)
+     (cond (pr-faces-p
+	    (cond (pr-spool-p
+		   ;; pr-faces-p and pr-spool-p
+		   ;; here FILENAME arg is ignored
+		   (cond ((eq kind 'buffer)
+			  (ps-spool-buffer-with-faces))
+			 ((eq kind 'region)
+			  (ps-spool-region-with-faces (or from (point))
+						      (or to (mark))))
+			 ))
 		  ;; pr-faces-p and not pr-spool-p
-		 ((eq kind 'buffer)
-		  (ps-print-buffer-with-faces filename))
-		 ((eq kind 'region)
-		  (ps-print-region-with-faces (or from (point))
-					      (or to (mark)) filename))
-		 ))
-	  (pr-spool-p
-	   ;; not pr-faces-p and pr-spool-p
-	   ;; here FILENAME arg is ignored
-	   (cond ((eq kind 'buffer)
-		  (ps-spool-buffer))
-		 ((eq kind 'region)
-		  (ps-spool-region (or from (point)) (or to (mark))))
-		 ))
-	  ;; not pr-faces-p and not pr-spool-p
-	  ((eq kind 'buffer)
-	   (ps-print-buffer filename))
-	  ((eq kind 'region)
-	   (ps-print-region (or from (point)) (or to (mark)) filename))
-	  )))
+		  ((eq kind 'buffer)
+		   (ps-print-buffer-with-faces filename))
+		  ((eq kind 'region)
+		   (ps-print-region-with-faces (or from (point))
+					       (or to (mark)) filename))
+		  ))
+	   (pr-spool-p
+	    ;; not pr-faces-p and pr-spool-p
+	    ;; here FILENAME arg is ignored
+	    (cond ((eq kind 'buffer)
+		   (ps-spool-buffer))
+		  ((eq kind 'region)
+		   (ps-spool-region (or from (point)) (or to (mark))))
+		  ))
+	   ;; not pr-faces-p and not pr-spool-p
+	   ((eq kind 'buffer)
+	    (ps-print-buffer filename))
+	   ((eq kind 'region)
+	    (ps-print-region (or from (point)) (or to (mark)) filename))
+	   ))))
 
 
 (defun pr-command (command)
@@ -5721,13 +5776,12 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (defvar pr-interface-map nil
   "Keymap for pr-interface.")
 
-(if pr-interface-map
-    nil
+(unless pr-interface-map
   (setq pr-interface-map (make-sparse-keymap))
-  (cond ((eq ps-print-emacs-type 'xemacs) ; XEmacs
+  (cond ((featurep 'xemacs)		; XEmacs
 	 (pr-f-set-keymap-parents pr-interface-map (list widget-keymap))
 	 (pr-f-set-keymap-name pr-interface-map 'pr-interface-map))
-	((eq ps-print-emacs-type 'emacs) ; GNU Emacs
+	(t				; GNU Emacs
 	 (pr-f-set-keymap-parents pr-interface-map widget-keymap)))
   (define-key pr-interface-map "q" 'pr-interface-quit)
   (define-key pr-interface-map "?" 'pr-interface-help))

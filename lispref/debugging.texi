@@ -221,6 +221,8 @@ up to invoke the debugger on entry, @code{debug-on-entry} does nothing.
 discarded by the redefinition.  In effect, redefining the function
 cancels the break-on-entry feature for that function.
 
+Here's an example to illustrate use of this function:
+
 @example
 @group
 (defun fact (n)
@@ -276,9 +278,9 @@ not currently set up to break on entry.  It always returns
   You can cause the debugger to be called at a certain point in your
 program by writing the expression @code{(debug)} at that point.  To do
 this, visit the source file, insert the text @samp{(debug)} at the
-proper place, and type @kbd{C-M-x}.  @strong{Warning:} if you do this
-for temporary debugging purposes, be sure to undo this insertion before
-you save the file!
+proper place, and type @kbd{C-M-x} (@code{eval-defun}, a Lisp mode key
+binding).  @strong{Warning:} if you do this for temporary debugging
+purposes, be sure to undo this insertion before you save the file!
 
   The place where you insert @samp{(debug)} must be a place where an
 additional form can be evaluated and its value ignored.  (If the value
@@ -746,20 +748,21 @@ anything.
 @findex testcover-start
 @findex testcover-mark-all
 @findex testcover-next-mark
-  You can do coverage testing for a file of Lisp code by first using
-the command @kbd{M-x testcover-start @key{RET} @var{file} @key{RET}}
-to instrument it.  Then test your code by calling it one or more
-times.  Then use the command @kbd{M-x testcover-mark-all} to display
-``splotches'' on the code to show where coverage is insufficient.  The
-command @kbd{M-x testcover-next-mark} will move point forward to the
-next spot that has a splotch.
+  You can do coverage testing for a file of Lisp code by loading the
+@code{testcover} library and using the command @kbd{M-x
+testcover-start @key{RET} @var{file} @key{RET}} to instrument the
+code.  Then test your code by calling it one or more times.  Then use
+the command @kbd{M-x testcover-mark-all} to display colored highlights
+on the code to show where coverage is insufficient.  The command
+@kbd{M-x testcover-next-mark} will move point forward to the next
+highlighted spot.
 
-  Normally, a red splotch indicates the form was never completely
-evaluated; a brown splotch means it always evaluated to the same value
-(meaning there has been little testing of what is done with the
-result).  However, the red splotch is skipped for forms that can't
+  Normally, a red highlight indicates the form was never completely
+evaluated; a brown highlight means it always evaluated to the same
+value (meaning there has been little testing of what is done with the
+result).  However, the red highlight is skipped for forms that can't
 possibly complete their evaluation, such as @code{error}.  The brown
-splotch is skipped for forms that are expected to always evaluate to
+highlight is skipped for forms that are expected to always evaluate to
 the same value, such as @code{(setq x 14)}.
 
   For difficult cases, you can add do-nothing macros to your code to

@@ -1,3 +1,14 @@
+2004-11-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* nnfolder.el (nnfolder-save-marks): Add missing format field in
+	call to `error'.
+	* nnml.el (nnml-save-marks): Ditto.
+
+2004-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-convert-old-newsrc): Assign
+	legacy-gnus-agent to 5.10.7.
+
 2004-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-emphasis-alist): Don't hide asterisks by
@@ -59,7 +70,7 @@
 
 	* starttls.el (starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): 
+	(starttls-connect, starttls-failure, starttls-success):
 
 	* spam-stat.el (spam-stat): Add :version.
 
@@ -71,7 +82,7 @@
 	* nnmail.el (nnmail-split-fancy-with-parent-ignore-groups)
 	(nnmail-cache-ignore-groups, nnmail-spool-hook)
 	(nnmail-split-fancy-match-partial-words)
-	(nnmail-split-lowercase-expanded): 
+	(nnmail-split-lowercase-expanded):
 
 	* nndiary.el (nndiary): Add :version.
 

@@ -10527,7 +10527,7 @@ a mouse click at the upper left corner of the glyph corresponding
 to the given buffer position:
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists.  */*/)
+The `posn-' functions access elements of such lists.  */)
   (pos, window)
      Lisp_Object pos, window;
 {

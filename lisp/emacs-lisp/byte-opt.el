@@ -231,16 +231,16 @@
   (cons 'progn
 	(mapcar
 	 (lambda (sexp)
-	    (let ((fn (car-safe sexp)))
-	      (if (and (symbolp fn)
-		    (or (cdr (assq fn byte-compile-function-environment))
-		      (and (fboundp fn)
-			(not (or (cdr (assq fn byte-compile-macro-environment))
-				 (and (consp (setq fn (symbol-function fn)))
-				      (eq (car fn) 'macro))
-				 (subrp fn))))))
-		  (byte-compile-inline-expand sexp)
-		sexp)))
+	   (let ((f (car-safe sexp)))
+	     (if (and (symbolp f)
+		      (or (cdr (assq f byte-compile-function-environment))
+			  (not (or (not (fboundp f))
+				   (cdr (assq f byte-compile-macro-environment))
+				   (and (consp (setq f (symbol-function f)))
+					(eq (car f) 'macro))
+				   (subrp f)))))
+		 (byte-compile-inline-expand sexp)
+	       sexp)))
 	 (cdr form))))
 
 
@@ -1367,10 +1367,9 @@ of FORM by signalling the error at compile-time."
 ;; before each insn (or its label).
 (defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
   (let ((length (length bytes))
-	(ptr 0) optr tag tags op offset
+	(ptr 0) optr tags op offset
 	lap tmp
-	endtag
-	(retcount 0))
+	endtag)
     (while (not (= ptr length))
       (or make-spliceable
 	  (setq lap (cons ptr lap)))

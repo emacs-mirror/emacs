@@ -984,7 +984,7 @@ Use the nov database for the current group if available."
 			nnml-marks-modtime))
       (error (or (gnus-yes-or-no-p
 		  (format "Could not write to %s (%s).  Continue? " file err))
-		 (error "Cannot write to %s (%s)" err))))))
+		 (error "Cannot write to %s (%s)" file err))))))
 
 (defun nnml-open-marks (group server)
   (let ((file (expand-file-name

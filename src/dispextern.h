@@ -694,6 +694,10 @@ struct glyph_row
      frames.  It may be < 0 in case of completely invisible rows.  */
   int visible_height;
 
+  /* Extra line spacing added after this row.  Do not consider this
+     in last row when checking if row is fully visible.  */
+  int extra_line_spacing;
+
   /* Hash code.  This hash code is available as soon as the row
      is constructed, i.e. after a call to display_line.  */
   unsigned hash;
@@ -916,22 +920,39 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 
 #define MATRIX_ROW_DISPLAYS_TEXT_P(ROW) ((ROW)->displays_text_p)
 
+
+/* Helper macros */
+
+#define MR_PARTIALLY_VISIBLE(ROW)	\
+  ((ROW)->height != (ROW)->visible_height)
+
+#define MR_PARTIALLY_VISIBLE_AT_TOP(W, ROW)  \
+  ((ROW)->y < WINDOW_HEADER_LINE_HEIGHT ((W)))
+
+#define MR_PARTIALLY_VISIBLE_AT_BOTTOM(W, ROW)  \
+  (((ROW)->y + (ROW)->height - (ROW)->extra_line_spacing) \
+   > WINDOW_BOX_HEIGHT_NO_MODE_LINE ((W)))
+
 /* Non-zero if ROW is not completely visible in window W.  */
 
-#define MATRIX_ROW_PARTIALLY_VISIBLE_P(ROW)	\
-     ((ROW)->height != (ROW)->visible_height)
+#define MATRIX_ROW_PARTIALLY_VISIBLE_P(W, ROW)		\
+  (MR_PARTIALLY_VISIBLE ((ROW))				\
+   && (MR_PARTIALLY_VISIBLE_AT_TOP ((W), (ROW))		\
+       || MR_PARTIALLY_VISIBLE_AT_BOTTOM ((W), (ROW))))
+
+
 
 /* Non-zero if ROW is partially visible at the top of window W.  */
 
 #define MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P(W, ROW)		\
-     (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))			\
-      && (ROW)->y < WINDOW_HEADER_LINE_HEIGHT ((W)))
+  (MR_PARTIALLY_VISIBLE ((ROW))					\
+   && MR_PARTIALLY_VISIBLE_AT_TOP ((W), (ROW)))
 
 /* Non-zero if ROW is partially visible at the bottom of window W.  */
 
-#define MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P(W, ROW)		      \
-     (MATRIX_ROW_PARTIALLY_VISIBLE_P ((ROW))				      \
-      && (ROW)->y + (ROW)->height > WINDOW_BOX_HEIGHT_NO_MODE_LINE ((W)))
+#define MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P(W, ROW)	\
+  (MR_PARTIALLY_VISIBLE ((ROW))					\
+   && MR_PARTIALLY_VISIBLE_AT_BOTTOM ((W), (ROW)))
 
 /* Return the bottom Y + 1 of ROW.   */
 
@@ -1990,9 +2011,12 @@ struct it
      line, if the window has one.  */
   int last_visible_y;
 
-  /* Additional space in pixels between lines (for window systems
-     only.)  */
+  /* Default amount of additional space in pixels between lines (for
+     window systems only.)  */
   int extra_line_spacing;
+
+  /* Max extra line spacing added in this row.  */
+  int max_extra_line_spacing;
 
   /* Override font height information for this glyph.
      Used if override_ascent >= 0.  Cleared after this glyph.  */
@@ -2578,6 +2602,7 @@ extern int help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern int mouse_autoselect_window;
+extern void reseat_at_previous_visible_line_start P_ ((struct it *));
 
 extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,
 					   /* XFontStruct */ void *, int, int *));

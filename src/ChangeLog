@@ -1,3 +1,202 @@
+2004-11-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xdisp.c (message3): Call clear_message.
+
+2004-11-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (erase_phys_cursor): Adjust cursor row visible height.
+
+2004-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_name): Fix typo in
+	HAVE_GTK_FILE_SELECTION_NEW.
+
+	* xmenu.c (x_menu_in_use): Remove.
+	(x_menu_set_in_use): Also set popup_activated_flag.
+
+	* xfns.c (Fx_file_dialog): Call popup_activated instead of
+	x_menu_in_use.  Call x_menu_set_in_use in Motif version also.
+
+	* xterm.h: (x_menu_in_use): Remove.
+
+2004-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Fmap_keymap): New arg SORT-FIRST.
+	Use map-keymap-internal to implement that.
+
+	* indent.c (Fvertical_motion): In batch mode, use vmotion directly.
+
+2004-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_glyph_string_clip_rect, init_glyph_string): Check it's
+	a window before using XWINDOW.
+
+	* window.c (make_window, Fselect_window, make_dummy_parent)
+	(save_window_save):
+	* frame.c (make_frame):
+	* fns.c (concat): Avoid side-effects inside XSETFASTINT's arguments.
+
+	* lisp.h (NILP): Use EQ rather than XFASTINT.
+
+2004-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (Fdefine_fringe_bitmap): Always set 'h'.  Simplify.
+
+	* indent.c (Fvertical_motion): Fix last change.  Only reseat when
+	moving backwards.
+
+2004-11-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dispextern.h: Extern reseat_at_previous_visible_line_start.
+
+2004-11-16  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Fix previous change (calculate
+	end position of substring to display correctly).
+
+2004-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Fposn_at_point): Remove extra */ after doc string.
+	Reported by Andrew M. Scott.
+
+2004-11-15  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fsafe_plist_get): New defun.
+	(syms_of_fns): Defsubr it.
+
+	* lisp.h (Fsafe_plist_get): Add EXFUN.
+
+	* xdisp.c (store_mode_line_string, produce_stretch_glyph):
+	Use Fsafe_plist_get.
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Fix image map element parsing.  Use Fsafe_plist_get.
+
+2004-11-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Fix previous change.
+
+2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (shrink_windows): Handle special case of one window left
+	when trying to shrink the final reminder.  Grow windows if
+	total_removed is less than total_shrink.
+
+	* xmenu.c (pop_down_menu): Remove global variable current_menu,
+	extract pointer from arg with XSAVE_VALUE.
+	(create_and_show_popup_menu, create_and_show_dialog, xmenu_show):
+	Construct arg to record_unwind_protect with make_save_value.
+
+2004-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (reseat_at_previous_visible_line_start): No longer static.
+	(get_next_display_element): Fix previous change to apply only to \n.
+
+	* indent.c (Fvertical_motion): Scan to PT from start of line to
+	make iterator consistent.
+
+	* minibuf.c (syms_of_minibuf) <completion-ignore-case>: Doc fix.
+
+2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (pop_down_file_dialog): Add BLOCK_INPUT.
+
+	* xfns.c (Fx_file_dialog): Call x_menu_in_use and x_menu_set_in_use.
+	Record unwind with clean_up_file_dialog.
+
+	* xterm.h (x_menu_in_use, x_menu_set_in_use, x_menu_wait_for_event):
+	Declare.
+
+	* xmenu.c (x_menu_in_use, x_menu_set_in_use): New functions.
+
+2004-11-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_file_sel_ok, xg_file_sel_cancel)
+	(xg_file_sel_destroy): Remove.
+	(xg_file_response_cb, pop_down_file_dialog)
+	(xg_get_file_name_from_chooser, xg_get_file_name_from_selector):
+	New functions.
+	(xg_get_file_with_chooser, xg_get_file_with_selection):
+	Take new arg func, set it to xg_get_file_name_from_chooser/selector.
+	Move common code to xg_get_file_name.  Return widget created.
+	(xg_get_file_name): Set name, transient for, modal and destroy
+	with parent here.  Connect response signal to xg_file_response_cb,
+	connect delete-event to gtk_true.  Record pop_down_file_dialog
+	for unwind.  Do event loop and call x_menu_wait_for_event in loop.
+	(xg_create_widget): Make dialogs modal.
+
+	* xmenu.c (unuse_menu_items, pop_down_menu): Arg is of type
+	Lisp_Object.
+	(popup_get_selection): Move unwind protect ...
+	(create_and_show_popup_menu, create_and_show_dialog): ... to here.
+	Move destroy of widget to pop_down_menu.
+	(popup_widget_loop): Move unwind protect ...
+	(create_and_show_popup_menu, create_and_show_dialog): ... to here.
+	Move destroy of widget to pop_down_menu.
+	(pop_down_menu): BLOCK_INPUT and destroy widget/window.
+	(xmenu_show): Record unwind pop_down_menu.  Move XMenuDestroy,
+	x_mouse_leave and grabbed = 0 to pop_down_menu.
+
+2004-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (make_cursor_line_fully_visible_p): New variable.
+	(syms_of_xdisp): DEFVAR_BOOL it.
+	(make_cursor_line_fully_visible, try_cursor_movement)
+	(try_window_id): Use it.
+
+2004-11-12  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct glyph_row): New member extra_line_spacing.
+	(struct it): New member max_extra_line_spacing.
+	(MR_PARTIALLY_VISIBLE, MR_PARTIALLY_VISIBLE_AT_TOP)
+	(MR_PARTIALLY_VISIBLE_AT_BOTTOM): New helper macros.
+	(MATRIX_ROW_PARTIALLY_VISIBLE_P): Fix to return false if invisible
+	part of last line is only extra line spacing (so the text on the
+	line is fully visible). Use helper macros.
+	Add W arg (to use them).  All callers changed.
+	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P)
+	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P): Use helper macros.
+
+	* window.c (window_scroll_pixel_based, Frecenter):
+	Use move_it_vertically_backward directly.
+	(Frecenter): Fix calculation of new start pos for negative arg.
+	Before, the new start pos was sometimes chosen too far back, so
+	the last line became only partially visible, and thus would be
+	either only semi-visible or automatically scrolled to the middle
+	of the window by redisplay.
+
+	* xdisp.c (init_iterator): Clear it.max_extra_line_spacing.
+	(move_it_vertically_backward): Don't recure to move further back.
+	(move_it_vertically): Remove superfluous condition.
+	(move_it_by_lines): Clear last_height when moved 0 lines.
+	(resize_mini_window): Use it.max_extra_line_spacing.
+	(display_tool_bar_line): Clear row->extra_line_spacing.
+	(try_scrolling): Use move_it_vertically_backward directly.
+	(redisplay_window): Likewise.
+	(compute_line_metrics): Set row->extra_line_spacing.
+	(display_line, display_string): Likewise.
+	(x_produce_glyphs): Update it->max_extra_line_spacing.
+
+	* xmenu.c (pop_down_menu): Return nil.
+
+2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_menu_wait_for_event): New function.
+	(popup_get_selection, popup_widget_loop):  Call x_menu_wait_for_event
+	to handle timers.
+	(popup_widget_loop): Add argument do_timers.
+	(create_and_show_popup_menu, create_and_show_dialog): Pass 1 for
+	do_timers to popup_widget_loop.
+	(xmenu_show): Call XMenuActivateSetWaitFunction so that
+	x_menu_wait_for_event is called by XMenuActivate.
+	(create_and_show_popup_menu): Pass 1 for do_timers to
+	popup_get_selection.
+	(pop_down_menu): New function.
+	(popup_get_selection, popup_widget_loop): Unwind protect to
+	pop_down_menu.
+	(popup_widget_loop): Add argument widget.
+	(create_and_show_popup_menu, create_and_show_dialog): Pass new
+	argument widget to popup_widget_loop.
+
 2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fkeymap_prompt): Accept symbol keymaps.
@@ -61,7 +260,7 @@
 	* Makefile.in (SOME_MACHINE_OBJECTS): Add fringe.o, image.o
 	and w32*.o.
 	(temacs${EXEEXT}): Generate buildobj.lst when temacs is linked.
-	(mostlyclean): rm buildobj.lst
+	(mostlyclean): Rm buildobj.lst
 
 	* makefile.w32-in ($(TEMACS)): Generate buildobj.lst when temacs
 	is linked.
@@ -98,8 +297,8 @@
 
 2004-11-07  Andreas Schwab  <schwab@suse.de>
 
-	* lisp.h: Declare Fmsdos_downcase_filename.
-	* dired.c: Don't declare Fmsdos_downcase_filename.
+	* lisp.h (Fmsdos_downcase_filename): Declare.
+	* dired.c (Fmsdos_downcase_filename): Don't declare here.
 	* fileio.c: Likewise.
 
 2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -110,7 +309,7 @@
 
 	* msdos.c (IT_set_frame_parameters): Use EQ, not ==, for Lisp_Object:s.
 
-	* dired.c: extern declare Fmsdos_downcase_filename on MSDOS to avoid
+	* dired.c (Fmsdos_downcase_filename): Declare extern on MSDOS to avoid
 	int/Lisp_Object mixup.
 
 	* fileio.c: Ditto.
@@ -219,7 +418,7 @@
 
 	* fileio.c (Fnext_read_file_uses_dialog_p): New function.
 
-	* gtkutil.h: Declare use_old_gtk_file_dialog.
+	* gtkutil.h (use_old_gtk_file_dialog): Declare.
 
 	* gtkutil.c: Make use_old_gtk_file_dialog non-static.
 	(xg_initialize): Move DEFVAR_BOOL for use_old_gtk_file_dialog ...
@@ -695,7 +894,6 @@
 	mouseUp cases in the early stage.  Add parentheses to fix operator
 	precedence.
 	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
-
 
 2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
@@ -1273,7 +1471,7 @@
 
 2004-07-24  Richard M. Stallman  <rms@gnu.org>
 
-	* keyboard.h (not_single_kboard_state): Declared.
+	* keyboard.h (not_single_kboard_state): Declare.
 
 	* fileio.c (Fwrite_region): Doc fix.
 
@@ -1481,7 +1679,7 @@
 	(lookup_image_type): Pass Qnil as second argument to
 	Finit_image_library.
 
-	* lisp.h: Declare Finit_image_library.
+	* lisp.h (Finit_image_library): Declare.
 
 2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -2326,7 +2524,7 @@
 
 2004-05-10  Andreas Schwab  <schwab@suse.de>
 
-	* lisp.h: Declare Fmake_symbolic_link.
+	* lisp.h (Fmake_symbolic_link): Declare.
 
 	* fileio.c (Frename_file): Remove extra argument in call to
 	Fmake_symbolic_link.
@@ -4817,9 +5015,9 @@
 	(update_frame_tool_bar): Call xg_get_gdk_pixmap_and_mask.
 	(xg_initialize): Remove xg_left_ptr_cursor.
 
-	* gtkutil.h: xg_get_scroll_id_for_window, xg_win_to_widget takes
-	Display* argument also.  Declare xg_display_open,
-	xg_display_close, xg_create_default_cursor.
+	* gtkutil.h (xg_get_scroll_id_for_window, xg_win_to_widget): Add
+	Display* argument.
+	(xg_display_open, xg_display_close, xg_create_default_cursor): Declare.
 
 2003-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -4885,8 +5083,8 @@
 
 2003-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.h: Declare xg_have_tear_offs, remove xg_keep_popup
-	and xg_did_tearoff.
+	* gtkutil.h (xg_have_tear_offs): Declare.
+	(xg_keep_popup, xg_did_tearoff): Remove.
 
 	* gtkutil.c: Remove variable xg_did_tearoff.
 	(xg_have_tear_offs): New function.
@@ -5384,7 +5582,7 @@
 
 	* alloc.c (lisp_align_malloc): Change type of `aligned'.
 
-	* alloca.s: Removed.
+	* alloca.s: Remove.
 
 2003-08-19  Gerd Moellmann  <gerd@gnu.org>
 
@@ -8006,7 +8204,7 @@
 	(handle_one_xevent): ButtonPress/Release:  If event is for a toolkit
 	scrollbar and control is pressed, call x_scroll_bar_handle_click.
 
-	* gtkutil.h: Declare xg_get_scroll_id_for_window.
+	* gtkutil.h (xg_get_scroll_id_for_window): Declare.
 
 	* gtkutil.c (xg_get_scroll_id_for_window): New function.
 	(xg_tool_bar_item_expose_callback): New function.
@@ -8708,7 +8906,7 @@
 	(FRAME_OUTER_TO_INNER_DIFF_Y): Add FRAME_TOOLBAR_HEIGHT to calculation.
 
 	* xterm.c: Include gtkutil.h for USE_GTK.
-	Declare extern void free_frame_menubar for USE_GTK.
+	(free_frame_menubar): Declare extern void for USE_GTK.
 	(note_mouse_highlight): Check popup_activated for USE_GTK.
 	(xt_action_hook): Don't compile if USE_GTK.
 	(x_scroll_bar_to_input_event): Use CurrentTime for USE_GTK.
@@ -8778,7 +8976,7 @@
 	(redisplay_window): Add check for USE_GTK and FRAME_EXTERNAL_TOOL_BAR.
 	(display_menu_bar): Add check for USE_GTK
 
-	* lisp.h: Declare Vx_resource_name extern.
+	* lisp.h (Vx_resource_name): Declare extern.
 
 	* keyboard.c (kbd_buffer_get_event): Check MENU_BAR_ACTIVATE_EVENT
 	for USE_GTK.
@@ -8995,7 +9193,7 @@
 	(XSAVE_VALUE): New macro.
 	(struct Lisp_Save_Value): New data type.
 	(union Lisp_Misc): Add u_save_value alternative.
-	(make_save_value): Declared.
+	(make_save_value): Declare.
 
 	* alloc.c (make_save_value): New function.
 
@@ -12065,7 +12263,7 @@
 	* fontset.c [MAC_OS]: Set Vdefault_fontset to ETL Fixed instead of
 	Apple Monaco.
 
-	* process.c: Declare QCfamily and QCfilter as extern.
+	* process.c (QCfamily, QCfilte): Declare extern.
 	(wait_reading_process_input) [MAC_OSX]: Clear bit for stdin before
 	calling select.
 
@@ -12893,7 +13091,7 @@
 
 2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.h (x_session_check_input, x_session_initialize): Declared.
+	* xterm.h (x_session_check_input, x_session_initialize): Declare.
 
 	* xterm.c: (XTread_socket): Add call to x_session_check_input and
 	x_session_have_connection.
@@ -12905,7 +13103,7 @@
 
 	* emacs.c (main): Add call to syms_of_xsmfns.
 
-	* lisp.h: Declare syms_of_xsmfns as extern.
+	* lisp.h (syms_of_xsmfns): Declare extern.
 
 	* config.in: Add HAVE_X_SM.
 
@@ -14250,7 +14448,7 @@
 2001-12-09  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (_widget_value): Make `help' field a Lisp_Object.
-	Add	comment to explain where the struct came from.
+	Add comment to explain where the struct came from.
 	(single_submenu, w32_menu_show): Set `help' field as Lisp_Object.
 	(add_menu_item): Process pop-up menus first to avoid memory leak.
 	(add_menu_item, w32_menu_display_help): Use `help' field as
@@ -15036,7 +15234,7 @@
 	* insdel.c (replace_range): Use adjust_markers_for_replace
 	instead of adjust_markers_for_delete and adjust_markers_for_insert.
 
-	* intervals.h: Declare set_text_properties and set_text_properties_1.
+	* intervals.h (set_text_properties, set_text_properties_1): Declare.
 
 	* textprop.c (set_text_properties_1): New subroutine
 	broken out of set_text_properties.

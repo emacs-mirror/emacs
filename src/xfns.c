@@ -5105,6 +5105,23 @@ file_dialog_unmap_cb (widget, client_data, call_data)
   *result = XmCR_CANCEL;
 }
 
+static Lisp_Object
+clean_up_file_dialog (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  Widget dialog = (Widget) p->pointer;
+
+  /* Clean up.  */
+  BLOCK_INPUT;
+  XtUnmanageChild (dialog);
+  XtDestroyWidget (dialog);
+  x_menu_set_in_use (0);
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
@@ -5126,6 +5143,10 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
+
+  if (popup_activated ())
+    error ("Trying to use a menu from within a menu-entry");
+
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
@@ -5208,13 +5229,17 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
       XmStringFree (default_xmstring);
     }
 
+  record_unwind_protect (clean_up_file_dialog, make_save_value (dialog, 0));
+
   /* Process events until the user presses Cancel or OK.  */
+  x_menu_set_in_use (1);
   result = 0;
   while (result == 0)
     {
       XEvent event;
+      x_menu_wait_for_event (0);
       XtAppNextEvent (Xt_app_con, &event);
-      (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f) );
+      (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f));
     }
 
   /* Get the result.  */
@@ -5232,9 +5257,6 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   else
     file = Qnil;
 
-  /* Clean up.  */
-  XtUnmanageChild (dialog);
-  XtDestroyWidget (dialog);
   UNBLOCK_INPUT;
   UNGCPRO;
 
@@ -5249,6 +5271,15 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
 
 #ifdef USE_GTK
 
+static Lisp_Object
+clean_up_dialog (arg)
+     Lisp_Object arg;
+{
+  x_menu_set_in_use (0);
+
+  return Qnil;
+}
+
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
@@ -5261,16 +5292,21 @@ directories.  */)
   FRAME_PTR f = SELECTED_FRAME ();
   char *fn;
   Lisp_Object file = Qnil;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
+
+  if (popup_activated ())
+    error ("Trying to use a menu from within a menu-entry");
+
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);
+  record_unwind_protect (clean_up_dialog, Qnil);
 
   BLOCK_INPUT;
 

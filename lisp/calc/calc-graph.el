@@ -66,6 +66,7 @@
 (defvar calc-graph-data-cache-limit 10)
 (defvar calc-graph-no-auto-view nil)
 (defvar calc-graph-no-wait nil)
+(defvar calc-gnuplot-trail-mark)
 
 (defun calc-graph-fast (many)
   (interactive "P")
@@ -224,11 +225,10 @@
       thing
     (let ((found (assoc thing calc-graph-var-cache)))
       (or found
-	  (progn
-	    (setq varname (concat "PlotData"
-				  (int-to-string
-				   (1+ (length calc-graph-var-cache))))
-		  var (list 'var (intern varname)
+	  (let ((varname (concat "PlotData"
+                                 (int-to-string
+                                  (1+ (length calc-graph-var-cache))))))
+            (setq var (list 'var (intern varname)
 			    (intern (concat "var-" varname)))
 		  found (cons thing var)
 		  calc-graph-var-cache (cons found calc-graph-var-cache))
@@ -275,6 +275,47 @@
   (interactive "P")
   (calc-graph-plot flag t))
 
+(defvar var-DUMMY)
+(defvar var-DUMMY2)
+(defvar var-PlotRejects)
+
+;; The following variables are local to calc-graph-plot, but are 
+;; used in the functions calc-graph-compute-2d, calc-graph-refine-2d,
+;; calc-graph-recompute-2d, calc-graph-compute-3d and 
+;; calc-graph-format-data, which are called by calc-graph-plot.
+(defvar calc-graph-yvalue)
+(defvar calc-graph-yvec)
+(defvar calc-graph-numsteps)
+(defvar calc-graph-numsteps3)
+(defvar calc-graph-xvalue)
+(defvar calc-graph-xvec)
+(defvar calc-graph-xname)
+(defvar calc-graph-yname)
+(defvar calc-graph-xstep)
+(defvar calc-graph-ycache)
+(defvar calc-graph-ycacheptr)
+(defvar calc-graph-refine)
+(defvar calc-graph-keep-file)
+(defvar calc-graph-xval)
+(defvar calc-graph-xlow)
+(defvar calc-graph-xhigh)
+(defvar calc-graph-yval)
+(defvar calc-graph-yp)
+(defvar calc-graph-xp)
+(defvar calc-graph-zp)
+(defvar calc-graph-yvector)
+(defvar calc-graph-resolution)
+(defvar calc-graph-y3value)
+(defvar calc-graph-y3name)
+(defvar calc-graph-y3step)
+(defvar calc-graph-zval)
+(defvar calc-graph-stepcount)
+(defvar calc-graph-is-splot)
+(defvar calc-graph-surprise-splot)
+(defvar calc-graph-blank)
+(defvar calc-graph-non-blank)
+(defvar calc-graph-curve-num)
+
 (defun calc-graph-plot (flag &optional printing)
   (interactive "P")
   (calc-slow-wrapper
@@ -282,22 +323,20 @@
 	 (tempbuf (get-buffer-create "*Gnuplot Temp-2*"))
 	 (tempbuftop 1)
 	 (tempoutfile nil)
-	 (curve-num 0)
-	 (refine (and flag (> (prefix-numeric-value flag) 0)))
+	 (calc-graph-curve-num 0)
+	 (calc-graph-refine (and flag (> (prefix-numeric-value flag) 0)))
 	 (recompute (and flag (< (prefix-numeric-value flag) 0)))
-	 (surprise-splot nil)
+	 (calc-graph-surprise-splot nil)
 	 (tty-output nil)
-	 cache-env is-splot device output resolution precision samples-pos)
-     (or (boundp 'calc-graph-prev-kill-hook)
-         (setq calc-graph-prev-kill-hook nil)
-         (add-hook 'kill-emacs-hook 'calc-graph-kill-hook))
+	 cache-env calc-graph-is-splot device output calc-graph-resolution precision samples-pos)
+     (add-hook 'kill-emacs-hook 'calc-graph-kill-hook)
      (save-excursion
        (calc-graph-init)
        (set-buffer tempbuf)
        (erase-buffer)
        (set-buffer calc-gnuplot-input)
        (goto-char (point-min))
-       (setq is-splot (re-search-forward "^splot[ \t]" nil t))
+       (setq calc-graph-is-splot (re-search-forward "^splot[ \t]" nil t))
        (let ((str (buffer-string))
 	     (ver calc-gnuplot-version))
 	 (set-buffer (get-buffer-create "*Gnuplot Temp*"))
@@ -313,14 +352,14 @@
 		     "set nogrid\nset nokey\nset nopolar\n"))
 	 (if (>= ver 3)
 	     (insert "set surface\nset nocontour\n"
-		     "set " (if is-splot "" "no") "parametric\n"
+		     "set " (if calc-graph-is-splot "" "no") "parametric\n"
 		     "set notime\nset border\nset ztics\nset zeroaxis\n"
 		     "set view 60,30,1,1\nset offsets 0,0,0,0\n"))
 	 (setq samples-pos (point))
 	 (insert "\n\n" str))
        (goto-char (point-min))
-       (if is-splot
-	   (if refine
+       (if calc-graph-is-splot
+	   (if calc-graph-refine
 	       (error "This option works only for 2d plots")
 	     (setq recompute t)))
        (let ((calc-gnuplot-input (current-buffer))
@@ -366,10 +405,10 @@
 				     (if (equal output "STDOUT")
 					 ""
 				       (prin1-to-string output)))))
-	 (setq resolution (calc-graph-find-command "samples"))
-	 (if resolution
-	     (setq resolution (string-to-int resolution))
-	   (setq resolution (if is-splot
+	 (setq calc-graph-resolution (calc-graph-find-command "samples"))
+	 (if calc-graph-resolution
+	     (setq calc-graph-resolution (string-to-int calc-graph-resolution))
+	   (setq calc-graph-resolution (if calc-graph-is-splot
 				calc-graph-default-resolution-3d
 			      calc-graph-default-resolution)))
 	 (setq precision (calc-graph-find-command "precision"))
@@ -381,8 +420,8 @@
 	 (calc-graph-set-command "samples")
 	 (calc-graph-set-command "precision"))
        (goto-char samples-pos)
-       (insert "set samples " (int-to-string (max (if is-splot 20 200)
-						  (+ 5 resolution))) "\n")
+       (insert "set samples " (int-to-string (max (if calc-graph-is-splot 20 200)
+						  (+ 5 calc-graph-resolution))) "\n")
        (while (re-search-forward "{\\*[^}]+}[^,\n]*" nil t)
 	 (delete-region (match-beginning 0) (match-end 0))
 	 (if (looking-at ",")
@@ -398,7 +437,7 @@
 			       calc-simplify-mode
 			       calc-infinite-mode
 			       calc-word-size
-			       precision is-splot))
+			       precision calc-graph-is-splot))
 	 (if (and (not recompute)
 		  (equal (cdr (car calc-graph-data-cache)) cache-env))
 	     (while (> (length calc-graph-data-cache)
@@ -408,88 +447,88 @@
 	   (setq calc-graph-data-cache (list (cons nil cache-env)))))
        (calc-graph-find-plot t t)
        (while (re-search-forward
-	       (if is-splot
+	       (if calc-graph-is-splot
 		   "{\\([^{}:\n]+\\):\\([^{}:\n]+\\):\\([^{}:\n]+\\)}"
 		 "{\\([^{}:\n]+\\)\\(:\\)\\([^{}:\n]+\\)}")
 	       nil t)
-	 (setq curve-num (1+ curve-num))
-	 (let* ((xname (buffer-substring (match-beginning 1) (match-end 1)))
-		(xvar (intern (concat "var-" xname)))
-		(xvalue (math-evaluate-expr (calc-var-value xvar)))
-		(y3name (and is-splot
+	 (setq calc-graph-curve-num (1+ calc-graph-curve-num))
+	 (let* ((calc-graph-xname (buffer-substring (match-beginning 1) (match-end 1)))
+		(xvar (intern (concat "var-" calc-graph-xname)))
+		(calc-graph-xvalue (math-evaluate-expr (calc-var-value xvar)))
+		(calc-graph-y3name (and calc-graph-is-splot
 			     (buffer-substring (match-beginning 2)
 					       (match-end 2))))
-		(y3var (and is-splot (intern (concat "var-" y3name))))
-		(y3value (and is-splot (calc-var-value y3var)))
-		(yname (buffer-substring (match-beginning 3) (match-end 3)))
-		(yvar (intern (concat "var-" yname)))
-		(yvalue (calc-var-value yvar))
+		(y3var (and calc-graph-is-splot (intern (concat "var-" calc-graph-y3name))))
+		(calc-graph-y3value (and calc-graph-is-splot (calc-var-value y3var)))
+		(calc-graph-yname (buffer-substring (match-beginning 3) (match-end 3)))
+		(yvar (intern (concat "var-" calc-graph-yname)))
+		(calc-graph-yvalue (calc-var-value yvar))
 		filename)
 	   (delete-region (match-beginning 0) (match-end 0))
-	   (setq filename (calc-temp-file-name curve-num))
+	   (setq filename (calc-temp-file-name calc-graph-curve-num))
 	   (save-excursion
 	     (set-buffer calcbuf)
 	     (let (tempbuftop
-		   (xp xvalue)
-		   (yp yvalue)
-		   (zp nil)
-		   (xlow nil) (xhigh nil) (y3low nil) (y3high nil)
-		   xvec xval xstep var-DUMMY
-		   y3vec y3val y3step var-DUMMY2 (zval nil)
-		   yvec yval ycache ycacheptr yvector
-		   numsteps numsteps3
-		   (keep-file (and (not is-splot) (file-exists-p filename)))
-		   (stepcount 0)
+		   (calc-graph-xp calc-graph-xvalue)
+		   (calc-graph-yp calc-graph-yvalue)
+		   (calc-graph-zp nil)
+		   (calc-graph-xlow nil) (calc-graph-xhigh nil) (y3low nil) (y3high nil)
+		   calc-graph-xvec calc-graph-xval calc-graph-xstep var-DUMMY
+		   y3val calc-graph-y3step var-DUMMY2 (calc-graph-zval nil)
+		   calc-graph-yvec calc-graph-yval calc-graph-ycache calc-graph-ycacheptr calc-graph-yvector
+		   calc-graph-numsteps calc-graph-numsteps3
+		   (calc-graph-keep-file (and (not calc-graph-is-splot) (file-exists-p filename)))
+		   (calc-graph-stepcount 0)
 		   (calc-symbolic-mode nil)
 		   (calc-prefer-frac nil)
 		   (calc-internal-prec (max 3 precision))
 		   (calc-simplify-mode (and (not (memq calc-simplify-mode
 						       '(none num)))
 					    calc-simplify-mode))
-		   (blank t)
-		   (non-blank nil)
+		   (calc-graph-blank t)
+		   (calc-graph-non-blank nil)
 		   (math-working-step 0)
 		   (math-working-step-2 nil))
 	       (save-excursion
-		 (if is-splot
+		 (if calc-graph-is-splot
 		     (calc-graph-compute-3d)
 		   (calc-graph-compute-2d))
 		 (set-buffer tempbuf)
 		 (goto-char (point-max))
-		 (insert "\n" xname)
-		 (if is-splot
-		     (insert ":" y3name))
-		 (insert ":" yname "\n\n")
+		 (insert "\n" calc-graph-xname)
+		 (if calc-graph-is-splot
+		     (insert ":" calc-graph-y3name))
+		 (insert ":" calc-graph-yname "\n\n")
 		 (setq tempbuftop (point))
 		 (let ((calc-group-digits nil)
 		       (calc-leading-zeros nil)
 		       (calc-number-radix 10)
-		       (entry (and (not is-splot)
-				   (list xp yp xhigh numsteps))))
+		       (entry (and (not calc-graph-is-splot)
+				   (list calc-graph-xp calc-graph-yp calc-graph-xhigh calc-graph-numsteps))))
 		   (or (equal entry
-			      (nth 1 (nth (1+ curve-num)
+			      (nth 1 (nth (1+ calc-graph-curve-num)
 					  calc-graph-file-cache)))
-		       (setq keep-file nil))
-		   (setcar (cdr (nth (1+ curve-num) calc-graph-file-cache))
+		       (setq calc-graph-keep-file nil))
+		   (setcar (cdr (nth (1+ calc-graph-curve-num) calc-graph-file-cache))
 			   entry)
-		   (or keep-file
+		   (or calc-graph-keep-file
 		       (calc-graph-format-data)))
-		 (or keep-file
+		 (or calc-graph-keep-file
 		     (progn
-		       (or non-blank
+		       (or calc-graph-non-blank
 			   (error "No valid data points for %s:%s"
-				  xname yname))
+				  calc-graph-xname calc-graph-yname))
 		       (write-region tempbuftop (point-max) filename
 				     nil 'quiet))))))
 	   (insert (prin1-to-string filename))))
-       (if surprise-splot
+       (if calc-graph-surprise-splot
 	   (setcdr cache-env nil))
-       (if (= curve-num 0)
+       (if (= calc-graph-curve-num 0)
 	   (progn
 	     (calc-gnuplot-command "clear")
 	     (calc-clear-command-flag 'clear-message)
 	     (message "No data to plot!"))
-	 (setq calc-graph-data-cache-limit (max curve-num
+	 (setq calc-graph-data-cache-limit (max calc-graph-curve-num
 						calc-graph-data-cache-limit)
 	       filename (calc-temp-file-name 0))
 	 (write-region (point-min) (point-max) filename nil 'quiet)
@@ -517,325 +556,325 @@
 		   (eval command))))))))))
 
 (defun calc-graph-compute-2d ()
-  (if (setq yvec (eq (car-safe yvalue) 'vec))
-      (if (= (setq numsteps (1- (length yvalue))) 0)
+  (if (setq calc-graph-yvec (eq (car-safe calc-graph-yvalue) 'vec))
+      (if (= (setq calc-graph-numsteps (1- (length calc-graph-yvalue))) 0)
 	  (error "Can't plot an empty vector")
-	(if (setq xvec (eq (car-safe xvalue) 'vec))
-	    (or (= (1- (length xvalue)) numsteps)
-		(error "%s and %s have different lengths" xname yname))
-	  (if (and (eq (car-safe xvalue) 'intv)
-		   (math-constp xvalue))
-	      (setq xstep (math-div (math-sub (nth 3 xvalue)
-					      (nth 2 xvalue))
-				    (1- numsteps))
-		    xvalue (nth 2 xvalue))
-	    (if (math-realp xvalue)
-		(setq xstep 1)
-	      (error "%s is not a suitable basis for %s" xname yname)))))
-    (or (math-realp yvalue)
+	(if (setq calc-graph-xvec (eq (car-safe calc-graph-xvalue) 'vec))
+	    (or (= (1- (length calc-graph-xvalue)) calc-graph-numsteps)
+		(error "%s and %s have different lengths" calc-graph-xname calc-graph-yname))
+	  (if (and (eq (car-safe calc-graph-xvalue) 'intv)
+		   (math-constp calc-graph-xvalue))
+	      (setq calc-graph-xstep (math-div (math-sub (nth 3 calc-graph-xvalue)
+					      (nth 2 calc-graph-xvalue))
+				    (1- calc-graph-numsteps))
+		    calc-graph-xvalue (nth 2 calc-graph-xvalue))
+	    (if (math-realp calc-graph-xvalue)
+		(setq calc-graph-xstep 1)
+	      (error "%s is not a suitable basis for %s" calc-graph-xname calc-graph-yname)))))
+    (or (math-realp calc-graph-yvalue)
 	(let ((arglist nil))
-	  (setq yvalue (math-evaluate-expr yvalue))
-	  (calc-default-formula-arglist yvalue)
+	  (setq calc-graph-yvalue (math-evaluate-expr calc-graph-yvalue))
+	  (calc-default-formula-arglist calc-graph-yvalue)
 	  (or arglist
-	      (error "%s does not contain any unassigned variables" yname))
+	      (error "%s does not contain any unassigned variables" calc-graph-yname))
 	  (and (cdr arglist)
 	       (error "%s contains more than one variable: %s"
-		      yname arglist))
-	  (setq yvalue (math-expr-subst yvalue
+		      calc-graph-yname arglist))
+	  (setq calc-graph-yvalue (math-expr-subst calc-graph-yvalue
 					(math-build-var-name (car arglist))
 					'(var DUMMY var-DUMMY)))))
-    (setq ycache (assoc yvalue calc-graph-data-cache))
-    (delq ycache calc-graph-data-cache)
+    (setq calc-graph-ycache (assoc calc-graph-yvalue calc-graph-data-cache))
+    (delq calc-graph-ycache calc-graph-data-cache)
     (nconc calc-graph-data-cache
-	   (list (or ycache (setq ycache (list yvalue)))))
-    (if (and (not (setq xvec (eq (car-safe xvalue) 'vec)))
-	     refine (cdr (cdr ycache)))
+	   (list (or calc-graph-ycache (setq calc-graph-ycache (list calc-graph-yvalue)))))
+    (if (and (not (setq calc-graph-xvec (eq (car-safe calc-graph-xvalue) 'vec)))
+	     calc-graph-refine (cdr (cdr calc-graph-ycache)))
 	(calc-graph-refine-2d)
       (calc-graph-recompute-2d))))
 
 (defun calc-graph-refine-2d ()
-  (setq keep-file nil
-	ycacheptr (cdr ycache))
-  (if (and (setq xval (calc-graph-find-command "xrange"))
+  (setq calc-graph-keep-file nil
+	calc-graph-ycacheptr (cdr calc-graph-ycache))
+  (if (and (setq calc-graph-xval (calc-graph-find-command "xrange"))
 	   (string-match "\\`\\[\\([0-9.eE+-]*\\):\\([0-9.eE+-]*\\)\\]\\'"
-			 xval))
+			 calc-graph-xval))
       (let ((b2 (match-beginning 2))
 	    (e2 (match-end 2)))
-	(setq xlow (math-read-number (substring xval
+	(setq calc-graph-xlow (math-read-number (substring calc-graph-xval
 						(match-beginning 1)
 						(match-end 1)))
-	      xhigh (math-read-number (substring xval b2 e2))))
-    (if xlow
-	(while (and (cdr ycacheptr)
-		    (Math-lessp (car (nth 1 ycacheptr)) xlow))
-	  (setq ycacheptr (cdr ycacheptr)))))
-  (setq math-working-step-2 (1- (length ycacheptr)))
-  (while (and (cdr ycacheptr)
-	      (or (not xhigh)
-		  (Math-lessp (car (car ycacheptr)) xhigh)))
-    (setq var-DUMMY (math-div (math-add (car (car ycacheptr))
-					(car (nth 1 ycacheptr)))
+	      calc-graph-xhigh (math-read-number (substring calc-graph-xval b2 e2))))
+    (if calc-graph-xlow
+	(while (and (cdr calc-graph-ycacheptr)
+		    (Math-lessp (car (nth 1 calc-graph-ycacheptr)) calc-graph-xlow))
+	  (setq calc-graph-ycacheptr (cdr calc-graph-ycacheptr)))))
+  (setq math-working-step-2 (1- (length calc-graph-ycacheptr)))
+  (while (and (cdr calc-graph-ycacheptr)
+	      (or (not calc-graph-xhigh)
+		  (Math-lessp (car (car calc-graph-ycacheptr)) calc-graph-xhigh)))
+    (setq var-DUMMY (math-div (math-add (car (car calc-graph-ycacheptr))
+					(car (nth 1 calc-graph-ycacheptr)))
 			      2)
 	  math-working-step (1+ math-working-step)
-	  yval (math-evaluate-expr yvalue))
-    (setcdr ycacheptr (cons (cons var-DUMMY yval)
-			    (cdr ycacheptr)))
-    (setq ycacheptr (cdr (cdr ycacheptr))))
-  (setq yp ycache
-	numsteps 1000000))
+	  calc-graph-yval (math-evaluate-expr calc-graph-yvalue))
+    (setcdr calc-graph-ycacheptr (cons (cons var-DUMMY calc-graph-yval)
+			    (cdr calc-graph-ycacheptr)))
+    (setq calc-graph-ycacheptr (cdr (cdr calc-graph-ycacheptr))))
+  (setq calc-graph-yp calc-graph-ycache
+	calc-graph-numsteps 1000000))
 
 (defun calc-graph-recompute-2d ()
-  (setq ycacheptr ycache)
-  (if xvec
-      (setq numsteps (1- (length xvalue))
-	    yvector nil)
-    (if (and (eq (car-safe xvalue) 'intv)
-	     (math-constp xvalue))
-	(setq numsteps resolution
-	      yp nil
-	      xlow (nth 2 xvalue)
-	      xhigh (nth 3 xvalue)
-	      xstep (math-div (math-sub xhigh xlow)
-			      (1- numsteps))
-	      xvalue (nth 2 xvalue))
+  (setq calc-graph-ycacheptr calc-graph-ycache)
+  (if calc-graph-xvec
+      (setq calc-graph-numsteps (1- (length calc-graph-xvalue))
+	    calc-graph-yvector nil)
+    (if (and (eq (car-safe calc-graph-xvalue) 'intv)
+	     (math-constp calc-graph-xvalue))
+	(setq calc-graph-numsteps calc-graph-resolution
+	      calc-graph-yp nil
+	      calc-graph-xlow (nth 2 calc-graph-xvalue)
+	      calc-graph-xhigh (nth 3 calc-graph-xvalue)
+	      calc-graph-xstep (math-div (math-sub calc-graph-xhigh calc-graph-xlow)
+			      (1- calc-graph-numsteps))
+	      calc-graph-xvalue (nth 2 calc-graph-xvalue))
       (error "%s is not a suitable basis for %s"
-	     xname yname)))
-  (setq math-working-step-2 numsteps)
-  (while (>= (setq numsteps (1- numsteps)) 0)
+	     calc-graph-xname calc-graph-yname)))
+  (setq math-working-step-2 calc-graph-numsteps)
+  (while (>= (setq calc-graph-numsteps (1- calc-graph-numsteps)) 0)
     (setq math-working-step (1+ math-working-step))
-    (if xvec
+    (if calc-graph-xvec
 	(progn
-	  (setq xp (cdr xp)
-		xval (car xp))
-	  (and (not (eq ycacheptr ycache))
-	       (consp (car ycacheptr))
-	       (not (Math-lessp (car (car ycacheptr)) xval))
-	       (setq ycacheptr ycache)))
-      (if (= numsteps 0)
-	  (setq xval xhigh)   ; avoid cumulative roundoff
-	(setq xval xvalue
-	      xvalue (math-add xvalue xstep))))
-    (while (and (cdr ycacheptr)
-		(Math-lessp (car (nth 1 ycacheptr)) xval))
-      (setq ycacheptr (cdr ycacheptr)))
-    (or (and (cdr ycacheptr)
-	     (Math-equal (car (nth 1 ycacheptr)) xval))
+	  (setq calc-graph-xp (cdr calc-graph-xp)
+		calc-graph-xval (car calc-graph-xp))
+	  (and (not (eq calc-graph-ycacheptr calc-graph-ycache))
+	       (consp (car calc-graph-ycacheptr))
+	       (not (Math-lessp (car (car calc-graph-ycacheptr)) calc-graph-xval))
+	       (setq calc-graph-ycacheptr calc-graph-ycache)))
+      (if (= calc-graph-numsteps 0)
+	  (setq calc-graph-xval calc-graph-xhigh)   ; avoid cumulative roundoff
+	(setq calc-graph-xval calc-graph-xvalue
+	      calc-graph-xvalue (math-add calc-graph-xvalue calc-graph-xstep))))
+    (while (and (cdr calc-graph-ycacheptr)
+		(Math-lessp (car (nth 1 calc-graph-ycacheptr)) calc-graph-xval))
+      (setq calc-graph-ycacheptr (cdr calc-graph-ycacheptr)))
+    (or (and (cdr calc-graph-ycacheptr)
+	     (Math-equal (car (nth 1 calc-graph-ycacheptr)) calc-graph-xval))
 	(progn
-	  (setq keep-file nil
-		var-DUMMY xval)
-	  (setcdr ycacheptr (cons (cons xval (math-evaluate-expr yvalue))
-				  (cdr ycacheptr)))))
-    (setq ycacheptr (cdr ycacheptr))
-    (if xvec
-	(setq yvector (cons (cdr (car ycacheptr)) yvector))
-      (or yp (setq yp ycacheptr))))
-  (if xvec
-      (setq xp xvalue
-	    yvec t
-	    yp (cons 'vec (nreverse yvector))
-	    numsteps (1- (length xp)))
-    (setq numsteps 1000000)))
+	  (setq calc-graph-keep-file nil
+		var-DUMMY calc-graph-xval)
+	  (setcdr calc-graph-ycacheptr (cons (cons calc-graph-xval (math-evaluate-expr calc-graph-yvalue))
+				  (cdr calc-graph-ycacheptr)))))
+    (setq calc-graph-ycacheptr (cdr calc-graph-ycacheptr))
+    (if calc-graph-xvec
+	(setq calc-graph-yvector (cons (cdr (car calc-graph-ycacheptr)) calc-graph-yvector))
+      (or calc-graph-yp (setq calc-graph-yp calc-graph-ycacheptr))))
+  (if calc-graph-xvec
+      (setq calc-graph-xp calc-graph-xvalue
+	    calc-graph-yvec t
+	    calc-graph-yp (cons 'vec (nreverse calc-graph-yvector))
+	    calc-graph-numsteps (1- (length calc-graph-xp)))
+    (setq calc-graph-numsteps 1000000)))
 
 (defun calc-graph-compute-3d ()
-  (if (setq yvec (eq (car-safe yvalue) 'vec))
-      (if (math-matrixp yvalue)
+  (if (setq calc-graph-yvec (eq (car-safe calc-graph-yvalue) 'vec))
+      (if (math-matrixp calc-graph-yvalue)
 	  (progn
-	    (setq numsteps (1- (length yvalue))
-		  numsteps3 (1- (length (nth 1 yvalue))))
-	    (if (eq (car-safe xvalue) 'vec)
-		(or (= (1- (length xvalue)) numsteps)
-		    (error "%s has wrong length" xname))
-	      (if (and (eq (car-safe xvalue) 'intv)
-		       (math-constp xvalue))
-		  (setq xvalue (calcFunc-index numsteps
-					       (nth 2 xvalue)
+	    (setq calc-graph-numsteps (1- (length calc-graph-yvalue))
+		  calc-graph-numsteps3 (1- (length (nth 1 calc-graph-yvalue))))
+	    (if (eq (car-safe calc-graph-xvalue) 'vec)
+		(or (= (1- (length calc-graph-xvalue)) calc-graph-numsteps)
+		    (error "%s has wrong length" calc-graph-xname))
+	      (if (and (eq (car-safe calc-graph-xvalue) 'intv)
+		       (math-constp calc-graph-xvalue))
+		  (setq calc-graph-xvalue (calcFunc-index calc-graph-numsteps
+					       (nth 2 calc-graph-xvalue)
 					       (math-div
-						(math-sub (nth 3 xvalue)
-							  (nth 2 xvalue))
-						(1- numsteps))))
-		(if (math-realp xvalue)
-		    (setq xvalue (calcFunc-index numsteps xvalue 1))
-		  (error "%s is not a suitable basis for %s" xname yname))))
-	    (if (eq (car-safe y3value) 'vec)
-		(or (= (1- (length y3value)) numsteps3)
-		    (error "%s has wrong length" y3name))
-	      (if (and (eq (car-safe y3value) 'intv)
-		       (math-constp y3value))
-		  (setq y3value (calcFunc-index numsteps3
-						(nth 2 y3value)
+						(math-sub (nth 3 calc-graph-xvalue)
+							  (nth 2 calc-graph-xvalue))
+						(1- calc-graph-numsteps))))
+		(if (math-realp calc-graph-xvalue)
+		    (setq calc-graph-xvalue (calcFunc-index calc-graph-numsteps calc-graph-xvalue 1))
+		  (error "%s is not a suitable basis for %s" calc-graph-xname calc-graph-yname))))
+	    (if (eq (car-safe calc-graph-y3value) 'vec)
+		(or (= (1- (length calc-graph-y3value)) calc-graph-numsteps3)
+		    (error "%s has wrong length" calc-graph-y3name))
+	      (if (and (eq (car-safe calc-graph-y3value) 'intv)
+		       (math-constp calc-graph-y3value))
+		  (setq calc-graph-y3value (calcFunc-index calc-graph-numsteps3
+						(nth 2 calc-graph-y3value)
 						(math-div
-						 (math-sub (nth 3 y3value)
-							   (nth 2 y3value))
-						 (1- numsteps3))))
-		(if (math-realp y3value)
-		    (setq y3value (calcFunc-index numsteps3 y3value 1))
-		  (error "%s is not a suitable basis for %s" y3name yname))))
-	    (setq xp nil
-		  yp nil
-		  zp nil
-		  xvec t)
-	    (while (setq xvalue (cdr xvalue) yvalue (cdr yvalue))
-	      (setq xp (nconc xp (make-list (1+ numsteps3) (car xvalue)))
-		    yp (nconc yp (cons 0 (copy-sequence (cdr y3value))))
-		    zp (nconc zp (cons '(skip)
-				       (copy-sequence (cdr (car yvalue)))))))
-	    (setq numsteps (1- (* numsteps (1+ numsteps3)))))
-	(if (= (setq numsteps (1- (length yvalue))) 0)
+						 (math-sub (nth 3 calc-graph-y3value)
+							   (nth 2 calc-graph-y3value))
+						 (1- calc-graph-numsteps3))))
+		(if (math-realp calc-graph-y3value)
+		    (setq calc-graph-y3value (calcFunc-index calc-graph-numsteps3 calc-graph-y3value 1))
+		  (error "%s is not a suitable basis for %s" calc-graph-y3name calc-graph-yname))))
+	    (setq calc-graph-xp nil
+		  calc-graph-yp nil
+		  calc-graph-zp nil
+		  calc-graph-xvec t)
+	    (while (setq calc-graph-xvalue (cdr calc-graph-xvalue) calc-graph-yvalue (cdr calc-graph-yvalue))
+	      (setq calc-graph-xp (nconc calc-graph-xp (make-list (1+ calc-graph-numsteps3) (car calc-graph-xvalue)))
+		    calc-graph-yp (nconc calc-graph-yp (cons 0 (copy-sequence (cdr calc-graph-y3value))))
+		    calc-graph-zp (nconc calc-graph-zp (cons '(skip)
+				       (copy-sequence (cdr (car calc-graph-yvalue)))))))
+	    (setq calc-graph-numsteps (1- (* calc-graph-numsteps 
+                                             (1+ calc-graph-numsteps3)))))
+	(if (= (setq calc-graph-numsteps (1- (length calc-graph-yvalue))) 0)
 	    (error "Can't plot an empty vector"))
-	(or (and (eq (car-safe xvalue) 'vec)
-		 (= (1- (length xvalue)) numsteps))
-	    (error "%s is not a suitable basis for %s" xname yname))
-	(or (and (eq (car-safe y3value) 'vec)
-		 (= (1- (length y3value)) numsteps))
-	    (error "%s is not a suitable basis for %s" y3name yname))
-	(setq xp xvalue
-	      yp y3value
-	      zp yvalue
-	      xvec t))
-    (or (math-realp yvalue)
+	(or (and (eq (car-safe calc-graph-xvalue) 'vec)
+		 (= (1- (length calc-graph-xvalue)) calc-graph-numsteps))
+	    (error "%s is not a suitable basis for %s" calc-graph-xname calc-graph-yname))
+	(or (and (eq (car-safe calc-graph-y3value) 'vec)
+		 (= (1- (length calc-graph-y3value)) calc-graph-numsteps))
+	    (error "%s is not a suitable basis for %s" calc-graph-y3name calc-graph-yname))
+	(setq calc-graph-xp calc-graph-xvalue
+	      calc-graph-yp calc-graph-y3value
+	      calc-graph-zp calc-graph-yvalue
+	      calc-graph-xvec t))
+    (or (math-realp calc-graph-yvalue)
 	(let ((arglist nil))
-	  (setq yvalue (math-evaluate-expr yvalue))
-	  (calc-default-formula-arglist yvalue)
+	  (setq calc-graph-yvalue (math-evaluate-expr calc-graph-yvalue))
+	  (calc-default-formula-arglist calc-graph-yvalue)
 	  (setq arglist (sort arglist 'string-lessp))
 	  (or (cdr arglist)
-	      (error "%s does not contain enough unassigned variables" yname))
+	      (error "%s does not contain enough unassigned variables" calc-graph-yname))
 	  (and (cdr (cdr arglist))
-	       (error "%s contains too many variables: %s" yname arglist))
-	  (setq yvalue (math-multi-subst yvalue
+	       (error "%s contains too many variables: %s" calc-graph-yname arglist))
+	  (setq calc-graph-yvalue (math-multi-subst calc-graph-yvalue
 					 (mapcar 'math-build-var-name
 						 arglist)
 					 '((var DUMMY var-DUMMY)
 					   (var DUMMY2 var-DUMMY2))))))
-    (if (setq xvec (eq (car-safe xvalue) 'vec))
-	(setq numsteps (1- (length xvalue)))
-      (if (and (eq (car-safe xvalue) 'intv)
-	       (math-constp xvalue))
-	  (setq numsteps resolution
-		xvalue (calcFunc-index numsteps
-				       (nth 2 xvalue)
-				       (math-div (math-sub (nth 3 xvalue)
-							   (nth 2 xvalue))
-						 (1- numsteps))))
+    (if (setq calc-graph-xvec (eq (car-safe calc-graph-xvalue) 'vec))
+	(setq calc-graph-numsteps (1- (length calc-graph-xvalue)))
+      (if (and (eq (car-safe calc-graph-xvalue) 'intv)
+	       (math-constp calc-graph-xvalue))
+	  (setq calc-graph-numsteps calc-graph-resolution
+		calc-graph-xvalue (calcFunc-index calc-graph-numsteps
+				       (nth 2 calc-graph-xvalue)
+				       (math-div (math-sub (nth 3 calc-graph-xvalue)
+							   (nth 2 calc-graph-xvalue))
+						 (1- calc-graph-numsteps))))
 	(error "%s is not a suitable basis for %s"
-	       xname yname)))
-    (if (setq y3vec (eq (car-safe y3value) 'vec))
-	(setq numsteps3 (1- (length y3value)))
-      (if (and (eq (car-safe y3value) 'intv)
-	       (math-constp y3value))
-	  (setq numsteps3 resolution
-		y3value (calcFunc-index numsteps3
-					(nth 2 y3value)
-					(math-div (math-sub (nth 3 y3value)
-							    (nth 2 y3value))
-						  (1- numsteps3))))
+	       calc-graph-xname calc-graph-yname)))
+    (if (eq (car-safe calc-graph-y3value) 'vec)
+	(setq calc-graph-numsteps3 (1- (length calc-graph-y3value)))
+      (if (and (eq (car-safe calc-graph-y3value) 'intv)
+	       (math-constp calc-graph-y3value))
+	  (setq calc-graph-numsteps3 calc-graph-resolution
+		calc-graph-y3value (calcFunc-index calc-graph-numsteps3
+					(nth 2 calc-graph-y3value)
+					(math-div (math-sub (nth 3 calc-graph-y3value)
+							    (nth 2 calc-graph-y3value))
+						  (1- calc-graph-numsteps3))))
 	(error "%s is not a suitable basis for %s"
-	       y3name yname)))
-    (setq xp nil
-	  yp nil
-	  zp nil
-	  xvec t)
+	       calc-graph-y3name calc-graph-yname)))
+    (setq calc-graph-xp nil
+	  calc-graph-yp nil
+	  calc-graph-zp nil
+	  calc-graph-xvec t)
     (setq math-working-step 0)
-    (while (setq xvalue (cdr xvalue))
-      (setq xp (nconc xp (make-list (1+ numsteps3) (car xvalue)))
-	    yp (nconc yp (cons 0 (copy-sequence (cdr y3value))))
-	    zp (cons '(skip) zp)
-	    y3step y3value
-	    var-DUMMY (car xvalue)
+    (while (setq calc-graph-xvalue (cdr calc-graph-xvalue))
+      (setq calc-graph-xp (nconc calc-graph-xp (make-list (1+ calc-graph-numsteps3) (car calc-graph-xvalue)))
+	    calc-graph-yp (nconc calc-graph-yp (cons 0 (copy-sequence (cdr calc-graph-y3value))))
+	    calc-graph-zp (cons '(skip) calc-graph-zp)
+	    calc-graph-y3step calc-graph-y3value
+	    var-DUMMY (car calc-graph-xvalue)
 	    math-working-step-2 0
 	    math-working-step (1+ math-working-step))
-      (while (setq y3step (cdr y3step))
+      (while (setq calc-graph-y3step (cdr calc-graph-y3step))
 	(setq math-working-step-2 (1+ math-working-step-2)
-	      var-DUMMY2 (car y3step)
-	      zp (cons (math-evaluate-expr yvalue) zp))))
-    (setq zp (nreverse zp)
-	  numsteps (1- (* numsteps (1+ numsteps3))))))
+	      var-DUMMY2 (car calc-graph-y3step)
+	      calc-graph-zp (cons (math-evaluate-expr calc-graph-yvalue) calc-graph-zp))))
+    (setq calc-graph-zp (nreverse calc-graph-zp)
+	  calc-graph-numsteps (1- (* calc-graph-numsteps (1+ calc-graph-numsteps3))))))
 
 (defun calc-graph-format-data ()
-  (while (<= (setq stepcount (1+ stepcount)) numsteps)
-    (if xvec
-	(setq xp (cdr xp)
-	      xval (car xp)
-	      yp (cdr yp)
-	      yval (car yp)
-	      zp (cdr zp)
-	      zval (car zp))
-      (if yvec
-	  (setq xval xvalue
-		xvalue (math-add xvalue xstep)
-		yp (cdr yp)
-		yval (car yp))
-	(setq xval (car (car yp))
-	      yval (cdr (car yp))
-	      yp (cdr yp))
-	(if (or (not yp)
-		(and xhigh (equal xval xhigh)))
-	    (setq numsteps 0))))
-    (if is-splot
-	(if (and (eq (car-safe zval) 'calcFunc-xyz)
-		 (= (length zval) 4))
-	    (setq xval (nth 1 zval)
-		  yval (nth 2 zval)
-		  zval (nth 3 zval)))
-      (if (and (eq (car-safe yval) 'calcFunc-xyz)
-	       (= (length yval) 4))
+  (while (<= (setq calc-graph-stepcount (1+ calc-graph-stepcount)) calc-graph-numsteps)
+    (if calc-graph-xvec
+	(setq calc-graph-xp (cdr calc-graph-xp)
+	      calc-graph-xval (car calc-graph-xp)
+	      calc-graph-yp (cdr calc-graph-yp)
+	      calc-graph-yval (car calc-graph-yp)
+	      calc-graph-zp (cdr calc-graph-zp)
+	      calc-graph-zval (car calc-graph-zp))
+      (if calc-graph-yvec
+	  (setq calc-graph-xval calc-graph-xvalue
+		calc-graph-xvalue (math-add calc-graph-xvalue calc-graph-xstep)
+		calc-graph-yp (cdr calc-graph-yp)
+		calc-graph-yval (car calc-graph-yp))
+	(setq calc-graph-xval (car (car calc-graph-yp))
+	      calc-graph-yval (cdr (car calc-graph-yp))
+	      calc-graph-yp (cdr calc-graph-yp))
+	(if (or (not calc-graph-yp)
+		(and calc-graph-xhigh (equal calc-graph-xval calc-graph-xhigh)))
+	    (setq calc-graph-numsteps 0))))
+    (if calc-graph-is-splot
+	(if (and (eq (car-safe calc-graph-zval) 'calcFunc-xyz)
+		 (= (length calc-graph-zval) 4))
+	    (setq calc-graph-xval (nth 1 calc-graph-zval)
+		  calc-graph-yval (nth 2 calc-graph-zval)
+		  calc-graph-zval (nth 3 calc-graph-zval)))
+      (if (and (eq (car-safe calc-graph-yval) 'calcFunc-xyz)
+	       (= (length calc-graph-yval) 4))
 	  (progn
-	    (or surprise-splot
+	    (or calc-graph-surprise-splot
 		(save-excursion
 		  (set-buffer (get-buffer-create "*Gnuplot Temp*"))
 		  (save-excursion
 		    (goto-char (point-max))
 		    (re-search-backward "^plot[ \t]")
 		    (insert "set parametric\ns")
-		    (setq surprise-splot t))))
-	    (setq xval (nth 1 yval)
-		  zval (nth 3 yval)
-		  yval (nth 2 yval)))
-	(if (and (eq (car-safe yval) 'calcFunc-xy)
-		 (= (length yval) 3))
-	    (setq xval (nth 1 yval)
-		  yval (nth 2 yval)))))
-    (if (and (Math-realp xval)
-	     (Math-realp yval)
-	     (or (not zval) (Math-realp zval)))
+		    (setq calc-graph-surprise-splot t))))
+	    (setq calc-graph-xval (nth 1 calc-graph-yval)
+		  calc-graph-zval (nth 3 calc-graph-yval)
+		  calc-graph-yval (nth 2 calc-graph-yval)))
+	(if (and (eq (car-safe calc-graph-yval) 'calcFunc-xy)
+		 (= (length calc-graph-yval) 3))
+	    (setq calc-graph-xval (nth 1 calc-graph-yval)
+		  calc-graph-yval (nth 2 calc-graph-yval)))))
+    (if (and (Math-realp calc-graph-xval)
+	     (Math-realp calc-graph-yval)
+	     (or (not calc-graph-zval) (Math-realp calc-graph-zval)))
 	(progn
-	  (setq blank nil
-		non-blank t)
-	  (if (Math-integerp xval)
-	      (insert (math-format-number xval))
-	    (if (eq (car xval) 'frac)
-		(setq xval (math-float xval)))
-	    (insert (math-format-number (nth 1 xval))
-		    "e" (int-to-string (nth 2 xval))))
+	  (setq calc-graph-blank nil
+		calc-graph-non-blank t)
+	  (if (Math-integerp calc-graph-xval)
+	      (insert (math-format-number calc-graph-xval))
+	    (if (eq (car calc-graph-xval) 'frac)
+		(setq calc-graph-xval (math-float calc-graph-xval)))
+	    (insert (math-format-number (nth 1 calc-graph-xval))
+		    "e" (int-to-string (nth 2 calc-graph-xval))))
 	  (insert " ")
-	  (if (Math-integerp yval)
-	      (insert (math-format-number yval))
-	    (if (eq (car yval) 'frac)
-		(setq yval (math-float yval)))
-	    (insert (math-format-number (nth 1 yval))
-		    "e" (int-to-string (nth 2 yval))))
-	  (if zval
+	  (if (Math-integerp calc-graph-yval)
+	      (insert (math-format-number calc-graph-yval))
+	    (if (eq (car calc-graph-yval) 'frac)
+		(setq calc-graph-yval (math-float calc-graph-yval)))
+	    (insert (math-format-number (nth 1 calc-graph-yval))
+		    "e" (int-to-string (nth 2 calc-graph-yval))))
+	  (if calc-graph-zval
 	      (progn
 		(insert " ")
-		(if (Math-integerp zval)
-		    (insert (math-format-number zval))
-		  (if (eq (car zval) 'frac)
-		      (setq zval (math-float zval)))
-		  (insert (math-format-number (nth 1 zval))
-			  "e" (int-to-string (nth 2 zval))))))
+		(if (Math-integerp calc-graph-zval)
+		    (insert (math-format-number calc-graph-zval))
+		  (if (eq (car calc-graph-zval) 'frac)
+		      (setq calc-graph-zval (math-float calc-graph-zval)))
+		  (insert (math-format-number (nth 1 calc-graph-zval))
+			  "e" (int-to-string (nth 2 calc-graph-zval))))))
 	  (insert "\n"))
-      (and (not (equal zval '(skip)))
-	   (boundp 'var-PlotRejects)
+      (and (not (equal calc-graph-zval '(skip)))
 	   (eq (car-safe var-PlotRejects) 'vec)
 	   (nconc var-PlotRejects
 		  (list (list 'vec
-			      curve-num
-			      stepcount
-			      xval yval)))
+			      calc-graph-curve-num
+			      calc-graph-stepcount
+			      calc-graph-xval calc-graph-yval)))
 	   (calc-refresh-evaltos 'var-PlotRejects))
-      (or blank
+      (or calc-graph-blank
 	  (progn
 	    (insert "\n")
-	    (setq blank t))))))
+	    (setq calc-graph-blank t))))))
 
 (defun calc-temp-file-name (num)
   (while (<= (length calc-graph-file-cache) (1+ num))
@@ -859,9 +898,7 @@
     (setq calc-graph-file-cache (cdr calc-graph-file-cache))))
 
 (defun calc-graph-kill-hook ()
-  (calc-graph-delete-temps)
-  (if calc-graph-prev-kill-hook
-      (funcall calc-graph-prev-kill-hook)))
+  (calc-graph-delete-temps))
 
 (defun calc-graph-show-tty (output)
   "Default calc-gnuplot-plot-command for \"tty\" output mode.
@@ -869,6 +906,9 @@ This is useful for tek40xx and other graphics-terminal types."
   (call-process-region 1 1 shell-file-name
 		       nil calc-gnuplot-buffer nil
 		       "-c" (format "cat %s >/dev/tty; rm %s" output output)))
+
+(defvar calc-dumb-map nil
+  "The keymap for the \"dumb\" terminal plot.")
 
 (defun calc-graph-show-dumb (&optional output)
   "Default calc-gnuplot-plot-command for Pinard's \"dumb\" terminal type.
@@ -882,7 +922,6 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	(sleep-for 1))
     (goto-char (point-max))
     (re-search-backward "\f\\|^[ \t]+\\^$\\|G N U P L O T")
-    (setq found-pt (point))
     (if (looking-at "\f")
 	(progn
 	  (forward-char 1)
@@ -898,7 +937,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (end-of-line)
       (backward-char 1)
       (recenter '(4)))
-    (or (boundp 'calc-dumb-map)
+    (or calc-dumb-map
 	(progn
 	  (setq calc-dumb-map (make-sparse-keymap))
 	  (define-key calc-dumb-map "\n" 'scroll-up)
@@ -1097,7 +1136,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
     (or (calc-graph-find-plot nil nil)
 	(error "No data points have been set!"))
     (let ((base (point))
-	  start)
+	  start
+          end)
       (re-search-forward "[,\n]\\|[ \t]+with")
       (setq end (match-beginning 0))
       (goto-char base)

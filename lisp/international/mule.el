@@ -1137,7 +1137,7 @@ FROM is a form to evaluate to define the coding-system."
   (setq coding-system-alist (cons (list (symbol-name symbol))
 				  coding-system-alist)))
 
-(defun set-buffer-file-coding-system (coding-system &optional force)
+(defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
 according to CODING-SYSTEM.  For a list of possible values of CODING-SYSTEM,
@@ -1151,8 +1151,9 @@ specified there).  Otherwise, leave it unspecified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
-don't want to mark the buffer modified, just set the variable
-`buffer-file-coding-system' directly."
+don't want to mark the buffer modified, specify t for NOMODIFY.
+If you know exactly what coding system you want to use,
+just set the variable `buffer-file-coding-system' directly."
   (interactive "zCoding system for saving file (default, nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
@@ -1163,7 +1164,8 @@ don't want to mark the buffer modified, just set the variable
   ;; `set-buffer-major-mode-hook' take care of setting the table.
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input))
-  (set-buffer-modified-p t)
+  (unless nomodify
+    (set-buffer-modified-p t))
   (force-mode-line-update))
 
 (defun revert-buffer-with-coding-system (coding-system &optional force)
@@ -1738,7 +1740,11 @@ different if the buffer has become unibyte."
 	     (find-new-buffer-file-coding-system last-coding-system-used))
 	    (modified-p (buffer-modified-p)))
 	(when coding-system
-	  (set-buffer-file-coding-system coding-system t)
+	  ;; Tell set-buffer-file-coding-system not to mark the file
+	  ;; as modified; we just read it, and it's supposed to be unmodified.
+	  ;; Marking it modified would try to lock it, which would
+	  ;; check the modtime, and we don't want to do that again now.
+	  (set-buffer-file-coding-system coding-system t t)
 	  (if (and enable-multibyte-characters
 		   (or (eq coding-system 'no-conversion)
 		       (eq (coding-system-type coding-system) 5))
@@ -1748,7 +1754,9 @@ different if the buffer has become unibyte."
 		   (= (buffer-size) inserted))
 	      ;; For coding systems no-conversion and raw-text...,
 	      ;; edit the buffer as unibyte.
-	      (let ((pos-marker (copy-marker (+ (point) inserted))))
+	      (let ((pos-marker (copy-marker (+ (point) inserted)))
+		    ;; Prevent locking.
+		    (buffer-file-name nil))
 		(set-buffer-multibyte nil)
 		(setq inserted (- pos-marker (point)))))
 	  (set-buffer-modified-p modified-p))))

@@ -516,25 +516,27 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	      ;; The "abbrev" to expand is just the space.
 	      (setq abbrev " ")
 	      (save-excursion
-		(if dabbrev--last-buffer
-		    (set-buffer dabbrev--last-buffer))
-		;; Find the end of the last "expansion" word.
-		(if (or (eq dabbrev--last-direction 1)
-			(and (eq dabbrev--last-direction 0)
-			     (< dabbrev--last-expansion-location (point))))
-		    (setq dabbrev--last-expansion-location
-			  (+ dabbrev--last-expansion-location
-			     (length dabbrev--last-expansion))))
-		(goto-char dabbrev--last-expansion-location)
-		;; Take the following word, with intermediate separators,
-		;; as our expansion this time.
-		(re-search-forward
-		 (concat "\\(?:" dabbrev--abbrev-char-regexp "\\)+"))
-		(setq expansion (buffer-substring-no-properties
-				 dabbrev--last-expansion-location (point)))
+		(save-restriction
+		  (widen)
+		  (if dabbrev--last-buffer
+		      (set-buffer dabbrev--last-buffer))
+		  ;; Find the end of the last "expansion" word.
+		  (if (or (eq dabbrev--last-direction 1)
+			  (and (eq dabbrev--last-direction 0)
+			       (< dabbrev--last-expansion-location (point))))
+		      (setq dabbrev--last-expansion-location
+			    (+ dabbrev--last-expansion-location
+			       (length dabbrev--last-expansion))))
+		  (goto-char dabbrev--last-expansion-location)
+		  ;; Take the following word, with intermediate separators,
+		  ;; as our expansion this time.
+		  (re-search-forward
+		   (concat "\\(?:" dabbrev--abbrev-char-regexp "\\)+"))
+		  (setq expansion (buffer-substring-no-properties
+				   dabbrev--last-expansion-location (point)))
 
-		;; Record the end of this expansion, in case we repeat this.
-		(setq dabbrev--last-expansion-location (point)))
+		  ;; Record the end of this expansion, in case we repeat this.
+		  (setq dabbrev--last-expansion-location (point))))
 	      ;; Indicate that dabbrev--last-expansion-location is
 	      ;; at the end of the expansion.
 	      (setq dabbrev--last-direction -1))

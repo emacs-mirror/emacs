@@ -841,9 +841,11 @@ Methods}) and the setting of @code{enable-multibyte-characters}
 (@pxref{Text Representations}) from whichever buffer was current before
 entering the minibuffer.
 
-Completion ignores case when comparing the input against the possible
-matches, if the built-in variable @code{completion-ignore-case} is
-non-@code{nil}.  @xref{Basic Completion}.
+If the built-in variable @code{completion-ignore-case} is
+non-@code{nil}, completion ignores case when comparing the input
+against the possible matches.  @xref{Basic Completion}.  In this mode
+of operation, @var{predicate} must also ignore case, or you will get
+surprising results.
 
 Here's an example of using @code{completing-read}:
 

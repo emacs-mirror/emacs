@@ -528,11 +528,29 @@ that are stored in places other than symbols:
 
 @defun plist-get plist property
 This returns the value of the @var{property} property
-stored in the property list @var{plist}.  For example,
+stored in the property list @var{plist}.
+A @code{wrong-type-argument} error may be signaled if @var{plist} is
+not a valid property list.  For example,
 
 @example
 (plist-get '(foo 4) 'foo)
      @result{} 4
+(plist-get '(foo 4 bad) 'foo)
+     @result{} 4
+(plist-get '(foo 4 bad) 'bar)
+     @result{} @code{wrong-type-argument} error
+@end example
+@end defun
+
+@defun safe-plist-get plist property
+This returns the value of the @var{property} property
+stored in the property list @var{plist}.  Unlike @code{plist-get}, it
+accepts a malformed @var{plist} argument and always returns @code{nil}
+if @var{property} is not found in the @var{plist}.  For example,
+
+@example
+(safe-plist-get '(foo 4 bad) 'bar)
+     @result{} nil
 @end example
 @end defun
 

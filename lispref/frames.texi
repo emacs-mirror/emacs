@@ -517,8 +517,8 @@ Display a vertical bar between characters.
 Display a vertical bar @var{width} pixels wide between characters.
 @item hbar
 Display a horizontal bar.
-@item (bar . @var{width})
-Display a horizontal bar @var{width} pixels high.
+@item (hbar . @var{height})
+Display a horizontal bar @var{height} pixels high.
 @end table
 
 @vindex cursor-type
