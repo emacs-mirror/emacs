@@ -539,7 +539,7 @@ patterns should be backed up in specific directories.
 all backups in the directory with absolute name @var{dir}; Emacs
 modifies the backup file names to avoid clashes between files with the
 same names originating in different directories.  Alternatively,
-adding, say, @code{("." ".~")} would make backups in the invisible
+adding, say, @code{("." . ".~")} would make backups in the invisible
 subdirectory @file{.~} of the original file's directory.  Emacs
 creates the directory, if necessary, to make the backup.
 
