@@ -1,3 +1,9 @@
+2000-07-16  John Wiegley  <johnw@gnu.org.
+
+	* lisp/align.el (align-newline-and-indent): Adding new function
+	for auto-aligning blocks of code on RET.
+	(align-region): Fixed badly formatted minibuffer message.
+
 2000-07-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/kkc.el (kkc-show-conversion-list-count): Customize

@@ -1033,6 +1033,23 @@ to be colored."
     (setq align-highlight-overlays
 	  (cdr align-highlight-overlays))))
 
+;;;###autoload
+(defun align-newline-and-indent ()
+  "A replacement function for `newline-and-indent', aligning as it goes."
+  (interactive)
+  (let ((separate (or (if (symbolp align-region-separate)
+			  (symbol-value align-region-separate)
+			align-region-separate)
+		      'entire))
+	(end (point)))
+    (call-interactively 'newline-and-indent)
+    (save-excursion
+      (forward-line -1)
+      (while (not (or (bobp)
+		      (align-new-section-p (point) end separate)))
+	(forward-line -1))
+      (align (point) end))))
+
 ;;; Internal Functions:
 
 (defun align-match-tex-pattern (regexp end &optional reverse)
@@ -1394,12 +1411,17 @@ aligner would have dealt with are."
 			;; are, if it's a very large region being
 			;; aligned
 			(if report
-			    (message
-			     "Aligning `%s' [rule %d of %d] (%d%%)..."
-			     (symbol-name (car rule))
-			     rule-index rule-count
-			     (/ (* (- (point) real-beg) 100)
-				(- end-mark real-beg))))
+			    (let ((name (symbol-name (car rule))))
+			      (if name
+				  (message
+				   "Aligning `%s' (rule %d of %d) %d%%..."
+				   rule-index rule-count
+				   (/ (* (- (point) real-beg) 100)
+				      (- end-mark real-beg)))
+				(message
+				 "Aligning %d%%..."
+				 (/ (* (- (point) real-beg) 100)
+				    (- end-mark real-beg))))))
 
 			;; if the search ended us on the beginning of
 			;; the next line, move back to the end of the
