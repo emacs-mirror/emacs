@@ -374,9 +374,9 @@ struct coding_system
      additional conversion, or nil.  */
   Lisp_Object pre_write_conversion;
 
-  /* Character unification tables to look up, or nil.  */
-  Lisp_Object character_unification_table_for_decode;
-  Lisp_Object character_unification_table_for_encode;
+  /* Character translation tables to look up, or nil.  */
+  Lisp_Object character_translation_table_for_decode;
+  Lisp_Object character_translation_table_for_encode;
 };
 
 #define CODING_REQUIRE_FLUSHING_MASK	1
@@ -529,6 +529,9 @@ extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
 extern Lisp_Object Qraw_text;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
+
+extern Lisp_Object Qcharacter_translation_table;
+extern Lisp_Object Qcharacter_translation_table_id;
 
 /* Mnemonic character to indicate each type of end-of-line.  */
 extern int eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
