@@ -65,9 +65,8 @@
 ;;;
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
-;;; m-r     comint-previous-similar-input   Previous similar input
-;;; m-s     comint-next-similar-input       Next similar input
-;;; c-m-r   comint-previous-input-matching  Search backwards in input history
+;;; m-r     comint-previous-matching-input   Previous input matching a regexp
+;;; m-s     comint-next-matching-input       Next input that matches
 ;;; return  comint-send-input
 ;;; c-a     comint-bol                      Beginning of line; skip prompt.
 ;;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff.
@@ -114,7 +113,7 @@
 ;;;     comint-last-input-end   - marker       For comint-kill-output command
 ;;;     comint-input-ring-size  - integer      For the input history
 ;;;     comint-input-ring       - ring             mechanism
-;;;     comint-input-ring-index - marker           ...
+;;;     comint-input-ring-index - number           ...
 ;;;     comint-last-input-match - string           ...
 ;;;     comint-get-old-input    - function     Hooks for specific 
 ;;;     comint-input-sentinel   - function         process-in-a-buffer
@@ -193,9 +192,9 @@ executed once when the buffer is created.")
   "True if communications via pty; false if by pipe.  Buffer local.
 This is to work around a bug in emacs process signalling.")
 
-(defvar comint-last-input-match ""
-  "Last string searched for by comint input history search, for defaulting.
-Buffer local variable.") 
+;;(defvar comint-last-input-match ""
+;;  "Last string searched for by comint input history search, for defaulting.
+;;Buffer local variable.") 
 
 (defvar comint-input-ring nil)
 (defvar comint-last-input-start)
@@ -241,8 +240,8 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (setq comint-last-input-start (make-marker))
     (make-local-variable 'comint-last-input-end)
     (setq comint-last-input-end (make-marker))
-    (make-local-variable 'comint-last-input-match)
-    (setq comint-last-input-match "")
+;;;    (make-local-variable 'comint-last-input-match)
+;;;    (setq comint-last-input-match "")
     (make-local-variable 'comint-prompt-regexp) ; Don't set; default
     (make-local-variable 'comint-input-ring-size)      ; ...to global val.
     (make-local-variable 'comint-input-ring)
@@ -265,8 +264,8 @@ Entry to this mode runs the hooks on comint-mode-hook"
   (setq comint-mode-map (make-sparse-keymap))
   (define-key comint-mode-map "\ep" 'comint-previous-input)
   (define-key comint-mode-map "\en" 'comint-next-input)
-  (define-key comint-mode-map "\er" 'comint-previous-similar-input)
-  (define-key comint-mode-map "\es" 'comint-next-similar-input)
+  (define-key comint-mode-map "\er" 'comint-previous-matching-input)
+  (define-key comint-mode-map "\es" 'comint-next-matching-input)
   (define-key comint-mode-map "\C-m" 'comint-send-input)
   (define-key comint-mode-map "\C-d" 'comint-delchar-or-maybe-eof)
   (define-key comint-mode-map "\C-a" 'comint-bol)
@@ -276,7 +275,6 @@ Entry to this mode runs the hooks on comint-mode-hook"
   (define-key comint-mode-map "\C-c\C-z" 'comint-stop-subjob)
   (define-key comint-mode-map "\C-c\C-\\" 'comint-quit-subjob)
   (define-key comint-mode-map "\C-c\C-o" 'comint-kill-output)
-  (define-key comint-mode-map "\C-\M-r"  'comint-previous-input-matching)
   (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
   ;;; prompt-search commands commented out 3/90 -Olin
 ; (define-key comint-mode-map "\eP" 'comint-msearch-input)
@@ -421,30 +419,70 @@ buffer.  The hook comint-exec-hook is run after each exec."
   (interactive "*p")
   (comint-previous-input (- arg)))
 
-(defun comint-previous-input-matching (str)
-  "Searches backwards through input history for substring match."
-  (interactive (let* ((last-command last-command) ; preserve around r-f-m
-		      (s (read-from-minibuffer 
-			  (format "Command substring (default %s): "
-				  comint-last-input-match))))
-		 (list (if (string= s "") comint-last-input-match s))))
-; (interactive "sCommand substring: ")
-  (setq comint-last-input-match str) ; update default
+(defun comint-previous-matching-input (regexp arg)
+  "Search backwards through input history for match for REGEXP.
+\(Previous history elements are earlier commands.)
+With prefix argument N, search for Nth previous match.
+If N is negative, find the next or Nth next match."
+  (interactive
+   (let ((minibuffer-history-sexp-flag nil)
+	 ;; Don't clobber this.
+	 (last-command last-command)
+	 (regexp (read-from-minibuffer "Previous input matching (regexp): "
+				       nil
+				       minibuffer-local-map
+				       nil
+				       'minibuffer-history-search-history)))
+     (list (if (string= regexp "")
+	       (setcar minibuffer-history-search-history
+		       (nth 1 minibuffer-history-search-history))
+	     regexp)
+	   (prefix-numeric-value current-prefix-arg))))
   (if (null comint-input-ring-index)
       (setq comint-input-ring-index -1))
-  (let ((str (regexp-quote str))
-        (len (ring-length comint-input-ring))
-	(n (+ comint-input-ring-index 1)))
-    (while (and (< n len) (not (string-match str (ring-ref comint-input-ring n))))
-      (setq n (+ n 1)))
-    (cond ((< n len)
-	   (comint-previous-input (- n comint-input-ring-index)))
-	  (t (error "Not found")))))
+  (let* ((len (ring-length comint-input-ring))
+	 (motion (if (> arg 0) 1 -1))
+	 (n comint-input-ring-index))
+    ;; Do the whole search as many times as the argument says.
+    (while (/= arg 0)
+      (let ((prev n))
+	;; Step once.
+	(setq n (ring-mod (+ n motion) len))
+	;; If we haven't reached a match, step some more.
+	(while (and (< n len)
+		    (not (string-match regexp (ring-ref comint-input-ring n))))
+	  (setq n (ring-mod (+ n motion) len))
+	  ;; If we have gone all the way around in this search, error.
+	  (if (= n prev)
+	      (error "Not found"))))
+      (setq arg (if (> arg 0) (1- arg) (1+ arg))))
+    ;; Now that we know which ring element to use,
+    ;; substitute that for the current input.
+    (comint-previous-input (- n comint-input-ring-index))))
 
-
+(defun comint-next-matching-input (regexp arg)
+  "Search forwards through input history for match for REGEXP.
+\(Later history elements are more recent commands.)
+With prefix argument N, search for Nth following match.
+If N is negative, find the previous or Nth previous match."
+  (interactive
+   (let ((minibuffer-history-sexp-flag nil)
+	 ;; Don't clobber this.
+	 (last-command last-command)
+	 (regexp (read-from-minibuffer "Previous input matching (regexp): "
+				       nil
+				       minibuffer-local-map
+				       nil
+				       'minibuffer-history-search-history)))
+     (list (if (string= regexp "")
+	       (setcar minibuffer-history-search-history
+		       (nth 1 minibuffer-history-search-history))
+	     regexp)
+	   (prefix-numeric-value current-prefix-arg))))
+  (comint-previous-matching-input regexp (- arg)))
+
 ;;; These next three commands are alternatives to the input history commands
-;;; -- comint-next-input, comint-previous-input and
-;;; comint-previous-input-matching. They search through the process buffer
+;;; They search through the process buffer
 ;;; text looking for occurrences of the prompt.  Bound to M-P, M-N, and C-c R
 ;;; (uppercase P, N, and R) for now. Try'em out. Go with what you like...
 
@@ -501,52 +539,53 @@ buffer.  The hook comint-exec-hook is run after each exec."
 ;;;
 ;;; Reenter input, removing back to the last insert point if it exists. 
 ;;;
-(defvar comint-last-similar-string "" 
-  "The string last used in a similar string search.")
-(defun comint-previous-similar-input (arg)
-  "Fetch the previous (older) input that matches the string typed so far.
-Successive repetitions find successively older matching inputs.
-A prefix argument serves as a repeat count; a negative argument
-fetches following (more recent) inputs."
-  (interactive "p")
-  (if (not (comint-after-pmark-p))
-      (error "Not after process mark"))
-  (if (null comint-input-ring-index)
-      (setq comint-input-ring-index
-	    (if (> arg 0) -1
-	      (if (< arg 0) 1 0))))
-  (if (not (or (eq last-command 'comint-previous-similar-input)
-	       (eq last-command 'comint-next-similar-input)))
-      (setq comint-last-similar-string 
-	    (buffer-substring 
-	     (process-mark (get-buffer-process (current-buffer)))
-	     (point))))
-  (let* ((size (length comint-last-similar-string))
-	 (len (ring-length comint-input-ring))
-	 (n (+ comint-input-ring-index arg))
-	 entry)
-    (while (and (< n len) 
-		(or (< (length (setq entry (ring-ref comint-input-ring n))) size)
-		    (not (equal comint-last-similar-string 
-				(substring entry 0 size)))))
-      (setq n (+ n arg)))
-    (cond ((< n len)
-	   (setq comint-input-ring-index n)
-	   (if (or (eq last-command 'comint-previous-similar-input)
-		   (eq last-command 'comint-next-similar-input))
-	       (delete-region (mark) (point)) ; repeat
-	       (push-mark (point)))	      ; 1st time
-	   (insert (substring entry size)))
-	  (t (error "Not found")))
-    (message "%d" (1+ comint-input-ring-index))))
+;;(defvar comint-last-similar-string "" 
+;;  "The string last used in a similar string search.")
 
-(defun comint-next-similar-input (arg)
-  "Fetch the next (newer) input that matches the string typed so far.
-Successive repetitions find successively newer matching inputs.
-A prefix argument serves as a repeat count; a negative argument
-fetches previous (older) inputs."
-  (interactive "p")
-  (comint-previous-similar-input (- arg)))
+;;(defun comint-previous-similar-input (arg)
+;;  "Fetch the previous (older) input that matches the string typed so far.
+;;Successive repetitions find successively older matching inputs.
+;;A prefix argument serves as a repeat count; a negative argument
+;;fetches following (more recent) inputs."
+;;  (interactive "p")
+;;  (if (not (comint-after-pmark-p))
+;;      (error "Not after process mark"))
+;;  (if (null comint-input-ring-index)
+;;      (setq comint-input-ring-index
+;;	    (if (> arg 0) -1
+;;	      (if (< arg 0) 1 0))))
+;;  (if (not (or (eq last-command 'comint-previous-similar-input)
+;;	       (eq last-command 'comint-next-similar-input)))
+;;      (setq comint-last-similar-string 
+;;	    (buffer-substring 
+;;	     (process-mark (get-buffer-process (current-buffer)))
+;;	     (point))))
+;;  (let* ((size (length comint-last-similar-string))
+;;	 (len (ring-length comint-input-ring))
+;;	 (n (+ comint-input-ring-index arg))
+;;	 entry)
+;;    (while (and (< n len) 
+;;		(or (< (length (setq entry (ring-ref comint-input-ring n))) size)
+;;		    (not (equal comint-last-similar-string 
+;;				(substring entry 0 size)))))
+;;      (setq n (+ n arg)))
+;;    (cond ((< n len)
+;;	   (setq comint-input-ring-index n)
+;;	   (if (or (eq last-command 'comint-previous-similar-input)
+;;		   (eq last-command 'comint-next-similar-input))
+;;	       (delete-region (mark) (point)) ; repeat
+;;	       (push-mark (point)))	      ; 1st time
+;;	   (insert (substring entry size)))
+;;	  (t (error "Not found")))
+;;    (message "%d" (1+ comint-input-ring-index))))
+
+;;(defun comint-next-similar-input (arg)
+;;  "Fetch the next (newer) input that matches the string typed so far.
+;;Successive repetitions find successively newer matching inputs.
+;;A prefix argument serves as a repeat count; a negative argument
+;;fetches previous (older) inputs."
+;;  (interactive "p")
+;;  (comint-previous-similar-input (- arg)))
 
 (defun comint-send-input () 
   "Send input to process.
