@@ -255,7 +255,7 @@ format style.")
 (defconst fortran-font-lock-keywords-3 nil
   "Gaudy level highlighting for Fortran mode.")
 
-(eval-and-compile
+(eval-when-compile
   (let ((comment-chars "c!*")
         (fortran-type-types
          (regexp-opt
