@@ -2,7 +2,7 @@
  *
  *                          QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.1) $
+ *  $HopeName: MMsrc!qs.c(trunk.2) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -25,25 +25,29 @@
  */
 
 
-#include "std.h"
-#include "lib.h"
-#include "amc.h"
-#include "format.h"
-#include "pool.h"
-#include "root.h"
-#include "space.h"
+#include "mps.h"
+#include "mpscamc.h"
+#include "mpscmv.h"
 #include "testlib.h"
 
+#include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-SRCID("$HopeName$");
 
+static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
+static mps_addr_t skip(mps_addr_t object);
+static void move(mps_addr_t object, mps_addr_t to);
+static mps_addr_t isMoved(mps_addr_t object);
+static void copy(mps_addr_t object, mps_addr_t to);
 
-static Error scan(ScanState ss, Addr base, Addr limit);
-static Addr skip(Addr object);
-static void move(Addr object, Addr to);
-static Addr isMoved(Addr object);
-static void copy(Addr object, Addr to);
+struct mps_fmt_A_s fmt_A_s =
+  {
+    (mps_align_t)4,
+    scan, skip, copy,
+    move, isMoved,
+    (mps_fmt_pad_t)NULL
+  };
 
 
 /* Tags used by object format */
@@ -52,21 +56,21 @@ enum {QSInt, QSRef, QSEvac};
 typedef struct QSCellStruct *QSCell;
 typedef struct QSCellStruct
 {
-  Addr tag;
-  Addr value;
+  mps_word_t tag;
+  mps_word_t value;
   QSCell tail;
 } QSCellStruct;
 
 
-static Space space;
-static Format format;
-static Pool pool;        /* automatic pool */
-static Buffer buffer;    /* buffer for above */
-static Pool mpool;       /* manual pool */
+static mps_space_t space;
+static mps_fmt_t format;
+static mps_pool_t pool;     /* automatic pool */
+static mps_ap_t ap;         /* AP for above */
+static mps_pool_t mpool;    /* manual pool */
 
 /*  list holds an array that we qsort(), listl is its length */
-static Addr *list;
-static Addr listl;
+static mps_word_t *list;
+static mps_word_t listl;
 
 /*  Machine State
  *
@@ -75,8 +79,8 @@ static Addr listl;
 
 static QSCell activationStack;
 #define NREGS 3
-static Addr reg[NREGS];
-static Addr regtag[NREGS];
+static mps_word_t reg[NREGS];
+static mps_word_t regtag[NREGS];
 
 
 /*  Machine Instructions
@@ -91,21 +95,21 @@ static Addr regtag[NREGS];
 /* should cons return in reg[0] or should it return via C? */
 static
 void
-cons(Addr tag0, Addr value0, QSCell tail)
+cons(mps_word_t tag0, mps_word_t value0, QSCell tail)
 {
-  Addr p;
+  mps_addr_t p;
   QSCell new;
 
   do {
-    die(BufferReserve(&p, buffer, (Size)sizeof(QSCellStruct)),
+    die(mps_reserve(&p, ap, sizeof(QSCellStruct)),
 	"cons");
     new = (QSCell)p;
     new->tag = tag0;
     new->value = value0;
     new->tail = tail;
-  } while(!BufferCommit(buffer, p, (Size)sizeof(QSCellStruct)));
+  } while(!mps_commit(ap, p, sizeof(QSCellStruct)));
 
-  reg[0] = (Addr)new;
+  reg[0] = (mps_word_t)new;
   regtag[0] = QSRef;
   return;
 }
@@ -119,10 +123,10 @@ static
 void
 append(void)
 {
-  AVER(regtag[0] == QSRef);
-  AVER(regtag[1] == QSRef);
+  assert(regtag[0] == QSRef);
+  assert(regtag[1] == QSRef);
 
-  if(reg[0] == (Addr)0) {
+  if(reg[0] == (mps_word_t)0) {
     reg[0] = reg[1];
     regtag[0] = regtag[1];
     goto ret;
@@ -135,15 +139,15 @@ append(void)
 
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
-  AVER(regtag[0] == QSRef);
-  reg[0] = (Addr)((QSCell)reg[0])->tail; /* (cdr x) */
+  assert(regtag[0] == QSRef);
+  reg[0] = (mps_word_t)((QSCell)reg[0])->tail; /* (cdr x) */
   regtag[0] = QSRef;
   append();
   reg[1] = reg[0];
   regtag[1] = regtag[0];
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
-  AVER(regtag[0] == QSRef);
+  assert(regtag[0] == QSRef);
   regtag[0] = ((QSCell)reg[0])->tag;
   reg[0] = ((QSCell)reg[0])->value; /* (car x) */
   cons(regtag[0], reg[0], (QSCell)reg[1]);
@@ -152,32 +156,32 @@ append(void)
   ret:
   /* null out reg[1] */
   regtag[1] = QSRef;
-  reg[1] = (Addr)0;
+  reg[1] = (mps_word_t)0;
   return;
 }
 
 
 static
 void
-print(QSCell a, LibStream stream)
+print(QSCell a, FILE *stream)
 {
-  LibFormat(stream, "( ");
+  fprintf(stream, "( ");
 
   while(a != NULL) {
     switch(a->tag) {
     case QSInt:
-      LibFormat(stream, "%lu ", a->value);
+      fprintf(stream, "%lu ", a->value);
       break;
     case QSRef:
-      LibFormat(stream, "<%08lx> ", a->value);
+      fprintf(stream, "<%08lx> ", a->value);
       break;
     default:
-      LibFormat(stream, "? ");
+      fprintf(stream, "? ");
       break;
     }
     a = a->tail;
   }
-  LibFormat(stream, ")\n");
+  fprintf(stream, ")\n");
 }
 
 /* swaps reg[0] with reg[1], destroys reg[2] */
@@ -192,7 +196,7 @@ swap(void)
   regtag[1]=regtag[2];
   reg[1]=reg[2];
   regtag[2]=QSRef;
-  reg[2]=(Addr)0;
+  reg[2]=(mps_word_t)0;
 }
 
 static
@@ -200,17 +204,17 @@ void
 makerndlist(int l)
 {
   int i;
-  Addr r;
+  mps_word_t r;
 
-  AVER(l > 0);
+  assert(l > 0);
   if(list != NULL) {
-    PoolFree(mpool, (Addr)list, (Size)(listl * sizeof(Addr)));
+    mps_free(mpool, (mps_addr_t)list, (listl * sizeof(mps_word_t)));
     list = NULL;
   }
   listl = l;
-  die(PoolAlloc((Addr *)&list, mpool, (Size)(l * sizeof(Addr))),
+  die(mps_alloc((mps_addr_t *)&list, mpool, (l * sizeof(mps_word_t))),
       "Alloc List");
-  reg[0] = (Addr)0;
+  reg[0] = (mps_word_t)0;
   regtag[0] = QSRef;
   for(i = 0; i < l; ++i) {
     r = rnd();
@@ -224,31 +228,31 @@ makerndlist(int l)
  */
 static
 void
-part(Addr p)
+part(mps_word_t p)
 {
   regtag[2]=regtag[0];
   reg[2]=reg[0];
-  AVER(regtag[2] == QSRef);
+  assert(regtag[2] == QSRef);
   regtag[0]=QSRef;
-  reg[0]=(Addr)0;
+  reg[0]=(mps_word_t)0;
   regtag[1]=QSRef;
-  reg[1]=(Addr)0;
+  reg[1]=(mps_word_t)0;
 
-  while(reg[2] != (Addr)0) {
-    AVER(((QSCell)reg[2])->tag == QSInt);
+  while(reg[2] != (mps_word_t)0) {
+    assert(((QSCell)reg[2])->tag == QSInt);
     if(((QSCell)reg[2])->value < p) {
       /* cons onto reg[0] */
       cons(QSInt, ((QSCell)reg[2])->value, (QSCell)reg[0]);
     } else {
       /* cons onto reg[1] */
-      cons(QSRef, (Addr)reg[0], activationStack); /* save reg[0] */
+      cons(QSRef, (mps_word_t)reg[0], activationStack); /* save reg0 */
       activationStack = (QSCell)reg[0];
       cons(QSInt, ((QSCell)reg[2])->value, (QSCell)reg[1]);
       reg[1]=reg[0];
       reg[0]=activationStack->value;
       activationStack = activationStack->tail;
     }
-    reg[2]=(Addr)((QSCell)reg[2])->tail;
+    reg[2]=(mps_word_t)((QSCell)reg[2])->tail;
   }
 }
 
@@ -257,20 +261,20 @@ static
 void
 qs(void)
 {
-  Addr pivot;
+  mps_word_t pivot;
 
-  AVER(regtag[0] == QSRef);
+  assert(regtag[0] == QSRef);
 
   /* base case */
-  if(reg[0] == (Addr)0) {
+  if(reg[0] == (mps_word_t)0) {
     return;
   }
 
   /* check that we have an int list */
-  AVER(((QSCell)reg[0])->tag == QSInt);
+  assert(((QSCell)reg[0])->tag == QSInt);
    
   pivot = ((QSCell)reg[0])->value;
-  reg[0] = (Addr)((QSCell)reg[0])->tail;
+  reg[0] = (mps_word_t)((QSCell)reg[0])->tail;
   part(pivot);
 
   cons(QSRef, reg[0], activationStack);
@@ -280,15 +284,15 @@ qs(void)
 
   reg[0] = reg[1];
   regtag[0] = regtag[1];
-  AVER(regtag[0] == QSRef);
+  assert(regtag[0] == QSRef);
   qs();
   cons(QSInt, pivot, (QSCell)reg[0]);
   activationStack = activationStack->tail;
-  cons(QSRef, (Addr)reg[0], activationStack);
+  cons(QSRef, (mps_word_t)reg[0], activationStack);
   activationStack = (QSCell)reg[0];
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
-  AVER(regtag[0] == QSRef);
+  assert(regtag[0] == QSRef);
   qs();
   reg[1] = activationStack->value;
   regtag[1] = activationStack->tag;
@@ -298,15 +302,15 @@ qs(void)
 
 static
 void
-printlist(LibStream stream)
+printlist(FILE *stream)
 {
-  Addr i;
+  mps_word_t i;
 
-  LibFormat(stream, "[ ");
+  fprintf(stream, "[ ");
   for(i = 0; i < listl; ++i) {
-    LibFormat(stream, "%lu ", list[i]);
+    fprintf(stream, "%lu ", list[i]);
   }
-  LibFormat(stream, "]\n");
+  fprintf(stream, "]\n");
 }
 
 
@@ -318,10 +322,10 @@ static
 int
 compare(const void *a, const void *b)
 {
-  Addr aa, bb;
+  mps_word_t aa, bb;
 
-  aa = *(const Addr *)a;
-  bb = *(const Addr *)b;
+  aa = *(const mps_word_t *)a;
+  bb = *(const mps_word_t *)b;
   if(aa < bb) {
     return -1;
   } else if(aa == bb) {
@@ -337,85 +341,57 @@ static
 void
 validate(void)
 {
-  Addr i;
+  mps_word_t i;
 
-  AVER(regtag[0] == QSRef);
+  assert(regtag[0] == QSRef);
   regtag[1] = regtag[0];
   reg[1] = reg[0];
   for(i = 0; i < listl; ++i) {
-    AVER(((QSCell)reg[1])->tag == QSInt);
+    assert(((QSCell)reg[1])->tag == QSInt);
     if(((QSCell)reg[1])->value != list[i]) {
-      LibFormat(LibStreamOut(), 
-		"Error: Element %lu of the two lists do not match.\n");
+      fprintf(stdout, 
+              "mps_res_t: Element %lu of the two lists do not match.\n",
+	      (unsigned long)i);
       return;
     }
-    reg[1] = (Addr)((QSCell)reg[1])->tail;
+    reg[1] = (mps_word_t)((QSCell)reg[1])->tail;
   }
-  AVER(reg[1] == (Addr)0);
-  LibFormat(LibStreamOut(), "Note: Lists compare equal.\n");
+  assert(reg[1] == (mps_word_t)0);
+  fprintf(stdout, "Note: Lists compare equal.\n");
 }
 
 
 int
 main(void)
 {
-  AMC amc;
 
-  die(SpaceCreate(&space), "SpaceCreate");
-  mpool = SpaceControlPool(space);
+  die(mps_space_create(&space), "SpaceCreate");
+  die(mps_pool_create(&mpool, space, mps_class_mv(),
+		      (size_t)65536, sizeof(QSCellStruct) * 1000,
+		      (size_t)65536), "MVCreate");
 
-  die(FormatCreate(&format, space, (Addr)4,
-		   scan, skip,
-		   move, isMoved,
-		   copy), "FormatCreate");
-  die(AMCCreate(&amc, space, format), "AMCCreate");
-  pool = AMCPool(amc);
-  die(BufferCreate(&buffer, pool), "BufferCreate");
-
-  /* sanity checking */
-  /* should print (1) (1) (1 1) (1 1 7) */
-
-/* it works, so I'm commenting it out */
-/*
-  cons(QSInt, 1, NULL);
-  print(reg[0], LibStreamOut());
-  reg[1]=reg[0];
-  regtag[1]=regtag[0];
-  reg[0]=NULL;
-  regtag[0]=QSRef;
-  append();
-  print(reg[0], LibStreamOut());
-  reg[1]=reg[0];
-  regtag[1]=regtag[0];
-  append();
-  print(reg[0], LibStreamOut());
-  reg[1]=reg[0];
-  regtag[1]=regtag[0];
-  cons(QSInt, 7, NULL);
-  swap();
-  append();
-  print(reg[0], LibStreamOut());
-*/
+  die(mps_fmt_create_A(&format, space, &fmt_A_s), "FormatCreate");
+  die(mps_pool_create(&pool, space, mps_class_amc(), format),
+      "AMCCreate");
+  die(mps_ap_create(&ap, pool), "APCreate");
 
   /* makes a random list */
   makerndlist(1000);
-  print((QSCell)reg[0], LibStreamOut());
+  print((QSCell)reg[0], stdout);
 
   part(0);
   swap();
   qs();
-  print((QSCell)reg[0], LibStreamOut());
-  printlist(LibStreamOut());
-  qsort(list, listl, sizeof(Addr), &compare);
-  printlist(LibStreamOut());
+  print((QSCell)reg[0], stdout);
+  printlist(stdout);
+  qsort(list, listl, sizeof(mps_word_t), &compare);
+  printlist(stdout);
   validate();
 
-  SpaceDescribe(space, LibStreamOut());
-
-  BufferDestroy(buffer);
-  AMCDestroy(amc);
-  FormatDestroy(format);
-  SpaceDestroy(space);
+  mps_ap_destroy(ap);
+  mps_pool_destroy(pool);
+  mps_fmt_destroy(format);
+  mps_space_destroy(space);
 
   return 0;
 }
@@ -425,94 +401,102 @@ main(void)
 
 /* neither scan nor skip cope with forwarded objects */
 static
-Error
-scan1(ScanState ss, Addr *objectIO)
+mps_res_t
+scan1(mps_ss_t ss, mps_addr_t *objectIO)
 {
   QSCell cell;
-  Error e;
+  mps_res_t e;
 
-  AVER(objectIO != NULL);
-  
-  cell = (QSCell)*objectIO;
+  assert(objectIO != NULL);
 
-  switch(cell->tag) {
-  case QSRef:
-    e = TraceFix(ss, (Ref *)&cell->value);
-    if(e != ErrSUCCESS)
-      return e;
-  /* fall */
+  MPS_SCAN_BEGIN(ss) {
+    cell = (QSCell)*objectIO;
 
-  case QSInt:
-    e = TraceFix(ss, (Ref *)&cell->tail);
-    if(e != ErrSUCCESS)
-      return e;
-  break;
+    switch(cell->tag) {
+    case QSRef:
+      if(!MPS_FIX1(ss, (mps_addr_t)cell->value))
+	goto fixTail;
+      e = MPS_FIX2(ss, (mps_addr_t *)&cell->value);
+      if(e != MPS_RES_OK)
+	return e;
+    /* fall */
 
-  case QSEvac:
-  default:
-    NOTREACHED;
-    return ErrFAILURE;
-  }
-  *objectIO = (Addr)(cell+1);
+    case QSInt:
+    fixTail:
+      if(!MPS_FIX1(ss, (mps_addr_t)cell->tail))
+	break;
+      e = MPS_FIX2(ss, (mps_addr_t *)&cell->tail);
+      if(e != MPS_RES_OK)
+	return e;
+      break;
 
-  return ErrSUCCESS;
+    case QSEvac:
+      /* skip */
+      break;
+    default:
+      assert(0);
+      return MPS_RES_OK;
+    }
+  } MPS_SCAN_END(ss);
+
+  *objectIO = (mps_addr_t)(cell+1);
+
+  return MPS_RES_OK;
 }
 
 static
-Error
-scan(ScanState ss, Addr base, Addr limit)
+mps_res_t
+scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
 
   while(base < limit) {
-    Error e;
+    mps_res_t e;
 
     e = scan1(ss, &base);
-    if(e != ErrSUCCESS) {
+    if(e != MPS_RES_OK) {
       return e;
     }
   }
 
-  AVER(base == limit);
+  assert(base == limit);
 
-  return ErrSUCCESS;
+  return MPS_RES_OK;
 }
- 
-
 
 static
-Addr
-skip(Addr object)
+mps_addr_t
+skip(mps_addr_t object)
 {
-  return (Addr)((QSCell)object + 1);
+  return (mps_addr_t)((QSCell)object + 1);
 }
 
 static
 void
-move(Addr object, Addr to)
+move(mps_addr_t object, mps_addr_t to)
 {
   QSCell cell;
 
   cell = (QSCell)object;
 
   cell->tag = QSEvac;
-  cell->value = to;
+  cell->value = (mps_word_t)to;
 }
 
 static
-Addr
-isMoved(Addr object)
+mps_addr_t
+isMoved(mps_addr_t object)
 {
   QSCell cell;
 
   cell = (QSCell)object;
 
   if(cell->tag == QSEvac) {
-    return cell->value;
+    return (mps_addr_t)cell->value;
   }
-  return (Addr)0;
+  return (mps_addr_t)0;
 }
 
-static void copy(Addr object, Addr to)
+static void copy(mps_addr_t object, mps_addr_t to)
 {
   QSCell cells, celld;
 
