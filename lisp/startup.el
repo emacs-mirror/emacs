@@ -262,17 +262,23 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	   (function
 	    (lambda ()
 	      (if init-file-user
-		  (progn (load (if (eq system-type 'vax-vms)
-				   "sys$login:.emacs"
-				 (concat "~" init-file-user "/.emacs"))
-			       t t t)
-			 (or inhibit-default-init
-			     (let ((inhibit-startup-message nil))
-			       ;; Users are supposed to be told their rights.
-			       ;; (Plus how to get help and how to undo.)
-			       ;; Don't you dare turn this off for anyone
-			       ;; except yourself.
-			       (load "default" t t)))))))))
+		  (progn
+		    (setq user-init-file 
+			  (cond 
+			   ((eq system-type 'ms-dos)
+			    (concat "~" init-file-user "/_emacs"))
+			   ((eq system-type 'vax-vms) 
+			    "sys$login:.emacs")
+			   (t 
+			    (concat "~" init-file-user "/.emacs"))))
+		    (load user-init-file t t t)
+		    (or inhibit-default-init
+			(let ((inhibit-startup-message nil))
+			  ;; Users are supposed to be told their rights.
+			  ;; (Plus how to get help and how to undo.)
+			  ;; Don't you dare turn this off for anyone
+			  ;; except yourself.
+			  (load "default" t t)))))))))
       (if init-file-debug
 	  ;; Do this without a condition-case if the user wants to debug.
 	  (funcall inner)
