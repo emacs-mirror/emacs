@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/10/09 20:00:23 $|$Revision: 1.50 $
+;; |$Date: 1993/10/09 20:03:33 $|$Revision: 1.51 $
 
 ;; This file is part of GNU Emacs.
 
@@ -233,6 +233,9 @@ Default value, nil, means edit the string instead.")
     
       (define-key map "\C-w" 'isearch-yank-word)
       (define-key map "\C-y" 'isearch-yank-line)
+      (define-key map [mouse-2] 'isearch-yank-kill)
+      ;; This overrides the default binding for t.
+      (define-key map [down-mouse-2] 'nil)
 
       ;; Bind the ASCII-equivalent "function keys" explicitly
       ;; if we bind their equivalents, 
@@ -266,6 +269,7 @@ Default value, nil, means edit the string instead.")
 
       (define-key map "\M-n" 'isearch-ring-advance)
       (define-key map "\M-p" 'isearch-ring-retreat)
+      (define-key map "\M-y" 'isearch-yank-kill)
 
       (define-key map "\M-\t" 'isearch-complete)
 
@@ -854,18 +858,23 @@ If no previous match was done, just beep."
 
 (defun isearch-yank (chunk)
   ;; Helper for isearch-yank-word and isearch-yank-line
-  (let ((string (save-excursion
-		  (and (not isearch-forward) isearch-other-end
-		       (goto-char isearch-other-end))
-		  (buffer-substring
-		   (point)
-		   (save-excursion
-		     (cond
-		      ((eq chunk 'word)
-		       (forward-word 1))
-		      ((eq chunk 'line)
-		       (end-of-line)))
-		     (point))))))
+  ;; CHUNK should be word, line or kill.
+  (let ((string (cond
+                 ((eq chunk 'kill)
+                  (current-kill 0))
+                 (t
+		  (save-excursion
+		    (and (not isearch-forward) isearch-other-end
+			 (goto-char isearch-other-end))
+		    (buffer-substring
+		     (point)
+		     (save-excursion
+		       (cond
+			((eq chunk 'word)
+			 (forward-word 1))
+			((eq chunk 'line)
+			 (end-of-line)))
+		       (point))))))))
     ;; Downcase the string if not supposed to case-fold yanked strings.
     (if (and isearch-case-fold-search
 	     (eq 'not-yanks search-upper-case))
@@ -880,6 +889,10 @@ If no previous match was done, just beep."
 	  isearch-yank-flag t))
   (isearch-search-and-update))
 
+(defun isearch-yank-kill ()
+  "Pull string from kill ring into search string."
+  (interactive)
+  (isearch-yank 'kill))
 
 (defun isearch-yank-word ()
   "Pull next word from buffer into search string."
