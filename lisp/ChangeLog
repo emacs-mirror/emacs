@@ -1,3 +1,11 @@
+2004-11-23  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-start): In cd command use
+	substitute-env-vars -- not quite shell compatible but better than
+	nothing.
+	(compilation-error-regexp-alist-alist): Simplify ftnchek to only
+	handle the newer versions messages, which are more parseable.
+
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* reveal.el (reveal-mode-map): New var.
