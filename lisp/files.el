@@ -1136,7 +1136,7 @@ If `enable-local-variables' is nil, this function does not check for a
 		      ;; Only allow safe values of lisp-indent-hook;
 		      ;; not functions.
 		      (or (numberp (nth 3 val))
-			  (eq (nth 3 val) 'defun))
+			  (equal (nth 3 val) ''defun))
 		      (memq (nth 1 (nth 2 val))
 			    '(lisp-indent-hook)))
 		 ;; Permit eval if not root and user says ok.
