@@ -3953,19 +3953,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	    set_waiting_for_input (&timeout);
 	}
 
-      {
-	int old_timers_run = timers_run;
-	if (XINT (read_kbd) && detect_input_pending ())
-	  {
-	    nfds = 0;
-	    FD_ZERO (&waitchannels);
-	  }
-	else if (timers_run != old_timers_run)
-	  ;
-	else
-	  nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-			 &timeout);
-      }
+      if (XINT (read_kbd) && detect_input_pending ())
+	{
+	  nfds = 0;
+	  FD_ZERO (&waitchannels);
+	}
+      else
+	nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+		       &timeout);
 
       xerrno = errno;
 
