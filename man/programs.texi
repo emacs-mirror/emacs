@@ -317,7 +317,7 @@ buffer.
   To enable (or disable) Which Function mode, use the command @kbd{M-x
 which-function-mode}.  This command is global; it applies to all
 buffers, both existing ones and those yet to be created.  However, it
-takes effect in only certain major modes, those listed in the value of
+takes effect only in certain major modes, those listed in the value of
 @code{which-func-modes}.  If the value is @code{t}, then Which Function
 mode applies to all major modes that know how to support it---in other
 words, all the major modes that support Imenu.
@@ -411,7 +411,7 @@ you have several commands available.
 
 @table @kbd
 @item C-M-q
-Reindent all the lines within one parenthetical grouping(@code{indent-sexp}) .
+Reindent all the lines within one parenthetical grouping (@code{indent-pp-sexp}).
 @item C-M-\
 Reindent all lines in the region (@code{indent-region}).
 @item C-u @key{TAB}
@@ -423,12 +423,12 @@ lines that start inside comments and strings.
 @end table
 
 @kindex C-M-q
-@findex indent-sexp
+@findex indent-pp-sexp
   You can reindent the contents of a single parenthetical grouping by
 positioning point before the beginning of it and typing @kbd{C-M-q}
 (@code{indent-pp-sexp} in Lisp mode, @code{c-indent-exp} in C mode; also
 bound to other suitable commands in other modes).  The indentation of
-the line where the grouping starts is not changed; therefore it
+the line where the grouping starts is not changed; therefore this
 changes only the relative indentation within the grouping, not its
 overall indentation.  To correct that as well, type @key{TAB} first.
 
@@ -2167,14 +2167,11 @@ splitting happens when you type @key{SPC}, @key{RET}, or @key{TAB}, and
 also in the Fortran indentation commands.
 
 @findex fortran-auto-fill-mode
-  @kbd{M-x fortran-auto-fill-mode} turns Fortran Auto Fill mode on if it
-was off, or off if it was on.  This command works the same as @kbd{M-x
-auto-fill-mode} does for normal Auto Fill mode (@pxref{Filling}).  A
-positive numeric argument turns Fortran Auto Fill mode on, and a
-negative argument turns it off.  You can see when Fortran Auto Fill mode
-is in effect by the presence of the word @samp{Fill} in the mode line,
-inside the parentheses.  Fortran Auto Fill mode is a minor mode, turned
-on or off for each buffer individually.  @xref{Minor Modes}.
+  @kbd{M-x fortran-auto-fill-mode} toggles Fortran Auto Fill mode,
+which is a variant of normal Auto Fill mode (@pxref{Filling}) designed
+for Fortran programs.  Fortran Auto Fill mode is a buffer-local minor
+mode (@pxref{Minor Modes}).  When Fortran Auto Fill mode is in effect,
+the word @samp{Fill} appears in the mode line inside the parentheses.
 
 @vindex fortran-break-before-delimiters
    Fortran Auto Fill mode breaks lines at spaces or delimiters when the
@@ -2185,8 +2182,7 @@ The line break comes after the delimiter if the variable
 @code{fortran-break-before-delimiters} is @code{nil}.  Otherwise (and by
 default), the break comes before the delimiter.
 
-  By default, Fortran Auto Fill mode is not enabled.  If you want this
-feature turned on permanently, add a hook function to
+  To enable this mode permanently, add a hook function to
 @code{fortran-mode-hook} to execute @code{(fortran-auto-fill-mode 1)}.
 @xref{Hooks}.
 
