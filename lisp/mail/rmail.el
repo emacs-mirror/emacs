@@ -1506,6 +1506,7 @@ It returns t if it got any new messages."
 		(setq current-message (rmail-first-unseen-message))
 		(if (rmail-summary-exists)
 		    (with-current-buffer rmail-summary-buffer
+                      (rmail-update-summary)
                       (rmail-summary-goto-msg current-message))
                   (rmail-show-message current-message))
 
