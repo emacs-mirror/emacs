@@ -57,7 +57,7 @@ extern char **environ;
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-Lisp_Object Vexec_path, Vexec_directory;
+Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
 
 Lisp_Object Vshell_file_name;
 
@@ -448,7 +448,9 @@ init_callproc ()
 {
   register char * sh;
   register char **envp;
-  Lisp_Object execdir;
+  Lisp_Object tempdir;
+
+  Vdata_directory = Ffile_name_as_directory (build_string (PATH_DATA));
 
   /* Turn PATH_EXEC into a path.  `==' is just a string which we know
      will not be the name of an environment variable.  */
@@ -456,11 +458,19 @@ init_callproc ()
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 
-  execdir = Fdirectory_file_name (Vexec_directory);
-  if (access (XSTRING (execdir)->data, 0) < 0)
+  tempdir = Fdirectory_file_name (Vexec_directory);
+  if (access (XSTRING (tempdir)->data, 0) < 0)
     {
-      printf ("Warning: executable/documentation dir (%s) does not exist.\n",
+      printf ("Warning: arch-dependent data dir (%s) does not exist.\n",
 	      XSTRING (Vexec_directory)->data);
+      sleep (2);
+    }
+
+  tempdir = Fdirectory_file_name (Vdata_directory);
+  if (access (XSTRING (tempdir)->data, 0) < 0)
+    {
+      printf ("Warning: arch-independent data dir (%s) does not exist.\n",
+	      XSTRING (Vdata_directory)->data);
       sleep (2);
     }
 
@@ -495,8 +505,12 @@ Initialized from the SHELL environment variable.");
 Each element is a string (directory name) or nil (try default directory).");
 
   DEFVAR_LISP ("exec-directory", &Vexec_directory,
-    "Directory that holds programs that come with GNU Emacs,\n\
-intended for Emacs to invoke.");
+    "Directory of architecture-dependent files that come with GNU Emacs,\n\
+especially executable programs intended for Emacs to invoke.");
+
+  DEFVAR_LISP ("data-directory", &Vdata_directory,
+    "Directory of architecture-independent files that come with GNU Emacs,\n\
+intended for Emacs to use.");
 
 #ifndef MAINTAIN_ENVIRONMENT
   DEFVAR_LISP ("process-environment", &Vprocess_environment,

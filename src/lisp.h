@@ -890,7 +890,7 @@ extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Fcons (), Flist(), Fmake_list ();
 extern Lisp_Object Fmake_vector (), Fvector (), Fmake_symbol (), Fmake_marker ();
 extern Lisp_Object Fmake_string (), build_string (), make_string ();
-extern Lisp_Object make_uninit_string ();
+extern Lisp_Object make_array (), make_uninit_string ();
 extern Lisp_Object Fpurecopy (), make_pure_string ();
 extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
@@ -900,6 +900,7 @@ extern Lisp_Object Vprin1_to_string_buffer;
 extern Lisp_Object Fprin1 (), Fprin1_to_string (), Fprinc ();
 extern Lisp_Object Fterpri (), Fprint ();
 extern Lisp_Object Vstandard_output, Qstandard_output;
+extern Lisp_Object Qexternal_debugging_output;
 extern void temp_output_buffer_setup (), temp_output_buffer_show ();
 extern int print_level, print_escape_newlines;
 extern Lisp_Object Qprint_escape_newlines;
@@ -1004,6 +1005,7 @@ extern Lisp_Object Fdowncase (), Fupcase (), Fcapitalize ();
 /* defined in keyboard.c */
 
 extern Lisp_Object Qdisabled;
+extern Lisp_Object Qmode_line, Qvertical_split;
 extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
@@ -1027,6 +1029,8 @@ extern Lisp_Object Qwindowp;
 extern Lisp_Object Fget_buffer_window ();
 extern Lisp_Object Fsave_window_excursion ();
 extern Lisp_Object Fset_window_configuration (), Fcurrent_window_configuration ();
+extern Lisp_Object Fcoordinates_in_window_p ();
+extern Lisp_Object Fwindow_at ();
 
 /* defined in screen.c */
 extern Lisp_Object Fscreenp ();
@@ -1057,8 +1061,6 @@ extern Lisp_Object Fset_screen_height ();
 extern Lisp_Object Fset_screen_width ();
 extern Lisp_Object Fset_screen_size ();
 extern Lisp_Object Fset_screen_position ();
-extern Lisp_Object Fcoordinates_in_window_p ();
-extern Lisp_Object Flocate_window_from_coordinates ();
 #ifndef HAVE_X11
 extern Lisp_Object Frubber_band_rectangle ();
 #endif	/* HAVE_X11 */
@@ -1075,7 +1077,7 @@ extern Lisp_Object Fget_process (), Fget_buffer_process (), Fprocessp ();
 extern Lisp_Object Fprocess_status (), Fkill_process ();
 
 /* defined in callproc.c */
-extern Lisp_Object Vexec_path, Vexec_directory;
+extern Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
 
 #ifdef MAINTAIN_ENVIRONMENT
 /* defined in environ.c */
