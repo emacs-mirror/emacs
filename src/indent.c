@@ -267,7 +267,7 @@ skip_invisible (pos, next_boundary_p, to, window)
 }
 
 /* If a composition starts at POS/POS_BYTE and it doesn't stride over
-   POINT, set *LEN/*LEN_BYTE to the character and byte lengths, *WIDTH
+   POINT, set *LEN / *LEN_BYTE to the character and byte lengths, *WIDTH
    to the width, and return 1.  Otherwise, return 0.  */
 
 static int
