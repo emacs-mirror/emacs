@@ -1,3 +1,11 @@
+2003-04-29  Oliver Scholz  <epameinondas@gmx.de>
+
+	* play/gamegrid.el: Added a comment explaining the various ways to
+	save a game score on POSIX systems.
+	(gamegrid-add-score-with-update-game-score): Use `cond' instead of
+	`if'.  Provide for the case that FILE is an absolute filename.
+	Create the directory "$HOME/.emacs.d/games", if necessary.
+
 2003-04-29  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-cl-warn): Use `string-match'.
