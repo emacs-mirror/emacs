@@ -1,3 +1,31 @@
+2004-09-20  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (scroll-left): Make it disabled.
+
+	* files.el (enable-local-eval): Doc fix.
+
+	* indent.el (move-to-left-margin): Special case for minibuffer.
+
+	* term.el (term-emulate-terminal): Turn off undo for output.
+	Use with-current-buffer and save-selected-window.
+
+	* eshell/esh-ext.el (eshell-explicit-command-char): Doc fix.
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): 
+	Don't insist on spaces when looking for comments.  # is enough.
+	
+	* files.el (hack-local-variables): Copy the variables list
+	to another buffer, strip prefixes and suffixes there, then read.
+	(enable-local-eval): Doc fix.
+	(ignored-local-variables): Initialize to nil.
+	(risky-local-variable-p): Don't check ignored-local-variables here.
+	(hack-one-local-variable): Ignore var if in ignored-local-variables.
+
+2004-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/sh-script.el (sh-mode-default-syntax-table): Set syntax
+	of = to "." (punctuation).
+
 2004-09-19  Stefan  <monnier@iro.umontreal.ca>
 
 	* subr.el (event-basic-type): Fix mask (extend to 22bits).
@@ -226,6 +254,11 @@
 
 	* desktop.el (desktop-clear-preserve-buffers):
 	Remove make-obsolete-variable.
+
+2004-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* buff-menu.el (list-buffers-noselect): Call format-mode-line
+	with the buffer as argument.
 
 2004-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

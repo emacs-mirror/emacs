@@ -54,7 +54,7 @@ DONE1	DONE2	SECTION
 		man/anti.texi
 LT		man/basic.texi
 LT		man/buffers.texi
-		man/building.texi
+		man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 		man/calendar.texi
 		man/cmdargs.texi
 LT		man/commands.texi
