@@ -413,20 +413,17 @@ release the mouse button.  Otherwise, it does not."
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)))))))))
       (if (consp event)
-;;; When we scroll into the mode line or menu bar, or out of the window,
-;;; we get events that don't fit these criteria.
-;;;	       (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
-;;;	       (eq (posn-window (event-end event)) start-window)
-;;;	       (numberp (posn-point (event-end event)))
 	  (let ((fun (key-binding (vector (car event)))))
-	    (if (not (= (overlay-start mouse-drag-overlay)
-			(overlay-end mouse-drag-overlay)))
-		(let (last-command this-command)
-		  (push-mark (overlay-start mouse-drag-overlay) t t)
-		  (goto-char (overlay-end mouse-drag-overlay))
-		  (copy-region-as-kill (point) (mark t)))
-	      (goto-char (overlay-end mouse-drag-overlay))
-	      (setq this-command 'mouse-set-point))))
+	    (if (fboundp fun)
+		(funcall fun event)
+	      (if (not (= (overlay-start mouse-drag-overlay)
+			  (overlay-end mouse-drag-overlay)))
+		  (let (last-command this-command)
+		    (push-mark (overlay-start mouse-drag-overlay) t t)
+		    (goto-char (overlay-end mouse-drag-overlay))
+		    (copy-region-as-kill (point) (mark t)))
+		(goto-char (overlay-end mouse-drag-overlay))
+		(setq this-command 'mouse-set-point)))))
       (delete-overlay mouse-drag-overlay))))
 
 ;; Commands to handle xterm-style multiple clicks.
