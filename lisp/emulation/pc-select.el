@@ -727,6 +727,10 @@ but before calling pc-selection-mode):
 
   (or pc-select-selection-keys-only
       (progn
+	;; We are behaving like normal-erase-is-backspace-mode, so
+	;; say so explicitly.
+	(setq-default normal-erase-is-backspace t)
+	(normal-erase-is-backspace-mode 1)
 	(define-key global-map [S-insert]  'yank)
 	(define-key global-map [C-insert]  'copy-region-as-kill)
 	(define-key global-map [S-delete]  'kill-region)
@@ -741,16 +745,13 @@ but before calling pc-selection-mode):
 
 	;; The following bindings are from Pete Forman.
 	(global-set-key [f6] 'other-window)	; KNextPane     F6
-	(global-set-key [delete] 'delete-char)	; KDelete       Del
 	(global-set-key [C-delete] 'kill-line)	; KEraseEndLine cDel
 	(global-set-key "\M-\d" 'undo)		; KUndo         aBS
 
-	;; The following bindings are taken from pc-mode.el
+	;; The following binding is taken from pc-mode.el
 	;; as suggested by RMS.
-	;; I only used the ones that are not covered above.
-	(define-key function-key-map  [M-delete] [?\M-d])
+	;; I only used the one that is not covered above.
 	(global-set-key [C-M-delete]  'kill-sexp)
-	(global-set-key [C-backspace] 'backward-kill-word)
 	;; Next line proposed by Eli Barzilay
 	(global-set-key [C-escape]    'electric-buffer-list)))
   ;;
