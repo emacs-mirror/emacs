@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1992, 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <klm@zope.org>
-;; Maintainer: Ken Manheimer <klm@zope.org>
+;; Author: Ken Manheimer <klm@zope.com>
+;; Maintainer: Ken Manheimer <klm@zope.com>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.40 2003/02/24 17:23:38 lektu Exp $||
+;; Version: $Id: allout.el,v 1.41 2003/02/24 17:28:28 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -58,7 +58,7 @@
 ;; Note - the lines beginning with `;;;_' are outline topic headers.
 ;;        Just `ESC-x eval-current-buffer' to give it a whirl.
 
-;; Ken Manheimer	klm@zope.org
+;; Ken Manheimer	klm@zope.com
 
 ;;; Code:
 
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.40 $"))
+  (let ((rcs-rev "$Revision: 1.41 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
