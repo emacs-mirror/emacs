@@ -446,6 +446,7 @@ and ignores this variable."
 (defvar view-read-only nil
   "*Non-nil means buffers visiting files read-only, do it in view mode.")
 
+(put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
   "Provides support for ange-ftp host name completion.
 Runs the usual ange-ftp hook, but only for completion operations."
