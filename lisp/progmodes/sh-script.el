@@ -921,21 +921,19 @@ a number means align to that column,  e.g. 0 means fist column."
 ;;       (apply 'message args)))
 (defmacro sh-debug (&rest args))
 
-(setq sh-symbol-list
- '(
-   (const :tag "+ "  :value +
-	  :menu-tag "+   Indent right by sh-basic-offset")
-   (const :tag "- "  :value -
-	  :menu-tag "-   Indent left  by sh-basic-offset")
-   (const :tag "++"  :value  ++
-	  :menu-tag "++  Indent right twice sh-basic-offset")
-   (const :tag "--"  :value --
-	  :menu-tag "--  Indent left  twice sh-basic-offset")
-   (const :tag "* " :value *
-	  :menu-tag "*   Indent right half sh-basic-offset")
-   (const :tag "/ " :value /
-	  :menu-tag "/   Indent left  half sh-basic-offset")
-   ))
+(defconst sh-symbol-list
+  '((const :tag "+ "  :value +
+	   :menu-tag "+   Indent right by sh-basic-offset")
+    (const :tag "- "  :value -
+	   :menu-tag "-   Indent left  by sh-basic-offset")
+    (const :tag "++"  :value  ++
+	   :menu-tag "++  Indent right twice sh-basic-offset")
+    (const :tag "--"  :value --
+	   :menu-tag "--  Indent left  twice sh-basic-offset")
+    (const :tag "* " :value *
+	   :menu-tag "*   Indent right half sh-basic-offset")
+    (const :tag "/ " :value /
+	   :menu-tag "/   Indent left  half sh-basic-offset")))
 
 (defcustom sh-indent-for-else 0
   "*How much to indent an else relative to an if.  Usually 0."
@@ -947,13 +945,11 @@ a number means align to that column,  e.g. 0 means fist column."
 	  )
   :group 'sh-indentation)
 
-(setq sh-number-or-symbol-list
-      (append (list '(
-		      integer :menu-tag "A number (positive=>indent right)"
-			      :tag "A number")
-		    '(const :tag "--") ;; separator
-		    )
-	      sh-symbol-list))
+(defconst sh-number-or-symbol-list
+  (append (list '(integer :menu-tag "A number (positive=>indent right)"
+			  :tag "A number")
+		'(const :tag "--"))	; separator
+	  sh-symbol-list))
 
 (defcustom sh-indent-for-fi 0
   "*How much to indent a fi relative to an if.   Usually 0."
@@ -1104,34 +1100,32 @@ This specifically excludes an occurance of WORD followed by
 or preceded by punctuation characters like '-'."
   (concat "\\(^\\|[^-a-z0-9_]\\)" word "\\([^-a-z0-9_]\\|$\\)"))
 
-(setq sh-re-done (sh-mkword-regexpr "done"))
+(defconst sh-re-done (sh-mkword-regexpr "done"))
 
 
 (defconst sh-kws-for-done
-  '(
-    (sh .  ( "while" "until" "for" ) )
+  '((sh .  ( "while" "until" "for" ) )
     (bash . ( "while" "until" "for" "select"  ) )
     (ksh88 . ( "while" "until" "for" "select"  ) )
-    (zsh .  ( "while" "until" "for" "repeat" "select" ) )
-    )
-  "Which keywords can match the word `done' in this shell."
-  )
+    (zsh .  ( "while" "until" "for" "repeat" "select" ) ) )
+  "Which keywords can match the word `done' in this shell.")
 
 
 (defconst sh-indent-supported
-  '(
-    (sh . t)
+  '((sh . t)
     (csh . nil)
-    (rc . t)
-    )
-  "Shell types that shell indenting can do something with."
-  )
+    (rc . t))
+  "Shell types that shell indenting can do something with.")
+
+(defvar sh-indent-supported-here nil
+  "Non-nil if we support indentation for the current buffer's shell type.")
 
 (defconst sh-electric-rparen-needed
-  '(
-    (sh . t))
-  "Non-nil if the shell type needs an electric handling of case alternatives."
-  )
+  '((sh . t))
+  "Non-nil if the shell type needs an electric handling of case alternatives.")
+
+(defvar sh-electric-rparen-needed-here nil
+  "Non-nil if the buffer needs an electric handling of case alternatives.")
 
 (defconst sh-var-list
   '(
@@ -1343,6 +1337,106 @@ This adds rules for comments and assignments."
 (defun sh-font-lock-keywords-2 ()
   "Function to get better fontification including keywords and builtins."
   (sh-font-lock-keywords-1 t))
+
+
+(defvar sh-regexp-for-done nil
+  "A buffer-local regexp to match opening keyword for done.")
+
+(defvar sh-kw-alist nil
+  "A buffer-local, since it is shell-type dependent, list of keywords.")
+
+;; ( key-word  first-on-this  on-prev-line )
+;; This is used to set `sh-kw-alist' which is a list of sublists each
+;; having 3 elements:
+;;   a keyword
+;;   a rule to check when the keyword apepars on "this" line
+;;   a rule to check when the keyword apepars on "the previous" line
+;; The keyword is usually a string and is the first word on a line.
+;; If this keyword appears on the line whose indenation is to be
+;; calculated,  the rule in element 2 is called.  If this returns
+;; non-zero,  the resulting point (which may be changed by the rule)
+;; is used as the default indentation.
+;; If it returned false or the keyword was not found in the table,
+;; then the keyword from the previous line is looked up and the rule
+;; in element 3 is called.  In this case, however,
+;; `sh-get-indent-info' does not stop but may keepp going and test
+;; other keywords against rules in element 3.  This is because the
+;; precending line could have, for example, an opening "if" and an
+;; opening "while" keyword and we need to add the indentation offsets
+;; for both.
+;;
+(defconst sh-kw
+  '(
+    (sh
+	( "if"
+	  nil
+	  sh-handle-prev-if   )
+	( "elif"
+	  sh-handle-this-else
+	  sh-handle-prev-else )
+	( "else"
+	  sh-handle-this-else
+	  sh-handle-prev-else )
+	( "fi"
+	  sh-handle-this-fi
+	  sh-handle-prev-fi )
+	( "then"
+	  sh-handle-this-then
+	  sh-handle-prev-then )
+	( "("
+	  nil
+	  sh-handle-prev-open  )
+	( "{"
+	  nil
+	  sh-handle-prev-open  )
+	( "["
+	  nil
+	  sh-handle-prev-open  )
+	( "}"
+	  sh-handle-this-close
+	  nil  )
+	( ")"
+	  sh-handle-this-close
+	  nil  )
+	( "]"
+	  sh-handle-this-close
+	  nil  )
+	( "case"
+	  nil
+	  sh-handle-prev-case   )
+	( "esac"
+	  sh-handle-this-esac
+	  sh-handle-prev-esac )
+	( case-label
+	  nil	;; ???
+	  sh-handle-after-case-label )
+	( ";;"
+	  nil	;; ???
+	  sh-handle-prev-case-alt-end  ;; ??
+	  )
+	( "done"
+	  sh-handle-this-done
+	  sh-handle-prev-done )
+	( "do"
+	  sh-handle-this-do
+	  sh-handle-prev-do )
+	) ;; end of sh
+
+    ;; Note: we don't need specific stuff for bash and zsh shells;
+    ;; the regexp `sh-regexp-for-done' handles the extra keywords
+    ;; these shells use.
+    (rc
+     ( "{"
+	  nil
+	  sh-handle-prev-open  )
+     ( "}"
+	  sh-handle-this-close
+	  nil  )
+     ( "case"
+       sh-handle-this-rc-case
+       sh-handle-prev-rc-case   )
+     ) ;; end of rc
+    ))
 
 
 (defun sh-set-shell (shell &optional no-query-flag insert-flag)
@@ -1637,109 +1731,9 @@ Then, if variable `sh-make-vars-local' is non-nil,  make them local."
       (mapcar 'make-local-variable sh-var-list)))
 
 
-(defvar sh-kw-alist nil
-  "A buffer-local, since it is shell-type dependent, list of keywords.")
-
-(defvar sh-regexp-for-done nil
-  "A buffer-local regexp to match opening keyword for done.")
-
 ;; Theoretically these are only needed in shell and derived modes.
 ;; However, the routines which use them are only called in those modes.
 (defconst sh-special-keywords "then\\|do")
-
-;; ( key-word  first-on-this  on-prev-line )
-;; This is used to set `sh-kw-alist' which is a list of sublists each
-;; having 3 elements:
-;;   a keyword
-;;   a rule to check when the keyword apepars on "this" line
-;;   a rule to check when the keyword apepars on "the previous" line
-;; The keyword is usually a string and is the first word on a line.
-;; If this keyword appears on the line whose indenation is to be
-;; calculated,  the rule in element 2 is called.  If this returns
-;; non-zero,  the resulting point (which may be changed by the rule)
-;; is used as the default indentation.
-;; If it returned false or the keyword was not found in the table,
-;; then the keyword from the previous line is looked up and the rule
-;; in element 3 is called.  In this case, however,
-;; `sh-get-indent-info' does not stop but may keepp going and test
-;; other keywords against rules in element 3.  This is because the
-;; precending line could have, for example, an opening "if" and an
-;; opening "while" keyword and we need to add the indentation offsets
-;; for both.
-;;
-(defconst sh-kw
-  '(
-    (sh
-	( "if"
-	  nil
-	  sh-handle-prev-if   )
-	( "elif"
-	  sh-handle-this-else
-	  sh-handle-prev-else )
-	( "else"
-	  sh-handle-this-else
-	  sh-handle-prev-else )
-	( "fi"
-	  sh-handle-this-fi
-	  sh-handle-prev-fi )
-	( "then"
-	  sh-handle-this-then
-	  sh-handle-prev-then )
-	( "("
-	  nil
-	  sh-handle-prev-open  )
-	( "{"
-	  nil
-	  sh-handle-prev-open  )
-	( "["
-	  nil
-	  sh-handle-prev-open  )
-	( "}"
-	  sh-handle-this-close
-	  nil  )
-	( ")"
-	  sh-handle-this-close
-	  nil  )
-	( "]"
-	  sh-handle-this-close
-	  nil  )
-	( "case"
-	  nil
-	  sh-handle-prev-case   )
-	( "esac"
-	  sh-handle-this-esac
-	  sh-handle-prev-esac )
-	( case-label
-	  nil	;; ???
-	  sh-handle-after-case-label )
-	( ";;"
-	  nil	;; ???
-	  sh-handle-prev-case-alt-end  ;; ??
-	  )
-	( "done"
-	  sh-handle-this-done
-	  sh-handle-prev-done )
-	( "do"
-	  sh-handle-this-do
-	  sh-handle-prev-do )
-	) ;; end of sh
-
-    ;; Note: we don't need specific stuff for bash and zsh shells;
-    ;; the regexp `sh-regexp-for-done' handles the extra keywords
-    ;; these shells use.
-    (rc
-     ( "{"
-	  nil
-	  sh-handle-prev-open  )
-     ( "}"
-	  sh-handle-this-close
-	  nil  )
-     ( "case"
-       sh-handle-this-rc-case
-       sh-handle-prev-rc-case   )
-     ) ;; end of rc
-    ))
-
 
 (defun sh-help-string-for-variable (var)
   "Construct a string for `sh-read-variable' when changing variable VAR ."
@@ -1759,7 +1753,7 @@ which in this buffer is currently %s.
 
 \t%s."
 		    sh-basic-offset
-		    (mapconcat  '(lambda (x)
+		    (mapconcat  (lambda (x)
 				   (nth (1- (length x))  x) )
 				sh-symbol-list  "\n\t")
 		    )))
@@ -3152,7 +3146,7 @@ Return values:
 	    (setq x (append x (list (cons i (aref totals i))))))
 	(setq i (1+ i)))
 
-      (setq x (sort x '(lambda (a b)
+      (setq x (sort x (lambda (a b)
 			 (> (cdr a)(cdr b)))))
       (setq tot (apply '+ (append totals nil)))
       (sh-debug (format "vec: %s\ntotals: %s\ntot: %d"
@@ -3242,8 +3236,8 @@ If this parenthesis is a case alternative,  set its syntax class to a word."
 	      ))))))
 
 (defun sh-electric-rparen ()
-  "Insert a right parethese,  and check if it is a case alternative.
-If so, its syntax class is set to word, and its text proerty
+  "Insert a right parenthesis and check if it is a case alternative.
+If so, its syntax class is set to word, and its text property
 is set to have face `sh-st-face'."
   (interactive)
   (insert ")")
@@ -3253,7 +3247,7 @@ is set to have face `sh-st-face'."
 (defun sh-electric-hash ()
   "Insert a hash, but check it is preceded by \"$\".
 If so, it is given a syntax type of comment.
-Its text proerty has face `sh-st-face'."
+Its text property has face `sh-st-face'."
   (interactive)
   (let ((pos (point)))
     (insert "#")
@@ -3315,7 +3309,7 @@ Argument ARG if non-nil disables this test."
     ))
 
 (defun sh-search-word (word &optional limit)
-  "Search forward for regexp WORD occuring as a word not in string nor comment.
+  "Search forward for regexp WORD occurring as a word not in string nor comment.
 If found, returns non nil with the match available in  \(match-string 2\).
 Yes 2, not 1, since we build a regexp to guard against false matches
 such as matching \"a-case\" when we are searching for \"case\".
