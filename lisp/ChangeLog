@@ -537,10 +537,6 @@
 	* electric.el (Electric-pop-up-window): For the `one-window' case,
 	no longer disconcertingly move point in the original buffer.
 
-2003-09-13  Kevin Rodgers  <ihs_4664@yahoo.com> (tiny change)
-
-	* hl-line.el: Documentation (comments-only) fix.
-
 2003-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/tq.el (tq-create): Fix mixed up unquote style.
