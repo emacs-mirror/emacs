@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
- * $HopeName: MMsrc!event.h(trunk.12) $
+ * $HopeName: MMsrc!event.h(trunk.13) $
  *
  * READERSHIP
  *
@@ -24,6 +24,7 @@ extern Res EventInit(void);
 extern void EventFinish(void);
 extern Word EventControl(Word, Word);
 extern Word EventInternString(const char *);
+extern Word EventInternGenString(size_t, const char *);
 extern void EventLabelAddr(Addr, Word);
 
 
@@ -101,7 +102,8 @@ extern Word EventKindControl;
 #define EventInit()            NOOP
 #define EventFinish()          NOOP
 #define EventControl(r, f)     (UNUSED(r), UNUSED(f), (Word)0)
-#define EventInternString(l)   (UNUSED(l), (Word)0)
+#define EventInternString(s)   (UNUSED(s), (Word)0)
+#define EventInternGenString(l, s) (UNUSED(l), UNUSED(s), (Word)0)
 #define EventLabelAddr(a, i)   BEGIN UNUSED(a); UNUSED(i); END
 
 
