@@ -419,7 +419,7 @@ Error if arg is not nil and not a cons cell.  See also `cdr-safe'.")
 }
 
 DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
-  "Return the cdr of OBJECT if it is a cons cell, or else  nil.")
+  "Return the cdr of OBJECT if it is a cons cell, or else nil.")
   (object)
      Lisp_Object object;
 {
