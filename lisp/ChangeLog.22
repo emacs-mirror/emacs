@@ -1,3 +1,9 @@
+2004-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Add entries for
+	variations of cns11643 fonts.
+	(setup-default-fontset): Add cns11643 fonts as fallback fonts.
+
 2004-02-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (list-charset-chars): Put charset

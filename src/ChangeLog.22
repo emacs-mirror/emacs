@@ -1,3 +1,11 @@
+2004-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (describe_vector): Handle default value of a char
+	table.
+
+	* fontset.c (fontset_face): Handle fallback fonts correctly.
+	(Ffontset_info): Return infomation about fallback fonts.
+
 2004-02-06  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (FONTSET_DEFAULT): New macro.
