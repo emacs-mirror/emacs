@@ -1,3 +1,10 @@
+2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* net/eudc-bob.el: New maintainer.  Change author's address.
+	(eudc-bob-mail-keymap): New keymap for e-mail addresses.
+	(eudc-display-mail): New function.
+	(eudc-bob-play-sound-at-point): Remove XEmacs case.
+
 2002-01-15  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/autoload.el (make-autoload): 
