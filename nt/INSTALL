@@ -69,7 +69,9 @@
 
 * Installing
 
-  To install Emacs after it has compiled, simply run `make install'.
+  To install Emacs after it has compiled, simply run `nmake install'
+  or `make install', depending on which version of the Make utility
+  do you have.
 
   By default, Emacs will be installed in the location where it was
   built, but a different location can be specified either using the
@@ -77,6 +79,8 @@
   make, like so:
 
      make install INSTALL_DIR=D:/emacs
+
+  (for `nmake', type "nmake install INSTALL_DIR=D:/emacs" instead).
 
   The install process will run addpm to setup the registry entries, and
   to create a Start menu icon for Emacs.
