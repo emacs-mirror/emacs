@@ -2168,6 +2168,7 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    /* 1 means zero (many) matches is allowed.	*/
 	    char zero_times_ok = 0, many_times_ok = 0;
+	    char greedy = 1;
 
 	    /* If there is a sequence of repetition chars, collapse it
 	       down to just one (the right one).  We can't combine
@@ -2176,8 +2177,14 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    for (;;)
 	      {
-		zero_times_ok |= c != '+';
-		many_times_ok |= c != '?';
+		if (!(syntax & RE_ALL_GREEDY)
+		    && c == '?' && (zero_times_ok || many_times_ok))
+		  greedy = 0;
+		else
+		  {
+		    zero_times_ok |= c != '+';
+		    many_times_ok |= c != '?';
+		  }
 
 		if (p == pend)
 		  break;
@@ -2218,6 +2225,8 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    /* Now we know whether or not zero matches is allowed
 	       and also whether or not two or more matches is allowed.	*/
+	    if (greedy)
+	      {
 	    if (many_times_ok)
 	      { /* More than one repetition is allowed, so put in at the
 		   end a backward relative jump from `b' to before the next
@@ -2276,7 +2285,39 @@ regex_compile (pattern, size, syntax, bufp)
 		INSERT_JUMP (dummy_failure_jump, laststart, laststart + 6);
 		b += 3;
 	      }
-	    }
+
+	      }
+	    else		/* not greedy */
+	      { /* I wish the greedy and non-greedy cases could be merged. */
+
+		if (many_times_ok)
+		  {
+		    /* The greedy multiple match looks like a repeat..until:
+		       we only need a conditional jump at the end of the loop */
+		    GET_BUFFER_SPACE (3);
+		    STORE_JUMP (on_failure_jump, b, laststart);
+		    b += 3;
+		    if (zero_times_ok)
+		      {
+			/* The repeat...until naturally matches one or more.
+			   To also match zero times, we need to first jump to
+			   the end of the loop (its conditional jump). */
+			GET_BUFFER_SPACE (3);
+			INSERT_JUMP (jump, laststart, b);
+			b += 3;
+		      }
+		  }
+		else
+		  {
+		    /* non-greedy a?? */
+		    GET_BUFFER_SPACE (6);
+		    INSERT_JUMP (jump, laststart, b + 3);
+		    b += 3;
+		    INSERT_JUMP (on_failure_jump, laststart, laststart + 6);
+		    b += 3;
+		  }
+	      }
+	  }
 	  break;
 
 
@@ -3110,8 +3151,8 @@ regex_compile (pattern, size, syntax, bufp)
 #ifdef emacs
 	  if (! SINGLE_BYTE_CHAR_P (c))
 	    {
-	      unsigned char work[4], *str;
-	      int i = CHAR_STRING (c, work, str);
+	      unsigned char str[MAX_MULTIBYTE_LENGTH];
+	      int i = CHAR_STRING (c, str);
 	      int j;
 	      for (j = 0; j < i; j++)
 		{
