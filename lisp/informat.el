@@ -22,30 +22,37 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;; Nowadays, the Texinfo formatting commands always tagify a buffer
+;; (as does `makeinfo') since @anchor commands need tag tables.
+
 ;;; Code:
 
 (require 'info)
 
 ;;;###autoload
-(defun Info-tagify ()
-  "Create or update Info file tag table in current buffer."
+(defun Info-tagify (&optional input-buffer-name)
+  "Create or update Info file tag table in current buffer or in a region."
   (interactive)
   ;; Save and restore point and restrictions.
   ;; save-restrictions would not work
   ;; because it records the old max relative to the end.
   ;; We record it relative to the beginning.
-  (message "Tagifying %s ..." (file-name-nondirectory (buffer-file-name)))
+  (if input-buffer-name
+      (message "Tagifying region in %s ..." input-buffer-name)
+      (message
+       "Tagifying %s ..."  (file-name-nondirectory (buffer-file-name))))
   (let ((omin (point-min))
 	(omax (point-max))
 	(nomax (= (point-max) (1+ (buffer-size))))
 	(opoint (point)))
     (unwind-protect
     (progn
-      (widen)
       (goto-char (point-min))
       (if (search-forward "\^_\nIndirect:\n" nil t)
-          (message "Cannot tagify split info file")
-
+          (message
+           "Cannot tagify split info file.  Run this before splitting.")
         (let (tag-list
               refillp
               (case-fold-search t)
@@ -122,21 +129,24 @@
 		      (beginning-of-line)
 		      (delete-region (point) end)))
 		(goto-char (point-max))
-		(insert "\^_\f\nTag table:\n")
+		(insert "\n\^_\f\nTag table:\n")
 		(if (eq major-mode 'info-mode)
 		    (move-marker Info-tag-table-marker (point)))
 		(setq tag-list (nreverse tag-list))
 		(while tag-list
 		  (insert (car (car tag-list)) ?\177)
-		  (princ (position-bytes (car (cdr (car list))))
-			 (current-buffer))
+		  (princ (car (cdr (car tag-list))) (current-buffer))
 		  (insert ?\n)
 		  (setq tag-list (cdr tag-list)))
 		(insert "\^_\nEnd tag table\n")))))
       (goto-char opoint)
       (narrow-to-region omin (if nomax (1+ (buffer-size))
 			       (min omax (point-max))))))
-  (message "Tagifying %s ... done" (file-name-nondirectory (buffer-file-name))))
+  (if input-buffer-name
+      (message "Tagifying region in %s ..." input-buffer-name)
+      (message
+       "Tagifying %s ..."  (file-name-nondirectory (buffer-file-name)))))
+
 
 ;;;###autoload
 (defun Info-split ()
@@ -159,8 +169,7 @@ contains just the tag table and a directory of subfiles."
   (search-forward "\^_")
   (forward-char -1)
   (let ((start (point))
-	(start-byte (position-bytes (point)))
-	(bytes-deleted 0)
+	(chars-deleted 0)
 	subfiles
 	(subfile-number 1)
 	(case-fold-search t)
@@ -182,7 +191,7 @@ contains just the tag table and a directory of subfiles."
 	(goto-char (min (+ (point) 50000) (point-max)))
 	(search-forward "\^_" nil 'move)
 	(setq subfiles
-	      (cons (list (+ start-byte bytes-deleted)
+	      (cons (list (+ start chars-deleted)
 			  (concat (file-name-nondirectory filename)
 				  (format "-%d" subfile-number)))
 		    subfiles))
@@ -193,8 +202,7 @@ contains just the tag table and a directory of subfiles."
 	(delete-region (1- (point)) (point))
 	;; Back up over the final ^_.
 	(forward-char -1)
-	(setq bytes-deleted (+ bytes-deleted (- (position-bytes (point))
-						start-byte)))
+	(setq chars-deleted (+ chars-deleted (- (point) start)))
 	(delete-region start (point))
 	(setq subfile-number (1+ subfile-number))))
     (while subfiles
