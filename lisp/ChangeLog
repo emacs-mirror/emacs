@@ -1,3 +1,15 @@
+2001-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* dabbrev.el (dabbrev--make-friend-buffer-list): New function,
+	broken out from dabbrev--find-expansion.  Handle minibuffer
+	specially here.
+	(dabbrev--find-expansion): Simplify code in various ways.
+	Don't treat minibuffers specially.
+	Call dabbrev--make-friend-buffer-list.
+	(dabbrev--select-buffers): Don't treat minibuffers specially.
+	Simplify.
+	(dabbrev--scanning-message): Do nothing when minibuffer is current.
+
 2001-06-19  John Wiegley  <johnw@gnu.org>
 
 	* eshell/eshell.el: Don't load in esh-util if it's already loaded.
