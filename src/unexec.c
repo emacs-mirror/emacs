@@ -235,7 +235,7 @@ static EXEC_HDR_TYPE hdr, ohdr;
 
 #else /* not HPUX */
 
-#if defined (USG) && !defined (IBMAIX) && !defined (IRIS) && !defined (COFF_ENCAPSULATE)
+#if defined (USG) && !defined (IBMAIX) && !defined (IRIS) && !defined (COFF_ENCAPSULATE) && !defined (LINUX)
 static struct bhdr hdr, ohdr;
 #define a_magic fmagic
 #define a_text tsize

@@ -110,7 +110,7 @@ static Lisp_Object stream_process;
 
 #ifndef VMS
 #ifndef WAITTYPE
-#if !defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)
+#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)) || defined (LINUX)
 #define WAITTYPE int
 #define WIFSTOPPED(w) ((w&0377) == 0177)
 #define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)

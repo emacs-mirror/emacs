@@ -183,8 +183,11 @@ and this notice must be preserved on all copies.  */
 
 /* joe@zircon.uucp says that in order to use XFree386, you have to
    link against -lXbsd, which insists on defining the random
-   function.  */
-#ifdef HAVE_XFREE386
+   function.
+   faith@cs.unc.edu says this is bogus for Linux and several other OS's.
+   Eventually, we should have autoconf test for this.  Anyone want to
+   submit a patch?  */
+#if defined (HAVE_XFREE386) && !defined (LINUX)
 #define LIBX11_SYSTEM -lXbsd
 #define HAVE_RANDOM
 #endif

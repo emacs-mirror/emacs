@@ -79,16 +79,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /*
  *	Define HAVE_TERMIOS if the system provides POSIX-style
  *	functions and macros for terminal control.
+ *
+ *	Define HAVE_TERMIO if the system provides sysV-style ioctls
+ *	for terminal control.
+ *
+ *	Do not define both.  HAVE_TERMIOS is prefered, if it is
+ *	supported on your system.
  */
 
 #define HAVE_TERMIOS
-
-/*
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- */
-
-#define HAVE_TERMIO
+/* #define HAVE_TERMIO */
 
 /*
  *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.

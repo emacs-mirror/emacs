@@ -77,11 +77,18 @@ static void
 get_lim_data ()
 {
   extern long ulimit ();
-    
-#ifdef ULIMIT_BREAK_VALUE
-  lim_data = ULIMIT_BREAK_VALUE;
-#else
+
+  lim_data = -1;
+
+  /* Use the ulimit call, if we seem to have it.  */
+#if !defined (ULIMIT_BREAK_VALUE) || defined (LINUX)
   lim_data = ulimit (3, 0);
+#endif
+
+  /* If that didn't work, just use the macro's value.  */
+#ifdef ULIMIT_BREAK_VALUE
+  if (lim_data == -1)
+    lim_data = ULIMIT_BREAK_VALUE;
 #endif
 
   lim_data -= (long) data_space_start;
