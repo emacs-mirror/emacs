@@ -369,7 +369,9 @@ useful for editing binary files."
   (interactive)
   (beginning-of-line 1)
   (let ((limit (line-end-position)))
-    (skip-syntax-forward " " limit)))
+    (skip-syntax-forward " " limit))
+  ;; Move back over chars that have whitespace syntax but have the p flag.
+  (backward-prefix-chars))
 
 (defun fixup-whitespace ()
   "Fixup white space between objects around point.
