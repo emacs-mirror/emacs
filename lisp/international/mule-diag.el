@@ -681,7 +681,7 @@ in place of `..':
     (princ (format "%c -- %s"
 		   (coding-system-mnemonic coding-system)
 		   coding-system))
-    (let ((aliases (coding-system-get coding-system 'alias-coding-systems)))
+    (let ((aliases (coding-system-aliases coding-system)))
       (if (eq coding-system (car aliases))
 	  (if (cdr aliases)
 	      (princ (format " %S" (cons 'alias: (cdr aliases)))))
@@ -740,6 +740,7 @@ Priority order for recognizing coding systems when reading files:\n")
   from these, and therefore cannot be recognized automatically
   with the present coding system priorities.\n\n")
 
+      ;; Fixme: should this be replaced or junked?
       (if nil
       (let ((categories '(coding-category-iso-7 coding-category-iso-7-else))
 	    coding-system codings)
@@ -749,7 +750,6 @@ Priority order for recognizing coding systems when reading files:\n")
 	   (function
 	    (lambda (x)
 	      (if (and (not (eq x coding-system))
-		       (coding-system-get x 'no-initial-designation)
 		       (let ((flags (coding-system-get :flags)))
 			 (not (or (memq 'use-roman flags)
 				  (memq 'use-oldjis flags)))))
@@ -800,7 +800,7 @@ Priority order for recognizing coding systems when reading files:\n")
   (let ((type (coding-system-type coding-system))
 	(eol-type (coding-system-eol-type coding-system))
 	(flags (coding-system-get coding-system :flags))
-	(aliases (coding-system-get coding-system 'alias-coding-systems)))
+	(aliases (coding-system-aliases coding-system)))
     (if (not (eq (car aliases) coding-system))
 	(princ (format "%s (alias of %s)\n" coding-system (car aliases)))
       (princ coding-system)
@@ -913,6 +913,7 @@ but still contains full information about each coding system."
 	(print-coding-system coding-system))
       (setq bases (cdr bases)))))
 
+;; Fixme: delete?
 ;;;###autoload
 (defun list-coding-categories ()
   "Display a list of all coding categories."
@@ -1197,16 +1198,6 @@ system which uses fontsets)."
 
       (insert-section 4 "Coding systems")
       (list-coding-systems-1 t)
-      (princ "\
-############################
-## LIST OF CODING CATEGORIES (ordered by priority)
-## CATEGORY:CODING-SYSTEM
-##
-")
-      (let ((l coding-category-list))
-	(while l
-	  (princ (format "%s:%s\n" (car l) (symbol-value (car l))))
-	  (setq l (cdr l))))
       (insert "\n")
 
       (insert-section 5 "Character sets")
