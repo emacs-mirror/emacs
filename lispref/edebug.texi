@@ -1063,31 +1063,43 @@ macro call are forms to be evaluated.  (Evaluation may occur explicitly
 in the macro body, or when the resulting expansion is evaluated, or any
 time later.)
 
-  Therefore, you must define an Edebug specification for each macro that
-Edebug will encounter, to explain the format of calls to that macro.  To
-do this, use @code{def-edebug-spec}.
+  Therefore, you must define an Edebug specification for each macro
+that Edebug will encounter, to explain the format of calls to that
+macro.  To do this, add an @code{edebug} declaration to the macro
+definition.  Here is a simple example that shows the specification for
+the @code{for} example macro (@pxref{Argument Evaluation}).
+
+@example
+(defmacro for (var from init to final do &rest body)
+  "Execute a simple \"for\" loop.
+For example, (for i from 1 to 10 do (print i))."
+  (declare (edebug symbolp "from" form "to" form "do" &rest form))
+  ...)
+@end example
+
+@defspec declare (edebug @var{specification})
+Specify which expressions of a call to the macro in which the
+declaration appears are forms to be evaluated.  For simple macros, the
+@var{specification} often looks very similar to the formal argument list
+of the macro definition, but specifications are much more general than
+macro arguments.
+@end defspec
+
+You can also define an edebug specification for a macro separately
+from the macro definition with @code{def-edebug-spec}.  Adding
+@code{edebug} declarations is preferred, and more convenient, for
+macro definitions in Lisp, but @code{def-edebug-spec} makes it
+possible to define Edebug specifications for special forms implemented
+in C.
 
 @deffn Macro def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
-evaluated.  For simple macros, the @var{specification} often looks very
-similar to the formal argument list of the macro definition, but
-specifications are much more general than macro arguments.
+evaluated.  @var{specification} should be the edebug specification.
+It is not evaluated.
 
 The @var{macro} argument can actually be any symbol, not just a macro
 name.
 @end deffn
-
-Here is a simple example that defines the specification for the
-@code{for} example macro (@pxref{Argument Evaluation}), followed by an
-alternative, equivalent specification.
-
-@example
-(def-edebug-spec for
-  (symbolp "from" form "to" form "do" &rest form))
-
-(def-edebug-spec for
-  (symbolp ['from form] ['to form] ['do body]))
-@end example
 
 Here is a table of the possibilities for @var{specification} and how each
 directs processing of arguments.
