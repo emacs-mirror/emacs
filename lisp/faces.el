@@ -116,7 +116,9 @@ If FRAME is omitted or nil, use the selected frame."
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
-  (if (stringp font) (setq font (x-resolve-font-name font 'default frame)))
+  (if (stringp font)
+      (setq font (or (query-fontset font)
+		     (x-resolve-font-name font 'default frame))))
   (internal-set-face-1 face 'font font 3 frame))
 
 (defun set-face-foreground (face color &optional frame)
