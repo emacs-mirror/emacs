@@ -2546,7 +2546,7 @@ If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 #endif
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
-		     Qnil, "");
+		     Qnil, 0);
 
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
@@ -2616,7 +2616,7 @@ between two undo boundaries as a single step to be undone.\n\
 If the value of the variable is t, undo information is not recorded.");
 #endif
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
-    "");
+    0);
 
   DEFVAR_PER_BUFFER ("mark-active", &current_buffer->mark_active, Qnil, 
     "Non-nil means the mark and region are currently active in this buffer.\n\
