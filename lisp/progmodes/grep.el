@@ -65,7 +65,7 @@ will be parsed and highlighted as soon as you try to move to them."
   :group 'grep)
 
 (defcustom grep-highlight-matches 'auto-detect
-  "*If t, use special markers to highlight grep matches.
+  "If t, use special markers to highlight grep matches.
 
 Some grep programs are able to surround matches with special
 markers in grep output.  Such markers can be used to highlight
@@ -74,7 +74,10 @@ matches in grep mode.
 This option sets the environment variable GREP_COLOR to specify
 markers for highlighting and GREP_OPTIONS to add the --color
 option in front of any explicit grep options before starting
-the grep."
+the grep.
+
+The default value of this variable is set up by `grep-compute-defaults';
+call that function before using this variable in your program."
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
 		 (other :tag "Not Set" auto-detect))
@@ -334,7 +337,9 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defun grep-process-setup ()
   "Setup compilation variables and buffer for `grep'.
 Set up `compilation-exit-message-function' and run `grep-setup-hook'."
-  (when grep-highlight-matches
+  (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
+    (grep-compute-defaults))
+  (when (eq grep-highlight-matches t)
     ;; Modify `process-environment' locally bound in `compilation-start'
     (setenv "GREP_OPTIONS" (concat (getenv "GREP_OPTIONS") " --color=always"))
     (setenv "GREP_COLOR" "01;41"))
@@ -420,14 +425,14 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
     (setq grep-highlight-matches
 	  (with-temp-buffer
-            (and (equal (condition-case nil
-                            (call-process grep-program nil t nil "--help")
-                          (error nil))
-                        0)
-                 (progn
-                   (goto-char (point-min))
-                   (search-forward "--color" nil t))
-                 t)))))
+	    (and (equal (condition-case nil
+			    (call-process grep-program nil t nil "--help")
+			  (error nil))
+			0)
+		 (progn
+		   (goto-char (point-min))
+		   (search-forward "--color" nil t))
+		 t)))))
 
 (defun grep-default-command ()
   (let ((tag-default
