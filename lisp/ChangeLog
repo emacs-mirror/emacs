@@ -1,3 +1,8 @@
+2001-10-06  Miles Bader  <miles@gnu.org>
+
+	* rfn-eshadow.el (read-file-name-electric-shadow): Autoload cookie
+	removed; they apparently don't work with faces.
+
 2001-10-05  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/sgml-mode.el (html-xhtml): New user option.

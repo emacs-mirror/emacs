@@ -1,3 +1,16 @@
+2001-10-06  Miles Bader  <miles@gnu.org>
+
+	* xterm.h (struct x_output): Add scroll_bar_top_shadow_pixel and
+	scroll_bar_bottom_shadow_pixel fields.
+	* xterm.c (x_create_toolkit_scroll_bar): Try to allocate colors
+	for the shadows, and tell the toolkit about them if we succeed.
+	(x_destroy_window) [USE_TOOLKIT_SCROLL_BARS]:
+	Free scroll-bar shadow colors.
+	* xfns.c (x_set_scroll_bar_background) [USE_TOOLKIT_SCROLL_BARS]:
+	Free scroll-bar shadow colors when the background color changes.
+	(Fx_create_frame, x_create_tip_frame) [USE_TOOLKIT_SCROLL_BARS]:
+	Initialize scroll-bar shadow-color fields.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Fcopy_file): If NEWNAME is a directory copy FILE there.

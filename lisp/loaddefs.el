@@ -13530,7 +13530,7 @@ Clear out the file used for transmitting args when Emacs resumes." nil nil)
 
 ;;;### (autoloads (read-file-name-electric-shadow-mode read-file-name-electric-shadow-tty-properties
 ;;;;;;  read-file-name-electric-shadow-properties) "rfn-eshadow"
-;;;;;;  "rfn-eshadow.el" (15293 48131))
+;;;;;;  "rfn-eshadow.el" (15293 57160))
 ;;; Generated autoloads from rfn-eshadow.el
 
 (defvar read-file-name-electric-shadow-properties (quote (face read-file-name-electric-shadow field shadow)) "\
@@ -13544,8 +13544,6 @@ Properties given to the `shadowed' part of a filename in the minibuffer.
 Only used when `read-file-name-electric-shadow-mode' is active and emacs
 is not running under a window-system; if emacs is running under a window
 system, `read-file-name-electric-shadow-properties' is used instead.")
-
-(defface read-file-name-electric-shadow (quote ((((background dark)) :foreground "grey50") (t :foreground "grey70"))) "Face used by `read-file-name-electric-shadow-mode' for the shadow." :group (quote minibuffer))
 
 (defvar read-file-name-electric-shadow-mode nil "\
 Non-nil if Read-File-Name-Electric-Shadow mode is enabled.
@@ -18647,18 +18645,18 @@ Zone-mode does two things:
 
 ;;;***
 
-;;;### (autoloads nil nil ("abbrev.el" "abbrevlist.el" "allout.el"
-;;;;;;  "buff-menu.el" "byte-run.el" "case-table.el" "cdl.el" "cus-dep.el"
-;;;;;;  "cus-load.el" "cus-start.el" "custom.el" "dos-fns.el" "dos-vars.el"
-;;;;;;  "dos-w32.el" "ediff-diff.el" "ediff-init.el" "ediff-merg.el"
-;;;;;;  "ediff-ptch.el" "ediff-vers.el" "ediff-wind.el" "electric.el"
-;;;;;;  "emacs-lock.el" "finder-inf.el" "float-sup.el" "foldout.el"
-;;;;;;  "format.el" "forms-d2.el" "forms-pass.el" "frame.el" "generic-x.el"
-;;;;;;  "help.el" "indent.el" "kermit.el" "loadup.el" "map-ynp.el"
-;;;;;;  "menu-bar.el" "misc.el" "mouse-copy.el" "mouse-drag.el" "mouse.el"
-;;;;;;  "patcomp.el" "paths.el" "pcvs-info.el" "pcvs-parse.el" "pcvs-util.el"
-;;;;;;  "regi.el" "register.el" "replace.el" "s-region.el" "saveplace.el"
-;;;;;;  "scroll-bar.el" "select.el" "simple.el" "soundex.el" "subdirs.el"
+;;;### (autoloads nil nil ("simple.el" "abbrev.el" "abbrevlist.el"
+;;;;;;  "allout.el" "buff-menu.el" "byte-run.el" "case-table.el"
+;;;;;;  "cdl.el" "cus-dep.el" "cus-load.el" "cus-start.el" "custom.el"
+;;;;;;  "dos-fns.el" "dos-vars.el" "dos-w32.el" "ediff-diff.el" "ediff-init.el"
+;;;;;;  "ediff-merg.el" "ediff-ptch.el" "ediff-vers.el" "ediff-wind.el"
+;;;;;;  "electric.el" "emacs-lock.el" "finder-inf.el" "float-sup.el"
+;;;;;;  "foldout.el" "format.el" "forms-d2.el" "forms-pass.el" "frame.el"
+;;;;;;  "generic-x.el" "help.el" "indent.el" "kermit.el" "loadup.el"
+;;;;;;  "map-ynp.el" "menu-bar.el" "misc.el" "mouse-copy.el" "mouse-drag.el"
+;;;;;;  "mouse.el" "patcomp.el" "paths.el" "pcvs-info.el" "pcvs-parse.el"
+;;;;;;  "pcvs-util.el" "regi.el" "register.el" "replace.el" "s-region.el"
+;;;;;;  "saveplace.el" "scroll-bar.el" "select.el" "soundex.el" "subdirs.el"
 ;;;;;;  "tcp.el" "tempo.el" "timezone.el" "unused.el" "vc-hooks.el"
 ;;;;;;  "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
 ;;;;;;  "vt100-led.el" "w32-fns.el" "widget.el" "window.el" "xml.el"
@@ -18751,7 +18749,7 @@ Zone-mode does two things:
 ;;;;;;  "bindings.el" "env.el" "faces.el" "files.el" "isearch.el"
 ;;;;;;  "startup.el" "subr.el" "uniquify.el" "emacs-lisp/cl-macs.el"
 ;;;;;;  "emacs-lisp/lisp-mnt.el" "emacs-lisp/lisp-mode.el" "emacs-lisp/lselect.el")
-;;;;;;  (15293 48433 582017))
+;;;;;;  (15293 57174 471791))
 
 ;;;***
 
