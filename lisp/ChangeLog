@@ -1,3 +1,8 @@
+2003-11-14  Thien-Thi Nguyen  <ttn@surf.glug.org>
+
+	* diff-mode.el (diff-hunk-prev, diff-hunk-next): Support
+	operation while narrowed, with `diff-restrict-view'.
+
 2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Take
