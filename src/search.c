@@ -2417,8 +2417,10 @@ since only regular expressions have distinguished subexpressions.")
     }
 
   /* Record point, the move (quietly) to the start of the match.  */
-  if (PT > search_regs.start[sub])
+  if (PT >= search_regs.end[sub])
     opoint = PT - ZV;
+  else if (PT > search_regs.start[sub])
+    opoint = search_regs.end[sub] - ZV;
   else
     opoint = PT;
 
