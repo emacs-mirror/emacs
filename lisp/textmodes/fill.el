@@ -165,12 +165,24 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 			(eq (char-after (- (point) 2)) ?\.))
 	      (forward-char -2)
 	      (skip-chars-backward "^ \n" linebeg))
-	    (if (if (zerop prefixcol) (bolp) (>= prefixcol (current-column)))
+	    (if (if (zerop prefixcol)
+		    (save-excursion
+		      (skip-chars-backward " " linebeg)
+		      (bolp))
+		  (>= prefixcol (current-column)))
 		;; Keep at least one word even if fill prefix exceeds margin.
 		;; This handles all but the first line of the paragraph.
-		(progn
-		  (skip-chars-forward " ")
-		  (skip-chars-forward "^ \n"))
+		;; Meanwhile, don't stop at a period followed by one space.
+		(let ((first t))
+		  (move-to-column prefixcol)
+		  (while (and (not (eobp))
+			      (or first
+				  (and (not (bobp))
+				       (save-excursion (forward-char -1)
+						       (looking-at "\\. ")))))
+		    (skip-chars-forward " ")
+		    (skip-chars-forward "^ \n")
+		    (setq first nil)))
 	      ;; Normally, move back over the single space between the words.
 	      (forward-char -1))
 	    (if (and fill-prefix (zerop prefixcol)
@@ -179,9 +191,16 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 			      (substring fill-prefix 0 (- (point) (point-min)))))
 		;; Keep at least one word even if fill prefix exceeds margin.
 		;; This handles the first line of the paragraph.
-		(progn
-		  (skip-chars-forward " ")
-		  (skip-chars-forward "^ \n"))))
+		;; Don't stop at a period followed by just one space.
+		(let ((first t))
+		  (while (and (not (eobp))
+			      (or first
+				  (and (not (bobp))
+				       (save-excursion (forward-char -1)
+						       (looking-at "\\. ")))))
+		    (skip-chars-forward " ")
+		    (skip-chars-forward "^ \n")
+		    (setq first nil)))))
 	  ;; Replace all whitespace here with one newline.
 	  ;; Insert before deleting, so we don't forget which side of
 	  ;; the whitespace point or markers used to be on.
