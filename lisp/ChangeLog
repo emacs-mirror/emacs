@@ -1,3 +1,13 @@
+2003-06-09  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* bindings.el (global-map): Bind `kill-whole-line' to
+	C-S-<backspace>.  Remove M-S-<backspace> binding: too close to
+	C-M-<backspace>.
+
+	* dired.el (dired-re-dot): Make it handle trailing /.
+	(dired-get-filename): Update documentation string.
+	Revert previous change and fix typo in earlier version..
+
 2003-06-10  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-fontify-node): Make `invisible' property
