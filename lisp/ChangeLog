@@ -1,5 +1,9 @@
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (display-startup-echo-area-message): Make sure
+	the echo area is resized to fit the size of the startup
+	message.
+
 	* gud.el (gud-perldb-massage-args): Avoid nreverse'ing a list
 	part of which is a constant.
 
