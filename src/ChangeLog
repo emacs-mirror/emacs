@@ -3,7 +3,7 @@
 	* process.c (Fsignal_process): Allow PROCESS to be specified by
 	name in addition to pid (as integer or string).
 
-2002-10-28  Juanma Barranquero  <lektu@terra.es>
+2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* w32heap.c: Don't redefine _heap_init and _heap_term on MSVC 7 build
 	environments.  Patch from Jay Finger <jay_finger@hotmail.com> and

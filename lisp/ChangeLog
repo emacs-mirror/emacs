@@ -37,7 +37,7 @@
 	* progmodes/make-mode.el (makefile-warn-continuations): Don't
 	barf when there _aren't_ any suspicious continuations.
 
-2002-10-28  Juanma Barranquero  <lektu@terra.es>
+2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
 	Patch from Matt Swift <swift@alum.mit.edu>.
@@ -117,7 +117,7 @@
 	* textmodes/outline.el (outline-next-heading): Make sure the match-data
 	is really correct where returning.
 
-2002-10-24  Juanma Barranquero  <lektu@terra.es>
+2002-10-24  Juanma Barranquero  <lektu@terra.es>  (tiny change)
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
 	Patch from Matthew Swift <swift@alum.mit.edu>.
