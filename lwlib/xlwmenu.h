@@ -20,6 +20,7 @@
 #define XtCMenu "Menu"
 #define XtNopen "open"
 #define XtNselect "select"
+#define XtNhighlightCallback "highlightCallback"
 #define XtNmenuBorderWidth "menuBorderWidth"
 #define XtNhorizontal "horizontal"
 #define XtCHorizontal "Horizontal"
