@@ -1,3 +1,7 @@
+2002-01-16  Andreas Schwab  <schwab@suse.de>
+
+	* mail/feedmail.el (feedmail): Fix :link spec.
+
 2002-01-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/calendar.el (diary-date-forms): Doc fix.

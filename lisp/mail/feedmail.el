@@ -308,7 +308,7 @@
 (defgroup feedmail nil
   "Assist other email packages to massage outgoing messages."
   :link '(url-link "http://www.carpenter.org/feedmail/feedmail.html")
-  :link '(emacs-commentary "feedmail")
+  :link '(emacs-commentary-link "feedmail")
   :group 'mail)
 
 (defgroup feedmail-misc nil
