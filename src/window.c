@@ -79,6 +79,15 @@ Lisp_Object Vpop_up_frame_function;
 /* Function to call to handle Fdisplay_buffer.  */
 Lisp_Object Vdisplay_buffer_function;
 
+/* List of buffer *names* for buffers that should have their own frames.  */
+Lisp_Object Vspecial_display_buffer_names;
+
+/* List of regexps for buffer names that should have their own frames.  */
+Lisp_Object Vspecial_display_regexps;
+
+/* Function to pop up a special frame.  */
+Lisp_Object Vspecial_display_function;
+
 /* Fdisplay_buffer always splits the largest window 
    if that window is more than this high.  */
 int split_height_threshold;
@@ -1699,7 +1708,7 @@ Returns the window displaying BUFFER.")
   (buffer, not_this_window)
      register Lisp_Object buffer, not_this_window;
 {
-  register Lisp_Object window;
+  register Lisp_Object window, tem;
 
   buffer = Fget_buffer (buffer);
   CHECK_BUFFER (buffer, 0);
@@ -1722,17 +1731,25 @@ Returns the window displaying BUFFER.")
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     return window;
 
+  /* Certain buffer names get special handling.  */
+  if (! NILP (Vspecial_display_function))
+    {
+      tem = Fmember (XBUFFER (buffer)->name, Vspecial_display_buffer_names);
+      if (!NILP (tem))
+	return call1 (Vspecial_display_function, buffer);
+
+      for (tem = Vspecial_display_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
+	if (fast_string_match (XCONS (tem)->car, XBUFFER (buffer)->name) >= 0)
+	  return call1 (Vspecial_display_function, buffer);
+    }
+
 #ifdef MULTI_FRAME
   /* If there are no frames open that have more than a minibuffer,
      we need to create a new frame.  */
   if (pop_up_frames || last_nonminibuf_frame == 0)
     {
-      window
-	= Fframe_selected_window (call0 (Vpop_up_frame_function));
+      window = Fframe_selected_window (call0 (Vpop_up_frame_function));
       Fset_window_buffer (window, buffer);
-#if 0
-      Fhandle_switch_frame (XWINDOW (window)->frame, Qnil);
-#endif
       return window;
     }
 #endif /* MULTI_FRAME */
@@ -3022,12 +3039,36 @@ work using this function.");
   pop_up_frames = 0;
 
   DEFVAR_LISP ("pop-up-frame-function", &Vpop_up_frame_function,
-    "*If non-nil, function to call to handle automatic new frame creation.\n\
+    "Function to call to handle automatic new frame creation.\n\
 It is called with no arguments and should return a newly created frame.\n\
 \n\
 A typical value might be `(lambda () (new-frame pop-up-frame-alist))'\n\
 where `pop-up-frame-alist' would hold the default frame parameters.");
   Vpop_up_frame_function = Qnil;
+
+  DEFVAR_LISP ("special-display-buffer-names", &Vspecial_display_buffer_names,
+    "*List of buffer names that should have their own special frames.\n\
+Displaying a buffer whose name is in this list makes a special frame for it\n\
+using `special-display-function'.  See also `special-display-regexps'.");
+  Vspecial_display_buffer_names = Qnil;
+
+  DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
+    "*List of regexps saying which buffers should have their own special frames.\n\
+If a buffer name matches one of these regexps, it gets its own frame.\n\
+Displaying a buffer whose name is in this list makes a special frame for it\n\
+using `special-display-function'.  See also `special-display-buffer-names'.");
+  Vspecial_display_regexps = Qnil;
+
+  DEFVAR_LISP ("special-display-function", &Vspecial_display_function,
+    "Function to call to make a new frame for a special buffer.\n\
+It is called with one argument, the buffer,\n\
+and should return a window displaying that buffer.\n\
+The default value makes a separate frame for the buffer,\n\
+using `special-display-alist' to specify the frame parameters.\n\
+\n\
+A buffer is special if its is listed in `special-display-buffer-names'\n\
+or matches a regexp in `special-display-regexps'.");
+  Vspecial_display_function = Qnil;
 
   DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,
     "*Non-nil means display-buffer should make new windows.");
