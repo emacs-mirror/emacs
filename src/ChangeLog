@@ -22,6 +22,7 @@
 	* emacs.c (main) [!VMS]: Avoid third arg.
 
 	* fns.c (Fcopy_sequence): Doc fix.
+	(Fmap_char_table): Cast `call2'.
 
 2002-11-14  Francesco Potorti`  <pot@gnu.org>
 
