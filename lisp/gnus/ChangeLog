@@ -1,3 +1,7 @@
+2002-07-03  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-sum.el (gnus-summary-highlight): Fix typo.
+
 2002-06-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnheader.el (nnheader-file-name-translation-alist): Set the

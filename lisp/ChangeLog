@@ -3,6 +3,10 @@
 	* net/tramp.el (tramp-send-eof): Fix typo.
 	(tramp-kill-process): Likewise.
 
+	* play/dunnet.el (dun-physobj-desc): Likewise.
+
+	* textmodes/reftex-vars.el (reftex-label-alist): Likewise.
+
 	* subr.el (chars-in-region): Add obsolescence declaration for
 	`chars-in-region'.
 
