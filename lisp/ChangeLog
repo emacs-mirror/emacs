@@ -1,3 +1,7 @@
+2000-05-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (remove-hook): `setq' hook-value, not `set'.
+
 2000-05-16  Sam Steingold  <sds@gnu.org>
 
 	* info.el (debug-ignored-errors): more errors to ignore.
