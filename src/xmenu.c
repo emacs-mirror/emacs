@@ -171,6 +171,8 @@ static int menu_items_submenu_depth;
 static int popup_activated_flag;
 
 static int next_menubar_widget_id;
+
+static int pending_menu_activation = 1;
 
 #ifdef USE_X_TOOLKIT
 
@@ -1182,12 +1184,14 @@ x_activate_menubar (f)
   if (!f->output_data.x->saved_menu_event->type)
     return;
 
-  set_frame_menubar (f, 0, 1);
-
+  if (f->output_data.x->saved_menu_event->type != ButtonRelease)
+    set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
   XtDispatchEvent ((XEvent *) f->output_data.x->saved_menu_event);
   UNBLOCK_INPUT;
-
+  if (f->output_data.x->saved_menu_event->type == ButtonRelease)
+    pending_menu_activation = 1;
+  
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
 }
@@ -1602,6 +1606,11 @@ set_frame_menubar (f, first_time, deep_p)
 
   if (! menubar_widget)
     deep_p = 1;
+  else if (pending_menu_activation && !deep_p)
+    {
+      deep_p = 1;
+      pending_menu_activation = 0;
+    }
 
   wv = xmalloc_widget_value ();
   wv->name = "menubar";
