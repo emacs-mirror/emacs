@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.33 $")
+(defconst byte-compile-version "$Revision: 2.34 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1119,7 +1119,8 @@ otherwise pop it")
 	     (prog1 (selected-window)
 	       (select-window (display-buffer (current-buffer)))
 	       (goto-char byte-compile-warnings-point-max)
-	       (recenter 1))))))))
+	       (previous-line 1)
+	       (recenter 0))))))))
 
 
 ;;;###autoload
