@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.4) $
+ * $HopeName: MMsrc!arena.c(trunk.5) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.4) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.5) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -507,10 +507,9 @@ void (ArenaPoll)(Arena arena)
 #else
 void ArenaPoll(Arena arena)
 {
-  TraceId ti;
   Size size;
-  Size interval;
   Res res;
+  Count i;
 
   AVERT(Arena, arena);
 
@@ -524,33 +523,25 @@ void ArenaPoll(Arena arena)
   /* Poll actions to see if any new action is to be taken. */
   ActionPoll(arena);
 
-  /* Poll active traces to make progress. */
-  for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(TraceSetIsMember(arena->busyTraces, ti)) {
-      /* design.mps.arena.trace */
-      Trace trace = ArenaTrace(arena, ti);
-
+  /* Temporary hacky progress control added here and in trace.c */
+  /* for change.dylan.honeybee.170466. */
+  if(arena->busyTraces != TraceSetEMPTY) {
+    Trace trace = ArenaTrace(arena, (TraceId)0);
+    AVER(arena->busyTraces == TraceSetSingle((TraceId)0));
+    i = trace->rate;
+    while(i > 0 && arena->busyTraces != TraceSetEMPTY) {
       res = TracePoll(trace);
       AVER(res == ResOK); /* @@@@ */
-
-      /* @@@@ Pick up results and use for prediction. */
-      if(trace->state == TraceFINISHED)
+      if(trace->state == TraceFINISHED) {
+        /* @@@@ Pick up results and use for prediction. */
         TraceDestroy(trace);
+      }
+      --i;
     }
+  }
 
-  /* Work out when to come back and poll again. */
-  /* See design.mps.arena.poll.inc */
-  interval = ARENA_POLL_MAX;
-  if(arena->actionInterval < interval)
-    interval = arena->actionInterval;
-  for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(TraceSetIsMember(arena->busyTraces, ti)) {
-      Trace trace = ArenaTrace(arena, ti);
-      if(trace->interval < interval)
-        interval = trace->interval;
-    }
   size = ArenaCommitted(arena);
-  arena->pollThreshold = size + interval;
+  arena->pollThreshold = size + ARENA_POLL_MAX;
 
   arena->insidePoll = FALSE;
 }
