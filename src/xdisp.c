@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -584,7 +584,7 @@ int automatic_hscrolling_p;
 
 /* How close to the margin can point get before the window is scrolled
    horizontally.  */
-int hscroll_margin;
+EMACS_INT hscroll_margin;
 
 /* How much to scroll horizontally when point is inside the above margin.  */
 Lisp_Object Vhscroll_step;
