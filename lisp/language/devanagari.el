@@ -42,6 +42,13 @@ Such languages using Devanagari script as Hindi and Marathi
 are supported in this language environment."))
  '("Indian"))
 
+;; For automatic composition.
+(dolist (range '((#x0903 . #x0903)
+		 (#x0905 . #x0939)
+		 (#x0958 . #x0961)))
+  (set-char-table-range composition-function-table range
+			'devanagari-composition-function))
+
 (provide 'devanagari)
 
 ;;; devanagari.el ends here
