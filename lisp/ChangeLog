@@ -1,5 +1,8 @@
 2001-07-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (describe-function-1): When printing FUNCTION's
+	documentation, don't assume FUNCTION is a symbol.
+
 	* startup.el (normal-top-level): Don't operate on the initial
 	frame if we failed to create one.
 
