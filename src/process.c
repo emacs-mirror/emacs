@@ -1,5 +1,5 @@
 /* Asynchronous subprocess control for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -125,9 +125,11 @@ static Lisp_Object stream_process;
 
 #include "syswait.h"
 
-extern errno;
-extern sys_nerr;
+extern int errno;
+extern char *strerror ();
+#ifdef VMS
 extern char *sys_errlist[];
+#endif
 
 #ifndef VMS
 #ifndef BSD4_1
@@ -1877,7 +1879,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #endif
 	    }
 	  else
-	    error("select error: %s", sys_errlist[xerrno]);
+	    error("select error: %s", strerror (xerrno));
 	}
 #if defined(sun) && !defined(USG5_4)
       else if (nfds > 0 && FD_ISSET (keyboard_descriptor, &Available)
