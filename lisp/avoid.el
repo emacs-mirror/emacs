@@ -83,7 +83,7 @@ instead.")
 (defvar mouse-avoidance-nudge-dist 15
   "*Average distance that mouse will be moved when approached by cursor.
 Only applies in mouse-avoidance-mode `jump' and its derivatives.
-For best results make this larger than `mouse-avoidance-threshhold'.")
+For best results make this larger than `mouse-avoidance-threshold'.")
 
 (defvar mouse-avoidance-nudge-var 10
   "*Variability of `mouse-avoidance-nudge-dist' (which see).")
@@ -91,7 +91,7 @@ For best results make this larger than `mouse-avoidance-threshhold'.")
 (defvar mouse-avoidance-animation-delay .01
   "Delay between animation steps, in seconds.")
 
-(defvar mouse-avoidance-threshhold 5
+(defvar mouse-avoidance-threshold 5
   "*Mouse-pointer's flight distance.
 If the cursor gets closer than this, the mouse pointer will move away.
 Only applies in mouse-avoidance-modes `animate' and `jump'.")
@@ -143,14 +143,14 @@ Analogous to mouse-position."
       
 (defun mouse-avoidance-too-close-p (mouse)
   ;;  Return t if mouse pointer and point cursor are too close.
-  ;; Acceptable distance is defined by mouse-avoidance-threshhold.
+  ;; Acceptable distance is defined by mouse-avoidance-threshold.
   (let ((point (mouse-avoidance-point-position)))
     (and (eq (car mouse) (car point))
 	 (car (cdr mouse))
 	 (< (abs (- (car (cdr mouse)) (car (cdr point))))
-	    mouse-avoidance-threshhold)
+	    mouse-avoidance-threshold)
 	 (< (abs (- (cdr (cdr mouse)) (cdr (cdr point))))
-	    mouse-avoidance-threshhold))))
+	    mouse-avoidance-threshold))))
 
 (defun mouse-avoidance-banish-destination ()
   "The position to which mouse-avoidance-mode `banish' moves the mouse.
@@ -311,7 +311,7 @@ Effects of the different modes:
 
 Whenever the mouse is moved, the frame is also raised.
 
-\(see `mouse-avoidance-threshhold' for definition of \"too close\",
+\(see `mouse-avoidance-threshold' for definition of \"too close\",
 and `mouse-avoidance-nudge-dist' and `mouse-avoidance-nudge-var' for
 definition of \"random distance\".)"
   (interactive
