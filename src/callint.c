@@ -549,7 +549,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    int speccount1 = specpdl_ptr - specpdl;
 	    specbind (Qcursor_in_echo_area, Qt);
 	    args[i] = Fread_key_sequence (build_string (callint_message),
-					  Qnil, Qnil, Qnil);
+					  Qnil, Qnil, Qnil, Qnil);
 	    unbind_to (speccount1, Qnil);
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml);
@@ -576,7 +576,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	    int speccount1 = specpdl_ptr - specpdl;
 	    specbind (Qcursor_in_echo_area, Qt);
 	    args[i] = Fread_key_sequence (build_string (callint_message),
-					  Qnil, Qt, Qnil);
+					  Qnil, Qt, Qnil, Qnil);
 	    teml = args[i];
 	    visargs[i] = Fkey_description (teml);
 	    unbind_to (speccount1, Qnil);
