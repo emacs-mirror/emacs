@@ -6271,4 +6271,4 @@ emacs_strerror (error_number)
 }
 
 #endif /* emacs */
-(encode_eol): 
+
