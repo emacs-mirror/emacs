@@ -1,3 +1,8 @@
+2004-10-24  Jason Rumney  <jasonr@gnu.org>
+
+	* commands.texi (Misc Events): Remove mouse-wheel. Add wheel-up
+	and wheel-down.
+
 2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* processes.texi (Synchronous Processes): Document process-file.
