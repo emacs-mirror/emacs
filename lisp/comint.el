@@ -3164,52 +3164,52 @@ If NO-DISPLAY is non-nil, do not show the output buffer."
 			   process))
 	 (proc (get-buffer-process process-buffer)))
     ;; Change to the process buffer
-    (set-buffer process-buffer)
+    (with-current-buffer process-buffer
 
-    ;; Make sure there's a prompt in the current process buffer
-    (and comint-redirect-perform-sanity-check
-	 (save-excursion
-	   (goto-char (point-max))
-	   (or (re-search-backward comint-prompt-regexp nil t)
-	       (error "No prompt found or `comint-prompt-regexp' not set properly"))))
-
-    ;;;;;;;;;;;;;;;;;;;;;
-    ;; Set up for redirection
-    ;;;;;;;;;;;;;;;;;;;;;
-    (comint-redirect-setup
-     ;; Output Buffer
-     output-buffer
-     ;; Comint Buffer
-     (current-buffer)
-     ;; Finished Regexp
-     comint-prompt-regexp
-     ;; Echo input
-     echo)
+      ;; Make sure there's a prompt in the current process buffer
+      (and comint-redirect-perform-sanity-check
+	   (save-excursion
+	     (goto-char (point-max))
+	     (or (re-search-backward comint-prompt-regexp nil t)
+		 (error "No prompt found or `comint-prompt-regexp' not set properly"))))
 
     ;;;;;;;;;;;;;;;;;;;;;
-    ;; Set the filter
+      ;; Set up for redirection
     ;;;;;;;;;;;;;;;;;;;;;
-    ;; Save the old filter
-    (setq comint-redirect-original-filter-function
-	  (process-filter proc))
-    (set-process-filter proc 'comint-redirect-filter)
+      (comint-redirect-setup
+       ;; Output Buffer
+       output-buffer
+       ;; Comint Buffer
+       (current-buffer)
+       ;; Finished Regexp
+       comint-prompt-regexp
+       ;; Echo input
+       echo)
 
     ;;;;;;;;;;;;;;;;;;;;;
-    ;; Send the command
+      ;; Set the filter
     ;;;;;;;;;;;;;;;;;;;;;
-    (process-send-string
-     (current-buffer)
-     (concat command "\n"))
+      ;; Save the old filter
+      (setq comint-redirect-original-filter-function
+	    (process-filter proc))
+      (set-process-filter proc 'comint-redirect-filter)
 
     ;;;;;;;;;;;;;;;;;;;;;
-    ;; Show the output
+      ;; Send the command
     ;;;;;;;;;;;;;;;;;;;;;
-    (or no-display
-	 (display-buffer
-	  (get-buffer-create
-	   (if (listp output-buffer)
-	       (car output-buffer)
-	     output-buffer))))))
+      (process-send-string
+       (current-buffer)
+       (concat command "\n"))
+
+    ;;;;;;;;;;;;;;;;;;;;;
+      ;; Show the output
+    ;;;;;;;;;;;;;;;;;;;;;
+      (or no-display
+	  (display-buffer
+	   (get-buffer-create
+	    (if (listp output-buffer)
+		(car output-buffer)
+	      output-buffer)))))))
 
 ;;;###autoload
 (defun comint-redirect-results-list (command regexp regexp-group)
