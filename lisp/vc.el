@@ -154,9 +154,49 @@ These are passed to the checkin program by \\[vc-register]."
   "Maximum number of saved comments in the comment ring.")
 
 ;;; This is duplicated in diff.el.
-;;; ...and customized.
 (defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be be passed to diff.")
+
+(defcustom vc-annotate-color-map
+  '(( 26.3672 . "#FF0000")
+    ( 52.7344 . "#FF3800")
+    ( 79.1016 . "#FF7000")
+    (105.4688 . "#FFA800")
+    (131.8359 . "#FFE000")
+    (158.2031 . "#E7FF00")
+    (184.5703 . "#AFFF00")
+    (210.9375 . "#77FF00")
+    (237.3047 . "#3FFF00")
+    (263.6719 . "#07FF00")
+    (290.0391 . "#00FF31")
+    (316.4063 . "#00FF69")
+    (342.7734 . "#00FFA1")
+    (369.1406 . "#00FFD9")
+    (395.5078 . "#00EEFF")
+    (421.8750 . "#00B6FF")
+    (448.2422 . "#007EFF"))
+  "*Association list of age versus color, for \\[vc-annotate].
+Ages are given in units of 2**-16 seconds.
+Default is eighteen steps using a twenty day increment."
+  :type 'sexp
+  :group 'vc)
+
+(defcustom vc-annotate-very-old-color "#0046FF"
+  "*Color for lines older than CAR of last cons in `vc-annotate-color-map'."
+  :type 'string
+  :group 'vc)
+
+(defcustom vc-annotate-background "black"
+  "*Background color for \\[vc-annotate].
+Default color is used if nil."
+  :type 'string
+  :group 'vc)
+
+(defcustom vc-annotate-menu-elements '(2 0.5 0.1 0.01)
+  "*Menu elements for the mode-specific menu of VC-Annotate mode.
+List of factors, used to expand/compress the time scale.  See `vc-annotate'."
+  :type 'sexp
+  :group 'vc)
 
 ;;;###autoload
 (defcustom vc-checkin-hook nil
@@ -169,6 +209,12 @@ See `run-hooks'."
 (defcustom vc-before-checkin-hook nil
   "*Normal hook (list of functions) run before a file gets checked in.  
 See `run-hooks'."
+  :type 'hook
+  :group 'vc)
+
+;;;###autoload
+(defcustom vc-annotate-mode-hook nil
+  "*Hooks to run when VC-Annotate mode is turned on."
   :type 'hook
   :group 'vc)
 
@@ -1933,7 +1979,179 @@ default directory."
 		     "failed"))
 	       (cd (file-name-directory changelog))
 	       (delete-file tempfile)))))
+
+;; vc-annotate functionality (CVS only).
+(defvar vc-annotate-mode nil
+  "Variable indicating if VC-Annotate mode is active.")
 
+(defvar vc-annotate-mode-map ()
+  "Local keymap used for VC-Annotate mode.")
+
+;; Syntax Table
+(defvar vc-annotate-mode-syntax-table nil
+  "Syntax table used in VC-Annotate mode buffers.")
+
+(defun vc-annotate-mode-variables ()
+  (if (not vc-annotate-mode-syntax-table)
+      (progn   (setq vc-annotate-mode-syntax-table (make-syntax-table))
+	       (set-syntax-table vc-annotate-mode-syntax-table)))
+  (if (not vc-annotate-mode-map)
+      (setq vc-annotate-mode-map (make-sparse-keymap))))
+
+(defun vc-annotate-mode ()
+  "Major mode for buffers displaying output from the CVS `annotate' command.
+
+You can use the mode-specific menu to alter the time-span of the used
+colors.  See variable `vc-annotate-menu-elements' for customizing the
+menu items."
+  (interactive)
+  (kill-all-local-variables)		; Recommended by RMS.
+  (vc-annotate-mode-variables)		; This defines various variables.
+  (use-local-map vc-annotate-mode-map)	; This provides the local keymap.
+  (set-syntax-table vc-annotate-mode-syntax-table)
+  (setq major-mode 'vc-annotate-mode)	; This is how `describe-mode'
+					;   finds out what to describe.
+  (setq mode-name "Annotate")		; This goes into the mode line.
+  (run-hooks 'vc-annotate-mode-hook)
+  (vc-annotate-add-menu))
+
+(defun vc-annotate-display-default (&optional event)
+  "Use the default color spectrum for VC Annotate mode."
+  (interactive)
+  (vc-annotate-display (get-buffer (buffer-name))))
+
+(defun vc-annotate-add-menu ()
+  "Adds the menu 'Annotate' to the menu bar in VC-Annotate mode."
+  (setq vc-annotate-mode-menu (make-sparse-keymap "Annotate"))
+  (define-key vc-annotate-mode-menu [default]
+    '("Default" . vc-annotate-display-default))
+  (let ((menu-elements vc-annotate-menu-elements))
+    (while menu-elements
+      (let* ((element (car menu-elements))
+	     (days (round (* element 
+			     (vc-annotate-car-last-cons vc-annotate-color-map) 
+			     0.7585))))
+	(setq menu-elements (cdr menu-elements))
+	(define-key vc-annotate-mode-menu
+	  (vector days)
+	  (cons (format "Span %d days"
+			days)
+		`(lambda ()
+		   ,(format "Use colors spanning %d days" days)
+		   (vc-annotate-display (get-buffer (buffer-name))
+					(vc-annotate-time-span ,element)))))))))
+
+(defvar vc-annotate-ratio)
+
+;;;###autoload
+(defun vc-annotate (ratio)
+  "Display the result of the CVS `annotate' command using colors.
+New lines are displayed in red, old in blue.
+A prefix argument specifies a factor for stretching the time scale.
+
+`vc-annotate-menu-elements' customizes the menu elements of the
+mode-specific menu. `vc-annotate-color-map' and
+`vc-annotate-very-old-color' defines the mapping of time to
+colors. `vc-annotate-background' specifies the background color."
+  (interactive "p")
+  (if (not (eq (vc-buffer-backend) 'CVS)) ; This only works with CVS
+      (vc-registration-error (buffer-file-name)))
+  (message "Annotating...")
+  (let ((temp-buffer-name (concat "*cvs annotate " (buffer-name) "*"))
+	(temp-buffer-show-function 'vc-annotate-display)
+	(vc-annotate-ratio ratio))
+    (with-output-to-temp-buffer temp-buffer-name
+      (call-process "cvs" nil (get-buffer temp-buffer-name) nil
+		    "annotate" (file-name-nondirectory (buffer-file-name)))))
+  (message "Annotating... done"))
+
+(defun vc-annotate-car-last-cons (assoc-list)
+  "Return car of last cons in ASSOC-LIST."
+  (if (not (eq nil (cdr assoc-list)))
+      (vc-annotate-car-last-cons (cdr assoc-list))
+    (car (car assoc-list))))
+
+;; Return an association list with span factor applied to the
+;; time-span of assoc-list.  Optionaly quantize to the factor of
+;; quantize.
+(defun vc-annotate-time-span (assoc-list span &optional quantize)
+  ;; Apply span to each car of every cons
+  (if (not (eq nil assoc-list)) 
+      (append (list (cons (* (car (car assoc-list)) span)
+			  (cdr (car assoc-list))))
+	      (vc-annotate-time-span (nthcdr (cond (quantize) ; optional
+						   (1)) ; Default to cdr
+					     assoc-list) span quantize))))
+
+(defun vc-annotate-compcar (threshold &rest args)
+  "Test successive cars of ARGS against THRESHOLD.
+Return the first cons which CAR is not less than THRESHOLD, nil otherwise"
+  ;; If no list is exhausted,
+  (if (and (not (memq 'nil args)) (< (car (car (car args))) threshold))
+      ;; apply to CARs.
+      (apply 'vc-annotate-compcar threshold
+	     ;; Recurse for rest of elements.
+	     (mapcar 'cdr args))
+    ;; Return the proper result
+    (car (car args))))
+
+(defun vc-annotate-display (buffer &optional color-map)
+  "Do the VC-Annotate display in BUFFER using COLOR-MAP."
+
+  (if (and (not color-map) vc-annotate-ratio)
+      (setq color-map (vc-annotate-time-span color-map vc-annotate-ratio)))
+      
+  ;; We need a list of months and their corresponding numbers.
+  (let* ((local-month-numbers 
+	  '(("Jan" . 1) ("Feb" .  2) ("Mar" .  3) ("Apr" .  4)
+	    ("May" . 5) ("Jun" .  6) ("Jul" .  7) ("Aug" .  8) 
+	    ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12)))
+	 ;; XEmacs use extents, GNU Emacs overlays.
+	 (overlay-or-extent (if (string-match "XEmacs" emacs-version)
+				(cons 'make-extent 'set-extent-property)
+			      (cons 'make-overlay 'overlay-put)))
+	 (make-overlay-or-extent (car overlay-or-extent))
+	 (set-property-overlay-or-extent (cdr overlay-or-extent)))
+
+    (set-buffer buffer)
+    (display-buffer buffer)
+    (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
+	(vc-annotate-mode))
+    (goto-char (point-min))		; Position at the top of the buffer.
+    (while (re-search-forward 
+	    "^[0-9]+\\(\.[0-9]+\\)*\\s-+(\\sw+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): "
+	    nil t)
+
+      (let* (;; Unfortunately, order is important. match-string will
+             ;; be corrupted by extent functions in XEmacs. Access
+             ;; string-matches first.
+	     (day (string-to-number (match-string 2)))
+             (month (cdr (assoc (match-string 3) local-month-numbers)))
+	     (year-tmp (string-to-number (match-string 4)))
+	     (year (+ (if (> 100 year-tmp) 1900 0) year-tmp)) ; Possible millenium problem
+	     (high (- (car (current-time))
+		      (car (encode-time 0 0 0 day month year))))
+	     (color (cond ((vc-annotate-compcar high (cond (color-map)
+							   (vc-annotate-color-map))))
+			  ((cons nil vc-annotate-very-old-color))))
+	     ;; substring from index 1 to remove any leading `#' in the name
+	     (face-name (concat "vc-annotate-face-" (substring (cdr color) 1)))
+	     ;; Make the face if not done.
+	     (face (cond ((intern-soft face-name))
+			 ((make-face (intern face-name)))))
+	     (point (point))
+	     (foo (forward-line 1))
+	     (overlay (cond ((if (string-match "XEmacs" emacs-version)
+				 (extent-at point)
+			       (car (overlays-at point ))))
+			    ((apply make-overlay-or-extent point (point) nil)))))
+
+	(if vc-annotate-background
+	    (set-face-background face vc-annotate-background))
+	(set-face-foreground face (cdr color))
+	(apply set-property-overlay-or-extent overlay
+	       'face face nil)))))
+
 ;; Collect back-end-dependent stuff here
 
 (defun vc-backend-admin (file &optional rev comment)
@@ -2451,6 +2669,7 @@ These bindings are added to the global keymap when you enter this mode:
 \\[vc-diff]		show diffs between file versions
 \\[vc-version-other-window]		visit old version in another window
 \\[vc-directory]		show all files locked by any user in or below .
+\\[vc-annotate]		colorful display of the cvs annotate command 
 \\[vc-update-change-log]		add change log entry from recent checkins
 
 While you are entering a change log message for a version, the following
