@@ -1,7 +1,7 @@
 2005-01-30  Jesper Harder  <harder@phys.au.dk>
 
-	* macterm.c (syms_of_macterm) <mac-reverse-ctrl-meta>: Fix docstring indentation. 
-	(syms_of_macterm) <mac-emulate-three-button-mouse>: do. 
+	* macterm.c (syms_of_macterm) <mac-reverse-ctrl-meta>
+	<mac-emulate-three-button-mouse>: Fix docstring indentation.
 
 2005-01-29  Luc Teirlinck  <teirllm@auburn.edu>
 
