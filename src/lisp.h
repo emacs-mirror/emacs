@@ -372,6 +372,8 @@ extern int pure_size;
 #define XSET(var, vartype, ptr) \
    (((var).s.type = ((char) (vartype))), ((var).s.val = ((int) (ptr))))
 
+extern Lisp_Object make_number ();
+
 /* During garbage collection, XGCTYPE must be used for extracting types
  so that the mark bit is ignored.  XMARKBIT access the markbit.
  Markbits are used only in particular slots of particular structure types.
@@ -574,7 +576,7 @@ struct Lisp_Vector
    except for that the former omits several slots at the tail.  A sub
    char table appears only in an element of a char table, and there's
    no way to access it directly from Emacs Lisp program.  */
-  
+
 /* This is the number of slots that apply to characters or character
    sets.  The first 128 are for ASCII, the next 128 are for 8-bit
    European characters, and the last 128 are for multibyte characters.
@@ -598,7 +600,7 @@ struct Lisp_Vector
 
 /* This is the number of slots that every sub char table must have.
    This counts the ordinary slots and the top and defalt slot.  */
-#define SUB_CHAR_TABLE_STANDARD_SLOTS (SUB_CHAR_TABLE_ORDINARY_SLOTS + 2) 
+#define SUB_CHAR_TABLE_STANDARD_SLOTS (SUB_CHAR_TABLE_ORDINARY_SLOTS + 2)
 
 /* Return the number of "extra" slots in the char table CT.  */
 
@@ -688,7 +690,7 @@ struct Lisp_Symbol
    This type is treated in most respects as a pseudovector,
    but since we never dynamically allocate or free them,
    we don't need a next-vector field.  */
-   
+
 struct Lisp_Subr
   {
     EMACS_INT size;
@@ -852,9 +854,9 @@ union Lisp_Misc
 /* Optional Lisp floating point type */
 struct Lisp_Float
   {
-    Lisp_Object type;		/* essentially used for mark-bit 
+    Lisp_Object type;		/* essentially used for mark-bit
 				   and chaining when on free-list */
-    double data;  
+    double data;
   };
 #endif /* LISP_FLOAT_TYPE */
 
@@ -1099,7 +1101,7 @@ typedef unsigned char UCHAR;
   do { if (!WINDOWP ((x))) x = wrong_type_argument (Qwindowp, (x)); } while (0)
 
 /* This macro rejects windows on the interior of the window tree as
-   "dead", which is what we want; this is an argument-checking macro, and 
+   "dead", which is what we want; this is an argument-checking macro, and
    the user should never get access to interior windows.
 
    A window of any sort, leaf or interior, is dead iff the buffer,
@@ -1313,19 +1315,29 @@ extern char *stack_bottom;
 
 #define QUITP (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 
+/* Current buffer's map from characters to lower-case characters.  */
+
+#define DOWNCASE_TABLE XCHAR_TABLE (current_buffer->downcase_table)->contents
+
+/* Current buffer's map from characters to upper-case characters.  */
+
+#define UPCASE_TABLE XCHAR_TABLE (current_buffer->upcase_table)->contents
+
+/* Downcase a character, or make no change if that cannot be done.  */
+
+#define DOWNCASE(CH) (XFASTINT (DOWNCASE_TABLE[CH]))
+
 /* 1 if CH is upper case.  */
 
-#define UPPERCASEP(CH) \
-  (XCHAR_TABLE (current_buffer->downcase_table)->contents[CH] != (CH))
+#define UPPERCASEP(CH) (DOWNCASE(CH) != (CH))
+
+/* 1 if CH is neither upper nor lower case.  */
+
+#define NOCASEP(CH) (XFASTINT (UPCASE_TABLE[CH]) == (CH))
 
 /* 1 if CH is lower case.  */
 
 #define LOWERCASEP(CH) (!UPPERCASEP (CH) && !NOCASEP(CH))
-
-/* 1 if CH is neither upper nor lower case.  */
-
-#define NOCASEP(CH) \
-  (XCHAR_TABLE (current_buffer->upcase_table)->contents[CH] == (CH))
 
 /* Upcase a character, or make no change if that cannot be done.  */
 
@@ -1333,16 +1345,7 @@ extern char *stack_bottom;
 
 /* Upcase a character known to be not upper case.  */
 
-#define UPCASE1(CH) (XCHAR_TABLE (current_buffer->upcase_table)->contents[CH])
-
-/* Downcase a character, or make no change if that cannot be done.  */
-
-#define DOWNCASE(CH) \
-  (XCHAR_TABLE (current_buffer->downcase_table)->contents[CH])
-
-/* Current buffer's map from characters to lower-case characters.  */
-
-#define DOWNCASE_TABLE XCHAR_TABLE (current_buffer->downcase_table)->contents
+#define UPCASE1(CH) (XFASTINT (UPCASE_TABLE[CH]))
 
 extern Lisp_Object Vascii_downcase_table;
 
@@ -1409,7 +1412,7 @@ struct gcpro
 /* Call staticpro (&var) to protect static variable `var'.  */
 
 void staticpro();
-  
+
 #define UNGCPRO (gcprolist = gcpro1.next)
 
 /* Evaluate expr, UNGCPRO, and then return the value of expr.  */
@@ -1898,7 +1901,7 @@ extern long *xmalloc (), *xrealloc ();
 extern void xfree ();
 
 extern char *egetenv ();
- 
+
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name ();
 
