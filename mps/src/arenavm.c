@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.26) $
+ * $HopeName: MMsrc!arenavm.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -37,7 +37,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.26) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.27) $");
 
 
 /* Space Arena Projection
@@ -521,13 +521,10 @@ static Bool findFreeInRefSet(Index *baseReturn,
 
 static Bool tablePageInUse(Arena arena, Addr tablePage)
 {
-  Size fromStart, toEnd;
-
   AVERT(Arena, arena);
   /* Check it's in the page table. */
-  fromStart = AddrOffset((Addr)&arena->pageTable[0], tablePage);
-  toEnd = AddrOffset(tablePage, (Addr)&arena->pageTable[arena->tablePages]);
-  AVER(toEnd > 0);
+  AVER((Addr)&arena->pageTable[0] <= tablePage);
+  AVER(tablePage < (Addr)&arena->pageTable[arena->pages]);
 
   return !BTIsResRange(arena->allocTable,
 		       tablePageBaseIndex(arena, tablePage),
