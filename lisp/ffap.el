@@ -334,7 +334,7 @@ Actual search is done by `ffap-next-guess'."
 ;; machine, try setting these all to accept or reject.
 (defcustom ffap-machine-p-local 'reject	; this happens often
   "*What `ffap-machine-p' does with hostnames that have no domain.
-Value should be a symbol, one of `ping', `accept', and `reject'.
+Value should be a symbol, one of `ping', `accept', and `reject'."
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
