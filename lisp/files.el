@@ -1149,6 +1149,8 @@ If `enable-local-variables' is nil, this function does not check for a
 (put 'load-path 'risky-local-variable t)
 (put 'exec-directory 'risky-local-variable t)
 (put 'process-environment 'risky-local-variable t)
+;; Don't wait for outline.el to be loaded, for the sake of outline-minor-mode.
+(put 'outline-level 'risky-local-variable t)
 
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
