@@ -89,6 +89,10 @@ existing one is found.
 
 MH-E users may want to use `mh-smail'.")
 
+
+;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;; Package author interface variables
+
 (defvar reporter-prompt-for-summary-p nil
   "Interface variable controlling prompting for problem summary.
 When non-nil, `reporter-submit-bug-report' prompts the user for a
@@ -114,7 +118,8 @@ Note that this variable is not buffer-local so you should never just
 bind it.")
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-;; end of user defined variables
+;; End of editable variables
+
 
 (defvar reporter-eval-buffer nil
   "Buffer to retrieve variable's value from.
