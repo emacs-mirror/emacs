@@ -1108,8 +1108,8 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
-      message ("%s(y or n) ", XSTRING (xprompt)->data);
       cursor_in_echo_area = 1;
+      message ("%s(y or n) ", XSTRING (xprompt)->data);
 
       obj = read_char (0, 0, 0, Qnil, 0);
       cursor_in_echo_area = 0;
@@ -1119,11 +1119,6 @@ Also accepts Space to mean yes, or Delete to mean no.")
       key = Fmake_vector (make_number (1), obj);
       def = Flookup_key (map, key);
       answer_string = Fsingle_key_description (obj);
-
-      cursor_in_echo_area = -1;
-      message ("%s(y or n) %s", XSTRING (xprompt)->data,
-	       XSTRING (answer_string)->data);
-      cursor_in_echo_area = ocech;
 
       if (EQ (def, intern ("skip")))
 	{
@@ -1161,7 +1156,12 @@ Also accepts Space to mean yes, or Delete to mean no.")
     }
   UNGCPRO;
 
-  message ("%s(y or n) %c", XSTRING (xprompt)->data, answer ? 'y' : 'n');
+  if (! noninteractive)
+    {
+      cursor_in_echo_area = -1;
+      message ("%s(y or n) %c", XSTRING (xprompt)->data, answer ? 'y' : 'n');
+      cursor_in_echo_area = ocech;
+    }
 
   return answer ? Qt : Qnil;
 }
