@@ -2044,7 +2044,8 @@ Analogous to `define-translation-table', but updates
 (defun sgml-xml-auto-coding-function (size)
   "Determine whether the buffer is XML, and if so, its encoding.
 This function is intended to be added to `auto-coding-functions'."
-  (when (re-search-forward "\\`[[:space:]\n]*<\\?xml" nil t)
+  (setq size (+ (point) size))
+  (when (re-search-forward "\\`[[:space:]\n]*<\\?xml" size t)
     (let ((end (save-excursion
 		 ;; This is a hack.
 		 (re-search-forward "\"\\s-*\\?>" size t))))
@@ -2061,7 +2062,7 @@ This function is intended to be added to `auto-coding-functions'."
 (defun sgml-html-meta-auto-coding-function (size)
   "If the buffer has an HTML meta tag, use it to determine encoding.
 This function is intended to be added to `auto-coding-functions'."
-  (setq size (min size
+  (setq size (min (+ (point) size)
 		  ;; Only search forward 10 lines
 		  (save-excursion
 		    (forward-line 10)
