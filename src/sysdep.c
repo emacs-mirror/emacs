@@ -2155,6 +2155,7 @@ unrequest_sigio ()
  *
  */
 
+#if !(defined (__NetBSD__) && defined (__ELF__))
 #ifndef HAVE_TEXT_START
 char *
 start_of_text ()
@@ -2172,6 +2173,7 @@ start_of_text ()
 #endif /* TEXT_START */
 }
 #endif /* not HAVE_TEXT_START */
+#endif
 
 /*
  *	Return the address of the start of the data segment prior to
