@@ -1623,7 +1623,11 @@ mark_object (objptr)
 	    XUNMARK (obj);
 	    goto loop;
 	  }
+	if (ptr == 0)
+	  abort ();
 	mark_object (&ptr->car);
+	if (ptr == 0)
+	  abort ();
 	objptr = &ptr->cdr;
 	obj = ptr->cdr;
 	goto loop;
