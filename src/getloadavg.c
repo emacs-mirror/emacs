@@ -810,9 +810,6 @@ main (argc, argv)
   if (argc > 1)
     naptime = atoi (argv[1]);
 
-  if (naptime == 0)
-    naptime = 5;
-
   while (1)
     {
       double avg[3];
@@ -833,7 +830,12 @@ main (argc, argv)
 	printf ("15-minute: %f  ", avg[2]);
       if (loads > 0)
 	putchar ('\n');
+
+      if (naptime == 0)
+	break;
       sleep (naptime);
     }
+
+  exit (0);
 }
 #endif /* TEST */
