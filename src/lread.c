@@ -900,11 +900,11 @@ openp (path, str, suffix, storeptr, exec_only)
   int want_size;
   Lisp_Object filename;
   struct stat st;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object string;
 
-  string = Qnil;
-  GCPRO2 (str, string);
+  string = filename = Qnil;
+  GCPRO3 (str, string, filename);
   
   if (storeptr)
     *storeptr = Qnil;
