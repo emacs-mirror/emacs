@@ -60,11 +60,22 @@ With arg N, insert N newlines."
   "Read next input character and insert it.
 This is useful for inserting control characters.
 You may also type up to 3 octal digits, to insert a character with that code.
-`quoted-insert' inserts the character even in overstrike mode; if you
-use overstrike as your normal editing mode, you can use this function
-to insert characters when necessary."
+
+In overwrite mode, this function inserts the character anyway, and
+does not handle octal digits specially.  This means that if you use
+overwrite as your normal editing mode, you can use this function to
+insert characters when necessary.
+
+In binary overwrite mode, this function does overwrite, and octal
+digits are interpreted as a character code.  This is supposed to make
+this function useful in editing binary files."
   (interactive "*p")
-  (let ((char (read-quoted-char)))
+  (let ((char (if (or (not overwrite-mode)
+		      (eq overwrite-mode 'overwrite-mode-binary))
+		  (read-quoted-char)
+		(read-char))))
+    (if (eq overwrite-mode 'overwrite-mode-binary)
+	(delete-char arg))
     (insert-char char arg)))
 
 (defun delete-indentation (&optional arg)
@@ -1809,16 +1820,48 @@ The variable `selective-display' has a separate value for each buffer."
   (prin1 selective-display t)
   (princ "." t))
 
+(defconst overwrite-mode-textual " Ovwrt"
+  "The string displayed in the mode line when in overwrite mode.")
+(defconst overwrite-mode-binary " Bin Ovwrt"
+  "The string displayed in the mode line when in binary overwrite mode.")
+
 (defun overwrite-mode (arg)
   "Toggle overwrite mode.
 With arg, turn overwrite mode on iff arg is positive.
 In overwrite mode, printing characters typed in replace existing text
-on a one-for-one basis, rather than pushing it to the right."
+on a one-for-one basis, rather than pushing it to the right.  At the
+end of a line, such characters extend the line.  Before a tab,
+such characters insert until the tab is filled in.
+\\[quoted-insert] still inserts characters in overwrite mode; this
+is supposed to make it easier to insert characters when necessary."
   (interactive "P")
   (setq overwrite-mode
-	(if (null arg) (not overwrite-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (set-buffer-modified-p (buffer-modified-p))) ;No-op, but updates mode line.
+	(if (if (null arg) (not overwrite-mode)
+	      (> (prefix-numeric-value arg) 0))
+	    'overwrite-mode-textual))
+  (force-mode-line-update))
+
+(defun binary-overwrite-mode (arg)
+  "Toggle binary overwrite mode.
+With arg, turn binary overwrite mode on iff arg is positive.
+In binary overwrite mode, printing characters typed in replace
+existing text.  Newlines are not treated specially, so typing at the
+end of a line joins the line to the next, with the typed character
+between them.  Typing before a tab character simply replaces the tab
+with the character typed.
+\\[quoted-insert] replaces the text at the cursor, just as ordinary
+typing characters do.
+
+Note that binary overwrite mode is not its own minor mode; it is a
+specialization of overwrite-mode, entered by setting the
+`overwrite-mode' variable to `overwrite-mode-binary'."
+  (interactive "P")
+  (setq overwrite-mode
+	(if (if (null arg)
+		(not (eq (overwrite-mode 'overwrite-mode-binary)))
+	      (> (prefix-numeric-value arg) 0))
+	    'overwrite-mode-binary))
+  (force-mode-line-update))
 
 (defvar blink-matching-paren t
   "*Non-nil means show matching open-paren when close-paren is inserted.")
