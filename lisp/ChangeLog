@@ -1,3 +1,9 @@
+2004-07-23  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
+
+	* simple.el (completion-setup-function): Compute the common parts
+	and the first difference place correctly when
+	partial-completion-mode is on.
+
 2004-07-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Doc fix.  Improve the DSC compliance of the generated
