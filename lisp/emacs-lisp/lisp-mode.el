@@ -332,12 +332,10 @@ if that value is non-nil."
     (eval-last-sexp t)
     (terpri)))
 
-(defun eval-last-sexp (eval-last-sexp-arg-internal)
+(defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
-  (interactive "P")
-  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t))
-	(debug-on-error eval-expression-debug-on-error))
+  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     (let ((value
 	   (eval (let ((stab (syntax-table))
 		       (opoint (point))
@@ -385,6 +383,20 @@ With argument, print output into current buffer."
 	    (print-level eval-expression-print-level))
 	(prin1 value)))))
 
+(defun eval-last-sexp (eval-last-sexp-arg-internal)
+  "Evaluate sexp before point; print value in minibuffer.
+With argument, print output into current buffer."
+  (interactive "P")
+  (if (null eval-expression-debug-on-error)
+      (eval-last-sexp-1 eval-last-sexp-arg-internal)
+    (let ((old-value (make-symbol "t")) new-value value)
+      (let ((debug-on-error old-value))
+	(setq value (eval-last-sexp-1 eval-last-sexp-arg-internal))
+	(setq new-value debug-on-error))
+      (unless (eq old-value new-value)
+	(setq debug-on-error new-value))
+      value)))
+      
 ;; Change defvar into defconst within FORM,
 ;; and likewise for other constructs as necessary.
 (defun eval-defun-1 (form)
@@ -401,7 +413,7 @@ With argument, print output into current buffer."
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))
 
-(defun eval-defun (eval-defun-arg-internal)
+(defun eval-defun-2 (eval-defun-arg-internal)
   "Evaluate defun that point is in or before.
 The value is displayed in the minibuffer.
 If the current defun is actually a call to `defvar',
@@ -442,6 +454,29 @@ Return the result of evaluation."
 		 ',form))))))
   ;; The result of evaluation has been put onto VALUES.  So return it.
   (car values))
+
+(defun eval-defun (eval-defun-arg-internal)
+  "Evaluate defun that point is in or before.
+The value is displayed in the minibuffer.
+If the current defun is actually a call to `defvar',
+then reset the variable using the initial value expression
+even if the variable already has some other value.
+\(Normally `defvar' does not change the variable's value
+if it already has a value.\)
+
+With argument, insert value in current buffer after the defun.
+Return the result of evaluation."
+  (interactive "P")
+  (if (null eval-expression-debug-on-error)
+      (eval-defun-2 eval-defun-arg-internal)
+    (let ((old-value (make-symbol "t")) new-value value)
+      (let ((debug-on-error old-value))
+	(setq value (eval-defun-2 eval-defun-arg-internal))
+	(setq new-value debug-on-error))
+      (unless (eq old-value new-value)
+	(setq debug-on-error new-value))
+      value)))
+
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
