@@ -1,3 +1,8 @@
+2000-01-09  Stephen Eglen  <stephen@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): Suggest xv 
+	for .png files.
+
 2000-01-09  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-edit.el (custom-hook-convert-widget): Fix comment.
