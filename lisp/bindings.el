@@ -62,37 +62,38 @@ corresponding to the mode line clicked."
 	   (force-mode-line-update))))
     map))
 
+(defvar mode-line-input-method-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2]
+      (lambda (e)
+	(interactive "e")
+	(save-selected-window
+	  (select-window
+	   (posn-window (event-start e)))
+	  (toggle-input-method)
+	  (force-mode-line-update))))
+    (define-key map [mode-line mouse-3]
+      (lambda (e)
+	(interactive "e")
+	(save-selected-window
+	  (select-window
+	   (posn-window (event-start e)))
+	  (describe-current-input-method))))
+    (purecopy map)))
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
-     ("" (:eval
-	  (if current-input-method
-	      (propertize
-	       current-input-method-title
-	       'help-echo (concat ,(purecopy "Input method: ")
-				  current-input-method
-				  ".  mouse-2 toggles, mouse-3 describes")
-	       'local-map ,(purecopy
-			    (let ((map (make-sparse-keymap)))
-			      (define-key map [mode-line mouse-2]
-				(lambda (e)
-				  (interactive "e")
-				  (save-selected-window
-				    (select-window
-				     (posn-window (event-start e)))
-				    (toggle-input-method)
-				    (force-mode-line-update))))
-			      (define-key map [mode-line mouse-3]
-				(lambda (e)
-				  (interactive "e")
-				  (save-selected-window
-				    (select-window
-				     (posn-window (event-start e)))
-				    (describe-input-method))))
-			      map)))))))
-    ,(propertize
-      "%Z" 'help-echo
-      (purecopy "Coding system information: see M-x describe-coding-system")))
+     (:eval
+      (propertize current-input-method-title
+		  'help-echo (concat ,(purecopy "Input method: ")
+				     current-input-method
+				     ,(purecopy ".  mouse-2 toggles, \
+mouse-3 describes"))
+		  'local-map mode-line-input-method-map)))
+    ,(propertize "%Z"
+		 'help-echo (purecopy "Coding system information: \
+see M-x describe-coding-system")))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
@@ -197,6 +198,9 @@ Switch to the most recently selected buffer other than the current one."
   (interactive)
   (switch-to-buffer (other-buffer)))
 
+(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
+Menu of mode operations in the mode line.")
+
 (defun mode-line-mode-menu-1 (event)
   (interactive "e")
   (save-selected-window
@@ -210,36 +214,25 @@ Switch to the most recently selected buffer other than the current one."
 (defun mode-line-mode-name () "\
 Return a string to display in the mode line for the current mode name."
   (let (length (result mode-name))
-    (when mode-line-mouse-sensitive-p
-      (let ((local-map (get-text-property 0 'local-map result))
-	    (help-echo (get-text-property 0 'help-echo result)))
-	(setq result (copy-sequence result))
-	;; Add `local-map' property if there isn't already one.
-	(when (and (null local-map)
-		   (null (next-single-property-change 0 'local-map result)))
-	  (put-text-property 0 (length result)
-			     'local-map mode-line-minor-mode-keymap result))
-	;; Add `help-echo' property if there isn't already one.
-	(when (and (null help-echo)
-		   (null (next-single-property-change 0 'help-echo result)))
-	  (put-text-property 0 (length result)
-			     'help-echo "mouse-3: minor mode menu" result))))
+    (let ((local-map (get-text-property 0 'local-map result))
+	  (help-echo (get-text-property 0 'help-echo result)))
+      (setq result (copy-sequence result))
+      ;; Add `local-map' property if there isn't already one.
+      (when (and (null local-map)
+		 (null (next-single-property-change 0 'local-map result)))
+	(put-text-property 0 (length result)
+			   'local-map mode-line-minor-mode-keymap result))
+      ;; Add `help-echo' property if there isn't already one.
+      (when (and (null help-echo)
+		 (null (next-single-property-change 0 'help-echo result)))
+	(put-text-property 0 (length result)
+			   'help-echo "mouse-3: minor mode menu" result)))
     result))
 
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
-(defvar mode-line-mouse-sensitive-p nil "\
-Non-nil means mode line has been made mouse-sensitive.")
-
-(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
-Menu of mode operations in the mode line.")
-
-;; These bindings were defined inside
-;; `make-mode-line-mouse-sensitive', but then invoking `x-popup-menu'
-;; with `mode-line-mode-menu' lost because the menu items were in
-;; purespace.
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev") abbrev-mode
 	      :button (:toggle . abbrev-mode)))
@@ -274,42 +267,34 @@ Menu of mode operations in the mode line.")
   `(menu-item ,(purecopy "Overwrite") overwrite-mode
 	      :button (:toggle . overwrite-mode)))
 
-(defun make-mode-line-mouse-sensitive ()
-  (when (and window-system
-	     (not mode-line-mouse-sensitive-p))
-    (setq mode-line-mouse-sensitive-p t)
-    (defun mode-line-mode-menu (event)
-      (interactive "@e")
-      (x-popup-menu event mode-line-mode-menu))
+(defun mode-line-mode-menu (event)
+  (interactive "@e")
+  (x-popup-menu event mode-line-mode-menu))
 
-    ;; Add menu of buffer operations to the buffer identification part
-    ;; of the mode line.
-    (let ((map (make-sparse-keymap)))
-      (define-key map [mode-line mouse-1] 'mode-line-other-buffer)
-      (define-key map [header-line mouse-1] 'mode-line-other-buffer)
-      (define-key map [mode-line M-mouse-2] 'mode-line-unbury-buffer)
-      (define-key map [header-line M-mouse-2] 'mode-line-unbury-buffer)
-      (define-key map [mode-line mouse-2] 'bury-buffer)
-      (define-key map [header-line mouse-2] 'bury-buffer)
-      (define-key map [mode-line down-mouse-3] 'mouse-buffer-menu)
-      (define-key map [header-line down-mouse-3] 'mouse-buffer-menu)
-      (setq mode-line-buffer-identification-keymap map)
-      (setq-default mode-line-buffer-identification
-		    (list (propertize "%12b"
-				      'face '(:weight bold)
-				      'help-echo
-				      "mouse-1: other buffer, mouse-2: \
-prev, M-mouse-2: next, mouse-3: buffer menu"
-				      'local-map map))))
+;; Add menu of buffer operations to the buffer identification part
+;; of the mode line.
+(let ((map (make-sparse-keymap)))
+  (define-key map [mode-line mouse-1] 'mode-line-other-buffer)
+  (define-key map [header-line mouse-1] 'mode-line-other-buffer)
+  (define-key map [mode-line M-mouse-2] 'mode-line-unbury-buffer)
+  (define-key map [header-line M-mouse-2] 'mode-line-unbury-buffer)
+  (define-key map [mode-line mouse-2] 'bury-buffer)
+  (define-key map [header-line mouse-2] 'bury-buffer)
+  (define-key map [mode-line down-mouse-3] 'mouse-buffer-menu)
+  (define-key map [header-line down-mouse-3] 'mouse-buffer-menu)
+  (setq mode-line-buffer-identification-keymap map)
+  (setq-default mode-line-buffer-identification
+		(list (propertize "%12b"
+				  'face '(:weight bold)
+				  'help-echo (purecopy "mouse-1: other \
+buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
+				  'local-map map))))
 
-    ;; Menu of minor modes.
-    (let ((map (make-sparse-keymap)))
-      (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-      (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
-      (setq mode-line-minor-mode-keymap map))
-    
-    (force-mode-line-update)))
-
+;; Menu of minor modes.
+(let ((map (make-sparse-keymap)))
+  (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+  (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+  (setq mode-line-minor-mode-keymap map))
 
 ;; These variables are used by autoloadable packages.
 ;; They are defined here so that they do not get overridden
