@@ -280,26 +280,39 @@ glyph_to_str_cpy (glyphs, str)
    if (!CONSP (Vprint_gensym))					\
      Vprint_gensym_alist = Qnil
 
-#define PRINTFINISH					\
-   if (NILP (printcharfun))				\
-     insert_1_both (print_buffer, print_buffer_pos,	\
-		    print_buffer_pos_byte, 0, 1, 0);	\
-   if (free_print_buffer)				\
-     {							\
-       xfree (print_buffer);				\
-       print_buffer = 0;				\
-     }							\
-   unbind_to (specpdl_count, Qnil);			\
-   if (MARKERP (original))				\
-     set_marker_both (original, Qnil, PT, PT_BYTE);	\
-   if (old_point >= 0)					\
-     SET_PT_BOTH (old_point + (old_point >= start_point	\
-			       ? PT - start_point : 0), \
+#define PRINTFINISH							\
+   if (NILP (printcharfun))						\
+     {									\
+       if (print_buffer_pos != print_buffer_pos_byte			\
+	   && NILP (current_buffer->enable_multibyte_characters))	\
+	 {								\
+	   unsigned char *temp						\
+	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
+	   copy_text (print_buffer, temp, print_buffer_pos_byte,	\
+		      1, 0);						\
+	   insert_1_both (temp, print_buffer_pos,			\
+			  print_buffer_pos, 0, 1, 0);			\
+	 }								\
+       else								\
+	 insert_1_both (print_buffer, print_buffer_pos,			\
+			print_buffer_pos_byte, 0, 1, 0);		\
+     }									\
+   if (free_print_buffer)						\
+     {									\
+       xfree (print_buffer);						\
+       print_buffer = 0;						\
+     }									\
+   unbind_to (specpdl_count, Qnil);					\
+   if (MARKERP (original))						\
+     set_marker_both (original, Qnil, PT, PT_BYTE);			\
+   if (old_point >= 0)							\
+     SET_PT_BOTH (old_point + (old_point >= start_point			\
+			       ? PT - start_point : 0),			\
 		  old_point_byte + (old_point_byte >= start_point_byte	\
 			       ? PT_BYTE - start_point_byte : 0));	\
-   if (old != current_buffer)				\
-     set_buffer_internal (old);				\
-   if (!CONSP (Vprint_gensym))				\
+   if (old != current_buffer)						\
+     set_buffer_internal (old);						\
+   if (!CONSP (Vprint_gensym))						\
      Vprint_gensym_alist = Qnil
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
