@@ -1,7 +1,11 @@
+2001-04-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* composite.el (reference-point-alist): Doc fix.
+
 2001-04-05  Sam Steingold  <sds@gnu.org>
 
-	* font-lock.el (font-lock-keywords-case-fold-search): Make
-	buffer-local.  This fixes a very annoying bug when loading a Lisp
+	* font-lock.el (font-lock-keywords-case-fold-search):
+	Make buffer-local.  This fixes a very annoying bug when loading a Lisp
 	file made font-lock case-insensitive.
 
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
