@@ -2,6 +2,10 @@
 @c Copyright (C) 1994,1995,1996,1997,1999,2000,2001
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
+@c
+@c We should list here anyone who has contributed a new package,
+@c and anyone who has made major enhancements in Emacs
+@c that users would notice and consider important.
 @node Acknowledgments, Screen, Concept Index, Top
 @chapter Acknowledgments
 
