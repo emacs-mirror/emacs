@@ -1,3 +1,7 @@
+2005-03-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* flymake.texi: Refill and tweak style in @lisp blocks.
+
 2005-03-05  Juri Linkov  <juri@jurta.org>
 
 	* cmdargs.texi (Emacs Invocation): Add cindex
