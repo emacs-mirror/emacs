@@ -1,3 +1,14 @@
+2003-08-18  Luc Teirlinck  <teirllm@auburn.mail.edu>
+
+	* fixit.texi (Fixit): Update `Next' pointer.
+	* files.texi (Files): Update `Previous' pointer.
+	* kmacro.texi (Keyboard Macros): Remove redundant node and
+	section.
+	* emacs.texi (Intro): Include kmacro.texi after custom.texi.
+	(Suggested by Kim Storm.)
+	* Makefile (EMACSSOURCES): Add kmacro.texi. (Suggested by Kim
+	Storm.)
+
 2003-08-18  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.texi: New file describing enhanced keyboard macro
