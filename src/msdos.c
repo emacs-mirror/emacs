@@ -771,15 +771,38 @@ IT_cmgoto (FRAME_PTR f)
   /* Only set the cursor to where it should be if the display is
      already in sync with the window contents.  */
   int update_cursor_pos = MODIFF == unchanged_modified;
+  static int previous_pos_X = -1;
 
-  /* If we are in the echo area, and the cursor is beyond the end of
-     the text, put the cursor at the end of text.  */
+  /* If the display is in sync, forget any previous knowledge about
+     cursor position.  This is primarily for unexpected events like
+     C-g in the minibuffer.  */
+  if (update_cursor_pos && previous_pos_X >= 0)
+    previous_pos_X = -1;
+  /* If we are in the echo area, put the cursor at the
+     end of the echo area message.  */
   if (!update_cursor_pos
       && XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top) <= new_pos_Y)
     {
-      int tem_X = FRAME_DESIRED_GLYPHS (f)->used[new_pos_Y];
+      int tem_X = current_pos_X, dummy;
 
-      if (current_pos_X > tem_X)
+      if (echo_area_glyphs)
+	{
+	  tem_X = echo_area_glyphs_length;
+	  /* Save current cursor position, to be restored after the
+	     echo area message is erased.  Only remember one level
+	     of previous cursor position.  */
+	  if (previous_pos_X == -1)
+	    ScreenGetCursor (&dummy, &previous_pos_X);
+	}
+      else if (previous_pos_X >= 0)
+	{
+	  /* We wind up here after the echo area message is erased.
+	     Restore the cursor position we remembered above.  */
+	  tem_X = previous_pos_X;
+	  previous_pos_X = -1;
+	}
+
+      if (current_pos_X != tem_X)
 	{
 	  new_pos_X = tem_X;
 	  update_cursor_pos = 1;
