@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.11) $
+# $HopeName: MMQA_harness!script:runtest(trunk.12) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -75,11 +75,18 @@ sub run_test {
    $stdin = &setstdin;
    $linkfiles = $test_header{"link"};
    $objfile = "$obj_dir/tmp_test";
-   unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
-    die "Compilation failed on test ".$testfile.".\n";
+   if (&compile_and_link($testfile, $objfile, $linkfiles)) {
+    $testlogfile = "$obj_dir/tmp_log.log";
+    &run_exe($objfile, $interact, $stdin);
+   } else {
+    %real_output = 
+     ("seconds", 0,
+      "error", "true",
+      "errtext", "compilation failed");
+    $testtimeline = "*";
+    $testconclusion = "FAIL";
+    $testconcreason = "compilation failed";
    }
-   $testlogfile = "$obj_dir/tmp_log.log";
-   &run_exe($objfile, $interact, $stdin);
    &describe_test($report_type);
    open(LOG_RESULTS, ">".$logfile);
    &describe_test("verbose", LOG_RESULTS);
@@ -113,26 +120,35 @@ sub run_from_testset {
   $objfile = "$obj_dir/tmp_test";
   $testlogfile = "$obj_dir/tmp_log.log";
 
-  unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
-   &logcomment("Compilation failed on $testfile.");
-   $testsetresults{$testfile}="C";
-  } else {
+  if (&compile_and_link($testfile, $objfile, $linkfiles)) {
    &run_exe($objfile, "no", $stdin);
    &describe_test("summary");
    &describe_test("summary", LOG_SUMMARY);
    &describe_test("results", LOG_RESULTS);
    &describe_test("full", LOG_FULL);
-   if ($testconclusion eq "PASS") {
-    $testsetresults{$testfile}=".";
-   } else {
-    $testsetresults{$testfile}="*";
-   }
-   open(LOG_VERBOSE, ">$LOG_DIR/last.log");
-   &describe_test("verbose", LOG_VERBOSE);
-   close(LOG_VERBOSE);
-   &mailfile("$LOG_DIR/last.log",
-    "MMQA-log: ".$testconclusion."ED test $testfile (runset)");
+  } else {
+   %real_output = 
+    ("seconds", 0,
+     "error", "true",
+     "errtext", "compilation failed");
+   $testtimeline = "*";
+   $testconclusion = "FAIL";
+   $testconcreason = "compilation failed";
+   &describe_test("summary");
+   &describe_test("summary", LOG_SUMMARY);
+   &describe_test("results", LOG_RESULTS);
+   &describe_test("results", LOG_FULL);
   }
+  if ($testconclusion eq "PASS") {
+   $testsetresults{$testfile}=".";
+  } else {
+   $testsetresults{$testfile}="*";
+  }
+  open(LOG_VERBOSE, ">$LOG_DIR/last.log");
+  &describe_test("verbose", LOG_VERBOSE);
+  close(LOG_VERBOSE);
+  &mailfile("$LOG_DIR/last.log",
+   "MMQA-log: ".$testconclusion."ED test $testfile (runset)");
  }
 }
 
