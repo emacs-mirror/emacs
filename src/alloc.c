@@ -2553,6 +2553,7 @@ Its value and function definition are void, and its property list is nil.  */)
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
   p->indirect_variable = 0;
+  p->declared_special = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
   return val;
