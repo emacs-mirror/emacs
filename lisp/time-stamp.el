@@ -2,6 +2,7 @@
 ;;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
+;; Gildea's Last Time-stamp: <95/04/13 13:38:48 gildea>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
