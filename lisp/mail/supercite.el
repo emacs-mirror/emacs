@@ -1870,7 +1870,7 @@ VARIABLE must be a bound symbol.  Nil values change to t, non-nil
 values are changed to nil."
   (message "%s changed from %s to %s"
 	   variable (symbol-value variable)
-	   (set-variable variable (not (eval-expression variable))))
+	   (set variable (not (symbol-value variable))))
   (sc-set-mode-string))
 
 (defun sc-set-variable (var)
