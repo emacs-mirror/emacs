@@ -422,7 +422,8 @@ will take place when text is fontified stealthily."
       (with-buffer-prepared-for-jit-lock
        ;; If we're in text that matches a multi-line font-lock pattern,
        ;; make sure the whole text will be redisplayed.
-       (when (get-text-property start 'font-lock-multiline)
+       (when (and font-lock-multiline
+		  (get-text-property start 'font-lock-multiline))
 	 (setq start (or (previous-single-property-change
 			  start 'font-lock-multiline)
 			 (point-min))))
