@@ -1,3 +1,8 @@
+2001-10-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* bytecode.c: Change doc-string comments to `new style' [w/`doc:'
+	keyword].
+
 2001-10-20  Miles Bader  <miles@gnu.org>
 
 	The following changes remove the glyph_row `inverse_p' field,
