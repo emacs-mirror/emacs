@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
-;; Copyright (C) 1989, 1994, 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -277,7 +277,10 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 (defun hexl-find-file (filename)
   "Edit file FILENAME in hexl-mode.
 Switch to a buffer visiting file FILENAME, creating one in none exists."
-  (interactive "fFilename: ")
+  (interactive
+   (list
+    (let ((completion-ignored-extensions nil))
+      (read-file-name "Filename: " nil nil 'ret-must-match))))
   (find-file-literally filename)
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
