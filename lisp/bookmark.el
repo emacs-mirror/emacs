@@ -194,7 +194,7 @@ following in your `.emacs' file:
 (defcustom bookmark-menu-length 70
   "*Maximum length of a bookmark name displayed on a popup menu."
   :type 'integer
-  :group 'boolean)
+  :group 'bookmark)
 
 
 ;;; No user-serviceable parts beyond this point.
