@@ -1691,8 +1691,7 @@ The default status is as follows:
       ;; doesn't need to undo it.)
       (when standard-display-table
 	(dotimes (i 128)
-	  (aset standard-display-table (+ i 128) nil))
-	(aset standard-display-table 146 nil)))
+	  (aset standard-display-table (+ i 128) nil))))
     (or (eq window-system 'pc)
 	(set-terminal-coding-system coding))))
 
