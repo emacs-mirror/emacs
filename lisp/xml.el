@@ -230,7 +230,7 @@ Returns one of:
 	    (append children '("")))
 
 	;; is this a valid start tag ?
-	(if (= (char-after) ?>)
+	(if (eq (char-after) ?>)
 	    (progn
 	      (forward-char 1)
 	      (skip-chars-forward " \t\n")
