@@ -2127,7 +2127,7 @@ read1 (readcharfun, pch, first_in_list)
 	{
 	  /* #! appears at the beginning of an executable file.
 	     Skip the first line.  */
-	  while (c != '\n')
+	  while (c != '\n' && c >= 0)
 	    c = READCHAR;
 	  goto retry;
 	}
