@@ -269,11 +269,11 @@ not be enclosed in { } or ( )."
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
 
    ;; Variable references even in targets/strings/comments.
-   '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-constant-face prepend)
+   '("\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
+     1 font-lock-constant-face prepend)
 
    ;; Automatic variable references and single character variable references...
-   '("\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)" 1 font-lock-reference-face prepend)
-   '("\\$[({]\\([@%<?^+*][FD]?\\)[}):]" 1 font-lock-reference-face prepend)
+   '("\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)" 1 font-lock-constant-face prepend)
 
    ;; ...but not shell variables references.
    '("\\$\\$\\(\\sw+\\)" 1 'default t)
