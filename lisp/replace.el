@@ -579,7 +579,7 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
-(defun occur-accumulate-lines (count)
+(defun occur-accumulate-lines (count &optional no-props)
   (save-excursion
     (let ((forwardp (> count 0))
 	  (result nil))
@@ -591,7 +591,9 @@ If the value is nil, don't highlight the buffer names specially."
 	    (decf count)
 	  (incf count))
 	(push
-	 (buffer-substring
+	 (funcall (if no-props
+		      #'buffer-substring-no-properties
+		    #'buffer-substring)
 	  (line-beginning-position)
 	  (line-end-position))
 	 result)
@@ -786,9 +788,9 @@ See also `multi-occur'."
 				 ;; concatenate them all together.
 				 (apply #'concat
 					(nconc
-					 (add-prefix (nreverse (cdr (occur-accumulate-lines (- nlines)))))
+					 (add-prefix (nreverse (cdr (occur-accumulate-lines (- nlines) t))))
 					 (list out-line)
-					 (add-prefix (cdr (occur-accumulate-lines nlines))))))))
+					 (add-prefix (cdr (occur-accumulate-lines nlines t))))))))
 			  ;; Actually insert the match display data
 			  (with-current-buffer out-buf
 			    (let ((beg (point))
