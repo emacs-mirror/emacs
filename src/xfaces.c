@@ -4043,27 +4043,30 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCfont))
     {
 #ifdef HAVE_WINDOW_SYSTEM
-      /* Set font-related attributes of the Lisp face from an
-	 XLFD font name.  */
-      struct frame *f;
-      Lisp_Object tmp;
+      if (FRAME_WINDOW_P (f))
+	{
+	  /* Set font-related attributes of the Lisp face from an XLFD
+	     font name.  */
+	  struct frame *f;
+	  Lisp_Object tmp;
 
-      CHECK_STRING (value, 3);
-      if (EQ (frame, Qt))
-	f = SELECTED_FRAME ();
-      else
-	f = check_x_frame (frame);
+	  CHECK_STRING (value, 3);
+	  if (EQ (frame, Qt))
+	    f = SELECTED_FRAME ();
+	  else
+	    f = check_x_frame (frame);
 
-      /* VALUE may be a fontset name or an alias of fontset.  In such
-         a case, use the base fontset name.  */
-      tmp = Fquery_fontset (value, Qnil);
-      if (!NILP (tmp))
-	value = tmp;
+	  /* VALUE may be a fontset name or an alias of fontset.  In
+	     such a case, use the base fontset name.  */
+	  tmp = Fquery_fontset (value, Qnil);
+	  if (!NILP (tmp))
+	    value = tmp;
 
-      if (!set_lface_from_font_name (f, lface, value, 1, 1))
-	signal_error ("Invalid font or fontset name", value);
+	  if (!set_lface_from_font_name (f, lface, value, 1, 1))
+	    signal_error ("Invalid font or fontset name", value);
 
-      font_attr_p = 1;
+	  font_attr_p = 1;
+	}
 #endif /* HAVE_WINDOW_SYSTEM */
     }
   else if (EQ (attr, QCinherit))
