@@ -229,7 +229,9 @@ Returns t if expansion took place.")
      expansion".  */
   value = (MODIFF != oldmodiff ? Qt : Qnil);
 
-  if (XBUFFER (Vabbrev_start_location_buffer) != current_buffer)
+  wordstart = 0;
+  if (!(BUFFERP (Vabbrev_start_location_buffer) &&
+	XBUFFER (Vabbrev_start_location_buffer) == current_buffer))
     Vabbrev_start_location = Qnil;
   if (!NILP (Vabbrev_start_location))
     {
@@ -237,10 +239,12 @@ Returns t if expansion took place.")
       CHECK_NUMBER_COERCE_MARKER (tem, 0);
       wordstart = XINT (tem);
       Vabbrev_start_location = Qnil;
-      if (FETCH_CHAR (wordstart) == '-')
+      if (wordstart < BEGV || wordstart > ZV)
+	wordstart = 0;
+      if (wordstart && wordstart != ZV && FETCH_CHAR (wordstart) == '-')
 	del_range (wordstart, wordstart + 1);
     }
-  else
+  if (!wordstart)
     wordstart = scan_words (point, -1);
 
   if (!wordstart)
