@@ -1896,7 +1896,7 @@ only set the major mode, if that would change it."
 	    (if (not (functionp mode))
 		(message "Ignoring unknown mode `%s'" mode)
 	      (setq done t)
-	      (or (set-auto-mode-0 mode)
+	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  (throw 'nop nil)))))
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
@@ -1911,7 +1911,7 @@ only set the major mode, if that would change it."
 	    done (assoc (file-name-nondirectory mode)
 			interpreter-mode-alist))
       ;; If we found an interpreter mode to use, invoke it now.
-      (if done (set-auto-mode-0 (cdr done))))
+      (if done (set-auto-mode-0 (cdr done) keep-mode-if-same)))
     (if (and (not done) buffer-file-name)
 	(let ((name buffer-file-name))
 	  ;; Remove backup-suffixes from file name.
@@ -1930,27 +1930,27 @@ only set the major mode, if that would change it."
 	    (when mode
 	      (if xml (or (memq mode xml-based-modes)
 			  (setq mode 'xml-mode)))
-	      (set-auto-mode-0 mode)
+	      (set-auto-mode-0 mode keep-mode-if-same)
 	      (setq done t)))))
     (and xml
 	 (not done)
-	 (set-auto-mode-0 'xml-mode))))
+	 (set-auto-mode-0 'xml-mode keep-mode-if-same))))
 
 
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
 ;; same one we already have, don't actually reset it.  We don't want to lose
 ;; minor modes such as Font Lock.
-(defun set-auto-mode-0 (mode)
+(defun set-auto-mode-0 (mode &optional keep-mode-if-same)
   "Apply MODE and return it.
-If `keep-mode-if-same' is non-nil MODE is chased of any aliases and
-compared to current major mode.  If they are the same, do nothing
-and return nil."
+If optional arg KEEP-MODE-IF-SAME is non-nil, MODE is chased of
+any aliases and compared to current major mode.  If they are the
+same, do nothing and return nil."
   (when keep-mode-if-same
     (while (symbolp (symbol-function mode))
       (setq mode (symbol-function mode)))
     (if (eq mode major-mode)
-	(setq mode)))
+	(setq mode nil)))
   (when mode
     (funcall mode)
     mode))
