@@ -203,11 +203,7 @@ means display it in the right marginal area."
   (let ((start (point)))
     (insert string)
     (add-text-properties start (point)
-			 (list 'display image
-			       ;; `image' has the right properties to
-			       ;; mark an intangible field.
-			       'intangible image
-			       'rear-nonsticky (list 'display)))))
+			 `(display ,image rear-nonsticky (display)))))
 
 
 ;;;###autoload
