@@ -131,9 +131,8 @@ static int count_match P_ ((struct glyph *, struct glyph *,
 static unsigned line_draw_cost P_ ((struct glyph_matrix *, int));
 static void update_frame_line P_ ((struct frame *, int));
 static struct dim allocate_matrices_for_frame_redisplay
-     P_ ((Lisp_Object, int, int, struct dim, int, int *));
-static void allocate_matrices_for_window_redisplay P_ ((struct window *,
-							struct dim));
+     P_ ((Lisp_Object, int, int, int, int *));
+static void allocate_matrices_for_window_redisplay P_ ((struct window *));
 static int realloc_glyph_pool P_ ((struct glyph_pool *, struct dim));
 static void adjust_frame_glyphs P_ ((struct frame *));
 struct glyph_matrix *new_glyph_matrix P_ ((struct glyph_pool *));
@@ -1857,11 +1856,10 @@ check_matrix_invariants (w)
 #define CHANGED_LEAF_MATRIX	(1 << 1)
 
 static struct dim
-allocate_matrices_for_frame_redisplay (window, x, y, ch_dim,
-				       dim_only_p, window_change_flags)
+allocate_matrices_for_frame_redisplay (window, x, y, dim_only_p,
+				       window_change_flags)
      Lisp_Object window;
      int x, y;
-     struct dim ch_dim;
      int dim_only_p;
      int *window_change_flags;
 {
@@ -1891,11 +1889,11 @@ allocate_matrices_for_frame_redisplay (window, x, y, ch_dim,
       /* Get the dimension of the window sub-matrix for W, depending
 	 on whether this a combination or a leaf window.  */
       if (!NILP (w->hchild))
-	dim = allocate_matrices_for_frame_redisplay (w->hchild, x, y, ch_dim,
+	dim = allocate_matrices_for_frame_redisplay (w->hchild, x, y, 
 						     dim_only_p,
 						     window_change_flags);
       else if (!NILP (w->vchild))
-	dim = allocate_matrices_for_frame_redisplay (w->vchild, x, y, ch_dim,
+	dim = allocate_matrices_for_frame_redisplay (w->vchild, x, y, 
 						     dim_only_p,
 						     window_change_flags);
       else
@@ -1910,8 +1908,8 @@ allocate_matrices_for_frame_redisplay (window, x, y, ch_dim,
   
 	  /* Width and height MUST be chosen so that there are no
 	     holes in the frame matrix.  */
-	  dim.width = XINT (w->width);
-	  dim.height = XINT (w->height);
+	  dim.width = required_matrix_width (w);
+	  dim.height = required_matrix_height (w);
 
 	  /* Will matrix be re-allocated?  */
 	  if (x != w->desired_matrix->matrix_x
@@ -1976,28 +1974,78 @@ allocate_matrices_for_frame_redisplay (window, x, y, ch_dim,
 }
 
 
+/* Return the required height of glyph matrices for window W.  */
+
+int
+required_matrix_height (w)
+     struct window *w;
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = XFRAME (w->frame);
+  
+  if (FRAME_WINDOW_P (f))
+    {
+      int ch_height = FRAME_SMALLEST_FONT_HEIGHT (f);
+      int window_pixel_height = window_box_height (w) + abs (w->vscroll);
+      return (((window_pixel_height + ch_height - 1)
+	       / ch_height)
+	      /* One partially visible line at the top and
+		 bottom of the window.  */
+	      + 2
+	      /* 2 for top and mode line.  */
+	      + 2);
+    }
+#endif /* HAVE_WINDOW_SYSTEM */
+      
+  return XINT (w->height);
+}
+
+
+/* Return the required width of glyph matrices for window W.  */
+
+int
+required_matrix_width (w)
+     struct window *w;
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = XFRAME (w->frame);
+  if (FRAME_WINDOW_P (f))
+    {
+      int ch_width = FRAME_SMALLEST_CHAR_WIDTH (f);
+      int window_pixel_width = XFLOATINT (w->width) * CANON_X_UNIT (f);
+  
+      /* Compute number of glyphs needed in a glyph row.  */
+      return (((window_pixel_width + ch_width - 1)
+	       / ch_width)
+	      /* 2 partially visible columns in the text area.  */
+	      + 2
+	      /* One partially visible column at the right
+		 edge of each marginal area.  */
+	      + 1 + 1);
+    }
+#endif /* HAVE_WINDOW_SYSTEM */
+
+  return XINT (w->width);
+}
+
+
 /* Allocate window matrices for window-based redisplay.  W is the
    window whose matrices must be allocated/reallocated.  CH_DIM is the
    size of the smallest character that could potentially be used on W.  */
    
 static void
-allocate_matrices_for_window_redisplay (w, ch_dim)
+allocate_matrices_for_window_redisplay (w)
      struct window *w;
-     struct dim ch_dim;
 {
-  struct frame *f = XFRAME (w->frame);
-  
   while (w)
     {
       if (!NILP (w->vchild))
-	allocate_matrices_for_window_redisplay (XWINDOW (w->vchild), ch_dim);
+	allocate_matrices_for_window_redisplay (XWINDOW (w->vchild));
       else if (!NILP (w->hchild))
-	allocate_matrices_for_window_redisplay (XWINDOW (w->hchild), ch_dim);
+	allocate_matrices_for_window_redisplay (XWINDOW (w->hchild));
       else
 	{
 	  /* W is a leaf window.  */
-	  int window_pixel_width = XFLOATINT (w->width) * CANON_X_UNIT (f);
-	  int window_pixel_height = window_box_height (w) + abs (w->vscroll);
 	  struct dim dim;
 
 	  /* If matrices are not yet allocated, allocate them now.  */
@@ -2007,25 +2055,8 @@ allocate_matrices_for_window_redisplay (w, ch_dim)
 	      w->current_matrix = new_glyph_matrix (NULL);
 	    }
 
-	  /* Compute number of glyphs needed in a glyph row.  */
-	  dim.width = (((window_pixel_width + ch_dim.width - 1)
-			/ ch_dim.width)
-		       /* 2 partially visible columns in the text area.  */
-		       + 2
-		       /* One partially visible column at the right
-			  edge of each marginal area.  */
-		       + 1 + 1);
-
-	  /* Compute number of glyph rows needed.  */
-	  dim.height = (((window_pixel_height + ch_dim.height - 1)
-			 / ch_dim.height)
-			/* One partially visible line at the top and
-			   bottom of the window.  */
-			+ 2
-			/* 2 for top and mode line.  */
-			+ 2);
-
-	  /* Change matrices.  */
+	  dim.width = required_matrix_width (w);
+	  dim.height = required_matrix_height (w);
 	  adjust_glyph_matrix (w, w->desired_matrix, 0, 0, dim);
 	  adjust_glyph_matrix (w, w->current_matrix, 0, 0, dim);
 	}
@@ -2273,7 +2304,7 @@ adjust_frame_glyphs_for_frame_redisplay (f)
   matrix_dim
     = allocate_matrices_for_frame_redisplay (FRAME_ROOT_WINDOW (f),
 					     0, top_window_y,
-					     ch_dim, 1,
+					     1,
 					     &window_change_flags);
 
   /* Add in menu bar lines, if any.  */
@@ -2289,7 +2320,7 @@ adjust_frame_glyphs_for_frame_redisplay (f)
     {
       /* Do it for window matrices.  */
       allocate_matrices_for_frame_redisplay (FRAME_ROOT_WINDOW (f),
-					     0, top_window_y, ch_dim, 0,
+					     0, top_window_y, 0,
 					     &window_change_flags);
 
       /* Size of frame matrices must equal size of frame.  Note
@@ -2349,8 +2380,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
 #endif
     
   /* Allocate/reallocate window matrices.  */
-  allocate_matrices_for_window_redisplay (XWINDOW (FRAME_ROOT_WINDOW (f)),
-					  ch_dim);
+  allocate_matrices_for_window_redisplay (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   /* Allocate/ reallocate matrices of the dummy window used to display
      the menu bar under X when no X toolkit support is available.  */
@@ -2373,7 +2403,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
     XSETFASTINT (w->left, 0);
     XSETFASTINT (w->height, FRAME_MENU_BAR_LINES (f));
     XSETFASTINT (w->width, FRAME_WINDOW_WIDTH (f));
-    allocate_matrices_for_window_redisplay (w, ch_dim);
+    allocate_matrices_for_window_redisplay (w);
   }
 #endif /* not USE_X_TOOLKIT */
 
@@ -2393,7 +2423,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
   XSETFASTINT (w->left, 0);
   XSETFASTINT (w->height, FRAME_TOOL_BAR_LINES (f));
   XSETFASTINT (w->width, FRAME_WINDOW_WIDTH (f));
-  allocate_matrices_for_window_redisplay (w, ch_dim);
+  allocate_matrices_for_window_redisplay (w);
 }
 
 
