@@ -2061,11 +2061,29 @@ If FRAME is omitted, return information on the currently selected frame.")
     {
       int fg = FRAME_FOREGROUND_PIXEL (f);
       int bg = FRAME_BACKGROUND_PIXEL (f);
+      Lisp_Object elt;
 
-      store_in_alist (&alist, intern ("foreground-color"),
-		      tty_color_name (f, fg));
-      store_in_alist (&alist, intern ("background-color"),
-		      tty_color_name (f, bg));
+      /* If the frame's parameter alist says the colors are
+	 unspecified and reversed, take the frame's background pixel
+	 for foreground and vice versa.  */
+      elt = Fassq (Qforeground_color, alist);
+      if (!NILP (elt) && CONSP (elt)
+	  && STRINGP (XCDR (elt))
+	  && strncmp (XSTRING (XCDR (elt))->data,
+		      unspecified_bg,
+		      XSTRING (XCDR (elt))->size) == 0)
+	store_in_alist (&alist, Qforeground_color, tty_color_name (f, bg));
+      else
+	store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
+      elt = Fassq (Qbackground_color, alist);
+      if (!NILP (elt) && CONSP (elt)
+	  && STRINGP (XCDR (elt))
+	  && strncmp (XSTRING (XCDR (elt))->data,
+		      unspecified_fg,
+		      XSTRING (XCDR (elt))->size) == 0)
+	store_in_alist (&alist, Qbackground_color, tty_color_name (f, fg));
+      else
+	store_in_alist (&alist, Qbackground_color, tty_color_name (f, bg));
       store_in_alist (&alist, intern ("font"),
 		      build_string (FRAME_MSDOS_P (f)
 				    ? "ms-dos"
@@ -2134,9 +2152,6 @@ If FRAME is nil, describe the currently selected frame.")
 	  value = Fassq (parameter, f->param_alist);
 	  if (CONSP (value))
 	    {
-	      extern char unspecified_fg[], unspecified_bg[];
-	      extern Lisp_Object Qbackground_color, Qforeground_color;
-
 	      value = XCDR (value);
 	      /* Fframe_parameters puts the actual fg/bg color names,
 		 even if f->param_alist says otherwise.  This is
@@ -2144,16 +2159,27 @@ If FRAME is nil, describe the currently selected frame.")
 		 "unspecified".  We need to do the same here.  */
 	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
 		{
-		  if (EQ (parameter, Qbackground_color)
-		      && strncmp (XSTRING (value)->data,
-				  unspecified_bg,
-				  XSTRING (value)->size) == 0)
-		    value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
-		  else if (EQ (parameter, Qforeground_color)
-			   && strncmp (XSTRING (value)->data,
-				       unspecified_fg,
-				       XSTRING (value)->size) == 0)
-		    value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
+		  char *color_name;
+		  EMACS_INT csz;
+
+		  if (EQ (parameter, Qbackground_color))
+		    {
+		      color_name = XSTRING (value)->data;
+		      csz = XSTRING (value)->size;
+		      if (strncmp (color_name, unspecified_bg, csz) == 0)
+			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
+		      else if (strncmp (color_name, unspecified_fg, csz) == 0)
+			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
+		    }
+		  else if (EQ (parameter, Qforeground_color))
+		    {
+		      color_name = XSTRING (value)->data;
+		      csz = XSTRING (value)->size;
+		      if (strncmp (color_name, unspecified_fg, csz) == 0)
+			value = tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
+		      else if (strncmp (color_name, unspecified_bg, csz) == 0)
+			value = tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
+		    }
 		}
 	    }
 	  else if (EQ (parameter, Qdisplay_type)
