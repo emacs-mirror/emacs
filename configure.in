@@ -595,7 +595,7 @@ case "${canonical}" in
   ;;
 
   ## Siemens Nixdorf
-  mips-siemens-sysv* )
+  mips-siemens-sysv* | mips-sni-sysv*)
     machine=mips-siemens opsys=usg5-4
     NON_GNU_CC=/usr/ccs/bin/cc
     NON_GNU_CPP=/usr/ccs/lib/cpp
