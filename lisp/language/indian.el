@@ -84,7 +84,7 @@ See also the function `indian-char-glyph'."
 (defvar indian-glyph-max-char
   (indian-glyph-char
    255 (aref indian-script-table (1- (length indian-script-table))))
-  "The maximum valid code of characters in the charset `indian-glyph'")
+  "The maximum valid code of characters in the charset `indian-glyph'.")
 
 (defun indian-char-glyph (char)
   "Return information about the glphy code for CHAR of `indian-glyph' charset.
