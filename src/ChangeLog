@@ -1,5 +1,7 @@
 2002-07-01  Andrew Choi  <akochoi@shaw.ca>
 
+	* s/darwin.h: Define POSIX_SIGNALS.
+
 	* macterm.c (do_ae_open_documents) [MAC_OSX]: Call FSpMakeFSRef
 	and FSRefMakePath to convert FSSpec returned with Apple Event to
 	Posix pathname.

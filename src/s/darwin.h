@@ -1,5 +1,5 @@
 /* System description header file for Darwin (Mac OS X).
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -290,6 +290,12 @@ Boston, MA 02111-1307, USA.  */
 #ifndef NOT_C_CODE
 struct kboard;
 #endif
+
+
+/* This makes create_process in process.c save and restore signal
+   handlers correctly.  Suggested by Nozomu Ando.*/
+#define POSIX_SIGNALS
+
 
 #ifdef temacs
 #define malloc unexec_malloc
