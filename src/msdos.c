@@ -468,29 +468,29 @@ do_visible_bell (xorattr)
      unsigned char xorattr;
 {
   asm volatile
-    ("  movb   $1,%%dl
-visible_bell_0:
-	movl   _ScreenPrimary,%%eax
-	call   dosmemsetup
-	movl   %%eax,%%ebx
-	movl   %1,%%ecx
-	movb   %0,%%al
-	incl   %%ebx
-visible_bell_1:
-	xorb   %%al,%%gs:(%%ebx)
-	addl   $2,%%ebx
-	decl   %%ecx
-	jne    visible_bell_1
-	decb   %%dl
-	jne    visible_bell_3
-visible_bell_2:
-	movzwl %%ax,%%eax
-        movzwl %%ax,%%eax
-	movzwl %%ax,%%eax
-	movzwl %%ax,%%eax
-	decw   %%cx
-	jne    visible_bell_2
-	jmp    visible_bell_0
+    ("  movb   $1,%%dl				\n\
+visible_bell_0:					\n\
+	movl   _ScreenPrimary,%%eax		\n\
+	call   dosmemsetup			\n\
+	movl   %%eax,%%ebx			\n\
+	movl   %1,%%ecx				\n\
+	movb   %0,%%al				\n\
+	incl   %%ebx				\n\
+visible_bell_1:					\n\
+	xorb   %%al,%%gs:(%%ebx)		\n\
+	addl   $2,%%ebx				\n\
+	decl   %%ecx				\n\
+	jne    visible_bell_1			\n\
+	decb   %%dl				\n\
+	jne    visible_bell_3			\n\
+visible_bell_2:					\n\
+	movzwl %%ax,%%eax			\n\
+        movzwl %%ax,%%eax			\n\
+	movzwl %%ax,%%eax			\n\
+	movzwl %%ax,%%eax			\n\
+	decw   %%cx				\n\
+	jne    visible_bell_2			\n\
+	jmp    visible_bell_0                   \n\
 visible_bell_3:"
      : /* no output */
      : "m" (xorattr), "g" (screen_size)
@@ -5332,7 +5332,7 @@ wide as that tab on the display.  (No effect on MS-DOS.)");
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
    "*Glyph to display instead of chars not supported by current codepage.\n\
-
+\n\
 This variable is used only by MSDOS terminals.");
     Vdos_unsupported_char_glyph = '\177';
 #endif
