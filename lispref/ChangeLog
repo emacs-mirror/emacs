@@ -1,3 +1,13 @@
+2003-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Changing Properties): Say string indices are origin-0.
+
+	* positions.texi (Screen Lines) <compute-motion>:
+	Correct order of elts in return value.
+
+	* keymaps.texi (Changing Key Bindings) <define-key>: Mention
+	how to define a default binding.
+
 2002-12-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* loading.texi (Unloading): Fix recent change for load-history.

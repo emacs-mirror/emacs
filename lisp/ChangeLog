@@ -1,3 +1,20 @@
+2003-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* apropos.el (apropos-documentation-property): New function.
+	(apropos): Use apropos-documentation-property.
+
+	* files.el (mode-line-process): Mark as risky.
+
+	* help.el (where-is): Catch errors in indirect-function.
+
+	* server.el (server-process-filter): Comment out -eval.
+	Don't switch buffers if inside isearch or minibuffer.
+
+	* progmodes/compile.el (compilation-revert-buffer):
+	If buffer has a file, revert it in the normal way.
+
+	* term/x-win.el: Require fontset conditionally again.
+
 2003-01-13  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-enable-tramp-completion): New defcustom.
@@ -174,6 +191,8 @@
 
 2003-01-05  Richard M. Stallman  <rms@gnu.org>
 
+	* obsolete/uncompress.el: Display message that this package is obsolete.
+
 	* isearch.el (isearch-repeat): Error if try to repeat search and
 	there was no previous search.
 
@@ -191,9 +210,16 @@
 
 2003-01-05  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
 
+<<<<<<< ChangeLog
+	* mail/sendmail.el (mail-font-lock-keywords):
+	Match multiline In-Reply-To and X-*.
+	* mail/rmail.el (rmail-font-lock-keywords):
+	Match multiline In-Reply-To and X-*.
+=======
 	* mail/sendmail.el (mail-font-lock-keywords):
 	* mail/rmail.el (rmail-font-lock-keywords): Match multiline
 	In-Reply-To and X-*.
+>>>>>>> 1.4713
 
 2003-01-05  Mark A. Hershberger  <mah@everybody.org>
 

@@ -1,3 +1,14 @@
+2003-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (minibuffer_completion_contents): 
+	Error if point is inside prompt.
+
+	* keyboard.c (command_loop_1): Don't redisplay directly
+	if there's a post-command-hook.
+
+	* fileio.c (syms_of_fileio) <directory-sep-char>: Doc fix.
+	(Fdo_auto_save): Add gcpros around Ffile_name_directory.
+
 2003-01-12  Kim F. Storm  <storm@cua.dk>
 
 	* process.h (struct Lisp_Process): New member private_vars.
