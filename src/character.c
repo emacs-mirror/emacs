@@ -80,9 +80,9 @@ int _fetch_multibyte_char_len;
 
 
 int
-char_string_with_unification (c, p, advanced)
+char_string_with_unification (c, p)
      int c;
-     unsigned char *p, **advanced;
+     unsigned char *p;
 {
   int bytes;
 
@@ -109,8 +109,7 @@ char_string_with_unification (c, p, advanced)
       p[4] = (0x80 | (c & 0x3F));
       bytes = 5;
     }
-  if (advanced)
-    *advanced = p + bytes;
+
   return bytes;
 }
 
@@ -120,7 +119,7 @@ string_char_with_unification (p, advanced, len)
      unsigned char *p, **advanced;
      int *len;
 {
-  int c, unified;
+  int c;
   unsigned char *saved_p = p;
 
   if (*p < 0x80 || ! (*p & 0x20) || ! (*p & 0x10))
@@ -304,23 +303,12 @@ Tab is taken to occupy `tab-width' columns.  */)
 
 /* Return width of string STR of length LEN when displayed in the
    current buffer.  The width is measured by how many columns it
-   occupies on the screen.  */
-
-int
-strwidth (str, len)
-     unsigned char *str;
-     int len;
-{
-  return c_string_width (str, len, -1, NULL, NULL);
-}
-
-/* Return width of string STR of length LEN when displayed in the
-   current buffer.  The width is measured by how many columns it
    occupies on the screen.  If PRECISION > 0, return the width of
    longest substring that doesn't exceed PRECISION, and set number of
    characters and bytes of the substring in *NCHARS and *NBYTES
    respectively.  */
 
+int
 c_string_width (str, len, precision, nchars, nbytes)
      unsigned char *str;
      int precision, *nchars, *nbytes;
@@ -369,6 +357,18 @@ c_string_width (str, len, precision, nchars, nbytes)
   return width;
 }
 
+/* Return width of string STR of length LEN when displayed in the
+   current buffer.  The width is measured by how many columns it
+   occupies on the screen.  */
+
+int
+strwidth (str, len)
+     unsigned char *str;
+     int len;
+{
+  return c_string_width (str, len, -1, NULL, NULL);
+}
+
 /* Return width of Lisp string STRING when displayed in the current
    buffer.  The width is measured by how many columns it occupies on
    the screen while paying attention to compositions.  If PRECISION >
@@ -382,7 +382,6 @@ lisp_string_width (string, precision, nchars, nbytes)
      int precision, *nchars, *nbytes;
 {
   int len = XSTRING (string)->size;
-  int len_byte = STRING_BYTES (XSTRING (string));
   unsigned char *str = XSTRING (string)->data;
   int i = 0, i_byte = 0;
   int width = 0;
@@ -747,7 +746,6 @@ string_count_byte8 (string)
      Lisp_Object string;
 {
   int multibyte = STRING_MULTIBYTE (string);
-  int nchars = XSTRING (string)->size;
   int nbytes = STRING_BYTES (XSTRING (string));
   unsigned char *p = XSTRING (string)->data;
   unsigned char *pend = p + nbytes;
@@ -815,7 +813,7 @@ string_escape_byte8 (string)
 	  {
 	    c = STRING_CHAR_ADVANCE (src);
 	    c = CHAR_TO_BYTE8 (c);
-	    sprintf (dst, "\\%03o", c);
+	    sprintf ((char *) dst, "\\%03o", c);
 	    dst += 4;
 	  }
 	else
@@ -827,7 +825,7 @@ string_escape_byte8 (string)
 	c = *src++;
 	if (c >= 0x80)
 	  {
-	    sprintf (dst, "\\%03o", c);
+	    sprintf ((char *) dst, "\\%03o", c);
 	    dst += 4;
 	  }
 	else
