@@ -38,20 +38,6 @@
   "Texinfo Mode"
   :group 'docs)
 
-(defvar texinfo-version "2.37 of 24 May 1997")
-
-(defun texinfo-version (&optional here)
-  "Show the version of texinfo.el in the minibuffer.
-If optional argument HERE is non-nil, insert info at point."
-  (interactive "P")
-  (let ((version-string 
-         (format "Version of \`texinfo.el\': %s" texinfo-version)))
-    (if here 
-        (insert version-string)
-      (if (interactive-p)
-          (message "%s" version-string)
-        version-string))))
-
 
 ;;; Autoloads:
 
