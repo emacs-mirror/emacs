@@ -292,7 +292,7 @@ Menu of mode operations in the mode line.")
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
 	 ;; TeX-related
-	 ".dvi" ".fmt" ".tfm"
+	 ".dvi" ".fmt" ".tfm" ".pdf"
 	 ;; Java compiled
 	 ".class"
 	 ;; Clisp
