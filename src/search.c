@@ -741,6 +741,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   int n_char_ranges = 0;
   int negate = 0;
   register int i;
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   CHECK_STRING (string, 0);
 
@@ -774,8 +775,16 @@ skip_chars (forwardp, syntaxp, string, lim)
   while (p != pend)
     {
       c = *p;
-      ch = STRING_CHAR (p, pend - p);
-      p += BYTES_BY_CHAR_HEAD (*p);
+      if (multibyte)
+	{
+	  ch = STRING_CHAR (p, pend - p);
+	  p += BYTES_BY_CHAR_HEAD (*p);
+	}
+      else
+	{
+	  ch = c;
+	  p++;
+	}
       if (syntaxp)
 	fastmap[syntax_spec_code[c]] = 1;
       else
@@ -805,7 +814,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 		    char_ranges[n_char_ranges++] = ch,
 		    char_ranges[n_char_ranges++] = ch2;
 		}
-	      p += BYTES_BY_CHAR_HEAD (*p);
+	      p += multibyte ? BYTES_BY_CHAR_HEAD (*p) : 1;
 	    }
 	  else
 	    {
@@ -825,7 +834,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   if (negate)
     for (i = 0; i < sizeof fastmap; i++)
       {
-	if (!BASE_LEADING_CODE_P (i))
+	if (!multibyte || !BASE_LEADING_CODE_P (i))
 	  fastmap[i] ^= 1;
 	else
 	  fastmap[i] = 1;
@@ -840,91 +849,114 @@ skip_chars (forwardp, syntaxp, string, lim)
       {
 	if (forwardp)
 	  {
-	    while (pos < XINT (lim)
-		   && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
-	      INC_POS (pos);
+	    if (multibyte)
+	      while (pos < XINT (lim)
+		     && fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+		INC_POS (pos);
+	    else
+	      while (pos < XINT (lim)
+		     && fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
+		pos++;
 	  }
 	else
 	  {
-	    while (pos > XINT (lim))
-	      {
-		int savepos = pos;
-		DEC_POS (pos);
-		if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
-		  {
-		    pos = savepos;
-		    break;
-		  }
-	      }
+	    if (multibyte)
+	      while (pos > XINT (lim))
+		{
+		  int savepos = pos;
+		  DEC_POS (pos);
+		  if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
+		    {
+		      pos = savepos;
+		      break;
+		    }
+		}
+	    else
+	      while (pos > XINT (lim)
+		     && fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+		pos--;
 	  }
       }
     else
       {
 	if (forwardp)
 	  {
-	    while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos))])
-	      {
-		if (!BASE_LEADING_CODE_P (c))
-		  pos++;
-		else if (n_char_ranges)
-		  {
-		    /* We much check CHAR_RANGES for a multibyte
-                       character.  */
-		    ch = FETCH_MULTIBYTE_CHAR (pos);
-		    for (i = 0; i < n_char_ranges; i += 2)
-		      if ((ch >= char_ranges[i] && ch <= char_ranges[i + 1]))
+	    if (multibyte)
+	      while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos))])
+		{
+		  if (!BASE_LEADING_CODE_P (c))
+		    pos++;
+		  else if (n_char_ranges)
+		    {
+		      /* We much check CHAR_RANGES for a multibyte
+			 character.  */
+		      ch = FETCH_MULTIBYTE_CHAR (pos);
+		      for (i = 0; i < n_char_ranges; i += 2)
+			if ((ch >= char_ranges[i] && ch <= char_ranges[i + 1]))
+			  break;
+		      if (!(negate ^ (i < n_char_ranges)))
 			break;
-		    if (!(negate ^ (i < n_char_ranges)))
-		      break;
 
-		    INC_POS (pos);
-		  }
-		else
-		  {
-		    if (!negate) break;
-		    INC_POS (pos);
-		  }
-	      }
+		      INC_POS (pos);
+		    }
+		  else
+		    {
+		      if (!negate) break;
+		      INC_POS (pos);
+		    }
+		}
+	    else
+	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
+		pos++;
 	  }
 	else
 	  {
-	    while (pos > XINT (lim))
-	      {
-		int savepos = pos;
-		DEC_POS (pos);
-		if (fastmap[(c = FETCH_BYTE (pos))])
-		  {
-		    if (!BASE_LEADING_CODE_P (c))
-		      ;
-		    else if (n_char_ranges)
-		      {
-			/* We much check CHAR_RANGES for a multibyte
-                           character.  */
-			ch = FETCH_MULTIBYTE_CHAR (pos);
-			for (i = 0; i < n_char_ranges; i += 2)
-			  if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
-			    break;
-			if (!(negate ^ (i < n_char_ranges)))
+	    if (multibyte)
+	      while (pos > XINT (lim))
+		{
+		  int savepos = pos;
+		  DEC_POS (pos);
+		  if (fastmap[(c = FETCH_BYTE (pos))])
+		    {
+		      if (!BASE_LEADING_CODE_P (c))
+			;
+		      else if (n_char_ranges)
+			{
+			  /* We much check CHAR_RANGES for a multibyte
+			     character.  */
+			  ch = FETCH_MULTIBYTE_CHAR (pos);
+			  for (i = 0; i < n_char_ranges; i += 2)
+			    if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
+			      break;
+			  if (!(negate ^ (i < n_char_ranges)))
+			    {
+			      pos = savepos;
+			      break;
+			    }
+			}
+		      else
+			if (!negate)
 			  {
 			    pos = savepos;
 			    break;
 			  }
-		      }
-		    else
-		      if (!negate)
-			{
-			  pos = savepos;
-			  break;
-			}
-		  }
-		else
-		  {
-		    pos = savepos;
-		    break;
-		  }
-	      }
+		    }
+		  else
+		    {
+		      pos = savepos;
+		      break;
+		    }
+		}
+	    else
+	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
+		pos--;
 	  }
       }
+    if (multibyte
+	/* INC_POS or DEC_POS might have moved POS over LIM.  */
+	&& (forwardp ? (pos > XINT (lim)) : (pos < XINT (lim))))
+      pos = XINT (lim);
+
     SET_PT (pos);
     immediate_quit = 0;
 
