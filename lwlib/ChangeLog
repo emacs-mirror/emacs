@@ -1,5 +1,8 @@
 2001-02-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* lwlib-Xm.c (xm_arm_callback): Don't compare widgets with `None',
+	use NULL instead.
+
 	* lwlib-Xaw.c (xaw_update_one_widget): Use XtSetSensitive instead
 	of setting the value of XtNsensitive.
 

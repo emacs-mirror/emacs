@@ -1,5 +1,11 @@
 2001-02-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_set_window_size): Don't use `None' with widgets; use
+	NULL instead.
+
+	* xfns.c (Fx_hide_tip): Don't use `None' with widgets; use
+	NULL instead.
+
 	* alloc.c (toplevel): Include process.h.
 	(enum mem_type): Add MEM_TYPE_PROCESS, MEM_TYPE_HASH_TABLE,
 	MEM_TYPE_FRAME, MEM_TYPE_WINDOW enumerators.
