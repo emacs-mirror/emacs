@@ -217,12 +217,12 @@ into the buffer's input ring.  See also `comint-magic-space' and
 This variable supplies a default for `comint-input-autoexpand',
 for Shell mode only.")
 
-;;; All the above vars aren't prefixed "cmushell-" to make them
-;;; backwards compatible w/shell.el and old .emacs files.
-
 (defvar shell-dirstack nil
   "List of directories saved by pushd in this buffer's shell.
 Thus, this does not include the shell's current directory.")
+
+(defvar shell-dirtrackp t
+  "Non-nil in a shell buffer means directory tracking is enabled.")
 
 (defvar shell-last-dir nil
   "Keep track of last directory for ksh `cd -' command.")
