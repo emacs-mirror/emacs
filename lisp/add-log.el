@@ -208,15 +208,17 @@ never append to an existing entry."
 	   (if entry
 	       (insert entry)))
 	  ((and (not new-entry)
-		(re-search-forward
-		 (concat (regexp-quote (concat "* " entry))
-			 ;; Don't accept `foo.bar' when
-			 ;; looking for `foo':
-			 "\\(\\s \\|[(),:]\\)")
-		 paragraph-end t))
+		(let (case-fold-search)
+		  (re-search-forward
+		   (concat (regexp-quote (concat "* " entry))
+			   ;; Don't accept `foo.bar' when
+			   ;; looking for `foo':
+			   "\\(\\s \\|[(),:]\\)")
+		   paragraph-end t)))
 	   ;; Add to the existing entry for the same file.
 	   (re-search-forward "^\\s *$\\|^\\s \\*")
-	   (beginning-of-line)
+	   (goto-char (match-beginning 0))
+	   ;; Delete excess empty lines; make just 2.
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (save-excursion (forward-line 1) (point))))
 	   (insert "\n\n")
@@ -405,34 +407,47 @@ Has a preference of looking backwards."
                                (get-method-definition)
                              ;; Ordinary C function syntax.
                              (setq beg (point))
-                             (if (condition-case nil
-                                     ;; Protect against "Unbalanced parens" error.
-                                     (progn
-                                       (down-list 1) ; into arglist
-                                       (backward-up-list 1)
-                                       (skip-chars-backward " \t")
-                                       t)
-                                   (error nil))
-                                 ;; Verify initial pos was after
-                                 ;; real start of function.
-                                 (if (and (save-excursion
-                                            (goto-char beg)
-                                            ;; For this purpose, include the line
-                                            ;; that has the decl keywords.  This
-                                            ;; may also include some of the
-                                            ;; comments before the function.
-                                            (while (and (not (bobp))
-                                                        (save-excursion
-                                                          (forward-line -1)
-                                                          (looking-at "[^\n\f]")))
-                                              (forward-line -1))
-                                            (>= location (point)))
+                             (if (and (condition-case nil
+					  ;; Protect against "Unbalanced parens" error.
+					  (progn
+					    (down-list 1) ; into arglist
+					    (backward-up-list 1)
+					    (skip-chars-backward " \t")
+					    t)
+					(error nil))
+				      ;; Verify initial pos was after
+				      ;; real start of function.
+				      (save-excursion
+					(goto-char beg)
+					;; For this purpose, include the line
+					;; that has the decl keywords.  This
+					;; may also include some of the
+					;; comments before the function.
+					(while (and (not (bobp))
+						    (save-excursion
+						      (forward-line -1)
+						      (looking-at "[^\n\f]")))
+					  (forward-line -1))
+					(>= location (point)))
                                           ;; Consistency check: going down and up
                                           ;; shouldn't take us back before BEG.
                                           (> (point) beg))
-                                     (buffer-substring (point)
-                                                       (progn (backward-sexp 1)
-                                                              (point)))))))))))
+				 (let (end middle)
+				   ;; Don't include any final newline
+				   ;; in the name we use.
+				   (if (= (preceding-char) ?\n)
+				       (forward-char -1))
+				   (setq end (point))
+				   (backward-sexp 1)
+				   ;; Now find the right beginning of the name.
+				   ;; Include certain keywords if they
+				   ;; precede the name.
+				   (setq middle (point))
+				   (forward-word -1)
+				   (and (bolp)
+					(looking-at "struct \\|union \\|class ")
+					(setq middle (point)))
+				   (buffer-substring middle end)))))))))
 		((memq major-mode
 		       '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
 				  plain-tex-mode latex-mode;; cmutex.el
