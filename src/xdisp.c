@@ -3647,6 +3647,7 @@ reseat_1 (it, pos, set_stop_p)
   it->string = Qnil;
   it->method = next_element_from_buffer;
   it->sp = 0;
+  it->face_before_selective_p = 0;
 
   if (set_stop_p)
     it->stop_charpos = CHARPOS (pos);
@@ -4303,8 +4304,14 @@ next_element_from_ellipsis (it)
     }
   else
     {
+      /* The face at the current position may be different from the
+	 face we find after the invisible text.  Remember what it
+	 was in IT->saved_face_id, and signal that it's there by
+	 setting face_before_selective_p.  */
+      it->saved_face_id = it->face_id;
       it->method = next_element_from_buffer;
       reseat_at_next_visible_line_start (it, 1);
+      it->face_before_selective_p = 1;
     }
   
   return get_next_display_element (it);
@@ -11702,6 +11709,8 @@ append_space (it, default_face_p)
 
 	  if (default_face_p)
 	    it->face_id = DEFAULT_FACE_ID;
+	  else if (it->face_before_selective_p)
+	    it->face_id = it->saved_face_id;
 	  face = FACE_FROM_ID (it->f, it->face_id);
 	  it->face_id = FACE_FOR_CHAR (it->f, face, 0);
 
@@ -11740,8 +11749,12 @@ extend_face_to_end_of_line (it)
   
   /* Face extension extends the background and box of IT->face_id
      to the end of the line.  If the background equals the background
-     of the frame, we haven't to do anything.  */
-  face = FACE_FROM_ID (f, it->face_id);
+     of the frame, we don't have to do anything.  */
+  if (it->face_before_selective_p)
+    face = FACE_FROM_ID (it->f, it->saved_face_id);
+  else
+    face = FACE_FROM_ID (f, it->face_id);
+  
   if (FRAME_WINDOW_P (f)
       && face->box == FACE_NO_BOX
       && face->background == FRAME_BACKGROUND_PIXEL (f)
@@ -11779,6 +11792,7 @@ extend_face_to_end_of_line (it)
       struct text_pos saved_pos;
       Lisp_Object saved_object;
       int saved_what = it->what;
+      int saved_face_id = it->face_id;
 
       saved_object = it->object;
       saved_pos = it->position;
@@ -11788,6 +11802,7 @@ extend_face_to_end_of_line (it)
       it->object = make_number (0);
       it->c = ' ';
       it->len = 1;
+      it->face_id = face->id;
       
       PRODUCE_GLYPHS (it);
       
@@ -11800,6 +11815,7 @@ extend_face_to_end_of_line (it)
       it->object = saved_object;
       it->position = saved_pos;
       it->what = saved_what;
+      it->face_id = saved_face_id;
     }
 }
 
