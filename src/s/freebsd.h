@@ -93,7 +93,7 @@
 #endif /* not __ELF__ */
 
 #define HAVE_WAIT_HEADER
-#define HAVE_GETLOADAVG
+#define HAVE_GETLOADAVG 1
 #if 0
 #define HAVE_GETPAGESIZE  /* configure now puts this in config.h */
 #endif
