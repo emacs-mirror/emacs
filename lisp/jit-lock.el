@@ -1,10 +1,9 @@
 ;;; jit-lock.el --- just-in-time fontification.
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
-;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
