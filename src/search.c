@@ -2557,7 +2557,7 @@ to hold all the values, and if INTEGERS is non-nil, no consing is done.")
 }
 
 
-DEFUN ("store-match-data", Fstore_match_data, Sstore_match_data, 1, 1, 0,
+DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 1, 0,
   "Set internal data on last search match from elements of LIST.\n\
 LIST should have been created by calling `match-data' previously.")
   (list)
@@ -2765,6 +2765,6 @@ syms_of_search ()
   defsubr (&Smatch_beginning);
   defsubr (&Smatch_end);
   defsubr (&Smatch_data);
-  defsubr (&Sstore_match_data);
+  defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
