@@ -189,6 +189,8 @@ Boston, MA 02111-1307, USA.  */
    is not ':', #define this to be the appropriate character constant.  */
 #define SEPCHAR ';'
 
+#define ORDINARY_LINK 1
+
 /* ============================================================ */
 
 /* Here, add any special hacks needed
