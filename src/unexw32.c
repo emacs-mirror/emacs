@@ -380,13 +380,31 @@ get_section_info (file_data *p_infile)
      area for the bss section, so we can make the new image the correct
      size.  */
 
-  data_start = my_begdata;
-  data_size = my_edata - my_begdata;
-  data_section = rva_to_section (PTR_TO_RVA (my_begdata), nt_header);
-  if (data_section != rva_to_section (PTR_TO_RVA (my_edata), nt_header))
+  /* We arrange for the Emacs initialized data to be in a separate
+     section if possible, because we cannot rely on my_begdata and
+     my_edata marking out the full extent of the initialized data, at
+     least on the Alpha where the linker freely reorders variables
+     across libraries.  If we can arrange for this, all we need to do is
+     find the start and size of the EMDATA section.  */
+  data_section = find_section ("EMDATA", nt_header);
+  if (data_section)
     {
-      printf ("Initialized data is not in a single section...bailing\n");
-      exit (1);
+      data_start = (char *) nt_header->OptionalHeader.ImageBase +
+	data_section->VirtualAddress;
+      data_size = data_section->Misc.VirtualSize;
+    }
+  else
+    {
+      /* Fallback on the old method if compiler doesn't support the
+         data_set #pragma (or its equivalent).  */
+      data_start = my_begdata;
+      data_size = my_edata - my_begdata;
+      data_section = rva_to_section (PTR_TO_RVA (my_begdata), nt_header);
+      if (data_section != rva_to_section (PTR_TO_RVA (my_edata), nt_header))
+	{
+	  printf ("Initialized data is not in a single section...bailing\n");
+	  exit (1);
+	}
     }
 
   /* As noted in lastfile.c, the Alpha (but not the Intel) MSVC linker
