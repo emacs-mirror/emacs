@@ -93,14 +93,15 @@ position of the cursor with respect to the calendar as well as possible."
   (let ((old-date (calendar-cursor-to-date))
         (today (calendar-current-date)))
     (if (/= arg 0)
-        (progn
-          (increment-calendar-month displayed-month displayed-year arg)
-          (generate-calendar-window displayed-month displayed-year)
+        (let ((month displayed-month)
+	      (year displayed-year))
+          (increment-calendar-month month year arg)
+	  (generate-calendar-window month year)
           (calendar-cursor-to-visible-date
            (cond
             ((calendar-date-is-visible-p old-date) old-date)
             ((calendar-date-is-visible-p today) today)
-            (t (list displayed-month 1 displayed-year))))))))
+            (t (list month 1 year))))))))
 
 (defun scroll-calendar-right (arg)
   "Scroll the displayed calendar window right by ARG months.
