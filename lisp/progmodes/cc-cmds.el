@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.16
+;; Version:    5.17
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -617,11 +617,17 @@ comment."
     (if (and sentence-flag
 	     (or (nth 3 state)
 		 (nth 4 state)
-;		 (looking-at (concat "[ \t]*" comment-start-skip))
-		 (save-excursion
-		   (skip-chars-backward " \t")
-		   (goto-char (- (point) 2))
-		   (looking-at "\\*/"))))
+		 ;; skipping forward into a comment?
+		 (and (> 0 count)
+		      (save-excursion
+			(skip-chars-forward " \t\n")
+			(or (eobp)
+			    (looking-at comment-start-skip))))
+		 (and (< 0 count)
+		      (save-excursion
+			(skip-chars-backward " \t\n")
+			(goto-char (- (point) 2))
+			(looking-at "\\*/")))))
 	(forward-sentence (- count))
       (while (> count 0)
 	(c-beginning-of-statement-1 lim)
@@ -747,28 +753,33 @@ comment."
 		 comment-column))
 	 )))))
 
+
 ;; for proposed new variable comment-line-break-function
 (defun c-comment-line-break-function (&optional soft)
   ;; we currently don't do anything with soft line breaks
-  (if (or (not c-comment-continuation-stars)
-	  (not (c-in-literal)))
-      (indent-new-comment-line soft)
-    (let ((here (point))
-	  (leader c-comment-continuation-stars))
-      (back-to-indentation)
-      ;; are we looking at a block or lines style comment?
-      (if (and (looking-at (concat "\\(" c-comment-start-regexp "\\)[ \t]+"))
-	       (string-equal (match-string 1) "//"))
-	  ;; line style
-	  (setq leader "// "))
-      (goto-char here)
-      (delete-region (progn (skip-chars-backward " \t") (point))
-		     (progn (skip-chars-forward " \t") (point)))
-      (newline)
-      ;; to avoid having an anchored comment that c-indent-line will
-      ;; trip up on
-      (insert " " leader)
-      (c-indent-line))))
+  (let ((literal (c-in-literal)))
+    (cond
+     ((eq literal 'string))
+     ((or (not c-comment-continuation-stars)
+	  (not literal))
+      (indent-new-comment-line soft))
+     (t (let ((here (point))
+	      (leader c-comment-continuation-stars))
+	  (back-to-indentation)
+	  ;; are we looking at a block or lines style comment?
+	  (if (and (looking-at (concat "\\(" c-comment-start-regexp
+				       "\\)[ \t]+"))
+		   (string-equal (match-string 1) "//"))
+	      ;; line style
+	      (setq leader "// "))
+	  (goto-char here)
+	  (delete-region (progn (skip-chars-backward " \t") (point))
+			 (progn (skip-chars-forward " \t") (point)))
+	  (newline)
+	  ;; to avoid having an anchored comment that c-indent-line will
+	  ;; trip up on
+	  (insert " " leader)
+	  (c-indent-line))))))
 
 ;; advice for indent-new-comment-line for older Emacsen
 (if (boundp 'comment-line-break-function)
