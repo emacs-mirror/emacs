@@ -675,7 +675,7 @@ malloc_initialize_hook ()
 	{
 	  char **p;
 
-	  for (p = environ; *p; p++)
+	  for (p = environ; p && *p; p++)
 	    if (strncmp (*p, "MALLOC_CHECK_=", 14) == 0)
 	      {
 		do
