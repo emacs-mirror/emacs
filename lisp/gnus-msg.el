@@ -409,6 +409,7 @@ header line with the old Message-ID."
 	  (set-text-properties (point-min) (point-max) 
 			       nil gnus-article-copy)))))
 
+;;;###autoload
 (defun gnus-post-news (post &optional group header article-buffer yank subject)
   "Begin editing a new USENET news article to be posted.
 Type \\[describe-mode] in the buffer to get a list of commands."
