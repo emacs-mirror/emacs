@@ -24,15 +24,14 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (eval
-   '(unless (fboundp 'base64-decode-string)
-      (require 'base64))))
+(require 'base64)
 
 (require 'qp)
 (require 'mm-util)
 (require 'ietf-drums)
 (require 'mail-prsvr)
+
+(eval-when-compile (defvar message-posting-charset))
 
 (defvar rfc2047-header-encoding-alist
   '(("Newsgroups" . nil)
@@ -108,6 +107,7 @@ Valid encodings are nil, `Q' and `B'.")
   "Encode the message header according to `rfc2047-header-encoding-alist'.
 Should be called narrowed to the head of the message."
   (interactive "*")
+  (require 'message)
   (save-excursion
     (goto-char (point-min))
     (let (alist elem method)
@@ -151,6 +151,7 @@ Should be called narrowed to the head of the message."
 
 (defun rfc2047-encodable-p (&optional header)
   "Say whether the current (narrowed) buffer contains characters that need encoding in headers."
+  (require 'message)
   (let ((charsets
 	 (mapcar
 	  'mm-mime-charset
