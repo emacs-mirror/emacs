@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.14
+;; Version:    5.15
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -330,6 +330,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     (extern-lang-open      . 0)
     (extern-lang-close     . 0)
     (inextern-lang         . +)
+    (template-args-cont    . +)
     )
   "Association list of syntactic element symbols and indentation offsets.
 As described below, each cons cell in this list has the form:
@@ -428,6 +429,7 @@ Here is the current list of valid syntactic element symbols:
  extern-lang-open       -- brace that opens an external language block
  extern-lang-close      -- brace that closes an external language block
  inextern-lang          -- analogous to `inclass' syntactic symbol
+ template-args-cont     -- C++ template argument list continuations
 ")
 
 (defun c-get-offset (langelem)
