@@ -134,22 +134,65 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 ;      (copy-sequence keymap)
 ;      (copy-alist keymap)))
 
-(defun substitute-key-definition (olddef newdef keymap)
+(defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
-Prefix keymaps reached from KEYMAP are not checked recursively;
-perhaps they ought to be."
-  (if (arrayp keymap)
-      (let ((len (length keymap))
-	    (i 0))
-	(while (< i len)
-	  (if (eq (aref keymap i) olddef)
-	      (aset keymap i newdef))
-	  (setq i (1+ i))))
-    (while keymap
-      (if (eq (cdr-safe (car-safe keymap)) olddef)
-	  (setcdr (car keymap) newdef))
-      (setq keymap (cdr keymap)))))
+If optional fourth argument OLDMAP is specified, we redefine
+in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
+  (or prefix (setq prefix ""))
+  (let* ((scan (or oldmap keymap))
+	 (vec1 (vector nil))
+	 (prefix1 (vconcat prefix vec1)))
+    ;; Scan OLDMAP, finding each char or event-symbol that
+    ;; has any definition, and act on it with hack-key.
+    (while (consp scan)
+      (if (consp (car scan))
+	  (let ((char (car (car scan)))
+		(defn (cdr (car scan))))
+	    ;; The inside of this let duplicates exactly
+	    ;; the inside of the following let that handles array elements.
+	    (aset vec1 0 char)
+	    (aset prefix1 (length prefix) char)
+	    (let (inner-def)
+	      ;; Skip past menu-prompt.
+	      (while (stringp (car-safe defn))
+		(setq defn (cdr defn)))
+	      (setq inner-def defn)
+	      (while (and (symbolp inner-def)
+			  (fboundp inner-def))
+		(setq inner-def (symbol-function inner-def)))
+	      (if (eq defn olddef)
+		  (define-key keymap prefix1 newdef)
+		(if (keymapp defn)
+		    (substitute-key-definition olddef newdef keymap
+					       inner-def
+					       prefix1)))))
+	(if (arrayp (car scan))
+	    (let* ((array (car scan))
+		   (len (length array))
+		   (i 0))
+	      (while (< i len)
+		(let ((char i) (defn (aref array i)))
+		  ;; The inside of this let duplicates exactly
+		  ;; the inside of the previous let.
+		  (aset vec1 0 char)
+		  (aset prefix1 (length prefix) char)
+		  (let (inner-def)
+		    ;; Skip past menu-prompt.
+		    (while (stringp (car-safe defn))
+		      (setq defn (cdr defn)))
+		    (setq inner-def defn)
+		    (while (and (symbolp inner-def)
+				(fboundp inner-def))
+		      (setq inner-def (symbol-function inner-def)))
+		    (if (eq defn olddef)
+			(define-key keymap prefix1 newdef)
+		      (if (keymapp defn)
+			  (substitute-key-definition olddef newdef keymap
+						     inner-def
+						     prefix1)))))
+		(setq i (1+ i))))))
+      (setq scan (cdr scan)))))
 
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
