@@ -1,3 +1,8 @@
+2003-02-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-fill): Fill lines that do not have
+	comments.
+
 2003-02-12  Juanma Barranquero  <lektu@terra.es>
 
 	* files.el (file-truename): Revert change from 2002-11-27.
