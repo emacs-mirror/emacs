@@ -701,6 +701,7 @@ lisp= \
 	${lispsource}language/tibetan.elc \
 	${lispsource}language/vietnamese.elc \
 	${lispsource}language/misc-lang.elc \
+	${lispsource}international/ucs-tables.elc \
 	${lispsource}paths.el \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
