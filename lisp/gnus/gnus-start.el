@@ -32,6 +32,7 @@
 (require 'gnus-range)
 (require 'gnus-util)
 (require 'message)
+(eval-when-compile (require 'cl))
 
 (defcustom gnus-startup-file (nnheader-concat gnus-home-directory ".newsrc")
   "Your `.newsrc' file.
@@ -47,10 +48,11 @@ instead."
   :type 'file)
 
 (defcustom gnus-site-init-file
-  (ignore-errors
+  (condition-case nil
     (concat (file-name-directory
 	     (directory-file-name installation-directory))
-	    "site-lisp/gnus-init"))
+	    "site-lisp/gnus-init")
+    (error nil))
   "The site-wide Gnus elisp startup file.
 If a file with the .el or .elc suffixes exist, it will be read
 instead."
