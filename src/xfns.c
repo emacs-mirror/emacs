@@ -1261,7 +1261,7 @@ The defaults are specified in the file `~/.Xdefaults'.")
 /* Types we might convert a resource string into.  */
 enum resource_types
   {
-    number, boolean, string, symbol,
+    number, boolean, string, symbol
   };
 
 /* Return the value of parameter PARAM.
