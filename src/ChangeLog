@@ -1,3 +1,14 @@
+2000-04-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* tparam.c (tparam1): Abort when encountering an unknown
+	`%'-specifier.
+
+	* s/freebsd.h (TERMCAP_OBJ) [__FreeBSD__ >= 4]: Define as
+	terminfo.o.
+
+	* Makefile.in (termcapobj) [LIBS_TERMCAP && TERMCAP_OBJ]: Define
+	as TERMCAP_OBJ.
+
 2000-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (a_write): Remove redundant semi-colons.

@@ -1,3 +1,18 @@
+2000-04-13  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
+
+	* diary-lib.el (include-other-diary-files): Fix the fix of
+	2000-02-18 by doing a save-excursion.
+
+2000-04-13  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Customization fix, doc fix.
+	(ps-print-version): New version number (5.1.4).
+	(ps-article-author, ps-article-subject, ps-info-file, ps-info-node)
+	(ps-print-preprint): Adjust code.
+	(ps-printer-name, ps-lpr-switches, ps-user-defined-prologue)
+	(ps-print-prologue-header, ps-print-control-characters)
+	(ps-spool-config): Customization fix.
+	
 2000-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/ispell.el (ispell-menu-map): Menu items rearranged and
