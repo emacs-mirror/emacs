@@ -342,7 +342,7 @@ install-arch-indep: mkdir
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd ./etc; tar -cf - DOC*) \
 	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null); \
-	   (cd $(docdir); chmod a+r DOC*; rm DOC) \
+	   (cd $(docdir); chmod a+r DOC*; rm DOC); \
 	else true; fi
 	if [ -r ./lisp ] \
 	   && [ -r ./lisp/simple.el ] \
