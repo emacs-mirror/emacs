@@ -146,7 +146,7 @@ is for compatibility with the Unix version, where the box cursor is the
 default.  This default shape can be changed to a bar by specifying the
 @code{cursor-type} parameter in the variable @code{default-frame-alist}
 (@pxref{Creating Frames}).  The MS-DOS terminal doesn't support a
-vertical-bar cursor, so the bar cursor is horizontal, and the its
+vertical-bar cursor, so the bar cursor is horizontal, and the
 @code{@var{width}} parameter, if specified by the frame parameters,
 actually determines its height.  As an extension, the bar cursor
 specification can include the starting scan line of the cursor as well
@@ -290,48 +290,41 @@ carriage-return linefeed when writing files.  The same mechanism that
 handles conversion of international character codes does this conversion
 also (@pxref{Coding Systems}).
 
-@cindex cursor location, under MS-DOS
-@cindex point location, under MS-DOS
+@cindex cursor location, on MS-DOS
+@cindex point location, on MS-DOS
   One consequence of this special format-conversion of most files is
 that character positions as reported by Emacs (@pxref{Position Info}) do
 not agree with the file size information known to the operating system.
 
-@vindex file-name-buffer-file-type-alist
-  Some kinds of files should not be converted, because their contents
-are not really text.  Therefore, Emacs on MS-DOS distinguishes certain
-files as @dfn{binary files}, and reads and writes them verbatim.  (This
-distinction is not part of MS-DOS; it is made by Emacs only.)  These
-include executable programs, compressed archives, etc.  Emacs uses the
-file name to decide whether to treat a file as binary: the variable
-@code{file-name-buffer-file-type-alist} defines the file-name patterns
-that indicate binary files.  Note that if a file name matches one of the
-patterns for binary files in @code{file-name-buffer-file-type-alist},
-Emacs uses the @code{no-conversion} coding system (@pxref{Coding
-Systems}) which turns off @emph{all} coding-system conversions, not only
-the EOL conversion.
-
   In addition, if Emacs recognizes from a file's contents that it uses
 newline rather than carriage-return linefeed as its line separator, it
-does not perform conversion when reading or writing that file.  Thus,
+does not perform EOL conversion when reading or writing that file.  Thus,
 you can read and edit files from Unix or GNU systems on MS-DOS with no
 special effort, and they will be left with their Unix-style EOLs.
 
-@findex find-file-text
-@findex find-file-binary
-  You can visit a file and specify whether to treat a file as text or
-binary using the commands @code{find-file-text} and
-@code{find-file-binary}.  End-of-line conversion is part of the general
-coding system conversion mechanism, so another way to control whether to
-treat a file as text or binary is with the commands for specifying a
-coding system (@pxref{Specify Coding}).  For example,
-@kbd{C-x @key{RET} c undecided-unix @key{RET} C-x C-f foobar.txt}
-visits the file @file{foobar.txt} without converting the EOLs.
-
   The mode line indicates whether end-of-line translation was used for
-the current buffer.  Normally a colon appears after the coding system
-letter near the beginning of the mode line.  If MS-DOS end-of-line
-translation is in use for the buffer, this character changes to a
-backslash.
+the current buffer.  If MS-DOS end-of-line translation is in use for the
+buffer, a backslash @samp{\} is displayed after the coding system
+mnemonic near the beginning of the mode line (@pxref{Mode Line}).  If no
+EOL translation was performed, the string @samp{(Unix)} is displayed
+instead of the backslash, to alert you that the file's EOL format is not
+the usual carriage-return linefeed.
+
+@cindex DOS-to-Unix conversion of files
+@pindex dos2unix
+  End-of-line conversion is part of the general coding system conversion
+mechanism, so the way to control whether to treat a text file as
+DOS-style or Unix-style is with the commands for specifying a coding
+system (@pxref{Specify Coding}).  For example, @kbd{C-x @key{RET} c unix
+@key{RET} C-x C-f foobar.txt} visits the file @file{foobar.txt} without
+converting the EOLs; if that file has carriage-return linefeed pairs at
+the end of its lines, Emacs will display @samp{^M} at the end of each
+line.  Similarly, you can force Emacs to save a buffer with specific EOL
+format with the @kbd{C-x @key{RET} f} command.  For example, to save a
+buffer with Unix EOL format, type @kbd{C-x @key{RET} f unix @key{RET}
+C-x C-s}.  Thus, visiting a file with DOS EOL conversion, then saving it
+with Unix EOL format effectively converts the file to Unix text style,
+like the popular program @code{dos2unix} does.
 
 @cindex untranslated file system
 @findex add-untranslated-filesystem
@@ -368,6 +361,50 @@ your site get the benefit of it.
 the function @code{remove-untranslated-filesystem}.  This function takes
 one argument, which should be a string just like the one that was used
 previously with @code{add-untranslated-filesystem}.
+
+  Designating a file system as untranslated does @strong{not} disable
+code conversions as specified by the coding systems set up by your
+language environment, it only affects the EOL conversions, by forcing
+Emacs to create new files with Unix-style newline-only EOLs.
+
+@vindex file-name-buffer-file-type-alist
+@cindex binary files, on MS-DOS/MS-Windows
+  Some kinds of files should not be converted at all, because their
+contents are not really text.  Therefore, Emacs on MS-DOS distinguishes
+certain files as @dfn{binary files}.  (This distinction is not part of
+MS-DOS; it is made by Emacs only.)  Binary files include executable
+programs, compressed archives, etc.  Emacs uses the file name to decide
+whether to treat a file as binary: the variable
+@code{file-name-buffer-file-type-alist} defines the file-name patterns
+that indicate binary files.  If a file name matches one of the patterns
+for binary files (those whose associations are of the type
+@code{(@var{pattern} . t)}, Emacs reads and writes that file using the
+@code{no-conversion} coding system (@pxref{Coding Systems}) which turns
+off @emph{all} coding-system conversions, not only the EOL conversion.
+@code{file-name-buffer-file-type-alist} also includes file-name patterns
+for files which are known to be DOS-style text files with
+carriage-return linefeed EOL format, such as @file{CONFIG.SYS}; Emacs
+always writes those files with DOS-style EOLs.
+
+  If a file which belongs to an untranslated file system matches one of
+the file-name patterns in @code{file-name-buffer-file-type-alist}, the
+EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
+
+@findex find-file-text
+@findex find-file-binary
+  You can visit a file and specify whether to treat it as text or binary
+using the commands @code{find-file-text} and @code{find-file-binary}.
+@code{find-file-text} specifies DOS EOL conversions, but leaves the
+other coding conversions unspecified (Emacs determines the required
+conversions via the usual defaults and coding-detection mechanisms).  On
+the other hand, @code{find-file-binary} turns off @emph{all}
+coding-system conversions.
+
+@findex find-file-literally@r{, and binary files}
+  The @code{find-file-text} and @code{find-file-binary} commands are
+only available when Emacs runs on MS-DOS or MS-Windows.  The command
+@code{find-file-literally}, which is available on all platforms,
+produces the same effect as @code{find-file-binary}.
 
 @node MS-DOS Printing
 @section Printing and MS-DOS
