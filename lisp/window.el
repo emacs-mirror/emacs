@@ -162,47 +162,71 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 (defun balance-windows ()
   "Make all visible windows the same height (approximately)."
   (interactive)
-  (let ((count -1) levels newsizes size
+  (let ((count -1) levels newsizes level-size
 	;; Don't count the lines that are above the uppermost windows.
 	;; (These are the menu bar lines, if any.)
-	(mbl (nth 1 (window-edges (frame-first-window (selected-frame))))))
+	(mbl (nth 1 (window-edges (frame-first-window (selected-frame)))))
+	(last-window (previous-window (frame-first-window (selected-frame))))
+	;; Don't count the lines that are past the lowest main window.
+	total)
+    ;; Bottom edge of last window determines what size we have to work with.
+    (setq total
+	  (+ (window-height last-window)
+	     (nth 1 (window-edges last-window))))
+
     ;; Find all the different vpos's at which windows start,
     ;; then count them.  But ignore levels that differ by only 1.
-    (save-window-excursion
-      (let (tops (prev-top -2))
-	(walk-windows (function (lambda (w)
-				  (setq tops (cons (nth 1 (window-edges w))
-						   tops))))
-		      'nomini)
-	(setq tops (sort tops '<))
-	(while tops
-	  (if (> (car tops) (1+ prev-top))
-	      (setq prev-top (car tops)
-		    count (1+ count)))
-	  (setq levels (cons (cons (car tops) count) levels))
-	  (setq tops (cdr tops)))
-	(setq count (1+ count))))
-    ;; Subdivide the frame into that many vertical levels.
-    (setq size (/ (- (frame-height) mbl) count))
-    (walk-windows (function
-		   (lambda (w)
-		     (select-window w)
-		     (let ((newtop (cdr (assq (nth 1 (window-edges))
-					      levels)))
-			   (newbot (or (cdr (assq (+ (window-height)
-						     (nth 1 (window-edges)))
-						  levels))
-				       count)))
-		       (setq newsizes
-			     (cons (cons w (* size (- newbot newtop)))
-				   newsizes)))))
-		  'nomini)
-    (walk-windows (function (lambda (w)
-			      (select-window w)
-			      (let ((newsize (cdr (assq w newsizes))))
-				(enlarge-window (- newsize
-						   (window-height))))))
-		  'nomini)))
+    (let (tops (prev-top -2))
+      (walk-windows (function (lambda (w)
+				(setq tops (cons (nth 1 (window-edges w))
+						 tops))))
+		    'nomini)
+      (setq tops (sort tops '<))
+      (while tops
+	(if (> (car tops) (1+ prev-top))
+	    (setq prev-top (car tops)
+		  count (1+ count)))
+	(setq levels (cons (cons (car tops) count) levels))
+	(setq tops (cdr tops)))
+      (setq count (1+ count)))
+    ;; Subdivide the frame into desired number of vertical levels.
+    (setq level-size (/ (- total mbl) count))
+    (save-selected-window
+      ;; Set up NEWSIZES to map windows to their desired sizes.
+      ;; If a window ends at the bottom level, don't include
+      ;; it in NEWSIZES.  Those windows get the right sizes
+      ;; by adjusting the ones above them.
+      (walk-windows (function
+		     (lambda (w)
+		       (let ((newtop (cdr (assq (nth 1 (window-edges w))
+						levels)))
+			     (newbot (cdr (assq (+ (window-height w)
+						   (nth 1 (window-edges w)))
+						levels))))
+			 (if newbot
+			     (setq newsizes
+				   (cons (cons w (* level-size (- newbot newtop)))
+					 newsizes)))))))
+		    'nomini)
+      ;; Make walk-windows start with the topmost window.
+      (select-window (previous-window (frame-first-window (selected-frame))))
+      (let (done (count 0))
+	;; Give each window its precomputed size, or at least try.
+	;; Keep trying until they all get the intended sizes,
+	;; but not more than 3 times (to prevent infinite loop).
+	(while (and (not done) (< count 3))
+	  (setq done t)
+	  (setq count (1+ count))
+	  (walk-windows (function (lambda (w)
+				    (select-window w)
+				    (let ((newsize (cdr (assq w newsizes))))
+				      (when newsize
+					(enlarge-window (- newsize
+							   (window-height))
+							nil t)
+					(unless (= (window-height) newsize)
+					  (setq done nil))))))
+			'nomini)))))
 
 ;;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
