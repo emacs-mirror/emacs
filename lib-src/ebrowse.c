@@ -2423,7 +2423,7 @@ skip_matching ()
     }
 }
 
-int
+void
 skip_initializer ()
 {
   for (;;)
