@@ -235,13 +235,13 @@ See also `write-file-hooks'.")
 (make-variable-buffer-local 'write-contents-hooks)
 
 (defconst enable-local-variables t
-  "*Control use of local-variables lists in files you visit.
+  "*Control use of local variables in files you visit.
 The value can be t, nil or something else.
-A value of t means local-variables lists are obeyed;
+A value of t means file local variables specifications are obeyed;
 nil means they are ignored; anything else means query.
 
-The command \\[normal-mode] always obeys local-variables lists
-and ignores this variable.")
+The command \\[normal-mode] always obeys file local variable
+specifications and ignores this variable.")
 
 (defconst enable-local-eval 'maybe
   "*Control processing of the \"variable\" `eval' in a file's local variables.
@@ -1241,7 +1241,11 @@ If `enable-local-variables' is nil, this function does not check for a
 		     (val (save-restriction
 			    (narrow-to-region (point) end)
 			    (read (current-buffer)))))
-		 (or (eq key 'mode)
+		 ;; It is traditional to ignore
+		 ;; case when checking for `mode' in set-auto-mode,
+		 ;; so we must do that here as well.
+		 ;; That is inconsistent, but we're stuck with it.
+		 (or (equal (downcase (symbol-name key)) "mode")
 		     (setq result (cons (cons key val) result)))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
@@ -1686,6 +1690,22 @@ The extension, in a file name, is the part that follows the last `.'."
 				directory)
 	    (substring file 0 (match-beginning 0)))
 	filename))))
+
+(defun file-name-extension (filename &optional period)
+  "Return FILENAME's final \"extension\".
+The extension, in a file name, is the part that follows the last `.'.
+Return nil for extensionless file names such as `foo'.
+Return the empty string for file names such as `foo.'.
+
+If PERIOD is non-nil, then the returned value includes the period
+that delimits the extension, and if FILENAME has no extension,
+the value is \"\"."
+  (save-match-data
+    (let ((file (file-name-sans-versions (file-name-nondirectory filename))))
+      (if (string-match "\\.[^.]*\\'" file)
+          (substring file (+ (match-beginning 0) (if period 0 1)))
+        (if period
+            "")))))
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
