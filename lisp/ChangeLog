@@ -1,3 +1,7 @@
+2001-01-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Docstring fix.
+
 2001-01-25  Dave Love  <fx@gnu.org>
 
 	* loadup.el: Preload international/ccl for utf-8.
