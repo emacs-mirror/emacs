@@ -12,9 +12,8 @@
 	delete entries for chinese-ctlau and chinese-ctlaub.
 	(quail-misc-package-ext-info): Add entries for chinese-ctlau and
 	chinese-ctlaub.
-	(ctlau-converter): New function.
-	(ctlau-gb-converter): New function.
-	(ctlau-b5-converter): New function.
+	(ctlau-converter, ctlau-gb-converter, ctlau-b5-converter):
+	New functions.
 
 2001-05-22  Gerd Moellmann  <gerd@gnu.org>
 
