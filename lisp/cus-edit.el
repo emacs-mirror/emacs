@@ -979,9 +979,10 @@ This button will have a menu with all three reset operations."
   (message "Creating customization buffer...")
   (custom-mode)
   (widget-insert "This is a customization buffer.
-Push RET or click mouse-2 on the word ")
+Square brackets show active fields; type RET or click mouse-2
+on an active field to invoke its action.  Invoke ")
   (widget-create 'info-link 
-		 :tag "help"
+		 :tag "Help"
 		 :help-echo "Read the online help."
 		 "(emacs)Easy Customization")
   (widget-insert " for more information.\n\n")
@@ -1077,7 +1078,7 @@ Reset all visible items in this buffer to their standard settings."
   (custom-mode)
   (widget-insert "\
 Invoke [+] below to expand items, and [-] to collapse items.
-Invoke the [group], [face], and [option] buttons below to edit that
+Invoke the [Group], [Face], and [Option] buttons below to edit that
 item in another window.\n\n")
   (let ((custom-buffer-style 'tree))
     (widget-create 'custom-group 
@@ -1100,7 +1101,7 @@ item in another window.\n\n")
 
 (define-widget 'custom-tree-group-tag 'push-button
   "Show parent in other window when activated."
-  :tag "group"
+  :tag "Group"
   :action 'custom-tree-group-tag-action)
 
 (defun custom-tree-group-tag-action (widget &rest ignore)
@@ -1109,7 +1110,7 @@ item in another window.\n\n")
 
 (define-widget 'custom-tree-variable-tag 'push-button
   "Show parent in other window when activated."
-  :tag "option"
+  :tag "Option"
   :action 'custom-tree-variable-tag-action)
 
 (defun custom-tree-variable-tag-action (widget &rest ignore)
@@ -1118,7 +1119,7 @@ item in another window.\n\n")
 
 (define-widget 'custom-tree-face-tag 'push-button
   "Show parent in other window when activated."
-  :tag "face"
+  :tag "Face"
   :action 'custom-tree-face-tag-action)
 
 (defun custom-tree-face-tag-action (widget &rest ignore)
@@ -1527,15 +1528,16 @@ Insert PREFIX first if non-nil."
 	       (insert ", "))))
       (widget-put widget :buttons buttons))))
 
-(defun custom-add-parent-links (widget)
-  "Add `Parent groups: ...' to WIDGET.
-The value if non-nil if there are parents."
+(defun custom-add-parent-links (widget &optional initial-string)
+  "Add \"Parent groups: ...\" to WIDGET if the group has parents.
+The value if non-nil if any parents were found.
+If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   (let ((name (widget-value widget))
 	(type (widget-type widget))
 	(buttons (widget-get widget :buttons))
 	(start (point))
 	found)
-    (insert "Parent groups:")
+    (insert (or initial-string "Parent groups:"))
     (mapatoms (lambda (symbol)
 		(let ((group (get symbol 'custom-group)))
 		  (when (assq name group)
@@ -2513,7 +2515,8 @@ and so forth.  The remaining group tags are shown with
 	   (if t    ;;; This should test that the buffer
 		    ;;; was made to display a group.
 	       (when (eq level 1)
-		 (if (custom-add-parent-links widget)
+		 (if (custom-add-parent-links widget
+					      "Go to parent group:")
 		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))
