@@ -1981,9 +1981,9 @@ From a program, any arguments are passed to the `rcs2log' script."
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
     (let ((switches
-	   (if (stringp vc-checkout-switches)
-	       (list vc-checkout-switches)
-	     vc-checkout-switches)))
+	   (if (stringp vc-checkin-switches)
+	       (list vc-checkin-switches)
+	     vc-checkin-switches)))
       ;; Clear the master-properties.  Do that here, not at the
       ;; end, because if the check-in fails we want them to get
       ;; re-computed before the next try.
