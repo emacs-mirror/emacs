@@ -290,6 +290,9 @@ tparam1 (string, outstring, len, up, left, argp)
 	    case 'D':		/* %D means weird Delta Data transformation.  */
 	      argp[0] -= 2 * (tem % 16);
 	      break;
+
+	    default:
+	      abort ();
 	    }
 	}
       else
