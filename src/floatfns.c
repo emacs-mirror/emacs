@@ -509,7 +509,11 @@ float_error (signo)
 #ifdef BSD4_1
   sigrelse (SIGILL);
 #else /* not BSD4_1 */
-  sigsetmask (0);
+  {
+    int dummy;
+
+    EMACS_SIGSETMASK (0, dummy);
+  }
 #endif /* not BSD4_1 */
 #else
   /* Must reestablish handler each time it is called.  */

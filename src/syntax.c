@@ -158,12 +158,13 @@ DEFUN ("modify-syntax-entry", foo, bar, 0, 0, 0,
 The syntax is changed only for table TABLE, which defaults to\n\
  the current buffer's syntax table.\n\
 The first character of S should be one of the following:\n\
-  Space    whitespace syntax.    w   word constituent.\n\
-  _        symbol constituent.   .   punctuation.\n\
-  (        open-parenthesis.     )   close-parenthesis.\n\
-  \"        string quote.         \\   character-quote.\n\
-  $        paired delimiter.     '   expression quote or prefix operator.\n\
-  <	   comment starter.	 >   comment ender.\n\
+  Space or -  whitespace syntax.    w   word constituent.\n\
+  _           symbol constituent.   .   punctuation.\n\
+  (           open-parenthesis.     )   close-parenthesis.\n\
+  \"           string quote.         \\   escape.\n\
+  $           paired delimiter.     '   expression quote or prefix operator.\n\
+  <           comment starter.      >   comment ender.\n\                  
+  /           character-quote.\n\
 Only single-character comment start and end sequences are represented thus.\n\
 Two-character sequences are represented as described below.\n\
 The second character of S is the matching parenthesis,\n\

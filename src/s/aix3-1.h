@@ -208,7 +208,7 @@ and this notice must be preserved on all copies.  */
 
 /* #define ADDR_CORRECT(x) (x) */
 
-#define LD_CMD cc
+#define LINKER cc
 
 /* Prevent -lg from being used for debugging.  Not needed.  */
 

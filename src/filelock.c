@@ -1,10 +1,10 @@
-/* Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+/* Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -39,6 +39,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 extern int errno;
 
+extern char *egetenv ();
+
 #ifdef CLASH_DETECTION
   
 /* If system does not have symbolic links, it does not have lstat.
@@ -47,6 +49,44 @@ extern int errno;
 #ifndef S_IFLNK
 #define lstat stat
 #endif
+
+
+/* The name of the directory in which we keep lock files, with a '/'
+   appended.  */  
+char *lock_path;
+
+/* The name of the file in the lock directory which is used to
+   arbitrate access to the entire directory.  */
+#define SUPERLOCK_NAME "!!!SuperLock!!!"
+
+/* The path to the superlock file.  This is SUPERLOCK_NAME appended to
+   lock_path.  */
+char *superlock_path;
+
+/* Set LOCK to the name of the lock file for the filename FILE.
+   char *LOCK; Lisp_Object FILE;  */
+#define MAKE_LOCK_PATH (lock, file) \
+  (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_path) + 1), \
+   fill_in_lock_file_name (lock, (file)))
+
+fill_in_lock_file_name (lockfile, fn)
+     register char *lockfile;
+     register Lisp_Object fn;
+{
+  register char *p;
+
+  strcpy (lockfile, lock_path);
+
+  p = lockfile + strlen (lockfile);
+
+  strcpy (p, XSTRING (fn)->data);
+
+  for (; *p; p++)
+    {
+      if (*p == '/')
+	*p = '!';
+    }
+}
 
 static Lisp_Object
 lock_file_owner_name (lfname)
@@ -90,11 +130,10 @@ lock_file (fn)
   register Lisp_Object attack;
   register char *lfname;
 
-  /* Create the name of the lock-file for file fn */
-  lfname = (char *) alloca (XSTRING (fn)->size + strlen (PATH_LOCK) + 1);
-  fill_in_lock_file_name (lfname, fn);
+  MAKE_LOCK_PATH (lfname, fn);
 
-  /* See if this file is visited and has changed on disk since it was visited.  */
+  /* See if this file is visited and has changed on disk since it was
+     visited.  */
   {
     register Lisp_Object subject_buf = Fget_file_buffer (fn);
     if (!NILP (subject_buf)
@@ -116,29 +155,10 @@ lock_file (fn)
     {
       lock_superlock (lfname);
       lock_file_1 (lfname, O_WRONLY) ;
-      unlink (PATH_SUPERLOCK);
+      unlink (superlock_path);
       return;
     }
   /* User says ignore the lock */
-}
-
-fill_in_lock_file_name (lockfile, fn)
-     register char *lockfile;
-     register Lisp_Object fn;
-{
-  register char *p;
-
-  strcpy (lockfile, PATH_LOCK);
-
-  p = lockfile + strlen (lockfile);
-
-  strcpy (p, XSTRING (fn)->data);
-
-  for (; *p; p++)
-    {
-      if (*p == '/')
-	*p = '!';
-    }
 }
 
 /* Lock the lock file named LFNAME.
@@ -236,15 +256,14 @@ unlock_file (fn)
 {
   register char *lfname;
 
-  lfname = (char *) alloca (XSTRING (fn)->size + strlen (PATH_LOCK) + 1);
-  fill_in_lock_file_name (lfname, fn);
+  MAKE_LOCK_PATH (lfname, fn);
 
   lock_superlock (lfname);
 
   if (current_lock_owner_1 (lfname) == getpid ())
     unlink (lfname);
 
-  unlink (PATH_SUPERLOCK);
+  unlink (superlock_path);
 }
 
 lock_superlock (lfname)
@@ -252,7 +271,7 @@ lock_superlock (lfname)
 {
   register int i, fd;
 
-  for (i = -20; i < 0 && (fd = open (PATH_SUPERLOCK,
+  for (i = -20; i < 0 && (fd = open (superlock_path,
 				     O_WRONLY | O_EXCL | O_CREAT, 0666)) < 0;
        i++)
     {
@@ -263,7 +282,7 @@ lock_superlock (lfname)
   if (fd >= 0)
     {
 #ifdef USG
-      chmod (PATH_SUPERLOCK, 0666);
+      chmod (superlock_path, 0666);
 #else
       fchmod (fd, 0666);
 #endif
@@ -341,9 +360,7 @@ t if it is locked by you, else a string of the name of the locker.")
 
   fn = Fexpand_file_name (fn, Qnil);
 
-  /* Create the name of the lock-file for file filename */
-  lfname = (char *) alloca (XSTRING (fn)->size + strlen (PATH_LOCK) + 1);
-  fill_in_lock_file_name (lfname, fn);
+  MAKE_LOCK_PATH (lfname, fn);
 
   owner = current_lock_owner (lfname);
   if (owner <= 0)
@@ -352,6 +369,29 @@ t if it is locked by you, else a string of the name of the locker.")
     return (Qt);
   
   return (lock_file_owner_name (lfname));
+}
+
+
+/* Initialization functions.  */
+
+init_filelock ()
+{
+  lock_path = egetenv ("EMACSLOCKDIR");
+  if (! lock_path)
+    lock_path = PATH_LOCK;
+
+  /* Make sure it ends with a slash.  */
+  if (lock_path[strlen (lock_path) - 1] != '/')
+    {
+      lock_path = strcpy ((char *) xmalloc (strlen (lock_path) + 2),
+			  lock_path);
+      strcat (lock_path, "/");
+    }
+
+  superlock_path = (char *) xmalloc ((strlen (lock_path)
+				      + sizeof (SUPERLOCK_NAME)));
+  strcpy (superlock_path, lock_path);
+  strcat (superlock_path, SUPERLOCK_NAME);
 }
 
 syms_of_filelock ()

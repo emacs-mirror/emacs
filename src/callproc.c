@@ -224,7 +224,11 @@ If you quit, the process is killed with SIGKILL.")
     /* Tell SIGCHLD handler to look for this pid.  */
     synch_process_pid = pid;
     /* Now let SIGCHLD come through.  */
-    sigsetmask (mask);
+    {
+      int dummy;
+
+      EMACS_SIGSETMASK (mask, dummy);
+    }
 #endif
 
     environ = save_environ;
@@ -530,11 +534,17 @@ init_callproc ()
   register char **envp;
   Lisp_Object tempdir;
 
-  Vdata_directory = Ffile_name_as_directory (build_string (PATH_DATA));
+  {
+    char *data_dir = egetenv ("EMACSDATA");
+    
+    Vdata_directory =
+      Ffile_name_as_directory
+	(build_string (data_dir ? data_dir : PATH_DATA));
+  }
 
-  /* Turn PATH_EXEC into a path.  `==' is just a string which we know
-     will not be the name of an environment variable.  */
-  Vexec_path = decode_env_path ("==", PATH_EXEC);
+  /* Check the EMACSPATH environment variable, defaulting to the
+     PATH_EXEC path from paths.h.  */
+  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
 

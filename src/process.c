@@ -108,8 +108,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "commands.h"
-
-extern int screen_garbaged;
+#include "dispextern.h"
 
 Lisp_Object Qrun, Qstop, Qsignal, Qopen, Qclosed;
 /* Qexit is declared and initialized in eval.c.  */
@@ -419,6 +418,13 @@ allocate_pty ()
   register c, i;
   int fd;
 
+  /* Some systems name their pseudoterminals so that there are gaps in
+     the usual sequence - for example, on HP9000/S700 systems, there
+     are no pseudoterminals with names ending in 'f'.  So we wait for
+     three failures in a row before deciding that we've reached the
+     end of the ptys.  */
+  int failed_count = 0;
+
 #ifdef PTY_ITERATION
   PTY_ITERATION
 #else
@@ -440,20 +446,27 @@ allocate_pty ()
 #endif /* not HPUX */
 #endif /* no PTY_NAME_SPRINTF */
 
-#ifndef IRIS
-	if (stat (pty_name, &stb) < 0)
-	  return -1;
-#ifdef O_NONBLOCK
-	fd = open (pty_name, O_RDWR | O_NONBLOCK, 0);
-#else
-	fd = open (pty_name, O_RDWR | O_NDELAY, 0);
-#endif
-#else /* Unusual IRIS code */
+#ifdef IRIS
+	/* Unusual IRIS code */
  	*ptyv = open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
  	if (fd < 0)
  	  return -1;
 	if (fstat (fd, &stb) < 0)
 	  return -1;
+#else
+	if (stat (pty_name, &stb) < 0)
+	  {
+	    failed_count++;
+	    if (failed_count >= 3)
+	      return -1;
+	  }
+	else
+	  failed_count = 0;
+#ifdef O_NONBLOCK
+	fd = open (pty_name, O_RDWR | O_NONBLOCK, 0);
+#else
+	fd = open (pty_name, O_RDWR | O_NDELAY, 0);
+#endif
 #endif /* IRIS */
 
 	if (fd >= 0)
@@ -1742,11 +1755,6 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (!read_kbd)
 	FD_CLR (0, &Available);
 
-      /* If a screen has been newly mapped and needs updating,
-	 reprocess its display stuff.  */
-      if (screen_garbaged)
-	redisplay_preserve_echo_area ();
-
       if (read_kbd && detect_input_pending ())
 	nfds = 0;
       else
@@ -1828,6 +1836,16 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       if (! wait_proc)
 	got_some_input |= nfds > 0;
+
+      /* If checking input just got us a size-change event from X,
+	 obey it now if we should.  */
+      if (read_kbd)
+	do_pending_window_change ();
+
+      /* If screen size has changed, redisplay now
+	 for either sit-for or keyboard input.  */
+      if (read_kbd && screen_garbaged)
+	redisplay_preserve_echo_area ();
 
       /* Check for data from a process or a command channel */
       for (channel = FIRST_PROC_DESC; channel < MAXDESC; channel++)

@@ -2104,9 +2104,10 @@ gobble_input (expected)
 #ifdef SIGIO
   if (interrupt_input)
     {
-      SIGMASKTYPE mask = sigblockx (SIGIO);
+      SIGMASKTYPE mask;
+      EMACS_SIGBLOCKX (SIGIO, mask);
       read_avail_input (expected);
-      sigsetmask (mask);
+      EMACS_SIGSETMASK (mask, mask);
     }
   else
 #endif

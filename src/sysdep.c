@@ -638,7 +638,11 @@ reset_sigio ()
 request_sigio ()
 {
 #ifdef SIGWINCH
-  sigunblock (sigmask (SIGWINCH));
+  {
+    int dummy;
+
+    EMACS_SIGUNBLOCKX (SIGWINCH, dummy);
+  }
 #endif
   fcntl (0, F_SETFL, old_fcntl_flags | FASYNC);
 
@@ -648,7 +652,11 @@ request_sigio ()
 unrequest_sigio ()
 {
 #ifdef SIGWINCH
-  sigblock (sigmask (SIGWINCH));
+  {
+    int dummy;
+    
+    EMACS_SIGBLOCK (SIGWINCH, dummy);
+  }
 #endif
   fcntl (0, F_SETFL, old_fcntl_flags);
   interrupts_deferred = 1;

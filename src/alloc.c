@@ -551,8 +551,9 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   register struct Lisp_Marker *p;
   /* Detact the bug that seems to have caused this to be called from
      a signal handler.  */
-  int mask = sigsetmask (-1);
-  sigsetmask (mask);
+  int mask, dummy;
+  EMACS_SIGSETMASK (-1, mask);
+  EMACS_SIGSETMASK (mask, dummy);
   if (mask != 0)
     abort ();
 
