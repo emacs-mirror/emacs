@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -593,10 +592,14 @@ loaded and the keystroke automatically re-typed."
 
 
 ;;; Coerce A to be an integer (by truncation toward zero).  [I N] [Public]
-(defun math-trunc (a &optional prec)
-  (cond (prec
+
+;; The variable math-trunc-prec is local to math-trunc, but used by
+;; math-trunc-fancy in calc-arith.el, which is called by math-trunc.
+
+(defun math-trunc (a &optional math-trunc-prec)
+  (cond (math-trunc-prec
 	 (calc-extensions)
-	 (math-trunc-special a prec))
+	 (math-trunc-special a math-trunc-prec))
 	((Math-integerp a) a)
 	((Math-looks-negp a)
 	 (math-neg (math-trunc (math-neg a))))
@@ -607,10 +610,14 @@ loaded and the keystroke automatically re-typed."
 (defalias 'calcFunc-trunc 'math-trunc)
 
 ;;; Coerce A to be an integer (by truncation toward minus infinity).  [I N]
-(defun math-floor (a &optional prec)    ;  [Public]
-  (cond (prec
+
+;; The variable math-floor-prec is local to math-floor, but used by
+;; math-floor-fancy in calc-arith.el, which is called by math-floor.
+
+(defun math-floor (a &optional math-floor-prec)    ;  [Public]
+  (cond (math-floor-prec
 	 (calc-extensions)
-	 (math-floor-special a prec))
+	 (math-floor-special a math-floor-prec))
 	((Math-integerp a) a)
 	((Math-messy-integerp a) (math-trunc a))
 	((Math-realp a)
