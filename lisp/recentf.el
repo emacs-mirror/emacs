@@ -143,8 +143,8 @@ displayed in the menu and must return a new list of filenames."
   :type 'boolean
   :set  '(lambda (sym val)
            (if val
-               (remove-hook kill-buffer-hook recentf-remove-file-hook)
-             (add-hook kill-buffer-hook recentf-remove-file-hook))
+               (remove-hook 'kill-buffer-hook 'recentf-remove-file-hook)
+             (add-hook 'kill-buffer-hook 'recentf-remove-file-hook))
            (custom-set-default sym val)))
 
 (defcustom recentf-mode nil
