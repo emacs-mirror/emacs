@@ -430,12 +430,10 @@ int flow_control;
 #endif
 #endif
 
-/* If we support X Windows, and won't get an interrupt when input
-   arrives from the server, poll periodically so we can detect C-g.  */
+/* If we support X Windows, turn on the code to poll periodically
+   to detect C-g.  It isn't actually used when doing interrupt input.  */
 #ifdef HAVE_X_WINDOWS
-#ifndef SIGIO
 #define POLL_FOR_INPUT
-#endif
 #endif
 
 /* Global variable declarations.  */
@@ -1231,7 +1229,7 @@ input_poll_signal ()
 start_polling ()
 {
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook)
+  if (read_socket_hook && !interrupt_input)
     {
       poll_suppress_count--;
       if (poll_suppress_count == 0)
@@ -1249,7 +1247,7 @@ start_polling ()
 stop_polling ()
 {
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook)
+  if (read_socket_hook && !interrupt_input)
     {
       if (poll_suppress_count == 0)
 	{
@@ -4932,7 +4930,11 @@ See also `current-input-mode'.")
   if (!NILP (quit)
       && (XTYPE (quit) != Lisp_Int
 	  || XINT (quit) < 0 || XINT (quit) > 0400))
-    error ("set-input-mode: QUIT must be an ASCII character.");
+    error ("set-input-mode: QUIT must be an ASCII character");
+
+#ifdef POLL_FOR_INPUT
+  stop_polling ();
+#endif
 
   reset_sys_modes ();
 #ifdef SIGIO
@@ -4962,6 +4964,11 @@ See also `current-input-mode'.")
     quit_char = XINT (quit) & (meta_key ? 0377 : 0177);
 
   init_sys_modes ();
+
+#ifdef POLL_FOR_INPUT
+  poll_suppress_count = 1;
+  start_polling ();
+#endif
   return Qnil;
 }
 
