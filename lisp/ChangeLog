@@ -1,3 +1,17 @@
+1999-11-26  Dave Love  <fx@gnu.org>
+
+	* progmodes/make-mode.el (makefile-mode-hook): Customize.
+
+	* font-lock.el: Doc fixes.
+
+	* menu-bar.el (menu-bar-mode): Customize.
+
+	* cus-start.el: Add use-dialog-box.
+
+	* add-log.el (change-log-mode-hook): Customize.
+	(add-log-current-defun): Use
+	fortran-{beginning,end}-of-subprogram.	
+
 1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* emacs-lisp/advice.el: Many doc fixes.
@@ -2742,7 +2756,7 @@
 
 	* fortran.el (fortran-mode-syntax-table): Change `\' to `\'
 	syntax.
-	(fortran-fontify-string, fortran-match-!-commen): Deleted.
+	(fortran-fontify-string, fortran-match-!-comment): Deleted.
 	(fortran-font-lock-syntactic-keywords): New variable.
 	(fortran-mode): Use it.
 	(fortran-font-lock-keywords-1): Don't do comments.
