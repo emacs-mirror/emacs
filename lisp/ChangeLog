@@ -1,3 +1,8 @@
+2005-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* wid-edit.el (widget-specify-button): If mouse pointer shape
+	cannot be changed, use mouse face instead.
+
 2005-01-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)

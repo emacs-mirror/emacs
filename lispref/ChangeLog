@@ -1,3 +1,17 @@
+2005-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Describe the help-echo event.
+
+	* text.texi (Special Properties) <help-echo>: Use `pos'
+	consistently in description of the help-echo property.  Use
+	@code{nil} instead of @var{nil}.
+
+	* display.texi (Overlay Properties): Fix the index entry for
+	help-echo overlay property.
+
+	* customize.texi (Type Keywords): Uncomment the xref to the
+	help-echo property documentation.
+
 2005-01-23  Kim F. Storm  <storm@cua.dk>
 
 	* windows.texi (Window Start): Fix `pos-visible-in-window-p'
