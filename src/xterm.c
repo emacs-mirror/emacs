@@ -5590,8 +5590,11 @@ Check the DISPLAY environment variable or use \"-d\"\n",
   x_watch_cut_buffer_cache ();
 #endif
 
+#ifdef subprocesses
+  /* This is only needed for distinguishing keyboard and process input.  */
   if (ConnectionNumber (x_current_display) != 0)
     change_keyboard_wait_descriptor (ConnectionNumber (x_current_display));
+#endif
   change_input_fd (ConnectionNumber (x_current_display));
 
 #ifndef F_SETOWN_BUG

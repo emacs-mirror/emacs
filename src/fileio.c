@@ -753,7 +753,13 @@ See also the function `substitute-in-file-name'.")
      The EQ test avoids infinite recursion.  */
   if (! NILP (defalt) && !EQ (defalt, name)
       /* This saves time in a common case.  */
+#ifdef MSDOS
+      && (XSTRING (defalt)->size < 3
+	  || XSTRING (defalt)->data[1] != ':'
+	  || XSTRING (defalt)->data[2] != '/'))
+#else
       && XSTRING (defalt)->data[0] != '/')
+#endif
     {
       struct gcpro gcpro1;
 

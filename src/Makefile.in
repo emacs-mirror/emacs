@@ -455,6 +455,17 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #define MKTIME_OBJ mktime.o
 #endif
 
+#ifdef MSDOS
+#ifdef HAVE_X_WINDOWS
+#define MSDOS_OBJ dosfns.o msdos.o
+#else
+#define MSDOS_OBJ dosfns.o msdos.o xfaces.o xmenu.o
+#endif
+#else
+#define MSDOS_OBJ
+#endif
+
+
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs. */
 obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
@@ -468,7 +479,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
 	region-cache.o \
-	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ
+	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ MSDOS_OBJ
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -551,7 +562,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef MSDOS
-#define MSDOS_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}disp-tab.elc ${lispdir}dos-fns.elc ${lispdir}mouse.elc
+#define MSDOS_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}disp-tab.elc ${lispdir}dos-fns.elc ${lispdir}mouse.elc ${lispdir}faces.elc
 #else
 #define MSDOS_SUPPORT
 #endif
@@ -808,6 +819,7 @@ dispnew.o: dispnew.c commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h $(config_h)
 doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o: doprnt.c $(config_h)
+dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
 emacs.o: emacs.c commands.h systty.h syssignal.h process.h INTERVAL_SRC $(config_h) 
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h) 
@@ -825,6 +837,8 @@ keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h $(config_h)
 malloc.o: malloc.c $(config_h)
+msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h \
+   termopts.h frame.h window.h $(config_h)
 mktime.o: mktime.c $(config_h)
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)

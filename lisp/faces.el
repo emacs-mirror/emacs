@@ -842,7 +842,7 @@ selected frame."
 
   (let ((frames (frame-list)))
     (while frames
-      (if (eq (framep (car frames)) 'x)
+      (if (framep (car frames))
 	  (let ((frame (car frames))
 		(rest global-face-data))
 	    (while rest

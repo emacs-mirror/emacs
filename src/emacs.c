@@ -787,6 +787,11 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #endif /* HAVE_X_MENU */
 #endif /* HAVE_X_WINDOWS */
 
+#if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
+      syms_of_xfaces ();
+      syms_of_xmenu ();
+#endif
+
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
 #endif

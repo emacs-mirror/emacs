@@ -3184,6 +3184,8 @@ init_window_once ()
 #else /* not MULTI_FRAME */
   extern Lisp_Object get_minibuffer ();
 
+  selected_frame = last_nonminibuf_frame = &the_only_frame;
+
   minibuf_window = make_window ();
   FRAME_ROOT_WINDOW (selected_frame) = make_window ();
 

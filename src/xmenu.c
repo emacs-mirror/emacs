@@ -42,9 +42,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "blockinput.h"
 #include "puresize.h"
 
+#ifdef HAVE_X_WINDOWS
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
 #include "xterm.h"
+#endif
 
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
@@ -54,7 +56,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "dispextern.h"
 
+#ifdef HAVE_X_WINDOWS
 #include "../oldXMenu/XMenu.h"
+#endif
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Xlib.h>
@@ -759,7 +763,6 @@ cached information about equivalent key sequences.")
       if (FRAMEP (window))
 	{
 	  f = XFRAME (window);
-
 	  xpos = 0;
 	  ypos = 0;
 	}
@@ -1969,11 +1972,13 @@ xdialog_show (f, menubarp, keymaps, title, error)
     }
  pop_down:
 
+#ifdef HAVE_X_WINDOWS
   /* State that no mouse buttons are now held.
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now
      or track this in the loop above.  */
   x_mouse_grabbed = 0;
+#endif
 
   /* Unread any events that we got but did not handle.  */
   while (queue != NULL) 
@@ -2071,6 +2076,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       return Qnil;
     }
 
+#ifdef HAVE_X_WINDOWS
   /* Adjust coordinates to relative to the outer (window manager) window.  */
   {
     Window child;
@@ -2097,6 +2103,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	y += win_y;
       }
   }
+#endif /* HAVE_X_WINDOWS */
 
   /* Adjust coordinates to be root-window-relative.  */
   x += f->display.x->left_pos;
@@ -2282,11 +2289,13 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     }
   XMenuDestroy (XDISPLAY menu);
 
+#ifdef HAVE_X_WINDOWS
   /* State that no mouse buttons are now held.
      (The oldXMenu code doesn't track this info for us.)
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now.  */
   x_mouse_grabbed = 0;
+#endif
 
   return entry;
 }

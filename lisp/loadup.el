@@ -100,12 +100,16 @@
     (progn
       (load "ls-lisp")
       (garbage-collect)
-      (load "mouse")
-      (garbage-collect)
       (load "dos-fns")
       (garbage-collect)
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
-      (garbage-collect)))
+      (garbage-collect)
+      (if (not (fboundp 'delete-frame))
+	  (progn
+	    (load "mouse")
+	    (garbage-collect)
+	    (load "faces")
+	    (garbage-collect)))))
 (if (fboundp 'atan)	; preload some constants and 
     (progn		; floating pt. functions if 
       (garbage-collect)	; we have float support.
@@ -156,7 +160,8 @@
 			   "-"
 			   (substring name (match-end 0)))))
       (if (eq system-type 'ms-dos)
-	  (setq name (expand-file-name "../etc/DOC"))
+	  (setq name (expand-file-name
+		      (if (fboundp 'make-frame) "DOC-X" "DOC") "../etc"))
 	(setq name (concat (expand-file-name "../etc/DOC-") name))
 	(if (file-exists-p name)
 	    (delete-file name))

@@ -1148,7 +1148,11 @@ init_sys_modes ()
 
   EMACS_GET_TTY (input_fd, &old_tty);
 
+#ifdef HAVE_X_WINDOWS
+  /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
+     needs the initialization code below.  */
   if (!read_socket_hook && EQ (Vwindow_system, Qnil))
+#endif
     {
       tty = old_tty;
 
@@ -1300,7 +1304,8 @@ init_sys_modes ()
       tty.ltchars = new_ltchars;
 #endif /* HAVE_LTCHARS */
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
-      internal_terminal_init ();
+      if (!term_initted)
+	internal_terminal_init ();
       dos_ttraw ();
 #endif
 
@@ -1510,9 +1515,22 @@ reset_sys_modes ()
     }
   if (!term_initted)
     return;
+#ifdef HAVE_X_WINDOWS
+  /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
+     needs the clean-up code below.  */
   if (read_socket_hook || !EQ (Vwindow_system, Qnil))
     return;
+#endif
   cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
+#ifdef MSDOS
+  if (!EQ (Vwindow_system, Qnil))
+    {
+      /* Change to grey on white.  */
+      putchar ('\e');
+      putchar ('A');
+      putchar (7);
+    }
+#endif
   clear_end_of_line (FRAME_WIDTH (selected_frame));
   /* clear_end_of_line may move the cursor */
   cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
@@ -1704,11 +1722,7 @@ kbd_input_ast ()
       struct input_event e;
       e.kind = ascii_keystroke;
       XSETINT (e.code, c);
-#ifdef MULTI_FRAME
       XSETFRAME (e.frame_or_window, selected_frame);
-#else
-      e.frame_or_window = Qnil;
-#endif
       kbd_buffer_store_event (&e);
     }
   if (input_available_clear_time)

@@ -25,9 +25,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 #include "lisp.h"
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
 
+#ifdef HAVE_X_WINDOWS
 #include "xterm.h"
+#endif
+#ifdef MSDOS
+#include "dosfns.h"
+#endif
 #include "buffer.h"
 #include "dispextern.h"
 #include "frame.h"
@@ -35,6 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "intervals.h"
 
+#ifdef HAVE_X_WINDOWS
 /* Compensate for bug in Xos.h on some systems, on which it requires
    time.h.  On some such systems, Xos.h tries to redefine struct
    timeval and struct timezone if USG is #defined while it is
@@ -52,7 +58,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/Xos.h>
 
 #endif
-
+#endif /* HAVE_X_WINDOWS */
 
 /* An explanation of the face data structures.  */
 
@@ -205,6 +211,7 @@ face_eql (face1, face2)
 
 /* Managing graphics contexts of faces.  */
 
+#ifdef HAVE_X_WINDOWS
 /* Given a computed face, construct its graphics context if necessary.  */
 
 struct face *
@@ -454,6 +461,55 @@ load_pixmap (f, name, w_ptr, h_ptr)
 
   return bitmap_id;
 }
+
+#else /* !HAVE_X_WINDOWS */
+
+/* Stubs for MSDOS when not under X.  */
+
+struct face *
+intern_face (f, face)
+     struct frame *f;
+     struct face *face;
+{
+  return face;
+}
+
+void
+clear_face_cache ()
+{
+  /* No action.  */
+}
+
+static void
+build_face (f, face)
+     struct frame *f;
+     struct face *face;
+{
+  face->gc = 1;
+}
+
+#ifdef MSDOS
+unsigned long
+load_color (f, name)
+     FRAME_PTR f;
+     Lisp_Object name;
+{
+  Lisp_Object result;
+
+  if (NILP (name))
+    return FACE_DEFAULT;
+
+  CHECK_STRING (name, 0);
+  result = call1 (Qmsdos_color_translate, name);
+  if (INTEGERP (result))
+    return XINT (result);
+  else
+    Fsignal (Qerror, Fcons (build_string ("undefined color"),
+			    Fcons (name, Qnil)));
+}
+#endif
+#endif /* !HAVE_X_WINDOWS */
+
 
 /* Managing parameter face arrays for frames. */
 
@@ -471,6 +527,7 @@ init_frame_faces (f)
   new_computed_face (f, FRAME_PARAM_FACES (f)[1]);
   recompute_basic_faces (f);
 
+#ifdef MULTI_FRAME
   /* Find another X frame.  */
   {
     Lisp_Object tail, frame, result;
@@ -499,6 +556,7 @@ init_frame_faces (f)
 	    ensure_face_ready (f, i);
       }
   }
+#endif /* MULTI_FRAME */
 }
 
 
@@ -627,6 +685,7 @@ ensure_face_ready (f, id)
     FRAME_PARAM_FACES (f) [id] = allocate_face ();
 }
 
+#ifdef HAVE_X_WINDOWS
 /* Return non-zero if FONT1 and FONT2 have the same width.
    We do not check the height, because we can now deal with
    different heights.
@@ -667,6 +726,7 @@ frame_update_line_height (f)
   f->display.x->line_height = biggest;
   return 1;
 }
+#endif /* not HAVE_X_WINDOWS */
 
 /* Modify face TO by copying from FROM all properties which have
    nondefault settings.  */
@@ -1001,18 +1061,17 @@ DEFUN ("make-face-internal", Fmake_face_internal, Smake_face_internal, 1, 1, 0,
   (face_id)
      Lisp_Object face_id;
 {
-  Lisp_Object rest;
+  Lisp_Object rest, frame;
   int id = XINT (face_id);
 
   CHECK_NUMBER (face_id, 0);
   if (id < 0 || id >= next_face_id)
     error ("Face id out of range");
 
-  for (rest = Vframe_list; !NILP (rest); rest = XCONS (rest)->cdr)
+  FOR_EACH_FRAME (rest, frame)
     {
-      struct frame *f = XFRAME (XCONS (rest)->car);
-      if (FRAME_X_P (f))
-	ensure_face_ready (f, id);
+      if (FRAME_X_P (XFRAME (frame)))
+	ensure_face_ready (XFRAME (frame), id);
     }
   return Qnil;
 }
@@ -1046,6 +1105,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
 
   if (EQ (attr_name, intern ("font")))
     {
+#if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
+      face->font = 0; /* The one and only font.  */
+#else
       XFontStruct *font = load_font (f, attr_value);
       if (face->font != f->display.x->font)
 	unload_font (f, face->font);
@@ -1055,6 +1117,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
       /* Must clear cache, since it might contain the font
 	 we just got rid of.  */
       garbaged = 1;
+#endif
     }
   else if (EQ (attr_name, intern ("foreground")))
     {
@@ -1067,6 +1130,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
     {
       unsigned long new_color = load_color (f, attr_value);
       unload_color (f, face->background);
+#if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
+      new_color &= ~8;  /* Bright would give blinking characters.  */
+#endif
       face->background = new_color;
       garbaged = 1;
     }
@@ -1147,7 +1213,9 @@ syms_of_xfaces ()
 The region is highlighted with this face\n\
 when Transient Mark mode is enabled and the mark is active.");
 
+#ifdef HAVE_X_WINDOWS
   defsubr (&Spixmap_spec_p);
+#endif
   defsubr (&Sframe_face_alist);
   defsubr (&Sset_frame_face_alist);
   defsubr (&Smake_face_internal);
@@ -1155,5 +1223,4 @@ when Transient Mark mode is enabled and the mark is active.");
   defsubr (&Sinternal_next_face_id);
 }
 
-#endif /* HAVE_X_WINDOWS */
-
+#endif /* HAVE_FACES */

@@ -64,7 +64,14 @@ init_editfns ()
 #endif /* not CANNOT_DUMP */
 
   pw = (struct passwd *) getpwuid (getuid ());
+#ifdef MSDOS
+  /* We let the real user name default to "root" because that's quite
+     accurate on MSDOG and because it lets Emacs find the init file.
+     (The DVX libraries override the Djgpp libraries here.)  */
+  Vuser_real_name = build_string (pw ? pw->pw_name : "root");
+#else
   Vuser_real_name = build_string (pw ? pw->pw_name : "unknown");
+#endif
 
   /* Get the effective user name, by consulting environment variables,
      or the effective uid if those are unset.  */
@@ -483,19 +490,30 @@ If POS is out of range, the value is nil.")
   return val;
 }
 
-DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 0, 0,
+DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 1, 0,
   "Return the name under which the user logged in, as a string.\n\
 This is based on the effective uid, not the real uid.\n\
 Also, if the environment variable LOGNAME or USER is set,\n\
-that determines the value of this function.")
-  ()
+that determines the value of this function.\n\n\
+If optional argument UID is an integer, return the login name of the user\n\
+with that uid, or nil if there is no such user.")
+  (uid)
+     Lisp_Object uid;
 {
+  struct passwd *pw;
+
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
   if (INTEGERP (Vuser_name))
     init_editfns ();
-  return Vuser_name;
+
+  if (NILP (uid))
+    return Vuser_name;
+
+  CHECK_NUMBER (uid, 0);
+  pw = (struct passwd *) getpwuid (XINT (uid));
+  return (pw ? build_string (pw->pw_name) : Qnil);
 }
 
 DEFUN ("user-real-login-name", Fuser_real_login_name, Suser_real_login_name,

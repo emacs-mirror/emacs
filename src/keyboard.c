@@ -2228,7 +2228,7 @@ kbd_buffer_get_event ()
 	}
 #endif
 
-#if defined(MULTI_FRAME) || defined(HAVE_MOUSE)
+#if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
       /* If we didn't decide to make a switch-frame event, go ahead and 
 	 return a mouse-motion event.  */
       if (NILP (obj))
@@ -2617,7 +2617,7 @@ make_lispy_event (event)
 				   / sizeof (lispy_function_keys[0])));
       break;
 
-#if defined(MULTI_FRAME) || defined(HAVE_MOUSE)
+#if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
       /* A mouse click.  Figure out where it is, decide whether it's 
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
@@ -2861,7 +2861,7 @@ make_lispy_event (event)
     }
 }
 
-#if defined(MULTI_FRAME) || defined(HAVE_MOUSE)
+#if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
 
 static Lisp_Object
 make_lispy_movement (frame, bar_window, part, x, y, time)
@@ -3430,7 +3430,6 @@ gobble_input (expected)
       sigsetmask (mask);
     }
   else
-#endif
 #ifdef POLL_FOR_INPUT
   if (read_socket_hook && !interrupt_input && poll_suppress_count == 0)
     {
@@ -3440,6 +3439,7 @@ gobble_input (expected)
       sigsetmask (mask);
     }
   else
+#endif
 #endif
     read_avail_input (expected);
 #endif
@@ -4058,8 +4058,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   if (mapno >= nmaps)
     return Qnil;
 
-#ifdef HAVE_X_WINDOWS
-#ifdef HAVE_X_MENU
+#if (defined (HAVE_X_WINDOWS) && defined (HAVE_X_MENU)) || defined (MSDOS)
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
   if (EVENT_HAS_PARAMETERS (prev_event))
@@ -4091,8 +4090,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	*used_mouse_menu = 1;
       return value;
     }
-#endif /* HAVE_X_MENU */
-#endif /* HAVE_X_WINDOWS */
+#endif /* (HAVE_X_WINDOWS && HAVE_X_MENU) || MSDOS */
   return Qnil ;
 }
 

@@ -300,7 +300,7 @@ This should be bound to a mouse drag event."
 	(goto-char (posn-point posn)))
     ;; If mark is highlighted, no need to bounce the cursor.
     (or (and transient-mark-mode
-	     (eq (framep (selected-frame)) 'x))
+	     (framep (selected-frame)))
 	(sit-for 1))
     (push-mark)
     (set-mark (point))

@@ -29,11 +29,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* First define a measure of the amount of data we have.  */
 
+/* A system configuration file may set this to request a certain extra
+   amount of storage.  This is a lot more update-robust that defining
+   BASE_PURESIZE or even PURESIZE directly.  */
+#ifndef SYSTEM_PURESIZE_EXTRA
+#define SYSTEM_PURESIZE_EXTRA 0
+#endif
+
 #ifndef BASE_PURESIZE
 #ifdef MULTI_FRAME
-#define BASE_PURESIZE 265000
+#define BASE_PURESIZE (265000 + SYSTEM_PURESIZE_EXTRA)
 #else
-#define BASE_PURESIZE 220000
+#define BASE_PURESIZE (220000 + SYSTEM_PURESIZE_EXTRA)
 #endif
 #endif
 

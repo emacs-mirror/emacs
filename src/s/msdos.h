@@ -169,7 +169,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define ORDINARY_LINK
 
-/* command.com does not under stand `...` so we define this.  */
+/* command.com does not understand `...` so we define this.  */
 #define LIB_GCC -Lgcc
 #define DONT_NEED_ENVIRON
 #define SEPCHAR ';'
@@ -215,8 +215,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Mode line description of a buffer's type.  */
 #define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
 
-/* We need a little extra space, see ../../lisp/loadup.el */
-#define PURESIZE 240000
-
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
+
+/* We have support for faces.  */
+#define HAVE_FACES
+
+/* Define one of these for easier conditionals.  */
+#ifdef HAVE_X_WINDOWS
+/* We need a little extra space, see ../../lisp/loadup.el */
+#define SYSTEM_PURESIZE_EXTRA 15000
+#define HAVE_X11R5
+#define LIBX11_SYSTEM -lxext -lsys
+#else
+/* We need a little extra space, see ../../lisp/loadup.el */
+#define SYSTEM_PURESIZE_EXTRA 30000
+#endif

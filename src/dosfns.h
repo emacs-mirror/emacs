@@ -21,3 +21,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern int dos_country_code;
 extern int dos_codepage;
 extern Lisp_Object Vdos_version;
+#ifndef HAVE_X_WINDOWS
+extern Lisp_Object Qmsdos_color_translate;
+#endif

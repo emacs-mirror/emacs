@@ -4,7 +4,6 @@
 s/^#.*//
 s/^[ \f\t][ \f\t]*$//
 s/^ /	/
-/^obj=/s!$! dosfns.o msdos.o!
 s/\.h\.in/.h-in/
 s!^	\./temacs!	go32 temacs!
 s!/bin/sh!command.com!
@@ -19,7 +18,9 @@ s!/bin/sh!command.com!
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
+/^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
-/^.\${libsrc}make-docfile/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-docfile/s/\$/go32 $/
 /^[ 	]*$/d
+/^temacs:/s/prefix-args//
+/^	#/d

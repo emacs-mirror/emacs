@@ -697,7 +697,7 @@ typedef unsigned char UCHAR;
    pretty quickly.  */
 #define GLYPH unsigned int
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
 /* The FAST macros assume that we already know we're in an X window.  */
 
 /* Given a character code and a face ID, return the appropriate glyph.  */
@@ -714,11 +714,11 @@ typedef unsigned char UCHAR;
 				   : FAST_MAKE_GLYPH (char, face))
 #define GLYPH_CHAR(f, g) (FRAME_TERMCAP_P (f) ? (g) : FAST_GLYPH_CHAR (g))
 #define GLYPH_FACE(f, g) (FRAME_TERMCAP_P (f) ? (0) : FAST_GLYPH_FACE (g))
-#else
+#else /* not HAVE_FACES */
 #define MAKE_GLYPH(f, char, face) (char)
 #define GLYPH_CHAR(f, g) (g)
 #define GLYPH_FACE(f, g) (g)
-#endif
+#endif /* not HAVE_FACES */
 
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
@@ -744,7 +744,15 @@ typedef unsigned char UCHAR;
 #define BUFFERP(x) (XTYPE ((x)) == Lisp_Buffer)
 #define SUBRP(x) (XTYPE ((x)) == Lisp_Subr)
 #define PROCESSP(x) (XTYPE ((x)) == Lisp_Process)
+#ifdef MULTI_FRAME
 #define FRAMEP(x) (XTYPE ((x)) == Lisp_Frame)
+#else
+#ifdef MSDOS
+/* We could use this in the !MSDOS case also, but we prefer a compile-time
+   error message in case FRAMEP is used.  */
+#define FRAMEP(x) (EQ (x, Fselected_frame ()))
+#endif
+#endif
 #define WINDOWP(x) (XTYPE ((x)) == Lisp_Window)
 #define WINDOW_CONFIGURATIONP(x) (XTYPE ((x)) == Lisp_Window_Configuration)
 #ifdef LISP_FLOAT_TYPE

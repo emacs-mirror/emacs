@@ -37,7 +37,7 @@ extern int message_buf_print;
    having miscellaneous random variables scattered about.  */
 
 enum output_method
-{ output_termcap, output_x_window };
+{ output_termcap, output_x_window, output_msdos_raw };
 
 struct frame
 {
@@ -382,23 +382,35 @@ extern Lisp_Object Vterminal_frame;
 
 /* These definitions are used in a single-frame version of Emacs.  */
 
-#define FRAME_PTR int
-
 /* A frame we use to store all the data concerning the screen when we
    don't have multiple frames.  Remember, if you store any data in it
    which needs to be protected from GC, you should staticpro that
    element explicitly.  */
 extern struct frame the_only_frame;
 
-extern EMACS_INT selected_frame;
-extern EMACS_INT last_nonminibuf_frame;
+typedef struct frame *FRAME_PTR;
+#ifdef __GNUC__
+/* A function call for always getting 0 is overkill, so... */
+#define WINDOW_FRAME(w) ({ Lisp_Object tem; XSETFASTINT (tem, 0); tem; })
+#else
+#define WINDOW_FRAME(w) (Fselected_frame ())
+#endif
+#define XSETFRAME(p, v) (p = WINDOW_FRAME (***bogus***))
+#define XFRAME(frame) (&the_only_frame)
 
-#define XFRAME(f) selected_frame
-#define WINDOW_FRAME(w) selected_frame
+extern FRAME_PTR selected_frame;
+extern FRAME_PTR last_nonminibuf_frame;
 
 #define FRAME_LIVE_P(f) 1
+#ifdef MSDOS
+/* The following definitions could also be used in the non-MSDOS case,
+   but the constants below lead to better code.  */
+#define FRAME_TERMCAP_P(f) (the_only_frame.output_method == output_termcap)
+#define FRAME_X_P(f) (the_only_frame.output_method != output_termcap)
+#else
 #define FRAME_TERMCAP_P(f) 1
 #define FRAME_X_P(f) 0
+#endif
 #define FRAME_MINIBUF_ONLY_P(f) 0
 #define FRAME_HAS_MINIBUF_P(f) 1
 #define FRAME_CURRENT_GLYPHS(f) (the_only_frame.current_glyphs)
@@ -455,7 +467,7 @@ extern EMACS_INT last_nonminibuf_frame;
    `for' loop which traverses Vframe_list using LIST_VAR and
    FRAME_VAR.  */
 #define FOR_EACH_FRAME(list_var, frame_var)			\
-  for (list_var = Qt; XSETFASTINT (frame_var, selected_frame), ! NILP (list_var); list_var = Qnil)
+  for (list_var = Qt; frame_var = WINDOW_FRAME (***bogus***), ! NILP (list_var); list_var = Qnil)
 
 #endif /* not MULTI_FRAME */
 

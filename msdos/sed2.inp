@@ -3,7 +3,9 @@
 # ----------------------------------------------------------------------
 /^#undef LISP_FLOAT_TYPE *$/s/undef/define/
 /^#undef GNU_MALLOC *$/s/undef/define/
+# To use the djgpp malloc, deactivate the following line and active the next
 /^#undef REL_ALLOC *$/s/undef/define/
+# /^#define GNU_MALLOC *$/s/GNU_MALLOC/SYSTEM_MALLOC/
 /^#undef HAVE_SYS_TIMEB_H *$/s/undef/define/
 /^#undef HAVE_SYS_TIME_H *$/s/undef/define/
 # /^#undef HAVE_UNISTD_H *$/s/undef/define/
@@ -23,8 +25,10 @@
 /^#undef HAVE_FREXP *$/s/undef/define/
 /^#undef HAVE_FTIME *$/s/undef/define/
 /^#undef HAVE_STRERROR *$/s/undef/define/
+/^#undef HAVE_MKTIME *$/s/undef/define/
 s/^#define USER_FULL_NAME .*$/#define USER_FULL_NAME (getenv ("NAME"))/
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-unknown-msdos"/
+s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "-"/
 s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!

@@ -742,7 +742,7 @@ redisplay ()
     {
       Lisp_Object tail, frame;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
       /* Clear the face cache, only when we do a full redisplay
 	 and not too often either.  */
       if (clear_face_cache_count > 1000)
@@ -1959,7 +1959,7 @@ copy_part_of_rope (f, to, s, from, len, face)
   int last_code = -1;
   int last_merged = 0;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
   if (! FRAME_TERMCAP_P (f))
     while (n--)
       {
@@ -2004,7 +2004,7 @@ fix_glyph (f, glyph, cface)
      GLYPH glyph;
      int cface;
 {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
   if (! FRAME_TERMCAP_P (f))
     {
       if (FAST_GLYPH_FACE (glyph) != 0)
@@ -2273,7 +2273,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    break;
 #endif
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
 	  /* Did we hit a face change?  Figure out what face we should
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
@@ -2329,7 +2329,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
 	  /* Draw the face of the newline character as extending all the 
 	     way to the end of the frame line.  */
 	  if (current_face)
@@ -2366,7 +2366,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev), current_face);
 	    }
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
 	  /* Draw the face of the newline character as extending all the 
 	     way to the end of the frame line.  */
 	  if (current_face)
@@ -2607,7 +2607,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
       if (len > width)
 	len = width;
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
       if (!NULL_INTERVAL_P (XSTRING (Voverlay_arrow_string)->intervals))
 	{
 	  /* If the arrow string has text props, obey them when displaying.  */
@@ -2624,7 +2624,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    }
 	}
       else
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_FACES */
 	{
 	  for (i = 0; i < len; i++)
 	    leftmargin[i] = p[i];
@@ -2727,7 +2727,7 @@ display_mode_line (w)
   if (XFASTINT (w->width) == FRAME_WIDTH (f)
       || XFASTINT (XWINDOW (w->parent)->width) == FRAME_WIDTH (f))
     FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
   else if (! FRAME_TERMCAP_P (f))
     {
       /* For a partial width window, explicitly set face of each glyph. */

@@ -34,7 +34,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "msdos.h"
 #include "systime.h"
 #include "termhooks.h"
+#include "dispextern.h"
+#include "termopts.h"
 #include "frame.h"
+#include "window.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
@@ -355,7 +358,7 @@ dos_rawgetc ()
 		+ (ctrl_p ? ctrl_modifier : 0)
 		  + (alt_p ? meta_modifier : 0);
 	    /* EMACS == Enter Meta Alt Control Shift */
-	    event.frame_or_window = selected_frame;
+	    XSETFRAME (event.frame_or_window, selected_frame);
 	    gettimeofday (&tv, NULL);
 	    event.timestamp = tv.tv_usec;
 	    kbd_buffer_store_event (&event);
@@ -389,7 +392,7 @@ dos_rawgetc ()
 			+ (press ? down_modifier : up_modifier);
 		event.x = x;
 		event.y = y;
-		event.frame_or_window = selected_frame;
+		XSETFRAME (event.frame_or_window, selected_frame);
 		gettimeofday (&tv, NULL);
 		event.timestamp = tv.tv_usec;
 		kbd_buffer_store_event (&event);
@@ -690,9 +693,9 @@ init_environment (argc, argv, skip_args)
 
   /* Find our root from argv[0].  Assuming argv[0] is, say,
      "c:/emacs/bin/emacs.exe" our root will be "c:/emacs".  */
-  len = strlen (argv[0]);
-  root = alloca (len + 10);  /* A little extra space for the stuff below.  */
-  strcpy (root, argv[0]);
+  _fixpath (argv[0], root = alloca (MAXPATHLEN + 20));
+  strlwr (root);
+  len = strlen (root);
   while (len > 0 && root[len] != '/' && root[len] != ':')
     len--;
   root[len] = '\0';
@@ -713,6 +716,11 @@ init_environment (argc, argv, skip_args)
   /* I don't expect anybody to ever use other terminals so the internal
      terminal is the default.  */
   setenv ("TERM", "internal", 0);
+
+#ifdef HAVE_X_WINDOWS
+  /* Emacs expects DISPLAY to be set.  */
+  setenv ("DISPLAY", "unix:0.0", 0);
+#endif
 
   /* SHELL is a bit tricky -- COMSPEC is the closest we come, but we must
      downcase it and mirror the backslashes.  */
@@ -847,6 +855,8 @@ output_string1:
 }
 
 static int internal_terminal = 0;
+static int highlight;
+
 #undef fflush
 
 int
@@ -953,14 +963,241 @@ internal_flush (f)
     fflush (f);
 }
 
+#ifndef HAVE_X_WINDOWS
+static void
+rien_du_tout ()
+{
+  /* Rien du tout, cela va sans dire!  */
+}
+
+static
+IT_ring_bell ()
+{
+  if (visible_bell)
+    {
+      /* This creates an xor-mask that will swap the default fore- and
+	 background colors.  */
+      if (have_mouse) mouse_off ();
+      do_visible_bell (((the_only_x_display.foreground_pixel
+			 ^ the_only_x_display.background_pixel)
+			* 0x11) & 0x7f);
+      if (have_mouse) mouse_on ();
+    }
+  else
+    /* Write it directly to ms-dos -- don't let it go through our terminal
+       emulator.  This way the mouse cursor won't blink.  */
+    write (1, "\007", 1);
+}
+
+static void
+IT_set_face (int face)
+{
+  struct face *fp;
+  extern struct face *intern_face (/* FRAME_PTR, struct face * */);
+
+  if (face == 1 || (face == 0 && highlight))
+    fp = FRAME_MODE_LINE_FACE (foo);
+  else if (face <= 0 || face >= FRAME_N_COMPUTED_FACES (foo))
+    fp = FRAME_DEFAULT_FACE (foo);
+  else
+    fp = intern_face (selected_frame, FRAME_COMPUTED_FACES (foo)[face]);
+  putchar ('\e');
+  putchar ('A');
+  putchar ((FACE_BACKGROUND (fp) << 4) | FACE_FOREGROUND (fp));
+}
+
+static
+IT_write_glyphs (GLYPH *str, int len)
+{
+  int face = -1;
+  int newface;
+
+  while (len > 0)
+    {
+      newface = FAST_GLYPH_FACE (*str);
+      if (newface != face)
+	IT_set_face ((face = newface));
+      putchar (FAST_GLYPH_CHAR (*str));
+      str++, len--;
+    }
+}
+
+static
+IT_clear_end_of_line (first_unused)
+{
+  putchar ('\e');
+  putchar ('E');
+}
+
+static
+IT_cursor_to (int y, int x)
+{
+  putchar ('\e');
+  putchar ('@');
+  putchar (y);
+  putchar (x);
+}
+
+IT_reassert_line_highlight (new, vpos)
+     int new, vpos;
+{
+  highlight = new;
+  IT_set_face (0); /* To possibly clear the highlighting.  */
+}
+
+static
+IT_change_line_highlight (new_highlight, vpos, first_unused_hpos)
+{
+  highlight = new_highlight;
+  IT_set_face (0); /* To possibly clear the highlighting.  */
+  IT_cursor_to (vpos, 0);
+  IT_clear_end_of_line (first_unused_hpos);
+}
+
+static
+IT_update_begin ()
+{
+  highlight = 0;
+  IT_set_face (0); /* To possibly clear the highlighting.  */
+}
+
+/* This was more or less copied from xterm.c */
+static void
+IT_set_menu_bar_lines (window, n)
+  Lisp_Object window;
+  int n;
+{
+  struct window *w = XWINDOW (window);
+
+  XSETFASTINT (w->top, XFASTINT (w->top) + n);
+  XSETFASTINT (w->height, XFASTINT (w->height) - n);
+
+  /* Handle just the top child in a vertical split.  */
+  if (!NILP (w->vchild))
+    IT_set_menu_bar_lines (w->vchild, n);
+
+  /* Adjust all children in a horizontal split.  */
+  for (window = w->hchild; !NILP (window); window = w->next)
+    {
+      w = XWINDOW (window);
+      IT_set_menu_bar_lines (window, n);
+    }
+}
+
+void
+IT_set_frame_parameters (frame, alist)
+     FRAME_PTR frame;
+     Lisp_Object alist;
+{
+  Lisp_Object tail;
+  int redraw;
+  extern unsigned long load_color ();
+  FRAME_PTR f = (FRAME_PTR) &the_only_frame;
+
+  redraw = 0;
+  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+    {
+      Lisp_Object elt, prop, val;
+
+      elt = Fcar (tail);
+      prop = Fcar (elt);
+      val = Fcdr (elt);
+      CHECK_SYMBOL (prop, 1);
+
+      if (EQ (prop, intern ("foreground-color")))
+	{
+	  unsigned long new_color = load_color (f, val);
+	  if (new_color != ~0)
+	    {
+	      FRAME_FOREGROUND_PIXEL (f) = new_color;
+	      redraw = 1;
+	    }
+	}
+      else if (EQ (prop, intern ("background-color")))
+	{
+	  unsigned long new_color = load_color (f, val);
+	  if (new_color != ~0)
+	    {
+	      FRAME_BACKGROUND_PIXEL (f) = new_color & ~8;
+	      redraw = 1;
+	    }
+	}
+      else if (EQ (prop, intern ("menu-bar-lines")))
+	{
+	  int new;
+	  int old = FRAME_MENU_BAR_LINES (the_only_frame);
+
+	  if (INTEGERP (val))
+	    new = XINT (val);
+	  else
+	    new = 0;
+	  FRAME_MENU_BAR_LINES (f) = new;
+	  IT_set_menu_bar_lines (the_only_frame.root_window, new - old);
+	}
+    }
+
+  if (redraw)
+    {
+      recompute_basic_faces (f);
+      Fredraw_frame (Fselected_frame ());
+    }
+}
+
+/* Similar to the_only_frame.  */
+struct x_display the_only_x_display;
+
+/* This is never dereferenced.  */
+Display *x_current_display;
+
+#endif /* !HAVE_X_WINDOWS */
+
 /* Do we need the internal terminal? */
 void
 internal_terminal_init ()
 {
   char *term = getenv ("TERM");
 
+#ifdef HAVE_X_WINDOWS
+  if (!inhibit_window_system)
+    return;
+#endif
+
   internal_terminal
     = (!noninteractive) && term && !strcmp (term, "internal");
+
+#ifndef HAVE_X_WINDOWS
+  if (internal_terminal && !inhibit_window_system)
+    {
+      Vwindow_system = intern ("pc");
+      Vwindow_system_version = make_number (1);
+ 
+      bzero (&the_only_x_display, sizeof the_only_x_display);
+      the_only_x_display.background_pixel = 7; /* White */
+      the_only_x_display.foreground_pixel = 0; /* Black */
+      the_only_x_display.line_height = 1;
+      the_only_frame.display.x = &the_only_x_display;
+      the_only_frame.output_method = output_msdos_raw;
+
+      init_frame_faces ((FRAME_PTR) &the_only_frame);
+
+      ring_bell_hook = IT_ring_bell;
+      write_glyphs_hook = IT_write_glyphs;
+      cursor_to_hook = raw_cursor_to_hook = IT_cursor_to;
+      clear_end_of_line_hook = IT_clear_end_of_line;
+      change_line_highlight_hook = IT_change_line_highlight;
+      update_begin_hook = IT_update_begin;
+      reassert_line_highlight_hook = IT_reassert_line_highlight;
+
+      /* These hooks are called by term.c without being checked.  */
+      set_terminal_modes_hook
+	= reset_terminal_modes_hook
+	  = update_end_hook
+	    = set_terminal_window_hook
+	      = (void *)rien_du_tout;
+    }
+  else
+    the_only_frame.output_method = output_termcap;
+#endif
 }
 
 /* When time zones are set from Ms-Dos too may C-libraries are playing
@@ -1043,10 +1280,9 @@ install_ctrl_break_check ()
     }
 }
 
-
-/* Mouse routines under devellopment follow.  Coordinates are in screen
-   positions and zero based.  Mouse buttons are numbered from left to 
-   right and also zero based.  */
+/* Mouse routines follow.  Coordinates are in screen positions and zero
+   based.  Mouse buttons are numbered from left to right and also zero
+   based.  */
 
 static int mouse_button_translate[NUM_MOUSE_BUTTONS];
 static int mouse_button_count;
@@ -1132,6 +1368,17 @@ mouse_released (b, xp, yp)
   return (regs.x.bx != 0);
 }
 
+static void
+mouse_get_xy (int *x, int *y)
+{
+  union REGS regs;
+
+  regs.x.ax = 0x0003;
+  int86 (0x33, &regs, &regs);
+  *x = regs.x.cx / 8;
+  *y = regs.x.dx / 8;
+}
+
 void
 mouse_get_pos (f, bar_window, part, x, y, time)
      FRAME_PTR *f;
@@ -1139,6 +1386,7 @@ mouse_get_pos (f, bar_window, part, x, y, time)
      enum scroll_bar_part *part;
      unsigned long *time;
 {
+  int ix, iy;
   union REGS regs;
   struct timeval tv;
 
@@ -1147,25 +1395,22 @@ mouse_get_pos (f, bar_window, part, x, y, time)
   *f = selected_frame;
   *bar_window = Qnil;
   gettimeofday (&tv, NULL);
-  *x = make_number (regs.x.cx / 8);
-  *y = make_number (regs.x.dx / 8);
-  *time = tv.tv_usec;
+  mouse_get_xy (&ix, &iy);
   mouse_moved = 0;
+  *x = make_number (ix);
+  *y = make_number (iy);
+  *time = tv.tv_usec;
 }
 
 void
 mouse_check_moved ()
 {
-  union REGS regs;
+  int x, y;
 
-  regs.x.ax = 0x0003;
-  int86 (0x33, &regs, &regs);
-  if (regs.x.cx != mouse_last_x || regs.x.dx != mouse_last_y)
-    {
-      mouse_moved = 1;
-      mouse_last_x = regs.x.cx;
-      mouse_last_y = regs.x.dx;
-    }
+  mouse_get_xy (&x, &y);
+  mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
+  mouse_last_x = x;
+  mouse_last_y = y;
 }
 
 int
@@ -1174,6 +1419,10 @@ mouse_init1 ()
   union REGS regs;
   int present;
 
+#ifdef HAVE_X_WINDOWS
+  if (!inhibit_window_system)
+    return 0;
+#endif
   if (!internal_terminal)
     return 0;
 
@@ -1211,6 +1460,7 @@ mouse_init1 ()
   return present;
 }
 
+#ifndef HAVE_X_WINDOWS
 /* See xterm.c for more info.  */
 void
 pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
@@ -1237,5 +1487,349 @@ glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
   *pix_x = x;
   *pix_y = y;
 }
+
+/* Simulation of X's menus.  Nothing too fancy here -- just make it work
+   for now.
+
+   Actually, I don't know the meaning of all the parameters of the functions
+   here -- I only know how they are called by xmenu.c.  I could of course
+   grab the nearest Xlib manual (down the hall, second-to-last door on the
+   left), but I don't think it's worth the effort.  */
+
+static XMenu *
+IT_menu_create ()
+{
+  XMenu *menu;
+
+  menu = (XMenu *) xmalloc (sizeof (XMenu));
+  menu->allocated = menu->count = menu->panecount = menu->width = 0;
+  return menu;
+}
+
+/* Allocate some (more) memory for MENU ensuring that there is room for one
+   for item.  */
+static void
+IT_menu_make_room (XMenu *menu)
+{
+  if (menu->allocated == 0)
+    {
+      int count = menu->allocated = 10;
+      menu->text = (char **) xmalloc (count * sizeof (char *));
+      menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
+      menu->panenumber = (int *) xmalloc (count * sizeof (int));
+    }
+  else if (menu->allocated == menu->count)
+    {
+      int count = menu->allocated = menu->allocated + 10;
+      menu->text
+	= (char **) xrealloc (menu->text, count * sizeof (char *));
+      menu->submenu
+	= (XMenu **) xrealloc (menu->submenu, count * sizeof (XMenu *));
+      menu->panenumber
+	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
+    }
+}
+
+/* Search the given menu structure for a given pane number.  */
+static XMenu *
+IT_menu_search_pane (XMenu *menu, int pane)
+{
+  int i;
+  XMenu *try;
+
+  for (i = 0; i < menu->count; i++)
+    if (menu->submenu[i])
+      if (pane == menu->panenumber[i])
+	return menu->submenu[i];
+      else
+	if ((try = IT_menu_search_pane (menu->submenu[i], pane)))
+	  return try;
+  return (XMenu *) 0;
+}
+
+/* Determine how much screen space a given menu needs.  */
+static void
+IT_menu_calc_size (XMenu *menu, int *width, int *height)
+{
+  int i, h2, w2, maxsubwidth, maxheight;
+
+  maxsubwidth = 0;
+  maxheight = menu->count;
+  for (i = 0; i < menu->count; i++)
+    {
+      if (menu->submenu[i])
+	{
+	  IT_menu_calc_size (menu->submenu[i], &w2, &h2);
+	  if (w2 > maxsubwidth) maxsubwidth = w2;
+	  if (i + h2 > maxheight) maxheight = i + h2;
+	}
+    }
+  *width = menu->width + maxsubwidth;
+  *height = maxheight;
+}
+
+/* Display MENU at (X,Y) using FACES. */
+static void
+IT_menu_display (XMenu *menu, int y, int x, int *faces)
+{
+  int i, j, face, width;
+  GLYPH *text, *p;
+  char *q;
+  int mx, my;
+  int enabled, mousehere;
+  int row, col;
+
+  width = menu->width;
+  text = (GLYPH *) xmalloc ((width + 2) * sizeof (GLYPH));
+  ScreenGetCursor (&row, &col);
+  mouse_get_xy (&mx, &my);
+  mouse_off ();
+  (*update_begin_hook) ();
+  for (i = 0; i < menu->count; i++)
+    {
+      (*cursor_to_hook) (y + i, x);
+      enabled
+	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
+      mousehere = (y + i == my && x <= mx && mx < x + width + 2);
+      face = faces[enabled + mousehere * 2];
+      p = text;
+      *p++ = FAST_MAKE_GLYPH (' ', face);
+      for (j = 0, q = menu->text[i]; *q; j++)
+	*p++ = FAST_MAKE_GLYPH (*q++, face);
+      for (; j < width; j++)
+	*p++ = FAST_MAKE_GLYPH (' ', face);
+      *p++ = FAST_MAKE_GLYPH (menu->submenu[i] ? 16 : ' ', face);
+      (*write_glyphs_hook) (text, width + 2);
+    }
+  internal_flush (stdout);
+  (*update_end_hook) ();
+  mouse_on ();
+  ScreenSetCursor (row, col);
+  xfree (text);
+}
+
+/* Create a brand new menu structure.  */
+XMenu *
+XMenuCreate (int foo, int bar)
+{
+  return IT_menu_create ();
+}
+
+/* Create a new pane and place it on the outer-most level.  It is not
+   clear that it should be placed out there, but I don't know what else
+   to do.  */
+int
+XMenuAddPane (XMenu *menu, char *txt, int enable)
+{
+  int len;
+
+  if (!enable)
+    abort ();
+
+  IT_menu_make_room (menu);
+  menu->submenu[menu->count] = IT_menu_create ();
+  menu->text[menu->count] = txt;
+  menu->panenumber[menu->count] = ++menu->panecount;
+  menu->count++;
+  if ((len = strlen (txt)) > menu->width) menu->width = len;
+  return menu->panecount;
+}
+
+/* Create a new item in a menu pane.  */
+int
+XMenuAddSelection (XMenu *menu, int pane, int foo, char *txt, int enable)
+{
+  int len;
+
+  if (pane)
+    if (!(menu = IT_menu_search_pane (menu, pane)))
+      return XM_FAILURE;
+  IT_menu_make_room (menu);
+  menu->submenu[menu->count] = (XMenu *) 0;
+  menu->text[menu->count] = txt;
+  menu->panenumber[menu->count] = enable;
+  menu->count++;
+  if ((len = strlen (txt)) > menu->width) menu->width = len;
+  return XM_SUCCESS;
+}
+
+/* Decide where the menu would be placed if requested at (X,Y).  */
+XMenuLocate (XMenu *menu, int foo1, int foo2, int x, int y,
+	     int *ulx, int *uly, int *width, int *height)
+{
+  if (menu->count == 1 && menu->submenu[0])
+      /* Special case: the menu consists of only one pane.  */
+    IT_menu_calc_size (menu->submenu[0], width, height);
+  else
+    IT_menu_calc_size (menu, width, height);
+  *ulx = x + 1;
+  *uly = y;
+  *width += 2;
+}
+
+typedef struct
+{
+  void *screen_behind;
+  XMenu *menu;
+  int pane;
+  int x, y;
+} IT_menu_state;
+
+
+/* Display menu, wait for user's response, and return that response.  */
+int
+XMenuActivate (XMenu *menu, int *pane, int *selidx,
+	       int x0, int y0, unsigned ButtonMask, char **txt)
+{
+  IT_menu_state *state;
+  int statecount;
+  int x, y, i, b;
+  int screensize;
+  int faces[4], selectface;
+  int leave, result, onepane;
+
+  /* Just in case we got here without a mouse present...  */
+  if (!have_mouse)
+    return XM_IA_SELECT;
+
+  state = alloca (menu->panecount * sizeof (IT_menu_state));
+  screensize = ScreenRows () * ScreenCols () * 2;
+  faces[0]
+    = compute_glyph_face (&the_only_frame,
+			  face_name_id_number
+			  (&the_only_frame,
+			   intern ("msdos-menu-passive-face")),
+			  0);
+  faces[1]
+    = compute_glyph_face (&the_only_frame,
+			  face_name_id_number
+			  (&the_only_frame,
+			   intern ("msdos-menu-active-face")),
+			  0);
+  selectface
+    = face_name_id_number (&the_only_frame, intern ("msdos-menu-select-face"));
+  faces[2] = compute_glyph_face (&the_only_frame, selectface, faces[0]);
+  faces[3] = compute_glyph_face (&the_only_frame, selectface, faces[1]);
+
+  statecount = 1;
+  state[0].menu = menu;
+  mouse_off ();
+  ScreenRetrieve (state[0].screen_behind = xmalloc (screensize));
+  mouse_on ();
+  if ((onepane = menu->count == 1 && menu->submenu[0]))
+    {
+      menu->width = menu->submenu[0]->width;
+      state[0].menu = menu->submenu[0];
+    }
+  else
+    {
+      state[0].menu = menu;
+    }
+  state[0].x = x0 - 1;
+  state[0].y = y0;
+  state[0].pane = onepane;
+
+  mouse_last_x = -1;  /* A hack that forces display.  */
+  leave = 0;
+  while (!leave)
+    {
+      mouse_check_moved ();
+      if (mouse_moved)
+	{
+	  mouse_moved = 0;
+	  result = XM_IA_SELECT;
+	  mouse_get_xy (&x, &y);
+	  for (i = 0; i < statecount; i++)
+	    if (state[i].x <= x && x < state[i].x + state[i].menu->width + 2)
+	      {
+		int dy = y - state[i].y;
+		if (0 <= dy && dy < state[i].menu->count)
+		  {
+		    if (!state[i].menu->submenu[dy])
+		      if (state[i].menu->panenumber[dy])
+			result = XM_SUCCESS;
+		      else
+			result = XM_IA_SELECT;
+		    *pane = state[i].pane - 1;
+		    *selidx = dy;
+		    /* We hit some part of a menu, so drop extra menues that
+		       have been opened.  That does not include an open and
+		       active submenu.  */
+		    if (i != statecount - 2
+			|| state[i].menu->submenu[dy] != state[i+1].menu)
+		      while (i != statecount - 1)
+			{
+			  statecount--;
+			  mouse_off ();
+			  ScreenUpdate (state[statecount].screen_behind);
+			  mouse_on ();
+			  xfree (state[statecount].screen_behind);
+			}
+		    if (i == statecount - 1 && state[i].menu->submenu[dy])
+		      {
+			IT_menu_display (state[i].menu,
+					 state[i].y,
+					 state[i].x,
+					 faces);
+			state[statecount].menu = state[i].menu->submenu[dy];
+			state[statecount].pane = state[i].menu->panenumber[dy];
+			mouse_off ();
+			ScreenRetrieve (state[statecount].screen_behind
+					= xmalloc (screensize));
+			mouse_on ();
+			state[statecount].x
+			  = state[i].x + state[i].menu->width + 2;
+			state[statecount].y = y;
+			statecount++;			  
+		      }
+		  }
+	      }
+	  IT_menu_display (state[statecount - 1].menu,
+			   state[statecount - 1].y,
+			   state[statecount - 1].x,
+			   faces);
+	}
+      for (b = 0; b < mouse_button_count; b++)
+	{
+	  (void) mouse_pressed (b, &x, &y);
+	  if (mouse_released (b, &x, &y))
+	    leave = 1;
+	}
+    }
+
+  mouse_off ();
+  ScreenUpdate (state[0].screen_behind);
+  mouse_on ();
+  while (statecount--)
+    xfree (state[statecount].screen_behind);
+  return result;
+}
+
+/* Dispose of a menu.  */
+XMenuDestroy (XMenu *menu)
+{
+  int i;
+  if (menu->allocated)
+    {
+      for (i = 0; i < menu->count; i++)
+	if (menu->submenu[i])
+	  XMenuDestroy (menu->submenu[i]);
+      xfree (menu->text);
+      xfree (menu->submenu);
+      xfree (menu->panenumber);
+    }
+  xfree (menu);
+}
+
+int x_pixel_width (struct frame *f)
+{
+  return FRAME_WIDTH(f);
+}
+
+int x_pixel_height (struct frame *f)
+{
+  return FRAME_HEIGHT(f);
+}
+#endif /* !HAVE_X_WINDOWS */
 
 #endif /* MSDOS */

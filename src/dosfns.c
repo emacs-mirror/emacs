@@ -137,6 +137,37 @@ REGISTERS should be a vector produced by `make-register' and\n\
   return regs;
 }
 
+#ifndef HAVE_X_WINDOWS
+/* Later we might want to control the mouse interface with this function,
+   e.g., with respect to non-80 column screen modes.  */
+
+DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0, "\
+Report whether a mouse is present.")
+     ()
+{
+  if (have_mouse)
+    return Qt;
+  else
+    return Qnil;
+}
+
+DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
+  "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
+WARNING:  If you use this under X windows,\n\
+you should call `unfocus-frame' afterwards.")
+  (frame, x, y)
+     Lisp_Object frame, x, y;
+{
+  mouse_moveto (XINT (x), XINT (y));
+}
+
+/* Function to translate colour names to integers.  See lisp/term/pc-win.el
+   for its definition.  */
+
+Lisp_Object Qmsdos_color_translate;
+#endif
+
+
 int dos_country_code;
 int dos_codepage;
 Lisp_Object Vdos_version;
@@ -148,7 +179,9 @@ init_dosfns ()
   _go32_dpmi_seginfo info;
   _go32_dpmi_registers dpmiregs;
 
+#ifndef SYSTEM_MALLOC
   get_lim_data (); /* why the hell isn't this called elsewhere? */
+#endif
 
   regs.x.ax = 0x3000;
   intdos (&regs, &regs);
@@ -195,6 +228,13 @@ syms_of_dosfns ()
   defsubr (&Smode25);
   defsubr (&Smode4350);
   defsubr (&Sint86);
+#ifndef HAVE_X_WINDOWS
+  defsubr (&Smsdos_mouse_p);
+  defsubr (&Sset_mouse_position);
+
+  Qmsdos_color_translate = intern ("msdos-color-translate");
+  staticpro (&Qmsdos_color_translate);
+#endif
 
   DEFVAR_INT ("dos-country-code", &dos_country_code,
     "The country code returned by Dos when Emacs was started.\n\

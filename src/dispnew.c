@@ -121,13 +121,15 @@ Lisp_Object Vstandard_display_table;
 int cursor_in_echo_area;
 
 /* The currently selected frame.
-   In a single-frame version, this variable always remains 0.  */
+   In a single-frame version, this variable always holds the address of
+   the_only_frame.  */
 
 FRAME_PTR selected_frame;
 
 /* A frame which is not just a minibuffer, or 0 if there are no such
    frames.  This is usually the most recent such frame that was
-   selected.  In a single-frame version, this variable always remains 0.  */
+   selected.  In a single-frame version, this variable always holds
+   the address of the_only_frame.  */
 FRAME_PTR last_nonminibuf_frame;
 
 /* In a single-frame version, the information that would otherwise
@@ -1086,7 +1088,7 @@ direct_output_for_insert (g)
 
   {
     int face = 0;
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_FACES
     int dummy;
 
     if (FRAME_X_P (frame))

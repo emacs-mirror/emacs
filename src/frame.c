@@ -24,6 +24,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "termhooks.h"
 #include "window.h"
+#ifdef MSDOS
+#include "msdos.h"
+#endif
 
 #ifdef MULTI_FRAME
 
@@ -95,7 +98,8 @@ extern Lisp_Object Fredirect_frame_focus ();
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   "Return non-nil if OBJECT is a frame.\n\
 Value is t for a termcap frame (a character-only terminal),\n\
-`x' for an Emacs frame that is really an X window.\n\
+`x' for an Emacs frame that is really an X window,\n\
+`pc' for a direct-write MS-DOS frame.\n\
 Also see `live-frame-p'.")
   (object)
      Lisp_Object object;
@@ -108,6 +112,7 @@ Also see `live-frame-p'.")
       return Qt;
     case output_x_window:
       return Qx;
+      /* The `pc' case is in the Fframep below.  */
     default:
       abort ();
     }
@@ -1855,6 +1860,8 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   0)
   ()
 {
+  /* For your possible information, this code is unfolded into the
+     second WINDOW_FRAME in frame.h.  */     
   Lisp_Object tem;
   XSETFASTINT (tem, 0);
   return tem;
@@ -1888,6 +1895,10 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   (object)
      Lisp_Object object;
 {
+#ifdef MSDOS
+  if (FRAME_X_P (object))
+    return intern ("pc");
+#endif
   return Qnil;
 }
 
@@ -2029,6 +2040,22 @@ DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
   0)
   ()
 {
+#ifdef HAVE_MOUSE
+  if (mouse_position_hook)
+    {
+      FRAME_PTR f;
+      Lisp_Object lispy_dummy;
+      enum scroll_bar_part party_dummy;
+      Lisp_Object x, y;
+      unsigned long long_dummy;
+
+      (*mouse_position_hook) (&f,
+			      &lispy_dummy, &party_dummy,
+			      &x, &y,
+			      &long_dummy);      
+      return Fcons (Fselected_frame (), Fcons (x, y));
+    }
+#endif
   return Fcons (Qnil, Fcons (Qnil, Qnil));
 }
 
@@ -2068,6 +2095,22 @@ DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
     return Qnil;
 
   alist = Qnil;
+#ifdef MSDOS
+  if (FRAME_X_P (f))
+    {
+      static char *colornames[16] = 
+	{
+	  "black", "blue", "green", "cyan", "red", "magenta", "brown",
+	  "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
+	  "lightred", "lightmagenta", "yellow", "white"
+	};
+      store_in_alist (&alist, intern ("foreground-color"),
+		      build_string (colornames[FRAME_FOREGROUND_PIXEL (f)]));
+      store_in_alist (&alist, intern ("background-color"),
+		      build_string (colornames[FRAME_BACKGROUND_PIXEL (f)]));
+    }
+#endif
+  store_in_alist (&alist, intern ("font"), build_string ("default"));
   store_in_alist (&alist, Qname, build_string ("emacs"));
   store_in_alist (&alist, Qheight, make_number (FRAME_HEIGHT (f)));
   store_in_alist (&alist, Qwidth, make_number (FRAME_WIDTH (f)));
@@ -2087,6 +2130,10 @@ DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
   (frame, alist)
      Lisp_Object frame, alist;
 {
+#ifdef MSDOS
+  if (FRAME_X_P (frame))
+    IT_set_frame_parameters (XFRAME (frame), alist);
+#endif
   return Qnil;
 }
 
@@ -2098,6 +2145,15 @@ DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
      Lisp_Object frame;
 {
   return Qt;
+}
+
+DEFUN ("frame-list", Fframe_list, Sframe_list, 0, 0, 0,
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
+  ()
+{
+  return Fcons (Fselected_frame (), Qnil);
 }
 
 syms_of_frame ()
@@ -2141,6 +2197,18 @@ syms_of_frame ()
   defsubr (&Sframe_parameters);
   defsubr (&Smodify_frame_parameters);
   defsubr (&Sframe_live_p);
+  defsubr (&Sframe_list);
+
+#ifdef MSDOS
+  /* A comment in dispnew.c says the_only_frame is not protected.  */
+  the_only_frame.face_alist = Qnil;
+  staticpro (&the_only_frame.face_alist);
+  the_only_frame.menu_bar_items = Qnil;
+  staticpro (&the_only_frame.menu_bar_items);
+  the_only_frame.menu_bar_vector = Qnil;
+  staticpro (&the_only_frame.menu_bar_vector);
+  the_only_frame.menu_bar_items = menu_bar_items (Qnil);
+#endif
 }
 
 keys_of_frame ()
