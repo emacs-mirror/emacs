@@ -166,6 +166,11 @@ and this notice must be preserved on all copies.  */
 #undef config_machfile
 #include config_machfile
 
+#ifndef SPECIAL_EMACS_INT
+typedef long EMACS_INT;
+typedef unsigned long EMACS_UINT;
+#endif
+
 /* Load in the conversion definitions if this system
    needs them and the source file being compiled has not
    said to inhibit this.  There should be no need for you
