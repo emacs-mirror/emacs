@@ -47,7 +47,7 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
 The menu keymap is stored in symbol SYMBOL, both as its value
-and as its function definition.   DOC is used as the doc string for SYMBOL.
+and as its function definition.  DOC is used as the doc string for SYMBOL.
 
 The first element of MENU must be a string.  It is the menu bar item name.
 It may be followed by the following keyword argument pairs
