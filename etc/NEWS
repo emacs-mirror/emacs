@@ -87,9 +87,9 @@ gives the fraction of the window's width to scroll the window.
 The old name is still available as an alias.
 
 ** New display feature: focus follows mouse.  If you set the variable
-x-autoselect-window to non-nil value, moving the mouse to a different
-Emacs window will select that window.  The default is nil, so that
-this feature is not enabled.
+autoselect-window to non-nil value, moving the mouse to a different Emacs
+window will select that window (minibuffer window can be selected only when
+it is active).  The default is nil, so that this feature is not enabled.
 
 ** The new command `describe-text-at' pops up a buffer with description
 of text properties, overlays, and widgets at point, and lets you get
