@@ -1,6 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 1997
+;;        Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -25,6 +26,22 @@
 ;; major mode or to file-handling.
 
 ;;; Code:
+
+(defgroup killing nil
+  "Killing and yanking commands"
+  :group 'editing)
+
+(defgroup fill-comments nil
+  "Indenting and filling of comments."
+  :prefix "comment-"
+  :group 'fill)
+
+(defgroup paren-matching nil
+  "Highlight (un)matching of parens and expressions."
+  :prefix "paren-"
+  :prefix "blink-matching-"
+  :group 'matching)
+
 
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
@@ -1111,8 +1128,10 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (forward-line (- arg))
   (skip-chars-forward " \t"))
 
-(defvar kill-whole-line nil
-  "*If non-nil, `kill-line' with no arg at beg of line kills the whole line.")
+(defcustom kill-whole-line nil
+  "*If non-nil, `kill-line' with no arg at beg of line kills the whole line."
+  :type 'boolean
+  :group 'killing)
 
 (defun kill-line (&optional arg)
   "Kill the rest of the current line; if no nonblanks there, kill thru newline.
@@ -1192,8 +1211,10 @@ interact nicely with `interprogram-cut-function' and
 interaction; you may want to use them instead of manipulating the kill
 ring directly.")
 
-(defvar kill-ring-max 30
-  "*Maximum length of kill ring before oldest elements are thrown away.")
+(defcustom kill-ring-max 30
+  "*Maximum length of kill ring before oldest elements are thrown away."
+  :type 'integer
+  :group 'killing)
 
 (defvar kill-ring-yank-pointer nil
   "The tail of the kill ring whose car is the last thing yanked.")
@@ -1255,8 +1276,10 @@ yanking point; just return the Nth kill forward."
 
 ;;;; Commands for manipulating the kill ring.
 
-(defvar kill-read-only-ok nil
-  "*Non-nil means don't signal an error for killing read-only text.")
+(defcustom kill-read-only-ok nil
+  "*Non-nil means don't signal an error for killing read-only text."
+  :type 'boolean
+  :group 'killing)
 
 (put 'text-read-only 'error-conditions
      '(text-read-only buffer-read-only error))
@@ -1573,15 +1596,19 @@ store it in a Lisp variable.  Example:
 (make-variable-buffer-local 'mark-ring)
 (put 'mark-ring 'permanent-local t)
 
-(defvar mark-ring-max 16
-  "*Maximum size of mark ring.  Start discarding off end if gets this big.")
+(defcustom mark-ring-max 16
+  "*Maximum size of mark ring.  Start discarding off end if gets this big."
+  :type 'integer
+  :group 'editing-basics)
 
 (defvar global-mark-ring nil
   "The list of saved global marks, most recent first.")
 
-(defvar global-mark-ring-max 16
+(defcustom global-mark-ring-max 16
   "*Maximum size of global mark ring.  \
-Start discarding off end if gets this big.")
+Start discarding off end if gets this big."
+  :type 'integer
+  :group 'editing-basics)
 
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
@@ -1702,8 +1729,10 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
     (goto-char position)
     (switch-to-buffer buffer)))
 
-(defvar next-line-add-newlines t
-  "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error.")
+(defcustom next-line-add-newlines t
+  "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error."
+  :type 'boolean
+  :group 'editing-basics)
 
 (defun next-line (arg)
   "Move cursor vertically down ARG lines.
@@ -1759,13 +1788,18 @@ to use and more reliable (no dependence on goal column, etc.)."
     (line-move (- arg)))
   nil)
 
-(defvar track-eol nil
+(defcustom track-eol nil
   "*Non-nil means vertical motion starting at end of line keeps to ends of lines.
 This means moving to the end of each line moved onto.
-The beginning of a blank line does not count as the end of a line.")
+The beginning of a blank line does not count as the end of a line."
+  :type 'boolean
+  :group 'editing-basics)
 
-(defvar goal-column nil
-  "*Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil.")
+(defcustom goal-column nil
+  "*Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil."
+  :type '(choice integer
+		 (const :tag "None" nil))
+  :group 'editing-basics)
 (make-variable-buffer-local 'goal-column)
 
 (defvar temporary-goal-column 0
@@ -1774,9 +1808,11 @@ It is the column where point was
 at the start of current run of vertical motion commands.
 When the `track-eol' feature is doing its job, the value is 9999.")
 
-(defvar line-move-ignore-invisible nil
+(defcustom line-move-ignore-invisible nil
   "*Non-nil means \\[next-line] and \\[previous-line] ignore invisible lines.
-Outline mode sets this.")
+Outline mode sets this."
+  :type 'boolean
+  :group 'editing-basics)
 
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
@@ -1884,10 +1920,13 @@ The goal column is stored in the variable `goal-column'."
 ;;; will be built into the C level and all the (hscroll-point-visible) calls
 ;;; will go away.
 
-(defvar hscroll-step 0
+(defcustom hscroll-step 0
    "*The number of columns to try scrolling a window by when point moves out.
 If that fails to bring point back on frame, point is centered instead.
-If this is zero, point is always centered after it moves off frame.")
+If this is zero, point is always centered after it moves off frame."
+   :type '(choice (const :tag "Alway Center" 0)
+		  (integer :format "%v" 1))
+   :group 'editing-basics)
 
 (defun hscroll-point-visible ()
   "Scrolls the selected window horizontally to make point visible."
@@ -2127,24 +2166,34 @@ With argument 0, interchanges line point is in with line mark is in."
     (delete-region (point) (+ (point) len1))
     (insert word2)))
 
-(defvar comment-column 32
+(defcustom comment-column 32
   "*Column to indent right-margin comments to.
 Setting this variable automatically makes it local to the current buffer.
 Each mode establishes a different default value for this variable; you
-can set the value for a particular mode using that mode's hook.")
+can set the value for a particular mode using that mode's hook."
+  :type 'integer
+  :group 'fill-comments)
 (make-variable-buffer-local 'comment-column)
 
-(defvar comment-start nil
-  "*String to insert to start a new comment, or nil if no comment syntax.")
+(defcustom comment-start nil
+  "*String to insert to start a new comment, or nil if no comment syntax."
+  :type '(choice (const :tag "None" nil)
+		 string)
+  :group 'fill-comments)
 
-(defvar comment-start-skip nil
+(defcustom comment-start-skip nil
   "*Regexp to match the start of a comment plus everything up to its body.
 If there are any \\(...\\) pairs, the comment delimiter text is held to begin
-at the place matched by the close of the first pair.")
+at the place matched by the close of the first pair."
+  :type '(choice (const :tag "None" nil)
+		 regexp)
+  :group 'fill-comments)
 
-(defvar comment-end ""
+(defcustom comment-end ""
   "*String to insert to end a new comment.
-Should be an empty string if comments are terminated by end-of-line.")
+Should be an empty string if comments are terminated by end-of-line."
+  :type 'string
+  :group 'fill-comments)
 
 (defvar comment-indent-hook nil
   "Obsolete variable for function to compute desired indentation for a comment.
@@ -2157,16 +2206,22 @@ the comment's starting delimiter.")
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
 
-(defvar block-comment-start nil
+(defcustom block-comment-start nil
   "*String to insert to start a new comment on a line by itself.
 If nil, use `comment-start' instead.
 Note that the regular expression `comment-start-skip' should skip this string
-as well as the `comment-start' string.")
+as well as the `comment-start' string."
+  :type '(choice (const :tag "Use comment-start" nil)
+		 string)
+  :group 'fill-comments)
 
-(defvar block-comment-end nil
+(defcustom block-comment-end nil
   "*String to insert to end a new comment on a line by itself.
 Should be an empty string if comments are terminated by end-of-line.
-If nil, use `comment-end' instead.")
+If nil, use `comment-end' instead."
+  :type '(choice (const :tag "Use comment-end" nil)
+		 string)
+  :group 'fill-comments)
 
 (defun indent-for-comment ()
   "Indent this line's comment to comment column, or insert an empty comment."
@@ -2404,13 +2459,19 @@ or adjacent to a word."
 		 (buffer-substring start end)))
 	(buffer-substring start end)))))
 
-(defvar fill-prefix nil
+(defcustom fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none.
-Setting this variable automatically makes it local to the current buffer.")
+Setting this variable automatically makes it local to the current buffer."
+  :type '(choice (const :tag "None" nil)
+		 string)
+  :group 'fill)
 (make-variable-buffer-local 'fill-prefix)
 
-(defvar auto-fill-inhibit-regexp nil
-  "*Regexp to match lines which should not be auto-filled.")
+(defcustom auto-fill-inhibit-regexp nil
+  "*Regexp to match lines which should not be auto-filled."
+  :type '(choice (const :tag "None" nil)
+		 regexp)
+  :group 'fill)
 
 ;; This function is the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
@@ -2569,10 +2630,12 @@ Just \\[universal-argument] as argument means to use the current column."
 	(t
 	 (error "set-fill-column requires an explicit argument"))))
 
-(defvar comment-multi-line nil
+(defcustom comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
 on new line, with no new terminator or starter.
-This is obsolete because you might as well use \\[newline-and-indent].")
+This is obsolete because you might as well use \\[newline-and-indent]."
+  :type 'boolean
+  :group 'fill-comments)
 
 (defun indent-new-comment-line (&optional soft)
   "Break line at point and indent, continuing comment if within one.
@@ -2714,8 +2777,10 @@ specialization of overwrite-mode, entered by setting the
 	    'overwrite-mode-binary))
   (force-mode-line-update))
 
-(defvar line-number-mode t
-  "*Non-nil means display line number in mode line.")
+(defcustom line-number-mode t
+  "*Non-nil means display line number in mode line."
+  :type 'boolean
+  :group 'editing-basics)
 
 (defun line-number-mode (arg)
   "Toggle Line Number mode.
@@ -2728,8 +2793,10 @@ in the mode line."
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
-(defvar column-number-mode nil
-  "*Non-nil means display column number in mode line.")
+(defcustom column-number-mode nil
+  "*Non-nil means display column number in mode line."
+  :type 'boolean
+  :group 'editing-basics)
 
 (defun column-number-mode (arg)
   "Toggle Column Number mode.
@@ -2742,22 +2809,32 @@ in the mode line."
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
-(defvar blink-matching-paren t
-  "*Non-nil means show matching open-paren when close-paren is inserted.")
+(defcustom blink-matching-paren t
+  "*Non-nil means show matching open-paren when close-paren is inserted."
+  :type 'boolean
+  :group 'paren-matching)
 
-(defvar blink-matching-paren-on-screen t
+(defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
 nil means don't show it (but the open-paren can still be shown
-when it is off screen.")
+when it is off screen."
+  :type 'boolean
+  :group 'paren-matching)
 
-(defvar blink-matching-paren-distance 12000
-  "*If non-nil, is maximum distance to search for matching open-paren.")
+(defcustom blink-matching-paren-distance 12000
+  "*If non-nil, is maximum distance to search for matching open-paren."
+  :type 'integer
+  :group 'paren-matching)
 
-(defvar blink-matching-delay 1
-  "*The number of seconds that `blink-matching-open' will delay at a match.")
+(defcustom blink-matching-delay 1
+  "*The number of seconds that `blink-matching-open' will delay at a match."
+  :type 'integer
+  :group 'paren-matching)
 
-(defvar blink-matching-paren-dont-ignore-comments nil
-  "*Non-nil means `blink-matching-paren' should not ignore comments.")
+(defcustom blink-matching-paren-dont-ignore-comments nil
+  "*Non-nil means `blink-matching-paren' should not ignore comments."
+  :type 'boolean
+  :group 'paren-matching)
 
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
@@ -2886,7 +2963,7 @@ or go back to just one window (by deleting all but the selected window)."
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
-(defvar mail-user-agent 'sendmail-user-agent
+(defcustom mail-user-agent 'sendmail-user-agent
   "*Your preference for a mail composition package.
 Various Emacs Lisp packages (e.g. reporter) require you to compose an
 outgoing email message.  This variable lets you specify which
@@ -2899,7 +2976,18 @@ Valid values include:
     message-user-agent  -- use the GNUS mail sending package
 
 Additional valid symbols may be available; check with the author of
-your package for details.")
+your package for details."
+  :type '(radio (function-item :tag "Default Emacs mail"
+			       :format "%t\n"
+			       sendmail-user-agent)
+		(function-item :tag "Emacs interface to MH"
+			       :format "%t\n"
+			       mh-e-user-agent)
+		(function-item :tag "Gnus mail sending package"
+			       :format "%t\n"
+			       message-user-agent)
+		(function :tag "Other"))
+  :group 'mail)
 
 (defun define-mail-user-agent (symbol composefunc sendfunc
 				      &optional abortfunc hookvar)

@@ -44,8 +44,16 @@
 ;; ======================================================================
 ;; GUD commands must be visible in C buffers visited by GUD
 
-(defvar gud-key-prefix "\C-x\C-a"
-  "Prefix of all GUD commands valid in C buffers.")
+(defgroup gud nil
+  "Grand Unified Debugger mode for gdb, sdb, dbx, or xdb under Emacs."
+  :group 'unix
+  :group 'tools)
+
+
+(defcustom gud-key-prefix "\C-x\C-a"
+  "Prefix of all GUD commands valid in C buffers."
+  :type 'string
+  :group 'gud)
 
 (global-set-key (concat gud-key-prefix "\C-l") 'gud-refresh)
 (define-key ctl-x-map " " 'gud-break)	;; backward compatibility hack
@@ -495,13 +503,17 @@ and source-file directory for your debugger."
 ;;; History of argument lists passed to dbx.
 (defvar gud-dbx-history nil)
 
-(defvar gud-dbx-directories nil
+(defcustom gud-dbx-directories nil
   "*A list of directories that dbx should search for source code.
 If nil, only source files in the program directory
 will be known to dbx.
 
 The file names should be absolute, or relative to the directory
-containing the executable being debugged.")
+containing the executable being debugged."
+  :type '(choice (const :tag "Current Directory" nil)
+		 (repeat :value ("")
+			 directory))
+  :group 'gud)
 
 (defun gud-dbx-massage-args (file args)
   (nconc (let ((directories gud-dbx-directories)
@@ -802,13 +814,17 @@ and source-file directory for your debugger."
 ;;; History of argument lists passed to xdb.
 (defvar gud-xdb-history nil)
 
-(defvar gud-xdb-directories nil
+(defcustom gud-xdb-directories nil
   "*A list of directories that xdb should search for source code.
 If nil, only source files in the program directory
 will be known to xdb.
 
 The file names should be absolute, or relative to the directory
-containing the executable being debugged.")
+containing the executable being debugged."
+  :type '(choice (const :tag "Current Directory" nil)
+		 (repeat :value ("")
+			 directory))
+  :group 'gud)
 
 (defun gud-xdb-massage-args (file args)
   (nconc (let ((directories gud-xdb-directories)
@@ -983,8 +999,10 @@ directories if your program contains sources from more than one directory."
       (gud-make-debug-menu)
       buf)))
 
-(defvar perldb-command-name "perl"
-  "File name for executing Perl.")
+(defcustom perldb-command-name "perl"
+  "File name for executing Perl."
+  :type 'string
+  :group 'gud)
 
 ;;;###autoload
 (defun perldb (command-line)
