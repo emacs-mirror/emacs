@@ -355,6 +355,8 @@ static unsigned long screen_old_address = 0;
 /* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
+/* A flag to control how to display unibyte 8-bit characters.  */
+extern int unibyte_display_via_language_environment;
 
 #if __DJGPP__ > 1
 /* Update the screen from a part of relocated DOS/V screen buffer which
