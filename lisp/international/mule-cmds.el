@@ -275,7 +275,7 @@ wrong, use this command again to toggle back to the right mode."
 		     cmd (key-binding keyseq t))
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
-	      ;; Have to bind `last-command-char' here so that 
+	      ;; Have to bind `last-command-char' here so that
 	      ;; `digit-argument', for isntance, can compute the
 	      ;; prefix arg.
 	      (last-command-char (aref keyseq 0)))
@@ -303,7 +303,7 @@ This sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
-  o default value used as file-name-coding-system for converting file names.
+  o default value used as `file-name-coding-system' for converting file names.
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
   o default value for the command `set-keyboard-coding-system'."
   (check-coding-system coding-system)
@@ -412,6 +412,7 @@ non-nil, it is used to sort CODINGS in the different way than above."
 
 (defun find-coding-systems-region (from to)
   "Return a list of proper coding systems to encode a text between FROM and TO.
+If FROM is a string, find coding systems in that instead of the buffer.
 All coding systems in the list can safely encode any multibyte characters
 in the text.
 
@@ -727,9 +728,9 @@ Meaningful values for KEY include
 			is meant for, and how to use it.
   charset	     value is a list of the character sets used by this
 			language environment.
-  sample-text	     value is one line of text,
-			written using those character sets,
-			appropriate for this language environment.
+  sample-text	     value is an expression which is evalled to generate
+                        a line of text written using characters appropriate
+                        for this language environment.
   setup-function     value is a function to call to switch to this
 			language environment.
   exit-function      value is a function to call to leave this
@@ -806,7 +807,7 @@ ALIST is an alist of KEY and INFO values.  See the documentation of
 `language-info-alist' for the meanings of KEY and INFO.
 
 Optional arg PARENTS is a list of parent menu names; it specifies
-where to put this language environment in the 
+where to put this language environment in the
 Describe Language Environment and Set Language Environment menus.
 For example, (\"European\") means to put this language environment
 in the European submenu in each of those two menus."
@@ -873,7 +874,7 @@ This returns a language environment name as a string."
 	name)))
 
 ;;; Multilingual input methods.
-(defgroup leim nil 
+(defgroup leim nil
   "LEIM: Libraries of Emacs Input Methods."
   :group 'mule)
 
@@ -1126,7 +1127,7 @@ and enable that one.  The default is the most recent input method specified
 	      default t))
 	 default))
       (unless default-input-method
-	(prog1 
+	(prog1
 	    (setq default-input-method current-input-method)
 	  (when (interactive-p)
 	    (customize-mark-as-set 'default-input-method)))))))
@@ -1153,7 +1154,7 @@ and enable that one.  The default is the most recent input method specified
 	      (activate-input-method input-method)
 	      (describe-current-input-method))
 	    (activate-input-method current))
-	(error 
+	(error
 	 (activate-input-method current)
 	 (help-setup-xref (list #'describe-input-method input-method)
 			  (interactive-p))
@@ -1219,7 +1220,8 @@ guidance, but simple input methods give it only when you are not in
 the minibuffer.
 
 See also the variable `input-method-highlight-flag'."
-  :type '(choice (const t) (const nil) (const complex-only) (const default))
+  :type '(choice (const :tag "Always" t) (const :tag "Never" nil)
+		 (const complex-only) (const default))
   :group 'mule)
 
 (defcustom input-method-highlight-flag t
@@ -1324,7 +1326,7 @@ to using the function `set-language-environment'."
 
 The default status is as follows:
 
-  The default value of buffer-file-coding-system is nil.
+  The default value of `buffer-file-coding-system' is nil.
   The default coding system for process I/O is nil.
   The default value for the command `set-terminal-coding-system' is nil.
   The default value for the command `set-keyboard-coding-system' is nil.
@@ -1500,8 +1502,8 @@ of buffer-file-coding-system set by this function."
       (setq default-sendmail-coding-system default-coding)
       (apply 'set-coding-system-priority priority))))
 
-;; Print all arguments with `princ', then print "\n".
 (defsubst princ-list (&rest args)
+  "Print all arguments with `princ', then print \"\n\"."
   (while args (princ (car args)) (setq args (cdr args)))
   (princ "\n"))
 
@@ -1868,10 +1870,8 @@ XX is a country, and CODE specifies a character set and coding system.
 For example, the locale name \"ja_JP.EUC\" might name a locale
 for Japanese in Japan using the `japanese-iso-8bit' coding-system.
 
-If LOCALE-NAME is nil, its value is looked up via `locale-codeset'
-using nl_langinfo(3), if that function is available in the system's
-library, otherwise it is simply taken from the environment variables
-LC_ALL, LC_CTYPE and LANG \(the first one that is set).
+If LOCALE-NAME is nil, its value is taken from the environment
+variables LC_ALL, LC_CTYPE and LANG (the first one that is set).
 
 The locale names supported by your system can typically be found in a
 directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
@@ -1898,7 +1898,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (setq files (cdr files)))
 	  (car files)))
 
-  (let ((locale (or locale-name (locale-codeset))))
+  (let ((locale locale-name))
 
     (unless locale
       ;; Use the first of these three environment variables
