@@ -30,9 +30,11 @@
 (defvar menu-bar-help-menu (make-sparse-keymap "Help"))
 
 ;; Force Help item to come last, after the major mode's own items.
-(setq menu-bar-final-items '(help))
+;; The symbol used to be called `help', but that gets confused with the
+;; help key.
+(setq menu-bar-final-items '(help-menu))
 
-(define-key global-map [menu-bar help] (cons "Help" menu-bar-help-menu))
+(define-key global-map [menu-bar help-menu] (cons "Help" menu-bar-help-menu))
 (defvar menu-bar-search-menu (make-sparse-keymap "Search"))
 (define-key global-map [menu-bar search] (cons "Search" menu-bar-search-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
