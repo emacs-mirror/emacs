@@ -210,7 +210,7 @@ The face used is `comint-highlight-input'."
   :type 'boolean
   :group 'comint)
 
-(defface comint-highlight-input '((t (:bold t)))
+(defface comint-highlight-input '((t (:weight bold)))
   "Face to use to highlight input when `comint-highlight-input' is non-nil."
   :group 'comint)
 
