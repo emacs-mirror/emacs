@@ -267,9 +267,9 @@ port or in the Cygwin library which apparently make Bash ignore the
 keyboard interrupt event sent by Emacs to Bash.  (Older Cygwin ports
 of Bash, up to b20.1, did receive SIGINT from Emacs.)
 
-* The W3 package (either from from the CVS sources or the last
-release) currently (2000-12-14) doesn't run properly with Emacs 21 and
-needs work.  This patch is reported to make w3-4.0pre.46 work:
+* The latest released version of the W3 package doesn't run properly
+with Emacs 21 and needs work.  However, these problems are already
+fixed in W3's CVS.  This patch is reported to make w3-4.0pre.46 work:
 
 diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-display.el w3-4.0pre.46-new/lisp/w3-display.el
 --- w3-4.0pre.46-orig/lisp/w3-display.el	Sun Nov 14 22:00:12 1999
