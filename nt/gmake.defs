@@ -78,6 +78,10 @@ endif
 
 MAKETYPE=gmake
 
+# Convert CURDIR to native file name, if in Cygwin format
+ifeq "$(shell cygpath $(CURDIR))" "$(CURDIR)"
+CURDIR	        := $(shell cygpath -m $(CURDIR))
+endif
 THISDIR		= .
 
 # Cygwin has changed quoting rules somewhat since b20, in a way that
