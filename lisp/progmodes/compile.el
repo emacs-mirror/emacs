@@ -115,25 +115,26 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
     ("\n\
-\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
+\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
 :\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
 
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
-    ("\n\\(Error\\|Warning\\) \\([^:( \t\n]+\\)\
+    ("\n\\(Error\\|Warning\\) \\([a-zA-Z]?:?[^:( \t\n]+\\)\
  \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
-    ("[ \t:]\\([^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$" 1 2)
+    ("[ \t:]\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$"
+     1 2)
 
     ;; 4.3BSD lint pass 3
     ;; 	bloofle defined( /users/wolfgang/foo.c(4) ), but never used
     ;; This used to be
-    ;; ("[ \t(]+\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
+    ;; ("[ \t(]+\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
     ;; which is regexp Impressionism - it matches almost anything!
-    ("([ \t]*\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
+    ("([ \t]*\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
 
     ;; MIPS lint pass<n>; looks good for SunPro lint also
     ;;  TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomon.c due to truncation
@@ -153,7 +154,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;;  error on line 19 of fplot.f: spelling error?
     ;;  warning on line 17 of fplot.f: data type is undefined for variable d
     ("\\(\n\\|on \\)[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
-of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
+of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
 
     ;; Apollo cc, 4.3BSD fc:
     ;;	"foo.f", line 3: Error: syntax error near end of statement
@@ -187,7 +188,7 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ("\n[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
     ;; GNU messages with program name and optional column number.
-    ("\n[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
+    ("\n[a-zA-Z]?:?[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
     ;; Cray C compiler error messages
@@ -221,7 +222,7 @@ Otherwise, M-x compile just uses the value of `compile-command'.")
 Otherwise, it saves all modified buffers without asking.")
 
 (defvar grep-regexp-alist
-  '(("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  '(("^\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defvar grep-command "grep -n "
@@ -279,7 +280,8 @@ write into the compilation buffer, and to put in its mode line.")
 
 (defvar compilation-mode-font-lock-keywords
   ;; This regexp needs a bit of rewriting.  What is the third grouping for?
-  '(("^\\([^ \n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
+  '(("^\\([a-zA-Z]?:?[^ \n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$"
+     1 font-lock-function-name-face))
 ;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
   "Additional expressions to highlight in Compilation mode.")
 
