@@ -2309,18 +2309,12 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
   (c1, c2)
      register Lisp_Object c1, c2;
 {
-  Lisp_Object *downcase = DOWNCASE_TABLE;
   CHECK_NUMBER (c1, 0);
   CHECK_NUMBER (c2, 1);
 
-  if ((!NILP (current_buffer->case_fold_search)
-       && SINGLE_BYTE_CHAR_P (c1) /* For the moment, downcase table is */
-       && SINGLE_BYTE_CHAR_P (c2) /* implemented only for ASCII characters.  */
-       )
-      ? ((XINT (downcase[0xff & XFASTINT (c1)])
-	  == XINT (downcase[0xff & XFASTINT (c2)]))
-	 && (XFASTINT (c1) & ~0xff) == (XFASTINT (c2) & ~0xff))
-      : XINT (c1) == XINT (c2))
+  if (XINT (c1) == XINT (c2)
+      && (NILP (current_buffer->case_fold_search)
+	  || DOWNCASE (XFASTINT (c1)) == DOWNCASE (XFASTINT (c2))))
     return Qt;
   return Qnil;
 }
