@@ -384,9 +384,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (let ((tag-default
 	 (funcall (or find-tag-default-function
 		      (get major-mode 'find-tag-default-function)
-		      ;; We use grep-tag-default instead of
-		      ;; find-tag-default, to avoid loading etags.
-		      'grep-tag-default)))
+		      'find-tag-default)))
 	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
 	(grep-default (or (car grep-history) grep-command)))
     ;; Replace the thing matching for with that around cursor.
@@ -456,25 +454,6 @@ temporarily highlight in visited source lines."
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
        grep-regexp-alist))
-
-;; This is a copy of find-tag-default from etags.el.
-;;;###autoload
-(defun grep-tag-default ()
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (when (or (re-search-backward "\\sw\\|\\s_"
-				  (save-excursion (beginning-of-line) (point))
-				  t)
-	      (re-search-forward "\\(\\sw\\|\\s_\\)+"
-				 (save-excursion (end-of-line) (point))
-				 t))
-      (goto-char (match-end 0))
-      (buffer-substring (point)
-			(progn (forward-sexp -1)
-			       (while (looking-at "\\s'")
-				 (forward-char 1))
-			       (point))))))
 
 ;;;###autoload
 (defun grep-find (command-args)
