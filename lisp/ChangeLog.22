@@ -1,3 +1,11 @@
+2004-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system-interactively):
+	Change 'mime-charset to :mime-charset.
+	(select-safe-coding-system): Use above (sync to HEAD).
+	(set-language-environment): Delete unnecessary code for handling
+	overriding-fontspec
+
 2004-10-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el: New coding system aliases unix, dos,
