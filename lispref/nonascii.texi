@@ -59,12 +59,13 @@ stored.  The first byte of a multibyte character is always in the range
 character are always in the range 160 through 255 (octal 0240 through
 0377); these values are @dfn{trailing codes}.
 
-  Some sequences of bytes do not form meaningful multibyte characters:
-for example, a single isolated byte in the range 128 through 255 is
-never meaningful.  Such byte sequences are not entirely valid, and never
-appear in proper multibyte text (since that consists of a sequence of
-@emph{characters}); but they can appear as part of ``raw bytes''
-(@pxref{Explicit Encoding}).
+  Some sequences of bytes are not valid in multibyte text: for example,
+a single isolated byte in the range 128 through 159 is not allowed.
+But character codes 128 through 159 can appear in multibyte text,
+represented as two-byte sequences.  None of the character codes 128
+through 255 normally appear in ordinary multibyte text, but they do
+appear in multibyte buffers and strings when you do explicit encoding
+and decoding (@pxref{Explicit Encoding}).
 
   In a buffer, the buffer-local value of the variable
 @code{enable-multibyte-characters} specifies the representation used.
@@ -237,10 +238,11 @@ If @var{string} is already a multibyte string, then the value is
 codes.  The valid character codes for unibyte representation range from
 0 to 255---the values that can fit in one byte.  The valid character
 codes for multibyte representation range from 0 to 524287, but not all
-values in that range are valid.  In particular, the values 128 through
-255 are not legitimate in multibyte text (though they can occur in ``raw
-bytes''; @pxref{Explicit Encoding}).  Only the @sc{ascii} codes 0
-through 127 are fully legitimate in both representations.
+values in that range are valid.  The values 128 through 255 are not
+really proper in multibyte text, but they can occur if you do explicit
+encoding and decoding (@pxref{Explicit Encoding}).  Some other character
+codes cannot occur at all in multibyte text.  Only the @sc{ascii} codes
+0 through 127 are truly legitimate in both representations.
 
 @defun char-valid-p charcode
 This returns @code{t} if @var{charcode} is valid for either one of the two
@@ -410,17 +412,9 @@ is non-@code{nil}, then each character in the region is translated
 through this table, and the value returned describes the translated
 characters instead of the characters actually in the buffer.
 
-In two peculiar cases, the value includes the symbol @code{unknown}:
-
-@itemize @bullet
-@item
-When a unibyte buffer contains non-@sc{ascii} characters.
-
-@item
-When a multibyte buffer contains invalid byte-sequences (raw bytes).
-@xref{Explicit Encoding}.
-@end itemize
-@end defun
+When a buffer contains non-@sc{ascii} characters, codes 128 through 255,
+they are assigned the character set @code{unknown}.  @xref{Explicit
+Encoding}.
 
 @defun find-charset-string string &optional translation
 This function returns a list of the character sets that appear in the
@@ -690,7 +684,7 @@ encode all the character sets in the list @var{charsets}.
 
 @defun detect-coding-region start end &optional highest
 This function chooses a plausible coding system for decoding the text
-from @var{start} to @var{end}.  This text should be ``raw bytes''
+from @var{start} to @var{end}.  This text should be a byte sequence
 (@pxref{Explicit Encoding}).
 
 Normally this function returns a list of coding systems that could
@@ -923,90 +917,59 @@ ability to use a coding system to encode or decode the text.
 You can also explicitly encode and decode text using the functions
 in this section.
 
-@cindex raw bytes
   The result of encoding, and the input to decoding, are not ordinary
-text.  They are ``raw bytes''---bytes that represent text in the same
-way that an external file would.  When a buffer contains raw bytes, it
-is most natural to mark that buffer as using unibyte representation,
-using @code{set-buffer-multibyte} (@pxref{Selecting a Representation}),
-but this is not required.  If the buffer's contents are only temporarily
-raw, leave the buffer multibyte, which will be correct after you decode
-them.
+text.  They logically consist of a series of byte values; that is, a
+series of characters whose codes are in the range 0 through 255.  In a
+multibyte buffer or string, character codes 128 through 159 are
+represented by multibyte sequences, but this is invisible to Lisp
+programs.
 
-  The usual way to get raw bytes in a buffer, for explicit decoding, is
-to read them from a file with @code{insert-file-contents-literally}
-(@pxref{Reading from Files}) or specify a non-@code{nil} @var{rawfile}
-argument when visiting a file with @code{find-file-noselect}.
+  The usual way to read a file into a buffer as a sequence of bytes, so
+you can decode the contents explicitly, is with
+@code{insert-file-contents-literally} (@pxref{Reading from Files});
+alternatively, specify a non-@code{nil} @var{rawfile} argument when
+visiting a file with @code{find-file-noselect}.  These methods result in
+a unibyte buffer.
 
-  The usual way to use the raw bytes that result from explicitly
-encoding text is to copy them to a file or process---for example, to
-write them with @code{write-region} (@pxref{Writing to Files}), and
-suppress encoding for that @code{write-region} call by binding
-@code{coding-system-for-write} to @code{no-conversion}.
-
-  Raw bytes typically contain stray individual bytes with values in the
-range 128 through 255, that are legitimate only as part of multibyte
-sequences.  Even if the buffer is multibyte, Emacs treats each such
-individual byte as a character and uses the byte value as its character
-code.  In this way, character codes 128 through 255 can be found in a
-multibyte buffer, even though they are not legitimate multibyte
-character codes.
-
-  Raw bytes sometimes contain overlong byte-sequences that look like a
-proper multibyte character plus extra superfluous trailing codes.  For
-most purposes, Emacs treats such a sequence in a buffer or string as a
-single character, and if you look at its character code, you get the
-value that corresponds to the multibyte character
-sequence---disregarding the extra trailing codes.  This is not quite
-clean, but raw bytes are used only in limited ways, so as a practical
-matter it is not worth the trouble to treat this case differently.
-
-  When a multibyte buffer contains illegitimate byte sequences,
-sometimes insertion or deletion can cause them to coalesce into a
-legitimate multibyte character.  For example, suppose the buffer
-contains the sequence 129 68 192, 68 being the character @samp{D}.  If
-you delete the @samp{D}, the bytes 129 and 192 become adjacent, and thus
-become one multibyte character (Latin-1 A with grave accent).  Point
-moves to one side or the other of the character, since it cannot be
-within a character.  Don't be alarmed by this.
-
-  Some really peculiar situations prevent proper coalescence.  For
-example, if you narrow the buffer so that the accessible portion begins
-just before the @samp{D}, then delete the @samp{D}, the two surrounding
-bytes cannot coalesce because one of them is outside the accessible
-portion of the buffer.  In this case, the deletion cannot be done, so
-@code{delete-region} signals an error.
+  The usual way to use the byte sequence that results from explicitly
+encoding text is to copy it to a file or process---for example, to write
+it with @code{write-region} (@pxref{Writing to Files}), and suppress
+encoding by binding @code{coding-system-for-write} to
+@code{no-conversion}.
 
   Here are the functions to perform explicit encoding or decoding.  The
-decoding functions produce ``raw bytes''; the encoding functions are
-meant to operate on ``raw bytes''.  All of these functions discard text
-properties.
+decoding functions produce sequences of bytes; the encoding functions
+are meant to operate on sequences of bytes.  All of these functions
+discard text properties.
 
 @defun encode-coding-region start end coding-system
 This function encodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  The encoded text replaces the
-original text in the buffer.  The result of encoding is ``raw bytes,''
-but the buffer remains multibyte if it was multibyte before.
+original text in the buffer.  The result of encoding is logically a
+sequence of bytes, but the buffer remains multibyte if it was multibyte
+before.
 @end defun
 
 @defun encode-coding-string string coding-system
 This function encodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
-encoded text.  The result of encoding is a unibyte string of ``raw bytes.''
+encoded text.  The result of encoding is a unibyte string.
 @end defun
 
 @defun decode-coding-region start end coding-system
 This function decodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  The decoded text replaces the
 original text in the buffer.  To make explicit decoding useful, the text
-before decoding ought to be ``raw bytes.''
+before decoding ought to be a sequence of byte values, but both
+multibyte and unibyte buffers are acceptable.
 @end defun
 
 @defun decode-coding-string string coding-system
 This function decodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
 decoded text.  To make explicit decoding useful, the contents of
-@var{string} ought to be ``raw bytes.''
+@var{string} ought to be a sequence of byte values, but a multibyte
+string is acceptable.
 @end defun
 
 @node Terminal I/O Encoding
@@ -1051,7 +1014,7 @@ that means do not encode terminal output.
 
   On MS-DOS and Microsoft Windows, Emacs guesses the appropriate
 end-of-line conversion for a file by looking at the file's name.  This
-feature classifies fils as @dfn{text files} and @dfn{binary files}.  By
+feature classifies files as @dfn{text files} and @dfn{binary files}.  By
 ``binary file'' we mean a file of literal byte values that are not
 necessarily meant to be characters; Emacs does no end-of-line conversion
 and no character code conversion for them.  On the other hand, the bytes
@@ -1157,14 +1120,14 @@ Here @var{input-method} is the input method name, a string;
 environment this input method is recommended for.  (That serves only for
 documentation purposes.)
 
-@var{title} is a string to display in the mode line while this method is
-active.  @var{description} is a string describing this method and what
-it is good for.
-
 @var{activate-func} is a function to call to activate this method.  The
 @var{args}, if any, are passed as arguments to @var{activate-func}.  All
 told, the arguments to @var{activate-func} are @var{input-method} and
 the @var{args}.
+
+@var{title} is a string to display in the mode line while this method is
+active.  @var{description} is a string describing this method and what
+it is good for.
 @end defvar
 
   The fundamental interface to input methods is through the
@@ -1202,3 +1165,4 @@ Changing the locale can cause messages to appear according to the
 conventions of a different language.  If the variable is @code{nil}, the
 locale is specified by environment variables in the usual POSIX fashion.
 @end defvar
+

@@ -1,5 +1,8 @@
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (add_to_log): Don't pass the terminating NUL byte
+	of the message to message_dolog.
+
 	* keyboard.c (read_char): Don't clear current message for help
 	events; let the code handling help events handle this.  Change
 	code detecting help events that should be ignored.
