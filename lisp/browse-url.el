@@ -289,33 +289,50 @@ Hostname matching is stricter in this case than for
    browse-url-path-regexp)
   "A regular expression probably matching a complete URL.")
 
+;;;###autoload
+(defgroup browse-url nil
+  "Use a web browser to look at a URL."
+  :group 'emacs)
 
 ;;;###autoload
-(defvar browse-url-browser-function
+(defcustom browse-url-browser-function
   'browse-url-netscape
   "*Function to display the current buffer in a WWW browser.
-Used by the `browse-url-at-point', `browse-url-at-mouse', and
-`browse-url-of-file' commands.")
+This is used by the `browse-url-at-point', `browse-url-at-mouse', and
+`browse-url-of-file' commands."
+The function should take one argument, an URL."
+  :type 'function
+  :group 'browse-url)
 
-(defvar browse-url-netscape-command "netscape"
-  "*The name by which to invoke Netscape.")
+(defcustom browse-url-netscape-program "netscape"
+  "*The name by which to invoke Netscape."
+  :type 'string
+  :group 'browse-url)
 
-(defvar browse-url-netscape-arguments nil
-  "*A list of strings to pass to Netscape as arguments.")
+(defcustom browse-url-netscape-arguments nil
+  "*A list of strings to pass to Netscape as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
 
-(defvar browse-url-netscape-startup-arguments browse-url-netscape-arguments
+(defcustom browse-url-netscape-startup-arguments browse-url-netscape-arguments
   "*A list of strings to pass to Netscape when it starts up.
-Defaults to the value of browse-url-netscape-arguments at the time
-browse-url is loaded.")
+Defaults to the value of `browse-url-netscape-arguments' at the time
+browse-url is loaded."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
 
-(defvar browse-url-new-window-p nil
+(defcustom browse-url-new-window-p nil
   "*If non-nil, always open a new browser window.
 Passing an interactive argument to \\[browse-url-netscape] or
 \\[browse-url-cci] reverses the effect of this variable.  Requires
-Netscape version 1.1N or later or XMosaic version 2.5 or later.")
+Netscape version 1.1N or later or XMosaic version 2.5 or later."
+  :type 'boolean
+  :group 'browse-url)
 
-(defvar browse-url-mosaic-arguments nil
-  "*A list of strings to pass to Mosaic as arguments.")
+(defcustom browse-url-mosaic-arguments nil
+  "*A list of strings to pass to Mosaic as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
 
 (defvar browse-url-filename-alist
   '(("^/+" . "file:/"))
