@@ -1,3 +1,8 @@
+2004-12-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Use more Texinfo macros and less TeX defs.
+	Remove @refill's.
+
 2004-12-06  Richard M. Stallman  <rms@gnu.org>
 
 	* org.texi: New file.
