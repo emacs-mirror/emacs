@@ -284,6 +284,9 @@ to start with an existing one and add the other features.
 A general ledger program.
 
 @item
+A World-Wide-Web server.
+
+@item
 A single command language that could be suitable for use in a shell, in
 GDB for programming debugging commands, in a program like @code{awk}, in
 a calculator like @code{bc}, and so on.  The fact that all these
