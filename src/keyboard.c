@@ -2122,19 +2122,71 @@ static Lisp_Object mouse_syms;
 
 static int lispy_accent_codes[] =
 {
+#ifdef XK_dead_circumflex
   XK_dead_circumflex,
+#else
+  0,
+#endif
+#ifdef XK_dead_grave
   XK_dead_grave,
+#else
+  0,
+#endif
+#ifdef XK_dead_tilde
   XK_dead_tilde,
+#else
+  0,
+#endif
+#ifdef XK_dead_diaeresis
   XK_dead_diaeresis,
+#else
+  0,
+#endif
+#ifdef XK_dead_macron
   XK_dead_macron,
+#else
+  0,
+#endif
+#ifdef XK_dead_degree
   XK_dead_degree,
+#else
+  0,
+#endif
+#ifdef XK_dead_acute
   XK_dead_acute,
+#else
+  0,
+#endif
+#ifdef XK_dead_cedilla
   XK_dead_cedilla,
+#else
+  0,
+#endif
+#ifdef XK_dead_breve
   XK_dead_breve,
+#else
+  0,
+#endif
+#ifdef XK_dead_ogonek
   XK_dead_ogonek,
+#else
+  0,
+#endif
+#ifdef XK_dead_caron
   XK_dead_caron,
+#else
+  0,
+#endif
+#ifdef XK_dead_doubleacute
   XK_dead_doubleacute,
+#else
+  0,
+#endif
+#ifdef XK_dead_abovedot
   XK_dead_abovedot,
+#else
+  0,
+#endif
 };
 
 /* This is a list of Lisp names for special "accent" characters.
@@ -2310,6 +2362,8 @@ static Lisp_Object
 make_lispy_event (event)
      struct input_event *event;
 {
+  int i;
+
 #ifdef SWITCH_ENUM_BUG
   switch ((int) event->kind)
 #else
