@@ -226,6 +226,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef __ELF__
 #define UNEXEC unexelf.o
+#define UNEXEC_USE_MAP_PRIVATE
 #endif
 
 #ifdef LINUX_QMAGIC
