@@ -375,7 +375,7 @@ particular group line should be displayed, each form is evaluated.
 The icon from the file field after the first true form is used.  You
 can change how those group lines are displayed by editing the file
 field.  The File will either be found in the
-`gnus-group-glyph-directory' or by designating absolute path to the
+`gnus-group-glyph-directory' or by designating absolute name of the
 file.
 
 It is also possible to change and add form fields, but currently that

@@ -457,7 +457,7 @@ If EXAMINE is non-nil the group is selected read-only."
 	      articles))))
 
 (defun nnimap-group-overview-filename (group server)
-  "Make pathname for GROUP on SERVER."
+  "Make file name for GROUP on SERVER."
   (let* ((dir (file-name-as-directory (expand-file-name nnimap-directory)))
          (uidvalidity (gnus-group-get-parameter
                        (gnus-group-prefixed-name

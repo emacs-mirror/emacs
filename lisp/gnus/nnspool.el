@@ -457,7 +457,7 @@ there.")
 	(nnheader-report 'nnspool "No such newsgroup: %s" group)))))
 
 (defun nnspool-article-pathname (group &optional article)
-  "Find the path for GROUP."
+  "Find the file name for GROUP."
   (nnheader-group-pathname group nnspool-spool-directory article))
 
 (provide 'nnspool)

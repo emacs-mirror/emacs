@@ -870,7 +870,7 @@ This command does not work if you use short group names."
     (nnheader-message 5 "")))
 
 (defun nnfolder-group-pathname (group)
-  "Make pathname for GROUP."
+  "Make file name for GROUP."
   (setq group
 	(mm-encode-coding-string group nnmail-pathname-coding-system))
   (let ((dir (file-name-as-directory (expand-file-name nnfolder-directory))))

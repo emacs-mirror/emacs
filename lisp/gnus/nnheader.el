@@ -600,7 +600,7 @@ the line could be found."
   "Regexp that matches numerical file names.")
 
 (defvar nnheader-numerical-full-files (concat "/" nnheader-numerical-files)
-  "Regexp that matches numerical full file paths.")
+  "Regexp that matches numerical full file names.")
 
 (defsubst nnheader-file-to-number (file)
   "Take a FILE name and return the article number."
@@ -767,10 +767,10 @@ without formatting."
       (<= level gnus-verbose-backends)))
 
 (defvar nnheader-pathname-coding-system 'binary
-  "*Coding system for pathname.")
+  "*Coding system for file names.")
 
 (defun nnheader-group-pathname (group dir &optional file)
-  "Make pathname for GROUP."
+  "Make file name for GROUP."
   (concat
    (let ((dir (file-name-as-directory (expand-file-name dir))))
      ;; If this directory exists, we use it directly.

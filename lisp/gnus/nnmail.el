@@ -467,7 +467,7 @@ parameter.  It should return nil, `warn' or `delete'."
   "Coding system used in reading inbox")
 
 (defvar nnmail-pathname-coding-system nil
-  "*Coding system for pathname.")
+  "*Coding system for file name.")
 
 (defun nnmail-find-file (file)
   "Insert FILE in server buffer safely."
@@ -484,7 +484,7 @@ parameter.  It should return nil, `warn' or `delete'."
       (file-error nil))))
 
 (defun nnmail-group-pathname (group dir &optional file)
-  "Make pathname for GROUP."
+  "Make file name for GROUP."
   (concat
    (let ((dir (file-name-as-directory (expand-file-name dir))))
      (setq group (nnheader-replace-duplicate-chars-in-string

@@ -399,7 +399,7 @@ backend for the messages.")
     prefix))
 
 (defun nnsoup-file-name (dir file)
-  "Return the full path of FILE (in any case) in DIR."
+  "Return the full name of FILE (in any case) in DIR."
   (let* ((case-fold-search t)
 	 (files (directory-files dir t))
 	 (regexp (concat (regexp-quote file) "$")))

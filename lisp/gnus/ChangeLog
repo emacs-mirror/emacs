@@ -1,3 +1,23 @@
+2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-agent.el: Don't use `path'.
+
+	* nnsoup.el (nnsoup-file-name): Ditto.
+
+	* nnmail.el (nnmail-pathname-coding-system): Ditto.
+	(nnmail-group-pathname): Ditto.
+
+	* nnimap.el (nnimap-group-overview-filename): Ditto.
+
+	* nnheader.el (nnheader-pathname-coding-system): Ditto.
+	(nnheader-group-pathname): Ditto.
+
+	* nnfolder.el (nnfolder-group-pathname): Ditto.
+
+	* gnus.el (gnus-home-directory): Ditto.
+
+	* gnus-group.el (gnus-group-icon-list): Ditto.
+
 2003-01-04  Kim F. Storm  <storm@cua.dk>
 
 	* message.el (message-split-line): New function.
