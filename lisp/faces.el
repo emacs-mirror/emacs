@@ -548,39 +548,43 @@ must be t or nil in that case.  A value of `unspecified' is not allowed."
 	   (setq args (cdr (cdr args)))))))
 
 
-(defun make-face-bold (face &optional frame)
+(defun make-face-bold (face &optional frame noerror)
   "Make the font of FACE be bold, if possible.
 FRAME nil or not specified means change face on all frames.
+Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font weight."
   (interactive (list (read-face-name "Make which face bold: ")))
   (set-face-attribute face frame :weight 'bold))
 
 
-(defun make-face-unbold (face &optional frame)
+(defun make-face-unbold (face &optional frame noerror)
   "Make the font of FACE be non-bold, if possible.
-FRAME nil or not specified means change face on all frames."
+FRAME nil or not specified means change face on all frames.
+Argument NOERROR is ignored and retained for compatibility."
   (interactive (list (read-face-name "Make which face non-bold: ")))
   (set-face-attribute face frame :weight 'normal))
 
   
-(defun make-face-italic (face &optional frame)
+(defun make-face-italic (face &optional frame noerror)
   "Make the font of FACE be italic, if possible.
 FRAME nil or not specified means change face on all frames.
+Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of the font slant."
   (interactive (list (read-face-name "Make which face italic: ")))
   (set-face-attribute face frame :slant 'italic))
 
 
-(defun make-face-unitalic (face &optional frame)
+(defun make-face-unitalic (face &optional frame noerror)
   "Make the font of FACE be non-italic, if possible.
 FRAME nil or not specified means change face on all frames."
   (interactive (list (read-face-name "Make which face non-italic: ")))
   (set-face-attribute face frame :slant 'normal))
 
   
-(defun make-face-bold-italic (face &optional frame)
+(defun make-face-bold-italic (face &optional frame noerror)
   "Make the font of FACE be bold and italic, if possible.
 FRAME nil or not specified means change face on all frames.
+Argument NOERROR is ignored and retained for compatibility.
 Use `set-face-attribute' for finer control of font weight and slant."
   (interactive (list (read-face-name "Make which face bold-italic: ")))
   (set-face-attribute face frame :weight 'bold :slant 'italic))
