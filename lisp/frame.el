@@ -284,25 +284,32 @@ additional frame parameters that Emacs recognizes for X window frames."
 
 (defun current-frame-configuration ()
   "Return a list describing the positions and states of all frames.
-Each element is a list of the form (FRAME ALIST WINDOW-CONFIG), where
-FRAME is a frame object, ALIST is an association list specifying
-some of FRAME's parameters, and WINDOW-CONFIG is a window
-configuration object for FRAME."
-  (mapcar (function
-	   (lambda (frame)
-	     (list frame
-		   (frame-parameters frame)
-		   (current-window-configuration frame))))
-	  (frame-list)))
+Its car is `frame-configuration'.
+Each element of the cdr is a list of the form (FRAME ALIST WINDOW-CONFIG),
+where
+  FRAME is a frame object,
+  ALIST is an association list specifying some of FRAME's parameters, and
+  WINDOW-CONFIG is a window configuration object for FRAME."
+  (cons 'frame-configuration
+	(mapcar (function
+		 (lambda (frame)
+		   (list frame
+			 (frame-parameters frame)
+			 (current-window-configuration frame))))
+		(frame-list))))
 
 (defun set-frame-configuration (configuration)
   "Restore the frames to the state described by CONFIGURATION.
 Each frame listed in CONFIGURATION has its position, size, window
 configuration, and other parameters set as specified in CONFIGURATION."
-  (let (frames-to-delete)
+  (or (frame-configuration-p configuration)
+      (signal 'wrong-type-argument
+	      (list 'frame-configuration-p configuration)))
+  (let ((config-alist (cdr configuration))
+	frames-to-delete)
     (mapcar (function
 	     (lambda (frame)
-	       (let ((parameters (assq frame configuration)))
+	       (let ((parameters (assq frame config-alist)))
 		 (if parameters
 		     (progn
 		       (modify-frame-parameters frame (nth 1 parameters))
@@ -310,6 +317,13 @@ configuration, and other parameters set as specified in CONFIGURATION."
 		   (setq frames-to-delete (cons frame frames-to-delete))))))
 	    (frame-list))
     (mapcar 'delete-frame frames-to-delete)))
+
+(defun frame-configuration-p (object)
+  "Return non-nil if OBJECT seems to be a frame configuration.
+Any list whose car is `frame-configuration' is assumed to be a frame
+configuration."
+  (and (consp object)
+       (eq (car object) 'frame-configuration)))
 
 
 ;;;; Convenience functions for accessing and interactively changing

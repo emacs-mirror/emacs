@@ -72,16 +72,16 @@ configuration (all frames), restore that frame or all frames accordingly.
 Argument is a character, naming the register."
   (interactive "cJump to register: ")
   (let ((val (get-register char)))
-    (condition-case ()
-	(set-frame-configuration val)
-      (error
-       (if (window-configuration-p val)
-	   (set-window-configuration val)
-	 (if (markerp val)
-	     (progn
-	       (switch-to-buffer (marker-buffer val))
-	       (goto-char val))
-	   (error "Register doesn't contain a buffer position or configuration")))))))
+    (cond
+     ((frame-configuration-p val)
+      (set-frame-configuration val))
+     ((window-configuration-p val)
+      (set-window-configuration val))
+     ((markerp val)
+      (switch-to-buffer (marker-buffer val))
+      (goto-char val))
+     (t
+      (error "Register doesn't contain a buffer position or configuration")))))
 
 ;(defun number-to-register (arg char)
 ;  "Store a number in a register.
