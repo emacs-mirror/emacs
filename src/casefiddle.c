@@ -35,6 +35,10 @@ casify_object (flag, obj)
   register int i, c, len;
   register int inword = flag == CASE_DOWN;
 
+  /* If the case table is flagged as modified, rescan it.  */
+  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
+    Fset_case_table (current_buffer->downcase_table);
+
   while (1)
     {
       if (INTEGERP (obj))
@@ -132,6 +136,10 @@ casify_region (flag, b, e)
   if (EQ (b, e))
     /* Not modifying because nothing marked */
     return;
+
+  /* If the case table is flagged as modified, rescan it.  */
+  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
+    Fset_case_table (current_buffer->downcase_table);
 
   validate_region (&b, &e);
   start = XFASTINT (b);
