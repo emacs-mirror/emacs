@@ -1,6 +1,6 @@
 ;;; mh-pick.el --- make a search pattern and search for a message in MH-E
 
-;; Copyright (C) 1993, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -29,8 +29,6 @@
 ;; Internal support for MH-E package.
 
 ;;; Change Log:
-
-;; $Id: mh-pick.el,v 1.30 2003/01/27 04:16:47 wohler Exp $
 
 ;;; Code:
 
@@ -62,9 +60,9 @@ the search folder is dismissed."
         (mh-make-pick-template)
       (message ""))
     (setq mh-searching-function 'mh-pick-do-search
-          mh-searching-folder pick-folder
-          mh-current-folder folder
-          mh-previous-window-config window-config)
+          mh-searching-folder pick-folder)
+    (mh-make-local-vars 'mh-current-folder folder
+                        'mh-previous-window-config window-config)
     (message "%s" (substitute-command-keys
                    (concat "Type \\[mh-do-search] to search messages, "
                            "\\[mh-help] for help.")))))

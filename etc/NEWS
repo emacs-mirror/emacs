@@ -100,7 +100,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.2. There have been major changes since
+Upgraded to MH-E version 7.3. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++
