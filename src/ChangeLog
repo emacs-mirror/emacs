@@ -43,8 +43,8 @@
 	(lread.o): Depend on $(INTERVALS_SRC), termhooks.h, and coding.h.
 	(intervals.o): Depend on keymap.h.
 
-	* msdos.c (msdos_set_cursor_shape): Add debugging print-out to
-	termscript.
+	* msdos.c (msdos_set_cursor_shape, IT_display_cursor): Add
+	debugging print-out to termscript.
 
 2004-09-09  Richard M. Stallman  <rms@gnu.org>
 
