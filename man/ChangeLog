@@ -1,7 +1,7 @@
 2004-12-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* url.texi: Correct typos.
-	(Retrieving URLs, Retrieving URLs): @var{nil}->@code{nil}.
+	(Retrieving URLs): @var{nil}->@code{nil}.
 	(HTTP language/coding, mailto): Replace  "GNU Emacs Manual" with
 	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
 	(Dealing with HTTP documents): @inforef->@xref.
