@@ -194,7 +194,6 @@ release the mouse button.  Otherwise, it does not."
 		 (setq event (read-event))
 		 (or (mouse-movement-p event)
 		     (eq (car-safe event) 'switch-frame)))
-
 	  (if (eq (car-safe event) 'switch-frame)
 	      nil
 	    (setq end (event-end event)
@@ -378,15 +377,18 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 ;;; invocation of mouse-save-then-kill.
 (defvar mouse-save-then-kill-posn nil)
 
-(defun mouse-save-then-kill-delete-region ()
+(defun mouse-save-then-kill-delete-region (beg end)
   ;; Delete just one char, so in case buffer is being modified
   ;; for the first time, the undo list records that fact.
-  (delete-region (point)
-		 (+ (point) (if (> (mark) (point)) 1 -1)))
-  ;; Now delete the rest of the specified region,
-  ;; but don't record it.
-  (let ((buffer-undo-list t))
-    (delete-region (point) (mark)))
+  (delete-region beg
+		 (+ beg (if (> end beg) 1 -1)))
+  (let ((buffer-undo-list buffer-undo-list))
+    ;; Undo that deletion--but don't change the undo list!
+    (primitive-undo 1 buffer-undo-list)
+    ;; Now delete the rest of the specified region,
+    ;; but don't record it.
+    (setq buffer-undo-list t)
+    (delete-region beg end))
   (if (not (eq buffer-undo-list t))
       (let ((tail buffer-undo-list))
 	;; Search back in buffer-undo-list for the string
@@ -395,7 +397,7 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 	  (setq tail (cdr tail)))
 	;; Replace it with an entry for the entire deleted text.
 	(and tail
-	     (setcar tail (cons (car kill-ring) (point)))))))
+	     (setcar tail (cons (car kill-ring) (min beg end)))))))
 
 (defun mouse-save-then-kill (click)
   "Save text to point in kill ring; the second time, kill the text.
@@ -439,14 +441,14 @@ If you do this twice in the same position, the selection is killed."
 	      (mouse-show-mark))
 	  ;; If we click this button again without moving it,
 	  ;; that time kill.
-	  (mouse-save-then-kill-delete-region))
+	  (mouse-save-then-kill-delete-region (point) (mark)))
       (if (and (eq last-command 'mouse-save-then-kill)
 	       mouse-save-then-kill-posn
 	       (eq (car mouse-save-then-kill-posn) (car kill-ring))
 	       (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
 	  ;; If this is the second time we've called
 	  ;; mouse-save-then-kill, delete the text from the buffer.
-	  (mouse-save-then-kill-delete-region)
+	  (mouse-save-then-kill-delete-region (point) (mark))
 	(if (or (eq last-command 'mouse-save-then-kill)
 		(and mark-active transient-mark-mode)
 		(and (eq last-command 'mouse-drag-region)
@@ -541,17 +543,20 @@ This must be bound to a button-down mouse event."
     (save-excursion
       (set-buffer (window-buffer start-window))
       (setq mouse-selection-click-count click-count)
-      ;; Cancel any preexisting secondary selection.
       (or mouse-secondary-overlay
 	  (setq mouse-secondary-overlay
 		(make-overlay (point) (point))))
+      (overlay-put mouse-secondary-overlay 'face 'secondary-selection)
       (if (> click-count 0)
+	  ;; Double or triple press: make an initial selection
+	  ;; of one word or line.
 	  (let ((range (mouse-start-end start-point start-point click-count)))
 	    (set-marker mouse-secondary-start nil)
 	    (move-overlay mouse-secondary-overlay 1 1
 			  (window-buffer start-window))
 	    (move-overlay mouse-secondary-overlay (car range) (nth 1 range)
 			  (window-buffer start-window)))
+	;; Single-press: cancel any preexisting secondary selection.
 	(or mouse-secondary-start
 	    (setq mouse-secondary-start (make-marker)))
 	(set-marker mouse-secondary-start start-point)
@@ -677,8 +682,10 @@ If you do this twice in the same position, the selection is killed."
 	  ;; If we click this button again without moving it,
 	  ;; that time kill.
 	  (progn
-	    (delete-overlay mouse-secondary-overlay)
-	    (mouse-save-then-kill-delete-region)))
+	    (mouse-save-then-kill-delete-region
+	     (overlay-start mouse-secondary-overlay)
+	     (overlay-end mouse-secondary-overlay))
+	    (delete-overlay mouse-secondary-overlay)))
       (if (and (eq last-command 'mouse-secondary-save-then-kill)
 	       mouse-save-then-kill-posn
 	       (eq (car mouse-save-then-kill-posn) (car kill-ring))
@@ -686,8 +693,10 @@ If you do this twice in the same position, the selection is killed."
 	  ;; If this is the second time we've called
 	  ;; mouse-secondary-save-then-kill, delete the text from the buffer.
 	  (progn
-	    (delete-overlay mouse-secondary-overlay)
-	    (mouse-save-then-kill-delete-region))
+	    (mouse-save-then-kill-delete-region
+	     (overlay-start mouse-secondary-overlay)
+	     (overlay-end mouse-secondary-overlay))
+	    (delete-overlay mouse-secondary-overlay))
 	(if (overlay-start mouse-secondary-overlay)
 	    ;; We have a selection, so adjust it.
 	    (progn
