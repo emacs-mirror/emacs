@@ -2053,8 +2053,8 @@ x_set_tool_bar_lines (f, value, oldval)
       int y = nlines * CANON_Y_UNIT (f);
 
       BLOCK_INPUT;
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  0, y, width, height, False);
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    0, y, width, height, False);
       UNBLOCK_INPUT;
     }
 }
