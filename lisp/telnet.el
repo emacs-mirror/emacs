@@ -51,7 +51,7 @@
 
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map nil)
-(defvar telnet-prompt-pattern "^[^#$%>]*[#$%>] *")
+(defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)
 (make-variable-buffer-local
  (defvar telnet-remote-echoes t
@@ -115,7 +115,7 @@ rejecting one login and prompting for the again for a username and password.")
 	((string-match "tops-20" string) ;;maybe add telnet-replace-c-g
 	 (setq telnet-prompt-pattern  "[@>]*"))
 	((string-match "its" string)
-	 (setq telnet-prompt-pattern  "^[^*>]*[*>] *"))
+	 (setq telnet-prompt-pattern  "^[^*>\n]*[*>] *"))
 	((string-match "explorer" string)  ;;explorer telnet needs work
 	 (setq telnet-replace-c-g ?\n))))
   (setq comint-prompt-regexp telnet-prompt-pattern))
@@ -144,28 +144,30 @@ rejecting one login and prompting for the again for a username and password.")
   (comint-send-string proc telnet-new-line))
 
 (defun telnet-filter (proc string)
-  (let ((at-end
-	 (and (eq (process-buffer proc) (current-buffer))
-	      (= (point) (point-max)))))
-    (save-excursion
-      (set-buffer (process-buffer proc))
+  (save-excursion
+    (set-buffer (process-buffer proc))
+    (let* ((last-insertion (marker-position (process-mark proc)))
+	   (delta (- (point) last-insertion))
+	   (ie (and comint-last-input-end
+		    (marker-position comint-last-input-end)))
+	   (w (get-buffer-window (current-buffer)))
+	   (ws (and w (window-start w))))
+      (goto-char last-insertion)
+      (insert-before-markers string)
+      (set-marker (process-mark proc) (point))
+      (if ws (set-window-start w ws t))
+      (if ie (set-marker comint-last-input-end ie))
+      (while (progn (skip-chars-backward "^\C-m" last-insertion)
+		    (> (point) last-insertion))
+	(delete-region (1- (point)) (point)))
       (goto-char (process-mark proc))
-      (let ((now (point)))
-	;; Insert STRING, omitting all C-m characters.
-	(let ((index 0) c-m)
-	  (while (setq c-m (string-match "\C-m" string index))
-	    (insert-before-markers (substring string index c-m))
-	    (setq index (1+ c-m)))
-	  (insert-before-markers (substring string index)))
-	(and telnet-replace-c-g
-	     (subst-char-in-region now (point) ?\C-g telnet-replace-c-g)))
-;      (if (and (integer-or-marker-p last-input-start)
-;	       (marker-position last-input-start)
-;	       telnet-remote-echoes)
-;	  (delete-region last-input-start last-input-end))
-      )
-    (if at-end
-	(goto-char (point-max)))))
+      (and telnet-replace-c-g
+	   (subst-char-in-region last-insertion (point) ?\C-g
+				 telnet-replace-c-g t))
+      ;; If point is after the insertion place, move it
+      ;; along with the text.
+      (if (> delta 0)
+	  (goto-char (+ (process-mark proc) delta))))))
 
 (defun telnet-send-input ()
   (interactive)
