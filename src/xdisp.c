@@ -9420,15 +9420,15 @@ update_overlay_arrows (up_to_date)
        vlist = XCDR (vlist))
     {
       Lisp_Object var = XCAR (vlist);
-      Lisp_Object val;
 
       if (!SYMBOLP (var))
 	continue;
 
       if (up_to_date)
 	{
+	  Lisp_Object val = find_symbol_value (var);
 	  Fput (var, Qlast_arrow_position,
-		COERCE_MARKER (find_symbol_value (var)));
+		COERCE_MARKER (val));
 	  Fput (var, Qlast_arrow_string,
 		overlay_arrow_string_or_property (var, 0));
 	}
@@ -14749,15 +14749,15 @@ display_line (it)
      This is clearly a mess with variable size fonts.  It would be
      better to let it be displayed like cursors under X.  */
   if (! overlay_arrow_seen
-      && (overlay_arrow_string = overlay_arrow_at_row (it->f, row,
-						       &overlay_arrow_bitmap),
+      && (overlay_arrow_string
+	    = overlay_arrow_at_row (it->f, row, &overlay_arrow_bitmap),
 	  !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (!FRAME_WINDOW_P (it->f))
 	{
 	  struct glyph_row *arrow_row
-	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_bitmap);
+	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string);
 	  struct glyph *glyph = arrow_row->glyphs[TEXT_AREA];
 	  struct glyph *arrow_end = glyph + arrow_row->used[TEXT_AREA];
 	  struct glyph *p = row->glyphs[TEXT_AREA];
