@@ -1725,6 +1725,9 @@ help window."
 				  var
 				  'variable-documentation)
 				  1))
+	       (save-excursion
+		 (set-buffer standard-output)
+		 (help-mode))
 	       nil)))))
     (set var (eval-minibuffer (format "Set %s to value: " var))))
   (sc-set-mode-string))
