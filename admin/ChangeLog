@@ -31,7 +31,7 @@
 
 	* FOR-RELEASE: Remove entry about GTK and monochrome displays (done).
 
-2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
+2004-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* FOR-RELEASE: Moved here from the etc directory.
 
@@ -43,6 +43,10 @@
 
 	* quick-install-emacs: Don't use "function" keyword when defining
 	shell functions.
+
+2003-09-29  Lute Kamstra  <lute@gnu.org>
+
+	* make-tarball.txt: Mention regenerating Emacs' AUTHORS file.
 
 2003-09-27  Miles Bader  <miles@gnu.ai.mit.edu>
 
