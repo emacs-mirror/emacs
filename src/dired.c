@@ -891,7 +891,7 @@ If file does not exist, returns nil.")
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* BSD4_2 (or BSD4_3) */
   /* Cast -1 to avoid warning if int is not as wide as VALBITS.  */
-  if (s.st_ino & (((EMACS_INT) (-1)) << VALBITS))
+  if (FIXNUM_OVERFLOW_P (s.st_ino))
     /* To allow inode numbers larger than VALBITS, separate the bottom
        16 bits.  */
     values[10] = Fcons (make_number (s.st_ino >> 16),
@@ -901,7 +901,7 @@ If file does not exist, returns nil.")
     values[10] = make_number (s.st_ino);
 
   /* Likewise for device.  */
-  if (s.st_dev & (((EMACS_INT) (-1)) << VALBITS))
+  if (FIXNUM_OVERFLOW_P (s.st_dev))
     values[11] = Fcons (make_number (s.st_dev >> 16),
 			make_number (s.st_dev & 0xffff));
   else
