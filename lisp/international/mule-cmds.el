@@ -1952,13 +1952,13 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
 If CODING-SYSTEM can't safely encode CHAR, return nil."
   (let ((str1 (string-as-multibyte (char-to-string char)))
 	(str2 (string-as-multibyte (make-string 2 char)))
-	(safe-charsets (and coding-system
-			    (coding-system-get coding-system 'safe-charsets)))
+	(safe-chars (and coding-system
+			 (coding-system-get coding-system 'safe-chars)))
 	(charset (char-charset char))
 	enc1 enc2 i1 i2)
-    (when (or (eq safe-charsets t)
+    (when (or (eq safe-chars t)
 	      (eq charset 'ascii)
-	      (memq charset safe-charsets))
+	      (and safe-chars (aref safe-chars char)))
       ;; We must find the encoded string of CHAR.  But, just encoding
       ;; CHAR will put extra control sequences (usually to designate
       ;; ASCII charaset) at the tail if type of CODING is ISO 2022.
