@@ -1,3 +1,8 @@
+2003-08-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-iso.el (ebnf-no-meta-identifier): Becomes a var
+	instead of a constant.
+
 2003-08-12  Markus Rost  <rost@math.ohio-state.edu>
 
 	* shell.el (shell): With prefix-arg, suggest a new buffer name.
