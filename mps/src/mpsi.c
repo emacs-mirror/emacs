@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.19) $
+ * $HopeName: MMsrc!mpsi.c(trunk.20) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.19) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.20) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -73,7 +73,7 @@ SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.19) $");
  */
 
 #define CHECKLVALUE(lv1, lv2) \
-  (sizeof((lv1) = (lv2)), sizeof((lv2) = (lv1)), TRUE)
+  ((void)sizeof((lv1) = (lv2)), (void)sizeof((lv2) = (lv1)), TRUE)
 
 #define CHECKTYPE(t1, t2) \
   (sizeof(t1) == sizeof(t2) && \
@@ -110,7 +110,7 @@ static Bool mpsi_check(void)
 
   /* The external idea of a word width and the internal one */
   /* had better match.  See design.mps.interface.c.cons. */
-  CHECKL(MPS_WORD_WIDTH == WORD_WIDTH);
+  CHECKL(MPS_WORD_WIDTH == MPS_WORD_WIDTH);
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
   CHECKL(CHECKTYPE(mps_word_t, Word));
   
