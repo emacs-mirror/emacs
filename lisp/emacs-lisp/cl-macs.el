@@ -1845,12 +1845,14 @@ The form returns true if TAG was found and removed, nil otherwise."
 Example: (shiftf A B C) sets A to B, B to C, and returns the old A.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'."
   (if (not (memq nil (mapcar 'symbolp (butlast (cons place args)))))
-      (list* 'prog1 place
-	     (let ((sets nil))
-	       (while args
-		 (cl-push (list 'setq place (car args)) sets)
-		 (setq place (cl-pop args)))
-	       (nreverse sets)))
+      (list 'prog1 place
+	    (let ((sets nil))
+	      (while args
+		(cl-push (list 'setq place (car args)) sets)
+		(setq place (cl-pop args)))
+	      `(setq ,(cadar sets)
+		     (prog1 ,(caddar sets)
+		       ,@(nreverse (cdr sets))))))
     (let* ((places (reverse (cons place args)))
 	   (form (cl-pop places)))
       (while places
@@ -2239,15 +2241,16 @@ The type name can then be used in `typecase', `check-type', etc."
 	 name 'cl-deftype-handler (cons (list* '&cl-defs ''('*) arglist) body))))
 
 (defun cl-make-type-test (val type)
-  (if (memq type '(character string-char)) (setq type '(integer 0 255)))
   (if (symbolp type)
       (cond ((get type 'cl-deftype-handler)
 	     (cl-make-type-test val (funcall (get type 'cl-deftype-handler))))
 	    ((memq type '(nil t)) type)
-	    ((eq type 'null) (list 'null val))
-	    ((eq type 'float) (list 'floatp-safe val))
-	    ((eq type 'real) (list 'numberp val))
-	    ((eq type 'fixnum) (list 'integerp val))
+	    ((eq type 'null) `(null ,val))
+	    ((eq type 'float) `(floatp-safe ,val))
+	    ((eq type 'real) `(numberp ,val))
+	    ((eq type 'fixnum) `(integerp ,val))
+	    ;; FIXME: Should `character' accept things like ?\C-\M-a ?  -stef
+	    ((memq type '(character string-char))) `(char-valid-p ,val)
 	    (t
 	     (let* ((name (symbol-name type))
 		    (namep (intern (concat name "p"))))
@@ -2256,21 +2259,21 @@ The type name can then be used in `typecase', `check-type', etc."
     (cond ((get (car type) 'cl-deftype-handler)
 	   (cl-make-type-test val (apply (get (car type) 'cl-deftype-handler)
 					 (cdr type))))
-	  ((memq (car-safe type) '(integer float real number))
-	   (delq t (list 'and (cl-make-type-test val (car type))
+	  ((memq (car type) '(integer float real number))
+	   (delq t (and (cl-make-type-test val (car type))
 			 (if (memq (cadr type) '(* nil)) t
 			   (if (consp (cadr type)) (list '> val (caadr type))
 			     (list '>= val (cadr type))))
 			 (if (memq (caddr type) '(* nil)) t
 			   (if (consp (caddr type)) (list '< val (caaddr type))
 			     (list '<= val (caddr type)))))))
-	  ((memq (car-safe type) '(and or not))
+	  ((memq (car type) '(and or not))
 	   (cons (car type)
 		 (mapcar (function (lambda (x) (cl-make-type-test val x)))
 			 (cdr type))))
-	  ((memq (car-safe type) '(member member*))
+	  ((memq (car type) '(member member*))
 	   (list 'and (list 'member* val (list 'quote (cdr type))) t))
-	  ((eq (car-safe type) 'satisfies) (list (cadr type) val))
+	  ((eq (car type) 'satisfies) (list (cadr type) val))
 	  (t (error "Bad type spec: %s" type)))))
 
 (defun typep (val type)   ; See compiler macro below.
