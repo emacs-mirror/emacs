@@ -1024,10 +1024,10 @@ key (or menu-item)"))
 
 (defvar menu-bar-buffers-menu-list-buffers-entry nil)
 
-(defun menu-bar-update-buffers ()
+(defun menu-bar-update-buffers (&optional force)
   ;; If user discards the Buffers item, play along.
   (and (lookup-key (current-global-map) [menu-bar buffer])
-       (frame-or-buffer-changed-p)
+       (or force (frame-or-buffer-changed-p))
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
 	     (maxlen 0)
