@@ -26,6 +26,14 @@
 #define LIBS_SYSTEM -l:libdld.sl
 #endif
 
+/* Rainer Malzbender <rainer@displaytech.com> says definining
+   HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20
+   using GCC.  */
+
+#ifndef HAVE_XRMSETDATABASE
+#define HAVE_XRMSETDATABASE
+#endif
+
 /* Make sure we get select from libc rather than from libcurses
    because libcurses on HPUX 10.10 has a broken version of select.
    We used to use -lc -lcurses, but this may be cleaner.  */
