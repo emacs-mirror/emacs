@@ -1,5 +1,7 @@
 2004-04-30  Kim F. Storm  <storm@cua.dk>
 
+	* menu-bar.el (menu-bar-options-menu): Change menu text for CUA.
+
 	* mouse.el (mouse-drag-copy-region): New defcustom.
 	(mouse-set-region, mouse-drag-region-1): Use it.
 
