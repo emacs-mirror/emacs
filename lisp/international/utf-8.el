@@ -186,7 +186,7 @@ Setting this variable outside customize has no effect."
 		       ucs-mule-to-mule-unicode)
 	     (define-translation-table 'utf-translation-table-for-encode)))
 	 (set-default s v))
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'mule)
 
@@ -218,7 +218,7 @@ The value nil means that the tables are not yet loaded.")
 			  (setq x (- x #x100))
 			  (make-char 'mule-unicode-0100-24ff
 				     (+ (/ x 96) 32) (+ (% x 96) 32)))
-			 ((< x #x3400) 
+			 ((< x #x3400)
 			  (setq x (- x #x2500))
 			  (make-char 'mule-unicode-2500-33ff
 				     (+ (/ x 96) 32) (+ (% x 96) 32)))
@@ -254,8 +254,8 @@ The value nil means that the tables are not yet loaded.")
 			     to #x33FF))))
 	    (if (<= from to)
 		(setq ranges (cons (cons from to) ranges))))
-	  (mapconcat #'(lambda (x) 
-			 (format "%c-%c" 
+	  (mapconcat #'(lambda (x)
+			 (format "%c-%c"
 				 (funcall decode-char-no-trans (car x))
 				 (funcall decode-char-no-trans (cdr x))))
 		     ranges "")))
@@ -271,7 +271,7 @@ The value nil means that the tables are not yet loaded.")
 Setting this variable directly does not take effect;
 use either \\[customize] or the function
 `utf-translate-cjk-set-unicode-range'."
-  :version "21.4"
+  :version "22.1"
   :type '(repeat (cons integer integer))
   :set (lambda (symbol value)
 	 (utf-translate-cjk-set-unicode-range value))
@@ -378,7 +378,7 @@ characters and want to avoid some overhead on encoding/decoding
 by the above coding systems, you can customize the user option
 `utf-translate-cjk-mode' to nil."
   :init-value t
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'mule
   :global t
@@ -941,7 +941,7 @@ Move point to the end of the sequence."
 (defcustom utf-8-compose-scripts nil
   "*Non-nil means compose various scripts on decoding utf-8 text."
   :group 'mule
-  :version "21.4"
+  :version "22.1"
   :type 'boolean)
 
 (defun utf-8-post-read-conversion (length)

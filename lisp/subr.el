@@ -810,9 +810,9 @@ Like the function `insert' except that any argument that is a number
 is converted into a string by expressing it in decimal."
   (dolist (el args)
     (insert (if (integerp el) (number-to-string el) el))))
-(make-obsolete 'insert-string 'insert "21.4")
+(make-obsolete 'insert-string 'insert "22.1")
 (defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
-(make-obsolete 'makehash 'make-hash-table "21.4")
+(make-obsolete 'makehash 'make-hash-table "22.1")
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
@@ -837,9 +837,9 @@ is converted into a string by expressing it in decimal."
   "use timers instead, with `run-with-idle-timer'." "before 19.34")
 
 (defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
-(make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "21.4")
+(make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "22.1")
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
-(make-obsolete-variable 'x-sent-selection-hooks 'x-sent-selection-functions "21.4")
+(make-obsolete-variable 'x-sent-selection-hooks 'x-sent-selection-functions "22.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 
@@ -1156,7 +1156,7 @@ Optional args SENTINEL and FILTER specify the sentinel and filter
 
 (make-obsolete 'process-kill-without-query
                "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
-               "21.4")
+               "22.1")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.

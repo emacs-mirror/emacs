@@ -46,7 +46,7 @@
 (defcustom mouse-drag-copy-region t
   "*If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'mouse)
 
 (defcustom mouse-1-click-follows-link 350
@@ -75,7 +75,7 @@ Note that dragging the mouse never follows the link.
 This feature only works in modes that specifically identify
 clickable text as links, so it may not work with some external
 packages.  See `mouse-on-link-p' for details."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Double click" double)
                  (number :tag "Single click time limit" :value 350)

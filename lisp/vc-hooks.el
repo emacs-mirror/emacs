@@ -149,7 +149,7 @@ by these regular expressions."
 		(set :format "%v" :inline t (const :format "%t" :tag "don't" except))
 		(regexp :format " stay local,\n%t: %v" :tag "if it matches")
 		(repeat :format "%v%i\n" :inline t (regexp :tag "or"))))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defun vc-stay-local-p (file)
@@ -637,7 +637,7 @@ Before doing that, check if there are any old backups and get rid of them."
                    nil 'keep-date)
       ;; It's ok if it doesn't work (e.g. directory not writable),
       ;; since this is just for efficiency.
-      (file-error 
+      (file-error
        (message
         (concat "Warning: Cannot make version backup; "
                 "diff/revert therefore not local"))))))

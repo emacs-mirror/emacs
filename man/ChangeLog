@@ -384,7 +384,7 @@
 2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Saving Customizations): Emacs only loads the custom
-	file automatically after the init file in version 21.4 or later.
+	file automatically after the init file in version 22.1 or later.
 	Adapt text and examples to this fact.
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, $(infodir)/org)
@@ -937,7 +937,7 @@
 
 	* reftex.texi (AUCTeX): Update links, section name.
 
-	* faq.texi (Calc): Update availability (included in 21.4).
+	* faq.texi (Calc): Update availability (included in 22.1).
 	(AUCTeX): Update availability, information, versions, description.
 
 2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>

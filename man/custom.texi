@@ -506,9 +506,12 @@ customization files for different Emacs versions, like this:
       ((and (= emacs-major-version 21) (< emacs-minor-version 4))
        ;; @r{Emacs 21 customization, before version 21.4.}
        (setq custom-file "~/.custom-21.el"))
-      (t
+      ((< emacs-major-version 22)
        ;; @r{Emacs version 21.4 or later.}
-       (setq custom-file "~/.custom-21.4.el")))
+       (setq custom-file "~/.custom-21.4.el"))
+      (t
+       ;; @r{Emacs version 22.1 or later.}
+       (setq custom-file "~/.custom-22.el")))
 
 (load custom-file)
 @end example

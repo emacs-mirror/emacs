@@ -2886,7 +2886,7 @@ Strictly speaking, @code{font-lock-face} is not a built-in text
 property; rather, it is implemented in Font Lock mode using
 @code{char-property-alias-alist}.  @xref{Examining Properties}.
 
-This property is new in Emacs 21.4.
+This property is new in Emacs 22.1.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}

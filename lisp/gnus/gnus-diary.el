@@ -103,7 +103,7 @@
 
 (defgroup gnus-diary nil
   "Utilities on top of the nndiary backend for Gnus."
-  :version "21.4")
+  :version "22.1")
 
 (defcustom gnus-diary-summary-line-format "%U%R%z %uD: %(%s%) (%ud)\n"
   "*Summary line format for nndiary groups."

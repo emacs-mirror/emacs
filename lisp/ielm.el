@@ -77,7 +77,7 @@ text-only terminals or with `emacs -nw', you might wish to use
 another binding for `comint-kill-whole-line'."
   :type 'boolean
   :group 'ielm
-  :version "21.4")
+  :version "22.1")
 
 (defcustom ielm-prompt "ELISP> "
   "Prompt used in IELM.

@@ -338,7 +338,7 @@
   "Switch between files using substrings."
   :group 'extensions
   :group 'convenience
-  :version "21.4"
+  :version "22.1"
   :link '(emacs-commentary-link :tag "Commentary" "ido.el")
   :link '(emacs-library-link :tag "Lisp File" "ido.el"))
 

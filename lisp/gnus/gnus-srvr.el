@@ -71,7 +71,7 @@ See Info node `(gnus)Formatting Variables'."
 (defcustom gnus-server-browse-in-group-buffer nil
   "Whether server browsing should take place in the group buffer.
 If nil, a faster, but more primitive, buffer is used instead."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-server-visual
   :type 'boolean)
 
@@ -205,31 +205,31 @@ If nil, a faster, but more primitive, buffer is used instead."
 
 (defcustom gnus-server-agent-face 'gnus-server-agent-face
   "Face name to use on AGENTIZED servers."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-opened-face 'gnus-server-opened-face
   "Face name to use on OPENED servers."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-closed-face 'gnus-server-closed-face
   "Face name to use on CLOSED servers."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-denied-face 'gnus-server-denied-face
   "Face name to use on DENIED servers."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
 (defcustom gnus-server-offline-face 'gnus-server-offline-face
   "Face name to use on OFFLINE servers."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
@@ -736,10 +736,10 @@ gnus-method-to-server."
 	  (if (eq (car method) 'nntp)
 	      (while (not (eobp))
 		(ignore-errors
-		  (push (cons 
-			 (buffer-substring 
+		  (push (cons
+			 (buffer-substring
 			  (point)
-			  (progn 
+			  (progn
 			    (skip-chars-forward "^ \t")
 			    (point)))
 			 (let ((last (read cur)))
@@ -903,7 +903,7 @@ buffer.
     (beginning-of-line)
     (let ((name (get-text-property (point) 'gnus-group)))
       (when (re-search-forward ": \\(.*\\)$" (gnus-point-at-eol) t)
-	(concat (gnus-method-to-server-name gnus-browse-current-method) ":" 
+	(concat (gnus-method-to-server-name gnus-browse-current-method) ":"
 		(or name
 		    (match-string-no-properties 1)))))))
 

@@ -51,7 +51,7 @@
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-svn-register-switches nil
@@ -63,7 +63,7 @@ A string or list of strings passed to the checkin program by
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-svn-diff-switches
@@ -77,12 +77,12 @@ If you want to force an empty list of arguments, use t."
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "21.4"
+  :version "22.1"
   :group 'vc)
 
 (defcustom vc-svn-header (or (cdr (assoc 'SVN vc-header-alist)) '("\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'."
-  :version "21.4"
+  :version "22.1"
   :type '(repeat string)
   :group 'vc)
 
@@ -92,7 +92,7 @@ If you want to force an empty list of arguments, use t."
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $SVNREAD set)."
   ;; :type 'boolean
-  ;; :version "21.4"
+  ;; :version "22.1"
   ;; :group 'vc
   )
 

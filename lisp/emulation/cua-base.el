@@ -267,7 +267,7 @@
   :group 'editing-basics
   :group 'convenience
   :group 'emulations
-  :version "21.4"
+  :version "22.1"
   :link '(emacs-commentary-link :tag "Commentary" "cua-base.el")
   :link '(emacs-library-link :tag "Lisp File" "cua-base.el"))
 
@@ -1371,7 +1371,7 @@ paste (in addition to the normal emacs bindings)."
   (setq cua--debug (not cua--debug)))
 
 ;; Install run-time check for older versions of CUA-mode which does not
-;; work with GNU Emacs version 21.4 and newer.
+;; work with GNU Emacs version 22.1 and newer.
 ;;
 ;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
 ;; provided the `CUA-mode' feature.  Since this is no longer true,

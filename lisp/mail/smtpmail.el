@@ -170,7 +170,7 @@ looks like `user@realm'."
 		       (string  :tag "Username")
 		       (choice (const :tag "Query when needed" nil)
 				       (string  :tag "Password")))))
-  :version "21.4"
+  :version "22.1"
   :group 'smtpmail)
 
 (defcustom smtpmail-starttls-credentials '(("" 25 "" ""))

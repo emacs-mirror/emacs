@@ -112,7 +112,7 @@
 ;;
 (defgroup tree-widget nil
   "Customization support for the Tree Widget Library."
-  :version "21.4"
+  :version "22.1"
   :group 'widgets)
 
 (defcustom tree-widget-image-enable

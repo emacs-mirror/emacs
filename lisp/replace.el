@@ -62,7 +62,7 @@ strings or patterns."
   "*Non-nil means `query-replace' and friends ignore read-only matches."
   :type 'boolean
   :group 'matching
-  :version "21.4")
+  :version "22.1")
 
 (defcustom query-replace-highlight t
   "*Non-nil means to highlight matches during query replacement."
@@ -77,13 +77,13 @@ is highlighted lazily using isearch lazy highlighting (see
   :type 'boolean
   :group 'lazy-highlight
   :group 'matching
-  :version "21.4")
+  :version "22.1")
 
 (defface query-replace
   '((t (:inherit isearch)))
   "Face for highlighting query replacement matches."
   :group 'matching
-  :version "21.4")
+  :version "22.1")
 
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
@@ -789,7 +789,7 @@ Compatibility function for \\[next-error] invocations."
     (t :background "gray"))
   "Face used to highlight matches permanently."
   :group 'matching
-  :version "21.4")
+  :version "22.1")
 
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines included around `list-matching-lines' matches.

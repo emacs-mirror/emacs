@@ -1,7 +1,7 @@
 * COPYRIGHT
 
 Copyright (C) 2003, 2004 Free Software Foundation, Inc.
-	
+
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
@@ -392,7 +392,7 @@ has been fixed (closes SF #933954).
 * Changes in MH-E 7.4.4
 
 Version 7.4.4 addresses programmatic issues from the FSF and prepares
-MH-E for inclusion into an impending GNU Emacs release (21.4). There
+MH-E for inclusion into an impending GNU Emacs release (22.1). There
 are no user-visible changes (unless you are using XEmacs on DOS or
 don't have the cl package installed). Filenames are now unique in
 their first 8 characters (DOS 8.3 requirement). The runtime dependency

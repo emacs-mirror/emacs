@@ -236,7 +236,7 @@ See Info node `(gnus)Mail Source Specifiers'."
   "*Ignore errors when querying mail sources.
 If nil, the user will be prompted when an error occurs.  If non-nil,
 the error will be ignored."
-  :version "21.4"
+  :version "22.1"
   :group 'mail-source
   :type 'boolean)
 
@@ -284,7 +284,7 @@ files older than number of days."
   "*If non-nil, ask for for confirmation before deleting old incoming files.
 This variable only applies when `mail-source-delete-incoming' is a positive
 number."
-  :version "21.4"
+  :version "22.1"
   :group 'mail-source
   :type 'boolean)
 
@@ -305,7 +305,7 @@ number."
 
 (defcustom mail-source-movemail-program nil
   "If non-nil, name of program for fetching new mail."
-  :version "21.4"
+  :version "22.1"
   :group 'mail-source
   :type '(choice (const nil) string))
 
@@ -512,7 +512,7 @@ Return the number of files that were found."
 			       (format "Mail source %s error (%s).  Continue? "
 				       (if (memq ':password source)
 					   (let ((s (copy-sequence source)))
-					     (setcar (cdr (memq ':password s)) 
+					     (setcar (cdr (memq ':password s))
 						     "********")
 					     s)
 					 source)

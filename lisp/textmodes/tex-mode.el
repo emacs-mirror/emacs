@@ -127,7 +127,7 @@ and the input file name, with no separating space and are not shell-quoted.
 If nil, TeX runs with no options.  See the documentation of `tex-command'."
   :type 'string
   :group 'tex-run
-  :version "21.4")
+  :version "22.1")
 
 ;;;###autoload
 (defcustom tex-start-commands "\\nonstopmode\\input"
@@ -139,7 +139,7 @@ If nil, no commands are used.  See the documentation of `tex-command'."
 		       "\\nonstopmode\\input")
 		(string :tag "String at your choice"))
   :group 'tex-run
-  :version "21.4")
+  :version "22.1")
 
 (defvar latex-standard-block-names
   '("abstract"		"array"		"center"	"description"
@@ -199,7 +199,7 @@ use."
 (defcustom tex-dvi-view-command
   '(cond
     ((eq window-system 'x) "xdvi")
-    ((eq window-system 'w32) "yap") 
+    ((eq window-system 'w32) "yap")
     (t "dvi2tty * | cat -s"))
   "*Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
@@ -1776,7 +1776,7 @@ FILE is typically the output DVI or PDF file."
 	   (when (file-newer-than-file-p f file)
 	     (setq uptodate nil)))))
      uptodate)))
-    
+
 
 (autoload 'format-spec "format-spec")
 

@@ -123,7 +123,7 @@ If it is a frame, use the frame's selected window.
 It is not meaningful to set this to a specific frame or window with Custom.
 Only programs can do so."
   :group 'server
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "Use selected window"
 			:match (lambda (widget value)
 				 (not (functionp value)))
@@ -282,7 +282,7 @@ Server mode runs a process that accepts commands from the
 `emacsclient' program.  See `server-start' and Info node `Emacs server'."
   :global t
   :group 'server
-  :version "21.4"
+  :version "22.1"
   ;; Fixme: Should this check for an existing server socket and do
   ;; nothing if there is one (for multiple Emacs sessions)?
   (server-start (not server-mode)))

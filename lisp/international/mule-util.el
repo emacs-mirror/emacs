@@ -61,7 +61,7 @@ TYPE should be `list' or `vector'."
 ;;;###autoload
 (make-obsolete 'string-to-sequence
 	       "use `string-to-list' or `string-to-vector'."
-	       "21.4")
+	       "22.1")
 
 ;;;###autoload
 (defsubst string-to-list (string)

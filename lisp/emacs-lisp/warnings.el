@@ -31,7 +31,7 @@
 
 (defgroup warnings nil
   "Log and display warnings."
-  :version "21.4"
+  :version "22.1"
   :group 'lisp)
 
 (defvar warning-levels
@@ -77,7 +77,7 @@ the warning is logged in the warnings buffer, but the buffer
 is not immediately displayed.  See also `warning-minimum-log-level'."
   :group 'warnings
   :type '(choice (const :emergency) (const :error) (const :warning))
-  :version "21.4")
+  :version "22.1")
 (defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 
 (defcustom warning-minimum-log-level :warning
@@ -86,7 +86,7 @@ If a warning severity level is lower than this,
 the warning is completely ignored."
   :group 'warnings
   :type '(choice (const :emergency) (const :error) (const :warning))
-  :version "21.4")
+  :version "22.1")
 (defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 
 (defcustom warning-suppress-log-types nil
@@ -100,7 +100,7 @@ If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it."
   :group 'warnings
   :type '(repeat (repeat symbol))
-  :version "21.4")
+  :version "22.1")
 
 (defcustom warning-suppress-types nil
   "List of warning types not to display immediately.
@@ -115,7 +115,7 @@ so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
   :group 'warnings
   :type '(repeat (repeat symbol))
-  :version "21.4")
+  :version "22.1")
 
 ;;; The autoload cookie is so that programs can bind this variable
 ;;; safely, testing the existing value, before they call one of the

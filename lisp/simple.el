@@ -71,13 +71,13 @@
 (defgroup next-error nil
   "next-error support framework."
   :group 'compilation
-  :version "21.4")
+  :version "22.1")
 
 (defface next-error
   '((t (:inherit region)))
   "Face used to highlight next error locus."
   :group 'next-error
-  :version "21.4")
+  :version "22.1")
 
 (defcustom next-error-highlight 0.1
   "*Highlighting of locations in selected source buffers.
@@ -90,7 +90,7 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
                  (const :tag "No highlighting" nil)
                  (const :tag "Fringe arrow" 'fringe-arrow))
   :group 'next-error
-  :version "21.4")
+  :version "22.1")
 
 (defcustom next-error-highlight-no-select 0.1
   "*Highlighting of locations in non-selected source buffers.
@@ -103,7 +103,7 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
                  (const :tag "No highlighting" nil)
                  (const :tag "Fringe arrow" 'fringe-arrow))
   :group 'next-error
-  :version "21.4")
+  :version "22.1")
 
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
@@ -1540,7 +1540,7 @@ leak memory.  So you should make sure that you do not wait
 excessively long before answering the question."
   :type 'boolean
   :group 'undo
-  :version "21.4")
+  :version "22.1")
 
 (defvar undo-extra-outer-limit nil
   "If non-nil, an extra level of size that's ok in an undo item.
@@ -2461,7 +2461,7 @@ The value should be a list of text properties to discard or t,
 which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'killing
-  :version "21.4")
+  :version "22.1")
 
 (defvar yank-window-start nil)
 (defvar yank-undo-function nil
@@ -5094,7 +5094,7 @@ Various Emacs features that update auxiliary information when point moves
 wait this many seconds after Emacs becomes idle before doing an update."
   :type 'number
   :group 'display
-  :version "21.4")
+  :version "22.1")
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
   "Saved value of `buffer-invisibility-spec' when Visible mode is on.")

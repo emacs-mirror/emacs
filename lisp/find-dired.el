@@ -62,7 +62,7 @@ Use the \"-F\" or \"-b\" switches if and only if you also use
 them for `find-ls-option'."
   :type 'string
   :group 'find-dired
-  :version "21.4")
+  :version "22.1")
 
 ;;;###autoload
 (defcustom find-grep-options

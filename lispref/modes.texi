@@ -1355,8 +1355,7 @@ A list whose first element is the symbol @code{:propertize} says to
 process the mode-line construct @var{elt} recursively and add the text
 properties specified by @var{props} to the result.  The argument
 @var{props} should consist of zero or more pairs @var{text-property}
-@var{value}.  (This feature is new as of Emacs 21.4.)
-@c FIXME: This might be Emacs 21.5.
+@var{value}.  (This feature is new as of Emacs 22.1.)
 
 @item (@var{symbol} @var{then} @var{else})
 A list whose first element is a symbol that is not a keyword specifies a

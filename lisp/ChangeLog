@@ -6699,7 +6699,7 @@
 	(tramp-multi-action-process-alive): New defun.
 	(tramp-multi-actions): Use it.
 	(tramp-handle-find-backup-file-name): `copy-tree' is available
-	since Emacs 21.4 only (XEmacs has it).  Implementation rewritten
+	since Emacs 22.1 only (XEmacs has it).  Implementation rewritten
 	in order to avoid this function.
 	(tramp-handle-write-region): Set current buffer.  If connection
 	wasn't open, `file-modes' has changed it accidently.  Reported by
@@ -11330,7 +11330,7 @@
 	(tramp-async-proc): New variable.
 	(tramp-handle-shell-command): Adding asynchronous processes.
 	They are far from being perfect, but it works at least for
-	`find-grep-dired' and `find-name-dired' in Emacs 21.4.
+	`find-grep-dired' and `find-name-dired' in Emacs 22.1.
 	(top-level): Require password.el if visible.  Should be mandatory
 	once No Gnus has found its way into (X)Emacs.
 	(tramp-read-passwd): Invoke `password-read' if available,
@@ -12941,7 +12941,7 @@
 	Apply `file-attributes' instead of `tramp-handle-file-attributes' in
 	order to make the function more general.
 	(tramp-handle-file-attributes): Replace proprietary optional
-	parameter NONNUMERIC by the recently (Emacs 21.4) introduced ID-FORMAT.
+	parameter NONNUMERIC by the recently (Emacs 22.1) introduced ID-FORMAT.
 	(tramp-handle-file-attributes-with-perl): Handle parameter
 	NONNUMERIC if set.  This wasn't done in the past.
 	(tramp-post-connection): Apply second parameter "$2" if
@@ -12950,7 +12950,7 @@
 	* net/tramp-smb.el (tramp-smb-handle-delete-file):
 	Correct cut'n'waste error (`filename' instead of `directory').
 	(tramp-smb-handle-directory-files-and-attributes)
-	(tramp-smb-handle-file-attributes): Add recently (Emacs 21.4)
+	(tramp-smb-handle-file-attributes): Add recently (Emacs 22.1)
 	introduced parameter ID-FORMAT.
 	(tramp-smb-handle-make-directory-internal): Correct cut'n'waste
 	error (`directory' instead of `ldir').

@@ -59,7 +59,7 @@
 ;;    of 'info registers'.
 ;; 3) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 4) Mark breakpoint locations on scroll-bar of source buffer?
-;; 5) After release of 21.4 use '-var-list-children --all-values'
+;; 5) After release of 22.1 use '-var-list-children --all-values'
 ;;    and '-stack-list-locals 2' which need GDB 6.1 onwards.
 
 ;;; Code:
@@ -183,13 +183,13 @@ detailed description of this mode.
   "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defcustom gdb-use-inferior-io-buffer nil
   "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defun gdb-ann3 ()
   (setq gdb-debug-log nil)
@@ -268,7 +268,7 @@ detailed description of this mode.
   "If non-nil use FUN::VAR format to display variables in the speedbar." ;
   :type 'boolean
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defun gud-watch ()
   "Watch expression at point."
@@ -441,7 +441,7 @@ detailed description of this mode.
 The highlighting is done with `font-lock-warning-face'."
   :type 'boolean
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
@@ -491,7 +491,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 	     (name (funcall (gdb-rules-name-maker rules)))
 	     (new (get-buffer-create name)))
 	(with-current-buffer new
-	  (let ((trigger))	  
+	  (let ((trigger))
 	    (if (cdr (cdr rules))
 		(setq trigger (funcall (car (cdr (cdr rules))))))
 	    (set (make-local-variable 'gdb-buffer-type) key)
@@ -691,7 +691,7 @@ This filter may simply queue input for a later time."
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defvar gdb-annotation-rules
   '(("pre-prompt" gdb-pre-prompt)
@@ -789,7 +789,7 @@ not GDB."
 	(setq gud-running t)
 	(if gdb-use-inferior-io-buffer
 	    (setq gdb-output-sink 'inferior))))
-     (t 
+     (t
       (gdb-resync)
       (error "Unexpected `starting' annotation")))))
 
@@ -1205,7 +1205,7 @@ static char *magick[] = {
 	(with-selected-window (posn-window posn)
 	  (save-excursion
 	    (goto-char (posn-point posn))
-	    (if 
+	    (if
 ;		(or
 		 (posn-object posn)
 ;		 (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
@@ -1544,7 +1544,7 @@ static char *magick[] = {
   "Number of data items in memory window."
   :type 'integer
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defcustom gdb-memory-format "x"
   "Display format of data items in memory window."
@@ -1554,7 +1554,7 @@ static char *magick[] = {
 		 (const :tag "Octal" "o")
 		 (const :tag "Binary" "t"))
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defcustom gdb-memory-unit "w"
   "Unit size of data items in memory window."
@@ -1563,7 +1563,7 @@ static char *magick[] = {
 		 (const :tag "Word" "w")
 		 (const :tag "Giant word" "g"))
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (gdb-set-buffer-rules 'gdb-memory-buffer
 		      'gdb-memory-buffer-name
@@ -1753,7 +1753,7 @@ corresponding to the mode line clicked."
   (use-local-map gdb-memory-mode-map)
   (setq header-line-format
 	'(:eval
-	  (concat 
+	  (concat
 	   "Read address: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
@@ -1957,7 +1957,7 @@ corresponding to the mode line clicked."
   "Nil means don't display source file containing the main routine."
   :type 'boolean
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defun gdb-set-window-buffer (name)
   (set-window-buffer (selected-window) (get-buffer name))
@@ -2001,7 +2001,7 @@ of the inferior.  Non-nil means display the layout shown for
 `gdba'."
   :type 'boolean
   :group 'gud
-  :version "21.4")
+  :version "22.1")
 
 (defun gdb-many-windows (arg)
   "Toggle the number of windows in the basic arrangement."
