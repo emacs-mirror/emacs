@@ -55,6 +55,7 @@ main (argc, argv)
 extern char *strerror ();
 extern int errno;
 
+int
 main (argc, argv)
      int argc;
      char **argv;
@@ -167,7 +168,7 @@ main (argc, argv)
   while (str = fgets (string, BUFSIZ, out))
     printf ("%s", str);
   
-  exit (0);
+  return 0;
 }
 
 #else /* This is the SYSV IPC section */

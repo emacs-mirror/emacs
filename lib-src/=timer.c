@@ -199,7 +199,6 @@ void
 getevent ()
 {
   int i;
-  int n_events;
 
   /* In principle the itimer should be disabled on entry to this
      function, but it really doesn't make any important difference

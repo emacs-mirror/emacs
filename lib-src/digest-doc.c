@@ -6,6 +6,8 @@
    but in texinfo format and sorted by function/variable name.  */
 
 #include <stdio.h>
+
+int
 main ()
 {
   register int ch;

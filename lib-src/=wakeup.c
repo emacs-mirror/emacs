@@ -18,6 +18,7 @@
 
 struct tm *localtime ();
 
+void
 main (argc, argv)
      int argc;
      char **argv;

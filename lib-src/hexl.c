@@ -16,6 +16,9 @@ int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
 int group_by = DEFAULT_GROUPING;
 char *progname;
 
+void usage();
+
+int
 main (argc, argv)
      int argc;
      char *argv[];
@@ -231,6 +234,7 @@ main (argc, argv)
   return 0;
 }
 
+void
 usage ()
 {
   fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);

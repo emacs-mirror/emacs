@@ -30,6 +30,7 @@
     &res;})
 #endif
 
+int
 main (argc, argv)
      int argc;
      char *argv[];
@@ -58,7 +59,7 @@ main (argc, argv)
   setup_yow(fp);
   yow(fp);
   fclose(fp);
-  exit(0);
+  return 0;
 }
 
 static long len = -1;

@@ -44,8 +44,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define READ_BINARY "r"
 #endif /* not MSDOS */
 
+int scan_file ();
+int scan_lisp_file ();
+int scan_c_file ();
+
 FILE *outfile;
 
+int
 main (argc, argv)
      int argc;
      char **argv;
@@ -83,11 +88,13 @@ main (argc, argv)
 #ifndef VMS
   exit (err_count);			/* see below - shane */
 #endif /* VMS */
+  return err_count;
 }
 
 /* Read file FILENAME and output its doc strings to outfile.  */
 /* Return 1 if file is not found, 0 if it is found.  */
 
+int
 scan_file (filename)
      char *filename;
 {
@@ -109,6 +116,7 @@ char buf[128];
  Convert escape sequences \n and \t to newline and tab;
  discard \ followed by newline.  */
 
+int
 read_c_string (infile, printflag)
      FILE *infile;
      int printflag;
@@ -156,6 +164,7 @@ read_c_string (infile, printflag)
 /* Write to file OUT the argument names of function FUNC, whose text is in BUF.
    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
 
+void
 write_c_args (out, func, buf, minargs, maxargs)
      FILE *out;
      char *func, *buf;
@@ -240,6 +249,7 @@ write_c_args (out, func, buf, minargs, maxargs)
    Looks for DEFUN constructs such as are defined in ../src/lisp.h.
    Accepts any word starting DEF... so it finds DEFSIMPLE and DEFPRED.  */
 
+int
 scan_c_file (filename, mode)
      char *filename, *mode;
 {
@@ -486,7 +496,7 @@ read_lisp_symbol (infile, buffer)
   skip_white (infile);
 }
 
-
+int
 scan_lisp_file (filename, mode)
      char *filename, *mode;
 {
@@ -504,7 +514,6 @@ scan_lisp_file (filename, mode)
   while (!feof (infile))
     {
       char buffer [BUFSIZ];
-      char *fillp = buffer;
       char type;
 
       if (c != '\n')

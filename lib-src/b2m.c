@@ -40,6 +40,7 @@ int header = FALSE, printing;
 time_t ltoday;
 char from[MAX_DATA_LEN], labels[MAX_DATA_LEN], data[MAX_DATA_LEN], *p, *today;
 
+int
 main (argc, argv)
      int argc;
      char **argv;
@@ -117,4 +118,5 @@ main (argc, argv)
       if (printing)
 	puts (data);
     }
+  return 0;
 }

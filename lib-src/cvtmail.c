@@ -36,10 +36,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 char *malloc ();
 char *realloc ();
-char *xmalloc ();
-char *xrealloc ();
 char *getenv ();
 
+char *xmalloc ();
+char *xrealloc ();
+void skip_to_lf ();
+
+int
 main (argc, argv)
      int argc;
      char *argv[];
@@ -53,7 +56,7 @@ main (argc, argv)
   FILE *mddf;
   FILE *mfilef;
   FILE *cff;
-  char pre[10], post[100];
+  char pre[10];
   char name[14];
   int c;
 
@@ -103,12 +106,33 @@ main (argc, argv)
   return 0;
 }
 
+void
 skip_to_lf (stream)
      FILE *stream;
 {
   register int c;
   while ((c = getc(stream)) != '\n')
     ;
+}
+
+
+void
+error (s1, s2)
+     char *s1, *s2;
+{
+  fprintf (stderr, "cvtmail: ");
+  fprintf (stderr, s1, s2);
+  fprintf (stderr, "\n");
+}
+
+/* Print error message and exit.  */
+
+void
+fatal (s1, s2)
+     char *s1, *s2;
+{
+  error (s1, s2);
+  exit (1);
 }
 
 char *
@@ -130,21 +154,4 @@ xrealloc (ptr, size)
   if (!result)
     fatal ("virtual memory exhausted");
   return result;
-}
-
-/* Print error message and exit.  */
-
-fatal (s1, s2)
-     char *s1, *s2;
-{
-  error (s1, s2);
-  exit (1);
-}
-
-error (s1, s2)
-     char *s1, *s2;
-{
-  fprintf (stderr, "cvtmail: ");
-  fprintf (stderr, s1, s2);
-  fprintf (stderr, "\n");
 }

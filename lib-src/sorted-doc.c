@@ -35,23 +35,25 @@ struct docstr			/* Allocated thing for an entry. */
 };
 
 
-/* Print error message and exit.  */
-
-fatal (s1, s2)
-     char *s1, *s2;
-{
-  error (s1, s2);
-  exit (1);
-}
-
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
+void
 error (s1, s2)
      char *s1, *s2;
 {
   fprintf (stderr, "sorted-doc: ");
   fprintf (stderr, s1, s2);
   fprintf (stderr, "\n");
+}
+
+/* Print error message and exit.  */
+
+void
+fatal (s1, s2)
+     char *s1, *s2;
+{
+  error (s1, s2);
+  exit (1);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -67,7 +69,7 @@ xmalloc (size)
 }
 
 char *
-strsav (str)
+xstrdup (str)
      char * str;
 {
   char *buf = xmalloc (strlen (str) + 1);
@@ -98,12 +100,12 @@ char *states[] =
   "WAITING", "BEG_NAME", "NAME_GET", "BEG_DESC", "DESC_GET"
 };
     
+int
 main ()
 {
   register DOCSTR *dp = NULL;	/* allocated DOCSTR */
   register LINE *lp = NULL;	/* allocated line */
   register char *bp;		/* ptr inside line buffer */
-  int notfirst = 0;		/* set after read something */
   register enum state state = WAITING; /* state at start */
   int cnt = 0;			/* number of DOCSTRs read */
 
@@ -169,7 +171,7 @@ main ()
 	  else			/* saving and changing state */
 	    {
 	      *bp = NUL;
-	      bp = strsav (buf);
+	      bp = xstrdup (buf);
 
 	      if (state == NAME_GET)
 		dp->name = bp;

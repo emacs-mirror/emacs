@@ -32,6 +32,7 @@ cool_read (fd, buf, size)
     }
 }
 
+int
 main (argc, argv)
      int argc;
      char **argv;
@@ -63,7 +64,6 @@ have been corrupted in the files of Emacs, and it will not work.\n",
   close (fd);
 #ifdef VMS
   exit (1);			/* On VMS, success is 1.  */
-#else
-  exit (0);
 #endif
+  return (0);
 }

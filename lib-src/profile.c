@@ -39,7 +39,7 @@ static char time_string[30];
 
 /* Reset the stopwatch to zero.  */
 
-int
+void
 reset_watch ()
 {
   EMACS_GET_TIME (TV1);

@@ -546,11 +546,13 @@ popmail (user, outfile)
    *      directories have lost mail when over quota because these checks were
    *      not made in previous versions of movemail. */
 
+#ifdef BSD
   if (fsync (mbfi) < 0)
     {
       error ("Error in fsync: %s", strerror (errno));
       return (1);
     }
+#endif
 
   if (close (mbfi) == -1)
     {
