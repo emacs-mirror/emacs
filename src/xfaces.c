@@ -5273,18 +5273,6 @@ realize_default_face (f)
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
   face = realize_face (c, attrs, CHARSET_ASCII);
 
-#ifdef MSDOS
-  /* If either of the colors of the default face is the default color,
-     use the color defined by the frame.  */
-  if (FRAME_MSDOS_P (f))
-    {
-      if (face->foreground == FACE_TTY_DEFAULT_COLOR)
-	face->foreground = FRAME_FOREGROUND_PIXEL (f);
-      if (face->background == FACE_TTY_DEFAULT_COLOR)
-	face->background = FRAME_BACKGROUND_PIXEL (f);
-    }
-#endif
-
   /* Remove the former default face.  */
   if (c->used > DEFAULT_FACE_ID)
     {
@@ -5661,9 +5649,19 @@ realize_tty_face (c, attrs, charset)
 
 #ifdef MSDOS
   if (FRAME_MSDOS_P (c->f) && face->foreground == FACE_TTY_DEFAULT_COLOR)
-    face->foreground = load_color (c->f, face,
-				   attrs[LFACE_FOREGROUND_INDEX],
-				   LFACE_FOREGROUND_INDEX);
+    {
+      face->foreground = load_color (c->f, face,
+				     attrs[LFACE_FOREGROUND_INDEX],
+				     LFACE_FOREGROUND_INDEX);
+      /* If the foreground of the default face is the default color,
+	 use the foreground color defined by the frame.  */
+      if (face->foreground == FACE_TTY_DEFAULT_COLOR)
+	{
+	  face->foreground = FRAME_FOREGROUND_PIXEL (f);
+	  attrs[LFACE_FOREGROUND_INDEX] =
+	    build_string (msdos_stdcolor_name (face->foreground));
+	}
+    }
 #endif
 
   color = attrs[LFACE_BACKGROUND_INDEX];
@@ -5674,9 +5672,19 @@ realize_tty_face (c, attrs, charset)
 
 #ifdef MSDOS
   if (FRAME_MSDOS_P (c->f) && face->background == FACE_TTY_DEFAULT_COLOR)
-    face->background = load_color (c->f, face,
-				   attrs[LFACE_BACKGROUND_INDEX],
-				   LFACE_BACKGROUND_INDEX);
+    {
+      face->background = load_color (c->f, face,
+				     attrs[LFACE_BACKGROUND_INDEX],
+				     LFACE_BACKGROUND_INDEX);
+      /* If the background of the default face is the default color,
+	 use the background color defined by the frame.  */
+      if (face->background == FACE_TTY_DEFAULT_COLOR)
+	{
+	  face->background = FRAME_BACKGROUND_PIXEL (f);
+	  attrs[LFACE_BACKGROUND_INDEX] =
+	    build_string (msdos_stdcolor_name (face->background));
+	}
+    }
 
   /* Swap colors if face is inverse-video.  */
   if (face->tty_reverse_p)
