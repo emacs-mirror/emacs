@@ -1,3 +1,18 @@
+2002-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w32-vars.el (w32)
+	* vc-cvs.el (vc-cvs-global-switches) 
+	(vc-cvs-sticky-date-format-string, vc-cvs-sticky-tag-display)
+	* textmodes/sgml-mode.el (sgml-xml-mode)
+	* ruler-mode.el (ruler-mode)
+	* replace.el (query-replace-skip-read-only)
+	* progmodes/fortran.el (fortran-preprocessor-re)
+	* net/ange-ftp.el (ange-ftp-passive-host-alist) 
+	* mail/sendmail.el (mail-use-dsn)
+	* faces.el (mode-line-inactive, minibuffer-prompt)
+	* add-log.el (add-log-always-start-new-record): Change all
+	post-21.1 :version attributes to 21.4.
+
 2002-05-12  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-mail-address): New variable.
