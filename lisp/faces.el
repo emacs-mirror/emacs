@@ -1725,6 +1725,7 @@ created."
      :box (:line-width -1 :color "grey40" :style nil)
      :foreground "grey80" :background "grey30")
     (t
+     :inherit mode-line
      :inverse-video t))
   "Basic mode line face for non-selected windows."
   :version "21.2"
@@ -1746,6 +1747,7 @@ created."
      ;; highlighting; this may be too confusing in general, although it
      ;; happens to look good with the only current use of header-lines,
      ;; the info browser. XXX
+     :inherit mode-line
      :underline t)
     (((class color grayscale) (background light))
      :inherit mode-line
