@@ -1,5 +1,9 @@
 2000-03-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (syms_of_buffer): Add default-cursor-type.
+	(init_buffer_once): Don't let cursor_type have a local value
+	in every buffer.
+
 	* xterm.c (x_display_and_set_cursor): Choose cursor depending
 	on buffer-local value of cursor_type.
 	(x_draw_bar_cursor): Add parameter WIDTH.
