@@ -911,6 +911,7 @@ case "${canonical}" in
 				# /lib/cpp does not accept it.
 				OVERRIDE_CPPFLAGS=" "
 				;;
+      *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
       *-nextstep* )             opsys=nextstep ;;
