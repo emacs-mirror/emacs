@@ -712,7 +712,8 @@ these affect the display of the text within the overlay.
 @menu
 * Overlay Properties::	How to read and set properties.
 			What properties do to the screen display.
-* Managing Overlays::   Creating, moving, finding overlays.
+* Managing Overlays::   Creating and moving overlays.
+* Finding Overlays::    Searching for overlays.
 @end menu
 
 @node Overlay Properties
@@ -1869,7 +1870,7 @@ expression in the list.  For example,
 
 @noindent
 allows the use of scalable fonts with registry @code{muleindian-2}.
-@end example
+@end defvar
 
 @defun clear-face-cache &optional unload-p
 @tindex clear-face-cache
