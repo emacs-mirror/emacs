@@ -5819,11 +5819,14 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
 
-#define BUFFER_POS_REACHED_P()			\
-  ((op & MOVE_TO_POS) != 0			\
-   && BUFFERP (it->object)			\
-   && IT_CHARPOS (*it) >= to_charpos		\
-   && it->method == next_element_from_buffer)
+#define BUFFER_POS_REACHED_P()					\
+  ((op & MOVE_TO_POS) != 0					\
+   && BUFFERP (it->object)					\
+   && IT_CHARPOS (*it) >= to_charpos				\
+   && (it->method == next_element_from_buffer ||		\
+       (it->method == next_element_from_display_vector &&	\
+	it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
+
 
   while (1)
     {
