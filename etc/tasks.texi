@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate April  9, 1999
+@set lastupdate April 27, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -629,8 +629,8 @@ reverse-engineering of communication protocols.
 
 Volunteers are needed to write parsers/front ends for languages such as
 Algol 60, Algol 68, PL/I, Cobol, Fortran 90, Delphi, Modula 2, Modula 3,
-and any other languages designed for compilation, to be used with the
-code generation phases of the GNU C compiler.
+RPG, and any other languages designed for compilation, to be used with
+the code generation phases of the GNU C compiler.
 
 @c Fortran status is here so gnu@gnu.org and the volunteer coordinators
 @c don't have to answer the question -len
