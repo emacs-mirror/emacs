@@ -197,24 +197,32 @@ executable."
 	  (add-hook 'after-save-hook 'executable-chmod nil t)
 	  (if (looking-at "#![ \t]*\\(.*\\)$")
 	      (and (goto-char (match-beginning 1))
+		   ;; If the line ends in a space,
+		   ;; don't offer to change it.
+		   (not (= (char-after (1- (match-end 1))) ?\ ))
 		   (not (string= argument
 				 (buffer-substring (point) (match-end 1))))
-		   (or (not executable-query) no-query-flag
-		       (save-window-excursion
-			 ;; Make buffer visible before question.
-			 (switch-to-buffer (current-buffer))
-			 (y-or-n-p (concat "Replace magic number by `"
-					   executable-prefix argument "'? "))))
-		   (progn
-		     (replace-match argument t t nil 1)
-		     (message "Magic number changed to `%s'"
-			      (concat executable-prefix argument))))
+		   (if (or (not executable-query) no-query-flag
+			   (save-window-excursion
+			     ;; Make buffer visible before question.
+			     (switch-to-buffer (current-buffer))
+			     (y-or-n-p (concat "Replace magic number by `"
+					       executable-prefix argument "'? "))))
+		       (progn
+			 (replace-match argument t t nil 1)
+			 (message "Magic number changed to `%s'"
+				  (concat executable-prefix argument)))
+		     ;; Add a space at the end of the line
+		     ;; so we do not ask again about changing it.
+		     (end-of-line)
+		     (insert " ")))
 	    (insert executable-prefix argument ?\n)
 	    (message "Magic number changed to `%s'"
 		     (concat executable-prefix argument)))
-	  (or insert-flag
-	      (eq executable-insert t)
-	      (set-buffer-modified-p buffer-modified-p)))))
+;;;	  (or insert-flag
+;;;	      (eq executable-insert t)
+;;;	      (set-buffer-modified-p buffer-modified-p))
+	  )))
   interpreter)
 
 
