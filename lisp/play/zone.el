@@ -146,7 +146,8 @@ If the element is a function or a list of a function and a number,
     (erase-buffer)
     (setq buffer-undo-list t
           truncate-lines t
-          tab-width (zone-orig tab-width))
+          tab-width (zone-orig tab-width)
+          line-spacing (zone-orig line-spacing))
     (insert text)
     (untabify (point-min) (point-max))
     (set-window-start (selected-window) (point-min))
@@ -446,10 +447,10 @@ If the element is a function or a list of a function and a number,
 (defsubst zone-cpos (pos)
   (buffer-substring pos (1+ pos)))
 
-(defsubst zone-replace-char (direction char-as-string new-value)
-  (delete-char direction)
+(defsubst zone-replace-char (count del-count char-as-string new-value)
+  (delete-char (or del-count (- count)))
   (aset char-as-string 0 new-value)
-  (insert char-as-string))
+  (dotimes (i count) (insert char-as-string)))
 
 (defsubst zone-park/sit-for (pos seconds)
   (let ((p (point)))
@@ -460,10 +461,11 @@ If the element is a function or a list of a function and a number,
 (defun zone-fret (wbeg pos)
   (let* ((case-fold-search nil)
          (c-string (zone-cpos pos))
+         (cw-ceil (ceiling (char-width (aref c-string 0))))
          (hmm (cond
                ((string-match "[a-z]" c-string) (upcase c-string))
                ((string-match "[A-Z]" c-string) (downcase c-string))
-               (t " "))))
+               (t (propertize " " 'display `(space :width ,cw-ceil))))))
     (do ((i 0 (1+ i))
          (wait 0.5 (* wait 0.8)))
         ((= i 20))
@@ -496,16 +498,25 @@ If the element is a function or a list of a function and a number,
     (recenter 0)
     (sit-for 0)))
 
-(defun zone-fall-through-ws (c ww wbeg wend)
-  (let ((fall-p nil)                    ; todo: move outward
-        (wait 0.15))
-    (while (when (= 32 (char-after (+ (point) ww 1)))
+(defun zone-fall-through-ws (c wbeg wend)
+  (let* ((cw-ceil (ceiling (char-width (aref c 0))))
+         (spaces (make-string cw-ceil 32))
+         (col (current-column))
+         (wait 0.15)
+         newpos fall-p)
+    (while (when (save-excursion
+                   (next-line 1)
+                   (and (= col (current-column))
+                        (setq newpos (point))
+                        (string= spaces (buffer-substring-no-properties
+                                         newpos (+ newpos cw-ceil)))
+                        (setq newpos (+ newpos (1- cw-ceil)))))
 	     (setq fall-p t)
 	     (delete-char 1)
-	     (insert " ")
-	     (forward-char ww)
+	     (insert spaces)
+             (goto-char newpos)
 	     (when (< (point) wend)
-	       (delete-char 1)
+	       (delete-char cw-ceil)
 	       (insert c)
 	       (forward-char -1)
 	       (zone-park/sit-for wbeg (setq wait (* wait 0.8))))))
@@ -523,7 +534,7 @@ If the element is a function or a list of a function and a number,
           wend (window-end))
     (catch 'done
       (while (not (input-pending-p))
-        (setq mc 0)
+        (setq mc 0 wend (window-end))
         ;; select non-ws character, but don't miss too much
         (goto-char (+ wbeg (random (- wend wbeg))))
         (while (looking-at "[ \n\f]")
@@ -535,17 +546,16 @@ If the element is a function or a list of a function and a number,
           (when fret-p (zone-fret wbeg p))
           (goto-char p)
           (setq c (zone-cpos p)
-                fall-p (zone-fall-through-ws c ww wbeg wend)))
+                fall-p (zone-fall-through-ws c wbeg wend)))
         ;; assuming current-column has not changed...
         (when (and pancake-p
                    fall-p
                    (< (count-lines (point-min) (point))
                       wh))
-          (zone-replace-char 1 c ?@)
-          (zone-park/sit-for wbeg 0.137)
-          (zone-replace-char -1 c ?*)
-          (zone-park/sit-for wbeg 0.137)
-          (zone-replace-char -1 c ?_))))))
+          (let ((cw (ceiling (char-width (aref c 0)))))
+            (zone-replace-char cw   1 c ?@) (zone-park/sit-for wbeg 0.137)
+            (zone-replace-char cw nil c ?*) (zone-park/sit-for wbeg 0.137)
+            (zone-replace-char cw nil c ?_)))))))
 
 (defun zone-pgm-drip-fretfully ()
   (zone-pgm-drip t))
@@ -652,7 +662,8 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
         (setq s (zone-cpos (point))
               c (aref s 0))
         (zone-replace-char
-         1 s (cond ((or (> top (point))
+         (char-width c)
+         t s (cond ((or (> top (point))
                         (< bot (point))
                         (or (> 11 (setq col (current-column)))
                             (< rtc col)))
