@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.9 2001/01/09 13:12:04 gerd Exp $
+;; Revision: $Id: pcvs-util.el,v 1.10 2001/03/07 00:19:08 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -125,7 +125,7 @@ BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
 	  (if (and mainbuf (get-buffer-window mainbuf))
 	      ;; FIXME: if the buffer popped into a pre-existing window,
 	      ;; we don't want to delete that window.
-	      ;;(delete-window win)
+	      t ;;(delete-window win)
 	      ))))
     (with-current-buffer buf
       (bury-buffer (unless (and (eq buf (window-buffer (selected-window)))
