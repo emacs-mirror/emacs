@@ -162,22 +162,25 @@ and the file name is displayed in the echo area."
 	  ;; Return the text we displayed.
 	  (buffer-string))))))
 
-(defun help-split-fundoc (doc &optional def)
+(defun help-split-fundoc (doc def)
   "Split a function docstring DOC into the actual doc and the usage info.
-Return (USAGE . DOC) or nil if there's no usage info."
-  ;; Builtins get the calling sequence at the end of the doc string.
+Return (USAGE . DOC) or nil if there's no usage info.
+DEF is the function whose usage we're looking for in DOC."
+  ;; Functions can get the calling sequence at the end of the doc string.
   ;; In cases where `function' has been fset to a subr we can't search for
-  ;; function's name in the doc string.  Kluge round that using the printed
-  ;; representation.  The arg list then shows the wrong function name, but
-  ;; that might be a useful hint.
+  ;; function's name in the doc string so we use `fn' as the anonymous
+  ;; function name instead.
   (when doc
-    (let* ((rep (prin1-to-string def))
+    (let* ((rep (prin1-to-string (indirect-function def)))
 	   (name (if (string-match " \\([^ ]+\\)>$" rep)
-		     (match-string 1 rep) rep)))
-      (if (string-match (format "\n\n\\((\\(fn\\|%s\\)\\( .*\\)?)\\)\\'"
+		     (match-string 1 rep) (prin1-to-string def))))
+      (if (string-match (format "\n\n(\\(fn\\|%s\\)\\(\\( .*\\)?)\\)\\'"
 				(regexp-quote name))
 			doc)
-	  (cons (match-string 1 doc)
+	  (cons (format "(%s%s"
+			;; Replace `fn' with the actual function name.
+			(if (consp def) "anonymous" def)
+			(match-string 2 doc))
 		(substring doc 0 (match-beginning 0)))))))
 
 (defun help-function-arglist (def)
@@ -195,7 +198,12 @@ Return (USAGE . DOC) or nil if there's no usage info."
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
-		  (if (not (symbolp arg)) arg
+		  (if (not (symbolp arg))
+		      (if (and (consp arg) (symbolp (car arg)))
+			  ;; CL style default values for optional args.
+			  (cons (intern (upcase (symbol-name (car arg))))
+				(cdr arg))
+			arg)
 		    (let ((name (symbol-name arg)))
 		      (if (string-match "\\`&" name) arg
 			(intern (upcase name))))))
@@ -295,11 +303,9 @@ Return (USAGE . DOC) or nil if there's no usage info."
 	(when (or remapped keys)
 	  (princ ".")
 	  (terpri))))
-    ;; Handle symbols aliased to other symbols.
-    (setq def (indirect-function def))
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
-	   (usage (help-split-fundoc doc def)))
+	   (usage (help-split-fundoc doc function)))
       ;; If definition is a keymap, skip arglist note.
       (unless (keymapp def)
 	(princ (cond
@@ -312,7 +318,7 @@ Return (USAGE . DOC) or nil if there's no usage info."
 			       (setq fun (symbol-function fun))
 			       (not (setq usage (help-split-fundoc
 						 (documentation fun)
-						 def)))))
+						 function)))))
 		   usage)
 		 (car usage))
 		(t "[Missing arglist.  Please make a bug report.]")))
@@ -392,9 +398,7 @@ it is displayed along with the global value."
 		  (pp val)
 		  (help-xref-on-pp from (point))
 		  (if (< (point) (+ from 20))
-		      (save-excursion
-			(goto-char from)
-			(delete-char -1))))))
+		      (delete-region (1- from) from)))))
 	    (terpri)
 	    (when (local-variable-p variable)
 	      (princ (format "Local in buffer %s; " (buffer-name)))
