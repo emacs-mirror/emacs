@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.13 2000/12/10 21:08:55 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.14 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -126,7 +126,7 @@ conventions, or to allow recording the message in some other database,
 such as a bug-tracking system.  The list of files about to be committed
 can be obtained from `log-edit-files'."
   :group 'log-edit
-  :type '(hook :options (log-edit-delete-common-indentation
+  :type '(hook :options (log-edit-set-common-indentation
 			 log-edit-add-to-changelog)))
 
 (defvar cvs-changelog-full-paragraphs t
@@ -269,7 +269,7 @@ To select default log text, we:
 - use those paragraphs as the log text."
   (interactive)
   (log-edit-insert-changelog-entries (log-edit-files))
-  (log-edit-delete-common-indentation)
+  (log-edit-set-common-indentation)
   (goto-char (point-min))
   (when (looking-at "\\*\\s-+")
     (forward-line 1)
@@ -288,8 +288,13 @@ To select default log text, we:
      (substitute-command-keys
       "Type `\\[log-edit-done]' to finish commit.  Try `\\[describe-function] log-edit-done' for more help."))))
 
-(defun log-edit-delete-common-indentation ()
-  "Unindent the current buffer rigidly until at least one line is flush left."
+(defcustom log-edit-common-indent 0
+  "Minimum indentation to use in `log-edit-set-common-indentation'."
+  :group 'log-edit
+  :type 'integer)
+
+(defun log-edit-set-common-indentation ()
+  "(Un)Indent the current buffer rigidly to `log-edit-common-indent'."
   (save-excursion
     (let ((common (point-max)))
       (goto-char (point-min))
@@ -297,7 +302,8 @@ To select default log text, we:
         (if (not (looking-at "^[ \t]*$"))
             (setq common (min common (current-indentation))))
         (forward-line 1))
-      (indent-rigidly (point-min) (point-max) (- common)))))
+      (indent-rigidly (point-min) (point-max)
+		      (- log-edit-common-indent common)))))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
