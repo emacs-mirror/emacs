@@ -116,6 +116,20 @@ static void single_keymap_panes ();
 static void list_of_panes ();
 static void list_of_items ();
 
+/* Allocate a widget_value, blocking input.  */
+
+widget_value
+xmalloc_widget_value ()
+{
+  widget_value value;
+
+  BLOCK_INPUT;
+  value = malloc_widget_value ();
+  UNBLOCK_INPUT;
+
+  return value;
+}
+
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
 
@@ -1373,7 +1387,7 @@ single_submenu (item_key, item_name, maps)
 
   submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
-  wv = malloc_widget_value ();
+  wv = xmalloc_widget_value ();
   wv->name = "menu";
   wv->value = 0;
   wv->enabled = 1;
@@ -1427,7 +1441,7 @@ single_submenu (item_key, item_name, maps)
 	     with its items as a submenu beneath it.  */
 	  if (strcmp (pane_string, ""))
 	    {
-	      wv = malloc_widget_value ();
+	      wv = xmalloc_widget_value ();
 	      if (save_wv)
 		save_wv->next = wv;
 	      else
@@ -1454,7 +1468,7 @@ single_submenu (item_key, item_name, maps)
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
 
-	  wv = malloc_widget_value ();
+	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
 	    prev_wv->next = wv;
 	  else
@@ -1570,7 +1584,7 @@ set_frame_menubar (f, first_time, deep_p)
   if (! menubar_widget)
     deep_p = 1;
 
-  wv = malloc_widget_value ();
+  wv = xmalloc_widget_value ();
   wv->name = "menubar";
   wv->value = 0;
   wv->enabled = 1;
@@ -1695,7 +1709,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 
-	  wv = malloc_widget_value ();
+	  wv = xmalloc_widget_value ();
 	  wv->name = (char *) XSTRING (string)->data;
 	  wv->value = 0;
 	  wv->enabled = 1;
@@ -1883,7 +1897,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Create a tree of widget_value objects
      representing the panes and their items.  */
-  wv = malloc_widget_value ();
+  wv = xmalloc_widget_value ();
   wv->name = "menu";
   wv->value = 0;
   wv->enabled = 1;
@@ -1935,7 +1949,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	     with its items as a submenu beneath it.  */
 	  if (!keymaps && strcmp (pane_string, ""))
 	    {
-	      wv = malloc_widget_value ();
+	      wv = xmalloc_widget_value ();
 	      if (save_wv)
 		save_wv->next = wv;
 	      else
@@ -1966,7 +1980,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
 
-	  wv = malloc_widget_value ();
+	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
 	    prev_wv->next = wv;
 	  else 
@@ -1990,9 +2004,9 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   /* Deal with the title, if it is non-nil.  */
   if (!NILP (title))
     {
-      widget_value *wv_title = malloc_widget_value ();
-      widget_value *wv_sep1 = malloc_widget_value ();
-      widget_value *wv_sep2 = malloc_widget_value ();
+      widget_value *wv_title = xmalloc_widget_value ();
+      widget_value *wv_sep1 = xmalloc_widget_value ();
+      widget_value *wv_sep2 = xmalloc_widget_value ();
 
       wv_sep2->name = "--";
       wv_sep2->next = first_wv->contents;
@@ -2195,7 +2209,7 @@ xdialog_show (f, keymaps, title, error)
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
 		   ? "" : (char *) XSTRING (pane_name)->data);  
-    prev_wv = malloc_widget_value ();
+    prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
       prev_wv->name++;
@@ -2236,7 +2250,7 @@ xdialog_show (f, keymaps, title, error)
 	    return Qnil;
 	  }
 
-	wv = malloc_widget_value ();
+	wv = xmalloc_widget_value ();
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
@@ -2258,7 +2272,7 @@ xdialog_show (f, keymaps, title, error)
     if (! boundary_seen)
       left_count = nb_buttons - nb_buttons / 2;
 
-    wv = malloc_widget_value ();
+    wv = xmalloc_widget_value ();
     wv->name = dialog_name;
 
     /* Dialog boxes use a really stupid name encoding
