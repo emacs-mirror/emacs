@@ -197,6 +197,9 @@
 	 (point))
        gnus-mouse-face-prop gnus-mouse-face)
       (insert " " gnus-tmp-subject-or-nil "\n"))
+
+    (require 'gnus-mule)
+    (gnus-mule-initialize)
     )))
 
 (defun gnus-region-active-p ()
