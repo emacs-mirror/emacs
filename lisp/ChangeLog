@@ -1,5 +1,8 @@
 2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Fix
+	typos in doc strings.
+
 	* font-lock.el (font-lock-mode, global-font-lock-mode): Mention in
 	the doc strings how to customize Font Lock faces.
 
