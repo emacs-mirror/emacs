@@ -407,7 +407,7 @@ static void w32_clip_to_row P_ ((struct window *, struct glyph_row *,
                                  HDC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, RECT *));
 static void x_draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-static void note_overwritten_text_cursor P_ ((struct window *, int, int));
+static void notice_overwritten_cursor P_ ((struct window *, int, int));
 
 static Lisp_Object Qvendor_specific_keysyms;
 
@@ -761,34 +761,46 @@ x_after_update_window_line (desired_row)
      struct glyph_row *desired_row;
 {
   struct window *w = updated_window;
-  
+  struct frame *f;
+  int width, height;
+
   xassert (w);
   
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     {
-      struct frame *f;
-      int width;
-
       BLOCK_INPUT;
       x_draw_row_fringe_bitmaps (w, desired_row);
+      UNBLOCK_INPUT;
+    }
 
-      /* When a window has disappeared, make sure that no rest of
-	 full-width rows stays visible in the internal border.  */
-      if (windows_or_buffers_changed
-          && (f = XFRAME (w->frame),
-              width = FRAME_INTERNAL_BORDER_WIDTH (f),
-              width != 0))
-	{
-	  int height = desired_row->visible_height;
-	  int x = (window_box_right (w, -1)
-                   + FRAME_X_RIGHT_FRINGE_WIDTH (f));
-	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
-          HDC hdc = get_frame_dc (f);
+  /* When a window has disappeared, make sure that no rest of
+     full-width rows stays visible in the internal border.  Could
+     check here if updated_window is the leftmost/rightmost window,
+     but I guess it's not worth doing since vertically split windows
+     are almost never used, internal border is rarely set, and the
+     overhead is very small.  */
+  if (windows_or_buffers_changed
+      && desired_row->full_width_p
+      && (f = XFRAME (w->frame),
+	  width = FRAME_INTERNAL_BORDER_WIDTH (f),
+	  width != 0)
+      && (height = desired_row->visible_height,
+	  height > 0))
+    {
+      int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+      /* Internal border is drawn below the tool bar.  */
+      if (WINDOWP (f->tool_bar_window)
+	  && w == XWINDOW (f->tool_bar_window))
+	y -= width;
 
-          w32_clear_area (f, hdc, x, y, width, height);
-          release_frame_dc (f, hdc);
-	}
-      
+      BLOCK_INPUT;
+      {
+	HDC hdc = get_frame_dc (f);
+	w32_clear_area (f, hdc, 0, y, width, height);
+	w32_clear_area (f, hdc, f->output_data.w32->pixel_width - width,
+			y, width, height);
+	release_frame_dc (f, hdc);
+      }
       UNBLOCK_INPUT;
     }
 }
@@ -2742,7 +2754,7 @@ static void w32_init_glyph_string P_ ((struct glyph_string *, HDC hdc,
                                        enum draw_glyphs_face));
 static int x_draw_glyphs P_ ((struct window *, int , struct glyph_row *,
 			      enum glyph_row_area, int, int,
-			      enum draw_glyphs_face, int *, int *, int));
+			      enum draw_glyphs_face, int));
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
@@ -3619,6 +3631,9 @@ x_setup_relief_colors (s)
 
   if (s->face->use_box_color_for_shadows_p)
     color = s->face->box_color;
+  else if (s->first_glyph->type == IMAGE_GLYPH
+	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
+    color = IMAGE_BACKGROUND  (s->img, s->f, 0);
   else
     color = s->gc->background;
 
@@ -3664,14 +3679,14 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   for (i = 0; i < width; ++i)
     w32_fill_area (f, hdc, gc.foreground,
 		   left_x + i * left_p, top_y + i,
-		   (right_x + 1 - i * right_p) - (left_x + i * left_p), 1);
+		   (right_x + 1 - i * right_p) - (left_x + i * left_p) + 1, 1);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     left_x + i, top_y + i, 1,
-		     (bottom_y - i + 1) - (top_y + i));
+		     (bottom_y - i) - (top_y + i) + 2);
 
   if (raised_p)
     gc.foreground = f->output_data.w32->black_relief.gc->foreground;
@@ -3682,14 +3697,14 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   for (i = 0; i < width; ++i)
     w32_fill_area (f, hdc, gc.foreground, 
 		   left_x + i * left_p, bottom_y - i,
-		   (right_x + 2 - i * right_p) - (left_x + i * left_p), 1);
+		   (right_x - i * right_p) - (left_x + i * left_p) + 2, 1);
 
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
       w32_fill_area (f, hdc, gc.foreground,
 		     right_x - i, top_y + i + 1, 1,
-		     (bottom_y - i) - (top_y + i + 1));
+		     (bottom_y - i) - (top_y + i));
 
   w32_set_clip_rectangle (hdc, NULL);
   
@@ -3923,7 +3938,7 @@ x_draw_image_relief (s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief > 0 ? tool_bar_button_relief : 3;
+      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : 3;
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -4647,7 +4662,9 @@ x_set_glyph_string_background_width (s, start, last_x)
 	       || s->face->background != default_face->background
 	       || s->face->stipple != default_face->stipple
 	       || s->row->mouse_face_p))
-	  || s->hl == DRAW_MOUSE_FACE))
+	  || s->hl == DRAW_MOUSE_FACE
+	  || ((s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
+	      && s->row->fill_line_p)))
     s->extends_to_end_of_line_p = 1;
   
   /* If S extends its face to the end of the line, set its
@@ -4849,27 +4866,19 @@ x_set_glyph_string_background_width (s, start, last_x)
    DRAW_IMAGE_SUNKEN	draw an image with a sunken relief around it
    DRAW_IMAGE_RAISED	draw an image with a raised relief around it
 
-   If REAL_START is non-null, return in *REAL_START the real starting
-   position for display.  This can be different from START in case
-   overlapping glyphs must be displayed.  If REAL_END is non-null,
-   return in *REAL_END the real end position for display.  This can be
-   different from END in case overlapping glyphs must be displayed.
-
    If OVERLAPS_P is non-zero, draw only the foreground of characters
    and clip to the physical height of ROW.
 
    Value is the x-position reached, relative to AREA of W.  */
      
 static int
-x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
-               overlaps_p)
+x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
      struct window *w;
      int x;
      struct glyph_row *row;
      enum glyph_row_area area;
      int start, end;
      enum draw_glyphs_face hl;
-     int *real_start, *real_end;
      int overlaps_p;
 {
   struct glyph_string *head, *tail;
@@ -4883,10 +4892,6 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   end = min (end, row->used[area]);
   start = max (0, start);
   start = min (end, start);
-  if (real_start)
-    *real_start = start;
-  if (real_end)
-    *real_end = end;
 
   /* Translate X to frame coordinates.  Set last_x to the right
      end of the drawing area.  */
@@ -4958,8 +4963,6 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
 			       DRAW_NORMAL_TEXT, dummy_x, last_x,
                                overlaps_p);
 	  start = i;
-	  if (real_start)
-	    *real_start = start;
 	  x_compute_overhangs_and_x (t, head->x, 1);
 	  x_prepend_glyph_string_lists (&head, &tail, h, t);
 	}
@@ -4979,8 +4982,6 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
                                overlaps_p);
 	  for (s = h; s; s = s->next)
 	    s->background_filled_p = 1;
-	  if (real_start)
-	    *real_start = i;
 	  x_compute_overhangs_and_x (t, head->x, 1);
 	  x_prepend_glyph_string_lists (&head, &tail, h, t);
 	}
@@ -4997,8 +4998,6 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
                                overlaps_p);
 	  x_compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  x_append_glyph_string_lists (&head, &tail, h, t);
-	  if (real_end)
-	    *real_end = i;
 	}
 
       /* Append glyph strings for glyphs following the last glyph
@@ -5016,14 +5015,30 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
 	    s->background_filled_p = 1;
 	  x_compute_overhangs_and_x (h, tail->x + tail->width, 0);
 	  x_append_glyph_string_lists (&head, &tail, h, t);
-	  if (real_end)
-	    *real_end = i;
 	}
     }
 
   /* Draw all strings.  */
   for (s = head; s; s = s->next)
     x_draw_glyph_string (s);
+
+  if (area == TEXT_AREA && !row->full_width_p)
+    {
+      int x0 = head ? head->x : x;
+      int x1 = tail ? tail->x + tail->background_width : x;
+      
+      x0 = FRAME_TO_WINDOW_PIXEL_X (w, x0);
+      x1 = FRAME_TO_WINDOW_PIXEL_X (w, x1);
+      
+      if (!row->full_width_p && XFASTINT (w->left_margin_width) != 0)
+	{
+	  int left_area_width = window_box_width (w, LEFT_MARGIN_AREA);
+	  x0 -= left_area_width;
+	  x1 -= left_area_width;
+	}
+
+      notice_overwritten_cursor (w, x0, x1);
+    }
 
   /* Value is the x-position up to which drawn, relative to AREA of W.
      This doesn't include parts drawn because of overhangs.  */
@@ -5077,8 +5092,7 @@ x_fix_overlapping_area (w, row, area)
 		 && row->glyphs[area][i].overlaps_vertically_p);
 
 	  x_draw_glyphs (w, start_x, row, area, start, i,
-			 DRAW_NORMAL_TEXT,
-			 NULL, NULL, 1);
+			 DRAW_NORMAL_TEXT, 1);
 	}
       else
 	{
@@ -5102,7 +5116,7 @@ x_write_glyphs (start, len)
      struct glyph *start;
      int len;
 {
-  int x, hpos, real_start, real_end;
+  int x, hpos;
 
   xassert (updated_window && updated_row);
   BLOCK_INPUT;
@@ -5113,12 +5127,7 @@ x_write_glyphs (start, len)
   x = x_draw_glyphs (updated_window, output_cursor.x,
 		     updated_row, updated_area,
 		     hpos, hpos + len,
-		     DRAW_NORMAL_TEXT,
-		     &real_start, &real_end, 0);
-
-  /* If we drew over the cursor, note that it is not visible any more.  */
-  note_overwritten_text_cursor (updated_window, real_start,
-				real_end - real_start);
+		     DRAW_NORMAL_TEXT, 0);
 
   UNBLOCK_INPUT;
   
@@ -5140,7 +5149,7 @@ x_insert_glyphs (start, len)
   int line_height, shift_by_width, shifted_region_width;
   struct glyph_row *row;
   struct glyph *glyph;
-  int frame_x, frame_y, hpos, real_start, real_end;
+  int frame_x, frame_y, hpos;
   HDC hdc;
 
   xassert (updated_window && updated_row);
@@ -5173,9 +5182,8 @@ x_insert_glyphs (start, len)
   /* Write the glyphs.  */
   hpos = start - row->glyphs[updated_area];
   x_draw_glyphs (w, output_cursor.x, row, updated_area, hpos, hpos + len,
-		 DRAW_NORMAL_TEXT, &real_start, &real_end, 0);
-  note_overwritten_text_cursor (w, real_start, real_end - real_start);
-  
+		 DRAW_NORMAL_TEXT, 0);
+
   /* Advance the output cursor.  */
   output_cursor.hpos += len;
   output_cursor.x += shift_by_width;
@@ -5249,7 +5257,7 @@ x_clear_end_of_line (to_x)
   
   /* Notice if the cursor will be cleared by this operation.  */
   if (!updated_row->full_width_p)
-    note_overwritten_text_cursor (w, output_cursor.hpos, -1);
+    notice_overwritten_cursor (w, output_cursor.x, -1);
 
   from_x = output_cursor.x;
      
@@ -5575,8 +5583,7 @@ expose_area (w, row, r, area)
     /* If row extends face to end of line write the whole line.  */
     x_draw_glyphs (w, 0, row, area,
 		   0, row->used[area],
-		   DRAW_NORMAL_TEXT,
-		   NULL, NULL, 0);
+		   DRAW_NORMAL_TEXT, 0);
   else
     {
       /* Set START_X to the window-relative start position for drawing glyphs of
@@ -5614,8 +5621,7 @@ expose_area (w, row, r, area)
         x_draw_glyphs (w, first_x - start_x, row, area,
                        first - row->glyphs[area],
                        last - row->glyphs[area],
-                       DRAW_NORMAL_TEXT,
-                       NULL, NULL, 0);
+                       DRAW_NORMAL_TEXT, 0);
     }
 }
 
@@ -5634,7 +5640,7 @@ expose_line (w, row, r)
   
   if (row->mode_line_p || w->pseudo_window_p)
     x_draw_glyphs (w, 0, row, TEXT_AREA, 0, row->used[TEXT_AREA],
-		   DRAW_NORMAL_TEXT, NULL, NULL, 0);
+		   DRAW_NORMAL_TEXT, 0);
   else
     {
       if (row->used[LEFT_MARGIN_AREA])
@@ -6738,7 +6744,7 @@ note_mouse_highlight (f, x, y)
 		{
 		  Lisp_Object before = Foverlay_start (overlay);
 		  Lisp_Object after = Foverlay_end (overlay);
-		  Lisp_Object ignore;
+		  int ignore;
 
 		  /* Note that we might not be able to find position
 		     BEFORE in the glyph matrix if the overlay is
@@ -7344,81 +7350,58 @@ show_mouse_face (dpyinfo, draw)
 {
   struct window *w = XWINDOW (dpyinfo->mouse_face_window);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int i;
-  int cursor_off_p = 0;
-  struct cursor_pos saved_cursor;
-
-  saved_cursor = output_cursor;
   
-  /* If window is in the process of being destroyed, don't bother
-     to do anything.  */
-  if (w->current_matrix == NULL)
-    goto set_x_cursor;
-
-  /* Recognize when we are called to operate on rows that don't exist
-     anymore.  This can happen when a window is split.  */
-  if (dpyinfo->mouse_face_end_row >= w->current_matrix->nrows)
-    goto set_x_cursor;
-
-  set_output_cursor (&w->phys_cursor);
-
-  /* Note that mouse_face_beg_row etc. are window relative.  */
-  for (i = dpyinfo->mouse_face_beg_row;
-       i <= dpyinfo->mouse_face_end_row;
-       i++)
+  if (/* If window is in the process of being destroyed, don't bother
+	 to do anything.  */
+      w->current_matrix != NULL
+      /* Recognize when we are called to operate on rows that don't exist
+	 anymore.  This can happen when a window is split.  */
+      && dpyinfo->mouse_face_end_row < w->current_matrix->nrows)
     {
-      int start_hpos, end_hpos, start_x;
-      struct glyph_row *row = MATRIX_ROW (w->current_matrix, i);
+      int phys_cursor_on_p = w->phys_cursor_on_p;
+      struct glyph_row *row, *first, *last;
 
-      /* Don't do anything if row doesn't have valid contents.  */
-      if (!row->enabled_p)
-	continue;
-
-      /* For all but the first row, the highlight starts at column 0.  */
-      if (i == dpyinfo->mouse_face_beg_row)
+      first = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_beg_row);
+      last = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_end_row);
+      
+      for (row = first; row <= last && row->enabled_p; ++row)
 	{
-	  start_hpos = dpyinfo->mouse_face_beg_col;
-	  start_x = dpyinfo->mouse_face_beg_x;
-	}
-      else
-	{
-	  start_hpos = 0;
-	  start_x = 0;
+	  int start_hpos, end_hpos, start_x;
+
+	  /* For all but the first row, the highlight starts at column 0.  */
+	  if (row == first)
+	    {
+	      start_hpos = dpyinfo->mouse_face_beg_col;
+	      start_x = dpyinfo->mouse_face_beg_x;
+	    }
+	  else
+	    {
+	      start_hpos = 0;
+	      start_x = 0;
+	    }
+
+	  if (row == last)
+	    end_hpos = dpyinfo->mouse_face_end_col;
+	  else
+	    end_hpos = row->used[TEXT_AREA];
+
+	  if (end_hpos > start_hpos)
+	    {
+	      x_draw_glyphs (w, start_x, row, TEXT_AREA, 
+			     start_hpos, end_hpos, draw, 0);
+
+	      row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
+	    }
 	}
 
-      if (i == dpyinfo->mouse_face_end_row)
-	end_hpos = dpyinfo->mouse_face_end_col;
-      else
-	end_hpos = row->used[TEXT_AREA];
-
-      /* If the cursor's in the text we are about to rewrite, turn the
-	 cursor off.  */
-      if (!w->pseudo_window_p
-	  && i == output_cursor.vpos
-	  && output_cursor.hpos >= start_hpos - 1
-	  && output_cursor.hpos <= end_hpos)
-	{
-	  x_update_window_cursor (w, 0);
-	  cursor_off_p = 1;
-	}
-
-      if (end_hpos > start_hpos)
-        {
-          x_draw_glyphs (w, start_x, row, TEXT_AREA,
-                         start_hpos, end_hpos, draw, NULL, NULL, 0);
-          row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
-        }
+      /* When we've written over the cursor, arrange for it to
+	 be displayed again.  */
+      if (phys_cursor_on_p && !w->phys_cursor_on_p)
+	x_display_cursor (w, 1,
+			  w->phys_cursor.hpos, w->phys_cursor.vpos,
+			  w->phys_cursor.x, w->phys_cursor.y);
     }
 
-  /* If we turned the cursor off, turn it back on.  */
-  if (cursor_off_p)
-    x_display_cursor (w, 1,
-		      output_cursor.hpos, output_cursor.vpos,
-		      output_cursor.x, output_cursor.y);
-
-  output_cursor = saved_cursor;
-
- set_x_cursor:
 #if 0 /* TODO: mouse cursor */
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT)
@@ -7431,7 +7414,6 @@ show_mouse_face (dpyinfo, draw)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		   f->output_data.x->nontext_cursor);
 #endif
-  ;
 }
 
 /* Clear out the mouse-highlighted active region.
@@ -7521,7 +7503,6 @@ glyph_rect (f, x, y, rect)
       struct window *w = XWINDOW (window);
       struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
       struct glyph_row *end = r + w->current_matrix->nrows - 1;
-      int area;
 
       frame_to_window_pixel_xy (w, &x, &y);
       
@@ -8004,7 +7985,7 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
     {
       HDC hdc;
       BLOCK_INPUT;
-      if (width && height)
+      if (width > 0 && height > 0)
 	{
 	  hdc = get_frame_dc (f);
 	  w32_clear_area (f, hdc, left, top, width, height);
@@ -9152,21 +9133,22 @@ w32_read_socket (sd, bufp, numchars, expected)
 			     Text Cursor
  ***********************************************************************/
 
-/* Note if the text cursor of window W has been overwritten by a
-   drawing operation that outputs N glyphs starting at HPOS in the
-   line given by output_cursor.vpos.  N < 0 means all the rest of the
-   line after HPOS has been written.  */
+/* Notice if the text cursor of window W has been overwritten by a
+   drawing operation that outputs glyphs starting at START_X and
+   ending at END_X in the line given by output_cursor.vpos.
+   Coordinates are area-relative.  END_X < 0 means all the rest
+   of the line after START_X has been written.  */
 
 static void
-note_overwritten_text_cursor (w, hpos, n)
+notice_overwritten_cursor (w, start_x, end_x)
      struct window *w;
-     int hpos, n;
+     int start_x, end_x;
 {
   if (updated_area == TEXT_AREA
+      && w->phys_cursor_on_p
       && output_cursor.vpos == w->phys_cursor.vpos
-      && hpos <= w->phys_cursor.hpos
-      && (n < 0
-	  || hpos + n > w->phys_cursor.hpos))
+      && start_x <= w->phys_cursor.x
+      && (end_x < 0 || end_x > w->phys_cursor.x))
     w->phys_cursor_on_p = 0;
 }
 
@@ -9292,14 +9274,24 @@ x_draw_bar_cursor (w, row, width)
     }
   else
     {
+      COLORREF cursor_color = f->output_data.w32->cursor_pixel;
+      struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
+
       if (width < 0)
         width = f->output_data.w32->cursor_width;
+
+      /* If the glyph's background equals the color we normally draw
+	 the bar cursor in, the bar cursor in its normal color is
+	 invisible.  Use the glyph's foreground color instead in this
+	 case, on the assumption that the glyph's colors are chosen so
+	 that the glyph is legible.  */
+      if (face->background == cursor_color)
+	cursor_color = face->foreground;
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       hdc = get_frame_dc (f);
       w32_clip_to_row (w, row, hdc, 0);
-      w32_fill_area (f, hdc, f->output_data.w32->cursor_pixel,
-                     x,
+      w32_fill_area (f, hdc, cursor_color, x,
                      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
                      min (cursor_glyph->pixel_width, width),
                      row->height);
@@ -9335,9 +9327,11 @@ x_draw_phys_cursor_glyph (w, row, hl)
      glyphs and mini-buffer.  */
   if (w->phys_cursor.hpos < row->used[TEXT_AREA])
     {
+      int on_p = w->phys_cursor_on_p;
       x_draw_glyphs (w, w->phys_cursor.x, row, TEXT_AREA,
                      w->phys_cursor.hpos, w->phys_cursor.hpos + 1,
-                     hl, 0, 0, 0);
+                     hl, 0);
+      w->phys_cursor_on_p = on_p;
 
       /* When we erase the cursor, and ROW is overlapped by other
 	 rows, make sure that these overlapping parts of other rows
@@ -9541,7 +9535,10 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
       else
 	{
-	  new_cursor_type = HOLLOW_BOX_CURSOR;
+	  if (cursor_non_selected)
+	    new_cursor_type = HOLLOW_BOX_CURSOR;
+	  else
+	    new_cursor_type = NO_CURSOR;
 	  active_cursor = 0;
 	}
     }
