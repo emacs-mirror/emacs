@@ -1272,14 +1272,13 @@ init_callproc ()
       Lisp_Object tem;
       tem = Fexpand_file_name (build_string ("lib-src"),
 			       Vinstallation_directory);
-      if (NILP (Fmember (tem, Vexec_path)))
-	{
 #ifndef DOS_NT
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
-	  Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
-	  Vexec_directory = Ffile_name_as_directory (tem);
+      if (NILP (Fmember (tem, Vexec_path)))
+	Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
+      
+      Vexec_directory = Ffile_name_as_directory (tem);
 #endif /* not DOS_NT */
-	}
 
       /* Maybe use ../etc as well as ../lib-src.  */
       if (data_dir == 0)
