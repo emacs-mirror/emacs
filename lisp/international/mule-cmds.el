@@ -439,7 +439,7 @@ non-nil, it is used to sort CODINGS in the different way than above."
 				     (t 32))
 			     0))
 			 (if (memq base lang-preferred) 8 0)
-			 (if (string-match "-with-esc$" (symbol-name base))
+			 (if (string-match "-with-esc\\'" (symbol-name base))
 			     0 4)
 			 (if (eq (coding-system-type base) 2)
 			     ;; For ISO based coding systems, prefer
@@ -658,7 +658,6 @@ and TO is ignored."
       (if buffer-file-coding-system
 	  (let ((base (coding-system-base buffer-file-coding-system)))
 	    (or (eq base 'undecided)
-		(assq buffer-file-coding-system default-coding-system)
 		(rassq base default-coding-system)
 		(setq default-coding-system
 		      (append default-coding-system
@@ -674,7 +673,6 @@ and TO is ignored."
 	(and (coding-system-p preferred)
 	     (setq base (coding-system-base preferred))
 	     (coding-system-get preferred 'mime-charset)
-	     (not (assq preferred default-coding-system))
 	     (not (rassq base default-coding-system))
 	     (setq default-coding-system
 		   (append default-coding-system
@@ -748,6 +746,14 @@ and TO is ignored."
 		      (eq 'coding-category-iso-8-else
 			  (coding-system-category elt)))
 	    (push elt l))))
+
+      ;; Remove raw-text, emacs-mule and no-conversion unless nothing
+      ;; else is available.
+      (setq codings
+	    (or (delq 'raw-text
+		      (delq 'emacs-mule
+			    (delq 'no-conversion codings)))
+		'(raw-text emacs-mule no-conversion)))
 
       (let ((window-configuration (current-window-configuration)))
 	(save-excursion
