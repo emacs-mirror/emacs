@@ -1701,8 +1701,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
     echo_char (c);
 
-  /* Record this character as part of the current key.
-     Don't record mouse motion; it should never matter.  */
+  /* Record this character as part of the current key.  */
   add_command_key (c);
 
   /* Re-reading in the middle of a command */
