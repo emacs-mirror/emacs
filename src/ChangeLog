@@ -1,3 +1,7 @@
+2004-11-19  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (Fvertical_motion): Fix last change.
+
 2004-11-18  Kim F. Storm  <storm@cua.dk>
 
 	* indent.c (Fvertical_motion): Undo 2004-11-16 change.
