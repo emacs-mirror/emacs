@@ -1233,7 +1233,7 @@ all values."
 (defun diary-block (m1 d1 y1 m2 d2 y2)
   "Block diary entry.
 Entry applies if date is between two dates.  Order of the parameters is
-M1, D1, Y1, M2, D2, Y2 `european-calendar-style' is nil, and
+M1, D1, Y1, M2, D2, Y2 if `european-calendar-style' is nil, and
 D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t."
   (let ((date1 (calendar-absolute-from-gregorian
                 (if european-calendar-style
