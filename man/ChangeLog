@@ -1,3 +1,7 @@
+2001-06-08  Carsten Dominik  <dominik@astro.uva.nl>
+
+	* reftex.texi: Updated to version 4.16
+
 2001-06-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired-x.texi: Fix Next and Prev pointers in @node directives, so
