@@ -1,5 +1,13 @@
 2002-05-03  John Wiegley  <johnw@gnu.org>
 
+	* eshell/esh-var.el (eshell-modify-global-environment): Added this
+	customization variable, which will cause any "export" commands
+	within any eshell buffer to modify the global Emacs environment.
+	It defaults to nil, which means that such commands will only
+	modify that Eshell buffer's environment.
+	(eshell-var-initialize): Initialize
+	`eshell-modify-global-environment'.
+
 	* eshell/em-cmpl.el (eshell-command-completions-alist): Improved
 	default completion targets for objdump, nm and readelf.
 
