@@ -1189,7 +1189,7 @@ If ARG is zero, move to the beginning of the current line."
 		  (signal 'end-of-buffer nil)))
 	    (setq arg (1- arg)))
 	(while (< arg 0)
-	  (or (zerop (vertical-motion -1))
+	  (or (zerop (forward-line -1))
 	      (signal 'beginning-of-buffer nil))
 	  (while (and (not (bobp))
 		      (let ((prop
