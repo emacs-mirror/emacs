@@ -3176,7 +3176,11 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 
       val = re_match_2_internal (bufp, string1, size1, string2, size2,
 				 startpos, regs, stop);
+#ifndef REGEX_MALLOC
+#ifdef C_ALLOCA
       alloca (0);
+#endif
+#endif
 
       if (val >= 0)
 	return startpos;
