@@ -21,6 +21,7 @@ ETAGS = ../lib-src/etags
 # to the `lisp' directory.
 # - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
 #   no point compiling it, although it doesn't hurt.
+
 DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
 	cus-start.el forms-d2.el forms-pass.el \
 	international/latin-1.el international/latin-2.el \
@@ -108,7 +109,7 @@ $(DONTCOMPILE:.el=.elc):
 # make sure require's and load's in the files being compiled find
 # the right files.
 
-compile: subdirs.el doit
+compile-files: subdirs.el doit
 	find . -name "*.elc" -print | xargs chmod +w;		\
 	wd=.; $(setwins);					\
 	elpat=`echo $$wins | tr '[ 	]' '[\012\012]' | 	\
@@ -117,11 +118,32 @@ compile: subdirs.el doit
 	echo $$els; \
 	EMACSLOADPATH=`pwd` $(emacs) -f batch-byte-compile $$els
 
+# Backup compiled Lisp files in elc.tar.gz.  If that file already
+# exists, make a backup of it.
+
+backup-compiled-files:
+	-mv elc.tar.gz elc.tar.gz~
+	tar czf elc.tar.gz *.elc */*.elc
+
+# Compile Lisp files, but save old compiled files first.
+
+compile: backup-compiled-files compile-files
+
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 
 recompile: doit
 	$(emacs) -f batch-byte-recompile-directory .
+
+# Remove files for a bootstrap.  Compiled Lisp files must be removed
+# because otherwise `bootstrap-emacs' would not be built from sources.
+
+bootstrap-clean:
+	-rm -f *.elc */*.elc
+
+# Generate/update files for the bootstrap process.
+
+bootstrap: compile-files autoloads custom-deps
 
 # Makefile ends here.
