@@ -1,3 +1,11 @@
+2002-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (menu_bar_items): Don't include keymap or local-map
+	bindings at PT when building menu (the menu is not updated often
+	enough for this to work reliable).
+	(tool_bar_items): Likewise.
+	(current_active_maps): Removed unused (and buggy) function.
+
 2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (gif_load): Use correct width and height for GIF images.
