@@ -67,6 +67,7 @@ DONTCOMPILE = \
 	$(lisp)/language/devanagari.el \
 	$(lisp)/language/malayalam.el \
 	$(lisp)/language/tamil.el \
+	$(lisp)/language/kannada.el \
 	$(lisp)/language/english.el \
 	$(lisp)/language/greek.el \
 	$(lisp)/language/hebrew.el \
