@@ -65,7 +65,10 @@ This command must be bound to a mouse click."
   (interactive "@e")
   (let ((start (event-start click)))
     (select-window (posn-window start))
-    (let ((new-height (1+ (cdr (posn-col-row (event-end click)))))
+    (let ((new-height (if (eq (posn-point start) 'vertical-scroll-bar)
+			  (scroll-bar-scale (posn-col-row start)
+					    (1- (window-height)))
+			(1+ (cdr (posn-col-row (event-end click))))))
 	  (first-line window-min-height)
 	  (last-line (- (window-height) window-min-height)))
       (if (< last-line first-line)
@@ -159,6 +162,21 @@ This must be bound to a button-down mouse event."
       ;; Turn off the old mark when we set up an empty region.
       (setq deactivate-mark t))))
 
+;; Subroutine: set the mark where CLICK happened,
+;; but don't do anything else.
+(defun mouse-set-mark-fast (click)
+  (let ((posn (event-start click)))
+    (select-window (posn-window posn))
+    (if (numberp (posn-point posn))
+	(push-mark (posn-point posn) t t))))
+
+;; Momentarily show where the mark is, if highlighting doesn't show it. 
+(defun mouse-show-mark ()
+  (or transient-mark-mode
+      (save-excursion
+	(goto-char (mark t))
+	(sit-for 1))))
+
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
 Display cursor at that position for a second.
@@ -192,8 +210,9 @@ Prefix arguments are interpreted as with \\[yank]."
   "Copy the region between point and the mouse click in the kill ring.
 This does not delete the region; it acts like \\[kill-ring-save]."
   (interactive "e")
-  (mouse-set-mark click)
-  (kill-ring-save (point) (mark t)))
+  (mouse-set-mark-fast click)
+  (kill-ring-save (point) (mark t))
+  (mouse-show-mark))
 
 ;;; This function used to delete the text between point and the mouse
 ;;; whenever it was equal to the front of the kill ring, but some
@@ -210,8 +229,11 @@ at the front of the kill ring, this deletes the text.
 Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
 which prepares for a second click to delete the text."
   (interactive "e")
-  (let ((click-posn (posn-point (event-start click))))
-    (if (and (eq last-command 'kill-region)
+  (let ((click-posn (posn-point (event-start click)))
+	;; Don't let a subsequent kill command append to this one:
+	;; prevent setting this-command to kill-region.
+	(this-command this-command))
+    (if (and (eq last-command 'mouse-save-then-kill)
 	     mouse-save-then-kill-posn
 	     (eq (car mouse-save-then-kill-posn) (car kill-ring))
 	     (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
@@ -225,8 +247,9 @@ which prepares for a second click to delete the text."
 	      (setq buffer-undo-list
 		    (cons (cons (car kill-ring) (point)) buffer-undo-list))))
       ;; Otherwise, save this region.
-      (mouse-set-mark click)
+      (mouse-set-mark-fast click)
       (kill-ring-save (point) (mark t))
+      (mouse-show-mark)
       (setq mouse-save-then-kill-posn
 	    (list (car kill-ring) (point) click-posn)))))
 
