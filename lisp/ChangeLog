@@ -1,7 +1,6 @@
 2003-06-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
-	* cus-edit.el (custom-get-fresh-buffer): Test for nonexistence
-	buffer.
+	* cus-edit.el (custom-get-fresh-buffer): Test for nonexistence buffer.
 
 2003-06-03  Richard M. Stallman  <rms@gnu.org>
 
@@ -33,11 +32,152 @@
 	* progmodes/ps-mode.el (ps-mode): Use autoload cookie in the
 	standard way.
 
+2003-06-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/bibtex.el (bibtex-member-of-regexp)
+	(bibtex-assoc-of-regexp, bibtex-format-entry, bibtex-find-entry)
+	(bibtex-autokey-demangle-name, bibtex-string-files-init, bibtex-mode):
+	Fix up regexp usage and use match-string.
+
+2003-06-02  Roland Winkler  <roland.winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el: Long overdue merge.
+	Don't require `compile' since it seems unnecessary.
+	For all internal variables and functions the docstring comments have
+	been converted into proper docstrings
+	(bibtex-maintainer-address, bibtex-maintainer-salutation)
+	(bibtex-version): Remove support for bug reporting.
+	(bibtex-field-delimiters, bibtex-entry-delimiters)
+	(bibtex-sort-ignore-string-entries, bibtex-maintain-sorted-entries)
+	Replace make-variable-buffer-local by make-local-variable for
+	(bibtex-entry-format): New tag `required-fields'.
+	(bibtex-maintain-sorted-entries): New var.
+	(bibtex-sort-entry-class, bibtex-sort-entry-class-alist): New vars.
+	(bibtex-predefined-month-strings, bibtex-predefined-strings):
+	Make into alists with pairs (abbreviation expansion).
+	(bibtex-autokey-titleword-change-strings)
+	(bibtex-autokey-transcriptions): Make into alists.
+	Add new replacement pairs.
+	(bibtex-autokey-use-crossref): New var.
+	Replace bibtex-autokey-year-use-crossref-entry because updated code
+	for autokey generation handles crossrefs independently of
+	particular fields.
+	(bibtex-reference-key, bibtex-mode-syntax-table):
+	Remove = because it can't be part of a string's key.
+	(bibtex-complete-key-cleanup): New var.
+	(bibtex-complete): Merge bibtex-complete-string and bibtex-complete-key
+	into it (and bind to M-tab).
+	(bibtex-valid-entry-re, bibtex-any-valid-entry-re)
+	(bibtex-valid-entry-whitespace-re, bibtex-empty-field-re)
+	(bibtex-quoted-string-re): New vars.
+	(bibtex-field-name-for-parsing): Don't make-variable-buffer-local.
+	(zmacs-regions): Declare to quieten the byte-compiler.
+	(bibtex-comment-start): Don't include the space.
+	(bibtex-font-lock-syntactic-keywords): New var.
+	(bibtex-font-lock-keywords): Remove the entry for @Comment.
+	(bibtex-parse-field-string): Merge the functionality of
+	bibtex-parse-field-string-braced, bibtex-parse-quoted-string and
+	bibtex-parse-field-string-quoted.
+	(bibtex-search-forward-field-string): Remove.
+	(bibtex-parse-association): Use when.
+	(bibtex-parse-field-name): Use when.
+	(bibtex-parse-field-text): Use when and cond.
+	(bibtex-parse-field): Use let.
+	(bibtex-search-forward-field, bibtex-search-backward-field):
+	Make bound optional, use let, setq, and cddr.
+	(bibtex-start-of-field, bibtex-start-of-name-in-field)
+	(bibtex-end-of-name-in-field): Use nth.
+	(bibtex-name-in-field, bibtex-text-in-field-bounds)
+	(bibtex-text-in-field, bibtex-type-in-head, bibtex-key-in-head)
+	(bibtex-text-in-string): New functions.
+	(bibtex-reference-key-in-string): New fun.  Merge of
+	bibtex-start-of-reference-key-in-string and
+	bibtex-end-of-reference-key-in-string.
+	(bibtex-parse-string-prefix): Use let and when.
+	(bibtex-parse-string-postfix): Use when.
+	(bibtex-search-forward-string, bibtex-search-backward-string):
+	Use save-excursion and setq.
+	(bibtex-member-of-regexp): Use let.
+	(bibtex-assoc-of-regexp): Use caar und let.
+	(bibtex-skip-to-valid-entry): Return buffer position.
+	(bibtex-map-entries): Use save-excursion.
+	(bibtex-progress-message): Simplify.
+	(bibtex-search-entry): Use skip-chars-forward, when, save-match-data.
+	(bibtex-move-outside-of-entry): Handle the case that point is before
+	first entry.
+	(bibtex-enclosing-field): Use save-excursion, when.
+	(bibtex-format-field-delimiters): Merge into bibtex-format-entry.
+	(bibtex-enclosing-entry-maybe-empty-head): Simplify.
+	(bibtex-format-entry): Simplify.  Handle new tag required-fields of
+	bibtex-entry-format.
+	(bibtex-autokey-abbrev): Accept negative values of len.
+	(bibtex-autokey-get-field, bibtex-autokey-demangle-title): New funs.
+	(bibtex-autokey-get-namefield, bibtex-autokey-get-namelist)
+	(bibtex-autokey-get-yearfield-digits, bibtex-autokey-get-yearfield)
+	(bibtex-autokey-get-titlestring): Remove.
+	(bibtex-autokey-get-names): Simplify.
+	(bibtex-autokey-get-titles): Rename to bibtex-autokey-get-title.
+	(bibtex-autokey-demangle-name): Simplify, avoid error messages.
+	(bibtex-generate-autokey): Simplify.
+	(bibtex-parse-keys): Simplify, use push.
+	(bibtex-parse-strings): New fun similar to bibtex-parse-keys.
+	(bibtex-string-files-init): New fun.
+	(bibtex-parse-buffers-stealthily): Use bibtex-parse-keys,
+	bibtex-string-files-init and bibtex-parse-strings.
+	(bibtex-complete): Rename to bibtex-complete-internal, use push,
+	bibtex-reference-key-in-string, no sorting.
+	(bibtex-complete-string-cleanup): New fun, displays expansion of
+	completed strings.
+	(bibtex-choose-completion-string): New fun.  Required for
+	choose-completion-string-functions.
+	(bibtex-do-auto-fill): Remove.  Set fill-prefix in bibtex-mode.
+	(bibtex-pop): Simplify.
+	(bibtex-mode): Move setting of bibtex-string to bibtex-parse-strings.
+	Set choose-completion-string-functions.
+	(bibtex-print-help-message,bibtex-make-field, bibtex-end-of-entry)
+	(bibtex-count-entries): Simplify.
+	(bibtex-entry-index, bibtex-lessp): New funs for generalized sorting
+	scheme of indices, see bibtex-maintain-sorted-entries.
+	(bibtex-sort-buffer): Use bibtex-lessp for sorting.
+	(bibtex-find-crossref, bibtex-find-entry): New funs.
+	(bibtex-find-entry-location): Rename to bibtex-prepare-new-entry, use
+	bibtex-lessp, Simplify.
+	(bibtex-validate): Simplify.  Fixe bug of internal variable
+	questionable-month.
+	(bibtex-remove-OPT-or-ALT): Use when.
+	(bibtex-remove-delimiters, bibtex-kill-field, bibtex-kill-entry)
+	(bibtex-clean-entry, bibtex-fill-entry, bibtex-reformat): Simplify.
+	(bibtex-convert-alien): Use deactivate-mark rather than the
+	non-existent bibtex-mark-active variable.
+	(bibtex-complete-string, bibtex-complete-key): Merge into new
+	`smart' defun bibtex-complete.
+	(bibtex-String): Update for new sorting scheme, distinguish empty and
+	non-empty key strings.
+
+2003-06-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* sort.el (sort-subr): Add `predicate' arg.  Remove `sortcar' code.
+
 2003-06-02  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* emacs-lisp/lisp-mnt.el (lm-synopsis): Use relative filenames
-	correctly.  Show the synopsis to the user when appropriate.  Do
-	not kill buffers that were created outside `lm-synopsis'.
+	correctly.  Show the synopsis to the user when appropriate.
+	Do not kill buffers that were created outside `lm-synopsis'.
+
+2003-06-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* cus-edit.el (custom-get-fresh-buffer): Be extra paranoid,
+	just in case some used a file of the wrong name.
+
+	* progmodes/sh-script.el (sh-is-quoted-p): New fun.
+	(sh-font-lock-paren): Use it to allow \C in case patterns.
+	(sh-get-indent-info): Check the \n before the line for string-status.
+	(sh-feature): Remove unused var `function'.
+	(sh-get-indent-info): Remove unused variables.
+	(sh-prev-thing): Remove unused vars `going', `n', and `found'.
+	(sh-set-indent): Remove unused var `new-val' and `val0'.
+	(sh-learn-buffer-indent): Remove unused vars `last-pos' and `lines'.
+	(sh-guess-basic-offset): Remove unused var `return' and `j'.
 
 2003-05-27  David Ponce  <david@dponce.com>
 
@@ -48,32 +188,32 @@
 	Take into account changes made to the display margins, fringes and
 	scroll-bar handling.
 
-	(ruler-mode-margins-char): Removed.  Not used anymore.
+	(ruler-mode-margins-char): Remove.  Not used anymore.
 	(ruler-mode-pad-face, ruler-mode-fringes-face): New faces.
-	(ruler-mode-margins-face): New definition.  Moved.
+	(ruler-mode-margins-face): New definition.  Move.
 	(ruler-mode-left-fringe-cols)
 	(ruler-mode-right-fringe-cols)
 	(ruler-mode-left-scroll-bar-cols)
-	(ruler-mode-right-scroll-bar-cols): Reimplemented.  Moved.
+	(ruler-mode-right-scroll-bar-cols): Reimplement.  Move.
 	(ruler-mode-full-window-width)
 	(ruler-mode-window-col): New functions.
 	(ruler-mode-mouse-set-left-margin)
 	(ruler-mode-mouse-set-right-margin)
 	(ruler-mode-mouse-add-tab-stop)
-	(ruler-mode-mouse-del-tab-stop): Reimplemented.
-	(ruler-mode-mouse-current-grab-object): Renamed to...
+	(ruler-mode-mouse-del-tab-stop): Reimplement.
+	(ruler-mode-mouse-current-grab-object): Rename to...
 	(ruler-mode-dragged-symbol): New.
-	(ruler-mode-mouse-grab-any-column): Use it.  Cleaned up.
+	(ruler-mode-mouse-grab-any-column): Use it.  Clean up.
 	(ruler-mode-mouse-drag-any-column): Likewise.
-	(ruler-mode-mouse-drag-any-column-iteration): Simplified.
+	(ruler-mode-mouse-drag-any-column-iteration): Simplify.
 	(ruler-mode): Restore previous `header-line-format' if
 	`ruler-mode-header-line-format-old' has a local binding in current
 	buffer.
 	(ruler-mode-left-margin-help-echo)
-	(ruler-mode-right-margin-help-echo): Removed.
+	(ruler-mode-right-margin-help-echo): Remove.
 	(ruler-mode-margin-help-echo)
 	(ruler-mode-fringe-help-echo): New constants.
-	(ruler-mode-ruler): Use them.  Reimplemented.
+	(ruler-mode-ruler): Use them.  Reimplement.
 
 2003-06-01  Jason Rumney  <jasonr@gnu.org>
 

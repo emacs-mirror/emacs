@@ -1,3 +1,7 @@
+2003-06-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* buffer.c (init_buffer_once): Make kill-buffer-hook permanent-local.
+
 2003-06-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (make_menu_item): Make sure we don't crash on a NULL
@@ -12,6 +16,10 @@
 
 	* window.h (WINDOW_LEFT_FRINGE_COLS, WINDOW_RIGHT_FRINGE_COLS)
 	(WINDOW_MODE_LINE_LINES, WINDOW_HEADER_LINE_LINES): New macros.
+
+2003-06-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dispnew.c (Fsit_for): Don't lie about the number of args.
 
 2003-06-02  Dave Love  <fx@gnu.org>
 
@@ -49,6 +57,10 @@
 
 	* buffer.c (Fset_buffer_multibyte): Fix previous change.
 
+2003-06-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lread.c (openp): Make sure STR is a string.
+
 2003-06-01  David Ponce  <david@dponce.com>
 
 	* termhooks.h (enum event_kind): Added new WHEEL_EVENT event.
@@ -61,7 +73,7 @@
 	(syms_of_keyboard): Init and staticpro `wheel_syms'.  Init and
 	staticpro `Qmouse_wheel' and `mouse_wheel_syms' only if MAC_OSX
 	defined.
-	(make_lispy_event): Added WHEEL_EVENT handler.
+	(make_lispy_event): Add WHEEL_EVENT handler.
 
 	* w32term.c (construct_mouse_wheel): Construct WHEEL_EVENT.
 	(w32_read_socket): Map w32 WM_MOUSEWHEEL events to Emacs
