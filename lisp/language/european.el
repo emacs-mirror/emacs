@@ -32,17 +32,6 @@
 
 ;; Latin-1 (ISO-8859-1)
 
-(make-coding-system
- 'iso-latin-1 2 ?1
- "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
- '(ascii latin-iso8859-1 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil t t)
- '((safe-charsets ascii latin-iso8859-1)
-   (mime-charset . iso-8859-1)))
-
-(define-coding-system-alias 'iso-8859-1 'iso-latin-1)
-(define-coding-system-alias 'latin-1 'iso-latin-1)
-
 (set-language-info-alist
  "Latin-1" '((charset ascii latin-iso8859-1)
 	     (coding-system iso-latin-1)
