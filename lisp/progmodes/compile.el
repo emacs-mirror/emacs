@@ -406,13 +406,16 @@ Returns the compilation buffer created."
        ;; If window is alone in its frame, aside from a minibuffer,
        ;; don't change its height.
        (not (eq window (frame-root-window (window-frame window))))
-       (let ((w (selected-window)))
-	 (unwind-protect
-	     (progn
-	       (select-window window)
-	       (enlarge-window (- compilation-window-height
-				  (window-height))))
-	   (select-window w)))))
+       ;; This save-excursion prevents us from changing the current buffer,
+       ;; which might not be the same as the selected window's buffer.
+       (save-excursion
+	 (let ((w (selected-window)))
+	   (unwind-protect
+	       (progn
+		 (select-window window)
+		 (enlarge-window (- compilation-window-height
+				    (window-height))))
+	     (select-window w))))))
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
