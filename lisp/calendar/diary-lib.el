@@ -734,7 +734,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
            (list m (calendar-last-day-of-month m y) y)))
     (goto-char (point-min))
     (while (re-search-forward s-entry nil t)
-      (if (char-equal (preceding-char) ?()
+      (if (char-equal (preceding-char) ?\()
           (setq marking-diary-entry t)
         (setq marking-diary-entry nil))
       (re-search-backward "(")
