@@ -495,7 +495,8 @@ and TO is ignored."
 	    (beginning-of-line)
 	    (set-window-start (selected-window) (point))
 	    (save-excursion
-	      (while (re-search-forward "[^\000-\177]" to t)
+	      (while (and (< (length overlays) 256)
+			  (re-search-forward "[^\000-\177]" to t))
 		(let* ((char (preceding-char))
 		       (charset (char-charset char)))
 		  (when (assq charset non-safe-chars)
