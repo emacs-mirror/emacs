@@ -1,5 +1,9 @@
 2004-02-07  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (hscroll_window_tree): Position cursor near to right
+	margin in hscrolled window when jumping to end of line (rather
+	than centering cursor).
+
 	* process.c (wait_reading_process_input): Don't do adaptive read
 	buffering if waiting for a specific process.
 
