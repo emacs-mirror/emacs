@@ -1,12 +1,18 @@
-2001-06-19  Eli Zaretskii  <eliz@is.elta.co.il>
+2001-06-19  John Wiegley  <johnw@gnu.org>
 
-	* woman.el (WoMan-highlight-references): Add help-echo to
-	mouse-highlighted text.
+	* eshell/eshell.el: Don't load in esh-util if it's already loaded.
+	Also, added a comment describing how to greatly speedup Eshell
+	loadup time, by concatenating together all of Eshell's .elc files.
 
 2001-06-18  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-mode.el: Disabled a test that often yields false
 	failures.
+	
+2001-06-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.el (WoMan-highlight-references): Add help-echo to
+	mouse-highlighted text.
 
 2001-06-18  Stefan Monnier  <monnier@cs.yale.edu>
 
