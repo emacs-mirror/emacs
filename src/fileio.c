@@ -4648,8 +4648,13 @@ choose_write_coding_system (start, end, filename,
 DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
        "r\nFWrite region to file: \ni\ni\ni\np",
        doc: /* Write current region into specified file.
-When called from a program, takes three arguments:
-START, END and FILENAME.  START and END are buffer positions.
+When called from a program, requires three arguments:
+START, END and FILENAME.  START and END are normally buffer positions
+specifying the part of the buffer to write.
+If START is nil, that means to use the entire buffer contents.
+If START is a string, then output that string to the file
+instead of any buffer contents; END is ignored.
+
 Optional fourth argument APPEND if non-nil means
   append to existing file contents (if any).  If it is an integer,
   seek to that offset in the file before writing.
@@ -4669,8 +4674,6 @@ The optional seventh arg MUSTBENEW, if non-nil, insists on a check
   If MUSTBENEW is neither nil nor `excl', that means ask for
   confirmation before overwriting, but do go ahead and overwrite the file
   if the user confirms.
-Kludgy feature: if START is a string, then that string is written
-to the file, instead of any buffer contents, and END is ignored.
 
 This does code conversion according to the value of
 `coding-system-for-write', `buffer-file-coding-system', or
