@@ -1,3 +1,22 @@
+2003-03-28  Sudish Joseph  <sudish@corp.earthlink.net>  (tiny change)
+
+	* term/mac-win.el (iconify-or-deiconify-frame): Define for
+	compatibility with packages that use it.
+
+2003-03-28  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer): Fix
+	docstring.
+	(checkdoc-interactive, checkdoc-message-interactive): Make them
+	perform spell checking when appropriate.
+	(checkdoc-interactive-loop): Fix docstring and a few typos.
+	(checkdoc-interactive-ispell-loop)
+	(checkdoc-message-interactive-ispell-loop): New functions.
+	(checkdoc-next-error): Fix docstring.
+	(checkdoc-this-string-valid-engine): Fix typo.
+	(checkdoc-ispell-docstring-engine): Do test for
+	checkdoc-autofix-flag = nil.
+
 2003-03-28  Jonathan Yavner  <jyavner@engineer.com>
 
 	* emacs-lisp/testcover.el (testcover-mark-all): Handle screwy
@@ -9,7 +28,7 @@
 	* vc-cvs.el (vc-cvs-parse-entry): Make sure a file with conflicts
 	is marked as edited.
 
-2003-03-26  Kenichi Handa  <handa@etlken2>
+2003-03-26  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (recode-file-name): New function.
 
@@ -85,7 +104,7 @@
 	(ido-wide-find-file, ido-wide-find-dir, ido-make-directory):
 	Let-bind enable-recursive-minibuffers to t around read-string.
 
-2003-03-22  Kenichi Handa  <handa@etlken2>
+2003-03-22  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset):
 	Use indian-font-char-range for specifying ranges of indian-glyph
