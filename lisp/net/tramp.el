@@ -2973,11 +2973,11 @@ Falls back to normal file name handler if no tramp file name handler exists."
 
 ;;;###autoload
 (defun tramp-handle-ange-ftp ()
-  (interactive)
   "Turn Ange-FTP off and an Ange-FTP-like filename format.
 Requests suitable for Ange-FTP will be forwarded to Ange-FTP.
 Also see the variables `tramp-ftp-method', `tramp-default-method',
 and `tramp-default-method-alist'."
+  (interactive)
   (let ((a1 (rassq 'ange-ftp-hook-function file-name-handler-alist))
 	(a2 (rassq 'ange-ftp-completion-hook-function file-name-handler-alist))
 	(a3 (rassq 'tramp-file-name-handler file-name-handler-alist)))
