@@ -1,3 +1,10 @@
+2000-06-23  Dave Love  <fx@gnu.org>
+
+	* font-lock.el (font-lock-support-mode) <defgroup>: Add :version.
+	(font-lock-fontify-anchored-keywords): Use
+	line-beginning-position.
+	(global-font-lock-mode): Use mapc.
+
 2000-06-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eshell/esh-module.el: Require CL when compiling.
