@@ -475,16 +475,14 @@ contain matches to the regexp.\)")
 
 (defvar pages-target-buffer)
 
-(defvar pages-directory-map nil
+(defvar pages-directory-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'pages-directory-goto)
+    (define-key map "\C-c\C-p\C-a" 'add-new-page)
+    (define-key map [mouse-2] 'pages-directory-goto-with-mouse)
+    map)
   "Keymap for the pages-directory-buffer.")
-
-(if pages-directory-map
-    ()
-  (setq pages-directory-map (make-sparse-keymap))
-  (define-key pages-directory-map "\C-c\C-c"
-    'pages-directory-goto)
-  (define-key pages-directory-map "\C-c\C-p\C-a" 'add-new-page)
-  (define-key pages-directory-map [mouse-2] 'pages-directory-goto-with-mouse))
+(defvaralias 'pages-directory-map 'pages-directory-mode-map)
 
 (defvar original-page-delimiter "^\f"
   "Default page delimiter.")
@@ -703,12 +701,13 @@ Move point to one of the lines in this buffer, then use \\[pages-directory-goto]
 to the same line in the pages buffer."
 
   (kill-all-local-variables)
-  (use-local-map pages-directory-map)
+  (use-local-map pages-directory-mode-map)
   (setq major-mode 'pages-directory-mode)
   (setq mode-name "Pages-Directory")
   (make-local-variable 'pages-buffer)
   (make-local-variable 'pages-pos-list)
-  (make-local-variable 'pages-directory-buffer-narrowing-p))
+  (make-local-variable 'pages-directory-buffer-narrowing-p)
+  (run-mode-hooks 'pages-directory-mode-hook))
 
 (defun pages-directory-goto ()
   "Go to the corresponding line in the pages buffer."
@@ -791,22 +790,14 @@ directory."
           ))
     (error "No addresses file found!")))
 
-(defun pages-directory-address-mode ()
+(define-derived-mode pages-directory-address-mode pages-directory-mode
+  "Addresses Directory"
   "Mode for handling the Addresses Directory buffer.
 
 Move point to one of the lines in this buffer,
 then use \\[pages-directory-goto] to go
 to the same line in the pages buffer."
+  :syntax-table nil)
 
-  (use-local-map pages-directory-map)
-  (setq major-mode 'pages-directory-address-mode)
-  (setq mode-name "Addresses Directory")
-  (make-local-variable 'pages-buffer)
-  (make-local-variable 'pages-pos-list)
-  (make-local-variable 'pages-directory-buffer-narrowing-p))
-
-
-;;; Place `provide' at end of file.
 (provide 'page-ext)
-
 ;;; page-ext.el ends here
