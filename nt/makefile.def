@@ -218,3 +218,15 @@ ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
 !endif
 !endif
 !endif
+
+#
+# If the compiler supports compiling multiple .c files to .o files at
+# one time, use this feature.
+#
+!IF ("$(_NMAKE_VER)" == "$(_NMAKE_VER_4)")
+.c{$(BLD)}.obj:
+		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
+!ELSE
+.c{$(BLD)}.obj::
+		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
+!ENDIF
