@@ -1,3 +1,11 @@
+2000-11-28  Dave Love  <fx@gnu.org>
+
+	* progmodes/fortran.el (fortran-mode): Don't set
+	fortran-comment-line-start-skip.  Set comment-start to
+	fortran-comment-line-start.
+	(fortran-fill-paragraph) <non-empty-comment>: Remove regexp group.
+	(fortran-comment-line-start-skip): Simplify slightly.
+
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/5x5.el: Remove RCS keyword.
@@ -28,6 +36,8 @@
 	safe for all characters.
 
 2000-11-27  Dave Love  <fx@gnu.org>
+
+	* net/ldap.el (ldap) <defgroup>: Add :version.
 
 	* tooltip.el (tooltip-use-echo-area): Doc fix.
 
