@@ -531,6 +531,9 @@ struct buffer
      displaying this buffer.  */
   unsigned prevent_redisplay_optimizations_p : 1;
 
+  /* Position where the overlay lists are centered.  */
+  EMACS_INT overlay_center;
+
   /* Everything from here down must be a Lisp_Object.  */
 
   /* The name of this buffer.  */
@@ -651,9 +654,6 @@ struct buffer
   /* List of overlays that end after  the current center,
      in order of start-position.  */
   Lisp_Object overlays_after;
-
-  /* Position where the overlay lists are centered.  */
-  Lisp_Object overlay_center;
 
   /* Non-nil means the buffer contents are regarded as multi-byte
      form of characters, not a binary code.  */
@@ -805,18 +805,18 @@ extern struct buffer buffer_local_symbols;
 extern struct buffer buffer_local_types;
 
 extern void reset_buffer P_ ((struct buffer *));
-extern void evaporate_overlays P_ ((int));
-extern int overlays_at P_ ((int, int, Lisp_Object **, int *, int *, int *, int));
+extern void evaporate_overlays P_ ((EMACS_INT));
+extern int overlays_at P_ ((EMACS_INT, int, Lisp_Object **, int *, int *, int *, int));
 extern int sort_overlays P_ ((Lisp_Object *, int, struct window *));
-extern void recenter_overlay_lists P_ ((struct buffer *, int));
-extern int overlay_strings P_ ((int, struct window *, unsigned char **));
+extern void recenter_overlay_lists P_ ((struct buffer *, EMACS_INT));
+extern int overlay_strings P_ ((EMACS_INT, struct window *, unsigned char **));
 extern void validate_region P_ ((Lisp_Object *, Lisp_Object *));
 extern void set_buffer_internal P_ ((struct buffer *));
 extern void set_buffer_internal_1 P_ ((struct buffer *));
 extern void set_buffer_temp P_ ((struct buffer *));
 extern void record_buffer P_ ((Lisp_Object));
 extern void buffer_slot_type_mismatch P_ ((int));
-extern void fix_overlays_before P_ ((struct buffer *, int, int));
+extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
 
 EXFUN (Fbuffer_name, 1);
