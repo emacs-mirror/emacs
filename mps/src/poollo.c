@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.17) $
+ * $HopeName: MMsrc!poollo.c(trunk.18) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -12,7 +12,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.17) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.18) $");
 
 
 #define LOGen ((Serial)1)
@@ -53,6 +53,7 @@ typedef struct LOSegStruct {
   BT mark;                  /* mark bit table */
   BT alloc;                 /* alloc bit table */
   Count free;               /* number of free grains */
+  Count newAlloc;           /* number of grains allocated since last GC */
   Sig sig;                  /* impl.h.misc.sig */
 } LOSegStruct;
 
@@ -88,7 +89,8 @@ static Bool LOSegCheck(LOSeg loseg)
   CHECKU(LO, loseg->lo);
   CHECKL(loseg->mark != NULL);
   CHECKL(loseg->alloc != NULL);
-  CHECKL(loseg->free /* Could check exactly */
+  /* Could check exactly how many bits are set in the alloc table. */
+  CHECKL(loseg->free + loseg->newAlloc
          <= SegSize(LOSegSeg(loseg)) >> loseg->lo->alignShift);
   return TRUE;
 }
@@ -140,6 +142,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   BTSetRange(loseg->mark, 0, bits);
   loseg->lo = lo;
   loseg->free = bits;
+  loseg->newAlloc = (Count)0;
   loseg->sig = LOSegSig;
   AVERT(LOSeg, loseg);
   return ResOK;
@@ -554,10 +557,9 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
     Seg seg = SegOfPoolRing(node);
     loseg = SegLOSeg(seg);
     AVERT(LOSeg, loseg);
-    if(loseg->free << lo->alignShift >= size &&
-       loSegFindFree(&base, &limit, loseg, size)) {
+    if((loseg->free << lo->alignShift) >= size
+       && loSegFindFree(&base, &limit, loseg, size))
       goto found;
-    }
   }
 
   /* No segment had enough space, so make a new one. */
@@ -572,6 +574,7 @@ found:
   {
     Index baseIndex, limitIndex;
     Addr segBase;
+
     segBase = SegBase(LOSegSeg(loseg));
     /* mark the newly buffered region as allocated */
     baseIndex = loIndexOfAddr(segBase, lo, base);
@@ -580,6 +583,7 @@ found:
     AVER(BTIsSetRange(loseg->mark, baseIndex, limitIndex));
     BTSetRange(loseg->alloc, baseIndex, limitIndex);
     loseg->free -= limitIndex - baseIndex;
+    loseg->newAlloc += limitIndex - baseIndex;
   }
 
   lo->pgen.totalSize += AddrOffset(base, limit);
@@ -638,6 +642,9 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   if(initIndex != limitIndex) {
     loSegFree(loseg, initIndex, limitIndex);
     lo->pgen.totalSize -= AddrOffset(init, limit);
+    /* All of the buffer must be new, since buffered segs are not condemned. */
+    AVER(loseg->newAlloc >= limitIndex - baseIndex);
+    loseg->newAlloc -= limitIndex - initIndex;
     lo->pgen.newSize -= AddrOffset(init, limit);
   }
 }
@@ -668,7 +675,8 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, bits);
     /* @@@@ We could subtract all the free grains. */
     trace->condemned += SegSize(seg);
-    lo->pgen.newSize -= SegSize(seg);
+    lo->pgen.newSize -= loseg->newAlloc << lo->alignShift;
+    loseg->newAlloc = (Count)0;
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
 
@@ -705,8 +713,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankEXACT: 
   case RankFINAL:
   case RankWEAK: {
-    Size i = AddrOffset(SegBase(seg),
-                        (Addr)ref) >> lo->alignShift;
+    Size i = AddrOffset(SegBase(seg), (Addr)ref) >> lo->alignShift;
 
     if(!BTGet(loseg->mark, i)) {
       ss->wasMarked = FALSE;  /* design.mps.fix.protocol.was-marked */
