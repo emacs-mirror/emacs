@@ -1,3 +1,10 @@
+2004-05-03  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gud-watch, gdb-display-buffer) 
+	(gdb-display-source-buffer, gdb-put-breakpoint-icon)
+	(gdb-remove-breakpoint-icons, gdb-assembler-custom): 
+	Look for window over visible frames.
+
 2004-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-gcpro): New var
