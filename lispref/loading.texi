@@ -769,7 +769,7 @@ The symbol @var{var} was defined as a variable.
 The feature @var{feature} was required.
 @item (provide . @var{feature})
 The feature @var{feature} was provided.
-@end itemize
+@end table
 
 The value of @code{load-history} may have one element whose @sc{car} is
 @code{nil}.  This element describes definitions made with
