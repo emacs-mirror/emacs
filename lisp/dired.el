@@ -1,11 +1,16 @@
-;; DIRED commands for Emacs.  $Revision: 5.234 $
+;; dired.el --- directory-browsing commands
+
+;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
+;; Version: 5.234
+;; Last-Modified: 14 Jul 1992
+
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -17,11 +22,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Finished up by rms in 1992.
 
-(provide 'dired)
+;;; Code:
 
 ;; compatibility package when using Emacs 18.55
 (defvar dired-emacs-19-p (equal (substring emacs-version 0 2) "19"))
@@ -356,8 +363,9 @@ Optional second argument SWITCHES specifies the `ls' options used.
 \(Interactively, use a prefix argument to be able to specify SWITCHES.)
 Dired displays a list of files in DIRNAME (which may also have
   shell wildcards appended to select certain files).
+\\<dired-mode-map>\
 You can move around in it with the usual commands.
-You can flag files for deletion with \\<dired-mode-map>\\[dired-flag-file-deletion] and then delete them by
+You can flag files for deletion with \\[dired-flag-file-deletion] and then delete them by
   typing \\[dired-do-flagged-delete].
 Type \\[describe-mode] after entering dired for more info.
 
@@ -589,7 +597,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	    l (cdr l))
       (goto-char pos)
       (skip-chars-forward "^\r\n")
-      (if (eq (following-character) ?\r)
+      (if (eq (following-char) ?\r)
 	  (setq result (cons dir result))))
     result))
 
@@ -946,7 +954,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; Else error (unless NO-ERROR is non-nil, then FILE is returned unchanged)
   ;;DIR defaults to default-directory."
   ;; DIR must be file-name-as-directory, as with all directory args in
-  ;; elisp code.
+  ;; Emacs Lisp code.
   (or dir (setq dir default-directory))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
@@ -1559,7 +1567,7 @@ this subdir."
       (save-excursion (dired-mark-subdir-files))
     (let (buffer-read-only)
       (dired-repeat-over-lines
-       arg
+       (prefix-numeric-value arg)
        (function (lambda () (delete-char 1) (insert dired-marker-char)))))))
 
 (defun dired-unmark (arg)
@@ -2126,3 +2134,6 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 
 (run-hooks 'dired-load-hook)		; for your customizations
 
+(provide 'dired)
+
+;;; dired.el ends here
