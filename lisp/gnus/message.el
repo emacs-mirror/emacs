@@ -820,7 +820,7 @@ Defaults to `text-mode-abbrev-table'.")
   :group 'message-faces)
 
 (defvar message-font-lock-keywords
-  (let* ((cite-prefix "A-Za-z")
+  (let* ((cite-prefix "[:alpha:]")
 	 (cite-suffix (concat cite-prefix "0-9_.@-"))
 	 (content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)"))
     `((,(concat "^\\([Tt]o:\\)" content)
