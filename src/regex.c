@@ -68,6 +68,7 @@
 #include "category.h"
 
 #define malloc xmalloc
+#define realloc xrealloc
 #define free xfree
 
 #else  /* not emacs */
