@@ -1119,10 +1119,7 @@ non-nil means yes. */)
 {
   register struct window *w = decode_window (window);
 
-  if (NILP (arg))
-    w->dedicated = Qnil;
-  else
-    w->dedicated = Qt;
+  w->dedicated = arg;
 
   return w->dedicated;
 }
@@ -1381,8 +1378,8 @@ delete_window (window)
   if (!NILP (tem))
     {
       unshow_buffer (p);
-      unchain_marker (p->pointm);
-      unchain_marker (p->start);
+      unchain_marker (XMARKER (p->pointm));
+      unchain_marker (XMARKER (p->start));
     }
 
   /* Free window glyph matrices.  It is sure that they are allocated
@@ -2922,6 +2919,9 @@ defaults.  */)
   return Qnil;
 }
 
+/* Note that selected_window can be nil
+   when this is called from Fset_window_configuration.  */
+
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, also make WINDOW's buffer current.
@@ -3021,7 +3021,14 @@ display_buffer_1 (window)
 
   FRAME_SAMPLE_VISIBILITY (f);
 
-  if (!EQ (frame, selected_frame))
+  if (EQ (frame, selected_frame))
+    ; /* Assume the selected frame is already visible enough.  */
+  else if (minibuf_level > 0
+	   && MINI_WINDOW_P (XWINDOW (selected_window))
+	   && WINDOW_LIVE_P (minibuf_selected_window)
+	   && EQ (frame, WINDOW_FRAME (XWINDOW (minibuf_selected_window))))
+    ; /* Assume the frame from which we invoked the minibuffer is visible.  */
+  else
     {
       if (FRAME_ICONIFIED_P (f))
 	Fmake_frame_visible (frame);
@@ -3328,37 +3335,31 @@ temp_output_buffer_show (buf)
       w = XWINDOW (window);
       XSETFASTINT (w->hscroll, 0);
       XSETFASTINT (w->min_hscroll, 0);
-      set_marker_restricted_both (w->start, buf, 1, 1);
-      set_marker_restricted_both (w->pointm, buf, 1, 1);
+      set_marker_restricted_both (w->start, buf, BEG, BEG);
+      set_marker_restricted_both (w->pointm, buf, BEG, BEG);
 
       /* Run temp-buffer-show-hook, with the chosen window selected
 	 and its buffer current.  */
-      if (!NILP (Vrun_hooks))
-	{
-	  Lisp_Object tem;
-	  tem = Fboundp (Qtemp_buffer_show_hook);
-	  if (!NILP (tem))
-	    {
-	      tem = Fsymbol_value (Qtemp_buffer_show_hook);
-	      if (!NILP (tem))
-		{
-		  int count = SPECPDL_INDEX ();
-		  Lisp_Object prev_window, prev_buffer;
-		  prev_window = selected_window;
-		  XSETBUFFER (prev_buffer, old);
 
-		  /* Select the window that was chosen, for running the hook.
-		     Note: Both Fselect_window and select_window_norecord may
-		     set-buffer to the buffer displayed in the window,
-		     so we need to save the current buffer.  --stef  */
-		  record_unwind_protect (Fset_buffer, prev_buffer);
-		  record_unwind_protect (select_window_norecord, prev_window);
-		  Fselect_window (window, Qt);
-		  Fset_buffer (w->buffer);
-		  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
-		  unbind_to (count, Qnil);
-		}
-	    }
+      if (!NILP (Vrun_hooks)
+	  && !NILP (Fboundp (Qtemp_buffer_show_hook))
+	  && !NILP (Fsymbol_value (Qtemp_buffer_show_hook)))
+	{
+	  int count = SPECPDL_INDEX ();
+	  Lisp_Object prev_window, prev_buffer;
+	  prev_window = selected_window;
+	  XSETBUFFER (prev_buffer, old);
+	  
+	  /* Select the window that was chosen, for running the hook.
+	     Note: Both Fselect_window and select_window_norecord may
+	     set-buffer to the buffer displayed in the window,
+	     so we need to save the current buffer.  --stef  */
+	  record_unwind_protect (Fset_buffer, prev_buffer);
+	  record_unwind_protect (select_window_norecord, prev_window);
+	  Fselect_window (window, Qt);
+	  Fset_buffer (w->buffer);
+	  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
+	  unbind_to (count, Qnil);
 	}
     }
 }
@@ -4818,7 +4819,6 @@ Returns nil, if current window is not a minibuffer window.  */)
 {
   if (minibuf_level > 0
       && MINI_WINDOW_P (XWINDOW (selected_window))
-      && !NILP (minibuf_selected_window)
       && WINDOW_LIVE_P (minibuf_selected_window))
     return minibuf_selected_window;
 
