@@ -1,3 +1,7 @@
+2003-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* Makefile.in: Make sure space precedes end-of-line backslashes.
+
 2003-03-22  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (pixel_to_glyph_coords, glyph_to_pixel_coords):
@@ -24,7 +28,7 @@
 	the output cursor, and help echo from xterm.c, w32term.c and
 	macterm.c into xdisp.c.  It also generalizes the use of the
 	window_part enum instead of using numeric values throughout.
-	
+
 	* xdisp.c: Consolidate gui-independent code here.
 	Include keymap.h.
 	(Qhelp_echo): Import.
@@ -45,7 +49,7 @@
 	(tool_bar_item_info, notice_overwritten_cursor): Make static.
 	(frame_to_window_pixel_xy, get_glyph_string_clip_rect)
 	(set_output_cursor, x_cursor_to, handle_tool_bar_click)
-	(x_write_glyphs, x_insert_glyphs, x_clear_end_of_line): 
+	(x_write_glyphs, x_insert_glyphs, x_clear_end_of_line):
 	(x_fix_overlapping_area, draw_phys_cursor_glyph, erase_phys_cursor)
 	(display_and_set_cursor, x_update_cursor, x_clear_cursor)
 	(show_mouse_face, clear_mouse_face, cursor_in_mouse_face_p)
@@ -101,7 +105,7 @@
 
 	* xterm.h (No_Cursor): Declare as None for X.
 	(struct mac_output): Replace member cross_cursor by hand_cursor.
-	
+
 	* xterm.c: Remove consolidated defines and code.
 	(BETWEEN): Remove unused macro.
 	(x_draw_vertical_window_border, x_shift_glyphs_for_insert)
@@ -128,7 +132,7 @@
 	* w32fns.c: Remove setup of cross_cursor (already has hand_cursor).
 
 	* w32console.c: Remove consolidated defines and code.
-	
+
 	* msdos.h (Display_Info): Add generic typedef.
 
 	* msdos.c: Remove consolidated defines and code.
