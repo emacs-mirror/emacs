@@ -490,7 +490,6 @@ run `normal-mode' explicitly."
 				  ("\\.el\\'" . emacs-lisp-mode)
 				  ("\\.mm\\'" . nroff-mode)
 				  ("\\.me\\'" . nroff-mode)
-				  ("\\.[12345678]\\'" . nroff-mode)
 				  ("\\.scm\\'" . scheme-mode)
 				  ("\\.l\\'" . lisp-mode)
 				  ("\\.lisp\\'" . lisp-mode)
@@ -504,7 +503,11 @@ run `normal-mode' explicitly."
 ;;; so more common ones above are found faster.
 				  ("\\.s\\'" . asm-mode)
 				  ("ChangeLog\\'" . change-log-mode)
+				  ("ChangeLog.[0-9]+\\'" . change-log-mode)
 				  ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
+;; The following should come after the ChangeLog pattern
+;; for the sake of ChangeLog.1, etc.
+				  ("\\.[12345678]\\'" . nroff-mode)
 				  ("\\.TeX\\'" . TeX-mode)
 				  ("\\.sty\\'" . LaTeX-mode)
 				  ("\\.bbl\\'" . LaTeX-mode)
