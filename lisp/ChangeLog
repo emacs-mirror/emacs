@@ -1,5 +1,8 @@
 2001-08-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/texnfo-upd.el: Remove dots and exclams at end of error
+	messages.  From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
 	* emacs-lisp/levents.el: Specify FSF as Maintainer.  From Pavel
 	Jan,Bm(Bk <Pavel@Janik.cz>.
 
