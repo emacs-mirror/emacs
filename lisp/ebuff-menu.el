@@ -239,7 +239,8 @@ Does not execute select, save, or delete commands."
 (defun Electric-buffer-menu-undefined ()
   (interactive)
   (ding)
-  (message (if (and (eq (key-binding "\C-c\C-c") 'Electric-buffer-menu-quit)
+  (message "%s"
+	   (if (and (eq (key-binding "\C-c\C-c") 'Electric-buffer-menu-quit)
 		    (eq (key-binding " ") 'Electric-buffer-menu-select)
 		    (eq (key-binding (char-to-string help-char)) 'Helper-help)
 		    (eq (key-binding "?") 'Helper-describe-bindings))
