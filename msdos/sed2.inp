@@ -27,6 +27,7 @@
 #define HAVE_STRUCT_TIMEZONE 1\
 #define HAVE_INDEX 1\
 #define HAVE_RINDEX 1\
+#define HAVE_MKSTEMP 1\
 #else /* not __DJGPP__ > 1 */
 /^#undef STDC_HEADERS *$/s/undef/define/
 /^#undef HAVE_SYS_TIMEB_H *$/s/undef/define/
