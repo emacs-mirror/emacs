@@ -95,7 +95,7 @@ Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (query-replace-read-args "Query replace" nil))
-  (perform-replace from-string to-string start end t nil delimited))
+  (perform-replace from-string to-string t nil delimited nil nil start end))
 
 (define-key esc-map "%" 'query-replace)
 
@@ -122,7 +122,7 @@ In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
   (interactive (query-replace-read-args "Query replace regexp" t))
-  (perform-replace regexp to-string start end t t delimited))
+  (perform-replace regexp to-string t t delimited nil nil start end))
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
 (defun query-replace-regexp-eval (regexp to-expr &optional delimited start end)
@@ -172,7 +172,7 @@ Fourth and fifth arg START and END specify the region to operate on."
      (replace-match-string-symbols to)
      (list from (car to) current-prefix-arg start end)))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
-		   start end t t delimited))
+		   t t delimited nil nil start end))
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -223,7 +223,7 @@ Fourth and fifth arg START and END specify the region to operate on."
 				       (1+ (string-match " " to-strings))))
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
-    (perform-replace regexp replacements start end t t nil n)))
+    (perform-replace regexp replacements t t nil n nil start end)))
 
 (defun replace-string (from-string to-string &optional delimited start end)
   "Replace occurrences of FROM-STRING with TO-STRING.
@@ -251,7 +251,7 @@ which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
   (interactive (query-replace-read-args "Replace string" nil))
-  (perform-replace from-string to-string start end nil nil delimited))
+  (perform-replace from-string to-string nil nil delimited nil nil start end))
 
 (defun replace-regexp (regexp to-string &optional delimited start end)
   "Replace things after point matching REGEXP with TO-STRING.
@@ -278,7 +278,7 @@ What you probably want is a loop like this:
     (replace-match TO-STRING nil nil))
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace regexp" t))
-  (perform-replace regexp to-string start end nil t delimited))
+  (perform-replace regexp to-string nil t delimited nil nil start end))
 
 
 (defvar regexp-history nil
@@ -870,9 +870,9 @@ type them."
           (aset data 2 (if (consp next) next (aref data 3))))))
   (car (aref data 2)))
 
-(defun perform-replace (from-string replacements start end
+(defun perform-replace (from-string replacements 
 		        query-flag regexp-flag delimited-flag
-			&optional repeat-count map)
+			&optional repeat-count map start end)
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
 Don't use this in your own program unless you want to query and set the mark
 just as `query-replace' does.  Instead, write a simple loop like this:
