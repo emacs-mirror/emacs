@@ -1322,7 +1322,7 @@ READ := ;; Set REG_0 to a byte read from the input text, set REG_1
 	;; multibyte representation, set REG_0 to the charset ID of
 	;; the character, set REG_1 to the code point of the
 	;; character.  If the dimension of charset is two, set REG_1
-	;; to ((CODE0 << 8) | CODE1), where CODE0 is the first code
+	;; to ((CODE0 << 7) | CODE1), where CODE0 is the first code
 	;; point and CODE1 is the second code point.
 	| (read-multibyte-character REG_0 REG_1)
 
@@ -1351,7 +1351,7 @@ WRITE :=
 	;; Write a multibyte representation of a character whose
 	;; charset ID is REG_0 and code point is REG_1.  If the
 	;; dimension of the charset is two, REG_1 should be ((CODE0 <<
-	;; 8) | CODE1), where CODE0 is the first code point and CODE1
+	;; 7) | CODE1), where CODE0 is the first code point and CODE1
 	;; is the second code point of the character.
 	| (write-multibyte-character REG_0 REG_1)
 
