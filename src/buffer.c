@@ -1695,7 +1695,8 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 }
 
 /* Find all the overlays in the current buffer that overlap the range BEG-END
-   plus empty overlays anywhere from BEG to END.
+   or are empty at BEG.
+
    Return the number found, and store them in a vector in *VEC_PTR.  
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
@@ -1748,10 +1749,9 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	}
       startpos = OVERLAY_POSITION (ostart);
       /* Count an interval if it either overlaps the range
-	 or is empty at either end of the range.  */
+	 or is empty at the start of the range.  */
       if ((beg < endpos && startpos < end)
-	  || (startpos == endpos && beg == startpos)
-	  || (startpos == endpos && end == startpos))
+	  || (startpos == endpos && beg == endpos))
 	{
 	  if (idx == len)
 	    {
@@ -1794,9 +1794,10 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	  break;
 	}
       endpos = OVERLAY_POSITION (oend);
+      /* Count an interval if it either overlaps the range
+	 or is empty at the start of the range.  */
       if ((beg < endpos && startpos < end)
-	  || (startpos == endpos && beg == startpos)
-	  || (startpos == endpos && end == startpos))
+	  || (startpos == endpos && beg == endpos))
 	{
 	  if (idx == len)
 	    {
@@ -2755,9 +2756,11 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 }
 
 DEFUN ("overlays-in", Foverlays_in, Soverlays_in, 2, 2, 0,
-  "Return a list of the overlays that overlap region BEG ... END.\n\
-This includes empty overlays at BEG or END (as well as empty overlays\n\
-within the range.")
+  "Return a list of the overlays that overlap the region BEG ... END.\n\
+Overlap means that at least one character is contained within the overlay\n\
+and also contained within the specified region.\n\
+Empty overlays are included in the result if they are located at BEG\n\
+or between BEG and END.")
   (beg, end)
      Lisp_Object beg, end;
 {
