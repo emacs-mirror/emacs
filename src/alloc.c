@@ -2711,6 +2711,17 @@ make_event_array (nargs, args)
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
+/* Conservative C stack marking requires a method to identify possibly
+   live Lisp objects given a pointer value.  We do this by keeping
+   track of blocks of Lisp data that are allocated in a red-black tree
+   (see also the comment of mem_node which is the type of nodes in
+   that tree).  Function lisp_malloc adds information for an allocated
+   block to the red-black tree with calls to mem_insert, and function
+   lisp_free removes it with mem_delete.  Functions live_string_p etc
+   call mem_find to lookup information about a given pointer in the
+   tree, and use that to determine if the pointer points to a Lisp
+   object or not.  */
+
 /* Initialize this part of alloc.c.  */
 
 static void
