@@ -418,7 +418,8 @@ message2_nolog (m, len)
       if (noninteractive_need_newline)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
-      fwrite (m, len, 1, stderr);
+      if (m)
+	fwrite (m, len, 1, stderr);
       if (cursor_in_echo_area == 0)
 	fprintf (stderr, "\n");
       fflush (stderr);
