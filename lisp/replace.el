@@ -388,7 +388,7 @@ It serves as a menu to find any of the occurrences in this buffer.
 			    (forward-line (1+ nlines))
 			    (forward-line 1))
 			(point)))
-		 (tag (format "%3d" linenum))
+		 (tag (format "%5d" linenum))
 		 (empty (make-string (length tag) ?\ ))
 		 tem)
 	    (save-excursion
@@ -411,7 +411,7 @@ It serves as a menu to find any of the occurrences in this buffer.
 			    (+ (point) (- (match-end 0) (match-beginning 0))))
 		(while (< (point) final-context-start)
 		  (if (null tag)
-		      (setq tag (format "%3d" this-linenum)))
+		      (setq tag (format "%5d" this-linenum)))
 		  (insert tag ?:)
 		  (put-text-property (save-excursion
 				       (beginning-of-line)
