@@ -128,8 +128,8 @@
   :designation [ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212]
   :flags '(short ascii-at-eol ascii-at-cntl single-shift)
   :charset-list '(ascii latin-jisx0201 japanese-jisx0208
-			japanese-jisx0208-1978
-			katakana-jisx0201 japanese-jisx0212)
+			katakana-jisx0201 japanese-jisx0212
+			japanese-jisx0208-1978)
   :mime-charset 'euc-jp)
 
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
