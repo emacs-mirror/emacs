@@ -251,6 +251,7 @@ FMTDYOBJ = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTDYDEP = $(FMTDY:%.c=$(PFM)/$(VARIETY)/%.d)
 FMTDYTSTOBJ = $(FMTDYTST:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTHETSTOBJ = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.o)
+FMTHETSTDEP = $(FMTHETST:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -505,7 +506,7 @@ ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) \
-  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) \
+  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTHETSTDEP) \
   $(PLINTHDEP) $(EVENTPROCDEP)
 endif
 endif
