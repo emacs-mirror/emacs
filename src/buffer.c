@@ -4279,7 +4279,7 @@ buffer_slot_type_mismatch (offset)
 
   sym = PER_BUFFER_SYMBOL (offset);
   error ("Only %s should be stored in the buffer-local variable %s",
-	 type_name, XSYMBOL (sym)->name->data);
+	 type_name, XSTRING (SYMBOL_NAME (sym))->data);
 }
 
 
