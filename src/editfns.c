@@ -1366,6 +1366,12 @@ use `save-excursion' outermost:\n\
   return unbind_to (count, val);
 }
 
+/* Buffer for the most recent text displayed by Fmessage.  */
+static char *message_text;
+
+/* Allocated length of that buffer.  */
+static int message_length;
+
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
   "Print a one-line message at the bottom of the screen.\n\
 The first argument is a control string.\n\
@@ -1389,7 +1395,19 @@ minibuffer contents show.")
     {
       register Lisp_Object val;
       val = Fformat (nargs, args);
-      message2 (XSTRING (val)->data, XSTRING (val)->size);
+      /* Copy the data so that it won't move when we GC.  */
+      if (! message_text)
+	{
+	  message_text = (char *)xmalloc (80);
+	  message_length = 80;
+	}
+      if (XSTRING (val)->size > message_length)
+	{
+	  message_length = XSTRING (val)->size;
+	  message_text = (char *)xrealloc (message_text, message_length);
+	}
+      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size);
+      message2 (message_text, XSTRING (val)->size);
       return val;
     }
 }
