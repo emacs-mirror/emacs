@@ -133,12 +133,10 @@ Lisp_Object Vother_window_scroll_buffer;
 
 Lisp_Object Vtemp_buffer_show_function;
 
-/* Nil means to use mode-line face in all windows.
-   t means to use mode-line-inactive face in all windows but the
-   selected-window and the minibuffer-scroll-window.
-   Any other value means to use mode-line-inactive face in all
-   non-selected windows (including minibuffer-scroll-window.  */
-Lisp_Object Vmode_line_in_non_selected_windows;
+/* Non-zero means to use mode-line-inactive face in all windows but the
+   selected-window and the minibuffer-scroll-window when the
+   minibuffer is active.  */
+int mode_line_in_non_selected_windows;
 
 /* If a window gets smaller than either of these, it is removed. */
 
@@ -5803,11 +5801,11 @@ If nil, `display-buffer' will leave the window configuration alone.  */);
 	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);
   Vminibuf_scroll_window = Qnil;
 
-  DEFVAR_LISP ("mode-line-in-non-selected-windows", &Vmode_line_in_non_selected_windows,
+  DEFVAR_BOOL ("mode-line-in-non-selected-windows", &mode_line_in_non_selected_windows,
 	       doc: /* Non-nil means to use `mode-line-inactive' face in non-selected windows.
-However, if value is t, the current `minibuffer-scroll-window' still
-uses the `mode-line' face when minibuffer is active.  */);
-  Vmode_line_in_non_selected_windows = Qt;
+If the minibuffer is active, the `minibuffer-scroll-window' mode line
+is displayed in the `mode-line' face.  */);
+  mode_line_in_non_selected_windows = 1;
 
   DEFVAR_LISP ("other-window-scroll-buffer", &Vother_window_scroll_buffer,
 	       doc: /* If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.  */);
