@@ -1,3 +1,7 @@
+2001-03-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (x_print_complete_resource_name) [0]: New function.
+
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (make_menu_in_widget): Remove code forcing LessTif to

@@ -1,5 +1,11 @@
 2001-03-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (x_update_menu_appearance): Renamed from
+	x_set_menu_face_resources.  Use different resources for popups.
+
+	* lisp.h (Vx_resource_name) [HAVE_X_WINDOWS]: Declare extern.
+	(GC_CHECK_STRING_BYTES): Don't define.
+
 	* xfaces.c (x_set_menu_resources_from_menu_face) [USE_X_TOOLKIT]:
 	Removed, together with subroutines.
 	(x_set_menu_face_resources) [USE_X_TOOLKIT]: New function.
