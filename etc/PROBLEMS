@@ -1,6 +1,9 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* The W3 package (from the CVS sources) currently (2000-12-14) doesn't
+work properly with Emacs 21 and needs work.
+
 * On AIX, if linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
 so, you have hit a compiler bug.  Please make sure to re-configure
