@@ -1,3 +1,8 @@
+2003-02-20  Andreas Schwab  <schwab@suse.de>
+
+	* info.el (Info-extract-menu-node-name): Stop if colon is
+	followed by open paren.
+
 2003-02-20  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Allow nested
