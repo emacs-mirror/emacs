@@ -48,6 +48,7 @@
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
+  ;; Perhaps :-) should be distinct -- it does appear in the Jargon File.
   '(("\\([:;]-?)\\)\\W" 1 "smile.xbm")
     ("\\(:-[/\\]\\)\\W" 1 "wry.xbm")
     ("\\(:-[({]\\)\\W" 1 "frown.xbm"))
@@ -91,7 +92,8 @@ rgexp to replace with IMAGE.  IMAGE is the name of an XBM file in
 (defun smiley-region (start end)
   "Replace in the region `smiley-regexp-alist' matches with corresponding images."
   (interactive "r")
-  (when (display-graphic-p)
+  (when (and (fboundp 'display-graphic-p)
+	     (display-graphic-p))
     (mapc (lambda (o)
 	    (if (eq 'smiley (overlay-get o 'smiley))
 		(delete-overlay o)))
@@ -100,16 +102,17 @@ rgexp to replace with IMAGE.  IMAGE is the name of an XBM file in
       (smiley-update-cache))
     (save-excursion
       (let ((beg (or start (point-min)))
-	    buffer-read-only entry beg group overlay image)
+	    group overlay image)
 	(dolist (entry smiley-cached-regexp-alist)
-	  (setq group (nth 1 entry))
+	  (setq group (nth 1 entry)
+		image (nth 2 entry))
 	  (goto-char beg)
 	  (while (re-search-forward (car entry) end t)
 	    (when image
 	      (setq overlay (make-overlay (match-beginning group)
 					  (match-end group)))
 	      (overlay-put overlay
-			   'display `(when smiley-active ,@(nth 2 entry)))
+			   'display `(when smiley-active ,@image))
 	      (overlay-put overlay 'mouse-face 'highlight)
 	      (overlay-put overlay 'smiley t)
 	      (overlay-put overlay
