@@ -1193,8 +1193,10 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bgeq:
 	  {
 	    Lisp_Object v1;
+	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
 	    TOP = Fgeq (TOP, v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
