@@ -1,7 +1,7 @@
 /* ring.h: RING INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  */
 
@@ -95,6 +95,10 @@ extern void (RingRemove)(Ring old);
 extern Ring (RingNext)(Ring ring);
 #define RingNext(ring)  ((ring)->next)
 
+/* .ring.prev: */
+extern Ring (RingPrev)(Ring ring);
+#define RingPrev(ring)  ((ring)->prev)
+
 /* .ring.elt: See <design/ring/#elt> */
 #define RING_ELT(type, field, node) \
    ((type)(void *)((char *)(node) - (size_t)(&((type)0)->field)))
@@ -111,7 +115,7 @@ extern Ring (RingNext)(Ring ring);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
