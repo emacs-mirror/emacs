@@ -5441,6 +5441,9 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
   XSizeHints size_hints;
 
 #ifdef USE_X_TOOLKIT
+  Arg al[2];
+  int ac = 0;
+  Dimension widget_width, widget_height;
   Window window = XtWindow (f->display.x->widget);
 #else /* not USE_X_TOOLKIT */
   Window window = FRAME_X_WINDOW (f);
@@ -5452,8 +5455,16 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
 
   size_hints.x = f->display.x->left_pos;
   size_hints.y = f->display.x->top_pos;
+#ifdef USE_X_TOOLKIT
+  XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
+  XtSetArg (al[ac], XtNheight, &widget_height); ac++;
+  XtGetValues (f->display.x->column_widget, al, ac);
+  size_hints.height = widget_height;
+  size_hints.width = widget_width;
+#else /* not USE_X_TOOLKIT */
   size_hints.height = PIXEL_HEIGHT (f);
   size_hints.width = PIXEL_WIDTH (f);
+#endif /* not USE_X_TOOLKIT */
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
   size_hints.height_inc = FONT_HEIGHT (f->display.x->font);
 #if 0
