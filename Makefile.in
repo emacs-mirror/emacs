@@ -206,12 +206,12 @@ all: ${SUBDIR}
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
-# Generate paths.h from paths.in.  This target is invoked by `configure'.
-paths-force: FRC
+# Generate epaths.h from epaths.in.  This target is invoked by `configure'.
+epaths-force: FRC
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
 	  x_default_search_path=`echo ${x_default_search_path}`; \
-	  sed < ${srcdir}/src/paths.in > paths.h.$$$$		\
+	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
@@ -220,7 +220,7 @@ paths-force: FRC
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
-	${srcdir}/move-if-change paths.h.$$$$ src/paths.h
+	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be build before leim.
 leim:   src
