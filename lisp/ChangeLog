@@ -1,3 +1,9 @@
+2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* subr.el (momentary-string-display): Support EXIT-CHAR that is
+	either a character representation of an event or an event
+	description list.
+
 2004-04-27  Daniel M Coffman  <coffmand@us.ibm.com>  (tiny change)
 
 	* arc-mode.el (archive-maybe-copy): If ARCHIVE includes leading
