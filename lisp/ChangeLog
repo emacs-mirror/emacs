@@ -1,5 +1,8 @@
 1999-11-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/iso-acc.el (iso-languages): Add more
+	characters for Portuguese.
+
 	* speedbar.el: Clean up comment at the start of the file.
 	Remove RCS id.
 
