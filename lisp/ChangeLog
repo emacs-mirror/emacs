@@ -1,3 +1,33 @@
+2004-05-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sb-dir-minus.xpm sb-dir-plus.xpm sb-dir.xpm sb-mail.xpm 
+	* sb-pg-minus.xpm sb-pg-plus.xpm sb-pg.xpm sb-tag-gt.xpm
+	* sb-tag-minus.xpm sb-tag-plus.xpm sb-tag-type.xpm sb-tag-v.xpm
+	* sb-tag.xpm: Enhanced icons from Daniel Pfeiffer.
+
+	* toolbar/close.pbm, toolbar/close.xpm
+	* toolbar/copy.pbm, toolbar/copy.xpm
+	* toolbar/cut.pbm, toolbar/cut.xpm
+	* toolbar/help.pbm, toolbar/help.xpm
+	* toolbar/home.pbm, toolbar/home.xpm
+	* toolbar/index.pbm, toolbar/index.xpm
+	* toolbar/jump_to.pbm, toolbar/jump_to.xpm
+	* toolbar/left_arrow.pbm, toolbar/left_arrow.xpm
+	* toolbar/new.pbm, toolbar/new.xpm
+	* toolbar/open.pbm, toolbar/open.xpm
+	* toolbar/paste.pbm, toolbar/paste.xpm
+	* toolbar/preferences.pbm, toolbar/preferences.xpm
+	* toolbar/print.pbm, toolbar/print.xpm
+	* toolbar/right_arrow.pbm, toolbar/right_arrow.xpm
+	* toolbar/save.pbm, toolbar/save.xpm
+	* toolbar/saveas.pbm, toolbar/saveas.xpm
+	* toolbar/search.pbm, toolbar/search.xpm
+	* toolbar/spell.pbm, toolbar/spell.xpm
+	* toolbar/undo.pbm, toolbar/undo.xpm
+	* toolbar/up_arrow.pbm, toolbar/up_arrow.xpm: New icons from
+	GTK+ version 2.
+
+
 2004-05-15  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/timer.el (timer-activate): Add optional arg triggered-p.
