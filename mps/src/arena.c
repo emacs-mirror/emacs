@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName$
+ * $HopeName: MMsrc!arena.c(trunk.75) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * .sources: design.mps.arena is the main design document.
@@ -15,7 +15,7 @@
 #include "poolmv.h"
 #include "mpm.h"
 
-SRCID(arena, "$HopeName$");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.75) $");
 
 
 /* ArenaControlPool -- get the control pool */
@@ -132,6 +132,8 @@ Bool ArenaAllocCheck(Arena arena)
   /* nothing to check for chunkSerial */
   CHECKD(ChunkCacheEntry, &arena->chunkCache);
 
+  CHECKL(LocusCheck(arena));
+
   return TRUE;
 }
 
@@ -169,6 +171,8 @@ void ArenaAllocInit(Arena arena, ArenaClass class)
   RingInit(&arena->chunkRing);
   arena->chunkSerial = (Serial)0;
   ChunkCacheEntryInit(&arena->chunkCache);
+
+  LocusInit(arena);
 }
 
 
@@ -176,6 +180,7 @@ void ArenaAllocInit(Arena arena, ArenaClass class)
 
 void ArenaAllocFinish(Arena arena)
 {
+  LocusFinish(arena);
   RingFinish(&arena->chunkRing);
 }
 
