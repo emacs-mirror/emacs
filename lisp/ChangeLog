@@ -1,3 +1,48 @@
+2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/tcl.el: Change maintainer to FSF and remove loads of
+	compatibility cruft.
+	(tcl-using-emacs-19, tcl-using-emacs-19-23, tcl-using-xemacs-19)
+	(tcl-version, tcl-maintainer, tcl-use-hairy-comment-detector): Remove.
+	(tcl-mode-map): Remove bindings for tcl-beginning-of-defun,
+	tcl-end-of-defun, tcl-mark-defun, tcl-indent-for-comment,
+	tcl-submit-bug-report.
+	(tcl-mode-syntax-table): Leave \f alone.
+	(inferior-tcl-mode-map): Remove bindings for tcl-beginning-of-defun,
+	tcl-end-of-defun, tcl-submit-bug-report.
+	(tcl-xemacs-menu): Fix up and pass it directly to easymenu.
+	(tcl-add-emacs-menu): Remove.
+	(tcl-fill-mode-map, tcl-fill-inferior-map): Moved into the defvar.
+	(tcl-keyword-list): Add `chain'.
+	(tcl-font-lock-syntactic-keywords): New variable.
+	(tcl-pps-has-arg-6): Remove.
+	(tcl-internal-beginning-of-defun, tcl-internal-end-of-defun)
+	(tcl-internal-mark-defun): Remove.
+	(tcl-set-proc-regexp, tcl-set-font-lock-keywords): Use regexp-opt.
+	(tcl-mode): Use define-derived-mode.  Simplify.
+	Set comment-indent-function.
+	(tcl-indent-command): Use line-beginning-position and comment-indent.
+	(tcl-calculate-indent): Renamed from calculate-tcl-indent.
+	(tcl-indent-line): Use tcl-calculate-indent.
+	(tcl-indent-exp): Renamed from indent-tcl-exp.  Use new names.
+	(tcl-add-log-defun): Renamed from add-log-tcl-defun.  Use match-string.
+	(tcl-filter): Use with-current-buffer, simplify.
+	(inferior-tcl-mode): Use define-derived-mode.
+	(tcl-hairy-in-comment): Renamed tcl-in-comment.
+	(tcl-simple-in-comment, tcl-in-comment): Removed.
+	(tcl-files-alist): New function.
+	(tcl-help-snarf-commands): Use it and return the result directly
+	rather than through a global variable.
+	(tcl-reread-help-files): Fix up the call to tcl-help-snarf-commands.
+	(tcl-help-on-word): Provide the default value to completing-read.
+	(tcl-hilit): Remove.
+	(tcl-hashify-buffer, tcl-popup-menu): Simplify.
+	(tcl-comment-indent): New function.
+	(tcl-submit-bug-report): Remove.
+	(tcl-uncomment-region, tcl-indent-for-comment, add-log-tcl-defun)
+	(indent-tcl-exp, calculate-tcl-indent, tcl-beginning-of-defun)
+	(tcl-end-of-defun, tcl-mark-defun, tcl-mark): Redefine as aliases.
+
 2001-10-10  Miles Bader  <miles@gnu.org>
 
 	* info.el (Info-insert-dir): Don't call `Info-fontify-menu-headers'.
@@ -29,11 +74,10 @@
 	* apropos.el (button): New require.
 
 	* help-funs.el: New file, contents mostly from `help.el'.
-	(describe-variable): Use `condition-case' instead of
-	`ignore-errors'.
-	
+	(describe-variable): Use `condition-case' instead of `ignore-errors'.
+
 	* help-mode.el: New file, contents mostly from `help.el'.
-	
+
 	* help.el: Don't require `view' when compiling.
 	(help-with-tutorial, describe-function, describe-function-1)
 	(variable-at-point, describe-variable, locate-library):
@@ -54,13 +98,11 @@
 	(load-symbol-file-load-history, symbol-file):
 	Functions moved into `subr.el'.
 	(symbol-file-load-history-loaded): Variable moved into `subr.el'.
-	(view-lossage): Call `help-setup-xref' instead of doing it
-	manually.
-	
-	* subr.el (symbol-file-load-history-loaded) 
-	(load-symbol-file-load-history, symbol-file): Moved from
-	`help.el'.
-	
+	(view-lossage): Call `help-setup-xref' instead of doing it manually.
+
+	* subr.el (symbol-file-load-history-loaded)
+	(load-symbol-file-load-history, symbol-file): Moved from `help.el'.
+
 	* loadup.el ("button"): Load removed.
 
 	* button.el (define-button-type): Respect any `supertype' property.
@@ -71,7 +113,7 @@
 
 	* comint.el (comint-insert-previous-argument): New function.
 	(comint-mode-map): Bind `C-c .' to `comint-input-previous-argument'.
-	(comint-insert-previous-argument-last-start-pos) 
+	(comint-insert-previous-argument-last-start-pos)
 	(comint-insert-previous-argument-last-index): New variables.
 
 	* apropos.el (apropos-next-label-button): Use the presence of a
@@ -90,8 +132,8 @@
 	* apropos.el (apropos-next-label-button): Update arguments to
 	`next-button'.
 	(apropos-symbol): Add `skip' property.
-	(apropos-function, apropos-macro, apropos-command) 
-	(apropos-variable, apropos-face, apropos-group, apropos-widget) 
+	(apropos-function, apropos-macro, apropos-command)
+	(apropos-variable, apropos-face, apropos-group, apropos-widget)
 	(apropos-plist): New button types.
 	(apropos-label-properties): Variable removed.
 	(apropos-print): Pass button-type to apropos-print-doc, rather
