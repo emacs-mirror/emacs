@@ -3,6 +3,11 @@
 @rem $Id$
 @rem Copyright (c) 2001 Ravenbrook Limited.
 
+rmdir /s w3i3mv
+nmake /f w3i3mv.nmk VARIETY=we mps_conf.lib mpsplan.lib
+nmake /f w3i3mv.nmk VARIETY=wi mps_conf.lib mpsplan.lib
+nmake /f w3i3mv.nmk VARIETY=ce mps_conf.lib mpsplan.lib
+nmake /f w3i3mv.nmk VARIETY=ci mps_conf.lib mpsplan.lib
 mkdir release
 mkdir release\include
 mkdir release\lib
