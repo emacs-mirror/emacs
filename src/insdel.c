@@ -707,7 +707,7 @@ copy_text (from_addr, to_addr, nbytes,
 	  c = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
 	  *to_addr++ = SINGLE_BYTE_CHAR_P (c) ? c : (c & 0177) + 0200;
 	  from_addr += thislen;
-	  bytes_left--;
+	  bytes_left -= thislen;
 	  nchars++;
 	}
       return nchars;
