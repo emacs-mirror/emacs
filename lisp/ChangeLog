@@ -1,3 +1,8 @@
+2001-09-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* cus-edit.el (custom-buffer-create-internal): Remove "100%" from
+	the message "Creating customization items...done".
+
 2001-09-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (toplevel): Require `jit-lock' only if

@@ -1,3 +1,7 @@
+Thu Sep  6 11:12:31 2001  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Make sure ../site-lisp exists; create if necessary.
+
 2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* INSTALL: Mention that "make install" can be "nmake install".
