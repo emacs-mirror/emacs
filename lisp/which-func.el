@@ -103,9 +103,9 @@ Zero means compute the Imenu menu regardless of size."
 
 ;;;###autoload
 (defcustom which-func-mode-global nil
-  "*Toggle `which-func-mode'.
-This variable should be set only with \\[customize], which is equivalent
-to using the function `which-func-mode'."
+  "*Toggle `which-func-mode' globally.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `which-func-mode'."
   :set #'(lambda (symbol value)
 	   (which-func-mode (if value 1 0)))
   :initialize 'custom-initialize-default
