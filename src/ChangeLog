@@ -1,3 +1,9 @@
+2000-05-24  Kenichi HANDA  <handa@etl.go.jp>
+
+	* fileio.c (Finsert_file_contents): Even if a file is not found,
+	execute codes for setting up coding system.  Call
+	after-insert-file-functions unconditionally.
+
 2000-05-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* callproc.c, emacs.c, sysdep.c (setpgrp): Don't define if USG and
