@@ -662,7 +662,7 @@ Bound each time `call-interactively' is called;\n\
 may be set by the debugger as a reminder for itself.");
   Vcommand_debug_status = Qnil;
 
-  DEFVAR_LISP ("Vmark-even-if-inactive", &Vmark_even_if_inactive,
+  DEFVAR_LISP ("mark-even-if-inactive", &Vmark_even_if_inactive,
     "*Non-nil means you can use the mark even when inactive.\n\
 This option makes a difference in Transient Mark mode.\n\
 When the option is non-nil, deactivation of the mark\n\
