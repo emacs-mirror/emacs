@@ -26,51 +26,182 @@
 
 ;;; Commentary:
 
-;;; Calc is split into many files.  This file is the main entry point.
-;;; This file includes autoload commands for various other basic Calc
-;;; facilities.  The more advanced features are based in calc-ext, which
-;;; in turn contains autoloads for the rest of the Calc files.  This
-;;; odd set of interactions is designed to make Calc's loading time
-;;; be as short as possible when only simple calculations are needed.
+;; Calc is split into many files.  This file is the main entry point.
+;; This file includes autoload commands for various other basic Calc
+;; facilities.  The more advanced features are based in calc-ext, which
+;; in turn contains autoloads for the rest of the Calc files.  This
+;; odd set of interactions is designed to make Calc's loading time
+;; be as short as possible when only simple calculations are needed.
 
-;;; Suggested usage:
-;;;
-;;;   (autoload 'calc-dispatch "calc" "Emacs Calculator" t nil)
-;;;   (global-set-key "\e#" 'calc-dispatch)
-;;;   Type `M-# M-#' to start.
-;;;
-;;; The Calc home directory must be added to the Emacs load-path:
-;;; 
-;;;   (setq load-path (cons "/x/y/z/calc" load-path))
-;;;
-;;; where "/x/y/z/calc" represents the full name of the Calc home directory.
-;;;
-;;; See the file INSTALL for a complete list of recommeded autoload
-;;; commands (though only calc-dispatch is absolutely necessary).
+;; Original author's address:
+;;  Dave Gillespie, daveg@synaptics.com, uunet!synaptx!daveg.
+;;  Synaptics, Inc., 2698 Orchard Parkway, San Jose, CA 95134.
+;;
+;; The old address daveg@csvax.cs.caltech.edu will continue to
+;; work for the foreseeable future.
+;;
+;; Bug reports and suggestions are always welcome!  (Type M-x
+;; report-calc-bug to send them).
 
+;; All functions, macros, and Lisp variables defined here begin with one
+;; of the prefixes "math", "Math", or "calc", with the exceptions of
+;; "full-calc", "full-calc-keypad", "another-calc", "quick-calc",
+;; "report-calc-bug", and "defmath".  User-accessible variables begin
+;; with "var-".
 
-;;; Author's address:
-;;;   Dave Gillespie, daveg@synaptics.com, uunet!synaptx!daveg.
-;;;   Synaptics, Inc., 2698 Orchard Parkway, San Jose, CA 95134.
-;;;
-;;; The old address daveg@csvax.cs.caltech.edu will continue to
-;;; work for the foreseeable future.
-;;;
-;;; The latest version of Calc is always available from anonymous FTP
-;;; on csvax.cs.caltech.edu [131.215.131.131]; look in ~ftp/pub/calc*.
-;;; It should also be available on prep.ai.mit.edu.
-;;;
-;;; Bug reports and suggestions are always welcome!
+;;; TODO:
 
+;;   Fix rewrite mechanism to do less gratuitous rearrangement of terms.
+;;   Implement a pattern-based "refers" predicate.
+;;
+;;   Make it possible to Undo a selection command.
+;;   Figure out how to allow selecting rows of matrices.
+;;   If cursor was in selection before, move it after j n, j p, j L, etc.
+;;   Consider reimplementing calc-delete-selection using rewrites.
+;;
+;;   Implement line-breaking in non-flat compositions (is this desirable?).
+;;   Implement matrix formatting with multi-line components.
+;;
+;;   Have "Z R" define a user command based on a set of rewrite rules.
+;;   Support "incf" and "decf" in defmath definitions.
+;;   Have defmath generate calls to calc-binary-op or calc-unary-op.
+;;   Make some way to define algebraic functions using keyboard macros.
+;;
+;;   Allow calc-word-size=0 => Common Lisp-style signed bitwise arithmetic.
+;;   Consider digamma function (and thus arb. prec. Euler's gamma constant).
+;;   May as well make continued-fractions stuff available to the user.
+;;
+;;   How about matrix eigenvalues, SVD, pseudo-inverse, etc.?
+;;   Should cache matrix inverses as well as decompositions.
+;;   If dividing by a non-square matrix, use least-squares automatically.
+;;   Consider supporting matrix exponentials.
+;;
+;;   Have ninteg detect and work around singularities at the endpoints.
+;;   Use an adaptive subdivision algorithm for ninteg.
+;;   Provide nsum and nprod to go along with ninteg.
+;;
+;;   Handle TeX-mode parsing of \matrix{ ... } where ... contains braces.
+;;   Support AmS-TeX's \{d,t,}frac, \{d,t,}binom notations.
+;;   Format and parse sums and products in Eqn and Math modes.
+;;
+;;   Get math-read-big-expr to read sums, products, etc.
+;;   Change calc-grab-region to use math-read-big-expr.
+;;   Have a way to define functions using := in Embedded Mode.
+;;
+;;   Support polar plotting with GNUPLOT.
+;;   Make a calc-graph-histogram function.
+;;
+;;   Replace hokey formulas for complex functions with formulas designed
+;;      to minimize roundoff while maintaining the proper branch cuts.
+;;   Test accuracy of advanced math functions over whole complex plane.
+;;   Extend Bessel functions to provide arbitrary precision.
+;;   Extend advanced math functions to handle error forms and intervals.
+;;   Provide a better implementation for math-sin-cos-raw.
+;;   Provide a better implementation for math-hypot.
+;;   Provide a better implementation for math-make-frac.
+;;   Provide a better implementation for calcFunc-prfac.
+;;   Provide a better implementation for calcFunc-factor.
+;;
+;;   Provide more examples in the tutorial section of the manual.
+;;   Cover in the tutorial:  simplification modes, declarations,
+;;       bitwise stuff, selections, matrix mapping, financial functions.
+;;   Provide more Lisp programming examples in the manual.
+;;   Finish the Internals section of the manual (and bring it up to date).
+;;
+;;   Tim suggests adding spreadsheet-like features.
+;;   Implement language modes for Gnuplot, Lisp, Ada, APL, ...?
+;;
+;; For atan series, if x > tan(pi/12) (about 0.268) reduce using the identity
+;;   atan(x) = atan((x * sqrt(3) - 1) / (sqrt(3) + x)) + pi/6.
+;;
+;; A better integration algorithm:
+;;   Use breadth-first instead of depth-first search, as follows:
+;;	The integral cache allows unfinished integrals in symbolic notation
+;;	on the righthand side.  An entry with no unfinished integrals on the
+;;	RHS is "complete"; references to it elsewhere are replaced by the
+;;	integrated value.  More than one cache entry for the same integral
+;;	may exist, though if one becomes complete, the others may be deleted.
+;;	The integrator works by using every applicable rule (such as
+;;	substitution, parts, linearity, etc.) to generate possible righthand
+;;	sides, all of which are entered into the cache.  Now, as long as the
+;;	target integral is not complete (and the time limit has not run out)
+;;	choose an incomplete integral from the cache and, for every integral
+;;	appearing in its RHS's, add those integrals to the cache using the
+;;	same substitition, parts, etc. rules.  The cache should be organized
+;;	as a priority queue, choosing the "simplest" incomplete integral at
+;;	each step, or choosing randomly among equally simple integrals.
+;;	Simplicity equals small size, and few steps removed from the original
+;;	target integral.  Note that when the integrator finishes, incomplete
+;;	integrals can be left in the cache, so the algorithm can start where
+;;	it left off if another similar integral is later requested.
+;;   Breadth-first search would avoid the nagging problem of, e.g., whether
+;;   to use parts or substitution first, and which decomposition is best.
+;;   All are tried, and any path that diverges will quickly be put on the
+;;   back burner by the priority queue.
+;;   Note: Probably a good idea to call math-simplify-extended before
+;;   measuring a formula's simplicity.
 
-;;; All functions, macros, and Lisp variables defined here begin with one
-;;; of the prefixes "math", "Math", or "calc", with the exceptions of
-;;; "full-calc", "full-calc-keypad", "another-calc", "quick-calc",
-;;; "report-calc-bug", and "defmath".  User-accessible variables begin
-;;; with "var-".
+;; From: "Robert J. Chassell" <bob@rattlesnake.com>
+;; Subject: Re: fix for `Cannot open load file: calc-alg-3'
+;; To: walters@debian.org
+;; Date: Sat, 24 Nov 2001 21:44:21 +0000 (UTC)
+;; 
+;; Could you add logistic curve fitting to the current list?
+;; 
+;; (I guess the key binding for a logistic curve would have to be `s'
+;; since a logistic curve is an `s' curve; both `l' and `L' are already
+;; taken for logarithms.)
+;; 
+;; Here is the current list for curve fitting;
+;; 
+;;     `1'
+;;          Linear or multilinear.  a + b x + c y + d z.
+;; 
+;;     `2-9'
+;;          Polynomials.  a + b x + c x^2 + d x^3.
+;; 
+;;     `e'
+;;          Exponential.  a exp(b x) exp(c y).
+;; 
+;;     `E'
+;;          Base-10 exponential.  a 10^(b x) 10^(c y).
+;; 
+;;     `x'
+;;          Exponential (alternate notation).  exp(a + b x + c y).
+;; 
+;;     `X'
+;;          Base-10 exponential (alternate).  10^(a + b x + c y).
+;; 
+;;     `l'
+;;          Logarithmic.  a + b ln(x) + c ln(y).
+;; 
+;;     `L'
+;;          Base-10 logarithmic.  a + b log10(x) + c log10(y).
+;; 
+;;     `^'
+;;          General exponential.  a b^x c^y.
+;; 
+;;     `p'
+;;          Power law.  a x^b y^c.
+;; 
+;;     `q'
+;;          Quadratic.  a + b (x-c)^2 + d (x-e)^2.
+;; 
+;;     `g'
+;;          Gaussian.  (a / b sqrt(2 pi)) exp(-0.5*((x-c)/b)^2).
+;; 
+;; 
+;; Logistic curves are used a great deal in ecology, and in predicting
+;; human actions, such as use of different kinds of energy in a country
+;; (wood, coal, oil, natural gas, etc.) or the number of scientific
+;; papers a person publishes, or the number of movies made.
+;; 
+;; (The less information on which to base the curve, the higher the error
+;; rate.  Theodore Modis ran some Monte Carlo simulations and produced
+;; what may be useful set of confidence levels for different amounts of
+;; initial information.)
 
 ;;; Code:
-
 
 (provide 'calc)
 (require 'calc-macs)
@@ -112,110 +243,7 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; If NIL, only DEL itself is mapped to calc-pop.
 (defvar calc-scan-for-dels t)
 
-
-
 (defvar calc-extensions-loaded nil)
-
-
-;;; IDEAS:
-;;;
-;;;   Fix rewrite mechanism to do less gratuitous rearrangement of terms.
-;;;   Implement a pattern-based "refers" predicate.
-;;;
-;;;   Make it possible to Undo a selection command.
-;;;   Figure out how to allow selecting rows of matrices.
-;;;   If cursor was in selection before, move it after j n, j p, j L, etc.
-;;;   Consider reimplementing calc-delete-selection using rewrites.
-;;;
-;;;   Implement line-breaking in non-flat compositions (is this desirable?).
-;;;   Implement matrix formatting with multi-line components.
-;;;
-;;;   Have "Z R" define a user command based on a set of rewrite rules.
-;;;   Support "incf" and "decf" in defmath definitions.
-;;;   Have defmath generate calls to calc-binary-op or calc-unary-op.
-;;;   Make some way to define algebraic functions using keyboard macros.
-;;;
-;;;   Allow calc-word-size=0 => Common Lisp-style signed bitwise arithmetic.
-;;;   Consider digamma function (and thus arb. prec. Euler's gamma constant).
-;;;   May as well make continued-fractions stuff available to the user.
-;;;
-;;;   How about matrix eigenvalues, SVD, pseudo-inverse, etc.?
-;;;   Should cache matrix inverses as well as decompositions.
-;;;   If dividing by a non-square matrix, use least-squares automatically.
-;;;   Consider supporting matrix exponentials.
-;;;
-;;;   Have ninteg detect and work around singularities at the endpoints.
-;;;   Use an adaptive subdivision algorithm for ninteg.
-;;;   Provide nsum and nprod to go along with ninteg.
-;;;
-;;;   Handle TeX-mode parsing of \matrix{ ... } where ... contains braces.
-;;;   Support AmS-TeX's \{d,t,}frac, \{d,t,}binom notations.
-;;;   Format and parse sums and products in Eqn and Math modes.
-;;;
-;;;   Get math-read-big-expr to read sums, products, etc.
-;;;   Change calc-grab-region to use math-read-big-expr.
-;;;   Have a way to define functions using := in Embedded Mode.
-;;;
-;;;   Support polar plotting with GNUPLOT.
-;;;   Make a calc-graph-histogram function.
-;;;
-;;;   Replace hokey formulas for complex functions with formulas designed
-;;;      to minimize roundoff while maintaining the proper branch cuts.
-;;;   Test accuracy of advanced math functions over whole complex plane.
-;;;   Extend Bessel functions to provide arbitrary precision.
-;;;   Extend advanced math functions to handle error forms and intervals.
-;;;   Provide a better implementation for math-sin-cos-raw.
-;;;   Provide a better implementation for math-hypot.
-;;;   Provide a better implementation for math-make-frac.
-;;;   Provide a better implementation for calcFunc-prfac.
-;;;   Provide a better implementation for calcFunc-factor.
-;;;
-;;;   Provide more examples in the tutorial section of the manual.
-;;;   Cover in the tutorial:  simplification modes, declarations,
-;;;       bitwise stuff, selections, matrix mapping, financial functions.
-;;;   Provide more Lisp programming examples in the manual.
-;;;   Finish the Internals section of the manual (and bring it up to date).
-;;;
-;;;   Tim suggests adding spreadsheet-like features.
-;;;   Implement language modes for Gnuplot, Lisp, Ada, APL, ...?
-;;;
-
-
-;;; For atan series, if x > tan(pi/12) (about 0.268) reduce using the identity
-;;;   atan(x) = atan((x * sqrt(3) - 1) / (sqrt(3) + x)) + pi/6.
-
-
-;;; A better integration algorithm:
-;;;   Use breadth-first instead of depth-first search, as follows:
-;;;	The integral cache allows unfinished integrals in symbolic notation
-;;;	on the righthand side.  An entry with no unfinished integrals on the
-;;;	RHS is "complete"; references to it elsewhere are replaced by the
-;;;	integrated value.  More than one cache entry for the same integral
-;;;	may exist, though if one becomes complete, the others may be deleted.
-;;;	The integrator works by using every applicable rule (such as
-;;;	substitution, parts, linearity, etc.) to generate possible righthand
-;;;	sides, all of which are entered into the cache.  Now, as long as the
-;;;	target integral is not complete (and the time limit has not run out)
-;;;	choose an incomplete integral from the cache and, for every integral
-;;;	appearing in its RHS's, add those integrals to the cache using the
-;;;	same substitition, parts, etc. rules.  The cache should be organized
-;;;	as a priority queue, choosing the "simplest" incomplete integral at
-;;;	each step, or choosing randomly among equally simple integrals.
-;;;	Simplicity equals small size, and few steps removed from the original
-;;;	target integral.  Note that when the integrator finishes, incomplete
-;;;	integrals can be left in the cache, so the algorithm can start where
-;;;	it left off if another similar integral is later requested.
-;;;   Breadth-first search would avoid the nagging problem of, e.g., whether
-;;;   to use parts or substitution first, and which decomposition is best.
-;;;   All are tried, and any path that diverges will quickly be put on the
-;;;   back burner by the priority queue.
-;;;   Note: Probably a good idea to call math-simplify-extended before
-;;;   measuring a formula's simplicity.
-
-
-
-
-
 
 ;; Calculator stack.
 ;; Entries are 3-lists:  Formula, Height (in lines), Selection (or nil).
