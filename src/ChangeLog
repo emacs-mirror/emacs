@@ -1,3 +1,8 @@
+2000-07-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (code_convert_region): Delete text properties before
+	shrinking the conversion region.
+
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_text_area): Write the whole row if it
