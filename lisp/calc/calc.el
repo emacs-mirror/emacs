@@ -67,11 +67,10 @@
 
 
 (provide 'calc)
-
+(require 'calc-macs)
 
 (defun calc-record-compilation-date ()
-  (calc-record-compilation-date-macro)
-)
+  (calc-record-compilation-date-macro))
 (calc-record-compilation-date)
 
 
@@ -2046,16 +2045,19 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	     (calc-dots))))))
 )
 
+(defsubst calc-minibuffer-size ()
+  (- (point-max) (minibuffer-prompt-end)))
+
 (defun calcDigit-nondigit ()
   (interactive)
   ;; Exercise for the reader:  Figure out why this is a good precaution!
   (or (boundp 'calc-buffer)
       (use-local-map minibuffer-local-map))
-  (let ((str (buffer-string)))
+  (let ((str (minibuffer-contents)))
     (setq calc-digit-value (save-excursion
 			     (set-buffer calc-buffer)
 			     (math-read-number str))))
-  (if (and (null calc-digit-value) (> (buffer-size) 0))
+  (if (and (null calc-digit-value) (> (calc-minibuffer-size) 0))
       (progn
 	(beep)
 	(calc-temp-minibuffer-message " [Bad format]"))
@@ -2071,7 +2073,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 
 (defun calc-minibuffer-contains (rex)
   (save-excursion
-    (goto-char (point-min))
+    (goto-char (minibuffer-prompt-end))
     (looking-at rex))
 )
 
@@ -2158,10 +2160,8 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 					  (upcase last-command-char))))
 				(and dig
 				     (< dig radix)))))))
-	      (save-excursion
-		(goto-char (point-min))
-         	(looking-at
-		 "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9]+\\.?0*[@oh] *\\)?\\([0-9]+\\.?0*['m] *\\)?[0-9]*\\(\\.?[0-9]*\\(e[-+]?[0-3]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?\\)?\\|[0-9]:\\([0-9]+:\\)?[0-9]*\\)?[\"s]?\\'")))
+	      (calc-minibuffer-contains
+	       "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9]+\\.?0*[@oh] *\\)?\\([0-9]+\\.?0*['m] *\\)?[0-9]*\\(\\.?[0-9]*\\(e[-+]?[0-3]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?\\)?\\|[0-9]:\\([0-9]+:\\)?[0-9]*\\)?[\"s]?\\'"))
 	  (if (and (memq last-command-char '(?@ ?o ?h ?\' ?m))
 		   (string-match " " calc-hms-format))
 	      (insert " "))
@@ -2190,7 +2190,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	((eq last-command 'calcDigit-start)
 	 (erase-buffer))
 	(t (backward-delete-char 1)))
-  (if (= (buffer-size) 0)
+  (if (= (calc-minibuffer-size) 0)
       (progn
 	(setq last-command-char 13)
 	(calcDigit-nondigit)))
