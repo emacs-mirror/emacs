@@ -116,9 +116,11 @@ SECS may be a fraction."
     (setq low (+ low (floor secs)))
 
     ;; Normalize
-    (setq low (+ low (/ micro 1000000)))
+    ;; `/' rounds towards zero while `mod' returns a positive number,
+    ;; so we can't rely on (= a (+ (* 100 (/ a 100)) (mod a 100))).
+    (setq low (+ low (/ micro 1000000) (if (< micro 0) -1 0)))
     (setq micro (mod micro 1000000))
-    (setq high (+ high (/ low 65536)))
+    (setq high (+ high (/ low 65536) (if (< low 0) -1 0)))
     (setq low (logand low 65535))
 
     (list high low (and (/= micro 0) micro))))
