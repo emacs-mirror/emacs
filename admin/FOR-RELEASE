@@ -100,6 +100,8 @@ when run in gdb, after interrupting.  When the freeze up happens
 within a gdb session, there is no automatic debugging feedback.  After
 interrupting I can get a backtrace, here's an example:
 
+Update: Maybe only reveals itself when compiled with GTK+
+
 
 ** Mouse-face overlay bleeds into header line
 
@@ -149,16 +151,6 @@ C-v M-v C-v M-v C-v M-v etc.
 
 From: David Kastrup <dak@gnu.org>
 Date: 27 Apr 2004 16:42:58 +0200
-
-This bug report will be sent to the Free Software Foundation,
-not to your local site managers!
-Please write in English if possible, because the Emacs maintainers
-usually do not have translators to read other languages for them.
-
-Your bug report will be posted to the emacs-pretest-bug@gnu.org mailing list.
-
-Please describe exactly what actions triggered the bug
-and the precise symptoms of the bug:
 
 I had gnus display a mouse-highlighted line (a URL from browse-url)
 partially at the bottom of its window.  If I click with middle mouse
