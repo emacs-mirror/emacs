@@ -57,7 +57,11 @@ The variable `tab-width' controls the spacing of tab stops."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (narrow-to-region start end)
+      ;; Include the beginning of the line in the narrowing
+      ;; since otherwise it will throw off current-column.
+      (goto-char start)
+      (beginning-of-line)
+      (narrow-to-region (point) end)
       (goto-char start)
       (while (re-search-forward "[ \t][ \t][ \t]*" nil t)
 	(let ((column (current-column))
