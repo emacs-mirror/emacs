@@ -547,6 +547,10 @@ extern Lisp_Object Vcoding_system_for_write;
 /* Coding-system actually used in the latest I/O.  */
 extern Lisp_Object Vlast_coding_system_used;
 
+/* If non-zero, process buffer inherits the coding system used to decode
+   the subprocess output.  */
+extern int inherit_process_coding_system;
+
 /* Coding-system to be used for encoding terminal output.  This
    structure contains information of a coding-system specified by the
    function `set-terminal-coding-system'.  */
