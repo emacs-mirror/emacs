@@ -994,6 +994,7 @@ dired."
    '("\\.p[bgpn]m$" "xv")
    '("\\.gif$" "xv")                    ; view gif pictures
    '("\\.tif$" "xv")
+   '("\\.png$" "xv")
    '("\\.jpg$" "xv")
    '("\\.fig$" "xfig")                  ; edit fig pictures
    '("\\.out$" "xgraph")                ; for plotting purposes.
