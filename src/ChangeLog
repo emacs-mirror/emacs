@@ -1,5 +1,19 @@
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (lookup_image): Build mask before applying an algorithm.
+	Recognize algorithm `disabled'.
+	(cross_disabled_images): New variable.
+	(COLOR_INTENSITY): New macro.
+	(x_detect_edges): Use COLOR_INTENSITY.
+	(x_disable_image): New function.
+	(syms_of_xfns): DEFVAR_BOOL cross_disabled_images.
+
+	* xdisp.c (build_desired_tool_bar_string): For a toolbar item in
+	disabled state, don't apply an image transformation algorithm if
+	the user specified an image for the disabled state.  Use
+	`:algorthm disabled' for creating a disabled item's image if the
+	user hasn't specified an image.
+
 	* xfns.c (ALLOC_XPM_COLORS): Define if we can use Emacs' color
 	allocation functions with the XPM lib.
 	(struct xpm_cached_color) [ALLOC_XPM_COLORS]: New structure.

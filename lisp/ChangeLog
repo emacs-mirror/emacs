@@ -1,5 +1,9 @@
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* toolbar/toolbar.el (toolbar-add-item): Use the same image
+	specification if or if not tool-bar item contains an `:enabled'
+	property.
+
 	* menu-bar.el (menu-bar-files-menu): Disable ``Save'' if
 	current buffer has no file name.
 
