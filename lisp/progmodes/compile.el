@@ -30,13 +30,24 @@
 
 ;;; Code:
 
-;;;###autoload
-(defvar compilation-mode-hook nil
-  "*List of hook functions run by `compilation-mode' (see `run-hooks').")
+(defgroup compilation nil
+  "Run compiler as inferior of Emacs, parse error messages."
+  :group 'tools
+  :group 'processes)
+
 
 ;;;###autoload
-(defvar compilation-window-height nil
-  "*Number of lines in a compilation window.  If nil, use Emacs default.")
+(defcustom compilation-mode-hook nil
+  "*List of hook functions run by `compilation-mode' (see `run-hooks')."
+  :type 'hook
+  :group 'compilation)
+
+;;;###autoload
+(defcustom compilation-window-height nil
+  "*Number of lines in a compilation window.  If nil, use Emacs default."
+  :type '(choice (const :tag "Default" nil)
+		 integer)
+  :group 'compilation)
 
 (defvar compile-auto-highlight nil
   "*Specify how many compiler errors to highlight (and parse) initially.
@@ -95,13 +106,13 @@ nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 
 ;;;###autoload
 (defvar compilation-finish-function nil
-  "*Function to call when a compilation process finishes.
+  "Function to call when a compilation process finishes.
 It is called with two arguments: the compilation buffer, and a string
 describing how the process finished.")
 
 ;;;###autoload
 (defvar compilation-finish-functions nil
-  "*Functions to call when a compilation process finishes.
+  "Functions to call when a compilation process finishes.
 Each function is called with two arguments: the compilation buffer,
 and a string describing how the process finished.")
 
@@ -308,13 +319,17 @@ Note that the match is done at the beginning of lines.
 Each elt has the form (REGEXP). This alist is by default empty, but if
 you have some good regexps here, the parsing of messages will be faster.")
 
-(defvar compilation-read-command t
-  "If not nil, M-x compile reads the compilation command to use.
-Otherwise, M-x compile just uses the value of `compile-command'.")
+(defcustom compilation-read-command t
+  "*If not nil, M-x compile reads the compilation command to use.
+Otherwise, M-x compile just uses the value of `compile-command'."
+  :type 'boolean
+  :group 'compilation)
 
-(defvar compilation-ask-about-save t
-  "If not nil, M-x compile asks which buffers to save before compiling.
-Otherwise, it saves all modified buffers without asking.")
+(defcustom compilation-ask-about-save t
+  "*If not nil, M-x compile asks which buffers to save before compiling.
+Otherwise, it saves all modified buffers without asking."
+  :type 'boolean
+  :group 'compilation)
 
 (defvar grep-regexp-alist
   '(("\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
@@ -371,13 +386,16 @@ by influencing the default value for the variable `grep-find-command'.")
   "The default find command for \\[grep-find].")
 
 ;;;###autoload
-(defvar compilation-search-path '(nil)
+(defcustom compilation-search-path '(nil)
   "*List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
-nil as an element means to try the default directory.")
+nil as an element means to try the default directory."
+  :type '(repeat (choice (const :tag "Default" nil)
+			 (string :tag "Directory")))
+  :group 'compilation)
 
-(defvar compile-command "make -k "
-  "Last shell command used to do a compilation; default for next compilation.
+(defcustom compile-command "make -k "
+  "*Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
 You might also use mode hooks to specify it in certain modes, like this:
@@ -387,7 +405,9 @@ You might also use mode hooks to specify it in certain modes, like this:
 		      (progn (make-local-variable 'compile-command)
 			     (setq compile-command
 				    (concat \"make -k \"
-					    buffer-file-name))))))")
+					    buffer-file-name))))))"
+  :type 'string
+  :group 'compilation)
 
 (defvar compilation-directory-stack nil
   "Stack of previous directories for `compilation-leave-directory-regexp'.
