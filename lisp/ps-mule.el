@@ -824,7 +824,9 @@ Returns the value:
 
 Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
 the sequence."
-  (setq ps-mule-current-charset (charset-after from))
+  (let ((ch (char-after from)))
+    (setq ps-mule-current-charset
+	  (char-charset (or (aref ps-print-translation-table ch) ch))))
   (let* ((wrappoint (ps-mule-find-wrappoint
 		     from to (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
@@ -832,6 +834,10 @@ the sequence."
 			      (ps-font-alist 'ps-font-for-text))))
 	 (font-spec (ps-mule-get-font-spec ps-mule-current-charset font-type))
 	 (string (buffer-substring-no-properties from to)))
+    (dotimes (i (length string))
+      (let ((ch (aref ps-print-translation-table (aref string i))))
+	(if ch
+	    (aset string i ch))))
     (cond
      ((= from to)
       ;; We can't print any more characters in the current line.
@@ -1469,13 +1475,15 @@ This checks if all multi-byte characters in the region are printable or not."
 	 (setq ps-mule-charset-list
 	       (delq 'ascii (delq 'eight-bit-control
 				  (delq 'eight-bit-graphic 
-					(find-charset-region from to))))
+					(find-charset-region
+					 from to ps-print-translation-table))))
 	       ps-mule-header-charsets
 	       (delq 'ascii (delq 'eight-bit-control
 				  (delq 'eight-bit-graphic 
 					(find-charset-string
 					 (mapconcat
-					  'identity header-footer-list ""))))))
+					  'identity header-footer-list "")
+					 ps-print-translation-table)))))
 	 (dolist (cs ps-mule-charset-list)
 	   (or (ps-mule-printable-p cs)
 	       (push cs unprintable-charsets)))
