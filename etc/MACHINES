@@ -75,6 +75,11 @@ Alpha (DEC) running OSF/1 or GNU/Linux (alpha-dec-osf1, alpha-dec-linux-gnu)
 
       configure --x-includes=/usr/include --x-libraries=/usr/shlib
 
+  DEC C compiler version 5.9 (DEC C V5.9-005 on Digital UNIX V4.0f)
+  is reported to produce bogus binaries of Emacs 21.2 when the
+  command-line switches "-O4 -arch ev6 -tune ev6" are used.  Using
+  just -O4 produces a good executable.
+
   For 4.0 revision 564, and 4.0A and 4.0B, Emacs 20 seems to work
   with no special configuration options.  However, if you use GCC as
   your compiler, you will need version 2.8.1 or later, as older
