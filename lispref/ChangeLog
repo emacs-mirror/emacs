@@ -1,3 +1,41 @@
+2003-08-13  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode lists in menu.
+
+	* text.texi (Insertion): Add insert-buffer-substring-no-properties.
+	(Kill Functions): kill-region has new arg yank-handler.
+	(Yanking): New node.
+	(Yank Commands): Add yank-undo-function.
+	(Low-Level Kill Ring):
+	kill-new and kill-append have new arg yank-handler.
+	(Changing Properties): Add remove-list-of-text-properties.
+	(Atomic Changes): New node.
+
+	* symbols.texi (Other Plists): Add lax-plist-get, lax-plist-put.
+
+	* streams.texi (Output Variables): Add eval-expression-print-length
+	and eval-expression-print-level.
+
+	* os.texi (Time Conversion): For encode-time, explain limits on year.
+
+	* objects.texi (Character Type): Define anchor "modifier bits".
+
+	* modes.texi (Emulating Mode Line): New node.
+	(Search-based Fontification): Font Lock uses font-lock-face property.
+	(Other Font Lock Variables): Likewise.
+
+	* keymaps.texi (Format of Keymaps): Keymaps contain char tables,
+	not vectors.
+	(Active Keymaps): Add emulation-mode-map-alists.
+	(Functions for Key Lookup): key-binding has new arg no-remap.
+	(Remapping Commands): New node.
+	(Scanning Keymaps): where-is-internal has new arg no-remap.
+	(Tool Bar): Add tool-bar-local-item-from-menu.
+	Clarify when to use tool-bar-add-item-from-menu.
+
+	* commands.texi (Interactive Call): commandp has new arg.
+	(Command Loop Info): Add this-original-command.
+
 2003-08-06  John Paul Wallington  <jpw@gnu.org>
 
 	* compile.texi (Compiler Errors): Say `@end defmac' after `@defmac'.
