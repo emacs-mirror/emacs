@@ -111,10 +111,10 @@ maybe-bootstrap: maybe-bootstrap-$(SHELLTYPE)
 doit:
 
 maybe-bootstrap-CMD:	doit
-	@echo.
+	@echo .
 	@if not EXIST ..\lisp\abbrev.elc echo Essential Lisp files seem to be missing.  You should either
 	@if not EXIST ..\lisp\abbrev.elc echo do 'make bootstrap' or create 'lisp/abbrev.elc' somehow
-	@echo.
+	@echo .
 	@if not EXIST ..\lisp\abbrev.elc exit -1
 
 maybe-bootstrap-SH: doit

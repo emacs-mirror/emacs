@@ -198,7 +198,7 @@ If N is bigger than the length of LIST, return LIST."
     list))
 
 (defun butlast (list &optional n)
-  "Returns a copy of LIST with the last N elements removed."
+  "Return a copy of LIST with the last N elements removed."
   (if (and n (<= n 0)) list
     (nbutlast (copy-sequence list) n)))
 
@@ -647,7 +647,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 	   (get (car obj) 'event-symbol-elements))))
 
 (defun event-modifiers (event)
-  "Returns a list of symbols representing the modifier keys in event EVENT.
+  "Return a list of symbols representing the modifier keys in event EVENT.
 The elements of the list may include `meta', `control',
 `shift', `hyper', `super', `alt', `click', `double', `triple', `drag',
 and `down'."
@@ -676,7 +676,7 @@ and `down'."
 	list))))
 
 (defun event-basic-type (event)
-  "Returns the basic type of the given event (all modifiers removed).
+  "Return the basic type of the given event (all modifiers removed).
 The value is a printing character (not upper case) or a symbol."
   (if (consp event)
       (setq event (car event)))

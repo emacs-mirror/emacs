@@ -2633,6 +2633,28 @@ x_window (f)
 #endif /* not USE_GTK */
 #endif /* not USE_X_TOOLKIT */
 
+/* Verify that the icon position args for this window are valid.  */
+
+static void
+x_icon_verify (f, parms)
+     struct frame *f;
+     Lisp_Object parms;
+{
+  Lisp_Object icon_x, icon_y;
+
+  /* Set the position of the icon.  Note that twm groups all
+     icons in an icon window.  */
+  icon_x = x_frame_get_and_record_arg (f, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
+  icon_y = x_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
+  if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
+    {
+      CHECK_NUMBER (icon_x);
+      CHECK_NUMBER (icon_y);
+    }
+  else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
+    error ("Both left and top icon corners of icon must be specified");
+}
+
 /* Handle the icon stuff for this window.  Perhaps later we might
    want an x_set_icon_position which can be called interactively as
    well.  */
@@ -3116,6 +3138,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
+
+  x_icon_verify (f, parms);
 
   /* Create the X widget or window.  */
 #ifdef USE_X_TOOLKIT

@@ -79,8 +79,9 @@ controlling Emacs redisplay.
 To create a new frame, call the function @code{make-frame}.
 
 @defun make-frame &optional alist
-This function creates a new frame.  If you are using a supported window
-system, it makes a window frame; otherwise, it makes a terminal frame.
+This function creates and returns a new frame, displaying the current
+buffer.  If you are using a supported window system, it makes a window
+frame; otherwise, it makes a terminal frame.
 
 The argument is an alist specifying frame parameters.  Any parameters
 not mentioned in @var{alist} default according to the value of the
@@ -91,6 +92,12 @@ your system.
 The set of possible parameters depends in principle on what kind of
 window system Emacs uses to display its frames.  @xref{Window Frame
 Parameters}, for documentation of individual parameters you can specify.
+
+This function itself does not make the new frame the selected frame.
+@xref{Input Focus}.  The previously selected frame remains selected.
+However, the window system may select the new frame for its own reasons,
+for instance if the frame appears under the mouse pointer and your
+setup is for focus to follow the pointer.
 @end defun
 
 @defvar before-make-frame-hook
@@ -138,9 +145,10 @@ names that they share a single keyboard, and it treats them as a single
 terminal.
 
 @deffn Command make-frame-on-display display &optional parameters
-This creates a new frame on display @var{display}, taking the other
-frame parameters from @var{parameters}.  Aside from the @var{display}
-argument, it is like @code{make-frame} (@pxref{Creating Frames}).
+This creates and returns a new frame on display @var{display}, taking
+the other frame parameters from @var{parameters}.  Aside from the
+@var{display} argument, it is like @code{make-frame} (@pxref{Creating
+Frames}).
 @end deffn
 
 @defun x-display-list
@@ -165,7 +173,7 @@ look like:
 "*BorderWidth: 3\n*InternalBorder: 2\n"
 @end example
 
-@xref{Resources}.
+@xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
 
 If @var{must-succeed} is non-@code{nil}, failure to open the connection
 terminates Emacs.  Otherwise, it is an ordinary Lisp error.
@@ -207,9 +215,10 @@ frame.
 
 @defun frame-parameter frame parameter
 @tindex frame-parameter
-This function returns the value of the parameter named @var{parameter}
-of @var{frame}.  If @var{frame} is @code{nil}, it returns the
-selected  frame's parameter.
+This function returns the value of the parameter @var{parameter} (a
+symbol) of @var{frame}.  If @var{frame} is @code{nil}, it returns the
+selected frame's parameter.  If @var{frame} has no setting for
+@var{parameter}, this function returns @code{nil}.
 @end defun
 
 @defun frame-parameters &optional frame
@@ -230,8 +239,8 @@ frame.
 @defun modify-all-frames-parameters alist
 This function alters the frame parameters of all existing frames
 according to @var{alist}, then modifies @code{default-frame-alist}
-to apply the same parameter values to frames that will be created
-henceforth.
+(and, if necessary, @code{initial-frame-alist}) to apply the same
+parameter values to frames that will be created henceforth.
 @end defun
 
 @node Initial Parameters
@@ -285,9 +294,12 @@ This is an alist specifying default values of frame parameters for all
 Emacs frames---the first frame, and subsequent frames.  When using the X
 Window System, you can get the same results by means of X resources
 in many cases.
+
+Setting this variable does not affect existing frames.
 @end defvar
 
-See also @code{special-display-frame-alist}, in @ref{Choosing Window}.
+See also @code{special-display-frame-alist}.  @xref{Definition of
+special-display-frame-alist}.
 
 If you use options that specify window appearance when you invoke Emacs,
 they take effect by adding elements to @code{default-frame-alist}.  One
@@ -367,6 +379,10 @@ non-@code{nil} value for the @code{user-position} parameter as well.
 The screen position of the left edge @emph{of the frame's icon}, in
 pixels, counting from the left edge of the screen.  This takes effect if
 and when the frame is iconified.
+
+If you specify a value for this parameter, then you must also specify
+a value for @code{icon-top} and vice versa.  The window manager may
+ignore these two parameters.
 
 @item icon-top
 The screen position of the top edge @emph{of the frame's icon}, in
@@ -528,8 +544,8 @@ The combined fringe widths must add up to an integral number of
 columns, so the actual default fringe widths for the frame may be
 larger than the specified values.  The extra width needed to reach an
 acceptable total is distributed evenly between the left and right
-fringe.  However, you can force one frame or the other to a precise
-width by specifying that width a negative integer.  If both widths are
+fringe.  However, you can force one fringe or the other to a precise
+width by specifying that width as a negative integer.  If both widths are
 negative, only the left fringe gets the specified width.
 
 @item unsplittable
@@ -541,10 +557,15 @@ The state of visibility of the frame.  There are three possibilities:
 iconified.  @xref{Visibility of Frames}.
 
 @item menu-bar-lines
-The number of lines to allocate at the top of the frame for a menu bar.
-The default is 1.  @xref{Menu Bar}.  (In Emacs versions that use the X
-toolkit or GTK, there is only one menu bar line; all that matters about the
-number you specify is whether it is greater than zero.)
+The number of lines to allocate at the top of the frame for a menu
+bar.  The default is 1.  A value of @code{nil} means don't display a
+menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
+menu bar line; they treat larger values as 1.)
+
+@item tool-bar-lines
+The number of lines to use for the toolbar.  A value of @code{nil} means
+don't display a tool bar.  (GTK allows at most one tool bar line; it
+treats larger values as 1.)
 
 @item screen-gamma
 @cindex gamma correction
@@ -557,7 +578,7 @@ Emacs, and in X windows generally, are calibrated to display properly
 on a monitor with that gamma value.  If you specify 2.2 for
 @code{screen-gamma}, that means no correction is needed.  Other values
 request correction, designed to make the corrected colors appear on
-your screen they way they would have appeared without correction on an
+your screen the way they would have appeared without correction on an
 ordinary monitor with a gamma value of 2.2.
 
 If your monitor displays colors too light, you should specify a
@@ -565,14 +586,14 @@ If your monitor displays colors too light, you should specify a
 that makes colors darker.  A screen gamma value of 1.5 may give good
 results for LCD color displays.
 
-@item tool-bar-lines
-The number of lines to use for the toolbar.  A value of @code{nil} means
-don't display a tool bar.  (In Emacs versions that use GTK, there is
-only one tool bar line; all that matters about the number you specify
-is whether it is greater than zero.)
-
 @item line-spacing
-Additional space put below text lines in pixels (a positive integer).
+Additional space put below text lines, in pixels (a positive integer)
+
+@item wait-for-wm
+If non-@code{nil}, tell Xt to wait for the window manager to confirm
+geometry changes.  Some window managers, including versions of Fvwm2
+and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
+prevent hanging with those window managers.
 
 @ignore
 @item parent-id
@@ -637,12 +658,6 @@ equivalent to the @code{:foreground} attribute of the
 If non-@code{nil}, the color for the background of scroll bars.  It is
 equivalent to the @code{:background} attribute of the
 @code{scroll-bar} face.
-
-@item wait-for-wm
-If non-@code{nil}, tell Xt to wait for the window manager to confirm
-geometry changes.  Some window managers, including versions of Fvwm2
-and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
-prevent hanging with those window managers.
 @end table
 
 @node Size and Position
@@ -818,6 +833,10 @@ there are two or more frames (not counting minibuffer-only frames or
 invisible frames).  The default value of @code{frame-title-format} uses
 @code{multiple-frames} so as to put the buffer name in the frame title
 only when there is more than one frame.
+
+The value of this variable is not guaranteed to be accurate except
+while processing @code{frame-title-format} or
+@code{icon-title-format}.
 @end defvar
 
 @node Deleting Frames
@@ -826,16 +845,14 @@ only when there is more than one frame.
 
 Frames remain potentially visible until you explicitly @dfn{delete}
 them.  A deleted frame cannot appear on the screen, but continues to
-exist as a Lisp object until there are no references to it.  There is no
-way to cancel the deletion of a frame aside from restoring a saved frame
-configuration (@pxref{Frame Configurations}); this is similar to the
-way windows behave.
+exist as a Lisp object until there are no references to it.
 
 @deffn Command delete-frame &optional frame force
 @vindex delete-frame-functions
-This function deletes the frame @var{frame} after running the hook
-@code{delete-frame-functions} (each function gets one argument,
-@var{frame}).  By default, @var{frame} is the selected frame.
+This function deletes the frame @var{frame}.  Unless @var{frame} is a
+tooltip, it first runs the hook @code{delete-frame-functions} (each
+function gets one argument, @var{frame}).  By default, @var{frame} is
+the selected frame.
 
 A frame cannot be deleted if its minibuffer is used by other frames.
 Normally, you cannot delete a frame if all other frames are invisible,
@@ -844,7 +861,8 @@ but if the @var{force} is non-@code{nil}, then you are allowed to do so.
 
 @defun frame-live-p frame
 The function @code{frame-live-p} returns non-@code{nil} if the frame
-@var{frame} has not been deleted.
+@var{frame} has not been deleted.  The possible non-@code{nil} return
+values are like those of @code{framep}.  @xref{Frames}.
 @end defun
 
   Some window managers provide a command to delete a window.  These work
@@ -929,29 +947,31 @@ frame also selects this window.  You can get the frame's current
 selected window with @code{frame-selected-window}.
 
 @defun frame-selected-window  &optional frame
-This function returns the window on @var{frame} that is selected within
-@var{frame}.  If omitted or @code{nil}, @var{frame} defaults to the selected frame.
+This function returns the window on @var{frame} that is selected
+within @var{frame}.  If omitted or @code{nil}, @var{frame} defaults to
+the selected frame.
 @end defun
 
 @defun set-frame-selected-window frame window
 This sets the selected window of frame @var{frame} to @var{window}.
 If @var{frame} is @code{nil}, it operates on the selected frame.  If
 @var{frame} is the selected frame, this makes @var{window} the
-selected window.
+selected window.  This function returns @var{window}.
 @end defun
 
   Conversely, selecting a window for Emacs with @code{select-window} also
 makes that window selected within its frame.  @xref{Selecting Windows}.
 
   Another function that (usually) returns one of the windows in a given
-frame is @code{minibuffer-window}.  @xref{Minibuffer Misc}.
+frame is @code{minibuffer-window}.  @xref{Definition of minibuffer-window}.
 
 @node Minibuffers and Frames
 @section Minibuffers and Frames
 
 Normally, each frame has its own minibuffer window at the bottom, which
 is used whenever that frame is selected.  If the frame has a minibuffer,
-you can get it with @code{minibuffer-window} (@pxref{Minibuffer Misc}).
+you can get it with @code{minibuffer-window} (@pxref{Definition of
+minibuffer-window}).
 
 However, you can also create a frame with no minibuffer.  Such a frame
 must use the minibuffer window of some other frame.  When you create the
@@ -966,8 +986,9 @@ when you enter the minibuffer.  If so, set the variable
 
 @defvar default-minibuffer-frame
 This variable specifies the frame to use for the minibuffer window, by
-default.  It is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+default.  It does not affect existing frames.  It is always local to
+the current terminal and cannot be buffer-local.  @xref{Multiple
+Displays}.
 @end defvar
 
 @node Input Focus
@@ -1026,7 +1047,10 @@ function is not significant.
 This function selects frame @var{frame}, temporarily disregarding the
 focus of the X server if any.  The selection of @var{frame} lasts until
 the next time the user does something to select a different frame, or
-until the next time this function is called.  The specified @var{frame}
+until the next time this function is called.  (If you are using a
+window system, the previously selected frame may be restored as the
+selected frame after return to the command loop, because it still may
+have the window system's input focus.)  The specified @var{frame}
 becomes the selected frame, as explained above, and the terminal that
 @var{frame} is on becomes the selected terminal.  This function
 returns @var{frame}, or @code{nil} if @var{frame} has been deleted.
@@ -1107,9 +1131,12 @@ This function makes frame @var{frame} visible.  If you omit @var{frame},
 it makes the selected frame visible.
 @end deffn
 
-@deffn Command make-frame-invisible &optional frame
+@deffn Command make-frame-invisible &optional frame force
 This function makes frame @var{frame} invisible.  If you omit
 @var{frame}, it makes the selected frame invisible.
+
+Unless @var{force} is non-@code{nil}, this function refuses to make
+@var{frame} invisible if all other frames are invisible..
 @end deffn
 
 @deffn Command iconify-frame &optional frame
@@ -1121,6 +1148,10 @@ iconifies the selected frame.
 This returns the visibility status of frame @var{frame}.  The value is
 @code{t} if @var{frame} is visible, @code{nil} if it is invisible, and
 @code{icon} if it is iconified.
+
+On a text-only terminal, all frames are considered visible, whether
+they are currently being displayed or not, and this function returns
+@code{t} for all frames.
 @end defun
 
   The visibility status of a frame is also available as a frame
@@ -1155,6 +1186,7 @@ on the screen.
 
 @deffn Command raise-frame &optional frame
 This function raises frame @var{frame} (default, the selected frame).
+If @var{frame} is invisible or iconified, this makes it visible.
 @end deffn
 
 @deffn Command lower-frame &optional frame
@@ -1185,7 +1217,8 @@ the current arrangement of frames and their contents.
 
 @defun set-frame-configuration configuration &optional nodelete
 This function restores the state of frames described in
-@var{configuration}.
+@var{configuration}.  However, this function does not restore deleted
+frames.
 
 Ordinarily, this function deletes all existing frames not listed in
 @var{configuration}.  But if @var{nodelete} is non-@code{nil}, the
@@ -1467,7 +1500,7 @@ distinguished by @dfn{selection types}, represented in Emacs by
 symbols.  X clients including Emacs can read or set the selection for
 any given type.
 
-@defun x-set-selection type data
+@deffn Command x-set-selection type data
 This function sets a ``selection'' in the X server.  It takes two
 arguments: a selection type @var{type}, and the value to assign to it,
 @var{data}.  If @var{data} is @code{nil}, it means to clear out the
@@ -1482,9 +1515,11 @@ selection values.
 Each possible @var{type} has its own selection value, which changes
 independently.  The usual values of @var{type} are @code{PRIMARY},
 @code{SECONDARY} and @code{CLIPBOARD}; these are symbols with upper-case
-names, in accord with X Window System conventions.  The default is
-@code{PRIMARY}.
-@end defun
+names, in accord with X Window System conventions.  If @var{type} is
+@code{nil}, that stands for @code{PRIMARY}.
+
+This function returns @var{data}.
+@end deffn
 
 @defun x-get-selection &optional type data-type
 This function accesses selections set up by Emacs or by other X
@@ -1578,6 +1613,7 @@ and that name is still supported as an alias.
 @tindex defined-colors
 This function returns a list of the color names that are defined
 and supported on frame @var{frame} (default, the selected frame).
+If @var{frame} does not support colors, the value is @code{nil}.
 
 @findex x-defined-colors
 This function used to be called @code{x-defined-colors},
@@ -1602,18 +1638,18 @@ The argument @var{color} must be a valid color name.
 @tindex color-gray-p
 This returns @code{t} if @var{color} is a shade of gray, as defined on
 @var{frame}'s display.  If @var{frame} is omitted or @code{nil}, the
-question applies to the selected frame.  The argument @var{color} must
-be a valid color name.
+question applies to the selected frame.  If @var{color} is not a valid
+color name, this function returns @code{nil}.
 @end defun
 
 @defun color-values color &optional frame
 @tindex color-values
 This function returns a value that describes what @var{color} should
-ideally look like.  If @var{color} is defined, the value is a list of
-three integers, which give the amount of red, the amount of green, and
-the amount of blue.  Each integer ranges in principle from 0 to 65535,
-but in practice no value seems to be above 65280.  This kind
-of three-element list is called an @dfn{rgb value}.
+ideally look like on @var{frame}.  If @var{color} is defined, the
+value is a list of three integers, which give the amount of red, the
+amount of green, and the amount of blue.  Each integer ranges in
+principle from 0 to 65535, but some displays may not use the full
+range.  This kind of three-element list is called an @dfn{rgb value}.
 
 If @var{color} is not defined, the value is @code{nil}.
 
@@ -1658,8 +1694,7 @@ are used by Emacs.
   Several of these functions use or return @dfn{rgb values}.  An rgb
 value is a list of three integers, which give the amount of red, the
 amount of green, and the amount of blue.  Each integer ranges in
-principle from 0 to 65535, but in practice the largest value used is
-65280.
+principle from 0 to 65535, but some displays may not use the full range.  .
 
   These functions accept a display (either a frame or the name of a
 terminal) as an optional argument.  We hope in the future to make Emacs
@@ -1701,13 +1736,14 @@ actually looks like.
 @tindex tty-color-approximate
 This function finds the closest color, among the known colors supported
 for @var{display}, to that described by the rgb value @var{rgb}.
+The return value is an element of @code{tty-color-alist}.
 @end defun
 
 @defun tty-color-translate color &optional display
 @tindex tty-color-translate
 This function finds the closest color to @var{color} among the known
-colors supported for @var{display}.  If the name @var{color} is not
-defined, the value is @code{nil}.
+colors supported for @var{display} and returns its index (an integer).
+If the name @var{color} is not defined, the value is @code{nil}.
 
 @var{color} can be an X-style @code{"#@var{xxxyyyzzz}"} specification
 instead of an actual name.  The format
@@ -1746,6 +1782,29 @@ This variable specifies the instance name that @code{x-get-resource}
 should look up.  The default value is the name Emacs was invoked with,
 or the value specified with the @samp{-name} or @samp{-rn} switches.
 @end defvar
+
+To illustrate some of the above, suppose that you have the line:
+
+@example
+xterm.vt100.background: yellow
+@end example
+
+@noindent
+in in your X resources file (usually named @file{~/.Xdefaults} or
+@file{~/.Xresources}).  Then:
+
+@example
+@group
+(let ((x-resource-class "XTerm") (x-resource-name "xterm"))
+  (x-get-resource "vt100.background" "VT100.Background"))
+     @result{} "yellow"
+@end group
+@group
+(let ((x-resource-class "XTerm") (x-resource-name "xterm"))
+  (x-get-resource "background" "VT100" "vt100" "Background"))
+     @result{} "yellow"
+@end group
+@end example
 
   @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
 
@@ -1854,6 +1913,7 @@ This function returns the number of screens associated with the display.
 @defun display-pixel-height &optional display
 @tindex display-pixel-height
 This function returns the height of the screen in pixels.
+On a character terminal, it gives the height in characters.
 @end defun
 
 @defun display-mm-height &optional display
@@ -1865,6 +1925,7 @@ or @code{nil} if Emacs cannot get that information.
 @defun display-pixel-width &optional display
 @tindex display-pixel-width
 This function returns the width of the screen in pixels.
+On a character terminal, it gives the width in characters.
 @end defun
 
 @defun display-mm-width &optional display
@@ -1918,11 +1979,13 @@ about X displays.
 
 @defun x-server-version &optional display
 This function returns the list of version numbers of the X server
-running the display.
+running the display.  The value is a list of three integers: the major
+and minor version numbers, and the vendor-specific release number.
 @end defun
 
 @defun x-server-vendor &optional display
-This function returns the vendor that provided the X server software.
+This function returns the ``vendor'' that provided the X server software
+(as a string).
 @end defun
 
 @ignore

@@ -520,7 +520,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 ;;;; Creation of additional frames, and other frame miscellanea
 
 (defun modify-all-frames-parameters (alist)
-  "Modify all current and future frames parameters according to ALIST.
+  "Modify all current and future frames' parameters according to ALIST.
 This changes `default-frame-alist' and possibly `initial-frame-alist'.
 See help of `modify-frame-parameters' for more information."
   (let (element)			;; temp
@@ -612,7 +612,13 @@ You cannot specify either `width' or `height', you must use neither or both.
 
 Before the frame is created (via `frame-creation-function'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
-on `after-make-frame-functions' are run with one arg, the newly created frame."
+on `after-make-frame-functions' are run with one arg, the newly created frame.
+
+This function itself does not make the new frame the selected frame.
+The previously selected frame remains selected.  However, the
+window system may select the new frame for its own reasons, for
+instance if the frame appears under the mouse pointer and your
+setup is for focus to follow the pointer."
   (interactive)
   (run-hooks 'before-make-frame-hook)
   (let ((frame (funcall frame-creation-function parameters)))
@@ -789,6 +795,8 @@ where
   "Restore the frames to the state described by CONFIGURATION.
 Each frame listed in CONFIGURATION has its position, size, window
 configuration, and other parameters set as specified in CONFIGURATION.
+However, this function does not restore deleted frames.
+
 Ordinarily, this function deletes all existing frames not
 listed in CONFIGURATION.  But if optional second argument NODELETE
 is given and non-nil, the unwanted frames are iconified instead."

@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2004/03/10 18:57:00 vinicius>
-;; Version: 6.6.4
+;; Time-stamp: <2004/07/21 23:12:05 vinicius>
+;; Version: 6.6.5
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.4"
-  "ps-print.el, v 6.6.4 <2004/03/10 vinicius>
+(defconst ps-print-version "6.6.5"
+  "ps-print.el, v 6.6.5 <2004/07/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1353,6 +1353,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
+;; Thanks to Michael Piotrowski <mxp@dynalabs.de> for improving the DSC
+;; compliance of the generated PostScript.
+;;
 ;; Thanks to Adam Doppelt <adoppelt@avogadro.com> for face mapping suggestion
 ;; for black/white PostScript printers.
 ;;
@@ -1424,7 +1427,7 @@ Please send all bug fixes and enhancements to
 ;; initial port to Emacs 19.  His code is no longer part of ps-print, but his
 ;; work is still appreciated.
 ;;
-;; Thanks to Remi Houdaille and Michel Train, michel@metasoft.fdn.org, for
+;; Thanks to Remi Houdaille and Michel Train <michel@metasoft.fdn.org> for
 ;; adding underline support.  Their code also is no longer part of ps-print,
 ;; but their efforts are not forgotten.
 ;;
@@ -4162,6 +4165,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-message-log-max ()
   (and (not (string= (buffer-name) "*Messages*"))
+       (boundp 'message-log-max)
        message-log-max))
 
 
@@ -4210,7 +4214,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defvar ps-printing-region nil
-  "Variable used to indicate if the region that ps-print is printing.
+  "Variable used to indicate the region that ps-print is printing.
 It is a cons, the car of which is the line number where the region begins, and
 its cdr is the total number of lines in the buffer.  Formatting functions can
 use this information to print the original line number (and not the number of
@@ -4729,12 +4733,16 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
   (let (str)
     (while content
       (setq str (cons (cond
+		       ;; string
 		       ((stringp (car content))
 			(car content))
+		       ;; function symbol
 		       ((and (symbolp (car content)) (fboundp (car content)))
 			(concat "(" (funcall (car content)) ")"))
+		       ;; variable symbol
 		       ((and (symbolp (car content)) (boundp (car content)))
 			(concat "(" (symbol-value (car content)) ")"))
+		       ;; otherwise, empty string
 		       (t
 			""))
 		      str)
@@ -5424,9 +5432,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      ps-adobe-tag
      "%%Title: " (buffer-name)		; Take job name from name of
 					; first buffer printed
-     "\n%%Creator: " (user-full-name)
-     " (using ps-print v" ps-print-version
-     ")\n%%CreationDate: " (format-time-string "%T %b %d %Y")
+     "\n%%Creator: ps-print v" ps-print-version
+     "\n%%For: " (user-full-name)
+     "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
      "\n%%Orientation: "
      (if ps-landscape-mode "Landscape" "Portrait")
      "\n%%DocumentNeededResources: font Times-Roman Times-Italic\n%%+ font "
@@ -5434,8 +5442,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		(ps-remove-duplicates
 		 (append (ps-fonts 'ps-font-for-text)
 			 (list (ps-font 'ps-font-for-header 'normal)
-			       (ps-font 'ps-font-for-header 'bold))))
+			       (ps-font 'ps-font-for-header 'bold)
+			       (ps-font 'ps-font-for-footer 'normal)
+			       (ps-font 'ps-font-for-footer 'bold))))
 		"\n%%+ font ")
+     "\n%%DocumentSuppliedResources: procset PSPrintUserDefinedPrologue-" (user-login-name) " 0 0"
      "\n%%DocumentMedia: " (ps-page-dimensions-get-media dimensions)
      (format " %d" (round (ps-page-dimensions-get-width dimensions)))
      (format " %d" (round (ps-page-dimensions-get-height dimensions)))
@@ -5455,11 +5466,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				       ps-error-handler-alist))
 			   1))		; send to paper
 	       ps-print-prologue-0
-	       "\n%%BeginProcSet: UserDefinedPrologue\n\n")
+	       "\n%%BeginResource: procset PSPrintUserDefinedPrologue-" (user-login-name) " 0 0\n\n")
 
     (ps-insert-string ps-user-defined-prologue)
 
-    (ps-output "\n%%EndProcSet\n\n")
+    (ps-output "\n%%EndResource\n\n")
 
     (ps-output-boolean "LandscapeMode      "
 		       (or ps-landscape-mode
@@ -5565,26 +5576,37 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (setq ps-background-all-pages (nreverse ps-background-all-pages)
 	  ps-background-pages (nreverse ps-background-pages))
 
-    (ps-output "\n" ps-print-prologue-1)
-
-    (ps-output "\n/printGlobalBackground{\n")
+    (ps-output "\n" ps-print-prologue-1
+	       "\n/printGlobalBackground{\n")
     (mapcar 'ps-output ps-background-all-pages)
-    (ps-output "}def\n/printLocalBackground{\n}def\n")
-
-    ;; Header/line number fonts
-    (ps-output (format "/h0 %s(%s)cvn DefFont\n" ; /h0 14/Helvetica-Bold DefFont
-		       ps-header-title-font-size-internal
-		       (ps-font 'ps-font-for-header 'bold))
-	       (format "/h1 %s(%s)cvn DefFont\n" ; /h1 12/Helvetica DefFont
-		       ps-header-font-size-internal
-		       (ps-font 'ps-font-for-header 'normal))
-	       (format "/L0 %s(%s)cvn DefFont\n" ; /L0 6/Times-Italic DefFont
-		       (ps-get-font-size 'ps-line-number-font-size)
-		       ps-line-number-font)
-	       (format "/H0 %s(%s)cvn DefFont\n" ; /H0 12/Helvetica DefFont
-		       ps-footer-font-size-internal
-		       (ps-font 'ps-font-for-footer 'normal))
-	       "\n\n% ---- These lines must be kept together because...
+    (ps-output
+     "}def\n/printLocalBackground{\n}def\n"
+     "\n%%EndProlog\n\n%%BeginSetup\n"
+     "\n%%IncludeResource: font Times-Roman"
+     "\n%%IncludeResource: font Times-Italic"
+     "\n%%IncludeResource: font "
+     (mapconcat 'identity
+		(ps-remove-duplicates
+		 (append (ps-fonts 'ps-font-for-text)
+			 (list (ps-font 'ps-font-for-header 'normal)
+			       (ps-font 'ps-font-for-header 'bold)
+			       (ps-font 'ps-font-for-footer 'normal)
+			       (ps-font 'ps-font-for-footer 'bold))))
+		"\n%%IncludeResource: font ")
+     ;; Header/line number fonts
+     (format "\n/h0 %s(%s)cvn DefFont\n" ; /h0 14/Helvetica-Bold DefFont
+	     ps-header-title-font-size-internal
+	     (ps-font 'ps-font-for-header 'bold))
+     (format "/h1 %s(%s)cvn DefFont\n"	; /h1 12/Helvetica DefFont
+	     ps-header-font-size-internal
+	     (ps-font 'ps-font-for-header 'normal))
+     (format "/L0 %s(%s)cvn DefFont\n"	; /L0 6/Times-Italic DefFont
+	     (ps-get-font-size 'ps-line-number-font-size)
+	     ps-line-number-font)
+     (format "/H0 %s(%s)cvn DefFont\n"	; /H0 12/Helvetica DefFont
+	     ps-footer-font-size-internal
+	     (ps-font 'ps-font-for-footer 'normal))
+     "\n\n% ---- These lines must be kept together because...
 
 /h0 F
 /HeaderTitleLineHeight FontHeight def
@@ -5614,7 +5636,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
       (ps-output (format "/SpaceWidthRatio %f def\n"
 			 (/ (ps-lookup 'space-width) (ps-lookup 'size)))))
 
-    (ps-output "\n%%EndProlog\n\n%%BeginSetup\n")
     (unless (eq ps-spool-config 'lpr-switches)
       (ps-output "\n%%BeginFeature: *Duplex "
 		 (ps-boolean-capitalized ps-spool-duplex)

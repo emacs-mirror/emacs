@@ -1,3 +1,11 @@
+2004-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Paragraphs): Update how paragraphs are separated
+	and the default for paragraph-separate.
+
+	* search.texi (Regexp Replace): Further update text for new
+	replacement operators.
+
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-xtra.texi (Subdir switches): Dired does not remember the

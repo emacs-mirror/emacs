@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-;; Author: Manuel Serrano <Manuel.Serrano@unice.fr>
+;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
 ;; Keywords: convenience
 

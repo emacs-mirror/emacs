@@ -8,11 +8,6 @@
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
-;; RMS:
-;; This needs work.
-;; Also, the doc strings need fixing: the first line doesn't stand alone,
-;; and other usage is not high quality.  Symbol names don't have `...'.
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -63,6 +58,7 @@
 ;;
 ;; To Do:
 ;;
+;; * Add missing doc strings, improve terse doc strings.
 ;; * Eliminate electric stuff entirely.
 ;; * It might be nice to highlight targets differently depending on
 ;;   whether they are up-to-date or not.  Not sure how this would

@@ -209,7 +209,7 @@ loaddefs.el-CMD:
 	echo (autoload 'define-derived-mode "derived")>> $@
 	echo (autoload 'encoded-kbd-mode "encoded-kb")>> $@
 	echo (defvar cvs-global-menu nil)>> $@
-	echo.>> $@
+	echo ;;; >> $@
 	echo ;;; Local Variables:>> $@
 	echo ;;; version-control: never>> $@
 	echo ;;; no-byte-compile: t>> $@
