@@ -427,12 +427,12 @@ window_from_coordinates (frame, x, y, part)
 }
 
 DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
-  "Return window containing row ROW, column COLUMN on FRAME.\n\
+  "Return window containing coordinates X and Y on FRAME.\n\
 If omitted, FRAME defaults to the currently selected frame.\n\
 The top left corner of the frame is considered to be row 0,\n\
 column 0.")
-  (row, column, frame)
-      Lisp_Object row, column, frame;
+  (x, y, frame)
+      Lisp_Object x, y, frame;
 {
   int part;
 
@@ -442,11 +442,11 @@ column 0.")
   else
     CHECK_LIVE_FRAME (frame, 2);
 #endif
-  CHECK_NUMBER (row, 0);
-  CHECK_NUMBER (column, 1);
+  CHECK_NUMBER (x, 0);
+  CHECK_NUMBER (y, 1);
 
   return window_from_coordinates (XFRAME (frame),
-				  XINT (row), XINT (column),
+				  XINT (x), XINT (y),
 				  &part);
 }
 
