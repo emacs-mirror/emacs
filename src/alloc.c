@@ -32,6 +32,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "syssignal.h"
 
+/* The following come from gmalloc.c.  */
+
+#if defined (__STDC__) && __STDC__
+#include <stddef.h>
+#define	__malloc_size_t		size_t
+#else
+#define	__malloc_size_t		unsigned int
+#endif
+extern __malloc_size_t _bytes_used;
+extern int __malloc_extra_blocks;
+
 #define max(A,B) ((A) > (B) ? (A) : (B))
 
 /* Macro to verify that storage intended for Lisp objects is not
@@ -49,6 +60,9 @@ do								\
 	memory_full ();						\
       }								\
   } while (0)
+
+/* Value of _bytes_used, when spare_memory was freed.  */
+static __malloc_size_t bytes_used_when_full;
 
 /* Number of bytes of consing done since the last gc */
 int consing_since_gc;
@@ -72,6 +86,16 @@ extern
 /* Two limits controlling how much undo information to keep.  */
 int undo_limit;
 int undo_strong_limit;
+
+/* Points to memory space allocated as "spare",
+   to be freed if we run out of memory.  */
+static char *spare_memory;
+
+/* Amount of spare memory to keep in reserve.  */
+#define SPARE_MEMORY (1 << 14)
+
+/* Number of extra blocks malloc should get when it needs more core.  */
+static int malloc_hysteresis;
 
 /* Non-nil means defun should do purecopy on the function definition */
 Lisp_Object Vpurify_flag;
@@ -164,8 +188,42 @@ display_malloc_warning ()
 }
 
 /* Called if malloc returns zero */
+
 memory_full ()
 {
+#ifndef SYSTEM_MALLOC
+  bytes_used_when_full = _bytes_used;
+#endif
+
+  /* The first time we get here, free the spare memory.  */
+  if (spare_memory)
+    {
+      free (spare_memory);
+      spare_memory = 0;
+    }
+
+  /* This used to call error, but if we've run out of memory, we could get
+     infinite recursion trying to build the string.  */
+  while (1)
+    Fsignal (Qerror, memory_signal_data);
+}
+
+/* Called if we can't allocate relocatable space for a buffer.  */
+
+void
+buffer_memory_full ()
+{
+  /* If buffers use the relocating allocator,
+     no need to free spare_memory, because we may have plenty of malloc
+     space left that we could get, and if we don't, the malloc that fails
+     will itself cause spare_memory to be freed.
+     If buffers don't use the relocating allocator,
+     treat this like any other failing malloc.  */
+
+#ifndef REL_ALLOC
+  memory_full ();
+#endif
+
   /* This used to call error, but if we've run out of memory, we could get
      infinite recursion trying to build the string.  */
   while (1)
@@ -236,6 +294,8 @@ static void * (*old_realloc_hook) ();
 extern void (*__free_hook) ();
 static void (*old_free_hook) ();
 
+/* This function is used as the hook for free to call.  */
+
 static void
 emacs_blocked_free (ptr)
      void *ptr;
@@ -243,9 +303,36 @@ emacs_blocked_free (ptr)
   BLOCK_INPUT;
   __free_hook = old_free_hook;
   free (ptr);
+  /* If we released our reserve (due to running out of memory),
+     and we have a fair amount free once again,
+     try to set aside another reserve in case we run out once more.  */
+  if (spare_memory == 0
+      /* Verify there is enough space that even with the malloc
+	 hysteresis this call won't run out again.
+	 The code here is correct as long as SPARE_MEMORY
+	 is substantially larger than the block size malloc uses.  */
+      && (bytes_used_when_full
+	  > _bytes_used + max (malloc_hysteresis, 4) * SPARE_MEMORY))
+    spare_memory = (char *) malloc (SPARE_MEMORY);
+
   __free_hook = emacs_blocked_free;
   UNBLOCK_INPUT;
 }
+
+/* If we released our reserve (due to running out of memory),
+   and we have a fair amount free once again,
+   try to set aside another reserve in case we run out once more.
+
+   This is called when a relocatable block is freed in ralloc.c.  */
+
+void
+refill_memory_reserve ()
+{
+  if (spare_memory == 0)
+    spare_memory = (char *) malloc (SPARE_MEMORY);
+}
+
+/* This function is the malloc hook that Emacs uses.  */
 
 static void *
 emacs_blocked_malloc (size)
@@ -255,6 +342,7 @@ emacs_blocked_malloc (size)
 
   BLOCK_INPUT;
   __malloc_hook = old_malloc_hook;
+  __malloc_extra_blocks = malloc_hysteresis;
   value = (void *) malloc (size);
   __malloc_hook = emacs_blocked_malloc;
   UNBLOCK_INPUT;
@@ -2258,6 +2346,14 @@ init_alloc_once ()
 #endif /* LISP_FLOAT_TYPE */
   INIT_INTERVALS;
 
+#ifdef REL_ALLOC
+  malloc_hysteresis = 32;
+#else
+  malloc_hysteresis = 0;
+#endif
+
+  spare_memory = (char *) malloc (SPARE_MEMORY);
+
   ignore_warnings = 0;
   gcprolist = 0;
   staticidx = 0;
@@ -2318,7 +2414,7 @@ which includes both saved text and other data.");
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
   memory_signal_data
-    = Fcons (Qerror, Fcons (build_string ("Memory exhausted"), Qnil));
+    = Fcons (Qerror, Fcons (build_string ("Memory exhausted--use M-x save-some-buffers RET"), Qnil));
   staticpro (&memory_signal_data);
 
   defsubr (&Scons);
