@@ -1685,12 +1685,14 @@ If no reference to follow, moves to the next node, or up if none."
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.
+;; Value is a list, (FILE-NAME NODE-NAME).
 
 (defun Info-menu-update ()
   ;; Update the Info menu for the current node.
   (condition-case nil
       (if (or (not (eq major-mode 'Info-mode))
-	      (eq Info-current-node Info-menu-last-node))
+	      (equal (list Info-current-file Info-current-node)
+		     Info-menu-last-node))
 	  ()
 	;; Update menu menu.
 	(let* ((Info-complete-menu-buffer (current-buffer))
@@ -1745,7 +1747,7 @@ If no reference to follow, moves to the next node, or up if none."
 	      (setq entries (list ["No references" nil nil])))
 	  (easy-menu-change '("Info") "Reference" (nreverse entries)))
 	;; Update last seen node.
-	(setq Info-menu-last-node (current-buffer)))
+	(setq Info-menu-last-node (list Info-current-file Info-current-node)))
     ;; Try to avoid entering infinite beep mode in case of errors.
     (error (ding))))
 
