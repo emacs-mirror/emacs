@@ -43,7 +43,8 @@
   
 (defcustom describe-text-mode-hook nil
   "List of hook functions ran by `describe-text-mode'."
-  :type 'hook)
+  :type 'hook
+  :group 'facemenu)
 
 (defun describe-text-mode ()
   "Major mode for buffers created by `describe-char'.
