@@ -1,6 +1,6 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -94,9 +94,14 @@ encode lines starting with \"From\"."
   (interactive "r")
   (save-excursion
     (goto-char from)
-    ;; Fixme: This doesn't get eight-bit characters in multibyte buffers.
-    (if (re-search-forward "[^\x0-\xff]" to t)
-      (error "Multibyte character in QP encoding region")))
+    (if (fboundp 'string-to-multibyte)	; Emacs 22
+	;; Fixme: Should we allow codes in the range \x80-\xff?
+	(if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
+			       to t)
+	    ;; Fixme: Improve message.
+	    (error "Multibyte character in QP encoding region")
+	  (if (re-search-forward "[^\x0-\xff]" to t)
+	      (error "Multibyte character in QP encoding region")))))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="
