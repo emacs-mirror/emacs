@@ -952,8 +952,10 @@ command_loop_1 ()
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
-  if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-    safe_run_hooks (&Vpost_command_hook);
+  /* Note that the value cell will never directly contain nil
+     if the symbol is a local variable.  */
+  if (!NILP (XSYMBOL (Qpost_command_hook)->value) && !NILP (Vrun_hooks))
+    safe_run_hooks (Qpost_command_hook);
 
   /* Do this after running Vpost_command_hook, for consistency.  */
   last_command = this_command;
@@ -1074,8 +1076,10 @@ command_loop_1 ()
       /* Execute the command.  */
 
       this_command = cmd;
-      if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (&Vpre_command_hook);
+      /* Note that the value cell will never directly contain nil
+	 if the symbol is a local variable.  */
+      if (!NILP (XSYMBOL (Qpre_command_hook)->value) && !NILP (Vrun_hooks))
+	safe_run_hooks (Qpre_command_hook);
 
       if (NILP (this_command))
 	{
@@ -1211,8 +1215,10 @@ command_loop_1 ()
 	}
     directly_done: ;
 
-      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (&Vpost_command_hook);
+      /* Note that the value cell will never directly contain nil
+	 if the symbol is a local variable.  */
+      if (!NILP (XSYMBOL (Qpost_command_hook)->value) && !NILP (Vrun_hooks))
+	safe_run_hooks (Qpost_command_hook);
 
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
@@ -1248,15 +1254,17 @@ command_loop_1 ()
    to mysteriously evaporate.  */
 static void
 safe_run_hooks (hook)
-     Lisp_Object *hook;
+     Lisp_Object hook;
 {
   int count = specpdl_ptr - specpdl;
   specbind (Qinhibit_quit, Qt);
 
-  Vcommand_hook_internal = *hook;
-  *hook = Qnil;
+  /* We read and set the variable with functions,
+     in case it's buffer-local.  */
+  Vcommand_hook_internal = Fsymbol_value (hook);
+  Fset (hook, Qnil);
   call1 (Vrun_hooks, Qcommand_hook_internal);
-  *hook = Vcommand_hook_internal;
+  Fset (hook, Vcommand_hook_internal);
 
   unbind_to (count, Qnil);
 }
@@ -4406,7 +4414,7 @@ read_key_sequence (keybuf, bufsize, prompt)
     {
       if (!NILP (prompt))
 	echo_prompt (XSTRING (prompt)->data);
-      else if (cursor_in_echo_area)
+      else if (cursor_in_echo_area && echo_keystrokes)
 	/* This doesn't put in a dash if the echo buffer is empty, so
 	   you don't always see a dash hanging out in the minibuffer.  */
 	echo_dash ();
@@ -4551,7 +4559,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 	{
 	  key = keybuf[t];
 	  add_command_key (key);
-	  echo_char (key);
+	  if (echo_keystrokes)
+	    echo_char (key);
 	}
 
       /* If not, we should actually read a character.  */
@@ -5087,7 +5096,8 @@ read_key_sequence (keybuf, bufsize, prompt)
      Better ideas?  */
   for (; t < mock_input; t++)
     {
-      echo_char (keybuf[t]);
+      if (echo_keystrokes)
+	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
 
