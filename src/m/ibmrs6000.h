@@ -102,12 +102,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    Define neither one if an assembler-language alloca
    in the file alloca.s should be used.	 */
 
+/* Note: aix3-2.h defines HAVE_ALLOCA; aix3-1.h doesn't.  */
+#ifndef HAVE_ALLOCA
 #define C_ALLOCA
 #define STACK_DIRECTION -1 /* tell alloca.c which way it grows */
+#endif
 
-/* Specify the font for X to use.  */
-
-#define X_DEFAULT_FONT "Rom14.500"
+/* Specify the font for X to use.
+   This used to be Rom14.500; that's nice on the X server shipped with
+   the RS/6000, but it's not available on other servers.  */
+#define X_DEFAULT_FONT "fixed"
 
 /* Here override various assumptions in ymakefile */
 
