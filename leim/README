@@ -1,0 +1,30 @@
+This directory contains LEIM files.
+LEIM stands for Libraries of Emacs Input Methods.
+
+Contents of subdirectories are as follows.
+
+CXTERM-DIC:
+
+This directory contains source dictionaries (TIT format) for Chinese
+input method distribued with cxterm (Chinese version xterm).  These
+dictionaries are automatically converted to Quail packages (Emacs Lisp
+source file) by `make'.
+
+quail:
+
+This directory contains Emacs Lisp source files for Quail packages.
+
+SKK-DIC:
+
+This directory contains source dictionary for Japanese input method
+distributed with SKK (Japanese input method run with Mule).  But, you
+don't need this file because we distribute an Emacs Lisp source file
+skk/skkdic.el which has already been converted from the source
+dictionary (See below).
+
+skk:
+
+This directory contains Emacs Lisp source file skkdic.el which is
+generated from a source dictionary in SKK-DIC directory.  In addtion,
+it contains a byte compiled file skkdic.elc for users convenience
+because it takes rather long time to byte-compile skkdic.el.
