@@ -3076,6 +3076,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 
 (defun file-name-non-special (operation &rest arguments)
   (let ((file-name-handler-alist nil)
+	(default-directory
+	  (if (eq operation 'insert-directory)
+	      (directory-file-name
+	       (expand-file-name 
+		(unhandled-file-name-directory default-directory)))
+	    default-directory))
 	;; Get a list of the indices of the args which are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
