@@ -545,14 +545,14 @@ containing several active fields:
  [Reset] [Reset to Saved] [Erase Customization]   [Finish]
 @end smallexample
 
-@vindex Custom-buffer-done
+@vindex custom-buffer-done-function
 @noindent
 Invoking @samp{[Finish]} either buries or kills this customization
-buffer according to the setting of the option @code{Custom-buffer-done};
-the default is to bury the buffer.
-Each of the other fields performs an operation---set, save or reset---on
-each of the items in the buffer that could meaningfully be set, saved or
-reset.
+buffer according to the setting of the option
+@code{custom-buffer-done-function}; the default is to bury the buffer.
+Each of the other fields performs an operation---set, save or
+reset---on each of the items in the buffer that could meaningfully be
+set, saved or reset.
 
 @node Face Customization
 @subsubsection Customizing Faces
@@ -757,9 +757,8 @@ lambda expression.
 
 @group
 (add-hook 'c-mode-common-hook
-  (function
-    (lambda ()
-      (c-add-style "my-style" my-c-style t))))
+  '(lambda ()
+     (c-add-style "my-style" my-c-style t)))
 @end group
 @end example
 
