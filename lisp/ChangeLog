@@ -1,3 +1,8 @@
+2005-01-22  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
+
+	* net/eudc.el (top level): Call (message "") via progn, so that
+	eudc-options-file is loaded.
+
 2005-01-22  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move-1): Rename from line-move.
