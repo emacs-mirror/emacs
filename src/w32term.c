@@ -495,7 +495,7 @@ w32_draw_vertical_window_border (w, x, y0, y1)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   RECT r;
   HDC hdc;
-  
+
   r.left = x;
   r.right = x + 1;
   r.top = y0;
@@ -2911,8 +2911,8 @@ construct_mouse_wheel (result, msg, f)
      struct frame *f;
 {
   POINT p;
-  result->kind = MOUSE_WHEEL_EVENT;
-  result->code = (short) HIWORD (msg->msg.wParam);
+  result->kind = MOUSE_CLICK_EVENT;
+  result->code = (GET_WHEEL_DELTA_WPARAM (msg->msg.wParam) < 0) ? 4 : 3;
   result->timestamp = msg->msg.time;
   result->modifiers = msg->dwModifiers;
   p.x = LOWORD (msg->msg.lParam);
@@ -3111,7 +3111,7 @@ glyph_rect (f, x, y, rect)
 
 	    /* x is to the right of the last glyph in the row.  */
 	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	    /* Shouldn't this be a pixel value?  
+	    /* Shouldn't this be a pixel value?
 	       WINDOW_RIGHT_EDGE_X (w) seems to be the right value.
 	       ++KFS */
 	    rect->right = WINDOW_RIGHT_EDGE_COL (w);
@@ -4382,25 +4382,90 @@ w32_read_socket (sd, bufp, numchars, expected)
 	    break;
 	  }
 
-      case WM_MOUSEWHEEL:
-          if (dpyinfo->grabbed && last_mouse_frame
-              && FRAME_LIVE_P (last_mouse_frame))
-            f = last_mouse_frame;
-          else
-            f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+	case WM_MOUSEWHEEL:
+	  {
+	    /* Convert each Windows mouse wheel event in a couple of
+	       Emacs mouse click down/up events.  Scrolling the wheel up
+	       is associated to mouse button 4 and scrolling the wheel
+	       down to the mouse button 5.  */
+	    int button;
+	    int up;
 
-          if (f)
-            {
-              if ((!dpyinfo->w32_focus_frame
-                   || f == dpyinfo->w32_focus_frame)
-                  && (numchars >= 1))
-                {
-                  construct_mouse_wheel (bufp, &msg, f);
-                  bufp++;
-                  count++;
-                  numchars--;
-                }
-            }
+	    up = msg.dwModifiers & up_modifier;
+
+	    if (dpyinfo->grabbed && last_mouse_frame
+		&& FRAME_LIVE_P (last_mouse_frame))
+	      f = last_mouse_frame;
+	    else
+	      f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	    if (f)
+	      {
+		Lisp_Object window;
+		POINT p;
+		int x, y;
+
+		p.x = LOWORD (msg.msg.lParam);
+		p.y = HIWORD (msg.msg.lParam);
+		ScreenToClient (msg.msg.hwnd, &p);
+		x = XFASTINT (p.x);
+		y = XFASTINT (p.y);
+
+		window = window_from_coordinates (f, x, y, 0, 0, 0, 0);
+
+		/* Ignore mouse wheel events not in a window.  */
+		if (!WINDOWP(window))
+		  break;
+
+		if ((!dpyinfo->w32_focus_frame
+		     || f == dpyinfo->w32_focus_frame)
+		    && (numchars >= 1))
+		  {
+		    if ( !up )
+		      {
+			/* Emit an Emacs mouse down message.  */
+			msg.dwModifiers |= down_modifier;
+			construct_mouse_wheel (bufp, &msg, f);
+			bufp++;
+			count++;
+			numchars--;
+
+			/* Push a simulated WM_MOUSEWHEEL up message.  */
+			msg.dwModifiers &= ~down_modifier;
+			msg.dwModifiers |= up_modifier;
+			prepend_msg (&msg);
+		      }
+		    else
+		      {
+			/* Emit an Emacs mouse up message.  */
+			construct_mouse_wheel (bufp, &msg, f);
+			bufp++;
+			count++;
+			numchars--;
+		      }
+		  }
+	      }
+
+	    button = ( GET_WHEEL_DELTA_WPARAM (msg.msg.wParam) < 0 )? 4 : 3;
+
+	    if (up)
+	      {
+		dpyinfo->grabbed &= ~ (1 << button);
+	      }
+	    else
+	      {
+		dpyinfo->grabbed |= (1 << button);
+		last_mouse_frame = f;
+		/* Ignore any mouse motion that happened
+		   before this event; any subsequent mouse-movement
+		   Emacs events should reflect only motion after
+		   the ButtonPress.  */
+		if (f != 0)
+		  f->mouse_moved = 0;
+
+		last_tool_bar_item = -1;
+	      }
+	  }
 	  break;
 
 	case WM_DROPFILES:
@@ -4624,12 +4689,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 	case WM_SETFOCUS:
 	  /* TODO: Port this change:
 	     2002-06-28  Jan D.  <jan.h.d@swipnet.se>
-	   * xterm.h (struct x_output): Add focus_state.
-	   * xterm.c (x_focus_changed): New function.
+	     * xterm.h (struct x_output): Add focus_state.
+	     * xterm.c (x_focus_changed): New function.
 	     (x_detect_focus_change): New function.
 	     (XTread_socket): Call x_detect_focus_change for FocusIn/FocusOut
 	     EnterNotify and LeaveNotify to track X focus changes.
-	   */
+	  */
 	  f = x_any_window_to_frame (dpyinfo, msg.msg.hwnd);
 
           dpyinfo->w32_focus_event_frame = f;
@@ -4791,65 +4856,65 @@ w32_read_socket (sd, bufp, numchars, expected)
       Lisp_Object tail, frame;
 
       FOR_EACH_FRAME (tail, frame)
-	{
-	  FRAME_PTR f = XFRAME (frame);
-	  /* The tooltip has been drawn already.  Avoid the
-	     SET_FRAME_GARBAGED below.  */
-	  if (EQ (frame, tip_frame))
-	    continue;
+      {
+	FRAME_PTR f = XFRAME (frame);
+	/* The tooltip has been drawn already.  Avoid the
+	   SET_FRAME_GARBAGED below.  */
+	if (EQ (frame, tip_frame))
+	  continue;
 
-	  /* Check "visible" frames and mark each as obscured or not.
-	     Note that async_visible is nonzero for unobscured and
-	     obscured frames, but zero for hidden and iconified frames.  */
-	  if (FRAME_W32_P (f) && f->async_visible)
-	    {
-	      RECT clipbox;
-	      HDC  hdc;
+	/* Check "visible" frames and mark each as obscured or not.
+	   Note that async_visible is nonzero for unobscured and
+	   obscured frames, but zero for hidden and iconified frames.  */
+	if (FRAME_W32_P (f) && f->async_visible)
+	  {
+	    RECT clipbox;
+	    HDC  hdc;
 
-	      enter_crit ();
-	      /* Query clipping rectangle for the entire window area
-                 (GetWindowDC), not just the client portion (GetDC).
-                 Otherwise, the scrollbars and menubar aren't counted as
-                 part of the visible area of the frame, and we may think
-                 the frame is obscured when really a scrollbar is still
-                 visible and gets WM_PAINT messages above.  */
-	      hdc = GetWindowDC (FRAME_W32_WINDOW (f));
-	      GetClipBox (hdc, &clipbox);
-	      ReleaseDC (FRAME_W32_WINDOW (f), hdc);
-	      leave_crit ();
+	    enter_crit ();
+	    /* Query clipping rectangle for the entire window area
+	       (GetWindowDC), not just the client portion (GetDC).
+	       Otherwise, the scrollbars and menubar aren't counted as
+	       part of the visible area of the frame, and we may think
+	       the frame is obscured when really a scrollbar is still
+	       visible and gets WM_PAINT messages above.  */
+	    hdc = GetWindowDC (FRAME_W32_WINDOW (f));
+	    GetClipBox (hdc, &clipbox);
+	    ReleaseDC (FRAME_W32_WINDOW (f), hdc);
+	    leave_crit ();
 
-	      if (clipbox.right == clipbox.left
-		  || clipbox.bottom == clipbox.top)
-		{
-		  /* Frame has become completely obscured so mark as
-		     such (we do this by setting async_visible to 2 so
-		     that FRAME_VISIBLE_P is still true, but redisplay
-		     will skip it).  */
-		  f->async_visible = 2;
+	    if (clipbox.right == clipbox.left
+		|| clipbox.bottom == clipbox.top)
+	      {
+		/* Frame has become completely obscured so mark as
+		   such (we do this by setting async_visible to 2 so
+		   that FRAME_VISIBLE_P is still true, but redisplay
+		   will skip it).  */
+		f->async_visible = 2;
 
-		  if (!FRAME_OBSCURED_P (f))
-		    {
-		      DebPrint (("frame %p (%s) obscured\n", f,
-				 SDATA (f->name)));
-		    }
-		}
-	      else
-		{
-		  /* Frame is not obscured, so mark it as such.  */
-		  f->async_visible = 1;
+		if (!FRAME_OBSCURED_P (f))
+		  {
+		    DebPrint (("frame %p (%s) obscured\n", f,
+			       SDATA (f->name)));
+		  }
+	      }
+	    else
+	      {
+		/* Frame is not obscured, so mark it as such.  */
+		f->async_visible = 1;
 
-		  if (FRAME_OBSCURED_P (f))
-		    {
-		      SET_FRAME_GARBAGED (f);
-		      DebPrint (("obscured frame %p (%s) found to be visible\n", f,
-				 SDATA (f->name)));
+		if (FRAME_OBSCURED_P (f))
+		  {
+		    SET_FRAME_GARBAGED (f);
+		    DebPrint (("obscured frame %p (%s) found to be visible\n", f,
+			       SDATA (f->name)));
 
-		      /* Force a redisplay sooner or later.  */
-		      record_asynch_buffer_change ();
-		    }
-		}
-	    }
-	}
+		    /* Force a redisplay sooner or later.  */
+		    record_asynch_buffer_change ();
+		  }
+	      }
+	  }
+      }
     }
 
   UNBLOCK_INPUT;
@@ -6223,12 +6288,12 @@ w32_term_init (display_name, xrm_option, resource_name)
 	unsigned char *bits = fringe_bitmaps[i].bits;
 	for (j = 0; j < h; j++)
 	  {
-	    static unsigned char swap_nibble[16] 
+	    static unsigned char swap_nibble[16]
 	      = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
 		  0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
 		  0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
 		  0x3, 0xb, 0x7, 0xf };	 /* 0011 1011 0111 1111 */
-		  
+
 	    unsigned char b = *bits++;
 	    *wb++ = (unsigned short)((swap_nibble[b & 0xf]<<4)
 				     | (swap_nibble[(b>>4) & 0xf]));
