@@ -1,5 +1,8 @@
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (expose_area): Pass x-coordinate relative to the exposed
+	area to x_draw_glyphs instead of a window-relative coordinate.
+
 	* fileio.c (auto_save_error): Add parameter ERROR.  Show the
 	error in the message.
 

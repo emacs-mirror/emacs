@@ -1,3 +1,12 @@
+2000-12-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-expunge) 
+	(rmail-summary-expunge-and-save): Ask for confirmation with
+	rmail-expunge-confirmed.
+
+	* mail/rmail.el (rmail-expunge-confirmed): New function.
+	(rmail-expunge): Use it.
+
 2000-12-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-scroll-prefer-subnodes): New defcustom.
