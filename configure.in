@@ -1321,6 +1321,11 @@ GNU_MALLOC=yes
 doug_lea_malloc=yes
 AC_CHECK_FUNC(malloc_get_state, ,doug_lea_malloc=no)
 AC_CHECK_FUNC(malloc_set_state, ,doug_lea_malloc=no)
+AC_MSG_CHECKING(whether __after_morecore_hook exists)
+AC_TRY_LINK([extern void (* __after_morecore_hook)();],[__after_morecore_hook = 0],
+  [AC_MSG_RESULT(yes)],
+  [AC_MSG_RESULT(no)
+   doug_lea_malloc=no])
 if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
