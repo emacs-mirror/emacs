@@ -33,7 +33,7 @@
     (save-excursion
       (let ((abbrev-list nil) (first-column 0))
 	(set-buffer standard-output)
-	(mapatoms 
+	(mapatoms
 	  (function (lambda (abbrev)
 		      (setq abbrev-list (cons abbrev abbrev-list))))
 	  abbrev-table)
