@@ -156,9 +156,17 @@
 Switch to a buffer editing the last file dropped."
   (interactive "e")
   (save-excursion
-    (set-frame-selected-window nil (posn-window (event-start event)))
-    (mapcar 'find-file (car (cdr (cdr event)))))
-  (raise-frame))
+    ;; Make sure the drop target has positive co-ords
+    ;; before setting the selected frame - otherwise it
+    ;; won't work.  <skx@tardis.ed.ac.uk>
+    (let* ((window (posn-window (event-start event)))
+	   (coords (posn-x-y (event-start event)))
+	   (x (car coords))
+	   (y (cdr coords)))
+      (if (and (> x 0) (> y 0))
+	  (set-frame-selected-window nil window))
+      (mapcar 'find-file (car (cdr (cdr event)))))
+  (raise-frame)))
 
 (defun w32-drag-n-drop-other-frame (event)
   "Edit the files listed in the drag-n-drop event, in other frames.
