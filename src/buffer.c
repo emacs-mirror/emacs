@@ -420,9 +420,13 @@ NAME should be a string which is not the name of an existing buffer.")
     }
 
   /* Give the indirect buffer markers for its narrowing.  */
-  b->pt_marker = Fpoint_marker ();
-  b->begv_marker = Fpoint_min_marker ();
-  b->zv_marker = Fpoint_max_marker ();
+  b->pt_marker = Fmake_marker ();
+  Fset_marker (b->pt_marker, make_number (BUF_PT (b)), buf);
+  b->begv_marker = Fmake_marker ();
+  Fset_marker (b->begv_marker, make_number (BUF_BEGV (b)), buf);
+  b->zv_marker = Fmake_marker ();
+  Fset_marker (b->zv_marker, make_number (BUF_ZV (b)), buf);
+
   XMARKER (b->zv_marker)->insertion_type = 1;
 
   return buf;
