@@ -1,8 +1,7 @@
-2002-04-29  Kim F. Storm  <cua@cua.dk>
+2002-04-29  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (remove-yank-excluded-properties): New helper function.
-	(insert-for-yank): Use it.
-	(insert-buffer-substring-as-yank): Use it.
+	(insert-for-yank, insert-buffer-substring-as-yank): Use it.
 
 	* simple.el (yank-excluded-properties): Added help-echo to list.
 
