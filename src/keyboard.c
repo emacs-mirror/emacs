@@ -2026,9 +2026,9 @@ static char *lispy_function_keys[] =
     "insertchar",
     "deletechar",
     "backtab",
-    "kp_backtab",		/* 0x1000ff75 */
+    "kp-backtab",		/* 0x1000ff75 */
     0,				/* 0xff76 */
-    0, 0, 0, 0, 0, 0, 0, 0, 0,	/* 0xff7f */
+    0, 0, 0, 0, 0, 0, 0, 0, "kp-numlock",	/* 0xff7f */
     "kp-space",			/* 0xff80 */	/* IsKeypadKey */
     0, 0, 0, 0, 0, 0, 0, 0,
     "kp-tab",			/* 0xff89 */
