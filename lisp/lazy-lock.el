@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Keywords: faces files
-;; Version: 2.09
+;; Version: 2.09.01
 
 ;;; This file is part of GNU Emacs.
 
@@ -256,6 +256,8 @@
 ;; - Made various wrapping `inhibit-point-motion-hooks' (Vinicius Latorre hint)
 ;; - Made `lazy-lock-fontify-after-idle' wrap `minibuffer-auto-raise'
 ;; - Made `lazy-lock-fontify-after-defer' paranoid about deferred buffers
+;; 2.09--2.10:
+;; - Use `window-end' UPDATE arg for Emacs 20.3 and later.
 
 ;;; Code:
 
@@ -312,7 +314,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.09"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.09.01"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -703,13 +705,9 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 (defun lazy-lock-fontify-after-scroll (window window-start)
   ;; Called from `window-scroll-functions'.
-  ;; Fontify WINDOW from WINDOW-START following the scroll.  We cannot use
-  ;; `window-end' so we work out what it would be via `vertical-motion'.
+  ;; Fontify WINDOW from WINDOW-START following the scroll.
   (let ((inhibit-point-motion-hooks t))
-    (save-excursion
-      (goto-char window-start)
-      (vertical-motion (window-height window) window)
-      (lazy-lock-fontify-region window-start (point))))
+    (lazy-lock-fontify-region window-start (window-end window t)))
   ;; A prior deletion that did not cause scrolling, followed by a scroll, would
   ;; result in an unnecessary trigger after this if we did not cancel it now.
   (set-window-redisplay-end-trigger window nil))
@@ -767,15 +765,11 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 (defun lazy-lock-fontify-after-trigger (window trigger-point)
   ;; Called from `redisplay-end-trigger-functions'.
-  ;; Fontify WINDOW from TRIGGER-POINT.  We cannot use `window-end' so we work
-  ;; out what it would be via `vertical-motion'.
+  ;; Fontify WINDOW from TRIGGER-POINT following the redisplay.
   ;; We could probably just use `lazy-lock-fontify-after-scroll' without loss:
-  ;;  (lazy-lock-fontify-after-scroll window (window-start window))
+  ;;  (inline (lazy-lock-fontify-after-scroll window (window-start window)))
   (let ((inhibit-point-motion-hooks t))
-    (save-excursion
-      (goto-char (window-start window))
-      (vertical-motion (window-height window) window)
-      (lazy-lock-fontify-region trigger-point (point)))))
+    (lazy-lock-fontify-region trigger-point (window-end window t))))
 
 ;; 2.  Modified text must be marked as unfontified so it can be identified and
 ;;     fontified later when Emacs is idle.  Deferral occurs by adding one of
@@ -1041,6 +1035,32 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (while lazy-lock-install
       (mapcar 'lazy-lock-fontify-conservatively
 	      (get-buffer-window-list (pop lazy-lock-install) 'nomini t)))))
+
+(when (if (save-match-data (string-match "Lucid\\|XEmacs" (emacs-version)))
+	  nil
+	(or (and (= emacs-major-version 20) (< emacs-minor-version 3))
+	    (= emacs-major-version 19)))
+  ;;
+  ;; We use `vertical-motion' rather than `window-end' UPDATE arg.
+  (defun lazy-lock-fontify-after-scroll (window window-start)
+    ;; Called from `window-scroll-functions'.
+    ;; Fontify WINDOW from WINDOW-START following the scroll.  We cannot use
+    ;; `window-end' so we work out what it would be via `vertical-motion'.
+    (let ((inhibit-point-motion-hooks t))
+      (save-excursion
+	(goto-char window-start)
+	(vertical-motion (window-height window) window)
+	(lazy-lock-fontify-region window-start (point))))
+    (set-window-redisplay-end-trigger window nil))
+  (defun lazy-lock-fontify-after-trigger (window trigger-point)
+    ;; Called from `redisplay-end-trigger-functions'.
+    ;; Fontify WINDOW from TRIGGER-POINT following the redisplay.  We cannot
+    ;; use `window-end' so we work out what it would be via `vertical-motion'.
+    (let ((inhibit-point-motion-hooks t))
+      (save-excursion
+	(goto-char (window-start window))
+	(vertical-motion (window-height window) window)
+	(lazy-lock-fontify-region trigger-point (point))))))
 
 (when (consp lazy-lock-defer-time)
   ;;
