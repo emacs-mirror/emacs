@@ -8594,7 +8594,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   int this_scroll_margin;
   int dy = 0;
   int scroll_max;
-  int line_height, rc;
+  int rc;
   int amount_to_scroll = 0;
   Lisp_Object aggressive;
   int height;
@@ -8649,6 +8649,9 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   if (PT >= CHARPOS (scroll_margin_pos))
     {
       int y0;
+#if 0
+      int line_height;
+#endif
       
       /* Point is in the scroll margin at the bottom of the window, or
 	 below.  Compute a new window start that makes point visible.  */
@@ -8659,10 +8662,14 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       y0 = it.current_y;
       move_it_to (&it, PT, 0, it.last_visible_y, -1,
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+#if 0 /* Taking the line's height into account here looks wrong.  */
       line_height = (it.max_ascent + it.max_descent
 		     ? it.max_ascent + it.max_descent
 		     : last_height);
       dy = it.current_y + line_height - y0;
+#else
+      dy = it.current_y - y0;
+#endif
       
       if (dy > scroll_max)
 	return 0;
