@@ -535,13 +535,14 @@ This does not change the name of the visited file (if any).")
   return name;
 }
 
-DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 1, 0,
+DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 2, 0,
   "Return most recently selected buffer other than BUFFER.\n\
-Buffers not visible in windows are preferred to visible buffers.\n\
+Buffers not visible in windows are preferred to visible buffers,\n\
+unless optional second argument VISIBLE-OK is non-nil.\n\
 If no other buffer exists, the buffer `*scratch*' is returned.\n\
 If BUFFER is omitted or nil, some interesting buffer is returned.")
-  (buffer)
-     register Lisp_Object buffer;
+  (buffer, visible_ok)
+     register Lisp_Object buffer, visible_ok;
 {
   register Lisp_Object tail, buf, notsogood, tem;
   notsogood = Qnil;
@@ -553,7 +554,10 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 	continue;
       if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
 	continue;
-      tem = Fget_buffer_window (buf, Qnil);
+      if (NILP (visible_ok))
+	tem = Fget_buffer_window (buf, Qnil);
+      else
+	tem = Qnil;
       if (NILP (tem))
 	return buf;
       if (NILP (notsogood))
