@@ -491,23 +491,21 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; from x-cut-buffer-or-selection-value.
 (defvar x-last-selected-text nil)
 
-;;; It is said that overlarge strings are slow to put into the cut buffer,
-;;; and would crash the clipboard.
-(defvar x-cut-buffer-max 20000
-  "Max number of characters to put in the cut buffer or clipboard.")
+;;; It is said that overlarge strings are slow to put into the cut buffer.
+(defvar x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
+			      20000)
+  "Max number of characters to put in the cut buffer.")
 
-;;; Make TEXT, a string, the primary and clipboard X selections.
-;;; If you are running xclipboard, this means you can effectively
-;;; have a window on a copy of the kill-ring.
+;;; Make TEXT, a string, the primary X selection.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X applications.
+;;; gildea@lcs.mit.edu says it's not desirable to put kills
+;;; in the clipboard.
 (defun x-select-text (text &optional push)
   ;; Don't send the cut buffer too much text.
   ;; It becomes slow, and if really big it causes errors.
   (if (< (length text) x-cut-buffer-max)
-      (progn
-	(x-set-cut-buffer text push)
-	(x-set-selection 'CLIPBOARD text))
+      (x-set-cut-buffer text push)
     (x-set-cut-buffer "" push))
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text text))
@@ -518,11 +516,11 @@ This returns ARGS with the arguments that have been processed removed."
 (defun x-cut-buffer-or-selection-value ()
   (let (text)
 
-    ;; Consult the cut buffer, then the selection.  Treat empty strings
+    ;; Consult the selection, then the cut buffer.  Treat empty strings
     ;; as if they were unset.
-    (setq text (x-get-cut-buffer 0))
-    (if (string= text "") (setq text nil))
     (or text (setq text (x-get-selection 'PRIMARY)))
+    (if (string= text "") (setq text nil))
+    (setq text (x-get-cut-buffer 0))
     (if (string= text "") (setq text nil))
 
     (cond
