@@ -1,6 +1,6 @@
 /* impl.c.abqtest: AVAILABLE BLOCK QUEUE TEST
  *
- * $HopeName: MMsrc!abqtest.c(trunk.2) $
+ * $HopeName: MMsrc!abqtest.c(trunk.3) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -17,7 +17,7 @@
 #include <math.h>
 
 
-SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.2) $");
+SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.3) $");
 
 
 static ABQStruct abq; /* the ABQ which we will use */
@@ -150,7 +150,7 @@ extern int main(void)
     return 1;
   }
 
-  res = ABQInit((Arena)arena, &abq, ABQ_SIZE);
+  res = ABQInit((Arena)arena, &abq, NULL, ABQ_SIZE);
   if (res == ResOK) {
     abqSize = ABQ_SIZE;
   } else {
