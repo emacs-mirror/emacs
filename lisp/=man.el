@@ -119,6 +119,9 @@ where SECTION is the desired section of the manual, as in `tty(4)'."
       (cond ((= preceding following)
 	     ;; x\bx
 	     (delete-char -2))
+	    ((and (= preceding ?o) (= following ?\+))
+	     ;; o\b+ 
+	     (delete-char -2))
 	    ((= preceding ?\_)
 	     ;; _\b
 	     (delete-char -2))
