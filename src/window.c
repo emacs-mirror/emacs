@@ -978,7 +978,7 @@ windows, eventually ending up back at the window you started with.\n\
 #endif
 	    /* If this frame has a minibuffer, find that window first,
 	       because it is conceptually the last window in that frame.  */
-	    tem = FRAME_MINIBUFFER_WINDOW (XFRAME (tem));
+	    tem = FRAME_MINIBUF_WINDOW (XFRAME (tem));
 	    if (NILP (tem))
 	      tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
