@@ -416,10 +416,14 @@ of the key sequence that ran this command."
 ;; run describe-prefix-bindings.
 (setq prefix-help-command 'describe-prefix-bindings)
 
-(defun view-emacs-news ()
-  "Display info on recent changes to Emacs."
-  (interactive)
-  (find-file-read-only (expand-file-name "NEWS" data-directory)))
+(defun view-emacs-news (&optional arg)
+  "Display info on recent changes to Emacs.
+With numeric argument display information on correspondingly older changes."
+  (interactive "P")
+  (let* ((arg (if arg (prefix-numeric-value arg) 0)))
+    (find-file-read-only
+     (expand-file-name (concat (make-string arg ?O) "NEWS")
+		       data-directory))))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
