@@ -1,0 +1,3098 @@
+;; term.el --- general command interpreter in a window stuff
+;; Copyright (C) 1988, 1990, 1992, 1992, 1994 Free Software Foundation, Inc.
+
+;; Author: Per Bothner <bothner@cygnus.com>
+;; Based on comint mode written by: Olin Shivers <shivers@cs.cmu.edu>
+;; Keyword: processes
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;;; The changelog is at the end of this file.
+
+;;; Please send me bug reports, bug fixes, and extensions, so that I can
+;;; merge them into the master source.
+;;;     - Per Bothner (bothner@cygnus.com)
+
+;;; This file defines a general command-interpreter-in-a-buffer package
+;;; (term mode). The idea is that you can build specific process-in-a-buffer
+;;; modes on top of term mode -- e.g., lisp, shell, scheme, T, soar, ....
+;;; This way, all these specific packages share a common base functionality, 
+;;; and a common set of bindings, which makes them easier to use (and
+;;; saves code, implementation time, etc., etc.).
+
+;;; For hints on converting existing process modes (e.g., tex-mode,
+;;; background, dbx, gdb, kermit, prolog, telnet) to use term-mode
+;;; instead of shell-mode, see the notes at the end of this file.
+
+
+;;; Brief Command Documentation:
+;;;============================================================================
+;;; Term Mode Commands: (common to all derived modes, like cmushell & cmulisp
+;;; mode)
+;;;
+;;; m-p	    term-previous-input    	  Cycle backwards in input history
+;;; m-n	    term-next-input  	    	  Cycle forwards
+;;; m-r     term-previous-matching-input  Previous input matching a regexp
+;;; m-s     comint-next-matching-input      Next input that matches
+;;; return  term-send-input
+;;; c-c c-a term-bol                      Beginning of line; skip prompt.
+;;; c-d	    term-delchar-or-maybe-eof     Delete char unless at end of buff.
+;;; c-c c-u term-kill-input	    	    ^u
+;;; c-c c-w backward-kill-word    	    ^w
+;;; c-c c-c term-interrupt-subjob 	    ^c
+;;; c-c c-z term-stop-subjob	    	    ^z
+;;; c-c c-\ term-quit-subjob	    	    ^\
+;;; c-c c-o term-kill-output		    Delete last batch of process output
+;;; c-c c-r term-show-output		    Show last batch of process output
+;;; c-c c-h term-dynamic-list-input-ring  List input history
+;;;
+;;; Not bound by default in term-mode
+;;; term-send-invisible			Read a line w/o echo, and send to proc
+;;; (These are bound in shell-mode)
+;;; term-dynamic-complete		Complete filename at point.
+;;; term-dynamic-list-completions	List completions in help buffer.
+;;; term-replace-by-expanded-filename	Expand and complete filename at point;
+;;;					replace with expanded/completed name.
+;;; term-kill-subjob			No mercy.
+;;; term-show-maximum-output            Show as much output as possible.
+;;; term-continue-subjob		Send CONT signal to buffer's process
+;;;					group. Useful if you accidentally
+;;;					suspend your process (with C-c C-z).
+
+;;; term-mode-hook is the term mode hook. Basically for your keybindings.
+;;; term-load-hook is run after loading in this package.
+
+;;; Code:
+
+(defconst term-version "0.93")
+
+(require 'ring)
+(require 'ehelp)
+
+;;; Buffer Local Variables:
+;;;============================================================================
+;;; Term mode buffer local variables:
+;;;     term-prompt-regexp    - string       term-bol uses to match prompt.
+;;;     term-delimiter-argument-list - list  For delimiters and arguments
+;;;     term-last-input-start - marker       Handy if inferior always echoes
+;;;     term-last-input-end   - marker       For term-kill-output command
+;;;     term-input-ring-size  - integer      For the input history
+;;;     term-input-ring       - ring             mechanism
+;;;     term-input-ring-index - number           ...
+;;;     term-input-autoexpand - symbol           ...
+;;;     term-input-ignoredups - boolean          ...
+;;;     term-last-input-match - string           ...
+;;;     term-dynamic-complete-functions - hook   For the completion mechanism
+;;;     term-completion-fignore - list           ...
+;;;     term-get-old-input    - function     Hooks for specific 
+;;;     term-input-filter-functions - hook     process-in-a-buffer
+;;;     term-input-filter     - function         modes.
+;;;     term-input-send	- function
+;;;     term-scroll-to-bottom-on-output - symbol ...
+;;;     term-scroll-show-maximum-output - boolean...
+
+(defvar explicit-shell-file-name nil
+  "*If non-nil, is file name to use for explicitly requested inferior shell.")
+
+(defvar term-prompt-regexp "^"
+  "Regexp to recognise prompts in the inferior process.
+Defaults to \"^\", the null string at BOL.
+
+Good choices:
+  Canonical Lisp: \"^[^> \\n]*>+:? *\" (Lucid, franz, kcl, T, cscheme, oaklisp)
+  Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
+  franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
+  kcl: \"^>+ *\"
+  shell: \"^[^#$%>\\n]*[#$%>] *\"
+  T: \"^>+ *\"
+
+This is a good thing to set in mode hooks.")
+
+(defvar term-delimiter-argument-list ()
+  "List of characters to recognise as separate arguments in input.
+Strings comprising a character in this list will separate the arguments
+surrounding them, and also be regarded as arguments in their own right (unlike
+whitespace).  See `term-arguments'.
+Defaults to the empty list.
+
+For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?;).
+
+This is a good thing to set in mode hooks.")
+
+(defvar term-input-autoexpand nil
+  "*If non-nil, expand input command history references on completion.
+This mirrors the optional behavior of tcsh (its autoexpand and histlit).
+
+If the value is `input', then the expansion is seen on input.
+If the value is `history', then the expansion is only when inserting
+into the buffer's input ring.  See also `term-magic-space' and
+`term-dynamic-complete'.
+
+This variable is buffer-local.")
+
+(defvar term-input-ignoredups nil
+  "*If non-nil, don't add input matching the last on the input ring.
+This mirrors the optional behavior of bash.
+
+This variable is buffer-local.")
+
+(defvar term-input-ring-file-name nil
+  "*If non-nil, name of the file to read/write input history.
+See also `term-read-input-ring' and `term-write-input-ring'.
+
+This variable is buffer-local, and is a good thing to set in mode hooks.")
+
+(defvar term-scroll-to-bottom-on-output nil
+  "*Controls whether interpreter output causes window to scroll.
+If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
+If `this', scroll only the selected window.
+If `others', scroll only those that are not the selected window.
+
+The default is nil.
+
+See variable `term-scroll-show-maximum-output'.
+This variable is buffer-local.")
+
+(defvar term-scroll-show-maximum-output nil
+  "*Controls how interpreter output causes window to scroll.
+If non-nil, then show the maximum output when the window is scrolled.
+
+See variable `term-scroll-to-bottom-on-output'.
+This variable is buffer-local.")
+
+(defvar term-input-ring-size 32
+  "Size of input history ring.")
+
+;; Where gud-display-frame should put the debugging arrow.  This is
+;; set by the marker-filter, which scans the debugger's output for
+;; indications of the current pc.
+(defvar term-pending-frame nil)
+
+;;; Here are the per-interpreter hooks.
+(defvar term-get-old-input (function term-get-old-input-default)
+  "Function that submits old text in term mode.
+This function is called when return is typed while the point is in old text.
+It returns the text to be submitted as process input.  The default is
+term-get-old-input-default, which grabs the current line, and strips off
+leading text matching term-prompt-regexp")
+
+(defvar term-dynamic-complete-functions
+  '(term-replace-by-expanded-history term-dynamic-complete-filename)
+  "List of functions called to perform completion.
+Functions should return non-nil if completion was performed.
+See also `term-dynamic-complete'.
+
+This is a good thing to set in mode hooks.")
+
+(defvar term-input-filter
+  (function (lambda (str) (not (string-match "\\`\\s *\\'" str))))
+  "Predicate for filtering additions to input history.
+Only inputs answering true to this function are saved on the input
+history list. Default is to save anything that isn't all whitespace")
+
+(defvar term-input-filter-functions '()
+  "Functions to call before input is sent to the process.
+These functions get one argument, a string containing the text to send.
+
+This variable is buffer-local.")
+
+(defvar term-input-sender (function term-simple-send)
+  "Function to actually send to PROCESS the STRING submitted by user.
+Usually this is just 'term-simple-send, but if your mode needs to 
+massage the input string, this is your hook. This is called from
+the user command term-send-input. term-simple-send just sends
+the string plus a newline.")
+
+(defvar term-mode-hook '()
+  "Called upon entry into term-mode
+This is run before the process is cranked up.")
+
+(defvar term-exec-hook '()
+  "Called each time a process is exec'd by term-exec.
+This is called after the process is cranked up.  It is useful for things that
+must be done each time a process is executed in a term-mode buffer (e.g.,
+(process-kill-without-query)). In contrast, the term-mode-hook is only
+executed once when the buffer is created.")
+
+(defvar term-mode-map nil)
+(defvar term-raw-map nil
+  "Keyboard map for sending characters directly to the inferior process.")
+(defvar term-escape-char nil)
+(defvar term-raw-escape-map nil)
+
+(defvar term-pager-break-map nil)
+
+(defvar term-ptyp t
+  "True if communications via pty; false if by pipe.  Buffer local.
+This is to work around a bug in emacs process signalling.")
+
+(defvar term-last-input-match ""
+  "Last string searched for by term input history search, for defaulting.
+Buffer local variable.") 
+
+(defvar term-input-ring nil)
+(defvar term-last-input-start)
+(defvar term-last-input-end)
+(defvar term-input-ring-index nil
+  "Index of last matched history element.")
+(defvar term-matching-input-from-input-string ""
+  "Input previously used to match input history.")
+; This argument to set-process-filter disables reading from the process,
+; assuming this is emacs-19.20 or newer.
+(defvar term-pager-filter t)
+
+(put 'term-replace-by-expanded-history 'menu-enable 'term-input-autoexpand)
+(put 'term-input-ring 'permanent-local t)
+(put 'term-input-ring-index 'permanent-local t)
+(put 'term-input-autoexpand 'permanent-local t)
+(put 'term-input-filter-functions 'permanent-local t)
+(put 'term-scroll-to-bottom-on-output 'permanent-local t)
+(put 'term-scroll-show-maximum-output 'permanent-local t)
+(put 'term-ptyp 'permanent-local t)
+
+(defmacro term-is-emacs19 ()  '(string-match "^19" emacs-version))
+;; True if running under XEmacs (perviously Lucid emacs).
+(defmacro term-is-xemacs ()  '(string-match "Lucid" emacs-version))
+
+(defmacro term-in-char-mode () '(eq (current-local-map) term-raw-map))
+(defmacro term-in-line-mode () '(not (term-in-char-mode)))
+
+(if (term-is-xemacs)
+  (defvar term-terminal-menu
+    '("Terminal"
+      [ "Character mode" term-char-mode (term-in-line-mode)]
+      [ "Line mode" term-line-mode (term-in-char-mode)]
+      [ "Enable paging" term-pager-enable (not term-pager-count)]
+      [ "Disable paging" term-pager-disable term-pager-count]))
+)
+
+(put 'term-char-mode 'menu-enable '(term-in-line-mode))
+(put 'term-line-mode 'menu-enable '(term-in-char-mode))
+(put 'term-pager-enable 'menu-enable '(not term-pager-count))
+(put 'term-pager-disable 'menu-enable 'term-pager-count)
+
+(defun term-mode ()
+  "Major mode for interacting with an inferior interpreter.
+Interpreter name is same as buffer name, sans the asterisks.
+In line sub-mode, return at end of buffer sends line as input,
+while return not at end copies rest of line to end and sends it.
+In char sub-mode, each character (except `term-escape-char`) is
+set immediately.
+
+This mode is typically customised to create inferior-lisp-mode,
+shell-mode, etc.. This can be done by setting the hooks
+term-input-filter-functions, term-input-filter, term-input-sender and
+term-get-old-input to appropriate functions, and the variable
+term-prompt-regexp to the appropriate regular expression.
+
+An input history is maintained of size `term-input-ring-size', and
+can be accessed with the commands \\[term-next-input], \\[term-previous-input], and \\[term-dynamic-list-input-ring].
+Input ring history expansion can be achieved with the commands
+\\[term-replace-by-expanded-history] or \\[term-magic-space].
+Input ring expansion is controlled by the variable `term-input-autoexpand',
+and addition is controlled by the variable `term-input-ignoredups'.
+
+Input to, and output from, the subprocess can cause the window to scroll to
+the end of the buffer.  See variables `term-scroll-to-bottom-on-input',
+and `term-scroll-to-bottom-on-output'.
+
+If you accidentally suspend your process, use \\[term-continue-subjob]
+to continue it.
+
+\\{term-mode-map}
+
+Entry to this mode runs the hooks on term-mode-hook"
+  (interactive)
+    ;; Do not remove this.  All major modes must do this.
+    (kill-all-local-variables)
+    (setq major-mode 'term-mode)
+    (setq mode-name "Term")
+    (setq mode-line-process '(": line %s"))
+    (use-local-map term-mode-map)
+    (make-local-variable 'term-home-marker)
+    (setq term-home-marker (copy-marker 0))
+    (make-local-variable 'term-saved-home-marker)
+    (setq term-saved-home-marker nil)
+    (make-local-variable 'term-height)
+    (make-local-variable 'term-width)
+    (setq term-width (1- (window-width)))
+    (setq term-height (1- (window-height)))
+    (make-local-variable 'term-terminal-parameter)
+    (make-local-variable 'term-saved-cursor)
+    (setq term-saved-cursor nil)
+    (make-local-variable 'term-last-input-start)
+    (setq term-last-input-start (make-marker))
+    (make-local-variable 'term-last-input-end)
+    (setq term-last-input-end (make-marker))
+    (make-local-variable 'term-last-input-match)
+    (setq term-last-input-match "")
+    (make-local-variable 'term-prompt-regexp)        ; Don't set; default
+    (make-local-variable 'term-input-ring-size)      ; ...to global val.
+    (make-local-variable 'term-input-ring)
+    (make-local-variable 'term-input-ring-file-name)
+    (or (and (boundp 'term-input-ring) term-input-ring)
+	(setq term-input-ring (make-ring term-input-ring-size)))
+    (make-local-variable 'term-input-ring-index)
+    (or (and (boundp 'term-input-ring-index) term-input-ring-index)
+	(setq term-input-ring-index nil))
+
+    (make-local-variable 'term-command-hook)
+    (setq term-command-hook (symbol-function 'term-command-hook))
+
+    ;; state 0: Normal state
+    ;; state 1: Last character was a graphic in the last column.
+    ;;          If next char is graphic, first move one column right
+    ;;          (and line warp) before displaying it.
+    ;;          This emulates (more or less) the behavior of xterm.
+    ;; state 2: seen ESC
+    ;; state 3: seen ESC [ (or ESC [ ?)
+    ;; state 4: term-terminal-parameter contains pending output.
+    (make-local-variable 'term-terminal-state)
+    (setq term-terminal-state 0)
+
+    ;; A queue of strings whose echo we want suppressed.
+    (make-local-variable 'term-kill-echo-list)
+    (setq term-kill-echo-list nil)
+
+    ;; (current-column) at start of screen line, or nil if unknown.
+    (make-local-variable 'term-start-line-column)
+    (setq term-start-line-column 0)
+    ;; Cache for (current-column), or nil if unknown.
+    (make-local-variable 'term-current-column)
+    (setq term-current-column 0)
+    ;; Current vertical row (from home-marker) or nil if unknown.
+    (make-local-variable 'term-current-row)
+    (setq term-current-row 0)
+    (make-local-variable 'term-log-buffer)
+    (setq term-log-buffer nil)
+    (make-local-variable 'term-scroll-start)
+    (setq term-scroll-start 0)
+    (make-local-variable 'term-scroll-end)
+    (setq term-scroll-end term-height)
+    ;; term-scroll-with-delete is t if forward scrolling should
+    ;; be implemented by delete to top-most line(s); and nil if
+    ;; scrolling should be implemented by moving term-home-marker.
+    ;; It is set to t iff there is a (non-default) scroll-region
+    ;; OR the alternate buffer is used.
+    (make-local-variable 'term-scroll-with-delete)
+    (setq term-scroll-with-delete nil)
+    (make-local-variable 'term-pager-count)
+    ;;(setq term-pager-count 0)
+    (setq term-pager-count nil)
+    ;; Used to save the old keymap when doing PAGER processing.
+    (make-local-variable 'term-pager-old-local-map)
+    (setq term-pager-old-local-map nil)
+    ;; Used to save the old keymap when in char mode.
+    (make-local-variable 'term-old-mode-map)
+    (setq term-old-mode-map nil)
+    (make-local-variable 'term-insert-mode)
+    (setq term-insert-mode nil)
+    (make-local-variable 'term-dynamic-complete-functions)
+    (make-local-variable 'term-completion-fignore)
+    (make-local-variable 'term-get-old-input)
+    (make-local-variable 'term-matching-input-from-input-string)
+    (make-local-variable 'term-input-autoexpand)
+    (make-local-variable 'term-input-ignoredups)
+    (make-local-variable 'term-delimiter-argument-list)
+    (make-local-variable 'term-input-filter-functions)
+    (make-local-variable 'term-input-filter)  
+    (make-local-variable 'term-input-sender)
+    (make-local-variable 'term-scroll-to-bottom-on-output)
+    (make-local-variable 'term-scroll-show-maximum-output)
+    (make-local-variable 'term-ptyp)
+    (make-local-variable 'term-exec-hook)
+    (make-local-variable 'term-vertical-motion)
+    (make-local-variable 'term-pending-delete-marker)
+    (setq term-pending-delete-marker (make-marker))
+    (make-local-variable 'term-current-face)
+    (setq term-current-face 'default)
+    (make-local-variable 'term-pending-frame)
+    (setq term-pending-frame nil)
+    (make-local-variable 'term-chars-mode)
+    (setq term-chars-mode nil)
+    (run-hooks 'term-mode-hook)
+    (if (term-is-xemacs)
+	(set-buffer-menubar
+	 (append current-menubar (list term-terminal-menu))))
+    (or term-input-ring
+	(setq term-input-ring (make-ring term-input-ring-size))))
+
+(if term-mode-map
+    nil
+  (setq term-mode-map (make-sparse-keymap))
+  (define-key term-mode-map "\ep" 'term-previous-input)
+  (define-key term-mode-map "\en" 'term-next-input)
+  (define-key term-mode-map "\er" 'term-previous-matching-input)
+  (define-key term-mode-map "\es" 'term-next-matching-input)
+  (if (term-is-xemacs)
+      t
+    (define-key term-mode-map [?\A-\M-r] 'term-previous-matching-input-from-input)
+    (define-key term-mode-map [?\A-\M-s] 'term-next-matching-input-from-input))
+  (define-key term-mode-map "\e\C-l" 'term-show-output)
+  (define-key term-mode-map "\C-m" 'term-send-input)
+  (define-key term-mode-map "\C-d" 'term-delchar-or-maybe-eof)
+  (define-key term-mode-map "\C-c\C-a" 'term-bol)
+  (define-key term-mode-map "\C-c\C-u" 'term-kill-input)
+  (define-key term-mode-map "\C-c\C-w" 'backward-kill-word)
+  (define-key term-mode-map "\C-c\C-c" 'term-interrupt-subjob)
+  (define-key term-mode-map "\C-c\C-z" 'term-stop-subjob)
+  (define-key term-mode-map "\C-c\C-\\" 'term-quit-subjob)
+  (define-key term-mode-map "\C-c\C-m" 'term-copy-old-input)
+  (define-key term-mode-map "\C-c\C-o" 'term-kill-output)
+  (define-key term-mode-map "\C-c\C-r" 'term-show-output)
+  (define-key term-mode-map "\C-c\C-e" 'term-show-maximum-output)
+  (define-key term-mode-map "\C-c\C-l" 'term-dynamic-list-input-ring)
+  (define-key term-mode-map "\C-c\C-n" 'term-next-prompt)
+  (define-key term-mode-map "\C-c\C-p" 'term-previous-prompt)
+  (define-key term-mode-map "\C-c\C-d" 'term-send-eof)
+  (define-key term-mode-map "\C-cc" 'term-char-mode)
+  (define-key term-mode-map "\C-cp" 'term-pager-enable)
+  (define-key term-mode-map "\C-cD" 'term-pager-disable)
+
+  (copy-face 'default 'term-underline-face)
+  (set-face-underline-p 'term-underline-face t)
+
+;  ;; completion:
+;  (define-key term-mode-map [menu-bar completion] 
+;    (cons "Complete" (make-sparse-keymap "Complete")))
+;  (define-key term-mode-map [menu-bar completion complete-expand]
+;    '("Expand File Name" . term-replace-by-expanded-filename))
+;  (define-key term-mode-map [menu-bar completion complete-listing]
+;    '("File Completion Listing" . term-dynamic-list-filename-completions))
+;  (define-key term-mode-map [menu-bar completion complete-file]
+;    '("Complete File Name" . term-dynamic-complete-filename))
+;  (define-key term-mode-map [menu-bar completion complete]
+;    '("Complete Before Point" . term-dynamic-complete))
+;  ;; Put them in the menu bar:
+;  (setq menu-bar-final-items (append '(terminal completion inout signals)
+;				     menu-bar-final-items))
+  )
+
+;; Menu bars:
+(if (and (not (boundp 'term-terminal-menu))
+	 (term-is-emacs19) (not (term-is-xemacs)))
+    (progn
+      ;; terminal:
+      (defvar term-terminal-menu (make-sparse-keymap "Terminal"))
+      (define-key term-mode-map [menu-bar terminal] 
+	(cons "Terminal" term-terminal-menu))
+      (define-key term-terminal-menu [terminal-char-mode]
+	'("Character mode" . term-char-mode))
+      (define-key term-terminal-menu [terminal-line-mode]
+	'("Line mode" . term-line-mode))
+      (define-key term-terminal-menu [terminal-pager-enable]
+	'("Enable paging" . term-pager-enable))
+      (define-key term-terminal-menu [terminal-pager-disable]
+	'("Disable paging" . term-pager-disable))
+
+      ;; completion:  (line mode only)
+      (defvar term-completion-menu (make-sparse-keymap "Complete"))
+      (define-key term-mode-map [menu-bar completion] 
+	(cons "Complete" term-completion-menu))
+      (define-key term-completion-menu [complete-expand]
+	'("Expand File Name" . term-replace-by-expanded-filename))
+      (define-key term-completion-menu [complete-listing]
+	'("File Completion Listing" . term-dynamic-list-filename-completions))
+      (define-key term-completion-menu [menu-bar completion complete-file]
+	'("Complete File Name" . term-dynamic-complete-filename))
+      (define-key term-completion-menu [menu-bar completion complete]
+	'("Complete Before Point" . term-dynamic-complete))
+
+      ;; Input history: (line mode only)
+      (defvar term-inout-menu (make-sparse-keymap "In/Out"))
+      (define-key term-mode-map [menu-bar inout] 
+	(cons "In/Out" term-inout-menu))
+      (define-key term-inout-menu [kill-output]
+	'("Kill Current Output Group" . term-kill-output))
+      (define-key term-inout-menu [next-prompt]
+	'("Forward Output Group" . term-next-prompt))
+      (define-key term-inout-menu [previous-prompt]
+	'("Backward Output Group" . term-previous-prompt))
+      (define-key term-inout-menu [show-maximum-output]
+	'("Show Maximum Output" . term-show-maximum-output))
+      (define-key term-inout-menu [show-output]
+	'("Show Current Output Group" . term-show-output))
+      (define-key term-inout-menu [kill-input]
+	'("Kill Current Input" . term-kill-input))
+      (define-key term-inout-menu [copy-input]
+	'("Copy Old Input" . term-copy-old-input))
+      (define-key term-inout-menu [forward-matching-history]
+	'("Forward Matching Input..." . term-forward-matching-input))
+      (define-key term-inout-menu [backward-matching-history]
+	'("Backward Matching Input..." . term-backward-matching-input))
+      (define-key term-inout-menu [next-matching-history]
+	'("Next Matching Input..." . term-next-matching-input))
+      (define-key term-inout-menu [previous-matching-history]
+	'("Previous Matching Input..." . term-previous-matching-input))
+      (define-key term-inout-menu [next-matching-history-from-input]
+	'("Next Matching Current Input" . term-next-matching-input-from-input))
+      (define-key term-inout-menu [previous-matching-history-from-input]
+	'("Previous Matching Current Input" . term-previous-matching-input-from-input))
+      (define-key term-inout-menu [next-history]
+	'("Next Input" . term-next-input))
+      (define-key term-inout-menu [previous-history]
+	'("Previous Input" . term-previous-input))
+      (define-key term-inout-menu [list-history]
+	'("List Input History" . term-dynamic-list-input-ring))
+      (define-key term-inout-menu [expand-history]
+	'("Expand History Before Point" . term-replace-by-expanded-history))
+
+      ;; Signals
+      (defvar term-signals-menu (make-sparse-keymap "Signals"))
+      (define-key term-mode-map [menu-bar signals]
+	(cons "Signals" term-signals-menu))
+      (define-key term-signals-menu [eof] '("EOF" . term-send-eof))
+      (define-key term-signals-menu [kill] '("KILL" . term-kill-subjob))
+      (define-key term-signals-menu [quit] '("QUIT" . term-quit-subjob))
+      (define-key term-signals-menu [cont] '("CONT" . term-continue-subjob))
+      (define-key term-signals-menu [stop] '("STOP" . term-stop-subjob))
+      (define-key term-signals-menu [] '("BREAK" . term-interrupt-subjob))
+      ))
+
+(defun term-reset-size (height width)
+  (setq term-height height)
+  (setq term-width width)
+  (setq term-start-line-column nil)
+  (setq term-current-row nil)
+  (setq term-current-column nil)
+  (term-scroll-region 0 height))
+
+;; Recursive routine used to check if any string in term-kill-echo-list
+;; matches part of the buffer before point.
+;; If so, delete that matched part of the buffer - this suppresses echo.
+;; Also, remove that string from the term-kill-echo-list.
+;; We *also* remove any older string on the list, as a sanity measure,
+;; in case something gets out of sync.  (Except for type-ahead, there
+;; should only be one element in the list.)
+
+(defun term-check-kill-echo-list ()
+  (let ((cur term-kill-echo-list) (found nil) (save-point (point)))
+    (unwind-protect
+	(progn
+	  (end-of-line)
+	  (while cur
+	    (let* ((str (car cur)) (len (length str)) (start (- (point) len)))
+	      (if (and (>= start (point-min))
+		       (string= str (buffer-substring start (point))))
+		  (progn (delete-backward-char len)
+			 (setq term-kill-echo-list (cdr cur))
+			 (setq term-current-column nil)
+			 (setq term-current-row nil)
+			 (setq term-start-line-column nil)
+			 (setq cur nil found t))
+		(setq cur (cdr cur))))))
+      (if (not found)
+	  (goto-char save-point)))
+    found))
+
+(defun term-check-size (process)
+  (if (or (/= term-height (1- (window-height)))
+	  (/= term-width (1- (window-width))))
+      (progn
+	(term-reset-size (1- (window-height)) (1- (window-width)))
+	(set-process-window-size process term-height term-width))))
+
+(defun term-send-raw-string (chars)
+  (let ((proc (get-buffer-process (current-buffer))))
+    (if (not proc)
+	(error "Current buffer has no process")
+      ;; Note that (term-current-row) must be called *after*
+      ;; (point) has been updated to (process-mark proc).
+      (goto-char (process-mark proc))
+      (if term-pager-count
+	  (setq term-pager-count (term-current-row)))
+      (send-string proc chars))))
+
+(defun term-send-raw ()
+  "Send the last character typed through the terminal-emulator
+without any interpretation." 
+  (interactive)
+ ;; Convert `return' to C-m, etc.
+  (if (and (symbolp last-input-char)
+	   (get last-input-char 'ascii-character))
+      (setq last-input-char (get last-input-char 'ascii-character)))
+  (term-send-raw-string (make-string 1 last-input-char)))
+
+(defun term-send-raw-meta ()
+  (interactive)
+  ;; Convert `return' to C-m, etc.
+  (if (and (symbolp last-input-char)
+	   (get last-input-char 'ascii-character))
+      (setq last-input-char (get last-input-char 'ascii-character)))
+  (term-send-raw-string (if (> last-input-char 127)
+			    (make-string 1 last-input-char)
+			  (format "\e%c" last-input-char))))
+
+(defun term-mouse-paste (click arg)
+  "Insert the last stretch of killed text at the position clicked on."
+  (interactive "e\nP")
+  (mouse-set-point click)
+  (setq this-command 'yank)
+  (term-send-raw-string (current-kill (cond
+				       ((listp arg) 0)
+				       ((eq arg '-) -1)
+				       (t (1- arg))))))
+
+;; Which would be better:  "\e[A" or "\eOA"? readline accepts either.
+(defun term-send-up    () (interactive) (term-send-raw-string "\e[A"))
+(defun term-send-down  () (interactive) (term-send-raw-string "\e[B"))
+(defun term-send-right () (interactive) (term-send-raw-string "\e[C"))
+(defun term-send-left  () (interactive) (term-send-raw-string "\e[D"))
+
+(defun term-set-escape-char (c)
+  (if term-escape-char
+      (define-key term-raw-map term-escape-char 'term-send-raw))
+  (setq c (make-string 1 c))
+  (define-key term-raw-map c term-raw-escape-map)
+  ;; Define standard binings in term-raw-escape-map
+  (define-key term-raw-escape-map "\C-x"
+    (lookup-key (current-global-map) "\C-x"))
+  (define-key term-raw-escape-map "\C-v"
+    (lookup-key (current-global-map) "\C-v"))
+  (define-key term-raw-escape-map "\C-u"
+    (lookup-key (current-global-map) "\C-u"))
+  (define-key term-raw-escape-map c 'term-send-raw)
+  (define-key term-raw-escape-map "p" 'term-pager-enable)
+  (define-key term-raw-escape-map "D" 'term-pager-disable)
+  (define-key term-raw-escape-map "l" 'term-line-mode))
+    
+(defun term-char-mode ()
+  "Start using raw keyboard mode to send each character
+to inferior process until a key bound to term-line-mode is encountered."
+  (interactive)
+  (if (not term-raw-map)
+      (let* ((map (make-keymap))
+	     (esc-map (make-keymap))
+	     (i 0))
+	(while (< i 128)
+	  (define-key map (make-string 1 i) 'term-send-raw)
+	  (define-key esc-map (make-string 1 i) 'term-send-raw-meta)
+	  (setq i (1+ i)))
+	(define-key map "\e" esc-map)
+	(setq term-raw-map map)
+	(setq term-raw-escape-map
+	      (copy-keymap (lookup-key (current-global-map) "\C-x")))
+	(if (term-is-emacs19)
+	    (progn
+	      (if (term-is-xemacs)
+		  (define-key term-raw-map [(button2)] 'term-mouse-paste)
+		(progn
+		  (define-key term-raw-map [mouse-2] 'term-mouse-paste)
+		  (define-key term-raw-map [menu-bar terminal] 
+		    (cons "Terminal" term-terminal-menu))
+		  (define-key term-raw-map [menu-bar signals]
+		    (cons "Signals" term-signals-menu)) ))
+	      (define-key term-raw-map [up] 'term-send-up)
+	      (define-key term-raw-map [down] 'term-send-down)
+	      (define-key term-raw-map [right] 'term-send-right)
+	      (define-key term-raw-map [left] 'term-send-left)))
+	(term-set-escape-char ?\C-c)))
+  ;; FIXME: Emit message? Cfr ilisp-raw-message
+  (setq term-old-mode-map (current-local-map))
+  (use-local-map term-raw-map)
+
+  ;; Send existing partial line to inferior (without newline).
+  (let ((pmark (process-mark (get-buffer-process (current-buffer))))
+	(save-input-sender term-input-sender))
+    (if (> (point) pmark)
+	(unwind-protect
+	    (progn
+	      (setq term-input-sender (symbol-function 'term-send-string))
+	      (end-of-line)
+	      (term-send-input))
+	  (setq term-input-sender save-input-sender))))
+
+  (setq mode-line-process '(": char %s"))
+  (set-buffer-modified-p (buffer-modified-p))) ;;No-op, but updates mode line.
+
+(defun term-line-mode  ()
+  (interactive)
+  (use-local-map term-old-mode-map)
+  (setq mode-line-process '(": line %s"))
+  (set-buffer-modified-p (buffer-modified-p))) ;;No-op, but updates mode line.
+
+(defun term-check-proc (buffer)
+  "True if there is a process associated w/buffer BUFFER, and
+it is alive (status RUN or STOP). BUFFER can be either a buffer or the
+name of one"
+  (let ((proc (get-buffer-process buffer)))
+    (and proc (memq (process-status proc) '(run stop)))))
+
+;;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
+;;; for the second argument (program).
+;;;###autoload
+(defun make-term (name program &optional startfile &rest switches)
+"Make a term process NAME in a buffer, running PROGRAM.
+The name of the buffer is made by surrounding NAME with `*'s.
+If there is already a running process in that buffer, it is not restarted.
+Optional third arg STARTFILE is the name of a file to send the contents of to 
+the process.  Any more args are arguments to PROGRAM."
+  (let ((buffer (get-buffer-create (concat "*" name "*"))))
+    ;; If no process, or nuked process, crank up a new one and put buffer in
+    ;; term mode. Otherwise, leave buffer and existing process alone.
+    (cond ((not (term-check-proc buffer))
+	   (save-excursion
+	     (set-buffer buffer)
+	     (term-mode)) ; Install local vars, mode, keymap, ...
+	   (term-exec buffer name program startfile switches)))
+    buffer))
+
+;;;###autoload
+(defun term (program)
+  "Start a terminal-emulator in a new buffer."
+  (interactive (list (read-from-minibuffer "Run program: "
+					   (or explicit-shell-file-name
+					       (getenv "ESHELL")
+					       (getenv "SHELL")
+					       "/bin/sh"))))
+  (set-buffer (make-term "terminal" program))
+  (term-mode)
+  (term-char-mode)
+  (switch-to-buffer "*terminal*"))
+
+(defun term-exec (buffer name command startfile switches)
+  "Start up a process in buffer for term modes.
+Blasts any old process running in the buffer. Doesn't set the buffer mode.
+You can use this to cheaply run a series of processes in the same term
+buffer. The hook term-exec-hook is run after each exec."
+  (save-excursion
+    (set-buffer buffer)
+    (let ((proc (get-buffer-process buffer)))	; Blast any old process.
+      (if proc (delete-process proc)))
+    ;; Crank up a new process
+    (let ((proc (term-exec-1 name buffer command switches)))
+      (make-local-variable 'term-ptyp)
+      (setq term-ptyp process-connection-type) ; T if pty, NIL if pipe.
+      ;; Jump to the end, and set the process mark.
+      (goto-char (point-max))
+      (set-marker (process-mark proc) (point))
+      (set-process-filter proc 'term-emulate-terminal)
+      ;; Feed it the startfile.
+      (cond (startfile
+	     ;;This is guaranteed to wait long enough
+	     ;;but has bad results if the term does not prompt at all
+	     ;;	     (while (= size (buffer-size))
+	     ;;	       (sleep-for 1))
+	     ;;I hope 1 second is enough!
+	     (sleep-for 1)
+	     (goto-char (point-max))
+	     (insert-file-contents startfile)
+	     (setq startfile (buffer-substring (point) (point-max)))
+	     (delete-region (point) (point-max))
+	     (term-send-string proc startfile)))
+    (run-hooks 'term-exec-hook)
+    buffer)))
+
+;;; Name to use for TERM.
+;;; Using "emacs" loses, because bash disables editing if TERM == emacs.
+(defvar term-term-name "eterm")
+; Format string, usage: (format term-termcap-string emacs-term-name "TERMCAP=" 24 80)
+(defvar term-termcap-format
+  "%s%s:li#%d:co#%d:cl=\\E[;H\\E[2J:bs:am:xn:cm=\\E[%%i%%d;%%dH\
+:nd=\\E[C:up=\\E[A:ce=\\E[K:ho=\\E[H:pt\
+:al=\\E[L:dl=\\E[M:DL=\\E[%%dM:AL=\\E[%%dL:cs=\\E[%%i%%d;%%dr:sf=\\n\
+:te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
+:dc=\\E[P:DC=\\E[%%dP:IC=\\E[%%d@:im=\\E[4h:ei=\E4l:mi:\
+:so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
+:UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC"
+;;; : -undefine ic
+  "termcap capabilties supported")
+
+;;; This auxiliary function cranks up the process for term-exec in
+;;; the appropriate environment.
+
+(defun term-exec-1 (name buffer command switches)
+;; The 'if ...; then shift; fi' hack is because Bourne shell
+;; loses one arg when called with -c, and newer shells (bash,  ksh) don't.
+;; Thus we add an extra dummy argument "..", and then remove it.
+  (apply 'start-process name buffer
+"/bin/sh" "-c" (format "stty sane -nl echo rows %d columns %d; if [ $1 = .. ]; then shift; fi;\
+  TERM=$1; export TERM; shift;\
+  TERMCAP=$1; export TERMCAP; shift;\
+  EMACS=t; export EMACS;\
+  exec \"$@\"" term-height term-width)
+ ".."
+ term-term-name
+ (format term-termcap-format "" term-term-name term-height term-width)
+ command switches))
+
+;;; This should be in emacs, but it isn't.
+(defun term-mem (item list &optional elt=)
+  "Test to see if ITEM is equal to an item in LIST.
+Option comparison function ELT= defaults to equal."
+  (let ((elt= (or elt= (function equal)))
+	(done nil))
+    (while (and list (not done))
+      (if (funcall elt= item (car list))
+	  (setq done list)
+	  (setq list (cdr list))))
+    done))
+
+
+;;; Input history processing in a buffer
+;;; ===========================================================================
+;;; Useful input history functions, courtesy of the Ergo group.
+
+;;; Eleven commands:
+;;; term-dynamic-list-input-ring	List history in help buffer.
+;;; term-previous-input		Previous input...
+;;; term-previous-matching-input	...matching a string.
+;;; term-previous-matching-input-from-input ... matching the current input.
+;;; term-next-input			Next input...
+;;; term-next-matching-input		...matching a string.
+;;; term-next-matching-input-from-input     ... matching the current input.
+;;; term-backward-matching-input      Backwards input...
+;;; term-forward-matching-input       ...matching a string.
+;;; term-replace-by-expanded-history	Expand history at point;
+;;;					replace with expanded history.
+;;; term-magic-space			Expand history and insert space.
+;;;
+;;; Three functions:
+;;; term-read-input-ring              Read into term-input-ring...
+;;; term-write-input-ring             Write to term-input-ring-file-name.
+;;; term-replace-by-expanded-history-before-point Workhorse function.
+
+(defun term-read-input-ring (&optional silent)
+  "Sets the buffer's `term-input-ring' from a history file.
+The name of the file is given by the variable `term-input-ring-file-name'.
+The history ring is of size `term-input-ring-size', regardless of file size.
+If `term-input-ring-file-name' is nil this function does nothing.
+
+If the optional argument SILENT is non-nil, we say nothing about a
+failure to read the history file.
+
+This function is useful for major mode commands and mode hooks.
+
+The structure of the history file should be one input command per line,
+with the most recent command last.
+See also `term-input-ignoredups' and `term-write-input-ring'."
+  (cond ((or (null term-input-ring-file-name)
+	     (equal term-input-ring-file-name ""))
+	 nil)
+	((not (file-readable-p term-input-ring-file-name))
+	 (or silent
+	     (message "Cannot read history file %s"
+		      term-input-ring-file-name)))
+	(t
+	 (let ((history-buf (get-buffer-create " *temp*"))
+	       (file term-input-ring-file-name)
+	       (count 0)
+	       (ring (make-ring term-input-ring-size)))
+	   (unwind-protect
+	       (save-excursion
+		 (set-buffer history-buf)
+		 (widen)
+		 (erase-buffer)
+		 (insert-file-contents file)
+		 ;; Save restriction in case file is already visited...
+		 ;; Watch for those date stamps in history files!
+		 (goto-char (point-max))
+		 (while (and (< count term-input-ring-size)
+			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
+						 nil t))
+		   (let ((history (buffer-substring (match-beginning 1)
+						    (match-end 1))))
+		     (if (or (null term-input-ignoredups)
+			     (ring-empty-p ring)
+			     (not (string-equal (ring-ref ring 0) history)))
+			 (ring-insert-at-beginning ring history)))
+		   (setq count (1+ count))))
+	     (kill-buffer history-buf))
+	   (setq term-input-ring ring
+		 term-input-ring-index nil)))))
+
+(defun term-write-input-ring ()
+  "Writes the buffer's `term-input-ring' to a history file.
+The name of the file is given by the variable `term-input-ring-file-name'.
+The original contents of the file are lost if `term-input-ring' is not empty.
+If `term-input-ring-file-name' is nil this function does nothing.
+
+Useful within process sentinels.
+
+See also `term-read-input-ring'."
+  (cond ((or (null term-input-ring-file-name)
+	     (equal term-input-ring-file-name "")
+	     (null term-input-ring) (ring-empty-p term-input-ring))
+	 nil)
+	((not (file-writable-p term-input-ring-file-name))
+	 (message "Cannot write history file %s" term-input-ring-file-name))
+	(t
+	 (let* ((history-buf (get-buffer-create " *Temp Input History*"))
+		(ring term-input-ring)
+		(file term-input-ring-file-name)
+		(index (ring-length ring)))
+	   ;; Write it all out into a buffer first.  Much faster, but messier,
+	   ;; than writing it one line at a time.
+	   (save-excursion
+	     (set-buffer history-buf)
+	     (erase-buffer)
+	     (while (> index 0)
+	       (setq index (1- index))
+	       (insert (ring-ref ring index) ?\n))
+	     (write-region (buffer-string) nil file nil 'no-message)
+	     (kill-buffer nil))))))
+
+
+(defun term-dynamic-list-input-ring ()
+  "List in help buffer the buffer's input history."
+  (interactive)
+  (if (or (not (ring-p term-input-ring))
+	  (ring-empty-p term-input-ring))
+      (message "No history")
+    (let ((history nil)
+	  (history-buffer " *Input History*")
+	  (index (1- (ring-length term-input-ring)))
+	  (conf (current-window-configuration)))
+      ;; We have to build up a list ourselves from the ring vector.
+      (while (>= index 0)
+	(setq history (cons (ring-ref term-input-ring index) history)
+	      index (1- index)))
+      ;; Change "completion" to "history reference"
+      ;; to make the display accurate.
+      (with-output-to-temp-buffer history-buffer
+	(display-completion-list history)
+	(set-buffer history-buffer)
+	(forward-line 3)
+	(while (search-backward "completion" nil 'move)
+	  (replace-match "history reference")))
+      (sit-for 0)
+      (message "Hit space to flush")
+      (let ((ch (read-event)))
+	(if (eq ch ?\ )
+	    (set-window-configuration conf)
+	  (setq unread-command-events (list ch)))))))
+
+
+(defun term-regexp-arg (prompt)
+  ;; Return list of regexp and prefix arg using PROMPT.
+  (let* ((minibuffer-history-sexp-flag nil)
+	 ;; Don't clobber this.
+	 (last-command last-command)
+	 (regexp (read-from-minibuffer prompt nil nil nil
+				       'minibuffer-history-search-history)))
+    (list (if (string-equal regexp "")
+	      (setcar minibuffer-history-search-history
+		      (nth 1 minibuffer-history-search-history))
+	    regexp)
+	  (prefix-numeric-value current-prefix-arg))))
+
+(defun term-search-arg (arg)
+  ;; First make sure there is a ring and that we are after the process mark
+  (cond ((not (term-after-pmark-p))
+	 (error "Not at command line"))
+	((or (null term-input-ring)
+	     (ring-empty-p term-input-ring))
+	 (error "Empty input ring"))
+	((zerop arg)
+	 ;; arg of zero resets search from beginning, and uses arg of 1
+	 (setq term-input-ring-index nil)
+	 1)
+	(t
+	 arg)))
+
+(defun term-search-start (arg)
+  ;; Index to start a directional search, starting at term-input-ring-index
+  (if term-input-ring-index
+      ;; If a search is running, offset by 1 in direction of arg
+      (mod (+ term-input-ring-index (if (> arg 0) 1 -1))
+	   (ring-length term-input-ring))
+    ;; For a new search, start from beginning or end, as appropriate
+    (if (>= arg 0)
+	0				       ; First elt for forward search
+      (1- (ring-length term-input-ring)))))  ; Last elt for backward search
+
+(defun term-previous-input-string (arg)
+  "Return the string ARG places along the input ring.
+Moves relative to `term-input-ring-index'."
+  (ring-ref term-input-ring (if term-input-ring-index
+				  (mod (+ arg term-input-ring-index) 
+				       (ring-length term-input-ring))
+				arg)))
+
+(defun term-previous-input (arg)
+  "Cycle backwards through input history."
+  (interactive "*p")
+  (term-previous-matching-input "." arg))
+
+(defun term-next-input (arg)
+  "Cycle forwards through input history."
+  (interactive "*p")
+  (term-previous-input (- arg)))
+
+(defun term-previous-matching-input-string (regexp arg)
+  "Return the string matching REGEXP ARG places along the input ring.
+Moves relative to `term-input-ring-index'."
+  (let* ((pos (term-previous-matching-input-string-position regexp arg)))
+    (if pos (ring-ref term-input-ring pos))))
+
+(defun term-previous-matching-input-string-position (regexp arg &optional start)
+  "Return the index matching REGEXP ARG places along the input ring.
+Moves relative to START, or `term-input-ring-index'."
+  (if (or (not (ring-p term-input-ring))
+	  (ring-empty-p term-input-ring))
+      (error "No history"))
+  (let* ((len (ring-length term-input-ring))
+	 (motion (if (> arg 0) 1 -1))
+	 (n (mod (- (or start (term-search-start arg)) motion) len))
+	 (tried-each-ring-item nil)
+	 (prev nil))
+    ;; Do the whole search as many times as the argument says.
+    (while (and (/= arg 0) (not tried-each-ring-item))
+      ;; Step once.
+      (setq prev n
+	    n (mod (+ n motion) len))
+      ;; If we haven't reached a match, step some more.
+      (while (and (< n len) (not tried-each-ring-item)
+		  (not (string-match regexp (ring-ref term-input-ring n))))
+	(setq n (mod (+ n motion) len)
+	      ;; If we have gone all the way around in this search.
+	      tried-each-ring-item (= n prev)))
+      (setq arg (if (> arg 0) (1- arg) (1+ arg))))
+    ;; Now that we know which ring element to use, if we found it, return that.
+    (if (string-match regexp (ring-ref term-input-ring n))
+	n)))
+
+(defun term-previous-matching-input (regexp arg)
+  "Search backwards through input history for match for REGEXP.
+\(Previous history elements are earlier commands.)
+With prefix argument N, search for Nth previous match.
+If N is negative, find the next or Nth next match."
+  (interactive (term-regexp-arg "Previous input matching (regexp): "))
+  (setq arg (term-search-arg arg))
+  (let ((pos (term-previous-matching-input-string-position regexp arg)))
+    ;; Has a match been found?
+    (if (null pos)
+	(error "Not found")
+      (setq term-input-ring-index pos)
+      (message "History item: %d" (1+ pos))
+      (delete-region 
+       ;; Can't use kill-region as it sets this-command
+       (process-mark (get-buffer-process (current-buffer))) (point))
+      (insert (ring-ref term-input-ring pos)))))
+
+(defun term-next-matching-input (regexp arg)
+  "Search forwards through input history for match for REGEXP.
+\(Later history elements are more recent commands.)
+With prefix argument N, search for Nth following match.
+If N is negative, find the previous or Nth previous match."
+  (interactive (term-regexp-arg "Next input matching (regexp): "))
+  (term-previous-matching-input regexp (- arg)))
+
+(defun term-previous-matching-input-from-input (arg)
+  "Search backwards through input history for match for current input.
+\(Previous history elements are earlier commands.)
+With prefix argument N, search for Nth previous match.
+If N is negative, search forwards for the -Nth following match."
+  (interactive "p")
+  (if (not (memq last-command '(term-previous-matching-input-from-input
+				term-next-matching-input-from-input)))
+      ;; Starting a new search
+      (setq term-matching-input-from-input-string
+	    (buffer-substring 
+	     (process-mark (get-buffer-process (current-buffer))) 
+	     (point))
+	    term-input-ring-index nil))
+  (term-previous-matching-input
+   (concat "^" (regexp-quote term-matching-input-from-input-string))
+   arg))
+
+(defun term-next-matching-input-from-input (arg)
+  "Search forwards through input history for match for current input.
+\(Following history elements are more recent commands.)
+With prefix argument N, search for Nth following match.
+If N is negative, search backwards for the -Nth previous match."
+  (interactive "p")
+  (term-previous-matching-input-from-input (- arg)))
+
+
+(defun term-replace-by-expanded-history (&optional silent)
+  "Expand input command history references before point.
+Expansion is dependent on the value of `term-input-autoexpand'.
+
+This function depends on the buffer's idea of the input history, which may not
+match the command interpreter's idea, assuming it has one.
+
+Assumes history syntax is like typical Un*x shells'.  However, since emacs
+cannot know the interpreter's idea of input line numbers, assuming it has one,
+it cannot expand absolute input line number references.
+
+If the optional argument SILENT is non-nil, never complain
+even if history reference seems erroneous.
+
+See `term-magic-space' and `term-replace-by-expanded-history-before-point'.
+
+Returns t if successful."
+  (interactive)
+  (if (and term-input-autoexpand
+	   (string-match "[!^]" (funcall term-get-old-input))
+	   (save-excursion (beginning-of-line)
+			   (looking-at term-prompt-regexp)))
+      ;; Looks like there might be history references in the command.
+      (let ((previous-modified-tick (buffer-modified-tick)))
+	(message "Expanding history references...")
+	(term-replace-by-expanded-history-before-point silent)
+	(/= previous-modified-tick (buffer-modified-tick)))))
+
+
+(defun term-replace-by-expanded-history-before-point (silent)
+  "Expand directory stack reference before point.
+See `term-replace-by-expanded-history'.  Returns t if successful."
+  (save-excursion
+    (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
+	  (start (progn (term-bol nil) (point))))
+      (while (progn
+	       (skip-chars-forward "^!^"
+				   (save-excursion
+				     (end-of-line nil) (- (point) toend)))
+	       (< (point)
+		  (save-excursion
+		    (end-of-line nil) (- (point) toend))))
+	;; This seems a bit complex.  We look for references such as !!, !-num,
+	;; !foo, !?foo, !{bar}, !?{bar}, ^oh, ^my^, ^god^it, ^never^ends^.
+	;; If that wasn't enough, the plings can be suffixed with argument
+	;; range specifiers.
+	;; Argument ranges are complex too, so we hive off the input line,
+	;; referenced with plings, with the range string to `term-args'.
+	(setq term-input-ring-index nil)
+	(cond ((or (= (preceding-char) ?\\)
+		   (term-within-quotes start (point)))
+	       ;; The history is quoted, or we're in quotes.
+	       (goto-char (1+ (point))))
+	      ((looking-at "![0-9]+\\($\\|[^-]\\)")
+	       ;; We cannot know the interpreter's idea of input line numbers.
+	       (goto-char (match-end 0))
+	       (message "Absolute reference cannot be expanded"))
+	      ((looking-at "!-\\([0-9]+\\)\\(:?[0-9^$*-]+\\)?")
+	       ;; Just a number of args from `number' lines backward.
+	       (let ((number (1- (string-to-number
+				  (buffer-substring (match-beginning 1)
+						    (match-end 1))))))
+		 (if (<= number (ring-length term-input-ring))
+		     (progn
+		       (replace-match
+			(term-args (term-previous-input-string number)
+				     (match-beginning 2) (match-end 2))
+			t t)
+		       (setq term-input-ring-index number)
+		       (message "History item: %d" (1+ number)))
+		   (goto-char (match-end 0))
+		   (message "Relative reference exceeds input history size"))))
+	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
+	       ;; Just a number of args from the previous input line.
+	       (replace-match
+		(term-args (term-previous-input-string 0)
+			     (match-beginning 1) (match-end 1))
+		t t)
+	       (message "History item: previous"))
+	      ((looking-at
+		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
+	       ;; Most recent input starting with or containing (possibly
+	       ;; protected) string, maybe just a number of args.  Phew.
+	       (let* ((mb1 (match-beginning 1)) (me1 (match-end 1))
+		      (mb2 (match-beginning 2)) (me2 (match-end 2))
+		      (exp (buffer-substring (or mb2 mb1) (or me2 me1)))
+		      (pref (if (save-match-data (looking-at "!\\?")) "" "^"))
+		      (pos (save-match-data
+			     (term-previous-matching-input-string-position
+			      (concat pref (regexp-quote exp)) 1))))
+		 (if (null pos)
+		     (progn
+		       (goto-char (match-end 0))
+		       (or silent
+			   (progn (message "Not found")
+				  (ding))))
+		   (setq term-input-ring-index pos)
+		   (replace-match
+		    (term-args (ring-ref term-input-ring pos)
+				 (match-beginning 4) (match-end 4))
+		    t t)
+		   (message "History item: %d" (1+ pos)))))
+	      ((looking-at "\\^\\([^^]+\\)\\^?\\([^^]*\\)\\^?")
+	       ;; Quick substitution on the previous input line.
+	       (let ((old (buffer-substring (match-beginning 1) (match-end 1)))
+		     (new (buffer-substring (match-beginning 2) (match-end 2)))
+		     (pos nil))
+		 (replace-match (term-previous-input-string 0) t t)
+		 (setq pos (point))
+		 (goto-char (match-beginning 0))
+		 (if (not (search-forward old pos t))
+		     (or silent
+			 (error "Not found"))
+		   (replace-match new t t)
+		   (message "History item: substituted"))))
+	      (t
+	       (goto-char (match-end 0))))))))
+
+
+(defun term-magic-space (arg)
+  "Expand input history references before point and insert ARG spaces.
+A useful command to bind to SPC.  See `term-replace-by-expanded-history'."
+  (interactive "p")
+  (term-replace-by-expanded-history)
+  (self-insert-command arg))
+
+(defun term-within-quotes (beg end)
+  "Return t if the number of quotes between BEG and END is odd.
+Quotes are single and double."
+  (let ((countsq (term-how-many-region "\\(^\\|[^\\\\]\\)\'" beg end))
+	(countdq (term-how-many-region "\\(^\\|[^\\\\]\\)\"" beg end)))
+    (or (= (mod countsq 2) 1) (= (mod countdq 2) 1))))
+
+(defun term-how-many-region (regexp beg end)
+  "Return number of matches for REGEXP from BEG to END."
+  (let ((count 0))
+    (save-excursion
+      (save-match-data
+	(goto-char beg)
+	(while (re-search-forward regexp end t)
+	  (setq count (1+ count)))))
+    count))
+
+(defun term-args (string begin end)
+  ;; From STRING, return the args depending on the range specified in the text
+  ;; from BEGIN to END.  If BEGIN is nil, assume all args.  Ignore leading `:'.
+  ;; Range can be x-y, x-, -y, where x/y can be [0-9], *, ^, $.
+  (save-match-data
+    (if (null begin)
+	(term-arguments string 0 nil)
+      (let* ((range (buffer-substring
+		     (if (eq (char-after begin) ?:) (1+ begin) begin) end))
+	     (nth (cond ((string-match "^[*^]" range) 1)
+			((string-match "^-" range) 0)
+			((string-equal range "$") nil)
+			(t (string-to-number range))))
+	     (mth (cond ((string-match "[-*$]$" range) nil)
+			((string-match "-" range)
+			 (string-to-number (substring range (match-end 0))))
+			(t nth))))
+	(term-arguments string nth mth)))))
+
+;; Return a list of arguments from ARG.  Break it up at the
+;; delimiters in term-delimiter-argument-list.  Returned list is backwards.
+(defun term-delim-arg (arg)
+  (if (null term-delimiter-argument-list)
+      (list arg)
+    (let ((args nil)
+	  (pos 0)
+	  (len (length arg)))
+      (while (< pos len)
+	(let ((char (aref arg pos))
+	      (start pos))
+	  (if (memq char term-delimiter-argument-list)
+	      (while (and (< pos len) (eq (aref arg pos) char))
+		(setq pos (1+ pos)))
+	    (while (and (< pos len)
+			(not (memq (aref arg pos)
+				   term-delimiter-argument-list)))
+	      (setq pos (1+ pos))))
+	  (setq args (cons (substring arg start pos) args))))
+      args)))
+
+(defun term-arguments (string nth mth)
+  "Return from STRING the NTH to MTH arguments.
+NTH and/or MTH can be nil, which means the last argument.
+Returned arguments are separated by single spaces.
+We assume whitespace separates arguments, except within quotes.
+Also, a run of one or more of a single character
+in `term-delimiter-argument-list' is a separate argument.
+Argument 0 is the command name."
+  (let ((argpart "[^ \n\t\"'`]+\\|\\(\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)")
+	(args ()) (pos 0)
+	(count 0)
+	beg str value quotes)
+    ;; Build a list of all the args until we have as many as we want.
+    (while (and (or (null mth) (<= count mth))
+		(string-match argpart string pos))
+      (if (and beg (= pos (match-beginning 0)))
+	  ;; It's contiguous, part of the same arg.
+	  (setq pos (match-end 0)
+		quotes (or quotes (match-beginning 1)))
+	;; It's a new separate arg.
+	(if beg
+	    ;; Put the previous arg, if there was one, onto ARGS.
+	    (setq str (substring string beg pos)
+		  args (if quotes (cons str args)
+			 (nconc (term-delim-arg str) args))
+		  count (1+ count)))
+	(setq quotes (match-beginning 1))
+	(setq beg (match-beginning 0))
+	(setq pos (match-end 0))))
+    (if beg
+	(setq str (substring string beg pos)
+	      args (if quotes (cons str args)
+		     (nconc (term-delim-arg str) args))
+	      count (1+ count)))
+    (let ((n (or nth (1- count)))
+	  (m (if mth (1- (- count mth)) 0)))
+      (mapconcat
+       (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
+
+;;;
+;;; Input processing stuff [line mode]
+;;;
+
+(defun term-send-input () 
+  "Send input to process.
+After the process output mark, sends all text from the process mark to
+point as input to the process.  Before the process output mark, calls value
+of variable term-get-old-input to retrieve old input, copies it to the
+process mark, and sends it.  A terminal newline is also inserted into the
+buffer and sent to the process.  The list of function names contained in the
+value of `term-input-filter-functions' is called on the input before sending
+it.  The input is entered into the input history ring, if the value of variable
+term-input-filter returns non-nil when called on the input.
+
+Any history reference may be expanded depending on the value of the variable
+`term-input-autoexpand'.  The list of function names contained in the value
+of `term-input-filter-functions' is called on the input before sending it.
+The input is entered into the input history ring, if the value of variable
+`term-input-filter' returns non-nil when called on the input.
+
+The values of `term-get-old-input', `term-input-filter-functions', and
+`term-input-filter' are chosen according to the command interpreter running
+in the buffer.  E.g.,
+
+If the interpreter is the csh,
+    term-get-old-input is the default: take the current line, discard any
+        initial string matching regexp term-prompt-regexp.
+    term-input-filter-functions monitors input for \"cd\", \"pushd\", and
+	\"popd\" commands. When it sees one, it cd's the buffer.
+    term-input-filter is the default: returns T if the input isn't all white
+	space.
+
+If the term is Lucid Common Lisp, 
+    term-get-old-input snarfs the sexp ending at point.
+    term-input-filter-functions does nothing.
+    term-input-filter returns NIL if the input matches input-filter-regexp,
+        which matches (1) all whitespace (2) :a, :c, etc.
+
+Similarly for Soar, Scheme, etc."
+  (interactive)
+  ;; Note that the input string does not include its terminal newline.
+  (let ((proc (get-buffer-process (current-buffer))))
+    (if (not proc) (error "Current buffer has no process")
+      (let* ((pmark (process-mark proc))
+	     (pmark-val (marker-position pmark))
+	     (intxt (if (>= (point) pmark-val)
+			(progn (end-of-line)
+			       (let ((copy (buffer-substring pmark (point))))
+				 ;; Delete, because inferior should echo.
+				 (set-marker term-pending-delete-marker
+					     pmark-val)
+				 (set-marker (process-mark proc) (point))
+				 copy))
+		      (funcall term-get-old-input)))
+	     (input (if (not (eq term-input-autoexpand 'input))
+			;; Just whatever's already there
+			intxt
+		      ;; Expand and leave it visible in buffer
+		      (term-replace-by-expanded-history t)
+		      (buffer-substring pmark (point))))
+	     (history (if (not (eq term-input-autoexpand 'history))
+			  input
+			;; This is messy 'cos ultimately the original
+			;; functions used do insertion, rather than return
+			;; strings.  We have to expand, then insert back.
+			(term-replace-by-expanded-history t)
+			(let ((copy (buffer-substring pmark (point))))
+			  (delete-region pmark (point))
+			  (insert input)
+			  copy))))
+	(if term-pager-count
+	    (save-excursion
+	      (goto-char (process-mark proc))
+	      (setq term-pager-count (term-current-row))))
+	(if (and (funcall term-input-filter history)
+		 (or (null term-input-ignoredups)
+		     (not (ring-p term-input-ring))
+		     (ring-empty-p term-input-ring)
+		     (not (string-equal (ring-ref term-input-ring 0)
+					history))))
+	    (ring-insert term-input-ring history))
+	(let ((functions term-input-filter-functions))
+	  (while functions
+	    (funcall (car functions) (concat input "\n"))
+	    (setq functions (cdr functions))))
+	(setq term-input-ring-index nil)
+	(goto-char pmark)
+	;; Update the markers before we send the input
+	;; in case we get output amidst sending the input.
+	(set-marker term-last-input-start pmark)
+	(set-marker term-last-input-end (point))
+	(funcall term-input-sender proc input)))))
+
+(defun term-get-old-input-default ()
+  "Default for term-get-old-input.
+Take the current line, and discard any initial text matching
+term-prompt-regexp."
+  (save-excursion
+    (beginning-of-line)
+    (term-skip-prompt)
+    (let ((beg (point)))
+      (end-of-line)
+      (buffer-substring beg (point)))))
+
+(defun term-copy-old-input ()
+  "Insert after prompt old input at point as new input to be edited.
+Calls `term-get-old-input' to get old input."
+  (interactive)
+  (let ((input (funcall term-get-old-input))
+ 	(process (get-buffer-process (current-buffer))))
+    (if (not process)
+	(error "Current buffer has no process")
+      (goto-char (process-mark process))
+      (insert input))))
+
+(defun term-skip-prompt ()
+  "Skip past the text matching regexp term-prompt-regexp. 
+If this takes us past the end of the current line, don't skip at all."
+  (let ((eol (save-excursion (end-of-line) (point))))
+    (if (and (looking-at term-prompt-regexp)
+	     (<= (match-end 0) eol))
+	(goto-char (match-end 0)))))
+
+
+(defun term-after-pmark-p ()
+  "Is point after the process output marker?"
+  ;; Since output could come into the buffer after we looked at the point
+  ;; but before we looked at the process marker's value, we explicitly 
+  ;; serialise. This is just because I don't know whether or not emacs
+  ;; services input during execution of lisp commands.
+  (let ((proc-pos (marker-position
+		   (process-mark (get-buffer-process (current-buffer))))))
+    (<= proc-pos (point))))
+
+(defun term-simple-send (proc string)
+  "Default function for sending to PROC input STRING.
+This just sends STRING plus a newline. To override this,
+set the hook TERM-INPUT-SENDER."
+  (term-send-string proc string)
+  (term-send-string proc "\n"))
+
+(defun term-bol (arg)
+  "Goes to the beginning of line, then skips past the prompt, if any.
+If a prefix argument is given (\\[universal-argument]), then no prompt skip 
+-- go straight to column 0.
+
+The prompt skip is done by skipping text matching the regular expression
+term-prompt-regexp, a buffer local variable."
+  (interactive "P")
+  (beginning-of-line)
+  (if (null arg) (term-skip-prompt)))
+
+;;; These two functions are for entering text you don't want echoed or
+;;; saved -- typically passwords to ftp, telnet, or somesuch.
+;;; Just enter m-x term-send-invisible and type in your line.
+
+(defun term-read-noecho (prompt &optional stars)
+  "Read a single line of text from user without echoing, and return it. 
+Prompt with argument PROMPT, a string.  Optional argument STARS causes
+input to be echoed with '*' characters on the prompt line.  Input ends with
+RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
+`inhibit-quit' is set because e.g. this function was called from a process
+filter and C-g is pressed, this function returns nil rather than a string).
+
+Note that the keystrokes comprising the text can still be recovered
+\(temporarily) with \\[view-lossage].  This may be a security bug for some
+applications."
+  (let ((ans "")
+	(c 0)
+	(echo-keystrokes 0)
+	(cursor-in-echo-area t)
+        (done nil))
+    (while (not done)
+      (if stars
+          (message "%s%s" prompt (make-string (length ans) ?*))
+        (message prompt))
+      (setq c (read-char))
+      (cond ((= c ?\C-g)
+             ;; This function may get called from a process filter, where
+             ;; inhibit-quit is set.  In later versions of emacs read-char
+             ;; may clear quit-flag itself and return C-g.  That would make
+             ;; it impossible to quit this loop in a simple way, so
+             ;; re-enable it here (for backward-compatibility the check for
+             ;; quit-flag below would still be necessary, so this seems
+             ;; like the simplest way to do things).
+             (setq quit-flag t
+                   done t))
+            ((or (= c ?\r) (= c ?\n) (= c ?\e))
+             (setq done t))
+            ((= c ?\C-u)
+             (setq ans ""))
+            ((and (/= c ?\b) (/= c ?\177))
+             (setq ans (concat ans (char-to-string c))))
+            ((> (length ans) 0)
+             (setq ans (substring ans 0 -1)))))
+    (if quit-flag
+        ;; Emulate a true quit, except that we have to return a value.
+        (prog1
+            (setq quit-flag nil)
+          (message "Quit")
+          (beep t))
+      (message "")
+      ans)))
+
+(defun term-send-invisible (str &optional proc)
+  "Read a string without echoing.
+Then send it to the process running in the current buffer. A new-line
+is additionally sent. String is not saved on term input history list.
+Security bug: your string can still be temporarily recovered with
+\\[view-lossage]."
+ (interactive (list (term-read-noecho "Enter non-echoed text")))
+  (interactive "P") ; Defeat snooping via C-x esc
+  (if (not (stringp str))
+      (setq str (term-read-noecho "Non-echoed text: " t)))
+  (if (not proc)
+      (setq proc (get-buffer-process (current-buffer))))
+  (if (not proc) (error "Current buffer has no process")
+    (setq term-kill-echo-list (nconc term-kill-echo-list
+				     (cons str nil)))
+    (term-send-string proc str)
+    (term-send-string proc "\n")))
+
+
+;;; Low-level process communication
+
+(defvar term-input-chunk-size 512
+  "*Long inputs send to term processes are broken up into chunks of this size.
+If your process is choking on big inputs, try lowering the value.")
+
+(defun term-send-string (proc str)
+  "Send PROCESS the contents of STRING as input.
+This is equivalent to process-send-string, except that long input strings
+are broken up into chunks of size term-input-chunk-size. Processes
+are given a chance to output between chunks. This can help prevent processes
+from hanging when you send them long inputs on some OS's."
+  (let* ((len (length str))
+	 (i (min len term-input-chunk-size)))
+    (process-send-string proc (substring str 0 i))
+    (while (< i len)
+      (let ((next-i (+ i term-input-chunk-size)))
+	(accept-process-output)
+	(process-send-string proc (substring str i (min len next-i)))
+	(setq i next-i)))))
+
+(defun term-send-region (proc start end)
+  "Sends to PROC the region delimited by START and END.
+This is a replacement for process-send-region that tries to keep
+your process from hanging on long inputs. See term-send-string."
+  (term-send-string proc (buffer-substring start end)))
+
+
+;;; Random input hackage
+
+(defun term-kill-output ()
+  "Kill all output from interpreter since last input."
+  (interactive)
+  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
+    (kill-region term-last-input-end pmark)
+    (goto-char pmark)    
+    (insert "*** output flushed ***\n")
+    (set-marker pmark (point))))
+
+(defun term-show-output ()
+  "Display start of this batch of interpreter output at top of window.
+Sets mark to the value of point when this command is run."
+  (interactive)
+  (goto-char term-last-input-end)
+  (backward-char)
+  (beginning-of-line)
+  (set-window-start (selected-window) (point))
+  (end-of-line))
+
+(defun term-interrupt-subjob ()
+  "Interrupt the current subjob."
+  (interactive)
+  (interrupt-process nil term-ptyp))
+
+(defun term-kill-subjob ()
+  "Send kill signal to the current subjob."
+  (interactive)
+  (kill-process nil term-ptyp))
+
+(defun term-quit-subjob ()
+  "Send quit signal to the current subjob."
+  (interactive)
+  (quit-process nil term-ptyp))
+
+(defun term-stop-subjob ()
+  "Stop the current subjob.
+WARNING: if there is no current subjob, you can end up suspending
+the top-level process running in the buffer. If you accidentally do
+this, use \\[term-continue-subjob] to resume the process. (This
+is not a problem with most shells, since they ignore this signal.)"
+  (interactive)
+  (stop-process nil term-ptyp))
+
+(defun term-continue-subjob ()
+  "Send CONT signal to process buffer's process group.
+Useful if you accidentally suspend the top-level process."
+  (interactive)
+  (continue-process nil term-ptyp))
+
+(defun term-kill-input ()
+  "Kill all text from last stuff output by interpreter to point."
+  (interactive)
+  (let* ((pmark (process-mark (get-buffer-process (current-buffer))))
+	 (p-pos (marker-position pmark)))
+    (if (> (point) p-pos)
+	(kill-region pmark (point)))))
+
+(defun term-delchar-or-maybe-eof (arg)
+  "Delete ARG characters forward, or send an EOF to process if at end of buffer."
+  (interactive "p")
+  (if (eobp)
+      (process-send-eof)
+      (delete-char arg)))
+
+(defun term-send-eof ()
+  "Send an EOF to the current buffer's process."
+  (interactive)
+  (process-send-eof))
+
+(defun term-backward-matching-input (regexp arg)
+  "Search backward through buffer for match for REGEXP.
+Matches are searched for on lines that match `term-prompt-regexp'.
+With prefix argument N, search for Nth previous match.
+If N is negative, find the next or Nth next match."
+  (interactive (term-regexp-arg "Backward input matching (regexp): "))
+  (let* ((re (concat term-prompt-regexp ".*" regexp))
+	 (pos (save-excursion (end-of-line (if (> arg 0) 0 1))
+			      (if (re-search-backward re nil t arg)
+				  (point)))))
+    (if (null pos)
+	(progn (message "Not found")
+	       (ding))
+      (goto-char pos)
+      (term-bol nil))))
+
+(defun term-forward-matching-input (regexp arg)
+  "Search forward through buffer for match for REGEXP.
+Matches are searched for on lines that match `term-prompt-regexp'.
+With prefix argument N, search for Nth following match.
+If N is negative, find the previous or Nth previous match."
+  (interactive (term-regexp-arg "Forward input matching (regexp): "))
+  (term-backward-matching-input regexp (- arg)))
+
+
+(defun term-next-prompt (n)
+  "Move to end of Nth next prompt in the buffer.
+See `term-prompt-regexp'."
+  (interactive "p")
+  (let ((paragraph-start term-prompt-regexp))
+    (end-of-line (if (> n 0) 1 0))
+    (forward-paragraph n)
+    (term-skip-prompt)))
+
+(defun term-previous-prompt (n)
+  "Move to end of Nth previous prompt in the buffer.
+See `term-prompt-regexp'."
+  (interactive "p")
+  (term-next-prompt (- n)))
+
+;;; Support for source-file processing commands.
+;;;============================================================================
+;;; Many command-interpreters (e.g., Lisp, Scheme, Soar) have
+;;; commands that process files of source text (e.g. loading or compiling
+;;; files). So the corresponding process-in-a-buffer modes have commands
+;;; for doing this (e.g., lisp-load-file). The functions below are useful
+;;; for defining these commands.
+;;;
+;;; Alas, these guys don't do exactly the right thing for Lisp, Scheme
+;;; and Soar, in that they don't know anything about file extensions.
+;;; So the compile/load interface gets the wrong default occasionally.
+;;; The load-file/compile-file default mechanism could be smarter -- it
+;;; doesn't know about the relationship between filename extensions and
+;;; whether the file is source or executable. If you compile foo.lisp
+;;; with compile-file, then the next load-file should use foo.bin for
+;;; the default, not foo.lisp. This is tricky to do right, particularly
+;;; because the extension for executable files varies so much (.o, .bin,
+;;; .lbin, .mo, .vo, .ao, ...).
+
+
+;;; TERM-SOURCE-DEFAULT -- determines defaults for source-file processing
+;;; commands.
+;;;
+;;; TERM-CHECK-SOURCE -- if FNAME is in a modified buffer, asks you if you
+;;; want to save the buffer before issuing any process requests to the command
+;;; interpreter.
+;;;
+;;; TERM-GET-SOURCE -- used by the source-file processing commands to prompt
+;;; for the file to process.
+
+;;; (TERM-SOURCE-DEFAULT previous-dir/file source-modes)
+;;;============================================================================
+;;; This function computes the defaults for the load-file and compile-file
+;;; commands for tea, soar, cmulisp, and cmuscheme modes. 
+;;; 
+;;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last 
+;;; source-file processing command. NIL if there hasn't been one yet.
+;;; - SOURCE-MODES is a list used to determine what buffers contain source
+;;; files: if the major mode of the buffer is in SOURCE-MODES, it's source.
+;;; Typically, (lisp-mode) or (scheme-mode).
+;;; 
+;;; If the command is given while the cursor is inside a string, *and*
+;;; the string is an existing filename, *and* the filename is not a directory,
+;;; then the string is taken as default. This allows you to just position
+;;; your cursor over a string that's a filename and have it taken as default.
+;;;
+;;; If the command is given in a file buffer whose major mode is in
+;;; SOURCE-MODES, then the the filename is the default file, and the
+;;; file's directory is the default directory.
+;;; 
+;;; If the buffer isn't a source file buffer (e.g., it's the process buffer),
+;;; then the default directory & file are what was used in the last source-file
+;;; processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
+;;; the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
+;;; is the cwd, with no default file. (\"no default file\" = nil)
+;;; 
+;;; SOURCE-REGEXP is typically going to be something like (tea-mode)
+;;; for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
+;;; for Soar programs, etc.
+;;; 
+;;; The function returns a pair: (default-directory . default-file).
+
+(defun term-source-default (previous-dir/file source-modes)
+  (cond ((and buffer-file-name (memq major-mode source-modes))
+	 (cons (file-name-directory    buffer-file-name)
+	       (file-name-nondirectory buffer-file-name)))
+	(previous-dir/file)
+	(t
+	 (cons default-directory nil))))
+
+
+;;; (TERM-CHECK-SOURCE fname)
+;;;============================================================================
+;;; Prior to loading or compiling (or otherwise processing) a file (in the CMU
+;;; process-in-a-buffer modes), this function can be called on the filename.
+;;; If the file is loaded into a buffer, and the buffer is modified, the user
+;;; is queried to see if he wants to save the buffer before proceeding with
+;;; the load or compile.
+
+(defun term-check-source (fname)
+  (let ((buff (get-file-buffer fname)))
+    (if (and buff
+	     (buffer-modified-p buff)
+	     (y-or-n-p (format "Save buffer %s first? "
+			       (buffer-name buff))))
+	;; save BUFF.
+	(let ((old-buffer (current-buffer)))
+	  (set-buffer buff)
+	  (save-buffer)
+	  (set-buffer old-buffer)))))
+
+
+;;; (TERM-GET-SOURCE prompt prev-dir/file source-modes mustmatch-p)
+;;;============================================================================
+;;; TERM-GET-SOURCE is used to prompt for filenames in command-interpreter
+;;; commands that process source files (like loading or compiling a file).
+;;; It prompts for the filename, provides a default, if there is one,
+;;; and returns the result filename.
+;;; 
+;;; See TERM-SOURCE-DEFAULT for more on determining defaults.
+;;; 
+;;; PROMPT is the prompt string. PREV-DIR/FILE is the (directory . file) pair
+;;; from the last source processing command.  SOURCE-MODES is a list of major
+;;; modes used to determine what file buffers contain source files.  (These
+;;; two arguments are used for determining defaults). If MUSTMATCH-P is true,
+;;; then the filename reader will only accept a file that exists.
+;;; 
+;;; A typical use:
+;;; (interactive (term-get-source "Compile file: " prev-lisp-dir/file
+;;;                                 '(lisp-mode) t))
+
+;;; This is pretty stupid about strings. It decides we're in a string
+;;; if there's a quote on both sides of point on the current line.
+(defun term-extract-string ()
+  "Returns string around POINT that starts the current line or nil." 
+  (save-excursion
+    (let* ((point (point))
+	   (bol (progn (beginning-of-line) (point)))
+	   (eol (progn (end-of-line) (point)))
+	   (start (progn (goto-char point) 
+			 (and (search-backward "\"" bol t) 
+			      (1+ (point)))))
+	   (end (progn (goto-char point)
+		       (and (search-forward "\"" eol t)
+			    (1- (point))))))
+      (and start end
+	   (buffer-substring start end)))))
+
+(defun term-get-source (prompt prev-dir/file source-modes mustmatch-p)
+  (let* ((def (term-source-default prev-dir/file source-modes))
+         (stringfile (term-extract-string))
+	 (sfile-p (and stringfile
+		       (condition-case ()
+			   (file-exists-p stringfile)
+			 (error nil))
+		       (not (file-directory-p stringfile))))
+	 (defdir  (if sfile-p (file-name-directory stringfile)
+                      (car def)))
+	 (deffile (if sfile-p (file-name-nondirectory stringfile)
+                      (cdr def)))
+	 (ans (read-file-name (if deffile (format "%s(default %s) "
+						  prompt    deffile)
+				  prompt)
+			      defdir
+			      (concat defdir deffile)
+			      mustmatch-p)))
+    (list (expand-file-name (substitute-in-file-name ans)))))
+
+;;; I am somewhat divided on this string-default feature. It seems
+;;; to violate the principle-of-least-astonishment, in that it makes
+;;; the default harder to predict, so you actually have to look and see
+;;; what the default really is before choosing it. This can trip you up.
+;;; On the other hand, it can be useful, I guess. I would appreciate feedback
+;;; on this.
+;;;     -Olin
+
+
+;;; Simple process query facility.
+;;; ===========================================================================
+;;; This function is for commands that want to send a query to the process
+;;; and show the response to the user. For example, a command to get the
+;;; arglist for a Common Lisp function might send a "(arglist 'foo)" query
+;;; to an inferior Common Lisp process.
+;;; 
+;;; This simple facility just sends strings to the inferior process and pops
+;;; up a window for the process buffer so you can see what the process
+;;; responds with.  We don't do anything fancy like try to intercept what the
+;;; process responds with and put it in a pop-up window or on the message
+;;; line. We just display the buffer. Low tech. Simple. Works good.
+
+;;; Send to the inferior process PROC the string STR. Pop-up but do not select
+;;; a window for the inferior process so that its response can be seen.
+(defun term-proc-query (proc str)
+  (let* ((proc-buf (process-buffer proc))
+	 (proc-mark (process-mark proc)))
+    (display-buffer proc-buf)
+    (set-buffer proc-buf) ; but it's not the selected *window*
+    (let ((proc-win (get-buffer-window proc-buf))
+	  (proc-pt (marker-position proc-mark)))
+      (term-send-string proc str) ; send the query
+      (accept-process-output proc)  ; wait for some output
+      ;; Try to position the proc window so you can see the answer.
+      ;; This is bogus code. If you delete the (sit-for 0), it breaks.
+      ;; I don't know why. Wizards invited to improve it.
+      (if (not (pos-visible-in-window-p proc-pt proc-win))
+	  (let ((opoint (window-point proc-win)))
+	    (set-window-point proc-win proc-mark) (sit-for 0)
+	    (if (not (pos-visible-in-window-p opoint proc-win))
+		(push-mark opoint)
+		(set-window-point proc-win opoint)))))))
+
+;;; Returns the current column in the current screen line.
+;;; Note: (current-column) yields column in buffer line.
+
+(defun term-horizontal-column ()
+  (- (term-current-column) (term-start-line-column)))
+
+;; Calls either vertical-motion or buffer-vertical-motion
+(defmacro term-vertical-motion (count)
+  (list 'funcall 'term-vertical-motion count))
+
+;; An emulation of vertical-motion that is independent of having a window.
+;; Instead, it uses the term-width variable as the logical window width.
+
+(defun buffer-vertical-motion (count)
+  (cond ((= count 0)
+	 (move-to-column (* term-width (/ (current-column) term-width)))
+	 0)
+	((> count 0)
+	 (let ((H)
+	       (todo (+ count (/ (current-column) term-width))))
+	   (end-of-line)
+	   ;; The loop interates over buffer lines;
+	   ;; H is the number of screen lines in the current line, i.e.
+	   ;; the ceiling of dividing the buffer line width by term-width.
+	   (while (and (<= (setq H (max (/ (+ (current-column) term-width -1)
+					   term-width)
+					1))
+			   todo)
+		       (not (eobp)))
+	     (setq todo (- todo H))
+	     (forward-char) ;; Move past the ?\n
+	     (end-of-line)) ;; and on to the end of the next line.
+	   (if (and (>= todo H) (> todo 0))
+	       (+ (- count todo) H -1) ;; Hit end of buffer.
+	     (move-to-column (* todo term-width))
+	     count)))
+	(t ;; (< count 0) ;; Similar algorithm, but for upward motion.
+	 (let ((H)
+	       (todo (- count)))
+	   (while (and (<= (setq H (max (/ (+ (current-column) term-width -1)
+					   term-width)
+					1))
+			   todo)
+		       (progn (beginning-of-line)
+			      (not (bobp))))
+	     (setq todo (- todo H))
+	     (backward-char)) ;; Move to end of previos line
+	   (if (and (>= todo H) (> todo 0))
+	       (+ count todo (- 1 H)) ;; Hit beginning of buffer.
+	     (move-to-column (* (- H todo 1) term-width))
+	     count)))))
+
+;;; The term-start-line-column variable is used as a cache.
+(defun term-start-line-column ()
+  (cond (term-start-line-column)
+	((let ((save-pos (point)))
+	   (term-vertical-motion 0)
+	   (setq term-start-line-column (current-column))
+	   (goto-char save-pos)
+	   term-start-line-column))))
+
+;;; Same as (current-column), but uses term-current-column as a cache.
+(defun term-current-column ()
+  (cond (term-current-column)
+	((setq term-current-column (current-column)))))
+
+;;; Move DELTA column right (or left if delta < 0).
+
+(defun term-move-columns (delta)
+  (setq term-current-column (+ (term-current-column) delta))
+  (move-to-column term-current-column t))
+
+;; Insert COUNT copies of CHAR in the default face.
+(defun term-insert-char (char count)
+  (let ((old-point (point)))
+    (insert-char char count)
+    (put-text-property old-point (point) 'face 'default)))
+
+(defun term-current-row ()
+  (cond (term-current-row)
+	((setq term-current-row
+	       (save-restriction
+		 (save-excursion
+		   (narrow-to-region term-home-marker (point-max))
+		   (- (term-vertical-motion -9999))))))))
+
+(defun term-adjust-current-row-cache (delta)
+  (if term-current-row
+      (setq term-current-row (+ term-current-row delta))))
+
+;; True if currently doing PAGER handling.
+(defmacro term-handling-pager () 'term-pager-old-local-map)
+
+(defmacro term-using-alternate-sub-buffer () 'term-saved-home-marker)
+
+(defun term-terminal-pos ()
+  (save-excursion ;    save-restriction
+    (let ((save-col (term-current-column))
+	  (x))
+      (term-vertical-motion 0)
+      (setq x (- save-col (current-column)))
+      (setq y (term-vertical-motion term-height))
+      (cons x y))))
+
+;;; Terminal emulation
+;;; This is the standard process filter for term buffers.
+;;; It emulates (most of the features of) a VT100/ANSI-style terminal.
+
+(defun term-emulate-terminal (proc str)
+  (let* ((previous-buffer (current-buffer))
+	 (i 0) char funny count save-point save-marker old-point temp win
+	 (selected (selected-window))
+	 (str-length (length str)))
+    (unwind-protect
+	(progn
+	  (set-buffer (process-buffer proc))
+
+	  (if (marker-buffer term-pending-delete-marker)
+	      (progn
+		;; Delete text following term-pending-delete-marker.
+		(delete-region term-pending-delete-marker (process-mark proc))
+		(set-marker term-pending-delete-marker nil)))
+
+	  (if (eq (window-buffer) (current-buffer))
+	      (progn
+		(setq term-vertical-motion (symbol-function 'vertical-motion))
+		(term-check-size proc))
+	    (setq term-vertical-motion
+		  (symbol-function 'buffer-vertical-motion)))
+
+	  (setq save-marker (copy-marker (process-mark proc)))
+
+	  (if (/= (point) (process-mark proc))
+	      (progn (setq save-point (point-marker))
+		     (goto-char (process-mark proc))))
+
+	  (save-restriction
+	    ;; If the buffer is in line mode, and there is a partial
+	    ;; input line, save the line (by narrowing to leave it
+	    ;; outside the restriction ) until we're done with output.
+	    (if (and (> (point-max) (process-mark proc))
+		     (term-in-line-mode))
+		(narrow-to-region (point-min) (process-mark proc)))
+	    
+	    (if term-log-buffer
+		(princ str term-log-buffer))
+	    (cond ((eq term-terminal-state 4) ;; Have saved pending output.
+		   (setq str (concat term-terminal-parameter str))
+		   (setq term-terminal-parameter nil)
+		   (setq str-length (length str))
+		   (setq term-terminal-state 0)))
+	    
+	    (while (< i str-length)
+	      (setq char (aref str i))
+	      (cond ((< term-terminal-state 2)
+		     ;; Look for prefix of regular chars
+		     (setq funny
+			   (string-match "[\r\n\000\007\033\t\b\032\016\017]"
+					 str i))
+		     (if (not funny) (setq funny str-length))
+		     (cond ((> funny i)
+			    (cond ((eq term-terminal-state 1)
+				   (term-move-columns 1)
+				   (setq term-terminal-state 0)))
+			    (setq count (- funny i))
+			    (setq temp (- (+ (term-horizontal-column) count)
+					  term-width))
+			    (cond ((<= temp 0)) ;; All count chars fit in line.
+				  ((> count temp) ;; Some chars fit.
+				   ;; This iteration, handle only what fits.
+				   (setq count (- count temp))
+				   (setq funny (+ count i)))
+				  ((>  (term-handle-scroll 1) 0)
+				   (setq count (min count term-width))
+				   (setq funny (+ count i))
+				   (term-adjust-current-row-cache 1)
+				   (setq term-start-line-column
+					 term-current-column))
+				  (t ;; Doing PAGER processing.
+				   (setq count 0 funny i)
+				   (setq term-current-column nil)
+				   (setq term-start-line-column nil)))
+			    (if term-insert-mode
+				;; Inserting spaces, then deleting them, then
+				;; inserting the actual text seems clumsy, but
+				;; it is simple, and the overhead is miniscule.
+				(term-insert-spaces count))
+			    (setq old-point (point))
+			    (term-move-columns count)
+			    (delete-region old-point (point))
+			    (insert (substring str i funny))
+			    (put-text-property old-point (point)
+					       'face term-current-face)
+			    ;; If the last char was written in last column,
+			    ;; back up one column, but remember we did so.
+			    ;; Thus we emulate xterm/vt100-style line-wrapping.
+			    (cond ((eq temp 0)
+				   (term-move-columns -1)
+				   (setq term-terminal-state 1)))
+			    (setq i (1- funny)))
+			   ((and (setq term-terminal-state 0)
+			    (eq char ?\^I)) ; TAB
+			    ;; FIXME:  Does not handle line wrap!
+			    (setq count (term-current-column))
+			    (setq count (+ count 8 (- (mod count 8))))
+			    (if (< (move-to-column count nil) count)
+				(term-insert-char char 1))
+			    (setq term-current-column count)
+			    (setq term-start-line-column nil))
+			   ((eq char ?\b)
+			    (term-move-columns -1))
+			   ((eq char ?\r)
+			    (term-vertical-motion 0)
+			    (setq term-current-column nil))
+			   ((eq char ?\n)
+			    (if (not (and term-kill-echo-list
+					  (term-check-kill-echo-list)))
+				(term-down 1 0 t)))
+			   ((eq char ?\033) ; Escape
+			    (setq term-terminal-state 2))
+			   ((eq char 0)) ; NUL: Do nothing
+			   ((eq char ?\016)) ; Shift Out - ignored
+			   ((eq char ?\017)) ; Shift In - ignored
+			   ((eq char ?\^G)
+			    (beep t)) ; Bell
+			   ((eq char ?\032)
+			    (let ((end (string-match "\n" str i)))
+			      (if end
+				  (progn (funcall term-command-hook
+						  (substring str (1+ i) (1- end)))
+					 (setq i end))
+				(setq term-terminal-parameter
+				      (substring str i))
+				(setq term-terminal-state 4)
+				(setq i str-length))))
+			   (t ; insert char FIXME: Should never happen
+			    (term-move-columns 1)
+			    (backward-delete-char 1)
+			    (insert char))))
+		    ((eq term-terminal-state 2) ; Seen Esc
+		     (cond ((eq char ?\133) ;; ?\133 = ?[
+			    (make-local-variable 'term-terminal-parameter)
+			    (make-local-variable 'term-terminal-previous-parameter)
+			    (setq term-terminal-parameter 0)
+			    (setq term-terminal-previous-parameter 0)
+			    (setq term-terminal-state 3))
+			   ((eq char ?D) ;; scroll forward
+			    (term-down 1 0 t)
+			    (setq term-terminal-state 0))
+			   ((eq char ?M) ;; scroll reversed
+			    (term-insert-lines 1)
+			    (setq term-terminal-state 0))
+			   ((eq char ?7) ;; Save cursor
+			    (setq term-saved-cursor
+				  (cons (term-current-row)
+					(term-horizontal-column)))
+			    (setq term-terminal-state 0))
+			   ((eq char ?8) ;; Restore cursor
+			    (if term-saved-cursor
+				(term-goto (car term-saved-cursor)
+					   (cdr term-saved-cursor)))
+			    (setq term-terminal-state 0))
+			   ((setq term-terminal-state 0))))
+		    ((eq term-terminal-state 3) ; Seen Esc [
+		     (cond ((and (>= char ?0) (<= char ?9))
+			    (setq term-terminal-parameter
+				  (+ (* 10 term-terminal-parameter) (- char ?0))))
+			   ((eq char ?\073 ) ; ?;
+			    (setq term-terminal-previous-parameter
+				  term-terminal-parameter)
+			    (setq term-terminal-parameter 0))
+			   ((eq char ??)) ; Ignore ? 
+			   (t
+			    (term-handle-ansi-escape char)
+			    (setq term-terminal-state 0)))))
+	      (if (term-handling-pager)
+		  ;; Finish stuff to get ready to handle PAGER.
+		  (progn
+		    (if (> (% (current-column) term-width) 0)
+			(setq term-terminal-parameter
+			      (substring str i))
+		      ;; We're at column 0.  Goto end of buffer; to compensate,
+		      ;; prepend a ?\r for later.  This looks more consistent.
+		      (if (zerop i)
+			  (setq term-terminal-parameter
+				(concat "\r" (substring str i)))
+			(setq term-terminal-parameter (substring str (1- i)))
+			(aset term-terminal-parameter 0 ?\r))
+		      (goto-char (point-max)))
+		    (setq term-terminal-state 4)
+		    (make-local-variable 'term-pager-old-filter)
+		    (setq term-pager-old-filter (process-filter proc))
+		    (set-process-filter proc term-pager-filter)
+		    (setq i str-length)))
+	      (setq i (1+ i))))
+
+	  (set-marker (process-mark proc) (point))
+	  (if save-point
+	      (progn (goto-char save-point)
+		     (set-marker save-point nil)))
+
+	  ;; Check for a pending filename-and-line number to display.
+	  ;; We do this before scrolling, because we might create a new window.
+	  (if (and term-pending-frame
+		   (eq (window-buffer selected) (current-buffer)))
+	      (progn (term-display-line (car term-pending-frame)
+					(cdr term-pending-frame))
+		     (setq term-pending-frame nil)
+		 ;; We have created a new window, so check the window size.
+		     (term-check-size proc)))
+
+	  ;; Scroll each window displaying the buffer but (by default)
+	  ;; only if the point matches the process-mark we started with.
+	  (setq win selected)
+	  (while (progn
+		   (setq win (next-window win nil t))
+		   (if (eq (window-buffer win) (process-buffer proc))
+		       (let ((scroll term-scroll-to-bottom-on-output))
+			 (select-window win)
+			 (if (or (= (point) save-marker)
+				 (eq scroll t) (eq scroll 'all)
+				 ;; Maybe user wants point to jump to the end.
+				 (and (eq selected win)
+				      (or (eq scroll 'this) (not save-point)))
+				 (and (eq scroll 'others)
+				      (not (eq selected win))))
+			     (progn
+			       (goto-char term-home-marker)
+			       (recenter 0)
+			       (goto-char (process-mark proc))
+			       (if (not (pos-visible-in-window-p (point) win))
+				   (recenter -1))))
+			 ;; Optionally scroll so that the text
+			 ;; ends at the bottom of the window.
+			 (if (and term-scroll-show-maximum-output
+				  (>= (point) (process-mark proc)))
+			     (save-excursion
+			       (goto-char (point-max))
+			       (recenter -1)))))
+		   (not (eq win selected))))
+
+	  (set-marker save-marker nil))
+      ;; unwind-protect cleanup-forms follow:
+      (set-buffer previous-buffer)
+      (select-window selected))))
+
+;;; Handle a character assuming (eq terminal-state 2) -
+;;; i.e. we have previousely seen Escape followed by ?[.
+
+(defun term-handle-ansi-escape (char)
+  (cond
+   ((eq char ?H) ; cursor motion
+    (if (<= term-terminal-parameter 0)
+	(setq term-terminal-parameter 1))
+    (if (<= term-terminal-previous-parameter 0)
+	(setq term-terminal-previous-parameter 1))
+    (term-goto
+     (1- term-terminal-previous-parameter)
+     (1- term-terminal-parameter)))
+   ;; \E[A - cursor up
+   ((eq char ?A)
+    (term-down (- (max 1 term-terminal-parameter)) 0 t))
+   ;; \E[B - cursor down
+   ((eq char ?B)
+    (term-down (max 1 term-terminal-parameter) 0 t))
+   ;; \E[C - cursor right
+   ((eq char ?C)
+    (term-move-columns (max 1 term-terminal-parameter)))
+   ;; \E[D - cursor left
+   ((eq char ?D)
+    (term-move-columns (- (max 1 term-terminal-parameter))))
+   ;; \E[J - clear to end of screen
+   ((eq char ?J)
+    (term-erase-in-display term-terminal-parameter))
+   ;; \E[K - clear to end of line
+   ((eq char ?K)
+    (term-erase-in-line term-terminal-parameter))
+   ;; \E[L - insert lines
+   ((eq char ?L)
+    (term-insert-lines (max 1 term-terminal-parameter)))
+   ;; \E[M - delete lines
+   ((eq char ?M)
+    (term-delete-lines (max 1 term-terminal-parameter)))
+   ;; \E[P - delete chars
+   ((eq char ?P)
+    (term-delete-chars (max 1 term-terminal-parameter)))
+   ;; \E[@ - insert spaces
+   ((eq char ?@)
+    (term-insert-spaces (max 1 term-terminal-parameter)))
+   ;; \E[?h - DEC Private Mode Set
+   ((eq char ?h)
+    (cond ((eq term-terminal-parameter 4)
+	   (setq term-insert-mode t))
+	  ((eq term-terminal-parameter 47)
+	   (term-switch-to-alternate-sub-buffer t))))
+   ;; \E[?h - DEC Private Mode Reset
+   ((eq char ?l)
+    (cond ((eq term-terminal-parameter 4)
+	   (setq term-insert-mode nil))
+	  ((eq term-terminal-parameter 47)
+	   (term-switch-to-alternate-sub-buffer nil))))
+   ;; \E[m - Set/reset standard mode
+   ((eq char ?m)
+    (cond ((eq term-terminal-parameter 7)
+	   (setq term-current-face 'highlight))
+	  ((eq term-terminal-parameter 4)
+	   (setq term-current-face 'term-underline-face))
+	  ((eq term-terminal-parameter 1)
+	   (setq term-current-face 'bold))
+	  (t (setq term-current-face 'default))))
+   ;; \E[r - Set scrolling region
+   ((eq char ?r)
+    (term-scroll-region
+     (1- term-terminal-previous-parameter)
+     term-terminal-parameter))
+   (t)))
+
+(defun term-scroll-region (top bottom)
+  "Set scrolling region.
+TOP is the top-most line (inclusive) of the new scrolling region,
+while BOTTOM is the line folling the new scrolling region (e.g. exclusive).
+The top-most line is line 0."
+  (setq term-scroll-start
+	(if (or (< top 0) (>= top term-height))
+	    0
+	  top))
+  (setq term-scroll-end
+	(if (or (< bottom term-scroll-start) (> bottom term-height))
+	    term-height
+	  bottom))
+  (setq term-scroll-with-delete
+	(or (term-using-alternate-sub-buffer)
+	    (not (and (= term-scroll-start 0)
+		      (= term-scroll-end term-height))))))
+
+(defun term-switch-to-alternate-sub-buffer (set)
+  ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
+  ;; using it, do nothing.  This test is needed for some programs (including
+  ;; emacs) that emit the ti termcap string twice, for unknown reason.
+  (if (eq set (not (term-using-alternate-sub-buffer)))
+      (let ((row (term-current-row))
+	    (col (term-horizontal-column)))
+	(cond (set
+	       (goto-char (point-max))
+	       (if (not (eq (preceding-char) ?\n))
+		   (term-insert-char ?\n 1))
+	       (setq term-scroll-with-delete t)
+	       (setq term-saved-home-marker (copy-marker term-home-marker))
+	       (set-marker term-home-marker (point)))
+	      (t
+	       (setq term-scroll-with-delete
+		     (not (and (= term-scroll-start 0)
+			       (= term-scroll-end term-height))))
+	       (set-marker term-home-marker term-saved-home-marker)
+	       (set-marker term-saved-home-marker nil)
+	       (setq term-saved-home-marker nil)
+	       (goto-char term-home-marker)))
+	(setq term-current-column nil)
+	(setq term-line-start-column nil)
+	(setq term-current-row 0)
+	(term-goto row col))))
+
+;; Default value for the symbol term-command-hook.
+
+(defun term-command-hook (string)
+  (cond ((= (aref string 0) ?\032)
+	 ;; gdb (when invoked with -fullname) prints:
+	 ;; \032\032FULLFILENAME:LINENUMBER:CHARPOS:BEG_OR_MIDDLE:PC\n
+	 (let* ((first-colon (string-match ":" string 1))
+		(second-colon
+		 (string-match ":" string (1+ first-colon)))
+		(filename (substring string 1 first-colon))
+		(fileline (string-to-int
+			   (substring string (1+ first-colon) second-colon))))
+	   (setq term-pending-frame (cons filename fileline))))
+	((= (aref string 0) ?/)
+	 (cd (substring string 1)))
+	((= (aref string 0) ?!)
+	    (eval (car (read-from-string string 1))))
+	(t)));; Otherwise ignore it
+
+;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
+;; and that its line LINE is visible.
+;; Put the overlay-arrow on the line LINE in that buffer.
+;; This is mainly used by gdb.
+
+(defun term-display-line (true-file line)
+  (term-display-buffer-line (find-file-noselect true-file) line))
+
+(defun term-display-buffer-line (buffer line)
+  (let* ((window (display-buffer buffer t))
+	 (pos))
+    (save-excursion
+      (set-buffer buffer)
+      (save-restriction
+	(widen)
+	(goto-line line)
+	(setq pos (point))
+	(setq overlay-arrow-string "=>")
+	(or overlay-arrow-position
+	    (setq overlay-arrow-position (make-marker)))
+	(set-marker overlay-arrow-position (point) (current-buffer)))
+      (cond ((or (< pos (point-min)) (> pos (point-max)))
+	     (widen)
+	     (goto-char pos))))
+    (set-window-point window overlay-arrow-position)))
+
+;;; The buffer-local marker term-home-marker defines the "home position"
+;;; (in terms of cursor motion).  However, we move the term-home-marker
+;;; "down" as needed so that is no more that a window-full above (point-max).
+
+(defun term-goto-home ()
+  (goto-char term-home-marker)
+  (setq term-current-row 0)
+  (setq term-current-column (current-column))
+  (setq term-start-line-column term-current-column))
+
+;;; FIXME:  This can be optimized some.
+(defun term-goto (row col)
+  (term-goto-home)
+  (term-down row col))
+
+; The page is full, so enter "pager" mode, and wait for input.
+
+(defun term-process-pager ()
+  (if (not term-pager-break-map)
+      (let* ((map (make-keymap))
+	    (i 0))
+;	(while (< i 128)
+;	  (define-key map (make-string 1 i) 'term-send-raw)
+;	  (setq i (1+ i)))
+	(define-key map "\e"
+	  (lookup-key (current-global-map) "\e"))
+	(define-key map "\C-x"
+	  (lookup-key (current-global-map) "\C-x"))
+	(define-key map "\C-u"
+	  (lookup-key (current-global-map) "\C-u"))
+	(define-key map " " 'term-pager-page)
+	(define-key map "\r" 'term-pager-line)
+	(define-key map "?" 'term-pager-help)
+	(define-key map "h" 'term-pager-help)
+	(define-key map "b" 'term-pager-back-page)
+	(define-key map "\177" 'term-pager-back-line)
+	(define-key map "q" 'term-pager-discard)
+	(define-key map "D" 'term-pager-disable)
+	(define-key map "<" 'term-pager-bob)
+	(define-key map ">" 'term-pager-eob)
+	(setq term-pager-break-map map)))
+;  (let ((process (get-buffer-process (current-buffer))))
+;    (stop-process process))  
+  (setq term-pager-old-local-map (current-local-map))
+  (use-local-map term-pager-break-map)
+  (make-local-variable 'term-old-mode-line-format)
+  (setq term-old-mode-line-format mode-line-format)
+  (setq mode-line-format
+	(list "--  **MORE**  "
+	      mode-line-buffer-identification
+	      " [Type ? for help] "
+	      "%-")))
+
+(defun term-pager-line (lines)
+  (interactive "p")
+  (let* ((moved (vertical-motion (1+ lines)))
+	 (deficit (- lines moved)))
+    (if (> moved lines)
+	(backward-char))
+    (cond ((<= deficit 0) ;; OK, had enough in the buffer for request.
+	   (recenter (1- term-height)))
+	  ((term-pager-continue deficit)))))
+
+(defun term-pager-page (arg)
+  "Proceed past the **MORE** break, allowing the next page of output to appear"
+  (interactive "p")
+  (term-pager-line (* arg term-height)))
+
+; Pager mode command to go to beginning of buffer
+(defun term-pager-bob ()
+  (interactive)
+  (goto-char (point-min))
+  (if (= (vertical-motion term-height) term-height)
+      (backward-char))
+  (recenter (1- term-height)))
+
+; pager mode command to go to end of buffer
+(defun term-pager-eob ()
+  (interactive)
+  (goto-char term-home-marker)
+  (recenter 0)
+  (goto-char (process-mark (get-buffer-process (current-buffer)))))
+
+(defun term-pager-back-line (lines)
+  (interactive "p")
+  (vertical-motion (- 1 lines))
+  (if (not (bobp))
+      (backward-char)
+    (beep)
+    ;; Move cursor to end of window.
+    (vertical-motion term-height)
+    (backward-char))
+  (recenter (1- term-height)))
+
+(defun term-pager-back-page (arg)
+  (interactive "p")
+  (term-pager-back-line (* arg term-height)))
+
+(defun term-pager-discard ()
+  (interactive)
+  (setq term-terminal-parameter "")
+  (interrupt-process nil t)
+  (term-pager-continue term-height))
+
+; Disable pager processing.
+; Only callable while in pager mode.  (Contrast term-disable-pager.)
+(defun term-pager-disable ()
+  (interactive)
+  (if (term-handling-pager)
+      (term-pager-continue nil)
+    (setq term-pager-count nil)))
+    
+; Enable pager processing.
+(defun term-pager-enable ()
+  (interactive)
+  (or term-pager-count
+      (setq term-pager-count 0))) ;; Or maybe set to (term-current-row) ??
+
+(defun term-pager-help ()
+  "Provide help on commands available in a terminal-emulator **MORE** break"
+  (interactive)
+  (message "Terminal-emulator pager break help...")
+  (sit-for 0)
+  (with-electric-help
+    (function (lambda ()
+		(princ (substitute-command-keys
+"\\<term-pager-break-map>\
+Terminal-emulator MORE break.\n\
+Type one of the following keys:\n\n\
+\\[term-pager-page]\t\tMove forward one page.\n\
+\\[term-pager-line]\t\tMove forward one line.\n\
+\\[universal-argument] N \\[term-pager-page]\tMove N pages forward.\n\
+\\[universal-argument] N \\[term-pager-line]\tMove N lines forward.\n\
+\\[universal-argument] N \\[term-pager-back-line]\tMove N lines back.\n\
+\\[universal-argument] N \\[term-pager-back-page]\t\tMove N pages back.\n\
+\\[term-pager-bob]\t\tMove to the beginning of the buffer.\n\
+\\[term-pager-eob]\t\tMove to the end of the buffer.\n\
+\\[term-pager-discard]\t\tKill pending output and kill process.\n\
+\\[term-pager-disable]\t\tDisable PAGER handling.\n\n\
+\\{term-pager-break-map}\n\
+Any other key is passed through to the program
+running under the terminal emulator and disables pager processing until
+all pending output has been dealt with."))
+		nil))))
+
+(defun term-pager-continue (new-count)
+  (let ((process (get-buffer-process (current-buffer))))
+    (use-local-map term-pager-old-local-map)
+    (setq term-pager-old-local-map nil)
+    (setq mode-line-format term-old-mode-line-format)
+    (setq term-pager-count new-count)
+    (set-process-filter process term-pager-old-filter)
+    (funcall term-pager-old-filter process "")
+    (continue-process process)))
+
+;; Make sure there are DOWN blank lines below the current one.
+;; Return 0 if we're unable (because of PAGER handling), else return DOWN.
+
+(defun term-handle-scroll (down)
+  (let ((scroll-needed
+	 (- (+ (term-current-row) down 1) term-scroll-end)))
+    (if (> scroll-needed 0)
+	(let ((save-point (copy-marker (point))) (save-top))
+	  (goto-char term-home-marker)
+	  (cond (term-scroll-with-delete
+		 ;; delete scroll-needed lines at term-scroll-start
+		 (term-vertical-motion term-scroll-start)
+		 (setq save-top (point))
+		 (term-vertical-motion scroll-needed)
+		 (delete-region save-top (point))
+		 (goto-char save-point)
+		 (term-vertical-motion down)
+		 (term-insert-char ?\n scroll-needed))
+		((and (numberp term-pager-count)
+		      (< (setq term-pager-count (- term-pager-count down))
+			 0))
+		 (setq down 0)
+		 (term-process-pager))
+		(t
+		 (term-vertical-motion scroll-needed)
+		 (set-marker term-home-marker (point))))
+	  (goto-char save-point)
+	  (set-marker save-point nil)
+	  (setq term-current-column nil)
+	  (setq term-line-start-column nil)
+	  (setq term-current-row nil))))
+  down)
+
+(defun term-down (down right &optional check-for-scroll)
+  "Move down DOWN screen lines vertically, and RIGHT columns horizontally."
+  (let ((start-column (term-horizontal-column)))
+    (if check-for-scroll
+	(setq down (term-handle-scroll down)))
+    (term-adjust-current-row-cache down)
+    (setq down (- down (term-vertical-motion down)))
+    ; Extend buffer with extra blank lines if needed.
+    (if (> down 0) (term-insert-char ?\n down))
+    (setq term-current-column nil)
+    (setq term-start-line-column (current-column))
+    (move-to-column (+ term-start-line-column start-column right) t)))
+
+;; Assuming point is at the beginning of a screen line,
+;; if the line above point wraps around, add a ?\n to undo the wrapping.
+;; FIXME:  Probably should be called more than it is.
+(defun term-unwrap-line ()
+  (if (not (bolp)) (insert-before-markers ?\n)))
+
+(defun term-erase-in-line (kind)
+  (if (> kind 1) ;; erase left of point
+      (let ((cols (term-horizontal-column)) (saved-point (point))
+	    (term-vertical-motion 0)
+	    (delete-region (point) saved-point)
+	    (term-insert-char ?\n cols))))
+  (if (not (eq kind 1)) ;; erase right of point
+      (let ((saved-point (point))
+	    (wrapped (and (zerop (term-horizontal-column))
+			  (not (zerop (term-current-column))))))
+	(term-vertical-motion 1)
+	(delete-region saved-point (point))
+	;; wrapped is true if we're at the beginning of screen line,
+	;; but not a buffer line.  If we delete the current screen line
+	;; that will make the previous line no longer wrap, and (because
+	;; of the way emacs display works) point will be at the end of
+	;; the previous screen line rather then the beginning of the
+	;; current one. To avoid that, we make sure that current line
+	;; contain a space, to force the previous line to continue to wrap.
+	;; We could do this always, but it seems preferable to not add the
+	;; extra space when wrapped is false.
+	(if wrapped
+	    (insert ? ))
+	(insert ?\n)
+	(put-text-property saved-point (point) 'face 'default)
+	(goto-char saved-point))))
+
+(defun term-erase-in-display (kind)
+  "Erases (that is blanks out) part of the window.
+If KIND is 0, erase from (point) to (point-max);
+if KIND is 1, erase from home to point; else erase from home to point-max.
+Should only be called when point is at the start of a screen line."
+  (cond ((eq term-terminal-parameter 0)
+	 (delete-region (point) (point-max))
+	 (term-unwrap-line))
+	((let ((row (term-current-row))
+	      (col (term-horizontal-column))
+	      (start-region term-home-marker)
+	      (end-region (if (eq kind 1) (point) (point-max))))
+	   (delete-region start-region end-region)
+	   (term-unwrap-line)
+	   (if (eq kind 1)
+	       (term-insert-char \?n row))
+	   (setq term-current-column nil)
+	   (setq term-line-start-column nil)
+	   (setq term-current-row nil)
+	   (term-goto row col)))))
+
+(defun term-delete-chars (count)
+  (let ((save-point (point)))
+    (term-vertical-motion 1)
+    (term-unwrap-line)
+    (goto-char save-point)
+    (move-to-column (+ (term-current-column) count) t)
+    (delete-region save-point (point))))
+
+(defun term-insert-spaces (count)
+  (let ((save-point (point)) (save-eol))
+    (term-vertical-motion 1)
+    (if (bolp)
+	(backward-char))
+    (setq save-eol (point))
+    (move-to-column (+ (term-start-line-column) (- term-width count)) t)
+    (if (> save-eol (point))
+	(delete-region (point) save-eol))
+    (goto-char save-point)
+    (term-insert-char ?  count)
+    (goto-char save-point)))
+
+(defun term-delete-lines (lines)
+  (let ((start (point))
+	(save-current-column term-current-column)
+	(save-start-line-column term-start-line-column)
+	(save-current-row (term-current-row)))
+    (term-down lines 0)
+    (delete-region start (point))
+    (term-down (- term-scroll-end save-current-row lines) 0)
+    (term-insert-char ?\n lines)
+    (setq term-current-column save-current-column)
+    (setq term-start-line-column save-start-line-column)
+    (setq term-current-row save-current-row)
+    (goto-char start)))
+
+(defun term-insert-lines (lines)
+  (let ((start (point))
+	(start-deleted)
+	(save-current-column term-current-column)
+	(save-start-line-column term-start-line-column)
+	(save-current-row (term-current-row)))
+    (term-down (- term-scroll-end save-current-row lines) 0)
+    (setq start-deleted (point))
+    (term-down lines 0)
+    (delete-region start-deleted (point))
+    (goto-char start)
+    (setq term-current-column save-current-column)
+    (setq term-start-line-column save-start-line-column)
+    (setq term-current-row save-current-row)
+    (term-insert-char ?\n lines)
+    (goto-char start)))
+
+(defun term-set-output-log (name)
+  "Record raw inferior process output in a buffer."
+  (interactive (list (if term-log-buffer
+			 nil
+		       (read-buffer "Record output in buffer: "
+				    (format "%s output-log"
+					    (buffer-name (current-buffer)))
+				    nil))))
+  (if (or (null name) (equal name ""))
+      (progn (setq term-log-buffer nil)
+	     (message "Output logging off."))
+    (if (get-buffer name)
+	nil
+      (save-excursion
+	(set-buffer (get-buffer-create name))
+	(fundamental-mode)
+	(buffer-disable-undo (current-buffer))
+	(erase-buffer)))
+    (setq term-log-buffer (get-buffer name))
+    (message "Recording terminal emulator output into buffer \"%s\""
+	     (buffer-name term-log-buffer))))
+
+(defun term-stop-photo ()
+  "Discontinue raw inferior process logging."
+  (interactive)
+  (term-set-output-log nil))
+
+(defun term-show-maximum-output ()
+  "Put the end of the buffer at the bottom of the window."
+  (interactive)
+  (goto-char (point-max))
+  (recenter -1))
+
+;;; Do the user's customisation...
+
+(defvar term-load-hook nil
+  "This hook is run when term is loaded in.
+This is a good place to put keybindings.")
+	
+(run-hooks 'term-load-hook)
+
+
+;;; Filename/command/history completion in a buffer
+;;; ===========================================================================
+;;; Useful completion functions, courtesy of the Ergo group.
+
+;;; Six commands:
+;;; term-dynamic-complete		Complete or expand command, filename,
+;;;                                     history at point.
+;;; term-dynamic-complete-filename	Complete filename at point.
+;;; term-dynamic-list-filename-completions List completions in help buffer.
+;;; term-replace-by-expanded-filename	Expand and complete filename at point;
+;;;					replace with expanded/completed name.
+;;; term-dynamic-simple-complete	Complete stub given candidates.
+
+;;; These are not installed in the term-mode keymap. But they are
+;;; available for people who want them. Shell-mode installs them:
+;;; (define-key shell-mode-map "\t" 'term-dynamic-complete)
+;;; (define-key shell-mode-map "\M-?"
+;;;             'term-dynamic-list-filename-completions)))
+;;;
+;;; Commands like this are fine things to put in load hooks if you
+;;; want them present in specific modes.
+
+(defvar term-completion-autolist nil
+  "*If non-nil, automatically list possiblities on partial completion.
+This mirrors the optional behavior of tcsh.")
+
+(defvar term-completion-addsuffix t
+  "*If non-nil, add a `/' to completed directories, ` ' to file names.
+This mirrors the optional behavior of tcsh.")
+
+(defvar term-completion-recexact nil
+  "*If non-nil, use shortest completion if characters cannot be added.
+This mirrors the optional behavior of tcsh.
+
+A non-nil value is useful if `term-completion-autolist' is non-nil too.")
+
+(defvar term-completion-fignore nil
+  "*List of suffixes to be disregarded during file completion.
+This mirrors the optional behavior of bash and tcsh.
+
+Note that this applies to `term-dynamic-complete-filename' only.")
+
+(defvar term-file-name-prefix ""
+  "Prefix prepended to absolute file names taken from process input.
+This is used by term's and shell's completion functions, and by shell's
+directory tracking functions.")
+
+
+(defun term-directory (directory)
+  ;; Return expanded DIRECTORY, with `term-file-name-prefix' if absolute.
+  (expand-file-name (if (file-name-absolute-p directory)
+			(concat term-file-name-prefix directory)
+		      directory)))
+
+
+(defun term-word (word-chars)
+  "Return the word of WORD-CHARS at point, or nil if non is found.
+Word constituents are considered to be those in WORD-CHARS, which is like the
+inside of a \"[...]\" (see `skip-chars-forward')."
+  (save-excursion
+    (let ((limit (point))
+	  (word (concat "[" word-chars "]"))
+	  (non-word (concat "[^" word-chars "]")))
+      (if (re-search-backward non-word nil 'move)
+	  (forward-char 1))
+      ;; Anchor the search forwards.
+      (if (or (eolp) (looking-at non-word))
+	  nil
+	(re-search-forward (concat word "+") limit)
+	(buffer-substring (match-beginning 0) (match-end 0))))))
+
+
+(defun term-match-partial-filename ()
+  "Return the filename at point, or nil if non is found.
+Environment variables are substituted.  See `term-word'."
+  (let ((filename (term-word "~/A-Za-z0-9+@:_.$#,={}-")))
+    (and filename (substitute-in-file-name filename))))
+
+
+(defun term-dynamic-complete ()
+  "Dynamically perform completion at point.
+Calls the functions in `term-dynamic-complete-functions' to perform
+completion until a function returns non-nil, at which point completion is
+assumed to have occurred."
+  (interactive)
+  (let ((functions term-dynamic-complete-functions))
+    (while (and functions (null (funcall (car functions))))
+      (setq functions (cdr functions)))))
+
+
+(defun term-dynamic-complete-filename ()
+  "Dynamically complete the filename at point.
+Completes if after a filename.  See `term-match-partial-filename' and
+`term-dynamic-complete-as-filename'.
+This function is similar to `term-replace-by-expanded-filename', except that
+it won't change parts of the filename already entered in the buffer; it just
+adds completion characters to the end of the filename.  A completions listing
+may be shown in a help buffer if completion is ambiguous.
+
+Completion is dependent on the value of `term-completion-addsuffix',
+`term-completion-recexact' and `term-completion-fignore', and the timing of
+completions listing is dependent on the value of `term-completion-autolist'.
+
+Returns t if successful."
+  (interactive)
+  (if (term-match-partial-filename)
+      (prog2 (or (eq (selected-window) (minibuffer-window))
+		 (message "Completing file name..."))
+	  (term-dynamic-complete-as-filename))))
+
+(defun term-dynamic-complete-as-filename ()
+  "Dynamically complete at point as a filename.
+See `term-dynamic-complete-filename'.  Returns t if successful."
+  (let* ((completion-ignore-case nil)
+	 (completion-ignored-extensions term-completion-fignore)
+	 (success t)
+	 (filename (or (term-match-partial-filename) ""))
+	 (pathdir (file-name-directory filename))
+	 (pathnondir (file-name-nondirectory filename))
+	 (directory (if pathdir (term-directory pathdir) default-directory))
+	 (completion (file-name-completion pathnondir directory))
+	 (mini-flag (eq (selected-window) (minibuffer-window))))
+    (cond ((null completion)
+           (message "No completions of %s" filename)
+	   (setq success nil))
+          ((eq completion t)            ; Means already completed "file".
+           (if term-completion-addsuffix (insert " "))
+           (or mini-flag (message "Sole completion")))
+          ((string-equal completion "") ; Means completion on "directory/".
+           (term-dynamic-list-filename-completions))
+          (t                            ; Completion string returned.
+           (let ((file (concat (file-name-as-directory directory) completion)))
+             (insert (substring (directory-file-name completion)
+                                (length pathnondir)))
+             (cond ((symbolp (file-name-completion completion directory))
+                    ;; We inserted a unique completion.
+                    (if term-completion-addsuffix
+                        (insert (if (file-directory-p file) "/" " ")))
+                    (or mini-flag (message "Completed")))
+                   ((and term-completion-recexact term-completion-addsuffix
+                         (string-equal pathnondir completion)
+                         (file-exists-p file))
+                    ;; It's not unique, but user wants shortest match.
+                    (insert (if (file-directory-p file) "/" " "))
+                    (or mini-flag (message "Completed shortest")))
+                   ((or term-completion-autolist
+                        (string-equal pathnondir completion))
+                    ;; It's not unique, list possible completions.
+                    (term-dynamic-list-filename-completions))
+                   (t
+                    (or mini-flag (message "Partially completed")))))))
+    success))
+
+
+(defun term-replace-by-expanded-filename ()
+  "Dynamically expand and complete the filename at point.
+Replace the filename with an expanded, canonicalised and completed replacement.
+\"Expanded\" means environment variables (e.g., $HOME) and `~'s are replaced
+with the corresponding directories.  \"Canonicalised\" means `..'  and `.' are
+removed, and the filename is made absolute instead of relative.  For expansion
+see `expand-file-name' and `substitute-in-file-name'.  For completion see
+`term-dynamic-complete-filename'."
+  (interactive)
+  (replace-match (expand-file-name (term-match-partial-filename)) t t)
+  (term-dynamic-complete-filename))
+
+
+(defun term-dynamic-simple-complete (stub candidates)
+  "Dynamically complete STUB from CANDIDATES list.
+This function inserts completion characters at point by completing STUB from
+the strings in CANDIDATES.  A completions listing may be shown in a help buffer
+if completion is ambiguous.
+
+Returns nil if no completion was inserted.
+Returns `sole' if completed with the only completion match.
+Returns `shortest' if completed with the shortest of the completion matches.
+Returns `partial' if completed as far as possible with the completion matches.
+Returns `listed' if a completion listing was shown.
+
+See also `term-dynamic-complete-filename'."
+  (let* ((completion-ignore-case nil)
+	 (candidates (mapcar (function (lambda (x) (list x))) candidates))
+	 (completions (all-completions stub candidates)))
+    (cond ((null completions)
+ 	   (message "No completions of %s" stub)
+	   nil)
+ 	  ((= 1 (length completions))	; Gotcha!
+ 	   (let ((completion (car completions)))
+ 	     (if (string-equal completion stub)
+ 		 (message "Sole completion")
+ 	       (insert (substring completion (length stub)))
+ 	       (message "Completed"))
+	     (if term-completion-addsuffix (insert " "))
+	     'sole))
+ 	  (t				; There's no unique completion.
+ 	   (let ((completion (try-completion stub candidates)))
+ 	     ;; Insert the longest substring.
+ 	     (insert (substring completion (length stub)))
+ 	     (cond ((and term-completion-recexact term-completion-addsuffix
+ 			 (string-equal stub completion)
+ 			 (member completion completions))
+ 		    ;; It's not unique, but user wants shortest match.
+ 		    (insert " ")
+ 		    (message "Completed shortest")
+		    'shortest)
+ 		   ((or term-completion-autolist
+ 			(string-equal stub completion))
+ 		    ;; It's not unique, list possible completions.
+ 		    (term-dynamic-list-completions completions)
+		    'listed)
+ 		   (t
+		    (message "Partially completed")
+		    'partial)))))))
+
+
+(defun term-dynamic-list-filename-completions ()
+  "List in help buffer possible completions of the filename at point."
+  (interactive)
+  (let* ((completion-ignore-case nil)
+	 (filename (or (term-match-partial-filename) ""))
+	 (pathdir (file-name-directory filename))
+	 (pathnondir (file-name-nondirectory filename))
+	 (directory (if pathdir (term-directory pathdir) default-directory))
+	 (completions (file-name-all-completions pathnondir directory)))
+    (if completions
+	(term-dynamic-list-completions completions)
+      (message "No completions of %s" filename))))
+
+
+(defun term-dynamic-list-completions (completions)
+  "List in help buffer sorted COMPLETIONS.
+Typing SPC flushes the help buffer."
+  (let ((conf (current-window-configuration)))
+    (with-output-to-temp-buffer "*Completions*"
+      (display-completion-list (sort completions 'string-lessp)))
+    (message "Hit space to flush")
+    (let (key first)
+      (if (save-excursion
+	    (set-buffer (get-buffer "*Completions*"))
+	    (setq key (read-key-sequence nil)
+		  first (aref key 0))
+	    (and (consp first)
+		 (eq (window-buffer (posn-window (event-start first)))
+		     (get-buffer "*Completions*"))
+		 (eq (key-binding key) 'mouse-choose-completion)))
+	  ;; If the user does mouse-choose-completion with the mouse,
+	  ;; execute the command, then delete the completion window.
+	  (progn
+	    (mouse-choose-completion first)
+	    (set-window-configuration conf))
+	(if (eq first ?\ )
+	    (set-window-configuration conf)
+	  (setq unread-command-events (listify-key-sequence key)))))))
+
+;;; Converting process modes to use term mode
+;;; ===========================================================================
+;;; Renaming variables
+;;; Most of the work is renaming variables and functions. These are the common
+;;; ones:
+;;; Local variables:
+;;;	last-input-start	term-last-input-start
+;;; 	last-input-end		term-last-input-end
+;;;	shell-prompt-pattern	term-prompt-regexp
+;;;     shell-set-directory-error-hook <no equivalent>
+;;; Miscellaneous:
+;;;	shell-set-directory	<unnecessary>
+;;; 	shell-mode-map		term-mode-map
+;;; Commands:
+;;;	shell-send-input	term-send-input
+;;;	shell-send-eof		term-delchar-or-maybe-eof
+;;; 	kill-shell-input	term-kill-input
+;;;	interrupt-shell-subjob	term-interrupt-subjob
+;;;	stop-shell-subjob	term-stop-subjob
+;;;	quit-shell-subjob	term-quit-subjob
+;;;	kill-shell-subjob	term-kill-subjob
+;;;	kill-output-from-shell	term-kill-output
+;;;	show-output-from-shell	term-show-output
+;;;	copy-last-shell-input	Use term-previous-input/term-next-input
+;;;
+;;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
+;;; SHELL-DIRECTORY-TRACKER, the shell mode's term-input-filter-functions.
+;;; Term mode does not provide functionality equivalent to
+;;; shell-set-directory-error-hook; it is gone.
+;;;
+;;; term-last-input-start is provided for modes which want to munge
+;;; the buffer after input is sent, perhaps because the inferior
+;;; insists on echoing the input.  The LAST-INPUT-START variable in
+;;; the old shell package was used to implement a history mechanism,
+;;; but you should think twice before using term-last-input-start
+;;; for this; the input history ring often does the job better.
+;;; 
+;;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
+;;; *not* create the term-mode local variables in your foo-mode function.
+;;; This is not modular.  Instead, call term-mode, and let *it* create the
+;;; necessary term-specific local variables. Then create the
+;;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
+;;; be foo-mode-map, and its mode to be foo-mode.  Set the term-mode hooks
+;;; (term-{prompt-regexp, input-filter, input-filter-functions,
+;;; get-old-input) that need to be different from the defaults.  Call
+;;; foo-mode-hook, and you're done. Don't run the term-mode hook yourself;
+;;; term-mode will take care of it. The following example, from shell.el,
+;;; is typical:
+;;; 
+;;; (defvar shell-mode-map '())
+;;; (cond ((not shell-mode-map)
+;;;        (setq shell-mode-map (copy-keymap term-mode-map))
+;;;        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
+;;;        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
+;;;        (define-key shell-mode-map "\t" 'term-dynamic-complete)
+;;;        (define-key shell-mode-map "\M-?"
+;;;          'term-dynamic-list-filename-completions)))
+;;;
+;;; (defun shell-mode ()
+;;;   (interactive)
+;;;   (term-mode)
+;;;   (setq term-prompt-regexp shell-prompt-pattern)
+;;;   (setq major-mode 'shell-mode)
+;;;   (setq mode-name "Shell")
+;;;   (use-local-map shell-mode-map)
+;;;   (make-local-variable 'shell-directory-stack)
+;;;   (setq shell-directory-stack nil)
+;;;   (add-hook 'term-input-filter-functions 'shell-directory-tracker)
+;;;   (run-hooks 'shell-mode-hook))
+;;;
+;;;
+;;; Note that make-term is different from make-shell in that it
+;;; doesn't have a default program argument. If you give make-shell
+;;; a program name of NIL, it cleverly chooses one of explicit-shell-name,
+;;; $ESHELL, $SHELL, or /bin/sh. If you give make-term a program argument
+;;; of NIL, it barfs. Adjust your code accordingly...
+;;;
+;;; Completion for term-mode users
+;;; 
+;;; For modes that use term-mode, term-dynamic-complete-functions is the
+;;; hook to add completion functions to.  Functions on this list should return
+;;; non-nil if completion occurs (i.e., further completion should not occur).
+;;; You could use term-dynamic-simple-complete to do the bulk of the
+;;; completion job.
+
+(provide 'term)
+
+;;; term.el ends here
+
