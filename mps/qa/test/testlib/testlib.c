@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.13) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.14) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -160,7 +160,7 @@ void error(const char *format, ...)
  va_end(args);
 }
 
-static void myabort(void) {
+void myabort(void) {
  exit(EXIT_FAILURE);
 }
 
@@ -258,16 +258,34 @@ static void *call_f(void *p, size_t s)
 
 #if defined(MMQA_VERS_SW)
 
-void easy_tramp(void (*f)(void)) {
+void easy_tramp2(void (*f)(void)) {
  call_f(&f, (size_t) 0);
 }
 
 #else
 
-void easy_tramp(void (*f)(void)) {
+void easy_tramp2(void (*f)(void)) {
  void *result;
 
  mps_tramp(&result, call_f, &f, (size_t)0);
+}
+
+#endif
+
+#ifdef MPS_OS_W3
+
+void easy_tramp(void (*f)(void)) {
+ __try {
+  easy_tramp2(f);
+ } __except(mySEHFilter(GetExceptionInformation())) {
+  error("Exception handler messed up.");
+ }
+}
+
+#else
+
+void easy_tramp(void (*f)(void)) {
+ easy_tramp2(f);
 }
 
 #endif
