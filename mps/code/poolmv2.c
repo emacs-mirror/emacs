@@ -1,7 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * $HopeName: MMsrc!poolmv2.c(trunk.19) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: A manual-variable pool designed to take advantage of

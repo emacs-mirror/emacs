@@ -1,7 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
  *  $Id$
- *  $HopeName: MMsrc!cbstest.c(trunk.11) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,7 +1,6 @@
 /* impl.c.meter: METERS
  *
  * $Id$
- * $HopeName: MMsrc!meter.c(trunk.10) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * TRANSGRESSIONS

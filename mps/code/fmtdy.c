@@ -1,7 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  $HopeName: MMsrc!fmtdy.c(trunk.20) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers, Dylan developers

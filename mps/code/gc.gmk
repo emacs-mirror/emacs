@@ -1,7 +1,6 @@
 # impl.gmk.gc: GNUMAKEFILE FRAGMENT FOR GNU CC
 #
 # $Id$
-# $HopeName: MMsrc!gc.gmk(trunk.26) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the GNU CC

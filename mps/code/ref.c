@@ -1,7 +1,6 @@
 /* impl.c.ref: REFERENCES
  *
  * $Id$
- * $HopeName: MMsrc!ref.c(trunk.13) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.

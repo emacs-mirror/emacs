@@ -1,7 +1,6 @@
 # impl.gmk.sos9sc: BUILD FOR SOLARIS/SPARC V9/SUNPRO C PLATFORM
 #
 # $Id$
-# $HopeName: MMsrc!sos9sc.gmk(trunk.23) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This is the GNU makefile for platform.sos9sc.

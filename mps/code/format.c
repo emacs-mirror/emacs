@@ -1,7 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
  * $Id$
- * $HopeName: MMsrc!format.c(trunk.21) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

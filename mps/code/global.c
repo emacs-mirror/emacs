@@ -1,7 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * $HopeName: MMsrc!global.c(trunk.13) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant

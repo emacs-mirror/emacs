@@ -1,7 +1,6 @@
 /*  impl.c.protli: PROTECTION FOR LINUX
  *
  *  $Id$
- *  $HopeName: MMsrc!protli.c(trunk.1) $
  *  Copyright (c) 2001 Ravenbrook Limited.
  *
  */

@@ -1,7 +1,6 @@
 @rem impl.bat.gathconf: GATHERING A RELEASE FOR CONFIGURA
 @rem
 @rem $Id$
-@rem $HopeName: MMsrc!gathconf.bat(trunk.2) $
 @rem Copyright (c) 2001 Ravenbrook Limited.
 
 mkdir release

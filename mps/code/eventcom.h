@@ -2,7 +2,6 @@
  *
  * Copyright (c) 2001 Ravenbrook Limited.
  * $Id$
- * $HopeName: MMsrc!eventcom.h(trunk.21) $
  *
  * .sources: mps.design.telemetry
  */

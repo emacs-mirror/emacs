@@ -1,7 +1,6 @@
 /* impl.h.mpscaawl: MEMORY POOL SYSTEM CLASS "AWL"
  *
  * $Id$
- * $HopeName: MMsrc!mpscawl.h(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,7 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
  * $Id$
- * $HopeName: MMsrc!poollo.c(trunk.20) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * DESIGN

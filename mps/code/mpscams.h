@@ -1,7 +1,6 @@
 /* impl.h.mpscams: MEMORY POOL SYSTEM CLASS "AMS"
  *
  * $Id$
- * $HopeName: MMsrc!mpscams.h(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  */
 

@@ -1,7 +1,6 @@
 /* impl.c.teletest: TELEMETRY TEST
  *
  * $Id$
- * $HopeName: MMsrc!teletest.c(trunk.6) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: The command parser here was taken and adapted from bttest.c.

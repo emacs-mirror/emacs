@@ -1,7 +1,6 @@
 # impl.gmk.lippgc: BUILD FOR LINUX/POWER(32)/GCC PLATFORM
 #
 # $Id$
-# $HopeName: MMsrc!lippgc.gmk(trunk.6) $
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This is the GNU makefile for platform.lippgc.

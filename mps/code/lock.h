@@ -1,7 +1,6 @@
 /* impl.h.lock: RECURSIVE LOCKS
  *
  * $Id$
- * $HopeName: MMsrc!lock.h(trunk.6) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .description: [@@@@ Should be combined with design.mps.lock]

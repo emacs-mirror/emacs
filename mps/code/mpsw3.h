@@ -1,7 +1,6 @@
 /* impl.h.mpsw3: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE, WINDOWS PART
  *
  * $Id$
- * $HopeName: MMsrc!mpsw3.h(trunk.3) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: customers, MPS developers.

@@ -3,7 +3,6 @@
 !                      STACK SCANNING
 !
 !  $Id$
-!  $HopeName: MMsrc!sssus8.s(trunk.5) $
 !
 !  Copyright (c) 2001 Ravenbrook Limited.
 !

@@ -1,7 +1,6 @@
 /* impl.c.proti3: PROTECTION MUTATOR CONTEXT (INTEL 386)
  *
  * $Id$
- * $HopeName: MMsrc!proti3.c(trunk.2) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: See design.mps.prot for the generic design of the interface

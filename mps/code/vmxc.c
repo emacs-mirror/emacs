@@ -1,7 +1,6 @@
 /* impl.c.vmxc: VIRTUAL MEMORY MAPPING FOR MacOS X
  *
  * $Id$
- * $HopeName: MMsrc!vmxc.c(trunk.4) $
  * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: design.mps.vm
