@@ -1,4 +1,8 @@
-;; keybinding for standard default sunterm keys
+;; sun.el --- keybinding for standard default sunterm keys
+
+;; Author: Jeff Peck <peck@sun.com>
+;; Keywords: terminals
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,11 +22,12 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;;  Jeff Peck, Sun Microsystems Inc  <peck@sun.com>
+;;; Commentary:
 
 ;; The function key sequences for the console have been converted for
 ;; use with function-key-map, but the *tool stuff hasn't been touched.
 
+;;; Code:
 
 (defun ignore-key ()
   "interactive version of ignore"
@@ -104,7 +109,7 @@
 (define-key sun-raw-prefix "218z" [r11])
 (define-key sun-raw-prefix "220z" [r13])
 (define-key sun-raw-prefix "222z" [r15])
-(define-key sun-raw-prefix "193z" [again])
+(define-key sun-raw-prefix "193z" [redo])
 (define-key sun-raw-prefix "194z" [props])
 (define-key sun-raw-prefix "195z" [undo])
 ; (define-key sun-raw-prefix "196z" 'ignore-key)		; Expose-down
@@ -129,7 +134,7 @@
 (global-set-key [r11]	'recenter)
 (global-set-key [r13]	'end-of-buffer)
 (global-set-key [r15]	'scroll-up)
-(global-set-key [again]	'redraw-display)
+(global-set-key [redo]	'redraw-display)
 (global-set-key [props]	'list-buffers)
 (global-set-key [undo]	'undo)
 (global-set-key [put]	'sun-select-region)
@@ -156,7 +161,7 @@
     ))
 
 
-;;; This section adds defintions for the emacstool users
+;;; This section adds definitions for the emacstool users
 ;;; emacstool event filter converts function keys to C-x*{c}{lrt}
 ;;;
 ;;; for example the Open key (L7) would be encoded as "\C-x*gl"
@@ -271,3 +276,5 @@
   (sun-mouse-handler)			; Now, execute this mouse blip.
   )
 (define-key ctl-x-map "\C-@" 'sun-mouse-once)
+
+;;; sun.el ends here
