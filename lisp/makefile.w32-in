@@ -194,7 +194,7 @@ compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
 
 compile-files-CMD:
 	set EMACSLOADPATH=$(lisp)
-	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
+#	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
 	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
 	for %f in ($(lisp) $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
 

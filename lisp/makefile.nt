@@ -175,7 +175,7 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 compile-files: subdirs.el doit
-	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
+#	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
 	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
 	for %f in ($(lisp) $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
 
