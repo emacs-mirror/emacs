@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.27) $
+ * $HopeName: MMsrc!buffer.c(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.27) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.28) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -545,7 +545,13 @@ void BufferFlip(Buffer buffer)
 
   if(buffer->rankSet != RankSetEMPTY &&
      buffer->apStruct.limit != (Addr)0) {
+    /* removing this aver because it isn't true.  after a flip */
+    /* when a buffer is unflipped by updating limit, initAtFlip */
+    /* isn't updated */
+    /* see change.dylan.sunflower.3.170429 */
+#if 0
     AVER(buffer->initAtFlip == buffer->base);
+#endif
     buffer->initAtFlip = buffer->apStruct.init;
     buffer->apStruct.limit = (Addr)0;
   }

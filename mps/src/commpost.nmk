@@ -1,11 +1,11 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.5) $
+# $HopeName: MMsrc!commpost.nmk(trunk.6) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
 #
-# Second common makefile fragment for nt*mv.nmk.  See commpre.nmk
+# Second common makefile fragment for w3*mv.nmk.  See commpre.nmk
 
 
 # == Pseudo-targets
@@ -23,7 +23,7 @@ all: mpmss.exe amcss.exe dwstress.exe lockutw3.exe lockcov.exe \
 dwstress.exe amcss.exe lockutw3.exe lockcov.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
      weakcv.exe mpmconft.exe finalcv.exe awlut.exe \
-     mpm.lib mmdw.lib mmsw.lib poolawl.lib:
+     mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -129,7 +129,11 @@ $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ)
+$(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(AWLOBJ) $(LOOBJ)
+	$(ECHO) $@
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 

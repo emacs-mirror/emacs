@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.36) $
+ * $HopeName: MMsrc!mpm.h(trunk.37) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -536,6 +536,8 @@ extern Bool RankSetCheck(RankSet rankSet);
 #define RankSetIsMember(rs, r)	BS_IS_MEMBER(rs, r)
 #define RankSetSingle(r)	BS_SINGLE(RankSet, r)
 #define RankSetIsSingle(r)	BS_IS_SINGLE(r)
+#define RankSetUnion(rs1, rs2)	BS_UNION(rs1, rs2)
+#define RankSetDel(rs, r)	BS_DEL(RankSet, rs, r)
 
 #define RefSetZone(space, addr) \
   (((Word)(addr) >> space->zoneShift) & (MPS_WORD_WIDTH - 1))

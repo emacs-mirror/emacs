@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.26) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -137,6 +137,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define TraceSetEMPTY	BS_EMPTY(TraceSet) /* design.mps.tracer */
 #define RankSetEMPTY	BS_EMPTY(RankSet)
+#define RankSetUNIV	((1uL<<RankMAX)-1)
 #define AttrFMT         ((Attr)(1<<0))  /* design.mps.type.attr */
 #define AttrSCAN        ((Attr)(1<<1))
 #define AttrPM_NO_READ  ((Attr)(1<<2))
