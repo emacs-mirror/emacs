@@ -392,27 +392,27 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
 
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 5, 0,
   0 /* See immediately above */)
-  (prompt, initial_input, keymap, read, hist)
-     Lisp_Object prompt, initial_input, keymap, read, hist;
+  (prompt, initial_contents, keymap, read, hist)
+     Lisp_Object prompt, initial_contents, keymap, read, hist;
 {
   int pos = 0;
   Lisp_Object histvar, histpos, position;
   position = Qnil;
 
   CHECK_STRING (prompt, 0);
-  if (!NILP (initial_input))
+  if (!NILP (initial_contents))
     {
-      if (XTYPE (initial_input) == Lisp_Cons)
+      if (XTYPE (initial_contents) == Lisp_Cons)
 	{
-	  position = Fcdr (initial_input);
-	  initial_input = Fcar (initial_input);
+	  position = Fcdr (initial_contents);
+	  initial_contents = Fcar (initial_contents);
 	}
-      CHECK_STRING (initial_input, 1);
+      CHECK_STRING (initial_contents, 1);
       if (!NILP (position))
 	{
 	  CHECK_NUMBER (position, 0);
 	  /* Convert to distance from end of input.  */
-	  pos = XINT (position) - 1 - XSTRING (initial_input)->size;
+	  pos = XINT (position) - 1 - XSTRING (initial_contents)->size;
 	}
     }
 
@@ -436,7 +436,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   if (NILP (histpos))
     XFASTINT (histpos) = 0;
 
-  return read_minibuf (keymap, initial_input, prompt,
+  return read_minibuf (keymap, initial_contents, prompt,
 		       make_number (pos), !NILP (read), histvar, histpos);
 }
 
