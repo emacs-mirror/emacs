@@ -1159,41 +1159,41 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
     ;; within byte-compile-from-buffer lingers in that buffer.
     (setq output-buffer (byte-compile-from-buffer input-buffer))
     (or byte-compiler-error-flag
-	(kill-buffer input-buffer))
-    (save-excursion
-      (set-buffer output-buffer)
-      (goto-char (point-max))
-      (insert "\n")			; aaah, unix.
-      (let ((vms-stmlf-recfm t))
-	(setq target-file (byte-compile-dest-file filename))
-;;	(or byte-compile-overwrite-file
-;;	    (condition-case ()
-;;		(delete-file target-file)
-;;	      (error nil)))
-	(if (file-writable-p target-file)
-	    (let ((kanji-flag nil))	; for nemacs, from Nakagawa Takayuki
-	      (write-region 1 (point-max) target-file))
-	  ;; This is just to give a better error message than
-	  ;; write-region
-	  (signal 'file-error
-		  (list "Opening output file"
-			(if (file-exists-p target-file)
-			    "cannot overwrite file"
-			  "directory not writable or nonexistent")
-			target-file)))
-;;	(or byte-compile-overwrite-file
-;;	    (condition-case ()
-;;		(set-file-modes target-file (file-modes filename))
-;;	      (error nil)))
-	)
-      (kill-buffer (current-buffer)))
-    (if (and byte-compile-generate-call-tree
-	     (or (eq t byte-compile-generate-call-tree)
-		 (y-or-n-p (format "Report call tree for %s? " filename))))
-        (save-excursion
-	  (display-call-tree filename)))
-    (if load
-	(load target-file)))
+	(kill-buffer input-buffer)
+	(save-excursion
+	  (set-buffer output-buffer)
+	  (goto-char (point-max))
+	  (insert "\n")			; aaah, unix.
+	  (let ((vms-stmlf-recfm t))
+	    (setq target-file (byte-compile-dest-file filename))
+    ;;	(or byte-compile-overwrite-file
+    ;;	    (condition-case ()
+    ;;		(delete-file target-file)
+    ;;	      (error nil)))
+	    (if (file-writable-p target-file)
+		(let ((kanji-flag nil))	; for nemacs, from Nakagawa Takayuki
+		  (write-region 1 (point-max) target-file))
+	      ;; This is just to give a better error message than
+	      ;; write-region
+	      (signal 'file-error
+		      (list "Opening output file"
+			    (if (file-exists-p target-file)
+				"cannot overwrite file"
+			      "directory not writable or nonexistent")
+			    target-file)))
+    ;;	(or byte-compile-overwrite-file
+    ;;	    (condition-case ()
+    ;;		(set-file-modes target-file (file-modes filename))
+    ;;	      (error nil)))
+	    )
+	  (kill-buffer (current-buffer)))
+	(if (and byte-compile-generate-call-tree
+		 (or (eq t byte-compile-generate-call-tree)
+		     (y-or-n-p (format "Report call tree for %s? " filename))))
+	    (save-excursion
+	      (display-call-tree filename)))
+	(if load
+	    (load target-file))))
   t)
 
 ;;(defun byte-compile-and-load-file (&optional filename)
