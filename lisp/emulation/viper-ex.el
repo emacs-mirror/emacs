@@ -489,7 +489,7 @@ reversed.")
 		      ))
 		   ))
 	    ((eq ex-token-type 'non-command)
-	     (error (format "`%s': %s" ex-token vip-BadExCommand)))
+	     (error "`%s': %s" ex-token vip-BadExCommand))
 	    ((eq ex-token-type 'whole)
 	     (setq address nil)
 	     (setq ex-addresses
@@ -961,22 +961,18 @@ reversed.")
 	     (string= ex-token "change")
 	     (string= ex-token "insert")
 	     (string= ex-token "open"))
-	 (error
-	  (format "`%s': Obsolete command, not supported by Viper"
-		  ex-token)))
+	 (error "`%s': Obsolete command, not supported by Viper" ex-token))
 	((or (string= ex-token "abbreviate")
 	     (string= ex-token "unabbreviate"))
 	 (error
-	  (format
-	   "`%s': Vi-style abbrevs are obsolete. Use the more powerful Emacs abbrevs"
-	   ex-token)))
+	  "`%s': Vi abbrevs are obsolete. Use the more powerful Emacs abbrevs"
+	  ex-token))
 	((or (string= ex-token "list")
 	     (string= ex-token "print")
 	     (string= ex-token "z")
 	     (string= ex-token "#"))
-	 (error
-	  (format "`%s': Command not implemented in Viper" ex-token)))
-	(t (error (format "`%s': %s" ex-token vip-BadExCommand)))))
+	 (error "`%s': Command not implemented in Viper" ex-token))
+	(t (error "`%s': %s" ex-token vip-BadExCommand))))
 
 (defun vip-undisplayed-files ()
   (mapcar
@@ -1581,7 +1577,7 @@ reversed.")
 		 val "nil")))
     (if (eq val 0) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
-	  (message (format ":set %s = <Value>" var))
+	  (message ":set %s = <Value>" var)
 	  ;; if there are unread events, don't wait
 	  (or (vip-set-unread-command-events "") (sit-for 2))
 	  (setq val (read-string (format ":set %s = " var)))
@@ -1653,9 +1649,9 @@ reversed.")
 		))
 	  ))
     
-    (message (format "%s %s %s" set-cmd var (if (string-match "^[ \t]*$" val)
-						(format "%S" val)
-					      val)))
+    (message "%s %s %s" set-cmd var (if (string-match "^[ \t]*$" val)
+					(format "%S" val)
+				      val))
     (eval (car (read-from-string actual-lisp-cmd)))
 	(if (string= var "fill-column")
 		(if (> val2 0)

@@ -31,8 +31,19 @@
       window-system
     (device-type (selected-device))))
 ;; in XEmacs: device-type is tty on tty and stream in batch.
-(defsubst vip-window-display-p ()
+(defun vip-window-display-p ()
   (and (vip-device-type) (not (memq (vip-device-type) '(tty stream)))))
+
+(defvar vip-force-faces nil
+  "If t, Viper will think that it is running on a display that supports faces.
+This is provided as a temporary relief for users of face-capable displays
+that Viper doesn't know about.")
+
+(defun vip-has-face-support-p ()
+  (cond ((vip-window-display-p))
+	(vip-force-faces)
+	(vip-emacs-p (memq (vip-device-type) '(pc)))
+	(vip-xemacs-p (memq (vip-device-type) '(tty pc)))))
 
 
 ;;; Macros
@@ -130,7 +141,7 @@
       (fset 'vip-move-overlay (symbol-function 'set-extent-endpoints))
       (if (vip-window-display-p)
 	  (fset 'vip-iconify (symbol-function 'iconify-frame)))
-      (cond ((vip-window-display-p)
+      (cond ((vip-has-face-support-p)
 	     (fset 'vip-get-face (symbol-function 'get-face))
 	     (fset 'vip-color-defined-p
 		   (symbol-function 'valid-color-name-p))
@@ -145,7 +156,7 @@
   (fset 'vip-move-overlay (symbol-function 'move-overlay))
   (if (vip-window-display-p)
       (fset 'vip-iconify (symbol-function 'iconify-or-deiconify-frame)))
-  (cond ((vip-window-display-p)
+  (cond ((vip-has-face-support-p)
 	 (fset 'vip-get-face (symbol-function 'internal-get-face))
 	 (fset 'vip-color-defined-p (symbol-function 'x-color-defined-p))
 	 )))
@@ -173,7 +184,7 @@
     ))
 
 (defun vip-hide-face (face)
-  (if (and (vip-window-display-p) vip-emacs-p)
+  (if (and (vip-has-face-support-p) vip-emacs-p)
       (add-to-list 'facemenu-unlisted-faces face)))
 
 ;; cursor colors
@@ -555,7 +566,7 @@
 	   (match-beginning 0) (match-end 0) (current-buffer))))
   
   (vip-overlay-put vip-search-overlay 'priority vip-search-overlay-priority)
-  (if (vip-window-display-p)
+  (if (vip-has-face-support-p)
       (progn
 	(vip-overlay-put vip-search-overlay 'face vip-search-face)
 	(sit-for 2)
@@ -569,7 +580,7 @@
     (setq vip-replace-overlay (vip-make-overlay beg end (current-buffer)))
     (vip-overlay-put 
      vip-replace-overlay 'priority vip-replace-overlay-priority)) 
-  (if (vip-window-display-p)
+  (if (vip-has-face-support-p)
       (vip-overlay-put vip-replace-overlay 'face vip-replace-overlay-face))
   (vip-save-cursor-color)
   (vip-change-cursor-color vip-replace-overlay-cursor-color)
@@ -579,11 +590,11 @@
 (defsubst vip-hide-replace-overlay ()
   (vip-set-replace-overlay-glyphs nil nil)
   (vip-restore-cursor-color)
-  (if (vip-window-display-p)
+  (if (vip-has-face-support-p)
       (vip-overlay-put vip-replace-overlay 'face nil)))
       
 (defsubst vip-set-replace-overlay-glyphs (before-glyph after-glyph)
-  (if (or (not (vip-window-display-p))
+  (if (or (not (vip-has-face-support-p))
 	  vip-use-replace-region-delimiters)
       (let ((before-name (if vip-xemacs-p 'begin-glyph 'before-string))
 	    (after-name (if vip-xemacs-p 'end-glyph 'after-string)))
@@ -605,7 +616,7 @@
 
 (defun vip-set-minibuffer-overlay ()
   (vip-check-minibuffer-overlay)
-  (if (vip-window-display-p)
+  (if (vip-has-face-support-p)
       (progn
 	(vip-overlay-put
 	 vip-minibuffer-overlay 'face vip-minibuffer-current-face)
@@ -636,6 +647,12 @@
 
 
 ;;; XEmacs compatibility
+
+(defun vip-abbreviate-file-name (file)
+  (if vip-emacs-p
+      (abbreviate-file-name file)
+    ;; XEmacs requires addl argument
+    (abbreviate-file-name file t)))
     
 ;; Sit for VAL milliseconds. XEmacs doesn't support the millisecond arg 
 ;; in sit-for, so this function smoothes out the differences.

@@ -4694,7 +4694,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	        (text-marker (get-register reg)))
 	   (if com (vip-move-marker-locally 'vip-com-point (point)))
 	   (if (not (vip-valid-marker text-marker))
-	       (error (format vip-EmptyTextmarker char)))
+	       (error vip-EmptyTextmarker char))
 	   (if (and (vip-same-line (point) vip-last-jump)
 		    (= (point) vip-last-jump-ignore))
 	       (push-mark vip-last-jump t) 

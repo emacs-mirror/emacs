@@ -150,10 +150,10 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	     '(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
 	    (setq key-seq (subseq key-seq 0 (- (length key-seq) 2))))
 	(setq message
-	      (format ":map%s %s"
-		 variant (if (> (length key-seq) 0)
-			     (prin1-to-string (vip-display-macro key-seq))
-			   "")))
+	      ":map%s %s"
+	      variant (if (> (length key-seq) 0)
+			  (prin1-to-string (vip-display-macro key-seq))
+			""))
 	(message message)
 	(setq event (vip-read-key))
 	;;(setq event (vip-read-event))
@@ -215,20 +215,20 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	      ((member key '(tab (control i) ?\t))
 	       (setq key-seq (subseq key-seq 0 (1- (length key-seq))))
 	       (setq message 
-		     (format ":unmap%s %s"
-			     variant (if (> (length key-seq) 0)
-					 (prin1-to-string
-					  (vip-display-macro key-seq))
-				       "")))
+		     ":unmap%s %s"
+		     variant (if (> (length key-seq) 0)
+				 (prin1-to-string
+				  (vip-display-macro key-seq))
+			       ""))
 	       (setq key-seq
 		     (vip-do-sequence-completion key-seq macro-alist message))
 	       ))
 	(setq message 
-	      (format ":unmap%s %s"
-		      variant (if (> (length key-seq) 0)
-				  (prin1-to-string
-				   (vip-display-macro key-seq))
-				"")))
+	      ":unmap%s %s"
+	      variant (if (> (length key-seq) 0)
+			  (prin1-to-string
+			   (vip-display-macro key-seq))
+			""))
 	(message message)
 	(setq event (vip-read-key))
 	;;(setq event (vip-read-event))
@@ -641,9 +641,7 @@ there."
     (princ "  none\n"))
   (princ "\n   ** Global:")
   (if (vip-kbd-global-definition macro)
-      (princ 
-       (format "\n           %S" 
-	       (cdr (vip-kbd-global-pair macro))))
+      (princ (format "\n           %S" (cdr (vip-kbd-global-pair macro))))
     (princ "  none"))
   (princ "\n"))
   
@@ -904,7 +902,7 @@ there."
 	       (setq vip-last-macro-reg reg)
 	       (vip-set-register-macro reg))))
 	  (t
-	   (error (format "`%c': Unknown register" reg))))))
+	   (error "`%c': Unknown register" reg)))))
 	   
 
 (defun vip-global-execute ()

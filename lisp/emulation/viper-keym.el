@@ -364,6 +364,7 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 ;; Keymap for reading file names in Ex-style commands.
 (defvar ex-read-filename-map (make-sparse-keymap))
 (define-key ex-read-filename-map " " 'vip-complete-filename-or-exit)
+(define-key ex-read-filename-map "!" 'vip-handle-!)
 
 
 	  
