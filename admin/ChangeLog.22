@@ -1,6 +1,12 @@
 2004-02-12  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/Makefile (install): Copy updated files only.
+	* charsets/mapconv: Add code for handling KANJI-DATABASE format.
+
+	* charsets/Makefile (all): Rename target from charsets.  Depend on
+	${TRANS_TABLE}
+	(CNS-2.map, CNS-3.map, CNS-4.map, CNS-5.map, CNS-6.map)
+	(CNS-7.map): Generate from cns2ucsdkw.txt.
+	(install): Copy updated files only.
 
 2004-01-30  Kenichi Handa  <handa@m17n.org>
 
