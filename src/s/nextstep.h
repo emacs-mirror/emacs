@@ -43,8 +43,6 @@ Boston, MA 02111-1307, USA.  */
    stupidly gets confused by it.  */
 #undef KERNEL_FILE
 
-#define HAVE_ALLOCA
-
 #define SYSTEM_MALLOC
 
 #define environ _environ
