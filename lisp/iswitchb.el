@@ -244,6 +244,7 @@ use either \\[customize] or the function `iswitchb-mode'."
 	 (iswitchb-mode (or value 0)))
   :initialize 'custom-initialize-default
   :group 'iswitchb
+  :require 'iswitchb
   :version "21.1"
   :type 'boolean)
 
@@ -574,7 +575,7 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
       ;; prompt the user for the buffer name
       (setq iswitchb-final-text (completing-read
 				 prompt	;the prompt
-				 '(("dummy".1))	;table
+				 '(("dummy" . 1)) ;table
 				 nil	;predicate
 				 nil	;require-match [handled elsewhere]
 				 nil	;initial-contents
