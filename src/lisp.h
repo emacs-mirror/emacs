@@ -53,7 +53,7 @@ extern void die P_((const char *, const char *, int));
 #ifdef ENABLE_CHECKING
 
 #define CHECK(check,msg) ((check || suppress_checking		\
-			   ? 0					\
+			   ? (void) 0				\
 			   : die (msg, __FILE__, __LINE__)),	\
 			  0)
 
