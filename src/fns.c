@@ -262,7 +262,7 @@ concat (nargs, args, target_type, last_special)
 	    || XTYPE (this) == Lisp_Compiled))
 	{
 	  if (XTYPE (this) == Lisp_Int)
-            args[argnum] = Fint_to_string (this);
+            args[argnum] = Fnumber_to_string (this);
 	  else
 	    args[argnum] = wrong_type_argument (Qsequencep, this);
 	}

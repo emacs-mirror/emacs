@@ -974,7 +974,7 @@ extern Lisp_Object Fdefault_value (), Fset_default (), Fdefault_boundp ();
 
 extern Lisp_Object Faref (), Faset (), Farray_length ();
 
-extern Lisp_Object Fstring_to_number (), Fint_to_string ();
+extern Lisp_Object Fstring_to_number (), Fnumber_to_string ();
 extern Lisp_Object Feqlsign (), Fgtr (), Flss (), Fgeq (), Fleq ();
 extern Lisp_Object Fneq (), Fzerop ();
 extern Lisp_Object Fplus (), Fminus (), Ftimes (), Fquo (), Frem ();

@@ -72,7 +72,7 @@ wrong_type_argument (predicate, value)
 	     (EQ (predicate, Qintegerp) || EQ (predicate, Qinteger_or_marker_p)))
 	   return Fstring_to_number (value);
 	 if (XTYPE (value) == Lisp_Int && EQ (predicate, Qstringp))
-	   return Fint_to_string (value);
+	   return Fnumber_to_string (value);
 	}
       value = Fsignal (Qwrong_type_argument, Fcons (predicate, Fcons (value, Qnil)));
       tem = call1 (predicate, value);
@@ -1425,7 +1425,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "T if NUMBER is zero.")
   return Qnil;
 }
 
-DEFUN ("int-to-string", Fint_to_string, Sint_to_string, 1, 1, 0,
+DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
   "Convert NUM to a string by printing it in decimal.\n\
 Uses a minus sign if negative.\n\
 NUM may be an integer or a floating point number.")
@@ -2121,7 +2121,7 @@ syms_of_data ()
   defsubr (&Skill_local_variable);
   defsubr (&Saref);
   defsubr (&Saset);
-  defsubr (&Sint_to_string);
+  defsubr (&Snumber_to_string);
   defsubr (&Sstring_to_number);
   defsubr (&Seqlsign);
   defsubr (&Slss);

@@ -359,7 +359,7 @@ status_message (status)
     {
       if (code == 0)
 	return build_string ("finished\n");
-      string = Fint_to_string (make_number (code));
+      string = Fnumber_to_string (make_number (code));
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
       return concat2 (build_string ("exited abnormally with code "),
 		      concat2 (string, string2));
