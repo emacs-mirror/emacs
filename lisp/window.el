@@ -88,8 +88,8 @@ Anything else means restrict to WINDOW's frame."
 
 (defun count-windows (&optional minibuf)
    "Returns the number of visible windows.
-Optional arg NO-MINI non-nil means don't count the minibuffer
-even if it is active."
+Optional arg MINIBUF non-nil means count the minibuffer
+even if it is inactive."
    (let ((count 0))
      (walk-windows (function (lambda (w)
 			       (setq count (+ count 1))))
