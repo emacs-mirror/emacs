@@ -396,11 +396,6 @@ struct coding_system
   /* Finish status of code conversion.  */
   enum coding_result_code result;
 
-  /* The following members are all Lisp symbols.  We don't have to
-     protect them from GC because the current garbage collection
-     doesn't relocate Lisp symbols.  But, when it is changed, we must
-     find a way to protect them.  */
-
   EMACS_INT src_pos, src_pos_byte, src_chars, src_bytes;
   Lisp_Object src_object;
   const unsigned char *source;
