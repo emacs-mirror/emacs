@@ -2179,6 +2179,10 @@ facilities for Emacs, similar to what zsh and tcsh offer.  The main
 difference is that completion functions are written in Lisp, meaning
 they can be profiled, debugged, etc.
 
+*** antlr-mode is a new major mode for editing ANTLR grammar files.
+It is automatically turned on for files whose names have the extension
+`.g'.
+
 +++
 ** Refill minor mode provides preliminary support for keeping
 paragraphs filled as you modify them.
