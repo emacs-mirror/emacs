@@ -3778,6 +3778,11 @@ process_send_signal (process, signo, current_group, nomsg)
         gid = - XFASTINT (p->pid);
 #endif /* ! defined (pfa) */
 
+#ifdef HPUX11
+      if (gid == -1)
+        gid = - XFASTINT (p->pid);
+#endif /* ! defined (pfa) */
+
       if (gid == -1)
 	no_pgrp = 1;
       else
