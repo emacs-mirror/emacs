@@ -429,6 +429,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (save-excursion
 	(set-buffer (get-buffer "*Messages*"))
 	(setq default-directory dir)))
+    ;; `user-full-name' is now known; reset its standard-value here.
+    (put 'user-full-name 'standard-value
+	 (list (default-value 'user-full-name)))
     ;; For root, preserve owner and group when editing files.
     (if (equal (user-uid) 0)
 	(setq backup-by-copying-when-mismatch t))
