@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.9) $
+ * $HopeName: MMsrc!check.h(trunk.10) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -227,6 +227,35 @@ extern void AssertFail1(const char *s);
 #define CHECKFIELD(s1, f1, s2, f2) \
   (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
    CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
+
+
+/* STATISTIC 
+ *
+ * STATISTIC is used to gather statistics within the MPM.
+ * In white-hot varieties, this compiles away to nothing.
+ *
+ * The argument to STATISTIC is syntactically an expression.
+ * The expansion of STATISTIC followed by a semicolon is
+ * syntactically a statement.
+ *
+ * .statistic.whitehot: The implementation of STATISTIC for 
+ * white-hot varieties passes the parameter to NOCHECK to ensure
+ * the parameter is syntactically an expression. The parameter is 
+ * passed as part of a comma-expression so that it's type is not
+ * important. This permits expression of type VOID.
+ *
+ */
+
+#if defined(MPS_HOT_WHITE)
+
+
+#define STATISTIC(gather)   NOCHECK(((gather), 0))
+
+#else
+
+#define STATISTIC(gather)   BEGIN (gather); END
+
+#endif
 
 
 #endif /* check_h */
