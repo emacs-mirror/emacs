@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -32,6 +32,24 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 (defun custom-declare-variable-early (&rest arguments)
   (setq custom-declare-variable-list
 	(cons arguments custom-declare-variable-list)))
+
+
+(defun macro-declaration-function (macro decl)
+  "Process a declaration found in a macro definition.
+This is set as the value of the variable `macro-declaration-function'.
+MACRO is the name of the macro being defined.
+DECL is a list `(declare ...)' containing the declarations.
+The return value of this function is not used."
+  (dolist (d (cdr decl))
+    (cond ((and (consp d) (eq (car d) 'indent))
+	   (put macro 'lisp-indent-function (cadr d)))
+	  ((and (consp d) (eq (car d) 'debug))
+	   (put macro 'edebug-form-spec (cadr d)))
+	  (t
+	   (message "Unknown declaration %s" d)))))
+
+(setq macro-declaration-function 'macro-declaration-function)
+
 
 ;;;; Lisp language features.
 
