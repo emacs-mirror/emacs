@@ -851,10 +851,10 @@ will have like Terminal and Courier. These fonts are used in the font
 menu if the variable `w32-use-w32-font-dialog' is nil.")
 
 ;;; Enable Japanese fonts on Windows to be used by default.
-(set-fontset-font t (make-char 'katakana-jisx0201) "JISX0208-SJIS")
-(set-fontset-font t (make-char 'latin-jisx0201) "JISX0208-SJIS")
-(set-fontset-font t (make-char 'japanese-jisx0208) "JISX0208-SJIS")
-(set-fontset-font t (make-char 'japanese-jisx0208-1978) "JISX0208-SJIS")
+(set-fontset-font t (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font t (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font t (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
+(set-fontset-font t (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
 
 (defun mouse-set-font (&rest fonts)
   "Select a font.
