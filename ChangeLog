@@ -1,3 +1,7 @@
+2003-07-15  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Temporarily leave quoting for AC_DEFINE.
+
 2003-07-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* configure.in: Check for posix_memalign.
