@@ -3574,7 +3574,7 @@ in the list takes precedence.  */);
 
   DEFVAR_LISP ("minor-mode-overriding-map-alist", &Vminor_mode_overriding_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes, in current major mode.
-This variable is a alist just like `minor-mode-map-alist', and it is
+This variable is an alist just like `minor-mode-map-alist', and it is
 used the same way (and before `minor-mode-map-alist'); however,
 it is provided for major modes to bind locally.  */);
   Vminor_mode_overriding_map_alist = Qnil;
