@@ -3599,6 +3599,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 	      invis = 1;
 	      INC_BOTH (pos, pos_byte);
 	      scan_newline (pos, pos_byte, ZV, ZV_BYTE, 1, 1);
+	      pos = PT, pos_byte = PT_BYTE;
 	      if (FETCH_BYTE (pos_byte - 1) == '\n')
 		{
 		  pos--;
