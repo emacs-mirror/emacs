@@ -1272,75 +1272,168 @@ again.  If you do this twice in the same position, it kills the selection."
 If we have lots of buffers, divide them into groups of
 `mouse-menu-buffer-maxlen' and make a pane (or submenu) for each one.")
 
+(defvar mouse-buffer-menu-mode-groups
+  '(("Info\\|Help\\|Apropos\\|Man" . "Help")
+    ("\\bVM\\b\\|\\bMH\\b\\|Message\\|Mail\\|Group\\|Score\\|Summary\\|Article"
+     . "Mail/News")
+    ("\\<C\\>" . "C")
+    ("ObjC" . "C")
+    ("Text" . "Text")
+    ("Outline" . "Text")
+    ("Lisp" . "Lisp"))
+  "How to group various major modes together in \\[mouse-buffer-menu].
+Each element has the form (REGEXP . GROUPNAME).
+If the major mode's name string matches REGEXP, use GROUPNAME instead.")
+
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse.
 This switches buffers in the window that you clicked on,
 and selects that window."
   (interactive "e")
   (mouse-minibuffer-check event)
-  (let* ((buffers
-	  ;; Make an alist of (MENU-ITEM . BUFFER).
-	  (let ((tail (buffer-list))
-		(maxlen 0)
-		head)
-	    (while tail
-	      (or (eq ?\ (aref (buffer-name (car tail)) 0))
-		  (setq maxlen
-			(max maxlen
-			     (length (buffer-name (car tail))))))
-	      (setq tail (cdr tail)))
-	    (setq tail (buffer-list))
-	    (while tail
-	      (let ((elt (car tail)))
-		(if (/= (aref (buffer-name elt) 0) ?\ )
-		    (setq head
-			  (cons
-			   (cons
-			    (format
-			     (format "%%%ds  %%s%%s  %%s" maxlen)
-			     (buffer-name elt)
-			     (if (buffer-modified-p elt) "*" " ")
-			     (save-excursion
-			       (set-buffer elt)
-			       (if buffer-read-only "%" " "))
-			     (or (buffer-file-name elt) 
-				 (save-excursion
-				   (set-buffer elt)
-				   (if list-buffers-directory
-				       (expand-file-name
-					list-buffers-directory)))
-				 ""))
-			    elt)
-			   head))))
-	      (setq tail (cdr tail)))
-	    ;; Compensate for the reversal that the above loop does.
-	    (nreverse head)))
-	 (menu
-	  ;; If we have lots of buffers, divide them into groups of 20
-	  ;; and make a pane (or submenu) for each one.
-	  (if (> (length buffers) (/ (* mouse-menu-buffer-maxlen 3) 2))
-	      (let ((buffers buffers) sublists next
-		    (i 1))
-		(while buffers
-		  ;; Pull off the next mouse-menu-buffer-maxlen buffers
-		  ;; and make them the next element of sublist.
-		  (setq next (nthcdr mouse-menu-buffer-maxlen buffers))
-		  (if next
-		      (setcdr (nthcdr (1- mouse-menu-buffer-maxlen) buffers)
-			      nil))
-		  (setq sublists (cons (cons (format "Buffers %d" i) buffers)
-				       sublists))
-		  (setq i (1+ i))
-		  (setq buffers next))
-		(cons "Buffer Menu" (nreverse sublists)))
-	    ;; Few buffers--put them all in one pane.
-	    (list "Buffer Menu" (cons "Select Buffer" buffers)))))
+  (let (buffers alist menu split-by-major-mode sum-of-squares)
+    (setq buffers (buffer-list))
+    ;; Make an alist of elements that look like (MENU-ITEM . BUFFER).
+    (let ((tail buffers))
+      (while tail
+	;; Divide all buffers into buckets for various major modes.
+	;; Each bucket looks like (MODE NAMESTRING BUFFERS...).
+	(with-current-buffer (car tail)
+	  (let* ((adjusted-major-mode major-mode) elt)
+	    (let ((tail mouse-buffer-menu-mode-groups))
+	      (while tail
+		(if (string-match (car (car tail)) mode-name)
+		    (setq adjusted-major-mode (cdr (car tail))))
+		(setq tail (cdr tail))))
+	    (setq elt (assoc adjusted-major-mode split-by-major-mode))
+	    (if (null elt)
+		(setq elt (list adjusted-major-mode
+				(if (stringp adjusted-major-mode)
+				    adjusted-major-mode
+				  mode-name))
+		      split-by-major-mode (cons elt split-by-major-mode)))
+	    (or (memq (car tail) (cdr (cdr elt)))
+		(setcdr (cdr elt) (cons (car tail) (cdr (cdr elt)))))))
+	(setq tail (cdr tail))))
+    ;; Compute the sum of squares of sizes of the major-mode buckets.
+    (let ((tail split-by-major-mode))
+      (setq sum-of-squares 0)
+      (while tail
+	(setq sum-of-squares
+	      (+ sum-of-squares
+		 (* (length (cdr (cdr (car tail))))
+		    (length (cdr (cdr (car tail)))))))
+	(setq tail (cdr tail))))
+    (if (< (* sum-of-squares 4) (* (length buffers) (length buffers)))
+	;; Subdividing by major modes really helps, so let's do it.
+	(let (subdivided-menus (buffers-left (length buffers)))
+	  ;; Sort the list to put the most popular major modes first.
+	  (setq split-by-major-mode
+		(sort split-by-major-mode
+		      (function (lambda (elt1 elt2)
+				  (> (length elt1) (length elt2))))))
+	  ;; Make a separate submenu for each major mode
+	  ;; that has more than one buffer,
+	  ;; unless all the remaining buffers are less than 1/10 of them.
+	  (while (and split-by-major-mode
+		      (and (> (length (car split-by-major-mode)) 3)
+			   (> (* buffers-left 10) (length buffers))))
+	    (setq subdivided-menus
+		  (cons (cons
+			 (nth 1 (car split-by-major-mode))
+			 (mouse-buffer-menu-alist
+			  (cdr (cdr (car split-by-major-mode)))))
+			subdivided-menus))
+	    (setq buffers-left
+		  (- buffers-left (length (cdr (car split-by-major-mode)))))
+	    (setq split-by-major-mode (cdr split-by-major-mode)))
+	  ;; If any major modes are left over,
+	  ;; make a single submenu for them.
+	  (if split-by-major-mode
+	      (setq subdivided-menus
+		    (cons (cons
+			   "Others"
+			   (mouse-buffer-menu-alist
+			    (apply 'append
+				   (mapcar 'cdr
+					   (mapcar 'cdr split-by-major-mode)))))
+			  subdivided-menus)))
+	  (setq subdivided-menus
+		(nreverse subdivided-menus))
+	  (setq menu (cons "Buffer Menu" subdivided-menus)))
+      (progn
+	(setq alist (mouse-buffer-menu-alist buffers))
+	(setq menu (cons "Buffer Menu"
+			 (mouse-buffer-menu-split "Select Buffer" alist)))))
     (let ((buf (x-popup-menu event menu))
 	  (window (posn-window (event-start event))))
       (if buf
 	  (progn
 	    (or (framep window) (select-window window))
 	    (switch-to-buffer buf))))))
+
+(defun mouse-buffer-menu-alist (buffers)
+  (let (tail
+	(maxlen 0)
+	head)
+    (setq buffers
+	  (sort buffers
+		(function (lambda (elt1 elt2)
+			    (string< (buffer-name elt1) (buffer-name elt2))))))
+    (setq tail buffers)
+    (while tail
+      (or (eq ?\ (aref (buffer-name (car tail)) 0))
+	  (setq maxlen
+		(max maxlen
+		     (length (buffer-name (car tail))))))
+      (setq tail (cdr tail)))
+    (setq tail buffers)
+    (while tail
+      (let ((elt (car tail)))
+	(if (/= (aref (buffer-name elt) 0) ?\ )
+	    (setq head
+		  (cons
+		   (cons
+		    (format
+		     (format "%%%ds  %%s%%s  %%s" maxlen)
+		     (buffer-name elt)
+		     (if (buffer-modified-p elt) "*" " ")
+		     (save-excursion
+		       (set-buffer elt)
+		       (if buffer-read-only "%" " "))
+		     (or (buffer-file-name elt) 
+			 (save-excursion
+			   (set-buffer elt)
+			   (if list-buffers-directory
+			       (expand-file-name
+				list-buffers-directory)))
+			 ""))
+		    elt)
+		   head))))
+      (setq tail (cdr tail)))
+    ;; Compensate for the reversal that the above loop does.
+    (nreverse head)))
+
+(defun mouse-buffer-menu-split (title alist)
+  ;; If we have lots of buffers, divide them into groups of 20
+  ;; and make a pane (or submenu) for each one.
+  (if (> (length alist) (/ (* mouse-menu-buffer-maxlen 3) 2))
+      (let ((alist alist) sublists next
+	    (i 1))
+	(while alist
+	  ;; Pull off the next mouse-menu-buffer-maxlen buffers
+	  ;; and make them the next element of sublist.
+	  (setq next (nthcdr mouse-menu-buffer-maxlen alist))
+	  (if next
+	      (setcdr (nthcdr (1- mouse-menu-buffer-maxlen) alist)
+		      nil))
+	  (setq sublists (cons (cons (format "Buffers %d" i) alist)
+			       sublists))
+	  (setq i (1+ i))
+	  (setq alist next))
+	(nreverse sublists))
+    ;; Few buffers--put them all in one pane.
+    (list (cons title alist))))
 
 ;;; These need to be rewritten for the new scroll bar implementation.
 
