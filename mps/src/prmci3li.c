@@ -1,16 +1,11 @@
-/* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (Linux)
+/* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
  *
- * $HopeName: MMsrc!prmci3li.c(trunk.2) $
- * Copyright (C) 1998, 1999. Harlequin Group plc. All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
- *
- * PURPOSE
+ * $HopeName: MMsrc!prmci3li.c(trunk.3) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This module implements the part of the protection module
  * that decodes the MutatorFaultContext.  
+ *
  *
  * SOURCES
  *
@@ -19,23 +14,23 @@
  *
  * .source.linux.kernel: Linux kernel source files.
  *
+ *
  * ASSUMPTIONS
  *
  * .assume.regref: The resisters in the context can be modified by
  * storing into an MRef pointer.
- *
  */
 
 /* prmcli.h will include mpm.h after defining open sesame magic */
 #include "prmcli.h"
 #include "prmci3.h"
 
+SRCID(prmci3li, "$HopeName$");
 
-/* Return an address for a machine register given a context and a 
- * register number
- */
-MRef Prmci3AddressHoldingReg(MutatorFaultContext context, 
-                                    unsigned int regnum)
+
+/* Prmci3AddressHoldingReg -- return an address of a register in a context */
+
+MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 {
   struct sigcontext *scp;
 
@@ -61,6 +56,8 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context,
 }
 
 
+/* Prmci3DecodeFaultContext -- decode fault to find faulting address and IP */
+
 void Prmci3DecodeFaultContext(MRef *faultmemReturn, 
                               Byte **insvecReturn, 
                               MutatorFaultContext context)
@@ -80,8 +77,10 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
   *insvecReturn = (Byte*)scp->eip;
 }
 
+
+/* Prmci3StepOverIns -- modify context to step over instruction */
+
 void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
 {
   context->scp->eip += (unsigned long)inslen;
 }
-

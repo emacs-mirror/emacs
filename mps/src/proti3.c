@@ -1,29 +1,19 @@
-/* impl.c.proti3: PROTECTION MUTATOR CONTEXT (Intel 386)
+/* impl.c.proti3: PROTECTION MUTATOR CONTEXT (INTEL 386)
  *
- * $HopeName: $
- * Copyright (C) 1998, 1999. Harlequin Group plc. All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
- *
- * DESIGN
+ * $HopeName: MMsrc!proti3.c(trunk.1) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: See design.mps.prot for the generic design of the interface
  * which is implemented in this module, including the contracts for the
  * functions.
  *
- * PURPOSE
- *
  * .purpose: This module implements the part of the protection module
  * that implements the MutatorFaultContext type.  
  *
- * REQUIREMENTS
- *
- * .requirements: Currently just limited support for stepping the 
- * sorts of instructions that the Dylan compiler might generate for 
- * table vector access - i.e. a restricted subset of MOV addressing 
- * modes. This avoids the need to scan entire weak tables at 
+ * .requirements: Current requirements are for limited support only, for
+ * stepping the sorts of instructions that the Dylan compiler might
+ * generate for table vector access - i.e., a restricted subset of MOV
+ * addressing modes.  This avoids the need to scan entire weak tables at
  * an inappropriate rank when a page fault occurs.
  *
  *
@@ -38,10 +28,11 @@
  *  D-dfmc-harp-cg!harp-primitives.dylan (method op--repeated-slot-element)
  *  D-harp-pentium-harp!moves.dylan (pentium-template ld-index)
  *
+ *
  * ASSUMPTIONS
  *
  * .assume.null: It's always safe for Prot*StepInstruction to return 
- * ResUNIMPL. A null implementation of this module would be overly 
+ * ResUNIMPL.  A null implementation of this module would be overly 
  * conservative but otherwise correct.
  *
  * .assume.want: The Dylan implementation is likely to access a
@@ -54,15 +45,18 @@
  *   Steppable instructions (.assume.want) use the CS, DS & SS 
  *   segment registers only (see .source.i486 Table 2-3).
  *   The procesor runs in 32 bit mode.
- *   The CS, DS and SS segment registers all describe identical 32
+ *   The CS, DS and SS segment registers all describe identical 32-
  *   bit flat address spaces.
- * 
  */
 
 #include "mpm.h"
 #include "prmci3.h"
 
-/* Decode an Intel x86 control byte into Hi, Medium & Low fields */
+SRCID(proti3, "$HopeName$");
+
+
+/* DecodeCB -- Decode an Intel x86 control byte into Hi, Medium & Low fields */
+
 static void DecodeCB(unsigned int *hReturn, 
                      unsigned int *mReturn, 
                      unsigned int *lReturn, 
@@ -77,7 +71,9 @@ static void DecodeCB(unsigned int *hReturn,
   *hReturn = uop & 3;
 }
 
-/* Decode a Scale Index Base byte for an Intel x86 instruction */
+
+/* DecodeSIB -- Decode a Scale Index Base byte for an Intel x86 instruction */
+
 static void DecodeSIB(unsigned int *sReturn, 
                       unsigned int *iReturn, 
                       unsigned int *bReturn, 
@@ -86,7 +82,9 @@ static void DecodeSIB(unsigned int *sReturn,
   DecodeCB(sReturn, iReturn, bReturn, op);
 }
 
-/* Decode a ModR/M byte for an Intel x86 instruction */
+
+/* DecodeModRM -- Decode a ModR/M byte for an Intel x86 instruction */
+
 static void DecodeModRM(unsigned int *modReturn, 
                         unsigned int *rReturn, 
                         unsigned int *mReturn, 
@@ -96,11 +94,9 @@ static void DecodeModRM(unsigned int *modReturn,
 }
 
 
-/* Return the value of a machine register given a context and a 
- * register number
- */
-static Word RegValue(MutatorFaultContext context, 
-                     unsigned int regnum)
+/* RegValue -- Return the value of a machine register from a context */
+
+static Word RegValue(MutatorFaultContext context, unsigned int regnum)
 {
   MRef addr;
 
@@ -173,6 +169,7 @@ static Bool DecodeSimpleMov(unsigned int *regnumReturn,
   return FALSE;
 }
 
+
 static Bool IsSimpleMov(Size *inslenReturn, 
                         MRef *srcReturn, 
                         MRef *destReturn,
@@ -208,6 +205,7 @@ static Bool IsSimpleMov(Size *inslenReturn,
   return FALSE;
 }
 
+
 Bool ProtCanStepInstruction(MutatorFaultContext context)
 {
   Size inslen;
@@ -222,6 +220,7 @@ Bool ProtCanStepInstruction(MutatorFaultContext context)
 
   return FALSE;
 }
+
 
 Res ProtStepInstruction(MutatorFaultContext context)
 {
