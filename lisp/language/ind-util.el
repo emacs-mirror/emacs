@@ -40,12 +40,7 @@
 
 (eval-and-compile
 
-(defun range (from to)
-  "Make the list of the integers of range FROM to TO."
-  (let (result) 
-    (while (<= from to) (setq result (cons to result) to (1- to))) result))
-
-(defun regexp-of-hashtbl-keys (hashtbl)
+(defun indian-regexp-of-hashtbl-keys (hashtbl)
   "Returns the regular expression of hashtable keys."
   (let ((max-specpdl-size 1000))
     (regexp-opt
@@ -303,7 +298,7 @@ FUNCTION will be called 15 times."
 (defmacro indian-translate-region (from to hashtable encode-p)
   `(save-excursion
      (save-restriction
-       (let ((regexp ,(regexp-of-hashtbl-keys 
+       (let ((regexp ,(indian-regexp-of-hashtbl-keys 
 		       (if encode-p (car (eval hashtable)) 
 			 (cdr (eval hashtable))))))
 	 (narrow-to-region from to)
@@ -547,7 +542,7 @@ FUNCTION will be called 15 times."
                  (eval hashtable))))
       (eval (intern (concat "ucs-" (symbol-name script)
                             "-to-is13194-alist"))))
-     (set regexp (regexp-of-hashtbl-keys (eval hashtable))))))
+     (set regexp (indian-regexp-of-hashtbl-keys (eval hashtable))))))
  '(devanagari bengali assamese gurmukhi gujarati
    oriya tamil telugu malayalam))
 
