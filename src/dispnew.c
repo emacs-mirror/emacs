@@ -197,7 +197,9 @@ redraw_frame (f)
 #else
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
-  "Clear frame FRAME and output again what is supposed to appear on it.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
      Lisp_Object frame;
 {
