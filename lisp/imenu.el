@@ -466,7 +466,6 @@ This function is called after the function pointed out by
 	  (let ((end (if commands `(lambda () (interactive)
 				     (imenu--menubar-select ',item))
 		       (cons '(nil) t))))
-	    (setq foo end)
 	    (cons (car item)
 		  (cons (car item) end))))
 	 )))
