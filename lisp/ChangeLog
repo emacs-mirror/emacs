@@ -1,7 +1,3 @@
-2001-05-27  Stefan Monnier  <monnier@cs.yale.edu>
-
-	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Undo last change.
-
 2001-05-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cus-edit.el (custom-file): Don't assume we were invoked with -q
