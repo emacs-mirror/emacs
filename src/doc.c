@@ -477,7 +477,7 @@ when doc strings are referred to later in the dumped Emacs.")
   register int filled;
   register int pos;
   register char *p, *end;
-  Lisp_Object sym, fun, tem;
+  Lisp_Object sym;
   char *name;
 
 #ifndef CANNOT_DUMP
