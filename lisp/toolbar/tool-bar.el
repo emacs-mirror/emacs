@@ -90,9 +90,14 @@ function will try to use first ICON.xpm, ICON.pbm then ICON.xbm using
 Keybindings are made in the map `tool-bar-map'.  To define items in
 some local map, bind `tool-bar-map' with `let' around calls of this
 function."
-  (let ((image (find-image `((:type xpm :file ,(concat icon ".xpm"))
-			     (:type pbm :file ,(concat icon ".pbm"))
-			     (:type xbm :file ,(concat icon ".xbm"))))))
+  (let ((image (find-image
+		(if (display-color-p)
+		    `((:type xpm :file ,(concat icon ".xpm"))
+		      (:type pbm :file ,(concat icon ".pbm"))
+		      (:type xbm :file ,(concat icon ".xbm")))
+		  `((:type pbm :file ,(concat icon ".pbm"))
+		    (:type xbm :file ,(concat icon ".xbm"))
+		    (:type xpm :file ,(concat icon ".xpm")))))))
     (when image
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
@@ -115,9 +120,14 @@ function."
     (setq map global-map))
   (let* ((menu-bar-map (lookup-key map [menu-bar]))
 	 (keys (where-is-internal command menu-bar-map))
-	 (image (find-image `((:type xpm :file ,(concat icon ".xpm"))
-			      (:type pbm :file ,(concat icon ".pbm"))
-			      (:type xbm :file ,(concat icon ".xbm")))))
+	 (image (find-image
+		 (if (display-color-p)
+		     `((:type xpm :file ,(concat icon ".xpm"))
+		       (:type pbm :file ,(concat icon ".pbm"))
+		       (:type xbm :file ,(concat icon ".xbm")))
+		   `((:type pbm :file ,(concat icon ".pbm"))
+		     (:type xbm :file ,(concat icon ".xbm"))
+		     (:type xpm :file ,(concat icon ".xpm"))))))
 	 submap key)
     (when image
       ;; We'll pick up the last valid entry in the list of keys if
