@@ -6,7 +6,7 @@
 	(x_produce_glyphs): Use them to handle line-height and
 	line-spacing according to new height spec.
 	(Qtotal): Remove.
-	(syms_of_xdisp): Remove defsubr and intern for Qtotal.
+	(syms_of_xdisp): Remove intern and staticpro for Qtotal.
 
 2004-12-30  Kenichi Handa  <handa@m17n.org>
 
