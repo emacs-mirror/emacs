@@ -836,6 +836,12 @@ The following changes have been made to provide command remapping:
   command before remapping.  It is equal to `this-command' when the
   command was not remapped.
 
+** New variable emulation-mode-map-alists.
+
+Lisp packages using many minor mode keymaps can now maintain their own
+keymap alist separate from minor-mode-map-alist by adding their keymap
+alist to this list.
+
 ** Atomic change groups.
 
 To perform some changes in the current buffer "atomically" so that
