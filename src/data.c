@@ -329,7 +329,7 @@ DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
   (obj)
      Lisp_Object obj;
 {
-  if (INTEGERP (obj) && XINT (obj) >= 0)
+  if (NATNUMP (obj))
     return Qt;
   return Qnil;
 }
@@ -2345,7 +2345,7 @@ syms_of_data ()
   defsubr (&Ssub1);
   defsubr (&Slognot);
 
-  Fset (Qwholenump, Qnatnump);
+  XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
 }
 
 SIGTYPE
