@@ -356,6 +356,9 @@ struct buffer
     /* Position where the overlay lists are centered.  */
     Lisp_Object overlay_center;
 
+    /* Lisp of symbols naming the file format used for visited file. */
+    Lisp_Object file_format;
+
     /* True if the newline position cache and width run cache are
        enabled.  See search.c and indent.c.  */
     Lisp_Object cache_long_line_scans;
