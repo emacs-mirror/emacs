@@ -1,3 +1,30 @@
+2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.44.
+
+	* net/tramp.el (tramp-post-connection): Quote $1 and $2 of shell
+	function "tramp_file_attributes".  Otherwise, file names
+	containing spaces are misinterpreted.  Reported by Magnus Henoch
+	<mange@freemail.hu>.
+	(tramp-handle-file-truename): FILENAME must be expanded first.
+	Otherwise, parameters like "/ssh:deego@gnufans.net:~" will return
+	obscure results.  Reported by D. Goel <deego@gnufans.org>.
+	(tramp-handle-verify-visited-file-modtime): If file does not
+	exist, say it is not modified if and only if that agrees with the
+	buffer's record.  Check whether a file is visiting the buffer, or
+	the buffer has no recorded last modification time.  Return t in
+	case the visiting file doesn't exist.  Suggested by Luc Teirlinck
+	<teirllm@auburn.edu>.
+	(tramp-handle-write-region): Pass modtime explicitely to
+	`set-visited-file-modtime', because filename can be different
+	from (buffer-file-name) if `file-precious-flag' is set.
+	`set-visited-file-modtime' must be called always when `visit' is t
+	or a string.  Suggested by Luc Teirlinck <teirllm@auburn.edu>.
+	(tramp-handle-set-visited-file-modtime): If `time-list' is not
+	nil, don't apply the whole body.  If the file doesn't exists, set
+	modtime to '(-1 65535).  Suggested by Luc Teirlinck
+	<teirllm@auburn.edu>.
+
 2004-08-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* help.el (describe-bindings): Doc fix.
