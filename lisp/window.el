@@ -145,6 +145,7 @@ No arg means split equally."
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
+Do not shrink to less that `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
 or if the window is not the full width of the frame,
@@ -161,7 +162,6 @@ or if the window is the only window of its frame."
 	   ;; unless point is after it.
 	   (and (not (eobp))
 		(eq ?\n (char-after (1- (point-max))))))
-	  (window-min-height 0)
 	  (buffer-read-only nil)
 	  (modified (buffer-modified-p))
 	  (buffer (current-buffer))
@@ -185,7 +185,10 @@ or if the window is the only window of its frame."
 		  ;; defeat file locking... don't try this at home, kids!
 		  (setq buffer-file-name nil)
 		  (insert ?\n) (setq n (1+ n)))
-		(if (> n 0) (shrink-window (1- n))))
+		(if (> n 0)
+		    (shrink-window (min (1- n)
+					(- (window-height)
+					   window-min-height)))))
 	    (delete-region (point-min) (point))
 	    (set-buffer-modified-p modified)
 	    (goto-char p)
