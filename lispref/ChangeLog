@@ -1,3 +1,8 @@
+2004-10-22  David Ponce  <david@dponce.com>
+
+	* windows.texi (Resizing Windows): Document the `preserve-before'
+	argument of the functions `enlarge-window' and `shrink-window'.
+
 2004-10-19  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (elisp): Change order of arguments to makeinfo.
