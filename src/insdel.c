@@ -699,13 +699,37 @@ copy_text (from_addr, to_addr, nbytes,
     {
       int nchars = 0;
       int bytes_left = nbytes;
+      Lisp_Object tbl = Qnil, temp;
+
+      /* We set the variable tbl to the reverse table of
+         Vnonascii_translation_table in advance.  */
+      if (CHAR_TABLE_P (Vnonascii_translation_table))
+	{
+	  tbl = Fchar_table_extra_slot (Vnonascii_translation_table,
+					make_number (0));
+	  if (!CHAR_TABLE_P (tbl))
+	    tbl = Qnil;
+	}
 
       /* Convert multibyte to single byte.  */
       while (bytes_left > 0)
 	{
-	  int thislen, c;
-	  c = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
-	  *to_addr++ = SINGLE_BYTE_CHAR_P (c) ? c : (c & 0177) + 0200;
+	  int thislen, c, c_save;
+	  c = c_save = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
+	  if (!SINGLE_BYTE_CHAR_P (c))
+	    {
+	      if (!NILP (tbl))
+		{
+		  temp = Faref (tbl, make_number (c));
+		  if (INTEGERP (temp))
+		    c = XINT (temp);
+		}
+	      else if (nonascii_insert_offset > 0)
+		c -= nonascii_insert_offset;
+	      if (c < 128 || c >= 256)
+		c = (c_save & 0177) + 0200;
+	    }
+	  *to_addr++ = c;
 	  from_addr += thislen;
 	  bytes_left -= thislen;
 	  nchars++;
