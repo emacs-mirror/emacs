@@ -35,7 +35,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
      replay.exe replaysw.exe eventcnv.exe \
-     mmdw.lib mmsw.lib mps_conf.lib mpsplan.lib:
+     mmdw.lib mmsw.lib mps.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -140,7 +140,7 @@ $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
-	$(CONFIGURAOBJ) $(AMCOBJ) $(PLINTHOBJ) $(HETESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(HETESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
@@ -228,7 +228,7 @@ $(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\mps_conf.lib: $(CONFIGURAOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+$(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
         $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
