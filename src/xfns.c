@@ -7907,6 +7907,8 @@ enum pbm_keyword_index
   PBM_ALGORITHM,
   PBM_HEURISTIC_MASK,
   PBM_MASK,
+  PBM_FOREGROUND,
+  PBM_BACKGROUND,
   PBM_LAST
 };
 
@@ -7923,7 +7925,9 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":foreground",	IMAGE_STRING_VALUE,			0},
+  {":background",	IMAGE_STRING_VALUE,			0}
 };
 
 /* Structure describing the image type `pbm'.  */
@@ -8112,6 +8116,19 @@ pbm_load (f, img)
   if (type == PBM_MONO)
     {
       int c = 0, g;
+      struct image_keyword fmt[PBM_LAST];
+      unsigned long fg = FRAME_FOREGROUND_PIXEL (f);
+      unsigned long bg = FRAME_BACKGROUND_PIXEL (f);
+
+      /* Parse the image specification.  */
+      bcopy (pbm_format, fmt, sizeof fmt);
+      parse_image_spec (img->spec, fmt, PBM_LAST, Qpbm);
+      
+      /* Get foreground and background colors, maybe allocate colors.  */
+      if (fmt[PBM_FOREGROUND].count)
+	fg = x_alloc_image_color (f, img, fmt[PBM_FOREGROUND].value, fg);
+      if (fmt[PBM_BACKGROUND].count)
+	bg = x_alloc_image_color (f, img, fmt[PBM_BACKGROUND].value, bg);
       
       for (y = 0; y < height; ++y)
 	for (x = 0; x < width; ++x)
@@ -8126,9 +8143,7 @@ pbm_load (f, img)
 	    else
 	      g = pbm_scan_number (&p, end);
 
-	    XPutPixel (ximg, x, y, (g
-				    ? FRAME_FOREGROUND_PIXEL (f)
-				    : FRAME_BACKGROUND_PIXEL (f)));
+	    XPutPixel (ximg, x, y, g ? fg : bg);
 	  }
     }
   else
