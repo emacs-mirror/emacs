@@ -53,7 +53,7 @@ Other major modes are defined by comparison with this one."
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
 The newline is marked with the text-property `hard'.
-With arg, insert that many newlines.
+With ARG, insert that many newlines.
 In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   (interactive "*P")
   (barf-if-buffer-read-only)
@@ -521,9 +521,12 @@ in *Help* buffer.  See also the command `describe-char-after'."
 		     (buffer-substring-no-properties (point) (1+ (point))))
 		   encoding-msg pos total percent col hscroll))))))
 
-(defvar read-expression-map (cons 'keymap minibuffer-local-map)
+(defvar read-expression-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "\M-\t" 'lisp-complete-symbol)
+    (set-keymap-parent m minibuffer-local-map)
+    m)
   "Minibuffer keymap used for reading Lisp expressions.")
-(define-key read-expression-map "\M-\t" 'lisp-complete-symbol)
 
 (defvar read-expression-history nil)
 
@@ -2628,11 +2631,6 @@ With argument 0, interchanges line point is in with line mark is in."
     (delete-region (point) (+ (point) len1))
     (insert word2)))
 
-(defvar comment-indent-hook nil
-  "Obsolete variable for function to compute desired indentation for a comment.
-This function is called with no args with point at the beginning of
-the comment's starting delimiter.")
-
 (defun backward-word (arg)
   "Move backward until encountering the end of a word.
 With argument, do this that many times.
@@ -3930,11 +3928,11 @@ text property."
     ;; Determine the matching character, if any.
     (when (and (> length 1)
 	       (memq first-char '(?\( ?\))))
-      (setq matching-char (aref string i)
-	    i (1+ i)))
+      (setq matching-char (aref string i)))
+    (setq i (1+ i))
     ;; Add any flags to the syntax code.
     (while (< i length)
-      (let ((flag (or (assq (aref string i) syntax-flag-table)
+      (let ((flag (or (cdr (assq (aref string i) syntax-flag-table))
 		      (error "Invalid syntax flag in `%s'" string))))
 	(setq code (logior flag code))
 	(setq i (1+ i))))
