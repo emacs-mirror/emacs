@@ -1,5 +1,5 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1990, 93, 94, 95, 1996, 2004  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,7 +81,9 @@ typedef unsigned long SIZE;
 #define NULL ((POINTER) 0)
 
 extern POINTER start_of_data ();
-#ifdef DATA_SEG_BITS
+#if defined USE_LSB_TAG
+#define EXCEEDS_LISP_PTR(ptr) 0
+#elif defined DATA_SEG_BITS
 #define EXCEEDS_LISP_PTR(ptr) \
   (((EMACS_UINT) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
 #else

@@ -851,9 +851,11 @@ and `event-end' functions."
 (make-obsolete 'dot-min 'point-min	"before 19.15")
 (make-obsolete 'dot-marker 'point-marker "before 19.15")
 (make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
-(make-obsolete 'baud-rate "use the baud-rate variable instead." "before 19.15")
+(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 (make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
 (make-obsolete 'define-function 'defalias "20.1")
+(make-obsolete 'focus-frame "it does nothing." "19.32")
+(make-obsolete 'unfocus-frame "it does nothing." "19.32")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -870,8 +872,8 @@ is converted into a string by expressing it in decimal."
   "Return the value of the `baud-rate' variable."
   baud-rate)
 
-(defalias 'focus-frame 'ignore)
-(defalias 'unfocus-frame 'ignore)
+(defalias 'focus-frame 'ignore "")
+(defalias 'unfocus-frame 'ignore "")
 
 
 ;;;; Obsolescence declarations for variables.
@@ -1186,7 +1188,7 @@ Optional args SENTINEL and FILTER specify the sentinel and filter
 ;; compatibility
 
 (make-obsolete 'process-kill-without-query
-               "use `process-query-on-exit-flag'\nor `set-process-query-on-exit-flag'."
+               "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
                "21.5")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
@@ -1333,9 +1335,11 @@ Optional DEFAULT is a default password to use instead of empty input."
   (let ((n nil))
     (when default
       (setq prompt
-	    (if (string-match "\\(\\):[^:]*" prompt)
-		(replace-match (format " [%s]" default) t t prompt 1)
-	      (concat prompt (format " [%s] " default)))))
+	    (if (string-match "\\(\\):[ \t]*\\'" prompt)
+		(replace-match (format " (default %s)" default) t t prompt 1)
+	      (replace-regexp-in-string "[ \t]*\\'"
+					(format " (default %s) " default)
+					prompt t t)))) 
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil

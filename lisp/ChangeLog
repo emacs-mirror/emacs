@@ -1,7 +1,51 @@
+2004-06-03  Miles Bader  <miles@gnu.org>
+
+	* subr.el (read-number): Use canonical format for default in prompt.
+
+	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps): Add
+	regexp for " [...]" style defaults.
+
+2004-06-02  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-jump-to-buffer): Add support for filter
+	groups: if the user asks for a hidden buffer, open the
+	corresponding filter group to expose it.
+
+	* ibuffer.el (ibuffer-mode-map): Add key binding `M-g' to
+	`ibuffer-jump-to-buffer'.
+	(ibuffer-jump-offer-only-visible-buffers): New user option.
+
+2004-06-02  Juanma Barranquero  <lektu@terra.es>
+
+	* faces.el (frame-update-faces): Add empty docstring so the one
+	for `ignore' doesn't show through.
+
+	* subr.el (process-kill-without-query): Remove spurious "\n" on
+	obsolescence string.
+	(focus-frame, unfocus-frame): Add obsolescence declaration and
+	empty docstring.
+
+	* international/mule.el (register-char-codings): Make alias for
+	`ignore'.  Move docstring to obsolescence info and remove
+	redundancy.
+
+2004-06-02  Kim F. Storm  <storm@cua.dk>
+
+	* frame.el (blink-cursor-start): Turn cursor off initially so blink
+	starts after blink-cursor-delay rather than 2*blink-cursor-delay.
+
+2004-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-state): Don't assume the file exists.
+
+2004-05-31  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-save): Don't save minor modes without a
+	known mode initialization function.
+
 2004-05-30  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* replace.el (query-replace-interactive): Convert defvar into
-	defcustom.
+	* replace.el (query-replace-interactive): Convert defvar -> defcustom.
 
 	* autorevert.el: Update `Commentary' section.
 
@@ -17,8 +61,8 @@
 	Sync with Tramp.
 
 	* net/tramp.el (tramp-let-maybe): Reverse args of `get'.
-	(tramp-let-maybe): Move to an earlier spot in the file.  Patch by
-	Andreas Schwab.
+	(tramp-let-maybe): Move to an earlier spot in the file.
+	Patch by Andreas Schwab.
 
 2004-05-30  Andreas Schwab  <schwab@suse.de>
 
@@ -47,21 +91,20 @@
 
 	* ange-ftp.el (ange-ftp-file-remote-p): New defun.
 	(top): Remove setting of `file-remote-p' property for
-	`ange-ftp-hook-function'.  Add `ange-ftp' property to
-	`file-remote-p'.
+	`ange-ftp-hook-function'.  Add `ange-ftp' property to `file-remote-p'.
 
 2004-05-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Version 2.0.41 of Tramp released.
 
-	* tramp.el (tramp-wait-for-regexp, tramp-wait-for-output): Throw
-	away if process has died.  Reported by Luc Teirlinck
-	<teirllm@dms.auburn.edu>.
-	(tramp-out-of-band-prompt-regexp): Renamed to
+	* tramp.el (tramp-wait-for-regexp, tramp-wait-for-output):
+	Throw away if process has died.
+	Reported by Luc Teirlinck <teirllm@dms.auburn.edu>.
+	(tramp-out-of-band-prompt-regexp): Rename to
 	`tramp-process-alive-regexp', because its usage is widen.
 	(tramp-actions-copy-out-of-band): Apply it.
-	(tramp-actions-before-shell, tramp-multi-actions): Add
-	`tramp-action-process-alive' action.
+	(tramp-actions-before-shell, tramp-multi-actions):
+	Add `tramp-action-process-alive' action.
 	(tramp-action-process-alive): New defun.
 	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
 	Add entry for `file-remote-p'.
@@ -73,8 +116,8 @@
 	`file-remote-p'.
 
 	* tramp-uu.el (tramp-uuencode-region): Padding characters aren't
-	counted for (last) line.  Reported by Aaron Ucko
-	<ucko@ncbi.nlm.nih.gov>.
+	counted for (last) line.  [They should or they shouldn't?  --Stef]
+	Reported by Aaron Ucko <ucko@ncbi.nlm.nih.gov>.
 
 2004-05-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
@@ -97,8 +140,8 @@
 	filenames starting with "/:" -- those are reserved for
 	file-name-non-special.
 
-	* tramp-smb.el (tramp-smb-open-connection): Use
-	tramp-set-process-query-on-exit-flag compat function.
+	* tramp-smb.el (tramp-smb-open-connection):
+	Use tramp-set-process-query-on-exit-flag compat function.
 
 2004-05-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -108,7 +151,7 @@
 	(eval-last-sexp-print-value): Print char equivalent regardless
 	of standard-output value.
 
-	* thumbs.el (thumbs-subst-char-in-string): Deleted.
+	* thumbs.el (thumbs-subst-char-in-string): Delete.
 	(thumbs-thumbname): Use subst-char-in-string.
 	(thumbs-resize-image): Use condition-case, not ignore-errors.
 	(thumbs-kill-buffer): Likewise.
@@ -217,8 +260,10 @@
 2004-05-28  Juanma Barranquero  <lektu@terra.es>
 
 	* cus-edit.el (customize-face, customize-face-other-window)
-	(custom-face-edit-delete): Make arguments match their use in docstring.
-	(custom-unloaded-symbol-p, custom-unloaded-widget-p): Docstring typo.
+	(custom-face-edit-delete): Make arguments match their use in
+	docstring.
+	(custom-unloaded-symbol-p, custom-unloaded-widget-p): Fix typo in
+	docstring.
 
 	* cvs-status.el (cvs-tree-merge, cvs-tags->tree): Use `butlast',
 	not `cvs-butlast'.
@@ -693,7 +738,8 @@
 
 2004-05-11  Juanma Barranquero  <lektu@terra.es>
 
-	* custom.el (custom-initialize-default, defcustom): Typo in docstring.
+	* custom.el (custom-initialize-default, defcustom):
+	Fix typo in docstring.
 
 	* files.el (set-visited-file-name, file-expand-wildcards):
 	Fix docstring.

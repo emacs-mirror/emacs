@@ -1182,7 +1182,7 @@ start of the text to scan for history references, rather
 than the logical beginning of line."
   (save-excursion
     (let ((toend (- (line-end-position) (point)))
-	  (start (comint-line-beginning-position)))
+	  (start (or start (comint-line-beginning-position))))
       (goto-char start)
       (while (progn
 	       (skip-chars-forward "^!^" (- (line-end-position) toend))
@@ -1482,7 +1482,8 @@ Similarly for Soar, Scheme, etc."
 				(concat input "\n")))
 
 	  (let ((beg (marker-position pmark))
-		(end (if no-newline (point) (1- (point)))))
+	      (end (if no-newline (point) (1- (point))))
+	      (inhibit-modification-hooks t))
 	    (when (> end beg)
 	      ;; Set text-properties for the input field
 	      (add-text-properties
@@ -1578,7 +1579,8 @@ See `comint-carriage-motion' for details.")
 freeze its attributes in place, even when more input comes a long
 and moves the prompt overlay."
   (when comint-last-prompt-overlay
-    (let ((inhibit-read-only t))
+    (let ((inhibit-read-only t)
+	  (inhibit-modification-hooks t))
       (add-text-properties (overlay-start comint-last-prompt-overlay)
                            (overlay-end comint-last-prompt-overlay)
                            (overlay-properties comint-last-prompt-overlay)))))
@@ -1709,7 +1711,8 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process)) ; in case a filter moved it
 
 	    (unless comint-use-prompt-regexp-instead-of-fields
-              (let ((inhibit-read-only t))
+              (let ((inhibit-read-only t)
+		    (inhibit-modification-hooks t))
                 (add-text-properties comint-last-output-start (point)
                                      '(rear-nonsticky t
 				       field output
@@ -1718,7 +1721,8 @@ Make backspaces delete the previous character."
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
 	    (let ((prompt-start (save-excursion (forward-line 0) (point)))
-		  (inhibit-read-only t))
+		  (inhibit-read-only t)
+		  (inhibit-modification-hooks t))
 	      (when comint-prompt-read-only
 		(or (= (point-min) prompt-start)
 		    (get-text-property (1- prompt-start) 'read-only)
@@ -2347,7 +2351,8 @@ read-only property of `fence', unless it already is read-only.
 If the character after point does not have a front-sticky
 read-only property, any read-only property of `fence' on the
 preceding newline is removed."
-  (let* ((pt (point)) (lst (get-text-property pt 'front-sticky)))
+  (let* ((pt (point)) (lst (get-text-property pt 'front-sticky))
+	 (inhibit-modification-hooks t))
     (and (bolp)
 	 (not (bobp))
 	 (if (and (get-text-property pt 'read-only)
@@ -2966,10 +2971,8 @@ Typing SPC flushes the help buffer."
 
     ;; Read the next key, to process SPC.
     (let (key first)
-      (if (save-excursion
-	    (set-buffer (get-buffer "*Completions*"))
-	    (set (make-local-variable
-		  'comint-displayed-dynamic-completions)
+      (if (with-current-buffer (get-buffer "*Completions*")
+	    (set (make-local-variable 'comint-displayed-dynamic-completions)
 		 completions)
 	    (setq key (read-key-sequence nil)
 		  first (aref key 0))

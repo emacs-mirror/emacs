@@ -1793,7 +1793,7 @@ Formats current entry according to variable `bibtex-entry-format'."
         (goto-char (point-min))
         (let* ((fields-alist (bibtex-parse-entry))
                (case-fold-search t)
-               (field (bibtex-assoc-regexp "\\(OPT\\)?crossref\\>"
+               (field (bibtex-assoc-regexp "\\`\\(OPT\\)?crossref\\'"
                                            fields-alist)))
           (setq crossref-key (and field
                                   (not (string-match bibtex-empty-field-re
@@ -1807,7 +1807,7 @@ Formats current entry according to variable `bibtex-entry-format'."
             (when (nth 3 rfield) ; we should have an alternative
               (setq alternatives-there t
                     field (bibtex-assoc-regexp
-                           (concat "\\(ALT\\)?" (car rfield) "\\>")
+                           (concat "\\`\\(ALT\\)?" (car rfield) "\\'")
                            fields-alist))
               (if (and field
                        (not (string-match bibtex-empty-field-re
@@ -2317,7 +2317,7 @@ Return alist of strings if parsing was completed, `aborted' otherwise."
                 ;; user has aborted by typing a key --> return `aborted'
                 (throw 'userkey 'aborted))
             (setq key (bibtex-reference-key-in-string bounds))
-            (if (not (assoc-string key strings t))
+            (if (not (assoc key strings))
                 (push (cons key (bibtex-text-in-string bounds t))
                       strings))
             (goto-char (bibtex-end-of-text-in-string bounds)))
@@ -2722,24 +2722,27 @@ according to `bibtex-entry-field-alist', but are not yet present."
     (let* ((fields-alist (bibtex-parse-entry))
            (field-list (bibtex-field-list
                         (substring (cdr (assoc "=type=" fields-alist))
-                                   1)))) ; don't want @
+                                   1))) ; don't want @
+           (case-fold-search t))
       (dolist (field (car field-list))
-        (unless (assoc-string (car field) fields-alist t)
+        (unless (bibtex-assoc-regexp (concat "\\`\\(ALT\\)?" (car field) "\\'")
+                                     fields-alist)
           (bibtex-make-field field)))
       (dolist (field (cdr field-list))
-        (unless (assoc-string (car field) fields-alist t)
+        (unless (bibtex-assoc-regexp (concat "\\`\\(OPT\\)?" (car field) "\\'")
+                                     fields-alist)
           (bibtex-make-optional-field field))))))
 
 (defun bibtex-parse-entry ()
   "Parse entry at point, return an alist.
 The alist elements have the form (FIELD . TEXT), where FIELD can also be
-the special strings \"=type=\" and \"=key=\".
-Move point to the end of the last field."
+the special strings \"=type=\" and \"=key=\". For the FIELD \"=key=\"
+TEXT may be nil. Move point to the end of the last field."
   (let (alist bounds)
-    (when (looking-at bibtex-entry-head)
+    (when (looking-at bibtex-entry-maybe-empty-head)
       (push (cons "=type=" (match-string bibtex-type-in-head)) alist)
       (push (cons "=key=" (match-string bibtex-key-in-head)) alist)
-      (goto-char (match-end bibtex-key-in-head))
+      (goto-char (match-end 0))
       (while (setq bounds (bibtex-parse-field bibtex-field-name))
 	(push (cons (bibtex-name-in-field bounds)
 		    (bibtex-text-in-field-bounds bounds))

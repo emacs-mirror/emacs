@@ -1350,6 +1350,7 @@ if appropriate.  It also arranges to cancel that timer when the next
 command starts, by installing a pre-command hook."
   (when (null blink-cursor-timer)
     (add-hook 'pre-command-hook 'blink-cursor-end)
+    (internal-show-cursor nil nil)
     (setq blink-cursor-timer
 	  (run-with-timer blink-cursor-interval blink-cursor-interval
 			  'blink-cursor-timer-function))))

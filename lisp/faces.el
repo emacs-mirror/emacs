@@ -1809,7 +1809,7 @@ created."
 
 ;; Update a frame's faces when we change its default font.
 
-(defalias 'frame-update-faces 'ignore)
+(defalias 'frame-update-faces 'ignore "")
 (make-obsolete 'frame-update-faces "no longer necessary." "21.1")
 
 ;; Update the colors of FACE, after FRAME's own colors have been
