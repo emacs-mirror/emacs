@@ -46,3 +46,5 @@
 #ifndef TERMINFO
 #define LIBS_TERMCAP -ltermcap
 #endif
+
+#define REL_ALLOC_MMAP 1
