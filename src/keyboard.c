@@ -6901,11 +6901,10 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   (prefixarg)
      Lisp_Object prefixarg;
 {
-  defsubr (&Sfocus_frame);
-  defsubr (&Sunfocus_frame);
   Lisp_Object function;
   char buf[40];
   Lisp_Object saved_keys;
+  Lisp_Object bindings, value;
   struct gcpro gcpro1, gcpro2;
 
   saved_keys = Fvector (this_command_key_count,
@@ -6988,24 +6987,46 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   if (!NILP (Vsuggest_key_bindings)
       && NILP (Vexecuting_macro)
       && SYMBOLP (function))
+    bindings = Fwhere_is_internal (function, Voverriding_local_map,
+				   Qt, Qnil);
+  else
+    bindings = Qnil;
+
+  value = Qnil;
+  GCPRO2 (bindings, value);
+  value = Fcommand_execute (function, Qt, Qnil, Qnil);
+
+  /* If the command has a key binding, print it now.  */
+  if (!NILP (bindings))
     {
-      Lisp_Object bindings;
-
-      bindings = Fwhere_is_internal (function, Voverriding_local_map,
-				     Qt, Qnil);
-
-      if (!NILP (bindings))
+      /* But first wait, and skip the message if there is input.  */
+      if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
+			    ? Vsuggest_key_bindings : make_number (2)),
+			   Qnil, Qnil)))
 	{
-	  message ("You can run the command `%s' by typing %s",
+	  Lisp_Object binding;
+	  char *newmessage;
+	  char *oldmessage = echo_area_glyphs;
+	  int oldmessage_len = echo_area_glyphs_length;
+
+	  binding = Fkey_description (bindings);
+
+	  newmessage
+	    = (char *) alloca (XSYMBOL (function)->name->size
+			       + XSTRING (binding)->size
+			       + 100);
+	  sprintf (newmessage, "You can run the command `%s' by typing %s",
 		   XSYMBOL (function)->name->data,
-		   XSTRING (Fkey_description (bindings))->data);
-	  Fsit_for ((NUMBERP (Vsuggest_key_bindings)
-		     ? Vsuggest_key_bindings : make_number (2)),
-		    Qnil, Qnil);
+		   XSTRING (binding)->data);
+	  message1_nolog (newmessage);
+	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
+				? Vsuggest_key_bindings : make_number (2)),
+			       Qnil, Qnil)))
+	    message2_nolog (oldmessage, oldmessage_len);
 	}
     }
 
-  return Fcommand_execute (function, Qt, Qnil, Qnil);
+  RETURN_UNGCPRO (value);
 }
 
 /* Find the set of keymaps now active.
