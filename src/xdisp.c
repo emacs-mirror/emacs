@@ -626,8 +626,18 @@ redisplay ()
 	      int left = XFASTINT (w->left);
 	      int *charstart_next_line
 		= FRAME_CURRENT_GLYPHS (XFRAME (WINDOW_FRAME (w)))->charstarts[this_line_vpos + 1];
-	      int adjust = Z - tlendpos + 1 - charstart_next_line[left];
 	      int i;
+	      int adjust;
+
+	      if (Z - tlendpos == ZV)
+		/* This line ends at end of (accessible part of) buffer.
+		   There is no newline to count.  */
+		adjust = Z - tlendpos - charstart_next_line[left];
+	      else
+		/* This line ends in a newline.
+		   Must take account of the newline and the rest of the
+		   text that follows.  */
+		adjust = Z - tlendpos + 1 - charstart_next_line[left];
 
 	      adjust_window_charstarts (w, this_line_vpos, adjust);
 
