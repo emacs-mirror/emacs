@@ -4684,8 +4684,8 @@ This does code conversion according to the value of\n\
 #else /* not VMS */
 #ifdef DOS_NT
   desc = emacs_open (fn,
-		     O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type
-		     | (mustbenew == Qexcl ? O_EXCL : 0),
+		     O_WRONLY | O_CREAT | buffer_file_type
+		     | (EQ (mustbenew, Qexcl) ? O_EXCL : O_TRUNC),
 		     S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
   desc = emacs_open (fn, O_WRONLY | O_TRUNC | O_CREAT
