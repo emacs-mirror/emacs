@@ -796,6 +796,11 @@ file.  This is because saving customizations from such a session would
 wipe out all the other customizationss you might have on your init
 file.
 
+** If Emacs was invoked with the `-q' or `--no-init-file' options, it
+does not save disabled and enabled commands for future sessions, to
+avoid overwriting existing customizations of this kind that are
+already in your init file.
+
 ** New features in evaluation commands
 
 *** The commands to evaluate Lisp expressions, such as C-M-x in Lisp
