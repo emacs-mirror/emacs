@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifndef standalone
 #include "buffer.h"
+#include "charset.h"
 #include "frame.h"
 #include "window.h"
 #include "process.h"
@@ -250,7 +251,7 @@ static int printbufidx;
 
 static void
 printchar (ch, fun)
-     unsigned char ch;
+     unsigned int ch;
      Lisp_Object fun;
 {
   Lisp_Object ch1;
@@ -262,11 +263,16 @@ printchar (ch, fun)
 #ifndef standalone
   if (EQ (fun, Qnil))
     {
+      int len;
+      char work[4], *str;
+
       QUIT;
-      if (print_buffer_pos == print_buffer_size)
+      len = CHAR_STRING (ch, work, str);
+      if (print_buffer_pos + len >= print_buffer_size)
 	print_buffer = (char *) xrealloc (print_buffer,
 					  print_buffer_size *= 2);
-      print_buffer[print_buffer_pos++] = ch;
+      bcopy (str, print_buffer + print_buffer_pos, len);
+      print_buffer_pos += len;
       return;
     }
 
@@ -274,12 +280,15 @@ printchar (ch, fun)
     {
       FRAME_PTR mini_frame
 	= XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+      unsigned char work[4], *str;
+      int len = CHAR_STRING (ch, work, str);
 
       QUIT;
 
       if (noninteractive)
 	{
-	  putchar (ch);
+	  while (len--)
+	    putchar (*str), str++;
 	  noninteractive_need_newline = 1;
 	  return;
 	}
@@ -294,9 +303,10 @@ printchar (ch, fun)
 	  message_buf_print = 1;
 	}
 
-      message_dolog (&ch, 1, 0);
-      if (printbufidx < FRAME_WIDTH (mini_frame) - 1)
-	FRAME_MESSAGE_BUF (mini_frame)[printbufidx++] = ch;
+      message_dolog (str, len, 0);
+      if (printbufidx < FRAME_MESSAGE_BUF_SIZE (mini_frame) - len)
+	bcopy (str, &FRAME_MESSAGE_BUF (mini_frame)[printbufidx], len),
+	printbufidx += len;
       FRAME_MESSAGE_BUF (mini_frame)[printbufidx] = 0;
       echo_area_glyphs_length = printbufidx;
 
@@ -316,11 +326,11 @@ strout (ptr, size, printcharfun)
 {
   int i = 0;
 
+  if (size < 0)
+    size = strlen (ptr);
+
   if (EQ (printcharfun, Qnil))
     {
-      if (size < 0)
-	size = strlen (ptr);
-
       if (print_buffer_pos + size > print_buffer_size)
 	{
 	  print_buffer_size = print_buffer_size * 2 + size;
@@ -343,15 +353,14 @@ strout (ptr, size, printcharfun)
 
       QUIT;
 
-      i = size >= 0 ? size : strlen (ptr);
 #ifdef MAX_PRINT_CHARS
       if (max_print)
-        print_chars += i;
+        print_chars += size;
 #endif /* MAX_PRINT_CHARS */
 
       if (noninteractive)
 	{
-	  fwrite (ptr, 1, i, stdout);
+	  fwrite (ptr, 1, size, stdout);
 	  noninteractive_need_newline = 1;
 	  return;
 	}
@@ -366,23 +375,32 @@ strout (ptr, size, printcharfun)
 	  message_buf_print = 1;
 	}
 
-      message_dolog (ptr, i, 0);
-      if (i > FRAME_WIDTH (mini_frame) - printbufidx - 1)
-	i = FRAME_WIDTH (mini_frame) - printbufidx - 1;
-      bcopy (ptr, &FRAME_MESSAGE_BUF (mini_frame) [printbufidx], i);
-      printbufidx += i;
+      message_dolog (ptr, size, 0);
+      if (size > FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1)
+	{
+	  size = FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1;
+	  /* Rewind incomplete multi-byte form.  */
+	  while (size && (unsigned char) ptr[size] >= 0xA0) size--;
+	}
+      bcopy (ptr, &FRAME_MESSAGE_BUF (mini_frame) [printbufidx], size);
+      printbufidx += size;
       echo_area_glyphs_length = printbufidx;
       FRAME_MESSAGE_BUF (mini_frame) [printbufidx] = 0;
 
       return;
     }
 
-  if (size >= 0)
-    while (i < size)
-      PRINTCHAR (ptr[i++]);
-  else
-    while (ptr[i])
-      PRINTCHAR (ptr[i++]);
+  i = 0;
+  while (i < size)
+    {
+      /* Here, we must convert each multi-byte form to the
+         corresponding character code before handing it to PRINTCHAR.  */
+      int len;
+      int ch = STRING_CHAR_AND_LENGTH (ptr + i, size - i, len);
+
+      PRINTCHAR (ch);
+      i += len;
+    }
 }
 
 /* Print the contents of a string STRING using PRINTCHARFUN.
@@ -1270,6 +1288,11 @@ print (obj, printcharfun, escapeflag)
 	{
 	case Lisp_Misc_Marker:
 	  strout ("#<marker ", -1, printcharfun);
+#if 0
+	  /* Do you think this is necessary?  */
+	  if (XMARKER (obj)->insertion_type != 0)
+	    strout ("(before-insertion) ", -1, printcharfun);
+#endif /* 0 */
 	  if (!(XMARKER (obj)->buffer))
 	    strout ("in no buffer", -1, printcharfun);
 	  else
