@@ -1,3 +1,8 @@
+2004-07-02  Kai Grossjohann  <kai@emptydomain.de>
+
+	* files.texi (Magic File Names): `file-remote-p' returns an
+	identifier of the remote system, not just t.
+
 2004-07-02  David Kastrup  <dak@gnu.org>
 
 	* searching.texi (Entire Match Data): Add explanation about new

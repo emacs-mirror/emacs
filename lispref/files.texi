@@ -2646,7 +2646,23 @@ of the local copy file.
 @end defun
 
 @defun file-remote-p filename
-This function returns @code{t} if @var{filename} is a remote file.
+This function tests whether @var{filename} is a remote file.  The
+return value is an identifier of the remote system, if @var{filename}
+is indeed remote.  Besides the host name, the identifier may comprise
+a user name and a method used to access that system.
+
+To illustrate, for the filename @code{/ssh:user@@host:/some/file}, the
+identifier is @code{/ssh:user@@host:}.
+
+If @var{filename} is local (not remote), then the return value is
+@code{nil}.
+
+If @code{file-remote-p} returns the same identifier for two different
+filenames, then the file handler is the same, and also the files can
+be accessed locally with respect to each other.  This means, for
+example, that it is possible to start a (remote) process accessing
+both files at the same time.  Implementors of file handlers need to
+ensure this.
 @end defun
 
 @defun unhandled-file-name-directory filename
