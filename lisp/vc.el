@@ -89,6 +89,10 @@ The value is only computed when needed to avoid an expensive search.")
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
 
+;;; This is duplicated in diff.el.
+(defvar diff-switches "-c"
+  "*A string or list of strings specifying switches to be be passed to diff.")
+
 ;;;###autoload
 (defvar vc-checkin-hook nil
   "*List of functions called after a vc-checkin is done.  See `run-hooks'.")
