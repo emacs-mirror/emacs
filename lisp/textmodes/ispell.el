@@ -130,6 +130,10 @@
 ;;
 ;; HISTORY
 ;;
+;; Revision 2.38  1996/5/30	ethanb@phys.washington.edu
+;; Update ispell-message for gnus 5 (news-inews-hook => message-send-hook;
+;; different header for quoted message).
+;;
 ;; Revision 2.37  1995/6/13 12:05:28	stevens
 ;; Removed autoload from ispell-dictionary-alist. *choices* mode-line shows
 ;; misspelled word.  Block skip for pgp & forwarded messages added.
@@ -2093,13 +2097,13 @@ Assumed that blocks are not mutually inclusive.")
 Don't check spelling of message headers except the Subject field.
 Don't check included messages.
 
-To abort spell checking of a message REGION and send the message anyway,
-use the `x' or `q' command.  (Any subsequent regions will be checked.)
+To abort spell checking of a message region and send the message anyway,
+use the `x' command.  (Any subsequent regions will be checked.)
 The `X' command aborts the message send so that you can edit the buffer.
 
 To spell-check whenever a message is sent, include the appropriate lines
 in your .emacs file:
-   (add-hook 'news-inews-hook 'ispell-message)
+   (add-hook 'message-send-hook 'ispell-message)
    (add-hook 'mail-send-hook  'ispell-message)
    (add-hook 'mh-before-send-letter-hook 'ispell-message)
 
@@ -2131,8 +2135,13 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	     ((featurep 'sc)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
 		      (ispell-non-empty-string sc-reference-tag-string)))
-	     ((equal major-mode 'news-reply-mode) ;GNUS
+	     ((equal major-mode 'news-reply-mode) ;GNUS 4 & below
 	      (concat "In article <" "\\|"
+		      (if mail-yank-prefix
+			  (ispell-non-empty-string mail-yank-prefix)
+			"^   \\|^\t")))
+	     ((equal major-mode 'message-mode) ;GNUS 5
+	      (concat ".*@.* writes:$" "\\|"
 		      (if mail-yank-prefix
 			  (ispell-non-empty-string mail-yank-prefix)
 			"^   \\|^\t")))
