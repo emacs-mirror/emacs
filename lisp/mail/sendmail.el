@@ -519,9 +519,31 @@ the user from the mailer."
 		(let* ((login (user-login-name))
 		       (fullname (user-full-name)))
 		  (cond ((eq mail-from-style 'angles)
-			 (insert "From: " fullname " <" login ">\n"))
+			 (insert "From: " fullname)
+			 (let ((fullname-start (+ (point-min) 6))
+			       (fullname-end (point-marker)))
+			   (goto-char fullname-start)
+			   ;; Look for a character that cannot appear unquoted
+			   ;; according to RFC 822.
+			   (if (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
+						  fullname-end 1)
+			       (progn
+				 ;; Quote fullname, escaping specials.
+				 (goto-char fullname-start)
+				 (insert "\"")
+				 (while (re-search-forward "[\"\\]"
+							   fullname-end 1)
+				   (replace-match "\\\\\\&" t))
+				 (insert "\""))))
+			 (insert " <" login ">\n"))
 			((eq mail-from-style 'parens)
-			 (insert "From: " login " (" fullname ")\n"))
+			 (insert "From: " login " (" fullname)
+			 (let ((fullname-end (point-marker)))
+			   (backward-char (length fullname))
+			   ;; RFC 822 says ()\ must be escaped in comments.
+			   (while (re-search-forward "[()\\]" fullname-end 1)
+			     (replace-match "\\\\\\&" t)))
+			 (insert ")\n"))
 			((null mail-from-style)
 			 (insert "From: " login "\n")))))
 	    ;; Insert an extra newline if we need it to work around
