@@ -37,8 +37,8 @@ Software Foundation raise funds for GNU development.''
 
 @dircategory Emacs
 @direntry
-* Widget: (widget).      Documenting the "widget" package used by the
-                           Emacs Custom facility.
+* Widget: (widget).      The "widget" package used by the Emacs Customization
+                           facility.
 @end direntry
 
 @node Top, Introduction, (dir), (dir)

@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.6 2001/03/04 07:14:22 rms Exp $
+@c $Id: woman.texi,v 1.7 2001/03/05 15:11:21 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``Wo (without) Man''
@@ -16,7 +16,7 @@
 
 @dircategory Emacs
 @direntry
-* WoMan: (woman).       Browse UN*X Manual Pages `Wo (without) Man'.
+* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
 @end direntry
 
 @ifinfo
