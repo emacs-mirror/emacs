@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.33 2000/10/19 15:42:21 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.34 2000/11/12 16:59:52 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -274,8 +274,9 @@ when editing big diffs)."
 
 (defvar diff-imenu-generic-expression
   ;; Prefer second name as first is most likely to be a backup or
-  ;; version-control name.
-  '((nil "\\+\\+\\+\\ \\([^\t\n]+\\)\t" 1) ; unidiffs
+  ;; version-control name.  The [\t\n] at the end of the unidiff pattern
+  ;; catches Debian source diff files (which lack the trailing date).
+  '((nil "\\+\\+\\+\\ \\([^\t\n]+\\)[\t\n]" 1) ; unidiffs
     (nil "^--- \\([^\t\n]+\\)\t.*\n\\*" 1))) ; context diffs
 
 ;;;;
