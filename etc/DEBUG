@@ -350,6 +350,38 @@ evaluate `(setq inverse-video t)' before you try the operation you think
 will cause too much redrawing.  This doesn't refresh the screen, so only
 newly drawn text is in inverse video.
 
+The Emacs display code includes special debugging code, but it is
+normally disabled.  You can enable it by building Emacs with the
+pre-processing symbol GLYPH_DEBUG defined.  Here's one easy way,
+suitable for Unix and GNU systems, to build such a debugging version:
+
+	 MYCPPFLAGS='-DGLYPH_DEBUG=1' make
+
+Building Emacs like that activates many assertions which scrutinize
+display code operation more than Emacs does normally.  (To see the
+code which tests these assertions, look for calls to the `xassert'
+macros.)  Any assertion that is reported to fail should be
+investigated.
+
+Building with GLYPH_DEBUG defined also defines several helper
+functions which can help debugging display code.  One such function is
+`dump_glyph_matrix'.  If you run Emacs under GDB, you can print the
+contents of any glyph matrix by just calling that function with the
+matrix as its argument.  For example, the following command will print
+the contents of the current matrix of the window whose pointer is in
+`w':
+
+  (gdb) p dump_glyph_matrix (w->current_matrix, 2)
+
+(The second argument 2 tells dump_glyph_matrix to print the glyphs in
+a long form.)  You can dump the selected window's current glyph matrix
+interactively with "M-x dump-glyph-matrix RET"; see the documentation
+of this function for more details.
+
+Several more functions for debugging display code are available in
+Emacs compiled with GLYPH_DEBUG defined; type "C-h f dump- RET" and
+"C-h f trace- RET" to see the full list.
+
 
 ** Debugging LessTif
 
