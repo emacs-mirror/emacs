@@ -1,3 +1,8 @@
+2001-09-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (Ftrace_to_stderr) [GLYPH_DEBUG]: Take args like
+	`format'.
+
 2001-09-10  Richard M. Stallman  <rms@gnu.org>
 
 	* frame.c (Fmouse_position): Doc fix.
