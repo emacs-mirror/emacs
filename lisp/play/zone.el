@@ -33,10 +33,11 @@
 ;; `zone-programs'.  See `zone-call' for higher-ordered zoning.
 
 ;; WARNING: Not appropriate for Emacs sessions over modems or
-;; computers as slow as mine.
+;;          computers as slow as mine.
 
-;; THANKS: Christopher Mayer, Scott Flinchbaugh, Rachel Kalmar,
-;;         Max Froumentin, Juri Linkov, Luigi Panzeri.
+;; THANKS: Christopher Mayer, Scott Flinchbaugh,
+;;         Rachel Kalmar, Max Froumentin, Juri Linkov,
+;;         Luigi Panzeri, John Paul Wallington.
 
 ;;; Code:
 
