@@ -950,7 +950,7 @@ make_temp_name (prefix, base64_p)
 	       in looping through 225307 stat's, which is not only
 	       dog-slow, but also useless since it will fallback to
 	       the errow below, anyway.  */
-	    report_file_error ("Cannot create temporary name for prefix `%s'",
+	    report_file_error ("Cannot create temporary name for prefix",
 			       Fcons (prefix, Qnil));
 	  /* not reached */
 	}
