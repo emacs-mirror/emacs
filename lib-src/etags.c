@@ -1,6 +1,5 @@
 /* Tags file maker to go with GNU Emacs
    Copyright (C) 1984,87,88,89,93,94 Free Software Foundation, Inc. and Ken Arnold
-
 This file is not considered part of GNU Emacs.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,11 +23,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Ed Pelegri-Llopart added C typedefs.
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
+ *	Francesco Potorti` reorganised C and C++ based on work by Joe Wells.
+#ifdef ETAGS_REGEXPS
+ *	Regexp tags by Tom Tromey.
+#endif
  *
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 10.32";
+char pot_etags_version[] = "@(#) pot revision number is 11.8";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -43,7 +46,7 @@ char pot_etags_version[] = "@(#) pot revision number is 10.32";
 #endif
 
 #ifdef HAVE_CONFIG_H
-#include <../src/config.h>
+#include <config.h>
 /* On some systems, Emacs defines static as nothing
    for the sake of unexec.  We don't want that here
    since we don't use unexec.  */
@@ -63,7 +66,11 @@ extern int errno;
 # define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #endif
 
-#include "getopt.h"
+#include <getopt.h>
+
+#ifdef ETAGS_REGEXPS
+#include <regex.h>
+#endif /* ETAGS_REGEXPS */
 
 extern char *getenv ();
 
@@ -111,11 +118,17 @@ extern char *getenv ();
  */
 
 #ifndef DEBUG
+#define DEBUG FALSE
+
  /* real implementation */
 typedef long FILEPOS;
 #define GET_CHARNO(pos)	((pos) + 0)
 #define SET_FILEPOS(pos, fp, cno)	((void) ((pos) = (cno)))
+
 #else
+#undef DEBUG
+#define DEBUG TRUE
+
  /* debugging implementation */
 typedef struct
 {
@@ -158,7 +171,6 @@ struct nd_st
 
 typedef struct nd_st NODE;
 
-logical header_file;		/* TRUE if .h file, FALSE o.w.  */
 /* boolean "functions" (see init)	*/
 logical _wht[0177], _etk[0177], _itk[0177], _btk[0177];
 
@@ -171,20 +183,29 @@ char *etags_strchr (), *etags_strrchr ();
 char *etags_getcwd ();
 char *relative_filename (), *absolute_filename (), *absolute_dirname ();
 char *xmalloc (), *xrealloc ();
-int total_size_of_entries ();
-int string_numeric_p ();
-logical substr ();
-logical prestr ();
-long readline ();
 
-void Asm_labels ();
-void C_entries ();
-int Fortran_functions ();
-void Lisp_functions ();
-void Pascal_functions ();
-void Prolog_functions ();
-void Scheme_functions ();
-void TeX_functions ();
+typedef void Lang_function ();
+Lang_function Asm_labels;
+Lang_function default_C_entries;
+Lang_function C_entries;
+Lang_function Cplusplus_entries;
+Lang_function Cstar_entries;
+Lang_function Fortran_functions;
+Lang_function Yacc_entries;
+Lang_function Lisp_functions;
+Lang_function Pascal_functions;
+Lang_function Prolog_functions;
+Lang_function Scheme_functions;
+Lang_function TeX_functions;
+Lang_function just_read_file;
+
+logical get_language ();
+int total_size_of_entries ();
+long readline ();
+long readline_internal ();
+#ifdef ETAGS_REGEXPS
+void add_regex ();
+#endif
 void add_node ();
 void error ();
 void fatal ();
@@ -192,7 +213,6 @@ logical find_entries ();
 void free_tree ();
 void getit ();
 void init ();
-void initbuffer ();
 void initbuffer ();
 void pfnote ();
 void process_file ();
@@ -280,9 +300,12 @@ struct option longopts[] = {
   { "help",			no_argument,	   NULL, 'H' },
   { "ignore-indentation",	no_argument,	   NULL, 'S' },
   { "include",			required_argument, NULL, 'i' },
+  { "language",                 required_argument, NULL, 'l' },
   { "no-defines",		no_argument,	   NULL, 'D' },
+  { "no-regex",			no_argument,	   NULL, 'R' },
   { "no-warn",			no_argument,	   NULL, 'w' },
   { "output",			required_argument, NULL, 'o' },
+  { "regex",			required_argument, NULL, 'r' },
   { "typedefs",			no_argument,	   NULL, 't' },
   { "typedefs-and-c++",		no_argument,	   NULL, 'T' },
   { "update",			no_argument,	   NULL, 'u' }, 
@@ -312,7 +335,155 @@ struct
   FILEPOS linepos;
   struct linebuffer lb;		/* used by C_entries instead of lb */
 } lbs[2];
+
+#ifdef ETAGS_REGEXPS
+/* Structure defining a regular expression.  Elements are 
+   the compiled pattern, and the name string. */
+struct pattern
+{
+  struct re_pattern_buffer *pattern;
+  struct re_registers regs;
+  char *name_pattern;
+  logical error_signaled;
+};
+
+/* Number of regexps found. */
+int num_patterns = 0;
+
+/* Array of all regexps. */
+struct pattern *patterns = NULL;
+#endif /* ETAGS_REGEXPS */
+
+/* Language stuff. */
+struct lang_entry
+{
+  char *extension;
+  Lang_function *function;
+};
+
+/* Table of language names and corresponding functions. */
+/* It is ok for a given function to be listed under more than one
+   name.  I just didn't. */
+/* "auto" language reverts to default behavior. */
+struct lang_entry lang_names[] =
+{
+  { "asm", Asm_labels },
+  { "c", default_C_entries },
+  { "c++", Cplusplus_entries },
+  { "c*", Cstar_entries },
+  { "fortran", Fortran_functions },
+  { "lisp", Lisp_functions },
+  { "none", just_read_file },
+  { "pascal", Pascal_functions },
+  { "scheme" , Scheme_functions },
+  { "tex", TeX_functions },
+  { "auto", NULL },
+  { NULL, NULL }
+};
+
+/* Table of file extensions and corresponding language functions. */
+struct lang_entry lang_extensions[] =
+{
+  /* Assume that ".s" or ".a" is assembly code. -wolfgang.
+     Or even ".sa". */
+  { "a", Asm_labels },		/* Unix assembler */
+  { "asm", Asm_labels },	/* Microcontroller assembly */
+  { "def", Asm_labels },	/* BSO/Tasking definition includes  */
+  { "inc", Asm_labels },	/* Microcontroller include files */
+  { "ins", Asm_labels },	/* Microcontroller include files */
+  { "s", Asm_labels },
+  { "sa", Asm_labels },		/* Unix assembler */
+  { "src", Asm_labels },	/* BSO/Tasking C compiler output */
+
+  /* .aux, .bbl, .clo, .cls, .dtx or .tex implies LaTeX source code. */
+  { "aux", TeX_functions },
+  { "bbl", TeX_functions },
+  { "clo", TeX_functions },
+  { "cls", TeX_functions },
+  { "dtx", TeX_functions },
+  { "sty", TeX_functions },
+  { "tex", TeX_functions },
+
+  /* .l or .el or .lisp (or .cl or .clisp or ...) implies lisp source code */
+  { "cl", Lisp_functions },
+  { "clisp", Lisp_functions },
+  { "el", Lisp_functions },
+  { "l", Lisp_functions },
+  { "lisp", Lisp_functions },
+  { "lsp", Lisp_functions },
+
+  /* .scm or .sm or .scheme implies scheme source code */
+  { "SCM", Scheme_functions },
+  { "SM", Scheme_functions },
+  { "oak", Scheme_functions },
+  { "sch", Scheme_functions },
+  { "scheme", Scheme_functions },
+  { "scm", Scheme_functions },
+  { "sm", Scheme_functions },
+  { "t", Scheme_functions },
+  /* FIXME Can't do the `SCM' or `scm' prefix with a version number */
+
+  /* Note that ".c" and ".h" can be considered C++, if the --c++
+     flag was given.  That is why default_C_entries is called here. */
+  { "c", default_C_entries },
+  { "h", default_C_entries },
+
+  /* .C or .H or .cpp or .cxx or .hxx or .hh or .cc or .cpp: a C++ file */
+  { "C", Cplusplus_entries },
+  { "H", Cplusplus_entries },
+  { "cc", Cplusplus_entries },
+  { "cpp", Cplusplus_entries },
+  { "cxx", Cplusplus_entries },
+  { "hh", Cplusplus_entries },
+  { "hxx", Cplusplus_entries },
+
+  /* .y: a yacc file */
+  { "y", Yacc_entries },
+
+  /* .cs or .hs: a C* file */
+  { "cs", Cstar_entries },
+  { "hs", Cstar_entries },
+
+  /* .f and .for are FORTRAN. */
+  { "F", Fortran_functions },
+  { "f", Fortran_functions },
+  { "for", Fortran_functions },
+
+  /* .pl implies prolog source code */
+  { "pl", Prolog_functions },
+
+  /* .p or .pas: a Pascal file */
+  { "p", Pascal_functions },
+  { "pas", Pascal_functions },
+
+  { NULL, NULL }
+};
+
+/* Non-NULL if language fixed. */
+Lang_function *lang_func = NULL;
+
 
+void
+print_language_names ()
+{
+  struct lang_entry *name, *ext;
+
+  puts ("\nThese are the currently supported languages, along with the\n\
+default extensions for files:");
+  for (name = lang_names; name->extension; ++name)
+    {
+      printf ("\t%s\t", name->extension);
+      for (ext = lang_extensions; ext->extension; ++ext)
+	if (name->function == ext->function)
+	  printf (" .%s", ext->extension);
+      puts ("");
+    }
+  puts ("Where `auto' means use default language for files based on filename\n\
+extension, and `none' means only do regexp processing on files.\n\
+If no language is specified and no extension is found for some file,\n\
+Fortran is tried first; if no tags are found, C is tried next.");
+}
+
 void
 print_version ()
 {
@@ -329,7 +500,7 @@ void
 print_help ()
 {
   printf ("These are the options accepted by %s.  You may use unambiguous\n\
-abbreviations for the long option names.  A - as file name means read file\n\
+abbreviations for the long option names.  A - as file name means read\n\
 names from stdin.\n\n", progname);
 
   puts ("-a, --append\n\
@@ -341,9 +512,7 @@ names from stdin.\n\n", progname);
         backward-search command instead of '/', the forward-search command.");
 
   puts ("-C, --c++\n\
-        Treat files with `.c' and `.h' extensions as C++ code, not C\n\
-        code.  Files with `.C', `.H', `.cxx', `.hxx', or `.cc'\n\
-        extensions are always assumed to be C++ code.");
+        Treat files whose extension defaults to C language as C++ files.");
 
   if (CTAGS)
     puts ("-d, --defines\n\
@@ -354,10 +523,25 @@ names from stdin.\n\n", progname);
 	the tags file smaller.");
 
   if (!CTAGS)
-    puts ("-i FILE, --include=FILE\n\
+    {
+      puts ("-i FILE, --include=FILE\n\
         Include a note in tag file indicating that, when searching for\n\
         a tag, one should also consult the tags file FILE after\n\
         checking the current file.");
+      puts ("-l LANG, --language=LANG\n\
+        Force the following files to be considered as written in the\n\
+	named language up to the next --language=LANG option.");
+#ifdef ETAGS_REGEXPS
+      puts ("-r /REGEXP/, --regex=/REGEXP/\n\
+        Make a tag for each line matching pattern REGEXP in the\n\
+ 	following files.  REGEXP is anchored (as if preceded by ^).\n\
+	The form /REGEXP/NAME/ creates a named tag.  For example Tcl\n\
+	named tags can be created with:\n\
+	--regex=/proc[ \\t]+\\([^ \\t]+\\)/\\1/.");
+      puts ("-R, --no-regex\n\
+        Don't create tags from regexps for the following files.");
+#endif /* ETAGS_REGEXPS */
+    }
 
   puts ("-o FILE, --output=FILE\n\
         Write the tags to FILE.");
@@ -385,14 +569,14 @@ names from stdin.\n\n", progname);
         Generates an index of items intended for human consumption,\n\
         similar to the output of vgrind.  The index is sorted, and\n\
         gives the page number of each item.");
+      puts ("-w, --no-warn\n\
+        Suppress warning messages about entries defined in multiple\n\
+        files.");
       puts ("-x, --cxref\n\
         Like --vgrind, but in the style of cxref, rather than vgrind.\n\
         The output uses line numbers instead of page numbers, but\n\
         beyond that the differences are cosmetic; try both to see\n\
         which you like.");
-      puts ("-w, --no-warn\n\
-        Suppress warning messages about entries defined in multiple\n\
-        files.");
     }
 
   puts ("-V, --version\n\
@@ -400,8 +584,150 @@ names from stdin.\n\n", progname);
 -H, --help\n\
         Print this help message.");
 
+  print_language_names ();
+
   exit (GOOD);
 }
+
+
+enum argument_type
+{
+  at_language,
+  at_regexp,
+  at_filename
+};
+
+/* This structure helps us allow mixing of --lang and filenames. */
+typedef struct
+{
+  enum argument_type arg_type;
+  char *what;
+  Lang_function *function;
+} ARGUMENT;
+
+#ifdef VMS			/* VMS specific functions */
+
+#define	EOS	'\0'
+
+/* This is a BUG!  ANY arbitrary limit is a BUG!
+   Won't someone please fix this?  */
+#define	MAX_FILE_SPEC_LEN	255
+typedef struct	{
+  short   curlen;
+  char    body[MAX_FILE_SPEC_LEN + 1];
+} vspec;
+
+/*
+ v1.05 nmm 26-Jun-86 fn_exp - expand specification of list of file names
+ returning in each successive call the next filename matching the input
+ spec. The function expects that each in_spec passed
+ to it will be processed to completion; in particular, up to and
+ including the call following that in which the last matching name
+ is returned, the function ignores the value of in_spec, and will
+ only start processing a new spec with the following call. 
+ If an error occurs, on return out_spec contains the value
+ of in_spec when the error occurred.
+
+ With each successive filename returned in out_spec, the
+ function's return value is one. When there are no more matching
+ names the function returns zero. If on the first call no file
+ matches in_spec, or there is any other error, -1 is returned. 
+*/
+
+#include	<rmsdef.h>
+#include	<descrip.h>
+#define		OUTSIZE	MAX_FILE_SPEC_LEN
+short
+fn_exp (out, in)
+     vspec *out;
+     char *in;
+{
+  static long context = 0;
+  static struct dsc$descriptor_s o;
+  static struct dsc$descriptor_s i;
+  static logical pass1 = TRUE;
+  long status;
+  short retval;
+
+  if (pass1)
+    {
+      pass1 = FALSE;
+      o.dsc$a_pointer = (char *) out;
+      o.dsc$w_length = (short)OUTSIZE;
+      i.dsc$a_pointer = in;
+      i.dsc$w_length = (short)strlen(in);
+      i.dsc$b_dtype = DSC$K_DTYPE_T;
+      i.dsc$b_class = DSC$K_CLASS_S;
+      o.dsc$b_dtype = DSC$K_DTYPE_VT;
+      o.dsc$b_class = DSC$K_CLASS_VS;
+    }
+  if ((status = lib$find_file(&i, &o, &context, 0, 0)) == RMS$_NORMAL)
+    {
+      out->body[out->curlen] = EOS;
+      return 1;
+    }
+  else if (status == RMS$_NMF)
+    retval = 0;
+  else
+    {
+      strcpy(out->body, in);
+      retval = -1;
+    }
+  lib$find_file_end(&context);
+  pass1 = TRUE;
+  return retval;
+}	
+
+/*
+  v1.01 nmm 19-Aug-85 gfnames - return in successive calls the 
+  name of each file specified by the provided arg expanding wildcards.
+*/
+char *
+gfnames (arg, p_error)
+     char *arg;
+     logical *p_error;
+{
+  static vspec filename = {MAX_FILE_SPEC_LEN, "\0"};
+
+  switch (fn_exp (&filename, arg))
+    {
+    case 1:
+      *p_error = FALSE;
+      return filename.body;
+    case 0:
+      *p_error = FALSE;
+      return NULL;
+    default:
+      *p_error = TRUE;
+      return filename.body;
+    }
+}
+
+#ifndef OLD  /* Newer versions of VMS do provide `system'.  */
+system (cmd)
+     char *cmd;
+{
+  fprintf (stderr, "system() function not implemented under VMS\n");
+}
+#endif
+
+#define	VERSION_DELIM	';'
+char *massage_name (s)
+     char *s;
+{
+  char *start = s;	
+
+  for ( ; *s; s++)
+    if (*s == VERSION_DELIM)
+      {
+	*s = EOS;
+	break;
+      }
+    else
+      *s = tolower(*s);
+  return start;
+}
+#endif /* VMS */
 
 
 void
@@ -414,11 +740,10 @@ main (argc, argv)
   unsigned int nincluded_files = 0;
   char **included_files = xnew (argc, char *);
   char *this_file;
+  ARGUMENT *argbuffer;
+  int current_arg = 0, file_count = 0;
 #ifdef VMS
-  char got_err;
-
-  extern char *gfnames ();
-  extern char *massage_name ();
+  logical got_err;
 #endif
  
 #ifdef DOS_NT
@@ -426,6 +751,15 @@ main (argc, argv)
 #endif /* DOS_NT */
 
   progname = argv[0];
+
+  /* Allocate enough no matter what happens.  Overkill, but each one
+     is small. */
+  argbuffer = xnew (argc, ARGUMENT);
+
+#ifdef ETAGS_REGEXPS
+  /* Set syntax for regular expression routines. */
+  re_set_syntax (RE_SYNTAX_EMACS);
+#endif /* ETAGS_REGEXPS */
 
   /*
    * If etags, always find typedefs and structure tags.  Why not?
@@ -436,8 +770,8 @@ main (argc, argv)
 
   while (1)
     {
-      int opt;
-      opt = getopt_long (argc, argv, "aCdDf:o:StTi:BuvxwVH", longopts, 0);
+      int opt = getopt_long (argc, argv,
+			     "-aCdDf:l:o:r:RStTi:BuvxwVH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -447,6 +781,14 @@ main (argc, argv)
 	case 0:
 	  /* If getopt returns 0, then it has already processed a
 	     long-named option.  We should do nothing.  */
+	  break;
+
+	case 1:
+	  /* This means that a filename has been seen.  Record it. */
+	  argbuffer[current_arg].arg_type = at_filename;
+	  argbuffer[current_arg].what = optarg;
+	  ++current_arg;
+	  ++file_count;
 	  break;
 
 	  /* Common options. */
@@ -472,6 +814,28 @@ main (argc, argv)
 	    }
 	  tagfile = optarg;
 	  break;
+	case 'l':
+	  if (!get_language (optarg, &argbuffer[current_arg].function))
+	    {
+	      fprintf (stderr, "%s: language \"%s\" not recognized.\n",
+		       progname, optarg);
+	      goto usage;
+	    }
+	  argbuffer[current_arg].arg_type = at_language;
+	  ++current_arg;
+	  break;
+#ifdef ETAGS_REGEXPS
+	case 'r':
+	  argbuffer[current_arg].arg_type = at_regexp;
+	  argbuffer[current_arg].what = optarg;
+	  ++current_arg;
+	  break;
+	case 'R':
+	  argbuffer[current_arg].arg_type = at_regexp;
+	  argbuffer[current_arg].what = NULL;
+	  ++current_arg;
+	  break;
+#endif /* ETAGS_REGEXPS */
 	case 'S':
 	  noindentypedefs++;
 	  break;
@@ -524,7 +888,15 @@ main (argc, argv)
 	}
     }
 
-  if (optind == argc && nincluded_files == 0)
+  for (; optind < argc; ++optind)
+    {
+      argbuffer[current_arg].arg_type = at_filename;
+      argbuffer[current_arg].what = argv[optind];
+      ++current_arg;
+      ++file_count;
+    }
+
+  if (nincluded_files == 0 && file_count == 0)
     {
       fprintf (stderr, "%s: No input files specified.\n", progname);
 
@@ -549,15 +921,13 @@ main (argc, argv)
       tagfiledir = absolute_dirname (tagfile, cwd);
     }
 
-  init ();			/* set up boolean "functions"		*/
+  init ();			/* set up boolean "functions" */
 
   initbuffer (&lb);
   initbuffer (&lbs[0].lb);
   initbuffer (&lbs[1].lb);
   initbuffer (&filename_lb);
-  /*
-   * loop through files finding functions
-   */
+
   if (!CTAGS)
     {
       if (streq (tagfile, "-"))
@@ -571,40 +941,57 @@ main (argc, argv)
 	}
     }
 
+  /*
+   * Loop through files finding functions.
+   */
+  for (i = 0; i < current_arg; ++i)
+    {
+      switch (argbuffer[i].arg_type)
+	{
+	case at_language:
+	  lang_func = argbuffer[i].function;
+	  break;
+#ifdef ETAGS_REGEXPS
+	case at_regexp:
+	  add_regex (argbuffer[i].what);
+	  break;
+#endif
+	case at_filename:
 #ifdef VMS
-  argc -= optind;
-  argv += optind;
-  while (gfnames (&argc, &argv, &got_err) != NULL)
-    {
-      if (got_err)
-	{
-	  error ("Can't find file %s\n", this_file);
-	  argc--, argv++;
-	}
-      else
-	{
-	  this_file = massage_name (this_file);
-#if 0
-	}
-    }			/* solely to balance out the ifdef'd parens above */
-#endif
-#else
-  for (; optind < argc; optind++)
-    {
-      this_file = argv[optind];
-#endif
-      /* Input file named "-" means read file names from stdin and use them. */
-      if (streq (this_file, "-"))
-	{
-	  while (!feof (stdin))
+	  while ((this_file = gfnames (argbuffer[i].what, &got_err)) != NULL)
 	    {
-	      (void) readline (&filename_lb, stdin);
-	      if (strlen (filename_lb.buffer) > 0)
-		process_file (filename_lb.buffer);
+	      if (got_err)
+		{
+		  error ("Can't find file %s\n", this_file);
+		  argc--, argv++;
+		}
+	      else
+		{
+		  this_file = massage_name (this_file);
+		}
+#else
+	      this_file = argbuffer[i].what;
+#endif
+	      /* Input file named "-" means read file names from stdin
+		 and use them. */
+	      if (streq (this_file, "-"))
+		{
+		  while (!feof (stdin))
+		    {
+		      /* Use readline_internal so that regexp matching */
+		      /* is not done on filenames. */
+		      (void) readline_internal (&filename_lb, stdin);
+		      if (strlen (filename_lb.buffer) > 0)
+			process_file (filename_lb.buffer);
+		    }
+		}
+	      else
+		process_file (this_file);
+#ifdef VMS
 	    }
+#endif
+	  break;
 	}
-      else
-	process_file (this_file);
     }
 
   if (!CTAGS)
@@ -623,13 +1010,13 @@ main (argc, argv)
     }
   if (update)
     {
-      /* update cannot be set under VMS, so we may assume that argc
-	 and argv have not been munged.  */
-      for (i = optind; i < argc; i++)
+      for (i = 0; i < current_arg; ++i)
 	{
+	  if (argbuffer[i].arg_type == at_language)
+	    continue;
 	  sprintf (cmd,
 		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
-		   tagfile, argv[i], tagfile);
+		   tagfile, argbuffer[i].what, tagfile);
 	  (void) system (cmd);
 	}
       append_to_tagfile++;
@@ -648,6 +1035,29 @@ main (argc, argv)
       (void) system (cmd);
     }
   exit (GOOD);
+}
+
+
+/*
+ * Set the language, given the name.
+ */
+logical
+get_language (language, func)
+     char *language;
+     Lang_function **func;
+{
+  struct lang_entry *lang;
+
+  for (lang = lang_names; lang->extension; ++lang)
+    {
+      if (streq (language, lang->extension))
+	{
+	  *func = lang->function;
+	  return TRUE;
+	}
+    }
+
+  return FALSE;
 }
 
 
@@ -734,8 +1144,11 @@ logical
 find_entries (file)
      char *file;
 {
-  char *cp, *cp1;
   FILE *inf;
+  char *cp;
+  struct lang_entry *lang;
+  NODE *old_last_node;
+  extern NODE *last_node;
 
   inf = fopen (file, "r");
   if (inf == NULL)
@@ -745,132 +1158,38 @@ find_entries (file)
     }
   curfile = savestr (file);
   cp = etags_strrchr (file, '.');
-  cp1 = cp + 1;
 
-  header_file = (cp && (streq (cp1, "h")));
+  /* If user specified a language, use it. */
+  if (lang_func != NULL)
+    {
+      lang_func (inf);
+      fclose (inf);
+      return TRUE;
+    }
 
-  /* .tex, .aux or .bbl implies LaTeX source code */
-  if (cp && (streq (cp1, "tex") || streq (cp1, "aux")
-	     || streq (cp1, "bbl")))
+  if (cp)
     {
-      TeX_functions (inf);
-      goto close_and_return;
+      ++cp;
+      for (lang = lang_extensions; lang->extension; ++lang)
+	{
+	  if (streq (cp, lang->extension))
+	    {
+	      lang->function (inf);
+	      fclose (inf);
+	      return TRUE;
+	    }
+	}
     }
-  /* .l or .el or .lisp (or .cl or .clisp or ...) implies lisp source code */
-  if (cp && (streq (cp1, "l")
-	     || streq (cp1, "el")
-	     || streq (cp1, "lsp")
-	     || streq (cp1, "lisp")
-	     || streq (cp1, "cl")
-	     || streq (cp1, "clisp")))
-    {
-      Lisp_functions (inf);
-      goto close_and_return;
-    }
-  /* .scm or .sm or .scheme or ... implies scheme source code */
-  if (cp && (streq (cp1, "sm")
-	     || streq (cp1, "scm")
-	     || streq (cp1, "scheme")
-	     || streq (cp1, "t")
-	     || streq (cp1, "sch")
-	     || streq (cp1, "ss")
-	     || streq (cp1, "SM")
-	     || streq (cp1, "SCM")
-	     /* The `SCM' or `scm' prefix with a version number */
-             || (cp[-1] == 'm' && cp[-2] == 'c' && cp[-3] == 's'
-		 && string_numeric_p (cp1))
-             || (cp[-1] == 'M' && cp[-2] == 'C' && cp[-3] == 'S'
-		 && string_numeric_p (cp1))))
-    {
-      Scheme_functions (inf);
-      goto close_and_return;
-    }
-  /* Assembly code */
-  if (cp && (streq (cp1, "s")
- 	     || streq (cp1, "a")    /* Unix assembler */
- 	     || streq (cp1, "sa")   /* Unix assembler */
- 	     || streq (cp1, "asm")  /* Microcontroller assembly */
- 	     || streq (cp1, "src")  /* BSO/Tasking C compiler output */
- 	     || streq (cp1, "def")  /* BSO/Tasking definition includes  */
- 	     || streq (cp1, "ins")  /* Microcontroller include files */
- 	     || streq (cp1, "inc")))/* Microcontroller include files */
-    {
-      Asm_labels (inf);
-      goto close_and_return;
-    }
-  /* .C or .H or .cxx or .hxx or .cc or .cpp: a C++ file */
-  if (cp && (streq (cp1, "C")
-	     || streq (cp1, "H")
-	     || streq (cp1, "cpp")
-	     || streq (cp1, "cxx")
-	     || streq (cp1, "hxx")
-	     || streq (cp1, "cc")))
-    {
-      C_entries (C_PLPL, inf);	/* C++ */
-      goto close_and_return;
-    }
-  /* .cs or .hs: a C* file */
-  if (cp && (streq (cp1, "cs")
-	     || streq (cp1, "hs")))
-    {
-      C_entries (C_STAR, inf);
-      goto close_and_return;
-    }
-  /* .y: a yacc file */
-  if (cp && (streq (cp1, "y")))
-    {
-      C_entries (YACC, inf);
-      goto close_and_return;
-    }
-  /* .pl implies prolog source code */
-  if (cp && streq (cp1, "pl"))
-    {
-      Prolog_functions (inf);
-      goto close_and_return;
-    }
-  /* .p or .pas: a Pascal file */
-  if (cp && (streq (cp1, "p")
-	     || streq (cp1, "pas")))
-    {
-      Pascal_functions (inf);
-      goto close_and_return;
-    }
-  /* If .f or .for, assume it is fortran or nothing.  */
-  if (cp && (streq (cp1, "f")
-	     || streq (cp1, "for")))
-    {
-      (void) Fortran_functions (inf);
-      goto close_and_return;
-    }
-  /* if not a .c or .h or .y file, try fortran */
-  if (cp && ((cp[1] != 'c'
-	      && cp[1] != 'h'
-	      && cp[1] != 'y')
-	     || (cp[1] != 0 && cp[2] != 0)))
-    {
-      if (Fortran_functions (inf) != 0)
-	goto close_and_return;
-      rewind (inf);		/* no fortran tags found, try C */
-    }
-  C_entries (cplusplus ? C_PLPL : 0, inf);
 
-close_and_return:
-  (void) fclose (inf);
+  /* Try Fortran. */
+  old_last_node = last_node;
+  Fortran_functions (inf);
+
+  /* No Fortran entries found.  Try C. */
+  if (old_last_node == last_node)
+    default_C_entries (inf);
+  fclose (inf);
   return TRUE;
-}
-
-/* Nonzero if string STR is composed of digits.  */
-
-int
-string_numeric_p (str)
-     char *str;
-{
-  while (*str)
-    {
-      if (*str < '0' || *str > '9')
-	return 0;
-    }
-  return 1;
 }
 
 /* Record a tag. */
@@ -1424,7 +1743,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 	{
 	  definedef = dignorerest;
 	}
-      return (FALSE);
+      return FALSE;
     case ddefineseen:
       /*
        * Make a tag for any macro, unless it is a constant
@@ -1433,11 +1752,11 @@ consider_token (c, tokp, c_ext, cblev, is_func)
       definedef = dignorerest;
       *is_func = (c == '(');
       if (!*is_func && !constantypedefs)
-	return (FALSE);
+	return FALSE;
       else
-	return (TRUE);
+	return TRUE;
     case dignorerest:
-      return (FALSE);
+      return FALSE;
     default:
       error ("internal error: definedef value.", 0);
     }
@@ -1453,7 +1772,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 	  if (typedefs)
 	    typdef = ttypedseen;
 	  funcdef = fnone;
-	  return (FALSE);
+	  return FALSE;
 	}
       break;
     case ttypedseen:
@@ -1475,9 +1794,9 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 	case st_C_typespec:
 	case st_C_struct:
 	case st_C_enum:
-	  return (FALSE);
+	  return FALSE;
 	}
-      return (TRUE);
+      return TRUE;
     }
 
   /*
@@ -1492,7 +1811,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
    *
    * This if statement deals with the typdef state machine as 
    * follows: if typdef==ttypedseen and token is struct/union/class/enum,
-   * return (FALSE).  All the other code here is for the structdef 
+   * return FALSE.  All the other code here is for the structdef 
    * state machine.
    */
   switch (toktype)
@@ -1505,7 +1824,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 	  structdef = skeyseen;
 	  structtype = toktype;
 	}
-      return (FALSE);
+      return FALSE;
     }
   if (structdef == skeyseen)
     {
@@ -1519,14 +1838,14 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 	  structtag[0] = '\0';	/* for enum (why is it treated differently?) */
 	}
       structdef = stagseen;
-      return (TRUE);
+      return TRUE;
     }
 
   /* Avoid entering funcdef stuff if typdef is going on. */
   if (typdef != tnone)
     {
       definedef = dnone;
-      return (FALSE);
+      return FALSE;
     }
 
   /* Detect GNU macros. */
@@ -1544,14 +1863,14 @@ consider_token (c, tokp, c_ext, cblev, is_func)
 
       {
 	next_token_is_func = TRUE;
-	return (FALSE);
+	return FALSE;
       }
   if (next_token_is_func)
     {
       next_token_is_func = FALSE;
       funcdef = fignore;
       *is_func = TRUE;
-      return (TRUE);
+      return TRUE;
     }
 
   /* A function? */
@@ -1560,17 +1879,17 @@ consider_token (c, tokp, c_ext, cblev, is_func)
     case st_C_typespec:
       if (funcdef != finlist && funcdef != fignore)
         funcdef = fnone;		/* should be useless */
-      return (FALSE);
+      return FALSE;
     default:
       if (funcdef == fnone)
 	{
 	  funcdef = ftagseen;
 	  *is_func = TRUE;
-	  return (TRUE);
+	  return TRUE;
 	}
     }
 
-  return (FALSE);
+  return FALSE;
 }
 
 /*
@@ -1604,7 +1923,7 @@ do {									\
   lp = curlb.buffer;							\
   quotednl = FALSE;							\
   newndx = curndx;							\
-} while (FALSE)
+} while (0)
 
 #define CNL								\
 do {									\
@@ -1612,7 +1931,7 @@ do {									\
   if (TOKEN_SAVED_P)							\
     RESTORE_TOKEN;							\
   definedef = dnone;							\
-} while (FALSE)
+} while (0)
 
 #define MAKE_TAG_FROM_NEW_LB(isfun)  pfnote (nameb, isfun, tok.named,	\
   newlb.buffer, tokoff + toklen + 1, tok.lineno, GET_CHARNO (newlinepos))
@@ -1621,8 +1940,8 @@ do {									\
 
 void
 C_entries (c_ext, inf)
-     int c_ext;			/* extension of C? */
-     FILE *inf;
+     int c_ext;			/* extension of C */
+     FILE *inf;			/* input file */
 {
   register char c;		/* latest char read; '\0' for end of line */
   register char *lp;		/* pointer one beyond the character `c' */
@@ -2098,6 +2417,41 @@ C_entries (c_ext, inf)
 
     } /* while not eof */
 }
+
+/*
+ * Process either a C++ file or a C file depending on the setting
+ * of a global flag.
+ */
+void
+default_C_entries (inf)
+     FILE *inf;
+{
+  C_entries (cplusplus ? C_PLPL : 0, inf);
+}
+
+/* Always do C++. */
+void
+Cplusplus_entries (inf)
+     FILE *inf;
+{
+  C_entries (C_PLPL, inf);
+}
+
+/* Always do C*. */
+void
+Cstar_entries (inf)
+     FILE *inf;
+{
+  C_entries (C_STAR, inf);
+}
+
+/* Always do Yacc. */
+void
+Yacc_entries (inf)
+     FILE *inf;
+{
+  C_entries (YACC, inf);
+}
 
 /* Fortran parsing */
 
@@ -2115,9 +2469,9 @@ tail (cp)
   if (*cp == 0)
     {
       dbp += len;
-      return (TRUE);
+      return TRUE;
     }
-  return (FALSE);
+  return FALSE;
 }
 
 void
@@ -2182,7 +2536,7 @@ getit (inf)
   pfcnt++;
 }
 
-int
+void
 Fortran_functions (inf)
      FILE *inf;
 {
@@ -2262,7 +2616,6 @@ Fortran_functions (inf)
 	  continue;
 	}
     }
-  return (pfcnt);
 }
 
 /*
@@ -2340,8 +2693,7 @@ Pascal_functions (inf)
   char nambuf[BUFSIZ];
 
   logical			/* each of these flags is TRUE iff: */
-    incomm1,			/* point is inside {..} comment */
-    incomm2,			/* point is inside (*..*) comment */
+    incomment,			/* point is inside a comment */
     inquote,			/* point is inside '..' string */
     get_tagname,		/* point is after PROCEDURE/FUNCTION */
   /*   keyword, so next item = potential tag */
@@ -2358,7 +2710,7 @@ Pascal_functions (inf)
   *dbp = 0;
   initbuffer (&tline);
 
-  incomm1 = incomm2 = inquote = FALSE;
+  incomment = inquote = FALSE;
   found_tag = FALSE;		/* have a proc name; check if extern */
   get_tagname = FALSE;		/* have found "procedure" keyword    */
   inparms = FALSE;		/* found '(' after "proc"            */
@@ -2379,22 +2731,14 @@ Pascal_functions (inf)
 	  /* to the beginning of the name of  */
 	  /* the procedure or function        */
 	}
-      if (incomm1)		/* within { - } comments */
+      if (incomment)
 	{
-	  if (c == '}')
-	    incomm1 = FALSE;
-	  continue;
-	}
-      else if (incomm2)		/* within (* - *) comments */
-	{
-	  if (c == '*')
+	  if (c == '}')		/* within { - } comments */
+	    incomment = FALSE;
+	  else if (c == '*' && dbp[1] == ')') /* within (* - *) comments */
 	    {
-	      while ((c = *dbp++) == '*')
-		continue;
-	      if (c == 0)
-		GET_NEW_LINE;
-	      if (c == ')')
-		incomm2 = FALSE;
+	      dbp++;
+	      incomment = FALSE;
 	    }
 	  continue;
 	}
@@ -2404,19 +2748,19 @@ Pascal_functions (inf)
 	    inquote = FALSE;
 	  continue;
 	}
-      else
+ else
 	switch (c)
 	  {
 	  case '\'':
 	    inquote = TRUE;	/* found first quote */
 	    continue;
 	  case '{':		/* found open-{-comment */
-	    incomm1 = TRUE;
+	    incomment = TRUE;
 	    continue;
 	  case '(':
 	    if (*dbp == '*')	/* found open-(*-comment */
 	      {
-		incomm2 = TRUE;
+		incomment = TRUE;
 		dbp++;
 	      }
 	    else if (found_tag)	/* found '(' after tag, i.e., parm-list */
@@ -2490,8 +2834,7 @@ Pascal_functions (inf)
 
 	  /* and proceed to check for "extern" */
 	}
-      if ((!incomm1) && (!incomm2) && (!inquote) &&
-	  (!found_tag) && (!get_tagname))
+      if (!incomment && !inquote && !found_tag && !get_tagname)
 	{
 	  /* check for proc/fn keywords */
 	  switch (c | ' ')
@@ -2515,24 +2858,24 @@ Pascal_functions (inf)
  */
 
 int
-L_isdef (dbp)
-     register char *dbp;
+L_isdef (tokp)
+     register char *tokp;
 {
-  return ((dbp[1] == 'd' || dbp[1] == 'D')
-	  && (dbp[2] == 'e' || dbp[2] == 'E')
-	  && (dbp[3] == 'f' || dbp[3] == 'F'));
+  return ((tokp[1] == 'd' || tokp[1] == 'D')
+	  && (tokp[2] == 'e' || tokp[2] == 'E')
+	  && (tokp[3] == 'f' || tokp[3] == 'F'));
 }
 
 int
-L_isquote (dbp)
-     register char *dbp;
+L_isquote (tokp)
+     register char *tokp;
 {
-  return ((*(++dbp) == 'q' || *dbp == 'Q')
-	  && (*(++dbp) == 'u' || *dbp == 'U')
-	  && (*(++dbp) == 'o' || *dbp == 'O')
-	  && (*(++dbp) == 't' || *dbp == 'T')
-	  && (*(++dbp) == 'e' || *dbp == 'E')
-	  && isspace(*(++dbp)));
+  return ((*(++tokp) == 'q' || *tokp == 'Q')
+	  && (*(++tokp) == 'u' || *tokp == 'U')
+	  && (*(++tokp) == 'o' || *tokp == 'O')
+	  && (*(++tokp) == 't' || *tokp == 'T')
+	  && (*(++tokp) == 'e' || *tokp == 'E')
+	  && isspace(*(++tokp)));
 }
 
 void
@@ -2906,10 +3249,8 @@ TEX_Token (cp)
    is gotten in compound term. */
 
 void
-prolog_getit (s, lineno, linecharno)
+prolog_getit (s)
      char *s;
-     int lineno;
-     long linecharno;
 {
   char nambuf[BUFSIZ], *save_s, tmpc;
   int insquote, npar;
@@ -2981,7 +3322,7 @@ Prolog_functions (inf)
       else if (dbp[0] == '/' && dbp[1] == '*')	/* comment. */
 	skip_comment (&lb, inf, &lineno, &linecharno);
       else			/* found. */
-	prolog_getit (dbp, lineno, linecharno);
+	prolog_getit (dbp);
     }
 }
 
@@ -2992,45 +3333,198 @@ skip_comment (plb, inf, plineno, plinecharno)
      int *plineno;		/* result */
      long *plinecharno;		/* result */
 {
-  while (!substr ("*/", plb->buffer))
+  char *cp;
+
+  do
     {
+      for (cp = plb->buffer; *cp != '\0'; cp++)
+	if (cp[0] == '*' && cp[1] == '/')
+	  return;
       (*plineno)++;
-      *plinecharno += readline (plb, inf) + 1;
-    }				/* 1 for newline. */
-}
-
-/* Return TRUE if 'sub' exists somewhere in 's'. */
-
-logical
-substr (sub, s)
-     char *sub;
-     char *s;
-{
-  while (*s && (s = etags_strchr (s, *sub)))
-    if (prestr (sub, s))
-      return (TRUE);
-    else
-      s++;
-  return (FALSE);
-}
-
-/* Return TRUE if 'pre' is prefix of string 's'. */
-
-logical
-prestr (pre, s)
-     char *pre;
-     char *s;
-{
-  if (*pre == '\0')
-    return (TRUE);
-  else if (*pre == *s)
-    return (prestr (pre + 1, s + 1));
-  else
-    return (FALSE);
+      *plinecharno += readline (plb, inf) + 1; /* 1 for newline. */
+    }
+  while (!feof(inf));
 }
 
-/* Initialize a linebuffer for use */
+#ifdef ETAGS_REGEXPS
+/* Take a string like "/blah/" and turn it into "blah", making sure
+   that the first and last characters are the same, and handling
+   quoted separator characters.  Actually, stops on the occurence of
+   an unquoted separator.  Also turns "\t" into a Tab character.
+   Returns pointer to terminating separator.  Works in place.  Null
+   terminates name string. */
+char *
+scan_separators (name)
+     char *name;
+{
+  char sep = name[0];
+  char *copyto = name;
+  logical quoted = FALSE;
 
+  for (++name; *name != '\0'; ++name)
+    {
+      if (quoted)
+	{
+	  if (*name == 't')
+	    *copyto++ = '\t';
+	  else if (*name == sep)
+	    *copyto++ = sep;
+	  else
+	    {
+	      /* Something else is quoted, so preserve the quote. */
+	      *copyto++ = '\\';
+	      *copyto++ = *name;
+	    }
+	  quoted = FALSE;
+	}
+      else if (*name == '\\')
+	quoted = TRUE;
+      else if (*name == sep)
+	break;
+      else
+	*copyto++ = *name;
+    }
+
+  /* Terminate copied string. */
+  *copyto = '\0';
+  return name;
+}
+
+/* Turn a name, which is an ed-style (but Emacs syntax) regular
+   expression, into a real regular expression by compiling it. */
+void
+add_regex (regexp_pattern)
+     char *regexp_pattern;
+{
+  char *name;
+  const char *err;
+  struct re_pattern_buffer *patbuf;
+
+  if (regexp_pattern == NULL)
+    {
+      /* Remove existing regexps. */
+      num_patterns = 0;
+      patterns = NULL;
+      return;
+    }
+
+  if (regexp_pattern[0] == '\0')
+    {
+      error ("missing regexp", 0);
+      return;
+    }
+  if (regexp_pattern[strlen(regexp_pattern)-1] != regexp_pattern[0])
+    {
+      error ("%s: unterminated regexp", regexp_pattern);
+      return;
+    }
+  name = scan_separators (regexp_pattern);
+  if (regexp_pattern[0] == '\0')
+    {
+      error ("null regexp", 0);
+      return;
+    }
+  (void) scan_separators (name);
+
+  patbuf = xnew (1, struct re_pattern_buffer);
+  patbuf->translate = NULL;
+  patbuf->fastmap = NULL;
+  patbuf->buffer = NULL;
+  patbuf->allocated = 0;
+
+  err = re_compile_pattern (regexp_pattern, strlen (regexp_pattern), patbuf);
+  if (err != NULL)
+    {
+      error ("%s while compiling pattern", err);
+      return;
+    }
+
+  num_patterns += 1;
+  if (num_patterns == 1)
+    patterns = xnew (1, struct pattern);
+  else
+    patterns = ((struct pattern *)
+		xrealloc (patterns,
+			  (num_patterns * sizeof (struct pattern))));
+  patterns[num_patterns - 1].pattern = patbuf;
+  patterns[num_patterns - 1].name_pattern = savestr (name);
+  patterns[num_patterns - 1].error_signaled = FALSE;
+}
+
+/*
+ * Do the subtitutions indicated by the regular expression and
+ * arguments.
+ */
+char *
+substitute (in, out, regs)
+     char *in, *out;
+     struct re_registers *regs;
+{
+  char *result = NULL, *t;
+  int size = 0;
+
+  /* Pass 1: figure out how much size to allocate. */
+  for (t = out; *t; ++t)
+    {
+      if (*t == '\\')
+	{
+	  ++t;
+	  if (!*t)
+	    {
+	      fprintf (stderr, "%s: pattern subtitution ends prematurely\n",
+		       progname);
+	      return NULL;
+	    }
+	  if (isdigit (*t))
+	    {
+	      int dig = *t - '0';
+	      size += regs->end[dig] - regs->start[dig];
+	    }
+	}
+    }
+
+  /* Allocate space and do the substitutions. */
+  result = xnew (size + 1, char);
+  size = 0;
+  for (; *out; ++out)
+    {
+      if (*out == '\\')
+	{
+	  ++out;
+	  if (isdigit (*out))
+	    {
+	      /* Using "dig2" satisfies my debugger.  Bleah. */
+	      int dig2 = *out - '0';
+	      strncpy (result + size, in + regs->start[dig2],
+		       regs->end[dig2] - regs->start[dig2]);
+	      size += regs->end[dig2] - regs->start[dig2];
+	    }
+	  else
+	    {
+	      switch (*out)
+		{
+		case '\t':
+		  result[size++] = '\t';
+		  break;
+		case '\\':
+		  *out = '\\';
+		  break;
+		default:
+		  result[size++] = *out;
+		  break;
+		}
+	    }
+	}
+      else
+	result[size++] = *out;
+    }
+  result[size] = '\0';
+
+  return result;
+}
+
+#endif /* ETAGS_REGEXPS */
+/* Initialize a linebuffer for use */
 void
 initbuffer (linebuffer)
      struct linebuffer *linebuffer;
@@ -3045,14 +3539,14 @@ initbuffer (linebuffer)
  * which is the length of the line including the newline, if any.
  */
 long
-readline (linebuffer, stream)
+readline_internal (linebuffer, stream)
      struct linebuffer *linebuffer;
      register FILE *stream;
 {
   char *buffer = linebuffer->buffer;
   register char *p = linebuffer->buffer;
   register char *pend;
-  int newline;			/* 1 if ended with newline, 0 if ended with EOF */
+  int newline;			/* 1 if ended with '\n', 0 if ended with EOF */
 
   pend = p + linebuffer->size;	/* Separate to avoid 386/IX compiler bug.  */
 
@@ -3078,6 +3572,81 @@ readline (linebuffer, stream)
 
   return p - buffer + newline;
 }
+
+/*
+ * Like readline_internal, above, but try to match the input
+ * line against any existing regular expressions.
+ */
+long
+readline (linebuffer, stream)
+     struct linebuffer *linebuffer;
+     FILE *stream;
+{
+  /* Read new line. */
+  int i;
+  long result = readline_internal (linebuffer, stream);
+
+#ifdef ETAGS_REGEXPS
+  /* Match against all listed patterns. */
+  for (i = 0; i < num_patterns; ++i)
+    {
+      int match = re_match (patterns[i].pattern, linebuffer->buffer,
+			    (int)result, 0, &patterns[i].regs);
+      switch (match)
+	{
+	case -2:
+	  /* Some error. */
+	  if (!patterns[i].error_signaled)
+	    {
+	      error ("error while matching pattern %d", i);
+	      patterns[i].error_signaled = TRUE;
+	    }
+	  break;
+	case -1:
+	  /* No match. */
+	  break;
+	default:
+	  /* Match occurred.  Construct a tag. */
+	  if (patterns[i].name_pattern[0] != '\0')
+	    {
+	      /* Make a named tag. */
+	      char *name = substitute (linebuffer->buffer,
+				       patterns[i].name_pattern,
+				       &patterns[i].regs);
+	      if (name != NULL)
+		pfnote (name, TRUE, TRUE, linebuffer->buffer,
+			match, lineno, linecharno);
+	    }
+	  else
+	    {
+	      /* Make an unnamed tag. */
+	      pfnote (NULL, TRUE, FALSE, linebuffer->buffer,
+		      match, lineno, linecharno);
+	    }
+	  break;
+	}
+    }
+#endif /* ETAGS_REGEXPS */
+
+  return result;
+}
+
+/*
+ * Read a file, but do no processing.  This is used to do regexp
+ * matching on files that have no language defined.
+ */
+void
+just_read_file (inf)
+     FILE *inf;
+{
+  while (!feof (inf))
+    {
+      ++lineno;
+      linecharno = charno;
+      charno += readline (&lb, inf) + 1;
+    }
+}
+
 
 char *
 savestr (cp)
@@ -3118,7 +3687,7 @@ etags_strrchr (sp, c)
       if (*sp == c)
 	r = sp;
   } while (*sp++);
-  return (r);
+  return r;
 }
 
 
@@ -3136,9 +3705,9 @@ etags_strchr (sp, c)
   do
     {
       if (*sp == c)
-	return (sp);
-  } while (*sp++);
-  return (NULL);
+	return sp;
+    } while (*sp++);
+  return NULL;
 }
 
 /* Print error message and exit.  */
