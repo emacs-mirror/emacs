@@ -2238,16 +2238,30 @@ funcall_lambda (fun, nargs, arg_vector)
       /* If we have not actually read the bytecode string
 	 and constants vector yet, fetch them from the file.  */
       if (CONSP (XVECTOR (fun)->contents[COMPILED_BYTECODE]))
-	{
-	  tem = read_doc_string (XVECTOR (fun)->contents[COMPILED_BYTECODE]);
-	  XVECTOR (fun)->contents[COMPILED_BYTECODE] = XCONS (tem)->car;
-	  XVECTOR (fun)->contents[COMPILED_CONSTANTS] = XCONS (tem)->cdr;
-	}
+	Ffetch_bytecode (fun);
       val = Fbyte_code (XVECTOR (fun)->contents[COMPILED_BYTECODE],
 			XVECTOR (fun)->contents[COMPILED_CONSTANTS],
 			XVECTOR (fun)->contents[COMPILED_STACK_DEPTH]);
     }
   return unbind_to (count, val);
+}
+
+DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
+  1, 1, 0,
+  "If byte-compiled OBJECT is lazy-loaded, fetch it now.")
+  (object)
+     Lisp_Object object;
+{
+  Lisp_Object tem;
+
+  if (COMPILEDP (object)
+      && CONSP (XVECTOR (object)->contents[COMPILED_BYTECODE]))
+    {
+      tem = read_doc_string (XVECTOR (object)->contents[COMPILED_BYTECODE]);
+      XVECTOR (object)->contents[COMPILED_BYTECODE] = XCONS (tem)->car;
+      XVECTOR (object)->contents[COMPILED_CONSTANTS] = XCONS (tem)->cdr;
+    }
+  return object;
 }
 
 void
@@ -2628,6 +2642,7 @@ Otherwise, nil (in a bare Emacs without preloaded Lisp code).");
   defsubr (&Seval);
   defsubr (&Sapply);
   defsubr (&Sfuncall);
+  defsubr (&Sfetch_bytecode);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
