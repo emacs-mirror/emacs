@@ -16,7 +16,7 @@ s!/bin/sh!command.com!
 /^CPP *=/s/@[^@\n]*@/gcc -e/
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
 /^LN_S *=/s/@[^@\n]*@/ln -s/
-/^M_FILE *=/s!@[^@\n]*@!m/dos386.h!
+/^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^.\${libsrc}make-doc/s!>.*$!!
