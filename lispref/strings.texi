@@ -574,7 +574,7 @@ operation} error.
      @result{} "The name of this buffer is strings.texi."
 
 (format "The buffer object prints as %s." (current-buffer))
-     @result{} "The buffer object prints as #<buffer strings.texi>."
+     @result{} "The buffer object prints as strings.texi."
 
 (format "The octal value of %d is %o, 
          and the hex value is %x." 18 18 18)
