@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.41 $")
+(defconst byte-compile-version "$Revision: 2.42 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1408,8 +1408,6 @@ With argument, insert value in current buffer after the form."
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
        (setq case-fold-search nil)
-       (and filename (byte-compile-insert-header filename inbuffer outbuffer))
-
        ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
        ;; write files containing binary information specially.
        ;; Under most circumstances, such files will be in binary
@@ -1436,29 +1434,40 @@ With argument, insert value in current buffer after the form."
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have
 	;; been compiled.
-	(setq byte-compile-unresolved-functions nil))))
+	(setq byte-compile-unresolved-functions nil)))
+     ;; Insert the header at the front of the output.
+     ;; We do this last, so we can check for the presence
+     ;; of multibyte characters in the compiled code.
+     (and filename (byte-compile-insert-header filename inbuffer outbuffer)))
     outbuffer))
 
 (defun byte-compile-insert-header (filename inbuffer outbuffer)
   (set-buffer inbuffer)
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
-	(dynamic byte-compile-dynamic))
+	(dynamic byte-compile-dynamic)
+	(some-multibyte-characters
+	 (save-excursion
+	   (goto-char 1)
+	   ;; See if the buffer has any multibyte characters.
+	   (skip-chars-forward "\0-\377")
+	   (setq some-multibyte-characters (not (eobp))))))
+
     (set-buffer outbuffer)
     (goto-char 1)
-    ;;
-    ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After that is
-    ;; the file-format version number (18 or 19) as a byte, followed by some
-    ;; nulls.  The primary motivation for doing this is to get some binary
-    ;; characters up in the first line of the file so that `diff' will simply
-    ;; say "Binary files differ" instead of actually doing a diff of two .elc
-    ;; files.  An extra benefit is that you can add this to /etc/magic:
-    ;;
+    ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
+    ;; that is the file-format version number (18, 19 or 20) as a
+    ;; byte, followed by some nulls.  The primary motivation for doing
+    ;; this is to get some binary characters up in the first line of
+    ;; the file so that `diff' will simply say "Binary files differ"
+    ;; instead of actually doing a diff of two .elc files.  An extra
+    ;; benefit is that you can add this to /etc/magic:
+
     ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
     ;; >4	byte		x		version %d
-    ;;
+
     (insert
      ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 19)
+     (if (byte-compile-version-cond byte-compile-compatibility) 18 20)
      "\000\000\000\n"
      )
     (insert ";;; Compiled by "
@@ -1481,29 +1490,46 @@ With argument, insert value in current buffer after the form."
 	      ".\n"))
     (if dynamic
 	(insert ";;; Function definitions are lazy-loaded.\n"))
-    (if (not (byte-compile-version-cond byte-compile-compatibility))
-	(insert ";;; This file uses opcodes which do not exist in Emacs 18.\n"
-		;; Have to check if emacs-version is bound so that this works
-		;; in files loaded early in loadup.el.
-		"\n(if (and (boundp 'emacs-version)\n"
-		;; If there is a name at the end of emacs-version,
-		;; don't try to check the version number.
-		"\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-		"\t (or (and (boundp 'epoch::version) epoch::version)\n"
-		(if dynamic-docstrings
-		    "\t     (string-lessp emacs-version \"19.29\")))\n"
-		  "\t     (string-lessp emacs-version \"19\")))\n")
-		"    (error \"`"
-		;; prin1-to-string is used to quote backslashes.
-		(substring (prin1-to-string (file-name-nondirectory filename))
-			   1 -1)
-		(if dynamic-docstrings
-		    "' was compiled for Emacs 19.29 or later\"))\n\n"
-		  "' was compiled for Emacs 19\"))\n\n"))
+    (if (or some-multibyte-characters
+	    dynamic-docstrings
+	    (not (byte-compile-version-cond byte-compile-compatibility)))
+	(let (intro-string minimum-version)
+	  ;; Figure out which Emacs version to require,
+	  ;; and what comment to use to explain why.
+	  (if some-multibyte-characters
+	      (setq intro-string
+		    (concat
+		     ";;; This file contains multibyte non-ASCII characters\n"
+		     ";;; and therefore cannot be loaded into Emacs 19.\n")
+		    minimum-version "20")
+	    (if dynamic-docstrings
+		(setq intro-string
+		      ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
+		      minimum-version "19.29")
+	      (setq intro-string
+		    ";;; This file uses opcodes which do not exist in Emacs 18.\n"
+		    minimum-version "19")))
+	  ;; Now insert the comment and the error check.
+	  (insert
+	   intro-string
+	   ;; Have to check if emacs-version is bound so that this works
+	   ;; in files loaded early in loadup.el.
+	   "\n(if (and (boundp 'emacs-version)\n"
+	   ;; If there is a name at the end of emacs-version,
+	   ;; don't try to check the version number.
+	   "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+	   "\t (or (and (boundp 'epoch::version) epoch::version)\n"
+	   (format "\t     (string-lessp emacs-version \"%s\")))\n"
+		   minimum-version)
+	   "    (error \"`"
+	   ;; prin1-to-string is used to quote backslashes.
+	   (substring (prin1-to-string (file-name-nondirectory filename))
+		      1 -1)
+	   (format "' was compiled for Emacs %s or later\"))\n\n"
+		   minimum-version)))
+      ;; Here if we want Emacs 18 compatibility.
       (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
-	      "\n")
-      )))
-
+	      "\n"))))
 
 (defun byte-compile-output-file-form (form)
   ;; writes the given form to the output buffer, being careful of docstrings
