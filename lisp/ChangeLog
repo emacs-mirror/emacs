@@ -1,3 +1,22 @@
+2004-07-09  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-maybe-do-ns, xml-parse-tag): Produce elements in the
+	form
+	(("ns" . "element") (attr-list) children) instead of
+	((:ns . "element") (attr-list) children) in order to reduce the
+	number of symbols used.
+	(xml-skip-dtd): Change to use xml-parse-dtd but set
+	xml-validating-parsing to nil.
+	(xml-parse-dtd): Parse entity deleclarations in DOCTYPEs.
+	(xml-substitute-entity): Remove in favor of new entity substitution.
+	(xml-substitute-special): Rewrite in to substitute complex
+	entities from DOCTYPE declarations.
+	(xml-parse-fragment): Parse fragments from entity deleclarations.
+	(xml-parse-region, xml-parse-tag, xml-parse-attlist)
+	(xml-parse-dtd, xml-substitute-special): Make validity checks
+	conditioned on xml-validating-parser.  Add "Not Well Formed" to
+	error messages about well-formedness.
+
 2004-07-08  Steven Tamm  <steventamm@mac.com>
 
 	* term/mac-win.el (mac-scroll-ignore-events, mac-scroll-down)
