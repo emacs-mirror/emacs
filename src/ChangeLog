@@ -1,5 +1,8 @@
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (size_window): Prevent setting window's width or
+	height to a negative value (esp. with XSETFASTINT).
+
 	* gmalloc.c (state_protected_p, last_state_size, last_heapinfo)
 	[GC_MALLOC_CHECK && GC_PROTECT_MALLOC_STATE]: New variables.
 	(protect_malloc_state) [GC_MALLOC_CHECK &&
