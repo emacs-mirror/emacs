@@ -150,12 +150,14 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; 	foo.f          :16    some horrible error message
     ;; or GNU utilities with column (GNAT 1.82):
     ;;   foo.adb:2:1: Unit name does not match file name
+    ;; or with column and program name:
+    ;;   jade:dbcommon.dsl:133:17:E: missing argument for function call
     ;;
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
-:\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
+    ("\\([a-zA-Z]+:\\)?\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\
+\\([) \t]\\|:\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 2 3 6)
 
     ;; Microsoft C/C++:
     ;;  keyboard.c(537) : warning C4005: 'min' : macro redefinition
