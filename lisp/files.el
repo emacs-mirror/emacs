@@ -381,11 +381,15 @@ unlike `file-truename'."
     (while (setq tem (file-symlink-p newname))
       (if (= count 0)
 	  (error "Apparent cycle of symbolic links for %s" filename))
+      ;; In the context of a link, `//' doesn't mean what Emacs thinks.
+      (while (string-match "//+" tem)
+	(setq tem (concat (substring tem 0 (1+ (match-beginning 0)))
+			  (substring tem (match-end 0)))))
       ;; Handle `..' by hand, since it needs to work in the
       ;; target of any directory symlink.
       ;; This code is not quite complete; it does not handle
       ;; embedded .. in some cases such as ./../foo and foo/bar/../../../lose.
-      (while (string-match "\\.\\./" tem)
+      (while (string-match "\\`\\.\\./" tem)
 	(setq tem (substring tem 3))
 	(setq newname (file-name-as-directory
 		       ;; Do the .. by hand.
