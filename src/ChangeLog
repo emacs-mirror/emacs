@@ -1,3 +1,9 @@
+2001-10-22  Miles Bader  <miles@gnu.org>
+
+	* lisp.h (DEFVAR_LISP, DEFVAR_LISP_NOPRO, DEFVAR_BOOL)
+	(DEFVAR_INT, DEFVAR_PER_BUFFER, DEFVAR_KBOARD):
+	Remove `DOC_STRINGS_IN_COMMENTS' cases.
+
 2001-10-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_erase_phys_cursor): Remove inverse_p again.
