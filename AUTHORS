@@ -448,6 +448,17 @@ Sommerfeld, William (wrote) lib-src/emacsserver.c
 Sommerfeld, William (wrote) lisp/scribe.el
 Sommerfeld, William (wrote) lisp/server.el
 Stallman, Richard (changed) [miscellaneous changes throughout]
+Steingold, Sam (wrote) lisp/gulp.el
+Steingold, Sam (wrote) lisp/midnight.el
+Steingold, Sam (changed) lisp/inf-lisp.el
+Steingold, Sam (changed) lisp/emacs-lisp/cl-indent.el
+Steingold, Sam (changed) lisp/progmodes/scheme.el
+Steingold, Sam (changed) lisp/font-lock.el
+Steingold, Sam (changed) lisp/etags.el
+Steingold, Sam (changed) lisp/map-ynp.el
+Steingold, Sam (changed) lisp/mouse.el
+Steingold, Sam (changed) lisp/simple.el
+Steingold, Sam (changed) lisp/window.el
 Stenhoff, Ake (co-wrote) lisp/imenu.el
 Stevens, Ken et al (wrote) lisp/ispell.el
 Stigelman, Jonathan (wrote) lisp/hilit19.el
@@ -551,6 +562,7 @@ Wollman, Garrett (changed) lisp/sendmail.el
 Wood, Stephen A. (changed) lisp/fortran.el
 Worley, Dale (changed) lisp/mail-extr.el
 Zakharevich, Ilya (changed) lisp/simple.el [under the name modifier.el]
+Zakharevich, Ilya (wrote) lisp/progmodes/cperl-mode.el
 Zawinski, Jamie (changed) src/bytecode.c
 Zawinski, Jamie (wrote) lisp/byte-opt.el
 Zawinski, Jamie (wrote) lisp/byte-run.el
