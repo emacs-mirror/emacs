@@ -125,6 +125,7 @@
 (load "window")
 (load "frame")
 (load "term/tty-colors")
+(load "font-core")
 
 (if (fboundp 'frame-face-alist)
     (progn
