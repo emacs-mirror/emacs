@@ -1,7 +1,7 @@
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 86, 87, 92, 93,
-;;		 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
+;;		 94, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -141,8 +141,8 @@ This variable is relevant only if `backup-by-copying' and
 Called with an absolute file name as argument, it returns t to enable backup.")
 
 (defcustom buffer-offer-save nil
-  "*Non-nil in a buffer means offer to save the buffer on exit
-even if the buffer is not visiting a file.
+  "*Non-nil in a buffer means always offer to save buffer on exit.
+Do so even if the buffer is not visiting a file.
 Automatically local in all buffers."
   :type 'boolean
   :group 'backup)
@@ -291,7 +291,7 @@ and should return either a buffer or nil."
 (defvar find-file-not-found-hooks nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
-`buffer-file-name' is already set up.
+Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
 
 ;;;It is not useful to make this a local variable.
@@ -412,11 +412,11 @@ have fast storage with limited space, such as a RAM disk.")
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar null-device "/dev/null" "The system null device.")
 
-;; This hook function provides support for ange-ftp host name
-;; completion.  It runs the usual ange-ftp hook, but only for
-;; completion operations.  Having this here avoids the need
-;; to load ange-ftp when it's not really in use.
 (defun ange-ftp-completion-hook-function (op &rest args)
+  "Provides support for ange-ftp host name completion.
+Runs the usual ange-ftp hook, but only for completion operations."
+  ;; Having this here avoids the need to load ange-ftp when it's not
+  ;; really in use.
   (if (memq op '(file-name-completion file-name-all-completions))
       (apply 'ange-ftp-hook-function op args)
     (let ((inhibit-file-name-handlers
@@ -574,7 +574,7 @@ Do not specify them in other calls."
 	(if handler
 	    (setq filename (funcall handler 'file-truename filename))
 	  ;; If filename contains a wildcard, newname will be the old name.
-	  (if (string-match "[*?]" filename)
+	  (if (string-match "[[*?]" filename)
 	      (setq newname filename)
 	    ;; If filename doesn't exist, newname will be nil.
 	    (setq newname (w32-long-file-name filename)))
@@ -825,8 +825,10 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 Choose the buffer's name using `generate-new-buffer-name'."
   (get-buffer-create (generate-new-buffer-name name)))
 
-(defvar automount-dir-prefix "^/tmp_mnt/"
-  "Regexp to match the automounter prefix in a directory name.")
+(defcustom automount-dir-prefix "^/tmp_mnt/"
+  "Regexp to match the automounter prefix in a directory name."
+  :group 'files
+  :type 'regexp)
 
 (defvar abbreviated-home-dir nil
   "The user's homedir abbreviated according to `directory-abbrev-alist'.")
@@ -927,6 +929,7 @@ If there is no such live buffer, return nil."
 For example, if you specify `*.c', that would visit all the files
 whose names match the pattern."
   :group 'files
+  :version "20.4"
   :type 'boolean)
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
@@ -961,8 +964,7 @@ that are visiting the various files."
 	      (find-file-wildcards nil))
 	  (if (null files)
 	      (find-file-noselect filename)
-	    (car (mapcar #'(lambda (fn) (find-file-noselect fn))
-			 files))))
+	    (car (mapcar #'find-file-noselect files))))
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (number (nthcdr 10 (file-attributes truename)))
@@ -1162,7 +1164,7 @@ Don't call it from programs!  Use `insert-file-contents-literally' instead.
 This is a permanent local.")
 (put 'find-file-literally 'permanent-local t)
 
-(defun find-file-literally (filename) 
+(defun find-file-literally (filename)
   "Visit file FILENAME with no conversion of any kind.
 Format conversion and character code conversion are both disabled,
 and multibyte characters are disabled in the resulting buffer.
@@ -1604,10 +1606,10 @@ and we don't even do that unless it would come from the file name."
 			(funcall (cdr elt))))))))))))
 
 (defun hack-local-variables-prop-line ()
-  ;; Set local variables specified in the -*- line.
-  ;; Ignore any specification for `mode:' and `coding:';
-  ;; set-auto-mode should already have handled `mode:',
-  ;; set-auto-coding should already have handled `coding:'.
+  "Set local variables specified in the -*- line.
+Ignore any specification for `mode:' and `coding:';
+`set-auto-mode' should already have handled `mode:',
+`set-auto-coding' should already have handled `coding:'."
   (save-excursion
     (goto-char (point-min))
     (let ((result nil)
@@ -1630,7 +1632,7 @@ and we don't even do that unless it would come from the file name."
 		 (error "-*- not terminated before end of line")))
 	     (while (< (point) end)
 	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
-		   (error "malformed -*- line"))
+		   (error "Malformed -*- line"))
 	       (goto-char (match-end 0))
 	       ;; There used to be a downcase here,
 	       ;; but the manual didn't say so,
@@ -1795,9 +1797,9 @@ is specified, returning t if it is specified."
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
 
-;; "Set" one variable in a local variables spec.
-;; A few variable names are treated specially.
 (defun hack-one-local-variable (var val)
+  "\"Set\" one variable in a local variables spec.
+A few variable names are treated specially."
   (cond ((eq var 'mode)
 	 (funcall (intern (concat (downcase (symbol-name val))
 				  "-mode"))))
@@ -2055,10 +2057,10 @@ no longer accessible under its old name."
 			      backup-by-copying
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
-			      (and (or backup-by-copying-when-mismatch 
+			      (and (or backup-by-copying-when-mismatch
 				       (integerp backup-by-copying-when-privileged-mismatch))
 				   (let ((attr (file-attributes real-file-name)))
-				     (and (or backup-by-copying-when-mismatch 
+				     (and (or backup-by-copying-when-mismatch
 					      (and (integerp (nth 2 attr))
 						   (integerp backup-by-copying-when-privileged-mismatch)
 						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
@@ -2105,7 +2107,7 @@ no longer accessible under its old name."
 	    (file-error nil))))))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
-  "Return FILENAME sans backup versions or strings.
+  "Return file NAME sans backup versions or strings.
 This is a separate procedure so your site-init or startup file can
 redefine it.
 If the optional argument KEEP-BACKUP-VERSION is non-nil,
@@ -2132,7 +2134,7 @@ we do not remove backup version numbers, only true file version numbers."
 			 (length name))))))))
 
 (defun file-ownership-preserved-p (file)
-  "Returns t if deleting FILE and rewriting it would preserve the owner."
+  "Return t if deleting FILE and rewriting it would preserve the owner."
   (let ((handler (find-file-name-handler file 'file-ownership-preserved-p)))
     (if handler
 	(funcall handler 'file-ownership-preserved-p file)
@@ -2197,7 +2199,7 @@ You may need to redefine `file-name-sans-versions' as well."
 ;; The usage of backup-extract-version-start is not very clean,
 ;; but I can't see a good alternative, so as of now I am leaving it alone.
 (defun backup-extract-version (fn)
-  "Given the name of a numeric backup file, return the backup number.
+  "Given the name of a numeric backup file, FN, return the backup number.
 Uses the free variable `backup-extract-version-start', whose value should be
 the index in the name where the version number begins."
   (if (and (string-match "[0-9]+~$" fn backup-extract-version-start)
@@ -2208,7 +2210,7 @@ the index in the name where the version number begins."
 ;; I believe there is no need to alter this behavior for VMS;
 ;; since backup files are not made on VMS, it should not get called.
 (defun find-backup-file-name (fn)
-  "Find a file name for a backup file, and suggestions for deletions.
+  "Find a file name for a backup file FN, and suggestions for deletions.
 Value is a list whose car is the name for the backup file
  and whose cdr is a list of old versions to consider deleting now.
 If the value is nil, don't make a backup."
@@ -2258,7 +2260,7 @@ If the value is nil, don't make a backup."
   (car (cdr (file-attributes filename))))
 
 (defun file-relative-name (filename &optional directory)
-  "Convert FILENAME to be relative to DIRECTORY (default: default-directory).
+  "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
 If this is impossible (which can happen on MSDOS and Windows
@@ -2540,7 +2542,7 @@ Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
 If PRED is t, then certain non-file buffers will also be considered.
 If PRED is a zero-argument function, it indicates for each buffer whether
-  to consider it or not."
+to consider it or not when called with that buffer current."
   (interactive "P")
   (save-window-excursion
     (let* ((queried nil)
@@ -2758,7 +2760,7 @@ sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
 Optional second argument NOCONFIRM means don't ask for confirmation at
-all.  (The local variable `revert-without-query', if non-nil, prevents 
+all.  (The local variable `revert-without-query', if non-nil, prevents
 confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter
@@ -3051,7 +3053,7 @@ See also `auto-save-file-name-p'."
 	  (let ((fn (file-name-nondirectory buffer-file-name)))
 	    (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
 	    (concat (file-name-directory buffer-file-name)
-		    "#" (match-string 1 fn) 
+		    "#" (match-string 1 fn)
 		    "." (match-string 3 fn) "#"))
 	(concat (file-name-directory buffer-file-name)
 		"#"
@@ -3161,7 +3163,7 @@ by `sh' are supported."
 
 (defcustom list-directory-brief-switches
   (if (eq system-type 'vax-vms) "" "-CF")
-  "*Switches for list-directory to pass to `ls' for brief listing,"
+  "*Switches for `list-directory' to pass to `ls' for brief listing."
   :type 'string
   :group 'dired)
 
@@ -3169,7 +3171,7 @@ by `sh' are supported."
   (if (eq system-type 'vax-vms)
       "/PROTECTION/SIZE/DATE/OWNER/WIDTH=(OWNER:10)"
     "-l")
-  "*Switches for list-directory to pass to `ls' for verbose listing,"
+  "*Switches for `list-directory' to pass to `ls' for verbose listing."
   :type 'string
   :group 'dired)
 
@@ -3386,7 +3388,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (kill-emacs)))
 
-;; We use /: as a prefix to "quote" a file name 
+;; We use /: as a prefix to "quote" a file name
 ;; so that magic file name handlers will not apply to it.
 
 (setq file-name-handler-alist
@@ -3403,7 +3405,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(default-directory
 	  (if (eq operation 'insert-directory)
 	      (directory-file-name
-	       (expand-file-name 
+	       (expand-file-name
 		(unhandled-file-name-directory default-directory)))
 	    default-directory))
 	;; Get a list of the indices of the args which are file names.
