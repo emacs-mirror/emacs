@@ -9,6 +9,32 @@
 	* server.el (server-switch-buffer): Choose a window on a visible
 	frame.
 
+2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ebnf2ps.el: Fix a problem with skip-chars-forward: it doesn't accept
+	ranges like \177-\237, but accepts the character sequence from \177 to
+	\237.  Doc fix.
+	(ebnf-version): New version (3.4).
+	(ebnf-setup): Code fix.
+	(ebnf-range-regexp): New fun.
+	(ebnf-8-bit-chars): Const fix.
+
+	* ebnf-bnf.el: Fix the same problem as described on ebnf2ps.el log
+	entry.  Doc fix.
+	(ebnf-bnf-lex): Code fix.
+	(ebnf-bnf-comment-chars): Const fix.
+
+	* ebnf-iso.el: Fix the same problem as described on ebnf2ps.el log
+	entry.  Doc fix.
+	(ebnf-iso-comment-chars): Const fix.
+
+	* ebnf-otz.el: Doc fix.
+
+	* ebnf-yac.el: Fix the same problem as described on ebnf2ps.el log
+	entry.  Doc fix.
+	(ebnf-yac-skip-code): Code fix.
+	(ebnf-yac-comment-chars): Const fix.
+	
 2000-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (insert-directory-safely): New function.
