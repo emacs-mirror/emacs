@@ -74,14 +74,24 @@
 
 ;;; Constants:
 
-(defvar expand-load-hook nil
-  "Hooks run when `expand.el' is loaded.")
+(defgroup expand nil
+  "Make abbreviations more usable."
+  :group 'abbrev)
 
-(defvar expand-expand-hook nil
-  "Hooks run when an abbrev made by `expand-add-abbrevs' is expanded.")
+(defcustom expand-load-hook nil
+  "Hooks run when `expand.el' is loaded."
+  :type 'hook
+  :group 'expand)
 
-(defvar expand-jump-hook nil
-  "Hooks run by `expand-jump-to-previous-slot' and `expand-jump-to-next-slot'.")
+(defcustom expand-expand-hook nil
+  "Hooks run when an abbrev made by `expand-add-abbrevs' is expanded."
+  :type 'hook
+  :group 'expand)
+
+(defcustom expand-jump-hook nil
+  "Hooks run by `expand-jump-to-previous-slot' and `expand-jump-to-next-slot'."
+  :type 'hook
+  :group 'expand)
 
 ;;; Samples:
 

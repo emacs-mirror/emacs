@@ -27,25 +27,36 @@
 
 (require 'dired)
 
+(defgroup find-dired nil
+  "Run a `find' command and dired the output."
+  :group 'dired
+  :prefix "find-")
+
 ;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
 ;;;###autoload
-(defvar find-ls-option (if (eq system-type 'berkeley-unix) '("-ls" . "-gilsb")
-			 '("-exec ls -ld {} \\;" . "-ld"))
+(defcustom find-ls-option
+  (if (eq system-type 'berkeley-unix) '("-ls" . "-gilsb")
+    '("-exec ls -ld {} \\;" . "-ld"))
   "*Description of the option to `find' to produce an `ls -l'-type listing.
 This is a cons of two strings (FIND-OPTION . LS-SWITCHES).  FIND-OPTION
 gives the option (or options) to `find' that produce the desired output.
-LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output.")
+LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
+  :type '(cons (string :tag "Find Option")
+	       (string :tag "Ls Switches"))
+  :group 'find-dired)
 
 ;;;###autoload
-(defvar find-grep-options
+(defcustom find-grep-options
   (if (or (eq system-type 'berkeley-unix)
 	  (string-match "solaris2" system-configuration)
 	  (string-match "irix" system-configuration))
       "-s" "-q")
   "*Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
-On other systems, the closest you can come is to use `-l'.")
+On other systems, the closest you can come is to use `-l'."
+  :type 'string
+  :group 'find-dired)
 
 (defvar find-args nil
   "Last arguments given to `find' by \\[find-dired].")

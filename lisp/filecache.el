@@ -142,48 +142,72 @@
 
 ;;; Code:
 
+(defgroup file-cache nil
+  "Find files using a pre-loaded cache."
+  :group 'files
+  :prefix "file-cache-")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; User-modifiable variables
-(defvar file-cache-filter-regexps 
+(defcustom file-cache-filter-regexps 
   (list "~$" "\\.o$" "\\.exe$" "\\.a$" "\\.elc$" ",v$" "\\.output$" 
 	"\\.$" "#$")
   "*List of regular expressions used as filters by the file cache.
 File names which match these expressions will not be added to the cache.
 Note that the functions `file-cache-add-file' and `file-cache-add-file-list' 
-do not use this variable.")
+do not use this variable."
+  :type '(repeat regexp)
+  :group 'file-cache)
 
-(defvar file-cache-find-command "find"
-  "*External program used by `file-cache-add-directory-using-find'.")
+(defcustom file-cache-find-command "find"
+  "*External program used by `file-cache-add-directory-using-find'."
+  :type 'string
+  :group 'file-cache)
 
-(defvar file-cache-locate-command "locate"
-  "*External program used by `file-cache-add-directory-using-locate'.")
+(defcustom file-cache-locate-command "locate"
+  "*External program used by `file-cache-add-directory-using-locate'."
+  :type 'string
+  :group 'file-cache)
 
 ;; Minibuffer messages
-(defvar file-cache-no-match-message " [File Cache: No match]"
-  "Message to display when there is no completion.")
+(defcustom file-cache-no-match-message " [File Cache: No match]"
+  "Message to display when there is no completion."
+  :type 'string
+  :group 'file-cache)
 
-(defvar file-cache-sole-match-message " [File Cache: sole completion]"
-  "Message to display when there is only one completion.")
+(defcustom file-cache-sole-match-message " [File Cache: sole completion]"
+  "Message to display when there is only one completion."
+  :type 'string
+  :group 'file-cache)
 
-(defvar file-cache-non-unique-message " [File Cache: complete but not unique]"
-  "Message to display when there is a non-unique completion.")
+(defcustom file-cache-non-unique-message
+  " [File Cache: complete but not unique]"
+  "Message to display when there is a non-unique completion."
+  :type 'string
+  :group 'file-cache)
 
 (defvar file-cache-multiple-directory-message nil)
 
 ;; Internal variables
 ;; This should be named *Completions* because that's what the function
 ;; switch-to-completions in simple.el expects
-(defvar file-cache-completions-buffer "*Completions*"
-  "Buffer to display completions when using the file cache.")
+(defcustom file-cache-completions-buffer "*Completions*"
+  "Buffer to display completions when using the file cache."
+  :type 'string
+  :group 'file-cache)
 
-(defvar file-cache-buffer "*File Cache*"  
-  "Buffer to hold the cache of file names.")
+(defcustom file-cache-buffer "*File Cache*"  
+  "Buffer to hold the cache of file names."
+  :type 'string
+  :group 'file-cache)
 
-(defvar file-cache-buffer-default-regexp "^.+$"
-  "Regexp to match files in `file-cache-buffer'.")
+(defcustom file-cache-buffer-default-regexp "^.+$"
+  "Regexp to match files in `file-cache-buffer'."
+  :type 'regexp
+  :group 'file-cache)
 
 (defvar file-cache-last-completion nil)
 

@@ -113,6 +113,10 @@ When called interactively, displays the version."
 
 ;;; Emerge configuration variables
 
+(defgroup emerge nil
+  "Merge diffs under Emacs control."
+  :group 'tools)
+
 ;; Commands that produce difference files
 ;; All that can be configured is the name of the programs to execute
 ;; (emerge-diff-program and emerge-diff3-program) and the options
@@ -124,69 +128,102 @@ When called interactively, displays the version."
 ;; The code which processes the diff/diff3 output depends on all the
 ;; finicky details of their output, including the somewhat strange
 ;; way they number lines of a file.
-(defvar emerge-diff-program "diff"
-  "*Name of the program which compares two files.")
-(defvar emerge-diff3-program "diff3"
+(defcustom emerge-diff-program "diff"
+  "*Name of the program which compares two files."
+  :type 'string
+  :group 'emerge)
+(defcustom emerge-diff3-program "diff3"
   "*Name of the program which compares three files.
-Its arguments are the ancestor file and the two variant files.")
-(defvar emerge-diff-options ""
-  "*Options to pass to `emerge-diff-program' and `emerge-diff3-program'.")
-(defvar emerge-match-diff-line (let ((x "\\([0-9]+\\)\\(\\|,\\([0-9]+\\)\\)"))
-				 (concat "^" x "\\([acd]\\)" x "$"))
+Its arguments are the ancestor file and the two variant files."
+  :type 'string
+  :group 'emerge)
+(defcustom emerge-diff-options ""
+  "*Options to pass to `emerge-diff-program' and `emerge-diff3-program'."
+  :type 'string
+  :group 'emerge)
+(defcustom emerge-match-diff-line
+  (let ((x "\\([0-9]+\\)\\(\\|,\\([0-9]+\\)\\)"))
+    (concat "^" x "\\([acd]\\)" x "$"))
   "*Pattern to match lines produced by diff that describe differences.
-This is as opposed to lines from the source files.")
-(defvar emerge-diff-ok-lines-regexp
+This is as opposed to lines from the source files."
+  :type 'regexp
+  :group 'emerge)
+(defcustom emerge-diff-ok-lines-regexp
   "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\)"
   "*Regexp that matches normal output lines from `emerge-diff-program'.
-Lines that do not match are assumed to be error messages.")
-(defvar emerge-diff3-ok-lines-regexp
+Lines that do not match are assumed to be error messages."
+  :type 'regexp
+  :group 'emerge)
+(defcustom emerge-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\)"
   "*Regexp that matches normal output lines from `emerge-diff3-program'.
-Lines that do not match are assumed to be error messages.")
+Lines that do not match are assumed to be error messages."
+  :type 'regexp
+  :group 'emerge)
 
-(defvar emerge-rcs-ci-program "ci"
-  "*Name of the program that checks in RCS revisions.")
-(defvar emerge-rcs-co-program "co"
-  "*Name of the program that checks out RCS revisions.")
+(defcustom emerge-rcs-ci-program "ci"
+  "*Name of the program that checks in RCS revisions."
+  :type 'string
+  :group 'emerge)
+(defcustom emerge-rcs-co-program "co"
+  "*Name of the program that checks out RCS revisions."
+  :type 'string
+  :group 'emerge)
 
-(defvar emerge-process-local-variables nil
+(defcustom emerge-process-local-variables nil
   "*Non-nil if Emerge should process local-variables lists in merge buffers.
 \(You can explicitly request processing the local-variables
-by executing `(hack-local-variables)'.)")
-(defvar emerge-execute-line-deletions nil
+by executing `(hack-local-variables)'.)"
+  :type 'boolean
+  :group 'emerge)
+(defcustom emerge-execute-line-deletions nil
   "*If non-nil: `emerge-execute-line' makes no output if an input was deleted.
 It concludes that an input version has been deleted when an ancestor entry
 is present, only one A or B entry is present, and an output entry is present.
 If nil: In such circumstances, the A or B file that is present will be
-copied to the designated output file.")
+copied to the designated output file."
+  :type 'boolean
+  :group 'emerge)
 
-(defvar emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
+(defcustom emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
   "*Flag placed above the highlighted block of code.  Must end with newline.
 Must be set before Emerge is loaded, or  emerge-new-flags  must be run
-after setting.")
-(defvar emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
+after setting."
+  :type 'string
+  :group 'emerge)
+(defcustom emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
   "*Flag placed below the highlighted block of code.  Must end with newline.
 Must be set before Emerge is loaded, or  emerge-new-flags  must be run
-after setting.")
+after setting."
+  :type 'string
+  :group 'emerge)
 
 ;; Hook variables
 
-(defvar emerge-startup-hook nil
-  "*Hook to run in the merge buffer after the merge has been set up.")
-(defvar emerge-select-hook nil
+(defcustom emerge-startup-hook nil
+  "*Hook to run in the merge buffer after the merge has been set up."
+  :type 'hook
+  :group 'emerge)
+(defcustom emerge-select-hook nil
   "*Hook to run after a difference has been selected.
-The variable `n' holds the (internal) number of the difference.")
-(defvar emerge-unselect-hook nil
+The variable `n' holds the (internal) number of the difference."
+  :type 'hook
+  :group 'emerge)
+(defcustom emerge-unselect-hook nil
   "*Hook to run after a difference has been unselected.
-The variable `n' holds the (internal) number of the difference.")
+The variable `n' holds the (internal) number of the difference."
+  :type 'hook
+  :group 'emerge)
 
 ;; Variables to control the default directories of the arguments to
 ;; Emerge commands.
 
-(defvar emerge-default-last-directories nil
+(defcustom emerge-default-last-directories nil
   "*If nil, default dir for filenames in emerge is `default-directory'.
 If non-nil, filenames complete in the directory of the last argument of the
-same type to an `emerge-files...' command.")
+same type to an `emerge-files...' command."
+  :type 'boolean
+  :group 'emerge)
 
 (defvar emerge-last-dir-A nil
   "Last directory for the first file of an `emerge-files...' command.")
@@ -246,11 +283,13 @@ depend on the flags."
 ;; Calculate dependent variables
 (emerge-new-flags)
 
-(defvar emerge-min-visible-lines 3
+(defcustom emerge-min-visible-lines 3
   "*Number of lines that we want to show above and below the flags when we are
-displaying a difference.")
+displaying a difference."
+  :type 'integer
+  :group 'emerge)
 
-(defvar emerge-temp-file-prefix
+(defcustom emerge-temp-file-prefix
   (let ((env (or (getenv "TMPDIR")
 		 (getenv "TMP")
 		 (getenv "TEMP")))
@@ -262,12 +301,16 @@ displaying a difference.")
 	(setq d (substring d 0 -1)))
     (concat d "/emerge"))
   "*Prefix to put on Emerge temporary file names.
-Do not start with `~/' or `~user-name/'.")
+Do not start with `~/' or `~user-name/'."
+  :type 'string
+  :group 'emerge)
 
-(defvar emerge-temp-file-mode 384	; u=rw only
-  "*Mode for Emerge temporary files.")
+(defcustom emerge-temp-file-mode 384	; u=rw only
+  "*Mode for Emerge temporary files."
+  :type 'integer
+  :group 'emerge)
 
-(defvar emerge-combine-versions-template
+(defcustom emerge-combine-versions-template
   "#ifdef NEW\n%b#else /* not NEW */\n%a#endif /* not NEW */\n"
   "*Template for `emerge-combine-versions' to combine the two versions.
 The template is inserted as a string, with the following interpolations:
@@ -276,7 +319,9 @@ The template is inserted as a string, with the following interpolations:
 	%%	the character `%'
 Don't forget to end the template with a newline.
 Note that this variable can be made local to a particular merge buffer by
-giving a prefix argument to `emerge-set-combine-versions-template'.")
+giving a prefix argument to `emerge-set-combine-versions-template'."
+  :type 'string
+  :group 'emerge)
 
 ;; Build keymaps
 
@@ -298,9 +343,11 @@ Makes Emerge commands directly available.")
 (defvar emerge-move-menu
   (make-sparse-keymap "Move"))
 
-(defvar emerge-command-prefix "\C-c\C-c"
+(defcustom emerge-command-prefix "\C-c\C-c"
   "*Command prefix for Emerge commands in `edit' mode.
-Must be set before Emerge is loaded.")
+Must be set before Emerge is loaded."
+  :type 'string
+  :group 'emerge)
 
 ;; This function sets up the fixed keymaps.  It is executed when the first
 ;; Emerge is done to allow the user maximum time to set up the global keymap.
@@ -1247,8 +1294,10 @@ Otherwise, the A or B file present is copied to the output file."
 
 ;;; Sample function for creating information for emerge-execute-line
 
-(defvar emerge-merge-directories-filename-regexp "[^.]"
-  "Regexp describing files to be processed by `emerge-merge-directories'.")
+(defcustom emerge-merge-directories-filename-regexp "[^.]"
+  "Regexp describing files to be processed by `emerge-merge-directories'."
+  :type 'regexp
+  :group 'emerge)
 
 ;;;###autoload
 (defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
@@ -3154,9 +3203,11 @@ See also `auto-save-file-name-p'."
 
 ;; Metacharacters that have to be protected from the shell when executing
 ;; a diff/diff3 command.
-(defvar emerge-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
+(defcustom emerge-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
   "Characters that must be quoted with \\ when used in a shell command line.
-More precisely, a [...] regexp to match any one such character.")
+More precisely, a [...] regexp to match any one such character."
+  :type 'regexp
+  :group 'emerge)
 
 ;; Quote metacharacters (using \) when executing a diff/diff3 command.
 (defun emerge-protect-metachars (s)
