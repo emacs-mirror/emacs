@@ -1,3 +1,7 @@
+2000-11-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_text_area): Fix last change.
+
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c: Use BINDING_STACK_SIZE throughout.
