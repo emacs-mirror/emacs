@@ -50,6 +50,17 @@
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Expand defmacro forms.
 
+	* emacs-lisp/byte-lexbind.el (byte-compile-make-lvarinfo) 
+	(byte-compile-lforminfo-add-var) 
+	(byte-compile-lforminfo-note-closure) 
+	(byte-compile-compute-lforminfo) 
+	(byte-compile-lforminfo-from-lambda) 
+	(byte-compile-lforminfo-analyze) 
+	(byte-compile-heapenv-add-accessible-env) 
+	(byte-compile-heapenv-ensure-access) 
+	(byte-compile-rearrange-let-clauses, byte-compile-bind) 
+	(byte-compile-unbind): Fix a bunch of typos.
+
 2002-06-12  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/byte-lexbind.el, emacs-lisp/macroexp.el: New files.
