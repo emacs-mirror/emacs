@@ -100,7 +100,9 @@
 
 (if (fboundp 'delete-frame)
     (progn
-      (define-key menu-bar-files-menu [delete-frame]
+      ;; Don't use delete-frame as event name
+      ;; because that is a special event.
+      (define-key menu-bar-files-menu [delete-this-frame]
 	'("Delete Frame" . delete-frame))
       (define-key menu-bar-files-menu [make-frame-on-display]
 	'("Open New Display..." . make-frame-on-display))
