@@ -186,7 +186,7 @@ wish to put something like the following in your `.emacs' file:
 
 \(add-hook 'comint-mode-hook
 	  (lambda ()
-	    (define-key comint-mode-map \"\C-w\" 'comint-kill-region)
+	    (define-key comint-mode-map \"\\C-w\" 'comint-kill-region)
 	    (define-key comint-mode-map [C-S-backspace]
 	      'comint-kill-whole-line)))
 
