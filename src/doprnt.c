@@ -69,7 +69,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
   if ((format_end - format + 1) < sizeof (fixed_buffer))
     fmtcpy = fixed_buffer;
   else
-    fmtcpy = alloca (format_end - format + 1);
+    fmtcpy = (char *) alloca (format_end - format + 1);
 
   bufsize--;
 
