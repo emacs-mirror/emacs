@@ -175,16 +175,11 @@
 
 ;; R Sharman (rsharman@magma.ca) Feb 1998:
 ;; - initial release as change-mode.
-;; Ray Nickson (nickson@mcs.vuw.ac.nz) 20 Feb 1998: 
-;; - deleting text causes surrounding characters to be highlighted.
-;; - make it only active for the current buffer.
 ;; Jari Aalto <jari.aalto@ntc.nokia.com> Mar 1998
 ;; - fixes for byte compile errors 
 ;; - use eval-and-compile for autoload
 ;; Marijn Ros <J.M.Ros@fys.ruu.nl> Mar 98
 ;; - suggested turning it on by default
-;; Adrian Bridgett <adrian.bridgett@zetnet.co.uk> June 98:
-;; - make hide/unhide not affect the buffer modified status
 ;; Eric Ludlam <zappo@gnu.org> Suggested using overlays.
 ;; July 98
 ;; - global mode and various stuff added
