@@ -1,7 +1,7 @@
 ;;; idlw-rinfo.el --- Routine Information for IDLWAVE
 ;; Copyright (c) 1999, 2000 Free Software Foundation
 
-;; Author: Carsten Dominik <dominik@astro.uva.nl>
+;; Author: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
 ;; Keywords: languages
 

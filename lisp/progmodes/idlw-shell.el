@@ -2,9 +2,9 @@
 ;; Copyright (c) 1999, 2000 Free Software Foundation
 
 ;; Author: Chris Chase <chase@att.com>
-;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
+;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/07/16 12:22:59 $
+;; Date: $Date: 2001/11/27 15:52:51 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
