@@ -699,9 +699,9 @@ If non-nil but not a string, the user is prompted for the name.")
   "*Account password to use when the user is the same as ange-ftp-default-user.")
 
 (defvar ange-ftp-generate-anonymous-password t
-  "*If t, use a password of user@host when logging in as the anonymous user.
-If a string then use that as the password.
-If nil then prompt the user for a password.")
+  "*If t, use value of `user-mail-address' as password for anonymous ftp.
+If a string, then use that string as the password.
+If nil, prompt the user for a password.")
 
 (defvar ange-ftp-dumb-unix-host-regexp nil
   "*If non-nil, regexp matching hosts on which `dir' command lists directory.")
@@ -860,7 +860,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.56 $")
+(defconst ange-ftp-version "$Revision: 1.57 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1081,7 +1081,7 @@ Optional DEFAULT is password to start with."
 	      ange-ftp-generate-anonymous-password)
 	 (if (stringp ange-ftp-generate-anonymous-password)
 	     ange-ftp-generate-anonymous-password
-	   (concat (user-login-name) "@" (system-name))))
+	   user-mail-address))
 	
 	;; see if same user has logged in to other hosts; if so then prompt
 	;; with the password that was used there.
