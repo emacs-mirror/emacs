@@ -15,7 +15,7 @@ eterm,
 	smso=\E[7m,rmso=\E[m,
 	smul=\E[4m,rmul=\E[m,
 	rev=\E[7m,bold=\E[1m,sgr0=\E[m,
-	invis=\E[8m,
+	invis=\E[8m,op=\E[39;49m,
 	setab=\E[%p1%{40}%+%dm, setaf=\E[%p1%{30}%+%dm,
 	bel=^G,xenl,am,
 
