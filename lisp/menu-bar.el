@@ -197,7 +197,7 @@ and selects that window."
 				 (setq maxlen (length (car (car head))))))
 			  (setq tail (cdr tail)))
 			(nconc (reverse head)
-			       (list (cons (concat (make-string (- (/ maxlen 2) 8) ?\ )
+			       (list (cons (concat (make-string (max 0 (- (/ maxlen 2) 8)) ?\ )
 						   "List All Buffers")
 					   'list-buffers)))))))
 
