@@ -1,3 +1,11 @@
+2001-11-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_window_to_frame): Remove irrelevant TODO comment.
+	(w32_wnd_proc) <WM_MENUSELECT>: Show help echo directly.
+	(my_create_tip_window): New function.
+	(x_create_tip_frame, compute_tip_xy): Adapt for Windows.
+	(Fx_show_tip, Fx_hide_tip) [TEST_TOOLTIPS]: Adapt for Windows. 
+
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* coding.h (Vw32_system_coding_system) [WINDOWSNT]: Remove.
