@@ -4502,29 +4502,29 @@ int size;
 
     font->hfont = CreateFontIndirect (&lf);
 
-  if (font->hfont == NULL) 
-    {
-      ok = FALSE;
-    } 
-  else 
-    {
-      HDC hdc;
-      HANDLE oldobj;
+    if (font->hfont == NULL) 
+      {
+	ok = FALSE;
+      } 
+    else 
+      {
+	HDC hdc;
+	HANDLE oldobj;
 
-      hdc = GetDC (dpyinfo->root_window);
-      oldobj = SelectObject (hdc, font->hfont);
-      ok = GetTextMetrics (hdc, &font->tm);
-      SelectObject (hdc, oldobj);
-      ReleaseDC (dpyinfo->root_window, hdc);
-    }
+	hdc = GetDC (dpyinfo->root_window);
+	oldobj = SelectObject (hdc, font->hfont);
+	ok = GetTextMetrics (hdc, &font->tm);
+	SelectObject (hdc, oldobj);
+	ReleaseDC (dpyinfo->root_window, hdc);
+      }
 
-  UNBLOCK_INPUT;
+    UNBLOCK_INPUT;
 
     if (!ok)
       {
-  w32_unload_font (dpyinfo, font);
-  return (NULL);
-}
+	w32_unload_font (dpyinfo, font);
+	return (NULL);
+      }
 
     /* Do we need to create the table?  */
     if (dpyinfo->font_table_size == 0)
@@ -4722,14 +4722,14 @@ x_to_w32_charset (lpcs)
 {
   if (!lpcs) return (0);
 
-  if (stricmp (lpcs,"ansi") == 0)               return ANSI_CHARSET;
-  else if (stricmp (lpcs,"iso8859-1") == 0)     return ANSI_CHARSET;
-  else if (stricmp (lpcs, "symbol") >= 0)        return SYMBOL_CHARSET;
-  else if (stricmp (lpcs, "jis") >= 0)          return SHIFTJIS_CHARSET;
+  if (stricmp (lpcs,"ansi") == 0)                return ANSI_CHARSET;
+  else if (stricmp (lpcs,"iso8859-1") == 0)      return ANSI_CHARSET;
+  else if (stricmp (lpcs, "symbol") == 0)        return SYMBOL_CHARSET;
+  else if (stricmp (lpcs, "jis") == 0)           return SHIFTJIS_CHARSET;
   else if (stricmp (lpcs, "ksc5601") == 0)       return HANGEUL_CHARSET;
   else if (stricmp (lpcs, "gb2312") == 0)        return GB2312_CHARSET;
   else if (stricmp (lpcs, "big5") == 0)          return CHINESEBIG5_CHARSET;
-  else if (stricmp (lpcs, "oem") >= 0)	         return OEM_CHARSET;
+  else if (stricmp (lpcs, "oem") == 0)	         return OEM_CHARSET;
 
 #ifdef EASTEUROPE_CHARSET
   else if (stricmp (lpcs, "iso8859-2") == 0)     return EASTEUROPE_CHARSET;
@@ -4747,10 +4747,10 @@ x_to_w32_charset (lpcs)
 #endif
 
 #ifdef UNICODE_CHARSET
-  else if (stricmp (lpcs,"iso10646") == 0)      return UNICODE_CHARSET;
-  else if (stricmp (lpcs, "unicode") >= 0)       return UNICODE_CHARSET;
+  else if (stricmp (lpcs,"iso10646") == 0)       return UNICODE_CHARSET;
+  else if (stricmp (lpcs, "unicode") == 0)       return UNICODE_CHARSET;
 #endif
-  else if (lpcs[0] == '#')			return atoi (lpcs + 1);
+  else if (lpcs[0] == '#')			 return atoi (lpcs + 1);
   else
     return DEFAULT_CHARSET;
 }
@@ -4872,6 +4872,7 @@ x_to_w32_font (lpxstr, lplogfont)
   
   memset (lplogfont, 0, sizeof (*lplogfont));
 
+  /* Set default value for each field.  */
 #if 1
   lplogfont->lfOutPrecision = OUT_DEFAULT_PRECIS;
   lplogfont->lfClipPrecision = CLIP_DEFAULT_PRECIS;
@@ -4882,6 +4883,10 @@ x_to_w32_font (lpxstr, lplogfont)
   lplogfont->lfClipPrecision = CLIP_STROKE_PRECIS;
   lplogfont->lfQuality = PROOF_QUALITY;
 #endif
+
+  lplogfont->lfCharSet = DEFAULT_CHARSET;
+  lplogfont->lfWeight = FW_DONTCARE;
+  lplogfont->lfPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
 
   if (!lpxstr)
     return FALSE;
