@@ -248,14 +248,15 @@ Lisp_Object Vinhibit_redisplay, Qinhibit_redisplay;
 
 /* Names of text properties relevant for redisplay.  */
 
-Lisp_Object Qdisplay, Qrelative_width, Qwidth, Qalign_to;
-extern Lisp_Object Qface, Qinvisible, Qimage;
+Lisp_Object Qdisplay, Qrelative_width, Qalign_to;
+extern Lisp_Object Qface, Qinvisible, Qimage, Qwidth;
 
 /* Symbols used in text property values.  */
 
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
-Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qheight, Qraise;
+Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qmargin;
+extern Lisp_Object Qheight;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -12662,8 +12663,6 @@ syms_of_xdisp ()
   staticpro (&Qdisplay);
   Qspace_width = intern ("space-width");
   staticpro (&Qspace_width);
-  Qheight = intern ("height");
-  staticpro (&Qheight);
   Qraise = intern ("raise");
   staticpro (&Qraise);
   Qspace = intern ("space");
@@ -12678,8 +12677,6 @@ syms_of_xdisp ()
   staticpro (&Qalign_to);
   QCalign_to = intern (":align-to");
   staticpro (&QCalign_to);
-  Qwidth = intern ("width");
-  staticpro (&Qwidth);
   Qrelative_width = intern ("relative-width");
   staticpro (&Qrelative_width);
   QCrelative_width = intern (":relative-width");
