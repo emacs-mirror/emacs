@@ -4714,9 +4714,10 @@ relative_filename (file, dir)
   while (*fp++ == *dp++)
     continue;
   fp--, dp--;			/* back to the first differing char */
-  do				/* look at the equal chars until '/' */
+  do {				/* look at the equal chars until '/' */
+    if (fp == abs) return abs;	/* first char differs, give up */
     fp--, dp--;
-  while (*fp != '/');
+  } while (*fp != '/');
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
