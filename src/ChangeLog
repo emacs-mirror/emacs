@@ -1,3 +1,13 @@
+1999-10-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (prepare_image_for_display): Don't try to load image if
+	loading it failed before.
+	(lookup_image, prepare_image_for_display): Remember if loading the
+	image failed.
+	(xpm_load): Add missing UNBLOCK_INPUT.
+
+	* dispextern.h (struct image): New member load_failed_p.
+
 1999-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fileio.c (Fmake_temp_name): add a reference to `make-temp-file'
