@@ -1,3 +1,8 @@
+2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
+	the table to contain correct characters.
+
 2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (face-set-after-frame-default): Don't change `default' face.
