@@ -1146,7 +1146,14 @@ window even if BUFFER is already visible in the selected window.")
   if (NILP (bufname))
     buf = Fother_buffer (Fcurrent_buffer (), Qnil);
   else
-    buf = Fget_buffer_create (bufname);
+    {
+      buf = Fget_buffer (bufname);
+      if (NILP (buf))
+	{
+	  buf = Fget_buffer_create (bufname);
+	  Fset_buffer_major_mode (buf);
+	}
+    }
   Fset_buffer (buf);
   record_buffer (buf);
   Fselect_window (Fdisplay_buffer (buf, other));
