@@ -8,9 +8,8 @@
 	(STRING_SET_INTERVALS): New macro.
 	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Use it.
 	* fns.c (Fstring_as_multibyte): Likewise.
-	* intervals.c (create_root_interval,
-	balance_possible_root_interval, delete_interval,
-	copy_intervals_to_string): Likewise.
+	* intervals.c (balance_possible_root_interval, delete_interval)
+	(create_root_interval, copy_intervals_to_string): Likewise.
 	* textprop.c (set_text_properties): Likewise.  Use NULL_INTERVAL
 	instead of 0.
 
@@ -71,7 +70,7 @@
 	Uses changed.
 	(syms_of_alloc): Defvar them.
 	(memory_full, buffer_memory_full): Set Vmemory_full.
-	
+
 	* lisp.h (Vmemory_full): Add declaration.
 	(current_column, indented_beyond_p): Change declaration.
 
@@ -79,10 +78,10 @@
 	(current_column, current_column_1, string_display_width)
 	(position_indentation): Return `double'.
 	(indented_beyond_p): Arg `column' is `double'.  Callers changed.
-	
+
 	* xdisp.c (message_dolog): Do nothing if Vmemory_full is non-nil.
-	(back_to_previous_visible_line_start) 
-	(reseat_at_next_visible_line_start, next_element_from_buffer): 
+	(back_to_previous_visible_line_start)
+	(reseat_at_next_visible_line_start, next_element_from_buffer):
 	Use `double', not `float', when calling indented_beyond_p.
 
 	* s/hpux11.h (BROKEN_SA_RESTART): Defined.
@@ -105,6 +104,10 @@
 
 2002-07-09  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* data.c (Fdefalias): Add an optional `docstring' argument.
+	(set_internal, Fsetq_default): Use XCAR/XCDR.
+
+	* composite.c (HASH_VALUE, HASH_KEY):
 	* ccl.c (HASH_VALUE): Remove (it's in lisp.h now).
 
 2002-07-09  Kenichi Handa  <handa@etl.go.jp>

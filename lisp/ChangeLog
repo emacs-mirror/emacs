@@ -12,6 +12,28 @@
 	* mouse-sel.el (mouse-sel-bindings): Save/restore interprogram
 	cut/paste functions.
 
+2002-07-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/tex-mode.el: Set encoding to utf-8.
+	(tex-start-options): Make it into always-a-string.
+	Remove silly custom options that are covered by the other var.
+	(tex-start-commands): Fix docstring.
+	(tex-open-quote, tex-close-quote): Add options.
+	(tex-command): Provide default.
+	(tex-font-lock-keywords-1): Highlight $$...$$.
+	(tex-font-lock-keywords-2): Fix latin-1 chars.
+	(tex-mode-map): Remove redundant \t binding.
+	(tex-mode): Add `subsection' and `newcommand' to known latex cmds.
+	(latex-mode): Use add-hook for fill-nobreak-predicate.
+	(tex-common-initialization): Set indent-tabs-mode to nil.
+	(tex-insert-quote): Undo magic if invoked twice in a row.
+	(latex-fill-nobreak-predicate): Don't use narrowing.
+	(tex-latex-block): Don't cons uselessly.
+	(tex-last-unended-begin): Signal user-friendlier error.
+	(tex-goto-last-unclosed-latex-block): Don't catch signal.
+	(tex-start-tex): Switch order of tex-start-options and
+	tex-start-commands to make it obey docstrings.
+
 2002-07-14  Mike Williams  <mdub@bigfoot.com>
 
 	* mouse-sel.el (mouse-sel-bound-events): New constant.
