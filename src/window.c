@@ -1346,7 +1346,7 @@ value is reasonable when this function is called.")
 }
 
 DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
-  1, 1, "bDelete windows on (buffer): ",
+  1, 2, "bDelete windows on (buffer): ",
   "Delete all windows showing BUFFER.\n\
 Optional second argument FRAME controls which frames are affected.\n\
 If nil or omitted, delete all windows showing BUFFER in any frame.\n\
