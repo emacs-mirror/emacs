@@ -50,8 +50,12 @@ Boston, MA 02111-1307, USA.  */
 #include "msdos.h"
 #include "systime.h"
 #include "termhooks.h"
+#include "termchar.h"
 #include "dispextern.h"
 #include "termopts.h"
+#include "charset.h"
+#include "coding.h"
+#include "disptab.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
@@ -351,6 +355,9 @@ static unsigned long screen_old_address = 0;
 /* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
+
+/* A flag to control how to display unibyte 8-bit character.  */
+int unibyte_display_via_language_environment;
 
 #if __DJGPP__ > 1
 /* Update the screen from a part of relocated DOS/V screen buffer which
@@ -671,37 +678,203 @@ IT_set_face (int face)
   ScreenAttrib = (FACE_BACKGROUND (fp) << 4) | FACE_FOREGROUND (fp);
 }
 
-static void
-IT_write_glyphs (GLYPH *str, int len)
-{
-  int newface;
-  int ch, l = len;
-  unsigned char *buf, *bp;
-  int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
+Lisp_Object Vdos_unsupported_char_glyph;
 
-  if (len == 0) return;
+static void
+IT_write_glyphs (GLYPH *str, int str_len)
+{
+  unsigned char *screen_buf, *screen_bp, *screen_buf_end, *bp;
+  int unsupported_face = FAST_GLYPH_FACE (Vdos_unsupported_char_glyph);
+  unsigned unsupported_char= FAST_GLYPH_CHAR (Vdos_unsupported_char_glyph);
+  int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
+  register int sl = str_len;
+  register int tlen = GLYPH_TABLE_LENGTH;
+  register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+
+  struct coding_system *coding = CODING_REQUIRE_ENCODING (&terminal_coding)
+    ? &terminal_coding
+    : &safe_terminal_coding;
+
+  if (str_len == 0) return;
   
-  buf = bp = alloca (len * 2);
+  screen_buf = screen_bp = alloca (str_len * 2);
+  screen_buf_end = screen_buf + str_len * 2;
   
-  while (--l >= 0)
+  /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
+     the tail.  */
+  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+  while (sl)
     {
-      newface = FAST_GLYPH_FACE (*str);
-      if (newface != screen_face)
-	IT_set_face (newface);
-      ch = FAST_GLYPH_CHAR (*str);
-      *bp++ = (unsigned char)ch;
-      *bp++ = ScreenAttrib;
-      
-      if (termscript)
-	fputc (ch, termscript);
-      str++;
+      int cf, ch, chlen, enclen;
+      unsigned char workbuf[4], *buf;
+      register GLYPH g = *str;
+
+      /* Find the actual glyph to display by traversing the entire
+	 aliases chain for this glyph.  */
+      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+
+      /* Glyphs with GLYPH_MASK_PADDING bit set are actually there
+	 only for the redisplay code to know how many columns does
+         this character occupy on the screen.  Skip padding glyphs.  */
+      if ((g & GLYPH_MASK_PADDING))
+	{
+	  str++;
+	  sl--;
+	}
+      else
+	{
+	  /* Convert the character code to multibyte, if they
+	     requested display via language environment.  */
+	  ch = FAST_GLYPH_CHAR (g);
+	  if (unibyte_display_via_language_environment
+	      && SINGLE_BYTE_CHAR_P (ch)
+	      && (ch >= 0240 || !NILP (Vnonascii_translation_table)))
+	    ch = unibyte_char_to_multibyte (ch);
+
+	  /* Invalid characters are displayed with a special glyph.  */
+	  if (ch > MAX_CHAR)
+	    {
+	      g = !NILP (Vdos_unsupported_char_glyph)
+		? Vdos_unsupported_char_glyph
+		: MAKE_GLYPH (selected_frame, '\177',
+			      GLYPH_FACE (selected_frame, g));
+	      ch = FAST_GLYPH_CHAR (g);
+	    }
+	  if (COMPOSITE_CHAR_P (ch))
+	    {
+	      /* If CH is a composite character, we can display
+		 only the first component.  */
+	      g = cmpchar_table[COMPOSITE_CHAR_ID (ch)]->glyph[0],
+	      ch = GLYPH_CHAR (selected_frame, g);
+	      cf = FAST_GLYPH_FACE (g);
+	    }
+
+	  /* If the face of this glyph is different from the current
+	     screen face, update the screen attribute byte.  */
+	  cf = FAST_GLYPH_FACE (g);
+	  if (cf != screen_face)
+	    IT_set_face (cf);	/* handles invalid faces gracefully */
+
+	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
+	    /* We generate the multi-byte form of CH in BUF.  */
+	    chlen = CHAR_STRING (ch, workbuf, buf);
+	  else
+	    {
+	      /* We have a string in Vglyph_table.  */
+	      chlen = GLYPH_LENGTH (tbase, g);
+	      buf = GLYPH_STRING (tbase, g);
+	    }
+
+	  /* If the character is not multibyte, don't bother converting it.
+	     FIXME: what about "emacs --unibyte"  */
+	  if (chlen == 1)
+	    {
+	      *conversion_buffer = (unsigned char)ch;
+	      chlen = 0;
+	      enclen = 1;
+	    }
+	  else
+	    {
+	      encode_coding (coding, buf, conversion_buffer, chlen,
+			     conversion_buffer_size);
+	      chlen -= coding->consumed;
+	      enclen = coding->produced;
+
+	      /* Replace glyph codes that cannot be converted by
+		 terminal_coding with Vdos_unsupported_char_glyph.  */
+	      if (*conversion_buffer == '?')
+		{
+		  char *cbp = conversion_buffer;
+
+		  while (cbp < conversion_buffer + enclen && *cbp == '?')
+		    *cbp++ = unsupported_char;
+		  if (unsupported_face != screen_face)
+		    IT_set_face (unsupported_face);
+		}
+	    }
+
+	  if (enclen + chlen > screen_buf_end - screen_bp)
+	    {
+	      /* The allocated buffer for screen writes is too small.
+		 Flush it and loop again without incrementing STR, so
+		 that the next loop will begin with the same glyph.  */
+	      int nbytes = screen_bp - screen_buf;
+
+	      mouse_off_maybe ();
+	      dosmemput (screen_buf, nbytes, (int)ScreenPrimary + offset);
+	      if (screen_virtual_segment)
+		dosv_refresh_virtual_screen (offset, nbytes / 2);
+	      new_pos_X += nbytes / 2;
+	      offset += nbytes;
+
+	      /* Prepare to reuse the same buffer again.  */
+	      screen_bp = screen_buf;
+	    }
+	  else
+	    {
+	      /* There's enough place in the allocated buffer to add
+		 the encoding of this glyph.  */
+
+	      /* First, copy the encoded bytes.  */
+	      for (bp = conversion_buffer; enclen--; bp++)
+		{
+		  *screen_bp++ = (unsigned char)*bp;
+		  *screen_bp++ = ScreenAttrib;
+		  if (termscript)
+		    fputc (*bp, termscript);
+		}
+
+	      /* Now copy the bytes not consumed by the encoding.  */
+	      if (chlen > 0)
+		{
+		  buf += coding->consumed;
+		  while (chlen--)
+		    {
+		      if (termscript)
+			fputc (*buf, termscript);
+		      *screen_bp++ = (unsigned char)*buf++;
+		      *screen_bp++ = ScreenAttrib;
+		    }
+		}
+
+	      /* Update STR and its remaining length.  */
+	      str++;
+	      sl--;
+	    }
+	}
     }
 
+  /* Dump whatever is left in the screen buffer.  */
   mouse_off_maybe ();
-  dosmemput (buf, 2 * len, (int)ScreenPrimary + offset);
+  dosmemput (screen_buf, screen_bp - screen_buf, (int)ScreenPrimary + offset);
   if (screen_virtual_segment)
-    dosv_refresh_virtual_screen (offset, len);
-  new_pos_X += len;
+    dosv_refresh_virtual_screen (offset, (screen_bp - screen_buf) / 2);
+  new_pos_X += (screen_bp - screen_buf) / 2;
+
+  /* We may have to output some codes to terminate the writing.  */
+  if (CODING_REQUIRE_FLUSHING (coding))
+    {
+      coding->mode |= CODING_MODE_LAST_BLOCK;
+      encode_coding (coding, "", conversion_buffer, 0, conversion_buffer_size);
+      if (coding->produced > 0)
+	{
+	  for (screen_bp = screen_buf, bp = conversion_buffer;
+	       coding->produced--; bp++)
+	    {
+	      *screen_bp++ = (unsigned char)*bp;
+	      *screen_bp++ = ScreenAttrib;
+	      if (termscript)
+		fputc (*bp, termscript);
+	    }
+	  offset += screen_bp - screen_buf;
+	  mouse_off_maybe ();
+	  dosmemput (screen_buf, screen_bp - screen_buf,
+		     (int)ScreenPrimary + offset);
+	  if (screen_virtual_segment)
+	    dosv_refresh_virtual_screen (offset, (screen_bp - screen_buf) / 2);
+	  new_pos_X += (screen_bp - screen_buf) / 2;
+	}
+    }
 }
 
 static void
@@ -710,6 +883,10 @@ IT_clear_end_of_line (int first_unused)
   char *spaces, *sp;
   int i, j;
   int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
+  extern int fatal_error_in_progress;
+
+  if (fatal_error_in_progress)
+    return;
 
   IT_set_face (0);
   if (termscript)
@@ -888,6 +1065,24 @@ IT_update_begin (struct frame *foo)
 static void
 IT_update_end (struct frame *foo)
 {
+}
+
+/* Insert and delete characters.  These are not supposed to be used
+   because we are supposed to turn off the feature of using them by
+   setting char_ins_del_ok to zero (see internal_terminal_init).  */
+static void
+IT_insert_glyphs (start, len)
+     register char *start;
+     register int len;
+{
+  abort ();
+}
+
+static void
+IT_delete_glyphs (n)
+     register int n;
+{
+  abort ();
 }
 
 /* set-window-configuration on window.c needs this.  */
@@ -1208,6 +1403,8 @@ internal_terminal_init ()
   init_frame_faces (selected_frame);
 
   ring_bell_hook = IT_ring_bell;
+  insert_glyphs_hook = IT_insert_glyphs;
+  delete_glyphs_hook = IT_delete_glyphs;
   write_glyphs_hook = IT_write_glyphs;
   cursor_to_hook = raw_cursor_to_hook = IT_cursor_to;
   clear_to_end_hook = IT_clear_to_end;
@@ -1223,6 +1420,8 @@ internal_terminal_init ()
   set_terminal_modes_hook = IT_set_terminal_modes;
   reset_terminal_modes_hook = IT_reset_terminal_modes;
   set_terminal_window_hook = IT_set_terminal_window;
+
+  char_ins_del_ok = 0;		/* just as fast to write the line */
 #endif
 }
 
@@ -3729,11 +3928,26 @@ syms_of_msdos ()
     "List of directories to search for bitmap files for X.");
   Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
 
-  /* The following two are from xfns.c:  */
+  /* The following three are from xfns.c:  */
   Qbackground_color = intern ("background-color");
   staticpro (&Qbackground_color);
   Qforeground_color = intern ("foreground-color");
   staticpro (&Qforeground_color);
+
+  DEFVAR_BOOL ("unibyte-display-via-language-environment",
+	       &unibyte_display_via_language_environment,
+   "*Non-nil means display unibyte text according to language environment.\n\
+Specifically this means that unibyte non-ASCII characters\n\
+are displayed by converting them to the equivalent multibyte characters\n\
+according to the current language environment.  As a result, they are\n\
+displayed according to the current codepage and display table.");
+  unibyte_display_via_language_environment = 0;
+
+  DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
+   "*Glyph to display instead of chars not supported by current codepage.\n\
+
+This variable is used only by MSDOS terminals.");
+    Vdos_unsupported_char_glyph = '\177';
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
