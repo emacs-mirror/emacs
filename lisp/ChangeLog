@@ -1,4 +1,5 @@
 2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
 	Version 2.0.39 of Tramp released.
 
 	* net/tramp.el (tramp-handle-file-local-copy)
@@ -13,7 +14,6 @@
 	(tramp-handle-write-region): Say which function is used when
 	encoding.
 
-	
 2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp-smb.el (tramp-smb-handle-file-writable-p): Handle the
@@ -164,14 +164,14 @@
 
 	* faces.el (face-spec-set-match-display): Add a new attribute,
 	`min-colors'.
-	(region, highlight, secondary-selection): Use `min-colors`.
+	(region, highlight, secondary-selection): Use `min-colors'.
 
 	* custom.el (defface): Add documentation for `min-colors'.
 
 	* font-lock.el (font-lock-comment-face, font-lock-string-face)
 	(font-lock-keyword-face, font-lock-function-name-face)
 	(font-lock-variable-name-face, font-lock-constant-face): Use
-	`min-colors`.
+	`min-colors'.
 
 	* isearch.el (isearch, isearch-lazy-highlight-face): Use
 	`min-colors'.

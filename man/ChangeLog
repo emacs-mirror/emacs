@@ -1,4 +1,5 @@
 2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
+
 	Tramp version 2.0.39 released.
 
 2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
@@ -17,7 +18,7 @@
 
 2004-02-23  Nick Roberts  <nick@nick.uklinux.net>
 
-	* building.texi (Watch Expressions):  Update.
+	* building.texi (Watch Expressions): Update.
 
 2004-02-21  Juri Linkov  <juri@jurta.org>
 
@@ -58,7 +59,7 @@
 
 	* calendar.texi (Appointments): Update section.
 
-2003-12-29  Kevin Ryde <user42@zip.com.au>
+2003-12-29  Kevin Ryde  <user42@zip.com.au>
 
 	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
 
@@ -76,6 +77,7 @@
 	<acm@muc.de>.
 
 2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
 	Tramp version 2.0.38 released.
 
 	* tramp.texi (Remote shell setup): Warn of environment variables
@@ -333,6 +335,7 @@
 	* buffers.texi (List Buffers): Fix previous change.
 
 2003-07-20  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
 	Tramp version 2.0.36 released.
 
 	* tramp.texi (Remote shell setup): Explain about problems with
@@ -495,11 +498,11 @@
 	(Installation): Explain what to do if files from the tramp/contrib
 	directory are needed.
 
-2003-02-23  Alex Schroeder <alex@emacswiki.org>
+2003-02-23  Alex Schroeder  <alex@emacswiki.org>
 
 	* smtpmail.texi (How Mail Works): New.
 
-2003-02-22  Alex Schroeder <alex@emacswiki.org>
+2003-02-22  Alex Schroeder  <alex@emacswiki.org>
 
 	* cmdargs.texi (General Variables): Document SMTPSERVER.
 
@@ -511,7 +514,7 @@
 
 	* Makefile.in: Build SMTP manual.
 
-2003-02-22  Alex Schroeder <alex@emacswiki.org>
+2003-02-22  Alex Schroeder  <alex@emacswiki.org>
 
 	* sending.texi (Sending via SMTP): Explain MTA/MUA.
 
@@ -606,7 +609,7 @@
 
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
-	* reftex.texi: Update to RefTeX 4.19
+	* reftex.texi: Update to RefTeX 4.19.
 
 2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
