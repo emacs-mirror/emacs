@@ -121,16 +121,23 @@
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [select-paste] '("Select and Paste" . yank-menu))
-(define-key menu-bar-edit-menu [copy] '("Copy" . kill-ring-save))
+(define-key menu-bar-edit-menu [copy] '("Copy" . menu-bar-kill-ring-save))
 (define-key menu-bar-edit-menu [cut] '("Cut" . kill-region))
 (define-key menu-bar-edit-menu [undo] '("Undo" . undo))
 
+(defun menu-bar-kill-ring-save (beg end)
+  (interactive "r")
+  (if (mouse-region-match)
+      (message "Select a region with the mouse does `copy' automatically")
+    (kill-ring-save beg end)))
+
 (put 'fill-region 'menu-enable 'mark-active)
 (put 'kill-region 'menu-enable 'mark-active)
-(put 'kill-ring-save 'menu-enable 'mark-active)
+(put 'menu-bar-kill-ring-save 'menu-enable 'mark-active)
 (put 'yank 'menu-enable '(x-selection-exists-p))
 (put 'yank-menu 'menu-enable '(cdr yank-menu))
-(put 'delete-region 'menu-enable 'mark-active)
+(put 'delete-region 'menu-enable '(and mark-active
+				       (not (mouse-region-match))))
 (put 'undo 'menu-enable '(if (eq last-command 'undo)
 			     pending-undo-list
 			   (consp buffer-undo-list)))
@@ -139,7 +146,7 @@
 (autoload 'ispell-menu-map "ispell" nil t 'keymap)
 
 ;; These are alternative definitions for the cut, paste and copy
-;; menu items.  Use them if your system expects these to use the clipboard
+;; menu items.  Use them if your system expects these to use the clipboard.
 
 (put 'clipboard-kill-region 'menu-enable 'mark-active)
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
