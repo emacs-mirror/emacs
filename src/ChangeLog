@@ -1,3 +1,7 @@
+2002-05-31  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): Change indian.elc to indian.el.
+
 2002-05-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (load_charset_map): Handle the case that from < to
@@ -12,7 +16,7 @@
 
 2002-05-30  Kenichi Handa  <handa@etl.go.jp>
 
-	* Makefile.in (lisp): Change chienese.elc to chinese.el.  They are
+	* Makefile.in (lisp): Change chinese.elc to chinese.el.  They are
 	not bytecompiled now.
 	(shortlisp): Likewise.
 

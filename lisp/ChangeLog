@@ -1,3 +1,8 @@
+2002-05-31  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Remove :init-value.
+
 2002-05-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el: Change registry for japanese-jisx0208
@@ -54,11 +59,11 @@
 
 2002-05-26  Dave Love  <fx@gnu.org>
 
-	* mule.el (with-category-table): Use make-symbol.
+	* international/mule.el (with-category-table): Use make-symbol.
 	(coding-system-list): Use coding-system-aliases.
 	(make-translation-table): Don't deal with generic characters.
 
-	* mule-util.el: (coding-system-post-read-conversion)
+	* international/mule-util.el: (coding-system-post-read-conversion)
 	(coding-system-pre-write-conversion)
 	(coding-system-translation-table-for-decode)
 	(coding-system-translation-table-for-encode): Get the right
