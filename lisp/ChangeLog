@@ -1,3 +1,8 @@
+2003-12-29  Jesper Harder <harder@ifa.au.dk>  (tiny change)
+
+	* generic-x.el (etc-modules-conf-generic-mode): A more complete
+	set of keywords.
+
 2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
 
 	* international/mule-cmds.el (reset-language-environment)
