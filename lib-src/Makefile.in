@@ -187,7 +187,8 @@ LINK_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
-ALLOCA_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
+/* This is all of CPP_CFLAGS except -Demacs.  */
+BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
 /* This is the default compilation command.
@@ -299,12 +300,12 @@ getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
 getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 alloca.o: ${srcdir}/alloca.c
-	${CC} -c ${ALLOCA_CFLAGS} ${srcdir}/alloca.c
+	${CC} -c ${BASE_CFLAGS} ${srcdir}/alloca.c
 
 REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) ../src/regex.h
 regex.o: ../src/regex.c ../src/regex.h
-	${CC} -c ${CPP_CFLAGS} -Uemacs -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
+	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" -DETAGS_REGEXPS ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
