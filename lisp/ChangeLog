@@ -33,6 +33,10 @@
 
 2002-09-25  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (select-safe-coding-system): Handle
+	safe but rejected default coding systems and unsafe default
+	coding systems differently.
+
 	* international/mule-diag.el (list-character-sets): Use the buffer
 	name "*Character Set List*", not "*Help*".  List also indirectly
 	supported character sets.
