@@ -369,7 +369,7 @@ console_event_handler (DWORD event)
 /* Change from normal usage; return value indicates whether spawn
    succeeded or failed - program return code is returned separately.  */
 int
-spawn (char * progname, char * cmdline, int * retcode)
+spawn (char * progname, char * cmdline, char * dir, int * retcode)
 {
   BOOL success = FALSE;
   SECURITY_ATTRIBUTES sec_attrs;
@@ -388,7 +388,7 @@ spawn (char * progname, char * cmdline, int * retcode)
   start.cb = sizeof (start);
 
   if (CreateProcess (progname, cmdline, &sec_attrs, NULL, TRUE,
-		     0, envblock, NULL, &start, &child))
+		     0, envblock, dir, &start, &child))
   {
     success = TRUE;
     /* wait for completion and pass on return code */
@@ -432,11 +432,15 @@ main (int argc, char ** argv)
   int num_pass_through_args;
   char modname[MAX_PATH];
   char path[MAX_PATH];
+  char dir[MAX_PATH];
 
 
   interactive = TRUE;
 
   SetConsoleCtrlHandler ((PHANDLER_ROUTINE) console_event_handler, TRUE);
+
+  if (!GetCurrentDirectory (sizeof (dir), dir))
+    fail ("error: GetCurrentDirectory failed\n");
 
   /* We serve double duty: we can be called either as a proxy for the
      real shell (that is, because we are defined to be the user shell),
@@ -453,6 +457,13 @@ main (int argc, char ** argv)
   if (!GetModuleFileName (NULL, modname, sizeof (modname)))
     fail ("error: GetModuleFileName failed\n");
 
+  /* Change directory to location of .exe so startup directory can be
+     deleted.  */
+  progname = strrchr (modname, '\\');
+  *progname = '\0';
+  SetCurrentDirectory (modname);
+  *progname = '\\';
+
   /* Although Emacs always sets argv[0] to an absolute pathname, we
      might get run in other ways as well, so convert argv[0] to an
      absolute name before comparing to the module name.  */
@@ -462,7 +473,7 @@ main (int argc, char ** argv)
       /* We are being used as a helper to run a DOS app; just pass
 	 command line to DOS app without change.  */
       /* TODO: fill in progname.  */
-      if (spawn (NULL, GetCommandLine (), &rc))
+      if (spawn (NULL, GetCommandLine (), dir, &rc))
 	return rc;
       fail ("Could not run %s\n", GetCommandLine ());
     }
@@ -670,7 +681,7 @@ main (int argc, char ** argv)
   if (!cmdline)
     cmdline = progname;
 
-  if (spawn (progname, cmdline, &rc))
+  if (spawn (progname, cmdline, dir, &rc))
     return rc;
 
   if (!need_shell)
