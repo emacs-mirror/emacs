@@ -731,8 +731,10 @@ configuration (@pxref{Frame Configurations}); this is similar to the
 way windows behave.
 
 @deffn Command delete-frame &optional frame force
-This function deletes the frame @var{frame}.  By default, @var{frame} is
-the selected frame.  
+@vindex delete-frame-hook
+This function deletes the frame @var{frame} after running the hook
+@code{delete-frame-hook}.  By default, @var{frame} is the selected
+frame.
 
 A frame cannot be deleted if its minibuffer is used by other frames.
 Normally, you cannot delete a frame if all other frames are invisible,
