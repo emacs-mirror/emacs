@@ -1,3 +1,9 @@
+2005-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-mode-map): Don't override C-a and C-e.
+
+	* progmodes/python.el (python-preoutput-filter): Fix last change.
+
 2005-03-29  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debug-on-entry): Handle autoloaded
@@ -17,12 +23,10 @@
 	ps-print-translation-table.
 	(ps-mule-begin-job): Call find-charset-region/string with
 	ps-print-translation-table.
-	(ps-mule-printable-p): Return t if CHARSET is ascii or
-	latin-iso8859-1.
+	(ps-mule-printable-p): Return t if CHARSET is ascii or latin-iso8859-1.
 
 	* ps-print.el (ps-print-translation-table): New variable.
-	(ps-plot-region): Translate characters by
-	ps-print-translation-table.
+	(ps-plot-region): Translate characters by ps-print-translation-table.
 
 2005-03-29  Juri Linkov  <juri@jurta.org>
 
@@ -88,6 +92,11 @@
 
 	* international/mule.el (auto-coding-alist): Associate non-ascii
 	image filename extensions with `no-conversion'.
+
+2005-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/iso-acc.el:
+	* obsolete/iso-acc.el: Move iso-acc to the obsolete subdir.
 
 2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
 
