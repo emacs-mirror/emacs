@@ -194,15 +194,21 @@ If one of them returns non-nil, the file is considered already written
 and the rest are not called.
 These hooks are considered to pertain to the visited file.
 So this list is cleared if you change the visited file name.
-See also `write-contents-hooks'.
-Don't make this variable buffer-local; instead, use `local-write-file-hooks'.")
+
+Don't make this variable buffer-local; instead, use `local-write-file-hooks'.
+See also `write-contents-hooks'.")
 ;;; However, in case someone does make it local...
 (put 'write-file-hooks 'permanent-local t)
 
 (defvar local-write-file-hooks nil
   "Just like `write-file-hooks', except intended for per-buffer use.
 The functions in this list are called before the ones in
-`write-file-hooks'.")
+`write-file-hooks'.
+
+This variable is meant to be used for hooks that have to do with a
+particular visited file.  Therefore, it is a permanent local, so that
+changing the major mode does not clear it.  However, calling
+`set-visited-file-name' does clear it.")
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)
 
@@ -210,10 +216,14 @@ The functions in this list are called before the ones in
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
 and the rest are not called.
-These hooks are considered to pertain to the buffer's contents,
-not to the particular visited file; thus, `set-visited-file-name' does
-not clear this variable, but changing the major mode does clear it.
+
+This variable is meant to be used for hooks that pertain to the
+buffer's contents, not to the particular visited file; thus,
+`set-visited-file-name' does not clear this variable; but changing the
+major mode does clear it if you have made it buffer local.
+
 See also `write-file-hooks'.")
+(make-variable-buffer-local 'write-contents-hooks)
 
 (defconst enable-local-variables t
   "*Control use of local-variables lists in files you visit.
