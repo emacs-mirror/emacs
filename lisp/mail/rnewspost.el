@@ -118,8 +118,6 @@ C-c C-y  news-reply-yank-original (insert current message, in NEWS).
 C-c C-q  mail-fill-yanked-message (fill what was yanked).
 C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13)."
   (interactive)
-  ;; require...
-  (or (fboundp 'mail-setup) (load "sendmail"))
   (kill-all-local-variables)
   (make-local-variable 'mail-reply-buffer)
   (setq mail-reply-buffer nil)
@@ -130,12 +128,6 @@ C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13)."
   (setq mode-name "News Reply")
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start
-	(concat "^" (regexp-quote mail-header-separator) "$\\|"
-		paragraph-start))
-  (setq paragraph-separate
-	(concat "^" (regexp-quote mail-header-separator) "$\\|"
-		paragraph-separate))
   (run-hooks 'text-mode-hook 'news-reply-mode-hook))
 
 (defvar news-reply-yank-from ""
@@ -246,6 +238,15 @@ summary (abstract) of the message."
 	       (if (not newsgroups)
 		   (backward-char 1)
 		 (goto-char (point-max)))))
+    (let (actual-header-separator)
+      (rfc822-goto-eoh)
+      (setq actual-header-separator (buffer-substring
+				     (point)
+				     (save-excursion (end-of-line) (point))))
+      (setq paragraph-start
+	    (concat "^" actual-header-separator "$\\|" paragraph-start))
+      (setq paragraph-separate
+	    (concat "^" actual-header-separator "$\\|" paragraph-separate)))
     (run-hooks 'news-setup-hook)))
    
 (defun news-inews ()
@@ -255,17 +256,13 @@ summary (abstract) of the message."
 		    (case-fold-search nil))
     (save-excursion
       (save-restriction
-	(goto-char (point-min))
-	(search-forward (concat "\n" mail-header-separator "\n"))
-	(narrow-to-region (point-min) (point))
+	(narrow-to-region (point-min) (mail-header-end))
 	(setq newsgroups (mail-fetch-field "newsgroups")
 	      subject (mail-fetch-field "subject")))
       (widen)
       (goto-char (point-min))
       (run-hooks 'news-inews-hook)
-      (goto-char (point-min))
-      (search-forward (concat "\n" mail-header-separator "\n"))
-      (replace-match "\n\n")
+      (mail-sendmail-undelimit-header)
       (goto-char (point-max))
       ;; require a newline at the end for inews to append .signature to
       (or (= (preceding-char) ?\n)
@@ -281,9 +278,7 @@ summary (abstract) of the message."
 					;"-n" newsgroups
 	      (error "Posting to USENET failed")
 	    (message "Posting to USENET... done"))
-	(goto-char (point-min))		;restore internal header separator
-	(search-forward "\n\n")
-	(replace-match (concat "\n" mail-header-separator "\n"))
+	(mail-sendmail-delmit-header)
 	(set-buffer-modified-p nil)))
     (bury-buffer)))
 
