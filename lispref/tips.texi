@@ -562,6 +562,13 @@ all non-@code{nil} values are equivalent and indicate explicitly what
 @code{nil} and non-@code{nil} mean.
 
 @item
+The documentation string for a function that is a yes-or-no predicate
+should start with words such as ``Return t if @dots{}'', to indicate
+explicitly what constitutes ``truth''.  The word ``return'' avoids
+starting the sentence with lower-case ``t'', which is somewhat
+distracting.
+
+@item
 When a function's documentation string mentions the value of an argument
 of the function, use the argument name in capital letters as if it were
 a name for that value.  Thus, the documentation string of the function
@@ -581,6 +588,20 @@ illustrate this practice:
 The argument TABLE should be an alist whose elements
 have the form (KEY . VALUE).  Here, KEY is ...
 @end example
+
+@item
+Never change the case of a Lisp symbol when you mention it in a doc
+string.  If the symbol's name is @code{foo}, write ``foo'', not
+``Foo'' (which is a different symbol).
+
+This might appear to contradict the policy of writing function
+argument values, but there is no real contradiction; the argument
+@emph{value} is not the same thing as the @emph{symbol} which the
+function uses to hold the value.
+
+If this puts a lower-case letter at the beginning of a sentence
+and that annoys you, rewrite the sentence so that the symbol
+is not at the start of it.
 
 @item
 If a line in a documentation string begins with an open-parenthesis,
