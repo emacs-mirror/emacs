@@ -169,7 +169,12 @@ loaddefs.el:
 
 autoloads: loaddefs.el doit
 	@echo Directories: $(WINS)
-	$(emacs) -l autoload --eval $(ARGQUOTE)(setq find-file-hooks nil generated-autoload-file $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) -f batch-update-autoloads $(lisp) $(WINS)
+	$(emacs) -l autoload \
+		--eval $(ARGQUOTE)(setq find-file-hooks nil \
+			find-file-suppress-same-file-warnings t \
+			generated-autoload-file \
+			  $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
+		-f batch-update-autoloads $(lisp) $(WINS)
 
 subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -221,7 +226,7 @@ compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
 compile-files-CMD:
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
 	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
-	for %f in ($(lisp) $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
+	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
 
 compile-files-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
@@ -265,7 +270,7 @@ bootstrap-clean: bootstrap-clean-$(SHELLTYPE)
 
 bootstrap-clean-CMD:
 	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
-	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @$(DEL) %g
+	-for %f in (. $(WINS)) do for %g in (%f\*.elc) do @$(DEL) %g
 
 bootstrap-clean-SH:
 	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
