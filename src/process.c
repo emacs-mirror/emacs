@@ -1078,7 +1078,7 @@ start_process_unwind (proc)
     abort ();
 
   /* Was PROC started successfully?  */
-  if (XPROCESS (proc)->pid <= 0)
+  if (XINT (XPROCESS (proc)->pid) <= 0)
     remove_process (proc);
 
   return Qnil;
