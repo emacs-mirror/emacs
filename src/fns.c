@@ -1560,7 +1560,7 @@ assq_no_quit (key, list)
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
 The value is actually the first element of LIST whose car equals KEY.  */)
-       (key, list)
+     (key, list)
      Lisp_Object key, list;
 {
   Lisp_Object result, car;
@@ -2138,7 +2138,7 @@ The PLIST is modified by side effects.  */)
 DEFUN ("eql", Feql, Seql, 2, 2, 0,
        doc: /* Return t if the two args are the same Lisp object.
 Floating-point numbers of equal value are `eql', but they may not be `eq'.  */)
-  (obj1, obj2)
+     (obj1, obj2)
      Lisp_Object obj1, obj2;
 {
   if (FLOATP (obj1))
