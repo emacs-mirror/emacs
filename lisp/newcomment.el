@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.12 2000/05/21 00:27:31 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.13 2000/05/22 04:23:37 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -36,6 +36,11 @@
 ;; - comment-box in TeXinfo generate bogus comments @ccccc@
 ;; - uncomment-region with a numeric argument can render multichar
 ;;   comment markers invalid.
+;; - comment-indent or comment-region when called inside a comment
+;;   will happily break the surrounding comment.
+;; - comment-quote-nested will not (un)quote properly all nested comment
+;;   markers if there are more than just comment-start and comment-end.
+;;   For example, in Pascal where {...*) and (*...} are possible.
 
 ;;; Todo:
 
@@ -621,12 +626,12 @@ This is used for `extra-line' style (or `box' style if BLOCK is specified)."
 	     (e (concat ccs "a=m" ce))
 	     (c (if (string-match ".*\\S-\\S-" cs)
 		    (aref cs (1- (match-end 0))) ?=))
-	     (_ (assert (string-match "\\s-*a=m\\s-*" s)))
+	     (_ (string-match "\\s-*a=m\\s-*" s))
 	     (fill
 	      (make-string (+ width (- (match-end 0)
 				       (match-beginning 0) (length cs) 3)) c)))
 	(setq cs (replace-match fill t t s))
-	(assert (string-match "\\s-*a=m\\s-*" e))
+	(string-match "\\s-*a=m\\s-*" e)
 	(setq ce (replace-match fill t t e))))
     (cons (concat cs "\n" (make-string min-indent ? ) ccs)
 	  (concat cce "\n" (make-string (+ min-indent eindent) ? ) ce))))
@@ -939,6 +944,10 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.13  2000/05/22 04:23:37  monnier
+;; (comment-region-internal): Go back to BEG after quoting
+;; the nested comment markers.
+;;
 ;; Revision 1.12  2000/05/21 00:27:31  monnier
 ;; (comment-styles): New `box-multi'.
 ;; (comment-normalize-vars): Better default for comment-continue to
