@@ -789,6 +789,7 @@ char *
 get_emacs_configuration (void)
 {
   char *arch, *oem, *os;
+  int build_num;
 
   /* Determine the processor type.  */
   switch (get_processor_type ()) 
@@ -830,10 +831,37 @@ get_emacs_configuration (void)
   /* Let oem be "*" until we figure out how to decode the OEM field.  */
   oem = "*";
 
-  os = (GetVersion () & OS_WIN95) ? "windows95" : "nt";
+  switch (osinfo_cache.dwPlatformId) {
+  case VER_PLATFORM_WIN32_NT:
+    os = "nt";
+    build_num = osinfo_cache.dwBuildNumber;
+    break;
+  case VER_PLATFORM_WIN32_WINDOWS:
+    if (osinfo_cache.dwMinorVersion == 0) {
+      os = "windows95";
+    } else {
+      os = "windows98";
+    }
+    build_num = LOWORD (osinfo_cache.dwBuildNumber);
+    break;
+  case VER_PLATFORM_WIN32s:
+    /* Not supported, should not happen. */
+    os = "windows32s";
+    build_num = LOWORD (osinfo_cache.dwBuildNumber);
+    break;
+  default:
+    os = "unknown";
+    build_num = 0;
+    break;
+  }
 
-  sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
-	   get_w32_major_version (), get_w32_minor_version ());
+  if (osinfo_cache.dwPlatformId == VER_PLATFORM_WIN32_NT) {
+    sprintf (configuration_buffer, "%s-%s-%s%d.%d.%d", arch, oem, os,
+	     get_w32_major_version (), get_w32_minor_version (), build_num);
+  } else {
+    sprintf (configuration_buffer, "%s-%s-%s.%d", arch, oem, os, build_num);
+  }
+
   return configuration_buffer;
 }
 
