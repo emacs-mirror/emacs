@@ -2533,7 +2533,7 @@ char *sys_siglist[NSIG + 1] =
 #endif /* not AIX */
   0
   };
-#endif HAVE_SYS_SIGLIST
+#endif /* HAVE_SYS_SIGLIST */
 
 /*
  *	Warning, this function may not duplicate 4.2 action properly
