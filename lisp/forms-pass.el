@@ -9,6 +9,7 @@
 (setq forms-format-list
      '("====== Visiting /etc/passwd ======\n\n"
        "User : "	1
+       "Password : "	2
        "   Uid: "	3
        "   Gid: "	4
        "\n\n"
