@@ -1885,6 +1885,16 @@ If VAR is nil, then we bind `v' to the structure and `multi-method',
 ;; To be activated for debugging containing this macro
 (def-edebug-spec with-parsed-tramp-file-name t)
 
+(defmacro tramp-let-maybe (variable value &rest body)
+  "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
+BODY is executed whether or not the variable is obsolete.
+The intent is to protect against `obsolete variable' warnings."
+  `(if (get ',variable 'byte-obsolete-variable)
+       (progn ,@body)
+     (let ((,variable ,value))
+       ,@body)))
+(put 'tramp-let-maybe 'lisp-indent-function 2)
+
 ;;; Config Manipulation Functions:
 
 (defun tramp-set-completion-function (method function-list)
@@ -6789,16 +6799,6 @@ exiting if process is running."
       (set-process-query-on-exit-flag process flag)
     (funcall (symbol-function 'process-kill-without-query)
 	     process flag)))
-
-(defmacro tramp-let-maybe (variable value &rest body)
-  "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
-BODY is executed whether or not the variable is obsolete.
-The intent is to protect against `obsolete variable' warnings."
-  `(if (get 'byte-obsolete-variable ',variable)
-       (progn ,@body)
-     (let ((,variable ,value))
-       ,@body)))
-(put 'tramp-let-maybe 'lisp-indent-function 2)
 
 
 ;; ------------------------------------------------------------ 

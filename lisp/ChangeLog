@@ -1,3 +1,10 @@
+2004-05-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+	Sync with Tramp.
+
+	* net/tramp.el (tramp-let-maybe): ReportReverse args of `get'.
+	(tramp-let-maybe): Move to an earlier spot in the file.  Patch by
+	Andreas Schwab.
+
 2004-05-30  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el (dired-get-filename): Don't use dired-re-dot.
