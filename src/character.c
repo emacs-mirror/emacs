@@ -77,8 +77,11 @@ Lisp_Object Vchar_direction_table;
 unsigned char *_fetch_multibyte_char_p;
 int _fetch_multibyte_char_len;
 
-/* Alist of scripts vs character ranges.  */
-Lisp_Object Vscript_alist;
+/* Char table of scripts.  */
+Lisp_Object Vchar_script_table;
+
+static Lisp_Object Qchar_script_table;
+
 
 
 
@@ -920,13 +923,17 @@ A char-table for width (columns) of each character.  */);
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);
 
-  DEFVAR_LISP ("script-alist", &Vscript_alist,
-	       doc: /* Alist of scripts vs the corresponding character ranges.
-Each element has this form:
-	( SCRIPT (FROM-1 . TO-1) (FROM-2 . TO-2) ...)
-SCRIPT is a symbol representing a script name.
-FROM-n and TO-n specifies ranges of characters that belongs to SCRIPT.  */);
-  Vscript_alist = Qnil;
+  DEFVAR_LISP ("char-script-table", &Vchar_script_table,
+	       doc: /* Char table of script symbols.
+It has one extra slot whose value is a list of script symbols.  */);
+
+  /* Intern this now in case it isn't already done.
+     Setting this variable twice is harmless.
+     But don't staticpro it here--that is done in alloc.c.  */
+  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  DEFSYM (Qchar_script_table, "char-script-table");
+  Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
+  Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);
 }
 
 #endif /* emacs */
