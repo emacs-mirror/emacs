@@ -1,3 +1,7 @@
+2003-06-27  Jan D.  <jan.h.d@swipnet.se>
+
+	* config.nt (my_strftime): New define.
+
 2003-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Automatically detect libXpm.
