@@ -1,3 +1,215 @@
+2004-02-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	
+	* s/darwin.h (LD_SWITCH_SYSTEM_TEMACS): Add `-framework
+	QuickTime'.
+	
+	* dispextern.h [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	
+	* emacs.c (main) [HAVE_CARBON]: Call init_xfns.
+	
+	* macgui.h [MAC_OSX]: Include Carbon/Carbon.h.
+	(mktime, DEBUG, Z, free, malloc, realloc, max, min)
+	(init_process) [MAC_OSX] : Avoid conflicts with Carbon/Carbon.h.
+	[!MAC_OSX]: Include QDOffscreen.h and Controls.h.
+	(INFINITY) [MAC_OSX]: Avoid conflict with definition in math.h.
+	(Bitmap): Remove typedef.
+	(Pixmap): Change int to GWorldPtr.
+
+	* macmenu.c [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	
+	* macterm.h [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	(RED16_FROM_ULONG, GREEN16_FROM_ULONG, BLUE16_FROM_ULONG): New
+	#define to extract 16-bit depth color components from unsigned
+	long representation.
+	(PIX_MASK_DRAW, PIX_MASK_RETAIN): New #define to represent pixel
+	colors used for masks.
+	(struct mac_display_info): Add color_p.  Remove n_cbits.
+	
+	* macfns.c: Include sys/types.h and sys/stat.h.
+	[MAC_OSX]: Do not include Carbon/Carbon.h (now in macgui.h).
+	Include QuickTime/QuickTime.h.
+	(XCreatePixmap, XCreatePixmapFromBitmapData, XFreePixmap)
+	(XSetForeground, mac_draw_line_to_pixmap): Add externs for
+	functions defined in macterm.c.
+	(XImagePtr): New typedef.  Corresponds to XImage * in xfns.c.
+	(ZPixmap): New #define for compatibility with xfns.c.
+	(XGetImage, XPutPixel, XGetPixel, XDestroyImage)
+	(x_create_x_image_and_pixmap, x_destroy_x_image, x_put_x_image)
+	(find_image_fsspec, image_load_qt_1, image_load_quicktime): New
+	functions.
+	(four_corners_best, x_create_x_image_and_pixmap)
+	(x_destroy_x_image, unwind_create_frame, x_disable_image,
+	(x_edge_detection, init_color_table, colors_in_color_table,
+	(lookup_rgb_color, lookup_pixel_color, postprocess_image)
+	(x_put_x_image, slurp_file, xbm_scan, xbm_load, xbm_load_image)
+	(xbm_image_p, xbm_read_bitmap_data, xbm_file_p, x_to_xcolors)
+	(x_from_xcolors, x_detect_edges): New declarations (from xfns.c).
+	(mac_color_map_lookup, x_to_mac_color): Fix Lisp_Object/unsigned
+	long mixup.
+	(mac_defined_color, x_to_x_colors): Use RED16_FROM_ULONG etc.
+	(x_decode_color): Don't use n_cbits (in struct mac_display_info).
+	(x_set_foreground_color, x_set_cursor_color): Sync with w32fns.c.
+	(x_set_cursor_type, Fxw_color_values, valid_image_p)
+	(image_value_type, parse_image_spec, image_ascent, x_clear_image)
+	(x_alloc_image_color, clear_image_cache, lookup_image)
+	(x_find_image_file, xbm_read_bitmap_file_data)
+	(enum xbm_keyword_index, xbm_format, xbm_image_p, xbm_scan)
+	(xbm_read_bitmap_data, xbm_load, pbm_image_p, pbm_scan_number)
+	(enum pbm_keyword_index, pbm_format, enum png_keyword_index)
+	(png_format, png_image_p, enum jpeg_keyword_index, jpeg_format)
+	(jpeg_image_p, enum tiff_keyword_index, tiff_format, tiff_image_p)
+	(enum gif_keyword_index, gif_format, gif_image_p): Sync with
+	xfns.c.
+	(x_make_gc): Sync with xfns.c.  Enclose unused `border_tile' with
+	#if 0.
+	(x_free_gcs): Sync with xfns.c.  Enclose unused `border_tile' with
+	#if 0.  Free white_relief.gc and black_relief.gc.
+	(unwind_create_frame, x_emboss, x_laplace, x_edge_detection): New
+	functions (from xfns.c).
+	(Fx_create_frame): Record unwind_create_frame.
+	(Fxw_display_color_p): Use dpyinfo->color_p.
+	(Fx_display_grayscale_p, Fx_display_planes): Don't use
+	dpyinfo->n_cbits.
+	(Fx_display_color_cells): Use dpyinfo->n_planes;
+	(QCmatrix, QCcolor_adjustment, QCmask, Qemboss, Qedge_detection)
+	(Qheuristic, cross_disabled_images, emboss_matrix)
+	(laplace_matrix): New variables (from xfns.c).
+	(Fimage_size, Fimage_mask_p, four_corners_best, image_background)
+	(x_clear_image_1, postprocess_image, slurp_file, xbm_load_image)
+	(xbm_file_p, x_to_xcolors, x_from_xcolors, x_detect_edges)
+	(image_background_transparent): New function (from xfns.c).  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(image_load_quicktime): Add declaration.
+	[MAC_OSX] (image_load_quartz2d): Likewise.
+	[MAC_OSX] (CGImageCreateWithPNGDataProviderProcType): New typedef.
+	[MAC_OSX] (MyCGImageCreateWithPNGDataProvider): New variable.
+	[MAC_OSX] (init_image_func_pointer, image_load_quartz2d): New
+	functions.
+	(xbm_load_image_from_file, x_laplace_read_row)
+	(x_laplace_write_row, pbm_read_file): Remove functions.
+	[HAVE_XPM] (enum xpm_keyword_index, xpm_format, xpm_image_p)
+	(xpm_load): Sync with xfns.c (although XPM is not supported yet).
+	(colors_in_color_table): Sync with xfns.c (although not used).
+	(lookup_rgb_color): Don't lookup color table.  Just do gamma
+	correction.
+	(COLOR_INTENSITY): New #define (from xfns.c).
+	(x_disable_image): New function (from xfns.c).  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(x_build_heuristic_mask): Sync with xfns.c.  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(HAVE_PBM): Remove #ifdef.
+	(pbm_load): Sync with xfns.c.  Set img->width and img->height
+	before IMAGE_BACKGROUND.
+	(png_image_p, png_load): Don't enclose declarations with #if
+	HAVE_PNG.
+	(Qpng, enum png_keyword_index, png_format, png_type, png_image_p):
+	Don't enclose with #if HAVE_PNG.
+	[!HAVE_PNG] (png_load) [MAC_OSX]: Use image_load_quartz2d if a
+	symbol _CGImageCreateWithPNGDataProvider is defined.  Otherwise
+	use image_load_quicktime.
+	[!HAVE_PNG] (png_load) [!MAC_OSX]: Use image_load_quicktime.
+	[HAVE_PNG] (png_load): Sync with xfns.c.  Use
+	PIX_MASK_DRAW/PIX_MASK_RETAIN.
+	(jpeg_image_p, jpeg_load): Don't enclose declarations with #if
+	HAVE_JPEG.
+	(Qjpeg, enum jpeg_keyword_index, jpeg_format, jpeg_type)
+	(jpeg_image_p): Don't enclose with #if HAVE_JPEG.
+	[!HAVE_JPEG] (jpeg_load) [MAC_OSX]: Use image_load_quartz2d.
+	[!HAVE_JPEG] (jpeg_load) [!MAC_OSX]: Use image_load_quicktime.
+	[HAVE_JPEG] (jpeg_load): Sync with xfns.c.
+	(tiff_image_p, tiff_load): Don't enclose declarations with #if
+	HAVE_TIFF.
+	(Qtiff, enum tiff_keyword_index, tiff_format, tiff_type)
+	(tiff_image_p): Don't enclose with #if HAVE_TIFF.
+	[!HAVE_TIFF] (tiff_load): Use image_load_quicktime.
+	[HAVE_TIFF] (tiff_error_handler, tiff_warning_handler): New
+	functions (from xfns.c).
+	[HAVE_TIFF] (tiff_load): Sync with xfns.c.
+	(gif_image_p, gif_load): Don't enclose declarations with #if
+	HAVE_GIF.
+	(Qgif, enum gif_keyword_index, gif_format, gif_type, gif_image_p):
+	Don't enclose with #if HAVE_GIF.
+	[!HAVE_GIF] (gif_load): Use Quicktime Movie Toolbox if it is
+	animated gif.  Otherwise use image_load_quicktime.
+	[HAVE_GIF] (gif_lib.h): Temporarily define DrawText as
+	gif_DrawText to avoid conflict with QuickdrawText.h.
+	[HAVE_GIF] (gif_load): Sync with xfns.c.
+	(enum gs_keyword_index, gs_format, gs_image_p, gs_load)
+	[HAVE_GHOSTSCRIPT] (x_kill_gs_process): Sync with xfns.c (although
+	Ghostscript is not supported yet).
+	(syms_of_macfns): Initialize Qemboss, Qedge_detection, Qheuristic,
+	QCmatrix, QCcolor_adjustment, and QCmask.  Add DEFVAR_BOOL
+	cross_disabled_images (from xfns.c).  Remove #if 0 for supported
+	image types.  Remove #if HAVE_JPEG, HAVE_TIFF, HAVE_GIF, and
+	HAVE_PNG.  Add defsubr for Simage_size and Simage_mask_p.
+	(init_xfns): Remove #if HAVE_JPEG, HAVE_TIFF, HAVE_GIF, and
+	HAVE_PNG.  Call EnterMovies to support animated gifs.  Call
+	init_image_func_pointer to bind a symbol
+	_CGImageCreateWithPNGDataProvider if it is defined.
+	
+	* macterm.c [MAC_OSX]: Do not include Carbon/Carbon.h (now in
+	macgui.h).
+	(x_draw_bar_cursor): Sync declaration with xterm.c.
+	(XFreePixmap, mac_draw_rectangle_to_pixmap, mac_copy_area)
+	(mac_copy_area_to_pixmap): Implementation with GWorld (offscreen
+	graphics).
+	(mac_set_forecolor, mac_set_backcolor): Use RED16_FROM_ULONG etc.
+	(mac_draw_line_to_pixmap, XCreatePixmap)
+	(XCreatePixmapFromBitmapData, mac_fill_rectangle_to_pixmap)
+	(mac_copy_area_with_mask, mac_copy_area_with_mask_to_pixmap): New
+	functions.
+	(mac_draw_bitmap) [TARGET_API_MAC_CARBON]: Use
+	GetPortBitMapForCopyBits instead of the cast to Bitmap *.  Cast
+	bits to char *.
+	(reflect_byte): New function (from w32fns.c).
+	(mac_create_bitmap_from_bitmap_data): Use it and don't stuff bits
+	due to byte alignment.
+	(mac_scroll_area) [TARGET_API_MAC_CARBON]: Use
+	GetPortBitMapForCopyBits instead of the cast to Bitmap *.
+	(XSetForeground): Remove static (now used in macfns.c).
+	(HIGHLIGHT_COLOR_DARK_BOOST_LIMIT): New #define (from w32term.c).
+	(mac_alloc_lighter_color, x_destroy_window): Sync with w32term.c.
+	(x_setup_relief_color, x_setup_relief_colors, x_draw_box_rect)
+	(x_draw_glyph_string_box, x_draw_image_foreground)
+	(x_draw_image_foreground_1, x_draw_image_glyph_string)
+	(x_draw_stretch_glyph_string, x_draw_glyph_string)
+	(x_draw_hollow_cursor, x_draw_bar_cursor, mac_draw_window_cursor):
+	Sync with xterm.c.
+	(x_draw_relief_rect): Sync with xterm.c.  Make 1 pixel shorter
+	than the xterm.c version when a strictly horizontal or vertical
+	line is drawn.
+	(XTset_terminal_window): Add static.
+	(x_make_frame_visible): Add UNBLOCK_INPUT.
+	(x_free_frame_resources): New funcion (from xterm.c).
+	(XTread_socket): Call handle_tool_bar_click if mouse up/down event
+	occurs in tool bar area.
+	(mac_initialize_display_info): Remove dpyinfo->n_cbits.  Set
+	dpyinfo->color_p.  Determine dpyinfo->n_planes using HasDepth.
+	Initialize image cache.
+	(stricmp, wildstrieq, mac_font_pattern_match, mac_font_match):
+	Enclose unused functions with #if 0.
+	(Qbig5, Qcn_gb, Qsjis, Qeuc_kr): New variables.
+	(decode_mac_font_name): New function to apply code conversions
+	from a mac font name to an XLFD font name according to its script
+	code.
+	(x_font_name_to_mac_font_name): Apply code conversion from an XLFD
+	font name to a mac font name according to REGISTRY and ENCODING
+	fields.
+	(init_font_name_table) [TARGET_API_MAC_CARBON]: Don't use a font
+	whose name starts with `.'.
+	(init_font_name_table): Use decode_mac_font_name.  Add both
+	jisx0208.1983-sjis and jisx0201.1976-0 entries if the script code
+	of a font is smJapanese.
+	(mac_do_list_fonts): New function to list fonts that match a given
+	pattern.
+	(x_list_fonts, XLoadQueryFont): Use it.
+	(XLoadQueryFont): Set rbearing field for each variable width
+	character to avoid needless redraw.
+	(syms_of_macterm): Initialize Qbig5, Qcn_gb, Qsjis, and Qeuc_kr.
+
 2004-02-26  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (NREAD_INPUT_EVENTS): Temporarily increase to 512

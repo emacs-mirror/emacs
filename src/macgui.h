@@ -23,9 +23,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_MACGUI_H
 #define EMACS_MACGUI_H
 
-typedef int Pixmap;
-typedef int Bitmap;
-
 typedef int Display;  /* fix later */
 
 typedef char * XrmDatabase;  /* fix later */
@@ -33,11 +30,42 @@ typedef char * XrmDatabase;  /* fix later */
 typedef unsigned long Time;
 
 #if MAC_OSX
+#undef mktime
+#undef DEBUG
+#undef Z
+#undef free
+#undef malloc
+#undef realloc
+/* Macros max and min defined in lisp.h conflict with those in
+   precompiled header Carbon.h.  */
+#undef max
+#undef min
+#undef init_process
+#include <Carbon/Carbon.h>
+#undef Z
+#define Z (current_buffer->text->z)
+#undef free
+#define free unexec_free
+#undef malloc
+#define malloc unexec_malloc
+#undef realloc
+#define realloc unexec_realloc
+#undef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#undef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
+#undef INFINITY
 typedef struct OpaqueWindowPtr* Window;
 #else
-#include <QuickDraw.h>
+#include <QuickDraw.h>		/* for WindowPtr */
+#include <QDOffscreen.h>	/* for GWorldPtr */
+#include <Controls.h>		/* for ControlHandle in xdisp.c */
 typedef WindowPtr Window;
 #endif
+
+typedef GWorldPtr Pixmap;
 
 #define FACE_DEFAULT (~0)
 
