@@ -1,11 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
-
 ;; Copyright (C) 1986, 1993, 1994 Free Software Foundation, Inc.
 
-;; 7-Feb-94	Kevin Broadey
-;; Fix show-children so it doesn't try to narrow to (1+ (point-max)) when
-;; exposing the last level-n header in the buffer.
-;;
 ;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
