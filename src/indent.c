@@ -693,7 +693,7 @@ The return value is the current column.")
       col = 0;
     }
 
-  while (col < goal && pos < end)
+  while (pos < end)
     {
       while (pos == next_boundary)
 	{
@@ -701,6 +701,12 @@ The return value is the current column.")
 	  if (pos >= end)
 	    goto endloop;
 	}
+
+      /* Test reaching the goal column.  We do this after skipping
+	 invisible characters, so that we put point before the
+	 character on which the cursor will appear.  */
+      if (col >= goal)
+	break;
 
       c = FETCH_CHAR (pos);
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
