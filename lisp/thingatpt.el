@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- Get the `thing' at point
 
-;; Copyright (C) 1991,1992,1993,1994,1995 Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,1996 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: extensions, matching, mouse
@@ -20,23 +20,23 @@
 
 ;;; Commentary:
 
-;; This file provides routines for getting the `thing' at the location of
-;; point, whatever that `thing' happens to be.  The `thing' is defined by
+;; This file provides routines for getting the "thing" at the location of
+;; point, whatever that "thing" happens to be.  The "thing" is defined by
 ;; its beginning and end positions in the buffer.
 ;;
 ;; The function bounds-of-thing-at-point finds the beginning and end
-;; positions by moving first forward to the end of the `thing', and then
+;; positions by moving first forward to the end of the "thing", and then
 ;; backwards to the beginning.  By default, it uses the corresponding
-;; forward-`thing' operator (eg. forward-word, forward-line).
+;; forward-"thing" operator (eg. forward-word, forward-line).
 ;;
 ;; Special cases are allowed for using properties associated with the named
-;; `thing': 
+;; "thing": 
 ;;
-;;   forward-op		Function to call to skip forward over a `thing' (or
+;;   forward-op		Function to call to skip forward over a "thing" (or
 ;;                      with a negative argument, backward).
 ;;                      
-;;   beginning-op	Function to call to skip to the beginning of a `thing'.
-;;   end-op		Function to call to skip to the end of a `thing'.
+;;   beginning-op	Function to call to skip to the beginning of a "thing".
+;;   end-op		Function to call to skip to the end of a "thing".
 ;;
 ;; Reliance on existing operators means that many `things' can be accessed
 ;; without further code:  eg.
@@ -50,58 +50,68 @@
 ;; Basic movement
 
 ;;;###autoload
-(defun forward-thing (THING &optional N)
+(defun forward-thing (thing &optional n)
   "Move forward to the end of the next THING."
-  (let ((forward-op (or (get THING 'forward-op)
-			(intern-soft (format "forward-%s" THING)))))
+  (let ((forward-op (or (get thing 'forward-op)
+			(intern-soft (format "forward-%s" thing)))))
     (if (fboundp forward-op)
-	(funcall forward-op (or N 1))
-      (error "Can't determine how to move over %ss" THING))))
+	(funcall forward-op (or n 1))
+      (error "Can't determine how to move over a %s" thing))))
 
 ;; General routines
 
 ;;;###autoload
-(defun bounds-of-thing-at-point (THING)
-  "Determine the start and end buffer locations for the THING at point,
-where THING is an entity for which there is a either a corresponding
-forward-THING operation, or corresponding beginning-of-THING and
-end-of-THING operations, eg. 'word, 'sentence, 'defun.
-  Return a cons cell '(start . end) giving the start and end positions."
+(defun bounds-of-thing-at-point (thing)
+  "Determine the start and end buffer locations for the THING at point.
+THING is a symbol which specifies the kind of syntactic entity you want.
+Possibilities include `symbol', `list', `sexp', `defun', `filename', `url',
+`word', `sentence', `whitespace', `line', `page' and others.
+
+See the file `thingatpt.el' for documentation on how to define
+a symbol as a valid THING.
+
+The value is a cons cell (START . END) giving the start and end positions
+of the textual entity that was found."
   (let ((orig (point)))
     (condition-case nil
 	(save-excursion
 	  (let ((end (progn 
 		       (funcall 
-			(or (get THING 'end-op) 
-			    (function (lambda () (forward-thing THING 1)))))
+			(or (get thing 'end-op) 
+			    (function (lambda () (forward-thing thing 1)))))
 		       (point)))
 		(beg (progn 
 		       (funcall 
-			(or (get THING 'beginning-op) 
-			    (function (lambda () (forward-thing THING -1)))))
+			(or (get thing 'beginning-op) 
+			    (function (lambda () (forward-thing thing -1)))))
 		       (point))))
 	    (if (and beg end (<= beg orig) (< orig end))
 		(cons beg end))))
       (error nil))))
 
 ;;;###autoload
-(defun thing-at-point (THING)
-  "Return the THING at point, where THING is an entity defined by
-bounds-of-thing-at-point."
-  (let ((bounds (bounds-of-thing-at-point THING)))
+(defun thing-at-point (thing)
+  "Return the THING at point.
+THING is a symbol which specifies the kind of syntactic entity you want.
+Possibilities include `symbol', `list', `sexp', `defun', `filename', `url',
+`word', `sentence', `whitespace', `line', `page' and others.
+
+See the file `thingatpt.el' for documentation on how to define
+a symbol as a valid THING."
+  (let ((bounds (bounds-of-thing-at-point thing)))
     (if bounds 
 	(buffer-substring (car bounds) (cdr bounds)))))
 
 ;; Go to beginning/end
 
-(defun beginning-of-thing (THING)
-  (let ((bounds (bounds-of-thing-at-point THING)))
-    (or bounds (error "No %s here" THING))
+(defun beginning-of-thing (thing)
+  (let ((bounds (bounds-of-thing-at-point thing)))
+    (or bounds (error "No %s here" thing))
     (goto-char (car bounds))))
 
-(defun end-of-thing (THING)
-  (let ((bounds (bounds-of-thing-at-point THING)))
-    (or bounds (error "No %s here" THING))
+(defun end-of-thing (thing)
+  (let ((bounds (bounds-of-thing-at-point thing)))
+    (or bounds (error "No %s here" thing))
     (goto-char (cdr bounds))))
 
 ;;  Special cases 
@@ -136,27 +146,41 @@ bounds-of-thing-at-point."
 (put 'list 'end-op (function (lambda () (up-list 1))))
 (put 'list 'beginning-op 'backward-sexp)
 
-;;  Filenames 
+;;  Filenames and URLs
 
-(defvar file-name-chars "~/A-Za-z0-9---_.${}#%,"
+(defvar thing-at-point-file-name-chars "~/A-Za-z0-9---_.${}#%,:"
   "Characters allowable in filenames.")
 
 (put 'filename 'end-op    
-     (function (lambda () (skip-chars-forward file-name-chars))))
+     '(lambda () (skip-chars-forward thing-at-point-file-name-chars)))
 (put 'filename 'beginning-op
-     (function (lambda () (skip-chars-backward file-name-chars (point-min)))))
+     '(lambda () (skip-chars-backward thing-at-point-file-name-chars)))
+
+(defvar thing-at-point-url-chars "~/A-Za-z0-9---_$%."
+  "Characters allowable in a URL.")
+
+(put 'url 'end-op    
+     '(lambda () (skip-chars-forward thing-at-point-url-chars)
+	(skip-chars-backward ".")))
+(put 'url 'beginning-op
+     '(lambda ()
+	(skip-chars-backward thing-at-point-url-chars)
+	(or (= (preceding-char) ?:)
+	    (error "No URL here"))
+	(forward-char -1)
+	(skip-chars-backward "a-zA-Z")))
 
 ;;  Whitespace 
 
-(defun forward-whitespace (ARG)
+(defun forward-whitespace (arg)
   (interactive "p")
-  (if (natnump ARG) 
-      (re-search-forward "[ \t]+\\|\n" nil nil ARG)
-    (while (< ARG 0)
+  (if (natnump arg) 
+      (re-search-forward "[ \t]+\\|\n" nil nil arg)
+    (while (< arg 0)
       (if (re-search-backward "[ \t]+\\|\n" nil nil)
 	  (or (eq (char-after (match-beginning 0)) 10)
 	      (skip-chars-backward " \t")))
-      (setq ARG (1+ ARG)))))
+      (setq arg (1+ arg)))))
 
 ;;  Buffer 
 
@@ -165,14 +189,14 @@ bounds-of-thing-at-point."
 
 ;;  Symbols 
 
-(defun forward-symbol (ARG)
+(defun forward-symbol (arg)
   (interactive "p")
-  (if (natnump ARG) 
-      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil nil ARG)
-    (while (< ARG 0)
+  (if (natnump arg) 
+      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil nil arg)
+    (while (< arg 0)
       (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil nil)
 	  (skip-syntax-backward "w_"))
-      (setq ARG (1+ ARG)))))
+      (setq arg (1+ arg)))))
 
 ;;  Syntax blocks 
 
@@ -191,24 +215,24 @@ bounds-of-thing-at-point."
 (defun word-at-point () (thing-at-point 'word))
 (defun sentence-at-point () (thing-at-point 'sentence))
 
-(defun read-from-whole-string (STR)
-  "Read a lisp expression from STR, signaling an error if the entire string
-was not used."
-  (let* ((read-data (read-from-string STR))
+(defun read-from-whole-string (str)
+  "Read a lisp expression from STR.
+Signal an error if the entire string was not used."
+  (let* ((read-data (read-from-string str))
 	 (more-left 
 	  (condition-case nil
-	      (progn (read-from-string (substring STR (cdr read-data)))
+	      (progn (read-from-string (substring str (cdr read-data)))
 		     t)
 	    (end-of-file nil))))
     (if more-left
 	(error "Can't read whole string")
       (car read-data))))
 
-(defun form-at-point (&optional THING PRED) 
+(defun form-at-point (&optional thing pred) 
   (let ((sexp (condition-case nil 
-		  (read-from-whole-string (thing-at-point (or THING 'sexp)))
+		  (read-from-whole-string (thing-at-point (or thing 'sexp)))
 		(error nil))))
-    (if (or (not PRED) (funcall PRED sexp)) sexp)))
+    (if (or (not pred) (funcall pred sexp)) sexp)))
 
 (defun sexp-at-point ()   (form-at-point 'sexp))
 (defun symbol-at-point () (form-at-point 'sexp 'symbolp))
