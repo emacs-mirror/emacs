@@ -625,7 +625,9 @@ For more information, see the function `buffer-menu'."
 	      'mouse-face 'highlight
 	      'keymap (let ((map (make-sparse-keymap)))
 			(define-key map [header-line mouse-2]
-			  `(lambda () (interactive)
+			  `(lambda (e)
+			     (interactive "e")
+			     (if e (set-buffer (window-buffer (posn-window (event-end e)))))
 			     (Buffer-menu-sort ,column)))
 			map)))
 
