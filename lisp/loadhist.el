@@ -53,7 +53,7 @@ Actually, return the load argument, if any; this is sometimes the name of a
 Lisp file without an extension.  If the feature came from an eval-buffer on
 a buffer with no associated file, or an eval-region, return nil."
   (if (not (featurep feature))
-      (error "%s is not a currently loaded feature." (symbol-name feature))
+      (error "%s is not a currently loaded feature" (symbol-name feature))
     (car (feature-symbols feature))))
 
 (defun file-provides (file)
@@ -78,7 +78,7 @@ a buffer with no associated file, or an eval-region, return nil."
     requires
     ))
 
-(defun set-intersect (p q)
+(defun file-set-intersect (p q)
   ;; Return the set intersection of two lists
   (let ((ret nil))
     (mapcar
@@ -93,7 +93,7 @@ This can include FILE itself."
   (let ((provides (file-provides file)) (dependents nil))
     (mapcar
      (function (lambda (x) 
-		 (if (set-intersect provides (file-requires (car x)))
+		 (if (file-set-intersect provides (file-requires (car x)))
 		     (setq dependents (cons (car x) dependents)))))
      load-history)
     dependents
@@ -106,12 +106,12 @@ If the feature is required by any other loaded code, and optional FORCE
 is nil, raise an error."
   (interactive "SFeature: ")
   (if (not (featurep feature))
-      (error "%s is not a currently loaded feature." (symbol-name feature)))
+      (error "%s is not a currently loaded feature" (symbol-name feature)))
   (if (not force)
       (let* ((file (feature-file feature))
 	     (dependents (delete file (copy-sequence (file-dependents file)))))
 	(if dependents
-	    (error "Loaded libraries %s depend on %s."
+	    (error "Loaded libraries %s depend on %s"
 		   (prin1-to-string dependents) file)
 	    )))
   (let* ((flist (feature-symbols feature)) (file (car flist)))
@@ -126,9 +126,11 @@ is nil, raise an error."
 		       ((fboundp x)
 			(fmakunbound x)
 			(let ((aload (get x 'autoload)))
-			  (if aload (fset x (cons 'autoload aload)))))))
-	       )
-     (cdr flist))))
+			  (if aload (fset x (cons 'autoload aload))))))))
+     (cdr flist))
+    ;; Delete the load-history element for this file.
+    (let ((elt (assoc file load-history)))
+      (setq load-history (delq elt load-history)))))
 
 (provide 'loadhist)
 
