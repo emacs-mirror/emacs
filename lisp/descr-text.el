@@ -95,7 +95,7 @@ if that value is non-nil."
 (defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
-The `category' property is made into a widget button that call 
+The `category' property is made into a widget button that call
 `describe-text-category' when pushed."
   ;; Sort the properties by the size of their value.
   (dolist (elt (sort (let ((ret nil)
@@ -117,10 +117,10 @@ The `category' property is made into a widget button that call
 			  (nth 2 b)))))
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
-      (widget-insert (propertize (format "  %-20s" key)
+      (widget-insert (propertize (format "  %-20s " key)
 				 'font-lock-face 'italic))
       (cond ((eq key 'category)
-	     (widget-create 'link 
+	     (widget-create 'link
 			    :notify `(lambda (&rest ignore)
 				       (describe-text-category ',value))
 			    (format "%S" value)))
@@ -161,8 +161,6 @@ otherwise."
       (describe-text-properties-1 pos output-buffer)
     (if (not (or (text-properties-at pos) (overlays-at pos)))
 	(message "This is plain text.")
-      (when (get-buffer "*Text Description*")
-	(kill-buffer "*Text Description*"))
       (let ((buffer (current-buffer)))
 	(save-excursion
 	  (with-output-to-temp-buffer "*Text Description*"
