@@ -1071,6 +1071,9 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   if (NILP (force) && !other_visible_frames (f))
     error ("Attempt to delete the sole visible or iconified frame");
 
+  if (NILP (XCONS (Vframe_list)->cdr))
+    error ("Attempt to delete the only frame");
+
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
   if (FRAME_HAS_MINIBUF_P (XFRAME (frame)))
