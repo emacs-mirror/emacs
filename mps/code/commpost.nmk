@@ -253,11 +253,18 @@ $(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
+# We would like to use $** in the linker command line here, but we
+# cannot because the target, mpsdy.dll, depends on the w3gen.def file,
+# but this is not to be treated as an object on the linker line.  Sorry
+# about the repetition of the object list.
 $(PFM)\$(VARIETY)\mpsdy.dll: $(PFM)\$(VARIETY)\mpslibcb.obj \
 	$(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
 	$(MVFFOBJ) $(AMSOBJ) $(AWLOBJ) w3gen.def 
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /def:w3gen.def /dll /OUT:$@ $**
+	$(LINKER) $(LINKFLAGS) /def:w3gen.def /dll /OUT:$@ \
+	  $(PFM)\$(VARIETY)\mpslibcb.obj \
+	  $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+	  $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
