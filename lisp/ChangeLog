@@ -1,8 +1,22 @@
 2000-05-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* replace.el (query-replace-map): Add binding for `E'.
+	(query-replace-help): Extend help text.
+	(perform-replace): Allow editing the replacement string.
+
+	* make-mode.el (makefile-mode-abbrev-table): New variable.
+	(makefile-mode): Set local abbrev table to
+	makefile-mode-abbrev-table.
+	(makefile-font-lock-keywords): Fontify includes and conditionals.
+	
 	* subr.el (add-minor-mode): Handle AFTER for keymaps. Don't
 	set TOGGLE's value.
 
+	* mailabbrev.el (mail-abbrev-insert-alias): Renamed from
+	mail-interactive-insert-alias.
+	(mail-abbrev-complete-alias): New command.
+	(mail-mode-map): Bind it to `M-TAB'.
+	
 2000-05-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/lao-util.el (lao-compose-region): New function.

@@ -440,6 +440,13 @@ There is a new command M-x replace-rectangle.
 query-replace-regexp, but takes a Lisp expression which is evaluated
 after each match to get the replacement text.
 
+** M-x query-replace recognizes a new command `E' that let's you
+edit the replacement string.
+
+** The new command mail-abbrev-complete-alias, bound to `M-TAB', let's
+you complete mail aliases in the text, analogous to
+lisp-complete-symbol.
+
 ** Emacs now resizes mini-windows if appropriate.
 
 If a message is longer than one line, or mini-buffer contents are

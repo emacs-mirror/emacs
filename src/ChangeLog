@@ -1,5 +1,10 @@
 2000-05-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (handle_single_display_prop): If display property value
+	is invalid, or something not supported on the frame, restore
+	iterator's position to what it was initially.  Make sure to return
+	0 for invalid and unsupported property values.
+
 	* xterm.c (x_produce_glyphs) <composite chars>: Handle case
 	that x_per_char_metric returns null.
 
