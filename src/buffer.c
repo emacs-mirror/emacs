@@ -2085,7 +2085,7 @@ BEG and END may be integers or markers.")
   end = Fset_marker (Fmake_marker (), end, buffer);
 
   overlay = allocate_misc ();
-  XMISC (overlay)->type = Lisp_Misc_Overlay;
+  XMISCTYPE (overlay) = Lisp_Misc_Overlay;
   XOVERLAY (overlay)->start = beg;
   XOVERLAY (overlay)->end = end;
   XOVERLAY (overlay)->plist = Qnil;
