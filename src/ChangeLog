@@ -1,3 +1,8 @@
+2004-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Fposn_at_point): Remove extra */ after doc string.
+	Reported by Andrew M. Scott.
+
 2004-11-15  Kim F. Storm  <storm@cua.dk>
 
 	* fns.c (Fsafe_plist_get): New defun.
