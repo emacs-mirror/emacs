@@ -1,3 +1,7 @@
+2002-10-15   Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-test.el (cus-test-libs): Use equal instead of =.
+
 2002-10-14   Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-test.el (cus-test-opts): Call cus-test-load-libs.
