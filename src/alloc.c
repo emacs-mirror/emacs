@@ -5024,6 +5024,7 @@ mark_object (arg)
 	     since all markable slots in current buffer marked anyway.  */
 	  /* Don't need to do Lisp_Objfwd, since the places they point
 	     are protected with staticpro.  */
+	case Lisp_Misc_Save_Value:
 	  break;
 
 	case Lisp_Misc_Overlay:
