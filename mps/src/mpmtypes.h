@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.9) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -89,8 +89,8 @@ typedef void (*PoolAccessMethod)       (Pool pool, Seg seg, AccessSet mode);
 
 
 /* Format*Method -- see design.mps.format-interface */
-/* These methods must match those defined in the MPS C Interface. */
-/* (See impl.h.mps.fmt-methods.) */
+/* .fmt-methods: These methods must match those defined in the */
+/* MPS C Interface.  (See impl.h.mps.fmt-methods.) */
 
 typedef Res  (*FormatScanMethod)   (ScanState ss, Addr base, Addr limit);
 typedef Addr (*FormatSkipMethod)   (Addr object);
@@ -146,6 +146,12 @@ enum {
   RankFINAL = 3,
   RankMAX
 };
+
+
+/* Root Modes -- not implemented */
+/* .rm: Synchronize with impl.h.mps.rm. */
+/* This comment exists as a placeholder for when root modes are */
+/* implemented. */
 
 
 /* Root Variants -- see design.mps.type.rootvar */
