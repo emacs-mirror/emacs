@@ -103,7 +103,7 @@ Zero means compute the Imenu menu regardless of size."
   "Format for displaying the function in the mode line."
   :group 'which-func
   :type 'sexp)
-(put 'which-func-format 'risky-local-variable t)
+;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
 (defvar which-func-cleanup-function nil
   "Function to transform a string before displaying it in the mode line.
@@ -125,7 +125,7 @@ and you want to simplify them for the mode line
 
 (defconst which-func-current
   '(:eval (gethash (selected-window) which-func-table which-func-unknown)))
-(put 'which-func-current 'risky-local-variable t)
+;;;###autoload (put 'which-func-current 'risky-local-variable t)
 
 (defvar which-func-mode nil
   "Non-nil means display current function name in mode line.
