@@ -112,6 +112,10 @@
 
 (require 'cc-mode)
 
+(defgroup hide-ifdef nil
+  "Hide selected code within `ifdef'."
+  :group 'c)
+
 (defvar hide-ifdef-mode-submap nil
   "Keymap used with Hide-Ifdef mode.")
 
@@ -886,19 +890,25 @@ It does not do the work that's pointless to redo on a recursive entry."
 ;===%%SF%% exports (Start)  ===
 
 ;;;###autoload
-(defvar hide-ifdef-initially nil
-  "*Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated.")
+(defcustom hide-ifdef-initially nil
+  "*Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated."
+  :type 'boolean
+  :group 'hide-ifdef)
 
 ;;;###autoload
-(defvar hide-ifdef-read-only nil
-  "*Set to non-nil if you want buffer to be read-only while hiding text.")
+(defcustom hide-ifdef-read-only nil
+  "*Set to non-nil if you want buffer to be read-only while hiding text."
+  :type 'boolean
+  :group 'hide-ifdef)
 
 (defvar hif-outside-read-only nil
   "Internal variable.  Saves the value of `buffer-read-only' while hiding.")
 
 ;;;###autoload
-(defvar hide-ifdef-lines nil
-  "*Non-nil means hide the #ifX, #else, and #endif lines.")
+(defcustom hide-ifdef-lines nil
+  "*Non-nil means hide the #ifX, #else, and #endif lines."
+  :type 'boolean
+  :group 'hide-ifdef)
 
 (defun hide-ifdef-toggle-read-only ()
   "Toggle hide-ifdef-read-only."

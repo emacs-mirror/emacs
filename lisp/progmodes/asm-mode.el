@@ -49,8 +49,14 @@
 
 ;;; Code:
 
-(defvar asm-comment-char ?;
-  "*The comment-start character assumed by Asm mode.")
+(defgroup asm nil
+  "Mode for editing assembler code."
+  :group 'languages)
+
+(defcustom asm-comment-char ?;
+  "*The comment-start character assumed by Asm mode."
+  :type 'character
+  :group 'asm)
 
 (defvar asm-mode-syntax-table nil
   "Syntax table used while in Asm mode.")

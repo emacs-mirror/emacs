@@ -41,6 +41,10 @@
 
 ;;; Code:
 
+(defgroup octave nil
+  "Major mode for editing Octave source files."
+  :group 'languages)
+
 (defvar inferior-octave-output-list nil)
 (defvar inferior-octave-output-string nil)
 (defvar inferior-octave-receive-in-progress nil)
@@ -183,8 +187,10 @@ parenthetical grouping.")
 	 '(3 font-lock-function-name-face nil t)))
   "Additional Octave expressions to highlight.")
 
-(defvar inferior-octave-buffer "*Inferior Octave*"
-  "*Name of buffer for running an inferior Octave process.")
+(defcustom inferior-octave-buffer "*Inferior Octave*"
+  "*Name of buffer for running an inferior Octave process."
+  :type 'string
+  :group 'octave-inferior)
 
 (defvar inferior-octave-process nil)
 
@@ -299,18 +305,26 @@ parenthetical grouping.")
     (modify-syntax-entry ?\n ">"  table)
     (setq octave-mode-syntax-table table)))
 
-(defvar octave-auto-indent nil
-  "*Non-nil means indent line after a semicolon or space in Octave mode.")
+(defcustom octave-auto-indent nil
+  "*Non-nil means indent line after a semicolon or space in Octave mode."
+  :type 'boolean
+  :group 'octave)
 
-(defvar octave-auto-newline nil
-  "*Non-nil means insert newline after a semicolon in Octave mode.")
+(defcustom octave-auto-newline nil
+  "*Non-nil means automatically newline after a semicolon in Octave mode."
+  :type 'boolean
+  :group 'octave)
 
-(defvar octave-blink-matching-block t
+(defcustom octave-blink-matching-block t
   "*Control the blinking of matching Octave block keywords.
 Non-nil means show matching begin of block when inserting a space,
-newline or semicolon after an else or end keyword.")
-(defvar octave-block-offset 2
-  "*Extra indentation applied to statements in Octave block structures.")
+newline or semicolon after an else or end keyword."
+  :type 'boolean
+  :group 'octave)
+(defcustom octave-block-offset 2
+  "*Extra indentation applied to statements in Octave block structures."
+  :type 'integer
+  :group 'octave)
 
 (defvar octave-block-begin-regexp
   (concat "\\<\\("
@@ -345,12 +359,16 @@ end keywords as associated values.")
   (concat (make-string 2 octave-comment-char) " ")
   "String to insert to start a new Octave comment on an empty line.")
 
-(defvar octave-continuation-offset 4
-  "*Extra indentation applied to Octave continuation lines.")
+(defcustom octave-continuation-offset 4
+  "*Extra indentation applied to Octave continuation lines."
+  :type 'integer
+  :group 'octave)
 (defvar octave-continuation-regexp
   "[^#%\n]*\\(\\\\\\|\\.\\.\\.\\)\\s-*\\(\\s<.*\\)?$")
-(defvar octave-continuation-string "\\"
-  "*Character string used for Octave continuation lines.  Normally \\.")
+(defcustom octave-continuation-string "\\"
+  "*Character string used for Octave continuation lines.  Normally \\."
+  :type 'string
+  :group 'octave)
 
 (defvar octave-completion-alist nil
   "Alist of Octave symbols for completion in Octave mode.
@@ -364,19 +382,29 @@ Currently, only builtin variables can be completed.")
    (list nil octave-function-header-regexp 3))
   "Imenu expression for Octave mode.  See `imenu-generic-expression'.")
 
-(defvar octave-mode-startup-message t
-  "*Nil means do not display the Octave mode startup message.")
+(defcustom octave-mode-startup-message t
+  "*Nil means do not display the Octave mode startup message."
+  :type 'boolean
+  :group 'octave)
 
-(defvar octave-mode-hook nil
-  "*Hook to be run when Octave mode is started.")
+(defcustom octave-mode-hook nil
+  "*Hook to be run when Octave mode is started."
+  :type 'hook
+  :group 'octave)
 
-(defvar octave-send-show-buffer t
-  "*Non-nil means display `inferior-octave-buffer' after sending to it.")
-(defvar octave-send-line-auto-forward t
+(defcustom octave-send-show-buffer t
+  "*Non-nil means display `inferior-octave-buffer' after sending to it."
+  :type 'boolean
+  :group 'octave)
+(defcustom octave-send-line-auto-forward t
   "*Control auto-forward after sending to the inferior Octave process.
-Non-nil means always go to the next Octave code line after sending.")
-(defvar octave-send-echo-input t
-  "*Non-nil means echo input sent to the inferior Octave process.")
+Non-nil means always go to the next Octave code line after sending."
+  :type 'boolean
+  :group 'octave)
+(defcustom octave-send-echo-input t
+  "*Non-nil means echo input sent to the inferior Octave process."
+  :type 'boolean
+  :group 'octave)
 
 
 ;;;###autoload
