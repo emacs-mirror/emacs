@@ -400,13 +400,7 @@ translation.")
   else if (CONSP (tem))
     tem = get_doc_string (tem, 0, 0);
   if (NILP (raw) && STRINGP (tem))
-    {
-      struct gcpro gcpro1;
-
-      GCPRO1 (tem);
-      tem = Fsubstitute_command_keys (tem);
-      UNGCPRO;
-    }
+    tem = Fsubstitute_command_keys (tem);
   return tem;
 }
 
