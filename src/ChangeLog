@@ -1,5 +1,10 @@
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (recursive_edit_1): Bind `inhibit-redisplay' and
+	set redisplaying_p to 0 here instead of in Frecursive_edit.
+	(Frecursive_edit): Don't bind `inhibit-redisplay' and don't
+	set redisplaying_p.
+
 	* xdisp.c (Qinhibit_menubar_update, inhibit_menubar_update): 
 	New variables.
 	(syms_of_xdisp): Initialize new variables.
