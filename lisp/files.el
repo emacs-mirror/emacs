@@ -3057,20 +3057,25 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 With arg, set read-only iff arg is positive.
 If visiting file read-only and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
-  (cond
-   ((and arg (if (> (prefix-numeric-value arg) 0) buffer-read-only
-	       (not buffer-read-only)))	; If buffer-read-only is set correctly,
-    nil)				; do nothing.
-   ;; Toggle.
-   ((and buffer-read-only view-mode)
-    (View-exit-and-edit)
-    (make-local-variable 'view-read-only)
-    (setq view-read-only t))		; Must leave view mode.
-   ((and (not buffer-read-only) view-read-only
-	 (not (eq (get major-mode 'mode-class) 'special)))
-    (view-mode-enter))
-   (t (setq buffer-read-only (not buffer-read-only))
-      (force-mode-line-update))))
+  (if (and arg 
+           (if (> (prefix-numeric-value arg) 0) buffer-read-only
+             (not buffer-read-only)))  ; If buffer-read-only is set correctly,
+      nil			       ; do nothing.
+    ;; Toggle.
+    (cond
+     ((and buffer-read-only view-mode)
+      (View-exit-and-edit)
+      (make-local-variable 'view-read-only)
+      (setq view-read-only t))		; Must leave view mode.
+     ((and (not buffer-read-only) view-read-only
+           (not (eq (get major-mode 'mode-class) 'special)))
+      (view-mode-enter))
+     (t (setq buffer-read-only (not buffer-read-only))
+        (force-mode-line-update)))
+    (if (vc-backend buffer-file-name)
+        (message (substitute-command-keys
+                  (concat "File is under version-control, "
+                          "consider \\[vc-next-action] to check in/out"))))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
@@ -4144,6 +4149,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key esc-map "~" 'not-modified)
 (define-key ctl-x-map "\C-d" 'list-directory)
 (define-key ctl-x-map "\C-c" 'save-buffers-kill-emacs)
+(define-key ctl-x-map "\C-q" 'toggle-read-only)
 
 (define-key ctl-x-4-map "f" 'find-file-other-window)
 (define-key ctl-x-4-map "r" 'find-file-read-only-other-window)
