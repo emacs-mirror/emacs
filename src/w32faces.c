@@ -33,6 +33,8 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "window.h"
 #include "intervals.h"
+#include "charset.h"
+#include "fontset.h"
 
 
 /* An explanation of the face data structures.  */
@@ -50,7 +52,7 @@ Boston, MA 02111-1307, USA.  */
        ID is the face ID, an integer used internally by the C code to identify
            the face,
        FONT, FOREGROUND, and BACKGROUND are strings naming the fonts and colors
-           to use with the face,
+           to use with the face, FONT may name fontsets,
        BACKGROUND-PIXMAP is the name of an x bitmap filename, which we don't
            use right now, and
        UNDERLINE-P is non-nil if the face should be underlined.
@@ -62,13 +64,13 @@ Boston, MA 02111-1307, USA.  */
    (assq FACE-NAME global-face-data) returns a vector describing the
    global parameters for that face.
 
-   Let PARAM-FACE be FRAME->display.x->param_faces[Faref (FACE-VECTOR, 2)].
+   Let PARAM-FACE be FRAME->output_data.w32->param_faces[Faref(FACE-VECTOR,2)].
    PARAM_FACE is a struct face whose members are the Xlib analogues of
    the parameters in FACE-VECTOR.  If an element of FACE-VECTOR is
    nil, then the corresponding member of PARAM_FACE is FACE_DEFAULT.
    These faces are called "parameter faces", because they're the ones
    lisp manipulates to control what gets displayed.  Elements 0 and 1
-   of FRAME->display.x->param_faces are special - they describe the
+   of FRAME->output_data.w32->param_faces are special - they describe the
    default and mode line faces.  None of the faces in param_faces have
    GC's.  (See src/dispextern.h for the definition of struct face.
    lisp/faces.el maintains the isomorphism between face_alist and
@@ -79,9 +81,9 @@ Boston, MA 02111-1307, USA.  */
    properties.  The resulting faces are called "computed faces"; none
    of their members are FACE_DEFAULT; they are completely specified.
    They then call intern_compute_face to search
-   FRAME->display.x->computed_faces for a matching face, add one if
+   FRAME->output_data.x->computed_faces for a matching face, add one if
    none is found, and return the index into
-   FRAME->display.x->computed_faces.  FRAME's glyph matrices use these
+   FRAME->output_data.x->computed_faces.  FRAME's glyph matrices use these
    indices to record the faces of the matrix characters, and the X
    display hooks consult compute_faces to decide how to display these
    characters.  Elements 0 and 1 of computed_faces always describe the
@@ -95,6 +97,9 @@ Boston, MA 02111-1307, USA.  */
    clear_face_cache clears out the GCs of all computed faces.
    This is done from time to time so that we don't hold on to
    lots of GCs that are no longer needed.
+
+   If a computed face has 0 as its font,
+   it is unused, and can be reused by new_computed_face.
 
    Constraints:
 
@@ -152,6 +157,7 @@ allocate_face ()
   struct face *result = (struct face *) xmalloc (sizeof (struct face));
   bzero (result, sizeof (struct face));
   result->font = (XFontStruct *) FACE_DEFAULT;
+  result->fontset = -1;
   result->foreground = FACE_DEFAULT;
   result->background = FACE_DEFAULT;
   result->stipple = FACE_DEFAULT;
@@ -166,6 +172,7 @@ copy_face (face)
   struct face *result = allocate_face ();
 
   result->font = face->font;
+  result->fontset = face->fontset;
   result->foreground = face->foreground;
   result->background = face->background;
   result->stipple = face->stipple;
@@ -181,6 +188,7 @@ face_eql (face1, face2)
      struct face *face1, *face2;
 {
   return (   face1->font       == face2->font
+          && face1->fontset    == face2->fontset
 	  && face1->foreground == face2->foreground
 	  && face1->background == face2->background
 	  && face1->stipple    == face2->stipple
@@ -223,15 +231,18 @@ load_font (f, name)
      struct frame *f;
      Lisp_Object name;
 {
-  XFontStruct *font;
+  struct font_info *fontinf;
+  XFontStruct *font = NULL;
 
   if (NILP (name))
     return (XFontStruct *) FACE_DEFAULT;
 
   CHECK_STRING (name, 0);
   BLOCK_INPUT;
-  font = w32_load_font (FRAME_W32_DISPLAY_INFO (f), (char *) XSTRING (name)->data);
+  fontinf = w32_load_font (f, (char *) XSTRING (name)->data, 0);
   UNBLOCK_INPUT;
+  if (fontinf)
+    font = (XFontStruct *)fontinf->font;
 
   if (! font)
     Fsignal (Qerror, Fcons (build_string ("undefined font"),
@@ -281,24 +292,24 @@ unload_color (f, pixel)
 }
 
 DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
-  "Return t if ARG is a valid pixmap specification.")
-  (arg)
-     Lisp_Object arg;
+  "Return t if OBJECT is a valid pixmap specification.")
+  (object)
+     Lisp_Object object;
 {
   Lisp_Object height, width;
 
-  return ((STRINGP (arg)
-	   || (CONSP (arg)
-	       && CONSP (XCONS (arg)->cdr)
-	       && CONSP (XCONS (XCONS (arg)->cdr)->cdr)
-	       && NILP (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->cdr)
-	       && (width = XCONS (arg)->car, INTEGERP (width))
-	       && (height = XCONS (XCONS (arg)->cdr)->car, INTEGERP (height))
-	       && STRINGP (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)
+  return ((STRINGP (object)
+	   || (CONSP (object)
+	       && CONSP (XCONS (object)->cdr)
+	       && CONSP (XCONS (XCONS (object)->cdr)->cdr)
+	       && NILP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->cdr)
+	       && (width = XCONS (object)->car, INTEGERP (width))
+	       && (height = XCONS (XCONS (object)->cdr)->car, INTEGERP (height))
+	       && STRINGP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)
 	       && XINT (width) > 0
 	       && XINT (height) > 0
 	       /* The string must have enough bits for width * height.  */
-	       && ((XSTRING (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)->size
+	       && ((XSTRING (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)->size
 		    * (BITS_PER_INT / sizeof (int)))
 		   >= XFASTINT (width) * XFASTINT (height))))
 	  ? Qt : Qnil);
@@ -422,6 +433,7 @@ free_frame_faces (f)
       struct face *face = FRAME_PARAM_FACES (f) [i];
       if (face)
 	{
+          if (face->fontset < 0)
 	  unload_font (f, face->font);
 	  unload_color (f, face->foreground);
 	  unload_color (f, face->background);
@@ -458,7 +470,19 @@ new_computed_face (f, new_face)
      struct frame *f;
      struct face *new_face;
 {
-  int i = FRAME_N_COMPUTED_FACES (f);
+  int len = FRAME_N_COMPUTED_FACES (f);
+  int i;
+
+  /* Search for an unused computed face in the middle of the table.  */
+  for (i = 0; i < len; i++)
+    {
+      struct face *face = FRAME_COMPUTED_FACES (f)[i];
+      if (face->font == 0)
+	{
+	  FRAME_COMPUTED_FACES (f)[i] = copy_face (new_face);
+	  return i;
+	}
+    }
 
   if (i >= FRAME_SIZE_COMPUTED_FACES (f))
     {
@@ -549,21 +573,28 @@ frame_update_line_height (f)
      FRAME_PTR f;
 {
   int i;
-  int biggest = FONT_HEIGHT (f->output_data.w32->font);
+  int fontset = FRAME_FONTSET (f);
+  int biggest = (fontset > 0
+                 ? FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height
+                 : FONT_HEIGHT (FRAME_FONT (f)));
 
-  for (i = 0; i < f->output_data.w32->n_param_faces; i++)
-    if (f->output_data.w32->param_faces[i] != 0
-	&& f->output_data.w32->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
+  for (i = 0; i < FRAME_N_PARAM_FACES (f); i++)
+    if (FRAME_PARAM_FACES (f)[i] != 0
+	&& FRAME_PARAM_FACES (f)[i]->font != (XFontStruct *) FACE_DEFAULT)
       {
-	int height = FONT_HEIGHT (f->output_data.w32->param_faces[i]->font);
+	int height = ((fontset =
+                       FRAME_PARAM_FACES (f)[i]->fontset) > 0
+                      ? FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height
+                      : FONT_HEIGHT
+                          (FRAME_PARAM_FACES (f)[i]->font));
 	if (height > biggest)
 	  biggest = height;
       }
 
-  if (biggest == f->output_data.w32->line_height)
+  if (biggest == FRAME_LINE_HEIGHT (f))
     return 0;
 
-  f->output_data.w32->line_height = biggest;
+  FRAME_LINE_HEIGHT (f) = biggest;
   return 1;
 }
 
@@ -579,6 +610,8 @@ merge_faces (from, to)
   if (from->font != (XFontStruct *) FACE_DEFAULT
       && same_size_fonts (from->font, to->font))
     to->font = from->font;
+  if (from->fontset != -1)
+    to->fontset = from->fontset;
   if (from->foreground != FACE_DEFAULT)
     to->foreground = from->foreground;
   if (from->background != FACE_DEFAULT)
@@ -605,6 +638,7 @@ compute_base_face (f, face)
   face->foreground = FRAME_FOREGROUND_PIXEL (f);
   face->background = FRAME_BACKGROUND_PIXEL (f);
   face->font = FRAME_FONT (f);
+  face->fontset = -1;
   face->stipple = 0;
   face->underline = 0;
 }
@@ -927,7 +961,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id < 0 || id >= next_face_id)
     error ("Face id out of range");
 
-  if (! FRAME_W32_P (f))
+  if (! FRAME_WINDOW_P (f))
     return Qnil;
 
   ensure_face_ready (f, id);
@@ -935,10 +969,36 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
 
   if (EQ (attr_name, intern ("font")))
     {
-      XFontStruct *font = load_font (f, attr_value);
-      if (face->font != f->output_data.w32->font)
+      XFontStruct *font = NULL;
+      int fontset;
+
+      if (NILP (attr_value))
+        {
+          font = (XFontStruct *) FACE_DEFAULT;
+          fontset = -1;
+        }
+      else
+        {
+          CHECK_STRING (attr_value, 0);
+          fontset = fs_query_fontset (f, XSTRING (attr_value)->data);
+          if (fontset >= 0)
+            {
+              struct font_info *fontp;
+
+              if (!(fontp = FS_LOAD_FONT (f, FRAME_W32_FONT_TABLE (f),
+                                          CHARSET_ASCII, NULL, fontset)))
+                Fsignal (Qerror,
+                         Fcons (build_string ("ASCII font can't be loaded"),
+                                Fcons (attr_value, Qnil)));
+              font = (XFontStruct *) (fontp->font);
+            }
+          else
+            font = load_font (f, attr_value);
+        }
+      if (face->fontset == -1 && face->font != f->output_data.w32->font)
 	unload_font (f, face->font);
       face->font = font;
+      face->fontset = fontset;
       if (frame_update_line_height (f))
 	x_set_window_size (f, 0, f->width, f->height);
       /* Must clear cache, since it might contain the font
