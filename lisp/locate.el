@@ -1,6 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -404,9 +404,9 @@ shown; this is often useful to constrain a big search."
 	      (append (list locate-current-filter) locate-format-args)))
 
     (setq locate-format-string
-	  (concat locate-format-string ": \n\n")
+	  (concat locate-format-string ":\n\n")
 	  locate-regexp-match
-	  (concat locate-regexp-match ": \n"))
+	  (concat locate-regexp-match ":\n"))
 
     (insert (apply 'format locate-format-string (reverse locate-format-args)))
 
