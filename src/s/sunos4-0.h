@@ -12,7 +12,11 @@
 /* We use the Sun syntax -Bstatic unconditionally, because even when we
    use GCC, these are passed through to the linker, not handled by GCC
    directly.  */
-#define LD_SWITCH_SYSTEM -e __start -Bstatic
+#define LD_SWITCH_SYSTEM -Bstatic
+
+/* We use this for linking temacs, but not for other programs
+   or for tests in configure.  */
+#define LD_SWITCH_SYSTEM_TEMACS -e __start
 
 /* In SunOS 4.1, a static function called by tzsetwall reportedly
    clears the byte just past an eight byte region it mallocs, corrupting
