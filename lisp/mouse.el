@@ -252,7 +252,7 @@ release the mouse button.  Otherwise, it does not."
 	    (if (memq fun '(mouse-set-region mouse-set-point))
 		(if (not (= (overlay-start mouse-drag-overlay)
 			    (overlay-end mouse-drag-overlay)))
-		    (let (this-command)
+		    (let (last-command)
 		      (push-mark (overlay-start mouse-drag-overlay) t t)
 		      (goto-char (overlay-end mouse-drag-overlay))
 		      (copy-region-as-kill (point) (mark t)))
