@@ -566,7 +566,7 @@ cfproperty_list_to_lisp (plist, with_tag, hash_bound)
 #define SINGLE_COMPONENT Qquote	 /* '?' ("Q"uestion) */
 
 static void
-skip_while_space (p)
+skip_white_space (p)
      char **p;
 {
   /* WhiteSpace = {<space> | <horizontal tab>} */
@@ -787,15 +787,15 @@ parse_resource_line (p)
     return Qnil;
 
   /* ResourceSpec = WhiteSpace ResourceName WhiteSpace ":" WhiteSpace Value */
-  skip_while_space (p);
+  skip_white_space (p);
   quarks = parse_resource_name (p);
   if (NILP (quarks))
     goto cleanup;
-  skip_while_space (p);
+  skip_white_space (p);
   if (*P != ':')
     goto cleanup;
   P++;
-  skip_while_space (p);
+  skip_white_space (p);
   value = parse_value (p);
   return Fcons (quarks, value);
 
