@@ -2196,6 +2196,10 @@ x_set_scroll_bar_background (f, value, oldval)
    CODING_SYSTEM, and return a newly allocated memory area which
    should be freed by `xfree' by a caller.
 
+   SELECTIONP non-zero means the string is being encoded for an X
+   selection, so it is safe to run pre-write conversions (which
+   may run Lisp code).
+
    Store the byte length of resulting text in *TEXT_BYTES.
 
    If the text contains only ASCII and Latin-1, store 1 in *STRING_P,
@@ -2204,9 +2208,10 @@ x_set_scroll_bar_background (f, value, oldval)
    the result should be `COMPOUND_TEXT'.  */
 
 unsigned char *
-x_encode_text (string, coding_system, text_bytes, stringp)
+x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
      Lisp_Object string, coding_system;
      int *text_bytes, *stringp;
+     int selectionp;
 {
   unsigned char *str = XSTRING (string)->data;
   int chars = XSTRING (string)->size;
@@ -2226,6 +2231,15 @@ x_encode_text (string, coding_system, text_bytes, stringp)
     }
 
   setup_coding_system (coding_system, &coding);
+  if (selectionp
+      && SYMBOLP (coding.pre_write_conversion)
+      && !NILP (Ffboundp (coding.pre_write_conversion)))
+    {
+      string = run_pre_post_conversion_on_str (string, &coding, 1);
+      str = XSTRING (string)->data;
+      chars = XSTRING (string)->size;
+      bytes = STRING_BYTES (XSTRING (string));
+    }
   coding.src_multibyte = 1;
   coding.dst_multibyte = 0;
   coding.mode |= CODING_MODE_LAST_BLOCK;
@@ -2309,7 +2323,7 @@ x_set_name (f, name, explicit)
 	coding_system = Vlocale_coding_system;
 	if (NILP (coding_system))
 	  coding_system = Qcompound_text;
-	text.value = x_encode_text (name, coding_system, &bytes, &stringp);
+	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
@@ -2321,7 +2335,7 @@ x_set_name (f, name, explicit)
 	  }
 	else
 	  {
-	    icon.value = x_encode_text (f->icon_name, coding_system,
+	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
 					&bytes, &stringp);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
@@ -2416,7 +2430,7 @@ x_set_title (f, name, old_name)
 	coding_system = Vlocale_coding_system;
 	if (NILP (coding_system))
 	  coding_system = Qcompound_text;
-	text.value = x_encode_text (name, coding_system, &bytes, &stringp);
+	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
@@ -2428,7 +2442,7 @@ x_set_title (f, name, old_name)
 	  }
 	else
 	  {
-	    icon.value = x_encode_text (f->icon_name, coding_system,
+	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
 					&bytes, &stringp);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
