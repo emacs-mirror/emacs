@@ -1,3 +1,52 @@
+2004-04-27  Juri Linkov  <juri@jurta.org>
+
+	* help.el (view-emacs-news): With argument, display info for the
+	selected version by finding it among different NEWS files, and
+	narrowing the buffer to the selected version.
+
+	* info.el: Add *info*<[0-9]+> to same-window-regexps instead of
+	same-window-buffer-names.
+	(info): New arg `buffer'.  Use it.  Doc fix.  Read file name for
+	non-numeric prefix argument, append the number to the buffer name
+	for numeric prefix argument.
+	(info-other-window): Bind same-window-regexps to nil.
+	(Info-reference-name): Rename to Info-point-loc.
+	(Info-find-node-2): Call forward-line for numeric Info-point-loc,
+	and Info-find-index-name for stringy Info-point-loc.
+	(Info-extract-menu-node-name): New arg `index-node'.  Use regexp
+	without middle `.', but with final `.' and optional line number
+	for it.  Set Info-point-loc for index nodes.
+	(Info-index): Remove middle `.' from index entry regexp.
+	Modify line number regexp.
+	(Info-index-next): Decrement line number.
+	(info-apropos): Remove middle `.' from index entry regexp.
+	Add optional line number regexp at the end.  Add matched value
+	for line number to the result list and insert it to the buffer.
+	(Info-fontify-node): Hide index line numbers.
+	(Info-goto-node): Replace "\\s *\\'" by "\\s +\\'" to not trim
+	empty matches.
+	(Info-follow-reference): Use `str' instead of
+	Info-following-node-name-re.
+	(Info-toc): Use full file names.  Set Info-current-node to "Top".
+	(Info-fontify-node): Compare file names without directory name.
+	(Info-try-follow-nearest-node): Don't set Info-reference-name.
+	Set second arg of Info-extract-menu-node-name for index nodes.
+	(info-xref-visited): Use magenta3 instead of magenta4.
+	(Info-mode): Add info-apropos to docstring.
+
+	* log-view.el (log-view-diff): Replace interactive code "r"
+	by a list to allow to call it even if region is not active.
+
+	* paren.el (show-paren-highlight-openparen): New var.
+	(show-paren-function): Turn on openparen highlighting when
+	matching forward if show-paren-highlight-openparen is non-nil.
+
+	* simple.el (kill-ring-save): Use blink-matching-delay instead of
+	the constant value 1.
+	(completions-common-part): Expand docstring.
+
+	* textmodes/picture.el (picture-mode-map): Add arrow keys.
+
 2004-04-27  Kim F. Storm  <storm@cua.dk>
 
 	* image.el (insert-sliced-image): Use line-height instead of
@@ -13,11 +62,15 @@
 	(desktop-save): Rename desktop-buffer-misc-data-function to
 	desktop-save-buffer and allow non-function value.
 	(desktop-missing-file-warning): Correct docstring.
+
 	* dired.el (dired-mode): Rename desktop-buffer-misc-data-function
 	to desktop-save-buffer.
+
 	* info.el (Info-mode): Rename desktop-buffer-misc-data-function	to
 	desktop-save-buffer.
+
 	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
+
 	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
 
 2004-04-26  Eli Zaretskii  <eliz@gnu.org>
