@@ -29,26 +29,40 @@
 	     3
 	     (prefix-numeric-value current-prefix-arg))))  
   (if (<= nrings 0) (error "Negative number of rings"))
-  (let (pole-spacing
-	floor-row
-	fly-row
-	(window-height (window-height (selected-window)))
-	(window-width (window-width (selected-window))))
-    (let ((h (+ nrings 2))
-	  (w (+ (* (1- nrings) 6) 2 5)))
-      (if (not (and (>= window-width h)
-		    (> window-width w)))
+  (let* (floor-row
+	 fly-row
+	 (window-height (window-height (selected-window)))
+	 (window-width (window-width (selected-window)))
+
+	 ;; This is the unit of spacing to use between poles.  It
+	 ;; must be even.  We round down, since rounding up might
+	 ;; cause us to draw off the edge of the window.
+	 (pole-spacing (logand (/ window-width 6) (lognot 1))))
+    (let (
+	  ;; The poles are (1+ NRINGS) rows high; we also want an
+	  ;; empty row at the top for the flying rings, a base, and a
+	  ;; blank line underneath that.
+	  (h (+ nrings 4))
+
+	  ;; If we have NRINGS rings, we label them with the numbers 0
+	  ;; through NRINGS-1.  The width of ring i is 2i+3; it pokes
+	  ;; out i spaces on either side of the pole.  Rather than
+	  ;; checking if the window is wide enough to accomodate this,
+	  ;; we make sure pole-spacing is large enough, since that
+	  ;; works even when we have decremented pole-spacing to make
+	  ;; it even.
+	  (w (1+ nrings)))
+      (if (not (and (>= window-height h)
+		    (> pole-spacing w)))
 	  (progn
 	    (delete-other-windows)
 	    (if (not (and (>= (setq window-height
-				    (window-height (selected-window))) h)
-			  (> (setq window-width
-				   (window-width (selected-window))) w)))
+				    (window-height (selected-window)))
+			      h)
+			  (> (setq pole-spacing
+				   (logand (/ window-width 6) (lognot 1)))
+			     w)))
 		(error "Screen is too small (need at least %dx%d)" w h))))
-      (setq pole-spacing (/ window-width 6))
-      (if (not (zerop (logand pole-spacing 1)))
-	  ;; must be even
-	  (setq pole-spacing (1+ pole-spacing)))
       (setq floor-row (if (> (- window-height 3) h)
 			  (- window-height 3) window-height)))
     (let ((fly-row (- floor-row nrings 1))
