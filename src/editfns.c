@@ -1870,11 +1870,11 @@ Use %% to put a single % into the output.")
 #ifdef LISP_FLOAT_TYPE
 	else if (FLOATP (args[n]))
 	  {
-	    union { double d; int half[2]; } u;
+	    union { double d; char *half[2]; } u;
 
 	    u.d = XFLOAT (args[n])->data;
-	    strings[i++] = (unsigned char *) (EMACS_INT) u.half[0];
-	    strings[i++] = (unsigned char *) (EMACS_INT) u.half[1];
+	    strings[i++] = (unsigned char *) u.half[0];
+	    strings[i++] = (unsigned char *) u.half[1];
 	  }
 #endif
 	else
