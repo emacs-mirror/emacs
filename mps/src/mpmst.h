@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.94) $
+ * $HopeName: MMsrc!mpmst.h(trunk.95) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -647,31 +647,40 @@ typedef struct ArenaClassStruct {
 } ArenaClassStruct;
 
 
-/* ArenaStruct -- generic arena
+/* GlobalsStruct -- the global state associated with an arena
  *
- * See impl.c.arena.
- *
- * .space: The arena structure is the top-level state of the
+ * .space: The arena structure holds the entire state of the
  * MPS, and as such contains a lot of fields which are considered
  * "global".  These fields belong to different modules.  The module
  * which owns each group of fields is commented.
  */
 
-#define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
+#define GlobalsSig ((Sig)0x519970BA) /* SIGnature GLOBAls */
 
-typedef struct ArenaStruct {
-  /* arena fields (impl.c.global) */
-  Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* design.mps.arena.static.serial */
+typedef struct GlobalsStruct {
+  Sig sig;
+
+  /* general fields (impl.c.global) */
   RingStruct globalRing;        /* node in global ring of arenas */
-  const char *mpsVersionString; /* MPSVersion() */
-
   Lock lock;                    /* arena's lock */
-
   double pollThreshold;         /* design.mps.arena.poll */
   Bool insidePoll;
 
-  Bool bufferLogging;           /* design.mps.buffer.logging.control */
+  /* version field (impl.c.version) */
+  const char *mpsVersionString; /* MPSVersion() */
+} GlobalsStruct;
+
+
+/* ArenaStruct -- generic arena
+ *
+ * See impl.c.arena.
+ */
+
+#define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
+
+typedef struct ArenaStruct {
+  GlobalsStruct globals; /* must be first, see design.mps.arena.globals */
+  Serial serial;
 
   /* arena allocation fields (impl.c.arena) */
   ArenaClass class;             /* arena class structure */
@@ -701,6 +710,8 @@ typedef struct ArenaStruct {
   RingStruct chunkRing;         /* all the chunks */
   Serial chunkSerial;           /* next chunk number */
   ChunkCacheEntryStruct chunkCache; /* just one entry */
+
+  Bool bufferLogging;           /* design.mps.buffer.logging.control */
 
   /* locus fields (impl.c.locus) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */
@@ -751,6 +762,8 @@ typedef struct ArenaStruct {
   Epoch epoch;                     /* design.mps.arena.ld.epoch */
   RefSet prehistory;               /* design.mps.arena.ld.prehistory */
   RefSet history[LDHistoryLENGTH]; /* design.mps.arena.ld.history */
+
+  Sig sig;
 } ArenaStruct;
 
 
