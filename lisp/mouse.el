@@ -44,6 +44,35 @@
 
 ;; Provide a mode-specific menu on a mouse button.
 
+(defun popup-menu (menu &optional position prefix)
+  "Popup the given menu and call the selected option.
+MENU can be a keymap or an easymenu-style menu.
+POSITION can be a click event or ((XOFFSET YOFFSET) WINDOW) and defaults to
+  the current mouse position.
+PREFIX is the prefix argument (if any) to pass to the command."
+  (let* ((map (if (keymapp menu) menu
+		(let* ((map (easy-menu-create-menu (car menu) (cdr menu)))
+		       (filter (when (symbolp map)
+				 (plist-get (get map 'menu-pro) :filter))))
+		  (if filter (funcall filter (symbol-function map)) map))))
+	 event)
+    ;; The looping behavior was taken from lmenu's popup-menu-popup
+    (while (and map (setq event (x-popup-menu position map)))
+      ;; Strangely x-popup-menu returns a list.
+      ;; mouse-major-mode-menu was using a weird:
+      ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
+      (let ((cmd (lookup-key map (apply 'vector event))))
+	(setq map nil)
+	;; Clear out echoing, which perhaps shows a prefix arg.
+	(message "")
+	(when cmd
+	  (if (keymapp cmd)
+	      ;; Try again but with the submap.
+	      (setq map cmd)
+	    (setq prefix-arg prefix)
+	    ;; mouse-major-mode-menu was using `command-execute' instead.
+	    (call-interactively cmd)))))))
+	
 (defun mouse-major-mode-menu (event prefix)
   "Pop up a mode-specific menu of mouse commands.
 Default to the Edit menu if the major mode doesn't define a menu."
@@ -70,18 +99,8 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	;; Make our menu inherit from the desired keymap which we want
 	;; to display as the menu now.
 	(set-keymap-parent newmap ancestor))
-    (setq result (x-popup-menu t (list newmap)))
-    (if result
-	(let ((command (key-binding
-			(apply 'vector (append '(menu-bar)
-					       mouse-major-mode-menu-prefix
-					       result)))))
-	  ;; Clear out echoing, which perhaps shows a prefix arg.
-	  (message "")
-	  (if command
-	      (progn
-		(setq prefix-arg prefix)
-		(command-execute command)))))))
+    (popup-menu newmap event prefix)))
+
 
 ;; Compute and cache the equivalent keys in MENU and all its submenus.
 ;;;(defun mouse-major-mode-menu-compute-equiv-keys (menu)
