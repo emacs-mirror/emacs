@@ -189,25 +189,25 @@ call_process_cleanup (fdpid)
 }
 
 DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
-  "Call PROGRAM synchronously in separate process.\n\
-The remaining arguments are optional.\n\
-The program's input comes from file INFILE (nil means `/dev/null').\n\
-Insert output in BUFFER before point; t means current buffer;\n\
- nil for BUFFER means discard it; 0 means discard and don't wait.\n\
-BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,\n\
-REAL-BUFFER says what to do with standard output, as above,\n\
-while STDERR-FILE says what to do with standard error in the child.\n\
-STDERR-FILE may be nil (discard standard error output),\n\
-t (mix it with ordinary output), or a file name string.\n\
-\n\
-Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.\n\
-Remaining arguments are strings passed as command arguments to PROGRAM.\n\
-\n\
-If BUFFER is 0, `call-process' returns immediately with value nil.\n\
-Otherwise it waits for PROGRAM to terminate\n\
-and returns a numeric exit status or a signal description string.\n\
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
-  (nargs, args)
+       doc: /* Call PROGRAM synchronously in separate process.
+The remaining arguments are optional.
+The program's input comes from file INFILE (nil means `/dev/null').
+Insert output in BUFFER before point; t means current buffer;
+ nil for BUFFER means discard it; 0 means discard and don't wait.
+BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
+REAL-BUFFER says what to do with standard output, as above,
+while STDERR-FILE says what to do with standard error in the child.
+STDERR-FILE may be nil (discard standard error output),
+t (mix it with ordinary output), or a file name string.
+
+Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
+Remaining arguments are strings passed as command arguments to PROGRAM.
+
+If BUFFER is 0, `call-process' returns immediately with value nil.
+Otherwise it waits for PROGRAM to terminate
+and returns a numeric exit status or a signal description string.
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -971,27 +971,27 @@ delete_temp_file (name)
 }
 
 DEFUN ("call-process-region", Fcall_process_region, Scall_process_region,
-  3, MANY, 0,
-  "Send text from START to END to a synchronous process running PROGRAM.\n\
-The remaining arguments are optional.\n\
-Delete the text if fourth arg DELETE is non-nil.\n\
-\n\
-Insert output in BUFFER before point; t means current buffer;\n\
- nil for BUFFER means discard it; 0 means discard and don't wait.\n\
-BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,\n\
-REAL-BUFFER says what to do with standard output, as above,\n\
-while STDERR-FILE says what to do with standard error in the child.\n\
-STDERR-FILE may be nil (discard standard error output),\n\
-t (mix it with ordinary output), or a file name string.\n\
-\n\
-Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.\n\
-Remaining args are passed to PROGRAM at startup as command args.\n\
-\n\
-If BUFFER is nil, `call-process-region' returns immediately with value nil.\n\
-Otherwise it waits for PROGRAM to terminate\n\
-and returns a numeric exit status or a signal description string.\n\
-If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
-  (nargs, args)
+       3, MANY, 0,
+       doc: /* Send text from START to END to a synchronous process running PROGRAM.
+The remaining arguments are optional.
+Delete the text if fourth arg DELETE is non-nil.
+
+Insert output in BUFFER before point; t means current buffer;
+ nil for BUFFER means discard it; 0 means discard and don't wait.
+BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
+REAL-BUFFER says what to do with standard output, as above,
+while STDERR-FILE says what to do with standard error in the child.
+STDERR-FILE may be nil (discard standard error output),
+t (mix it with ordinary output), or a file name string.
+
+Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
+Remaining args are passed to PROGRAM at startup as command args.
+
+If BUFFER is nil, `call-process-region' returns immediately with value nil.
+Otherwise it waits for PROGRAM to terminate
+and returns a numeric exit status or a signal description string.
+If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -1406,10 +1406,10 @@ getenv_internal (var, varlen, value, valuelen)
 }
 
 DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 1, 0,
-  "Return the value of environment variable VAR, as a string.\n\
-VAR should be a string.  Value is nil if VAR is undefined in the environment.\n\
-This function consults the variable ``process-environment'' for its value.")
-  (var)
+       doc: /* Return the value of environment variable VAR, as a string.
+VAR should be a string.  Value is nil if VAR is undefined in the environment.
+This function consults the variable ``process-environment'' for its value.  */)
+     (var)
      Lisp_Object var;
 {
   char *value;
@@ -1579,50 +1579,50 @@ syms_of_callproc ()
 #endif /* DOS_NT */
 
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
-    "*File name to load inferior shells from.\n\
-Initialized from the SHELL environment variable.");
+	       doc: /* *File name to load inferior shells from.
+Initialized from the SHELL environment variable.  */);
 
   DEFVAR_LISP ("exec-path", &Vexec_path,
-    "*List of directories to search programs to run in subprocesses.\n\
-Each element is a string (directory name) or nil (try default directory).");
+	       doc: /* *List of directories to search programs to run in subprocesses.
+Each element is a string (directory name) or nil (try default directory).  */);
 
   DEFVAR_LISP ("exec-suffixes", &Vexec_suffixes,
-    "*List of suffixes to try to find executable file names.\n\
-Each element is a string");
+	       doc: /* *List of suffixes to try to find executable file names.
+Each element is a string.  */);
   Vexec_suffixes = Qnil;
 
   DEFVAR_LISP ("exec-directory", &Vexec_directory,
-    "Directory for executables for Emacs to invoke.\n\
-More generally, this includes any architecture-dependent files\n\
-that are built and installed from the Emacs distribution.");
+	       doc: /* Directory for executables for Emacs to invoke.
+More generally, this includes any architecture-dependent files
+that are built and installed from the Emacs distribution.  */);
 
   DEFVAR_LISP ("data-directory", &Vdata_directory,
-    "Directory of machine-independent files that come with GNU Emacs.\n\
-These are files intended for Emacs to use while it runs.");
+	       doc: /* Directory of machine-independent files that come with GNU Emacs.
+These are files intended for Emacs to use while it runs.  */);
 
   DEFVAR_LISP ("doc-directory", &Vdoc_directory,
-    "Directory containing the DOC file that comes with GNU Emacs.\n\
-This is usually the same as data-directory.");
+	       doc: /* Directory containing the DOC file that comes with GNU Emacs.
+This is usually the same as data-directory.  */);
 
   DEFVAR_LISP ("configure-info-directory", &Vconfigure_info_directory,
-    "For internal use by the build procedure only.\n\
-This is the name of the directory in which the build procedure installed\n\
-Emacs's info files; the default value for Info-default-directory-list\n\
-includes this.");
+	       doc: /* For internal use by the build procedure only.
+This is the name of the directory in which the build procedure installed
+Emacs's info files; the default value for Info-default-directory-list
+includes this.  */);
   Vconfigure_info_directory = build_string (PATH_INFO);
 
   DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
-    "Pattern for making names for temporary files.\n\
-This is used by `call-process-region'.");
+	       doc: /* Pattern for making names for temporary files.
+This is used by `call-process-region'.  */);
   /* This variable is initialized in init_callproc.  */
 
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
-    "List of environment variables for subprocesses to inherit.\n\
-Each element should be a string of the form ENVVARNAME=VALUE.\n\
-If multiple entries define the same variable, the first one always\n\
-takes precedence.\n\
-The environment which Emacs inherits is placed in this variable\n\
-when Emacs starts.");
+	       doc: /* List of environment variables for subprocesses to inherit.
+Each element should be a string of the form ENVVARNAME=VALUE.
+If multiple entries define the same variable, the first one always
+takes precedence.
+The environment which Emacs inherits is placed in this variable
+when Emacs starts.  */);
 
 #ifndef VMS
   defsubr (&Scall_process);

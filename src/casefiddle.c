@@ -134,33 +134,33 @@ casify_object (flag, obj)
 }
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
-  "Convert argument to upper case and return that.\n\
-The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered--the value is a copy.\n\
-See also `capitalize', `downcase' and `upcase-initials'.")
-  (obj)
+       doc: /* Convert argument to upper case and return that.
+The argument may be a character or string.  The result has the same type.
+The argument object is not altered--the value is a copy.
+See also `capitalize', `downcase' and `upcase-initials'.  */)
+     (obj)
      Lisp_Object obj;
 {
   return casify_object (CASE_UP, obj);
 }
 
 DEFUN ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
-  "Convert argument to lower case and return that.\n\
-The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered--the value is a copy.")
-  (obj)
+       doc: /* Convert argument to lower case and return that.
+The argument may be a character or string.  The result has the same type.
+The argument object is not altered--the value is a copy.  */)
+     (obj)
      Lisp_Object obj;
 {
   return casify_object (CASE_DOWN, obj);
 }
 
 DEFUN ("capitalize", Fcapitalize, Scapitalize, 1, 1, 0,
-  "Convert argument to capitalized form and return that.\n\
-This means that each word's first character is upper case\n\
-and the rest is lower case.\n\
-The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered--the value is a copy.")
-  (obj)
+       doc: /* Convert argument to capitalized form and return that.
+This means that each word's first character is upper case
+and the rest is lower case.
+The argument may be a character or string.  The result has the same type.
+The argument object is not altered--the value is a copy.  */)
+     (obj)
      Lisp_Object obj;
 {
   return casify_object (CASE_CAPITALIZE, obj);
@@ -169,11 +169,11 @@ The argument object is not altered--the value is a copy.")
 /* Like Fcapitalize but change only the initials.  */
 
 DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
-  "Convert the initial of each word in the argument to upper case.\n\
-Do not change the other letters of each word.\n\
-The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered--the value is a copy.")
-  (obj)
+       doc: /* Convert the initial of each word in the argument to upper case.
+Do not change the other letters of each word.
+The argument may be a character or string.  The result has the same type.
+The argument object is not altered--the value is a copy.  */)
+     (obj)
      Lisp_Object obj;
 {
   return casify_object (CASE_CAPITALIZE_UP, obj);
@@ -293,12 +293,12 @@ casify_region (flag, b, e)
 }
 
 DEFUN ("upcase-region", Fupcase_region, Supcase_region, 2, 2, "r",
-  "Convert the region to upper case.  In programs, wants two arguments.\n\
-These arguments specify the starting and ending character numbers of\n\
-the region to operate on.  When used as a command, the text between\n\
-point and the mark is operated on.\n\
-See also `capitalize-region'.")
-  (beg, end)
+       doc: /* Convert the region to upper case.  In programs, wants two arguments.
+These arguments specify the starting and ending character numbers of
+the region to operate on.  When used as a command, the text between
+point and the mark is operated on.
+See also `capitalize-region'.  */)
+     (beg, end)
      Lisp_Object beg, end;
 {
   casify_region (CASE_UP, beg, end);
@@ -306,11 +306,11 @@ See also `capitalize-region'.")
 }
 
 DEFUN ("downcase-region", Fdowncase_region, Sdowncase_region, 2, 2, "r",
-  "Convert the region to lower case.  In programs, wants two arguments.\n\
-These arguments specify the starting and ending character numbers of\n\
-the region to operate on.  When used as a command, the text between\n\
-point and the mark is operated on.")
-  (beg, end)
+       doc: /* Convert the region to lower case.  In programs, wants two arguments.
+These arguments specify the starting and ending character numbers of
+the region to operate on.  When used as a command, the text between
+point and the mark is operated on.  */)
+     (beg, end)
      Lisp_Object beg, end;
 {
   casify_region (CASE_DOWN, beg, end);
@@ -318,12 +318,12 @@ point and the mark is operated on.")
 }
 
 DEFUN ("capitalize-region", Fcapitalize_region, Scapitalize_region, 2, 2, "r",
-  "Convert the region to capitalized form.\n\
-Capitalized form means each word's first character is upper case\n\
-and the rest of it is lower case.\n\
-In programs, give two arguments, the starting and ending\n\
-character positions to operate on.")
-  (beg, end)
+       doc: /* Convert the region to capitalized form.
+Capitalized form means each word's first character is upper case
+and the rest of it is lower case.
+In programs, give two arguments, the starting and ending
+character positions to operate on.  */)
+     (beg, end)
      Lisp_Object beg, end;
 {
   casify_region (CASE_CAPITALIZE, beg, end);
@@ -334,11 +334,11 @@ character positions to operate on.")
 
 DEFUN ("upcase-initials-region", Fupcase_initials_region,
        Supcase_initials_region, 2, 2, "r",
-  "Upcase the initial of each word in the region.\n\
-Subsequent letters of each word are not changed.\n\
-In programs, give two arguments, the starting and ending\n\
-character positions to operate on.")
-  (beg, end)
+       doc: /* Upcase the initial of each word in the region.
+Subsequent letters of each word are not changed.
+In programs, give two arguments, the starting and ending
+character positions to operate on.  */)
+     (beg, end)
      Lisp_Object beg, end;
 {
   casify_region (CASE_CAPITALIZE_UP, beg, end);
@@ -367,10 +367,10 @@ operate_on_word (arg, newpoint)
 }
 
 DEFUN ("upcase-word", Fupcase_word, Supcase_word, 1, 1, "p",
-  "Convert following word (or ARG words) to upper case, moving over.\n\
-With negative argument, convert previous words but do not move.\n\
-See also `capitalize-word'.")
-  (arg)
+       doc: /* Convert following word (or ARG words) to upper case, moving over.
+With negative argument, convert previous words but do not move.
+See also `capitalize-word'.  */)
+     (arg)
      Lisp_Object arg;
 {
   Lisp_Object beg, end;
@@ -383,9 +383,9 @@ See also `capitalize-word'.")
 }
 
 DEFUN ("downcase-word", Fdowncase_word, Sdowncase_word, 1, 1, "p",
-  "Convert following word (or ARG words) to lower case, moving over.\n\
-With negative argument, convert previous words but do not move.")
-  (arg)
+       doc: /* Convert following word (or ARG words) to lower case, moving over.
+With negative argument, convert previous words but do not move.  */)
+     (arg)
      Lisp_Object arg;
 {
   Lisp_Object beg, end;
@@ -398,11 +398,11 @@ With negative argument, convert previous words but do not move.")
 }
 
 DEFUN ("capitalize-word", Fcapitalize_word, Scapitalize_word, 1, 1, "p",
-  "Capitalize the following word (or ARG words), moving over.\n\
-This gives the word(s) a first character in upper case\n\
-and the rest lower case.\n\
-With negative argument, capitalize previous words but do not move.")
-  (arg)
+       doc: /* Capitalize the following word (or ARG words), moving over.
+This gives the word(s) a first character in upper case
+and the rest lower case.
+With negative argument, capitalize previous words but do not move.  */)
+     (arg)
      Lisp_Object arg;
 {
   Lisp_Object beg, end;

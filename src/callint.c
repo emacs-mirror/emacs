@@ -21,6 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
@@ -62,72 +63,66 @@ static char *callint_message;
 /* Allocated length of that buffer.  */
 static int callint_message_size;
 
-/* This comment supplies the doc string for interactive,
-   for make-docfile to see.  We cannot put this in the real DEFUN
-   due to limits in the Unix cpp.
-
-DEFUN ("interactive", Ffoo, Sfoo, 0, 0, 0,
- "Specify a way of parsing arguments for interactive use of a function.\n\
-For example, write\n\
-  (defun foo (arg) \"Doc string\" (interactive \"p\") ...use arg...)\n\
-to make ARG be the prefix argument when `foo' is called as a command.\n\
-The \"call\" to `interactive' is actually a declaration rather than a function;\n\
- it tells `call-interactively' how to read arguments\n\
- to pass to the function.\n\
-When actually called, `interactive' just returns nil.\n\
-\n\
-The argument of `interactive' is usually a string containing a code letter\n\
- followed by a prompt.  (Some code letters do not use I/O to get\n\
- the argument and do not need prompts.)  To prompt for multiple arguments,\n\
- give a code letter, its prompt, a newline, and another code letter, etc.\n\
- Prompts are passed to format, and may use % escapes to print the\n\
- arguments that have already been read.\n\
-If the argument is not a string, it is evaluated to get a list of\n\
- arguments to pass to the function.\n\
-Just `(interactive)' means pass no args when calling interactively.\n\
-\nCode letters available are:\n\
-a -- Function name: symbol with a function definition.\n\
-b -- Name of existing buffer.\n\
-B -- Name of buffer, possibly nonexistent.\n\
-c -- Character (no input method is used).\n\
-C -- Command name: symbol with interactive function definition.\n\
-d -- Value of point as number.  Does not do I/O.\n\
-D -- Directory name.\n\
-e -- Parametrized event (i.e., one that's a list) that invoked this command.\n\
-     If used more than once, the Nth `e' returns the Nth parameterized event.\n\
-     This skips events that are integers or symbols.\n\
-f -- Existing file name.\n\
-F -- Possibly nonexistent file name.\n\
-i -- Ignored, i.e. always nil.  Does not do I/O.\n\
-k -- Key sequence (downcase the last event if needed to get a definition).\n\
-K -- Key sequence to be redefined (do not downcase the last event).\n\
-m -- Value of mark as number.  Does not do I/O.\n\
-M -- Any string.  Inherits the current input method.\n\
-n -- Number read using minibuffer.\n\
-N -- Raw prefix arg, or if none, do like code `n'.\n\
-p -- Prefix arg converted to number.  Does not do I/O.\n\
-P -- Prefix arg in raw form.  Does not do I/O.\n\
-r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.\n\
-s -- Any string.  Does not inherit the current input method.\n\
-S -- Any symbol.\n\
-v -- Variable name: symbol that is user-variable-p.\n\
-x -- Lisp expression read but not evaluated.\n\
-X -- Lisp expression read and evaluated.\n\
-z -- Coding system.\n\
-Z -- Coding system, nil if no prefix arg.\n\
-In addition, if the string begins with `*'\n\
- then an error is signaled if the buffer is read-only.\n\
- This happens before reading any arguments.\n\
-If the string begins with `@', then Emacs searches the key sequence\n\
- which invoked the command for its first mouse click (or any other\n\
- event which specifies a window), and selects that window before\n\
- reading any arguments.  You may use both `@' and `*'; they are\n\
- processed in the order that they appear." */
-
 /* ARGSUSED */
 DEFUN ("interactive", Finteractive, Sinteractive, 0, UNEVALLED, 0,
-  0 /* See immediately above */)
-  (args)
+       doc: /* Specify a way of parsing arguments for interactive use of a function.
+For example, write
+  (defun foo (arg) "Doc string" (interactive "p") ...use arg...)
+to make ARG be the prefix argument when `foo' is called as a command.
+The "call" to `interactive' is actually a declaration rather than a function;
+ it tells `call-interactively' how to read arguments
+ to pass to the function.
+When actually called, `interactive' just returns nil.
+
+The argument of `interactive' is usually a string containing a code letter
+ followed by a prompt.  (Some code letters do not use I/O to get
+ the argument and do not need prompts.)  To prompt for multiple arguments,
+ give a code letter, its prompt, a newline, and another code letter, etc.
+ Prompts are passed to format, and may use % escapes to print the
+ arguments that have already been read.
+If the argument is not a string, it is evaluated to get a list of
+ arguments to pass to the function.
+Just `(interactive)' means pass no args when calling interactively.
+
+Code letters available are:
+a -- Function name: symbol with a function definition.
+b -- Name of existing buffer.
+B -- Name of buffer, possibly nonexistent.
+c -- Character (no input method is used).
+C -- Command name: symbol with interactive function definition.
+d -- Value of point as number.  Does not do I/O.
+D -- Directory name.
+e -- Parametrized event (i.e., one that's a list) that invoked this command.
+     If used more than once, the Nth `e' returns the Nth parameterized event.
+     This skips events that are integers or symbols.
+f -- Existing file name.
+F -- Possibly nonexistent file name.
+i -- Ignored, i.e. always nil.  Does not do I/O.
+k -- Key sequence (downcase the last event if needed to get a definition).
+K -- Key sequence to be redefined (do not downcase the last event).
+m -- Value of mark as number.  Does not do I/O.
+M -- Any string.  Inherits the current input method.
+n -- Number read using minibuffer.
+N -- Raw prefix arg, or if none, do like code `n'.
+p -- Prefix arg converted to number.  Does not do I/O.
+P -- Prefix arg in raw form.  Does not do I/O.
+r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
+s -- Any string.  Does not inherit the current input method.
+S -- Any symbol.
+v -- Variable name: symbol that is user-variable-p.
+x -- Lisp expression read but not evaluated.
+X -- Lisp expression read and evaluated.
+z -- Coding system.
+Z -- Coding system, nil if no prefix arg.
+In addition, if the string begins with `*'
+ then an error is signaled if the buffer is read-only.
+ This happens before reading any arguments.
+If the string begins with `@', then Emacs searches the key sequence
+ which invoked the command for its first mouse click (or any other
+ event which specifies a window), and selects that window before
+ reading any arguments.  You may use both `@' and `*'; they are
+ processed in the order that they appear.  */)
+     (args)
      Lisp_Object args;
 {
   return Qnil;
@@ -178,19 +173,19 @@ check_mark ()
 
 
 DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 3, 0,
-  "Call FUNCTION, reading args according to its interactive calling specs.\n\
-Return the value FUNCTION returns.\n\
-The function contains a specification of how to do the argument reading.\n\
-In the case of user-defined functions, this is specified by placing a call\n\
-to the function `interactive' at the top level of the function body.\n\
-See `interactive'.\n\
-\n\
-Optional second arg RECORD-FLAG non-nil\n\
-means unconditionally put this command in the command-history.\n\
-Otherwise, this is done only if an arg is read using the minibuffer.\n\
-Optional third arg KEYS, if given, specifies the sequence of events to\n\
-supply if the command inquires which events were used to invoke it.")
-  (function, record_flag, keys)
+       doc: /* Call FUNCTION, reading args according to its interactive calling specs.
+Return the value FUNCTION returns.
+The function contains a specification of how to do the argument reading.
+In the case of user-defined functions, this is specified by placing a call
+to the function `interactive' at the top level of the function body.
+See `interactive'.
+
+Optional second arg RECORD-FLAG non-nil
+means unconditionally put this command in the command-history.
+Otherwise, this is done only if an arg is read using the minibuffer.
+Optional third arg KEYS, if given, specifies the sequence of events to
+supply if the command inquires which events were used to invoke it.  */)
+     (function, record_flag, keys)
      Lisp_Object function, record_flag, keys;
 {
   Lisp_Object *args, *visargs;
@@ -799,11 +794,11 @@ supply if the command inquires which events were used to invoke it.")
 }  
 
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
-  1, 1, 0,
-  "Return numeric meaning of raw prefix argument RAW.\n\
-A raw prefix argument is what you get from `(interactive \"P\")'.\n\
-Its numeric meaning is what you would get from `(interactive \"p\")'.")
-  (raw)
+       1, 1, 0,
+       doc: /* Return numeric meaning of raw prefix argument RAW.
+A raw prefix argument is what you get from `(interactive "P")'.
+Its numeric meaning is what you would get from `(interactive "p")'.  */)
+     (raw)
      Lisp_Object raw;
 {
   Lisp_Object val;
@@ -866,51 +861,51 @@ syms_of_callint ()
 
 
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
-    "The value of the prefix argument for the next editing command.\n\
-It may be a number, or the symbol `-' for just a minus sign as arg,\n\
-or a list whose car is a number for just one or more C-u's\n\
-or nil if no argument has been specified.\n\
-\n\
-You cannot examine this variable to find the argument for this command\n\
-since it has been set to nil by the time you can look.\n\
-Instead, you should use the variable `current-prefix-arg', although\n\
-normally commands can get this prefix argument with (interactive \"P\").");
+		 doc: /* The value of the prefix argument for the next editing command.
+It may be a number, or the symbol `-' for just a minus sign as arg,
+or a list whose car is a number for just one or more C-u's
+or nil if no argument has been specified.
+
+You cannot examine this variable to find the argument for this command
+since it has been set to nil by the time you can look.
+Instead, you should use the variable `current-prefix-arg', although
+normally commands can get this prefix argument with (interactive "P").  */);
 
   DEFVAR_KBOARD ("last-prefix-arg", Vlast_prefix_arg,
-    "The value of the prefix argument for the previous editing command.\n\
-See `prefix-arg' for the meaning of the value.");
+		 doc: /* The value of the prefix argument for the previous editing command.
+See `prefix-arg' for the meaning of the value.  */);
 
   DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
-    "The value of the prefix argument for this editing command.\n\
-It may be a number, or the symbol `-' for just a minus sign as arg,\n\
-or a list whose car is a number for just one or more C-u's\n\
-or nil if no argument has been specified.\n\
-This is what `(interactive \"P\")' returns.");
+	       doc: /* The value of the prefix argument for this editing command.
+It may be a number, or the symbol `-' for just a minus sign as arg,
+or a list whose car is a number for just one or more C-u's
+or nil if no argument has been specified.
+This is what `(interactive \"P\")' returns.  */);
   Vcurrent_prefix_arg = Qnil;
 
   DEFVAR_LISP ("command-history", &Vcommand_history,
-    "List of recent commands that read arguments from terminal.\n\
-Each command is represented as a form to evaluate.");
+	       doc: /* List of recent commands that read arguments from terminal.
+Each command is represented as a form to evaluate.  */);
   Vcommand_history = Qnil;
 
   DEFVAR_LISP ("command-debug-status", &Vcommand_debug_status,
-    "Debugging status of current interactive command.\n\
-Bound each time `call-interactively' is called;\n\
-may be set by the debugger as a reminder for itself.");
+	       doc: /* Debugging status of current interactive command.
+Bound each time `call-interactively' is called;
+may be set by the debugger as a reminder for itself.  */);
   Vcommand_debug_status = Qnil;
 
   DEFVAR_LISP ("mark-even-if-inactive", &Vmark_even_if_inactive,
-    "*Non-nil means you can use the mark even when inactive.\n\
-This option makes a difference in Transient Mark mode.\n\
-When the option is non-nil, deactivation of the mark\n\
-turns off region highlighting, but commands that use the mark\n\
-behave as if the mark were still active.");
+	       doc: /* *Non-nil means you can use the mark even when inactive.
+This option makes a difference in Transient Mark mode.
+When the option is non-nil, deactivation of the mark
+turns off region highlighting, but commands that use the mark
+behave as if the mark were still active.  */);
   Vmark_even_if_inactive = Qnil;
 
   DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
-    "Hook to run when about to switch windows with a mouse command.\n\
-Its purpose is to give temporary modes such as Isearch mode\n\
-a way to turn themselves off when a mouse command switches windows.");
+	       doc: /* Hook to run when about to switch windows with a mouse command.
+Its purpose is to give temporary modes such as Isearch mode
+a way to turn themselves off when a mouse command switches windows.  */);
   Vmouse_leave_buffer_hook = Qnil;
 
   defsubr (&Sinteractive);

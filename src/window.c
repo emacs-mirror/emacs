@@ -227,15 +227,15 @@ extern int scroll_margin;
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
-  "Returns t if OBJECT is a window.")
-  (object)
+       doc: /* Returns t if OBJECT is a window.  */)
+     (object)
      Lisp_Object object;
 {
   return WINDOWP (object) ? Qt : Qnil;
 }
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
-  "Returns t if OBJECT is a window which is currently visible.")
+       doc: /* Returns t if OBJECT is a window which is currently visible.  */)
      (object)
      Lisp_Object object;
 {
@@ -283,17 +283,17 @@ make_window ()
 }
 
 DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
-  "Return the window that the cursor now appears in and commands apply to.")
-  ()
+       doc: /* Return the window that the cursor now appears in and commands apply to.  */)
+     ()
 {
   return selected_window;
 }
 
 DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
-  "Return the window used now for minibuffers.\n\
-If the optional argument FRAME is specified, return the minibuffer window\n\
-used by that frame.")
-  (frame)
+       doc: /* Return the window used now for minibuffers.
+If the optional argument FRAME is specified, return the minibuffer window
+used by that frame.  */)
+     (frame)
     Lisp_Object frame;
 {
   if (NILP (frame))
@@ -303,8 +303,8 @@ used by that frame.")
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
-  "Returns non-nil if WINDOW is a minibuffer window.")
-  (window)
+       doc: /* Returns non-nil if WINDOW is a minibuffer window.  */)
+     (window)
      Lisp_Object window;
 {
   struct window *w = decode_window (window);
@@ -313,13 +313,13 @@ DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 
 
 
 DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
-  Spos_visible_in_window_p, 0, 3, 0,
-  "Return t if position POS is currently on the frame in WINDOW.\n\
-Return nil if that position is scrolled vertically out of view.\n\
-If a character is only partially visible, nil is returned, unless the\n\
-optional argument PARTIALLY is non-nil.\n\
-POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
-  (pos, window, partially)
+       Spos_visible_in_window_p, 0, 3, 0,
+       doc: /* Return t if position POS is currently on the frame in WINDOW.
+Return nil if that position is scrolled vertically out of view.
+If a character is only partially visible, nil is returned, unless the
+optional argument PARTIALLY is non-nil.
+POS defaults to point in WINDOW; WINDOW defaults to the selected window.  */)
+     (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
   register struct window *w;
@@ -391,44 +391,44 @@ decode_window (window)
 }
 
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
-  "Return the buffer that WINDOW is displaying.")
-  (window)
+       doc: /* Return the buffer that WINDOW is displaying.  */)
+     (window)
      Lisp_Object window;
 {
   return decode_window (window)->buffer;
 }
 
 DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
-  "Return the number of lines in WINDOW (including its mode line).")
-  (window)
+       doc: /* Return the number of lines in WINDOW (including its mode line).  */)
+     (window)
      Lisp_Object window;
 {
   return decode_window (window)->height;
 }
 
 DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
-  "Return the number of display columns in WINDOW.\n\
-This is the width that is usable columns available for text in WINDOW.\n\
-If you want to find out how many columns WINDOW takes up,\n\
-use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).")
-  (window)
+       doc: /* Return the number of display columns in WINDOW.
+This is the width that is usable columns available for text in WINDOW.
+If you want to find out how many columns WINDOW takes up,
+use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
+     (window)
      Lisp_Object window;
 {
   return make_number (window_internal_width (decode_window (window)));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
-  "Return the number of columns by which WINDOW is scrolled from left margin.")
-  (window)
+       doc: /* Return the number of columns by which WINDOW is scrolled from left margin.  */)
+     (window)
      Lisp_Object window;
 {
   return decode_window (window)->hscroll;
 }
 
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
-  "Set number of columns WINDOW is scrolled from left margin to NCOL.\n\
-NCOL should be zero or positive.")
-  (window, ncol)
+       doc: /* Set number of columns WINDOW is scrolled from left margin to NCOL.
+NCOL should be zero or positive.  */)
+     (window, ncol)
      Lisp_Object window, ncol;
 {
   struct window *w = decode_window (window);
@@ -447,9 +447,9 @@ NCOL should be zero or positive.")
 
 DEFUN ("window-redisplay-end-trigger", Fwindow_redisplay_end_trigger,
        Swindow_redisplay_end_trigger, 0, 1, 0,
-  "Return WINDOW's redisplay end trigger value.\n\
-See `set-window-redisplay-end-trigger' for more information.")
-  (window)
+       doc: /* Return WINDOW's redisplay end trigger value.
+See `set-window-redisplay-end-trigger' for more information.  */)
+     (window)
      Lisp_Object window;
 {
   return decode_window (window)->redisplay_end_trigger;
@@ -457,13 +457,13 @@ See `set-window-redisplay-end-trigger' for more information.")
 
 DEFUN ("set-window-redisplay-end-trigger", Fset_window_redisplay_end_trigger,
        Sset_window_redisplay_end_trigger, 2, 2, 0,
-  "Set WINDOW's redisplay end trigger value to VALUE.\n\
-VALUE should be a buffer position (typically a marker) or nil.\n\
-If it is a buffer position, then if redisplay in WINDOW reaches a position\n\
-beyond VALUE, the functions in `redisplay-end-trigger-functions' are called\n\
-with two arguments: WINDOW, and the end trigger value.\n\
-Afterwards the end-trigger value is reset to nil.")
-  (window, value)
+       doc: /* Set WINDOW's redisplay end trigger value to VALUE.
+VALUE should be a buffer position (typically a marker) or nil.
+If it is a buffer position, then if redisplay in WINDOW reaches a position
+beyond VALUE, the functions in `redisplay-end-trigger-functions' are called
+with two arguments: WINDOW, and the end trigger value.
+Afterwards the end-trigger value is reset to nil.  */)
+     (window, value)
      register Lisp_Object window, value;
 {
   register struct window *w;
@@ -474,12 +474,12 @@ Afterwards the end-trigger value is reset to nil.")
 }
 
 DEFUN ("window-edges", Fwindow_edges, Swindow_edges, 0, 1, 0,
-  "Return a list of the edge coordinates of WINDOW.\n\
-\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.\n\
-RIGHT is one more than the rightmost column used by WINDOW,\n\
-and BOTTOM is one more than the bottommost row used by WINDOW\n\
- and its mode-line.")
-  (window)
+       doc: /* Return a list of the edge coordinates of WINDOW.
+\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
+RIGHT is one more than the rightmost column used by WINDOW,
+and BOTTOM is one more than the bottommost row used by WINDOW
+ and its mode-line.  */)
+     (window)
      Lisp_Object window;
 {
   register struct window *w = decode_window (window);
@@ -659,22 +659,22 @@ coordinates_in_window (w, x, y)
 
 
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
-  Scoordinates_in_window_p, 2, 2, 0,
-  "Return non-nil if COORDINATES are in WINDOW.\n\
-COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
-measured in characters from the upper-left corner of the frame.\n\
-\(0 .  0) denotes the character in the upper left corner of the\n\
-frame.\n\
-If COORDINATES are in the text portion of WINDOW,\n\
-   the coordinates relative to the window are returned.\n\
-If they are in the mode line of WINDOW, `mode-line' is returned.\n\
-If they are in the top mode line of WINDOW, `header-line' is returned.\n\
-If they are in the fringe to the left of the window,\n\
-   `left-fringe' is returned, if they are in the area on the right of\n\
-   the window, `right-fringe' is returned.\n\
-If they are on the border between WINDOW and its right sibling,\n\
-   `vertical-line' is returned.")
-  (coordinates, window)
+       Scoordinates_in_window_p, 2, 2, 0,
+       doc: /* Return non-nil if COORDINATES are in WINDOW.
+COORDINATES is a cons of the form (X . Y), X and Y being distances
+measured in characters from the upper-left corner of the frame.
+\(0 .  0) denotes the character in the upper left corner of the
+frame.
+If COORDINATES are in the text portion of WINDOW,
+   the coordinates relative to the window are returned.
+If they are in the mode line of WINDOW, `mode-line' is returned.
+If they are in the top mode line of WINDOW, `header-line' is returned.
+If they are in the fringe to the left of the window,
+   `left-fringe' is returned, if they are in the area on the right of
+   the window, `right-fringe' is returned.
+If they are on the border between WINDOW and its right sibling,
+  `vertical-line' is returned.  */)
+     (coordinates, window)
      register Lisp_Object coordinates, window;
 {
   struct window *w;
@@ -808,12 +808,12 @@ window_from_coordinates (f, x, y, part, tool_bar_p)
 }
 
 DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
-  "Return window containing coordinates X and Y on FRAME.\n\
-If omitted, FRAME defaults to the currently selected frame.\n\
-The top left corner of the frame is considered to be row 0,\n\
-column 0.")
-  (x, y, frame)
-      Lisp_Object x, y, frame;
+       doc: /* Return window containing coordinates X and Y on FRAME.
+If omitted, FRAME defaults to the currently selected frame.
+The top left corner of the frame is considered to be row 0,
+column 0.  */)
+     (x, y, frame)
+     Lisp_Object x, y, frame;
 {
   int part;
   struct frame *f;
@@ -834,16 +834,16 @@ column 0.")
 }
 
 DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
-  "Return current value of point in WINDOW.\n\
-For a nonselected window, this is the value point would have\n\
-if that window were selected.\n\
-\n\
-Note that, when WINDOW is the selected window and its buffer\n\
-is also currently selected, the value returned is the same as (point).\n\
-It would be more strictly correct to return the `top-level' value\n\
-of point, outside of any save-excursion forms.\n\
-But that is hard to define.")
-  (window)
+       doc: /* Return current value of point in WINDOW.
+For a nonselected window, this is the value point would have
+if that window were selected.
+
+Note that, when WINDOW is the selected window and its buffer
+is also currently selected, the value returned is the same as (point).
+It would be more strictly correct to return the `top-level' value
+of point, outside of any save-excursion forms.
+But that is hard to define.  */)
+     (window)
      Lisp_Object window;
 {
   register struct window *w = decode_window (window);
@@ -855,9 +855,9 @@ But that is hard to define.")
 }
 
 DEFUN ("window-start", Fwindow_start, Swindow_start, 0, 1, 0,
-  "Return position at which display currently starts in WINDOW.\n\
-This is updated by redisplay or by calling `set-window-start'.")
-  (window)
+       doc: /* Return position at which display currently starts in WINDOW.
+This is updated by redisplay or by calling `set-window-start'.  */)
+     (window)
      Lisp_Object window;
 {
   return Fmarker_position (decode_window (window)->start);
@@ -865,23 +865,23 @@ This is updated by redisplay or by calling `set-window-start'.")
 
 /* This is text temporarily removed from the doc string below.
 
-This function returns nil if the position is not currently known.\n\
-That happens when redisplay is preempted and doesn't finish.\n\
-If in that case you want to compute where the end of the window would\n\
-have been if redisplay had finished, do this:\n\
-    (save-excursion\n\
-      (goto-char (window-start window))\n\
-      (vertical-motion (1- (window-height window)) window)\n\
+This function returns nil if the position is not currently known.
+That happens when redisplay is preempted and doesn't finish.
+If in that case you want to compute where the end of the window would
+have been if redisplay had finished, do this:
+    (save-excursion
+      (goto-char (window-start window))
+      (vertical-motion (1- (window-height window)) window)
       (point))")  */
 
 DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 2, 0,
-  "Return position at which display currently ends in WINDOW.\n\
-This is updated by redisplay, when it runs to completion.\n\
-Simply changing the buffer text or setting `window-start'\n\
-does not update this value.\n\
-If UPDATE is non-nil, compute the up-to-date position\n\
-if it isn't already recorded.")
-  (window, update)
+       doc: /* Return position at which display currently ends in WINDOW.
+This is updated by redisplay, when it runs to completion.
+Simply changing the buffer text or setting `window-start'
+does not update this value.
+If UPDATE is non-nil, compute the up-to-date position
+if it isn't already recorded.  */)
+     (window, update)
      Lisp_Object window, update;
 {
   Lisp_Object value;
@@ -944,8 +944,8 @@ if it isn't already recorded.")
 }
 
 DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
-  "Make point value in WINDOW be at position POS in WINDOW's buffer.")
-  (window, pos)
+       doc: /* Make point value in WINDOW be at position POS in WINDOW's buffer.  */)
+     (window, pos)
      Lisp_Object window, pos;
 {
   register struct window *w = decode_window (window);
@@ -966,10 +966,10 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
 }
 
 DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
-  "Make display in WINDOW start at position POS in WINDOW's buffer.\n\
-Optional third arg NOFORCE non-nil inhibits next redisplay\n\
-from overriding motion of point in order to display at this exact start.")
-  (window, pos, noforce)
+       doc: /* Make display in WINDOW start at position POS in WINDOW's buffer.
+Optional third arg NOFORCE non-nil inhibits next redisplay
+from overriding motion of point in order to display at this exact start.  */)
+     (window, pos, noforce)
      Lisp_Object window, pos, noforce;
 {
   register struct window *w = decode_window (window);
@@ -991,9 +991,9 @@ from overriding motion of point in order to display at this exact start.")
 
 DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
        1, 1, 0,
-  "Return WINDOW's dedicated object, usually t or nil.\n\
-See also `set-window-dedicated-p'.")
-  (window)
+       doc: /* Return WINDOW's dedicated object, usually t or nil.
+See also `set-window-dedicated-p'.  */)
+     (window)
      Lisp_Object window;
 {
   return decode_window (window)->dedicated;
@@ -1001,13 +1001,13 @@ See also `set-window-dedicated-p'.")
 
 DEFUN ("set-window-dedicated-p", Fset_window_dedicated_p,
        Sset_window_dedicated_p, 2, 2, 0,
-  "Control whether WINDOW is dedicated to the buffer it displays.\n\
-If it is dedicated, Emacs will not automatically change\n\
-which buffer appears in it.\n\
-The second argument is the new value for the dedication flag;\n\
-non-nil means yes.")
-  (window, arg)
-       Lisp_Object window, arg;
+       doc: /* Control whether WINDOW is dedicated to the buffer it displays.
+If it is dedicated, Emacs will not automatically change
+which buffer appears in it.
+The second argument is the new value for the dedication flag;
+non-nil means yes. */)
+     (window, arg)
+     Lisp_Object window, arg;
 {
   register struct window *w = decode_window (window);
 
@@ -1021,8 +1021,8 @@ non-nil means yes.")
 
 DEFUN ("window-display-table", Fwindow_display_table, Swindow_display_table,
        0, 1, 0,
-  "Return the display-table that WINDOW is using.")
-  (window)
+       doc: /* Return the display-table that WINDOW is using.  */)
+     (window)
      Lisp_Object window;
 {
   return decode_window (window)->display_table;
@@ -1055,8 +1055,8 @@ window_display_table (w)
 }
 
 DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_display_table, 2, 2, 0,
-  "Set WINDOW's display-table to TABLE.")
-  (window, table)
+       doc: /* Set WINDOW's display-table to TABLE.  */)
+     (window, table)
      register Lisp_Object window, table;
 {
   register struct window *w;
@@ -1171,8 +1171,8 @@ children be children of that parent instead.  ***/
 }
 
 DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
-  "Remove WINDOW from the display.  Default is selected window.")
-  (window)
+       doc: /* Remove WINDOW from the display.  Default is selected window.  */)
+     (window)
      register Lisp_Object window;
 {
   delete_window (window);
@@ -1558,83 +1558,66 @@ next_window (window, minibuf, all_frames, next_p)
 }
 
 
-/* This comment supplies the doc string for `next-window',
-   for make-docfile to see.  We cannot put this in the real DEFUN
-   due to limits in the Unix cpp.
-
-DEFUN ("next-window", Ffoo, Sfoo, 0, 3, 0,
-  "Return next window after WINDOW in canonical ordering of windows.\n\
-If omitted, WINDOW defaults to the selected window.\n\
-\n\
-Optional second arg MINIBUF t means count the minibuffer window even\n\
-if not active.  MINIBUF nil or omitted means count the minibuffer iff\n\
-it is active.  MINIBUF neither t nor nil means not to count the\n\
-minibuffer even if it is active.\n\
-\n\
-Several frames may share a single minibuffer; if the minibuffer\n\
-counts, all windows on all frames that share that minibuffer count\n\
-too.  Therefore, `next-window' can be used to iterate through the\n\
-set of windows even when the minibuffer is on another frame.  If the\n\
-minibuffer does not count, only windows from WINDOW's frame count.\n\
-\n\
-Optional third arg ALL-FRAMES t means include windows on all frames.\n\
-ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
-above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
-ALL-FRAMES = 0 means include windows on all visible and iconified frames.\n\
-If ALL-FRAMES is a frame, restrict search to windows on that frame.\n\
-Anything else means restrict to WINDOW's frame.\n\
-\n\
-If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
-`next-window' to iterate through the entire cycle of acceptable\n\
-windows, eventually ending up back at the window you started with.\n\
-`previous-window' traverses the same cycle, in the reverse order.")
-  (window, minibuf, all_frames) */
-
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
-       0)
-  (window, minibuf, all_frames)
+       doc: /* Return next window after WINDOW in canonical ordering of windows.
+If omitted, WINDOW defaults to the selected window.
+
+Optional second arg MINIBUF t means count the minibuffer window even
+if not active.  MINIBUF nil or omitted means count the minibuffer iff
+it is active.  MINIBUF neither t nor nil means not to count the
+minibuffer even if it is active.
+
+Several frames may share a single minibuffer; if the minibuffer
+counts, all windows on all frames that share that minibuffer count
+too.  Therefore, `next-window' can be used to iterate through the
+set of windows even when the minibuffer is on another frame.  If the
+minibuffer does not count, only windows from WINDOW's frame count.
+
+Optional third arg ALL-FRAMES t means include windows on all frames.
+ALL-FRAMES nil or omitted means cycle within the frames as specified
+above.  ALL-FRAMES = `visible' means include windows on all visible frames.
+ALL-FRAMES = 0 means include windows on all visible and iconified frames.
+If ALL-FRAMES is a frame, restrict search to windows on that frame.
+Anything else means restrict to WINDOW's frame.
+
+If you use consistent values for MINIBUF and ALL-FRAMES, you can use
+`next-window' to iterate through the entire cycle of acceptable
+windows, eventually ending up back at the window you started with.
+`previous-window' traverses the same cycle, in the reverse order.  */)
+     (window, minibuf, all_frames)
      Lisp_Object window, minibuf, all_frames;
 {
   return next_window (window, minibuf, all_frames, 1);
 }
 
 
-/* This comment supplies the doc string for `previous-window',
-   for make-docfile to see.  We cannot put this in the real DEFUN
-   due to limits in the Unix cpp.
-
-DEFUN ("previous-window", Ffoo, Sfoo, 0, 3, 0,
-  "Return the window preceding WINDOW in canonical ordering of windows.\n\
-If omitted, WINDOW defaults to the selected window.\n\
-\n\
-Optional second arg MINIBUF t means count the minibuffer window even\n\
-if not active.  MINIBUF nil or omitted means count the minibuffer iff\n\
-it is active.  MINIBUF neither t nor nil means not to count the\n\
-minibuffer even if it is active.\n\
-\n\
-Several frames may share a single minibuffer; if the minibuffer\n\
-counts, all windows on all frames that share that minibuffer count\n\
-too.  Therefore, `previous-window' can be used to iterate through\n\
-the set of windows even when the minibuffer is on another frame.  If\n\
-the minibuffer does not count, only windows from WINDOW's frame count\n\
-\n\
-Optional third arg ALL-FRAMES t means include windows on all frames.\n\
-ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
-above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
-ALL-FRAMES = 0 means include windows on all visible and iconified frames.\n\
-If ALL-FRAMES is a frame, restrict search to windows on that frame.\n\
-Anything else means restrict to WINDOW's frame.\n\
-\n\
-If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
-`previous-window' to iterate through the entire cycle of acceptable\n\
-windows, eventually ending up back at the window you started with.\n\
-`next-window' traverses the same cycle, in the reverse order.")
-  (window, minibuf, all_frames)  */
-
-
 DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
-       0)
-  (window, minibuf, all_frames)
+       doc: /* Return the window preceding WINDOW in canonical ordering of windows.
+If omitted, WINDOW defaults to the selected window.
+
+Optional second arg MINIBUF t means count the minibuffer window even
+if not active.  MINIBUF nil or omitted means count the minibuffer iff
+it is active.  MINIBUF neither t nor nil means not to count the
+minibuffer even if it is active.
+
+Several frames may share a single minibuffer; if the minibuffer
+counts, all windows on all frames that share that minibuffer count
+too.  Therefore, `previous-window' can be used to iterate through
+the set of windows even when the minibuffer is on another frame.  If
+the minibuffer does not count, only windows from WINDOW's frame count
+
+Optional third arg ALL-FRAMES t means include windows on all frames.
+ALL-FRAMES nil or omitted means cycle within the frames as specified
+above.  ALL-FRAMES = `visible' means include windows on all visible frames.
+ALL-FRAMES = 0 means include windows on all visible and iconified frames.
+If ALL-FRAMES is a frame, restrict search to windows on that frame.
+Anything else means restrict to WINDOW's frame.
+
+If you use consistent values for MINIBUF and ALL-FRAMES, you can use
+`previous-window' to iterate through the entire cycle of acceptable
+windows, eventually ending up back at the window you started with.
+`next-window' traverses the same cycle, in the reverse order.  */)
+     (window, minibuf, all_frames)
      Lisp_Object window, minibuf, all_frames;
 {
   return next_window (window, minibuf, all_frames, 0);
@@ -1642,12 +1625,12 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 
 
 DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
-  "Select the ARG'th different window on this frame.\n\
-All windows on current frame are arranged in a cyclic order.\n\
-This command selects the window ARG steps away in that order.\n\
-A negative ARG moves in the opposite order.  If the optional second\n\
-argument ALL_FRAMES is non-nil, cycle through all frames.")
-  (arg, all_frames)
+       doc: /* Select the ARG'th different window on this frame.
+All windows on current frame are arranged in a cyclic order.
+This command selects the window ARG steps away in that order.
+A negative ARG moves in the opposite order.  If the optional second
+argument ALL_FRAMES is non-nil, cycle through all frames.  */)
+     (arg, all_frames)
      Lisp_Object arg, all_frames;
 {
   Lisp_Object window;
@@ -1667,14 +1650,14 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
 
 
 DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
-  "Return a list of windows on FRAME, starting with WINDOW.\n\
-FRAME nil or omitted means use the selected frame.\n\
-WINDOW nil or omitted means use the selected window.\n\
-MINIBUF t means include the minibuffer window, even if it isn't active.\n\
-MINIBUF nil or omitted means include the minibuffer window only\n\
-if it's active.\n\
-MINIBUF neither nil nor t means never include the minibuffer window.")
-  (frame, minibuf, window)
+       doc: /* Return a list of windows on FRAME, starting with WINDOW.
+FRAME nil or omitted means use the selected frame.
+WINDOW nil or omitted means use the selected window.
+MINIBUF t means include the minibuffer window, even if it isn't active.
+MINIBUF nil or omitted means include the minibuffer window only
+if it's active.
+MINIBUF neither nil nor t means never include the minibuffer window.  */)
+     (frame, minibuf, window)
      Lisp_Object frame, minibuf, window;
 {
   if (NILP (window))
@@ -1942,14 +1925,14 @@ check_all_windows ()
 }
 
 DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
-  "Return the window least recently selected or used for display.\n\
-If optional argument FRAME is `visible', search all visible frames.\n\
-If FRAME is 0, search all visible and iconified frames.\n\
-If FRAME is t, search all frames.\n\
-If FRAME is nil, search only the selected frame.\n\
-If FRAME is a frame, search only that frame.")
-  (frame)
-    Lisp_Object frame;
+       doc: /* Return the window least recently selected or used for display.
+If optional argument FRAME is `visible', search all visible frames.
+If FRAME is 0, search all visible and iconified frames.
+If FRAME is t, search all frames.
+If FRAME is nil, search only the selected frame.
+If FRAME is a frame, search only that frame.  */)
+     (frame)
+     Lisp_Object frame;
 {
   register Lisp_Object w;
   /* First try for a window that is full-width */
@@ -1961,28 +1944,28 @@ If FRAME is a frame, search only that frame.")
 }
 
 DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
-  "Return the largest window in area.\n\
-If optional argument FRAME is `visible', search all visible frames.\n\
-If FRAME is 0, search all visible and iconified frames.\n\
-If FRAME is t, search all frames.\n\
-If FRAME is nil, search only the selected frame.\n\
-If FRAME is a frame, search only that frame.")
-  (frame)
-    Lisp_Object frame;
+       doc: /* Return the largest window in area.
+If optional argument FRAME is `visible', search all visible frames.
+If FRAME is 0, search all visible and iconified frames.
+If FRAME is t, search all frames.
+If FRAME is nil, search only the selected frame.
+If FRAME is a frame, search only that frame.  */)
+     (frame)
+     Lisp_Object frame;
 {
   return window_loop (GET_LARGEST_WINDOW, Qnil, 0,
 		      frame);
 }
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
-  "Return a window currently displaying BUFFER, or nil if none.\n\
-If optional argument FRAME is `visible', search all visible frames.\n\
-If optional argument FRAME is 0, search all visible and iconified frames.\n\
-If FRAME is t, search all frames.\n\
-If FRAME is nil, search only the selected frame.\n\
-If FRAME is a frame, search only that frame.")
-  (buffer, frame)
-    Lisp_Object buffer, frame;
+       doc: /* Return a window currently displaying BUFFER, or nil if none.
+If optional argument FRAME is `visible', search all visible frames.
+If optional argument FRAME is 0, search all visible and iconified frames.
+If FRAME is t, search all frames.
+If FRAME is nil, search only the selected frame.
+If FRAME is a frame, search only that frame.  */)
+     (buffer, frame)
+     Lisp_Object buffer, frame;
 {
   buffer = Fget_buffer (buffer);
   if (BUFFERP (buffer))
@@ -1992,16 +1975,16 @@ If FRAME is a frame, search only that frame.")
 }
 
 DEFUN ("delete-other-windows", Fdelete_other_windows, Sdelete_other_windows,
-  0, 1, "",
-  "Make WINDOW (or the selected window) fill its frame.\n\
-Only the frame WINDOW is on is affected.\n\
-This function tries to reduce display jumps\n\
-by keeping the text previously visible in WINDOW\n\
-in the same place on the frame.  Doing this depends on\n\
-the value of (window-start WINDOW), so if calling this function\n\
-in a program gives strange scrolling, make sure the window-start\n\
-value is reasonable when this function is called.")
-  (window)
+       0, 1, "",
+       doc: /* Make WINDOW (or the selected window) fill its frame.
+Only the frame WINDOW is on is affected.
+This function tries to reduce display jumps
+by keeping the text previously visible in WINDOW
+in the same place on the frame.  Doing this depends on
+the value of (window-start WINDOW), so if calling this function
+in a program gives strange scrolling, make sure the window-start
+value is reasonable when this function is called.  */)
+     (window)
      Lisp_Object window;
 {
   struct window *w;
@@ -2056,15 +2039,15 @@ value is reasonable when this function is called.")
 }
 
 DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
-  1, 2, "bDelete windows on (buffer): ",
-  "Delete all windows showing BUFFER.\n\
-Optional second argument FRAME controls which frames are affected.\n\
-If optional argument FRAME is `visible', search all visible frames.\n\
-If FRAME is 0, search all visible and iconified frames.\n\
-If FRAME is nil, search all frames.\n\
-If FRAME is t, search only the selected frame.\n\
-If FRAME is a frame, search only that frame.")
-  (buffer, frame)
+       1, 2, "bDelete windows on (buffer): ",
+       doc: /* Delete all windows showing BUFFER.
+Optional second argument FRAME controls which frames are affected.
+If optional argument FRAME is `visible', search all visible frames.
+If FRAME is 0, search all visible and iconified frames.
+If FRAME is nil, search all frames.
+If FRAME is t, search only the selected frame.
+If FRAME is a frame, search only that frame.  */)
+     (buffer, frame)
      Lisp_Object buffer, frame;
 {
   /* FRAME uses t and nil to mean the opposite of what window_loop
@@ -2085,10 +2068,10 @@ If FRAME is a frame, search only that frame.")
 }
 
 DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
-  Sreplace_buffer_in_windows,
-  1, 1, "bReplace buffer in windows: ",
-  "Replace BUFFER with some other buffer in all windows showing it.")
-  (buffer)
+       Sreplace_buffer_in_windows,
+       1, 1, "bReplace buffer in windows: ",
+       doc: /* Replace BUFFER with some other buffer in all windows showing it.  */)
+     (buffer)
      Lisp_Object buffer;
 {
   if (!NILP (buffer))
@@ -2671,9 +2654,9 @@ set_window_buffer (window, buffer, run_hooks_p)
 
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 2, 0,
-  "Make WINDOW display BUFFER as its contents.\n\
-BUFFER can be a buffer or buffer name.")
-  (window, buffer)
+       doc: /* Make WINDOW display BUFFER as its contents.
+BUFFER can be a buffer or buffer name.  */)
+     (window, buffer)
      register Lisp_Object window, buffer;
 {
   register Lisp_Object tem;
@@ -2704,11 +2687,11 @@ BUFFER can be a buffer or buffer name.")
 }
 
 DEFUN ("select-window", Fselect_window, Sselect_window, 1, 1, 0,
-  "Select WINDOW.  Most editing will apply to WINDOW's buffer.\n\
-If WINDOW is not already selected, also make WINDOW's buffer current.\n\
-Note that the main editor command loop\n\
-selects the buffer of the selected window before each command.")
-  (window)
+       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
+If WINDOW is not already selected, also make WINDOW's buffer current.
+Note that the main editor command loop
+selects the buffer of the selected window before each command.  */)
+     (window)
      register Lisp_Object window;
 {
   return select_window_1 (window, 1);
@@ -2814,11 +2797,11 @@ display_buffer_1 (window)
 }
 
 DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
-  "Returns non-nil if a buffer named BUFFER-NAME would be created specially.\n\
-The value is actually t if the frame should be called with default frame\n\
-parameters, and a list of frame parameters if they were specified.\n\
-See `special-display-buffer-names', and `special-display-regexps'.")
-  (buffer_name)
+       doc: /* Returns non-nil if a buffer named BUFFER-NAME would be created specially.
+The value is actually t if the frame should be called with default frame
+parameters, and a list of frame parameters if they were specified.
+See `special-display-buffer-names', and `special-display-regexps'.  */)
+     (buffer_name)
      Lisp_Object buffer_name;
 {
   Lisp_Object tem;
@@ -2848,9 +2831,9 @@ See `special-display-buffer-names', and `special-display-regexps'.")
 }  
 
 DEFUN ("same-window-p", Fsame_window_p, Ssame_window_p, 1, 1, 0,
-  "Returns non-nil if a new buffer named BUFFER-NAME would use the same window.\n\
-See `same-window-buffer-names' and `same-window-regexps'.")
-  (buffer_name)
+       doc: /* Returns non-nil if a new buffer named BUFFER-NAME would use the same window.
+See `same-window-buffer-names' and `same-window-regexps'.  */)
+     (buffer_name)
      Lisp_Object buffer_name;
 {
   Lisp_Object tem;
@@ -2879,36 +2862,36 @@ See `same-window-buffer-names' and `same-window-regexps'.")
   return Qnil;
 }
 
-   /* Use B so the default is (other-buffer).  */
+/* Use B so the default is (other-buffer).  */
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 3,
-     "BDisplay buffer: \nP",
-  "Make BUFFER appear in some window but don't select it.\n\
-BUFFER can be a buffer or a buffer name.\n\
-If BUFFER is shown already in some window, just use that one,\n\
-unless the window is the selected window and the optional second\n\
-argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).\n\
-If `pop-up-frames' is non-nil, make a new frame if no window shows BUFFER.\n\
-Returns the window displaying BUFFER.\n\
-If `display-reuse-frames' is non-nil, and another frame is currently\n\
-displaying BUFFER, then simply raise that frame.\n\
-\n\
-The variables `special-display-buffer-names', `special-display-regexps',\n\
-`same-window-buffer-names', and `same-window-regexps' customize how certain\n\
-buffer names are handled.\n\
-\n\
-If optional argument FRAME is `visible', search all visible frames.\n\
-If FRAME is 0, search all visible and iconified frames.\n\
-If FRAME is t, search all frames.\n\
-If FRAME is a frame, search only that frame.\n\
-If FRAME is nil, search only the selected frame\n\
- (actually the last nonminibuffer frame),\n\
- unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,\n\
- which means search visible and iconified frames.\n\
-\n\
-If `even-window-heights' is non-nil, window heights will be evened out\n\
-if displaying the buffer causes two vertically adjacent windows to be\n\
-displayed.")
-  (buffer, not_this_window, frame)
+       "BDisplay buffer: \nP",
+       doc: /* Make BUFFER appear in some window but don't select it.
+BUFFER can be a buffer or a buffer name.
+If BUFFER is shown already in some window, just use that one,
+unless the window is the selected window and the optional second
+argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).
+If `pop-up-frames' is non-nil, make a new frame if no window shows BUFFER.
+Returns the window displaying BUFFER.
+If `display-reuse-frames' is non-nil, and another frame is currently
+displaying BUFFER, then simply raise that frame.
+
+The variables `special-display-buffer-names', `special-display-regexps',
+`same-window-buffer-names', and `same-window-regexps' customize how certain
+buffer names are handled.
+
+If optional argument FRAME is `visible', search all visible frames.
+If FRAME is 0, search all visible and iconified frames.
+If FRAME is t, search all frames.
+If FRAME is a frame, search only that frame.
+If FRAME is nil, search only the selected frame
+ (actually the last nonminibuffer frame),
+ unless `pop-up-frames' or `display-buffer-reuse-frames' is non-nil,
+ which means search visible and iconified frames.
+
+If `even-window-heights' is non-nil, window heights will be evened out
+if displaying the buffer causes two vertically adjacent windows to be
+displayed.  */)
+     (buffer, not_this_window, frame)
      register Lisp_Object buffer, not_this_window, frame;
 {
   register Lisp_Object window, tem, swp;
@@ -3170,12 +3153,12 @@ make_dummy_parent (window)
 }
 
 DEFUN ("split-window", Fsplit_window, Ssplit_window, 0, 3, "",
-  "Split WINDOW, putting SIZE lines in the first of the pair.\n\
-WINDOW defaults to selected one and SIZE to half its size.\n\
-If optional third arg HORFLAG is non-nil, split side by side\n\
-and put SIZE columns in the first of the pair.  In that case,\n\
-SIZE includes that window's scroll bar, or the divider column to its right.")
-  (window, size, horflag)
+       doc: /* Split WINDOW, putting SIZE lines in the first of the pair.
+WINDOW defaults to selected one and SIZE to half its size.
+If optional third arg HORFLAG is non-nil, split side by side
+and put SIZE columns in the first of the pair.  In that case,
+SIZE includes that window's scroll bar, or the divider column to its right.  */)
+     (window, size, horflag)
      Lisp_Object window, size, horflag;
 {
   register Lisp_Object new;
@@ -3293,10 +3276,10 @@ SIZE includes that window's scroll bar, or the divider column to its right.")
 }
 
 DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
-  "Make current window ARG lines bigger.\n\
-From program, optional second arg non-nil means grow sideways ARG columns.\n\
-Interactively, if an argument is not given, make the window one line bigger.")
-  (arg, side)
+       doc: /* Make current window ARG lines bigger.
+From program, optional second arg non-nil means grow sideways ARG columns.
+Interactively, if an argument is not given, make the window one line bigger.  */)
+     (arg, side)
      register Lisp_Object arg, side;
 {
   CHECK_NUMBER (arg, 0);
@@ -3309,10 +3292,10 @@ Interactively, if an argument is not given, make the window one line bigger.")
 }
 
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
-  "Make current window ARG lines smaller.\n\
-From program, optional second arg non-nil means shrink sideways arg columns.\n\
-Interactively, if an argument is not given, make the window one line smaller.")
-  (arg, side)
+       doc: /* Make current window ARG lines smaller.
+From program, optional second arg non-nil means shrink sideways arg columns.
+Interactively, if an argument is not given, make the window one line smaller.  */)
+     (arg, side)
      register Lisp_Object arg, side;
 {
   CHECK_NUMBER (arg, 0);
@@ -4308,12 +4291,12 @@ scroll_command (n, direction)
 }
 
 DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
-  "Scroll text of current window upward ARG lines; or near full screen if no ARG.\n\
-A near full screen is `next-screen-context-lines' less than a full screen.\n\
-Negative ARG means scroll downward.\n\
-If ARG is the atom `-', scroll downward by nearly full screen.\n\
-When calling from a program, supply as argument a number, nil, or `-'.")
-  (arg)
+       doc: /* Scroll text of current window upward ARG lines; or near full screen if no ARG.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'.  */)
+     (arg)
      Lisp_Object arg;
 {
   scroll_command (arg, 1);
@@ -4321,12 +4304,12 @@ When calling from a program, supply as argument a number, nil, or `-'.")
 }
 
 DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "P",
-  "Scroll text of current window down ARG lines; or near full screen if no ARG.\n\
-A near full screen is `next-screen-context-lines' less than a full screen.\n\
-Negative ARG means scroll upward.\n\
-If ARG is the atom `-', scroll upward by nearly full screen.\n\
-When calling from a program, supply as argument a number, nil, or `-'.")
-  (arg)
+       doc: /* Scroll text of current window down ARG lines; or near full screen if no ARG.
+A near full screen is `next-screen-context-lines' less than a full screen.
+Negative ARG means scroll upward.
+If ARG is the atom `-', scroll upward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'.  */)
+     (arg)
      Lisp_Object arg;
 {
   scroll_command (arg, -1);
@@ -4334,12 +4317,12 @@ When calling from a program, supply as argument a number, nil, or `-'.")
 }
 
 DEFUN ("other-window-for-scrolling", Fother_window_for_scrolling, Sother_window_for_scrolling, 0, 0, 0,
-  "Return the other window for \"other window scroll\" commands.\n\
-If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
-specifies the window.\n\
-If `other-window-scroll-buffer' is non-nil, a window\n\
-showing that buffer is used.")
-  ()
+       doc: /* Return the other window for \"other window scroll\" commands.
+If in the minibuffer, `minibuffer-scroll-window' if non-nil
+specifies the window.
+If `other-window-scroll-buffer' is non-nil, a window
+showing that buffer is used.  */)
+     ()
 {
   Lisp_Object window;
 
@@ -4377,18 +4360,18 @@ showing that buffer is used.")
 }
 
 DEFUN ("scroll-other-window", Fscroll_other_window, Sscroll_other_window, 0, 1, "P",
-  "Scroll next window upward ARG lines; or near full screen if no ARG.\n\
-A near full screen is `next-screen-context-lines' less than a full screen.\n\
-The next window is the one below the current one; or the one at the top\n\
-if the current one is at the bottom.  Negative ARG means scroll downward.\n\
-If ARG is the atom `-', scroll downward by nearly full screen.\n\
-When calling from a program, supply as argument a number, nil, or `-'.\n\
-\n\
-If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
-specifies the window to scroll.\n\
-If `other-window-scroll-buffer' is non-nil, scroll the window\n\
-showing that buffer, popping the buffer up if necessary.")
-  (arg)
+       doc: /* Scroll next window upward ARG lines; or near full screen if no ARG.
+A near full screen is `next-screen-context-lines' less than a full screen.
+The next window is the one below the current one; or the one at the top
+if the current one is at the bottom.  Negative ARG means scroll downward.
+If ARG is the atom `-', scroll downward by nearly full screen.
+When calling from a program, supply as argument a number, nil, or `-'.
+
+If in the minibuffer, `minibuffer-scroll-window' if non-nil
+specifies the window to scroll.
+If `other-window-scroll-buffer' is non-nil, scroll the window
+showing that buffer, popping the buffer up if necessary.  */)
+     (arg)
      Lisp_Object arg;
 {
   Lisp_Object window;
@@ -4424,9 +4407,9 @@ showing that buffer, popping the buffer up if necessary.")
 }
 
 DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 1, "P",
-  "Scroll selected window display ARG columns left.\n\
-Default for ARG is window width minus 2.")
-  (arg)
+       doc: /* Scroll selected window display ARG columns left.
+Default for ARG is window width minus 2.  */)
+     (arg)
      register Lisp_Object arg;
 {
   Lisp_Object result;
@@ -4448,9 +4431,9 @@ Default for ARG is window width minus 2.")
 }
 
 DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 1, "P",
-  "Scroll selected window display ARG columns right.\n\
-Default for ARG is window width minus 2.")
-  (arg)
+       doc: /* Scroll selected window display ARG columns right.
+Default for ARG is window width minus 2.  */)
+     (arg)
      register Lisp_Object arg;
 {
   Lisp_Object result;
@@ -4521,16 +4504,16 @@ displayed_window_lines (w)
 
 
 DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
-  "Center point in window and redisplay frame.\n\
-With prefix argument ARG, recenter putting point on screen line ARG\n\
-relative to the current window.  If ARG is negative, it counts up from the\n\
-bottom of the window.  (ARG should be less than the height of the window.)\n\
-\n\
-If ARG is omitted or nil, erase the entire frame and then\n\
-redraw with point in the center of the current window.\n\
-Just C-u as prefix means put point in the center of the window\n\
-and redisplay normally--don't erase and redraw the frame.")
-  (arg)
+       doc: /* Center point in window and redisplay frame.
+With prefix argument ARG, recenter putting point on screen line ARG
+relative to the current window.  If ARG is negative, it counts up from the
+bottom of the window.  (ARG should be less than the height of the window.)
+
+If ARG is omitted or nil, erase the entire frame and then
+redraw with point in the center of the current window.
+Just C-u as prefix means put point in the center of the window
+and redisplay normally--don't erase and redraw the frame.  */)
+     (arg)
      register Lisp_Object arg;
 {
   struct window *w = XWINDOW (selected_window);
@@ -4646,11 +4629,11 @@ and redisplay normally--don't erase and redraw the frame.")
 
 
 DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
-  0, 1, 0,
-  "Return the height in lines of the text display area of WINDOW.\n\
-This doesn't include the mode-line (or header-line if any) or any\n\
-partial-height lines in the text display area.")
-  (window)
+       0, 1, 0,
+       doc: /* Return the height in lines of the text display area of WINDOW.
+This doesn't include the mode-line (or header-line if any) or any
+partial-height lines in the text display area.  */)
+     (window)
      Lisp_Object window;
 {
   struct window *w = decode_window (window);
@@ -4662,12 +4645,12 @@ partial-height lines in the text display area.")
 
 
 DEFUN ("move-to-window-line", Fmove_to_window_line, Smove_to_window_line,
-  1, 1, "P",
-  "Position point relative to window.\n\
-With no argument, position point at center of window.\n\
-An argument specifies vertical position within the window;\n\
-zero means top of window, negative means relative to bottom of window.")
-  (arg)
+       1, 1, "P",
+       doc: /* Position point relative to window.
+With no argument, position point at center of window.
+An argument specifies vertical position within the window;
+zero means top of window, negative means relative to bottom of window.  */)
+     (arg)
      Lisp_Object arg;
 {
   struct window *w = XWINDOW (selected_window);
@@ -4752,8 +4735,8 @@ struct saved_window
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
-  "Return t if OBJECT is a window-configuration object.")
-  (object)
+       doc: /* Return t if OBJECT is a window-configuration object.  */)
+     (object)
      Lisp_Object object;
 {
   if (WINDOW_CONFIGURATIONP (object))
@@ -4762,8 +4745,8 @@ DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_
 }
 
 DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_configuration_frame, 1, 1, 0,
-  "Return the frame that CONFIG, a window-configuration object, is about.")
-  (config)
+       doc: /* Return the frame that CONFIG, a window-configuration object, is about.  */)
+     (config)
      Lisp_Object config;
 {
   register struct save_window_data *data;
@@ -4778,14 +4761,14 @@ DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_config
 }
 
 DEFUN ("set-window-configuration", Fset_window_configuration,
-  Sset_window_configuration, 1, 1, 0,
-  "Set the configuration of windows and buffers as specified by CONFIGURATION.\n\
-CONFIGURATION must be a value previously returned\n\
-by `current-window-configuration' (which see).\n\
-If CONFIGURATION was made from a frame that is now deleted,\n\
-only frame-independent values can be restored.  In this case,\n\
-the return value is nil.  Otherwise the value is t.")
-  (configuration)
+       Sset_window_configuration, 1, 1, 0,
+       doc: /* Set the configuration of windows and buffers as specified by CONFIGURATION.
+CONFIGURATION must be a value previously returned
+by `current-window-configuration' (which see).
+If CONFIGURATION was made from a frame that is now deleted,
+only frame-independent values can be restored.  In this case,
+the return value is nil.  Otherwise the value is t.  */)
+     (configuration)
      Lisp_Object configuration;
 {
   register struct save_window_data *data;
@@ -5257,16 +5240,16 @@ save_window_save (window, vector, i)
 }
 
 DEFUN ("current-window-configuration", Fcurrent_window_configuration,
-  Scurrent_window_configuration, 0, 1, 0,
-  "Return an object representing the current window configuration of FRAME.\n\
-If FRAME is nil or omitted, use the selected frame.\n\
-This describes the number of windows, their sizes and current buffers,\n\
-and for each displayed buffer, where display starts, and the positions of\n\
-point and mark.  An exception is made for point in the current buffer:\n\
-its value is -not- saved.\n\
-This also records the currently selected frame, and FRAME's focus\n\
-redirection (see `redirect-frame-focus').")
-  (frame)
+       Scurrent_window_configuration, 0, 1, 0,
+       doc: /* Return an object representing the current window configuration of FRAME.
+If FRAME is nil or omitted, use the selected frame.
+This describes the number of windows, their sizes and current buffers,
+and for each displayed buffer, where display starts, and the positions of
+point and mark.  An exception is made for point in the current buffer:
+its value is -not- saved.
+This also records the currently selected frame, and FRAME's focus
+redirection (see `redirect-frame-focus').  */)
+     (frame)
      Lisp_Object frame;
 {
   register Lisp_Object tem;
@@ -5308,14 +5291,14 @@ redirection (see `redirect-frame-focus').")
 }
 
 DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
-  0, UNEVALLED, 0,
-  "Execute body, preserving window sizes and contents.\n\
-Restore which buffer appears in which window, where display starts,\n\
-and the value of point and mark for each window.\n\
-Also restore the choice of selected window.\n\
-Also restore which buffer is current.\n\
-Does not restore the value of point in current buffer.")
-  (args)
+       0, UNEVALLED, 0,
+       doc: /* Execute body, preserving window sizes and contents.
+Restore which buffer appears in which window, where display starts,
+and the value of point and mark for each window.
+Also restore the choice of selected window.
+Also restore which buffer is current.
+Does not restore the value of point in current buffer.  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object val;
@@ -5334,13 +5317,13 @@ Does not restore the value of point in current buffer.")
 
 DEFUN ("set-window-margins", Fset_window_margins, Sset_window_margins,
        2, 3, 0,
-  "Set width of marginal areas of window WINDOW.\n\
-If window is nil, set margins of the currently selected window.\n\
-First parameter LEFT-WIDTH specifies the number of character\n\
-cells to reserve for the left marginal area.  Second parameter\n\
-RIGHT-WIDTH does the same for the right marginal area.\n\
-A nil width parameter means no margin.")
-  (window, left, right)
+       doc: /* Set width of marginal areas of window WINDOW.
+If window is nil, set margins of the currently selected window.
+First parameter LEFT-WIDTH specifies the number of character
+cells to reserve for the left marginal area.  Second parameter
+RIGHT-WIDTH does the same for the right marginal area.
+A nil width parameter means no margin.  */)
+     (window, left, right)
      Lisp_Object window, left, right;
 {
   struct window *w = decode_window (window);
@@ -5375,12 +5358,12 @@ A nil width parameter means no margin.")
 
 DEFUN ("window-margins", Fwindow_margins, Swindow_margins,
        0, 1, 0,
-  "Get width of marginal areas of window WINDOW.\n\
-If WINDOW is omitted or nil, use the currently selected window.\n\
-Value is a cons of the form (LEFT-WIDTH . RIGHT-WIDTH).\n\
-If a marginal area does not exist, its width will be returned\n\
-as nil.")
-  (window)
+       doc: /* Get width of marginal areas of window WINDOW.
+If WINDOW is omitted or nil, use the currently selected window.
+Value is a cons of the form (LEFT-WIDTH . RIGHT-WIDTH).
+If a marginal area does not exist, its width will be returned
+as nil.  */)
+     (window)
      Lisp_Object window;
 {
   struct window *w = decode_window (window);
@@ -5394,10 +5377,10 @@ as nil.")
  ***********************************************************************/
 
 DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 1, 0,
-  "Return the amount by which WINDOW is scrolled vertically.\n\
-Use the selected window if WINDOW is nil or omitted.\n\
-Value is a multiple of the canonical character height of WINDOW.")
-  (window)
+       doc: /* Return the amount by which WINDOW is scrolled vertically.
+Use the selected window if WINDOW is nil or omitted.
+Value is a multiple of the canonical character height of WINDOW.  */)
+     (window)
      Lisp_Object window;
 {
   Lisp_Object result;
@@ -5421,10 +5404,10 @@ Value is a multiple of the canonical character height of WINDOW.")
 
 DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
        2, 2, 0,
-  "Set amount by which WINDOW should be scrolled vertically to VSCROLL.\n\
-WINDOW nil or omitted means use the selected window.  VSCROLL is a\n\
-non-negative multiple of the canonical character height of WINDOW.")
-  (window, vscroll)
+       doc: /* Set amount by which WINDOW should be scrolled vertically to VSCROLL.
+WINDOW nil or omitted means use the selected window.  VSCROLL is a
+non-negative multiple of the canonical character height of WINDOW.  */)
+     (window, vscroll)
      Lisp_Object window, vscroll;
 {
   struct window *w;
@@ -5648,10 +5631,10 @@ compare_window_configurations (c1, c2, ignore_positions)
 
 DEFUN ("compare-window-configurations", Fcompare_window_configurations,
        Scompare_window_configurations, 2, 2, 0,
-  "Compare two window configurations as regards the structure of windows.\n\
-This function ignores details such as the values of point and mark\n\
-and scrolling positions.")
-  (x, y)
+       doc: /* Compare two window configurations as regards the structure of windows.
+This function ignores details such as the values of point and mark
+and scrolling positions.  */)
+     (x, y)
      Lisp_Object x, y;
 {
   if (compare_window_configurations (x, y, 1))
@@ -5708,166 +5691,166 @@ syms_of_window ()
   staticpro (&Vwindow_list);
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
-    "Non-nil means call as function to display a help buffer.\n\
-The function is called with one argument, the buffer to be displayed.\n\
-Used by `with-output-to-temp-buffer'.\n\
-If this function is used, then it must do the entire job of showing\n\
-the buffer; `temp-buffer-show-hook' is not run unless this function runs it.");
+	       doc: /* Non-nil means call as function to display a help buffer.
+The function is called with one argument, the buffer to be displayed.
+Used by `with-output-to-temp-buffer'.
+If this function is used, then it must do the entire job of showing
+the buffer; `temp-buffer-show-hook' is not run unless this function runs it.  */);
   Vtemp_buffer_show_function = Qnil;
 
   DEFVAR_LISP ("display-buffer-function", &Vdisplay_buffer_function,
-    "If non-nil, function to call to handle `display-buffer'.\n\
-It will receive two args, the buffer and a flag which if non-nil means\n\
- that the currently selected window is not acceptable.\n\
-Commands such as `switch-to-buffer-other-window' and `find-file-other-window'\n\
-work using this function.");
+	       doc: /* If non-nil, function to call to handle `display-buffer'.
+It will receive two args, the buffer and a flag which if non-nil means
+ that the currently selected window is not acceptable.
+Commands such as `switch-to-buffer-other-window' and `find-file-other-window'
+work using this function.  */);
   Vdisplay_buffer_function = Qnil;
 
   DEFVAR_LISP ("even-window-heights", &Veven_window_heights,
-    "*If non-nil, `display-buffer' should even the window heights.\n\
-If nil, `display-buffer' will leave the window configuration alone.");
+	       doc: /* *If non-nil, `display-buffer' should even the window heights.
+If nil, `display-buffer' will leave the window configuration alone.  */);
   Veven_window_heights = Qt;
 
   DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
-    "Non-nil means it is the window that C-M-v in minibuffer should scroll.");
+	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);
   Vminibuf_scroll_window = Qnil;
 
   DEFVAR_LISP ("other-window-scroll-buffer", &Vother_window_scroll_buffer,
-    "If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.");
+	       doc: /* If non-nil, this is a buffer and \\[scroll-other-window] should scroll its window.  */);
   Vother_window_scroll_buffer = Qnil;
 
   DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
-    "*Non-nil means `display-buffer' should make a separate frame.");
+	       doc: /* *Non-nil means `display-buffer' should make a separate frame.  */);
   pop_up_frames = 0;
 
   DEFVAR_BOOL ("display-buffer-reuse-frames", &display_buffer_reuse_frames,
-    "*Non-nil means `display-buffer' should reuse frames.\n\
-If the buffer in question is already displayed in a frame, raise that frame.");
+	       doc: /* *Non-nil means `display-buffer' should reuse frames.
+If the buffer in question is already displayed in a frame, raise that frame.  */);
   display_buffer_reuse_frames = 0;
 
   DEFVAR_LISP ("pop-up-frame-function", &Vpop_up_frame_function,
-    "Function to call to handle automatic new frame creation.\n\
-It is called with no arguments and should return a newly created frame.\n\
-\n\
-A typical value might be `(lambda () (new-frame pop-up-frame-alist))'\n\
-where `pop-up-frame-alist' would hold the default frame parameters.");
+	       doc: /* Function to call to handle automatic new frame creation.
+It is called with no arguments and should return a newly created frame.
+
+A typical value might be `(lambda () (new-frame pop-up-frame-alist))'
+where `pop-up-frame-alist' would hold the default frame parameters.  */);
   Vpop_up_frame_function = Qnil;
 
   DEFVAR_LISP ("special-display-buffer-names", &Vspecial_display_buffer_names,
-    "*List of buffer names that should have their own special frames.\n\
-Displaying a buffer whose name is in this list makes a special frame for it\n\
-using `special-display-function'.  See also `special-display-regexps'.\n\
-\n\
-An element of the list can be a list instead of just a string.\n\
-There are two ways to use a list as an element:\n\
-  (BUFFER FRAME-PARAMETERS...)   (BUFFER FUNCTION OTHER-ARGS...)\n\
-In the first case, FRAME-PARAMETERS are used to create the frame.\n\
-In the latter case, FUNCTION is called with BUFFER as the first argument,\n\
-followed by OTHER-ARGS--it can display BUFFER in any way it likes.\n\
-All this is done by the function found in `special-display-function'.\n\
-\n\
-If this variable appears \"not to work\", because you add a name to it\n\
-but that buffer still appears in the selected window, look at the\n\
-values of `same-window-buffer-names' and `same-window-regexps'.\n\
-Those variables take precedence over this one.");
+	       doc: /* *List of buffer names that should have their own special frames.
+Displaying a buffer whose name is in this list makes a special frame for it
+using `special-display-function'.  See also `special-display-regexps'.
+
+An element of the list can be a list instead of just a string.
+There are two ways to use a list as an element:
+  (BUFFER FRAME-PARAMETERS...)   (BUFFER FUNCTION OTHER-ARGS...)
+In the first case, FRAME-PARAMETERS are used to create the frame.
+In the latter case, FUNCTION is called with BUFFER as the first argument,
+followed by OTHER-ARGS--it can display BUFFER in any way it likes.
+All this is done by the function found in `special-display-function'.
+
+If this variable appears \"not to work\", because you add a name to it
+but that buffer still appears in the selected window, look at the
+values of `same-window-buffer-names' and `same-window-regexps'.
+Those variables take precedence over this one.  */);
   Vspecial_display_buffer_names = Qnil;
 
   DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
-    "*List of regexps saying which buffers should have their own special frames.\n\
-If a buffer name matches one of these regexps, it gets its own frame.\n\
-Displaying a buffer whose name is in this list makes a special frame for it\n\
-using `special-display-function'.\n\
-\n\
-An element of the list can be a list instead of just a string.\n\
-There are two ways to use a list as an element:\n\
-  (REGEXP FRAME-PARAMETERS...)   (REGEXP FUNCTION OTHER-ARGS...)\n\
-In the first case, FRAME-PARAMETERS are used to create the frame.\n\
-In the latter case, FUNCTION is called with the buffer as first argument,\n\
-followed by OTHER-ARGS--it can display the buffer in any way it likes.\n\
-All this is done by the function found in `special-display-function'.\n\
-\n\
-If this variable appears \"not to work\", because you add a regexp to it\n\
-but the matching buffers still appear in the selected window, look at the\n\
-values of `same-window-buffer-names' and `same-window-regexps'.\n\
-Those variables take precedence over this one.");
+	       doc: /* *List of regexps saying which buffers should have their own special frames.
+If a buffer name matches one of these regexps, it gets its own frame.
+Displaying a buffer whose name is in this list makes a special frame for it
+using `special-display-function'.
+
+An element of the list can be a list instead of just a string.
+There are two ways to use a list as an element:
+  (REGEXP FRAME-PARAMETERS...)   (REGEXP FUNCTION OTHER-ARGS...)
+In the first case, FRAME-PARAMETERS are used to create the frame.
+In the latter case, FUNCTION is called with the buffer as first argument,
+followed by OTHER-ARGS--it can display the buffer in any way it likes.
+All this is done by the function found in `special-display-function'.
+
+If this variable appears \"not to work\", because you add a regexp to it
+but the matching buffers still appear in the selected window, look at the
+values of `same-window-buffer-names' and `same-window-regexps'.
+Those variables take precedence over this one.  */);
   Vspecial_display_regexps = Qnil;
 
   DEFVAR_LISP ("special-display-function", &Vspecial_display_function,
-    "Function to call to make a new frame for a special buffer.\n\
-It is called with two arguments, the buffer and optional buffer specific\n\
-data, and should return a window displaying that buffer.\n\
-The default value makes a separate frame for the buffer,\n\
-using `special-display-frame-alist' to specify the frame parameters.\n\
-\n\
-A buffer is special if its is listed in `special-display-buffer-names'\n\
-or matches a regexp in `special-display-regexps'.");
+	       doc: /* Function to call to make a new frame for a special buffer.
+It is called with two arguments, the buffer and optional buffer specific
+data, and should return a window displaying that buffer.
+The default value makes a separate frame for the buffer,
+using `special-display-frame-alist' to specify the frame parameters.
+
+A buffer is special if its is listed in `special-display-buffer-names'
+or matches a regexp in `special-display-regexps'.  */);
   Vspecial_display_function = Qnil;
 
   DEFVAR_LISP ("same-window-buffer-names", &Vsame_window_buffer_names,
-    "*List of buffer names that should appear in the selected window.\n\
-Displaying one of these buffers using `display-buffer' or `pop-to-buffer'\n\
-switches to it in the selected window, rather than making it appear\n\
-in some other window.\n\
-\n\
-An element of the list can be a cons cell instead of just a string.\n\
-Then the car must be a string, which specifies the buffer name.\n\
-This is for compatibility with `special-display-buffer-names';\n\
-the cdr of the cons cell is ignored.\n\
-\n\
-See also `same-window-regexps'.");
+	       doc: /* *List of buffer names that should appear in the selected window.
+Displaying one of these buffers using `display-buffer' or `pop-to-buffer'
+switches to it in the selected window, rather than making it appear
+in some other window.
+
+An element of the list can be a cons cell instead of just a string.
+Then the car must be a string, which specifies the buffer name.
+This is for compatibility with `special-display-buffer-names';
+the cdr of the cons cell is ignored.
+
+See also `same-window-regexps'.  */);
   Vsame_window_buffer_names = Qnil;
 
   DEFVAR_LISP ("same-window-regexps", &Vsame_window_regexps,
-    "*List of regexps saying which buffers should appear in the selected window.\n\
-If a buffer name matches one of these regexps, then displaying it\n\
-using `display-buffer' or `pop-to-buffer' switches to it\n\
-in the selected window, rather than making it appear in some other window.\n\
-\n\
-An element of the list can be a cons cell instead of just a string.\n\
-Then the car must be a string, which specifies the buffer name.\n\
-This is for compatibility with `special-display-buffer-names';\n\
-the cdr of the cons cell is ignored.\n\
-\n\
-See also `same-window-buffer-names'.");
+	       doc: /* *List of regexps saying which buffers should appear in the selected window.
+If a buffer name matches one of these regexps, then displaying it
+using `display-buffer' or `pop-to-buffer' switches to it
+in the selected window, rather than making it appear in some other window.
+
+An element of the list can be a cons cell instead of just a string.
+Then the car must be a string, which specifies the buffer name.
+This is for compatibility with `special-display-buffer-names';
+the cdr of the cons cell is ignored.
+
+See also `same-window-buffer-names'.  */);
   Vsame_window_regexps = Qnil;
 
   DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,
-    "*Non-nil means display-buffer should make new windows.");
+	       doc: /* *Non-nil means display-buffer should make new windows.  */);
   pop_up_windows = 1;
 
   DEFVAR_INT ("next-screen-context-lines", &next_screen_context_lines,
-    "*Number of lines of continuity when scrolling by screenfuls.");
+	      doc: /* *Number of lines of continuity when scrolling by screenfuls.  */);
   next_screen_context_lines = 2;
 
   DEFVAR_INT ("split-height-threshold", &split_height_threshold,
-    "*display-buffer would prefer to split the largest window if this large.\n\
-If there is only one window, it is split regardless of this value.");
+	      doc: /* *display-buffer would prefer to split the largest window if this large.
+If there is only one window, it is split regardless of this value.  */);
   split_height_threshold = 500;
 
   DEFVAR_INT ("window-min-height", &window_min_height,
-    "*Delete any window less than this tall (including its mode line).");
+	      doc: /* *Delete any window less than this tall (including its mode line).  */);
   window_min_height = 4;
 
   DEFVAR_INT ("window-min-width", &window_min_width,
-    "*Delete any window less than this wide.");
+	      doc: /* *Delete any window less than this wide.  */);
   window_min_width = 10;
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       &Vscroll_preserve_screen_position,
-    "*Non-nil means scroll commands move point to keep its screen line unchanged.");
+	       doc: /* *Non-nil means scroll commands move point to keep its screen line unchanged.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",
 	       &Vwindow_configuration_change_hook,
-    "Functions to call when window configuration changes.\n\
-The selected frame is the one whose configuration has changed.");
+	       doc: /* Functions to call when window configuration changes.
+The selected frame is the one whose configuration has changed.  */);
   Vwindow_configuration_change_hook = Qnil;
 
   DEFVAR_BOOL ("window-size-fixed", &window_size_fixed,
-    "Non-nil in a buffer means windows displaying the buffer are fixed-size.\n\
-Emacs won't change the size of any window displaying that buffer,\n\
-unless you explicitly change the size, or Emacs has no other choice.\n\
-This variable automatically becomes buffer-local when set.");
+	       doc: /* Non-nil in a buffer means windows displaying the buffer are fixed-size.
+Emacs won't change the size of any window displaying that buffer,
+unless you explicitly change the size, or Emacs has no other choice.
+This variable automatically becomes buffer-local when set.  */);
   Fmake_variable_buffer_local (Qwindow_size_fixed);
   window_size_fixed = 0;
 

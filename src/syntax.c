@@ -714,9 +714,9 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 }
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
-  "Return t if OBJECT is a syntax table.\n\
-Currently, any char-table counts as a syntax table.")
-  (object)
+       doc: /* Return t if OBJECT is a syntax table.
+Currently, any char-table counts as a syntax table.  */)
+     (object)
      Lisp_Object object;
 {
   if (CHAR_TABLE_P (object)
@@ -735,26 +735,26 @@ check_syntax_table (obj)
 }   
 
 DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
-  "Return the current syntax table.\n\
-This is the one specified by the current buffer.")
-  ()
+       doc: /* Return the current syntax table.
+This is the one specified by the current buffer.  */)
+     ()
 {
   return current_buffer->syntax_table;
 }
 
 DEFUN ("standard-syntax-table", Fstandard_syntax_table,
    Sstandard_syntax_table, 0, 0, 0,
-  "Return the standard syntax table.\n\
-This is the one used for new buffers.")
-  ()
+       doc: /* Return the standard syntax table.
+This is the one used for new buffers.  */)
+     ()
 {
   return Vstandard_syntax_table;
 }
 
 DEFUN ("copy-syntax-table", Fcopy_syntax_table, Scopy_syntax_table, 0, 1, 0,
-  "Construct a new syntax table and return it.\n\
-It is a copy of the TABLE, which defaults to the standard syntax table.")
-  (table)
+       doc: /* Construct a new syntax table and return it.
+It is a copy of the TABLE, which defaults to the standard syntax table.  */)
+     (table)
      Lisp_Object table;
 {
   Lisp_Object copy;
@@ -779,9 +779,9 @@ It is a copy of the TABLE, which defaults to the standard syntax table.")
 }
 
 DEFUN ("set-syntax-table", Fset_syntax_table, Sset_syntax_table, 1, 1, 0,
-  "Select a new syntax table for the current buffer.\n\
-One argument, a syntax table.")
-  (table)
+       doc: /* Select a new syntax table for the current buffer.
+One argument, a syntax table.  */)
+     (table)
      Lisp_Object table;
 {
   int idx;
@@ -859,12 +859,12 @@ syntax_parent_lookup (table, character)
 }
 
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
-  "Return the syntax code of CHARACTER, described by a character.\n\
-For example, if CHARACTER is a word constituent,\n\
-the character `w' is returned.\n\
-The characters that correspond to various syntax codes\n\
-are listed in the documentation of `modify-syntax-entry'.")
-  (character)
+       doc: /* Return the syntax code of CHARACTER, described by a character.
+For example, if CHARACTER is a word constituent,
+the character `w' is returned.
+The characters that correspond to various syntax codes
+are listed in the documentation of `modify-syntax-entry'.  */)
+     (character)
      Lisp_Object character;
 {
   int char_int;
@@ -877,8 +877,8 @@ are listed in the documentation of `modify-syntax-entry'.")
 }
 
 DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
-  "Return the matching parenthesis of CHARACTER, or nil if none.")
-  (character)
+       doc: /* Return the matching parenthesis of CHARACTER, or nil if none.  */)
+     (character)
      Lisp_Object character;
 {
   int char_int, code;
@@ -893,12 +893,12 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
 }
 
 DEFUN ("string-to-syntax", Fstring_to_syntax, Sstring_to_syntax, 1, 1, 0,
-  "Convert a syntax specification STRING into syntax cell form.\n\
-STRING should be a string as it is allowed as argument of\n\
-`modify-syntax-entry'.  Value is the equivalent cons cell\n\
-\(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'\n\
-text property.")
-  (string)
+       doc: /* Convert a syntax specification STRING into syntax cell form.
+STRING should be a string as it is allowed as argument of
+`modify-syntax-entry'.  Value is the equivalent cons cell
+(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'
+text property.  */)
+     (string)
      Lisp_Object string;
 {
   register unsigned char *p;
@@ -969,56 +969,47 @@ text property.")
     return Fcons (make_number (val), match);
 }
 
-/* This comment supplies the doc string for modify-syntax-entry,
-   for make-docfile to see.  We cannot put this in the real DEFUN
-   due to limits in the Unix cpp.
-
-DEFUN ("modify-syntax-entry", foo, bar, 2, 3, 0,
-  "Set syntax for character CHAR according to string S.\n\
-The syntax is changed only for table TABLE, which defaults to\n\
- the current buffer's syntax table.\n\
-The first character of S should be one of the following:\n\
-  Space or -  whitespace syntax.    w   word constituent.\n\
-  _           symbol constituent.   .   punctuation.\n\
-  (           open-parenthesis.     )   close-parenthesis.\n\
-  \"           string quote.         \\   escape.\n\
-  $           paired delimiter.     '   expression quote or prefix operator.\n\
-  <           comment starter.      >   comment ender.\n\
-  /           character-quote.      @   inherit from `standard-syntax-table'.\n\
-  |           generic string fence. !   generic comment fence.\n\
-\n\
-Only single-character comment start and end sequences are represented thus.\n\
-Two-character sequences are represented as described below.\n\
-The second character of S is the matching parenthesis,\n\
- used only if the first character is `(' or `)'.\n\
-Any additional characters are flags.\n\
-Defined flags are the characters 1, 2, 3, 4, b, p, and n.\n\
- 1 means CHAR is the start of a two-char comment start sequence.\n\
- 2 means CHAR is the second character of such a sequence.\n\
- 3 means CHAR is the start of a two-char comment end sequence.\n\
- 4 means CHAR is the second character of such a sequence.\n\
-\n\
-There can be up to two orthogonal comment sequences.  This is to support\n\
-language modes such as C++.  By default, all comment sequences are of style\n\
-a, but you can set the comment sequence style to b (on the second character\n\
-of a comment-start, or the first character of a comment-end sequence) using\n\
-this flag:\n\
- b means CHAR is part of comment sequence b.\n\
- n means CHAR is part of a nestable comment sequence.\n\
-\n\
- p means CHAR is a prefix character for `backward-prefix-chars';\n\
-   such characters are treated as whitespace when they occur\n\
-   between expressions.")
-  (char, s, table)
+/* I really don't know why this is interactive
+   help-form should at least be made useful whilst reading the second arg
 */
-
 DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
-  /* I really don't know why this is interactive
-     help-form should at least be made useful whilst reading the second arg
-   */
   "cSet syntax for character: \nsSet syntax for %s to: ",
-  0 /* See immediately above */)
-  (c, newentry, syntax_table)
+       doc: /* Set syntax for character C according to string NEWENTRY.
+The syntax is changed only for table SYNTAX_TABLE, which defaults to
+ the current buffer's syntax table.
+The first character of NEWENTRY should be one of the following:
+  Space or -  whitespace syntax.    w   word constituent.
+  _           symbol constituent.   .   punctuation.
+  (           open-parenthesis.     )   close-parenthesis.
+  "           string quote.         \\   escape.
+  $           paired delimiter.     '   expression quote or prefix operator.
+  <           comment starter.      >   comment ender.
+  /           character-quote.      @   inherit from `standard-syntax-table'.
+  |           generic string fence. !   generic comment fence.
+
+Only single-character comment start and end sequences are represented thus.
+Two-character sequences are represented as described below.
+The second character of NEWENTRY is the matching parenthesis,
+ used only if the first character is `(' or `)'.
+Any additional characters are flags.
+Defined flags are the characters 1, 2, 3, 4, b, p, and n.
+ 1 means C is the start of a two-char comment start sequence.
+ 2 means C is the second character of such a sequence.
+ 3 means C is the start of a two-char comment end sequence.
+ 4 means C is the second character of such a sequence.
+
+There can be up to two orthogonal comment sequences.  This is to support
+language modes such as C++.  By default, all comment sequences are of style
+a, but you can set the comment sequence style to b (on the second character
+of a comment-start, or the first character of a comment-end sequence) using
+this flag:
+ b means C is part of comment sequence b.
+ n means C is part of a nestable comment sequence.
+
+ p means C is a prefix character for `backward-prefix-chars';
+   such characters are treated as whitespace when they occur
+   between expressions.  */)
+     (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {
   CHECK_NUMBER (c, 0);
@@ -1201,9 +1192,9 @@ describe_syntax_1 (vector)
 }
 
 DEFUN ("describe-syntax", Fdescribe_syntax, Sdescribe_syntax, 0, 0, "",
-  "Describe the syntax specifications in the syntax table.\n\
-The descriptions are inserted in a buffer, which is then displayed.")
-  ()
+       doc: /* Describe the syntax specifications in the syntax table.
+The descriptions are inserted in a buffer, which is then displayed.  */)
+     ()
 {
   internal_with_output_to_temp_buffer
      ("*Help*", describe_syntax_1, current_buffer->syntax_table);
@@ -1315,12 +1306,12 @@ scan_words (from, count)
 }
 
 DEFUN ("forward-word", Fforward_word, Sforward_word, 1, 1, "p",
-  "Move point forward ARG words (backward if ARG is negative).\n\
-Normally returns t.\n\
-If an edge of the buffer or a field boundary is reached, point is left there\n\
-and the function returns nil.  Field boundaries are not noticed if\n\
-`inhibit-field-text-motion' is non-nil.")
-  (count)
+       doc: /* Move point forward ARG words (backward if ARG is negative).
+Normally returns t.
+If an edge of the buffer or a field boundary is reached, point is left there
+and the function returns nil.  Field boundaries are not noticed if
+`inhibit-field-text-motion' is non-nil.  */)
+     (count)
      Lisp_Object count;
 {
   int orig_val, val;
@@ -1341,48 +1332,48 @@ and the function returns nil.  Field boundaries are not noticed if\n\
 Lisp_Object skip_chars ();
 
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
-  "Move point forward, stopping before a char not in STRING, or at pos LIM.\n\
-STRING is like the inside of a `[...]' in a regular expression\n\
-except that `]' is never special and `\\' quotes `^', `-' or `\\'\n\
- (but not as the end of a range; quoting is never needed there).\n\
-Thus, with arg \"a-zA-Z\", this skips letters stopping before first nonletter.\n\
-With arg \"^a-zA-Z\", skips nonletters stopping before first letter.\n\
-Returns the distance traveled, either zero or positive.")
-  (string, lim)
+       doc: /* Move point forward, stopping before a char not in STRING, or at pos LIM.
+STRING is like the inside of a `[...]' in a regular expression
+except that `]' is never special and `\\' quotes `^', `-' or `\\'
+ (but not as the end of a range; quoting is never needed there).
+Thus, with arg "a-zA-Z", this skips letters stopping before first nonletter.
+With arg "^a-zA-Z", skips nonletters stopping before first letter.
+Returns the distance traveled, either zero or positive.  */)
+     (string, lim)
      Lisp_Object string, lim;
 {
   return skip_chars (1, 0, string, lim);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
-  "Move point backward, stopping after a char not in STRING, or at pos LIM.\n\
-See `skip-chars-forward' for details.\n\
-Returns the distance traveled, either zero or negative.")
-  (string, lim)
+       doc: /* Move point backward, stopping after a char not in STRING, or at pos LIM.
+See `skip-chars-forward' for details.
+Returns the distance traveled, either zero or negative.  */)
+     (string, lim)
      Lisp_Object string, lim;
 {
   return skip_chars (0, 0, string, lim);
 }
 
 DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
-  "Move point forward across chars in specified syntax classes.\n\
-SYNTAX is a string of syntax code characters.\n\
-Stop before a char whose syntax is not in SYNTAX, or at position LIM.\n\
-If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.\n\
-This function returns the distance traveled, either zero or positive.")
-  (syntax, lim)
+       doc: /* Move point forward across chars in specified syntax classes.
+SYNTAX is a string of syntax code characters.
+Stop before a char whose syntax is not in SYNTAX, or at position LIM.
+If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.
+This function returns the distance traveled, either zero or positive.  */)
+     (syntax, lim)
      Lisp_Object syntax, lim;
 {
   return skip_chars (1, 1, syntax, lim);
 }
 
 DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 2, 0,
-  "Move point backward across chars in specified syntax classes.\n\
-SYNTAX is a string of syntax code characters.\n\
-Stop on reaching a char whose syntax is not in SYNTAX, or at position LIM.\n\
-If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.\n\
-This function returns the distance traveled, either zero or negative.")
-  (syntax, lim)
+       doc: /* Move point backward across chars in specified syntax classes.
+SYNTAX is a string of syntax code characters.
+Stop on reaching a char whose syntax is not in SYNTAX, or at position LIM.
+If SYNTAX starts with ^, skip characters whose syntax is NOT in SYNTAX.
+This function returns the distance traveled, either zero or negative.  */)
+     (syntax, lim)
      Lisp_Object syntax, lim;
 {
   return skip_chars (0, 1, syntax, lim);
@@ -1811,12 +1802,12 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 }
 
 DEFUN ("forward-comment", Fforward_comment, Sforward_comment, 1, 1, 0,
-  "Move forward across up to N comments.  If N is negative, move backward.\n\
-Stop scanning if we find something other than a comment or whitespace.\n\
-Set point to where scanning stops.\n\
-If N comments are found as expected, with nothing except whitespace\n\
-between them, return t; otherwise return nil.")
-  (count)
+       doc: /* Move forward across up to N comments.  If N is negative, move backward.
+Stop scanning if we find something other than a comment or whitespace.
+Set point to where scanning stops.
+If N comments are found as expected, with nothing except whitespace
+between them, return t; otherwise return nil.  */)
+     (count)
      Lisp_Object count;
 {
   register int from;
@@ -2399,20 +2390,20 @@ scan_lists (from, count, depth, sexpflag)
 }
 
 DEFUN ("scan-lists", Fscan_lists, Sscan_lists, 3, 3, 0,
-  "Scan from character number FROM by COUNT lists.\n\
-Returns the character number of the position thus found.\n\
-\n\
-If DEPTH is nonzero, paren depth begins counting from that value,\n\
-only places where the depth in parentheses becomes zero\n\
-are candidates for stopping; COUNT such places are counted.\n\
-Thus, a positive value for DEPTH means go out levels.\n\
-\n\
-Comments are ignored if `parse-sexp-ignore-comments' is non-nil.\n\
-\n\
-If the beginning or end of (the accessible part of) the buffer is reached\n\
-and the depth is wrong, an error is signaled.\n\
-If the depth is right but the count is not used up, nil is returned.")
-  (from, count, depth)
+       doc: /* Scan from character number FROM by COUNT lists.
+Returns the character number of the position thus found.
+
+If DEPTH is nonzero, paren depth begins counting from that value,
+only places where the depth in parentheses becomes zero
+are candidates for stopping; COUNT such places are counted.
+Thus, a positive value for DEPTH means go out levels.
+
+Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
+
+If the beginning or end of (the accessible part of) the buffer is reached
+and the depth is wrong, an error is signaled.
+If the depth is right but the count is not used up, nil is returned.  */)
+     (from, count, depth)
      Lisp_Object from, count, depth;
 {
   CHECK_NUMBER (from, 0);
@@ -2423,17 +2414,17 @@ If the depth is right but the count is not used up, nil is returned.")
 }
 
 DEFUN ("scan-sexps", Fscan_sexps, Sscan_sexps, 2, 2, 0,
-  "Scan from character number FROM by COUNT balanced expressions.\n\
-If COUNT is negative, scan backwards.\n\
-Returns the character number of the position thus found.\n\
-\n\
-Comments are ignored if `parse-sexp-ignore-comments' is non-nil.\n\
-\n\
-If the beginning or end of (the accessible part of) the buffer is reached\n\
-in the middle of a parenthetical grouping, an error is signaled.\n\
-If the beginning or end is reached between groupings\n\
-but before count is used up, nil is returned.")
-  (from, count)
+       doc: /* Scan from character number FROM by COUNT balanced expressions.
+If COUNT is negative, scan backwards.
+Returns the character number of the position thus found.
+
+Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
+
+If the beginning or end of (the accessible part of) the buffer is reached
+in the middle of a parenthetical grouping, an error is signaled.
+If the beginning or end is reached between groupings
+but before count is used up, nil is returned.  */)
+     (from, count)
      Lisp_Object from, count;
 {
   CHECK_NUMBER (from, 0);
@@ -2443,10 +2434,10 @@ but before count is used up, nil is returned.")
 }
 
 DEFUN ("backward-prefix-chars", Fbackward_prefix_chars, Sbackward_prefix_chars,
-  0, 0, 0,
-  "Move point backward over any number of chars with prefix syntax.\n\
-This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
-  ()
+       0, 0, 0,
+       doc: /* Move point backward over any number of chars with prefix syntax.
+This includes chars with "quote" or "prefix" syntax (' or p).  */)
+     ()
 {
   int beg = BEGV;
   int opoint = PT;
@@ -2836,47 +2827,38 @@ do { prev_from = from;				\
   *stateptr = state;
 }
 
-/* This comment supplies the doc string for parse-partial-sexp,
-   for make-docfile to see.  We cannot put this in the real DEFUN
-   due to limits in the Unix cpp.
-
-DEFUN ("parse-partial-sexp", Ffoo, Sfoo, 2, 6, 0,
-  "Parse Lisp syntax starting at FROM until TO; return status of parse at TO.\n\
-Parsing stops at TO or when certain criteria are met;\n\
- point is set to where parsing stops.\n\
-If fifth arg STATE is omitted or nil,\n\
- parsing assumes that FROM is the beginning of a function.\n\
-Value is a list of ten elements describing final state of parsing:\n\
- 0. depth in parens.\n\
- 1. character address of start of innermost containing list; nil if none.\n\
- 2. character address of start of last complete sexp terminated.\n\
- 3. non-nil if inside a string.\n\
-    (it is the character that will terminate the string,\n\
-     or t if the string should be terminated by a generic string delimiter.)\n\
- 4. nil if outside a comment, t if inside a non-nestable comment, \n\
-    else an integer (the current comment nesting).\n\
- 5. t if following a quote character.\n\
- 6. the minimum paren-depth encountered during this scan.\n\
- 7. t if in a comment of style b; symbol `syntax-table' if the comment\n\
-    should be terminated by a generic comment delimiter.\n\
- 8. character address of start of comment or string; nil if not in one.\n\
- 9. Intermediate data for continuation of parsing (subject to change).\n\
-If third arg TARGETDEPTH is non-nil, parsing stops if the depth\n\
-in parentheses becomes equal to TARGETDEPTH.\n\
-Fourth arg STOPBEFORE non-nil means stop when come to\n\
- any character that starts a sexp.\n\
-Fifth arg STATE is a nine-element list like what this function returns.\n\
- It is used to initialize the state of the parse.  Elements number 1, 2, 6\n\
- and 8 are ignored; you can leave off element 8 (the last) entirely.\n\
-Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.\n\
- If it is symbol `syntax-table', stop after the start of a comment or a\n\
- string, or after end of a comment or a string.")
-  (from, to, targetdepth, stopbefore, state, commentstop)
-*/
-
 DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
-  0 /* See immediately above */)
-  (from, to, targetdepth, stopbefore, oldstate, commentstop)
+       doc: /* Parse Lisp syntax starting at FROM until TO; return status of parse at TO.
+Parsing stops at TO or when certain criteria are met;
+ point is set to where parsing stops.
+If fifth arg OLDSTATE is omitted or nil,
+ parsing assumes that FROM is the beginning of a function.
+Value is a list of ten elements describing final state of parsing:
+ 0. depth in parens.
+ 1. character address of start of innermost containing list; nil if none.
+ 2. character address of start of last complete sexp terminated.
+ 3. non-nil if inside a string.
+    (it is the character that will terminate the string,
+     or t if the string should be terminated by a generic string delimiter.)
+ 4. nil if outside a comment, t if inside a non-nestable comment, 
+    else an integer (the current comment nesting).
+ 5. t if following a quote character.
+ 6. the minimum paren-depth encountered during this scan.
+ 7. t if in a comment of style b; symbol `syntax-table' if the comment
+    should be terminated by a generic comment delimiter.
+ 8. character address of start of comment or string; nil if not in one.
+ 9. Intermediate data for continuation of parsing (subject to change).
+If third arg TARGETDEPTH is non-nil, parsing stops if the depth
+in parentheses becomes equal to TARGETDEPTH.
+Fourth arg STOPBEFORE non-nil means stop when come to
+ any character that starts a sexp.
+Fifth arg OLDSTATE is a nine-element list like what this function returns.
+ It is used to initialize the state of the parse.  Elements number 1, 2, 6
+ and 8 are ignored; you can leave off element 8 (the last) entirely.
+Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
+ If it is symbol `syntax-table', stop after the start of a comment or a
+ string, or after end of a comment or a string.  */)
+     (from, to, targetdepth, stopbefore, oldstate, commentstop)
      Lisp_Object from, to, targetdepth, stopbefore, oldstate, commentstop;
 {
   struct lisp_parse_state state;
@@ -3014,25 +2996,25 @@ syms_of_syntax ()
 	build_string ("Scan error"));
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
-    "Non-nil means `forward-sexp', etc., should treat comments as whitespace.");
+	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
 
   DEFVAR_BOOL ("parse-sexp-lookup-properties", &parse_sexp_lookup_properties,
-    "Non-nil means `forward-sexp', etc., obey `syntax-table' property.\n\
-Otherwise, that text property is simply ignored.\n\
-See the info node `(elisp)Syntax Properties' for a description of the\n\
-`syntax-table' property.");
+	       doc: /* Non-nil means `forward-sexp', etc., obey `syntax-table' property.
+Otherwise, that text property is simply ignored.
+See the info node `(elisp)Syntax Properties' for a description of the
+`syntax-table' property.  */);
 
   words_include_escapes = 0;
   DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
-    "Non-nil means `forward-word', etc., should treat escape chars part of words.");
+	       doc: /* Non-nil means `forward-word', etc., should treat escape chars part of words.  */);
 
   DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
-    "Non-nil means `scan-sexps' treats all multibyte characters as symbol.");
+	       doc: /* Non-nil means `scan-sexps' treats all multibyte characters as symbol.  */);
   multibyte_syntax_as_symbol = 0;
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
 	       &open_paren_in_column_0_is_defun_start,
-    "Non-nil means an open paren in column 0 denotes the start of a defun.");
+	       doc: /* Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
 
   defsubr (&Ssyntax_table_p);
