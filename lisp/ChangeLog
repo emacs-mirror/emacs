@@ -1,3 +1,8 @@
+2004-06-04  Miles Bader  <miles@gnu.org>
+
+	* faces.el (display-supports-face-attributes-p): Implement a
+	`different from default' check for non-tty displays.
+
 2004-06-03  David Kastrup  <dak@gnu.org>
 
 	* woman.el (woman-mapcan): More concise code.

@@ -1510,11 +1510,25 @@ face for italic."
 	 (if (framep display)
 	     display
 	   (car (frames-on-display-list display)))))
-    ;; For now, we assume that non-tty displays can support everything.
-    ;; Later, we should add the ability to query about specific fonts,
-    ;; colors, etc.
-    (or (memq (framep frame) '(x w32 mac))
-	(tty-supports-face-attributes-p attributes frame))))
+    (if (not (memq (framep frame) '(x w32 mac)))
+	;; On ttys, `tty-supports-face-attributes-p' does all the work we need.
+	(tty-supports-face-attributes-p attributes frame)
+      ;; For now, we assume that non-tty displays can support everything,
+      ;; and so we just check to see if any of the specified attributes is
+      ;; different from the default -- though this probably isn't always
+      ;; accurate for font-related attributes.  Later, we should add the
+      ;; ability to query about specific fonts, colors, etc.
+      (while (and attributes
+		  (let* ((attr (car attributes))
+			 (val (cadr attributes))
+			 (default-val (face-attribute 'default attr frame)))
+		    (if (and (stringp val) (stringp default-val))
+			;; compare string attributes case-insensitively
+			(eq (compare-strings val nil nil default-val nil nil t)
+			    t)
+		      (equal val default-val))))
+	(setq attributes (cddr attributes)))
+      (not (null attributes)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
