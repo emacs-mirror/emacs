@@ -597,7 +597,7 @@ called `leim.tgz', type this command:
     djtar -x leim.tgz
 
 If you want to print international characters, install the intlfonts
-distribution.  For this, create a directory called, `fonts', under the
+distribution.  For this, create a directory called `fonts' under the
 Emacs top-level directory (usually called `emacs-XX.YY') created by
 unpacking emacs.tgz, chdir into the directory emacs-XX.YY/fonts, and
 type this:
@@ -610,6 +610,18 @@ Emacs, chdir to that directory and type these commands:
 
     config msdos
     make install
+
+To install the international fonts, chdir to the intlfonts-X.Y
+directory created when you unpacked the intlfonts distribution (X.Y is
+the version number of the fonts' distribution), and type the following
+command:
+
+    make bdf INSTALLDIR=..
+
+After Make finishes, you may remove the directory intlfonts-X.Y; the
+fonts are installed into the fonts/bdf subdirectory of the top-level
+Emacs directory, and that is where Emacs will look for them by
+default.
 
 Building Emacs creates executable files in the src and lib-src
 directories.  Installing Emacs on MSDOS moves these executables to a
