@@ -152,7 +152,15 @@
   (autoload 'utf7-encode "utf7")
   (autoload 'utf7-decode "utf7")
   (autoload 'format-spec "format-spec")
-  (autoload 'format-spec-make "format-spec"))
+  (autoload 'format-spec-make "format-spec")
+  ;; Avoid use gnus-point-at-eol so we're independent of Gnus.  These
+  ;; days we have point-at-eol anyhow.
+  (if (fboundp 'point-at-eol)
+      (defalias 'imap-point-at-eol 'point-at-eol)
+    (defun imap-point-at-eol ()
+      (save-excursion
+	(end-of-line)
+	(point)))))
 
 ;; User variables.
 
@@ -2217,7 +2225,7 @@ Return nil if no complete line has arrived."
     (assert (eq (char-after) ?\())
     (while (and (not (eq (char-after) ?\)))
 		(setq start (progn (imap-forward) (point)))
-		(> (skip-chars-forward "^ )" (gnus-point-at-eol)) 0))
+		(> (skip-chars-forward "^ )" (imap-point-at-eol)) 0))
       (push (buffer-substring start (point)) flag-list))
     (assert (eq (char-after) ?\)))
     (imap-forward)
