@@ -184,11 +184,17 @@ In Emacs a menu filter must return a menu (a keymap), in XEmacs a filter must
 return a menu items list (without menu name and keywords).
 This function returns the right thing in the two cases.
 If NAME is provided, it is used for the keymap."
- (when (and (not (keymapp menu)) (consp menu))
+ (cond
+  ((and (not (keymapp menu)) (consp menu))
    ;; If it's a cons but not a keymap, then it can't be right
    ;; unless it's an XEmacs menu.
    (setq menu (easy-menu-create-menu (or name "") menu)))
- (easy-menu-get-map menu nil))		; Get past indirections.
+  ((vectorp menu)
+   ;; It's just a menu entry.
+   (setq menu (cdr (easy-menu-convert-item menu)))))
+ (if (keymapp menu)
+     (easy-menu-get-map menu nil)		; Get past indirections.
+   menu))
 
 ;;;###autoload
 (defun easy-menu-create-menu (menu-name menu-items)
