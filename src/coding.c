@@ -224,10 +224,10 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
       }						\
     else					\
       {						\
-	*dst++ = (c);				\
+	/* If ASCII charset is invoked to GR,	\
+	   we must reset MSB now.  */		\
+	*dst++ = (c) & 0x7F;			\
 	coding->produced_char++;		\
-	if ((c) >= 0x80)			\
-	  coding->fake_multibyte = 1;		\
       }						\
   } while (0)
 
