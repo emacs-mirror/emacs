@@ -201,6 +201,7 @@ extern Lisp_Object Ftext_properties_at ();
 extern Lisp_Object Fnext_property_change (), Fprevious_property_change ();
 extern Lisp_Object Fadd_text_properties (), Fset_text_properties ();
 extern Lisp_Object Fremove_text_properties (), Ferase_text_properties ();
+extern Lisp_Object copy_text_properties ();
 
 extern void syms_of_textprop ();
 
