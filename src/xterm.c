@@ -5076,6 +5076,7 @@ struct font_info
 {
   XFontStruct *font;
   char *name;
+  char *full_name;
 };
 
 /* A table of all the fonts we have already loaded.  */
@@ -5088,6 +5089,11 @@ static int x_font_table_size;
    x_font_table[n] is used and valid iff 0 <= n < n_fonts.
    0 <= n_fonts <= x_font_table_size.  */
 static int n_fonts;
+
+/* Give frame F the font named FONTNAME as its default font, and
+   return the full name of that font.  FONTNAME may be a wildcard
+   pattern; in that case, we choose some font that fits the pattern.
+   The return value shows which font we chose.  */
 
 Lisp_Object
 x_new_font (f, fontname)
@@ -5121,10 +5127,11 @@ x_new_font (f, fontname)
 
       for (i = 0; i < n_fonts; i++)
 	for (j = 0; j < n_matching_fonts; j++)
-	  if (!strcmp (x_font_table[i].name, font_names[j]))
+	  if (!strcmp (x_font_table[i].name, font_names[j])
+	      || !strcmp (x_font_table[i].full_name, font_names[j]))
 	    {
 	      already_loaded = i;
-	      fontname = font_names[j];
+	      fontname = x_font_table[i].full_name;
 	      goto found_font;
 	    }
     }
@@ -5138,6 +5145,7 @@ x_new_font (f, fontname)
   else
     {
       int i;
+      char *full_name;
       XFontStruct *font;
 
       /* Try to find a character-cell font in the list.  */
@@ -5181,9 +5189,27 @@ x_new_font (f, fontname)
 					      * sizeof (x_font_table[0])));
 	}
 
+      /* Try to get the full name of FONT.  Put it in full_name.  */
+      full_name = 0;
+      for (i = 0; i < font->n_properties; i++)
+	{
+	  char *atom
+	    = XGetAtomName (x_current_display, font->properties[i].name);
+	  if (!strcmp (atom, "FONT"))
+	    full_name = XGetAtomName (x_current_display,
+				      (Atom) (font->properties[i].card32));
+	  XFree (atom);
+	}
+
       x_font_table[n_fonts].name = (char *) xmalloc (strlen (fontname) + 1);
       bcopy (fontname, x_font_table[n_fonts].name, strlen (fontname) + 1);
+      if (full_name != 0)
+	x_font_table[n_fonts].full_name = full_name;
+      else
+	x_font_table[n_fonts].full_name = x_font_table[n_fonts].name;
       f->display.x->font = x_font_table[n_fonts++].font = font;
+
+      fontname = full_name;
     }
 
   /* Now make the frame display the given font.  */
