@@ -1426,7 +1426,7 @@ make_shadow_gcs (mw)
   unsigned long pm = 0;
   Display *dpy = XtDisplay ((Widget) mw);
   Screen *screen = XtScreen ((Widget) mw);
-  Colormap cmap = DefaultColormapOfScreen (screen);
+  Colormap cmap = mw->core.colormap;
   XColor topc, botc;
   int top_frobbed = 0, bottom_frobbed = 0;
 
