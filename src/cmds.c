@@ -284,7 +284,8 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
    even if it is enabled.
 
    If this insertion is suitable for direct output (completely simple),
-   return 0.  A value of 1 indicates this *might* not have been simple.  */
+   return 0.  A value of 1 indicates this *might* not have been simple.
+   A value of 2 means this did things that call for an undo boundary.  */
 
 internal_self_insert (c1, noautofill)
      char c1;
@@ -313,7 +314,7 @@ internal_self_insert (c1, noautofill)
 	  || !((current_column () + 1) % XFASTINT (current_buffer->tab_width))))
     {
       del_range (point, point + 1);
-      hairy = 1;
+      hairy = 2;
     }
   if (!NILP (current_buffer->abbrev_mode)
       && SYNTAX (c) != Sword
@@ -326,7 +327,7 @@ internal_self_insert (c1, noautofill)
 	 but if Fexpand_abbrev changed the buffer,
 	 assume it expanded something.  */
       if (MODIFF != modiff)
-	hairy = 1;
+	hairy = 2;
     }
   if ((c == ' ' || c == '\n')
       && !noautofill
@@ -338,7 +339,7 @@ internal_self_insert (c1, noautofill)
       call0 (current_buffer->auto_fill_function);
       if (c1 == '\n')
 	insert (&c1, 1);
-      hairy = 1;
+      hairy = 2;
     }
   else
     insert (&c1, 1);
@@ -347,7 +348,7 @@ internal_self_insert (c1, noautofill)
       && !NILP (Vblink_paren_function) && INTERACTIVE)
     {
       call0 (Vblink_paren_function);
-      hairy = 1;
+      hairy = 2;
     }
   return hairy;
 }
