@@ -2861,7 +2861,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      /* The window manager never makes a window invisible
 		 ("withdrawn"); all it does is switch between visible
 		 and iconified.  Frames get into the invisible state
-		 only through x_make_frame_invisible.
+		 only through x_make_frame_invisible.  */
 	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
 		f->async_iconified = 1;
 	    }
@@ -4707,15 +4707,18 @@ x_term_init (display_name)
 {
   Lisp_Object frame;
   char *defaultvalue;
+#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
   extern int old_fcntl_owner;
 #endif /* ! defined (F_SETOWN) */
+#endif /* F_SETOWN_BUG */
   
   x_focus_frame = x_highlight_frame = 0;
 
   x_current_display = XOpenDisplay (display_name);
   if (x_current_display == 0)
-    fatal ("X server %s not responding; check the DISPLAY environment variable or use \"-d\"\n",
+    fatal ("X server %s not responding.\n\
+Check the DISPLAY environment variable or use \"-d\"\n",
 	   display_name);
 
 #ifdef HAVE_X11
@@ -4780,6 +4783,7 @@ x_term_init (display_name)
 
 #endif /* ! defined (HAVE_X11) */
   
+#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
   old_fcntl_owner = fcntl (0, F_GETOWN, 0);
 #ifdef F_SETOWN_SOCK_NEG
@@ -4788,6 +4792,7 @@ x_term_init (display_name)
   fcntl (0, F_SETOWN, getpid ());
 #endif /* ! defined (F_SETOWN_SOCK_NEG) */
 #endif /* ! defined (F_SETOWN) */
+#endif /* F_SETOWN_BUG */
 
 #ifdef SIGIO
   init_sigio ();
