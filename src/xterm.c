@@ -7470,7 +7470,7 @@ note_tool_bar_highlight (f, x, y)
       
  set_help_echo:
   
-  /* Set help_echo to a help string.to display for this tool-bar item.
+  /* Set help_echo to a help string to display for this tool-bar item.
      XTread_socket does the rest.  */
   help_echo_object = help_echo_window = Qnil;
   help_echo_pos = -1;
