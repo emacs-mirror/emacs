@@ -105,20 +105,19 @@ extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qdirectory_files;
+Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;
 Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
+Lisp_Object Qfile_attributes_lessp;
 
-DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
-  "Return a list of names of files in DIRECTORY.\n\
-There are three optional arguments:\n\
-If FULL is non-nil, return absolute file names.  Otherwise return names\n\
- that are relative to the specified directory.\n\
-If MATCH is non-nil, mention only file names that match the regexp MATCH.\n\
-If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
- NOSORT is useful if you plan to sort the result yourself.")
-  (directory, full, match, nosort)
+/* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.  
+   When ATTRS is zero, return a list of directory filenames; when
+   non-zero, return a list of directory filenames and their attributes.  */
+Lisp_Object
+directory_files_internal (directory, full, match, nosort, attrs)
      Lisp_Object directory, full, match, nosort;
+     int attrs;
 {
   DIR *d;
   int dirnamelen;
@@ -128,22 +127,6 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   struct re_pattern_buffer *bufp;
   int needsep = 0;
   struct gcpro gcpro1, gcpro2;
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (directory, Qdirectory_files);
-  if (!NILP (handler))
-    {
-      Lisp_Object args[6];
-
-      args[0] = handler;
-      args[1] = Qdirectory_files;
-      args[2] = directory;
-      args[3] = full;
-      args[4] = match;
-      args[5] = nosort;
-      return Ffuncall (6, args);
-    }
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
@@ -216,6 +199,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	  if (NILP (match)
 	      || (0 <= re_search (bufp, XSTRING (name)->data, len, 0, len, 0)))
 	    {
+	      Lisp_Object finalname;
+
+	      finalname = name;
 	      if (!NILP (full))
 		{
 		  int afterdirindex = dirnamelen;
@@ -236,9 +222,25 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		  XSTRING (fullname)->size = nchars;
 		  if (nchars == STRING_BYTES (XSTRING (fullname)))
 		    SET_STRING_BYTES (XSTRING (fullname), -1);
-		  name = fullname;
+		  finalname = fullname;
 		}
-	      list = Fcons (name, list);
+
+	      if (attrs)
+		{
+		  /* Construct an expanded filename for the directory entry.
+		     Use the decoded names for input to Ffile_attributes.  */
+		  Lisp_Object decoded_fullname;
+		  Lisp_Object fileattrs;
+
+		  decoded_fullname = Fexpand_file_name (name, directory);
+		  fileattrs = Ffile_attributes (decoded_fullname);
+
+		  list = Fcons (Fcons (finalname, fileattrs), list);
+		}
+	      else
+		{
+		  list = Fcons (finalname, list);
+		}
 	    }
 	}
     }
@@ -246,8 +248,77 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   UNGCPRO;
   if (!NILP (nosort))
     return list;
-  return Fsort (Fnreverse (list), Qstring_lessp);
+  if (attrs)
+    return Fsort (Fnreverse (list), Qfile_attributes_lessp);
+  else
+    return Fsort (Fnreverse (list), Qstring_lessp);
 }
+
+
+DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
+  "Return a list of names of files in DIRECTORY.\n\
+There are three optional arguments:\n\
+If FULL is non-nil, return absolute file names.  Otherwise return names\n\
+ that are relative to the specified directory.\n\
+If MATCH is non-nil, mention only file names that match the regexp MATCH.\n\
+If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
+ NOSORT is useful if you plan to sort the result yourself.")
+  (directory, full, match, nosort)
+     Lisp_Object directory, full, match, nosort;
+{
+  Lisp_Object handler;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (directory, Qdirectory_files);
+  if (!NILP (handler))
+    {
+      Lisp_Object args[6];
+
+      args[0] = handler;
+      args[1] = Qdirectory_files;
+      args[2] = directory;
+      args[3] = full;
+      args[4] = match;
+      args[5] = nosort;
+      return Ffuncall (6, args);
+    }
+
+  return directory_files_internal (directory, full, match, nosort, 0);
+}
+
+DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes, Sdirectory_files_and_attributes, 1, 4, 0,
+  "Return a list of names of files and their attributes in DIRECTORY.\n\
+There are three optional arguments:\n\
+If FULL is non-nil, return absolute file names.  Otherwise return names\n\
+ that are relative to the specified directory.\n\
+If MATCH is non-nil, mention only file names that match the regexp MATCH.\n\
+If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
+ NOSORT is useful if you plan to sort the result yourself.")
+  (directory, full, match, nosort)
+     Lisp_Object directory, full, match, nosort;
+{
+  Lisp_Object handler;
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
+  if (!NILP (handler))
+    {
+      Lisp_Object args[6];
+
+      args[0] = handler;
+      args[1] = Qdirectory_files_and_attributes;
+      args[2] = directory;
+      args[3] = full;
+      args[4] = match;
+      args[5] = nosort;
+      return Ffuncall (6, args);
+    }
+
+  return directory_files_internal (directory, full, match, nosort, 1);
+}
+
 
 Lisp_Object file_name_completion ();
 
@@ -754,21 +825,35 @@ If file does not exist, returns nil.")
   values[11] = make_number (s.st_dev);
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
+
+DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,
+  "Return t if first arg file attributes list is less than second.\n\
+Comparison is in lexicographic order and case is significant.")
+  (f1, f2)
+     Lisp_Object f1, f2;
+{
+  return Fstring_lessp (Fcar (f1), Fcar (f2));
+}
 
 void
 syms_of_dired ()
 {
   Qdirectory_files = intern ("directory-files");
+  Qdirectory_files_and_attributes = intern ("directory-files-and-attributes");
   Qfile_name_completion = intern ("file-name-completion");
   Qfile_name_all_completions = intern ("file-name-all-completions");
   Qfile_attributes = intern ("file-attributes");
+  Qfile_attributes_lessp = intern ("file-attributes-lessp");
 
   staticpro (&Qdirectory_files);
+  staticpro (&Qdirectory_files_and_attributes);
   staticpro (&Qfile_name_completion);
   staticpro (&Qfile_name_all_completions);
   staticpro (&Qfile_attributes);
+  staticpro (&Qfile_attributes_lessp);
 
   defsubr (&Sdirectory_files);
+  defsubr (&Sdirectory_files_and_attributes);
   defsubr (&Sfile_name_completion);
 #ifdef VMS
   defsubr (&Sfile_name_all_versions);
@@ -776,6 +861,7 @@ syms_of_dired ()
 #endif /* VMS */
   defsubr (&Sfile_name_all_completions);
   defsubr (&Sfile_attributes);
+  defsubr (&Sfile_attributes_lessp);
 
 #ifdef VMS
   Qcompletion_ignore_case = intern ("completion-ignore-case");
