@@ -1,3 +1,22 @@
+2004-03-21  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el Add new optional BUFFER argument to vc-BACKEND-print-log
+	and vc-BACKEND-diff.
+	(vc-print-log): If the print-log implementation supports it, use
+	the new BUFFER argument to direct output to *vc-change-log*, not *vc*.
+	(vc-version-diff, vc-diff-internal): Doc fixes.
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): If the
+	implementation supports it, let diff output go to *vc*, 
+	not *vc-diff*, since this is an internal call.
+
+	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Add optional BUFFER
+	argument.
+
+	* vc-rcs.el (vc-rcs-print-log, vc-rcs-diff): Likewise.
+
+	* vc-sccs.el (vc-sccs-print-log, vc-sccs-diff): Likewise.
+	
 2004-03-21  Dave Love  <fx@gnu.org>
 
 	* progmodes/cfengine.el (cfengine-mode): Set
