@@ -1013,6 +1013,13 @@ echo '
 #endif
 @configure@ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
 @configure@ c_switch_system=C_SWITCH_SYSTEM
+
+#ifdef UNEXEC
+@configure@ unexec=UNEXEC
+#else
+@configure@ unexec=unexec.o
+#endif
+
 #ifdef SYSTEM_MALLOC
 @configure@ system_malloc=yes
 #else
@@ -1027,6 +1034,8 @@ eval `${foo} ${tempcname} \
        | sed -e 's/^@configure@ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
 
+### Compute the unexec source name from the object name.
+UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
 
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
 # Assume not, until told otherwise.
@@ -1073,6 +1082,7 @@ AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
 AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE})
 AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE})
+AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC})
 
 [
 if [ "${HAVE_X_WINDOWS}" = "yes" ] ; then
