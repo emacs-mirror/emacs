@@ -354,6 +354,7 @@ subshell is initiated, the value of tex-shell-hook is called."
   (setq tex-trailer "\\end{document}\n")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'latex-mode-hook))
 
+;;;###autoload
 (defun slitex-mode ()
   "Major mode for editing files of input for SliTeX.
 Makes $ and } display the characters they match.
@@ -975,6 +976,41 @@ so normally SUFFIX starts with one."
 			   (string-match "\\." file))
 		suffix))
     " "))
+
+;;; Use this code after discussing with rms.  (bfox@ai.mit.edu)
+;;; Date: Tue, 31 Aug 1993 14:30:26 EDT
+;;; From: Stephen Gildea <gildea@expo2.x.org>
+;;; Sender: gnulists@ai.mit.edu
+;;; Resent-From: bug-gnu-emacs-request@prep.ai.mit.edu
+;;; 
+;;; The function tex-append in Emacs 19.19 needs to be updated for the
+;;; newer C version of TeX, which parses filenames differently.
+;;; Pascal-based TeX scans for the first period; C TeX uses the last.
+;;; Here is a version of tex-append which tries both ways.
+;;; 
+;;; (defun tex-append (file-name suffix)
+;;;   "Append to FILENAME the suffix SUFFIX, using same algorithm TeX uses.
+;;; Pascal-based TeX scans for the first period, C TeX uses the last.
+;;; No period is retained immediately before SUFFIX,
+;;; so normally SUFFIX starts with one."
+;;;   (if (stringp file-name)
+;;;       (let ((file (file-name-nondirectory file-name))
+;;; 	    trial-name)
+;;; 	;; try spliting on first period
+;;; 	(setq trial-name
+;;; 	      (concat (file-name-directory file-name)
+;;; 		      (substring file 0
+;;; 				 (string-match "\\." file))
+;;; 		      suffix))
+;;; 	(if (or (file-exists-p trial-name)
+;;; 		(file-exists-p (concat trial-name ".aux"))) ;for BibTeX files
+;;; 	    trial-name
+;;; 	  ;; not found, so split on last period
+;;; 	  (concat (file-name-directory file-name)
+;;; 		  (substring file 0
+;;; 			     (string-match "\\.[^.]*$" file))
+;;; 		  suffix)))
+;;;     " "))
 
 (defun tex-show-print-queue ()
   "Show the print queue that \\[tex-print] put your job on.
