@@ -181,7 +181,7 @@ The usage info is built from ARGLIST.  DOC can be nil."
       doc
     (format "%s%s%s" doc
 	    (if (string-match "\n?\n\\'" doc)
-		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n")
+		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
 	    (help-make-usage 'fn arglist))))
 
