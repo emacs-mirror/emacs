@@ -100,20 +100,19 @@ maintainers to avoid version confusion.")
 ;;; User Variables
 
 (defgroup bookmark nil
-  "Setting, annotation and jumping to bookmarks"
+  "Setting, annotation and jumping to bookmarks."
   :group 'matching)
 
 
 (defcustom bookmark-use-annotations nil
-  "*If non-nil, saving a bookmark will query for an annotation in a
-buffer."
+  "*If non-nil, saving a bookmark queries for an annotation in a buffer."
   :type 'boolean
   :group 'bookmark)
 
 
 (defcustom bookmark-save-flag t
   "*Controls when Emacs saves bookmarks to a file.
---> Nil means never save bookmarks, except when `bookmark-save' is
+--> nil means never save bookmarks, except when `bookmark-save' is
     explicitly called \(\\[bookmark-save]\).
 --> t means save bookmarks when Emacs is killed.
 --> Otherwise, it should be a number that is the frequency with which
@@ -127,13 +126,13 @@ bookmark is to set this variable to 1 \(or 0, which produces the same
 behavior.\)
 
 To specify the file in which to save them, modify the variable
-bookmark-default-file, which is `~/.emacs.bmk' by default."
+`bookmark-default-file', which is `~/.emacs.bmk' by default."
   :type '(choice (const nil) (const t) integer)
   :group 'bookmark)
 
 
 (defconst bookmark-old-default-file "~/.emacs-bkmrks"
-  "*The .emacs.bmk file used to be called this.")
+  "*The `.emacs.bmk' file used to be called this name.")
 
 
 ;; defvarred to avoid a compilation warning:
@@ -167,8 +166,8 @@ use the value of `version-control'."
 
 
 (defcustom bookmark-sort-flag t
-  "*Non-nil means that bookmarks will be displayed sorted by bookmark
-name.  Otherwise they will be displayed in LIFO order (that is, most
+  "*Non-nil means that bookmarks will be displayed sorted by bookmark name.
+Otherwise they will be displayed in LIFO order (that is, most
 recently set ones come first, oldest ones come last)."
   :type 'boolean
   :group 'bookmark)
@@ -190,7 +189,7 @@ You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookma
 (defcustom bookmark-bmenu-toggle-filenames t
   "*Non-nil means show filenames when listing bookmarks.
 This may result in truncated bookmark names.  To disable this, put the
-following in your .emacs:
+following in your `.emacs' file:
 
 \(setq bookmark-bmenu-toggle-filenames nil\)"
   :type 'boolean
