@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.12
+;; Version: 3.12.01
 
 ;;; This file is part of GNU Emacs.
 
@@ -53,6 +53,120 @@
 ;; Version control packages are likely to stamp all over file modification
 ;; times.  Therefore the act of checking out may invalidate a cache.
 
+;; History:
+;;
+;; 0.02--1.00:
+;; - Changed name from turbo-prop to fast-lock.  Automagic for font-lock only
+;; - Made `fast-lock-mode' a minor mode, like G. Dinesh Dutt's fss-mode
+;; 1.00--1.01:
+;; - Turn on `fast-lock-mode' only if `buffer-file-name' or `interactive-p'
+;; - Made `fast-lock-file-name' use `buffer-name' if `buffer-file-name' is nil
+;; - Moved save-all conditions to `fast-lock-save-cache'
+;; - Added `fast-lock-save-text-properties' to `kill-buffer-hook'
+;; 1.01--2.00: complete rewrite---not worth the space to document
+;; - Changed structure of text properties cache and threw out file mod checks
+;; 2.00--2.01:
+;; - Made `condition-case' forms understand `quit'. 
+;; - Made `fast-lock' require `font-lock'
+;; - Made `fast-lock-cache-name' chase links (from Ben Liblit)
+;; 2.01--3.00:
+;; - Changed structure of cache to include `font-lock-keywords' (from rms)
+;; - Changed `fast-lock-cache-mechanisms' to `fast-lock-cache-directories'
+;; - Removed `fast-lock-read-others'
+;; - Made `fast-lock-read-cache' ignore cache owner
+;; - Made `fast-lock-save-cache-external' create cache directory
+;; - Made `fast-lock-save-cache-external' save `font-lock-keywords'
+;; - Made `fast-lock-cache-data' check `font-lock-keywords'
+;; 3.00--3.01: incorporated port of 2.00 to Lucid, made by Barry Warsaw
+;; - Package now provides itself
+;; - Lucid: Use `font-lock-any-extents-p' for `font-lock-any-properties-p'
+;; - Lucid: Use `list-faces' for `face-list'
+;; - Lucid: Added `set-text-properties'
+;; - Lucid: Made `turn-on-fast-lock' pass 1 not t to `fast-lock-mode'
+;; - Removed test for `fast-lock-mode' from `fast-lock-read-cache'
+;; - Lucid: Added Lucid-specific `fast-lock-get-face-properties'
+;; 3.01--3.02: now works with Lucid Emacs, thanks to Barry Warsaw
+;; - Made `fast-lock-cache-name' map ":" to ";" for OS/2 (from Serganova Vera)
+;; - Made `fast-lock-cache-name' use abbreviated file name (from Barry Warsaw)
+;; - Lucid: Separated handlers for `error' and `quit' for `condition-case'
+;; 3.02--3.03:
+;; - Changed `fast-lock-save-cache-external' to `fast-lock-save-cache-data'
+;; - Lucid: Added Lucid-specific `fast-lock-set-face-properties'
+;; 3.03--3.04:
+;; - Corrected `subrp' test of Lucid code
+;; - Replaced `font-lock-any-properties-p' with `text-property-not-all'
+;; - Lucid: Made `fast-lock-set-face-properties' put `text-prop' on extents
+;; - Made `fast-lock-cache-directories' a regexp alist (from Colin Rafferty)
+;; - Made `fast-lock-cache-directory' to return a usable cache file directory
+;; 3.04--3.05:
+;; - Lucid: Fix for XEmacs 19.11 `text-property-not-all'
+;; - Replaced `subrp' test of Lucid code with `emacs-version' `string-match'
+;; - Made `byte-compile-warnings' omit `unresolved' on compilation
+;; - Made `fast-lock-save-cache-data' use a buffer (from Rick Sladkey)
+;; - Reverted to old `fast-lock-get-face-properties' (from Rick Sladkey)
+;; 3.05--3.06: incorporated hack of 3.03, made by Jonathan Stigelman (Stig)
+;; - Reverted to 3.04 version of `fast-lock-get-face-properties'
+;; - XEmacs: Removed `list-faces' `defalias'
+;; - Made `fast-lock-mode' and `turn-on-fast-lock' succeed `autoload' cookies
+;; - Added `fast-lock-submit-bug-report'
+;; - Renamed `fast-lock-save-size' to `fast-lock-minimum-size'
+;; - Made `fast-lock-save-cache' output a message if no save ever attempted
+;; - Made `fast-lock-save-cache-data' output a message if save attempted
+;; - Made `fast-lock-cache-data' output a message if load attempted
+;; - Made `fast-lock-save-cache-data' do `condition-case' not `unwind-protect'
+;; - Made `fast-lock-save-cache' and `fast-lock-read-cache' return nothing
+;; - Made `fast-lock-save-cache' check `buffer-modified-p' (Stig)
+;; - Added `fast-lock-save-events'
+;; - Added `fast-lock-after-save-hook' to `after-save-hook' (Stig)
+;; - Added `fast-lock-kill-buffer-hook' to `kill-buffer-hook'
+;; - Changed `fast-lock-save-caches' to `fast-lock-kill-emacs-hook'
+;; - Added `fast-lock-kill-emacs-hook' to `kill-emacs-hook'
+;; - Made `fast-lock-save-cache' check `verify-visited-file-modtime' (Stig)
+;; - Made `visited-file-modtime' be the basis of the timestamp (Stig)
+;; - Made `fast-lock-save-cache-1' and `fast-lock-cache-data' use/reformat it
+;; - Added `fast-lock-cache-filename' to keep track of the cache file name
+;; - Added `fast-lock-after-fontify-buffer'
+;; - Added `fast-lock-save-faces' list of faces to save (idea from Stig/Tibor)
+;; - Made `fast-lock-get-face-properties' functions use it
+;; - XEmacs: Made `fast-lock-set-face-properties' do extents the Font Lock way
+;; - XEmacs: Removed fix for `text-property-not-all' (19.11 support dropped)
+;; - Made `fast-lock-mode' ensure `font-lock-mode' is on
+;; - Made `fast-lock-save-cache' do `cdr-safe' not `cdr' (from Dave Foster)
+;; - Made `fast-lock-save-cache' do `set-buffer' first (from Dave Foster)
+;; - Made `fast-lock-save-cache' loop until saved or quit (from Georg Nikodym)
+;; - Made `fast-lock-cache-data' check `buffer-modified-p'
+;; - Made `fast-lock-cache-data' do `font-lock-compile-keywords' if necessary
+;; - XEmacs: Made `font-lock-compile-keywords' `defalias'
+;; 3.06--3.07:
+;; - XEmacs: Add `fast-lock-after-fontify-buffer' to the Font Lock hook
+;; - Made `fast-lock-cache-name' explain the use of `directory-abbrev-alist'
+;; - Made `fast-lock-mode' use `buffer-file-truename' not `buffer-file-name'
+;; 3.07--3.08:
+;; - Made `fast-lock-read-cache' set `fast-lock-cache-filename'
+;; 3.08--3.09:
+;; - Made `fast-lock-save-cache' cope if `fast-lock-minimum-size' is an a list
+;; - Made `fast-lock-mode' respect the value of `font-lock-inhibit-thing-lock'
+;; - Added `fast-lock-after-unfontify-buffer'
+;; 3.09--3.10:
+;; - Rewrite for Common Lisp macros
+;; - Made fast-lock.el barf on a crap 8+3 pseudo-OS (Eli Zaretskii help)
+;; - XEmacs: Made `add-minor-mode' succeed `autoload' cookie
+;; - XEmacs: Made `fast-lock-save-faces' default to `font-lock-face-list'
+;; - Made `fast-lock-save-cache' use `font-lock-value-in-major-mode'
+;; - Wrap with `save-buffer-state' (Ray Van Tassle report)
+;; - Made `fast-lock-mode' wrap `font-lock-support-mode'
+;; 3.10--3.11:
+;; - Made `fast-lock-get-face-properties' cope with face lists
+;; - Added `fast-lock-verbose'
+;; - XEmacs: Add `font-lock-value-in-major-mode' if necessary
+;; - Removed `fast-lock-submit-bug-report' and bade farewell
+;; 3.11--3.12:
+;; - Added Custom support (Hrvoje Niksic help)
+;; - Made `save-buffer-state' wrap `inhibit-point-motion-hooks'
+;; - Made `fast-lock-cache-data' simplify calls of `font-lock-compile-keywords'
+;; 3.12--3.13:
+;; - Removed `byte-*' variables from `eval-when-compile' (Erik Naggum hint)
+
 ;;; Code:
 
 (require 'font-lock)
@@ -64,37 +178,42 @@
 (eval-when-compile
   ;;
   ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl))
-
-;; We use this to preserve or protect things when modifying text properties.
-(defmacro save-buffer-state (varlist &rest body)
-  "Bind variables according to VARLIST and eval BODY restoring buffer state."
-  (` (let* ((,@ (append varlist
-			'((modified (buffer-modified-p)) (buffer-undo-list t)
-			  (inhibit-read-only t) (inhibit-point-motion-hooks t)
-			  before-change-functions after-change-functions
-			  deactivate-mark buffer-file-name buffer-file-truename))))
-       (,@ body)
-       (when (and (not modified) (buffer-modified-p))
-	 (set-buffer-modified-p nil)))))
-(put 'save-buffer-state 'lisp-indent-function 1)
-
-;; We use this to verify that a face should be saved.
-(defmacro fast-lock-save-facep (face)
-  "Return non-nil if FACE is one of `fast-lock-save-faces'."
-  (` (or (null fast-lock-save-faces)
-	 (if (symbolp (, face))
-	     (memq (, face) fast-lock-save-faces)
-	   (let ((faces (, face)))
-	     (while (unless (memq (car faces) fast-lock-save-faces)
-		      (setq faces (cdr faces))))
-	     faces)))))
+  (require 'cl)
+  ;;
+  ;; We use this to preserve or protect things when modifying text properties.
+  (defmacro save-buffer-state (varlist &rest body)
+    "Bind variables according to VARLIST and eval BODY restoring buffer state."
+    (` (let* ((,@ (append varlist
+		   '((modified (buffer-modified-p)) (buffer-undo-list t)
+		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
+		     before-change-functions after-change-functions
+		     deactivate-mark buffer-file-name buffer-file-truename))))
+	 (,@ body)
+	 (when (and (not modified) (buffer-modified-p))
+	   (set-buffer-modified-p nil)))))
+  (put 'save-buffer-state 'lisp-indent-function 1)
+  ;;
+  ;; We use this to verify that a face should be saved.
+  (defmacro fast-lock-save-facep (face)
+    "Return non-nil if FACE is one of `fast-lock-save-faces'."
+    (` (or (null fast-lock-save-faces)
+	   (if (symbolp (, face))
+	       (memq (, face) fast-lock-save-faces)
+	     (let ((faces (, face)))
+	       (while (unless (memq (car faces) fast-lock-save-faces)
+			(setq faces (cdr faces))))
+	       faces)))))
+  ;;
+  ;; We use this for compatibility with a future Emacs.
+  (or (fboundp 'defcustom)
+      (defmacro defcustom (symbol value doc &rest args) 
+	(` (defvar (, symbol) (, value) (, doc))))))
 
 ;(defun fast-lock-submit-bug-report ()
 ;  "Submit via mail a bug report on fast-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12.01"
 ;     '(fast-lock-cache-directories fast-lock-minimum-size
 ;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
 ;       fast-lock-verbose)
@@ -112,11 +231,6 @@
 (defvar fast-lock-cache-filename nil)	; For deleting.
 
 ;; User Variables:
-
-(defgroup fast-lock nil
-  "Font Lock support mode to cache fontification."
-  :link '(custom-manual "(emacs)Support Modes")
-  :group 'font-lock)
 
 (defcustom fast-lock-cache-directories '("." "~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
@@ -137,10 +251,10 @@ For example:
 
 would cause a file's current directory to be used if the file is under your
 home directory hierarchy, or otherwise the absolute directory `~/.emacs-flc'."
-  :type '(repeat (radio (cons :tag "Matching"
+  :type '(repeat (radio (directory :tag "directory")
+			(cons :tag "Matching"
 			      (regexp :tag "regexp")
-			      (directory :tag "directory"))
-			(directory :tag "directory")))
+			      (directory :tag "directory"))))
   :group 'fast-lock)
 
 (defcustom fast-lock-minimum-size (* 25 1024)
