@@ -76,6 +76,7 @@ round_to_next (unsigned char *address, unsigned long align)
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
 unsigned long  data_region_size = 0;
+unsigned long  reserved_heap_size = 0;
 
 /* The start of the data segment.  */
 unsigned char *
@@ -91,6 +92,56 @@ get_data_end (void)
   return data_region_end;
 }
 
+
+#ifdef WINDOWS95
+static char *
+allocate_heap (void)
+{
+  unsigned long base = 0x00030000;
+  unsigned long end  = 0x00D00000;
+
+  reserved_heap_size = end - base;
+
+  return VirtualAlloc ((void *) base,
+		       get_reserved_heap_size (),
+		       MEM_RESERVE,
+		       PAGE_NOACCESS);
+}
+#else  
+static char *
+allocate_heap (void)
+{
+  unsigned long start     = 0x400000;
+  unsigned long stop      = 0xF00000;
+  unsigned long increment = 0x100000;
+  char *ptr, *begin = NULL, *end = NULL;
+  int i;
+
+  for (i = start; i < stop; i += increment) 
+    {
+      ptr = VirtualAlloc ((void *) i, increment, MEM_RESERVE, PAGE_NOACCESS);
+      if (ptr) 
+	begin = begin ? begin : ptr;
+      else if (begin)
+	{
+	  end = ptr;
+	  break;
+	}
+    }
+
+  if (begin && !end)
+    end = (char *) i;
+  
+  if (!begin)
+    /* We couldn't allocate any memory for the heap.  Exit.  */
+    exit (-2);
+
+  reserved_heap_size = end - begin;
+  return begin;
+}
+#endif
+
+
 /* Emulate Unix sbrk.  */
 void *
 sbrk (unsigned long increment)
@@ -101,10 +152,7 @@ sbrk (unsigned long increment)
   /* Allocate our heap if we haven't done so already.  */
   if (!data_region_base) 
     {
-      data_region_base = VirtualAlloc ((void *) get_data_region_base (),
-				       get_reserved_heap_size (),
-				       MEM_RESERVE,
-				       PAGE_NOACCESS);
+      data_region_base = allocate_heap ();
       if (!data_region_base)
 	return NULL;
 
