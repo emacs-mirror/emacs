@@ -201,7 +201,7 @@
 (defun x-pop-initial-window ()
   ;; xterm.c depends on using interrupt-driven input.
   (set-input-mode t nil t)
-  ;; (setq mouse-motion-handler 'x-track-pointer)
+  (setq mouse-motion-handler 'x-track-pointer)
   (setq x-switches-specified (append x-switches-specified
 				     initial-screen-alist
 				     screen-default-alist))
@@ -456,71 +456,6 @@
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
-
-;;
-;; Convenience functions for dynamically changing screen parameters
-;;
-
-(defun x-set-default-font (font-name)
-  (interactive "sFont name: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'font font-name))))
-
-(defun x-set-background (color-name)
-  (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'background-color color-name))))
-
-(defun x-set-foreground (color-name)
-  (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'foreground-color color-name))))
-
-(defun x-set-cursor (color-name)
-  (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'cursor-color color-name))))
-
-(defun x-set-mouse (color-name)
-  (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'mouse-color color-name))))
-
-(defun x-set-mouse-shape (shape)
-  (interactive "sShape: ")
-  (setq x-pointer-shape (eval (intern shape)))
-  (modify-screen-parameters (selected-screen)
-			    (list (assoc 'mouse-color (screen-parameters)))))
-
-(defun x-set-border (color-name)
-  (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'border-color color-name))))
-
-(defun x-set-name (name)
-  (interactive "sName: ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'name name))))
-
-(defun x-set-auto-raise (toggle)
-  (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'auto-raise toggle))))
-
-(defun x-set-auto-lower (toggle)
-  (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'auto-lower toggle))))
-
-(defun x-set-vertical-bar (toggle)
-  (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'vertical-scroll-bar toggle))))
-
-(defun x-set-horizontal-bar (toggle)
-  (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
-			    (list (cons 'horizontal-scroll-bar toggle))))
 
 ;;
 ;; Function key processing under X.  Function keys are received through
