@@ -1561,16 +1561,20 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   return Qnil;
 }
 
-DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 0, 0,
-  "Return number of lines available for display on selected frame.")
-  ()
+DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 1, 0,
+  "Return number of lines available for display on FRAME.\n\
+If FRAME is omitted, describe the currently selected frame.")
+  (frame)
+    Lisp_Object frame;
 {
   return make_number (FRAME_HEIGHT (selected_frame));
 }
 
-DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
-  "Return number of columns available for display on selected frame.")
-  ()
+DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 1, 0,
+  "Return number of columns available for display on FRAME.\n\
+If FRAME is omitted, describe the currently selected frame.")
+  (frame)
+    Lisp_Object frame;
 {
   return make_number (FRAME_WIDTH (selected_frame));
 }
