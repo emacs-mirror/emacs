@@ -1,5 +1,8 @@
 1999-10-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* iswitchb.el (iswitchb-exhibit): Extract user-input only
+	from the mini-buffer, without the prompt.
+	
 	* simple.el (minibuffer-prompt-end): Return the position
 	after the prompt, not the position of that last character
 	of the prompt.
