@@ -1,5 +1,7 @@
 2002-06-27  Dave Love  <fx@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Fix typo.
+
 	* international/mule.el (load-with-code-conversion): Fix
 	coding-system-type test.
 
