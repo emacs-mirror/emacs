@@ -1,3 +1,19 @@
+2005-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* language/thai.el ("Thai"): Set setup-function and exit-function
+	for Thai language environment.
+
+	* language/thai-util.el: Require thai-word.
+	(thai-word-mode-map): New variable.
+	(thai-word-mode): New minor mode.
+	(setup-thai-language-environment-internal): New function.
+	(exit-thai-language-environment-internal): New function.
+
+	* language/thai-word.el (thai-word-table): Declare it by defvar,
+	use dolist to initialize it.
+	(thai-kill-word, thai-backward-kill-word, thai-transpose-words)
+	(thai-fill-find-break-point): New functions.
+
 2005-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (idle-update-delay): Move definition up.
