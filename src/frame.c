@@ -1096,7 +1096,7 @@ and nil for X and Y.")
     {
       col = XINT (x);
       row = XINT (y);
-      pixel_to_glyph_coords (f, col, row, &col, &row, 0, 1);
+      pixel_to_glyph_coords (f, col, row, &col, &row, NULL, 1);
       XSETINT (x, col);
       XSETINT (y, row);
     }
