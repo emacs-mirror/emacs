@@ -1,7 +1,14 @@
+2000-10-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (fix_submap_inheritance): Don't do anything if parent_entry
+	is nil: since we go to the end of submap anyway, we'd end up
+	setting nil to nil.
+	(access_keymap): Don't use KEYMAPP on meta_map since KEYMAPP
+	doesn't obey autoload.
+
 2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* msdos.c (dos_set_window_size): Update screen dimension
-	variables.
+	* msdos.c (dos_set_window_size): Update screen dimension variables.
 
 2000-10-21  Jason Rumney  <jasonr@gnu.org>
 
