@@ -1,6 +1,6 @@
 ;;; misc.el --- some nonstandard basic editing commands for Emacs
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2003 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -58,6 +58,23 @@ The characters copied are inserted in the buffer before point."
 				 (+ n (point)))))))
     (insert string)))
 
+;; Variation of `zap-to-char'.
+
+(defun zap-up-to-char (arg char)
+  "Kill up to, but not including ARG'th occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found.
+Ignores CHAR at point."
+  (interactive "p\ncZap up to char: ")
+  (let ((direction (if (>= arg 0) 1 -1)))
+    (kill-region (point)
+		 (progn
+		   (forward-char direction)
+		   (unwind-protect
+		       (search-forward (char-to-string char) nil nil arg)
+		     (backward-char direction))
+		   (point)))))
+
 ;; These were added with an eye to making possible a more CCA-compatible
 ;; command set; but that turned out not to be interesting.
 
@@ -72,7 +89,7 @@ The characters copied are inserted in the buffer before point."
   (push-mark (point-max)))
 
 (defun upcase-char (arg)
-  "Uppercasify ARG chars starting from point.  Point doesn't move"
+  "Uppercasify ARG chars starting from point.  Point doesn't move."
   (interactive "p")
   (save-excursion
     (upcase-region (point) (progn (forward-char arg) (point)))))
