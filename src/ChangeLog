@@ -1,3 +1,14 @@
+2000-11-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_environment): Set LANG environment variable based on
+	locale settings, if not set.
+
+	* w32fns.c (x_set_tool_bar_lines): Clear internal border when
+	making tool bar smaller. When clearing the frame, also
+	clear current matrices. Clear frame when tool bar disappears.
+	Don't use more lines for the tool-bar than is available.
+	(x_change_window_heights): New function.
+
 2000-11-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (init_from_display_pos): If POS says we're already after
