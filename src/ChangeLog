@@ -1,3 +1,9 @@
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_find_modifier_meanings): Ignore any Super or Hyper for
+	a row if Alt or Meta has been found for that row.  Also stop scanning
+	for Keysyms for that row.
+
 2004-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (Ffringe_bitmaps_at_pos): Change return value from cons

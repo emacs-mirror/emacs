@@ -3383,12 +3383,14 @@ x_find_modifier_meanings (dpyinfo)
      Alt keysyms are on.  */
   {
     int row, col;	/* The row and column in the modifier table.  */
+    int found_alt_or_meta;
 
     for (row = 3; row < 8; row++)
+    {
+      found_alt_or_meta = 0;
       for (col = 0; col < mods->max_keypermod; col++)
 	{
-	  KeyCode code
-	    = mods->modifiermap[(row * mods->max_keypermod) + col];
+	  KeyCode code = mods->modifiermap[(row * mods->max_keypermod) + col];
 
 	  /* Zeroes are used for filler.  Skip them.  */
 	  if (code == 0)
@@ -3406,33 +3408,44 @@ x_find_modifier_meanings (dpyinfo)
 		  {
 		  case XK_Meta_L:
 		  case XK_Meta_R:
+		    found_alt_or_meta = 1;
 		    dpyinfo->meta_mod_mask |= (1 << row);
 		    break;
 
 		  case XK_Alt_L:
 		  case XK_Alt_R:
+		    found_alt_or_meta = 1;
 		    dpyinfo->alt_mod_mask |= (1 << row);
 		    break;
 
 		  case XK_Hyper_L:
 		  case XK_Hyper_R:
-		    dpyinfo->hyper_mod_mask |= (1 << row);
+		    if (!found_alt_or_meta)
+		      dpyinfo->hyper_mod_mask |= (1 << row);
+		    code_col = syms_per_code;
+		    col = mods->max_keypermod;
 		    break;
 
 		  case XK_Super_L:
 		  case XK_Super_R:
-		    dpyinfo->super_mod_mask |= (1 << row);
+		    if (!found_alt_or_meta)
+		      dpyinfo->super_mod_mask |= (1 << row);
+		    code_col = syms_per_code;
+		    col = mods->max_keypermod;
 		    break;
 
 		  case XK_Shift_Lock:
 		    /* Ignore this if it's not on the lock modifier.  */
-		    if ((1 << row) == LockMask)
+		    if (!found_alt_or_meta && ((1 << row) == LockMask))
 		      dpyinfo->shift_lock_mask = LockMask;
+		    code_col = syms_per_code;
+		    col = mods->max_keypermod;
 		    break;
 		  }
 	      }
 	  }
 	}
+    }
   }
 
   /* If we couldn't find any meta keys, accept any alt keys as meta keys.  */
