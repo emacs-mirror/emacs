@@ -79,9 +79,10 @@ See definition of `print-region-1' for calling conventions.")
   (print-region-1 start end lpr-switches t))
 
 (defun print-region-1 (start end switches page-headers)
-  ;; Avoid having a space in the job name
-  ;; because on some MIPS system that crashes the printer demon.
-  (let ((name (concat (buffer-name) "-Emacs-buffer"))
+  ;; On some MIPS system, having a space in the job name
+  ;; crashes the printer demon.  But using dashes looks ugly
+  ;; and it seems to annoying to do for that MIPS system.
+  (let ((name (concat (buffer-name) " Emacs buffer"))
 	(title (concat (buffer-name) " Emacs buffer"))
 	(width tab-width))
     (save-excursion
