@@ -437,7 +437,6 @@ static int x_face_list_fonts P_ ((struct frame *, char *,
 static int font_scalable_p P_ ((struct font_name *));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
-static char *xstrdup P_ ((char *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
 static void signal_error P_ ((char *, Lisp_Object));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
@@ -700,19 +699,6 @@ x_free_gc (f, gc)
 }
 
 #endif  /* WINDOWSNT */
-
-/* Like strdup, but uses xmalloc.  */
-
-static char *
-xstrdup (s)
-     char *s;
-{
-  int len = strlen (s) + 1;
-  char *p = (char *) xmalloc (len);
-  bcopy (s, p, len);
-  return p;
-}
-
 
 /* Like stricmp.  Used to compare parts of font names which are in
    ISO8859-1.  */
@@ -6027,8 +6013,8 @@ realize_tty_face (cache, attrs, c)
   struct face *face;
   int weight, slant;
   Lisp_Object color;
-  Lisp_Object tty_defined_color_alist =
-    Fsymbol_value (intern ("tty-defined-color-alist"));
+  Lisp_Object tty_defined_color_alist
+    = find_symbol_value (intern ("tty-defined-color-alist"));
   Lisp_Object tty_color_alist = intern ("tty-color-alist");
   Lisp_Object frame;
   int face_colors_defaulted = 0;
@@ -6063,7 +6049,7 @@ realize_tty_face (cache, attrs, c)
   color = attrs[LFACE_FOREGROUND_INDEX];
   if (STRINGP (color)
       && XSTRING (color)->size
-      && !NILP (tty_defined_color_alist)
+      && CONSP (tty_defined_color_alist)
       && (color = Fassoc (color, call1 (tty_color_alist, frame)),
 	  CONSP (color)))
     /* Associations in tty-defined-color-alist are of the form
@@ -6109,7 +6095,7 @@ realize_tty_face (cache, attrs, c)
   color = attrs[LFACE_BACKGROUND_INDEX];
   if (STRINGP (color)
       && XSTRING (color)->size
-      && !NILP (tty_defined_color_alist)
+      && CONSP (tty_defined_color_alist)
       && (color = Fassoc (color, call1 (tty_color_alist, frame)),
 	  CONSP (color)))
     /* Associations in tty-defined-color-alist are of the form
