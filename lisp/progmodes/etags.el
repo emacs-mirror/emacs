@@ -1295,10 +1295,9 @@ where they were found."
 (defmacro tags-with-face (face &rest body)
   "Execute BODY, give output to `standard-output' face FACE."
   (let ((pp (gensym "twf-")))
-    `(let ((,old-point (with-current-buffer standard-output (point))))
+    `(let ((,pp (with-current-buffer standard-output (point))))
        ,@body
-       (put-text-property ,old-point (with-current-buffer standard-output
-				       (point))
+       (put-text-property ,pp (with-current-buffer standard-output (point))
 			  'face ,face standard-output))))
 
 (defun etags-tags-apropos-additional (regexp)
