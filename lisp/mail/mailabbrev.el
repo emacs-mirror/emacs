@@ -365,6 +365,15 @@ line."
 	  (bol (save-excursion
 		 (re-search-backward mail-abbrev-mode-regexp)
 		 (match-end 0))))
+      (goto-char bol)
+      (while (re-search-forward
+	      "\\(\\s *,?\\s *\\(\"?\\)\\(/[^,]+\\)\\2\\)\\(,\\|\\s +\\|$\\)"
+	      p t)
+	(save-excursion
+	  (goto-char p)
+	  (insert "\nFCC: " (buffer-substring (match-beginning 3)
+					      (match-end 3))))
+	(delete-region (match-beginning 1) (match-end 1)))
       (if (and (if (boundp 'auto-fill-function)
 		   auto-fill-function
 		 auto-fill-hook)
@@ -383,7 +392,6 @@ line."
 	    (if (> (current-column) fill-column)
 		(let ((fill-prefix (or fp "\t")))
 		  (do-auto-fill))))))))
-
 
 ;;; Syntax tables and abbrev-expansion
 
@@ -539,8 +547,7 @@ characters which may be a part of the name of a mail-alias.")
 (defun mail-interactive-insert-alias (&optional alias)
   "Prompt for and insert a mail alias."
   (interactive (list (completing-read "Expand alias: " mail-aliases nil t)))
-  (if alias
-      (insert alias)))
+  (insert (or (and alias (symbol-value (intern-soft alias mail-aliases))) "")))
 
 (defun abbrev-hacking-next-line (&optional arg)
   "Just like `next-line' (\\[next-line]) but expands abbrevs when at \
