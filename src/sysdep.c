@@ -2727,8 +2727,7 @@ sigbit (i)
 
 #ifdef POSIX_SIGNALS
 
-sigset_t old_mask, empty_mask, full_mask, temp_mask;
-static struct sigaction new_action, old_action;
+sigset_t empty_mask, full_mask;
 
 init_signals ()
 {
@@ -2739,6 +2738,7 @@ init_signals ()
 signal_handler_t
 sys_signal (int signal_number, signal_handler_t action)
 {
+  struct sigaction new_action, old_action;
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
 #ifdef SA_RESTART
@@ -2765,14 +2765,6 @@ sys_sigmask (int sig)
   return mask;
 }
 #endif
-
-int
-sys_sigpause (sigset_t new_mask)
-{
-  /* pause emulating berk sigpause... */
-  sigsuspend (&new_mask);
-  return (EINTR);
-}
 
 /* I'd like to have these guys return pointers to the mask storage in here,
    but there'd be trouble if the code was saving multiple masks.  I'll be
