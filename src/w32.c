@@ -91,6 +91,7 @@ Boston, MA 02111-1307, USA.
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
+extern Lisp_Object Vw32_num_mouse_buttons;
 
 static char startup_dir[MAXPATHLEN];
 
@@ -786,6 +787,11 @@ init_environment (char ** argv)
     *p = '\\';
     argv[0] = modname;
   }
+
+  /* Determine if there is a middle mouse button, to allow parse_button
+     to decide whether right mouse events should be mouse-2 or
+     mouse-3. */
+  XSETINT (Vw32_num_mouse_buttons, GetSystemMetrics (SM_CMOUSEBUTTONS));
 
   init_user_info ();
 }
