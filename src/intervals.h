@@ -205,6 +205,7 @@ extern INLINE void copy_intervals_to_string ();
 extern INTERVAL copy_intervals ();
 extern Lisp_Object textget ();
 extern Lisp_Object get_local_map ();
+extern INTERVAL update_interval ();
 
 /* Declared in textprop.c */
 
