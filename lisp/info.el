@@ -2578,8 +2578,15 @@ the variable `Info-file-list-for-emacs'."
   ;; Only fontify the node if it hasn't already been done.  [We pass in
   ;; LIMIT arg to `next-property-change' because it seems to search past
   ;; (point-max).]
-  (unless (< (next-property-change (point-min) nil (point-max))
-	     (point-max))
+  (unless (and (< (next-property-change (point-min) nil (point-max))
+		  (point-max))
+	       ;; But do put the text properties if the local-map property
+	       ;; is inconsistent with Info-use-header-line's value.
+	       (eq
+		(= (next-single-property-change
+		    (point-min) 'local-map nil (point-max))
+		   (point-max))
+		(null Info-use-header-line)))
     (save-excursion
       (let ((buffer-read-only nil)
 	    (case-fold-search t))
@@ -2610,8 +2617,14 @@ the variable `Info-file-list-for-emacs'."
 		      (let ((keymap (make-sparse-keymap)))
 			(define-key keymap [header-line down-mouse-1] fun)
 			(define-key keymap [header-line down-mouse-2] fun)
-			(put-text-property tbeg nend 'local-map keymap))))
-		  )))))
+			(put-text-property tbeg nend 'local-map keymap)))))
+		(if (not Info-use-header-line)
+		    ;; In case they switched Info-use-header-line off
+		    ;; in the middle of an Info session, some text
+		    ;; properties may have been left lying around from
+		    ;; past visits of this node.  Remove them.
+		    (remove-text-properties tbeg nend '(local-map nil)))
+		  ))))
 	(goto-char (point-min))
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
