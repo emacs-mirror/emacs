@@ -1853,8 +1853,8 @@ IDX starts at 0.")
   else if (STRING_MULTIBYTE (array))
     {
       int c, idxval_byte, new_len, actual_len;
+      int prev_byte;
       unsigned char *p, workbuf[4], *str;
-      int recount = 0;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
@@ -1862,25 +1862,23 @@ IDX starts at 0.")
       idxval_byte = string_char_to_byte (array, idxval);
       p = &XSTRING (array)->data[idxval_byte];
 
-      actual_len
-	= MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)) - idxval_byte);
+      actual_len = MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)));
       CHECK_NUMBER (newelt, 2);
       new_len = CHAR_STRING (XINT (newelt), workbuf, str);
       if (actual_len != new_len)
 	error ("Attempt to change byte length of a string");
-      if (!CHAR_HEAD_P (*str)
-	  || !CHAR_HEAD_P (XSTRING (array)->data[idxval_byte + actual_len]))
-	/* We may have to combine bytes.  */
-	recount = 1;
+
+      /* We can't accept a change causing byte combining.  */
+      if ((idxval > 0 && !CHAR_HEAD_P (*str)
+	   && (prev_byte = string_char_to_byte (array, idxval - 1),
+	       (prev_byte + 1 < idxval_byte
+		|| (p[-1] >= 0x80 && p[-1] < 0xA0))))
+	  || (idxval < XSTRING (array)->size - 1
+	      && (*str >=0x80 && *str < 0xA0)
+	      && !CHAR_HEAD_P (p[actual_len])))
+	error ("Attempt to change char length of a string");
       while (new_len--)
 	*p++ = *str++;
-      if (recount)
-	{
-	  XSTRING (array)->size =
-	    chars_in_text (XSTRING (array)->data,
-			   STRING_BYTES (XSTRING (array)));
-	  clear_string_char_byte_cache ();
-	}
     }
   else
     {
