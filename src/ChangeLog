@@ -1,5 +1,12 @@
 2001-05-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (xmenu_show) [!HAVE_MULTILINGUAL_MENU]: Don't overwrite 
+	an item's name with its key description in case the description
+	is a multibyte string.
+
+	* keymap.c (Fsingle_key_description): Create a multibyte string
+	only if necessary.
+
 	* macros.c (Fstart_kbd_macro): Doc fix.
 
 	* xterm.c (cursor_in_mouse_face_p): New function.
