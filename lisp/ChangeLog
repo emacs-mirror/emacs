@@ -1,3 +1,7 @@
+2000-07-14  Dave Love  <fx@gnu.org>
+
+	* info.el (Info-mode-menu): Fix use of :help, :enable.
+
 2000-07-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easymenu.el (easy-menu-convert-item-1): Intern the label.
