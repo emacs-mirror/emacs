@@ -2899,16 +2899,31 @@ specbind (symbol, value)
 	  || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
 	{
 	  Lisp_Object current_buffer, binding_buffer;
+	  
 	  /* For a local variable, record both the symbol and which
 	     buffer's value we are saving.  */
 	  current_buffer = Fcurrent_buffer ();
 	  binding_buffer = current_buffer;
+	  
 	  /* If the variable is not local in this buffer,
 	     we are saving the global value, so restore that.  */
 	  if (NILP (Flocal_variable_p (symbol, binding_buffer)))
 	    binding_buffer = Qnil;
 	  specpdl_ptr->symbol
 	    = Fcons (symbol, Fcons (binding_buffer, current_buffer));
+
+	  /* If SYMBOL is a per-buffer variable which doesn't have a
+	     buffer-local value here, make the `let' change the global
+	     value by changing the value of SYMBOL in all buffers not
+	     having their own value.  This is consistent with what
+	     happens with other buffer-local variables.  */
+	  if (NILP (binding_buffer)
+	      && BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+	    {
+	      ++specpdl_ptr;
+	      Fset_default (symbol, value);
+	      return;
+	    }
 	}
       else
 	specpdl_ptr->symbol = symbol;
