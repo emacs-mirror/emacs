@@ -120,7 +120,7 @@ DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0,
      Lisp_Object n, prompt;
 {
   if (EQ (Vmocklisp_arguments, Qinteractive))
-    return Fread_string (prompt, Qnil, Qnil, Qnil);
+    return Fread_string (prompt, Qnil, Qnil, Qnil, Qnil);
   CHECK_NUMBER (n, 0);
   XSETINT (n, XINT (n) - 1);	/* Mocklisp likes to be origin-1 */
   return Fcar (Fnthcdr (n, Vmocklisp_arguments));
