@@ -758,29 +758,26 @@ directory, like `default-directory'."
 	      ibuffer-yank
 	      :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
 
-(defvar ibuffer-name-map nil)
-(unless ibuffer-name-map
+(defvar ibuffer-name-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-visit-buffer)
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
-    (setq ibuffer-name-map map)))
+    map))
 
-(defvar ibuffer-mode-name-map nil)
-(unless ibuffer-mode-name-map
+(defvar ibuffer-mode-name-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(mouse-2)] 'ibuffer-mouse-filter-by-mode)
     (define-key map (kbd "RET") 'ibuffer-interactive-filter-by-mode)
-    (setq ibuffer-mode-name-map map)))
+    map))
 
-(defvar ibuffer-mode-filter-group-map nil)
-(unless ibuffer-mode-filter-group-map
+(defvar ibuffer-mode-filter-group-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-toggle-filter-group)
     (define-key map (kbd "RET") 'ibuffer-toggle-filter-group)
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
-    (setq ibuffer-mode-filter-group-map map)))
+    map))
 
 (defvar ibuffer-delete-window-on-quit nil
   "Whether or not to delete the window upon exiting `ibuffer'.")
@@ -1043,7 +1040,7 @@ a new window in the current frame, splitting vertically."
 	(mapcar (if (eq type 'other-frame)
 		    #'(lambda (buf)
 			(let ((curframe (selected-frame)))
-			  (select-frame (new-frame))
+			  (select-frame (make-frame))
 			  (switch-to-buffer buf)
 			  (select-frame curframe)))
 		  #'(lambda (buf)
