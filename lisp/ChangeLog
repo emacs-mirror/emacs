@@ -1,3 +1,11 @@
+2005-03-19  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny changes)
+
+	* finder.el (finder-current-item): Throw an error on an empty
+	line.
+
+	* man.el (Man-follow-manual-reference): If current-word returns
+	nil, use "".
+
 2005-03-19  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* simple.el (goto-line): Doc fix.
