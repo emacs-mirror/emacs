@@ -124,7 +124,7 @@ addition to `hl-line-highlight' on `post-command-hook'."
         (overlay-put hl-line-overlay
                      'window (unless hl-line-sticky-flag (selected-window)))
         (move-overlay hl-line-overlay
-                      (line-beginning-position) (1+ (line-end-position))))
+                      (line-beginning-position) (line-beginning-position 2)))
     (hl-line-unhighlight)))
 
 (defun hl-line-unhighlight ()
@@ -158,7 +158,7 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
         (overlay-put global-hl-line-overlay 'face hl-line-face))
       (overlay-put global-hl-line-overlay 'window (selected-window))
       (move-overlay global-hl-line-overlay
-                    (line-beginning-position) (1+ (line-end-position))))))
+                    (line-beginning-position) (line-beginning-position 2)))))
 
 (defun global-hl-line-unhighlight ()
   "Deactivate the Global-Hl-Line overlay on the current line."
