@@ -1,3 +1,8 @@
+2001-11-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* gnus.el (gnus-local-domain): Reformat the doc-string to refer to
+	function `system-name' instead of both function and variable.
+
 2001-11-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mml.el (mml-preview): Bind mail-header-separator.

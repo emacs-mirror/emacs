@@ -1,3 +1,8 @@
+2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* play/gomoku.el: Move definitions of constants to the beginning
+	of file, before their use.
+
 2001-11-09  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el: Use the keymap property
