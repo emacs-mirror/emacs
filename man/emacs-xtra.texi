@@ -110,6 +110,12 @@ auto-reverting for a non-file buffer does not always guarantee that
 all information in the buffer is up to date and does not necessarily
 make manual reverts useless.
 
+At the other extreme, certain buffers automatically auto-revert every
+@code{auto-revert-interval} seconds.  (This currently only applies to
+the Buffer Menu.)  In this case, Auto Revert does not print any
+messages while reverting, even when @code{auto-revert-verbose} is
+non-@code{nil}.
+
 The details depend on the particular types of buffers and are
 explained in the corresponding sections.
 
@@ -212,10 +218,14 @@ If you just want to automatically auto-revert every
 @noindent
 in the buffer's mode function.
 
-The special return value @samp{fast} tells the caller that the need for
-reverting was not checked, but that reverting the buffer is fast.
-This information could be useful if the function is consulted for
-purposes other than auto-reverting.
+The special return value @samp{fast} tells the caller that the need
+for reverting was not checked, but that reverting the buffer is fast.
+It also tells Auto Revert not to print any revert messages, even if
+@code{auto-revert-verbose} is non-@code{nil}.  This is important, as
+getting revert messages every @code{auto-revert-interval} seconds can
+be very annoying.  The information provided by this return value could
+also be useful if the function is consulted for purposes other than
+auto-reverting.
 @end defvar
 
 Once the buffer has a @code{revert-buffer-function} and a
@@ -240,6 +250,8 @@ print messages that unnecessarily duplicate Auto Revert's own messages
 if @code{auto-revert-verbose} is @code{t} and effectively override a
 @code{nil} value for @code{auto-revert-verbose}.  Hence, adapting a
 mode for auto-reverting often involves getting rid of such messages.
+This is especially important for buffers that automatically
+auto-revert every @code{auto-revert-interval} seconds.
 
 @ifinfo
 Finally, you should add a node to this chapter's menu.  This node
