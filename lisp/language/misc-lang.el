@@ -26,11 +26,6 @@
 ;;; IPA (International Phonetic Alphabet)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun setup-ipa-environment ()
-  "Setup multilingual environment (MULE) for IPA."
-  (interactive)
-  (set-language-environment "IPA"))
-
 (set-language-info-alist
  "IPA" '((charset . (ipa))
 	 (coding-priority iso-2022-7bit)

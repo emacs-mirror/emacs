@@ -34,11 +34,6 @@
 ;;; Code:
 
 ;;;###autoload
-(defun setup-tibetan-environment ()
-  (interactive)
-  (set-language-environment "Tibetan"))
-
-;;;###autoload
 (defun tibetan-char-p (ch)
   "Check if char CH is Tibetan character.
 Returns non-nil if CH is Tibetan. Otherwise, returns nil."

@@ -30,12 +30,6 @@
 
 ;;; Code
 
-(defun setup-english-environment ()
-  "Reset multilingual environment of Emacs to the default status.
-See the function `reset-language-environment' for more detail."
-  (interactive)
-  (reset-language-environment))
-
 (set-language-info-alist
  "English" '((tutorial . "TUTORIAL")
 	     (charset ascii)

@@ -24,12 +24,6 @@
 
 ;;; Code:
 
-;;;###autoload
-(defun setup-lao-environment ()
-  "Setup multilingual environment (MULE) for Lao."
-  (interactive)
-  (set-language-environment "Lao"))
-
 ;; Setting information of Thai characters.
 
 (defconst lao-category-table (make-category-table))

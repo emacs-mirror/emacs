@@ -38,11 +38,6 @@
 
 (define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
 
-(defun setup-greek-environment ()
-  "Setup multilingual environment (MULE) for Greek."
-  (interactive)
-  (set-language-environment "Greek"))
-
 (set-language-info-alist
  "Greek" '((charset . (greek-iso8859-7))
 	   (coding-system . (greek-iso-8bit))

@@ -28,11 +28,6 @@
 
 ;;; Code:
 
-(defun setup-czech-environment ()
-  "Setup multilingual environment (MULE) for Czech."
-  (interactive)
-  (set-language-environment "Latin-2"))
-
 (set-language-info-alist
  "Czech" '((charset . (ascii latin-iso8859-2))
 	   (coding-system . (iso-8859-2))

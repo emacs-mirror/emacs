@@ -27,12 +27,6 @@
 (defvar sentence-end-save nil)
 
 ;;;###autoload
-(defun setup-japanese-environment ()
-  "Setup multilingual environment (MULE) for Japanese."
-  (interactive)
-  (set-language-environment "Japanese"))
-
-;;;###autoload
 (defun setup-japanese-environment-internal ()
   (cond ((eq system-type 'ms-dos)
 	 (prefer-coding-system 'japanese-shift-jis))

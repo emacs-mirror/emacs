@@ -24,12 +24,6 @@
 
 ;;; Code:
 
-;;;###autoload
-(defun setup-thai-environment ()
-  "Setup multilingual environment (MULE) for Thai."
-  (interactive)
-  (set-language-environment "Thai"))
-
 ;; Setting information of Thai characters.
 
 (defconst thai-category-table (make-category-table))

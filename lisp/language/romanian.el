@@ -28,11 +28,6 @@
 
 ;;; Code:
 
-(defun setup-romanian-environment ()
-  "Setup multilingual environment (MULE) for Romanian."
-  (interactive)
-  (set-language-environment "Romanian"))
-
 (set-language-info-alist
  "Romanian" '((charset . (ascii latin-iso8859-2))
 	      (coding-system . (iso-8859-2))

@@ -39,12 +39,6 @@
 ;;;
 ;;;   Steps toward composition of Devanagari Characters.
 ;;;
-
-;;;###autoload
-(defun setup-devanagari-environment ()
-  "Setup multilingual environment (MULE) for languages using Devanagari."
-  (interactive)
-  (set-language-environment "Devanagari"))
 	   
 ;;; Basic functions.
 

@@ -30,11 +30,6 @@
 (defvar exit-ethiopic-environment-data nil)
 
 ;;;###autoload
-(defun setup-ethiopic-environment ()
-  "Setup multilingual environment for Ethiopic."
-  (set-language-environment "Ethiopic"))
-
-;;;###autoload
 (defun setup-ethiopic-environment-internal ()
   (let ((key-bindings '((" " . ethio-insert-space)
 			([?\S- ] . ethio-insert-ethio-space)

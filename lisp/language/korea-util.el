@@ -99,12 +99,6 @@
     (,isearch-mode-map [f9] isearch-hangul-switch-hanja nil)))
 
 ;;;###autoload
-(defun setup-korean-environment ()
-  "Setup multilingual environment (MULE) for Korean."
-  (interactive)
-  (set-language-environment "Korean"))
-
-;;;###autoload
 (defun setup-korean-environment-internal ()
   (let ((key-bindings korean-key-bindings))
     (while key-bindings

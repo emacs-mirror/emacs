@@ -41,12 +41,6 @@
   (aref (char-table-extra-slot viet-viscii-nonascii-translation-table 0)
 	char))
 
-;;;###autoload
-(defun setup-vietnamese-environment ()
-  "Setup multilingual environment (MULE) for Vietnamese VISCII users."
-  (interactive)
-  (set-language-environment "Vietnamese"))
-
 ;; VIQR is a menmonic encoding specification for Vietnamese.
 ;; It represents diacritical marks by ASCII characters as follows:
 ;; ------------+----------+--------

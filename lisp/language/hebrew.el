@@ -38,12 +38,6 @@
 
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
-(defun setup-hebrew-environment ()
-  "Setup multilingual environment (MULE) for Hebrew.
-But, please note that right-to-left writing is not yet supported."
-  (interactive)
-  (set-language-environment "Hebrew"))
-
 (set-language-info-alist
  "Hebrew" '((charset . (hebrew-iso8859-8))
 	    (coding-priority hebrew-iso-8bit)

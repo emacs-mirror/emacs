@@ -30,11 +30,6 @@
 
 ;;; Code:
 
-(defun setup-slovak-environment ()
-  "Setup multilingual environment (MULE) for Slovak."
-  (interactive)
-  (set-language-environment "Slovak"))
-
 (set-language-info-alist
  "Slovak" '((charset . (ascii latin-iso8859-2))
 	    (coding-system . (iso-8859-2))

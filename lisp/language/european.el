@@ -50,11 +50,6 @@
 
 (define-coding-system-alias 'ctext 'compound-text)
 
-(defun setup-latin1-environment ()
-  "Set up multilingual environment (MULE) for European Latin-1 users."
-  (interactive)
-  (set-language-environment "Latin-1"))
-
 (set-language-info-alist
  "Latin-1" '((charset ascii latin-iso8859-1)
 	     (coding-system iso-latin-1)
@@ -93,11 +88,6 @@ Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
 (define-coding-system-alias 'iso-8859-2 'iso-latin-2)
 (define-coding-system-alias 'latin-2 'iso-latin-2)
 
-(defun setup-latin2-environment ()
-  "Set up multilingual environment (MULE) for European Latin-2 users."
-  (interactive)
-  (set-language-environment "Latin-2"))
-
 (set-language-info-alist
  "Latin-2" '((charset ascii latin-iso8859-2)
 	     (coding-system iso-latin-2)
@@ -132,11 +122,6 @@ We also have specific language environments for the following languages:
 (define-coding-system-alias 'iso-8859-3 'iso-latin-3)
 (define-coding-system-alias 'latin-3 'iso-latin-3)
 
-(defun setup-latin3-environment ()
-  "Set up multilingual environment (MULE) for European Latin-3 users."
-  (interactive)
-  (set-language-environment "Latin-3"))
-
 (set-language-info-alist
  "Latin-3" '((charset ascii latin-iso8859-3)
 	     (coding-system iso-latin-3)
@@ -164,11 +149,6 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 
 (define-coding-system-alias 'iso-8859-4 'iso-latin-4)
 (define-coding-system-alias 'latin-4 'iso-latin-4)
-
-(defun setup-latin4-environment ()
-  "Set up multilingual environment (MULE) for European Latin-4 users."
-  (interactive)
-  (set-language-environment "Latin-4"))
 
 (set-language-info-alist
  "Latin-4" '((charset ascii latin-iso8859-4)
@@ -198,11 +178,6 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 (define-coding-system-alias 'iso-8859-9 'iso-latin-5)
 (define-coding-system-alias 'latin-5 'iso-latin-5)
 
-(defun setup-latin5-environment ()
-  "Set up multilingual environment (MULE) for European Latin-5 users."
-  (interactive)
-  (set-language-environment "Latin-5"))
-
 (set-language-info-alist
  "Latin-5" '((charset ascii latin-iso8859-9)
 	     (coding-system iso-latin-5)
@@ -231,11 +206,6 @@ Ukranian."))				; says ISO 8859-1
 
 (define-coding-system-alias 'iso-8859-14 'iso-latin-8)
 (define-coding-system-alias 'latin-8 'iso-latin-8)
-
-(defun setup-latin8-environment ()
-  "Set up multilingual environment (MULE) for European Latin-8 users."
-  (interactive)
-  (set-language-environment "latin-8"))
 
 (set-language-info-alist
  "Latin-8" '((charset ascii latin-iso8859-14)
@@ -269,11 +239,6 @@ Irish Gaelic (old orthography)."))
 (define-coding-system-alias 'latin-9 'iso-latin-9)
 (define-coding-system-alias 'latin-0 'iso-latin-9)
 
-(defun setup-latin9-environment ()
-  "Set up multilingual environment (MULE) for European Latin-9 users."
-  (interactive)
-  (set-language-environment "latin-9"))
-
 (set-language-info-alist
  "Latin-9" '((charset ascii latin-iso8859-15)
 	     (coding-system iso-latin-9)
@@ -291,11 +256,6 @@ addition of the Euro sign and some additional French and Finnish letters.
 Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
 
-(defun setup-german-environment ()
-  "Set up multilingual environment (MULE) for German users."
-  (interactive)
-  (set-language-environment "German"))
-
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset ascii latin-iso8859-1)
@@ -312,11 +272,6 @@ German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
 This language environment is almost the same as Latin-1,
 but default input method is set to \"german-postfix\"."))
  '("European"))
-
-(defun setup-slovenian-environment ()
-  "Setup multilingual environment (MULE) for Slovenian."
-  (interactive)
-  (set-language-environment "Slovenian"))
 
 (set-language-info-alist
  "Slovenian" '((charset . (ascii latin-iso8859-2))
@@ -350,11 +305,6 @@ but default input method is set to \"german-postfix\"."))
 ;; Polish ISO 8859-2 environment.
 ;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>
 ;; Keywords: multilingual, Polish
-
-(defun setup-polish-environment ()
-  "Setup multilingual environment (MULE) for Polish."
-  (interactive)
-  (set-language-environment "Polish"))
 
 (set-language-info-alist
  "Polish" '((charset . (ascii latin-iso8859-2))
