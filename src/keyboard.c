@@ -2080,7 +2080,7 @@ kbd_buffer_store_event (event)
 	  /* We must not use the ordinary copying code for this case,
 	     since `part' is an enum and copying it might not copy enough
 	     in this case.  */
-	  bcopy (event, kbd_store_ptr, sizeof (*event));
+	  bcopy (event, (char *) kbd_store_ptr, sizeof (*event));
 	}
       else
 	{
