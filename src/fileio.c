@@ -188,7 +188,7 @@ Lisp_Object Qfile_name_nondirectory;
 Lisp_Object Qunhandled_file_name_directory;
 Lisp_Object Qfile_name_as_directory;
 Lisp_Object Qcopy_file;
-Lisp_Object Qmake_directory;
+Lisp_Object Qmake_directory_internal;
 Lisp_Object Qdelete_directory;
 Lisp_Object Qdelete_file;
 Lisp_Object Qrename_file;
@@ -1852,9 +1852,9 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   CHECK_STRING (dirname, 0);
   dirname = Fexpand_file_name (dirname, Qnil);
 
-  handler = Ffind_file_name_handler (dirname, Qmake_directory);
+  handler = Ffind_file_name_handler (dirname, Qmake_directory_internal);
   if (!NILP (handler))
-    return call3 (handler, Qmake_directory, dirname, Qnil);
+    return call3 (handler, Qmake_directory_internal, dirname, Qnil);
 
   dir = XSTRING (dirname)->data;
 
@@ -3956,7 +3956,7 @@ syms_of_fileio ()
   Qunhandled_file_name_directory = intern ("unhandled-file-name-directory");
   Qfile_name_as_directory = intern ("file-name-as-directory");
   Qcopy_file = intern ("copy-file");
-  Qmake_directory = intern ("make-directory");
+  Qmake_directory_internal = intern ("make-directory-internal");
   Qdelete_directory = intern ("delete-directory");
   Qdelete_file = intern ("delete-file");
   Qrename_file = intern ("rename-file");
