@@ -1287,6 +1287,7 @@ in that case, this function acts as if `enable-local-variables' were t."
     ("\\.me\\'" . nroff-mode)
     ("\\.ms\\'" . nroff-mode)
     ("\\.man\\'" . nroff-mode)
+    ("\\.\\(u?lpc\\|pike\\|pmod\\)\\'" . pike-mode)
 ;;; The following should come after the ChangeLog pattern
 ;;; for the sake of ChangeLog.1, etc.
 ;;; and after the .scm.[0-9] pattern too.
