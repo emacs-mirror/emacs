@@ -55,3 +55,9 @@
 
 /* Don't define _BSD */
 #undef C_SWITCH_SYSTEM
+
+
+/* HP-UX 10.10 seem to have problems with signals coming in
+   Causes "poll: interrupted system call" messages when Emacs is run
+   in an X window (see process.c) */
+#define POLL_INTERRUPTED_SYS_CALL
