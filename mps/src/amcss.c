@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.15) $
+ * $HopeName: MMsrc!amcss.c(trunk.16) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -50,7 +50,7 @@ static void *test(void *arg, size_t s)
   mps_space_t space;
   mps_fmt_t format;
   mps_root_t exact_root, ambig_root;
-  mps_word_t i;
+  unsigned long i;
   mps_word_t collections;
 
   space = (mps_space_t)arg;
@@ -80,6 +80,7 @@ static void *test(void *arg, size_t s)
 
   collections = 0;
 
+  i = 0;
   while(collections < COLLECTIONS) {
     unsigned c;
     size_t r;
@@ -89,7 +90,7 @@ static void *test(void *arg, size_t s)
     if(collections != c) {
       collections = c;
       printf("\nCollection %u, %lu objects.\n",
-             c, (unsigned long)i);
+             c, i);
       for(r = 0; r < NR_EXACT_ROOTS; ++r)
         assert(exact_roots[r] == OBJNULL ||
                dylan_check(exact_roots[r]));
@@ -99,6 +100,7 @@ static void *test(void *arg, size_t s)
       exact_roots[rnd() % NR_EXACT_ROOTS] = make();
     else
       ambig_roots[rnd() % NR_AMBIG_ROOTS] = make();
+    ++i;
 
     r = rnd() % NR_EXACT_ROOTS;
     if(exact_roots[r] != OBJNULL)
