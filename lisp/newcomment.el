@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.43 2001/12/14 21:53:29 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.44 2002/01/13 09:59:39 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -389,11 +389,11 @@ and can use regexps instead of syntax."
   (if (< n 0) (error "No comment-backward")
     (if comment-use-syntax (forward-comment n)
       (while (> n 0)
-	(skip-syntax-forward " ")
 	(setq n
-	      (if (and (looking-at comment-start-skip)
-		       (goto-char (match-end 0))
-		       (re-search-forward comment-end-skip nil 'move))
+	      (if (or (forward-comment 1)
+		      (and (looking-at comment-start-skip)
+			   (goto-char (match-end 0))
+			   (re-search-forward comment-end-skip nil 'move)))
 		  (1- n) -1)))
       (= n 0))))
 
