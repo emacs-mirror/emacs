@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.13) $
+ * $HopeName: MMsrc!eventdef.h(trunk.14) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -17,6 +17,16 @@
  * useful because each inclusion can use a different definition of
  * RELATION.  However this may be slightly shot by having the version
  * defined here.
+ *
+ * .kind.abuse: A few events have a kind which is not obvious from the
+ * type of the objects that the event relates to.  They are given the
+ * kind that that have on the grounds of expected use.  The kinds are
+ * used in controlling the overall volume of telemetry and these events are
+ * given kinds so that they are grouped under the same control as events
+ * you are likely to want to see them with.  (So for example, lots of
+ * scanner events have the same kind, Seg, because if you are interested
+ * in one then you're probably interested in them all and it's a similar
+ * amount of data).
  */
 
 /* No #ifndef eventdef_h, see .trans.nocppguard. */
@@ -94,7 +104,7 @@ RELATION(TracePoll                       , 0x0025, TRUE, Trace, PP)
 RELATION(TraceFix                        , 0x0026, TRUE, Ref, PPAU)
 RELATION(TraceFixSeg                     , 0x0027, TRUE, Ref, P)
 RELATION(TraceFixWhite                   , 0x0028, TRUE, Ref, 0)
-/* TraceScanArea{Tagged}'s kind isn't really Trace, but not Seg either */
+/* TraceScanArea{Tagged} abuses kind, see .kind.abuse */
 RELATION(TraceScanArea                   , 0x0029, TRUE, Seg, PPP)
 RELATION(TraceScanAreaTagged             , 0x002a, TRUE, Seg, PPP)
 RELATION(VMCreate                        , 0x002b, TRUE, Arena, PAA)
@@ -104,15 +114,15 @@ RELATION(VMUnmap                         , 0x002e, TRUE, Seg, PAA)
 RELATION(ArenaExtend                     , 0x002f, TRUE, Arena, PAW)
 RELATION(ArenaRetract                    , 0x0030, TRUE, Arena, PAW)
 RELATION(TraceSegGreyen                  , 0x0031, TRUE, Seg, PPU)
-/* RootScanned isn't a seg event, but so what */
+/* RootScanned abuses kind, see .kind.abuse */
 RELATION(RootScan                        , 0x0032, TRUE, Seg, PWW)
 RELATION(Intern                          , 0x0033, TRUE, User, WS)
 RELATION(Label                           , 0x0034, TRUE, User, AW)
-/* TraceStep is not really seg level event */
+/* TraceStep abuses kind, see .kind.abuse */
 RELATION(TraceStep                       , 0x0033, TRUE, Seg, PP)
 RELATION(BufferReserve                   , 0x0034, TRUE, Object, PAW)
 RELATION(BufferCommit                    , 0x0035, TRUE, Object, PAWA)
-/* BufferInit/Finish is not really pool level event */
+/* BufferInit/Finish abuse kind, see .kind.abuse */
 RELATION(BufferInit                      , 0x0036, TRUE, Pool, PPU)
 RELATION(BufferFinish                    , 0x0037, TRUE, Pool, P)
 RELATION(MV2Finish                       , 0x0038, TRUE, Pool, P)
@@ -120,5 +130,5 @@ RELATION(MV2BufferFill                   , 0x0039, TRUE, Seg, PPWAW)
 RELATION(MV2BufferEmpty                  , 0x003A, TRUE, Seg, PPW)
 RELATION(SegAllocFail                    , 0x003B, TRUE, Seg, PWP)
 RELATION(TraceScanSeg                    , 0x003C, TRUE, Seg, UUPP)
-/* TraceScanSingleRef is not really a seg level event */
+/* TraceScanSingleRef abuses kind, see .kind.abuse */
 RELATION(TraceScanSingleRef              , 0x003D, TRUE, Seg, UUPA)
