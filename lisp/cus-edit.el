@@ -2451,6 +2451,7 @@ restoring it to the state of a variable that has never been customized."
   :tag "Attributes"
   :extra-offset 12
   :button-args '(:help-echo "Control whether this attribute has any effect.")
+  :convert-widget 'custom-face-edit-convert-widget
   :args (mapcar (lambda (att)
 		  (list 'group
 			:inline t
@@ -2458,6 +2459,72 @@ restoring it to the state of a variable that has never been customized."
 			(list 'const :format "" :value (nth 0 att))
 			(nth 1 att)))
 		custom-face-attributes))
+
+(defun custom-face-edit-convert-widget (widget)
+  "Convert :args as widget types in WIDGET."
+  (widget-put
+   widget
+   :args (mapcar (lambda (arg)
+		   (widget-convert arg
+				   :deactivate 'custom-face-edit-deactivate
+				   :activate 'custom-face-edit-activate
+				   :delete 'custom-face-edit-delete))
+		 (widget-get widget :args)))
+  widget)
+
+(defun custom-face-edit-deactivate (widget)
+  "Make face widget WIDGET inactive for user modifications."
+  (unless (widget-get widget :inactive)
+    (let ((tag (custom-face-edit-attribute-tag widget))
+	  (from (copy-marker (widget-get widget :from)))
+	  (to (widget-get widget :to))
+	  (value (widget-value widget))
+	  (inhibit-read-only t)
+	  (inhibit-modification-hooks t))
+      (save-excursion
+	(goto-char from)
+	(widget-default-delete widget)
+	(insert tag ": *\n")
+	(widget-put widget :inactive
+		    (cons value (cons from (- (point) from))))))))
+
+(defun custom-face-edit-activate (widget)
+  "Make face widget WIDGET inactive for user modifications."
+  (let ((inactive (widget-get widget :inactive))
+	(inhibit-read-only t)
+	(inhibit-modification-hooks t))
+    (when (consp inactive)
+      (save-excursion
+	(goto-char (car (cdr inactive)))
+	(delete-region (point) (+ (point) (cdr (cdr inactive))))
+	(widget-put widget :inactive nil)
+	(widget-apply widget :create)
+	(widget-value-set widget (car inactive))
+	(widget-setup)))))
+
+(defun custom-face-edit-delete (widget)
+  "Remove widget from the buffer."
+  (let ((inactive (widget-get widget :inactive))
+	(inhibit-read-only t)
+	(inhibit-modification-hooks t))
+    (if (not inactive)
+	;; Widget is alive, we don't have to do anything special
+	(widget-default-delete widget)
+      ;; WIDGET is already deleted because we did so to inactivate it;
+      ;; now just get rid of the label we put in its place.
+      (delete-region (car (cdr inactive))
+		     (+ (car (cdr inactive)) (cdr (cdr inactive))))
+      (widget-put widget :inactive nil))))
+      
+
+(defun custom-face-edit-attribute-tag (widget)
+  "Returns the first :tag property in WIDGET or one of its children."
+  (let ((tag (widget-get widget :tag)))
+    (or (and (not (equal tag "")) tag)
+	(let ((children (widget-get widget :children)))
+	  (while (and (null tag) children)
+	    (setq tag (custom-face-edit-attribute-tag (pop children))))
+	  tag))))
 
 ;;; The `custom-display' Widget.
 
@@ -2593,7 +2660,7 @@ Match frames with dark backgrounds.")
 (defconst custom-face-selected (widget-convert 'custom-face-selected)
   "Converted version of the `custom-face-selected' widget.")
 
-(defun custom-filter-face-spec (spec filter-index default-filter)
+(defun custom-filter-face-spec (spec filter-index &optional default-filter)
   "Return a canonicalized version of SPEC using.
 FILTER-INDEX is the index in the entry for each attribute in
 `custom-face-attributes' at which the appropriate filter function can be
@@ -2628,21 +2695,11 @@ don't specify one."
 (defun custom-pre-filter-face-spec (spec)
   "Return SPEC changed as necessary for editing by the face customization widget.
 SPEC must be a full face spec."
-  (custom-filter-face-spec
-   spec 2
-   (lambda (value)
-     (cond ((eq value 'unspecified) nil)
-	   ((eq value nil) 'off)
-	   (t value)))))
+  (custom-filter-face-spec spec 2))
 
 (defun custom-post-filter-face-spec (spec)
   "Return the customized SPEC in a form suitable for setting the face."
-  (custom-filter-face-spec
-   spec 3
-   (lambda (value)
-     (cond ((eq value nil) 'unspecified)
-	   ((eq value 'off) nil)
-	   (t value)))))
+  (custom-filter-face-spec spec 3))
 
 (defun custom-face-value-create (widget)
   "Create a list of the display specifications for WIDGET."
