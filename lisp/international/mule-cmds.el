@@ -786,11 +786,11 @@ The return value is a string."
   "Switch to input method INPUT-METHOD for the current buffer.
 If some other input method is already active, turn it off first.
 If INPUT-METHOD is nil, deactivate any current input method."
-  (if (symbolp input-method)
+  (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
   (if (and current-input-method
 	   (not (string= current-input-method input-method)))
-    (inactivate-input-method))
+      (inactivate-input-method))
   (unless (or current-input-method (null input-method))
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
@@ -907,8 +907,12 @@ or a string."
 	    (read-input-method-name "Input method: " nil t)))
   (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
-  (let ((current-input-method input-method))
-    (read-string prompt initial-input nil nil t)))
+  (let ((prev-input-method current-input-method))
+    (unwind-protect
+	(progn
+	  (activate-input-method input-method)
+	  (read-string prompt initial-input nil nil t))
+      (activate-input-method prev-input-method))))
 
 ;; Variables to control behavior of input methods.  All input methods
 ;; should react to these variables.
