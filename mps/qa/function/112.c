@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!112.c(trunk.2) $
+ id = $HopeName: MMQA_test_function!112.c(trunk.3) $
  summary = AMCZ pool should get collected
  language = c
  link = testlib.o rankfmt.o
@@ -11,6 +11,12 @@ END_HEADER
 #include "mpscamc.h"
 #include "rankfmt.h"
 #include "mpsavm.h"
+
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 
 void *stackpointer;
@@ -24,6 +30,7 @@ static void test(void) {
  mps_root_t root0, root1;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t aplo;
 
  mycell *a;
@@ -34,7 +41,6 @@ static void test(void) {
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
-
  cdie(mps_root_create_reg(&root0, arena, MPS_RANK_AMBIG, 0, thread,
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
@@ -45,9 +51,10 @@ static void test(void) {
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(mps_pool_create(&poollo, arena, mps_class_amcz(), format),
-      "create pool");
+ die(mmqa_pool_create_chain(&poollo, arena, mps_class_amcz(), format, chain),
+     "create pool");
 
  cdie(mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
       "create ap");
@@ -65,17 +72,10 @@ static void test(void) {
  comment("Destroyed roots.");
 
  mps_ap_destroy(aplo);
- comment("Destroyed ap.");
-
  mps_pool_destroy(poollo);
- comment("Destroyed pool.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
 
@@ -83,7 +83,8 @@ static void test(void) {
 }
 
 
-int main(void) {
+int main(void)
+{
  void *m;
  stackpointer=&m; /* hack to get stack pointer */
 
