@@ -228,6 +228,10 @@ POS defaults to point; WINDOW, to the selected window.")
       if (posint > BUF_ZV (buf))
 	return Qnil;
 
+      /* w->start can be out of range.  If it is, do something reasonable.  */
+      if (top < BUF_BEGV (buf) || top > BUF_ZV (buf))
+	return Qnil;
+
       /* If that info is not correct, calculate afresh */
       posval = *compute_motion (top, 0, (hscroll ? 1 - hscroll : 0),
 				posint, height, 0,
