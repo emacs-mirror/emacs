@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
@@ -85,7 +85,7 @@
 	  "\\|SCCS/s\\.\\(.+\\):"
 	  "\\)\n"))
 ;; In RCS, a locked revision will look like "revision N.M\tlocked by: FOO".
-(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\(?:\t.*\\)?\\|rev \\([0-9]+\\):  .*\\|D \\([.0-9]+\\) .*\\)$")
+(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\(?:\t.*\\)?\\|r\\([0-9]+\\) | .* | .*\\|D \\([.0-9]+\\) .*\\)$")
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
@@ -206,5 +206,5 @@ were the region starts and ends."
 
 (provide 'log-view)
 
-;;; arch-tag: 0d64220b-ce7e-4f62-9c2a-6b04c2f81f4f
+;; arch-tag: 0d64220b-ce7e-4f62-9c2a-6b04c2f81f4f
 ;;; log-view.el ends here

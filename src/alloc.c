@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-      2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+      2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -891,12 +891,13 @@ lisp_free (block)
    On glibc-2.3.2, malloc never tries to align, so a padding of 0 is best.
    posix_memalign on the other hand would ideally prefer a value of 4
    because otherwise, there's 1020 bytes wasted between each ablocks.
-   But testing shows that those 1020 will most of the time be efficiently
-   used by malloc to place other objects, so a value of 0 is still preferable
-   unless you have a lot of cons&floats and virtually nothing else.  */
+   In Emacs, testing shows that those 1020 can most of the time be
+   efficiently used by malloc to place other objects, so a value of 0 can
+   still preferable unless you have a lot of aligned blocks and virtually
+   nothing else.  */
 #define BLOCK_PADDING 0
 #define BLOCK_BYTES \
-  (BLOCK_ALIGN - sizeof (struct aligned_block *) - BLOCK_PADDING)
+  (BLOCK_ALIGN - sizeof (struct ablock *) - BLOCK_PADDING)
 
 /* Internal data structures and constants.  */
 

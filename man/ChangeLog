@@ -1,3 +1,9 @@
+2005-02-18  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.texi: Add concept/function/variable indices (this work was
+	donated by Brad Collins <brad@chenla.org>, copyright-assignment
+	papers on file at FSF).
+
 2005-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs.texi (Top): Update menu for splitting of node in

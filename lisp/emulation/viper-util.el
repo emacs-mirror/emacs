@@ -661,14 +661,8 @@
 
 
 ;; define remote file test
-(or (fboundp 'viper-file-remote-p) ; user supplied his own function: use it
-    (defun viper-file-remote-p (file-name)
-      (car (cond ((featurep 'efs-auto) (efs-ftp-path file-name))
-		 ((fboundp 'file-remote-p) (file-remote-p file-name))
-		 (t (require 'ange-ftp)
-		    ;; Can happen only in Emacs, since XEmacs has file-remote-p
-		    (ange-ftp-ftp-name file-name))))))
-
+(defun viper-file-remote-p (file-name)
+  (file-remote-p file-name))
 
 
 ;; This is a simple-minded check for whether a file is under version control.

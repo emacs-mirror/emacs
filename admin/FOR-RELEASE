@@ -65,41 +65,6 @@ further.
 I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
 
-** pcvs bug:
-
-In a CVS mode buffer created using the `cvs-examine' command, if I
-commit a file in a subdirectory, after committing the line is not
-updated with the version of the new revision.  Instead, a line is added
-in the buffer in the top directory listing.
-
-Example: I start with this:
-
-,----
-| In directory .:
-|               Unknown                 .htaccess
-|               Unknown                 404.php
-|               Unknown                 rain.jpg
-| In directory include:
-|               Modified                include/foo.include
-`----
-
-I commit the file include/foo.include using `c' on the corresponding
-line.  I get:
-
-,----
-| In directory .:
-|               Unknown                 .htaccess
-|               Unknown                 404.php
-| committed     Up-To-Date  1.13        foo.include
-|               Unknown                 rain.jpg
-| In directory include:
-|               Modified                include/foo.include
-`----
-
-There is no file named foo.include in the top directory. This bug
-appeared sometime before October 2004 and now.
-
-
 
 * GTK RELATED BUGS
 

@@ -50,6 +50,7 @@
 
 ;; Globals
 
+;; Use color for the MS-DOS port because it doesn't support underline.
 (defface button '((((type pc) (class color))
 		   (:foreground "lightblue"))
 		  (t :underline t))

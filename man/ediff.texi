@@ -1106,10 +1106,18 @@ multi-file patch.  This is because, in the latter-style sessions, there are
 many ways to create diff output, and it is easier to handle by running
 Ediff on the inactive sessions.
 
-Last, but not least, by typing @kbd{=}, you can quickly find out which
-sessions have identical files, so you won't have to run Ediff on those
+Last, but not least, by typing @kbd{==}, you can quickly find out which
+sessions have identical entries, so you won't have to run Ediff on those
 sessions.  This, however, works only on local, uncompressed files.
 For compressed or remote files, this command won't report anything.
+Likewise, you can use @kbd{=h} to mark sessions with identical entries
+for hiding or, with @kbd{=m}, for further operations.
+
+The comparison operations @kbd{==}, @kbd{=h}, and @kbd{=m} can recurse into
+subdirectories to see if they have identical contents (so the user will not
+need to descend into those subdirectories manually). These commands ask the
+user whether or not to do a recursive descent.
+
 
 
 @node Remote and Compressed Files, Customization, Session Groups, Top
@@ -2395,11 +2403,13 @@ Jay Finger (jayf@@microsoft.com),
 Xavier Fornari (xavier@@europe.cma.fr),
 Eric Freudenthal (freudent@@jan.ultra.nyu.edu),
 Job Ganzevoort (Job.Ganzevoort@@cwi.nl),
+Felix Heinrich Gatzemeier (felix.g@@tzemeier.info),
 Boris Goldowsky (boris@@cs.rochester.edu),
 Allan Gottlieb (gottlieb@@allan.ultra.nyu.edu),
 Aaron Gross (aaron@@bfr.co.il),
 Thorbjoern Hansen (thorbjoern.hansen@@mchp.siemens.de),
 Marcus Harnisch (marcus_harnisch@@mint-tech.com),
+Steven E. Harris (seh@@panix.com),
 Xiaoli Huang (hxl@@epic.com),
 Andreas Jaeger (aj@@suse.de),
 Lars Magne Ingebrigtsen (larsi@@ifi.uio.no),
@@ -2428,6 +2438,7 @@ Chris Murphy (murphycm@@sun.aston.ac.uk),
 Erik Naggum (erik@@naggum.no),
 Eyvind Ness (Eyvind.Ness@@hrp.no),
 Ray Nickson (nickson@@cs.uq.oz.au),
+Dan Nicolaescu (dann@@ics.uci.edu),
 David Petchey (petchey_david@@jpmorgan.com),
 Benjamin Pierce (benjamin.pierce@@cl.cam.ac.uk),
 Francois Pinard (pinard@@iro.umontreal.ca),

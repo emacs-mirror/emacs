@@ -859,7 +859,7 @@ static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *,
 							  Lisp_Object));
 static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space_for_newline P_ ((struct it *, int));
-static int make_cursor_line_fully_visible P_ ((struct window *, int));
+static int cursor_row_fully_visible_p P_ ((struct window *, int, int));
 static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
@@ -1281,8 +1281,8 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
     }
 
   start_display (&it, w, top);
-  move_it_to (&it, charpos, 0, it.last_visible_y, -1,
-	      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+  move_it_to (&it, charpos, -1, it.last_visible_y, -1,
+	      MOVE_TO_POS | MOVE_TO_Y);
 
   /* Note that we may overshoot because of invisible text.  */
   if (IT_CHARPOS (it) >= charpos)
@@ -1306,12 +1306,13 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	    }
 	}
     }
-  else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
+  else
     {
       struct it it2;
 
       it2 = it;
-      move_it_by_lines (&it, 1, 0);
+      if (IT_CHARPOS (it) < ZV && FETCH_BYTE (IT_BYTEPOS (it)) != '\n')
+	move_it_by_lines (&it, 1, 0);
       if (charpos < IT_CHARPOS (it))
 	{
 	  visible_p = 1;
@@ -1322,8 +1323,9 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	      *y = it2.current_y + it2.max_ascent - it2.ascent;
 	      if (rtop)
 		{
-		  *rtop = 0;
-		  *rbot = max (0, (it2.current_y + it2.max_ascent + it2.max_descent) - it.last_visible_y);
+		  *rtop = max (0, -it2.current_y);
+		  *rbot = max (0, ((it2.current_y + it2.max_ascent + it2.max_descent)
+				   - it.last_visible_y));
 		}
 	    }
 	}
@@ -4693,27 +4695,31 @@ back_to_previous_visible_line_start (it)
       /* If newline has a display property that replaces the newline with something
 	 else (image or text), find start of overlay or interval and continue search
 	 from that point.  */
-      {
-	struct it it2 = *it;
-	int pos = IT_CHARPOS (*it);
-	int beg, end;
-	Lisp_Object val, overlay;
+      if (IT_CHARPOS (*it) > BEGV)
+	{
+	  struct it it2 = *it;
+	  int pos;
+	  int beg, end;
+	  Lisp_Object val, overlay;
 
-	it2.sp = 0;
-	if (handle_display_prop (&it2) == HANDLED_RETURN
-	    && !NILP (val = get_char_property_and_overlay
-		      (make_number (pos), Qdisplay, Qnil, &overlay))
-	    && (OVERLAYP (overlay)
-		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
-		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
-	  {
-	    if (beg < BEGV)
-	      beg = BEGV;
-	    IT_CHARPOS (*it) = beg;
-	    IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
-	    continue;
-	  }
-      }
+	  pos = --IT_CHARPOS (it2);
+	  --IT_BYTEPOS (it2);
+	  it2.sp = 0;
+	  if (handle_display_prop (&it2) == HANDLED_RETURN
+	      && !NILP (val = get_char_property_and_overlay
+			(make_number (pos), Qdisplay, Qnil, &overlay))
+	      && (OVERLAYP (overlay)
+		  ? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		  : get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
+	    {
+	      if (beg < BEGV)
+		beg = BEGV;
+	      IT_CHARPOS (*it) = beg;
+	      IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
+	      continue;
+	    }
+	}
+
       break;
     }
 
@@ -6326,7 +6332,8 @@ move_it_vertically_backward (it, dy)
 	     a line height of 13 pixels each, recentering with point
 	     on the bottom line will try to move -39/2 = 19 pixels
 	     backward.  Try to avoid moving into the first line.  */
-	  && it->current_y - target_y > line_height * 2 / 3
+	  && (it->current_y - target_y
+	      > min (window_box_height (it->w), line_height * 2 / 3))
 	  && IT_CHARPOS (*it) > BEGV)
 	{
 	  TRACE_MOVE ((stderr, "  not far enough -> move_vert %d\n",
@@ -11084,7 +11091,7 @@ run_window_scroll_functions (window, startp)
    as if point had gone off the screen.  */
 
 static int
-make_cursor_line_fully_visible (w, force_p)
+cursor_row_fully_visible_p (w, force_p, current_matrix_p)
      struct window *w;
      int force_p;
 {
@@ -11100,7 +11107,7 @@ make_cursor_line_fully_visible (w, force_p)
   if (w->cursor.vpos < 0)
     return 1;
 
-  matrix = w->desired_matrix;
+  matrix = current_matrix_p ? w->current_matrix : w->desired_matrix;
   row = MATRIX_ROW (matrix, w->cursor.vpos);
 
   /* If the cursor row is not partially visible, there's nothing to do.  */
@@ -11405,7 +11412,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
-      if (! make_cursor_line_fully_visible (w, extra_scroll_margin_lines <= 1))
+      if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1, 0))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  ++extra_scroll_margin_lines;
@@ -11675,6 +11682,12 @@ try_cursor_movement (window, startp, scroll_step)
 		  && CHARPOS (startp) != BEGV)
 		scroll_p = 1;
 	    }
+	  else
+	    {
+	      /* Cursor did not move.  So don't scroll even if cursor line
+		 is partially visible, as it was so before.  */
+		 rc = CURSOR_MOVEMENT_SUCCESS;
+	    }
 
 	  if (PT < MATRIX_ROW_START_CHARPOS (row)
 	      || PT > MATRIX_ROW_END_CHARPOS (row))
@@ -11682,7 +11695,8 @@ try_cursor_movement (window, startp, scroll_step)
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	    }
-	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
+	  else if (rc != CURSOR_MOVEMENT_SUCCESS
+		   && MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
 		   && make_cursor_line_fully_visible_p)
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
@@ -11701,7 +11715,7 @@ try_cursor_movement (window, startp, scroll_step)
 	      else
 		{
 		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-		  if (!make_cursor_line_fully_visible (w, 0))
+		  if (!cursor_row_fully_visible_p (w, 0, 1))
 		    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		  else
 		    rc = CURSOR_MOVEMENT_SUCCESS;
@@ -11788,7 +11802,7 @@ redisplay_window (window, just_this_one_p)
   int temp_scroll_step = 0;
   int count = SPECPDL_INDEX ();
   int rc;
-  int centering_position;
+  int centering_position = -1;
   int last_line_misfit = 0;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
@@ -12034,7 +12048,7 @@ redisplay_window (window, just_this_one_p)
 	  new_vpos = window_box_height (w) / 2;
 	}
 
-      if (!make_cursor_line_fully_visible (w, 0))
+      if (!cursor_row_fully_visible_p (w, 0, 0))
 	{
 	  /* Point does appear, but on a line partly visible at end of window.
 	     Move it back to a fully-visible line.  */
@@ -12171,7 +12185,7 @@ redisplay_window (window, just_this_one_p)
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = Qnil;
 
-	  if (!make_cursor_line_fully_visible (w, 1))
+	  if (!cursor_row_fully_visible_p (w, 1, 0))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      last_line_misfit = 1;
@@ -12231,10 +12245,8 @@ redisplay_window (window, just_this_one_p)
   /* Finally, just choose place to start which centers point */
 
  recenter:
-  centering_position = window_box_height (w) / 2;
-
- point_at_top:
-  /* Jump here with centering_position already set to 0.  */
+  if (centering_position < 0)
+    centering_position = window_box_height (w) / 2;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "recenter");
@@ -12331,7 +12343,7 @@ redisplay_window (window, just_this_one_p)
       set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
     }
 
-  if (!make_cursor_line_fully_visible (w, centering_position > 0))
+  if (!cursor_row_fully_visible_p (w, 0, 0))
     {
       /* If vscroll is enabled, disable it and try again.  */
       if (w->vscroll)
@@ -12346,9 +12358,10 @@ redisplay_window (window, just_this_one_p)
 	 visible, if it can be done.  */
       if (centering_position == 0)
 	goto done;
+
       clear_glyph_matrix (w->desired_matrix);
       centering_position = 0;
-      goto point_at_top;
+      goto recenter;
     }
 
  done:
@@ -13136,8 +13149,10 @@ find_first_unchanged_at_end_row (w, delta, delta_bytes)
 	 starts at a minimum position >= last_unchanged_pos_old.  */
       for (; row > first_text_row; --row)
 	{
+	  /* This used to abort, but it can happen.
+	     It is ok to just stop the search instead here.  KFS.  */
 	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
-	    abort ();
+	    break;
 
 	  if (MATRIX_ROW_START_CHARPOS (row) >= last_unchanged_pos_old)
 	    row_found = row;

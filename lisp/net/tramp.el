@@ -4105,7 +4105,7 @@ ARGS are the arguments OPERATION has been called with."
      (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
    ; COMMAND
    ((member operation
-	    (list 'dired-call-process-command
+	    (list 'dired-call-process
                   ; Emacs only
 		  'shell
                   ; Post Emacs 21.3 only

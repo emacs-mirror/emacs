@@ -2233,10 +2233,10 @@ and replace a sub-expression, e.g.
 (defun subregexp-context-p (regexp pos &optional start)
   "Return non-nil if POS is in a normal subregexp context in REGEXP.
 A subregexp context is one where a sub-regexp can appear.
-A non-subregexp context is for example within brackets, or within a repetition
-bounds operator \\{..\\}, or right after a \\.
-If START is non-nil, it should be a position in REGEXP, smaller than POS,
-and known to be in a subregexp context."
+A non-subregexp context is for example within brackets, or within a
+repetition bounds operator `\\=\\{...\\}', or right after a `\\'.
+If START is non-nil, it should be a position in REGEXP, smaller
+than POS, and known to be in a subregexp context."
   ;; Here's one possible implementation, with the great benefit that it
   ;; reuses the regexp-matcher's own parser, so it understands all the
   ;; details of the syntax.  A disadvantage is that it needs to match the

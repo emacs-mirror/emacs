@@ -4151,7 +4151,7 @@ FRAME 0 means change the face on all frames, and change the default
 		}
 	      else if (EQ (k, QCcolor))
 		{
-		  if (!STRINGP (v) || SCHARS (v) == 0)
+		  if (!NILP (v) && (!STRINGP (v) || SCHARS (v) == 0))
 		    break;
 		}
 	      else if (EQ (k, QCstyle))

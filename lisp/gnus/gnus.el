@@ -1819,11 +1819,12 @@ registry.")
    :variable gnus-spam-newsgroup-contents
    :variable-default nil
    :variable-document
-   "*Groups in which to automatically mark new articles as spam on
-summary entry.  If non-nil, this should be a list of group name
-regexps that should match all groups in which to do automatic spam
-tagging, associated with a classification (spam, ham, or neither).
-This only makes sense for mail groups."
+   "*Group classification (spam, ham, or neither).  Only
+meaningful when spam.el is loaded.  If non-nil, this should be a
+list of group name regexps associated with a classification for
+each one.  In spam groups, new articles are marked as spam on
+summary entry.  There is other behavior associated with ham and
+no classification when spam.el is loaded - see the manual."
    :variable-group spam
    :variable-type '(repeat
 		    (list :tag "Group contents spam/ham classification"
@@ -1840,7 +1841,9 @@ This only makes sense for mail groups."
 				  (const :tag "Unclassified" nil)))
    :parameter-document
    "The spam classification (spam, ham, or neither) of this group.
-When a spam group is entered, all unread articles are marked as spam.")
+When a spam group is entered, all unread articles are marked as
+spam.  There is other behavior associated with ham and no
+classification when spam.el is loaded - see the manual.")
 
   (defvar gnus-group-spam-exit-processor-ifile "ifile"
     "OBSOLETE: The ifile summary exit spam processor.")

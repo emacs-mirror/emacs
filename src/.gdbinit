@@ -101,6 +101,193 @@ document ppt
 Print point, beg, end, narrow, and gap for current buffer.
 end
 
+# Print out iterator given as first arg
+define pitx
+  set $it = $arg0
+  printf "cur=%d", $it->current.pos.charpos
+  if ($it->current.pos.charpos != $it->current.pos.bytepos)
+    printf "[%d]", $it->current.pos.bytepos
+  end
+  printf " start=%d", $it->start.pos.charpos
+  if ($it->start.pos.charpos != $it->start.pos.bytepos)
+    printf "[%d]", $it->start.pos.bytepos
+  end
+  printf " stop=%d ", $it->stop_charpos
+  output $it->what
+  if ($it->what == IT_CHARACTER)
+    if ($it->len == 1 && $it->c >= ' ' && it->c < 255)
+      printf "['%c']", $it->c
+    else
+      printf "[%d,%d]", $it->c, $it->len
+    end
+  end
+  printf " next="
+  output $it->method
+  printf "\n"
+  printf "vpos=%d hpos=%d", $it->vpos, $it->hpos,
+  printf " y=%d lvy=%d", $it->current_y, $it->last_visible_y
+  printf " x=%d lvx=%d", $it->current_x, $it->last_visible_x
+  printf " a+d=%d+%d=%d", $it->ascent, $it->descent, $it->ascent+$it->descent
+  printf " max=%d+%d=%d", $it->max_ascent, $it->max_descent, $it->max_ascent+$it->max_descent
+  printf "\n"
+end
+document pitx
+Pretty print a display iterator.
+Take one arg, an iterator object or pointer.
+end
+
+define pit
+  pitx it
+end
+document pit
+Pretty print the display iterator it.
+end
+
+define prowx
+  set $row = $arg0
+  printf "y=%d x=%d pwid=%d", $row->y, $row->x, $row->pixel_width
+  printf " a+d=%d+%d=%d", $row->ascent, $row->height-$row->ascent, $row->height
+  printf " phys=%d+%d=%d", $row->phys_ascent, $row->phys_height-$row->phys_ascent, $row->phys_height
+  printf " vis=%d", $row->visible_height
+  printf "  L=%d T=%d R=%d", $row->used[0], $row->used[1], $row->used[2]
+  printf "\n"
+  printf "start=%d end=%d", $row->start.pos.charpos, $row->end.pos.charpos
+  if ($row->enabled_p)
+    printf " ENA"
+  end
+  if ($row->displays_text_p)
+    printf " DISP"
+  end
+  if ($row->mode_line_p)
+    printf " MODEL"
+  end
+  if ($row->continued_p)
+    printf " CONT"
+  end
+  if ($row-> truncated_on_left_p)
+    printf " TRUNC:L"
+  end
+  if ($row-> truncated_on_right_p)
+    printf " TRUNC:R"
+  end
+  if ($row->starts_in_middle_of_char_p)
+    printf " STARTMID"
+  end
+  if ($row->ends_in_middle_of_char_p)
+    printf " ENDMID"
+  end
+  if ($row->ends_in_newline_from_string_p)
+    printf " ENDNLFS"
+  end
+  if ($row->ends_at_zv_p)
+    printf " ENDZV"
+  end
+  if ($row->overlapped_p)
+    printf " OLAPD"
+  end
+  if ($row->overlapping_p)
+    printf " OLAPNG"
+  end
+  printf "\n"
+end
+document prowx
+Pretty print information about glyph_row.
+Takes one argument, a row object or pointer.
+end
+
+define prow
+  prowx row
+end
+document prow
+Pretty print information about glyph_row in row.
+end
+
+
+define pcursorx
+  set $cp = $arg0
+  printf "y=%d x=%d vpos=%d hpos=%d", $cp->y, $cp->x, $cp->vpos, $cp->hpos
+end
+document pcursorx
+Pretty print a window cursor
+end
+
+define pcursor
+  printf "output: "
+  pcursorx output_cursor
+  printf "\n"
+end
+document pcursor
+Pretty print the output_cursor
+end
+
+define pwinx
+  set $w = $arg0
+  xgetint $w->sequence_number
+  if ($w->mini_p != Qnil)
+    printf "Mini "
+  end
+  printf "Window %d ", $int
+  xgetptr $w->buffer
+  set $tem = (struct buffer *) $ptr
+  xgetptr $tem->name
+  printf "%s", ((struct Lisp_String *) $ptr)->data
+  printf "\n"
+  xgetptr $w->start
+  set $tem = (struct Lisp_Marker *) $ptr
+  printf "start=%d end:", $tem->charpos
+  if ($w->window_end_valid != Qnil)
+    xgetint $w->window_end_pos
+    printf "pos=%d", $int
+    xgetint $w->window_end_vpos
+    printf " vpos=%d", $int
+  else
+    printf "invalid"
+  end
+  printf " vscroll=%d", $w->vscroll
+  if ($w->force_start != Qnil)
+    printf " FORCE_START"
+  end
+  if ($w->must_be_updated_p)
+    printf " MUST_UPD"
+  end
+  printf "\n"
+  printf "cursor: "
+  pcursorx $w->cursor
+  printf "  phys: "
+  pcursorx $w->phys_cursor
+  if ($w->phys_cursor_on_p)
+    printf " ON"
+  else
+    printf " OFF"
+  end
+  printf " blk="
+  if ($w->last_cursor_off_p != $w->cursor_off_p)
+    if ($w->last_cursor_off_p)
+      printf "ON->"
+    else
+      printf "OFF->"
+    end
+  end
+  if ($w->cursor_off_p)
+    printf "ON"
+  else
+    printf "OFF"
+  end
+  printf "\n"
+end
+document pwinx
+Pretty print a window structure.
+Takes one argument, a pointer to a window structure
+end
+
+define pwin
+  pwinx w
+end
+document pwin
+Pretty print window structure w.
+end
+
+
 define xtype
   xgettype $
   output $type
