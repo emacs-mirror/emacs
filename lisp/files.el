@@ -1896,7 +1896,7 @@ only set the major mode, if that would change it."
 		(message "Ignoring unknown mode `%s'" mode)
 	      (setq done t)
 	      (or (set-auto-mode-0 mode)
-		  (throw 'nop)))))
+		  (throw 'nop nil)))))
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
       ;; finds the interpreter anywhere in $PATH.
