@@ -189,7 +189,7 @@ of the map.
 The order matters when the keymap is used as a menu."
   (or (keymapp keymap)
       (signal 'wrong-type-argument (list 'keymapp keymap)))
-  (let ((tail keymap) done
+  (let ((tail keymap) done inserted
 	(first (aref key 0)))
     (while (and (not done) tail)
       ;; Delete any earlier bindings for the same key.
@@ -197,11 +197,20 @@ The order matters when the keymap is used as a menu."
 	  (setcdr tail (cdr (cdr tail))))
       ;; When we reach AFTER's binding, insert the new binding after.
       ;; If we reach an inherited keymap, insert just before that.
+      ;; If we reach the end of this keymap, insert at the end.
       (if (or (eq (car-safe (car tail)) after)
-	      (eq (car tail) 'keymap))
+	      (eq (car (cdr tail)) 'keymap)
+	      (null (cdr tail)))
 	  (progn
-	    (setcdr tail (cons (cons (aref key 0) definition) (cdr tail)))
-	    (setq done t)))
+	    ;; Stop the scan only if we find a parent keymap.
+	    ;; Keep going past the inserted element
+	    ;; so we can delete any duplications that come later.
+	    (if (eq (car (cdr tail)) 'keymap)
+		(setq done t))
+	    ;; Don't insert more than once.
+	    (or inserted
+		(setcdr tail (cons (cons (aref key 0) definition) (cdr tail))))
+	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
 (defun keyboard-translate (from to)
