@@ -77,6 +77,10 @@ Otherwise, `find-tag-default' is used.")
 (defvar default-tags-table-function nil
   "*If non-nil, a function of no arguments to choose a default tags file
 for a particular buffer.")
+
+(defvar tags-location-stack nil
+  "List of markers which are locations visited by \\[find-tag].
+Pop back to the last location with \\[negative-argument] \\[find-tag].")
 
 ;; Tags table state.
 ;; These variables are local in tags table buffers.
@@ -578,6 +582,16 @@ Assumes the tags table is the current buffer."
 (defvar last-tag nil
   "Last tag found by \\[find-tag].")
 
+;; Get interactive args for find-tag{-noselect,-other-window,-regexp}.
+(defun find-tag-interactive (prompt &optional no-default)
+  (if current-prefix-arg
+      (list nil (if (< (prefix-numeric-value current-prefix-arg) 0)
+		    '-
+		  t))
+    (list (if no-default
+	      (read-string prompt)
+	    (find-tag-tag prompt)))))
+
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)
   "Find tag (in current tags table) whose name contains TAGNAME.
@@ -585,80 +599,107 @@ Returns the buffer containing the tag's definition and moves its point there,
 but does not select the buffer.
 The default for TAGNAME is the expression in the buffer near point.
 
-If second arg NEXT-P is non-nil (interactively, with prefix arg), search
-for another tag that matches the last tagname or regexp used.  When there
-are multiple matches for a tag, more exact matches are found first.
+If second arg NEXT-P is t (interactively, with prefix arg), search for
+another tag that matches the last tagname or regexp used.  When there are
+multiple matches for a tag, more exact matches are found first.  If NEXT-P
+is the atom `-' (interactively, with prefix arg that is a negative number
+or just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg REGEXP-P is non-nil, treat TAGNAME as a regexp.
 
 See documentation of variable `tags-file-name'."
-  (interactive (if current-prefix-arg
-		   '(nil t)
-		 (list (find-tag-tag "Find tag: "))))
+  (interactive (find-tag-interactive "Find tag: "))
+
   ;; Save the current buffer's value of `find-tag-hook' before selecting the
   ;; tags table buffer.
   (let ((local-find-tag-hook find-tag-hook))
-    (if next-p
-	;; Find the same table we last used.
-	(visit-tags-table-buffer 'same)
-      ;; Pick a table to use.
-      (visit-tags-table-buffer)
-      ;; Record TAGNAME for a future call with NEXT-P non-nil.
-      (setq last-tag tagname))
-    (prog1
-	;; find-tag-in-order does the real work.
-	(find-tag-in-order (if next-p last-tag tagname)
-			   (if regexp-p
-			       find-tag-regexp-search-function
-			     find-tag-search-function)
-			   (if regexp-p
-			       find-tag-regexp-tag-order
-			     find-tag-tag-order)
-			   (if regexp-p
-			       find-tag-regexp-next-line-after-failure-p
-			     find-tag-next-line-after-failure-p)
-			   (if regexp-p "matching" "containing")
-			   (not next-p))
-      (run-hooks 'local-find-tag-hook))))
+    (if (eq '- next-p)
+	;; Pop back to a previous location.
+	(if (null tags-location-stack)
+	    (error "No previous tag locations")
+	  (let ((marker (car tags-location-stack)))
+	    ;; Pop the stack.
+	    (setq tags-location-stack (cdr tags-location-stack))
+	    (prog1
+		;; Move to the saved location.
+		(set-buffer (marker-buffer marker))
+	      (goto-char (marker-position marker))
+	      ;; Kill that marker so it doesn't slow down editting.
+	      (set-marker marker nil nil)
+	      ;; Run the user's hook.  Do we really want to do this for pop?
+	      (run-hooks 'local-find-tag-hook))))
+      (if next-p
+	  ;; Find the same table we last used.
+	  (visit-tags-table-buffer 'same)
+	;; Pick a table to use.
+	(visit-tags-table-buffer)
+	;; Record TAGNAME for a future call with NEXT-P non-nil.
+	(setq last-tag tagname))
+      (prog1
+	  ;; Record the location so we can pop back to it later.
+	  (marker-buffer
+	   (car
+	    (setq tags-location-stack
+		  (cons (let ((marker (make-marker)))
+			  (save-excursion
+			    (set-buffer
+			     ;; find-tag-in-order does the real work.
+			     (find-tag-in-order
+			      (if next-p last-tag tagname)
+			      (if regexp-p
+				  find-tag-regexp-search-function
+				find-tag-search-function)
+			      (if regexp-p
+				  find-tag-regexp-tag-order
+				find-tag-tag-order)
+			      (if regexp-p
+				  find-tag-regexp-next-line-after-failure-p
+				find-tag-next-line-after-failure-p)
+			      (if regexp-p "matching" "containing")
+			      (not next-p)))
+			    (set-marker marker (point))))
+			tags-location-stack))))
+	(run-hooks 'local-find-tag-hook)))))
 
 ;;;###autoload
-(defun find-tag (tagname &optional next-p)
+(defun find-tag (tagname &optional next-p regexp-p)
   "Find tag (in current tags table) whose name contains TAGNAME.
 Select the buffer containing the tag's definition, and move point there.
 The default for TAGNAME is the expression in the buffer around or before point.
 
-If second arg NEXT-P is non-nil (interactively, with prefix arg), search
-for another tag that matches the last tagname used.  When there are
-multiple matches, more exact matches are found first.
+If second arg NEXT-P is t (interactively, with prefix arg), search for
+another tag that matches the last tagname or regexp used.  When there are
+multiple matches for a tag, more exact matches are found first.  If NEXT-P
+is the atom `-' (interactively, with prefix arg that is a negative number
+or just \\[negative-argument]), pop back to the previous tag gone to.
 
 See documentation of variable `tags-file-name'."
-  (interactive (if current-prefix-arg
-		   '(nil t)
-		 (list (find-tag-tag "Find tag: "))))
-  (switch-to-buffer (find-tag-noselect tagname next-p)))
+  (interactive (find-tag-interactive "Find tag: "))
+  (switch-to-buffer (find-tag-noselect tagname next-p regexp-p)))
 ;;;###autoload (define-key esc-map "." 'find-tag)
 
 ;;;###autoload
-(defun find-tag-other-window (tagname &optional next-p)
+(defun find-tag-other-window (tagname &optional next-p regexp-p)
   "Find tag (in current tags table) whose name contains TAGNAME.
-Select the buffer containing the tag's definition
-in another window, and move point there.
-The default for TAGNAME is the expression in the buffer around or before point.
+Select the buffer containing the tag's definition in another window, and
+move point there.  The default for TAGNAME is the expression in the buffer
+around or before point.
 
-If second arg NEXT-P is non-nil (interactively, with prefix arg), search
-for another tag that matches the last tagname used.  When there are
-multiple matches, more exact matches are found first.
+If second arg NEXT-P is t (interactively, with prefix arg), search for
+another tag that matches the last tagname or regexp used.  When there are
+multiple matches for a tag, more exact matches are found first.  If NEXT-P
+is negative (interactively, with prefix arg that is a negative number or
+just \\[negative-argument]), pop back to the previous tag gone to.
 
 See documentation of variable `tags-file-name'."
-  (interactive (if current-prefix-arg
-		   '(nil t)
-		 (list (find-tag-tag "Find tag other window: "))))
+  (interactive (find-tag-interactive "Find tag other window: "))
+
   ;; This hair is to deal with the case where the tag is found in the
   ;; selected window's buffer; without the hair, point is moved in both
   ;; windows.  To prevent this, we save the selected window's point before
   ;; doing find-tag-noselect, and restore it after.
   (let* ((window-point (window-point (selected-window)))
-	 (tagbuf (find-tag-noselect tagname next-p))
+	 (tagbuf (find-tag-noselect tagname next-p regexp-p))
 	 (tagpoint (progn (set-buffer tagbuf) (point))))
     (set-window-point (prog1
 			  (selected-window)
@@ -674,19 +715,19 @@ See documentation of variable `tags-file-name'."
 
 ;;;###autoload
 (defun find-tag-other-frame (tagname &optional next-p)
-  "Find tag (in current tag table) whose name contains TAGNAME.
- Selects the buffer that the tag is contained in in another frame
-and puts point at its definition.
- If TAGNAME is a null string, the expression in the buffer
-around or before point is used as the tag name.
- If second arg NEXT-P is non-nil (interactively, with prefix arg),
-searches for the next tag in the tag table
-that matches the tagname used in the previous find-tag.
+  "Find tag (in current tags table) whose name contains TAGNAME.
+Select the buffer containing the tag's definition in another frame, and
+move point there.  The default for TAGNAME is the expression in the buffer
+around or before point.
+
+If second arg NEXT-P is t (interactively, with prefix arg), search for
+another tag that matches the last tagname or regexp used.  When there are
+multiple matches for a tag, more exact matches are found first.  If NEXT-P
+is negative (interactively, with prefix arg that is a negative number or
+just \\[negative-argument]), pop back to the previous tag gone to.
 
 See documentation of variable `tags-file-name'."
-  (interactive (if current-prefix-arg
-		   '(nil t)
-		 (list (find-tag-tag "Find tag other window: "))))
+  (interactive (find-tag-interactive "Find tag other frame: "))
   (let ((pop-up-frames t))
     (find-tag-other-window tagname next-p)))
 ;;;###autoload (define-key ctl-x-5-map "." 'find-tag-other-frame)
@@ -696,17 +737,19 @@ See documentation of variable `tags-file-name'."
   "Find tag (in current tags table) whose name matches REGEXP.
 Select the buffer containing the tag's definition and move point there.
 
-If second arg NEXT-P is non-nil (interactively, with prefix arg), search
-for another tag that matches the last tagname used.
+If second arg NEXT-P is t (interactively, with prefix arg), search for
+another tag that matches the last tagname or regexp used.  When there are
+multiple matches for a tag, more exact matches are found first.  If NEXT-P
+is negative (interactively, with prefix arg that is a negative number or
+just \\[negative-argument]), pop back to the previous tag gone to.
 
 If third arg OTHER-WINDOW is non-nil, select the buffer in another window.
 
 See documentation of variable `tags-file-name'."
-  (interactive (if current-prefix-arg
-		   '(nil t)
-		 (list (read-string "Find tag regexp: "))))
-  (funcall (if other-window 'switch-to-buffer-other-window 'switch-to-buffer)
-	   (find-tag-noselect regexp next-p t)))
+  (interactive (find-tag-interactive "Find tag regexp: " t))
+  ;; We go through find-tag-other-window to do all the display hair there.
+  (funcall (if other-window 'find-tag-other-window 'find-tag)
+	   regexp next-p t))
 
 ;; Internal tag finding function.
 
