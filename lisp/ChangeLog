@@ -1,9 +1,3 @@
-2003-08-14  Jari Aalto  <jari.aalto@poboxes.com>
-
-        * progmodes/compile.el (compilation-error-regexp-alist):
-        Added Java ANt error detection as described in document
-        http://ant.apache.org/faq.html
-
 2003-08-17  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.el (Info-scroll-prefer-subnodes): Add :version keyword to
@@ -22,6 +16,12 @@
 	* dabbrev.el (dabbrev--safe-replace-match): Use with-no-warnings.
 
 	* simple.el (eval-expression): Use eval-last-sexp-print-value.
+
+2003-08-14  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Added Java ANt error detection as described in document
+	http://ant.apache.org/faq.html
 
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
 
