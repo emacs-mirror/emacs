@@ -1,3 +1,8 @@
+2001-05-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/holidays.el (holidays): Add an autoload cookie.  From
+	Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
 2001-05-08  John Wiegley  <johnw@gnu.org>
 
 	* calendar/timeclock.el (timeclock-workday-remaining): Changed
