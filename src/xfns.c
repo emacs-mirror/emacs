@@ -2866,7 +2866,9 @@ even if they match PATTERN and FACE.")
 {
   int num_fonts;
   char **names;
+#ifndef BROKEN_XLISTFONTSWITHINFO
   XFontStruct *info;
+#endif
   XFontStruct *size_ref;
   Lisp_Object list;
   FRAME_PTR f;
@@ -2943,18 +2945,20 @@ even if they match PATTERN and FACE.")
   BLOCK_INPUT;
 
   /* Solaris 2.3 has a bug in XListFontsWithInfo.  */
-#ifdef BROKEN_XLISTFONTSWITHINFO
-  names = XListFonts (FRAME_X_DISPLAY (f),
-                      XSTRING (pattern)->data,
-                      2000, /* maxnames */
-                      &num_fonts); /* count_return */
-#else
-  names = XListFontsWithInfo (FRAME_X_DISPLAY (f),
-			      XSTRING (pattern)->data,
-			      2000, /* maxnames */
-			      &num_fonts, /* count_return */
-			      &info); /* info_return */
+#ifndef BROKEN_XLISTFONTSWITHINFO
+  if (size_ref)
+    names = XListFontsWithInfo (FRAME_X_DISPLAY (f),
+				XSTRING (pattern)->data,
+				2000, /* maxnames */
+				&num_fonts, /* count_return */
+				&info); /* info_return */
+  else
 #endif
+    names = XListFonts (FRAME_X_DISPLAY (f),
+			XSTRING (pattern)->data,
+			2000, /* maxnames */
+			&num_fonts); /* count_return */
+
   UNBLOCK_INPUT;
 
   list = Qnil;
@@ -2977,27 +2981,36 @@ even if they match PATTERN and FACE.")
       list = Qnil;
       for (i = 0; i < num_fonts; i++)
         {
-	  XFontStruct *thisinfo;
+	  int keeper;
 
+	  if (!size_ref)
+	    keeper = 1;
+	  else
+	    {
 #ifdef BROKEN_XLISTFONTSWITHINFO
-          BLOCK_INPUT;
-          thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f), names[i]);
-          UNBLOCK_INPUT;
+	      XFontStruct *thisinfo;
+
+	      BLOCK_INPUT;
+	      thisinfo = XLoadQueryFont (FRAME_X_DISPLAY (f), names[i]);
+	      UNBLOCK_INPUT;
+
+	      keeper = thisinfo && same_size_fonts (thisinfo, size_ref);
 #else
-	  thisinfo = &info[i];
+	      keeper = same_size_fonts (&info[i], size_ref);
 #endif
-          if (thisinfo && (! size_ref
-			   || same_size_fonts (thisinfo, size_ref)))
+	    }
+          if (keeper)
 	    list = Fcons (build_string (names[i]), list);
         }
       list = Fnreverse (list);
 
       BLOCK_INPUT;
-#ifdef BROKEN_XLISTFONTSWITHINFO
-      XFreeFontNames (names);
-#else
-      XFreeFontInfo (names, info, num_fonts);
+#ifndef BROKEN_XLISTFONTSWITHINFO
+      if (size_ref)
+	XFreeFontInfo (names, info, num_fonts);
+      else
 #endif
+	XFreeFontNames (names);
       UNBLOCK_INPUT;
     }
 
