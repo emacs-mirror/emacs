@@ -292,7 +292,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 	  for (; y > 0; y--)
 	    acc *= x;
 	}
-      return XSET (x, Lisp_Int, acc);
+      XFASTINT (x) = acc;
+      return x;
     }
   f1 = (XTYPE (num1) == Lisp_Float) ? XFLOAT (num1)->data : XINT (num1);
   f2 = (XTYPE (num2) == Lisp_Float) ? XFLOAT (num2)->data : XINT (num2);
@@ -304,7 +305,7 @@ DEFUN ("log", Flog, Slog, 1, 2, 0,
   "Return the natural logarithm of NUM.
 If second optional argument BASE is given, return log NUM using that base.")
   (num, base)
-     register Lisp_Object num;
+     register Lisp_Object num, base;
 {
   double d = extract_float (num);
 
