@@ -395,9 +395,9 @@ Note that `mode-line-format' is buffer-local.")
 ;       (setq buffer-invisibility-spec
 ;             (cons arg buffer-invisibility-spec)))))
 ;   (defun remove-from-invisibility-spec (arg)
-;     (if buffer-invisibility-spec
-;         (setq buffer-invisibility-spec
-;               (delete arg buffer-invisibility-spec)))))
+;     (when buffer-invisibility-spec
+;       (setq buffer-invisibility-spec
+;             (delete arg buffer-invisibility-spec)))))
 
 ;; hs-match-data
 (defalias 'hs-match-data 'match-data)
@@ -497,29 +497,29 @@ The block beginning is adjusted by `hs-adjust-block-beginning'
 and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
-    (if (looking-at hs-block-start-regexp)
-        (let* ((mdata (hs-match-data t))
-               (pure-p (match-end 0))
-               (p
-                ;; `p' is the point at the end of the block beginning,
-                ;; which may need to be adjusted
-                (save-excursion
-                  (goto-char (funcall (or hs-adjust-block-beginning
-                                          'identity)
-                                      pure-p))
-                  ;; whatever the adjustment, we move to eol
-                  (end-of-line)
-                  (point)))
-               (q
-                ;; `q' is the point at the end of the block
-                (progn (hs-forward-sexp mdata 1)
-                       (end-of-line)
-                       (point))))
-          (if (and (< p (point)) (> (count-lines p q) 1))
-              (overlay-put (hs-flag-region p q 'code)
-                           'hs-ofs
-                           (- pure-p p)))
-          (goto-char (if end q (min p pure-p)))))))
+    (when (looking-at hs-block-start-regexp)
+      (let* ((mdata (hs-match-data t))
+             (pure-p (match-end 0))
+             (p
+              ;; `p' is the point at the end of the block beginning,
+              ;; which may need to be adjusted
+              (save-excursion
+                (goto-char (funcall (or hs-adjust-block-beginning
+                                        'identity)
+                                    pure-p))
+                ;; whatever the adjustment, we move to eol
+                (end-of-line)
+                (point)))
+             (q
+              ;; `q' is the point at the end of the block
+              (progn (hs-forward-sexp mdata 1)
+                     (end-of-line)
+                     (point))))
+        (when (and (< p (point)) (> (count-lines p q) 1))
+          (overlay-put (hs-flag-region p q 'code)
+                       'hs-ofs
+                       (- pure-p p)))
+        (goto-char (if end q (min p pure-p)))))))
 
 (defun hs-safety-is-job-n ()
   "Warn if `buffer-invisibility-spec' does not contain symbol `hs'."
@@ -568,16 +568,16 @@ as cdr."
               (setq p (point));; use this to avoid an infinite cycle
               (forward-comment 1)
               (skip-chars-forward " \t\n\f"))
-            (if (or (not (looking-at hs-c-start-regexp))
-                    (> (point) q))
-                ;; we cannot hide this comment block
-                (setq not-hidable t)))
+            (when (or (not (looking-at hs-c-start-regexp))
+                      (> (point) q))
+              ;; we cannot hide this comment block
+              (setq not-hidable t)))
           ;; goto the end of the comment
           (forward-comment (buffer-size))
           (skip-chars-backward " \t\n\f")
           (end-of-line)
-          (if (>= (point) q)
-              (list (if not-hidable nil p) (point))))))))
+          (when (>= (point) q)
+            (list (if not-hidable nil p) (point))))))))
 
 (defun hs-grok-mode-type ()
   "Set up hideshow variables for new buffers.
@@ -607,9 +607,8 @@ function; and adjust-block-beginning function."
                                         c-start-regexp)))
               hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
               hs-adjust-block-beginning (nth 5 lookup)))
-    (progn
-      (setq hs-minor-mode nil)
-      (error "%s Mode doesn't support Hideshow Minor Mode" mode-name))))
+    (setq hs-minor-mode nil)
+    (error "%s Mode doesn't support Hideshow Minor Mode" mode-name)))
 
 (defun hs-find-block-beginning ()
   "Reposition point at block-start.
@@ -667,11 +666,11 @@ and `case-fold-search' are both t."
       (if (and c-reg (nth 0 c-reg))
           ;; point is inside a comment, and that comment is hidable
           (goto-char (nth 0 c-reg))
-        (if (and (not c-reg)
-                 (hs-find-block-beginning)
-                 (looking-at hs-block-start-regexp))
-            ;; point is inside a block
-            (goto-char (match-end 0)))))
+        (when (and (not c-reg)
+                   (hs-find-block-beginning)
+                   (looking-at hs-block-start-regexp))
+          ;; point is inside a block
+          (goto-char (match-end 0)))))
     (end-of-line)
     (let ((overlays (overlays-at (point)))
           (found nil))
@@ -888,8 +887,7 @@ Key bindings:
 ;; load-time actions
 
 ;; keymaps and menus
-(if hs-minor-mode-map
-    nil
+(unless hs-minor-mode-map
   (setq hs-minor-mode-map (make-sparse-keymap))
   (easy-menu-define hs-minor-mode-menu
     hs-minor-mode-map
