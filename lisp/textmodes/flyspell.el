@@ -33,14 +33,15 @@
 ;; To enable Flyspell in text representing computer programs, type
 ;; M-x flyspell-prog-mode.
 ;; In that mode only text inside comments is checked.
-;;                                                                  
+;;
 ;; Note: consider setting the variable ispell-parser to `tex' to
 ;; avoid TeX command checking; use `(setq ispell-parser 'tex)'.
-;;                                                                  
+;;
 ;; Some user variables control the behavior of flyspell.  They are
 ;; those defined under the `User variables' comment.
 
 ;;; Code:
+
 (require 'ispell)
 
 ;*---------------------------------------------------------------------*/
@@ -203,7 +204,7 @@ http://strw.leidenuniv.nl/~dominik/Tools"
   :group 'flyspell
   :version "21.1"
   :type 'boolean)
-  
+
 ;;;###autoload
 (defcustom flyspell-mode-line-string " Fly"
   "*String displayed on the modeline when flyspell is active.
@@ -422,7 +423,7 @@ Ispell is automatically spawned on background for each entered words.
 The default flyspell behavior is to highlight incorrect words.
 With no argument, this command toggles Flyspell mode.
 With a prefix argument ARG, turn Flyspell minor mode on iff ARG is positive.
-  
+
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
 \\[flyspell-auto-correct-word]: automatically correct word.
@@ -472,7 +473,7 @@ in your .emacs file.
 ;*    For remembering buffers running flyspell                         */
 ;*---------------------------------------------------------------------*/
 (defvar flyspell-buffers nil)
- 
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-minibuffer-p ...                                        */
 ;*---------------------------------------------------------------------*/
@@ -488,7 +489,7 @@ in your .emacs file.
   (ispell-accept-buffer-local-defs)
   (if (not (and (eq flyspell-dash-dictionary ispell-dictionary)
 		(eq flyspell-dash-local-dictionary ispell-local-dictionary)))
-      ;; the dictionary as changed
+      ;; the dictionary has changed
       (progn
 	(setq flyspell-dash-dictionary ispell-dictionary)
 	(setq flyspell-dash-local-dictionary ispell-local-dictionary)
@@ -767,7 +768,7 @@ Mostly we check word delimiters."
       (insert (format "  cache-start: %S\n" flyspell-word-cache-start))
       (insert (format "  cache-end  : %S\n" flyspell-word-cache-end))
       (goto-char (point-max)))))
-    
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-debug-signal-word-checked ...                           */
 ;*---------------------------------------------------------------------*/
@@ -1106,7 +1107,7 @@ this function changes the last char of the `ispell-casechars' string."
       (setq flyspell-ispell-casechars-cache ispell-casechars)
       (setq flyspell-casechars-cache ispell-casechars)
       flyspell-casechars-cache))))
-	
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-get-not-casechars-cache ...                             */
 ;*---------------------------------------------------------------------*/
@@ -1269,7 +1270,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
     ;; have to kill the temporary buffer
     (kill-buffer flyspell-external-ispell-buffer)
     (setq flyspell-external-ispell-buffer nil)))
-  
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-large-region ...                                        */
 ;*---------------------------------------------------------------------*/
@@ -1458,7 +1459,7 @@ for the overlay."
 		     flyspell-overlay-keymap-property-name
 		     flyspell-mouse-map))
     flyspell-overlay))
-    
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-incorrect-region ...                          */
 ;*---------------------------------------------------------------------*/
@@ -1480,7 +1481,8 @@ for the overlay."
           ;; now we can use a new overlay
           (setq flyspell-overlay
                 (make-flyspell-overlay beg end
-                                  'flyspell-incorrect-face 'highlight))))))
+				       'flyspell-incorrect-face
+				       'highlight))))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-duplicate-region ...                          */
@@ -1677,7 +1679,7 @@ This command proposes various successive corrections for the current word."
 							      old-max))))))))))
 	(setq flyspell-auto-correct-pos (point))
 	(ispell-pdict-save t)))))
-  
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-correct-word ...                                        */
 ;*---------------------------------------------------------------------*/
@@ -1928,9 +1930,8 @@ The word checked is the word at the mouse position."
 		      menu))))
 
 ;*---------------------------------------------------------------------*/
-;*    Some example functions for real autocorrecting                    */
+;*    Some example functions for real autocorrecting                   */
 ;*---------------------------------------------------------------------*/
-
 (defun flyspell-maybe-correct-transposition (beg end poss)
   "Check replacements for transposed characters.
 
@@ -2004,7 +2005,7 @@ This function is meant to be added to 'flyspell-incorrect-hook'."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-change-abbrev (table old new)
   (set (abbrev-symbol old table) new))
-  
+
 (provide 'flyspell)
 
 ;;; flyspell.el ends here
