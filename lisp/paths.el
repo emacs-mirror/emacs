@@ -90,6 +90,12 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
+	;; SVR4 is said to use /var/mail, and make /usr/mail a link to that;
+	;; but since I'm not sure it's generally true, calling file-exists-p
+	;; prevents lossage if it isn't true. -- rms.
+	((and (string-match "^[^-]+-[^-]+-sysv4" system-configuration)
+	      (file-exists-p "/var/mail"))
+	 "/var/mail/")
 	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
 	 "/usr/mail/")
 	((eq system-type 'netbsd)
