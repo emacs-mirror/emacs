@@ -1776,7 +1776,7 @@ static void x_scroll_bar_report_motion ();
 
 static void
 XTmouse_position (f, bar_window, part, x, y, time)
-     FRAME_PTR f;
+     FRAME_PTR *f;
      Lisp_Object *bar_window;
      enum scroll_bar_part *part;
      Lisp_Object *x, *y;
@@ -1785,7 +1785,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
   FRAME_PTR f1;
 
   /* If this isn't an X-window frame, quit now. */
-  if (!FRAME_X_P (f))
+  if (!FRAME_X_P (*f))
     return;
 
   BLOCK_INPUT;
