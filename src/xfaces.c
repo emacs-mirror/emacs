@@ -26,10 +26,13 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 
+#include "charset.h"
+
 #ifdef HAVE_FACES
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
+#include "fontset.h"
 #endif
 #ifdef MSDOS
 #include "dosfns.h"
@@ -76,7 +79,7 @@ Boston, MA 02111-1307, USA.  */
        ID is the face ID, an integer used internally by the C code to identify
            the face,
        FONT, FOREGROUND, and BACKGROUND are strings naming the fonts and colors
-           to use with the face,
+           to use with the face, FONT may name fontsets,
        BACKGROUND-PIXMAP is the name of an x bitmap filename, which we don't
            use right now, and
        UNDERLINE-P is non-nil if the face should be underlined.
@@ -178,6 +181,7 @@ allocate_face ()
   struct face *result = (struct face *) xmalloc (sizeof (struct face));
   bzero (result, sizeof (struct face));
   result->font = (XFontStruct *) FACE_DEFAULT;
+  result->fontset = -1;
   result->foreground = FACE_DEFAULT;
   result->background = FACE_DEFAULT;
   result->stipple = FACE_DEFAULT;
@@ -192,6 +196,7 @@ copy_face (face)
   struct face *result = allocate_face ();
 
   result->font = face->font;
+  result->fontset = face->fontset;
   result->foreground = face->foreground;
   result->background = face->background;
   result->stipple = face->stipple;
@@ -207,6 +212,7 @@ face_eql (face1, face2)
      struct face *face1, *face2;
 {
   return (   face1->font       == face2->font
+	  && face1->fontset == face2->fontset
 	  && face1->foreground == face2->foreground
 	  && face1->background == face2->background
 	  && face1->stipple    == face2->stipple
@@ -261,6 +267,10 @@ intern_face (f, face)
 		  mask, &xgcv);
 
   face->gc = gc;
+  /* We used the following GC for all non-ASCII characters by changing
+     only GCfont each time.  */
+  face->non_ascii_gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				  mask, &xgcv);
 
   UNBLOCK_INPUT;
 
@@ -290,7 +300,10 @@ clear_face_cache ()
 	    {
 	      struct face *face = FRAME_COMPUTED_FACES (f) [i];
 	      if (face->gc)
-		XFreeGC (dpy, face->gc);
+		{
+		  XFreeGC (dpy, face->gc);
+		  XFreeGC (dpy, face->non_ascii_gc);
+		}
 	      face->gc = 0;
 	    }
 	}
@@ -607,7 +620,8 @@ free_frame_faces (f)
       struct face *face = FRAME_PARAM_FACES (f) [i];
       if (face)
 	{
-	  unload_font (f, face->font);
+	  if (face->fontset < 0)
+	    unload_font (f, face->font);
 	  unload_color (f, face->foreground);
 	  unload_color (f, face->background);
 	  x_destroy_bitmap (f, face->stipple);
@@ -627,7 +641,10 @@ free_frame_faces (f)
       if (face)
 	{
 	  if (face->gc)
-	    XFreeGC (dpy, face->gc);
+	    {
+	      XFreeGC (dpy, face->gc);
+	      XFreeGC (dpy, face->non_ascii_gc);
+	    }
 	  xfree (face);
 	}
     }
@@ -752,13 +769,19 @@ frame_update_line_height (f)
      FRAME_PTR f;
 {
   int i;
-  int biggest = FONT_HEIGHT (f->output_data.x->font);
+  int fontset = f->output_data.x->fontset;
+  int biggest = (fontset > 0
+		 ? FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height
+		 : FONT_HEIGHT (f->output_data.x->font));
 
   for (i = 0; i < f->output_data.x->n_param_faces; i++)
     if (f->output_data.x->param_faces[i] != 0
 	&& f->output_data.x->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
       {
-	int height = FONT_HEIGHT (f->output_data.x->param_faces[i]->font);
+	int height = ((fontset = f->output_data.x->param_faces[i]->fontset) > 0
+		      ? FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height
+		      : FONT_HEIGHT (f->output_data.x->param_faces[i]->font));
+
 	if (height > biggest)
 	  biggest = height;
       }
@@ -783,6 +806,8 @@ merge_faces (from, to)
   if (from->font != (XFontStruct *) FACE_DEFAULT
       && same_size_fonts (from->font, to->font))
     to->font = from->font;
+  if (from->fontset != -1)
+    to->fontset = from->fontset;
   if (from->foreground != FACE_DEFAULT)
     to->foreground = from->foreground;
   if (from->background != FACE_DEFAULT)
@@ -809,6 +834,7 @@ compute_base_face (f, face)
   face->foreground = FRAME_FOREGROUND_PIXEL (f);
   face->background = FRAME_BACKGROUND_PIXEL (f);
   face->font = FRAME_FONT (f);
+  face->fontset = -1;
   face->stipple = 0;
   face->underline = 0;
 }
@@ -1065,10 +1091,15 @@ recompute_basic_faces (f)
   BLOCK_INPUT;
 
   if (FRAME_DEFAULT_FACE (f)->gc)
-    XFreeGC (FRAME_X_DISPLAY (f), FRAME_DEFAULT_FACE (f)->gc);
+    {
+      XFreeGC (FRAME_X_DISPLAY (f), FRAME_DEFAULT_FACE (f)->gc);
+      XFreeGC (FRAME_X_DISPLAY (f), FRAME_DEFAULT_FACE (f)->non_ascii_gc);
+    }
   if (FRAME_MODE_LINE_FACE (f)->gc)
-    XFreeGC (FRAME_X_DISPLAY (f), FRAME_MODE_LINE_FACE (f)->gc);
-
+    {
+      XFreeGC (FRAME_X_DISPLAY (f), FRAME_MODE_LINE_FACE (f)->gc);
+      XFreeGC (FRAME_X_DISPLAY (f), FRAME_MODE_LINE_FACE (f)->non_ascii_gc);
+    }
   compute_base_face (f, FRAME_DEFAULT_FACE (f));
   compute_base_face (f, FRAME_MODE_LINE_FACE (f));
 
@@ -1159,10 +1190,38 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
 	 is taken to mean an unused face nowadays).  */
       face->font = (XFontStruct *)1 ;
 #else
-      XFontStruct *font = load_font (f, attr_value);
-      if (face->font != f->output_data.x->font)
+      XFontStruct *font;
+      int fontset;
+
+      if (NILP (attr_value))
+	{
+	  font = (XFontStruct *) FACE_DEFAULT;
+	  fontset = -1;
+	}
+      else
+	{
+	  CHECK_STRING (attr_value, 0);
+	  fontset = fs_query_fontset (f, XSTRING (attr_value)->data);
+	  if (fontset >= 0)
+	    {
+	      struct font_info *fontp;
+	      
+	      if (!(fontp = fs_load_font (f, FRAME_X_FONT_TABLE (f),
+					  CHARSET_ASCII, NULL, fontset)))
+		Fsignal (Qerror,
+			 Fcons (build_string ("ASCII font can't be loaded"),
+				Fcons (attr_value, Qnil)));
+	      font = (XFontStruct *) (fontp->font);
+	    }
+	  else
+	    font = load_font (f, attr_value);
+	}
+
+      if (face->fontset == -1 && face->font != f->output_data.x->font)
 	unload_font (f, face->font);
+
       face->font = font;
+      face->fontset = fontset;
       if (frame_update_line_height (f))
 	x_set_window_size (f, 0, f->width, f->height);
       /* Must clear cache, since it might contain the font
