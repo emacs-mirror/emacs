@@ -1,5 +1,9 @@
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (build_desired_tool_bar_string): Make sure we have
+	a desired tool bar string, even if there are not tool bar
+	items.
+	
 	* xdisp.c (Ftool_bar_lines_needed): New function.
 	(syms_of_xdisp): Defsubr it.
 
