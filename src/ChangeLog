@@ -1,3 +1,10 @@
+2004-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* editfns.c (Finsert_buffer_substring): Make argument names match their
+	use in docstring.
+
+	* syntax.c (Fmodify_syntax_entry): Fix docstring.
+
 2004-05-07  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_check_for_quit_char): Adding BLOCK_INPUT
