@@ -1,3 +1,8 @@
+2000-04-08  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/edebug.el: Fix specs for dolist, dotimes, push, pop,
+	unless, when.
+
 2000-04-07  Mikio Nakajima  <minakaji@osaka.email.ne.jp>
 
 	* viper-util.el (viper-put-on-search-overlay): New subroutine.
