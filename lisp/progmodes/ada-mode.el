@@ -27,8 +27,7 @@
 
 ;;; USAGE
 ;;; =====
-;;; If you have modified your startup file as described above, emacs
-;;; should enter ada-mode when you load an ada source into emacs.
+;;; Emacs should enter ada-mode when you load an ada source (*.ada).
 ;;;
 ;;; When you have entered ada-mode, you may get more info by pressing
 ;;; C-h m. You may also get online help describing various functions by:
@@ -37,9 +36,9 @@
 
 ;;; HISTORY
 ;;; =======
-;;; The first Ada mode for GNU Emacs was written by V. Bowman in
-;;; 1985. He based his work on the already existing Modula-2 mode. The
-;;; file is called ada.el and is currently distributed with Emacs.
+;;; The first Ada mode for GNU Emacs was written by V. Broman in
+;;; 1985. He based his work on the already existing Modula-2 mode.
+;;; This was distributed as ada.el in versions of Emacs prior to 19.29.
 ;;;
 ;;; Lynn Slater wrote an extensive Ada mode in 1989. It consisted of
 ;;; several files with support for dired commands and other nice
@@ -86,14 +85,14 @@
 ;;;> to type it in?
 ;;;>
 
-;;;As alwyas, different users have different tastes.
+;;;As always, different users have different tastes.
 ;;;It would be nice if one could configure such layout details separately
 ;;;without patching the LISP code. Maybe the metalanguage used in ada-stmt.el
 ;;;could be taken even further, providing the user with some nice syntax
 ;;;for describing layout. Then my own hacks would survive the next
 ;;;update of the package :-)
 
-;;;By the way, there are som more quirks:
+;;;By the way, there are some more quirks:
 
 ;;;1) text entered in prompt mode (*) is not converted to upper case (I have
 ;;;   choosen upper case for indentifiers).
@@ -109,11 +108,11 @@
 ;;; LCD Archive Entry:
 ;;; ada-mode|Rolf Ebert|<ebert@inf.enst.fr>
 ;;; |Major-mode for Ada
-;;; |$Date: 1995/02/09 00:17:31 $|$Revision: 1.2 $|
+;;; |$Date: 1995/03/02 11:07:44 $|$Revision: 1.3 $|
 
 
-(defconst ada-mode-version (substring "$Revision: 1.2 $" 11 -2)
-  "$Id: ada-mode.el,v 1.2 1995/02/09 00:17:31 rms Exp simon $
+(defconst ada-mode-version (substring "$Revision: 1.3 $" 11 -2)
+  "$Id: ada-mode.el,v 1.3 1995/03/02 11:07:44 simon Exp kwzh $
 
 Report bugs to: Rolf Ebert <ebert@inf.enst.fr>")
 
