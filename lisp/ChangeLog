@@ -1,3 +1,13 @@
+2000-09-22  Dave Love  <fx@gnu.org>
+
+	* hl-line.el (hl-line-overlay): Don't make it buffer-local.
+	(hl-line-highlight): Specify buffer when moving overlay.
+
+	* progmodes/fortran.el (fortran-mode): Locally set
+	normal-auto-fill-function.
+	(fortran-auto-fill-mode): Just alias to auto-fill-mode.
+	(fortran-mode-map): Adjust auto-fill menu entry.
+
 2000-09-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc-rcs.el (toplevel): Require `vc' when compiling.

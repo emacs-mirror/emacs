@@ -1,10 +1,15 @@
 2000-09-22  Dave Love  <fx@gnu.org>
 
+	* xdisp.c (syms_of_xdisp): Defvar Vmenu_bar_update_hook to provide
+	a doc string.
+
+	* xterm.c [SOLARIS2]: Remove redundant include of string.h.
+
 	* fns.c (Fstring_as_unibyte, Fstring_as_multibyte): Doc fix.
 
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* config.in (NO_RETURN): Define.as `__attribute__((__noreturn__))'
+	* config.in (NO_RETURN): Define as `__attribute__((__noreturn__))'
 	for GCC >= 2.5.
 
 	* lisp.h (wrong_type_argument, Fthrow, Fsignal, error): Declare
