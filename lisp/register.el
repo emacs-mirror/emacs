@@ -230,6 +230,9 @@ The Lisp value REGISTER is a character."
 	(princ (car val))))
 
      ((stringp val)
+      (setq val
+	    (remove-list-of-text-properties 0 (length val)
+					    yank-excluded-properties val))
       (if verbose
 	  (progn
 	    (princ "the text:\n")
@@ -253,7 +256,7 @@ Interactively, second arg is non-nil if prefix arg is supplied."
      ((consp val)
       (insert-rectangle val))
      ((stringp val)
-      (insert val))
+      (insert-for-yank val))
      ((numberp val)
       (princ val (current-buffer)))
      ((and (markerp val) (marker-position val))
