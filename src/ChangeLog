@@ -1,5 +1,8 @@
 2001-03-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (init_from_display_pos): Test invisible property
+	with TEXT_PROP_MEANS_INVISIBLE instead of NILP.
+	
 	* xdisp.c (redisplay_internal) <update one window>: Make sure
 	last_arrow_position and last_arrow_string are set.
 
