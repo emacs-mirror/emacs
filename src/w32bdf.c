@@ -791,7 +791,7 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
     return fontp;
 }
 
-/* Check a file for an XFLD string describing it.  */
+/* Check a file for an XLFD string describing it.  */
 int w32_BDF_to_x_font (char *file, char* xstr, int len)
 {
   HANDLE hfile, hfilemap;
