@@ -836,9 +836,23 @@ or properties are considered."
       (delete-backward-char 1)
       (insert "\")")
       (goto-char (point-min))
-      (let ((files (read (current-buffer))))
+      (let ((files (read (current-buffer))) (p nil))
 	(kill-buffer (current-buffer))
-	files))))
+	(or (equal completion-ignored-extensions PC-ignored-extensions)
+	    (setq PC-ignored-regexp
+		  (concat "\\("
+			  (mapconcat
+			   'regexp-quote
+			   (setq PC-ignored-extensions
+				 completion-ignored-extensions)
+			   "\\|")
+			  "\\)\\'")))
+	(setq p nil)
+	(while files
+	  (or (string-match PC-ignored-regexp (car files))
+	      (setq p (cons (car files) p)))
+	  (setq files (cdr files)))
+	p))))
 
 ;;; Facilities for loading C header files.  This is independent from the
 ;;; main completion code.  See also the variable `PC-include-file-path'
