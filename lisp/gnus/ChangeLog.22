@@ -1,3 +1,8 @@
+2003-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* mm-util.el (mm-enable-multibyte): Call set-buffer-multibyte
+	with the arg `to'.
+
 2003-11-13  Kenichi Handa  <handa@m17n.org>
 
 	* rfc2104.el (rfc2104-hexstring-to-byte-list): Renamed from
