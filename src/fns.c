@@ -60,11 +60,12 @@ With argument t, set the random number seed from the current time and pid.")
   (limit)
      Lisp_Object limit;
 {
-  int val;
+  EMACS_INT val;
+  Lisp_Object lispy_val;
   unsigned long denominator;
 
   if (EQ (limit, Qt))
-    seed_random (getpid () + time (0));
+    seed_random (getpid () + time (NULL));
   if (NATNUMP (limit) && XFASTINT (limit) != 0)
     {
       /* Try to take our random number from the higher bits of VAL,
@@ -81,7 +82,8 @@ With argument t, set the random number seed from the current time and pid.")
     }
   else
     val = get_random ();
-  return make_number (val);
+  XSETINT (lispy_val, val);
+  return lispy_val;
 }
 
 /* Random data-structure functions */
