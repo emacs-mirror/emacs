@@ -2082,7 +2082,7 @@ If FLAG is t, this makes the buffer a multibyte buffer.
 If FLAG is nil, this makes the buffer a single-byte buffer.
 The buffer contents remain unchanged as a sequence of bytes
 but the contents viewed as characters do change.
-If the multibyte flag is really changed, undo information of the
+If the multibyte flag was really changed, undo information of the
 current buffer is cleared.  */)
      (flag)
      Lisp_Object flag;
