@@ -385,7 +385,7 @@ case "${canonical}" in
     machine=hp800 opsys=hpux9
   ;;
   hppa*-hp-hpux10* )
-    machine=hp800 opsys=hpux9shr
+    machine=hp800 opsys=hpux10
   ;;
 
   ## HP 9000 series 700 and 800, running HP/UX
