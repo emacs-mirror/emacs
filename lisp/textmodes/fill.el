@@ -265,7 +265,8 @@ Prefix arg (non-nil third arg, if called from program) means justify as well."
 		(setq nmove (1- nmove))))
 	    (insert " ")
 	    (skip-chars-backward " ")
-	    (setq ncols (1- ncols))))))))
+	    (setq ncols (1- ncols)))))))
+  nil)
 
 (defun fill-individual-paragraphs (min max &optional justifyp mailp)
   "Fill each paragraph in region according to its individual fill prefix.
