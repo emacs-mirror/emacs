@@ -1612,7 +1612,9 @@ If point is on a group name, this function operates on that group."
 			     :props
 			     ('mouse-face 'highlight 'keymap ibuffer-name-map
 			      'ibuffer-name-column t
-			      'help-echo "mouse-1: mark this buffer\nmouse-2: select this buffer\nmouse-3: operate on this buffer"))
+			      'help-echo '(if tooltip-mode
+					      "mouse-1: mark this buffer\nmouse-2: select this buffer\nmouse-3: operate on this buffer"
+					    "mouse-1: mark buffer   mouse-2: select buffer   mouse-3: operate")))
   (propertize (buffer-name) 'font-lock-face (ibuffer-buffer-name-face buffer mark)))
 
 (define-ibuffer-column size (:inline t)
@@ -2063,7 +2065,12 @@ If optional arg SILENT is non-nil, do not display progress messages."
      font-lock-face ,ibuffer-filter-group-name-face
      keymap ,ibuffer-mode-filter-group-map
      mouse-face highlight
-     help-echo ,(concat filter-string "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group ")))
+     help-echo ,(let ((echo '(if tooltip-mode
+				 "mouse-1: toggle marks in this group\nmouse-2: hide/show this filtering group"
+			       " mouse-1: toggle marks  mouse-2: hide/show")))
+		  (if (> (length filter-string) 0)
+		      `(concat ,filter-string (and tooltip-mode "\n") ,echo)
+		    echo))))
   (insert "\n")
   (when bmarklist
     (put-text-property
