@@ -1,3 +1,8 @@
+2001-01-30  Dave Love  <fx@gnu.org>
+
+	* bytecode.c (Fbyte_code) <Bgeq>: Add BEFORE_POTENTIAL_GC and
+	AFTER_POTENTIAL_GC.
+
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecode.c (Fbyte_code) <Bcurrent_column>: Add
