@@ -445,7 +445,8 @@ found."
 	(apropos-mode)
 	(if window-system
 	    (insert (substitute-command-keys
-		     "Click \\[apropos-mouse-follow] to get full documentation.\n")))
+		     "If you move the mouse over text that changes color,\n"
+		     "you can click \\[apropos-mouse-follow] to get more information.\n")))
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[apropos-follow] to get full documentation.\n\n"))
 	(while (consp p)
