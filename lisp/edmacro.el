@@ -114,13 +114,16 @@ With a prefix argument, format the macro in a more concise way."
 	    ((eq cmd 'view-lossage)
 	     (setq mac (recent-keys))
 	     (setq cmd 'last-kbd-macro))
+	    ((null cmd)
+	     (error "Key sequence %s is not defined" (key-description keys)))
 	    ((symbolp cmd)
 	     (setq mac (symbol-function cmd)))
 	    (t
 	     (setq mac cmd)
 	     (setq cmd nil)))
       (unless (arrayp mac)
-	(error "Not a keyboard macro: %s" cmd))
+	(error "Key sequence %s is not a keyboard macro"
+	       (key-description keys)))
       (message "Formatting keyboard macro...")
       (let* ((oldbuf (current-buffer))
 	     (mmac (edmacro-fix-menu-commands mac))
