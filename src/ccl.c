@@ -1216,7 +1216,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  {
 
 		    size = XVECTOR (Vccl_translation_table_vector)->size;
-		    point = ccl_prog[ic++];
+		    point = XINT (ccl_prog[ic++]);
 		    if (point >= size) continue;
 		    table = XVECTOR (Vccl_translation_table_vector)->
 		      contents[point];
@@ -1285,8 +1285,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		table_vector_size = XVECTOR (Vccl_translation_table_vector)->size;
 		for (;i < j;i++)
 		  {
-		    point = ccl_prog[ic++];
-		    if (XINT(point) == -1)
+		    point = XINT (ccl_prog[ic++]);
+		    if (point == -1)
 		      {
 			skip_to_next = 0;
 			continue;
@@ -1723,7 +1723,7 @@ syms_of_ccl ()
   DEFVAR_LISP ("ccl-translation-table-vector", &Vccl_translation_table_vector,
     "Where is stored translation tables for CCL program.\n\
 Because CCL program can't access these tables except by the index of the vector.");
-  Vccl_translation_table_vector = Fmake_vector (XFASTINT (16), Qnil);
+  Vccl_translation_table_vector = Fmake_vector (make_number (16), Qnil);
 
   DEFVAR_LISP ("font-ccl-encoder-alist", &Vfont_ccl_encoder_alist,
     "Alist of fontname patterns vs corresponding CCL program.\n\
