@@ -2118,7 +2118,7 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
     = define_charset_internal (Qascii, 1, "\x00\x7F\x00\x00\x00\x00",
 			       0, 127, 'B', -1, 0, 1, 0, 0);
   charset_unicode
-    = define_charset_internal (Qunicode, 3, "\x00\x7F\x00\x7F\x00\x10",
+    = define_charset_internal (Qunicode, 3, "\x00\xFF\x00\xFF\x00\x10",
 			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
   charset_eight_bit
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
