@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
 
-;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 1997
+;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 97, 1998
 ;;       Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -107,7 +107,8 @@ These precede the input file name."
 (defcustom latex-run-command "latex"
   "*Command used to run LaTeX subjob.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end."
+otherwise the value of `tex-start-options-string' and the file name are added
+at the end, with blanks as separators."
   :type 'string
   :group 'tex-run)
 
@@ -225,7 +226,8 @@ tex shell terminates.")
 
 (defvar tex-command nil
   "Command to run TeX.
-The name of the file, preceded by a blank, will be added to this string.")
+The usual values are `tex-run-command' and `latex-run-command'.
+See the documentations of these variables.")
 
 (defvar tex-trailer nil
   "String appended after the end of a region sent to TeX by \\[tex-region].")
@@ -1110,6 +1112,7 @@ the source file is read in, and the text location is saved in
 
 If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
 If FIND-AT-LEAST is non-nil, don't bother parsing after finding that
+many new errors.
 
 This function works on TeX compilations only.  It is necessary for
 that purpose, since TeX does not put file names on the same line as
@@ -1320,7 +1323,7 @@ This function is more useful than \\[tex-buffer] when you need the
   ;; in case there are multiple shells (for same or different user).
   ;; Dec 1998: There is a report that some versions of xdvi
   ;; don't work with file names that start with #.
-  (format "-tz#%d%s"
+  (format "_TZ_%d-%s"
           (process-id (get-buffer-process "*tex-shell*"))
 	  (tex-strip-dots (system-name))))
 
@@ -1339,7 +1342,9 @@ This function is more useful than \\[tex-buffer] when you need the
       (setq start (match-end 0)))
     (or (= start 0)
 	(setq elts (cons (substring s start) elts)))
-    (mapconcat 'expand-file-name (nreverse elts) ":")))
+    (mapconcat '(lambda (elt)
+		  (if (= (length elt) 0) elt (expand-file-name elt)))
+	       (nreverse elts) ":")))
 
 (defun tex-shell-running ()
   (and (get-process "tex-shell")
