@@ -396,7 +396,7 @@ If no such group is found, return nil."
   "For customization option SYMBOL, handle keyword arguments ARGS.
 Third argument TYPE is the custom option type."
   (unless (memq :group args)
-    (custom-add-to-group (custom-current-group) symbol 'custom-face))
+    (custom-add-to-group (custom-current-group) symbol type))
   (while args
     (let ((arg (car args)))
       (setq args (cdr args))
