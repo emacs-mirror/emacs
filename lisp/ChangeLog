@@ -1,3 +1,17 @@
+2002-11-09  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (current-language-environment): Fix
+	:type.
+
+	* international/ucs-tables.el: Revert to using
+	translation-table-for-input instead of keyboard-translate-table.
+
+	* international/quail.el (quail-input-string-to-events): Revert
+	last change.
+
+	* simple.el (quoted-insert): Bind translation-table-for-input, not
+	keyboard-translate-table.
+
 2002-11-08  John Wiegley  <johnw@gnu.org>
 
 	* calendar/timeclock.el (timeclock-modeline-display): Use assq as

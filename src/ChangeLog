@@ -1,3 +1,18 @@
+2002-11-09  Dave Love  <fx@gnu.org>
+
+	* buffer.c (Fset_buffer_major_mode): Fix last change.
+
+	* regex.c (regexec): Fix pmatch declaration.
+
+	* cmds.c (Fself_insert_command): Apply Vtranslation_table_for_input.
+
+	* keyboard.c (command_loop_1): Apply Vtranslation_table_for_input
+	to self-inserting characters.
+	(syms_of_keyboard) <keyboard-translate-table>: Doc fix.
+
+	* coding.c (Vtranslation_table_for_input): New.
+	(syms_of_coding): DEFVAR it.
+
 2002-11-08  Juanma Barranquero  <lektu@terra.es>
 
 	* w32term.c (w32_draw_fringe_bitmap): Remove unused local variable
