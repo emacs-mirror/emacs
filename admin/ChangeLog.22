@@ -1,3 +1,7 @@
+2004-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/Makefile (install): Copy updated files only.
+
 2004-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/cp932.awk: Append user defined area of CP932.
