@@ -458,7 +458,7 @@ as with time remaining, where negative time really means overtime)."
 	    (% (truncate (/ (abs seconds) 60)) 60))))
 
 (defsubst timeclock-workday-remaining (&optional today-only)
-  "Return a the number of seconds until the workday is complete.
+  "Return the number of seconds until the workday is complete.
 The amount returned is relative to the value of `timeclock-workday'.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time.  This argument only makes
@@ -491,7 +491,7 @@ See `timeclock-relative' for more information about the meaning of
       string)))
 
 (defsubst timeclock-workday-elapsed ()
-  "Return a the number of seconds worked so far today.
+  "Return the number of seconds worked so far today.
 If RELATIVE is non-nil, the amount returned will be relative to past
 time worked.  The default is to return only the time that has elapsed
 so far today."
