@@ -67,6 +67,12 @@ otherwise)."
   :type '(number :tag "seconds")
   :group 'paren-showing)
 
+(defcustom show-paren-ring-bell-on-mismatch nil
+  "*If non-nil, beep if mismatched paren is detected."
+  :type 'boolean
+  :group 'paren-showing
+  :version "20.3")
+  
 (defface show-paren-match-face
   '((((class color)) (:background "turquoise"))
     (t (:background "gray")))
@@ -158,7 +164,10 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	;;
 	;; Use the correct face.
 	(if mismatch
-	    (setq face 'show-paren-mismatch-face)
+	    (progn
+	      (if show-paren-ring-bell-on-mismatch
+		  (beep))
+	      (setq face 'show-paren-mismatch-face))
 	  (setq face 'show-paren-match-face))
 	;;
 	;; If matching backwards, highlight the closeparen
