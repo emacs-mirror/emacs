@@ -27,6 +27,10 @@
 INSTALL_DIR     = C:\emacs
 !endif
 
+# Define MSVCNT11 to be nonzero if you are using the MSVCNT 1.1 environment.
+# MSVCNT11	= 1
+MSVCNT11        = 0
+
 #
 # END CONFIGURATION
 #
@@ -107,7 +111,11 @@ libc		= libc.lib
 
 # The base libraries for compiling Emacs on NT.  With MSVC, this should
 # include oldnames.lib.
+!if $(MSVCNT11)
+BASE_LIBS	= $(libc) $(baselibs) oldnames.lib
+!else
 BASE_LIBS	= $(libc) $(baselibs)
+!endif
 
 # We want any debugging info in the executable.
 !if "$(LINK)" == "link32"
@@ -117,7 +125,12 @@ SYS_LDFLAGS	= -pdb:none -release -incremental:no
 !endif
 
 INC             = -I.
-CFLAGS          = -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH)
+CFLAGS_COMMON	= -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH)
+!if $(MSVCNT11)
+CFLAGS          = $(CFLAGS_COMMON) -D_CRTAPI1=_cdecl
+!else
+CFLAGS          = $(CFLAGS_COMMON) 
+!endif
 
 OBJDIR          = obj
 $(OBJDIR):;	-mkdir $(OBJDIR)
