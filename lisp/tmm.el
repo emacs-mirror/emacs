@@ -115,9 +115,12 @@ If the optional argument IN-POPUP is set, is argument-compatible with
 		      tmm-km-list nil t nil
 		      (cons 'history (* 2 history-len))))
 	     (save-excursion
-	       (set-buffer "*Completions*")
-	       (use-local-map tmm-old-comp-map)
-	       (bury-buffer (current-buffer)))
+	       (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
+	       (if (get-buffer "*Completions*")
+		   (progn
+		     (set-buffer "*Completions*")
+		     (use-local-map tmm-old-comp-map)
+		     (bury-buffer (current-buffer)))))
 	     )))
     (setq bind (cdr (assoc out tmm-km-list)))
     (and (null bind)
