@@ -801,7 +801,11 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 
 extern Lisp_Object next_frame (), prev_frame ();
 
-DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
+/* This comment supplies the doc string for `next-window',
+   for make-docfile to see.  We cannot put this in the real DEFUN
+   due to limits in the Unix cpp.
+
+DEFUN ("next-window", Ffoo, Sfoo, 0, 3, 0,
   "Return next window after WINDOW in canonical ordering of windows.\n\
 If omitted, WINDOW defaults to the selected window.\n\
 \n\
@@ -824,6 +828,10 @@ If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
 `next-window' to iterate through the entire cycle of acceptable\n\
 windows, eventually ending up back at the window you started with.\n\
 `previous-window' traverses the same cycle, in the reverse order.")
+  (window, minibuf, all_frames) */
+
+DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
+       0)
   (window, minibuf, all_frames)
      register Lisp_Object window, minibuf, all_frames;
 {
@@ -905,7 +913,11 @@ windows, eventually ending up back at the window you started with.\n\
   return window;
 }
 
-DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
+/* This comment supplies the doc string for `previous-window',
+   for make-docfile to see.  We cannot put this in the real DEFUN
+   due to limits in the Unix cpp.
+
+DEFUN ("previous-window", Ffoo, Sfoo, 0, 3, 0,
   "Return the window preceeding WINDOW in canonical ordering of windows.\n\
 If omitted, WINDOW defaults to the selected window.\n\
 \n\
@@ -929,6 +941,11 @@ If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
 `previous-window' to iterate through the entire cycle of acceptable\n\
 windows, eventually ending up back at the window you started with.\n\
 `next-window' traverses the same cycle, in the reverse order.")
+  (window, minibuf, all_frames)  */
+
+
+DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
+       0)
   (window, minibuf, all_frames)
      register Lisp_Object window, minibuf, all_frames;
 {
@@ -1319,15 +1336,28 @@ Only the frame WINDOW is on is affected.")
 
 DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
   1, 1, "bDelete windows on (buffer): ",
-  "Delete all windows showing BUFFER.")
-  (buffer)
-     Lisp_Object buffer;
+  "Delete all windows showing BUFFER.\n\
+Optional second argument FRAME controls which frames are affected.\n\
+If nil or omitted, delete all windows showing BUFFER in any frame.\n\
+If t, delete only windows showing BUFFER in the selected frame.\n\
+If a frame, delete only windows showing BUFFER in that frame.")
+  (buffer, frame)
+     Lisp_Object buffer, frame;
 {
+#ifdef MULTI_FRAME
+  /* FRAME uses t and nil to mean the opposite of what window_loop
+     expects.  */
+  if (! FRAMEP (frame))
+    frame = NILP (frame) ? Qt : Qnil;
+#else
+  frame = Qt;
+#endif
+
   if (!NILP (buffer))
     {
       buffer = Fget_buffer (buffer);
       CHECK_BUFFER (buffer, 0);
-      window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, Qt);
+      window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, frame);
     }
   return Qnil;
 }
