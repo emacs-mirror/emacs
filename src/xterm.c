@@ -3515,11 +3515,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		     the frame's display structures.  */
 		  SET_FRAME_GARBAGED (f);
 
-		  bufp->kind = deiconify_event;
-		  XSETFRAME (bufp->frame_or_window, f);
-		  bufp++;
-		  count++;
-		  numchars--;
+		  if (f->iconified)
+		    {
+		      bufp->kind = deiconify_event;
+		      XSETFRAME (bufp->frame_or_window, f);
+		      bufp++;
+		      count++;
+		      numchars--;
+		    }
 		}
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
