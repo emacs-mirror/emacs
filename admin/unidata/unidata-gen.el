@@ -1147,4 +1147,5 @@ Property value is a character."
 	      ";; End:\n\n"
 	      (format ";; %s ends here\n" charprop-file)))))
 
+;; arch-tag: 961c862e-b821-447e-9b8a-bfbab9c2d525
 ;;; unidata-gen.el ends here
