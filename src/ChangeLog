@@ -1,3 +1,8 @@
+2000-08-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* fontset.c (Finternal_char_font): Search only the selected frame
+	for a window of the current buffer.
+
 2000-08-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (do_completion): Use EQ instead of != to compare
