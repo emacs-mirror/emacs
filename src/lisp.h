@@ -1117,6 +1117,7 @@ extern Lisp_Object Qdisabled;
 extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
+extern Lisp_Object Qvertical_scrollbar;
 
 /* defined in keymap.c */
 
