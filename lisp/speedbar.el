@@ -407,14 +407,14 @@ tags to insert.  It will then create the speedbar buttons.")
   "*List of hooks which speedbar will use to organize tags into groups.
 Groups are defined as expandable meta-tags.  Imenu supports
 such things in some languages, such as separating variables from
-functions.  Each hook takes one argument LST, and may destructivly
+functions.  Each hook takes one argument LST, and may destructively
 create a new list of the same form.  LST is a list of elements of the
 form:
   (ELT1 ELT2 ... ELTn)
 where each ELT is of the form
   (TAG-NAME-STRING . NUMBER-OR-MARKER)
 or
-  (GROUP-NAME-STRING ELT1 ELR2... ELTn)"
+  (GROUP-NAME-STRING ELT1 ELT2... ELTn)"
   :group 'speedbar
   :type 'hook
   :options '(speedbar-sort-tag-hierarchy
@@ -534,7 +534,7 @@ verbosity."
 
 (defcustom speedbar-vc-do-check t
   "*Non-nil check all files in speedbar to see if they have been checked out.
-Any file checked out is marked with `speedbar-vc-indicator'"
+Any file checked out is marked with `speedbar-vc-indicator'."
   :group 'speedbar-vc
   :type 'boolean)
 
@@ -563,7 +563,7 @@ current file, and the FILENAME of the file being checked."
 (defcustom speedbar-obj-do-check t
   "*Non-nil check all files in speedbar to see if they have an object file.
 Any file checked out is marked with `speedbar-obj-indicator', and the
-marking is based on  `speedbar-obj-alist'"
+marking is based on  `speedbar-obj-alist'."
   :group 'speedbar-vc
   :type 'boolean)
 
@@ -1454,7 +1454,7 @@ and the existence of packages."
 (defun speedbar-mouse-hscroll (e)
   "Read a mouse event E from the mode line, and horizontally scroll.
 If the mouse is being clicked on the far left, or far right of the
-mode-line.  This is only useful for non-XEmacs"
+mode-line.  This is only useful for non-XEmacs."
   (interactive "e")
   (let* ((xp (car (nth 2 (car (cdr e)))))
 	 (cpw (/ (frame-pixel-width)
@@ -2177,7 +2177,7 @@ of the special mode functions."
 The car is the list of directories, the cdr is list of files not
 matching ignored headers.  Cache any directory files found in
 `speedbar-directory-contents-alist' and use that cache before scanning
-the file-system"
+the file-system."
   (setq directory (expand-file-name directory))
   ;; If in powerclick mode, then the directory we are getting
   ;; should be rescanned.
