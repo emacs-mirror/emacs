@@ -2836,7 +2836,7 @@ kill_buffer_processes (buffer)
 	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
 	{
 	  if (NETCONN_P (proc))
-	    deactivate_process (proc);
+	    Fdelete_process (proc);
 	  else if (XINT (XPROCESS (proc)->infd) >= 0)
 	    process_send_signal (proc, SIGHUP, Qnil, 1);
 	}
