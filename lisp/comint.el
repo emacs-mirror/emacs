@@ -1434,17 +1434,16 @@ applications."
 
 (defun send-invisible (str)
   "Read a string without echoing.
-Then send it to the process running in the current buffer.  A new-line
-is additionally sent.  String is not saved on comint input history list.
+Then send it to the process running in the current buffer.
+The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
   (interactive "P") ; Defeat snooping via C-x esc
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc)
 	(error "Current buffer has no process")
-      (comint-send-string
-       proc (if (stringp str) str (comint-read-noecho "Non-echoed text: " t)))
-      (comint-send-string proc "\n"))))
+      (funcall comint-input-sender proc
+       (if (stringp str) str (comint-read-noecho "Non-echoed text: " t))))))
 
 (defun comint-watch-for-password-prompt (string) 
   "Prompt in the minibuffer for password and send without echoing.
