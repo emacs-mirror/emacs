@@ -339,8 +339,8 @@ reset_buffer_local_variables (b)
   b->minor_modes = Qnil;
   b->downcase_table = Vascii_downcase_table;
   b->upcase_table = Vascii_upcase_table;
-  b->case_canon_table = Vascii_downcase_table;
-  b->case_eqv_table = Vascii_upcase_table;
+  b->case_canon_table = Vascii_canon_table;
+  b->case_eqv_table = Vascii_eqv_table;
 #if 0
   b->sort_table = XSTRING (Vascii_sort_table);
   b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
