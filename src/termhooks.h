@@ -23,7 +23,7 @@ extern int (*cursor_to_hook) ();
 extern int (*raw_cursor_to_hook) ();
 
 extern int (*clear_to_end_hook) ();
-extern int (*clear_screen_hook) ();
+extern int (*clear_frame_hook) ();
 extern int (*clear_end_of_line_hook) ();
 
 extern int (*ins_del_lines_hook) ();
@@ -47,7 +47,7 @@ extern int (*read_socket_hook) ();
 
 /* Return the current position of the mouse.  This should clear
    mouse_moved until the next motion event arrives.  */
-extern void (*mouse_position_hook) ( /* SCREEN_PTR *s,
+extern void (*mouse_position_hook) ( /* FRAME_PTR *f,
 					Lisp_Object *x,
 					Lisp_Object *y,
 					unsigned long *time */ );
@@ -57,10 +57,10 @@ extern void (*mouse_position_hook) ( /* SCREEN_PTR *s,
    hook should clear this.  */
 extern int mouse_moved;
 
-/* When a screen's focus redirection is changed, this hook tells the
+/* When a frame's focus redirection is changed, this hook tells the
    window system code to re-decide where to put the highlight.  Under
    X, this means that Emacs lies about where the focus is.  */
-extern void (*screen_rehighlight_hook) ( /* void */ );
+extern void (*frame_rehighlight_hook) ( /* void */ );
 
 /* If nonzero, send all terminal output characters to this stream also.  */
 extern FILE *termscript;
@@ -82,7 +82,7 @@ struct input_event {
     no_event,			/* nothing happened.  This should never
 				   actually appear in the event queue.  */
     ascii_keystroke,		/* The ASCII code is in .code.
-				   .screen is the screen in which the key
+				   .frame is the frame in which the key
 				   was typed.
 				   Note that this includes meta-keys, and
 				   the modifiers field of the event
@@ -97,7 +97,7 @@ struct input_event {
 				   should feel free to add missing keys.
 				   .modifiers holds the state of the
 				   modifier keys.
-				   .screen is the screen in which the key
+				   .frame is the frame in which the key
 				   was typed.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
@@ -106,7 +106,7 @@ struct input_event {
 				   modifier keys.
 				   .x and .y give the mouse position,
 				   in characters, within the window.
-				   .screen gives the screen the mouse
+				   .frame gives the frame the mouse
 				   click occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
@@ -121,14 +121,14 @@ struct input_event {
 				   .x gives the distance from the start
 				   of the scroll bar of the click; .y gives
 				   the total length of the scroll bar.
-				   .screen gives the screen the click
+				   .frame gives the frame the click
 				   should apply to.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
 #if 0
-    screen_selected,		/* The user has moved the focus to another
-				   screen.
-				   .screen is the screen that should become
+    frame_selected,		/* The user has moved the focus to another
+				   frame.
+				   .frame is the frame that should become
 				   selected at the next convenient time.  */
 #endif
   } kind;
@@ -137,15 +137,15 @@ struct input_event {
   Lisp_Object part;
 
 /* This is obviously wrong, but I'm not sure what else I should do.
-   Obviously, this should be a SCREEN_PTR.  But that would require that
-   every file which #includes this one should also #include "screen.h",
+   Obviously, this should be a FRAME_PTR.  But that would require that
+   every file which #includes this one should also #include "frame.h",
    which would mean that files like cm.c and other innocents would be
-   dragged into the set of screen.h users.  Maybe the definition of this
+   dragged into the set of frame.h users.  Maybe the definition of this
    structure should be elsewhere?  In its own file?  */
-#ifdef MULTI_SCREEN
-  struct screen *screen;
+#ifdef MULTI_FRAME
+  struct frame *frame;
 #else
-  int screen;
+  int frame;
 #endif
   int modifiers;		/* See enum below for interpretation.  */
 

@@ -133,7 +133,7 @@ extern char *sys_errlist[];
 
 extern int quit_char;
 
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "termhooks.h"
 #include "termchar.h"
@@ -897,7 +897,7 @@ init_sys_modes ()
       EMACS_SET_TTY (input_fd, &tty, 0);
 
       /* This code added to insure that, if flow-control is not to be used,
-	 we have an unlocked screen at the start. */
+	 we have an unlocked terminal at the start. */
 
 #ifdef TCXONC
       if (!flow_control) ioctl (0, TCXONC, 1);
@@ -966,10 +966,10 @@ init_sys_modes ()
     }
   else
     {
-      screen_garbaged = 1;
-#ifdef MULTI_SCREEN
-      if (SCREENP (Vterminal_screen))
-	SCREEN_GARBAGED_P (XSCREEN (Vterminal_screen)) = 1;
+      frame_garbaged = 1;
+#ifdef MULTI_FRAME
+      if (FRAMEP (Vterminal_frame))
+	FRAME_GARBAGED_P (XFRAME (Vterminal_frame)) = 1;
 #endif
     }
 
@@ -991,7 +991,7 @@ tabs_safe_p ()
    Store number of lines into *heightp and width into *widthp.
    If zero or a negative number is stored, the value is not valid.  */
 
-get_screen_size (widthp, heightp)
+get_frame_size (widthp, heightp)
      int *widthp, *heightp;
 {
 
@@ -1044,7 +1044,7 @@ get_screen_size (widthp, heightp)
 
 
 /* Prepare the terminal for exiting Emacs; move the cursor to the
-   bottom of the screen, turn off interrupt-driven I/O, etc.  */
+   bottom of the frame, turn off interrupt-driven I/O, etc.  */
 reset_sys_modes ()
 {
   if (noninteractive)
@@ -1056,10 +1056,10 @@ reset_sys_modes ()
     return;
   if (read_socket_hook || !EQ (Vwindow_system, Qnil))
     return;
-  cursor_to (SCREEN_HEIGHT (selected_screen) - 1, 0);
-  clear_end_of_line (SCREEN_WIDTH (selected_screen));
+  cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
+  clear_end_of_line (FRAME_WIDTH (selected_frame));
   /* clear_end_of_line may move the cursor */
-  cursor_to (SCREEN_HEIGHT (selected_screen) - 1, 0);
+  cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
 #ifdef IBMR2AIX
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to 
@@ -1233,7 +1233,7 @@ kbd_input_ast ()
       struct input_event e;
       e.kind = ascii_keystroke;
       XSET (buf[i].code, Lisp_Int, cbuf[i]);
-      e.screen = selected_screen;
+      e.frame = selected_frame;
       kbd_buffer_store_event (&e);
     }
 
@@ -1729,7 +1729,7 @@ read_input_waiting ()
 
   /* Scan the chars for C-g and store them in kbd_buffer.  */
   e.kind = ascii_keystroke;
-  e.screen = selected_screen;
+  e.frame = selected_frame;
   for (i = 0; i < nread; i++)
     {
       XSET (e.code, Lisp_Int, buf[i]);
@@ -3881,7 +3881,7 @@ rename_sans_version (from,to)
   stat = sys$dassgn (chan);
   if (!stat)
     lib$signal (stat);
-  strcpy (vms_file_written, to_esn); /* We will write this to the screen*/
+  strcpy (vms_file_written, to_esn); /* We will write this to the terminal*/
   return 0;
 }
 

@@ -25,7 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef standalone
 #include "buffer.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "process.h"
 #include "dispextern.h"
@@ -159,7 +159,7 @@ glyph_to_str_cpy (glyphs, str)
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
-/* Index of first unused element of SCREEN_MESSAGE_BUF(selected_screen). */
+/* Index of first unused element of FRAME_MESSAGE_BUF(selected_frame). */
 static int printbufidx;
 
 static void
@@ -190,17 +190,17 @@ printchar (ch, fun)
 	  return;
 	}
 
-      if (echo_area_glyphs != SCREEN_MESSAGE_BUF (selected_screen)
+      if (echo_area_glyphs != FRAME_MESSAGE_BUF (selected_frame)
 	  || !message_buf_print)
 	{
-	  echo_area_glyphs = SCREEN_MESSAGE_BUF (selected_screen);
+	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
 	  printbufidx = 0;
 	  message_buf_print = 1;
 	}
 
-      if (printbufidx < SCREEN_WIDTH (selected_screen) - 1)
-	SCREEN_MESSAGE_BUF (selected_screen)[printbufidx++] = ch;
-      SCREEN_MESSAGE_BUF (selected_screen)[printbufidx] = 0;
+      if (printbufidx < FRAME_WIDTH (selected_frame) - 1)
+	FRAME_MESSAGE_BUF (selected_frame)[printbufidx++] = ch;
+      FRAME_MESSAGE_BUF (selected_frame)[printbufidx] = 0;
 
       return;
     }
@@ -242,19 +242,19 @@ strout (ptr, size, printcharfun)
 	  return;
 	}
 
-      if (echo_area_glyphs != SCREEN_MESSAGE_BUF (selected_screen)
+      if (echo_area_glyphs != FRAME_MESSAGE_BUF (selected_frame)
 	  || !message_buf_print)
 	{
-	  echo_area_glyphs = SCREEN_MESSAGE_BUF (selected_screen);
+	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
 	  printbufidx = 0;
 	  message_buf_print = 1;
 	}
 
-      if (i > SCREEN_WIDTH (selected_screen) - printbufidx - 1)
-	i = SCREEN_WIDTH (selected_screen) - printbufidx - 1;
-      bcopy (ptr, &SCREEN_MESSAGE_BUF (selected_screen) [printbufidx], i);
+      if (i > FRAME_WIDTH (selected_frame) - printbufidx - 1)
+	i = FRAME_WIDTH (selected_frame) - printbufidx - 1;
+      bcopy (ptr, &FRAME_MESSAGE_BUF (selected_frame) [printbufidx], i);
       printbufidx += i;
-      SCREEN_MESSAGE_BUF (selected_screen) [printbufidx] = 0;
+      FRAME_MESSAGE_BUF (selected_frame) [printbufidx] = 0;
 
       return;
     }
@@ -275,7 +275,7 @@ print_string (string, printcharfun)
      Lisp_Object printcharfun;
 {
   if (EQ (printcharfun, Qnil) || EQ (printcharfun, Qt))
-    /* In predictable cases, strout is safe: output to buffer or screen.  */
+    /* In predictable cases, strout is safe: output to buffer or frame.  */
     strout (XSTRING (string)->data, XSTRING (string)->size, printcharfun);
   else
     {
@@ -887,17 +887,17 @@ print (obj, printcharfun, escapeflag)
       strout ("#<window-configuration>", -1, printcharfun);
       break;
 
-#ifdef MULTI_SCREEN
-    case Lisp_Screen:
-      strout (((XSCREEN (obj)->display.nothing == 0)
-	       ? "#<dead screen " : "#<screen "),
+#ifdef MULTI_FRAME
+    case Lisp_Frame:
+      strout ((FRAME_LIVE_P (XFRAME (obj))
+	       ? "#<frame " : "#<dead frame "),
 	      -1, printcharfun);
-      print_string (XSCREEN (obj)->name, printcharfun);
-      sprintf (buf, " 0x%x", XFASTINT (XSCREEN (obj)));
+      print_string (XFRAME (obj)->name, printcharfun);
+      sprintf (buf, " 0x%x", XFASTINT (XFRAME (obj)));
       strout (buf, -1, printcharfun);
       strout (">", -1, printcharfun);
       break;
-#endif /* MULTI_SCREEN */
+#endif /* MULTI_FRAME */
 
     case Lisp_Marker:
       strout ("#<marker ", -1, printcharfun);

@@ -46,14 +46,14 @@ who first discovered the Menu_Base_Kludge.
 #include "buffer.h"
 #include "termhooks.h"
 
-/* conversion to/from character & screen coordinates */
+/* conversion to/from character & frame coordinates */
 /* From Gosling Emacs SunWindow driver by Chris Torek */
 
-/* Chars to screen coords.  Note that we speak in zero origin. */
+/* Chars to frame coords.  Note that we speak in zero origin. */
 #define CtoSX(cx) ((cx) * Sun_Font_Xsize)
 #define CtoSY(cy) ((cy) * Sun_Font_Ysize)
 
-/* Screen coords to chars */
+/* Frame coords to chars */
 #define StoCX(sx) ((sx) / Sun_Font_Xsize)
 #define StoCY(sy) ((sy) / Sun_Font_Ysize)
 

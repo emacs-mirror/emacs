@@ -22,7 +22,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termchar.h"
 #include "lisp.h"
 #include "dispextern.h"
-#include "screen.h"
+#include "frame.h"
 
 extern struct display_line **ophys_lines;
 
@@ -30,7 +30,7 @@ extern struct display_line **ophys_lines;
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 /* All costs measured in characters.
-   So no cost can exceed the area of a screen, measured in characters.
+   So no cost can exceed the area of a frame, measured in characters.
    Let's hope this is never more than 15000 characters.  */
 
 #define INFINITY 15000
@@ -68,15 +68,15 @@ struct matrix_elt
 /* draw_cost[VPOS] is the cost of outputting new line at VPOS.
    old_hash[VPOS] is the hash code of the old line at VPOS.
    new_hash[VPOS] is the hash code of the new line at VPOS.
-   Note that these are not true screen vpos's, but relative
+   Note that these are not true frame vpos's, but relative
    to the place at which the first mismatch between old and
    new contents appears.  */
 
 static void
-calculate_scrolling (screen, matrix, window_size, lines_below,
+calculate_scrolling (frame, matrix, window_size, lines_below,
 		     draw_cost, old_hash, new_hash,
 		     free_at_end)
-     SCREEN_PTR screen;
+     FRAME_PTR frame;
      /* matrix is of size window_size + 1 on each side.  */
      struct matrix_elt *matrix;
      int window_size;
@@ -86,7 +86,7 @@ calculate_scrolling (screen, matrix, window_size, lines_below,
      int free_at_end;
 {
   register int i, j;
-  int screen_height = SCREEN_HEIGHT (screen);
+  int frame_height = FRAME_HEIGHT (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1;
 
@@ -95,18 +95,18 @@ calculate_scrolling (screen, matrix, window_size, lines_below,
      at the I'th line of the lines we are considering,
      where I is origin 1 (as it is below).  */
   int *first_insert_cost
-    = &SCREEN_INSERT_COST (screen)[screen_height - 1 - lines_moved];
+    = &FRAME_INSERT_COST (frame)[frame_height - 1 - lines_moved];
   int *first_delete_cost
-    = &SCREEN_DELETE_COST (screen)[screen_height - 1 - lines_moved];
+    = &FRAME_DELETE_COST (frame)[frame_height - 1 - lines_moved];
   int *next_insert_cost
-    = &SCREEN_INSERTN_COST (screen)[screen_height - 1 - lines_moved];
+    = &FRAME_INSERTN_COST (frame)[frame_height - 1 - lines_moved];
   int *next_delete_cost
-    = &SCREEN_DELETEN_COST (screen)[screen_height - 1 - lines_moved];
+    = &FRAME_DELETEN_COST (frame)[frame_height - 1 - lines_moved];
 
   /* Discourage long scrolls on fast lines.
-     Don't scroll nearly a full screen height unless it saves
+     Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * SCREEN_HEIGHT (screen));
+  int extra_cost = baud_rate / (10 * 4 * FRAME_HEIGHT (frame));
 
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
@@ -140,8 +140,8 @@ calculate_scrolling (screen, matrix, window_size, lines_below,
       matrix[j].insertcount = 0;
     }
 
-  /* `i' represents the vpos among new screen contents.
-     `j' represents the vpos among the old screen contents.  */
+  /* `i' represents the vpos among new frame contents.
+     `j' represents the vpos among the old frame contents.  */
   p = matrix + window_size + 2;	/* matrix [1, 1] */
   for (i = 1; i <= window_size; i++, p++)
     for (j = 1; j <= window_size; j++, p++)
@@ -216,20 +216,20 @@ calculate_scrolling (screen, matrix, window_size, lines_below,
 
 /* Perform insert-lines and delete-lines operations
  according to the costs in the matrix.
- Updates the contents of the screen to record what was done. */
+ Updates the contents of the frame to record what was done. */
 
 static void
-do_scrolling (screen, matrix, window_size, unchanged_at_top)
-     SCREEN_PTR screen;
+do_scrolling (frame, matrix, window_size, unchanged_at_top)
+     FRAME_PTR frame;
      struct matrix_elt *matrix;
      int window_size;
      int unchanged_at_top;
 {
   register struct matrix_elt *p;
   register int i, j;
-  register struct screen_glyphs *current_screen;
-  /* temp_screen->enable[i] means line i has been moved to current_screen.  */
-  register struct screen_glyphs *temp_screen;
+  register struct frame_glyphs *current_frame;
+  /* temp_frame->enable[i] means line i has been moved to current_frame.  */
+  register struct frame_glyphs *temp_frame;
   struct queue { int count, pos; } *queue;
   int offset = unchanged_at_top;
   int qi = 0;
@@ -237,37 +237,37 @@ do_scrolling (screen, matrix, window_size, unchanged_at_top)
   register int tem;
   int next;
 
-  queue = (struct queue *) alloca (SCREEN_HEIGHT (screen)
+  queue = (struct queue *) alloca (FRAME_HEIGHT (frame)
 				   * sizeof (struct queue));
 
-  current_screen = SCREEN_CURRENT_GLYPHS (screen);
-  temp_screen = SCREEN_TEMP_GLYPHS (screen);
+  current_frame = FRAME_CURRENT_GLYPHS (frame);
+  temp_frame = FRAME_TEMP_GLYPHS (frame);
 
-  bcopy (current_screen->glyphs, temp_screen->glyphs,
-	 current_screen->height * sizeof (GLYPH *));
-  bcopy (current_screen->used, temp_screen->used,
-	 current_screen->height * sizeof (int));
-  bcopy (current_screen->highlight, temp_screen->highlight,
-	 current_screen->height * sizeof (char));
-  bzero (temp_screen->enable, temp_screen->height * sizeof (char));
-  bcopy (current_screen->bufp, temp_screen->bufp,
-	 current_screen->height * sizeof (int));
+  bcopy (current_frame->glyphs, temp_frame->glyphs,
+	 current_frame->height * sizeof (GLYPH *));
+  bcopy (current_frame->used, temp_frame->used,
+	 current_frame->height * sizeof (int));
+  bcopy (current_frame->highlight, temp_frame->highlight,
+	 current_frame->height * sizeof (char));
+  bzero (temp_frame->enable, temp_frame->height * sizeof (char));
+  bcopy (current_frame->bufp, temp_frame->bufp,
+	 current_frame->height * sizeof (int));
 
 #ifdef HAVE_X_WINDOWS
-  if (SCREEN_IS_X (screen))
+  if (FRAME_IS_X (frame))
     {
-      bcopy (current_screen->nruns, temp_screen->nruns,
-	     current_screen->height * sizeof (int));
-      bcopy (current_screen->face_list, temp_screen->face_list,
-	     current_screen->height * sizeof (struct run *));
-      bcopy (current_screen->top_left_x, temp_screen->top_left_x,
-	     current_screen->height * sizeof (short));
-      bcopy (current_screen->top_left_y, temp_screen->top_left_y,
-	     current_screen->height * sizeof (short));
-      bcopy (current_screen->pix_width, temp_screen->pix_width,
-	     current_screen->height * sizeof (short));
-      bcopy (current_screen->pix_height, temp_screen->pix_height,
-	     current_screen->height * sizeof (short));
+      bcopy (current_frame->nruns, temp_frame->nruns,
+	     current_frame->height * sizeof (int));
+      bcopy (current_frame->face_list, temp_frame->face_list,
+	     current_frame->height * sizeof (struct run *));
+      bcopy (current_frame->top_left_x, temp_frame->top_left_x,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->top_left_y, temp_frame->top_left_y,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->pix_width, temp_frame->pix_width,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->pix_height, temp_frame->pix_height,
+	     current_frame->height * sizeof (short));
     }
 #endif
 
@@ -300,14 +300,14 @@ do_scrolling (screen, matrix, window_size, unchanged_at_top)
 	{
 	  /* Best thing done here is no insert or delete */
 	  /* Old line at vpos j-1 ends up at vpos i-1 */
-	  current_screen->glyphs[i + offset - 1]
-	    = temp_screen->glyphs[j + offset - 1];
-	  current_screen->used[i + offset - 1]
-	    = temp_screen->used[j + offset - 1];
-	  current_screen->highlight[i + offset - 1]
-	    = temp_screen->highlight[j + offset - 1];
+	  current_frame->glyphs[i + offset - 1]
+	    = temp_frame->glyphs[j + offset - 1];
+	  current_frame->used[i + offset - 1]
+	    = temp_frame->used[j + offset - 1];
+	  current_frame->highlight[i + offset - 1]
+	    = temp_frame->highlight[j + offset - 1];
 
-	  temp_screen->enable[j + offset - 1] = 1;
+	  temp_frame->enable[j + offset - 1] = 1;
 	  i--;
 	  j--;
 	}
@@ -329,14 +329,14 @@ do_scrolling (screen, matrix, window_size, unchanged_at_top)
       /* Mark the inserted lines as clear,
 	 and put into them the line-contents strings
 	 that were discarded during the deletions.
-	 Those are the ones for which temp_screen->enable was not set.  */
+	 Those are the ones for which temp_frame->enable was not set.  */
       tem = queue[i].pos;
       for (j = tem + queue[i].count - 1; j >= tem; j--)
 	{
-	  current_screen->enable[j] = 0;
-	  while (temp_screen->enable[next])
+	  current_frame->enable[j] = 0;
+	  while (temp_frame->enable[next])
 	    next++;
-	  current_screen->glyphs[j] = temp_screen->glyphs[next++];
+	  current_frame->glyphs[j] = temp_frame->glyphs[next++];
 	}
     }
 
@@ -345,9 +345,9 @@ do_scrolling (screen, matrix, window_size, unchanged_at_top)
 }
 
 void
-scrolling_1 (screen, window_size, unchanged_at_top, unchanged_at_bottom,
+scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
 	     draw_cost, old_hash, new_hash, free_at_end)
-     SCREEN_PTR screen;
+     FRAME_PTR frame;
      int window_size, unchanged_at_top, unchanged_at_bottom;
      int *draw_cost;
      int *old_hash;
@@ -358,13 +358,13 @@ scrolling_1 (screen, window_size, unchanged_at_top, unchanged_at_bottom,
   matrix = ((struct matrix_elt *)
 	    alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix));
 
-  calculate_scrolling (screen, matrix, window_size, unchanged_at_bottom,
+  calculate_scrolling (frame, matrix, window_size, unchanged_at_bottom,
 		       draw_cost, old_hash, new_hash,
 		       free_at_end);
-  do_scrolling (screen, matrix, window_size, unchanged_at_top);
+  do_scrolling (frame, matrix, window_size, unchanged_at_top);
 }
 
-/* Return number of lines in common between current and desired screen contents
+/* Return number of lines in common between current and desired frame contents
    described to us only as vectors of hash codes OLDHASH and NEWHASH.
    Consider only vpos range START to END (not including END).
    Ignore short lines on the assumption that
@@ -427,17 +427,17 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
    starting with vpos FROM, up to but not including vpos TO,
    down by AMOUNT lines (AMOUNT may be negative).
    These are the same arguments that might be given to
-   scroll_screen_lines to perform this scrolling.  */
+   scroll_frame_lines to perform this scrolling.  */
 
-scroll_cost (screen, from, to, amount)
-     SCREEN_PTR screen;
+scroll_cost (frame, from, to, amount)
+     FRAME_PTR frame;
      int from, to, amount;
 {
-  /* Compute how many lines, at bottom of screen,
+  /* Compute how many lines, at bottom of frame,
      will not be involved in actual motion.  */
   int limit = to;
   int offset;
-  int height = SCREEN_HEIGHT (screen);
+  int height = FRAME_HEIGHT (frame);
 
   if (amount == 0)
     return 0;
@@ -458,28 +458,28 @@ scroll_cost (screen, from, to, amount)
   offset = height - limit;
 
   return
-    (SCREEN_INSERT_COST (screen)[offset + from]
-     + (amount - 1) * SCREEN_INSERTN_COST (screen)[offset + from]
-     + SCREEN_DELETEN_COST (screen)[offset + to]
-     + (amount - 1) * SCREEN_DELETE_COST (screen)[offset + to]);
+    (FRAME_INSERT_COST (frame)[offset + from]
+     + (amount - 1) * FRAME_INSERTN_COST (frame)[offset + from]
+     + FRAME_DELETEN_COST (frame)[offset + to]
+     + (amount - 1) * FRAME_DELETE_COST (frame)[offset + to]);
 }
 
 /* Calculate the line insertion/deletion
    overhead and multiply factor values */
 
 static void
-line_ins_del (screen, ov1, pf1, ovn, pfn, ov, mf)
-     SCREEN_PTR screen;
+line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
+     FRAME_PTR frame;
      int ov1, ovn;
      int pf1, pfn;
      register int *ov, *mf;
 {
   register int i;
-  register int screen_height = SCREEN_HEIGHT (screen);
+  register int frame_height = FRAME_HEIGHT (frame);
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 
-  for (i = screen_height-1; i >= 0; i--)
+  for (i = frame_height-1; i >= 0; i--)
     {
       mf[i] = next_insert_cost / 10;
       next_insert_cost += pfn;
@@ -489,29 +489,29 @@ line_ins_del (screen, ov1, pf1, ovn, pfn, ov, mf)
 }
 
 static void
-ins_del_costs (screen,
+ins_del_costs (frame,
 	       one_line_string, multi_string,
 	       setup_string, cleanup_string,
 	       costvec, ncostvec, coefficient)
-     SCREEN_PTR screen;
+     FRAME_PTR frame;
      char *one_line_string, *multi_string;
      char *setup_string, *cleanup_string;
      int *costvec, *ncostvec;
      int coefficient;
 {
   if (multi_string)
-    line_ins_del (screen,
+    line_ins_del (frame,
 		  string_cost (multi_string) * coefficient,
 		  per_line_cost (multi_string) * coefficient,
 		  0, 0, costvec, ncostvec);
   else if (one_line_string)
-    line_ins_del (screen,
+    line_ins_del (frame,
 		  string_cost (setup_string) + string_cost (cleanup_string), 0,
 		  string_cost (one_line_string),
 		  per_line_cost (one_line_string),
 		  costvec, ncostvec);
   else
-    line_ins_del (screen,
+    line_ins_del (frame,
 		  9999, 0, 9999, 0,
 		  costvec, ncostvec);
 }
@@ -519,7 +519,7 @@ ins_del_costs (screen,
 /* Calculate the insert and delete line costs.
    Note that this is done even when running with a window system
    because we want to know how long scrolling takes (and avoid it).
-   This must be redone whenever the screen height changes.
+   This must be redone whenever the frame height changes.
 
    We keep the ID costs in a precomputed array based on the position
    at which the I or D is performed.  Also, there are two kinds of ID
@@ -528,71 +528,71 @@ ins_del_costs (screen,
    only) and those that must repeatedly insert one line.
 
    The cost to insert N lines at line L is
-   	    [tt.t_ILov  + (screen_height + 1 - L) * tt.t_ILpf] +
-	N * [tt.t_ILnov + (screen_height + 1 - L) * tt.t_ILnpf]
+   	    [tt.t_ILov  + (frame_height + 1 - L) * tt.t_ILpf] +
+	N * [tt.t_ILnov + (frame_height + 1 - L) * tt.t_ILnpf]
 
    ILov represents the basic insert line overhead.  ILpf is the padding
    required to allow the terminal time to move a line: insertion at line
-   L changes (screen_height + 1 - L) lines.
+   L changes (frame_height + 1 - L) lines.
 
    The first bracketed expression above is the overhead; the second is
    the multiply factor.  Both are dependent only on the position at
    which the insert is performed.  We store the overhead in
-   SCREEN_INSERT_COST (screen) and the multiply factor in
-   SCREEN_INSERTN_COST (screen).  Note however that any insertion
+   FRAME_INSERT_COST (frame) and the multiply factor in
+   FRAME_INSERTN_COST (frame).  Note however that any insertion
    must include at least one multiply factor.  Rather than compute this
-   as SCREEN_INSERT_COST (screen)[line]+SCREEN_INSERTN_COST (screen)[line],
-   we add SCREEN_INSERTN_COST (screen) into SCREEN_INSERT_COST (screen).
+   as FRAME_INSERT_COST (frame)[line]+FRAME_INSERTN_COST (frame)[line],
+   we add FRAME_INSERTN_COST (frame) into FRAME_INSERT_COST (frame).
    This is reasonable because of the particular algorithm used in calcM.
 
    Deletion is essentially the same as insertion.
  */
 
-do_line_insertion_deletion_costs (screen,
+do_line_insertion_deletion_costs (frame,
 				  ins_line_string, multi_ins_string,
 				  del_line_string, multi_del_string,
 				  setup_string, cleanup_string, coefficient)
-     SCREEN_PTR screen;
+     FRAME_PTR frame;
      char *ins_line_string, *multi_ins_string;
      char *del_line_string, *multi_del_string;
      char *setup_string, *cleanup_string;
      int coefficient;
 {
-  if (SCREEN_INSERT_COST (screen) != 0)
+  if (FRAME_INSERT_COST (frame) != 0)
     {
-      SCREEN_INSERT_COST (screen) =
-	(int *) xrealloc (SCREEN_INSERT_COST (screen),
-			  SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETEN_COST (screen) =
-	(int *) xrealloc (SCREEN_DELETEN_COST (screen),
-			  SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_INSERTN_COST (screen) =
-	(int *) xrealloc (SCREEN_INSERTN_COST (screen),
-			  SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETE_COST (screen) =
-	(int *) xrealloc (SCREEN_DELETE_COST (screen),
-			  SCREEN_HEIGHT (screen) * sizeof (int));
+      FRAME_INSERT_COST (frame) =
+	(int *) xrealloc (FRAME_INSERT_COST (frame),
+			  FRAME_HEIGHT (frame) * sizeof (int));
+      FRAME_DELETEN_COST (frame) =
+	(int *) xrealloc (FRAME_DELETEN_COST (frame),
+			  FRAME_HEIGHT (frame) * sizeof (int));
+      FRAME_INSERTN_COST (frame) =
+	(int *) xrealloc (FRAME_INSERTN_COST (frame),
+			  FRAME_HEIGHT (frame) * sizeof (int));
+      FRAME_DELETE_COST (frame) =
+	(int *) xrealloc (FRAME_DELETE_COST (frame),
+			  FRAME_HEIGHT (frame) * sizeof (int));
     }
   else
     {
-      SCREEN_INSERT_COST (screen) =
-	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETEN_COST (screen) =
-	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_INSERTN_COST (screen) =
-	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
-      SCREEN_DELETE_COST (screen) = 
-	(int *) xmalloc (SCREEN_HEIGHT (screen) * sizeof (int));
+      FRAME_INSERT_COST (frame) =
+	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+      FRAME_DELETEN_COST (frame) =
+	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+      FRAME_INSERTN_COST (frame) =
+	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
+      FRAME_DELETE_COST (frame) = 
+	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
     }
 
-  ins_del_costs (screen,
+  ins_del_costs (frame,
 		 ins_line_string, multi_ins_string,
 		 setup_string, cleanup_string,
-		 SCREEN_INSERT_COST (screen), SCREEN_INSERTN_COST (screen),
+		 FRAME_INSERT_COST (frame), FRAME_INSERTN_COST (frame),
 		 coefficient);
-  ins_del_costs (screen,
+  ins_del_costs (frame,
 		 del_line_string, multi_del_string,
 		 setup_string, cleanup_string,
-		 SCREEN_DELETEN_COST (screen), SCREEN_DELETE_COST (screen),
+		 FRAME_DELETEN_COST (frame), FRAME_DELETE_COST (frame),
 		 coefficient);
 }
