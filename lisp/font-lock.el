@@ -1859,7 +1859,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class grayscale) (background dark))
      (:foreground "LightGray" :bold t :italic t))
     (((class color) (background light)) (:foreground "Firebrick"))
-    (((class color) (background dark)) (:foreground "OrangeRed"))
+    (((class color) (background dark)) (:foreground "chocolate1"))
     (t (:bold t :italic t)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-highlighting-faces)
