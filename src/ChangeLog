@@ -1,3 +1,8 @@
+2001-10-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]: 
+	Clear ICRNL and INLCR.  From Daiki Ueno <ueno@unixuser.org>.
+
 2001-10-04  Andrew Innes  <andrewi@gnu.org>
 
 	* w32fns.c (x_to_w32_color): Fix argument to alloca.
