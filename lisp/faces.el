@@ -2030,6 +2030,8 @@ Note: Other faces cannot inherit from the cursor face."
 It is also used for ... in ellipses."
   :group 'basic-faces)
 
+(put 'display-table 'char-table-extra-slots 6)
+
 (or standard-display-table
     ;; avoid using autoloaded make-display-table here
     (setq standard-display-table (make-char-table 'display-table nil)))
