@@ -477,10 +477,8 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
   (if (window-minibuffer-p (selected-window))
       (select-window (next-window nil 'nomini 0)))
   ;; Move to a non-dedicated window, if we have one.
-  (let ((last-window (previous-window nil 'nomini 0)))
-    (while (and (window-dedicated-p (selected-window))
-		(not (eq last-window (selected-window))))
-      (select-window (next-window nil 'nomini 0))))
+  (select-window (some-window (lambda (w) (not (window-dedicated-p w)))
+			      'nomini 0 (selected-window)))
   (set-window-dedicated-p (selected-window) nil)
   (if next-buffer
       (if (and (bufferp next-buffer)
