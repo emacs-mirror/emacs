@@ -6,10 +6,10 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-(defconst viper-version "2.85 of February 14, 1996"
-  "The current version of Viper")
-
 ;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+
+(defconst viper-version "2.86 of March 14, 1996"
+  "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
 
@@ -293,12 +293,22 @@
 ;;    much easier.
 ;;
 
+;; Code
 
 (require 'advice)
 (require 'cl)
 (require 'ring)
 
 (require 'viper-util)
+
+;; Compiler pacifier
+(defvar vip-minibuffer-current-face)
+(defvar vip-minibuffer-insert-face)
+(defvar vip-minibuffer-vi-face)
+(defvar vip-minibuffer-emacs-face)
+(defvar iso-accents-mode)
+(defvar zmacs-region-stays)
+;; end pacifier
 
 
 ;;; Variables
@@ -2417,11 +2427,11 @@ Undo previous insertion and inserts new."
       (end-of-line)
       ;; make sure all lines end with newline, unless in the minibuffer or
       ;; when requested otherwise (require-final-newline is nil)
-      (if (and
-	   (eobp)
-	   (not (bolp))
-	   require-final-newline
-	   (not (vip-is-in-minibuffer)))
+      (if (and (eobp)
+	       (not (bolp))
+	       require-final-newline
+	       (not (vip-is-in-minibuffer))
+	       (not buffer-read-only))
 	  (insert "\n"))))
 
 (defun vip-yank-defun ()

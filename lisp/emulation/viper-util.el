@@ -1,6 +1,6 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,11 +19,34 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+
+;; Code
+
 (require 'ring)
 
-;; Whether it is XEmacs or not
+;; Compiler pacifier
+(defvar vip-overriding-map)
+(defvar pm-color-alist)
+(defvar zmacs-region-stays)
+(defvar vip-search-face)
+(defvar vip-minibuffer-current-face)
+(defvar vip-minibuffer-insert-face)
+(defvar vip-minibuffer-vi-face)
+(defvar vip-minibuffer-emacs-face)
+(defvar vip-replace-overlay-face)
+(defvar vip-minibuffer-overlay)
+(defvar vip-replace-overlay)
+(defvar vip-search-overlay)
+(defvar vip-replace-overlay-cursor-color)
+(defvar vip-intermediate-command)
+(defvar vip-use-replace-region-delimiters)
+(defvar vip-fast-keyseq-timeout)
+(defvar vip-related-files-and-buffers-ring)
+;; end compiler pacifier
+
+;; Is it XEmacs?
 (defconst vip-xemacs-p (string-match "\\(Lucid\\|XEmacs\\)" emacs-version))
-;; Whether it is Emacs or not
+;; Is it Emacs?
 (defconst vip-emacs-p (not vip-xemacs-p))
 ;; Tell whether we are running as a window application or on a TTY
 (defsubst vip-device-type ()
@@ -165,6 +188,9 @@ that Viper doesn't know about.")
   (if vip-emacs-p
       (x-display-color-p)
     (eq (device-class (selected-device)) 'color)))
+   
+(defsubst vip-get-cursor-color ()
+  (cdr (assoc 'cursor-color (frame-parameters))))
   
 ;; OS/2
 (cond ((eq (vip-device-type) 'pm)
@@ -205,9 +231,6 @@ that Viper doesn't know about.")
 (defsubst vip-restore-cursor-color ()
   (vip-change-cursor-color
    (vip-overlay-get vip-replace-overlay 'vip-cursor-color)))
-   
-(defsubst vip-get-cursor-color ()
-  (cdr (assoc 'cursor-color (frame-parameters))))
 	 
 
 ;; Check the current version against the major and minor version numbers
@@ -574,10 +597,16 @@ that Viper doesn't know about.")
 
 ;; Replace state
 
+(defsubst vip-move-replace-overlay (beg end)
+  (vip-move-overlay vip-replace-overlay beg end))
+  
 (defun vip-set-replace-overlay (beg end)
   (if (vip-overlay-p vip-replace-overlay)
       (vip-move-replace-overlay beg end)
     (setq vip-replace-overlay (vip-make-overlay beg end (current-buffer)))
+    ;; never detach
+    (vip-overlay-put
+     vip-replace-overlay (if vip-emacs-p 'evaporate 'detachable) nil)
     (vip-overlay-put 
      vip-replace-overlay 'priority vip-replace-overlay-priority)) 
   (if (vip-has-face-support-p)
@@ -586,12 +615,6 @@ that Viper doesn't know about.")
   (vip-change-cursor-color vip-replace-overlay-cursor-color)
   )
   
-  
-(defsubst vip-hide-replace-overlay ()
-  (vip-set-replace-overlay-glyphs nil nil)
-  (vip-restore-cursor-color)
-  (if (vip-has-face-support-p)
-      (vip-overlay-put vip-replace-overlay 'face nil)))
       
 (defsubst vip-set-replace-overlay-glyphs (before-glyph after-glyph)
   (if (or (not (vip-has-face-support-p))
@@ -600,16 +623,18 @@ that Viper doesn't know about.")
 	    (after-name (if vip-xemacs-p 'end-glyph 'after-string)))
 	(vip-overlay-put vip-replace-overlay before-name before-glyph)
 	(vip-overlay-put vip-replace-overlay after-name after-glyph))))
+  
+(defsubst vip-hide-replace-overlay ()
+  (vip-set-replace-overlay-glyphs nil nil)
+  (vip-restore-cursor-color)
+  (if (vip-has-face-support-p)
+      (vip-overlay-put vip-replace-overlay 'face nil)))
 
     
 (defsubst vip-replace-start ()
   (vip-overlay-start vip-replace-overlay))
 (defsubst vip-replace-end ()
   (vip-overlay-end vip-replace-overlay))
-  
-(defsubst vip-move-replace-overlay (beg end)
-  (vip-move-overlay vip-replace-overlay beg end)
-  )
  
 
 ;; Minibuffer
@@ -622,13 +647,15 @@ that Viper doesn't know about.")
 	 vip-minibuffer-overlay 'face vip-minibuffer-current-face)
 	(vip-overlay-put 
 	 vip-minibuffer-overlay 'priority vip-minibuffer-overlay-priority)
-	;; prevent detachment and make vip-minibuffer-overlay open-ended
+	;; never detach
+	(vip-overlay-put
+	 vip-minibuffer-overlay (if vip-emacs-p 'evaporate 'detachable) nil)
+	;; make vip-minibuffer-overlay open-ended
 	;; In emacs, it is made open ended at creation time
-	(if vip-emacs-p
-	    (vip-overlay-put vip-minibuffer-overlay 'evaporate nil)
-	  (vip-overlay-put vip-minibuffer-overlay 'detachable nil)
-	  (vip-overlay-put vip-minibuffer-overlay 'start-open nil) 
-	  (vip-overlay-put vip-minibuffer-overlay 'end-open nil))
+	(if vip-xemacs-p
+	    (progn
+	      (vip-overlay-put vip-minibuffer-overlay 'start-open nil)
+	      (vip-overlay-put vip-minibuffer-overlay 'end-open nil)))
 	)))
        
 (defun vip-check-minibuffer-overlay ()
@@ -636,8 +663,9 @@ that Viper doesn't know about.")
       (setq vip-minibuffer-overlay
 	    (if vip-xemacs-p
 		(vip-make-overlay 1 (1+ (buffer-size)) (current-buffer))
-	      ;; don't move front, move rear
-	      (vip-make-overlay 1 (1+ (buffer-size)) (current-buffer) nil t)))
+	      ;; make overlay open-ended
+	      (vip-make-overlay
+	       1 (1+ (buffer-size)) (current-buffer) nil 'rear-advance)))
       ))
 
 
@@ -667,16 +695,17 @@ that Viper doesn't know about.")
 	(key (vip-event-key event)))
     (member key ESC-keys)))
 	
-;; like (set-mark-command nil) but doesn't push twice, if (car mark-ring)
-;; is the same as (mark t).
-(defsubst vip-set-mark-if-necessary ()
-  (setq mark-ring (delete (vip-mark-marker) mark-ring))
-  (set-mark-command nil))
   
 (defsubst vip-mark-marker ()
   (if vip-xemacs-p
       (mark-marker t)
     (mark-marker)))
+
+;; like (set-mark-command nil) but doesn't push twice, if (car mark-ring)
+;; is the same as (mark t).
+(defsubst vip-set-mark-if-necessary ()
+  (setq mark-ring (delete (vip-mark-marker) mark-ring))
+  (set-mark-command nil))
        
 ;; In transient mark mode (zmacs mode), it is annoying when regions become
 ;; highlighted due to Viper's pushing marks. So, we deactivate marks, unless

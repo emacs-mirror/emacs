@@ -1,6 +1,6 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,14 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+
+;; Code
+
 (require 'viper-util)
+
+;; Compiler pacifier
+(defvar read-file-name-map)
+;; end compiler pacifier
 
 ;;; Variables
 
@@ -1340,7 +1347,7 @@ reversed.")
 	    (setq l (cdr l))))
       (if find-alt-file (car l)
 	(progn
-	  (if (car l)
+	  (if (and (car l) (get-file-buffer (car l)))
 	      (let* ((w (if cycle-other-window
 			    (get-lru-window) (selected-window)))
 		     (b (window-buffer w)))
