@@ -1725,7 +1725,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   if (SUBRP (fun))
     {
       Lisp_Object numargs;
-      Lisp_Object argvals[7];
+      Lisp_Object argvals[8];
       Lisp_Object args_left;
       register int i, maxargs;
 
@@ -1817,6 +1817,12 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
 					  argvals[3], argvals[4], argvals[5],
 					  argvals[6]);
+	  goto done;
+
+	case 8:
+	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
+					  argvals[3], argvals[4], argvals[5],
+					  argvals[6], argvals[7]);
 	  goto done;
 
 	default:
@@ -2458,9 +2464,16 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
 					  internal_args[6]);
 	  goto done;
 
+	case 8:
+	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
+					  internal_args[2], internal_args[3],
+					  internal_args[4], internal_args[5],
+					  internal_args[6], internal_args[7]);
+	  goto done;
+
 	default:
 
-	  /* If a subr takes more than 6 arguments without using MANY
+	  /* If a subr takes more than 8 arguments without using MANY
 	     or UNEVALLED, we need to extend this function to support it. 
 	     Until this is done, there is no way to call the function.  */
 	  abort ();
