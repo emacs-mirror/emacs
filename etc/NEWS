@@ -808,6 +808,10 @@ spaces, and an optional prefix now allows them to behave the old way.
 +++
 There is a new command M-x replace-rectangle.
 
+** `C-x r t' (string-rectangle) no longer deletes the existing
+rectangle contents before inserting the specified string on each line.
+The `replace-rectangle' command can be used if deletion is required.
+
 ** The new command M-x query-replace-regexp-eval acts like
 query-replace-regexp, but takes a Lisp expression which is evaluated
 after each match to get the replacement text.
