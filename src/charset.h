@@ -310,8 +310,9 @@ extern Lisp_Object Vcharset_table;
    We provide these macros for efficiency.  No range check of CHARSET.  */
 
 /* Return entry of CHARSET (lisp integer) in Vcharset_table.  */
-#define CHARSET_TABLE_ENTRY(charset) \
-  XCHAR_TABLE (Vcharset_table)->contents[charset]
+#define CHARSET_TABLE_ENTRY(charset)					\
+  XCHAR_TABLE (Vcharset_table)->contents[((charset) == CHARSET_ASCII	\
+					  ? 0 : (charset) + 128)]
 
 /* Return information INFO-IDX of CHARSET.  */
 #define CHARSET_TABLE_INFO(charset, info_idx) \
@@ -464,12 +465,12 @@ extern int width_by_char_head[256];
 
 /* The charset of non-ASCII character C is set to CHARSET, and the
    position-codes of C are set to C1 and C2.  C2 of DIMENSION1 character
-   is 0.  */
+   is -1.  */
 #define SPLIT_NON_ASCII_CHAR(c, charset, c1, c2)			 \
   ((c) < MIN_CHAR_OFFICIAL_DIMENSION2					 \
    ? (charset = CHAR_FIELD2 (c) + 0x70,					 \
       c1 = CHAR_FIELD3 (c),						 \
-      c2 = 0)								 \
+      c2 = -1)								 \
    : (charset = ((c) < MIN_CHAR_COMPOSITION				 \
 		 ? (CHAR_FIELD1 (c)					 \
 		    + ((c) < MIN_CHAR_PRIVATE_DIMENSION2 ? 0x8F : 0xE0)) \
@@ -479,14 +480,14 @@ extern int width_by_char_head[256];
 
 /* The charset of character C is set to CHARSET, and the
    position-codes of C are set to C1 and C2.  C2 of DIMENSION1 character
-   is 0.  */
+   is -1.  */
 #define SPLIT_CHAR(c, charset, c1, c2)		 	\
   (SINGLE_BYTE_CHAR_P (c)			 	\
-   ? charset = CHARSET_ASCII, c1 = (c), c2 = 0	 	\
+   ? charset = CHARSET_ASCII, c1 = (c), c2 = -1	 	\
    : SPLIT_NON_ASCII_CHAR (c, charset, c1, c2))
 
 /* The charset of the character at STR is set to CHARSET, and the
-   position-codes are set to C1 and C2.  C2 of DIMENSION1 character is 0.
+   position-codes are set to C1 and C2.  C2 of DIMENSION1 character is -1.
    If the character is a composite character, the upper 7-bit and
    lower 7-bit of CMPCHAR-ID are set in C1 and C2 respectively.  No
    range checking.  */
