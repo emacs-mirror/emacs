@@ -71,7 +71,7 @@ nil means send actual operating system end of file.")
   (set-syntax-table prolog-mode-syntax-table)
   (setq local-abbrev-table prolog-mode-abbrev-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^%%\\|^$\\|" page-delimiter)) ;'%%..'
+  (setq paragraph-start (concat "%%\\|$\\|" page-delimiter)) ;'%%..'
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
