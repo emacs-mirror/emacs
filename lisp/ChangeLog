@@ -1,3 +1,8 @@
+2001-01-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* wid-edit.el (widget-choose): Call display-popup-menus-p instead
+	of display-mouse-p.
+
 2001-01-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (make-coding-system): If the coding system
