@@ -50,14 +50,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
-/* On some systems, the character-composition stuff is broken in X11R5.  */
-
-#if defined (HAVE_X11R5) && ! defined (HAVE_X11R6)
-#ifdef X11R5_INHIBIT_I18N
-#define X_I18N_INHIBITED
-#endif
-#endif
-
 #ifndef VMS
 #if 1 /* Used to be #ifdef EMACS_BITMAP_FILES, but this should always work.  */
 #include "bitmaps/gray.xbm"
@@ -3075,7 +3067,6 @@ void
 create_frame_xic (f)
      struct frame *f;
 {
-#ifndef X_I18N_INHIBITED
   XIM xim;
   XIC xic = NULL;
   XFontSet xfs = NULL;
@@ -3168,11 +3159,6 @@ create_frame_xic (f)
   FRAME_XIC (f) = xic;
   FRAME_XIC_STYLE (f) = xic_style;
   FRAME_XIC_FONTSET (f) = xfs;
-#else /* X_I18N_INHIBITED */
-  FRAME_XIC (f) = NULL;
-  FRAME_XIC_STYLE (f) = 0;
-  FRAME_XIC_FONTSET (f) = NULL;
-#endif /* X_I18N_INHIBITED */
 }
 
 
@@ -3551,7 +3537,7 @@ x_window (f)
 		     f->output_data.x->border_width,
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
-		     FRAME_X_DISPLAY_INFO (f)->visual,
+		     FRAME_X_VISUAL (f),
 		     attribute_mask, &attributes);
 
 #ifdef HAVE_X_I18N
@@ -9053,7 +9039,7 @@ x_kill_gs_process (pixmap, f)
   /* On displays with a mutable colormap, figure out the colors
      allocated for the image by looking at the pixels of an XImage for
      img->pixmap.  */
-  class = FRAME_X_DISPLAY_INFO (f)->visual->class;
+  class = FRAME_X_VISUAL (f)->class;
   if (class != StaticColor && class != StaticGray && class != TrueColor)
     {
       XImage *ximg;
