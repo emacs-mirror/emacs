@@ -147,17 +147,20 @@ in the file it applies to."
 				   (list '(outline-minor-mode " Outl")))))
 
 (defvar outline-font-lock-keywords
-  '(;; Highlight headings according to the level.
-    ("^\\(\\*+\\)[ \t]*\\(.+\\)?[ \t]*$"
-     (1 font-lock-string-face)
-     (2 (let ((len (- (match-end 1) (match-beginning 1))))
-	  (or (cdr (assq len '((1 . font-lock-function-name-face)
-			       (2 . font-lock-keyword-face)
-			       (3 . font-lock-comment-face))))
-	      font-lock-variable-name-face))
-	nil t))
-    ;; Highlight citations of the form [1] and [Mar94].
-    ("\\[\\([A-Z][A-Za-z]+\\)*[0-9]+\\]" . font-lock-type-face))
+  '(;;
+    ;; Highlight headings according to the level.
+    (eval . (list (concat "^" outline-regexp ".+")
+		  0 '(or (cdr (assq (outline-font-lock-level)
+				    '((1 . font-lock-function-name-face)
+				      (2 . font-lock-variable-name-face)
+				      (3 . font-lock-keyword-face)
+				      (4 . font-lock-builtin-face)
+				      (5 . font-lock-comment-face)
+				      (6 . font-lock-reference-face)
+				      (7 . font-lock-type-face)
+				      (8 . font-lock-string-face))))
+			 font-lock-warning-face)
+		  nil t)))
   "Additional expressions to highlight in Outline mode.")
 
 (defvar outline-view-change-hook nil
