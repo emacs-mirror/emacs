@@ -440,6 +440,7 @@ If your system's ping continues until interrupted, you can try setting
 (defun nslookup ()
   "Run nslookup program."
   (interactive)
+  (require 'comint)
   (comint-run nslookup-program)
   (set-process-filter (get-buffer-process "*nslookup*")
    'net-utils-remove-ctrl-m-filter)
@@ -459,6 +460,7 @@ If your system's ping continues until interrupted, you can try setting
 (defun ftp (host)
   "Run ftp program."
   (interactive "sFtp to Host: ")
+  (require 'comint)
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
     (comint-mode)
@@ -578,23 +580,79 @@ This list in not complete.")
      user-and-host
      )))
 
-(defcustom whois-server-name "whois.internic.net"
-  "Host name for the whois service."
+(defcustom whois-server-name "whois.arin.net"
+  "Default host name for the whois service."
   :group 'net-utils
   :type  'string
   )
+
+(defcustom whois-server-list
+  '(("whois.arin.net")     ; Networks, ASN's, and related POC's (numbers)
+    ("rs.internic.net")  ; domain related info
+    ("whois.abuse.net")
+    ("whois.apnic.net")
+    ("nic.ddn.mil")
+    ("whois.nic.mil")
+    ("whois.nic.gov")
+    ("whois.ripe.net"))
+  "A list of whois servers that can be queried."
+  :group 'net-utils
+  :type '(repeat (list)))
+
+(defcustom whois-server-tld
+  '(("rs.internic.net" . "com")
+    ("rs.internic.net" . "org")
+    ("whois.ripe.net" . "be")
+    ("whois.ripe.net" . "de")
+    ("whois.ripe.net" . "dk")
+    ("whois.ripe.net" . "it")
+    ("whois.ripe.net" . "fi")
+    ("whois.ripe.net" . "fr")
+    ("whois.ripe.net" . "uk")
+    ("whois.apnic.net" . "au")
+    ("whois.apnic.net" . "ch")
+    ("whois.apnic.net" . "hk")
+    ("whois.apnic.net" . "jp")
+    ("whois.nic.gov" . "gov")
+    ("whois.nic.mil" . "mil"))
+  "Alist to map top level domains to whois servers."
+  :group 'net-utils
+  :type '(repeat (cons string string)))
+
+(defcustom whois-guess-server t
+  "If non-nil then whois will try to deduce the appropriate whois
+server from the query.  If the query doesn't look like a domain or hostname
+then the server named by whois-server-name is used."
+  :group 'net-utils
+  :type 'boolean)
+
+
+(defun whois-get-tld (host)
+  (do ((i (1- (length host)) (1- i))
+       (max-len (- (length host) 4)))
+      ((or (= i max-len) (char-equal (aref host i) ?.))
+       (if (= i max-len) nil
+	 (substring host (1+ i))))))
 
 ;; Whois protocol
 ;;;###autoload
 (defun whois (arg search-string)
   "Send SEARCH-STRING to server defined by the `whois-server-name' variable.
-With argument, prompt for whois server."
+If `whois-guess-server' is non-nil, then try to deduce the correct server
+from SEARCH-STRING.  With argument, prompt for whois server."
   (interactive "P\nsWhois: ")
-  (let ((host 
-	 (if arg
-	     (read-from-minibuffer "Whois server name: ")
-	   whois-server-name))
-	)
+  (let* ((whois-apropos-host (if whois-guess-server
+				 (rassoc (whois-get-tld search-string)
+					 whois-server-tld)
+			       nil))
+	 (server-name (if whois-apropos-host
+			  (car whois-apropos-host)
+			whois-server-name))
+	 (host
+	  (if arg
+	      (completing-read "Whois server name: "
+			       whois-server-list nil nil "whois.")
+	    server-name)))
     (run-network-program 
      "Whois"
      host
@@ -643,6 +701,7 @@ With argument, prompt for whois server."
 
 (defun network-service-connection (host service)
   "Open a network connection to SERVICE on HOST."
+  (require 'comint)
   (let (
 	(process-name (concat "Network Connection [" host " " service "]"))
 	(portnum (string-to-number service))
