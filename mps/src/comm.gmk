@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName$
+# $HopeName: MMsrc!comm.gmk(trunk.1) $
 # Copyright (C) 1995,1996 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -312,7 +312,7 @@ $(PFM)/$(VARIETY)/%.d: %.c
 
 ifdef VARIETY
 ifdef TARGET
-# %%PART: Add the depency file macro for the new part here.
+# %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMCDEP) $(LODEP)
 endif
 endif
@@ -331,6 +331,6 @@ $(PFM)/$(VARIETY)/%.a:
 
 $(PFM)/$(VARIETY)/%:
 	$(ECHO) "$(PFM): $@"
-	gcc -o $@ $^ $(LIBS)
+	$(CC) -o $@ $^ $(LIBS)
 
 # End of makefile.
