@@ -251,11 +251,14 @@ main (argc, argv)
 	break;
       sleep (1);
 
-      /* If lock file is a minute old, unlock it.  */
+      /* If lock file is five minutes old, unlock it.
+	 Five minutes should be good enough to cope with crashes
+	 and wedgitude, and long enough to avoid being fooled
+	 by time differences between machines.  */
       if (stat (lockname, &st) >= 0)
 	{
 	  now = time (0);
-	  if (st.st_ctime < now - 60)
+	  if (st.st_ctime < now - 300)
 	    unlink (lockname);
 	}
     }
