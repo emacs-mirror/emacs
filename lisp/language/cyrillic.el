@@ -152,6 +152,18 @@
   :mime-charset 'cp855)
 (define-coding-system-alias 'ibm855 'cp855)
 
+(define-coding-system 'mik
+  "Bulgarian DOS codepage"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(mik))
+
+(define-coding-system 'pt154
+  "Parattype Asian Cyrillic codepage"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(pt154))
+
 ;; (set-language-info-alist
 ;;  "Windows-1251" `((coding-system windows-1251)
 ;; 		  (coding-priority windows-1251)
