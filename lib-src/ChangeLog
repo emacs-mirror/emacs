@@ -1,3 +1,7 @@
+2002-06-05  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (main): Avoid a buffer overrun with sprintf.
+
 2002-05-30  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (LIBS_MAIL): Renamed from LIB_MAIL.
@@ -22,7 +26,7 @@
 	* Makefile.in (${archlibdir}): Don't conditionalize on
 	HAVE_SHARED_GAME_DIR.  Instead, test at installation time whether
 	or not we have access to the specified game user.
- 
+
 	* update-game-score.c (SCORE_FILE_PREFIX): Delete.
 	(main): New argument -d, for specifying directory.
 	(usage): Document.
