@@ -395,6 +395,9 @@ Choose the buffer's name using `generate-new-buffer-name'."
 (defconst automount-dir-prefix "^/tmp_mnt/"
   "Regexp to match the automounter prefix in a directory name.")
 
+(defvar abbreviated-home-dir nil
+  "The the user's homedir abbreviated according to `directory-abbrev-list'.")
+
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
 This also substitutes \"~\" for the user's home directory.
@@ -405,12 +408,23 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 			   (substring filename (1- (match-end 0))))))
       (setq filename (substring filename (1- (match-end 0)))))
   (let ((tail directory-abbrev-alist))
+    ;; If any elt of directory-abbrev-alist matches this name,
+    ;; abbreviate accordingly.
     (while tail
       (if (string-match (car (car tail)) filename)
 	  (setq filename
 		(concat (cdr (car tail)) (substring filename (match-end 0)))))
       (setq tail (cdr tail)))
-    (if (string-match (concat "^" (expand-file-name "~")) filename)
+    ;; Compute and save the abbreviated homedir name.
+    ;; We defer computing this until the first time it's needed, to
+    ;; give time for directory-abbrev-alist to be set properly.
+    (or abbreviated-home-dir
+	(setq abbreviated-home-dir
+	      (let ((abbreviated-home-dir "$foo"))
+		(concat "^" (abbreviate-file-name (expand-file-name "~"))))))
+    ;; If FILENAME starts with the abbreviated homedir,
+    ;; make it start with `~' instead.
+    (if (string-match abbreviated-home-dir filename)
 	(setq filename
 	      (concat "~" (substring filename (match-end 0)))))
     filename))
