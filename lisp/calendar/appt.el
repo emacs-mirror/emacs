@@ -477,6 +477,7 @@ The time should be in either 24 hour format or am/pm format."
         (setq tmp-msg-list (cdr tmp-msg-list))
         (if test-input
             (setq appt-time-msg-list (delq element appt-time-msg-list)))))
+    (appt-check)
     (message "")))
                  
 
@@ -614,10 +615,10 @@ The time should be in either 24 hour format or am/pm format."
   
     ;; convert the time appointment time into 24 hour time
   
-    (if (and (string-match  "[p][m]" time2conv) (< hr 12))
-        (progn
-          (string-match "[0-9]?[0-9]:" time2conv)
-          (setq hr (+ 12 hr))))
+    (cond ((and (string-match "pm" time2conv) (< hr 12))
+	   (setq hr (+ 12 hr)))
+	  ((and (string-match "am" time2conv) (= hr 12))
+           (setq hr 0)))
   
     ;; convert the actual time
     ;; into minutes for comparison
