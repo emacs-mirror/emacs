@@ -280,7 +280,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       ;; determine already unseen messages first, as rmail-get-new-mail
       ;; positions on the first new message, thus marking it as seen.
       (rmail-show-message existing-unseen))
-    (if rmail-display-summary (rmail-summary))))
+    (if rmail-display-summary (rmail-summary))
+    (rmail-construct-io-menu)))
 
 ;; Given the value of MAILPATH, return a list of inbox file names.
 ;; This is turned off because it is not clear that the user wants
@@ -414,10 +415,10 @@ Note:    it means the file has no messages in it.\n\^_")))
   (cons "Classify" (make-sparse-keymap "Classify")))
 
 (define-key rmail-mode-map [menu-bar classify input-menu]
-  '("Input Rmail file (menu)..." . rmail-input-menu))
+  nil)
 
 (define-key rmail-mode-map [menu-bar classify output-menu]
-  '("Output (Rmail menu)..." . rmail-output-menu))
+  nil)
 
 (define-key rmail-mode-map [menu-bar classify output-inbox]
   '("Output (inbox)..." . rmail-output))
@@ -691,31 +692,66 @@ Instead, these commands are available:
   (interactive "FRun rmail on RMAIL file: ")
   (rmail filename))
 
-;; Choose a .xmail file in dir rmail-secondary-file-directory.
-(defun rmail-secondary-file-menu (event)
-  (let ((files (directory-files rmail-secondary-file-directory nil
-				rmail-secondary-file-regexp)))
-    (if files
-	(let* ((menu (list "Rmail Files"
-			   (cons "Rmail Files"
-				 (mapcar (function (lambda (f) (cons f f)))
-					 files))))
-	       (chosen (x-popup-menu event menu)))
-	  (if chosen
-	      (expand-file-name chosen rmail-secondary-file-directory)))
-      (message "No files matching %s%s found"
-	       rmail-secondary-file-directory rmail-secondary-file-regexp)
-      nil)))
+(defun rmail-find-all-files (start)
+  (if (file-accessible-directory-p start)
+      (let ((files (directory-files start nil
+				    rmail-secondary-file-regexp))
+	    (ret nil))
+	(while files
+	  (setq file (car files))
+	  (setq files (cdr files))
+	  (setq ret (cons
+		     (rmail-find-all-files (concat start "/" file))
+		     ret))) 
+	(cons (file-name-nondirectory start) ret))
+    (file-name-nondirectory start)))
 
+(defun rmail-list-to-menu (menu-name l action &optional full-name)
+  (let ((menu (make-sparse-keymap menu-name)))
+    (mapcar
+     (function (lambda (item)
+		 (if (consp item)
+		     (progn
+		       (setq command
+			     (rmail-list-to-menu (car item) (cdr item) 
+						 action 
+						 (if full-name
+						     (concat full-name "/"
+							     (car item))
+						   (car item))))
+		       (setq name (car item)))
+		   (progn
+		     (setq name item)
+		     (setq command 
+			   (list 'lambda () '(interactive)
+				 (list action
+				  (expand-file-name 
+				   (if full-name
+				       (concat full-name "/" item)
+				     item)
+				   rmail-secondary-file-directory))))))
+		 (define-key menu (vector (intern name))
+		   (cons name command))))
+     l)
+    menu))
+ 
+(defun rmail-construct-io-menu ()
+  (let ((files (rmail-find-all-files rmail-secondary-file-directory)))
+    (if (listp files)
+	(progn
+	  (define-key rmail-mode-map [menu-bar classify input-menu]
+	    (cons "Input Rmail File" 
+		  (rmail-list-to-menu "Input Rmail File" 
+				      (cdr files) 
+				      'rmail-input)))
+	  (define-key rmail-mode-map [menu-bar classify output-menu]
+	    (cons "Output Rmail File" 
+		  (rmail-list-to-menu "Output Rmail File" 
+				      (cdr files) 
+				      'rmail-output-to-rmail-file)))))
+    (message "No files matching %s/%s found"
+	     rmail-secondary-file-directory rmail-secondary-file-regexp)))
 
-(defun rmail-input-menu (event)
-  "Choose a new Rmail file to edit, with a menu.
-The variables `rmail-secondary-file-directory' and
-`rmail-secondary-file-regexp' control which files are offered in the menu."
-  (interactive "e")
-  (let ((file-name (rmail-secondary-file-menu event)))
-    (if file-name
-	(rmail-input file-name))))
 
 ;;;; *** Rmail input ***
 
@@ -2330,10 +2366,6 @@ buffer visiting that file."
 
 (autoload 'rmail-output "rmailout"
   "Append this message to Unix mail file named FILE-NAME."
-  t)
-
-(autoload 'rmail-output-menu "rmailout"
-  "Output current message to another Rmail file, chosen with a menu."
   t)
 
 ;;;; *** Rmail undigestification ***
