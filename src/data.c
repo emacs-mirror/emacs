@@ -604,8 +604,19 @@ store_symval_forwarding (sym, valcontents, newval)
       break;
 
     case Lisp_Buffer_Objfwd:
-      *(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer) = newval;
-      break;
+      {
+	unsigned int offset = XUINT (valcontents);
+	Lisp_Object type =
+	  *(Lisp_Object *)(offset + (char *)&buffer_local_types);
+
+	if (! NILP (type) && ! NILP (newval)
+	    && XTYPE (newval) != XINT (type))
+	  buffer_slot_type_mismatch (valcontents, newval);
+	
+	*(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer)
+	  = newval;
+	break;
+      }
 
     default:
       valcontents = XSYMBOL (sym)->value;
@@ -1638,7 +1649,11 @@ Both must be numbers or markers.")
 
       f1 = XTYPE (num1) == Lisp_Float ? XFLOAT (num1)->data : XINT (num1);
       f2 = XTYPE (num2) == Lisp_Float ? XFLOAT (num2)->data : XINT (num2);
+#ifdef USG
+      f1 = fmod (f1, f2);
+#else
       f1 = drem (f1, f2);
+#endif
       if (f1 < 0)
 	f1 += f2;
       return (make_float (f1));
