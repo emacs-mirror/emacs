@@ -279,7 +279,7 @@ current_column ()
    If END is nil, that stands for the end of STRING.  */
 
 static int
-string_width (string, beg, end)
+string_display_width (string, beg, end)
      Lisp_Object string, beg, end;
 {
   register int col;
@@ -1092,7 +1092,8 @@ vmotion (from, vtarget, width, hscroll, window)
   if (EQ (window, minibuf_window))
     {
       if (minibuf_prompt_width == 0)
-	minibuf_prompt_width = string_width (minibuf_prompt, Qnil, Qnil);
+	minibuf_prompt_width
+	  = string_display_width (minibuf_prompt, Qnil, Qnil);
 
       start_hpos = minibuf_prompt_width;
     }
