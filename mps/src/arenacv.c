@@ -1,14 +1,15 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.12) $
+ * $HopeName: MMsrc!arenacv.c(trunk.13) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * .readership: MPS developers
  * .coverage: At the moment, we're only trying to cover the new code
  * (partial mapping of the page table and vm overflow).
+ *
  * .note.tract-size: If the page size is divisible by sizeof(TractStruct), many
  * test cases end up being essentially identical -- there just aren't that
  * many different cases then.
+ *
  * .improve.gap-below: Could test different-sized gaps below the tract
  * being allocated; this requires using two adjacent zones.
  */
@@ -23,7 +24,6 @@
 
 
 #define tractsSIZE 500
-
 
 
 /* testAllocAndIterate  -- Test arena allocation and iteration
@@ -263,7 +263,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
   AllocInfoStruct offsetRegion, gapRegion, newRegion, topRegion;
   SegPrefStruct pref = *SegPrefDefault();
   Count offset, gap, new;
-  RefSet refSet = (RefSet)2;
+  ZoneSet zone = (ZoneSet)2;
   int i;
 
   /* Testing the behaviour with various sizes of gaps in the page table. */
@@ -275,7 +275,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
   /* |-offsetRegion-||----gapRegion----||-topRegion-| */
   /* |-offsetRegion-||-newRegion-|      |-topRegion-| */
   /* This is done with three different sizes of offsetRegion, in two */
-  /*  different zones to ensure that all page boundary cases are tested. */
+  /* different zones to ensure that all page boundary cases are tested. */
   for(i = 0; i < 2; ++i) { /* zone loop */
     for(offset = 0; offset <= 2*numPerPage; offset += numPerPage) {
       if(offset != 0)
@@ -327,7 +327,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
 	allocator->free(&offsetRegion);
       }
     }
-    SegPrefExpress(&pref, SegPrefRefSet, &refSet);
+    SegPrefExpress(&pref, SegPrefZoneSet, &zone);
   }
 
 }
