@@ -1,3 +1,8 @@
+2001-01-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/european.el ("Latin-1"): Make the format of description
+	about additional language environments same as that of Latin-2.
+
 2001-01-16  Dave Love  <fx@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight): Add :version.
