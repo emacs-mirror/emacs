@@ -960,7 +960,7 @@ It should never be negative.  This controls how we read comma constructs.")
   (setcdr cursor offsets)
   cursor)
 
-'(defun edebug-copy-cursor (cursor)
+(defun edebug-copy-cursor (cursor)
   ;; Copy the cursor using the same object and offsets.
   (cons (car cursor) (cdr cursor)))
 
