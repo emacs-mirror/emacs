@@ -1,6 +1,6 @@
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/authors.el: Remove autoload cookied, add author,
+	* emacs-lisp/authors.el: Remove autoload cookies, add author,
 	maintainer, keywords tags.
 
 	* rect.el (replace-rectangle): Don't call string-rectangle-line
