@@ -1025,6 +1025,32 @@ struct Lisp_Hash_Table
        }							\
      while (0)
 
+/* Value is the key part of entry IDX in hash table H.  */
+
+#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
+
+/* Value is the value part of entry IDX in hash table H.  */
+
+#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
+
+/* Value is the index of the next entry following the one at IDX
+   in hash table H.  */
+
+#define HASH_NEXT(H, IDX)  AREF ((H)->next, (IDX))
+
+/* Value is the hash code computed for entry IDX in hash table H.  */
+
+#define HASH_HASH(H, IDX)  AREF ((H)->hash, (IDX))
+
+/* Value is the index of the element in hash table H that is the
+   start of the collision list at index IDX in the index vector of H.  */
+
+#define HASH_INDEX(H, IDX)  AREF ((H)->index, (IDX))
+
+/* Value is the size of hash table H.  */
+
+#define HASH_TABLE_SIZE(H) XVECTOR ((H)->next)->size
+
 /* Default size for hash tables if not specified.  */
 
 #define DEFAULT_HASH_SIZE 65
