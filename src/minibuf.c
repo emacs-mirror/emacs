@@ -1969,7 +1969,6 @@ Return nil if there is no valid completion, else t.  */)
      i gets index in string of where to stop completing.  */
   {
     int len, c;
-    int bytes = STRING_BYTES (XSTRING (completion));
     completion_string = XSTRING (completion)->data;
     for (; i_byte < STRING_BYTES (XSTRING (completion)); i_byte += len, i++)
       {
@@ -2214,7 +2213,7 @@ DEFUN ("self-insert-and-exit", Fself_insert_and_exit, Sself_insert_and_exit, 0, 
        doc: /* Terminate minibuffer input.  */)
      ()
 {
-  if (INTEGERP (last_command_char))
+  if (CHARACTERP (last_command_char))
     internal_self_insert (XINT (last_command_char), 0);
   else
     bitch_at_user ();
