@@ -1,3 +1,8 @@
+2002-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (make-auto-save-file-name):
+	Delete the auto-save file after make-temp-file creates it.
+
 2002-05-13  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-enable-cursor-indications): Default off.
