@@ -653,13 +653,13 @@ between them, return t; otherwise return nil.")
 	      return Qnil;
 	    }
 	  c = FETCH_CHAR (from);
+	  from++;
 	  if (SYNTAX (c) == Sendcomment
 	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
 	    /* we have encountered a comment end of the same style
 	       as the comment sequence which began this comment
 	       section */
 	    break;
-	  from++;
 	  if (from < stop && SYNTAX_COMEND_FIRST (c)
 	      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
 	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
