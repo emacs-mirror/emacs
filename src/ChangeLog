@@ -1,3 +1,8 @@
+2001-11-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (direct_output_forward_char): Fix character/byte
+	position comparison.
+
 2001-11-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_open_connection): Only execute once.
