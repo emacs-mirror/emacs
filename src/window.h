@@ -1,5 +1,6 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1995, 1997, 1998, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -445,5 +446,10 @@ extern void check_frame_size P_ ((struct frame *frame, int *rows, int *cols));
    can be returned.  */
 
 struct glyph *get_phys_cursor_glyph P_ ((struct window *w));
+
+/* Value is non-zero if WINDOW is a live window.  */
+
+#define WINDOW_LIVE_P(WINDOW) \
+     (WINDOWP ((WINDOW)) && !NILP (XWINDOW ((WINDOW))->buffer))
 
 #endif /* not WINDOW_H_INCLUDED */
