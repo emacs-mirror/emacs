@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.40 2001/11/19 20:55:30 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.41 2001/11/29 21:29:36 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,7 @@
 
 ;;; Bugs:
 
+;; - comment-indent on /*  */ jumps to /*  ><*/ instead of /* >< */.
 ;; - nested comments in sgml-mode are not properly quoted.
 ;; - single-char nestable comment-start can only do the "\\s<+" stuff
 ;;   if the corresponding closing marker happens to be right.
