@@ -1596,6 +1596,69 @@ read_escape (readcharfun, stringp)
     }
 }
 
+
+/* Read an integer in radix RADIX using READCHARFUN to read
+   characters.  RADIX must be in the interval [2..36]; if it isn't, a
+   read error is signaled .  Value is the integer read.  Signals an
+   error if encountering invalid read syntax or if RADIX is out of
+   range.  */
+
+static Lisp_Object
+read_integer (readcharfun, radix)
+     Lisp_Object readcharfun;
+     int radix;
+{
+  int number, ndigits, invalid_p, c, sign;
+
+  if (radix < 2 || radix > 36)
+    invalid_p = 1;
+  else
+    {
+      number = ndigits = invalid_p = 0;
+      sign = 1;
+
+      c = READCHAR;
+      if (c == '-')
+	{
+	  c = READCHAR;
+	  sign = -1;
+	}
+      else if (c == '+')
+	c = READCHAR;
+  
+      while (c >= 0)
+	{
+	  int digit;
+      
+	  if (c >= '0' && c <= '9')
+	    digit = c - '0';
+	  else if (c >= 'a' && c <= 'z')
+	    digit = c - 'a' + 10;
+	  else if (c >= 'A' && c <= 'Z')
+	    digit = c - 'A' + 10;
+	  else
+	    break;
+
+	  if (digit < 0 || digit >= radix)
+	    invalid_p = 1;
+
+	  number = radix * number + digit;
+	  ++ndigits;
+	  c = READCHAR;
+	}
+    }
+
+  if (ndigits == 0 || invalid_p)
+    {
+      char buf[50];
+      sprintf (buf, "integer, radix %d", radix);
+      Fsignal (Qinvalid_read_syntax, Fcons (build_string (buf), Qnil));
+    }
+
+  return make_number (sign * number);
+}
+
+
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
    zero in *PCH and we read and return one lisp object.
@@ -1868,8 +1931,17 @@ read1 (readcharfun, pch, first_in_list)
 		return XCDR (tem);
 	      /* Fall through to error message.  */
 	    }
+	  else if (c == 'r' ||  c == 'R')
+	    return read_integer (readcharfun, n);
+	  
 	  /* Fall through to error message.  */
 	}
+      else if (c == 'x' || c == 'X')
+	return read_integer (readcharfun, 16);
+      else if (c == 'o' || c == 'O')
+	return read_integer (readcharfun, 8);
+      else if (c == 'b' || c == 'B')
+	return read_integer (readcharfun, 2);
 
       UNREAD (c);
       Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
