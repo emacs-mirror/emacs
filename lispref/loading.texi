@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2003, 2004
+@c 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/loading
@@ -754,7 +754,7 @@ The function @var{fun} was defined.
 @item (t . @var{fun})
 The function @var{fun} was previously an autoload before this library
 redefined it as a function.  The following element is always
-@code{(defun . @var{fun}), which represents defining @var{fun} as a
+@code{(defun . @var{fun})}, which represents defining @var{fun} as a
 function.
 @item (autoload . @var{fun})
 The function @var{fun} was defined as an autoload.
