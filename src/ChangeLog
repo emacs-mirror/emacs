@@ -1,7 +1,21 @@
+2000-08-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (lface_equal_p): Compare strings differently.
+	(Qtty_color_alist, Vtty_defined_color_alist): New variables.
+	(realize_tty_face): Use them.
+	(syms_of_xfaces): Initialize new variables.
+	(map_tty_color): New function, extracted from realize_tty_face.
+	(map_tty_color) [MSDOS || WINDOWSNT]: If using the frame's default
+	foreground or background color, store the new color name in the
+	realized face; previous code trying to do this had no effect.
+	(realize_tty_face): Use map_tty_color.
+	(Fclear_face_cache): Set face_change_count and ensure thorough
+	redisplay.
+
 2000-08-19  Gerd Moellmann  <gerd@gnu.org>
 
-	* undo.c (record_first_change, record_marker_adjustment): Don'use
-	XBUFFER on last_undo_buffer which might not be a buffer.
+	* undo.c (record_first_change, record_marker_adjustment): Don't
+	use XBUFFER on last_undo_buffer which might not be a buffer.
 
 2000-08-18  Kenichi Handa  <handa@etl.go.jp>
 
@@ -12,8 +26,8 @@
 
 2000-08-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* lisp.h (CHECK) [ENABLE_CHECKING]: Make both side of the
-	conditional have void type, for standard C compilers.
+	* lisp.h (CHECK) [ENABLE_CHECKING]: Make both sides of the
+	conditional have void type, for Standard C compilers.
 
 	* xdisp.c (redisplay_internal): Compare windows for equality with
 	EQ, instead of applying XWINDOW to something that might not
@@ -26,7 +40,7 @@
 
 2000-08-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* minibuf.c (do_completion): Use EQ instead of != to compare
+	* minibuf.c (do_completion): Use EQ instead of `!=' to compare
 	Lisp_Objects.
 
 	* keyboard.c (kbd_buffer_get_event): Handle the case that the
