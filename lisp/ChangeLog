@@ -1,3 +1,8 @@
+2005-03-22  Andreas Schwab  <schwab@suse.de>
+
+	* generic-x.el: Revert last change.
+	* ldefs-boot.el: Update.
+
 2005-03-22  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed (calc-embedded-original-modes): New variable.
