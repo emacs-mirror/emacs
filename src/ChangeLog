@@ -1,3 +1,7 @@
+2001-12-15  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (syms_of_keyboard) <double-click-fuzz>: Doc fix.
+
 2001-12-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACSLOADPATH): Define.

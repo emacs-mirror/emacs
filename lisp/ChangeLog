@@ -1,5 +1,9 @@
 2001-12-15  Richard M. Stallman  <rms@gnu.org>
 
+	* isearch.el (isearch-start-hscroll): New variable.
+	(isearch-mode): Set isearch-start-hscroll.
+	(isearch-update): Restore original hscrolling if possible.
+
 	* isearch.el (isearch-edit-string):
 	Treat isearch-yank-word-or-char specially, like isearch-yank-word.
 
