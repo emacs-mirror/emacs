@@ -1,3 +1,9 @@
+2005-01-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (undo-ask-before-discard): New var.
+	(undo-outer-limit-truncate): Implement it.
+	(undo-extra-outer-limit): Doc update.
+
 2005-01-29  Richard M. Stallman  <rms@gnu.org>
 
 	* ses.el (undo-more): defadvice deleted.
@@ -13,7 +19,7 @@
 
 	* rect.el (delete-rectangle-line, delete-extract-rectangle-line)
 	(open-rectangle, delete-whitespace-rectangle-line)
-	(clear-rectangle-line): If FILL, pass t instead of FILL 
+	(clear-rectangle-line): If FILL, pass t instead of FILL
 	for move-to-column's 2nd arg.
 
 	* simple.el (undo): Fix the test for continuing a series of undos.
