@@ -671,8 +671,7 @@ For more information, see the function `buffer-menu'."
       ;; line with the beginning of the text (rather than with the left
       ;; scrollbar or the left fringe).  –-Stef
       (setq header (concat (propertize " " 'display '(space :align-to 0))
-			   header))
-      )
+			   header)))
     (with-current-buffer (get-buffer-create "*Buffer List*")
       (setq buffer-read-only nil)
       (erase-buffer)
@@ -684,47 +683,45 @@ For more information, see the function `buffer-menu'."
 			 (mapcar (lambda (c)
 				   (if (memq c '(?\n ?\ )) c underline))
 				 header)))))
-      (if buffer-list
-	  (setq list buffer-list)
-	;; Collect info for every buffer we're interested in.
-	(dolist (buffer (buffer-list))
-	  (with-current-buffer buffer
-	    (let ((name (buffer-name))
-		  (file buffer-file-name))
-	      (cond
-	       ;; Don't mention internal buffers.
-	       ((and (string= (substring name 0 1) " ") (null file)))
-	       ;; Maybe don't mention buffers without files.
-	       ((and files-only (not file)))
-	       ((string= name "*Buffer List*"))
-	       ;; Otherwise output info.
-	       (t
-		(let ((mode (concat (format-mode-line mode-name nil nil buffer)
-				    (if mode-line-process
-					(format-mode-line mode-line-process
-							  nil nil buffer))))
-		      (bits (string
-			     (if (eq buffer old-buffer) ?. ?\ )
-			     ;; Handle readonly status.  The output buffer
-			     ;; is special cased to appear readonly; it is
-			     ;; actually made so at a later date.
-			     (if (or (eq buffer standard-output)
-				     buffer-read-only)
-				 ?% ?\ )
-			     ;; Identify modified buffers.
-			     (if (buffer-modified-p) ?* ?\ )
-			     ;; Space separator.
-			     ?\ )))
-		  (unless file
-		    ;; No visited file.  Check local value of
-		    ;; list-buffers-directory.
-		    (when (and (boundp 'list-buffers-directory)
-			       list-buffers-directory)
-		      (setq file list-buffers-directory)))
-		  (push (list buffer bits name (buffer-size) mode file)
-			list)))))))
-	;; Preserve the original buffer-list ordering, just in case.
-	(setq list (nreverse list)))
+      ;; Collect info for every buffer we're interested in.
+      (dolist (buffer (or buffer-list (buffer-list)))
+	(with-current-buffer buffer
+	  (let ((name (buffer-name))
+		(file buffer-file-name))
+	    (unless (and (not buffer-list)
+			 (or
+			  ;; Don't mention internal buffers.
+			  (and (string= (substring name 0 1) " ") (null file))
+			  ;; Maybe don't mention buffers without files.
+			  (and files-only (not file))
+			  (string= name "*Buffer List*")))
+	      ;; Otherwise output info.
+	      (let ((mode (concat (format-mode-line mode-name nil nil buffer)
+				  (if mode-line-process
+				      (format-mode-line mode-line-process
+							nil nil buffer))))
+		    (bits (string
+			   (if (eq buffer old-buffer) ?. ?\ )
+			   ;; Handle readonly status.  The output buffer
+			   ;; is special cased to appear readonly; it is
+			   ;; actually made so at a later date.
+			   (if (or (eq buffer standard-output)
+				   buffer-read-only)
+			       ?% ?\ )
+			   ;; Identify modified buffers.
+			   (if (buffer-modified-p) ?* ?\ )
+			   ;; Space separator.
+			   ?\ )))
+		(unless file
+		  ;; No visited file.  Check local value of
+		  ;; list-buffers-directory.
+		  (when (and (boundp 'list-buffers-directory)
+			     list-buffers-directory)
+		    (setq file list-buffers-directory)))
+		(push (list buffer bits name (buffer-size) mode file)
+		      list))))))
+      ;; Preserve the original buffer-list ordering, just in case.
+      (setq list (nreverse list))
       ;; Place the buffers's info in the output buffer, sorted if necessary.
       (dolist (buffer
 	       (if Buffer-menu-sort-column
