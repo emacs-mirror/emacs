@@ -161,7 +161,7 @@ starts at a field boundary, point does not move.  To ignore field
 boundaries, either bind `inhibit-field-text-motion' to t, or use the
 `forward-line' function instead.  For instance, `(forward-line 0)' does
 the same thing as `(beginning-of-line)', except that it ignores field
-boundaries.  */) 
+boundaries.  */)
      (n)
      Lisp_Object n;
 {
@@ -171,7 +171,7 @@ boundaries.  */)
     CHECK_NUMBER (n);
 
   SET_PT (XINT (Fline_beginning_position (n)));
-  
+
   return Qnil;
 }
 
@@ -299,10 +299,10 @@ N was explicitly specified.  */)
       && ! deleted_special
       && ! (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n'))
     {
-      int column = current_column ();
+      int column = (int) current_column (); /* iftc */
 
       value = Fdelete_char (make_number (-XINT (n)), killflag);
-      i = column - current_column ();
+      i = column - (int) current_column (); /* iftc */
       Finsert_char (make_number (' '), make_number (i), Qnil);
       /* Whitespace chars are ASCII chars, so we can simply subtract.  */
       SET_PT_BOTH (PT - i, PT_BYTE - i);
@@ -431,7 +431,7 @@ internal_self_insert (c, noautofill)
 	      && ! (c2 == '\t'
 		    && XINT (current_buffer->tab_width) > 0
 		    && XFASTINT (current_buffer->tab_width) < 20
-		    && (target_clm = (current_column () 
+		    && (target_clm = ((int) current_column () /* iftc */
 				      + XINT (Fchar_width (make_number (c)))),
 			target_clm % XFASTINT (current_buffer->tab_width)))))
 	{
