@@ -1,9 +1,9 @@
 ;;; ada-prj.el --- easy editing of project files for the ada-mode
 
-;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 99, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.6 $
+;; Ada Core Technologies's version:   $Revision: 1.53 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -53,6 +53,9 @@
 (defvar ada-prj-ada-buffer nil
   "Indicates what Ada source file was being edited.")
 
+(defvar ada-old-cross-prefix nil
+  "The cross-prefix associated with the currently loaded runtime library.")
+
 
 ;; ----- Functions --------------------------------------------------------
 
@@ -60,8 +63,9 @@
   "Open a new project file"
   (interactive)
   (let* ((prj
-	  (if (my-local-variable-if-set-p 'ada-prj-prj-file (current-buffer))
-	      ada-prj-prj-file
+	  (if (and ada-prj-default-project-file
+		   (not (string= ada-prj-default-project-file "")))
+	      ada-prj-default-project-file
 	    "default.adp"))
 	 (filename (read-file-name "Project file: "
 				   (if prj "" nil)
@@ -84,23 +88,6 @@ If there is none, opens a new project file"
 	  (ada-customize))
       (ada-prj-new))))
 
-(defun ada-prj-add-ada-menu ()
-  "Add a new submenu to the Ada menu.
-The items are added to the menu NAME in map MAP. NAME should be the same
-name as was passed to `ada-create-menu'."
-  (if ada-xemacs
-      (progn
-	(funcall (symbol-function 'add-menu-button)
-		 '("Ada" "Project")
-		 ["Edit" ada-prj-edit t] "Associate")
-	(funcall (symbol-function 'add-menu-button)
-		 '("Ada" "Project")
-		 ["New..." ada-prj-new t] "Associate"))
-    (define-key (lookup-key ada-mode-map [menu-bar Ada Project])
-      [Edit] '("Edit current" . ada-prj-edit))
-    (define-key (lookup-key ada-mode-map [menu-bar Ada Project])
-      [New]  '("New" . ada-prj-new))))
-
 (defun ada-prj-add-keymap ()
   "Add new keybindings for ada-prj."
   (define-key ada-mode-map "\C-cu"  'ada-prj-edit))
@@ -117,10 +104,8 @@ project file is found, returns the default values."
       (if (file-exists-p filename)
 	  (ada-reread-prj-file))
 
-      ;; Else use the one from the current buffer
-      (save-excursion
-	(set-buffer ada-buffer)
-	(set 'prj ada-prj-prj-file)))
+      ;; Else use the active one
+      (set 'prj ada-prj-default-project-file))
 
        
     (if (and prj
@@ -160,25 +145,35 @@ If the current value of FIELD is the default value, returns an empty string."
 	  (ada-prj-save-specific-option 'bind_opt)
 	  (ada-prj-save-specific-option 'link_opt)
 	  (ada-prj-save-specific-option 'gnatmake_opt)
+	  (ada-prj-save-specific-option 'gnatfind_opt)
 	  (ada-prj-save-specific-option 'cross_prefix)
 	  (ada-prj-save-specific-option 'remote_machine)
-	  (ada-prj-save-specific-option 'comp_cmd)
-	  (ada-prj-save-specific-option 'check_cmd)
-	  (ada-prj-save-specific-option 'make_cmd)
-	  (ada-prj-save-specific-option 'run_cmd)
 	  (ada-prj-save-specific-option 'debug_cmd)
 
 	  ;;  Always save the fields that depend on the current buffer
-	  (concat "main="      (plist-get ada-prj-current-values 'main) "\n")
-	  (concat "main_unit=" (plist-get ada-prj-current-values 'main_unit) "\n")
-	  (concat "build_dir=" (plist-get ada-prj-current-values 'build_dir) "\n")
-	  
-	  (ada-prj-set-list "casing"
-			    (plist-get ada-prj-current-values 'casing)) "\n"
+	  "main="      (plist-get ada-prj-current-values 'main) "\n"
+	  "main_unit=" (plist-get ada-prj-current-values 'main_unit) "\n"
+	  "build_dir=" (plist-get ada-prj-current-values 'build_dir) "\n"
+	  (ada-prj-set-list "check_cmd"
+			    (plist-get ada-prj-current-values 'check_cmd)) "\n"
+	  (ada-prj-set-list "make_cmd"
+			    (plist-get ada-prj-current-values 'make_cmd)) "\n"
+	  (ada-prj-set-list "comp_cmd"
+			    (plist-get ada-prj-current-values 'comp_cmd)) "\n"
+	  (ada-prj-set-list "run_cmd"
+			    (plist-get ada-prj-current-values 'run_cmd)) "\n"
 	  (ada-prj-set-list "src_dir"
-			    (plist-get ada-prj-current-values 'src_dir)) "\n"
+			    (plist-get ada-prj-current-values 'src_dir)
+			    t) "\n"
 	  (ada-prj-set-list "obj_dir"
-			    (plist-get ada-prj-current-values 'obj_dir)) "\n"
+			    (plist-get ada-prj-current-values 'obj_dir)
+			    t) "\n"
+	  (ada-prj-set-list "debug_pre_cmd"
+			    (plist-get ada-prj-current-values 'debug_pre_cmd))
+	  "\n"
+	  (ada-prj-set-list "debug_post_cmd"
+			    (plist-get ada-prj-current-values 'debug_post_cmd))
+	  "\n"
 	  ))
     
     (find-file file-name)
@@ -191,9 +186,8 @@ If the current value of FIELD is the default value, returns an empty string."
     ;; kill the editor buffer
     (kill-buffer "*Customize Ada Mode*")
 
-    ;; automatically associates the current buffer with the
-    ;; new project file
-    (set (make-local-variable 'ada-prj-prj-file) file-name)
+    ;; automatically set the new project file as the active one
+    (set 'ada-prj-default-project-file file-name)
 
     ;; force Emacs to reread the project files
     (ada-reread-prj-file file-name)
@@ -261,10 +255,18 @@ The current buffer must be the project editing buffer."
   (let ((inhibit-read-only t))
     (erase-buffer))
 
+  ;;  Widget support in Emacs 21 requires that we clear the buffer first
+  (if (and (not (boundp 'running-xemacs)) (>= emacs-major-version 21))
+      (progn
+	(setq widget-field-new  nil
+	      widget-field-list nil)
+	(mapcar (lambda (x) (delete-overlay x)) (car (overlay-lists)))
+	(mapcar (lambda (x) (delete-overlay x)) (cdr (overlay-lists)))))
+  
   ;;  Display the tabs
   
   (widget-insert "\n               Project and Editor configuration.\n
-   ___________    ____________    ____________    ____________\n  / ")
+  ___________    ____________    ____________    ____________    ____________\n / ")
   (widget-create 'push-button :notify
 		 (lambda (&rest dummy) (ada-prj-display-page 1)) "General")
   (widget-insert " \\  /   ")
@@ -276,6 +278,9 @@ The current buffer must be the project editing buffer."
   (widget-insert " \\  / ")
   (widget-create 'push-button :notify
 		 (lambda (&rest dummy) (ada-prj-display-page 4)) "Ada Menu")
+  (widget-insert " \\  / ")
+  (widget-create 'push-button :notify
+		 (lambda (&rest dummy) (ada-prj-display-page 5)) "Debugger")
   (widget-insert " \\\n")
 
   ;;  Display the currently selected page
@@ -286,7 +291,7 @@ The current buffer must be the project editing buffer."
    ;;  First page (General)
    ;;
    ((= tab-num 1)
-    (widget-insert "_/             \\/______________\\/______________\\/______________\\_____\n\n")
+    (widget-insert "/             \\/______________\\/______________\\/______________\\/______________\\\n")
 
     (widget-insert "Project file name:\n")
     (widget-insert (plist-get ada-prj-current-values 'filename))
@@ -333,7 +338,15 @@ To use JGNAT, enter 'j'.")
    ;;  Second page (Paths)
    ;;
    ((= tab-num 2)
-    (widget-insert "_/_____________\\/              \\/______________\\/______________\\_____\n\n")
+    (if (not (equal (plist-get ada-prj-current-values 'cross_prefix)
+		    ada-old-cross-prefix))
+	(progn
+	  (setq ada-old-cross-prefix
+		(plist-get ada-prj-current-values 'cross_prefix))
+	  (ada-initialize-runtime-library ada-old-cross-prefix)))
+
+    
+    (widget-insert "/_____________\\/              \\/______________\\/______________\\/______________\\\n")
     (ada-prj-field 'src_dir  "Source directories"
 "Enter the list of directories where your Ada
 sources can be found. These directories will be
@@ -343,9 +356,9 @@ Note that src_dir includes both the build directory
 and the standard runtime."
       t t
       (mapconcat (lambda(x)
-		   (concat "           " x))
-		 ada-xref-runtime-library-specs-path
-		 "\n")
+                   (concat "           " x))
+                 ada-xref-runtime-library-specs-path
+                 "\n")
       )
     (widget-insert "\n\n")
     
@@ -358,9 +371,9 @@ Note that obj_dir includes both the build directory
 and the standard runtime."
       t t
       (mapconcat (lambda(x)
- 		   (concat "           " x))
- 		 ada-xref-runtime-library-ali-path
- 		 "\n")
+                   (concat "           " x))
+                 ada-xref-runtime-library-ali-path
+                 "\n")
       )
     (widget-insert "\n\n")
     )
@@ -369,7 +382,7 @@ and the standard runtime."
    ;;  Third page (Switches)
    ;;
    ((= tab-num 3)
-    (widget-insert "_/_____________\\/______________\\/              \\/______________\\_____\n\n")
+    (widget-insert "/_____________\\/______________\\/              \\/______________\\/______________\\\n")
     (ada-prj-field 'comp_opt "Switches for the compiler"
 "These switches are used in the default
 compilation commands, both for compiling a
@@ -383,56 +396,78 @@ command and are passed to the linker")
     (ada-prj-field 'gnatmake_opt "Switches for gnatmake"
 "These switches are used in the default gnatmake
 command.")		   
+    (ada-prj-field 'gnatfind_opt "Switches for gnatfind"
+"The command gnatfind is run every time the Ada/Goto/List_References menu.
+You should for instance add -a if you are working in an environment
+where most ALI files are write-protected, since otherwise they get
+ignored by gnatfind and you don't see the references within.")
     )
 
    ;;
    ;;  Fourth page
    ;;
    ((= tab-num 4)
-    (widget-insert "_/_____________\\/______________\\/______________\\/              \\_____\n\n")
-    (widget-insert "All the fields below can use variable substitution\n")
-    (widget-insert "The syntax is ${name}, where name is the name that\n")
-    (widget-insert "appears after the Help buttons in this buffer.\n")
-    (widget-insert "As a special case, ${current} is replaced with the name\n")
-    (widget-insert "of the file currently edited, with directory name but\n")
-    (widget-insert "no extension.\n\n")
+    (widget-insert "/_____________\\/______________\\/______________\\/              \\/______________\\\n")
     (widget-insert
-     "The environment variables ADA_INCLUDE_PATH and ADA_OBJECTS_PATH\n")
+"All the fields below can use variable substitution The syntax is ${name},
+where name is the name that appears after the Help buttons in this buffer. As
+a special case, ${current} is replaced with the name of the file currently
+edited, with directory name but no extension, whereas ${full_current} is
+replaced with the name of the current file with directory name and
+extension.\n")
     (widget-insert
-     "are set to ${src_dir} and ${obj_dir} before running the compilation\n")
+"The environment variables ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are set to
+${src_dir} and ${obj_dir} before running the compilation commands, so that you
+don't need to specify the -aI and -aO switches on the command line\n")
     (widget-insert
-     "commands, so that you don't need to specify the -aI and -aO\n")
-    (widget-insert
-     "switches on the command line\n\n")
-    
+"You can reference any environment variable using the same ${...} syntax as
+above, and put the name of the variable between the quotes.\n\n")
     (ada-prj-field 'check_cmd
       "Check syntax of a single file (menu Ada->Check File)"
 "This command is run to check the syntax and semantics of a file.
-The file name is added at the end of this command.")
+The file name is added at the end of this command." t)
     (ada-prj-field 'comp_cmd
       "Compiling a single file (menu Ada->Compile File)"
 "This command is run when the recompilation
 of a single file is needed. The file name is
-added at the end of this command.")
+added at the end of this command." t)
     (ada-prj-field 'make_cmd "Rebuilding the whole project (menu Ada->Build)"
 "This command is run when you want to rebuild
 your whole application. It is never issues
 automatically and you will need to ask for it.
 If remote_machine has been set, this command
-will be executed on the remote machine.")
+will be executed on the remote machine." t)
     (ada-prj-field 'run_cmd "Running the application (menu Ada->Run)"
 "This command specifies how to run the
 application, including any switch you need to
 specify. If remote_machine has been set, this
-command will be executed on the remote host.")
+command will be executed on the remote host." t)
+    )
+
+   ;;
+   ;;  Fifth page
+   ;;
+   ((= tab-num 5)
+    (widget-insert "/_____________\\/______________\\/______________\\/______________\\/              \\\n")
+    (ada-prj-field 'debug_pre_cmd "Commands to execute before launching the
+debugger"
+"The following commands are executed one after the other before starting
+the debugger. These can be used to set up your environment." t)
+    
     (ada-prj-field 'debug_cmd "Debugging the application"
 "Specifies how to debug the application, possibly
 remotely if remote_machine has been set. We
 recommend the following debuggers:
   > gdb
-  > gdbtk
+  > gvd --tty
   > ddd --tty -fullname -toolbar")
+
+    (ada-prj-field 'debug_post_cmd "Commands to execute in the debugger"
+"The following commands are executed one in the debugger once it has been
+started. These can be used to initialize the debugger, for instance to
+connect to the target when working with cross-environments" t)
     )
+   
    )
 
 
@@ -481,16 +516,25 @@ If FILENAME is given, edit that file."
     (make-local-variable 'widget-keymap)
     (define-key widget-keymap "\C-x\C-s" 'ada-prj-save)
 
+    (set (make-local-variable 'ada-old-cross-prefix)
+	 (ada-xref-get-project-field 'cross-prefix))
+
     (ada-prj-display-page 1)
   ))
 
 ;; ---------------- Utilities --------------------------------
 
-(defun ada-prj-set-list (string ada-dir-list)
-  "Join the strings in ADA-DIR-LIST into a single string. Each name is put
-on a separate line that begins with STRING."
-  (mapconcat (lambda (x) (concat string "=" (file-name-as-directory x)))
-             ada-dir-list "\n"))
+(defun ada-prj-set-list (string ada-list &optional is-directory)
+  "Join the strings in ADA-LIST into a single string.
+Each name is put on a separate line that begins with STRING.
+If IS-DIRECTORY is non-nil, each name is explicitly converted to a
+directory name."
+
+  (mapconcat (lambda (x) (concat string "="
+				 (if is-directory
+				     (file-name-as-directory x)
+				   x)))
+             ada-list "\n"))
 
 
 (defun ada-prj-get-prj-dir (&optional ada-file)
@@ -518,7 +562,7 @@ change in ada-prj-current-values so that selecting another page and coming
 back keeps the new value."
   (set 'ada-prj-current-values
        (plist-put ada-prj-current-values
-		  (widget-get widget 'prj-field)
+		  (widget-get widget ':prj-field)
 		  (widget-value widget))))
 
 (defun ada-prj-display-help (widget widget-modified event)
@@ -539,15 +583,17 @@ this function can be used as :notify for the widget."
       )))
 
 (defun ada-prj-show-value (widget widget-modified event)
-  (let ((value (plist-get ada-prj-current-values
-			  (widget-get widget 'prj-field)))
-	(inhibit-read-only t))
+  (let* ((field (widget-get widget ':prj-field))
+	 (value (plist-get ada-prj-current-values field))
+	 (inhibit-read-only t)
+	 w)
 
     ;;  If the other widget is already visible, delete it
     (if (widget-get widget 'prj-other-widget)
 	(progn
 	  (widget-delete (widget-get widget 'prj-other-widget))
 	  (widget-put widget 'prj-other-widget nil)
+	  (widget-put widget ':prj-field field)
 	  (widget-default-value-set widget "Show Value")
 	  )
 
@@ -556,14 +602,15 @@ this function can be used as :notify for the widget."
 	(mouse-set-point event)
 	(forward-line 1)
 	(beginning-of-line)
-	(widget-put widget 'prj-other-widget
-		    (widget-create 'editable-list
-				   :entry-format "%i%d %v"
-				   :notify 'ada-prj-field-modified
-				   :help-echo (widget-get widget 'prj-help)
-				   :value value
-				   (list 'editable-field
-					 :keymap widget-keymap)))
+	(setq w (widget-create 'editable-list
+			       :entry-format "%i%d %v"
+			       :notify 'ada-prj-field-modified
+			       :help-echo (widget-get widget 'prj-help)
+			       :value value
+			       (list 'editable-field :keymap widget-keymap)))
+	(widget-put widget 'prj-other-widget w)
+	(widget-put w ':prj-field field)
+	(widget-put widget ':prj-field field)
 	(widget-default-value-set widget "Hide Value")
 	)
       )
@@ -609,6 +656,7 @@ AFTER-TEXT is inserted just after the widget."
 				     (list 'quote field)))
 			 "Load Recursive Directory")
 	  (widget-insert "\n           ${build_dir}\n")))
+
     (set 'widget
 	 (if is-list
 	     (if (< (length value) 15)
@@ -618,11 +666,11 @@ AFTER-TEXT is inserted just after the widget."
 				:help-echo help-text
 				:value value
 				(list 'editable-field :keymap widget-keymap))
+
 	       (let ((w (widget-create 'push-button
 				       :notify 'ada-prj-show-value
 				       "Show value")))
 		 (widget-insert "\n")
-		 (widget-put w 'prj-field field)
 		 (widget-put w 'prj-help  help-text)
 		 (widget-put w 'prj-other-widget nil)
 		 w)
@@ -633,7 +681,7 @@ AFTER-TEXT is inserted just after the widget."
 			  :help-echo help-text
 			  :keymap widget-keymap
 			  value)))
-    (widget-put widget 'prj-field field)
+    (widget-put widget ':prj-field field)
     (if after-text
 	(widget-insert after-text))
     (widget-insert "\n")
@@ -643,7 +691,6 @@ AFTER-TEXT is inserted just after the widget."
 ;;  Set the keymap once and for all, so that the keys set by the user in his
 ;;  config file are not overwritten every time we open a new file.
 (ada-prj-add-keymap)
-(ada-prj-add-ada-menu)
 
 (provide 'ada-prj)
 
