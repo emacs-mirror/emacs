@@ -1681,8 +1681,12 @@ created."
 
 
 (defface menu
-  '((((type x-toolkit)) ())
-    (t (:inverse-video t)))
+  '((((type tty))
+     :inverse-video t)
+    (((type x-toolkit))
+     )
+    (t
+     :inverse-video t))
   "Basic menu face."
   :version "21.1"
   :group 'menu
