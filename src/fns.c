@@ -1568,9 +1568,9 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
-#if defined (HAVE_X_MENU) || defined (HAVE_NTGUI)
+#ifdef HAVE_MENUS
       if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-	  && using_x_p ())
+	  && have_menus_p ())
 	{
 	  Lisp_Object pane, menu;
 	  redisplay_preserve_echo_area ();
@@ -1582,7 +1582,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	  answer = !NILP (obj);
 	  break;
 	}
-#endif
+#endif /* HAVE_MENUS */
       cursor_in_echo_area = 1;
       message_nolog ("%s(y or n) ", XSTRING (xprompt)->data);
 
@@ -1676,9 +1676,9 @@ and can edit it until it has been confirmed.")
 
   CHECK_STRING (prompt, 0);
 
-#if defined (HAVE_X_MENU) || defined (HAVE_NTGUI)
+#ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event)) 
-      && using_x_p ())
+      && have_menus_p ())
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area ();
@@ -1691,7 +1691,7 @@ and can edit it until it has been confirmed.")
       UNGCPRO;
       return obj;
     }
-#endif
+#endif /* HAVE_MENUS */
 
   args[0] = prompt;
   args[1] = build_string ("(yes or no) ");
