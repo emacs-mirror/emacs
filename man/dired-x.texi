@@ -136,7 +136,7 @@ Revision of this manual: 2.52 (1994/08/09 16:51:31)
 
 @item
 Bugs to Lawrence R. Dodd <dodd@@roebling.poly.edu>.  @emph{Please} type
-@kbd{M-x dired-x-submit-report} to submit a bug report (@xref{Bugs}).
+@kbd{M-x dired-x-submit-report} to submit a bug report (@pxref{Bugs}).
 
 @item
 You can obtain a copy of this package via anonymous ftp in
@@ -203,41 +203,41 @@ Some features provided by Dired Extra
 @item
 Omitting of uninteresting files from dired listing. 
 @itemize @bullet
-@xref{Omitting Files in Dired}
+@xref{Omitting Files in Dired}.
 @end itemize
 @item
 Local variables for dired directories.
 @itemize @bullet
-@xref{Local Variables}
+@xref{Local Variables}.
 @end itemize
 @item
 Guessing shell commands in dired buffers.
 @itemize @bullet
-@xref{Shell Command Guessing}
+@xref{Shell Command Guessing}.
 @end itemize
 @item
 Running dired command in non-dired buffers.
 @itemize @bullet
-@xref{Virtual Dired}
+@xref{Virtual Dired}.
 @end itemize
 @item
 Finding a file mentioned in a buffer
 @itemize @bullet
-@xref{Find File At Point}
+@xref{Find File At Point}.
 @end itemize
 @item
 Commands using file marking.
 @itemize @bullet
-@xref{Advanced Mark Commands}
+@xref{Advanced Mark Commands}.
 @end itemize
 @end enumerate
 
 @noindent
-@file{dired-x.el} binds some functions to keys in Dired Mode (@xref{Key
+@file{dired-x.el} binds some functions to keys in Dired Mode (@pxref{Key
 Index}) and also binds @kbd{C-x C-j} and @kbd{C-x 4 C-j} @emph{globally} to
-@code{dired-jump} (@xref{Miscellaneous Commands}).  It may also bind @kbd{C-x
+@code{dired-jump} (@pxref{Miscellaneous Commands}).  It may also bind @kbd{C-x
 C-f} and @kbd{C-x 4 C-f} to @code{dired-x-find-file} and
-@code{dired-x-find-file-other-window}, respectively (@xref{Find File At
+@code{dired-x-find-file-other-window}, respectively (@pxref{Find File At
 Point}).
 
 @node Technical Details, Installation, Features, Introduction
@@ -322,7 +322,7 @@ when you first do @kbd{C-x d}).
 @cindex Autoloading @code{dired-jump} and @code{dired-jump-other-window}
 
 In order to have @code{dired-jump} and @code{dired-jump-other-window}
-(@xref{Miscellaneous Commands}) work @emph{before} @code{dired} and
+(@pxref{Miscellaneous Commands}) work @emph{before} @code{dired} and
 @code{dired-x} have been properly loaded the user should set-up an autoload
 for these functions.  In your @file{.emacs} file put
 
@@ -361,7 +361,7 @@ before @code{dired} is loaded.
 
 @cindex Binding @code{dired-x-find-file}
 If you choose to have @file{dired-x.el} bind @code{dired-x-find-file} over
-@code{find-file} (@xref{Find File At Point}), then you will need to set
+@code{find-file} (@pxref{Find File At Point}), then you will need to set
 @code{dired-x-hands-off-my-keys} and make a call to the function
 @code{dired-x-bind-find-file} in the @code{dired-load-hook}:
 
@@ -484,8 +484,8 @@ the files, but don't actually omit them.
 
 @noindent
 In order to make Dired Omit work you first need to load @file{dired-x.el}
-inside @code{dired-load-hook} (@xref{Installation}) and then set
-@code{dired-omit-files-p} in some way (@xref{Omitting Variables}).
+inside @code{dired-load-hook} (@pxref{Installation}) and then set
+@code{dired-omit-files-p} in some way (@pxref{Omitting Variables}).
 
 @ifinfo
 @menu
@@ -520,7 +520,7 @@ those ending with extensions in @code{dired-omit-extensions}.  @kbd{M-o}
 @end example
 
 inside your @code{dired-mode-hook} to have omitting initially turned on in
-@emph{every} Dired buffer (@xref{Installation}).  You can then use @kbd{M-o} to
+@emph{every} Dired buffer (@pxref{Installation}).  You can then use @kbd{M-o} to
 unomit in that buffer.
 
 To enable omitting automatically only in certain directories one can use Dired
@@ -534,7 +534,7 @@ End:
 
 @noindent
 into a file @file{.dired} (the default value of
-@code{dired-local-variables-file}) in that directory (@xref{Local Variables}).
+@code{dired-local-variables-file}) in that directory (@pxref{Local Variables}).
 
 @table @code
 @findex dired-omit-here-always
@@ -543,7 +543,7 @@ into a file @file{.dired} (the default value of
 This is an interactive function that creates a local variables file exactly
 like the example above (if it does not already exist) in the file
 @code{dired-local-variables-file} in the current directory and then refreshes
-the directory listing (@xref{Local Variables}).
+the directory listing (@pxref{Local Variables}).
 @end table
 
 @vindex dired-omit-files
@@ -555,7 +555,7 @@ Filenames matching this buffer-local regexp will not be displayed.
 This only has effect when @code{dired-omit-files-p} is t.
 
 The default value omits the special directories @file{.} and @file{..}  and
-autosave files (plus other files ending in ``.'') (@xref{Omitting Examples}).
+autosave files (plus other files ending in ``.'') (@pxref{Omitting Examples}).
 
 @vindex dired-omit-extensions
 @item dired-omit-extensions
@@ -617,7 +617,7 @@ If you wish to avoid seeing RCS files and the RCS directory, then put
       (concat dired-omit-files "\\|^RCS$\\|,v$"))
 @end example
 @noindent
-in the @code{dired-load-hook} (@xref{Installation}).  This assumes
+in the @code{dired-load-hook} (@pxref{Installation}).  This assumes
 @code{dired-omit-localp} has its default value of @code{'no-dir} to make the
 @code{^}-anchored matches work.  As a slower alternative, with
 @code{dired-omit-localp} set to @code{nil}, you can use @code{/} instead of
@@ -635,7 +635,7 @@ might want to omit the @file{INDEX} and the @file{-t.tex} files, then put
 @end example
 
 @noindent
-in the @code{dired-load-hook} (@xref{Installation}).
+in the @code{dired-load-hook} (@pxref{Installation}).
 
 @item
 @cindex Dot files, how to omit them in Dired
@@ -649,7 +649,7 @@ then put
 @end example
 
 @noindent
-in the @code{dired-load-hook} (@xref{Installation}).
+in the @code{dired-load-hook} (@pxref{Installation}).
 
 @end itemize
 
@@ -926,7 +926,7 @@ variable @code{dired-patch-unclean-extensions}.
 @item dired-clean-tex
 @findex dired-clean-tex
 Flag dispensable files created by @TeX{}, La@TeX{}, and @samp{texinfo} for
-deletion.  See the following variables (@xref{Advanced Cleaning Variables})
+deletion.  See the following variables (@pxref{Advanced Cleaning Variables}):
 
 @itemize @bullet
 @item
@@ -951,7 +951,7 @@ files for deletion.
 @section Advanced Cleaning Variables
 
 @noindent Variables used by the above cleaning commands (and in the default value for
-variable @code{dired-omit-extensions}, @xref{Omitting Variables})
+variable @code{dired-omit-extensions}, @pxref{Omitting Variables})
 
 @table @code
 @item dired-patch-unclean-extensions
@@ -1095,7 +1095,7 @@ When installed @file{dired-x} will substitute @code{dired-x-find-file} for
 
 In order to use this feature, you will need to set
 @code{dired-x-hands-off-my-keys} to @code{nil} inside @code{dired-load-hook}
-(@xref{Optional Installation File At Point}).
+(@pxref{Optional Installation File At Point}).
 
 @table @code
 @item dired-x-find-file
@@ -1248,7 +1248,7 @@ found, refresh the Dired buffer and try again.
 Bound to @kbd{C-x 4 C-j}. Like @code{dired-jump}, but to other window.
 
 These functions can be autoloaded so they work even though @file{dired-x.el}
-has not been loaded yet (@xref{Optional Installation Dired Jump}).
+has not been loaded yet (@pxref{Optional Installation Dired Jump}).
 
 @vindex dired-bind-jump
 If the variable @code{dired-bind-jump} is @code{nil}, @code{dired-jump} will not be
