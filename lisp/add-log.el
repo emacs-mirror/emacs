@@ -427,7 +427,7 @@ Has a preference of looking backwards."
 					   (end-of-line)
 					   (point))))))
 		((eq major-mode 'texinfo-mode)
-		 (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
+		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
 		((eq major-mode 'perl-mode)
