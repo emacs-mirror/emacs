@@ -1,4 +1,4 @@
-# This is the distribution Makefile for Emacs.  config.emacs can make
+# This is the distribution Makefile for Emacs.  configure can make
 # most of the changes to this file you might want, so try that first.
 
 # make all	to compile and build Emacs
@@ -24,7 +24,7 @@ SHELL = /bin/sh
 # already, the `install' targets will move or copy it there.  The
 # default definitions for the variables below are expressed in terms
 # of this one, so you may not need to change them.
-LIBROOT=/gd/gnu/emacs
+LIBROOT=/home/gd/gnu/emacs
 
 # This is where the `install' make target should place the binaries
 # people will want to run directly (like etags and Emacs itself).
@@ -35,19 +35,19 @@ INSTALLBIN=/usr/local/bin
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-LISPPATH=/gd/gnu/emacs/local-lisp:/gd/gnu/emacs/lisp
+LISPPATH=/home/gd/gnu/emacs/local-lisp:/home/gd/gnu/emacs/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-DATADIR=/gd/gnu/emacs/share-lib
+DATADIR=/home/gd/gnu/emacs/etc
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-LIBDIR=/gd/gnu/emacs/arch-lib
+LIBDIR=/home/gd/gnu/emacs/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
-LOCKDIR=/gd/gnu/emacs/lock
+LOCKDIR=/home/gd/gnu/emacs/lock
 
 # This is where the `install' make target should place the man pages
 # for the binaries it installs.
@@ -64,7 +64,7 @@ MFLAGS=
 SUBDIR= lib-src src
 
 # Subdirectories to install
-COPYDIR= arch-lib share-lib info lisp
+COPYDIR= arch-lib etc info lisp
 
 # Subdirectories to clean
 CLEANDIR= ${COPYDIR} lisp/term
@@ -76,7 +76,8 @@ src/paths.h: Makefile src/paths.h-dist
 	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "$(LISPPATH)";'		\
 	-e 's;\(#.*PATH_EXEC\).*$$;\1 "$(LIBDIR)";'			\
 	-e 's;\(#.*PATH_DATA\).*$$;\1 "$(DATADIR)";'			\
-	-e 's;\(#.*LOCK\).*$$;\1 "$(LOCKDIR)/";'
+	-e 's;\(#.*PATH_LOCK\).*$$;\1 "$(LOCKDIR)/";'			\
+	-e 's;\(#.*PATH_SUPERLOCK\).*$$;\1 "$(LOCKDIR)/!!!SuperLock!!!";'
 
 src:	lib-src
 
@@ -99,7 +100,7 @@ install: all mkdir lockdir
 	install -c -s arch-lib/etags ${INSTALLBIN}/etags
 	install -c -s arch-lib/ctags ${INSTALLBIN}/ctags
 	install -c -s -m 1755 src/xemacs ${INSTALLBIN}/xemacs
-	install -c -m 444 share-lib/emacs.1 ${MANDIR}/emacs.1
+	install -c -m 444 etc/emacs.1 ${MANDIR}/emacs.1
 	-rm -f ${INSTALLBIN}/emacs
 	mv ${INSTALLBIN}/xemacs ${INSTALLBIN}/emacs
 
@@ -116,7 +117,7 @@ install.sysv: all mkdir lockdir
 	-cpset arch-lib/emacsclient ${INSTALLBIN}/emacsclient 755 bin bin
 	-cpset arch-lib/etags ${INSTALLBIN}/etags 755 bin bin
 	-cpset arch-lib/ctags ${INSTALLBIN}/ctags 755 bin bin
-	-cpset share-lib/emacs.1 ${MANDIR}/emacs.1 444 bin bin
+	-cpset etc/emacs.1 ${MANDIR}/emacs.1 444 bin bin
 	-/bin/rm -f ${INSTALLBIN}/emacs
 	-cpset src/xemacs ${INSTALLBIN}/emacs 1755 bin bin
   
@@ -132,7 +133,7 @@ install.xenix: all mkdir lockdir
 	fi
 	cp arch-lib/etags arch-lib/ctags arch-lib/emacsclient ${INSTALLBIN}
 	chmod 755 ${INSTALLBIN}/etags ${INSTALLBIN}/ctags ${INSTALLBIN}/emacsclient
-	cp share-lib/emacs.1 ${MANDIR}/emacs.1
+	cp etc/emacs.1 ${MANDIR}/emacs.1
 	chmod 444 ${MANDIR}/emacs.1
 	-mv -f ${INSTALLBIN}/emacs ${INSTALLBIN}/emacs.old
 	cp src/xemacs ${INSTALLBIN}/emacs

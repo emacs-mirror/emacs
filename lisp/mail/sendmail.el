@@ -447,7 +447,7 @@ the user from the mailer."
   (let (end
 	(case-fold-search t))
     (goto-char (point-min))
-    (search-forward (concat "^" mail-header-separator "\n"))
+    (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
     (setq end (match-beginning 0))
     (goto-char (point-min))
     (if (re-search-forward (concat "^" (regexp-quote field) ":") end t)
@@ -459,7 +459,8 @@ the user from the mailer."
       (or soft
 	  (progn (goto-char end)
 		 (skip-chars-backward "\n")
-		 (insert "\n" field ": ")))
+		 (insert field ": \n")
+		 (skip-chars-backward "\n")))
       nil)))
 
 (defun mail-text ()

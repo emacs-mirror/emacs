@@ -96,7 +96,6 @@ main (argc, argv)
 {
   char *inname, *outname;
   int indesc, outdesc;
-  char buf[1024];
   int nread;
 
 #ifndef MAIL_USE_FLOCK
@@ -182,8 +181,7 @@ main (argc, argv)
      to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
 
   lockname = concat (inname, ".lock", "");
-  tempname = (char *) xmalloc (strlen (inname) + 20);
-  strcpy (tempname, inname);
+  tempname = strcpy (xmalloc (strlen (inname)+1), inname);
   p = tempname + strlen (tempname);
   while (p != tempname && p[-1] != '/')
     p--;
@@ -249,19 +247,23 @@ main (argc, argv)
 #endif
 #endif /* MAIL_USE_FLOCK */
 
-  while (1)
-    {
-      nread = read (indesc, buf, sizeof buf);
-      if (nread != write (outdesc, buf, nread))
-	{
-	  int saved_errno = errno;
-	  unlink (outname);
-	  errno = saved_errno;
-	  pfatal_with_name (outname);
-	}
-      if (nread < sizeof buf)
-	break;
-    }
+  {
+    char buf[1024];
+
+    while (1)
+      {
+	nread = read (indesc, buf, sizeof buf);
+	if (nread != write (outdesc, buf, nread))
+	  {
+	    int saved_errno = errno;
+	    unlink (outname);
+	    errno = saved_errno;
+	    pfatal_with_name (outname);
+	  }
+	if (nread < sizeof buf)
+	  break;
+      }
+  }
 
 #ifdef BSD
   if (fsync (outdesc) < 0)

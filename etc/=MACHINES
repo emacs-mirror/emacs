@@ -2,7 +2,7 @@ This is a list of the status of GNU Emacs on various machines and systems.
 Last updated 10 Feb 1992.
 
 For each system and machine, we give the `-opsystem' and `-machine'
-options you should pass to config.emacs to prepare to build Emacs for
+options you should pass to configure to prepare to build Emacs for
 that system/machine.
 
 These options tell Emacs which machine- and system-descriptive files
@@ -128,7 +128,7 @@ Xenix
   If you want Emacs to work with Smail (installed as /usr/bin/smail)
   then add the line   #define SMAIL  to config.h.
 
-  The file share-lib/XENIX suggests some useful things to do to Xenix
+  The file etc/XENIX suggests some useful things to do to Xenix
   to make the Emacs meta key work.
 
 Machines:
@@ -668,7 +668,7 @@ Sun 1, 2 and 3 (-machine=sun1, -machine=sun2, -machine=sun3;
 
   For SunOS release 4 on a Sun 3, use -machine=sun3 and
   -opsystem=sunos4-0 or -opsystem=sunos4-1.
-  See the file share-lib/SUNBUG for how to solve problems caused by
+  See the file etc/SUNBUG for how to solve problems caused by
   bugs in the "export" version of SunOS 4.
 
   If you have trouble using open-network-stream, get the
@@ -707,7 +707,7 @@ Sun 4 (-machine=sparc;
 
   Use -opsystem=sunos4-0 for operating system version 4.0, and
   -opsystem=sunos4-1 for later versions.
-  See the file share-lib/SUNBUG for how to solve problems caused by
+  See the file etc/SUNBUG for how to solve problems caused by
   bugs in the "export" version of SunOS 4.
 
 Sun Roadrunner (-machine=sun386; -opsystem=sunos4-0 or -opsystem=sunos4-1)

@@ -102,8 +102,8 @@ get_doc_string (filepos)
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
-  "Return the documentation string of FUNCTION.
-Unless a non-nil second argument is given, the
+  "Return the documentation string of FUNCTION.\n\
+Unless a non-nil second argument is given, the\n\
 string is passed through `substitute-command-keys'.")
   (fun1, raw)
      Lisp_Object fun1, raw;
@@ -182,7 +182,7 @@ subcommands.)");
 DEFUN ("documentation-property", Fdocumentation_property, Sdocumentation_property, 2, 2, 0,
   "Return the documentation string that is SYMBOL's PROP property.\n\
 This is like `get', but it can refer to strings stored in the\n\
-`share-lib/DOC' file; and if the value is a string, it is passed through\n\
+`etc/DOC' file; and if the value is a string, it is passed through\n\
 `substitute-command-keys'.  A non-nil third argument avoids this\n\
 translation.")
   (sym, prop, raw)
@@ -201,10 +201,10 @@ translation.")
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
   1, 1, 0,
   "Used during Emacs initialization, before dumping runnable Emacs,\n\
-to find pointers to doc strings stored in `share-lib/DOC...' and\n\
+to find pointers to doc strings stored in `etc/DOC...' and\n\
 record them in function definitions.\n\
 One arg, FILENAME, a string which does not include a directory.\n\
-The file is found in `../share-lib' now; found in the `data-directory'\n\
+The file is found in `../etc' now; found in the `data-directory'\n\
 when doc strings are referred to later in the dumped Emacs.")
   (filename)
      Lisp_Object filename;
@@ -222,7 +222,7 @@ when doc strings are referred to later in the dumped Emacs.")
 
 #ifndef CANNOT_DUMP
   name = (char *) alloca (XSTRING (filename)->size + 14);
-  strcpy (name, "../share-lib/");
+  strcpy (name, "../etc/");
 #else /* CANNOT_DUMP */
   CHECK_STRING (Vdata_directory, 0);
   name = (char *) alloca (XSTRING (filename)->size +

@@ -2794,7 +2794,7 @@ init_process ()
       proc_buffered_char[i] = -1;
     }
 }
-#ifdef 0
+#if 0
 DEFUN ("process-connection", Fprocess_connection, Sprocess_connection, 0, 1, 0,
  "Return the connection type of `PROCESS'.  This can be nil (pipe),\n\
 t or pty (pty) or stream (socket connection).")

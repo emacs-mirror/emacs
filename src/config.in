@@ -95,14 +95,14 @@ and this notice must be preserved on all copies.  */
 
 /* The configuration script links system.h to a s- file that describes
    the system type you are using.
-   See the file ../share-lib/MACHINES for a list of systems and
+   See the file ../etc/MACHINES for a list of systems and
    the names of the s- files to use for them.
    See s-template.h for documentation on writing s- files.  */
 #include "@opsystem@"
 
 /* The configuration script links machine.h to a m- file that
    describes the machine and system you use.
-   See the file ../share-lib/MACHINES for a list of machines and
+   See the file ../etc/MACHINES for a list of machines and
    the names of the m- files to use for them.
    See m-template.h for info on what m- files should define.  */
 #include "@machine@"

@@ -1,6 +1,6 @@
 ;;Load up standardly loaded Lisp files for Emacs.
 ;; This is loaded into a bare Emacs to make a dumpable one.
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -94,8 +94,8 @@
 	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			   "-"
 			   (substring name (match-end 0)))))
-      (copy-file (expand-file-name "../share-lib/DOC")
-		 (concat (expand-file-name "../share-lib/DOC-") name)
+      (copy-file (expand-file-name "../etc/DOC")
+		 (concat (expand-file-name "../etc/DOC-") name)
 		 t)
       (Snarf-documentation (concat "DOC-" name)))
     (Snarf-documentation "DOC"))

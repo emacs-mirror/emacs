@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -858,7 +858,7 @@ read1 (readcharfun)
 
 	/* If purifying, and string starts with \ newline,
 	   return zero instead.  This is for doc strings
-	   that we are really going to find in share-lib/DOC.nn.nn  */
+	   that we are really going to find in etc/DOC.nn.nn  */
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 

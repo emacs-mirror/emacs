@@ -624,6 +624,10 @@ Each VALUEFORM can refer to the symbols already bound by this VARLIST.")
       elt = Fcar (varlist);
       if (XTYPE (elt) == Lisp_Symbol)
 	specbind (elt, Qnil);
+      else if (! NILP (Fcdr (Fcdr (elt))))
+	Fsignal (Qerror,
+		 Fcons (build_string ("`let' bindings can have only one value-form"),
+			elt));
       else
 	{
 	  val = Feval (Fcar (Fcdr (elt)));
@@ -668,6 +672,10 @@ All the VALUEFORMs are evalled before any symbols are bound.")
       elt = Fcar (varlist);
       if (XTYPE (elt) == Lisp_Symbol)
 	temps [argnum++] = Qnil;
+      else if (! NILP (Fcdr (Fcdr (elt))))
+	Fsignal (Qerror,
+		 Fcons (build_string ("`let' bindings can have only one value-form"),
+			elt));
       else
 	temps [argnum++] = Feval (Fcar (Fcdr (elt)));
       gcpro2.nvars = argnum;
@@ -1499,8 +1507,11 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  goto done;
 
 	default:
-	  error ("Ffuncall doesn't handle that number of arguments.");
-	  goto done;
+	  /* Someone has created a subr that takes more arguments than
+	     is supported by this code.  We need to either rewrite the
+	     subr to use a different argument protocol, or add more
+	     cases to this switch.  */
+	  abort ();
 	}
     }
   if (XTYPE (fun) == Lisp_Compiled)
