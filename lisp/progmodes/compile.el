@@ -310,8 +310,8 @@ Returns the compilation buffer created."
     (define-key map "\^?" 'scroll-down)
     (define-key map "\M-n" 'compilation-next-error)
     (define-key map "\M-p" 'compilation-previous-error)
-    (define-key map "\C-x[" 'compilation-previous-file)
-    (define-key map "\C-x]" 'compilation-next-file)
+    (define-key map "\M-{" 'compilation-previous-file)
+    (define-key map "\M-}" 'compilation-next-file)
     map)
   "Keymap for compilation log buffers.")
 
@@ -872,7 +872,6 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 
       ;; Figure out which constituent regexp matched.
       (cond ((match-beginning enter-group)
-	     (funcall progress)
 	     ;; The match was the enter-directory regexp.
 	     (let ((dir
 		    (file-name-as-directory
@@ -885,7 +884,6 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		    (setq default-directory dir))))
 	    
 	    ((match-beginning leave-group)
-	     (funcall progress)
 	     ;; The match was the leave-directory regexp.
 	     (let ((beg (match-beginning (+ leave-group 1)))
 		   (stack compilation-directory-stack))
@@ -939,7 +937,6 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				   (cons filename linenum))
 			     compilation-error-list))))
 	     (setq nfound (1+ nfound))
-	     (funcall progress)
 	     (and find-at-least (>= nfound find-at-least)
 		  ;; We have found as many new errors as the user wants.
 		  (setq found-desired t)))
