@@ -1,3 +1,7 @@
+2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* COPYING: New file.
+
 2001-12-03  Jaeyoun Chung  <jay@kldp.org>
 
 	* quail/hangul3.el: added a few convenient composing sequence for

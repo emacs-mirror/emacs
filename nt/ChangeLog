@@ -1,3 +1,7 @@
+2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* COPYING: New file.
+
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* INSTALL: Update table of versions of make that are suitable
