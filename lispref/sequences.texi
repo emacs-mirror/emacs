@@ -69,8 +69,8 @@ elements.  This section describes functions that accept any kind of
 sequence.
 
 @defun sequencep object
-Returns @code{t} if @var{object} is a list, vector,
-string, bool-vector, or char-table, @code{nil} otherwise.
+Returns @code{t} if @var{object} is a list, vector, string,
+bool-vector, or char-table, @code{nil} otherwise.
 @end defun
 
 @defun length sequence
@@ -80,12 +80,12 @@ string, bool-vector, or char-table, @code{nil} otherwise.
 @cindex sequence length
 @cindex char-table length
 This function returns the number of elements in @var{sequence}.  If
-@var{sequence} is a cons cell that is not a list (because the final
-@sc{cdr} is not @code{nil}), a @code{wrong-type-argument} error is
-signaled.  For a char-table, the value returned is always one more
-than the maximum Emacs character code.
+@var{sequence} is a dotted list, a @code{wrong-type-argument} error is
+signaled.  Circular lists may cause an infinite loop.  For a
+char-table, the value returned is always one more than the maximum
+Emacs character code.
 
-@xref{List Elements}, for the related function @code{safe-length}.
+@xref{Definition of safe-length}, for the related function @code{safe-length}.
 
 @example
 @group
@@ -121,10 +121,11 @@ If @var{string} is a multibyte string, this is greater than
 @defun elt sequence index
 @cindex elements of sequences
 This function returns the element of @var{sequence} indexed by
-@var{index}.  Legitimate values of @var{index} are integers ranging from
-0 up to one less than the length of @var{sequence}.  If @var{sequence}
-is a list, then out-of-range values of @var{index} return @code{nil};
-otherwise, they trigger an @code{args-out-of-range} error.
+@var{index}.  Legitimate values of @var{index} are integers ranging
+from 0 up to one less than the length of @var{sequence}.  If
+@var{sequence} is a list, out-of-range values behave as for
+@code{nth}.  @xref{Definition of nth}.  Otherwise, out-of-range values
+trigger an @code{args-out-of-range} error.
 
 @example
 @group
@@ -151,7 +152,7 @@ otherwise, they trigger an @code{args-out-of-range} error.
 @end example
 
 This function generalizes @code{aref} (@pxref{Array Functions}) and
-@code{nth} (@pxref{List Elements}).
+@code{nth} (@pxref{Definition of nth}).
 @end defun
 
 @defun copy-sequence sequence
@@ -170,6 +171,9 @@ If the sequence is a string with text properties, the property list in
 the copy is itself a copy, not shared with the original's property
 list.  However, the actual values of the properties are shared.
 @xref{Text Properties}.
+
+This function does not work for dotted lists.  Trying to copy a
+circular list may cause an infinite loop.
 
 See also @code{append} in @ref{Building Lists}, @code{concat} in
 @ref{Creating Strings}, and @code{vconcat} in @ref{Vector Functions},
@@ -472,9 +476,9 @@ each initialized to @var{object}.
 @defun vconcat &rest sequences
 @cindex copying vectors
 This function returns a new vector containing all the elements of the
-@var{sequences}.  The arguments @var{sequences} may be any kind of
-arrays, including lists, vectors, or strings.  If no @var{sequences} are
-given, an empty vector is returned.
+@var{sequences}.  The arguments @var{sequences} may be true lists,
+vectors, strings or bool-vectors.  If no @var{sequences} are given, an
+empty vector is returned.
 
 The value is a newly constructed vector that is not @code{eq} to any
 existing vector.
