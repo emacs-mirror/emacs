@@ -4573,51 +4573,52 @@ static void
 back_to_previous_visible_line_start (it)
      struct it *it;
 {
-  int visible_p = 0;
-
-  /* Go back one newline if not on BEGV already.  */
-  if (IT_CHARPOS (*it) > BEGV)
-    back_to_previous_line_start (it);
-
-  /* Move over lines that are invisible because of selective display
-     or text properties.  */
-  while (IT_CHARPOS (*it) > BEGV
-	 && !visible_p)
+  while (IT_CHARPOS (*it) > BEGV)
     {
-      visible_p = 1;
+      back_to_previous_line_start (it);
+      if (IT_CHARPOS (*it) <= BEGV)
+	break;
 
       /* If selective > 0, then lines indented more than that values
 	 are invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				(double) it->selective)) /* iftc */
-	visible_p = 0;
-      else
-	{
-	  Lisp_Object prop;
+	continue;
 
-	  /* Check the newline before point for invisibility.  */
-	  prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
+      /* Check the newline before point for invisibility.  */
+      {
+	Lisp_Object prop;
+	prop = Fget_char_property (make_number (IT_CHARPOS (*it) - 1),
 				     Qinvisible, it->window);
-	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
-	    visible_p = 0;
-	}
+	if (TEXT_PROP_MEANS_INVISIBLE (prop))
+	  continue;
+      }
 
-#if 0
-      /* Commenting this out fixes the bug described in
-	 http://www.math.ku.dk/~larsh/emacs/emacs-loops-on-large-images/test-case.txt.  */
-      if (visible_p)
-	{
-	  struct it it2 = *it;
+      /* If newline has a display property that replaces the newline with something
+	 else (image or text), find start of overlay or interval and continue search
+	 from that point.  */
+      {
+	struct it it2 = *it;
+	int pos = IT_CHARPOS (*it);
+	int beg, end;
+	Lisp_Object val, overlay;
 
-	  if (handle_display_prop (&it2) == HANDLED_RETURN)
-	    visible_p = 0;
-	}
-#endif
-
-      /* Back one more newline if the current one is invisible.  */
-      if (!visible_p)
-	back_to_previous_line_start (it);
+	if (handle_display_prop (&it2) == HANDLED_RETURN
+	    && !NILP (val = get_char_property_and_overlay
+		      (make_number (pos), Qdisplay, Qnil, &overlay))
+	    && (OVERLAYP (overlay)
+		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
+	  {
+	    if (beg < BEGV)
+	      beg = BEGV;
+	    IT_CHARPOS (*it) = beg;
+	    IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
+	    continue;
+	  }
+      }
+      break;
     }
 
   xassert (IT_CHARPOS (*it) >= BEGV);
