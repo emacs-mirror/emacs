@@ -778,7 +778,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	val = CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil;
       }
   specbind (intern ("coding-system-for-write"), val);
-  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
+  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
 
 #ifdef DOS_NT
   if (NILP (Vbinary_process_input))
