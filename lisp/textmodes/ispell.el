@@ -502,15 +502,15 @@ for language-specific arguments."
     ("deutsch8"
      "[a-zA-Z\304\326\334\344\366\337\374]"
      "[^a-zA-Z\304\326\334\344\366\337\374]"
-     "[']" t ("-C" "-d" "deutsch") "~latin1")
+     "[']" t ("-C" "-d" "deutsch") "~latin1" iso-latin-1)
     ("nederlands"				; nederlands.aff
      "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
      "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-     "[']" t ("-C") nil)
+     "[']" t ("-C") nil iso-latin-1)
     ("nederlands8"				; dutch8.aff
      "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
      "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
-     "[']" t ("-C") nil)))
+     "[']" t ("-C") nil iso-latin-1)))
 
 ;;;###autoload
 (defvar ispell-dictionary-alist-2
@@ -519,20 +519,21 @@ for language-specific arguments."
      "[']" nil ("-C") nil)
     ("svenska8"				;8 bit swedish mode
      "[A-Za-z\345\344\366\305\304\366]"  "[^A-Za-z\345\344\366\305\304\366]"
-     "[']" nil ("-C" "-d" "svenska") "~list") ; Add `"-T" "list"' instead?
+     "[']" nil ("-C" "-d" "svenska") "~list" ; Add `"-T" "list"' instead?
+     iso-latin-1)
     ("francais7"
      "[A-Za-z]" "[^A-Za-z]" "[`'^---]" t nil nil)
     ("francais"				; francais.aff
      "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
      "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
-     "[---']" t nil "~list")
+     "[---']" t nil "~list" iso-latin-1)
     ("francais-tex"			; francais.aff
      "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
      "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
-     "[---'^`\"]" t nil "~tex")
+     "[---'^`\"]" t nil "~tex" iso-latin-1)
     ("dansk"				; dansk.aff
      "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]"
-      "[']" nil ("-C") nil)
+      "[']" nil ("-C") nil iso-latin-1)
     ))
 
 
@@ -706,18 +707,30 @@ language.aff file \(e.g., english.aff\).")
 (defvar ispell-offset 1
   "Offset that maps protocol differences between ispell 3.1 versions.")
 
+(defun ispell-decode-string (str)
+  (let (coding-system)
+    (if (and enable-multibyte-characters
+	     (setq coding-system (ispell-get-coding-system)))
+	(decode-coding-string str coding-system)
+    str)))
+
 (defun ispell-get-casechars ()
-  (nth 1 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (ispell-decode-string
+   (nth 1 (assoc ispell-dictionary ispell-dictionary-alist))))
 (defun ispell-get-not-casechars ()
-  (nth 2 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (ispell-decode-string
+   (nth 2 (assoc ispell-dictionary ispell-dictionary-alist))))
 (defun ispell-get-otherchars ()
-  (nth 3 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (ispell-decode-string
+   (nth 3 (assoc ispell-dictionary ispell-dictionary-alist))))
 (defun ispell-get-many-otherchars-p ()
   (nth 4 (assoc ispell-dictionary ispell-dictionary-alist)))
 (defun ispell-get-ispell-args ()
   (nth 5 (assoc ispell-dictionary ispell-dictionary-alist)))
 (defun ispell-get-extended-character-mode ()
   (nth 6 (assoc ispell-dictionary ispell-dictionary-alist)))
+(defun ispell-get-coding-system ()
+  (nth 7 (assoc ispell-dictionary ispell-dictionary-alist)))
 
 (defvar ispell-process nil
   "The process object for Ispell.")
@@ -1606,6 +1619,9 @@ scrolling the current window.  Leave the new window selected."
 	  ispell-filter-continue nil
 	  ispell-process-directory default-directory)
     (set-process-filter ispell-process 'ispell-filter)
+    (if (and enable-multibyte-characters
+	     ispell-dictionary)
+	(set-process-coding-system ispell-process (ispell-get-coding-system)))
     (accept-process-output ispell-process) ; Get version ID line
     (cond ((null ispell-filter)
 	   (error "%s did not output version line" ispell-program-name))
@@ -1815,8 +1831,20 @@ With prefix argument, set the default directory."
 		      (while (and (not ispell-quit) ispell-filter)
 			(setq poss (ispell-parse-output (car ispell-filter)))
 			(if (listp poss) ; spelling error occurred.
-			    (let* ((word-start (+ start offset-change
-						  (car (cdr poss))))
+			    (let* ((word-start
+				    (if (and enable-multibyte-characters
+					     (ispell-get-coding-system))
+					;; OFFSET returned by ispell
+					;; counts non-ASCII chars as
+					;; one, so just adding OFFSET
+					;; to START will cause an
+					;; error.
+					(save-excursion
+					  (goto-char (+ start offset-change))
+					  (forward-char (car (cdr poss)))
+					  (point))
+				      (+ start offset-change
+					 (car (cdr poss)))))
 				   (word-end (+ word-start
 						(length (car poss))))
 				   replace)
