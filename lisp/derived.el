@@ -205,7 +205,7 @@ been generated automatically, with a reference to the keymap."
 
 ;; PUBLIC: find if the current mode derives from another.
 
-;;; ;;;###autoload
+;;;###autoload
 (defun derived-mode-p (&rest modes)
   "Non-nil if the current major mode is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards."
