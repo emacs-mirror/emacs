@@ -82,6 +82,7 @@ we make that menu bar item (the one at that position) the default choice."
 	  (setq menu-bar-item (car this-one))))
     (tmm-prompt menu-bar nil menu-bar-item)))
 
+;;;###autoload
 (defun tmm-menubar-mouse (event)
   "Text-mode emulation of looking and choosing from a menubar.
 This command is used when you click the mouse in the menubar
