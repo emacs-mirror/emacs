@@ -18,7 +18,7 @@
 (defun setup-slovak-environment ()
   "Setup multilingual environment (MULE) for Slovak."
   (interactive)
-  (setup-8-bit-environment "Slovak" 'latin-iso8859-2 'iso-8859-2)
+  (setup-8-bit-environment "Slovak" 'latin-iso8859-2 "slovak")
   (load "latin-2"))
 
 (set-language-info-alist
