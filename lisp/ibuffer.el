@@ -135,7 +135,9 @@ elisp byte-compiler."
 (defcustom ibuffer-fontification-alist
   `((10 buffer-read-only font-lock-constant-face)
     (15 (string-match "^*" (buffer-name)) font-lock-keyword-face)
-    (20 (string-match "^ " (buffer-name)) font-lock-warning-face)
+    (20 (and (string-match "^ " (buffer-name))
+	     (null buffer-file-name))
+	italic)
     (25 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
     (30 (eq major-mode 'dired-mode) font-lock-function-name-face))
   "An alist describing how to fontify buffers.
@@ -2014,7 +2016,7 @@ Do not display messages if SILENT is non-nil."
 			  :nomini)
 		      (with-current-buffer (cadr bufs)
 			(minibufferp)))
-		     (car (cddr bufs))
+		     (caddr bufs)
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)
 		 arg)))
