@@ -1,4 +1,4 @@
-/* m- file for Tektronix XD88 running UTekV 3.2e to be used with s-usg5-3.h,
+/* Configuration file for the Tektronix XD88 running UTekV 3.2e,
    contributed by Kaveh Ghazi  (ghazi@caip.rutgers.edu)  1/15/93.
    You probably need to use gnu make (version 3.63 or higher.)
    Copyright (C) 1993 Free Software Foundation, Inc.
@@ -20,8 +20,7 @@ can know your rights and responsibilities.  It should be in a
 file named COPYING.  Among other things, the copyright notice
 and this notice must be preserved on all copies.  */
 
-/* The following three symbols give information on
- the size of various data types.  */
+/* The following symbols give information on the size of various data types. */
 #define SHORTBITS 16		/* Number of bits in a short */
 #define INTBITS 32		/* Number of bits in an int */
 #define LONGBITS 32		/* Number of bits in a long */
@@ -50,10 +49,6 @@ and this notice must be preserved on all copies.  */
    On machines where char is signed, this is a no-op.  */
 #define SIGN_EXTEND_CHAR(c) (c)
 
-/* Now define a symbol for the cpu type, if your compiler
-   does not define it automatically.  */
-
-
 /* Use type int rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
 #define NO_UNION_TYPE 
@@ -66,16 +61,14 @@ and this notice must be preserved on all copies.  */
 /* #define EXPLICIT_SIGN_EXTEND */
 
 /* Data type of load average, as read out of kmem.  */
-/* No load average on XD88 machines. */
-/* #define LOAD_AVE_TYPE double */
-
+/* #define LOAD_AVE_TYPE double */	/* No load average on XD88. */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 /* #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0)) */
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
-#define CANNOT_DUMP	/* oh well, maybe someday ... */
+/*#define CANNOT_DUMP*/
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
@@ -109,75 +102,35 @@ and this notice must be preserved on all copies.  */
 #  define C_OPTIMIZE_SWITCH -O
 #endif /* __GNUC__ */
 
-/*#define C_DEBUG_SWITCH C_OPTIMIZE_SWITCH*/  /* Uncomment this to optimize */
-
-/* XD88 SysV has PTYs.  Not all usg3-5 systems do, so this is defined here. */
-#define HAVE_PTYS 
-#define SYSV_PTYS	/* Requires <termios.h> */
-
-/* we have job control */
-#undef NOMULTIPLEJOBS
-
-/*
- * sockets are available
- */
-#define HAVE_SOCKETS
-
-/* 
- * we have Berkeley style <sys/time.h>
- */
-#define HAVE_TIMEVAL
-
-/* XD88 has select(). */
-#define HAVE_SELECT
-#define BROKEN_FIONREAD  /* is this needed ? */
-
-/*
- * don't use utimes, we ain't got one - use utime() instead
- */
-#define USE_UTIME
-
-#define NO_SIOCTL_H
-
-/* We need HAVE_TCATTR to prevent Ctrl-Z from suspending Emacs before
-   suspend-emacs has been called. */
-/*#define HAVE_TCATTR*/
-/* TCATTR gives bogus baud rates.  Use the following for OSPEED instead. */
-/*#define OSPEED(str) (cfgetospeed(&(str)))*/
-#define HAVE_TERMIOS
-#undef HAVE_TERMIO
-
-#define BSTRING /* its in libc but not declared in any <*.h> file. */
-#define HAVE_TZSET
+#undef NOMULTIPLEJOBS	/* we have job control */
+#define HAVE_SOCKETS	/* sockets are available */
+#define HAVE_TIMEVAL	/* we have Berkeley style <sys/time.h> */
+#define HAVE_SELECT	/* XD88 has select(). */
+#define BROKEN_FIONREAD /* is this needed ? */
+#define BSTRING		/* its in libc but not declared in any header file. */
 #define HAVE_SETSID
+#undef sigsetmask	/* XD88 has sigsetmask() */
 
-#ifdef ghs	/* Stands for "Green Hills Software", defined in /bin/cc */ 
-/* Only required for use with the Green Hills compiler:
-	-X18 Do not allocate programmer-defined local variables to a
-	     register unless they are declared register.  (From building
-	     perl-4.036 Green Hills hints.  Might be needed for setjmp.)
-	*/
-#define C_SWITCH_MACHINE -X18
-/* We need /lib/default.ld so the bundled ld can read its link directives. */
-#define LD_SWITCH_SYSTEM /lib/default.ld
-#endif /* ghs */
-
-/* XD88 does not have the random() and srandom() calls in the base system,
-   but they exist in libX11.a.  So, if you are building with X11 then you
-   will need to define HAVE_RANDOM. */
 #ifdef HAVE_X_WINDOWS
-#define HAVE_RANDOM
-#undef LIB_X11_LIB  /* don't use the shared library default from usg5-3.h */
-#undef LIBX11_SYSTEM
+#  define HAVE_RANDOM	/* Random is in libX11.a */
+#  undef LIB_X11_LIB	/* Don't use shared libraries defined in usg5-3.h */
+#  undef LIBX11_SYSTEM
 #endif /* HAVE_X_WINDOWS */
 
-/*#define SYSTEM_MALLOC*/
+#define HAVE_TERMIOS	/* We have termios. */
+#undef HAVE_TERMIO	/* Make sure termios ifdef code is used, not termio. */
+#define NO_TERMIO	/* Don't include both termios.h and termio.h */
+#define HAVE_PTYS	/* XD88 SysV has PTYs. */
+#define SYSV_PTYS	/* Requires <termios.h> */
 
-#ifndef UTEKV
-#define UTEKV  /* system specific symbol */
-#endif /* !UTEKV */
+#ifdef ghs  /* Stands for "Green Hills Software", defined only in /bin/cc */ 
+/* -X18 means do not allocate programmer-defined local variables to a
+   register unless they are declared register.  (Copied from perl-4.036
+   Green Hills C hints file.  Might be needed for setjmp, I don't know.) */
+#  define C_SWITCH_MACHINE -X18
+/* We need /lib/default.ld so that /bin/ld can read its link directives. */
+#  define LD_SWITCH_SYSTEM /lib/default.ld
+#endif /* ghs */
 
-/* stuff to hopefully someday get dumping working ... */
-/*#define SECTION_ALIGNMENT 0x1ff*/
-/*#define SEGMENT_MASK 0xff*/
-/*#define A_TEXT_OFFSET(HDR) sizeof(HDR)*/
+/* We need this to get dumping to work */
+#define KEEP_OLD_TEXT_SCNPTR
