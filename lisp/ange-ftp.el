@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.43 $")
+(defconst ange-ftp-version "$Revision: 1.44 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1400,22 +1400,6 @@ into one of four categories: good, skip, fatal, or unknown."
 	 (setq ange-ftp-process-busy nil
 	       ange-ftp-process-result-line line))))
 
-(defun ange-ftp-process-log-string (proc str)
-  "For a given PROCESS, log the given STRING at the end of its
-associated buffer."
-  (let ((old-buffer (current-buffer)))
-    (unwind-protect
-	(let (moving)
-	  (set-buffer (process-buffer proc))
-	  (setq moving (= (point) (process-mark proc)))
-	  (save-excursion
-	    ;; Insert the text, moving the process-marker.
-	    (goto-char (process-mark proc))
-	    (insert str)
-	    (set-marker (process-mark proc) (point)))
-	  (if moving (goto-char (process-mark proc))))
-      (set-buffer old-buffer))))
-
 (defun ange-ftp-set-xfer-size (host user bytes)
   "Set the size of the next FTP transfer in bytes."
   (let ((proc (ange-ftp-get-process host user)))
@@ -1479,7 +1463,7 @@ on to ange-ftp-process-handle-line to deal with."
 		   ange-ftp-process-busy
 		   (string-match "^#+$" str)
 		   (setq str (ange-ftp-process-handle-hash str)))
-	      (ange-ftp-process-log-string proc str)
+	      (comint-output-filter proc str)
 	      (if ange-ftp-process-busy
 		  (progn
 		    (setq ange-ftp-process-string (concat ange-ftp-process-string
@@ -1609,7 +1593,7 @@ on to ange-ftp-process-handle-line to deal with."
 
 (defun ange-ftp-gwp-filter (proc str)
   (ange-ftp-save-match-data
-    (ange-ftp-process-log-string proc str)
+    (comint-output-filter proc str)
     (cond ((string-match "login: *$" str)
 	   (send-string proc
 			(concat
