@@ -1362,7 +1362,10 @@ Creates a buffer if necessary."
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)
-  (find-file (dired-get-file-for-visit)))
+  ;; Bind `find-file-run-dired' so that the command works on directories 
+  ;; too, independent of the user's setting.
+  (let ((find-file-run-dired t))
+    (find-file (dired-get-file-for-visit))))
 
 (defun dired-find-alternate-file ()
   "In Dired, visit this file or directory instead of the dired buffer."
