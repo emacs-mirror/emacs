@@ -1,3 +1,29 @@
+2000-03-12  Dave Love  <fx@gnu.org>
+
+	* facemenu.el (facemenu-get-face): Use display-color-p.
+	* enriched.el (enriched-decode-foreground): Likewise.
+	(enriched-decode-background): Likewise.
+	* isearch.el (isearch-highlight): Likewise.
+	* info-look.el (info-lookup): Likewise.
+	* simple.el (completion-setup-function): Likewise.
+
+	* textmodes/text-mode.el (text-mode-hook): Add flyspell-mode to
+	:options.
+
+	* bindings.el (mode-line-format): Fix line-number and
+	column-number items.  Add help-echo for the background.
+	(mode-line-mule-info): Modify help-echo.
+
+	* avoid.el (mouse-avoidance-mode): Add autoload cookie to
+	defcustom.
+
+	* files.el (load-file): Allow completion to .elc.
+
+	* man.el: Doc fixes.
+	(Man-init-defvars): Use display-color-p to set fontification.
+
+	* play/hanoi.el (hanoi-internal): Don't use oddp.
+
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* arc-mode.el (archive-zip-update): Add `-P' for pkzip.
@@ -36,10 +62,12 @@
 
 2000-03-09  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Extend to allow
-	more flexibility.
-	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New funs.
-	(easy-mmode-def(map|syntax|ine-derived-mode)): New macros.
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Extend to
+	allow more flexibility.
+	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New
+	fns.
+	(easy-mmode-defmap, easy-mmode-defsyntax)
+	(easy-mmode-define-derived-mode): New macros.
 
 2000-03-09  Didier Verna  <didier@xemacs.org>
 
