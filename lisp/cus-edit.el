@@ -3102,6 +3102,8 @@ Leave point at the location of the call, or after the last expression."
   (goto-char (point-min))
   (catch 'found
     (while t
+      ;; Skip all whitespace and comments.
+      (while (forward-comment 1))
       (let ((start (point))
 	    (sexp (condition-case nil
 		      (read (current-buffer))
