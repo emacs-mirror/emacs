@@ -108,8 +108,8 @@ This variable must be set before typing `\\[decipher]'."
 
 (defcustom decipher-ignore-spaces nil
   "*Non-nil means to ignore spaces and punctuation when counting digrams.
-You should set this to `nil' if the cipher message is divided into words,
-or `t' if it is not.
+You should set this to nil if the cipher message is divided into words,
+or t if it is not.
 This variable is buffer-local."
   :type 'boolean
   :group 'decipher)
