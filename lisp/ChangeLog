@@ -5,7 +5,7 @@
 	(enriched-mode): Make sure that enabling and disabling the mode is
 	a no-op.  Doc fix.
 
-2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>
+2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>  (tiny change)
 
 	* calendar/holidays.el (holiday-advent): Report on a specified day
 	offset from advent, not just advent.
