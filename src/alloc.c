@@ -1044,6 +1044,8 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 free_marker (marker)
      Lisp_Object marker;
 {
+  unchain_marker (marker);
+
   XMISC (marker)->u_marker.type = Lisp_Misc_Free;
   XMISC (marker)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (marker);
