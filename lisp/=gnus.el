@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.21 1993/06/10 11:46:43 jimb Exp jimb $
+;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.22 1993/06/29 23:03:21 jimb Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -612,8 +612,8 @@ use this; if non-nil, use no host name (user name only)")
   '((gnus-group-mode		"(gnus)Newsgroup Commands")
     (gnus-summary-mode		"(gnus)Summary Commands")
     (gnus-article-mode		"(gnus)Article Commands")
-    (gnus-kill-file-mode	"(gnus)KILL File")
-    (gnus-browse-killed-mode	"(gnus)Maintenance"))
+    (gnus-kill-file-mode	"(gnus)Kill File")
+    (gnus-browse-killed-mode	"(gnus)Maintaining Subscriptions"))
   "Assoc list of major modes and related Info nodes.")
 
 ;; Alist syntax is different from that of 3.14.3.
