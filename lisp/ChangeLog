@@ -1,3 +1,14 @@
+2001-08-22  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-get-old-input-default): Don't signal an error
+	if point is not on an input field; instead, return the current
+	line (using `comint-bol' to skip any prompt, in case we're not
+	using fields at all).
+
+	* man.el (Man-mode-line-format): Variable removed.
+	(Man-mode): Change `mode-line-buffer-identification' instead of
+	`mode-line-format'.
+
 2001-08-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/sendmail.el (mail-send-hook): Remove a duplicate defcustom.
