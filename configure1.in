@@ -578,8 +578,9 @@ case "${canonical}" in
   ;;
 
   ## Motorola Delta machines
-  m68*-motorola-sysv* )
+  m68k-motorola-sysv* | m68000-motorola-sysv* )
     machine=delta opsys=usg5-3
+    CC=gnucc
   ;;
   m88k-motorola-sysv4* )
     machine=delta88k opsys=usg5-4
