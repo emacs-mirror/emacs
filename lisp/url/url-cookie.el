@@ -332,14 +332,14 @@ telling Microsoft that.")
   (setq url-cookies-changed-since-last-save t)
   (let* ((args (url-parse-args str t))
 	 (case-fold-search t)
-	 (secure (and (assoc-ignore-case "secure" args) t))
-	 (domain (or (cdr-safe (assoc-ignore-case "domain" args))
+	 (secure (and (assoc-string "secure" args t) t))
+	 (domain (or (cdr-safe (assoc-string "domain" args t))
 		     (url-host url-current-object)))
 	 (current-url (url-view-url t))
 	 (trusted url-cookie-trusted-urls)
 	 (untrusted url-cookie-untrusted-urls)
-	 (expires (cdr-safe (assoc-ignore-case "expires" args)))
-	 (path (or (cdr-safe (assoc-ignore-case "path" args))
+	 (expires (cdr-safe (assoc-string "expires" args t)))
+	 (path (or (cdr-safe (assoc-string "path" args t))
 		   (file-name-directory
 		    (url-filename url-current-object))))
 	 (rest nil))
@@ -377,7 +377,7 @@ telling Microsoft that.")
 			      (match-string 3 expires) " "	; year
 			      (match-string 4 expires) ".00 " ; hour:minutes:seconds
 			      (match-string 6 expires)))) ":" ; timezone
-    
+
     (while (consp trusted)
       (if (string-match (car trusted) current-url)
 	  (setq trusted (- (match-end 0) (match-beginning 0)))
