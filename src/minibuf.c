@@ -319,13 +319,22 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
 }
 
 DEFUN ("minibufferp", Fminibufferp,
-       Sminibufferp, 0, 0, 0,
-       doc: /* Return t if the current buffer is a minibuffer.  */)
-     ()
+       Sminibufferp, 0, 1, 0,
+       doc: /* Return t if BUFFER is a minibuffer.
+No argument or nil as argument means use current buffer as BUFFER.*/)
+     (buffer)
+     Lisp_Object buffer;
 {
   Lisp_Object tem;
 
-  tem = Fmemq (Fcurrent_buffer (), Vminibuffer_list);
+  if (NILP (buffer))
+    buffer = Fcurrent_buffer ();
+  else if (STRINGP (buffer))
+    buffer = Fget_buffer (buffer);
+  else
+    CHECK_BUFFER (buffer);
+
+  tem = Fmemq (buffer, Vminibuffer_list);
   return ! NILP (tem) ? Qt : Qnil;
 }
 
