@@ -482,17 +482,18 @@ With argument, print output into current buffer."
 	    (print-level eval-expression-print-level)
 	    (beg (point))
 	    end)
-	(prin1 value)
-	(setq end (point))
-	(when (and (bufferp standard-output)
-		   (or (not (null print-length))
-		       (not (null print-level)))
-		   (not (string= unabbreviated
-				 (buffer-substring-no-properties beg end))))
-	  (last-sexp-setup-props beg end value 
-				 unabbreviated
-				 (buffer-substring-no-properties beg end))
-	  )))))
+	(prog1
+	    (prin1 value)
+	  (setq end (point))
+	  (when (and (bufferp standard-output)
+		     (or (not (null print-length))
+			 (not (null print-level)))
+		     (not (string= unabbreviated
+				   (buffer-substring-no-properties beg end))))
+	    (last-sexp-setup-props beg end value 
+				   unabbreviated
+				   (buffer-substring-no-properties beg end))
+	    ))))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
