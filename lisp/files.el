@@ -3239,7 +3239,7 @@ Before and after saving the buffer, this function runs
       (let ((coding-system-for-write save-buffer-coding-system))
 	(basic-save-buffer-2))
     (basic-save-buffer-2))
-  (setq explicit-buffer-file-coding-system last-coding-system-used))
+  (setq buffer-file-coding-system-explicit last-coding-system-used))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -3713,7 +3713,7 @@ non-nil, it is called instead of rereading visited file contents."
 			  ;; internal coding.
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
-				explicit-buffer-file-coding-system))))
+				buffer-file-coding-system-explicit))))
 		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.
