@@ -1,6 +1,6 @@
 ;;; mouse-sel.el --- multi-click selection support for Emacs 19
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2001 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: mouse
@@ -252,9 +252,15 @@ primary selection and region."
 	(mouse-sel-default-bindings
 	 ;;
 	 ;; Primary selection bindings.
-	 (global-unset-key [mouse-1])
-	 (global-unset-key [drag-mouse-1])
-	 (global-unset-key [mouse-3])
+
+	 ;; Bind keys to `ignore' instead of unsetting them because
+	 ;; modes my bind `down-mouse-1', for instance, without
+	 ;; binding other `up-mouse-1' or `mouse-1'.  If we unset
+	 ;; `mouse-1', this leads to a bitch_at_user when the mouse
+	 ;; goes up because no matching binding is found for that.
+	 (global-set-key [mouse-1] 'ignore)
+	 (global-set-key [drag-mouse-1] 'ignore)
+	 (global-set-key [mouse-3] 'ignore)
 	 (global-set-key [down-mouse-1]	'mouse-select)
 	 (unless (eq mouse-sel-default-bindings 'interprogram-cut-paste)
 	   (global-set-key [mouse-2]	'mouse-insert-selection)
@@ -263,9 +269,9 @@ primary selection and region."
 	 (global-set-key [down-mouse-3]	'mouse-extend)
 	 ;;
 	 ;; Secondary selection bindings.
-	 (global-unset-key [M-mouse-1])
-	 (global-unset-key [M-drag-mouse-1])
-	 (global-unset-key [M-mouse-3])
+	 (global-set-key [M-mouse-1] 'ignore)
+	 (global-set-key [M-drag-mouse-1] 'ignore)
+	 (global-set-key [M-mouse-3] 'ignore)
 	 (global-set-key [M-down-mouse-1]	'mouse-select-secondary)
 	 (global-set-key [M-mouse-2] 		'mouse-insert-secondary)
 	 (global-set-key [M-down-mouse-3] 	'mouse-extend-secondary))))
