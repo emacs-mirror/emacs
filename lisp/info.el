@@ -901,7 +901,6 @@ a case-insensitive match is tried."
       (while buffers
 	(kill-buffer (car buffers))
 	(setq buffers (cdr buffers)))
-      (if Info-fontify (Info-fontify-menu-headers))
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
@@ -2553,80 +2552,85 @@ the variable `Info-file-list-for-emacs'."
 			   'face 'info-menu-header)))))
 
 (defun Info-fontify-node ()
-  (save-excursion
-    (let ((buffer-read-only nil)
-	  (case-fold-search t))
-      (goto-char (point-min))
-      (when (looking-at "^File: [^,: \t]+,?[ \t]+")
-	(goto-char (match-end 0))
-	(while (looking-at "[ \t]*\\([^:, \t\n]+\\):[ \t]+\\([^:,\t\n]+\\),?")
+  ;; Only fontify the node if it hasn't already been done.  [We pass in
+  ;; LIMIT arg to `next-property-change' because it seems to search past
+  ;; (point-max).]
+  (unless (< (next-property-change (point-min) nil (point-max))
+	     (point-max))
+    (save-excursion
+      (let ((buffer-read-only nil)
+	    (case-fold-search t))
+	(goto-char (point-min))
+	(when (looking-at "^File: [^,: \t]+,?[ \t]+")
 	  (goto-char (match-end 0))
-	  (let* ((nbeg (match-beginning 2))
-		 (nend (match-end 2))
-		 (tbeg (match-beginning 1))
-		 (tag (buffer-substring tbeg (match-end 1))))
-	    (if (string-equal tag "Node")
-		(put-text-property nbeg nend 'face 'info-header-node)
-	      (put-text-property nbeg nend 'face 'info-header-xref)
-	      (put-text-property nbeg nend 'mouse-face 'highlight)
-	      (put-text-property tbeg nend
-				 'help-echo
-				 (concat "Go to node "
-					 (buffer-substring nbeg nend)))
-	      (let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
-					   ("Next" . Info-next)
-					   ("Up" . Info-up))))))
-		(when fun
-		  (let ((keymap (make-sparse-keymap)))
-		    (define-key keymap [header-line mouse-1] fun)
-		    (define-key keymap [header-line mouse-2] fun)
-		    (put-text-property tbeg nend 'local-map keymap))))
-	      ))))
-      (goto-char (point-min))
-      (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
-				nil t)
-	(let ((c (preceding-char))
-	      face)
-	  (cond ((= c ?*) (setq face 'Info-title-1-face))
-		((= c ?=) (setq face 'Info-title-2-face))
-		((= c ?-) (setq face 'Info-title-3-face))
-		(t        (setq face 'Info-title-4-face)))
-	  (put-text-property (match-beginning 1) (match-end 1)
-			     'face face))
-	;; This is a serious problem for trying to handle multiple
-	;; frame types at once.  We want this text to be invisible
-	;; on frames that can display the font above.
-	(when (memq (framep (selected-frame)) '(x pc w32 mac))
-	  (add-text-properties (match-end 1) (match-end 2)
-			       '(invisible t intangible t))
-	  (add-text-properties (1- (match-end 1)) (match-end 2)
-			       '(intangible t))))
-      (goto-char (point-min))
-      (while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
-	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack
-	    nil
-	  (add-text-properties (match-beginning 1) (match-end 1)
-			       '(face info-xref
-				 mouse-face highlight
-				 help-echo "mouse-2: go to this node"))))
-      (goto-char (point-min))
-      (if (and (search-forward "\n* Menu:" nil t)
-	       (not (string-match "\\<Index\\>" Info-current-node))
-	       ;; Don't take time to annotate huge menus
-	       (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
-	  (let ((n 0))
-	    (while (re-search-forward "^\\* +\\([^:\t\n]*\\):" nil t)
-	      (setq n (1+ n))
-	      (if (memq n '(5 9))	; visual aids to help with 1-9 keys
-		  (put-text-property (match-beginning 0)
-				     (1+ (match-beginning 0))
-				     'face 'info-menu-5))
-	      (add-text-properties (match-beginning 1) (match-end 1)
-				   '(face info-xref
-				     mouse-face highlight
-				     help-echo "mouse-2: go to this node")))))
-      (Info-fontify-menu-headers)
-      (set-buffer-modified-p nil))))
+	  (while (looking-at "[ \t]*\\([^:, \t\n]+\\):[ \t]+\\([^:,\t\n]+\\),?")
+	    (goto-char (match-end 0))
+	    (let* ((nbeg (match-beginning 2))
+		   (nend (match-end 2))
+		   (tbeg (match-beginning 1))
+		   (tag (buffer-substring tbeg (match-end 1))))
+	      (if (string-equal tag "Node")
+		  (put-text-property nbeg nend 'face 'info-header-node)
+		(put-text-property nbeg nend 'face 'info-header-xref)
+		(put-text-property nbeg nend 'mouse-face 'highlight)
+		(put-text-property tbeg nend
+				   'help-echo
+				   (concat "Go to node "
+					   (buffer-substring nbeg nend)))
+		(let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
+					     ("Next" . Info-next)
+					     ("Up" . Info-up))))))
+		  (when fun
+		    (let ((keymap (make-sparse-keymap)))
+		      (define-key keymap [header-line mouse-1] fun)
+		      (define-key keymap [header-line mouse-2] fun)
+		      (put-text-property tbeg nend 'local-map keymap))))
+		))))
+	(goto-char (point-min))
+	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
+				  nil t)
+	  (let ((c (preceding-char))
+		face)
+	    (cond ((= c ?*) (setq face 'Info-title-1-face))
+		  ((= c ?=) (setq face 'Info-title-2-face))
+		  ((= c ?-) (setq face 'Info-title-3-face))
+		  (t        (setq face 'Info-title-4-face)))
+	    (put-text-property (match-beginning 1) (match-end 1)
+			       'face face))
+	  ;; This is a serious problem for trying to handle multiple
+	  ;; frame types at once.  We want this text to be invisible
+	  ;; on frames that can display the font above.
+	  (when (memq (framep (selected-frame)) '(x pc w32 mac))
+	    (add-text-properties (match-end 1) (match-end 2)
+				 '(invisible t intangible t))
+	    (add-text-properties (1- (match-end 1)) (match-end 2)
+				 '(intangible t))))
+	(goto-char (point-min))
+	(while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
+	  (if (= (char-after (1- (match-beginning 0))) ?\") ; hack
+	      nil
+	    (add-text-properties (match-beginning 1) (match-end 1)
+				 '(face info-xref
+				   mouse-face highlight
+				   help-echo "mouse-2: go to this node"))))
+	(goto-char (point-min))
+	(if (and (search-forward "\n* Menu:" nil t)
+		 (not (string-match "\\<Index\\>" Info-current-node))
+		 ;; Don't take time to annotate huge menus
+		 (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
+	    (let ((n 0))
+	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\):" nil t)
+		(setq n (1+ n))
+		(if (memq n '(5 9))	; visual aids to help with 1-9 keys
+		    (put-text-property (match-beginning 0)
+				       (1+ (match-beginning 0))
+				       'face 'info-menu-5))
+		(add-text-properties (match-beginning 1) (match-end 1)
+				     '(face info-xref
+				       mouse-face highlight
+				       help-echo "mouse-2: go to this node")))))
+	(Info-fontify-menu-headers)
+	(set-buffer-modified-p nil)))))
 
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
