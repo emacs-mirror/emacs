@@ -868,9 +868,9 @@ window_box_edges (w, area, top_left_x, top_left_y,
    character.  */
 
 static INLINE int
-string_char_and_length (str, max_len, len)
+string_char_and_length (str, maxlen, len)
      unsigned char *str;
-     int max_len, *len;
+     int maxlen, *len;
 {
   int c;
 
