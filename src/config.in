@@ -45,7 +45,7 @@ and this notice must be preserved on all copies.  */
 
 /* Define USE_TEXT_PROPERTIES to support visual and other properties
    on text. */
-/* #define USE_TEXT_PROPERTIES */
+#define USE_TEXT_PROPERTIES
 
 /* Define USER_FULL_NAME to return a string
    that is the user's full name.
@@ -170,6 +170,23 @@ and this notice must be preserved on all copies.  */
    did not already do so.  */
 #ifndef SIGTYPE
 #define SIGTYPE void
+#endif
+
+/* If it doesn't seem that the compiler we're using supports the
+   `const' qualifier, then the `configure' script will remove this
+   line.  Some of the files that Emacs shares with other applications
+   (regex.h, getdate.y, etcetera) assume that const is defined.  The
+   rule seems to be that if a system has a config.h file, that file
+   should take care of #defining const away if necessary.  */
+#define HAVE_CONST
+
+#ifndef HAVE_CONST
+#define const
+#endif
+
+/* Non-ANSI C compilers don't have volatile.  */
+#ifndef __STDC__
+#define volatile
 #endif
 
 #ifndef THIS_IS_YMAKEFILE
