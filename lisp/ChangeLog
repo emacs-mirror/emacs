@@ -1,5 +1,8 @@
 2004-04-20  Juanma Barranquero  <lektu@terra.es>
 
+	* vc-svn.el (vc-svn-print-log, vc-svn-diff): Add optional BUFFER
+	arg.  Copied from Andre Spiegel's patch of 2004-03-21.
+
 	* calendar/time-date.el (time-to-day-in-year): Fix docstring.
 
 2004-04-20  Kenichi Handa  <handa@m17n.org>
