@@ -894,7 +894,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 ;; entries for the same term in some cases.  --fx
 (info-lookup-maybe-add-help
  :mode 'cfengine-mode
- :regexp "[[:alnum:]_]+\\(:?()\\)?"
+ :regexp "[[:alnum:]_]+\\(?:()\\)?"
  :doc-spec '(("(cfengine-Reference)Variable Index"
 	      (lambda (item)
 		;; Index entries may be like `IsPlain()'
