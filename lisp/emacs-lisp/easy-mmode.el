@@ -283,6 +283,7 @@ in which `%s' turns it on."
 	   (easy-mmode-set-keymap-parents m parents)
 	   m))))))
 
+;;;###autoload
 (defun easy-mmode-define-keymap (bs &optional name m args)
   "Return a keymap built from bindings BS.
 BS must be a list of (KEY . BINDING) where
@@ -322,11 +323,9 @@ ARGS is a list of additional arguments."
 
 ;;;###autoload
 (defmacro easy-mmode-defmap (m bs doc &rest args)
-  `(progn
-     (autoload 'easy-mmode-define-keymap "easy-mmode")
-     (defconst ,m
-       (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
-       ,doc)))
+  `(defconst ,m
+     (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
+     ,doc))
 
 
 ;;;
