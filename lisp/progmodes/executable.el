@@ -101,19 +101,20 @@ This can be included in `font-lock-keywords' by modes that call `executable'.")
   "Alist of regexps used to match script errors.
 See `compilation-error-regexp-alist'.")
 
-;; The C function openp() slightly modified would do the trick fine
-(defun executable (command)
-  "If COMMAND is an executable in $PATH its full name is returned.  Else nil."
+;; The C function openp slightly modified would do the trick fine
+(defun executable-find (command)
+  "Search for COMMAND in $PATH and return the absolute file name.
+Return nil if COMMAND is not found anywhere in $PATH."
   (let ((list exec-path)
-	path)
+	file)
     (while list
-      (setq list (if (and (setq path (expand-file-name command (car list)))
-			  (file-executable-p path)
-			  (not (file-directory-p path)))
+      (setq list (if (and (setq file (expand-file-name command (car list)))
+			  (file-executable-p file)
+			  (not (file-directory-p file)))
 		     nil
-		   (setq path nil)
+		   (setq file nil)
 		   (cdr list))))
-    path))
+    file))
 
 
 (defun executable-chmod ()
@@ -148,17 +149,21 @@ to find the next error."
 
 
 ;;;###autoload
-(defun executable-set-magic (interpreter &optional argument)
+(defun executable-set-magic (interpreter &optional argument
+					 no-query-flag insert-flag)
   "Set this buffer's interpreter to INTERPRETER with optional ARGUMENT.
 The variables `executable-magicless-file-regexp', `executable-prefix',
 `executable-insert', `executable-query' and `executable-chmod' control
 when and how magic numbers are inserted or replaced and scripts made
 executable."
-  (interactive "sName or path of interpreter: \nsArgument for %s: ")
+  (interactive
+   (let* ((name (read-string "Name or file name of interpreter: "))
+	  (arg (read-string (format "Argument for %s: " name))))
+     (list name arg (eq executable-query 'function) t)))
   (setq interpreter (if (file-name-absolute-p interpreter)
 			interpreter
-		      (or (executable interpreter)
-			  (error "Cannot find %s." interpreter)))
+		      (or (executable-find interpreter)
+			  (error "Interpreter %s not recognized" interpreter)))
 	argument (concat interpreter
 			 (and argument (string< "" argument) " ")
 			 argument))
@@ -166,36 +171,34 @@ executable."
       (if buffer-file-name
 	  (string-match executable-magicless-file-regexp
 			buffer-file-name))
-      (not (or (eq this-command 'executable-set-magic)
-	       executable-insert))
+      (not (or insert-flag executable-insert))
       (> (point-min) 1)
-      (let ((point (point-marker))
-	    (buffer-modified-p (buffer-modified-p)))
-	(goto-char (point-min))
-	(make-local-hook 'after-save-hook)
-	(add-hook 'after-save-hook 'executable-chmod nil t)
-	(if (looking-at "#![ \t]*\\(.*\\)$")
-	    (and (goto-char (match-beginning 1))
-		 (not (string= argument
-			       (buffer-substring (point) (match-end 1))))
-		 (save-window-excursion
-		   ;; make buffer visible before question or message
-		   (switch-to-buffer (current-buffer))
-		   (if (or (not executable-query)
-			   (and (eq executable-query 'function)
-				(eq this-command 'executable-set-magic)))
-		       (message "%s Magic number ``%s'' replaced." this-command
-				(buffer-substring (point-min) (match-end 1)))
-		     (y-or-n-p (concat "Replace magic number by ``"
-				       executable-prefix argument "''? "))))
-		 (not (delete-region (point) (match-end 1)))
-		 (insert argument))
-	  (insert executable-prefix argument ?\n))
-	(or (< (marker-position point) (point))
-	    (goto-char point))
-	(or (eq this-command 'executable-set-magic))
-	    (eq executable-insert t)
-	    (set-buffer-modified-p buffer-modified-p)))
+      (save-excursion
+	(let ((point (point-marker))
+	      (buffer-modified-p (buffer-modified-p)))
+	  (goto-char (point-min))
+	  (make-local-hook 'after-save-hook)
+	  (add-hook 'after-save-hook 'executable-chmod nil t)
+	  (if (looking-at "#![ \t]*\\(.*\\)$")
+	      (and (goto-char (match-beginning 1))
+		   (not (string= argument
+				 (buffer-substring (point) (match-end 1))))
+		   (or (not executable-query) no-query-flag
+		       (save-window-excursion
+			 ;; Make buffer visible before question.
+			 (switch-to-buffer (current-buffer))
+			 (y-or-n-p (concat "Replace magic number by `"
+					   executable-prefix argument "'? "))))
+		   (progn
+		     (replace-match argument t t nil 1)
+		     (message "Magic number changed to `%s'"
+			      (concat executable-prefix argument))))
+	    (insert executable-prefix argument ?\n)
+	    (message "Magic number changed to `%s'"
+		     (concat executable-prefix argument)))
+	  (or insert-flag
+	      (eq executable-insert t)
+	      (set-buffer-modified-p buffer-modified-p)))))
   interpreter)
 
 
