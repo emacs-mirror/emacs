@@ -8,11 +8,6 @@
 	* macterm.h (struct mac_output): Define x_pixels_diff and
 	y_pixels_diff.
 	
-2003-04-01  Kim F. Storm  <storm@cua.dk>
-
-	* Makefile.in (frame.o): Add dependency on blockinput.h and files
-	included from it (atimer.h and systime.h).
-
 2003-03-31  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in ($(BLD)/frame.$(O)): Add dependency on
@@ -170,6 +165,9 @@
 
 	* macterm.c: Remove unnecessary extern declarations.
 	(x_redisplay_interface): Add mac_frame_parm_handlers member.
+
+	* Makefile.in (frame.o): Add dependency on blockinput.h and files
+	included from it (atimer.h and systime.h).
 
 2003-03-30  Andreas Schwab  <schwab@suse.de>
 
