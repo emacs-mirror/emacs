@@ -1,3 +1,11 @@
+2004-05-30  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-current-frame, gud-watch)
+	(gdb-locals-mode, gdb-frame-handler): Display current frame in the
+	modeline of the locals buffer.
+	(gdb-goto-breakpoint): Handle gdbmi.
+	(gdb-get-frame-number): Change for gdbmi.
+
 2004-05-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-remote-p): Apply file name handler for operation
