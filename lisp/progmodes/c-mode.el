@@ -1137,6 +1137,13 @@ If within a string or comment, move by sentences instead of statements."
 	    (if (= (following-char) ?})
 		(setq this-indent (- this-indent c-indent-level)))
 	    (if (= (following-char) ?{)
+		;; Don't move an open-brace in column 0.
+		;; This is good when constructs such as
+		;; `extern "C" {' surround a function definition
+		;; that should be indented as usual.
+		;; It is also good for nested functions.
+		;; It is bad when an open-brace is indented at column 0
+		;; and you want to fix that, but we can't win 'em all.
 		(if (zerop (current-column))
 		    (setq this-indent 0)
 		  (setq this-indent (+ this-indent c-brace-offset))))
