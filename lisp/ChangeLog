@@ -3,6 +3,12 @@
 	* startup.el (fancy-splash-screens): Set buffer-undo-list to t.
 	Use fancy-splash-delay.
 
+2000-10-18  Alex Schroeder  <alex@gnu.org>
+
+	* progmodes/sql.el (sql-sybase-options): New option.
+	(sql-sybase): Use it.  Add sql-database to the list of parameters
+	provided for login.  The options -w 2048 -n are not used any more.
+
 2000-10-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Internal variable changes to defcustom,
