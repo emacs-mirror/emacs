@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.32) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.33) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -20,6 +20,7 @@ SW  = <assert> <ring> <mpm> \
       <thnti3> <ssnti3> <mpsisw> <mpsint> <ld> <poolepdl> \
       <action> <seg>
 AMC = <amc>
+AWL = <poolawl>
 LO = <lo>
 MRG = <poolmrg>
 DW  = <dw> <fmtdy>
@@ -48,6 +49,8 @@ SWOBJ0 = $(SW:<=nti3mv\df\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\df\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=nti3mv\df\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\df\)
 LOOBJ = $(LOOBJ0:>=.obj)
 MRGOBJ0 = $(MRG:<=nti3mv\df\)
@@ -67,6 +70,8 @@ SWOBJ0 = $(SW:<=nti3mv\dp\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\dp\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=nti3mv\dp\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\dp\)
 LOOBJ = $(LOOBJ0:>=.obj)
 MRGOBJ0 = $(MRG:<=nti3mv\dp\)
@@ -86,6 +91,8 @@ SWOBJ0 = $(SW:<=nti3mv\ds\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\ds\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=nti3mv\ds\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\ds\)
 LOOBJ = $(LOOBJ0:>=.obj)
 MRGOBJ0 = $(MRG:<=nti3mv\ds\)
@@ -105,6 +112,8 @@ SWOBJ0 = $(SW:<=nti3mv\dl\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\dl\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=nti3mv\dl\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\dl\)
 LOOBJ = $(LOOBJ0:>=.obj)
 MRGOBJ0 = $(MRG:<=nti3mv\dl\)
@@ -124,6 +133,8 @@ SWOBJ0 = $(SW:<=nti3mv\ro\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\ro\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=nti3mv\ro\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\ro\)
 LOOBJ = $(LOOBJ0:>=.obj)
 MRGOBJ0 = $(MRG:<=nti3mv\ro\)
@@ -141,6 +152,8 @@ MPMOBJ0 = $(MPM:<=nti3mv\cv\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 AMCOBJ0 = $(AMC:<=nti3mv\cv\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=nti3mv\cv\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
 LOOBJ0 = $(LO:<=nti3mv\cv\)
 LOOBJ = $(LOOBJ0:>=.obj)
 MRGOBJ0 = $(MRG:<=nti3mv\cv\)
