@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.225 1998/05/02 16:41:08 spiegel Exp rms $
+;; $Id: vc.el,v 1.226 1998/05/16 03:44:16 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -2120,8 +2120,7 @@ default directory."
 	(changelog (find-change-log))
 	;; Presumably not portable to non-Unixy systems, along with rcs2log:
 	(tempfile (make-temp-name
-		   (concat (file-name-as-directory system-tmp-directory) 
-			   "vc")))
+		   (expand-file-name "vc" temporary-file-directory)))
 	(full-name (or add-log-full-name
 		       (user-full-name)
 		       (user-login-name)
