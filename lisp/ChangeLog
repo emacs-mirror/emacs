@@ -1,3 +1,32 @@
+2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/goto-addr.el (goto-address-mail-regexp): Allow + in username.
+
+	* help-mode.el (help-buffer): New function.
+	Returns the buffer-name to use for help output.
+	Change all the code to use it instead of hard-coding *Help*.
+	(help-mode-map): Put back the mouse-2 binding.
+	(help-xref-stack): Change the format and make buffer-local.
+	(help-xref-stack-item): Make buffer-local.
+	(help-setup-xref): Do the `push' here rather than in help-do-xref.
+	(help-xref-interned): Display the face doc as well.
+	(help-follow-mouse): Re-introduce.
+	(help-xref-go-back): Adapt to the new use of help-xref-stack.
+	(help-do-xref): Don't `push' any more.
+	(help-follow): Also follow face names.
+
+	* help-funs.el (describe-function-1): Remove unused `parens' arg.
+	Don't call help-setup-xref anymore and remove its `interactive-p' arg.
+	Autoload and cleanup.
+	(describe-function): Call help-setup-xref.
+	(describe-variable): Call help-setup-xref earlier.
+
+	* help.el (describe-bindings-internal): New fun moved from keymap.c.
+	(view-lossage): Call help-setup-xref correctly and earlier.
+	(describe-bindings): Call help-setup-xref earlier.
+	(describe-key): Call help-setup-xref.  Fix call to describe-function-1.
+	(describe-mode): Don't autoload.  Call help-setup-xref earlier.
+
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* master.el (master-mode): Use define-minor-mode instead of
@@ -15,13 +44,13 @@
 
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-display-log-head-p): New
-	function extracted from byte-compile-log-1.
-	(byte-compile-log-1): Change output to be more in line with 
+	* emacs-lisp/bytecomp.el (byte-compile-display-log-head-p):
+	New function extracted from byte-compile-log-1.
+	(byte-compile-log-1): Change output to be more in line with
 	the output of other GNU tools.
 	(byte-compile-warn): Emit `warning' instead of `**' for warnings.
-	(byte-compile-report-error): Downcase error message.  Use 
-	`error' instead of `!!' for error messages.
+	(byte-compile-report-error): Downcase error message.
+	Use `error' instead of `!!' for error messages.
 	(byte-compile-print-syms): Treat non-interactive case specially.
 	(displaying-byte-compile-warnings): Use backquote.
 	(byte-compile-from-buffer): Bind byte-compile-last-line.

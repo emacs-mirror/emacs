@@ -1,3 +1,14 @@
+2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.h (struct gl_state_s): Change the meaning of b_property.
+	Remove left_ok and right_ok.
+	(UPDATE_SYNTAX_TABLE_BACKWARD, UPDATE_SYNTAX_TABLE)
+	(SETUP_SYNTAX_TABLE, SETUP_SYNTAX_TABLE_FOR_OBJECT): Update to the
+	new meaning of b_property.
+
+	* syntax.c (update_syntax_table): Simplify.
+	(Fforward_comment): Don't skip quoted chars when going backward.
+
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (Fuser_uid, Fuser_real_uid): Use make_fixnum_or_float.
@@ -6,7 +17,7 @@
 	* data.c (Fstring_to_number): Use make_fixnum_or_float.
 
 	* lisp.h (make_fixnum_or_float): New macro.
-	
+
 	* lisp.h (circular_list_error): Add prototype.
 
 	* data.c (Qcircular_list): New variable.
