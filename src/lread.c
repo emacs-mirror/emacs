@@ -361,12 +361,16 @@ Return t if file exists.")
 #endif /* DOS_NT */
 
   CHECK_STRING (str, 0);
-  str = Fsubstitute_in_file_name (str);
 
   /* If file name is magic, call the handler.  */
   handler = Ffind_file_name_handler (str, Qload);
   if (!NILP (handler))
     return call5 (handler, Qload, str, noerror, nomessage, nosuffix);
+
+  /* Do this after the handler to avoid
+     the need to gcpro noerror, nomessage and nosuffix.
+     (Below here, we care only whether they are nil or not.)  */
+  str = Fsubstitute_in_file_name (str);
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
