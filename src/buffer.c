@@ -5259,8 +5259,13 @@ A value of nil means don't display a mode line.
 For a symbol, its value is used (but it is ignored if t or nil).
  A string appearing directly as the value of a symbol is processed verbatim
  in that the %-constructs below are not recognized.
+ Note that unless the symbol is marked as a `risky-local-variable', all
+ properties in any strings, as well as all :eval and :propertize forms 
+ in the value of that symbol will be ignored.
 For a list of the form `(:eval FORM)', FORM is evaluated and the result
  is used as a mode line element.
+For a list of the form `(:propertize ELT PROPS...)', ELT is displayed
+ with the specified properties PROPS applied.
 For a list whose car is a symbol, the symbol's value is taken,
  and if that is non-nil, the cadr of the list is processed recursively.
  Otherwise, the caddr of the list (if there is one) is processed.
