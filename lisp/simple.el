@@ -60,7 +60,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   ;; try_window_id than inserting at the beginning of a line, and the textual
   ;; result is the same.  So, if we're at beginning of line, pretend to be at
   ;; the end of the previous line.
-  (let ((flag (and (not (bobp)) 
+  (let ((flag (and (not (bobp))
 		   (bolp)
 		   ;; Make sure no functions want to be told about
 		   ;; the range of the changes.
@@ -85,7 +85,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 		   (not (get-char-property (1- (point)) 'invisible))
 		   ;; Make sure the newline before point has the same
 		   ;; properties as the char before it (if any).
-		   (< (or (previous-property-change (point)) -2) 
+		   (< (or (previous-property-change (point)) -2)
 		      (- (point) 2))))
 	(was-page-start (and (bolp)
 			     (looking-at page-delimiter)))
@@ -932,7 +932,7 @@ that apply to text between BEG and END are used; other undo elements
 are ignored.  If BEG and END are nil, all undo elements are used."
   (if (eq buffer-undo-list t)
       (error "No undo information in this buffer"))
-  (setq pending-undo-list 
+  (setq pending-undo-list
 	(if (and beg end (not (= beg end)))
 	    (undo-make-selective-list (min beg end) (max beg end))
 	  buffer-undo-list)))
@@ -993,7 +993,7 @@ we stop and ignore all further elements."
 			 (let ((text-pos (abs (cdr undo-elt)))
 			       (point-at-end (< (cdr undo-elt) 0 )))
 			   (if (>= text-pos position)
-			       (setcdr undo-elt (* (if point-at-end -1 1) 
+			       (setcdr undo-elt (* (if point-at-end -1 1)
 						   (- text-pos offset))))))
 			((integerp (car undo-elt))
 			 ;; (BEGIN . END)
@@ -1136,7 +1136,7 @@ specifies the value of ERROR-BUFFER."
       (if (and output-buffer
 	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
 	  (let ((error-file
-		 (if error-buffer 
+		 (if error-buffer
 		     (make-temp-file
 		      (expand-file-name "scor"
 					(or small-temporary-file-directory
@@ -1149,7 +1149,7 @@ specifies the value of ERROR-BUFFER."
 	    ;; "if ($?prompt) exit" before things which are not useful
 	    ;; non-interactively.  Besides, if someone wants their other
 	    ;; aliases for shell commands then they can still have them.
-	    (call-process shell-file-name nil 
+	    (call-process shell-file-name nil
 			  (if error-file
 			      (list t error-file)
 			    t)
@@ -1197,7 +1197,7 @@ specifies the value of ERROR-BUFFER."
 		  (erase-buffer)
 		  (display-buffer buffer)
 		  (setq default-directory directory)
-		  (setq proc (start-process "Shell" buffer shell-file-name 
+		  (setq proc (start-process "Shell" buffer shell-file-name
 					    shell-command-switch command))
 		  (setq mode-line-process '(":%s"))
 		  (require 'shell) (shell-mode)
@@ -1210,7 +1210,7 @@ specifies the value of ERROR-BUFFER."
 ;; in the buffer itself.
 (defun shell-command-sentinel (process signal)
   (if (memq (process-status process) '(exit signal))
-      (message "%s: %s." 
+      (message "%s: %s."
 	       (car (cdr (cdr (process-command process))))
 	       (substring signal 0 -1))))
 
@@ -1312,7 +1312,7 @@ specifies the value of ERROR-BUFFER."
 		       (delete-region (point-min) (min start end))
 		       (setq exit-status
 			     (call-process-region (point-min) (point-max)
-						  shell-file-name t 
+						  shell-file-name t
 						  (if error-file
 						      (list t error-file)
 						    t)
@@ -1356,7 +1356,7 @@ specifies the value of ERROR-BUFFER."
 			      (goto-char (point-min))
 			      (buffer-substring (point)
 						(progn (end-of-line) (point))))))
-		  (t 
+		  (t
 		   (save-excursion
 		     (set-buffer buffer)
 		     (goto-char (point-min)))
@@ -1376,7 +1376,7 @@ specifies the value of ERROR-BUFFER."
 	    (display-buffer (current-buffer))))
       (delete-file error-file))
     exit-status))
-       
+
 (defun shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string."
   (with-output-to-string
@@ -1576,7 +1576,7 @@ it."
 If N is zero, `interprogram-paste-function' is set, and calling it
 returns a string, then that string is added to the front of the
 kill ring and returned as the latest kill.
-If optional arg DO-NOT-MOVE is non-nil, then don't actually move the 
+If optional arg DO-NOT-MOVE is non-nil, then don't actually move the
 yanking point; just return the Nth kill forward."
   (let ((interprogram-paste (and (= n 0)
 				 interprogram-paste-function
@@ -1682,7 +1682,7 @@ system cut and paste."
   (if (eq last-command 'kill-region)
       (kill-append (buffer-substring beg end) (< end beg))
     (kill-new (buffer-substring beg end)))
-  (if transient-mark-mode 
+  (if transient-mark-mode
       (setq deactivate-mark t))
   nil)
 
@@ -1822,10 +1822,11 @@ With argument, rotate that many kills forward (or backward, if negative)."
 
 (defcustom backward-delete-char-untabify-method 'untabify
   "*The method for untabifying when deleting backward.
-Can be `untabify' -- turn a tab to many spaces, then delete one space.
-       `hungry' -- delete all whitespace, both tabs and spaces.
+Can be `untabify' -- turn a tab to many spaces, then delete one space;
+       `hungry' -- delete all whitespace, both tabs and spaces;
+       `all' -- delete all whitespace, including tabs, spaces and newlines;
        nil -- just delete one character."
-  :type '(choice (const untabify) (const hungry) (const nil))
+  :type '(choice (const untabify) (const hungry) (const all) (const nil))
   :group 'killing)
 
 (defun backward-delete-char-untabify (arg &optional killp)
@@ -1848,11 +1849,14 @@ and KILLP is t if a prefix arg was specified."
 	  (forward-char -1)
 	  (setq count (1- count))))))
   (delete-backward-char
-   (if (eq backward-delete-char-untabify-method 'hungry)
-       (let ((wh (- (point) (save-excursion (skip-chars-backward " \t")
+   (let ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
+                     ((eq backward-delete-char-untabify-method 'all)
+                      " \t\n\r"))))
+     (if skip
+         (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
 					    (point)))))
 	 (+ arg (if (zerop wh) 0 (1- wh))))
-     arg)
+         arg))
    killp))
 
 (defun zap-to-char (arg char)
@@ -2714,7 +2718,7 @@ If nil, use `comment-end' instead."
             (delete-region (point) begpos)
             (indent-to indent))
           ;; An existing comment?
-          (if cpos 
+          (if cpos
               (progn (goto-char cpos)
                      (set-marker cpos nil))
             ;; No, insert one.
@@ -2973,7 +2977,7 @@ Setting this variable automatically makes it local to the current buffer.")
 	    (null (setq fc (current-fill-column)))
 	    (and (eq justify 'left)
 		 (<= (current-column) fc))
-	    (save-excursion (beginning-of-line) 
+	    (save-excursion (beginning-of-line)
 			    (setq bol (point))
 			    (and auto-fill-inhibit-regexp
 				 (looking-at auto-fill-inhibit-regexp))))
@@ -3087,7 +3091,7 @@ Setting this variable automatically makes it local to the current buffer.")
 		    (funcall comment-line-break-function t)))
 		;; Now do justification, if required
 		(if (not (eq justify 'left))
-		    (save-excursion 
+		    (save-excursion
 		      (end-of-line 0)
 		      (justify-current-line justify nil t)))
 		;; If making the new line didn't reduce the hpos of
@@ -3099,7 +3103,7 @@ Setting this variable automatically makes it local to the current buffer.")
 	    (setq give-up t))))
       ;; Justify last line.
       (justify-current-line justify t t)
-      t))) 
+      t)))
 
 (defvar normal-auto-fill-function 'do-auto-fill
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
@@ -3164,7 +3168,7 @@ If you want to continue one comment across several lines, use \\[newline-and-ind
 If a fill column is specified, it overrides the use of the comment column
 or comment indentation.
 
-The inserted newline is marked hard if `use-hard-newlines' is true, 
+The inserted newline is marked hard if `use-hard-newlines' is true,
 unless optional argument SOFT is non-nil."
   (interactive)
   (let (comcol comstart)
@@ -3698,7 +3702,7 @@ in the definition is used to check that VALUE is valid."
       (require 'wid-edit)
       (setq type (widget-convert type))
       (unless (widget-apply type :match val)
-	(error "Value `%S' does not match type %S of %S" 
+	(error "Value `%S' does not match type %S of %S"
 	       val (car type) var))))
   (set var val))
 
@@ -4031,9 +4035,9 @@ PREFIX is the string that represents this modifier in an event type symbol."
    (kp-divide ?/)
    (kp-equal ?=)))
 
-;;;; 
+;;;;
 ;;;; forking a twin copy of a buffer.
-;;;; 
+;;;;
 
 (defvar clone-buffer-hook nil
   "Normal hook to run in the new buffer at the end of `clone-buffer'.")

@@ -1,3 +1,9 @@
+1998-11-03  Sam Steingold  <sds@goems.com>
+ 
+	* simple.el (backward-delete-char-untabify):
+	backward-delete-char-untabify-method can be `all' now - to delete
+	hungrily including newlines.
+ 
 1999-11-15  Sam Steingold  <sds@ksp.com>
 
 	* mail/rnews.el, mail/mh-utils.el: Use the new backquote syntax.
