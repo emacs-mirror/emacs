@@ -39,6 +39,36 @@ that scrollbar position."
   (truncate (/ (* (float (car num-denom)) whole) (cdr num-denom))))
 
 
+;;;; Helpful functions for enabling and disabling scroll bars.
+(defvar scroll-bar-mode nil)
+
+(defun scroll-bar-mode (flag)
+  "Toggle display of vertical scroll bars on each frame.
+This command applies to all frames that exist and frames to be
+created in the future.
+With a numeric argument, if the argument is negative,
+turn off scroll bars; otherwise, turn on scroll bars."
+  (interactive "P")
+  (setq scroll-bar-mode (if (null flag) (not scroll-bar-mode)
+			  (or (not (numberp flag)) (>= flag 0))))
+  (mapcar
+   (function
+    (lambda (param-name)
+      (let ((parameter (assq param-name default-frame-alist)))
+	(if (consp parameter)
+	    (setcdr parameter scroll-bar-mode)
+	  (setq default-frame-alist
+		(cons (cons param-name scroll-bar-mode)
+		      default-frame-alist))))))
+   '(vertical-scrollbars horizontal-scrollbars))
+  (let ((frames (frame-list)))
+    (while frames
+      (modify-frame-parameters
+       (car frames)
+       (list (cons 'vertical-scrollbars scroll-bar-mode)
+	     (cons 'horizontal-scrollbars scroll-bar-mode)))
+      (setq frames (cdr frames)))))
+
 ;;;; Buffer navigation using the scrollbar.
 
 (defun scrollbar-set-window-start (event)

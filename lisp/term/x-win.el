@@ -415,25 +415,6 @@ This returns ARGS with the arguments that have been processed removed."
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
 
-(defvar scroll-bar-mode nil)
-
-;;; ??? x-create-screen needs to be changed to use scroll-bar-mode
-;;; to decide (by default) whether to make a scroll bar.
-(defun scroll-bar-mode (flag)
-  "Toggle display of vertical scroll bars on each frame.
-This command applies to all frames that exist and frames to be
-created in the future.
-With a numeric argument, if the argument is negative,
-turn off scroll bars; otherwise, turn on scroll bars."
-  (interactive "P")
-  (setq scroll-bar-mode (if (null flag) (not scroll-bar-mode)
-			  (or (not (numberp flag)) (>= flag 0))))
-  (let ((frames (frame-list)))
-    (while frames
-      (modify-frame-parameters (car frames)
-			       (list (cons 'vertical-scrollbar scroll-bar-mode)))
-      (setq frames (cdr frames)))))
-
 ;;;; Function keys
 
 ;;; Give some common function keys reasonable definitions.
