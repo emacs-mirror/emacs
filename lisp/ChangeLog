@@ -1,3 +1,7 @@
+2004-04-28  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-context-lines): Default now 0.
+
 2004-04-28  Juanma Barranquero  <lektu@terra.es>
 
 	Use `time-less-p' from calendar/time-date.el instead of defining
