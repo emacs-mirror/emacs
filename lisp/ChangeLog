@@ -1,5 +1,14 @@
 2001-10-07  Miles Bader  <miles@gnu.org>
 
+	* woman.el (woman-mode-map): Copy button-buffer-map instead of
+	making a new keymap.  Don't bind mouse-2.  Bind M-mouse-2 to
+	`woman-follow-word' instead of `woman-mouse-2'.
+	(woman-follow-word): Renamed from `woman-mouse-2'.
+	Follow current unconditionally, since this function is now only
+	bound to M-mouse-2.  Use accessor functions.
+	(WoMan-highlight-references): Use `make-text-button'.
+	(woman-xref): New button type.
+
 	* loadup.el ("faces"): Move load before loading "loaddefs.el".
 	("button"): New load, just before "help" (which uses it).
 
