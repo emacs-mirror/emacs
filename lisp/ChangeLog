@@ -1,3 +1,7 @@
+2003-04-03  Kenichi Handa  <handa@etlken2>
+
+	* subr.el (number-sequence): New function.
+
 2003-04-02  Ehud Karni  <ehud@unix.mvs.co.il>  (tiny change)
 
 	* sort.el (sort-reorder-buffer): Fix saving of markers at the end

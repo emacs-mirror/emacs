@@ -1,3 +1,7 @@
+2003-04-03  Kenichi Handa  <handa@etlken2>
+
+	* HELLO: Fix the malayalam line.
+
 2003-04-01  Dave Love  <fx@gnu.org>
 
 	* letter.xpm: Use transparent/opaque `colours'.
