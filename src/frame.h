@@ -124,7 +124,10 @@ struct frame
   /* Predicate for selecting buffers for other-buffer.  */
   Lisp_Object buffer_predicate;
 
-  /* Beyond here, there should be no more Lisp_Object components.  */
+  /* List of buffers viewed in this frame, for other-buffer.  */
+  Lisp_Object buffer_list;
+
+  /* beyond here, there should be no more Lisp_Object components.  */
 
 
   /* A buffer to hold the frame's name.  We can't use the Lisp string's
