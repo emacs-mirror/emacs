@@ -1770,57 +1770,61 @@ defalias (sname, string)
 #endif /* NOTDEF */
 
 /* Define an "integer variable"; a symbol whose value is forwarded
- to a C variable of type int.  Sample call: */
+   to a C variable of type int.  Sample call: */
   /* DEFVARINT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
-
 void
 defvar_int (namestring, address)
      char *namestring;
      int *address;
 {
-  Lisp_Object sym;
+  Lisp_Object sym, val;
   sym = intern (namestring);
-  XSETINTFWD (XSYMBOL (sym)->value, address);
+  val = allocate_misc ();
+  XMISC (val)->type = Lisp_Misc_Intfwd;
+  XMISC (val)->u_intfwd.intvar = address;
+  XSYMBOL (sym)->value = val;
 }
 
 /* Similar but define a variable whose value is T if address contains 1,
- NIL if address contains 0 */
-
+   NIL if address contains 0 */
 void
 defvar_bool (namestring, address)
      char *namestring;
      int *address;
 {
-  Lisp_Object sym;
+  Lisp_Object sym, val;
   sym = intern (namestring);
-  XSETBOOLFWD (XSYMBOL (sym)->value, address);
+  val = allocate_misc ();
+  XMISC (val)->type = Lisp_Misc_Boolfwd;
+  XMISC (val)->u_boolfwd.boolvar = address;
+  XSYMBOL (sym)->value = val;
 }
 
-/* Similar but define a variable whose value is the Lisp Object stored at address. */
+/* Similar but define a variable whose value is the Lisp Object stored
+   at address.  Two versions: with and without gc-marking of the C
+   variable.  The nopro version is used when that variable will be
+   gc-marked for some other reason, since marking the same slot twice
+   can cause trouble with strings.  */
+void
+defvar_lisp_nopro (namestring, address)
+     char *namestring;
+     Lisp_Object *address;
+{
+  Lisp_Object sym, val;
+  sym = intern (namestring);
+  val = allocate_misc ();
+  XMISC (val)->type = Lisp_Misc_Objfwd;
+  XMISC (val)->u_objfwd.objvar = address;
+  XSYMBOL (sym)->value = val;
+}
 
 void
 defvar_lisp (namestring, address)
      char *namestring;
      Lisp_Object *address;
 {
-  Lisp_Object sym;
-  sym = intern (namestring);
-  XSETOBJFWD (XSYMBOL (sym)->value, address);
+  defvar_lisp_nopro (namestring, address);
   staticpro (address);
-}
-
-/* Similar but don't request gc-marking of the C variable.
-   Used when that variable will be gc-marked for some other reason,
-   since marking the same slot twice can cause trouble with strings.  */
-
-void
-defvar_lisp_nopro (namestring, address)
-     char *namestring;
-     Lisp_Object *address;
-{
-  Lisp_Object sym;
-  sym = intern (namestring);
-  XSETOBJFWD (XSYMBOL (sym)->value, address);
 }
 
 #ifndef standalone
@@ -1836,14 +1840,17 @@ defvar_per_buffer (namestring, address, type, doc)
      Lisp_Object type;
      char *doc;
 {
-  Lisp_Object sym;
+  Lisp_Object sym, val;
   int offset;
   extern struct buffer buffer_local_symbols;
 
   sym = intern (namestring);
+  val = allocate_misc ();
   offset = (char *)address - (char *)current_buffer;
 
-  XSETBUFFER_OBJFWD (XSYMBOL (sym)->value, offset);
+  XMISC (val)->type = Lisp_Misc_Buffer_Objfwd;
+  XMISC (val)->u_buffer_objfwd.offset = offset;
+  XSYMBOL (sym)->value = val;
   *(Lisp_Object *)(offset + (char *)&buffer_local_symbols) = sym;
   *(Lisp_Object *)(offset + (char *)&buffer_local_types) = type;
   if (XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags)) == 0)
