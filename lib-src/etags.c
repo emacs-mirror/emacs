@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.77";
+char pot_etags_version[] = "@(#) pot revision number is 11.80";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -970,7 +970,7 @@ main (argc, argv)
 		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
 		   tagfile, argbuffer[i].what, tagfile);
 	  if (system (cmd) != GOOD)
-	    fatal ("failed to execute shell command", NULL);
+	    fatal ("failed to execute shell command", (char *)NULL);
 	}
       append_to_tagfile = TRUE;
     }
@@ -1342,7 +1342,7 @@ add_node (node, cur_node_p)
     {
       /* Etags Mode */
       if (last_node == NULL)
-	fatal ("internal error in add_node", NULL);
+	fatal ("internal error in add_node", (char *)NULL);
       last_node->right = node;
       last_node = node;
     }
@@ -1408,7 +1408,7 @@ put_entries (node)
   else
     {
       if (node->name == NULL)
-	error ("internal error: NULL name in ctags mode.", NULL);
+	error ("internal error: NULL name in ctags mode.", (char *)NULL);
 
       if (cxref_style)
 	{
@@ -1850,7 +1850,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
     case dignorerest:
       return FALSE;
     default:
-      error ("internal error: definedef value.", NULL);
+      error ("internal error: definedef value.", (char *)NULL);
     }
 
   /*
@@ -2100,16 +2100,28 @@ do {									\
   definedef = dnone;							\
 } while (0)
 
-/* This macro should never be called when tok.valid is FALSE, but
-   we must protect about both invalid input and internal errors. */
-#define make_C_tag(isfun)  do \
-if (tok.valid) {							\
-  char *name = NULL;							\
-  if (CTAGS || tok.named)						\
-    name = savestr (token_name.buffer);					\
-  pfnote (name, isfun, tok.buffer, tok.linelen, tok.lineno, tok.linepos); \
-  tok.valid = FALSE;							\
-} /* else if (DEBUG) abort (); */ while (0)
+
+void
+make_C_tag (isfun, tokp)
+     logical isfun;
+     TOKEN *tokp;
+{
+  char *name = NULL;
+
+  /* This function should never be called when tok.valid is FALSE, but
+     we must protect against invalid input or internal errors. */
+  if (tokp->valid)
+    {
+      if (CTAGS || tokp->named)
+	name = savestr (token_name.buffer);
+      pfnote (name, isfun,
+	      tokp->buffer, tokp->linelen, tokp->lineno, tokp->linepos);
+      tokp->valid = FALSE;
+    }
+  else if (DEBUG)
+    abort ();
+}
+
 
 void
 C_entries (c_ext, inf)
@@ -2370,7 +2382,7 @@ C_entries (c_ext, inf)
 				switch_line_buffers ();
 			    }
 			  else
-			    make_C_tag (is_func);
+			    make_C_tag (is_func, &tok);
 			}
 		      midtoken = FALSE;
 		    }
@@ -2392,7 +2404,7 @@ C_entries (c_ext, inf)
 		      funcdef = finlist;
 		      continue;
 		    case flistseen:
-		      make_C_tag (TRUE);
+		      make_C_tag (TRUE, &tok);
 		      funcdef = fignore;
 		      break;
 		    case ftagseen:
@@ -2427,7 +2439,7 @@ C_entries (c_ext, inf)
 	    {
 	    case  otagseen:
 	      objdef = oignore;
-	      make_C_tag (TRUE);
+	      make_C_tag (TRUE, &tok);
 	      break;
 	    case omethodtag:
 	    case omethodparm:
@@ -2445,7 +2457,7 @@ C_entries (c_ext, inf)
 	      case ftagseen:
 		if (yacc_rules)
 		  {
-		    make_C_tag (FALSE);
+		    make_C_tag (FALSE, &tok);
 		    funcdef = fignore;
 		  }
 		break;
@@ -2461,7 +2473,7 @@ C_entries (c_ext, inf)
 	    switch (typdef)
 	      {
 	      case tend:
-		make_C_tag (FALSE);
+		make_C_tag (FALSE, &tok);
 		/* FALLTHRU */
 	      default:
 		typdef = tnone;
@@ -2484,7 +2496,7 @@ C_entries (c_ext, inf)
 	    {
 	    case omethodtag:
 	    case omethodparm:
-	      make_C_tag (TRUE);
+	      make_C_tag (TRUE, &tok);
 	      objdef = oinbody;
 	      break;
 	    }
@@ -2499,7 +2511,7 @@ C_entries (c_ext, inf)
 	  if (cblev == 0 && typdef == tend)
 	    {
 	      typdef = tignore;
-	      make_C_tag (FALSE);
+	      make_C_tag (FALSE, &tok);
 	      break;
 	    }
 	  if (funcdef != finlist && funcdef != fignore)
@@ -2522,10 +2534,10 @@ C_entries (c_ext, inf)
 		  /* Make sure that the next char is not a '*'.
 		     This handles constructs like:
 		     typedef void OperatorFun (int fun); */
-		  if (*lp != '*')
+		  if (tok.valid && *lp != '*')
 		    {
 		      typdef = tignore;
-		      make_C_tag (FALSE);
+		      make_C_tag (FALSE, &tok);
 		    }
 		  break;
 		} /* switch (typdef) */
@@ -2544,7 +2556,7 @@ C_entries (c_ext, inf)
 	    break;
 	  if (objdef == ocatseen && parlev == 1)
 	    {
-	      make_C_tag (TRUE);
+	      make_C_tag (TRUE, &tok);
 	      objdef = oignore;
 	    }
 	  if (--parlev == 0)
@@ -2559,7 +2571,7 @@ C_entries (c_ext, inf)
 	      if (cblev == 0 && typdef == tend)
 		{
 		  typdef = tignore;
-		  make_C_tag (FALSE);
+		  make_C_tag (FALSE, &tok);
 		}
 	    }
 	  else if (parlev < 0)	/* can happen due to ill-conceived #if's. */
@@ -2579,13 +2591,13 @@ C_entries (c_ext, inf)
 	    case stagseen:
 	    case scolonseen:	/* named struct */
 	      structdef = sinbody;
-	      make_C_tag (FALSE);
+	      make_C_tag (FALSE, &tok);
 	      break;
 	    }
 	  switch (funcdef)
 	    {
 	    case flistseen:
-	      make_C_tag (TRUE);
+	      make_C_tag (TRUE, &tok);
 	      /* FALLTHRU */
 	    case fignore:
 	      funcdef = fnone;
@@ -2594,12 +2606,12 @@ C_entries (c_ext, inf)
 	      switch (objdef)
 		{
 		case otagseen:
-		  make_C_tag (TRUE);
+		  make_C_tag (TRUE, &tok);
 		  objdef = oignore;
 		  break;
 		case omethodtag:
 		case omethodparm:
-		  make_C_tag (TRUE);
+		  make_C_tag (TRUE, &tok);
 		  objdef = oinbody;
 		  break;
 		default:
@@ -2661,7 +2673,7 @@ C_entries (c_ext, inf)
 	case '\0':
 	  if (objdef == otagseen)
 	    {
-	      make_C_tag (TRUE);
+	      make_C_tag (TRUE, &tok);
 	      objdef = oignore;
 	    }
 	  /* If a macro spans multiple lines don't reset its state. */
@@ -3364,7 +3376,7 @@ TeX_functions (inf)
 	  i = TEX_Token (lasthit);
 	  if (0 <= i)
 	    {
-	      pfnote (NULL, TRUE,
+	      pfnote ((char *)NULL, TRUE,
 		      lb.buffer, strlen (lb.buffer), lineno, linecharno);
 #if TeX_named_tokens
 	      TEX_getit (lasthit, TEX_toktab[i].len);
@@ -3542,7 +3554,7 @@ Prolog_functions (inf)
       else if (len = prolog_pred (dbp, last)) 
 	{
 	  /* Predicate.  Store the function name so that we only
-	   * generates a tag for the first clause.  */
+	     generate a tag for the first clause.  */
 	  if (last == NULL)
 	    last = xnew(len + 1, char);
 	  else if (len + 1 > allocated)
@@ -3971,7 +3983,7 @@ add_regex (regexp_pattern)
 
   if (regexp_pattern[0] == '\0')
     {
-      error ("missing regexp", NULL);
+      error ("missing regexp", (char *)NULL);
       return;
     }
   if (regexp_pattern[strlen(regexp_pattern)-1] != regexp_pattern[0])
@@ -3982,7 +3994,7 @@ add_regex (regexp_pattern)
   name = scan_separators (regexp_pattern);
   if (regexp_pattern[0] == '\0')
     {
-      error ("null regexp", NULL);
+      error ("null regexp", (char *)NULL);
       return;
     }
   (void) scan_separators (name);
@@ -4191,7 +4203,7 @@ readline (linebuffer, stream)
 	  else
 	    {
 	      /* Make an unnamed tag. */
-	      pfnote (NULL, TRUE,
+	      pfnote ((char *)NULL, TRUE,
 		      linebuffer->buffer, match, lineno, linecharno);
 	    }
 	  break;
@@ -4547,7 +4559,7 @@ xmalloc (size)
 {
   long *result = (long *) malloc (size);
   if (result == NULL)
-    fatal ("virtual memory exhausted", NULL);
+    fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
 
@@ -4558,6 +4570,6 @@ xrealloc (ptr, size)
 {
   long *result =  (long *) realloc (ptr, size);
   if (result == NULL)
-    fatal ("virtual memory exhausted", NULL);
+    fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
