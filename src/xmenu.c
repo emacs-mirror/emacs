@@ -856,6 +856,7 @@ The return value is VALUE from the chosen item.")
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt))
     {
+#if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
       FRAME_PTR new_f = 0;
       Lisp_Object bar_window;
@@ -869,6 +870,14 @@ The return value is VALUE from the chosen item.")
 	XSET (window, Lisp_Frame, new_f);
       else
 	window = selected_window;
+#endif
+      /* Decode the first argument: find the window and the coordinates.  */
+      if (EQ (position, Qt))
+	{
+          window = selected_window;
+          XFASTINT (x) = 0;
+          XFASTINT (y) = 0;
+	}
     }
   else if (CONSP (position))
     {
