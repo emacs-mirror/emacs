@@ -5,8 +5,8 @@
  *
  * I find this useful whenever I have to use a
  * system which - shock horror! - doesn't run
- * Gnu emacs. At least now I can read all my
- * Gnumacs Babyl format mail files!
+ * GNU Emacs. At least now I can read all my
+ * GNU Emacs Babyl format mail files!
  *
  * it's not much but it's free!
  *
