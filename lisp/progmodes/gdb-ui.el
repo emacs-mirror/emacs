@@ -1190,7 +1190,7 @@ static char *magick[] = {
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
 
 (defconst gdb-frame-parameters
-  '((height . 12) (width . 60)
+  '((height . 14) (width . 80)
     (unsplittable . t)
     (tool-bar-lines . nil)
     (menu-bar-lines . nil)
@@ -1199,8 +1199,9 @@ static char *magick[] = {
 (defun gdb-frame-breakpoints-buffer ()
   "Display status of user-settable breakpoints in a new frame."
   (interactive)
-  (let ((special-display-regexps (append special-display-regexps '(".*"))))
-    (pop-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -1335,9 +1336,9 @@ static char *magick[] = {
 (defun gdb-frame-stack-buffer ()
   "Display backtrace of current stack in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdb-stack-buffer))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-stack-buffer))))
 
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1417,9 +1418,9 @@ static char *magick[] = {
 (defun gdb-frame-threads-buffer ()
   "Display IDs of currently known threads in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdb-threads-buffer))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-threads-buffer))))
 
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1505,9 +1506,9 @@ static char *magick[] = {
 (defun gdb-frame-registers-buffer ()
   "Display integer register contents in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdb-registers-buffer))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-registers-buffer))))
 
 ;;
 ;; Locals buffer.
@@ -1584,9 +1585,9 @@ static char *magick[] = {
 (defun gdb-frame-locals-buffer ()
   "Display local variables of current stack and their values in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdb-locals-buffer))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-locals-buffer))))
 
 
 ;;;; Window management
@@ -2019,9 +2020,9 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-frame-assembler-buffer ()
   "Display disassembly view in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))))
 
 ;; modified because if gdb-current-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
