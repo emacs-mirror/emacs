@@ -274,6 +274,14 @@ Do the right thing if the file has been compressed or zipped."
 	    (call-process-region (point-min) (point-max) decoder t t)))
       (insert-file-contents fullname visit))))
 
+;;;###autoload
+(defun info-other-window (&optional file)
+  "Like `info' but show the Info buffer in another window."
+  (interactive (if current-prefix-arg
+		   (list (read-file-name "Info file name: " nil nil t))))
+  (let (same-window-buffer-names)
+    (info file)))
+  
 ;;;###autoload (add-hook 'same-window-buffer-names "*info*")
 
 ;;;###autoload
