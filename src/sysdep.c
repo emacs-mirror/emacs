@@ -3023,36 +3023,34 @@ rename (from, to)
 
 #endif
 
-#ifdef MISSING_UTIMES
-
-/* HPUX (among others) sets HAVE_TIMEVAL but does not implement utimes.  */
-
-utimes ()
+int
+set_file_times (path, atime, mtime)
+     char *path;
+     EMACS_TIME atime, mtime;
 {
-}
+#ifdef HAVE_UTIMES
+  struct timeval tv[2];
+  tv[0] = atime;
+  tv[1] = mtime;
+  return utimes (path, tv);
+#else
+#ifdef HAVE_UTIME
+#ifndef HAVE_STRUCT_UTIMBUF
+  struct utimbuf {
+    long actime;
+    long modtime;
+  };
 #endif
-
-#ifdef IRIS_UTIME
-
-/* The IRIS (3.5) has timevals, but uses sys V utime, and doesn't have the
-   utimbuf structure defined anywhere but in the man page. */
-
-struct utimbuf
- {
-   long actime;
-   long modtime;
- };
-
-utimes (name, tvp)
-     char *name;
-     struct timeval tvp[];
-{
   struct utimbuf utb;
-  utb.actime  = tvp[0].tv_sec;
-  utb.modtime = tvp[1].tv_sec;
-  utime (name, &utb);
+  utb.actime = EMACS_SECS (atime);
+  utb.modtime = EMACS_SECS (mtime);
+  return utime (path, &utb);
+#else /* !HAVE_UTIMES && !HAVE_UTIME */
+  /* Should we set errno here?  If so, set it to what?  */
+  return -1;
+#endif
+#endif
 }
-#endif /* IRIS_UTIME */
 
 
 #ifdef HPUX
