@@ -1,3 +1,9 @@
+2002-05-01  Kim F. Storm  <storm@filanet.dk>
+
+	* emulation/cua-base.el (cua--pre-command-handler): Only
+	interpret delete-selection property if mark-active.
+	(cua-mode): Fixed require in defcustom.
+
 2002-05-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-menu.el (cal-menu-x-popup-menu): Fix argument of
