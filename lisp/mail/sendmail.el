@@ -256,6 +256,9 @@ actually occur.")
 	    (build-mail-aliases))))
   ;; Don't leave this around from a previous message.
   (kill-local-variable 'buffer-file-coding-system)
+  (kill-local-variable 'enable-multibyte-characters)
+  (if current-input-method
+      (inactivate-input-method))
   (setq mail-send-actions actions)
   (setq mail-reply-action replybuffer)
   (goto-char (point-min))
