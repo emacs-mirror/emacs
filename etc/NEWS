@@ -26,6 +26,7 @@ much pure storage it will approximately need.
 `${foo}' in the specified new value of the environment variable.  To
 include a `$' in the value, use `$$'.
 
++++
 ** File-name completion can now ignore directories.
 If an element of the list in `completion-ignored-extensions' ends in a
 slash `/', it indicates a subdirectory that should be ignored when
