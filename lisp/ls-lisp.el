@@ -491,7 +491,7 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 			(memq 'gid ls-lisp-verbosity))
 		    (if (memq system-type '(macos windows-nt ms-dos))
 			;; No useful concept of group...
-			"root"
+			" root"
 		      (let* ((gid (nth 3 file-attr))
 			     (group (user-login-name gid)))
 			(if group
