@@ -103,15 +103,15 @@ punctuation characters between the words do not move.  For example,
 @w{@samp{FOO, BAR}} transposes into @w{@samp{BAR, FOO}} rather than
 @samp{@w{BAR FOO,}}.
 
-  @kbd{C-M-t} (@code{transpose-sexps}) is a similar command for transposing
-two expressions (@pxref{Lists}), and @kbd{C-x C-t} (@code{transpose-lines})
-exchanges lines.  They work like @kbd{M-t} except in determining the
-division of the text into syntactic units.
+  @kbd{C-M-t} (@code{transpose-sexps}) is a similar command for
+transposing two expressions (@pxref{Expressions}), and @kbd{C-x C-t}
+(@code{transpose-lines}) exchanges lines.  They work like @kbd{M-t}
+except in determining the division of the text into syntactic units.
 
   A numeric argument to a transpose command serves as a repeat count: it
-tells the transpose command to move the character (word, sexp, line)
+tells the transpose command to move the character (word, expression, line)
 before or containing point across several other characters (words,
-sexps, lines).  For example, @kbd{C-u 3 C-t} moves the character before
+expressions, lines).  For example, @kbd{C-u 3 C-t} moves the character before
 point forward across three other characters.  It would change
 @samp{f@point{}oobar} into @samp{oobf@point{}ar}.  This is equivalent to
 repeating @kbd{C-t} three times.  @kbd{C-u - 4 M-t} moves the word
@@ -120,8 +120,8 @@ the effect of plain @kbd{C-M-t}.@refill
 
   A numeric argument of zero is assigned a special meaning (because
 otherwise a command with a repeat count of zero would do nothing): to
-transpose the character (word, sexp, line) ending after point with the
-one ending after the mark.
+transpose the character (word, expression, line) ending after point
+with the one ending after the mark.
 
 @node Fixing Case
 @section Case Conversion
