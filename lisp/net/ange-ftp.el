@@ -2442,7 +2442,7 @@ which can parse the output from a DIR listing for a host of type TYPE.")
   "Normal hook run after parsing the text of an ftp directory listing.")
 
 (defun ange-ftp-ls (file lsargs parse &optional no-error wildcard)
-  "Return the output of an `DIR' or `ls' command done over ftp.
+  "Return the output of a `DIR' or `ls' command done over ftp.
 FILE is the full name of the remote file, LSARGS is any args to pass to the
 `ls' command, and PARSE specifies that the output should be parsed and stored
 away in the internal cache."
