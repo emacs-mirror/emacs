@@ -119,7 +119,8 @@ OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/category.$(O)			\
 	$(BLD)/ccl.$(O)				\
 	$(BLD)/fontset.$(O)			\
-	$(BLD)/fringe.$(O)
+	$(BLD)/fringe.$(O)			\
+	$(BLD)/image.$(O)
 
 WIN32OBJ = $(BLD)/w32term.$(O)			\
 	   $(BLD)/w32xfns.$(O)			\
@@ -745,6 +746,24 @@ $(BLD)/gmalloc.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
 	$(SRC)/getpagesize.h
+
+$(BLD)/image.$(O): \
+	$(SRC)/image.c \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h \
+	$(SRC)/atimer.h \
+	$(SRC)/blockinput.h \
+	$(SRC)/dispextern.h \
+	$(SRC)/epaths.h \
+	$(SRC)/frame.h \
+	$(SRC)/systime.h \
+	$(SRC)/termhooks.h \
+	$(SRC)/w32bdf.h \
+	$(SRC)/w32gui.h \
+	$(SRC)/w32heap.h \
+	$(SRC)/w32term.h \
+	$(SRC)/window.h
 
 $(BLD)/indent.$(O) : \
 	$(SRC)/indent.c \
