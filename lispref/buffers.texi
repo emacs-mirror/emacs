@@ -517,6 +517,11 @@ function @code{force-mode-line-update} works by doing this:
 @end example
 @end defun
 
+@defun restore-buffer-modified-p flag
+Like @code{set-buffer-modified-p}, but does not force redisplay
+of mode lines.
+@end defun
+
 @deffn Command not-modified
 This command marks the current buffer as unmodified, and not needing to
 be saved.  With prefix arg, it marks the buffer as modified, so that it
@@ -952,6 +957,11 @@ save that buffer, just as they offer to save file-visiting buffers.  The
 variable @code{buffer-offer-save} automatically becomes buffer-local
 when set for any reason.  @xref{Buffer-Local Variables}.
 @end defvar
+
+@defun buffer-live-p buffer
+This function returns @code{t} if @var{object} is a buffer which has
+not been killed, @code{nil} otherwise.
+@end defun
 
 @node Indirect Buffers
 @section Indirect Buffers
