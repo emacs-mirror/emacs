@@ -393,8 +393,9 @@ Return what remains of the list.")
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object next;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   register int arg;
+  
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
   Lisp_Object tem;
@@ -414,6 +415,9 @@ Return what remains of the list.")
   /* Don't let read-only properties interfere with undo.  */
   if (!NILP (current_buffer->read_only))
     specbind (Qinhibit_read_only, Qt);
+
+  /* Don't let `intangible' properties interfere with undo.  */
+  specbind (Qinhibit_point_motion_hooks, Qt);
 
   while (arg > 0)
     {
