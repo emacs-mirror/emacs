@@ -488,7 +488,7 @@ non-nil, otherwise in local time."
 		 (looking-at "\\s *\\(\\*\\s *\\)?$")))
 	  (insert ": "
 		  (if version
-		      (concat version " ") ))))))
+		      (concat version " ") ""))))))
 
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
