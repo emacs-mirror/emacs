@@ -1,3 +1,8 @@
+2001-11-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-status): Store file state in property,
+	don't just return it.
+
 2001-11-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-read-lispref, menu-bar-read-lispintro)
