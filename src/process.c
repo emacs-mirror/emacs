@@ -104,74 +104,7 @@ static Lisp_Object stream_process;
 
 #include "syssignal.h"
 
-/* Define the structure that the wait system call stores.
-   On many systems, there is a structure defined for this.
-   But on vanilla-ish USG systems there is not.  */
-
-#ifndef VMS
-#ifndef WAITTYPE
-#if (!defined (BSD) && !defined (UNIPLUS) && !defined (STRIDE) && !(defined (HPUX) && !defined (NOMULTIPLEJOBS)) && !defined (HAVE_WAIT_HEADER)) || defined (LINUX)
-#define WAITTYPE int
-#define WIFSTOPPED(w) ((w&0377) == 0177)
-#define WIFSIGNALED(w) ((w&0377) != 0177 && (w&~0377) == 0)
-#define WIFEXITED(w) ((w&0377) == 0)
-#define WRETCODE(w) (w >> 8)
-#define WSTOPSIG(w) (w >> 8)
-#define WTERMSIG(w) (w & 0377)
-#ifndef WCOREDUMP
-#define WCOREDUMP(w) ((w&0200) != 0)
-#endif
-#else 
-#ifdef BSD4_1
-#include <wait.h>
-#else
-#include <sys/wait.h>
-#endif /* not BSD 4.1 */
-
-#define WAITTYPE union wait
-#define WRETCODE(w) w.w_retcode
-#define WCOREDUMP(w) w.w_coredump
-
-#ifdef HPUX
-/* HPUX version 7 has broken definitions of these.  */
-#undef WTERMSIG
-#undef WSTOPSIG
-#undef WIFSTOPPED
-#undef WIFSIGNALED
-#undef WIFEXITED
-#endif
-
-#ifndef WTERMSIG
-#define WTERMSIG(w) w.w_termsig
-#endif
-#ifndef WSTOPSIG
-#define WSTOPSIG(w) w.w_stopsig
-#endif
-#ifndef WIFSTOPPED
-#define WIFSTOPPED(w) (WTERMSIG (w) == 0177)
-#endif
-#ifndef WIFSIGNALED
-#define WIFSIGNALED(w) (WTERMSIG (w) != 0177 && (WSTOPSIG (w)) == 0)
-#endif
-#ifndef WIFEXITED
-#define WIFEXITED(w) (WTERMSIG (w) == 0)
-#endif
-#endif /* BSD or UNIPLUS or STRIDE */
-#endif /* no WAITTYPE */
-#else /* VMS */
-#define WAITTYPE int
-#define WIFSTOPPED(w) 0
-#define WIFSIGNALED(w) 0
-#define WIFEXITED(w) ((w) != -1)
-#define WRETCODE(w) (w)
-#define WSTOPSIG(w) (w)
-#define WCOREDUMP(w) 0
-#define WTERMSIG(w) (w)
-#include <ssdef.h>
-#include <iodef.h>
-#include <clidef.h>
-#include "vmsproc.h"
-#endif /* VMS */
+#include "syswait.h"
 
 extern errno;
 extern sys_nerr;
@@ -1750,6 +1683,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 Otherwise, do pending quit if requested.  */
       if (XINT (read_kbd) >= 0)
 	QUIT;
+
+      /* Exit now if the cell we're waiting for became non-nil.  */
+      if (wait_for_cell && ! NILP (*wait_for_cell))
+	break;
 
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
