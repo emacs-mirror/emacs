@@ -53,9 +53,6 @@ Boston, MA 02111-1307, USA.  */
 #define init_process emacs_init_process
 #endif /* MAC_OSX */
 
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
-
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
 
 #define RED_FROM_ULONG(color) ((color) >> 16)
@@ -127,6 +124,9 @@ struct mac_display_info
 
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
+
+  /* Resource data base */
+  XrmDatabase xrdb;
 
 #if 0
   /* color palette information.  */
@@ -429,6 +429,9 @@ struct mac_output {
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* See enum below */
+  int want_fullscreen;
 };
 
 typedef struct mac_output mac_output;
