@@ -152,6 +152,7 @@ write_c_args (out, buf, minargs, maxargs)
   for (p = buf; *p; p++)
     {
       char c = *p;
+      int ident_start = 0;
 
       /* Notice when we start printing a new identifier.  */
       if ((('A' <= c && c <= 'Z')
@@ -163,6 +164,7 @@ write_c_args (out, buf, minargs, maxargs)
 	  if (!in_ident)
 	    {
 	      in_ident = 1;
+	      ident_start = 1;
 
 	      if (minargs == 0 && maxargs > 0)
 		fprintf (out, "&optional ");
@@ -181,7 +183,21 @@ write_c_args (out, buf, minargs, maxargs)
       if (c == '_') c = '-';
       if (c == ',') c = ' ';
 
-      if (c != ' ' || ! just_spaced)
+      /* In C code, `default' is a reserved word, so we spell it
+	 `defalt'; unmangle that here.  */
+      if (ident_start
+	  && strncmp (p, "defalt", 6) == 0
+	  && ! (('A' <= p[6] && p[6] <= 'Z')
+		|| ('a' <= p[6] && p[6] <= 'z')
+		|| ('0' <= p[6] && p[6] <= '9')
+		|| p[6] == '_'))
+	{
+	  fprintf (out, "default");
+	  p += 5;
+	  in_ident = 0;
+	  just_spaced = 0;
+	}
+      else if (c != ' ' || ! just_spaced)
 	putc (c, out);
 
       just_spaced = (c == ' ');
