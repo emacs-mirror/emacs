@@ -320,7 +320,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
       (kill-buffer tembuf))))
 
 ;;;###autoload
-(defun rmail-output-body (file-name)
+(defun rmail-output-body-to-file (file-name)
   "Write this message body to the file FILE-NAME.
 FILE-NAME defaults, interactively, from the Subject field of the message."
   (interactive
@@ -334,6 +334,9 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
   (save-excursion
     (goto-char (point-min))
     (search-forward "\n\n")
+    (and (file-exists-p file-name)
+	 (not (y-or-n-p (message "File %s exists; overwrite? " file-name)))
+	 (error "Operation aborted"))
     (write-region (point) (point-max) file-name)
     (if (equal major-mode 'rmail-mode)
 	(rmail-set-attribute "stored" t)))
