@@ -1,3 +1,18 @@
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+	
+	* dired.c (Ffile_attributes): Parameter ID-FORMAT added and
+	included in call to file name handler. Numeric UID and GID
+	optionally translated to strings. Docstring updated.
+	(directory_files_internal): Parameter ID-FORMAT added.
+	(Fdirectory_files_and_attributes): Parameter ID-FORMAT added and
+	included in call to file name handler and call to
+	directory_files_internal. Docstring updated.  (Fdirectory_files):
+	Dummy parameter added in call to directory_files_internal.
+	* lisp.h (Qinteger): Added.  (Qinteger_or_floatp,
+	Qinteger_or_float_or_marker_p): Removed.  (Ffile_attributes):
+	Parameter added.
+	* data.c (Qinteger): Exported.
+
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Freverse): Doc fix.

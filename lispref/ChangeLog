@@ -1,3 +1,9 @@
+2003-11-21  Lars Hansen  <larsh@math.ku.dk>
+
+	* files.texi (File Attributes): Describe new parameter ID-FORMAT.
+	* anti.texi (File Attributes): Describe removed parameter
+	ID-FORMAT.
+
 2003-11-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* positions.texi (Positions): Mention that, if a marker is used a
