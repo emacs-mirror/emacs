@@ -464,7 +464,7 @@ interfere with other minibuffer usage.")
     (substitute-key-definition 'display-buffer ; C-x 4 C-o
 			       'iswitchb-display-buffer map global-map)
     map)
-  "Global keymap for `iswtichb-mode'.")
+  "Global keymap for `iswitchb-mode'.")
 
 (defvar iswitchb-history nil
   "History of buffers selected using `iswitchb-buffer'.")
@@ -571,7 +571,6 @@ in a separate window.
 		 (iswitchb-possible-new-buffer buf)))
 	   ))))
 
-;;;###autoload
 (defun iswitchb-read-buffer (prompt &optional default require-match)
   "Replacement for the built-in `read-buffer'.
 Return the name of a buffer selected.
@@ -1073,7 +1072,6 @@ If BUFFER is visible in the current frame, return nil."
       (get-buffer-window buffer 0) ; better than 'visible
       )))
 
-;;;###autoload
 (defun iswitchb-default-keybindings ()
   "Set up default keybindings for `iswitchb-buffer'.
 Call this function to override the normal bindings.  This function also
@@ -1087,7 +1085,6 @@ Obsolescent.  Use `iswitchb-mode'."
   (global-set-key "\C-x4\C-o" 'iswitchb-display-buffer)
   (global-set-key "\C-x5b" 'iswitchb-buffer-other-frame))
 
-;;;###autoload
 (defun iswitchb-buffer ()
   "Switch to another buffer.
 
@@ -1100,7 +1097,6 @@ For details of keybindings, do `\\[describe-function] iswitchb'."
   (setq iswitchb-method iswitchb-default-method)
   (iswitchb))
 
-;;;###autoload
 (defun iswitchb-buffer-other-window ()
   "Switch to another buffer and show it in another window.
 The buffer name is selected interactively by typing a substring.
@@ -1109,7 +1105,6 @@ For details of keybindings, do `\\[describe-function] iswitchb'."
   (setq iswitchb-method 'otherwindow)
   (iswitchb))
 
-;;;###autoload
 (defun iswitchb-display-buffer ()
   "Display a buffer in another window but don't select it.
 The buffer name is selected interactively by typing a substring.
@@ -1118,7 +1113,6 @@ For details of keybindings, do `\\[describe-function] iswitchb'."
   (setq iswitchb-method 'display)
   (iswitchb))
 
-;;;###autoload
 (defun iswitchb-buffer-other-frame ()
   "Switch to another buffer and show it in another frame.
 The buffer name is selected interactively by typing a substring.
