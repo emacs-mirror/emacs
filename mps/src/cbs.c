@@ -1,6 +1,6 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(trunk.6) $
+ * $HopeName: MMsrc!cbs.c(trunk.8) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.6) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.8) $");
 
 typedef struct CBSEmergencyBlockStruct *CBSEmergencyBlock;
 typedef struct CBSEmergencyBlockStruct {
@@ -327,7 +327,7 @@ void CBSFinish(CBS cbs) {
  * for the client interaction logic.
  */
 
-static Res CBSBlockDelete(CBS cbs, CBSBlock block) {
+static void CBSBlockDelete(CBS cbs, CBSBlock block) {
   Res res;
   Size oldSize;
 
@@ -338,8 +338,7 @@ static Res CBSBlockDelete(CBS cbs, CBSBlock block) {
 
   res = SplayTreeDelete(SplayTreeOfCBS(cbs), SplayNodeOfCBSBlock(block), 
                         KeyOfCBSBlock(block));
-  if(res != ResOK)
-    return res;
+  AVER(res == ResOK); /* Must be possible to delete node */
 
   /* make invalid */
   block->limit = block->base;
@@ -349,7 +348,7 @@ static Res CBSBlockDelete(CBS cbs, CBSBlock block) {
 
   PoolFree(cbs->blockPool, (Addr)block, sizeof(CBSBlockStruct));
 
-  return ResOK;
+  return;
 }
 
 static void CBSBlockShrink(CBS cbs, CBSBlock block, Size oldSize) {
@@ -420,16 +419,13 @@ static Res CBSBlockNew(CBS cbs, Addr base, Addr limit) {
 
   res = SplayTreeInsert(SplayTreeOfCBS(cbs), SplayNodeOfCBSBlock(block),
                         KeyOfCBSBlock(block));
-  if(res != ResOK)
-    goto failSplayTreeInsert;
+  AVER(res == ResOK);
 
   if(cbs->new != NULL && newSize >= cbs->minSize)
     (*(cbs->new))(cbs, block, (Size)0, newSize);
 
   return ResOK;
 
-failSplayTreeInsert:
-  PoolFree(cbs->blockPool, (Addr)block, sizeof(CBSBlockStruct));
 failPoolAlloc:
   AVER(res != ResOK);
   return res;
@@ -494,16 +490,12 @@ static Res CBSInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
       /* see design.mps.cbs.function.cbs.insert.callback */
       if(oldLeftSize >= oldRightSize) {
         Addr rightLimit = rightCBS->limit;
-        res = CBSBlockDelete(cbs, rightCBS);
-        if(res != ResOK) 
-          goto fail;
+        CBSBlockDelete(cbs, rightCBS);
         leftCBS->limit = rightLimit;
         CBSBlockGrow(cbs, leftCBS, oldLeftSize);
       } else { /* left block is smaller */
         Addr leftBase = leftCBS->base;
-        res = CBSBlockDelete(cbs, leftCBS);
-        if(res != ResOK) 
-          goto fail;
+        CBSBlockDelete(cbs, leftCBS);
         rightCBS->base = leftBase;
         CBSBlockGrow(cbs, rightCBS, oldRightSize);
       }
@@ -661,6 +653,7 @@ static Res CBSAddToEmergencyLists(CBS cbs, Addr base, Addr limit)
 
   AVERT(CBS, cbs);
   AVER(base < limit);
+  AVER(cbs->mayUseInline);
 
   size = AddrOffset(base, limit);
   if(size >= sizeof(CBSEmergencyBlockStruct)) {
@@ -829,7 +822,7 @@ Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
   }
 
   done:
-  if(res != ResOK) {
+  if(res == ResOK) {
     AVER(newBase <= base);
     AVER(limit <= newLimit);
     *baseReturn = newBase;
@@ -874,9 +867,7 @@ static Res CBSDeleteFromTree(CBS cbs, Addr base, Addr limit) {
 
   if(base == cbsBlock->base) {
     if(limit == cbsBlock->limit) { /* entire block */
-      res = CBSBlockDelete(cbs, cbsBlock);
-      if(res != ResOK) 
-        goto failDelete;
+      CBSBlockDelete(cbs, cbsBlock);
     } else { /* remaining fragment at right */
       AVER(limit < cbsBlock->limit);
       oldSize = CBSBlockSize(cbsBlock);
@@ -901,8 +892,15 @@ static Res CBSDeleteFromTree(CBS cbs, Addr base, Addr limit) {
         cbsBlock->limit = base;
         CBSBlockShrink(cbs, cbsBlock, oldSize);
         res = CBSBlockNew(cbs, limit, oldLimit);
-        if(res != ResOK)
-          goto failNew;
+        if(res != ResOK) {
+          AVER(ResIsAllocFailure(res));
+          if(cbs->mayUseInline) {
+            res = CBSAddToEmergencyLists(cbs, limit, oldLimit);
+            AVER(res == ResOK);
+          } else {
+            goto failNew;
+          }
+        }
       } else { /* right fragment is larger */
         Addr oldBase = cbsBlock->base;
         AVER(base > cbsBlock->base);
@@ -910,8 +908,15 @@ static Res CBSDeleteFromTree(CBS cbs, Addr base, Addr limit) {
         cbsBlock->base = limit;
         CBSBlockShrink(cbs, cbsBlock, oldSize);
         res = CBSBlockNew(cbs, oldBase, base);
-        if(res != ResOK)
-          goto failNew;
+        if(res != ResOK) {
+          AVER(ResIsAllocFailure(res));
+          if(cbs->mayUseInline) {
+            res = CBSAddToEmergencyLists(cbs, oldBase, base);
+            AVER(res == ResOK);
+          } else {
+            goto failNew;
+          }
+        }
       }
     }
   }
@@ -919,7 +924,6 @@ static Res CBSDeleteFromTree(CBS cbs, Addr base, Addr limit) {
   return ResOK;
 
 failNew:
-failDelete: 
 failLimitCheck:
 failSplayTreeSearch:
   AVER(res != ResOK);
@@ -1037,6 +1041,7 @@ Res CBSDelete(CBS cbs, Addr base, Addr limit) {
   /* These checks don't distinguish "partially in" from */
   /* "not in". */
   if(cbs->mayUseInline) {
+    AVER(res == ResOK || res == ResFAIL);
     if(res == ResFAIL) { /* wasn't in tree */
       res = CBSDeleteFromEmergencyBlockList(cbs, base, limit);
       if(res == ResFAIL) { /* wasn't in block list */
