@@ -423,11 +423,13 @@ Sometimes it is useful for files to supply local values for this variable.
 You might also use mode hooks to specify it in certain modes, like this:
 
     (setq c-mode-hook
-      '(lambda () (or (file-exists-p \"makefile\") (file-exists-p \"Makefile\")
-		      (progn (make-local-variable 'compile-command)
-			     (setq compile-command
-				    (concat \"make -k \"
-					    buffer-file-name))))))"
+      (lambda ()
+	(unless (or (file-exists-p \"makefile\")
+		    (file-exists-p \"Makefile\"))
+	  (make-local-variable 'compile-command)
+	  (setq compile-command
+		(concat \"make -k \"
+			(file-name-sans-extension buffer-file-name))))))"
   :type 'string
   :group 'compilation)
 
