@@ -317,14 +317,10 @@ bring up menus.
 @table @kbd
 @item C-Mouse-1
 @kindex C-Mouse-1
-@findex msb-mode
-@cindex MSB minor mode
-@cindex mode, MSB
 This menu is for selecting a buffer.
 
-The MSB (`mouse select buffer') global minor mode alters this menu to a
-form some people prefer and which is customizable.  See the Custom group
-@code{msb} (@pxref{Easy Customization}).
+The MSB (``mouse select buffer'') global minor mode makes this
+menu smarter and more customizable.  @xref{Buffer Menus}.
 
 @item C-Mouse-2
 @kindex C-Mouse-2
@@ -406,10 +402,6 @@ raising or deiconifying as necessary.
 buffer to select:
 
 @table @kbd
-@item C-x 5 1
-@kindex C-x 5 1
-@findex delete-other-frames
-Delete all frames except the selected one (@code{delete-other-frames}).
 @item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
