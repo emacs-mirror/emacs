@@ -228,10 +228,6 @@ Boston, MA 02111-1307, USA.  */
 #define check_x check_w32
 #define x_list_fonts w32_list_fonts
 #define GCGraphicsExposures 0
-/* For historic reasons, FONT_WIDTH refers to average width on W32,
-   not maximum as on X. Redefine here. */
-#undef FONT_WIDTH
-#define FONT_WIDTH FONT_MAX_WIDTH
 #endif /* WINDOWSNT */
 
 #ifdef MAC_OS
@@ -1212,30 +1208,6 @@ load_pixmap (f, name, w_ptr, h_ptr)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-
-
-/***********************************************************************
-			 Minimum font bounds
- ***********************************************************************/
-
-#ifdef HAVE_WINDOW_SYSTEM
-
-/* Update the line_height of frame F.  Return non-zero if line height
-   changes.  */
-
-int
-frame_update_line_height (f)
-     struct frame *f;
-{
-  int line_height, changed_p;
-
-  line_height = FONT_HEIGHT (FRAME_FONT (f));
-  changed_p = line_height != FRAME_LINE_HEIGHT (f);
-  FRAME_LINE_HEIGHT (f) = line_height;
-  return changed_p;
-}
-
-#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /***********************************************************************
@@ -2963,10 +2935,17 @@ the WIDTH times as wide as FACE on FRAME.  */)
 			   ? NULL
 			   : FACE_FROM_ID (f, face_id));
 
+#ifdef WINDOWSNT
+/* For historic reasons, FONT_WIDTH refers to average width on W32,
+   not maximum as on X.  Redefine here. */
+#undef FONT_WIDTH
+#define FONT_WIDTH FONT_MAX_WIDTH
+#endif
+
       if (face && face->font)
 	size = FONT_WIDTH (face->font);
       else
-	size = FONT_WIDTH (FRAME_FONT (f));
+	size = FONT_WIDTH (FRAME_FONT (f));  /* FRAME_COLUMN_WIDTH (f) */
 
       if (!NILP (width))
 	size *= XINT (width);
