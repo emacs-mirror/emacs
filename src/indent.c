@@ -1654,6 +1654,7 @@ vmotion (from, vtarget, w)
 
   XSETWINDOW (window, w);
 
+#if NO_PROMPT_IN_BUFFER
   /* The omission of the clause
          && marker_position (w->start) == BEG
      here is deliberate; I think we want to measure from the prompt
@@ -1666,6 +1667,7 @@ vmotion (from, vtarget, w)
 
       start_hpos = minibuf_prompt_width;
     }
+#endif /* NO_PROMPT_IN_BUFFER */
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
