@@ -1,5 +1,7 @@
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* hscroll.el: Add hints to `automatic-hscrolling' to doc strings.
+
 	* dired-aux.el (dired-do-create-files): Construct default file
 	name for dired-mark-read-file-name so that when the user enters
 	just RET, the target file will end up in the target directory.
