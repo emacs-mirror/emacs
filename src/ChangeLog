@@ -1,6 +1,16 @@
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* frame.c (Fframe_parameter): Handle `name' specially.
+	* xfaces.c (Vparam_value_alist): New variable.
+	(syms_of_xfaces): Initialize it.
+	(Finternal_set_lisp_face_attribute): Avoid more consing.
+
+	* frame.c (Fframe_parameter): Handle `name' and `background-mode'
+	specially.
+	(Fframe_parameter) [HAVE_X_WINDOWS]: Handle `display' specially.
+	(Qbackground_mode): New variable.
+	(syms_of_frame_1): Initialize Qbackground_mode.
+
+	* lisp.h (Qdisplay): Declare extern.
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): If FRAME is 0,
 	change face on all frames, and change the default for new frames.

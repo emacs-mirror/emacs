@@ -1,3 +1,12 @@
+2000-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (frame-set-background-mode): Use frame-parameter
+	instead of frame-parameters.
+
+	* frame.el (filtered-frame-list): Reduce consing.
+	(frames-on-display-list): Call frame-parameter instead of 
+	frame-parameters.
+	
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/devan-util.el (devanagari-to-indian-region): In the
