@@ -1,3 +1,8 @@
+2001-01-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_line): Don't treat a newline as fitting
+	on the line.
+
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (size_window): Set the window's orig_top to nil when
