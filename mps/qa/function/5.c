@@ -7,6 +7,8 @@
 #include "mpscamc.h"
 #include "newfmt.h"
 
+#define OBJ_SIZE (MPS_PF_ALIGN*32)
+
 void *stackpointer;
 
 static void test(void)
@@ -21,6 +23,7 @@ static void test(void)
  mps_ap_t apB;
 
  mps_addr_t p;
+ mycell *q;
 
  int i;
 
@@ -50,14 +53,19 @@ static void test(void)
   mps_ap_create(&apB, pool, MPS_RANK_EXACT), "create apB");
 
 
- die(mps_reserve(&p, apA, MPS_PF_ALIGN), "Reserve: ");
+ die(mps_reserve(&p, apA, OBJ_SIZE), "Reserve: ");
 
  for (i=1; i<1000; i++)
  {
   allocone(apB, 100);
  }
 
- (void) mps_commit(apA, p, MPS_PF_ALIGN);
+ q=p;
+ q->data.tag = MCdata;
+ q->data.id = 0;
+ q->data.numrefs = 0;
+ q->data.size = OBJ_SIZE;
+ (void) mps_commit(apA, p, OBJ_SIZE);
 
  mps_ap_destroy(apA);
  comment("Destroyed apA.");
