@@ -579,12 +579,17 @@ Faces `compilation-error-face', `compilation-warning-face',
     (and end-line
 	 (setq end-line (match-string-no-properties end-line))
 	 (setq end-line (string-to-number end-line)))
-    (and col
-	 (setq col (match-string-no-properties col))
-	 (setq col (- (string-to-number col) compilation-first-column)))
-    (if (and end-col (setq end-col (match-string-no-properties end-col)))
-	(setq end-col (- (string-to-number end-col) compilation-first-column -1))
-      (if end-line (setq end-col -1)))
+    (if col
+        (if (functionp col)
+            (setq col (funcall col))
+          (and
+           (setq col (match-string-no-properties col))
+           (setq col (- (string-to-number col) compilation-first-column)))))
+    (if (and end-col (functionp end-col))
+        (setq end-col (funcall end-col))
+      (if (and end-col (setq end-col (match-string-no-properties end-col)))
+          (setq end-col (- (string-to-number end-col) compilation-first-column -1))
+        (if end-line (setq end-col -1))))
     (if (consp type)			; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
@@ -726,9 +731,9 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	      ,@(when end-line
 		  `((,end-line compilation-line-face nil t)))
 
-	      ,@(when col
+	      ,@(when (integerp col)
 		  `((,col compilation-column-face nil t)))
-	      ,@(when end-col
+	      ,@(when (integerp end-col)
 		  `((,end-col compilation-column-face nil t)))
 
 	      ,@(nthcdr 6 item)
@@ -1524,7 +1529,8 @@ If nil, don't scroll the compilation output window."
 
 (defun compilation-goto-locus (msg mk end-mk)
   "Jump to an error corresponding to MSG at MK.
-All arguments are markers.  If END-MK is non-nil, mark is set there."
+All arguments are markers.  If END-MK is non-nil, mark is set there
+and overlay is highlighted between MK and END-MK."
   (if (eq (window-buffer (selected-window))
 	  (marker-buffer msg))
       ;; If the compilation buffer window is selected,
@@ -1540,7 +1546,7 @@ All arguments are markers.  If END-MK is non-nil, mark is set there."
     (widen)
     (goto-char mk))
   (if end-mk
-      (push-mark end-mk nil t)
+      (push-mark end-mk t)
     (if mark-active (setq mark-active)))
   ;; If hideshow got in the way of
   ;; seeing the right place, open permanently.
@@ -1561,17 +1567,16 @@ All arguments are markers.  If END-MK is non-nil, mark is set there."
 			     compilation-highlight-regexp)))
     (compilation-set-window-height w)
 
-    (when (and highlight-regexp
-	       (not (and end-mk transient-mark-mode)))
+    (when highlight-regexp
       (unless compilation-highlight-overlay
 	(setq compilation-highlight-overlay
 	      (make-overlay (point-min) (point-min)))
 	(overlay-put compilation-highlight-overlay 'face 'next-error))
       (with-current-buffer (marker-buffer mk)
 	(save-excursion
-	  (end-of-line)
+	  (if end-mk (goto-char end-mk) (end-of-line))
 	  (let ((end (point)))
-	    (beginning-of-line)
+	    (if mk (goto-char mk) (beginning-of-line))
 	    (if (and (stringp highlight-regexp)
 		     (re-search-forward highlight-regexp end t))
 		(progn
