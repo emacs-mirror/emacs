@@ -55,6 +55,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SOCKETS
 #endif
 
+#ifdef HAVE_INET_SOCKETS /* This comes from autoconf.  */
+#define HAVE_SOCKETS
+#endif
+
 #ifdef HAVE_SOCKETS
 #define LIBS_SYSTEM -lsocket
 
