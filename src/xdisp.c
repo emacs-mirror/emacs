@@ -1676,15 +1676,19 @@ try_window (window, pos)
       if (val.vpos) tab_offset = 0;
       vpos++;
       if (pos != val.bufpos)
-	last_text_vpos
-	  /* Next line, unless prev line ended in end of buffer with no cr */
-	  = vpos - (val.vpos && (FETCH_CHAR (val.bufpos - 1) != '\n'
+	{
+	  int invis = 0;
 #ifdef USE_TEXT_PROPERTIES
-				 || ! NILP (Fget_char_property (val.bufpos-1,
-								Qinvisible,
-								window))
+	  Lisp_Object invis_prop;
+	  invis_prop = Fget_char_property (val.bufpos-1, Qinvisible, window);
+	  invis = TEXT_PROP_MEANS_INVISIBLE (invis_prop);
 #endif
-				 ));
+
+	  last_text_vpos
+	    /* Next line, unless prev line ended in end of buffer with no cr */
+	    = vpos - (val.vpos
+		      && (FETCH_CHAR (val.bufpos - 1) != '\n' || invis));
+	}
       pos = val.bufpos;
     }
 
@@ -2294,6 +2298,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   struct position val;
   int lastpos;
   int invis;
+  int last_invis_skip = 0;
+  Lisp_Object last_invis_prop;
   int hscroll = XINT (w->hscroll);
   int truncate = (hscroll
 		  || (truncate_partial_width_windows
@@ -2312,13 +2318,14 @@ display_text_line (w, start, vpos, hpos, taboffset)
   register struct Lisp_Vector *dp = window_display_table (w);
 
   Lisp_Object default_invis_vector[3];
-  /* Nonzero means display something where there are invisible lines.
-     The precise value is the number of glyphs to display.  */
+  /* Number of characters of ellipsis to display after an invisible line
+     if it calls for an ellipsis.
+     Note that this value can be nonzero regardless of whether
+     selective display is enabled--you must check that separately.  */
   int selective_rlen
-    = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
+    = (dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size
-       : selective && !NILP (current_buffer->selective_display_ellipses)
-       ? 3 : 0);
+       : !NILP (current_buffer->selective_display_ellipses) ? 3 : 0);
   /* This is the sequence of Lisp objects to display
      when there are invisible lines.  */
   Lisp_Object *invis_vector_contents
@@ -2492,12 +2499,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      if (XFASTINT (limit) > pos + 50)
 		XSETFASTINT (limit, pos + 50);
 	      endpos = Fnext_single_property_change (position, Qinvisible,
-						Fcurrent_buffer (), limit);
+						     Fcurrent_buffer (),
+						     limit);
 	      if (INTEGERP (endpos))
 		next_invisible = XINT (endpos);
 	      else
 		next_invisible = end;
-	      if (! NILP (prop))
+	      if (TEXT_PROP_MEANS_INVISIBLE (prop))
 		{
 		  if (pos < PT && next_invisible >= PT)
 		    {
@@ -2505,6 +2513,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		      cursor_hpos = p1 - leftmargin;
 		    }
 		  pos = next_invisible;
+		  last_invis_skip = pos;
+		  last_invis_prop = prop;
 		}
 	    }
 	  if (pos >= end)
@@ -2557,6 +2567,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
       else if (c == '\n')
 	{
 	  invis = 0;
+	  if (last_invis_skip == pos
+	      && TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (last_invis_prop))
+	    invis = 1;
 	  while (pos + 1 < end
 		 && selective > 0
 		 && indented_beyond_p (pos + 1, selective))
@@ -3820,6 +3833,51 @@ display_string (w, vpos, string, length, hpos, truncate,
 
     return len;
   }
+}
+
+/* This is like a combination of memq and assq.
+   Return 1 if PROPVAL appears as an element of LIST
+   or as the car of an element of LIST.
+   Otherwise return 0.
+   This function cannot quit.  */
+
+int
+invisible_p (propval, list)
+     register Lisp_Object propval;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object tem;
+      tem = Fcar (tail);
+      if (EQ (propval, tem))
+	return 1;
+      if (CONSP (tem) && EQ (propval, XCONS (tem)->car))
+	return 1;
+    }
+  return 0;
+}
+
+/* Return 1 if PROPVAL appears as the car of an element of LIST
+   and the cdr of that element is non-nil.
+   Otherwise return 0.
+   This function cannot quit.  */
+
+int
+invisible_ellipsis_p (propval, list)
+     register Lisp_Object propval;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+  for (tail = list; CONSP (tail); tail = Fcdr (tail))
+    {
+      register Lisp_Object tem;
+      tem = Fcar (tail);
+      if (CONSP (tem) && EQ (propval, XCONS (tem)->car))
+	return ! NILP (XCONS (tem)->cdr);
+    }
+  return 0;
 }
 
 void
