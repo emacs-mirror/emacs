@@ -100,17 +100,19 @@ This runs the normal hook `display-time-hook' after each update."
 		   'display-time-event-handler))))
 
 
-(defvar display-time-format
-  (concat 
-   (if display-time-day-and-date
-       "%a %b %e" "")
-   (if display-time-24hr-format "%H:%m" "%-I:%M%p"))
+(defvar display-time-format nil
   "*A string specifying the format for displaying the time in the mode line.
 See the function `format-time-string' for an explanation of
-how to write this string.")
+how to write this string.  If this is nil, the defaults
+depend on `display-time-day-and-date' and `display-time-24hr-format'.")
 
 (defvar display-time-string-forms
-  '((format-time-string display-time-format now)
+  '((if (and (not display-time-format) display-time-day-and-date)
+	(format-time-string "%a %b %e " now)
+      "")
+    (format-time-string (or display-time-format
+			    (if display-time-24hr-format "%H:%m" "%-I:%M%p"))
+			now)
     load
     (if mail " Mail" ""))
   "*A list of expressions governing display of the time in the mode line.
