@@ -2895,11 +2895,10 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 		      && !WINDOW_FULL_WIDTH_P (w))
 		  || !NILP (current_buffer->truncate_lines));
 
-  /* 1 if we should highlight the region.  */
+  /* 1 if this buffer has a region to highlight.  */
   int highlight_region
     = (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active)
-       && (XWINDOW (current_buffer->last_selected_window) == w
-	   || highlight_nonselected_windows));
+       && XMARKER (current_buffer->mark)->buffer != 0);
   int region_beg, region_end;
 
   int selective = (INTEGERP (current_buffer->selective_display)
@@ -2959,10 +2958,12 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   /* Show where to highlight the region.  */
-  if (highlight_region && XMARKER (current_buffer->mark)->buffer != 0
+  if (highlight_region
       /* Maybe highlight only in selected window.  */
       && (highlight_nonselected_windows
-	  || w == XWINDOW (selected_window)))
+	  || w == XWINDOW (selected_window)
+	  || (MINI_WINDOW_P (XWINDOW (selected_window))
+	      && w == XWINDOW (Vminibuf_scroll_window))))
     {
       region_beg = marker_position (current_buffer->mark);
       if (PT < region_beg)
