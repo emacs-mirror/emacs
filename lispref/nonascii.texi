@@ -415,6 +415,7 @@ characters instead of the characters actually in the buffer.
 When a buffer contains non-@sc{ascii} characters, codes 128 through 255,
 they are assigned the character set @code{unknown}.  @xref{Explicit
 Encoding}.
+@end defun
 
 @defun find-charset-string string &optional translation
 This function returns a list of the character sets that appear in the

@@ -1,3 +1,8 @@
+2000-05-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* search.c (Freplace_match): Handle case of `\N' in the
+	replacement when there's no group N.
+
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (add_to_log): Don't pass the terminating NUL byte
