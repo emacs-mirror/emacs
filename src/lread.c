@@ -699,7 +699,7 @@ Return t if file exists.")
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
-  readevalloop (Qget_file_char, stream, file, Feval, 0, Qnil);
+  readevalloop (Qget_file_char, stream, file, Feval, 0, Qnil, Qnil);
   unbind_to (count, Qnil);
 
   /* Run any load-hooks for this file.  */
@@ -1021,16 +1021,17 @@ readevalloop_1 (old)
 }
 
 /* UNIBYTE specifies how to set load_convert_to_unibyte
-   for this invocation.  */
+   for this invocation.
+   READFUN, if non-nil, is used instead of `read'.  */
 
 static void
-readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte)
+readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, readfun)
      Lisp_Object readcharfun;
      FILE *stream;
      Lisp_Object sourcename;
      Lisp_Object (*evalfun) ();
      int printflag;
-     Lisp_Object unibyte;
+     Lisp_Object unibyte, readfun;
 {
   register int c;
   register Lisp_Object val;
@@ -1083,10 +1084,12 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte)
 	{
 	  UNREAD (c);
 	  read_objects = Qnil;
-	  if (NILP (Vload_read_function))
-	    val = read0 (readcharfun);
-	  else
+	  if (! NILP (readfun))
+	    val = call1 (readfun, readcharfun);
+	  else if (! NILP (Vload_read_function))
 	    val = call1 (Vload_read_function, readcharfun);
+	  else
+	    val = read0 (readcharfun);
 	}
 
       val = (*evalfun) (val);
@@ -1143,7 +1146,7 @@ This function preserves the position of point.")
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  readevalloop (buf, 0, filename, Feval, !NILP (printflag), unibyte);
+  readevalloop (buf, 0, filename, Feval, !NILP (printflag), unibyte, Qnil);
   unbind_to (count, Qnil);
 
   return Qnil;
@@ -1173,22 +1176,25 @@ point remains at the end of the last character read from the buffer.")
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   SET_PT (BEGV);
   readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
-		!NILP (printflag), Qnil);
+		!NILP (printflag), Qnil, Qnil);
   return unbind_to (count, Qnil);
 }
 #endif
 
-DEFUN ("eval-region", Feval_region, Seval_region, 2, 3, "r",
+DEFUN ("eval-region", Feval_region, Seval_region, 2, 4, "r",
   "Execute the region as Lisp code.\n\
 When called from programs, expects two arguments,\n\
 giving starting and ending indices in the current buffer\n\
 of the text to be executed.\n\
 Programs can pass third argument PRINTFLAG which controls output:\n\
 nil means discard it; anything else is stream for printing it.\n\
+Also the fourth argument READ-FUNCTION, if non-nil, is used\n\
+instead of `read' to read each expression.  It gets one argument\n\
+which is the input stream for reading characters.\n\
 \n\
 This function does not move point.")
-  (start, end, printflag)
-     Lisp_Object start, end, printflag;
+  (start, end, printflag, read_function)
+     Lisp_Object start, end, printflag, read_function;
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem, cbuf;
@@ -1209,7 +1215,7 @@ This function does not move point.")
   Fgoto_char (start);
   Fnarrow_to_region (make_number (BEGV), end);
   readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
-		!NILP (printflag), Qnil);
+		!NILP (printflag), Qnil, read_function);
 
   return unbind_to (count, Qnil);
 }
