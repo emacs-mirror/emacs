@@ -1,3 +1,47 @@
+2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+	Version 2.0.38 of Tramp released.
+
+	* net/tramp.el (tramp-chunksize): Extend docstring.  Suggested by
+	Charles Curley <charlescurley@charlescurley.com>.
+	(tramp-multi-connection-function-alist): Add ssht entry which adds
+	"-e none -t -t" to the list of ssh args.  Suggested by Adrian
+	Aichner.
+	(tramp-get-method-parameter): New function to retrieve a method
+	parameter.  This allows for omission of method parameters.
+	Callers adjusted.
+
+2003-11-25  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el: Add new optional parameter ID-FORMAT to
+	`file-attributes'.  Calls of `file-attributes' won't use this
+	parameter for backward compatibility reasons.
+	(tramp-perl-file-attributes): Add a new parameter to Perl script
+	in order to handle uid/gid as strings, if desired.
+	(tramp-handle-file-truename, tramp-handle-file-symlink-p): Apply
+	`file-attributes' instead of `tramp-handle-file-attributes' in
+	order to make the function more general.
+	(tramp-handle-file-attributes): Replace proprietary optional
+	parameter NONNUMERIC by the recently (Emacs 21.4) introduced
+	ID-FORMAT.
+	(tramp-handle-file-attributes-with-perl): Handle parameter
+	NONNUMERIC if set. This wasn't done in the past.
+	(tramp-post-connection): Apply second parameter "$2" if
+	`tramp-remote-perl' is called.
+
+	* net/tramp-smb.el (tramp-smb-handle-delete-file): Correct
+	cut'n'waste error (`filename' instead of `directory').
+	(tramp-smb-handle-directory-files-and-attributes)
+	(tramp-smb-handle-file-attributes): Add recently (Emacs 21.4)
+	introduced parameter ID-FORMAT.
+	(tramp-smb-handle-make-directory-internal): Correct cut'n'waste
+	error (`directory' instead of `ldir').
+
+	* net/tramp-vc.el (tramp-handle-vc-user-login-name): Check if
+	`file-attributes' has a second parameter.  If yes, apply it with
+	value "'integer".  Otherwise, don't use that parameter (default is
+	integer format).
+
+
 2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* help.el (help-map): Bind `display-local-help' to `C-h .'.
