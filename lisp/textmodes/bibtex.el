@@ -964,12 +964,12 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
 
 ;; Helper Functions
 
-(defun delete-whitespace ()
+(defun bibtex-delete-whitespace ()
   ;; Delete all whitespace starting at point
   (if (looking-at "[ \t\n]+")
       (delete-region (point) (match-end 0))))
 
-(defun current-line ()
+(defun bibtex-current-line ()
   ;; this computes line number of point regardless whether the buffer
   ;; is narrowed
   (+ (count-lines 1 (point))
@@ -985,7 +985,7 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
       (setq list (cdr list)))
     list))
 
-(defun assoc-of-regexp (string alist)
+(defun bibtex-assoc-of-regexp (string alist)
   ;; Return non-nil if STRING is exactly matched by the car of an
   ;; element of LIST (case ignored). The value is actually the element
   ;; of LIST whose car matches STRING.
@@ -996,7 +996,7 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
       (setq alist (cdr alist)))
     (car alist)))
 
-(defun skip-to-valid-bibtex-entry (&optional backward)
+(defun bibtex-skip-to-valid-entry (&optional backward)
   ;; If not at beginning of valid BibTeX entry, move to beginning of
   ;; the next valid one. With argument backward non-nil, move backward
   ;; to beginning of previous valid one. A valid entry is a
@@ -1039,7 +1039,7 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
             (if (re-search-forward "^[ \t]*@" nil 'move)
                 (forward-char -1))))))))
 
-(defun map-bibtex-entries (fun)
+(defun bibtex-map-entries (fun)
   ;; Call FUN for each BibTeX entry starting with the current. Do this
   ;; to the end of the file. FUN is called with one argument, the key
   ;; of the entry, and with point inside the entry. If
@@ -1814,7 +1814,7 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
   (mapcar
    (lambda (titleword)
      (let ((abbrev
-            (assoc-of-regexp
+            (bibtex-assoc-of-regexp
              titleword bibtex-autokey-titleword-abbrevs)))
        (if abbrev
            (elt abbrev 1)
@@ -1982,7 +1982,7 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
               (bibtex-progress-message
                (concat (buffer-name) ": parsing reference keys")))
           (if (catch 'userkey
-                (skip-to-valid-bibtex-entry)
+                (bibtex-skip-to-valid-entry)
                 (while (not (eobp))
                   (if (and
                        abortable
@@ -2016,7 +2016,7 @@ If non nil, column of equal sign is bibtex-text-indentation - 2.")
                         (match-beginning bibtex-key-in-string)
                         (match-end bibtex-key-in-string)))))
                     (forward-char)
-                    (skip-to-valid-bibtex-entry)
+                    (bibtex-skip-to-valid-entry)
                     (if (not (assoc label labels))
                         (setq labels
                               (cons (list label) labels)))
@@ -2793,7 +2793,7 @@ If mark is active it counts entries in region, if not in whole buffer."
     (save-restriction
       (narrow-to-region start-point end-point)
       (goto-char start-point)
-      (map-bibtex-entries
+      (bibtex-map-entries
        (lambda (current)
          (setq number (1+ number)))))
     (message (concat (if mark-active "Region" "Buffer")
@@ -2857,11 +2857,11 @@ ignored."
      (save-excursion
        (goto-char (point-max))
        (bibtex-end-of-entry)))
-    (skip-to-valid-bibtex-entry)
+    (bibtex-skip-to-valid-entry)
     (sort-subr
      nil
      ;; NEXTREC function
-     'skip-to-valid-bibtex-entry
+     'bibtex-skip-to-valid-entry
      ;; ENDREC function
      'bibtex-end-of-entry
      ;; STARTKEY function
@@ -2886,12 +2886,12 @@ occurred, and t in all other cases."
          (left
           (progn
             (bibtex-beginning-of-first-entry)
-            (skip-to-valid-bibtex-entry)
+            (bibtex-skip-to-valid-entry)
             (bibtex-end-of-entry)))
          (right
           (progn
             (bibtex-beginning-of-last-entry)
-            (skip-to-valid-bibtex-entry t)
+            (bibtex-skip-to-valid-entry t)
             (point)))
          actual-point
          actual-key
@@ -2901,7 +2901,7 @@ occurred, and t in all other cases."
     (while (not done)
       (setq actual-point (/ (+ left right) 2))
       (goto-char actual-point)
-      (skip-to-valid-bibtex-entry t)
+      (bibtex-skip-to-valid-entry t)
       (setq actual-key
             (progn
               (re-search-forward bibtex-reference-head)
@@ -2993,14 +2993,14 @@ Returns t if test was successful, nil otherwise."
           (if (not must-match)
               (forward-char)
             (let (bibtex-sort-ignore-string-entries)
-              (skip-to-valid-bibtex-entry))
+              (bibtex-skip-to-valid-entry))
             (if (equal (point) p)
                 (forward-char)
               (goto-char p)
               (setq
                error-list
                (cons (list
-                      (current-line)
+                      (bibtex-current-line)
                       "Syntax error (check esp. commas, braces, and quotes)") 
                      error-list))
               (forward-char)))))
@@ -3013,7 +3013,7 @@ Returns t if test was successful, nil otherwise."
             (let (previous)
               (goto-char start-point)
               (bibtex-progress-message "Checking correct sort order")
-              (map-bibtex-entries
+              (bibtex-map-entries
                (lambda (current)
                  (bibtex-progress-message)
                  (cond ((or (not previous)
@@ -3022,13 +3022,13 @@ Returns t if test was successful, nil otherwise."
                        ((string-equal previous current)
                         (setq
                          error-list
-                         (cons (list (current-line)
+                         (cons (list (bibtex-current-line)
                                      "Duplicate key with previous")
                                error-list)))
                        (t
                         (setq previous current
                               error-list
-                              (cons (list (current-line)
+                              (cons (list (bibtex-current-line)
                                           "Entries out of order")
                                     error-list))))))
               (bibtex-progress-message 'done)))
@@ -3047,7 +3047,7 @@ Returns t if test was successful, nil otherwise."
                        bibtex-predefined-month-strings
                        "\\|")
                       "\\)[}\"]")))
-                (map-bibtex-entries
+                (bibtex-map-entries
                  (lambda (current)
                    (bibtex-progress-message)
                    (let* ((beg (bibtex-beginning-of-entry))
@@ -3080,7 +3080,7 @@ Returns t if test was successful, nil otherwise."
                               error-list
                               (cons
                                (list
-                                (current-line)
+                                (bibtex-current-line)
                                 "Questionable month field (delimited string)")
                                error-list)))
                          (setq
@@ -3105,7 +3105,7 @@ Returns t if test was successful, nil otherwise."
                           (cons
                            (list (save-excursion
                                    (bibtex-beginning-of-entry)
-                                   (current-line))
+                                   (bibtex-current-line))
                                  (concat
                                   "Required field \""
                                   (car (car req))
@@ -3464,7 +3464,7 @@ well."
   (let ((pnt (copy-marker (point)))
         (end (copy-marker (bibtex-end-of-entry))))
     (bibtex-beginning-of-entry)
-    (delete-whitespace)
+    (bibtex-delete-whitespace)
     (indent-to-column bibtex-entry-offset)
     (while (re-search-forward bibtex-field end t)
       (let* ((begin-field
@@ -3477,7 +3477,7 @@ well."
               (copy-marker (match-end bibtex-name-in-field))))
         (goto-char begin-field)
         (forward-char)
-        (delete-whitespace)
+        (bibtex-delete-whitespace)
         (open-line 1)
         (forward-char)
         (indent-to-column
@@ -3490,7 +3490,7 @@ well."
              (+ bibtex-entry-offset (- bibtex-text-indentation 2)))
           (insert " "))
         (forward-char)
-        (delete-whitespace)
+        (bibtex-delete-whitespace)
         (if bibtex-align-at-equal-sign
             (insert " ")
           (indent-to-column bibtex-text-indentation))
@@ -3499,7 +3499,7 @@ well."
         (bibtex-do-auto-fill)))
     (if (looking-at ",")
         (forward-char))
-    (delete-whitespace)
+    (bibtex-delete-whitespace)
     (open-line 1)
     (forward-char)
     (indent-to-column bibtex-entry-offset)
@@ -3567,7 +3567,7 @@ If mark is active it reformats entries in region, if not in whole buffer."
               (region-beginning)
             (progn
               (bibtex-beginning-of-first-entry)
-              (skip-to-valid-bibtex-entry)
+              (bibtex-skip-to-valid-entry)
               (point))))
          (end-point
           (if mark-active
@@ -3591,14 +3591,14 @@ If mark is active it reformats entries in region, if not in whole buffer."
               (replace-match "\n\\1"))))
       (goto-char start-point)
       (bibtex-progress-message "Formatting" 1)
-      (map-bibtex-entries
+      (bibtex-map-entries
        (lambda (current)
          (bibtex-progress-message)
          (bibtex-clean-entry labels labels)
          (if (memq 'realign bibtex-entry-format)
              (progn
                (bibtex-end-of-entry)
-               (delete-whitespace)
+               (bibtex-delete-whitespace)
                (open-line 2)))))
       (bibtex-progress-message 'done))
     (if (and
