@@ -275,11 +275,15 @@ relocates markers initially pointing at the insertion point, to point
 after the inserted text.
 @end defun
 
-@defun insert-char character count
+@defun insert-char character count &optional inherit
 This function inserts @var{count} instances of @var{character} into the
 current buffer before point.  The argument @var{count} must be a number,
 and @var{character} must be a character.  The value is @code{nil}.
 @c It's unfortunate that count comes second.  Not like make-string, etc.
+
+If @var{inherit} is non-@code{nil}, then the inserted characters inherit
+sticky text properties from the two characters before and after the
+insertion point.  @xref{Sticky Properties}.
 @end defun
 
 @defun insert-buffer-substring from-buffer-or-name &optional start end
@@ -312,6 +316,8 @@ We hold these truth@point{}
 
   @xref{Sticky Properties}, for other insertion functions that inherit
 text properties from the nearby text in addition to inserting it.
+Whitespace inserted by indentation functions also inherits text
+properties.
 
 @node Commands for Insertion
 @section User-Level Insertion Commands
@@ -1507,6 +1513,10 @@ least that many spaces are inserted even if this requires going beyond
 @var{column}.  Otherwise the function does nothing if point is already
 beyond @var{column}.  The value is the column at which the inserted
 indentation ends.
+
+The inserted whitespace characters inherit text properties from the
+surrounding text (usually, from the preceding text only).  @xref{Sticky
+Properties}.
 @end deffn
 
 @defopt indent-tabs-mode
