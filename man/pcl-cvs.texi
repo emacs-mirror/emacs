@@ -1,9 +1,9 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.9 2000/12/06 20:03:33 fx Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.10 2001/01/02 13:35:10 fx Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
-@c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000  Free Software Foundation, Inc.
+@c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001  Free Software Foundation, Inc.
 
 @c This file is part of GNU Emacs
 
@@ -122,8 +122,8 @@ of the various commands and major modes for further information.
 * Selected files::              To which files are commands applied.
 * Commands::                    All commands, grouped by type.
 
-@c * Log Edit Mode::               Major mode to edit log messages.
-@c * Log View Mode::               Major mode to browse log changes.
+* Log Edit Mode::               Major mode to edit log messages.
+* Log View Mode::               Major mode to browse log changes.
 @c * CVS Status Mode::             Major mode to view CVS' status output.
 * Customization::               How you can tailor PCL-CVS to suit your needs.
 * Bugs::                        Bugs (known and unknown).
@@ -546,7 +546,7 @@ it, it is quite powerful.
 
 For commands to mark and unmark files, see @ref{Marking files}.
 
-@node Commands, Customization, Selected files, Top
+@node Commands, Log Edit Mode, Selected files, Top
 @chapter Commands
 
 @iftex
@@ -842,9 +842,7 @@ After having selected the files you want to commit, you type either
 
 @item
 You type in the log message describing the changes you're about to
-commit.
-@c Reinstate when node is written:
-@c (@pxref{Log Edit Mode}).@refill
+commit (@pxref{Log Edit Mode}).
 
 @item
 When you're happy with it, you type @kbd{C-c C-c} to do the actual
@@ -931,9 +929,7 @@ directory.  (@code{cvs-mode-add-change-log-entry-other-window}).@refill
 @item l
 Call the command @code{cvs-mode-log} which runs @samp{cvs log} on all
 selected files, and show the result in a temporary buffer
-@samp{*cvs-info*}.
-@c Fixme: reinstate when node is written:
-@c (@pxref{Log View Mode}).
+@samp{*cvs-info*} (@pxref{Log View Mode}).
 
 @item s
 Call the command @code{cvs-mode-status} which runs @samp{cvs status} on
@@ -1211,16 +1207,61 @@ area (@code{cvs-help}).
 Quit PCL-CVS, killing the @samp{*cvs*} buffer (@code{cvs-mode-quit}).
 @end table
 
-@c @node Log Edit Mode, Log View Mode, Commands, Top
-@c @chapter Editing a Log Message
+@node Log Edit Mode, Log View Mode, Commands, Top
+@chapter Editing a Log Message
 
-@c @node Log View Mode, CVS Status Mode, Log Edit Mode, Top
-@c @chapter Browsing a Log of Changes
+@cindex Log Edit mode
+@cindex mode, Log Edit
+Buffers for entering/editing log messages for changes which are about
+to be committed are put into Log Edit mode.
 
-@c @node CVS Status Mode, Customization, Log View Mode, Top
+Sometimes the log buffer contains default text when you enter it,
+typically the last log message entered.  If it does, mark and point
+are set around the entire contents of the buffer so that it is easy to
+kill the contents of the buffer with @kbd{C-w}.
+
+@findex log-edit-insert-changelog
+If you work by writing entries in the @file{ChangeLog}
+(@pxref{(emacs)Change Log}) and then commit the change under revision
+control, you can generate the Log Edit text from the ChangeLog using
+@kbd{C-a C-a} (@kbd{log-edit-insert-changelog}).  This looks for
+entries for the file(s) concerned in the top entry in the ChangeLog
+and uses those paragraphs as the log text.  This text is only inserted
+if the top entry was made under your user name on the current date.
+@xref{(emacs)Change Logs and VC}, for the opposite way of
+working---generating ChangeLog entries from the revision control log.
+
+In the Log Edit buffer, @kbd{C-c C-f} (@kbd{M-x log-edit-show-files})
+shows the list of files to be committed in case you need to check
+that.
+
+When you have finished editing the log message, type @kbd{C-c C-c} to
+exit the buffer and commit the change.
+
+@c Fixme: customization variables
+
+@node Log View Mode, Customization, Log Edit Mode, Top
+@chapter Browsing a Log of Changes
+
+@cindex Log View mode
+@cindex mode, Log View
+@cindex output, logs
+
+@findex cvs-mode-log
+@findex vc-print-log
+Log View mode provides a few useful commands for navigating revision
+control log output.  It is used for the output buffers of both
+@code{cvs-mode-log} and @code{vc-print-log}.
+
+In this mode, @kbd{n} goes to the next message and @kbd{p} goes to the
+previous message and @kbd{N} and @kbd{P} go to the next and previous
+files, respectively, in multi-file output.  With a numeric prefix
+argument, these commands move that many messages of files.
+
+@c @node CVS Status Mode
 @c @chapter Viewing CVS' Status output
 
-@node Customization, Bugs, Commands, Top
+@node Customization, Bugs, Log View Mode, Top
 @chapter Customization
 @vindex log-edit-changelog-full-paragraphs@r{ (variable)}
 @vindex cvs-auto-remove-handled@r{ (variable)}
