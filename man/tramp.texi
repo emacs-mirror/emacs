@@ -213,6 +213,8 @@ trivial or major, should be reported to the @tramp{} developers.
 
 @subsubheading Behind the scenes
 @cindex behind the scenes
+@cindex details of operation
+@cindex how it works
 
 This section tries to explain what goes on behind the scenes when you
 access a remote file through @tramp{}.
@@ -606,7 +608,7 @@ command in every modern Emacs, improving performance.
 @item @option{rm}  ---  @command{rsh} with @command{mimencode}
 @cindex method rm
 @cindex rm method
-@cindex method using rsh
+@cindex method using rsh (rm)
 
 Connect to the remote host with @command{rsh} and use base64 encoding to
 transfer files between the machines.
@@ -619,10 +621,10 @@ machines.
 @item @option{sm}  ---  @command{ssh} with @command{mimencode}
 @cindex method sm
 @cindex sm method
-@cindex method using ssh
-@cindex ssh
-@cindex mimencode
-@cindex base-64 encoding
+@cindex method using ssh (sm)
+@cindex ssh (with sm method)
+@cindex mimencode (with sm method)
+@cindex base-64 encoding (with sm method)
 
 Connect to the remote host with @command{ssh} and use base64 encoding to
 transfer files between the machines.
@@ -644,10 +646,10 @@ arguments to the @command{ssh} command.
 @item @option{tm}  ---  @command{telnet} with @command{mimencode}
 @cindex method tm
 @cindex tm method
-@cindex method using telnet
-@cindex telnet
-@cindex mimencode
-@cindex base-64 encoding
+@cindex method using telnet (tm)
+@cindex telnet (with tm method)
+@cindex mimencode (with tm method)
+@cindex base-64 encoding (with tm method)
 
 Connect to the remote host with @command{telnet} and use base64 encoding
 to transfer files between the machines.
@@ -660,8 +662,8 @@ This requires the @command{mimencode} command that is part of the
 @cindex method ru
 @cindex ru method
 @cindex method using rsh
-@cindex rsh
-@cindex uuencode
+@cindex rsh (with ru method)
+@cindex uuencode (with ru method)
 
 Connect to the remote host with @command{rsh} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
@@ -671,9 +673,9 @@ between the machines.
 @item @option{su}  ---  @command{ssh} with @command{uuencode}
 @cindex method su
 @cindex su method
-@cindex method using ssh
-@cindex ssh
-@cindex uuencode
+@cindex method using ssh (su)
+@cindex ssh (with su method)
+@cindex uuencode (with su method)
 
 Connect to the remote host with @command{ssh} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
@@ -692,9 +694,9 @@ This supports the @samp{-p} kludge.
 @item @option{tu}  ---  @command{telnet} with @command{uuencode}
 @cindex tu method
 @cindex method tu
-@cindex method using telnet
-@cindex telnet
-@cindex uuencode
+@cindex method using telnet (tu)
+@cindex telnet (with tu method)
+@cindex uuencode (with tu method)
 
 Connect to the remote host with @command{telnet} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
@@ -704,10 +706,10 @@ between the machines.
 @item @option{sum} --- @command{su} with @command{mimencode}
 @cindex method sum
 @cindex sum method
-@cindex method using su
-@cindex su
-@cindex mimencode
-@cindex base-64 encoding
+@cindex method using su (sum)
+@cindex su (with sum method)
+@cindex mimencode (with sum method)
+@cindex base-64 encoding (with sum method)
 
 This method does not connect to a remote host at all, rather it uses the
 @command{su} program to allow you to edit files as another user.  Uses
@@ -717,9 +719,9 @@ base64 encoding to transfer the file contents.
 @item @option{suu} --- @command{su} with @command{uuencode}
 @cindex method suu
 @cindex suu method
-@cindex method using su
-@cindex su
-@cindex uuencode
+@cindex method using su (suu)
+@cindex su (with suu method)
+@cindex uuencode (with suu method)
 
 Like @option{sum}, this uses the @command{su} program to allow you to
 edit files on the local host as another user.  Uses @command{uuencode}
@@ -729,10 +731,10 @@ and @command{uudecode} to transfer the file contents.
 @item @option{sudm} --- @command{sudo} with @command{mimencode}
 @cindex method sudm
 @cindex sudm method
-@cindex method using sudo
-@cindex sudo
-@cindex mimencode
-@cindex base-64 encoding
+@cindex method using sudo (sudm)
+@cindex sudo (with sudm method)
+@cindex mimencode (with sudm method)
+@cindex base-64 encoding (with sudm method)
 
 This is similar to the @option{sum} method, but it uses @command{sudo}
 rather than @command{su} to become a different user.
@@ -746,9 +748,9 @@ to implement, so I haven't got around to it, yet.
 @item @option{sudu} --- @command{sudo} with @command{uuencode}
 @cindex method sudu
 @cindex sudu method
-@cindex method using sudo
-@cindex sudo
-@cindex uuencode
+@cindex method using sudo (sudu)
+@cindex sudo (with sudu method)
+@cindex uuencode (with sudu method)
 
 This is similar to the @option{suu} method, but it uses @command{sudo}
 rather than @command{su} to become a different user.
@@ -757,11 +759,11 @@ rather than @command{su} to become a different user.
 @item @option{smx} --- @command{ssh} with @command{mimencode}
 @cindex method smx
 @cindex smx method
-@cindex method using ssh
-@cindex ssh
-@cindex mimencode
-@cindex base-64 encoding
-@cindex Cygwin
+@cindex method using ssh (smx)
+@cindex ssh (with smx method)
+@cindex mimencode (with smx method)
+@cindex base-64 encoding (with smx method)
+@cindex Cygwin (with smx method)
 
 As you expect, this is similar to @option{sm}, only a little
 different.  Whereas @option{sm} opens a normal interactive shell on
@@ -792,10 +794,10 @@ This supports the @samp{-p} kludge.
 @item @option{km} --- @command{krlogin} with @command{mimencode}
 @cindex method km
 @cindex km method
-@cindex krlogin
-@cindex Kerberos
-@cindex mimencode
-@cindex base-64 encoding
+@cindex krlogin (with km method)
+@cindex Kerberos (with km method)
+@cindex mimencode (with km method)
+@cindex base-64 encoding (with km method)
 
 This method is also similar to @option{sm}.  It only uses the
 @command{krlogin -x} command to log in to the remote host.
@@ -804,9 +806,9 @@ This method is also similar to @option{sm}.  It only uses the
 @item @option{plinku} --- @command{plink} with @command{uuencode}
 @cindex method plinku
 @cindex plinku method
-@cindex method using plink
-@cindex plink
-@cindex uuencode
+@cindex method using plink (plinku)
+@cindex plink (with plinku method)
+@cindex uuencode (with plinku method)
 
 This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH.  It uses @samp{plink -ssh} to log in to the
@@ -821,10 +823,10 @@ will support that, anyway.
 @item @option{plinkm} --- @command{plink} with @command{mimencode}
 @cindex method plinkm
 @cindex plinkm method
-@cindex method using plink
-@cindex plink
-@cindex mimencode
-@cindex base-64 encoding
+@cindex method using plink (plinkm)
+@cindex plink (with plinkm method)
+@cindex mimencode (with plinkm method)
+@cindex base-64 encoding (with plinkm method)
 
 Like @option{plinku}, but uses base64 encoding instead of uu encoding.
 
@@ -867,8 +869,8 @@ look at the @command{ssh} based inline methods.
 @item @option{rcp}  ---  @command{rsh} and @command{rcp}
 @cindex method rcp
 @cindex rcp method
-@cindex rcp
-@cindex rsh
+@cindex rcp (with rcp method)
+@cindex rsh (with rcp method)
 
 This method uses the @command{rsh} and @command{rcp} commands to connect
 to the remote machine and transfer files. This is probably the fastest
@@ -878,8 +880,8 @@ connection method available.
 @item @option{scp}  ---  @command{ssh} and @command{scp}
 @cindex method scp
 @cindex scp method
-@cindex scp
-@cindex ssh
+@cindex scp (with scp method)
+@cindex ssh (with scp method)
 
 Using @command{ssh} to connect to the remote host and @command{scp} to
 transfer files between the machines is the best method for securely
@@ -900,8 +902,8 @@ specify @samp{-p 42} in the argument list for @command{ssh}.
 @item @option{rsync}  ---  @command{ssh} and @command{rsync}
 @cindex method rsync
 @cindex rsync method
-@cindex rsync
-@cindex ssh
+@cindex rsync (with rsync method)
+@cindex ssh (with rsync method)
 
 Using the @command{ssh} command to connect securely to the remote
 machine and the @command{rsync} command to transfer files is almost
@@ -921,9 +923,9 @@ This method supports the @samp{-p} hack.
 @item @option{scpx} --- @command{ssh} and @command{scp}
 @cindex method scpx
 @cindex scpx method
-@cindex scp
-@cindex ssh
-@cindex Cygwin
+@cindex scp (with scpx method)
+@cindex ssh (with scpx method)
+@cindex Cygwin (with scpx method)
 
 As you expect, this is similar to @option{scp}, only a little
 different.  Whereas @option{scp} opens a normal interactive shell on
@@ -946,9 +948,9 @@ This method supports the @samp{-p} hack.
 @item @option{pscp} --- @command{plink} and @command{pscp}
 @cindex method pscp
 @cindex pscp method
-@cindex pscp
-@cindex plink
-@cindex PuTTY
+@cindex pscp (with pscp method)
+@cindex plink (with pscp method)
+@cindex PuTTY (with pscp method)
 
 This method is similar to @option{scp}, but it uses the
 @command{plink} command to connect to the remote host, and it uses
@@ -961,8 +963,8 @@ CCC: Does @command{plink} support the @samp{-p} hack?
 @item @option{fcp} --- @command{fsh} and @command{fcp}
 @cindex method fcp
 @cindex fcp method
-@cindex fsh
-@cindex fcp
+@cindex fsh (with fcp method)
+@cindex fcp (with fcp method)
 
 This method is similar to @option{scp}, but it uses the @command{fsh}
 command to connect to the remote host, and it uses @command{fcp} for
@@ -977,6 +979,8 @@ This method uses the command @samp{fsh @var{host} -l @var{user}
 /bin/sh -i} to establish the connection, it does not work to just say
 @command{fsh @var{host} -l @var{user}}.
 
+@cindex method fsh
+@cindex fsh method
 There is no inline method using @command{fsh} as the multiplexing
 provided by the program is not very useful in our context.  @tramp{}
 opens just one connection to the remote host and then keeps it open,
@@ -1006,8 +1010,8 @@ methods are available:
 @item @option{multi} --- base64 encoding with @command{mimencode}
 @cindex method multi
 @cindex multi method
-@cindex base-64 encoding
-@cindex mimencode
+@cindex mimencode (with multi method)
+@cindex base-64 encoding (with multi method)
 
 The file is transferred through the connection in base64 encoding.  Uses
 the @command{mimencode} program for doing encoding and decoding, but
@@ -1016,7 +1020,7 @@ uses an Emacs internal implementation on the local host if available.
 @item @option{multiu} --- use commands @command{uuencode} and @command{uudecode}
 @cindex method multiu
 @cindex multiu method
-@cindex uuencode
+@cindex uuencode (with multiu method)
 
 The file is transferred through the connection in `uu' encoding.  Uses
 the @command{uuencode} and @command{uudecode} programs for encoding and
@@ -1209,8 +1213,8 @@ as:
 @comment  node-name,  next,  previous,  up
 @section Remote shell setup hints
 @cindex remote shell setup
-@cindex .profile file
-@cindex .login file
+@cindex @file{.profile} file
+@cindex @file{.login} file
 @cindex shell init files
 
 As explained in the @ref{Overview} section, @tramp{} connects to the
@@ -1283,7 +1287,7 @@ The variable @code{tramp-terminal-type} can be used to change this value
 
 @node Windows setup hints
 @section Issues with Cygwin ssh
-@cindex Cygwin
+@cindex Cygwin, issues
 
 This section needs a lot of work!  Please help.
 
