@@ -101,7 +101,7 @@
   :type '(repeat function))
 
 (defvar server-process nil 
-  "the current server process")
+  "The current server process")
 
 (defvar server-previous-string "")
 
@@ -112,7 +112,7 @@ that can be given to the server process to identify a client.
 When a buffer is marked as \"done\", it is removed from this list.")
 
 (defvar server-buffer-clients nil
-  "List of clientids for clients requesting editing of current buffer.")
+  "List of client ids for clients requesting editing of current buffer.")
 (make-variable-buffer-local 'server-buffer-clients)
 ;; Changing major modes should not erase this local.
 (put 'server-buffer-clients 'permanent-local t)
