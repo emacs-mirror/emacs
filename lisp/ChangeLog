@@ -1,3 +1,26 @@
+1999-12-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* apropos.el (apropos-mode): Add autoload cookie.
+
+1999-12-06  Sam Steingold  <sds@goems.com>
+
+	* progmodes/etags.el (etags-tags-completion-table): Modified the
+	regexp to allow for the CL symbols starting with `+*'.
+	(tags-completion-table): Doc fix (it's an obarray, not an alist).
+	(tags-completion-table, tags-recognize-empty-tags-table): Remove
+	`function' quoting lambda.
+	(tags-with-face): New macro.
+	(list-tags, tags-apropos): Use it.
+	(tags-apropos-additional-actions): New user option.
+	(etags-tags-apropos-additional): Use it.
+	(tags-apropos): Call etags-tags-apropos-additional.
+	(tags-apropos-verbose): New user option.
+	(etags-tags-apropos): Use it.
+	(visit-tags-table-buffer, next-file): Use `unless'.
+	(recognize-empty-tags-table): Renamed to
+	tags-recognize-empty-tags-table.
+	(complete-tag): Call tags-complete-tag bypassing try-completion.
+	
 1999-12-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): Docstring
