@@ -953,7 +953,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   (run-hooks 'after-init-hook)
 
-  ;; Decode all buffer names.
+  ;; Decode all default-directory.
   (if (and default-enable-multibyte-characters locale-coding-system)
       (save-excursion
 	(dolist (elt (buffer-list))
