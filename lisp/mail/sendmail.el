@@ -324,13 +324,22 @@ Prefix arg means don't delete this window."
 	     (cdr (assq 'dedicated (frame-parameters)))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
 	(delete-frame (selected-frame))
-      (if (and (not arg)
-	       (not (one-window-p))
-	       (save-excursion
-		 (set-buffer (window-buffer (next-window (selected-window) 'not)))
-		 (eq major-mode 'rmail-mode)))
-	  (delete-window)
-	(switch-to-buffer newbuf)))))
+      (let (rmail-flag summary-buffer)
+	(and (not arg)
+	     (not (one-window-p))
+	     (save-excursion
+	       (set-buffer (window-buffer (next-window (selected-window) 'not)))
+	       (setq rmail-flag (eq major-mode 'rmail-mode))
+	       (setq summary-buffer
+		     (and rmail-summary-buffer
+			  (buffer-name rmail-summary-buffer)
+			  (not (get-buffer-window rmail-summary-buffer))
+			  rmail-summary-buffer))))
+	(if rmail-flag
+	    ;; If the Rmail buffer has a summary, show that.
+	    (if summary-buffer (switch-to-buffer summary-buffer)
+	      (delete-window))
+	  (switch-to-buffer newbuf))))))
 
 (defun mail-send ()
   "Send the message in the current buffer.
