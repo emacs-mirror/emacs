@@ -1,3 +1,7 @@
+2004-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (xsymbol): Fix last change.
+
 2004-05-18  David Ponce  <david@dponce.com>
 
 	* print.c (print): Reset print_depth before to call print_object.
@@ -10,7 +14,7 @@
 	* w32menu.c (add_menu_item, w32_menu_display_help)
 	[USE_LISP_UNION_TYPE]: Cast from Lisp_Object using i member.
 
-	* w32term.h (display_x_get_resource, vga_stdcolor_name): Add prototype. 
+	* w32term.h (display_x_get_resource, vga_stdcolor_name): Add prototype.
 
 2004-05-18  Eli Zaretskii  <eliz@gnu.org>
 
@@ -111,12 +115,16 @@
 	section to frame.c section.
 	(Fxw_display_color_p, Fx_file_dialog): Declare if
 	HAVE_WINDOW_SYSTEM defined.
+
 	* macfns.c (Fx_create_frame): Fix int/Lisp_Object mixup.
+
 	* macmenu.c (set_frame_menubar): Use NILP to test a lisp value.
+
 	* macterm.c (mac_get_emulated_btn, mac_event_to_emacs_modifiers)
 	(mac_get_mouse_btn): Use NILP and EQ to test/compare lisp values.
 	(XTread_socket): Fix int/Lisp_Object mixup.
 	(mac_check_for_quit_char): Fix pointer/Lisp_Object mixup.
+
 	* macterm.h (struct frame, struct face, struct image)
 	(display_x_get_resource, Fx_display_color_p)
 	(Fx_display_grayscale_p, Fx_display_planes, x_free_gcs):
@@ -260,6 +268,7 @@
 	around call to ReceiveEvent to avoid certain crashes.
 
 2004-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
 	* macterm.c (mac_draw_line_to_pixmap, XCreatePixmapFromBitmapData)
 	(mac_fill_rectangle_to_pixmap, mac_draw_rectangle_to_pixmap)
 	(mac_copy_area_to_pixmap, mac_copy_area_with_mask_to_pixmap):
