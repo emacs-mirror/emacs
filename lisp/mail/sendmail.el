@@ -100,9 +100,9 @@ nil means let mailer mail back a message to report errors."
 Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
 not a valid RFC822 header or continuation line."
-  :type '(radio (function-item sendmail-send-it)
-		(function-item feedmail-send-it)
-		(function-item smtpmail-send-it)
+  :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
+		(function-item smtpmail-send-it :tag "Use SMTPmail package")
+		(function-item feedmail-send-it :tag "Use Feedmail package")
 		function)
   :group 'sendmail)
 
