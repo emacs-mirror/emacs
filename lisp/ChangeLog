@@ -1,5 +1,9 @@
 2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
+	* calendar/cal-x.el (calendar-one-frame-setup)
+	(calendar-only-one-frame-setup, calendar-two-frame-setup): Use t
+	rather than 'symbol for set-window-dedicated-p.
+
 	* calendar/appt.el (appt-buffer-name): Make it a constant.
 	(appt-add): Doc fix.
 
