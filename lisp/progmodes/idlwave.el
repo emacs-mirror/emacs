@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.15
-;; Date: $Date: 2002/09/12 16:31:50 $
+;; Date: $Date: 2002/09/12 16:59:24 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -360,7 +360,7 @@ scan, this is not necessary."
 Possible values:
 nil       Never
 t         All available
-(...)     A list of circumstances. Allowed members are:
+\(...)     A list of circumstances. Allowed members are:
            find-file       Add info for new IDLWAVE buffers.
            save-buffer     Update buffer info when buffer is saved
            kill-buffer     Remove buffer info when buffer gets killed
@@ -686,7 +686,7 @@ doing this (well, three ways if you count the shell... see
 This variable allows you to configure IDLWAVE's method and
 method-keyword completion behavior.  Its value is an alist, which
 should contain at least two elements: (method-default . VALUE) and
-(keyword-default . VALUE), where VALUE is either t or nil.  These
+\(keyword-default . VALUE), where VALUE is either t or nil.  These
 specify if the class should be found during method and keyword
 completion, respectively.
 
@@ -734,7 +734,7 @@ at point."
 (defcustom idlwave-class-arrow-face 'bold
   "*Face to highlight object operator arrows `->' which carry a class property.
 When IDLWAVE stores a class name as text property on an object arrow
-(see variable `idlwave-store-inquired-class', it highlights the arrow
+\(see variable `idlwave-store-inquired-class', it highlights the arrow
 with this font in order to remind the user that this arrow is special."
   :group 'idlwave-completion
   :type 'symbol)
@@ -1095,7 +1095,7 @@ IDL process is made."
   :type 'boolean)
 
 (defcustom idlwave-default-font-lock-items 
-  '(pros-and-functions batch-files idl-keywords label goto
+  '(pros-and-functions batch-files idlwave-idl-keywords label goto
 		       common-blocks class-arrows)
   "Items which should be fontified on the default fontification level 2.
 IDLWAVE defines 3 levels of fontification.  Level 1 is very little, level 3
@@ -1105,7 +1105,7 @@ a list of symbols, the following symbols are allowed.
 
 pros-and-functions   Procedure and Function definitions
 batch-files          Batch Files
-idl-keywords         IDL Keywords
+idlwave-idl-keywords IDL Keywords
 label                Statement Labels
 goto                 Goto Statements
 common-blocks        Common Blocks
@@ -1117,16 +1117,16 @@ class-arrows         Object Arrows with class property"
   :type '(set
 	  :inline t :greedy t
 	  (const :tag "Procedure and Function definitions" pros-and-functions)
-	  (const :tag "Batch Files"                        batch-files)
-	  (const :tag "IDL Keywords (reserved words)"      idl-keywords)
-	  (const :tag "Statement Labels"                   label)
-	  (const :tag "Goto Statements"                    goto)
-	  (const :tag "Tags in Structure Definition"       structtag)
-	  (const :tag "Structure Name"                     structname)
-	  (const :tag "Common Blocks"                      common-blocks)
-	  (const :tag "Keyword Parameters"                 keyword-parameters)
-	  (const :tag "System Variables"                   system-variables)
-	  (const :tag "FIXME: Warning"                     fixme)
+	  (const :tag "Batch Files"                       batch-files)
+	  (const :tag "IDL Keywords (reserved words)"     idlwave-idl-keywords)
+	  (const :tag "Statement Labels"                  label)
+	  (const :tag "Goto Statements"                   goto)
+	  (const :tag "Tags in Structure Definition"      structtag)
+	  (const :tag "Structure Name"                    structname)
+	  (const :tag "Common Blocks"                     common-blocks)
+	  (const :tag "Keyword Parameters"                keyword-parameters)
+	  (const :tag "System Variables"                  system-variables)
+	  (const :tag "FIXME: Warning"                    fixme)
 	  (const :tag "Object Arrows with class property " class-arrows)))
 
 (defcustom idlwave-mode-hook nil
@@ -1155,15 +1155,6 @@ As a user, you should not set this to t.")
 ;;; Simon Marshall <simon@gnu.ai.mit.edu>
 ;;; and Carsten Dominik...
 
-(defconst idlwave-font-lock-keywords-1 nil
-  "Subdued level highlighting for IDLWAVE mode.")
-
-(defconst idlwave-font-lock-keywords-2 nil
-  "Medium level highlighting for IDLWAVE mode.")
-
-(defconst idlwave-font-lock-keywords-3 nil
-  "Gaudy level highlighting for IDLWAVE mode.")
-
 ;; The following are the reserved words in IDL.  Maybe we should
 ;; highlight some more stuff as well?       
 ;; Procedure declarations.  Fontify keyword plus procedure name.
@@ -1191,13 +1182,7 @@ As a user, you should not set this to t.")
   ;;	   "\\)\\>")))
   "\\<\\(and\\|b\\(egin\\|reak\\)\\|c\\(ase\\|o\\(mpile_opt\\|ntinue\\)\\)\\|do\\|e\\(lse\\|nd\\(case\\|else\\|for\\|if\\|rep\\|switch\\|while\\)?\\|q\\)\\|for\\(ward_function\\)?\\|g\\(oto\\|[et]\\)\\|i\\(f\\|nherits\\)\\|l[et]\\|mod\\|n\\(e\\|ot\\)\\|o\\(n_\\(error\\|ioerror\\)\\|[fr]\\)\\|re\\(peat\\|turn\\)\\|switch\\|then\\|until\\|while\\|xor\\)\\>")
 
-(let* ((oldp (or (string-match "Lucid" emacs-version)
-		 (not (boundp 'emacs-minor-version))
-		 (and (<= emacs-major-version 19) 
-		      (<= emacs-minor-version 29))))
-       
-       (idl-keywords idlwave-idl-keywords)
-       ;; Procedure declarations.  Fontify keyword plus procedure name.
+(let* (;; Procedure declarations.  Fontify keyword plus procedure name.
        ;; Function  declarations.  Fontify keyword plus function  name.
        (pros-and-functions
 	'("\\<\\(function\\|pro\\)\\>[ \t]+\\(\\sw+\\(::\\sw+\\)?\\)"
@@ -1267,39 +1252,17 @@ As a user, you should not set this to t.")
 	
        ;; Arrows with text property `idlwave-class'
        (class-arrows
-	(list 'idlwave-match-class-arrows 
-	      (list 0 (if (featurep 'xemacs) 
-			  idlwave-class-arrow-face
-			'idlwave-class-arrow-face))))
+	'(idlwave-match-class-arrows (0 idlwave-class-arrow-face))))
 
-       )
+  (defconst idlwave-font-lock-keywords-1
+    (list pros-and-functions batch-files)
+    "Subdued level highlighting for IDLWAVE mode.")
 
-  ;; The following lines are just a dummy to make the compiler shut up
-  ;; about variables bound but not used.
-  (setq oldp oldp
-	pros-and-functions pros-and-functions
-	common-blocks common-blocks
-	batch-files batch-files
-	fixme fixme
-	label label
-	goto goto
-	structtag structtag
-	structname structname
-	keyword-parameters keyword-parameters
-	system-variables system-variables
-	special-operators special-operators
-	all-operators all-operators
-	class-arrows class-arrows)
+  (defconst idlwave-font-lock-keywords-2
+    (mapcar 'symbol-value idlwave-default-font-lock-items)
+    "Medium level highlighting for IDLWAVE mode.")
 
-  (setq idlwave-font-lock-keywords-1
-	(list pros-and-functions
-	      batch-files
-	      ))
-
-  (setq idlwave-font-lock-keywords-2
-	(mapcar 'symbol-value idlwave-default-font-lock-items))
-
-  (setq idlwave-font-lock-keywords-3 
+  (defconst idlwave-font-lock-keywords-3
 	(list pros-and-functions
 	      batch-files
 	      idlwave-idl-keywords
@@ -1309,9 +1272,8 @@ As a user, you should not set this to t.")
 	      common-blocks
 	      keyword-parameters
 	      system-variables
-	      class-arrows
-	      ))
-  )
+	  class-arrows)
+    "Gaudy level highlighting for IDLWAVE mode."))
 
 (defun idlwave-match-class-arrows (limit)
   ;; Match an object arrow with class property
@@ -2975,7 +2937,7 @@ statement if this statement is a continuation of the previous line."
 		 (or idlwave-indent-to-open-paren ;; override
 		     (< (- fancy-paren-indent basic-indent)
 			idlwave-max-extra-continuation-indent))))
-	    fancy-enclosing-parent-indent)
+	    fancy-enclosing-paren-indent)
       (cond 
        ;; else continuations are always standard
        (else-cont 
@@ -8005,15 +7967,16 @@ Assumes that point is at the beginning of the unit as found by
         (buffer-substring-no-properties begin (point))
       (buffer-substring begin (point)))))
 
-(defun idlwave-function-menu ()
-  "Use `imenu' or `function-menu' to jump to a procedure or function."
-  (interactive)
-  (if (string-match "XEmacs" emacs-version)
+(defalias 'idlwave-function-menu
+  (condition-case nil
       (progn
 	(require 'func-menu)
-	(function-menu))
-    (require 'imenu)
-    (imenu (imenu-choose-buffer-index))))
+	'function-menu)
+    (error (condition-case nil
+	       (progn
+		 (require 'imenu)
+		 'imenu)
+	     (error nil)))))
 
 ;; Here we kack func-menu.el in order to support this new mode.
 ;; The latest versions of func-menu.el already have this stuff in, so
