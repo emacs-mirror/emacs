@@ -1473,7 +1473,13 @@ selection_data_to_lisp_data (display, data, size, type, format)
       Lisp_Object str;
       int require_encoding = 0;
 
-      if (! NILP (buffer_defaults.enable_multibyte_characters))
+      if (
+#if 1
+	  1
+#else
+	  ! NILP (buffer_defaults.enable_multibyte_characters)
+#endif
+	  )
 	{
 	  /* If TYPE is `TEXT' or `COMPOUND_TEXT', we should decode
 	     DATA to Emacs internal format because DATA may be encoded
@@ -1628,7 +1634,8 @@ lisp_data_to_selection_data (display, obj,
       *data_ret = XSTRING (obj)->data;
       bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
       num = ((*size_ret <= 1	/* Check the possibility of short cut.  */
-	      || NILP (buffer_defaults.enable_multibyte_characters))
+	      || !STRING_MULTIBYTE (obj)
+	      || *size_ret == XSTRING (obj)->size)
 	     ? 0
 	     : find_charset_in_str (*data_ret, *size_ret, charsets, Qnil, 1));
 
