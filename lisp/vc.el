@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.310 2001/09/22 20:04:21 monnier Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -683,7 +683,7 @@ The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
 (defun vc-clear-context ()
   "Clear all cached file properties and the comment ring."
   (interactive)
-  (fillarray vc-file-prop-obarray nil)
+  (fillarray vc-file-prop-obarray 0)
   ;; Note: there is potential for minor lossage here if there is an open
   ;; log buffer with a nonzero local value of vc-comment-ring-index.
   (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
