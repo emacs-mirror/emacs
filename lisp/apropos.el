@@ -181,6 +181,7 @@ Returns list of symbols and documentation found."
 			       (lambda (symbol)
 				 (or (fboundp symbol)
 				     (boundp symbol)
+				     (facep symbol)
 				     (symbol-plist symbol))))))
   (apropos-print
    (or do-all apropos-do-all)
@@ -202,7 +203,19 @@ Returns list of symbols and documentation found."
 		      (setq doc (list (car properties)))
 		      (while (setq properties (cdr (cdr properties)))
 			(setq doc (cons (car properties) doc)))
-		      (mapconcat #'symbol-name (nreverse doc) " "))))
+		      (mapconcat #'symbol-name (nreverse doc) " "))
+		    (when (get symbol 'widget-type)
+		      (if (setq doc (documentation-property
+				     symbol 'widget-documentation t))
+			  (substring doc 0
+				     (string-match "\n" doc))
+			"(not documented)"))
+		    (when (facep symbol)
+		      (if (setq doc (documentation-property
+				     symbol 'face-documentation t))
+			  (substring doc 0
+				     (string-match "\n" doc))
+			"(not documented)"))))
 	 (setq p (cdr p)))))
    nil))
 
@@ -517,8 +530,13 @@ found."
 				   "Macro"
 				 "Function"))
 			     do-keys)
-	  (apropos-print-doc 'describe-variable 2
-			     "Variable" do-keys)
+	  (if (get symbol 'custom-type)
+	      (apropos-print-doc 'customize-variable-other-window 2
+				 "User Option" do-keys)
+	    (apropos-print-doc 'describe-variable 2
+			       "Variable" do-keys))
+	  (apropos-print-doc 'customize-face-other-window 5 "Face" do-keys)
+	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" do-keys)
 	  (apropos-print-doc 'apropos-describe-plist 3
 			     "Plist" nil)))))
   (prog1 apropos-accumulator
