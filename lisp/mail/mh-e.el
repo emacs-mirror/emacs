@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97 Free Software Foundation, Inc.
 
-;; Maintainer: billcurtis@hotmail.com
+;; Maintainer: None
 ;; Version: 5.0.2
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.21 1999/08/16 03:50:35 kwzh Exp $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.22 1999/11/09 13:40:03 gerd Exp $")
 
 ;;; Code:
 
