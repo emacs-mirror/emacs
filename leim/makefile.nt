@@ -85,7 +85,7 @@ CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5)
 
 CHINESE_CNS=$(NON_TIT_CNS) 
 
-JAPANESE=$(srcdir)/quail/japanese.el $(srcdir)/skk/skkdic.el
+JAPANESE=$(srcdir)/quail/japanese.el $(srcdir)/ja-dic/ja-dic.el
 
 KOREAN=	$(srcdir)/quail/hangul.el	\
 	$(srcdir)/quail/hangul3.el	\
@@ -160,7 +160,7 @@ install: all
 	if not exist same-dir.tst $(CP) leim-list.el $(INSTALLDIR)
 #	if not exist same-dir.tst $(CP) subdirs.el $(INSTALLDIR)
 	if not exist same-dir.tst $(CP_DIR) quail $(INSTALLDIR)\quail
-	if not exist same-dir.tst $(CP_DIR) skk $(INSTALLDIR)\skk
+	if not exist same-dir.tst $(CP_DIR) ja-dic $(INSTALLDIR)\ja-dic
 	- $(DEL) $(INSTALLDIR)\same-dir.tst
 
 clean mostlyclean:
