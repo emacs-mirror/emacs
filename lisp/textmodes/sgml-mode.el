@@ -1020,10 +1020,13 @@ This takes effect when first loading the library.")
       ("html" (\n
 	       "<head>\n"
 	       "<title>" (setq str (read-input "Title: ")) "</title>\n"
+	       "</head>\n"
 	       "<body>\n<h1>" str "</h1>\n" _
 	       "\n<address>\n<a href=\"mailto:"
 	       user-mail-address
-	       "\">" (user-full-name) "</a>\n</address>"))
+	       "\">" (user-full-name) "</a>\n</address>\n"
+	       "</body>"
+		))
       ("i")
       ("ins")
       ("isindex" t ("action") ("prompt"))
