@@ -1814,6 +1814,7 @@ x_set_font (f, arg, oldval)
   Lisp_Object result;
   Lisp_Object fontset_name;
   Lisp_Object frame;
+  int old_fontset = f->output_data.x->fontset;
 
   CHECK_STRING (arg, 1);
 
@@ -1831,8 +1832,16 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
-      if (!NILP (Fequal (result, oldval)))
+      if (STRINGP (fontset_name))
+	{
+	  /* Fontset names are built from ASCII font names, so the
+	     names may be equal despite there was a change.  */
+	  if (old_fontset == f->output_data.x->fontset)
+	    return;
+	}
+      else if (!NILP (Fequal (result, oldval)))
 	return;
+      
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
