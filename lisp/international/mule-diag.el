@@ -687,8 +687,7 @@ system)."
       (insert "\n")
 
       (insert-section 1 "General Information")
-      (insert "Version of this emacs:\n  " (emacs-version) "\n"
-	      "Primary language:\n  " primary-language "\n\n")
+      (insert "Version of this emacs:\n  " (emacs-version) "\n\n")
 
       (insert-section 2 "Display")
       (if window-system
