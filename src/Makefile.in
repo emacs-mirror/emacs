@@ -224,9 +224,6 @@ SHORT= shortnames
    at initial startup, then labeled as part of the text area when
    Emacs is dumped for the first time, and never changed again. */
 
-/* If you want to debug, you can add C_DEBUG_SWITCH to this list.
-   If you want to optimize, you can add C_OPTIMIZE_SWITCH to the list.  */
-
 /* -Demacs is needed to make some files produce the correct version
    for use in Emacs.
 
