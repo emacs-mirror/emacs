@@ -1,11 +1,11 @@
 /* Utility and Unix shadow routines for GNU Emacs on Windows NT.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
    GNU Emacs is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
-   Free Software Foundation; either version 1, or (at your option) any later
+   Free Software Foundation; either version 2, or (at your option) any later
    version.
 
    GNU Emacs is distributed in the hope that it will be useful, but WITHOUT
@@ -19,6 +19,42 @@
 
    Geoff Voelker (voelker@cs.washington.edu)                         7-29-94
 */
+
+/* Define stat before including config.h.  */
+#include <string.h>
+#include <sys/stat.h>
+int
+nt_stat (char *filename, struct stat *statbuf)
+{
+  int r, l = strlen (filename);
+  char *str = NULL;
+  extern long *xmalloc ();
+  extern void xfree ();
+
+  /* stat has a bug when passed a name of a directory with a trailing
+     backslash (but a trailing forward slash works fine).  */
+  if (filename[l - 1] == '\\') 
+    {
+      str = (char *) xmalloc (l + 1);
+      strcpy (str, filename);
+      str[l - 1] = '/';
+      r = stat (str, statbuf);
+      xfree (str);
+      return r;
+    }
+  else
+    return stat (filename, statbuf);
+}
+
+/* Place a wrapper around the NT version of ctime.  It returns NULL
+   on network directories, so we handle that case here.  
+   Define it before including config.h.  (Ulrich Leodolter, 1/11/95).  */
+char *
+nt_ctime (const time_t *t)
+{
+  char *str = (char *) ctime (t);
+  return (str ? str : "Sun Jan 01 00:00:00 1970");
+}
 
 #include <windows.h>
 #include <stdlib.h>
@@ -153,15 +189,6 @@ readdir (DIR *dirp)
 	return NULL;
     }
   
-  /* Don't return . or .. since it doesn't look like any of the
-     readdir calling code expects them.  */
-  while (strcmp (find_data.cFileName, ".") == 0
-	 || strcmp (find_data.cFileName, "..") == 0)
-    {
-      if (!FindNextFile (dir_find_handle, &find_data))
-	return 0;
-    }
-  
   /* NT's unique ID for a file is 64 bits, so we have to fake it here.  
      This should work as long as we never use 0.  */
   dir_static.d_ino = 1;
@@ -290,7 +317,22 @@ get_inode_and_device_vals (Lisp_Object filename, Lisp_Object *p_inode,
 
   HANDLE handle;
   BOOL result;
+  DWORD attrs;
   BY_HANDLE_FILE_INFORMATION info;
+
+  /* We have to stat files and directories differently, so check
+     to see what filename references.  */
+  attrs = GetFileAttributes (XSTRING (filename)->data);
+  if (attrs == 0xFFFFFFFF) {
+    return 0;
+  }
+  if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
+    /* Conjure up bogus, but unique, values.  */
+    attrs = GetTickCount ();
+    *p_inode = make_number (attrs);
+    *p_device = make_number (attrs);
+    return 1;
+  }
 
   /* FIXME:  It shouldn't be opened without READ access, but NT on x86
      doesn't allow GetFileInfo in that case (NT on mips does).  */
@@ -470,6 +512,19 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[4])
     }
 }
 
+int
+random ()
+{
+  /* rand () on NT gives us 15 random bits...hack together 30 bits.  */
+  return ((rand () << 15) | rand ());
+}
+
+void
+srandom (int seed)
+{
+  srand (seed);
+}
+
 /* Destructively turn backslashes into slashes.  */
 void
 dostounix_filename (p)
@@ -568,6 +623,26 @@ crlf_to_lf (n, buf)
     *np++ = *buf++;
   return np - startp;
 }
+
+#ifdef HAVE_TIMEVAL
+#include <sys/timeb.h>
+
+/* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
+void 
+gettimeofday (struct timeval *tv, struct timezone *tz)
+{
+  struct _timeb tb;
+  _ftime (&tb);
+
+  tv->tv_sec = tb.time;
+  tv->tv_usec = tb.millitm * 1000L;
+  if (tz) 
+    {
+      tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
+      tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
+    }
+}
+#endif /* HAVE_TIMEVAL */
 
 
 #ifdef PIGSFLY
