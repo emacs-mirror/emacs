@@ -7704,10 +7704,6 @@ x_scroll_bar_create (w, top, left, width, height)
 
   /* Map the window/widget.  */
 #if USE_TOOLKIT_SCROLL_BARS
-  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-	      left, top,
-	      FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f),
-	      window_box_height (w), False);
   XtMapWidget (SCROLL_BAR_X_WIDGET (bar));
   XtConfigureWidget (SCROLL_BAR_X_WIDGET (bar),
 		     left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
@@ -7874,41 +7870,50 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 {
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar;
-  int pixel_top, pixel_left, pixel_width, pixel_height;
+  int top, height, left, sb_left, width, sb_width;
   int window_x, window_y, window_width, window_height;
-  int scroll_bar_area_width;
 
+  /* Get window dimensions.  */
   window_box (w, -1, &window_x, &window_y, &window_width, &window_height);
-  
-  /* Where should this scroll bar be, pixel-wise?  */
-  pixel_top = window_y;
-  pixel_height = window_height;
+  top = window_y;
+  width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
+  height = window_height;
 
-  /* The width of the scroll bar itself.  */
-  pixel_width = (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
-		 ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
-		 : (FRAME_SCROLL_BAR_COLS (f)
-		    * FONT_WIDTH (FRAME_FONT (f))));
-
-  /* The width on the screen reserved for the scroll bar plus maybe
-     some empty room at both sides of the scroll bar.  */
-  scroll_bar_area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
-
+  /* Compute the left edge of the scroll bar area.  */
   if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
-    pixel_left = (window_x
-		  + window_width
-		  + FRAME_LEFT_FLAGS_AREA_WIDTH (f)
-		  + scroll_bar_area_width
-		  - pixel_width + 1);
+    left = XINT (w->left) + XINT (w->width) - FRAME_SCROLL_BAR_COLS (f);
   else
-    pixel_left = (window_x
-		  - FRAME_LEFT_FLAGS_AREA_WIDTH (f)
-		  - scroll_bar_area_width);
+    left = XFASTINT (w->left);
+  left *= CANON_X_UNIT (f);
+  left += FRAME_INTERNAL_BORDER_WIDTH (f);
 
+  /* Compute the width of the scroll bar which might be less than
+     the width of the area reserved for the scroll bar.  */
+  if (FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0)
+    sb_width = FRAME_SCROLL_BAR_PIXEL_WIDTH (f);
+  else
+    sb_width = width;
+
+  /* Compute the left edge of the scroll bar.  */
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+    sb_left = left + width - sb_width - (width - sb_width) / 2; 
+  else
+    sb_left = left + (width - sb_width) / 2;
+#else
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+    sb_left = left + width - sb_width; 
+  else
+    sb_left = left;
+#endif
+  
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
-    bar = x_scroll_bar_create (w, pixel_top, pixel_left, pixel_width,
-			       pixel_height);
+    {
+      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  left, top, width, height, False);
+      bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
+    }
   else
     {
       /* It may just need to be moved and resized.  */
@@ -7918,13 +7923,13 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       BLOCK_INPUT;
 
-      if (pixel_left != XINT (bar->left))
+      if (sb_left != XINT (bar->left))
 	mask |= CWX;
-      if (pixel_top != XINT (bar->top))
+      if (top != XINT (bar->top))
 	mask |= CWY;
-      if (pixel_width != XINT (bar->width))
+      if (sb_width != XINT (bar->width))
 	mask |= CWWidth;
-      if (pixel_height != XINT (bar->height))	
+      if (height != XINT (bar->height))	
 	mask |= CWHeight;
       
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -7932,17 +7937,15 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       /* Since toolkit scroll bars are smaller than the space reserved
 	 for them on the frame, we have to clear "under" them.  */
       XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  pixel_left, pixel_top,
-		  FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f),
-		  pixel_height, False);
+		  left, top, width, height, False);
 
       /* Move/size the scroll bar widget.  */
       if (mask)
 	XtConfigureWidget (SCROLL_BAR_X_WIDGET (bar),
-			   pixel_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			   pixel_top,
-			   pixel_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-			   pixel_height, 0);
+			   sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+			   top,
+			   sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
+			   height, 0);
 
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   
@@ -7951,25 +7954,22 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	 example.  Non-toolkit scroll bars are as wide as the area
 	 reserved for scroll bars - trim at both sides.  */
       XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  pixel_left, pixel_top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		  pixel_height, False);
+		  left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		  height, False);
       XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  (pixel_left
-		   + pixel_width
-		   - VERTICAL_SCROLL_BAR_WIDTH_TRIM),
-		  pixel_top,
-		  VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		  pixel_height, False);
+		  left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		  top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		  height, False);
       
       /* Move/size the scroll bar window.  */
       if (mask)
 	{
 	  XWindowChanges wc;
 	  
-	  wc.x = pixel_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM;
-	  wc.y = pixel_top;
-	  wc.width = pixel_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2;
-	  wc.height = pixel_height;
+	  wc.x = sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+	  wc.y = top;
+	  wc.width = sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2;
+	  wc.height = height;
 	  XConfigureWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar),
 			    mask, &wc);
 	}
@@ -7977,10 +7977,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
       /* Remember new settings.  */
-      XSETINT (bar->left, pixel_left);
-      XSETINT (bar->top, pixel_top);
-      XSETINT (bar->width, pixel_width);
-      XSETINT (bar->height, pixel_height);
+      XSETINT (bar->left, sb_left);
+      XSETINT (bar->top, top);
+      XSETINT (bar->width, sb_width);
+      XSETINT (bar->height, height);
       
       UNBLOCK_INPUT;
     }
