@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName: MMsrc!arena.c(trunk.79) $
+ * $HopeName: MMsrc!arena.c(trunk.80) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .sources: design.mps.arena is the main design document.  */
@@ -9,7 +9,7 @@
 #include "poolmv.h"
 #include "mpm.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.79) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.80) $");
 
 
 /* ArenaControlPool -- get the control pool */

@@ -1,6 +1,6 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
- * $HopeName$
+ * $HopeName: MMsrc!ring.c(trunk.8) $
  * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is a portable implementation of Rings.
@@ -17,7 +17,7 @@
 #include "misc.h"
 
 
-SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.7) $");
+SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.8) $");
 
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node

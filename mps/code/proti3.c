@@ -1,6 +1,6 @@
 /* impl.c.proti3: PROTECTION MUTATOR CONTEXT (INTEL 386)
  *
- * $HopeName: MMsrc!proti3.c(trunk.1) $
+ * $HopeName: MMsrc!proti3.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: See design.mps.prot for the generic design of the interface
@@ -52,7 +52,7 @@
 #include "mpm.h"
 #include "prmci3.h"
 
-SRCID(proti3, "$HopeName$");
+SRCID(proti3, "$HopeName: MMsrc!proti3.c(trunk.2) $");
 
 
 /* DecodeCB -- Decode an Intel x86 control byte into Hi, Medium & Low fields */

@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.34) $
+ * $HopeName: MMsrc!root.c(trunk.35) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.34) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.35) $");
 
 
 /* RootStruct -- tracing root structure */

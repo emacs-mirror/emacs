@@ -1,6 +1,6 @@
 /* impl.c.version: VERSION INSPECTION
  *
- * $HopeName$
+ * $HopeName: MMsrc!version.c(trunk.3) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -18,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(version, "$HopeName$");
+SRCID(version, "$HopeName: MMsrc!version.c(trunk.3) $");
 
 
 /* MPS_RELEASE -- the release name
@@ -28,7 +28,7 @@ SRCID(version, "$HopeName$");
  * whatever.
  */
 
-#define MPS_RELEASE "$HopeName$ *** DEVELOPMENT ONLY ***"
+#define MPS_RELEASE "$HopeName: MMsrc!version.c(trunk.3) $ *** DEVELOPMENT ONLY ***"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary

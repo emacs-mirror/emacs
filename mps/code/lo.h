@@ -2,7 +2,7 @@
  *
  *                   LEAF OBJECT POOL CLASS
  *
- *  $HopeName: MMsrc!lo.h(MMdevel_restr2.2) $
+ *  $HopeName: MMsrc!lo.h(trunk.3) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *

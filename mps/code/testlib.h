@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.21) $
+ * $HopeName: MMsrc!testlib.h(trunk.22) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.

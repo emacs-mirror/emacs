@@ -1,6 +1,6 @@
 /* impl.h.fmthe: DYLAN-LIKE OBJECT FORMAT WITH HEADERS
  *
- * $HopeName$
+ * $HopeName: MMsrc!fmthe.h(trunk.1) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 

@@ -1,6 +1,6 @@
 /* impl.c.lockcov: LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockcov.c(trunk.4) $
+ * $HopeName: MMsrc!lockcov.c(trunk.5) $
  * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 

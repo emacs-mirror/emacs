@@ -1,6 +1,6 @@
 /* impl.c.pool: PROTOCOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!protocol.c(trunk.2) $
+ * $HopeName: MMsrc!protocol.c(trunk.3) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -11,7 +11,7 @@
 #include "mpm.h"
 
 
-SRCID(protocol, "$HopeName: MMsrc!protocol.c(trunk.2) $");
+SRCID(protocol, "$HopeName: MMsrc!protocol.c(trunk.3) $");
 
 
 /* ProtocolClassCheck -- check a protocol class */

@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.17) $
+ * $HopeName: MMsrc!awlut.c(trunk.18) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN

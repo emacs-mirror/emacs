@@ -1,6 +1,6 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
- * $HopeName: MMsrc!splay.c(trunk.8) $
+ * $HopeName: MMsrc!splay.c(trunk.9) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Splay trees are used to manage potentially unbounded 
@@ -18,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.8) $");
+SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.9) $");
 
 /* Basic getter and setter methods */
 #define SplayTreeRoot(t) RVALUE((t)->root)

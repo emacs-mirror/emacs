@@ -1,6 +1,6 @@
 ;  impl.asm.spi3: STACK PROBE
 ;
-;  $HopeName: MMsrc!spi3.asm(trunk.1) $
+;  $HopeName: MMsrc!spi3.asm(trunk.2) $
 ;  Copyright (C) 1997 Harlequin Limited.  All rights reserved.
 ;
 ;  This function reads a location that is probeDepth words beyond

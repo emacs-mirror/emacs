@@ -1,6 +1,6 @@
 /* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (LINUX)
  *
- * $HopeName: MMsrc!prmci3li.c(trunk.3) $
+ * $HopeName: MMsrc!prmci3li.c(trunk.4) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This module implements the part of the protection module
@@ -25,7 +25,7 @@
 #include "prmcli.h"
 #include "prmci3.h"
 
-SRCID(prmci3li, "$HopeName$");
+SRCID(prmci3li, "$HopeName: MMsrc!prmci3li.c(trunk.4) $");
 
 
 /* Prmci3AddressHoldingReg -- return an address of a register in a context */
