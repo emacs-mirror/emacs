@@ -1,3 +1,8 @@
+2005-01-30  Jesper Harder  <harder@phys.au.dk>
+
+	* macterm.c (syms_of_macterm) <mac-reverse-ctrl-meta>: Fix docstring indentation. 
+	(syms_of_macterm) <mac-emulate-three-button-mouse>: do. 
+
 2005-01-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* undo.c (syms_of_undo) <undo-outer-limit>: Doc update.
