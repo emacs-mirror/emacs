@@ -294,9 +294,10 @@ Then bury it, and return a suggested buffer to select next."
 		(save-buffer buffer)))
 	  (server-buffer-done buffer)))))
 
-;; If a server buffer is killed, release its client.
-;; I'm not sure this is really a good idea--do you want the client
-;; to proceed using whatever is on disk in that file?
+;; Ask before killing a server buffer.
+;; It was suggested to release its client instead,
+;; but I think that is dangerous--the client would proceed
+;; using whatever is on disk in that file. -- rms.
 (defun server-kill-buffer-query-function ()
   (or (not server-buffer-clients)
       (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
