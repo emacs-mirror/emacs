@@ -52,7 +52,8 @@
     (save-excursion
      (with-output-to-temp-buffer "*Help*"
        (set-buffer standard-output)
-       (describe-vector vector)))))
+       (describe-vector vector)
+       (help-mode)))))
 
 ;;;###autoload
 (defun set-case-syntax-delims (l r table)
