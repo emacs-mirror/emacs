@@ -48,7 +48,7 @@
     (define-key icon-mode-map "\177" 'backward-delete-char-untabify)
     (define-key icon-mode-map "\t" 'icon-indent-command)
   
-    (define-key icon-mode-map [menu-bar] (make-sparse-keymap))
+    (define-key icon-mode-map [menu-bar] (make-sparse-keymap "Icon"))
     (define-key icon-mode-map [menu-bar icon]
       (cons "Icon" map))
     (define-key map [beginning-of-icon-defun] '("Beginning of function" . beginning-of-icon-defun))
