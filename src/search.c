@@ -419,7 +419,10 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.
 If third arg START is non-nil, start search at that index in STRING.
 For index of first char beyond the match, do (match-end 0).
 `match-end' and `match-beginning' also give indices of substrings
-matched by parenthesis constructs in the pattern.  */)
+matched by parenthesis constructs in the pattern.
+
+You can use the function `match-string' to extract the substrings
+matched by the parenthesis constructions in REGEXP. */)
      (regexp, string, start)
      Lisp_Object regexp, string, start;
 {
