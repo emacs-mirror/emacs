@@ -1468,11 +1468,11 @@ create_process (process, new_argv, current_dir)
 	  int size = encoding_buffer_size (coding, len);
 	  unsigned char *buf = (unsigned char *) alloca (size);
 
-	  encode_coding (coding, new_argv[i], buf, len, size);
+	  encode_coding (coding, (unsigned char *)new_argv[i], buf, len, size);
 	  buf[coding->produced] = 0;
 	  /* We don't have to free new_argv[i] because it points to a
              Lisp string given as an argument to `start-process'.  */
-	  new_argv[i++] = buf;
+	  new_argv[i++] = (char *) buf;
 	}
       UNGCPRO;
       coding->mode &= ~CODING_MODE_LAST_BLOCK;
