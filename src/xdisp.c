@@ -11695,14 +11695,16 @@ insert_left_trunc_glyphs (it)
   while (from < end)
     *to++ = *from++;
 
-  /* There may be padding glyphs left over.  Remove them.  */
-  from = to;
-  while (from < toend && CHAR_GLYPH_PADDING_P (*from))
-    ++from;
-  while (from < toend)
-    *to++ = *from++;
+  /* There may be padding glyphs left over.  Overwrite them too.  */
+  while (to < toend && CHAR_GLYPH_PADDING_P (*to))
+    {
+      from = truncate_it.glyph_row->glyphs[TEXT_AREA];
+      while (from < end)
+	*to++ = *from++;
+    }
 
-  it->glyph_row->used[TEXT_AREA] = to - it->glyph_row->glyphs[TEXT_AREA];
+  if (to > toend)
+    it->glyph_row->used[TEXT_AREA] = to - it->glyph_row->glyphs[TEXT_AREA];
 }
 
 
@@ -12188,10 +12190,13 @@ display_line (it)
       hpos_before = it->hpos;
       x_before = x;
 	  
-      if (nglyphs == 1
+      if ((nglyphs == 1
+	   /* A wide multibyte character produces multiple glyphs on
+	      tty window  .*/
+	   || !SINGLE_BYTE_CHAR_P (it->c))
 	  && it->current_x < it->last_visible_x)
 	{
-	  ++it->hpos;
+	  it->hpos += nglyphs;
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
@@ -13715,8 +13720,17 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	      && x + glyph->pixel_width > max_x)
 	    {
 	      /* End of continued line or max_x reached.  */
-	      it->glyph_row->used[TEXT_AREA] = n_glyphs_before + i;
-	      it->current_x = x;
+	      if (CHAR_GLYPH_PADDING_P (*glyph))
+		{
+		  /* A wide character is unbreakable.  */
+		  it->glyph_row->used[TEXT_AREA] = n_glyphs_before;
+		  it->current_x = x_before;
+		}
+	      else
+		{
+		  it->glyph_row->used[TEXT_AREA] = n_glyphs_before + i;
+		  it->current_x = x;
+		}
 	      break;
 	    }
 	  else if (x + glyph->pixel_width > it->first_visible_x)
@@ -13764,7 +13778,18 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	  if (IT_CHARPOS (*it) < it->string_nchars)
 	    {
 	      if (!FRAME_WINDOW_P (it->f))
-		produce_special_glyphs (it, IT_TRUNCATION);
+		{
+		  int i, n;
+
+		  for (i = row->used[TEXT_AREA] - 1; i > 0; --i)
+		    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
+		      break;
+		  for (n = row->used[TEXT_AREA]; i < n; ++i)
+		    {
+		      row->used[TEXT_AREA] = i;
+		      produce_special_glyphs (it, IT_TRUNCATION);
+		    }
+		}
 	      it->glyph_row->truncated_on_right_p = 1;
 	    }
 	  break;
