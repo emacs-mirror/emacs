@@ -588,8 +588,7 @@ This functions works by temporarily binding `dired-marker-char' to
               (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp)
                   (progn
                     (setq count (dired-do-kill-lines nil "Omitted %d line%s."))
-                    ;; Force an update of modeline.
-                    (set-buffer-modified-p (buffer-modified-p)))
+                    (force-mode-line-update))
                 (message "(Nothing to omit)"))))
         ;; Try to preserve modified state of buffer.  So `%*' doesn't appear
         ;; in mode-line of omitted buffers.
