@@ -1,3 +1,10 @@
+2000-05-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/ada-mode.el (ada-mode, ada-create-case-exception):
+	Don't quote lambdas.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Set comment-add.
+
 2000-05-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* gud.el (gud-jdb-directories): Doc fix.
