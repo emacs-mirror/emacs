@@ -1101,6 +1101,12 @@ for more information."
 	   (apply function (car index-item) position rest))))
   (run-hooks 'imenu-after-jump-hook))
 
+(dolist (mess
+	 '("^No items suitable for an index found in this buffer$"
+	   "^This buffer cannot use `imenu-default-create-index-function'$"
+	   "^The mode `.*' does not support Imenu$"))
+  (add-to-list 'debug-ignored-errors mess))
+
 (provide 'imenu)
 
 ;;; imenu.el ends here

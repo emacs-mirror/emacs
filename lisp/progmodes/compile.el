@@ -2028,6 +2028,8 @@ An error message with no file name and no file name has been seen earlier"))
 		  (substring dir (length parent-expanded)))))
   dir)
 
+(add-to-list 'debug-ignored-errors "^No more errors\\( yet\\|\\)$")
+
 (provide 'compile)
 
 ;;; compile.el ends here

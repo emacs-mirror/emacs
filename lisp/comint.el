@@ -2726,6 +2726,13 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 		    results)))
       results)))
 
+(mapc (lambda (x)
+	(add-to-list 'debug-ignored-errors x))
+      '("^Not at command line$"
+	"^Empty input ring$"
+	"^No history$"
+	"^Not found$"			; Too common?
+	"^Current buffer has no process$"))
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================

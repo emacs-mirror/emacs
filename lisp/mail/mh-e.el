@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.22 1999/11/09 13:40:03 gerd Exp $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.23 2000/03/07 12:36:39 gerd Exp $")
 
 ;;; Code:
 
@@ -1520,5 +1520,9 @@ If optional prefix argument provided, then prompt for the message sequence." t)
   "Remove restrictions from current folder, thereby showing all messages." t)
 (autoload 'mh-rename-seq "mh-seq"
   "Rename SEQUENCE to have NEW-NAME." t)
+
+(dolist (mess '("^Cursor not pointing to message$"
+		"^There is no other window$"))
+  (add-to-list 'debug-ignored-errors mess))
 
 ;;; mh-e.el ends here

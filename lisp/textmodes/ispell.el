@@ -3180,6 +3180,7 @@ Both should not be used to define a buffer-local dictionary."
 			  (insert comment-end)))))
 	      (insert (concat " " word))))))))
 
+(add-to-list 'debug-ignored-errors "^No word found to check!$")
 
 (provide 'ispell)
 
