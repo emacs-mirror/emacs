@@ -150,7 +150,7 @@ been generated automatically, with a reference to the keymap."
 	 ,docstring
 	 (interactive)
 					; Run the parent.
-	 (combine-run-hooks
+	 ;; (combine-run-hooks
 
 	  (,parent)
 					; Identify special modes.
@@ -177,7 +177,8 @@ been generated automatically, with a reference to the keymap."
 	  (set-syntax-table ,syntax)
 	  (setq local-abbrev-table ,abbrev)
 					; Splice in the body (if any).
-	  ,@body)
+	  ,@body
+	  ;; )
 					; Run the hooks, if any.
 	 (run-hooks ',hook)))))
 
