@@ -50,7 +50,7 @@
 		 integer)
   :group 'compilation)
 
-(defcustom compile-auto-highlight nil
+(defcustom compile-auto-highlight t
   "*Specify how many compiler errors to highlight (and parse) initially.
 \(Highlighting applies to an error message when the mouse is over it.)
 If this is a number N, all compiler error messages in the first N lines
@@ -644,9 +644,11 @@ and move to the source code that caused it.
 Interactively, prompts for the command if `compilation-read-command' is
 non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
 
-To run more than one compilation at once, start one and rename the
-\`*compilation*' buffer to some other name with \\[rename-buffer].
-Then start the next one.
+To run more than one compilation at once, start one and rename
+the \`*compilation*' buffer to some other name with
+\\[rename-buffer].  Then start the next one.  On most systems,
+termination of the main compilation process kills its
+subprocesses.
 
 The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
@@ -1408,9 +1410,9 @@ Does NOT find the source line like \\[next-error]."
 			      (error "Moved back past first error")
 			    (nth (+ i n) compilation-old-error-list)))
 		      (save-excursion
-			(while (> n 0)
+			(while (and (> n 0) errors)
 			  ;; Discard the current error and any previous.
-			  (while (>= (point) (car (car errors)))
+			  (while (and errors (>= (point) (car (car errors))))
 			    (setq errors (cdr errors)))
 			  ;; Now (car errors) is the next error.
 			  ;; If we want to move down more errors,
