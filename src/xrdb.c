@@ -587,19 +587,15 @@ x_load_resources (display, xrm_string, myname, myclass)
 
 #else /* not USE_MOTIF */
   
-  sprintf (line, "%s.dialog*.font: %s", myname, helv);
+  sprintf (line, "Emacs.dialog*.font: %s", helv);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.dialog*.background: grey75", myname);
+  sprintf (line, "Emacs.dialog*.background: grey75");
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.pane.menubar.font: %s", myname, helv);
+  sprintf (line, "*XlwMenu*font: %s", helv);
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.pane.menubar.background: grey75", myname);
+  sprintf (line, "*XlwMenu*background: grey75");
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.menu*.font: %s", myname, helv);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.menu*.background: grey75", myname);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.background: grey75", myname);
+  sprintf (line, "Emacs*verticalScrollBar.background: grey75");
   XrmPutLineResource (&rdb, line);
   
 #endif /* not USE_MOTIF */
