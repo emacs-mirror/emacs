@@ -1,7 +1,7 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;; 2003 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2002/09/13 10:10:20 vinicius>
-;; Version: 6.5.8
+;; Time-stamp: <2003/02/12 14:05:44 vinicius>
+;; Version: 6.5.9
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.8"
-  "ps-print.el, v 6.5.8 <2002/09/13 vinicius>
+(defconst ps-print-version "6.5.9"
+  "ps-print.el, v 6.5.9 <2003/02/12 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2917,11 +2917,11 @@ Any other value is treated as t."
 		 (const :tag "Print Black/White Color" black-white))
   :group 'ps-print-color)
 
-(defcustom ps-default-fg (or (ps-face-foreground-name 'default)
-			     '(0.0 0.0 0.0)) ; black
+(defcustom ps-default-fg '(0.0 0.0 0.0) ; black
   "*RGB values of the default foreground color.  Defaults to black."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
 		 :tag "Default Foreground Gray/Color"
+		 (const :tag "Session Foreground" t)
 		 (number :tag "Gray Scale" :value 0.0)
 		 (string :tag "Color Name" :value "black")
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
@@ -2930,11 +2930,11 @@ Any other value is treated as t."
 		       (number :tag "Blue")))
   :group 'ps-print-color)
 
-(defcustom ps-default-bg (or (ps-face-background-name 'default)
-			     '(1.0 1.0 1.0)) ; white
+(defcustom ps-default-bg '(1.0 1.0 1.0) ; white
   "*RGB values of the default background color.  Defaults to white."
   :type '(choice :menu-tag "Default Background Gray/Color"
 		 :tag "Default Background Gray/Color"
+		 (const :tag "Session Background" t)
 		 (number :tag "Gray Scale" :value 1.0)
 		 (string :tag "Color Name" :value "white")
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
@@ -4518,7 +4518,12 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
     (let ((special (following-char)))
       (delete-char 1)
-      (insert (aref ps-string-escape-codes special))))
+      (insert
+       (if (and (<= 0 special) (<= special 255))
+	   (aref ps-string-escape-codes special)
+	 ;; insert hexadecimal representation if character code is out of range
+	 (format "\\%04X" special)
+	 ))))
   (goto-char (point-max))
   (insert ")"))				;insert end-string delimiter
 
@@ -5380,7 +5385,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
 	       "def\n/BackgroundColor  "
-	       (ps-format-color ps-default-bg 1.0)
+	       (ps-format-color
+		(if (eq ps-default-bg t)
+		    (ps-face-background-name 'default)
+		  ps-default-bg)
+		1.0)
 	       "def\n/UseSetpagedevice "
 	       (if (eq ps-spool-config 'setpagedevice)
 		   "/setpagedevice where{pop languagelevel 2 eq}{false}ifelse"
@@ -5641,7 +5650,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      ((eq ps-print-control-characters 'control)
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
-	ps-default-foreground (ps-rgb-color ps-default-fg 0.0)
+	ps-default-foreground (ps-rgb-color
+			       (if (eq ps-default-fg t)
+				   (ps-face-foreground-name 'default)
+				 ps-default-fg)
+			       0.0)
 	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
 	ps-current-color ps-default-color
 	;; Set the color scale.  We do it here instead of in the defvar so
