@@ -199,8 +199,9 @@ free_widget_value_tree (wv)
   if (wv->name) free (wv->name);
   if (wv->value) free (wv->value);
   if (wv->key) free (wv->key);
+  if (wv->help) free (wv->help);
 
-  wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
+  wv->name = wv->value = wv->key = wv->help = (char *) 0xDEADBEEF;
 
   if (wv->toolkit_data && wv->free_toolkit_data)
     {
@@ -237,6 +238,7 @@ copy_widget_value_tree (val, change)
   copy->name = safe_strdup (val->name);
   copy->value = safe_strdup (val->value);
   copy->key = safe_strdup (val->key);
+  copy->help = safe_strdup (val->help);
   copy->enabled = val->enabled;
   copy->button_type = val->button_type;
   copy->selected = val->selected;
@@ -252,7 +254,8 @@ copy_widget_value_tree (val, change)
 }
 
 static widget_info *
-allocate_widget_info (type, name, id, val, pre_activate_cb, selection_cb, post_activate_cb)
+allocate_widget_info (type, name, id, val, pre_activate_cb,
+		      selection_cb, post_activate_cb, highlight_cb)
      char* type;
      char* name;
      LWLIB_ID id;
@@ -260,6 +263,7 @@ allocate_widget_info (type, name, id, val, pre_activate_cb, selection_cb, post_a
      lw_callback pre_activate_cb;
      lw_callback selection_cb;
      lw_callback post_activate_cb;
+     lw_callback highlight_cb;
 {
   widget_info* info = (widget_info*)malloc (sizeof (widget_info));
   info->type = safe_strdup (type);
@@ -270,6 +274,7 @@ allocate_widget_info (type, name, id, val, pre_activate_cb, selection_cb, post_a
   info->pre_activate_cb = pre_activate_cb;
   info->selection_cb = selection_cb;
   info->post_activate_cb = post_activate_cb;
+  info->highlight_cb = highlight_cb;
   info->instances = NULL;
 
   info->next = all_widget_info;
@@ -310,6 +315,7 @@ allocate_widget_instance (info, parent, pop_up_p)
 {
   widget_instance* instance =
     (widget_instance*)malloc (sizeof (widget_instance));
+  bzero (instance, sizeof *instance);
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;
   instance->info = info;
@@ -388,6 +394,16 @@ get_widget_instance (widget, remove_p)
 	  return instance;
 	}
   return (widget_instance *) 0;
+}
+
+/* Value is a pointer to the widget_instance corresponding to
+   WIDGET, or null if WIDGET is not a lwlib widget.  */
+
+widget_instance *
+lw_get_widget_instance (widget)
+     Widget widget;
+{
+  return get_widget_instance (widget, False);
 }
 
 static widget_instance*
@@ -486,6 +502,14 @@ merge_widget_value (val1, val2, level)
       change = max (change, VISIBLE_CHANGE);
       safe_free_str (val1->key);
       val1->key = safe_strdup (val2->key);
+    }
+  if (safe_strcmp (val1->help, val2->help))
+    {
+      EXPLAIN (val1->name, change, VISIBLE_CHANGE, "help change",
+	       val1->help, val2->help);
+      change = max (change, VISIBLE_CHANGE);
+      safe_free_str (val1->help);
+      val1->key = safe_strdup (val2->help);
     }
   if (val1->enabled != val2->enabled)
     {
@@ -844,7 +868,8 @@ instantiate_widget_instance (instance)
 }
 
 void 
-lw_register_widget (type, name, id, val, pre_activate_cb, selection_cb, post_activate_cb)
+lw_register_widget (type, name, id, val, pre_activate_cb,
+		    selection_cb, post_activate_cb, highlight_cb)
      char* type;
      char* name;
      LWLIB_ID id;
@@ -852,10 +877,11 @@ lw_register_widget (type, name, id, val, pre_activate_cb, selection_cb, post_act
      lw_callback pre_activate_cb;
      lw_callback selection_cb;
      lw_callback post_activate_cb;
+     lw_callback highlight_cb;
 {
   if (!get_widget_info (id, False))
     allocate_widget_info (type, name, id, val, pre_activate_cb, selection_cb,
-			  post_activate_cb);
+			  post_activate_cb, highlight_cb);
 }
 
 Widget
@@ -894,7 +920,8 @@ lw_make_widget (id, parent, pop_up_p)
 }
 
 Widget
-lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb, selection_cb, post_activate_cb)
+lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb,
+		  selection_cb, post_activate_cb, highlight_cb)
      char* type;
      char* name;
      LWLIB_ID id;
@@ -904,9 +931,10 @@ lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb, select
      lw_callback pre_activate_cb;
      lw_callback selection_cb;
      lw_callback post_activate_cb;
+     lw_callback highlight_cb;
 {
   lw_register_widget (type, name, id, val, pre_activate_cb, selection_cb,
-		      post_activate_cb);
+		      post_activate_cb, highlight_cb);
   return lw_make_widget (id, parent, pop_up_p);
 }
 		  
