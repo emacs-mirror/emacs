@@ -994,7 +994,7 @@ command_loop_1 ()
 #endif /* 0 */
 
       /* Read next key sequence; i gets its length.  */
-      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), 0);
+      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), Qnil);
 
       ++num_input_keys;
 
@@ -3715,7 +3715,7 @@ static int
 read_key_sequence (keybuf, bufsize, prompt)
      Lisp_Object *keybuf;
      int bufsize;
-     char *prompt;
+     Lisp_Object prompt;
 {
   int count = specpdl_ptr - specpdl;
 
@@ -3802,8 +3802,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   if (INTERACTIVE)
     {
-      if (prompt)
-	echo_prompt (prompt);
+      if (!NILP (prompt))
+	echo_prompt (XSTRING (prompt)->data);
       else if (cursor_in_echo_area)
 	/* This doesn't put in a dash if the echo buffer is empty, so
 	   you don't always see a dash hanging out in the minibuffer.  */
@@ -3823,7 +3823,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
-  first_event = read_char (!prompt, 0, submaps, last_nonmenu_event,
+  first_event = read_char (NILP (prompt), 0, submaps, last_nonmenu_event,
 			   &junk);
 #endif /* GOBBLE_FIRST_EVENT */
 
@@ -3935,7 +3935,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	{
 	  struct buffer *buf = current_buffer;
 
-	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
+	  key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
 			   &used_mouse_menu);
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
@@ -4252,7 +4252,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  tem = fkey_next;
 
 		  GCPRO3 (fkey_map, keytran_map, delayed_switch_frame);
-		  fkey_next = call0 (fkey_next);
+		  fkey_next = call1 (fkey_next, prompt);
 		  UNGCPRO;
 		  /* If the function returned something invalid,
 		     barf--don't ignore it.
@@ -4345,7 +4345,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		tem = keytran_next;
 
 		GCPRO3 (keytran_map, keytran_map, delayed_switch_frame);
-		keytran_next = call0 (keytran_next);
+		keytran_next = call1 (keytran_next, prompt);
 		UNGCPRO;
 		/* If the function returned something invalid,
 		   barf--don't ignore it.
@@ -4485,8 +4485,7 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
   if (NILP (continue_echo))
     this_command_key_count = 0;
 
-  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
-			 NILP (prompt) ? 0 : XSTRING (prompt)->data);
+  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])), prompt);
 
   if (i == -1)
     {
