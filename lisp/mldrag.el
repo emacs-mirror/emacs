@@ -164,11 +164,12 @@ right will make the clicked-on window thinner or wider."
 	 event mouse x left right edges wconfig growth)
     (if (one-window-p t)
 	(error "Attempt to resize sole ordinary window"))
-    (if (if scroll-bar-left
-	    (= (nth 2 (window-edges start-event-window))
-	       (frame-width start-event-frame))
-	  (= (nth 0 (window-edges start-event-window)) 0))
-	(error "Attempt to drag rightmost scrollbar"))
+    (if scroll-bar-left
+	(when (= (nth 0 (window-edges start-event-window)) 0)
+	  (error "Attempt to drag leftmost scrollbar"))
+      (when (>= (nth 2 (window-edges start-event-window))
+		(frame-width start-event-frame))
+	(error "Attempt to drag rightmost scrollbar")))
     (unwind-protect
 	(track-mouse
 	  (progn
