@@ -3795,8 +3795,14 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
    such as (ctrl meta backspace), into the usual representation of that
    event type as a number or a symbol.  */
 
-Lisp_Object
-convert_event_type_list (event)
+DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
+  "Convert the event description LIST to an event type.\n\
+LIST should contain one base event type (a character or symbol)\n\
+and zero or more modifier names (control, meta, hyper, super, shift, alt,\n\
+drag, down, double or triple).\n\
+The return value is an event type (a character or symbol) which\n\
+has the same base event type and all the specified modifiers.")
+  (event)
      Lisp_Object event;
 {
   Lisp_Object base;
@@ -6866,6 +6872,7 @@ syms_of_keyboard ()
   unread_switch_frame = Qnil;
   staticpro (&unread_switch_frame);
 
+  defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Srecursive_edit);
 #ifdef HAVE_MOUSE
