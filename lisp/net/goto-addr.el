@@ -50,17 +50,13 @@
 ;;     m))
 ;;
 
-;; BUG REPORTS
-;;
-;; Please send bug reports to me at ericding@mit.edu.
-
 ;; Known bugs/features:
 ;; * goto-address-mail-regexp only catches foo@bar.org style addressing,
 ;;   not stuff like X.400 addresses, etc.
 ;; * regexp also catches Message-Id line, since it is in the format of
 ;;   an Internet e-mail address (like Compuserve addresses)
-;; * If show buffer is fontified after goto-address-fontify is run
-;;   (say, using font-lock-fontify-buffer), then font-lock face will
+;; * If the buffer is fontified after goto-address-fontify is run
+;;   (say, using font-lock-fontify-buffer), then font-lock faces will
 ;;   override goto-address faces.
 
 ;;; Code:
@@ -132,10 +128,12 @@ But only if `goto-address-highlight-p' is also non-nil."
   "Fontify the URLs and e-mail addresses in the current buffer.
 This function implements `goto-address-highlight-p'
 and `goto-address-fontify-p'."
+  ;; Clean up from any previous go.
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (if (overlay-get overlay 'goto-address)
+	(delete-overlay overlay)))
   (save-excursion
-    (let ((inhibit-read-only t)
-	  (inhibit-point-motion-hooks t)
-	  (modified (buffer-modified-p)))
+    (let ((inhibit-point-motion-hooks t))
       (goto-char (point-min))
       (if (< (- (point-max) (point)) goto-address-fontify-maximum-size)
 	  (progn
@@ -150,7 +148,8 @@ and `goto-address-fontify-p'."
 		(overlay-put this-overlay
 			     'help-echo "mouse-2: follow URL")
 		(overlay-put this-overlay
-                             'keymap goto-address-highlight-keymap)))
+                             'keymap goto-address-highlight-keymap)
+		(overlay-put this-overlay 'goto-address t)))
 	    (goto-char (point-min))
 	    (while (re-search-forward goto-address-mail-regexp nil t)
               (let* ((s (match-beginning 0))
@@ -163,10 +162,8 @@ and `goto-address-fontify-p'."
 		(overlay-put this-overlay
 			     'help-echo "mouse-2: follow URL")
                 (overlay-put this-overlay
-                             'keymap goto-address-highlight-keymap)))))
-      (and (buffer-modified-p)
-	   (not modified)
-	   (set-buffer-modified-p nil)))))
+                             'keymap goto-address-highlight-keymap)
+		(overlay-put this-overlay 'goto-address t))))))))
 
 ;;; code to find and goto addresses; much of this has been blatantly
 ;;; snarfed from browse-url.el
