@@ -69,16 +69,18 @@
 
 ;;;###autoload
 (defun cookie (phrase-file startmsg endmsg)
-  "Return a random phrase from PHRASE-FILE.  When the phrase file
-is read in, display STARTMSG at beginning of load, ENDMSG at end."
+  "Return a random phrase from PHRASE-FILE.
+When the phrase file is read in, display STARTMSG at the beginning
+of load, ENDMSG at the end."
   (let ((cookie-vector (cookie-snarf phrase-file startmsg endmsg)))
     (shuffle-vector cookie-vector)
     (aref cookie-vector 1)))
 
 ;;;###autoload
 (defun cookie-insert (phrase-file &optional count startmsg endmsg)
-  "Insert random phrases from PHRASE-FILE; COUNT of them.  When the phrase file
-is read in, display STARTMSG at beginning of load, ENDMSG at end."
+  "Insert random phrases from PHRASE-FILE; COUNT of them.
+When the phrase file is read in, display STARTMSG at the beginning
+of load, ENDMSG at the end."
   (let ((cookie-vector (cookie-snarf phrase-file startmsg endmsg)))
     (shuffle-vector cookie-vector)
     (let ((start (point)))
@@ -151,7 +153,7 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 ;
 ;;;###autoload
 (defun shuffle-vector (vector)
-  "Randomly permute the elements of VECTOR (all permutations equally likely)"
+  "Randomly permute the elements of VECTOR (all permutations equally likely)."
   (let ((i 0)
 	j
 	temp
