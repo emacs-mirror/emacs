@@ -1,3 +1,7 @@
+2001-01-31  Dave Love  <fx@gnu.org>
+
+	* etags.c (in_word_set): Use `static' in definition (for pcc).
+
 2001-01-31  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c: [NDEBUG] #undef assert and #define it as ((void)0), for
