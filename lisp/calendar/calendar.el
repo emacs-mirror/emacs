@@ -569,7 +569,7 @@ See the documentation of `diary-date-forms' for an explanation."
       european-date-diary-pattern
     american-date-diary-pattern)
   "*List of pseudo-patterns describing the forms of date used in the diary.
-The patterns on the list must be MUTUALLY EXCLUSIVE and must not match
+The patterns on the list must be MUTUALLY EXCLUSIVE and must should not match
 any portion of the diary entry itself, just the date component.
 
 A pseudo-pattern is a list of regular expressions and the keywords `month',
@@ -2075,7 +2075,32 @@ the inserted text.  Value is always t."
 	       'help-echo "mouse-2: scroll right"
 	       'keymap (make-mode-line-mouse-map
 			'mouse-2 #'scroll-calendar-right)))
-  "The mode line of the calendar buffer.")
+  "The mode line of the calendar buffer.
+
+This must be a list of items that evaluate to strings--those strings are
+evaluated and concatenated together, evenly separated by blanks.  The variable
+`date' is available for use as the date under (or near) the cursor; `date'
+defaults to the current date if it is otherwise undefined.  Here is an example
+value that has the Hebrew date, the day number/days reamining in the year,
+and the ISO week/year numbers in the mode.  When calendar-move-hook is set to
+'update-calendar-mode-line, these mode line shows these values for the date
+under the cursor:
+
+      (list
+       \"\"
+       '(calendar-hebrew-date-string date)
+       '(let* ((year (extract-calendar-year date))
+               (d (calendar-day-number date))
+               (days-remaining
+                (- (calendar-day-number (list 12 31 year)) d)))
+          (format \"%d/%d\" d days-remaining))
+       '(let* ((d (calendar-absolute-from-gregorian date))
+               (iso-date (calendar-iso-from-absolute d)))
+          (format \"ISO week %d of %d\"
+            (extract-calendar-month iso-date)
+            (extract-calendar-year iso-date)))
+       \"\"))
+")
 
 (defun calendar-goto-info-node ()
   "Go to the info node for the calendar."
@@ -2142,7 +2167,12 @@ the STRINGS are just concatenated and the result truncated."
         (set-buffer calendar-buffer)
         (setq mode-line-format
               (calendar-string-spread
-               calendar-mode-line-format ?  (frame-width))))))
+               (let ((date (condition-case nil
+                               (calendar-cursor-to-nearest-date)
+                             (error (calendar-current-date)))))
+                 (mapcar 'eval  calendar-mode-line-format))
+               ?  (frame-width)))
+        (force-mode-line-update))))
 
 (defun calendar-window-list ()
   "List of all calendar-related windows."
