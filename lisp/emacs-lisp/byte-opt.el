@@ -1571,7 +1571,7 @@ may generate incorrect code.")
 		 (if opt-p
 		     (let ((tagstr 
 			    (if (eq 'TAG (car (car tmp)))
-				(format "%d:" (cdr (car tmp)))
+				(format "%d:" (car (cdr (car tmp))))
 			      (or (car tmp) ""))))
 		       (if (< i 6)
 			   (apply 'byte-compile-log-lap-1
@@ -1818,7 +1818,7 @@ may generate incorrect code.")
 	       (setq tmp2 t))
 	     (if tmp2
 		 (byte-compile-log-lap
-		  "  %s [dup/%s]... %s\t-->\t%s dup..." lap0 lap0 lap0)))
+		  "  %s [dup/%s]...\t-->\t%s dup..." lap0 lap0 lap0)))
 	    ;;
 	    ;; unbind-N unbind-M  -->  unbind-(N+M)
 	    ;;
