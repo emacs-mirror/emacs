@@ -502,10 +502,12 @@ struct glyph_matrix
   char method[512];
 #endif
 
-  /* The buffer this matrix displays.  Set in redisplay_internal.  */
+  /* The buffer this matrix displays.  Set in
+     mark_window_display_accurate_1.  */
   struct buffer *buffer;
 
-  /* Values of BEGV and ZV as of last redisplay.  */
+  /* Values of BEGV and ZV as of last redisplay.  Set in
+     mark_window_display_accurate_1.  */
   int begv, zv;
 };
 
