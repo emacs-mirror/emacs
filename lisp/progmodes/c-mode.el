@@ -989,7 +989,7 @@ ENDPOS is encountered."
 	 restart outer-loop-done inner-loop-done state ostate
 	 this-indent last-sexp
 	 at-else at-brace at-while
-	 last-depth
+	 last-depth this-point
 	 (next-depth 0))
     ;; If the braces don't match, get an error right away.
     (save-excursion
@@ -1033,9 +1033,12 @@ ENDPOS is encountered."
 	  (if (and (car (cdr (cdr state)))
 		   (>= (car (cdr (cdr state))) 0))
 	      (setq last-sexp (car (cdr (cdr state)))))
-	  (if (or (nth 4 ostate))
+	  ;; If this line started within a comment, indent it as such.
+	  (if (or (nth 4 ostate) (nth 7 ostate))
 	      (c-indent-line))
-	  (if (or (nth 3 state))
+	  ;; If it ends outside of comments or strings, exit the inner loop.
+	  ;; Otherwise move on to next line.
+	  (if (or (nth 3 state) (nth 4 state) (nth 7 state))
 	      (forward-line 1)
 	    (setq inner-loop-done t)))
 	(and endpos
@@ -1085,6 +1088,7 @@ ENDPOS is encountered."
 		  ;; Is it a new statement?  Is it an else?
 		  ;; Find last non-comment character before this line
 		  (save-excursion
+		    (setq this-point (point))
 		    (setq at-else (looking-at "else\\W"))
 		    (setq at-brace (= (following-char) ?{))
 		    (setq at-while (looking-at "while\\b"))
@@ -1105,6 +1109,9 @@ ENDPOS is encountered."
 						  (current-indentation))))
 			    ((and at-while (c-backward-to-start-of-do opoint))
 			     (setq this-indent (current-indentation)))
+			    ((eq (preceding-char) ?\,)
+			     (goto-char this-point)
+			     (setq this-indent (calculate-c-indent)))
 			    (t (setq this-indent (car indent-stack)))))))
 	      ;; Just started a new nesting level.
 	      ;; Compute the standard indent for this level.
