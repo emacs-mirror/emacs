@@ -68,48 +68,49 @@
 ;; Needed in macro expansion, so can't be let-bound.  Zapped after use.
 (eval-and-compile
 (defconst utf-16-decode-ucs
-  ;; We have the unicode in r1.  Output is character codes in r0, r1,
-  ;; and r2 if appropriate.
-  `((lookup-integer utf-8-subst-table r0 r3)
-    (if r7 (r1 = r3))			; got a translation
-    (if (r1 < 128)
-       (r0 = ,(charset-id 'ascii))
-     (if (r1 < 160)
-	 (r0 = ,(charset-id 'eight-bit-control))
-       (if (r1 < 256)
-	   ((r0 = ,(charset-id 'latin-iso8859-1))
-	    (r1 -= 128))
-	 (if (r1 < #x2500)
-	     ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-	      (r1 -= #x100)
-	      (r2 = (((r1 / 96) + 32) << 7))
-	      (r1 %= 96)
-	      (r1 += (r2 + 32)))
-	   (if (r1 < #x3400)
-	       ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
-		(r1 -= #x2500)
-		(r2 = (((r1 / 96) + 32) << 7))
-		(r1 %= 96)
-		(r1 += (r2 + 32)))
-	     (if (r1 < #xd800)		; 2 untranslated bytes
-;;		 ;; Assume this is rare, so don't worry about the
-;; 		 ;; overhead of the call.
-;; 		 (call mule-utf-16-untrans)
-		 ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-		  (r1 = 15037))		; U+fffd
-	       (if (r1 < #xe000)	; surrogate
-;; 			((call mule-utf-16-untrans)
-;; 			 (write-multibyte-character r0 r1)
-;; 			 (read r3 r4)
-;; 			 (call mule-utf-16-untrans))
-		   ((read r3 r4)
-		    (r0 = ,(charset-id 'mule-unicode-e000-ffff))
-		    (r1 = 15037))
-		 ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-		  (r1 -= #xe000)
-		  (r2 = (((r1 / 96) + 32) << 7))
-		  (r1 %= 96)
-		  (r1 += (r2 + 32)))))))))))))
+  ;; We have the unicode in r1.  Output is charset ID in r0, code point
+  ;; in r1.
+  `((lookup-integer utf-subst-table-for-decode r1 r3)
+    (if r7				; got a translation
+	((r0 = r1) (r1 = r3))
+      (if (r1 < 128)
+	  (r0 = ,(charset-id 'ascii))
+	(if (r1 < 160)
+	    (r0 = ,(charset-id 'eight-bit-control))
+	  (if (r1 < 256)
+	      ((r0 = ,(charset-id 'latin-iso8859-1))
+	       (r1 -= 128))
+	    (if (r1 < #x2500)
+		((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		 (r1 -= #x100)
+		 (r2 = (((r1 / 96) + 32) << 7))
+		 (r1 %= 96)
+		 (r1 += (r2 + 32)))
+	      (if (r1 < #x3400)
+		  ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
+		   (r1 -= #x2500)
+		   (r2 = (((r1 / 96) + 32) << 7))
+		   (r1 %= 96)
+		   (r1 += (r2 + 32)))
+		(if (r1 < #xd800)	; 2 untranslated bytes
+		    ;;		 ;; Assume this is rare, so don't worry about the
+		    ;; 		 ;; overhead of the call.
+		    ;; 		 (call mule-utf-16-untrans)
+		    ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+		     (r1 = 15037))	; U+fffd
+		  (if (r1 < #xe000)	; surrogate
+		      ;; 			((call mule-utf-16-untrans)
+		      ;; 			 (write-multibyte-character r0 r1)
+		      ;; 			 (read r3 r4)
+		      ;; 			 (call mule-utf-16-untrans))
+		      ((read r3 r4)
+		       (r0 = ,(charset-id 'mule-unicode-e000-ffff))
+		       (r1 = 15037))
+		    ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+		     (r1 -= #xe000)
+		     (r2 = (((r1 / 96) + 32) << 7))
+		     (r1 %= 96)
+		     (r1 += (r2 + 32))))))))))))))
 
 (define-ccl-program ccl-decode-mule-utf-16-le
   `(2					; 2 bytes -> 1 to 4 bytes
@@ -118,14 +119,14 @@
       (read r3 r4)
       (r1 = (r4 <8 r3))
       ,utf-16-decode-ucs
-      (translate-character utf-8-translation-table-for-decode r0 r1)
+      (translate-character utf-translation-table-for-decode r0 r1)
       (write-multibyte-character r0 r1)
       (repeat))))
   "Decode little endian UTF-16 (ignoring signature bytes).
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
-mule-unicode-*.  Un-representable Unicode characters are
-decoded as U+fffd.  The result is run through translation table
-`utf-8-translation-table-for-decode' if that is defined.")
+mule-unicode-*.  Un-representable Unicode characters are decoded as
+U+fffd.  The result is run through the translation-table named
+`utf-translation-table-for-decode'.")
 
 (define-ccl-program ccl-decode-mule-utf-16-be
   `(2					; 2 bytes -> 1 to 4 bytes
@@ -134,14 +135,14 @@ decoded as U+fffd.  The result is run through translation table
       (read r3 r4)
       (r1 = (r3 <8 r4))
       ,utf-16-decode-ucs
-      (translate-character utf-8-translation-table-for-decode r0 r1)
+      (translate-character utf-translation-table-for-decode r0 r1)
       (write-multibyte-character r0 r1)
       (repeat))))
   "Decode big endian UTF-16 (ignoring signature bytes).
 Basic decoding is done into the charsets ascii, latin-iso8859-1 and
 mule-unicode-*.  Un-representable Unicode characters are
-decoded as U+fffd.  The result is run through translation table
-`utf-8-non-latin-8859-table'.")
+decoded as U+fffd.  The result is run through the translation-table of
+name `utf-translation-table-for-decode'.")
 
 (makunbound 'utf-16-decode-ucs)		; done with it
 
@@ -176,15 +177,18 @@ decoded as U+fffd.  The result is run through translation table
      (write #xfe)
      (loop
       (read-multibyte-character r0 r1)
-      (translate-character ucs-mule-to-mule-unicode r0 r1)
-      ,utf-16-decode-to-ucs
+      (lookup-character utf-subst-table-for-encode r0 r1)
+      (if (r7 == 0)
+	  ((translate-character utf-translation-table-for-encode r0 r1)
+	   ,utf-16-decode-to-ucs))
       (write (r0 & 255))
       (write (r0 >> 8))
       (repeat))))
   "Encode to little endian UTF-16 with signature.
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
-after translation through the table `ucs-mule-to-mule-unicode'.
+after translation through the translation-table of name
+`utf-translation-table-for-encode'.
 Others are encoded as U+FFFD.")
 
 (define-ccl-program ccl-encode-mule-utf-16-be
@@ -193,15 +197,18 @@ Others are encoded as U+FFFD.")
      (write #xff)
      (loop
       (read-multibyte-character r0 r1)
-      (translate-character ucs-mule-to-mule-unicode r0 r1)
-      ,utf-16-decode-to-ucs
+      (lookup-character utf-subst-table-for-encode r0 r1)
+      (if (r7 == 0)
+	  ((translate-character utf-translation-table-for-encode r0 r1)
+	   ,utf-16-decode-to-ucs))
       (write (r0 >> 8))
       (write (r0 & 255))
       (repeat))))
   "Encode to big endian UTF-16 with signature.
 Characters from the charsets ascii, eight-bit-control,
 eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are encoded
-after translation through the table `ucs-mule-to-mule-unicode'.
+after translation through the translation-table named
+`utf-translation-table-for-encode'.
 Others are encoded as U+FFFD.")
 
 (makunbound 'utf-16-decode-to-ucs)
@@ -210,20 +217,19 @@ Others are encoded as U+FFFD.")
 
 Assumes and ignores the leading two-byte signature.
 
-The supported Emacs character sets are the following, plus others
-which may be included in the translation table
-`ucs-mule-to-mule-unicode':
- ascii
- eight-bit-control
- latin-iso8859-1
- mule-unicode-0100-24ff
- mule-unicode-2500-33ff
- mule-unicode-e000-ffff
+It supports Unicode characters of these ranges:
+    U+0000..U+33FF, U+E000..U+FFFF.
+They correspond to these Emacs character sets:
+    ascii, latin-iso8859-1, mule-unicode-0100-24ff,
+    mule-unicode-2500-33ff, mule-unicode-e000-ffff
 
-Note that Unicode characters out of the ranges U+0000-U+33FF and
-U+E200-U+FFFF are decoded as U+FFFD, effectively corrupting the data
-if they are re-encoded.  Emacs characters without Unicode conversions
-are encoded as U+FFFD."))
+On decoding (e.g. reading a file), Unicode characters not in the above
+ranges are decoded as U+FFFD, effectively corrupting the data
+if they are re-encoded.  
+
+On encoding (e.g. writing a file), Emacs characters not belonging to
+any of the character sets listed above are encoded into the byte
+sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
   (make-coding-system
    'mule-utf-16-le 4
    ?u	      ; Mule-UCS uses ?U, but code-pages uses that for koi8-u.
@@ -242,7 +248,11 @@ are encoded as U+FFFD."))
      (mime-charset . utf-16le)
      (coding-category . coding-category-utf-16-le)
      (valid-codes (0 . 255))
-     (pre-write-conversion . utf-16-le-pre-write-conversion)))
+     (pre-write-conversion . utf-16-le-pre-write-conversion)
+     (dependency unify-8859-on-encoding-mode
+		 unify-8859-on-decoding-mode
+		 utf-fragment-on-decoding
+		 utf-translate-cjk)))
 
   (make-coding-system
    'mule-utf-16-be 4 ?u
@@ -261,10 +271,11 @@ are encoded as U+FFFD."))
      (mime-charset . utf-16be)
      (coding-category . coding-category-utf-16-be)
      (valid-codes (0 . 255))
-     (pre-write-conversion . utf-16-be-pre-write-conversion)))
-
-  (register-char-codings 'mule-utf-16-le ucs-mule-to-mule-unicode)
-  (register-char-codings 'mule-utf-16-be ucs-mule-to-mule-unicode))
+     (pre-write-conversion . utf-16-be-pre-write-conversion)
+     (dependency unify-8859-on-encoding-mode
+		 unify-8859-on-decoding-mode
+		 utf-fragment-on-decoding
+		 utf-translate-cjk))))
 
 (define-coding-system-alias 'utf-16-le 'mule-utf-16-le)
 (define-coding-system-alias 'utf-16-be 'mule-utf-16-be)
