@@ -1,3 +1,8 @@
+2005-03-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-mode-syntax-table):
+	Add entry for backslash.
+
 2005-03-12  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-search): Four fixes for backward search.
