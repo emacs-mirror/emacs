@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information.
 
-;; Copyright (C) 1997, 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -120,12 +120,13 @@ seconds."
 
 (defun battery-update ()
   "Update battery status information in the mode line."
-  (setq battery-mode-line-string (if (and battery-mode-line-format
-					  battery-status-function)
-				     (battery-format
-				      battery-mode-line-format
-				      (funcall battery-status-function))
-				   ""))
+  (setq battery-mode-line-string (propertize (if (and battery-mode-line-format
+						      battery-status-function)
+						 (battery-format
+						  battery-mode-line-format
+						  (funcall battery-status-function))
+					       "")
+					     'help-echo "Battery status information"))
   (force-mode-line-update))
 
 
