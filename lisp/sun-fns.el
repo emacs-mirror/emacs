@@ -56,7 +56,7 @@
 
 ;;; Code:
 
-(require 'sun-mouse)
+(require 'term/sun-mouse)
 
 (defconst cursor-pause-milliseconds 300
   "*Number of milliseconds to display alternate cursor (usually the mark)")
