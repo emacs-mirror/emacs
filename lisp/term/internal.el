@@ -58,8 +58,7 @@
 		     (modify-syntax-entry ch sy tex-mode-syntax-table))
 		 (modify-syntax-entry ch sy (standard-syntax-table))
 		 )))
-      (downs (car (standard-case-table)))
-      (ups (car (cdr (standard-case-table))))
+      (table (standard-case-table))
       ;; The following are strings of letters, first lower then upper case.
       ;; This will look funny on terminals which display other code pages.
       (chars
@@ -79,14 +78,10 @@
   (while (< i (length chars))
     (let ((ch1 (aref chars i))
 	  (ch2 (aref chars (1+ i))))
-      (funcall modify ch1 "w")
-      (funcall modify ch2 "w")
-      (aset ups ch1 ch2)
       (if (> ch2 127)
-	  (aset downs ch2 ch1))
+	  (set-case-syntax-pair ch2 ch1 table))
       (setq i (+ i 2))))
-  (let ((table (list downs ups nil nil)))
-    (save-excursion
-      (mapcar (lambda (b) (progn (set-buffer b) (set-case-table table)))
-	      (buffer-list)))
-    (set-standard-case-table table)))
+  (save-excursion
+    (mapcar (lambda (b) (set-buffer b) (set-case-table table))
+	    (buffer-list)))
+  (set-standard-case-table table))
