@@ -880,8 +880,7 @@ sink to `user' in `gdb-stopping', that is fine."
   "An annotation handler for `post-prompt'.
 This begins the collection of output from the current command if that
 happens to be appropriate."
-  (if (not gdb-pending-triggers)
-      (progn
+  (unless gdb-pending-triggers
 	(gdb-get-current-frame)
 	(gdb-invalidate-frames)
 	(gdb-invalidate-breakpoints)
@@ -897,7 +896,7 @@ happens to be appropriate."
 	    (setq gdb-var-changed t)    ; force update
 	    (dolist (var gdb-var-list)
 	      (setcar (nthcdr 5 var) nil))
-	    (gdb-var-update)))))
+	    (gdb-var-update))))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)
@@ -1211,14 +1210,13 @@ static char *magick[] = {
 				  (goto-line (string-to-number line))
 				  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))
 			    (gdb-enqueue-input
-			     (list (concat gdb-server-prefix "list "
+			     (list (concat "list "
 					   (match-string-no-properties 1) ":1\n")
 				   'ignore))
 			    (gdb-enqueue-input
-			     (list (concat gdb-server-prefix "info source\n")
-				   `(lambda ()
-				      (gdb-get-location
-				       ,bptno ,line ,flag)))))))))))
+			     (list "info source\n"
+				   `(lambda () (gdb-get-location
+						,bptno ,line ,flag)))))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
@@ -2108,22 +2106,29 @@ buffers."
   "Find the directory containing the relevant source file.
 Put in buffer and place breakpoint icon."
   (goto-char (point-min))
-  (if (search-forward "Located in " nil t)
-      (if (looking-at "\\S-*")
-	  (push (cons bptno (match-string 0)) gdb-location-list))
-    (gdb-resync)
-    (push (cons bptno "File not found") gdb-location-list)
-    (error "Cannot find source file for breakpoint location.
+  (catch 'file-not-found
+    (if (search-forward "Located in " nil t)
+	(if (looking-at "\\S-*")
+	    (push (cons bptno (match-string 0)) gdb-location-list))
+      (gdb-resync)
+      (push (cons bptno "File not found") gdb-location-list)
+      (if (eq window-system 'x)
+	  (x-popup-dialog
+	   t '("Cannot find source file for breakpoint location.\n\
+Add directory to search path for source files using the GDB command, dir."
+	       ("Ok" . nil)))
+	(message "Cannot find source file for breakpoint location.\n\
 Add directory to search path for source files using the GDB command, dir."))
-  (with-current-buffer
-      (find-file-noselect (match-string 0))
-    (save-current-buffer
-      (set (make-local-variable 'gud-minor-mode) 'gdba)
-      (set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
-    ;; only want one breakpoint icon at each location
-    (save-excursion
-      (goto-line (string-to-number line))
-      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))
+      (throw 'file-not-found nil))
+    (with-current-buffer
+	(find-file-noselect (match-string 0))
+      (save-current-buffer
+	(set (make-local-variable 'gud-minor-mode) 'gdba)
+	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
+      ;; only want one breakpoint icon at each location
+      (save-excursion
+	(goto-line (string-to-number line))
+	(gdb-put-breakpoint-icon (eq flag ?y) bptno)))))
 
 (add-hook 'find-file-hook 'gdb-find-file-hook)
 

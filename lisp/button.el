@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons
 ;;
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions
@@ -298,24 +298,23 @@ large numbers of buttons can also be somewhat faster using
 `make-text-button'.
 
 Also see `insert-text-button'."
-  (let (prop val)
-    (while properties
-      (setq prop (pop properties))
-      (setq val (pop properties))
-      ;; Note that all the following code is basically equivalent to
-      ;; `button-put', but we can do it much more efficiently since we
-      ;; already have BEG and END.
-      (cond ((memq prop '(type :type))
-	     ;; We translate a `type' property into a `category'
-	     ;; property, since that's what's actually used by
-	     ;; text-properties for inheritance.
-	     (setq prop 'category)
-	     (setq val (button-category-symbol val)))
-	    ((eq prop 'category)
-	     ;; Disallow setting the `category' property directly.
-	     (error "Button `category' property may not be set directly")))
-      ;; Add the property.
-      (put-text-property beg end prop val)))
+  (let ((type-entry
+	 (or (plist-member properties 'type)
+	     (plist-member properties :type))))
+    ;; Disallow setting the `category' property directly.
+    (when (plist-get properties 'category)
+      (error "Button `category' property may not be set directly"))
+    (if (null type-entry)
+	;; The user didn't specify a `type' property, use the default.
+	(setq properties (cons 'category (cons 'default-button properties)))
+      ;; The user did specify a `type' property.  Translate it into a
+      ;; `category' property, which is what's actually used by
+      ;; text-properties for inheritance.
+      (setcar type-entry 'category)
+      (setcar (cdr type-entry)
+	      (button-category-symbol (car (cdr type-entry))))))
+  ;; Now add all the text properties at once
+  (add-text-properties beg end properties)
   ;; Return something that can be used to get at the button.
   beg)
 

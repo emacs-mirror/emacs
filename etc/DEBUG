@@ -1,5 +1,5 @@
 Debugging GNU Emacs
-Copyright (c) 1985, 2000, 2001 Free Software Foundation, Inc.
+Copyright (c) 1985, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -19,6 +19,13 @@ document.]
 ** When you debug Emacs with GDB, you should start it in the directory
 where the executable was made.  That directory has a .gdbinit file
 that defines various "user-defined" commands for debugging Emacs.
+
+** When you are trying to analyze failed assertions, it will be
+essential to compile Emacs either completely without optimizations or
+at least (when using GCC) with the -fno-crossjumping option.  Failure
+to do so may make the compiler recycle the same abort call for all
+assertions in a given function, rendering the stack backtrace useless
+for identifying the specific failed assertion.
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able

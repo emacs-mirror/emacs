@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 1998, 2001, 2003, 2004
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1998, 2001, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -176,6 +176,41 @@ version \\([0-9]+\\), or (at"
     ;; If a write-file-hook returns non-nil, the file is presumed to be written.
     nil))
 
+
+;;;###autoload
+(defun copyright-fix-years ()
+  "Convert 2 digit years to 4 digit years.
+Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
+  (interactive)
+  (widen)
+  (goto-char (point-min))
+  (if (re-search-forward copyright-regexp (+ (point) copyright-limit) t)
+      (let ((s (match-beginning 2)) (e (make-marker))
+	    last)
+	(set-marker e (1+ (match-end 2)))
+	(goto-char s)
+	(while (and (< (point) (marker-position e))
+		    (re-search-forward "\\([^0-9]\\)\\([0-9]+\\)[^0-9]"
+				       (marker-position e) t))
+	  (let ((p (point))
+		(sep (match-string 1))
+		(year (string-to-number (match-string 2))))
+	    (goto-char (1+ (match-beginning 0)))
+	    (unless (= (char-syntax (string-to-char sep)) ?\s)
+	      (insert " "))
+	    (if (< year 100)
+		(insert (if (>= year 50) "19" "20")))
+	    (goto-char p)
+	    (setq last p)))
+	(when last
+	  (goto-char last)
+	  (let ((fill-prefix "     "))
+	    (fill-region s last))
+	  )
+	(set-marker e nil)
+	(copyright-update nil t))
+    (message "No copyright message")
+    (goto-char (point-min))))
 
 ;;;###autoload
 (define-skeleton copyright
