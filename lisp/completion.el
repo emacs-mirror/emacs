@@ -28,8 +28,7 @@
 
 ;; What to put in .emacs
 ;;-----------------------
-;; (load "completion")
-;; (initialize-completions)
+;; (dynamic-completion-mode)
 
 ;;---------------------------------------------------------------------------
 ;; Documentation [Slightly out of date]
@@ -617,23 +616,6 @@ Used to decide whether to save completions.")
 (make-variable-buffer-local 'cmpl-syntax-table)
 
 ;;-----------------------------------------------
-;; Installing the appropriate mode tables
-;;-----------------------------------------------
-
-(add-hook 'lisp-mode-hook
-	  '(lambda ()
-	     (setq cmpl-syntax-table cmpl-lisp-syntax-table)))
-
-(add-hook 'c-mode-hook
-	  '(lambda ()
-	     (setq cmpl-syntax-table cmpl-c-syntax-table)))
-
-(add-hook 'fortran-mode-hook
-	  '(lambda ()
-	     (setq cmpl-syntax-table cmpl-fortran-syntax-table)
-	     (completion-setup-fortran-mode)))
-
-;;-----------------------------------------------
 ;; Symbol functions
 ;;-----------------------------------------------
 (defvar cmpl-symbol-start nil
@@ -875,11 +857,11 @@ Returns nil if there isn't one longer than `completion-min-length'."
 ;;  "The current point position the cdabbrev search is at.")
 
 (defvar cdabbrev-current-window nil)
-;;  "The current window we are looking for cdabbrevs in.  T if looking in
-;; (other-buffer), NIL if no more  cdabbrevs.")
+;;  "The current window we are looking for cdabbrevs in.
+;; Return t if looking in (other-buffer), nil if no more  cdabbrevs.")
 
 (defvar cdabbrev-wrapped-p nil)
-;;  "T if the cdabbrev search has wrapped around the file.")
+;;  "Return t if the cdabbrev search has wrapped around the file.")
 
 (defvar cdabbrev-abbrev-string "")
 (defvar cdabbrev-start-point 0)
@@ -1891,23 +1873,6 @@ Prefix args ::
 	   ;; Pretend that we were never here
 	   (setq this-command 'failed-complete)
 	   ))))
-
-;;-----------------------------------------------
-;; "Complete" Key Keybindings
-;;-----------------------------------------------
-
-(global-set-key "\M-\r" 'complete)
-(global-set-key [?\C-\r] 'complete)
-(define-key function-key-map [C-return] [?\C-\r])
-
-;; Tests -
-;; (add-completion "cumberland")
-;; (add-completion "cumberbund")
-;; cum
-;; Cumber
-;; cumbering
-;; cumb
-
 
 ;;---------------------------------------------------------------------------
 ;; Parsing definitions from files into the database
@@ -1976,8 +1941,6 @@ Prefix args ::
 		(add-completions-from-buffer)
 		)))
 	))
-    
-(add-hook 'find-file-hooks 'cmpl-find-file-hook)
 
 ;;-----------------------------------------------
 ;; Tags Table Completions
@@ -2470,17 +2433,6 @@ Also sets up so that exiting emacs will automatically save the file."
 	 ))
   (setq cmpl-initialized-p t)
   )
-
-
-;;-----------------------------------------------
-;; Kill EMACS patch
-;;-----------------------------------------------
-
-(add-hook 'kill-emacs-hook
-	  '(lambda ()
-	     (kill-emacs-save-completions)
-	     (cmpl-statistics-block
-	      (record-cmpl-kill-emacs))))
 
 ;;-----------------------------------------------
 ;; Kill region patch
@@ -2510,7 +2462,6 @@ Patched to remove the most recent completion."
 	(t
 	 (kill-region beg end))))
 
-(global-set-key "\C-w" 'completion-kill-region)
 
 ;;-----------------------------------------------
 ;; Patches to self-insert-command.
@@ -2590,61 +2541,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
   (funcall (or (and (symbolp this-command)
 		    (get this-command 'completion-function))
 	       'use-completion-under-or-before-point)))
-(add-hook 'pre-command-hook 'completion-before-command)
-
-
-;;---------------------------------------------------------------------------
-;; Patches to standard keymaps insert completions
-;;---------------------------------------------------------------------------
-
-;;-----------------------------------------------
-;; Separators
-;;-----------------------------------------------
-;; We've used the completion syntax table given  as a guide.
-;;
-;; Global separator chars.
-;;  We left out <tab> because there are too many special cases for it.  Also,
-;; in normal coding it's rarely typed after a word.
-(global-set-key " " 'completion-separator-self-insert-autofilling)
-(global-set-key "!" 'completion-separator-self-insert-command)
-(global-set-key "%" 'completion-separator-self-insert-command)
-(global-set-key "^" 'completion-separator-self-insert-command)
-(global-set-key "&" 'completion-separator-self-insert-command)
-(global-set-key "(" 'completion-separator-self-insert-command)
-(global-set-key ")" 'completion-separator-self-insert-command)
-(global-set-key "=" 'completion-separator-self-insert-command)
-(global-set-key "`" 'completion-separator-self-insert-command)
-(global-set-key "|" 'completion-separator-self-insert-command)
-(global-set-key "{" 'completion-separator-self-insert-command)
-(global-set-key "}" 'completion-separator-self-insert-command)
-(global-set-key "[" 'completion-separator-self-insert-command)
-(global-set-key "]" 'completion-separator-self-insert-command)
-(global-set-key ";" 'completion-separator-self-insert-command)
-(global-set-key "\"" 'completion-separator-self-insert-command)
-(global-set-key "'" 'completion-separator-self-insert-command)
-(global-set-key "#" 'completion-separator-self-insert-command)
-(global-set-key "," 'completion-separator-self-insert-command)
-(global-set-key "?" 'completion-separator-self-insert-command)
-
-;; We include period and colon even though they are symbol chars because :
-;;  - in text we want to pick up the last word in a sentence.
-;;  - in C pointer refs. we want to pick up the first symbol
-;;  - it won't make a difference for lisp mode (package names are short)
-(global-set-key "." 'completion-separator-self-insert-command)
-(global-set-key ":" 'completion-separator-self-insert-command)
-
-;; Lisp Mode diffs
-(define-key lisp-mode-map "!" 'self-insert-command)
-(define-key lisp-mode-map "&" 'self-insert-command)
-(define-key lisp-mode-map "%" 'self-insert-command)
-(define-key lisp-mode-map "?" 'self-insert-command)
-(define-key lisp-mode-map "=" 'self-insert-command)
-(define-key lisp-mode-map "^" 'self-insert-command)
-
-;; Avoid warnings.
-(defvar c-mode-map)
-(defvar fortran-mode-map)
-
+
 ;; C mode diffs.
 (defun completion-c-mode-hook ()
   (def-completion-wrapper electric-c-semi :separator)
@@ -2663,46 +2560,141 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
   (define-key fortran-mode-map "*" 'completion-separator-self-insert-command)
   (define-key fortran-mode-map "/" 'completion-separator-self-insert-command)
   )
+
+;;; Enable completion mode.
+  
+;;;###autoload
+(defun dynamic-completion-mode ()
+  "Enable dynamic word-completion."
+  (interactive)
+  (add-hook 'find-file-hooks 'cmpl-find-file-hook)
+  (add-hook 'pre-command-hook 'completion-before-command)
 
-;;-----------------------------------------------
-;; End of line chars.
-;;-----------------------------------------------
-(def-completion-wrapper newline :separator)
-(def-completion-wrapper newline-and-indent :separator)
-(def-completion-wrapper comint-send-input :separator)
-(def-completion-wrapper exit-minibuffer :minibuffer-separator)
-(def-completion-wrapper eval-print-last-sexp :separator)
-(def-completion-wrapper eval-last-sexp :separator)
-;;(def-completion-wrapper minibuffer-complete-and-exit :minibuffer)
+  ;; Install the appropriate mode tables.
+  (add-hook 'lisp-mode-hook
+	    '(lambda ()
+	       (setq cmpl-syntax-table cmpl-lisp-syntax-table)))
+  (add-hook 'c-mode-hook
+	    '(lambda ()
+	       (setq cmpl-syntax-table cmpl-c-syntax-table)))
+  (add-hook 'fortran-mode-hook
+	    '(lambda ()
+	       (setq cmpl-syntax-table cmpl-fortran-syntax-table)
+	       (completion-setup-fortran-mode)))
 
-;;-----------------------------------------------
-;; Cursor movement
-;;-----------------------------------------------
+  ;; "Complete" Key Keybindings.
 
-(def-completion-wrapper next-line :under-or-before)
-(def-completion-wrapper previous-line :under-or-before)
-(def-completion-wrapper beginning-of-buffer :under-or-before)
-(def-completion-wrapper end-of-buffer :under-or-before)
-(def-completion-wrapper beginning-of-line :under-or-before)
-(def-completion-wrapper end-of-line :under-or-before)
-(def-completion-wrapper forward-char :under-or-before)
-(def-completion-wrapper forward-word :under-or-before)
-(def-completion-wrapper forward-sexp :under-or-before)
-(def-completion-wrapper backward-char :backward-under)
-(def-completion-wrapper backward-word :backward-under)
-(def-completion-wrapper backward-sexp :backward-under)
+  (global-set-key "\M-\r" 'complete)
+  (global-set-key [?\C-\r] 'complete)
+  (define-key function-key-map [C-return] [?\C-\r])
 
-(def-completion-wrapper delete-backward-char :backward)
-(def-completion-wrapper delete-backward-char-untabify :backward)
+  ;; Tests -
+  ;; (add-completion "cumberland")
+  ;; (add-completion "cumberbund")
+  ;; cum
+  ;; Cumber
+  ;; cumbering
+  ;; cumb
 
-;; Tests --
-;; foobarbiz
-;; foobar 
-;; fooquux 
-;; fooper
+  ;; Save completions when killing Emacs.
 
-(cmpl-statistics-block
-  (record-completion-file-loaded))
+  (add-hook 'kill-emacs-hook
+	    '(lambda ()
+	       (kill-emacs-save-completions)
+	       (cmpl-statistics-block
+		(record-cmpl-kill-emacs))))
+
+  ;; Patches to standard keymaps insert completions
+  (substitute-key-definition 'kill-region 'completion-kill-region
+			     global-map)
+
+  ;; Separators
+  ;; We've used the completion syntax table given  as a guide.
+  ;;
+  ;; Global separator chars.
+  ;;  We left out <tab> because there are too many special cases for it.  Also,
+  ;; in normal coding it's rarely typed after a word.
+  (global-set-key " " 'completion-separator-self-insert-autofilling)
+  (global-set-key "!" 'completion-separator-self-insert-command)
+  (global-set-key "%" 'completion-separator-self-insert-command)
+  (global-set-key "^" 'completion-separator-self-insert-command)
+  (global-set-key "&" 'completion-separator-self-insert-command)
+  (global-set-key "(" 'completion-separator-self-insert-command)
+  (global-set-key ")" 'completion-separator-self-insert-command)
+  (global-set-key "=" 'completion-separator-self-insert-command)
+  (global-set-key "`" 'completion-separator-self-insert-command)
+  (global-set-key "|" 'completion-separator-self-insert-command)
+  (global-set-key "{" 'completion-separator-self-insert-command)
+  (global-set-key "}" 'completion-separator-self-insert-command)
+  (global-set-key "[" 'completion-separator-self-insert-command)
+  (global-set-key "]" 'completion-separator-self-insert-command)
+  (global-set-key ";" 'completion-separator-self-insert-command)
+  (global-set-key "\"" 'completion-separator-self-insert-command)
+  (global-set-key "'" 'completion-separator-self-insert-command)
+  (global-set-key "#" 'completion-separator-self-insert-command)
+  (global-set-key "," 'completion-separator-self-insert-command)
+  (global-set-key "?" 'completion-separator-self-insert-command)
+
+  ;; We include period and colon even though they are symbol chars because :
+  ;;  - in text we want to pick up the last word in a sentence.
+  ;;  - in C pointer refs. we want to pick up the first symbol
+  ;;  - it won't make a difference for lisp mode (package names are short)
+  (global-set-key "." 'completion-separator-self-insert-command)
+  (global-set-key ":" 'completion-separator-self-insert-command)
+
+  ;; Lisp Mode diffs
+  (define-key lisp-mode-map "!" 'self-insert-command)
+  (define-key lisp-mode-map "&" 'self-insert-command)
+  (define-key lisp-mode-map "%" 'self-insert-command)
+  (define-key lisp-mode-map "?" 'self-insert-command)
+  (define-key lisp-mode-map "=" 'self-insert-command)
+  (define-key lisp-mode-map "^" 'self-insert-command)
+
+  ;; Avoid warnings.
+  (defvar c-mode-map)
+  (defvar fortran-mode-map)
+
+  ;;-----------------------------------------------
+  ;; End of line chars.
+  ;;-----------------------------------------------
+  (def-completion-wrapper newline :separator)
+  (def-completion-wrapper newline-and-indent :separator)
+  (def-completion-wrapper comint-send-input :separator)
+  (def-completion-wrapper exit-minibuffer :minibuffer-separator)
+  (def-completion-wrapper eval-print-last-sexp :separator)
+  (def-completion-wrapper eval-last-sexp :separator)
+  ;;(def-completion-wrapper minibuffer-complete-and-exit :minibuffer)
+
+  ;;-----------------------------------------------
+  ;; Cursor movement
+  ;;-----------------------------------------------
+
+  (def-completion-wrapper next-line :under-or-before)
+  (def-completion-wrapper previous-line :under-or-before)
+  (def-completion-wrapper beginning-of-buffer :under-or-before)
+  (def-completion-wrapper end-of-buffer :under-or-before)
+  (def-completion-wrapper beginning-of-line :under-or-before)
+  (def-completion-wrapper end-of-line :under-or-before)
+  (def-completion-wrapper forward-char :under-or-before)
+  (def-completion-wrapper forward-word :under-or-before)
+  (def-completion-wrapper forward-sexp :under-or-before)
+  (def-completion-wrapper backward-char :backward-under)
+  (def-completion-wrapper backward-word :backward-under)
+  (def-completion-wrapper backward-sexp :backward-under)
+
+  (def-completion-wrapper delete-backward-char :backward)
+  (def-completion-wrapper delete-backward-char-untabify :backward)
+
+  ;; Tests --
+  ;; foobarbiz
+  ;; foobar 
+  ;; fooquux 
+  ;; fooper
+
+  (cmpl-statistics-block
+   (record-completion-file-loaded))
+
+  (initialize-completions))
 
 (provide 'completion)
 
