@@ -307,11 +307,11 @@ Thus, tabs can be used to line up text in different fonts.
 
 	emacs.pane.menubar.margin: 5
 
-The default margin is 4 which makes the menu bar appear like the Motif
-one.
+The default margin is 4 which makes the menu bar appear like the
+LessTif/Motif one.
 
-*** Arrows that indicate sub-menus are now drawn with shadows, like in
-Motif.
+*** Arrows that indicate sub-menus are now drawn with shadows, as in
+LessTif and Motif.
 
 ** Hscrolling in C code.
 
