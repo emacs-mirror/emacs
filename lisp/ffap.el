@@ -6,7 +6,6 @@
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse
 ;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
-;; X-Source: this file is generated from ffap.epp
 
 ;; This file is part of GNU Emacs.
 
