@@ -1350,6 +1350,8 @@ x_set_foreground_color (f, arg, oldval)
 		      f->output_data.x->foreground_pixel);
       XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
 		      f->output_data.x->foreground_pixel);
+      XSetBackground (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
+		      f->output_data.x->foreground_pixel);
       UNBLOCK_INPUT;
       update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
