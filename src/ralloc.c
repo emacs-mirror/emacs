@@ -376,10 +376,10 @@ r_alloc_free (ptr)
   free_bloc (dead_bloc);
 }
 
-/* Given a pointer at address PTR to relocatable data, resize it
-   to SIZE.  This is done by obtaining a new block and freeing the
-   old, unless SIZE is less than or equal to the current bloc size,
-   in which case nothing happens and the current value is returned.
+/* Given a pointer at address PTR to relocatable data, resize it to SIZE.
+   This is done by shifting all blocks above this one up in memory,
+   unless SIZE is less than or equal to the current bloc size, in
+   which case nothing happens and the current value is returned.
 
    The contents of PTR is changed to reflect the new bloc, and this
    value is returned. */
@@ -389,22 +389,24 @@ r_re_alloc (ptr, size)
      POINTER *ptr;
      SIZE size;
 {
-  register bloc_ptr old_bloc, new_bloc;
+  register bloc_ptr bloc;
 
-  old_bloc = find_bloc (ptr);
-  if (old_bloc == NIL_BLOC)
+  bloc = find_bloc (ptr);
+  if (bloc == NIL_BLOC)
     abort ();
 
-  if (size <= old_bloc->size)
+  if (size <= bloc->size)
     /* Wouldn't it be useful to actually resize the bloc here?  */
     return *ptr;
 
-  new_bloc = get_bloc (size);
-  new_bloc->variable = ptr;
-  safe_bcopy (old_bloc->data, new_bloc->data, old_bloc->size);
-  *ptr = new_bloc->data;
+  obtain (size - bloc->size);
+  relocate_some_blocs (bloc->next, bloc->data + size);
 
-  free_bloc (old_bloc);
+  /* Zero out the new space in the bloc, to help catch bugs faster.  */
+  bzero (bloc->data + bloc->size, size - bloc->size);
+  
+  /* Indicate that this block has a new size.  */
+  bloc->size = size;
 
   return *ptr;
 }
