@@ -2976,7 +2976,7 @@ DIR defaults to current buffer's directory default.")
 	  args[0] = insdef;
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
-	  pos = make_number (XSTRING (dir)->size);
+	  pos = make_number (XSTRING (dir)->size + 1);
 	  insdef1 = Fcons (insdef, pos);
 	}
     }
