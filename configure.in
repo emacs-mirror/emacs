@@ -544,6 +544,10 @@ case "${canonical}" in
     machine=hp800 opsys=hpux11
   ;;
 
+  hppa*-*-linux-gnu* )
+    machine=hp800 opsys=gnu-linux
+  ;;
+
   ## HP 9000 series 700 and 800, running HP/UX
   hppa*-hp-hpux* )
     ## Cross-compilation?  Nah!
