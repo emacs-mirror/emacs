@@ -25,10 +25,23 @@ Boston, MA 02111-1307, USA.  */
 #define DISPEXTERN_H_INCLUDED
 
 #ifdef HAVE_X_WINDOWS
+
 #include <X11/Xlib.h>
 #ifdef USE_X_TOOLKIT
 #include <X11/Intrinsic.h>
 #endif /* USE_X_TOOLKIT */
+
+#else /* !HAVE_X_WINDOWS */
+
+/* X-related stuff used by non-X gui code. */
+
+typedef struct {
+  unsigned long pixel;
+  unsigned short red, green, blue;
+  char flags;
+  char pad;
+} XColor;
+
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
