@@ -220,9 +220,10 @@ either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
 when possible.  The latter are more space-efficient.  This is
 controlled by user option utf-8-fragment-on-decoding.
 
-** New command `set-file-name-coding-system' sets coding system for
-encoding and decoding file names.  A new menu item (Options->Mule->Set
-Coding Systems->For File Name) invokes this command.
+** The new command `set-file-name-coding-system' (C-x RET F) sets
+coding system for encoding and decoding file names.  A new menu item
+(Options->Mule->Set Coding Systems->For File Name) invokes this
+command.
 
 ---
 ** The scrollbar under LessTif or Motif has a smoother drag-scrolling.
