@@ -147,6 +147,19 @@ any context prevents recognition of escape sequences as function keys in
 that context.
 
 @item
+Anything which acts like a temporary mode or state which the user can
+enter and leave should define @kbd{@key{ESC} @key{ESC}} of
+@kbd{@key{ESC} @key{ESC} @key{ESC}} as a way to escape.
+
+For a state which accepts ordinary Emacs commands, or more generally any
+kind of state in which @key{ESC} followed by a function key or arrow key
+is potentially meaningful, then you must not define @kbd{@key{ESC}
+@key{ESC}}, since that would preclude recognizing an escape sequence
+after @key{ESC}.  In these states, you should define @kbd{@key{ESC}
+@key{ESC} @key{ESC}} as the way to escape.  Otherwise, define
+@kbd{@key{ESC} @key{ESC}} instead.
+
+@item
 Applications should not bind mouse events based on button 1 with the
 shift key held down.  These events include @kbd{S-mouse-1},
 @kbd{M-S-mouse-1}, @kbd{C-S-mouse-1}, and so on.  They are reserved for
