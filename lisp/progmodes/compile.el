@@ -272,14 +272,14 @@ You might also use mode hooks to specify it in certain modes, like this:
 					    buffer-file-name))))))")
 
 (defvar compilation-enter-directory-regexp
-  ": Entering directory `\\(.*\\)'$"
+  ".*: Entering directory `\\(.*\\)'$"
   "Regular expression matching lines that indicate a new current directory.
 This must contain one \\(, \\) pair around the directory name.
 
 The default value matches lines printed by the `-w' option of GNU Make.")
 
 (defvar compilation-leave-directory-regexp
-  ": Leaving directory `\\(.*\\)'$"
+  ".*: Leaving directory `\\(.*\\)'$"
   "Regular expression matching lines that indicate restoring current directory.
 This may contain one \\(, \\) pair around the name of the directory
 being moved from.  If it does not, the last directory entered \(by a
