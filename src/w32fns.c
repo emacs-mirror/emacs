@@ -177,8 +177,6 @@ Lisp_Object Vx_pixel_size_width_font_regexp;
 /* Alist of bdf fonts and the files that define them.  */
 Lisp_Object Vw32_bdf_filename_alist;
 
-Lisp_Object Vw32_system_coding_system;
-
 /* A flag to control whether fonts are matched strictly or not.  */
 int w32_strict_fontnames;
 
@@ -6242,7 +6240,7 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   else
     fonttype = "unknown";
 
-  setup_coding_system (Fcheck_coding_system (Vw32_system_coding_system),
+  setup_coding_system (Fcheck_coding_system (Vlocale_coding_system),
                        &coding);
   coding.src_multibyte = 0;
   coding.dst_multibyte = 1;
@@ -6374,7 +6372,7 @@ x_to_w32_font (lpxstr, lplogfont)
 	  unsigned char *buf;
 
           setup_coding_system
-            (Fcheck_coding_system (Vw32_system_coding_system), &coding);
+            (Fcheck_coding_system (Vlocale_coding_system), &coding);
 	  coding.src_multibyte = 1;
 	  coding.dst_multibyte = 1;
 	  bufsize = encoding_buffer_size (&coding, strlen (name));
@@ -14492,11 +14490,6 @@ fontsets are automatically created.  */);
 Set this to nil to get the old behaviour for repainting; this should
 only be necessary if the default setting causes problems.  */);
   w32_strict_painting = 1;
-
-  DEFVAR_LISP ("w32-system-coding-system",
-               &Vw32_system_coding_system,
-	       doc: /* Coding system used by Windows system functions, such as for font names.  */);
-  Vw32_system_coding_system = Qnil;
 
   DEFVAR_LISP ("w32-charset-info-alist",
                &Vw32_charset_info_alist,
