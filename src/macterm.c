@@ -12630,7 +12630,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 				expected
 				? TicksToEventTime (app_sleep_time)
 				: 0,
-				true, &eventRef);
+				kEventRemoveFromQueue, &eventRef);
   if (!rneResult)
     {
       /* Handle new events */
@@ -12661,7 +12661,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		bufp->timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
 		count++;
 	      }
-	    else
+	    else	     
 	      SendEventToEventTarget (eventRef, GetEventDispatcherTarget ());
 
 	    break;
@@ -12911,16 +12911,16 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 		break;
 	    }
 #endif
-
+	  
 	  if (!IsValidWindowPtr (FrontNonFloatingWindow ()))
 	    {
 	      SysBeep (1);
 	      UNBLOCK_INPUT;
 	      return 0;
 	    }
-
+	  
 	  ObscureCursor ();
-
+	  
 	  if (keycode == 0x33)  /* delete key (charCode translated to 0x8) */
 	    {
 	      bufp->code = 0x7f;
@@ -12945,76 +12945,76 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  else
 	    {
 	      if (er.modifiers & macMetaKey)
-	        {
-	          /* This code comes from Keyboard Resource, Appendix
+		{
+		  /* This code comes from Keyboard Resource, Appendix
 		     C of IM - Text.  This is necessary since shift is
 		     ignored in KCHR table translation when option or
 		     command is pressed. */
-	          int new_modifiers = er.modifiers & 0xf600;
-		    /* mask off option and command */
-	          int new_keycode = keycode | new_modifiers;
-	          Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-	          unsigned long some_state = 0;
-	          bufp->code = KeyTranslate (kchr_ptr, new_keycode,
+		  int new_modifiers = er.modifiers & 0xf600;
+		  /* mask off option and command */
+		  int new_keycode = keycode | new_modifiers;
+		  Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+		  unsigned long some_state = 0;
+		  bufp->code = KeyTranslate (kchr_ptr, new_keycode,
 					     &some_state) & 0xff;
-	        }
+		}
 	      else
-	        bufp->code = er.message & charCodeMask;
+		bufp->code = er.message & charCodeMask;
 	      bufp->kind = ASCII_KEYSTROKE_EVENT;
 	    }
 	}
-
-        /* If variable mac-convert-keyboard-input-to-latin-1 is non-nil,
-           convert non-ASCII characters typed at the Mac keyboard
-           (presumed to be in the Mac Roman encoding) to iso-latin-1
-           encoding before they are passed to Emacs.  This enables the
-           Mac keyboard to be used to enter non-ASCII iso-latin-1
-           characters directly.  */
-        if (mac_keyboard_text_encoding != kTextEncodingMacRoman
+	
+	/* If variable mac-convert-keyboard-input-to-latin-1 is non-nil,
+	   convert non-ASCII characters typed at the Mac keyboard
+	   (presumed to be in the Mac Roman encoding) to iso-latin-1
+	   encoding before they are passed to Emacs.  This enables the
+	   Mac keyboard to be used to enter non-ASCII iso-latin-1
+	   characters directly.  */
+	if (mac_keyboard_text_encoding != kTextEncodingMacRoman
 	    && bufp->kind == ASCII_KEYSTROKE_EVENT && bufp->code >= 128)
 	  {
-            static TECObjectRef converter = NULL;
-            OSStatus the_err = noErr;
-            OSStatus convert_status = noErr;
-
-            if (converter ==  NULL)
-              {
-                the_err = TECCreateConverter (&converter,
+	    static TECObjectRef converter = NULL;
+	    OSStatus the_err = noErr;
+	    OSStatus convert_status = noErr;
+	    
+	    if (converter ==  NULL)
+	      {
+		the_err = TECCreateConverter (&converter,
 					      kTextEncodingMacRoman,
 					      mac_keyboard_text_encoding);
-                current_mac_keyboard_text_encoding
+		current_mac_keyboard_text_encoding
 		  = mac_keyboard_text_encoding;
-              }
-            else if (mac_keyboard_text_encoding
+	      }
+	    else if (mac_keyboard_text_encoding
 		     != current_mac_keyboard_text_encoding)
-              {
-                /* Free the converter for the current encoding before
-                   creating a new one.  */
-                TECDisposeConverter (converter);
-                the_err = TECCreateConverter (&converter,
+	      {
+		/* Free the converter for the current encoding before
+		   creating a new one.  */
+		TECDisposeConverter (converter);
+		the_err = TECCreateConverter (&converter,
 					      kTextEncodingMacRoman,
 					      mac_keyboard_text_encoding);
-                current_mac_keyboard_text_encoding
+		current_mac_keyboard_text_encoding
 		  = mac_keyboard_text_encoding;
-              } 
-              
-            if (the_err == noErr)
-              {
-                unsigned char ch = bufp->code;
-                ByteCount actual_input_length, actual_output_length;
-                unsigned char outch;
-                  
-                convert_status = TECConvertText (converter, &ch, 1,
+	      } 
+	    
+	    if (the_err == noErr)
+	      {
+		unsigned char ch = bufp->code;
+		ByteCount actual_input_length, actual_output_length;
+		unsigned char outch;
+		
+		convert_status = TECConvertText (converter, &ch, 1,
 						 &actual_input_length,
-                                                 &outch, 1,
+						 &outch, 1,
 						 &actual_output_length);
-                if (convert_status == noErr
+		if (convert_status == noErr
 		    && actual_input_length == 1
 		    && actual_output_length == 1)
-                  bufp->code = outch;
-              }
+		  bufp->code = outch;
+	      }
 	  }
-
+	
 #if USE_CARBON_EVENTS
 	bufp->modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
@@ -13026,7 +13026,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	    = (mac_output *) GetWRefCon (FrontNonFloatingWindow ());
 	  XSETFRAME (bufp->frame_or_window, mwp->mFP);
 	}
-
+	
 	bufp->timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 
 	count++;
@@ -13446,6 +13446,36 @@ mac_term_init (display_name, xrm_option, resource_name)
 
 #ifdef MAC_OSX
 void
+mac_check_bundle()
+{
+  extern int inhibit_window_system;
+  extern int noninteractive;
+  CFBundleRef appsBundle;
+  pid_t child;
+
+  /* No need to test if already -nw*/
+  if (inhibit_window_system || noninteractive)
+    return;
+
+  appsBundle = CFBundleGetMainBundle();
+  if (appsBundle != NULL)
+    {
+      CFStringRef cfBI = CFSTR("CFBundleIdentifier");
+      CFTypeRef res = CFBundleGetValueForInfoDictionaryKey(appsBundle, cfBI);
+      /* We found the bundle identifier, now we know we are valid. */
+      if (res != NULL)
+	{
+	  CFRelease(res);
+	  return;
+	}
+    }
+  /* MAC_TODO:  Have this start the bundled executable */
+
+  /* For now, prevent the fatal error by bringing it up in the terminal */
+  inhibit_window_system = 1;
+}
+
+void
 MakeMeTheFrontProcess ()
 {
   ProcessSerialNumber psn;
@@ -13455,6 +13485,91 @@ MakeMeTheFrontProcess ()
   if (err == noErr)
     (void) SetFrontProcess (&psn);
 }
+
+/***** Code to handle C-g testing  *****/
+
+/* Contains the Mac modifier formed from quit_char */
+static mac_quit_char_modifiers = 0;
+static mac_quit_char_keycode;
+extern int quit_char;
+
+static void
+mac_determine_quit_char_modifiers()
+{
+  /* Todo: Determine modifiers from quit_char. */
+  UInt32 qc_modifiers = ctrl_modifier;
+
+  /* Map modifiers */
+  mac_quit_char_modifiers = 0;
+  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= macCtrlKey;
+  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= macShiftKey;
+  if (qc_modifiers & meta_modifier)  mac_quit_char_modifiers |= macMetaKey;
+  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= macAltKey;
+}
+
+static void
+init_quit_char_handler ()
+{
+  /* TODO: Let this support keys other the 'g' */
+  mac_quit_char_keycode = 5;
+  /* Look at <architecture/adb_kb_map.h> for details */
+  /* http://gemma.apple.com/techpubs/mac/Toolbox/Toolbox-40.html#MARKER-9-184*/
+  
+  mac_determine_quit_char_modifiers();
+}
+
+static Boolean
+quit_char_comp (EventRef inEvent, void *inCompData)
+{
+  if (GetEventClass(inEvent) != kEventClassKeyboard)
+    return false;
+  if (GetEventKind(inEvent) != kEventRawKeyDown)
+    return false;
+  {
+    UInt32 keyCode;
+    UInt32 keyModifiers;
+    GetEventParameter(inEvent, kEventParamKeyCode, 
+		      typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
+    if (keyCode != mac_quit_char_keycode)
+      return false;
+    GetEventParameter(inEvent, kEventParamKeyModifiers, 
+		      typeUInt32, NULL, sizeof(UInt32), NULL, &keyModifiers);
+    if (keyModifiers != mac_quit_char_modifiers)
+      return false;
+  }
+  return true;
+}
+
+void
+mac_check_for_quit_char()
+{
+  EventRef event;
+  /* If windows are not initialized, return immediately (keep it bouncin')*/
+  if (!mac_quit_char_modifiers)
+    return;
+
+  /* Redetermine modifiers because they are based on lisp variables */
+  mac_determine_quit_char_modifiers();
+
+  /* Fill the queue with events */
+  ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &event);
+  event = FindSpecificEventInQueue (GetMainEventQueue(), quit_char_comp, NULL);
+  if (event) 
+    {
+      struct input_event e;
+      struct mac_output *mwp = (mac_output*) GetWRefCon (FrontNonFloatingWindow ());
+      /* Use an input_event to emulate what the interrupt handler does. */
+      e.kind = ASCII_KEYSTROKE_EVENT;
+      e.code = quit_char;
+      e.timestamp = EventTimeToTicks(GetEventTime(event))*(1000/60);
+      XSETFRAME(e.frame_or_window, mwp->mFP);
+      /* Remove event from queue to prevent looping. */
+      RemoveEventFromQueue(GetMainEventQueue(), event);
+      ReleaseEvent(event);
+      kbd_buffer_store_event(&e);
+    }
+}
+
 #endif /* MAC_OSX */
 
 /* Set up use of X before we make the first connection.  */
@@ -13563,6 +13678,8 @@ mac_initialize ()
 
 #if USE_CARBON_EVENTS
   init_service_handler ();
+
+  init_quit_char_handler ();
 #endif
 
   DisableMenuCommand (NULL, kHICommandQuit);
