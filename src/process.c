@@ -1396,7 +1396,13 @@ create_process (process, new_argv, current_dir)
   }
 
   if (pid < 0)
-    report_file_error ("Doing vfork", Qnil);
+    {
+      if (forkin >= 0)
+	close (forkin);
+      if (forkin != forkout && forkout >= 0)
+	close (forkout);
+      report_file_error ("Doing vfork", Qnil);
+    }
   
   XFASTINT (XPROCESS (process)->pid) = pid;
 
