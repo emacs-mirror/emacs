@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.8 2000/05/14 00:56:10 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.9 2000/05/16 22:02:37 monnier Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -321,7 +321,9 @@ the same as `comment-search-forward'."
   (let ((pt (point))
 	(cs (comment-search-backward nil t)))
     (when cs
-      (if (save-excursion (goto-char cs) (comment-forward 1) (> (point) pt))
+      (if (save-excursion
+	    (goto-char cs)
+	    (if (comment-forward 1) (> (point) pt) (eobp)))
 	  cs
 	(goto-char pt)
 	nil))))
@@ -822,6 +824,12 @@ Else, call `comment-indent'."
 	    (insert (comment-padleft comment-end add)))
 	  (indent-according-to-mode))))))
 
+(defcustom comment-auto-fill-only-comments nil
+  "Non-nil means to only auto-fill inside comments.
+This has no effect in modes that do not define a comment syntax."
+  :type 'boolean
+  :group 'comment)
+
 (defalias 'indent-new-comment-line 'comment-indent-new-line)
 (defun comment-indent-new-line (&optional soft)
   "Break line at point and indent, continuing comment if within one.
@@ -839,65 +847,86 @@ The inserted newline is marked hard if variable `use-hard-newlines' is true,
 unless optional argument SOFT is non-nil."
   (interactive)
   (comment-normalize-vars t)
-  (let (comcol comstart compt)
-    (delete-region (progn (skip-chars-backward " \t") (point))
-		   (progn (skip-chars-forward " \t") (point)))
-    (if soft (insert-and-inherit ?\n) (newline 1))
-    (if fill-prefix
-	(progn
-	  (indent-to-left-margin)
-	  (insert-and-inherit fill-prefix))
-      (unless comment-multi-line
-	(save-excursion
-	  (backward-char)
-	  (when (and comment-start
-		     (setq compt (comment-beginning)))
-	    ;; The old line has a comment and point was inside the comment.
-	    ;; Indent this line like what we found.
-	    (setq comstart (buffer-substring compt (point)))
-	    (goto-char compt)
-	    (setq comcol (current-column)))))
-      (if compt
-	  (let* ((comment-column comcol)
-		 (normal-comment
-		  (string-match (regexp-quote (comment-string-strip
-					       comment-start t t))
-				comstart))
-		 ;; Force comment-continue to be recreated from comment-start.
-		 (comment-continue nil) ;(if normal-comment comment-continue)
-		 (comment-end
-		  (if normal-comment comment-end
-		    ;; The comment starter is not the normal comment-start
-		    ;; so we can't just use comment-end.
-		    (save-excursion
-		      (goto-char compt)
-		      (if (not (comment-forward)) comment-end
-			(comment-string-strip
-			 (buffer-substring
-			  (save-excursion (comment-enter-backward) (point))
-			  (point))
-			 nil t)))))
-		 (comment-start comstart))
-	    ;;(if (not (eolp)) (setq comment-end ""))
-	    (insert-and-inherit ?\n)
-	    (forward-char -1)
-	    (comment-indent (cadr (assoc comment-style comment-styles)))
-	    (save-excursion
-	      (let ((pt (point)))
-		(end-of-line)
-		(let ((comend (buffer-substring pt (point))))
-		  ;; The 1+ is to make sure we delete the \n inserted above.
-		  (delete-region pt (1+ (point)))
-		  (beginning-of-line)
-		  (backward-char)
-		  (insert comend)
-		  (forward-char)))))
-	(indent-according-to-mode)))))
+  (let (comcol comstart compt comin)
+    (unless (and comment-start
+		 comment-auto-fill-only-comments
+		 (not (save-excursion
+			(prog1 (setq compt (comment-beginning))
+			  (setq comin (point))))))
+      (delete-region (progn (skip-chars-backward " \t") (point))
+		     (progn (skip-chars-forward " \t") (point)))
+      (if soft (insert-and-inherit ?\n) (newline 1))
+      (if fill-prefix
+	  (progn
+	    (indent-to-left-margin)
+	    (insert-and-inherit fill-prefix))
+	(unless comment-multi-line
+	  (save-excursion
+	    (backward-char)
+	    (when (and comment-start
+		       (if compt (goto-char comin)
+			 (setq compt (comment-beginning))))
+	      ;; The old line has a comment and point was inside the comment.
+	      ;; Indent this line like what we found.
+	      (setq comstart (buffer-substring compt (point)))
+	      (goto-char compt)
+	      (setq comcol (current-column)))))
+	(if compt
+	    (let* ((comment-column (min comcol comment-column))
+		   (normal-comment
+		    (string-match (regexp-quote (comment-string-strip
+						 comment-start t t))
+				  comstart))
+		   ;; Force comment-continue to be recreated from comment-start.
+		   (comment-continue nil) ;(if normal-comment comment-continue)
+		   (comment-end
+		    (if normal-comment comment-end
+		      ;; The comment starter is not the normal comment-start
+		      ;; so we can't just use comment-end.
+		      (save-excursion
+			(goto-char compt)
+			(if (not (comment-forward)) comment-end
+			  (comment-string-strip
+			   (buffer-substring
+			    (save-excursion (comment-enter-backward) (point))
+			    (point))
+			   nil t)))))
+		   (comment-start comstart))
+	      ;;(if (not (eolp)) (setq comment-end ""))
+	      (insert-and-inherit ?\n)
+	      (forward-char -1)
+	      (comment-indent (cadr (assoc comment-style comment-styles)))
+	      (save-excursion
+		(let ((pt (point)))
+		  (end-of-line)
+		  (let ((comend (buffer-substring pt (point))))
+		    ;; The 1+ is to make sure we delete the \n inserted above.
+		    (delete-region pt (1+ (point)))
+		    (beginning-of-line)
+		    (backward-char)
+		    (insert comend)
+		    (forward-char)))))
+	  (indent-according-to-mode))))))
 
 (provide 'newcomment)
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.9  2000/05/16 22:02:37  monnier
+;; (comment-string-strip): Strip terminating newlines.
+;; (comment-search-forward): Make LIMIT compulsory.
+;;   If an unterminated string (rather than a comment) is found, try again,
+;;   assuming that the region starts inside a string.
+;; (comment-beginning): Make sure we don't move if we find a comment but
+;;   it's not the one we're in.
+;; (comment-enter-backward): Handle the case where comment-end-skip fails.
+;; (comment-indent): Normalize variables and use line-end-position.
+;; (comment-kill): Use line-end-position.
+;; (comment-spill): Remove.
+;; (comment-indent-new-line): Renamed from indent-new-comment-line.
+;;   Cleaned up old commented-out code.
+;;   Reset comment-continue and comment-end before calling comment-indent.
+;;
 ;; Revision 1.8  2000/05/14 00:56:10  monnier
 ;; (comment-start, comment-start-skip, comment-end): Made `defvar'.
 ;; (comment-style): Extract the choice out of comment-styles.
