@@ -9,6 +9,15 @@
 	* tar-mode.el (tar-mode-write-file): Don't signal an error by
 	calling byte-to-position with a nil tar-header-offset.
 
+2001-09-27  Simon Josefsson  <jas@extundo.com>
+
+	* mail/sendmail.el (send-mail-function): Doc fix.
+	(mail-do-fcc): Error if header-end is not a marker.
+	(mail-do-fcc): Add a comment.
+	(mail-reply-to): Doc fix.
+	(mail-signature): Make ATPOINT optional.
+	(mail-yank-original): Use cond instead of nestled if.
+
 2001-09-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-on-current-buffer): Default arg to "Top".
