@@ -38,7 +38,7 @@
 	completion-regexp-list.
 	(Minibuffer Completion): Correct and clarify description of
 	completing-read.
-	(Completion Commands): Mention partial-completion-mode.  Various
+	(Completion Commands): Mention Partial Completion mode.  Various
 	other minor changes.
 	(High-Level Completion): Various corrections and clarifications.
 	(Reading File Names): Ditto.
