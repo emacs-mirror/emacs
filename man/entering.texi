@@ -40,11 +40,11 @@ the editor again.  With these editors, it makes sense to use a
 command-line argument to say which file to edit.
 
   But starting a new Emacs each time you want to edit a different file
-does not make sense.  For one thing, this would be annoyingly slow.  For
-another, this would fail to take advantage of Emacs's ability to visit
-more than one file in a single editing session.  And it would lose the
-other accumulated context, such as registers, undo history, and the mark
-ring.
+does not make sense.  For one thing, this would be annoyingly slow.
+For another, this would fail to take advantage of Emacs's ability to
+visit more than one file in a single editing session.  And it would
+lose the other accumulated context, such as the kill ring, registers,
+undo history, and mark ring.
 
   The recommended way to use GNU Emacs is to start it only once, just
 after you log in, and do all your editing in the same Emacs session.
