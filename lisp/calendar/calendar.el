@@ -1,6 +1,7 @@
 ;;; calendar.el --- Calendar functions.
 
-;;; Copyright (C) 1988, 1989, 1990, 1991, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994 Free Software
+;;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -8,7 +9,9 @@
 ;;	Hebrew calendar, Islamic calendar, ISO calendar, Julian day number,
 ;;	diary, holidays
 
-(defconst calendar-version "Version 5.2, released October 20, 1993")
+(defun calendar-version ()
+  (interactive)
+  (message "Version 5.3, January 25, 1994"))
 
 ;; This file is part of GNU Emacs.
 
@@ -53,6 +56,7 @@
 
 ;; The following files are part of the calendar/diary code:
 
+;;       cal-menu.el                   Menu support
 ;;       diary.el, diary-ins.el        Diary functions
 ;;       holidays.el                   Holiday functions
 ;;       cal-french.el                 French Revolutionary calendar
@@ -133,9 +137,40 @@ number of days of diary entries displayed.")
   "*If t, dates with diary entries will be marked in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'.")
 
-;;;###autoload
-(defvar diary-entry-marker "+"
-  "*The symbol used to mark dates that have diary entries.")
+(defvar diary-entry-marker
+  (if (not window-system)
+      "+"
+    (require 'faces)
+    (make-face 'diary-face)
+    (if (x-display-color-p)
+        (set-face-foreground 'diary-face "red")
+      (copy-face 'bold 'diary-face))
+    'diary-face)
+  "*Used to mark dates that have diary entries.
+Can be either a single-character string or a face.")
+
+(defvar calendar-today-marker
+  (if (not window-system)
+      "="
+    (require 'faces)
+    (make-face 'calendar-today-face)
+    (set-face-underline-p 'calendar-today-face t)
+    'calendar-today-face)
+  "*Used to mark today's date.
+Can be either a single-character string or a face.")
+
+(defvar calendar-holiday-marker
+  (if (not window-system)
+      "*"
+    (require 'faces)
+    (make-face 'holiday-face)
+    (if (x-display-color-p)
+          (set-face-background 'holiday-face "pink")
+      (set-face-background 'holiday-face "black")
+      (set-face-foreground 'holiday-face "white"))
+    'holiday-face)
+  "*Used to mark notable dates in the calendar.
+Can be either a single-character string or a face.")
 
 ;;;###autoload
 (defvar view-calendar-holidays-initially nil
@@ -147,10 +182,6 @@ displayed.")
 (defvar mark-holidays-in-calendar nil
   "*If t, dates of holidays will be marked in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'.")
-
-;;;###autoload
-(defvar calendar-holiday-marker "*"
-  "*The symbol used to mark notable dates in the calendar.")
 
 ;;;###autoload
 (defvar all-hebrew-calendar-holidays nil
@@ -200,8 +231,8 @@ and reentering it will cause these functions to be called again.")
 This can be used, for example, to replace today's date with asterisks; a
 function `calendar-star-date' is included for this purpose:
     (setq today-visible-calendar-hook 'calendar-star-date)
-It could also be used to mark the current date with `='; a function is also
-provided for this:
+It can also be used to mark the current date with calendar-today-marker;
+a function is also provided for this:
     (setq today-visible-calendar-hook 'calendar-mark-today)
 
 The corresponding variable `today-invisible-calendar-hook' is the list of
@@ -1149,17 +1180,23 @@ calendar."
   t)
 
 (autoload 'calendar-print-french-date "cal-french"
-  "Show the French Revolutionary calendar equivalent of the date under the
-cursor."
+  "Show the French Revolutionary calendar equivalent of the date under the cursor."
   t)
 
 (autoload 'calendar-goto-french-date "cal-french"
  "Move cursor to French Revolutionary date."
   t)
 
+(autoload 'calendar-french-date-string "cal-french"
+  "String of French Revolutionary date of Gregorian DATE."
+  t)
+
+(autoload 'calendar-mayan-date-string "cal-mayan"
+  "String of Mayan date of Gregorian DATE."
+  t)
+
 (autoload 'calendar-print-mayan-date "cal-mayan"
-  "Show the Mayan long count, Tzolkin, and Haab equivalents of the date
-under the cursor."
+  "Show the Mayan long count, Tzolkin, and Haab equivalents of the date under the cursor."
   t)
 
 (autoload 'calendar-goto-mayan-long-count-date "cal-mayan"
@@ -1389,6 +1426,7 @@ the inserted text.  Value is always t."
 (if calendar-mode-map
     nil
   (setq calendar-mode-map (make-sparse-keymap))
+  (if window-system (require 'cal-menu))
   (calendar-for-loop i from 0 to 9 do
        (define-key calendar-mode-map (int-to-string i) 'digit-argument))
   (let ((l (list 'narrow-to-region 'mark-word 'mark-sexp 'mark-paragraph
@@ -1687,7 +1725,7 @@ calendar.  The holidays are displayed in another window.
 
 The variable `mark-diary-entries-in-calendar' can be set to t to cause any
 dates visible with calendar entries to be marked with the symbol specified by
-the variable `diary-entry-marker', normally a plus sign.
+the variable `diary-entry-marker'.
 
 The variable `calendar-load-hook', whose default value is nil, is list of
 functions to be called when the calendar is first loaded.
@@ -1702,10 +1740,11 @@ The variable `today-visible-calendar-hook', whose default value is nil, is the
 list of functions called after the calendar buffer has been prepared with the
 calendar when the current date is visible in the window.  This can be used,
 for example, to replace today's date with asterisks; a function
-calendar-star-date is included for this purpose: (setq
-today-visible-calendar-hook 'calendar-star-date) It could also be used to mark
-the current date with `*'; a function is also provided for this: (setq
-today-visible-calendar-hook 'calendar-mark-today)
+calendar-star-date is included for this purpose:
+ (setq today-visible-calendar-hook 'calendar-star-date)
+It could also be used to mark the current date; a function is also provided
+for this:
+ (setq today-visible-calendar-hook 'calendar-mark-today)
 
 The variable `today-invisible-calendar-hook', whose default value is nil, is
 the list of functions called after the calendar buffer has been prepared with
@@ -2461,32 +2500,11 @@ If FILTER is provided, apply it to each item in the list."
   (% (calendar-absolute-from-gregorian date) 7))
 
 (defun calendar-unmark ()
-  "Delete the diary and holiday marks from the calendar."
+  "Delete all diary/holiday marks/highlighting from the calendar."
   (interactive)
-  (setq mark-diary-entries-in-calendar nil)
   (setq mark-holidays-in-calendar nil)
-  (save-excursion
-    (goto-line 3)
-    (beginning-of-line)
-    (let ((buffer-read-only nil)
-          (start (point))
-          (star-date (search-forward "**" nil t))
-          (star-point (point)))
-      (if star-date
-          (progn    ;;  Don't delete today as left by calendar-star-date
-            (subst-char-in-region start (- star-point 2)
-                                  (string-to-char diary-entry-marker) ?  t)
-            (subst-char-in-region start (- star-point 2)
-                                 (string-to-char calendar-holiday-marker) ?  t)
-            (subst-char-in-region star-point (point-max)
-                                  (string-to-char diary-entry-marker) ?  t)
-            (subst-char-in-region star-point (point-max)
-                                (string-to-char calendar-holiday-marker) ?  t))
-        (subst-char-in-region start (point-max)
-                              (string-to-char diary-entry-marker) ?  t)
-        (subst-char-in-region start (point-max)
-                              (string-to-char calendar-holiday-marker) ?  t))
-      (set-buffer-modified-p nil))))
+  (setq mark-diary-entries-in-calendar nil)
+  (redraw-calendar))
 
 (defun calendar-date-is-visible-p (date)
   "Returns t if DATE is legal and is visible in the calendar window."
@@ -2512,17 +2530,22 @@ If FILTER is provided, apply it to each item in the list."
    (= (extract-calendar-year date1) (extract-calendar-year date2))))
 
 (defun mark-visible-calendar-date (date &optional mark)
-  "Leave mark DATE with MARK.  MARK defaults to diary-entry-marker."
+  "Mark DATE in the calendar window with MARK.
+MARK is either a single-character string or a face.
+MARK defaults to diary-entry-marker."
   (if (calendar-date-is-legal-p date)
       (save-excursion
         (set-buffer calendar-buffer)
         (calendar-cursor-to-visible-date date)
-        (forward-char 1)
-        (let ((buffer-read-only nil))
-          (delete-char 1)
-          (insert (if mark mark diary-entry-marker))
-          (forward-char -2))
-        (set-buffer-modified-p nil))))
+        (let ((mark (or mark diary-entry-marker)))
+          (if (stringp mark)
+              (let ((buffer-read-only nil))
+                (forward-char 1)
+                (delete-char 1)
+                (insert mark)
+                (forward-char -2))
+	    (overlay-put
+             (make-overlay (1-(point)) (1+ (point))) 'face mark))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
@@ -2540,15 +2563,13 @@ calendar window has been prepared."
     (set-buffer-modified-p nil)))
 
 (defun calendar-mark-today ()
-  "Mark the date under the cursor in the calendar window with an equal sign.
-This function can be used with the today-visible-calendar-hook run after the
-calendar window has been prepared."
-  (let ((buffer-read-only nil))
-    (forward-char 1)
-    (delete-char 1)
-    (insert "=")
-    (backward-char 2)
-    (set-buffer-modified-p nil)))
+  "Mark the date under the cursor in the calendar window.
+The date is marked with calendar-today-marker.  This function can be used with
+the today-visible-calendar-hook run after the calendar window has been
+prepared."
+  (mark-visible-calendar-date
+   (calendar-cursor-to-date)
+   calendar-today-marker))
 
 (defun calendar-date-compare (date1 date2)
   "Returns t if DATE1 is before DATE2, nil otherwise.
@@ -2619,17 +2640,22 @@ If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
   (calendar-gregorian-from-absolute
    (calendar-nth-named-absday n dayname month year day)))
 
-(defun calendar-print-day-of-year ()
-  "Show the day number in the year and the number of days remaining in the
-year for the date under the cursor."
-  (interactive)
-  (let* ((date (or (calendar-cursor-to-date)
-                   (error "Cursor is not on a date!")))
-         (year (extract-calendar-year date))
-         (day (calendar-day-number date))
+(defun calendar-day-of-year-string (&optional date)
+  "String of day number of year of Gregorian DATE.
+Defaults to today's date if DATE is not given."
+  (let* ((d (or date (calendar-current-date)))
+         (year (extract-calendar-year d))
+         (day (calendar-day-number d))
          (days-remaining (- (calendar-day-number (list 12 31 year)) day)))
-    (message "Day %d of %d; %d day%s remaining in the year"
-             day year days-remaining (if (= days-remaining 1) "" "s"))))
+    (format "Day %d of %d; %d day%s remaining in the year"
+            day year days-remaining (if (= days-remaining 1) "" "s"))))
+
+(defun calendar-print-day-of-year ()
+  "Show day number in year/days remaining in year for date under the cursor."
+  (interactive)
+  (message (calendar-day-of-year-string
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
 
 (defun calendar-absolute-from-iso (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
@@ -2667,19 +2693,25 @@ date Sunday, December 31, 1 BC."
      (% date 7)
      year)))
 
+(defun calendar-iso-date-string (&optional date)
+  "String of ISO date of Gregorian DATE.
+Defaults to today's date if DATE is not given."
+  (let* ((d (calendar-absolute-from-gregorian 
+             (or date (calendar-current-date))))
+         (day (% d 7))
+         (iso-date (calendar-iso-from-absolute d)))
+    (format "Day %s of week %d of %d."
+            (if (zerop day) 7 day)
+            (extract-calendar-month iso-date)
+            (extract-calendar-year iso-date))))
+
 (defun calendar-print-iso-date ()
   "Show equivalent ISO date for the date under the cursor."
   (interactive)
-  (let* ((greg-date
-          (or (calendar-cursor-to-date)
-              (error "Cursor is not on a date!")))
-         (day (% (calendar-absolute-from-gregorian greg-date) 7))
-         (iso-date (calendar-iso-from-absolute
-                    (calendar-absolute-from-gregorian greg-date))))
-    (message "ISO date: Day %s of week %d of %d."
-             (if (zerop day) 7 day)
-             (extract-calendar-month iso-date)
-             (extract-calendar-year iso-date))))
+  (message "ISO date: %s"
+           (calendar-iso-date-string
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
 
 (defun calendar-julian-from-absolute (date)
   "Compute the Julian (month day year) corresponding to the absolute DATE.
@@ -2721,16 +2753,23 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
        (/ (1- year) 4)
        -2)))
 
+(defun calendar-julian-date-string (&optional date)
+  "String of Julian date of Gregorian DATE.
+Defaults to today's date if DATE is not given.
+Driven by the variable `calendar-date-display-form'."
+  (calendar-date-string
+   (calendar-julian-from-absolute
+    (calendar-absolute-from-gregorian
+     (or date (calendar-current-date))))
+   nil t))
+
 (defun calendar-print-julian-date ()
   "Show the Julian calendar equivalent of the date under the cursor."
   (interactive)
   (message "Julian date: %s"
-           (calendar-date-string
-            (calendar-julian-from-absolute
-             (calendar-absolute-from-gregorian
-              (or (calendar-cursor-to-date)
-                  (error "Cursor is not on a date!"))))
-            nil t)))
+           (calendar-julian-date-string
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
 
 (defun islamic-calendar-leap-year-p (year)
   "Returns t if YEAR is a leap year on the Islamic calendar."
@@ -2802,18 +2841,28 @@ Gregorian date Sunday, December 31, 1 BC."
   ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"
    "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"])
 
-(defun calendar-print-islamic-date ()
-  "Show the Islamic calendar equivalent of the date under the cursor."
-  (interactive)
+(defun calendar-islamic-date-string (&optional date)
+  "String of Islamic date before sunset of Gregorian DATE.
+Returns the empty string if DATE is pre-Islamic.
+Defaults to today's date if DATE is not given.
+Driven by the variable `calendar-date-display-form'."
   (let ((calendar-month-name-array calendar-islamic-month-name-array)
         (islamic-date (calendar-islamic-from-absolute
                        (calendar-absolute-from-gregorian
-                        (or (calendar-cursor-to-date)
-                            (error "Cursor is not on a date!"))))))
+                        (or date (calendar-current-date))))))
     (if (< (extract-calendar-year islamic-date) 1)
+        ""
+      (calendar-date-string islamic-date nil t))))
+
+(defun calendar-print-islamic-date ()
+  "Show the Islamic calendar equivalent of the date under the cursor."
+  (interactive)
+  (let ((i (calendar-islamic-date-string
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
+    (if (string-equal i "")
         (message "Date is pre-Islamic")
-      (message "Islamic date (until sunset): %s"
-               (calendar-date-string islamic-date nil t)))))
+      (message "Islamic date (until sunset): %s" i))))
 
 (defun calendar-hebrew-from-absolute (date)
   "Compute the Hebrew date (month day year) corresponding to absolute DATE.
@@ -2936,19 +2985,27 @@ Gregorian date Sunday, December 31, 1 BC."
   ["Nisan" "Iyar" "Sivan" "Tammuz" "Av" "Elul" "Tishri"
    "Heshvan" "Kislev" "Teveth" "Shevat" "Adar I" "Adar II"])
 
-(defun calendar-print-hebrew-date ()
-  "Show the Hebrew calendar equivalent of the date under the cursor."
-  (interactive)
+(defun calendar-hebrew-date-string (&optional date)
+  "String of Hebrew date before sunset of Gregorian DATE.
+Defaults to today's date if DATE is not given.
+Driven by the variable `calendar-date-display-form'."
   (let* ((hebrew-date (calendar-hebrew-from-absolute
                        (calendar-absolute-from-gregorian
-                        (or (calendar-cursor-to-date)
-                            (error "Cursor is not on a date!")))))
+                        (or date (calendar-current-date)))))
          (calendar-month-name-array
           (if (hebrew-calendar-leap-year-p (extract-calendar-year hebrew-date))
               calendar-hebrew-month-name-array-leap-year
             calendar-hebrew-month-name-array-common-year)))
-    (message "Hebrew date (until sunset): %s"
-             (calendar-date-string hebrew-date nil t))))
+    (calendar-date-string hebrew-date nil t)))
+
+(defun calendar-print-hebrew-date ()
+  "Show the Hebrew calendar equivalent of the date under the cursor."
+  (interactive)
+  (message "Hebrew date (until sunset): %s"
+           (calendar-hebrew-date-string
+            (calendar-hebrew-from-absolute
+             (or (calendar-cursor-to-date)
+                 (error "Cursor is not on a date!"))))))
 
 (defun hebrew-calendar-yahrzeit (death-date year)
   "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
@@ -3062,15 +3119,21 @@ from the cursor position."
     (display-buffer yahrzeit-buffer)
     (message "Computing yahrzeits...done")))
 
+(defun calendar-astro-date-string (&optional date)
+  "String of astronomical (Julian) day number of afternoon of Gregorian DATE.
+Defaults to today's date if DATE is not given."
+  (int-to-string
+   (+ 1721425 (calendar-absolute-from-gregorian
+               (or date (calendar-current-date))))))
+
 (defun calendar-print-astro-day-number ()
   "Show astronomical (Julian) day number of afternoon on date shown by cursor."
   (interactive)
   (message
-   "Astronomical (Julian) day number after noon UTC: %d"
-   (+ 1721425
-      (calendar-absolute-from-gregorian
-       (or (calendar-cursor-to-date)
-           (error "Cursor is not on a date!"))))))
+   "Astronomical (Julian) day number after noon UTC: %s"
+   (calendar-astro-date-string
+    (or (calendar-cursor-to-date)
+        (error "Cursor is not on a date!")))))
 
 (defun calendar-goto-astro-day-number (daynumber &optional noecho)
   "Move cursor to astronomical (Julian) DAYNUMBER.
