@@ -1,7 +1,12 @@
+2001-05-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/etags.el (tags-compression-info-list): Fix docstring
+	and :type spec.
+
 2001-05-31  Gerd Moellmann  <gerd@gnu.org>
 
-	* international/mule-cmds.el (inactivate-input-method): Set
-	input-method-function to nil.
+	* international/mule-cmds.el (inactivate-input-method):
+	Set input-method-function to nil.
 
 	* xml.el (xml-parse-tag): The document may contain invalid characters.
 	From ShengHuo ZHU  <zsh@cs.rochester.edu>
@@ -9,14 +14,13 @@
 2001-05-31  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
 
 	* mail/rmailsum.el (rmail-message-subject-p): Don't call
-	`rmail-summary-line-decoder' if the message does not have Subject:
-	field.
+	`rmail-summary-line-decoder' if the message does not have
+	a Subject: field.
 
-	* mail/rmail.el (rmail-revert): Modify to work in
-	rmail-view-buffer.
+	* mail/rmail.el (rmail-revert): Modify to work in rmail-view-buffer.
 
-	* mail/rmail.el (rmail-insert-mime-resent-message-function): New
-	variable.
+	* mail/rmail.el (rmail-insert-mime-resent-message-function):
+	New variable.
 	(rmail-resend): Modify to work in `rmail-view-buffer'; call
 	`rmail-insert-mime-resent-message-function' if `rmail-enable-mime'
 	is non-nil.
@@ -36,8 +40,8 @@
 
 2001-05-29  Gerd Moellmann  <gerd@gnu.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Handle
-	invalid UTF-8 sequences.
+	* international/utf-8.el (ccl-decode-mule-utf-8): Handle invalid
+	UTF-8 sequences.
 
 2001-05-28  Miles Bader  <miles@gnu.org>
 
