@@ -197,7 +197,7 @@ POS defaults to point; WINDOW, to the selected window.")
   int hscroll;
 
   if (NILP (pos))
-    posint = point;
+    posint = PT;
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
@@ -1361,7 +1361,7 @@ value is reasonable when this function is called.")
   window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME (w));
 
   Fset_buffer (w->buffer);
-  opoint = point;
+  opoint = PT;
   SET_PT (marker_position (w->start));
   /* Like Frecenter but avoid setting w->force_start.  */
   Fvertical_motion (make_number (- (top - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w))))),
@@ -2196,28 +2196,28 @@ window_scroll (window, n, noerror)
      int noerror;
 {
   register struct window *w = XWINDOW (window);
-  register int opoint = point;
+  register int opoint = PT;
   register int pos;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
   int lose;
   Lisp_Object bolp, nmoved;
 
-  XFASTINT (tem) = point;
+  XFASTINT (tem) = PT;
   tem = Fpos_visible_in_window_p (tem, window);
 
   if (NILP (tem))
     {
       Fvertical_motion (make_number (- (ht / 2)), window);
-      XFASTINT (tem) = point;
+      XFASTINT (tem) = PT;
       Fset_marker (w->start, tem, w->buffer);
       w->force_start = Qt;
     }
 
   SET_PT (marker_position (w->start));
-  lose = n < 0 && point == BEGV;
+  lose = n < 0 && PT == BEGV;
   Fvertical_motion (make_number (n), window);
-  pos = point;
+  pos = PT;
   bolp = Fbolp ();
   SET_PT (opoint);
 
@@ -2241,7 +2241,7 @@ window_scroll (window, n, noerror)
 	{
 	  SET_PT (pos);
 	  tem = Fvertical_motion (make_number (ht), window);
-	  if (point > opoint || XFASTINT (tem) < ht)
+	  if (PT > opoint || XFASTINT (tem) < ht)
 	    SET_PT (opoint);
 	  else
 	    Fvertical_motion (make_number (-1), window);
@@ -2384,7 +2384,7 @@ showing that buffer, popping the buffer up if necessary.")
       window_scroll (window, XINT (n), 1);
     }
 
-  Fset_marker (w->pointm, make_number (point), Qnil);
+  Fset_marker (w->pointm, make_number (PT), Qnil);
   unbind_to (count, Qnil);
 
   return Qnil;
@@ -2436,7 +2436,7 @@ redraws with point in the center of the current window.")
 {
   register struct window *w = XWINDOW (selected_window);
   register int ht = window_internal_height (w);
-  register int opoint = point;
+  register int opoint = PT;
   Lisp_Object window;
 
   if (NILP (n))
@@ -2463,7 +2463,7 @@ redraws with point in the center of the current window.")
 
   XSET (window, Lisp_Window, w);
   Fvertical_motion (n, window);
-  Fset_marker (w->start, make_number (point), w->buffer);
+  Fset_marker (w->start, make_number (PT), w->buffer);
   w->start_at_line_beg = Fbolp ();
 
   SET_PT (opoint);
@@ -2500,7 +2500,7 @@ negative means relative to bottom of window.")
   if (start < BEGV || start > ZV)
     {
       Fvertical_motion (make_number (- (height / 2)), window);
-      Fset_marker (w->start, make_number (point), w->buffer);
+      Fset_marker (w->start, make_number (PT), w->buffer);
       w->start_at_line_beg = Fbolp ();
       w->force_start = Qt;
     }
