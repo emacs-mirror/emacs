@@ -1,3 +1,8 @@
+2004-10-30  Simon Josefsson  <jas@extundo.com>
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Recognize
+	AS_* too.
+
 2004-10-29  Simon Josefsson  <jas@extundo.com>
 
 	* subr.el (read-passwd): Move back from password.el.
