@@ -1,3 +1,7 @@
+2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Update description of delete-dups.
+
 2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* keymaps.texi (Tool Bar): tool-bar-item => tool-bar-button.
@@ -46,7 +50,7 @@
 	* edebug.texi (Using Edebug): Fix example.
 
 	* debugging.texi (Internals of Debugger): Fix return value.
-	
+
 	* files.texi (Changing Files): Fix argname.
 
 	* calendar.texi: Fix parens, and default values.

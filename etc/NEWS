@@ -1860,7 +1860,7 @@ implemented (such as "*") are no longer accepted.
 +++
 ** New function `delete-dups' destructively removes `equal' duplicates
 from a list.  Of several `equal' occurrences of an element in the list,
-the last one is kept.
+the first one is kept.
 
 +++
 ** `declare' is now a macro.  This change was made mostly for
