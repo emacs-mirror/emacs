@@ -25,7 +25,7 @@
 ;;; it can be updated every time you save the file.  See the top of
 ;;; time-stamp.el for a sample.  The template looks like one of the following:
 ;;;     Time-stamp: <>
-;;;     Time-stamp: ""
+;;;     Time-stamp: " "
 ;;; The time stamp is written between the brackets or quotes, resulting in
 ;;;     Time-stamp: <93/06/18 10:26:51 gildea>
 ;;; Here is an example which puts the file name and time stamp in the binary:
