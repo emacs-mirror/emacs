@@ -326,6 +326,9 @@ echo "Making links to \`lisp' and its subdirectories"
    if [ -f $file/README ]; then
      ln $file/README ../${tempdir}/lisp/$file
    fi
+   if [ -f $file/ChangeLog ]; then
+     ln $file/ChangeLog ../${tempdir}/lisp/$file
+   fi
  done )
 
 echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
