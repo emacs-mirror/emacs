@@ -1,5 +1,13 @@
 2004-03-11  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (get_translation_table): Declare it as Lisp_Object.
+	(LOOKUP_TRANSLATION_TABLE): New macro.
+	(produce_chars): Use LOOKUP_TRANSLATION_TABLE instead of
+	CHAR_TABLE_REF.
+	(consume_chars): Likewise.
+
+2004-03-11  Kenichi Handa  <handa@m17n.org>
+
 	* coding.c (MAX_ANNOTATION_LENGTH): Adjusted for the change of
 	annotation data format.
 	(ADD_ANNOTATION_DATA, ADD_COMPOSITION_DATA, ADD_CHARSET_DATA):
