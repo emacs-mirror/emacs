@@ -987,12 +987,14 @@ of them:
 @table @code
 @item priority
 @kindex priority @r{(overlay property)}
-This property's value (which should be a nonnegative number) determines
-the priority of the overlay.  The priority matters when two or more
-overlays cover the same character and both specify a face for display;
-the one whose @code{priority} value is larger takes priority over the
-other, and its face attributes override the face attributes of the lower
-priority overlay.
+This property's value (which should be a nonnegative integer number)
+determines the priority of the overlay.  The priority matters when two
+or more overlays cover the same character and both specify the same
+property; the one whose @code{priority} value is larger takes priority
+over the other.  For the @code{face} property, the higher priority
+value does not completely replace the other; instead, its face
+attributes override the face attributes of the lower priority
+@code{face} property.
 
 Currently, all overlays take priority over text properties.  Please
 avoid using negative priority values, as we have not yet decided just
