@@ -1,7 +1,8 @@
 % === BEGIN ps-print prologue 1
+% version: 5.2.2
 
 % ISOLatin1Encoding stolen from ps_init.ps in GhostScript 2.6.1.4:
-/ISOLatin1Encoding where {pop}{
+/ISOLatin1Encoding where{pop}{
 % -- The ISO Latin-1 encoding vector isn't known, so define it.
 % -- The first half is the same as the standard encoding,
 % -- except for minus instead of hyphen at code 055.
@@ -13,37 +14,37 @@ StandardEncoding 46 82 getinterval aload pop
 %*** but appear in the displayed table:
 %*** macron at 0225, dieresis at 0230, cedilla at 0233, space at 0240.
 % 0200 (128)
-    /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
-    /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
-    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
-    /dieresis /.notdef /ring /cedilla /.notdef /hungarumlaut /ogonek /caron
+    /.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+    /.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef/.notdef
+    /dotlessi/grave/acute/circumflex/tilde/macron/breve/dotaccent
+    /dieresis/.notdef/ring/cedilla/.notdef/hungarumlaut/ogonek/caron
 % 0240 (160)
-    /space /exclamdown /cent /sterling
-	/currency /yen /brokenbar /section
-    /dieresis /copyright /ordfeminine /guillemotleft
-	/logicalnot /hyphen /registered /macron
-    /degree /plusminus /twosuperior /threesuperior
-	/acute /mu /paragraph /periodcentered
-    /cedilla /onesuperior /ordmasculine /guillemotright
-	/onequarter /onehalf /threequarters /questiondown
+    /space/exclamdown/cent/sterling
+	/currency/yen/brokenbar/section
+    /dieresis/copyright/ordfeminine/guillemotleft
+	/logicalnot/hyphen/registered/macron
+    /degree/plusminus/twosuperior/threesuperior
+	/acute/mu/paragraph/periodcentered
+    /cedilla/onesuperior/ordmasculine/guillemotright
+	/onequarter/onehalf/threequarters/questiondown
 % 0300 (192)
-    /Agrave /Aacute /Acircumflex /Atilde
-	/Adieresis /Aring /AE /Ccedilla
-    /Egrave /Eacute /Ecircumflex /Edieresis
-	/Igrave /Iacute /Icircumflex /Idieresis
-    /Eth /Ntilde /Ograve /Oacute
-	/Ocircumflex /Otilde /Odieresis /multiply
-    /Oslash /Ugrave /Uacute /Ucircumflex
-	/Udieresis /Yacute /Thorn /germandbls
+    /Agrave/Aacute/Acircumflex/Atilde
+	/Adieresis/Aring/AE/Ccedilla
+    /Egrave/Eacute/Ecircumflex/Edieresis
+	/Igrave/Iacute/Icircumflex/Idieresis
+    /Eth/Ntilde/Ograve/Oacute
+	/Ocircumflex/Otilde/Odieresis/multiply
+    /Oslash/Ugrave/Uacute/Ucircumflex
+	/Udieresis/Yacute/Thorn/germandbls
 % 0340 (224)
-    /agrave /aacute /acircumflex /atilde
-	/adieresis /aring /ae /ccedilla
-    /egrave /eacute /ecircumflex /edieresis
-	/igrave /iacute /icircumflex /idieresis
-    /eth /ntilde /ograve /oacute
-	/ocircumflex /otilde /odieresis /divide
-    /oslash /ugrave /uacute /ucircumflex
-	/udieresis /yacute /thorn /ydieresis
+    /agrave/aacute/acircumflex/atilde
+	/adieresis/aring/ae/ccedilla
+    /egrave/eacute/ecircumflex/edieresis
+	/igrave/iacute/icircumflex/idieresis
+    /eth/ntilde/ograve/oacute
+	/ocircumflex/otilde/odieresis/divide
+    /oslash/ugrave/uacute/ucircumflex
+	/udieresis/yacute/thorn/ydieresis
 256 packedarray def
 }ifelse
 
@@ -54,16 +55,12 @@ StandardEncoding 46 82 getinterval aload pop
 
   begin			% Make the new font the current dictionary.
 
+    % Copy each of the symbols from the old dictionary
+    % to the new one except for the font ID.
+    {1 index/FID ne{def}{pop pop}ifelse}forall
 
-    {1 index /FID ne
-     {def}{pop pop}ifelse
-    }forall		% Copy each of the symbols from the old dictionary
-			% to the new one except for the font ID.
-
-    currentdict /FontType get 0 ne{
-      /Encoding ISOLatin1Encoding def	% Override the encoding with
-					% the ISOLatin1 encoding.
-    }if
+    % Override the encoding with the ISOLatin1 encoding.
+    currentdict/FontType get 0 ne{/Encoding ISOLatin1Encoding def}if
 
     % Use the font's bounding box to determine the ascent, descent,
     % and overall height; don't forget that these values have to be
@@ -81,16 +78,14 @@ StandardEncoding 46 82 getinterval aload pop
 %             |    |   v Descent (usually < 0)
 % (x1 y1) --> +----+ - -
 
-    currentdict /FontType get 0 ne{
-      /FontBBox load aload pop			% -- x1 y1 x2 y2
-      FontMatrix transform /Ascent  exch def pop
-      FontMatrix transform /Descent exch def pop
-    }{
-      /PrimaryFont FDepVector 0 get def
-      PrimaryFont /FontBBox get aload pop
-      PrimaryFont /FontMatrix get transform /Ascent exch def pop
-      PrimaryFont /FontMatrix get transform /Descent exch def pop
-    }ifelse
+    currentdict/FontType get 0 ne
+    {/FontBBox load aload pop			% -- x1 y1 x2 y2
+     FontMatrix transform/Ascent  exch def pop
+     FontMatrix transform/Descent exch def pop}
+    {/PrimaryFont FDepVector 0 get def
+     PrimaryFont/FontBBox get aload pop
+     PrimaryFont/FontMatrix get transform/Ascent exch def pop
+     PrimaryFont/FontMatrix get transform/Descent exch def pop}ifelse
 
     /FontHeight Ascent Descent sub def	% use `sub' because descent < 0
 
@@ -112,34 +107,34 @@ StandardEncoding 46 82 getinterval aload pop
     pop			% Discard the returned font.
 }bind def
 
-/DefFont{				% Font definition
-  findfont exch scalefont reencodeFontISO
-}def
+% Font definition
+/DefFont{findfont exch scalefont reencodeFontISO}def
 
-/F{					% Font selection
+% Font selection
+/F{
   findfont
-  dup /Ascent            get /Ascent            exch def
-  dup /Descent           get /Descent           exch def
-  dup /FontHeight        get /FontHeight        exch def
-  dup /UnderlinePosition get /UnderlinePosition exch def
-  dup /OverlinePosition  get /OverlinePosition  exch def
-  dup /StrikeoutPosition get /StrikeoutPosition exch def
-  dup /LineThickness     get /LineThickness     exch def
-  dup /Xshadow           get /Xshadow           exch def
-  dup /Yshadow           get /Yshadow           exch def
-  dup /SpaceBackground   get /SpaceBackground   exch def
-  dup /XBox              get /XBox              exch def
-  dup /YBox              get /YBox              exch def
+  dup/Ascent            get/Ascent            exch def
+  dup/Descent           get/Descent           exch def
+  dup/FontHeight        get/FontHeight        exch def
+  dup/UnderlinePosition get/UnderlinePosition exch def
+  dup/OverlinePosition  get/OverlinePosition  exch def
+  dup/StrikeoutPosition get/StrikeoutPosition exch def
+  dup/LineThickness     get/LineThickness     exch def
+  dup/Xshadow           get/Xshadow           exch def
+  dup/Yshadow           get/Yshadow           exch def
+  dup/SpaceBackground   get/SpaceBackground   exch def
+  dup/XBox              get/XBox              exch def
+  dup/YBox              get/YBox              exch def
   setfont
 }def
 
-/FG /setrgbcolor load def
+/FG/setrgbcolor load def
 
 /bg false def
 /BG{
-  dup /bg exch def
-  {mark 4 1 roll ]}
-  {[ 1.0 1.0 1.0 ]}
+  dup/bg exch def
+  {[4 1 roll]}
+  {[1.0 1.0 1.0]}
   ifelse
   /bgcolor exch def
 }def
@@ -181,11 +176,11 @@ StandardEncoding 46 82 getinterval aload pop
 /HL{PSL PLN}def				% Hard Linefeed
 
 % Some debug
-/dcp{currentpoint exch 40 string cvs print (, ) print =}def
-/dp{print 2 copy  exch 40 string cvs print (, ) print =}def
+/dcp{currentpoint exch 40 string cvs print(, )print =}def
+/dp{print 2 copy  exch 40 string cvs print(, )print =}def
 
 /W{
-  ( ) stringwidth	% Get the width of a space in the current font.
+  ( )stringwidth	% Get the width of a space in the current font.
   pop			% Discard the Y component.
   mul			% Multiply the width of a space
 			% by the number of spaces to plot
@@ -200,9 +195,9 @@ StandardEncoding 46 82 getinterval aload pop
 % effect: 1  - underline  2   - strikeout  4  - overline
 %         8  - shadow     16  - box        32 - outline
 /S{
-  /xx currentpoint dup Descent add /yy exch def
-  Ascent add /YY exch def def
-  dup stringwidth pop xx add /XX exch def
+  /xx currentpoint dup Descent add/yy exch def
+  Ascent add/YY exch def def
+  dup stringwidth pop xx add/XX exch def
   Effect 8 and 0 ne{
     /yy yy Yshadow add def
     /XX XX Xshadow add def
@@ -259,9 +254,8 @@ StandardEncoding 46 82 getinterval aload pop
   rXX ryy lineto
   closepath
   % top of stack: fill-or-not
-    {FillBgColor}
-    {LineThickness setlinewidth stroke}
-  ifelse
+  {FillBgColor}
+  {LineThickness setlinewidth stroke}ifelse
   grestore
 }bind def
 
@@ -278,15 +272,15 @@ StandardEncoding 46 82 getinterval aload pop
 % stack:  string fill-or-not  |-  --
 /doOutline{
   /-fillp- exch def
-  /-ox- currentpoint /-oy- exch def def
+  /-ox- currentpoint/-oy- exch def def
   gsave
   LineThickness setlinewidth
   {st 0 3 -1 roll put
    st dup true charpath
    -fillp- {gsave FillBgColor grestore}if
    stroke stringwidth
-   -oy- add /-oy- exch def
-   -ox- add /-ox- exch def
+   -oy- add/-oy- exch def
+   -ox- add/-ox- exch def
    -ox- -oy- moveto
   }forall
   grestore
@@ -296,7 +290,7 @@ StandardEncoding 46 82 getinterval aload pop
 % stack:  --
 /FillBgColor{bgcolor aload pop setrgbcolor fill}bind def
 
-/L0 6 /Times-Italic DefFont
+/L0 6/Times-Italic DefFont
 
 % stack:  -- |- boolean
 /isLineStep{
@@ -323,7 +317,7 @@ StandardEncoding 46 82 getinterval aload pop
     /L0 findfont setfont
     LineNumber Lines ge
     {(end      )}
-    {LineNumber 6 string cvs (      ) strcat}ifelse
+    {LineNumber 6 string cvs(      )strcat}ifelse
     dup stringwidth pop neg 0 rmoveto
     show
     grestore
@@ -333,7 +327,7 @@ StandardEncoding 46 82 getinterval aload pop
 }def
 
 % stack: color-specifier |- --
-/SetColor{dup type /realtype eq{setgray}{aload pop setrgbcolor}ifelse}def
+/SetColor{dup type/realtype eq{setgray}{aload pop setrgbcolor}ifelse}def
 
 % stack: --
 /printZebra{
@@ -342,16 +336,29 @@ StandardEncoding 46 82 getinterval aload pop
   /double-zebra ZebraHeight ZebraHeight add def
   /yiter double-zebra LineHeight mul neg def
   /xiter PrintWidth InterColumn add def
+  /zebra-line PageNumber 1 sub NumberOfColumns mul LinesPerColumn mul def
   NumberOfColumns{LinesPerColumn doColumnZebra xiter 0 rmoveto}repeat
   grestore
 }def
 
 % stack:  lines-per-column |- --
 /doColumnZebra{
+  /lpc exch def
   gsave
-  dup double-zebra idiv{ZebraHeight doZebra 0 yiter rmoveto}repeat
+  ZebraFollow{
+    /H ZebraHeight zebra-line ZebraHeight mod sub def
+    /lpc lpc H sub def
+    zebra-line double-zebra mod ZebraHeight lt
+    {H doZebra	% "black" stripe followed by a "white" stripe
+     /lpc lpc ZebraHeight sub def
+     H ZebraHeight add}
+    {H}ifelse	% "white" stripe
+    LineHeight mul neg 0 exch rmoveto
+    /zebra-line zebra-line LinesPerColumn add def
+  }if
+  lpc dup double-zebra idiv{ZebraHeight doZebra 0 yiter rmoveto}repeat
   double-zebra mod
-  dup 0 le{pop}{dup ZebraHeight gt {pop ZebraHeight}if doZebra}ifelse
+  dup 0 le{pop}{dup ZebraHeight gt{pop ZebraHeight}if doZebra}ifelse
   grestore
 }def
 
@@ -405,7 +412,7 @@ StandardEncoding 46 82 getinterval aload pop
   translate
   setgray
   rotate
-  findfont exch dup /-offset- exch -0.25 mul def scalefont setfont
+  findfont exch dup/-offset- exch -0.25 mul def scalefont setfont
   0 -offset- moveto
   /-saveLineThickness- LineThickness def
   /LineThickness 1 def
@@ -414,14 +421,18 @@ StandardEncoding 46 82 getinterval aload pop
   grestore
 }def
 
+/SetPageSize{
+  BMark/PageSize[PageWidth LandscapePageHeight LandscapeMode{exch}if]EMark setpagedevice
+}def
+
 /BeginDoc{
   % ---- Remember space width of the normal text font `f0'.
-  /SpaceWidth /f0 findfont setfont ( ) stringwidth pop def
+  /SpaceWidth/f0 findfont setfont( )stringwidth pop def
   % ---- save the state of the document (useful for ghostscript!)
   /docState save def
   % ---- [andrewi] set PageSize based on chosen dimensions
   UseSetpagedevice{
-    BMark/PageSize[PageWidth LandscapePageHeight LandscapeMode{exch}if]EMark setpagedevice
+   WarnPaperSize{SetPageSize}{mark{SetPageSize}stopped cleartomark}ifelse
   }if
   /ColumnWidth PrintWidth InterColumn add def
   % ---- define where  printing will start
@@ -439,9 +450,7 @@ StandardEncoding 46 82 getinterval aload pop
 
 /BeginDSCPage{
   % ---- when 1st column, save the state of the page
-  ColumnIndex 1 eq{
-    /pageState save def
-  }if
+  ColumnIndex 1 eq{/pageState save def}if
   % ---- save the state of the column
   /columnState save def
 }def
@@ -453,7 +462,7 @@ StandardEncoding 46 82 getinterval aload pop
   ColumnIndex 1 eq{
     0 PrintStartY moveto		% move to where printing will start
     printBackground
-    Zebra {printZebra}if
+    Zebra{printZebra}if
     printGlobalBackground
     printLocalBackground
   }if
@@ -464,6 +473,13 @@ StandardEncoding 46 82 getinterval aload pop
     }if
   }if
   0 PrintStartY moveto			% move to where printing will start
+  /LineNumber where
+  {pop
+   SyncLineZebra
+   {/H PageNumber 1 sub NumberOfColumns mul ColumnIndex 1 sub add
+       LinesPerColumn mul ZebraHeight mod def
+    /PLScounter H PrintLineStart ge{0}{PrintLineStart H sub}ifelse def
+    /PrintLineStep ZebraHeight H sub def}if}if
   PLN
 }def
 
@@ -476,15 +492,13 @@ StandardEncoding 46 82 getinterval aload pop
     /ColumnIndex 1 def
     % ---- N-up printing
     N-Up 1 gt{
-      N-Up-Counter 0 gt{
-	% ---- Next page on same row
+      N-Up-Counter 0 gt
+      {% ---- Next page on same row
 	/N-Up-Counter N-Up-Counter 1 sub def
-	N-Up-XColumn N-Up-YColumn
-      }{
-	% ---- Next page on next line
+	N-Up-XColumn N-Up-YColumn}
+      {% ---- Next page on next line
 	/N-Up-Counter N-Up-End 1 sub def
-	N-Up-XLine N-Up-YLine
-      }ifelse
+	N-Up-XLine N-Up-YLine}ifelse
       translate
     }if
   }{ % else
@@ -525,11 +539,23 @@ StandardEncoding 46 82 getinterval aload pop
       /HH LandscapePageHeight def
       /WW PageWidth def
     }ifelse
+    /xx 0 def
+    N-Up-Landscape{
+      /ww WW WW mul N-Up-Lines HH mul div def
+      /cc HH N-Up-Columns N-Up-Missing add div def
+      ww cc gt{/xx WW def/WW cc ww div WW mul def/xx xx WW sub def}if
+    }{
+      /hh HH N-Up-Columns N-Up-Missing add div def
+      /cc HH N-Up-Lines div def
+      hh cc gt{/xx WW def/WW cc hh div WW mul def/xx xx WW sub def}if
+    }ifelse
     WW N-Up-Margin sub N-Up-Margin sub
     N-Up-Landscape
-     {N-Up-Lines div HH}{N-Up-Columns N-Up-Missing add div WW}ifelse
+    {N-Up-Lines div HH}
+    {N-Up-Columns N-Up-Missing add div WW}ifelse
     div dup scale
-    0 N-Up-Repeat 1 sub LandscapePageHeight mul translate
+    LandscapeMode{/yy 0 def}{/yy xx def/xx 0 def}ifelse
+    xx N-Up-Repeat 1 sub LandscapePageHeight mul yy add translate
     % ---- go to start position in page matrix
     N-Up-XStart N-Up-Missing 0.5 mul
     LandscapeMode
@@ -592,9 +618,8 @@ StandardEncoding 46 82 getinterval aload pop
 % |  bm     |
 % |---------|
 
-/HeaderFrameStart{			% -- x y
-  0  PrintHeight HeaderOffset add
-}def
+% -- |- x y
+/HeaderFrameStart{0  PrintHeight HeaderOffset add}def
 
 /HeaderFramePath{
   PrintHeaderWidth	0			rlineto
@@ -636,10 +661,7 @@ StandardEncoding 46 82 getinterval aload pop
 
 /pagenumberstring{
   PageNumber 32 string cvs
-  ShowNofN{
-    (/) strcat
-    PageCount 32 string cvs strcat
-  }if
+  ShowNofN{(/)strcat PageCount 32 string cvs strcat}if
 }def
 
 /HeaderText{
@@ -650,7 +672,7 @@ StandardEncoding 46 82 getinterval aload pop
   % ---- hack: `PN 1 and'  ==  `PN 2 modulo'
 
   % ---- if even page number and duplex, then exchange left and right
-  PageNumber 1 and 0 eq DuplexValue and{exch}if
+  PageNumber 1 and 0 eq SwitchHeader and{exch}if
 
   { % ---- process the left lines
     aload pop
@@ -682,48 +704,45 @@ StandardEncoding 46 82 getinterval aload pop
   /t0 3 1 roll DefFont
   /t0 F
   /lh FontHeight def
-  /sw ( ) stringwidth pop def
-  /aw (01234567890abcdefghijklmnopqrstuvwxyz) dup length exch
+  /sw( )stringwidth pop def
+  /aw(01234567890abcdefghijklmnopqrstuvwxyz)dup length exch
   stringwidth pop exch div def
-  /t1 12 /Helvetica-Oblique DefFont
+  /t1 12/Helvetica-Oblique DefFont
   /t1 F
   gsave
-    (languagelevel = ) show
+    (languagelevel = )show
     languagelevel 32 string cvs show
   grestore
   0 FontHeight neg rmoveto
   gsave
-    (For ) show
+    (For )show
     128 string cvs show
-    ( ) show
+    ( )show
     32 string cvs show
-    ( point, the line height is ) show
+    ( point, the line height is )show
     lh 32 string cvs show
-    (, the space width is ) show
+    (, the space width is )show
     sw 32 string cvs show
-    (,) show
+    (,)show
   grestore
   0 FontHeight neg rmoveto
   gsave
-    (and a crude estimate of average character width is ) show
+    (and a crude estimate of average character width is )show
     aw 32 string cvs show
-    (.) show
+    (.)show
   grestore
   0 FontHeight neg rmoveto
 }def
 
-/cm{ % cm to point
-  72 mul 2.54 div
-}def
+% cm to point
+/cm{72 mul 2.54 div}def
 
 /ReportAllFontInfo{
-  FontDirectory
-  { % key = font name  value = font dictionary
-    pop 10 exch ReportFontInfo
-  }forall
+  % key = font name   value = font dictionary
+  FontDirectory{pop 10 exch ReportFontInfo}forall
 }def
 
-% 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage
-% 3 cm 20 cm moveto  ReportAllFontInfo           showpage
+% 3 cm 20 cm moveto  10/Courier ReportFontInfo  showpage
+% 3 cm 20 cm moveto  ReportAllFontInfo          showpage
 
 % === END ps-print prologue 1
