@@ -484,82 +484,6 @@ Do the same for the keys of the same name."
 
 ;; The "Options" menu items
 
-;; The "Show/Hide" submenu of menu "Options"
-
-(defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
-(defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
-
-(defun menu-bar-scroll-bar-right ()
-  "Turn on the scroll-bar on the right side."
-  (interactive)
-  (set-scroll-bar-mode 'right))
-
-(defun menu-bar-scroll-bar-left ()
-  "Turn on the scroll-bar on the left side."
-  (interactive)
-  (set-scroll-bar-mode 'left))
-
-(defun menu-bar-scroll-bar-none ()
-  "Turn off the scroll-bar."
-  (interactive)
-  (set-scroll-bar-mode nil))
-
-(define-key menu-bar-showhide-scroll-bar-menu [right]
-  '(menu-item "On the Right" menu-bar-scroll-bar-right
-	      :help "Scroll-bar on the right side"
-	      :visible window-system
-	      :button (:radio . (eq scroll-bar-mode 'right))))
-
-(define-key menu-bar-showhide-scroll-bar-menu [left]
-  '(menu-item "On the Left" menu-bar-scroll-bar-left
-	      :help "Scroll-bar on the left side"
-	      :visible window-system
-	      :button (:radio . (eq scroll-bar-mode 'left))))
-
-(define-key menu-bar-showhide-scroll-bar-menu [none]
-  '(menu-item "None" menu-bar-scroll-bar-none
-	      :help "Turn off scroll-bar"
-	      :visible window-system
-	      :button (:radio . (eq scroll-bar-mode nil))))
-
-(define-key menu-bar-showhide-menu [showhide-scroll-bar]
-  (list 'menu-item "Scroll-Bar" menu-bar-showhide-scroll-bar-menu
-	:visible 'window-system
-	:help "Select scroll-bar mode"))
-
-(defun showhide-menu-bar ()
-  "Toggle whether to turn menu-bar on/off."
-  (interactive)
-  (if (menu-bar-mode)
-      (message "Menu-bar mode enabled.")
-    (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
-
-(define-key menu-bar-showhide-menu [showhide-menu-bar]
-  '(menu-item "Menu-bar" showhide-menu-bar
-	      :help "Toggle menu-bar on/off"
-	      :button (:toggle . menu-bar-mode)))
-
-(defun showhide-tool-bar ()
-  "Toggle whether to turn tool-bar on/off."
-  (interactive)
-  (if (tool-bar-mode)
-      (message "Tool-bar mode enabled.")
-    (message "Tool-bar mode disabled.")))
-
-(define-key menu-bar-showhide-menu [showhide-tool-bar]
-  '(menu-item "Tool-bar" showhide-tool-bar
-	      :help "Turn tool-bar on/off"
-	      :visible window-system
-	      :button (:toggle . tool-bar-mode)))
-
-(define-key menu-bar-options-menu [showhide]
-  (list 'menu-item "Show/Hide" menu-bar-showhide-menu
-	:help "Toggle on/off various display features"))
-
-(define-key menu-bar-options-menu [showhide-separator]
-  '("--"))
-
-
 (defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
 
 (define-key menu-bar-custom-menu [customize-apropos-groups]
@@ -624,7 +548,8 @@ Do the same for the keys of the same name."
   (dolist (elt '(debug-on-quit debug-on-error auto-compression-mode
 		 case-fold-search truncate-lines show-paren-mode
 		 transient-mark-mode global-font-lock-mode
-		 current-language-environment default-input-method))
+		 current-language-environment default-input-method
+		 default-frame-alist))
     (if (default-value elt)
 	(customize-save-variable elt (default-value elt))))
   (if (memq 'turn-on-auto-fill text-mode-hook)
@@ -641,6 +566,82 @@ Do the same for the keys of the same name."
 	      :help "Save options set from the menu above"))
 
 (define-key menu-bar-options-menu [custom-separator]
+  '("--"))
+
+;; The "Show/Hide" submenu of menu "Options"
+
+(defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
+(defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
+
+(defun menu-bar-scroll-bar-right ()
+  "Turn on the scroll-bar on the right side."
+  (interactive)
+  (set-scroll-bar-mode 'right))
+
+(defun menu-bar-scroll-bar-left ()
+  "Turn on the scroll-bar on the left side."
+  (interactive)
+  (set-scroll-bar-mode 'left))
+
+(defun menu-bar-scroll-bar-none ()
+  "Turn off the scroll-bar."
+  (interactive)
+  (set-scroll-bar-mode nil))
+
+(define-key menu-bar-showhide-scroll-bar-menu [right]
+  '(menu-item "On the Right" menu-bar-scroll-bar-right
+	      :help "Scroll-bar on the right side"
+	      :visible window-system
+	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars (frame-parameters))) 'right))))
+
+(define-key menu-bar-showhide-scroll-bar-menu [left]
+  '(menu-item "On the Left" menu-bar-scroll-bar-left
+	      :help "Scroll-bar on the left side"
+	      :visible window-system
+	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars (frame-parameters))) 'left))))
+
+(define-key menu-bar-showhide-scroll-bar-menu [none]
+  '(menu-item "None" menu-bar-scroll-bar-none
+	      :help "Turn off scroll-bar"
+	      :visible window-system
+	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars (frame-parameters))) nil))))
+
+(define-key menu-bar-showhide-menu [showhide-scroll-bar]
+  (list 'menu-item "Scroll-Bar" menu-bar-showhide-scroll-bar-menu
+	:visible 'window-system
+	:help "Select scroll-bar mode"))
+
+(defun showhide-menu-bar ()
+  "Toggle whether to turn menu-bar on/off."
+  (interactive)
+  (menu-bar-mode)
+  (if menu-bar-mode
+      (message "Menu-bar mode enabled.")
+    (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
+
+(define-key menu-bar-showhide-menu [showhide-menu-bar]
+  '(menu-item "Menu-bar" showhide-menu-bar
+	      :help "Toggle menu-bar on/off"
+	      :button (:toggle . menu-bar-mode)))
+
+(defun showhide-tool-bar ()
+  "Toggle whether to turn tool-bar on/off."
+  (interactive)
+  (if (tool-bar-mode)
+      (message "Tool-bar mode enabled.")
+    (message "Tool-bar mode disabled.")))
+
+(define-key menu-bar-showhide-menu [showhide-tool-bar]
+  '(menu-item "Tool-bar" showhide-tool-bar
+	      :help "Turn tool-bar on/off"
+	      :visible window-system
+	      :button (:toggle . tool-bar-mode)))
+
+(define-key menu-bar-options-menu [showhide]
+  (list 'menu-item "Show/Hide" menu-bar-showhide-menu
+	:help "Toggle on/off various display features"))
+
+(define-key menu-bar-options-menu [showhide-separator]
   '("--"))
 
 (define-key menu-bar-options-menu [mule]
