@@ -1816,13 +1816,35 @@ so that `frame-parameters' will return them.")
     IT_set_frame_parameters (f, alist);
   else
 #endif
-    for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
-      {
-	elt = Fcar (tail);
-	prop = Fcar (elt);
-	val = Fcdr (elt);
-	store_frame_param (f, prop, val);
-      }
+    {
+      int length = XINT (Flength (alist));
+      int i;
+      Lisp_Object *parms
+	= (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+      Lisp_Object *values
+	= (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
+
+      /* Extract parm names and values into those vectors.  */
+
+      i = 0;
+      for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+	{
+	  Lisp_Object elt, prop, val;
+
+	  elt = Fcar (tail);
+	  parms[i] = Fcar (elt);
+	  values[i] = Fcdr (elt);
+	  i++;
+	}
+
+      /* Now process them in reverse of specified order.  */
+      for (i--; i >= 0; i--)
+	{
+	  prop = parms[i];
+	  val = values[i];
+	  store_frame_param (f, prop, val);
+	}
+    }
 
   return Qnil;
 }
