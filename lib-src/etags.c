@@ -55,9 +55,6 @@ char pot_etags_version[] = "@(#) pot revision number is 10.32";
 #include "getopt.h"
 
 extern char *getenv ();
-#ifndef MSDOS
-extern FILE *popen ();
-#endif
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
  Let it undefined to make the program "etags", which makes emacs-style
@@ -3155,7 +3152,7 @@ etags_getcwd ()
     {
       buf = xnew (bufsize, char);
 
-      pipe = popen ("pwd 2>/dev/null", "r");
+      pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
       if (pipe == NULL)
 	{
 	  perror ("pwd");
