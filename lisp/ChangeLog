@@ -1,3 +1,21 @@
+2004-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/subst-jis.el: Use
+	utf-translate-cjk-substitutable-p.
+
+	* international/subst-gb2312.el: Likewise.
+
+	* international/subst-big5.el: Likewise.
+
+	* international/subst-ksc.el: Likewise.
+
+	* international/utf-8.el (utf-translate-cjk-unicode-range-string):
+	New variable.
+	(utf-translate-cjk-set-unicode-range): New function.
+	(utf-translate-cjk-unicode-range): Make it customizable.
+	(utf-8-post-read-conversion): Use
+	utf-translate-cjk-unicode-range-string.
+
 2004-10-26  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (auto-mode-alist): Add pod, js, xbm and xpm and group

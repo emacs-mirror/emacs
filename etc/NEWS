@@ -870,6 +870,9 @@ coding system now also encodes characters from most of Emacs's
 one-dimensional internal charsets, specifically the ISO-8859 ones.
 The utf-16 coding system is affected similarly.
 
+** New variable `utf-translate-cjk-unicode-range' controls which
+Unicode characters to translate in `utf-translate-cjk-mode'.
+
 ** iso-10646-1 (`Unicode') fonts can be used to display any range of
 characters encodable by the utf-8 coding system.  Just specify the
 fontset appropriately.
