@@ -360,7 +360,7 @@ DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 0, 0,
 
 DEFUN ("point-min", Fpoint_min, Spoint_min, 0, 0, 0,
   "Return the minimum permissible value of point in the current buffer.\n\
-This is 1, unless a clipping restriction is in effect.")
+This is 1, unless narrowing (a buffer restriction) is in effect.")
   ()
 {
   Lisp_Object temp;
@@ -370,7 +370,7 @@ This is 1, unless a clipping restriction is in effect.")
 
 DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
   "Return a marker to the minimum permissible value of point in this buffer.\n\
-This is the beginning, unless a clipping restriction is in effect.")
+This is the beginning, unless narrowing (a buffer restriction) is in effect.")
   ()
 {
   return buildmark (BEGV);
@@ -378,8 +378,8 @@ This is the beginning, unless a clipping restriction is in effect.")
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
   "Return the maximum permissible value of point in the current buffer.\n\
-This is (1+ (buffer-size)), unless a clipping restriction is in effect,\n\
-in which case it is less.")
+This is (1+ (buffer-size)), unless narrowing (a buffer restriction)\n\
+is in effect, in which case it is less.")
   ()
 {
   Lisp_Object temp;
@@ -389,8 +389,8 @@ in which case it is less.")
 
 DEFUN ("point-max-marker", Fpoint_max_marker, Spoint_max_marker, 0, 0, 0,
   "Return a marker to the maximum permissible value of point in this buffer.\n\
-This is (1+ (buffer-size)), unless a clipping restriction is in effect,\n\
-in which case it is less.")
+This is (1+ (buffer-size)), unless narrowing (a buffer restriction)\n\
+is in effect, in which case it is less.")
   ()
 {
   return buildmark (ZV);
