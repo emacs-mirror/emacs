@@ -2,10 +2,9 @@
 
 ;; Copyright (C) 1997, 2000 Free Software Foundation, Inc.
 
-;; Author: Oliver.Seidel@cl.cam.ac.uk
-;; Maintainer: FSF (unless Seidel can be found)
+;; Author: os10000@seidel-space.de
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.39 2000/05/12 10:56:20 fx Exp $
+;; Version: $Id: todo-mode.el,v 1.40 2000/06/02 18:37:43 fx Exp $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -118,7 +117,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.39 2000/05/12 10:56:20 fx Exp $
+;;      $Id: todo-mode.el,v 1.40 2000/06/02 18:37:43 fx Exp $
 ;;
 ;;  Operation
 ;;
