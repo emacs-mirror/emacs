@@ -255,13 +255,6 @@ if test "$full_dist" == "no"; then
     find $sharedir/lisp $sharedir/leim -name "*.elc" -print | sed 's|\(.*\)\.elc$|/bin/rm -f \1.el|' | /bin/sh -s
 fi
 
-if test "$app_symlink" == "yes"; then
-    echo "Replacing bin/emacs with a symbolic link..."
-    # Fix emacs symlink
-    rm ${installprefix}/bin/emacs
-    ln -s $emacsname ${installprefix}/bin/emacs
-fi
-
 if test "$with_app" == "yes"; then
   echo "Creating Emacs.app application"
   tempappdir=${tempparentfull}${appsdir}
