@@ -3058,6 +3058,7 @@ extern void record_change P_ ((int, int));
 extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
 					Lisp_Object));
 extern void syms_of_undo P_ ((void));
+extern Lisp_Object Vundo_outer_limit;
 
 /* defined in textprop.c */
 extern Lisp_Object Qfont, Qmouse_face;
