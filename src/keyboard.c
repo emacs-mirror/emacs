@@ -2494,11 +2494,15 @@ make_lispy_event (event)
 	    FRAME_PTR f = XFRAME (event->frame_or_window);
 	    Lisp_Object window;
 	    Lisp_Object posn;
+	    int row, column;
+
+	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
+				   &column, &row, 0, 0);
 
 #ifdef USE_X_TOOLKIT
 	    if (FRAME_EXTERNAL_MENU_BAR (f) && XINT (event->y) == -1)
 #else
-	    if (XINT (event->y) < FRAME_MENU_BAR_LINES (f))
+	    if (row < FRAME_MENU_BAR_LINES (f))
 #endif
 	      {
 		Lisp_Object items;
@@ -2506,13 +2510,8 @@ make_lispy_event (event)
 #ifdef USE_X_TOOLKIT
 		/* The click happened in the menubar.
 		   Look for the menu item selected.  */
-		int row, column;
-
 		items = map_event_to_object (event, f);
 
-		pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
-				       &column, &row, 0, 0);
-		XFASTINT (event->x) = column;
 		XFASTINT (event->y) = 1;
 #else /* not USE_X_TOOLKIT  */
 		int hpos;
@@ -2523,11 +2522,12 @@ make_lispy_event (event)
 		    Lisp_Object pos, string;
 		    pos = Fcdr (Fcdr (Fcar (items)));
 		    string = Fcar (Fcdr (Fcar (items)));
-		    if (XINT (event->x) >= XINT (pos)
-			&& XINT (event->x) < XINT (pos) + XSTRING (string)->size)
+		    if (column >= XINT (pos)
+			&& column < XINT (pos) + XSTRING (string)->size)
 		      break;
 		  }
 #endif /* not USE_X_TOOLKIT  */
+
 		position
 		  = Fcons (event->frame_or_window,
 			   Fcons (Qmenu_bar,
@@ -2542,17 +2542,18 @@ make_lispy_event (event)
 		  return Fcons (Qnil, Fcons (position, Qnil));
 	      }
 
-	    window = window_from_coordinates (f, XINT (event->x),
-					      XINT (event->y), &part);
+	    window = window_from_coordinates (f, column, row, &part);
 
 	    if (XTYPE (window) != Lisp_Window)
 	      posn = Qnil;
 	    else
 	      {
-		XSETINT (event->x, 
-			 (XINT (event->x) - XINT (XWINDOW (window)->left)));
-		XSETINT (event->y,
-			 (XINT (event->y) - XINT (XWINDOW (window)->top)));
+		int pixcolumn, pixrow;
+		column -= XINT (XWINDOW (window)->left);
+		row -= XINT (XWINDOW (window)->top);
+		glyph_to_pixel_coords (f, column, row, &pixcolumn, &pixrow);
+		XSETINT (event->x, pixcolumn);
+		XSETINT (event->y, pixrow);
 
 		if (part == 1)
 		  posn = Qmode_line;
@@ -2561,8 +2562,7 @@ make_lispy_event (event)
 		else
 		  XSET (posn, Lisp_Int,
 			buffer_posn_from_coords (XWINDOW (window),
-						 XINT (event->x),
-						 XINT (event->y)));
+						 column, row));
 	      }
 
 	    position
@@ -2574,17 +2574,20 @@ make_lispy_event (event)
 	  }
 	else
 	  {
-	    Lisp_Object window = event->frame_or_window;
-	    Lisp_Object portion_whole = Fcons (event->x, event->y);
-	    Lisp_Object part = *scroll_bar_parts[(int) event->part];
+	    Lisp_Object window;
+	    Lisp_Object portion_whole;
+	    Lisp_Object part;
+
+	    window = event->frame_or_window;
+	    portion_whole = Fcons (event->x, event->y);
+	    part = *scroll_bar_parts[(int) event->part];
 
 	    position =
 	      Fcons (window,
 		     Fcons (Qvertical_scroll_bar,
 			    Fcons (portion_whole,
 				   Fcons (make_number (event->timestamp),
-					  Fcons (part,
-						 Qnil)))));
+					  Fcons (part, Qnil)))));
 	  }
 
 	start_pos_ptr = &XVECTOR (button_down_location)->contents[button];
@@ -2728,16 +2731,25 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
   else
     {
       int area;
-      Lisp_Object window =
-	(frame
-	 ? window_from_coordinates (frame, XINT (x), XINT (y), &area)
-	 : Qnil);
+      Lisp_Object window;
       Lisp_Object posn;
+      int column, row;
+
+      pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 0);
+
+      if (frame)
+	window = window_from_coordinates (frame, column, row, &area);
+      else
+	window = Qnil;
 
       if (XTYPE (window) == Lisp_Window)
 	{
- 	  XSETINT (x, XINT (x) - XINT (XWINDOW (window)->left));
-	  XSETINT (y, XINT (y) - XINT (XWINDOW (window)->top));
+	  int pixcolumn, pixrow;
+	  column -= XINT (XWINDOW (window)->left);
+	  row -= XINT (XWINDOW (window)->top);
+	  glyph_to_pixel_coords (frame, column, row, &pixcolumn, &pixrow);
+	  XSETINT (x, pixcolumn);
+	  XSETINT (y, pixrow);
 
 	  if (area == 1)
 	    posn = Qmode_line;
@@ -2745,8 +2757,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	    posn = Qvertical_line;
 	  else
 	    XSET (posn, Lisp_Int,
-		  buffer_posn_from_coords (XWINDOW (window),
-					   XINT (x), XINT (y)));
+		  buffer_posn_from_coords (XWINDOW (window), column, row));
 	}
       else if (frame != 0)
 	{
