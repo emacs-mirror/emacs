@@ -491,6 +491,7 @@ file_name_completion_stat (dirname, dp, st_addr)
 {
   int len = NAMLEN (dp);
   int pos = XSTRING (dirname)->size;
+  int value;
   char *fullname = (char *) alloca (len + pos + 2);
 
   bcopy (XSTRING (dirname)->data, fullname, pos);
@@ -503,7 +504,12 @@ file_name_completion_stat (dirname, dp, st_addr)
   fullname[pos + len] = 0;
 
 #ifdef S_IFLNK
-  return lstat (fullname, st_addr);
+  /* We want to return success if a link points to a nonexistent file,
+     but we want to return the status for what the link points to,
+     in case it is a directory.  */
+  value = lstat (fullname, st_addr);
+  stat (fullname, st_addr);
+  return value;
 #else
   return stat (fullname, st_addr);
 #endif
