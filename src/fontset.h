@@ -43,6 +43,11 @@ struct font_info
   /* Charset of characters displayed by the font.  */
   int charset;
 
+#ifdef WINDOWSNT
+  /* Codepage of characters that will be displayed by the font.  */
+  int codepage;
+#endif
+
   /* Maximum bound width over all existing characters of the font.  On
      X window, this is same as (font->max_bounds.width) */
   int size;
