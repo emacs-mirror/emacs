@@ -817,7 +817,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (setq tool-bar-originally-present
             (not (or (null tool-bar-lines)
                      (null (cdr tool-bar-lines))
-                     ((eq 0 (cdr tool-bar-lines))))))))
+                     (eq 0 (cdr tool-bar-lines)))))))
 
   (run-hooks 'before-init-hook)
 
