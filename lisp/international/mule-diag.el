@@ -661,6 +661,7 @@ which font is being used for displaying the character."
 		    "the meaning of the rule.\n")))
 	(when props
 	  (insert "\nText properties\n")
+	  (require 'descr-text)
 	  (describe-text-properties props))))))
 
 
