@@ -78,12 +78,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * interfere.  And don't try to use SIGIO yet.
  */
 
+#ifndef NOT_C_CODE
+#include <sys/wait.h>
+#endif
+
 #ifdef emacs
 #include <sys/filio.h>
 #include <termio.h>
 #include <sys/ttold.h>
 #include <signal.h>
-#include <sys/wait.h>
 #include <sys/stream.h>
 #include <sys/stropts.h>
 #include <sys/termios.h>
