@@ -2287,8 +2287,8 @@ x_produce_glyphs (it)
             font_type = UNICODE_FONT;
 
 	  /* Initialize the bounding box.  */
-	  pcm = w32_per_char_metric (font, &char2b, font_type);
-	  if (pcm)
+	  if (font_info
+              && (pcm = w32_per_char_metric (font, &char2b, font_type)))
 	    {
 	      width = pcm->width;
 	      ascent = pcm->ascent;
@@ -2352,8 +2352,8 @@ x_produce_glyphs (it)
               else
                 font_type = UNICODE_FONT;
 
-	      pcm = w32_per_char_metric (font, &char2b, font_type);
-	      if (pcm)
+	      if (font_info
+                  && (pcm = w32_per_char_metric (font, &char2b, font_type)))
 		{
 		  width = pcm->width;
 		  ascent = pcm->ascent;
@@ -2362,8 +2362,8 @@ x_produce_glyphs (it)
 	      else
 		{
 		  width = FONT_WIDTH (font);
-		  ascent = FONT_BASE (font);
-		  descent = FONT_DESCENT (font);
+		  ascent = 1;
+		  descent = 0;
 		}
 
 	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
@@ -5546,7 +5546,7 @@ expose_area (w, row, r, area)
       
       /* Repaint.  */
       if (last > first)
-        x_draw_glyphs (w, first_x, row, area,
+        x_draw_glyphs (w, first_x - start_x, row, area,
                        first - row->glyphs[area],
                        last - row->glyphs[area],
                        row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
