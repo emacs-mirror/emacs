@@ -3355,16 +3355,15 @@ readdirver (dirp)
 
 int
 set_file_times (path, atime, mtime)
-     char *path;
+     char *filename;
      EMACS_TIME atime, mtime;
 {
 #ifdef HAVE_UTIMES
   struct timeval tv[2];
   tv[0] = atime;
   tv[1] = mtime;
-  return utimes (path, tv);
-#else
-#ifdef HAVE_UTIME
+  return utimes (filename, tv);
+#else /* not HAVE_UTIMES */
 #ifndef HAVE_STRUCT_UTIMBUF
   struct utimbuf {
     long actime;
@@ -3374,12 +3373,8 @@ set_file_times (path, atime, mtime)
   struct utimbuf utb;
   utb.actime = EMACS_SECS (atime);
   utb.modtime = EMACS_SECS (mtime);
-  return utime (path, &utb);
-#else /* !HAVE_UTIMES && !HAVE_UTIME */
-  /* Should we set errno here?  If so, set it to what?  */
-  return -1;
-#endif
-#endif
+  return utime (filename, &utb);
+#endif /* not HAVE_UTIMES */
 }
 
 /* mkdir and rmdir functions, for systems which don't have them.  */
