@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.24) $
+ * $HopeName: MMsrc!poolamc.c(trunk.25) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.24) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.25) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -592,7 +592,6 @@ static Res AMCBufferInit(Pool pool, Buffer buffer, va_list args)
   /* the nursery. */
   buffer->p = amc->nursery;
   buffer->i = FALSE;                    /* mutator buffer */
-  EVENT_PP(AMCBufferInit, amc, buffer);
   return ResOK;
 }
 
@@ -666,7 +665,6 @@ static Res AMCBufferFill(Seg *segReturn,
   limit = AddrAdd(base, alignedSize);
   AVER(limit == SegLimit(seg));
   *limitReturn = limit;
-  EVENT_PPWAW(AMCBufferFill, amc, buffer, size, base, alignedSize);
   return ResOK;
 }
 
@@ -698,7 +696,6 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer, Seg seg)
     (*pool->format->pad)(BufferGetInit(buffer), size);
     ShieldCover(arena, seg);
   }
-  EVENT_PPW(AMCBufferEmpty, amc, buffer, size);
 }
 
 
@@ -1001,7 +998,7 @@ static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   /* arguments checked by AMCScan */
 
-  /* Actually ownly unused when telemetry is off.  Needs */
+  /* Actually only unused when telemetry is off.  Needs */
   /* fixing when EVENT_* is fixed. @@@@ */
   UNUSED(amc);
 
