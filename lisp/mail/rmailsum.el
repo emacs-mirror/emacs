@@ -138,7 +138,8 @@ SUBJECT is a string of regexps separated by commas."
      (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
     (goto-char (point-min))
     (if whole-message (re-search-forward subject nil t)
-      (string-match subject (or (mail-fetch-field "Subject") "")) )))
+      (string-match subject (or (funcall rmail-summary-line-decoder
+					 (mail-fetch-field "Subject")) "")) )))
 
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
@@ -173,9 +174,8 @@ nil for FUNCTION means all messages."
     (save-excursion
       ;; Go to the Rmail buffer.
       (if (eq major-mode 'rmail-summary-mode)
-	  (progn
-	    (setq was-in-summary t)
-	    (set-buffer rmail-buffer)))
+	  (setq was-in-summary t))
+      (set-buffer rmail-buffer)
       ;; Find its summary buffer, or make one.
       (setq sumbuf
 	    (if (and rmail-summary-buffer
@@ -207,6 +207,9 @@ nil for FUNCTION means all messages."
 	;; Temporarily, while summary buffer is unfinished,
 	;; we "don't have" a summary.
 	(setq rmail-summary-buffer nil)
+	(if rmail-enable-mime
+	    (with-current-buffer rmail-view-buffer
+	      (setq rmail-summary-buffer nil)))
 	(save-excursion
 	  (let ((rbuf (current-buffer))
 		(vbuf rmail-view-buffer)
@@ -667,9 +670,13 @@ Optional prefix ARG means undelete ARG previous messages."
       (cond ((re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t)
 	     (replace-match "\\1 ")
 	     (rmail-summary-goto-msg)
-	     (pop-to-buffer rmail-buffer)
+	     (if rmail-enable-mime
+		 (set-buffer rmail-buffer)
+	       (pop-to-buffer rmail-buffer))
 	     (and (rmail-message-deleted-p rmail-current-message)
 		  (rmail-undelete-previous-message))
+	     (if rmail-enable-mime
+		 (pop-to-buffer rmail-view-buffer))
 	     (pop-to-buffer rmail-summary-buffer))
 	    (t (goto-char opoint))))))
 
@@ -1140,7 +1147,7 @@ move to the previous message."
   (interactive "P")
   (if (eq dist '-)
       (rmail-summary-scroll-msg-up nil)
-    (let ((rmail-buffer-window (get-buffer-window rmail-buffer)))
+    (let ((rmail-buffer-window (get-buffer-window rmail-view-buffer)))
       (if rmail-buffer-window
 	  (if (let ((rmail-summary-window (selected-window)))
 		(select-window rmail-buffer-window)
@@ -1154,7 +1161,7 @@ move to the previous message."
 	      (if (not rmail-summary-scroll-between-messages)
 		  (error "Beginning of buffer")
 		(rmail-summary-previous-msg (or dist 1)))
-	    (let ((other-window-scroll-buffer rmail-buffer))
+	    (let ((other-window-scroll-buffer rmail-view-buffer))
 	      (scroll-other-window-down dist)))
 	;; If it isn't visible at all, show the beginning.
 	(rmail-summary-beginning-of-message)))))
@@ -1164,15 +1171,15 @@ move to the previous message."
   (interactive)
   (if (and (one-window-p) (not pop-up-frames))
       ;; If there is just one window, put the summary on the top.
-      (let ((buffer rmail-buffer))
+      (let ((buffer rmail-view-buffer))
 	(split-window (selected-window) rmail-summary-window-size)
 	(select-window (frame-first-window))
-	(pop-to-buffer rmail-buffer)
+	(pop-to-buffer rmail-view-buffer)
 	;; If pop-to-buffer did not use that window, delete that
 	;; window.  (This can happen if it uses another frame.)
 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
 	    (delete-other-windows)))
-    (pop-to-buffer rmail-buffer))
+    (pop-to-buffer rmail-view-buffer))
   (beginning-of-buffer)
   (pop-to-buffer rmail-summary-buffer))
 
@@ -1197,7 +1204,7 @@ move to the previous message."
   "Kill and wipe away Rmail summary, remaining within Rmail."
   (interactive)
   (save-excursion (set-buffer rmail-buffer) (setq rmail-summary-buffer nil))
-  (let ((local-rmail-buffer rmail-buffer))
+  (let ((local-rmail-buffer rmail-view-buffer))
     (kill-buffer (current-buffer))
     ;; Delete window if not only one.
     (if (not (eq (selected-window) (next-window nil 'no-minibuf)))
@@ -1358,12 +1365,12 @@ Interactively, empty argument means use same regexp used last time."
 (defun rmail-summary-toggle-header ()
   "Show original message header if pruned header currently shown, or vice versa."
   (interactive)
-  (save-excursion
+  (save-window-excursion
     (set-buffer rmail-buffer)
     (rmail-toggle-header))
   ;; Inside save-excursion, some changes to point in the RMAIL buffer are lost.
   ;; Set point to point-min in the RMAIL buffer, if it is visible.
-  (let ((window (get-buffer-window rmail-buffer)))
+  (let ((window (get-buffer-window rmail-view-buffer)))
     (if window
         ;; Using save-window-excursion would lose the new value of point.
         (let ((owin (selected-window)))
@@ -1429,10 +1436,10 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (let ((window (get-buffer-window rmail-buffer)))
+  (let ((window (get-buffer-window rmail-view-buffer)))
     (if window
 	(select-window window)
-      (set-buffer rmail-buffer)))
+      (set-buffer rmail-view-buffer)))
   (rmail-reply just-sender)
   (rmail-summary-override-mail-send-and-exit))
 
