@@ -1,3 +1,10 @@
+2001-01-11  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-lazy-highlight-update): 
+	Don't look for more potential matches once maximum is exceeded.
+	Use overlays-in to check correctly for overlap with current match.
+	Ignore empty matches.
+
 2001-01-11  Miles Bader  <miles@gnu.org>
 
 	* textmodes/ispell.el (ispell-adjusted-window-height): New function.
