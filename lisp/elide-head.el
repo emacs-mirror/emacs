@@ -32,8 +32,9 @@
 ;; `elide-head'.  A buffer-local invisible overlay manages the
 ;; elision.
 
-;; Please don't turn this on in site init files so that information
-;; isn't hidden from users who may not know what it says.
+;; You might add `elide-head' to appropriate major mode hooks or to
+;; `find-file-hooks'.  Please do this in site init files.  If you do,
+;; information may be hidden from users who don't know it already.
 
 ;; Inspired by jwz's hide-copyleft.el, for which we don't have an
 ;; assignment.
