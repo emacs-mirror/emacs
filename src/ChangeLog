@@ -1,3 +1,8 @@
+2001-09-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/macppc.h [DATA_SEG_BITS]: Put in #if 0 until we know what's
+	really going on here.
+
 2001-09-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* search.c (trivial_regexp_p): Catch \{N,M\} as well.
