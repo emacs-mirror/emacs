@@ -894,8 +894,9 @@ they change.  Two minor modes are available to do this.  In Global
 Auto-Revert mode, Emacs periodically checks all file buffers and
 reverts any when the corresponding file has changed.  The local
 variant, Auto-Revert mode, applies only to buffers in which it was
-activated.  Checking the files is done at intervals determined by the
-variable @code{auto-revert-interval}.
+activated.  The variable @code{auto-revert-interval} controls how
+often to check for a changed file.  Since checking a remote file is
+too slow, these modes do not check or revert remote files.
 
 @node Auto Save
 @section Auto-Saving: Protection Against Disasters
