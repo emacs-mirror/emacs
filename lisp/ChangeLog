@@ -1,3 +1,8 @@
+2001-01-12  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Bind `backspace'
+	to `backward-delete-char-untabify'.
+
 2001-01-12  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (customize-menu-create): Fix the :filter following
@@ -64,7 +69,7 @@
 
 2001-01-11  Richard M. Stallman  <rms@gnu.org>
 
-	* isearch.el (isearch-lazy-highlight-update): 
+	* isearch.el (isearch-lazy-highlight-update):
 	Don't look for more potential matches once maximum is exceeded.
 	Use overlays-in to check correctly for overlap with current match.
 	Ignore empty matches.
@@ -315,7 +320,7 @@
 
 2001-01-08  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-default-latest-on-branch-p): New function, replaces 
+	* vc.el (vc-default-latest-on-branch-p): New function, replaces
 	constant implementations in backends.
 
 	* vc-cvs.el (vc-cvs-latest-on-branch-p): Removed.
@@ -358,7 +363,7 @@
 	recognized.)  Embed Window Manager name into name of the generated
 	EDT Emulation initialization file since the initialization file is
 	Window Manager specific.  Add Commentary section to file header.
-	
+
 2001-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/sendmail.el (mail-mode): Doc fix.
@@ -412,7 +417,7 @@
 
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
-	* tooltip.el (tooltip-cancel-delayed-tip) 
+	* tooltip.el (tooltip-cancel-delayed-tip)
 	(tooltip-start-delayed-tip): Renamed from tooltip-disable-timeout
 	and tooltip-add-timeout.
 	(tooltip-show): Set border color from faces's foreground.
@@ -535,7 +540,7 @@
 	(ps-setup, ps-prologue-file, ps-begin-job, ps-begin-page)
 	(ps-next-line, ps-continue-line, ps-plot-region)
 	(ps-generate-postscript-with-faces, ps-end-job): Code fix.
-	
+
 2000-12-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (x-complement-fontset-spec): Resolve
@@ -551,7 +556,7 @@
 
 2000-12-28  Richard M. Stallman  <rms@gnu.org>
 
-	* dired-x.el (dired-guess-shell-alist-default): 
+	* dired-x.el (dired-guess-shell-alist-default):
 	Use xpdf instead of acroread.
 
 2000-12-28  Kenichi Handa  <handa@etl.go.jp>
@@ -571,7 +576,7 @@
 	* ls-lisp.el: Better support for the Mac and MS-Windows.
 	(ls-lisp): New defgroup.
 	(ls-lisp-emulation, ls-lisp-ignore-case, ls-lisp-dirs-first)
-	(ls-lisp-verbosity, ls-lisp-use-insert-directory-program) 
+	(ls-lisp-verbosity, ls-lisp-use-insert-directory-program)
 	(ls-lisp-support-shell-wildcards): New defcustoms.
 	(ls-lisp-parse-symlink): New function.
 	(insert-directory): Code to convert switches to a list and set up
@@ -579,7 +584,7 @@
 	(ls-lisp-insert-directory): New argument TIME-INDEX.  Add support
 	for -C and -R switches.
 	(ls-lisp-column-format): New function.
-	(ls-lisp-delete-matching, ls-lisp-handle-switches) 
+	(ls-lisp-delete-matching, ls-lisp-handle-switches)
 	(ls-lisp-format-time): Add doc strings.
 	(ls-lisp-handle-switches): Handle -U, -S, -X, and -F switches.
 	Support ls-lisp-dirs-first.
@@ -611,19 +616,19 @@
 	characters to 'term-send-raw in term-raw-map.
 
 2000-12-25  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper-init (viper-restore-cursor-type): Added condition-case
 	guard.
-	
+
 	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook): Changed
 	initialization; use add-hook.
 	(ediff-file-remote-p): Use file-local-copy.
-	
+
 	* ediff-ptch.el (ediff-prompt-for-patch-buffer): Improved defaults.
-	
+
 	* ediff.el (ediff-patch-buffer): Bug fix.
 	(ediff-revision): Allow selection of the file at the prompt.
-	
+
 2000-12-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (combine-run-hooks): Remove.
@@ -697,7 +702,7 @@
 2000-12-21  Dave Pearson  <davep@davep.org>
 
 	* quickurl.el: Commentry change, I've moved my web site.
-	
+
 2000-12-21  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ebnf2ps.el: Fix a problem with skip-chars-forward: it doesn't accept
@@ -723,12 +728,12 @@
 	entry.  Doc fix.
 	(ebnf-yac-skip-code): Code fix.
 	(ebnf-yac-comment-chars): Const fix.
-	
+
 2000-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (insert-directory-safely): New function.
 	(recover-file): Use it instead of insert-directory.  From Markus
-	Rost <markus.rost@mathematik.uni-regensburg.de> 
+	Rost <markus.rost@mathematik.uni-regensburg.de>
 
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
@@ -839,7 +844,7 @@
 
 	* image-file.el (image-file-name-extensions): Add "pgm" and "ppm".
 
-	* textmodes/artist.el (artist-replace-chars, artist-replace-char): 
+	* textmodes/artist.el (artist-replace-chars, artist-replace-char):
 	Check that emacs-major-version is `=' to 20, not `>='.
 	(artist-replace-chars): Use `make-string' instead of a loop.
 
@@ -915,7 +920,7 @@
 	notation, and at least will yield a better error message).
 
 	* window.el (mode-line-window-height-fudge): Function removed.
-	(height-affecting-face-attributes, mode-line-window-height-fudge): 
+	(height-affecting-face-attributes, mode-line-window-height-fudge):
 	Variables removed.
 	* textmodes/ispell.el (ispell-overlay-window): Ensure that the new
 	window is really the right size.  Use vertical-motion
@@ -925,7 +930,7 @@
 	ispell-choices-win-default-height, rather than the function.
 	(ispell-choices-win-default-height): Function removed.
 	(ispell-mode-line-window-height-fudge): Function removed.
-	
+
 2000-12-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* add-log.el (add-change-log-entry): Only expand-file-name if non-nil.
@@ -973,7 +978,7 @@
 	* tooltip.el (tooltip-show): If an error is signaled in
 	x-show-tip, display that error, and display the help in the
 	echo area.
-	
+
 2000-12-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ja-dic-cnv.el (skkdic-set-okuri-nasi): Show
@@ -1064,7 +1069,7 @@
 	* obsolete/c-mode.el: Moved from lisp/progmodes.
 	* obsolete/auto-show.el: Moved from lisp.
 	* obsolete/ooutline.el: Moved from lisp/textmodes.
-	
+
 2000-12-11  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* progmodes/idlwave.el: Updated to IDLWAVE version 4.7.  Too many
@@ -1083,7 +1088,7 @@
 	* simple.el (kill-new): Don't try to setcar kill-ring if it is
 	nil.
 
-	* cus-edit.el (custom-save-variables, custom-save-faces): 
+	* cus-edit.el (custom-save-variables, custom-save-faces):
 	Comment fix.
 
 	* hscroll.el: Moved to `obsolete' subdir.

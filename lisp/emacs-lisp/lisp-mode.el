@@ -82,15 +82,15 @@
 
 (defvar lisp-imenu-generic-expression
   (list
-   (list nil 
+   (list nil
 	 (purecopy "^\\s-*(def\\(un\\*?\\|subst\\|macro\\|advice\\|\
 ine-skeleton\\|ine-minor-mode\\)\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)") 2)
-   (list (purecopy "Variables") 
+   (list (purecopy "Variables")
 	 (purecopy "^\\s-*(def\\(var\\|const\\|custom\\)\\s-+\
 \\(\\sw\\(\\sw\\|\\s_\\)+\\)") 2)
-   (list (purecopy "Types") 
+   (list (purecopy "Types")
 	 (purecopy "^\\s-*(def\\(group\\|type\\|struct\\|class\\|\
-ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)") 
+ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -153,11 +153,12 @@ ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
     (looking-at outline-regexp)
     (- (match-end 0) (match-beginning 0))))
 
-
+
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
+    (define-key map [backspace] 'backward-delete-char-untabify)
     map)
   "Keymap for commands shared by all sorts of Lisp modes.")
 
@@ -306,7 +307,7 @@ if that value is non-nil.")
     (terpri)
     (eval-last-sexp t)
     (terpri)))
-
+
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
@@ -331,7 +332,7 @@ With argument, print output into current buffer."
 			   (forward-char -1)
 			   (when (eq (preceding-char) ??)
 			     (forward-char -1)))
-			 
+
 			 ;; Skip over `#N='s.
 			 (when (eq (preceding-char) ?=)
 			   (let (labeled-p)
@@ -344,7 +345,7 @@ With argument, print output into current buffer."
 			 (save-restriction
 			   ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
 			   ;; `variable' so that the value is returned, not the
-			   ;; name 
+			   ;; name
 			   (if (and ignore-quotes
 				    (eq (following-char) ?`))
 			       (forward-char))
@@ -381,7 +382,7 @@ With argument, print output into current buffer."
       (unless (eq old-value new-value)
 	(setq debug-on-error new-value))
       value)))
-      
+
 (defun eval-defun-1 (form)
   "Change defvar into defconst within FORM.
 Likewise for other constructs as necessary."
@@ -423,7 +424,7 @@ Return the result of evaluation."
       ;; variable.  Re-written using `apply' to avoid capturing
       ;; variables like `end'.
       (apply
-       #'eval-region 
+       #'eval-region
        (let ((standard-output t)
 	     beg end form)
 	 ;; Read the form from the buffer, and record where it ends.
@@ -475,7 +476,7 @@ the minibuffer."
 	       (setq debug-on-error new-value))
 	     value)))))
 
-
+
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
       (current-column)
@@ -733,7 +734,7 @@ is the buffer position of the start of the containing expression."
 	(goto-char (car (cdr state)))
 	(+ lisp-body-indent (current-column)))))
 
-
+
 ;; (put 'progn 'lisp-indent-function 0), say, causes progn to be indented
 ;; like defun if the first form is placed on the next line, otherwise
 ;; it is indented like any other form (i.e. forms line up under first).
@@ -876,7 +877,7 @@ ENDPOS is encountered."
 	   (lisp-indent-line))
       (indent-sexp endmark)
       (set-marker endmark nil))))
-
+
 ;;;; Lisp paragraph filling commands.
 
 (defun lisp-fill-paragraph (&optional justify)
@@ -986,7 +987,7 @@ and initial semicolons."
 					  (re-search-forward comment-start-skip)
 					  (point))))))))
     t))
-
+
 (defun indent-code-rigidly (start end arg &optional nochange-regexp)
   "Indent all lines of code, starting in the region, sideways by ARG columns.
 Does not affect lines starting inside comments or strings, assuming that
