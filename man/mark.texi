@@ -119,18 +119,21 @@ character, but its binding is still @code{set-mark-command}.
 @cindex highlighting region
 @cindex region highlighting
 
-  Emacs can highlight the current region on a terminal which supports
-colors.  But normally it does not.  Why not?
+  On a terminal that supports colors, Emacs can highlight the current
+region.  But normally it does not.  Why not?
 
-  Highlighting the region doesn't work well ordinarily in Emacs, because
-once you have set a mark, there is @emph{always} a region (in that
-buffer).  And highlighting the region all the time would be a nuisance.
+  Highlighting the region whenever it exists would not be desirable in
+Emacs, because once you have set a mark, there is @emph{always} a
+region (in that buffer).  And highlighting the region all the time
+would be a nuisance.  So normally Emacs highlights the region only
+immediately after you have selected it with the mouse.
 
   You can turn on region highlighting by enabling Transient Mark mode.
 This is a more rigid mode of operation in which the region ``lasts''
 only temporarily, so you must set up a region for each command that uses
 one.  In Transient Mark mode, most of the time there is no region;
-therefore, highlighting the region when it exists is convenient.
+therefore, highlighting the region when it exists is useful and
+not annoying.
 
 @findex transient-mark-mode
   To enable Transient Mark mode, type @kbd{M-x transient-mark-mode}.
@@ -172,6 +175,14 @@ You can activate the new region by executing @kbd{C-x C-x}
 
 @item
 Quitting with @kbd{C-g} deactivates the mark.
+
+@item
+Some commands operate on the region whenever it is active.  For
+instance, @kbd{C-x u} in Transient Mark mode operates on the region
+when there is a region.  Outside Transient Mark mode, you must type
+@kbd{C-u C-x u} if you want it to operate on the region.
+@xref{Undo}.   Other commands that act this way are identified
+in their own documentation.
 @end itemize
 
   Highlighting of the region uses the @code{region} face; you can
