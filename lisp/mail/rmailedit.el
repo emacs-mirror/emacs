@@ -106,14 +106,15 @@ to return to regular RMAIL:
 	    (aset rmail-summary-vector (1- rmail-current-message) nil)
 	    (save-excursion
 	      (rmail-widen-to-current-msgbeg
-	        (function (lambda ()
+		(function (lambda ()
 			    (forward-line 2)
 			    (if (looking-at "Summary-line: ")
 				(let ((buffer-read-only nil))
 				  (delete-region (point)
 						 (progn (forward-line 1)
-							(point))))))))
-	      (rmail-show-message))))))
+							(point))))))))))))
+    (save-excursion
+      (rmail-show-message)))
   (setq buffer-read-only t))
 
 (defun rmail-abort-edit ()
