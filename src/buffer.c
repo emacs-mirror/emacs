@@ -1558,6 +1558,9 @@ selected window if it is displayed there.")
   if (NILP (buffer))
     {
       XSETBUFFER (buffer, current_buffer);
+
+      /* If we're burying the current buffer, unshow it.  */
+      Fswitch_to_buffer (Fother_buffer (buffer, Qnil), Qnil);
     }
   else
     {
@@ -1568,13 +1571,6 @@ selected window if it is displayed there.")
 	nsberror (buffer);
       buffer = buf1;
     }
-
-  /* Unshow the buffer in the selected window, if it is there.  */
-  if (EQ (XWINDOW (selected_window)->buffer, buffer))
-    Fswitch_to_buffer (Fother_buffer (buffer, Qnil), Qnil);
-  /* Otherwise, unshow it in other frames.  */
-  else
-    Freplace_buffer_in_windows (buffer);
 
   /* Move buffer to the end of the buffer list.  */
   {
