@@ -1349,12 +1349,12 @@ events with keyboard events, but we recommend against it, because such
 key sequences are inconvenient to use.
 
   As a user, you can redefine any key; but it is usually best to stick
-to key sequences that consist of @kbd{C-c} followed by a letter.
-These keys are ``reserved for users,'' so they won't conflict with any
-properly designed Emacs extension.  The function keys @key{F5} through
-@key{F9} are also reserved for users.  If you redefine some other key,
-your definition may be overridden by certain extensions or major modes
-which redefine the same key.
+to key sequences that consist of @kbd{C-c} followed by a letter (upper
+or lower case).  These keys are ``reserved for users,'' so they won't
+conflict with any properly designed Emacs extension.  The function
+keys @key{F5} through @key{F9} are also reserved for users.  If you
+redefine some other key, your definition may be overridden by certain
+extensions or major modes which redefine the same key.
 
 @node Prefix Keymaps
 @subsection Prefix Keymaps
