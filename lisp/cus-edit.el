@@ -2729,6 +2729,10 @@ Match grayscale frames.")
 Match frames with no color support.")
 					   mono)))
 		  (group :sibling-args (:help-echo "\
+The minimum number of colors the frame should support.")
+			 (const :format "" min-colors)
+			 (integer :tag "Minimum number of colors" ))
+		  (group :sibling-args (:help-echo "\
 Only match frames with the specified intensity.")
 			 (const :format "\
 Background brightness: "
