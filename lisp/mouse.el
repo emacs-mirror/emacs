@@ -1302,18 +1302,18 @@ and selects that window."
   "Select an emacs font from a list of known good fonts"
   (interactive
    (x-popup-menu last-nonmenu-event x-fixed-font-alist))
-  (let (font)
-    (setq foo font bar fonts)
-    (while fonts
-      (condition-case nil
-	  (progn
-	    (modify-frame-parameters (selected-frame)
-				     (list (cons 'font (car fonts))))
-	    (setq font (car fonts))
-	    (setq fonts nil))
-	(error (setq fonts (cdr fonts)))))
-    (if font
-	(progn
+  (if fonts
+      (let (font)
+	(while fonts
+	  (condition-case nil
+	      (progn
+		(modify-frame-parameters (selected-frame)
+					 (list (cons 'font (car fonts))))
+		(setq font (car fonts))
+		(setq fonts nil))
+	    (error (setq fonts (cdr fonts)))))
+	(if (null font)
+	    (error "Font not found")
 	  ;; Update some standard faces too.
 	  (set-face-font 'bold nil (selected-frame)) 
 	  (make-face-bold 'bold (selected-frame) t)
@@ -1336,9 +1336,7 @@ and selects that window."
 			    (if italic
 				(make-face-italic (car (car rest)) (selected-frame)))))))
 		(error nil))
-	      (setq rest (cdr rest))))
-	  )
-      (error "Font not found"))))
+	      (setq rest (cdr rest))))))))
 
 ;;; Bindings for mouse commands.
 
