@@ -1,9 +1,10 @@
-;;; cyrillic.el --- Support for Cyrillic -*- coding: iso-2022-7bit; -*-
+;;; cyrillic.el --- support for Cyrillic -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001  Free Software Foundation, Inc.
 
-;; Keywords: multilingual, Cyrillic
+;; Keywords: multilingual, Cyrillic, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -25,17 +26,19 @@
 ;;; Commentary:
 
 ;; The character set ISO8859-5 is supported.  KOI-8 and ALTERNATIVNYJ
-;; are converted to ISO8859-5 internally.  See
+;; are converted to ISO8859-5+Unicode internally.  See
 ;; <URL:http://www.ecma.ch/ecma1/STAND/ECMA-113.HTM>.  For more info
 ;; on Cyrillic charsets, see
-;; <URL:http://czyborra.com/charsets/cyrillic.html>.  KOI-8 and
-;; ALTERNATIVNYJ are converted to ISO8859-5 internally.
+;; <URL:http://czyborra.com/charsets/cyrillic.html>.
+
+;; See codepages.el for straight Unicode definitions of the non-ISO
+;; charsets.
 
 ;;; Code:
 
 ;; Cyrillic (general)
 
-;; ISO-8859-5 staff
+;; ISO-8859-5 stuff
 
 (make-coding-system
  'cyrillic-iso-8bit 2 ?5
@@ -166,14 +169,23 @@
    80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
    96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111
    112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
-   ?$,2  (B ?$,2 "(B ?$,2 ,(B ?$,2 0(B ?$,2 4(B ?$,2 8(B ?$,2 <(B ?$,2 D(B ?$,2 L(B ?$,2 T(B ?$,2 \(B ?$,2!@(B ?$,2!D(B ?$,2!H(B ?$,2!L(B ?$,2!P(B
-   ?$,2!Q(B ?$,2!R(B ?$,2!S(B ?$,1{ (B ?$,2!`(B ?$,1x9(B ?$,1x:(B ?$,1xh(B ?$,1y$(B ?$,1y%(B ?,A (B ?$,1{!(B ?,A0(B ?,A2(B ?,A7(B ?,Aw(B
-   ?$,2 p(B ?$,2 q(B ?$,2 r(B ?,Lq(B ?,Lt(B ?$,2 t(B ?,Lv(B ?,Lw(B ?$,2 w(B ?$,2 x(B ?$,2 y(B ?$,2 z(B ?$,2 {(B ?$,1)Q(B ?$,2 }(B ?$,2 ~(B
-   ?$,2 (B ?$,2! (B ?$,2!!(B ?,L!(B ?,L$(B ?$,2!#(B ?,L&(B ?,L'(B ?$,2!&(B ?$,2!'(B ?$,2!((B ?$,2!)(B ?$,2!*(B ?$,1)P(B ?$,2!,(B ?,A)(B
-   ?,Ln(B  ?,LP(B  ?,LQ(B  ?,Lf(B  ?,LT(B  ?,LU(B  ?,Ld(B  ?,LS(B  ?,Le(B  ?,LX(B  ?,LY(B  ?,LZ(B  ?,L[(B  ?,L\(B  ?,L](B  ?,L^(B 
-   ?,L_(B  ?,Lo(B  ?,L`(B  ?,La(B  ?,Lb(B  ?,Lc(B  ?,LV(B  ?,LR(B  ?,Ll(B  ?,Lk(B  ?,LW(B  ?,Lh(B  ?,Lm(B  ?,Li(B  ?,Lg(B  ?,Lj(B 
-   ?,LN(B  ?,L0(B  ?,L1(B  ?,LF(B  ?,L4(B  ?,L5(B  ?,LD(B  ?,L3(B  ?,LE(B  ?,L8(B  ?,L9(B  ?,L:(B  ?,L;(B  ?,L<(B  ?,L=(B  ?,L>(B 
-   ?,L?(B  ?,LO(B  ?,L@(B  ?,LA(B  ?,LB(B  ?,LC(B  ?,L6(B  ?,L2(B  ?,LL(B  ?,LK(B  ?,L7(B  ?,LH(B  ?,LM(B  ?,LI(B  ?,LG(B  ?,LJ(B ]
+;; All Unicode:
+;;    ?\$,2  (B ?\$,2 "(B ?\$,2 ,(B ?\$,2 0(B ?\$,2 4(B ?\$,2 8(B ?\$,2 <(B ?\$,2 D(B ?\$,2 L(B ?\$,2 T(B ?\$,2 \(B ?\$,2!@(B ?\$,2!D(B ?\$,2!H(B ?\$,2!L(B ?\$,2!P(B
+;;    ?\$,2!Q(B ?\$,2!R(B ?\$,2!S(B ?\$,1{ (B ?\$,2!`(B ?\$,1x9(B ?\$,1x:(B ?\$,1xh(B ?\$,1y$(B ?\$,1y%(B ?\,A (B ?\$,1{!(B ?\,A0(B ?\,A2(B ?\,A7(B ?\,Aw(B
+;;    ?\$,2 p(B ?\$,2 q(B ?\$,2 r(B ?\$,1(q(B ?\$,1(t(B ?\$,2 t(B ?\$,1(v(B ?\$,1(w(B ?\$,2 w(B ?\$,2 x(B ?\$,2 y(B ?\$,2 z(B ?\$,2 {(B ?\$,1)Q(B ?\$,2 }(B ?\$,2 ~(B
+;;    ?\$,2 (B ?\$,2! (B ?\$,2!!(B ?\$,1(!(B ?\$,1($(B ?\$,2!#(B ?\$,1(&(B ?\$,1('(B ?\$,2!&(B ?\$,2!'(B ?\$,2!((B ?\$,2!)(B ?\$,2!*(B ?\$,1)P(B ?\$,2!,(B ?\,A)(B
+;;    ?\$,1(n(B ?\$,1(P(B ?\$,1(Q(B ?\$,1(f(B ?\$,1(T(B ?\$,1(U(B ?\$,1(d(B ?\$,1(S(B ?\$,1(e(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B
+;;    ?\$,1(_(B ?\$,1(o(B ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(V(B ?\$,1(R(B ?\$,1(l(B ?\$,1(k(B ?\$,1(W(B ?\$,1(h(B ?\$,1(m(B ?\$,1(i(B ?\$,1(g(B ?\$,1(j(B
+;;    ?\$,1(N(B ?\$,1(0(B ?\$,1(1(B ?\$,1(F(B ?\$,1(4(B ?\$,1(5(B ?\$,1(D(B ?\$,1(3(B ?\$,1(E(B ?\$,1(8(B ?\$,1(9(B ?\$,1(:(B ?\$,1(;(B ?\$,1(<(B ?\$,1(=(B ?\$,1(>(B
+;;    ?\$,1(?(B ?\$,1(O(B ?\$,1(@(B ?\$,1(A(B ?\$,1(B(B ?\$,1(C(B ?\$,1(6(B ?\$,1(2(B ?\$,1(L(B ?\$,1(K(B ?\$,1(7(B ?\$,1(H(B ?\$,1(M(B ?\$,1(I(B ?\$,1(G(B ?\$,1(J(B
+   ?\$,2  (B ?\$,2 "(B ?\$,2 ,(B ?\$,2 0(B ?\$,2 4(B ?\$,2 8(B ?\$,2 <(B ?\$,2 D(B ?\$,2 L(B ?\$,2 T(B ?\$,2 \(B ?\$,2!@(B ?\$,2!D(B ?\$,2!H(B ?\$,2!L(B ?\$,2!P(B
+   ?\$,2!Q(B ?\$,2!R(B ?\$,2!S(B ?\$,1{ (B ?\$,2!`(B ?\$,1x9(B ?\$,1x:(B ?\$,1xh(B ?\$,1y$(B ?\$,1y%(B ?\,L (B ?\$,1{!(B ?\,A0(B ?\,A2(B ?\,A7(B ?\,Aw(B
+   ?\$,2 p(B ?\$,2 q(B ?\$,2 r(B ?\,Lq(B ?\,Lt(B ?\$,2 t(B ?\,Lv(B ?\,Lw(B ?\$,2 w(B ?\$,2 x(B ?\$,2 y(B ?\$,2 z(B ?\$,2 {(B ?\$,1)Q(B ?\$,2 }(B ?\$,2 ~(B
+   ?\$,2 (B ?\$,2! (B ?\$,2!!(B ?\,L!(B ?\,L$(B ?\$,2!#(B ?\,L&(B ?\,L'(B ?\$,2!&(B ?\$,2!'(B ?\$,2!((B ?\$,2!)(B ?\$,2!*(B ?\$,1)P(B ?\$,2!,(B ?\,A)(B
+   ?\,Ln(B ?\,LP(B ?\,LQ(B ?\,Lf(B ?\,LT(B ?\,LU(B ?\,Ld(B ?\,LS(B ?\,Le(B ?\,LX(B ?\,LY(B ?\,LZ(B ?\,L[(B ?\,L\(B ?\,L](B ?\,L^(B
+   ?\,L_(B ?\,Lo(B ?\,L`(B ?\,La(B ?\,Lb(B ?\,Lc(B ?\,LV(B ?\,LR(B ?\,Ll(B ?\,Lk(B ?\,LW(B ?\,Lh(B ?\,Lm(B ?\,Li(B ?\,Lg(B ?\,Lj(B
+   ?\,LN(B ?\,L0(B ?\,L1(B ?\,LF(B ?\,L4(B ?\,L5(B ?\,LD(B ?\,L3(B ?\,LE(B ?\,L8(B ?\,L9(B ?\,L:(B ?\,L;(B ?\,L<(B ?\,L=(B ?\,L>(B
+   ?\,L?(B ?\,LO(B ?\,L@(B ?\,LA(B ?\,LB(B ?\,LC(B ?\,L6(B ?\,L2(B ?\,LL(B ?\,LK(B ?\,L7(B ?\,LH(B ?\,LM(B ?\,LI(B ?\,LG(B ?\,LJ(B]
   "Cyrillic KOI8-U decoding table.")
 
 (let ((table (make-translation-table-from-vector
@@ -227,15 +239,11 @@
 
 (set-language-info-alist
  "Cyrillic-KOI8-U" `((charset cyrillic-iso8859-5)
-		   (nonascii-translation
-		    . ,(get 'cyrillic-koi8-u-nonascii-translation-table
-			    'translation-table))
 		   (coding-system cyrillic-koi8-u)
 		   (coding-priority cyrillic-koi8-u)
-		   (input-method . "cyrillic-jcuken")
+		   (input-method . "cyrillic-ukrainian")
 		   (features cyril-util)
 		   (unibyte-display . cyrillic-koi8-u)
-		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		   (documentation . "Support for Cyrillic KOI8-U."))
  '("Cyrillic"))
 
@@ -331,6 +339,37 @@
 		  (unibyte-display . cyrillic-alternativnyj)
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		  (documentation . "Support for Cyrillic ALTERNATIVNYJ."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Windows-1251" `((coding-system windows-1251)
+		  (coding-priority windows-1251)
+		  (features codepages)
+		  (documentation . "Support for windows-1251 character set."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Cyrillic-KOI8-T" `((coding-system cyrillic-koi8-t)
+		     (coding-priority cyrillic-koi8-t)
+		     (features codepages)
+		     (documentation . "Support for Cyrillic KOI8-T."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Bulgarian" `((coding-system windows-1251)
+		  (coding-priority windows-1251)
+		  (input-method . "cyrillic-translit-bulgarian")
+		  (features codepages)
+		  (documentation . "Support for Bulgrian with windows-1251 character set."))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Belarussian" `((coding-system windows-1251)
+		  (coding-priority windows-1251)
+		  (input-method . "cyrillic-beylorussian")
+		  (features codepages)
+		  (documentation
+		   . "Support for Belarussian with windows-1251 character set."))
  '("Cyrillic"))
 
 (provide 'cyrillic)
