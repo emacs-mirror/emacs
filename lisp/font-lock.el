@@ -85,6 +85,9 @@
   'italic
   "Face to use for data types.")
 
+(defvar font-lock-no-comments nil
+  "Non-nil means Font-Lock shouldn't check for comments or strings.")
+
 (make-variable-buffer-local 'font-lock-keywords)
 (defvar font-lock-keywords nil
   "*The keywords to highlight.
@@ -261,7 +264,9 @@ slow things down!")
       ;; First scan for strings and comments.
       ;; Must scan from line start in case of
       ;; inserting space into `intfoo () {}'.
-      (font-lock-fontify-region beg (1+ end))
+      (if font-lock-no-comments
+	  (remove-text-properties beg (1+ end) '(face nil))
+	(font-lock-fontify-region beg (min (1+ end) (point-max))))
       ;; Now scan for keywords.
       (font-lock-hack-keywords beg end))))
 
@@ -366,6 +371,7 @@ can use \\[font-lock-fontify-buffer]."
     (set (make-local-variable 'after-change-function)
 	 (if on-p 'font-lock-after-change-function nil))
     (set (make-local-variable 'font-lock-mode) on-p)
+    (make-local-variable 'font-lock-no-comments)
     (cond (on-p
 	   (font-lock-set-defaults)
 	   (make-local-variable 'before-revert-hook)
@@ -413,11 +419,11 @@ This can take a while for large buffers."
     ;; Turn it on to run hooks and get the right font-lock-keywords.
     (or was-on (font-lock-set-defaults))
     (font-lock-unfontify-region (point-min) (point-max))
-    (if font-lock-verbose (message "Fontifying %s... (syntactically...)"
-				   (buffer-name)))
-;;    (buffer-syntactic-context-flush-cache)
+    (if (and font-lock-verbose (not font-lock-no-comments))
+	(message "Fontifying %s... (syntactically...)" (buffer-name)))
     (save-excursion
-      (font-lock-fontify-region (point-min) (point-max))
+      (or font-lock-no-comments
+	  (font-lock-fontify-region (point-min) (point-max)))
       (if font-lock-verbose (message "Fontifying %s... (regexps...)"
 				     (buffer-name)))
       (font-lock-hack-keywords (point-min) (point-max) font-lock-verbose))
@@ -427,25 +433,6 @@ This can take a while for large buffers."
 
 
 ;;; Various mode-specific information.
-
-(defun font-lock-set-defaults ()
-  "Set `font-lock-keywords' to something appropriate for this mode."
-  (if (not font-lock-keywords)		; if not already set.
-      (setq font-lock-keywords
-	    (cond ((eq major-mode 'lisp-mode)	    lisp-font-lock-keywords)
-		  ((eq major-mode 'emacs-lisp-mode) lisp-font-lock-keywords)
-		  ((eq major-mode 'c-mode)	    c-font-lock-keywords)
-		  ((eq major-mode 'c++-c-mode)	    c-font-lock-keywords)
-		  ((eq major-mode 'c++-mode)	    c++-font-lock-keywords)
-		  ((eq major-mode 'perl-mode) 	    perl-font-lock-keywords)
-		  ((eq major-mode 'tex-mode)        tex-font-lock-keywords)
-		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
-		  ((eq major-mode 'shell-mode)      shell-font-lock-keywords)
-		  ((eq major-mode 'dired-mode)      dired-font-lock-keywords)
-		  ((eq major-mode 'rmail-mode)      rmail-font-lock-keywords)
-		  ((eq major-mode 'compilation-mode)
-		   compilation-mode-font-lock-keywords)
-		  (t nil)))))
 
 (defconst lisp-font-lock-keywords-1
  '(;;
@@ -701,6 +688,27 @@ This does a lot more highlighting.")
   '(("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
 ;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
   "Additional expressions to highlight in Compilation mode.")
+
+(defun font-lock-set-defaults ()
+  "Set `font-lock-keywords' to something appropriate for this mode."
+  (if (memq major-mode '(rmail-mode dired-mode compilation-mode shell-mode))
+      (setq font-lock-no-comments t))
+  (if (not font-lock-keywords)		; if not already set.
+      (setq font-lock-keywords
+	    (cond ((eq major-mode 'lisp-mode)	    lisp-font-lock-keywords)
+		  ((eq major-mode 'emacs-lisp-mode) lisp-font-lock-keywords)
+		  ((eq major-mode 'c-mode)	    c-font-lock-keywords)
+		  ((eq major-mode 'c++-c-mode)	    c-font-lock-keywords)
+		  ((eq major-mode 'c++-mode)	    c++-font-lock-keywords)
+		  ((eq major-mode 'perl-mode) 	    perl-font-lock-keywords)
+		  ((eq major-mode 'tex-mode)        tex-font-lock-keywords)
+		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
+		  ((eq major-mode 'shell-mode)      shell-font-lock-keywords)
+		  ((eq major-mode 'dired-mode)      dired-font-lock-keywords)
+		  ((eq major-mode 'rmail-mode)      rmail-font-lock-keywords)
+		  ((eq major-mode 'compilation-mode)
+		   compilation-mode-font-lock-keywords)
+		  (t nil)))))
 
 (provide 'font-lock)
 
