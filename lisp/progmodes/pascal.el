@@ -1,8 +1,8 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 98, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Espen Skoglund <espensk@stud.cs.uit.no>
+;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -55,8 +55,8 @@
 ;; As far as I know, there are no bugs in the current version of this
 ;; package.  This may not be true however, since I never use this mode
 ;; myself and therefore would never notice them anyway.   If you do
-;; find any bugs, you may submit them to: espensk@stud.cs.uit.no
-;; as well as to bug-gnu-emacs@gnu.org.
+;; find any bugs, you may submit them to: esk@gnu.org as well as to
+;; bug-gnu-emacs@gnu.org.
 
 ;;; Code:
 
@@ -784,7 +784,7 @@ on the line which ends a function or procedure named NAME."
     (caseblock . ind) (cpp . 0)
     (declaration . (+ ind pascal-indent-level))
     (paramlist . (pascal-indent-paramlist t))
-    (comment . (pascal-indent-comment t))
+    (comment . (pascal-indent-comment))
     (defun . ind) (contexp . ind)
     (unknown . ind) (string . 0) (progbeg . 0)))
 
@@ -955,16 +955,13 @@ Do not count labels, case-statements or records."
     (skip-chars-forward " \t")
     (current-column)))
 
-(defun pascal-indent-comment (&optional arg)
-  "Indent current line as comment.
-If optional arg is non-nil, just return the
-column number the line should be indented to."
-  (let* ((stcol (save-excursion
-		  (re-search-backward "(\\*\\|{" nil t)
-		  (1+ (current-column)))))
-    (if arg stcol
-      (delete-horizontal-space)
-      (indent-to stcol))))
+(defun pascal-indent-comment ()
+  "Return indent for current comment."
+  (save-excursion
+    (re-search-backward "\\((\\*\\)\\|{" nil t)
+    (if (match-beginning 1)
+	(1+ (current-column))
+      (current-column))))
 
 (defun pascal-indent-case ()
   "Indent within case statements."
