@@ -1,5 +1,12 @@
 2005-01-20  Kim F. Storm  <storm@cua.dk>
 
+	* xterm.c (x_draw_glyph_string_box): Fix last_x for full width rows.
+	Thanks to Chong Yidong <cyd@stupidchicken.com> for debugging this.
+
+	* macterm.c (x_draw_glyph_string_box): Likewise.
+
+	* w32term.c (x_draw_glyph_string_box): Likewise.
+
 	* indent.c (Fvertical_motion): Temporarily disable selective display.
 
 2005-01-19  Kim F. Storm  <storm@cua.dk>
