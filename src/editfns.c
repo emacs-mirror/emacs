@@ -543,7 +543,7 @@ DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
 }
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
-  "Return the current time, as the number of seconds since 12:00 AM January 1970.\n\
+  "Return the current time, as the number of seconds since 1970-01-01 00:00:00.\n\
 The time is returned as a list of three integers.  The first has the\n\
 most significant 16 bits of the seconds, while the second has the\n\
 least significant 16 bits.  The third integer gives the microsecond\n\
