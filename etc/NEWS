@@ -239,6 +239,7 @@ the property `:help HELP' is now displayed under X, on MS-Windows, and
 MS-DOS, either in the echo area or with tooltips.  Many standard menus
 displayed by Emacs now have help strings.
 
++++
 ** Highlighting of mouse-sensitive regions is now supported in the
 MS-DOS version of Emacs.
 
