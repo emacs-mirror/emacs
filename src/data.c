@@ -1179,7 +1179,7 @@ From now on the default value will apply in this buffer.")
    This is like Findirect_function, except that it doesn't signal an
    error if the chain ends up unbound.  */
 Lisp_Object
-indirect_function (object, error)
+indirect_function (object)
   register Lisp_Object object;
 {
   Lisp_Object tortise, hare;
