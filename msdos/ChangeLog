@@ -1,3 +1,8 @@
+2001-07-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (install): Create site-lisp/subdirs.el if it is not
+	already there.
+
 2001-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2.inp: Ifdef away the test for !HAVE_MKTIME, to avoid parse
