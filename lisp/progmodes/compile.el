@@ -561,17 +561,13 @@ Faces `compilation-error-face', `compilation-warning-face',
 	      (setq dir (previous-single-property-change (point) 'directory)
 		    dir (if dir (or (get-text-property (1- dir) 'directory)
 				    (get-text-property dir 'directory)))))
-	    (setq file (cons file (car dir)) ; top of dir stack is current
-		  file (or (gethash file compilation-locs)
-			   (puthash file (list file fmt) compilation-locs)))))
+	    (setq file (cons file (car dir)))))
       ;; This message didn't mention one, get it from previous
       (setq file (previous-single-property-change (point) 'message)
 	    file (or (if file
-			 (nth 2 (car (or (get-text-property (1- file) 'message)
-					 (get-text-property file 'message)))))
-		     ;; no previous either -- but don't let font-lock fail
-		     (gethash (setq file '("*unknown*")) compilation-locs)
-		     (puthash file (list file fmt) compilation-locs))))
+			 (car (nth 2 (car (or (get-text-property (1- file) 'message)
+					 (get-text-property file 'message))))))
+		     '("*unknown*"))))
     ;; All of these fields are optional, get them only if we have an index, and
     ;; it matched some part of the message.
     (and line
@@ -590,74 +586,84 @@ Faces `compilation-error-face', `compilation-warning-face',
 	(setq type (or (and (car type) (match-end (car type)) 1)
 		       (and (cdr type) (match-end (cdr type)) 0)
 		       2)))
-    ;; Get first already existing marker (if any has one, all have one).
-    ;; Do this first, as the compilation-assq`s may create new nodes.
-    (let* ((marker-line (car (cddr file)))	; a line structure
-	   (marker (nth 3 (cadr marker-line)))	; its marker
-	   (compilation-error-screen-columns compilation-error-screen-columns)
-	   end-marker loc end-loc)
-      (if (not (and marker (marker-buffer marker)))
-	  (setq marker)			; no valid marker for this file
-	(setq loc (or line 1)		; normalize no linenumber to line 1
-	      marker-line)
-	(catch 'marker			; find nearest loc, at least one exists
-	  (dolist (x (cddr file))	; loop over lines
-	    (if (> (or (car x) 1) loc)	; still bigger
-		(setq marker-line x)
-	      (if (or (not marker-line)	; first in list
-		      (> (- (or (car marker-line) 1) loc)
-			 (- loc (or (car x) 1)))) ; current line is nearer
-		  (setq marker-line x))
-	      (throw 'marker t))))
-	(setq marker (nth 3 (cadr marker-line))
-	      marker-line (car marker-line))
-	(with-current-buffer (marker-buffer marker)
-	  (save-restriction
-	    (widen)
-	    (goto-char (marker-position marker))
-	    (when (or end-col end-line)
-	      (beginning-of-line (- (or end-line line) marker-line -1))
-	      (if (< end-col 0)
-		  (end-of-line)
-		(if compilation-error-screen-columns
-		    (move-to-column end-col)
-		  (forward-char end-col)))
-	      (setq end-marker (list (point-marker))))
-	    (beginning-of-line (if end-line
-				   (- end-line line -1)
-				 (- loc marker-line -1)))
-	    (if col
-		(if compilation-error-screen-columns
-		    (move-to-column col)
-		  (forward-char col))
-	      (forward-to-indentation 0))
-	    (setq marker (list (point-marker))))))
+    (compilation-internal-error-properties file line end-line col end-col type fmt)))
 
-      (setq loc (compilation-assq line (cdr file)))
-      (if end-line
-	  (setq end-loc (compilation-assq end-line (cdr file))
-		end-loc (compilation-assq end-col end-loc))
-	(if end-col			; use same line element
-	    (setq end-loc (compilation-assq end-col loc))))
-      (setq loc (compilation-assq col loc))
-      ;; If they are new, make the loc(s) reference the file they point to.
-      (or (cdr loc) (setcdr loc `(,line ,file ,@marker)))
-      (if end-loc
-	  (or (cdr end-loc) (setcdr end-loc `(,(or end-line line) ,file ,@end-marker))))
+(defun compilation-internal-error-properties (file line end-line col end-col type fmt)
+  "Get the meta-info that will be added as text-properties.
+LINE, END-LINE, COL, END-COL are integers or nil.
+TYPE can be 0, 1, or 2.
+FILE should be (FILENAME . DIRNAME) or nil."
+  (unless file (setq file '("*unknown*")))
+  (setq file (or (gethash file compilation-locs)
+		 (puthash file (list file fmt) compilation-locs)))
+  ;; Get first already existing marker (if any has one, all have one).
+  ;; Do this first, as the compilation-assq`s may create new nodes.
+  (let* ((marker-line (car (cddr file)))	; a line structure
+	 (marker (nth 3 (cadr marker-line)))	; its marker
+	 (compilation-error-screen-columns compilation-error-screen-columns)
+	 end-marker loc end-loc)
+    (if (not (and marker (marker-buffer marker)))
+	(setq marker)			; no valid marker for this file
+      (setq loc (or line 1)		; normalize no linenumber to line 1
+	    marker-line)
+      (catch 'marker		     ; find nearest loc, at least one exists
+	(dolist (x (cddr file))		; loop over lines
+	  (if (> (or (car x) 1) loc)	; still bigger
+	      (setq marker-line x)
+	    (if (or (not marker-line)	; first in list
+		    (> (- (or (car marker-line) 1) loc)
+		       (- loc (or (car x) 1))))	; current line is nearer
+		(setq marker-line x))
+	    (throw 'marker t))))
+      (setq marker (nth 3 (cadr marker-line))
+	    marker-line (car marker-line))
+      (with-current-buffer (marker-buffer marker)
+	(save-restriction
+	  (widen)
+	  (goto-char (marker-position marker))
+	  (when (or end-col end-line)
+	    (beginning-of-line (- (or end-line line) marker-line -1))
+	    (if (< end-col 0)
+		(end-of-line)
+	      (if compilation-error-screen-columns
+		  (move-to-column end-col)
+		(forward-char end-col)))
+	    (setq end-marker (list (point-marker))))
+	  (beginning-of-line (if end-line
+				 (- end-line line -1)
+			       (- loc marker-line -1)))
+	  (if col
+	      (if compilation-error-screen-columns
+		  (move-to-column col)
+		(forward-char col))
+	    (forward-to-indentation 0))
+	  (setq marker (list (point-marker))))))
 
-      ;; Must start with face
-      `(face ,compilation-message-face
-	     message (,loc ,type ,end-loc)
-	     ,@(if compilation-debug
-		   `(debug (,(assoc (with-no-warnings matcher) font-lock-keywords)
-			    ,@(match-data))))
-	     help-echo ,(if col
-			    "mouse-2: visit this file, line and column"
-			  (if line
-			      "mouse-2: visit this file and line"
-			    "mouse-2: visit this file"))
-	     keymap compilation-button-map
-	     mouse-face highlight))))
+    (setq loc (compilation-assq line (cdr file)))
+    (if end-line
+	(setq end-loc (compilation-assq end-line (cdr file))
+	      end-loc (compilation-assq end-col end-loc))
+      (if end-col			; use same line element
+	  (setq end-loc (compilation-assq end-col loc))))
+    (setq loc (compilation-assq col loc))
+    ;; If they are new, make the loc(s) reference the file they point to.
+    (or (cdr loc) (setcdr loc `(,line ,file ,@marker)))
+    (if end-loc
+	(or (cdr end-loc) (setcdr end-loc `(,(or end-line line) ,file ,@end-marker))))
+
+    ;; Must start with face
+    `(face ,compilation-message-face
+	   message (,loc ,type ,end-loc)
+	   ,@(if compilation-debug
+		 `(debug (,(assoc (with-no-warnings matcher) font-lock-keywords)
+			  ,@(match-data))))
+	   help-echo ,(if col
+			  "mouse-2: visit this file, line and column"
+			(if line
+			    "mouse-2: visit this file and line"
+			  "mouse-2: visit this file"))
+	   keymap compilation-button-map
+	   mouse-face highlight)))
 
 (defun compilation-mode-font-lock-keywords ()
   "Return expressions to highlight in Compilation mode."
@@ -1732,17 +1738,25 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 
 (defun compilation-compat-error-properties (err)
   "Map old-style error ERR to new-style message."
-  (let* ((dst (cdr err))
-	 (loc (cond ((markerp dst) (list nil nil nil dst))
-		    ((consp dst)
-		     (list (nth 2 dst) (nth 1 dst)
-			   (cons (cdar dst) (caar dst)))))))
-    ;; Must start with a face, for font-lock.
-    `(face nil
-      message ,(list loc 2)
-      help-echo "mouse-2: visit the source location"
-      keymap compilation-button-map
-      mouse-face highlight)))
+  ;; Old-style structure is (MARKER (FILE DIR) LINE COL) or
+  ;; (MARKER . MARKER).
+  (let ((dst (cdr err)))
+    (if (markerp dst)
+	;; Must start with a face, for font-lock.
+	`(face nil
+	  message ,(list (list nil nil nil dst) 2)
+	  help-echo "mouse-2: visit the source location"
+	  keymap compilation-button-map
+	  mouse-face highlight)
+      ;; Too difficult to do it by hand: dispatch to the normal code.
+      (let* ((file (pop dst))
+	     (line (pop dst))
+	     (col (pop dst))
+	     (filename (pop file))
+	     (dirname (pop file))
+	     (fmt (pop file)))
+	(compilation-internal-error-properties
+	 (cons filename dirname) line nil col nil 2 fmt)))))
 
 (defun compilation-compat-parse-errors (limit)
   (when compilation-parse-errors-function
