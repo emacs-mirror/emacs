@@ -2323,7 +2323,7 @@ called to run the hook.  If the value is a function, it is called with
 the given arguments and its return value is returned.  If it is a list
 of functions, those functions are called, in order,
 with the given arguments ARGS.
-It is best not to depend on the value return by `run-hook-with-args',
+It is best not to depend on the value returned by `run-hook-with-args',
 as that may change.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
@@ -2339,11 +2339,14 @@ usage: (run-hook-with-args HOOK &rest ARGS)  */)
 DEFUN ("run-hook-with-args-until-success", Frun_hook_with_args_until_success,
        Srun_hook_with_args_until_success, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  Its value should
-be a list of functions.  We call those functions, one by one,
-passing arguments ARGS to each of them, until one of them
+HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
+value, that value may be a function or a list of functions to be
+called to run the hook.  If the value is a function, it is called with
+the given arguments and its return value is returned.
+If it is a list of functions, those functions are called, in order,
+with the given arguments ARGS, until one of them
 returns a non-nil value.  Then we return that value.
-If all the functions return nil, we return nil.
+However, if they all return nil, we return nil.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
@@ -2358,11 +2361,13 @@ usage: (run-hook-with-args-until-success HOOK &rest ARGS)  */)
 DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
        Srun_hook_with_args_until_failure, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  Its value should
-be a list of functions.  We call those functions, one by one,
-passing arguments ARGS to each of them, until one of them
-returns nil.  Then we return nil.
-If all the functions return non-nil, we return non-nil.
+HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
+value, that value may be a function or a list of functions to be
+called to run the hook.  If the value is a function, it is called with
+the given arguments and its return value is returned.
+If it is a list of functions, those functions are called, in order,
+with the given arguments ARGS, until one of them returns nil.
+Then we return nil.  However, if they all return non-nil, we return non-nil.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.

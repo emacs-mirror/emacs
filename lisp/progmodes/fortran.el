@@ -147,7 +147,7 @@ You might want to change this to \"*\", for instance."
   "*Regexp to match a directive line.
 The matching text will be fontified with `font-lock-keyword-face'.
 The matching line will be given zero indentation."
-  :version "21.4"
+  :version "22.1"
   :type    'regexp
   :group   'fortran-indent)
 
@@ -952,7 +952,7 @@ Auto-indent does not happen if a numeric ARG is used."
 			fortran-minimum-statement-indent-tab
 		      fortran-minimum-statement-indent-fixed) (current-column))
                  ;; In col 8 with a single tab to the left.
-		 (eq ?\t (char-after (line-beginning-position))) 
+		 (eq ?\t (char-after (line-beginning-position)))
 		 (not (or (eq last-command 'fortran-indent-line)
 			  (eq last-command
 			      'fortran-indent-new-line))))

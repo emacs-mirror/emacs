@@ -126,7 +126,7 @@ this variable."
 
 (defcustom add-log-always-start-new-record nil
   "*If non-nil, `add-change-log-entry' will always start a new record."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'change-log)
 
@@ -790,7 +790,7 @@ Has a preference of looking backwards."
 		   ;; between that end and the desired position.
 		   (when (save-excursion
 			   (and (> location (point))
-				(re-search-forward "^DEFUN" 
+				(re-search-forward "^DEFUN"
 						   (save-excursion
 						     (goto-char location)
 						     (line-end-position))

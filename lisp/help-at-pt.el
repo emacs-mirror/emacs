@@ -53,7 +53,7 @@
 (defgroup help-at-pt nil
   "Features for displaying local help."
   :group 'help
-  :version "21.4")
+  :version "22.1")
 
 ;;;###autoload
 (defun help-at-pt-string (&optional kbd)

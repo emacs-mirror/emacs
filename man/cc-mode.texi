@@ -41,7 +41,7 @@
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment 
+@comment
 @comment Texinfo manual for CC Mode
 @comment Generated from the original README file by Krishna Padmasola
 @comment <krishna@earth-gw.njit.edu>
@@ -51,7 +51,7 @@
 @comment Martin Stjernholm
 @comment
 @comment Maintained by Martin Stjernholm <bug-cc-mode@gnu.org>
-@comment 
+@comment
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @comment Define an index for syntactic symbols.
@@ -1951,9 +1951,9 @@ for commands concerning those bits.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 The following list of commands reindent C constructs.  Note that when
-you change your coding style, either interactively or through some other 
+you change your coding style, either interactively or through some other
 means, your file does @emph{not} automatically get reindented.  You
-will need to execute one of the following commands to see the effects of 
+will need to execute one of the following commands to see the effects of
 your changes.
 
 @cindex GNU indent program
@@ -2865,9 +2865,9 @@ looked up.  If it's found then the associated style is used.
 If @samp{other} is not found then the @samp{gnu} style is used.
 
 @item
-In all cases, the style described in @code{c-default-style} is installed 
+In all cases, the style described in @code{c-default-style} is installed
 @emph{before} the language hooks are run, so you can always override
-this setting by including an explicit call to @code{c-set-style} in your 
+this setting by including an explicit call to @code{c-set-style} in your
 language mode hook, or in @code{c-mode-common-hook}.
 @end enumerate
 @end defopt
@@ -3051,7 +3051,7 @@ are simply indented two spaces to the right of line 3.  But perhaps we'd
 like @ccmode{} to be a little more intelligent so that it aligns
 all the @samp{<<} symbols in lines 3 through 6.  To do this, we have
 to write a custom indentation function which finds the column of the first
-stream operator on the first line of the statement.  Here is sample 
+stream operator on the first line of the statement.  Here is sample
 lisp code implementing this:
 
 @example
@@ -3878,19 +3878,19 @@ calls.  This example illustrates these:
 @example
  1: void a_function( int line1,
  2:                  int line2 );
- 3: 
+ 3:
  4: void a_longer_function(
  5:     int line1,
  6:     int line2
  7:     );
- 8: 
+ 8:
  9: void call_them( int line1, int line2 )
 10: @{
 11:     a_function(
 12:         line1,
 13:         line2
 14:         );
-15: 
+15:
 16:     a_longer_function( line1,
 17:                        line2 );
 18: @}
@@ -3927,10 +3927,10 @@ covered are illustrated by this C++ example:
  3: @{
  4:     /* this line starts a multiline
  5:      * comment.  This line should get `c' syntax */
- 6: 
+ 6:
  7:     char* a_multiline_string = "This line starts a multiline \
  8: string.  This line should get `string' syntax.";
- 9: 
+ 9:
 10:   note:
 11:     @{
 12: #ifdef LOCK
@@ -4243,7 +4243,7 @@ Indent a multiline block @code{c-basic-offset} extra.  E.g:
 @example
 @group
 int *foo[] = @{
-    NULL,                 
+    NULL,
     @{17@},             @hereFn{c-indent-multi-line-block}
 @end group
 @end example
@@ -4474,7 +4474,7 @@ indentation is added.  E.g:
 @example
 @group
 main (int,
-      char **           
+      char **
      )                @hereFn{c-lineup-close-paren}
 @end group
 @end example
@@ -4684,7 +4684,7 @@ E.g:
 @example
 @group
 class Foo
-    extends           
+    extends
         Bar           @hereFn{c-lineup-java-inher}
     @sssTBasicOffset{}
 @end group
@@ -5548,7 +5548,7 @@ other top-level block constructs in the @ccmode{} languages).
 (@xref{Defuns,,, emacs, The Emacs Editor}, in the Emacs 20 manual).
 
 This heuristic is built into the core syntax analysis routines in
-(X)Emacs, so it's not really a @ccmode{} issue.  However, in Emacs 21.4
+(X)Emacs, so it's not really a @ccmode{} issue.  However, in Emacs 22.1
 it has become possible to turn it off@footnote{Using the variable
 @code{open-paren-in-column-0-is-defun-start}.} and @ccmode{} does so
 there since it got its own system to keep track of blocks.

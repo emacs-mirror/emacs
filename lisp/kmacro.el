@@ -120,7 +120,7 @@
   "Simplified keyboard macro user interface."
   :group 'keyboard
   :group 'convenience
-  :version "21.4"
+  :version "22.1"
   :link '(emacs-commentary-link :tag "Commentary" "kmacro.el")
   :link '(emacs-library-link :tag "Lisp File" "kmacro.el"))
 

@@ -381,7 +381,7 @@ behind the scenes when you open a file with @value{tramp}.
 may be downloaded from
 @uref{http://savannah.nongnu.org/download/tramp/}. This
 release includes the full documentation and code for @value{tramp},
-suitable for installation.  But Emacs (21.4 or later) includes
+suitable for installation.  But Emacs (22.1 or later) includes
 @value{tramp} already, and there is a @value{tramp} package for XEmacs, as well.
 So maybe it is easier to just use those.  But if you want the bleeding
 edge, read on@dots{...}

@@ -88,7 +88,7 @@ documentation of the function `appt-check'."
 
 (make-obsolete-variable 'appt-issue-message
                         "use the function `appt-activate', and the \
-variable `appt-display-format' instead." "21.4")
+variable `appt-display-format' instead." "22.1")
 
 ;;;###autoload
 (defcustom appt-message-warning-time 12
@@ -109,7 +109,7 @@ This variable is only relevant if `appt-msg-window' is nil."
   :type 'boolean
   :group 'appt)
 
-(make-obsolete-variable 'appt-visible 'appt-display-format "21.4")
+(make-obsolete-variable 'appt-visible 'appt-display-format "22.1")
 
 ;;;###autoload
 (defcustom appt-msg-window t
@@ -118,7 +118,7 @@ If non-nil, this variable overrides `appt-visible'."
   :type 'boolean
   :group 'appt)
 
-(make-obsolete-variable 'appt-msg-window 'appt-display-format "21.4")
+(make-obsolete-variable 'appt-msg-window 'appt-display-format "22.1")
 
 ;; TODO - add popup.
 (defcustom appt-display-format 'ignore
@@ -136,7 +136,7 @@ of the (obsolete) variables `appt-msg-window' and `appt-visible'."
           (const :tag "Echo-area" echo)
           (const :tag "No visible display" nil))
   :group 'appt
-  :version "21.4")
+  :version "22.1")
 
 ;;;###autoload
 (defcustom appt-display-mode-line t

@@ -96,7 +96,7 @@ should insert the face name.
 Please send improvements and fixes to the maintainer."
   :type 'regexp
   :group 'find-function
-  :version "21.4")
+  :version "22.1")
 
 (defvar find-function-regexp-alist
   '((nil . find-function-regexp)

@@ -1183,7 +1183,7 @@ links: groups have links to subgroups."
 (defcustom custom-buffer-done-kill nil
   "*Non-nil means exiting a Custom buffer should kill it."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'custom-buffer)
 
 (defcustom custom-buffer-indent 3

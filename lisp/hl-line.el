@@ -58,7 +58,7 @@
 ;; mode is used.
 
 ;; In default whole the line is highlighted. The range of highlighting
-;; can be changed by defining an appropriate function as the 
+;; can be changed by defining an appropriate function as the
 ;; buffer-local value of `hl-line-range-function'.
 
 ;;; Code:
@@ -79,13 +79,13 @@ Otherwise Hl-Line mode will highlight only in the selected
 window.  Setting this variable takes effect the next time you use
 the command `hl-line-mode' to turn Hl-Line mode on."
   :type 'boolean
-  :version "21.4"
+  :version "22.1"
   :group 'hl-line)
 
 (defvar hl-line-range-function nil
   "If non-nil, function to call to return highlight range.
 The function of no args should return a cons cell; its car value
-is the beginning position of highlight and its cdr value is the 
+is the beginning position of highlight and its cdr value is the
 end position of highlight in the buffer.
 It should return nil if there's no region to be highlighted.
 

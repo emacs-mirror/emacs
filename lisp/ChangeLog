@@ -1,3 +1,97 @@
+2005-02-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-ann3): Re-instate GDB command "set
+	width 0" to prevent word wrapping problems.
+
+2005-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-extensions-order): New defcustom.
+	(ido-file-extension-lessp, ido-file-extension-aux)
+	(ido-file-extension-order): New advanced file ordering.
+	(ido-file-lessp): New simple file ordering.
+	(ido-sort-list): Remove.
+	(ido-make-file-list): Use ido-file-lessp or ido-file-extension-lessp.
+	(ido-make-dir-list, ido-completion-help): Use ido-file-lessp.
+
+2005-02-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/grep.el (grep-regexp-alist): Match an optional ^[[K
+	that some versions of grep produce.
+	(grep-mode-font-lock-keywords): Likewise.
+
+2005-02-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-location-list): New variable.
+	(gdb-cdir): Delete
+	(gdb-info-breakpoints-custom, gdb-goto-breakpoint)
+	(gdb-source-info): Treat case when source file is in another
+	directory properly.
+	(gdb-get-location): New function.
+
+2005-02-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (calc-write-parse-table-part)
+	(calc-fix-token-name): Fix a check for language type.
+
+	* calc/calccomp.el (math-compose-expr): Fix a check for language
+	type.
+
+2005-02-07  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-make-version-backup): Ignore file-errors such
+	as directory not writable.
+
+2005-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-max-undo, cua-undo): Remove.
+	(cua--standard-movement-commands): Remove list.
+	Instead, set CUA property value to move for movement commands.
+	(cua-movement-commands): Remove.  Users must set CUA prop instead.
+	(cua--pre-command-handler): Check CUA property.
+	(cua--init-keymaps): Don't remap undo commands.
+	(cua-mode): Don't call cua--rectangle-on-off.
+
+	* emulation/cua-rect.el (cua--undo-list, cua--tidy-undo-counter)
+	(cua--rect-undo, cua--tidy-undo-lists, cua--rectangle-on-off): Remove.
+	(cua--rect-undo-set-point): New var.
+	(cua--rectangle-undo-boundary): Setup undo apply entry.
+	(cua--rect-undo-handler): New function for rectangle undo.
+	(cua--rect-start-position, cua--rect-end-position): Add.
+	(cua--rectangle-post-command): Call cua--rectangle-set-corners
+	for restored rectangle.  Set point if cua--rect-undo-set-point.
+
+2005-02-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el (calc-tex-language): Display more information
+	in messages.
+
+	* calc/calccomp.el (math-compose-expr): Allow multiline matrices
+	in TeX mode.
+
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp.el (buffer-end): Doc fix.
+
+2005-02-05  Arne_J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Support attributes with
+	optional descriptions separated by a semi-colon, as in
+	"userCertificate;binary".
+
+2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-handle-xdnd): Handle the case where the flags
+	isn't a cons (i.e. the version is 0).
+
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.el (help-for-help): Doc fix.
+
+2005-02-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Update copyright. Put GDB-Frames before
+	GDB-Windows on the menu-bar as this works better.
+
 2005-02-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-update): Don't put in
@@ -6610,7 +6704,7 @@
 	(tramp-multi-action-process-alive): New defun.
 	(tramp-multi-actions): Use it.
 	(tramp-handle-find-backup-file-name): `copy-tree' is available
-	since Emacs 21.4 only (XEmacs has it).  Implementation rewritten
+	since Emacs 22.1 only (XEmacs has it).  Implementation rewritten
 	in order to avoid this function.
 	(tramp-handle-write-region): Set current buffer.  If connection
 	wasn't open, `file-modes' has changed it accidently.  Reported by
@@ -11241,7 +11335,7 @@
 	(tramp-async-proc): New variable.
 	(tramp-handle-shell-command): Adding asynchronous processes.
 	They are far from being perfect, but it works at least for
-	`find-grep-dired' and `find-name-dired' in Emacs 21.4.
+	`find-grep-dired' and `find-name-dired' in Emacs 22.1.
 	(top-level): Require password.el if visible.  Should be mandatory
 	once No Gnus has found its way into (X)Emacs.
 	(tramp-read-passwd): Invoke `password-read' if available,
@@ -12852,7 +12946,7 @@
 	Apply `file-attributes' instead of `tramp-handle-file-attributes' in
 	order to make the function more general.
 	(tramp-handle-file-attributes): Replace proprietary optional
-	parameter NONNUMERIC by the recently (Emacs 21.4) introduced ID-FORMAT.
+	parameter NONNUMERIC by the recently (Emacs 22.1) introduced ID-FORMAT.
 	(tramp-handle-file-attributes-with-perl): Handle parameter
 	NONNUMERIC if set.  This wasn't done in the past.
 	(tramp-post-connection): Apply second parameter "$2" if
@@ -12861,7 +12955,7 @@
 	* net/tramp-smb.el (tramp-smb-handle-delete-file):
 	Correct cut'n'waste error (`filename' instead of `directory').
 	(tramp-smb-handle-directory-files-and-attributes)
-	(tramp-smb-handle-file-attributes): Add recently (Emacs 21.4)
+	(tramp-smb-handle-file-attributes): Add recently (Emacs 22.1)
 	introduced parameter ID-FORMAT.
 	(tramp-smb-handle-make-directory-internal): Correct cut'n'waste
 	error (`directory' instead of `ldir').

@@ -711,7 +711,7 @@ incurs extra I/O, hence it slows down directory display
 proportionally to the number of subdirs."
   :group 'speedbar
   :type 'boolean
-  :version 21.4)
+  :version 22.1)
 
 (defun speedbar-add-supported-extension (extension)
   "Add EXTENSION as a new supported extension for speedbar tagging.

@@ -30,7 +30,7 @@
 
 (defgroup url nil
   "Uniform Resource Locator tool"
-  :version "21.4"
+  :version "22.1"
   :group 'hypermedia)
 
 (defgroup url-file nil

@@ -119,7 +119,7 @@ given by the `gnus-summary-same-subject' variable.)"
 
 (defcustom gnus-summary-make-false-root-always nil
   "Always make a false dummy root."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-thread
   :type 'boolean)
 
@@ -220,7 +220,7 @@ If this variable is nil, scoring will be disabled."
   "*Default threshold for a high scored article.
 An article will be highlighted as high scored if its score is greater
 than this score."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-score-default
   :type 'integer)
 
@@ -228,7 +228,7 @@ than this score."
   "*Default threshold for a low scored article.
 An article will be highlighted as low scored if its score is smaller
 than this score."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-score-default
   :type 'integer)
 
@@ -324,7 +324,7 @@ the first unseen article), 'unseen-or-unread' (place point on the subject
 line of the first unseen article or, if all article have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-group-select
   :type '(choice (const best)
 		 (const unread)
@@ -368,7 +368,7 @@ ignores articles whose headers have not been fetched).
 
 NOTE: The list of unfetched articles will always be nil when plugged
 and, when unplugged, a subset of the undownloaded article list."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-maneuvering
   :type '(choice (const :tag "None" nil)
                  (const :tag "Undownloaded when unplugged" undownloaded)
@@ -469,7 +469,7 @@ this variable specifies group names."
 
 (defcustom gnus-spam-mark ?$
   "*Mark used for spam articles."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -500,13 +500,13 @@ this variable specifies group names."
 
 (defcustom gnus-forwarded-mark ?F
   "*Mark used for articles that have been forwarded."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-marks
   :type 'character)
 
 (defcustom gnus-recent-mark ?N
   "*Mark used for articles that are recent."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -522,13 +522,13 @@ this variable specifies group names."
 
 (defcustom gnus-unseen-mark ?.
   "*Mark used for articles that haven't been seen."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-marks
   :type 'character)
 
 (defcustom gnus-no-mark ?               ;Whitespace
   "*Mark used for articles that have no other secondary mark."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -554,7 +554,7 @@ this variable specifies group names."
 
 (defcustom gnus-undownloaded-mark ?-
   "*Mark used for articles that weren't downloaded."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -893,19 +893,19 @@ automatically when it is selected."
 
 (defcustom gnus-summary-article-move-hook nil
   "*A hook called after an article is moved, copied, respooled, or crossposted."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary
   :type 'hook)
 
 (defcustom gnus-summary-article-delete-hook nil
   "*A hook called after an article is deleted."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary
   :type 'hook)
 
 (defcustom gnus-summary-article-expire-hook nil
   "*A hook called after an article is expired."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary
   :type 'hook)
 
@@ -913,7 +913,7 @@ automatically when it is selected."
   (and (fboundp 'display-graphic-p)
        (display-graphic-p))
   "*If non-nil, display an arrow highlighting the current article."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary
   :type 'boolean)
 
@@ -1091,13 +1091,13 @@ type of files to save."
 This is mostly relevant for slow back ends where the user may
 wish to widen the summary buffer to include all headers
 that were fetched.  Say, for nnultimate groups."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary
   :type '(choice boolean regexp))
 
 (defcustom gnus-summary-muttprint-program "muttprint"
   "Command (and optional arguments) used to run Muttprint."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-summary
   :type 'string)
 
@@ -1107,7 +1107,7 @@ Some brain-damaged MUA/MTA, e.g. Lotus Domino 5.0.6 clients, does not
 supply the MIME-Version header or deliberately strip it from the mail.
 Set it to non-nil, Gnus will treat some articles as MIME even if
 the MIME-Version header is missed."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'gnus-article-mime)
 
@@ -1116,7 +1116,7 @@ the MIME-Version header is missed."
 This means that Gnus will search message bodies for text that look
 like uuencoded bits, yEncoded bits, and so on, and present that using
 the normal Gnus MIME machinery."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'gnus-article-mime)
 
@@ -4639,39 +4639,39 @@ Unscored articles will be counted as having a score of zero."
 (defcustom gnus-sum-thread-tree-root "> "
   "With %B spec, used for the root of a thread.
 If nil, use subject instead."
-  :version "21.4"
+  :version "22.1"
   :type '(radio (const :format "%v  " nil) string)
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-false-root "> "
   "With %B spec, used for a false root of a thread.
 If nil, use subject instead."
-  :version "21.4"
+  :version "22.1"
   :type '(radio (const :format "%v  " nil) string)
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-single-indent ""
   "With %B spec, used for a thread with just one message.
 If nil, use subject instead."
-  :version "21.4"
+  :version "22.1"
   :type '(radio (const :format "%v  " nil) string)
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-vertical "| "
   "With %B spec, used for drawing a vertical line."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-indent "  "
   "With %B spec, used for indenting."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-leaf-with-other "+-> "
   "With %B spec, used for a leaf with brothers."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-single-leaf "\\-> "
   "With %B spec, used for a leaf without brothers."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'gnus-thread)
 
@@ -9182,7 +9182,7 @@ If nil, use to the current newsgroup method."
   "If non-nil, show and update the summary buffer as it's being built.
 If the value is t, update the buffer after every line is inserted.  If
 the value is an integer (N), update the display every N lines."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
 		 number

@@ -153,7 +153,7 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	   ;; (set-window-dedicated-p window t)
 	   window))
        ;; If no window yet, make one in a new frame.
-       (let ((frame 
+       (let ((frame
 	      (with-current-buffer buffer
 		(make-frame (append args special-display-frame-alist)))))
 	 (set-window-buffer (frame-selected-window frame) buffer)
@@ -618,7 +618,7 @@ The functions are run with one arg, the newly created frame.")
 
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
-(make-obsolete 'new-frame 'make-frame "21.4")
+(make-obsolete 'new-frame 'make-frame "22.1")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
@@ -1266,7 +1266,7 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 
 ;; miscellaneous obsolescence declarations
 (defvaralias 'delete-frame-hook 'delete-frame-functions)
-(make-obsolete-variable 'delete-frame-hook 'delete-frame-functions "21.4")
+(make-obsolete-variable 'delete-frame-hook 'delete-frame-functions "22.1")
 
 
 ;; Highlighting trailing whitespace.

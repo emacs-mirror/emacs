@@ -233,6 +233,9 @@ recipe (see `end-of-defun').  Major modes can define this if the
 normal method is not appropriate.")
 
 (defun buffer-end (arg)
+  "Return the \"far end\" position of the buffer, moving in direction ARG.
+If ARG is positive, that's the end of the buffer.
+Otherwise, that's the beginning of the buffer."
   (if (> arg 0) (point-max) (point-min)))
 
 (defun end-of-defun (&optional arg)

@@ -65,7 +65,7 @@
 
 (defgroup sieve nil
   "Manage sieve scripts."
-  :version "21.4"
+  :version "22.1"
   :group 'tools)
 
 (defcustom sieve-new-script "<new script>"

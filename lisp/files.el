@@ -305,7 +305,7 @@ Any other non-nil value means ask user whether to add a newline, when saving."
 		 (const :tag "When visiting or saving" visit-save)
 		 (other :tag "Ask" ask))
   :group 'editing-basics
-  :version "21.4")
+  :version "22.1")
 
 (defcustom auto-save-default t
   "*Non-nil says by default do auto-saving of every file-visiting buffer."
@@ -377,7 +377,7 @@ Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
 (defvaralias 'find-file-not-found-hooks 'find-file-not-found-functions)
 (make-obsolete-variable
- 'find-file-not-found-hooks 'find-file-not-found-functions "21.4")
+ 'find-file-not-found-hooks 'find-file-not-found-functions "22.1")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
@@ -388,9 +388,9 @@ functions are called."
   :group 'find-file
   :type 'hook
   :options '(auto-insert)
-  :version "21.4")
+  :version "22.1")
 (defvaralias 'find-file-hooks 'find-file-hook)
-(make-obsolete-variable 'find-file-hooks 'find-file-hook "21.4")
+(make-obsolete-variable 'find-file-hooks 'find-file-hook "22.1")
 
 (defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
@@ -409,12 +409,12 @@ node `(elisp)Saving Buffers'.)  To perform various checks or
 updates before the buffer is saved, use `before-save-hook' .")
 (put 'write-file-functions 'permanent-local t)
 (defvaralias 'write-file-hooks 'write-file-functions)
-(make-obsolete-variable 'write-file-hooks 'write-file-functions "21.4")
+(make-obsolete-variable 'write-file-hooks 'write-file-functions "22.1")
 
 (defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)
-(make-obsolete-variable 'local-write-file-hooks 'write-file-functions "21.4")
+(make-obsolete-variable 'local-write-file-hooks 'write-file-functions "22.1")
 
 (defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
@@ -434,7 +434,7 @@ To perform various checks or updates before the buffer is saved,
 use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
 (defvaralias 'write-contents-hooks 'write-contents-functions)
-(make-obsolete-variable 'write-contents-hooks 'write-contents-functions "21.4")
+(make-obsolete-variable 'write-contents-hooks 'write-contents-functions "22.1")
 
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
@@ -1284,7 +1284,7 @@ suppresses this warning."
 When nil, never request confirmation."
   :group 'files
   :group 'find-file
-  :version "21.4"
+  :version "22.1"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
@@ -2378,7 +2378,7 @@ Add expressions to this list if you want Emacs to evaluate them, when
 they appear in an `eval' local variable specification, without first
 asking you for confirmation."
   :group 'find-file
-  :version "21.4"
+  :version "22.1"
   :type '(repeat sexp))
 
 (put 'c-set-style 'safe-local-eval-function t)
@@ -3470,7 +3470,7 @@ change the additional actions you can take on files."
 	     (buffer-list)
 	     '("buffer" "buffers" "save")
 	     save-some-buffers-action-alist))
-      ;; Maybe to save abbrevs, and record whether 
+      ;; Maybe to save abbrevs, and record whether
       ;; we either saved them or asked to.
       (and save-abbrevs abbrevs-changed
 	   (progn

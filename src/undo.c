@@ -1,5 +1,6 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993, 1994, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994, 2000, 2002, 2004, 2005
+	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -454,6 +455,8 @@ Return what remains of the list.  */)
   Lisp_Object next;
   int count = SPECPDL_INDEX ();
   register int arg;
+  Lisp_Object oldlist;
+  int did_apply = 0;
 
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
@@ -470,6 +473,8 @@ Return what remains of the list.  */)
   arg = XINT (n);
   next = Qnil;
   GCPRO2 (next, list);
+  /* I don't think we need to gcpro oldlist, as we use it only
+     to check for EQ.  ++kfs  */
 
   /* In a writable buffer, enable undoing read-only text that is so
      because of text properties.  */
@@ -478,6 +483,8 @@ Return what remains of the list.  */)
 
   /* Don't let `intangible' properties interfere with undo.  */
   specbind (Qinhibit_point_motion_hooks, Qt);
+
+  oldlist = current_buffer->undo_list;
 
   while (arg > 0)
     {
@@ -549,24 +556,38 @@ Return what remains of the list.  */)
 		}
 	      else if (EQ (car, Qapply))
 		{
-		  Lisp_Object oldlist = current_buffer->undo_list;
-		  /* Element (apply FUNNAME . ARGS) means call FUNNAME to undo.  */
+		  /* Element (apply FUN . ARGS) means call FUN to undo.  */
+		  struct buffer *save_buffer = current_buffer;
+
 		  car = Fcar (cdr);
+		  cdr = Fcdr (cdr);
 		  if (INTEGERP (car))
 		    {
-		      /* Long format: (apply DELTA START END FUNNAME . ARGS).  */
-		      cdr = Fcdr (Fcdr (Fcdr (cdr)));
-		      car = Fcar (cdr);
-		    }
-		  cdr = Fcdr (cdr);
-		  apply1 (car, cdr);
+		      /* Long format: (apply DELTA START END FUN . ARGS).  */
+		      Lisp_Object delta = car;
+		      Lisp_Object start = Fcar (cdr);
+		      Lisp_Object end   = Fcar (Fcdr (cdr));
+		      Lisp_Object start_mark = Fcopy_marker (start, Qnil);
+		      Lisp_Object end_mark   = Fcopy_marker (end, Qt);
 
-		  /* Make sure this produces at least one undo entry,
-		     so the test in `undo' for continuing an undo series
-		     will work right.  */
-		  if (EQ (oldlist, current_buffer->undo_list))
-		    current_buffer->undo_list
-		      = Fcons (list3 (Qapply, Qcdr, Qnil), current_buffer->undo_list);
+		      cdr = Fcdr (Fcdr (cdr));
+		      apply1 (Fcar (cdr), Fcdr (cdr));
+
+		      /* Check that the function did what the entry said it
+			 would do.  */
+		      if (!EQ (start, Fmarker_position (start_mark))
+			  || (XINT (delta) + XINT (end)
+			      != marker_position (end_mark)))
+			error ("Changes to be undone by function different than announced");
+		      Fset_marker (start_mark, Qnil, Qnil);
+		      Fset_marker (end_mark, Qnil, Qnil);
+		    }
+		  else
+		    apply1 (car, cdr);
+
+		  if (save_buffer != current_buffer)
+		    error ("Undo function switched buffer");
+		  did_apply = 1;
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
 		{
@@ -610,6 +631,15 @@ Return what remains of the list.  */)
 	}
       arg--;
     }
+
+
+  /* Make sure an apply entry produces at least one undo entry,
+     so the test in `undo' for continuing an undo series
+     will work right.  */
+  if (did_apply
+      && EQ (oldlist, current_buffer->undo_list))
+    current_buffer->undo_list
+      = Fcons (list3 (Qapply, Qcdr, Qnil), current_buffer->undo_list);
 
   UNGCPRO;
   return unbind_to (count, list);

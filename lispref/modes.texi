@@ -235,9 +235,11 @@ Comments,, Options Controlling Comments, emacs, The GNU Emacs Manual}.
 @item
 @cindex abbrev tables in modes
 The mode may have its own abbrev table or may share one with other
-related modes.  If it has its own abbrev table, it should store this in
-a variable named @code{@var{modename}-mode-abbrev-table}.  @xref{Abbrev
-Tables}.
+related modes.  If it has its own abbrev table, it should store this
+in a variable named @code{@var{modename}-mode-abbrev-table}.  If the
+major mode command defines any abbrevs itself, it should pass @code{t}
+for the @var{system-flag} argument to @code{define-abbrev}.
+@xref{Abbrev Tables}.
 
 @item
 The mode should specify how to do highlighting for Font Lock mode, by
@@ -308,8 +310,9 @@ with value @code{special}, put on as follows:
 @end example
 
 @noindent
-This tells Emacs that new buffers created while the current buffer is in
-Funny mode should not inherit Funny mode.  Modes such as Dired, Rmail,
+This tells Emacs that new buffers created while the current buffer is
+in Funny mode should not inherit Funny mode, in case
+@code{default-major-mode} is @code{nil}.  Modes such as Dired, Rmail,
 and Buffer List use this feature.
 
 @item
@@ -321,9 +324,10 @@ autoload, you should add this element in the same file that calls
 file that contains the mode definition.  @xref{Auto Major Mode}.
 
 @item
-In the documentation, you should provide a sample @code{autoload} form
-and an example of how to add to @code{auto-mode-alist}, that users can
-include in their init files (@pxref{Init File}).
+In the comments that document the file, you should provide a sample
+@code{autoload} form and an example of how to add to
+@code{auto-mode-alist}, that users can include in their init files
+(@pxref{Init File}).
 
 @item
 @cindex mode loading
@@ -341,45 +345,64 @@ the conventions listed above:
 
 @smallexample
 @group
-;; @r{Create mode-specific tables.}
-(defvar text-mode-syntax-table nil
-  "Syntax table used while in text mode.")
+;; @r{Create the syntax table for this mode.}
+(defvar text-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\" ".   " st)
+    (modify-syntax-entry ?\\ ".   " st)
+    ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
+    (modify-syntax-entry ?' "w p" st)
+    st)
+  "Syntax table used while in `text-mode'.")
 @end group
 
+;; @r{Create the keymap for this mode.}
 @group
-(if text-mode-syntax-table
-    ()              ; @r{Do not change the table if it is already set up.}
-  (setq text-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\" ".   " text-mode-syntax-table)
-  (modify-syntax-entry ?\\ ".   " text-mode-syntax-table)
-  (modify-syntax-entry ?' "w   " text-mode-syntax-table))
+(defvar text-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\e\t" 'ispell-complete-word)
+    (define-key map "\es" 'center-line)
+    (define-key map "\eS" 'center-paragraph)
+    map)
+  "Keymap for `text-mode'.
+Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
+inherit all the commands defined in this map.")
 @end group
+@end smallexample
 
+  Here is how the actual mode command is defined now:
+
+@smallexample
 @group
+(define-derived-mode text-mode nil "Text"
+  "Major mode for editing text written for humans to read.
+In this mode, paragraphs are delimited only by blank or white lines.
+You can thus get the full benefit of adaptive filling
+ (see the variable `adaptive-fill-mode').
+\\@{text-mode-map@}
+Turning on Text mode runs the normal hook `text-mode-hook'."
+@end group
+@group
+  (make-local-variable 'text-mode-variant)
+  (setq text-mode-variant t)
+  ;; @r{These two lines are a feature added recently.}
+  (set (make-local-variable 'require-final-newline)
+       mode-require-final-newline)
+  (set (make-local-variable 'indent-line-function) 'indent-relative))
+@end group
+@end smallexample
+
+  But here is how it was defined formerly, before
+@code{define-derived-mode} existed:
+
+@smallexample
+@group
+;; @r{This isn't needed nowadays, since @code{define-derived-mode} does it.}
 (defvar text-mode-abbrev-table nil
   "Abbrev table used while in text mode.")
 (define-abbrev-table 'text-mode-abbrev-table ())
 @end group
 
-@group
-(defvar text-mode-map nil    ; @r{Create a mode-specific keymap.}
-  "Keymap for Text mode.
-Many other modes, such as Mail mode, Outline mode and Indented Text mode,
-inherit all the commands defined in this map.")
-
-(if text-mode-map
-    ()              ; @r{Do not change the keymap if it is already set up.}
-  (setq text-mode-map (make-sparse-keymap))
-  (define-key text-mode-map "\e\t" 'ispell-complete-word)
-  (define-key text-mode-map "\t" 'indent-relative)
-  (define-key text-mode-map "\es" 'center-line)
-  (define-key text-mode-map "\eS" 'center-paragraph))
-@end group
-@end smallexample
-
-  This was formerly the complete major mode function definition for Text mode:
-
-@smallexample
 @group
 (defun text-mode ()
   "Major mode for editing text intended for humans to read...
@@ -396,6 +419,9 @@ Turning on text-mode runs the hook `text-mode-hook'."
   (set-syntax-table text-mode-syntax-table)
 @end group
 @group
+  ;; @r{These four lines are absent from the current version}
+  ;; @r{not because this is done some other way, but rather}
+  ;; @r{because nowadays Text mode uses the normal definition of paragraphs.}
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
@@ -422,36 +448,48 @@ correspondingly more complicated.  Here are excerpts from
 @group
 ;; @r{Create mode-specific table variables.}
 (defvar lisp-mode-syntax-table nil "")
-(defvar emacs-lisp-mode-syntax-table nil "")
 (defvar lisp-mode-abbrev-table nil "")
 @end group
 
 @group
-(if (not emacs-lisp-mode-syntax-table) ; @r{Do not change the table}
-                                       ;   @r{if it is already set.}
+(defvar emacs-lisp-mode-syntax-table
+  (let ((table (make-syntax-table)))
     (let ((i 0))
-      (setq emacs-lisp-mode-syntax-table (make-syntax-table))
 @end group
 
 @group
-      ;; @r{Set syntax of chars up to 0 to class of chars that are}
+      ;; @r{Set syntax of chars up to @samp{0} to say they are}
       ;;   @r{part of symbol names but not words.}
-      ;;   @r{(The number 0 is @code{48} in the @acronym{ASCII} character set.)}
+      ;;   @r{(The digit @samp{0} is @code{48} in the @acronym{ASCII} character set.)}
       (while (< i ?0)
-        (modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
-        (setq i (1+ i)))
-      @dots{}
+	(modify-syntax-entry i "_   " table)
+	(setq i (1+ i)))
+      ;; @r{@dots{} similar code follows for other character ranges.}
 @end group
 @group
-      ;; @r{Set the syntax for other characters.}
-      (modify-syntax-entry ?  "    " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\t "    " emacs-lisp-mode-syntax-table)
-      @dots{}
+      ;; @r{Then set the syntax codes for characters that are special in Lisp.}
+      (modify-syntax-entry ?  "    " table)
+      (modify-syntax-entry ?\t "    " table)
+      (modify-syntax-entry ?\f "    " table)
+      (modify-syntax-entry ?\n ">   " table)
 @end group
 @group
-      (modify-syntax-entry ?\( "()  " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\) ")(  " emacs-lisp-mode-syntax-table)
-      @dots{}))
+      ;; @r{Give CR the same syntax as newline, for selective-display.}
+      (modify-syntax-entry ?\^m ">   " table)
+      (modify-syntax-entry ?\; "<   " table)
+      (modify-syntax-entry ?` "'   " table)
+      (modify-syntax-entry ?' "'   " table)
+      (modify-syntax-entry ?, "'   " table)
+@end group
+@group
+      ;; @r{@dots{}likewise for many other characters@dots{}}
+      (modify-syntax-entry ?\( "()  " table)
+      (modify-syntax-entry ?\) ")(  " table)
+      (modify-syntax-entry ?\[ "(]  " table)
+      (modify-syntax-entry ?\] ")[  " table))
+    table))
+@end group
+@group
 ;; @r{Create an abbrev table for lisp-mode.}
 (define-abbrev-table 'lisp-mode-abbrev-table ())
 @end group
@@ -464,8 +502,8 @@ mode functions:
 @smallexample
 @group
 (defun lisp-mode-variables (lisp-syntax)
-  (cond (lisp-syntax
-	  (set-syntax-table lisp-mode-syntax-table)))
+  (when lisp-syntax
+    (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
   @dots{}
 @end group
@@ -504,6 +542,7 @@ common.  The following code sets up the common commands:
 (defvar shared-lisp-mode-map ()
   "Keymap for commands shared by all sorts of Lisp modes.")
 
+;; @r{Putting this @code{if} after the @code{defvar} is an older style.}
 (if shared-lisp-mode-map
     ()
    (setq shared-lisp-mode-map (make-sparse-keymap))
@@ -557,6 +596,11 @@ if that value is non-nil."
                                          ;   @r{finds out what to describe.}
   (setq mode-name "Lisp")                ; @r{This goes into the mode line.}
   (lisp-mode-variables t)                ; @r{This defines various variables.}
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip
+        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (make-local-variable 'font-lock-keywords-case-fold-search)
+  (setq font-lock-keywords-case-fold-search t)
 @end group
 @group
   (setq imenu-case-fold-search t)
@@ -911,7 +955,8 @@ function, the names of global symbols, and the use of keymaps and
 other tables.
 
   In addition, there are several conventions that are specific to
-minor modes.
+minor modes.  (The easiest way to follow all the conventions is to use
+the macro @code{define-minor-mode}; @ref{Defining Minor Modes}.)
 
 @itemize @bullet
 @item
@@ -1001,7 +1046,7 @@ specify @code{:type boolean}.
 
   If just setting the variable is not sufficient to enable the mode, you
 should also specify a @code{:set} method which enables the mode by
-invoke the mode command.  Note in the variable's documentation string that
+invoking the mode command.  Note in the variable's documentation string that
 setting the variable other than via Custom may not take effect.
 
   Also mark the definition with an autoload cookie (@pxref{Autoload}),
@@ -1124,11 +1169,7 @@ See the command \\[hungry-electric-delete]."
  ;; The indicator for the mode line.
  " Hungry"
  ;; The minor mode bindings.
- '(("\C-\^?" . hungry-electric-delete)
-   ("\C-\M-\^?"
-    . (lambda ()
-        (interactive)
-        (hungry-electric-delete t))))
+ '(("\C-\^?" . hungry-electric-delete))
  :group 'hunger)
 @end smallexample
 
@@ -1137,10 +1178,10 @@ This defines a minor mode named ``Hungry mode'', a command named
 @code{hungry-mode} to toggle it, a variable named @code{hungry-mode}
 which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the
-mode is enabled.  It initializes the keymap with key bindings for
-@kbd{C-@key{DEL}} and @kbd{C-M-@key{DEL}}.  It puts the variable
-@code{hungry-mode} into custom group @code{hunger}.  There are no
-@var{body} forms---many minor modes don't need any.
+mode is enabled.  It initializes the keymap with a key binding for
+@kbd{C-@key{DEL}}.  It puts the variable @code{hungry-mode} into
+custom group @code{hunger}.  There are no @var{body} forms---many
+minor modes don't need any.
 
   Here's an equivalent way to write it:
 
@@ -1216,8 +1257,9 @@ This function also forces recomputation of the menu bar menus
 and the frame title.
 @end defun
 
-  The mode line is usually displayed in inverse video; see
-@code{mode-line-inverse-video} in @ref{Inverse Video}.
+  The selected window's mode line is usually displayed in a different
+color using the face @code{mode-line}.  Other windows' mode lines
+appear in the face @code{mode-line-inactive} instead.  @xref{Faces}.
 
   A window that is just one line tall does not display either a mode
 line or a header line, even if the variables call for one.  A window
@@ -1313,8 +1355,7 @@ A list whose first element is the symbol @code{:propertize} says to
 process the mode-line construct @var{elt} recursively and add the text
 properties specified by @var{props} to the result.  The argument
 @var{props} should consist of zero or more pairs @var{text-property}
-@var{value}.  (This feature is new as of Emacs 21.4.)
-@c FIXME: This might be Emacs 21.5.
+@var{value}.  (This feature is new as of Emacs 22.1.)
 
 @item (@var{symbol} @var{then} @var{else})
 A list whose first element is a symbol that is not a keyword specifies a
@@ -1703,6 +1744,13 @@ keymap, it can bind character keys and function keys; but that has no
 effect, since it is impossible to move point into the mode line.  This
 keymap can only take real effect for mouse clicks.
 
+  When the mode line refers to a variable which does not have a
+non-@code{nil} @code{risky-local-variable} property, any text
+properties given or specified within that variable's values are
+ignored.  This is because such properties could otherwise specify
+functions to be called, and those functions could come from file
+local variables.
+
 @node Header Lines
 @subsection Window Header Lines
 @cindex header line (of a window)
@@ -1770,11 +1818,18 @@ section in the buffer, from a menu which lists all of them, to go
 directly to that location in the buffer.  Imenu works by constructing
 a buffer index which lists the names and buffer positions of the
 definitions, or other named portions of the buffer; then the user can
-choose one of them and move point to it.  The user-level commands for
-using Imenu are described in the Emacs Manual (@pxref{Imenu,, Imenu,
-emacs, the Emacs Manual}).  This section explains how to customize
-Imenu's method of finding definitions or buffer portions for a
-particular major mode.
+choose one of them and move point to it.  Major modes can add a menu
+bar item to use Imenu using @code{imenu-add-to-menubar}.
+
+@defun imenu-add-to-menubar name
+This function defines a local menu bar item named @var{name}
+to run Imenu.
+@end defun
+
+  The user-level commands for using Imenu are described in the Emacs
+Manual (@pxref{Imenu,, Imenu, emacs, the Emacs Manual}).  This section
+explains how to customize Imenu's method of finding definitions or
+buffer portions for a particular major mode.
 
   The usual and simplest way is to set the variable
 @code{imenu-generic-expression}:
@@ -1967,13 +2022,16 @@ comments and string constants, and highlights them using
 (@pxref{Faces for Font Lock}).  Search-based fontification follows.
 
 @menu
-* Font Lock Basics::
-* Search-based Fontification::
-* Other Font Lock Variables::
-* Levels of Font Lock::
-* Precalculated Fontification::
-* Faces for Font Lock::
-* Syntactic Font Lock::
+* Font Lock Basics::            Overview of customizing Font Lock.
+* Search-based Fontification::  Fontification based on regexps.
+* Other Font Lock Variables::   Additional customization facilities.
+* Levels of Font Lock::         Each mode can define alternative levels
+                                  so that the user can select more or less.
+* Precalculated Fontification:: How Lisp programs that produce the buffer
+                                  contents can also specify how to fontify it.
+* Faces for Font Lock::         Special faces specifically for Font Lock.
+* Syntactic Font Lock::         Defining character syntax based on context
+                                  using the Font Lock mechanism.
 @end menu
 
 @node Font Lock Basics
@@ -2357,7 +2415,7 @@ wherever they appear.
 @node Precalculated Fontification
 @subsection Precalculated Fontification
 
-In addition to using @code{font-lock-defaults} for search-based
+  In addition to using @code{font-lock-defaults} for search-based
 fontification, you may use the special character property
 @code{font-lock-face} (@pxref{Special Properties}).  This property
 acts just like the explicit @code{face} property, but its activation
@@ -2393,6 +2451,10 @@ Thus, the default value of @code{font-lock-comment-face} is
 @item font-lock-comment-face
 @vindex font-lock-comment-face
 Used (typically) for comments.
+
+@item font-lock-doc-face
+@vindex font-lock-doc-face
+Used (typically) for documentation strings in the code.
 
 @item font-lock-string-face
 @vindex font-lock-string-face

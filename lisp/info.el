@@ -98,7 +98,7 @@ The Lisp code is executed when the node is selected.")
 
 (defcustom Info-fontify-visited-nodes t
   "*Non-nil means to fontify visited nodes in a different face."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'info)
 
@@ -169,7 +169,7 @@ that you visit a subnode before getting to the end of the menu.
 Setting this option to nil results in behavior similar to the stand-alone
 Info reader program, which visits the first subnode from the menu only
 when you hit the end of the current node."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'info)
 
@@ -177,7 +177,7 @@ when you hit the end of the current node."
   "*If non-nil, hide the tag and section reference in *note and * menu items.
 If value is non-nil but not `hide', also replaces the \"*note\" with \"see\".
 If value is non-nil but not t or `hide', the reference section is still shown."
-  :version "21.4"
+  :version "22.1"
   :type '(choice (const :tag "No hiding" nil)
 		 (const :tag "Replace tag and hide reference" t)
 		 (const :tag "Hide tag and reference" hide)
@@ -188,7 +188,7 @@ If value is non-nil but not t or `hide', the reference section is still shown."
   "*If non-nil, attempt to refill paragraphs with hidden references.
 This refilling may accidentally remove explicit line breaks in the info
 file, so be prepared for a few surprises if you enable this feature."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'info)
 

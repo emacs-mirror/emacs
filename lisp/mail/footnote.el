@@ -89,7 +89,7 @@ If nil, no blank line will be inserted."
 
 (defcustom footnote-section-tag "Footnotes: "
   "*Tag inserted at beginning of footnote section."
-  :version "21.4"
+  :version "22.1"
   :type 'string
   :group 'footnote)
 

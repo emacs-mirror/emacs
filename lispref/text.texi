@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2000, 2001, 2004
+@c 2000, 2001, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/text
@@ -1305,7 +1305,6 @@ You cannot specify any other buffer.
 @end deffn
 
 @deffn Command buffer-disable-undo &optional buffer-or-name
-@deffnx Command buffer-flush-undo &optional buffer-or-name
 @cindex disable undo
 This function discards the undo list of @var{buffer-or-name}, and disables
 further recording of undo information.  As a result, it is no longer
@@ -1314,9 +1313,6 @@ the undo list of @var{buffer-or-name} is already disabled, this function
 has no effect.
 
 This function returns @code{nil}.
-
-The name @code{buffer-flush-undo} is not considered obsolete, but the
-preferred name is @code{buffer-disable-undo}.
 @end deffn
 
   As editing continues, undo lists get longer and longer.  To prevent
@@ -1602,11 +1598,13 @@ becomes buffer-local when set in any fashion.
 @end defvar
 
 @defvar fill-nobreak-predicate
-This variable gives major modes a way to specify not to break a line at
-certain places.  Its value should be a function.  This function is
-called during filling, with no arguments and with point located at the
-place where a break is being considered.  If the function returns
-non-@code{nil}, then the line won't be broken there.
+This variable gives major modes a way to specify not to break a line
+at certain places.  Its value should be a list of functions, but a
+single function is also supported for compatibility.  Whenever filling
+considers breaking the line at a certain place in the buffer, it calls
+each of these functions with no arguments and with point located at
+that place.  If any of the functions returns non-@code{nil}, then the
+line won't be broken there.
 @end defvar
 
 @node Adaptive Fill
@@ -2888,7 +2886,7 @@ Strictly speaking, @code{font-lock-face} is not a built-in text
 property; rather, it is implemented in Font Lock mode using
 @code{char-property-alias-alist}.  @xref{Examining Properties}.
 
-This property is new in Emacs 21.4.
+This property is new in Emacs 22.1.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}

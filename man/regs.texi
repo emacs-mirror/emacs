@@ -12,13 +12,12 @@ once, or many times; you can move point to a position saved in a
 register once, or many times.
 
 @findex view-register
-  Each register has a name, which consists of a single character.
-A register can
-store a piece of text, a rectangle, a position, a window configuration,
-or a file name, but only one thing at any given time.  Whatever you
-store in a register remains there until you store something else in that
-register.  To see what a register @var{r} contains, use @kbd{M-x
-view-register}.
+  Each register has a name, which consists of a single character.  A
+register can store a number, a piece of text, a rectangle, a position,
+a window configuration, or a file name, but only one thing at any
+given time.  Whatever you store in a register remains there until you
+store something else in that register.  To see what a register @var{r}
+contains, use @kbd{M-x view-register}.
 
 @table @kbd
 @item M-x view-register @key{RET} @var{r}

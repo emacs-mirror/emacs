@@ -1,3 +1,75 @@
+2005-02-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi:  Add macro for LaTeX for info output.
+
+2005-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* texinfo.tex (LaTex): Add def.
+
+2005-02-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (TeX Language Mode): Add mention of LaTeX mode, and
+	change name to "TeX and LaTeX Language Modes."  Mention LaTeX mode
+	throughout manual.
+
+2005-02-06  Lute Kamstra  <lute@gnu.org>
+
+	* basic.texi (Undo): Fix typo.
+
+	* cmdargs.texi (Emacs Invocation): Fix typo.
+
+	* custom.texi (Init Examples): Fix typo.
+
+	* abbrevs.texi (Expanding Abbrevs): Fix typo.
+
+2005-02-06  Richard M. Stallman  <rms@gnu.org>
+
+	* regs.texi (Registers): Registers can hold numbers, too.
+
+	* killing.texi (Other Kill Commands): Cleanup.
+	Delete redundant explanation of kill in read-only buffer.
+	(Yanking): Mention term "copying".
+	(Accumulating Text): Fix typo.
+
+	* entering.texi (Entering Emacs): Update rationale at start.
+	(Exiting): Treat iconifying on a par with suspension.
+
+	* custom.texi (Minor Modes): Fix typo.
+	(Easy Customization): Fix menu style.
+	(Variables): Add xref.
+	(Examining): Setting for future sessions works through .emacs.
+	(Keymaps): "Text terminals", not "Many".
+	(Init Rebinding): Explain \C-.  Show example of \M-.
+	Fix minor wording errors.
+	(Function Keys): Explain vector syntax just once.
+	(Named ASCII Chars): Clarify history of TAB/C-i connection.
+	(Init File): Mention .emacs.d directory.
+	(Init Examples): Add xref.
+	(Find Init): Mention .emacs.d directory.
+
+	* cmdargs.texi (Emacs Invocation): +LINENUM is also an option.
+	(Action Arguments): Explain which kinds of -l args are found how.
+	(Initial Options): --batch does not inhibit site-start.
+	Add xrefs.
+	(Command Example): Use --batch, not -batch.
+
+	* basic.texi (Inserting Text): Cleanup wording.
+	(Moving Point): Doc PRIOR, PAGEUP, NEXT, PAGEDOWN more systematically.
+	C-n is not error at end of buffer.
+	(Undo): Doc C-/ like C-_.  Add xrefs.
+	(Arguments): META key may be labeled ALT.
+	Peculiar arg meanings are explained in doc strings.
+
+	* abbrevs.texi (Expanding Abbrevs): Clarify.
+
+2005-02-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Parameters): Add an xref to the description
+	of list-colors-display.  Add a pointer to the X docs about colors.
+
+	* cmdargs.texi (Colors): Mention 16-, 88- and 256-color modes.
+	Impove docs of list-colors-display.
+
 2005-02-03  Lute Kamstra  <lute@gnu.org>
 
 	* frames.texi (Frames, Drag and Drop): Fix typos.
@@ -121,7 +193,7 @@
 	remote files.
 
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
- 
+
  	* man/rmail.texi (Movemail): Explain differences
 	between standard and mailutils versions of movemail.
 	Describe command line and configuration options introduced
@@ -132,7 +204,7 @@
 	user names and user passwords for rmail.
 	(Remote Mailboxes): New section.  Describe
 	how movemail handles remote mailboxes.  Describe configuration
-	options used to control its behavior. 
+	options used to control its behavior.
 	(Other Mailbox Formats): Explain handling of various mailbox
 	formats.
 
@@ -316,7 +388,7 @@
 2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Saving Customizations): Emacs only loads the custom
-	file automatically after the init file in version 21.4 or later.
+	file automatically after the init file in version 22.1 or later.
 	Adapt text and examples to this fact.
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, $(infodir)/org)
@@ -869,7 +941,7 @@
 
 	* reftex.texi (AUCTeX): Update links, section name.
 
-	* faq.texi (Calc): Update availability (included in 21.4).
+	* faq.texi (Calc): Update availability (included in 22.1).
 	(AUCTeX): Update availability, information, versions, description.
 
 2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>

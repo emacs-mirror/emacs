@@ -274,7 +274,7 @@ You can insert subdirectories with specified @code{ls} switches in
 Dired buffers, using @kbd{C-u i}.  You can change the @code{ls}
 switches of an already inserted subdirectory using @kbd{C-u l}.
 
-In Emacs versions 21.4 and later, Dired remembers the switches, so
+In Emacs versions 22.1 and later, Dired remembers the switches, so
 that reverting the buffer will not change them back to the main
 directory's switches.  Deleting a subdirectory forgets about its
 switches.

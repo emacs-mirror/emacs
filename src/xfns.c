@@ -1408,10 +1408,14 @@ x_set_tool_bar_lines (f, value, oldval)
       int width = FRAME_PIXEL_WIDTH (f);
       int y = nlines * FRAME_LINE_HEIGHT (f);
 
-      BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height, False);
-      UNBLOCK_INPUT;
+      /* height can be zero here. */
+      if (height > 0 && width > 0)
+	{
+          BLOCK_INPUT;
+          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                        0, y, width, height, False);
+          UNBLOCK_INPUT;
+        }
 
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
@@ -4086,8 +4090,13 @@ Value is VALUE.  */)
         data = (unsigned char *) xmalloc (nelements);
       else if (element_format == 16)
         data = (unsigned char *) xmalloc (nelements*2);
-      else
-        data = (unsigned char *) xmalloc (nelements*4);
+      else /* format == 32 */
+        /* The man page for XChangeProperty:
+               "If the specified format is 32, the property data must be a
+                long array."
+           This applies even if long is more than 64 bits.  The X library
+           converts to 32 bits before sending to the X server.  */
+        data = (unsigned char *) xmalloc (nelements * sizeof(long));
 
       x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
     }
@@ -4222,6 +4231,30 @@ no value of TYPE.  */)
 			       (unsigned char **) &tmp_data);
       if (rc == Success && tmp_data)
         {
+          /* The man page for XGetWindowProperty says:
+             "If the returned format is 32, the returned data is represented
+             as a long array and should be cast to that type to obtain the
+             elements."
+             This applies even if long is more than 32 bits, the X library
+             converts from 32 bit elements received from the X server to long
+             and passes the long array to us.  Thus, for that case bcopy can not
+             be used.  We convert to a 32 bit type here, because so much code
+             assume on that.
+
+             The bytes and offsets passed to XGetWindowProperty refers to the
+             property and those are indeed in 32 bit quantities if format is
+             32.  */
+
+          if (actual_format == 32 && actual_format < BITS_PER_LONG)
+            {
+              unsigned long i;
+              int  *idata = (int *) tmp_data;
+              long *ldata = (long *) tmp_data;
+
+              for (i = 0; i < actual_size; ++i)
+                idata[i]= (int) ldata[i];
+            }
+
           if (NILP (vector_ret_p))
             prop_value = make_string (tmp_data, size);
           else
@@ -5437,6 +5470,22 @@ usual X keysyms.  */)
       UNBLOCK_INPUT;
       return Qnil;
     }
+
+  /* In this code we check that the keyboard has physical keys with names
+     that start with BKSP (Backspace) and DELE (Delete), and that they
+     generate keysym XK_BackSpace and XK_Delete respectively.
+     This function is used to test if normal-erase-is-backspace should be
+     turned on.
+     An alternative approach would be to just check if XK_BackSpace and
+     XK_Delete are mapped to any key.  But if any of those are mapped to
+     some non-intuitive key combination (Meta-Shift-Ctrl-whatever) and the
+     user doesn't know about it, it is better to return false here.
+     It is more obvious to the user what to do if she/he has two keys
+     clearly marked with names/symbols and one key does something not
+     expected (i.e. she/he then tries the other).
+     The cases where Backspace/Delete is mapped to some other key combination
+     are rare, and in those cases, normal-erase-is-backspace can be turned on
+     manually.  */
 
   have_keys = Qnil;
   kb = XkbGetMap (dpy, XkbAllMapComponentsMask, XkbUseCoreKbd);

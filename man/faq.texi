@@ -424,7 +424,7 @@ individual postings from, but pretty much everything is there.
 
 The archive is at @uref{ftp://ftp-mailing-list-archives.gnu.org}.
 
-The archive can be browsed over the web at 
+The archive can be browsed over the web at
 @uref{http://mail.gnu.org/archive/html/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
@@ -2633,7 +2633,7 @@ on DOS and Windows, where the DOS end-of-line (EOL) format is the
 default, a backslash (@samp{\}) will appear in the mode line.
 
 If you are running a version of Emacs before 20.1, get @code{crypt++}
-(@pxref{Packages that do not come with Emacs}).  Among other things, 
+(@pxref{Packages that do not come with Emacs}).  Among other things,
 @code{crypt++} transparently modifies MS-DOS files as they are loaded
 and saved, allowing you to ignore the different conventions that Unix
 and MS-DOS have for delineating the end of a line.
@@ -3300,10 +3300,10 @@ distribution site, sources are available as
 @uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-@value{VER}.tar.gz}
 
 The above will obviously change as new versions of Emacs come out.  For
-instance, when Emacs 21.42 is released, it will most probably be
+instance, when Emacs 22.42 is released, it will most probably be
 available as
 
-@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-21.42.tar.gz}
+@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-22.42.tar.gz}
 
 Again, you should use one of the GNU mirror sites (see @ref{Current GNU
 distributions}, and adjust the URL accordingly) so as to reduce load on
@@ -3543,7 +3543,7 @@ see @ref{Packages that do not come with Emacs}.
 List (ELL)}, maintained by @email{stephen@@anc.ed.ac.uk, Stephen Eglen},
 aims to provide one compact list with links to all of the current Emacs
 Lisp files on the internet.  The ELL can be browsed over the web, or
-from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el, 
+from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el,
 the @file{ell} package}.
 
 Many authors post their packages to the @uref{news:gnu.emacs.sources,
@@ -3805,7 +3805,7 @@ available at @uref{http://vms.gnu.org/}.
 
 Most of these modes are now available in standard Emacs distribution.
 To get additional modes, see @ref{Finding a package with particular
-functionality}.  
+functionality}.
 
 Barry Warsaw's @code{cc-mode} now works for C, C@t{++}, Objective-C, and
 Java code.  It is distributed with Emacs, but has
@@ -3932,7 +3932,7 @@ Superyank is an old version of Supercite.
 @email{daveg@@csvax.cs.caltech.edu, Dave Gillespie}
 
 @item Latest version
-2.02g (part of Emacs since version 21.4)
+2.02g (part of Emacs since version 22.1)
 
 @item Distribution
 No separate distribution outside of Emacs.  Older versions

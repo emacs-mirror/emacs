@@ -47,7 +47,7 @@ The function shall return nil to reject the drop or a cons with two values,
 the wanted action as car and the wanted type as cdr.  The wanted action
 can be copy, move, link, ask or private.
 The default value for this variable is `x-dnd-default-test-function'."
-  :version "21.4"
+  :version "22.1"
   :type 'symbol
   :group 'x)
 
@@ -70,7 +70,7 @@ Insertion of text is not handeled by these functions, see `x-dnd-types-alist'
 for that.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
-  :version "21.4"
+  :version "22.1"
   :type 'alist
   :group 'x)
 
@@ -98,13 +98,13 @@ this drop (copy, move, link, private or ask) as determined by a previous
 call to `x-dnd-test-function'.  DATA is the drop data.
 The function shall return the action used (copy, move, link or private) if drop
 is successful, nil if not."
-  :version "21.4"
+  :version "22.1"
   :type 'alist
   :group 'x)
 
 (defcustom x-dnd-open-file-other-window nil
   "If non-nil, always use find-file-other-window to open dropped files."
-  :version "21.4"
+  :version "22.1"
   :type 'boolean
   :group 'x)
 
@@ -124,7 +124,7 @@ is successful, nil if not."
     )
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
-  :version "21.4"
+  :version "22.1"
   :type '(repeat string)
   :group 'x
 )
@@ -135,10 +135,10 @@ The types are chosen in the order they appear in the list."
   "The current state for a drop.
 This is an alist with one entry for each display.  The value for each display
 is a vector that contains the state for drag and drop for that display.
-Elements in the vector are: 
+Elements in the vector are:
 Last buffer drag was in,
 last window drag was in,
-types available for drop, 
+types available for drop,
 the action suggested by the source,
 the type we want for the drop,
 the action we want for the drop,
@@ -210,7 +210,7 @@ action and type we got from `x-dnd-test-function'."
 	       (handler (cdr (assoc (cdr action-type) x-dnd-types-alist))))
 	  ;; Ignore action-type if we have no handler.
 	  (setq current-state
-		(x-dnd-save-state window 
+		(x-dnd-save-state window
 				  action
 				  (when handler action-type)))))))
   (let ((current-state (x-dnd-get-state-for-frame window)))
@@ -301,13 +301,13 @@ Return nil if URI is not a local file."
 		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
 		  (substring uri (match-end 0))))))
     (when (and f must-exist)
-      (let* ((decoded-f (decode-coding-string 
+      (let* ((decoded-f (decode-coding-string
 			 f
 			 (or file-name-coding-system
 			     default-file-name-coding-system)))
 	     (try-f (if (file-readable-p decoded-f) decoded-f f)))
 	(when (file-readable-p try-f) try-f)))))
-	
+
 
 (defun x-dnd-open-local-file (uri action)
   "Open a local file.
@@ -558,18 +558,20 @@ EVENT is the client message.  FRAME is where the mouse is now.
 WINDOW is the window within FRAME where the mouse is now.
 FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
   (cond ((equal "XdndEnter" message)
-	 (let ((version (ash (car (aref data 1)) -8))
-	       (more-than-3 (cdr (aref data 1)))
-	       (dnd-source (aref data 0)))
-	   (x-dnd-save-state 
-	    window nil nil
-	    (if (> more-than-3 0)
-		(x-window-property "XdndTypeList"
-				   frame "AnyPropertyType"
-				   dnd-source nil t)
-	      (vector (x-get-atom-name (aref data 2))
-		      (x-get-atom-name (aref data 3))
-		      (x-get-atom-name (aref data 4)))))))
+	 (let* ((flags (aref data 1))
+		(version (and (consp flags) (ash (car flags) -8)))
+		(more-than-3 (and (consp flags) (cdr flags)))
+		(dnd-source (aref data 0)))
+	   (if version  ;; If flags is bad, version will be nil.
+	       (x-dnd-save-state
+		window nil nil
+		(if (> more-than-3 0)
+		    (x-window-property "XdndTypeList"
+				       frame "AnyPropertyType"
+				       dnd-source nil t)
+		  (vector (x-get-atom-name (aref data 2))
+			  (x-get-atom-name (aref data 3))
+			  (x-get-atom-name (aref data 4))))))))
 
 	((equal "XdndPosition" message)
 	 (let* ((x (car (aref data 2)))
@@ -589,7 +591,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			(frame-parameter frame 'outer-window-id))
 		       accept ;; 1 = Accept, 0 = reject.
 		       (x-dnd-get-drop-x-y frame window)
-		       (x-dnd-get-drop-width-height 
+		       (x-dnd-get-drop-width-height
 			frame window (eq accept 1))
 		       (or reply-action 0)
 		       )))
@@ -611,9 +613,9 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 	   (setq action (if value
 			    (condition-case info
-				(x-dnd-drop-data event frame window value 
+				(x-dnd-drop-data event frame window value
 						 (x-dnd-current-type window))
-			      (error 
+			      (error
 			       (message "Error: %s" info)
 			       nil))))
 
@@ -737,7 +739,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	  ((eq message-type 'XmDRAG_MOTION)
 	   (let* ((state (x-dnd-get-state-for-frame frame))
 		  (timestamp (x-dnd-motif-value-to-list
-			      (x-dnd-get-motif-value data 4 4 
+			      (x-dnd-get-motif-value data 4 4
 						     source-byteorder)
 			      4 my-byteorder))
 		  (x (x-dnd-motif-value-to-list
@@ -756,7 +758,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		  (reply-flags
 		   (x-dnd-motif-value-to-list
 		    (if reply-action
-			(+ reply-action 
+			(+ reply-action
 			   ?\x30	; 30:  valid drop site
 			   ?\x700)	; 700: can do copy, move or link
 		      ?\x30)		; 30:  drop site, but noop.
@@ -793,7 +795,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		  (reply-flags
 		   (x-dnd-motif-value-to-list
 		    (if reply-action
-			(+ reply-action 
+			(+ reply-action
 			   ?\x30	; 30:  valid drop site
 			   ?\x700)	; 700: can do copy, move or link
 		      ?\x30)		; 30:  drop site, but noop
@@ -832,7 +834,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		  (reply-flags
 		   (x-dnd-motif-value-to-list
 		    (if reply-action
-			(+ reply-action 
+			(+ reply-action
 			   ?\x30	; 30:  valid drop site
 			   ?\x700)	; 700: can do copy, move or link
 		      (+ ?\x30		; 30:  drop site, but noop.
@@ -846,7 +848,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			  reply-flags
 			  x
 			  y))
-		  (timestamp (x-dnd-get-motif-value 
+		  (timestamp (x-dnd-get-motif-value
 			      data 4 4 source-byteorder))
 		  action)
 
@@ -856,26 +858,26 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 				    "_MOTIF_DRAG_AND_DROP_MESSAGE"
 				    8
 				    reply)
-	     (setq action 
+	     (setq action
 		   (when (and reply-action atom-name)
 		     (let* ((value (x-get-selection-internal
 				    (intern atom-name)
 				    (intern (x-dnd-current-type window)))))
 		       (when value
 			 (condition-case info
-			     (x-dnd-drop-data event frame window value 
+			     (x-dnd-drop-data event frame window value
 					      (x-dnd-current-type window))
 			   (error
 			    (message "Error: %s" info)
 			    nil))))))
 	     (x-get-selection-internal
-	      (intern atom-name)	  
+	      (intern atom-name)
 	      (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
 	      timestamp)
 	     (x-dnd-forget-drop frame)))
 
 	  (t (error "Unknown Motif DND message %s %s" message-atom data)))))
-					   
+
 
 ;;;
 

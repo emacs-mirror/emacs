@@ -62,7 +62,7 @@
   "*If non-nil, frames on all displays will be considered useable by Gnus.
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-windows
   :type 'boolean)
 
@@ -199,7 +199,7 @@ See the Gnus manual for an explanation of the syntax used.")
 
 (defcustom gnus-configure-windows-hook nil
   "*A hook called when configuring windows."
-  :version "21.4"
+  :version "22.1"
   :group 'gnus-windows
   :type 'hook)
 

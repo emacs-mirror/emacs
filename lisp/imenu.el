@@ -107,7 +107,7 @@ This variable is buffer-local."
 
 (defvar imenu-always-use-completion-buffer-p nil)
 (make-obsolete-variable 'imenu-always-use-completion-buffer-p
-			'imenu-use-popup-menu "21.4")
+			'imenu-use-popup-menu "22.1")
 
 (defcustom imenu-use-popup-menu
   (if imenu-always-use-completion-buffer-p
@@ -126,7 +126,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
   "If non-nil, eagerly popup the completion buffer."
   :type 'boolean
   :group 'imenu
-  :version "21.4")
+  :version "22.1")
 
 (defcustom imenu-after-jump-hook nil
   "*Hooks called after jumping to a place in the buffer.

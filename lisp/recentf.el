@@ -192,7 +192,7 @@ elements (see `recentf-make-menu-element' for menu element form)."
   'recentf-menu-append-commands-flag)
 (make-obsolete-variable 'recentf-menu-append-commands-p
                         'recentf-menu-append-commands-flag
-                        "21.4")
+                        "22.1")
 
 (defcustom recentf-keep-non-readable-files-flag nil
   "*non-nil means to keep non readable files in the recent list."
@@ -203,7 +203,7 @@ elements (see `recentf-make-menu-element' for menu element form)."
   'recentf-keep-non-readable-files-flag)
 (make-obsolete-variable 'recentf-keep-non-readable-files-p
                         'recentf-keep-non-readable-files-flag
-                        "21.4")
+                        "22.1")
 
 (defcustom recentf-auto-cleanup 'mode
   "*Define when to automatically cleanup the recent list.
@@ -740,7 +740,7 @@ Arrange them in sub-menus following rules in `recentf-arrange-rules'."
                 elts  (cdr elts)))
         (unless menu
           (push elt others)))
-      
+
       (setq l nil
             min (if (natnump recentf-arrange-by-rules-min-items)
                     recentf-arrange-by-rules-min-items 0))
@@ -755,7 +755,7 @@ Arrange them in sub-menus following rules in `recentf-arrange-rules'."
              menu (recentf-apply-menu-filter
                    recentf-arrange-by-rule-subfilter (nreverse elts)))
             (push menu l))))
-      
+
       (if (and (stringp recentf-arrange-by-rule-others) others)
           (nreverse
            (cons
