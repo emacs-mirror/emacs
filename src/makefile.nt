@@ -238,9 +238,7 @@ bootstrap-temacs: bootstrap-clean
 # files from loadup.el in source form.
 #
 bootstrap-emacs: bootstrap-temacs
-		cd $(BLD)
 		$(MAKEDIR)\$(BLD)\temacs.exe -batch -l loadup bootstrap
-		cd ..\..
 		- mkdir ..\bin
 		$(CP) $(EMACS) ..\bin
 
