@@ -1724,8 +1724,9 @@ Returns the window displaying BUFFER.")
       && XBUFFER (XWINDOW (selected_window)->buffer) == XBUFFER (buffer))
     return selected_window;
 
-  /* If pop_up_frames, look for a window on any frame, showing BUFFER.  */
-  window = Fget_buffer_window (buffer, pop_up_frames ? Qt : Qnil);
+  /* If pop_up_frames,
+     look for a window showing BUFFER on any visible frame.  */
+  window = Fget_buffer_window (buffer, pop_up_frames ? Qvisible : Qnil);
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     return window;
