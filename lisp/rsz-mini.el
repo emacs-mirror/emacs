@@ -6,8 +6,8 @@
 ;;;         Roland McGrath <roland@prep.ai.mit.edu>
 ;;; Maintainer: friedman@prep.ai.mit.edu
 ;;; Keywords: minibuffer, window, frame, display
-;;; Status: Known to work in FSF GNU Emacs 19.23.
-;;; $Id$
+;;; Status: Known to work in FSF GNU Emacs 19.26 and later.
+;;; $Id: rsz-mini.el,v 1.3 1994/05/20 17:43:40 friedman Exp friedman $
 
 ;; This file is part of GNU Emacs.
 
@@ -37,6 +37,11 @@
 ;;; GNU Emacs 19.22 and earlier, the frame may not be properly returned to
 ;;; its original size after it ceases to be active because
 ;;; `minibuffer-exit-hook' didn't exist until version 19.23.
+;;;
+;;; Prior to Emacs 19.26, minibuffer-exit-hook wasn't called after exiting
+;;; from the minibuffer by hitting the quit char.  That meant that the
+;;; frame size restoration function wasn't being called in that case.  In
+;;; 19.26 or later, minibuffer-exit-hook should be called anyway.
 
 ;;; Note that the minibuffer and echo area are not the same!  They simply
 ;;; happen to occupy roughly the same place on the frame.  Messages put in
@@ -51,7 +56,7 @@
 ;;;     (autoload 'resize-minibuffer-mode "rsz-mini" nil t)
 ;;;
 ;;; Invoking the command `resize-minibuffer-mode' will then enable this mode.
-;;; Simply loading this file will enable resize-minibuffer-mode.
+;;; Simply loading this file will also enable it.
 
 ;;; Code:
 
@@ -68,14 +73,16 @@ which the active minibuffer window resides.")
 
 ;;;###autoload
 (defvar resize-minibuffer-window-exactly t
-  "*If non-`nil', make minibuffer exactly the size needed to display all its contents.
-Otherwise, the minibuffer window can temporarily increase in size but
-never get smaller while it is active.")
+  "*Allow making minibuffer exactly the size to display all its contents.
+If `nil', the minibuffer window can temporarily increase in size but
+never get smaller while it is active.  Any other value allows exact
+resizing.")
 
-
 ;;;###autoload
 (defvar resize-minibuffer-frame nil
-  "*If non-`nil' and the active minibuffer is the sole window in its frame, allow changing the frame height.")
+  "*Allow changing the frame height of minibuffer frames.
+If non-`nil' and the active minibuffer is the sole window in its frame,
+allow changing the frame height.")
 
 ;;;###autoload
 (defvar resize-minibuffer-frame-max-height nil
@@ -83,10 +90,16 @@ never get smaller while it is active.")
 If less than 1 or not a number, there is no limit.")
 
 ;;;###autoload
-(defvar resize-minibuffer-frame-exactly nil
-  "*If non-`nil', make minibuffer frame exactly the size needed to display all its contents.
-Otherwise, the minibuffer frame can temporarily increase in size but
-never get smaller while it is active.")
+(defvar resize-minibuffer-frame-exactly t
+  "*Allow making minibuffer frame exactly the size to display all its contents.
+If `nil', the minibuffer frame can temporarily increase in size but
+never get smaller while it is active.  Any other value allows exact
+resizing.")
+
+;; Variable used to store the height of the minibuffer frame
+;; on entry, so it can be restored on exit.  It is made local before it is
+;; modified.  Do not use it yourself.
+(defvar resize-minibuffer-frame-original-height nil)
 
 
 ;;;###autoload
@@ -131,13 +144,21 @@ counterparts."
            (eq 'only (cdr (assq 'minibuffer (frame-parameters)))))
       (and resize-minibuffer-frame
            (progn
+             ;; Squirrel away the current height of the frame so we can
+             ;; restore it later.  We do this rather than trusting the
+             ;; value in minibuffer-frame-alist since the frame can be
+             ;; resized by the window manager and that variable isn't updated.
+             (make-local-variable 'resize-minibuffer-frame-original-height)
+             (setq resize-minibuffer-frame-original-height (frame-height))
              (make-local-variable 'minibuffer-exit-hook)
              (add-hook 'minibuffer-exit-hook 'resize-minibuffer-frame-restore)
              (make-local-variable 'post-command-hook)
-             (add-hook 'post-command-hook 'resize-minibuffer-frame))))
+             (add-hook 'post-command-hook 'resize-minibuffer-frame 'append))))
      (t
       (make-local-variable 'post-command-hook)
-      (add-hook 'post-command-hook 'resize-minibuffer-window))))))
+      (add-hook 'post-command-hook 'resize-minibuffer-window 'append)
+      (make-local-variable 'minibuffer-exit-hook)
+      (add-hook 'minibuffer-exit-hook 'resize-minibuffer-window-restore))))))
 
 (defun resize-minibuffer-count-window-lines (&optional start end)
   "Return number of window lines occupied by text in region.
@@ -159,7 +180,7 @@ respectively."
 
 
 ;; Resize the minibuffer window to contain the minibuffer's contents.
-;; The minibuffer must be the current window.
+;; The minibuffer window must be current.
 (defun resize-minibuffer-window ()
   (let ((height (window-height))
         (lines (1+ (resize-minibuffer-count-window-lines))))
@@ -170,6 +191,24 @@ respectively."
             (= lines height)
           (<= lines height))
         (enlarge-window (- lines height)))))
+
+;; This resizes the minibuffer back to one line as soon as it is exited
+;; (e.g. when the user hits RET).  This way, subsequent messages put in the
+;; echo area aren't cluttered with leftover minibuffer text.
+;; It should be called by minibuffer-exit-hook.
+;;
+;; Note that because it calls sit-for to force a screen update, strange
+;; things may happen in the minibuffer, such as unexpanded partial
+;; completions by complete.el showing their completion.
+;; If this bothers you, just redefine this function to do nothing, in, say,
+;; your after-load-alist.  Perhaps there should be an option variable,
+;; but I don't know if there's really any demand for it.
+;; (Clobbering this definition is harmless because eventually emacs restores
+;; its idea of the minibuffer window size when the minibuffer isn't in use
+;; anyway; this is just a kludge because of the timing for that update).
+(defun resize-minibuffer-window-restore ()
+  (enlarge-window (- 1 (window-height)))
+  (sit-for 0))
 
 
 ;; Resize the minibuffer frame to contain the minibuffer's contents.
@@ -184,15 +223,17 @@ respectively."
      ((> lines height)
       (set-frame-size (selected-frame) (frame-width) lines))
      ((and resize-minibuffer-frame-exactly
-           (> height (cdr (assq 'height minibuffer-frame-alist)))
+           (> height resize-minibuffer-frame-original-height)
            (< lines height))
       (set-frame-size (selected-frame) (frame-width) lines)))))
 
 ;; Restore the original height of the frame.
+;; resize-minibuffer-frame-original-height is set in
+;; resize-minibuffer-setup.
 (defun resize-minibuffer-frame-restore ()
   (set-frame-size (selected-frame)
                   (frame-width)
-                  (cdr (assq 'height minibuffer-frame-alist))))
+                  resize-minibuffer-frame-original-height))
 
 
 (provide 'rsz-mini)
