@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on Data General's DG/UX
-   version 4.32 and above.
-   Copyright (C) 1985, 1986, 1991 Free Software Foundation, Inc.
+   version 4.32 upto and including 5.4.1.
+   Copyright (C) 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-
 /*
  *	Define symbols to identify the version of Unix this is.
  *	Define all the symbols that apply correctly.
@@ -34,7 +33,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define BSD4_3
 #define BSD4_4
 #define BSD
-#define SVR4
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
@@ -64,17 +62,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    to read the input and send it to the true Emacs process
    through a pipe.
 
-NOTE: On DGUX, there is a problem using INTERRUPT_INPUT: When invoked
-under X11 using a job control shell (csh, ksh) in the background,
-emacs will stop on tty output.  I suspect this is a kernel problem and
-have reported it and a sample program to DGC.  Meanwhile, a workaround
-is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
-
--pmr@rock.concert.net
 */
 
-#define BROKEN_FIONREAD
-/* #define INTERRUPT_INPUT */
+#define INTERRUPT_INPUT
 
 /*
  *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
@@ -257,8 +247,6 @@ is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
  *      Use BSD and POSIX-style signals.  This is crucial!
  */
 
-/* pmr now says the GNU malloc works.  */
-/* pmr@rock.concert.net says Emacs fails without this.  We don't know why.  */
 /* #define SYSTEM_MALLOC */
 
 /* MAKING_MAKEFILE must be defined in "ymakefile" before including config.h */
@@ -296,12 +284,8 @@ extern struct sigaction act, oact;
 CC=gcc
 #endif /* not THIS_IS_YMAKEFILE */
 
-#define LD_SWITCH_SYSTEM
+#define ORDINARY_LINK
 #define START_FILES pre-crt0.o
-#if 0  /* Shawn M. Carey <smcarey@mailbox.syr.edu> found this
-	  caused trouble on DGUX 5.4.2.  */
-#define LIBS_SYSTEM -ldgc
-#endif
 #define LIB_GCC /usr/lib/gcc/libgcc.a
 
 #ifdef _M88KBCS_TARGET
@@ -332,18 +316,14 @@ CC=gcc
       else							\
         sprintf (pty_name, "/dev/tty%c%x", c, i);
 
-#define C_COMPILER \
-  TARGET_BINARY_INTERFACE=m88kdguxcoff gcc -traditional
- 
-#define LINKER \
-  TARGET_BINARY_INTERFACE=m88kdguxcoff gcc
-
-#define MAKE_COMMAND \
-  TARGET_BINARY_INTERFACE=m88kdguxcoff make
-
 #define C_DEBUG_SWITCH -g
 
 #else /* not COFF */
+
+/* We are generating ELF object format.  This makes the system more
+   SVR4 like. */
+
+#define SVR4
 
 /* Pseudo-terminal support under SVR4 only loops to deal with errors. */
 
@@ -384,18 +364,9 @@ CC=gcc
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat", errno);
 
-
-#define C_COMPILER \
-  TARGET_BINARY_INTERFACE=m88kdguxelf gcc -traditional
- 
-#define LINKER \
-  TARGET_BINARY_INTERFACE=m88kdguxelf gcc
-
-#define MAKE_COMMAND \
-  TARGET_BINARY_INTERFACE=m88kdguxelf make
-
 #define C_DEBUG_SWITCH -g -V2 -mversion-03.00 -mstandard
-#endif /* COFF */
+
+#endif /* ELF */
 
 /* Extra stuff which probably should be someplace else but is here out
    of expediency. */
