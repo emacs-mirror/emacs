@@ -30,18 +30,21 @@
 #      Still more severe - delete backup and autosave files, too.
 
 # Generate a full pathname of the top-level installation directory
-topdir := $(subst \,/,$(shell cd))
+top_srcdir := $(subst \,/,$(shell cd))
+
+# Find out which version of Emacs this is.
+version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
 all:	lib-src src man
 
 lib-src: FRC
 	cd lib-src
-	$(MAKE)
+	$(MAKE) top_srcdir=${top_srcdir} version=${version}
 	cd ..
 
 src: FRC
 	cd src
-	$(MAKE)
+	$(MAKE) top_srcdir=${top_srcdir}
 	redir -o gdb.sed echo '/-geometry/s,^.*,set environment HOME $(topdir),'
 	redir -oa gdb.sed echo '/environment *TERM/s/^.*/set environment TERM internal/'
 	redir -oa gdb.sed echo '/x_error_quitter/s/^.*/set environment NAME root/'
@@ -56,7 +59,7 @@ src: FRC
 
 man:	FRC
 	cd man
-	$(MAKE)
+	$(MAKE) top_srcdir=${top_srcdir}
 	cd ..
 
 install: all
