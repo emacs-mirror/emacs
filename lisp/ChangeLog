@@ -1,3 +1,8 @@
+2000-07-26  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (normal-backup-enable-predicate): Correct
+	interpretation of the return value of compare-strings.
+
 2000-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-resume): New function.
