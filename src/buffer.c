@@ -1407,135 +1407,6 @@ validate_region (b, e)
     args_out_of_range (*b, *e);
 }
 
-static Lisp_Object
-list_buffers_1 (files)
-     Lisp_Object files;
-{
-  register Lisp_Object tail, tem, buf;
-  Lisp_Object col1, col2, col3, minspace;
-  register struct buffer *old = current_buffer, *b;
-  Lisp_Object desired_point;
-  Lisp_Object other_file_symbol;
-
-  desired_point = Qnil;
-  other_file_symbol = intern ("list-buffers-directory");
-
-  XSETFASTINT (col1, 17);
-  XSETFASTINT (col2, 28);
-  XSETFASTINT (col3, 40);
-  XSETFASTINT (minspace, 1);
-
-  Fset_buffer (Vstandard_output);
-  Fbuffer_disable_undo (Vstandard_output);
-  current_buffer->read_only = Qnil;
-
-  write_string ("\
- MR Buffer           Size Mode          File\n\
- -- ------           ---- ----          ----\n", -1);
-
-  for (tail = Vbuffer_alist; !NILP (tail); tail = Fcdr (tail))
-    {
-      buf = Fcdr (Fcar (tail));
-      b = XBUFFER (buf);
-      /* Don't mention the minibuffers. */
-      if (XSTRING (b->name)->data[0] == ' ')
-	continue;
-      /* Optionally don't mention buffers that lack files. */
-      if (!NILP (files) && NILP (b->filename))
-	continue;
-      /* Identify the current buffer. */
-      if (b == old)
-	XSETFASTINT (desired_point, PT);
-      write_string (b == old ? "." : " ", -1);
-      /* Identify modified buffers */
-      write_string (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b) ? "*" : " ", -1);
-      /* The current buffer is special-cased to be marked read-only.
-	 It is actually made read-only by the call to
-	 Buffer-menu-mode, below. */
-      write_string ((b != current_buffer && NILP (b->read_only))
-		    ? "  " : "% ", -1);
-      Fprinc (b->name, Qnil);
-      tem = Findent_to (col1, make_number (2));
-      {
-	char sizebuf[9];
-	int i;
-	char *p;
-
-	sprintf (sizebuf, "%8d", BUF_Z (b) - BUF_BEG (b));
-	/* Here's how many extra columns the buffer name used.  */
-	i = XFASTINT (tem) - XFASTINT (col1);
-	/* Skip that many spaces in the size, if it has that many,
-	   to keep the size values right-aligned if possible.  */
-	p = sizebuf;
-	while (i > 0)
-	  {
-	    if (*p == ' ')
-	      p++;
-	    i--;
-	  }
-
-	write_string (p, -1);
-      }
-      Findent_to (col2, minspace);
-      Fprinc (b->mode_name, Qnil);
-      Findent_to (col3, minspace);
-
-      if (!NILP (b->filename))
-	Fprinc (b->filename, Qnil);
-      else
-	{
-	  /* No visited file; check local value of list-buffers-directory.  */
-	  Lisp_Object tem;
-	  set_buffer_internal (b);
-	  tem = Fboundp (other_file_symbol);
-	  if (!NILP (tem))
-	    {
-	      tem = Fsymbol_value (other_file_symbol);
-	      Fset_buffer (Vstandard_output);
-	      if (STRINGP (tem))
-		Fprinc (tem, Qnil);
-	    }
-	  else
-	    Fset_buffer (Vstandard_output);
-	}
-      write_string ("\n", -1);
-    }
-
-  tail = intern ("Buffer-menu-mode");
-  if ((tem = Ffboundp (tail), !NILP (tem)))
-    call0 (tail);
-  set_buffer_internal (old);
-  return desired_point;
-}
-
-DEFUN ("list-buffers", Flist_buffers, Slist_buffers, 0, 1, "P",
-  "Display a list of names of existing buffers.\n\
-The list is displayed in a buffer named `*Buffer List*'.\n\
-Note that buffers with names starting with spaces are omitted.\n\
-Non-null optional arg FILES-ONLY means mention only file buffers.\n\
-\n\
-The M column contains a * for buffers that are modified.\n\
-The R column contains a % for buffers that are read-only.")
-  (files)
-     Lisp_Object files;
-{
-  Lisp_Object desired_point;
-
-  desired_point
-    = internal_with_output_to_temp_buffer ("*Buffer List*",
-					   list_buffers_1, files);
-
-  if (NUMBERP (desired_point))
-    {
-      int count = specpdl_ptr - specpdl;
-      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-      Fset_buffer (build_string ("*Buffer List*"));
-      SET_PT (XINT (desired_point));
-      return unbind_to (count, Qnil);
-    }
-  return Qnil;
-}
-
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
   0, 0, 0,
   "Switch to Fundamental mode by killing current buffer's local variables.\n\
@@ -3395,7 +3266,6 @@ is a member of the list.");
   defsubr (&Sset_buffer);
   defsubr (&Sbarf_if_buffer_read_only);
   defsubr (&Sbury_buffer);
-  defsubr (&Slist_buffers);
   defsubr (&Skill_all_local_variables);
 
   defsubr (&Soverlayp);
@@ -3419,7 +3289,6 @@ keys_of_buffer ()
 {
   initial_define_key (control_x_map, 'b', "switch-to-buffer");
   initial_define_key (control_x_map, 'k', "kill-buffer");
-  initial_define_key (control_x_map, Ctl ('B'), "list-buffers");
 
   /* This must not be in syms_of_buffer, because Qdisabled is not
      initialized when that function gets called.  */
