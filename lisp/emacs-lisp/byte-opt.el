@@ -973,7 +973,7 @@
 
 ;;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
-       '(% * + / /= 1+ < <= = > >= append aref ash assoc assq boundp
+       '(% * + - / /= 1+ 1- < <= = > >= append aref ash assoc assq boundp
 	 buffer-file-name buffer-local-variables buffer-modified-p
 	 buffer-substring capitalize car cdr concat coordinates-in-window-p
 	 copy-marker count-lines documentation downcase elt fboundp featurep
