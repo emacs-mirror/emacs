@@ -1,3 +1,20 @@
+2004-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (coordinates_in_window): Inside the window but outside
+	its box to the L or R, return ON_VERTICAL_BORDER.
+	(window_list_1): Rotate the list to start with WINDOW.
+
+	* print.c (print_preprocess): Test for print_depth at limit
+	before entering in being_printed.
+
+	* keyboard.c (not_single_kboard_state): New function.
+	(stuff_buffered_input): Now no-op only if no SIGTSTP.
+
+	* frame.c (Fdelete_frame): If we're in single_bboard_state on
+	this kboard, and we delete its last frame, go to any_kboard_state.
+
+	* buffer.c (syms_of_buffer) <transient-mark-mode>: Doc fix.
+
 2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
 
 	* w32fns.c (Fx_file_dialog): Encode strings in system coding

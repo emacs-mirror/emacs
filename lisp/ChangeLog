@@ -1,3 +1,14 @@
+2004-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-read-primary-args): Pass default to read-from-minibuffer.
+
+	* mail/footnote.el (footnote-section-tag): Use defcustom.
+
+	* font-lock.el (font-lock-add-keywords, font-lock-remove-keywords):
+	Compile font-lock-keywords, not KEYWORDS.
+	(lisp-font-lock-keywords-2): Add multiple-value-prog1, go.
+	Add warn, check-type.  Handle cerror like error.
+
 2004-07-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/which-func.el (which-func-keymap): New var.
