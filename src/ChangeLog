@@ -1,3 +1,27 @@
+2005-01-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_string): New members clip_head and
+	clip_tail.
+	
+	* xdisp.c (get_glyph_string_clip_rect): Restrict horizontal clip
+	region to the area between clip_head and clip_tail.
+	(draw_glyphs): Record the area that need to be actually redrawn to
+	the new variables clip_head and clip_tail when there are
+	overhangs.  Set values of these variables to the corresponding
+	members in struct glyph_string.  Refine x coordinates for
+	notice_overwritten_cursor using clip_head and clip_tail.
+	
+	* macgui.h (STORE_XCHARSETSTRUCT): New macro.
+
+	* macterm.c (mac_compute_glyph_string_overhangs): Implement with
+	QDTextBounds.
+	(x_draw_glyph_string): Don't fill the background of the successor
+	of a glyph with a right overhang if the successor will draw a
+	cursor.
+	(XLoadQueryFont): Obtain font metrics using QDTextBounds.
+	(x_redisplay_interface): Add entry for
+	compute_glyph_string_overhangs.
+
 2005-01-24  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (window_scroll_pixel_based): Fix scrolling in the wrong
