@@ -1,5 +1,15 @@
 2002-03-01  Kim F. Storm  <storm@cua.dk>
 
+	* window.h (struct window): New member phys_cursor_width.
+
+	* window.c (make_window, replace_window): Init phys_cursor_width.
+	
+	* xterm.c (x_display_and_set_cursor): Blink box cursor using
+	hollow box cursor.  Blink bar cursor using 1 pixel wide bar.
+
+	* w32term.c (x_display_and_set_cursor): Blink box cursor using
+	hollow box cursor.  Blink bar cursor using 1 pixel wide bar.
+
 	* lisp.h (GCPRO6): New macro.
 
 	* process.c (Fopen_network_stream): Use GCPRO6.
