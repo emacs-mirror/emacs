@@ -3422,7 +3422,7 @@ This requires the external program `diff' to be in your `exec-path'."
   "Save some modified file-visiting buffers.  Asks user about each one.
 You can answer `y' to save, `n' not to save, `C-r' to look at the
 buffer in question with `view-buffer' before deciding or `d' to
-view the differences using `diff-buffer-to-file'.
+view the differences using `diff-buffer-with-file'.
 
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:
