@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/12/17 00:41:34 $|$Revision: 1.81 $
+;; |$Date: 1994/12/26 05:09:07 $|$Revision: 1.82 $
 
 ;; This file is part of GNU Emacs.
 
@@ -704,7 +704,8 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 			(read-event)))
 		   ;; Binding minibuffer-history-symbol to nil is a work-around
 		   ;; for some incompatibility with gmhist.
-		   (minibuffer-history-symbol))
+		   (minibuffer-history-symbol)
+		   (message-log-max nil))
 	      ;; If the first character the user types when we prompt them
 	      ;; for a string is the yank-word character, then go into
 	      ;; word-search mode.  Otherwise unread that character and
@@ -868,10 +869,11 @@ Use `isearch-exit' to quit without signalling."
   (interactive)
   (setq isearch-case-fold-search
 	(if isearch-case-fold-search nil 'yes))
-  (message "%s%s [case %ssensitive]"
-	   (isearch-message-prefix nil nil isearch-nonincremental)
-	   isearch-message
-	   (if isearch-case-fold-search "in" ""))
+  (let ((message-log-max nil))
+    (message "%s%s [case %ssensitive]"
+	     (isearch-message-prefix nil nil isearch-nonincremental)
+	     isearch-message
+	     (if isearch-case-fold-search "in" "")))
   (setq isearch-adjusted t)
   (sit-for 1)
   (isearch-update))
@@ -1275,7 +1277,10 @@ If there is no completion possible, say so and continue searching."
 	    isearch-message
 	    (isearch-message-suffix c-q-hack ellipsis)
 	    )))
-    (if c-q-hack m (message "%s" m))))
+    (if c-q-hack
+	m
+      (let ((message-log-max nil))
+	(message "%s" m)))))
 
 (defun isearch-message-prefix (&optional c-q-hack ellipsis nonincremental)
   ;; If about to search, and previous search regexp was invalid,
