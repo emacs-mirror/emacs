@@ -2,6 +2,7 @@
 
 	* info.el (Info-title-1-face, Info-title-2-face)
 	(Info-title-3-face): Define colors for tty's.
+	(info-header-node): Remove unneded tty-specific definition.
 
 2000-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
