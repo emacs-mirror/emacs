@@ -36,6 +36,10 @@
 # include "../locale/localeinfo.h"
 #endif
 
+#if defined emacs && !defined HAVE_BCOPY
+# define HAVE_MEMCPY 1
+#endif
+
 #include <ctype.h>
 #include <sys/types.h>		/* Some systems define `time_t' here.  */
 
@@ -140,6 +144,7 @@ extern char *tzname[];
 # if ! HAVE_LOCALTIME_R
 #  if ! HAVE_TM_GMTOFF
 /* Approximate gmtime_r as best we can in its absence.  */
+#   undef gmtime_r
 #   define gmtime_r my_gmtime_r
 static struct tm *gmtime_r __P ((const time_t *, struct tm *));
 static struct tm *
@@ -156,6 +161,7 @@ gmtime_r (t, tp)
 #  endif /* ! HAVE_TM_GMTOFF */
 
 /* Approximate localtime_r as best we can in its absence.  */
+#  undef localtime_r
 #  define localtime_r my_ftime_localtime_r
 static struct tm *localtime_r __P ((const time_t *, struct tm *));
 static struct tm *
@@ -329,7 +335,7 @@ tm_diff (a, b)
 #define YDAY_MINIMUM (-366)
 static int iso_week_days __P ((int, int));
 #ifdef __GNUC__
-inline
+__inline__
 #endif
 static int
 iso_week_days (yday, wday)
