@@ -219,9 +219,14 @@ Returns t if expansion took place.")
   int uccount = 0, lccount = 0;
   register Lisp_Object sym;
   Lisp_Object expansion, hook, tem;
+  int oldmodiff = MODIFF;
+  Lisp_Object value;
 
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qpre_abbrev_expand_hook);
+  /* If the hook changes the buffer, treat that as
+     having "done an expansion".  */
+  value = (MODIFF != oldmodiff ? Qt : Qnil);
 
   if (XBUFFER (Vabbrev_start_location_buffer) != current_buffer)
     Vabbrev_start_location = Qnil;
@@ -238,17 +243,17 @@ Returns t if expansion took place.")
     wordstart = scan_words (point, -1);
 
   if (!wordstart)
-    return Qnil;
+    return value;
 
   wordend = scan_words (wordstart, 1);
   if (!wordend)
-    return Qnil;
+    return value;
 
   if (wordend > point)
     wordend = point;
   whitecnt = point - wordend;
   if (wordend <= wordstart)
-    return Qnil;
+    return value;
 
   p = buffer = (char *) alloca (wordend - wordstart);
 
@@ -269,7 +274,7 @@ Returns t if expansion took place.")
   if (XTYPE (sym) == Lisp_Int || NILP (XSYMBOL (sym)->value))
     sym = oblookup (Vglobal_abbrev_table, buffer, p - buffer);
   if (XTYPE (sym) == Lisp_Int || NILP (XSYMBOL (sym)->value))
-    return Qnil;
+    return value;
 
   if (INTERACTIVE && !EQ (minibuf_window, selected_window))
     {
