@@ -35,6 +35,15 @@ Retrieving the latest version of the branch:
 (I use a recent arch development snapshot, but any of the released
 versions of arch will do fine, I think.)
 
+To update your source tree to the latest revision after the first
+checkout, simply use the following command:
+
+	tla replay lorentey@elte.hu--2004/emacs--multi-tty--0
+
+If you are interested, you can find more detailed information about
+Arch on http://wiki.gnuarch.org/.  It's a wonderful source control
+system, I highly recommend it.
+
 If you don't have arch, the branch has a homepage from which you can
 download conventional patches against Emacs CVS HEAD:
 
