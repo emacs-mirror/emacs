@@ -1,3 +1,8 @@
+2004-04-11  John Paul Wallington  <jpw@gnu.org>
+
+	* replace.el (occur-engine): Distinguish between one and several
+	matches in the matches per buffer heading.
+
 2004-04-11  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-confirm-unique-completion): New defcustom.
