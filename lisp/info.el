@@ -1543,9 +1543,9 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	    (unless (equal Info-current-node orignode)
 	      (Info-goto-node orignode))
 	    ;; Update the cache.
-	    (setq Info-complete-cache
-		  (list Info-current-file Info-current-node
-			Info-complete-next-re string completions)))
+	    (set (make-local-variable 'Info-complete-cache)
+		 (list Info-current-file Info-current-node
+		       Info-complete-next-re string completions)))
 	  (if action
 	      (all-completions string completions predicate)
 	    (try-completion string completions predicate)))))))
