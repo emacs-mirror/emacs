@@ -1,3 +1,8 @@
+2001-02-28  Ken Raeburn  <raeburn@gnu.org>
+
+	* window.c (set_window_buffer): Field vscroll is an int, not a
+	lisp object.
+
 2001-02-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_set_window_size): Don't use `None' with widgets; use
