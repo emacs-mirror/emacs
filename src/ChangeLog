@@ -1,3 +1,7 @@
+2003-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* coding.c (Fcheck_coding_system): Doc fix.
+
 2003-12-28  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (eval.o): Depend on dispextern.h.
