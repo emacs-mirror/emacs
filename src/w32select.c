@@ -126,17 +126,10 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
   {
     /* Since we are now handling multilingual text, we must consider
        encoding text for the clipboard.  */
-    int charsets[MAX_CHARSET + 1];
-    int num;
+    int charset_info = find_charset_in_text (src, XSTRING (string)->size,
+					     nbytes, NULL, QNil);
 
-    bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-    num = ((nbytes <= 1	/* Check the possibility of short cut.  */
-	    || !STRING_MULTIBYTE (string)
-	    || nbytes == XSTRING (string)->size)
-	   ? 0
-	   : find_charset_in_str (src, nbytes, charsets, Qnil, 1));
-
-    if (!num || (num == 1 && charsets[CHARSET_ASCII]))
+    if (charset_info == 0)
       {
 	/* No multibyte character in OBJ.  We need not encode it.  */
 
@@ -192,6 +185,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	  Vnext_selection_coding_system = Vselection_coding_system;
 	setup_coding_system
 	  (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+	coding.src_multibyte = 1;
+	coding.dst_multibyte = 0;
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
 	bufsize = encoding_buffer_size (&coding, nbytes);
@@ -291,16 +286,16 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	  Vnext_selection_coding_system = Vselection_coding_system;
 	setup_coding_system
 	  (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+	coding.src_multibyte = 0;
+	coding.dst_multibyte = 1;
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
 	bufsize = decoding_buffer_size (&coding, nbytes);
 	buf = (unsigned char *) xmalloc (bufsize);
 	decode_coding (&coding, src, buf, nbytes, bufsize);
 	Vlast_coding_system_used = coding.symbol;
-	truelen = (coding.fake_multibyte
-		   ? multibyte_chars_in_text (buf, coding.produced)
-		   : coding.produced_char);
-	ret = make_string_from_bytes ((char *) buf, truelen, coding.produced);
+	ret = make_string_from_bytes ((char *) buf,
+				      coding.produced_char, coding.produced);
 	xfree (buf);
       }
     else
