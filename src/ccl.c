@@ -668,19 +668,18 @@ static tr_stack *mapping_stack_pointer;
    output buffer.  If CH is less than 256, CH is written as is.  */
 #define CCL_WRITE_CHAR(ch)					\
   do {								\
+    int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);	\
     if (!dst)							\
       CCL_INVALID_CMD;						\
-    else							\
+    else if (dst + bytes <= (dst_bytes ? dst_end : src))	\
       {								\
-	unsigned char str[MAX_MULTIBYTE_LENGTH], *p = str;	\
-	int len = CHAR_STRING (ch, str);			\
-	if (dst + len <= (dst_bytes ? dst_end : src))		\
-	  {							\
-	    while (len--) *dst++ = *p++;			\
-	  }							\
+	if (bytes == 1)						\
+	  *dst++ = (ch);					\
 	else							\
-	  CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);		\
+	  dst += CHAR_STRING (ch, dst);				\
       }								\
+    else							\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);			\
   } while (0)
 
 /* Write a string at ccl_prog[IC] of length LEN to the current output
@@ -732,10 +731,10 @@ static tr_stack *mapping_stack_pointer;
 								\
 	if (code >= 256)					\
 	  c2 = c1, c1 = (code >> 7) & 0x7F;			\
-	c = MAKE_NON_ASCII_CHAR (charset, c1, c2);		\
+	c = MAKE_CHAR (charset, c1, c2);			\
       }								\
     else							\
-      c = code & 0xFF;					\
+      c = code & 0xFF;						\
   } while (0)
 
 
