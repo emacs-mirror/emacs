@@ -709,10 +709,8 @@ mouse_position_for_popup(f, x, y)
 
   /* xmenu_show expects window coordinates, not root window
      coordinates.  Translate.  */
-  *x -= f->output_data.x->left_pos
-    + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  *y -= f->output_data.x->top_pos
-    + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  *x -= f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  *y -= f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 }
 
 #endif /* HAVE_X_WINDOWS */
@@ -861,10 +859,8 @@ cached information about equivalent key sequences.  */)
 	  CHECK_LIVE_WINDOW (window);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (FRAME_FONT (f))
-		  * XFASTINT (XWINDOW (window)->left));
-	  ypos = (FRAME_LINE_HEIGHT (f)
-		  * XFASTINT (XWINDOW (window)->top));
+	  xpos = WINDOW_LEFT_EDGE_X (XWINDOW (window));
+	  ypos = WINDOW_TOP_EDGE_Y (XWINDOW (window));
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -1779,8 +1775,8 @@ update_frame_menubar (f)
   BLOCK_INPUT;
   /* Save the size of the frame because the pane widget doesn't accept
      to resize itself. So force it.  */
-  columns = f->width;
-  rows = f->height;
+  columns = FRAME_COLS (f);
+  rows = FRAME_LINES (f);
 
   /* Do the voodoo which means "I'm changing lots of things, don't try
      to refigure sizes until I'm done."  */
@@ -2314,8 +2310,8 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
       pos_func = menu_position_func;
 
       /* Adjust coordinates to be root-window-relative.  */
-      x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-      y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+      x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+      y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
       popup_x_y.x = x;
       popup_x_y.y = y;
@@ -2402,8 +2398,8 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   dummy.y = y;
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
   dummy.x_root = x;
   dummy.y_root = y;
@@ -3120,8 +3116,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* HAVE_X_WINDOWS */
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->output_data.x->left_pos;
-  y += f->output_data.x->top_pos;
+  x += f->left_pos;
+  y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
   i = 0;
