@@ -191,6 +191,10 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://www.splode.com/users/friedman/software/emacs-lisp/> for
    other Friedman Emacs hacks.
 
+   The latest versions of gnuserv are maintained by Martin Schwenke,
+   and are available from <URL:http://meltin.net/hacks/emacs/>.  Also
+   available from this Web page: eiffel-mode.el.
+
  * hm--html-menus:
    <URL:ftp://ftp.tnt.uni-hannover.de/pub/editors/xemacs/contrib>
    HTML-specific editing.  Can work with PSGML.
