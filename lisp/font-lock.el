@@ -1568,9 +1568,9 @@ the face is also set; its value is the face name."
 	      (narrow-to-region (point-min) limit)
 	      (goto-char (match-end 1))
 	      ;; Move over any item value, etc., to the next item.
-	      (while (not (looking-at "[ \t]*\\(,\\|$\\)"))
+	      (while (not (looking-at "[ \t]*\\(\\(,\\)\\|;\\|$\\)"))
 		(goto-char (or (scan-sexps (point) 1) (point-max))))
-	      (goto-char (match-end 0)))
+	      (goto-char (match-end 2)))
 	  (error t)))))
 
 (let ((c-keywords
