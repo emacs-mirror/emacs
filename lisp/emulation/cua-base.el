@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997,98,99,200,01,02,03  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulation convenience cua
@@ -1204,9 +1204,9 @@ paste (in addition to the normal emacs bindings)."
 	   (and (boundp 'delete-selection-mode) delete-selection-mode)
 	   (and (boundp 'pc-selection-mode) pc-selection-mode)))
     (if (and (boundp 'delete-selection-mode) delete-selection-mode)
-	(delete-selection-mode))
+	(delete-selection-mode -1))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
-	(pc-selection-mode))
+	(pc-selection-mode -1))
     (setq transient-mark-mode (and cua-mode
 				   (if cua-highlight-region-shift-only
 				       (not cua--explicit-region-start)
