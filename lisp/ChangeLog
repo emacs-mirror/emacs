@@ -1,5 +1,7 @@
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/cc-engine.el (c-parse-state): Typo. From Martin Stjernholm.
+
 	* newcomment.el (comment-padding): Add :type and :group.
 
 2001-11-18  Stefan Monnier  <monnier@cs.yale.edu>
