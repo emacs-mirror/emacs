@@ -967,13 +967,17 @@ DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
     }
   else if (charset_id == CHARSET_8_BIT_CONTROL)
     {
-      if (c1 < 0x80 || c1 > 0x9F)
+      if (NILP (code1))
+	c1 = 0x80;
+      else if (c1 < 0x80 || c1 > 0x9F)
 	goto invalid_code_posints;
       return make_number (c1);
     }
   else if (charset_id == CHARSET_8_BIT_GRAPHIC)
     {
-      if (c1 < 0xA0 || c1 > 0xFF)
+      if (NILP (code1))
+	c1 = 0xA0;
+      else if (c1 < 0xA0 || c1 > 0xFF)
 	goto invalid_code_posints;
       return make_number (c1);
     }
