@@ -692,36 +692,37 @@ void
 echo_prompt (str)
      Lisp_Object str;
 {
-  int len = STRING_BYTES (XSTRING (str));
+  int nbytes = STRING_BYTES (XSTRING (str));
   int multibyte_p = STRING_MULTIBYTE (str);
 
-  if (len > ECHOBUFSIZE - 4)
+  if (nbytes > ECHOBUFSIZE - 4)
     {
       if (multibyte_p)
 	{
-	  unsigned char *p = XSTRING (str)->data, *lastp = p;
+	  /* Have to find the last character that fit's into the 
+	     echo buffer.  */
+	  unsigned char *p = XSTRING (str)->data;
 	  unsigned char *pend = p + ECHOBUFSIZE - 4;
+	  int char_len;
 
-	  while (p < pend)
+	  do 
 	    {
-	      int this_len;
-
-	      lastp = p;
-	      PARSE_MULTIBYTE_SEQ (p, pend - p, this_len);
-	      p += this_len;
+	      PARSE_MULTIBYTE_SEQ (p, pend - p, char_len);
+	      p += char_len;
 	    }
-	  len = lastp - XSTRING (str)->data;
+	  while (p < pend);
+
+	  nbytes = p - XSTRING (str)->data - char_len;
 	}
       else
-	len = ECHOBUFSIZE - 4;
+	nbytes = ECHOBUFSIZE - 4;
     }
 
-  current_kboard->echoptr
-    += copy_text (XSTRING (str)->data, current_kboard->echobuf, len,
-		  STRING_MULTIBYTE (str), 1);
+  nbytes = copy_text (XSTRING (str)->data, current_kboard->echobuf, nbytes,
+		      STRING_MULTIBYTE (str), 1);
+  current_kboard->echoptr = current_kboard->echobuf + nbytes;
   *current_kboard->echoptr = '\0';
-
-  current_kboard->echo_after_prompt = len;
+  current_kboard->echo_after_prompt = nbytes;
 
   echo_now ();
 }
