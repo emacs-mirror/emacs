@@ -1081,7 +1081,7 @@ case "${canonical}" in
   ;;
 
   ## Mips Linux-based GNU system
-  mips-*-linux-gnu* )
+  mips-*-linux-gnu* | mipsel-*-linux-gnu* )
     machine=mips opsys=gnu-linux
   ;;
 
@@ -1401,7 +1401,15 @@ dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
 AC_HEADER_STDC
 AC_HEADER_TIME
-AC_DECL_SYS_SIGLIST
+AC_CHECK_DECLS([sys_siglist])
+if test $ac_cv_have_decl_sys_siglist != yes; then
+  # For Tru64, at least:
+  AC_CHECK_DECLS([__sys_siglist])
+  if test $ac_cv_have_decl___sys_siglist = yes; then
+    AC_DEFINE(sys_siglist, __sys_siglist,
+              [Define to any substitute for sys_siglist.])
+  fi
+fi
 AC_HEADER_SYS_WAIT
 
 dnl Some systems have utime.h but don't declare the struct anyplace.
@@ -1493,6 +1501,10 @@ fi
 AH_TEMPLATE(POINTER_TYPE,
 	    [Define as `void' if your compiler accepts `void *'; otherwise
 	     define as `char'.])dnl
+
+dnl This could be used for targets which can have both byte sexes.
+dnl We could presumably replace the hardwired WORDS_BIG_ENDIAN generally.
+dnl AC_C_BIGENDIAN
 
 dnl check for Make feature
 AC_PROG_MAKE_SET
@@ -1951,7 +1963,7 @@ fi
 HAVE_JPEG=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
-    dnl Checking for jpeglib.h can lose becsue of a redefinition of
+    dnl Checking for jpeglib.h can lose because of a redefinition of
     dnl  HAVE_STDLIB_H.
     AC_CHECK_HEADER(jerror.h,
       AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes))
@@ -2086,7 +2098,7 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync bzero)
+gai_strerror mkstemp getline getdelim mremap memmove fsync bzero memset)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -2098,6 +2110,8 @@ fi
 AC_FUNC_GETLOADAVG
 
 AC_FUNC_FSEEKO
+
+AC_FUNC_GETPGRP
 
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
