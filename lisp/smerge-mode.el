@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.16 2002/08/15 00:24:56 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.17 2002/09/03 01:20:20 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -417,16 +417,20 @@ The point is moved to the end of the conflict."
 (defvar ediff-buffer-B)
 (defvar ediff-buffer-C)
 
-(defun smerge-ediff ()
-  "Invoke ediff to resolve the conflicts."
+(defun smerge-ediff (&optional name-mine name-other name-base)
+  "Invoke ediff to resolve the conflicts.
+NAME-MINE, NAME-OTHER, and NAME-BASE, if non-nil, are used for the
+buffer names."
   (interactive)
   (let* ((buf (current-buffer))
 	 (mode major-mode)
 	 ;;(ediff-default-variant 'default-B)
 	 (config (current-window-configuration))
 	 (filename (file-name-nondirectory buffer-file-name))
-	 (mine (generate-new-buffer (concat "*" filename " MINE*")))
-	 (other (generate-new-buffer (concat "*" filename " OTHER*")))
+	 (mine (generate-new-buffer
+		(or name-mine (concat "*" filename " MINE*"))))
+	 (other (generate-new-buffer
+		 (or name-other (concat "*" filename " OTHER*"))))
 	 base)
     (with-current-buffer mine
       (buffer-disable-undo)
@@ -450,7 +454,8 @@ The point is moved to the end of the conflict."
       (funcall mode))
     
     (when base
-      (setq base (generate-new-buffer (concat "*" filename " BASE*")))
+      (setq base (generate-new-buffer
+		  (or name-base (concat "*" filename " BASE*"))))
       (with-current-buffer base
 	(buffer-disable-undo)
 	(insert-buffer-substring buf)
