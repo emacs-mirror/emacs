@@ -1100,7 +1100,7 @@ used."
 		   ;; Quit and preserve point.
 		   ((= char ?X)
 		    (ispell-pdict-save ispell-silently-savep)
-		    (message
+		    (message "%s"
 		     (substitute-command-keys
 		      (concat "Spell-checking suspended;"
 			      " use C-u \\[ispell-word] to resume")))
@@ -1855,10 +1855,8 @@ With prefix argument, set the default directory."
 					offset-change (+ offset-change change)
 					end (+ end change)))))
 			      (if (not ispell-quit)
-				  (message
-				   (concat "Continuing spelling check using "
-					   (or ispell-dictionary "default")
-					   " dictionary...")))
+				  (message "Continuing spelling check using %s dictionary..."
+					   (or ispell-dictionary "default")))
 			      (sit-for 0)))
 			;; finished with line!
 			(setq ispell-filter (cdr ispell-filter)))))
