@@ -623,14 +623,14 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 	      (let ((abbreviated-home-dir "$foo"))
 		(concat "^" (abbreviate-file-name (expand-file-name "~"))
 			"\\(/\\|$\\)"))))
-						  
+
     ;; If FILENAME starts with the abbreviated homedir,
     ;; make it start with `~' instead.
     (if (and (string-match abbreviated-home-dir filename)
 	     ;; If the home dir is just /, don't change it.
 	     (not (and (= (match-end 0) 1)
 		       (= (aref filename 0) ?/)))
-	     (not (and (or (eq system-type 'ms-dos) 
+	     (not (and (or (eq system-type 'ms-dos)
 			   (eq system-type 'windows-nt))
 		       (save-match-data
 			 (string-match "^[a-zA-Z]:/$" filename)))))
@@ -690,7 +690,7 @@ find-file-hooks, etc.
   (let ((file-name-handler-alist nil)
 	(format-alist nil)
 	(after-insert-file-functions nil)
-	(find-buffer-file-type-function 
+	(find-buffer-file-type-function
 	 (if (fboundp 'find-buffer-file-type)
 	     (symbol-function 'find-buffer-file-type)
 	   nil)))
@@ -1093,7 +1093,7 @@ If `enable-local-variables' is nil, this function does not check for a
 	    (let ((alist auto-mode-alist)
 		  (mode nil))
 	      ;; Find first matching alist entry.
-	      (let ((case-fold-search 
+	      (let ((case-fold-search
 		     (memq system-type '(vax-vms windows-nt))))
 		(while (and (not mode) alist)
 		  (if (string-match (car (car alist)) name)
@@ -1165,7 +1165,7 @@ If `enable-local-variables' is nil, this function does not check for a
 		     (setq result (cons (cons key val) result)))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
-      
+
       (if (and result
 	       (or (eq enable-local-variables t)
 		   (and enable-local-variables
@@ -1209,7 +1209,7 @@ in order to initialize other data structure based on them.")
 			    (set-window-start (selected-window) (point)))
 			  (y-or-n-p (format "Set local variables as specified at end of %s? "
  					    (if buffer-file-name
- 						(file-name-nondirectory 
+ 						(file-name-nondirectory
  						 buffer-file-name)
  					      (concat "buffer "
  						      (buffer-name))))))))))
@@ -1832,7 +1832,7 @@ After saving the buffer, run `after-save-hook'."
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
     (or buffer-backed-up
 	(setq setmodes (backup-buffer)))
-    (let ((dir (file-name-directory buffer-file-name))) 
+    (let ((dir (file-name-directory buffer-file-name)))
       (if (and file-precious-flag
 	       (file-writable-p dir))
 	  ;; If file is precious, write temp name, then rename it.
@@ -1856,7 +1856,7 @@ After saving the buffer, run `after-save-hook'."
 		       (setq succeed t))
 	      ;; If writing the temp file fails,
 	      ;; delete the temp file.
-	      (or succeed 
+	      (or succeed
 		  (progn
 		    (delete-file tempname)
 		    (set-visited-file-modtime old-modtime))))
@@ -1886,50 +1886,53 @@ Optional second argument EXITING means ask about certain non-file buffers
  as well as about file buffers."
   (interactive "P")
   (save-window-excursion
-    (let ((files-done
-	   (map-y-or-n-p
-	    (function
-	     (lambda (buffer)
-	       (and (buffer-modified-p buffer)
-		    (not (buffer-base-buffer buffer))
-		    (or
-		     (buffer-file-name buffer)
-		     (and exiting
-			  (progn
-			    (set-buffer buffer)
-			    (and buffer-offer-save (> (buffer-size) 0)))))
-		    (if arg
-			t
-		      (if (buffer-file-name buffer)
-			  (format "Save file %s? "
-				  (buffer-file-name buffer))
-			(format "Save buffer %s? "
-				(buffer-name buffer)))))))
-	    (function
-	     (lambda (buffer)
-	       (set-buffer buffer)
-	       (save-buffer)))
-	    (buffer-list)
-	    '("buffer" "buffers" "save")
-	    (list (list ?\C-r (lambda (buf)
-				(view-buffer buf)
-				(setq view-exit-action
-				      '(lambda (ignore)
-					 (exit-recursive-edit)))
-				(recursive-edit)
-				;; Return nil to ask about BUF again.
-				nil)
-			"display the current buffer"))))
-	  (abbrevs-done
-	   (and save-abbrevs abbrevs-changed
-		(progn
-		  (if (or arg
-			  (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
-		      (write-abbrev-file nil))
-		  ;; Don't keep bothering user if he says no.
-		  (setq abbrevs-changed nil)
-		  t))))
-      (or (> files-done 0) abbrevs-done
+    (let* ((queried nil)
+	   (files-done
+	    (map-y-or-n-p
+	     (function
+	      (lambda (buffer)
+		(and (buffer-modified-p buffer)
+		     (not (buffer-base-buffer buffer))
+		     (or
+		      (buffer-file-name buffer)
+		      (and exiting
+			   (progn
+			     (set-buffer buffer)
+			     (and buffer-offer-save (> (buffer-size) 0)))))
+		     (if arg
+			 t
+		       (setq queried t)
+		       (if (buffer-file-name buffer)
+			   (format "Save file %s? "
+				   (buffer-file-name buffer))
+			 (format "Save buffer %s? "
+				 (buffer-name buffer)))))))
+	     (function
+	      (lambda (buffer)
+		(set-buffer buffer)
+		(save-buffer)))
+	     (buffer-list)
+	     '("buffer" "buffers" "save")
+	     (list (list ?\C-r (lambda (buf)
+				 (view-buffer buf)
+				 (setq view-exit-action
+				       '(lambda (ignore)
+					  (exit-recursive-edit)))
+				 (recursive-edit)
+				 ;; Return nil to ask about BUF again.
+				 nil)
+			 "display the current buffer"))))
+	   (abbrevs-done
+	    (and save-abbrevs abbrevs-changed
+		 (progn
+		   (if (or arg
+			   (y-or-n-p (format "Save abbrevs in %s? "
+					     abbrev-file-name)))
+		       (write-abbrev-file nil))
+		   ;; Don't keep bothering user if he says no.
+		   (setq abbrevs-changed nil)
+		   t))))
+      (or queried (> files-done 0) abbrevs-done
 	  (message "(No files need saving)")))))
 
 (defun not-modified (&optional arg)
@@ -2032,7 +2035,7 @@ to create parent directories if they don't exist."
 	(let ((dir (directory-file-name (expand-file-name dir)))
 	      create-list)
 	  (while (not (file-exists-p dir))
-	    (setq create-list (cons dir create-list)	    
+	    (setq create-list (cons dir create-list)
 		  dir (directory-file-name (file-name-directory dir))))
 	  (while create-list
 	    (make-directory-internal (car create-list))
@@ -2266,7 +2269,7 @@ This command is used in the special Dired buffer created by
 			     (lambda (file)
 			       (condition-case nil
 				   (save-excursion (recover-file file))
-				 (error 
+				 (error
 				  "Failed to recover `%s'" file)))
 			     files
 			     '("file" "files" "recover"))
