@@ -1,3 +1,17 @@
+2001-11-04  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (LATIN): Add welsh.
+	(UNICODE): New.
+	(MISC): Add georgian.
+	(WORLD): Add UNICODE.
+
+	* quail/welsh.el, quail/georgian.el, quail/rfc1345.el:
+	* quail/uni-input.el, quail/sgml-input.el: New file.
+
+	* quail/cyrillic.el ("bulgarian-pho", "belarusian"): New methods.
+
+	* quail/latin-alt.el ("dutch"): New method.
+
 2001-10-27  Francesco Potorti`  <pot@gnu.org>
 
 	* quail/latin-post.el ("italian-postfix"): Undo previous change.
