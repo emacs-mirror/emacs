@@ -1375,8 +1375,10 @@ make_string_from_bytes (contents, nchars, nbytes)
   return val;
 }
 
-/* Make a multibyte string from NCHARS characters
-   occupying NBYTES bytes at CONTENTS.  */
+/* Make a string from NCHARS characters
+   occupying NBYTES bytes at CONTENTS.
+   The argument MULTIBYTE controls whether to label the
+   string as multibyte.  */
 
 Lisp_Object
 make_specified_string (contents, nchars, nbytes, multibyte)
