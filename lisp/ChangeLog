@@ -1,3 +1,9 @@
+2003-09-25  Kim F. Storm  <storm@cua.dk>
+
+	* frame.el (frame-current-scroll-bars): New defun.
+
+	* window.el (window-current-scroll-bars): New defun.
+
 2003-09-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-engine.el (c-parse-state): Fixed bug that could

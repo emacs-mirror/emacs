@@ -1,3 +1,8 @@
+2003-09-25  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (set_window_buffer): Fix redisplay problems when
+	switching between buffers with different display margin widths.
+
 2003-09-23  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (set_socket_option): Fix :bindtodevice option.

@@ -233,6 +233,11 @@ Such individual settings are now preserved when windows are split
 horizontally or vertically, a saved window configuration is restored,
 or when the frame is resized.
 
+** New functions frame-current-scroll-bars and window-current-scroll-bars.
+
+These functions return the current locations of the vertical and
+horisontal scroll bars in a frame or window.
+
 ** Under X, mouse-wheel-mode is turned on by default.
 
 ** The X resource useXIM can be used to turn off use of XIM, which may
