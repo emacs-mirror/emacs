@@ -279,7 +279,7 @@ create a new comment."
   :group 'perl)
 
 ;;;###autoload
-(define-derived-mode perl-mode nil "Perl"
+(defun perl-mode ()
   "Major mode for editing Perl code.
 Expression and list commands understand all Perl brackets.
 Tab indents for Perl code.
@@ -326,6 +326,13 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-label-offset               -5   -8   -2   -2   -2
 
 Turning on Perl mode runs the normal hook `perl-mode-hook'."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map perl-mode-map)
+  (setq major-mode 'perl-mode)
+  (setq mode-name "Perl")
+  (setq local-abbrev-table perl-mode-abbrev-table)
+  (set-syntax-table perl-mode-syntax-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
@@ -359,7 +366,8 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   ;; Tell imenu how to handle Perl.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression perl-imenu-generic-expression)
-  (setq imenu-case-fold-search nil))
+  (setq imenu-case-fold-search nil)
+  (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in Perl code
