@@ -193,22 +193,6 @@
 ;;;
 ;;;
 
-;;;-----------------------------------------------
-;;; Porting Notes
-;;;-----------------------------------------------
-;;;
-;;;  Should run on 18.49, 18.52, and 19.0
-;;;  Tested on vanilla version.
-;;;  This requires the standard cl.el file.  It could easily rewritten to not 
-;;; require it.  It defines remove which is not in cl.el.
-;;;
-;;;  FUNCTIONS BASHED
-;;; The following functions are bashed but it is done carefully and should not
-;;; cause problems ::
-;;;   kill-region, next-line, previous-line, newline, newline-and-indent,
-;;;   kill-emacs
-;;;
-;;;
 ;;;---------------------------------------------------------------------------
 ;;; Functions you might like to call
 ;;;---------------------------------------------------------------------------
