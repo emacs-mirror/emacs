@@ -152,11 +152,7 @@ static char *find_crlf _P((char *, int));
 #define ERROR_MAX 80		/* a pretty arbitrary size */
 #define POP_PORT 110
 #define KPOP_PORT 1109
-#ifdef WINDOWSNT
 #define POP_SERVICE "pop3"	/* we don't want the POP2 port! */
-#else
-#define POP_SERVICE "pop"
-#endif
 #ifdef KERBEROS
 #define KPOP_SERVICE "kpop"
 #endif
