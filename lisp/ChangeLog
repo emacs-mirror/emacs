@@ -1,3 +1,11 @@
+2005-02-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-file-unhook): New variable.
+	(gdb-set-gud-minor-mode, gdb-set-gud-minor-mode-1)
+	(gdb-set-gud-minor-mode-existing-buffers): New functions.
+	(gdb-find-file-hook): New hook. Add it to find-file-hook.
+	(gdb-info-breakpoints-custom, gdb-source-info): Simplify.
+
 2005-02-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (all): Comment change.
