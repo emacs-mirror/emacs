@@ -1,3 +1,8 @@
+2000-04-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* jit-lock.el (with-buffer-unmodified): Fix bug introduced by `)'
+	at the wrong place.
+
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse-ffh.el: New file.
