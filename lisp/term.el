@@ -2189,7 +2189,7 @@ See `term-prompt-regexp'."
 				   (setq i temp))
 				  (t ;; Not followed by LF or can't optimize:
 				   (term-vertical-motion 0)
-				   (setq term-current-column 0))))
+				   (setq term-current-column term-start-line-column))))
 			   ((eq char ?\n)
 			    (if (not (and term-kill-echo-list
 					  (term-check-kill-echo-list)))
