@@ -77,6 +77,10 @@ and \"-de\" when dehexlfying a buffer.")
 
 (defvar hexl-mode-map nil)
 
+(defvar hexl-mode-old-local-map)
+(defvar hexl-mode-old-mode-name)
+(defvar hexl-mode-old-major-mode)
+
 ;; routines
 
 ;;;###autoload
