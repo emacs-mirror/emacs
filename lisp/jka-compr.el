@@ -756,61 +756,18 @@ It is not recommended to set this variable permanently to anything but nil.")
     (apply operation args)))
 
 ;;;###autoload
-(defcustom auto-compression-mode nil
-  "Toggle automatic file compression and uncompression.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `auto-compression-mode'."
-  :set (lambda (symbol value)
-	 (auto-compression-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :group 'jka-compr
-  :version "21.1"
-  :type 'boolean
-  :require 'jka-compr)
-
-;;;###autoload(defun auto-compression-mode (&optional arg)
-;;;###autoload  "\
-;;;###autoloadToggle automatic file compression and uncompression.
-;;;###autoloadWith prefix argument ARG, turn auto compression on if positive, else off.
-;;;###autoloadReturns the new status of auto compression (non-nil means on)."
-;;;###autoload  (interactive "P")
-;;;###autoload  (if (not (fboundp 'jka-compr-installed-p))
-;;;###autoload      (progn
-;;;###autoload        (require 'jka-compr)
-;;;###autoload        ;; That turned the mode on, so make it initially off.
-;;;###autoload        (toggle-auto-compression)))
-;;;###autoload  (toggle-auto-compression arg t))
-
-(defun toggle-auto-compression (&optional arg message)
+(define-minor-mode auto-compression-mode
   "Toggle automatic file compression and uncompression.
 With prefix argument ARG, turn auto compression on if positive, else off.
-Returns the new status of auto compression (non-nil means on).
-If the argument MESSAGE is non-nil, it means to print a message
-saying whether the mode is now on or off."
-  (interactive "P\np")
+Returns the new status of auto compression (non-nil means on)."
+  nil nil nil :global t :group 'jka-compr
   (let* ((installed (jka-compr-installed-p))
-	 (flag (if (null arg)
-		   (not installed)
-		 (or (eq arg t) (listp arg) (and (integerp arg) (> arg 0))))))
-
+	 (flag auto-compression-mode))
     (cond
      ((and flag installed) t)		; already installed
-
      ((and (not flag) (not installed)) nil) ; already not installed
-
-     (flag
-      (jka-compr-install))
-
-     (t
-      (jka-compr-uninstall)))
-
-
-    (and message
-	 (if flag
-	     (message "Automatic file (de)compression is now ON.")
-	   (message "Automatic file (de)compression is now OFF.")))
-
-    flag))
+     (flag (jka-compr-install))
+     (t (jka-compr-uninstall)))))
 
 
 (defmacro with-auto-compression-mode (&rest body)
@@ -828,13 +785,10 @@ saying whether the mode is now on or off."
 
 
 (defun jka-compr-build-file-regexp ()
-  (concat
-   "\\("
-   (mapconcat
-    'jka-compr-info-regexp
-    jka-compr-compression-info-list
-    "\\)\\|\\(")
-   "\\)"))
+  (mapconcat
+   'jka-compr-info-regexp
+   jka-compr-compression-info-list
+   "\\|"))
 
 
 (defun jka-compr-install ()
