@@ -1,3 +1,21 @@
+2003-01-15  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (loaddefs.el): Invoke make to build stub file
+	using appropriate rule for build environment.
+	(loaddefs.el-SH, loaddefs.el-CMD): New targets.  Include small set
+	of autoloads and defvars, sufficient to dump bootstrap emacs.
+	(update-subdirs-SH): Use hard-coded list of top-level lisp
+	subdirs, because find program on Windows is not compatible with
+	Unix find.
+	(compile-CMD, compile-SH): Use `batch-byte-compile-if-not-done'.
+	Explicitly load loaddefs.el so that bootstrap emacs can compile
+	properly.
+	(bootstrap-clean): Add dependency on loaddefs.el, to ensure
+	minimal stub sufficient for dumping bootstrap emacs is available.
+
+	* loadup.el: Include lisp/textmodes in load-path for bootstrap
+	emacs, to resolve ispell menu reference.
+
 2003-01-15  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>  (tiny change)
 
 	* international/mule.el (optimize-char-coding-system-table):

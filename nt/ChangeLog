@@ -1,3 +1,8 @@
+2003-01-15  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (CURDIR): Convert to native Windows format (with
+	forward slashes), to support building with Cygwin builds of make.
+
 2002-11-17  Ben Key  <BKey1@tampabay.rr.com>
 
 	* nmake.defs:
