@@ -1,30 +1,11 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.10) $
- * 
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!arenacl.c(trunk.11) $
+ * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .readership: MM developers
  * 
  * .design: See design.mps.arena.client.
- *
- * .req: The requirements are not fully known. They are inherited from
- * req.epcore, and from other requirements on the MPS. They include:
- * 
- * .req.client: Manage memory provided by the client.
- * 
- * .req.client.only: Operate entirely within client-provided memory.
- * 
- * .req.extend: Allow extension by the client providing additional 
- *   chunks of memory.
- * 
- * .req.extend.few: Normal operation will be in one chunk; "a few" 
- *   chunks is unusual; "many" chunks is very unlikely.
- * 
- * .req.extend.slow: Speed may degrade proportionally to the number of 
- *   chunks of memory. 
- *
- * .req.place: Allow preferential placement of segments.
  * 
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
@@ -36,7 +17,7 @@
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.10) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.11) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
@@ -180,7 +161,6 @@ static Bool ChunkCheck(Chunk chunk)
 
 #define PageBase(chunk, index) \
   AddrAdd((chunk)->pageBase, ((index) << (chunk)->arena->pageShift))
-
 
 /* PageSeg -- segment descriptor of a page */
 
@@ -638,6 +618,12 @@ static void ClientSegFree(Seg seg)
 }
 
 
+/* .seg.critical: These Seg functions are low-level and are on 
+ * the critical path in various ways.  The more common therefore 
+ * use AVER_CRITICAL.
+ */
+
+
 /* ClientSegBase -- return the base address of a segment
  *
  * The segment base is calculated by identifying the chunk and page
@@ -652,9 +638,9 @@ static Addr ClientSegBase(Seg seg)
   Chunk chunk;
   Res res;
   
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
   clientArena = SegClientArena(seg);
-  AVERT(ClientArena, clientArena);
+  AVERT_CRITICAL(ClientArena, clientArena);
 
   res = SegChunk(&chunk, &index, seg);
   AVER(res == ResOK);
@@ -675,9 +661,9 @@ static Addr ClientSegLimit(Seg seg)
   ClientArena clientArena;
   Page page;
 
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
   clientArena = SegClientArena(seg);
-  AVERT(ClientArena, clientArena);
+  AVERT_CRITICAL(ClientArena, clientArena);
 
   if(SegSingle(seg)) {
     return AddrAdd(ClientSegBase(seg), clientArena->pageSize);
@@ -696,7 +682,7 @@ static Addr ClientSegLimit(Seg seg)
 
 static Size ClientSegSize(Seg seg)
 {
-  AVERT(Seg, seg);
+  AVERT_CRITICAL(Seg, seg);
   return AddrOffset(ClientSegBase(seg), ClientSegLimit(seg));
 }
 
@@ -714,9 +700,9 @@ static Bool ClientSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
   ClientArena clientArena;
   Ring node, nextNode;
   
-  AVER(segReturn != NULL);
+  AVER_CRITICAL(segReturn != NULL);
   clientArena = ArenaClientArena(arena);
-  AVERT(ClientArena, clientArena);
+  AVERT_CRITICAL(ClientArena, clientArena);
 
   RING_FOR(node, &clientArena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
@@ -768,8 +754,8 @@ static Bool ClientIsReserved(Arena arena, Addr addr)
  */
 static Seg SegSearchChunk(Chunk chunk, Index index)
 {
-  AVERT(Chunk, chunk);
-  AVER(index <= chunk->pages);
+  AVERT_CRITICAL(Chunk, chunk);
+  AVER_CRITICAL(index <= chunk->pages);
 
   while(index < chunk->pages &&
         (!BTGet(chunk->allocTable, index) ||
@@ -779,7 +765,7 @@ static Seg SegSearchChunk(Chunk chunk, Index index)
   if(index < chunk->pages)
     return PageSeg(&chunk->pageTable[index]);
   
-  AVER(index == chunk->pages);
+  AVER_CRITICAL(index == chunk->pages);
   return NULL;
 }
 
@@ -806,10 +792,10 @@ static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
   ClientArena clientArena;
   Ring node, nextNode;
 
-  AVER(segReturn != NULL);
+  AVER_CRITICAL(segReturn != NULL);
   clientArena = ArenaClientArena(arena);
-  AVERT(ClientArena, clientArena);
-  AVER(AddrIsAligned(addr, ArenaAlign(arena)));
+  AVERT_CRITICAL(ClientArena, clientArena);
+  AVER_CRITICAL(AddrIsAligned(addr, ArenaAlign(arena)));
 
   /* For each chunk, search for a segment whose base is bigger */
   /* than  addr.  Chunks whose limit is less than addr are not */
@@ -838,7 +824,7 @@ static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
       }
       seg = SegSearchChunk(chunk, index);
       if(seg != NULL) {
-        AVER(addr < ClientSegBase(seg));
+        AVER_CRITICAL(addr < ClientSegBase(seg));
         *segReturn = seg;
         return TRUE;
       }
