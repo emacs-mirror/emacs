@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.69) $
+# $HopeName: MMsrc!comm.gmk(trunk.70) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -21,6 +21,7 @@
 # CC                the command for the C compiler
 # LINKFLAGS         a list of flags passed to the linker
 # ARFLAGSPFM        platform-specific flags for ar
+# RANLIB            the command to index a library (default: none needed)
 # gendep  optionally defined to be a command sequence for
 #         generating the dependency file (.d) from a C file (.c);
 #         it is used in a rule of the form:
