@@ -1,5 +1,15 @@
 1999-12-07  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* diff-mode.el (diff-mode-shared-map): fset'd and doc change.
+	(diff-minor-mode, diff-minor-mode-prefix, diff-minor-mode-map):
+	New code to support the minor mode version.
+	(diff-recenter): New function.
+	(diff-next-hunk, diff-next-file): Use it.
+	(diff-remembered-files-alist): New var.
+	(diff-merge-strings): New function.
+	(diff-find-file-name): Make it smarter and use the user's input more.
+	(diff-mode): Cosmetic changes.
+
 	* files.el (save-some-buffers): Turn EXITING into the more general
 	PRED argument to allow specifying a subset of buffers.
 

@@ -4,8 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Version: v1_8
-;; Revision: diff-mode.el,v 1.11 1999/10/09 23:38:29 monnier Exp
+;; Revision: $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -30,8 +29,6 @@
 ;; commands, editing and various conversions as well as jumping
 ;; to the corresponding source file.
 
-;; History:
-
 ;; inspired by Pavel Machek's patch-mode.el (<pavel@atrey.karlin.mff.cuni.cz>)
 ;; some efforts were spent to have it somewhat compatible with XEmacs'
 ;; diff-mode as well as with compilation-minor-mode
@@ -48,9 +45,10 @@
 
 ;; Todo:
 
+;; - spice up the minor-mode with editing and font-lock support.
 ;; - improve narrowed-view support.
-;; - improve diff-find-file-name.
-;; - improve the `compile' support.
+;; - improve the `compile' support (?).
+;; - recognize pcl-cvs' special string for `cvs-execute-single'.
 
 ;;; Code:
 
@@ -110,6 +108,7 @@ when editing big diffs)."
     ("\C-m" . diff-goto-source)
     ;; from XEmacs' diff-mode
     ("W" . widen)
+    ;;("\C-l" . diff-recenter)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
     ("o" . diff-goto-source)		;other-window
@@ -126,7 +125,8 @@ when editing big diffs)."
     ("R" . diff-reverse-direction)
     ("U" . diff-context->unified)
     ("C" . diff-unified->context))
-  "Keymap for read-only `diff-mode'. Only active in read-only mode.")
+  "Basic keymap for `diff-mode', bound to various prefix keys.")
+(fset 'diff-mode-shared-map diff-mode-shared-map)
 
 (diff-defmap diff-mode-map
   `(("\e" . ,diff-mode-shared-map)
@@ -145,6 +145,15 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context	t]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     ))
+
+(defcustom diff-minor-mode-prefix "\C-cd"
+  "Prefix key for `diff-minor-mode' commands."
+  :group 'diff-mode
+  :type '(choice (string "\e") (string "C-cd") string))
+
+(diff-defmap diff-minor-mode-map
+  `((,diff-minor-mode-prefix . diff-mode-shared-map))
+  "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'.")
 
 
 ;;;; 
@@ -259,6 +268,17 @@ when editing big diffs)."
   (re-search-forward "^[^-+!<>0-9@* \\]" nil 'move)
   (beginning-of-line))
 
+(defun diff-recenter ()
+  "Scroll if necessary to display the current hunk."
+  (interactive)
+  (when (eq (current-buffer) (window-buffer (selected-window)))
+    (let ((endpt (save-excursion (diff-end-of-hunk) (point))))
+      (unless (<= endpt (window-end))
+	(recenter)
+	;;(unless (<= endpt (window-end nil t))
+	;;  (set-window-start (selected-window) (point)))
+	))))
+
 (defun diff-next-hunk (&optional count)
   "Move to next (COUNT'th) hunk."
   (interactive "p")
@@ -268,7 +288,8 @@ when editing big diffs)."
     (condition-case ()
 	(re-search-forward diff-hunk-header-re nil nil count)
       (error (error "Can't find next hunk")))
-    (goto-char (match-beginning 0))))
+    (goto-char (match-beginning 0))
+    (diff-recenter)))
 
 (defun diff-prev-hunk (&optional count)
   "Move to previous (COUNT'th) hunk."
@@ -288,7 +309,8 @@ when editing big diffs)."
     (condition-case ()
 	(re-search-forward diff-file-header-re nil nil count)
       (error (error "Can't find next file")))
-    (goto-char (match-beginning 0))))
+    (goto-char (match-beginning 0))
+    (diff-recenter)))
 
 (defun diff-prev-file (&optional count)
   "Move to (COUNT'th) previous file header."
@@ -351,8 +373,33 @@ If the prefix ARG is given, restrict the view to the current file instead."
 ;;;; jump to other buffers
 ;;;;
 
+(defvar diff-remembered-files-alist nil)
+
 (defun diff-filename-drop-dir (file)
   (when (string-match "/" file) (substring file (match-end 0))))
+
+(defun diff-merge-strings (ancestor from to)
+  "Merge the diff between ANCESTOR and FROM into TO.
+Returns the merged string if successful or nil otherwise.
+If ANCESTOR = FROM, returns TO.
+If ANCESTOR = TO, returns FROM.
+The heuristic is simplistic and only really works for cases
+like \(diff-merge-strings \"b/foo\" \"b/bar\" \"/a/c/foo\")."
+  ;; Ideally, we want:
+  ;;   AMB ANB CMD -> CND
+  ;; but that's ambiguous if `foo' or `bar' is empty:
+  ;; a/foo a/foo1 b/foo.c -> b/foo1.c but not 1b/foo.c or b/foo.c1
+  (let ((str (concat ancestor " /|/ " from " /|/ " to)))
+    (when (and (string-match (concat
+			      "\\`\\(.*?\\)\\(.*\\)\\(.*\\) /|/ "
+			      "\\1\\(.*\\)\\3 /|/ "
+			      "\\(.*\\(\\2\\).*\\)\\'") str)
+	       (equal to (match-string 5 str)))
+      (concat (substring str (match-beginning 5) (match-beginning 6))
+	      (match-string 4 str)
+	      (substring str (match-end 6) (match-end 5))))))
+
+
 
 (defun diff-find-file-name (&optional old)
   "Return the file corresponding to the current patch.
@@ -378,26 +425,33 @@ Non-nil OLD means that we want the old file."
 		(when (re-search-backward "^diff \\(-\\S-+ +\\)*\\(\\S-+\\)\\( +\\(\\S-+\\)\\)?" nil t)
 		  (list (if old (match-string 2) (match-string 4))
 			(if old (match-string 4) (match-string 2))))))
-	   (fs (delq nil fs))
-	   (file
-	    ;; look for each file in turn.  If none found, try again but
-	    ;; ignoring the first level of directory, ...
-	    (do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
-		  (file nil nil))
-		((or (null files)
-		     (setq file (do* ((files files (cdr files))
-				      (file (car files) (car files)))
-				    ((or (null file) (file-exists-p file))
-				     file))))
-		 file))))
+	   (fs (delq nil fs)))
       (or
-       file
+       ;; use any previously used preference
+       (cdr (assoc fs diff-remembered-files-alist))
+       ;; try to be clever and use previous choices as an inspiration
+       (dolist (rf diff-remembered-files-alist)
+	 (let ((newfile (diff-merge-strings (caar rf) (car fs) (cdr rf))))
+	   (if (and newfile (file-exists-p newfile)) (return newfile))))
+       ;; look for each file in turn.  If none found, try again but
+       ;; ignoring the first level of directory, ...
+       (do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
+	     (file nil nil))
+	   ((or (null files)
+		(setq file (do* ((files files (cdr files))
+				 (file (car files) (car files)))
+			       ((or (null file) (file-exists-p file))
+				file))))
+	    file))
+       ;; <foo>.rej patches implicitly apply to <foo>
        (and (string-match "\\.rej\\'" (or buffer-file-name ""))
 	    (let ((file (substring buffer-file-name 0 (match-beginning 0))))
 	      (when (file-exists-p file) file)))
-       ;; FIXME: use a more informative prompt
-       (let ((file (read-file-name "File: " nil (first fs) nil (first fs))))
-	 ;; FIXME: remember for the next invocation
+       ;; if all else fails, ask the user
+       (let ((file (read-file-name (format "Use file %s: " (or (first fs) ""))
+				   nil (first fs) t (first fs))))
+	 (set (make-local-variable 'diff-remembered-files-alist)
+	      (cons (cons fs file) diff-remembered-files-alist))
 	 file)))))
 
 (defun diff-goto-source (&optional other-file)
@@ -760,10 +814,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 ;;;; The main function
 ;;;; 
 
-;;(autoload 'diff-mode "diff-mode" "Major mode for viewing context diffs." t)
 ;;;###autoload
 (defun diff-mode ()
-  "Major mode for viewing context diffs.
+  "Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent) normal diffs.
 When the buffer is read-only, the ESC prefix is not necessary.
 This mode runs `diff-mode-hook'.
@@ -789,10 +842,10 @@ This mode runs `diff-mode-hook'.
   (if (not diff-update-on-the-fly-flag)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
-    (make-local-hook 'after-change-functions)
-    (add-hook 'after-change-functions 'diff-after-change-function nil t)
-    (make-local-hook 'post-command-hook)
-    (add-hook 'post-command-hook 'diff-post-command-hook nil t))
+    (add-hook (make-local-hook 'after-change-functions)
+	      'diff-after-change-function nil t)
+    (add-hook (make-local-hook 'post-command-hook)
+	      'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
   (add-to-list (make-local-variable 'minor-mode-map-alist)
 	       (cons 'buffer-read-only diff-mode-shared-map))
@@ -800,13 +853,20 @@ This mode runs `diff-mode-hook'.
   (run-hooks 'diff-mode-hook))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode))
+(define-minor-mode diff-minor-mode
+  "Minor mode for viewing/editing context diffs.
+\\{diff-minor-mode-map}"
+  nil " Diff" nil
+  ;; FIXME: setup font-lock
+  ;; FIXME: setup change hooks
+  )
+
 
 ;; provide the package
 (provide 'diff-mode)
 
 ;;; Change Log:
-;; diff-mode.el,v
+;; $Log: diff-mode.el,v $
 ;; Revision 1.11  1999/10/09 23:38:29  monnier
 ;; (diff-mode-load-hook): dropped.
 ;; (auto-mode-alist): also catch *.diffs.
