@@ -408,7 +408,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 (defun mail-abbrev-make-syntax-table ()
   (make-local-variable 'mail-abbrev-syntax-table)
   (unless mail-abbrev-syntax-table
-    (let ((tab (copy-syntax-table old-syntax-table))
+    (let ((tab (copy-syntax-table (syntax-table)))
 	  (_ (aref (standard-syntax-table) ?_))
 	  (w (aref (standard-syntax-table) ?w)))
       (map-char-table
