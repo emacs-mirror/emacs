@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.52) $
+# $HopeName: MMsrc!comm.gmk(trunk.53) $
 # Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -253,7 +253,7 @@ endif
 # Not all targets need be specified in the "all" target.  It is
 # just a convenient set of targets to build.
 
-all: mpmss apss amcss amsss awlut mpsicv lockcov poolncv mps.a \
+all: mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
      locv qs finalcv arenacv bttest teletest abqtest cbstest \
      btcv mv2eptst mv2test messtest
 
@@ -261,7 +261,7 @@ all: mpmss apss amcss amsss awlut mpsicv lockcov poolncv mps.a \
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
+testrun: mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv \
          locv qs finalcv arenacv abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
@@ -276,7 +276,7 @@ testrunep: epvmss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
+mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
   abqtest cbstest btcv mv2eptst mv2test eventcnv messtest \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
@@ -356,6 +356,9 @@ $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
+	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
