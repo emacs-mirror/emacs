@@ -197,9 +197,7 @@ feature.
 @cindex faces for highlighting search matches
   You can control how does the highlighting of matches look like by
 customizing the faces @code{isearch} (highlights the current match) and
-@code{isearch-lazy-highlight-face} (highlights the other matches).  The
-former defaults to the @code{region} face, the latter to the
-@code{secodnary-selection} face.
+@code{isearch-lazy-highlight-face} (highlights the other matches).
 
 @vindex isearch-mode-map
   To customize the special characters that incremental search understands,
