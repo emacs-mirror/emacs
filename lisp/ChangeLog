@@ -1,3 +1,24 @@
+2004-11-02  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.08.
+	(icalendar--split-value): Change name of work buffer.
+	(icalendar--get-weekday-abbrev): Return nil on error.
+	(icalendar--date-to-isodate): New function.
+	(icalendar-convert-diary-to-ical)
+	(icalendar-extract-ical-from-buffer): Use only two args for
+	make-obsolete (XEmacs compatibility).
+	(icalendar-export-file, icalendar-import-file): Blank at end of
+	prompt.
+	(icalendar-export-region): Doc fix.
+	If error, return non-nil and write errors to a buffer.
+	Use correct weekday for weekly recurring events.
+	Check whether date has been parsed for ordinary events.
+	Make weekly events start in the year 2000.
+	DTEND is non-inclusive, shift end date by one day if
+	necessary (not for entries that have date and time).
+	Rename local let variables: oops -> found-error, datestring ->
+	startdatestring.
+
 2004-11-02  Kim F. Storm  <storm@cua.dk>
 
 	* files.el (set-auto-mode-0): Don't rely on dynamic binding of
