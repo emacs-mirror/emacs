@@ -9,7 +9,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1997/04/14 20:57:39 $|$Revision: 3.15 $|~/modes/edebug.el|
+;; |$Date: 1997/05/05 01:03:53 $|$Revision: 3.16 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -86,7 +86,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.15 $"))
+  (let ((raw-version "$Revision: 3.16 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -2260,7 +2260,9 @@ error is signaled again."
       (edebug 'error (cons edebug-signal-name edebug-signal-data)))
   ;; If we reach here without another non-local exit, then send signal again.
   ;; i.e. the signal is not continuable, yet.
-  (signal edebug-signal-name edebug-signal-data))
+  ;; Avoid infinite recursion.
+  (let ((signal-hook-function nil))
+    (signal edebug-signal-name edebug-signal-data)))
 
 ;;; Entering Edebug
 
