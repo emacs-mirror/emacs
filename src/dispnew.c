@@ -1254,6 +1254,7 @@ buffer_posn_from_coords (window, col, line)
      struct window *window;
      int col, line;
 {
+  int hscroll = XINT (window->hscroll);
   int window_left = XFASTINT (window->left);
 
   /* The actual width of the window is window->width less one for the
@@ -1276,9 +1277,10 @@ buffer_posn_from_coords (window, col, line)
      sure I will keep it.  */
   posn = compute_motion (startp, 0,
 			 (window == XWINDOW (minibuf_window) && startp == 1
-			  ? minibuf_prompt_width : 0),
+			  ? minibuf_prompt_width : 0)
+			 + (hscroll ? 1 - hscroll : 0),
 			 ZV, line, col,
-			 window_width, XINT (window->hscroll), 0);
+			 window_width, hscroll, 0);
 
   current_buffer = old_current_buffer;
 
