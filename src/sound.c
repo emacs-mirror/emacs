@@ -368,7 +368,7 @@ DEFUN ("play-sound", Fplay_sound, Splay_sound, 1, 1, 0,
 SOUND is a list of the form `(sound KEYWORD VALUE...)'.\n\
 The following keywords are recognized:\n\
 \n\
-  :file FILE.- read sound data from FILE.  If FILE Isn't an\n\
+  :file FILE.- read sound data from FILE.  If FILE isn't an\n\
 absolute file name, it is searched in `data-directory'.\n\
 \n\
   :data DATA - read sound data from string DATA.\n\
