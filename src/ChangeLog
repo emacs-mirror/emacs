@@ -1,5 +1,8 @@
 1999-12-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_create_frame): Move x_default_parameter calls that
+	lead to size changes to after the X window has been created.
+
 	* xfaces.c (realize_x_face): Don't use uninitialized local
 	variable in xassert.
 
