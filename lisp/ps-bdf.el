@@ -36,10 +36,16 @@
 ;;;###autoload
 (defvar bdf-directory-list
   (if (eq system-type 'ms-dos)
-      (list (expand-file-name "../fonts/bdf" invocation-directory))
+      (list (expand-file-name "fonts/bdf" installation-directory))
     '("/usr/local/share/emacs/fonts/bdf"))
   "*List of directories to search for `BDF' font files.
 The default value is '("/usr/local/share/emacs/fonts/bdf").")
+
+;; MS-DOS users like to move the binary around after it's built, but
+;; the value above is computed at loadup time.
+(and (eq system-type 'ms-dos)
+     (setq bdf-directory-list
+	   (list (expand-file-name "fonts/bdf" installation-directory))))
 
 (defun bdf-expand-file-name (bdfname)
   "Return an abosolute path name of a `BDF' font file BDFNAME.
