@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
-;; Version: 2.3
+;; Version: 2.4
 ;; Keywords: calendar data
 
 ;; This file is part of GNU Emacs.
