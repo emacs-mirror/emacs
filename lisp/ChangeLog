@@ -1,3 +1,7 @@
+2003-06-19  Andreas Schwab  <schwab@suse.de>
+
+	* info.el (Info-fontify-node): Improve calculation of other-tag.
+
 2003-06-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/cc-mode.el (c-mode): Reverting last change.
