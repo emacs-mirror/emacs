@@ -843,10 +843,28 @@ window_box_height (w)
   xassert (height >= 0);
   
   if (WINDOW_WANTS_MODELINE_P (w))
-    height -= CURRENT_MODE_LINE_HEIGHT (w);
+    {
+      struct glyph_row *ml_row
+	= (w->current_matrix && w->current_matrix->rows
+	   ? MATRIX_MODE_LINE_ROW (w->current_matrix)
+	   : 0);
+      if (ml_row && ml_row->mode_line_p)
+	height -= ml_row->height;
+      else
+	height -= estimate_mode_line_height (f, MODE_LINE_FACE_ID);
+    }
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
-    height -= CURRENT_HEADER_LINE_HEIGHT (w);
+    {
+      struct glyph_row *hl_row
+	= (w->current_matrix && w->current_matrix->rows
+	   ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
+	   : 0);
+      if (hl_row && hl_row->mode_line_p)
+	height -= hl_row->height;
+      else
+	height -= estimate_mode_line_height (f, HEADER_LINE_FACE_ID);
+    }
 
   return height;
 }
