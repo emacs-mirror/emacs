@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point
 ;;
-;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 96, 97, 2000  Free Software Foundation, Inc.
 ;;
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Created: 29 Mar 1993
@@ -1284,8 +1284,7 @@ Uses the face `ffap' if it is defined, or else `highlight'."
     (setq ffap-highlight-overlay
 	  (apply 'make-overlay ffap-string-at-point-region))
     (overlay-put ffap-highlight-overlay 'face
-		      (if (internal-find-face 'ffap)
-			  'ffap 'highlight)))))
+		      (if (facep 'ffap) 'ffap 'highlight)))))
 
 
 ;;; Main Entrance (`find-file-at-point' == `ffap'):
