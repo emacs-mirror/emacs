@@ -712,7 +712,7 @@ otherwise it is made canonical."
 (defun unjustify-current-line ()
   "Remove justification whitespace from current line.
 If the line is centered or right-justified, this function removes any
-indentation past the left margin.  If the line is full-jusitified, it removes
+indentation past the left margin.  If the line is full-justified, it removes
 extra spaces between words.  It does nothing in other justification modes."
   (let ((justify (current-justification)))
     (cond ((eq 'left justify) nil)
@@ -738,7 +738,7 @@ extra spaces between words.  It does nothing in other justification modes."
 (defun unjustify-region (&optional begin end)
   "Remove justification whitespace from region.
 For centered or right-justified regions, this function removes any indentation
-past the left margin from each line.  For full-jusitified lines, it removes 
+past the left margin from each line.  For full-justified lines, it removes 
 extra spaces between words.  It does nothing in other justification modes.
 Arguments BEGIN and END are optional; default is the whole buffer."
   (save-excursion
