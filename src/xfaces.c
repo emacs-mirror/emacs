@@ -56,7 +56,7 @@ Boston, MA 02111-1307, USA.  */
    13. Whether or not a box should be drawn around characters, the box
    type, and, for simple boxes, in what color.
 
-   14. Font or fontset pattern, or nil.  This is a special attribute.
+   14. Font pattern, or nil.  This is a special attribute.
    When this attribute is specified, the face uses a font opened by
    that pattern as is.  In addition, all the other font-related
    attributes (1st thru 5th) are generated from the opened font name.
@@ -71,6 +71,8 @@ Boston, MA 02111-1307, USA.  */
    16. A specified average font width, which is invisible from Lisp,
    and is used to ensure that a font specified on the command line,
    for example, can be matched exactly.
+
+   17. A fontset name.
 
    Faces are frame-local by nature because Emacs allows to define the
    same named face (face names are symbols) differently for different
@@ -123,7 +125,7 @@ Boston, MA 02111-1307, USA.  */
    is realized, it inherits (thus shares) a fontset of an ASCII face
    that has the same attributes other than font-related ones.
 
-   Thus, all realized face have a realized fontset.
+   Thus, all realized faces have a realized fontset.
 
 
    Unibyte text.
@@ -341,6 +343,7 @@ Lisp_Object QCinverse_video, QCforeground, QCbackground, QCstipple;
 Lisp_Object QCwidth, QCfont, QCbold, QCitalic;
 Lisp_Object QCreverse_video;
 Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
+Lisp_Object QCfontset;
 
 /* Symbols used for attribute values.  */
 
@@ -1252,8 +1255,7 @@ frame_update_line_height (f)
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Load font of face FACE which is used on frame F to display ASCII
-   characters.  The name of the font to load is determined by lface
-   and fontset of FACE.  */
+   characters.  The name of the font to load is determined by lface.  */
 
 static void
 load_face_font (f, face)
@@ -2985,6 +2987,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_FONT(LFACE)	    AREF ((LFACE), LFACE_FONT_INDEX)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
 #define LFACE_AVGWIDTH(LFACE)	    AREF ((LFACE), LFACE_AVGWIDTH_INDEX)
+#define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
 
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
@@ -3048,6 +3051,8 @@ check_lface_attrs (attrs)
   xassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
 	   || NILP (attrs[LFACE_FONT_INDEX])
 	   || STRINGP (attrs[LFACE_FONT_INDEX]));
+  xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
+	   || STRINGP (attrs[LFACE_FONTSET_INDEX]));
 #endif
 }
 
@@ -3286,8 +3291,13 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
     LFACE_SLANT (lface)
       = have_xlfd_p ? xlfd_symbolic_slant (&font) : Qnormal;
 
-  LFACE_FONT (lface) = fontname;
-
+  if (fontset)
+    {
+      LFACE_FONT (lface) = build_string (font_info->full_name);
+      LFACE_FONTSET (lface) = fontset_name (fontset);
+    }
+  else
+    LFACE_FONT (lface) = fontname;
   return 1;
 }
 
@@ -4124,7 +4134,7 @@ FRAME 0 means change the face on all frames, and change the default
       LFACE_SWIDTH (lface) = value;
       font_related_attr_p = 1;
     }
-  else if (EQ (attr, QCfont))
+  else if (EQ (attr, QCfont) || EQ (attr, QCfontset))
     {
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (XFRAME (frame)))
@@ -4145,9 +4155,16 @@ FRAME 0 means change the face on all frames, and change the default
 	  tmp = Fquery_fontset (value, Qnil);
 	  if (!NILP (tmp))
 	    value = tmp;
+	  else if (EQ (attr, QCfontset))
+	    error ("Invalid fontset", XSTRING (value)->data);
 
-	  if (!set_lface_from_font_name (f, lface, value, 1, 1))
-	    signal_error ("Invalid font or fontset name", value);
+	  if (EQ (attr, QCfont))
+	    {
+	      if (!set_lface_from_font_name (f, lface, value, 1, 1))
+		signal_error ("Invalid font or fontset name", value);
+	    }
+	  else
+	    LFACE_FONTSET (lface) = value;
 
 	  font_attr_p = 1;
 	}
@@ -4197,6 +4214,7 @@ FRAME 0 means change the face on all frames, and change the default
      init_iterator will then free realized faces.  */
   if (!EQ (frame, Qt)
       && (EQ (attr, QCfont)
+	  || EQ (attr, QCfontset)
 	  || NILP (Fequal (old_value, value))))
     {
       ++face_change_count;
@@ -4304,7 +4322,7 @@ FRAME 0 means change the face on all frames, and change the default
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Set the `font' frame parameter of FRAME determined from `default'
-   face attributes LFACE.  If a face or fontset name is explicitely
+   face attributes LFACE.  If a font name is explicitely
    specfied in LFACE, use it as is.  Otherwise, determine a font name
    from the other font-related atrributes of LFACE.  In that case, if
    there's no matching font, signals an error.  */
@@ -4680,6 +4698,8 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
     value = LFACE_INHERIT (lface);
   else if (EQ (keyword, QCfont))
     value = LFACE_FONT (lface);
+  else if (EQ (keyword, QCfontset))
+    value = LFACE_FONTSET (lface);
   else
     signal_error ("Invalid face attribute name", keyword);
 
@@ -4966,8 +4986,8 @@ lface_hash (v)
 
 /* Return non-zero if LFACE1 and LFACE2 specify the same font (without
    considering charsets/registries).  They do if they specify the same
-   family, point size, weight, width, slant, and fontset.  Both LFACE1
-   and LFACE2 must be fully-specified.  */
+   family, point size, weight, width, slant, font, and fontset.  Both
+   LFACE1 and LFACE2 must be fully-specified.  */
 
 static INLINE int
 lface_same_font_attributes_p (lface1, lface2)
@@ -4985,8 +5005,14 @@ lface_same_font_attributes_p (lface1, lface2)
 	  && (EQ (lface1[LFACE_FONT_INDEX], lface2[LFACE_FONT_INDEX])
 	      || (STRINGP (lface1[LFACE_FONT_INDEX])
 		  && STRINGP (lface2[LFACE_FONT_INDEX])
-		  && xstricmp (XSTRING (lface1[LFACE_FONT_INDEX])->data,
-			       XSTRING (lface2[LFACE_FONT_INDEX])->data))));
+		  && ! xstricmp (XSTRING (lface1[LFACE_FONT_INDEX])->data,
+				 XSTRING (lface2[LFACE_FONT_INDEX])->data)))
+	  && (EQ (lface1[LFACE_FONTSET_INDEX], lface2[LFACE_FONTSET_INDEX])
+	      || (STRINGP (lface1[LFACE_FONTSET_INDEX])
+		  && STRINGP (lface2[LFACE_FONTSET_INDEX])
+		  && ! xstricmp (XSTRING (lface1[LFACE_FONTSET_INDEX])->data,
+				 XSTRING (lface2[LFACE_FONTSET_INDEX])->data)))
+	  );
 }
 
 
@@ -6167,8 +6193,9 @@ face_fontset (attrs)
      Lisp_Object *attrs;
 {
   Lisp_Object name;
+  int fontset;
 
-  name = attrs[LFACE_FONT_INDEX];
+  name = attrs[LFACE_FONTSET_INDEX];
   if (!STRINGP (name))
     return -1;
   return fs_query_fontset (name, 0);
@@ -7288,6 +7315,8 @@ syms_of_xfaces ()
   staticpro (&QCwidth);
   QCfont = intern (":font");
   staticpro (&QCfont);
+  QCfontset = intern (":fontset");
+  staticpro (&QCfontset);
   QCbold = intern (":bold");
   staticpro (&QCbold);
   QCitalic = intern (":italic");
