@@ -1,3 +1,8 @@
+2004-11-16  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Fix previous change (calculate
+	end position of substring to display correctly).
+
 2004-11-16  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (Fposn_at_point): Remove extra */ after doc string.
