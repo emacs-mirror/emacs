@@ -1,3 +1,7 @@
+2004-09-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-version-number): Set to 5.11.
+
 2004-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-copy-to-buffer): Don't use set-buffer-multibyte.
