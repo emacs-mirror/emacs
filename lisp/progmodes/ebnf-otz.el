@@ -5,7 +5,7 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <99/11/20 18:03:10 vinicius>
+;; Time-stamp: <2000/12/19 14:54:41 vinicius>
 ;; Version:    1.0
 
 ;; This file is part of GNU Emacs.
