@@ -1,3 +1,7 @@
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (undo): Fix previous change.
+
 2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Sync with x-win.el.  Rearrange the contents.
@@ -6,6 +10,16 @@
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (buffer-save-without-query): New var (buffer-local).
+	(save-some-buffers): Save those buffers first, w/o asking.
+
+	* files.el (insert-directory-ls-version): New variable.
+	(insert-directory): When ls returns an error, test the version
+	number to decide what the return code means.
+	With --dired output format, detect and distinguish lines
+	that are really error messages.
+	(insert-directory-adj-pos): New function.
+	
 	* bookmark.el (bookmark-jump): Nice error if BOOKMARK is nil.
 
 	* battery.el (battery-mode-line-format): Remove initial spaces.
@@ -59,7 +73,9 @@
 
 	* simple.el (undo-list-saved): New variable (buffer-local).
 	(undo): Set and test it.
-
+	(buffer-disable-undo): Moved here from buffer.c.
+	Clear out undo-list-saved.
+	
 	* international/mule.el (decode-coding-inserted-region): 
 	Set buffer-undo-list in a correct and optimal way.
 
