@@ -1812,6 +1812,18 @@ See also `with-temp-buffer'."
 	   ;; This is where the code differs from save-selected-window.
 	   (select-window save-selected-window-window 'norecord)))))
 
+(defmacro with-selected-frame (frame &rest body)
+  "Execute the forms in BODY with FRAME as the selected frame.
+The value returned is the value of the last form in BODY.
+See also `with-temp-buffer'."
+  (declare (indent 1) (debug t))
+  `(let ((save-selected-frame (selected-frame)))
+     (unwind-protect
+	 (progn (select-frame ,frame)
+		,@body)
+       (if (frame-live-p save-selected-frame)
+	   (select-frame save-selected-frame)))))
+
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.

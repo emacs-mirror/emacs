@@ -1893,7 +1893,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "with-current-buffer" "with-electric-help"
 		    "with-local-quit" "with-no-warnings"
 		    "with-output-to-string" "with-output-to-temp-buffer"
-		    "with-selected-window" "with-syntax-table"
+		    "with-selected-window" "with-selected-frame" "with-syntax-table"
 		    "with-temp-buffer" "with-temp-file" "with-temp-message"
 		    "with-timeout" "with-timeout-handler") t)
 	     "\\>")
