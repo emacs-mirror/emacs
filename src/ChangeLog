@@ -1,3 +1,11 @@
+2000-03-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_menu_bar_lines_1): Adjust window's orig_top and
+	orig_height if set.
+
+	* frame.c (set_menu_bar_lines_1): Adjust window's orig_top and
+	orig_height if set.
+
 2000-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_note_mouse_highlight): Return immediately if frame's
@@ -20,7 +28,7 @@
 	FRAME_INTERNAL_BORDER_WIDTH.
 
 	* xdisp.c (try_window_id): Recompute unchanged information if
-	it is invalid.
+	it is obviously invalid.
 
 	* xterm.c (x_term_init): Create a colormap if not using the
 	default visual.
