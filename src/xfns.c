@@ -32,7 +32,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "buffer.h"
 #include "dispextern.h"
-#include "xscrollbar.h"
 #include "keyboard.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -177,7 +176,7 @@ extern Atom Xatom_wm_window_moved;     /* When the WM moves us. */
 
 #else	/* X10 */
 
-/* Default size of an Emacs window without scroll bar.  */
+/* Default size of an Emacs window.  */
 static char *default_window = "=80x24+0+0";
 
 #define MAXICID 80
@@ -235,7 +234,6 @@ Lisp_Object Qcursor_color;
 Lisp_Object Qfont;
 Lisp_Object Qforeground_color;
 Lisp_Object Qgeometry;
-Lisp_Object Qhorizontal_scroll_bar;
 Lisp_Object Qicon_left;
 Lisp_Object Qicon_top;
 Lisp_Object Qicon_type;
@@ -248,7 +246,6 @@ Lisp_Object Qsuppress_icon;
 Lisp_Object Qsuppress_initial_map;
 Lisp_Object Qtop;
 Lisp_Object Qundefined_color;
-Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
 
@@ -263,6 +260,14 @@ extern Lisp_Object Vglobal_mouse_map;
 
 /* Points to table of defined typefaces.  */
 struct face *x_face_table[MAX_FACES_AND_GLYPHS];
+
+static char gray_bits[] =
+ {
+   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa,
+   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa,
+   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa,
+   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa
+ };
 
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
@@ -287,80 +292,6 @@ x_window_to_frame (wdesc)
   return 0;
 }
 
-/* Map an X window that implements a scroll bar to the Emacs frame it
-   belongs to.  Also store in *PART a symbol identifying which part of
-   the scroll bar it is.  */
-
-struct frame *
-x_window_to_scrollbar (wdesc, part_ptr, prefix_ptr)
-     int wdesc;
-     Lisp_Object *part_ptr;
-     enum scroll_bar_prefix *prefix_ptr;
-{
-  Lisp_Object tail, frame;
-  struct frame *f;
-
-  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
-    {
-      frame = XCONS (tail)->car;
-      if (XTYPE (frame) != Lisp_Frame)
-        continue;
-
-      f = XFRAME (frame);
-      if (part_ptr == 0 && prefix_ptr == 0)
-        return f;
-
-      if (f->display.x->v_scrollbar == wdesc)
-        {
-	  *part_ptr = Qvscrollbar_part;
-          *prefix_ptr = VSCROLL_BAR_PREFIX;
-          return f;
-        }
-      else if (f->display.x->v_slider == wdesc)
-        {
-          *part_ptr = Qvslider_part;
-          *prefix_ptr = VSCROLL_SLIDER_PREFIX;
-          return f;
-        }
-      else if (f->display.x->v_thumbup == wdesc)
-        {
-          *part_ptr = Qvthumbup_part;
-          *prefix_ptr = VSCROLL_THUMBUP_PREFIX;
-          return f;
-        }
-      else if (f->display.x->v_thumbdown == wdesc)
-        {
-          *part_ptr = Qvthumbdown_part;
-          *prefix_ptr = VSCROLL_THUMBDOWN_PREFIX;
-          return f;
-        }
-      else if (f->display.x->h_scrollbar == wdesc)
-        {
-          *part_ptr = Qhscrollbar_part;
-          *prefix_ptr = HSCROLL_BAR_PREFIX;
-          return f;
-        }
-      else if (f->display.x->h_slider == wdesc)
-        {
-          *part_ptr = Qhslider_part;
-          *prefix_ptr = HSCROLL_SLIDER_PREFIX;
-          return f;
-        }
-      else if (f->display.x->h_thumbleft == wdesc)
-        {
-          *part_ptr = Qhthumbleft_part;
-          *prefix_ptr = HSCROLL_THUMBLEFT_PREFIX;
-          return f;
-        }
-      else if (f->display.x->h_thumbright == wdesc)
-        {
-          *part_ptr = Qhthumbright_part;
-          *prefix_ptr = HSCROLL_THUMBRIGHT_PREFIX;
-          return f;
-        }
-    }
-  return 0;
-}
 
 /* Connect the frame-parameter names for X frames
    to the ways of passing the parameter values to the window system.
@@ -384,7 +315,6 @@ enum x_frame_parm
   X_PARM_AUTORAISE,
   X_PARM_AUTOLOWER,
   X_PARM_VERT_SCROLLBAR,
-  X_PARM_HORIZ_SCROLLBAR,
 };
 
 
@@ -407,7 +337,6 @@ void x_explicitly_set_name ();
 void x_set_autoraise ();
 void x_set_autolower ();
 void x_set_vertical_scrollbar ();
-void x_set_horizontal_scrollbar ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
@@ -424,7 +353,6 @@ static struct x_frame_parm_table x_frame_parms[] =
   "autoraise", x_set_autoraise,
   "autolower", x_set_autolower,
   "vertical-scrollbar", x_set_vertical_scrollbar,
-  "horizontal-scrollbar", x_set_horizontal_scrollbar,
 };
 
 /* Attach the `x-frame-parameter' properties to
@@ -637,98 +565,9 @@ x_set_foreground_color (f, arg, oldval)
 		      f->display.x->foreground_pixel);
       XSetBackground (x_current_display, f->display.x->reverse_gc,
 		      f->display.x->foreground_pixel);
-      if (f->display.x->v_scrollbar)
-        {
-          Pixmap  up_arrow_pixmap, down_arrow_pixmap, slider_pixmap;
-
-          XSetWindowBorder (x_current_display, f->display.x->v_scrollbar,
-			    f->display.x->foreground_pixel);
-
-          slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 gray_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-          up_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 up_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-          down_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 down_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbup,
-				      up_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbdown,
-				      down_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_slider,
-				      slider_pixmap);
-
-          XClearWindow (XDISPLAY f->display.x->v_thumbup);
-          XClearWindow (XDISPLAY f->display.x->v_thumbdown);
-          XClearWindow (XDISPLAY f->display.x->v_slider);
-
-          XFreePixmap (x_current_display, down_arrow_pixmap);
-          XFreePixmap (x_current_display, up_arrow_pixmap);
-          XFreePixmap (x_current_display, slider_pixmap);
-        }
-      if (f->display.x->h_scrollbar)
-        {
-          Pixmap left_arrow_pixmap, right_arrow_pixmap, slider_pixmap;
-
-          XSetWindowBorder (x_current_display, f->display.x->h_scrollbar,
-			    f->display.x->foreground_pixel);
-
-          slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 gray_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-
-          left_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 up_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-          right_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 down_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_slider,
-				      slider_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbleft,
-				      left_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbright,
-				      right_arrow_pixmap);
-
-          XClearWindow (XDISPLAY f->display.x->h_thumbleft);
-          XClearWindow (XDISPLAY f->display.x->h_thumbright);
-          XClearWindow (XDISPLAY f->display.x->h_slider);
-
-          XFreePixmap (x_current_display, slider_pixmap);
-          XFreePixmap (x_current_display, left_arrow_pixmap);
-          XFreePixmap (x_current_display, right_arrow_pixmap);
-        }
       UNBLOCK_INPUT;
 #endif				/* HAVE_X11 */
-      if (f->visible)
+      if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
 }
@@ -755,96 +594,6 @@ x_set_background_color (f, arg, oldval)
       XSetWindowBackground (x_current_display, FRAME_X_WINDOW (f),
 			    f->display.x->background_pixel);
 
-      /* Scroll bars. */
-      if (f->display.x->v_scrollbar)
-        {
-          Pixmap  up_arrow_pixmap, down_arrow_pixmap, slider_pixmap;
-
-          XSetWindowBackground (x_current_display, f->display.x->v_scrollbar,
-				f->display.x->background_pixel);
-
-          slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 gray_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-          up_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 up_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-          down_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 down_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbup,
-				      up_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbdown,
-				      down_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_slider,
-				      slider_pixmap);
-
-          XClearWindow (XDISPLAY f->display.x->v_thumbup);
-          XClearWindow (XDISPLAY f->display.x->v_thumbdown);
-          XClearWindow (XDISPLAY f->display.x->v_slider);
-
-          XFreePixmap (x_current_display, down_arrow_pixmap);
-          XFreePixmap (x_current_display, up_arrow_pixmap);
-          XFreePixmap (x_current_display, slider_pixmap);
-        }
-      if (f->display.x->h_scrollbar)
-        {
-          Pixmap left_arrow_pixmap, right_arrow_pixmap, slider_pixmap;
-
-          XSetWindowBackground (x_current_display, f->display.x->h_scrollbar,
-				f->display.x->background_pixel);
-
-          slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 gray_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-
-          left_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 up_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-          right_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY FRAME_X_WINDOW (f),
-					 down_arrow_bits, 16, 16,
-					 f->display.x->foreground_pixel,
-					 f->display.x->background_pixel,
-					 DefaultDepth (x_current_display,
-						       XDefaultScreen (x_current_display)));
-
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_slider,
-				      slider_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbleft,
-				      left_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbright,
-				      right_arrow_pixmap);
-
-          XClearWindow (XDISPLAY f->display.x->h_thumbleft);
-          XClearWindow (XDISPLAY f->display.x->h_thumbright);
-          XClearWindow (XDISPLAY f->display.x->h_slider);
-
-          XFreePixmap (x_current_display, slider_pixmap);
-          XFreePixmap (x_current_display, left_arrow_pixmap);
-          XFreePixmap (x_current_display, right_arrow_pixmap);
-        }
 #else
       temp = XMakeTile (f->display.x->background_pixel);
       XChangeBackground (FRAME_X_WINDOW (f), temp);
@@ -852,7 +601,7 @@ x_set_background_color (f, arg, oldval)
 #endif				/* not HAVE_X11 */
       UNBLOCK_INPUT;
 
-      if (f->visible)
+      if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
 }
@@ -995,7 +744,7 @@ x_set_cursor_color (f, arg, oldval)
       UNBLOCK_INPUT;
 #endif /* HAVE_X11 */
 
-      if (f->visible)
+      if (FRAME_VISIBLE_P (f))
 	{
 	  x_display_cursor (f, 0);
 	  x_display_cursor (f, 1);
@@ -1056,12 +805,6 @@ x_set_border_pixel (f, pix)
 #ifdef HAVE_X11
       XSetWindowBorder (x_current_display, FRAME_X_WINDOW (f),
        		 pix);
-      if (f->display.x->h_scrollbar)
-        XSetWindowBorder (x_current_display, f->display.x->h_slider,
-       		   pix);
-      if (f->display.x->v_scrollbar)
-        XSetWindowBorder (x_current_display, f->display.x->v_slider,
-       		   pix);
 #else
       if (pix < 0)
         temp = XMakePixmap ((Bitmap) XStoreBitmap (16, 16, gray_bits),
@@ -1073,7 +816,7 @@ x_set_border_pixel (f, pix)
 #endif /* not HAVE_X11 */
       UNBLOCK_INPUT;
 
-      if (f->visible)
+      if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
 }
@@ -1103,7 +846,7 @@ x_set_icon_type (f, arg, oldval)
 
   /* If the window was unmapped (and its icon was mapped),
      the new icon is not mapped, so map the window in its stead.  */
-  if (f->visible)
+  if (FRAME_VISIBLE_P (f))
     XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
 
   XFlushQueue ();
@@ -1284,6 +1027,19 @@ x_set_autolower (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   f->auto_lower = !EQ (Qnil, arg);
+}
+
+void
+x_set_vertical_scrollbar (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  if (NILP (arg) != ! FRAME_HAS_VERTICAL_SCROLLBARS (f))
+    {
+      FRAME_HAS_VERTICAL_SCROLLBARS (f) = ! NILP (arg);
+
+      x_set_window_size (f, FRAME_WIDTH (f), FRAME_HEIGHT (f));
+    }
 }
 
 #ifdef HAVE_X11
@@ -1800,10 +1556,8 @@ x_figure_window_size (f, parms)
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     error ("Must specify *both* height and width");
 
-  f->display.x->pixel_width = (FONT_WIDTH (f->display.x->font) * f->width
-			       + 2 * f->display.x->internal_border_width);
-  f->display.x->pixel_height = (FONT_HEIGHT (f->display.x->font) * f->height
-				+ 2 * f->display.x->internal_border_width);
+  f->display.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
+  f->display.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
   tem0 = x_get_arg (parms, Qtop, 0, number);
   tem1 = x_get_arg (parms, Qleft, 0, number);
@@ -1882,6 +1636,15 @@ x_window (f)
   class_hints.res_name = (char *) XSTRING (f->name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (x_current_display, FRAME_X_WINDOW (f), &class_hints);
+
+  /* This indicates that we use the "Passive Input" input model.
+     Unless we do this, we don't get the Focus{In,Out} events that we
+     need to draw the cursor correctly.  Accursed bureaucrats.
+   XWhipsAndChains (x_current_display, IronMaiden, &TheRack);  */
+
+  f->display.x->wm_hints.input = True;
+  f->display.x->wm_hints.flags |= InputHint;
+  XSetWMHints (x_current_display, FRAME_X_WINDOW (f), &f->display.x->wm_hints);
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
@@ -2070,6 +1833,9 @@ be shared by the new frame.")
   else
     f = make_frame (1);
 
+  /* Note that X Windows does support scrollbars.  */
+  FRAME_CAN_HAVE_SCROLLBARS (f) = 1;
+
   /* Set the name; the functions to which we pass f expect the
      name to be set.  */
   f->name = name;
@@ -2093,6 +1859,8 @@ be shared by the new frame.")
   /* This defaults to 2 in order to match XTerms.  */
   x_default_parameter (f, parms, Qinternal_border_width,
 		      make_number (2), "InternalBorderWidth", number);
+  x_default_parameter (f, parms, Qvertical_scrollbar,
+		       Qt, "VerticalScrollbars", boolean);
 
   /* Also do the stuff which must be set before the window exists. */
   x_default_parameter (f, parms, Qforeground_color,
@@ -2103,22 +1871,6 @@ be shared by the new frame.")
 		      build_string ("black"), "cursor", string);
   x_default_parameter (f, parms, Qborder_color,
 		      build_string ("black"), "border", string);
-
-  /* When XSetWMHints eventually gets called, this will indicate that
-     we use the "Passive Input" input model.  Unless we do this, we
-     don't get the Focus{In,Out} events that we need to draw the
-     cursor correctly.  Accursed bureaucrats.
-
-     We set this here and leave it, because we know, being decidedly
-     non-humble programmers (nay, weigh'd low by our hubris!), that
-     Fx_create_frame calls x_icon which begat x_wm_set_window_state
-     which begat XSetWMHints, which will get this information to the
-     right parties.  -JimB
-
-   XWhipsAndChains (x_current_display, IronMaiden, &TheRack);  */
-
-  f->display.x->wm_hints.input = True;
-  f->display.x->wm_hints.flags |= InputHint;
 
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
@@ -2147,12 +1899,6 @@ be shared by the new frame.")
 
   tem = x_get_arg (parms, Qunsplittable, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
-
-  /* Now handle the rest of the parameters. */
-  x_default_parameter (f, parms, Qhorizontal_scroll_bar,
-		       Qnil, "HScrollBar", boolean);
-  x_default_parameter (f, parms, Qvertical_scroll_bar,
-		       Qnil, "VScrollBar", boolean);
 
   /* Make the window appear on the frame and enable display.  */
   if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, boolean), Qt))
@@ -2262,8 +2008,7 @@ be shared by the new frame.")
 	/ FONT_WIDTH (f->display.x->font);
       f->display.x->left_pos = wininfo.x;
       f->display.x->top_pos = wininfo.y;
-      f->async_visible = wininfo.mapped != 0;
-      f->visible = f->async_visible;
+      FRAME_SET_VISIBILITY (f, wininfo.mapped != 0);
       f->display.x->border_width = wininfo.bdrwidth;
       f->display.x->parent_desc = parent;
     }
@@ -2389,11 +2134,6 @@ be shared by the new frame.")
 
   Fmodify_frame_parameters (frame, parms);
 
-  if (!NILP (vscroll))
-    install_vertical_scrollbar (f, pixelwidth, pixelheight);
-  if (!NILP (hscroll))
-    install_horizontal_scrollbar (f, pixelwidth, pixelheight);
-
   /* Make the window appear on the frame and enable display.  */
 
   if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, boolean), Qt))
@@ -2514,549 +2254,6 @@ x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
 }
 #endif /* not HAVE_X11 */
 
-/* Set whether frame F has a horizontal scroll bar.
-   VAL is t or nil to specify it. */
-
-static void
-x_set_horizontal_scrollbar (f, val, oldval)
-     struct frame *f;
-     Lisp_Object val, oldval;
-{
-  if (!NILP (val))
-    {
-      if (FRAME_X_WINDOW (f) != 0)
-	{
-	  BLOCK_INPUT;
-	  f->display.x->h_scrollbar_height = HSCROLL_HEIGHT;
-	  x_set_window_size (f, f->width, f->height);
-	  install_horizontal_scrollbar (f);
-	  SET_FRAME_GARBAGED (f);
-	  UNBLOCK_INPUT;
-	}
-    }
-  else
-    if (f->display.x->h_scrollbar)
-      {
-	BLOCK_INPUT;
-	f->display.x->h_scrollbar_height = 0;
-	XDestroyWindow (XDISPLAY f->display.x->h_scrollbar);
-	f->display.x->h_scrollbar = 0;
-	x_set_window_size (f, f->width, f->height);
-	f->garbaged++;
-	frame_garbaged++;
-	BLOCK_INPUT;
-      }
-}
-
-/* Set whether frame F has a vertical scroll bar.
-   VAL is t or nil to specify it. */
-
-static void
-x_set_vertical_scrollbar (f, val, oldval)
-     struct frame *f;
-     Lisp_Object val, oldval;
-{
-  if (!NILP (val))
-    {
-      if (FRAME_X_WINDOW (f) != 0)
-	{
-	  BLOCK_INPUT;
-	  f->display.x->v_scrollbar_width = VSCROLL_WIDTH;
-	  x_set_window_size (f, f->width, f->height);
-	  install_vertical_scrollbar (f);
-	  SET_FRAME_GARBAGED (f);
-	  UNBLOCK_INPUT;
-	}
-    }
-  else
-    if (f->display.x->v_scrollbar != 0)
-      {
-	BLOCK_INPUT;
-	f->display.x->v_scrollbar_width = 0;
-	XDestroyWindow (XDISPLAY f->display.x->v_scrollbar);
-	f->display.x->v_scrollbar = 0;
-	x_set_window_size (f, f->width, f->height);
-	SET_FRAME_GARBAGED (f);
-	UNBLOCK_INPUT;
-      }
-}
-
-/* Create the X windows for a vertical scroll bar
-   for a frame X that already has an X window but no scroll bar.  */
-
-static void
-install_vertical_scrollbar (f)
-     struct frame *f;
-{
-  int ibw = f->display.x->internal_border_width;
-  Window parent;
-  XColor fore_color, back_color;
-  Pixmap up_arrow_pixmap, down_arrow_pixmap, slider_pixmap;
-  int pix_x, pix_y, width, height, border;
-
-  height = f->display.x->pixel_height - ibw - 2;
-  width = VSCROLL_WIDTH - 2;
-  pix_x = f->display.x->pixel_width - ibw/2;
-  pix_y = ibw / 2;
-  border = 1;
-
-#ifdef HAVE_X11
-  up_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
-				 up_arrow_bits, 16, 16,
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel,
-				 DefaultDepth (x_current_display,
-					       XDefaultScreen (x_current_display)));
-
-  down_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
-				 down_arrow_bits, 16, 16,
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel,
-				 DefaultDepth (x_current_display,
-					       XDefaultScreen (x_current_display)));
-
-  slider_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
-				 gray_bits, 16, 16,
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel,
-				 DefaultDepth (x_current_display,
-					       XDefaultScreen (x_current_display)));
-
-  /* These cursor shapes will be installed when the mouse enters
-     the appropriate window.  */
-
-  up_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_up_arrow);
-  down_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_down_arrow);
-  v_double_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
-
-  f->display.x->v_scrollbar =
-    XCreateSimpleWindow (x_current_display, FRAME_X_WINDOW (f),
-			 pix_x, pix_y, width, height, border,
-			 f->display.x->foreground_pixel,
-			 f->display.x->background_pixel);
-  XFlush (x_current_display);
-  XDefineCursor (x_current_display, f->display.x->v_scrollbar,
-		 v_double_arrow_cursor);
-  
-  /* Create slider window */
-  f->display.x->v_slider =
-    XCreateSimpleWindow (x_current_display, f->display.x->v_scrollbar,
-			 0, VSCROLL_WIDTH - 2,
-			 VSCROLL_WIDTH - 4, VSCROLL_WIDTH - 4,
-			 1, f->display.x->border_pixel,
-			 f->display.x->foreground_pixel);
-  XFlush (x_current_display);
-  XDefineCursor (x_current_display, f->display.x->v_slider,
-		 v_double_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, f->display.x->v_slider,
-			      slider_pixmap);
-
-  f->display.x->v_thumbup =
-    XCreateSimpleWindow (x_current_display, f->display.x->v_scrollbar,
-			 0, 0,
-			 VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2,
-			 0, f->display.x->foreground_pixel,
-			 f->display.x-> background_pixel);
-  XFlush (x_current_display);
-  XDefineCursor (x_current_display, f->display.x->v_thumbup,
-		 up_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, f->display.x->v_thumbup,
-			      up_arrow_pixmap);
-
-  f->display.x->v_thumbdown =
-    XCreateSimpleWindow (x_current_display, f->display.x->v_scrollbar,
-			 0, height - VSCROLL_WIDTH + 2,
-			 VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2,
-			 0, f->display.x->foreground_pixel,
-			 f->display.x->background_pixel);
-  XFlush (x_current_display);
-  XDefineCursor (x_current_display, f->display.x->v_thumbdown,
-		 down_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, f->display.x->v_thumbdown,
-			      down_arrow_pixmap);
-  
-  fore_color.pixel = f->display.x->mouse_pixel;
-  back_color.pixel = f->display.x->background_pixel;
-  XQueryColor (x_current_display,
-	       DefaultColormap (x_current_display,
-				DefaultScreen (x_current_display)),
-	       &fore_color);
-  XQueryColor (x_current_display,
-	       DefaultColormap (x_current_display,
-				DefaultScreen (x_current_display)),
-	       &back_color);
-  XRecolorCursor (x_current_display, up_arrow_cursor,
-		  &fore_color, &back_color);
-  XRecolorCursor (x_current_display, down_arrow_cursor,
-		  &fore_color, &back_color);
-  XRecolorCursor (x_current_display, v_double_arrow_cursor,
-		  &fore_color, &back_color);
-
-  XFreePixmap (x_current_display, slider_pixmap);
-  XFreePixmap (x_current_display, up_arrow_pixmap);
-  XFreePixmap (x_current_display, down_arrow_pixmap);
-  XFlush (x_current_display);
-
-  XSelectInput (x_current_display, f->display.x->v_scrollbar,
-		ButtonPressMask | ButtonReleaseMask
-		| PointerMotionMask | PointerMotionHintMask
-		| EnterWindowMask);
-  XSelectInput (x_current_display, f->display.x->v_slider,
-		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, f->display.x->v_thumbdown,
-		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, f->display.x->v_thumbup,
-		ButtonPressMask | ButtonReleaseMask);
-  XFlush (x_current_display);
-
-  /* This should be done at the same time as the main window. */
-  XMapWindow (x_current_display, f->display.x->v_scrollbar);
-  XMapSubwindows (x_current_display, f->display.x->v_scrollbar);
-  XFlush (x_current_display);
-#else /* not HAVE_X11 */
-  Bitmap b;
-  Pixmap fore_tile, back_tile, bord_tile;
-  static short up_arrow_bits[] = {
-    0x0000, 0x0180, 0x03c0, 0x07e0,
-    0x0ff0, 0x1ff8, 0x3ffc, 0x7ffe,
-    0x0180, 0x0180, 0x0180, 0x0180,
-    0x0180, 0x0180, 0x0180, 0xffff};
-  static short down_arrow_bits[] = {
-    0xffff, 0x0180, 0x0180, 0x0180,
-    0x0180, 0x0180, 0x0180, 0x0180,
-    0x7ffe, 0x3ffc, 0x1ff8, 0x0ff0,
-    0x07e0, 0x03c0, 0x0180, 0x0000};
-
-  fore_tile = XMakeTile (f->display.x->foreground_pixel);
-  back_tile = XMakeTile (f->display.x->background_pixel);
-  bord_tile = XMakeTile (f->display.x->border_pixel);
-
-  b = XStoreBitmap (VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2, up_arrow_bits);
-  up_arrow_pixmap = XMakePixmap (b, 
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel);
-  XFreeBitmap (b);
-
-  b = XStoreBitmap (VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2, down_arrow_bits);
-  down_arrow_pixmap = XMakePixmap (b,
-				   f->display.x->foreground_pixel,
-				   f->display.x->background_pixel);
-  XFreeBitmap (b);
-
-  ibw = f->display.x->internal_border_width;
-
-  f->display.x->v_scrollbar = XCreateWindow (FRAME_X_WINDOW (f),
-					     width - VSCROLL_WIDTH - ibw/2,
-					     ibw/2,
-					     VSCROLL_WIDTH - 2,
-					     height - ibw - 2,
-					     1, bord_tile, back_tile);
-
-  f->display.x->v_scrollbar_width = VSCROLL_WIDTH;
-
-  f->display.x->v_thumbup = XCreateWindow (f->display.x->v_scrollbar,
-					   0, 0,
-					   VSCROLL_WIDTH - 2,
-					   VSCROLL_WIDTH - 2,
-					   0, 0, up_arrow_pixmap);
-  XTileAbsolute (f->display.x->v_thumbup);
-
-  f->display.x->v_thumbdown = XCreateWindow (f->display.x->v_scrollbar,
-					     0,
-					     height - ibw - VSCROLL_WIDTH,
-					     VSCROLL_WIDTH - 2,
-					     VSCROLL_WIDTH - 2,
-					     0, 0, down_arrow_pixmap);
-  XTileAbsolute (f->display.x->v_thumbdown);
-
-  f->display.x->v_slider = XCreateWindow (f->display.x->v_scrollbar,
-					  0, VSCROLL_WIDTH - 2,
-					  VSCROLL_WIDTH - 4,
-					  VSCROLL_WIDTH - 4,
-					  1, back_tile, fore_tile);
-
-  XSelectInput (f->display.x->v_scrollbar,
-		(ButtonPressed | ButtonReleased | KeyPressed));
-  XSelectInput (f->display.x->v_thumbup,
-		(ButtonPressed | ButtonReleased | KeyPressed));
-
-  XSelectInput (f->display.x->v_thumbdown,
-		(ButtonPressed | ButtonReleased | KeyPressed));
-
-  XMapWindow (f->display.x->v_thumbup);
-  XMapWindow (f->display.x->v_thumbdown);
-  XMapWindow (f->display.x->v_slider);
-  XMapWindow (f->display.x->v_scrollbar);
-
-  XFreePixmap (fore_tile);
-  XFreePixmap (back_tile);
-  XFreePixmap (up_arrow_pixmap);
-  XFreePixmap (down_arrow_pixmap);
-#endif /* not HAVE_X11 */
-}				       
-
-static void
-install_horizontal_scrollbar (f)
-     struct frame *f;
-{
-  int ibw = f->display.x->internal_border_width;
-  Window parent;
-  Pixmap left_arrow_pixmap, right_arrow_pixmap, slider_pixmap;
-  int pix_x, pix_y;
-  int width;
-
-  pix_x = ibw;
-  pix_y = PIXEL_HEIGHT (f) - HSCROLL_HEIGHT - ibw ;
-  width = PIXEL_WIDTH (f) - 2 * ibw;
-  if (f->display.x->v_scrollbar_width)
-    width -= (f->display.x->v_scrollbar_width + 1);
-
-#ifdef HAVE_X11
-  left_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
-				 left_arrow_bits, 16, 16,
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel,
-				 DefaultDepth (x_current_display,
-					       XDefaultScreen (x_current_display)));
-
-  right_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
-				 right_arrow_bits, 16, 16,
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel,
-				 DefaultDepth (x_current_display,
-					       XDefaultScreen (x_current_display)));
-
-  slider_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, FRAME_X_WINDOW (f),
-				 gray_bits, 16, 16,
-				 f->display.x->foreground_pixel,
-				 f->display.x->background_pixel,
-				 DefaultDepth (x_current_display,
-					       XDefaultScreen (x_current_display)));
-
-  left_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_left_arrow);
-  right_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_right_arrow);
-  h_double_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_h_double_arrow);
-
-  f->display.x->h_scrollbar =
-    XCreateSimpleWindow (x_current_display, FRAME_X_WINDOW (f),
-			 pix_x, pix_y,
-			 width - ibw - 2, HSCROLL_HEIGHT - 2, 1,
-			 f->display.x->foreground_pixel,
-			 f->display.x->background_pixel);
-  XDefineCursor (x_current_display, f->display.x->h_scrollbar,
-		 h_double_arrow_cursor);
-
-  f->display.x->h_slider =
-    XCreateSimpleWindow (x_current_display, f->display.x->h_scrollbar,
-			 0, 0,
-			 HSCROLL_HEIGHT - 4, HSCROLL_HEIGHT - 4,
-			 1, f->display.x->foreground_pixel,
-			 f->display.x->background_pixel);
-  XDefineCursor (x_current_display, f->display.x->h_slider,
-		 h_double_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, f->display.x->h_slider,
-			      slider_pixmap);
-
-  f->display.x->h_thumbleft =
-    XCreateSimpleWindow (x_current_display, f->display.x->h_scrollbar,
-			 0, 0,
-			 HSCROLL_HEIGHT - 2, HSCROLL_HEIGHT - 2,
-			 0, f->display.x->foreground_pixel,
-			 f->display.x->background_pixel);
-  XDefineCursor (x_current_display, f->display.x->h_thumbleft,
-		 left_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, f->display.x->h_thumbleft,
-			      left_arrow_pixmap);
-
-  f->display.x->h_thumbright =
-    XCreateSimpleWindow (x_current_display, f->display.x->h_scrollbar,
-			 width - ibw - HSCROLL_HEIGHT, 0,
-			 HSCROLL_HEIGHT - 2, HSCROLL_HEIGHT -2,
-			 0, f->display.x->foreground_pixel,
-			 f->display.x->background_pixel);
-  XDefineCursor (x_current_display, f->display.x->h_thumbright,
-		 right_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, f->display.x->h_thumbright,
-			      right_arrow_pixmap);
-
-  XFreePixmap (x_current_display, slider_pixmap);
-  XFreePixmap (x_current_display, left_arrow_pixmap);
-  XFreePixmap (x_current_display, right_arrow_pixmap);
-
-  XSelectInput (x_current_display, f->display.x->h_scrollbar,
-		ButtonPressMask | ButtonReleaseMask
-		| PointerMotionMask | PointerMotionHintMask
-		| EnterWindowMask);
-  XSelectInput (x_current_display, f->display.x->h_slider,
-		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, f->display.x->h_thumbright,
-		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, f->display.x->h_thumbleft,
-		ButtonPressMask | ButtonReleaseMask);
-
-  XMapWindow (x_current_display, f->display.x->h_scrollbar);
-  XMapSubwindows (x_current_display, f->display.x->h_scrollbar);
-#else /* not HAVE_X11 */
-  Bitmap b;
-  Pixmap fore_tile, back_tile, bord_tile;
-#endif
-}
-
-#ifndef HAVE_X11			/* X10 */
-#define XMoveResizeWindow XConfigureWindow
-#endif /* not HAVE_X11 */
-
-/* Adjust the displayed position in the scroll bar for window W.  */
-
-void
-adjust_scrollbars (f)
-     struct frame *f;
-{
-  int pos;
-  int first_char_in_window, char_beyond_window, chars_in_window;
-  int chars_in_buffer, buffer_size;
-  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
-
-  if (! FRAME_X_P (f))
-    return;
-
-  if (f->display.x->v_scrollbar != 0)
-    {
-      int h, height;
-      struct buffer *b = XBUFFER (w->buffer);
-
-      buffer_size = Z - BEG;
-      chars_in_buffer = ZV - BEGV;
-      first_char_in_window = marker_position (w->start);
-      char_beyond_window = buffer_size + 1 - XFASTINT (w->window_end_pos);
-      chars_in_window = char_beyond_window - first_char_in_window;
-
-      /* Calculate height of scrollbar area */
-
-      height = f->height * FONT_HEIGHT (f->display.x->font)
-	+ f->display.x->internal_border_width
-	  - 2 * (f->display.x->v_scrollbar_width);
-
-      /* Figure starting position for the scrollbar slider */
-
-      if (chars_in_buffer <= 0)
-	pos = 0;
-      else
-	pos = ((first_char_in_window - BEGV - BEG) * height
-	       / chars_in_buffer);
-      pos = max (0, pos);
-      pos = min (pos, height - 2);
-
-      /* Figure length of the slider */
-
-      if (chars_in_buffer <= 0)
-	h = height;
-      else
-	h = (chars_in_window * height) / chars_in_buffer;
-      h = min (h, height - pos);
-      h = max (h, 1);
-
-      /* Add thumbup offset to starting position of slider */
-
-      pos += (f->display.x->v_scrollbar_width - 2);
-
-      XMoveResizeWindow (XDISPLAY
-			 f->display.x->v_slider,
-			 0, pos,
-			 f->display.x->v_scrollbar_width - 4, h);
-    }
-      
-  if (f->display.x->h_scrollbar != 0)
-    {
-      int l, length;      /* Length of the scrollbar area */
-
-      length = f->width * FONT_WIDTH (f->display.x->font)
-	+ f->display.x->internal_border_width
-	  - 2 * (f->display.x->h_scrollbar_height);
-
-      /* Starting position for horizontal slider */
-      if (! XINT (w->hscroll))
-	pos = 0;
-      else
-	pos = (XINT (w->hscroll) * length) / (XINT (w->hscroll) + f->width);
-      pos = max (0, pos);
-      pos = min (pos, length - 2);
-
-      /* Length of slider */
-      l = length - pos;
-
-      /* Add thumbup offset */
-      pos += (f->display.x->h_scrollbar_height - 2);
-
-      XMoveResizeWindow (XDISPLAY
-			 f->display.x->h_slider,
-			 pos, 0,
-			 l, f->display.x->h_scrollbar_height - 4);
-    }
-}
-
-/* Adjust the size of the scroll bars of frame F,
-   when the frame size has changed.  */
-
-void
-x_resize_scrollbars (f)
-     struct frame *f;
-{
-  int ibw = f->display.x->internal_border_width;
-  int pixelwidth, pixelheight;
-
-  if (f == 0
-      || f->display.x == 0
-      || (f->display.x->v_scrollbar == 0
-	  && f->display.x->h_scrollbar == 0))
-    return;
-
-  /* Get the size of the frame.  */
-  pixelwidth = (f->width * FONT_WIDTH (f->display.x->font)
-		+ 2 * ibw + f->display.x->v_scrollbar_width);
-  pixelheight = (f->height * FONT_HEIGHT (f->display.x->font)
-		 + 2 * ibw + f->display.x->h_scrollbar_height);
-
-  if (f->display.x->v_scrollbar_width && f->display.x->v_scrollbar)
-    {
-      BLOCK_INPUT;
-      XMoveResizeWindow (XDISPLAY
-			 f->display.x->v_scrollbar,
-			 pixelwidth - f->display.x->v_scrollbar_width - ibw/2,
-			 ibw/2,
-			 f->display.x->v_scrollbar_width - 2,
-			 pixelheight - ibw - 2);
-      XMoveWindow (XDISPLAY
-		   f->display.x->v_thumbdown, 0,
-		   pixelheight - ibw - f->display.x->v_scrollbar_width);
-      UNBLOCK_INPUT;
-    }
-
-  if (f->display.x->h_scrollbar_height && f->display.x->h_scrollbar)
-    {
-      if (f->display.x->v_scrollbar_width)
-	pixelwidth -= f->display.x->v_scrollbar_width + 1;
-
-      BLOCK_INPUT;
-      XMoveResizeWindow (XDISPLAY
-			 f->display.x->h_scrollbar,
-			 ibw / 2,
-			 pixelheight - f->display.x->h_scrollbar_height - ibw / 2,
-			 pixelwidth - ibw - 2,
-			 f->display.x->h_scrollbar_height - 2);
-      XMoveWindow (XDISPLAY
-		   f->display.x->h_thumbright,
-		   pixelwidth - ibw - f->display.x->h_scrollbar_height, 0);
-      UNBLOCK_INPUT;
-    }
-}
-
 x_pixel_width (f)
      register struct frame *f;
 {
@@ -4560,8 +3757,6 @@ syms_of_xfns ()
   staticpro (&Qforeground_color);
   Qgeometry = intern ("geometry");
   staticpro (&Qgeometry);
-  Qhorizontal_scroll_bar = intern ("horizontal-scroll-bar");
-  staticpro (&Qhorizontal_scroll_bar);
   Qicon_left = intern ("icon-left");
   staticpro (&Qicon_left);
   Qicon_top = intern ("icon-top");
@@ -4586,8 +3781,6 @@ syms_of_xfns ()
   staticpro (&Qtop);
   Qundefined_color = intern ("undefined-color");
   staticpro (&Qundefined_color);
-  Qvertical_scroll_bar = intern ("vertical-scroll-bar");
-  staticpro (&Qvertical_scroll_bar);
   Qwindow_id = intern ("window-id");
   staticpro (&Qwindow_id);
   Qx_frame_parameter = intern ("x-frame-parameter");
@@ -4600,14 +3793,6 @@ syms_of_xfns ()
 	build_string ("Undefined color"));
 
   init_x_parm_symbols ();
-
-  DEFVAR_INT ("mouse-x-position", &x_mouse_x,
-	      "The X coordinate of the mouse position, in characters.");
-  x_mouse_x = 0;
-
-  DEFVAR_INT ("mouse-y-position", &x_mouse_y,
-	      "The Y coordinate of the mouse position, in characters.");
-  x_mouse_y = 0;
 
   DEFVAR_INT ("mouse-buffer-offset", &mouse_buffer_offset,
 	      "The buffer offset of the character under the pointer.");
