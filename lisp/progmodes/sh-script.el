@@ -1,9 +1,10 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 by Free Software Foundation, Inc.
 
-;; Author: Daniel Pfeiffer, fax (+49 69) 75 88 529, c/o <bonhoure@cict.fr>
+;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
+;; Version: 2.0d
 ;; Maintainer: FSF
-;; Keywords: shell programming
+;; Keywords: languages, unix
 
 ;; This file is part of GNU Emacs.
 
@@ -23,13 +24,22 @@
 
 ;;; Commentary:
 
-;; Major mode for editing shell scripts.  Currently sh, ksh, bash and csh,
-;; tcsh are supported.  Structured statements can be inserted with one
-;; command.
+;; Major mode for editing shell scripts.  Bourne, C and rc shells as well
+;; as various derivatives are supported and easily derived from.  Structured
+;; statements can be inserted with one command or abbrev.  Completion is
+;; available for filenames, variables known from the script, the shell and
+;; the environment as well as commands.
 
-;; Autoloading of these functions is currently turned off
-;; because it's not clear whether this mode is really desirable to use.
-;; -- rms
+;;; Known Bugs:
+
+;; - Since GNU Emacs' syntax can't handle the context-sensitive meanings of
+;;   the variable/number base/comment symbol `#', that has to be fontified by
+;;   regexp.  This alas means that a quote `'' or `"' in a comment will
+;;   fontify VERY badly.  The alternative is to have these frequent constructs
+;;   with `#' fontify as comments.  Or maybe we intoduce a 'syntax text-
+;;   property?
+;; - Variables in `"' strings aren't fontified because there's no way of
+;;   syntactically distinguishing those from `'' strings.
 
 ;;; Code:
 
@@ -38,59 +48,201 @@
 ;; page 3:	statement syntax-commands for various shells
 ;; page 4:	various other commands
 
+(require 'executable)
 
-;;;###dont-autoload
-(setq auto-mode-alist
-      ;; matches files
-      ;;	- whose path contains /bin/, but not directories
-      (cons '("/bin/" . sh-or-other-mode)
-	    ;;	- that have a suffix .sh or .shar (shell archive)
-	    ;;	- that contain resources for the various shells
-	    ;;	- startup files for X11
-	    (cons '("\\.sh\\'\\|\\.shar\\'\\|/\\.\\(profile\\|bash_profile\\|login\\|bash_login\\|logout\\|bash_logout\\|bashrc\\|t?cshrc\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
-		  auto-mode-alist)))
+
+;;;###autoload
+(or (assoc "sh" interpreter-mode-alist)
+    (setq auto-mode-alist
+	  ;; matches files
+	  ;;	- that have a suffix .sh, .csh or .shar (shell archive)
+	  ;;	- that contain ressources for the various shells
+	  ;;	- startup files for X11
+	  (cons '("\\.c?sh\\'\\|\\.shar\\'\\|/\\.\\(z?profile\\|bash_profile\\|z?login\\|bash_login\\|z?logout\\|bash_logout\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\|rcrc\\|[kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
+		auto-mode-alist)
+	  interpreter-mode-alist
+	  (nconc '(("ash" . sh-mode)
+		   ("bash" . sh-mode)
+		   ("csh" . sh-mode)
+		   ("dtksh" . sh-mode)
+		   ("es" . sh-mode)
+		   ("itcsh" . sh-mode)
+		   ("jsh" . sh-mode)
+		   ("ksh" . sh-mode)
+		   ("oash" . sh-mode)
+		   ("pdksh" . sh-mode)
+		   ("rc" . sh-mode)
+		   ("sh" . sh-mode)
+		   ("sh5" . sh-mode)
+		   ("tcsh" . sh-mode)
+		   ("wksh" . sh-mode)
+		   ("wsh" . sh-mode)
+		   ("zsh" . sh-mode))
+		 interpreter-mode-alist)))
+
+
+(defvar sh-ancestor-alist
+  '((ash . sh)
+    (bash . jsh)
+    (dtksh . ksh)
+    (es . rc)
+    (itcsh . tcsh)
+    (jcsh . csh)
+    (jsh . sh)
+    (ksh . ksh88)
+    (ksh88 . jsh)
+    (oash . sh)
+    (pdksh . ksh88)
+    (posix . sh)
+    (tcsh . csh)
+    (wksh . ksh88)
+    (wsh . sh)
+    (zsh . ksh88))
+  "*Alist showing the direct ancestor of various shells.
+This is the basis for `sh-feature'.  See also `sh-alias-alist'.
+By default we have the following three hierarchies:
+
+csh		C Shell
+  jcsh		C Shell with Job Control
+  tcsh		Toronto C Shell
+    itcsh	? Toronto C Shell
+rc		Plan 9 Shell
+  es		Extensible Shell
+sh		Bourne Shell
+  ash		? Shell
+  jsh		Bourne Shell with Job Control
+    bash	GNU Bourne Again Shell
+    ksh88	Korn Shell '88
+      ksh	Korn Shell '93
+	dtksh	CDE Desktop Korn Shell
+      pdksh	Public Domain Korn Shell
+      wksh	Window Korn Shell
+      zsh	Z Shell
+  oash		SCO OA (curses) Shell
+  posix		IEEE 1003.2 Shell Standard
+  wsh		? Shell")
+
+
+(defvar sh-alias-alist
+  (nconc (if (eq system-type 'linux)
+	     '((csh . tcsh)
+	       (ksh . pdksh)
+	       (sh . bash)))
+	 ;; for the time being
+	 '((ksh . ksh88)
+	   (sh5 . sh)))
+  "*Alist for transforming shell names to what they really are.
+Use this where the name of the executable doesn't correspond to the type of
+shell it really is.")
+
+
+(defvar sh-shells
+  '(("ash") ("bash") ("csh") ("dtksh") ("es") ("itcsh") ("jsh") ("ksh")
+    ("oash") ("pdksh") ("rc") ("sh") ("tcsh") ("wksh") ("wsh") ("zsh"))
+  "*Alist of shells available for completing read in `sh-set-shell'.")
+
+
+(defvar sh-shell-path (or (getenv "SHELL") "/bin/sh")
+  "*The executable of the shell being programmed.")
+
+
+(defvar sh-shell-arg
+  '((bash . "-norc")
+    (csh . "-f")
+    (ksh88 eval progn nil (if (file-exists-p "/etc/suid_profile") nil "-p"))
+    (pdksh)
+    (rc . "-p")
+    (wksh . "-motif")
+    (zsh . "-f"))
+  "*Single argument string for the magic number.  See `sh-feature'.")
+
+
+
+(defvar sh-shell (or (cdr (assq (intern (file-name-nondirectory sh-shell-path))
+				sh-alias-alist))
+		     (intern (file-name-nondirectory sh-shell-path)))
+  "The shell being programmed.  This is set by \\[sh-set-shell].")
+
+
+
+(defvar sh-abbrevs
+  '((csh eval sh-abbrevs shell
+	 "switch" 'sh-case)
+
+    (es eval sh-abbrevs shell
+	"function" 'sh-function)
+
+    (ksh88 eval sh-abbrevs sh
+	   "select" 'sh-select)
+
+    (rc eval sh-abbrevs shell
+	"case" 'sh-case
+	"function" 'sh-function)
+
+    (sh eval sh-abbrevs shell
+	"case" 'sh-case
+	"function" 'sh-function
+	"until" 'sh-until
+	"getopts" 'sh-while-getopts)
+
+    ;; The next entry is only used for defining the others
+    (shell "for" sh-for
+	   "loop" sh-indexed-loop
+	   "if" sh-if
+	   "tmpfile" sh-tmp-file
+	   "while" sh-while)
+
+    (zsh eval sh-abbrevs ksh88
+	 "repeat" 'sh-repeat))
+  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
+Due to the internal workings of abbrev tables, the shell name symbol is
+actually defined as the table for the like of \\[edit-abbrevs].")
+
 
 
 (defvar sh-mode-syntax-table
-  (let ((table (copy-syntax-table)))
-    (modify-syntax-entry ?\# "<" table)
-    (modify-syntax-entry ?\^l ">#" table)
-    (modify-syntax-entry ?\n ">#" table)
-    (modify-syntax-entry ?\" "\"\"" table)
-    (modify-syntax-entry ?\' "\"'" table)
-    (modify-syntax-entry ?\` "$`" table)
-    (modify-syntax-entry ?$ "_" table)
-    (modify-syntax-entry ?! "_" table)
-    (modify-syntax-entry ?% "_" table)
-    (modify-syntax-entry ?: "_" table)
-    (modify-syntax-entry ?. "_" table)
-    (modify-syntax-entry ?^ "_" table)
-    (modify-syntax-entry ?~ "_" table)
-    table)
-  "Syntax table in use in Shell-Script mode.")
+  '((csh eval identity sh)
+    (sh eval sh-mode-syntax-table ()
+	;; #'s meanings depend on context which can't be expressed here
+	;; ?\# "<"
+	;; ?\^l ">#"
+	;; ?\n ">#"
+	?\" "\"\""
+	?\' "\"'"
+	?\` ".`"
+	?$ "_"
+	?! "_"
+	?% "_"
+	?: "_"
+	?. "_"
+	?^ "_"
+	?~ "_")
+    (rc eval sh-mode-syntax-table sh
+	?\" "_"
+	?\` "."))
+  "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
 
-
-(defvar sh-use-prefix nil
-  "If non-nil when loading, `$' and `<' will be  C-c $  and  C-c < .")
 
 (defvar sh-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c(" 'sh-function)
     (define-key map "\C-c\C-w" 'sh-while)
     (define-key map "\C-c\C-u" 'sh-until)
+    (define-key map "\C-c\C-t" 'sh-tmp-file)
     (define-key map "\C-c\C-s" 'sh-select)
+    (define-key map "\C-c\C-r" 'sh-repeat)
+    (define-key map "\C-c\C-o" 'sh-while-getopts)
     (define-key map "\C-c\C-l" 'sh-indexed-loop)
     (define-key map "\C-c\C-i" 'sh-if)
     (define-key map "\C-c\C-f" 'sh-for)
     (define-key map "\C-c\C-c" 'sh-case)
-    
-    (define-key map (if sh-use-prefix "\C-c$" "$")
-      'sh-query-for-variable)
+
     (define-key map "=" 'sh-assignment)
     (define-key map "\C-c+" 'sh-add)
-    (define-key map (if sh-use-prefix "\C-c<" "<")
-      'sh-maybe-here-document)
+    (define-key map "\C-c|" 'sh-execute-region)
+    (define-key map "\C-c!" 'executable-interpret)
+    (define-key map "<" 'sh-maybe-here-document)
     (define-key map "(" 'pair-insert-maybe)
     (define-key map "{" 'pair-insert-maybe)
     (define-key map "[" 'pair-insert-maybe)
@@ -99,11 +251,10 @@
     (define-key map "\"" 'pair-insert-maybe)
 
     (define-key map "\t" 'sh-indent-line)
-    (substitute-key-definition 'complete-tag 'comint-dynamic-complete-filename
+    (substitute-key-definition 'complete-tag 'comint-dynamic-complete
 			       map (current-global-map))
     (substitute-key-definition 'newline-and-indent 'sh-newline-and-indent
 			       map (current-global-map))
-    ;; Now that tabs work properly, this might be unwanted.
     (substitute-key-definition 'delete-backward-char
 			       'backward-delete-char-untabify
 			       map (current-global-map))
@@ -115,90 +266,88 @@
 			       map (current-global-map))
     (substitute-key-definition 'forward-sentence 'sh-end-of-command
 			       map (current-global-map))
-    (substitute-key-definition 'manual-entry 'sh-manual-entry
-			       map (current-global-map))
     (define-key map [menu-bar insert] 
       (cons "Insert" (make-sparse-keymap "Insert")))
     (define-key map [menu-bar insert sh-while] 
-      '("While Loop" . sh-while))
+      '("While loop" . sh-while))
     (define-key map [menu-bar insert sh-until] 
-      '("Until Loop" . sh-until))
+      '("Until loop" . sh-until))
+    (define-key map [menu-bar insert sh-tmp-file] 
+      '("Temporary file" . sh-tmp-file))
     (define-key map [menu-bar insert sh-select] 
-      '("Select Statement" . sh-select))
+      '("Select statement" . sh-select))
+    (define-key map [menu-bar insert sh-repeat] 
+      '("Repeat loop" . sh-repeat))
+    (define-key map [menu-bar insert sh-while-getopts] 
+      '("Options loop" . sh-while-getopts))
     (define-key map [menu-bar insert sh-indexed-loop] 
-      '("Indexed Loop" . sh-indexed-loop))
+      '("Indexed loop" . sh-indexed-loop))
     (define-key map [menu-bar insert sh-if] 
-      '("If Statement" . sh-if))
+      '("If statement" . sh-if))
     (define-key map [menu-bar insert sh-for] 
-      '("For Loop" . sh-for))
+      '("For loop" . sh-for))
     (define-key map [menu-bar insert sh-case] 
-      '("Case Statement" . sh-case))
+      '("Case statement" . sh-case))
     map)
   "Keymap used in Shell-Script mode.")
 
 
 
-(defvar sh-find-file-modifies t
-  "*What to do when newly found file has no magic number:
-	nil	do nothing
-	t	insert magic number
-	other	insert magic number, but mark as unmodified.")
+(defvar sh-dynamic-complete-functions
+  '(shell-dynamic-complete-environment-variable
+    shell-dynamic-complete-command
+    comint-dynamic-complete-filename)
+  "*Functions for doing TAB dynamic completion.")
 
 
-(defvar sh-query-for-magic t
-  "*If non-nil, ask user before changing or inserting magic number.")
+(defvar sh-require-final-newline
+  '((csh . t)
+    (pdksh . t)
+    (rc eval . require-final-newline)
+    (sh eval . require-final-newline))
+  "*Value of `require-final-newline' in Shell-Script mode buffers.
+See `sh-feature'.")
 
 
-(defvar sh-magicless-file-regexp "/\\.[^/]+$"
-  "*On files with this kind of name no magic is inserted or changed.")
+(defvar sh-comment-prefix
+  '((csh . "\\(^\\|[^$]\\|\\$[^{]\\)")
+    (rc eval identity csh)
+    (sh . "\\(^\\|[ \t|&;()]\\)"))
+  "*Regexp matching what may come before a comment `#'.
+This must contain one \\(grouping\\) since it is the basis for fontifying
+comments as well as for `comment-start-skip'.
+See `sh-feature'.")
 
 
-;; someone who understands /etc/magic better than me should beef this up
-;; this currently covers only SCO Unix and Sinix executables
-;; the elegant way would be to read /etc/magic
-(defvar magic-number-alist '(("L\^a\^h\\|\^?ELF" . hexl-mode)
-			     ("#!.*perl" . perl-mode))
-  "A regexp to match the magic number of a found file.
-Currently this is only used by function `sh-or-other-mode'.")
+(defvar sh-assignment-regexp
+  '((csh . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
+    ;; actually spaces are only supported in let/(( ... ))
+    (ksh88 . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
+    (rc . "\\<\\([a-zA-Z0-9_*]+\\)[ \t]*=")
+    (sh . "\\<\\([a-zA-Z0-9_]+\\)="))
+  "*Regexp for the variable name and what may follow in an assignment.
+First grouping matches the variable name.  This is upto and including the `='
+sign.  See `sh-feature'.")
 
 
-(defvar sh-executable ".* is \\([^ \t]*\\)\n"
-  "*Regexp to match the output of sh builtin `type' command on your machine.
-The regexp must match the whole output, and must contain a \\(something\\)
-construct which matches the actual executable.")
+(defvar sh-indentation 4
+  "The width for further indentation in Shell-Script mode.")
 
-
-
-(defvar sh-chmod-argument "+x"
-  "*After saving, if the file is not executable, set this mode.
-The mode can be absolute, such as \"777\", or relative, such as \"+x\".
-Do nothing if this is nil.")
-
-
-(defvar sh-shell-path (or (getenv "SHELL") "/bin/sh")
-  "*The executable of the shell being programmed.")
-
-(defvar sh-shell-argument nil
-  "*A single argument for the magic number, or nil.")
-
-(defvar sh-shell nil
-  "The shell being programmed.  This is set by \\[sh-set-shell].")
-
-(defvar sh-shell-is-csh nil
-  "The shell being programmed.  This is set by \\[sh-set-shell].")
-
-(defvar sh-tab-width 4
-  "The default value for `tab-width' in Shell-Script mode.
-This is the width of tab stops after the indentation of the preceeding line.")
 
 (defvar sh-remember-variable-min 3
   "*Don't remember variables less than this length for completing reads.")
+
+
+(defvar sh-header-marker nil
+  "When non-`nil' is the end of header for prepending by \\[sh-execute-region].
+That command is also used for setting this variable.")
 
 
 (defvar sh-beginning-of-command
   "\\([;({`|&]\\|^\\)[ \t]*\\([/~:a-zA-Z0-9]\\)"
   "*Regexp to determine the beginning of a shell command.
 The actual command starts at the beginning of the second \\(grouping\\).")
+
 
 (defvar sh-end-of-command
   "\\([/~:a-zA-Z0-9]\\)[ \t]*\\([;#)}`|&]\\|$\\)"
@@ -207,138 +356,213 @@ The actual command ends at the end of the first \\(grouping\\).")
 
 
 
-(defvar sh-assignment-space '(csh tcsh)
-  "List of shells that allow spaces around the assignment =.")
-
-(defvar sh-here-document-word "+"
+(defvar sh-here-document-word "EOF"
   "Word to delimit here documents.")
 
 
-;process-environment
+(defvar sh-builtins
+  '((bash eval sh-append sh
+	  "alias" "bg" "bind" "builtin" "bye" "command" "declare" "dirs"
+	  "enable" "fc" "fg" "function" "help" "history" "jobs" "kill" "let"
+	  "local" "logout" "popd" "pushd" "source" "suspend" "typeset"
+	  "unalias")
+
+    ;; The next entry is only used for defining the others
+    (bourne eval sh-append shell
+	    "do" "done" "elif" "esac" "export" "fi" "for" "getopts" "in"
+	    "newgrp" "pwd" "read" "readonly" "return" "times" "trap" "ulimit"
+	    "until")
+
+    (csh eval sh-append shell
+	 "alias" "breaksw" "chdir" "default" "end" "endif" "endsw" "foreach"
+	 "glob" "goto" "history" "limit" "logout" "nice" "nohup" "onintr"
+	 "rehash" "repeat" "setenv" "source" "switch" "time" "unalias"
+	 "unhash")
+
+    (es "access" "apids" "break" "catch" "cd" "echo" "eval" "exec" "exit"
+	"false" "fn" "for" "forever" "fork" "if" "let" "limit" "local"
+	"newpgrp" "result" "return" "throw" "time" "true" "umask"
+	"unwind-protect" "var" "vars" "wait" "whatis" "while")
+
+    (jsh eval sh-append sh
+	 "bg" "fg" "jobs" "kill" "stop" "suspend")
+
+    (jcsh eval sh-append csh
+	 "bg" "fg" "jobs" "kill" "notify" "stop" "suspend")
+
+    (ksh88 eval sh-append bourne
+	   "alias" "bg" "false" "fc" "fg" "function" "jobs" "kill" "let"
+	   "print" "select" "time" "typeset" "unalias" "whence")
+
+    (oash eval sh-append sh
+	  "checkwin" "dateline" "error" "form" "menu" "newwin" "oadeinit"
+	  "oaed" "oahelp" "oainit" "pp" "ppfile" "scan" "scrollok" "wattr"
+	  "wclear" "werase" "win" "wmclose" "wmmessage" "wmopen" "wmove"
+	  "wmtitle" "wrefresh")
+
+    (pdksh eval sh-append ksh88
+	   "bind")
+
+    (posix eval sh-append sh
+	   "command")
+
+    (rc "break" "builtin" "case" "cd" "echo" "else" "eval" "exec" "exit" "fn"
+	"for" "if" "in" "limit" "newpgrp" "return" "shift" "switch" "umask"
+	"wait" "whatis" "while")
+
+    (sh eval sh-append bourne
+	"hash" "test" "type")
+
+    ;; The next entry is only used for defining the others
+    (shell "break" "case" "cd" "continue" "echo" "else" "eval" "exec" "exit"
+	   "if" "set" "shift" "then" "umask" "unset" "wait" "while")
+
+    (zsh eval sh-append ksh88
+	 "autoload" "bindkey" "builtin" "bye" "chdir" "compctl" "declare"
+	 "dirs" "disable" "disown" "echotc" "enable" "functions" "getln"
+	 "hash" "history" "integer" "limit" "local" "log" "logout" "popd"
+	 "pushd" "r" "readonly" "rehash" "sched" "setopt" "source" "suspend"
+	 "true" "ttyctl" "type" "unfunction" "unhash" "unlimit" "unsetopt"
+	 "vared" "which"))
+  "*List of all shell builtins for completing read and fontification.
+Note that on some systems not all builtins are available or some are
+implemented as aliases.  See `sh-feature'.")
+
+
+(defvar sh-leading-keywords
+  '((bash eval sh-append sh
+	  "builtin" "command" "enable")
+
+    ;; The next entry is only used for defining the others
+    (bourne "do" "elif" "else" "eval" "if" "then" "trap" "until" "while")
+
+    (csh "else")
+
+    (es "eval" "time" "true" "umask"
+	"unwind-protect" "whatis")
+
+    (ksh88 eval sh-append bourne
+	   "time" "whence")
+
+    (posix eval sh-append sh
+	   "command")
+
+    (rc "builtin" "else" "eval" "whatis")
+
+    (sh eval sh-append bourne
+	"type")
+
+    (zsh eval sh-append ksh88
+	 "builtin" "disable" "enable" "type" "unhash" "which"))
+  "*List of keywords that may be immediately followed by a command(-name).
+See `sh-feature'.")
+
+
+
 (defvar sh-variables
-  '(("addsuffix" tcsh)			("allow_null_glob_expansion" bash)
-    ("ampm" tcsh)			("argv" csh tcsh) 
-    ("autocorrect" tcsh)		("autoexpand" tcsh)	
-    ("autolist" tcsh)			("autologout" tcsh)
-    ("auto_resume" bash)		("BASH" bash)
-    ("BASH_VERSION" bash)		("cdable_vars" bash)
-    ("cdpath" csh tcsh)			("CDPATH" sh ksh bash) 
-    ("chase_symlinks" tcsh)		("child" csh tcsh) 
-    ("COLUMNS" ksh tcsh)		("correct" tcsh) 
-    ("dextract" tcsh)			("echo" csh tcsh) 
-    ("edit" tcsh)			("EDITOR") 
-    ("el" tcsh)				("ENV" ksh bash)	
-    ("ERRNO" ksh)			("EUID" bash)
-    ("FCEDIT" ksh bash)			("FIGNORE" bash)
-    ("fignore" tcsh)			("FPATH" ksh) 
-    ("gid" tcsh)			("glob_dot_filenames" bash)
-    ("histchars" bash csh tcsh)		("HISTFILE" ksh bash)
-    ("HISTFILESIZE" bash)		("histlit" tcsh) 
-    ("history" csh tcsh)		("history_control" bash)
-    ("HISTSIZE" bash)			("home" csh tcsh) 
-    ("HOME")				("HOST" tcsh) 
-    ("hostname_completion_file" bash)	("HOSTTYPE" bash tcsh)
-    ("HPATH" tcsh)			("HUSHLOGIN")
-    ("IFS" sh ksh bash)			("ignoreeof" bash csh tcsh)
-    ("IGNOREEOF" bash)			("ignore_symlinks" tcsh) 
-    ("LANG")				("LC_COLLATE") 
-    ("LC_CTYPE")			("LC_MESSAGES") 
-    ("LC_MONETARY")			("LC_NUMERIC") 
-    ("LC_TIME")				("LINENO" ksh bash)
-    ("LINES" ksh tcsh)			("listjobs" tcsh) 
-    ("listlinks" tcsh)			("listmax" tcsh) 
-    ("LOGNAME")				("mail" csh tcsh) 
-    ("MAIL")				("MAILCHECK") 
-    ("MAILPATH")			("MAIL_WARNING" bash)
-    ("matchbeep" tcsh)			("nobeep" tcsh)
-    ("noclobber" bash csh tcsh)		("noglob" csh tcsh)
-    ("nolinks" bash)			("nonomatch" csh tcsh) 
-    ("NOREBIND" tcsh)			("notify" bash)
-    ("no_exit_on_failed_exec" bash)	("NO_PROMPT_VARS" bash)
-    ("oid" tcsh)			("OLDPWD" ksh bash)
-    ("OPTARG" sh ksh bash)		("OPTERR" bash)
-    ("OPTIND" sh ksh bash)		("PAGER") 
-    ("path" csh tcsh)			("PATH") 
-    ("PPID" ksh bash)			("printexitvalue" tcsh) 
-    ("prompt" csh tcsh)			("prompt2" tcsh) 
-    ("prompt3" tcsh)			("PROMPT_COMMAND" bash)
-    ("PS1" sh ksh bash)			("PS2" sh ksh bash)
-    ("PS3" ksh)				("PS4" ksh bash)
-    ("pushdsilent" tcsh)		("pushdtohome" tcsh)
-    ("pushd_silent" bash)		("PWD" ksh bash)
-    ("RANDOM" ksh bash)			("recexact" tcsh) 
-    ("recognize_only_executables" tcsh)	("REPLY" ksh bash)
-    ("rmstar" tcsh)			("savehist" tcsh) 
-    ("SECONDS" ksh bash)		("shell" csh tcsh) 
-    ("SHELL")				("SHLVL" bash tcsh) 
-    ("showdots" tcsh)			("sl" tcsh)	
-    ("status" csh tcsh)			("SYSTYPE" tcsh) 
-    ("tcsh" tcsh)			("term" tcsh) 
-    ("TERM")				("TERMCAP")	
-    ("time" csh tcsh)			("TMOUT" ksh bash) 
-    ("tperiod" tcsh)			("tty" tcsh) 
-    ("UID" bash)			("uid" tcsh)
-    ("verbose" csh tcsh)		("version" tcsh)
-    ("visiblebell" tcsh)		("VISUAL")
-    ("watch" tcsh)			("who" tcsh)
-    ("wordchars" tcsh))
-  "Alist of all environment and shell variables used for completing read.
-Variables only understood by some shells are associated to a list of those.")
+  '((bash eval sh-append sh
+	  "allow_null_glob_expansion" "auto_resume" "BASH" "BASH_VERSION"
+	  "cdable_vars" "ENV" "EUID" "FCEDIT" "FIGNORE" "glob_dot_filenames"
+	  "histchars" "HISTFILE" "HISTFILESIZE" "history_control" "HISTSIZE"
+	  "hostname_completion_file" "HOSTTYPE" "IGNOREEOF" "ignoreeof"
+	  "LINENO" "MAIL_WARNING" "noclobber" "nolinks" "notify"
+	  "no_exit_on_failed_exec" "NO_PROMPT_VARS" "OLDPWD" "OPTERR" "PPID"
+	  "PROMPT_COMMAND" "PS4" "pushd_silent" "PWD" "RANDOM" "REPLY"
+	  "SECONDS" "SHLVL" "TMOUT" "UID")
+
+    (csh eval sh-append shell
+	 "argv" "cdpath" "child" "echo" "histchars" "history" "home"
+	 "ignoreeof" "mail" "noclobber" "noglob" "nonomatch" "path" "prompt"
+	 "shell" "status" "time" "verbose")
+
+    (es eval sh-append shell
+	"apid" "cdpath" "CDPATH" "history" "home" "ifs" "noexport" "path"
+	"pid" "prompt" "signals")
+
+    (jcsh eval sh-append csh
+	 "notify")
+
+    (ksh88 eval sh-append sh
+	   "ENV" "ERRNO" "FCEDIT" "FPATH" "HISTFILE" "HISTSIZE" "LINENO"
+	   "OLDPWD" "PPID" "PS3" "PS4" "PWD" "RANDOM" "REPLY" "SECONDS"
+	   "TMOUT")
+
+    (oash eval sh-append sh
+	  "FIELD" "FIELD_MAX" "LAST_KEY" "OALIB" "PP_ITEM" "PP_NUM")
+
+    (rc eval sh-append shell
+	"apid" "apids" "cdpath" "CDPATH" "history" "home" "ifs" "path" "pid"
+	"prompt" "status")
+
+    (sh eval sh-append shell
+	"CDPATH" "IFS" "OPTARG" "OPTIND" "PS1" "PS2")
+
+    ;; The next entry is only used for defining the others
+    (shell "COLUMNS" "EDITOR" "HOME" "HUSHLOGIN" "LANG" "LC_COLLATE"
+	   "LC_CTYPE" "LC_MESSAGES" "LC_MONETARY" "LC_NUMERIC" "LC_TIME"
+	   "LINES" "LOGNAME" "MAIL" "MAILCHECK" "MAILPATH" "PAGER" "PATH"
+	   "SHELL" "TERM" "TERMCAP" "TERMINFO" "VISUAL")
+
+    (tcsh eval sh-append csh
+	  "addsuffix" "ampm" "autocorrect" "autoexpand" "autolist"
+	  "autologout" "chase_symlinks" "correct" "dextract" "edit" "el"
+	  "fignore" "gid" "histlit" "HOST" "HOSTTYPE" "HPATH"
+	  "ignore_symlinks" "listjobs" "listlinks" "listmax" "matchbeep"
+	  "nobeep" "NOREBIND" "oid" "printexitvalue" "prompt2" "prompt3"
+	  "pushdsilent" "pushdtohome" "recexact" "recognize_only_executables"
+	  "rmstar" "savehist" "SHLVL" "showdots" "sl" "SYSTYPE" "tcsh" "term"
+	  "tperiod" "tty" "uid" "version" "visiblebell" "watch" "who"
+	  "wordchars")
+
+    (zsh eval sh-append ksh88
+	 "BAUD" "bindcmds" "cdpath" "DIRSTACKSIZE" "fignore" "FIGNORE" "fpath"
+	 "HISTCHARS" "hostcmds" "hosts" "HOSTS" "LISTMAX" "LITHISTSIZE"
+	 "LOGCHECK" "mailpath" "manpath" "NULLCMD" "optcmds" "path" "POSTEDIT"
+	 "prompt" "PROMPT" "PROMPT2" "PROMPT3" "PROMPT4" "psvar" "PSVAR"
+	 "READNULLCMD" "REPORTTIME" "RPROMPT" "RPS1" "SAVEHIST" "SPROMPT"
+	 "STTY" "TIMEFMT" "TMOUT" "TMPPREFIX" "varcmds" "watch" "WATCH"
+	 "WATCHFMT" "WORDCHARS" "ZDOTDIR"))
+  "List of all shell variables available for completing read.
+See `sh-feature'.")
 
 
 
-(defvar sh-font-lock-keywords nil
-  ;; This is done syntactically:
-  ;'(("[ \t]\\(#.*\\)" 1 font-lock-comment-face)
-  ;  ("\"[^`]*\"\\|'.*'\\|\\\\[^\nntc]" . font-lock-string-face))
-  "*Rules for highlighting shell scripts.
-This variable is included into the various variables
-`sh-SHELL-font-lock-keywords'.  If no such variable exists for some shell,
-this one is used.")
+(defvar sh-font-lock-keywords
+  '((csh eval sh-append shell
+	 '("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
+	   font-lock-function-name-face)
+	'("\\(^\\|[ \t]\\)\\(default\\):" 2
+	  font-lock-keyword-face t))
 
+    (dtksh eval identity wksh)
 
-(defvar sh-sh-font-lock-keywords
-  (append sh-font-lock-keywords
-	  '(("\\(^\\|[^-._a-z0-9]\\)\\(case\\|do\\|done\\|elif\\|else\\|esac\\|fi\\|for\\|if\\|in\\|then\\|until\\|while\\)\\($\\|[^-._a-z0-9]\\)" 2 font-lock-keyword-face t)))
-  "*Rules for highlighting Bourne shell scripts.")
+    (es eval sh-append executable-font-lock-keywords
+	'("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
+	  font-lock-function-name-face))
 
-(defvar sh-ksh-font-lock-keywords
-  (append sh-sh-font-lock-keywords
-	  '(("\\(^\\|[^-._a-z0-9]\\)\\(function\\|select\\)\\($\\|[^-._a-z0-9]\\)" 2 font-lock-keyword-face t)))
-  "*Rules for highlighting Korn shell scripts.")
+    (rc eval sh-append es
+	'("\\(^\\|[ \t]\\)\\(else\\( if\\)?\\)\\>" 2
+	  font-lock-keyword-face t))
 
-(defvar sh-bash-font-lock-keywords
-  (append sh-sh-font-lock-keywords
-	  '(("\\(^\\|[^-._a-z0-9]\\)\\(function\\)\\($\\|[^-._a-z0-9]\\)" 2 font-lock-keyword-face t)))
-  "*Rules for highlighting Bourne again shell scripts.")
+    (sh eval sh-append shell
+	'("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
+	  font-lock-function-name-face)
+	" in\\([ \t]\\|$\\)")
 
+    ;; The next entry is only used for defining the others
+    (shell eval sh-append executable-font-lock-keywords
+	   '("\\\\." 0 font-lock-string-face)
+	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
+	     font-lock-function-name-face))
 
-(defvar sh-csh-font-lock-keywords
-  (append sh-font-lock-keywords
-	  '(("\\(^\\|[^-._a-z0-9]\\)\\(breaksw\\|case\\|default\\|else\\|end\\|endif\\|foreach\\|if\\|switch\\|then\\|while\\)\\($\\|[^-._a-z0-9]\\)" 2 font-lock-keyword-face t)))
-  "*Rules for highlighting C shell scripts.")
-
-(defvar sh-tcsh-font-lock-keywords sh-csh-font-lock-keywords
-  "*Rules for highlighting Toronto C shell scripts.")
-
+    (wksh eval sh-append ksh88
+	  '("\\(^\\|[^-._A-Za-z0-9]\\)\\(Xt[A-Z][A-Za-z]*\\)\\($\\|[^-._A-Za-z0-9]\\)" 2 font-lock-keyword-face)))
+  "*Rules for highlighting shell scripts.  See `sh-feature'.")
 
 
 ;; mode-command and utility functions
 
-;;;###dont-autoload
-(defun sh-or-other-mode ()
-  "Decide whether this is a compiled executable or a script.
-Usually the file-names of scripts and binaries cannot be automatically
-distinguished, so the presence of an executable's magic number is used."
-  (funcall (or (let ((l magic-number-alist))
-		 (while (and l
-			     (not (looking-at (car (car l)))))
-		   (setq l (cdr l)))
-		 (cdr (car l)))
-	       'sh-mode)))
-
-
-;;;###dont-autoload
+;;;###autoload
 (defun sh-mode ()
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
@@ -346,24 +570,23 @@ as far as commands, arguments, variables, pipes, comments etc. are concerned.
 Unless the file's magic number indicates the shell, your usual shell is
 assumed.  Since filenames rarely give a clue, they are not further analyzed.
 
-The syntax of the statements varies with the shell being used.  The syntax of
-statements can be modified by putting a property on the command or new ones
-defined with `define-sh-skeleton'.  For example
+This mode adapts to the variations between shells (see `sh-set-shell') by
+means of an inheritance based feature lookup (see `sh-feature').  This
+mechanism applies to all variables (including skeletons) that pertain to
+shell-specific features.
 
-    (put 'sh-until 'ksh '(() \"until \" _ \\n > \"do\" \\n \"done\"))
-or
-    (put 'sh-if 'smush '(\"What? \" \"If ya got ( \" str \" ) ya betta { \" _ \" }\"))
-
-where `sh-until' or `sh-if' have been or will be defined by `define-sh-skeleton'.
-
-The following commands are available, based on the current shell's syntax:
+The default style of this mode is that of Rosenblatt's Korn shell book.
+The syntax of the statements varies with the shell being used.  The
+following commands are available, based on the current shell's syntax:
 
 \\[sh-case]	 case statement
 \\[sh-for]	 for loop
 \\[sh-function]	 function definition
 \\[sh-if]	 if statement
 \\[sh-indexed-loop]	 indexed loop from 1 to n
-\\[sh-select]	 select statement
+\\[sh-while-getopts]	 while getopts loop
+\\[sh-repeat]	 repeat loop
+\\[sh-select]	 select loop
 \\[sh-until]	 until loop
 \\[sh-while]	 while loop
 
@@ -372,192 +595,309 @@ The following commands are available, based on the current shell's syntax:
 \\[sh-end-of-command]	 Go to end of successive commands.
 \\[sh-beginning-of-command]	 Go to beginning of successive commands.
 \\[sh-set-shell]	 Set this buffer's shell, and maybe its magic number.
-\\[sh-manual-entry]	 Display the Unix manual entry for the current command or shell.
+\\[sh-execute-region]	 Have optional header and region be executed in a subshell.
 
-\\[sh-query-for-variable]	 Unless quoted with \\, query for a variable with completions offered.
 \\[sh-maybe-here-document]	 Without prefix, following an unquoted < inserts here document.
 {, (, [, ', \", `
-	Unless quoted with \\, insert the pairs {}, (), [], or '', \"\", ``."
+	Unless quoted with \\, insert the pairs {}, (), [], or '', \"\", ``.
+
+If you generally program a shell different from your login shell you can
+set `sh-shell-path' accordingly.  If your shell's file name doesn't correctly
+indicate what shell it is use `sh-alias-alist' to translate.
+
+If your shell gives error messages with line numbers, you can use \\[executable-interpret]
+with your script for an edit-interpret-debug cycle."
   (interactive)
   (kill-all-local-variables)
-  (set-syntax-table sh-mode-syntax-table)
   (use-local-map sh-mode-map)
   (make-local-variable 'indent-line-function)
+  (make-local-variable 'indent-region-function)
+  (make-local-variable 'paragraph-start)
+  (make-local-variable 'paragraph-separate)
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-start-skip)
-  (make-local-variable 'after-save-hook)
   (make-local-variable 'require-final-newline)
+  (make-local-variable 'sh-header-marker)
   (make-local-variable 'sh-shell-path)
   (make-local-variable 'sh-shell)
-  (make-local-variable 'sh-shell-is-csh)
   (make-local-variable 'pair-alist)
   (make-local-variable 'pair-filter)
-  (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'sh-variables)
+  (make-local-variable 'font-lock-keywords)
+  (make-local-variable 'comint-dynamic-complete-functions)
+  (make-local-variable 'comint-prompt-regexp)
+  (make-local-variable 'font-lock-keywords-case-fold-search)
+  (make-local-variable 'skeleton-filter)
+  (make-local-variable 'process-environment)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
-	;; Why can't Emacs have one standard function with some parameters?
-	;; Only few modes actually analyse the previous line's contents
 	indent-line-function 'sh-indent-line
+	;; not very clever, but enables wrapping skeletons around regions
+	indent-region-function (lambda (b e)
+				 (indent-rigidly b e sh-indentation))
+	paragraph-start "^$\\|^"
+	paragraph-separate paragraph-start
 	comment-start "# "
-	after-save-hook 'sh-chmod
-	tab-width sh-tab-width
-	;; C shells do
-	require-final-newline t
+	font-lock-keywords-case-fold-search nil
+	comint-dynamic-complete-functions sh-dynamic-complete-functions
+	;; we can't look if previous line ended with `\'
+	comint-prompt-regexp "^[ \t]*"
 	pair-alist '((?` _ ?`))
-	pair-filter 'sh-quoted-p)
-  ;; parse or insert magic number for exec
-  (save-excursion
-    (goto-char (point-min))
-    (sh-set-shell
-     (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
-	 (buffer-substring (match-beginning 1) (match-end 1))
-       sh-shell-path)))
-  ;; find-file is set by `normal-mode' when called by `after-find-file'
-  (and (boundp 'find-file) find-file
-       (or (eq sh-find-file-modifies t)
-	   (set-buffer-modified-p nil)))
+	pair-filter 'sh-quoted-p
+	skeleton-further-elements '((< '(- (min sh-indentation
+						(current-column)))))
+	skeleton-filter 'sh-feature)
+  ;; parse or insert magic number for exec() and set all variables depending
+  ;; on the shell thus determined
+  (goto-char (point-min))
+  (sh-set-shell
+   (if (looking-at "#![\t ]*\\([^\t\n ]+\\)")
+       (buffer-substring (match-beginning 1) (match-end 1))
+     sh-shell-path))
   (run-hooks 'sh-mode-hook))
-;;;###dont-autoload
+;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
 
 
 
-(defmacro define-sh-skeleton (command documentation &rest definitions)
-  "Define COMMAND with [DOCSTRING] to insert statements as in DEFINITION ...
-Prior definitions (e.g. from ~/.emacs) are maintained.
-Each definition is built up as (SHELL PROMPT ELEMENT ...).  Alternately
-a synonym definition can be (SHELL . PREVIOUSLY-DEFINED-SHELL).
+(defun sh-set-shell (shell)
+  "Set this buffer's shell to SHELL (a string).
+Makes this script executable via `executable-set-magic'.
+Calls the value of `sh-set-shell-hook' if set."
+  (interactive (list (completing-read "Name or path of shell: " sh-shells)))
+  (if (eq this-command 'sh-set-shell)
+      ;; prevent querying
+      (setq this-command 'executable-set-magic))
+  (setq sh-shell (intern (file-name-nondirectory shell))
+	sh-shell (or (cdr (assq sh-shell sh-alias-alist))
+		     sh-shell)
+	sh-shell-path (executable-set-magic shell (sh-feature sh-shell-arg))
+	local-abbrev-table (sh-feature sh-abbrevs)
+	require-final-newline (sh-feature sh-require-final-newline)
+	font-lock-keywords
+	  (sh-feature
+	   sh-font-lock-keywords
+	   (lambda (list)
+	     (sh-append list
+			(cons (concat (sh-feature sh-comment-prefix)
+				      "\\(#.*\\)")
+			      '(2 font-lock-comment-face t))
+			;; first grouping should include all keywords such
+			;; as while, do ... that may be followed by a
+			;; command, but neither t nor keep will fontify it
+			(cons (concat "\\(^\\|[|&;()]\\)[ \t]*\\(\\(\\("
+				      (mapconcat 'identity
+						 (sh-feature
+						  sh-leading-keywords)
+						 "\\|")
+				      "\\)[ \t]+\\)?\\("
+				      (mapconcat 'identity
+						 (sh-feature sh-builtins)
+						 "\\|")
+				      "\\)\\)\\($\\|[ \t|&;()]\\)")
+			      '(2 font-lock-keyword-face 'keep))
+			(cons (sh-feature sh-assignment-regexp)
+			      '(1 font-lock-function-name-face)))))
+	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
+	mode-line-process (format "[%s]" sh-shell)
+	process-environment (default-value 'process-environment)
+	shell (sh-feature sh-variables))
+  (set-syntax-table (sh-feature sh-mode-syntax-table))
+  (save-excursion
+    (while (search-forward "=" nil t)
+      (sh-assignment 0)))
+  (while shell
+    (sh-remember-variable (car shell))
+    (setq shell (cdr shell)))
+  (and (boundp 'font-lock-mode)
+       font-lock-mode
+       (font-lock-mode (font-lock-mode 0)))
+  (run-hooks 'sh-set-shell-hook))
 
-For the meaning of (PROMPT ELEMENT ...) see `skeleton-insert'.
-Each DEFINITION is actually stored as
-	(put COMMAND SHELL (PROMPT ELEMENT ...)),
-which you can also do yourself."
-  (or (stringp documentation)
-      (setq definitions (cons documentation definitions)
-	    documentation ""))
-  ;; The compiled version doesn't.
-  (require 'backquote)
-  (`(progn
-      (let ((definitions '(, definitions)))
-	(while definitions
-	  ;; skeleton need not be loaded to define these
-	  (or (and (not (if (boundp 'skeleton-debug) skeleton-debug))
-		   (get '(, command) (car (car definitions))))
-	      (put '(, command) (car (car definitions))
-		   (if (symbolp (cdr (car definitions)))
-		       (get '(, command) (cdr (car definitions)))
-		     (cdr (car definitions)))))
-	  (setq definitions (cdr definitions))))
-      (put '(, command) 'menu-enable '(get '(, command) sh-shell))
-      (defun (, command) ()
-	(, documentation)
-	(interactive)
-	(skeleton-insert
-	 (or (get '(, command) sh-shell)
-	     (error "%s statement syntax not defined for shell %s."
-		    '(, command) sh-shell)))))))
 
+
+(defun sh-feature (list &optional function)
+  "Index ALIST by the current shell.
+If ALIST isn't a list where every element is a cons, it is returned as is.
+Else indexing follows an inheritance logic which works in two ways:
+
+  - Fall back on successive ancestors (see `sh-ancestor-alist') as long as
+    the alist contains no value for the current shell.
+
+  - If the value thus looked up is a list starting with `eval' its `cdr' is
+    first evaluated.  If that is also a list and the first argument is a
+    symbol in ALIST it is not evaluated, but rather recursively looked up in
+    ALIST to allow the function called to define the value for one shell to be
+    derived from another shell.  While calling the function, is the car of the
+    alist element is the current shell.
+    The value thus determined is physically replaced into the alist.
+
+Optional FUNCTION is applied to the determined value and the result is cached
+in ALIST."
+  (or (if (consp list)
+	  (let ((l list))
+	    (while (and l (consp (car l)))
+	      (setq l (cdr l)))
+	    (if l list)))
+      (if function
+	  (cdr (assoc (setq function (cons sh-shell function)) list)))
+      (let ((sh-shell sh-shell)
+	    elt val)
+	(while (and sh-shell
+		    (not (setq elt (assq sh-shell list))))
+	  (setq sh-shell (cdr (assq sh-shell sh-ancestor-alist))))
+	(if (and (consp (setq val (cdr elt)))
+		 (eq (car val) 'eval))
+	    (setcdr elt
+		    (setq val
+			  (eval (if (consp (setq val (cdr val)))
+				    (let ((sh-shell (car (cdr val)))
+					  function)
+				      (if (assq sh-shell list)
+					  (setcar (cdr val)
+						  (list 'quote
+							(sh-feature list))))
+				      val)
+				  val)))))
+	(if function
+	    (nconc list
+		   (list (cons function
+			       (setq sh-shell (car function)
+				     val (funcall (cdr function) val))))))
+	val)))
+
+
+
+(defun sh-abbrevs (ancestor &rest list)
+  "Iff it isn't, define the current shell as abbrev table and fill that.
+Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
+table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
+according to the remaining arguments NAMEi EXPANSIONi ...
+EXPANSION may be either a string or a skeleton command."
+  (or (if (boundp sh-shell)
+	  (symbol-value sh-shell))
+      (progn
+	(if (listp ancestor)
+	    (nconc list ancestor))
+	(define-abbrev-table sh-shell ())
+	(if (vectorp ancestor)
+	    (mapatoms (lambda (atom)
+			(or (eq atom 0)
+			    (define-abbrev (symbol-value sh-shell)
+			      (symbol-name atom)
+			      (symbol-value atom)
+			      (symbol-function atom))))
+		      ancestor))
+	(while list
+	  (define-abbrev (symbol-value sh-shell)
+	    (car list)
+	    (if (stringp (car (cdr list)))
+		(car (cdr list))
+	      "")
+	    (if (symbolp (car (cdr list)))
+		(car (cdr list))))
+	  (setq list (cdr (cdr list)))))
+      (symbol-value sh-shell)))
+
+
+(defun sh-mode-syntax-table (table &rest list)
+  "Copy TABLE and set syntax for succesive CHARs according to strings S."
+  (setq table (copy-syntax-table table))
+  (while list
+    (modify-syntax-entry (car list) (car (cdr list)) table)
+    (setq list (cdr (cdr list))))
+  table)
+
+
+(defun sh-append (ancestor &rest list)
+  "Return list composed of first argument (a list) physically appended to rest."
+  (nconc list ancestor))
+
+
+(defun sh-modify (skeleton &rest list)
+  "Modify a copy of SKELETON by replacing I1 with REPL1, I2 with REPL2 ..."
+  (setq skeleton (copy-sequence skeleton))
+  (while list
+    (setcar (or (nthcdr (car list) skeleton)
+		(error "Index %d out of bounds" (car list)))
+	    (car (cdr list)))
+    (setq list (nthcdr 2 list)))
+  skeleton)
 
 
 (defun sh-indent-line ()
-  "Indent as far as preceding line, then by steps of `tab-width'.
-If previous line starts with a comment, it's considered empty."
+  "Indent as far as preceding non-empty line, then by steps of `sh-indentation'.
+Lines containing only comments are considered empty."
   (interactive)
   (let ((previous (save-excursion
-		    (line-move -1)
-		    (back-to-indentation)
-		    (if (looking-at comment-start-skip)
-			0
-		      (current-column)))))
+		    (while (progn
+			     (line-move -1)
+			     (back-to-indentation)
+			     (or (eolp)
+				 (eq (following-char) ?#))))
+		    (current-column)))
+	current)
     (save-excursion
       (indent-to (if (eq this-command 'newline-and-indent)
 		     previous
 		   (if (< (current-column)
-			  (progn (back-to-indentation)
-				 (current-column)))
+			  (setq current (progn (back-to-indentation)
+					       (current-column))))
 		       (if (eolp) previous 0)
+		     (delete-region (point)
+				    (progn (beginning-of-line) (point)))
 		     (if (eolp)
-			 (max previous (* (1+ (/ (current-column) tab-width))
-					  tab-width))
-		       (* (1+ (/ (current-column) tab-width)) tab-width))))))
-      (if (< (current-column) (current-indentation))
-	  (skip-chars-forward " \t"))))
+			 (max previous (* (1+ (/ current sh-indentation))
+					  sh-indentation))
+		       (* (1+ (/ current sh-indentation)) sh-indentation))))))
+    (if (< (current-column) (current-indentation))
+	(skip-chars-forward " \t"))))
+
+
+(defun sh-execute-region (start end &optional flag)
+  "Pass optional header and region to a subshell for noninteractive execution.
+The working directory is that of the buffer, and only environment variables
+are already set which is why you can mark a header within the script.
+
+With a positive prefix ARG, instead of sending region, define header from
+beginning of buffer to point.  With a negative prefix ARG, instead of sending
+region, clear header."
+  (interactive "r\nP")
+  (if flag
+      (setq sh-header-marker (if (> (prefix-numeric-value flag) 0)
+				 (point-marker)))
+    (if sh-header-marker
+	(save-excursion
+	  (let (buffer-undo-list)
+	    (goto-char sh-header-marker)
+	    (append-to-buffer (current-buffer) start end)
+	    (shell-command-on-region (point-min)
+				     (setq end (+ sh-header-marker
+						  (- end start)))
+				     sh-shell-path)
+	    (delete-region sh-header-marker end)))
+      (shell-command-on-region start end (concat sh-shell-path " -")))))
 
 
 (defun sh-remember-variable (var)
   "Make VARIABLE available for future completing reads in this buffer."
   (or (< (length var) sh-remember-variable-min)
-      (assoc var sh-variables)
-      (setq sh-variables (cons (list var) sh-variables)))
+      (getenv var)
+      (setq process-environment (cons (concat var "=0") process-environment)))
   var)
-
-
-;; Augment the standard variables by those found in the environment.
-(if (boundp 'process-environment)(let ((l process-environment))
-  (while l
-    (sh-remember-variable (substring (car l)
-				     0 (string-match "=" (car l))))
-    (setq l (cdr l)))))
 
 
 
 (defun sh-quoted-p ()
   "Is point preceded by an odd number of backslashes?"
-  (eq 1 (% (- (point) (save-excursion
-			(skip-chars-backward "\\\\")
-			(point)))
-	   2)))
-
-
-
-(defun sh-executable (command)
-  "If COMMAND is an executable in $PATH its full name is returned.  Else nil."
-  (let ((point (point))
-	(buffer-modified-p (buffer-modified-p))
-	buffer-read-only after-change-function)
-    (call-process "sh" nil t nil "-c" (concat "type " command))
-    (setq point (prog1 (point)
-		  (goto-char point)))
-    (prog1
-	(and (looking-at sh-executable)
-	     (eq point (match-end 0))
-	     (buffer-substring (match-beginning 1) (match-end 1)))
-      (delete-region (point) point)
-      (set-buffer-modified-p buffer-modified-p))))
-
-
-
-(defun sh-chmod ()
-  "This gets called after saving a file to assure that it be executable.
-You can set the absolute or relative mode with `sh-chmod-argument'."
-  (if sh-chmod-argument
-       (or (file-executable-p buffer-file-name)
-	   (shell-command (concat "chmod " sh-chmod-argument
-				  " " buffer-file-name)))))
+  (eq -1 (% (save-excursion (skip-chars-backward "\\\\")) 2)))
 
 ;; statement syntax-commands for various shells
 
 ;; You are welcome to add the syntax or even completely new statements as
 ;; appropriate for your favorite shell.
 
-(define-sh-skeleton sh-case
-  "Insert a case/switch statement in the current shell's syntax."
-  (sh "expression: "
-      "case " str " in" \n
-      > (read-string "pattern: ") ?\) \n
-      > _ \n
-      ";;" \n
-      ( "other pattern, %s: "
-	< str ?\) \n
-	> \n
-	";;" \n)
-      < "*)" \n
-      > \n
-      resume:
-      < < "esac")
-  (ksh . sh)
-  (bash . sh)
+(define-skeleton sh-case
+  "Insert a case/switch statement.  See `sh-feature'."
   (csh "expression: "
        "switch( " str " )" \n
        > "case " (read-string "pattern: ") ?: \n
@@ -565,209 +905,323 @@ You can set the absolute or relative mode with `sh-chmod-argument'."
        "breaksw" \n
        ( "other pattern, %s: "
 	 < "case " str ?: \n
-	 > \n
+	 > _ \n
 	 "breaksw" \n)
        < "default:" \n
-       > \n
+       > _ \n
        resume:
        < < "endsw")
-  (tcsh . csh))
+  (es)
+  (rc "expression: "
+      "switch( " str " ) {" \n
+      > "case " (read-string "pattern: ") \n
+      > _ \n
+      ( "other pattern, %s: "
+	< "case " str \n
+	> _ \n)
+      < "case *" \n
+      > _ \n
+      resume:
+      < < ?})
+  (sh "expression: "
+      "case " str " in" \n
+      > (read-string "pattern: ") ?\) \n
+      > _ \n
+      ";;" \n
+      ( "other pattern, %s: "
+	< str ?\) \n
+	> _ \n
+	";;" \n)
+      < "*)" \n
+      > _ \n
+      resume:
+      < < "esac"))
 
 
 
-(define-sh-skeleton sh-for
-  "Insert a for loop in the current shell's syntax."
+(define-skeleton sh-for
+  "Insert a for loop.  See `sh-feature'."
+  (csh eval sh-modify sh
+       1 "foreach "
+       3 " ( "
+       5 " )"
+       15 "end")
+  (es eval sh-modify rc
+      3 " = ")
+  (rc eval sh-modify sh
+      1 "for( "
+      5 " ) {"
+      15 ?})
   (sh "Index variable: "
       "for " str " in " _ "; do" \n
-      > ?$ (sh-remember-variable str) \n
-      < "done")
-  (ksh . sh)
-  (bash . sh)
-  (csh "Index variable: "
-       "foreach " str " ( " _ " )" \n
-       > ?$ (sh-remember-variable str) \n
-       < "end")
-  (tcsh . csh))
+      > _ | ?$ & (sh-remember-variable str) \n
+      < "done"))
 
 
 
-(define-sh-skeleton sh-indexed-loop
-  "Insert an indexed loop from 1 to n in the current shell's syntax."
-  (sh "Index variable: "
-      str "=1" \n
-      "while [ $" str " -le "
-      (read-string "upper limit: ")
-      " ]; do" \n
-      > _ ?$ str \n
-      str ?= (sh-add (sh-remember-variable str) 1) \n
-      < "done")
-  (ksh . sh)
-  (bash . sh)
+(define-skeleton sh-indexed-loop
+  "Insert an indexed loop from 1 to n.  See `sh-feature'."
+  (bash eval identity posix)
   (csh "Index variable: "
        "@ " str " = 1" \n
-       "while( $" str " <= "
-       (read-string "upper limit: ")
-       " )" \n
-       > _ ?$ (sh-remember-variable str) \n
+       "while( $" str " <= " (read-string "upper limit: ") " )" \n
+       > _ ?$ str \n
        "@ " str "++" \n
        < "end")
-  (tcsh . csh))
-
+  (es eval sh-modify rc
+      3 " =")
+  (ksh88 "Index variable: "
+	 "integer " str "=0" \n
+	 "while (( ( " str " += 1 ) <= "
+	 (read-string "upper limit: ")
+	 " )); do" \n
+	 > _ ?$ (sh-remember-variable str) \n
+	 < "done")
+  (posix "Index variable: "
+	 str "=1" \n
+	 "while [ $" str " -le "
+	 (read-string "upper limit: ")
+	 " ]; do" \n
+	 > _ ?$ str \n
+	 str ?= (sh-add (sh-remember-variable str) 1) \n
+	 < "done")
+  (rc "Index variable: "
+      "for( " str " in" " `{awk 'BEGIN { for( i=1; i<="
+      (read-string "upper limit: ")
+      "; i++ ) print i }'}) {" \n
+      > _ ?$ (sh-remember-variable str) \n
+      < ?})
+  (sh "Index variable: "
+      "for " str " in `awk 'BEGIN { for( i=1; i<="
+      (read-string "upper limit: ")
+      "; i++ ) print i }'`; do" \n
+      > _ ?$ (sh-remember-variable str) \n
+      < "done"))
 
 
 (defun sh-add (var delta)
-  "Insert an addition of VAR and prefix DELTA for Bourne type shells."
+  "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
   (interactive
-   (list (sh-remember-variable
-	  (completing-read "Variable: " sh-variables
-			   (lambda (element)
-			     (or (not (cdr element))
-				 (memq sh-shell (cdr element))))))
+   (list (completing-read "Variable: "
+			  (mapcar (lambda (var)
+				    (substring var 0 (string-match "=" var)))
+				  process-environment))
 	 (prefix-numeric-value current-prefix-arg)))
-  (setq delta (concat (if (< delta 0) " - " " + ")
-		      (abs delta)))
-  (skeleton-insert
-   (assq sh-shell
-	 '((sh "`expr $" var delta "`")
-	   (ksh "$(( $" var delta " ))")
-	   (bash "$[ $" var delta " ]")))
-   t))
+  (insert (sh-feature '((bash . "$[ ")
+			(ksh88 . "$(( ")
+			(posix . "$(( ")
+			(rc . "`{expr $")
+			(sh . "`expr $")
+			(zsh . "$[ ")))
+	  (sh-remember-variable var)
+	  (if (< delta 0) " - " " + ")
+	  (number-to-string (abs delta))
+	  (sh-feature '((bash . " ]")
+			(ksh88 . " ))")
+			(posix . " ))")
+			(rc . "}")
+			(sh . "`")
+			(zsh . " ]")))))
 
 
 
-(define-sh-skeleton sh-function
-  "Insert a function definition in the current shell's syntax."
+(define-skeleton sh-function
+  "Insert a function definition.  See `sh-feature'."
+  (bash eval sh-modify ksh88
+	3 "() {")
+  (ksh88 "name: "
+	 "function " str " {" \n
+	 > _ \n
+	 < "}")
+  (rc eval sh-modify ksh88
+	1 "fn ")
   (sh ()
       "() {" \n
       > _ \n
-      < "}")
-  (ksh "name: "
-       "function " str " {" \n
+      < "}"))
+
+
+
+(define-skeleton sh-if
+  "Insert an if statement.  See `sh-feature'."
+  (csh "condition: "
+       "if( " str " ) then" \n
        > _ \n
-       < "}")
-  (bash "name: "
-       "function " str "() {" \n
+       ( "other condition, %s: "
+	 < "else if( " str " ) then" \n
+	 > _ \n)
+       < "else" \n
        > _ \n
-       < "}"))
-
-
-
-(define-sh-skeleton sh-if
-  "Insert an if statement in the current shell's syntax."
+       resume:
+       < "endif")
+  (es "condition: "
+      "if { " str " } {" \n
+       > _ \n
+       ( "other condition, %s: "
+	 < "} { " str " } {" \n
+	 > _ \n)
+       < "} {" \n
+       > _ \n
+       resume:
+       < ?})
+  (rc eval sh-modify csh
+      3 " ) {"
+      8 '( "other condition, %s: "
+	   < "} else if( " str " ) {" \n
+	   > _ \n)
+      10 "} else {"
+      17 ?})
   (sh "condition: "
       "if [ " str " ]; then" \n
       > _ \n
       ( "other condition, %s: "
 	< "elif [ " str " ]; then" \n
-	> \n)
+	> _ \n)
       < "else" \n
-      > \n
+      > _ \n
       resume:
-      < "fi")
-  (ksh . sh)
-  (bash . sh)
-  (csh "condition: "
-       "if( " str " ) then" \n
-       > _ \n
-       ( "other condition, %s: "
-	 < "else if ( " str " ) then" \n
-	 > \n)
-       < "else" \n
-       > \n
-       resume:
-       < "endif")
-  (tcsh . csh))
+      < "fi"))
 
 
 
-(define-sh-skeleton sh-select
-  "Insert a select statement in the current shell's syntax."
-  (ksh "Index variable: "
-       "select " str " in " _ "; do" \n
-       > ?$ str \n
-       < "done"))
-(put 'sh-select 'menu-enable '(get 'sh-select sh-shell))
+(define-skeleton sh-repeat
+  "Insert a repeat loop definition.  See `sh-feature'."
+  (es nil
+      "forever {" \n
+      > _ \n
+      < ?})
+  (zsh "factor: "
+      "repeat " str "; do"\n
+      > _ \n
+      < "done"))
+(put 'sh-repeat 'menu-enable '(sh-feature sh-repeat))
 
 
 
-(define-sh-skeleton sh-until
-  "Insert an until loop in the current shell's syntax."
+(define-skeleton sh-select
+  "Insert a select statement.  See `sh-feature'."
+  (ksh88 "Index variable: "
+	 "select " str " in " _ "; do" \n
+	 > ?$ str \n
+	 < "done"))
+(put 'sh-select 'menu-enable '(sh-feature sh-select))
+
+
+
+(define-skeleton sh-tmp-file
+  "Insert code to setup temporary file handling.  See `sh-feature'."
+  (bash eval identity ksh88)
+  (csh (file-name-nondirectory (buffer-file-name))
+       "set tmp = /tmp/" str ".$$" \n
+       "onintr exit" \n _
+       (and (goto-char (point-max))
+	    (not (bolp))
+	    ?\n)
+       "exit:\n"
+       "rm $tmp* >&/dev/null" >)
+  (es (file-name-nondirectory (buffer-file-name))
+      "local( signals = $signals sighup sigint; tmp = /tmp/" str ".$pid ) {" \n
+      > "catch @ e {" \n
+      > "rm $tmp^* >[2]/dev/null" \n
+      "throw $e" \n
+      < "} {" \n
+      > _ \n
+      < ?} \n
+      < ?})
+  (ksh88 eval sh-modify sh
+	 6 "EXIT")
+  (rc (file-name-nondirectory (buffer-file-name))
+       "tmp = /tmp/" str ".$pid" \n
+       "fn sigexit { rm $tmp^* >[2]/dev/null }")
+  (sh (file-name-nondirectory (buffer-file-name))
+      "TMP=/tmp/" str ".$$" \n
+      "trap \"rm $TMP* 2>/dev/null\" " ?0))
+
+
+
+(define-skeleton sh-until
+  "Insert an until loop.  See `sh-feature'."
   (sh "condition: "
       "until [ " str " ]; do" \n
       > _ \n
-      < "done")
-  (ksh . sh)
-  (bash . sh))
-(put 'sh-until 'menu-enable '(get 'sh-until sh-shell))
+      < "done"))
+(put 'sh-until 'menu-enable '(sh-feature sh-until))
 
 
-(define-sh-skeleton sh-while
-  "Insert a while loop in the current shell's syntax."
+
+(define-skeleton sh-while
+  "Insert a while loop.  See `sh-feature'."
+  (csh eval sh-modify sh
+       1 "while( "
+       3 " )"
+       9 "end")
+  (es eval sh-modify rc
+      1 "while { "
+      3 " } {")
+  (rc eval sh-modify csh
+      3 " ) {"
+      9 ?})
   (sh "condition: "
       "while [ " str " ]; do" \n
       > _ \n
-      < "done")
-  (ksh . sh)
-  (bash . sh)
-  (csh "condition: "
-       "while( " str " )" \n
-       > _ \n
-       < "end")
-  (tcsh . csh))
+      < "done"))
 
 
 
-(defun sh-query-for-variable (arg)
-  "Unless quoted with `\\', query for variable-name with completions.
-Prefix arg 0 means don't insert `$' before the variable.
-Prefix arg 2 or more means only do self-insert that many times.
-  If { is pressed as the first character, it will surround the variable name."
-  (interactive "*p")
-  (or (prog1 (or (> arg 1)
-		 (sh-quoted-p))
-	(self-insert-command arg))
-    (let (completion-ignore-case
-	  (minibuffer-local-completion-map
-	   (or (get 'sh-query-for-variable 'keymap)
-	       (put 'sh-query-for-variable 'keymap
-		    (copy-keymap minibuffer-local-completion-map))))
-	  (buffer (current-buffer)))
-      ;; local function that depends on `arg' and `buffer'
-      (define-key minibuffer-local-completion-map "{"
-	(lambda () (interactive)
-	  (if (or arg (> (point) 1))
-	      (beep)
-	    (save-window-excursion
-	      (setq arg t)
-	      (switch-to-buffer-other-window buffer)
-	      (insert "{}")))))
-      (insert
-       (prog1
-	   (sh-remember-variable
-	    (completing-read "Variable: " sh-variables
-			     (lambda (element)
-			       (or (not (cdr element))
-				   (memq sh-shell (cdr element))))))
-	 (if (eq t arg) (forward-char 1))))
-      (if (eq t arg) (forward-char 1)))))
+(define-skeleton sh-while-getopts
+  "Insert a while getopts loop.  See `sh-feature'.
+Prompts for an options string which consists of letters for each recognized
+option followed by a colon `:' if the option accepts an argument."
+  (bash eval sh-modify sh
+	18 "${0##*/}")
+  (ksh88 eval sh-modify sh
+	 16 "print"
+	 18 "${0##*/}"
+	 36 "OPTIND-1")
+  (posix eval sh-modify sh
+	 18 "$(basename $0)")
+  (sh "optstring: "
+      "while getopts :" str " OPT; do" \n
+      > "case $OPT in" \n
+      > >
+      '(setq v1 (append (vconcat str) nil))
+      ( (prog1 (if v1 (char-to-string (car v1)))
+	  (if (eq (nth 1 v1) ?:)
+	      (setq v1 (nthcdr 2 v1)
+		    v2 "\"$OPTARG\"")
+	    (setq v1 (cdr v1)
+		  v2 nil)))
+	< str "|+" str ?\) \n
+	> _ v2 \n
+	";;" \n)
+      < "*)" \n
+      > "echo" " \"usage: " "`basename $0`"
+      "[ +-" '(setq v1 (point)) str
+      '(save-excursion
+	 (while (search-backward ":" v1 t)
+	   (replace-match " arg][ +-" t t)))
+      (if (eq (preceding-char) ?-) -5)
+      "][ --] args\"" \n
+      "exit 2" \n
+      < < "esac" \n
+      < "done" \n
+      "shift " (sh-add "OPTIND" -1)))
+(put 'sh-while-getopts 'menu-enable '(sh-feature sh-while-getopts))
 
 
 
 (defun sh-assignment (arg)
-  "Insert self.  Remember previous identifier for future completing read."
+  "Remember preceding identifier for future completion and do self-insert."
   (interactive "p")
-  (if (eq arg 1)
+  (self-insert-command arg)
+  (if (<= arg 1)
       (sh-remember-variable
        (save-excursion
-	 (buffer-substring
-	  (progn
-	    (if (memq sh-shell sh-assignment-space)
-		(skip-chars-backward " \t"))
-	    (point))
-	  (progn
-	    (skip-chars-backward "a-zA-Z0-9_")
-	    (point))))))
-  (self-insert-command arg))
+	 (if (re-search-forward (sh-feature sh-assignment-regexp)
+				(prog1 (point)
+				  (beginning-of-line 1))
+				t)
+	     (buffer-substring (match-beginning 1) (match-end 1)))))))
 
 
 
@@ -779,20 +1233,32 @@ The document is bounded by `sh-here-document-word'."
   (or arg
       (not (eq (char-after (- (point) 2)) last-command-char))
       (save-excursion
-	(goto-char (- (point) 2))
+	(backward-char 2)
 	(sh-quoted-p))
       (progn
 	(insert sh-here-document-word)
-	(or (looking-at "[ \t\n]") (insert ? ))
+	(or (eolp) (looking-at "[ \t]") (insert ? ))
 	(end-of-line 1)
+	(while
+	    (sh-quoted-p)
+	  (end-of-line 2))
 	(newline)
 	(save-excursion (insert ?\n sh-here-document-word)))))
 
 
 ;; various other commands
 
+(autoload 'comint-dynamic-complete "comint"
+  "Dynamically perform completion at point." t)
+
+(autoload 'shell-dynamic-complete-command "shell"
+  "Dynamically complete the command at point." t)
+
 (autoload 'comint-dynamic-complete-filename "comint"
   "Dynamically complete the filename at point." t)
+
+(autoload 'shell-dynamic-complete-environment-variable "shell"
+  "Dynamically complete the environment variable at point." t)
 
 
 
@@ -801,67 +1267,15 @@ The document is bounded by `sh-here-document-word'."
 Unquoted whitespace is stripped from the current line's end, unless a
 prefix ARG is given."
   (interactive "*P")
-  (let ((previous (current-indentation))
-	(end-of-line (point)))
+  (let ((previous (current-indentation)))
     (if arg ()
-      (skip-chars-backward " \t") 
-      (and (< (point) end-of-line)
-	   (sh-quoted-p)
-	   (forward-char 1))
-      (delete-region (point) end-of-line))
+      (just-one-space)
+      (backward-char)
+      (if (sh-quoted-p)
+	  (forward-char)
+	(delete-char 1)))
     (newline)
     (indent-to previous)))
-
-
-
-(defun sh-set-shell (shell)
-  "Set this buffer's shell to SHELL (a string).
-Calls the value of `sh-set-shell-hook' if set."
-  (interactive "sName or path of shell: ")
-  (save-excursion
-    (goto-char (point-min))
-    (setq sh-shell-path (if (file-name-absolute-p shell)
-				      shell
-				    (or (sh-executable shell)
-					(error "Cannot find %s." shell)))
-	  sh-shell (intern (file-name-nondirectory sh-shell-path))
-	  sh-shell-is-csh (memq sh-shell '(csh tcsh))
-	  font-lock-defaults
-	  (let ((keywords (intern-soft (format "sh-%s-font-lock-keywords"
-					       sh-shell))))
-	    (list (if (and keywords (boundp keywords))
-		      keywords
-		    'sh-font-lock-keywords)))
-	  comment-start-skip (if sh-shell-is-csh
-				 "\\(^\\|[^$]\\|\\$[^{]\\)#+[\t ]*"
-			       "\\(^\\|[^$]\\|\\$[^{]\\)\\B#+[\t ]*")
-	  mode-line-process (format ": %s" sh-shell)
-	  shell (concat sh-shell-path
-			(and sh-shell-argument " ")
-			sh-shell-argument))
-    (and (not buffer-read-only)
-	 (not (if buffer-file-name
-		  (string-match sh-magicless-file-regexp buffer-file-name)))
-	 ;; find-file is set by `normal-mode' when called by `after-find-file'
-	 (if (and (boundp 'find-file) find-file) sh-find-file-modifies t)
-	 (if (looking-at "#!")
-	     (and (skip-chars-forward "#! \t")
-		  (not (string= shell
-				(buffer-substring (point)
-						  (save-excursion (end-of-line)
-								  (point)))))
-		  (if sh-query-for-magic
-		      (y-or-n-p (concat "Replace magic number by ``#! "
-					shell "''? "))
-		    (message "Magic number ``%s'' replaced."
-			     (buffer-substring (point-min) (point))))
-		  (not (delete-region (point) (progn (end-of-line) (point))))
-		  (insert shell))
-	   (if (if sh-query-for-magic
-		   (y-or-n-p (concat "Add ``#! " shell "''? "))
-		 t)
-	       (insert "#! " shell ?\n)))))
-  (run-hooks 'sh-set-shell-hook))
 
 
 
@@ -872,32 +1286,10 @@ Calls the value of `sh-set-shell-hook' if set."
       (goto-char (match-beginning 2))))
 
 
-
 (defun sh-end-of-command ()
   "Move point to successive ends of commands."
   (interactive)
   (if (re-search-forward sh-end-of-command nil t)
       (goto-char (match-end 1))))
-
-
-
-(defun sh-manual-entry (arg)
-  "Display the Unix manual entry for the current command or shell.
-Universal argument ARG, is passed to `Man-getpage-in-background'."
-  (interactive "P")
-  (let ((command (save-excursion
-		   (sh-beginning-of-command)
-		   (sh-executable
-		    (buffer-substring (point)
-				      (progn (forward-sexp) (point)))))))
-    (setq command (read-input (concat "Manual entry (default "
-				      (symbol-name sh-shell)
-				      "): ")
-			      (if command
-				  (file-name-nondirectory command))))
-    (manual-entry (if (string= command "")
-		      (symbol-name sh-shell)
-		    command)
-		  arg)))
 
 ;; sh-script.el ends here
