@@ -1,3 +1,11 @@
+2002-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* insdel.c (insert_1_both, insert_from_string_1)
+	(insert_from_buffer_1): Recalculate END_UNCHANGED in case the
+	insert happened in the end_unchanged region.  Otherwise, the
+	redisplay may be confused and duplicate the last line in the
+	buffer [seen after save-buffer when require-final-newline==t].
+
 2002-06-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (init_environment): Remove EMACSLOCKDIR.
