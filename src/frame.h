@@ -313,6 +313,9 @@ typedef struct frame *FRAME_PTR;
 #ifdef HAVE_NTGUI
 #define FRAME_WINDOW_P(f) FRAME_WIN32_P (f)
 #endif
+#ifndef FRAME_WINDOW_P
+#define FRAME_WINDOW_P(f) (0)
+#endif
 
 #define FRAME_LIVE_P(f) ((f)->output_data.nothing != 0)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
