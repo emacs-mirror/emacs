@@ -502,6 +502,14 @@ LOAD should be either a library file name, or a feature name."
   "Load all dependencies for SYMBOL."
   (unless custom-load-recursion
     (let ((custom-load-recursion t))
+      ;; Load these files if not already done,
+      ;; to make sure we know all the dependencies of SYMBOL.
+      (condition-case nil
+	  (require 'cus-load)
+	(error nil))
+      (condition-case nil
+	  (require 'cus-start)
+	(error nil))
       (dolist (load (get symbol 'custom-loads))
 	(cond ((symbolp load) (condition-case nil (require load) (error nil)))
 	      ;; This is subsumed by the test below, but it's much faster.
