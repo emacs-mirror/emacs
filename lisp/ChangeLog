@@ -1,3 +1,14 @@
+2002-03-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* facemenu.el (facemenu-get-face): Remove unised variable
+	`foreground'.
+
+	* enriched.el (enriched-face-ans): Support FACE of the form
+	(:foreground COLOR) and (:background COLOR).
+	(enriched-decode-foreground, enriched-decode-background): Set the
+	fore- and background colors of the faces we create, since facemenu
+	doesn't.
+
 2002-03-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mwheel.el (mouse-wheel-mode): Use the result of
