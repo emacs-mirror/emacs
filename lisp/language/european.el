@@ -297,7 +297,7 @@ Additionally, it selects the German tutorial."))
 	    (sample-text . "French (Fran,Ag(Bais)	Bonjour, Salut")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but it selects the French tutorial."))
+but it selects the French tutorial and input method."))
  '("European"))
 
 (set-language-info-alist
@@ -326,7 +326,9 @@ Additionally, it selects the Italian tutorial."))
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.sl")
 	      (sample-text . ",B.(Belimo vam uspe,B9(Ben dan!")
-	      (documentation . t))
+	      (documentation . "\
+This language environment is almost the same as Latin-2,
+but it selects the Slovenian tutorial and input method."))
  '("European"))
 
 (set-language-info-alist
