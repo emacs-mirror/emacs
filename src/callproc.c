@@ -452,8 +452,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    }
 	  UNGCPRO;
 	}
+      new_argv[nargs - 3] = 0;
     }
-  new_argv[nargs - 3] = 0;
+  else
+    new_argv[1] = 0;
 
 #ifdef MSDOS /* MW, July 1993 */
   if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
