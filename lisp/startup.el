@@ -1503,7 +1503,7 @@ where FACE is a valid face specification, as it can be used with
 	       (string= (buffer-name) "*scratch*")
 	       ;; Don't display startup screen if init file
 	       ;; has started some sort of server.
-	       (process-list)
+	       (null (process-list))
 	       ;; Don't display startup screen if init file
 	       ;; has inserted some text in *scratch*.
 	       (= 0 (buffer-size)))
