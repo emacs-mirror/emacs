@@ -300,6 +300,7 @@
 (put 'coding-category-binary 'coding-systems '(no-conversion))
 (setq coding-system-list '(no-conversion))
 (setq coding-system-alist '(("no-conversion")))
+(register-char-codings 'no-conversion t)
 
 (define-coding-system-alias 'binary 'no-conversion)
 
