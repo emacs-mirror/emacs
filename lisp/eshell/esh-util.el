@@ -206,7 +206,7 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 (defun eshell-sublist (l &optional n m)
   "Return from LIST the N to M elements.
 If N or M is nil, it means the end of the list."
-  (let* ((a (copy-list l))
+  (let* ((a (eshell-copy-list l))
 	 result)
     (if (and m (consp (nthcdr m a)))
 	(setcdr (nthcdr m a) nil))
