@@ -2034,10 +2034,15 @@ re_wctype_to_bit (cc)
 }
 #endif
 
-/* QUIT is only used on NTemacs.  */
-#if !defined WINDOWSNT || !defined emacs || !defined QUIT
-# undef QUIT
-# define QUIT
+/* Explicit quit checking is only used on NTemacs.  */
+#if defined WINDOWSNT && defined emacs && defined QUIT
+extern int immediate_quit;
+# define IMMEDIATE_QUIT_CHECK			\
+    do {					\
+      if (immediate_quit) QUIT;			\
+    } while (0)
+#else
+# define IMMEDIATE_QUIT_CHECK    (0)
 #endif
 
 #ifndef MATCH_MAY_ALLOCATE
@@ -5291,7 +5296,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	   the repetition text and either the following jump or
 	   pop_failure_jump back to this on_failure_jump.  */
 	case on_failure_jump:
-	  QUIT;
+	  IMMEDIATE_QUIT_CHECK;
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 ("EXECUTING on_failure_jump %d (to %p):\n",
 			mcnt, p + mcnt);
@@ -5307,7 +5312,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	   then we can use a non-backtracking loop based on
 	   on_failure_keep_string_jump instead of on_failure_jump.  */
 	case on_failure_jump_smart:
-	  QUIT;
+	  IMMEDIATE_QUIT_CHECK;
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 ("EXECUTING on_failure_jump_smart %d (to %p).\n",
 			mcnt, p + mcnt);
@@ -5345,7 +5350,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	/* Unconditionally jump (without popping any failure points).  */
 	case jump:
 	unconditional_jump:
-	  QUIT;
+	  IMMEDIATE_QUIT_CHECK;
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);	/* Get the amount to jump.  */
 	  DEBUG_PRINT2 ("EXECUTING jump %d ", mcnt);
 	  p += mcnt;				/* Do the jump.	 */
@@ -5599,7 +5604,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
     /* We goto here if a matching operation fails. */
     fail:
-      QUIT;
+      IMMEDIATE_QUIT_CHECK;
       if (!FAIL_STACK_EMPTY ())
 	{
 	  re_char *str;
