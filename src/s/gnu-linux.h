@@ -338,7 +338,7 @@ Boston, MA 02111-1307, USA.  */
 /* Don't use #cpu here since in newest development versions of GCC,
    we must call cpp with -traditional, and that disables #cpu.  */
 
-#if defined __i386__ || defined __sparc__ || defined __m68k__ || defined __alpha__
+#if defined __i386__ || defined __sparc__ || defined __mc68000__ || defined __alpha__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #endif
