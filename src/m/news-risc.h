@@ -19,3 +19,9 @@
 #define C_DEBUG_SWITCH -g3
 
 #undef TERMINFO
+
+/* We have no mode_t.  */
+#define NO_MODE_T
+
+/* Don't use the definitoion in m/mips.h.  */
+#undef LINKER
