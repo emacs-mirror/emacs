@@ -432,6 +432,16 @@ point at the other (diagonally opposed) corner."
       (error "No rectangle saved.")
     (picture-insert-rectangle picture-killed-rectangle insertp)))
 
+(defun picture-yank-at-click (click arg)
+  "Insert the last killed rectangle at the position clicked on.
+Also move point to one end of the text thus inserted (normally the end).
+Prefix arguments are interpreted as with \\[yank].
+If `mouse-yank-at-point' is non-nil, insert at point
+regardless of where you click."
+  (interactive "e\nP")
+  (or mouse-yank-at-point (mouse-set-point click))
+  (picture-yank-rectangle arg))
+
 (defun picture-yank-rectangle-from-register (register &optional insertp)
   "Overlay rectangle saved in REGISTER.
 The rectangle is positioned with upper left corner at point, overwriting
