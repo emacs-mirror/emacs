@@ -135,7 +135,7 @@ list of recently opened files."
 
 (defcustom recentf-menu-filter nil
   "*Function used to filter files displayed in the recentf menu.
-Nil means no filter.  The following functions are predefined:
+nil means no filter.  The following functions are predefined:
 
 - `recentf-sort-ascending' to sort menu items in ascending order.
 - `recentf-sort-descending' to sort menu items in descending order.
@@ -562,7 +562,7 @@ defined."
 
 (defcustom recentf-arrange-by-rule-subfilter nil
   "*Function used by `recentf-arrange-by-rule' to filter sub-menu elements.
-Nil means no filter.  See also `recentf-menu-filter'.  You can't use
+nil means no filter.  See also `recentf-menu-filter'.  You can't use
 `recentf-arrange-by-rule' itself here!"
   :group 'recentf-filters
   :type '(choice (const nil) function)

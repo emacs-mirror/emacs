@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.15 2001/11/17 00:48:14 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.16 2001/12/02 07:41:47 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -372,7 +372,7 @@ If ARG is negative (or \\[universal-argument] which corresponds to negative 0),
   it queries the user and sets the -ARG'th default.
 If ARG is greater than 9 (or \\[universal-argument] \\[universal-argument]),
   the (ARG mod 10)'th prefix is made persistent.
-If ARG is NIL toggle the PREFIX's value between its 0th default and NIL
+If ARG is nil toggle the PREFIX's value between its 0th default and nil
   and reset the persistence."
   (let* ((prefix (symbol-value (cvs-prefix-sym sym)))
 	 (numarg (if (integerp arg) arg 0))

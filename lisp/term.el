@@ -1376,7 +1376,7 @@ buffer.  The hook term-exec-hook is run after each exec."
     ;; Crank up a new process
     (let ((proc (term-exec-1 name buffer command switches)))
       (make-local-variable 'term-ptyp)
-      (setq term-ptyp process-connection-type) ; T if pty, NIL if pipe.
+      (setq term-ptyp process-connection-type) ; t if pty, nil if pipe.
       ;; Jump to the end, and set the process mark.
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
@@ -1991,13 +1991,13 @@ If the interpreter is the csh,
         initial string matching regexp term-prompt-regexp.
     term-input-filter-functions monitors input for \"cd\", \"pushd\", and
 	\"popd\" commands.  When it sees one, it cd's the buffer.
-    term-input-filter is the default: returns T if the input isn't all white
+    term-input-filter is the default: returns t if the input isn't all white
 	space.
 
 If the term is Lucid Common Lisp,
     term-get-old-input snarfs the sexp ending at point.
     term-input-filter-functions does nothing.
-    term-input-filter returns NIL if the input matches input-filter-regexp,
+    term-input-filter returns nil if the input matches input-filter-regexp,
         which matches (1) all whitespace (2) :a, :c, etc.
 
 Similarly for Soar, Scheme, etc."

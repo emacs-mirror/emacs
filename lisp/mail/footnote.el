@@ -513,7 +513,7 @@ styles."
 
 (defun Footnote-text-under-cursor ()
   "Return the number of footnote if in footnote text.
-Nil is returned if the cursor is not positioned over the text of
+Return nil if the cursor is not positioned over the text of
 a footnote."
   (when (and (let ((old-point (point)))
 	       (save-excursion
@@ -536,7 +536,7 @@ a footnote."
 
 (defun Footnote-under-cursor ()
   "Return the number of the footnote underneath the cursor.
-Nil is returned if the cursor is not over a footnote."
+Return nil if the cursor is not over a footnote."
   (or (get-text-property (point) 'footnote-number)
       (Footnote-text-under-cursor)))
 

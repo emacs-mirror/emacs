@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/11/27 15:52:51 $
+;; Date: $Date: 2001/12/01 12:54:29 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -680,7 +680,7 @@ with this font in order to remind the user that this arrow is special."
 
 (defcustom idlwave-function-completion-adds-paren t
   "*Non-nil means, completion automatically adds `(' after completed function.
-Nil means, don't add anything.
+nil means, don't add anything.
 A value of `2' means, also add the closing parenthesis and position cursor
 between the two."
   :group 'idlwave-completion
@@ -913,7 +913,7 @@ See help on `idlwave-action-and-binding' for examples.")
 ")
   "*A list (PATHNAME STRING) specifying the doc-header template to use for
 summarizing a file. If PATHNAME is non-nil then this file will be included.
-Otherwise STRING is used. If NIL, the file summary will be omitted.
+Otherwise STRING is used. If nil, the file summary will be omitted.
 For example you might set PATHNAME to the path for the
 lib_template.pro file included in the IDL distribution.")
 

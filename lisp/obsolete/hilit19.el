@@ -325,7 +325,7 @@
   "* If non-nil, this inhibits progress indicators during highlighting")
 
 (defvar hilit-auto-highlight t
-  "* T if we should highlight all buffers as we find 'em, nil to disable
+  "* t if we should highlight all buffers as we find 'em, nil to disable
   automatic highlighting by the find-file hook.")
 
 (defvar hilit-auto-highlight-maxout 60000 ; hilit19 keeps getting bigger...
@@ -333,7 +333,7 @@
 
 (defvar hilit-auto-rehighlight t
   "* If this is non-nil, then hilit-redraw and hilit-recenter will also
-  rehighlight part or all of the current buffer.  T will rehighlight the
+  rehighlight part or all of the current buffer.  t will rehighlight the
   whole buffer, a NUMBER will rehighlight that many lines before and after
   the cursor, and the symbol 'visible' will rehighlight only the visible
   portion of the current buffer.  This variable is buffer-local.")
@@ -346,10 +346,10 @@
   THRESHOLD.")
 
 (defvar hilit-face-check t
-  "* T slows down highlighting but permits the user to change fonts without
-  losing bold and italic faces...  T causes hilit-lookup-face-create to dig
+  "* t slows down highlighting but permits the user to change fonts without
+  losing bold and italic faces...  t causes hilit-lookup-face-create to dig
   through the frame parameters for the current window every time it's called.
-  If you never change fonts in emacs, set this to NIL.")
+  If you never change fonts in emacs, set this to nil.")
 
 ;; Variables which must be set before loading hilit19.
 
@@ -1051,7 +1051,7 @@ Optionally, place the new pattern first in the pattern list"
   (and (interactive-p) (hilit-rehighlight-buffer)))
 
 (defun hilit-string-find (qchar)
-  "looks for a string and returns (start . end) or NIL.  The argument QCHAR
+  "Looks for a string and returns (start . end) or nil.  The argument QCHAR
 is the character that would precede a character constant double quote.
 Finds strings delimited by double quotes.  The first double quote may not be
 preceded by QCHAR and the closing double quote may not be preceded by an odd

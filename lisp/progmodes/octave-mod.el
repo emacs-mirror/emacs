@@ -386,7 +386,7 @@ Currently, only builtin variables can be completed.")
   "Imenu expression for Octave mode.  See `imenu-generic-expression'.")
 
 (defcustom octave-mode-startup-message t
-  "*Nil means do not display the Octave mode startup message."
+  "*nil means do not display the Octave mode startup message."
   :type 'boolean
   :group 'octave)
 
@@ -464,7 +464,7 @@ octave-continuation-string
   Default is a backslash.
 
 octave-mode-startup-message
-  Nil means do not display the Octave mode startup message.
+  nil means do not display the Octave mode startup message.
   Default is t.
 
 octave-send-echo-input

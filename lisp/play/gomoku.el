@@ -947,7 +947,7 @@ If the game is finished, this command requests for another game."
     (message "Chicken !")))
 
 (defun gomoku-offer-a-draw ()
-  "Offer a draw and return T if Human accepted it."
+  "Offer a draw and return t if Human accepted it."
   (or (y-or-n-p "I offer you a draw. Do you accept it ")
       (not (setq gomoku-human-refused-draw t))))
 
@@ -1095,14 +1095,14 @@ If the game is finished, this command requests for another game."
 ;; who won. The solution is to scan the board along all four directions.
 
 (defun gomoku-find-filled-qtuple (square value)
-  "Return T if SQUARE belongs to a qtuple filled with VALUEs."
+  "Return t if SQUARE belongs to a qtuple filled with VALUEs."
   (or (gomoku-check-filled-qtuple square value 1 0)
       (gomoku-check-filled-qtuple square value 0 1)
       (gomoku-check-filled-qtuple square value 1 1)
       (gomoku-check-filled-qtuple square value -1 1)))
 
 (defun gomoku-check-filled-qtuple (square value dx dy)
-  "Return T if SQUARE belongs to a qtuple filled  with VALUEs along DX, DY."
+  "Return t if SQUARE belongs to a qtuple filled  with VALUEs along DX, DY."
   (let ((a 0) (b 0)
 	(left square) (right square)
 	(depl (gomoku-xy-to-index dx dy)))

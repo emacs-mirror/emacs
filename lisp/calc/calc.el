@@ -239,8 +239,8 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; Address of the author of Calc, for use by report-calc-bug.
 (defvar calc-bug-address "walters@debian.org")
 
-;; If T, scan keymaps to find all DEL-like keys.
-;; If NIL, only DEL itself is mapped to calc-pop.
+;; If t, scan keymaps to find all DEL-like keys.
+;; if nil, only DEL itself is mapped to calc-pop.
 (defvar calc-scan-for-dels t)
 
 (defvar calc-extensions-loaded nil)
@@ -253,16 +253,16 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; This is 1 unless calc-truncate-stack has been used.
 ;;(defvar calc-stack-top 1)
 
-;; If non-NIL, load the calc-ext module automatically when calc is loaded.
+;; If non-nil, load the calc-ext module automatically when calc is loaded.
 ;;(defvar calc-always-load-extensions nil)
 
-;; If non-NIL, display line numbers in Calculator stack.
+;; If non-nil, display line numbers in Calculator stack.
 ;;(defvar calc-line-numbering t)
 
-;; If non-NIL, break long values across multiple lines in Calculator stack.
+;; If non-nil, break long values across multiple lines in Calculator stack.
 ;;(defvar calc-line-breaking t)
 
-;; If NIL, stack display is left-justified.
+;; If nil, stack display is left-justified.
 ;; If 'right, stack display is right-justified.
 ;; If 'center, stack display is centered."
 ;;(defvar calc-display-just nil)
@@ -276,10 +276,10 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; Radix for entry and display of numbers in calc-mode, 2-36.
 ;;(defvar calc-number-radix 10)
 
-;; If non-NIL, leading zeros are provided to pad integers to calc-word-size.
+;; If non-nil, leading zeros are provided to pad integers to calc-word-size.
 ;;(defvar calc-leading-zeros nil)
 
-;; If non-NIL, group digits in large displayed integers by inserting spaces.
+;; If non-nil, group digits in large displayed integers by inserting spaces.
 ;; If an integer, group that many digits at a time.
 ;; If 't', use 4 for binary and hex, 3 otherwise.
 ;;(defvar calc-group-digits nil)
@@ -294,7 +294,7 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; Format of displayed fractions; a string of one or two of ":" or "/".
 ;;(defvar calc-frac-format '(":" nil))
 
-;; If non-NIL, prefer fractional over floating-point results.
+;; If non-nil, prefer fractional over floating-point results.
 ;;(defvar calc-prefer-frac nil)
 
 ;; Format of displayed hours-minutes-seconds angles, a format string.
@@ -330,32 +330,32 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; Preferred form, either 'cplx or 'polar, for complex numbers.
 ;;(defvar calc-complex-mode 'cplx)
 
-;; If NIL, 1 / 0 is left unsimplified.
+;; If nil, 1 / 0 is left unsimplified.
 ;; If 0, 1 / 0 is changed to inf (zeros are considered positive).
 ;; Otherwise, 1 / 0 is changed to uinf (undirected infinity).
 ;;(defvar calc-infinite-mode nil)
 
-;; If non-NIL, display vectors of byte-sized integers as strings.
+;; If non-nil, display vectors of byte-sized integers as strings.
 ;;(defvar calc-display-strings nil)
 
-;; If NIL, vector elements are left-justified.
+;; If nil, vector elements are left-justified.
 ;; If 'right, vector elements are right-justified.
 ;; If 'center, vector elements are centered."
 ;;(defvar calc-matrix-just 'center)
 
-;; If non-NIL, display vectors one element per line.
+;; If non-nil, display vectors one element per line.
 ;;(defvar calc-break-vectors nil)
 
-;; If non-NIL, display long vectors in full.  If NIL, use abbreviated form.
+;; If non-nil, display long vectors in full.  If nil, use abbreviated form.
 ;;(defvar calc-full-vectors t)
 
-;; If non-NIL, display long vectors in full in the trail.
+;; If non-nil, display long vectors in full in the trail.
 ;;(defvar calc-full-trail-vectors t)
 
-;; If non-NIL, separate elements of displayed vectors with this string.
+;; If non-nil, separate elements of displayed vectors with this string.
 ;;(defvar calc-vector-commas ",")
 
-;; If non-NIL, surround displayed vectors with these characters.
+;; If non-nil, surround displayed vectors with these characters.
 ;;(defvar calc-vector-brackets "[]")
 
 ;; A list of code-letter symbols that control "big" matrix display.
@@ -411,79 +411,79 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; Type of simplification applied to results.
 ;; If 'none, results are not simplified when pushed on the stack.
 ;; If 'num, functions are simplified only when args are constant.
-;; If NIL, only fast simplifications are applied.
+;; If nil, only fast simplifications are applied.
 ;; If 'binary, math-clip is applied if appropriate.
 ;; If 'alg, math-simplify is applied.
 ;; If 'ext, math-simplify-extended is applied.
 ;; If 'units, math-simplify-units is applied.
 ;;(defvar calc-simplify-mode nil)
 
-;; If non-NIL, recompute evalto's automatically when necessary.
+;; If non-nil, recompute evalto's automatically when necessary.
 ;;(defvar calc-auto-recompute t)
 
-;; If non-NIL, display shows unformatted Lisp exprs.  (For debugging)
+;; If non-nil, display shows unformatted Lisp exprs.  (For debugging)
 ;;(defvar calc-display-raw nil)
 
 ;; Number of digits of internal precision for calc-mode calculations.
 ;;(defvar calc-internal-prec 12)
 
-;; If non-NIL, next operation is Inverse.
+;; If non-nil, next operation is Inverse.
 ;;(defvar calc-inverse-flag nil)
 
-;; If non-NIL, next operation is Hyperbolic.
+;; If non-nil, next operation is Hyperbolic.
 ;;(defvar calc-hyperbolic-flag nil)
 
-;; If non-NIL, next operation should not remove its arguments from stack.
+;; If non-nil, next operation should not remove its arguments from stack.
 ;;(defvar calc-keep-args-flag nil)
 
 ;; If deg, angles are in degrees; if rad, angles are in radians.
 ;; If hms, angles are in degrees-minutes-seconds.
 ;;(defvar calc-angle-mode 'deg)
 
-;; If non-NIL, numeric entry accepts whole algebraic expressions.
-;; If NIL, algebraic expressions must be preceded by "'".
+;; If non-nil, numeric entry accepts whole algebraic expressions.
+;; If nil, algebraic expressions must be preceded by "'".
 ;;(defvar calc-algebraic-mode nil)
 
 ;; Like calc-algebraic-mode except only affects ( and [ keys.
 ;;(defvar calc-incomplete-algebraic-mode nil)
 
-;; If non-NIL, inexact numeric computations like sqrt(2) are postponed.
-;; If NIL, computations on numbers always yield numbers where possible.
+;; If non-nil, inexact numeric computations like sqrt(2) are postponed.
+;; If nil, computations on numbers always yield numbers where possible.
 ;;(defvar calc-symbolic-mode nil)
 
 ;; If 'matrix, variables are assumed to be matrix-valued.
 ;; If a number, variables are assumed to be NxN matrices.
 ;; If 'scalar, variables are assumed to be scalar-valued.
-;; If NIL, symbolic math routines make no assumptions about variables.
+;; If nil, symbolic math routines make no assumptions about variables.
 ;;(defvar calc-matrix-mode nil)
 
-;; If non-NIL, shifted letter keys are prefix keys rather than normal meanings.
+;; If non-nil, shifted letter keys are prefix keys rather than normal meanings.
 ;;(defvar calc-shift-prefix nil)
 
 ;; Initial height of Calculator window.
 ;;(defvar calc-window-height 7)
 
-;; If non-NIL, M-x calc creates a window to display Calculator trail.
+;; If non-nil, M-x calc creates a window to display Calculator trail.
 ;;(defvar calc-display-trail t)
 
-;; If non-NIL, selected sub-formulas are shown by obscuring rest of formula.
-;; If NIL, selected sub-formulas are highlighted by obscuring the sub-formulas.
+;; If non-nil, selected sub-formulas are shown by obscuring rest of formula.
+;; If nil, selected sub-formulas are highlighted by obscuring the sub-formulas.
 ;;(defvar calc-show-selections t)
 
-;; If non-NIL, commands operate only on selected portions of formulas.
-;; If NIL, selections displayed but ignored.
+;; If non-nil, commands operate only on selected portions of formulas.
+;; If nil, selections displayed but ignored.
 ;;(defvar calc-use-selections t)
 
-;; If non-NIL, selection hides deep structure of associative formulas.
+;; If non-nil, selection hides deep structure of associative formulas.
 ;;(defvar calc-assoc-selections t)
 
-;; If non-NIL, display "Working..." for potentially slow Calculator commands.
+;; If non-nil, display "Working..." for potentially slow Calculator commands.
 ;;(defvar calc-display-working-message 'lots)
 
-;; If non-NIL, automatically execute a "why" command to explain odd results.
+;; If non-nil, automatically execute a "why" command to explain odd results.
 ;;(defvar calc-auto-why nil)
 
-;; If non-NIL, display timing information on each slow command.
+;; If non-nil, display timing information on each slow command.
 ;;(defvar calc-timing nil)
 
 ;; Floating-point numbers with this positive exponent or higher above the
@@ -501,7 +501,7 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; List of strings for Y prefix help.
 (defvar calc-Y-help-msgs nil)
 
-;; T if calc-settings-file has been loaded yet.
+;; t if calc-settings-file has been loaded yet.
 (defvar calc-loaded-settings-file nil)
 
 

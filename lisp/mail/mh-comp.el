@@ -1,5 +1,5 @@
 ;;; mh-comp.el --- mh-e functions for composing messages
-;; Time-stamp: <2001-07-15 09:36:30 pavel>
+;; Time-stamp: <2001-12-20 18:55:07 pavel>
 
 ;; Copyright (C) 1993,1995,1997,2000  Free Software Foundation, Inc.
 
@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.21 2001/02/08 00:01:35 fx Exp $
+;; $Id: mh-comp.el,v 1.22 2001/07/15 19:53:53 pj Exp $
 
 ;;; Code:
 
@@ -540,7 +540,7 @@ See also documentation for `\\[mh-send]' function."
 (defun mh-read-draft (use initial-contents delete-contents-file)
   ;; Read draft file into a draft buffer and make that buffer the current one.
   ;; USE is a message used for prompting about the intended use of the message.
-  ;; INITIAL-CONTENTS is filename that is read into an empty buffer, or NIL
+  ;; INITIAL-CONTENTS is filename that is read into an empty buffer, or nil
   ;; if buffer should not be modified.  Delete the initial-contents file if
   ;; DELETE-CONTENTS-FILE flag is set.
   ;; Returns the draft folder's name.
@@ -651,7 +651,7 @@ See also documentation for `\\[mh-send]' function."
 (defun mh-goto-header-field (field)
   ;; Move to FIELD in the message header.
   ;; Move to the end of the FIELD name, which should end in a colon.
-  ;; Returns T if found, NIL if not.
+  ;; Returns t if found, nil if not.
   (goto-char (point-min))
   (let ((case-fold-search t)
 	(headers-end (save-excursion

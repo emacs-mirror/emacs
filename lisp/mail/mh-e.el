@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@stop.mail-abuse.org
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.28 2001/07/15 19:53:53 pj Exp $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.30 2001/09/23 17:38:22 eliz Exp $")
 
 ;;; Code:
 
@@ -203,7 +203,7 @@ A directory name string, or nil to use current directory."
 
 (defvar mh-partial-folder-mode-line-annotation "select"
   "Annotation when displaying part of a folder.
-The string is displayed after the folder's name.  NIL for no annotation.")
+The string is displayed after the folder's name.  nil for no annotation.")
 
 
 ;;; Internal variables:
@@ -779,8 +779,8 @@ Variables controlling mh-e operation are (defaults in parentheses):
 
  `mhl-formfile' (nil)
     Name of format file to be used by mhl to show messages.
-    A value of T means use the default format file.
-    Nil means don't use mhl to format messages.
+    A value of t means use the default format file.
+    nil means don't use mhl to format messages.
 
  `mh-lpr-command-format' (\"lpr -p -J '%s'\")
     Format for command used to print a message on a system printer.
@@ -1080,7 +1080,7 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 
 (defun mh-update-unseen ()
   ;; Flush updates to the Unseen sequence out to MH.
-  ;; Return non-NIL iff set the MH folder.
+  ;; Return non-nil iff set the MH folder.
   (if mh-seen-list
       (let* ((unseen-seq (mh-find-seq mh-unseen-seq))
 	     (unseen-msgs (mh-seq-msgs unseen-seq)))
@@ -1211,7 +1211,7 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 
 
 (defun mh-internal-seq (name)
-  ;; Return non-NIL if NAME is the name of an internal mh-e sequence.
+  ;; Return non-nil if NAME is the name of an internal mh-e sequence.
   (or (memq name '(answered cur deleted forwarded printed))
       (eq name mh-unseen-seq)
       (eq name mh-previous-seq)

@@ -842,7 +842,7 @@ during the search."
   (reset-cdabbrev-window t))
 
 (defun set-cdabbrev-buffer ()
-  ;; cdabbrev-current-window must not be NIL
+  ;; cdabbrev-current-window must not be nil
   (set-buffer (if (eq cdabbrev-current-window t)
 		  (other-buffer)
 		  (window-buffer cdabbrev-current-window))))
@@ -1001,7 +1001,7 @@ Each symbol is bound to a single completion entry.")
 
 ;; A completion entry is a LIST of string, prefix-symbol num-uses, and
 ;; last-use-time (the time the completion was last used)
-;; last-use-time is T if the string should be kept permanently
+;; last-use-time is t if the string should be kept permanently
 ;; num-uses is incremented every time the completion is used.
 
 ;; We chose lists because (car foo) is faster than (aref foo 0) and the 
@@ -1019,7 +1019,7 @@ Each symbol is bound to a single completion entry.")
 
 (defmacro completion-last-use-time (completion-entry)
   ;;  "The time it was last used.  In hours since origin.  Used to decide
-  ;; whether to save it.  T if one should always save it."
+  ;; whether to save it.  t if one should always save it."
   (list 'nth 2 completion-entry))
 
 (defmacro completion-source (completion-entry)
@@ -1132,7 +1132,7 @@ Each symbol is bound to a single completion entry.")
   ;; "The interned prefix symbol corresponding to cmpl-db-downcase-string."
 (defvar cmpl-db-entry nil)
 (defvar cmpl-db-debug-p nil
-  "Set to T if you want to debug the database.")
+  "Set to t if you want to debug the database.")
 
 ;; READS
 (defun find-exact-completion (string)

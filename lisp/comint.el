@@ -695,7 +695,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	     (comint-exec-1 name buffer command switches))))
       (set-process-filter proc 'comint-output-filter)
       (make-local-variable 'comint-ptyp)
-      (setq comint-ptyp process-connection-type) ; T if pty, NIL if pipe.
+      (setq comint-ptyp process-connection-type) ; t if pty, nil if pipe.
       ;; Jump to the end, and set the process mark.
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
@@ -2272,8 +2272,8 @@ This command is like `M-.' in bash."
 ;;============================================================================
 ;; Many command-interpreters (e.g., Lisp, Scheme, Soar) have
 ;; commands that process files of source text (e.g. loading or compiling
-;; files). So the corresponding process-in-a-buffer modes have commands
-;; for doing this (e.g., lisp-load-file). The functions below are useful
+;; files).  So the corresponding process-in-a-buffer modes have commands
+;; for doing this (e.g., lisp-load-file).  The functions below are useful
 ;; for defining these commands.
 ;;
 ;; Alas, these guys don't do exactly the right thing for Lisp, Scheme
@@ -2281,9 +2281,9 @@ This command is like `M-.' in bash."
 ;; So the compile/load interface gets the wrong default occasionally.
 ;; The load-file/compile-file default mechanism could be smarter -- it
 ;; doesn't know about the relationship between filename extensions and
-;; whether the file is source or executable. If you compile foo.lisp
+;; whether the file is source or executable.  If you compile foo.lisp
 ;; with compile-file, then the next load-file should use foo.bin for
-;; the default, not foo.lisp. This is tricky to do right, particularly
+;; the default, not foo.lisp.  This is tricky to do right, particularly
 ;; because the extension for executable files varies so much (.o, .bin,
 ;; .lbin, .mo, .vo, .ao, ...).
 
@@ -2304,14 +2304,14 @@ This command is like `M-.' in bash."
 ;; commands for tea, soar, cmulisp, and cmuscheme modes.
 ;;
 ;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last
-;; source-file processing command. NIL if there hasn't been one yet.
+;; source-file processing command.  nil if there hasn't been one yet.
 ;; - SOURCE-MODES is a list used to determine what buffers contain source
 ;; files: if the major mode of the buffer is in SOURCE-MODES, it's source.
 ;; Typically, (lisp-mode) or (scheme-mode).
 ;;
 ;; If the command is given while the cursor is inside a string, *and*
 ;; the string is an existing filename, *and* the filename is not a directory,
-;; then the string is taken as default. This allows you to just position
+;; then the string is taken as default.  This allows you to just position
 ;; your cursor over a string that's a filename and have it taken as default.
 ;;
 ;; If the command is given in a file buffer whose major mode is in

@@ -42,17 +42,17 @@
   "Abbrev table used while in scribe mode.")
 
 (defcustom scribe-fancy-paragraphs nil
-  "*Non-NIL makes Scribe mode use a different style of paragraph separation."
+  "*Non-nil makes Scribe mode use a different style of paragraph separation."
   :type 'boolean
   :group 'scribe)
 
 (defcustom scribe-electric-quote nil
-  "*Non-NIL makes insert of double quote use `` or '' depending on context."
+  "*Non-nil makes insert of double quote use `` or '' depending on context."
   :type 'boolean
   :group 'scribe)
 
 (defcustom scribe-electric-parenthesis nil
-  "*Non-NIL makes parenthesis char ( (]}> ) automatically insert its close
+  "*Non-nil makes parenthesis char ( (]}> ) automatically insert its close
 if typed after an @Command form."
   :type 'boolean
   :group 'scribe)
@@ -261,7 +261,7 @@ to skip backward."
 
 (defun scribe-insert-quote (count)
   "Insert ``, '' or \" according to preceding character.
-If `scribe-electric-quote' is non-NIL, insert ``, '' or \" according
+If `scribe-electric-quote' is non-nil, insert ``, '' or \" according
 to preceding character.  With numeric arg N, always insert N \" characters.
 Else just insert \"."
   (interactive "P")
@@ -297,7 +297,7 @@ Else just insert \"."
 		 (t "``")))))))))
 
 (defun scribe-parenthesis (count)
-  "If scribe-electric-parenthesis is non-NIL, insertion of an open-parenthesis
+  "If scribe-electric-parenthesis is non-nil, insertion of an open-parenthesis
 character inserts the following close parenthesis character if the
 preceding text is of the form @Command."
   (interactive "P")

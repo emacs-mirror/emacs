@@ -590,7 +590,7 @@ highlighted using ASCII flags."
 Actually, Ediff restores the scope of visibility that existed at startup.")
 
 (defcustom ediff-keep-variants t
-  "*Nil means that non-modified variant buffers should be removed at the end of the session after some interrogation.
+  "*nil means that non-modified variant buffers should be removed at the end of the session after some interrogation.
 Supplying a prefix argument to the quit command `q' temporarily reverses the
 meaning of this variable."
   :type 'boolean
@@ -1241,7 +1241,7 @@ This property can be toggled interactively."
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "*Save the results of merge jobs automatically.
-Nil means don't save automatically.  t means always save.  Anything but nil or t
+nil means don't save automatically.  t means always save.  Anything but nil or t
 means save automatically only if the merge job is part of a group of jobs, such
 as `ediff-merge-directory' or `ediff-merge-directory-revisions'."
   :type '(choice (const nil) (const t) (const group-jobs-only))

@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.322 2001/11/26 16:07:50 spiegel Exp $
+;; $Id: vc.el,v 1.323 2001/11/26 16:17:17 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -316,7 +316,7 @@
 ;;   as a floating point fractional number of days.  The helper
 ;;   function `vc-annotate-convert-time' may be useful for converting
 ;;   multi-part times as returned by `current-time' and `encode-time'
-;;   to this format.  Return NIL if no more lines of annotation appear
+;;   to this format.  Return nil if no more lines of annotation appear
 ;;   in the buffer.  You can safely assume that point is placed at the
 ;;   beginning of each line, starting at `point-min'.  The buffer that
 ;;   point is placed in is the Annotate output, as defined by the
@@ -2893,7 +2893,7 @@ Uses `rcs2log' which only works for RCS and CVS."
 
 (defun vc-annotate-get-backend (buffer)
   "Return the backend matching \"Annotate\" buffer BUFFER.
-Return NIL if no match made.  Associations are made based on
+Return nil if no match made.  Associations are made based on
 `vc-annotate-buffers'."
   (cdr (assoc buffer vc-annotate-buffers)))
 

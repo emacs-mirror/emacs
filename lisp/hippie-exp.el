@@ -263,7 +263,7 @@ Can contain both regexps matching buffer names (as strings) and major modes
 (defcustom hippie-expand-only-buffers ()
   "*A list specifying the only buffers to search (in addition to current).
 Can contain both regexps matching buffer names (as strings) and major modes
-\(as atoms). If non-NIL, this variable overrides the variable
+\(as atoms).  If non-nil, this variable overrides the variable
 `hippie-expand-ignore-buffers'."
   :type '(repeat (choice regexp (symbol :tag "Major Mode")))
   :group 'hippie-expand)
@@ -382,7 +382,7 @@ undoes the expansion."
 
 
 ;; Check if STR is a member of LST.
-;; Transform to the final case if optional TRANS-CASE is non-NIL.
+;; Transform to the final case if optional TRANS-CASE is non-nil.
 (defun he-string-member (str lst &optional trans-case)
   (if str
       (member (if (and trans-case

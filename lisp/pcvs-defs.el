@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.15 2001/07/16 07:46:48 pj Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.16 2001/10/31 17:39:07 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -168,7 +168,7 @@ displayed when asking for confirmation."
 
 (defcustom cvs-add-default-message nil
   "*Default message to use when adding files.
-If set to NIL, `cvs-mode-add' will always prompt for a message."
+If set to nil, `cvs-mode-add' will always prompt for a message."
   :group 'pcl-cvs
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
@@ -495,7 +495,7 @@ whether to use the new feature or not.
 Sadly, even with a new cvs executable, if you connect to an older cvs server
 \(typically a cvs-1.9 on the server), the old restriction applies.  In such
 a case the sanity check made by pcl-cvs fails and you will have to manually
-set this variable to T (until the cvs server is upgraded).
+set this variable to t (until the cvs server is upgraded).
 When the above problem occurs, pcl-cvs should (hopefully) catch cvs' error
 message and replace it with a message tell you to change this variable.")
 

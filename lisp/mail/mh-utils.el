@@ -116,8 +116,8 @@ The desired message's number will be an argument to format.")
 
 (defcustom mhl-formfile nil
   "*Name of format file to be used by mhl to show and print messages.
-A value of T means use the default format file.
-Nil means don't use mhl to format messages when showing; mhl is still used,
+A value of t means use the default format file.
+nil means don't use mhl to format messages when showing; mhl is still used,
 with the default format file, to format messages when printing them.
 The format used should specify a non-zero value for overflowoffset so
 the message continues to conform to RFC 822 and mh-e can parse the headers."
@@ -133,7 +133,7 @@ prompting the user for a folder.  The function is called from within a
 save-excursion, with point at the start of the message.  It should
 return the folder to offer as the refile or Fcc folder, as a string
 with a leading `+' sign.  It can also return an empty string to use no
-default, or NIL to calculate the default the usual way.
+default, or nil to calculate the default the usual way.
 NOTE: This variable is not an ordinary hook;
 It may not be a list of functions.")
 
@@ -162,7 +162,7 @@ First argument is folder name.  Second is message number.")
 ;; Cached value of the `Path:' component in the user's MH profile.
 (defvar mh-user-path nil)		;User's mail folder directory.
 
-;; An mh-draft-folder of NIL means do not use a draft folder.
+;; An mh-draft-folder of nil means do not use a draft folder.
 ;; Cached value of the `Draft-Folder:' component in the user's MH profile.
 (defvar mh-draft-folder nil)		;Name of folder containing draft messages.
 
@@ -529,7 +529,7 @@ Non-nil third argument means not to show the message."
 
 (defun mh-get-profile-field (field)
   ;; Find and return the value of FIELD in the current buffer.
-  ;; Returns NIL if the field is not in the buffer.
+  ;; Returns nil if the field is not in the buffer.
   (let ((case-fold-search t))
     (goto-char (point-min))
     (cond ((not (re-search-forward (format "^%s" field) nil t)) nil)
@@ -848,7 +848,7 @@ directory names."
 
 
 (defun mh-folder-name-p (name)
-  ;; Return non-NIL if NAME is possibly the name of a folder.
+  ;; Return non-nil if NAME is possibly the name of a folder.
   ;; A name (a string or symbol) can be a folder name if it begins with "+".
   (if (symbolp name)
       (eq (aref (symbol-name name) 0) ?+)

@@ -216,7 +216,7 @@
 
 (defconst foldout-fold-list nil
   "List of start and end markers for the folds currently entered.
-An end marker of NIL means the fold ends after (point-max).")
+An end marker of nil means the fold ends after (point-max).")
 (make-variable-buffer-local 'foldout-fold-list)
 
 (defconst foldout-modeline-string nil
@@ -269,7 +269,7 @@ optional arg EXPOSURE \(interactively with prefix arg\) changes this:-
 	   ;; I need a marker that will follow the end of the region even when
 	   ;; text is inserted right at the end.  Text gets inserted *after*
 	   ;; markers, so I need it at end+1.  Unfortunately I can't set a
-	   ;; marker at (point-max)+1, so I use NIL to mean the region ends at
+	   ;; marker at (point-max)+1, so I use nil to mean the region ends at
 	   ;; (point-max).
 	   (end-marker (if (eobp) nil (set-marker (make-marker) (1+ end))))
 	   )
@@ -517,7 +517,7 @@ if the event didn't occur on a heading."
 ;;; Keymaps:
 
 (defvar foldout-inhibit-key-bindings nil
-  "Set non-NIL before loading foldout to inhibit key bindings.")
+  "Set non-nil before loading foldout to inhibit key bindings.")
 
 (defvar foldout-mouse-modifiers '(meta control)
   "List of modifier keys to apply to foldout's mouse events.

@@ -939,7 +939,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 
 (defcustom dired-recursive-copies nil
   "*Decide whether recursive copies are allowed.
-Nil means no recursive copies.
+nil means no recursive copies.
 `always' means copy recursively without asking.
 `top' means ask for each directory at top level.
 Anything else means ask for each directory."
@@ -1336,7 +1336,7 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
 ;; symlinks.
 
 (defvar dired-copy-how-to-fn nil
-  "Nil or a function used by `dired-do-copy' to determine target.
+  "nil or a function used by `dired-do-copy' to determine target.
 See HOW-TO argument for `dired-do-create-files'.")
 
 ;;;###autoload

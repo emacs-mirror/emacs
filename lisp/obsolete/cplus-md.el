@@ -169,7 +169,7 @@ with the colon on the first line."
   :group 'old-c++)
 (defcustom c++-empty-arglist-indent nil
   "*Indicates how far to indent an line following an empty argument
-list.  Nil indicates to just after the paren."
+list.  nil indicates to just after the paren."
   :type '(choice (const nil) integer)
   :group 'old-c++)
 
@@ -316,7 +316,7 @@ Variables controlling indentation style:
     Indentation level of member initializations in function declarations,
     if they are on a separate line beginning with a colon.
  c++-continued-member-init-offset
-    Extra indentation for continuation lines of member initializations; NIL
+    Extra indentation for continuation lines of member initializations; nil
     means to align with previous initializations rather than with the colon.
 
 Settings for K&R, BSD, and Stroustrup indentation styles are
