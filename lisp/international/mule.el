@@ -1717,8 +1717,8 @@ function by default."
 	  (set-buffer-modified-p modified-p))))
   inserted)
 
-(add-hook 'after-insert-file-functions
-	  'after-insert-file-set-buffer-file-coding-system)
+(setq after-insert-file-adjust-coding-function
+      'after-insert-file-set-buffer-file-coding-system)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
 ;; independently in the following order.
