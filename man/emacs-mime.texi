@@ -1,4 +1,4 @@
-\input texinfo                  @c -*-texinfo-*-
+\input texinfo                  @c -*-mode: texinfo; coding: latin-1 -*-
 
 @setfilename ../info/emacs-mime
 @settitle Emacs MIME Manual
@@ -248,7 +248,7 @@ Encode the words that need encoding in a string, and return the result.
 
 @example
 (mail-encode-encoded-word-string
- "This is nave, baby")
+ "This is naïve, baby")
 @result{} "This is =?iso-8859-1?q?na=EFve,?= baby"
 @end example
 
@@ -263,7 +263,7 @@ Decode the encoded words in the string and return the result.
 @example
 (mail-decode-encoded-word-string
  "This is =?iso-8859-1?q?na=EFve,?= baby")
-@result{} "This is nave, baby"
+@result{} "This is naïve, baby"
 @end example
 
 @end table
