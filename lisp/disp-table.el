@@ -50,7 +50,8 @@
 	(while (< i 256)
 	  (aset vector i (aref dt i))
 	  (setq i (1+ i)))
-	(describe-vector vector)))
+	(describe-vector vector))
+      (help-mode))
     (print-help-return-message)))
 
 ;;;###autoload
