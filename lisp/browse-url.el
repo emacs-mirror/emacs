@@ -301,7 +301,7 @@ file rather than displaying a cached copy.")
       'SIGUSR1
     30)                                 ; Check /usr/include/signal.h.
   "The argument to `signal-process' for sending SIGUSR1 to XMosaic.
-Emacs 19.29 accepts 'sigusr1, earlier versions require an integer
+Emacs 19.29 accepts 'SIGUSR1, earlier versions require an integer
 which is 30 on SunOS and 16 on HP-UX and Solaris.")
 
 (defvar browse-url-CCI-port 3003
