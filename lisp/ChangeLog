@@ -1,3 +1,7 @@
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>
+
+	* newcomment.el (uncomment-region): Allow eob as comment end.
+
 2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>  (tiny change)
 
 	* filecache.el: All message and error commands now use prefix
