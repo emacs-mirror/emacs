@@ -1835,6 +1835,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
      Some kernels have a bug which causes retrying connect to fail
      after a connect.  Polling can interfere with gethostbyname too.  */
 #ifdef POLL_FOR_INPUT
+  record_unwind_protect (unwind_stop_other_atimers, Qnil);
   bind_polling_period (10);
 #endif
 
