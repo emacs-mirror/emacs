@@ -2314,16 +2314,22 @@ handle_single_display_prop (it, prop, object, position)
       struct gcpro gcpro1;
       struct text_pos end_pos, pt;
       
-      end_pos = display_prop_end (it, object, *position);
       GCPRO1 (form);
+      end_pos = display_prop_end (it, object, *position);
 
       /* Temporarily set point to the end position, and then evaluate
 	 the form.  This makes `(eolp)' work as FORM.  */
-      CHARPOS (pt) = PT;
-      BYTEPOS (pt) = PT_BYTE;
-      TEMP_SET_PT_BOTH (CHARPOS (end_pos), BYTEPOS (end_pos));
+      if (BUFFERP (object))
+	{
+	  CHARPOS (pt) = PT;
+	  BYTEPOS (pt) = PT_BYTE;
+	  TEMP_SET_PT_BOTH (CHARPOS (end_pos), BYTEPOS (end_pos));
+	}
+      
       form = eval_form (form);
-      TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
+      
+      if (BUFFERP (object))
+	TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
       UNGCPRO;  
     }
   
