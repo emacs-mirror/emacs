@@ -3,6 +3,7 @@
 ;; Copyright (C) 1996, 1997, 1999 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
+;; Maintainer: FSF
 ;; Keywords: help, faces
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/ (probably obsolete)
 
@@ -264,7 +265,8 @@ information."
     (setq members (cdr members)))
   (put symbol 'custom-group (nconc members (get symbol 'custom-group)))
   (when doc
-    (put symbol 'group-documentation doc))
+    ;; This text doesn't get into DOC.
+    (put symbol 'group-documentation (purecopy doc)))
   (while args
     (let ((arg (car args)))
       (setq args (cdr args))
@@ -339,6 +341,8 @@ Third argument TYPE is the custom option type."
 (defun custom-handle-keyword (symbol keyword value type)
   "For customization option SYMBOL, handle KEYWORD with VALUE.
 Fourth argument TYPE is the custom option type."
+  (if purify-flag
+      (setq value (purecopy value)))
   (cond ((eq keyword :group)
 	 (custom-add-to-group value symbol type))
 	((eq keyword :version)
@@ -365,18 +369,18 @@ For other types variables, the effect is undefined."
   "To the custom option SYMBOL add the link WIDGET."
   (let ((links (get symbol 'custom-links)))
     (unless (member widget links)
-      (put symbol 'custom-links (cons widget links)))))
+      (put symbol 'custom-links (cons (purecopy widget) links)))))
 
 (defun custom-add-version (symbol version)
   "To the custom option SYMBOL add the version VERSION."
-  (put symbol 'custom-version version))
+  (put symbol 'custom-version (purecopy version)))
 
 (defun custom-add-load (symbol load)
   "To the custom option SYMBOL add the dependency LOAD.
 LOAD should be either a library file name, or a feature name."
   (let ((loads (get symbol 'custom-loads)))
     (unless (member load loads)
-      (put symbol 'custom-loads (cons load loads)))))
+      (put symbol 'custom-loads (cons (purecopy load) loads)))))
 
 ;;; Initializing.
 
