@@ -203,6 +203,9 @@
 #endif
 
 #if defined (sgi) || defined (sequent)
+/* Sometimes both MIPS and sgi are defined, so FSCALE was just defined
+   above under #ifdef MIPS.  But we want the sgi value.  */
+#undef FSCALE
 #define	FSCALE 1000.0
 #endif
 
