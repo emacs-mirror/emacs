@@ -1726,7 +1726,8 @@ all.
 If the value of `revert-buffer-function' is non-nil, it is called to
 do the work.
 
-The normal hook `after-revert-hook' is run at the end of `revert-buffer'."
+The default revert function runs the hook `before-revert-hook' at the
+beginning and `after-revert-hook' at the end."
   ;; I admit it's odd to reverse the sense of the prefix argument, but
   ;; there is a lot of code out there which assumes that the first
   ;; argument should be t to avoid consulting the auto-save file, and
@@ -1751,6 +1752,7 @@ The normal hook `after-revert-hook' is run at the end of `revert-buffer'."
 	    ((or noconfirm
 		 (yes-or-no-p (format "Revert buffer from file %s? "
 				      file-name)))
+	     (run-hooks 'before-revert-hook)
 	     ;; If file was backed up but has changed since,
 	     ;; we shd make another backup.
 	     (and (not auto-save-p)
@@ -1776,8 +1778,8 @@ The normal hook `after-revert-hook' is run at the end of `revert-buffer'."
 		 (insert-file-contents file-name (not auto-save-p))))
 	     (goto-char (min opoint (point-max)))
 	     (after-find-file nil nil t)
-	     t))))
-  (run-hooks 'after-revert-hook))
+	     (run-hooks 'after-revert-hook)
+	     t)))))
 
 (defun recover-file (file)
   "Visit file FILE, but get contents from its last auto-save file."
