@@ -704,7 +704,7 @@ Also raises the frame so that nothing obscures it.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    frame = selected_frame;
+    XSET (frame, Lisp_Frame, selected_frame);
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -721,7 +721,7 @@ DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
      Lisp_Object frame;
 {
   if (NILP (frame))
-    frame = selected_frame;
+    XSET (frame, Lisp_Frame, selected_frame);
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -738,7 +738,7 @@ DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
      Lisp_Object frame;
 {
   if (NILP (frame))
-    frame = selected_frame;
+    XSET (frame, Lisp_Frame, selected_frame);
   
   CHECK_LIVE_FRAME (frame, 0);
 
