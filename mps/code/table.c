@@ -80,7 +80,7 @@ static TableEntry TableFind(Table table, Word key, int skip_deleted)
 {
   ulong hash;
   size_t i, mask = table->length - 1;
-  
+ 
   hash = TableHash(key) & mask;
   i = hash;
   do {
@@ -122,7 +122,7 @@ static Res TableGrow(Table table)
     newArray[i].value = NULL;
     newArray[i].status = tableUNUSED;
   }
-  
+ 
   table->length = newLength;
   table->array = newArray;
   table->limit *= 2;
@@ -167,7 +167,7 @@ extern Res TableCreate(Table *tableReturn, size_t length)
     table->array[i].value = NULL;
     table->array[i].status = tableUNUSED;
   }
-  
+ 
   *tableReturn = table;
   return ResOK;
 
@@ -237,7 +237,7 @@ extern Res TableDefine(Table table, Word key, void *value)
 extern Res TableRedefine(Table table, Word key, void *value)
 {
   TableEntry entry = TableFind(table, key, 1 /* skip deletions */);
-  
+ 
   if (entry == NULL || entry->status != tableACTIVE)
     return ResFAIL;
   assert(entry->key == key);

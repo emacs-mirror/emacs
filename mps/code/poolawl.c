@@ -11,7 +11,7 @@
  *
  * ASSUMPTIONS (about when to scan single references on accesses)
  *
- * .assume.purpose: The purpose of scanning refs singly is to limit the 
+ * .assume.purpose: The purpose of scanning refs singly is to limit the
  * amount of scanning of weak references which must be performed when
  * the mutator hits a barrier. Weak references which are scanned at this
  * time are not "weak splatted". Minimizing any loss of weak splats
@@ -19,23 +19,23 @@
  *
  * .assume.noweak: It follows (from .assume.purpose) that there is no
  * benefit from scanning single refs on barrier accesses for segments
- * which don't contain any weak references. However, if a segment 
- * contains either all weak refs or a mixture of weak and non-weak 
+ * which don't contain any weak references. However, if a segment
+ * contains either all weak refs or a mixture of weak and non-weak
  * references then there is a potential benefit.
  *
- * .assume.mixedrank: If a segment contains a mixture of references 
- * at different ranks (e.g. weak and strong references), there is 
+ * .assume.mixedrank: If a segment contains a mixture of references
+ * at different ranks (e.g. weak and strong references), there is
  * no way to determine whether or not references at a rank other than
- * the scan state rank will be  scanned as a result of normal 
+ * the scan state rank will be  scanned as a result of normal
  * (non-barrier) scanning  activity. (@@@@ This is a deficiency in MPS).
- * Assume that such references will, in fact, be scanned at the 
+ * Assume that such references will, in fact, be scanned at the
  * incorrect rank.
  *
- * .assume.samerank: The pool doesn't support segments with mixed 
+ * .assume.samerank: The pool doesn't support segments with mixed
  * rank segments in any case (despite .assume.mixedrank).
  *
  * .assume.alltraceable: The pool assumes that all objects are entirely
- * traceable. This must be documented elsewhere for the benefit of the 
+ * traceable. This must be documented elsewhere for the benefit of the
  * client.
  */
 
@@ -166,7 +166,7 @@ static void awlStatTotalInit(AWL awl)
 
 /* AWLSegInit -- Init method for AWL segments */
 
-static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size,
                       Bool reservoirPermit, va_list args)
 {
   SegClass super;
@@ -271,7 +271,7 @@ static void AWLSegFinish(Seg seg)
   super = SEG_SUPERCLASS(AWLSegClass);
   super->finish(seg);
 }
-  
+ 
 
 /* AWLSegClass -- Class definition for AWL segments */
 
@@ -310,7 +310,7 @@ static Bool AWLCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
 
     awlseg = Seg2AWLSeg(seg);
     AVERT(AWLSeg, awlseg);
-    
+   
     if (AWLHaveTotalSALimit) {
       if (AWLTotalSALimit < awl->succAccesses) {
         STATISTIC(awl->stats.declined++);
@@ -395,7 +395,7 @@ static void AWLNoteScan(AWL awl, Seg seg, ScanState ss)
     } else {
       /* This is "failed" scan at improper rank. */
       STATISTIC(awl->stats.badScans++);
-    } 
+    }
     /* Reinitialize the segment statistics */
     awlseg->singleAccesses = 0;
     STATISTIC(awlStatSegInit(awlseg));
@@ -435,7 +435,7 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
-  res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool, 
+  res = SegAlloc(&seg, AWLSegClassGet(), &segPrefStruct, size, pool,
                  reservoirPermit, rankSet);
   if (res != ResOK)
     return res;
@@ -685,9 +685,9 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   } else {
     /* Whiten everything except the buffer. */
     Addr base = SegBase(seg);
-    Index scanLimitIndex = awlIndexOfAddr(base, awl, 
+    Index scanLimitIndex = awlIndexOfAddr(base, awl,
 					  BufferScanLimit(buffer));
-    Index limitIndex = awlIndexOfAddr(base, awl, 
+    Index limitIndex = awlIndexOfAddr(base, awl,
                                       BufferLimit(buffer));
 
     AWLRangeWhiten(awlseg, 0, scanLimitIndex);
@@ -777,7 +777,7 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(AWL, awl);
   awlseg = Seg2AWLSeg(seg);
   AVERT(AWLSeg, awlseg);
-  
+ 
   BTSetRange(awlseg->scanned, 0, awlseg->grains);
 }
 
@@ -1001,7 +1001,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   ref = *refIO;
   i = awlIndexOfAddr(SegBase(seg), awl, ref);
-  
+ 
   ss->wasMarked = TRUE;
 
   switch(ss->rank) {
@@ -1106,7 +1106,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
 /* AWLAccess -- handle a barrier hit */
 
-static Res AWLAccess(Pool pool, Seg seg, Addr addr, 
+static Res AWLAccess(Pool pool, Seg seg, Addr addr,
                      AccessSet mode, MutatorFaultContext context)
 {
   AWL awl;
@@ -1133,7 +1133,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
     default:
       return res;
     }
-  } 
+  }
 
   /* Have to scan the entire seg anyway. */
   res = PoolSegAccess(pool, seg, addr, mode, context);

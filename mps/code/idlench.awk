@@ -27,7 +27,7 @@
 # in the 3rd column: FUNCTION) whose names completely fill the column.
 #
 # A typical invocation might be:
-# 
+#
 # ./idlench.awk sos8cx/ci/*.o
 #
 # Not all awks are UNIX98 compliant; you need to find one that is.

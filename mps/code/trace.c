@@ -35,11 +35,11 @@ typedef struct TraceMessageStruct  {
 #define MessageTraceMessage(message) \
   (PARENT(TraceMessageStruct, messageStruct, message))
 
-static Bool TraceMessageCheck(TraceMessage message) 
+static Bool TraceMessageCheck(TraceMessage message)
 {
   CHECKS(TraceMessage, message);
   CHECKD(Message, TraceMessageMessage(message));
-  CHECKL(MessageGetType(TraceMessageMessage(message)) == 
+  CHECKL(MessageGetType(TraceMessageMessage(message)) ==
          MessageTypeGC);
   /* We can't check anything about the statistics.  In particular, */
   /* liveSize may exceed condemnedSize because they are only estimates. */
@@ -60,7 +60,7 @@ static void TraceMessageDelete(Message message)
   ControlFree(arena, (void *)tMessage, sizeof(TraceMessageStruct));
 }
 
-static Size TraceMessageLiveSize(Message message) 
+static Size TraceMessageLiveSize(Message message)
 {
   TraceMessage tMessage;
 
@@ -71,7 +71,7 @@ static Size TraceMessageLiveSize(Message message)
   return tMessage->liveSize;
 }
 
-static Size TraceMessageCondemnedSize(Message message) 
+static Size TraceMessageCondemnedSize(Message message)
 {
   TraceMessage tMessage;
 
@@ -82,7 +82,7 @@ static Size TraceMessageCondemnedSize(Message message)
   return tMessage->condemnedSize;
 }
 
-static Size TraceMessageNotCondemnedSize(Message message) 
+static Size TraceMessageNotCondemnedSize(Message message)
 {
   TraceMessage tMessage;
 
@@ -381,7 +381,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
     trace->white = ZoneSetUnion(trace->white, ZoneSetOfSeg(trace->arena, seg));
     /* if the pool is a moving GC, then condemned objects may move */
     if (pool->class->attr & AttrMOVINGGC) {
-      trace->mayMove = ZoneSetUnion(trace->mayMove, 
+      trace->mayMove = ZoneSetUnion(trace->mayMove,
                                     ZoneSetOfSeg(trace->arena, seg));
     }
   }
@@ -650,7 +650,7 @@ found:
   trace->emergency = FALSE;
   trace->chain = NULL;
   trace->condemned = (Size)0;   /* nothing condemned yet */
-  trace->notCondemned = (Size)0; 
+  trace->notCondemned = (Size)0;
   trace->foundation = (Size)0;  /* nothing grey yet */
   trace->rate = (Size)0;        /* no scanning to be done yet */
   STATISTIC(trace->greySegCount = (Count)0);
@@ -712,7 +712,7 @@ void TraceDestroy(Trace trace)
     /* Notify all the chains. */
     RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
       Chain chain = RING_ELT(Chain, chainRing, chainNode);
-      
+     
       ChainEndGC(chain, trace);
     }
   } else {
@@ -1083,7 +1083,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
         if (res != ResOK)
           return res;
       }
-    } else { 
+    } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
       /* variety. See design.mps.trace.fix.tractofaddr */
       STATISTIC_STAT
@@ -1136,7 +1136,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
         pool = TractPool(tract);
         PoolFixEmergency(pool, ss, seg, refIO);
       }
-    } else { 
+    } else {
       /* Tract isn't white. Don't compute seg for non-statistical */
       /* variety. See design.mps.trace.fix.tractofaddr */
       STATISTIC_STAT
@@ -1163,7 +1163,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
 
 /* traceScanSingleRefRes -- scan a single reference, with result code */
 
-static Res traceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena, 
+static Res traceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena,
                                  Seg seg, Ref *refIO)
 {
   RefSet summary;
@@ -1422,7 +1422,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
           if (TraceSetIsMember(SegGrey(seg), trace))
             trace->foundation += size;
         }
-        
+       
         if ((SegPool(seg)->class->attr & AttrGC)
             && !TraceSetIsMember(SegWhite(seg), trace))
           trace->notCondemned += size;
@@ -1464,7 +1464,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 }
 
 
-/* traceWorkClock -- a measure of the work done for this trace 
+/* traceWorkClock -- a measure of the work done for this trace
  *
  * .workclock: Segment scanning work is the regulator.  */
 
@@ -1514,9 +1514,9 @@ void TracePoll(Globals globals)
   Trace trace;
   Res res;
   Arena arena;
- 
+
   AVERT(Globals, globals);
-  arena = GlobalsArena(globals); 
+  arena = GlobalsArena(globals);
 
   if (arena->busyTraces == TraceSetEMPTY) {
     /* If no traces are going on, see if we need to start one. */
@@ -1616,18 +1616,18 @@ void ArenaRelease(Globals globals)
 
 
 /* ArenaClamp -- finish all collections and clamp the arena */
- 
+
 void ArenaPark(Globals globals)
 {
   TraceId ti;
   Trace trace;
   Arena arena;
- 
+
   AVERT(Globals, globals);
-  arena = GlobalsArena(globals); 
- 
+  arena = GlobalsArena(globals);
+
   globals->clamped = TRUE;
- 
+
   while (arena->busyTraces != TraceSetEMPTY) {
     /* Poll active traces to make progress. */
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)

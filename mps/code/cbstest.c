@@ -92,7 +92,7 @@ static void testCallback(CBS cbs, CBSBlock cbsBlock,
 }
 
 
-static void cbsNewCallback(CBS cbs, CBSBlock cbsBlock, 
+static void cbsNewCallback(CBS cbs, CBSBlock cbsBlock,
                            Size oldSize, Size newSize)
 {
   testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackNew);
@@ -103,7 +103,7 @@ static void cbsNewCallback(CBS cbs, CBSBlock cbsBlock,
 }
 
 
-static void cbsDeleteCallback(CBS cbs, CBSBlock cbsBlock, 
+static void cbsDeleteCallback(CBS cbs, CBSBlock cbsBlock,
                               Size oldSize, Size newSize)
 {
   testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackDelete);
@@ -114,7 +114,7 @@ static void cbsDeleteCallback(CBS cbs, CBSBlock cbsBlock,
 }
 
 
-static void cbsGrowCallback(CBS cbs, CBSBlock cbsBlock, 
+static void cbsGrowCallback(CBS cbs, CBSBlock cbsBlock,
                             Size oldSize, Size newSize)
 {
   testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackGrow);
@@ -126,7 +126,7 @@ static void cbsGrowCallback(CBS cbs, CBSBlock cbsBlock,
 }
 
 
-static void cbsShrinkCallback(CBS cbs, CBSBlock cbsBlock, 
+static void cbsShrinkCallback(CBS cbs, CBSBlock cbsBlock,
                               Size oldSize, Size newSize)
 {
   testCallback(cbs, cbsBlock, oldSize, newSize, &CallbackShrink);
@@ -151,16 +151,16 @@ static Bool checkCBSAction(CBS cbs, CBSBlock cbsBlock, void *p)
   limit = CBSBlockLimit(cbsBlock);
 
   if (base > closure->oldLimit) {
-    Insist(BTIsSetRange(closure->allocTable, 
-                      indexOfAddr(closure->base, closure->oldLimit), 
+    Insist(BTIsSetRange(closure->allocTable,
+                      indexOfAddr(closure->base, closure->oldLimit),
                       indexOfAddr(closure->base, base)));
   } else { /* must be at start of table */
     Insist(base == closure->oldLimit);
     Insist(closure->oldLimit == closure->base);
   }
-  
-  Insist(BTIsResRange(closure->allocTable, 
-                      indexOfAddr(closure->base, base), 
+ 
+  Insist(BTIsResRange(closure->allocTable,
+                      indexOfAddr(closure->base, base),
                       indexOfAddr(closure->base, limit)));
 
 
@@ -182,10 +182,10 @@ static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock)
   CBSIterate(cbs, checkCBSAction, (void *)&closure);
 
   if (closure.oldLimit == closure.base)
-    Insist(BTIsSetRange(allocTable, 0, 
+    Insist(BTIsSetRange(allocTable, 0,
                         indexOfAddr(dummyBlock, closure.limit)));
   else if (closure.limit > closure.oldLimit)
-    Insist(BTIsSetRange(allocTable, 
+    Insist(BTIsSetRange(allocTable,
                         indexOfAddr(dummyBlock, closure.oldLimit),
                         indexOfAddr(dummyBlock, closure.limit)));
   else
@@ -200,7 +200,7 @@ static Word cbsRnd(Word limit)
 }
 
 
-/* nextEdge -- Finds the next transition in the bit table 
+/* nextEdge -- Finds the next transition in the bit table
  *
  * Returns the index greater than <base> such that the
  * range [<base>, <return>) has the same value in the bit table,
@@ -217,14 +217,14 @@ static Index nextEdge(BT bt, Size size, Index base)
 
   baseValue = BTGet(bt, base);
 
-  for(end = base + 1; end < size && BTGet(bt, end) == baseValue; end++) 
+  for(end = base + 1; end < size && BTGet(bt, end) == baseValue; end++)
     NOOP;
 
   return end;
 }
 
 
-/* lastEdge -- Finds the previous transition in the bit table 
+/* lastEdge -- Finds the previous transition in the bit table
  *
  * Returns the index less than <base> such that the range
  * [<return>, <base>] has the same value in the bit table,
@@ -241,7 +241,7 @@ static Index lastEdge(BT bt, Size size, Index base)
 
   baseValue = BTGet(bt, base);
 
-  for(end = base; end > (Index)0 && BTGet(bt, end - 1) == baseValue; end--) 
+  for(end = base; end > (Index)0 && BTGet(bt, end - 1) == baseValue; end--)
     NOOP;
 
   return end;
@@ -253,8 +253,8 @@ static Index lastEdge(BT bt, Size size, Index base)
  * The function first picks a uniformly distributed <base> within the table.
  *
  * It then scans forward a binary exponentially distributed
- * number of "edges" in the table (that is, transitions between set and 
- * reset) to get <end>.  Note that there is a 50% chance that <end> will 
+ * number of "edges" in the table (that is, transitions between set and
+ * reset) to get <end>.  Note that there is a 50% chance that <end> will
  * be the next edge, a 25% chance it will be the edge after, etc., until
  * the end of the table.
  *
@@ -264,7 +264,7 @@ static Index lastEdge(BT bt, Size size, Index base)
  * Hence there is a somewhat better than 50% chance that the range will be
  * all either set or reset.
  */
- 
+
 static void randomRange(Addr *baseReturn, Addr *limitReturn,
                         BT allocTable, Addr block)
 {
@@ -319,10 +319,10 @@ static void checkExpectations(void)
   Insist(!CallbackDelete.shouldBeCalled);
   Insist(!CallbackGrow.shouldBeCalled);
   Insist(!CallbackShrink.shouldBeCalled);
-}  
+} 
 
 
-static void allocate(CBS cbs, Addr block, BT allocTable, 
+static void allocate(CBS cbs, Addr block, BT allocTable,
                      Addr base, Addr limit)
 {
   Res res;
@@ -333,9 +333,9 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   il = indexOfAddr(block, limit);
 
   isFree = BTIsResRange(allocTable, ib, il);
-  
+ 
   /*
-  printf("allocate: [%p, %p) -- %s\n", 
+  printf("allocate: [%p, %p) -- %s\n",
          base, limit, isFree ? "succeed" : "fail");
   */
 
@@ -345,9 +345,9 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
     Addr outerBase, outerLimit;    /* interval containing [ib, il) */
     Size left, right, total;       /* Sizes of block and two fragments */
 
-    outerBase = 
+    outerBase =
       addrOfIndex(block, lastEdge(allocTable, ArraySize, ib));
-    outerLimit = 
+    outerLimit =
       addrOfIndex(block, nextEdge(allocTable, ArraySize, il - 1));
 
     left = AddrOffset(outerBase, base);
@@ -388,10 +388,10 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   res = CBSDelete(cbs, base, limit);
 
   if (!isFree) {
-    die_expect((mps_res_t)res, MPS_RES_FAIL, 
+    die_expect((mps_res_t)res, MPS_RES_FAIL,
                "Succeeded in deleting allocated block");
   } else { /* isFree */
-    die_expect((mps_res_t)res, MPS_RES_OK, 
+    die_expect((mps_res_t)res, MPS_RES_OK,
                "failed to delete free block");
     NAllocateSucceeded++;
     BTSetRange(allocTable, ib, il);
@@ -415,7 +415,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   isAllocated = BTIsSetRange(allocTable, ib, il);
 
   /*
-  printf("deallocate: [%p, %p) -- %s\n", 
+  printf("deallocate: [%p, %p) -- %s\n",
          base, limit, isAllocated ? "succeed" : "fail");
   */
 
@@ -426,14 +426,14 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
 
     /* Find the free blocks adjacent to the allocated block */
     if (ib > 0 && !BTGet(allocTable, ib - 1)) {
-      outerBase = 
+      outerBase =
         addrOfIndex(block, lastEdge(allocTable, ArraySize, ib - 1));
     } else {
       outerBase = base;
      }
 
     if (il < ArraySize && !BTGet(allocTable, il)) {
-      outerLimit = 
+      outerLimit =
         addrOfIndex(block, nextEdge(allocTable, ArraySize, il));
     } else {
       outerLimit = limit;
@@ -446,7 +446,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
     /* based on detailed knowledge of CBS behaviour */
     checkExpectations();
     if (total >= MinSize && left < MinSize && right < MinSize) {
-      if (left >= right) 
+      if (left >= right)
         expectCallback(&CallbackNew, left, outerBase, outerLimit);
       else
         expectCallback(&CallbackNew, right, outerBase, outerLimit);
@@ -473,7 +473,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
 
   res = CBSInsertReturningRange(&freeBase, &freeLimit, cbs, base, limit);
 
-  if (!isAllocated) { 
+  if (!isAllocated) {
     die_expect((mps_res_t)res, MPS_RES_FAIL,
                "succeeded in inserting non-allocated block");
   } else { /* isAllocated */
@@ -490,7 +490,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
 
 
 static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
-                 CBSFindDelete findDelete) 
+                 CBSFindDelete findDelete)
 {
   Bool expected, found;
   Index expectedBase, expectedLimit;
@@ -500,7 +500,7 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
   checkExpectations();
 
   expected = (high ? BTFindLongResRangeHigh : BTFindLongResRange)
-               (&expectedBase, &expectedLimit, alloc, 
+               (&expectedBase, &expectedLimit, alloc,
                 (Index)0, (Index)ArraySize, (unsigned long)size);
 
   if (expected) {
@@ -532,9 +532,9 @@ static void find(CBS cbs, void *block, BT alloc, Size size, Bool high,
         if (newSize == 0)
           expectCallback(&CallbackDelete, oldSize, (Addr)0, (Addr)0);
         else if (newSize < MinSize)
-          expectCallback(&CallbackDelete, oldSize, 
+          expectCallback(&CallbackDelete, oldSize,
                          remainderBase, remainderLimit);
-        else 
+        else
           expectCallback(&CallbackShrink, oldSize,
                          remainderBase, remainderLimit);
       }
@@ -578,8 +578,8 @@ extern int main(int argc, char *argv[])
 
   randomize(argc, argv);
 
-  NAllocateTried = NAllocateSucceeded = NDeallocateTried = 
-    NDeallocateSucceeded = NNewBlocks = NDeleteBlocks = 
+  NAllocateTried = NAllocateSucceeded = NDeallocateTried =
+    NDeallocateSucceeded = NNewBlocks = NDeleteBlocks =
     NGrowBlocks = NShrinkBlocks = 0;
 
   clearExpectations();
@@ -588,12 +588,12 @@ extern int main(int argc, char *argv[])
       "mps_arena_create");
   arena = (Arena)mpsArena; /* avoid pun */
 
-  die((mps_res_t)BTCreate(&allocTable, arena, ArraySize), 
+  die((mps_res_t)BTCreate(&allocTable, arena, ArraySize),
       "failed to create alloc table");
 
-  die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, &cbsNewCallback, 
+  die((mps_res_t)CBSInit(arena, &cbsStruct, NULL, &cbsNewCallback,
                          &cbsDeleteCallback, &cbsGrowCallback,
-                         &cbsShrinkCallback, MinSize, 
+                         &cbsShrinkCallback, MinSize,
                          Alignment, TRUE, TRUE),
       "failed to initialise CBS");
   cbs = &cbsStruct;
@@ -602,12 +602,12 @@ extern int main(int argc, char *argv[])
 
   /* We're not going to use this block, but I feel unhappy just */
   /* inventing addresses. */
-  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * Alignment, 
-                              /* withReservoirPermit */ FALSE), 
+  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * Alignment,
+                              /* withReservoirPermit */ FALSE),
       "failed to allocate block");
   dummyBlock = (Addr)p; /* avoid pun */
 
-  printf("Allocated block [%p, %p)\n", dummyBlock, 
+  printf("Allocated block [%p, %p)\n", dummyBlock,
          (char *)dummyBlock + ArraySize);
 
   checkCBS(cbs, allocTable, dummyBlock);

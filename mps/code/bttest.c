@@ -72,7 +72,7 @@ static Bool checkDefaultRange(Index arg)
     return FALSE;
   }
   return TRUE; /* explicit valid range */
-}    
+}   
 
 
 static void quit(void)
@@ -357,7 +357,7 @@ static void showBT(void) {
 /* disable "conversion from int to char" */
 #pragma warning(default: 4244)
 #endif
-      
+     
 
 #define testArenaSIZE (((size_t)64)<<20)
 

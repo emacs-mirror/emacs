@@ -64,8 +64,8 @@ extern Res EventFlush(void);
     Event##type##Always = always, \
     Event##type##Kind = EventKind##kind, \
     Event##type##Format = EventFormat##format \
-  }; 
-  
+  };
+ 
 #include "eventdef.h"
 
 #undef RELATION

@@ -81,12 +81,12 @@ static char *parseArgs(int argc, char *argv[])
 {
   char *name = "mpsio.log";
   int i = 1;
-  
+ 
   if (argc >= 1)
     prog = argv[0];
   else
     prog = "unknown";
-  
+ 
   while (i < argc) { /* consider argument i */
     if (argv[i][0] == '-') { /* it's an option argument */
       switch (argv[i][1]) {
@@ -94,9 +94,9 @@ static char *parseArgs(int argc, char *argv[])
         ++ i;
         if (i == argc)
           usageError();
-        else   
+        else  
           name = argv[i];
-        break;   
+        break;  
       case 'p': /* partial log */
         partialLog = TRUE;
         break;

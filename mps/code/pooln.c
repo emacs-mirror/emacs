@@ -35,7 +35,7 @@ static Res NInit(Pool pool, va_list args)
   PoolN poolN = PoolPoolN(pool);
 
   UNUSED(args);
-  
+ 
   /* Initialize pool-specific structures. */
 
   AVERT(PoolN, poolN);
@@ -119,7 +119,7 @@ static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 /* NBufferEmpty -- buffer empty method for class N */
 
-static void NBufferEmpty(Pool pool, Buffer buffer, 
+static void NBufferEmpty(Pool pool, Buffer buffer,
                          Addr init, Addr limit)
 {
   AVERT(Pool, pool);
@@ -159,7 +159,7 @@ static Res NWhiten(Pool pool, Trace trace, Seg seg)
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
-  
+ 
   NOTREACHED; /* pool doesn't have any actions */
 
   return ResUNIMPL;

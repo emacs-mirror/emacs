@@ -3,23 +3,23 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
  *
- * .linux: This implementation currently just supports LinuxThreads 
+ * .linux: This implementation currently just supports LinuxThreads
  * (platform MPS_OS_LI), Single Unix i/f.
  *
  * .posix: In fact, the implementation should be reusable for most POSIX
- * implementations, but may need some customization for each. 
+ * implementations, but may need some customization for each.
  *
  * .design: These locks are implemented using mutexes.
  *
- * .recursive: Mutexes support both non-recursive and recursive locking, but 
- * only at initialization time.  This doesn't match the API of MPS Lock module, 
+ * .recursive: Mutexes support both non-recursive and recursive locking, but
+ * only at initialization time.  This doesn't match the API of MPS Lock module,
  * which chooses at locking time, so all locks are made (non-recursive)
  * errorchecking.  Recursive locks are implemented by checking the error
  * code.
  *
  * .claims: During use the claims field is updated to remember the number of
  * claims acquired on a lock.  This field must only be modified
- * while we hold the mutex.  
+ * while we hold the mutex. 
  */
 
 #define _XOPEN_SOURCE 500
@@ -50,7 +50,7 @@ SRCID(lockli, "$Id$");
 
 #define LockAttrSetRecursive(attrptr) \
   pthread_mutexattr_setkind_np(attrptr, PTHREAD_MUTEX_ERRORCHECK_NP)
-    
+   
 #else
 
 #define LockAttrSetRecursive(attrptr) \
@@ -173,7 +173,7 @@ void LockClaimRecursive(Lock lock)
   /* pthread_mutex_lock will return: */
   /*     0 if we have just claimed the lock */
   /*     EDEADLK if we own the lock already. */
-  AVER((res == 0 && lock->claims == 0)  ||  
+  AVER((res == 0 && lock->claims == 0)  || 
        (res == EDEADLK && lock->claims > 0));
 
   ++lock->claims;

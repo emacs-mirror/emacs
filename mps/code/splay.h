@@ -21,7 +21,7 @@ typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node,
 typedef Bool (*SplayTestTreeMethod)(SplayTree tree, SplayNode node,
                                     void *closureP, unsigned long closureS);
 typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node,
-                                      SplayNode leftChild, 
+                                      SplayNode leftChild,
                                       SplayNode rightChild);
 typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
 enum {
@@ -56,12 +56,12 @@ extern Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key);
 
 extern Res SplayTreeSearch(SplayNode *nodeReturn,
                            SplayTree tree, void *key );
-extern Res SplayTreeNeighbours(SplayNode *leftReturn, 
+extern Res SplayTreeNeighbours(SplayNode *leftReturn,
                                SplayNode *rightReturn,
                                SplayTree tree, void *key);
 
 extern SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey);
-extern SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode, 
+extern SplayNode SplayTreeNext(SplayTree tree, SplayNode oldNode,
                                void *oldKey);
 
 extern Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,

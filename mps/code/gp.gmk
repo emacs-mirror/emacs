@@ -4,7 +4,7 @@
 # Copyright (c) 2001 Ravenbrook Limited.
 #
 # This file is included by platform makefiles that use the GNU CC
-# compiler with gprof.  It defines the compiler specific variables 
+# compiler with gprof.  It defines the compiler specific variables
 # that the common makefile fragment (impl.gmk.comm) requires.
 
 

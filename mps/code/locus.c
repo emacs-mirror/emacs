@@ -334,7 +334,7 @@ Res ChainCondemnAll(Chain chain, Trace trace)
       haveWhiteSegs = TRUE;
     }
   }
-  
+ 
   return ResOK;
 
 failBegin:

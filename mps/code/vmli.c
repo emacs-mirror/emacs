@@ -3,8 +3,8 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
  *
- * .purpose: This is the implementation of the virtual memory mapping 
- * interface (vm.h) for Linux.  It was created by copying vmo1.c (the 
+ * .purpose: This is the implementation of the virtual memory mapping
+ * interface (vm.h) for Linux.  It was created by copying vmo1.c (the
  * DIGITAL UNIX implementation) as that seemed to be closest.
  *
  * .design: See design.mps.vm.  .design.linux: mmap(2) is used to
