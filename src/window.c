@@ -1274,7 +1274,7 @@ window_loop (type, obj, mini, frames)
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
 		if (EQ (w, FRAME_ROOT_WINDOW (f))
-		    && XWINDOW (w)->dedicated
+		    && !NILP (XWINDOW (w)->dedicated)
 		    && other_visible_frames (f))
 		  Fdelete_frame (WINDOW_FRAME (XWINDOW (w)), Qnil);
 		else
