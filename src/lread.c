@@ -357,9 +357,9 @@ Return t if file exists.")
   /* 1 means inhibit the message at the beginning.  */
   int nomessage1 = 0;
   Lisp_Object handler;
-#ifdef MSDOS
+#ifdef DOS_NT
   char *dosmode = "rt";
-#endif
+#endif /* DOS_NT */
 
   CHECK_STRING (str, 0);
   str = Fsubstitute_in_file_name (str);
@@ -395,9 +395,9 @@ Return t if file exists.")
       struct stat s1, s2;
       int result;
 
-#ifdef MSDOS
+#ifdef DOS_NT
       dosmode = "rb";
-#endif
+#endif /* DOS_NT */
       stat ((char *)XSTRING (found)->data, &s1);
       XSTRING (found)->data[XSTRING (found)->size - 1] = 0;
       result = stat ((char *)XSTRING (found)->data, &s2);
@@ -412,12 +412,12 @@ Return t if file exists.")
       XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
     }
 
-#ifdef MSDOS
+#ifdef DOS_NT
   close (fd);
   stream = fopen ((char *) XSTRING (found)->data, dosmode);
-#else
+#else  /* not DOS_NT */
   stream = fdopen (fd, "r");
-#endif
+#endif /* not DOS_NT */
   if (stream == 0)
     {
       close (fd);
@@ -484,16 +484,15 @@ complete_filename_p (pathname)
      Lisp_Object pathname;
 {
   register unsigned char *s = XSTRING (pathname)->data;
-  return (*s == '/'
+  return (IS_DIRECTORY_SEP (s[0])
+	  || (XSTRING (pathname)->size > 2
+	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2]))
 #ifdef ALTOS
 	  || *s == '@'
 #endif
 #ifdef VMS
 	  || index (s, ':')
 #endif /* VMS */
-#ifdef MSDOS	/* MW, May 1993 */
-	  || (s[0] != '\0' && s[1] == ':' && s[2] == '/')
-#endif
 	  );
 }
 
@@ -1912,6 +1911,12 @@ init_lread ()
     Vload_path = decode_env_path (0, normal);
 #endif
 
+#ifndef WINDOWSNT
+  /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is 
+     almost never correct, thereby causing a warning to be printed out that 
+     confuses users.  Since PATH_LOADSEARCH is always overriden by the
+     EMACSLOADPATH environment variable below, disable the warning on NT.  */
+
   /* Warn if dirs in the *standard* path don't exist.  */
   {
     Lisp_Object path_tail;
@@ -1932,6 +1937,7 @@ init_lread ()
 	  }
       }
   }
+#endif /* WINDOWSNT */
 
   /* If the EMACSLOADPATH environment variable is set, use its value.
      This doesn't apply if we're dumping.  */
