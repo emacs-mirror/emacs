@@ -107,6 +107,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_PTYS
 #define HAVE_SETSID
 #define HAVE_TERMIOS
+#undef BROKEN_TIOCGWINSZ
+#undef BROKEN_TIOCGETC
 
 /* It is possible to receive SIGCHLD when there are no children
    waiting, because a previous waitsys(2) cleaned up the carcass of child
