@@ -1017,7 +1017,7 @@ See the documentation for the given function if more info is needed."
   ;;    total)
   (let* ((now (current-time))
 	 (todays-date (timeclock-time-to-date now))
-	 (first t) (accum 0) elapsed
+	 (first t) (accum 0) (elapsed 0)
 	 event beg last-date avg
 	 last-date-limited last-date-seconds)
     (unless timeclock-discrepancy
