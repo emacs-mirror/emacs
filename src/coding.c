@@ -4800,11 +4800,14 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	{
 	  detect_coding (coding, BYTE_POS_ADDR (from_byte), len_byte);
 	  if (coding->type == coding_type_undecided)
-	    /* It seems that the text contains only ASCII, but we
-	       should not left it undecided because the deeper
-	       decoding routine (decode_coding) tries to detect the
-	       encodings again in vain.  */
-	    coding->type = coding_type_emacs_mule;
+	    {
+	      /* It seems that the text contains only ASCII, but we
+		 should not left it undecided because the deeper
+		 decoding routine (decode_coding) tries to detect the
+		 encodings again in vain.  */
+	      coding->type = coding_type_emacs_mule;
+	      coding->category_idx = CODING_CATEGORY_IDX_EMACS_MULE;
+	    }
 	}
       if (coding->eol_type == CODING_EOL_UNDECIDED
 	  && coding->type != coding_type_ccl)
