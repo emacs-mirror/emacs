@@ -1035,9 +1035,16 @@ Show the buffer in another window, but don't select it."
 ;;;###autoload
 (defun customize-face (&optional symbol)
   "Customize SYMBOL, which should be a face name or nil.
-If SYMBOL is nil, customize all faces."
-  (interactive (list (completing-read "Customize face: (default all) "
-				      obarray 'custom-facep t)))
+If SYMBOL is nil, customize all faces.
+
+Interactively, when point is on text which has a face specified,
+suggest to customized that face, if it's customizable."
+  (interactive
+   (list (completing-read "Customize face (default all): "
+			  obarray 'custom-facep t
+			  (let ((face (get-char-property (point) 'face)))
+			    (when (and face (symbolp face))
+			      (symbol-name face))))))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       (custom-buffer-create (custom-sort-items
 			     (mapcar (lambda (symbol)
@@ -1055,9 +1062,16 @@ If SYMBOL is nil, customize all faces."
 
 ;;;###autoload
 (defun customize-face-other-window (&optional symbol)
-  "Show customization buffer for face SYMBOL in other window."
-  (interactive (list (completing-read "Customize face: "
-				      obarray 'custom-facep t)))
+  "Show customization buffer for face SYMBOL in other window.
+
+Interactively, when point is on text which has a face specified,
+suggest to customized that face, if it's customizable."
+  (interactive
+   (list (completing-read "Customize face: "
+			  obarray 'custom-facep t
+			  (let ((face (get-char-property (point) 'face)))
+			    (when (and face (symbolp face))
+			      (symbol-name face))))))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       ()
     (if (stringp symbol)
