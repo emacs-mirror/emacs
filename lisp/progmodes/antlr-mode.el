@@ -1,9 +1,9 @@
 ;;; antlr-mode.el --- Major mode for ANTLR grammar files
 
-;; Copyright (C) 1999-2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
-;; Version: $Id: antlr-mode.el,v 1.2 1999/12/16 19:30:34 wedler Exp $
+;; Version: 1.4
 ;; X-URL: http://www.fmi.uni-passau.de/~wedler/antlr-mode/
 
 ;; This file is part of GNU Emacs.
@@ -29,34 +29,50 @@
 ;; ANTLR is ANother Tool for Language Recognition (an excellent alternative to
 ;; lex/yacc), see <http://www.ANTLR.org> and <news:comp.compilers.tools.pccts>.
 
-;; Variable `antlr-language' is set according to the language in actions and
-;; semantic predicates of the grammar (see ANTLR's file option "language").
-;; The supported languages are "Java" (java-mode) and "Cpp" (c++-mode).  This
-;; package uses features of the Emacs package cc-mode.
-
 ;; This package provides the following features:
+;;  * Syntax coloring (via font-lock) for grammar symbols and the code in
+;;    actions.  The latter depends on the language settings.
 ;;  * Indentation for the current line (TAB) and selected region (C-M-\).
-;;  * Syntax coloring (via font-lock) with language dependent coloring.
 ;;  * Support for imenu/speedbar: menu "Index" (Parser, Lexer, TreeParser).
-;;  * Direct move to previous/next rule, beginning/end of rule body etc.
+;;  * Commands to move to previous/next rule, beginning/end of rule body etc.
+;;  * Commands to hide/unhide actions, upcase/downcase literals.
+;;  * Run ANTLR from within Emacs, create Makefile dependencies.
+
+;; LANGUAGE SETTINGS.  This mode needs to know which language is used in
+;; actions and semantic predicated of the grammar.  This information is used
+;; for syntax coloring and the creation of the Makefile dependencies.  It is
+;; stored in variable `antlr-language' and automatically set according to
+;; ANTLR's file option "language", see `antlr-language-alist'.  The supported
+;; languages are "Java" (java-mode) and "Cpp" (c++-mode).
 
 ;; INDENTATION.  This package supports ANTLR's (intended) indentation style
 ;; which is based on a simple paren/brace/bracket depth-level calculation, see
 ;; `antlr-indent-line'.  The indentation engine of cc-mode is only used inside
 ;; block comments (it is not easy to use it for actions, esp if they come early
-;; in the rule body).  By default, this package uses TABs for a basic offset of
-;; 4 to be consistent to both ANTLR's conventions (TABs usage) and the
+;; in the rule body).  By default, this package defines a tab width of 4 to be
+;; consistent to both ANTLR's conventions (TABs usage) and the
 ;; `c-indentation-style' "java" which sets `c-basic-offset' to 4, see
 ;; `antlr-tab-offset-alist'.  You might want to set this variable to nil.
 
 ;; SYNTAX COLORING comes in three phases.  First, comments and strings are
 ;; highlighted.  Second, the grammar code is highlighted according to
-;; `antlr-font-lock-additional-keywords' (rule refs: blue, token refs: brown,
-;; definition: ditto+bold).  Third, actions, semantic predicates and arguments
-;; are highlighted according to the usual font-lock keywords of
+;; `antlr-font-lock-additional-keywords' (rule refs: dark blue, token refs:
+;; dark orange, definition: bold blue).  Third, actions, semantic predicates
+;; and arguments are highlighted according to the usual font-lock keywords of
 ;; `antlr-language', see also `antlr-font-lock-maximum-decoration'.  We define
 ;; special font-lock faces for the grammar code to allow you to distinguish
 ;; ANTLR keywords from Java/C++ keywords.
+
+;; MAKEFILE CREATION.  Command \\[antlr-show-makefile-rules] shows/inserts the
+;; dependencies for all grammar files in the current directory.  It considers
+;; import/export vocabularies and grammar inheritance and provides a value for
+;; the -glib option if necessary (which you have to edit if the super-grammar
+;; is not in the same directory).
+
+;; TODO.  Support to insert/change file/grammar/rule/subrule options.  imenu
+;; support for method definitions in actions is not really planned (you can
+;; send be a patch, though).  This mode would become too dependent on cc-mode
+;; or I would have to do a lot of language-dependent things myself...
 
 ;; Bug fixes, bug reports, improvements, and suggestions are strongly
 ;; appreciated.  Please check the newest version first:
@@ -64,7 +80,7 @@
 
 ;;; Installation:
 
-;; This file requires Emacs-20.3, XEmacs-20.4 or higher.
+;; This file requires Emacs-20.3, XEmacs-20.4 or higher and package cc-mode.
 
 ;; If antlr-mode is not part of your distribution, put this file into your
 ;; load-path and the following into your ~/.emacs:
@@ -86,19 +102,33 @@
 ;;; Code:
 
 (provide 'antlr-mode)
-(eval-when-compile (require 'cc-mode))	; shut up most warnings
-(require 'easymenu)			; Emacs
-(eval-when-compile			; optional libraries
-  (defvar outline-level) (defvar imenu-use-markers))
-(eval-when-compile			; Emacs: cl, XEmacs vars
-  (require 'cl))
+(eval-when-compile			; required and optional libraries
+  (require 'cc-mode)
+  (defvar outline-level) (defvar imenu-use-markers)
+  (defvar imenu-create-index-function))
+(eval-when-compile			; Emacs: cl, easymenu
+  (require 'cl)
+  (require 'easymenu))
 (eval-when-compile			; XEmacs: Emacs vars
   (defvar inhibit-point-motion-hooks) (defvar deactivate-mark))
 
-(eval-and-compile
-  (if (string-match "XEmacs" emacs-version)
+(eval-and-compile			; XEmacs functions, simplified
+  (if (featurep 'xemacs)
       (defalias 'antlr-scan-sexps 'scan-sexps)
     (defalias 'antlr-scan-sexps 'antlr-scan-sexps-internal))
+  (if (fboundp 'default-directory)
+      (defalias 'antlr-default-directory 'default-directory)
+    (defun antlr-default-directory () default-directory))
+  (if (fboundp 'read-shell-command)
+      (defalias 'antlr-read-shell-command 'read-shell-command)
+    (defun antlr-read-shell-command (prompt &optional initial-input history)
+      (read-from-minibuffer prompt initial-input nil nil
+			    (or history 'shell-command-history))))
+  (if (fboundp 'with-displaying-help-buffer)
+      (defalias 'antlr-with-displaying-help-buffer 'with-displaying-help-buffer)
+    (defun antlr-with-displaying-help-buffer (thunk &optional name)
+      (with-output-to-temp-buffer "*Help*"
+	(save-excursion (funcall thunk)))))
   (if (and (fboundp 'buffer-syntactic-context)
 	   (fboundp 'buffer-syntactic-context-depth))
       (progn
@@ -121,7 +151,7 @@
   :link '(url-link "http://www.fmi.uni-passau.de/~wedler/antlr-mode/")
   :prefix "antlr-")
 
-(defconst antlr-version "1.3"
+(defconst antlr-version "1.4"
   "ANTLR major mode version number.")
 
 
@@ -137,16 +167,16 @@ variable list\" near the end of the file, see
 `enable-local-variables'.")
 
 (defcustom antlr-language-alist
-  '((java-mode "Java" nil "Java")
-    (c++-mode "C++" "Cpp"))
+  '((java-mode "Java" nil "\"Java\"" "Java")
+    (c++-mode "C++" "\"Cpp\"" "Cpp"))
   "List of ANTLR's supported languages.
 Each element in this list looks like
   (MAJOR-MODE MODELINE-STRING OPTION-VALUE...)
 
 MAJOR-MODE, the major mode of the code in the grammar's actions, is the
-value of `antlr-language' if the first regexp group matched by REGEXP in
-`antlr-language-limit-n-regexp' is one of the OPTION-VALUEs.  An
-OPTION-VALUE of nil denotes the fallback element.  MODELINE-STRING is
+value of `antlr-language' if the first group in the string matched by
+REGEXP in `antlr-language-limit-n-regexp' is one of the OPTION-VALUEs.
+An OPTION-VALUE of nil denotes the fallback element.  MODELINE-STRING is
 also displayed in the modeline next to \"Antlr\"."
   :group 'antlr
   :type '(repeat (group :value (java-mode "")
@@ -157,25 +187,28 @@ also displayed in the modeline next to \"Antlr\"."
 					string )))))
 
 (defcustom antlr-language-limit-n-regexp
-  '(3000 . "language[ \t]*=[ \t]*\"\\([A-Z][A-Za-z_]*\\)\"")
+  '(3000 . "language[ \t]*=[ \t]*\\(\"?[A-Z][A-Za-z_]*\"?\\)")
   "Used to set a reasonable value for `antlr-language'.
 Looks like (LIMIT . REGEXP).  Search for REGEXP from the beginning of
-the buffer to LIMIT to set the language according to
-`antlr-language-alist'."
+the buffer to LIMIT and use the first group in the matched string to set
+the language according to `antlr-language-alist'."
   :group 'antlr
   :type '(cons (choice :tag "Limit" (const :tag "No" nil) (integer :value 0))
 	       regexp))
 
 
 ;;;===========================================================================
-;;;  Indent/Tabs
+;;;  Hide/Unhide, Indent/Tabs
 ;;;===========================================================================
 
-(defcustom antlr-tiny-action-length 3
-  "Maximal number of characters in actions never to hide.
-See command `antlr-hide-actions'."
+(defcustom antlr-action-visibility 3
+  "Visibility of actions when command `antlr-hide-actions' is used.
+If nil, the actions with their surrounding braces are hidden.  If a
+number, do not hide the braces, only hide the contents if its length is
+greater than this number."
   :group 'antlr
-  :type 'integer)
+  :type '(choice (const :tag "Completely hidden" nil)
+		 (integer :tag "Hidden if longer than" :value 3)))
 
 (defcustom antlr-indent-comment 'tab
   "*Non-nil, if the indentation should touch lines in block comments.
@@ -188,8 +221,8 @@ they are only changed by \\[antlr-indent-command]."
 		(sexp :tag "With TAB" :format "%t" :value tab)))
 
 (defcustom antlr-tab-offset-alist
-  '((antlr-mode nil 4 t)
-    (java-mode "antlr" 4 t))
+  '((antlr-mode nil 4 nil)
+    (java-mode "antlr" 4 nil))
   "Alist to determine whether to use ANTLR's convention for TABs.
 Each element looks like (MAJOR-MODE REGEXP TAB-WIDTH INDENT-TABS-MODE).
 The first element whose MAJOR-MODE is nil or equal to `major-mode' and
@@ -208,6 +241,113 @@ ANTLR's and Java's indentation styles.  Used by `antlr-set-tabs'."
   "[]}):;|&]\\|default[ \t]*:\\|case[ \t]+\\('\\\\?.'\\|[0-9]+\\|[A-Za-z_][A-Za-z_0-9]*\\)[ \t]*:" ; & is local ANTLR extension
   "Regexp matching lines which should be indented by one TAB less.
 See command \\[antlr-indent-command].")
+
+
+;;;===========================================================================
+;;;  Run tool, create Makefile dependencies
+;;;===========================================================================
+
+(defcustom antlr-tool-command "java antlr.Tool"
+  "*Command used in \\[antlr-run-tool] to run the Antlr tool.
+This variable should include all options passed to Antlr except the
+option \"-glib\" which is automatically suggested if necessary."
+  :group 'antlr
+  :type 'string)
+
+(defcustom antlr-ask-about-save t
+  "*If not nil, \\[antlr-run-tool] asks which buffers to save.
+Otherwise, it saves all modified buffers before running without asking."
+  :group 'antlr
+  :type 'boolean)
+
+(defcustom antlr-makefile-specification
+  '("\n" ("GENS" "GENS%d" " \\\n\t") "$(ANTLR)")
+  "*Variable to specify the appearance of the generated makefile rules.
+This variable influences the output of \\[antlr-show-makefile-rules].
+It looks like (RULE-SEP GEN-VAR-SPEC COMMAND).
+
+RULE-SEP is the string to separate different makefile rules.  COMMAND is
+a string with the command which runs the Antlr tool, it should include
+all options except the option \"-glib\" which is automatically added
+if necessary.
+
+If GEN-VAR-SPEC is nil, each target directly consists of a list of
+files.  If GEN-VAR-SPEC looks like (GEN-VAR GEN-VAR-FORMAT GEN-SEP), a
+Makefile variable is created for each rule target.
+
+Then, GEN-VAR is a string with the name of the variable which contains
+the file names of all makefile rules.  GEN-VAR-FORMAT is a format string
+producing the variable of each target with substitution COUNT/%d where
+COUNT starts with 1.  GEN-SEP is used to separate long variable values."
+  :group 'antlr
+  :type '(list (string :tag "Rule separator")
+	       (choice
+		(const :tag "Direct targets" nil)
+		(list :tag "Variables for targets"
+		      (string :tag "Variable for all targets")
+		      (string :tag "Format for each target variable")
+		      (string :tag "Variable separator")))
+	       (string :tag "ANTLR command")))
+
+(defvar antlr-file-formats-alist
+  '((java-mode ("%sTokenTypes.java") ("%s.java"))
+    (c++-mode ("%sTokenTypes.hpp") ("%s.cpp" "%s.hpp")))
+  "Language dependent formats which specify generated files.
+Each element in this list looks looks like
+  (MAJOR-MODE (VOCAB-FILE-FORMAT...) (CLASS-FILE-FORMAT...)).
+
+The element whose MAJOR-MODE is equal to `antlr-language' is used to
+specify the generated files which are language dependent.  See variable
+`antlr-special-file-formats' for language independent files.
+
+VOCAB-FILE-FORMAT is a format string, it specifies with substitution
+VOCAB/%s the generated file for each export vocabulary VOCAB.
+CLASS-FILE-FORMAT is a format string, it specifies with substitution
+CLASS/%s the generated file for each grammar class CLASS.")
+
+(defvar antlr-special-file-formats '("%sTokenTypes.txt" "expanded%s.g")
+  "Language independent formats which specify generated files.
+The value looks like (VOCAB-FILE-FORMAT EXPANDED-GRAMMAR-FORMAT).
+
+VOCAB-FILE-FORMAT is a format string, it specifies with substitution
+VOCAB/%s the generated or input file for each export or import
+vocabulary VOCAB, respectively.  EXPANDED-GRAMMAR-FORMAT is a format
+string, it specifies with substitution GRAMMAR/%s the constructed
+grammar file if the file GRAMMAR.g contains a grammar class which
+extends a class other than \"Lexer\", \"Parser\" or \"TreeParser\".
+
+See variable `antlr-file-formats-alist' for language dependent
+formats.")
+
+(defvar antlr-unknown-file-formats '("?%s?.g" "?%s?")
+  "*Formats which specify the names of unknown files.
+The value looks like (SUPER-GRAMMAR-FILE-FORMAT SUPER-EVOCAB-FORMAT).
+
+SUPER-GRAMMAR-FORMAT is a format string, it specifies with substitution
+SUPER/%s the name of a grammar file for Antlr's option \"-glib\" if no
+grammar file in the current directory defines the class SUPER or if it
+is defined more than once.  SUPER-EVOCAB-FORMAT is a format string, it
+specifies with substitution SUPER/%s the name for the export vocabulary
+of above mentioned class SUPER.")
+
+(defvar antlr-help-unknown-file-text
+  "## The following rules contain filenames of the form
+##  \"?SUPERCLASS?.g\" (and \"?SUPERCLASS?TokenTypes.txt\")
+## where SUPERCLASS is not found to be defined in any grammar file of
+## the current directory or is defined more than once.  Please replace
+## these filenames by the grammar files (and their exportVocab).\n\n"
+  "String indicating the existence of unknown files in the Makefile.
+See \\[antlr-show-makefile-rules] and `antlr-unknown-file-formats'.")
+
+(defvar antlr-help-rules-intro
+  "The following Makefile rules define the dependencies for all (non-
+expanded) grammars in directory \"%s\".\n
+They are stored in the kill-ring, i.e., you can insert them with C-y
+into your Makefile.  You can also invoke M-x antlr-show-makefile-rules
+from within a Makefile to insert them directly.\n\n\n"
+  "Introduction to use with \\[antlr-show-makefile-rules].
+It is a format string and used with substitution DIRECTORY/%s where
+DIRECTORY is the name of the current directory.")
 
 
 ;;;===========================================================================
@@ -234,6 +374,7 @@ imenu."
     (define-key map "\C-c\C-b" 'c-backward-into-nomenclature)
     (define-key map "\C-c\C-c" 'comment-region)
     (define-key map "\C-c\C-v" 'antlr-hide-actions)
+    (define-key map "\C-c\C-r" 'antlr-run-tool)
     ;; I'm too lazy to define my own:
     (define-key map "\ea" 'c-beginning-of-statement)
     (define-key map "\ee" 'c-end-of-statement)
@@ -270,7 +411,10 @@ imenu."
 		    "---"
 		    ["Hide Actions (incl. Args)" antlr-hide-actions t]
 		    ["Hide Actions (excl. Args)" (antlr-hide-actions 2) t]
-		    ["Unhide All Actions" (antlr-hide-actions 0) t]))
+		    ["Unhide All Actions" (antlr-hide-actions 0) t]
+		    "---"
+		    ["Run Tool on Grammar" antlr-run-tool t]
+		    ["Show Makefile Rules" antlr-show-makefile-rules t]))
 
 
 ;;;===========================================================================
@@ -306,13 +450,20 @@ fontified at all."
 				      (const :tag "maximum" t)
 				      (integer :tag "level" 1))))))
 
+(defconst antlr-no-action-keywords nil
+  ;; Using nil directly won't work (would use highest level, see
+  ;; `font-lock-choose-keywords'), but a non-symbol, i.e., (list), at `car'
+  ;; would break Emacs-21.0:
+  "Empty font-lock keywords for actions.
+Do not change the value of this constant.")
+
 (defvar antlr-font-lock-keywords-alist
   '((java-mode
-     (list)				; nil won't work (would use level-3)
+     antlr-no-action-keywords
      java-font-lock-keywords-1 java-font-lock-keywords-2
      java-font-lock-keywords-3)
     (c++-mode
-     (list)				; nil won't work (would use level-3)
+     antlr-no-action-keywords
      c++-font-lock-keywords-1 c++-font-lock-keywords-2
      c++-font-lock-keywords-3))
   "List of font-lock keywords for actions in the grammar.
@@ -338,7 +489,7 @@ in the grammar's actions and semantic predicates, see
 
 (defvar antlr-font-lock-tokendef-face 'antlr-font-lock-tokendef-face)
 (defface antlr-font-lock-tokendef-face
-  '((((class color) (background light)) (:foreground "brown3" :bold t)))
+  '((((class color) (background light)) (:foreground "blue" :bold t)))
   "ANTLR token references (definition)."
   :group 'antlr)
 
@@ -350,7 +501,7 @@ in the grammar's actions and semantic predicates, see
 
 (defvar antlr-font-lock-tokenref-face 'antlr-font-lock-tokenref-face)
 (defface antlr-font-lock-tokenref-face
-  '((((class color) (background light)) (:foreground "brown4")))
+  '((((class color) (background light)) (:foreground "orange4")))
   "ANTLR token references (usage)."
   :group 'antlr)
 
@@ -362,7 +513,7 @@ in the grammar's actions and semantic predicates, see
 
 (defvar antlr-font-lock-additional-keywords
   `((antlr-invalidate-context-cache)
-    ("\\$setType[ \t]*(\\([A-Z\300-\326\330-\337]\\sw*\\))"
+    ("\\$setType[ \t]*(\\([A-Za-z\300-\326\330-\337]\\sw*\\))"
      (1 antlr-font-lock-tokendef-face))
     ("\\$\\sw+" (0 font-lock-keyword-face))
     ;; the tokens are already fontified as string/docstrings:
@@ -373,7 +524,7 @@ in the grammar's actions and semantic predicates, see
 	    '((0 nil))))		; XEmacs bug workaround
     (,(lambda (limit)
 	(antlr-re-search-forward
-	 "^\\(class\\)[ \t]+\\([A-Z\300-\326\330-\337]\\sw*\\)[ \t]+\\(extends\\)[ \t]+\\([A-Z\300-\326\330-\337]\\sw*\\)[ \t]*;" limit))
+	 "^\\(class\\)[ \t]+\\([A-Za-z\300-\326\330-\337]\\sw*\\)[ \t]+\\(extends\\)[ \t]+\\([A-Za-z\300-\326\330-\337]\\sw*\\)[ \t]*;" limit))
      (1 antlr-font-lock-keyword-face)
      (2 antlr-font-lock-ruledef-face)
      (3 antlr-font-lock-keyword-face)
@@ -426,14 +577,17 @@ The SYNTAX-ALIST element is also used to initialize
 (defvar antlr-mode-hook nil
   "Hook called by `antlr-mode'.")
 
+(defvar antlr-mode-syntax-table nil
+  "Syntax table used in `antlr-mode' buffers.
+If non-nil, it will be initialized in `antlr-mode'.")
+
 ;; used for "in Java/C++ code" = syntactic-depth>0
 (defvar antlr-action-syntax-table nil
   "Syntax table used for ANTLR action parsing.
-Initialized by `java-mode-syntax-table', i.e., the syntax table used for
-grammar files, changed by SYNTAX-ALIST in `antlr-font-lock-defaults'.
-This table should be selected if you use `buffer-syntactic-context' and
-`buffer-syntactic-context-depth' in order not to confuse their
-context_cache.")
+Initialized by `antlr-mode-syntax-table', changed by SYNTAX-ALIST in
+`antlr-font-lock-defaults'.  This table should be selected if you use
+`buffer-syntactic-context' and `buffer-syntactic-context-depth' in order
+not to confuse their context_cache.")
 
 (defvar antlr-mode-abbrev-table nil
   "Abbreviation table used in `antlr-mode' buffers.")
@@ -450,11 +604,12 @@ context_cache.")
 ;;;  Syntax functions -- Emacs vs XEmacs dependent
 ;;;===========================================================================
 
-;; From help.el (XEmacs-21.1)
+;; From help.el (XEmacs-21.1), without `copy-syntax-table'
 (defmacro antlr-with-syntax-table (syntab &rest body)
+  "Evaluate BODY with the syntax table SYNTAB."
   `(let ((stab (syntax-table)))
      (unwind-protect
-	 (progn (set-syntax-table (copy-syntax-table ,syntab)) ,@body)
+	 (progn (set-syntax-table ,syntab) ,@body)
        (set-syntax-table stab))))
 (put 'antlr-with-syntax-table 'lisp-indent-function 1)
 (put 'antlr-with-syntax-table 'edebug-form-spec '(form body))
@@ -585,10 +740,6 @@ See `antlr-font-lock-additional-keywords', `antlr-language' and
 (defun antlr-imenu-create-index-function ()
   "Return imenu index-alist for ANTLR grammar files."
   (let ((items nil)
-	(lexer nil)
-	(parser nil)
-	(treeparser nil)
-	(misc nil)
 	(classes nil)
 	(semi (point-max)))
     ;; Using `imenu-progress-message' would require imenu for compilation --
@@ -603,24 +754,12 @@ See `antlr-font-lock-additional-keywords', `antlr-language' and
 	    (progn (forward-char) (antlr-skip-exception-part t))
 	  (antlr-skip-file-prelude t))
 	(if (looking-at "{") (antlr-skip-sexps 1))
-	(if (looking-at "class[ \t]+\\([A-Z\300-\326\330-\337]\\sw*\\)[ \t]+extends[ \t]+\\([A-Z\300-\326\330-\337]\\sw*\\)[ \t]*;")
-	    (progn
-	      (push (cons (match-string 1)
-			  (if imenu-use-markers
-			      (copy-marker (match-beginning 1))
-			    (match-beginning 1)))
-		    classes)
-	      (if items
-		  (let ((super (match-string 2)))
-		    (cond ((string-equal super "Parser")
-			   (setq parser (nconc items parser)))
-			  ((string-equal super "Lexer")
-			   (setq lexer (nconc items lexer)))
-			  ((string-equal super "TreeParser")
-			   (setq treeparser (nconc items treeparser)))
-			  (t
-			   (setq misc (nconc items misc))))
-		    (setq items nil))))
+	(if (looking-at "class[ \t]+\\([A-Za-z\300-\326\330-\337]\\sw*\\)[ \t]+extends[ \t]+\\([A-Za-z\300-\326\330-\337]\\sw*\\)[ \t]*;")
+	    (push (cons (match-string 1)
+			(if imenu-use-markers
+			    (copy-marker (match-beginning 1))
+			  (match-beginning 1)))
+		  classes)
 	  (if (looking-at "p\\(ublic\\|rotected\\|rivate\\)")
 	      (antlr-skip-sexps 1))
 	  (when (looking-at "\\sw+")
@@ -629,15 +768,6 @@ See `antlr-font-lock-additional-keywords', `antlr-language' and
 			    (copy-marker (match-beginning 0))
 			  (match-beginning 0)))
 		  items)))))
-    (or items				; outside any class
-	(prog1 (setq items misc) (setq misc nil))
-	(prog1 (setq items parser) (setq parser nil))
-	(prog1 (setq items lexer) (setq lexer nil))
-	(prog1 (setq items treeparser) (setq treeparser nil)))
-    (if misc (push (cons "Miscellaneous" misc) items))
-    (if treeparser (push (cons "TreeParser" treeparser) items))
-    (if lexer (push (cons "Lexer" lexer) items))
-    (if parser (push (cons "Parser" parser) items))
     (if classes (cons (cons "Classes" classes) items) items)))
 
 
@@ -670,12 +800,14 @@ part."
 
 (defun antlr-skip-file-prelude (skip-comment)
   "Skip the file prelude: the header and file options.
-If SKIP-COMMENT is non-nil, also skip the comment after that part."
+If SKIP-COMMENT is non-nil, also skip the comment after that part.
+Return the start position of the file prelude."
   (let* ((pos (point))
 	 (pos0 pos))
     (c-forward-syntactic-ws)
     (if skip-comment (setq pos0 (point)))
-    (if (looking-at "header\\>") (setq pos (antlr-skip-sexps 2)))
+    (while (looking-at "header\\>[ \t]*\\(\"\\)?")
+      (setq pos (antlr-skip-sexps (if (match-beginning 1) 3 2))))
     (if (looking-at "options\\>") (setq pos (antlr-skip-sexps 2)))
     (or skip-comment (goto-char pos))
     pos0))
@@ -831,8 +963,9 @@ If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
 Hide all actions including arguments in brackets if ARG is 1 or if
 called interactively without prefix argument.  Hide all actions
 excluding arguments in brackets if ARG is 2 or higher.  Unhide all
-actions if ARG is 0 or negative.  Never hide actions whose character
-length is shorter or equal to `antlr-tiny-action-length'."
+actions if ARG is 0 or negative.  See `antlr-action-visibility'.
+
+Display a message unless optional argument SILENT is non-nil."
   (interactive "p")
   ;; from Emacs/lazy-lock: `save-buffer-state'
   (let ((modified (buffer-modified-p))
@@ -842,18 +975,29 @@ length is shorter or equal to `antlr-tiny-action-length'."
 	buffer-file-name buffer-file-truename)
     (if (> arg 0)
 	(let ((regexp (if (= arg 1) "[]}]" "}"))
-	      (diff (+ (max antlr-tiny-action-length 0) 2)))
+	      (diff (and antlr-action-visibility
+			 (+ (max antlr-action-visibility 0) 2))))
 	  (antlr-hide-actions 0 t)
 	  (save-excursion
 	    (goto-char (point-min))
 	    (antlr-with-syntax-table antlr-action-syntax-table
 	      (antlr-invalidate-context-cache)
 	      (while (antlr-re-search-forward regexp nil)
-		(let* ((end (point))
-		       (beg (antlr-scan-sexps (point) -1 nil t)))
-		  (and beg (> end (+ beg diff))
-		       (add-text-properties (1+ beg) (1- end)
-					    '(invisible t intangible t)))))))
+		(let ((beg (antlr-scan-sexps (point) -1 nil t)))
+		  (when beg
+		    (if diff		; braces are visible
+			(if (> (point) (+ beg diff))
+			    (add-text-properties (1+ beg) (1- (point))
+						 '(invisible t intangible t)))
+		      ;; if actions is on line(s) of its own, hide WS
+		      (and (looking-at "[ \t]*$")
+			   (save-excursion
+			     (goto-char beg)
+			     (skip-chars-backward " \t")
+			     (and (bolp) (setq beg (point))))
+			   (beginning-of-line 2)) ; beginning of next line
+		      (add-text-properties beg (point)
+					   '(invisible t intangible t))))))))
 	  (or silent
 	      (message "Hide all actions (%s arguments)...done"
 		       (if (= arg 1) "including" "excluding"))))
@@ -863,6 +1007,290 @@ length is shorter or equal to `antlr-tiny-action-length'."
 	  (message "Unhide all actions (including arguments)...done")))
     (and (not modified) (buffer-modified-p)
 	 (set-buffer-modified-p nil))))
+
+
+;;;===========================================================================
+;;;  Compute dependencies
+;;;===========================================================================
+
+(defun antlr-file-dependencies ()
+  "Return dependencies for grammar in current buffer.
+The result looks like (FILE (CLASSES . SUPERS) VOCABS . LANGUAGE)
+where CLASSES = ((CLASS . CLASS-EVOCAB) ...),
+      SUPERS  = ((SUPER . USE-EVOCAB-P) ...), and
+      VOCABS  = ((EVOCAB ...) . (IVOCAB ...))
+
+FILE is the current buffer's file-name without directory part and
+LANGUAGE is the value of `antlr-language' in the current buffer.  Each
+EVOCAB is an export vocabulary and each IVOCAB is an import vocabulary.
+
+Each CLASS is a grammar class with its export vocabulary CLASS-EVOCAB.
+Each SUPER is a super-grammar class where USE-EVOCAB-P indicates whether
+its export vocabulary is used as an import vocabulary."
+  (unless buffer-file-name
+    (error "Grammar buffer does not visit a file"))
+  (let (classes exportVocabs importVocabs superclasses default-vocab)
+    (antlr-with-syntax-table antlr-action-syntax-table
+      (goto-char (point-min))
+      (while (antlr-re-search-forward "class[ \t]+\\([A-Za-z\300-\326\330-\337]\\sw*\\)[ \t]+extends[ \t]+\\([A-Za-z\300-\326\330-\337]\\sw*\\)[ \t]*;" nil)
+	;; parse class definition --------------------------------------------
+	(let* ((class (match-string 1))
+	       (sclass (match-string 2))
+	       ;; export vocab defaults to class name (first grammar in file)
+	       ;; or to the export vocab of the first grammar in file:
+	       (evocab (or default-vocab class))
+	       (ivocab nil))
+	  (goto-char (match-end 0))
+	  (c-forward-syntactic-ws)
+	  (while (looking-at "options\\>\\|\\(tokens\\)\\>")
+	    (if (match-beginning 1)
+		(antlr-skip-sexps 2)
+	      (goto-char (match-end 0))
+	      (c-forward-syntactic-ws)
+	      ;; parse grammar option section --------------------------------
+	      (when (eq (char-after (point)) ?\{)
+		(let* ((beg (1+ (point)))
+		       (end (1- (antlr-skip-sexps 1)))
+		       (cont (point)))
+		(goto-char beg)
+		(if (re-search-forward "\\<exportVocab[ \t]*=[ \t]*\\([A-Za-z\300-\326\330-\337]\\sw*\\)" end t)
+		    (setq evocab (match-string 1)))
+		(goto-char beg)
+		(if (re-search-forward "\\<importVocab[ \t]*=[ \t]*\\([A-Za-z\300-\326\330-\337]\\sw*\\)" end t)
+		    (setq ivocab (match-string 1)))
+		(goto-char cont)))))
+	  (unless (member sclass '("Parser" "Lexer" "TreeParser"))
+	    (let ((super (assoc sclass superclasses)))
+	      (if super
+		  (or ivocab (setcdr super t))
+		(push (cons sclass (null ivocab)) superclasses))))
+	  ;; remember class with export vocabulary:
+	  (push (cons class evocab) classes)
+	  ;; default export vocab is export vocab of first grammar in file:
+	  (or default-vocab (setq default-vocab evocab))
+	  (or (member evocab exportVocabs) (push evocab exportVocabs))
+	  (or (null ivocab)
+	      (member ivocab importVocabs) (push ivocab importVocabs)))))
+    (if classes
+	(list* (file-name-nondirectory buffer-file-name)
+	       (cons (nreverse classes) (nreverse superclasses))
+	       (cons (nreverse exportVocabs) (nreverse importVocabs))
+	       antlr-language))))
+
+(defun antlr-directory-dependencies (dirname)
+  "Return dependencies for all grammar files in directory DIRNAME.
+The result looks like ((CLASS-SPEC ...) . (FILE-DEP ...))
+where CLASS-SPEC = (CLASS (FILE . EVOCAB) ...).
+
+FILE-DEP are the dependencies for each grammar file in DIRNAME, see
+`antlr-file-dependencies'.  For each grammar class CLASS, FILE is a
+grammar file in which CLASS is defined and EVOCAB is the name of the
+export vocabulary specified in that file."
+  (let ((grammar (directory-files dirname t "\\.g\\'")))
+    (when grammar
+      (let ((temp-buffer (get-buffer-create
+			  (generate-new-buffer-name " *temp*")))
+	    (antlr-imenu-name nil)		; dynamic-let: no imenu
+	    (expanded-regexp (concat (format (regexp-quote
+					      (cadr antlr-special-file-formats))
+					     ".+")
+				     "\\'"))
+	    classes dependencies)
+	(unwind-protect
+	    (save-excursion
+	      (set-buffer temp-buffer)
+	      (widen)			; just in case...
+	      (dolist (file grammar)
+		(when (and (file-regular-p file)
+			   (null (string-match expanded-regexp file)))
+		  (insert-file-contents file t nil nil t)
+		  (normal-mode t)	; necessary for major-mode, syntax
+					; table and `antlr-language'
+		  (when (eq major-mode 'antlr-mode)
+		    (let* ((file-deps (antlr-file-dependencies))
+			   (file (car file-deps)))
+		      (when file-deps
+			(dolist (class-def (caadr file-deps))
+			  (let ((file-evocab (cons file (cdr class-def)))
+				(class-spec (assoc (car class-def) classes)))
+			    (if class-spec
+				(nconc (cdr class-spec) (list file-evocab))
+			      (push (list (car class-def) file-evocab)
+				    classes))))
+			(push file-deps dependencies)))))))
+	  (kill-buffer temp-buffer))
+	(cons (nreverse classes) (nreverse dependencies))))))
+
+
+;;;===========================================================================
+;;;  Compilation: run ANTLR tool
+;;;===========================================================================
+
+(defun antlr-superclasses-glibs (supers classes)
+  "Compute the grammar lib option for the super grammars SUPERS.
+Look in CLASSES for the right grammar lib files for SUPERS.  SUPERS is
+part SUPER in the result of `antlr-file-dependencies'.  CLASSES is the
+part (CLASS-SPEC ...) in the result of `antlr-directory-dependencies'.
+
+The result looks like (OPTION WITH-UNKNOWN GLIB ...).  OPTION is the
+complete \"-glib\" option.  WITH-UNKNOWN has value t iff there is none
+or more than one grammar file for at least one super grammar.
+
+Each GLIB looks like (GRAMMAR-FILE . EVOCAB).  GRAMMAR-FILE is a file in
+which a super-grammar is defined.  EVOCAB is the value of the export
+vocabulary of the super-grammar or nil if it is not needed."
+  ;; If the superclass is defined in the same file, that file will be included
+  ;; with -glib again.  This will lead to a redefinition.  But defining a
+  ;; analyzer of the same class twice in a file will lead to an error anyway...
+  (let (glibs unknown)
+    (while supers
+      (let* ((super (pop supers))
+	     (sup-files (cdr (assoc (car super) classes)))
+	     (file (and sup-files (null (cdr sup-files)) (car sup-files))))
+	(or file (setq unknown t))	; not exactly one file
+	(push (cons (or (car file)
+			(format (car antlr-unknown-file-formats)
+				(car super)))
+		    (and (cdr super)
+			 (or (cdr file)
+			     (format (cadr antlr-unknown-file-formats)
+				     (car super)))))
+	      glibs)))
+    (cons (if glibs (concat " -glib " (mapconcat 'car glibs ";")) "")
+	  (cons unknown glibs))))
+
+(defun antlr-run-tool (command file &optional saved)
+  "Run Antlr took COMMAND on grammar FILE.
+When called interactively, COMMAND is read from the minibuffer and
+defaults to `antlr-tool-command' with a computed \"-glib\" option if
+necessary.
+
+Save all buffers first unless optional value SAVED is non-nil.  When
+called interactively, the buffers are always saved, see also variable
+`antlr-ask-about-save'."
+  (interactive
+   ;; code in `interactive' is not compiled: do not use cl macros (`cdadr')
+   (let* ((supers (cdr (cadr (save-excursion
+			       (save-restriction
+				 (widen)
+				 (antlr-file-dependencies))))))
+	  (glibs ""))
+     (when supers
+       (save-some-buffers (not antlr-ask-about-save) nil)
+       (setq glibs (car (antlr-superclasses-glibs
+			 supers
+			 (car (antlr-directory-dependencies
+			       (antlr-default-directory)))))))
+     (list (antlr-read-shell-command "Run Antlr on current file with: "
+				     (concat antlr-tool-command glibs " "))
+	   buffer-file-name
+	   supers)))
+  (or saved (save-some-buffers (not antlr-ask-about-save)))
+  (let ((default-directory (file-name-directory file)))
+    (require 'compile)			; only `compile' autoload
+    (compile-internal (concat command " " (file-name-nondirectory file))
+		      "No more errors" "Antlr-Run")))
+
+
+;;;===========================================================================
+;;;  Makefile creation
+;;;===========================================================================
+
+(defun antlr-makefile-insert-variable (number pre post)
+  "Insert Makefile variable numbered NUMBER according to specification.
+Also insert strings PRE and POST before and after the variable."
+  (let ((spec (cadr antlr-makefile-specification)))
+    (when spec
+      (insert pre
+	      (if number (format (cadr spec) number) (car spec))
+	      post))))
+
+(defun antlr-insert-makefile-rules (&optional in-makefile)
+  "Insert Makefile rules in the current buffer at point.
+IN-MAKEFILE is non-nil, if the current buffer is the Makefile.  See
+command `antlr-show-makefile-rules' for detail."
+  (let* ((dirname (antlr-default-directory))
+	 (deps0 (antlr-directory-dependencies dirname))
+	 (classes (car deps0))		; CLASS -> (FILE . EVOCAB) ...
+	 (deps (cdr deps0))		; FILE -> (c . s) (ev . iv) . LANGUAGE
+	 (with-error nil)
+	 (gen-sep (or (caddr (cadr antlr-makefile-specification)) " "))
+	 (n (and (cdr deps) (cadr antlr-makefile-specification) 0)))
+    (or in-makefile (set-buffer standard-output))
+    (dolist (dep deps)
+      (let ((supers (cdadr dep))
+	    (lang (cdr (assoc (cdddr dep) antlr-file-formats-alist))))
+	(if n (incf n))
+	(antlr-makefile-insert-variable n "" " =")
+	(if supers
+	    (insert " "
+		    (format (cadr antlr-special-file-formats)
+			    (file-name-sans-extension (car dep)))))
+	(dolist (class-def (caadr dep))
+	  (let ((sep gen-sep))
+	    (dolist (class-file (cadr lang))
+	      (insert sep (format class-file (car class-def)))
+	      (setq sep " "))))
+	(dolist (evocab (caaddr dep))
+	  (let ((sep gen-sep))
+	    (dolist (vocab-file (cons (car antlr-special-file-formats)
+				      (car lang)))
+	      (insert sep (format vocab-file evocab))
+	      (setq sep " "))))
+	(antlr-makefile-insert-variable n "\n$(" ")")
+	(insert ": " (car dep))
+	(dolist (ivocab (cdaddr dep))
+	  (insert " " (format (car antlr-special-file-formats) ivocab)))
+	(let ((glibs (antlr-superclasses-glibs supers classes)))
+	  (if (cadr glibs) (setq with-error t))
+	  (dolist (super (cddr glibs))
+	    (insert " " (car super))
+	    (if (cdr super)
+		(insert " " (format (car antlr-special-file-formats)
+				    (cdr super)))))
+	  (insert "\n\t"
+		  (caddr antlr-makefile-specification)
+		  (car glibs)
+		  " $<\n"
+		  (car antlr-makefile-specification)))))
+    (if n
+	(let ((i 0))
+	  (antlr-makefile-insert-variable nil "" " =")
+	  (while (<= (incf i) n)
+	    (antlr-makefile-insert-variable i " $(" ")"))
+	  (insert "\n" (car antlr-makefile-specification))))
+    (if (string-equal (car antlr-makefile-specification) "\n")
+	(backward-delete-char 1))
+    (when with-error
+      (goto-char (point-min))
+      (insert antlr-help-unknown-file-text))
+    (unless in-makefile
+      (copy-region-as-kill (point-min) (point-max))
+      (goto-char (point-min))
+      (insert (format antlr-help-rules-intro dirname)))))
+
+;;;###autoload
+(defun antlr-show-makefile-rules ()
+  "Show Makefile rules for all grammar files in the current directory.
+If the `major-mode' of the current buffer has the value `makefile-mode',
+the rules are directory inserted at point.  Otherwise, a *Help* buffer
+is shown with the rules which are also put into the `kill-ring' for
+\\[yank].
+
+This command considers import/export vocabularies and grammar
+inheritance and provides a value for the \"-glib\" option if necessary.
+Customize variable `antlr-makefile-specification' for the appearance of
+the rules.
+
+If the file for a super-grammar cannot be determined, special file names
+are used according to variable `antlr-unknown-file-formats' and a
+commentary with value `antlr-help-unknown-file-text' is added.  The
+*Help* buffer always starts with the text in `antlr-help-rules-intro'."
+  (interactive)
+  (if (null (eq major-mode 'makefile-mode))
+      (antlr-with-displaying-help-buffer 'antlr-insert-makefile-rules)
+    (push-mark)
+    (antlr-insert-makefile-rules t)))
 
 
 ;;;===========================================================================
@@ -918,7 +1346,7 @@ Lines inside block comments are not changed or indented by
 	(incf indent (antlr-syntactic-context))
 	(and (> indent 0) (looking-at antlr-indent-item-regexp) (decf indent))
 	(setq indent (* indent c-basic-offset)))
-      ;; the usual major-mode indent stuff:
+      ;; the usual major-mode indent stuff -----------------------------------
       (setq orig (- (point-max) orig))
       (unless (= (current-column) indent)
 	(delete-region bol boi)
@@ -1019,11 +1447,14 @@ Otherwise, indent the current line with `antlr-indent-line'."
   (setq major-mode 'antlr-mode
 	mode-name "Antlr")
   (setq local-abbrev-table antlr-mode-abbrev-table)
-  (set-syntax-table java-mode-syntax-table)
+  (unless antlr-mode-syntax-table
+    (setq antlr-mode-syntax-table (make-syntax-table))
+    (c-populate-syntax-table antlr-mode-syntax-table))
+  (set-syntax-table antlr-mode-syntax-table)
   (unless antlr-action-syntax-table
     (let ((slist (nth 3 antlr-font-lock-defaults)))
       (setq antlr-action-syntax-table
-	    (copy-syntax-table java-mode-syntax-table))
+	    (copy-syntax-table antlr-mode-syntax-table))
       (while slist
 	(modify-syntax-entry (caar slist) (cdar slist)
 			     antlr-action-syntax-table)
@@ -1081,9 +1512,9 @@ Otherwise, indent the current line with `antlr-indent-line'."
   (antlr-set-tabs)
   (run-hooks 'antlr-mode-hook))
 
-;; In XEmacs, a smarter version of `buffers-menu-grouping-function' could use
-;; the following property.  The header of the submenu would be "Antlr" instead
-;; of "Antlr/C++" or "Antlr/Java" (depending on the buffer ordering).
+;; A smarter version of `group-buffers-menu-by-mode-then-alphabetically' (in
+;; XEmacs) could use the following property.  The header of the submenu would
+;; be "Antlr" instead of "Antlr.C++" or (not and!) "Antlr.Java".
 (put 'antlr-mode 'mode-name "Antlr")
 
 ;;;###autoload
@@ -1104,6 +1535,9 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 ;;; antlr-mode.el ends here
 
 ; LocalWords:  antlr ANother ANTLR's Cpp Lexer TreeParser esp refs VALUEs ea ee
-; LocalWords:  Java's Nomencl ruledef tokendef ruleref tokenref setType ader
+; LocalWords:  Java's Nomencl ruledef tokendef ruleref tokenref setType ader ev
 ; LocalWords:  ivate syntab lexer treeparser lic rotected rivate bor boi AFAIK
-; LocalWords:  slist knr inexpr
+; LocalWords:  slist knr inexpr unhide jit GENS SEP GEN sTokenTypes hpp cpp DEP
+; LocalWords:  VOCAB EVOCAB Antlr's TokenTypes exportVocab incl excl SUPERS gen
+; LocalWords:  VOCABS IVOCAB exportVocabs importVocabs superclasses vocab kens
+; LocalWords:  sclass evocab ivocab importVocab deps glibs supers sep dep lang
