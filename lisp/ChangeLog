@@ -1,3 +1,16 @@
+2000-04-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* files.el (auto-mode-alist): Add `EBROWSE'.
+
+	* progmodes/ebrowse.el (ebrowse-read): Skip forward over white
+	space before testing for end of buffer.
+	(ebrowse-load): Removed.
+	(ebrowse-revert-tree-buffer-from-file): Rewritten.
+	(ebrowse-create-tree-buffer): Rewritten.
+	(ebrowse-tree-mode): Read tree from buffer.
+
+	* progmodes/ebrowse-ffh.el: Removed.
+
 2000-04-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/vietnamese.el (viet-vscii-decode-table): Fix a bug.

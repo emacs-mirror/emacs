@@ -1,5 +1,8 @@
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (setup_echo_area_for_printing): Choose an echo
+	area buffer, if it's not set up yet.
+
 	* indent.c (compute_motion): Set immediate_quit.
 
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>

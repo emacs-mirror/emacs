@@ -4876,15 +4876,9 @@ It returns the old style symbol." t nil)
 
 ;;;### (autoloads (ebrowse-save-tree-as ebrowse-tags-query-replace
 ;;;;;;  ebrowse-tags-loop-continue ebrowse-tags-complete-symbol ebrowse-electric-choose-tree
-;;;;;;  ebrowse-tree-mode ebrowse-load) "ebrowse" "progmodes/ebrowse.el"
-;;;;;;  (14576 57912))
+;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (14577
+;;;;;;  54346))
 ;;; Generated autoloads from progmodes/ebrowse.el
-
-(autoload (quote ebrowse-load) "ebrowse" "\
-Load an Ebrowse file FILE into memory and make a tree buffer.
-Optional SWITCH non-nil means switch to the tree buffer afterwards.
-This function is normally called from a `find-file-hook'.
-Value is the tree buffer created." nil nil)
 
 (autoload (quote ebrowse-tree-mode) "ebrowse" "\
 Major mode for Ebrowse class tree buffers.
@@ -4894,7 +4888,7 @@ File operations in the tree buffer work on class tree data structures.
 E.g.\\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
-\\{ebrowse-tree-mode-map}" nil nil)
+\\{ebrowse-tree-mode-map}" t nil)
 
 (autoload (quote ebrowse-electric-choose-tree) "ebrowse" "\
 Return a buffer containing a tree or nil if no tree found or canceled." t nil)
@@ -4914,19 +4908,6 @@ With prefix arg, process files of marked classes only." t nil)
 Write the current tree data structure to a file.
 Read the file name from the minibuffer if interactive.
 Otherwise, FILE-NAME specifies the file to save the tree in." t nil)
-
-;;;***
-
-;;;### (autoloads (ebrowse-find-file-hook-fn) "ebrowse-ffh" "progmodes/ebrowse-ffh.el"
-;;;;;;  (14576 58508))
-;;; Generated autoloads from progmodes/ebrowse-ffh.el
-
-(autoload (quote ebrowse-find-file-hook-fn) "ebrowse-ffh" "\
-Function installed on `find-file-hooks'.
-Load an Ebrowse class tree when there's special signature at
-the beginning of the file." nil nil)
-
-(add-hook (quote find-file-hooks) (quote ebrowse-find-file-hook-fn))
 
 ;;;***
 
@@ -8863,7 +8844,7 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading." nil 
 ;;;***
 
 ;;;### (autoloads (turn-on-jit-lock jit-lock-mode) "jit-lock" "jit-lock.el"
-;;;;;;  (14571 7073))
+;;;;;;  (14577 45436))
 ;;; Generated autoloads from jit-lock.el
 
 (autoload (quote jit-lock-mode) "jit-lock" "\
