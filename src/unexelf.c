@@ -475,7 +475,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
      char *new_name, *old_name;
      unsigned data_start, bss_start, entry_address;
 {
-  extern unsigned int bss_end;
   int new_file, old_file, new_file_size;
 
   /* Pointers to the base of the image of the two files. */
@@ -548,8 +547,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
 #if defined(emacs) || !defined(DEBUG)
-  bss_end = (unsigned int) sbrk (0);
-  new_bss_addr = (Elf32_Addr) bss_end;
+  new_bss_addr = (Elf32_Addr) sbrk (0);
 #else
   new_bss_addr = old_bss_addr + old_bss_size + 0x1234;
 #endif
@@ -769,6 +767,26 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      PATCH_INDEX (sym->st_shndx);
 	    }
 	}
+    }
+
+  /* Update the symbol values of _edata and _end. */
+  for (n = new_file_h->e_shnum - 1; n; n--)
+    {
+      byte *symnames;
+      Elf32_Sym *symp, *symendp;
+
+      if (NEW_SECTION_H (n).sh_type != SHT_DYNSYM
+	  && NEW_SECTION_H (n).sh_type != SHT_SYMTAB)
+	continue;
+
+      symnames = NEW_SECTION_H (NEW_SECTION_H (n).sh_link).sh_offset + new_base;
+      symp = (Elf32_Sym *) (NEW_SECTION_H (n).sh_offset + new_base);
+      symendp = (Elf32_Sym *) ((byte *)symp + NEW_SECTION_H (n).sh_size);
+
+      for (; symp < symendp; symp ++)
+	if (strcmp ((char *) (symnames + symp->st_name), "_end") == 0
+	    || strcmp ((char *) (symnames + symp->st_name), "_edata") == 0)
+	  memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
     }
 
   /* Close the files and make the new file executable */
