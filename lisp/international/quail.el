@@ -618,26 +618,6 @@ This layout is almost the same as that of VT100,
  but the location of key \\ (backslash) is just right of key ' (single-quote),
  not right of RETURN key.")
 
-(defcustom quail-keyboard-layout quail-keyboard-layout-standard
-  "A string which represents physical key layout of a particular keyboard.
-We assume there are six rows and each row has 15 keys (columns),
-	the first row is above the `1' - `0' row,
-	the first column of the second row is left of key `1',
-	the first column of the third row is left of key `q',
-	the first column of the fourth row is left of key `a',
-	the first column of the fifth row is left of key `z',
-	the sixth row is below the `z' - `/' row.
-Nth (N is even) and (N+1)th characters in the string are non-shifted
-and shifted characters respectively at the same location.
-The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
-The command `quail-set-keyboard-layout' usually sets this variable."
-  :group 'quail
-  :type `(choice
-	  ,@(mapcar (lambda (pair)
-		      (list 'const :tag (car pair) (cdr pair)))
-		    quail-keyboard-layout-alist)
-	  (string :tag "Other")))
-
 (defconst quail-keyboard-layout-len 180)
 
 ;; Here we provide several examples of famous keyboard layouts.
@@ -686,6 +666,26 @@ The command `quail-set-keyboard-layout' usually sets this variable."
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
 the layout string.")
+
+(defcustom quail-keyboard-layout quail-keyboard-layout-standard
+  "A string which represents physical key layout of a particular keyboard.
+We assume there are six rows and each row has 15 keys (columns),
+	the first row is above the `1' - `0' row,
+	the first column of the second row is left of key `1',
+	the first column of the third row is left of key `q',
+	the first column of the fourth row is left of key `a',
+	the first column of the fifth row is left of key `z',
+	the sixth row is below the `z' - `/' row.
+Nth (N is even) and (N+1)th characters in the string are non-shifted
+and shifted characters respectively at the same location.
+The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
+The command `quail-set-keyboard-layout' usually sets this variable."
+  :group 'quail
+  :type `(choice
+	  ,@(mapcar (lambda (pair)
+		      (list 'const :tag (car pair) (cdr pair)))
+		    quail-keyboard-layout-alist)
+	  (string :tag "Other")))
 
 ;; A non-standard keyboard layout may miss some key locations of the
 ;; standard layout while having additional key locations not in the
