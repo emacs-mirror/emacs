@@ -1,3 +1,7 @@
+2003-07-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* display.texi (Font Lock): Fix typo.
+
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Font Lock): Add xref for format info on
