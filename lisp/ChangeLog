@@ -1,3 +1,7 @@
+2001-10-25  Miles Bader  <miles@gnu.org>
+
+	* facemenu.el (facemenu-add-new-face): Fix variable names.
+
 2001-10-24  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-unlisted-faces): Improve doc strings
