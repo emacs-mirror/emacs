@@ -137,7 +137,7 @@ thus, the amount of offset can depend on the data in the file.
 * A_TEXT_SEEK(HDR)
 
 If defined, this macro specifies the number of bytes to seek into the
-a.out file before starting to write the text segment.a
+a.out file before starting to write the text segment.
 
 * EXEC_MAGIC
 
@@ -213,6 +213,20 @@ struct aouthdr
 #include <stdio.h>
 #include <sys/stat.h>
 #include <errno.h>
+
+#include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
+
+#ifdef USG5
+#include <fcntl.h>
+#endif
+
+#ifndef O_RDONLY
+#define O_RDONLY 0
+#endif
+#ifndef O_RDWR
+#define O_RDWR 2
+#endif
+
 
 extern char *start_of_text ();		/* Start of text */
 extern char *start_of_data ();		/* Start of initialized data */
@@ -311,6 +325,8 @@ static int pagemask;
 
 #ifdef emacs
 
+#include "lisp.h"
+
 static
 report_error (file, fd)
      char *file;
@@ -318,7 +334,7 @@ report_error (file, fd)
 {
   if (fd)
     close (fd);
-  error ("Failure operating on %s\n", file);
+  report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
 #endif /* emacs */
 
@@ -357,7 +373,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 {
   int new, a_out = -1;
 
-  if (a_name && (a_out = open (a_name, 0)) < 0)
+  if (a_name && (a_out = open (a_name, O_RDONLY)) < 0)
     {
       PERROR (a_name);
     }
@@ -774,8 +790,12 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
       PERROR (new_name);
     }
 
+  /* This adjustment was done above only #ifndef NO_REMAP,
+     so only undo it now #ifndef NO_REMAP.  */
+#ifndef NO_REMAP
 #ifdef A_TEXT_OFFSET
   hdr.a_text -= A_TEXT_OFFSET (ohdr);
+#endif
 #endif
 
   return 0;
@@ -1055,7 +1075,7 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 #ifdef MSDOS
   if ((new = writedesc) < 0)
 #else
-  if ((new = open (new_name, 2)) < 0)
+  if ((new = open (new_name, O_RDWR)) < 0)
 #endif
     {
       PERROR (new_name);
