@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.16) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.17) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -366,6 +366,11 @@ int read_event(log_event* event) {
  return 0;
 }
 
+/* A useful function the MPS doesn't provide */
+
+size_t mps_arena_committed_and_used(mps_arena_t arena) {
+ return mps_arena_committed(arena)-mps_arena_spare_committed(arena);
+}
 
 /* TimeQueue
    s are implemented as heaps, stored in arrays. First array element
