@@ -866,12 +866,12 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 
 (if hexl-mode-map
     nil
-  (setq hexl-mode-map (copy-keymap (current-global-map)))
+  (setq hexl-mode-map (make-keymap))
   ;; Make all self-inserting keys go through hexl-self-insert-command,
   ;; because we need to convert them to unibyte characters before
   ;; inserting them into the buffer.
   (substitute-key-definition 'self-insert-command 'hexl-self-insert-command
-			     hexl-mode-map)
+			     hexl-mode-map (current-global-map))
 
   (define-key hexl-mode-map [left] 'hexl-backward-char)
   (define-key hexl-mode-map [right] 'hexl-forward-char)
