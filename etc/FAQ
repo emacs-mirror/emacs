@@ -1917,48 +1917,51 @@ Finding/Getting Emacs and Related Packages
   PCs with a 386 or better, running MS-DOS 3.0 or later. You will need the
   following to compile it:
    
-  Compiler: djgpp version 1.12 maint 1 or later.  You can get the latest
-            version by grabbing everything in the following directory
-            (using anonymous ftp):
+  Compiler: djgpp version 1.12 maint 1 or later.  Djgpp v2.0 or later is
+            recommended, since v1.x is being phased out--if you'll have any
+            djgpp-related problem for which there is no known solution, you
+            are on your own when you use djgpp v1.x.
+
+            You can get the latest release of either v1.x or v2.0 by
+            grabbing everything in the following directory (using anonymous
+            ftp):
 
             ftp.coast.net:/SimTel/vendors/djgpp
 
-	    There are a few directories under djgpp whose names begin with
-	    `v1'; get the contents of `v1' and `v1gnu'.
-	    Do *not* try to compile Emacs with DJGPP v2.0 (in the
-	    directories whose name begin with `v2') as GNU Emacs doesn't
-	    support that version yet.
+            There are a few directories under djgpp whose names begin with
+            `v1' or `v2'; get the contents of `v2' and `v2gnu' (for djgpp
+            v2) or `v1' and `v1gnu' (for djgpp v1).
 
   GUnZip and Tar:
 
-	    The easiest way is to use `djtar' which comes with DJGPP v2.0,
-	    because it can unzip .tar.gz archives on-the-fly (so you won't
-	    need twice the required disk space while untarring the
-	    archive).  You get `djtar' with the `v2/djdev200.zip' file from
-	    the above FTP server.
+            The easiest way is to use `djtar' which comes with DJGPP v2.0,
+            because it can unzip .tar.gz archives on-the-fly (so you won't
+            need twice the required disk space while untarring the
+            archive).  You get `djtar' with the `v2/djdev200.zip' file from
+            the above FTP server.
 
-	    Another (slower) version of Tar which unzips automatically is
-	    available by anonymous ftp on this site:
+            Another (slower) version of Tar which unzips automatically is
+            available by anonymous ftp on this site:
 
-	    ftp.kiae.su:msdos/arcers/tar320fp.zip
+            ftp.kiae.su:msdos/arcers/tar320fp.zip
 
-	    Or you can unZip the archive with the DJGPP port of GZip (from
-	    the above directory at ftp.coast.net look for gzp124bn.zip),
-	    then unTar it with any of the Tar ports floating around.  A
-	    DOS version of GNU tar is available via anonymous ftp from
+            Or you can unZip the archive with the DJGPP port of GZip (from
+            the above directory at ftp.coast.net look for v2/gzp124b.zip),
+            then unTar it with any of the Tar ports floating around.  A
+            DOS version of GNU tar is available via anonymous ftp from
 
-	    ftp.unipg.it:/pub/msdos/aspi/gtar-exe.zip
+            ftp.unipg.it:/pub/msdos/aspi/gtar-exe.zip
 
-	    Note that DOS ports of GNU Tar usually cannot unzip compressed
-	    archives, and the above port is no exception.
+            Note that DOS ports of GNU Tar usually cannot unzip compressed
+            archives.
 
-	    Another version of Tar for DOS can be found at
+            Another version of Tar for DOS can be found at
 
-	    ftp.urc.tue.nl:pub/unixtools/dos 
+            ftp.urc.tue.nl:pub/unixtools/dos 
 
-	    However, be warned that not all DOS versions of tar work
-	    equally well, so you might have to try others if this one gives
-	    you trouble.
+            However, be warned that not all DOS versions of tar work
+            equally well, so you might have to try others if this one gives
+            you trouble.
 
   Utilities: chmod, make, mv, sed, rm.  
 
@@ -1970,12 +1973,18 @@ Finding/Getting Emacs and Related Packages
             You should grab the files fut312bx.zip (contains chmod.exe,
             mv.exe, and rm.exe).
 
-	    A port of GNU Sed is available in the djgpp archives in the
-	    above directory on ftp.coast.net.  Look for a file named
-	    sed118bn.zip.
+            A port of GNU Sed is available in the djgpp archives in the
+            above directory on ftp.coast.net.  Look for a file named
+            v2/sed118b.zip or v1/sed118bn.zip.
 
   The file etc/MSDOS contains some information on the differences between
   the Unix and MS-DOS versions of GNU Emacs.
+
+  MS-DOS systems are notorious in the problems they present when installing
+  programs, due to a great variability in both hardware and software.  If
+  you have any unusual problems compiling or using Emacs, please consult
+  the latest version of the djgpp FAQ list, available as v2/faqNNNb.zip,
+  where `NNN' is the version number.  For v1, get the file v1/faq102.zip.
 
   If you would prefer not to compile Emacs by yourself, you can get
   binaries for Emacs via anonymous ftp from many sites; use your Archie
