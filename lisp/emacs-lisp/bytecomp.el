@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.136 $")
+(defconst byte-compile-version "$Revision: 2.137 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -929,7 +929,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
     (when (or (and byte-compile-current-file
 		   (not (equal byte-compile-current-file
 			       byte-compile-last-logged-file)))
-	      (and byte-compile-last-warned-form
+	      (and byte-compile-current-form
 		   (not (eq byte-compile-current-form
 			    byte-compile-last-warned-form))))
       (insert (format "\nIn %s:\n" form)))
