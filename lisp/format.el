@@ -538,97 +538,113 @@ to write these unknown annotations back into the file."
 
 	    ;; Delete the annotation
 	    (delete-region loc end)
-	    (if positive
-		;; Positive annotations are stacked, remembering location
-		(setq open-ans (cons (list name loc) open-ans))
-	      ;; It is a negative annotation:
-	      ;; Close the top annotation & add its text property.
-	      ;; If the file's nesting is messed up, the close might not match
-	      ;; the top thing on the open-annotations stack.
-	      ;; If no matching annotation is open, just ignore the close.
-	      (if (not (assoc name open-ans))
-		  (message "Extra closing annotation (%s) in file" name)
-	      ;; If one is open, but not on the top of the stack, close
-	      ;; the things in between as well.  Set `found' when the real
-	      ;; one is closed.
-		(while (not found)
-		  (let* ((top (car open-ans)) ; first on stack: should match.
-			 (top-name (car top))
-			 (start (car (cdr top))) ; location of start
-			 (params (cdr (cdr top))) ; parameters
-			 (aalist translations)
-			 (matched nil))
-		    (if (equal name top-name)
-			(setq found t)
-		      (message "Improper nesting in file."))
-		    ;; Look through property names in TRANSLATIONS
-		    (while aalist
-		      (let ((prop (car (car aalist)))
-			    (alist (cdr (car aalist))))
-			;; And look through values for each property
-			(while alist
-			  (let ((value (car (car alist)))
-				(ans (cdr (car alist))))
-			    (if (member top-name ans)
-				;; This annotation is listed, but still have to
-				;; check if multiple annotations are satisfied
-				(if (member 'nil (mapcar 
-						  (lambda (r)
-						    (assoc r open-ans))
-						  ans))
-				    nil	; multiple ans not satisfied
-				  ;; Yes, all set.
-				  ;; If there are multiple annotations going
-				  ;; into one text property, adjust the 
-				  ;; begin points of the other annotations
-				  ;; so that we don't get double marking.
-				  (let ((to-reset ans)
-					this-one)
-				    (while to-reset
-				      (setq this-one
-					    (assoc (car to-reset) 
-						   (cdr open-ans)))
-				      (if this-one
-					  (setcar (cdr this-one) loc))
-				      (setq to-reset (cdr to-reset))))
-				  ;; Set loop variables to nil so loop
-				  ;; will exit.
-				  (setq alist nil aalist nil matched t
-					;; pop annotation off stack.
-					open-ans (cdr open-ans))
-				  (cond 
-				   ;; Check for pseudo-properties
-				   ((eq prop 'PARAMETER)
-				    ;; This is a parameter of the top open ann:
-				    ;; delete text and use as arg.
-				    (if open-ans
-					;; (If nothing open, discard).
-					(setq open-ans
-					      (cons (append (car open-ans)
-							    (list
-							     (buffer-substring
-							      start loc)))
-						    (cdr open-ans))))
-				    (delete-region start loc))
-				   ((eq prop 'FUNCTION)
-				    ;; Not a property, but a function to call.
-				    (let ((rtn (apply value start loc params)))
-				      (if rtn (setq todo (cons rtn todo)))))
-				   (t 
-				    ;; Normal property/value pair
-				    (setq todo 
-					  (cons (list start loc prop value)
-						todo)))))))
-			  (setq alist (cdr alist))))
-		      (setq aalist (cdr aalist)))
-		    (if matched
-			nil
+	    (cond
+	     ;; Positive annotations are stacked, remembering location
+	     (positive (setq open-ans (cons `(,name ((,loc . nil))) open-ans)))
+	     ;; It is a negative annotation:
+	     ;; Close the top annotation & add its text property.
+	     ;; If the file's nesting is messed up, the close might not match
+	     ;; the top thing on the open-annotations stack.
+	     ;; If no matching annotation is open, just ignore the close.
+	     ((not (assoc name open-ans))
+	      (message "Extra closing annotation (%s) in file" name))
+	     ;; If one is open, but not on the top of the stack, close
+	     ;; the things in between as well.  Set `found' when the real
+	     ;; one is closed.
+	     (t
+	      (while (not found)
+		(let* ((top (car open-ans))	; first on stack: should match.
+		       (top-name (car top))	; text property name
+		       (top-extents (nth 1 top)) ; property regions
+		       (params (cdr (cdr top)))	; parameters
+		       (aalist translations)
+		       (matched nil))
+		  (if (equal name top-name)
+		      (setq found t)
+		    (message "Improper nesting in file."))
+		  ;; Look through property names in TRANSLATIONS
+		  (while aalist
+		    (let ((prop (car (car aalist)))
+			  (alist (cdr (car aalist))))
+		      ;; And look through values for each property
+		      (while alist
+			(let ((value (car (car alist)))
+			      (ans (cdr (car alist))))
+			  (if (member top-name ans)
+			      ;; This annotation is listed, but still have to
+			      ;; check if multiple annotations are satisfied
+			      (if (member nil (mapcar (lambda (r)
+							(assoc r open-ans))
+						      ans))
+				  nil	; multiple ans not satisfied
+				;; If there are multiple annotations going
+				;; into one text property, split up the other
+				;; annotations so they apply individually to
+				;; the other regions.
+				(setcdr (car top-extents) loc)
+				(let ((to-split ans) this-one extents)
+				  (while to-split
+				    (setq this-one
+					  (assoc (car to-split) open-ans)
+					  extents (nth 1 this-one))
+				    (if (not (eq this-one top))
+					(setcar (cdr this-one)
+						(format-subtract-regions
+						 extents top-extents)))
+				    (setq to-split (cdr to-split))))
+				;; Set loop variables to nil so loop
+				;; will exit.
+				(setq alist nil aalist nil matched t
+				      ;; pop annotation off stack.
+				      open-ans (cdr open-ans))
+				(let ((extents top-extents)
+				      (start (car (car top-extents)))
+				      (loc (cdr (car top-extents))))
+				  (while extents
+				    (cond
+				     ;; Check for pseudo-properties
+				     ((eq prop 'PARAMETER)
+				      ;; A parameter of the top open ann:
+				      ;; delete text and use as arg.
+				      (if open-ans
+					  ;; (If nothing open, discard).
+					  (setq open-ans
+						(cons
+						 (append (car open-ans)
+							 (list
+							  (buffer-substring
+							   start loc)))
+						 (cdr open-ans))))
+				      (delete-region start loc))
+				     ((eq prop 'FUNCTION)
+				      ;; Not a property, but a function.
+				      (let ((rtn
+					     (apply value start loc params)))
+					(if rtn (setq todo (cons rtn todo)))))
+				     (t
+				      ;; Normal property/value pair
+				      (setq todo
+					    (cons (list start loc prop value)
+						  todo))))
+				    (setq extents (cdr extents)
+					  start (car (car extents))
+					  loc (cdr (car extents))))))))
+			(setq alist (cdr alist))))
+		    (setq aalist (cdr aalist)))
+		  (if (not matched)
 		      ;; Didn't find any match for the annotation:
 		      ;; Store as value of text-property `unknown'.
-		      (setq open-ans (cdr open-ans))
-		      (setq todo (cons (list start loc 'unknown top-name)
-				       todo))
-		      (setq unknown-ans (cons name unknown-ans)))))))))
+		      (let ((extents top-extents)
+			    (start (car (car top-extents)))
+			    (loc (cdr (car top-extents))))
+			(while extents
+			  (setq open-ans (cdr open-ans)
+				todo (cons (list start loc 'unknown top-name)
+					   todo)
+				unknown-ans (cons name unknown-ans)
+				extents (cdr extents)
+				start (car (car extents))
+				loc (cdr (car extents))))))))))))
 
 	;; Once entire file has been scanned, add the properties.
 	(while todo
@@ -637,20 +653,70 @@ to write these unknown annotations back into the file."
 		 (to   (nth 1 item))
 		 (prop (nth 2 item))
 		 (val  (nth 3 item)))
-	
-	    (put-text-property 
+
+	    (if (numberp val)	; add to ambient value if numeric
+		(format-property-increment-region from to prop val 0)
+	      (put-text-property
 	       from to prop
-	       (cond ((numberp val) ; add to ambient value if numeric
-		      (+ val (or (get-text-property from prop) 0)))
-		     ((get prop 'format-list-valued) ; value gets consed onto
+	       (cond ((get prop 'format-list-valued) ; value gets consed onto
 						     ; list-valued properties
 		      (let ((prev (get-text-property from prop)))
 			(cons val (if (listp prev) prev (list prev)))))
-		     (t val)))) ; normally, just set to val.
+		     (t val))))) ; normally, just set to val.
 	  (setq todo (cdr todo)))
-    
+
 	(if unknown-ans
 	    (message "Unknown annotations: %s" unknown-ans))))))
+
+(defun format-subtract-regions (minu subtra)
+  "Remove the regions in SUBTRAHEND from the regions in MINUEND.  A region
+is a dotted pair (from . to).  Both parameters are lists of regions.  Each
+list must contain nonoverlapping, noncontiguous regions, in descending
+order.  The result is also nonoverlapping, noncontiguous, and in descending
+order.  The first element of MINUEND can have a cdr of nil, indicating that
+the end of that region is not yet known."
+  (let* ((minuend (copy-alist minu))
+	 (subtrahend (copy-alist subtra))
+	 (m (car minuend))
+	 (s (car subtrahend))
+	 results)
+    (while (and minuend subtrahend)
+      (cond 
+       ;; The minuend starts after the subtrahend ends; keep it.
+       ((> (car m) (cdr s))
+	(setq results (cons m results)
+	      minuend (cdr minuend)
+	      m (car minuend)))
+       ;; The minuend extends beyond the end of the subtrahend.  Chop it off.
+       ((or (null (cdr m)) (> (cdr m) (cdr s)))
+	(setq results (cons (cons (1+ (cdr s)) (cdr m)) results))
+	(setcdr m (cdr s)))
+       ;; The subtrahend starts after the minuend ends; throw it away.
+       ((< (cdr m) (car s))
+	(setq subtrahend (cdr subtrahend) s (car subtrahend)))
+       ;; The subtrahend extends beyond the end of the minuend.  Chop it off.
+       (t	;(<= (cdr m) (cdr s)))
+	(if (>= (car m) (car s))
+	    (setq minuend (cdr minuend) m (car minuend))
+	  (setcdr m (1- (car s)))
+	  (setq subtrahend (cdr subtrahend) s (car subtrahend))))))
+    (nconc (nreverse results) minuend)))
+
+;; This should probably go somewhere other than format.el.  Then again,
+;; indent.el has alter-text-property.  NOTE: We can also use
+;; next-single-property-change instead of text-property-not-all, but then
+;; we have to see if we passed TO.
+(defun format-property-increment-region (from to prop delta default)
+  "Increment property PROP over the region between FROM and TO by the
+amount DELTA (which may be negative).  If property PROP is nil anywhere
+in the region, it is treated as though it were DEFAULT."
+  (let ((cur from) val newval next)
+    (while cur
+      (setq val    (get-text-property cur prop)
+	    newval (+ (or val default) delta)
+	    next   (text-property-not-all cur to prop val))
+      (put-text-property cur (or next to) prop newval)
+      (setq cur next))))
 
 ;;;
 ;;; Encoding
