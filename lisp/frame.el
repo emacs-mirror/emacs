@@ -181,7 +181,8 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	(or (delq terminal-frame (minibuffer-frame-list))
 	    (progn
 	      (setq frame-initial-frame-alist
-		    (append initial-frame-alist default-frame-alist nil))
+		    (append initial-frame-alist default-frame-alist
+			    '((visibility . nil)) nil))
 	      (or (assq 'horizontal-scroll-bars frame-initial-frame-alist)
 		  (setq frame-initial-frame-alist
 			(cons '(horizontal-scroll-bars . t)
