@@ -166,7 +166,7 @@ Otherwise, if `flyspell-default-dictionary' is nil, it means to use
 Ispell's ultimate default dictionary."
   :group 'flyspell
   :version "21.1"
-  :type '(choice string nil))
+  :type '(choice string (const :tag "Default" nil))
 
 (defcustom flyspell-tex-command-regexp
   "\\(\\(begin\\|end\\)[ \t]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\)[ \t]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)"
