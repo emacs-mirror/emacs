@@ -1442,7 +1442,9 @@ specifies the character set for the major languages of Western Europe."
 
   ;; Fixme: default from the environment coding system where that's
   ;; charset-based.
-  (apply 'set-charset-priority  (get-language-info language-name 'charset))
+  (if (get-language-info language-name 'charset)
+      (apply 'set-charset-priority  (get-language-info language-name
+						       'charset)))
 
   ;; Note: For DOS, we assumed that the charset cpXXX is already
   ;; defined.
