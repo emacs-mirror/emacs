@@ -205,10 +205,6 @@ int end_unchanged;
    contain no useful information */
 int unchanged_modified;
 
-/* Nonzero if head_clip or tail_clip of current buffer has changed
-   since last redisplay that finished */
-int clip_changed;
-
 /* Nonzero if window sizes or contents have changed
    since last redisplay that finished */
 int windows_or_buffers_changed;
@@ -684,7 +680,7 @@ prepare_menu_bars ()
   struct gcpro gcpro1, gcpro2;
 
   all_windows = (update_mode_lines || buffer_shared > 1
-		 || clip_changed || windows_or_buffers_changed);
+		 || windows_or_buffers_changed);
 
   /* Update all frame titles based on their buffer names, etc.
      We do this before the menu bars so that the buffer-menu
@@ -812,9 +808,7 @@ redisplay ()
 
   prepare_menu_bars ();
 
-  if (clip_changed || windows_or_buffers_changed
-      || (!NILP (w->column_number_displayed)
-	  && XFASTINT (w->column_number_displayed) != current_column ()))
+  if (windows_or_buffers_changed)
     update_mode_lines++;
 
   /* Detect case that we need to write a star in the mode line.  */
@@ -826,6 +820,15 @@ redisplay ()
 	update_mode_lines++;
     }
 
+  /* If %c is in use, update it if needed.  */
+  if (!NILP (w->column_number_displayed)
+      /* This alternative quickly identifies a common case
+	 where no change is needed.  */
+      && !(PT == XFASTINT (w->last_point)
+	   && XFASTINT (w->last_modified) >= MODIFF)
+      && XFASTINT (w->column_number_displayed) != current_column ())
+    w->update_mode_line = Qt; 
+
   FRAME_SCROLL_BOTTOM_VPOS (XFRAME (w->frame)) = -1;
 
   all_windows = update_mode_lines || buffer_shared > 1;
@@ -834,7 +837,7 @@ redisplay ()
      to ensure we remove any arrow that should no longer exist.  */
   if (! EQ (Voverlay_arrow_position, last_arrow_position)
       || ! EQ (Voverlay_arrow_string, last_arrow_string))
-    all_windows = 1, clip_changed = 1;
+    all_windows = 1;
 
   /* Normally the message* functions will have already displayed and
      updated the echo area, but the frame may have been trashed, or
@@ -1109,7 +1112,6 @@ update:
       register struct buffer *b = XBUFFER (w->buffer);
 
       blank_end_of_window = 0;
-      clip_changed = 0;
       unchanged_modified = BUF_MODIFF (b);
       beg_unchanged = BUF_GPT (b) - BUF_BEG (b);
       end_unchanged = BUF_Z (b) - BUF_GPT (b);
@@ -1122,6 +1124,7 @@ update:
 	mark_window_display_accurate (FRAME_ROOT_WINDOW (selected_frame), 1);
       else
 	{
+	  b->clip_changed = 0;
 	  w->update_mode_line = Qnil;
 	  XSETFASTINT (w->last_modified, BUF_MODIFF (b));
 	  w->window_end_valid = w->buffer;
@@ -1203,6 +1206,8 @@ mark_window_display_accurate (window, flag)
 
       w->window_end_valid = w->buffer;
       w->update_mode_line = Qnil;
+      if (!NILP (w->buffer))
+	XBUFFER (w->buffer)->clip_changed = 0;
 
       if (!NILP (w->vchild))
 	mark_window_display_accurate (w->vchild, flag);
@@ -1385,6 +1390,15 @@ redisplay_window (window, just_this_one)
 
   opoint = PT;
 
+  /* If %c is in mode line, update it if needed.  */
+  if (!NILP (w->column_number_displayed)
+      /* This alternative quickly identifies a common case
+	 where no change is needed.  */
+      && !(PT == XFASTINT (w->last_point)
+	   && XFASTINT (w->last_modified) >= MODIFF)
+      && XFASTINT (w->column_number_displayed) != current_column ())
+    update_mode_line = 1; 
+
   /* Count number of windows showing the selected buffer.
      An indirect buffer counts as its base buffer.  */
 
@@ -1511,7 +1525,7 @@ redisplay_window (window, just_this_one)
      in redisplay handles the same cases.  */
 
   if (XFASTINT (w->last_modified) >= MODIFF
-      && PT >= startp && !clip_changed
+      && PT >= startp && current_buffer->clip_changed
       && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
       /* If force-mode-line-update was called, really redisplay;
 	 that's how redisplay is forced after e.g. changing
@@ -1565,7 +1579,7 @@ redisplay_window (window, just_this_one)
 	   /* or else vmotion on first line won't work.  */
 	   && ! NILP (w->start_at_line_beg)
 	   && ! EQ (w->window_end_valid, Qnil)
-	   && do_id && !clip_changed
+	   && do_id && current_buffer->clip_changed
 	   && !blank_end_of_window
 	   && XFASTINT (w->width) == FRAME_WIDTH (f)
 	   /* Can't use this case if highlighting a region.  */
@@ -1597,7 +1611,8 @@ redisplay_window (window, just_this_one)
       try_window (window, startp);
       if (cursor_vpos >= 0)
 	{
-	  if (!just_this_one || clip_changed || beg_unchanged < startp)
+	  if (!just_this_one || current_buffer->clip_changed
+	      || beg_unchanged < startp)
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = Qnil;
 	  goto done;
@@ -1618,7 +1633,7 @@ redisplay_window (window, just_this_one)
 
   /* Try to scroll by specified few lines */
 
-  if (scroll_step && !clip_changed)
+  if (scroll_step && !current_buffer->clip_changed)
     {
       if (PT > startp)
 	{
@@ -1634,7 +1649,8 @@ redisplay_window (window, just_this_one)
 	  try_window (window, pos.bufpos);
 	  if (cursor_vpos >= 0)
 	    {
-	      if (!just_this_one || clip_changed || beg_unchanged < startp)
+	      if (!just_this_one || current_buffer->clip_changed
+		  || beg_unchanged < startp)
 		/* Forget any recorded base line for line number display.  */
 		w->base_line_number = Qnil;
 	      goto done;
