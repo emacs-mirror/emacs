@@ -48,6 +48,9 @@
 @macro cpiover{den}
 @expr{pi/\den\}
 @end macro
+@macro LaTeX{}
+La@TeX{}
+@end macro
 @end ifnottex
 
 
