@@ -8858,9 +8858,13 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
 
+#if 0  /* The following is fine for code reading a key sequence and
+	  then proceeding with a lenghty compuation, but it's not good
+	  for code reading keys in a loop, like an input method.  */
 #ifdef HAVE_X_WINDOWS
   if (display_busy_cursor_p)
     start_busy_cursor ();
+#endif
 #endif
 
   if (i == -1)
