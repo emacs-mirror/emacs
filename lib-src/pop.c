@@ -18,15 +18,22 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#define NO_SHORTNAMES   /* Tell config not to load remap.h */
+#ifdef HAVE_CONFIG_H
+#define NO_SHORTNAMES	/* Tell config not to load remap.h */
 #include <../src/config.h>
-
-#under open
-#undef close
-#undef read
-#undef write
+#else
+#define MAIL_USE_POP
+#endif
 
 #ifdef MAIL_USE_POP
+
+#ifdef HAVE_CONFIG_H
+/* Cancel these substitutions made in config.h */
+#undef open
+#undef read
+#undef write
+#undef close
+#endif
 
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -35,7 +42,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef sun
 #include <malloc.h>
-#endif
+#endif /* sun */
 
 #ifdef HESIOD
 #include <hesiod.h>
@@ -53,11 +60,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <errno.h>
 #include <stdio.h>
 
-extern char *getenv (/* char * */);
-extern char *getlogin (/* void */);
-extern char *getpass (/* char * */);
-extern char *strerror (/* int */);
-
 #ifdef KERBEROS
 #ifndef KRB5
 #include <des.h>
@@ -67,15 +69,24 @@ extern char *strerror (/* int */);
 #include <krb5/ext-proto.h>
 #include <ctype.h>
 #endif /* KRB5 */
+#endif /* KERBEROS */
 
+extern char *getenv (/* char * */);
+extern char *getlogin (/* void */);
+extern char *getpass (/* char * */);
+extern char *strerror (/* int */);
+
+#ifdef KERBEROS
+#ifndef KRB5
 extern int krb_sendauth (/* long, int, KTEXT, char *, char *, char *,
-			 u_long, MSG_DAT *, CREDENTIALS *, Key_schedule,
-			 struct sockaddr_in *, struct sockaddr_in *,
-			 char * */);
+			    u_long, MSG_DAT *, CREDENTIALS *, Key_schedule,
+			    struct sockaddr_in *, struct sockaddr_in *,
+			    char * */);
 extern char *krb_realmofhost (/* char * */);
-#endif
+#endif /* ! KRB5 */
+#endif /* KERBEROS */
 
-#ifndef HAVE_H_ERRNO
+#if !defined(HAVE_H_ERRNO) || !defined(HAVE_CONFIG_H)
 extern int h_errno;
 #endif
 
@@ -88,8 +99,7 @@ static int getok (/* popserver */);
 static int gettermination (/* popserver */);
 #endif
 static void pop_trash (/* popserver */);
-
-static char *my_strstr ();
+static char *find_crlf (/* char * */);
 
 #define ERROR_MAX 80		/* a pretty arbitrary size */
 #define POP_PORT 110
@@ -1177,7 +1187,7 @@ getline (server)
      
   if (server->data)
     {
-      char *cp = my_strstr (server->buffer + server->buffer_index, "\r\n");
+      char *cp = find_crlf (server->buffer + server->buffer_index);
       if (cp)
 	{
 	  int found;
@@ -1241,7 +1251,7 @@ getline (server)
 	  server->data += ret;
 	  server->buffer[server->data] = '\0';
 	       
-	  cp = my_strstr (server->buffer, "\r\n");
+	  cp = find_crlf (server->buffer);
 	  if (cp)
 	    {
 	      int data_used = (cp + 2) - server->buffer;
@@ -1456,23 +1466,26 @@ pop_trash (server)
     }
 }
 
-/* Search in STRING for an occurrence of SUBSTRING
-   and return a pointer to that occurrence.
-   Return 0 if SUBSTRING does not occur in STRING.  */
+/* Return a pointer to the first CRLF in IN_STRING,
+   or 0 if it does not contain one.  */
 
 static char *
-my_strstr (string, substring)
-     char *string, *substring;
+find_crlf (in_string)
+     char *in_string;
 {
-  char *p = string;
-
-  while (*p)
+  while (1)
     {
-      if (!strcmp (p, substring))
-	return p;
-      p++;
+      if (! *in_string)
+	return (0);
+      else if (*in_string == '\r')
+	{
+	  if (*++in_string == '\n')
+	    return (in_string - 1);
+	}
+      else
+	in_string++;
     }
-  return 0;
+  /* NOTREACHED */
 }
 
 #endif /* MAIL_USE_POP */
