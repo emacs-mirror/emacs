@@ -1076,12 +1076,20 @@ prepare_image_for_display (f, img)
    drawn in face FACE.  */
 
 int
-image_ascent (img, face)
+image_ascent (img, face, slice)
      struct image *img;
      struct face *face;
+     struct glyph_slice *slice;
 {
-  int height = img->height + img->vmargin;
+  int height;
   int ascent;
+
+  if (slice->height == img->height)
+    height = img->height + img->vmargin;
+  else if (slice->y == 0)
+    height = slice->height + img->vmargin;
+  else
+    height = slice->height;
 
   if (img->ascent == CENTERED_IMAGE_ASCENT)
     {
