@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!40.c(trunk.4) $
  summary =  check tagged roots are scanned correctly
  language = c
  link = testlib.o exfmt.o
@@ -12,6 +12,7 @@ END_HEADER
 #include "exfmt.h"
 
 void *stackpointer;
+
 
 static void test(void)
 {
@@ -46,7 +47,7 @@ static void test(void)
 
  cdie(
   mps_root_create_table_masked(&root, space, MPS_RANK_EXACT,
-   0, &z[0], 100, 0x4),
+   0, (mps_addr_t*)&z[0], 100, 0x4),
   "create table root");
 
  cdie(
@@ -96,8 +97,8 @@ static void test(void)
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
