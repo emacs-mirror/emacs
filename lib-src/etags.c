@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.66";
+char pot_etags_version[] = "@(#) pot revision number is 11.71";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -450,7 +450,9 @@ Fortran is tried first; if no tags are found, C is tried next.");
 void
 print_version ()
 {
-  printf ("%s for Emacs version %s\n", (CTAGS) ? "ctags" : "etags", VERSION);
+  printf ("%s (GNU Emacs %s)\n", (CTAGS) ? "ctags" : "etags", VERSION);
+  puts ("Copyright (C) 1996 Free Software Foundation, Inc. and Ken Arnold");
+  puts ("This program is distributed under the same terms as Emacs");
 
   exit (GOOD);
 }
@@ -548,6 +550,9 @@ are.  Relative ones are stored relative to the output file's directory.");
         Print this help message.");
 
   print_language_names ();
+
+  puts ("");
+  puts ("Report bugs to bug-gnu-emacs@prep.ai.mit.edu");
 
   exit (GOOD);
 }
@@ -947,9 +952,6 @@ main (argc, argv)
      because we want them ordered.  Let's do it now. */
   if (cxref_style)
     {
-      tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
-      if (tagf == NULL)
-	pfatal (tagfile);
       put_entries (head);
       exit (GOOD);
     }
@@ -982,7 +984,7 @@ main (argc, argv)
       sprintf (cmd, "sort %s -o %s", tagfile, tagfile);
       exit (system (cmd));
     }
-  exit (GOOD);
+  return GOOD;
 }
 
 
@@ -4106,11 +4108,11 @@ readline_internal (linebuffer, stream)
 	    {
 	      *--p = '\0';
 #ifdef DOS_NT
-	      /* Assume CRLF->LF translation will be performed by Emacs
-		 when loading this file, so CRs won't appear in the buffer.
-		 It would be cleaner to compensate within Emacs;
-		 however, Emacs does not know how many CRs were deleted
-		 before any given point in the file.  */
+	     /* Assume CRLF->LF translation will be performed by Emacs
+		when loading this file, so CRs won't appear in the buffer.
+		It would be cleaner to compensate within Emacs;
+		however, Emacs does not know how many CRs were deleted
+		before any given point in the file.  */
 	      chars_deleted = 1;
 #else
 	      chars_deleted = 2;
