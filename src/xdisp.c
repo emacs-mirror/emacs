@@ -1563,20 +1563,18 @@ copy_rope (t, s, from)
   return t;
 }
 
-/* Similar but copy at most LEN glyphs.  */
+/* Copy exactly LEN glyphs from FROM into data at T.
+   But don't alter words before S.  */
 
 GLYPH *
 copy_part_of_rope (t, s, from, len)
      register GLYPH *t; /* Copy to here. */
      register GLYPH *s; /* Starting point. */
-     Lisp_Object from;    /* Data to copy; known to be a vector.  */
+     Lisp_Object *from;    /* Data to copy; known to be a vector.  */
      int len;
 {
-  register int n = XVECTOR (from)->size;
-  register Lisp_Object *f = XVECTOR (from)->contents;
-
-  if (n > len)
-    n = len;
+  int n = len;
+  register Lisp_Object *f = from;
 
   while (n--)
     {
@@ -1636,14 +1634,24 @@ display_text_line (w, start, vpos, hpos, taboffset)
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
 	: !NILP (current_buffer->selective_display) ? -1 : 0;
-#ifndef old
-  int selective_e = selective && !NILP (current_buffer->selective_display_ellipses);
-#endif
   register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
   register struct Lisp_Vector *dp = window_display_table (w);
+
+  Lisp_Object default_invis_vector[3];
+  /* Nonzero means display something where there are invisible lines.
+     The precise value is the number of glyphs to display.  */
   int selective_rlen
     = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
-       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
+       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size
+       : selective && !NILP (current_buffer->selective_display_ellipses)
+       ? 3 : 0);
+  /* This is the sequence of Lisp objects to display
+     when there are invisible lines.  */
+  Lisp_Object *invis_vector_contents
+    = (dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
+       ? XVECTOR (DISP_INVIS_VECTOR (dp))->contents
+       : default_invis_vector);
+
   GLYPH truncator = (dp == 0 || XTYPE (DISP_TRUNC_GLYPH (dp)) != Lisp_Int
 		    ? '$' : XINT (DISP_TRUNC_GLYPH (dp)));
   GLYPH continuer = (dp == 0 || XTYPE (DISP_CONTINUE_GLYPH (dp)) != Lisp_Int
@@ -1655,6 +1663,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
   /* The face we're currently using.  */
   int current_face;
+
+  XFASTINT (default_invis_vector[2]) = '.';
+  default_invis_vector[0] = default_invis_vector[1] = default_invis_vector[2];
 
   hpos += XFASTINT (w->left);
   get_display_line (f, vpos, XFASTINT (w->left));
@@ -1747,15 +1758,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      p1 += selective_rlen;
 	      if (p1 - startp > width)
 		p1 = endp;
-	      copy_part_of_rope (p1prev, p1prev,
-				 XVECTOR (DISP_INVIS_VECTOR (dp))->contents,
+	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev));
 	    }
-
-	  /* This assures we'll exit the loop, but still gives us a chance to
-	     apply current_face to the glyphs we've laid down.  */
-	  end = pos;
-	  pause = end;
+	  break;
 	}
       else if (c == '\t')
 	{
@@ -1778,12 +1784,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      p1 += selective_rlen;
 	      if (p1 - startp > width)
 		p1 = endp;
-	      copy_part_of_rope (p1prev, p1prev,
-				 XVECTOR(DISP_INVIS_VECTOR (dp))->contents,
+	      copy_part_of_rope (p1prev, p1prev, invis_vector_contents,
 				 (p1 - p1prev));
 	    }
-	  end = pos;
-	  pause = end;
+	  break;
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	{
@@ -1839,6 +1843,26 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
       pos++;
     }
+
+#ifdef HAVE_X_WINDOWS
+  /* If we exited the above loop at end of line,
+     we may have laid down some characters between p1prev and p1.
+     If so, apply current_face to those who have a face of zero
+     (the default), and apply Vglyph_table to the result.  */
+  if (current_face)
+    {
+      GLYPH *gstart, *gp, *gend;
+
+      gstart = (p1prev > startp) ? p1prev : startp;
+      gend   = (p1     < endp)   ? p1     : endp;
+
+      for (gp = gstart; gp < gend; gp++)
+	*gp = MAKE_GLYPH (GLYPH_CHAR (*gp),
+			  (GLYPH_FACE (*gp) == 0
+			   ? current_face
+			   : compute_glyph_face (f, GLYPH_FACE (*gp))));
+    }
+#endif
 
   val.hpos = - XINT (w->hscroll);
   if (val.hpos)
