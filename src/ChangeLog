@@ -1,3 +1,8 @@
+2000-12-06  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): If FRAME is `t',
+	update `default-frame-alist' instead of setting no frame parameters.
+
 2000-12-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.c (update_compositions): Fix typo (use the correct
