@@ -194,7 +194,21 @@ cd ..
 :oldx1
 rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
-If "%DJGPP_VER%" == "2" copy msdos\mainmake.v2 makefile >nul
+If "%DJGPP_VER%" == "1" goto mainv1
+Echo Looking for the GDB init file...
+If Exist src\_gdbinit goto gdbinitOk
+Echo ERROR:
+Echo I cannot find the GDB init file.  It was called ".gdbinit" in
+Echo the Emacs distribution, but was probably renamed to some other
+Echo name without the leading dot when you untarred the archive.
+Echo It should be in the "src/" subdirectory.  Please make sure this
+Echo file exists and is called "_gdbinit" with a leading underscore.
+Echo Then run CONFIG.BAT again with the same arguments you did now.
+goto End
+:gdbinitOk
+Echo Looking for the GDB init file...found
+copy msdos\mainmake.v2 makefile >nul
+:mainv1
 If "%DJGPP_VER%" == "1" copy msdos\mainmake makefile >nul
 rem   ----------------------------------------------------------------------
 :end
