@@ -432,13 +432,8 @@ MODE is the major mode."
 			       (buffer-file-name)
 			       (buffer-name)
 			       major-mode
-			       (let (ret)
-				 (mapcar #'(lambda (minor-mode)
-					     (and (symbol-value minor-mode)
-						  (setq ret (cons minor-mode
-								  ret))))
-					 (mapcar #'car minor-mode-alist))
-				 ret)
+			       (list	; list explaining minor modes
+				(not (null auto-fill-function)))
 			       (point)
 			       (list (mark t) mark-active)
 			       buffer-read-only
@@ -606,9 +601,7 @@ to provide correct modes for autoloaded files."
       (set-buffer result)
       (if (not (equal (buffer-name) desktop-buffer-name))
 	  (rename-buffer desktop-buffer-name))
-      (cond ((equal '(t) mim)   (auto-fill-mode 1))	; backwards compatible
-	    ((equal '(nil) mim) (auto-fill-mode 0))
-	    (t (mapcar #'(lambda (minor-mode) (funcall minor-mode 1)) mim)))
+      (auto-fill-mode (if (nth 0 mim) 1 0))
       (goto-char pt)
       (if (consp mk)
 	  (progn
