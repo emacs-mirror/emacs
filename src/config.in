@@ -111,6 +111,8 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to support Kerberos-authenticated POP mail retrieval.  */
 #undef KERBEROS
+/* Define to use Kerberos 5 instead of Kerberos 4 */
+#undef KERBEROS5
 
 /* Define to support using a Hesiod database to find the POP server.  */
 #undef HESIOD
@@ -137,8 +139,25 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_LIBRESOLV
 #undef HAVE_LIBXMU
 #undef HAVE_LIBNCURSES
+
+/* movemail Kerberos support */
+/* libraries */
 #undef HAVE_LIBKRB
+#undef HAVE_LIBKRB4
 #undef HAVE_LIBDES
+#undef HAVE_LIBDES425
+#undef HAVE_LIBKRB5
+#undef HAVE_LIBCRYPTO
+#undef HAVE_LIBCOM_ERR
+/* header files */
+#undef HAVE_KRB5_H
+#undef HAVE_DES_H
+#undef HAVE_KRB_H
+#undef HAVE_KERBEROSIV_DES_H
+#undef HAVE_KERBEROSIV_KRB_H
+#undef HAVE_KERBEROS_DES_H
+#undef HAVE_KERBEROS_KRB_H
+#undef HAVE_COM_ERR_H
 
 /* Mail-file locking */
 #undef HAVE_LIBMAIL
