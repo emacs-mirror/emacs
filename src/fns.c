@@ -2353,7 +2353,7 @@ See also the documentation of make-char.")
 
   /* Even if C is not a generic char, we had better behave as if a
      generic char is specified.  */
-  if (CHARSET_DIMENSION (charset) == 1)
+  if (!CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1)
     code1 = 0;
   temp = XCHAR_TABLE (char_table)->contents[charset + 128];
   if (!code1)

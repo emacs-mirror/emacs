@@ -1,3 +1,8 @@
+2001-07-18  Ken Raeburn  <raeburn@gnu.org>
+
+	* fns.c (Fset_char_table_default): Check that a charset is defined
+	before checking its dimension.
+
 2001-07-17  Ken Raeburn  <raeburn@gnu.org>
 
 	* coding.c (setup_coding_system): Don't do any designation based
