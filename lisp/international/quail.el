@@ -635,7 +635,7 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
 (defconst quail-keyboard-layout-len 180)
 
 ;; Here we provide several examples of famous keyboard layouts.
-
+;; This is a candidate for a language environment-dependent setting.
 (defvar quail-keyboard-layout-alist
   (list
    (cons "standard" quail-keyboard-layout-standard)
@@ -1270,14 +1270,14 @@ The returned value is a Quail map specific to KEY."
 Do so while interleaving with the following special events:
 \(compose-last-chars LEN COMPONENTS)
 \(quail-advice INPUT-STRING)"
-  (let* ((events
-	  (mapcar (lambda (c)
+  (let* ((events (mapcar
+		  (lambda (c)
 		    ;; This gives us the chance to unify on input
 		    ;; (e.g. using ucs-tables.el).
 		    (or (and translation-table-for-input
 			     (aref translation-table-for-input c))
 			c))
-		  (string-to-list str)))
+		  str))
 	 (len (length str))
 	 (idx len)
 	 composition from to)
