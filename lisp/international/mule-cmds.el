@@ -926,13 +926,33 @@ at the risk of losing the problematic characters.\n")))
 			 (goto-char (point-min))
 			 (set-auto-coding (or file buffer-file-name "")
 					  (buffer-size))))))
-	(if (and auto-cs coding-system
+	;; Merge coding-system and auto-cs as far as possible.
+	(if (not coding-system)
+	    (setq coding-system auto-cs)
+	  (if (not auto-cs)
+	      (setq auto-cs coding-system)
+	    (let ((eol-type-1 (coding-system-eol-type coding-system))
+		  (eol-type-2 (coding-system-eol-type auto-cs)))
+	    (if (eq (coding-system-base coding-system) 'undecided)
+		(setq coding-system (coding-system-change-text-conversion
+				     coding-system auto-cs))
+	      (if (eq (coding-system-base auto-cs) 'undecided)
+		  (setq auto-cs (coding-system-change-text-conversion
+				 auto-cs coding-system))))
+	    (if (vectorp eol-type-1)
+		(or (vectorp eol-type-2)
+		    (setq coding-system (coding-system-change-eol-conversion
+					 coding-system eol-type-2)))
+	      (if (vectorp eol-type-2)
+		  (setq auto-cs (coding-system-change-eol-conversion
+				 auto-cs eol-type-1)))))))
+
+	(if (and auto-cs
 		 ;; Don't barf if writing a compressed file, say.
 		 ;; This check perhaps isn't ideal, but is probably
 		 ;; the best thing to do.
 		 (not (auto-coding-alist-lookup (or file buffer-file-name "")))
-		 (not (coding-system-equal (coding-system-base coding-system)
-					   (coding-system-base auto-cs))))
+		 (not (coding-system-equal coding-system auto-cs)))
 	    (unless (yes-or-no-p
 		     (format "Selected encoding %s disagrees with \
 %s specified by file contents.  Really save (else edit coding cookies \
