@@ -240,14 +240,14 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
+compile: subdirs.el compile-$(SHELLTYPE) doit
 
-compile-files-CMD:
+compile-CMD:
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
 	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
 	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
 
-compile-files-SH:
+compile-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
@@ -305,7 +305,7 @@ backup-compiled-files:
 
 # Compile Lisp files, but save old compiled files first.
 
-compile: backup-compiled-files compile-files
+compile-after-backup: backup-compiled-files compile-always
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
@@ -334,7 +334,7 @@ bootstrap-clean-SH:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: autoloads compile-files finder-data custom-deps
+bootstrap: update-subdirs autoloads compile finder-data custom-deps
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
