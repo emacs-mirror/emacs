@@ -83,6 +83,11 @@
   :prefix "rmail-"
   :group 'rmail)
 
+(defgroup rmail-edit nil
+  "Rmail editing."
+  :prefix "rmail-edit-"
+  :group 'rmail)
+
 
 (defcustom rmail-movemail-program nil
   "If non-nil, name of program for fetching new mail."
