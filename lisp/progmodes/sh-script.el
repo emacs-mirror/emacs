@@ -633,6 +633,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'comint-prompt-regexp)
   (make-local-variable 'font-lock-keywords-case-fold-search)
   (make-local-variable 'skeleton-filter)
+  (make-local-variable 'skeleton-newline-indent-rigidly)
   (make-local-variable 'process-environment)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
@@ -651,7 +652,8 @@ with your script for an edit-interpret-debug cycle."
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
 						(current-column)))))
-	skeleton-filter 'sh-feature)
+	skeleton-filter 'sh-feature
+	skeleton-newline-indent-rigidly t)
   ;; parse or insert magic number for exec() and set all variables depending
   ;; on the shell thus determined
   (goto-char (point-min))
@@ -688,7 +690,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	       (,(sh-feature sh-assignment-regexp)
 		1 font-lock-variable-name-face)
 	       ,@(if font-lock-maximum-decoration
-		     `((,(concat "\\(^\\|[|&;()]\\)[ \t]*\\(\\(\\("
+		     `((,(concat "\\(^\\|[|&;()`!]\\)[ \t]*\\(\\(\\("
 				 (mapconcat 'identity
 					    (sh-feature sh-leading-keywords)
 					    "\\|")
@@ -1291,20 +1293,17 @@ The document is bounded by `sh-here-document-word'."
 
 
 
-(defun sh-newline-and-indent (&optional arg)
-  "Strip unquoted whitespace, insert newline, and indent like current line.
-Unquoted whitespace is stripped from the current line's end, unless a
-prefix ARG is given."
-  (interactive "*P")
-  (let ((previous (current-indentation)))
-    (if arg ()
-      (just-one-space)
-      (backward-char)
-      (if (sh-quoted-p)
-	  (forward-char)
-	(delete-char 1)))
-    (newline)
-    (indent-to previous)))
+(defun sh-newline-and-indent ()
+  "Strip unquoted whitespace, insert newline, and indent like current line."
+  (interactive "*")
+  (indent-to (prog1 (current-indentation)
+	       (delete-region (point)
+			      (progn
+				(or (zerop (skip-chars-backward " \t"))
+				    (if (sh-quoted-p)
+					(forward-char)))
+				(point)))
+	       (newline))))
 
 
 
