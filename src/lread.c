@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifndef standalone
 #include "buffer.h"
+#include "charset.h"
 #include <paths.h>
 #include "commands.h"
 #include "keyboard.h"
@@ -109,6 +110,10 @@ Lisp_Object read_objects;
 /* Nonzero means load should forcibly load all dynamic doc strings.  */
 static int load_force_doc_strings;
 
+/* Function to use for loading an Emacs lisp source file (not
+   compiled) instead of readevalloop.  */
+Lisp_Object Vload_source_file_function;
+
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
 
@@ -139,7 +144,11 @@ static int new_backquote_flag;
 
 /* Handle unreading and rereading of characters.
    Write READCHAR to read a character,
-   UNREAD(c) to unread c to be read again. */
+   UNREAD(c) to unread c to be read again.
+
+   These macros actually read/unread a byte code, multibyte characters
+   are not handled here.  The caller should manage them if necessary.
+ */
 
 #define READCHAR readchar (readcharfun)
 #define UNREAD(c) unreadchar (readcharfun, c)
@@ -467,6 +476,17 @@ Return t if file exists.")
 		     XSTRING (found)->data);
 	}
       XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
+    }
+  else
+    {
+      /* We are loading a source file (*.el).  */
+      if (!NILP (Vload_source_file_function))
+	{
+	  close (fd);
+	  return call3 (Vload_source_file_function, found, file,
+			NILP (noerror) ? Qnil : Qt,
+			NILP (nomessage) ? Qnil : Qt);
+	}
     }
 
 #ifdef DOS_NT
@@ -1085,6 +1105,27 @@ read0 (readcharfun)
 static int read_buffer_size;
 static char *read_buffer;
 
+/* Read multibyte form and return it as a character.  C is a first
+   byte of multibyte form, and rest of them are read from
+   READCHARFUN.  */
+static int
+read_multibyte (c, readcharfun)
+     register int c;
+     Lisp_Object readcharfun;
+{
+  /* We need the actual character code of this multibyte
+     characters.  */
+  unsigned char str[MAX_LENGTH_OF_MULTI_BYTE_FORM];
+  int len = 0;
+
+  str[len++] = c;
+  while ((c = READCHAR) >= 0xA0
+	 && len < MAX_LENGTH_OF_MULTI_BYTE_FORM)
+    str[len++] = c;
+  UNREAD (c);
+  return STRING_CHAR (str, len);
+}
+
 static int
 read_escape (readcharfun)
      Lisp_Object readcharfun;
@@ -1239,6 +1280,8 @@ read_escape (readcharfun)
       }
 
     default:
+      if (BASE_LEADING_CODE_P (c))
+	c = read_multibyte (c, readcharfun);
       return c;
     }
 }
@@ -1523,9 +1566,10 @@ read1 (readcharfun, pch, first_in_list)
 	if (c < 0) return Fsignal (Qend_of_file, Qnil);
 
 	if (c == '\\')
-	  XSETINT (val, read_escape (readcharfun));
-	else
-	  XSETINT (val, c);
+	  c = read_escape (readcharfun);
+	else if (BASE_LEADING_CODE_P (c))
+	  c = read_multibyte (c, readcharfun);
+	XSETINT (val, c);
 
 	return val;
       }
@@ -2595,6 +2639,15 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
     "Function used by `load' and `eval-region' for reading expressions.\n\
 The default is nil, which means use the function `read'.");
   Vload_read_function = Qnil;
+
+  DEFVAR_LISP ("load-source-file-function", &Vload_source_file_function,
+    "Function called in `load' for loading an Emacs lisp source file.\n\
+This function is for doing code conversion before reading the source file.\n\
+If nil, loading is done without any code conversion.\n\
+Arguments are FULLNAME, FILE, NOERROR, NOMESSAGE, where\n\
+ FULLNAME is the full name of FILE.\n\
+See `load' for the meaning of the remaining arguments.");
+  Vload_source_file_function = Qnil;
 
   DEFVAR_BOOL ("load-force-doc-strings", &load_force_doc_strings,
      "Non-nil means `load' should force-load all dynamic doc strings.\n\
