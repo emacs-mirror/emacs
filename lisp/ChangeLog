@@ -1,5 +1,15 @@
 2001-11-25  Richard M. Stallman  <rms@gnu.org>
 
+	* international/quail.el (quail-keyboard-layout-button):
+	Define button type.
+	(quail-keyboard-customize-button): Likewise.
+	(quail-help): Use those button types.  Require `help-mode'.
+	Avoid altering the argument `package'.
+
+	* help-mode.el (help-function, help-variable, help-face)
+	(help-coding-system, help-input-method, help-character-set):
+	Define each button type with its own explicit define-button-type.
+
 	* language/devan-util.el: Comment out parts of the file
 	which apparently are garbled.
 
