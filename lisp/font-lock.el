@@ -2244,7 +2244,7 @@ See also `c-font-lock-extra-types'.")
 (let* ((c-keywords
 	(eval-when-compile
 	  (regexp-opt '("break" "continue" "do" "else" "for" "if" "return"
-			"switch" "while") t)))
+			"switch" "while" "sizeof") t)))
        (c-type-types
 	`(mapconcat 'identity
 	  (cons 
@@ -2420,13 +2420,15 @@ See also `c++-font-lock-extra-types'.")
 	  (cons 
 	   (,@ (eval-when-compile
 		 (regexp-opt
-		  '("auto" "extern" "register" "static" "typedef" "struct"
+		  '("extern" "auto" "register" "static" "typedef" "struct"
 		    "union" "enum" "signed" "unsigned" "short" "long"
 		    "int" "char" "float" "double" "void" "volatile" "const"
 		    "inline" "friend" "bool" "virtual" "complex" "template"
 		    "namespace" "using"
 		    ;; Mark Mitchell <mmitchell@usa.net> says these are new.
-		    "explicit" "mutable"))))
+		    "explicit" "mutable"
+		    ;; Branko Cibej <branko.cibej@hermes.si> suggests this.
+		    "export"))))
 	   c++-font-lock-extra-types)
 	  "\\|"))
        ;;
@@ -2450,7 +2452,8 @@ See also `c++-font-lock-extra-types'.")
    (list
     ;;
     ;; Class names etc.
-    (list (concat "\\<\\(class\\|public\\|private\\|protected\\)\\>[ \t]*"
+    (list (concat "\\<\\(class\\|public\\|private\\|protected\\|typename\\)\\>"
+		  "[ \t]*"
 		  "\\(" c++-type-spec "\\)?")
 	  '(1 font-lock-type-face)
 	  '(3 (if (match-beginning 6)
