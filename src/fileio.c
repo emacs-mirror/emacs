@@ -4229,7 +4229,8 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (STRINGP (start))
     {
       failure = 0 > a_write (desc, XSTRING (start)->data,
-			     XSTRING (start)->size, 0, &annotations, &coding);
+			     XSTRING (start)->size_byte, 0, &annotations,
+			     &coding);
       save_errno = errno;
     }
   else if (XINT (start) != XINT (end))
@@ -4477,7 +4478,7 @@ a_write (desc, addr, nbytes, bytepos, annot, coding)
   while (NILP (*annot) || CONSP (*annot))
     {
       tem = Fcar_safe (Fcar (*annot));
-      nextpos = 0;
+      nextpos = bytepos - 1;
       if (INTEGERP (tem))
 	nextpos = CHAR_TO_BYTE (XFASTINT (tem));
 
@@ -4498,7 +4499,7 @@ a_write (desc, addr, nbytes, bytepos, annot, coding)
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
-	  if (0 > e_write (desc, XSTRING (tem)->data, XSTRING (tem)->size,
+	  if (0 > e_write (desc, XSTRING (tem)->data, XSTRING (tem)->size_byte,
 			   coding))
 	    return -1;
 	}
