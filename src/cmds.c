@@ -154,7 +154,10 @@ DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line,
   0, 1, "p",
   "Move point to beginning of current line.\n\
 With argument N not nil or 1, move forward N - 1 lines first.\n\
-If scan reaches end of buffer, stop there without error.")
+If point reaches the beginning or end of buffer, it stops there.\n\
+This command does not move point across a field boundary\n\
+unless it would move beyond there to a different line.\n\
+If N is nil or 1, and point starts at a field boundary, point does not move.")
   (n)
      Lisp_Object n;
 {
@@ -172,7 +175,10 @@ DEFUN ("end-of-line", Fend_of_line, Send_of_line,
   0, 1, "p",
   "Move point to end of current line.\n\
 With argument N not nil or 1, move forward N - 1 lines first.\n\
-If scan reaches end of buffer, stop there without error.")
+If point reaches the beginning or end of buffer, it stops there.\n\
+This command does not move point across a field boundary\n\
+unless it would move beyond there to a different line.\n\
+If N is nil or 1, and point starts at a field boundary, point does not move.")
   (n)
      Lisp_Object n;
 {
