@@ -2096,11 +2096,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	return c;
 
       if (STRINGP (Vkeyboard_translate_table)
-	  && XSTRING (Vkeyboard_translate_table)->size > XFASTINT (c))
+	  && XSTRING (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
 	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[XFASTINT (c)]);
       else if ((VECTORP (Vkeyboard_translate_table)
-		&& XVECTOR (Vkeyboard_translate_table)->size > XFASTINT (c))
-	       || CHAR_TABLE_P (Vkeyboard_translate_table))
+		&& XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
+	       || (CHAR_TABLE_P (Vkeyboard_translate_table)
+		   && CHAR_TABLE_ORDINARY_SLOTS > (unsigned) XFASTINT (c)))
 	{
 	  Lisp_Object d;
 	  d = Faref (Vkeyboard_translate_table, c);
