@@ -144,8 +144,113 @@ followed by the first character of the construct.
   (setq comment-indent-function 'c-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+	'((m3-font-lock-keywords
+	   m3-font-lock-keywords-1 m3-font-lock-keywords-2)
+	  nil nil ((?_ . "w") (?. . "w")) nil
+	  ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	  ;(font-lock-comment-start-regexp . "(\\*")
+	  ))
   (run-hooks 'm2-mode-hook))
+
+;; Regexps written with help from Ron Forrester <ron@orcad.com>.
 
+(defconst m3-font-lock-keywords-1
+  '(
+    ;;
+    ;; Module definitions.
+    ("\\<\\(INTERFACE\\|MODULE\\|PROCEDURE\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+    ;;
+    ;; Import directives.
+    ("\\<\\(EXPORTS\\|FROM\\|IMPORT\\)\\>"
+     (1 font-lock-keyword-face)
+     (font-lock-match-c-style-declaration-item-and-skip-to-next
+      nil (goto-char (match-end 0))
+      (1 font-lock-reference-face)))
+    ;;
+    ;; Pragmas as warnings.
+    ("<\\*.*\\*>" . font-lock-warning-face)
+    )
+  "Subdued level highlighting for Modula-3 modes.")
+
+(defconst m3-font-lock-keywords-2
+  (append m3-font-lock-keywords-1
+   (eval-when-compile
+     (let ((m3-types
+;	    (make-regexp
+;	     '("INTEGER" "BITS" "BOOLEAN" "CARDINAL" "CHAR" "FLOAT"
+;	       "LONGREAL" "REAL" "REFANY" "ADDRESS" "ARRAY" "TEXT"))
+	    (concat "A\\(DDRESS\\|RRAY\\)\\|B\\(ITS\\|OOLEAN\\)\\|"
+		    "C\\(ARDINAL\\|HAR\\)\\|FLOAT\\|INTEGER\\|LONGREAL\\|"
+		    "RE\\(AL\\|FANY\\)\\|TEXT"))
+	   (m3-keywords
+;	    (make-regexp
+;	     '("AND" "ANY" "AS" "BEGIN" "BRANDED" "BY" "CASE" "CONST" "DIV"
+;	       "DO" "ELSE" "ELSIF" "EVAL" "EXCEPT" "EXIT" "EXTENDED" "FINALLY"
+;	       "FOR" "IF" "IN" "LOCK" "LOOP" "METHODS" "MOD" "MUTEX" "NOT"
+;	       "OBJECT" "OF" "OR" "OVERRIDES" "READONLY" "RECORD" "REF"
+;	       "REPEAT" "RETURN" "REVEAL" "ROOT" "SET" "THEN" "TO" "TRY"
+;	       "TYPE" "TYPECASE" "UNSAFE" "UNTIL" "UNTRACED" "VAR" "VALUE"
+;	       "WHILE" "WITH"))
+	    (concat "A\\(N[DY]\\|S\\)\\|B\\(EGIN\\|RANDED\\|Y\\)\\|"
+		    "C\\(ASE\\|ONST\\)\\|D\\(IV\\|O\\)\\|"
+		    "E\\(LS\\(E\\|IF\\)\\|VAL\\|"
+		    "X\\(CEPT\\|IT\\|TENDED\\)\\)\\|F\\(INALLY\\|OR\\)\\|"
+		    "I[FN]\\|LO\\(CK\\|OP\\)\\|M\\(ETHODS\\|OD\\|UTEX\\)\\|"
+		    "NOT\\|O\\([FR]\\|BJECT\\|VERRIDES\\)\\|"
+		    "R\\(E\\(ADONLY\\|CORD\\|F\\|PEAT\\|TURN\\|VEAL\\)\\|"
+		    "OOT\\)\\|SET\\|T\\(HEN\\|O\\|RY\\|YPE\\(\\|CASE\\)\\)\\|"
+		    "UN\\(SAFE\\|T\\(IL\\|RACED\\)\\)\\|VA\\(LUE\\|R\\)\\|"
+		    "W\\(HILE\\|ITH\\)"))
+	   (m3-builtins
+;	    (make-regexp
+;	     '("ABS" "ADR" "ADRSIZE" "BITSIZE" "BYTESIZE" "CEILING"
+;	       "DEC" "DISPOSE" "FIRST" "FLOOR" "INC" "ISTYPE" "LAST"
+;	       "LOOPHOLE" "MAX" "MIN" "NARROW" "NEW" "NUMBER" "ORD"
+;	       "ROUND" "SUBARRAY" "TRUNC" "TYPECODE" "VAL"))
+	    (concat "A\\(BS\\|DR\\(\\|SIZE\\)\\)\\|B\\(ITSIZE\\|YTESIZE\\)\\|"
+		    "CEILING\\|D\\(EC\\|ISPOSE\\)\\|F\\(IRST\\|LOOR\\)\\|"
+		    "I\\(NC\\|STYPE\\)\\|L\\(AST\\|OOPHOLE\\)\\|"
+		    "M\\(AX\\|IN\\)\\|N\\(ARROW\\|EW\\|UMBER\\)\\|ORD\\|"
+		    "ROUND\\|SUBARRAY\\|T\\(RUNC\\|YPECODE\\)\\|VAL"))
+	   )
+       (list
+	;;
+	;; Keywords except those fontified elsewhere.
+	(concat "\\<\\(" m3-keywords "\\)\\>")
+	;;
+	;; Builtins.
+	(cons (concat "\\<\\(" m3-builtins "\\)\\>") 'font-lock-builtin-face)
+	;;
+	;; Type names.
+	(cons (concat "\\<\\(" m3-types "\\)\\>") 'font-lock-type-face)
+	;;
+	;; Fontify tokens as function names.
+	'("\\<\\(END\\|EXCEPTION\\|RAISES?\\)\\>[ \t{]*"
+	  (1 font-lock-keyword-face)
+	  (font-lock-match-c-style-declaration-item-and-skip-to-next nil nil
+	   (1 font-lock-function-name-face)))
+	;;
+	;; Fontify constants as references.
+	'("\\<\\(FALSE\\|NIL\\|NULL\\|TRUE\\)\\>" . font-lock-reference-face)
+	))))
+  "Gaudy level highlighting for Modula-3 modes.")
+
+(defvar m3-font-lock-keywords m3-font-lock-keywords-1
+  "Default expressions to highlight in Modula-3 modes.")
+
+;; We don't actually have different keywords for Modula-2.  Volunteers?
+(defconst m2-font-lock-keywords-1 m3-font-lock-keywords-1
+  "Subdued level highlighting for Modula-2 modes.")
+
+(defconst m2-font-lock-keywords-2 m3-font-lock-keywords-2
+  "Gaudy level highlighting for Modula-2 modes.")
+
+(defvar m2-font-lock-keywords m2-font-lock-keywords-1
+  "Default expressions to highlight in Modula-2 modes.")
+
 (defun m2-newline ()
   "Insert a newline and indent following line like previous line."
   (interactive)
