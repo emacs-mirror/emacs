@@ -1173,6 +1173,12 @@ In either case, the output is inserted after point (leaving mark after it)."
 	       (car (cdr (cdr (process-command process))))
 	       (substring signal 0 -1))))
 
+(defvar shell-command-on-region-default-error-buffer nil
+  "*Name of buffer that `shell-command-on-region' uses for stderr.
+This buffer is used when `shell-command-on-region' is run interactively.
+A nil value for this variable means that output to stderr and stdout
+will be intermixed in the output stream.")
+
 (defun shell-command-on-region (start end command
 				      &optional output-buffer replace
 				      error-buffer)
@@ -1211,7 +1217,10 @@ around it.
 
 If optional sixth argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
-If it is nil, error output is mingled with regular output."
+If it is nil, error output is mingled with regular output.
+In an interactive call, the variable
+`shell-command-on-region-default-error-buffer' specifies the value
+of ERROR-BUFFER."
   (interactive (let ((string
 		      ;; Do this before calling region-beginning
 		      ;; and region-end, in case subprocess output
@@ -1224,96 +1233,97 @@ If it is nil, error output is mingled with regular output."
 		 (list (region-beginning) (region-end)
 		       string
 		       current-prefix-arg
-		       current-prefix-arg)))
+		       current-prefix-arg
+		       shell-command-on-region-default-error-buffer)))
   (let ((error-file
 	 (if error-buffer 
 	     (concat (file-name-directory temp-file-name-pattern)
 		     (make-temp-name "scor"))
 	   nil)))
-  (if (or replace
-	  (and output-buffer
-	       (not (or (bufferp output-buffer) (stringp output-buffer))))
-	  (equal (buffer-name (current-buffer)) "*Shell Command Output*"))
-      ;; Replace specified region with output from command.
-      (let ((swap (and replace (< start end))))
-	;; Don't muck with mark unless REPLACE says we should.
-	(goto-char start)
-	(and replace (push-mark))
-	(call-process-region start end shell-file-name t
-			     (if error-file
-				 (list t error-file)
-			       t)
-			     nil shell-command-switch command)
-	(let ((shell-buffer (get-buffer "*Shell Command Output*")))
-	  (and shell-buffer (not (eq shell-buffer (current-buffer)))
-	       (kill-buffer shell-buffer)))
-	;; Don't muck with mark unless REPLACE says we should.
-	(and replace swap (exchange-point-and-mark)))
-    ;; No prefix argument: put the output in a temp buffer,
-    ;; replacing its entire contents.
-    (let ((buffer (get-buffer-create
-		   (or output-buffer "*Shell Command Output*")))
-	  (success nil)
-          (exit-status nil))
-      (unwind-protect
-	  (if (eq buffer (current-buffer))
-	      ;; If the input is the same buffer as the output,
-	      ;; delete everything but the specified region,
-	      ;; then replace that region with the output.
-	      (progn (setq buffer-read-only nil)
-		     (delete-region (max start end) (point-max))
-		     (delete-region (point-min) (min start end))
-		     (setq exit-status
-                           (call-process-region (point-min) (point-max)
-                                                shell-file-name t 
-                                                (if error-file
-                                                    (list t error-file)
-                                                  t)
-                                                nil shell-command-switch command))
-		     (setq success t))
-	    ;; Clear the output buffer, then run the command with output there.
-	    (save-excursion
-	      (set-buffer buffer)
-	      (setq buffer-read-only nil)
-	      (erase-buffer))
-	    (setq exit-status
-                  (call-process-region start end shell-file-name nil
-                                       (if error-file
-                                           (list buffer error-file)
-                                         buffer)
-                                       nil shell-command-switch command))
-	    (setq success t))
-	;; Report the amount of output.
-	(let ((lines (save-excursion
-		       (set-buffer buffer)
-		       (if (= (buffer-size) 0)
-			   0
-			 (count-lines (point-min) (point-max))))))
-	  (cond ((= lines 0)
-		 (if success
-		     (message "(Shell command %sed with no output)"
-                              (if (equal 0 exit-status)
-                                  "succeed"
-                                "fail")))
-		 (kill-buffer buffer))
-		((and success (= lines 1))
-		 (message "%s"
-			  (save-excursion
-			    (set-buffer buffer)
-			    (goto-char (point-min))
-			    (buffer-substring (point)
-					      (progn (end-of-line) (point))))))
-		(t 
-		 (save-excursion
-		   (set-buffer buffer)
-		   (goto-char (point-min)))
-		 (display-buffer buffer)))))))
-  (if (and error-file (file-exists-p error-file))
-      (save-excursion
-	(set-buffer (get-buffer-create error-buffer))
-	;; Do no formatting while reading error file, for fear of looping.
-	(format-insert-file error-file nil)
-	(delete-file error-file)))))
+    (if (or replace
+	    (and output-buffer
+		 (not (or (bufferp output-buffer) (stringp output-buffer))))
+	    (equal (buffer-name (current-buffer)) "*Shell Command Output*"))
+	;; Replace specified region with output from command.
+	(let ((swap (and replace (< start end))))
+	  ;; Don't muck with mark unless REPLACE says we should.
+	  (goto-char start)
+	  (and replace (push-mark))
+	  (call-process-region start end shell-file-name t
+			       (if error-file
+				   (list t error-file)
+				 t)
+			       nil shell-command-switch command)
+	  (let ((shell-buffer (get-buffer "*Shell Command Output*")))
+	    (and shell-buffer (not (eq shell-buffer (current-buffer)))
+		 (kill-buffer shell-buffer)))
+	  ;; Don't muck with mark unless REPLACE says we should.
+	  (and replace swap (exchange-point-and-mark)))
+      ;; No prefix argument: put the output in a temp buffer,
+      ;; replacing its entire contents.
+      (let ((buffer (get-buffer-create
+		     (or output-buffer "*Shell Command Output*")))
+	    (success nil)
+	    (exit-status nil))
+	(unwind-protect
+	    (if (eq buffer (current-buffer))
+		;; If the input is the same buffer as the output,
+		;; delete everything but the specified region,
+		;; then replace that region with the output.
+		(progn (setq buffer-read-only nil)
+		       (delete-region (max start end) (point-max))
+		       (delete-region (point-min) (min start end))
+		       (setq exit-status
+			     (call-process-region (point-min) (point-max)
+						  shell-file-name t 
+						  (if error-file
+						      (list t error-file)
+						    t)
+						  nil shell-command-switch command))
+		       (setq success t))
+	      ;; Clear the output buffer, then run the command with output there.
+	      (save-excursion
+		(set-buffer buffer)
+		(setq buffer-read-only nil)
+		(erase-buffer))
+	      (setq exit-status
+		    (call-process-region start end shell-file-name nil
+					 (if error-file
+					     (list buffer error-file)
+					   buffer)
+					 nil shell-command-switch command))
+	      (setq success t))
+	  ;; Report the amount of output.
+	  (let ((lines (save-excursion
+			 (set-buffer buffer)
+			 (if (= (buffer-size) 0)
+			     0
+			   (count-lines (point-min) (point-max))))))
+	    (cond ((= lines 0)
+		   (if success
+		       (message "(Shell command %sed with no output)"
+				(if (equal 0 exit-status)
+				    "succeed"
+				  "fail")))
+		   (kill-buffer buffer))
+		  ((and success (= lines 1))
+		   (message "%s"
+			    (save-excursion
+			      (set-buffer buffer)
+			      (goto-char (point-min))
+			      (buffer-substring (point)
+						(progn (end-of-line) (point))))))
+		  (t 
+		   (save-excursion
+		     (set-buffer buffer)
+		     (goto-char (point-min)))
+		   (display-buffer buffer)))))))
+    (if (and error-file (file-exists-p error-file))
+	(save-excursion
+	  (set-buffer (get-buffer-create error-buffer))
+	  ;; Do no formatting while reading error file, for fear of looping.
+	  (format-insert-file error-file nil)
+	  (delete-file error-file)))))
        
 (defun shell-command-to-string (command)
   "Execute shell command COMMAND and return its output as a string."
