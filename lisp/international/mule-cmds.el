@@ -168,9 +168,9 @@ With arg, make them enable iff arg is positive."
 (defun universal-coding-system-argument ()
   "Execute an I/O command using the specified coding system."
   (interactive)
-  (let* ((coding-system (read-coding-system "Coding system: "))
+  (let* ((coding-system (read-coding-system "Coding system for following command: "))
 	 (keyseq (read-key-sequence
-		  (format "With coding system %s:" coding-system)))
+		  (format "Command to execute with %s:" coding-system)))
 	 (cmd (key-binding keyseq)))
     (let ((coding-system-for-read coding-system)
 	  (coding-system-for-write coding-system))
