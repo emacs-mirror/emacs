@@ -3418,7 +3418,7 @@ actually used.")
   int inserted = 0;
   register int how_much;
   register int unprocessed;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object handler, val, insval, orig_filename;
   Lisp_Object p;
@@ -4289,10 +4289,24 @@ actually used.")
   /* Decode file format */
   if (inserted > 0)
     {
+      int empty_undo_list_p = 0;
+      
+      /* If we're anyway going to discard undo information, don't
+	 record it in the first place.  The buffer's undo list at this
+	 point is either nil or t when visiting a file.  */
+      if (!NILP (visit))
+	{
+	  empty_undo_list_p = NILP (current_buffer->undo_list);
+	  current_buffer->undo_list = Qt;
+	}
+	  
       insval = call3 (Qformat_decode,
 		      Qnil, make_number (inserted), visit);
       CHECK_NUMBER (insval, 0);
       inserted = XFASTINT (insval);
+      
+      if (!NILP (visit))
+	current_buffer->undo_list = empty_undo_list_p ? Qnil : Qt;
     }
 
   if (set_coding_system)
