@@ -1,5 +1,8 @@
 2001-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_build_heuristic_mask): Use four_corners_best
+	instead of IMAGE_BACKGROUND.
+	
 	* xfns.c (four_corners_best): Reindent.
 
 	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
