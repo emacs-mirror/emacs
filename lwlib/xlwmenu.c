@@ -892,8 +892,8 @@ motion_event_is_in_menu (mw, ev, level, relative_pos)
      XPoint* relative_pos;
 {
   window_state* ws = &mw->menu.windows [level];
-  unsigned int x = level == 0 ? ws->x : ws->x + mw->menu.shadow_thickness;
-  unsigned int y = level == 0 ? ws->y : ws->y + mw->menu.shadow_thickness;
+  int x = level == 0 ? ws->x : ws->x + mw->menu.shadow_thickness;
+  int y = level == 0 ? ws->y : ws->y + mw->menu.shadow_thickness;
   relative_pos->x = ev->x_root - x;
   relative_pos->y = ev->y_root - y;
   return (x < ev->x_root && ev->x_root < x + ws->width
