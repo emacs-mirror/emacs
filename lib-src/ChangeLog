@@ -1,3 +1,7 @@
+2002-03-28  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (lisp): Move backquote.elc into emacs-lisp.
+
 2002-03-22  Paul Eggert  <eggert@twinsun.com>
 
 	* etags.c (main): Use `sort -o TAGFILE TAGFILE' instead of
