@@ -43,16 +43,14 @@ static HANDLE currentProcess;
 
 static void prepare_clock(void)
 {
-  me = GetCurrentProcess();
+  currentProcess = GetCurrentProcess();
 }
 
 static double my_clock(void)
 {
-    HANDLE me;
     FILETIME ctime, etime, ktime, utime;
     double dk, du;
-    me = GetCurrentProcess();
-    GetProcessTimes(me, &ctime, &etime, &ktime, &utime);
+    GetProcessTimes(currentProcess, &ctime, &etime, &ktime, &utime);
     dk = ktime.dwHighDateTime * 4096.0 * 1024.0 * 1024.0 + ktime.dwLowDateTime;
     dk /= 10.0;
     du = utime.dwHighDateTime * 4096.0 * 1024.0 * 1024.0 + utime.dwLowDateTime;
@@ -71,7 +69,7 @@ static void prepare_clock(void)
 {
 }
 
-static double myclock(void)
+static double my_clock(void)
 {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
@@ -98,8 +96,8 @@ static double clock_timing(void)
 
     t2 = 0.0;
     for (i=0; i<CLOCK_TESTS; ++i) {
-        t1 = myclock();
-        t2 += myclock()-t1;
+        t1 = my_clock();
+        t2 += my_clock()-t1;
     }
     return t2/CLOCK_TESTS;
 }
@@ -115,9 +113,9 @@ static mps_addr_t make(void)
 
   for(;;) {
       int commit_res;
-      double t1 = myclock();
+      double t1 = my_clock();
       MPS_RESERVE_BLOCK(res, p, ap, size);
-      t1 = myclock() - t1;
+      t1 = my_clock() - t1;
       alloc_time += t1;
       if (t1 > max_alloc_time)
           max_alloc_time = t1;
@@ -126,9 +124,9 @@ static mps_addr_t make(void)
       res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
       if(res)
           die(res, "dylan_init");
-      t1 = myclock();
+      t1 = my_clock();
       commit_res = mps_commit(ap,p,size);
-      t1 = myclock() - t1;
+      t1 = my_clock() - t1;
       alloc_time += t1;
       if (t1 > max_alloc_time)
           max_alloc_time = t1;
@@ -145,9 +143,9 @@ static mps_addr_t make(void)
 static void test_step(mps_arena_t arena)
 {
   mps_bool_t res;
-  double t1 = myclock();
+  double t1 = my_clock();
   res = mps_arena_step(arena, 0.1);
-  t1 = myclock() - t1;
+  t1 = my_clock() - t1;
   if (res) {
       if (t1 > max_step_time)
           max_step_time = t1;
