@@ -28,6 +28,7 @@ typedef struct _widget_info
   lw_callback		pre_activate_cb;
   lw_callback		selection_cb;
   lw_callback		post_activate_cb;
+  lw_callback		highlight_cb;
   struct _widget_instance*	instances;
   struct _widget_info*		next;
 } widget_info;
@@ -51,5 +52,6 @@ widget_value*
 lw_get_widget_value_for_widget ();
 
 widget_info *lw_get_widget_info ();
+widget_instance * lw_get_widget_instance ();
 
 #endif /* LWLIB_INTERNAL_H */
