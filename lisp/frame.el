@@ -229,8 +229,13 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	      (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
 		    default-frame-alist)))))
   
-  ;; Make tool-bar-mode and default-frame-alist consistent.
-  (when (boundp 'tool-bar-mode)
+  ;; Make tool-bar-mode and default-frame-alist consistent.  Don't do
+  ;; it in batch mode since that would leave a tool-bar-lines
+  ;; parameter in default-frame-alist in a dumped Emacs, which is not
+  ;; what we want.  For some reason, menu-bar-mode is not bound
+  ;; in this case, but tool-bar-mode is.
+  (when (and (boundp 'tool-bar-mode)
+	     (not noninteractive))
     (let ((default (assq 'tool-bar-lines default-frame-alist)))
       (if default
 	  (setq tool-bar-mode (not (eq (cdr default) 0)))
