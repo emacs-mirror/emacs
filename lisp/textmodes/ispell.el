@@ -709,6 +709,8 @@ You can set this variable in hooks in your init file -- eg:
 (defvar ispell-region-end (make-marker)
   "Marker that allows spelling continuations.")
 
+(defvar ispell-check-only nil
+  "If non-nil, `ispell-word' does not try to correct the word.")
 
 ;;; **********************************************************************
 ;;; **********************************************************************
@@ -776,6 +778,8 @@ or \\[ispell-region] to update the Ispell process."
 			  (funcall ispell-format-word word)
 			  (funcall ispell-format-word poss))))
 	    ((null poss) (message "Error in ispell process"))
+	    (ispell-check-only		; called from ispell minor mode.
+	     (beep))
 	    (t				; prompt for correct word.
 	     (unwind-protect
 		 (progn
@@ -1301,7 +1305,8 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
        (cond
 	((string-match "Lucid" emacs-version)
 	 'ispell-highlight-spelling-error-lucid)
-	((and (string-lessp "19" emacs-version) (featurep 'faces))
+	((and (string-lessp "19" emacs-version) (featurep 'faces)
+	      window-system)
 	 'ispell-highlight-spelling-error-overlay)
 	(t 'ispell-highlight-spelling-error-generic))))
 
@@ -1857,6 +1862,54 @@ Standard ispell choices are then available."
   (interactive)
   (ispell-complete-word t))
 
+;;; **********************************************************************
+;;; 			Ispell Minor Mode
+;;; **********************************************************************
+
+(defvar ispell-minor-mode nil
+  "Non-nil if Ispell minor mode is enabled.")
+;; Variable indicating that ispell minor mode is active.
+(make-variable-buffer-local 'ispell-minor-mode)
+
+(or (assq 'ispell-minor-mode minor-mode-alist)
+    (setq minor-mode-alist
+          (cons '(ispell-minor-mode " Spell") minor-mode-alist)))
+
+(defvar ispell-minor-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map " " 'ispell-minor-check)
+    (define-key map "\r" 'ispell-minor-check)
+    map)
+  "Keymap used for Ispell minor mode.")
+
+(or (not (boundp 'minor-mode-map-alist))
+    (assoc 'ispell-minor-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+          (cons (cons 'ispell-minor-mode ispell-minor-keymap)
+                minor-mode-map-alist)))
+
+;;;###autoload
+(defun ispell-minor-mode (&optional arg)
+  "Toggle Ispell minor mode.
+With prefix arg, turn Ispell minor mode on iff arg is positive.
+ 
+In Ispell minor mode, pressing SPC or RET
+warns you if the previous word is incorrectly spelled."
+  (interactive "P")
+  (setq ispell-minor-mode
+	(not (or (and (null arg) ispell-minor-mode)
+		 (<= (prefix-numeric-value arg) 0))))
+  (set-buffer-modified-p (buffer-modified-p)))
+ 
+(defun ispell-minor-check ()
+  ;; Check previous word then continue with the normal binding of this key.
+  (interactive "*")
+  (let ((ispell-minor-mode nil)
+	(ispell-check-only t))
+    (save-restriction
+      (narrow-to-region (point-min) (point))
+      (ispell-word nil t))
+    (call-interactively (key-binding (this-command-keys)))))
 
 ;;; **********************************************************************
 ;;; 			Ispell Message
