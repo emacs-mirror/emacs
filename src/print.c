@@ -169,42 +169,55 @@ glyph_to_str_cpy (glyphs, str)
 #define PRINTDECLARE						\
    struct buffer *old = current_buffer;				\
    int old_point = -1, start_point;				\
+   int specpdl_count = specpdl_ptr - specpdl;			\
+   int free_print_buffer = 0;					\
    Lisp_Object original
 
 #define PRINTPREPARE						\
    original = printcharfun;					\
    if (NILP (printcharfun)) printcharfun = Qt;			\
    if (BUFFERP (printcharfun))					\
-     { if (XBUFFER (printcharfun) != current_buffer)		\
+     {								\
+       if (XBUFFER (printcharfun) != current_buffer)		\
 	 Fset_buffer (printcharfun);				\
-       printcharfun = Qnil;}					\
+       printcharfun = Qnil;					\
+     }								\
    if (MARKERP (printcharfun))					\
-     { if (!(XMARKER (original)->buffer))			\
+     {								\
+       if (!(XMARKER (original)->buffer))			\
          error ("Marker does not point anywhere");		\
        if (XMARKER (original)->buffer != current_buffer)	\
          set_buffer_internal (XMARKER (original)->buffer);	\
        old_point = PT;						\
        SET_PT (marker_position (printcharfun));			\
        start_point = PT;					\
-       printcharfun = Qnil;}					\
+       printcharfun = Qnil;					\
+     }								\
    if (NILP (printcharfun))					\
      {								\
+       if (print_buffer != 0)					\
+	 record_unwind_protect (print_unwind,			\
+				make_string (print_buffer,	\
+					     print_buffer_pos)); \
+       else							\
+	 {							\
+           print_buffer_size = 1000;				\
+           print_buffer = (char *) xmalloc (print_buffer_size);	\
+	   free_print_buffer = 0;				\
+	 }							\
        print_buffer_pos = 0;					\
-       print_buffer_size = 1000;				\
-       print_buffer = (char *) xmalloc (print_buffer_size);	\
      }								\
-   else								\
-     print_buffer = 0;						\
    printed_gensyms = Qnil
 
 #define PRINTFINISH					\
    if (NILP (printcharfun))				\
      insert (print_buffer, print_buffer_pos);		\
-   if (print_buffer)					\
+   if (free_print_buffer)				\
      {							\
        free (print_buffer);				\
        print_buffer = 0;				\
      }							\
+   unbind_to (specpdl_count, Qnil);			\
    if (MARKERP (original))				\
      Fset_marker (original, make_number (PT), Qnil);	\
    if (old_point >= 0)					\
@@ -222,6 +235,15 @@ glyph_to_str_cpy (glyphs, str)
 #define PRINTFULLP()					\
  (EQ (printcharfun, Qt) && !noninteractive		\
   && printbufidx >= FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))))
+
+/* This is used to restore the saved contents of print_buffer
+   when there is a recursive call to print.  */
+static Lisp_Object
+print_unwind (saved_text)
+     Lisp_Object saved_text;
+{
+  bcopy (XSTRING (saved_text)->data, print_buffer, XSTRING (saved_text)->size);
+}
 
 /* Index of first unused element of FRAME_MESSAGE_BUF (mini_frame). */
 static int printbufidx;
@@ -856,8 +878,6 @@ print (obj, printcharfun, escapeflag)
   char buf[30];
 
   QUIT;
-  if (PRINTFULLP ())
-    return;
 
 #if 1  /* I'm not sure this is really worth doing.  */
   /* Detect circularities and truncate them.
