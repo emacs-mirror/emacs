@@ -216,7 +216,7 @@ EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`
 SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -294,6 +294,9 @@ man/Makefile: $(srcdir)/man/Makefile.in config.status
 	./config.status
 
 lispref/Makefile: $(srcdir)/lispref/Makefile.in config.status
+	./config.status
+
+lispintro/Makefile: $(srcdir)/lispintro/Makefile.in config.status
 	./config.status
 
 oldXMenu/Makefile: $(srcdir)/oldXMenu/Makefile.in config.status
@@ -535,6 +538,7 @@ mostlyclean: FRC
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd man &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
+	-(cd lispintro &&   $(MAKE) $(MFLAGS) mostlyclean)
 	(cd leim;     $(MAKE) $(MFLAGS) mostlyclean)
 
 ### `clean'
@@ -552,6 +556,7 @@ clean: FRC
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
+	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
 ### `distclean'
@@ -571,6 +576,7 @@ distclean: FRC
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd man &&    $(MAKE) $(MFLAGS) distclean)
 	(cd lispref &&    $(MAKE) $(MFLAGS) distclean)
+	(cd lispintro &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
@@ -593,6 +599,7 @@ maintainer-clean: FRC
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
@@ -630,6 +637,7 @@ unlock:
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd lispref; chmod u+w *texi* ChangeLog)
+	(cd lispintro; chmod u+w *texi* ChangeLog)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
 	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) unlock)
@@ -643,6 +651,7 @@ relock:
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd lispref; chmod u+w *texi* ChangeLog)
+	(cd lispintro; chmod u+w *texi* ChangeLog)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
 	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) relock)
@@ -666,9 +675,11 @@ force-info:
 info: force-info
 	(cd man; $(MAKE) $(MFLAGS) info)
 	(cd lispref; $(MAKE) $(MFLAGS) info)
+	(cd lispintro; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
 	(cd lispref; $(MAKE) $(MFLAGS) elisp.dvi)
+	(cd lispintro; $(MAKE) $(MFLAGS) emacs-lisp-intro.dvi)
 
 #### Bootstrapping.
 
