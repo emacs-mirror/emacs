@@ -1589,7 +1589,8 @@ regardless of the language.")
   ;; First try assuming `ls --dired' was used.
   (let ((change (next-single-property-change (point) 'dired-filename
 					     nil eol)))
-    (if change (goto-char change)
+    (if (and change (< change eol))
+	(goto-char change)
       (if (re-search-forward dired-move-to-filename-regexp eol t)
 	  (goto-char (match-end 0))
 	(if raise-error
