@@ -154,8 +154,8 @@
 	(NativeRectangle): Declare as Rect for Mac.
 	(CONVERT_TO_XRECT, CONVERT_FROM_XRECT, STORE_NATIVE_RECT): New macros.
 
-	* macfns.c (x_set_mouse_color): Setup hand_cursor instead of cross_cursor.
-	(x_set_cursor_color): Use x_display_and_set_cursor instead of x_display_cursor.
+	* macfns.c (x_set_mouse_color): Setup hand_cursor.
+	(x_set_cursor_color): Use x_display_and_set_cursor.
 
 	* Makefile.in (xdisp.o):  Add dependency on blockinput.h and files
 	included from it.  Add dependency on keymap.h.
