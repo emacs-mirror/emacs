@@ -472,6 +472,9 @@ skip_chars (forwardp, syntaxp, string, lim)
 	}
     }
 
+  if (syntaxp && fastmap['-'] != 0)
+    fastmap[' '] = 1;
+
   /* If ^ was the first character, complement the fastmap. */
 
   if (negate)
