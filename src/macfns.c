@@ -86,7 +86,7 @@ static unsigned char gray_bits[] = {
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #undef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
-#undef
+#undef init_process
 #define init_process emacs_init_process
 #else /* not MAC_OSX */
 #include <Windows.h>

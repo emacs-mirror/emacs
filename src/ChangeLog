@@ -1,5 +1,7 @@
 2002-07-31  Andrew Choi  <akochoi@shaw.ca>
 
+	* macfns.c: #undef init_process before #define-ing it.
+
 	* s/darwin.h: Define MAC_OS, SYMS_SYSTEM, and OTHER_FILES only if
 	HAVE_CARBON is defined.
 
