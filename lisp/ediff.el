@@ -1,13 +1,13 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.63" "The current version of Ediff")
-(defconst ediff-date "September 12, 1996" "Date of last update")  
+(defconst ediff-version "2.65" "The current version of Ediff")
+(defconst ediff-date "May 1, 1997" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -106,21 +106,40 @@
 
 ;;; Code:
 
-(require 'ediff-init)
-;; ediff-mult is always required, because of the registry stuff
-(require 'ediff-mult)
+(provide 'ediff)
 
+;; Compiler pacifier
 (and noninteractive
      (eval-when-compile
-       (let ((load-path (cons (expand-file-name ".") load-path)))
 	 (load-library "dired")
-	 (load-file "ediff-ptch.el")
-	 (load-file "ediff-vers.el")
-	 (load "pcl-cvs" 'noerror))))
+	 (load-library "info")
+	 (load "pcl-cvs" 'noerror)))
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'ediff-init)
+	(load "ediff-init.el" nil nil 'nosuffix))
+    (or (featurep 'ediff-mult)
+	(load "ediff-mult.el" nil nil 'nosuffix))
+    (or (featurep 'ediff-ptch)
+	(load "ediff-ptch.el" nil nil 'nosuffix))
+    (or (featurep 'ediff-vers)
+	(load "ediff-vers.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
 
-(defvar ediff-use-last-dir nil
-  "*If t, Ediff uses previous directory as default when reading file name.")
-  
+(require 'ediff-init)
+(require 'ediff-mult)  ; required because of the registry stuff
+
+(defgroup ediff nil
+  "A comprehensive visual interface to diff & patch"
+  :group 'tools)
+
+
+(defcustom ediff-use-last-dir nil
+  "*If t, Ediff uses previous directory as default when reading file name."
+  :type 'boolean
+  :group 'ediff)
+
 (defvar ediff-last-dir-A nil
   "Last directory used by an Ediff command for file-A.")
 (defvar ediff-last-dir-B nil
@@ -276,8 +295,8 @@
   
     (ediff-eval-in-buffer (symbol-value buffer-name)
       (widen) ; Make sure the entire file is seen
-      (cond (file-magic  ;; file has handler, such as jka-compr-handler or
-	     ;; ange-ftp-hook-function--arrange for temp file
+      (cond (file-magic  ;   file has a handler, such as jka-compr-handler or
+	     		 ;;; ange-ftp-hook-function--arrange for temp file
 	     (ediff-verify-file-buffer 'magic)
 	     (setq file
 		   (ediff-make-temp-file
@@ -767,7 +786,7 @@ If WIND-B is nil, use window next to WIND-A."
 	      end-B (window-end))))
     (ediff-regions-internal
      buffer-A beg-A end-A buffer-B beg-B end-B
-     startup-hooks job-name word-mode)))
+     startup-hooks job-name word-mode nil)))
      
 ;;;###autoload
 (defun ediff-regions-wordwise (buffer-A buffer-B &optional startup-hooks)
@@ -804,7 +823,7 @@ lines. For large regions, use `ediff-regions-linewise'."
     (ediff-regions-internal
      (get-buffer buffer-A) reg-A-beg reg-A-end
      (get-buffer buffer-B) reg-B-beg reg-B-end
-     startup-hooks 'ediff-regions-wordwise 'word-mode)))
+     startup-hooks 'ediff-regions-wordwise 'word-mode nil)))
      
 ;;;###autoload
 (defun ediff-regions-linewise (buffer-A buffer-B &optional startup-hooks)
@@ -864,7 +883,8 @@ lines. For small regions, use `ediff-regions-wordwise'."
 ;; compare region beg-A to end-A of buffer-A
 ;; to regions beg-B -- end-B in buffer-B. 
 (defun ediff-regions-internal (buffer-A beg-A end-A buffer-B beg-B end-B
-					startup-hooks job-name word-mode)
+					startup-hooks job-name word-mode
+					setup-parameters)
   (let ((tmp-buffer (get-buffer-create ediff-tmp-buffer))
 	overl-A overl-B
 	file-A file-B)
@@ -915,9 +935,11 @@ Continue anyway? (y/n) "))
 			    (delete-file (, file-A))
 			    (delete-file (, file-B))))
 		       startup-hooks)
-		 (list (cons 'ediff-word-mode  word-mode)
-		       (cons 'ediff-narrow-bounds (list overl-A overl-B))
-		       (cons 'ediff-job-name job-name))
+		 (append
+		  (list (cons 'ediff-word-mode  word-mode)
+			(cons 'ediff-narrow-bounds (list overl-A overl-B))
+			(cons 'ediff-job-name job-name))
+		  setup-parameters)
 		 )
     ))
     
@@ -1132,7 +1154,7 @@ buffer."
 ;;;###autoload
 (defun run-ediff-from-cvs-buffer (pos)
   "Run Ediff-merge on appropriate revisions of the selected file.
-First run after `M-x cvs-update'. Then place the cursor on a lide describing a
+First run after `M-x cvs-update'. Then place the cursor on a line describing a
 file and then run `run-ediff-from-cvs-buffer'."
   (interactive "d")
   (ediff-load-version-control)
@@ -1273,7 +1295,6 @@ With optional NODE, goes to that node."
 ;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-(provide 'ediff)
 (require 'ediff-util)
 
 ;;; ediff.el ends here

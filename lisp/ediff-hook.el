@@ -1,6 +1,6 @@
 ;;; ediff-hook.el --- setup for Ediff's menus and autoloads
 
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -25,6 +25,8 @@
 
 ;;;   These must be placed in menu-bar.el in Emacs
 ;;
+;;      (define-key menu-bar-tools-menu [ediff-misc]
+;;	'("Ediff Miscellanea" . menu-bar-ediff-misc-menu))
 ;;      (define-key menu-bar-tools-menu [epatch]
 ;;	'("Apply Patch" . menu-bar-epatch-menu))
 ;;      (define-key menu-bar-tools-menu [ediff-merge]
@@ -36,32 +38,24 @@
 (defvar ediff-menu)
 (defvar ediff-merge-menu)
 (defvar epatch-menu)
+(defvar ediff-misc-menu)
 ;; end pacifier
+
+;; allow menus to be set up without ediff-wind.el being loaded
+(defvar ediff-window-setup-function)
 
 
 (defun ediff-xemacs-init-menus ()
   (if (featurep 'menubar)
       (progn
-	(add-menu-button
-	 '("Tools")
-	 ["Use separate frame for Ediff control buffer"
-	  ediff-toggle-multiframe
-	  :style toggle
-	  :selected (eq ediff-window-setup-function 'ediff-setup-windows-multiframe)]
-	 "00-Browser...")
-	(add-menu-button
-	 '("Tools")
-	 ["Use a toolbar with Ediff control buffer"
-	  ediff-menu-toggle-use-toolbar
-	  :style toggle
-	  :selected (ediff-use-toolbar-p)]
-	 "00-Browser...")
 	(add-submenu
 	 '("Tools") ediff-menu "OO-Browser...")
 	(add-submenu
 	 '("Tools") ediff-merge-menu "OO-Browser...")
 	(add-submenu
 	 '("Tools") epatch-menu "OO-Browser...")
+	(add-submenu
+	 '("Tools") ediff-misc-menu "OO-Browser...")
 	(add-menu-button
 	 '("Tools")
 	 ["-------" nil nil] "OO-Browser...")
@@ -88,9 +82,6 @@
 	   "---"
 	   ["Regions Word-by-word..." ediff-regions-wordwise t]
 	   ["Regions Line-by-line..." ediff-regions-linewise t]
-	   "---"
-	   ["List Ediff Sessions..." ediff-show-registry t]
-	   ["Ediff Manual..." ediff-documentation t]
 	   ))
        (defvar ediff-merge-menu
 	 '("Merge"
@@ -110,17 +101,28 @@
 	   ["Directory Revisions..." ediff-merge-directory-revisions t]
 	   ["Directory Revisions with Ancestor..."
 	    ediff-merge-directory-revisions-with-ancestor t]
-	   "---"
-	   ["List Ediff Sessions..." ediff-show-registry t]
-	   ["Ediff Manual..." ediff-documentation t]
 	   ))
        (defvar epatch-menu
 	 '("Apply Patch"
 	   ["To a file..."  ediff-patch-file t]
 	   ["To a buffer..." ediff-patch-buffer t]
-	   "---"
-	   ["List Ediff Sessions..." ediff-show-registry t]
+	   ))
+       (defvar ediff-misc-menu
+	 '("Ediff Miscellanea"
 	   ["Ediff Manual..." ediff-documentation t]
+	   ["List Ediff Sessions..." ediff-show-registry t]
+	   ["Use separate frame for Ediff control buffer..."
+	    ediff-toggle-multiframe
+	    :style toggle
+	    :selected (if (and (featurep 'ediff-util)
+			       (boundp 'ediff-window-setup-function))
+			  (eq ediff-window-setup-function
+			      'ediff-setup-windows-multiframe))]
+	   ["Use a toolbar with Ediff control buffer"
+	    ediff-toggle-use-toolbar
+	    :style toggle
+	    :selected (if (featurep 'ediff-tbar)
+			  (ediff-use-toolbar-p))]
 	   ))
 
        ;; put these menus before Object-Oriented-Browser in Tools menu
@@ -132,6 +134,10 @@
       ;; Emacs--only if menu-bar is loaded
       ((featurep 'menu-bar)
        ;; initialize menu bar keymaps
+       (defvar menu-bar-ediff-misc-menu
+	 (make-sparse-keymap "Ediff Miscellanea"))
+       (fset 'menu-bar-ediff-misc-menu
+	     (symbol-value 'menu-bar-ediff-misc-menu))
        (defvar menu-bar-epatch-menu (make-sparse-keymap "Apply Patch"))
        (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
        (defvar menu-bar-ediff-merge-menu (make-sparse-keymap "Merge"))
@@ -141,14 +147,6 @@
        (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
 
        ;; define ediff-menu
-       (define-key menu-bar-ediff-menu [ediff-doc]
-	 '("Ediff Manual..." . ediff-documentation))
-       (define-key menu-bar-ediff-menu [emultiframe]
-	'("Toggle separate control buffer frame..."
-	  . ediff-toggle-multiframe))
-       (define-key menu-bar-ediff-menu [eregistry]
-	'("List Ediff Sessions..." . ediff-show-registry))
-       (define-key menu-bar-ediff-menu [separator-ediff-manual] '("--"))
        (define-key menu-bar-ediff-menu [window]
 	 '("This Window and Next Window" . compare-windows))
        (define-key menu-bar-ediff-menu [ediff-windows-linewise]
@@ -181,15 +179,6 @@
 	 '("Two Files..." . ediff-files))
 
        ;; define merge menu
-       (define-key menu-bar-ediff-merge-menu [ediff-doc2]
-	 '("Ediff Manual..." . ediff-documentation))
-       (define-key menu-bar-ediff-merge-menu [emultiframe2]
-	'("Toggle separate control buffer frame..."
-	  . ediff-toggle-multiframe))
-       (define-key menu-bar-ediff-merge-menu [eregistry2]
-	'("List Ediff Sessions..." . ediff-show-registry))
-       (define-key
-	 menu-bar-ediff-merge-menu [separator-ediff-merge-manual] '("--"))
        (define-key
 	 menu-bar-ediff-merge-menu [ediff-merge-dir-revisions-with-ancestor]
 	 '("Directory Revisions with Ancestor..."
@@ -223,18 +212,20 @@
 	 '("Files..." . ediff-merge-files))
 
        ;; define epatch menu
-       (define-key menu-bar-epatch-menu [ediff-doc3]
-	 '("Ediff Manual..." . ediff-documentation))
-       (define-key menu-bar-epatch-menu [emultiframe3]
-	'("Toggle separate control buffer frame..."
-	  . ediff-toggle-multiframe))
-       (define-key menu-bar-epatch-menu [eregistry3]
-	'("List Ediff Sessions..." . ediff-show-registry))
-       (define-key menu-bar-epatch-menu [separator-epatch] '("--"))
        (define-key menu-bar-epatch-menu [ediff-patch-buffer]
 	 '("To a Buffer..." . ediff-patch-buffer))
        (define-key menu-bar-epatch-menu [ediff-patch-file]
-	 '("To a File..." . ediff-patch-file)))
+	 '("To a File..." . ediff-patch-file))
+
+       ;; define ediff miscellanea
+       (define-key menu-bar-ediff-misc-menu [emultiframe]
+	 '("Toggle use of separate control buffer frame..."
+	   . ediff-toggle-multiframe))
+       (define-key menu-bar-ediff-misc-menu [eregistry]
+	 '("List Ediff Sessions..." . ediff-show-registry))
+       (define-key menu-bar-ediff-misc-menu [ediff-doc]
+	 '("Ediff Manual..." . ediff-documentation))
+       )
       
       ) ; cond
 
@@ -338,11 +329,11 @@
     "ediff-util"
     "Toggle the use of separate frame for Ediff control buffer."
     t)
-  (if (string-match "XEmacs" emacs-version)
-      (autoload 'ediff-toggle-use-toolbar
-	"ediff-tbar"
-	"Toggle the use of Ediff toolbar."
-	t))
+  (autoload 'ediff-toggle-use-toolbar
+    "ediff-util"
+    "Toggle the use of Ediff toolbar."
+    t)
+  
   ) ; if purify-flag
 
 

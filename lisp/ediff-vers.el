@@ -1,6 +1,6 @@
 ;;; ediff-vers.el --- version control interface to Ediff
 
-;;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -30,6 +30,7 @@
 (defvar cvs-shell)
 (defvar cvs-program)
 (defvar cvs-cookie-handle)
+(defvar ediff-temp-file-prefix)
 
 (and noninteractive
      (eval-when-compile

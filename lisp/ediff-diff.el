@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -23,10 +23,29 @@
 
 ;;; Code:
 
+(provide 'ediff-diff)
+
+;; compiler pacifier
+(defvar ediff-default-variant)
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'ediff-init)
+	(load "ediff-init.el" nil nil 'nosuffix))
+    (or (featurep 'ediff-util)
+	(load "ediff-util.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
+
 (require 'ediff-init)
 
+(defgroup ediff-diff nil
+  "Diff related utilities"
+  :prefix "ediff-"
+  :group 'ediff)
 
-(defvar ediff-shell
+
+(defcustom ediff-shell
   (cond ((eq system-type 'emx) "cmd") ; OS/2
 	((memq system-type '(ms-dos windows-nt windows-95))
 	 shell-file-name) ; no standard name on MS-DOS
@@ -36,37 +55,53 @@
 .cshrc files are set up correctly, any shell will do.  However, some people
 set $prompt or other things incorrectly, which leads to undesirable output
 messages.  These may cause Ediff to fail.  In such a case, set ediff-shell
-to a shell that you are not using or, better, fix your shell's startup file.")
+to a shell that you are not using or, better, fix your shell's startup file."
+  :type 'string
+  :group 'ediff-diff)
 
 
-(defvar ediff-diff-program "diff"
-  "*Program to use for generating the differential of the two files.")
-(defvar ediff-diff-options ""  
+(defcustom ediff-diff-program "diff"
+  "*Program to use for generating the differential of the two files."
+  :type 'string
+  :group 'ediff-diff)
+(defcustom ediff-diff-options ""  
   "*Options to pass to `ediff-diff-program'. 
 If diff\(1\) is used as `ediff-diff-program', then the most useful options are
 `-w', to ignore space, and `-i', to ignore case of letters.
 At present, the option `-c' is ignored, since Ediff doesn't understand this
-type of output.")
+type of output."
+  :type 'string
+  :group 'ediff-diff)
 
-(defvar ediff-custom-diff-program ediff-diff-program
+(defcustom ediff-custom-diff-program ediff-diff-program
   "*Program to use for generating custom diff output for saving it in a file.
-This output is not used by Ediff internally.")
-(defvar ediff-custom-diff-options "-c"
-  "*Options to pass to `ediff-custom-diff-program'.")
+This output is not used by Ediff internally."
+  :type 'string
+  :group 'ediff-diff)
+(defcustom ediff-custom-diff-options "-c"
+  "*Options to pass to `ediff-custom-diff-program'."
+  :type 'string
+  :group 'ediff-diff)
 
 ;;; Support for diff3
 
 (defvar ediff-match-diff3-line "^====\\(.?\\)$"
   "Pattern to match lines produced by diff3 that describe differences.")
-(defvar ediff-diff3-program "diff3"
+(defcustom ediff-diff3-program "diff3"
   "*Program to be used for three-way comparison.
-Must produce output compatible with Unix's diff3 program.")
-(defvar ediff-diff3-options ""  
-  "*Options to pass to `ediff-diff3-program'.")
-(defvar ediff-diff3-ok-lines-regexp
+Must produce output compatible with Unix's diff3 program."
+  :type 'string
+  :group 'ediff-diff)
+(defcustom ediff-diff3-options ""  
+  "*Options to pass to `ediff-diff3-program'."
+  :type 'string
+  :group 'ediff-diff)
+(defcustom ediff-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
   "*Regexp that matches normal output lines from `ediff-diff3-program'.
-Lines that do not match are assumed to be error messages.")
+Lines that do not match are assumed to be error messages."
+  :type 'regexp
+  :group 'ediff-diff)
 
 ;; keeps the status of the current diff in 3-way jobs.
 ;; the status can be =diff(A), =diff(B), or =diff(A+B)
@@ -551,13 +586,7 @@ one optional arguments, diff-number to refine.")
 	    (whitespace-C (ediff-whitespace-diff-region-p n 'C))
 	    cumulative-fine-diff-length)
 	
-	(cond ((and (eq flag 'noforce) (ediff-get-fine-diff-vector n 'A))
-	       ;; don't compute fine diffs if diff vector exists
-	       (if (ediff-no-fine-diffs-p n)
-		   ;;(ediff-message-if-verbose
-		   (message
-		    "Only white-space differences in region %d" (1+ n))))
-	      ;; If one of the regions is empty (or 2 in 3way comparison)
+	(cond ;; If one of the regions is empty (or 2 in 3way comparison)
 	      ;; then don't refine.
 	      ;; If the region happens to be entirely whitespace or empty then
 	      ;; mark as such.
@@ -586,6 +615,20 @@ one optional arguments, diff-number to refine.")
 		 ;; if some regions are white and others don't, then mark as
 		 ;; non-white-space-only
 		 (ediff-mark-diff-as-space-only n nil)))
+
+	      ;; don't compute fine diffs if diff vector exists
+	      ((and (eq flag 'noforce) (ediff-get-fine-diff-vector n 'A))
+	       (if (ediff-no-fine-diffs-p n)
+		   (message
+		    "Only white-space differences in region %d %s"
+		    (1+ n)
+		    (cond ((eq (ediff-no-fine-diffs-p n) 'A)
+			   "in buffers B & C")
+			  ((eq (ediff-no-fine-diffs-p n) 'B)
+			   "in buffers A & C")
+			  ((eq (ediff-no-fine-diffs-p n) 'C)
+			   "in buffers A & B")
+			  (t "")))))
 	      ;; don't compute fine diffs for this region
 	      ((eq flag 'skip)
 	       (or (ediff-get-fine-diff-vector n 'A)
@@ -666,13 +709,15 @@ one optional arguments, diff-number to refine.")
 		      (ediff-message-if-verbose
 		       "Only white-space differences in region %d" (1+ n)))
 		     ((eq cumulative-fine-diff-length 0)
-		      (ediff-mark-diff-as-space-only n t)
 		      (ediff-message-if-verbose
 		       "Only white-space differences in region %d %s"
 		       (1+ n)
-		       (cond (whitespace-A "in buffers B & C")
-			     (whitespace-B "in buffers A & C")
-			     (whitespace-C "in buffers A & B"))))
+		       (cond (whitespace-A (ediff-mark-diff-as-space-only n 'A)
+					   "in buffers B & C")
+			     (whitespace-B (ediff-mark-diff-as-space-only n 'B)
+					   "in buffers A & C")
+			     (whitespace-C (ediff-mark-diff-as-space-only n 'C)
+					   "in buffers A & B"))))
 		     (t 
 		      (ediff-mark-diff-as-space-only n nil)))
 	       )
@@ -1203,8 +1248,6 @@ argument to `skip-chars-forward'."
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(provide 'ediff-diff)
 
 
 ;; ediff-diff.el ends here

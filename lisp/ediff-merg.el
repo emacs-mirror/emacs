@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -23,14 +23,40 @@
 
 ;;; Code:
 
+(provide 'ediff-merg)
+
+(defgroup ediff-merge nil
+  "Merging utilities"
+  :prefix "ediff-"
+  :group 'ediff)
+
+
+;; compiler pacifier
+(defvar ediff-window-A)
+(defvar ediff-window-B)
+(defvar ediff-window-C)
+(defvar ediff-merge-window-share)
+(defvar ediff-window-config-saved)
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'ediff-init)
+	(load "ediff-init.el" nil nil 'nosuffix))
+    (or (featurep 'ediff-util)
+	(load "ediff-util.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
+
 (require 'ediff-init)
 
 
-(defvar ediff-default-variant 'combined
+(defcustom ediff-default-variant 'combined
   "*The variant to be used as a default for buffer C in merging.
-Valid values are the symbols `default-A', `default-B', and `combined'.")
+Valid values are the symbols `default-A', `default-B', and `combined'."
+  :type '(radio (const default-A) (const default-B) (const combined))
+  :group 'ediff-merge)
 
-(defvar ediff-combination-pattern 
+(defcustom ediff-combination-pattern 
   '("<<<<<<<<<<<<<< variant A" ">>>>>>>>>>>>>> variant B" "======= end of combination")
   "*Pattern to be used for combining difference regions in buffers A and B.
 The value is (STRING1 STRING2 STRING3). The combined text will look like this:
@@ -40,7 +66,9 @@ diff region from variant A
 STRING2
 diff region from variant B
 STRING3
-")
+"
+  :type '(list string string string)
+  :group 'ediff-merge)
 
 (ediff-defvar-local ediff-show-clashes-only  nil
   "*If t, show only those diff regions where both buffers disagree with the ancestor.
@@ -269,7 +297,5 @@ Combining is done according to the specifications in variable
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(provide 'ediff-merg)
 
 ;; ediff-merg.el ends here

@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -90,7 +90,26 @@
 
 ;;; Code:
 
+(provide 'ediff-mult)
+
+(defgroup ediff-mult nil
+  "Multi-file and multi-buffer processing in ediff"
+  :prefix "ediff-"
+  :group 'ediff)
+
+
+;; compiler pacifier
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'ediff-init)
+	(load "ediff-init.el" nil nil 'nosuffix))
+    (or (featurep 'ediff-util)
+	(load "ediff-util.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
+
 (require 'ediff-init)
+(require 'ediff-util)
 
 ;; meta-buffer
 (ediff-defvar-local ediff-meta-buffer nil "")
@@ -150,22 +169,34 @@ directories.")
 ;; The registry of Ediff sessions. A list of control buffers.
 (defvar ediff-session-registry nil)
 
-(defvar ediff-registry-setup-hook nil
-  "*Hooks run just after the registry control panel is set up.")
-(defvar ediff-session-group-setup-hook nil
+(defcustom ediff-registry-setup-hook nil
+  "*Hooks run just after the registry control panel is set up."
+  :type 'hook
+  :group 'ediff-mult)
+(defcustom ediff-session-group-setup-hook nil
   "*Hooks run just after a meta-buffer controlling a session group, such as
-ediff-directories, is run.")
-(defvar ediff-quit-session-group-hook nil
-  "*Hooks run just before exiting a session group.")
-(defvar ediff-show-registry-hook nil
-  "*Hooks run just after the registry buffer is shown.")
-(defvar ediff-show-session-group-hook nil
-  "*Hooks run just after a session group buffer is shown.")
-(defvar ediff-meta-buffer-keymap-setup-hook nil
+ediff-directories, is run."
+  :type 'hook
+  :group 'ediff-mult)
+(defcustom ediff-quit-session-group-hook nil
+  "*Hooks run just before exiting a session group."
+  :type 'hook
+  :group 'ediff-mult)
+(defcustom ediff-show-registry-hook nil
+  "*Hooks run just after the registry buffer is shown."
+  :type 'hook
+  :group 'ediff-mult)
+(defcustom ediff-show-session-group-hook nil
+  "*Hooks run just after a session group buffer is shown."
+  :type 'hook
+  :group 'ediff-mult)
+(defcustom ediff-meta-buffer-keymap-setup-hook nil
   "*Hooks run just after setting up the ediff-meta-buffer-map.
 This keymap controls key bindings in the meta buffer and is a local variable.
 This means that you can set different bindings for different kinds of meta
-buffers.")
+buffers."
+  :type 'hook
+  :group 'ediff-mult)
 
 ;; buffer holding the multi-file patch. local to the meta buffer
 (ediff-defvar-local ediff-meta-patchbufer nil "")
@@ -654,7 +685,8 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 	   "     `=':\tmark identical files in each session\n\n"))
 
       (if (and (stringp regexp) (> (length regexp) 0))
-	  (insert (format "Filter-through regular expression: %s\n" regexp)))
+	  (insert
+	   (format "\n*** Filter-through regular expression: %s\n" regexp)))
       (if (and ediff-autostore-merges (ediff-merge-metajob)
 	       (stringp merge-autostore-dir))
 	  (insert (format
@@ -808,7 +840,8 @@ Useful commands:
      DEL: previous line\n\n")
 
       (if (and (stringp regexp) (> (length regexp) 0))
-	  (insert (format "Filter-through regular expression: %s\n" regexp)))
+	  (insert
+	   (format "\n*** Filter-through regular expression: %s\n" regexp)))
       (insert "\n")
       (insert (format "\n%-27s%-26s"
 		      (ediff-truncate-string-left
@@ -1717,8 +1750,5 @@ This is used only for sessions that involve 2 or 3 files at the same time."
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(provide 'ediff-mult)
-(require 'ediff-util)
 
 ;;; ediff-mult.el ends here

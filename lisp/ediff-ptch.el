@@ -1,6 +1,6 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -23,6 +23,30 @@
 
 
 ;;; Code:
+	 
+(provide 'ediff-ptch)
+
+(defgroup ediff-ptch nil
+  "Ediff patch support"
+  :tag "Patch"
+  :prefix "ediff-"
+  :group 'ediff)
+
+;; compiler pacifier
+(defvar ediff-window-A)
+(defvar ediff-window-B)
+(defvar ediff-window-C)
+(defvar ediff-use-last-dir)
+(defvar ediff-shell)
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'ediff-init)
+	(load "ediff-init.el" nil nil 'nosuffix))
+    (or (featurep 'ediff)
+	(load "ediff.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
 
 (require 'ediff-init)
 
@@ -35,7 +59,7 @@
   "Backup extension used by the patch program.
 See also `ediff-backup-specs'.")
 
-(defvar ediff-backup-specs (format "-b %s" ediff-backup-extension)
+(defcustom ediff-backup-specs (format "-b %s" ediff-backup-extension)
   "*Backup directives to pass to the patch program.
 Ediff requires that the old version of the file \(before applying the patch\)
 is saved in a file named `the-patch-file.extension'. Usually `extension' is
@@ -49,31 +73,41 @@ Other versions only permit `-b', which assumes some canned extension
 Note that both `ediff-backup-extension' and `ediff-backup-specs'
 must be properly set. If your patch program takes the option `-b',
 but not `-b extension', the variable `ediff-backup-extension' must
-still be set so Ediff will know which extension to use.")
+still be set so Ediff will know which extension to use."
+  :type 'string
+  :group 'ediff-ptch)
 
 
-(defvar ediff-patch-default-directory nil
-  "*Default directory to look for patches.")
+(defcustom ediff-patch-default-directory nil
+  "*Default directory to look for patches."
+  :type '(choice (const nil) string)
+  :group 'ediff-ptch)
 
-(defvar ediff-context-diff-label-regexp
+(defcustom ediff-context-diff-label-regexp
   (concat "\\(" 	; context diff 2-liner
 	  "^\\*\\*\\* \\([^ \t]+\\)[^*]+[\t ]*\n--- \\([^ \t]+\\)"
 	  "\\|" 	; GNU unified format diff 2-liner
 	  "^--- \\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ \\([^ \t]+\\)"
 	  "\\)")
-  "*Regexp matching filename 2-liners at the start of each context diff.")
+  "*Regexp matching filename 2-liners at the start of each context diff."
+  :type 'regexp
+  :group 'ediff-ptch)
 
-(defvar ediff-patch-program "patch"
+(defcustom ediff-patch-program "patch"
   "*Name of the program that applies patches.
-It is recommended to use GNU-compatible versions.")
-(defvar ediff-patch-options "-f"
+It is recommended to use GNU-compatible versions."
+  :type 'string
+  :group 'ediff-ptch)
+(defcustom ediff-patch-options "-f"
   "*Options to pass to ediff-patch-program.
 
 Note: the `-b' option should be specified in `ediff-backup-specs'.
 
 It is recommended to pass the `-f' option to the patch program, so it won't ask
 questions. However, some implementations don't accept this option, in which
-case the default value for this variable should be changed.")
+case the default value for this variable should be changed."
+  :type 'string
+  :group 'ediff-ptch)
 
 ;; The buffer of the patch file. Local to control buffer.
 (ediff-defvar-local ediff-patchbufer nil "")
@@ -624,7 +658,5 @@ Type any key to continue...
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(provide 'ediff-ptch)
 
 ;;; ediff-ptch.el ends here

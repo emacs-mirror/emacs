@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -32,6 +32,10 @@
 (defvar ediff-mouse-pixel-threshold)
 (defvar ediff-whitespace)
 (defvar ediff-multiframe)
+
+(and noninteractive
+     (eval-when-compile
+	 (load "ange-ftp" 'noerror)))
 ;; end pacifier
 
 ;; Is it XEmacs?
@@ -90,7 +94,7 @@ that Ediff doesn't know about.")
 (ediff-defvar-local ediff-buffer-C nil "")
 ;; Ancestor buffer
 (ediff-defvar-local ediff-ancestor-buffer nil "")
-;; The control buffer of ediff.
+;; The Ediff control buffer
 (ediff-defvar-local ediff-control-buffer nil "")
 
 ;;; Macros
@@ -125,10 +129,18 @@ that Ediff doesn't know about.")
       (symbol-value
        (intern (format "ediff-difference-vector-%S" (, buf-type)))) (, n))))
   
-;; tell if it has been previously determined that the region has
+;; Tell if it has been previously determined that the region has
 ;; no diffs other than the white space and newlines
 ;; The argument, N, is the diff region number used by Ediff to index the
 ;; diff vector. It is 1 less than the number seen by the user.
+;; Returns:
+;;		t  if the diffs are whitespace in all buffers
+;;		'A (in 3-buf comparison only) if there are only whitespace
+;;		   diffs in bufs B and C
+;;		'B (in 3-buf comparison only) if there are only whitespace
+;;		   diffs in bufs A and C
+;;		'C (in 3-buf comparison only) if there are only whitespace
+;;		   diffs in bufs A and B
 ;;
 ;; A difference vector has the form:
 ;; [diff diff diff ...]
@@ -625,8 +637,8 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
   
   
 ;;;; warn if it is a wrong version of emacs
-;;(if (or (ediff-check-version '< 19 29 'emacs)
-;;	(ediff-check-version '< 19 12 'xemacs))
+;;(if (or (ediff-check-version '< 19 35 'emacs)
+;;	(ediff-check-version '< 19 15 'xemacs))
 ;;    (progn
 ;;      (with-output-to-temp-buffer ediff-msg-buffer
 ;;	(switch-to-buffer ediff-msg-buffer)
@@ -635,9 +647,9 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
 ;;
 ;;This version of Ediff requires 
 ;;
-;;\t Emacs 19.29 and higher
+;;\t Emacs 19.35 and higher
 ;;\t OR
-;;\t XEmacs 19.12 and higher
+;;\t XEmacs 19.15 and higher
 ;;
 ;;It is unlikely to work under Emacs version %s
 ;;that you are using... " emacs-version))
@@ -1152,11 +1164,13 @@ More precisely, a regexp to match any one such character.")
 
 ;;; In-line functions
 
-(defsubst ediff-file-remote-p (file-name)
-  (require 'ange-ftp)
-  (car (if ediff-xemacs-p
-	   (ange-ftp-ftp-path file-name)
-	 (ange-ftp-ftp-name file-name))))
+(or (fboundp 'ediff-file-remote-p) ; user supplied his own function: use it
+    (defun ediff-file-remote-p (file-name)
+      (car (cond ((featurep 'efs-auto) (efs-ftp-path file-name))
+		 ((fboundp 'file-remote-p) (file-remote-p file-name))
+		 (t (require 'ange-ftp)
+		    ;; Can happen only in Emacs, since XEmacs has file-remote-p
+		    (ange-ftp-ftp-name file-name))))))
 
     
 (defsubst ediff-frame-unsplittable-p (frame)
@@ -1174,6 +1188,14 @@ More precisely, a regexp to match any one such character.")
   (if (ediff-buffer-live-p buf)
       (kill-buffer (get-buffer buf))))
 
+(defsubst ediff-background-face (buf-type dif-num)
+  ;; The value of dif-num is always 1- the one that user sees.
+  ;; This is why even face is used when dif-num is odd.
+  (intern (format (if (ediff-odd-p dif-num)
+		      "ediff-even-diff-face-%S"
+		    "ediff-odd-diff-face-%S")
+		  buf-type)))
+
 
 ;; activate faces on diff regions in buffer
 (defun ediff-paint-background-regions-in-one-buffer (buf-type unhighlight)
@@ -1184,11 +1206,13 @@ More precisely, a regexp to match any one such character.")
 	     (lambda (rec)
 	       (setq overl (ediff-get-diff-overlay-from-diff-record rec)
 		     diff-num (ediff-overlay-get overl 'ediff-diff-num))
-	       (ediff-set-overlay-face
-		overl
-		(if (not unhighlight)
-		    (ediff-background-face buf-type diff-num))
-		)))
+	       (if (ediff-overlay-buffer overl)
+		   ;; only if overlay is alive
+		   (ediff-set-overlay-face
+		    overl
+		    (if (not unhighlight)
+			(ediff-background-face buf-type diff-num))))
+	       ))
 	    diff-vector)))
 
 
@@ -1287,14 +1311,6 @@ More precisely, a regexp to match any one such character.")
   (ediff-unhighlight-diffs-totally-in-one-buffer 'Ancestor)
   )
 
-(defsubst ediff-background-face (buf-type dif-num)
-  ;; The value of dif-num is always 1- the one that user sees.
-  ;; This is why even face is used when dif-num is odd.
-  (intern (format (if (ediff-odd-p dif-num)
-		      "ediff-even-diff-face-%S"
-		    "ediff-odd-diff-face-%S")
-		  buf-type)))
-    
       
 ;; arg is a record for a given diff in a difference vector
 ;; this record is itself a vector
@@ -1418,6 +1434,18 @@ More precisely, a regexp to match any one such character.")
     (frame-char-height frame)))
     
 ;; Some overlay functions
+
+(defsubst ediff-overlay-start (overl)
+  (if (ediff-overlayp overl)
+      (if ediff-emacs-p
+	  (overlay-start overl)
+	(extent-start-position overl))))
+	
+(defsubst ediff-overlay-end  (overl)
+  (if (ediff-overlayp overl)
+      (if ediff-emacs-p
+	  (overlay-end overl)
+	(extent-end-position overl))))
 
 (defsubst ediff-empty-overlay-p (overl)
   (= (ediff-overlay-start overl) (ediff-overlay-end overl)))
@@ -1583,10 +1611,10 @@ Checks if overlay's buffer exists."
       (apply 'message string args)))
 
 (defun ediff-file-attributes (filename attr-number)
-  (let ((handler (find-file-name-handler filename 'find-file-noselect)))
-    (if (and handler (string-match "ange-ftp" (format "%S" handler)))
-	-1
-      (nth attr-number (file-attributes filename)))))
+  (if (ediff-file-remote-p filename)
+      -1
+    (nth attr-number (file-attributes filename))))
+
 (defsubst ediff-file-size (filename)
   (ediff-file-attributes filename 7))
 (defsubst ediff-file-modtime (filename)
@@ -1594,9 +1622,8 @@ Checks if overlay's buffer exists."
 
 
 (defun ediff-convert-standard-filename (fname)
-  (if ediff-emacs-p
+  (if (fboundp 'convert-standard-filename)
       (convert-standard-filename fname)
-    ;; hopefully, XEmacs adds this functionality
     fname))
 
 

@@ -1,6 +1,6 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -22,16 +22,20 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
-
-(require 'ediff-init)
+	 
+(provide 'ediff-help)
 
 ;; Compiler pacifier start
 (defvar ediff-multiframe)
-(and noninteractive
-     (eval-when-compile
-       (let ((load-path (cons (expand-file-name ".") load-path)))
-	 (load-file "ediff-init.el"))))
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'ediff-init)
+	(load "ediff-init.el" nil nil 'nosuffix))
+    ))
 ;; end pacifier
+
+(require 'ediff-init)
 
 ;; Help messages
 
@@ -178,8 +182,7 @@ the value of this variable and the variables `ediff-help-message-*' in
   "Explain Ediff commands in more detail."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (let ((ctl-buf (current-buffer))
-	(pos (ediff-event-point last-command-event))
+  (let ((pos (ediff-event-point last-command-event))
 	overl cmd)
 
     (if ediff-xemacs-p
@@ -306,6 +309,5 @@ the value of this variable and the variables `ediff-help-message-*' in
 			     ediff-brief-help-message))
   (run-hooks 'ediff-display-help-hook))
 
-(provide 'ediff-help)
 
 ;;; ediff-help.el ends here
