@@ -3201,6 +3201,10 @@ Use %% to put a single % into the output.")
 	      new_len = make_number (info[n].end - info[n].start);
 	      props = text_property_list (args[n], make_number (0), len, Qnil);
 	      extend_property_ranges (props, len, new_len);
+	      /* If successive arguments have properites, be sure that
+		 the value of `composition' property be the copy.  */
+	      if (n > 1 && info[n - 1].end)
+		make_composition_value_copy (props);
 	      add_text_properties_from_list (val, props,
 					     make_number (info[n].start));
 	    }
