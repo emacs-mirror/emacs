@@ -50,6 +50,12 @@ Lisp_Object Qlocal_map;
 /* Visual properties text (including strings) may have. */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 Lisp_Object Qinvisible, Qread_only;
+
+/* If o1 is a cons whose cdr is a cons, return non-zero and set o2 to
+   the o1's cdr.  Otherwise, return zero.  This is handy for
+   traversing plists.  */
+#define PLIST_ELT_P(o1, o2) (CONSP (o1) && CONSP ((o2) = XCONS (o1)->cdr))
+
 
 /* Extract the interval at the position pointed to by BEGIN from
    OBJECT, a string or buffer.  Additionally, check that the positions
@@ -239,6 +245,24 @@ interval_has_some_properties (plist, i)
   return 0;
 }
 
+/* Changing the plists of individual intervals.  */
+
+/* Return the value of PROP in property-list PLIST, or Qunbound if it
+   has none.  */
+static int
+property_value (plist, prop)
+{
+  Lisp_Object value;
+
+  while (PLIST_ELT_P (plist, value))
+    if (EQ (XCONS (plist)->car, prop))
+      return XCONS (value)->car;
+    else
+      plist = XCONS (value)->cdr;
+
+  return Qunbound;
+}
+
 /* Set the properties of INTERVAL to PROPERTIES,
    and record undo info for the previous values.
    OBJECT is the string or buffer that INTERVAL belongs to.  */
@@ -248,19 +272,30 @@ set_properties (properties, interval, object)
      Lisp_Object properties, object;
      INTERVAL interval;
 {
-  Lisp_Object oldprops;
-  oldprops = interval->plist;
+  Lisp_Object sym, value;
 
-  /* Record undo for old properties.  */
-  while (XTYPE (oldprops) == Lisp_Cons)
+  if (BUFFERP (object))
     {
-      Lisp_Object sym;
-      sym = Fcar (oldprops);
-      record_property_change (interval->position, LENGTH (interval),
-			      sym, Fcar_safe (Fcdr (oldprops)),
-			      object);
-      
-      oldprops = Fcdr_safe (Fcdr (oldprops));
+      /* For each property in the old plist which is missing from PROPERTIES,
+	 or has a different value in PROPERTIES, make an undo record.  */
+      for (sym = interval->plist;
+	   PLIST_ELT_P (sym, value);
+	   sym = XCONS (value)->cdr)
+	if (! EQ (property_value (properties, XCONS (sym)->car),
+		  XCONS (value)->car))
+	  record_property_change (interval->position, LENGTH (interval),
+				  XCONS (sym)->car, XCONS (value)->car,
+				  object);
+
+      /* For each new property that has no value at all in the old plist,
+	 make an undo record binding it to nil, so it will be removed.  */
+      for (sym = properties;
+	   PLIST_ELT_P (sym, value);
+	   sym = XCONS (value)->cdr)
+	if (EQ (property_value (interval->plist, XCONS (sym)->car), Qunbound))
+	  record_property_change (interval->position, LENGTH (interval),
+				  XCONS (sym)->car, Qnil,
+				  object);
     }
 
   /* Store new properties.  */
