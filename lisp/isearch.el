@@ -1200,11 +1200,11 @@ and the meta character is unread so that it applies to editing the string."
   "Quote special characters for incremental search."
   (interactive)
   (let ((char (read-quoted-char (isearch-message t))))
-    ;; Assume character codes 0240 - 0377 stand for characters in some
+    ;; Assume character codes 0200 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
     (and enable-multibyte-characters
-	 (>= char ?\240)
+	 (>= char ?\200)
 	 (<= char ?\377)
 	 (setq char (unibyte-char-to-multibyte char)))
     (isearch-process-search-char char)))
@@ -1224,7 +1224,7 @@ Obsolete."
     (if (and enable-multibyte-characters
 	     (>= char ?\200)
 	     (<= char ?\377))
-	(isearch-process-search-char (+ char nonascii-insert-offset))
+	(isearch-process-search-char (unibyte-char-to-multibyte char))
       (if current-input-method
 	  (isearch-process-search-multibyte-characters char)
 	(isearch-process-search-char char)))))
