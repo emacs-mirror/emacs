@@ -3626,7 +3626,7 @@ The decoding functions ignore newline characters in the encoded text.
 @defun base64-decode-string string
 @tindex base64-decode-string
 This function converts the string @var{string} from base 64 code into
-the corresponding decoded text.  It returns a string containing the
+the corresponding decoded text.  It returns a unibyte string containing the
 decoded text.
 
 The decoding functions ignore newline characters in the encoded text.
