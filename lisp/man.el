@@ -185,18 +185,19 @@ the manpage buffer.")
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*"
   "*Regular expression describing a manpage section within parentheses.")
 
-(defvar Man-heading-regexp "^[A-Z]"
+(defvar Man-heading-regexp "^ ?[A-Z]"
   "*Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
   "*Regular expression for SEE ALSO heading (or your equivalent).
 This regexp should not start with a `^' character.")
 
-(defvar Man-first-heading-regexp "^NAME$\\|^No manual entry for .*$"
+(defvar Man-first-heading-regexp "^ ?NAME$\\|^ ?No manual entry for .*$"
   "*Regular expression describing first heading on a manpage.
 This regular expression should start with a `^' character.")
 
-(defvar Man-reference-regexp "[-a-zA-Z0-9_.]+\\(([0-9][a-zA-Z+]*)\\)?"
+(defvar Man-reference-regexp
+  "[-a-zA-Z0-9_][-a-zA-Z0-9_.]*\\(([0-9][a-zA-Z+]*)\\)?"
   "*Regular expression describing a reference in the SEE ALSO section.")
 
 (defvar Man-switches ""
@@ -593,9 +594,8 @@ The following key bindings are currently in effect in the buffer:
 	  (back-to-indentation)
 	  (while (and (not (eobp)) (/= (point) runningpoint))
 	    (setq runningpoint (point))
-	    (let* ((bow (point))
-		   (eow (re-search-forward Man-reference-regexp end t))
-		   (word (buffer-substring bow (match-end 0)))
+	    (let* ((eow (re-search-forward Man-reference-regexp end t))
+		   (word (buffer-substring (match-beginning 0) (match-end 0)))
 		   (len (1- (length word))))
 	      (if (not eow) nil
 		(if hyphenated
