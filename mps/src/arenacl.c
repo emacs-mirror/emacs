@@ -1,7 +1,7 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.22) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!arenacl.c(trunk.23) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.arena.client.
  * 
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsacl.h"
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.22) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.23) $");
 
 
 /* ClientArenaStruct -- Client Arena Structure */
@@ -190,7 +190,6 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
 {
   Arena arena;
   ClientArena clientArena;
-  Lock lock;
   Size size;
   Size clArenaSize;   /* aligned size of ClientArenaStruct */
   Addr base, limit, chunkBase;
@@ -204,7 +203,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   AVER(base != (Addr)0);
 
   clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN); 
-  if (size < (clArenaSize + LockSize())) 
+  if (size < clArenaSize) 
     return ResMEMORY;
 
   limit = AddrAdd(base, size);
@@ -212,15 +211,13 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   /* allocate the arena */
   base = AddrAlignUp(base, MPS_PF_ALIGN);
   clientArena = (ClientArena)base;
-  chunkBase = AddrAlignUp(AddrAdd(base, clArenaSize + LockSize()),
-                          MPS_PF_ALIGN);
+  chunkBase = AddrAlignUp(AddrAdd(base, clArenaSize), MPS_PF_ALIGN);
   if (chunkBase > limit)
     return ResMEMORY;
 
-  lock = (Lock)PointerAdd(base, clArenaSize);
   arena = ClientArena2Arena(clientArena);
   /* impl.c.arena.init.caller */
-  res = ArenaInit(arena, lock, class);
+  res = ArenaInit(arena, class);
   if (res != ResOK)
     return res;
 
