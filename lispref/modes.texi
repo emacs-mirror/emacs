@@ -236,7 +236,9 @@ setting up a buffer-local value for the variable
 @item
 The mode should specify how Imenu should find the definitions or
 sections of a buffer, by setting up a buffer-local value for the
-variable @code{imenu-generic-expression} or
+variable @code{imenu-generic-expression}, for the pair of variables
+@code{imenu-prev-index-position-function} and
+@code{imenu-extract-index-name-function}, or for the variable
 @code{imenu-create-index-function} (@pxref{Imenu}).
 
 @item
@@ -1702,12 +1704,12 @@ particular major mode.
 @code{imenu-generic-expression}:
 
 @defvar imenu-generic-expression
-This variable, if non-@code{nil}, specifies regular expressions for
-finding definitions for Imenu.  In the simplest case, elements should
-look like this:
+This variable, if non-@code{nil}, is a list that specifies regular
+expressions for finding definitions for Imenu.  Simple elements of
+@code{imenu-generic-expression} look like this:
 
 @example
-(@var{menu-title} @var{regexp} @var{subexp})
+(@var{menu-title} @var{regexp} @var{index})
 @end example
 
 Here, if @var{menu-title} is non-@code{nil}, it says that the matches
@@ -1717,10 +1719,10 @@ for this element should go in a submenu of the buffer index;
 in the top level of the buffer index.
 
 The second item in the list, @var{regexp}, is a regular expression
-(@pxref{Regular Expressions}); anything in the buffer that it matches is
-considered a definition, something to mention in the buffer index.  The
-third item, @var{subexp}, indicates which subexpression in @var{regexp}
-matches the definition's name.
+(@pxref{Regular Expressions}); anything in the buffer that it matches
+is considered a definition, something to mention in the buffer index.
+The third item, @var{index}, is a non-negative integer that indicates
+which subexpression in @var{regexp} matches the definition's name.
 
 An element can also look like this:
 
@@ -1728,11 +1730,13 @@ An element can also look like this:
 (@var{menu-title} @var{regexp} @var{index} @var{function} @var{arguments}@dots{})
 @end example
 
-Each match for this element creates a special index item which, if
-selected by the user, calls @var{function} with arguments consisting of
-the item name, the buffer position, and @var{arguments}.
+Like in the previous case, each match for this element creates an
+index item.  However, if this index item is selected by the user, it
+calls @var{function} with arguments consisting of the item name, the
+buffer position, and @var{arguments}.
 
-For Emacs Lisp mode, @var{pattern} could look like this:
+For Emacs Lisp mode, @code{imenu-generic-expression} could look like
+this:
 
 @c should probably use imenu-syntax-alist and \\sw rather than [-A-Za-z0-9+]
 @example
@@ -1756,9 +1760,10 @@ Setting this variable makes it buffer-local in the current buffer.
 @end defvar
 
 @defvar imenu-case-fold-search
-This variable controls whether matching against
-@var{imenu-generic-expression} is case-sensitive: @code{t}, the default,
-means matching should ignore case.
+This variable controls whether matching against the regular
+expressions in the value of @code{imenu-generic-expression} is
+case-sensitive: @code{t}, the default, means matching should ignore
+case.
 
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar
@@ -1786,11 +1791,11 @@ For example, Fortran mode uses it this way:
 (setq imenu-syntax-alist '(("_$" . "w")))
 @end example
 
-The @code{imenu-generic-expression} patterns can then use @samp{\\sw+}
-instead of @samp{\\(\\sw\\|\\s_\\)+}.  Note that this technique may be
-inconvenient when the mode needs to limit the initial character
-of a name to a smaller set of characters than are allowed in the rest
-of a name.
+The @code{imenu-generic-expression} regular expressions can then use
+@samp{\\sw+} instead of @samp{\\(\\sw\\|\\s_\\)+}.  Note that this
+technique may be inconvenient when the mode needs to limit the initial
+character of a name to a smaller set of characters than are allowed in
+the rest of a name.
 
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar
@@ -1823,37 +1828,47 @@ Setting this variable makes it buffer-local in the current buffer.
 variable @code{imenu-create-index-function}:
 
 @defvar imenu-create-index-function
-This variable specifies the function to use for creating a buffer index.
-The function should take no arguments, and return an index for the
-current buffer.  It is called within @code{save-excursion}, so where it
-leaves point makes no difference.
+This variable specifies the function to use for creating a buffer
+index.  The function should take no arguments, and return an index
+alist for the current buffer.  It is called within
+@code{save-excursion}, so where it leaves point makes no difference.
 
-The default value is a function that uses
-@code{imenu-generic-expression} to produce the index alist.  If you
-specify a different function, then @code{imenu-generic-expression} is
-not used.
-
-Setting this variable makes it buffer-local in the current buffer.
-@end defvar
-
-@defvar imenu-index-alist
-This variable holds the index alist for the current buffer.
-Setting it makes it buffer-local in the current buffer.
-
-Simple elements in the alist look like @code{(@var{index-name}
-. @var{index-position})}.  Selecting a simple element has the effect of
-moving to position @var{index-position} in the buffer.
-
-Special elements look like @code{(@var{index-name} @var{position}
-@var{function} @var{arguments}@dots{})}.  Selecting a special element
-performs
+The index alist can have three types of elements.  Simple elements
+look like this:
 
 @example
-(funcall @var{function} @var{index-name} @var{position} @var{arguments}@dots{})
+(@var{index-name} . @var{index-position})
 @end example
 
-A nested sub-alist element looks like @code{(@var{index-name}
-@var{sub-alist})}.
+Selecting a simple element has the effect of moving to position
+@var{index-position} in the buffer.  Special elements look like this:
+
+@example
+(@var{index-name} @var{index-position} @var{function} @var{arguments}@dots{})
+@end example
+
+Selecting a special element performs:
+
+@example
+(funcall @var{function} 
+         @var{index-name} @var{index-position} @var{arguments}@dots{})
+@end example
+
+A nested sub-alist element looks like this:
+
+@example
+(@var{index-name} @var{sub-alist})
+@end example
+
+It creates a submenu specified by @var{sub-alist}.
+
+The default value of @code{imenu-create-index-function} is a function
+that uses @code{imenu-prev-index-position-function} and
+@code{imenu-extract-index-name-function} to produce the index alist.
+However, if either of these two variables is @code{nil}, the default
+function uses @code{imenu-generic-expression} instead.
+
+Setting this variable makes it buffer-local in the current buffer.
 @end defvar
 
 @node Font Lock Mode
