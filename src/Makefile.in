@@ -666,7 +666,7 @@ lisp= \
 	${lispsource}isearch.elc \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
-	${lispsource}bindings.el \
+	${lispsource}bindings.elc \
 	${lispsource}map-ynp.elc \
 	${lispsource}menu-bar.elc \
 	${lispsource}international/mule.elc \
@@ -745,7 +745,7 @@ shortlisp= \
 	../lisp/isearch.elc \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
-	../lisp/bindings.el \
+	../lisp/bindings.elc \
 	../lisp/map-ynp.elc \
 	../lisp/env.elc \
 	../lisp/international/mule.elc \
