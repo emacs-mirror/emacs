@@ -1235,6 +1235,15 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
+** The `local-map' property now also works at the ends of overlays and
+text-properties, according to their stickiness.  This also means that it
+works with empty overlays.  The same hold for the `keymap' property.
+
+** `select-window' takes a second optional argument `norecord', like
+`switch-to-buffer'.  `with-selected-window' is a new macro that uses
+this to temporarily switch the selected window without impacting
+the order of buffer-list.
+
 ** (map-keymap FUNCTION KEYMAP) applies the function to each binding
 in the keymap.
 
