@@ -1,3 +1,7 @@
+2001-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (read-passwd): Clear Lisp memory holding password.
+
 2001-02-15  Miles Bader  <miles@gnu.org>
 
 	* info.el (Info-copy-current-node-name): New function.
