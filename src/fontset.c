@@ -1221,10 +1221,11 @@ accumulate_font_info (arg, character, elt)
 
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
   "Return information about a fontset named NAME on frame FRAME.\n\
-The value is a list:\n\
-  \(FONTSET-NAME (CHARSET-OR-RANGE FONT-SPEC OPENED ...) ...),\n\
+The value is a vector:\n\
+  [ SIZE HEIGHT ((CHARSET-OR-RANGE FONT-SPEC OPENED ...) ...) ],\n\
 where,\n\
-  FONTSET-NAME is a full name of the fontset.\n\
+  SIZE is the maximum bound width of ASCII font in the fontset,\n\
+  HEIGHT is the maximum bound height of ASCII font in the fontset,\n\
   CHARSET-OR-RANGE is a charset, a character (may be a generic character)\n\
     or a cons of two characters specifying the range of characters.\n\
   FONT-SPEC is a fontname pattern string or a cons (FAMILY . REGISTRY),\n\
@@ -1233,6 +1234,7 @@ where,\n\
     FAMILY may contain a `FOUNDARY' field at the head.\n\
     REGISTRY may contain a `CHARSET_ENCODING' field at the tail.\n\
   OPENEDs are names of fonts actually opened.\n\
+If the ASCII font is not yet opened, SIZE and HEIGHT are 0.\n\
 If FRAME is omitted, it defaults to the currently selected frame.")
   (name, frame)
      Lisp_Object name, frame;
@@ -1242,6 +1244,7 @@ If FRAME is omitted, it defaults to the currently selected frame.")
   Lisp_Object indices[3];
   Lisp_Object val, tail, elt;
   Lisp_Object *realized;
+  struct font_info *fontp = NULL;
   int n_realized = 0;
   int i;
   
@@ -1313,7 +1316,17 @@ If FRAME is omitted, it defaults to the currently selected frame.")
 	    }
 	}
     }
-  return Fcons (FONTSET_NAME (fontset), val);
+
+  elt = Fcdr (Fcdr (Fassq (CHARSET_SYMBOL (CHARSET_ASCII), val)));
+  if (CONSP (elt))
+    {
+      elt = XCAR (elt);
+      fontp = (*query_font_func) (f, XSTRING (elt)->data);
+    }
+  val = Fmake_vector (make_number (3), val);
+  AREF (val, 0) = fontp ? make_number (fontp->size) : make_number (0);
+  AREF (val, 1) = fontp ? make_number (fontp->height) : make_number (0);
+  return val;
 }
 
 DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 2, 0,
