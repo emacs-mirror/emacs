@@ -212,7 +212,7 @@ See also `rmail-highlight-face'."
 ;;;###autoload
 (defcustom rmail-primary-inbox-list nil "\
 *List of files which are inboxes for user's primary mail file `~/RMAIL'.
-`nil' means the default, which is (\"/usr/spool/mail/$USER\")
+nil means the default, which is (\"/usr/spool/mail/$USER\")
 \(the name varies depending on the operating system,
 and the value of the environment variable MAIL overrides it)."
   ;; Don't use backquote here, because we don't want to need it
