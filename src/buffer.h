@@ -130,6 +130,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 ((ptr) - (current_buffer)->text.beg					\
  - (ptr - (current_buffer)->text.beg < (unsigned) GPT ? 0 : GAP_SIZE)	\
  + 1)
+
+/* Convert the address of a char in the buffer into a character position.  */
+#define BUF_PTR_CHAR_POS(buf, ptr)			\
+((ptr) - (buf)->text.beg				\
+ - (ptr - (buf)->text.beg < (unsigned) BUF_GPT ((buf))	\
+    ? 0 : BUF_GAP_SIZE ((buf)))				\
+ + 1)
 
 struct buffer_text
   {
