@@ -462,7 +462,7 @@ where L-UNIQUE is considered to be union'ized already."
       (setq l (cdr l)))
     result))
 
-(defun mouse-union-first-prefered (l1 l2)
+(defun mouse-union-first-preferred (l1 l2)
   "Return the union of lists of mouse (code . form) pairs L1 and L2,
 based on the code's, with preference going to elements in L1."
   (mouse-union l2 (mouse-union l1 nil)))
@@ -471,7 +471,7 @@ based on the code's, with preference going to elements in L1."
   "Return a list of (code . function) pairs, where each code is
 currently set in the REGION."
   (let ((mask (mouse-region-to-code region)))
-    (mouse-union-first-prefered
+    (mouse-union-first-preferred
      (mouse-mask-lookup mask (cdr current-local-mousemap))
      (mouse-mask-lookup mask (cdr current-global-mousemap))
      )))
