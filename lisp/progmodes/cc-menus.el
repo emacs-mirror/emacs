@@ -279,9 +279,9 @@ Example:
     ;;
     ;; Does this emacs has buffer-substring-no-properties? 
     ;;
-    (fset 'bufsubst-fun (if (fboundp 'buffer-substring-no-properties)
-			    (symbol-function 'buffer-substring-no-properties)
-			  (symbol-function 'buffer-substring)))
+    (setq bufsubst-fun (if (fboundp 'buffer-substring-no-properties)
+			   (symbol-function 'buffer-substring-no-properties)
+			 (symbol-function 'buffer-substring)))
     (goto-char (point-max)) 
     (imenu-progress-message stupid 0)
     ;;
@@ -293,7 +293,8 @@ Example:
 		       ((match-beginning C3) C3)
 		       ((match-beginning C2) C2)
 		       ((match-beginning C1) C1))))
-      (setq str (bufsubst-fun (match-beginning langnum) (match-end langnum)))
+      (setq str (funcall bufsubst-fun
+			 (match-beginning langnum) (match-end langnum)))
       ;;
       (cond 
        ;;
