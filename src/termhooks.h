@@ -61,7 +61,7 @@ enum scroll_bar_part {
   scroll_bar_handle,
   scroll_bar_below_handle,
   scroll_bar_up_arrow,
-  scroll_bar_down_arrow,
+  scroll_bar_down_arrow
 };
 
 /* Return the current position of the mouse.
