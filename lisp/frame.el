@@ -35,11 +35,22 @@ function, which should take an alist of parameters as its argument.")
   "Alist of frame parameters for creating the initial X window frame.
 You can set this in your `.emacs' file; for example,
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
-If the value calls for a frame without a minibuffer, and you do not create a
-minibuffer frame on your own, one is created according to
+Parameters specified here supersede the values given in `default-frame-alist'.
+
+If the value calls for a frame without a minibuffer, and you have not created
+a minibuffer frame on your own, one is created according to
 `minibuffer-frame-alist'.
-Parameters specified here supersede the values given in
-`default-frame-alist'.")
+
+You can specify geometry-related options for just the initial frame
+by setting this variable in your `.emacs' file; however, they won't
+take affect until Emacs reads `.emacs', which happens after first creating
+the frame.  If you want the frame to have the proper geometry as soon
+as it appears, you need to use this three-step process:
+* Specify X resources to give the geometry you want.
+* Set `default-frame-alist' to override these options so that they
+  don't affect subsequent frames.
+* Set `initial-frame-alist' in a way that matches the X resources,
+  to override what you put in `default-frame-alist'.")
 
 (defvar minibuffer-frame-alist '((width . 80) (height . 2))
   "Alist of frame parameters for initially creating a minibuffer frame.
