@@ -851,47 +851,51 @@ Recommended as a parent keymap for modes using widgets.")
   "Invoke the button that the mouse is pointing at."
   (interactive "@e")
   (if (widget-event-point event)
-      (save-excursion
+      (progn
 	(mouse-set-point event)
 	(let* ((pos (widget-event-point event))
 	       (button (get-char-property pos 'button)))
 	  (if button
-	      (let* ((overlay (widget-get button :button-overlay))
-		     (face (overlay-get overlay 'face))
-		     (mouse-face (overlay-get overlay 'mouse-face)))
-		(unwind-protect
-		    (let ((track-mouse t))
-		      (save-excursion
-			(when face	; avoid changing around image
-			  (overlay-put overlay
-				       'face widget-button-pressed-face)
-			  (overlay-put overlay
-				       'mouse-face widget-button-pressed-face))
-			(unless (widget-apply button :mouse-down-action event)
-			  (while (not (widget-button-release-event-p event))
-			    (setq event (read-event)
-				  pos (widget-event-point event))
-			    (if (and pos
-				     (eq (get-char-property pos 'button)
-					 button))
-				(when face
-				  (overlay-put overlay
-					       'face
-					       widget-button-pressed-face)
-				  (overlay-put overlay
-					       'mouse-face
-					       widget-button-pressed-face))
-			      (overlay-put overlay 'face face)
-			      (overlay-put overlay 'mouse-face mouse-face))))
-			(when (and pos
-				   (eq (get-char-property pos 'button) button))
-			  (widget-apply-action button event))))
-		  (overlay-put overlay 'face face)
-		  (overlay-put overlay 'mouse-face mouse-face)))
+	      (save-excursion
+		(let* ((overlay (widget-get button :button-overlay))
+		       (face (overlay-get overlay 'face))
+		       (mouse-face (overlay-get overlay 'mouse-face)))
+		  (unwind-protect
+		      (let ((track-mouse t))
+			(save-excursion
+			  (when face	; avoid changing around image
+			    (overlay-put overlay
+					 'face widget-button-pressed-face)
+			    (overlay-put overlay
+					 'mouse-face widget-button-pressed-face))
+			  (unless (widget-apply button :mouse-down-action event)
+			    (while (not (widget-button-release-event-p event))
+			      (setq event (read-event)
+				    pos (widget-event-point event))
+			      (if (and pos
+				       (eq (get-char-property pos 'button)
+					   button))
+				  (when face
+				    (overlay-put overlay
+						 'face
+						 widget-button-pressed-face)
+				    (overlay-put overlay
+						 'mouse-face
+						 widget-button-pressed-face))
+				(overlay-put overlay 'face face)
+				(overlay-put overlay 'mouse-face mouse-face))))
+			  (when (and pos
+				     (eq (get-char-property pos 'button) button))
+			    (widget-apply-action button event))))
+		    (overlay-put overlay 'face face)
+		    (overlay-put overlay 'mouse-face mouse-face))))
+
+	    ;; Not on a button.  Find the global command to run, and
+	    ;; check whether it is bound to an up event.  Avoid a
+	    ;; `save-excursion' here, since a global command may
+	    ;; to change point, e.g. like `mouse-drag-drag' does.
 	    (let ((up t)
 		  command)
-	      ;; Find the global command to run, and check whether it
-	      ;; is bound to an up event.
 	      (if (memq (event-basic-type event) '(mouse-1 down-mouse-1))
 		  (cond ((setq command	;down event
 			       (lookup-key widget-global-map [down-mouse-1]))
