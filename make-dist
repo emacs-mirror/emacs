@@ -87,6 +87,11 @@ them, and try again." >&2
   exit 1
 fi
 
+### Check for .elc files with no corresponding .el file.
+ls -1 lisp/*.el | sed 's/\.el$/.elc/' > /tmp/el
+ls -1 lisp/*.elc > /tmp/elc
+comm -13 /tmp/el /tmp/elc
+
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
 emacsname="emacs-${version}${new_extension}"
