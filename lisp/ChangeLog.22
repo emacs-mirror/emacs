@@ -1,3 +1,8 @@
+2003-11-23  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-compose-chars): Don't do unnecessary
+	save-exclusion and save-restriction.
+
 2003-11-22  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (make-coding-system): Fix generation of

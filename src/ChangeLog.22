@@ -1,5 +1,8 @@
 2003-11-23  Kenichi Handa  <handa@m17n.org>
 
+	* xdisp.c (handle_auto_composed_prop): Fix the case of returning
+	HANDLED_RECOMPUTE_PROPS.
+
 	* coding.c (Fdefine_coding_system_internal): Fix checking of
 	ascii compatibility.
 
