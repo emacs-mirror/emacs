@@ -3272,24 +3272,6 @@ or go back to just one window (by deleting all but the selected window)."
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
-(defcustom input-mode-8-bit t
-  "Control acceptance of 8-bit keyboard input.
-This may be useful for inputting non-ASCII characters if your keyboard
-can generate them.  It is not necessary to change this under a window
-system which can distinguish 8-bit characters and Meta keys.
-Setting this variable directly does not take effect;
-use either M-x customize or the function `set-input-mode'."
-  :set (lambda (symbol value)
-	 (let ((mode (current-input-mode)))
-	   (set-input-mode (nth 0 mode) (nth 1 mode) value)))
-  :initialize 'custom-initialize-default
-  :type '(choice (const :tag "8-bit input for a Meta key" t)
-		 (const :tag "Direct 8-bit character input" 0)
-		 (const :tag "Assume top bit is parity and ignore" nil))
-  :version "21.1"
-  :link '(custom-manual "Single-Byte European Support")
-  :group 'keyboard)
-
 (defcustom read-mail-command 'rmail
   "*Your preference for a mail reading package.
 This is used by some keybindings which support reading mail.
@@ -3320,7 +3302,8 @@ Valid values include:
                            archiving.
 
 Additional valid symbols may be available; check with the author of
-your package for details.
+your package for details.  The function should return non-nil if it
+succeeds.
 
 See also `read-mail-command' concerning reading mail."
   :type '(radio (function-item :tag "Default Emacs mail"
