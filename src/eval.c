@@ -646,12 +646,24 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
 
 DEFUN ("defmacro", Fdefmacro, Sdefmacro, 2, UNEVALLED, 0,
        doc: /* Define NAME as a macro.
-The definition is (macro lambda ARGLIST [DOCSTRING] BODY...).
+The actual definition looks like
+ (macro lambda ARGLIST [DOCSTRING] [DECL] BODY...).
 When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
 the list ARGS... as it appears in the expression,
 and the result should be a form to be evaluated instead of the original.
-usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)  */)
+
+DECL is a declaration, optional, which can specify how to indent
+calls to this macro and how Edebug should handle it.  It looks like this:
+  (declare SPECS...)
+The elements can look like this:
+  (indent INDENT)
+	Set NAME's `lisp-indent-function' property to INDENT.
+
+  (edebug DEBUG)
+	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
+	equivalent to writing a `def-edebug-spec' for the macro.
+usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
      (args)
      Lisp_Object args;
 {
