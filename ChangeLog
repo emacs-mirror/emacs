@@ -1,3 +1,7 @@
+2001-02-09  Dave Love  <fx@gnu.org>
+
+	* AUTHORS: Updated.
+
 2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info/dir (Ebrowse): Fix the entry (was missing a dot).

@@ -1,5 +1,10 @@
 2001-02-09  Dave Love  <fx@gnu.org>
 
+	* imenu.el (imenu-generic-expression): Doc fix.
+
+	* emacs-lisp/re-builder.el (reb-mode): Quote the hook name.  From
+	Juanma Barranquero.
+
 	* emacs-lisp/authors.el (authors): Expand `root' before running
 	find.
 
