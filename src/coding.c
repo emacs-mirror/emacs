@@ -308,7 +308,6 @@ Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qdefault_char;
 Lisp_Object Qno_conversion, Qundecided;
 Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
-Lisp_Object Qutf_16_be_nosig, Qutf_16_be, Qutf_16_le_nosig, Qutf_16_le;
 Lisp_Object Qsignature, Qendian, Qbig, Qlittle;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qvalid_codes;
@@ -1405,7 +1404,7 @@ decode_coding_utf_16 (coding)
       if (bom == utf_16_with_bom)
 	{
 	  if (endian == utf_16_big_endian
-	      ? c != 0xFFFE : c != 0xFEFF)
+	      ? c != 0xFEFF : c != 0xFFFE)
 	    {
 	      /* We are sure that there's enouph room at CHARBUF.  */
 	      *charbuf++ = c1;
@@ -1415,10 +1414,10 @@ decode_coding_utf_16 (coding)
 	}
       else
 	{
-	  if (c == 0xFFFE)
+	  if (c == 0xFEFF)
 	    CODING_UTF_16_ENDIAN (coding)
 	      = endian = utf_16_big_endian;
-	  else if (c == 0xFEFF)
+	  else if (c == 0xFFFE)
 	    CODING_UTF_16_ENDIAN (coding)
 	      = endian = utf_16_little_endian;
 	  else
@@ -1505,9 +1504,9 @@ encode_coding_utf_16 (coding)
     {
       ASSURE_DESTINATION (safe_room);
       if (big_endian)
-	EMIT_TWO_BYTES (0xFF, 0xFE);
-      else
 	EMIT_TWO_BYTES (0xFE, 0xFF);
+      else
+	EMIT_TWO_BYTES (0xFF, 0xFE);
       CODING_UTF_16_BOM (coding) = utf_16_without_bom;
     }
 
@@ -8413,10 +8412,6 @@ syms_of_coding ()
   DEFSYM (Qutf_8, "utf-8");
 
   DEFSYM (Qutf_16, "utf-16");
-  DEFSYM (Qutf_16_be, "utf-16-be");
-  DEFSYM (Qutf_16_be_nosig, "utf-16-be-nosig");
-  DEFSYM (Qutf_16_le, "utf-16-l3");
-  DEFSYM (Qutf_16_le_nosig, "utf-16-le-nosig");
   DEFSYM (Qsignature, "signature");
   DEFSYM (Qendian, "endian");
   DEFSYM (Qbig, "big");
