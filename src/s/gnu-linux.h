@@ -1,4 +1,5 @@
-/* This file is the configuration file for GNU/Linux operating systems.
+/* This file is the configuration file for Lignux systems
+   (that is,  Linux-based GNU operating systems.)
    Copyright (C) 1985, 1986, 1992, 1994, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -35,7 +36,7 @@ Boston, MA 02111-1307, USA.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
-#define SYSTEM_TYPE "linux"		/* All the best software is free. */
+#define SYSTEM_TYPE "lignux"		/* All the best software is free. */
 
 /* Check the version number of Linux--if it is at least 1.2.0,
    it is safe to use SIGIO.  */
