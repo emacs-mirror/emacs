@@ -1,3 +1,7 @@
+1999-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile (DONTCOMPILE): Add term/internal.el.
+
 1999-11-26  Dave Love  <fx@gnu.org>
 
 	* comint.el: Fix last change.

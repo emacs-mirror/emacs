@@ -30,7 +30,7 @@ DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
 	loaddefs.el loadup.el international/mule-conf.el patcomp.el \
 	paths.el mail/sc.el subdirs.el term-nasty.el version.el \
 	generic-x.el international/latin-8.el international/latin-9.el \
-	emacs-lisp/cl-specs.el finder-inf.el
+	emacs-lisp/cl-specs.el finder-inf.el term/internal.el
 
 # The actual Emacs command run in the targets below.
 
