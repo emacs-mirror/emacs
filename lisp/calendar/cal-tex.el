@@ -928,7 +928,8 @@ Holidays are included if `cal-tex-holidays' is t."
 	  (calendar-for-loop i from 8 to 12 do
 	     (insert (format "{\\large\\sf %d}\\\\\n" i)))
 	  (calendar-for-loop i from 1 to 5 do
-	     (insert (format "{\\large\\sf %d}\\\\\n" i)))))
+	     (insert (format "{\\large\\sf %d}\\\\\n" 
+			     (if cal-tex-24 (+ i 12) i))))))
     (cal-tex-nl ".5cm")
     (if weekend
 	(progn
