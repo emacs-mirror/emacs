@@ -908,6 +908,7 @@ if it isn't already recorded.")
 	 cope with variable-height lines.  */
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
+      move_it_past_eol (&it);
       value = make_number (IT_CHARPOS (it));
     }
   else
@@ -4555,6 +4556,7 @@ and redisplay normally--don't erase and redraw the frame.")
 
   /* Set the new window start.  */
   set_marker_both (w->start, w->buffer, charpos, bytepos);
+  w->window_end_valid = Qnil;
   w->force_start = Qt;
   if (bytepos == BEGV_BYTE || FETCH_BYTE (bytepos - 1) == '\n')
     w->start_at_line_beg = Qt;
