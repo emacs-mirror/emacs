@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.18 2002/11/12 19:50:54 rost Exp $
+;; $Id: vc-sccs.el,v 1.19 2002/11/13 12:37:58 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -242,7 +242,9 @@ locked.  REV is the revision to check out."
 	  ;; the file in the right place.
 	  (setq default-directory (file-name-directory file))
 
-	  (and rev (string= rev "") (setq rev nil))
+	  (and rev (or (string= rev "") 
+                       (not (stringp rev)))
+               (setq rev nil))
 	  (apply 'vc-do-command nil 0 "get" (vc-name file)
 		 (if editable "-e")
 		 (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
