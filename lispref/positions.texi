@@ -745,6 +745,10 @@ of using its normal method.
 characters.  For example, they are often used to skip whitespace.  For
 related functions, see @ref{Motion and Syntax}.
 
+These functions convert the set string to multibyte if the buffer is
+multibyte, and they convert it to unibyte if the buffer is unibyte, as
+the search functions do (@pxref{Searching and Matching}).
+
 @defun skip-chars-forward character-set &optional limit
 This function moves point in the current buffer forward, skipping over a
 given set of characters.  It examines the character following point,
@@ -785,6 +789,15 @@ I read "The cat in the hat@point{}
 comes back" twice.
 ---------- Buffer: foo ----------
 @end group
+@end example
+
+Note that char classes are not currently supported in
+@var{character-set}; they will be treated as literals.  Thus you
+cannot use @code{"[:alpha:]"} instead of @code{"a-zA-Z"} to include
+non-ASCII letters.  A way to skip forward over all letters is:
+
+@example
+(re-search-forward "\\=[[:alpha:]]*" nil t)
 @end example
 @end defun
 
