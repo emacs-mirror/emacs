@@ -1088,7 +1088,7 @@ done:
 	start = end = whole = 0;
 
       /* Indicate what this scroll bar ought to be displaying now.  */
-      (*set_vertical_scroll_bar_hook) (w, end - start, whole, start - 1);
+      (*set_vertical_scroll_bar_hook) (w, end - start, whole, start);
 
       /* Note that we actually used the scroll bar attached to this window,
 	 so it shouldn't be deleted at the end of redisplay.  */
