@@ -1,3 +1,7 @@
+2003-05-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (GET_WHEEL_DELTA_WPARAM): New macro.
+
 2003-05-27  David Ponce  <david@dponce.com>
 
 	Handle W32 mouse wheel events as mouse click events, like in X.
