@@ -684,7 +684,7 @@ lisp= \
 	${lispsource}case-table.elc \
 	${lispsource}language/chinese.el \
 	${lispsource}language/cyrillic.el \
-	${lispsource}language/indian.elc \
+	${lispsource}language/indian.el \
 	${lispsource}language/devanagari.el \
 	${lispsource}language/english.el \
 	${lispsource}language/ethiopic.elc \
@@ -765,7 +765,7 @@ shortlisp= \
 	../lisp/case-table.elc \
 	../lisp/language/chinese.el \
 	../lisp/language/cyrillic.el \
-	../lisp/language/indian.elc \
+	../lisp/language/indian.el \
 	../lisp/language/devanagari.el \
 	../lisp/language/english.el \
 	../lisp/language/ethiopic.elc \
