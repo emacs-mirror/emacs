@@ -2042,6 +2042,10 @@ comint mode, which see."
 	(setq words (cons (substring string beg) words)))
     (nreverse words)))
 
+;; Cause our buffers to be displayed, by default,
+;; in the selected window.
+;;;###autoload (add-hook 'same-window-regexps "\\*gud-.*\\*\\(\\|<[0-9]+>\\)")
+
 ;; Perform initializations common to all debuggers.
 ;; The first arg is the specified command line,
 ;; which starts with the program to debug.
@@ -2072,7 +2076,7 @@ comint mode, which see."
 			(expand-file-name file-subst)
 		      file-subst)))
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file)))))
-    (switch-to-buffer (concat "*gud" filepart "*"))
+    (pop-to-buffer (concat "*gud" filepart "*"))
     ;; Set default-directory to the file's directory.
     (and file-word
 	 ;; Don't set default-directory if no directory was specified.
