@@ -46,7 +46,6 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	  (setq file (car files)
 		files (cdr files))
 	  (when (file-exists-p file)
-	    (message "Checking %s..." file)
 	    (erase-buffer)
 	    (insert-file-contents file)
 	    (goto-char (point-min))
