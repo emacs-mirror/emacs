@@ -1,5 +1,7 @@
 2001-07-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_cursor_movement): Prevent a warning from GCC 3.0.
+
 	* fileio.c (unwind_read): Print a message when discarding inserted
 	text or switching the buffer to unibyte.  Change parameter.
 	(Finsert_file_contents): Don't pass VISIT to unwind_read.
