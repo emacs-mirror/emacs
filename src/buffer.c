@@ -2498,9 +2498,11 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
 	    {
 	      if (extend)
 		{
-		  *len_ptr = len *= 2;
+		  /* Make it work with an initial len == 0.  */
+		  len *= 2;
 		  if (len == 0)
-		    len = *len_ptr = 4;
+		    len = 4;
+		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
@@ -2594,7 +2596,11 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
-		  *len_ptr = len *= 2;
+		  /* Make it work with an initial len == 0.  */
+		  len *= 2;
+		  if (len == 0)
+		    len = 4;
+		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
@@ -2638,7 +2644,11 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	    {
 	      if (extend)
 		{
-		  *len_ptr = len *= 2;
+		  /* Make it work with an initial len == 0.  */
+		  len *= 2;
+		  if (len == 0)
+		    len = 4;
+		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
