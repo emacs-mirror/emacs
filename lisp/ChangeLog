@@ -1,3 +1,20 @@
+2005-03-23  David Ponce  <david@dponce.com>
+
+	* recentf.el: (recentf-keep): New option.
+	(recentf-menu-action): Default to `find-file'.
+	(recentf-keep-non-readable-files-flag)
+	(recentf-keep-non-readable-files-p)
+	(recentf-file-readable-p, recentf-find-file)
+	(recentf-cleanup-remote): Remove.
+	(recentf-include-p): More robust.
+	(recentf-keep-p): New function.
+	(recentf-remove-if-non-kept): Rename from
+	`recentf-remove-if-non-readable'. Use `recentf-keep-p'. All
+	callers updated.
+	(recentf-menu-items-for-commands): Fix help string.
+	(recentf-track-closed-file): Update. Doc fix.
+	(recentf-cleanup): Update. Count removed files. Doc fix.
+
 2005-03-23  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
