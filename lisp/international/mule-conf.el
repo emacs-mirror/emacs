@@ -330,4 +330,8 @@
    coding-category-iso-8-else
    coding-category-binary))
 
+
+;;; Miscellaneous settings.
+(aset latin-extra-code-table ?\222 t)
+
 ;;; mule-conf.el ends here
