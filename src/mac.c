@@ -2446,6 +2446,9 @@ do_applescript (char *script, char **result)
 
   *result = 0;
 
+  if (!as_scripting_component)
+    initialize_applescript();
+
   error = AECreateDesc (typeChar, script, strlen(script), &script_desc);
   if (error)
     return error;
@@ -2502,10 +2505,10 @@ do_applescript (char *script, char **result)
         }
       HUnlock (result_desc.dataHandle);
 #endif /* not TARGET_API_MAC_CARBON */
+      AEDisposeDesc (&result_desc);
     }
 
   AEDisposeDesc (&script_desc);
-  AEDisposeDesc (&result_desc);    
 
   return osaerror;
 }
@@ -2530,7 +2533,7 @@ component.  */)
   if (status)
     {
       if (!result)
-        error ("AppleScript error %ld", status);
+        error ("AppleScript error %d", status);
       else
         {
           /* Unfortunately only OSADoScript in do_applescript knows how

@@ -1,3 +1,10 @@
+2002-06-17  Andrew Choi  <akochoi@shaw.ca>
+
+	* mac.c (do_applescript): Call initialize_applescript if necessary
+	when first called.  Dispose of result_desc only when there is no
+	error.
+	(Fdo_applescript): Use %d format specifier instead of %ld.
+	
 2002-06-16  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (XTread_socket): Call FrontNonFloatingWindow instead
