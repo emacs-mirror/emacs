@@ -21,6 +21,8 @@
 #define HAVE_CBRT 1\
 #define HAVE_FPATHCONF 1\
 #define HAVE_SETRLIMIT 1\
+#define HAVE_TM_GMTOFF 1\
+#define HAVE_MBLEN 1\
 #else /* not __DJGPP__ > 1 */
 /^#undef STDC_HEADERS *$/s/undef/define/
 /^#undef HAVE_SYS_TIMEB_H *$/s/undef/define/

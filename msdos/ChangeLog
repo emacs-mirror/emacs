@@ -1,3 +1,9 @@
+1999-11-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp (HAVE_TM_GMTOFF, HAVE_MBLEN): Define.
+
+	* sed1v2.inp: Convert "LC_ALL=C ./temacs" to MS-DOS equivalent.
+
 1999-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedleim.inp (SHELL, MAKESHELL): Use /xyzzy/command as the shell.

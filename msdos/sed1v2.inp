@@ -5,8 +5,9 @@ s/^#.*//
 s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 s/\.h\.in/.h-in/
-/^	\.\/temacs/i\
+/^	LC_ALL=C \.\/temacs/i\
 	stubedit temacs.exe minstack=100k
+/^	LC_ALL=C \.\/temacs/s/LC_ALL=C/set &;/
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
