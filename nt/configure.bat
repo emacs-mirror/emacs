@@ -200,8 +200,8 @@ rem   of w32api-xxx.zip from Anders Norlander since 1999-11-18 at least.
 rem
 echo Checking whether W32 API headers are too old...
 echo #include "windows.h" >junk.c
-echo test(PIMAGE_NT_HEADERS pHeader)>>junk.c
-echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);}>>junk.c
+echo test(PIMAGE_NT_HEADERS pHeader) >>junk.c
+echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 gcc -c junk.c
 if exist junk.o goto gccOk
 
@@ -235,18 +235,18 @@ if %COMPILER% == cl set MAKECMD=nmake
 rem   Pass on chosen settings to makefiles.
 echo # Start of settings from configure.bat >config.settings
 echo COMPILER=%COMPILER% >>config.settings
-if (%nodebug%) == (Y) echo NODEBUG=1>>config.settings
-if (%noopt%) == (Y) echo NOOPT=1>>config.settings
-if (%nocygwin%) == (Y) echo NOCYGWIN=1>>config.settings
-if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
-if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags%>>config.settings
-if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags%>>config.settings
-echo # End of settings from configure.bat>>config.settings
+if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
+if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
+if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
+if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix% >>config.settings
+if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags% >>config.settings
+if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags% >>config.settings
+echo # End of settings from configure.bat >>config.settings
 echo. >>config.settings
 
 copy config.nt ..\src\config.h
-if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src\config.h
-if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
+if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%" >>..\src\config.h
+if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%" >>..\src\config.h
 copy paths.h ..\src\epaths.h
 
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
