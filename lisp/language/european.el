@@ -73,6 +73,7 @@
    nil ascii-eol ascii-cntl))
 
 (define-coding-system-alias 'iso-8859-1 'iso-latin-1)
+(define-coding-system-alias 'latin-1 'iso-latin-1)
 (define-coding-system-alias 'ctext 'iso-latin-1)
 
 (defun setup-latin1-environment ()
@@ -104,6 +105,7 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (define-coding-system-alias 'iso-8859-2 'iso-latin-2)
+(define-coding-system-alias 'latin-2 'iso-latin-2)
 
 (defun setup-latin2-environment ()
   "Set up multilingual environment (MULE) for European Latin-2 users."
@@ -132,6 +134,7 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (define-coding-system-alias 'iso-8859-3 'iso-latin-3)
+(define-coding-system-alias 'latin-3 'iso-latin-3)
 
 (defun setup-latin3-environment ()
   "Set up multilingual environment (MULE) for European Latin-3 users."
@@ -160,6 +163,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (define-coding-system-alias 'iso-8859-4 'iso-latin-4)
+(define-coding-system-alias 'latin-4 'iso-latin-4)
 
 (defun setup-latin4-environment ()
   "Set up multilingual environment (MULE) for European Latin-4 users."
@@ -188,6 +192,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (define-coding-system-alias 'iso-8859-9 'iso-latin-5)
+(define-coding-system-alias 'latin-5 'iso-latin-5)
 
 (defun setup-latin5-environment ()
   "Set up multilingual environment (MULE) for European Latin-5 users."
