@@ -1448,9 +1448,12 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale)
 # than to expect to find it in ncurses.
 AC_CHECK_LIB(ncurses, tparm)
 
-# These tell us whether Kerberos is available.
-AC_CHECK_LIB(krb, krb_get_cred)
-AC_CHECK_LIB(des, des_cbc_encrypt)
+# These tell us which Kerberos-related libraries to use.
+if test "${with_kerberos+set}" = set; then
+  AC_CHECK_LIB(krb, krb_get_cred)
+  AC_CHECK_LIB(des, des_cbc_encrypt)
+  AC_CHECK_LIB(com_err, com_err)
+fi
 
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
