@@ -673,7 +673,7 @@ called @samp{Top} in this file (its directory node).
 
 Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
 
-To go to a node in another file, you can include the filename in the
+To go to a node in another file, you can include the file name in the
 node name by putting it at the front, in parentheses.  Thus,
 @kbd{g(dir)Top@key{RET}} would go to the Info Directory node, which is
 node @samp{Top} in the file @file{dir}.
@@ -780,7 +780,7 @@ node @kbd{*} is to make it possible to make old-fashioned,
 unstructured files into nodes of the tree.
 
   The @samp{Node:} name, in which a node states its own name, must not
-contain a filename, since Info when searching for a node does not
+contain a file name, since Info when searching for a node does not
 expect one to be there.  The @samp{Next}, @samp{Previous} and @samp{Up} names may
 contain them.  In this node, since the @samp{Up} node is in the same file,
 it was not necessary to use one.

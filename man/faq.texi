@@ -109,7 +109,7 @@ used in the FAQ.
 * Basic keys::                  
 * Extended commands::           
 * On-line manual::              
-* Filename conventions::        
+* File-name conventions::        
 * Common acronyms::             
 @end menu
 
@@ -180,7 +180,7 @@ really means press the space key.
 
 The ASCII code sent by @kbd{C-x} (except for @kbd{C-?}) is the value
 that would be sent by pressing just @key{x} minus 96 (or 64 for
-uppercase @key{X}) and will be from 0 to 31.  On Unix and GNU/Linux
+upper-case @key{X}) and will be from 0 to 31.  On Unix and GNU/Linux
 terminals, the ASCII code sent by @kbd{M-x} is the sum of 128 and the
 ASCII code that would be sent by pressing just @key{x}.  Essentially,
 @key{Control} turns off bits 5 and 6 and @key{Meta} turns on bit
@@ -223,7 +223,7 @@ good candidate for this, on keyboards that have such a key.
 If you need to run non-interactive Emacs functions, see @ref{Evaluating
 Emacs Lisp code}.
 
-@node On-line manual, Filename conventions, Extended commands, FAQ notation
+@node On-line manual, File-name conventions, Extended commands, FAQ notation
 @section How do I read topic XXX in the on-line manual?
 @cindex On-line manual, reading topics in
 @cindex Reading topics in the on-line manual
@@ -247,10 +247,10 @@ improperly.  In this case you should complain.
 @xref{Getting a printed manual}, if you would like a paper copy of the
 Emacs manual.
 
-@node Filename conventions, Common acronyms, On-line manual, FAQ notation
+@node File-name conventions, Common acronyms, On-line manual, FAQ notation
 @section What are @file{etc/SERVICE}, @file{src/config.h}, and @file{lisp/default.el}?
-@cindex Filename conventions
-@cindex Conventions for filenames
+@cindex File-name conventions
+@cindex Conventions for file names
 @cindex Directories and files that come with Emacs
 
 These are files that come with Emacs.  The Emacs distribution is divided
@@ -280,7 +280,7 @@ also available via the Emacs "@samp{Help} menu, or by typing @kbd{C-h ?}
 Your system administrator may have removed the @file{src} directory and
 many files from the @file{etc} directory.
 
-@node Common acronyms,  , Filename conventions, FAQ notation
+@node Common acronyms,  , File-name conventions, FAQ notation
 @section What are FSF, LPF, OSF, GNU, RMS, FTP, and GPL?
 @cindex FSF, definition of
 @cindex LPF, definition of
@@ -758,7 +758,7 @@ perform these steps:
 @enumerate
 @item
 Move the files to the @file{info} directory in the installed Emacs
-distribution.  @xref{Filename conventions}, if you don't know where that
+distribution.  @xref{File-name conventions}, if you don't know where that
 is.
 
 @item
@@ -915,7 +915,7 @@ informational files about Emacs and relevant aspects of the GNU project
 are available for you to read.
 
 The following files are available in the @file{etc} directory of the
-Emacs distribution (see @ref{Filename conventions}, if you're not sure
+Emacs distribution (see @ref{File-name conventions}, if you're not sure
 where that is).
 
 @table @file
@@ -977,7 +977,7 @@ Bulletin}, are at
 @ref{Problems building Emacs}, or @ref{Linking with -lX11 fails}, if you
 have problems with the installation.
 
-The file @file{etc/SERVICE} (see @ref{Filename conventions}, if you're
+The file @file{etc/SERVICE} (see @ref{File-name conventions}, if you're
 not sure where that is) lists companies and individuals willing to sell
 you help in installing or using Emacs.  An up-to-date version this file
 is available on @samp{ftp.gnu.org} (@pxref{Informational files for
@@ -1032,7 +1032,7 @@ Via HTTP or FTP.  You can always fetch the latest FAQ from
 @item
 In the Emacs distribution.  Since Emacs 18.56, the FAQ at the time
 of release has been part of the Emacs distribution as
-@file{man/faq.texi} (@pxref{Filename conventions}).
+@file{man/faq.texi} (@pxref{File-name conventions}).
 
 @item
 Via the World Wide Web.  A hypertext version is available at
@@ -1113,7 +1113,7 @@ original TECO Emacs inside of Emacs.
 
 @cindex Why Emacs?
 For some not-so-serious alternative reasons for Emacs to have that
-name, check out the file @file{etc/JOKES} (@pxref{Filename
+name, check out the file @file{etc/JOKES} (@pxref{File-name
 conventions}).
 
 @node Latest version of Emacs, New in Emacs 20, Origin of the term Emacs, Status of Emacs
@@ -1181,7 +1181,7 @@ and on @code{xterm} with @kbd{emacs -nw}.
 * Debugging a customization file::  
 * Colors on a TTY::  
 * Displaying the current line or column::  
-* Displaying the current filename in the titlebar::  
+* Displaying the current file name in the titlebar::  
 * Turning on abbrevs by default::  
 * Turning on auto-fill by default::  
 * Associating modes with files::  
@@ -1296,7 +1296,7 @@ eval-last-sexp}).
 Use @kbd{C-h v} (@kbd{M-x describe-variable}) to check the value of
 variables which you are trying to set or use.
 
-@node Displaying the current line or column, Displaying the current filename in the titlebar, Debugging a customization file, Common requests
+@node Displaying the current line or column, Displaying the current file name in the titlebar, Debugging a customization file, Common requests
 @section How do I make Emacs display the current line (or column) number?
 @cindex @code{line-number-mode}
 @cindex Displaying the current line or column
@@ -1344,10 +1344,10 @@ instructions on how to get it.
 None of the @code{vi} emulation modes provide the ``set number''
 capability of @code{vi} (as far as we know).
 
-@node Displaying the current filename in the titlebar, Turning on abbrevs by default, Displaying the current line or column, Common requests
-@section How can I modify the titlebar to contain the current filename?
-@cindex Titlebar, displaying the current filename in
-@cindex Filename, displaying in the titlebar
+@node Displaying the current file name in the titlebar, Turning on abbrevs by default, Displaying the current line or column, Common requests
+@section How can I modify the titlebar to contain the current file name?
+@cindex Titlebar, displaying the current file name in
+@cindex File name, displaying in the titlebar
 @cindex @code{frame-title-format}
 
 The contents of an Emacs frame's titlebar is controlled by the variable
@@ -1374,7 +1374,7 @@ in your @file{.emacs}:
 (setq frame-title-format "%b")
 @end lisp
 
-@node Turning on abbrevs by default, Turning on auto-fill by default, Displaying the current filename in the titlebar, Common requests
+@node Turning on abbrevs by default, Turning on auto-fill by default, Displaying the current file name in the titlebar, Common requests
 @section How do I turn on abbrevs by default just in mode @var{mymode}?
 @cindex Abbrevs, turning on by default
 
@@ -2982,10 +2982,10 @@ over NFS anyway, the best solution is to recompile Emacs with
 @node Editing files with $ in the name, Shell mode loses the current directory, Emacs takes a long time to visit files, Bugs and problems
 @section How do I edit a file with a @samp{$} in its name?
 @cindex Editing files with @samp{$} in the name
-@cindex @samp{$} in filenames
-@cindex Filenames containing @samp{$}, editing
+@cindex @samp{$} in file names
+@cindex File names containing @samp{$}, editing
 
-When entering a filename in the minibuffer, Emacs will attempt to expand
+When entering a file name in the minibuffer, Emacs will attempt to expand
 a @samp{$} followed by a word as an environment variable.  To suppress
 this behavior, type @kbd{$$} instead.
 
@@ -3396,7 +3396,7 @@ string @samp{wordstar}.
 
 It is also possible that the package is on your system, but has not been
 loaded.  To see which packages are available for loading, look through
-your computer's lisp directory (@pxref{Filename conventions}).  The Lisp
+your computer's lisp directory (@pxref{File-name conventions}).  The Lisp
 source to most packages contains a short description of how they
 should be loaded, invoked, and configured---so before you use or
 modify a Lisp package, see if the author has provided any hints in the
@@ -3604,7 +3604,7 @@ following:
 @item Compiler
 DJGPP version 1.12 maint 1 or later.  Djgpp 2.0 or later is
 recommended, since 1.x is very old an unmaintained.  Djgpp 2 supports
-long filenames on Windows 9X/ME/2K.
+long file names on Windows 9X/ME/2K.
 
 You can get the latest release of DJGPP by retrieving all of
 the files in

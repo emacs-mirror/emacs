@@ -1034,8 +1034,8 @@ of the buffer, or on the active region in Transient Mark mode.
 Display a list showing each line in the buffer that contains a match
 for @var{regexp}.  To limit the search to part of the buffer, narrow
 to that part (@pxref{Narrowing}).  A numeric argument @var{n}
-specifies to display @var{n} lines of context before and after each
-matching line.
+specifies that @var{n} lines of context are to be displayed before and
+after each matching line.
 
 @kindex RET @r{(Occur mode)}
 The buffer @samp{*Occur*} containing the output serves as a menu for

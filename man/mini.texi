@@ -478,7 +478,7 @@ the history, while @kbd{M-s} (@code{next-matching-history-element})
 searches newer elements.  By special dispensation, these commands can
 use the minibuffer to read their arguments even though you are already
 in the minibuffer when you issue them.  As with incremental searching,
-an uppercase letter in the regular expression makes the search
+an upper-case letter in the regular expression makes the search
 case-sensitive (@pxref{Search Case}).
 
 @ignore
