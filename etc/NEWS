@@ -2320,6 +2320,8 @@ strings that have been consed so far.
 * Lisp-level Display features added after release 2.6 of the Emacs
 Lisp Manual
 
+*** On window systems, `glyph-table' is no longer used.
+
 +++
 ** Help strings in menu items are now used to provide `help-echo' text.
 
