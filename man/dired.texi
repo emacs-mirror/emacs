@@ -5,6 +5,7 @@
 @node Dired, Calendar/Diary, Rmail, Top
 @chapter Dired, the Directory Editor
 @cindex Dired
+@cindex file management
 
   Dired makes an Emacs buffer containing a listing of a directory, and
 optionally some of its subdirectories as well.  You can use the normal
@@ -138,6 +139,7 @@ the buffer, and no files actually deleted.
 
 @node Flagging Many Files
 @section Flagging Many Files at Once
+@cindex flagging many files for deletion (in Dired)
 
 @table @kbd
 @item #
@@ -171,6 +173,7 @@ keep.@refill
 @kindex & @r{(Dired)}
 @findex dired-flag-garbage-files
 @vindex dired-garbage-files-regexp
+@cindex deleting some backup files
   @kbd{&} (@code{dired-flag-garbage-files}) flags files whose names
 match the regular expression specified by the variable
 @code{dired-garbage-files-regexp}.  By default, this matches certain
@@ -181,6 +184,7 @@ produced by @code{patch}.
 @kindex ~ @r{(Dired)}
 @findex dired-flag-auto-save-files
 @findex dired-flag-backup-files
+@cindex deleting auto-save files
   @kbd{#} (@code{dired-flag-auto-save-files}) flags for deletion all
 files whose names look like auto-save files (@pxref{Auto Save})---that
 is, files whose names begin and end with @samp{#}.  @kbd{~}
@@ -272,7 +276,7 @@ in the file conveniently and does not allow changing the file.
 @node Marks vs Flags
 @section Dired Marks vs. Flags
 
-@cindex marking in Dired
+@cindex marking many files (in Dired)
   Instead of flagging a file with @samp{D}, you can @dfn{mark} the file
 with some other character (usually @samp{*}).  Most Dired commands to
 operate on files, aside from ``expunge'' (@kbd{x}), look for files
@@ -296,6 +300,7 @@ files.)
 @item * *
 @kindex * * @r{(Dired)}
 @findex dired-mark-executables
+@cindex marking executable files (in Dired)
 Mark all executable files with @samp{*}
 (@code{dired-mark-executables}).  With a numeric argument, unmark all
 those files.
@@ -303,12 +308,14 @@ those files.
 @item * @@
 @kindex * @@ @r{(Dired)}
 @findex dired-mark-symlinks
+@cindex marking symlinks (in Dired)
 Mark all symbolic links with @samp{*} (@code{dired-mark-symlinks}).
 With a numeric argument, unmark all those files.
 
 @item * /
 @kindex * / @r{(Dired)}
 @findex dired-mark-directories
+@cindex marking subdirectories (in Dired)
 Mark with @samp{*} all files which are actually directories, except for
 @file{.} and @file{..} (@code{dired-mark-directories}).  With a numeric
 argument, unmark all those files.
@@ -330,6 +337,7 @@ Remove any mark on this line (@code{dired-unmark}).
 @itemx * @key{DEL}
 @kindex * DEL @r{(Dired)}
 @findex dired-unmark-backward
+@cindex unmarking files (in Dired)
 Move point to previous line and remove any mark on that line
 (@code{dired-unmark-backward}).
 
@@ -365,6 +373,7 @@ Move up to the previous marked file (@code{dired-prev-marked-file})
 @item * t
 @kindex * t @r{(Dired)}
 @findex dired-do-toggle
+@cindex toggling marks (in Dired)
 Toggle all marks (@code{dired-do-toggle}): files marked with @samp{*}
 become unmarked, and unmarked files are marked with @samp{*}.  Files
 marked in any other way are not affected.
@@ -409,7 +418,8 @@ hiding them (@pxref{Hiding Subdirectories}).
 
 @item % g @var{regexp} @key{RET}
 @findex dired-mark-files-containing-regexp
-@kindex % m @r{(Dired)}
+@kindex % g @r{(Dired)}
+@cindex finding files containing regexp matches (in Dired)
 Mark (with @samp{*}) all files whose @emph{contents} contain a match for
 the regular expression @var{regexp}
 (@code{dired-mark-files-containing-regexp}).  This command is like
@@ -455,6 +465,7 @@ commands, also use these conventions to decide which files to work on.)
 @table @kbd
 @findex dired-do-copy
 @kindex C @r{(Dired)}
+@cindex copying files (in Dired)
 @item C @var{new} @key{RET}
 Copy the specified files (@code{dired-do-copy}).  The argument @var{new}
 is the directory to copy into, or (if copying a single file) the new
@@ -478,6 +489,7 @@ files, or the next @var{n} files.  By contrast, @kbd{x}
 
 @findex dired-do-rename
 @kindex R @r{(Dired)}
+@cindex renaming files (in Dired)
 @item R @var{new} @key{RET}
 Rename the specified files (@code{dired-do-rename}).  The argument
 @var{new} is the directory to rename into, or (if renaming a single
@@ -488,6 +500,7 @@ with renamed files so that they refer to the new names.
 
 @findex dired-do-hardlink
 @kindex H @r{(Dired)}
+@cindex hard links (in Dired)
 @item H @var{new} @key{RET}
 Make hard links to the specified files (@code{dired-do-hardlink}).  The
 argument @var{new} is the directory to make the links in, or (if making
@@ -495,6 +508,7 @@ just one link) the name to give the link.
 
 @findex dired-do-symlink
 @kindex S @r{(Dired)}
+@cindex symlinks (in Dired)
 @item S @var{new} @key{RET}
 Make symbolic links to the specified files (@code{dired-do-symlink}).
 The argument @var{new} is the directory to make the links in, or (if
@@ -502,6 +516,7 @@ making just one link) the name to give the link.
 
 @findex dired-do-chmod
 @kindex M @r{(Dired)}
+@cindex changing file permissions (in Dired)
 @item M @var{modespec} @key{RET}
 Change the mode (also called ``permission bits'') of the specified files
 (@code{dired-do-chmod}).  This uses the @code{chmod} program, so
@@ -509,12 +524,14 @@ Change the mode (also called ``permission bits'') of the specified files
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}
+@cindex changing file group ownership (in Dired)
 @item G @var{newgroup} @key{RET}
 Change the group of the specified files to @var{newgroup}
 (@code{dired-do-chgrp}).
 
 @findex dired-do-chown
 @kindex O @r{(Dired)}
+@cindex changing file owner (in Dired)
 @item O @var{newowner} @key{RET}
 Change the owner of the specified files to @var{newowner}
 (@code{dired-do-chown}).  (On most systems, only the superuser can do
@@ -527,6 +544,7 @@ different places).
 
 @findex dired-do-print
 @kindex P @r{(Dired)}
+@cindex printing files (in Dired)
 @item P @var{command} @key{RET}
 Print the specified files (@code{dired-do-print}).  You must specify the
 command to print them with, but the minibuffer starts out with a
@@ -536,18 +554,21 @@ suitable guess made using the variables @code{lpr-command} and
 
 @findex dired-do-compress
 @kindex Z @r{(Dired)}
+@cindex compressing files (in Dired)
 @item Z
 Compress the specified files (@code{dired-do-compress}).  If the file
 appears to be a compressed file already, it is uncompressed instead.
 
 @findex dired-do-load
 @kindex L @r{(Dired)}
+@cindex loading several files (in Dired)
 @item L
 Load the specified Emacs Lisp files (@code{dired-do-load}).
 @xref{Lisp Libraries}.
 
 @findex dired-do-byte-compile
 @kindex B @r{(Dired)}
+@cindex byte-compiling several files (in Dired)
 @item B
 Byte compile the specified Emacs Lisp files
 (@code{dired-do-byte-compile}).  @xref{Byte Compilation,, Byte
@@ -555,6 +576,7 @@ Compilation, elisp, The Emacs Lisp Reference Manual}.
 
 @kindex A @r{(Dired)}
 @findex dired-do-search
+@cindex search multiple files (in Dired)
 @item A @var{regexp} @key{RET}
 Search all the specified files for the regular expression @var{regexp}
 (@code{dired-do-search}).
@@ -565,6 +587,7 @@ the next match.  @xref{Tags Search}.
 
 @kindex Q @r{(Dired)}
 @findex dired-do-query-replace
+@cindex search and replace in multiple files (in Dired)
 @item Q @var{from} @key{RET} @var{to} @key{RET}
 Perform @code{query-replace-regexp} on each of the specified files,
 replacing matches for @var{from} (a regular expression) with the string
@@ -576,6 +599,7 @@ more matches.  @xref{Tags Search}.
 
 @kindex a @r{(Dired)}
 @findex dired-do-apply
+@cindex apply arbitrary function to many files
 @item a @var{function} @kbd{RET}
 Apply an arbitrary Lisp function to the name of each marked file
 (@code{dired-do-apply}).
@@ -648,6 +672,7 @@ Updating}).
 @table @kbd
 @findex dired-upcase
 @kindex % u @r{(Dired)}
+@cindex upcase file names
 @item % u
 Rename each of the selected files to an upper-case name
 (@code{dired-upcase}).  If the old file names are @file{Foo}
@@ -656,6 +681,7 @@ and @file{bar}, the new names are @file{FOO} and @file{BAR}.
 @item % l
 @findex dired-downcase
 @kindex % l @r{(Dired)}
+@cindex downcase file names
 Rename each of the selected files to a lower-case name
 (@code{dired-downcase}).  If the old file names are @file{Foo} and
 @file{bar}, the new names are @file{foo} and @file{bar}.
@@ -710,6 +736,8 @@ regular expression specified in any @kbd{%} command as a default.
 
 @node Comparison in Dired
 @section File Comparison with Dired
+@cindex file comparison (in Dired)
+@cindex compare files (in Dired)
 
   Here are two Dired commands that compare specified files using
 @code{diff}.
@@ -864,6 +892,8 @@ visible, and show what was hidden.
 
 @node Dired Updating
 @section Updating the Dired Buffer
+@cindex updating Dired buffer
+@cindex refreshing displayed files
 
   This section describes commands to update the Dired buffer to reflect
 outside (non-Dired) changes in the directories and files, and to delete
@@ -960,6 +990,8 @@ arguments, @var{directory} and @var{regexp}; it chooses all the files in
 @var{regexp}.  It works by running the programs @code{find} and
 @code{grep}.  See also @kbd{M-x grep-find}, in @ref{Compilation}.
 Remember to write the regular expression for @code{grep}, not for Emacs.
+(An alternative method of showing files whose contents match a given
+regexp is the @kbd{% g @var{regexp}} command, see @ref{Marks vs Flags}.)
 
 @findex find-dired
   The most general command in this series is @kbd{M-x find-dired}, which
