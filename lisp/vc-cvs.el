@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.56 2003/04/23 13:14:16 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.57 2003/05/08 18:23:53 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -281,7 +281,7 @@ committed and support display of sticky tags."
   "CVS-specific version of `vc-dired-state-info'."
   (let ((cvs-state (vc-state file)))
     (cond ((eq cvs-state 'edited)
-	   (if (equal (vc-workfile-version) "0")
+	   (if (equal (vc-workfile-version file) "0")
 	       "(added)" "(modified)"))
 	  ((eq cvs-state 'needs-patch) "(patch)")
 	  ((eq cvs-state 'needs-merge) "(merge)"))))
@@ -473,7 +473,30 @@ REV is the revision to check out into WORKFILE."
   (unless contents-done
     ;; Check out via standard output (caused by the final argument
     ;; FILE below), so that no sticky tag is set.
-    (vc-cvs-checkout file nil (vc-workfile-version file) file))
+    ;; Change buffers to get local value of vc-checkout-switches.
+    (with-current-buffer (or (get-file-buffer file) (current-buffer))
+      (let ((failed t)
+	    (backup-name (car (find-backup-file-name file))))
+	(when backup-name
+	  (copy-file file backup-name
+		     'ok-if-already-exists 'keep-date))
+	(unless (file-writable-p file)
+	  (set-file-modes file (logior (file-modes file) 128)))
+	(unwind-protect
+	    (let ((buf (vc-find-version file (vc-workfile-version file))))
+	      (rename-file (with-current-buffer buf buffer-file-name)
+			   file 'ok-if-already-exists)
+	      (setq failed nil))
+	  (if failed
+	      (if backup-name
+		  (rename-file backup-name file
+			       'ok-if-already-exists)
+		(if (file-exists-p file)
+		    (delete-file file)))
+	    (and backup-name
+		 (not vc-make-backup-files)
+		 (delete-file backup-name)))))))
+
   (unless (eq (vc-checkout-model file) 'implicit)
     (if vc-cvs-use-edit
         (vc-cvs-command nil 0 file "unedit")
