@@ -7,11 +7,11 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   print, PostScript
-;; Time-stamp: <98/05/05  12:36:30 vinicius>
+;; Time-stamp: <98/05/15  21:15:06 vinicius>
 ;; Version:    3.06.1
 
 (defconst ps-print-version "3.06.1"
-  "ps-print.el, v 3.06.1 <98/05/05 vinicius>
+  "ps-print.el, v 3.06.1 <98/05/15 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -839,7 +839,7 @@ Please send all bug fixes and enhancements to
 ;; Thanks to some suggestions on:
 ;;  * Face color map: Marco Melgazzi <marco@techie.com>
 ;;  * XEmacs compatibility: William J. Henney <will@astrosmo.unam.mx>
-;;  * Check ps-paper-type: Sudhakar Frederick <sfrederi@asc.corp.mot.com>
+;;  * Check `ps-paper-type': Sudhakar Frederick <sfrederi@asc.corp.mot.com>
 ;;
 ;; Thanks to Jacques Duthen <duthen@cegelec-red.fr> (Jack) for the 3.4 version
 ;; I started from. [vinicius]
@@ -995,25 +995,25 @@ example `letter', `legal' or `a4'."
 (defcustom ps-print-control-characters 'control-8-bit
   "*Specifies the printable form for control and 8-bit characters.
 That is, instead of sending, for example, a ^D (\004) to printer,
-it is sent the string \"^D\".
+you can send ^ and D.
 
 Valid values are:
 
-  `8-bit'         This is the value to use when you want an ascii encoding of
-                  any control or non-ascii character. Control characters are
+  `8-bit'         This is the value to use when you want an ASCII encoding of
+                  any control or non-ASCII character.  Control characters are
                   encoded as \"^D\", and non-ascii characters have an
                   octal encoding.
 
-  `control-8-bit' This is the value to use when you want an ascii encoding of
+  `control-8-bit' This is the value to use when you want an ASCII encoding of
                   any control character, whether it is 7 or 8-bit.
                   European 8-bits accented characters are printed according
                   the current font.
 
-  `control'       Only ascii control characters have an ascii encoding.
+  `control'       Only ascii control characters have an ASCII encoding.
                   European 8-bits accented characters are printed according
                   the current font.
 
-  nil             No ascii encoding. Any character is printed according the
+  nil             No ASCII encoding.  Any character is printed according the
                   current font.
 
 Any other value is treated as nil."
@@ -3339,9 +3339,9 @@ page-height == bm + print-height + tm - ho - hh
   `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
 
 (defun ps-end-file ()
-  (ps-output "\nEndDoc\n\n%%Trailer\n%%Pages: "
+  (ps-output "\n%%Trailer\n%%Pages: "
 	     (format "%d" (ps-page-number))
-	     "\n%%EOF\n"))
+	     "\n\nEndDoc\n\n%%EOF\n"))
 
 
 (defun ps-next-page ()
