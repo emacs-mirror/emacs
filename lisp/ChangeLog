@@ -1,3 +1,10 @@
+2003-08-24  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-formats): Make name and size columns wider.
+
+	* man.el (Man-default-man-entry): Strip text properties when
+	snarfing parts of entry because `format' preserves properties.
+
 2003-08-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* files.el (file-newest-backup): Use `expand-file-name'.
