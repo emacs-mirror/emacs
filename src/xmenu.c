@@ -1650,7 +1650,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     {
       XEvent event;
       int queue_and_exit = 0;
-      int in_this_menu;
+      int in_this_menu = 0, in_menu_bar = 0;
       Widget widget;
 
       XtAppNextEvent (Xt_app_con, &event);
@@ -1658,12 +1658,17 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       /* Check whether the event happened in the menu
 	 or any child of it.  */
       widget = XtWindowToWidget (XDISPLAY event.xany.window);
-      in_this_menu = 0;
+
       while (widget)
 	{
 	  if (widget == menu)
 	    {
 	      in_this_menu = 1;
+	      break;
+	    }
+	  if (widget == f->display.x->menubar_widget)
+	    {
+	      in_menu_bar = 1;
 	      break;
 	    }
 	  widget = XtParent (widget);
@@ -1742,7 +1747,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 
       XtDispatchEvent (&event);
 
-      if (queue_and_exit || !in_this_menu)
+      if (queue_and_exit || (!in_this_menu && !in_menu_bar))
 	{
 	  queue_tmp
 	    = (struct event_queue *) malloc (sizeof (struct event_queue));
