@@ -1350,8 +1350,6 @@ if you wish to pass an empty string as the argument."
 	(progn
 	  (setq truename (file-truename filename))
 	  (if find-file-visit-truename
-	      ;; Do not use the abbreviated filename, because
-	      ;; write-region will reset it to the expanded filename
 	      (setq filename truename))))
     (or (equal filename buffer-file-name)
 	(progn
@@ -1369,8 +1367,12 @@ if you wish to pass an empty string as the argument."
 	      (rename-buffer new-name t))))
     (setq buffer-backed-up nil)
     (clear-visited-file-modtime)
+    ;; Abbreviate the file names of the buffer.
     (if truename
-	(setq buffer-file-truename (abbreviate-file-name truename)))
+	(progn
+	  (setq buffer-file-truename (abbreviate-file-name truename))
+	  (if find-file-visit-truename
+	      (setq buffer-file-name buffer-file-truename))))
     (setq buffer-file-number
 	  (if filename
 	      (nth 10 (file-attributes buffer-file-name))
