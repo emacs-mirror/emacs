@@ -247,7 +247,7 @@ Boston, MA 02111-1307, USA.  */
    page) to leave room at the end of the header for adding load
    commands.  Needed for dumping.  0x690 is the total size of 30
    segment load commands (at 56 each).  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind -framework Carbon -lstdc++ -Xlinker -headerpad -Xlinker 690
+#define LD_SWITCH_SYSTEM_TEMACS -prebind -framework Carbon -framework QuickTime -lstdc++ -Xlinker -headerpad -Xlinker 690
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 

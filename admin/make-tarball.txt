@@ -1,5 +1,6 @@
 Instructions to create pretest or release tarballs.
--- originally written by Eli Zaretskii, amended by Francesco Potortì
+-- originally written by Gerd Moellmann, amended by Francesco Potortì
+   with the initial help of Eli Zaretskii
 
 For each step, check for possible errors.
 

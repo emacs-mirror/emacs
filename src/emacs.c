@@ -1589,7 +1589,7 @@ main (argc, argv
 #endif /* VMS */
       init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
     }
-#if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT)
+#if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT) || defined (HAVE_CARBON)
   init_xfns ();
 #endif /* HAVE_X_WINDOWS */
   init_fns ();

@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/24 20:48:53 vinicius>
+;; Time-stamp: <2004/02/25 20:17:43 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -1041,7 +1041,7 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgements
 ;; ----------------
 ;;
-;; Thanks to Drew Adams <?@?> for suggestions:
+;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
 ;;    - `ebnf-production-name-p', `ebnf-stop-on-error',
 ;;	`ebnf-file-suffix-regexp'and `ebnf-special-show-delimiter' variables.
 ;;    - `ebnf-delete-style', `ebnf-eps-file' and `ebnf-eps-directory'
@@ -1064,6 +1064,22 @@ Please send all bug fixes and enhancements to
 
 (and (string< ps-print-version "5.2.3")
      (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
+
+
+;; to avoid gripes with Emacs 20
+(eval-and-compile
+  (or (fboundp 'assq-delete-all)
+      (defun assq-delete-all (key alist)
+	"Delete from ALIST all elements whose car is KEY.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+	(let ((tail alist))
+	  (while tail
+	    (if (and (consp (car tail))
+		     (eq (car (car tail)) key))
+		(setq alist (delq (car tail) alist)))
+	    (setq tail (cdr tail)))
+	  alist))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4471,12 +4487,12 @@ killed after process termination."
 	     (setq the-point (max (1- (point)) (point-min))
 		   error-msg (concat error-msg ": "
 				     (error-message-string data)
-				     (if (string= error-msg "SYNTAX")
-					 (format ". At %d in buffer \"%s\"."
-						 the-point
-						 (buffer-name))
-				       (format ". In buffer \"%s\"."
-					       (buffer-name))))))))))
+				     ", "
+				     (and (string= error-msg "SYNTAX")
+					  (format "at position %d "
+						  the-point))
+				     (format "in buffer \"%s\"."
+					     (buffer-name)))))))))
     (cond
      ;; error occurred
      (error-msg
