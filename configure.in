@@ -7,8 +7,8 @@ AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
 lispdir='${datadir}/emacs/${version}/lisp'
-locallisppath='${datadir}/emacs/site-lisp:'\
-'${datadir}/emacs/${version}/site-lisp'
+locallisppath='${datadir}/emacs/${version}/site-lisp:'\
+'${datadir}/emacs/site-lisp'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${sharedstatedir}/emacs/lock'
@@ -406,6 +406,9 @@ case "${canonical}" in
       *.09.* ) machine=hp800 opsys=hpux9 ;;
       *) machine=hp800 opsys=hpux ;;
     esac
+  ;;
+  hppa-*-nextstep* )
+    machine=hp800 opsys=nextstep
   ;;
 
   ## Orion machines
@@ -1021,7 +1024,10 @@ case "${window_system}" in
       athena | lucid ) USE_X_TOOLKIT=LUCID ;;
       motif ) USE_X_TOOLKIT=MOTIF ;;
 dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;
-      * ) USE_X_TOOLKIT=none ;;
+      no ) USE_X_TOOLKIT=none ;;
+dnl If user did not say whether to use a toolkit,
+dnl make this decision later: use the toolkit if we have X11R5 or newer.
+      * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
   none )
@@ -1030,7 +1036,6 @@ dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;
     USE_X_TOOLKIT=none
   ;;
 esac
-X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 ### If we're using X11, we should use the X menu package.
 HAVE_MENUS=no
@@ -1257,7 +1262,7 @@ XScreenNumberOfScreen XSetWMProtocols)
 fi
 
 if test "${window_system}" = "x11"; then
-  AC_MSG_CHECKING(X11 version)
+  AC_MSG_CHECKING(X11 version 6)
   AC_TRY_LINK([#include <X11/Xlib.h>],
 [#if XlibSpecificationRelease < 6
 fail;
@@ -1266,6 +1271,22 @@ fail;
     AC_DEFINE(HAVE_X11R6)],
    [AC_MSG_RESULT(not 6)])
 fi
+
+if test x"${USE_X_TOOLKIT}" = xmaybe; then
+  AC_MSG_CHECKING(X11 version 5)
+  AC_TRY_LINK([#include <X11/Xlib.h>],
+[#if XlibSpecificationRelease < 5
+fail;
+#endif
+], [AC_MSG_RESULT(5, use toolkit)
+    USE_X_TOOLKIT=LUCID
+    AC_DEFINE(HAVE_X11R5)],
+   [AC_MSG_RESULT(not 5, do not use toolkit)
+    USE_X_TOOLKIT=none])
+  fi
+fi
+
+X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
