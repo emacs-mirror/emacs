@@ -1494,7 +1494,7 @@ whose car is ELT.  */)
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the car of an element of LIST.
-The value is actually the element of LIST whose car is KEY.
+The value is actually the first element of LIST whose car is KEY.
 Elements of LIST that are not conses are ignored.  */)
      (key, list)
      Lisp_Object key, list;
@@ -1551,7 +1551,7 @@ assq_no_quit (key, list)
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
-The value is actually the element of LIST whose car equals KEY.  */)
+The value is actually the first element of LIST whose car equals KEY.  */)
        (key, list)
      Lisp_Object key, list;
 {
@@ -1595,7 +1595,7 @@ The value is actually the element of LIST whose car equals KEY.  */)
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
-The value is actually the element of LIST whose cdr is KEY.  */)
+The value is actually the first element of LIST whose cdr is KEY.  */)
      (key, list)
      register Lisp_Object key;
      Lisp_Object list;
@@ -1637,7 +1637,7 @@ The value is actually the element of LIST whose cdr is KEY.  */)
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
-The value is actually the element of LIST whose cdr equals KEY.  */)
+The value is actually the first element of LIST whose cdr equals KEY.  */)
      (key, list)
      Lisp_Object key, list;
 {
