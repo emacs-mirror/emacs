@@ -261,7 +261,7 @@ See also the documentation of make-char."
     (and vec (aref vec n))))
 
 (defun coding-system-type (coding-system)
-  "Return TYPE element in coding-spec of  CODING-SYSTEM."
+  "Return TYPE element in coding-spec of CODING-SYSTEM."
   (coding-system-spec-ref coding-system coding-spec-type-idx))
 
 (defun coding-system-mnemonic (coding-system)
@@ -284,14 +284,21 @@ See also the documentation of make-char."
        (or (get coding-system 'eol-type)
 	   (coding-system-eol-type (get coding-system 'coding-system)))))
 
-;; Make subsidiear coding systems of CODING-SYSTEM whose base is BASE.
-(defun make-subsidiary-coding-system (coding-system base)
+(defun coding-system-category (coding-system)
+  "Return coding category of CODING-SYSTEM."
+  (and coding-system
+       (symbolp coding-system)
+       (or (get coding-system 'coding-category)
+	   (coding-system-category (get coding-system 'coding-system)))))
+
+;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
+(defun make-subsidiary-coding-system (coding-system)
   (let ((subsidiaries (vector (intern (format "%s-unix" coding-system))
 			      (intern (format "%s-dos" coding-system))
 			      (intern (format "%s-mac" coding-system))))
 	(i 0))
     (while (< i 3)
-      (put (aref subsidiaries i) 'coding-system base)
+      (put (aref subsidiaries i) 'coding-system coding-system)
       (put (aref subsidiaries i) 'eol-type i)
       (put (aref subsidiaries i) 'eol-variant t)
       (setq i (1+ i)))
@@ -339,7 +346,8 @@ FLAGS specifies more precise information of each TYPE.
     for encoding and decoding.  See the documentation of CCL for more detail."
 
   ;; At first, set a value of `coding-system' property.
-  (let ((coding-spec (make-vector 5 nil)))
+  (let ((coding-spec (make-vector 5 nil))
+	coding-category)
     (if (or (not (integerp type)) (< type 0) (> type 4))
 	(error "TYPE argument must be 0..4"))
     (if (or (not (integerp mnemonic)) (<= mnemonic ? ) (> mnemonic 127))
@@ -348,51 +356,101 @@ FLAGS specifies more precise information of each TYPE.
     (aset coding-spec 1 mnemonic)
     (aset coding-spec 2 (if (stringp doc-string) doc-string ""))
     (aset coding-spec 3 nil)		; obsolete element
-    (cond ((eq type 2)			; ISO2022
+    (cond ((= type 0)
+	   (setq coding-category 'coding-category-emacs-mule))
+	  ((= type 1)
+	   (setq coding-category 'coding-category-sjis))
+	  ((= type 2)			; ISO2022
 	   (let ((i 0)
-		 (vec (make-vector 32 nil)))
+		 (vec (make-vector 32 nil))
+		 (no-initial-designation t)
+		 (g1-designation nil))
 	     (while (< i 4)
 	       (let ((charset (car flags)))
-		 (or (not charset) (eq charset t) (charsetp charset)
-		     (if (not (listp charset))
-			 (error "Invalid charset: %s" charset)
-		       (let (elt l)
-			 (while charset
-			   (setq elt (car charset))
+		 (if (and no-initial-designation
+			  (> i 0)
+			  (or (charsetp charset)
+			      (and (consp charset)
+				   (charsetp (car charset)))))
+		     (setq no-initial-designation nil))
+		 (if (charsetp charset)
+		     (if (= i 1) (setq g1-designation charset))
+		   (if (consp charset)
+		       (let ((tail charset)
+			     elt)
+			 (while tail
+			   (setq elt (car tail))
 			   (or (not elt) (eq elt t) (charsetp elt)
 			       (error "Invalid charset: %s" elt))
-			   (setq l (cons elt l))
-			   (setq charset (cdr charset)))
-			 (setq charset (nreverse l)))))
+			   (setq tail (cdr tail)))
+			 (setq g1-designation (car charset)))
+		     (if (and charset (not (eq charset t)))
+			 (error "Invalid charset: %s" charset))))
 		 (aset vec i charset))
 	       (setq flags (cdr flags) i (1+ i)))
 	     (while (and (< i 32) flags)
 	       (aset vec i (car flags))
 	       (setq flags (cdr flags) i (1+ i)))
-	     (aset coding-spec 4 vec)))
-	  ((eq type 4)			; private
+	     (aset coding-spec 4 vec)
+	     (if no-initial-designation
+		 (put coding-system 'no-initial-designation t))
+	     (setq coding-category
+		   (if (aref vec 8)	; Use locking-shift.
+		       'coding-category-iso-else
+		     (if (aref vec 7)	; 7-bit only.
+			 (if (aref vec 9) ; Use single-shift.
+			     'coding-category-iso-else
+			   'coding-category-iso-7)
+		       (if no-initial-designation
+			   'coding-category-iso-else
+			 (if (and (charsetp g1-designation)
+				  (= (charset-dimension g1-designation) 2))
+			     'coding-category-iso-8-2
+			   'coding-category-iso-8-1)))))))
+	  ((= type 3)
+	   (setq coding-category 'coding-category-big5))
+	  ((= type 4)			; private
+	   (setq coding-category 'coding-category-binary)
 	   (if (and (consp flags)
 		    (vectorp (car flags))
 		    (vectorp (cdr flags)))
 	       (aset coding-spec 4 flags)
-	     (error "Invalid FLAGS argument for TYPE 4 (CCL)")))
-	  (t (aset coding-spec 4 flags)))
-    (put coding-system 'coding-system coding-spec))
+	     (error "Invalid FLAGS argument for TYPE 4 (CCL)"))))
+    (put coding-system 'coding-system coding-spec)
+    (put coding-system 'coding-category coding-category)
+    (put coding-category 'coding-systems
+	 (cons coding-system (get coding-category 'coding-systems))))
 
   ;; Next, set a value of `eol-type' property.  The value is a vector
-  ;; of subsidiary coding systems, each corresponds to a coding-system
+  ;; of subsidiary coding systems, each corresponds to a coding system
   ;; for the detected end-of-line format.
   (put coding-system 'eol-type
        (if (<= type 3)
-	   (make-subsidiary-coding-system coding-system coding-system)
+	   (make-subsidiary-coding-system coding-system)
 	 0)))
 
 (defun define-coding-system-alias (coding-system alias)
   "Define ALIAS as an alias coding system of CODING-SYSTEM."
   (check-coding-system coding-system)
+  (let ((parent (coding-system-parent coding-system)))
+    (if parent
+	(setq coding-system parent)))
   (put alias 'coding-system coding-system)
-  (if (vectorp (coding-system-eol-type coding-system))
-      (make-subsidiary-coding-system alias coding-system)))
+  (put alias 'parent-coding-system coding-system)
+  (put coding-system 'alias-coding-systems
+       (cons alias (get coding-system 'alias-coding-systems)))
+  (let ((eol-variants (coding-system-eol-type coding-system))
+	subsidiaries)
+    (if (vectorp eol-variants)
+	(let ((i 0))
+	  (setq subsidiaries (make-subsidiary-coding-system alias))
+	  (while (< i 3)
+	    (put (aref subsidiaries i) 'parent-coding-system
+		 (aref eol-variants i))
+	    (put (aref eol-variants i) 'alias-coding-systems
+		 (cons (aref subsidiaries i) (get (aref eol-variants i)
+						  'alias-coding-systems)))
+	    (setq i (1+ i)))))))
 
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set buffer-file-coding-system of the current buffer to CODING-SYSTEM.
