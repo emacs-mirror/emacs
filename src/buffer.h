@@ -638,8 +638,10 @@ struct buffer
   Lisp_Object truncate_lines;
   /* Non-nil means display ctl chars with uparrow.  */
   Lisp_Object ctl_arrow;
-  /* Non-nil means display text from right to left.  */
-  Lisp_Object direction_reversed;
+  /* Non-nil means display bidi text in correct visual order.  */
+  Lisp_Object enable_bidi_display;
+  /* Non-nil means set beginning of lines at the right end of windows.  */
+  Lisp_Object orientation_reversed;
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
   Lisp_Object selective_display;
