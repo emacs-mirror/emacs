@@ -1,3 +1,10 @@
+2000-10-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* hexl.el (hexlify-buffer): Bind coding-system-for-write to
+	buffer-file-coding-system, instead of raw-text.
+	(dehexlify-buffer): Bind coding-system-for-read to
+	buffer-file-coding-system, instead of raw-text.
+
 2000-10-11  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-invalid-face): double-quote
