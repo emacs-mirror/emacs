@@ -2168,8 +2168,8 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
 
 DEFUN ("x-rotate-cut-buffers-internal", Fx_rotate_cut_buffers_internal,
   Sx_rotate_cut_buffers_internal, 1, 1, 0,
-  "Rotate the values of the cut buffers by the given number of steps;\n\
-positive means move values forward, negative means backward.")
+  "Rotate the values of the cut buffers by the given number of step.\n\
+Positive means shift the values forward, negative means backward.")
   (n)
      Lisp_Object n;
 {
