@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.4 $")
+(defconst byte-compile-version "$Revision: 2.98.2.5 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2403,8 +2403,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	    ;; This is true if we should be making a closure instead of
 	    ;; a simple lambda (because some variables from the
 	    ;; containing lexical environment are closed over).
-	    (byte-compile-closure-initial-lexenv-p
-	     byte-compile-lexical-environment))
+	    (and lexical-binding
+		 (byte-compile-closure-initial-lexenv-p
+		  byte-compile-lexical-environment)))
 	   (byte-compile-current-heap-environment nil)
 	   (byte-compile-current-num-closures 0)
 	   (compiled
@@ -3422,7 +3423,8 @@ LFORMINFO should be information about lexical variables being bound.
 Return INIT-LEXENV updated to include the newest initialization, or nil
 if LFORMINFO is nil (meaning all bindings are dynamic)."
   (let* ((var (if (consp clause) (car clause) clause))
-	 (vinfo (assq var (byte-compile-lforminfo-vars lforminfo)))
+	 (vinfo
+	  (and lforminfo (assq var (byte-compile-lforminfo-vars lforminfo))))
 	 (unused (and vinfo (zerop (cadr vinfo)))))
     (unless (and unused (symbolp clause))
       (when (and lforminfo (not unused))
