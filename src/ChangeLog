@@ -1,3 +1,7 @@
+2002-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (glyph_rect): Determine the row and glyph more precisely.
+
 2002-02-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (show_mouse_face): Fix bug setting a row's
