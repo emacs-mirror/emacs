@@ -1413,7 +1413,7 @@ Similarly for Soar, Scheme, etc."
 		(end (1- (point))))
 	    (when (not (> beg end))	; handle a special case
 	      ;; Make an overlay for the input field
-	      (let ((over (make-overlay beg end)))
+	      (let ((over (make-overlay beg end nil nil t)))
 		(unless comint-use-prompt-regexp-instead-of-fields
 		  ;; Give old user input a field property of `input', to
 		  ;; distinguish it from both process output and unsent
@@ -1428,7 +1428,7 @@ Similarly for Soar, Scheme, etc."
 		  (overlay-put over 'evaporate t))))
 	    (unless comint-use-prompt-regexp-instead-of-fields
 	      ;; Make an overlay for the terminating newline
-	      (let ((over (make-overlay end (1+ end))))
+	      (let ((over (make-overlay end (1+ end) nil t nil)))
 		(overlay-put over 'field 'boundary)
 		(overlay-put over 'rear-nonsticky t)
 		(overlay-put over 'evaporate t))))
