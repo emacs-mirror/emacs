@@ -172,7 +172,10 @@ performance.")
 (defvar te-pending-output-info nil)
 
 ;; Required to support terminfo systems
-(defconst te-terminal-name-prefix "emacs-virtual")
+(defconst te-terminal-name-prefix "emacs-em"
+  "Prefix used for terminal type names for Terminfo.")
+(defconst te-terminfo-directory "/tmp/emacs-terminfo/"
+  "Directory used for run-time terminal definition files for Terminfo.")
 (defvar te-terminal-name nil)
 
 ;;;;  escape map
@@ -1100,7 +1103,7 @@ subprocess started."
   (if (null height) (setq height (- (window-height (selected-window)) 1)))
   (terminal-mode)
   (setq te-width width te-height height)
-  (setq te-terminal-name (concat te-terminal-name-prefix "-" te-width
+  (setq te-terminal-name (concat te-terminal-name-prefix te-width
 				 te-height))
   (setq mode-line-buffer-identification
 	(list (format "Emacs terminal %dx%d: %%b  " te-width te-height)
@@ -1242,22 +1245,25 @@ of the terminal-emulator"
 
 (defun te-create-terminfo ()
   "Create and compile a terminfo entry for the virtual terminal. This is kept
-in the /tmp directory"
+in the directory specified by `te-terminfo-directory'."
   (if (and system-uses-terminfo
-	   (not (file-exists-p (concat  "/tmp/"
+	   (not (file-exists-p (concat  te-terminfo-directory
 					(substring te-terminal-name-prefix 0 1)
 					"/" te-terminal-name))))
     (let ( (terminfo
 	    (concat
-	     (format "%s,mir, xon,cols#%d, lines#%d,"
+	     ;; The first newline avoids trouble with ncurses.
+	     (format "%s,\n\tmir, xon,cols#%d, lines#%d,"
 		     te-terminal-name te-width te-height)
 	     "bel=^P^G, clear=^P\\f, cr=^P^A, cub1=^P^B, cud1=^P\\n,"
 	     "cuf1=^P^F, cup=^P=%p1%'\\s'%+%c%p2%'\\s'%+%c,"
 	     "dch=^Pd%p1%'\\s'%+%c, dch1=^Pd!, dl=^P^K%p1%'\\s'%+%c,"
 	     "dl1=^P^K!, ed=^PC, el=^Pc, home=^P=\\s\\s,"
 	     "ich=^P_%p1%'\\s'%+%c, ich1=^P_!, il=^P^O%p1%'\\s'%+%c,"
-	     "il1=^P^O!, ind=^P\\n, nel=\\n,"))
-	   (file-name (concat "/tmp/" te-terminal-name ".tif")) )
+	     "il1=^P^O!, ind=^P\\n, nel=\\n,\n"))
+	   ;; The last newline avoids trouble with ncurses.
+	   (file-name (concat te-terminfo-directory te-terminal-name ".tif")) )
+      (make-directory te-terminfo-directory t)
       (save-excursion
 	(set-buffer (create-file-buffer file-name))
 	(insert terminfo)
@@ -1265,11 +1271,12 @@ in the /tmp directory"
 	(kill-buffer nil)
 	)
       (let ( (process-environment
-	      (cons (concat "TERMINFO=" "/tmp")
+	      (cons (concat "TERMINFO="
+			    (directory-file-name te-terminfo-directory))
 		    process-environment)) )
 	(set-process-sentinel (start-process "tic" nil "tic" file-name)
 			      'te-tic-sentinel))))
-    "/tmp"
+    (directory-file-name te-terminfo-directory)
 )
 
 (defun te-create-termcap ()
@@ -1306,7 +1313,7 @@ in the /tmp directory"
   "If tic has finished, delete the .tif file"
   (if (equal state-change "finished
 ")
-      (delete-file (concat "/tmp/" te-terminal-name ".tif"))))
+      (delete-file (concat te-terminfo-directory te-terminal-name ".tif"))))
 
 (provide 'terminal)
 
