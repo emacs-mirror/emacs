@@ -1525,6 +1525,10 @@ redirection buffer.
 You can use `add-hook' to add functions to this list
 either globally or locally.")
 
+(defvar comint-inhibit-carriage-motion nil
+  "If nil, comint will interpret `carriage control' characters in output.
+See `comint-carriage-motion' for details.")
+
 ;; When non-nil, this is an overlay over the last recognized prompt in
 ;; the buffer; it is used when highlighting the prompt.
 (defvar comint-last-prompt-overlay nil)
@@ -1539,43 +1543,38 @@ either globally or locally.")
                            (overlay-end comint-last-prompt-overlay)
                            (overlay-properties comint-last-prompt-overlay)))))
 
-(defun comint-carriage-motion (string)
-  "Handle carriage control characters in comint output.
+(defun comint-carriage-motion (start end)
+  "Interpret carriage control characters in the region from START to END.
 Translate carriage return/linefeed sequences to linefeeds.
 Make single carriage returns delete to the beginning of the line.
-Make backspaces delete the previous character.
-
-This function should be in the list `comint-output-filter-functions'."
-  (save-match-data
-    ;; We first check to see if STRING contains any magic characters, to
-    ;; avoid overhead in the common case where it does not
-    (when (string-match "[\r\b]" string)
-      (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (let ((inhibit-field-text-motion t)
-		  (buffer-read-only nil))
-	      ;; CR LF -> LF
-	      ;; Note that this won't work properly when the CR and LF
-	      ;; are in different output chunks, but this is probably an
-	      ;; exceedingly rare case (because they are generally
-	      ;; written as a unit), and to delay interpretation of a
-	      ;; trailing CR in a chunk would result in odd interactive
-	      ;; behavior (and this case is probably far more common).
-	      (goto-char comint-last-output-start)
-	      (while (re-search-forward "\r$" pmark t)
-		(delete-char -1))
-	      ;; bare CR -> delete preceding line
-	      (goto-char comint-last-output-start)
-	      (while (search-forward "\r" pmark t)
-		(delete-region (point) (line-beginning-position)))
-	      ;; BS -> delete preceding character
-	      (goto-char comint-last-output-start)
-	      (while (search-forward "\b" pmark t)
-		(delete-char -2)))))))))
-
-(add-hook 'comint-output-filter-functions 'comint-carriage-motion)
+Make backspaces delete the previous character."
+  (save-excursion
+    ;; First do a quick check to see if there are any applicable
+    ;; characters, so we can avoid calling save-match-data and
+    ;; save-restriction if not.
+    (when (< (skip-chars-forward "^\b\r" end) (- end start))
+      (save-match-data
+	(save-restriction
+	  (widen)
+	  (let ((inhibit-field-text-motion t)
+		(buffer-read-only nil))
+	    ;; CR LF -> LF
+	    ;; Note that this won't work properly when the CR and LF
+	    ;; are in different output chunks, but this is probably an
+	    ;; exceedingly rare case (because they are generally
+	    ;; written as a unit), and to delay interpretation of a
+	    ;; trailing CR in a chunk would result in odd interactive
+	    ;; behavior (and this case is probably far more common).
+	    (while (re-search-forward "\r$" end t)
+	      (delete-char -1))
+	    ;; bare CR -> delete preceding line
+	    (goto-char start)
+	    (while (search-forward "\r" end t)
+	      (delete-region (point) (line-beginning-position)))
+	    ;; BS -> delete preceding character
+	    (goto-char start)
+	    (while (search-forward "\b" end t)
+	      (delete-char -2))))))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
@@ -1660,7 +1659,12 @@ This function should be in the list `comint-output-filter-functions'."
 	    ;; Advance process-mark
 	    (set-marker (process-mark process) (point))
 
+	    (unless comint-inhibit-carriage-motion
+	      ;; Interpret any carriage motion characters (newline, backspace)
+	      (comint-carriage-motion comint-last-output-start (point)))
+
 	    (run-hook-with-args 'comint-output-filter-functions string)
+
 	    (goto-char (process-mark process)) ; in case a filter moved it
 
 	    (unless comint-use-prompt-regexp-instead-of-fields
