@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.9 2000/12/22 23:16:22 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.10 2000/12/23 20:54:14 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -160,7 +160,7 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defconst smerge-font-lock-keywords
   '((smerge-find-conflict
-     (1 smerge-mine-face prepend)
+     (1 smerge-mine-face prepend t)
      (2 smerge-base-face prepend t)
      (3 smerge-other-face prepend t)
      ;; FIXME: `keep' doesn't work right with syntactic fontification.
