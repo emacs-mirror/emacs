@@ -2840,20 +2840,12 @@ read_process_output (proc, channel)
 {
   register int nchars, nbytes;
   char *chars;
-#ifdef VMS
-  int chars_allocated = 0;	/* If 1, `chars' should be freed later.  */
-#else
-  char buf[1024];
-#endif
   register Lisp_Object outstream;
   register struct buffer *old = current_buffer;
   register struct Lisp_Process *p = XPROCESS (proc);
   register int opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
-  int chars_in_decoding_buf = 0; /* If 1, `chars' points
-				    XSTRING (p->decoding_buf)->data.  */
   int carryover = XINT (p->decoding_carryover);
-  int require_decoding;
 
 #ifdef VMS
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
@@ -2880,42 +2872,33 @@ read_process_output (proc, channel)
       /* The data carried over in the previous decoding (which are at
          the tail of decoding buffer) should be prepended to the new
          data read to decode all together.  */
-      char *buf = (char *) xmalloc (nbytes + carryover);
-
-      bcopy (XSTRING (p->decoding_buf)->data
-	     + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover,
-	     buf, carryover);
-      bcopy (chars, buf + carryover, nbytes);
-      chars = buf;
-      chars_allocated = 1;
+      chars = (char *) alloca (nbytes + carryover);
+      bcopy (XSTRING (p->decoding_buf)->data, buf, carryover);
+      bcopy (vs->inputBuffer, chars + carryover, nbytes);
     }
 #else /* not VMS */
-
+  chars = (char *) alloca (carryover + 1024);
   if (carryover)
     /* See the comment above.  */
-    bcopy (XSTRING (p->decoding_buf)->data
-	   + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover,
-	   buf, carryover);
+    bcopy (XSTRING (p->decoding_buf)->data, chars, carryover);
 
   if (proc_buffered_char[channel] < 0)
-    nbytes = emacs_read (channel, buf + carryover, (sizeof buf) - carryover);
+    nbytes = emacs_read (channel, chars + carryover, 1024 - carryover);
   else
     {
-      buf[carryover] = proc_buffered_char[channel];
+      chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, buf + carryover + 1,
-			   (sizeof buf) - carryover - 1);
+      nbytes = emacs_read (channel, chars + carryover + 1,  1023 - carryover);
       if (nbytes < 0)
 	nbytes = 1;
       else
 	nbytes = nbytes + 1;
     }
-  chars = buf;
 #endif /* not VMS */
 
   XSETINT (p->decoding_carryover, 0);
 
-  /* At this point, NBYTES holds number of characters just received
+  /* At this point, NBYTES holds number of bytes just received
      (including the one in proc_buffered_char[channel]).  */
   if (nbytes <= 0)
     {
@@ -2926,123 +2909,6 @@ read_process_output (proc, channel)
 
   /* Now set NBYTES how many bytes we must decode.  */
   nbytes += carryover;
-
-  require_decoding = 1;
-  coding->src_multibyte = 0;
-  /* Decide the multibyteness of the decoded text.  */
-  if (!NILP (p->filter))
-    /* We make a string given to the process filter.  The
-       multibyteness is decided by which coding system we use for
-       decoding.  */
-    coding->dst_multibyte = (coding->type != coding_type_no_conversion
-			     && coding->type != coding_type_raw_text);
-  else if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
-    /* The decoded text is inserted in a buffer.  The multibyteness is
-       decided by that of the buffer.  */
-    coding->dst_multibyte
-      = !NILP (XBUFFER (p->buffer)->enable_multibyte_characters);
-  else
-    /* We can discard the source, thus no need of decoding.  */
-    require_decoding = 0;
-
-  if (require_decoding
-      || CODING_MAY_REQUIRE_DECODING (coding))
-    {
-      int require = decoding_buffer_size (coding, nbytes);
-      int dst_bytes = STRING_BYTES (XSTRING (p->decoding_buf));
-      int result;
-      
-      if (dst_bytes < require)
-	p->decoding_buf = make_uninit_string (require), dst_bytes = require;
-      result = decode_coding (coding, chars, XSTRING (p->decoding_buf)->data,
-			      nbytes, dst_bytes);
-      carryover = nbytes - coding->consumed;
-      if (carryover > 0)
-	{
-	  /* Copy the carryover bytes to the end of p->decoding_buf, to
-	     be processed on the next read.  Since decoding_buffer_size
-	     asks for an extra amount of space beyond the maximum
-	     expected for the output, there should always be sufficient
-	     space for the carryover (which is by definition a sequence
-	     of bytes that was not long enough to be decoded, and thus
-	     has a bounded length).  */
-	  if (dst_bytes < coding->produced + carryover)
-	    abort ();
-	  bcopy (chars + coding->consumed,
-		 XSTRING (p->decoding_buf)->data + dst_bytes - carryover,
-		 carryover);
-	  XSETINT (p->decoding_carryover, carryover);
-	}
-
-      /* A new coding system might be found by `decode_coding'.  */
-      if (!EQ (p->decode_coding_system, coding->symbol))
-	{
-	  p->decode_coding_system = coding->symbol;
-
-	  /* Don't call setup_coding_system for
-             proc_decode_coding_system[channel] here.  It is done in
-             detect_coding called via decode_coding above.  */
-
-	  /* If a coding system for encoding is not yet decided, we set
-	     it as the same as coding-system for decoding.
-
-	     But, before doing that we must check if
-	     proc_encode_coding_system[p->outfd] surely points to a
-	     valid memory because p->outfd will be changed once EOF is
-	     sent to the process.  */
-	  if (NILP (p->encode_coding_system)
-	      && proc_encode_coding_system[XINT (p->outfd)])
-	    {
-	      p->encode_coding_system = coding->symbol;
-	      setup_coding_system (coding->symbol,
-				   proc_encode_coding_system[XINT (p->outfd)]);
-	    }
-	}
-
-#ifdef VMS
-      /*  Now we don't need the contents of `chars'.  */
-      if (chars_allocated)
-	xfree (chars);
-#endif
-      if (coding->produced == 0)
-	return 0;
-      chars = (char *) XSTRING (p->decoding_buf)->data;
-      nbytes = coding->produced;
-      nchars = coding->produced_char;
-      chars_in_decoding_buf = 1;
-    }
-  else
-    {
-#ifdef VMS
-      if (chars_allocated)
-	{
-	  /* Although we don't have to decode the received data, we
-	     must move it to an area which we don't have to free.  */
-	  if (! STRINGP (p->decoding_buf)
-	      || STRING_BYTES (XSTRING (p->decoding_buf)) < nbytes)
-	    p->decoding_buf = make_uninit_string (nbytes);
-	  bcopy (chars, XSTRING (p->decoding_buf)->data, nbytes);
-	  free (chars);
-	  chars_in_decoding_buf = 1;
-	}
-#endif
-      nchars = nbytes;
-    }
-
-  Vlast_coding_system_used = coding->symbol;
-
-  /* If the caller required, let the process associated buffer
-     inherit the coding-system used to decode the process output.  */
-  if (! NILP (p->inherit_coding_system_flag)
-      && !NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
-    {
-      struct buffer *prev_buf = current_buffer;
-
-      Fset_buffer (p->buffer);
-      call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
-	     make_number (nbytes));
-      set_buffer_internal (prev_buf);
-    }
 
   /* Read and dispose of the process output.  */
   outstream = p->filter;
@@ -3084,13 +2950,39 @@ read_process_output (proc, channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      /* The multibyteness of a string given to the filter is decided
-         by which coding system we used for decoding.  */
-      if (coding->dst_multibyte)
-	text = make_multibyte_string (chars, nchars, nbytes);
-      else
-	text = make_unibyte_string (chars, nbytes);
+      text = decode_coding_string (make_unibyte_string (chars, nbytes),
+				   coding, 0);
+      /* A new coding system might be found.  */
+      if (!EQ (p->decode_coding_system, coding->symbol))
+	{
+	  p->decode_coding_system = coding->symbol;
 
+	  /* Don't call setup_coding_system for
+	     proc_decode_coding_system[channel] here.  It is done in
+	     detect_coding called via decode_coding above.  */
+
+	  /* If a coding system for encoding is not yet decided, we set
+	     it as the same as coding-system for decoding.
+
+	     But, before doing that we must check if
+	     proc_encode_coding_system[p->outfd] surely points to a
+	     valid memory because p->outfd will be changed once EOF is
+	     sent to the process.  */
+	  if (NILP (p->encode_coding_system)
+	      && proc_encode_coding_system[XINT (p->outfd)])
+	    {
+	      p->encode_coding_system = coding->symbol;
+	      setup_coding_system (coding->symbol,
+				   proc_encode_coding_system[XINT (p->outfd)]);
+	    }
+	}
+
+      carryover = nbytes - coding->consumed;
+      bcopy (chars + coding->consumed, XSTRING (p->decoding_buf)->data,
+	     carryover);
+      XSETINT (p->decoding_carryover, carryover);
+      nbytes = STRING_BYTES (XSTRING (text));
+      nchars = XSTRING (text)->size;
       internal_condition_case_1 (read_process_output_call,
 				 Fcons (outstream,
 					Fcons (proc, Fcons (text, Qnil))),
@@ -3136,6 +3028,7 @@ read_process_output (proc, channel)
       Lisp_Object odeactivate;
       int before, before_byte;
       int opoint_byte;
+      Lisp_Object text;
 
       odeactivate = Vdeactivate_mark;
 
@@ -3167,17 +3060,30 @@ read_process_output (proc, channel)
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
-      /* If the text to insert is in decoding buffer (Lisp String), we
-	 must move it to a relocation-free memory space.  */
-      if (chars_in_decoding_buf)
-	{
-	  chars = (char *) alloca (nbytes);
-	  bcopy (XSTRING (p->decoding_buf)->data, chars, nbytes);
-	}
-
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
-      insert_1_both (chars, nchars, nbytes, 0, 1, 1);
+      text = decode_coding_string (make_unibyte_string (chars, nbytes),
+				   coding, 0);
+      /* A new coding system might be found.  See the comment in the
+	 similar code in the previous `if' block.  */
+      if (!EQ (p->decode_coding_system, coding->symbol))
+	{
+	  p->decode_coding_system = coding->symbol;
+	  if (NILP (p->encode_coding_system)
+	      && proc_encode_coding_system[XINT (p->outfd)])
+	    {
+	      p->encode_coding_system = coding->symbol;
+	      setup_coding_system (coding->symbol,
+				   proc_encode_coding_system[XINT (p->outfd)]);
+	    }
+	}
+      carryover = nbytes - coding->consumed;
+      bcopy (chars + coding->consumed, XSTRING (p->decoding_buf)->data,
+	     carryover);
+      XSETINT (p->decoding_carryover, carryover);
+      nbytes = STRING_BYTES (XSTRING (text));
+      nchars = XSTRING (text)->size;
+      insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
       signal_after_change (before, 0, PT - before);
       update_compositions (before, PT, CHECK_BORDER);
 
@@ -3266,8 +3172,6 @@ send_process (proc, buf, len, object)
   int rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
-  int carryover = XINT (XPROCESS (proc)->encoding_carryover);
-  int require_encoding;
 
   GCPRO1 (object);
 
@@ -3288,66 +3192,42 @@ send_process (proc, buf, len, object)
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
   Vlast_coding_system_used = coding->symbol;
 
-  require_encoding = 0;
-  if (STRINGP (object) && STRING_MULTIBYTE (object))
-    coding->src_multibyte = require_encoding = 1;
-  else if (BUFFERP (object)
-	   && !NILP (XBUFFER (object)->enable_multibyte_characters))
-    coding->src_multibyte = require_encoding = 1;
-  else
-    require_encoding = 0;
+  if ((STRINGP (object) && STRING_MULTIBYTE (object))
+      || (BUFFERP (object)
+	  && !NILP (XBUFFER (object)->enable_multibyte_characters)))
+    coding->src_multibyte = 1;
   coding->dst_multibyte = 0;
 
-  if (require_encoding
-      || CODING_REQUIRE_ENCODING (coding))
+  if (CODING_REQUIRE_ENCODING (coding))
     {
       int require = encoding_buffer_size (coding, len);
-      int offset;
+      int from_byte = -1, from, to;
       unsigned char *temp_buf = NULL;
 
-      /* Remember the offset of data because a string or a buffer may
-         be relocated.  Setting OFFSET to -1 means we don't have to
-         care about relocation.  */
-      offset = (BUFFERP (object)
-		? BUF_PTR_BYTE_POS (XBUFFER (object), buf)
-		: (STRINGP (object)
-		   ? buf - XSTRING (object)->data
-		   : -1));
-
-      if (carryover > 0)
+      if (BUFFERP (object))
 	{
-	  temp_buf = (unsigned char *) xmalloc (len + carryover);
-
-	  if (offset >= 0)
-	    {
-	      if (BUFFERP (object))
-		buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
-	      else if (STRINGP (object))
-		buf = offset + XSTRING (object)->data;
-	      /* Now we don't have to care about relocation.  */
-	      offset = -1;
-	    }
-	  bcopy ((XSTRING (XPROCESS (proc)->encoding_buf)->data
-		  + STRING_BYTES (XSTRING (XPROCESS (proc)->encoding_buf))
-		  - carryover),
-		 temp_buf,
-		 carryover);
-	  bcopy (buf, temp_buf + carryover, len);
-	  buf = temp_buf;
+	  from_byte = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
+	  from = buf_bytepos_to_charpos (XBUFFER (object), from_byte);
+	  to = buf_bytepos_to_charpos (XBUFFER (object), from_byte + len);
 	}
+      else if (STRINGP (object))
+	{
+	  from_byte = buf - XSTRING (object)->data;
+	  from = string_byte_to_char (object, from_byte);
+	  to =  string_byte_to_char (object, from_byte + len);
+	}
+
+      if (from_byte >= 0 && coding->composing != COMPOSITION_DISABLED)
+	coding_save_composition (coding, from, to, object);
 
       if (STRING_BYTES (XSTRING (XPROCESS (proc)->encoding_buf)) < require)
-	{
-	  XPROCESS (proc)->encoding_buf = make_uninit_string (require);
+	XPROCESS (proc)->encoding_buf = make_uninit_string (require);
 
-	  if (offset >= 0)
-	    {
-	      if (BUFFERP (object))
-		buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
-	      else if (STRINGP (object))
-		buf = offset + XSTRING (object)->data;
-	    }
-	}
+      if (from_byte >= 0)
+	buf = (BUFFERP (object)
+	       ? BUF_BYTE_ADDRESS (XBUFFER (object), from_byte)
+	       : XSTRING (object)->data + from_byte);
+
       object = XPROCESS (proc)->encoding_buf;
       encode_coding (coding, buf, XSTRING (object)->data,
 		     len, STRING_BYTES (XSTRING (object)));
