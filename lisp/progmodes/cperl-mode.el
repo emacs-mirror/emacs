@@ -5980,7 +5980,7 @@ Currently it is tuned to C and Perl syntax."
 	   (and (eq (following-char) ?\-)
 		(save-excursion
 		  (skip-chars-backward " \t\n")
-		  (memq (preceding-char) '(?\= ?\> ?\< ?\, ?\(, ?\[, ?\{))))
+		  (memq (preceding-char) '(?\= ?\> ?\< ?\, ?\( ?\[ ?\{))))
 	   ;; Now check for syntax type
 	   (save-match-data
 	     (setq found (point))
