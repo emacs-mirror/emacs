@@ -70,7 +70,7 @@
 	* w32fns.c (Fx_create_frame): Enable tool-bar when images are
 	supported.
 
-	* w32term.c: (zv_bits): Declare as short, for word alignment.
+	* w32term.c (zv_bits): Declare as short, for word alignment.
 	(w32_read_socket) <WM_XBUTTONUP>: Fix last change.
 	(syms_of_w32term): Define x-use-underline-position-properties.
 
