@@ -403,6 +403,7 @@ get_user_app (class)
 {
   char *path;
   char *file = 0;
+  char *free_it = 0;
 
   /* Check for XUSERFILESEARCHPATH.  It is a path of complete file
      names, not directories.  */
@@ -417,16 +418,20 @@ get_user_app (class)
       
       /* Check in the home directory.  This is a bit of a hack; let's
 	 hope one's home directory doesn't contain any %-escapes.  */
-      || (path = gethomedir (),
-	  ((file = search_magic_path (path, class, "%L/%N", 0))
-	   || (file = search_magic_path (path, class, "%N", 0)))))
+      || (free_it = gethomedir (),
+	  ((file = search_magic_path (free_it, class, "%L/%N", 0))
+	   || (file = search_magic_path (free_it, class, "%N", 0)))))
     {
       XrmDatabase db = XrmGetFileDatabase (file);
       free (file);
+      if (free_it)
+	free (free_it);
       return db;
     }
-  else
-    return NULL;
+
+  if (free_it)
+    free (free_it);
+  return NULL;
 }
 
 
