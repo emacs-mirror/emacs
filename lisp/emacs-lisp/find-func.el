@@ -62,13 +62,13 @@
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-\[^cgv\W]\\w+\\*?\\)\\|define-minor-mode\
+ine-minor-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
 \\|easy-mmode-define-global-mode\\)" find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
-`defgroup', `defvar'.
+`defgroup', `defvar', `defface'.
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
@@ -202,7 +202,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 		    (re-search-forward
 		     (concat "^([^ ]+" find-function-space-re "['(]"
 			     (regexp-quote (symbol-name symbol))
-			     "\\>")
+			     "\\_>")
 		     nil t))
 		(progn
 		  (beginning-of-line)
