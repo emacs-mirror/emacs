@@ -1,3 +1,8 @@
+2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el: Mention support for Motif in commentary.
+	(x-dnd-handle-drag-n-drop-event): Ditto.
+
 2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el: Delete function ses-build-load-map and distribute its

@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;; This file provides the drop part only.  Currently supported protocols
-;; are XDND and the old KDE 1.x protocol.
+;; are XDND, Motif and the old KDE 1.x protocol.
 
 ;;; Code:
 
@@ -449,8 +449,7 @@ nil if not."
 
 (defun x-dnd-handle-drag-n-drop-event (event)
   "Receive drag and drop events (X client messages).
-Currently XDND and old KDE 1.x protocols are recognized.
-TODO: Add Motif and OpenWindows."
+Currently XDND, Motif and old KDE 1.x protocols are recognized."
   (interactive "e")
   (let* ((client-message (car (cdr (cdr event))))
 	 (window (posn-window (event-start event)))
