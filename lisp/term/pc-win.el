@@ -339,7 +339,7 @@ The argument FRAME specifies which frame to try.
 The value may be different for frames on different X displays."
   x-colors)
 
-;; From lisp/term/win32-win.el
+;; From lisp/term/w32-win.el
 ;
 ;;;; Selections and cut buffers
 ;
@@ -354,7 +354,7 @@ This is in addition to the primary selection.")
 
 (defun x-select-text (text &optional push)
   (if x-select-enable-clipboard 
-      (win16-set-clipboard-data text))
+      (w16-set-clipboard-data text))
   (setq x-last-selected-text text))
     
 ;;; Return the value of the current selection.
@@ -365,8 +365,8 @@ This is in addition to the primary selection.")
       (let (text)
 	;; Don't die if x-get-selection signals an error.
 	(condition-case c
-	    (setq text (win16-get-clipboard-data))
-	  (error (message "win16-get-clipboard-data:%s" c)))
+	    (setq text (w16-get-clipboard-data))
+	  (error (message "w16-get-clipboard-data:%s" c)))
 	(if (string= text "") (setq text nil))
 	(cond
 	 ((not text) nil)
