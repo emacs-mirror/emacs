@@ -381,8 +381,8 @@ documentation found."
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Help*")))
 	   (print-help-return-message 'identity))))
-    (apropos string t 'commandp)
-    (and message (message message))))
+    (if (apropos string t 'commandp)
+	(and message (message message)))))
 
 (defun locate-library (library &optional nosuffix)
   "Show the full path name of Emacs library LIBRARY.
