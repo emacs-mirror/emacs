@@ -3093,22 +3093,39 @@ create_frame_xic (f)
 	base_fontname = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
       else
 	{
-	  struct fontset_info *fontsetp;
-	  int len = 0;
+	  /* Determine the base fontname from the ASCII font name of
+	     FONTSET.  */
+	  char *ascii_font = (char *) XSTRING (fontset_ascii (fontset))->data;
+	  char *p = ascii_font;
 	  int i;
-	  
-	  fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
-	  for (i = 0; i <= MAX_CHARSET; i++)
-	    if (fontsetp->fontname[i])
-	      len += strlen (fontsetp->fontname[i]) + 1;
-	  base_fontname = alloca (len);
-	  strcpy (base_fontname, fontsetp->fontname[CHARSET_ASCII]);
-	  for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
-	    if (fontsetp->fontname[i])
-	      {
-		strcat (base_fontname, ",");
-		strcat (base_fontname, fontsetp->fontname[i]);
-	      }
+
+	  for (i = 0; *p; p++)
+	    if (*p == '-') i++;
+	  if (i != 14)
+	    /* As the font name doesn't conform to XLFD, we can't
+	       modify it to get a suitable base fontname for the
+	       frame.  */
+	    base_fontname = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+	  else
+	    {
+	      int len = strlen (ascii_font) + 1;
+	      char *p1;
+
+	      for (i = 0, p = ascii_font; i < 8; p++)
+		{
+		  if (*p == '-')
+		    {
+		      i++;
+		      if (i == 3)
+			p1 = p + 1;
+		    }
+		}
+	      base_fontname = (char *) alloca (len);
+	      bzero (base_fontname, len);
+	      strcpy (base_fontname, "-*-*-");
+	      bcopy (p1, base_fontname + 5, p - p1);
+	      strcat (base_fontname, "*-*-*-*-*-*-*");
+	    }
 	}
       xfs = xic_create_xfontset (f, base_fontname);
 
@@ -3879,10 +3896,6 @@ This function is an internal primitive--use `make-frame' instead.")
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
-
-  /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
-    fs_register_fontset (f, XCAR (tem));
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
@@ -4739,9 +4752,9 @@ If DISPLAY is nil, that stands for the selected frame's display.")
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
       {
+	if (dpyinfo->font_table[i].name != dpyinfo->font_table[i].full_name)
+	  xfree (dpyinfo->font_table[i].full_name);
 	xfree (dpyinfo->font_table[i].name);
-	/* Don't free the full_name string;
-	   it is always shared with something else.  */
 	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
       }
 
@@ -9434,10 +9447,6 @@ x_create_tip_frame (dpyinfo, parms)
       /* use the frame's title when getting resources for this frame.  */
       specbind (Qx_resource_name, name);
     }
-
-  /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
-    fs_register_fontset (f, XCAR (tem));
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
