@@ -42,7 +42,7 @@
 ;; Your mail alias abbrevs will be in effect only when the point is in an
 ;; appropriate header field.  When in the body of the message, or other
 ;; header fields, the mail aliases will not expand.  Rather, the normal
-;; mode-specific abbrev table (mail-mode-abbrev-table) will be used if
+;; mode-specific abbrev table will be used if
 ;; defined.  So if you use mail-mode specific abbrevs, this code will not
 ;; adversely affect you.  You can control which header fields the abbrevs
 ;; are used in by changing the variable mail-abbrev-mode-regexp.
@@ -437,8 +437,6 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	  (save-excursion
 	    (rfc822-goto-eoh)
 	    (point)))))))
-
-(defvar mail-mode-abbrev-table) ; quiet the compiler
 
 (defun sendmail-pre-abbrev-expand-hook ()
   (and (and mail-abbrevs (not (eq mail-abbrevs t)))
