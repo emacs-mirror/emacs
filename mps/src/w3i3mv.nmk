@@ -8,8 +8,8 @@ PFM = nti3mv
 PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
 
 STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
-MPM = <arenvm> <vmnt> <addrmap> <space> <pool> <poolclas> <poolmfs> \
-      <poolmv> <pools> <root> <fix> <format> <buffer> <locknt>
+MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
+      <poolmv> <root> <fix> <format> <buffer> <locknt>
 TESTLIB = <testlib>
 
 #!INCLUDE mv.nmk
@@ -55,7 +55,7 @@ TESTLIB = <testlib>
 # [These only test if the symbol is defined; there is opportunity to be more
 #  comprehensive]
 #
-# %%PART: Add checks for the parameter with the sources for the new part.
+# %%PART: Add checks for the parameter eith the sources for the new part.
 
 !IFNDEF PFM
 !ERROR mv.nmk: PFM not defined
@@ -180,14 +180,14 @@ all: lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib
 # %%TARGET: Add a pseudo-target for the new part
 
 lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
-  $(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the platform
 
 clean:
-  $(ECHO) $(PFM): $@
-  -echo y | rmdir/s $(PFM)
-  -deltree /Y $(PFM)
+	$(ECHO) $(PFM): $@
+        -echo y | rmdir/s $(PFM)
+        -deltree /Y $(PFM)
 
 # target target
 # %%VARIETY: Add a recusive make call for the new variety
@@ -195,9 +195,9 @@ clean:
 !IFDEF TARGET
 !IFNDEF VARIETY
 target:
-  $(MAKE) /nologo /f $(PFM).nmk VARIETY=devel variety
-  $(MAKE) /nologo /f $(PFM).nmk VARIETY=debug variety
-  $(MAKE) /nologo /f $(PFM).nmk VARIETY=release variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=devel variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=debug variety
+	$(MAKE) /nologo /f $(PFM).nmk VARIETY=release variety
 !ENDIF
 !ENDIF
 
@@ -223,17 +223,20 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 
 $(PFM)\$(VARIETY)\stdcover.exe: $(PFM)\$(VARIETY)\stdcover.obj $(STDOBJ)
 
-$(PFM)\$(VARIETY)\mpmstres.exe: $(PFM)\$(VARIETY)\mpmstres.obj $(MPMOBJ) $(STDOBJ)
+$(PFM)\$(VARIETY)\mpmstres.exe: $(PFM)\$(VARIETY)\mpmstres.obj \
+	$(MPMOBJ) $(STDOBJ)
 
-$(PFM)\$(VARIETY)\lockcov.exe:  $(PFM)\$(VARIETY)\lockcov.obj $(MPMOBJ) $(STDOBJ)
+$(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
+	$(MPMOBJ) $(STDOBJ)
 
-$(PFM)\$(VARIETY)\lockutnt.exe:  $(PFM)\$(VARIETY)\lockutnt.obj $(MPMOBJ) $(STDOBJ)
+$(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
+	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
-  $(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
-  $(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 !ENDIF
 
@@ -243,19 +246,19 @@ $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
 # [builds objects for static linking with libc]
 
 {}.c{$(PFM)\$(VARIETY)}.obj:
-  $(ECHO) $@
-  @if not exist $(PFM) mkdir $(PFM)
-  @if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-  cl /c $(CFLAGS) /MT /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
-#             %%mt ^^
+	$(ECHO) $@
+	@if not exist $(PFM) mkdir $(PFM)
+        @if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+        cl /c $(CFLAGS) /MT /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+#                   %%mt ^^
+
 # Depenencies
 # [we can't build these at the moment]
 
 # Executables
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
-  $(ECHO) $@
-  $(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libcmt.lib
-#                                  %%mt^^^^^^
+	$(ECHO) $@
+	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libcmt.lib
+#                                        %%mt^^^^^^
 #!INCLUDE depend.mak
-
