@@ -543,8 +543,11 @@ extern Lisp_Object make_number ();
 
 #define SREF(string, index)	XSTRING (string)->data[index]
 #define SDATA(string)		XSTRING (string)->data
-#define SCHARS(string)		XSTRING (string)->size
-#define SBYTES(string)		STRING_BYTES (XSTRING (string))
+#define SCHARS(string)		(XSTRING (string)->size + 0)
+#define SBYTES(string)		(STRING_BYTES (XSTRING (string)) + 0)
+
+#define STRING_SET_CHARS(string, newsize) \
+    (XSTRING (string)->size = (newsize))
 
 
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
