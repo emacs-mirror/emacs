@@ -5,7 +5,7 @@
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
-;; Maintainer: bug-texinfo@gnu.org
+;; Maintainer: FSF
 ;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.
@@ -57,6 +57,12 @@
 (defcustom texinfo-close-quote "''"
   "*String inserted by typing \\[texinfo-insert-quote] to close a quotation."
   :type 'string
+  :group 'texinfo)
+
+(defcustom texinfo-mode-hook nil
+  "Normal hook run when entering Texinfo mode."
+  :type 'hook
+  :options '(turn-on-auto-fill flyspell-mode)
   :group 'texinfo)
 
 
