@@ -1096,8 +1096,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
   (interactive "P")
   (set-buffer (get-buffer-create calendar-buffer))
   (calendar-mode)
-  (let* ((completion-ignore-case t)
-         (pop-up-windows t)
+  (let* ((pop-up-windows t)
          (split-height-threshold 1000)
          (date (if arg
                    (calendar-read-date t)
@@ -1975,9 +1974,7 @@ Gregorian date Sunday, December 31, 1 BC."
 
 (defun calendar-other-month (month year)
   "Display a three-month calendar centered around MONTH and YEAR."
-  (interactive
-   (let* ((completion-ignore-case t))
-     (calendar-read-date t)))
+  (interactive (calendar-read-date 'noday))
   (if (and (= month displayed-month)
            (= year displayed-year))
       nil
@@ -2052,7 +2049,8 @@ is a string to insert in the minibuffer before reading."
 (defun calendar-read-date (&optional noday)
   "Prompt for Gregorian date.  Returns a list (month day year).
 If optional NODAY is t, does not ask for day, but just returns
-(month nil year)."
+(month nil year); if NODAY is any other non-nil value the value returned is
+(month year) "
   (let* ((year (calendar-read
                 "Year (>0): "
                 '(lambda (x) (> x 0))
@@ -2068,13 +2066,14 @@ If optional NODAY is t, does not ask for day, but just returns
                         nil t))
                       (calendar-make-alist month-array 1 'capitalize))))
          (last (calendar-last-day-of-month month year)))
-       (list month
-             (if noday
-                 nil
-               (day (calendar-read
-                     (format "Day (1-%d): " last)
-                             '(lambda (x) (and (< 0 x) (<= x last))))))
-             year)))
+    (if noday
+        (if (eq noday t)
+            (list month nil year)
+          (list month year))
+      (list month
+            (calendar-read (format "Day (1-%d): " last)
+                                   '(lambda (x) (and (< 0 x) (<= x last))))
+            year))))
 
 (defun calendar-goto-date (date)
   "Move cursor to DATE."
