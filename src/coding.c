@@ -1126,7 +1126,10 @@ decode_coding_utf_8 (coding)
 	      if (EQ (eol_type, Qdos))
 		{
 		  if (src == src_end)
-		    goto no_more_source;
+		    {
+		      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+		      goto no_more_source;
+		    }
 		  if (*src == '\n')
 		    ONE_MORE_BYTE (c);
 		}
@@ -1917,7 +1920,10 @@ decode_coding_emacs_mule (coding)
 	      if (EQ (eol_type, Qdos))
 		{
 		  if (src == src_end)
-		    goto no_more_source;
+		    {
+		      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+		      goto no_more_source;
+		    }
 		  if (*src == '\n')
 		    ONE_MORE_BYTE (c);
 		}
@@ -2784,7 +2790,7 @@ decode_coding_iso_2022 (coding)
 
       ONE_MORE_BYTE (c1);
 
-      /* We produce no character or one character.  */
+      /* We produce at most one character.  */
       switch (iso_code_class [c1])
 	{
 	case ISO_0x20_or_0x7F:
@@ -2841,7 +2847,10 @@ decode_coding_iso_2022 (coding)
 	      if (EQ (eol_type, Qdos))
 		{
 		  if (src == src_end)
-		    goto no_more_source;
+		    {
+		      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+		      goto no_more_source;
+		    }		      
 		  if (*src == '\n')
 		    ONE_MORE_BYTE (c1);
 		}
@@ -3796,7 +3805,10 @@ decode_coding_sjis (coding)
 	  if (EQ (eol_type, Qdos))
 	    {
 	      if (src == src_end)
-		goto no_more_source;
+		{
+		  coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+		  goto no_more_source;
+		}
 	      if (*src == '\n')
 		ONE_MORE_BYTE (c);
 	    }
@@ -3885,7 +3897,10 @@ decode_coding_big5 (coding)
 	  if (EQ (eol_type, Qdos))
 	    {
 	      if (src == src_end)
-		goto no_more_source;
+		{
+		  coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+		  goto no_more_source;
+		}
 	      if (*src == '\n')
 		ONE_MORE_BYTE (c);
 	    }
@@ -4429,8 +4444,12 @@ decode_coding_charset (coding)
 	     else.  */
 	  if (EQ (eol_type, Qdos))
 	    {
-	      if (src < src_end
-		  && *src == '\n')
+	      if (src == src_end)
+		{
+		  coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+		  goto no_more_source;
+		}
+	      if (*src == '\n')
 		ONE_MORE_BYTE (c);
 	    }
 	  else if (EQ (eol_type, Qmac))
@@ -5272,8 +5291,12 @@ produce_chars (coding)
 		    {
 		      if (EQ (eol_type, Qdos))
 			{
-			  if (src < src_end
-			      && *src == '\n')
+			  if (src == src_end)
+			    {
+			      coding->result = CODING_RESULT_INSUFFICIENT_SRC;
+			      goto no_more_source;
+			    }
+			  if (*src == '\n')
 			    c = *src++;
 			}
 		      else if (EQ (eol_type, Qmac))
@@ -5621,12 +5644,11 @@ decode_coding (coding)
 	  /* Flush out unprocessed data as binary chars.  We are sure
 	     that the number of data is less than the size of
 	     coding->charbuf.  */
-	  int *charbuf = coding->charbuf;
-
 	  while (nbytes-- > 0)
 	    {
 	      int c = *src++;
-	      *charbuf++ =  (c & 0x80 ? - c : c);
+
+	      coding->charbuf[coding->charbuf_used++] = (c & 0x80 ? - c : c);
 	    }
 	  produce_chars (coding);
 	}
@@ -5883,6 +5905,7 @@ decode_coding_gap (coding, chars, bytes)
   coding->dst_pos = PT;
   coding->dst_pos_byte = PT_BYTE;
   coding->dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  coding->mode |= CODING_MODE_LAST_BLOCK;
 
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
