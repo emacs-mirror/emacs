@@ -2691,7 +2691,6 @@ and (2) it puts less data in the undo list.")
     CHECK_NUMBER (end, 0);
   else
     {
-      XSETTYPE (end, Lisp_Int);
       XSETINT (end, st.st_size);
       if (XINT (end) != st.st_size)
 	error ("maximum buffer size exceeded");
