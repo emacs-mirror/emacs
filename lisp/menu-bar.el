@@ -524,7 +524,7 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
   (list 'menu-item "Scroll-Bar" menu-bar-showhide-scroll-bar-menu
-	:visible window-system
+	:visible 'window-system
 	:help "Select scroll-bar mode"))
 
 (defun showhide-menu-bar ()
