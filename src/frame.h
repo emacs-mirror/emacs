@@ -21,22 +21,33 @@ Boston, MA 02111-1307, USA.  */
 
 /* Miscellanea.  */
 
-/* Nonzero means don't assume anything about current
-   contents of actual terminal frame */
+/* Nonzero means don't assume anything about current contents of
+   actual terminal frame */
+
 extern int frame_garbaged;
 
 /* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
    print.  */
+
 extern int message_buf_print;
 
 
 /* The structure representing a frame.  */
 
 enum output_method
-{ output_termcap, output_x_window, output_msdos_raw, output_w32 };
+{
+  output_termcap,
+  output_x_window,
+  output_msdos_raw,
+  output_w32
+};
 
 enum vertical_scroll_bar_type
-{ vertical_scroll_bar_none, vertical_scroll_bar_left, vertical_scroll_bar_right };
+{
+  vertical_scroll_bar_none,
+  vertical_scroll_bar_left,
+  vertical_scroll_bar_right
+};
 
 struct frame
 {
@@ -127,18 +138,46 @@ struct frame
   /* List of buffers viewed in this frame, for other-buffer.  */
   Lisp_Object buffer_list;
 
+  /* A dummy window used to display menu bars under X when no X
+     toolkit support is available.  */
+  Lisp_Object menu_bar_window;
+
+  /* A window used to display the toolbar of a frame.  */
+  Lisp_Object toolbar_window;
+
+  /* Desired and current toolbar items.  */
+  Lisp_Object desired_toolbar_items, current_toolbar_items;
+
+  /* Desired and current contents displayed in toolbar_window.  */
+  Lisp_Object desired_toolbar_string, current_toolbar_string;
+
   /* beyond here, there should be no more Lisp_Object components.  */
 
+  /* Cache of realized faces.  */
+  struct face_cache *face_cache;
 
-  /* A buffer to hold the frame's name.  We can't use the Lisp string's
-     pointer (`name', above) because it might get relocated.  */
+  /* A buffer to hold the frame's name.  We can't use the Lisp
+     string's pointer (`name', above) because it might get relocated.  */
   char *namebuf;
 
-  /* glyphs as they appear on the frame */
-  struct frame_glyphs *current_glyphs;
+  /* Glyph pool and matrix. */
+  struct glyph_pool *current_pool;
+  struct glyph_pool *desired_pool;
+  struct glyph_matrix *desired_matrix;
+  struct glyph_matrix *current_matrix;
 
-  /* glyphs we'd like to appear on the frame */
-  struct frame_glyphs *desired_glyphs;
+  /* 1 means that glyphs on this frame have been initialized so it can
+     be used for output.  */
+  unsigned glyphs_initialized_p : 1;
+
+  /* Margin at the top of the frame.  Used to display the toolbar.  */
+  int toolbar_lines;
+
+  int n_desired_toolbar_items;
+  int n_current_toolbar_items;
+  
+  /* A buffer for decode_mode_line. */
+  char *decode_mode_spec_buffer;
 
   /* See do_line_insertion_deletion_costs for info on these arrays. */
   /* Cost of inserting 1 line on this frame */
@@ -150,29 +189,11 @@ struct frame
   /* Cost of deleting n lines on this frame */
   int *delete_n_lines_cost;
 
-  /* glyphs for the mode line */
-  struct frame_glyphs *temp_glyphs;
-
-  /* Intended cursor position of this frame.
-     Measured in characters, counting from upper left corner
-     within the frame.  */
-  int cursor_x;
-  int cursor_y;
-
-  /* Actual cursor position of this frame, and the character under it.
-     (Not used for terminal frames.)  */
-  int phys_cursor_x;
-  int phys_cursor_y;
-  /* This is handy for undrawing the cursor, because current_glyphs is
-     not always accurate when in do_scrolling.  */
-  GLYPH phys_cursor_glyph;
-  /* Nonzero means the cursor is displayed.  */
-  int phys_cursor_on;
-
   /* Size of this frame, in units of characters.  */
   EMACS_INT height;
   EMACS_INT width;
   EMACS_INT window_width;
+  EMACS_INT window_height;
 
   /* New height and width for pending size change.  0 if no change pending.  */
   int new_height, new_width;
@@ -186,7 +207,13 @@ struct frame
      it is defined in xterm.h.  
      struct w32_output is used for W32 window frames;
      it is defined in w32term.h.  */
-  union output_data { struct x_output *x; struct w32_output *w32; int nothing; } output_data;
+  union output_data
+  {
+    struct x_output *x;
+    struct w32_output *w32;
+    int nothing;
+  }
+  output_data;
 
 #ifdef MULTI_KBOARD
   /* A pointer to the kboard structure associated with this frame.
@@ -298,6 +325,9 @@ struct frame
   int scroll_bar_pixel_width;
   int scroll_bar_cols;
 
+  /* Width of area for drawing truncation marks and overlay arrow.  */
+  int trunc_area_pixel_width, trunc_area_cols;
+
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
@@ -333,6 +363,7 @@ typedef struct frame *FRAME_PTR;
 
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
+
 #ifdef HAVE_X_WINDOWS
 #define FRAME_WINDOW_P(f) FRAME_X_P (f)
 #endif
@@ -353,19 +384,6 @@ typedef struct frame *FRAME_PTR;
 /* Nonzero if frame F contains a minibuffer window.
    (If this is 0, F must use some other minibuffer window.)  */
 #define FRAME_HAS_MINIBUF_P(f) ((f)->has_minibuffer)
-
-/* This points to the structure which describes the contents
-   currently displayed on frame F.  See dispextern.h.  */
-#define FRAME_CURRENT_GLYPHS(f) (f)->current_glyphs
-
-/* This points to the structure which describes the contents
-   intended to be displayed on frame F.  See dispextern.h.  */
-#define FRAME_DESIRED_GLYPHS(f) (f)->desired_glyphs
-
-#define FRAME_TEMP_GLYPHS(f) (f)->temp_glyphs
-#define SET_GLYPHS_FRAME(glyphs,frame) ((glyphs)->frame = (frame))
-
-/* Height of frame F, measured in character lines.  */
 #define FRAME_HEIGHT(f) (f)->height
 
 /* Width of frame F, measured in character columns,
@@ -378,6 +396,15 @@ typedef struct frame *FRAME_PTR;
    These lines are counted in FRAME_HEIGHT.  */
 #define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
 
+/* Number of lines of frame F used for the toolbar.  */
+
+#define FRAME_TOOLBAR_LINES(f) (f)->toolbar_lines
+
+/* Lines above the top-most window in frame F.  */
+
+#define FRAME_TOP_MARGIN(F) \
+     (FRAME_MENU_BAR_LINES (F) + FRAME_TOOLBAR_LINES (F))
+
 /* Nonzero if this frame should display a menu bar
    in a way that does not use any text lines.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
@@ -385,12 +412,6 @@ typedef struct frame *FRAME_PTR;
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0
 #endif
-
-/* Current cursor position for frame F.  */
-#define FRAME_CURSOR_X(f) (f)->cursor_x
-#define FRAME_CURSOR_Y(f) (f)->cursor_y
-
-/* Nonzero if frame F is currently visible.  */
 #define FRAME_VISIBLE_P(f) ((f)->visible != 0)
 
 /* Nonzero if frame F is currently visible but hidden.  */
@@ -487,8 +508,10 @@ typedef struct frame *FRAME_PTR;
 
 /* Given a value WIDTH for frame F's nominal width,
    return the value that FRAME_WINDOW_WIDTH should have.  */
-#define FRAME_WINDOW_WIDTH_ARG(f, width) \
-     ((width) + FRAME_SCROLL_BAR_WIDTH (f))
+#define FRAME_WINDOW_WIDTH_ARG(f, width)	\
+     ((width)					\
+      + FRAME_SCROLL_BAR_WIDTH (f)		\
+      + 2 * FRAME_FLAGS_AREA_COLS (f))
 
 /* Maximum + 1 legitimate value for FRAME_CURSOR_X.  */
 #define FRAME_CURSOR_X_LIMIT(f) \
@@ -502,9 +525,14 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 #define FRAME_FONTSET_DATA(f) ((f)->fontset_data)
 
+/* Return a pointer to the face cache of frame F.  */
+
+#define FRAME_FACE_CACHE(F)	(F)->face_cache
+
 /* Return the size of message_buf of the frame F.  We multiply the
    width of the frame by 4 because multi-byte form may require at most
    4-byte for a character.  */
+     
 #define FRAME_MESSAGE_BUF_SIZE(f) (((int) (f)->width) * 4)
 
 /* Emacs's redisplay code could become confused if a frame's
@@ -530,24 +558,26 @@ typedef struct frame *FRAME_PTR;
    Also, if a frame used to be invisible, but has just become visible,
    it must be marked as garbaged, since redisplay hasn't been keeping
    up its contents.  */
+     
 #define FRAME_SAMPLE_VISIBILITY(f) \
   (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
    SET_FRAME_GARBAGED (f) : 0, \
    (f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
 
-#define CHECK_FRAME(x, i)				\
-  {							\
-    if (! FRAMEP (x))					\
-      x = wrong_type_argument (Qframep, (x));		\
-  }
+#define CHECK_FRAME(x, i)			\
+     if (! FRAMEP (x))				\
+       x = wrong_type_argument (Qframep, (x));	\
+     else					\
+       (void) 0
 
 #define CHECK_LIVE_FRAME(x, i)				\
-  {							\
-    if (! FRAMEP (x)					\
-	|| ! FRAME_LIVE_P (XFRAME (x)))		\
-      x = wrong_type_argument (Qframe_live_p, (x));	\
-  }
+     if (! FRAMEP (x)					\
+	 || ! FRAME_LIVE_P (XFRAME (x)))		\
+       x = wrong_type_argument (Qframe_live_p, (x));	\
+     else						\
+       (void) 0
+
 
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
    `for' loop which iterates over the elements of Vframe_list.  The
@@ -559,6 +589,7 @@ typedef struct frame *FRAME_PTR;
    This macro is a holdover from a time when multiple frames weren't always
    supported.  An alternate definition of the macro would expand to
    something which executes the statement once.  */
+
 #define FOR_EACH_FRAME(list_var, frame_var)			\
   for ((list_var) = Vframe_list;				\
        (CONSP (list_var)					\
@@ -593,6 +624,7 @@ extern Lisp_Object Vterminal_frame;
    use for text.  If the window touches the right edge of the frame,
    we have extra space allocated for it.  Otherwise, the scroll bar
    takes over the window's rightmost columns.  */
+
 #define WINDOW_VERTICAL_SCROLL_BAR_COLUMN(w) \
   (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (XFRAME (WINDOW_FRAME (w))) ? \
     (((XINT ((w)->left) + XINT ((w)->width)) \
@@ -604,4 +636,89 @@ extern Lisp_Object Vterminal_frame;
 
 /* Return the height in lines of the vertical scroll bar in w.  If the
    window has a mode line, don't make the scroll bar extend that far.  */
+     
 #define WINDOW_VERTICAL_SCROLL_BAR_HEIGHT(w) (window_internal_height (w))
+
+
+
+/***********************************************************************
+			Display-related Macros
+ ***********************************************************************/
+
+/* Canonical y-unit on frame F.  This value currently equals the line
+   height of the frame.  Terminal specific header files are expected
+   to define the macro FRAME_LINE_HEIGHT.  */
+
+#define CANON_Y_UNIT(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_LINE_HEIGHT (F) : 1)
+
+/* Canonical x-unit on frame F.  This is currently equal to the width
+   of the default font of F.  Terminal specific headers are expected
+   to define the macro FRAME_DEFAULT_FONT_WIDTH.  */
+
+#define CANON_X_UNIT(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_DEFAULT_FONT_WIDTH (F) : 1)
+
+/* Pixel width of areas used to display truncation marks, continuation
+   marks, overlay arrows.  This is 0 for terminal frames.  Other
+   terminal headers must define FRAME_X_TRUNC_WIDTH.  */
+
+#ifdef HAVE_WINDOW_SYSTEM
+#define FRAME_FLAGS_AREA_COLS(F) \
+     (FRAME_WINDOW_P ((F)) ? FRAME_X_FLAGS_AREA_COLS ((F)) : 0)
+#define FRAME_FLAGS_AREA_WIDTH(F) \
+     (FRAME_FLAGS_AREA_COLS ((F)) * CANON_X_UNIT ((F)))
+#else
+#define FRAME_FLAGS_AREA_WIDTH(F)	0
+#define FRAME_FLAGS_AREA_COLS(F)	0
+#endif
+     
+
+
+
+/***********************************************************************
+	    Conversion between canonical units and pixels
+ ***********************************************************************/
+
+/* Canonical x-values are fractions of CANON_X_UNIT, canonical y-unit
+   are fractions of CANON_Y_UNIT of a frame.  Both are represented as
+   Lisp numbers, i.e. integers or floats.  */
+
+/* Convert canonical value X to pixels.  F is the frame whose
+   canonical char width is to be used.  X must be a Lisp integer or
+   float.  Value is a C integer.  */
+     
+#define PIXEL_X_FROM_CANON_X(F, X)			\
+     (INTEGERP (X)					\
+      ? XINT (X) * CANON_X_UNIT (F)			\
+      : (int) (XFLOAT (X)->data * CANON_X_UNIT (F)))
+      
+/* Convert canonical value Y to pixels.  F is the frame whose
+   canonical character height is to be used.  X must be a Lisp integer
+   or float.  Value is a C integer.  */
+     
+#define PIXEL_Y_FROM_CANON_Y(F, Y)			\
+     (INTEGERP (Y)					\
+      ? XINT (Y) * CANON_Y_UNIT (F)			\
+      : (int) (XFLOAT (Y)->data * CANON_Y_UNIT (F)))
+
+/* Convert pixel-value X to canonical units.  F is the frame whose
+   canonical character width is to be used.  X is a C integer.  Result
+   is a Lisp float if X is not a multiple of the canon width,
+   otherwise it's a Lisp integer.  */
+
+#define CANON_X_FROM_PIXEL_X(F, X)			\
+     ((X) % CANON_X_UNIT (F) != 0			\
+      ? make_float ((double) (X) / CANON_X_UNIT (F))	\
+      : make_number ((X) / CANON_X_UNIT (F)))
+
+/* Convert pixel-value Y to canonical units.  F is the frame whose
+   canonical character height is to be used.  Y is a C integer.
+   Result is a Lisp float if Y is not a multiple of the canon width,
+   otherwise it's a Lisp integer.  */
+
+#define CANON_Y_FROM_PIXEL_Y(F, Y)			\
+     ((Y) % CANON_Y_UNIT (F) 				\
+      ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
+      : make_number ((Y) / CANON_Y_UNIT (F)))	
+			     
