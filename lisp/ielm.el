@@ -70,8 +70,12 @@
   :type 'boolean
   :group 'ielm)
 
-(defvar ielm-prompt "ELISP> "
-  "Prompt used in IELM.")
+(defcustom ielm-prompt "ELISP> "
+  "Prompt used in IELM."
+  :type 'string
+  :group 'ielm
+  :get #'(lambda (symbol) (substring-no-properties (symbol-value symbol)))
+  :set #'(lambda (symbol value) (set symbol (propertize value 'read-only t 'rear-nonsticky t))))
 
 (defcustom ielm-dynamic-return t
   "*Controls whether \\<ielm-map>\\[ielm-return] has intelligent behaviour in IELM.
