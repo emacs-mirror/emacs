@@ -25,7 +25,7 @@
 
 	* programs.texi: Update hideshow key bindings.
 
-Francesco Potorti`  <pot@gnu.org>
+2001-03-12  Francesco Potorti  <pot@gnu.org>
 
 	* programs.texi (Tags): Mention that file names are tags.  Change by
 	Philippe Waroquiers  <wao@gull.tact.cfmu.eurocontrol.be>.
@@ -85,9 +85,9 @@ Francesco Potorti`  <pot@gnu.org>
 
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff.texi: add credits.
+	* ediff.texi: Add credits.
 
-	* viper.texi: small fixes; added credits
+	* viper.texi: Small fixes; added credits
 
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
