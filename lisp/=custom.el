@@ -1504,8 +1504,8 @@ FG BG STIPPLE BOLD ITALIC UNDERLINE"
 (defun custom-face-hack (field value)
   "Face that should be used for highlighting FIELD containing VALUE."
   (let* ((custom (custom-field-custom field))
-	 (face (eval (funcall (custom-property custom 'export) 
-			      custom value))))
+	 (form (funcall (custom-property custom 'export) custom value))
+	 (face (apply (car form) (cdr form))))
     (if (custom-facep face) face nil)))
 
 (defun custom-const-insert (custom level)
