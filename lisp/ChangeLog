@@ -1,3 +1,55 @@
+2002-06-13  Miles Bader  <miles@gnu.org>
+
+	Lexical binding support (not finished yet):
+	* emacs-lisp/bytecomp.el: Require `macroexp'.
+	(byte-compile-lexical-environment) 
+	(byte-compile-current-heap-environment) 
+	(byte-compile-current-num-closures): New variables.
+	(0, 178, 179, 180, 181): New byte-opcodes.
+	(byte-compile-lapcode): Handle stack-ref/set opcodes.  Signal an
+	error if a delay-output placeholder is not filled in yet.
+	(byte-compile-file-form, byte-compile): Expand all macros with
+	`macroexpand-all'.
+	(byte-compile-file-form-defsubst, byte-compile-form): Don't expand
+	macros here.
+	(byte-compile-make-lambda-lexenv): Autoload.
+	(byte-compile-lambda): Initial code for handling lexically-bound
+	arguments and closures; doesn't work yet.
+	(byte-compile-closure-code-p, byte-compile-make-closure) 
+	(byte-compile-closure): New functions.
+	(byte-compile-check-variable, byte-compile-dynamic-variable-op) 
+	(byte-compile-dynamic-variable-bind) 
+	(byte-compile-lexical-variable-ref, byte-compile-variable-set): 
+	New functions.
+	(byte-compile-variable-ref): Remove second argument.  Now only
+	handles real variable references (not setting or binding).
+	(byte-compile-push-unknown-constant) 
+	(byte-compile-resolve-unknown-constant): New functions.
+	(byte-compile-funarg, byte-compile-funarg-2): Functions removed.
+	(byte-compile-function-form): Use either `byte-compile-constant'
+	or `byte-compile-closure'.
+	(byte-compile-setq): Use `byte-compile-variable-set' instead of
+	`byte-compile-variable-ref'.
+	(apply, mapcar, mapatoms, mapconcat, mapc, sort):
+	`byte-defop-compiler-1's removed.
+	(byte-compile-while): Make sure lexically-bound variables inside
+	the loop don't get stored in an environment outside the loop.
+	(byte-compile-compute-lforminfo): Autoload.
+	(byte-compile-push-binding-init): New function.
+	(byte-compile-let, byte-compile-let*): Handle lexical binding.
+	(byte-compile-defun): Use `byte-compile-closure' to do the work.
+	(byte-compile-defmacro): Use `byte-compile-make-closure'.
+	(byte-compile-defvar): Expand the generated call to `push' since
+	we're past macroexpansion already.
+	(byte-compile-stack-adjustment): New function.
+	(byte-compile-out): Make second arg optional.  Rewrite for clarity.
+	(byte-compile-delay-out, byte-compile-delayed-out): New functions.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Don't
+	expand macros here.
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Expand defmacro forms.
+
 2002-06-12  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/byte-lexbind.el, emacs-lisp/macroexp.el: New files.
