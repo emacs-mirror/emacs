@@ -42,7 +42,7 @@ A list represents a rectangle; its elements are strings.")
       (setq register-alist (cons aelt register-alist)))
     value))
 
-(defun point-to-register (char arg)
+(defun point-to-register (char &optional arg)
   "Store current location of point in register REGISTER.
 With prefix argument, store current frame configuration.
 Use \\[jump-to-register] to go to that location or restore that configuration.
@@ -50,14 +50,14 @@ Argument is a character, naming the register."
   (interactive "cPoint to register: \nP")
   (set-register char (if arg (current-frame-configuration) (point-marker))))
 
-(defun window-configuration-to-register (char arg)
+(defun window-configuration-to-register (char &optional arg)
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
   (interactive "cPoint to register: \nP")
   (set-register char (current-window-configuration)))
 
-(defun frame-configuration-to-register (char arg)
+(defun frame-configuration-to-register (char &optional arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
