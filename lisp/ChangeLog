@@ -1,3 +1,18 @@
+2004-04-28  Juanma Barranquero  <lektu@terra.es>
+
+	Use `time-less-p' from calendar/time-date.el instead of defining
+	custom versions of it.
+
+	* pcomplete.el (pcomplete-time-less-p): Remove.
+
+	* thumbs.el (time-less-p): Remove.
+
+	* calendar/timeclock.el (timeclock-time-less-p): Remove.
+	(timeclock-generate-report): Use `time-less-p'.
+
+	* emacs-lisp/autoload.el (autoload-before-p): Remove.
+	(update-file-autoloads, update-directory-autoloads): Use `time-less-p'.
+
 2004-04-28  Masatake YAMATO  <jet@gyve.org>
 
 	* subr.el (remove-overlays): Make arguments optional.
