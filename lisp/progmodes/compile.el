@@ -1095,35 +1095,42 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 (defun compilation-find-file (marker filename dir &rest formats)
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
-	result thisdir fmts name)
-    (while (and dirs (null result))
+	buffer thisdir fmts name)
+    (if (file-name-absolute-p filename)
+	;; The file name is absolute.  Use its explicit directory as
+	;; the first in the search path, and strip it from FILENAME.
+	(setq filename (abbreviate-file-name (expand-file-name filename))
+	      dirs (cons (file-name-directory filename) dirs)
+	      filename (file-name-nondirectory filename)))
+    ;; Now search the path.
+    (while (and dirs (null buffer))
       (setq thisdir (or (car dirs) dir)
 	    fmts formats)
-      (while (and fmts (null result))
+      ;; For each directory, try each format string.
+      (while (and fmts (null buffer))
 	(setq name (expand-file-name (format (car fmts) filename) thisdir)
-	      result (and (file-exists-p name)
+	      buffer (and (file-exists-p name)
 			  (find-file-noselect name))
 	      fmts (cdr fmts)))
       (setq dirs (cdr dirs)))
-    (or result
+    (or buffer
 	;; The file doesn't exist.
 	;; Ask the user where to find it.
 	;; If he hits C-g, then the next time he does
 	;; next-error, he'll skip past it.
-	(progn
-	  (let* ((pop-up-windows t)
-		 (w (display-buffer (marker-buffer marker))))
-	    (set-window-point w marker)
-	    (set-window-start w marker))
-	  (setq name
-		(expand-file-name
-		 (read-file-name (format "Find this error in: (default %s) "
-					 filename)
-				 dir filename t)))
-	  (if (file-directory-p name)
-	      (setq name (concat (file-name-as-directory name) filename)))
-	  (if (file-exists-p name)
-	      (find-file-noselect name))))))
+	(let* ((pop-up-windows t)
+	       (w (display-buffer (marker-buffer marker))))
+	  (set-window-point w marker)
+	  (set-window-start w marker)
+	  (let ((name (expand-file-name
+		       (read-file-name
+			(format "Find this error in: (default %s) "
+				filename)
+			dir filename t))))
+	    (if (file-directory-p name)
+		(setq name (expand-file-name filename name)))
+	    (and (file-exists-p name)
+		 (find-file-noselect name)))))))
 
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.
@@ -1230,9 +1237,14 @@ See variable `compilation-parse-errors-function' for the interface it uses."
       (setq subexpr (+ subexpr 1 (count-regexp-groupings (car (car alist)))))
       (setq alist (cdr alist)))
 
-    (setq orig default-directory)
-    (setq orig-expanded (file-truename orig))
-    (setq parent-expanded (expand-file-name "../" orig-expanded))
+    ;; Set up now the expanded, abbreviated directory variables
+    ;; that compile-abbreviate-directory will need, so we can
+    ;; compute them just once here.
+    (setq orig (abbreviate-file-name default-directory)
+	  orig-expanded (abbreviate-file-name
+			 (file-truename default-directory))
+	  parent-expanded (abbreviate-file-name
+			   (expand-file-name "../" orig-expanded)))
 
     (while (and (not found-desired)
 		;; We don't just pass LIMIT-SEARCH to re-search-forward
@@ -1279,7 +1291,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			    (buffer-substring beg
 					      (match-end (+ leave-group
 							    1)))))))
-		     ;; The directory name in the "entering" message
+		     ;; The directory name in the "leaving" message
 		     ;; is a truename.  Try to convert it to a form
 		     ;; like what the user typed in.
 		     (setq dir
@@ -1412,6 +1424,10 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 ;; Those two args could be computed here, but we run faster by
 ;; having the caller compute them just once.
 (defun compile-abbreviate-directory (dir orig orig-expanded parent-expanded)
+  ;; Apply canonical abbreviations to DIR first thing.
+  ;; Those abbreviations are already done in the other arguments passed.
+  (setq dir (abbreviate-file-name dir))
+
   ;; Check for a comint-file-name-prefix and prepend it if appropriate.
   ;; (This is very useful for compilation-minor-mode in an rlogin-mode
   ;; buffer.)
