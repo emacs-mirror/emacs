@@ -131,6 +131,7 @@ extern char *strerror ();
 extern char *sys_errlist[];
 #endif
 
+#ifndef SYS_SIGLIST_DECLARED
 #ifndef VMS
 #ifndef BSD4_1
 #ifndef LINUX
@@ -168,6 +169,7 @@ char *sys_siglist[] =
     };
 #endif
 #endif /* VMS */
+#endif /* ! SYS_SIGLIST_DECLARED */
 
 /* t means use pty, nil means use a pipe,
    maybe other values to come.  */
