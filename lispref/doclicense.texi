@@ -1,5 +1,5 @@
 @c -*-texinfo-*-
-@node GNU Free Documentation Licence, Copying, Antinews, Top
+@node GNU Free Documentation Licence, GPL, , Top
 
 @appendix GNU Free Documentation License
 @center Version 1.1, March 2000
@@ -11,7 +11,7 @@ Copyright (C) 2000  Free Software Foundation, Inc.
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
 @end display
-@sp1
+@sp 1
 @enumerate 0
 @item
 PREAMBLE
@@ -37,7 +37,7 @@ it can be used for any textual work, regardless of subject matter or
 whether it is published as a printed book.  We recommend this License
 principally for works whose purpose is instruction or reference.
 
-@sp1
+@sp 1
 @item
 APPLICABILITY AND DEFINITIONS
 
@@ -98,7 +98,7 @@ this License requires to appear in the title page.  For works in
 formats which do not have any title page as such, ``Title Page'' means
 the text near the most prominent appearance of the work's title,
 preceding the beginning of the body of the text.
-@sp1
+@sp 1
 @item
 VERBATIM COPYING
 
@@ -114,7 +114,7 @@ number of copies you must also follow the conditions in section 3.
 
 You may also lend copies, under the same conditions stated above, and
 you may publicly display copies.
-@sp1
+@sp 1
 @item
 COPYING IN QUANTITY
 
@@ -152,7 +152,7 @@ the public.
 It is requested, but not required, that you contact the authors of the
 Document well before redistributing any large number of copies, to give
 them a chance to provide you with an updated version of the Document.
-@sp1
+@sp 1
 @item
 MODIFICATIONS
 
@@ -208,7 +208,7 @@ M. Delete any section entitled ``Endorsements''.  Such a section
    may not be included in the Modified Version.@*
 N. Do not retitle any existing section as ``Endorsements''
    or to conflict in title with any Invariant Section.@*
-@sp1
+@sp 1
 If the Modified Version includes new front-matter sections or
 appendices that qualify as Secondary Sections and contain no material
 copied from the Document, you may at your option designate some or all
@@ -235,7 +235,7 @@ permission from the previous publisher that added the old one.
 The author(s) and publisher(s) of the Document do not by this License
 give permission to use their names for publicity for or to assert or
 imply endorsement of any Modified Version.
-@sp1
+@sp 1
 @item
 COMBINING DOCUMENTS
 
@@ -260,7 +260,7 @@ in the various original documents, forming one section entitled
 ``History''; likewise combine any sections entitled ``Acknowledgements'',
 and any sections entitled ``Dedications''.  You must delete all sections
 entitled ``Endorsements.''
-@sp1
+@sp 1
 @item
 COLLECTIONS OF DOCUMENTS
 
@@ -274,7 +274,7 @@ You may extract a single document from such a collection, and distribute
 it individually under this License, provided you insert a copy of this
 License into the extracted document, and follow this License in all
 other respects regarding verbatim copying of that document.
-@sp1
+@sp 1
 @item
 AGGREGATION WITH INDEPENDENT WORKS
 
@@ -292,7 +292,7 @@ copies of the Document, then if the Document is less than one quarter
 of the entire aggregate, the Document's Cover Texts may be placed on
 covers that surround only the Document within the aggregate.
 Otherwise they must appear on covers around the whole aggregate.
-@sp1
+@sp 1
 @item
 TRANSLATION
 
@@ -306,7 +306,7 @@ translation of this License provided that you also include the
 original English version of this License.  In case of a disagreement
 between the translation and the original English version of this
 License, the original English version will prevail.
-@sp1
+@sp 1
 @item
 TERMINATION
 
@@ -317,7 +317,7 @@ automatically terminate your rights under this License.  However,
 parties who have received copies, or rights, from you under this
 License will not have their licenses terminated so long as such
 parties remain in full compliance.
-@sp1
+@sp 1
 @item
 FUTURE REVISIONS OF THIS LICENSE
 
