@@ -206,6 +206,7 @@ coding-system for reading and writing respectively."
 (gnus-mule-add-group "alt.chinese.text.big5" 'chinese-big5)
 (gnus-mule-add-group "soc.culture.vietnamese" '(nil . vietnamese-viqr))
 (gnus-mule-add-group "relcom" 'cyrillic-koi8)
+(gnus-mule-add-group "tw." 'chinese-big5)
 
 (provide 'gnus-mule)
 
