@@ -1,3 +1,31 @@
+1999-12-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* add-log.el (change-log-version-number-regexp-list)
+	(change-log-version-info-enabled): Change :version to 21.1.
+	(toplevel): Require CL when compiling.
+
+1999-12-27  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* add-log.el (change-log-version-number-regexp-list): Added tag
+	:version 20.6
+	(change-log-version-info-enabled): Added tag :version 20.6
+
+1999-12-27  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* add-log.el: More general version number search with
+	user-configurable regexp list.
+	(change-log-version-number-regexp-list): New user variable.
+	(change-log-find-version): Rewritten.  Use user-configurable
+	version numbering regexp list
+	change-log-version-number-regexp-list.
+	(change-log-find-version): Renamed to
+	change-log-version-number-search
+	(add-log-file-name-function): New.
+	(change-log-search-vc-number): Added END paramaeter.  Added doc
+	string to function.
+	(change-log-version-rcs): Renamed.  Was
+	change-log-search-vc-number.
+
 1999-12-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* jka-compr.el (jka-compr-info-file-magic-bytes): New function.
