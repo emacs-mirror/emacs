@@ -414,7 +414,7 @@ entry that supports color is `xterm-color', so setting TERM's value to
 `xterm-color' might activate the color support on an xterm-compatible
 emulator.
 
-Beginning with version 21.3, Emacs supports the --color command-line
+Beginning with version 21.4, Emacs supports the --color command-line
 option which may be used to force Emacs to use one of a few popular
 modes for getting colors on a tty.  For example, --color=ansi8 sets up
 for using the ANSI-standard escape sequences that support 8 colors.
