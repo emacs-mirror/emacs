@@ -383,9 +383,10 @@ Returns the compilation buffer created."
 	(compilation-set-window-height outwin)
 	;; Start the compilation.
 	(if (fboundp 'start-process)
-	    (let ((proc (start-process-shell-command (downcase mode-name)
-						     outbuf
-						     command)))
+	    (let* ((process-environment (cons "EMACS=t" process-environment))
+		   (proc (start-process-shell-command (downcase mode-name)
+						      outbuf
+						      command)))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
