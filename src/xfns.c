@@ -5768,6 +5768,104 @@ image_ascent (img, face)
   return ascent;
 }
 
+
+/* Image background colors.  */
+
+static unsigned long
+four_corners_best (ximg, width, height)
+     XImage *ximg;
+     unsigned long width, height;
+{
+      unsigned long corners[4], best;
+      int i, best_count;
+
+      /* Get the colors at the corners of ximg.  */
+      corners[0] = XGetPixel (ximg, 0, 0);
+      corners[1] = XGetPixel (ximg, width - 1, 0);
+      corners[2] = XGetPixel (ximg, width - 1, height - 1);
+      corners[3] = XGetPixel (ximg, 0, height - 1);
+
+      /* Choose the most frequently found color as background.  */
+      for (i = best_count = 0; i < 4; ++i)
+	{
+	  int j, n;
+	  
+	  for (j = n = 0; j < 4; ++j)
+	    if (corners[i] == corners[j])
+	      ++n;
+
+	  if (n > best_count)
+	    best = corners[i], best_count = n;
+	}
+
+      return best;
+}
+
+/* Return the `background' field of IMG.  If IMG doesn't have one yet,
+   it is guessed heuristically.  If non-zero, XIMG is an existing XImage
+   object to use for the heuristic.  */
+
+unsigned long
+image_background (img, f, ximg)
+     struct image *img;
+     struct frame *f;
+     XImage *ximg;
+{
+  if (! img->background_valid)
+    /* IMG doesn't have a background yet, try to guess a reasonable value.  */
+    {
+      int free_ximg = !ximg;
+
+      if (! ximg)
+	ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
+			  0, 0, img->width, img->height, ~0, ZPixmap);
+
+      img->background = four_corners_best (ximg, img->width, img->height);
+
+      if (free_ximg)
+	XDestroyImage (ximg);
+
+      img->background_valid = 1;
+    }
+
+  return img->background;
+}
+
+/* Return the `background_transparent' field of IMG.  If IMG doesn't
+   have one yet, it is guessed heuristically.  If non-zero, MASK is an
+   existing XImage object to use for the heuristic.  */
+
+int
+image_background_transparent (img, f, mask)
+     struct image *img;
+     struct frame *f;
+     XImage *mask;
+{
+  if (! img->background_transparent_valid)
+    /* IMG doesn't have a background yet, try to guess a reasonable value.  */
+    {
+      if (img->mask)
+	{
+	  int free_mask = !mask;
+
+	  if (! mask)
+	    mask = XGetImage (FRAME_X_DISPLAY (f), img->mask,
+			      0, 0, img->width, img->height, ~0, ZPixmap);
+
+	  img->background_transparent
+	    = !four_corners_best (mask, img->width, img->height);
+
+	  if (free_mask)
+	    XDestroyImage (mask);
+	}
+      else
+	img->background_transparent = 0;
+
+      img->background_transparent_valid = 1;
+    }
+
+  return img->background_transparent;
+}
 
 
 /***********************************************************************
@@ -5798,12 +5896,14 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
     {
       XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
       img->pixmap = None;
+      img->background_valid = 0;
     }
 
   if (mask_p && img->mask)
     {
       XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
       img->mask = None;
+      img->background_transparent_valid = 0;
     }
       
   if (colors_p && img->ncolors)
@@ -6133,8 +6233,9 @@ lookup_image (f, spec)
       else
 	{
 	  /* Handle image type independent image attributes
-	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF'.  */
-	  Lisp_Object ascent, margin, relief;
+	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF',
+	     `:background COLOR'.  */
+	  Lisp_Object ascent, margin, relief, bg;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
@@ -6160,6 +6261,18 @@ lookup_image (f, spec)
 	      img->relief = XINT (relief);
 	      img->hmargin += abs (img->relief);
 	      img->vmargin += abs (img->relief);
+	    }
+
+	  if (! img->background_valid)
+	    {
+	      bg = image_spec_value (img->spec, QCbackground, NULL);
+	      if (!NILP (bg))
+		{
+		  img->background
+		    = x_alloc_image_color (f, img, bg,
+					   FRAME_BACKGROUND_PIXEL (f));
+		  img->background_valid = 1;
+		}
 	    }
 
 	  /* Do image transformations and compute masks, unless we
@@ -6875,10 +6988,13 @@ xbm_load_image (f, img, contents, end)
       value = image_spec_value (img->spec, QCforeground, NULL);
       if (!NILP (value))
 	foreground = x_alloc_image_color (f, img, value, foreground);
-      
       value = image_spec_value (img->spec, QCbackground, NULL);
       if (!NILP (value))
-	background = x_alloc_image_color (f, img, value, background);
+	{
+	  background = x_alloc_image_color (f, img, value, background);
+	  img->background = background;
+	  img->background_valid = 1;
+	}
 
       img->pixmap
 	= XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
@@ -7081,6 +7197,7 @@ enum xpm_keyword_index
   XPM_HEURISTIC_MASK,
   XPM_MASK,
   XPM_COLOR_SYMBOLS,
+  XPM_BACKGROUND,
   XPM_LAST
 };
 
@@ -7098,7 +7215,8 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type XBM.  */
@@ -8041,13 +8159,14 @@ x_build_heuristic_mask (f, img, how)
 {
   Display *dpy = FRAME_X_DISPLAY (f);
   XImage *ximg, *mask_img;
-  int x, y, rc, look_at_corners_p;
+  int x, y, rc, use_img_background;
   unsigned long bg = 0;
 
   if (img->mask)
     {
       XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
       img->mask = None;
+      img->background_transparent_valid = 0;
     }
 
   /* Create an image and pixmap serving as mask.  */
@@ -8061,9 +8180,8 @@ x_build_heuristic_mask (f, img, how)
 		    ~0, ZPixmap);
 
   /* Determine the background color of ximg.  If HOW is `(R G B)'
-     take that as color.  Otherwise, try to determine the color
-     heuristically. */
-  look_at_corners_p = 1;
+     take that as color.  Otherwise, use the image's background color. */
+  use_img_background = 1;
   
   if (CONSP (how))
     {
@@ -8089,41 +8207,22 @@ x_build_heuristic_mask (f, img, how)
 	  if (XLookupColor (dpy, cmap, color_name, &exact, &color))
 	    {
 	      bg = color.pixel;
-	      look_at_corners_p = 0;
+	      use_img_background = 0;
 	    }
 	}
     }
   
-  if (look_at_corners_p)
-    {
-      unsigned long corners[4];
-      int i, best_count;
-
-      /* Get the colors at the corners of ximg.  */
-      corners[0] = XGetPixel (ximg, 0, 0);
-      corners[1] = XGetPixel (ximg, img->width - 1, 0);
-      corners[2] = XGetPixel (ximg, img->width - 1, img->height - 1);
-      corners[3] = XGetPixel (ximg, 0, img->height - 1);
-
-      /* Choose the most frequently found color as background.  */
-      for (i = best_count = 0; i < 4; ++i)
-	{
-	  int j, n;
-	  
-	  for (j = n = 0; j < 4; ++j)
-	    if (corners[i] == corners[j])
-	      ++n;
-
-	  if (n > best_count)
-	    bg = corners[i], best_count = n;
-	}
-    }
+  if (use_img_background)
+    bg = IMAGE_BACKGROUND (img, f, ximg);
 
   /* Set all bits in mask_img to 1 whose color in ximg is different
      from the background color bg.  */
   for (y = 0; y < img->height; ++y)
     for (x = 0; x < img->width; ++x)
       XPutPixel (mask_img, x, y, XGetPixel (ximg, x, y) != bg);
+
+  /* Fill in the background_transparent field while we have the mask handy. */
+  image_background_transparent (img, f, mask_img);
 
   /* Put mask_img into img->mask.  */
   x_put_x_image (f, mask_img, img->mask, img->width, img->height);
@@ -8383,7 +8482,11 @@ pbm_load (f, img)
 	fg = x_alloc_image_color (f, img, fmt[PBM_FOREGROUND].value, fg);
       if (fmt[PBM_BACKGROUND].count
 	  && STRINGP (fmt[PBM_BACKGROUND].value))
-	bg = x_alloc_image_color (f, img, fmt[PBM_BACKGROUND].value, bg);
+	{
+	  bg = x_alloc_image_color (f, img, fmt[PBM_BACKGROUND].value, bg);
+	  img->background = bg;
+	  img->background_valid = 1;
+	}
       
       for (y = 0; y < height; ++y)
 	for (x = 0; x < width; ++x)
@@ -8446,6 +8549,10 @@ pbm_load (f, img)
      free the color table.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
+
+  /* Maybe fill in the background field while we have ximg handy. */
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    IMAGE_BACKGROUND (img, f, ximg);
   
   /* Put the image into a pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -8491,6 +8598,7 @@ enum png_keyword_index
   PNG_ALGORITHM,
   PNG_HEURISTIC_MASK,
   PNG_MASK,
+  PNG_BACKGROUND,
   PNG_LAST
 };
 
@@ -8508,6 +8616,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `png'.  */
@@ -8778,12 +8887,31 @@ png_load (f, img)
      simple transparency, we prefer a clipping mask.  */
   if (!transparent_p)
     {
-      png_color_16 *image_background;
+      png_color_16 *image_bg;
+      Lisp_Object specified_bg
+	= image_spec_value (img->spec, QCbackground, NULL);
 
-      if (png_get_bKGD (png_ptr, info_ptr, &image_background))
+      if (! NILP (specified_bg))
+	/* The user specified `:background', use that.  */
+	{
+	  XColor color;
+	  if (x_defined_color (f, specified_bg, &color, 0))
+	    {
+	      png_color_16 user_bg;
+
+	      bzero (&user_bg, sizeof user_bg);
+	      user_bg.red = color.red;
+	      user_bg.green = color.green;
+	      user_bg.blue = color.blue;
+
+	      png_set_background (png_ptr, &user_bg,
+				  PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+	    }
+	}
+      else if (png_get_bKGD (png_ptr, info_ptr, &image_bg))
 	/* Image contains a background color with which to 
 	   combine the image.  */
-	png_set_background (png_ptr, image_background,
+	png_set_background (png_ptr, image_bg,
 			    PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
       else
 	{
@@ -8896,6 +9024,18 @@ png_load (f, img)
 	}
     }
 
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    /* Set IMG's background color from the PNG image, unless the user
+       overrode it.  */
+    {
+      png_color_16 *bg;
+      if (png_get_bKGD (png_ptr, info_ptr, &bg))
+	{
+	  img->background = lookup_rgb_color (f, bg.red, bg.green, bg.blue);
+	  img->background_valid = 1;
+	}
+    }
+
   /* Remember colors allocated for this image.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
@@ -8908,6 +9048,9 @@ png_load (f, img)
   img->width = width;
   img->height = height;
 
+  /* Maybe fill in the background field while we have ximg handy. */
+  IMAGE_BACKGROUND (img, f, ximg);
+
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
@@ -8915,6 +9058,10 @@ png_load (f, img)
   /* Same for the mask.  */
   if (mask_img)
     {
+      /* Fill in the background_transparent field while we have the mask
+	 handy. */
+      image_background_transparent (img, f, mask_img);
+
       x_put_x_image (f, mask_img, img->mask, img->width, img->height);
       x_destroy_x_image (mask_img);
     }
@@ -8968,6 +9115,7 @@ enum jpeg_keyword_index
   JPEG_ALGORITHM,
   JPEG_HEURISTIC_MASK,
   JPEG_MASK,
+  JPEG_BACKGROUND,
   JPEG_LAST
 };
 
@@ -8984,7 +9132,8 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `jpeg'.  */
@@ -9283,6 +9432,10 @@ jpeg_load (f, img)
   jpeg_destroy_decompress (&cinfo);
   if (fp)
     fclose ((FILE *) fp);
+
+  /* Maybe fill in the background field while we have ximg handy. */
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    IMAGE_BACKGROUND (img, f, ximg);
   
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -9323,6 +9476,7 @@ enum tiff_keyword_index
   TIFF_ALGORITHM,
   TIFF_HEURISTIC_MASK,
   TIFF_MASK,
+  TIFF_BACKGROUND,
   TIFF_LAST
 };
 
@@ -9339,7 +9493,8 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `tiff'.  */
@@ -9631,14 +9786,18 @@ tiff_load (f, img)
   /* Remember the colors allocated for the image.  Free the color table.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
+      
+  img->width = width;
+  img->height = height;
+
+  /* Maybe fill in the background field while we have ximg handy. */
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    IMAGE_BACKGROUND (img, f, ximg);
 
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
   xfree (buf);
-      
-  img->width = width;
-  img->height = height;
 
   UNGCPRO;
   return 1;
@@ -9677,6 +9836,7 @@ enum gif_keyword_index
   GIF_HEURISTIC_MASK,
   GIF_MASK,
   GIF_IMAGE,
+  GIF_BACKGROUND,
   GIF_LAST
 };
 
@@ -9695,6 +9855,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":image",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `gif'.  */
@@ -9942,6 +10103,10 @@ gif_load (f, img)
     }
   
   DGifCloseFile (gif);
+
+  /* Maybe fill in the background field while we have ximg handy. */
+  if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
+    IMAGE_BACKGROUND (img, f, ximg);
   
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -9987,6 +10152,7 @@ enum gs_keyword_index
   GS_ALGORITHM,
   GS_HEURISTIC_MASK,
   GS_MASK,
+  GS_BACKGROUND,
   GS_LAST
 };
 
@@ -10006,7 +10172,8 @@ static struct image_keyword gs_format[GS_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
 /* Structure describing the image type `ghostscript'.  */
