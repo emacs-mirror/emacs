@@ -1,3 +1,8 @@
+1999-12-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (face_color_supported_p): Check by tty_defined_color
+	only when the frame is not window.
+
 1999-12-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (Fset_buffer_multibyte): Arrange for a thorough
