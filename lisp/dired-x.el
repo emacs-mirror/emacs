@@ -1,4 +1,4 @@
-;;; dired-x.el --- Extra Dired functionality -*-byte-compile-dynamic: t;-*-
+;;; dired-x.el --- extra Dired functionality -*-byte-compile-dynamic: t;-*-
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
