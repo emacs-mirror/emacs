@@ -1995,6 +1995,11 @@ completion-ignored-extensions
      @result{} (".o" ".elc" "~" ".dvi")
 @end group
 @end example
+
+If an element of @code{completion-ignored-extensions} ends in a slash
+@samp{/}, it signals a directory.  The elements which do @emph{not} end
+in a slash will never match a directory; thus, the above value will not
+filter out a directory named @file{foo.elc}.
 @end defopt
 
 @node Standard File Names
