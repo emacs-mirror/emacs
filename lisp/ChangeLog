@@ -1,3 +1,11 @@
+2001-08-16  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (DONTCOMPILE): Omit bindings.el.
+	(DONTCOMPILE): Omit sc.el.
+
+	* makefile.w32-in (DONTCOMPILE): Omit bindings.el.
+	(DONTCOMPILE): Omit sc.el.
+
 2001-08-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (occur): Bind inhibit-read-only to t.
