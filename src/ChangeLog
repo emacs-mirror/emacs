@@ -1,3 +1,10 @@
+2000-10-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (send_process): If OBJECT is t, it means that the data
+	is from C string, but we should encode it.  Before calling
+	setup_raw_text_coding_system, be sure to flush out data by the
+	previous coding system.
+
 2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* buffer.c (overlays_at): Only let CHANGE_REQ inhibit an
