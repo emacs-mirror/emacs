@@ -269,6 +269,25 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   /* VAL is the string of minibuffer text.  */
   last_minibuf_string = val;
 
+  /* Add the value to the appropriate history list unless it is empty.  */
+  if (XSTRING (val)->size != 0
+      && SYMBOLP (Vminibuffer_history_variable)
+      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
+    {
+      /* If the caller wanted to save the value read on a history list,
+	 then do so if the value is not already the front of the list.  */
+      Lisp_Object histval;
+      histval = Fsymbol_value (Vminibuffer_history_variable);
+
+      /* The value of the history variable must be a cons or nil.  Other
+	 values are unacceptable.  We silently ignore these values.  */
+      if (NILP (histval)
+	  || (CONSP (histval)
+	      && NILP (Fequal (last_minibuf_string, Fcar (histval)))))
+	Fset (Vminibuffer_history_variable,
+	      Fcons (last_minibuf_string, histval));
+    }
+
   /* If Lisp form desired instead of string, parse it. */
   if (expflag)
     {
@@ -281,23 +300,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 	if (*p != ' ' && *p != '\t' && *p != '\n')
 	  error ("Trailing garbage following expression");
       val = Fcar (expr_and_pos);
-    }
-
-  /* Add the value to the appropriate history list unless it is empty.  */
-  if (XSTRING (last_minibuf_string)->size != 0
-      && SYMBOLP (Vminibuffer_history_variable)
-      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
-    {
-      /* If the caller wanted to save the value read on a history list,
-	 then do so if the value is not already the front of the list.  */
-      Lisp_Object histval;
-      histval = Fsymbol_value (Vminibuffer_history_variable);
-
-      /* The value of the history variable must be a cons or nil.  Other
-	 values are unacceptable.  We silently ignore these values.  */
-      if (NILP (histval)
-	  || (CONSP (histval) && NILP (Fequal (val, XCONS (histval)->car))))
-	Fset (Vminibuffer_history_variable, Fcons (val, histval));
     }
 
   return unbind_to (count, val); /* The appropriate frame will get selected
