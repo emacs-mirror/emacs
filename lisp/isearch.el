@@ -1135,7 +1135,7 @@ might return the position of the end of the line."
 (defun isearch-yank-line ()
   "Pull rest of line from buffer into search string."
   (interactive)
-  (isearch-yank-internal 'line-end-position)))
+  (isearch-yank-internal 'line-end-position))
 
 
 (defun isearch-search-and-update ()
