@@ -1,3 +1,12 @@
+2003-06-05  Juanma Barranquero  <lektu@terra.es>
+
+	* gud.el: Moved to progmodes.
+
+2003-06-05  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>  (tiny change)
+
+	* progmodes/tcl.el (tcl-mode): Set imenu-generic-expression to the
+	value of tcl-imenu-generic-expression instead of the symbol.
+
 2003-06-05  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.el (Info-mode): Mention `c' and remove duplicate mention
