@@ -1,6 +1,6 @@
 ;;; tramp-vc.el --- Version control integration for TRAMP.el
 
-;; Copyright (C) 2000 by Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@danann.net>
 ;; Keywords: comm, processes
@@ -37,6 +37,14 @@
 (unless (boundp 'vc-rcs-release)
   (require 'vc-rcs))
 (require 'tramp)
+
+;; Avoid byte-compiler warnings if the byte-compiler supports this.
+;; Currently, XEmacs supports this.
+(eval-when-compile
+  (when (fboundp 'byte-compiler-options)
+    (let (unused-vars) ; Pacify Emacs byte-compiler
+      (defalias 'warnings 'identity) ; Pacify Emacs byte-compiler
+      (byte-compiler-options (warnings (- unused-vars))))))
 
 ;; -- vc --
 
@@ -163,7 +171,9 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
   (if vc-command-messages
       (message "Running %s on %s..." command file))
   (save-current-buffer
-    (unless (eq buffer t) (vc-setup-buffer buffer))
+    (unless (eq buffer t)
+      ; Pacify byte-compiler
+      (funcall (symbol-function 'vc-setup-buffer) buffer))
     (let ((squeezed nil)
 	  (inhibit-read-only t)
 	  (status 0))
@@ -192,9 +202,10 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
                  (if (integerp status) (format "status %d" status) status))))
       (if vc-command-messages
           (message "Running %s...OK" command))
-      (vc-exec-after
-       `(run-hook-with-args
-         'vc-post-command-functions ',command ',localname ',flags))
+      ; Pacify byte-compiler
+      (funcall (symbol-function 'vc-exec-after)
+	       `(run-hook-with-args
+		 'vc-post-command-functions ',command ',localname ',flags))
       status))))
 
 
@@ -325,7 +336,8 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
                              (not want-differences-if-changed))))
         (zerop status))
     ;; New VC.  Call `vc-default-workfile-unchanged-p'.
-    (vc-default-workfile-unchanged-p (vc-backend file) filename)))
+      (funcall (symbol-function 'vc-default-workfile-unchanged-p)
+	       (vc-backend filename) filename)))
 
 (defadvice vc-workfile-unchanged-p
   (around tramp-advice-vc-workfile-unchanged-p
@@ -391,14 +403,15 @@ filename we are thinking about..."
   ;; Pacify byte-compiler; this symbol is bound in the calling
   ;; function.  CCC: Maybe it would be better to move the
   ;; boundness-checking into this function?
-  (let ((file (symbol-value 'file))
-	(remote-uid
-	 ;; With Emacs 21.4, `file-attributes' has got an optional parameter
-	 ;; ID-FORMAT. Handle this case backwards compatible.
-	 (if (and (functionp 'subr-arity)
-		  (= 2 (cdr (subr-arity (symbol-function 'file-attributes)))))
-	     (nth 2 (file-attributes file 'integer))
-	   (nth 2 (file-attributes file)))))
+  (let* ((file (symbol-value 'file))
+	 (remote-uid
+	  ;; With Emacs 21.4, `file-attributes' has got an optional parameter
+	  ;; ID-FORMAT. Handle this case backwards compatible.
+	  (if (and (functionp 'subr-arity)
+		   (= 2 (cdr (funcall (symbol-function 'subr-arity)
+				      (symbol-function 'file-attributes)))))
+	      (nth 2 (file-attributes file 'integer))
+	    (nth 2 (file-attributes file)))))
     (if (and uid (/= uid remote-uid))
 	(error "tramp-handle-vc-user-login-name cannot map a uid to a name")
       (let* ((v (tramp-dissect-file-name (tramp-handle-expand-file-name file)))
