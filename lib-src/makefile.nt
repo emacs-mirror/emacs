@@ -164,8 +164,7 @@ lisp= \
 	$(lispdir)\winnt.elc \
 	$(lispdir)\float-sup.elc \
 	$(lispdir)\vc-hooks.elc \
-	$(lispdir)\version.el \
-	$(lispdir)\dos-win32.elc
+	$(lispdir)\version.el
 
 DOC	      = DOC 
 $(DOC):		$(BLD)\make-docfile.exe
