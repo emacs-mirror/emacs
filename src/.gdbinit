@@ -315,14 +315,26 @@ end
 define xbacktrace
   set $bt = backtrace_list
   while $bt 
-    xprintsym *$bt->function
+    set $type = (enum Lisp_Type) ((*$bt->function >> gdb_valbits) & 0x7)
+    if $type == Lisp_Symbol
+      xprintsym *$bt->function
+    else
+      printf "0x%x ", *$bt->function
+      if $type == Lisp_Vectorlike
+        set $size = ((struct Lisp_Vector *) ((*$bt->function & $valmask) | gdb_data_seg_bits))->size
+        output (enum pvec_type) (($size & PVEC_FLAG) ? $size & PVEC_TYPE_MASK : 0)
+      else
+        printf "Lisp type %d", $type
+      end
+      echo \n
+    end
     set $bt = $bt->next
   end
 end
 document xbacktrace
   Print a backtrace of Lisp function calls from backtrace_list.
   Set a breakpoint at Fsignal and call this to see from where 
-  an error was signalled.
+  an error was signaled.
 end
 
 define xreload
