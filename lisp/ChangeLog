@@ -584,7 +584,7 @@
 	* progmodes/tcl.el (tcl-do-fill-paragraph): Find and fill on more
 	natural paragraph boundaries.  Don't fail at beginning of buffer.
 
-2002-02-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* tar-mode.el (tar-next-line, tar-previous-line): Add doc string,
 	call the argument "arg" to match plain next-line and
@@ -688,7 +688,7 @@
 	* cus-start.el: Add automatic-hscroll-margin and
 	automatic-hscroll-step.
 
-2002-02-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el (x-autoselect-window): Allow customization.
 
@@ -908,7 +908,7 @@
 	* cus-start.el: Don't warn about "x-*" symbols when building a
 	non-GUI version.
 
-2002-02-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* strokes.el (strokes-do-stroke, strokes-do-complex-stroke):
 	Doc fix.
@@ -933,7 +933,7 @@
 	(dump-charsets, dump-codings): Deleted (obsolete).
 	From Dave Love <fx@gnu.org>.
 
-2002-02-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-showhide-menu): Rename functions for toggling.
 
@@ -956,7 +956,7 @@
 
 	* ediff.el: Typo in comment.
 
-2002-02-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-options-save): Take care of
 	line-number-mode and column-number-mode variables.
@@ -1033,7 +1033,7 @@
 	* subr.el (global-set-key, local-set-key): Accept a symbol for the
 	KEY argument (like define-key).
 
-2002-02-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-insert-function): Doc fix.
 
@@ -1114,7 +1114,7 @@
 	* cus-edit.el (customize-mark-to-save): New function.
 	* menu-bar.el (menu-bar-options-save): Rewrote.
 
-2002-02-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el (x-use-underline-position-properties):
 	Allow customization.
@@ -1147,11 +1147,11 @@
 	* window.el (save-selected-window): Move macro before first use.
 	(balance-windows): Fix misplaced parenthesis.
 
-2002-02-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calculator.el (calculator-displayers): Doc fixes.
 
-2002-02-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-help-menu): Use different text for tool-tip.
 	(menu-bar-options-save): Save also the value of `display-time-mode'.
@@ -1190,7 +1190,7 @@
 	looking for X-Coding-System header, and restore the pruned state
 	before returning.
 
-2002-02-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-edit.el (customize-save-variable): Fix typo in prompt.
 
@@ -1279,7 +1279,7 @@
 	* emulation/pc-select.el (pc-select-save-and-set-mode):
 	Properly use MODE-VAR.
 
-2002-01-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-help-menu): Change menu-item "Show Emacs
 	Version" to "About Emacs".
@@ -1296,7 +1296,7 @@
 
 	* calendar/calendar.el (generate-calendar-month): Doc fix.
 
-2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* time.el (display-time-mail-directory): New option.
 	(display-time-mail-function): Update doc-string.
@@ -1511,7 +1511,7 @@
 	with `byte-compile-dynamic'.
 	(ibuffer-default-directory, toplevel): Doc files.
 
-2002-01-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* tempo.el (tempo-define-template): Doc fix.
 
@@ -1528,7 +1528,7 @@
 
 	* term/w32-win.el (mouse-set-font): Use w32-list-proportional-fonts.
 
-2002-01-19  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* language/tibet-util.el (tibetan-decompose-region)
 	(tibetan-decompose-string): Fix typo in docstring.
@@ -1620,7 +1620,7 @@
 
 	* mail/feedmail.el (feedmail): Fix :link spec.
 
-2002-01-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-ldapsearch-prog): Default to OpenLDAP version
 	2 ldapsearch.
@@ -1738,7 +1738,7 @@
 	(comint-send-input): New arg NO-NEWLINE.
 	(comint-send-eof): Call comint-send-eof with NO-NEWLINE.
 
-2002-01-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p): Prevent
 	delaying when executing keyboard macros.
@@ -1823,7 +1823,7 @@
 
 	* textmodes/flyspell.el (flyspell-mode-line-string): Fix custom type.
 
-2002-01-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode):
 	Do not use make-local-hook.
@@ -1839,7 +1839,7 @@
 
 	* ediff-hook.el: Add an autoload cookie.
 
-2002-01-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/eudcb-ph.el, net/ldap.el: New maintainer.  New e-mail
 	address of the author.
@@ -1951,7 +1951,7 @@
 	* help-fns.el (describe-variable, describe-function):
 	Do save-excursion.
 
-2002-01-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-search-internal): Skip error message from
 	ldapsearch.  Allow listing attribute names only.  Do not open
@@ -1975,7 +1975,7 @@
 	* net/eudcb-ldap.el (eudc-attribute-display-method-alist): Use
 	proper attribute name labeledUri instead of deprecated labeledUrl.
 
-2002-01-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/eudc-hotlist.el (eudc-edit-hotlist): Avoid error when
 	editing an empty hotlist.
@@ -2037,7 +2037,7 @@
 
 	* mail/sendmail.el (mail-recover-1, mail-recover): Doc fix.
 
-2002-01-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-host-parameters-alist): Remove duplicated
 	entry.
@@ -2068,7 +2068,7 @@
 	does not exist, call mail-recover-1 to allow recovery from past
 	auto-saved drafts.
 
-2002-01-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* time.el (display-time-load-average-threshold): Fix defcustom
 	(add type and group).
@@ -2187,7 +2187,7 @@
 	* bindings.el (function-key-map): Don't bind shifted keypad
 	numeric keys.
 
-2002-01-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* enriched.el (enriched-handle-display-prop): Remove unused
 	variables.
@@ -2224,7 +2224,7 @@
 	* cus-edit.el (custom-face-edit-fix-value): New function.
 	(custom-face-edit): Use it, to convert :italic and :bold to new forms.
 
-2001-12-30  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-30  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* progmodes/octave-mod.el (octave-abbrev-table):
 	* progmodes/idlwave.el (idlwave-mode-abbrev-table):
@@ -2354,7 +2354,7 @@
 
 	* international/fontset.el: Don't require ind-util when compiling.
 
-2001-12-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el (tpu-reset-screen-size): Use
 	set-frame-height and set-frame-width instead of set-screen-height
@@ -2442,7 +2442,7 @@
 	* play/yow.el (yow): Use an arg to distinguish interactive calls,
 	not interactive-p.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs-lisp/elint.el (elint-unknown-builtin-args): Remove
 	mocklisp entries.
@@ -2469,7 +2469,7 @@
 	* textmodes/refill.el (refill-mode): Don't barf when redundantly
 	turning refill-mode off.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* time.el (display-time-load-average-threshold): New variable.
 	(display-time-update): Use it.
@@ -2612,7 +2612,7 @@
 	print-coding-system-briefly): Make printed output have a similar
 	format as describe-character-set.
 
-2001-12-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/blackbox.el (bb-member): Remove, use member instead.
 	(bb-delete): Remove, use delete instead.
@@ -2646,7 +2646,7 @@
 
 	* international/fontset.el: Require `ind-util' when compiling.
 
-2001-12-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* language/ethio-util.el (ethio-modify-vowel): Use char-to-string
 	instead of decompose-composite-char.
@@ -2864,7 +2864,7 @@
 
 	* newcomment.el (comment-indent): Jump to the middle of empty comments.
 
-2001-12-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* select.el (xselect-convert-to-class, xselect-convert-to-name):
 	Document.
@@ -2912,7 +2912,7 @@
 	* international/mule.el (set-auto-coding): Don't search for
 	"unibyte:" or "coding:" if set-auto-mode-1 returns nil.
 
-2001-12-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mail/mailabbrev.el (mail-abbrevs-setup): Do not use make-local-hook.
 
@@ -2968,7 +2968,7 @@
 	* language/european.el: Remove autoload cookies.  Fix registration
 	of diacritic composition function.
 
-2001-12-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/todo-mode.el: Require time-stamp.
 
@@ -3025,7 +3025,7 @@
 	Use `select-frame-set-input-focus'--needed when window manager
 	uses "click to focus" policy.
 
-2001-12-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
 
@@ -3174,7 +3174,7 @@
 	* textmodes/picture.el (picture-mode-map): Don't use defconst
 	for a variable.
 
-2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/reftex-index.el (reftex-index-mode):
 	Remove make-local-hook.
@@ -3298,7 +3298,7 @@
 	(Info-index): Use it.  Add completion to the interactive spec.
 	(Info-menu-update): Simplify call to `Info-complete-menu-item'.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -3315,7 +3315,7 @@
 	(register-char-codings): Use it to cope with generic chars in
 	safe-chars.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/blackbox.el (blackbox-mode, blackbox): Doc fix.
 
@@ -3459,7 +3459,7 @@
 	* frame.el (show-trailing-whitespace): Remove :set argument (the
 	value was essentially identical to the defalt).
 
-2001-11-26  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* hexl.el (hexl-mode, hexl-follow-ascii): Remove make-local-hook.
 
@@ -3523,7 +3523,7 @@
 
 	* help-funs.el (describe-syntax): Put (interactive) after doc string.
 
-2001-11-26  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* international/quail.el (quail-help): Require help-mode in
 	top-level instead.
@@ -3594,12 +3594,12 @@
 	* language/devan-util.el: Comment out parts of the file
 	which apparently are garbled.
 
-2001-11-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mail/smtpmail.el (smtpmail-deduce-address-list): Don't use
 	insert-string.
 
-2001-11-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/snake.el (snake-mode): Remove make-local-hook.
 
@@ -4084,7 +4084,7 @@
 	Don't recognize a "telephone number" at the beginning of the name.
 	(mail-extr-leading-garbage): Match non-word characters only.
 
-2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* startup.el (command-line-processed): Doc fix.
 
@@ -4112,7 +4112,7 @@
 	(multiple-value-apply, nth-value): Use defsubst rather than defalias
 	to get better doc strings.
 
-2001-11-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* derived.el: Fix autoload cookie.
 
@@ -4307,7 +4307,7 @@
 	(log-view-current-tag): Take an optional `where' arg.
 	(log-view-diff): New user command.
 
-2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* progmodes/cpp.el (cpp-choose-face): Fix typo.
 
@@ -4347,7 +4347,7 @@
 	* calc/calc-ext.el (calc-init-extensions): Update autoload names
 	to match files renamed on initial calc import.
 
-2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-default-dictionary):
 	Fix previous change.
@@ -4459,7 +4459,7 @@
 	(radio-button-choice): Ditto.
 	(editable-list): Ditto.
 
-2001-11-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/gomoku.el: Move definitions of constants to the beginning
 	of file, before their use.
@@ -4735,7 +4735,7 @@
 	(debugger-setup-buffer): Call it.
 	(debugger-mode-map): Bind RET and mouse-2.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* startup.el: Document command line option --no-window-system
 	instead of --no-windows.
@@ -5228,7 +5228,7 @@
 	* progmodes/compile.el (compilation-set-window-height):
 	Select old window only if it's still live.
 
-2001-10-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* help-mode.el (help-buffer): Remove debugging code.
 	From Stefan Monnier <monnier@cs.yale.edu>.
@@ -5504,7 +5504,7 @@
 
 	* version.el (emacs-version): Bump to 21.1.50.
 
-2001-10-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* mail/mailalias.el (mail-directory-stream): Do not double
 	variables in the lambda-list.
@@ -5801,7 +5801,7 @@
 
 	* startup.el (command-line-1): Bind tab-width to 8.
 
-2001-10-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el: Use defalias instead of fset for
 	user-visible commands.  From Rob Riepel
@@ -6162,7 +6162,7 @@
 
 	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.
 
-2001-10-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el: Make messages match original TPU/edt
 	editor.  From riepel@Stanford.EDU (Rob Riepel).
@@ -6548,7 +6548,7 @@
 	* comint.el (comint-send-input): Handle comint-process-echoes
 	differently.
 
-2001-09-07  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-09-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* locate.el (locate-insert-header): Remove unnecessary whitespace.
 
@@ -6616,7 +6616,7 @@
 
 	* simple.el (backward-word): Doc fix.
 
-2001-09-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-09-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs-lisp/levents.el, emacs-lisp/lucid.el, emacs-lisp/pp.el
 	* uncompress.el, uniquify.el, vc.el, view.el, window.el
@@ -6659,7 +6659,7 @@
 
 	* menu-bar.el (menu-bar-edit-menu) <yank-menu, yank>:
 	Mention "yank" in the help-echo text.
-	Suggested by Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	Suggested by Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-09-01  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -6719,7 +6719,7 @@
 	* startup.el (fancy-splash-screens): Temporarily set
 	minor-mode-map-alist to nil while displaying splash screens.
 
-2001-08-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* buff-menu.el: Add Keywords header.
 	Doc fix (C-x C-b is bound to list-buffers).
@@ -6803,19 +6803,19 @@
 2001-08-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/texnfo-upd.el: Remove dots and exclams at end of error
-	messages.  From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	messages.  From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* emacs-lisp/levents.el: Specify FSF as Maintainer.  From Pavel
-	Jan,Am(Bk <Pavel@Janik.cz>.
+	Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* emacs-lisp/lselect.el: Ditto.
 
 	* hexl.el (hexl-insert-multibyte-char, hexl-insert-char):
 	Remove periods from the end of error message strings.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* progmodes/antlr-mode.el: Add Keywords header.  From Pavel
-	Jan,Am(Bk <Pavel@Janik.cz>.
+	Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* net/telnet.el: Ditto.
 
@@ -6935,7 +6935,7 @@
 2001-08-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texnfo-upd.el (texinfo-every-node-update): Remove
-	some spaces from a message.  From Pavel Jan,Am(Bk  <Pavel@Janik.cz>.
+	some spaces from a message.  From Pavel Jan,Bm(Bk  <Pavel@Janik.cz>.
 
 	* whitespace.el (whitespace-global-mode): Add autoload cookie.
 
@@ -7109,7 +7109,7 @@
 	text files.
 	(image-jpeg-p): Correct calculation of next field offset.
 
-2001-08-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* battery.el: Fix typo.
 
@@ -7146,7 +7146,7 @@
 	* image.el (image-type-regexps): Use `\`' instead of `^' in
 	most regular expressions.
 
-2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/animate.el: Re-insert a reference to re-inserted function.
 
@@ -7160,7 +7160,7 @@
 	* toolbar/tool-bar.el (tool-bar-add-item-from-menu):
 	Handle old-style menu definitions.
 
-2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/makeinfo.el, textmodes/page-ext.el, textmodes/page.el,
 	* textmodes/text-mode.el, textmodes/two-column.el: Keywords added.
@@ -7169,7 +7169,7 @@
 	* emulation/pc-mode.el, diff.el, textmodes/fill.el, abbrev.el,
 	* add-log.el, faces.el, mail/sc.el: Specify FSF as Maintainer.
 
-2001-08-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-08-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/tildify.el: Milan Zamazal has new address.
 
@@ -7507,7 +7507,7 @@
 	* mail/mh-utils.el (mh-find-progs): Also search in `lib'.
 	From Mats Bengtsson <mats.bengtsson@s3.kth.se>,
 
-2001-07-17  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-17  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* international/iso-transl.el: Fix typo in the header of the file.
 
@@ -7539,7 +7539,7 @@
 	* server.el (server-process-filter, server-visit-files):
 	Add support for +LINE:COLUMN style emacsclient calls.
 
-2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs-lisp/easy-mmode.el: Add Keywords header.
 
@@ -7592,7 +7592,7 @@
 
 	* progmodes/ada-xref.el (ada-xref-initialize): Fix call to add-hook.
 
-2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* ps-print.el: Fix Author: header.
 
@@ -7605,7 +7605,7 @@
 	send-invisible, which is already defined in Comint.
 	(eshell-watch-for-password-prompt): Use it.
 
-2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* which-func.el (which-func-mode): Doc fix.
 
@@ -7664,7 +7664,7 @@
 	* simple.el (set-variable): Require 'cus-edit' instead of
 	`wid-edit', so that the Custom widgets get defined.
 
-2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* allout.el: A fix to follow coding conventions.
 
@@ -7690,7 +7690,7 @@
 	* dired.el (dired-insert-set-properties): Fix invalid mouse-face
 	property.
 
-2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/5x5.el, play/decipher.el, play/dunnet.el, play/fortune.el,
 	* play/gamegrid.el, play/handwrite.el, play/landmark.el,
@@ -7712,7 +7712,7 @@
 	* mail/reporter.el (reporter-submit-bug-report):
 	Don't abuse make-variable-buffer-local.  Fix call to add-hook.
 
-2001-07-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-china.el, calendar/cal-coptic.el,
 	* calendar/cal-dst.el, calendar/cal-french.el,
@@ -7839,7 +7839,7 @@
 	* vt100-led.el, window.el: Some fixes to follow coding conventions in
 	files maintained by FSF.
 
-2001-07-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* arc-mode.el: A fix to follow coding conventions.
 
@@ -7870,7 +7870,7 @@
 
 	* play/fortune.el: Add types to defcustoms.
 
-2001-07-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* language/czech.el: A fix to follow coding conventions.
 
@@ -7899,7 +7899,7 @@
 2001-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/ada-prj.el: Say that the file _is_ part of Emacs.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>
 
 	* progmodes/ada-mode.el: Ditto.
 
@@ -8007,10 +8007,10 @@
 	* calendar/todo-mode.el (todo-top-priorities): Use delete-region
 	instead of kill-line.
 
-	* play/pong.el: Fix first line.  From Pavel Jan,Am(Bk
+	* play/pong.el: Fix first line.  From Pavel Jan,Bm(Bk
 	<Pavel@Janik.cz>.
 
-	* battery.el (battery-update): Add help-echo.  From Pavel Jan,Am(Bk
+	* battery.el (battery-update): Add help-echo.  From Pavel Jan,Bm(Bk
 	<Pavel@Janik.cz>.
 
 2001-07-04  Gerd Moellmann  <gerd@gnu.org>
@@ -8048,10 +8048,10 @@
 2001-07-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* allout.el: Fix the header line, so that finder.el recognizes it.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* emacs-lisp/lisp-mnt.el (lm-header-prefix): Doc fix.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -8361,7 +8361,7 @@
 2001-06-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* server.el (server-process, server-buffer-clients): Doc fix.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-06-09  John Wiegley  <johnw@gnu.org>
 
@@ -8619,16 +8619,16 @@
 2001-05-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/ccl.el (define-ccl-program): Fix a typo.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* international/mule.el (decode-char): Fix a typo.  From Pavel
-	Jan,Am(Bk <Pavel@Janik.cz>.
+	Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* textmodes/artist.el (artist-mode): Fix a typo.  From Pavel
-	Jan,Am(Bk <Pavel@Janik.cz>.
+	Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* frame.el (automatic-hscrolling): Fix a typo.  From Pavel
-	Jan,Am(Bk <Pavel@Janik.cz>.
+	Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-05-18  Sam Steingold  <sds@gnu.org>
 
@@ -8860,7 +8860,7 @@
 	coding-system-for-read, if it is non-nil.
 
 	* calendar/holidays.el (holidays): Add an autoload cookie.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 2001-05-08  John Wiegley  <johnw@gnu.org>
 
@@ -9558,10 +9558,10 @@
 	Add an antry for ``converts''.
 
 	* language/slovak.el ("Slovak"): Add documentation string.
-	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
+	From Pavel@Janik.cz (Pavel Jan,Bm(Bk).
 
 	* language/czech.el ("Czech"): Add documentation string.
-	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
+	From Pavel@Janik.cz (Pavel Jan,Bm(Bk).
 
 	* ps-mule.el (ps-mule-font-info-database-bdf): Change `isci24-etl.bdf'
 	to `isci24-mule.bdf'.  From: Kenichi Handa <handa@etl.go.jp>.
@@ -10272,7 +10272,7 @@
 2001-03-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/ispell.el (ispell-dictionary-alist-6): Add support
-	for Slovak.  From Pavel.Janik@suse.cz (Pavel Jan,Am(Bk ml.).
+	for Slovak.  From Pavel.Janik@suse.cz (Pavel Jan,Bm(Bk ml.).
 
 2001-03-14  Gerd Moellmann  <gerd@gnu.org>
 
@@ -23415,7 +23415,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Jan,Am(Bk ml.
+	* time.el: Small doc fixes from Pavel Jan,Bm(Bk ml.
 
 2000-05-05  Dave Love  <fx@gnu.org>
 
