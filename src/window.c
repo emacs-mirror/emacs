@@ -30,6 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "keyboard.h"
 
 Lisp_Object Qwindowp, Qwindow_live_p;
+Lisp_Object Qvisible;
 
 Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
 Lisp_Object Fset_window_buffer (), Fsplit_window (), Frecenter ();
@@ -1057,8 +1058,10 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
 
 /* Look at all windows, performing an operation specified by TYPE
    with argument OBJ.
-   If FRAMES is Qt, look at all frames, if Qnil, look at just the selected
-   frame.  If FRAMES is a frame, just look at windows on that frame.
+   If FRAMES is Qt, look at all frames;
+                Qvisible, look at visible frames (GET_BUFFER_WINDOW only);
+                Qnil, look at just the selected frame;
+	        a frame, just look at windows on that frame.
    If MINI is non-zero, perform the operation on minibuffer windows too.
 */
 
@@ -1126,6 +1129,8 @@ window_loop (type, obj, mini, frames)
   best_window = Qnil;
   for (;;)
     {
+      FRAME_PTR w_frame = XFRAME (WINDOW_FRAME (XWINDOW (w)));
+
       /* Pick the next window now, since some operations will delete
 	 the current window.  */
 #ifdef MULTI_FRAME
@@ -1137,17 +1142,16 @@ window_loop (type, obj, mini, frames)
 	   Or we know this isn't a MULTI_FRAME Emacs, so who cares?  */
 	next_window = Fnext_window (w, mini ? Qt : Qnil, Qt);
 
-      if (!MINI_WINDOW_P (XWINDOW (w))
+      if (! MINI_WINDOW_P (XWINDOW (w))
 	  || (mini && minibuf_level > 0))
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
-#if 0
-	    /* Ignore invisible and iconified frames.  */
-	    if (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (w))))
-		|| FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
+	    /* Perhaps ignore invisible and iconified frames.  */
+	    if (EQ (frames, Qvisible)
+		&& (! FRAME_VISIBLE_P (w_frame)
+		    || FRAME_ICONIFIED_P (w_frame)))
 	      break;
-#endif
 	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj))
 	      return w;
 	    break;
@@ -1272,8 +1276,9 @@ frame, search only that frame.\n")
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
   "Return a window currently displaying BUFFER, or nil if none.\n\
-If optional argument FRAMES is t, search all frames.  If FRAME is a\n\
-frame, search only that frame.\n")
+If optional argument FRAME is t, search all frames.\n\
+If FRAME is `visible', search all visible frames.\n\
+If FRAME is a frame, search only that frame.\n")
   (buffer, frame)
     Lisp_Object buffer, frame;
 {
@@ -2895,6 +2900,9 @@ syms_of_window ()
 
   Qwindow_live_p = intern ("window-live-p");
   staticpro (&Qwindow_live_p);
+
+  Qvisible = intern ("Qvisible");
+  staticpro (&Qvisible);
 
 #ifndef MULTI_FRAME
   /* Make sure all windows get marked */

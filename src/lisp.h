@@ -1213,7 +1213,7 @@ extern Lisp_Object get_keyelt (), get_keymap();
 extern Lisp_Object Fvertical_motion (), Findent_to (), Fcurrent_column ();
 
 /* defined in window.c */
-extern Lisp_Object Qwindowp, Qwindow_live_p;
+extern Lisp_Object Qwindowp, Qwindow_live_p, Qvisible;
 extern Lisp_Object Fget_buffer_window ();
 extern Lisp_Object Fsave_window_excursion ();
 extern Lisp_Object Fset_window_configuration (), Fcurrent_window_configuration ();
