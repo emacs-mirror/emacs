@@ -1222,23 +1222,23 @@ See also the function `substitute-in-file-name'.  */)
 	    slash = p;
 	  }
 	  if (p[0] == '-')
-#ifndef VMS4_4
-	    /* VMS pre V4.4,convert '-'s in filenames. */
+#ifdef NO_HYPHENS_IN_FILENAMES
 	    if (lbrack == rbrack)
 	      {
-		if (dots < 2)   /* this is to allow negative version numbers */
+                /* Avoid clobbering negative version numbers.  */
+                if (dots < 2)
 		  p[0] = '_';
 	      }
 	    else
-#endif /* VMS4_4 */
+#endif /* NO_HYPHENS_IN_FILENAMES */
 	      if (lbrack > rbrack &&
 		  ((p[-1] == '.' || p[-1] == '[' || p[-1] == '<') &&
 		   (p[1] == '.' || p[1] == ']' || p[1] == '>')))
 		lose = 1;
-#ifndef VMS4_4
+#ifdef NO_HYPHENS_IN_FILENAMES
 	      else
 		p[0] = '_';
-#endif /* VMS4_4 */
+#endif /* NO_HYPHENS_IN_FILENAMES */
 	  /* count open brackets, reset close bracket pointer */
 	  if (p[0] == '[' || p[0] == '<')
 	    lbrack++, brack = 0;
@@ -1618,12 +1618,12 @@ See also the function `substitute-in-file-name'.  */)
 	}
       else
 	{
-#ifndef VMS4_4
+#ifdef NO_HYPHENS_IN_FILENAMES
 	  if (*p == '-' &&
 	      o[-1] != '[' && o[-1] != '<' && o[-1] != '.' &&
 	      p[1] != ']' && p[1] != '>' && p[1] != '.')
 	    *p = '_';
-#endif /* VMS4_4 */
+#endif /* NO_HYPHENS_IN_FILENAMES */
 	  *o++ = *p++;
 	}
 #else /* not VMS */
