@@ -528,6 +528,7 @@ which font is being used for displaying the character."
       (error "No character at point"))
   (let* ((char (char-after pos))
 	 (charset (char-charset char))
+	 (props (text-properties-at pos))
 	 (composition (find-composition (point) nil nil t))
 	 (composed (if composition (buffer-substring (car composition)
 						     (nth 1 composition))))
@@ -620,6 +621,11 @@ which font is being used for displaying the character."
 			       " ")
 		    ").\n"
 		    "See the variable `reference-point-alist' for the meaning of the rule.\n")))
+	(if props
+	    (insert "\nText properties\n"))
+	(while props
+	  (insert (format "  %s: %s" (car props) (cadr props)))
+	  (setq props (cddr props)))
 	))))
 
 
