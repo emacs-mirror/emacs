@@ -110,7 +110,7 @@
 (defvar archive-remote-regexp "^/[^/:]*[^/:.]:"
   "*Regexp recognizing archive files names that are not local.
 A non-local file is one whose file name is not proper outside Emacs.
-A local copy a the archive will be used when updating.")
+A local copy of the archive will be used when updating.")
 
 (defvar archive-extract-hooks nil
   "*Hooks to run when an archive member has been extracted.")
