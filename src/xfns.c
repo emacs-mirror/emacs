@@ -831,9 +831,19 @@ x_set_frame_parameters (f, alist)
 
   /* Don't die if just one of these was set.  */
   if (EQ (width, Qunbound))
-    XSETINT (width, FRAME_WIDTH (f));
+    {
+      if (FRAME_NEW_WIDTH (f))
+	XSETINT (width, FRAME_NEW_WIDTH (f));
+      else
+	XSETINT (width, FRAME_WIDTH (f));
+    }
   if (EQ (height, Qunbound))
-    XSETINT (height, FRAME_HEIGHT (f));
+    {
+      if (FRAME_NEW_HEIGHT (f))
+	XSETINT (height, FRAME_NEW_HEIGHT (f));
+      else
+	XSETINT (height, FRAME_HEIGHT (f));
+    }
 
   /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
