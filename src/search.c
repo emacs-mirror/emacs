@@ -2567,6 +2567,20 @@ since only regular expressions have distinguished subexpressions.  */)
     Fupcase_initials_region (make_number (search_regs.start[sub]),
 			     make_number (newpoint));
 
+  /* Adjust search data for this change.  */
+  {
+    int change = newpoint - search_regs.end[sub];
+    int i;
+
+    for (i = 0; i < search_regs.num_regs; i++)
+      {
+	if (search_regs.start[i] > newpoint)
+	  search_regs.start[i] += change;
+	if (search_regs.end[i] > newpoint)
+	  search_regs.end[i] += change;
+      }
+  }
+
   /* Put point back where it was in the text.  */
   if (opoint <= 0)
     TEMP_SET_PT (opoint + ZV);
