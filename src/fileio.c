@@ -3182,7 +3182,7 @@ If there is no error, we return nil.  */)
 
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
        doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
-The value is the name of the file to which it is linked.
+The value is the link target, as a string.
 Otherwise returns nil.  */)
      (filename)
      Lisp_Object filename;
