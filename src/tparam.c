@@ -21,7 +21,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
-#ifndef emacs
+#ifdef emacs
+#include "lisp.h"		/* for xmalloc */
+#else
 #if defined(HAVE_STRING_H) || defined(STDC_HEADERS)
 #define bcopy(s, d, n) memcpy ((d), (s), (n))
 #endif
