@@ -1,3 +1,9 @@
+2004-04-03  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-property-list): Add `font-lock-face'.
+
+	* dired.el (dired-font-lock-keywords): Fix permission regexps.
+
 2004-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text): Use
