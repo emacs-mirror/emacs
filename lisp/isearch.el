@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1992/10/20 21:21:47 $|$Revision: 1.12 $|~/modes/isearch-mode.el
+;; |$Date: 1992/10/27 04:11:46 $|$Revision: 1.13 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,12 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.12 1992/10/20 21:21:47 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.13 1992/10/27 04:11:46 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.13  1992/10/27  04:11:46  rms
+; (isearch-edit-string):
+; Bind cursor-in-echo-area only around read-char/allocate-event.
+;
 ; Revision 1.12  1992/10/20  21:21:47  rms
 ; (isearch-mode-map): Make the top-level keymap dense.
 ; Explicitly bind control characters at that level.
@@ -1307,7 +1311,10 @@ If there is no completion possible, say so and continue searching."
      (if (string-match
 	  "\\`Premature \\|\\`Unmatched \\|\\`Invalid "
 	  isearch-invalid-regexp)
-	 (setq isearch-invalid-regexp "incomplete input"))))
+	 (setq isearch-invalid-regexp "incomplete input")))
+    (error
+     ;; stack overflow in regexp search.
+     (setq isearch-invalid-regexp (car (cdr lossage)))))
 
   (if isearch-success
       nil
