@@ -847,7 +847,8 @@ case "${canonical}" in
 				OVERRIDE_CPPFLAGS=
 				;;
       *-bsd386* | *-bsdi1* )	opsys=bsd386 ;;
-      *-bsdi2* )		opsys=bsdos2 ;;
+      *-bsdi2.0* )		opsys=bsdos2 ;;
+      *-bsdi2* )		opsys=bsdos2-1 ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
       *-nextstep* )             opsys=nextstep ;;
