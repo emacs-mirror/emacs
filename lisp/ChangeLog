@@ -1,3 +1,7 @@
+2004-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* ldefs-boot.el: Update international/mule-util.el section.
+
 2004-12-05  Sam Steingold  <sds@gnu.org>
 
 	* net/tramp.el (tramp-handle-file-accessible-directory-p): Fixed
