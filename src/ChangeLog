@@ -1,5 +1,8 @@
 2001-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_char): Don't clear a message for a switch-frame
+	event.   From Stefan Monnier  <monnier@cs.yale.edu>.
+
 	* xterm.c (fast_find_position) [0]: Add a presumably more correct
 	version for after 21.1.
 
