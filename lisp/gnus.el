@@ -2837,7 +2837,7 @@ that that variable is buffer-local to the summary buffers."
 
 (defun gnus-group-quit-config (group)
   "Return the quit-config of GROUP."
-  (cdr (assoc 'quit-config (gnus-find-method-for-group group))))
+  (nth 1 (assoc 'quit-config (gnus-find-method-for-group group))))
 
 ;;; List and range functions
 
