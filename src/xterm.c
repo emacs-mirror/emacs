@@ -5846,7 +5846,7 @@ x_make_frame_visible (f)
 	    /* It could be confusing if a real alarm arrives while processing
 	       the fake one.  Turn it off and let the handler reset it.  */
 	    alarm (0);
-	    input_poll_signal ();
+	    input_poll_signal (0);
 	  }
 	/* Once we have handled input events,
 	   we should have received the MapNotify if one is coming.
