@@ -1,5 +1,8 @@
 2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* Makefile.in (KOREAN): Add ${srcdir}/quail/hanja3.elc.  From
+	Kenichi Handa <handa@etl.go.jp>.
+
 	* Makefile.in (.NOTPARALLEL, .NO_PARALLEL): Add ${MISC-DIC}.
 
 2001-03-31  Kenichi Handa  <handa@etl.go.jp>
