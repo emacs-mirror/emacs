@@ -832,7 +832,7 @@ init_callproc ()
 	    {
 	      tem = Fexpand_file_name (build_string ("etc"),
 				       Vinstallation_directory);
-	      Vdata_directory = Ffile_name_as_directory (tem);
+	      Vdoc_directory = Vdata_directory = Ffile_name_as_directory (tem);
 	    }
 	}
     }
