@@ -2033,7 +2033,7 @@ Thank you for your help in stamping out bugs.
       gnus-group-brew-soup gnus-brew-soup gnus-soup-add-article
       gnus-soup-send-replies gnus-soup-save-areas gnus-soup-pack-packet)
      ("nnsoup" nnsoup-pack-replies)
-     ("gnus-scomo" :interactive t gnus-score-mode)
+     ("score-mode" :interactive t gnus-score-mode)
      ("gnus-mh" gnus-mh-mail-setup gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
      ("gnus-mh" :interactive t gnus-summary-save-in-folder)
