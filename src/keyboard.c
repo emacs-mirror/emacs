@@ -6890,6 +6890,8 @@ If FILE is nil, close any open dribble file.")
     {
       file = Fexpand_file_name (file, Qnil);
       dribble = fopen (XSTRING (file)->data, "w");
+      if (dribble == 0)
+	report_file_error ("Opening dribble", Fcons (file, Qnil));
     }
   return Qnil;
 }
