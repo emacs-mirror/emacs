@@ -106,7 +106,6 @@
   "Position of last xterm mouse event relative to the frame.")
 
 ;; Indicator for the xterm-mouse mode.
-(defvar xterm-mouse-mode nil)
 
 (defun xterm-mouse-position-function (pos)
   "Bound to `mouse-position-function' in XTerm mouse mode."
@@ -159,41 +158,30 @@
 	  (list window pos point
 		(/ (nth 2 (current-time)) 1000)))))
 
-(or (assq 'xterm-mouse-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(xterm-mouse-mode (" Mouse")) minor-mode-alist)))
-
 ;;;###autoload
-(defun xterm-mouse-mode (arg)
+(define-minor-mode xterm-mouse-mode
   "Toggle XTerm mouse mode.
 With prefix arg, turn XTerm mouse mode on iff arg is positive.
 
 Turn it on to use emacs mouse commands, and off to use xterm mouse commands."
-  (interactive "P")
-  (if (or (and (null arg) xterm-mouse-mode)
-	  (<= (prefix-numeric-value arg) 0))
-      ;; Turn it off
-      (if xterm-mouse-mode
-	  (progn
-	    (turn-off-xterm-mouse-tracking)
-	    (setq xterm-mouse-mode nil
-		  mouse-position-function nil)
-	    (set-buffer-modified-p (buffer-modified-p))))
-    ;;Turn it on
-    (unless (or window-system xterm-mouse-mode)
-      (setq xterm-mouse-mode t
-	    mouse-position-function #'xterm-mouse-position-function)
-      (turn-on-xterm-mouse-tracking)
-      (set-buffer-modified-p (buffer-modified-p)))))
+  nil " Mouse" nil
+  (if xterm-mouse-mode
+      ;; Turn it on
+      (unless window-system
+	(setq mouse-position-function #'xterm-mouse-position-function)
+	(turn-on-xterm-mouse-tracking))
+    ;; Turn it off
+    (turn-off-xterm-mouse-tracking 'force)
+    (setq mouse-position-function nil)))
 
 (defun turn-on-xterm-mouse-tracking ()
   "Enable Emacs mouse tracking in xterm."
   (if xterm-mouse-mode
       (send-string-to-terminal "\e[?1000h")))
 
-(defun turn-off-xterm-mouse-tracking ()
+(defun turn-off-xterm-mouse-tracking (&optional force)
   "Disable Emacs mouse tracking in xterm."
-  (if xterm-mouse-mode
+  (if (or force xterm-mouse-mode)
       (send-string-to-terminal "\e[?1000l")))
 
 ;; Restore normal mouse behaviour outside Emacs.
