@@ -783,8 +783,8 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
   ly = Fcdr (coordinates);
   CHECK_NUMBER_OR_FLOAT (lx);
   CHECK_NUMBER_OR_FLOAT (ly);
-  x = FRAME_PIXEL_X_FROM_CANON_X (f, lx);
-  y = FRAME_PIXEL_Y_FROM_CANON_Y (f, ly);
+  x = FRAME_PIXEL_X_FROM_CANON_X (f, lx) + FRAME_INTERNAL_BORDER_WIDTH (f);
+  y = FRAME_PIXEL_Y_FROM_CANON_Y (f, ly) + FRAME_INTERNAL_BORDER_WIDTH (f);
 
   switch (coordinates_in_window (w, &x, &y))
     {
