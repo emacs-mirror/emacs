@@ -1,3 +1,30 @@
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xrdb.c (file_p): Rename arg `path' to `filename'.
+
+	* abbrev.c (Fexpand_abbrev): Increment plist as use count
+	only if it is an integer.
+
+	* xfns.c (png_load): Set screen_gamma based on f->gamma.
+	If png_get_sRGB gives an answer, call png_set_gamma
+	using the default image gamma value.
+
+	* lread.c (read1): When reading from a file, default string to
+	multibyte only if it has some multibyte characters.
+
+	* print.c (print_object): Output multibyte chars 128...255
+	using \x even if ! print_escape_multibyte.
+
+	* xdisp.c (display_mode_element): Move the places where
+	bytepos, charpos, this, and lisp_string are set.
+	Use lisp_string to set bytepos.
+
+	* xdisp.c (redisplay_internal):
+	Call clear_image_cache only if HAVE_WINDOW_SYSTEM.
+
+	* xdisp.c (display_mode_element): Merge properties specified with
+	:propertize onto those that come with the string.
+
 2002-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode>: Renamed from
