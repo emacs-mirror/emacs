@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.45) $
+ * $HopeName: MMsrc!arena.c(trunk.46) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.45) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.46) $");
 
 
 /* Forward declarations */
@@ -417,6 +417,11 @@ Bool ArenaCheck(Arena arena)
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(NSEG, &arena->reservoirStruct);
   }
+  /* could call ArenaReservoirIsConsistent, but it's costly. */
+  CHECKL(SizeIsAligned(arena->reservoirLimit, ArenaAlign(arena)));
+  CHECKL(SizeIsAligned(arena->reservoirSize, ArenaAlign(arena)));
+  /* Can't check that limit>=size because we may call ArenaCheck */
+  /* while the size is being adjusted. */
 
   CHECKD(Lock, &arena->lockStruct);
 
@@ -1236,7 +1241,7 @@ void SegFree(Seg seg)
     ArenaReturnSegToReservoir(arena, seg);
   }
 
-
+  return;
 }
 
 
