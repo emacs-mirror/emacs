@@ -571,14 +571,11 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
   ;; style.  Only do this once!
   (or (assoc "cc-mode" c-style-alist)
       (let (copyfunc)
-	;; use built-in copy-tree if its there.
-	(if (fboundp 'copy-tree)
-	    (setq copyfunc (symbol-function 'copy-tree))
-	  (setq copyfunc (lambda (tree)
-			    (if (consp tree)
-				(cons (funcall copyfunc (car tree))
-				      (funcall copyfunc (cdr tree)))
-			      tree))))
+	(setq copyfunc (lambda (tree)
+			 (if (consp tree)
+			     (cons (funcall copyfunc (car tree))
+				   (funcall copyfunc (cdr tree)))
+			   tree)))
 	(c-add-style "cc-mode"
 		     (mapcar
 		      (function
