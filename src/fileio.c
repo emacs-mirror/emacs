@@ -3034,6 +3034,7 @@ This does code conversion according to the value of\n\
   char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
   unsigned char buffer[1 << 14];
+  int replace_handled = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3142,37 +3143,6 @@ This does code conversion according to the value of\n\
 	error ("maximum buffer size exceeded");
     }
 
-  /* Try to determine the character coding now,
-     hoping we can recognize that no coding is used
-     and thus enable the REPLACE feature to work.  */
-  if (!NILP (replace) && (coding.type == coding_type_automatic
-			  || coding.eol_type == CODING_EOL_AUTOMATIC))
-    {
-      int nread, bufpos;
-
-      nread = read (fd, buffer, sizeof buffer);
-      if (nread < 0)
-	error ("IO error reading %s: %s",
-	       XSTRING (filename)->data, strerror (errno));
-      else if (nread > 0)
-	{
-	  if (coding.type == coding_type_automatic)
-	    detect_coding (&coding, buffer, nread);
-	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
-	    detect_eol (&coding, buffer, nread);
-	  if (lseek (fd, 0, 0) < 0)
-	    report_file_error ("Setting file position",
-			       Fcons (filename, Qnil));
-	  /* If we still haven't found anything other than
-	     "automatic", change to "no conversion"
-	     so that the replace feature will work.  */
-	  if (coding.type == coding_type_automatic)
-	    coding.type = coding_type_no_conversion;
-	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
-	    coding.eol_type = CODING_EOL_LF;
-	}
-    }
-
   /* If requested, replace the accessible part of the buffer
      with the file contents.  Avoid replacing text at the
      beginning or end of the buffer that matches the file contents;
@@ -3181,16 +3151,25 @@ This does code conversion according to the value of\n\
      Here we implement this feature in an optimized way
      for the case where code conversion is NOT needed.
      The following if-statement handles the case of conversion
-     in a less optimal way.  */
+     in a less optimal way.
+
+     If the code conversion is "automatic" then we try using this
+     method and hope for the best.
+     But if we discover the need for conversion, we give up on this method
+     and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
-      && ! CODING_REQUIRE_CONVERSION (&coding))
+      && (! CODING_REQUIRE_CONVERSION (&coding)
+	  || (coding.type == coding_type_automatic
+	      && ! CODING_REQUIRE_TEXT_CONVERSION (&coding))
+	  || (coding.eol_type == CODING_EOL_AUTOMATIC
+	      && ! CODING_REQUIRE_EOL_CONVERSION (&coding))))
     {
       int same_at_start = BEGV;
       int same_at_end = ZV;
       int overlap;
       /* There is still a possibility we will find the need to do code
 	 conversion.  If that happens, we set this variable to 1 to
-	 give up on the REPLACE feature.  */
+	 give up on handling REPLACE in the optimized way.  */
       int giveup_match_end = 0;
 
       if (XINT (beg) != 0)
@@ -3214,6 +3193,26 @@ This does code conversion according to the value of\n\
 		   XSTRING (filename)->data, strerror (errno));
 	  else if (nread == 0)
 	    break;
+
+	  if (coding.type == coding_type_automatic)
+	    detect_coding (&coding, buffer, nread);
+	  if (CODING_REQUIRE_TEXT_CONVERSION (&coding))
+	    /* We found that the file should be decoded somehow.
+               Let's give up here.  */
+	    {
+	      giveup_match_end = 1;
+	      break;
+	    }
+
+	  if (coding.eol_type == CODING_EOL_AUTOMATIC)
+	    detect_eol (&coding, buffer, nread);
+	  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
+	    /* We found that the format of eol should be decoded.
+               Let's give up here.  */
+	    {
+	      giveup_match_end = 1;
+	      break;
+	    }
 
 	  bufpos = 0;
 	  while (bufpos < nread && same_at_start < ZV
@@ -3272,30 +3271,46 @@ This does code conversion according to the value of\n\
 	  while (bufpos > 0 && same_at_end > same_at_start
 		 && FETCH_BYTE (same_at_end - 1) == buffer[bufpos - 1])
 	    same_at_end--, bufpos--;
+
 	  /* If we found a discrepancy, stop the scan.
 	     Otherwise loop around and scan the preceding bufferful.  */
 	  if (bufpos != 0)
-	    break;
+	    {
+	      /* If this discrepancy is because of code conversion,
+		 we cannot use this method; giveup and try the other.  */
+	      if (same_at_end > same_at_start
+		  && FETCH_BYTE (same_at_end - 1) >= 0200
+		  && ! NILP (current_buffer->enable_multibyte_characters))
+		giveup_match_end = 1;
+	      break;
+	    }
 	}
       immediate_quit = 0;
 
-      /* Don't try to reuse the same piece of text twice.  */
-      overlap = same_at_start - BEGV - (same_at_end + st.st_size - ZV);
-      if (overlap > 0)
-	same_at_end += overlap;
+      if (! giveup_match_end)
+	{
+	  /* We win!  We can handle REPLACE the optimized way.  */
 
-      /* Arrange to read only the nonmatching middle part of the file.  */
-      XSETFASTINT (beg, XINT (beg) + (same_at_start - BEGV));
-      XSETFASTINT (end, XINT (end) - (ZV - same_at_end));
+	  /* Don't try to reuse the same piece of text twice.  */
+	  overlap = same_at_start - BEGV - (same_at_end + st.st_size - ZV);
+	  if (overlap > 0)
+	    same_at_end += overlap;
 
-      del_range_1 (same_at_start, same_at_end, 0);
-      /* Insert from the file at the proper position.  */
-      SET_PT (same_at_start);
+	  /* Arrange to read only the nonmatching middle part of the file.  */
+	  XSETFASTINT (beg, XINT (beg) + (same_at_start - BEGV));
+	  XSETFASTINT (end, XINT (end) - (ZV - same_at_end));
 
-      /* If display currently starts at beginning of line,
-	 keep it that way.  */
-      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
-	XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
+	  del_range_1 (same_at_start, same_at_end, 0);
+	  /* Insert from the file at the proper position.  */
+	  SET_PT (same_at_start);
+
+	  /* If display currently starts at beginning of line,
+	     keep it that way.  */
+	  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	    XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
+
+	  replace_handled = 1;
+	}
     }
 
   /* If requested, replace the accessible part of the buffer
@@ -3307,7 +3322,7 @@ This does code conversion according to the value of\n\
      is needed, in a simple way that needs a lot of memory.
      The preceding if-statement handles the case of no conversion
      in a more optimized way.  */
-  if (!NILP (replace) && CODING_REQUIRE_CONVERSION (&coding))
+  if (!NILP (replace) && ! replace_handled)
     {
       int same_at_start = BEGV;
       int same_at_end = ZV;
@@ -3319,6 +3334,13 @@ This does code conversion according to the value of\n\
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
+
+      if (lseek (fd, XINT (beg), 0) < 0)
+	{
+	  free (conversion_buffer);
+	  report_file_error ("Setting file position",
+			     Fcons (filename, Qnil));
+	}
 
       total = st.st_size;	/* Total bytes in the file.  */
       how_much = 0;		/* Bytes read from file so far.  */
@@ -3430,23 +3452,23 @@ This does code conversion according to the value of\n\
       if (overlap > 0)
 	same_at_end += overlap;
 
+      /* If display currently starts at beginning of line,
+	 keep it that way.  */
+      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
+	XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
+
       /* Replace the chars that we need to replace,
 	 and update INSERTED to equal the number of bytes
 	 we are taking from the file.  */
       inserted -= (Z - same_at_end) + (same_at_start - BEG);
       move_gap (same_at_start);
       del_range_1 (same_at_start, same_at_end, 0);
-      make_gap (inserted);
       insert (conversion_buffer + same_at_start - BEG, inserted);
 
       free (conversion_buffer);
       close (fd);
       specpdl_ptr--;
 
-      /* If display currently starts at beginning of line,
-	 keep it that way.  */
-      if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer)
-	XWINDOW (selected_window)->start_at_line_beg = Fbolp ();
       goto handled;
     }
 
