@@ -7,6 +7,8 @@
 
 2000-09-07  Dave Love  <fx@gnu.org>
 
+	* diff-mode.el (diff-mouse-goto-source): New function.
+
 	* vc-sccs.el: Doc fixes.
 	(vc-sccs-register-switches, vc-sccs-master-templates): Add
 	:version.
