@@ -1526,10 +1526,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (dirtype (char-after (+ p 4)))
 	     (lfnlen  (if (= dirtype 2) (char-after (+ p 56)) 0))
 	     (ldirlen (if (= dirtype 2) (char-after (+ p 57)) 0))
-	     (fnlen   (+ ldirlen
-			 (if (> lfnlen 0)
-			     (1- lfnlen)
-			   (or (string-match "\0" namefld) 13))))
+	     (fnlen   (or (string-match "\0" namefld) 13))
 	     (efnname (concat
 		       (if (> ldirlen 0)
 			   (concat (buffer-substring
@@ -1546,7 +1543,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
                               ifnname)))
-        (setq maxlen (max maxlen fnlen)
+        (setq maxlen (max maxlen (length ifnname))
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
 				   (- (length text) (length ifnname))
