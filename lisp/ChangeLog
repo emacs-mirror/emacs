@@ -1,3 +1,9 @@
+2002-12-10  R. Bernstein  <rocky@muffin.peccary.sty>
+
+	* gud.el (bashdb): Prompt now included parenthesis for subshell
+	levels. Fix erroneous print expression command, and fix typos. 
+	(perldb): Undo previous change in prompt regexp.
+	
 2002-12-10  Steven Tamm  <steventamm@mac.com>
 
 	* generic-x.el (javascript-generic-mode): Added C style block
