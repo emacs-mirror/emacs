@@ -895,8 +895,9 @@ syms_of_character ()
 
   DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
 	       doc: /*
-Vector of cons cell of a symbol and translation table ever defined.
-An ID of a translation table is an index of this vector.  */);
+Vector recording all translation tables ever defined.
+Each element is a pair (SYMBOL . TABLE) relating the table to the
+symbol naming it.  The ID of a translation table is an index into this vector.  */);
   Vtranslation_table_vector = Fmake_vector (make_number (16), Qnil);
 
   DEFVAR_LISP ("auto-fill-chars", &Vauto_fill_chars,
