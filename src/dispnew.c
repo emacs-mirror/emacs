@@ -165,7 +165,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
 }
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
-  "Clear and redisplay all visible frames."
+  "Clear and redisplay all visible frames.")
   ()
 {
   Lisp_Object frame, tail;
