@@ -128,7 +128,16 @@ shell it really is."
    ;; the executable extension, so comparisons with the list of
    ;; known shells work.
    (and (memq system-type '(ms-dos windows-nt))
-	(file-name-sans-extension (downcase (getenv "SHELL"))))
+	(let* ((shell (getenv "SHELL"))
+	       (shell-base
+		(and shell (file-name-nondirectory shell))))
+	  ;; shell-script mode doesn't support DOS/Windows shells,
+	  ;; so use the default instead.
+	  (if (or (null shell)
+		  (member (downcase shell-base)
+			  '("command.com" "cmd.exe" "4dos.com" "ndos.com")))
+	      "/bin/sh"
+	    (file-name-sans-extension (downcase shell)))))
    (getenv "SHELL")
    "/bin/sh")
   "*The executable file name for the shell being programmed."
