@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.16 2001/01/25 16:36:48 sds Exp $
+;; $Id: vc-cvs.el,v 1.17 2001/01/25 21:02:37 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,15 @@
 
 ;;; Code:
 
-(require 'vc)
+(eval-when-compile
+ ;; keep the compiler happy
+ ;; note that there is another option: (require 'vc)
+ (defvar vc-register-switches)  ; defined in "vc.el", used in `vc-cvs-register'
+ (defvar vc-checkin-switches)   ; defined in "vc.el", used in `vc-cvs-checkin'
+ (defvar vc-checkout-switches)  ; defined in "vc.el", used in `vc-cvs-checkout'
+ (autoload 'vc-do-command "vc") ; used all over the place
+ (autoload 'vc-trunk-p "vc")    ; used in `vc-cvs-checkin'
+ (autoload 'vc-resynch-buffer "vc")) ; used in `vc-cvs-retrieve-snapshot'
 
 ;;;
 ;;; Customization options

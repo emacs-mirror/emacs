@@ -1,3 +1,8 @@
+2001-01-29  Sam Steingold  <sds@gnu.org>
+
+	* vc-cvs.el: replaced (require 'vc) with a bunch of
+	`autoload' statements.
+
 2001-01-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (confirm-kill-emacs): Doc fix.
@@ -23,7 +28,7 @@
 
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
-	* menu-bar.el (menu-bar-files-menu): Add menu items for 
+	* menu-bar.el (menu-bar-files-menu): Add menu items for
 	Postscript printing in black and white.
 
 	* mail/rmail.el (rmail-ignored-headers): Add X-Sign, X-BeenThere,
