@@ -17,9 +17,6 @@
 
 2004-03-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* printing.el (pr-update-menus): Modify interactive declaration.
-	Reported by Drew Adams <drew.adams@oracle.com>.
-
 	* progmodes/ebnf-abn.el (ebnf-abn-parser): Handle initial comments.
 
 	* progmodes/ebnf-ebx.el: New file, implement a parser for EBNF used to
@@ -31,6 +28,14 @@
 	(ebnf-style-database): Add ebnfx entry.
 	(ebnf-syntax-alist): Add ebnfx initialization.
 	(ebnf-ebx-parser, ebnf-ebx-initialize): Autoloaded funs from ebnf-ebx.
+
+	* printing.el: Doc fix.
+	(pr-version): New version number (6.7.3).
+	(pr-menu-position): Adjust X and Y positions when mouse-pixel-position
+	returns nil for mouse position.  Reported by Drew Adams
+	<drew.adams@oracle.com>.
+	(pr-update-menus): Modify interactive declaration.  Reported by Drew
+	Adams <drew.adams@oracle.com>.
 
 2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
 
