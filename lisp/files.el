@@ -1805,9 +1805,9 @@ beginning and `after-revert-hook' at the end."
 		 ;; so that we don't try to lock the file.
 		 (let ((buffer-file-name nil))
 		   (or auto-save-p
-		       (unlock-buffer))
-		   (erase-buffer))
-		 (insert-file-contents file-name (not auto-save-p))))
+		       (unlock-buffer)))
+		 (insert-file-contents file-name (not auto-save-p)
+				       nil nil t)))
 	     (goto-char (min opoint (point-max)))
 	     (after-find-file nil nil t)
 	     (run-hooks 'after-revert-hook)
