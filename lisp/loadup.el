@@ -235,8 +235,11 @@
 ;; this file must be loaded each time Emacs is run.
 ;; So run the startup code now.
 
-(or (or (equal (nth 3 command-line-args) "dump")
-	(equal (nth 4 command-line-args) "dump"))
-    (eval top-level))
+(or (equal (nth 3 command-line-args) "dump")
+    (equal (nth 4 command-line-args) "dump")
+    (progn
+      ;; Avoid loading loadup.el a second time!
+      (setq command-line-args (cdr (cdr command-line-args)))
+      (eval top-level)))
 
 ;;; loadup.el ends here
