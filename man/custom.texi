@@ -1757,6 +1757,8 @@ because the terminal sends the same character in both cases.
 
 @node Non-ASCII Rebinding
 @subsection Non-ASCII Characters on the Keyboard
+@cindex rebinding non-ASCII keys
+@cindex non-ASCII keys, binding
 
 If your keyboard has keys that send non-ASCII characters, such as
 accented letters, rebinding these keys is a bit tricky.  There are two
@@ -1791,7 +1793,7 @@ inside the vector to bind:
 (global-set-key [@var{decimal-code}] 'some-function)
 @end example
 
-If you bind 8-bit characters like this in your init file, you my find it
+If you bind 8-bit characters like this in your init file, you may find it
 convenient to specify that it is unibyte.  @xref{Enabling Multibyte}.
 
 @node Mouse Buttons
