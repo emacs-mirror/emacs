@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.27 2002/10/04 18:38:04 monnier Exp $
+;; $Id: vc-rcs.el,v 1.28 2002/10/08 15:33:18 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -360,7 +360,9 @@ whether to remove it."
 	 buffer 0 "co" (vc-name file)
 	 "-q" ;; suppress diagnostic output
 	 (concat "-p" rev)
-	 vc-checkout-switches))
+	 (if (stringp vc-checkout-switches)
+	     (list vc-checkout-switches)
+	   vc-checkout-switches)))
 
 (defun vc-rcs-checkout (file &optional editable rev)
   "Retrieve a copy of a saved version of FILE."
