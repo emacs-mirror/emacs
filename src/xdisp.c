@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -310,9 +310,11 @@ extern Lisp_Object Qscroll_bar;
 
 Lisp_Object Vshow_trailing_whitespace;
 
+#ifdef HAVE_WINDOW_SYSTEM
 /* Non-nil means that newline may flow into the right fringe.  */
 
 Lisp_Object Voverflow_newline_into_fringe;
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Test if overflow newline into fringe.  Called with iterator IT
    at or past right window margin, and with IT->current_x set.  */ 
@@ -5609,6 +5611,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		      if (i == it->nglyphs - 1)
 			{
 			  set_iterator_to_next (it, 1);
+#ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
 			      get_next_display_element (it);
@@ -5618,6 +5621,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 				  break;
 				}
 			    }
+#endif /* HAVE_WINDOW_SYSTEM */
 			}
 		    }
 		  else
@@ -5675,6 +5679,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
       if (it->truncate_lines_p
 	  && it->current_x >= it->last_visible_x)
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
 	      get_next_display_element (it);
@@ -5684,6 +5689,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		  break;
 		}
 	    }
+#endif /* HAVE_WINDOW_SYSTEM */
 	  result = MOVE_LINE_TRUNCATED;
 	  break;
 	}
@@ -10257,7 +10263,9 @@ redisplay_internal (preserve_echo_area)
 	      *w->desired_matrix->method = 0;
 	      debug_method_add (w, "optimization 1");
 #endif
+#ifdef HAVE_WINDOW_SYSTEM
 	      update_window_fringes (w, 0);
+#endif
 	      goto update;
 	    }
 	  else
@@ -11668,6 +11676,7 @@ set_vertical_scroll_bar (w)
   set_vertical_scroll_bar_hook (w, end - start, whole, start);
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Recalculate the bitmaps to show in the fringes of window W.
    If FORCE_P is 0, only mark rows with modified bitmaps for update in
@@ -11796,6 +11805,7 @@ update_window_fringes (w, force_p)
   return redraw_p;
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
    selected_window is redisplayed.
@@ -12484,6 +12494,7 @@ redisplay_window (window, just_this_one_p)
 #endif
     }
 
+#ifdef HAVE_WINDOW_SYSTEM
   if (update_window_fringes (w, 0)
       && (used_current_matrix_p || overlay_arrow_seen)
       && !w->pseudo_window_p)
@@ -12494,6 +12505,7 @@ redisplay_window (window, just_this_one_p)
       UNBLOCK_INPUT;
       update_end (f);
     }
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* We go to this label, with fonts_changed_p nonzero,
      if it is necessary to try again using larger glyph matrices.
@@ -14933,6 +14945,7 @@ display_line (it)
 		      if (i == nglyphs - 1)
 			{
 			  set_iterator_to_next (it, 1);
+#ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
 			      get_next_display_element (it);
@@ -14942,6 +14955,7 @@ display_line (it)
 				  row->exact_window_width_line_p = 1;
 				}
 			    }
+#endif /* HAVE_WINDOW_SYSTEM */
 			}
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
@@ -15054,10 +15068,12 @@ display_line (it)
 
 	  row->ends_in_newline_from_string_p = STRINGP (it->object);
 
+#ifdef HAVE_WINDOW_SYSTEM
 	  /* Add a space at the end of the line that is used to
 	     display the cursor there.  */
 	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    append_space (it, 0);
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Extend the face to the end of the line.  */
 	  extend_face_to_end_of_line (it);
@@ -15098,6 +15114,7 @@ display_line (it)
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
 	    }
+#ifdef HAVE_WINDOW_SYSTEM
 	  else
 	    {
 	      /* Don't truncate if we can overflow newline into fringe.  */
@@ -15111,6 +15128,7 @@ display_line (it)
 		    }
 		}
 	    }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;
@@ -21997,6 +22015,7 @@ wide as that tab on the display.  */);
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
+#ifdef HAVE_WINDOW_SYSTEM
   DEFVAR_LISP ("overflow-newline-into-fringe", &Voverflow_newline_into_fringe,
     doc: /* *Non-nil means that newline may flow into the right fringe.
 This means that display lines which are exactly as wide as the window
@@ -22005,6 +22024,7 @@ showing (or hiding) the final newline in the right fringe; when point
 is at the final newline, the cursor is shown in the right fringe.
 If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
+#endif
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.

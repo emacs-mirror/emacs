@@ -1,3 +1,12 @@
+2004-01-16  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* xdisp.c (Voverflow_newline_into_fringe)
+	(move_it_in_display_line_to, redisplay_internal)
+	(update_window_fringes, redisplay_window, display_line, window):
+	Add `#ifdef HAVE_WINDOW_SYSTEM' around fringe-drawing stuff, so
+	that it compiles without a window-system.
+	* dispnew.c (direct_output_for_insert, update_window): Likewise.
+
 2004-01-16  Kim F. Storm  <storm@cua.dk>
 
 	* buffer.h (struct buffer): New member indicate_buffer_boundaries.

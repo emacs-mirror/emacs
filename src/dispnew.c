@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,1999,2000,01,02,2003
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,1999,2000,01,02,03,04
        Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3655,7 +3655,9 @@ direct_output_for_insert (g)
       cursor_to (y, x);
     }
 
+#ifdef HAVE_WINDOW_SYSTEM
   update_window_fringes (w, 0);
+#endif
 
   if (rif)
     rif->update_window_end_hook (w, 1, 0);
@@ -4194,7 +4196,9 @@ update_window (w, force_p)
       strcpy (w->current_matrix->method, w->desired_matrix->method);
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
       update_window_fringes (w, 0);
+#endif
 
       /* End the update of window W.  Don't set the cursor if we
          paused updating the display because in this case,
