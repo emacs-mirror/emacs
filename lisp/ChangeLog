@@ -1,3 +1,7 @@
+2002-09-05  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Make ,_/(B and ,A(B a case pair.
+
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el: Don't define the charset iso-8859-1
