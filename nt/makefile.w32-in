@@ -141,10 +141,16 @@ install: all $(INSTALL_DIR)/bin install-other-dirs-$(SHELLTYPE)
 	- "$(INSTALL_DIR)/bin/addpm" /q
 	- $(DEL) ../same-dir.tst
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
-	- mkdir "$(INSTALL_DIR)/etc/icons"
-	- $(CP_DIR) icons $(INSTALL_DIR)/etc/icons
 	echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
-	$(IFNOTSAMEDIR) $(MAKE) $(MFLAGS) real_install $(ENDIF)
+	- mkdir "$(INSTALL_DIR)/etc"
+	- mkdir "$(INSTALL_DIR)/info"
+	- mkdir "$(INSTALL_DIR)/lock"
+	- mkdir "$(INSTALL_DIR)/data"
+	- mkdir "$(INSTALL_DIR)/site-lisp"
+	- mkdir "$(INSTALL_DIR)/etc/icons"
+	$(IFNOTSAMEDIR) $(CP_DIR) ../etc $(INSTALL_DIR) $(ENDIF)
+	- $(CP_DIR) icons $(INSTALL_DIR)/etc
+	$(IFNOTSAMEDIR) $(CP_DIR) ../info $(INSTALL_DIR) $(ENDIF)
 	- $(DEL) ../same-dir.tst
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 
@@ -164,22 +170,6 @@ install-other-dirs-SH:
 	$(MAKE) $(MFLAGS) -C ../src install
 	$(MAKE) $(MFLAGS) -C ../lisp install
 	$(MAKE) $(MFLAGS) -C ../leim install
-
-real_install:
-	- $(DEL) ../same-dir.tst
-	- $(DEL) $(INSTALL_DIR)/same-dir.tst
-	echo SameDirTest > $(INSTALL_DIR)/same-dir.tst
-	- mkdir "$(INSTALL_DIR)/etc"
-	- mkdir "$(INSTALL_DIR)/info"
-	- mkdir "$(INSTALL_DIR)/lock"
-	- mkdir "$(INSTALL_DIR)/data"
-	- mkdir "$(INSTALL_DIR)/site-lisp"
-	- mkdir "$(INSTALL_DIR)/etc/icons"
-	- $(CP_DIR) icons $(INSTALL_DIR)/etc/icons
-	$(IFNOTSAMEDIR) $(CP_DIR) ../etc $(INSTALL_DIR)/etc $(ENDIF)
-	$(IFNOTSAMEDIR) $(CP_DIR) ../info $(INSTALL_DIR)/info $(ENDIF)
-	- $(DEL) ../same-dir.tst
-	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 
 #
 # Maintenance
