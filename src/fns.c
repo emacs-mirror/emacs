@@ -4971,17 +4971,18 @@ integers, including negative integers.")
 #include "md5.h"
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
-  "Return MD5 hash of OBJECT, a buffer or string.\n\
+  "Return MD5 message digest of OBJECT, a buffer or string.\n\
 \n\
-The two optional arguments START and END are character positions;\n\
-they can be in either order.\n\
+The two optional arguments START and END are character positions\n\
+specifying for which part of OBJECT the message digest should be computed.\n\
+If nil or omitted, the digest is computed for the whole OBJECT.\n\
 \n\
-The third optional argument CODING-SYSTEM specify coding system text\n\
-should be converted to before computing digest.  If nil, uses the\n\
-current format or guesses.\n\
+Third optional argument CODING-SYSTEM specifies the coding system text\n\
+should be converted to before computing the digest.  If nil or omitted,\n\
+the current format is used or a format is guessed.\n\
 \n\
-Fourth optional argument NOERROR doesn't do anything (for XEmacs\n\
-compatibility).")
+Fourth optional argument NOERROR is there for compatability with other\n\
+Emacsen and is ignored.")
   (object, start, end, coding_system, noerror)
      Lisp_Object object, start, end, coding_system, noerror;
 {
