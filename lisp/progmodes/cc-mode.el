@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Version:    5.13
+;; Version:    5.14
 ;; Keywords:   c languages oop
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -33,15 +33,15 @@
 ;;; Commentary:
 
 ;; This package provides GNU Emacs major modes for editing C, C++,
-;; Objective-C, and Java code.  As of the latest Emacs and XEmacs
+;; Objective-C, Java and IDL code.  As of the latest Emacs and XEmacs
 ;; releases, it is the default package for editing these languages.
 ;; This package is called "CC Mode", and should be spelled exactly
-;; this way.  It supports K&R and ANSI C, ANSI C++, Objective-C, and
-;; Java, with a consistent indentation model across all modes.  This
-;; indentation model is intuitive and very flexible, so that almost
-;; any desired style of indentation can be supported.  Installation,
-;; usage, and programming details are contained in an accompanying
-;; texinfo manual.
+;; this way.  It supports K&R and ANSI C, ANSI C++, Objective-C, Java,
+;; and CORBA's IDL with a consistent indentation model across all
+;; modes.  This indentation model is intuitive and very flexible, so
+;; that almost any desired style of indentation can be supported.
+;; Installation, usage, and programming details are contained in an
+;; accompanying texinfo manual.
 
 ;; CC Mode's immediate ancestors were, c++-mode.el, cplus-md.el, and
 ;; cplus-md1.el..
@@ -60,14 +60,6 @@
 ;; help-gnu-emacs@prep.ai.mit.edu (mirrored as gnu.emacs.help) and/or
 ;; cc-mode-help@python.org.  Please do not send bugs or questions to
 ;; my personal account.
-
-;; YOU CAN IGNORE ALL BYTE-COMPILER WARNINGS. They are the result of
-;; the cross-Emacsen support.  GNU Emacs 19 (from the FSF), GNU XEmacs
-;; 19 (formerly Lucid Emacs), and GNU Emacs 18 all do things
-;; differently and there's no way to shut the byte-compiler up at the
-;; necessary granularity.  Let me say this again: YOU CAN IGNORE ALL
-;; BYTE-COMPILER WARNINGS (you'd be surprised at how many people don't
-;; follow this advice :-).
 
 ;; Many, many thanks go out to all the folks on the beta test list.
 ;; Without their patience, testing, insight, code contributions, and
@@ -97,16 +89,24 @@
 ;; (require 'cc-mode)
 ;; (c-initialize-cc-mode)
 
+;;;###autoload
 (defun c-initialize-cc-mode ()
   ;; make sure all necessary components of CC Mode are loaded in.
-  (require 'cc-vars)
-  (require 'cc-engine)
-  (require 'cc-langs)
-  (require 'cc-menus)
-  (require 'cc-align)
-  (require 'cc-styles)
-  (require 'cc-cmds))
-
+  (let ((initprop 'cc-mode-is-initialized))
+    (require 'cc-vars)
+    (require 'cc-engine)
+    (require 'cc-langs)
+    (require 'cc-menus)
+    (require 'cc-align)
+    (require 'cc-styles)
+    (require 'cc-cmds)
+    ;; run the initialization hook, but only once
+    (or (get 'c-initialize-cc-mode initprop)
+	(progn
+	  (c-initialize-builtin-style)
+	  (run-hooks 'c-initialization-hook)
+	  (put 'c-initialize-cc-mode initprop t)))
+    ))
 
 
 ;;;###autoload
@@ -277,8 +277,49 @@ Key bindings:
   (c-update-modeline))
 
 
+;;;###autoload
+(defun idl-mode ()
+  "Major mode for editing CORBA's IDL code.
+To submit a problem report, enter `\\[c-submit-bug-report]' from an
+idl-mode buffer.  This automatically sets up a mail buffer with
+version information already added.  You just need to add a description
+of the problem, including a reproducible test case, and send the
+message.
+
+To see what version of CC Mode you are running, enter `\\[c-version]'.
+
+The hook variable `idl-mode-hook' is run with no args, if that
+variable is bound and has a non-nil value.  Also the hook
+`c-mode-common-hook' is run first.
+
+Key bindings:
+\\{idl-mode-map}"
+  (interactive)
+  (c-initialize-cc-mode)
+  (kill-all-local-variables)
+  (set-syntax-table idl-mode-syntax-table)
+  (setq major-mode 'idl-mode
+	mode-name "IDL"
+	local-abbrev-table idl-mode-abbrev-table)
+  (use-local-map idl-mode-map)
+  (c-common-init)
+  (setq comment-start "// "
+	comment-end ""
+	comment-multi-line nil
+	c-conditional-key c-C++-conditional-key
+	c-comment-start-regexp c-C++-comment-start-regexp
+	c-class-key c-C++-class-key
+	c-access-key c-C++-access-key
+	c-double-slash-is-comments-p t
+	c-recognize-knr-p nil)
+;;	imenu-generic-expression cc-imenu-c++-generic-expression)
+  (run-hooks 'c-mode-common-hook)
+  (run-hooks 'idl-mode-hook)
+  (c-update-modeline))
+
+
 ;; defuns for submitting bug reports
-(defconst c-version "5.13"
+(defconst c-version "5.14"
   "CC Mode version number.")
 
 (defconst c-mode-help-address
