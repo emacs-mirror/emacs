@@ -387,6 +387,13 @@ Default value, nil, means edit the string instead."
 ;; Accumulate here the overlays opened during searching.
 (defvar isearch-opened-overlays nil)
 
+;; The value of input-method-function when isearch is invoked.
+(defvar isearch-input-method-function nil)
+
+;; A flag to tell if input-method-function is locally bound when
+;; isearch is invoked.
+(defvar isearch-input-method-local-p nil)
+
 ;; Minor-mode-alist changes - kind of redundant with the
 ;; echo area, but if isearching in multiple windows, it can be useful.
 
@@ -523,7 +530,17 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-opoint (point)
 	search-ring-yank-pointer nil
 	isearch-opened-overlays nil
+	isearch-input-method-function input-method-function
+	isearch-input-method-local-p (local-variable-p 'input-method-function)
 	regexp-search-ring-yank-pointer nil)
+
+  ;; We must bypass input method while reading key.  When a user type
+  ;; printable character, appropriate input method is turned on in
+  ;; minibuffer to read multibyte charactes.
+  (or isearch-input-method-local-p
+      (make-local-variable 'input-method-function))
+  (setq input-method-function nil)
+
   (looking-at "")
   (setq isearch-window-configuration
 	(if isearch-slow-terminal-mode (current-window-configuration) nil))
@@ -621,6 +638,10 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 		  (message "Mark saved where search started"))))))
 
   (setq isearch-mode nil)
+  (if isearch-input-method-local-p
+      (setq input-method-function isearch-input-method-function)
+    (kill-local-variable 'input-method-function))
+
   (force-mode-line-update)
 
   (if (and (> (length isearch-string) 0) (not nopush))
