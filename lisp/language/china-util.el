@@ -46,7 +46,7 @@
   (interactive)
   (setup-english-environment)
   (set-language-environment-coding-systems "Chinese-CNS")
-  (setq default-input-method "chinese-quick-cns"))
+  (setq default-input-method "chinese-cns-quick"))
 
 ;; Hz/ZW encoding stuffs
 
