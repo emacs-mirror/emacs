@@ -1034,11 +1034,17 @@ find_entries (file)
       PAS_funcs (inf);
       goto close_and_return;
     }
+  /* If .f or .for, assume it is fortran or nothing.  */
+  if (cp && (streq (cp + 1, "f") || streq (cp + 1, "for")))
+    {
+      PF_funcs (inf);
+      goto close_and_return;
+    }
   /* if not a .c or .h or .y file, try fortran */
-  else if (cp && ((cp[1] != 'c'
-		   && cp[1] != 'h'
-		   && cp[1] != 'y')
-		  || (cp[1] != 0 && cp[2] != 0)))
+  if (cp && ((cp[1] != 'c'
+	      && cp[1] != 'h'
+	      && cp[1] != 'y')
+	     || (cp[1] != 0 && cp[2] != 0)))
     {
       if (PF_funcs (inf) != 0)
 	goto close_and_return;
