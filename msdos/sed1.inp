@@ -52,7 +52,6 @@ ${libsrc}make-doc.exe:\
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
 /^temacs:/s/stamp-oldxmenu//
-s/echo.*buildobj.lst/dj&/
 /^	#/d
 
 # arch-tag: 246725c1-79de-4d03-a080-8f19329fa35e
