@@ -1647,10 +1647,11 @@ characters that separates side-by-side windows.
   The following three functions return size information about a window:
 
 @defun window-height &optional window
-This function returns the number of lines in @var{window}, including its
-mode line.  If @var{window} fills its entire frame, this is typically
-one less than the value of @code{frame-height} on that frame (since the
-last line is always reserved for the minibuffer).
+This function returns the number of lines in @var{window}, including
+its mode line and header line, if any.  If @var{window} fills its
+entire frame except for the echo area, and there is no tool bar, this
+is typically one less than the value of @code{frame-height} on that
+frame.
 
 If @var{window} is @code{nil}, the function uses the selected window.
 
@@ -1668,6 +1669,12 @@ If @var{window} is @code{nil}, the function uses the selected window.
      @result{} 11
 @end group
 @end example
+@end defun
+
+@tindex window-body-height
+@defun window-body-height &optional window
+Like @code{window-height} but the value does not include the 
+mode line (if any) or the header line (if any).
 @end defun
 
 @defun window-width &optional window
