@@ -12,7 +12,7 @@
  * .lw-frame-state: The pool uses lightweight frames as its only
  * type of allocation frame. The lightweight frame state is set to
  * Valid whenever a buffer has a segment and Disabled otherwise.
- * See design.mps.alloc-frame.lw-frame.states.
+ * See <design/alloc-frame/#lw-frame.states>.
  *
  * .lw-frame-null: The frame marker NULL is used as a special value
  * to indicate bottom of stack.
@@ -75,7 +75,7 @@ typedef struct SNCBufStruct *SNCBuf;
 typedef struct SNCBufStruct {
   SegBufStruct segBufStruct;      /* superclass fields must come first */
   Seg topseg;                     /* The segment chain head -- may be NULL */
-  Sig sig;                        /* design.mps.sig */
+  Sig sig;                        /* <design/sig/> */
 } SNCBufStruct;
 
 
@@ -443,7 +443,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
     return res;
 
 found:
-  /* design.mps.seg.field.rankSet.start */
+  /* <design/seg/#field.rankSet.start> */
   if (BufferRankSet(buffer) == RankSetEMPTY)
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetEMPTY);
   else

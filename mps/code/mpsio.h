@@ -4,7 +4,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: For MPS client application developers, MPS developers.
- * .sources: design.mps.io
+ * .sources: <design/io/>
  */
 
 #ifndef mpsio_h

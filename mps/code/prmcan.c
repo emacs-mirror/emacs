@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See design.mps.prot for the generic design of the interface
+ * .design: See <design/prot/> for the generic design of the interface
  * which is implemented in this module including the contracts for the
  * functions.
  *

@@ -5,8 +5,8 @@
  *
  * .purpose: This is the implementation of the root datatype.
  *
- * .design: For design, see design.mps.root and
- * design.mps.root-interface. */
+ * .design: For design, see <design/root/> and
+ * <design/root/>-interface. */
 
 #include "mpm.h"
 
@@ -154,7 +154,7 @@ Bool RootCheck(Root root)
  * RootCreate* set up the appropriate union member, and call the generic
  * create function to do the actual creation
  *
- * See design.mps.root.init for initial value. */
+ * See <design/root/#init> for initial value. */
 
 static Res rootCreate(Root *rootReturn, Arena arena,
                       Rank rank, RootMode mode, RootVar type,
@@ -188,7 +188,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   root->protBase = (Addr)0;
   root->protLimit = (Addr)0;
 
-  /* See design.mps.arena.root-ring */
+  /* See <design/arena/#root-ring> */
   RingInit(&root->arenaRing);
 
   root->serial = globals->rootSerial;

@@ -6,7 +6,7 @@
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.
  *
- * .source: design.mps.splay
+ * .source: <design/splay/>
  *
  * .note.stack: It's important that the MPS have a bounded stack
  * size, and this is a problem for tree algorithms.  Basically,
@@ -108,7 +108,7 @@ static void SplayNodeUpdate(SplayTree tree, SplayNode node)
  * Link the current top node into the left child of the right tree,
  * leaving the top node as the left child of the old top node.
  *
- * See design.mps.splay.impl.link.right.
+ * See <design/splay/#impl.link.right>.
  */
 
 static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
@@ -135,7 +135,7 @@ static void SplayLinkRight(SplayNode *topIO, SplayNode *rightIO)
  * Link the current top node into the right child of the left tree,
  * leaving the top node as the right child of the old top node.
  *
- * See design.mps.splay.impl.link.left.
+ * See <design/splay/#impl.link.left>.
  */
 
 static void SplayLinkLeft(SplayNode *topIO, SplayNode *leftIO) {
@@ -161,7 +161,7 @@ static void SplayLinkLeft(SplayNode *topIO, SplayNode *leftIO) {
  * Rotates node, right child of node, and left child of right
  * child of node, leftwards in the order stated.
  *
- * See design.mps.splay.impl.rotate.left.
+ * See <design/splay/#impl.rotate.left>.
  */
 
 static void SplayRotateLeft(SplayNode *nodeIO, SplayTree tree) {
@@ -192,7 +192,7 @@ static void SplayRotateLeft(SplayNode *nodeIO, SplayTree tree) {
  * Rotates node, left child of node, and right child of left
  * child of node, leftwards in the order stated.
  *
- * See design.mps.splay.impl.rotate.right.
+ * See <design/splay/#impl.rotate.right>.
  */
 
 static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
@@ -228,7 +228,7 @@ static void SplayRotateRight(SplayNode *nodeIO, SplayTree tree) {
  * left and right trees and their last and first nodes respectively
  * will have out of date client properties.
  *
- * See design.mps.splay.impl.assemble.
+ * See <design/splay/#impl.assemble>.
  */
 
 static void SplayAssemble(SplayTree tree, SplayNode top,
@@ -317,7 +317,7 @@ static void SplayAssemble(SplayTree tree, SplayNode top,
  * Returns whether key was found.  This is the real logic behind
  * splay trees.
  *
- * See design.mps.splay.impl.splay.
+ * See <design/splay/#impl.splay>.
  */
 
 static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree,
@@ -464,8 +464,8 @@ assemble:
 
 /* SplayTreeInsert -- Insert a node into a splay tree
  *
- * See design.mps.splay.function.splay.tree.insert and
- * design.mps.splay.impl.insert.
+ * See <design/splay/#function.splay.tree.insert> and
+ * <design/splay/#impl.insert>.
  */
 
 Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key) {
@@ -516,8 +516,8 @@ Res SplayTreeInsert(SplayTree tree, SplayNode node, void *key) {
 
 /* SplayTreeDelete -- Delete a node from a splay tree
  *
- * See design.mps.splay.function.splay.tree.delete and
- * design.mps.splay.impl.delete.
+ * See <design/splay/#function.splay.tree.delete> and
+ * <design/splay/#impl.delete>.
  */
 
 Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key) {
@@ -558,8 +558,8 @@ Res SplayTreeDelete(SplayTree tree, SplayNode node, void *key) {
 
 /* SplayTreeSearch -- Search for a node in a splay tree matching a key
  *
- * See design.mps.splay.function.splay.tree.search and
- * design.mps.splay.impl.search.
+ * See <design/splay/#function.splay.tree.search> and
+ * <design/splay/#impl.search>.
  */
 
 
@@ -657,8 +657,8 @@ static SplayNode SplayTreeSuccessor(SplayTree tree, void *key) {
  *
  * Search for the two nodes in a splay tree neighbouring a key.
  *
- * See design.mps.splay.function.splay.tree.neighbours and
- * design.mps.splay.impl.neighbours.
+ * See <design/splay/#function.splay.tree.neighbours> and
+ * <design/splay/#impl.neighbours>.
  */
 
 
@@ -702,12 +702,12 @@ Res SplayTreeNeighbours(SplayNode *leftReturn, SplayNode *rightReturn,
  * SplayTreeFirst receives a key that must precede all
  * nodes in the tree.  It returns NULL if the tree is empty. 
  * Otherwise, it splays the tree to the first node, and returns the
- * new root.  See design.mps.splay.function.splay.tree.first.
+ * new root.  See <design/splay/#function.splay.tree.first>.
  *
  * SplayTreeNext takes a tree and splays it to the successor of the
  * old root, and returns the new root.  Returns NULL is there are
  * no successors.  It takes a key for the old root.  See
- * design.mps.splay.function.splay.tree.next.
+ * <design/splay/#function.splay.tree.next>.
  */
 
 SplayNode SplayTreeFirst(SplayTree tree, void *zeroKey) {
@@ -990,7 +990,7 @@ void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key)
 
 /* SplayTreeDescribe -- Describe a splay tree
  *
- * See design.mps.splay.function.splay.tree.describe.
+ * See <design/splay/#function.splay.tree.describe>.
  */
 
 Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,

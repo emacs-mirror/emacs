@@ -136,7 +136,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
   /* fencepost init */
   /* @@@@ This parses a user argument, options, so it should really */
   /* go through the MPS interface.  The template needs to be copied */
-  /* into Addr memory, to avoid breaking design.mps.type.addr.use. */
+  /* into Addr memory, to avoid breaking <design/type/#addr.use>. */
   debug->fenceSize = options->fenceSize;
   if (debug->fenceSize != 0) {
     if (debug->fenceSize % PoolAlignment(pool) != 0) {
@@ -413,7 +413,7 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 {
   SplayNode node;
   PoolDebugMixin debug;
-  Addr dummy = NULL; /* Breaks design.mps.type.addr.use, but it's */
+  Addr dummy = NULL; /* Breaks <design/type/#addr.use>, but it's */
                      /* only temporary until SplayTreeFirst is fixed. */
 
   AVERT(Pool, pool);
@@ -481,7 +481,7 @@ void mps_pool_check_fenceposts(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
  
-  /* CHECKT not AVERT, see design.mps.interface.c.check.space */
+  /* CHECKT not AVERT, see <design/interface-c/#check.space> */
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 

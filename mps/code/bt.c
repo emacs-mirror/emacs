@@ -9,7 +9,7 @@
  *
  * DESIGN
  *
- * .design: see design.mps.bt
+ * .design: see <design/bt/>
  */
 
 #include "mpm.h"
@@ -168,7 +168,7 @@ SRCID(bt, "$Id$");
 
 /* BTCreate -- allocate a BT from the control pool
  *
- * See design.mps.bt.if.create
+ * See <design/bt/#if.create>
  */
 
 Res BTCreate(BT *btReturn, Arena arena, Count length)
@@ -194,7 +194,7 @@ Res BTCreate(BT *btReturn, Arena arena, Count length)
 
 /* BTDestroy -- free a BT to the control pool.
  *
- * See design.mps.bt.if.destroy
+ * See <design/bt/#if.destroy>
  */
 
 void BTDestroy(BT bt, Arena arena, Count length)
@@ -223,7 +223,7 @@ static Bool BTCheck(BT bt)
 
 /* BTSize -- return the size of a BT
  *
- * See design.mps.bt.fun.size
+ * See <design/bt/#fun.size>
  */
 
 size_t (BTSize)(unsigned long n)
@@ -237,7 +237,7 @@ size_t (BTSize)(unsigned long n)
 
 /* BTGet -- get a bit from a BT
  *
- * See design.mps.bt.fun.get
+ * See <design/bt/#fun.get>
  */
 
 Bool (BTGet)(BT t, Index i)
@@ -252,7 +252,7 @@ Bool (BTGet)(BT t, Index i)
 
 /* BTSet -- set a bit in a BT
  *
- * See design.mps.bt.fun.set
+ * See <design/bt/#fun.set>
  */
 
 void (BTSet)(BT t, Index i)
@@ -267,7 +267,7 @@ void (BTSet)(BT t, Index i)
 
 /* BTRes -- reset a bit in a BT
  *
- * design.mps.bt.fun.res
+ * <design/bt/#fun.res>
  */
 
 void (BTRes)(BT t, Index i)
@@ -282,7 +282,7 @@ void (BTRes)(BT t, Index i)
 
 /* BTSetRange -- set a range of bits in a BT
  *
- * design.mps.bt.fun.set-range
+ * <design/bt/#fun.set-range>
  */
 
 void BTSetRange(BT t, Index base, Index limit)
@@ -304,7 +304,7 @@ void BTSetRange(BT t, Index base, Index limit)
 
 /* BTIsResRange -- test whether a range of bits is all reset
  *
- * See design.mps.bt.fun.is-reset-range.
+ * See <design/bt/#fun.is-reset-range>.
  */
 
 Bool BTIsResRange(BT bt, Index base, Index limit)
@@ -328,7 +328,7 @@ Bool BTIsResRange(BT bt, Index base, Index limit)
 
 /* BTIsSetRange -- test whether a range of bits is all set
  *
- * See design.mps.bt.fun.is-set-range.
+ * See <design/bt/#fun.is-set-range>.
  */
 
 Bool BTIsSetRange(BT bt, Index base, Index limit)
@@ -356,7 +356,7 @@ Bool BTIsSetRange(BT bt, Index base, Index limit)
 
 /* BTResRange -- reset a range of bits in a BT
  *
- * design.mps.bt.fun.res-range
+ * <design/bt/#fun.res-range>
  */
 
 void BTResRange(BT t, Index base, Index limit)
@@ -609,7 +609,7 @@ btFindResHighLabel:; \
  *
  * Starts searching at the low end of the search range.
  *
- * See design.mps.bt.fun.find-res-range.
+ * See <design/bt/#fun.find-res-range>.
  */
 
 static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
@@ -696,7 +696,7 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
  *
  * Starts searching at the high end of the search range.
  *
- * See design.mps.bt.fun.find-res-range.
+ * See <design/bt/#fun.find-res-range>.
  */
 
 static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
@@ -789,7 +789,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
 
 /* BTFindLongResRange -- find long range of reset bits in a bit table
  *
- * See design.mps.bt.fun.find-long-res-range.
+ * See <design/bt/#fun.find-long-res-range>.
  */
 
 Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
@@ -807,7 +807,7 @@ Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
 
 /* BTFindLongResRangeHigh -- find long range of reset bits in a bit table
  *
- * See design.mps.bt.fun.find-long-res-range-high.
+ * See <design/bt/#fun.find-long-res-range-high>.
  */
 
 Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
@@ -825,7 +825,7 @@ Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
 
 /* BTFindShortResRange -- find short range of reset bits in a bit table
  *
- * See design.mps.bt.fun.find-short-res-range.
+ * See <design/bt/#fun.find-short-res-range>.
  */
 
 Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
@@ -844,7 +844,7 @@ Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
  *
  * Starts looking from the top of the search range.
  *
- * See design.mps.bt.fun.find-short-res-range-high.
+ * See <design/bt/#fun.find-short-res-range-high>.
  */
 
 Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
@@ -862,7 +862,7 @@ Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
 
 /* BTRangesSame -- check that a range of bits in two BTs are the same.
  *
- * See design.mps.bt.if.ranges-same
+ * See <design/bt/#if.ranges-same>
  */
 
 Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
@@ -898,7 +898,7 @@ Bool BTRangesSame(BT comparand, BT comparator, Index base, Index limit)
 /* BTCopyInvertRange -- copy a range of bits from one BT to another,
  * inverting them as you go.
  *
- * See design.mps.bt.if.copy-invert-range
+ * See <design/bt/#if.copy-invert-range>
  */
 
 void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
@@ -933,7 +933,7 @@ void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit)
 
 /* BTCopyRange -- copy a range of bits from one BT to another
  *
- * See design.mps.bt.if.copy-range
+ * See <design/bt/#if.copy-range>
  */
 
 void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit)
@@ -973,7 +973,7 @@ void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit)
  * may differ for each range. We could try to be smart about
  * detecting similar alignment - but we don't.
  *
- * See design.mps.bt.if.copy-offset-range
+ * See <design/bt/#if.copy-offset-range>
  */
 
 void BTCopyOffsetRange(BT fromBT, BT toBT,

@@ -94,11 +94,11 @@ extern void (RingRemove)(Ring old);
 extern Ring (RingNext)(Ring ring);
 #define RingNext(ring)  ((ring)->next)
 
-/* .ring.elt: See design.mps.ring.elt */
+/* .ring.elt: See <design/ring/#elt> */
 #define RING_ELT(type, field, node) \
    ((type)((char *)(node) - (size_t)(&((type)0)->field)))
 
-/* .ring.for: See design.mps.ring.for */
+/* .ring.for: See <design/ring/#for> */
 #define RING_FOR(node, ring, next) \
   for(node = RingNext(ring), next = RingNext(node); \
       node != (ring); \

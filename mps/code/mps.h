@@ -4,7 +4,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: customers, MPS developers.
- * .sources: design.mps.interface.c.
+ * .sources: <design/interface-c/>.
  */
 
 #ifndef mps_h

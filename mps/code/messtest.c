@@ -35,7 +35,7 @@ static MessageClassStruct DFMessageClassStruct = {
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
-  MessageClassSig              /* design.mps.message.class.sig.double */
+  MessageClassSig              /* <design/message/#class.sig.double> */
 };
 
 
@@ -49,7 +49,7 @@ static MessageClassStruct DGCMessageClassStruct = {
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
-  MessageClassSig              /* design.mps.message.class.sig.double */
+  MessageClassSig              /* <design/message/#class.sig.double> */
 };
 
 

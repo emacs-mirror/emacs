@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.poolmrg.
+ * .design: See <design/poolmrg/>.
  *
  * NOTES
  *
@@ -17,7 +17,7 @@
  *
  * TRANSGRESSIONS
  *
- * .addr.void-star: Breaks design.mps.type.addr.use all over the place,
+ * .addr.void-star: Breaks <design/type/#addr.use> all over the place,
  * accessing the segments acquired from SegAlloc with C pointers.  It
  * would not be practical to use ArenaPeek/Poke everywhere.  Blocks
  * acquired from ControlAlloc must be directly accessible from C, or else
@@ -110,10 +110,10 @@ static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
 
 typedef struct MRGStruct {
   PoolStruct poolStruct;    /* generic pool structure */
-  RingStruct entryRing;     /* design.mps.poolmrg.poolstruct.entry */
-  RingStruct freeRing;      /* design.mps.poolmrg.poolstruct.free */
-  RingStruct refRing;       /* design.mps.poolmrg.poolstruct.refring */
-  Size extendBy;            /* design.mps.poolmrg.extend */
+  RingStruct entryRing;     /* <design/poolmrg/#poolstruct.entry> */
+  RingStruct freeRing;      /* <design/poolmrg/#poolstruct.free> */
+  RingStruct refRing;       /* <design/poolmrg/#poolstruct.refring> */
+  Size extendBy;            /* <design/poolmrg/#extend> */
   Sig sig;                  /* impl.h.mps.sig */
 } MRGStruct;
 
@@ -144,14 +144,14 @@ typedef struct MRGRefSegStruct *MRGRefSeg;
 
 typedef struct MRGLinkSegStruct {
   SegStruct segStruct;      /* superclass fields must come first */
-  MRGRefSeg refSeg;         /* design.mps.poolmrg.mrgseg.link.refseg */
+  MRGRefSeg refSeg;         /* <design/poolmrg/#mrgseg.link.refseg> */
   Sig sig;                  /* impl.h.misc.sig */
 } MRGLinkSegStruct;
 
 typedef struct MRGRefSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
-  RingStruct mrgRing;       /* design.mps.poolmrg.mrgseg.ref.segring */
-  MRGLinkSeg linkSeg;       /* design.mps.poolmrg.mrgseg.ref.linkseg */
+  RingStruct mrgRing;       /* <design/poolmrg/#mrgseg.ref.segring> */
+  MRGLinkSeg linkSeg;       /* <design/poolmrg/#mrgseg.ref.linkseg> */
   Sig sig;                  /* impl.h.misc.sig */
 } MRGRefSegStruct;
 
@@ -174,7 +174,7 @@ static SegClass MRGRefSegClassGet(void);
  *
  * .link.nullref: During initialization of a link segment the refSeg
  * field will be NULL. This will be initialized when the reference
- * segment is initialized.  See design.mps.poolmrg.mrgseg.link.refseg.
+ * segment is initialized.  See <design/poolmrg/#mrgseg.link.refseg>.
  */
 static Bool MRGLinkSegCheck(MRGLinkSeg linkseg)
 {
@@ -268,7 +268,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   if (res != ResOK)
     return res;
 
-  /* design.mps.seg.field.rankset.start, .improve.rank */
+  /* <design/seg/#field.rankset.start>, .improve.rank */
   SegSetRankSet(seg, RankSetSingle(RankFINAL));
 
   RingInit(&refseg->mrgRing);
@@ -321,7 +321,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
 }
 
 
-/* design.mps.poolmrg.guardian.assoc */
+/* <design/poolmrg/#guardian.assoc> */
 
 #define refPartOfIndex(refseg, index) \
   ((RefPart)SegBase(RefSeg2Seg(refseg)) + (index))
@@ -387,7 +387,7 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
   RingInit(&link->the.linkRing);
   link->state = MRGGuardianFREE;
   RingAppend(&mrg->freeRing, &link->the.linkRing);
-  /* design.mps.poolmrg.free.overwrite */
+  /* <design/poolmrg/#free.overwrite> */
   MRGRefPartSetRef(PoolArena(&mrg->poolStruct), refPart, 0);
 }
 
@@ -465,7 +465,7 @@ static MessageClassStruct MRGMessageClassStruct = {
   MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
-  MessageClassSig              /* design.mps.message.class.sig.double */
+  MessageClassSig              /* <design/message/#class.sig.double> */
 };
 
 
@@ -682,7 +682,7 @@ static void MRGFinish(Pool pool)
 
   mrg->sig = SigInvalid;
   RingFinish(&mrg->refRing);
-  /* design.mps.poolmrg.trans.no-finish */
+  /* <design/poolmrg/#trans.no-finish> */
 }
 
 
@@ -705,7 +705,7 @@ Res MRGRegister(Pool pool, Ref ref)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  /* design.mps.poolmrg.alloc.grow */
+  /* <design/poolmrg/#alloc.grow> */
   if (RingIsSingle(&mrg->freeRing)) {
     /* .refseg.useless: refseg isn't used */
     /* @@@@ Should the client be able to use the reservoir for this? */
@@ -718,12 +718,12 @@ Res MRGRegister(Pool pool, Ref ref)
 
   link = linkOfRing(freeNode);
   AVER(link->state == MRGGuardianFREE);
-  /* design.mps.poolmrg.alloc.pop */
+  /* <design/poolmrg/#alloc.pop> */
   RingRemove(freeNode);
   link->state = MRGGuardianPREFINAL;
   RingAppend(&mrg->entryRing, freeNode);
 
-  /* design.mps.poolmrg.guardian.ref.alloc */
+  /* <design/poolmrg/#guardian.ref.alloc> */
   refPart = MRGRefPartOfLink(link, arena);
   MRGRefPartSetRef(arena, refPart, ref);
 
@@ -752,7 +752,7 @@ static void MRGFree(Pool pool, Addr old, Size size)
   arena = PoolArena(pool);
   AVERT(Arena, arena);
 
-  /* design.mps.poolmrg.guardian.ref.free */
+  /* <design/poolmrg/#guardian.ref.free> */
   link = MRGLinkOfRefPart(refPart, arena);
   AVER(link->state == MRGGuardianPOSTFINAL);
 

@@ -32,7 +32,7 @@ extern Bool MPMCheck(void);
 
 /* Miscellaneous Checks -- see impl.c.mpm */
 
-/* design.mps.type.bool.check */
+/* <design/type/#bool.check> */
 #define BoolCheck(b) ((unsigned)(b) <= 1)
 
 extern Bool FunCheck(Fun f);
@@ -100,7 +100,7 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 
 extern Addr (AddrSet)(Addr target, Byte value, Size size);
 /* This is one of the places that implements Addr, so it's allowed to */
-/* convert to void *, see design.mps.type.addr.ops.mem. */
+/* convert to void *, see <design/type/#addr.ops.mem>. */
 #define AddrSet(target, value, size) \
   mps_lib_memset(target, (int)(value), size)
 
@@ -139,7 +139,7 @@ extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
 
 
-/* Formatted Output -- see design.mps.writef, impl.c.mpm */
+/* Formatted Output -- see <design/writef/>, impl.c.mpm */
 
 extern Res WriteF(mps_lib_FILE *stream, ...);
 
@@ -151,33 +151,33 @@ extern size_t StringLength(const char *s);
 
 /* Version Determination
  *
- * See design.mps.version-library.  */
+ * See <design/version/>-library.  */
 
 extern char *MPSVersion(void);
 
 
-/* Bit Table Interface -- see design.mps.bt.if.* for doc */
+/* Bit Table Interface -- see <design/bt/#if>.* for doc */
 
-/* design.mps.bt.if.size */
+/* <design/bt/#if.size> */
 extern size_t (BTSize)(unsigned long length);
 #define BTSize(n) (((n) + MPS_WORD_WIDTH-1) / MPS_WORD_WIDTH * sizeof(Word))
 
 
-/* design.mps.bt.if.get */
+/* <design/bt/#if.get> */
 extern Bool (BTGet)(BT bt, Index index);
 #define BTGet(a, i) \
   ((Bool)(((a)[((i) >> MPS_WORD_SHIFT)] \
            >> ((i) & ~((Word)-1 << MPS_WORD_SHIFT))) \
           & (Word)1))
 
-/* design.mps.bt.if.set */
+/* <design/bt/#if.set> */
 extern void (BTSet)(BT bt, Index index);
 #define BTSet(a, i) \
   BEGIN \
     (a)[((i)>>MPS_WORD_SHIFT)] |= (Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT)); \
   END
 
-/* design.mps.bt.if.res */
+/* <design/bt/#if.res> */
 extern void (BTRes)(BT bt, Index index);
 #define BTRes(a, i) \
   BEGIN \
@@ -323,7 +323,7 @@ extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
 
 /* DEFINE_POOL_CLASS
  *
- * Convenience macro -- see design.mps.protocol.int.define-special. */
+ * Convenience macro -- see <design/protocol/#int.define-special>. */
 
 #define DEFINE_POOL_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, PoolClass, var)
@@ -332,7 +332,7 @@ extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
   ((PoolClass)SUPERCLASS(className))
 
 
-/* Message Interface -- see design.mps.message */
+/* Message Interface -- see <design/message/> */
 
 extern Bool MessageCheck(Message message);
 extern Bool MessageClassCheck(MessageClass class);
@@ -467,7 +467,7 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 /* DEFINE_ARENA_CLASS
  *
- * Convenience macro -- see design.mps.protocol.int.define-special. */
+ * Convenience macro -- see <design/protocol/#int.define-special>. */
 
 #define DEFINE_ARENA_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, ArenaClass, var)
@@ -868,12 +868,12 @@ extern void (ShieldFlush)(Arena arena);
 
 /* Protection Interface
  *
- * See design.mps.prot for the design of the generic interface including
+ * See <design/prot/> for the design of the generic interface including
  * the contracts for these functions.
  *
  * This interface has several different implementations, typically one
  * per platform, see impl.c.prot* for the various implementations, and
- * design.mps.prot* for the corresponding designs. */
+ * <design/prot/>* for the corresponding designs. */
 
 extern void ProtSetup(void);
 

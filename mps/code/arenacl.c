@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See design.mps.arena.client.
+ * .design: See <design/arena/#client>.
  *
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
@@ -25,7 +25,7 @@ SRCID(arenacl, "$Id$");
 
 typedef struct ClientArenaStruct {
   ArenaStruct arenaStruct; /* generic arena structure */
-  Sig sig;                 /* design.mps.sig */
+  Sig sig;                 /* <design/sig/> */
 } ClientArenaStruct;
 typedef struct ClientArenaStruct *ClientArena;
 
@@ -43,7 +43,7 @@ typedef struct ClientChunkStruct {
   ChunkStruct chunkStruct;     /* generic chunk */
   Size freePages;              /* number of free pages in chunk */
   Addr pageBase;               /* base of first managed page in chunk */
-  Sig sig;                     /* design.mps.sig */
+  Sig sig;                     /* <design/sig/> */
 } ClientChunkStruct;
 
 #define ClientChunk2Chunk(clchunk) (&(clchunk)->chunkStruct)
@@ -110,7 +110,7 @@ static Res clientChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
     goto failBootInit;
 
   /* Allocate the chunk. */
-  /* See design.mps.arena.@@@@ */
+  /* See <design/arena/>.@@@@ */
   res = BootAlloc(&p, boot, sizeof(ClientChunkStruct), MPS_PF_ALIGN);
   if (res != ResOK)
     goto failChunkAlloc;
@@ -340,7 +340,7 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
 
   /* Check commit limit.  Note that if there are multiple reasons */
   /* for failing the allocation we attempt to return other result codes */
-  /* in preference to ResCOMMIT_LIMIT.  See design.mps.arena.commit-limit */
+  /* in preference to ResCOMMIT_LIMIT.  See <design/arena/#commit-limit> */
   if (ArenaCommitted(arena) + pages * ChunkPageSize(chunk)
       > arena->commitLimit) {
     return ResCOMMIT_LIMIT;
@@ -382,7 +382,7 @@ static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
   /* All chunks have same pageSize. */
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
   /* NULL is used as a discriminator (see */
-  /* design.mps.arenavm.table.disc), therefore the real pool */
+  /* <design/arenavm/#table.disc>), therefore the real pool */
   /* must be non-NULL. */
   AVER(pool != NULL);
 

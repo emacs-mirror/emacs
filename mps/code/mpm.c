@@ -6,7 +6,7 @@
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
  *
- * .sources: design.mps.writef */
+ * .sources: <design/writef/> */
 
 #include "mpm.h"
 #include <stdarg.h>
@@ -393,7 +393,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
 
 /* WriteF -- write formatted output
  *
- * .writef.des: See design.mps.writef, also design.mps.lib
+ * .writef.des: See <design/writef/>, also <design/lib/>
  *
  * .writef.p: There is an assumption that void * fits in Word in
  * the case of $P, and unsigned long for $U and $B.  This is checked in

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .source: design.mps.telemetry
+ * .source: <design/telemetry/>
  *
  * .desc: This file declares relationships that define the various
  * event types.  It is intended to be used with clever definitions

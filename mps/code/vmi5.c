@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * Design: design.mps.vm
+ * Design: <design/vm/>
  *
  * This is the implementation of the virtual memory mapping interface
  * (vm.h) for IRIX 5.x.
@@ -60,7 +60,7 @@ SRCID(vmi5, "$Id$");
 
 /* The name zero_fd is a transgression, see .fildes.name. */
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   int zero_fd;                  /* fildes for mmap */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */

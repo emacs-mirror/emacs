@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: design.mps.vm, design.mps.vmo1
+ * .design: <design/vm/>, <design/vmo1/>
  *
  * .status: A bit hacky, but probably working.
  *
@@ -61,7 +61,7 @@ extern int getpagesize(void);
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */
@@ -269,7 +269,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
 /* VMUnmap -- unmap the given range of memory
  *
- * See design.mps.vmo1.fun.unmap.
+ * See <design/vmo1/#fun.unmap>.
  */
 
 void VMUnmap(VM vm, Addr base, Addr limit)
@@ -287,7 +287,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   size = AddrOffset(base, limit);
 
-  /* see design.mps.vmo1.fun.unmap.offset */
+  /* see <design/vmo1/#fun.unmap.offset> */
   addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_FILE | MAP_SHARED | MAP_FIXED,
               vm->none_fd, (off_t)AddrOffset(vm->base, base));

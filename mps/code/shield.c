@@ -101,7 +101,7 @@ void (ShieldResume)(Arena arena)
 /* This ensures actual prot mode does not include mode */
 static void protLower(Arena arena, Seg seg, AccessSet mode)
 {
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   UNUSED(arena);
   AVERT_CRITICAL(Seg, seg);
@@ -153,7 +153,7 @@ static void flush(Arena arena, Size i)
  */
 static void cache(Arena arena, Seg seg)
 {
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Seg, seg);
 
@@ -271,13 +271,13 @@ void (ShieldLeave)(Arena arena)
 void (ShieldExpose)(Arena arena, Seg seg)
 {
   AccessSet mode = AccessREAD | AccessWRITE;
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   AVER_CRITICAL(arena->insideShield);
 
   SegSetDepth(seg, SegDepth(seg) + 1);
   ++arena->shDepth;
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVER_CRITICAL(arena->shDepth > 0);
   AVER_CRITICAL(SegDepth(seg) > 0);
   if (SegPM(seg) & mode)
@@ -290,7 +290,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
 
 void (ShieldCover)(Arena arena, Seg seg)
 {
-  /* design.mps.trace.fix.noaver */
+  /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(SegPM(seg) == AccessSetEMPTY);

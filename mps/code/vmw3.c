@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See design.mps.vm.
+ * .design: See <design/vm/>.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for Win32s.
@@ -63,7 +63,7 @@ SRCID(vmw3, "$Id$");
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */

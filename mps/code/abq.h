@@ -5,7 +5,7 @@
  *
  * .purpose: A FIFO queue substrate for impl.c.poolmv2
  *
- * .source: design.mps.poolmv2
+ * .source: <design/poolmv2/>
  */
 
 #ifndef abq_h

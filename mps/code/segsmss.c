@@ -51,7 +51,7 @@ typedef struct AMSTStruct {
   Count badMerges;          /* count of unsuccessful segment merges */
   Count bsplits;            /* count of buffered segment splits */
   Count bmerges;            /* count of buffered segment merges */
-  Sig sig;                  /* design.mps.pool.outer-structure.sig */
+  Sig sig;                  /* <design/pool/#outer-structure.sig> */
 } AMSTStruct;
 
 typedef struct AMSTStruct *AMST;
@@ -92,7 +92,7 @@ typedef struct AMSTSegStruct {
   AMSSegStruct amsSegStruct; /* superclass fields must come first */
   AMSTSeg next;          /* mergeable next segment, or NULL */
   AMSTSeg prev;          /* mergeable prev segment, or NULL */
-  Sig sig;               /* design.mps.pool.outer-structure.sig */
+  Sig sig;               /* <design/pool/#outer-structure.sig> */
 } AMSTSegStruct;
 
 
@@ -173,7 +173,7 @@ static void amstSegFinish(Seg seg)
  * .fail: Test proper handling of the most complex failure cases
  * by deliberately detecting failure sometimes after calling the
  * next method. We handle the error by calling the anti-method.
- * This isn't strictly safe (see design.mps.poolams.split-merge.fail).
+ * This isn't strictly safe (see <design/poolams/#split-merge.fail>).
  * But we assume here that we won't run out of memory when calling the
  * anti-method.
  */

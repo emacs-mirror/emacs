@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: design.mps.vm
+ * .design: <design/vm/>
  *
  * .details: mmap(2) is used to reserve address space by creating a
  * mapping to the swap with page access none.  mmap(2) is used to map
@@ -46,7 +46,7 @@ SRCID(vmxc, "$Id$");
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */

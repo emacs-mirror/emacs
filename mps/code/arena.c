@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .sources: design.mps.arena is the main design document.  */
+ * .sources: <design/arena/> is the main design document.  */
 
 #include "tract.h"
 #include "poolmv.h"
@@ -32,7 +32,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 /* AbstractArenaClass  -- The abstact arena class definition
  *
  * .null: Most abstract class methods are set to NULL.  See
- * design.mps.arena.class.abstract.null.  */
+ * <design/arena/#class.abstract.null>.  */
 
 typedef ArenaClassStruct AbstractArenaClassStruct;
 
@@ -91,7 +91,7 @@ Bool ArenaCheck(Arena arena)
   CHECKD(ArenaClass, arena->class);
 
   CHECKL(BoolCheck(arena->poolReady));
-  if (arena->poolReady) { /* design.mps.arena.pool.ready */
+  if (arena->poolReady) { /* <design/arena/#pool.ready> */
     CHECKD(MV, &arena->controlPoolStruct);
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
@@ -154,7 +154,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
   arena->alignment = 1 << ARENA_ZONESHIFT;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
-  arena->poolReady = FALSE;     /* design.mps.arena.pool.ready */
+  arena->poolReady = FALSE;     /* <design/arena/#pool.ready> */
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
 
@@ -171,7 +171,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
 
   arena->sig = ArenaSig;
 
-  /* initialize the reservoir, design.mps.reservoir */
+  /* initialize the reservoir, <design/reservoir/> */
   res = ReservoirInit(&arena->reservoirStruct, arena);
   if (res != ResOK)
     goto failReservoirInit;
@@ -282,7 +282,7 @@ Res ControlInit(Arena arena)
                  ARENA_CONTROL_MAXSIZE);
   if (res != ResOK)
     return res;
-  arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
+  arena->poolReady = TRUE;      /* <design/arena/#pool.ready> */
   return ResOK;
 }
 
@@ -393,7 +393,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
  * control pool, which is an MV pool embedded in the arena itself.
  *
  * .controlalloc.addr: In implementations where Addr is not compatible
- * with void* (design.mps.type.addr.use), ControlAlloc must take care of
+ * with void* (<design/type/#addr.use>), ControlAlloc must take care of
  * allocating so that the block can be addressed with a void*.  */
 
 Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
@@ -474,7 +474,7 @@ Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,
   return res;
 
 goodAlloc:
-  /* cache the tract - design.mps.arena.tract.cache */
+  /* cache the tract - <design/arena/#tract.cache> */
   arena->lastTract = baseTract;
   arena->lastTractBase = base;
 
@@ -503,7 +503,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
   AVER(AddrIsAligned(base, arena->alignment));
   AVER(SizeIsAligned(size, arena->alignment));
 
-  /* uncache the tract if in range - design.mps.arena.tract.uncache */
+  /* uncache the tract if in range - <design/arena/#tract.uncache> */
   limit = AddrAdd(base, size);
   if ((arena->lastTractBase >= base) && (arena->lastTractBase < limit)) {
     arena->lastTract = NULL;

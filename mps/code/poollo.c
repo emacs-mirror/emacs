@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.poollo.  This is a leaf pool class.
+ * .design: See <design/poollo/>.  This is a leaf pool class.
  */
 
 #include "mpsclo.h"

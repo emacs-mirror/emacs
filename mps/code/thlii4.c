@@ -52,7 +52,7 @@ SRCID(thlii4, "$Id$");
 /* ThreadStruct -- thread desriptor */
 
 typedef struct ThreadStruct {    /* PThreads thread structure */
-  Sig sig;                       /* design.mps.sig */
+  Sig sig;                       /* <design/sig/> */
   Serial serial;                 /* from arena->threadSerial */
   Arena arena;                   /* owning arena */
   RingStruct arenaRing;          /* threads attached to arena */
@@ -218,7 +218,7 @@ Thread ThreadRingThread(Ring threadRing)
 
 /* ThreadArena -- get the arena of a thread
  *
- * Must be thread-safe.  See design.mps.interface.c.thread-safety.
+ * Must be thread-safe.  See <design/interface-c/#thread-safety>.
  */
 
 Arena ThreadArena(Thread thread)

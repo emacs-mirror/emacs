@@ -8,7 +8,7 @@
  * policy.  Provision is made to allocate in reverse.  This pool
  * can allocate across segment boundaries.
  *
- * .design: design.mps.poolmvff
+ * .design: <design/poolmvff/>
  *
  *
  * TRANSGRESSIONS
@@ -32,7 +32,7 @@ extern PoolClass PoolClassMVFF(void);
 /* MVFFStruct -- MVFF (Manual Variable First Fit) pool outer structure
  *
  * The signature is placed at the end, see
- * design.mps.pool.outer-structure.sig
+ * <design/pool/#outer-structure.sig>
  */
 
 #define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
@@ -49,7 +49,7 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
   CBSStruct cbsStruct;          /* free list */
   Bool firstFit;                /* as opposed to last fit */
   Bool slotHigh;                /* prefers high part of large block */
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
 } MVFFStruct;
 
 
@@ -188,7 +188,7 @@ static Res MVFFAddSeg(Seg *segReturn,
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
   /* Use extendBy unless it's too small (see */
-  /* design.mps.poolmvff.design.seg-size). */
+  /* <design/poolmvff/#design.seg-size>). */
   if (size <= mvff->extendBy)
     segSize = mvff->extendBy;
   else
@@ -200,7 +200,7 @@ static Res MVFFAddSeg(Seg *segReturn,
                  withReservoirPermit);
   if (res != ResOK) {
     /* try again for a seg just large enough for object */
-    /* see design.mps.poolmvff.design.seg-fail */
+    /* see <design/poolmvff/#design.seg-fail> */
     segSize = SizeAlignUp(size, align);
     res = SegAlloc(&seg, SegClassGet(), mvff->segPref, segSize, pool,
                    withReservoirPermit);
@@ -420,7 +420,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   AVERT(Pool, pool);
 
   /* .arg: class-specific additional arguments; see */
-  /* design.mps.poolmvff.method.init */
+  /* <design/poolmvff/#method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the segPref. */
   extendBy = va_arg(arg, Size);
@@ -604,7 +604,7 @@ mps_class_t mps_class_mvff_debug(void)
 }
 
 
-/* Total free bytes. See design.mps.poolmvff.design.arena-enter */
+/* Total free bytes. See <design/poolmvff/#design.arena-enter> */
 
 size_t mps_mvff_free_size(mps_pool_t mps_pool)
 {
@@ -619,7 +619,7 @@ size_t mps_mvff_free_size(mps_pool_t mps_pool)
   return (size_t)mvff->free;
 }
 
-/* Total owned bytes. See design.mps.poolmvff.design.arena-enter */
+/* Total owned bytes. See <design/poolmvff/#design.arena-enter> */
 
 size_t mps_mvff_size(mps_pool_t mps_pool)
 {

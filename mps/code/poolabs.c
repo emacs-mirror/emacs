@@ -181,7 +181,7 @@ DEFINE_CLASS(AbstractCollectPoolClass, class)
 
 /* PoolNo*, PoolTriv* -- Trivial and non-methods for Pool Classes
  *
- * See design.mps.pool.no and design.mps.pool.triv
+ * See <design/pool/#no> and <design/pool/#triv>
  */
 
 

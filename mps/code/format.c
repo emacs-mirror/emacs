@@ -122,7 +122,7 @@ void FormatDestroy(Format format)
 }
 
 
-/* Must be thread safe.  See design.mps.interface.c.thread-safety. */
+/* Must be thread safe.  See <design/interface-c/#thread-safety>. */
 Arena FormatArena(Format format)
 {
   /* Can't AVER format as that would not be thread-safe */

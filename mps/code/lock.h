@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .description: [@@@@ Should be combined with design.mps.lock]
+ * .description: [@@@@ Should be combined with <design/lock/>]
  *  This defines the type Lock, which supports simple recursive
  *  locking.  Locking ensures that only a single thread may be running
  *  with a lock held.  By claiming a lock in some code, this ensures

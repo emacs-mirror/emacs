@@ -15,7 +15,7 @@
 #include <stddef.h>
 
 
-typedef int Bool;                       /* design.mps.type.bool */
+typedef int Bool;                       /* <design/type/#bool> */
 enum {
   FALSE = 0,
   TRUE = 1

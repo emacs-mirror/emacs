@@ -16,9 +16,9 @@ SRCID(vman, "$Id$");
 
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
-/* ANSI fake VM structure, see design.mps.vman */
+/* ANSI fake VM structure, see <design/vman/> */
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Addr base, limit;             /* boundaries of malloc'd memory */
   void *block;                  /* pointer to malloc'd block, for free() */
   Size reserved;                /* total reserved address space */

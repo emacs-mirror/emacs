@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .source: design.mps.cbs.
+ * .source: <design/cbs/>.
  */
 
 #ifndef cbs_h
@@ -21,10 +21,10 @@ typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
 typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block, void *closureP);
 
 
-/* See design.mps.cbs.impl.low-mem.inline.block */
+/* See <design/cbs/#impl.low-mem.inline.block> */
 typedef void **CBSEmergencyBlock; /* next, limit */
 
-/* See design.mps.cbs.impl.low-mem.inline.block */
+/* See <design/cbs/#impl.low-mem.inline.block> */
 typedef void **CBSEmergencyGrain; /* next */
 
 
@@ -87,9 +87,9 @@ extern void CBSSetMinSize(CBS cbs, Size minSize);
 extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
 extern Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream);
 
-/* CBSBlockBase -- See design.mps.cbs.function.cbs.block.base */
+/* CBSBlockBase -- See <design/cbs/#function.cbs.block.base> */
 #define CBSBlockBase(block) ((block)->base)
-/* CBSBlockLimit -- See design.mps.cbs.function.cbs.block.limit */
+/* CBSBlockLimit -- See <design/cbs/#function.cbs.block.limit> */
 #define CBSBlockLimit(block) ((block)->limit)
 #define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 extern Size (CBSBlockSize)(CBSBlock block);

@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: see design.mps.poolawl.test.*
+ * .design: see <design/poolawl/#test>.*
  */
 
 #include "mpscawl.h"

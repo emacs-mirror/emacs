@@ -10,7 +10,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.buffer.
+ * .design: See <design/buffer/>.
  *
  * .ap.async: The mutator is allowed to change certain AP fields
  * asynchronously.  Functions that can be called on buffers not
@@ -44,7 +44,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKU(Arena, buffer->arena);
   CHECKU(Pool, buffer->pool);
   CHECKL(buffer->arena == buffer->pool->arena);
-  CHECKL(RingCheck(&buffer->poolRing)); /* design.mps.check.type.no-sig */
+  CHECKL(RingCheck(&buffer->poolRing)); /* <design/check/#type.no-sig> */
   CHECKL(BoolCheck(buffer->isMutator));
   CHECKL(buffer->fillSize >= 0.0);
   CHECKL(buffer->emptySize >= 0.0);
@@ -102,7 +102,7 @@ Bool BufferCheck(Buffer buffer)
 
     /* .lwcheck: If LW frames are enabled, the buffer may become */
     /* trapped asynchronously. It can't become untrapped */
-    /* asynchronously, though. See design.mps.alloc-frame.lw-frame.pop. */
+    /* asynchronously, though. See <design/alloc-frame/#lw-frame.pop>. */
     /* Read a snapshot value of the limit field. Use this to determine */
     /* if we are trapped, and to permit more useful checking when not */
     /* yet trapped. */
@@ -252,7 +252,7 @@ failInit:
 
 /* BufferCreate -- create an allocation buffer
  *
- * See design.mps.buffer.method.create.  */
+ * See <design/buffer/#method.create>.  */
 
 Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                  Pool pool, Bool isMutator, ...)
@@ -269,7 +269,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
 
 /* BufferCreateV -- create an allocation buffer, with varargs
  *
- * See design.mps.buffer.method.create.  */
+ * See <design/buffer/#method.create>.  */
 
 Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
                   Pool pool, Bool isMutator, va_list args)
@@ -360,7 +360,7 @@ void BufferDetach(Buffer buffer, Pool pool)
 
 /* BufferDestroy -- destroy an allocation buffer
  *
- * See design.mps.buffer.method.destroy.  */
+ * See <design/buffer/#method.destroy>.  */
 
 void BufferDestroy(Buffer buffer)
 {
@@ -390,7 +390,7 @@ void BufferFinish(Buffer buffer)
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
   AVER(BufferIsReady(buffer));
 
-  /* design.mps.alloc-frame.lw-frame.sync.trip */
+  /* <design/alloc-frame/#lw-frame.sync.trip> */
   if (BufferIsTrappedByMutator(buffer)) {
     BufferFrameNotifyPopPending(buffer);
   }
@@ -473,7 +473,7 @@ static void BufferSetUnflipped(Buffer buffer)
 /* BufferFrameState
  *
  * Returns the frame state of a buffer.  See
- * design.mps.alloc-frame.lw-frame.states.  */
+ * <design/alloc-frame/#lw-frame.states>.  */
 
 FrameState BufferFrameState(Buffer buffer)
 {
@@ -496,7 +496,7 @@ FrameState BufferFrameState(Buffer buffer)
 /* BufferFrameSetState
  *
  * Sets the frame state of a buffer.  Only the mutator may set the
- * PopPending state.  See design.mps.alloc-frame.lw-frame.states.  */
+ * PopPending state.  See <design/alloc-frame/#lw-frame.states>.  */
 
 void BufferFrameSetState(Buffer buffer, FrameState state)
 {
@@ -529,7 +529,7 @@ void BufferSetAllocAddr(Buffer buffer, Addr addr)
  *
  * Notifies the pool when a lightweight frame pop operation has been
  * deferred and needs to be processed.  See
- * design.mps.alloc-frame.lw-frame.sync.trip.  */
+ * <design/alloc-frame/#lw-frame.sync.trip>.  */
 
 static void BufferFrameNotifyPopPending(Buffer buffer)
 {
@@ -553,7 +553,7 @@ static void BufferFrameNotifyPopPending(Buffer buffer)
 
 /* BufferFramePush
  *
- * See design.mps.alloc-frame.  */
+ * See <design/alloc-frame/>.  */
 
 Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 {
@@ -581,7 +581,7 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 
 /* BufferFramePop
  *
- * See design.mps.alloc-frame.  */
+ * See <design/alloc-frame/>.  */
 
 Res BufferFramePop(Buffer buffer, AllocFrame frame)
 {
@@ -659,7 +659,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   filled = AddrOffset(init, limit);
   buffer->fillSize += filled;
   if (buffer->isMutator) {
-    if (base != init) { /* see design.mps.buffer.count.alloc.how */
+    if (base != init) { /* see <design/buffer/#count.alloc.how> */
       Size prealloc = AddrOffset(base, init);
       ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
@@ -708,7 +708,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
       BufferSetUnflipped(buffer);
     }
 
-    /* design.mps.alloc-frame.lw-frame.sync.trip */
+    /* <design/alloc-frame/#lw-frame.sync.trip> */
     if (BufferIsTrappedByMutator(buffer)) {
       BufferFrameNotifyPopPending(buffer);
     }
@@ -764,7 +764,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(!BufferIsReady(buffer));
 
-  /* See design.mps.collection.flip. */
+  /* See <design/collection/#flip>. */
   /* .commit.before: If a flip occurs before this point, when the */
   /* pool reads "initAtFlip" it will point below the object, so it */
   /* will be trashed and the commit must fail when trip is called.  */
@@ -972,7 +972,7 @@ Bool BufferIsTrapped(Buffer buffer)
 /* BufferIsTrappedByMutator
  *
  * Indicates whether the mutator trapped the buffer.  See
- * design.mps.alloc-frame.lw-frame.sync.trip and .ap.async.  */
+ * <design/alloc-frame/#lw-frame.sync.trip> and .ap.async.  */
 
 Bool BufferIsTrappedByMutator(Buffer buffer)
 {
@@ -1207,7 +1207,7 @@ Bool BufferClassCheck(BufferClass class)
 
 /* BufferClass -- the vanilla buffer class definition
  *
- * See design.mps.buffer.class.hierarchy.buffer.  */
+ * See <design/buffer/#class.hierarchy.buffer>.  */
 
 DEFINE_CLASS(BufferClass, class)
 {
@@ -1458,7 +1458,7 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
 /* SegBufClass -- SegBuf class definition
  *
  * Supports an association with a single segment when attached.  See
- * design.mps.buffer.class.hierarchy.segbuf.  */
+ * <design/buffer/#class.hierarchy.segbuf>.  */
 
 typedef BufferClassStruct SegBufClassStruct;
 

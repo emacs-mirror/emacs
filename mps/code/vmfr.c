@@ -7,7 +7,7 @@
  * interface (vm.h) for FreeBSD.  It was created by copying vmli.c (the
  * DIGITAL UNIX implementation) as that seemed to be closest.
  *
- * .design: See design.mps.vm.  .design.freebsd: mmap(2) is used to
+ * .design: See <design/vm/>.  .design.freebsd: mmap(2) is used to
  * reserve address space by creating a mapping with page access none.
  * mmap(2) is used to map pages onto store by creating a copy-on-write
  * (MAP_PRIVATE) mapping with the flag MAP_ANON.
@@ -51,7 +51,7 @@ SRCID(vmfr, "$Id$");
 #define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
 
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Align align;                  /* page size */
   Addr base, limit;             /* boundaries of reserved space */
   Size reserved;                /* total reserved address space */
@@ -266,7 +266,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   size = AddrOffset(base, limit);
 
-  /* see design.mps.vmo1.fun.unmap.offset */
+  /* see <design/vmo1/#fun.unmap.offset> */
   addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_ANON | MAP_PRIVATE | MAP_FIXED,
               -1, 0);

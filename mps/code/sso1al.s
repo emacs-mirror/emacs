@@ -6,7 +6,7 @@
  # .readership: Any MPS developer that is prepared to read Alpha
  # assembly code in DIGITAL UNIX 'as' syntax.
  #
- # See design.mps.sso1al for the design (exists).
+ # See <design/sso1al/> for the design (exists).
 
 
 .globl	StackScan

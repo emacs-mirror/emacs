@@ -18,7 +18,7 @@ SRCID(than, "$Id$");
 
 
 typedef struct ThreadStruct {   /* ANSI fake thread structure */
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
@@ -112,7 +112,7 @@ Thread ThreadRingThread(Ring threadRing)
 }
 
 
-/* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
+/* Must be thread-safe.  See <design/interface-c/#thread-safety>. */
 Arena ThreadArena(Thread thread)
 {
   /* Can't AVER thread as that would not be thread-safe */
