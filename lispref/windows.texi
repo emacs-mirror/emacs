@@ -643,7 +643,7 @@ The functions described there are easier to use than these, but they
 employ heuristics in choosing or creating a window; use these functions
 when you need complete control.
 
-@defun set-window-buffer window buffer-or-name
+@defun set-window-buffer window buffer-or-name &optional keep-margins
 This function makes @var{window} display @var{buffer-or-name} as its
 contents.  It returns @code{nil}.  This is the fundamental primitive
 for changing which buffer is displayed in a window, and all ways
@@ -655,6 +655,11 @@ of doing that call this function.
      @result{} nil
 @end group
 @end example
+
+Normally, displaying @var{buffer} in @var{window} resets the window's
+fringe widths and position based on the local variables of @var{buffer}.
+However, if @var{keep-margins} is non-@code{nil}, the fringe widths and
+position of @var{window} remain unchanged.  @xref{Fringes}.
 @end defun
 
 @defun window-buffer &optional window
