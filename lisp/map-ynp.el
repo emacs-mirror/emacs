@@ -80,11 +80,11 @@ Returns the number of actions taken."
 					   action-alist ", ")
 				" ")
 		      ""))
-	 ;; Make a map that defines all the user keys as `user'.
+	 ;; Make a map that defines each user key as a vector containing
+	 ;; its definition.
 	 (map (cons 'keymap
-		    (append (mapcar (function
-				     (lambda (elt)
-				       (cons (car elt) 'user)))
+		    (append (mapcar (lambda (elt)
+				      (cons (car elt) (vector (nth 1 elt))))
 				    action-alist)
 			    query-replace-map)))
 	 (actions 0)
@@ -175,9 +175,9 @@ the current %s and exit."
 		   (setq next (` (lambda ()
 				   (setq next '(, next))
 				   '(, elt)))))
-		  ((eq def 'user)
+		  ((vectorp def)
 		   ;; A user-defined key.
-		   (if (funcall (nth 1 tail) elt) ;Call its function.
+		   (if (funcall (aref def 0) elt) ;Call its function.
 		       ;; The function has eaten this object.
 		       (setq actions (1+ actions))
 		     ;; Regurgitated; try again.
