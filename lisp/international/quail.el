@@ -548,7 +548,6 @@ While this input method is active, the variable
     ;; before exiting.
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook 'quail-kill-guidance-buf nil t)
     (run-hooks 'quail-activate-hook)
     (make-local-variable 'input-method-function)
