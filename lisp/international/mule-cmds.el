@@ -1841,10 +1841,10 @@ of `buffer-file-coding-system' set by this function."
     ; za Zhuang
 
     ; glibc:
-    ; zh_CN.GB18030/GB18030 \
     ; zh_HK/BIG5-HKSCS \
 
     ("zh.*[._]big5" . "Chinese-BIG5")
+    ("zh.*[._].gb18030" . "Chinese-GB18030") ; zh_CN.GB18030/GB18030 in glibc
     ("zh.*[._].gbk" . "Chinese-GBK")
     ;; glibc has zh_TW.EUC-TW, with zh_TW defaulting to Big5
     ("zh_tw" . "Chinese-CNS")
