@@ -3843,7 +3843,7 @@ actually used.")
 
       if (how_much < 0)
 	{
-	  free (conversion_buffer);
+	  xfree (conversion_buffer);
 
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
@@ -3865,7 +3865,7 @@ actually used.")
 
       if (bufpos == inserted)
 	{
-	  free (conversion_buffer);
+	  xfree (conversion_buffer);
 	  close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
