@@ -21,6 +21,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;; DAV is in RFC 2518.
+
 (eval-when-compile
   (require 'cl))
 
@@ -31,12 +33,23 @@
 (defvar url-dav-supported-protocols '(1 2)
   "List of supported DAV versions.")
 
+(defun url-intersection (l1 l2)
+  "Return a list of the elements occuring in both of the lists L1 and L2."
+  (if (null l2)
+      l2
+    (let (result)
+      (while l1
+	(if (member (car l1) l2)
+	    (setq result (cons (pop l1) result))
+	  (pop l1)))
+      (nreverse result))))
+
 ;;;###autoload
 (defun url-dav-supported-p (url)
   (and (featurep 'xml)
        (fboundp 'xml-expand-namespace)
-       (intersection url-dav-supported-protocols
-		     (plist-get (url-http-options url) 'dav))))
+       (url-intersection url-dav-supported-protocols
+			 (plist-get (url-http-options url) 'dav))))
 
 (defun url-dav-node-text (node)
   "Return the text data from the XML node NODE."
@@ -612,6 +625,8 @@ Returns `t' iff the lock was successfully released.
 	 (url-debug 'dav "Unrecognized DAV:locktype (%S)" (car lock)))))
     modes))
 
+(autoload 'url-http-head-file-attributes "url-http")
+
 ;;;###autoload
 (defun url-dav-file-attributes (url)
   (let ((properties (cdar (url-dav-get-properties url)))
@@ -673,6 +688,7 @@ Returns `t' iff the lock was successfully released.
   "Save OBJ as URL using WebDAV.
 URL must be a fully qualified URL.
 OBJ may be a buffer or a string."
+  (declare (special url-http-response-status))
   (let ((buffer nil)
 	(result nil)
 	(url-request-extra-headers nil)
@@ -860,7 +876,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun url-dav-rename-file (oldname newname &optional overwrite)
   (if (not (and (string-match url-handler-regexp oldname)
 		(string-match url-handler-regexp newname)))
-      (signal 'file-error "Cannot rename between different URL backends" oldname newname))
+      (signal 'file-error
+	      (list "Cannot rename between different URL backends"
+		    oldname newname)))
 
   (let* ((headers nil)
 	 (props nil)
