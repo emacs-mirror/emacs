@@ -344,7 +344,7 @@ internal_self_insert (c, noautofill)
   /* Length of multi-byte form of C.  */
   int len;
   /* Working buffer and pointer for multi-byte form of C.  */
-  unsigned char workbuf[4], *str;
+  unsigned char str[MAX_MULTIBYTE_LENGTH];
   int chars_to_delete = 0;
   int spaces_to_insert = 0;
 
@@ -357,7 +357,7 @@ internal_self_insert (c, noautofill)
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
       c = unibyte_char_to_multibyte (c);
-      len = CHAR_STRING (c, workbuf, str);
+      len = CHAR_STRING (c, str);
       if (len == 1)
 	/* If C has modifier bits, this makes C an appropriate
            one-byte char.  */
@@ -365,10 +365,9 @@ internal_self_insert (c, noautofill)
     }
   else
     {
-      workbuf[0] = (SINGLE_BYTE_CHAR_P (c)
-		    ? c
-		    : multibyte_char_to_unibyte (c, Qnil));
-      str = workbuf;
+      str[0] = (SINGLE_BYTE_CHAR_P (c)
+		? c
+		: multibyte_char_to_unibyte (c, Qnil));
       len = 1;
     }
   if (!NILP (overwrite)
