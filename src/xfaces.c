@@ -393,10 +393,6 @@ static void signal_error P_ ((char *, Lisp_Object));
 static void display_message P_ ((struct frame *, char *, Lisp_Object, Lisp_Object));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
 static void load_face_font_or_fontset P_ ((struct frame *, struct face *, char *, int));
-static unsigned long load_color P_ ((struct frame *, 
-				     struct face *,
-				     Lisp_Object,
-				     enum lface_attribute_index));
 static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
 static void free_face_colors P_ ((struct frame *, struct face *));
 static int face_color_gray_p P_ ((struct frame *, char *));
@@ -1161,7 +1157,7 @@ COLOR must be a valid color name.")
    record that fact in flags of the face so that we don't try to free
    these colors.  */
 
-static unsigned long
+unsigned long
 load_color (f, face, name, target_index)
      struct frame *f;
      struct face *face;
@@ -1377,7 +1373,74 @@ free_face_colors (f, face)
     }
 }
 
-#endif /* HAVE_X_WINDOWS */
+#else  /* ! HAVE_X_WINDOWS */
+
+#ifdef MSDOS
+unsigned long
+load_color (f, face, name, target_index)
+     struct frame *f;
+     struct face *face;
+     Lisp_Object name;
+     enum lface_attribute_index target_index;
+{
+  Lisp_Object color;
+  int color_idx = FACE_TTY_DEFAULT_COLOR;
+
+  if (NILP (name))
+    return (unsigned long)FACE_TTY_DEFAULT_COLOR;
+
+  CHECK_STRING (name, 0);
+
+  color = Qnil;
+  if (XSTRING (name)->size && !NILP (Ffboundp (Qmsdos_color_translate)))
+    {
+      color = call1 (Qmsdos_color_translate, name);
+
+      if (INTEGERP (color))
+	return (unsigned long)XINT (color);
+
+      display_message (f, "Unable to load color %s", name, Qnil);
+      
+      switch (target_index)
+	{
+	case LFACE_FOREGROUND_INDEX:
+	  face->foreground_defaulted_p = 1;
+	  color_idx = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+	  
+	case LFACE_BACKGROUND_INDEX:
+	  face->background_defaulted_p = 1;
+	  color_idx = FRAME_BACKGROUND_PIXEL (f);
+	  break;
+	  
+	case LFACE_UNDERLINE_INDEX:
+	  face->underline_defaulted_p = 1;
+	  color_idx = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+	  
+	case LFACE_OVERLINE_INDEX:
+	  face->overline_color_defaulted_p = 1;
+	  color_idx = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+	  
+	case LFACE_STRIKE_THROUGH_INDEX:
+	  face->strike_through_color_defaulted_p = 1;
+	  color_idx = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+	  
+	case LFACE_BOX_INDEX:
+	  face->box_color_defaulted_p = 1;
+	  color_idx = FRAME_FOREGROUND_PIXEL (f);
+	  break;
+	}
+    }
+  else
+    color_idx = msdos_stdcolor_idx (XSTRING (name)->data);
+
+  return (unsigned long)color_idx;
+}
+#endif /* MSDOS */
+#endif /* ! HAVE_X_WINDOWS */
 
 
 
@@ -4234,7 +4297,7 @@ lookup_face (f, attr, charset)
   
   for (face = c->buckets[i]; face; face = face->next)
     if (face->hash == hash
-	&& (FRAME_TERMCAP_P (f)
+	&& (!FRAME_WINDOW_P (f)
 	    || FACE_SUITABLE_FOR_CHARSET_P (face, charset))
 	&& lface_equal_p (face->lface, attr))
       break;
@@ -4384,6 +4447,34 @@ face_with_height (f, face_id, height)
 #endif /* HAVE_X_WINDOWS */
   
   return face_id;
+}
+
+/* Return the face id of the realized face for named face SYMBOL on
+   frame F suitable for displaying characters from CHARSET (CHARSET <
+   0 means unibyte text), and use attributes of the face FACE_ID for
+   attributes that aren't completely specified by SYMBOL.  This is
+   like lookup_named_face, except that the default attributes come
+   from FACE_ID, not from the default face.  FACE_ID is assumed to
+   be already realized.  */
+
+int
+lookup_derived_face (f, symbol, charset, face_id)
+     struct frame *f;
+     Lisp_Object symbol;
+     int charset;
+     int face_id;
+{
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
+  struct face *default_face = FACE_FROM_ID (f, face_id);
+
+  if (!default_face)
+    abort ();
+
+  get_lface_attributes (f, symbol, symbol_attrs, 1);
+  bcopy (default_face->lface, attrs, sizeof attrs);
+  merge_face_vectors (symbol_attrs, attrs);
+  return lookup_face (f, attrs, charset);
 }
 
 
@@ -5112,7 +5203,7 @@ realize_default_face (f)
     }
 #endif /* HAVE_X_WINDOWS */
 
-  if (FRAME_TERMCAP_P (f))
+  if (!FRAME_WINDOW_P (f))
     {
       LFACE_FAMILY (lface) = build_string ("default");
       LFACE_SWIDTH (lface) = Qnormal;
@@ -5146,7 +5237,7 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_X_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f))
+      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	/* Frame parameters for terminal frames usually don't contain
 	   a color.  Use an empty string to indicate that the face
 	   should use the (unknown) default color of the terminal.  */
@@ -5164,7 +5255,7 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_X_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f))
+      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	/* Frame parameters for terminal frames usually don't contain
 	   a color.  Use an empty string to indicate that the face
 	   should use the (unknown) default color of the terminal.  */
@@ -5181,6 +5272,18 @@ realize_default_face (f)
   check_lface (lface);
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
   face = realize_face (c, attrs, CHARSET_ASCII);
+
+#ifdef MSDOS
+  /* If either of the colors of the default face is the default color,
+     use the color defined by the frame.  */
+  if (FRAME_MSDOS_P (f))
+    {
+      if (face->foreground == FACE_TTY_DEFAULT_COLOR)
+	face->foreground = FRAME_FOREGROUND_PIXEL (f);
+      if (face->background == FACE_TTY_DEFAULT_COLOR)
+	face->background = FRAME_BACKGROUND_PIXEL (f);
+    }
+#endif
 
   /* Remove the former default face.  */
   if (c->used > DEFAULT_FACE_ID)
@@ -5265,7 +5368,7 @@ realize_face (c, attrs, charset)
 
   if (FRAME_X_P (c->f))
     face = realize_x_face (c, attrs, charset);
-  else if (FRAME_TERMCAP_P (c->f))
+  else if (FRAME_TERMCAP_P (c->f) || FRAME_MSDOS_P (c->f))
     face = realize_tty_face (c, attrs, charset);
   else
     abort ();
@@ -5526,11 +5629,11 @@ realize_tty_face (c, attrs, charset)
   Lisp_Object color;
 
   /* Frame must be a termcap frame.  */
-  xassert (FRAME_TERMCAP_P (c->f));
+  xassert (FRAME_TERMCAP_P (c->f) || FRAME_MSDOS_P (c->f));
   
   /* Allocate a new realized face.  */
   face = make_realized_face (attrs, charset, Qnil);
-  face->font_name = "tty";
+  face->font_name = FRAME_MSDOS_P (c->f) ? "ms-dos" : "tty";
 
   /* Map face attributes to TTY appearances.  We map slant to 
      dimmed text because we want italic text to appear differently
@@ -5556,11 +5659,34 @@ realize_tty_face (c, attrs, charset)
 	  CONSP (color)))
     face->foreground = XINT (XCDR (color));
 
+#ifdef MSDOS
+  if (FRAME_MSDOS_P (c->f) && face->foreground == FACE_TTY_DEFAULT_COLOR)
+    face->foreground = load_color (c->f, face,
+				   attrs[LFACE_FOREGROUND_INDEX],
+				   LFACE_FOREGROUND_INDEX);
+#endif
+
   color = attrs[LFACE_BACKGROUND_INDEX];
   if (XSTRING (color)->size
       && (color = Fassoc (color, Vface_tty_color_alist),
 	  CONSP (color)))
     face->background = XINT (XCDR (color));
+
+#ifdef MSDOS
+  if (FRAME_MSDOS_P (c->f) && face->background == FACE_TTY_DEFAULT_COLOR)
+    face->background = load_color (c->f, face,
+				   attrs[LFACE_BACKGROUND_INDEX],
+				   LFACE_BACKGROUND_INDEX);
+
+  /* Swap colors if face is inverse-video.  */
+  if (face->tty_reverse_p)
+    {
+      unsigned long tem = face->foreground;
+
+      face->foreground = face->background;
+      face->background = tem;
+    }
+#endif
 
   return face;
 }
