@@ -1,3 +1,10 @@
+2004-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* finder.el (finder-commentary): Call delete-other-windows.
+
+	* net/ange-ftp.el (ange-ftp-file-attributes):
+	Pass 2 args to ange-ftp-real-file-attributes only if ID-FORMAT non-nil.
+
 2004-01-04  Karl Berry  <karl@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): allow the common
