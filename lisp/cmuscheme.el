@@ -109,17 +109,14 @@
   :type 'hook
   :group 'cmuscheme)
 
-(defvar inferior-scheme-mode-map nil)
-
-(cond ((not inferior-scheme-mode-map)
-       (setq inferior-scheme-mode-map
-	     (copy-keymap comint-mode-map))
-       (define-key inferior-scheme-mode-map "\M-\C-x" ;gnu convention
-	           'scheme-send-definition)
-       (define-key inferior-scheme-mode-map "\C-x\C-e" 'scheme-send-last-sexp)
-       (define-key inferior-scheme-mode-map "\C-c\C-l" 'scheme-load-file)
-       (define-key inferior-scheme-mode-map "\C-c\C-k" 'scheme-compile-file)
-       (scheme-mode-commands inferior-scheme-mode-map))) 
+(defvar inferior-scheme-mode-map
+  (let ((m (make-sparse-keymap)))
+    (define-key m "\M-\C-x" 'scheme-send-definition) ;gnu convention
+    (define-key m "\C-x\C-e" 'scheme-send-last-sexp)
+    (define-key m "\C-c\C-l" 'scheme-load-file)
+    (define-key m "\C-c\C-k" 'scheme-compile-file)
+    (scheme-mode-commands m)
+    m))
 
 ;; Install the process communication commands in the scheme-mode keymap.
 (define-key scheme-mode-map "\M-\C-x" 'scheme-send-definition);gnu convention
@@ -160,7 +157,7 @@
 
 (defvar scheme-buffer)
 
-(defun inferior-scheme-mode ()
+(define-derived-mode inferior-scheme-mode comint-mode "Inferior Scheme"
   "Major mode for interacting with an inferior Scheme process.
 
 The following commands are available:
@@ -197,18 +194,12 @@ C-M-q does Tab on each line starting within following expression.
 Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
-  (interactive)
-  (comint-mode)
   ;; Customise in inferior-scheme-mode-hook
   (setq comint-prompt-regexp "^[^>\n]*>+ *") ; OK for cscheme, oaklisp, T,...
   (scheme-mode-variables)
-  (setq major-mode 'inferior-scheme-mode)
-  (setq mode-name "Inferior Scheme")
   (setq mode-line-process '(":%s"))
-  (use-local-map inferior-scheme-mode-map)
   (setq comint-input-filter (function scheme-input-filter))
-  (setq comint-get-old-input (function scheme-get-old-input))
-  (run-hooks 'inferior-scheme-mode-hook))
+  (setq comint-get-old-input (function scheme-get-old-input)))
 
 (defcustom inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
   "*Input matching this regexp are not saved on the history list.
