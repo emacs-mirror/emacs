@@ -401,10 +401,14 @@ This function returns the selected window.  This is the window in
 which the cursor appears and to which many commands apply.
 @end defun
 
-@defun select-window window
+@defun select-window window &optional norecord
 This function makes @var{window} the selected window.  The cursor then
 appears in @var{window} (on redisplay).  The buffer being displayed in
 @var{window} is immediately designated the current buffer.
+
+Normally @var{window}'s selected buffer is moved to the front of the
+buffer list, but if @var{norecord} is non-@code{nil}, the buffer list
+order is unchanged.
 
 The return value is @var{window}.
 
@@ -430,6 +434,14 @@ Each frame, at any time, has a window selected within the frame.  This
 macro saves only @emph{the} selected window; it does not save anything
 about other frames.  If the @var{forms} select some other frame and
 alter the window selected within it, the change persists.
+@end defmac
+
+@defmac with-selected-window window forms@dots{}
+This macro selects @var{window} (without changing the buffer list),
+executes @var{forms} in sequence, then restores the previously
+selected window (unless that window is no longer alive).  It is similar
+to @code{save-selected-window} except that it explicitly selects
+@var{window} and that it does not alter the buffer list sequence.
 @end defmac
 
 @cindex finding windows
@@ -1733,28 +1745,42 @@ its right edge value includes the width of the separator line between
 the window and that neighbor.  Since the width of the window does not
 include this separator, the width does not usually equal the difference
 between the right and left edges.
+@end defun
 
-Here is the result obtained on a typical 24-line terminal with just one
-window:
+@defun window-inside-edges window
+This is similar to @code{window-edges}, but the edge values
+it returns include only the text area of the window.  They
+do not include the header line, mode line, scroll bar or
+vertical separator, fringes, or display margins.
+@end defun
+
+Here are the results obtained on a typical 24-line terminal with just
+one window, with menu bar enabled:
 
 @example
 @group
 (window-edges (selected-window))
-     @result{} (0 0 80 23)
+     @result{} (0 1 80 23)
+@end group
+@group
+(window-inside-edges (selected-window))
+     @result{} (0 1 80 22)
 @end group
 @end example
 
 @noindent
 The bottom edge is at line 23 because the last line is the echo area.
+The bottom inside edge is at line 22, which is the window's mode line.
 
-If @var{window} is at the upper left corner of its frame, then
-@var{bottom} is the same as the value of @code{(window-height)},
-@var{right} is almost the same as the value of @code{(window-width)},
-and @var{top} and @var{left} are zero.  For example, the edges of the
-following window are @w{@samp{0 0 8 5}}.  Assuming that the frame has
-more than 8 columns, the last column of the window (column 7) holds a
-border rather than text.  The last row (row 4) holds the mode line,
-shown here with @samp{xxxxxxxxx}.
+If @var{window} is at the upper left corner of its frame, and there is
+no menu bar, then @var{bottom} returned by @code{window-edges} is the
+same as the value of @code{(window-height)}, @var{right} is almost the
+same as the value of @code{(window-width)}, and @var{top} and
+@var{left} are zero.  For example, the edges of the following window
+are @w{@samp{0 0 8 5}}.  Assuming that the frame has more than 8
+columns, the last column of the window (column 7) holds a border
+rather than text.  The last row (row 4) holds the mode line, shown
+here with @samp{xxxxxxxxx}.
 
 @example
 @group
@@ -1772,7 +1798,9 @@ shown here with @samp{xxxxxxxxx}.
 
 In the following example, let's suppose that the frame is 7
 columns wide.  Then the edges of the left window are @w{@samp{0 0 4 3}}
-and the edges of the right window are @w{@samp{4 0 8 3}}.
+and the edges of the right window are @w{@samp{4 0 7 3}}.
+The inside edges of the left window are @w{@samp{0 0 3 2}},
+and the inside edges of the right window are @w{@samp{4 0 7 2}},
 
 @example
 @group
@@ -1784,6 +1812,17 @@ and the edges of the right window are @w{@samp{4 0 8 3}}.
            0  34  7
 @end group
 @end example
+
+@defun window-pixel-edges window
+This function is like @code{window-edges} except that, on a graphical
+display, the edge values are measured in pixels instead of in
+character lines and columns.
+@end defun
+
+@defun window-inside-pixel-edges window
+This function is like @code{window-inside-edges} except that, on a
+graphical display, the edge values are measured in pixels instead of
+in character lines and columns.
 @end defun
 
 @node Resizing Windows
