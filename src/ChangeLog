@@ -1,5 +1,8 @@
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
+	* minibuf.c (Ftry_completion, Fall_completions): Allow both string
+	and symbol keys in alists and hash tables.
+
 	* xdisp.c (fast_find_position): Fix search for start of overlay.
 
 2005-02-21  Kim F. Storm  <storm@cua.dk>

@@ -1,3 +1,8 @@
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.texi (Basic Completion): Allow symbols in addition to
+	strings in try-completion and all-completions.
+
 2005-02-14  Lute Kamstra  <lute@gnu.org>
 
 	* elisp.texi (Top): Remove reference to deleted node.

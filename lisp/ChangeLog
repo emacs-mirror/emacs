@@ -1,3 +1,8 @@
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/hideif.el (hide-ifdef-use-define-alist): Use
+	completing-read.  Suggested by Juan-Leon Lahoz Garcia.
+
 2005-02-22  Simon Josefsson  <jas@extundo.com>
 
 	* net/browse-url.el (browse-url-netscape-new-window-is-tab): New
