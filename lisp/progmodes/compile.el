@@ -212,13 +212,8 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ("[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
     ;; GNU messages with program name and optional column number.
-    ("[a-zA-Z]?:?[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
+    ("[a-zA-Z]?:?[^0-9 \n\t:]+[^ \n\t:]*:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
-
-    ;; GNU messages with program name and optional column number
-    ;; and a severity letter after that.  nsgmls makes them.
-    ("[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
-\\([0-9]+\\):\\(\\([0-9]+\\):\\)?[A-Za-z]:" 1 2 4)
 
     ;; Cray C compiler error messages
     ("\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \\([^,\n]+\\), Line = \\([0-9]+\\)" 4 5)
