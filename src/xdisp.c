@@ -15693,7 +15693,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
    The mode_line_string_face face property is always added to the string.
  */
 
-static int store_mode_line_string (string, lisp_string, copy_string, field_width, precision, props)
+static int
+store_mode_line_string (string, lisp_string, copy_string, field_width, precision, props)
      char *string;
      Lisp_Object lisp_string;
      int copy_string;
