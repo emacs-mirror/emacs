@@ -641,7 +641,10 @@ the user during startup."
 
 
 (defcustom focus-follows-mouse t
-  "*Non-nil if window system changes focus when you move the mouse."
+  "*Non-nil if window system changes focus when you move the mouse.
+You should set this variable to tell Emacs how your window manager
+handles focus, since there is no way in general for Emacs to find out
+automatically."
   :type 'boolean
   :group 'frames
   :version "20.3")
