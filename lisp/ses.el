@@ -1605,27 +1605,43 @@ narrows the buffer now."
      (message (error-message-string err))))
   nil) ;Make coverage-tester happy
 
+(defun ses-header-string-left-offset ()
+  "Number of characters in left fringe and left scrollbar (if any)."
+  (let ((left-fringe    (round (or (frame-parameter nil 'left-fringe) 0)
+			       (frame-char-width)))
+	(left-scrollbar (if (not (eq (frame-parameter nil
+						      'vertical-scroll-bars)
+				     'left))
+			    0
+			  (let ((x (frame-parameter nil 'scroll-bar-width)))
+			    ;;Non-toolkil bar is always 14 pixels?
+			    (unless x (setq x 14))
+			    ;;Always round up
+			    (ceiling x (frame-char-width))))))
+    (+ left-fringe left-scrollbar)))
+
 (defun ses-create-header-string ()
   "Sets up `header-string' as the buffer's header line, based on the
 current set of columns and window-scroll position."
-  (let ((totwidth (- 1 (window-hscroll)))
-	result width result x)
-    (if window-system
-	;;Leave room for the left-side fringe
-	(push " " result))
+  (let* ((left-offset (ses-header-string-left-offset))
+	 (totwidth (- left-offset (window-hscroll)))
+	 result width result x)
+    ;;Leave room for the left-side fringe and scrollbar
+    (push (make-string left-offset ? ) result)
     (dotimes (col numcols)
       (setq width    (ses-col-width col)
 	    totwidth (+ totwidth width 1))
-      (if (= totwidth 2) ;Scrolled so intercolumn space is leftmost
+      (if (= totwidth (+ left-offset 1))
+	  ;;Scrolled so intercolumn space is leftmost
 	  (push " " result))
-      (when (> totwidth 2)
+      (when (> totwidth (+ left-offset 1))
 	(if (> header-row 0)
 	    (save-excursion
 	      (ses-goto-print (1- header-row) col)
 	      (setq x (buffer-substring-no-properties (point)
 						      (+ (point) width)))
-	      (if (>= width (1- totwidth))
-		  (setq x (substring x (- width totwidth -2))))
+	      (if (>= width (- totwidth left-offset))
+		  (setq x (substring x (- width totwidth left-offset -1))))
 	      (push (propertize x 'face ses-box-prop) result))
 	  (setq x (ses-column-letter col))
 	  (push (propertize x 'face ses-box-prop) result)
