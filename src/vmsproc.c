@@ -573,6 +573,9 @@ if you quit, the process is killed.")
       return Qnil;
     }
 
+  if (!NILP (display) && INTERACTIVE)
+    prepare_menu_bars ();
+
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
 
@@ -604,9 +607,10 @@ if you quit, the process is killed.")
       else
 	break;
     }
-    sys$dassgn (inchannel);
-    sys$dassgn (outchannel);
-    give_back_vms_process_stuff (vs);
+
+  sys$dassgn (inchannel);
+  sys$dassgn (outchannel);
+  give_back_vms_process_stuff (vs);
 
   /* Wait for it to terminate, unless it already has.  */
   wait_for_termination (pid);
