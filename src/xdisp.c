@@ -659,6 +659,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static void setup_for_ellipsis P_ ((struct it *));
 static void mark_window_display_accurate_1 P_ ((struct window *, int));
 static int single_display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
@@ -732,7 +733,7 @@ static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
 			       int, int, struct it *, int, int, int, int));
 static void compute_line_metrics P_ ((struct it *));
 static void run_redisplay_end_trigger_hook P_ ((struct it *));
-static int get_overlay_strings P_ ((struct it *));
+static int get_overlay_strings P_ ((struct it *, int));
 static void next_overlay_string P_ ((struct it *));
 static void reseat P_ ((struct it *, struct text_pos, int));
 static void reseat_1 P_ ((struct it *, struct text_pos, int));
@@ -746,7 +747,7 @@ static int next_element_from_buffer P_ ((struct it *));
 static int next_element_from_composition P_ ((struct it *));
 static int next_element_from_image P_ ((struct it *));
 static int next_element_from_stretch P_ ((struct it *));
-static void load_overlay_strings P_ ((struct it *));
+static void load_overlay_strings P_ ((struct it *, int));
 static void init_from_display_pos P_ ((struct it *, struct window *,
 				       struct display_pos *));
 static void reseat_to_string P_ ((struct it *, unsigned char *,
@@ -1848,7 +1849,7 @@ init_from_display_pos (it, w, pos)
 	  it->current.overlay_string_index = 0;
 	  while (n--)
 	    {
-	      load_overlay_strings (it);
+	      load_overlay_strings (it, 0);
 	      it->current.overlay_string_index += OVERLAY_STRING_CHUNK_SIZE;
 	    }
 	}
@@ -2531,12 +2532,14 @@ handle_invisible_prop (it)
     }
   else
     {
-      int visible_p, newpos, next_stop;
-      Lisp_Object pos, prop;
+      int visible_p, newpos, next_stop, start_charpos;
+      Lisp_Object pos, prop, overlay;
 
       /* First of all, is there invisible text at this position?  */
+      start_charpos = IT_CHARPOS (*it);
       pos = make_number (IT_CHARPOS (*it));
-      prop = Fget_char_property (pos, Qinvisible, it->window);
+      prop = get_char_property_and_overlay (pos, Qinvisible, it->window,
+					    &overlay);
       
       /* If we are on invisible text, skip over it.  */
       if (TEXT_PROP_MEANS_INVISIBLE (prop)
@@ -2585,40 +2588,59 @@ handle_invisible_prop (it)
 		IT_CHARPOS (*it) = next_stop;
 	    }
 	  while (!visible_p);
-	  
+
 	  /* The position newpos is now either ZV or on visible text.  */
 	  IT_CHARPOS (*it) = newpos;
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (newpos);
 	  
-	  /* Maybe return `...' next for the end of the invisible text.  */
-	  if (display_ellipsis_p)
+	  /* If there are before-strings at the start of invisible
+	     text, and the text is invisible because of a text
+	     property, arrange to show before-strings because 20.x did
+	     it that way.  (If the text is invisible because of an
+	     overlay property instead of a text property, this is
+	     already handled in the overlay code.)  */
+	  if (NILP (overlay)
+	      && get_overlay_strings (it, start_charpos))
 	    {
-	      if (it->dp 
-		  && VECTORP (DISP_INVIS_VECTOR (it->dp)))
-		{
-		  struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
-		  it->dpvec = v->contents;
-		  it->dpend = v->contents + v->size;
-		}
-	      else 
-		{
-		  /* Default `...'.  */
-		  it->dpvec = default_invis_vector;
-		  it->dpend = default_invis_vector + 3;
-		}
-
-	      /* The ellipsis display does not replace the display of
-	         the character at the new position.  Indicate this by
-	         setting IT->dpvec_char_len to zero.  */
-	      it->dpvec_char_len = 0;
-	      
-	      it->current.dpvec_index = 0;
-	      it->method = next_element_from_display_vector;
+	      handled = HANDLED_RECOMPUTE_PROPS;
+	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
 	    }
+	  else if (display_ellipsis_p)
+	    setup_for_ellipsis (it);
 	}
     }
 
   return handled;
+}
+
+
+/* Make iterator IT return `...' next.  */
+
+static void
+setup_for_ellipsis (it)
+     struct it *it;
+{
+  if (it->dp 
+      && VECTORP (DISP_INVIS_VECTOR (it->dp)))
+    {
+      struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
+      it->dpvec = v->contents;
+      it->dpend = v->contents + v->size;
+    }
+  else 
+    {
+      /* Default `...'.  */
+      it->dpvec = default_invis_vector;
+      it->dpend = default_invis_vector + 3;
+    }
+  
+  /* The ellipsis display does not replace the display of the
+     character at the new position.  Indicate this by setting
+     IT->dpvec_char_len to zero.  */
+  it->dpvec_char_len = 0;
+  
+  it->current.dpvec_index = 0;
+  it->method = next_element_from_display_vector;
 }
 
 
@@ -3285,7 +3307,7 @@ static enum prop_handled
 handle_overlay_change (it)
      struct it *it;
 {
-  if (!STRINGP (it->string) && get_overlay_strings (it))
+  if (!STRINGP (it->string) && get_overlay_strings (it, 0))
     return HANDLED_RECOMPUTE_PROPS;
   else
     return HANDLED_NORMALLY;
@@ -3309,6 +3331,8 @@ next_overlay_string (it)
       /* No more overlay strings.  Restore IT's settings to what
 	 they were before overlay strings were processed, and
 	 continue to deliver from current_buffer.  */
+      int display_ellipsis_p = it->stack[it->sp - 1].display_ellipsis_p;
+      
       pop_it (it);
       xassert (it->stop_charpos >= BEGV
 	       && it->stop_charpos <= it->end_charpos);
@@ -3323,6 +3347,11 @@ next_overlay_string (it)
 	 next_element_from_buffer doesn't try it again.  */
       if (IT_CHARPOS (*it) >= it->end_charpos)
 	it->overlay_strings_at_end_processed_p = 1;
+
+      /* If we have to display `...' for invisible text, set
+	 the iterator up for that.  */
+      if (display_ellipsis_p)
+	setup_for_ellipsis (it);
     }
   else
     {
@@ -3333,7 +3362,7 @@ next_overlay_string (it)
       int i = it->current.overlay_string_index % OVERLAY_STRING_CHUNK_SIZE;
   
       if (it->current.overlay_string_index && i == 0)
-	load_overlay_strings (it);
+	load_overlay_strings (it, 0);
 
       /* Initialize IT to deliver display elements from the overlay
          string.  */
@@ -3393,8 +3422,8 @@ compare_overlay_entries (e1, e2)
 
 
 /* Load the vector IT->overlay_strings with overlay strings from IT's
-   current buffer position.  Set IT->n_overlays to the total number of
-   overlay strings found.  
+   current buffer position, or from CHARPOS if that is > 0.  Set
+   IT->n_overlays to the total number of overlay strings found.
 
    Overlay strings are processed OVERLAY_STRING_CHUNK_SIZE strings at
    a time.  On entry into load_overlay_strings,
@@ -3417,8 +3446,9 @@ compare_overlay_entries (e1, e2)
    compare_overlay_entries.  */
    
 static void
-load_overlay_strings (it)
+load_overlay_strings (it, charpos)
      struct it *it;
+     int charpos;
 {
   extern Lisp_Object Qafter_string, Qbefore_string, Qwindow, Qpriority;
   Lisp_Object ov, overlay, window, str, invisible;
@@ -3427,7 +3457,9 @@ load_overlay_strings (it)
   int n = 0, i, j, invis_p;
   struct overlay_entry *entries
     = (struct overlay_entry *) alloca (size * sizeof *entries);
-  int charpos = IT_CHARPOS (*it);
+
+  if (charpos <= 0)
+    charpos = IT_CHARPOS (*it);
 
   /* Append the overlay string STRING of overlay OVERLAY to vector
      `entries' which has size `size' and currently contains `n'
@@ -3559,12 +3591,13 @@ load_overlay_strings (it)
 
 
 /* Get the first chunk of overlay strings at IT's current buffer
-   position.  Value is non-zero if at least one overlay string was
-   found.   */
+   position, or at CHARPOS if that is > 0.  Value is non-zero if at
+   least one overlay string was found.  */
 
 static int
-get_overlay_strings (it)
+get_overlay_strings (it, charpos)
      struct it *it;
+     int charpos;
 {
   /* Get the first OVERLAY_STRING_CHUNK_SIZE overlay strings to
      process.  This fills IT->overlay_strings with strings, and sets
@@ -3574,7 +3607,7 @@ get_overlay_strings (it)
      when no overlay strings are found because a zero value would
      indicate a position in the first overlay string.  */
   it->current.overlay_string_index = 0;
-  load_overlay_strings (it);
+  load_overlay_strings (it, charpos);
 
   /* If we found overlay strings, set up IT to deliver display
      elements from the first one.  Otherwise set up IT to deliver
@@ -3648,6 +3681,7 @@ push_it (it)
   p->font_height = it->font_height;
   p->voffset = it->voffset;
   p->string_from_display_prop_p = it->string_from_display_prop_p;
+  p->display_ellipsis_p = 0;
   ++it->sp;
 }
 
@@ -4702,7 +4736,7 @@ next_element_from_buffer (it)
 	  else
 	    {
 	      it->overlay_strings_at_end_processed_p = 1;
-	      overlay_strings_follow_p = get_overlay_strings (it);
+	      overlay_strings_follow_p = get_overlay_strings (it, 0);
 	    }
 
 	  if (overlay_strings_follow_p)
