@@ -1,5 +1,10 @@
 2001-05-21  Gerd Moellmann  <gerd@gnu.org>
 
+	This adds a `double-buffer' frame parameter which makes
+	frames use the X double-buffering extension.  Probably
+	only interesting if display features are added that cannot
+	be drawn without flickering, unless using double-buffering.
+
 	* xfns.c (x_set_double_buffer): New function.
 	(x_frame_parms): Add x_set_double_buffer.
 	(Fx_create_frame): Remove call to dbe_make_frame_buffered.
