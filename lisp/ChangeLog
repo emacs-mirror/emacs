@@ -1,3 +1,8 @@
+2004-05-13  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+	* language/european.el ("Brazilian Portuguese"): Added support for
+	Brazilian Portuguese.
+
 2004-05-13  John Wiegley  <johnw@newartisans.com>
 
 	* iswitchb.el (iswitchb-use-virtual-buffers): Only turn on
