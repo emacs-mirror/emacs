@@ -2067,6 +2067,7 @@ change_frame_size (f, newheight, newwidth, pretend, delay)
      int newheight, newwidth, pretend;
 {
   Lisp_Object tail, frame;
+
   if (! FRAME_WINDOW_P (f))
     {
       /* When using termcap, or on MS-DOS, all frames use
@@ -2086,6 +2087,8 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
      int newheight, newwidth, pretend, delay;
 {
   int new_frame_window_width;
+  unsigned int total_glyphs;
+
   /* If we can't deal with the change now, queue it for later.  */
   if (delay)
     {
@@ -2105,6 +2108,13 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
   if (newwidth == 0)
     newwidth  = FRAME_WIDTH  (frame);
   new_frame_window_width = FRAME_WINDOW_WIDTH_ARG (frame, newwidth);
+
+  total_glyphs = newheight * (newwidth + 2) * sizeof (GLYPH);
+
+  /* If these sizes are so big they cause overflow,
+     just ignore the change.  It's not clear what better we could do.  */
+  if (total_glyphs / sizeof (GLYPH) / newheight != newwidth + 2)
+    return;
 
   /* Round up to the smallest acceptable size.  */
   check_frame_size (frame, &newheight, &newwidth);
