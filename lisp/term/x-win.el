@@ -469,8 +469,8 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; have a window on a copy of the kill-ring.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X applications.
-(defun x-select-text (text)
-  (x-set-cut-buffer text)
+(defun x-select-text (text &optional push)
+  (x-set-cut-buffer text push)
   (x-set-selection 'CLIPBOARD text)
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text text))
