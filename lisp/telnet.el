@@ -53,7 +53,7 @@
 
 (require 'comint)
 
-(defvar telnet-host-properties
+(defvar telnet-host-properties ()
   "Specify which telnet program to use for particular hosts.
 Each element has the form (HOSTNAME PROGRAM [LOGIN-NAME])
 HOSTNAME says which machine the element applies to.
