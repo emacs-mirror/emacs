@@ -53,6 +53,16 @@ Lisp_Object Qarith_error;
 
 #ifdef LISP_FLOAT_TYPE
 
+#if 0 /* That is untrue--XINT is used below, and it uses INTBITS.
+	 What in the world is values.h, anyway?  */
+#ifdef MSDOS
+/* These are redefined in <values.h> and not used here */
+#undef INTBITS
+#undef LONGBITS
+#undef SHORTBITS
+#endif
+#endif
+
 /* Work around a problem that happens because math.h on hpux 7
    defines two static variables--which, in Emacs, are not really static,
    because `static' is defined as nothing.  The problem is that they are
@@ -70,11 +80,13 @@ Lisp_Object Qarith_error;
 extern double logb ();
 #endif /* !hpux && HAVE_LOGB */
 
+#ifndef MSDOS
 #if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
     /* If those are defined, then this is probably a `matherr' machine. */
 # ifndef HAVE_MATHERR
 #  define HAVE_MATHERR
 # endif
+#endif
 #endif
 
 #ifdef NO_MATHERR
@@ -813,7 +825,7 @@ Rounds the value toward zero.")
   if (d >= 0.0)
     IN_FLOAT (d = floor (d), "ftruncate", arg);
   else
-    IN_FLOAT (d = ceil (d), arg);
+    IN_FLOAT (d = ceil (d), "ftruncate", arg);
   return make_float (d);
 }
 #endif
