@@ -22,6 +22,10 @@
    is set to this value.  */
 #define PATH_DATA "/usr/local/lib/emacs/data"
 
+/* Where Emacs should look for X bitmap files.
+   The lisp variable x-bitmap-file-path is set based on this value.  */
+#define PATH_BITMAPS "/usr/include/X11/bitmaps"
+
 /* Where Emacs should look for its docstring file.  The lisp variable
    doc-directory is set to this value.  */
 #define PATH_DOC "/usr/local/lib/emacs/data"
