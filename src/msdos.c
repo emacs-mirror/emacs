@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
-   Copyright (C) 1993, 94, 95, 96, 97, 1999, 2000, 2001
+   Copyright (C) 1993, 94, 95, 96, 97, 1999, 2000, 01, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3130,7 +3130,8 @@ dos_rawgetc ()
   struct input_event event;
   union REGS regs;
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (SELECTED_FRAME());
-
+  EVENT_INIT (event);
+  
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
   IT_cmgoto (SELECTED_FRAME());
