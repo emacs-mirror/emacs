@@ -22,20 +22,44 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary: 
+;; This lisp code server two purposes, both of which involve 
+;; the translation of various conventions for representing European 
+;; character sets to ISO 8859-1.
 
-; Calling `iso-german' will turn the net convention f or umlauts ("a etc.) 
-; into ISO latin umlaute for easy reading.
-; hooks change TeX files to Latin-1 for editing and back to TeX sequences 
-; for calling TeX. An alternative is a TeX style that handles 
-; 8 bit ISO files (available on ftp.vlsivie.tuwien.ac.at in /pub/8bit) 
+; Net support: 
+; Various conventions exist in Newsgroups on how to represent national 
+; characters. The functions provided here translate these net conventions 
+; to ISO.
+;
+; Calling `iso-german' will turn the net convention for umlauts ("a etc.) 
+; into ISO latin1 umlaute for easy reading.
+; 'iso-spanish' will turn net conventions for representing spanish 
+; to ISO latin1. (Note that accents are omitted in news posts most 
+; of the time, only enye is escaped.)
+
+; TeX support
+; This mode installs hooks which change TeX files to ISO Latin-1 for 
+; simplified editing. When the TeX file is saved, ISO latin1 characters are
+; translated back to escape sequences.
+;
+; An alternative is a TeX style that handles 8 bit ISO files 
+; (available on ftp.vlsivie.tuwien.ac.at in /pub/8bit)  
 ; - but these files are difficult to transmit ... so while the net is  
 ; still @ 7 bit this may be useful
 
-; to do: translate buffer when displaying from GNUS, 
-; use function 'german which does the Right Thing
+;; TO DO:
+; The net support should install hooks (like TeX support does) 
+; which recognizes certains news groups and translates all articles from 
+; those groups. 
 ;
-; to do: use more general regular expressions for (g)tex2iso tables, to 
-; cover more cases for translation.
+; Cover more cases for translation (There is an infinite number of ways to 
+; represent accented characters in TeX)
+
+;; SEE ALSO:
+; If you are interested in questions related to using the ISO 8859-1 
+; characters set (configuring emacs, Unix, etc. to use ISO), then you
+; can get the ISO 8859-1 FAQ via anonymous ftp from 
+; ftp.vlsivie.tuwien.ac.at in /pub/bit/FAQ-ISO-8859-1
 
 ;;; Code:
 
@@ -306,14 +330,6 @@ contains commonly used sequences.")
 
 (defvar iso-gtex2iso-trans-tab
   '(
-    ("\"a" "ä")
-    ("\"A" "Ä")
-    ("\"o" "ö")
-    ("\"O" "Ö")
-    ("\"u" "ü")
-    ("\"U" "Ü")
-    ("\"s" "ß")
-    ("\\\\3" "ß")
     ("{\\\\\"a}" "ä")
     ("{\\\\`a}" "à")
     ("{\\\\'a}" "á")
@@ -423,6 +439,14 @@ contains commonly used sequences.")
     ("!`" "¡")
     ("{?`}" "¿")
     ("{!`}" "¡")
+    ("\"a" "ä")
+    ("\"A" "Ä")
+    ("\"o" "ö")
+    ("\"O" "Ö")
+    ("\"u" "ü")
+    ("\"U" "Ü")
+    ("\"s" "ß")
+    ("\\\\3" "ß")
     )
   "Translation table for translating German TeX sequences to ISO 8859-1.
 This table is not exhaustive (and due to TeX's power can never be).  It only
