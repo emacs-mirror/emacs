@@ -761,17 +761,17 @@ This takes effect when first loading the library.")
 (defvar html-mode-map
   (let ((map (nconc (make-sparse-keymap) sgml-mode-map))
 	(menu-map (make-sparse-keymap "HTML")))
-    (define-key map "\C-c6" 'html-headline)
-    (define-key map "\C-c5" 'html-headline)
-    (define-key map "\C-c4" 'html-headline)
-    (define-key map "\C-c3" 'html-headline)
-    (define-key map "\C-c2" 'html-headline)
-    (define-key map "\C-c1" 'html-headline)
+    (define-key map "\C-c6" 'html-headline-6)
+    (define-key map "\C-c5" 'html-headline-5)
+    (define-key map "\C-c4" 'html-headline-4)
+    (define-key map "\C-c3" 'html-headline-3)
+    (define-key map "\C-c2" 'html-headline-2)
+    (define-key map "\C-c1" 'html-headline-1)
     (define-key map "\C-c\r" 'html-paragraph)
     (define-key map "\C-c\n" 'html-line)
     (define-key map "\C-c\C-c-" 'html-horizontal-rule)
-    (define-key map "\C-c\C-co" 'html-list)
-    (define-key map "\C-c\C-cu" 'html-list)
+    (define-key map "\C-c\C-co" 'html-ordered-list)
+    (define-key map "\C-c\C-cu" 'html-unordered-list)
     (define-key map "\C-c\C-cr" 'html-radio-buttons)
     (define-key map "\C-c\C-cc" 'html-checkboxes)
     (define-key map "\C-c\C-cl" 'html-list-item)
@@ -781,8 +781,8 @@ This takes effect when first loading the library.")
     (if html-quick-keys
 	(progn
 	  (define-key map "\C-c-" 'html-horizontal-rule)
-	  (define-key map "\C-co" 'html-list)
-	  (define-key map "\C-cu" 'html-list)
+	  (define-key map "\C-co" 'html-ordered-list)
+	  (define-key map "\C-cu" 'html-unordered-list)
 	  (define-key map "\C-cr" 'html-radio-buttons)
 	  (define-key map "\C-cc" 'html-checkboxes)
 	  (define-key map "\C-cl" 'html-list-item)
@@ -797,17 +797,17 @@ This takes effect when first loading the library.")
     (define-key menu-map [browse-url-of-buffer]
       '("View Buffer Contents" . browse-url-of-buffer))
     (define-key menu-map [nil] '("--"))
-    ;;(define-key menu-map "6" '("Heading 6" . html-headline))
-    ;;(define-key menu-map "5" '("Heading 5" . html-headline))
-    ;;(define-key menu-map "4" '("Heading 4" . html-headline))
-    (define-key menu-map "3" '("Heading 3" . html-headline))
-    (define-key menu-map "2" '("Heading 2" . html-headline))
-    (define-key menu-map "1" '("Heading 1" . html-headline))
+    ;;(define-key menu-map "6" '("Heading 6" . html-headline-6))
+    ;;(define-key menu-map "5" '("Heading 5" . html-headline-5))
+    ;;(define-key menu-map "4" '("Heading 4" . html-headline-4))
+    (define-key menu-map "3" '("Heading 3" . html-headline-3))
+    (define-key menu-map "2" '("Heading 2" . html-headline-2))
+    (define-key menu-map "1" '("Heading 1" . html-headline-1))
     (define-key menu-map "l" '("Radio Buttons" . html-radio-buttons))
     (define-key menu-map "c" '("Checkboxes" . html-checkboxes))
     (define-key menu-map "l" '("List Item" . html-list-item))
-    (define-key menu-map "u" '("Unordered List" . html-list))
-    (define-key menu-map "o" '("Ordered List" . html-list))
+    (define-key menu-map "u" '("Unordered List" . html-unordered-list))
+    (define-key menu-map "o" '("Ordered List" . html-ordered-list))
     (define-key menu-map "-" '("Horizontal Rule" . html-horizontal-rule))
     (define-key menu-map "\n" '("Line Break" . html-line))
     (define-key menu-map "\r" '("Paragraph" . html-paragraph))
@@ -1148,10 +1148,35 @@ do:
   nil
   "<a name=\"" _ "\"></a>")
 
-(define-skeleton html-headline
-  "HTML headline tags."
-  last-command-char
-  "<h" str ?> _ "</h" str ?>)
+(define-skeleton html-headline-1
+  "HTML level 1 headline tags."
+  nil
+  "<h1>" _ "</h1>")
+
+(define-skeleton html-headline-2
+  "HTML level 2 headline tags."
+  nil
+  "<h2>" _ "</h2>")
+
+(define-skeleton html-headline-3
+  "HTML level 3 headline tags."
+  nil
+  "<h3>" _ "</h3>")
+
+(define-skeleton html-headline-4
+  "HTML level 4 headline tags."
+  nil
+  "<h4>" _ "</h4>")
+
+(define-skeleton html-headline-5
+  "HTML level 5 headline tags."
+  nil
+  "<h5>" _ "</h5>")
+
+(define-skeleton html-headline-6
+  "HTML level 6 headline tags."
+  nil
+  "<h6>" _ "</h6>")
 
 (define-skeleton html-horizontal-rule
   "HTML horizontal rule tag."
@@ -1168,12 +1193,19 @@ do:
   nil
   "<br>" \n)
 
-(define-skeleton html-list
-  "HTML unordered/ordered list tags."
-  last-command-char
-  ?< str "l>" \n
+(define-skeleton html-ordered-list
+  "HTML ordered list tags."
+  nil
+  ?< "ol>" \n
   "<li>" _ \n
-  "</" str "l>")
+  "</ol>")
+
+(define-skeleton html-unordered-list
+  "HTML unordered list tags."
+  nil
+  ?< "ul>" \n
+  "<li>" _ \n
+  "</ul>")
 
 (define-skeleton html-list-item
   "HTML list item tag."
