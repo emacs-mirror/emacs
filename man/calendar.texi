@@ -183,6 +183,8 @@ specified in various ways.
 @table @kbd
 @item g d
 Move point to specified date (@code{calendar-goto-date}).
+@item g D
+Move point to specified day of year (@code{calendar-goto-day-of-year}).
 @item o
 Center calendar around specified month (@code{calendar-other-month}).
 @item .
@@ -195,6 +197,12 @@ Move point to today's date (@code{calendar-goto-today}).
 of the month, and then moves to that date.  Because the calendar includes all
 dates from the beginning of the current era, you must type the year in its
 entirety; that is, type @samp{1990}, not @samp{90}.
+
+@kindex g D @r{(Calendar mode)}
+@findex calendar-goto-day-of-year
+  @kbd{g D} (@code{calendar-goto-day-of-year}) prompts for a year and
+day number, and moves to that date.  Negative day numbers count backward
+from the end of the year.
 
 @kindex o @r{(Calendar mode)}
 @findex calendar-other-month
