@@ -568,6 +568,11 @@ word_boundary_p (c1, c2)
   Lisp_Object tail;
   int default_result;
 
+  if (COMPOSITE_CHAR_P (c1))
+    c1 = cmpchar_component (c1, 0, 1);
+  if (COMPOSITE_CHAR_P (c2))
+    c2 = cmpchar_component (c2, 0, 1);
+
   if (CHAR_CHARSET (c1) == CHAR_CHARSET (c2))
     {
       tail = Vword_separating_categories;
