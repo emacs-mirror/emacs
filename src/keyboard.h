@@ -17,6 +17,139 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/* Length of echobuf field in each KBOARD.  */
+
+#define ECHOBUFSIZE 300
+
+/* Each KBOARD represents one logical input stream from which Emacs gets input.
+   If we are using an ordinary terminal, it has one KBOARD object.
+   Usually each X display screen has its own KBOARD,
+   but when two of them are on the same X server,
+   we assume they share a keyboard and give them one KBOARD in common.
+
+   Some Lisp variables are per-kboard; they are stored in the KBOARD structure
+   and accessed indirectly via a Lisp_Misc_Kboard_Objfwd object.
+
+   So that definition of keyboard macros, and reading of prefix arguments,
+   can happen in parallel on various KBOARDs at once,
+   the state information for those activities is stored in the KBOARD.
+
+   Emacs has two states for reading input:
+
+   ** Any kboard.  Emacs can accept input from any KBOARD,
+   and as soon as any of them provides a complete command, Emacs can run it.
+
+   ** Single kboard.  Then Emacs is running a command for one KBOARD
+   and can only read input from that KBOARD.
+
+   All input, from all KBOARDs, goes together in a single event queue
+   at interrupt level.  read_char sees the events sequentially,
+   but deals with them in accord with the current input state.
+
+   In the any-kboard state, read_key_sequence processes input from any KBOARD
+   immediately.  When a new event comes in from a particular KBOARD,
+   read_key_sequence switches to that KBOARD.  As a result,
+   as soon as a complete key arrives from some KBOARD or other,
+   Emacs starts executing that key's binding.  It switches to the
+   single-kboard state for the execution of that command,
+   so that that command can get input only from its own KBOARD.
+
+   While in the single-kboard state, read_char can consider input only
+   from the current KBOARD.  If events come from other KBOARDs, they
+   are put aside for later in the KBOARDs' kbd_queue lists.
+   The flag kbd_queue_has_data in a KBOARD is 1 if this has happened.
+   When Emacs goes back to the any-kboard state, it looks at all the KBOARDS
+   to find those; and it tries processing their input right away.  */
+
+typedef struct kboard KBOARD;
+struct kboard
+  {
+    KBOARD *next_kboard;
+
+    /* The state of a prefix arg.  */
+    Lisp_Object prefix_factor, prefix_value;
+    int prefix_sign, prefix_partial;
+
+    /* Unread events specific to this kboard.  */
+    Lisp_Object kbd_queue;
+
+    /* Non-nil while a kbd macro is being defined.  */
+    Lisp_Object defining_kbd_macro;
+
+    /* The start of storage for the current keyboard macro.  */
+    Lisp_Object *kbd_macro_buffer;
+
+    /* Where to store the next keystroke of the macro.  */
+    Lisp_Object *kbd_macro_ptr;
+
+    /* The finalized section of the macro starts at kbd_macro_buffer and
+       ends before this.  This is not the same as kbd_macro_ptr, because
+       we advance this to kbd_macro_ptr when a key's command is complete.
+       This way, the keystrokes for "end-kbd-macro" are not included in the
+       macro.  */
+    Lisp_Object *kbd_macro_end;
+
+    /* Allocated size of kbd_macro_buffer.  */
+    int kbd_macro_bufsize;
+
+    /* Last anonymous kbd macro defined.  */
+    Lisp_Object Vlast_kbd_macro;
+
+    /* Number of displays using this KBOARD.  Normally 1, but can be
+       larger when you have multiple screens on a single X display.  */
+    int reference_count;
+
+    /* Where to append more text to echobuf if we want to.  */
+    char *echoptr;
+
+    /* The text we're echoing in the modeline - partial key sequences,
+       usually.  '\0'-terminated.  This really shouldn't have a fixed size.  */
+    char echobuf[ECHOBUFSIZE];
+
+    /* This flag indicates that events were put into kbd_queue
+       while Emacs was running for some other KBOARD.
+       The flag means that, when Emacs goes into the any-kboard state again,
+       it should check this KBOARD to see if there is a complete command
+       waiting.
+
+       Note that the kbd_queue field can be non-nil even when
+       kbd_queue_has_data is 0.  When we push back an incomplete
+       command, then this flag is 0, meaning we don't want to try
+       reading from this KBOARD again until more input arrives.  */
+    char kbd_queue_has_data;
+
+    /* Nonzero means echo each character as typed.  */
+    char immediate_echo;
+
+    /* If we have echoed a prompt string specified by the user,
+       this is its length.  Otherwise this is -1.  */
+    char echo_after_prompt;
+  };
+
+#ifdef MULTI_KBOARD
+/* Temporarily used before a frame has been opened, and for termcap frames */
+extern KBOARD *initial_kboard;
+
+/* In the single-kboard state, this is the kboard
+   from which input is accepted.
+
+   In the any-kboard state, this is the kboard from which we are
+   right now considering input.  We can consider input from another
+   kboard, but doing so requires throwing to wrong_kboard_jmpbuf.  */
+extern KBOARD *current_kboard;
+
+/* A list of all kboard objects, linked through next_kboard.  */
+extern KBOARD *all_kboards;
+
+/* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
+extern int single_kboard;
+#else
+extern KBOARD the_only_kboard;
+#define current_kboard (&the_only_kboard)
+#define all_kboards (&the_only_kboard)
+#define single_kboard 1
+#endif
+
 /* Total number of times read_char has returned.  */
 extern int num_input_chars;
 
