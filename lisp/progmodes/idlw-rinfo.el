@@ -1277,5 +1277,6 @@
 
 
 (provide 'idlw-rinfo)
+(provide 'idlwave-rinfo)
 
 ;;; idlw-rinfo.el ends here
