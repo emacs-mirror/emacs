@@ -1,5 +1,7 @@
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (show-cursor-in-non-selected-windows): Doc fix.
+
 	* hi-lock.el (hi-lock-refontify): Don't call non-existent
 	jit-lock-fontify-buffer; it should anyway be unneccessary to
 	do anything special when jit-lock is active.
