@@ -1,3 +1,9 @@
+2000-08-15  Miles Bader  <miles@gnu.org>
+
+	* textmodes/ispell.el (ispell-graphic-p): New constant.
+	(ispell-choices-win-default-height, ispell-help): Use
+	`ispell-graphic-p' instead of `xemacsp'.
+
 2000-08-15  Dave Love  <fx@gnu.org>
 
 	* net/browse-url.el (browse-url-filename-alist): Add a clause for
