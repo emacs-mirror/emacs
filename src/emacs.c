@@ -254,7 +254,7 @@ main (argc, argv, envp)
     int i;
 
     for (i = 1; (i < argc && ! display_arg); i++)
-      if (!strcmp (argv[i], "-d"))
+      if (!strcmp (argv[i], "-d") || !strcmp (argv[i], "-display"))
 	display_arg = 1;
   }
 #endif
