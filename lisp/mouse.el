@@ -1928,15 +1928,17 @@ and selects that window."
      ("clean 8x16"
       "-schumacher-clean-medium-r-normal--16-*-*-*-c-80-iso8859-1")
      ("")
-     ("sony 8x16" "-sony-fixed-medium-r-normal--16-*-*-*-c-80-iso8859-1"))
+     ("sony 8x16" "-sony-fixed-medium-r-normal--16-*-*-*-c-80-iso8859-1")
 ;;; We don't seem to have these; who knows what they are.
 ;;;    ("fg-18" "fg-18")
 ;;;    ("fg-25" "fg-25")
-;;;    ("lucidasanstypewriter-12" "lucidasanstypewriter-12")
-;;;    ("lucidasanstypewriter-bold-14" "lucidasanstypewriter-bold-14")
-;;;    ("lucidasanstypewriter-bold-24" "lucidasanstypewriter-bold-24")
+     ("lucidasanstypewriter-12" "-b&h-lucidatypewriter-medium-r-normal-sans-*-120-*-*-*-*-iso8859-1")
+     ("lucidasanstypewriter-bold-14" "-b&h-lucidatypewriter-bold-r-normal-sans-*-140-*-*-*-*-iso8859-1")
+     ("lucidasanstypewriter-bold-24"
+      "-b&h-lucidatypewriter-bold-r-normal-sans-*-240-*-*-*-*-iso8859-1")
 ;;;    ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
 ;;;    ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
+     )
     ("Courier"
      ;; For these, we specify the point height.
      ("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
