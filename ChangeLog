@@ -8,6 +8,10 @@
 	* configure.in <alpha*-dec-osf*>: Move "NON_GNU_CPP='cpp'" before
 	"case "${canonical}" in".
 
+2000-08-25  Dave Love  <fx@gnu.org>
+
+	* configure.in <osf>: Use NON_GNU_CPP='cpp' always.
+
 2000-08-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* leim-Makefile.in: Rename skk to ja-dic throughout the file.
