@@ -464,7 +464,8 @@ XTcursor_to (row, col)
    compute_char_face and compute_glyph_face on everything it puts in
    the display structure, we can assume that the face code on each
    glyph is a valid index into FRAME_COMPUTED_FACES (f), and the one
-   to which we can actually apply intern_face.  */
+   to which we can actually apply intern_face.
+   Call this function with input blocked.  */
 
 #if 1
 /* This is the multi-face code.  */
@@ -751,7 +752,8 @@ XTclear_end_of_line (first_unused)
 /* Erase the character (if any) at the position just before X, Y in frame F,
    then redraw it and the character before it.
    This is necessary when we erase starting at X,
-   in case the character after X overlaps into the one before X.  */
+   in case the character after X overlaps into the one before X.
+   Call this function with input blocked.  */
 
 static void
 redraw_previous_char (f, x, y)
@@ -1146,7 +1148,8 @@ static void clear_cursor ();
 /* Output into a rectangle of an X-window (for frame F)
    the characters in f->phys_lines that overlap that rectangle.
    TOP and LEFT are the position of the upper left corner of the rectangle.
-   ROWS and COLS are the size of the rectangle.  */
+   ROWS and COLS are the size of the rectangle.
+   Call this function with input blocked.  */
 
 static void
 dumprectangle (f, left, top, cols, rows)
@@ -2648,6 +2651,8 @@ process_expose_from_menu (event)
 {
   FRAME_PTR f;
 
+  BLOCK_INPUT;
+
   f = x_window_to_frame (event.xexpose.window);
   if (f)
     {
@@ -2672,6 +2677,8 @@ process_expose_from_menu (event)
       if (bar)
 	x_scroll_bar_expose (bar, &event);
     }
+
+  UNBLOCK_INPUT;
 }
 
 
@@ -3950,6 +3957,8 @@ x_display_cursor (f, on)
      struct frame *f;
      int on;
 {
+  BLOCK_INPUT;
+
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
     x_display_box_cursor (f, on);
   else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
@@ -3957,6 +3966,8 @@ x_display_cursor (f, on)
   else
     /* Those are the only two we have implemented!  */
     abort ();
+
+  UNBLOCK_INPUT;
 }
 
 /* Icons.  */
