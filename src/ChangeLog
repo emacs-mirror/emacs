@@ -1,3 +1,9 @@
+2005-01-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_glyph_string_clip_rect): Always show a cursor
+	glyph, even when row is only partially visible and actual cursor
+	position is not visible.
+
 2005-01-24  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (x_error_quitter): No longer static, and moved after
