@@ -40,6 +40,17 @@
   ;; rescheduling or people who otherwise expect to use the process frequently
   "If non-nil, don't exit the timer process when no more events are pending.")
 
+;; This should not be necessary, but on some systems, we get
+;; unkillable processes without this.
+;; It may be a kernel bug, but that's not certain.
+(defun timer-kill-emacs-hook ()
+  (if timer-process
+      (progn
+	(set-process-sentinel timer-process nil)
+	(set-process-filter timer-process nil)
+	(delete-process timer-process))))
+(add-hook 'kill-emacs-hook 'timer-kill-emacs-hook)
+
 ;;;###autoload
 (defun run-at-time (time repeat function &rest args)
   "Run a function at a time, and optionally on a regular interval.
