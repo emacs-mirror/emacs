@@ -200,12 +200,12 @@ act as a paragraph-separator."
     (goto-char from)
     (if (eolp) (forward-line 1))
     ;; Move to the second line unless there is just one.
+    (move-to-left-margin)
     (let ((firstline (point))
 	  first-line-prefix
 	  ;; Non-nil if we are on the second line.
 	  second-line-prefix
 	  start)
-      (move-to-left-margin)
       (setq start (point))
       (setq first-line-prefix
 	    ;; We don't need to consider `paragraph-start' here since it
@@ -238,7 +238,7 @@ act as a paragraph-separator."
 		;; Used when first line is `/* ...' and second-line is
 		;; ` * ...'.
 		(save-excursion
-		  (goto-char start)
+		  (goto-char firstline)
 		  (looking-at
 		   (apply 'concat
 			  (mapcar (lambda (c)
