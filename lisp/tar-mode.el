@@ -834,7 +834,7 @@ the current tar-entry."
       (unwind-protect
 	  (let ((coding-system-for-write 'no-conversion))
 	    (set-buffer-multibyte nil)
-	    (write-region start end to-file))
+	    (write-region start end to-file nil nil nil t))
 	(set-buffer-multibyte multibyte)))
     (message "Copied tar entry %s to %s" name to-file)))
 
