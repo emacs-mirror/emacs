@@ -42,11 +42,6 @@ because that gives you a printed manual as well.")
   "Non-nil allows Info to execute Lisp code associated with nodes.
 The Lisp code is executed when the node is selected.")
 
-(defvar Info-default-directory-list nil
-  "List of default directories to search for Info documentation files.
-This value is used as the default for `Info-directory-list'.  It is set
-in paths.el.")
-
 (defvar Info-fontify t
   "*Non-nil enables highlighting and fonts in Info nodes.")
 
