@@ -403,9 +403,9 @@ bit output with no translation."
       (w32-add-charset-info "unicode" 'w32-charset-unicode t)))
 
 
-(make-obsolete-variable 'w32-enable-italics 'w32-enable-synthesized-fonts)
+(make-obsolete-variable 'w32-enable-italics
+                        'w32-enable-synthesized-fonts "21.1")
 (make-obsolete-variable 'w32-charset-to-codepage-alist
-    "w32-charset-to-codepage-alist has been replaced by the more extensive
-w32-charset-info-alist")
+                        'w32-charset-info-alist "21.1")
 
 ;;; w32-fns.el ends here
