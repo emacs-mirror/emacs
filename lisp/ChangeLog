@@ -1503,7 +1503,7 @@
 
 	* printing.el: Replace "As Is..." in PostScript file print/preview by
 	"No Preprocessing...".  Suggested by Colin Marquardt
-	<marquardt@zmd.de>.
+	<_marquardt_@zmd.de>.
 	(pr-insert-section-4): Adjust buffer interface.
 
 2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
