@@ -948,6 +948,7 @@ If HDR is non-nil, insert a header line with the directory name."
     (define-key map "f" 'dired-find-file)
     (define-key map "\C-m" 'dired-advertised-find-file)
     (define-key map "g" 'revert-buffer)
+    (define-key map "M-g" 'dired-goto-file)
     (define-key map "h" 'describe-mode)
     (define-key map "i" 'dired-maybe-insert-subdir)
     (define-key map "k" 'dired-do-kill-lines)
