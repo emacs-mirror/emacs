@@ -1,5 +1,12 @@
 2000-10-15  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/ewoc.el (ewoc-location): New function.
+	(ewoc-enter-after, ewoc-enter-before): Document return value.
+	* pcvs.el (cvs-make-cvs-buffer, cvs-run-process):
+	Don't need make-local-hook any more.
+	(cvs-addto-collection): Return the new tin.
+	(cvs-mode-insert): Jump to the new line.
+
 	* jit-lock.el (jit-lock-fontify-buffer): Remove.
 
 	* arc-mode.el (archive-zoo-summarize): Fix from gnu.emacs.bug.
