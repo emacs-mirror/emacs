@@ -2,9 +2,9 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
- * 
+ *
  * .purpose: The implementation of the new manual-variable pool class
- * 
+ *
  * .design: See design.mps.poolmv2
  */
 

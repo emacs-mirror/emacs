@@ -16,7 +16,7 @@
  * TRANSGRESSIONS (rule.impl.trans)
  *
  * .trans.file: The ANSI standard says (in section 7.9.1) that FILE is an
- * object type, and hence the casts between FILE and mps_lib_FILE (an 
+ * object type, and hence the casts between FILE and mps_lib_FILE (an
  * incomplete type) are not necessarily valid.  We assume that this trick
  * works, however, in all current environments.
  */

@@ -29,7 +29,7 @@ typedef struct AddrStruct *Addr;
 #define RELATION(type, code, always, kind, format) \
   case Event ## type: \
     readEvent(#type, #format, header[0], header[1], header[2]); \
-    break; 
+    break;
 
 
 #define AVER(test) \
@@ -84,10 +84,10 @@ static void readEvent(char *type, char *format, Word code, Word length,
         v = malloc(length * sizeof(Word));
         if(v == NULL)
           error("Can't allocate string space %u", (unsigned)length);
-        n = fread((void *)v, sizeof(Word), length, progin); 
-        if(n < 1) 
-          error("Can't read data for string"); 
-        printf("%s  ", v); 
+        n = fread((void *)v, sizeof(Word), length, progin);
+        if(n < 1)
+          error("Can't read data for string");
+        printf("%s  ", v);
         length = 0;
       } break;
       case '0': break;
@@ -101,7 +101,7 @@ static void readEvent(char *type, char *format, Word code, Word length,
   AVER(length == 0);
 }
 
-        
+       
 int main(int argc, char *argv[]) {
   Word header[3];
   size_t arg = 1;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 	  continue;
 	error("Can't read from input");
       }
-      
+     
       switch(header[0]) {
 #include "eventdef.h"
       default:
@@ -142,5 +142,5 @@ int main(int argc, char *argv[]) {
 
   return(0);
 }
-  
-      
+ 
+     

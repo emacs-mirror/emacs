@@ -7,10 +7,10 @@
  *
  * TRANSGRESSIONS (rule.impl.trans)
  *
- * .trans.ref: The reference counting used to destroy the mps_io object 
+ * .trans.ref: The reference counting used to destroy the mps_io object
  * isn't right.
  *
- * .trans.log: The log file will be re-created if the lifetimes of 
+ * .trans.log: The log file will be re-created if the lifetimes of
  * arenas don't overlap, but shared if they do.  mps_io_create cannot
  * be called twice, but EventInit avoids this anyway.
  *
@@ -47,7 +47,7 @@ Word EventKindControl; /* Bit set used to control output. */
 Res EventFlush(void)
 {
   Res res;
-  
+ 
   AVER(eventInited);
 
   res = (Res)mps_io_write(eventIO, (void *)eventBuffer,
@@ -122,15 +122,15 @@ void EventFinish(void)
  *   Flip(M)  EventControl(0,M)
  *   Read()   EventControl(0,0)
  */
-   
+  
 Word EventControl(Word resetMask, Word flipMask)
 {
   Word oldValue = EventKindControl;
-      
+     
   /* EventKindControl = (EventKindControl & ~resetMask) ^ flipMask */
   EventKindControl =
     BS_SYM_DIFF(BS_DIFF(EventKindControl, resetMask), flipMask);
-       
+      
   return oldValue;
 }
 
@@ -180,13 +180,13 @@ void EventLabelAddr(Addr addr, Word id)
 
 Res (EventSync)(void)
 {
-  return(ResOK);  
+  return(ResOK); 
 }
 
 
 Res (EventInit)(void)
 {
-  return(ResOK);  
+  return(ResOK); 
 }
 
 

@@ -22,7 +22,7 @@
 
 typedef struct MeterStruct *Meter;
 
-typedef struct MeterStruct 
+typedef struct MeterStruct
 {
   char *name;
   Count count;

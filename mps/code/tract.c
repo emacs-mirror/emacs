@@ -32,7 +32,7 @@ Bool TractCheck(Tract tract)
   CHECKL(AddrIsAligned(TractBase(tract), ArenaAlign(TractArena(tract))));
   if (TractHasSeg(tract)) {
     CHECKL(TraceSetCheck(TractWhite(tract)));
-    CHECKU(Seg, (Seg)TractP(tract)); 
+    CHECKU(Seg, (Seg)TractP(tract));
   } else {
     CHECKL(TractWhite(tract) == TraceSetEMPTY);
   }
@@ -71,8 +71,8 @@ void TractFinish(Tract tract)
 
 
 
-/* .tract.critical: These tract functions are low-level and used 
- * throughout. They are therefore on the critical path and their 
+/* .tract.critical: These tract functions are low-level and used
+ * throughout. They are therefore on the critical path and their
  * AVERs are so-marked.
  */
 
@@ -392,8 +392,8 @@ Index IndexOfAddr(Chunk chunk, Addr addr)
 
 /* Page table functions */
 
-/* .tract.critical: These Tract functions are low-level and are on 
- * the critical path in various ways.  The more common therefore 
+/* .tract.critical: These Tract functions are low-level and are on
+ * the critical path in various ways.  The more common therefore
  * use AVER_CRITICAL.
  */
 
@@ -410,7 +410,7 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
   Bool b;
   Index i;
   Chunk chunk;
-  
+ 
   /* design.mps.trace.fix.noaver */
   AVER_CRITICAL(tractReturn != NULL); /* .tract.critical */
   AVERT_CRITICAL(Arena, arena);
@@ -434,7 +434,7 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
 
 
 /* TractOfBaseAddr -- return a tract given a base address
- * 
+ *
  * The address must have been allocated to some pool.
  */
 

@@ -180,7 +180,7 @@ extern Res AMSBufferInit(Pool pool, Buffer buffer, va_list args);
 extern Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size,
                          Bool withReservoirPermit);
-extern void AMSBufferEmpty(Pool pool, Buffer buffer, 
+extern void AMSBufferEmpty(Pool pool, Buffer buffer,
                            Addr init, Addr limit);
 
 extern Res AMSWhiten(Pool pool, Trace trace, Seg seg);

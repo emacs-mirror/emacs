@@ -96,7 +96,7 @@ Bool RootModeCheck(RootMode mode)
 Bool RootCheck(Root root)
 {
   CHECKS(Root, root);
-  CHECKU(Arena, root->arena); 
+  CHECKU(Arena, root->arena);
   CHECKL(root->serial < ArenaGlobals(root->arena)->rootSerial);
   CHECKL(RingCheck(&root->arenaRing));
   CHECKL(RankCheck(root->rank));
@@ -152,8 +152,8 @@ Bool RootCheck(Root root)
 /* rootCreate, RootCreateTable, RootCreateReg, RootCreateFmt, RootCreateFun
  *
  * RootCreate* set up the appropriate union member, and call the generic
- * create function to do the actual creation 
- * 
+ * create function to do the actual creation
+ *
  * See design.mps.root.init for initial value. */
 
 static Res rootCreate(Root *rootReturn, Arena arena,
@@ -263,7 +263,7 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   AVERT(Arena, arena);
   AVER(RankCheck(rank));
   AVER(base != 0);
-  AVER(base < limit);  
+  AVER(base < limit); 
 
   theUnion.table.base = base;
   theUnion.table.limit = limit;
@@ -418,7 +418,7 @@ void RootGrey(Root root, Trace trace)
 {
   AVERT(Root, root);
   AVERT(Trace, trace);
-  
+ 
   root->grey = TraceSetAdd(root->grey, trace);
 }
 
@@ -589,7 +589,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
-               "  arena $P ($U)\n", (WriteFP)root->arena, 
+               "  arena $P ($U)\n", (WriteFP)root->arena,
                (WriteFU)root->arena->serial,
                "  rank $U\n", (WriteFU)root->rank,
                "  grey $B\n", (WriteFB)root->grey,
@@ -639,7 +639,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                  NULL);
     if (res != ResOK) return res;
     break;
-           
+          
     default:
     NOTREACHED;
   }

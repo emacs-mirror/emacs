@@ -6,11 +6,11 @@
  * PURPOSE
  *
  * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext.  
+ * that decodes the MutatorFaultContext. 
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's 
+ * .source.i486: Intel486 Microprocessor Family Programmer's
  * Reference Manual (book.intel92).
  *
  * ASSUMPTIONS
@@ -54,7 +54,7 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 
 /* Prmci3DecodeFaultContext -- decode fault context */
 
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn, 
+void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
                               MutatorFaultContext context)
 {
   LPEXCEPTION_RECORD er;

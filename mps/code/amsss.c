@@ -25,7 +25,7 @@
 
 #define exactRootsCOUNT 50
 #define ambigRootsCOUNT 100
-/* This is enough for three GCs. */ 
+/* This is enough for three GCs. */
 #define totalSizeMAX    800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
- 
+
   randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),

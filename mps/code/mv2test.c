@@ -124,15 +124,15 @@ static double nrnd(void)
   double r1 = 0.27597;
   double r2 = 0.27846;
   double x, y, Q;
- 
-reject: 
+
+reject:
   u = (double)rnd()/m;
   v = (double)rnd()/m;
   v = twor * (v - 0.5);
   x = u - s;
   y = fabs(v) - t;
   Q = x * x + y * (a * y - b * x);
-  
+ 
   if (Q < r1)
     goto accept;
   if (Q > r2)
@@ -156,7 +156,7 @@ static mps_pool_t pool;
 
 extern void DescribeIt(void);
 
-void DescribeIt(void) 
+void DescribeIt(void)
 {
   PoolDescribe((Pool)pool, (mps_lib_FILE *)stderr);
 }
@@ -196,7 +196,7 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
   /* --- align */
   size = ((size+7)/8)*8;
-  
+ 
   do {
     MPS_RESERVE_BLOCK(res, *p, ap, size);
     if(res != MPS_RES_OK)
@@ -250,13 +250,13 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       int j = rand()%(TEST_SET_SIZE-i);
       void *tp;
       size_t ts;
-      
+     
       tp = ps[j]; ts = ss[j];
       ps[j] = ps[i]; ss[j] = ss[i];
       ps[i] = tp; ss[i] = ts;
     }
     /* free some of the objects */
-    
+   
     for(i=x; i<TEST_SET_SIZE; ++i) {
       if (ss[i] > 0) {
         mps_free(pool, (mps_addr_t)ps[i], ss[i]);
@@ -270,7 +270,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       if(res != MPS_RES_OK)
         break;
       ss[i] = s;
-      
+     
       if (verbose) {
         if(i && i%4==0) putchar('\n');
         printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
@@ -279,9 +279,9 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     if (verbose)
       putchar('\n');
   }
-    
+   
   PoolDescribe((Pool)pool, mps_lib_stdout);
-  
+ 
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
 
@@ -299,7 +299,7 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
   min = 8;
   mean = 42;
   max = 8192;
-  
+ 
   die(stress(mps_class_mvt(), arena, randomSize,
              min,               /* min_size */
              mean,              /* median_size */

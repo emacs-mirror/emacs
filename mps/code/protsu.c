@@ -154,7 +154,7 @@ void ProtSetup(void)
   handler_t next;
 
   /* ProtSetup is called exactly once, see design.mps.prot.if.setup */
-  AVER(sigNext == NULL); 
+  AVER(sigNext == NULL);
 
   next = signal(SIGSEGV, sigHandle);
   /* should always succeed as our parameters are valid */

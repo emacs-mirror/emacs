@@ -62,7 +62,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
-  
+ 
   context.ep = info;
 
   /* assert that the exception is continuable */

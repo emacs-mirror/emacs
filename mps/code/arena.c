@@ -2,7 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
- * 
+ *
  * .sources: design.mps.arena is the main design document.  */
 
 #include "tract.h"
@@ -24,7 +24,7 @@ static Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  return WriteF(stream, 
+  return WriteF(stream,
     "  No class-specific description available.\n", NULL);
 }
 
@@ -173,7 +173,7 @@ Res ArenaInit(Arena arena, ArenaClass class)
 
   /* initialize the reservoir, design.mps.reservoir */
   res = ReservoirInit(&arena->reservoirStruct, arena);
-  if (res != ResOK) 
+  if (res != ResOK)
     goto failReservoirInit;
 
   AVERT(Arena, arena);
@@ -211,11 +211,11 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   ChunkEncache(arena, arena->primary);
 
   res = ControlInit(arena);
-  if (res != ResOK) 
+  if (res != ResOK)
     goto failControlInit;
 
   res = GlobalsCompleteCreate(ArenaGlobals(arena));
-  if (res != ResOK) 
+  if (res != ResOK)
     goto failGlobalsCompleteCreate;
 
   AVERT(Arena, arena);
@@ -276,11 +276,11 @@ Res ControlInit(Arena arena)
   Res res;
 
   AVERT(Arena, arena);
-  res = PoolInit(&arena->controlPoolStruct.poolStruct, 
+  res = PoolInit(&arena->controlPoolStruct.poolStruct,
                  arena, PoolClassMV(),
                  ARENA_CONTROL_EXTENDBY, ARENA_CONTROL_AVGSIZE,
                  ARENA_CONTROL_MAXSIZE);
-  if (res != ResOK) 
+  if (res != ResOK)
     return res;
   arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
   return ResOK;
@@ -307,7 +307,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream, "Arena $P {\n", (WriteFP)arena,
-               "  class $P (\"$S\")\n", 
+               "  class $P (\"$S\")\n",
                (WriteFP)arena->class, arena->class->name,
                NULL);
   if (res != ResOK) return res;
@@ -335,7 +335,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   if (res != ResOK) return res;
 
   res = WriteF(stream,
-               "} Arena $P ($U)\n", (WriteFP)arena, 
+               "} Arena $P ($U)\n", (WriteFP)arena,
                (WriteFU)arena->serial,
                NULL);
   return res;
@@ -355,7 +355,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-  b = TractFirst(&tract, arena); 
+  b = TractFirst(&tract, arena);
   oldLimit = TractBase(tract);
   while (b) {
     base = TractBase(tract);
@@ -396,7 +396,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
  * with void* (design.mps.type.addr.use), ControlAlloc must take care of
  * allocating so that the block can be addressed with a void*.  */
 
-Res ControlAlloc(void **baseReturn, Arena arena, size_t size, 
+Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                  Bool withReservoirPermit)
 {
   Addr base;
@@ -410,7 +410,7 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
 
   res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
                   withReservoirPermit);
-  if (res != ResOK) 
+  if (res != ResOK)
     return res;
 
   *baseReturn = (void *)base; /* see .controlalloc.addr */
@@ -628,7 +628,7 @@ Res ArenaExtend(Arena arena, Addr base, Size size)
   AVER(size > 0);
 
   res = (*arena->class->extend)(arena, base, size);
-  if (res != ResOK) 
+  if (res != ResOK)
     return res;
 
   EVENT_PAW(ArenaExtend, arena, base, size);

@@ -50,7 +50,7 @@ enum {
 #define AVER_CRITICAL(cond)         DISCARD(cond)
 #define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
 
-#elif defined(MPS_HOT_RED) 
+#elif defined(MPS_HOT_RED)
 
 #define AVER(cond)                  ASSERT(cond, #cond)
 #define AVERT(type, val)            ASSERT(type ## Check(val), \

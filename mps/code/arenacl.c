@@ -2,9 +2,9 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
- * 
+ *
  * .design: See design.mps.arena.client.
- * 
+ *
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
  * and last free pages in each chunk, and start searching from these
@@ -70,7 +70,7 @@ static Bool ClientChunkCheck(ClientChunk clChunk)
   CHECKL((Addr)(chunk + 1) < (Addr)chunk->allocTable);
   return TRUE;
 }
-  
+ 
 
 /* ClientArenaCheck -- check the consistency of a client arena */
 
@@ -195,15 +195,15 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   Addr base, limit, chunkBase;
   Res res;
   Chunk chunk;
-  
+ 
   size = va_arg(args, Size);
   base = va_arg(args, Addr);
   AVER(arenaReturn != NULL);
   AVER((ArenaClass)mps_arena_class_cl() == class);
   AVER(base != (Addr)0);
 
-  clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN); 
-  if (size < clArenaSize) 
+  clArenaSize = SizeAlignUp(sizeof(ClientArenaStruct), MPS_PF_ALIGN);
+  if (size < clArenaSize)
     return ResMEMORY;
 
   limit = AddrAdd(base, size);
@@ -281,7 +281,7 @@ static Res ClientArenaExtend(Arena arena, Addr base, Size size)
   AVER(base != (Addr)0);
   AVER(size > 0);
   limit = AddrAdd(base, size);
-  
+ 
   clientArena = Arena2ClientArena(arena);
   res = clientChunkCreate(&chunk, base, limit, clientArena);
   return res;
@@ -299,7 +299,7 @@ static Size ClientArenaReserved(Arena arena)
 
   size = 0;
   /* .req.extend.slow */
-  RING_FOR(node, &arena->chunkRing, nextNode) { 
+  RING_FOR(node, &arena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     AVERT(Chunk, chunk);
     size += AddrOffset(chunk->base, chunk->limit);
@@ -331,7 +331,7 @@ static Res chunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
   if (pref->high)
     b = BTFindShortResRangeHigh(&baseIndex, &limitIndex, chunk->allocTable,
 				chunk->allocBase, chunk->pages, pages);
-  else 
+  else
     b = BTFindShortResRange(&baseIndex, &limitIndex, chunk->allocTable,
 			    chunk->allocBase, chunk->pages, pages);
 
@@ -389,7 +389,7 @@ static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
   pages = ChunkSizeToPages(arena->primary, size);
 
   /* .req.extend.slow */
-  RING_FOR(node, &arena->chunkRing, nextNode) { 
+  RING_FOR(node, &arena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
     res = chunkAlloc(baseReturn, baseTractReturn, pref, pages, pool, chunk);
     if (res == ResOK || res == ResCOMMIT_LIMIT) {

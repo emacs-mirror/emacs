@@ -62,7 +62,7 @@ typedef struct LOSegStruct {
 
 
 /* forward decls */
-static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
                      Bool reservoirPermit, va_list args);
 static void loSegFinish(Seg seg);
 
@@ -98,7 +98,7 @@ static Bool LOSegCheck(LOSeg loseg)
 
 /* loSegInit -- Init method for LO segments */
 
-static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
                      Bool reservoirPermit, va_list args)
 {
   SegClass super;
@@ -108,7 +108,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   Size tablebytes;      /* # bytes in each control array */
   Arena arena;
   /* number of bits needed in each control array */
-  unsigned long bits; 
+  unsigned long bits;
   void *p;
 
   AVERT(Seg, seg);
@@ -306,7 +306,7 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   gen = lo->gen;
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
-  res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct, 
+  res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct,
                  asize, pool, withReservoirPermit);
   if (res != ResOK)
     return res;
@@ -474,12 +474,12 @@ static Res LOInit(Pool pool, va_list arg)
 
   format = va_arg(arg, Format);
   AVERT(Format, format);
-  
+ 
   lo = PoolPoolLO(pool);
-  
+ 
   pool->format = format;
   lo->poolStruct.alignment = format->alignment;
-  lo->alignShift = 
+  lo->alignShift =
     SizeLog2((unsigned long)PoolAlignment(&lo->poolStruct));
   lo->gen = LOGen; /* may be modified in debugger */
   res = ChainCreate(&lo->chain, arena, 1, &loGenParam);
@@ -508,7 +508,7 @@ static void LOFinish(Pool pool)
 {
   LO lo;
   Ring node, nextNode;
-  
+ 
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
@@ -528,8 +528,8 @@ static void LOFinish(Pool pool)
 }
 
 
-static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn, 
-                        Pool pool, Buffer buffer, 
+static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
+                        Pool pool, Buffer buffer,
                         Size size, Bool withReservoirPermit)
 {
   Res res;
@@ -618,7 +618,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   seg = BufferSeg(buffer);
   AVERT(Seg, seg);
   AVER(init <= limit);
-  
+ 
   loseg = SegLOSeg(seg);
   AVERT(LOSeg, loseg);
   AVER(loseg->lo == lo);
@@ -657,7 +657,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 {
   LO lo;
   unsigned long bits;
-  
+ 
   AVERT(Pool, pool);
   lo = PoolPoolLO(pool);
   AVERT(LO, lo);
@@ -711,7 +711,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     }
   /* fall through */
 
-  case RankEXACT: 
+  case RankEXACT:
   case RankFINAL:
   case RankWEAK: {
     Size i = AddrOffset(SegBase(seg), (Addr)ref) >> lo->alignShift;

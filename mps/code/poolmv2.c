@@ -57,7 +57,7 @@ static SegPref MVTSegPref(MVT mvt);
 /* Types */
 
 
-typedef struct MVTStruct 
+typedef struct MVTStruct
 {
   PoolStruct poolStruct;
   CBSStruct cbsStruct;          /* The coalescing block structure */
@@ -88,7 +88,7 @@ typedef struct MVTStruct
   Size allocated;               /* bytes allocated to mutator */
   Size available;               /* bytes available for allocation */
   Size unavailable;             /* bytes lost to fragmentation */
-  
+ 
   /* pool meters*/
   METER_DECL(segAllocs);
   METER_DECL(segFrees);
@@ -127,7 +127,7 @@ typedef struct MVTStruct
   METER_DECL(exceptions);
   METER_DECL(exceptionSplinters);
   METER_DECL(exceptionReturns);
-  
+ 
   Sig sig;
 } MVTStruct;
 
@@ -168,7 +168,7 @@ static ABQ MVTABQ(MVT mvt)
 }
 
 
-static CBS MVTCBS(MVT mvt) 
+static CBS MVTCBS(MVT mvt)
 {
   return &mvt->cbsStruct;
 }
@@ -207,7 +207,7 @@ static Res MVTInit(Pool pool, va_list arg)
   /* can't AVERT mvt, yet */
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-  
+ 
   /* --- Should there be a ResBADARG ? */
   minSize = va_arg(arg, Size);
   unless (minSize > 0)
@@ -240,7 +240,7 @@ static Res MVTInit(Pool pool, va_list arg)
                 NULL, NULL, reuseSize, MPS_PF_ALIGN, TRUE, FALSE);
   if (res != ResOK)
     goto failCBS;
-  
+ 
   res = ABQInit(arena, MVTABQ(mvt), (void *)mvt, abqDepth);
   if (res != ResOK)
     goto failABQ;
@@ -264,14 +264,14 @@ static Res MVTInit(Pool pool, va_list arg)
   mvt->splinterSeg = NULL;
   mvt->splinterBase = (Addr)0;
   mvt->splinterLimit = (Addr)0;
-  
+ 
   /* accounting */
   mvt->size = 0;
   mvt->allocated = 0;
   mvt->available = 0;
   mvt->availLimit = 0;
   mvt->unavailable = 0;
-  
+ 
   /* meters*/
   METER_INIT(mvt->segAllocs, "segment allocations", (void *)mvt);
   METER_INIT(mvt->segFrees, "segment frees", (void *)mvt);
@@ -370,7 +370,7 @@ static void MVTFinish(Pool pool)
   Arena arena;
   Ring ring;
   Ring node, nextNode;
-  
+ 
   AVERT(Pool, pool);
   mvt = Pool2MVT(pool);
   AVERT(MVT, mvt);
@@ -457,7 +457,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
       goto done;
     }
   }
-  
+ 
   /* Attempt to retrieve a free block from the ABQ */
   ABQRefillIfNecessary(mvt, minSize);
   res = ABQPeek(MVTABQ(mvt), &block);
@@ -512,7 +512,7 @@ found:
     }
     goto done;
   }
-  
+ 
   /* Attempt to request a block from the arena */
   /* see design.mps.poolmvt:impl.c.free.merge.segment */
   res = MVTSegAlloc(&seg, mvt, fillSize, pool, withReservoirPermit);
@@ -521,7 +521,7 @@ found:
     limit = SegLimit(seg);
     goto done;
   }
-  
+ 
   /* Try contingency */
   METER_ACC(mvt->emergencyContingencies, minSize);
   res = MVTContingencySearch(&block, MVTCBS(mvt), minSize);
@@ -531,7 +531,7 @@ found:
   METER_ACC(mvt->failures, minSize);
   AVER(res != ResOK);
   return res;
-  
+ 
 done:
   *baseReturn = base;
   *limitReturn = limit;
@@ -555,7 +555,7 @@ done:
  *
  * See design.mps.poolmvt:impl.c.ap.empty
  */
-static void MVTBufferEmpty(Pool pool, Buffer buffer, 
+static void MVTBufferEmpty(Pool pool, Buffer buffer,
                            Addr base, Addr limit)
 {
   MVT mvt;
@@ -624,7 +624,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
  * see design.poolmvt.impl.c.free
  */
 static void MVTFree(Pool pool, Addr base, Size size)
-{ 
+{
   MVT mvt;
   Addr limit;
 
@@ -647,7 +647,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   METER_ACC(mvt->poolAvailable, mvt->available);
   METER_ACC(mvt->poolAllocated, mvt->allocated);
   METER_ACC(mvt->poolSize, mvt->size);
-  
+ 
   /* design.mps.poolmvt:arch.ap.no-fit.oversize.policy */
   /* Return exceptional blocks directly to arena */
   if (size > mvt->fillSize) {
@@ -669,7 +669,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
     MVTSegFree(mvt, seg);
     return;
   }
-  
+ 
   {
     Res res = CBSInsert(MVTCBS(mvt), base, limit);
     AVER(res == ResOK);
@@ -781,7 +781,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream)
   if (res != ResOK) return res;
   res = METER_WRITE(mvt->exceptionReturns, stream);
   if (res != ResOK) return res;
-  
+ 
   res = WriteF(stream, "}\n", NULL);
   return res;
 }
@@ -826,7 +826,7 @@ size_t mps_mvt_size(mps_pool_t mps_pool)
   AVERT(MVT, mvt);
 
   return (size_t)mvt->size;
-} 
+}
 
 
 /* mps_mvt_free_size -- number of bytes comitted to the pool that are
@@ -853,7 +853,7 @@ size_t mps_mvt_free_size(mps_pool_t mps_pool)
 /* MVTSegAlloc -- encapsulates SegAlloc with associated accounting and
  * metering
  */
-static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size, 
+static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
                        Pool pool, Bool withReservoirPermit)
 {
   Res res = SegAlloc(segReturn, GCSegClassGet(),
@@ -861,7 +861,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);
-    
+   
     /* see design.mps.poolmvt:arch.fragmentation.internal */
     AVER(segSize >= mvt->fillSize);
     mvt->size += segSize;
@@ -872,12 +872,12 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size,
   }
   return res;
 }
-  
+ 
 
 /* MVTSegFree -- encapsulates SegFree with associated accounting and
  * metering
  */
-static void MVTSegFree(MVT mvt, Seg seg) 
+static void MVTSegFree(MVT mvt, Seg seg)
 {
   Size size = SegSize(seg);
 
@@ -893,18 +893,18 @@ static void MVTSegFree(MVT mvt, Seg seg)
 /* MVTReturnBlockSegs -- return (interior) segments of a block to the
  * arena
  */
-static Bool MVTReturnBlockSegs(MVT mvt, CBSBlock block, Arena arena) 
+static Bool MVTReturnBlockSegs(MVT mvt, CBSBlock block, Arena arena)
 {
   Addr base, limit;
   Bool success = FALSE;
-    
+   
   base = CBSBlockBase(block);
   limit = CBSBlockLimit(block);
 
   while (base < limit) {
     Seg seg;
     Addr segBase, segLimit;
-      
+     
     {
       Bool b = SegOfAddr(&seg, arena, base);
       AVER(b);
@@ -929,11 +929,11 @@ static Bool MVTReturnBlockSegs(MVT mvt, CBSBlock block, Arena arena)
 
 /* MVTNoteNew -- callback invoked when a block on the CBS >= reuseSize
  */
-static void MVTNoteNew(CBS cbs, CBSBlock block, Size oldSize, Size newSize) 
+static void MVTNoteNew(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
 {
   Res res;
   MVT mvt;
-  
+ 
   AVERT(CBS, cbs);
   mvt = CBSMVT(cbs);
   AVERT(MVT, mvt);
@@ -974,7 +974,7 @@ static void MVTNoteDelete(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
   AVER(CBSBlockSize(block) < CBSMVT(cbs)->reuseSize);
   UNUSED(oldSize);
   UNUSED(newSize);
-  
+ 
   res = ABQDelete(MVTABQ(CBSMVT(cbs)), block);
   AVER(res == ResOK || CBSMVT(cbs)->abqOverflow);
   UNUSED(res); /* impl.c.mpm.check.unused */
@@ -984,7 +984,7 @@ static void MVTNoteDelete(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
 /* ABQRefillIfNecessary -- refill the ABQ from the CBS if it had
  * overflown and is now empty
  */
-static void ABQRefillIfNecessary(MVT mvt, Size size) 
+static void ABQRefillIfNecessary(MVT mvt, Size size)
 {
   AVERT(MVT, mvt);
   AVER(size > 0);
@@ -1004,7 +1004,7 @@ static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP)
 {
   Res res;
   MVT mvt;
-  
+ 
   AVERT(CBS, cbs);
   mvt = CBSMVT(cbs);
   AVERT(MVT, mvt);
@@ -1028,12 +1028,12 @@ static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP)
 
   return TRUE;
 }
-  
+ 
 
 /* Closure for MVTContingencySearch */
 typedef struct MVTContigencyStruct *MVTContigency;
 
-typedef struct MVTContigencyStruct 
+typedef struct MVTContigencyStruct
 {
   CBSBlock blockReturn;
   Arena arena;
@@ -1055,7 +1055,7 @@ static Res MVTContingencySearch(CBSBlock *blockReturn, CBS cbs, Size min)
   cls.min = min;
   cls.steps = 0;
   cls.hardSteps = 0;
-  
+ 
   CBSIterate(cbs, &MVTContingencyCallback, (void *)&cls);
   if (cls.blockReturn != NULL) {
     AVER(CBSBlockSize(cls.blockReturn) >= min);
@@ -1066,7 +1066,7 @@ static Res MVTContingencySearch(CBSBlock *blockReturn, CBS cbs, Size min)
     *blockReturn = cls.blockReturn;
     return ResOK;
   }
-    
+   
   return ResFAIL;
 }
 
@@ -1078,14 +1078,14 @@ static Bool MVTContingencyCallback(CBS cbs, CBSBlock block, void *closureP)
 {
   MVTContigency cl;
   Size size;
-  
+ 
   AVERT(CBS, cbs);
   AVERT(CBSBlock, block);
   AVER(closureP != NULL);
 
   cl = (MVTContigency)closureP;
   size = CBSBlockSize(block);
-  
+ 
   cl->steps++;
   if (size < cl->min)
     return TRUE;
@@ -1095,14 +1095,14 @@ static Bool MVTContingencyCallback(CBS cbs, CBSBlock block, void *closureP)
     cl->blockReturn = block;
     return FALSE;
   }
-  
+ 
   /* do it the hard way */
   cl->hardSteps++;
   if (MVTCheckFit(block, cl->min, cl->arena)) {
     cl->blockReturn = block;
     return FALSE;
   }
-  
+ 
   /* keep looking */
   return TRUE;
 }

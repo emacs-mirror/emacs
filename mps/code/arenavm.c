@@ -411,7 +411,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   AVER(userSize > 0);
 
   /* Create a VM to hold the arena and map it. */
-  vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN); 
+  vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN);
   res = VMCreate(&arenaVM, vmArenaSize);
   if (res != ResOK)
     goto failVMCreate;
@@ -431,7 +431,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena->spareSize = 0;
 
   /* .blacklist: We blacklist the zones corresponding to small integers. */
-  vmArena->blacklist = 
+  vmArena->blacklist =
     ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
 
   for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
@@ -539,7 +539,7 @@ static void VMArenaSpareCommitExceeded(Arena arena)
 
 /* Page Table Partial Mapping
  *
- * Some helper functions 
+ * Some helper functions
  */
 
 
@@ -630,7 +630,7 @@ static void tablePagesUsed(Index *tableBaseReturn, Index *tableLimitReturn,
   *tableBaseReturn =
     PageTablePageIndex(chunk,
                        AddrPageBase(chunk, addrOfPageDesc(chunk, pageBase)));
-  *tableLimitReturn = 
+  *tableLimitReturn =
     PageTablePageIndex(chunk,
                        AddrAlignUp(addrOfPageDesc(chunk, pageLimit),
 		                   ChunkPageSize(chunk)));
@@ -641,7 +641,7 @@ static void tablePagesUsed(Index *tableBaseReturn, Index *tableLimitReturn,
 /* tablePagesEnsureMapped -- ensure needed part of page table is mapped
  *
  * Pages from baseIndex to limitIndex are about to be allocated.
- * Ensure that the relevant pages occupied by the page table are mapped. 
+ * Ensure that the relevant pages occupied by the page table are mapped.
  */
 static Res tablePagesEnsureMapped(VMChunk vmChunk,
                                   Index baseIndex, Index limitIndex)
@@ -662,7 +662,7 @@ static Res tablePagesEnsureMapped(VMChunk vmChunk,
                  chunk, baseIndex, limitIndex);
 
   tableCursorIndex = tableBaseIndex;
-  
+ 
   while(BTFindLongResRange(&unmappedBaseIndex, &unmappedLimitIndex,
                            vmChunk->pageTableMapped,
 		           tableCursorIndex, tableLimitIndex,
@@ -794,7 +794,7 @@ static Bool pagesFindFreeInArea(Index *baseReturn, Chunk chunk, Size size,
 
 
 /* pagesFindFreeInZones -- find a range of free pages with a ZoneSet
- * 
+ *
  * This function finds the intersection of ZoneSet and the set of free
  * pages and tries to find a free run of pages in the resulting set of
  * areas.
@@ -862,7 +862,7 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
           *chunkReturn = Chunk2VMChunk(chunk);
           return TRUE;
         }
-        
+       
         base = limit;
       } else {
         /* Adding the zoneSize might wrap round (to zero, because */
@@ -948,12 +948,12 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     /* Note that each is a superset of the previous, unless */
     /* blacklisted zones have been allocated (or the default */
     /* is used). */
-    if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size, 
+    if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                              ZoneSetDiff(preferred, vmArena->blacklist),
                              pref->high)
-        || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size, 
+        || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                                 ZoneSetUnion(preferred,
-                                             ZoneSetDiff(vmArena->freeSet, 
+                                             ZoneSetDiff(vmArena->freeSet,
                                                          vmArena->blacklist)),
                                 pref->high)) {
       return TRUE; /* found */
@@ -961,7 +961,7 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     if (!barge)
       /* do not barge into other zones, give up now */
       return FALSE;
-    if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size, 
+    if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                              ZoneSetDiff(ZoneSetUNIV, vmArena->blacklist),
                              pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
@@ -976,12 +976,12 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     /*   - Any zone. */
     /* Note that each is a superset of the previous, unless */
     /* blacklisted zones have been allocated. */
-    if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size, 
+    if (pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                              ZoneSetInter(preferred, vmArena->blacklist),
                              pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                                 preferred, pref->high)
-        || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size, 
+        || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
                                 ZoneSetUnion(preferred, vmArena->blacklist),
                                 pref->high)
         || pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
@@ -1047,7 +1047,7 @@ static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
 static Res VMNZAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
                            VMArena vmArena, SegPref pref, Size size)
 {
-  if (pagesFindFreeInZones(baseIndexReturn, chunkReturn, vmArena, size, 
+  if (pagesFindFreeInZones(baseIndexReturn, chunkReturn, vmArena, size,
                            ZoneSetUNIV, pref->high)) {
     return ResOK;
   }
@@ -1145,7 +1145,7 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
         break;
     }
     AVER(unmappedLimit <= limitIndex);
-    res = vmArenaMap(vmArena, vmChunk->vm, 
+    res = vmArenaMap(vmArena, vmChunk->vm,
 		     PageIndexBase(chunk, unmappedBase),
 		     PageIndexBase(chunk, unmappedLimit));
     if (res != ResOK)
@@ -1190,7 +1190,7 @@ failTableMap:
 /* vmAllocComm -- allocate a region from the arena
  *
  * Common code used by mps_arena_class_vm and
- * mps_arena_class_vmnz. 
+ * mps_arena_class_vmnz.
  */
 static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
                        VMAllocPolicyMethod policy,
@@ -1219,7 +1219,7 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   AVERT(VMArena, vmArena);
   /* All chunks have same pageSize. */
   AVER(SizeIsAligned(size, ChunkPageSize(arena->primary)));
-  
+ 
   /* NULL is used as a discriminator */
   /* (see design.mps.arena.vm.table.disc) therefore the real pool */
   /* must be non-NULL. */
@@ -1269,7 +1269,7 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   }
 
   vmArena->freeSet = ZoneSetDiff(vmArena->freeSet, zones);
-  
+ 
   *baseReturn = base;
   *baseTractReturn = baseTract;
   return ResOK;
@@ -1301,7 +1301,7 @@ static Res VMNZAlloc(Addr *baseReturn, Tract *baseTractReturn,
  * The function f is called on the ranges of spare pages which are
  * within the range of pages from base to limit.  PageStruct descriptors
  * from base to limit should be mapped in the page table before calling
- * this function. 
+ * this function.
  */
 typedef void (*spareRangesFn)(VMChunk, Index, Index, void *);
 
@@ -1357,7 +1357,7 @@ static void vmArenaUnmapSpareRange(VMChunk vmChunk,
 
   return;
 }
-  
+ 
 
 /* sparePagesPurge -- all spare pages are found and purged (unmapped)
  *
@@ -1519,7 +1519,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
 }
 
 
-/* VMNZArenaClass  -- The VMNZ arena class definition 
+/* VMNZArenaClass  -- The VMNZ arena class definition
  *
  * VMNZ is just VMArena with a different allocation policy.
  */

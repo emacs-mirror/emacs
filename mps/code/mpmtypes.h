@@ -51,7 +51,7 @@ typedef unsigned TraceSet;              /* design.mps.trace */
 typedef unsigned TraceState;            /* design.mps.trace */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
-typedef unsigned FormatVariety;         
+typedef unsigned FormatVariety;        
 typedef int RootVar;                    /* design.mps.type.rootvar */
 
 typedef Word *BT;                       /* design.mps.bt */
@@ -148,16 +148,16 @@ typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
 typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
-typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet, 
+typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
                                         RefSet summary);
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Buffer (*SegBufferMethod)(Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream);
-typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, 
+typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
                               Bool withReservoirPermit, va_list args);
-typedef Res (*SegSplitMethod)(Seg seg, Seg segHi, 
+typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit,
                               Bool withReservoirPermit, va_list args);
 
@@ -165,7 +165,7 @@ typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
 
 typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, va_list args);
 typedef void (*BufferFinishMethod)(Buffer buffer);
-typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit, 
+typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);
 typedef void (*BufferDetachMethod)(Buffer buffer);
 typedef Seg (*BufferSegMethod)(Buffer buffer);
@@ -187,7 +187,7 @@ typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size,
                                     Bool withReservoirPermit);
-typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer, 
+typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
@@ -204,7 +204,7 @@ typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
 typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
-typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn, 
+typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
@@ -258,7 +258,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, size_t s)
 
 
 /* design.mps.sig SIGnature IS BAD */
-#define SigInvalid      ((Sig)0x51915BAD) 
+#define SigInvalid      ((Sig)0x51915BAD)
 
 #define SizeMAX         ((Size)-1)
 #define AccessSetEMPTY  ((AccessSet)0) /* design.mps.type.access-set */
@@ -304,7 +304,7 @@ enum {
 /* Segment preferences */
 enum {
   SegPrefHigh = 1,
-  SegPrefLow,  
+  SegPrefLow, 
   SegPrefZoneSet,
   SegPrefGen,
   SegPrefCollected,

@@ -22,7 +22,7 @@ SRCID(ring, "$Id$");
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node
  *
- * RingCheck performs a consistency check on the ring node. 
+ * RingCheck performs a consistency check on the ring node.
  * RingCheckSingle performs the same check, but also checks that
  * the ring node is a singleton (design.mps.ring.def.singleton).
  */
@@ -65,7 +65,7 @@ void (RingInit)(Ring ring)
 
 /* RingFinish -- finish a ring node
  */
- 
+
 void (RingFinish)(Ring ring)
 {
   RingFinish(ring);                     /* impl.h.mpm.ring.finish */

@@ -124,13 +124,13 @@ extern Bool ResIsAllocFailure(Res res);
 
 
 /* Logs and Powers
- * 
+ *
  * SizeIsP2 returns TRUE if and only if size is a non-negative integer
  * power of 2, and FALSE otherwise.
- * 
+ *
  * SizeLog2 returns the logarithm in base 2 of size.  size must be a
  * power of 2.
- * 
+ *
  * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
  * size can be any positive non-zero value.  */
 
@@ -236,7 +236,7 @@ extern Res PoolCreateV(Pool *poolReturn, Arena arena, PoolClass class,
                        va_list arg);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
-extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size, 
+extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
                      Bool withReservoirPermit);
 extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
@@ -267,9 +267,9 @@ extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
 extern Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
                               Pool pool, Buffer buffer, Size size,
                               Bool withReservoirPermit);
-extern void PoolNoBufferEmpty(Pool pool, Buffer buffer, 
+extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
                               Addr init, Addr limit);
-extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer, 
+extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
                                 Addr init, Addr limit);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
@@ -459,7 +459,7 @@ extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
 extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
 extern Res TraceScanAreaMasked(ScanState ss,
                                Addr *base, Addr *limit, Word mask);
-extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
 
@@ -531,7 +531,7 @@ extern Bool ArenaHasAddr(Arena arena, Addr addr);
 
 extern Res ControlInit(Arena arena);
 extern void ControlFinish(Arena arena);
-extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size, 
+extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
 
@@ -684,9 +684,9 @@ extern Addr (SegLimit)(Seg seg);
 
 /* Buffer Interface -- see impl.c.buffer */
 
-extern Res BufferCreate(Buffer *bufferReturn, BufferClass class, 
+extern Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                         Pool pool, Bool isMutator, ...);
-extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class, 
+extern Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
                          Pool pool, Bool isMutator, va_list args);
 extern void BufferDestroy(Buffer buffer);
 extern Bool BufferCheck(Buffer buffer);
@@ -718,7 +718,7 @@ extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
 extern Bool BufferIsMutator(Buffer buffer);
 extern void BufferSetAllocAddr(Buffer buffer, Addr addr);
-extern void BufferAttach(Buffer buffer, 
+extern void BufferAttach(Buffer buffer,
                          Addr base, Addr limit, Addr init, Size size);
 extern void BufferDetach(Buffer buffer, Pool pool);
 extern void BufferFlip(Buffer buffer);
@@ -778,7 +778,7 @@ extern AllocPattern AllocPatternRampCollectAll(void);
 /* Format Interface -- see impl.c.format */
 
 extern Bool FormatCheck(Format format);
-extern Res FormatCreate(Format *formatReturn, Arena arena, 
+extern Res FormatCreate(Format *formatReturn, Arena arena,
                         Align alignment,
 			FormatVariety variety,
                         FormatScanMethod scan,
@@ -852,13 +852,13 @@ extern void (ShieldFlush)(Arena arena);
 #define ShieldRaise(arena, seg, mode) \
   BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldLower(arena, seg, mode) \
-  BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END 
+  BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
 #define ShieldEnter(arena) BEGIN UNUSED(arena); END
 #define ShieldLeave(arena) BEGIN UNUSED(arena); END
 #define ShieldExpose(arena, seg)  \
-  BEGIN UNUSED(arena); UNUSED(seg); END 
+  BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldCover(arena, seg) \
-  BEGIN UNUSED(arena); UNUSED(seg); END 
+  BEGIN UNUSED(arena); UNUSED(seg); END
 #define ShieldSuspend(arena) BEGIN UNUSED(arena); END
 #define ShieldResume(arena) BEGIN UNUSED(arena); END
 #define ShieldFlush(arena) BEGIN UNUSED(arena); END
@@ -907,7 +907,7 @@ extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            RootScanRegMethod scan,
                            void *p, size_t s);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
-                           Rank rank, RootMode mode, 
+                           Rank rank, RootMode mode,
                            FormatScanMethod scan,
                            Addr base, Addr limit);
 extern Res RootCreateFun(Root *rootReturn, Arena arena,

@@ -52,7 +52,7 @@ clean:
 	-deltree /Y $(PFM)
 
 # target target
-# %%VARIETY: Optionally, add a recursive make call for the new variety, 
+# %%VARIETY: Optionally, add a recursive make call for the new variety,
 #  if it should be built by default.
 # Only the varieties needed for development and internal customers are made.
 # Depends on there being no file called "target".
@@ -129,7 +129,7 @@ $(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) 
+	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \

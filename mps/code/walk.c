@@ -46,7 +46,7 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
   AVERT(FormattedObjectsStepClosure, c);
   AVER(s == 0);
 
-  (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)pool, 
+  (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)pool,
           c->p, c->s);
 }
 
@@ -147,7 +147,7 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
  * Defined as a subclass of ScanState.  */
 
 /* SIGnature Roots Step CLOsure */
-#define rootsStepClosureSig ((Sig)0x51965C10)  
+#define rootsStepClosureSig ((Sig)0x51965C10) 
 
 typedef struct rootsStepClosureStruct *rootsStepClosure;
 typedef struct rootsStepClosureStruct {
@@ -183,7 +183,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
  *
  * Initialize the parent ScanState too.  */
 
-static void rootsStepClosureInit(rootsStepClosure rsc, 
+static void rootsStepClosureInit(rootsStepClosure rsc,
                                  Globals arena, Trace trace,
                                  TraceFixMethod rootFix,
                                  mps_roots_stepper_t f, void *p, Size s)
@@ -316,7 +316,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
     return res;
   /* Set the white set to universal so that the scanner */
   /* doesn't filter out any references from roots into the arena. */
-  trace->white = ZoneSetUNIV; 
+  trace->white = ZoneSetUNIV;
   /* Make the roots grey so that they are scanned */
   res = RootsIterate(arenaGlobals, (RootIterateFn)RootGrey, (void *)trace);
   /* Make this trace look like any other trace. */

@@ -14,9 +14,9 @@
 SRCID(assert, "$Id$");
 
 
-/* CheckLevel -- Control check level 
+/* CheckLevel -- Control check level
  *
- * This controls the behaviour of Check methods unless MPS_HOT_RED 
+ * This controls the behaviour of Check methods unless MPS_HOT_RED
  * is defined, when it is effectively stuck at "CheckNONE".
  */
 

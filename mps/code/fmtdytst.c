@@ -34,7 +34,7 @@ static mps_word_t *tvw;
 
 
 static mps_word_t dylan_make_WV(mps_word_t version, mps_word_t vb,
-                                mps_word_t es, mps_word_t vf) 
+                                mps_word_t es, mps_word_t vf)
 {
   assert((version & ((1 << 8) - 1)) == version);
   assert((vb & ((1 << 8) - 1)) == vb);

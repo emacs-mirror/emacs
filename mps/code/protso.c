@@ -74,7 +74,7 @@ static struct sigaction sigNext;
  *  sensible
  *  .sigh.limit: We throw away the limit information.
  */
- 
+
 static void sigHandle(int sig, siginfo_t *info, void *context)
 {
   AVER(sig == SIGSEGV);

@@ -16,20 +16,20 @@
  * .def.synced: a seg is synced if the prot and shield modes are the
  * same, and unsynced otherwise.
  * .def.depth: the depth of a segment is defined as
- *   depth == #exposes - #covers + I(in cache),  where
+ *   depth == #exposes - #covers + #(in cache),  where
  *     #exposes = the total number of times the seg has been exposed
  *     #covers  = the total number of times the seg has been covered
- *     I(in cache) = 1 if the segment is in the cache
- *                   0 otherwise
- *   The cache is initially empty and cover should not be called
- *   without a matching expose, so this figure should always be
+ *     #(in cache) = the number of times the seg appears in the cache
+ *   The cache is initially empty and Cover should not be called
+ *   without a matching Expose, so this figure should always be
  *   non-negative.
  * .def.total.depth: The total depth is the sum of the depth over
  * all segments
  * .def.outside: being outside the shield is being between calls
  * to leave and enter, and similarly .def.inside: being inside the
  * shield is being between calls to enter and leave.
- * .def.suspended: suspended is true iff the threads are suspended
+ * .def.suspended: suspended is true iff the mutator is suspended.
+ * .def.shielded: a segment is shielded if the shield mode is non-zero.
  *
  *
  * Properties
@@ -46,7 +46,7 @@
  *
  * These invariants are maintained by the code.
  *
- * .inv.outside.running: The mutator is running while outside the
+ * .inv.outside.running: The mutator is not suspended while outside the
  * shield.
  * .inv.unsynced.suspended: If any segment is not synced,
  * the mutator is suspended.
@@ -62,7 +62,7 @@
  * As the depth of a segment cannot be negative
  *   total depth == 0 => for all segments, depth == 0
  *                    => all segs are synced (by .inv.unsynced.depth)
- * 
+ *
  * If the mutator is running then all segs must be synced
  * (.inv.unsynced.suspend).  Which means that the hardware protection
  * (prot mode) must reflect the software protection (shield mode).
@@ -140,7 +140,7 @@ static void flush(Arena arena, Size i)
   AVER(SegDepth(seg) > 0);
   --arena->shDepth;
   SegSetDepth(seg, SegDepth(seg) - 1);
-  
+
   if (SegDepth(seg) == 0)
     sync(arena, seg);
 

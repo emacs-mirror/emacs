@@ -38,7 +38,7 @@ Bool FormatCheck(Format format)
 }
 
 
-static Addr FormatDefaultClass(Addr object) 
+static Addr FormatDefaultClass(Addr object)
 {
   AVER(object != NULL);
 
@@ -66,7 +66,7 @@ Res FormatCreate(Format *formatReturn, Arena arena,
 
   AVER(formatReturn != NULL);
 
-  res = ControlAlloc(&p, arena, sizeof(FormatStruct), 
+  res = ControlAlloc(&p, arena, sizeof(FormatStruct),
                      /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     return res;
@@ -85,7 +85,7 @@ Res FormatCreate(Format *formatReturn, Arena arena,
   if(class == NULL) {
     format->class = &FormatDefaultClass;
   } else {
-    AVER(variety == FormatVarietyB); 
+    AVER(variety == FormatVarietyB);
     format->class = class;
   }
   if(headerSize != 0) {
@@ -100,7 +100,7 @@ Res FormatCreate(Format *formatReturn, Arena arena,
   ++arena->formatSerial;
 
   AVERT(Format, format);
-  
+ 
   RingAppend(&arena->formatRing, &format->arenaRing);
 
   *formatReturn = format;
@@ -115,7 +115,7 @@ void FormatDestroy(Format format)
   RingRemove(&format->arenaRing);
 
   format->sig = SigInvalid;
-  
+ 
   RingFinish(&format->arenaRing);
 
   ControlFree(format->arena, format, sizeof(FormatStruct));
@@ -134,10 +134,10 @@ Arena FormatArena(Format format)
 Res FormatDescribe(Format format, mps_lib_FILE *stream)
 {
   Res res;
-  
+ 
   res = WriteF(stream,
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
-               "  arena $P ($U)\n", 
+               "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
                "  alignment $W\n", (WriteFW)format->alignment,
                "  scan $F\n", (WriteFF)format->scan,

@@ -56,7 +56,7 @@ extern void ThreadRingSuspend(Ring threadRing);
 extern void ThreadRingResume(Ring threadRing);
 
 
-/*  ThreadRingThread 
+/*  ThreadRingThread
  *
  *  Return the thread from an element of the Arena's
  *  thread ring.

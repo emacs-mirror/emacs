@@ -258,7 +258,7 @@ extern size_t mps_arena_commit_limit(mps_arena_t);
 extern mps_res_t mps_arena_commit_limit_set(mps_arena_t, size_t);
 extern void mps_arena_spare_commit_limit_set(mps_arena_t, size_t);
 extern size_t mps_arena_spare_commit_limit(mps_arena_t);
- 
+
 extern size_t mps_space_reserved(mps_space_t);
 extern size_t mps_space_committed(mps_space_t);
 
@@ -313,8 +313,8 @@ extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
-extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *, 
-                                                   mps_ap_t, 
+extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *,
+                                                   mps_ap_t,
                                                    size_t);
 
 extern mps_res_t (mps_ap_frame_push)(mps_frame_t *, mps_ap_t);
@@ -400,8 +400,8 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 extern void mps_reservoir_limit_set(mps_arena_t, size_t);
 extern size_t mps_reservoir_limit(mps_arena_t);
 extern size_t mps_reservoir_available(mps_arena_t);
-extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *, 
-                                                   mps_ap_t, 
+extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
+                                                   mps_ap_t,
                                                    size_t);
 
 
@@ -534,7 +534,7 @@ extern size_t mps_message_gc_live_size(mps_arena_t, mps_message_t);
 
 extern size_t mps_message_gc_condemned_size(mps_arena_t, mps_message_t);
 
-extern size_t mps_message_gc_not_condemned_size(mps_arena_t, 
+extern size_t mps_message_gc_not_condemned_size(mps_arena_t,
                                                 mps_message_t);
 
 
@@ -564,7 +564,7 @@ extern void mps_arena_formatted_objects_walk(mps_arena_t,
 
 /* Root Walking */
 
-typedef void (*mps_roots_stepper_t)(mps_addr_t *, 
+typedef void (*mps_roots_stepper_t)(mps_addr_t *,
                                     mps_root_t,
                                     void *, size_t);
 extern void mps_arena_roots_walk(mps_arena_t,

@@ -73,7 +73,7 @@ extern Res CBSInit(Arena arena, CBS cbs, void *owner,
                    Size minSize,
                    Align alignment,
                    Bool mayUseInline,
-                   Bool fastFind); 
+                   Bool fastFind);
 extern void CBSFinish(CBS cbs);
 
 extern Res CBSInsert(CBS cbs, Addr base, Addr limit);

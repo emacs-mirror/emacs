@@ -33,7 +33,7 @@ SRCID(global, "$Id$");
 /* All static data objects are declared here. See .static */
 
 /* design.mps.arena.static.ring.init */
-static Bool arenaRingInit = FALSE; 
+static Bool arenaRingInit = FALSE;
 static RingStruct arenaRing;       /* design.mps.arena.static.ring */
 
 
@@ -274,7 +274,7 @@ Res GlobalsInit(Globals arenaGlobals)
 
   for (i=0; i < TraceLIMIT; i++) {
     /* design.mps.arena.trace.invalid */
-    arena->trace[i].sig = SigInvalid;   
+    arena->trace[i].sig = SigInvalid;  
   }
   for(rank = 0; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
@@ -386,7 +386,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
 
   /* throw away the BT used by messages */
   if (arena->enabledMessageTypes != NULL) {
-    ControlFree(arena, (void *)arena->enabledMessageTypes, 
+    ControlFree(arena, (void *)arena->enabledMessageTypes,
                 BTSize(MessageTypeLIMIT));
     arena->enabledMessageTypes = NULL;
   }
@@ -519,7 +519,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
  * ArenaPoll does nothing if the amount of committed memory is less than
  * the arena poll threshold.  This means that actions are taken as the
  * memory demands increase.
- * 
+ *
  * @@@@ This is where time is "stolen" from the mutator in addition
  * to doing what it asks and servicing accesses.  This is where the
  * amount of time should be controlled, perhaps by passing time
@@ -678,7 +678,7 @@ Ref ArenaRead(Arena arena, Addr addr)
   Seg seg;
 
   AVERT(Arena, arena);
-  
+ 
   b = SegOfAddr(&seg, arena, addr);
   AVER(b == TRUE);
 
@@ -748,7 +748,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
                  NULL);
     if (res != ResOK) return res;
   }
-  
+ 
   res = WriteF(stream,
                "    [note: indices are raw, not rotated]\n"
                "    prehistory = $B\n", (WriteFB)arena->prehistory,

@@ -115,7 +115,7 @@ typedef const struct SrcIdStruct {
  * is syntactically a statement (to avoid it being used in computation).
  *
  * .discard: DISCARD uses sizeof so that the expression is not evaluated
- * and yet the compiler will check that it is a valid expression. The 
+ * and yet the compiler will check that it is a valid expression. The
  * conditional is compared with zero so it can designate a bitfield object.
  */
 
@@ -140,12 +140,12 @@ typedef const struct SrcIdStruct {
 /* UNUSED -- declare parameter unused
  *
  * This macro supresses warnings about unused parameters.  It should be
- * applied to the parameter at the beginning of the body of the 
+ * applied to the parameter at the beginning of the body of the
  * procedure.
  *
  * The cast to void appears to work for GCC, MSVC, and CodeWarrior.
  * It's a shame there's no way to ensure that the parameter won't be
- * used.  We could scramble it, but that's undesirable in release 
+ * used.  We could scramble it, but that's undesirable in release
  * versions.
  */
 
