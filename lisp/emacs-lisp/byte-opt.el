@@ -340,7 +340,12 @@
 		(byte-compile-warn
 		 "Attempt to open-code `%s' with too many arguments" name))
 	    form)
-	(setq body (mapcar 'byte-optimize-form body))
+	
+	;; The following leads to infinite recursion when loading a
+	;; file containing `(defsubst f () (f))', and then trying to
+	;; byte-compile that file.
+	;(setq body (mapcar 'byte-optimize-form body)))
+	
 	(let ((newform 
 	       (if bindings
 		   (cons 'let (cons (nreverse bindings) body))
