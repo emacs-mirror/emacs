@@ -767,7 +767,7 @@ See also `multi-occur'."
 (defun occur-engine-add-prefix (lines)
   (mapcar
    #'(lambda (line)
-       (concat "      :" line "\n"))
+       (concat "       :" line "\n"))
    lines))
 
 (defun occur-engine (regexp buffers out-buf nlines case-fold-search
@@ -825,7 +825,8 @@ See also `multi-occur'."
 		    ;; Generate the string to insert for this match
 		    (let* ((out-line
 			    (concat
-			     (apply #'propertize (format "%6d:" lines)
+			     ;; Using 7 digits aligns tabs properly.
+			     (apply #'propertize (format "%7d:" lines)
 				    (append
 				     (when prefix-face
 				       `(font-lock-face prefix-face))
