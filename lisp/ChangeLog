@@ -1,3 +1,7 @@
+2002-05-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* tar-mode.el (tar-octal-time): Fix last change.
+
 2002-05-18  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mail/emacsbug.el (report-emacs-bug-text-prompt): New variable.
