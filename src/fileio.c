@@ -4889,6 +4889,7 @@ build_annotations (start, end, pre_write_conversion)
   Lisp_Object p, res;
   struct gcpro gcpro1, gcpro2;
   Lisp_Object original_buffer;
+  int i;
 
   XSETBUFFER (original_buffer, current_buffer);
 
@@ -4921,21 +4922,26 @@ build_annotations (start, end, pre_write_conversion)
     p = Vauto_save_file_format;
   else
     p = current_buffer->file_format;
-  while (!NILP (p))
+  for (i = 0; !NILP (p); p = Fcdr (p), ++i)
     {
       struct buffer *given_buffer = current_buffer;
+      
       Vwrite_region_annotations_so_far = annotations;
-      res = call4 (Qformat_annotate_function, Fcar (p), start, end,
-		   original_buffer);
+
+      /* Value is either a list of annotations or nil if the function
+         has written annotations to a temporary buffer, which is now
+         current.  */
+      res = call5 (Qformat_annotate_function, Fcar (p), start, end,
+		   original_buffer, make_number (i));
       if (current_buffer != given_buffer)
 	{
 	  XSETFASTINT (start, BEGV);
 	  XSETFASTINT (end, ZV);
 	  annotations = Qnil;
 	}
-      Flength (res);
-      annotations = merge (annotations, res, Qcar_less_than_car);
-      p = Fcdr (p);
+      
+      if (CONSP (res))
+	annotations = merge (annotations, res, Qcar_less_than_car);
     }
 
   /* At last, do the same for the function PRE_WRITE_CONVERSION
