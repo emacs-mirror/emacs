@@ -547,7 +547,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-within-brackets nil
 	isearch-slow-terminal-mode (and (<= baud-rate search-slow-speed)
 					(> (window-height)
-					   (* 4 search-slow-window-lines)))
+					   (* 4
+					      (abs search-slow-window-lines))))
 	isearch-other-end nil
 	isearch-small-window nil
 	isearch-just-started t
@@ -1327,7 +1328,7 @@ Obsolete."
 
 (defun isearch-whitespace-chars ()
   "Match all whitespace chars, if in regexp mode.
-If you want to search for just a space, type \\[quoted-insert] SPC."
+If you want to search for just a space, type \\<isearch-mode-map>\\[isearch-quote-char] SPC."
   (interactive)
   (if isearch-regexp 
       (if (and search-whitespace-regexp (not isearch-within-brackets)
