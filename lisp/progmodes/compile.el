@@ -108,9 +108,6 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; 	foo.c:8: error message
     ;; or HP-UX 7.0 fc:
     ;; 	foo.f          :16    some horrible error message
-    ;; or Borland C++:
-    ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
-    ;;  Warning ping.c 68: Call to function 'func' with no prototype
     ;;
     ;; We refuse to match  file:number:number
     ;; because we want to leave that for another case (see below, GNAT).
@@ -118,8 +115,13 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\n\\(Error \\|Warning \\)?[ \t]*\\([^:( \t\n]+\\)\
-\[:(]?[ \t]*\\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
+    ("\n\\([^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
+
+    ;; Borland C++:
+    ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
+    ;;  Warning ping.c 68: Call to function 'func' with no prototype
+    ("\n\\(Error\\|Warning\\) \\([^:( \t\n]+\\)\
+ \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
