@@ -61,7 +61,7 @@ Boston, MA 02111-1307, USA.  */
 #define MODIFF (current_buffer->text->modiff)
 
 /* Overlay modification count.  */
-#define OVERLAY_MODIFF(buf) (current_buffer->text->overlay_modiff)
+#define OVERLAY_MODIFF (current_buffer->text->overlay_modiff)
 
 /* Modification count as of last visit or save.  */
 #define SAVE_MODIFF (current_buffer->text->save_modiff)
