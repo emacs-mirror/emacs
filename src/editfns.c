@@ -768,7 +768,7 @@ Any other markers at the point of insertion remain before the text.")
       if (XTYPE (tem) == Lisp_Int)
 	{
 	  str[0] = XINT (tem);
-	  insert (str, 1);
+	  insert_and_inherit (str, 1);
 	}
       else if (XTYPE (tem) == Lisp_String)
 	{
@@ -840,7 +840,7 @@ Any other markers at the point of insertion also end up after the text.")
       if (XTYPE (tem) == Lisp_Int)
 	{
 	  str[0] = XINT (tem);
-	  insert_before_markers (str, 1);
+	  insert_before_markers_and_inherit (str, 1);
 	}
       else if (XTYPE (tem) == Lisp_String)
 	{
