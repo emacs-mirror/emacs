@@ -3104,13 +3104,13 @@ x_queue_event (f, event)
    so that they get processed afresh.  */
 
 static void
-x_unqueue_events (f)
-     FRAME_PTR f;
+x_unqueue_events (display)
+     Display *display;
 {
   while (queue != NULL)
     {
       struct selection_event_queue *queue_tmp = queue;
-      XPutBackEvent (FRAME_X_DISPLAY (f), &queue_tmp->event);
+      XPutBackEvent (display, &queue_tmp->event);
       queue = queue_tmp->next;
       free ((char *)queue_tmp);
     }
@@ -3119,8 +3119,8 @@ x_unqueue_events (f)
 /* Start queuing SelectionRequest events.  */
 
 void
-x_start_queuing_selection_requests (f)
-     FRAME_PTR f;
+x_start_queuing_selection_requests (display)
+     Display *display;
 {
   x_queue_selection_requests++;
 }
@@ -3128,11 +3128,11 @@ x_start_queuing_selection_requests (f)
 /* Stop queuing SelectionRequest events.  */
 
 void
-x_stop_queuing_selection_requests (f)
-     FRAME_PTR f;
+x_stop_queuing_selection_requests (display)
+     Display *display;
 {
   x_queue_selection_requests--;
-  x_unqueue_events (f);
+  x_unqueue_events (display);
 }
 
 /* The main X event-reading loop - XTread_socket.  */
