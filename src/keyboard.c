@@ -3498,7 +3498,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      key = keybuf[fkey_end++];
 	      /* Look up meta-characters by prefixing them
 		 with meta_prefix_char.  I hate this.  */
-	      if (XTYPE (key) == Lisp_Int && XINT (key) & 0x80)
+	      if (XTYPE (key) == Lisp_Int && XINT (key) & meta_modifier)
 		{
 		  fkey_next =
 		    get_keymap_1
@@ -3506,7 +3506,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		       (access_keymap
 			(fkey_map, meta_prefix_char, 1)),
 		       0, 1);
-		  XFASTINT (key) = XFASTINT (key) & 0x7f;
+		  XFASTINT (key) = XFASTINT (key) & ~meta_modifier;
 		}
 	      else
 		fkey_next = fkey_map;
