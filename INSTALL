@@ -41,7 +41,8 @@ that, so please refer to them if the simple procedure does not work.
 
 		 SOURCE-DIR/configure
 
-      where SOURCE-DIR is the top-level Emacs source directory.
+      where SOURCE-DIR is the top-level Emacs source directory.  This
+      may not work unless you use GNU make.
 
   4. When `configure' finishes, it prints several lines of details
      about the system configuration.  Read those details carefully
@@ -55,8 +56,8 @@ that, so please refer to them if the simple procedure does not work.
      to DETAILED BUILDING AND INSTALLATION section below.
 
      If `configure' didn't find some image support libraries, such as
-     Xpm, jpeg, etc., refer to the subsection "Image support
-     libraries", below.
+     Xpm, jpeg, etc., and you want to use them refer to the subsection
+     "Image support libraries", below.
 
      If the details printed by `configure' don't make any sense to
      you, assume that `configure' did its job and proceed.
@@ -89,6 +90,10 @@ that, so please refer to them if the simple procedure does not work.
   directory where you built Emacs:
 
 		 make clean
+
+  You can also save some space by compressing (with `gzip') Info files
+  and installed Lisp source (.el) files which have corresponding .elc
+  versions.
 
 
 ADDITIONAL DISTRIBUTION FILES
@@ -348,8 +353,8 @@ preprocessor, CFLAGS are compilation options, LDFLAGS are options used
 when linking, LIBS are libraries to link against, and CC is the
 command which invokes the compiler.
 
-Here's an example of a `configure' invocation which uses these
-variables:
+Here's an example of a `configure' invocation, assuming a Bourne-like
+shell such as Bash, which uses these variables:
 
  CPPFLAGS='-I/foo/myinclude' LDFLAGS='-L/bar/mylib' \
   CFLAGS='-O3' LIBS='-lfoo -lbar' ./configure
@@ -842,7 +847,7 @@ sibling directory called bin.  For example, if you build in directory
 subdirectories /emacs/src and /emacs/lib-src if you wish.  The only
 subdirectories you need to keep are bin, lisp, etc and info.  (If you
 installed Leim, keep the leim subdirectory, and if you installed
-intlfonts, keep the fonts directory and all its sibdirectories as well.)
+intlfonts, keep the fonts directory and all its subdirectories as well.)
 The bin subdirectory should be added to your PATH.  The msdos
 subdirectory includes a PIF and an icon file for Emacs which you might
 find useful if you run Emacs under MS Windows.
