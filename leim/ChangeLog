@@ -1,5 +1,7 @@
 2001-05-24  Andrew Choi  <akochoi@i-cable.com>
 
+	* Makefile.in (MISC-DIC): Change CTLauB.elc to CTLau-b5.elc.
+
 	* CXTERM-DIC/CTLau.tit, CXTERM-DIC/CTLauB.tit: Delete files.
 
 	* MISC-DIC/CTLau.html, MISC-DIC/CTLau-b5.html: Add files.

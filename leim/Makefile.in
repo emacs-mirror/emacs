@@ -125,7 +125,7 @@ MISC-DIC=\
 	quail/PY.elc		\
 	quail/ZIRANMA.elc	\
 	quail/CTLau.elc		\
-	quail/CTLauB.elc
+	quail/CTLau-b5.elc
 
 CHINESE=${CHINESE-GB} ${CHINESE-BIG5}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
