@@ -598,6 +598,13 @@ x_update_window_begin (w)
       if (FRAME_GARBAGED_P (f))
 	display_info->mouse_face_window = Qnil;
 
+#if 0 /* Rows in a current matrix containing glyphs in mouse-face have
+	 their mouse_face_p flag set, which means that they are always
+	 unequal to rows in a desired matrix which never have that
+	 flag set.  So, rows containing mouse-face glyphs are never
+	 scrolled, and we don't have to switch the mouse highlight off
+	 here to prevent it from being scrolled.  */
+      
       /* Can we tell that this update does not affect the window
 	 where the mouse highlight is?  If so, no need to turn off.
 	 Likewise, don't do anything if the frame is garbaged;
@@ -615,6 +622,7 @@ x_update_window_begin (w)
 	  if (i < w->desired_matrix->nrows)
 	    clear_mouse_face (display_info);
 	}
+#endif /* 0 */
     }
 
   UNBLOCK_INPUT;
@@ -7024,8 +7032,11 @@ show_mouse_face (dpyinfo, draw)
 	}
 
       if (end_hpos > start_hpos)
-	x_draw_glyphs (w, start_x, row, TEXT_AREA, 
-		       start_hpos, end_hpos, draw, NULL, NULL, 0);
+	{
+	  row->mouse_face_p = draw == DRAW_MOUSE_FACE;
+	  x_draw_glyphs (w, start_x, row, TEXT_AREA, 
+			 start_hpos, end_hpos, draw, NULL, NULL, 0);
+	}
     }
 
   /* If we turned the cursor off, turn it back on.  */
