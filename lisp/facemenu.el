@@ -491,7 +491,7 @@ This function queries the window-system server to find out what the
 color names mean.  It returns nil if the colors differ or if it can't
 determine the correct answer."
   (cond ((equal a b) t)
-	((and (memq window-system '(x ms-windows))
+	((and (memq window-system '(x w32))
 	      (equal (x-color-values a) (x-color-values b))))
 	((eq window-system 'pc)
 	 (and (x-color-defined-p a) (x-color-defined-p b)

@@ -409,7 +409,7 @@ If the face already exists, it is unmodified."
 	    (setq frames (cdr frames)))
 	  (setq global-face-data (cons (cons name face) global-face-data)))
 	;; when making a face after frames already exist
-	(if (memq window-system '(x ms-windows))
+	(if (memq window-system '(x w32))
 	    (make-face-x-resource-internal face))
 	;; add to menu
 	(if (fboundp 'facemenu-add-new-face)
@@ -423,7 +423,7 @@ If the face already exists, it is unmodified."
   (cond ((null frame)
 	 (let ((frames (frame-list)))
 	   (while frames
-	     (if (memq (framep (car frames)) '(x ms-windows))
+	     (if (memq (framep (car frames)) '(x w32))
 		 (make-face-x-resource-internal (face-name face)
 						(car frames) set-anyway))
 	     (setq frames (cdr frames)))))
@@ -1303,7 +1303,7 @@ selected frame."
 	  (setq colors (cdr colors)))))))
 
 ;; If we are already using x-window frames, initialize faces for them.
-(if (memq (framep (selected-frame)) '(x ms-windows))
+(if (memq (framep (selected-frame)) '(x w32))
     (face-initialize))
 
 (provide 'faces)
