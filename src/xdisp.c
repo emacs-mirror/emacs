@@ -690,6 +690,25 @@ enum move_it_result
   MOVE_NEWLINE_OR_CR
 };
 
+/* This counter is used to clear the face cache every once in a while
+   in redisplay_internal.  It is incremented for each redisplay.
+   Every CLEAR_FACE_CACHE_COUNT full redisplays, the face cache is
+   cleared.  */
+
+#define CLEAR_FACE_CACHE_COUNT	500
+static int clear_face_cache_count;
+
+/* Record the previous terminal frame we displayed.  */
+
+static struct frame *previous_terminal_frame;
+
+/* Non-zero while redisplay_internal is in progress.  */
+
+int redisplaying_p;
+
+/* Non-zero while redisplay is updating the display.  */
+
+int redisplay_updating_p;
 
 
 /* Function prototypes.  */
@@ -1503,8 +1522,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* If face attributes have been changed since the last redisplay,
      free realized faces now because they depend on face definitions
-     that might have changed.  */
-  if (face_change_count)
+     that might have changed.  Don't free faces while there might be 
+     desired matrices pending which reference these faces.  */
+  if (face_change_count && !redisplay_updating_p)
     {
       face_change_count = 0;
       free_all_realized_faces (Qnil);
@@ -8288,23 +8308,6 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
 #endif /* GLYPH_DEBUG */
 
 
-/* This counter is used to clear the face cache every once in a while
-   in redisplay_internal.  It is incremented for each redisplay.
-   Every CLEAR_FACE_CACHE_COUNT full redisplays, the face cache is
-   cleared.  */
-
-#define CLEAR_FACE_CACHE_COUNT	500
-static int clear_face_cache_count;
-
-/* Record the previous terminal frame we displayed.  */
-
-static struct frame *previous_terminal_frame;
-
-/* Non-zero while redisplay_internal is in progress.  */
-
-int redisplaying_p;
-
-
 /* Value is non-zero if all changes in window W, which displays
    current_buffer, are in the text between START and END.  START is a
    buffer position, END is given as a distance from Z.  Used in
@@ -8515,6 +8518,7 @@ redisplay_internal (preserve_echo_area)
  retry:
   pause = 0;
   reconsider_clip_changes (w, current_buffer);
+  redisplay_updating_p = 0;
 
   /* If new fonts have been loaded that make a glyph matrix adjustment
      necessary, do it.  */
@@ -9003,7 +9007,8 @@ redisplay_internal (preserve_echo_area)
 
       /* Compare desired and current matrices, perform output.  */
     update:
-
+      redisplay_updating_p = 1;
+      
       /* If fonts changed, display again.  */
       if (fonts_changed_p)
 	goto retry;
@@ -9128,8 +9133,8 @@ redisplay_internal (preserve_echo_area)
   if (windows_or_buffers_changed && !pause)
     goto retry;
 
- end_of_redisplay:;
-
+ end_of_redisplay:
+  redisplay_updating_p = 0;
   unbind_to (count, Qnil);
 }
 
