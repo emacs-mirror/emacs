@@ -1239,9 +1239,12 @@ that."
 					  "mouse-2, RET: describe this function"))))
 			       (zerop (forward-line)))))))))
           (set-syntax-table stab))
+	;; Delete extraneous newlines at the end of the docstring
+	(goto-char (point-max))
+	(while (and (not (bobp)) (bolp))
+	  (delete-char -1))
         ;; Make a back-reference in this buffer if appropriate.
         (when (and help-xref-following help-xref-stack)
-          (goto-char (point-max))
           (save-excursion
             (insert "\n\n" help-back-label))
           ;; Just to provide the match data:
