@@ -1,5 +1,8 @@
 2002-09-18  Richard M. Stallman  <rms@gnu.org>
 
+	* Makefile.in (bootstrap-clean): Use cd to shorten arg strings.
+	Don't ignore errors in rm line.
+
 	* menu-bar.el (menu-bar-search-menu): Nicer help string.
 
 	* replace.el (occur-engine-add-prefix): Use 7 spaces.

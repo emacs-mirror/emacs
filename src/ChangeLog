@@ -1,3 +1,10 @@
+2002-09-18  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print): Clear out the unused parts of Vprint_number_table.
+	(syms_of_print): Doc fix for `print-number-table'.
+
+	* unexelf.c (unexec): Undo previous change.
+
 2002-09-17  Andreas Schwab  <schwab@suse.de>
 
 	* m/alpha.h [LINUX]: Don't define DATA_START.
