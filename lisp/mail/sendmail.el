@@ -29,6 +29,8 @@
 
 ;;; Code:
 (eval-when-compile
+  ;; Necessary to avoid recursive `require's.
+  (provide 'sendmail)
   (require 'rmail)
   (require 'mailalias))
 
