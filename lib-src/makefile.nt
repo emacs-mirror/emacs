@@ -37,7 +37,7 @@ ALL	        = $(BLD)\make-docfile.exe \
 		$(BLD)\movemail.exe	\
 		$(BLD)\fakemail.exe	\
 
-		
+
 # don't know what (if) to do with these yet...
 #
 #		$(BLD)\sorted-doc.exe	\
@@ -80,8 +80,7 @@ ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\getopt.obj \
 		$(BLD)\getopt1.obj \
 		$(BLD)\ntlib.obj \
-		$(BLD)\regex.obj \
-		$(BLD)\alloca.obj
+		$(BLD)\regex.obj
 
 
 $(BLD)\etags.exe: 	$(ETAGSOBJ)
@@ -100,8 +99,7 @@ CTAGSOBJ      = $(BLD)\ctags.obj \
 		$(BLD)\getopt.obj \
 		$(BLD)\getopt1.obj \
 		$(BLD)\ntlib.obj \
-		$(BLD)\regex.obj \
-		$(BLD)\alloca.obj
+		$(BLD)\regex.obj
 
 $(BLD)\ctags.exe:           ctags.c $(CTAGSOBJ)
 		$(LINK) -out:$@ $(LINK_FLAGS) $(CTAGSOBJ) $(LIBS)
@@ -257,13 +255,6 @@ clean:;		- $(DEL) *~ *.pdb DOC*
 
 EMACS_ROOT	= ..
 SRC		= .
-
-$(BLD)\alloca.obj : \
-	$(SRC)\alloca.c \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\src\config.h \
-	$(EMACS_ROOT)\src\blockinput.h
 
 $(BLD)\b2m.obj : \
 	$(SRC)\b2m.c \
