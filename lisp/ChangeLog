@@ -1,3 +1,14 @@
+2002-01-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-vars.el: New file.
+
+	* loadup.el [windows-nt]: Load it.
+
+	* w32-fns.el, term/w32-win.el: Move user variables to w32-vars.el
+	and make them defcustoms.
+
+	* term/w32-win.el (mouse-set-font): Use w32-list-proportional-fonts.
+
 2002-01-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* language/tibet-util.el (tibetan-decompose-region)
