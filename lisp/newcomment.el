@@ -356,7 +356,7 @@ in strings will not confuse Emacs.")
   "Find a comment start between point and LIMIT.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil of NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil."
   (if (not comment-use-syntax)
       (if (re-search-forward comment-start-skip limit noerror)
 	  (or (match-end 1) (match-beginning 0))
@@ -392,7 +392,7 @@ and raises an error or returns nil of NOERROR is non-nil."
   "Find a comment start between LIMIT and point.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil of NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil."
   ;; FIXME: If a comment-start appears inside a comment, we may erroneously
   ;; stop there.  This can be rather bad in general, but since
   ;; comment-search-backward is only used to find the comment-column (in
@@ -955,7 +955,7 @@ rather than at left margin."
 (defun comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region.
 With just \\[universal-argument] prefix arg, uncomment each line in region BEG .. END.
-Numeric prefix arg ARG means use ARG comment characters.
+Numeric prefix ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
 By default, comments start at the left margin, are terminated on each line,
 even for syntax in which newline does not end the comment and blank lines

@@ -989,6 +989,8 @@ defines already has a value.  But @kbd{C-M-x} unconditionally resets the
 variable to the initial value specified in the @code{defvar} expression.
 @code{defcustom} expressions are treated similarly.
 This special feature is convenient for debugging Lisp programs.
+Typing @kbd{C-M-x} on a @code{defface} expression reinitializes
+the face according to the @code{defface} specification.
 
 @kindex C-x C-e
 @findex eval-last-sexp

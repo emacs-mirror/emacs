@@ -3154,7 +3154,7 @@ specifies the actual color to use for displaying that name.
   For GIF images, specify image type @code{gif}.  Because of the patents
 in the US covering the LZW algorithm, the continued use of GIF format is
 a problem for the whole Internet; to end this problem, it is a good idea
-for everyone, even outside the US, to stop using GIFS right away
+for everyone, even outside the US, to stop using GIFs right away
 (@uref{http://www.burnallgifs.org/}).  But if you still want to use
 them, Emacs can display them.
 

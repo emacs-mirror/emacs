@@ -1057,6 +1057,11 @@ branch) (@code{cvs-mode-diff-head}).@refill
 Display a @samp{cvs diff} between the selected files and the head
 revision of the vendor branch in the repository.
 (@code{cvs-mode-diff-vendor}).@refill
+
+@item d y
+Display a @samp{cvs diff} between the selected files and yesterday's
+head revision in the repository.
+(@code{cvs-mode-diff-yesterday}).@refill
 @end table
 
 By default, @samp{diff} commands ignore the marks.  This can be changed

@@ -477,7 +477,8 @@ also dependent on the values of `edebug-all-defs' and
 If the current defun is actually a call to `defvar', then reset the
 variable using its initial value expression even if the variable
 already has some other value.  (Normally `defvar' does not change the
-variable's value if it already has a value.)
+variable's value if it already has a value.)  Treat `defcustom'
+similarly.  Reinitialize the face according to `defface' specification.
 
 With a prefix argument, instrument the code for Edebug.
 
@@ -507,7 +508,12 @@ the minibuffer."
 	  ((and (eq (car form) 'defcustom)
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
-	   (set-default (nth 1 form) (eval (nth 2 form)))))
+	   (set-default (nth 1 form) (eval (nth 2 form))))
+          ((eq (car form) 'defface)
+           ;; Reset the face.
+           (put (nth 1 form) 'face-defface-spec nil)
+           (setq face-new-frame-defaults
+                 (assq-delete-all (nth 1 form) face-new-frame-defaults))))
     (setq edebug-result (eval form))
     (if (not edebugging)
 	(princ edebug-result)

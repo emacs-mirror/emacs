@@ -255,6 +255,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
       (error "chown not supported on this system"))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
 
+;;;###autoload
 (defun dired-do-touch (&optional arg)
   "Change the timestamp of the marked (or next ARG) files.
 This calls touch."
@@ -342,6 +343,7 @@ Uses the shell command coming from variables `lpr-command' and
 
 (defvar dired-file-version-alist)
 
+;;;###autoload
 (defun dired-clean-directory (keep)
   "Flag numerical backups for deletion.
 Spares `dired-kept-versions' latest versions, and `kept-old-versions' oldest.
@@ -551,6 +553,7 @@ the list of file names explicitly with the FILE-LIST argument."
 	(funcall stuff-it files)))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
+;;;###autoload
 (defun dired-run-shell-command (command)
   (let ((handler
 	 (find-file-name-handler (directory-file-name default-directory)
@@ -805,6 +808,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
     ;; None of these keys quit - use C-g for that.
     ))
 
+;;;###autoload
 (defun dired-query (qs-var qs-prompt &rest qs-args)
   ;; Query user and return nil or t.
   ;; Store answer in symbol VAR (which must initially be bound to nil).
@@ -1808,10 +1812,10 @@ This function takes some pains to conform to `ls -lR' output."
 	(push (cons dirname switches) dired-switches-alist)))
     (when switches-have-R
       (dired-build-subdir-alist switches)
+      (setq switches (dired-replace-in-string "R" "" switches))
       (dolist (cur-ass dired-subdir-alist)
 	(let ((cur-dir (car cur-ass)))
 	  (and (dired-in-this-tree cur-dir dirname)
-	       (not (string= cur-dir dirname))
 	       (let ((cur-cons (assoc-string cur-dir dired-switches-alist)))
 		 (if cur-cons
 		     (setcdr cur-cons switches)
@@ -1852,19 +1856,23 @@ This function takes some pains to conform to `ls -lR' output."
 			  (> (dired-get-subdir-min elt1)
 			     (dired-get-subdir-min elt2)))))))
 
-(defun dired-kill-tree (dirname &optional remember-marks)
+(defun dired-kill-tree (dirname &optional remember-marks kill-root)
   "Kill all proper subdirs of DIRNAME, excluding DIRNAME itself.
-With optional arg REMEMBER-MARKS, return an alist of marked files."
-  (interactive "DKill tree below directory: ")
-  (setq dirname (expand-file-name dirname))
+Interactively, you can kill DIRNAME as well by using a prefix argument.
+In interactive use, the command prompts for DIRNAME.
+
+When called from Lisp, if REMEMBER-MARKS is non-nil, return an alist
+of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
+  (interactive "DKill tree below directory: \ni\nP")
+  (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (let ((s-alist dired-subdir-alist) dir m-alist)
     (while s-alist
       (setq dir (car (car s-alist))
 	    s-alist (cdr s-alist))
-      (if (and (not (string-equal dir dirname))
-	       (dired-in-this-tree dir dirname)
-	       (dired-goto-subdir dir))
-	  (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
+      (and (or kill-root (not (string-equal dir dirname)))
+	   (dired-in-this-tree dir dirname)
+	   (dired-goto-subdir dir)
+	   (setq m-alist (nconc (dired-kill-subdir remember-marks) m-alist))))
     m-alist))
 
 (defun dired-insert-subdir-newpos (new-dir)

@@ -578,8 +578,9 @@ Interactively, with prefix argument, print output into current buffer."
       value)))
 
 (defun eval-defun-1 (form)
-  "Change defvar into defconst within FORM.
-Likewise for other constructs as necessary."
+  "Treat some expressions specially.
+Reset the `defvar' and `defcustom' variables to the initial value.
+Reinitialize the face according to the `defface' specification."
   ;; The code in edebug-defun should be consistent with this, but not
   ;; the same, since this gets a macroexpended form.
   (cond ((not (listp form))
@@ -596,6 +597,13 @@ Likewise for other constructs as necessary."
 	      (default-boundp (eval (nth 1 form))))
 	 ;; Force variable to be bound.
 	 (set-default (eval (nth 1 form)) (eval (nth 1 (nth 2 form))))
+	 form)
+	;; `defface' is macroexpanded to `custom-declare-face'.
+	((eq (car form) 'custom-declare-face)
+	 ;; Reset the face.
+	 (put (eval (nth 1 form)) 'face-defface-spec nil)
+	 (setq face-new-frame-defaults
+	       (assq-delete-all (eval (nth 1 form)) face-new-frame-defaults))
 	 form)
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
@@ -632,7 +640,7 @@ Return the result of evaluation."
 	   (setq beg (point))
 	   (setq form (read (current-buffer)))
 	   (setq end (point)))
-	 ;; Alter the form if necessary, changing defvar into defconst, etc.
+	 ;; Alter the form if necessary.
 	 (setq form (eval-defun-1 (macroexpand form)))
 	 (list beg end standard-output
 	       `(lambda (ignore)

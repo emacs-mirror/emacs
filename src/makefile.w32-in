@@ -1,5 +1,5 @@
 #  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-#  Copyright (c) 2000-2001 Free Software Foundation, Inc.
+#  Copyright (c) 2000-2001, 2004 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -1471,5 +1471,3 @@ $(BLD)/w32bdf.$(O): \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
-
-# arch-tag: 9fd7aba8-f826-4111-b3c0-497a8e7db9a0

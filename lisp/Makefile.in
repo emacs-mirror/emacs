@@ -124,7 +124,6 @@ AUTOGENEL = loaddefs.el \
 # bootstrapping.
 
 COMPILE_FIRST = \
-	$(lisp)/emacs-lisp/macroexp.el \
 	$(lisp)/emacs-lisp/byte-opt.el \
 	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/subr.el \
@@ -237,7 +236,7 @@ compile: $(lisp)/subdirs.el doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) --eval '(setq max-lisp-eval-depth 1000)' -f batch-byte-compile-if-not-done $$el || exit 1; \
+	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
 	  fi \
 	done
 
@@ -327,5 +326,4 @@ bootstrap-after: finder-data custom-deps
 distclean:
 	-rm -f ./Makefile
 
-# arch-tag: d4ea703a-b91c-405c-a171-8dde30b163a7
 # Makefile ends here.

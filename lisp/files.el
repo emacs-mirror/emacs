@@ -526,8 +526,8 @@ the value of `default-directory'."
 Not actually set up until the first time you use it.")
 
 (defun parse-colon-path (cd-path)
-  "Explode a colon-separated search path into a list of directory names.
-\(For values of `colon' equal to `path-separator'.)"
+  "Explode a search path into a list of directory names.
+Directories are separated by occurrences of `path-separator'."
   ;; We could use split-string here.
   (and cd-path
        (let (cd-list (cd-start 0) cd-colon)
@@ -560,8 +560,9 @@ Not actually set up until the first time you use it.")
 
 (defun cd (dir)
   "Make DIR become the current buffer's default directory.
-If your environment includes a `CDPATH' variable, try each one of that
-colon-separated list of directories when resolving a relative directory name."
+If your environment includes a `CDPATH' variable, try each one of
+that list of directories (separated by occurrences of
+`path-separator') when resolving a relative directory name."
   (interactive
    (list (read-directory-name "Change default directory: "
 			 default-directory default-directory

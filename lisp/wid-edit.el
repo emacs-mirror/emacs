@@ -385,8 +385,8 @@ new value.")
     (overlay-put overlay 'evaporate t)
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
-      (overlay-put overlay 'face (widget-apply widget :button-face-get))
-      (overlay-put overlay 'mouse-face widget-mouse-face))
+      (overlay-put overlay 'face (widget-apply widget :button-face-get)))
+    (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'help-echo help-echo)))
 
 (defun widget-mouse-help (window overlay point)
@@ -1289,8 +1289,8 @@ Store the newly created widget in the :children attribute.
 The value of the :type attribute should be an unconverted widget type."
   (let ((value (widget-get widget :value))
 	(type (widget-get widget :type)))
-    (widget-put widget :children 
-                (list (widget-create-child-value widget 
+    (widget-put widget :children
+                (list (widget-create-child-value widget
                                                  (widget-convert type)
                                                  value)))))
 
@@ -3312,8 +3312,8 @@ Here we attempt to define my-list as a choice of either the constant
 nil, or a cons-cell containing a sexp and my-lisp.  This will not work
 because the `choice' widget does not allow recursion.
 
-Using the `lazy' widget you can overcome this problem, as in this 
-example: 
+Using the `lazy' widget you can overcome this problem, as in this
+example:
 
   (define-widget 'sexp-list 'lazy
     \"A list of sexps.\"
@@ -3322,7 +3322,7 @@ example:
   :format "%{%t%}: %v"
   ;; We don't convert :type because we want to allow recursive
   ;; datastructures.  This is slow, so we should not create speed
-  ;; critical widgets by deriving from this. 
+  ;; critical widgets by deriving from this.
   :convert-widget 'widget-value-convert-widget
   :value-create 'widget-type-value-create
   :value-get 'widget-child-value-get

@@ -90,8 +90,16 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** A New package flymake.el does on-the-fly syntax checking of program
-source files.  See the Flymake's Info manual for more details.
+** New features in evaluation commands
+
+*** The function `eval-defun' (C-M-x) called on defface reinitializes
+the face to the value specified in the defface expression.
+
+*** Typing C-x C-e twice prints the value of the integer result
+in additional formats (octal, hexadecimal, character) specified
+by the new function `eval-expression-print-format'.  The same
+function also defines the result format for `eval-expression' (M-:),
+`eval-print-last-sexp' (C-j) and some edebug evaluation functions.
 
 ** New input method chinese-sisheng for inputting Chinese Pinyin
 characters.
@@ -213,6 +221,37 @@ resync points in both windows.
 This is like `strokes-global-set-stroke', but it allows you to bind
 the stroke directly to a string to insert.  This is convenient for
 using strokes as an input method.
+
++++
+** Desktop package
+
+*** Desktop saving is now a minor mode, desktop-save-mode. Variable
+desktop-enable is obsolete. Customize desktop-save-mode to enable desktop
+saving.
+
+*** Buffers are saved in the desktop file in the same order as that in the
+buffer list.
+
+*** New commands:
+  - desktop-revert reverts to the last loaded desktop.
+  - desktop-change-dir kills current desktop and loads a new.
+  - desktop-save-in-desktop-dir saves desktop in the directory from which
+    it was loaded.
+
+*** New customizable variables:
+  - desktop-save. Determins whether the desktop should be saved when it is
+    killed.
+  - desktop-file-name-format.
+  - desktop-path. List of directories in which to lookup the desktop file.
+  - desktop-locals-to-save.
+  - desktop-globals-to-clear.
+  - desktop-clear-preserve-buffers-regexp.
+
+*** New command line option --no-desktop
+
+*** New hooks:
+  - desktop-after-read-hook run after a desktop is loaded.
+  - desktop-no-desktop-file-hook run when no desktop file is found.
 
 ---
 ** The saveplace.el package now filters out unreadable files.
@@ -421,6 +460,14 @@ what external viewers to use and when.
 
 *** In Dired, the w command now copies the current line's file name
 into the kill ring.
+
++++
+** Dired-x:
+
+*** Omitting files is now a minor mode, dired-omit-mode. The mode toggling
+command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
+marks omitted files. The variable dired-omit-files-p is obsoleted, use the
+mode toggling function instead.
 
 ** Info mode:
 +++
@@ -1756,7 +1803,7 @@ depend on external libraries.  All of these libraries have been ported
 to Windows, and can be found in both source and binary form at
 http://gnuwin32.sourceforge.net/.  Note that libpng also depends on
 zlib, and tiff depends on the version of jpeg that it was compiled
-against.
+against.  For additional information, see nt/INSTALL.
 
 ---
 ** Sound is now supported on MS Windows.
@@ -1808,8 +1855,17 @@ to view diffs or log entries directly from vc-annotate-mode:
     D:  shows the diff of the revision at line with its previous revision
     L:  shows the log of the revision at line
     W:  annotates the workfile (most up to date) version
+
++++
+** In pcl-cvs mode, there is a new `d y' command to view the diffs
+between the local version of the file and yesterday's head revision
+in the repository.
+
 
 * New modes and packages in Emacs 21.4
+
+** The new package flymake.el does on-the-fly syntax checking of program
+source files.  See the Flymake's Info manual for more details.
 
 ** The library tree-widget.el provides a new widget to display a set
 of hierarchical data as an outline.  For example, the tree-widget is
@@ -1905,6 +1961,7 @@ where the keys work like (shifted) arrow keys, home/end, etc., and
 are left unspecified and can be bound individually through the global
 or local keymaps.
 
++++
 ** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
 

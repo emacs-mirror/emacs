@@ -67,6 +67,20 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-06-11  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (Fposn_at_point): Doc fix.
+
+2004-06-11  David Kastrup  <dak@gnu.org>
+
+	* search.c (match_limit): Don't flag an error if match-data
+	exceeding the allocated search_regs.num_regs gets requested, just
+	return Qnil.
+
+2004-06-08  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (push_named_merge_point): Return 0 when a cycle is detected.
+
 2004-06-07  Juanma Barranquero  <lektu@terra.es>
 
 	* editfns.c (Fuser_login_name, Ffloat_time, Fencode_time)

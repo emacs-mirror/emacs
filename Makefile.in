@@ -259,7 +259,8 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";' \
+	  -e 's;/[*] *arch-tag:.*;/*;') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be build before leim.
@@ -753,5 +754,3 @@ bootstrap-clean-before: FRC
 	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
-
-# arch-tag: c1162ff6-e0a8-4366-bc1a-2eb544007156
