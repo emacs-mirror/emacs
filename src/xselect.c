@@ -544,6 +544,7 @@ x_reply_selection_request (event, format, data, size, type)
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, 0);
     }
+  XFlushQueue ();
   UNBLOCK_INPUT;
 }
 
