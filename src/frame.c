@@ -901,6 +901,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
      Lisp_Object frame, force;
 {
   struct frame *f;
+  int minibuffer_selected;
 
   if (EQ (frame, Qnil))
     {
@@ -940,6 +941,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	}
     }
 
+  minibuffer_selected = EQ (minibuf_window, selected_window);
+
   /* Don't let the frame remain selected.  */
   if (f == selected_frame)
     Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
@@ -950,6 +953,11 @@ but if the second optional argument FORCE is non-nil, you may do so.")
       Fset_window_buffer (selected_frame->minibuffer_window,
 			  XWINDOW (minibuf_window)->buffer);
       minibuf_window = selected_frame->minibuffer_window;
+
+      /* If the dying minibuffer window was selected,
+	 select the new one.  */
+      if (minibuffer_selected)
+	Fselect_window (minibuf_window);
     }
 
   /* Clear any X selections for this frame.  */
