@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.58 2003/05/08 20:08:12 monnier Exp $
+;; $Id: vc-cvs.el,v 1.59 2003/05/08 20:44:50 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -257,25 +257,14 @@ See also variable `vc-cvs-sticky-date-format-string'."
 Compared to the default implementation, this function does two things:
 Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
-  (let* ((state   (vc-state file))
-	 (rev     (vc-workfile-version file))
-	 (sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
- 	 (sticky-tag-printable (and sticky-tag
-				    (not (string= sticky-tag ""))
- 				    (concat "[" sticky-tag "]"))))
-    (cond ((string= rev "0")
-	   ;; A file that is added but not yet committed.
-	   "CVS @@")
-	  ((or (eq state 'up-to-date)
-	       (eq state 'needs-patch))
-	   (concat "CVS-" rev sticky-tag-printable))
-          ((stringp state)
-	   (concat "CVS:" state ":" rev sticky-tag-printable))
-          (t
-           ;; Not just for the 'edited state, but also a fallback
-           ;; for all other states.  Think about different symbols
-           ;; for 'needs-patch and 'needs-merge.
-           (concat "CVS:" rev sticky-tag-printable)))))
+  (let ((sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
+	(string (if (string= (vc-workfile-version file) "0")
+		    ;; A file that is added but not yet committed.
+		    "CVS @@"
+		  (vc-default-mode-line-string 'CVS file))))
+    (if (zerop (length sticky-tag))
+	string
+      (concat string "[" sticky-tag "]"))))
 
 (defun vc-cvs-dired-state-info (file)
   "CVS-specific version of `vc-dired-state-info'."
@@ -447,6 +436,18 @@ REV is the revision to check out into WORKFILE."
                      switches))))
 	(vc-mode-line file)
 	(message "Checking out %s...done" filename)))))
+
+(defun vc-cvs-delete-file (file)
+  (vc-cvs-command nil 0 file "remove" "-f"))
+
+(defun vc-cvs-rename-file (old new)
+  ;; CVS doesn't know how to move files, so we just remove&add.
+  (condition-case nil
+      (add-name-to-file old new)
+    (error (rename-file old new)))
+  (vc-cvs-delete-file old)
+  (with-current-buffer (find-file-noselect new)
+    (vc-register)))
 
 (defun vc-cvs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
