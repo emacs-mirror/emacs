@@ -299,7 +299,7 @@ ${archlibdir}: all
 /* If the following commands fail, that is not a big deal.
    update-game-score will detect at runtime that it is not setuid,
    and handle things accordingly. */
-	if chown ${gameuser} ${archlibdir}/update-game-score && chmod u+s ${archlibdir}/update-game-score; then \
+	-if chown ${gameuser} ${archlibdir}/update-game-score && chmod u+s ${archlibdir}/update-game-score; then \
 	  chown ${gameuser} ${gamedir}; \
 	  chmod u=rwx,g=rwx,o=rx ${gamedir}; \
 	fi
