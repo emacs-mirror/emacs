@@ -134,7 +134,7 @@ See `forward-paragraph' for more information."
 The paragraph marked is the one that contains point or follows point."
   (interactive)
   (forward-paragraph 1)
-  (push-mark nil t)
+  (push-mark nil t t)
   (backward-paragraph 1))
 
 (defun kill-paragraph (arg)
