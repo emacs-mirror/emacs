@@ -1,3 +1,10 @@
+2003-03-26  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (update_tool_bar): Recompute tool bar if
+	update_mode_lines is set.  Set w->update_mode_line
+	only if the tool bar contents actually change.
+	(update_menu_bar): Undo previous change.
+
 2003-03-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_resize_widgets): Don't call xg_frame_cleared.
