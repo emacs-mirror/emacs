@@ -1172,7 +1172,7 @@ The frame parameters for the special Online Help frame.
 @end defopt
 
 @defopt idlwave-max-popup-menu-items (@code{20})
-Maximum number of items per pane in popup menus.
+Maximum number of items per pane in pop-up menus.
 @end defopt
 
 @defopt idlwave-extra-help-function
