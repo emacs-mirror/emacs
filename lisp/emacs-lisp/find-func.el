@@ -144,6 +144,7 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 			 symbol library)))
 	    (set-syntax-table syn-table)))))))
 
+;;;###autoload
 (defun find-function-noselect (function)
   "Returns a pair (BUFFER . POINT) pointing to the definition of FUNCTION.
 
