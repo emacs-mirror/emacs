@@ -106,24 +106,21 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
       ;; Try advancing comparing 1000 chars at a time.
       ;; When that fails, go 500 chars at a time, and so on.
       (let ((size 1000)
-	    success-1)
+	    success-1
+	    (case-fold-search compare-ignore-case))
 	(while (> size 0)
 	  (setq success-1 t)
+	  ;; Try comparing SIZE chars at a time, repeatedly, till that fails.
 	  (while success-1
 	    (setq size (min size (- maxp1 p1) (- maxp2 p2)))
-	    (save-excursion
-	      (set-buffer b2)
-	      (setq s2 (buffer-substring p2 (+ size p2))))
 	    (setq success-1
 		  (and (> size 0)
-		       (if compare-ignore-case
-			   (let ((case-fold-search t))
-			     (save-excursion
-			       (search-forward s2 (+ p1 size) t)))
-			 (equal (buffer-substring p1 (+ size p1)) s2))))
+		       (= 0 (compare-buffer-substrings b2 p2 (+ size p2)
+						       b1 p1 (+ size p1)))))
 	    (if success-1
 		(setq p1 (+ p1 size) p2 (+ p2 size)
 		      success t)))
+	  ;; If SIZE chars don't match, try fewer.
 	  (setq size (/ size 2)))))
 
     (goto-char p1)
