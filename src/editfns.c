@@ -1757,6 +1757,20 @@ the data it can't find.")
 	s = tzname[t->tm_isdst];
 #endif
 #endif /* not HAVE_TM_ZONE */
+
+#if defined HAVE_TM_ZONE || defined HAVE_TZNAME
+      if (s)
+	{
+	  /* On Japanese w32, we can get a Japanese string as time
+	     zone name.  Don't accept that.  */
+	  char *p;
+	  for (p = s; *p && isalnum (*p); ++p)
+	    ;
+	  if (p == s || *p)
+	    s = NULL;
+	}
+#endif
+
       if (!s)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
