@@ -6170,7 +6170,7 @@ If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.  */
 {
   Lisp_Object val;
   if (SYMBOLP (default_coding_system))
-    XSETSTRING (default_coding_system, XSYMBOL (default_coding_system)->name);
+    default_coding_system = SYMBOL_NAME (default_coding_system);
   val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
 			  Qt, Qnil, Qcoding_system_history,
 			  default_coding_system, Qnil);
@@ -6506,7 +6506,7 @@ code_convert_region1 (start, end, coding_system, encodep)
     return make_number (to - from);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
+    error ("Invalid coding system: %s", XSTRING (SYMBOL_NAME (coding_system))->data);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
   coding.src_multibyte = coding.dst_multibyte
@@ -6561,7 +6561,7 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
     return (NILP (nocopy) ? Fcopy_sequence (string) : string);
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
+    error ("Invalid coding system: %s", XSTRING (SYMBOL_NAME (coding_system))->data);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
   string = (encodep
@@ -6620,7 +6620,7 @@ code_convert_string_norecord (string, coding_system, encodep)
     return string;
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
-    error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
+    error ("Invalid coding system: %s", XSTRING (SYMBOL_NAME (coding_system))->data);
 
   coding.composing = COMPOSITION_DISABLED;
   coding.mode |= CODING_MODE_LAST_BLOCK;
@@ -6865,7 +6865,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
     error ("Invalid first argument");
   if (nargs < 1 + XINT (target_idx))
     error ("Too few arguments for operation: %s",
-	   XSYMBOL (operation)->name->data);
+	   XSTRING (SYMBOL_NAME (operation))->data);
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
