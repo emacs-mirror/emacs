@@ -3233,8 +3233,8 @@ direct_output_for_insert (g)
 
   TRACE ((stderr, "direct output for insert\n"));
 
-  unchanged_modified = MODIFF;
-  beg_unchanged = GPT - BEG;
+  UNCHANGED_MODIFIED = MODIFF;
+  BEG_UNCHANGED = GPT - BEG;
   XSETFASTINT (w->last_point, PT);
   w->last_cursor = w->cursor;
   XSETFASTINT (w->last_modified, MODIFF);
