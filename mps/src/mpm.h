@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.3) $
+ * $HopeName: MMsrc!mpm.h(trunk.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -26,7 +26,7 @@
  */
 
 #ifdef TARGET_MPM_ASSERT        /* impl.h.target */
-#define AVER(cond)              ASSERT(cond)
+#define AVER                    ASSERT
 #define AVERT(type, val)        ASSERT(type ## Check(val))
 #else
 #define AVER(cond)              NOCHECK(cond)
