@@ -212,10 +212,11 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   int repeat = 1;
   struct gcpro gcpro1;
 
-  if (!NILP (count)) {
-    count = Fprefix_numeric_value (count);
-    repeat = XINT (count);
-  }
+  if (!NILP (count))
+    {
+      count = Fprefix_numeric_value (count);
+      repeat = XINT (count);
+    }
 
   final = indirect_function (macro);
   if (!STRINGP (final) && !VECTORP (final))
