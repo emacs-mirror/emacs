@@ -48,10 +48,8 @@ loaded into memory, thus beginning a new process."
   :type 'hook
   :group 'eshell-ext)
 
-(defcustom eshell-binary-suffixes
-  (if (eshell-under-windows-p)
-      '(".exe" ".com" ".bat" ".cmd" "")
-    '(""))
+;; Maybe this should simply be a defvaralias ?  -stef
+(defcustom eshell-binary-suffixes exec-suffixes
   "*A list of suffixes used when searching for executable files."
   :type '(repeat string)
   :group 'eshell-ext)
