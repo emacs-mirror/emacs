@@ -32,9 +32,11 @@
 
 ;;; Code:
 
-(message "Using load-path %s" load-path)
-(load "paths.el")
-(load "site-init" t)
+;; These are no longer needed because we run this in emacs instead of temacs.
+;; (message "Using load-path %s" load-path)
+;; (load "paths.el")
+;; It is not safe to load site-init.el here, because it might have things in it
+;; that won't load properly unless all the rest of Emacs is loaded.
 
 (let ((dirname (directory-file-name rmail-spool-directory))
       linkname attr modes)
@@ -49,17 +51,18 @@
 	      (list (format "%s is not a directory" rmail-spool-directory))))
   (setq modes (nth 8 attr))
   (insert "#!/bin/sh\n")
-  (cond
-   ((= ?w (aref modes 8))
-    (insert "exit 0"))
-   ((= ?w (aref modes 5))
-    (insert "chgrp " (number-to-string (nth 3 attr))
-	    " $* && chmod g+s $*\n"))
-   ((= ?w (aref modes 2))
-    (insert "chown " (number-to-string (nth 2 attr))
-	    " $* && chmod u+s $*\n"))
-   (t
-    (insert "chown root $* && chmod u+s $*\n"))))
+  (cond ((= ?w (aref modes 8))
+	 ;; Nothing needs to be done.
+	 )
+	((= ?w (aref modes 5))
+	 (insert "chgrp " (number-to-string (nth 3 attr))
+		 " $* && chmod g+s $*\n"))
+	((= ?w (aref modes 2))
+	 (insert "chown " (number-to-string (nth 2 attr))
+		 " $* && chmod u+s $*\n"))
+	(t
+	 (insert "chown root $* && chmod u+s $*\n")))
+  (insert "echo mail directory = " dirname "\n"))
 (write-region (point-min) (point-max) "blessmail")
 (kill-emacs)
 
