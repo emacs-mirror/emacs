@@ -128,7 +128,10 @@ position to pop up the tooltip."
 
 
 (defcustom tooltip-gud-tips-p nil
-  "*Non-nil means show tooltips in GUD sessions."
+  "*Non-nil means show tooltips in GUD sessions.
+Setting this variable directly with `setq' has no effect;
+you should either set it with the Customization facility
+or use the function `tooltip-gud-tips-activate'."
   :type 'boolean
   :tag "GUD"
   :set #'(lambda (symbol on)
