@@ -2633,7 +2633,7 @@ srandom (arg)
      int arg;
 {
 #ifdef HAVE_LRAND48
-  return srand48 ();
+  srand48 (arg);
 #else
   srand (arg);
 #endif
