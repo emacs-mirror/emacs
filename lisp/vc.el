@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.19 1992/12/12 15:22:26 jimb Exp jimb $	
+;;	$Id: vc.el,v 1.20 1993/02/22 14:17:16 jimb Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -229,7 +229,11 @@ the master name of FILE; this is appended to an optional list of FLAGS."
   (interactive "P")
   (widen)
   (let ((point-context (vc-position-context (point)))
-	(mark-context  (if (mark) (vc-position-context (mark)))))
+	;; Use mark-marker to avoid confusion in transient-mark-mode.
+	(mark-context  (if (eq (marker-buffer (mark-marker)) (current-buffer))
+			   (vc-position-context (mark-marker))))
+	;; Make the right thing happen in transient-mark-mode.
+	(mark-active nil))
     (revert-buffer arg no-confirm)
     (let ((new-point (vc-find-position-by-context point-context)))
       (if new-point (goto-char new-point)))
