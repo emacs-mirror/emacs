@@ -101,11 +101,6 @@ If emacs is not running under a window system,
 `file-name-shadow-tty-properties' is used instead."
   :type file-name-shadow-properties-custom-type
   :group 'minibuffer)
-;; backwards compatibility
-(make-obsolete-variable 'read-file-name-electric-shadow-properties
-			'file-name-shadow-properties "21.4")
-(defvaralias 'read-file-name-electric-shadow-properties
-  'file-name-shadow-properties)
 
 ;;;###autoload
 (defcustom file-name-shadow-tty-properties
@@ -116,11 +111,6 @@ is not running under a window-system; if emacs is running under a window
 system, `file-name-shadow-properties' is used instead."
   :type file-name-shadow-properties-custom-type
   :group 'minibuffer)
-;; backwards compatibility
-(make-obsolete-variable 'read-file-name-electric-shadow-tty-properties
-			'file-name-shadow-tty-properties "21.4")
-(defvaralias 'read-file-name-electric-shadow-tty-properties
-  'file-name-shadow-tty-properties)
 
 (defface file-name-shadow
   '((((background dark))
@@ -228,15 +218,6 @@ Returns non-nil if the new state is enabled."
       (with-current-buffer minibuf
 	(remove-hook 'post-command-hook #'rfn-eshadow-update-overlay t)))
     (setq rfn-eshadow-frobbed-minibufs nil)))
-
-;; backwards compatibility
-(make-obsolete 'read-file-name-electric-shadow-mode 'file-name-shadow-mode
-	       "21.4")
-;;;###autoload
-(defalias 'read-file-name-electric-shadow-mode 'file-name-shadow-mode)
-(make-obsolete-variable 'read-file-name-electric-shadow-mode
-			'file-name-shadow-mode "21.4")
-(defvaralias 'read-file-name-electric-shadow-mode 'file-name-shadow-mode)
 
 
 (provide 'rfn-eshadow)
