@@ -6439,7 +6439,7 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
 
   /* Try any family with the given registry.  */
   if (nfonts == 0)
-    nfonts = font_list (f, Qnil, Qnil, registry, fonts);
+    nfonts = try_alternative_families (f, Qnil, registry, fonts);
 
   return nfonts;
 }
