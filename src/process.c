@@ -868,7 +868,7 @@ for the process which will run.")
      register Lisp_Object process, flag;
 {
   CHECK_PROCESS (process, 0);
-  XPROCESS (process)->inherit_coding_system_flag = !NILP (flag);
+  XPROCESS (process)->inherit_coding_system_flag = flag;
   return flag;
 }
 
@@ -883,7 +883,7 @@ the process output.")
      register Lisp_Object process;
 {
   CHECK_PROCESS (process, 0);
-  return XPROCESS (process)->inherit_coding_system_flag ? Qt : Qnil;
+  return XPROCESS (process)->inherit_coding_system_flag;
 }
 
 DEFUN ("process-kill-without-query", Fprocess_kill_without_query,
@@ -1273,7 +1273,8 @@ Remaining arguments are strings to give program as arguments.")
   XPROCESS (proc)->encoding_carryover = make_number (0);
 
   XPROCESS (proc)->inherit_coding_system_flag
-    = (NILP (buffer) || !inherit_process_coding_system) ? 0 : 1;
+    = (NILP (buffer) || !inherit_process_coding_system
+       ? Qnil : Qt);
 
   create_process (proc, (char **) new_argv, current_dir);
 
@@ -2065,8 +2066,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
   XPROCESS (proc)->encoding_carryover = make_number (0);
 
-  XPROCESS (proc)->inherit_coding_system_flag =
-    NILP (buffer) || !inherit_process_coding_system ? 0 : 1;
+  XPROCESS (proc)->inherit_coding_system_flag
+    = (NILP (buffer) || !inherit_process_coding_system
+       ? Qnil : Qt);
 
   UNGCPRO;
   return proc;
@@ -2917,7 +2919,7 @@ read_process_output (proc, channel)
 
   /* If the caller required, let the process associated buffer
      inherit the coding-system used to decode the process output.  */
-  if (p->inherit_coding_system_flag
+  if (! NILP (p->inherit_coding_system_flag)
       && !NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
     {
       struct buffer *prev_buf = current_buffer;
