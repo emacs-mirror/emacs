@@ -3010,7 +3010,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   if (nargs < 0) return build_string ("");
 
   nbytes = nargs * sizeof (Lisp_Object);
-  SAFE_ALLOCA (args, Lisp_Object *, nbytes);
+  SAFE_ALLOCA_LISP (args, nbytes);
 
   GCPRO1 (separator);
   mapcar1 (leni, args, function, sequence);
@@ -3046,7 +3046,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   leni = XFASTINT (len);
 
   nbytes = leni * sizeof (Lisp_Object);
-  SAFE_ALLOCA (args, Lisp_Object *, nbytes);
+  SAFE_ALLOCA_LISP (args, nbytes);
 
   mapcar1 (leni, args, function, sequence);
 
