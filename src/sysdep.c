@@ -834,7 +834,7 @@ unrequest_sigio ()
 
 /* Saving and restoring the process group of Emacs's terminal.  */
 
-#ifdef BSD
+#ifdef BSD_PGRPS
 
 /* The process group of which Emacs was a member when it initially
    started.
@@ -878,7 +878,7 @@ widen_foreground_group ()
   setpgrp (0, inherited_pgroup);
 }
 
-#endif
+#endif /* BSD_PGRPS */
 
 /* Getting and setting emacs_tty structures.  */
 
@@ -1111,7 +1111,7 @@ init_sys_modes ()
 #endif
 #endif /* not VMS */
 
-#ifdef BSD
+#ifdef BSD_PGRPS
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
     narrow_foreground_group ();
 #endif
@@ -1483,7 +1483,7 @@ reset_sys_modes ()
   hft_reset ();
 #endif
 
-#ifdef BSD
+#ifdef BSD_PGRPS
   widen_foreground_group ();
 #endif
 }
