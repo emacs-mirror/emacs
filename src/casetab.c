@@ -41,8 +41,7 @@ See `set-case-table' for more information on these data structures.")
   canon = Fcar_safe (Fcdr_safe (Fcdr_safe (table)));
   eqv = Fcar_safe (Fcdr_safe (Fcdr_safe (Fcdr_safe (table))));
 
-#define STRING256_P(obj) \
-  (XTYPE (obj) == Lisp_String && XSTRING (obj)->size == 256)
+#define STRING256_P(obj) (STRINGP (obj) && XSTRING (obj)->size == 256)
 
   return (STRING256_P (down)
 	  && (NILP (up) || STRING256_P (up))
