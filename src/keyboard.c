@@ -5701,11 +5701,15 @@ menu_bar_items (old)
 /* Scan one map KEYMAP, accumulating any menu items it defines
    in menu_bar_items_vector.  */
 
+static Lisp_Object menu_bar_one_keymap_changed_items;
+
 static void
 menu_bar_one_keymap (keymap)
      Lisp_Object keymap;
 {
   Lisp_Object tail, item, table;
+
+  menu_bar_one_keymap_changed_items = Qnil;
 
   /* Loop over all keymap entries that have menu strings.  */
   for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
@@ -5739,6 +5743,7 @@ menu_bar_item (key, item)
 {
   struct gcpro gcpro1;
   int i;
+  Lisp_Object tem;
 
   if (EQ (item, Qundefined))
     {
@@ -5766,6 +5771,15 @@ menu_bar_item (key, item)
   UNGCPRO;
   if (!i)
     return;
+
+  /* If this keymap has already contributed to this KEY,
+     don't contribute to it a second time.  */
+  tem = Fmemq (key, menu_bar_one_keymap_changed_items);
+  if (!NILP (tem))
+    return;
+
+  menu_bar_one_keymap_changed_items
+    = Fcons (key, menu_bar_one_keymap_changed_items);
 
   item = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
 
@@ -9074,6 +9088,9 @@ syms_of_keyboard ()
 
   read_key_sequence_cmd = Qnil;
   staticpro (&read_key_sequence_cmd);
+
+  menu_bar_one_keymap_changed_items = Qnil;
+  staticpro (&menu_bar_one_keymap_changed_items);
 
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
