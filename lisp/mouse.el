@@ -865,6 +865,17 @@ and selects that window."
 
 ;; Font selection.
 
+(defun font-menu-add-default ()
+  (let* ((default (cdr (assq 'font (frame-parameters (selected-frame)))))
+	 (font-alist x-fixed-font-alist)
+	 (elt (assoc "Misc" font-alist)))
+    (if (assoc "Default" elt)
+	(delete (assoc "Default" elt) elt))
+    (setcdr elt
+	    (cons (cons "Default"
+			(cdr (assq 'font (frame-parameters (selected-frame)))))
+		  (cdr elt)))))
+
 (defvar x-fixed-font-alist
   '("Font menu"
     ("Misc"
