@@ -447,13 +447,13 @@ scroll_cost (screen, from, to, amount)
   int offset;
   int height = SCREEN_HEIGHT (screen);
 
-  if (amount > 0)
-    limit += amount;
-  if (! scroll_region_ok)
-    limit = height;
-
   if (amount == 0)
     return 0;
+
+  if (! scroll_region_ok)
+    limit = height;
+  else if (amount > 0)
+    limit += amount;
 
   if (amount < 0)
     {
@@ -487,7 +487,7 @@ line_ins_del (screen, ov1, pf1, ovn, pfn, ov, mf)
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 
-  for (i = 0; i <= screen_height; i++)
+  for (i = 0; i < screen_height; i++)
     {
       mf[screen_height - i] = next_insert_cost / 10;
       next_insert_cost += pfn;
