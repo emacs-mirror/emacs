@@ -195,7 +195,12 @@ NOTE-END */
 #endif /* not USG5_4 */
 #endif /* LIB_STANDARD */
 
+/* Paul Abrahams <abrahams@acm.org> says that
+   Unixware does not have alloca when using cc.  */
+#if ! (defined (USG5_4) && ! defined (__GNUC__))
 #define HAVE_ALLOCA
+#endif
+
 #define NO_REMAP 
 #define TEXT_START 0
 #endif /* USG */
