@@ -828,6 +828,8 @@ cached information about equivalent key sequences.")
   return selection;
 }
 
+#ifdef USE_X_TOOLKIT
+
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 1, 2, 0,
   "Pop up a dialog box and return user's selection.\n\
 POSITION is a position specification.  This is either a mouse button event\n\
@@ -954,6 +956,7 @@ cached information about equivalent key sequences.")
   if (error_name) error (error_name);
   return selection;
 }
+#endif
 
 #ifdef USE_X_TOOLKIT
 
@@ -2097,5 +2100,7 @@ syms_of_xmenu ()
 
   popup_id_tick = (1<<16);	
   defsubr (&Sx_popup_menu);
+#ifdef USE_X_TOOLKIT
   defsubr (&Sx_popup_dialog);
+#endif
 }
