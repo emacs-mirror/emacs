@@ -896,7 +896,9 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    background_filled = 1;
 	  }
 	else if (!font
-		 || FONT_HEIGHT (font) < line_height
+		 || FONT_BASE (font) < baseline
+		 || (FONT_HEIGHT (font) - FONT_BASE (font)
+		     < line_height - baseline)
 		 || FONT_WIDTH (font) < glyph_width
 		 || cmpcharp)
 	  {
