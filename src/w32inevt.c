@@ -464,12 +464,12 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	}
       if (event->uChar.AsciiChar == 0)
 	return 0;
-      XSETINT (emacs_ev->code, event->uChar.AsciiChar);
+      emacs_ev->code = event->uChar.AsciiChar;
     }
   else
     {
       emacs_ev->kind = NON_ASCII_KEYSTROKE_EVENT;
-      XSETINT (emacs_ev->code, event->wVirtualKeyCode);
+      emacs_ev->code = event->wVirtualKeyCode;
     }
 
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
@@ -524,8 +524,8 @@ w32_console_mouse_position (FRAME_PTR *f,
   *part = 0;
   SELECTED_FRAME ()->mouse_moved = 0;
 
-  *x = movement_pos.X;
-  *y = movement_pos.Y;
+  XSETINT(*x, movement_pos.X);
+  XSETINT(*y, movement_pos.Y);
   *time = movement_time;
 
   UNBLOCK_INPUT;
@@ -593,9 +593,9 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
     if (but_change & mask)
       {
         if (i < NUM_TRANSLATED_MOUSE_BUTTONS)
-          XSETINT (emacs_ev->code, emacs_button_translation[i]);
+          emacs_ev->code = emacs_button_translation[i];
         else
-          XSETINT (emacs_ev->code, i);
+          emacs_ev->code = i;
 	break;
       }
 
