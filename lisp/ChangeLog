@@ -1,10 +1,18 @@
+2000-01-31  Inge Frick  <inge@nada.kth.se>
+
+	* view.el: Some changes in documentation.  Removed some trailing
+	whitespace. Changed some parameter names to agree with
+	documentation.
+	(view-mode-exit): Keep entry in `view-return-to-alist' only when a
+	window is not deleted.  Modifies change 1998-04-26.
+	
 2000-01-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* windmove.el: New file.
 
 	* progmodes/ebnf2ps.el, progmodes/ebnf-bnf.el,
 	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
-	progmodes/ebnf-yac.el: Update copyright.
+	progmodes/ebnf-yac.el: Update copyright and license info.
 	
 	* jit-lock.el (jit-lock-function): Widen before calculating end
 	position.

@@ -1,5 +1,7 @@
 2000-01-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (xim_open_dpy): Remove unused local variable.
+
 	* emacs.c (USAGE): Use term `display options' instead of `X
 	options'.
 

@@ -381,7 +381,7 @@ Remove any highlighting that was added by `align-highlight-rule'." t nil)
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "ange-ftp.el" (14460 38616))
+;;;;;;  "ange-ftp.el" (14481 51915))
 ;;; Generated autoloads from ange-ftp.el
  (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
 
@@ -1280,7 +1280,7 @@ corresponding bookmark function from Lisp (the one without the
 ;;;;;;  browse-url-of-buffer browse-url-of-file browse-url-generic-program
 ;;;;;;  browse-url-save-file browse-url-netscape-display browse-url-new-window-p
 ;;;;;;  browse-url-browser-function) "browse-url" "browse-url.el"
-;;;;;;  (14454 73))
+;;;;;;  (14477 53252))
 ;;; Generated autoloads from browse-url.el
 
 (defvar browse-url-browser-function (if (eq system-type (quote windows-nt)) (quote browse-url-default-windows-browser) (quote browse-url-netscape)) "\
@@ -2308,7 +2308,7 @@ The return value is a vector of resulting CCL registers." nil nil)
 ;;;;;;  checkdoc-continue checkdoc-start checkdoc-current-buffer
 ;;;;;;  checkdoc-eval-current-buffer checkdoc-message-interactive
 ;;;;;;  checkdoc-interactive checkdoc) "checkdoc" "emacs-lisp/checkdoc.el"
-;;;;;;  (14456 31049))
+;;;;;;  (14482 54417))
 ;;; Generated autoloads from emacs-lisp/checkdoc.el
 
 (autoload (quote checkdoc) "checkdoc" "\
@@ -2505,7 +2505,7 @@ and runs the normal hook `command-history-hook'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14432 37868))
+;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14482 54434))
 ;;; Generated autoloads from emacs-lisp/cl.el
 
 (defvar custom-print-functions nil "\
@@ -3062,7 +3062,7 @@ Randomly permute the elements of VECTOR (all permutations equally likely)" nil n
 ;;;***
 
 ;;;### (autoloads (copyright copyright-update) "copyright" "emacs-lisp/copyright.el"
-;;;;;;  (14454 138))
+;;;;;;  (14463 42213))
 ;;; Generated autoloads from emacs-lisp/copyright.el
 
 (autoload (quote copyright-update) "copyright" "\
@@ -4692,6 +4692,120 @@ to implement dynamic menus." nil nil)
 
 ;;;***
 
+;;;### (autoloads (ebnf-pop-style ebnf-push-style ebnf-reset-style
+;;;;;;  ebnf-apply-style ebnf-merge-style ebnf-insert-style ebnf-setup
+;;;;;;  ebnf-syntax-region ebnf-syntax-buffer ebnf-eps-region ebnf-eps-buffer
+;;;;;;  ebnf-spool-region ebnf-spool-buffer ebnf-print-region ebnf-print-buffer
+;;;;;;  ebnf-customize) "ebnf2ps" "progmodes/ebnf2ps.el" (14485 59667))
+;;; Generated autoloads from progmodes/ebnf2ps.el
+
+(autoload (quote ebnf-customize) "ebnf2ps" "\
+Customization for ebnf group." t nil)
+
+(autoload (quote ebnf-print-buffer) "ebnf2ps" "\
+Generate and print a PostScript syntatic chart image of the buffer.
+
+When called with a numeric prefix argument (C-u), prompts the user for
+the name of a file to save the PostScript image in, instead of sending
+it to the printer.
+
+More specifically, the FILENAME argument is treated as follows: if it
+is nil, send the image to the printer.  If FILENAME is a string, save
+the PostScript image in a file with that name.  If FILENAME is a
+number, prompt the user for the name of the file to save in." t nil)
+
+(autoload (quote ebnf-print-region) "ebnf2ps" "\
+Generate and print a PostScript syntatic chart image of the region.
+Like `ebnf-print-buffer', but prints just the current region." t nil)
+
+(autoload (quote ebnf-spool-buffer) "ebnf2ps" "\
+Generate and spool a PostScript syntatic chart image of the buffer.
+Like `ebnf-print-buffer' except that the PostScript image is saved in a
+local buffer to be sent to the printer later.
+
+Use the command `ebnf-despool' to send the spooled images to the printer." t nil)
+
+(autoload (quote ebnf-spool-region) "ebnf2ps" "\
+Generate a PostScript syntatic chart image of the region and spool locally.
+Like `ebnf-spool-buffer', but spools just the current region.
+
+Use the command `ebnf-despool' to send the spooled images to the printer." t nil)
+
+(autoload (quote ebnf-eps-buffer) "ebnf2ps" "\
+Generate a PostScript syntatic chart image of the buffer in a EPS file.
+
+Indeed, for each production is generated a EPS file.
+The EPS file name has the following form:
+
+   <PREFIX><PRODUCTION>.eps
+
+<PREFIX>     is given by variable `ebnf-eps-prefix'.
+	     The default value is \"ebnf--\".
+
+<PRODUCTION> is the production name.
+	     The production name is mapped to form a valid file name.
+	     For example, the production name \"A/B + C\" is mapped to
+	     \"A_B_+_C\" and the EPS file name used is \"ebnf--A_B_+_C.eps\".
+
+WARNING: It's *NOT* asked any confirmation to override an existing file." t nil)
+
+(autoload (quote ebnf-eps-region) "ebnf2ps" "\
+Generate a PostScript syntatic chart image of the region in a EPS file.
+
+Indeed, for each production is generated a EPS file.
+The EPS file name has the following form:
+
+   <PREFIX><PRODUCTION>.eps
+
+<PREFIX>     is given by variable `ebnf-eps-prefix'.
+	     The default value is \"ebnf--\".
+
+<PRODUCTION> is the production name.
+	     The production name is mapped to form a valid file name.
+	     For example, the production name \"A/B + C\" is mapped to
+	     \"A_B_+_C\" and the EPS file name used is \"ebnf--A_B_+_C.eps\".
+
+WARNING: It's *NOT* asked any confirmation to override an existing file." t nil)
+
+(defalias (quote ebnf-despool) (quote ps-despool))
+
+(autoload (quote ebnf-syntax-buffer) "ebnf2ps" "\
+Does a syntatic analysis of the current buffer." t nil)
+
+(autoload (quote ebnf-syntax-region) "ebnf2ps" "\
+Does a syntatic analysis of a region." t nil)
+
+(autoload (quote ebnf-setup) "ebnf2ps" "\
+Return the current ebnf2ps setup." nil nil)
+
+(autoload (quote ebnf-insert-style) "ebnf2ps" "\
+Insert a new style NAME with inheritance INHERITS and values VALUES." t nil)
+
+(autoload (quote ebnf-merge-style) "ebnf2ps" "\
+Merge values of style NAME with style VALUES." t nil)
+
+(autoload (quote ebnf-apply-style) "ebnf2ps" "\
+Set STYLE to current style.
+
+It returns the old style symbol." t nil)
+
+(autoload (quote ebnf-reset-style) "ebnf2ps" "\
+Reset current style.
+
+It returns the old style symbol." t nil)
+
+(autoload (quote ebnf-push-style) "ebnf2ps" "\
+Push the current style and set STYLE to current style.
+
+It returns the old style symbol." t nil)
+
+(autoload (quote ebnf-pop-style) "ebnf2ps" "\
+Pop a style and set it to current style.
+
+It returns the old style symbol." t nil)
+
+;;;***
+
 ;;;### (autoloads (electric-buffer-list) "ebuff-menu" "ebuff-menu.el"
 ;;;;;;  (13778 5499))
 ;;; Generated autoloads from ebuff-menu.el
@@ -4726,7 +4840,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14460 38617))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14482 54435))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -5867,7 +5981,7 @@ with no args, if that value is non-nil." t nil)
 ;;;;;;  facemenu-remove-special facemenu-remove-all facemenu-remove-face-props
 ;;;;;;  facemenu-set-read-only facemenu-set-intangible facemenu-set-invisible
 ;;;;;;  facemenu-set-face-from-menu facemenu-set-background facemenu-set-foreground
-;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14412 8701))
+;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14482 54416))
 ;;; Generated autoloads from facemenu.el
  (define-key global-map "\M-g" 'facemenu-keymap)
  (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
@@ -5887,17 +6001,17 @@ Menu keymap for background colors")
 
 (defalias (quote facemenu-background-menu) facemenu-background-menu)
 
-(defvar facemenu-special-menu (let ((map (make-sparse-keymap "Special"))) (define-key map [115] (cons "Remove Special" (quote facemenu-remove-special))) (define-key map [116] (cons "Intangible" (quote facemenu-set-intangible))) (define-key map [118] (cons "Invisible" (quote facemenu-set-invisible))) (define-key map [114] (cons "Read-Only" (quote facemenu-set-read-only))) map) "\
+(defvar facemenu-special-menu (let ((map (make-sparse-keymap "Special"))) (define-key map [115] (cons (purecopy "Remove Special") (quote facemenu-remove-special))) (define-key map [116] (cons (purecopy "Intangible") (quote facemenu-set-intangible))) (define-key map [118] (cons (purecopy "Invisible") (quote facemenu-set-invisible))) (define-key map [114] (cons (purecopy "Read-Only") (quote facemenu-set-read-only))) map) "\
 Menu keymap for non-face text-properties.")
 
 (defalias (quote facemenu-special-menu) facemenu-special-menu)
 
-(defvar facemenu-justification-menu (let ((map (make-sparse-keymap "Justification"))) (define-key map [99] (cons "Center" (quote set-justification-center))) (define-key map [98] (cons "Full" (quote set-justification-full))) (define-key map [114] (cons "Right" (quote set-justification-right))) (define-key map [108] (cons "Left" (quote set-justification-left))) (define-key map [117] (cons "Unfilled" (quote set-justification-none))) map) "\
+(defvar facemenu-justification-menu (let ((map (make-sparse-keymap "Justification"))) (define-key map [99] (cons (purecopy "Center") (quote set-justification-center))) (define-key map [98] (cons (purecopy "Full") (quote set-justification-full))) (define-key map [114] (cons (purecopy "Right") (quote set-justification-right))) (define-key map [108] (cons (purecopy "Left") (quote set-justification-left))) (define-key map [117] (cons (purecopy "Unfilled") (quote set-justification-none))) map) "\
 Submenu for text justification commands.")
 
 (defalias (quote facemenu-justification-menu) facemenu-justification-menu)
 
-(defvar facemenu-indentation-menu (let ((map (make-sparse-keymap "Indentation"))) (define-key map [decrease-right-margin] (cons "Indent Right Less" (quote decrease-right-margin))) (define-key map [increase-right-margin] (cons "Indent Right More" (quote increase-right-margin))) (define-key map [decrease-left-margin] (cons "Indent Less" (quote decrease-left-margin))) (define-key map [increase-left-margin] (cons "Indent More" (quote increase-left-margin))) map) "\
+(defvar facemenu-indentation-menu (let ((map (make-sparse-keymap "Indentation"))) (define-key map [decrease-right-margin] (cons (purecopy "Indent Right Less") (quote decrease-right-margin))) (define-key map [increase-right-margin] (cons (purecopy "Indent Right More") (quote increase-right-margin))) (define-key map [decrease-left-margin] (cons (purecopy "Indent Less") (quote decrease-left-margin))) (define-key map [increase-left-margin] (cons (purecopy "Indent More") (quote increase-left-margin))) map) "\
 Submenu for indentation commands.")
 
 (defalias (quote facemenu-indentation-menu) facemenu-indentation-menu)
@@ -5907,9 +6021,9 @@ Facemenu top-level menu keymap.")
 
 (setq facemenu-menu (make-sparse-keymap "Text Properties"))
 
-(let ((map facemenu-menu)) (define-key map [dc] (cons "Display Colors" (quote list-colors-display))) (define-key map [df] (cons "Display Faces" (quote list-faces-display))) (define-key map [dp] (cons "List Properties" (quote list-text-properties-at))) (define-key map [ra] (cons "Remove Text Properties" (quote facemenu-remove-all))) (define-key map [rm] (cons "Remove Face Properties" (quote facemenu-remove-face-props))) (define-key map [s1] (list "-----------------")))
+(let ((map facemenu-menu)) (define-key map [dc] (cons (purecopy "Display Colors") (quote list-colors-display))) (define-key map [df] (cons (purecopy "Display Faces") (quote list-faces-display))) (define-key map [dp] (cons (purecopy "List Properties") (quote list-text-properties-at))) (define-key map [ra] (cons (purecopy "Remove Text Properties") (quote facemenu-remove-all))) (define-key map [rm] (cons (purecopy "Remove Face Properties") (quote facemenu-remove-face-props))) (define-key map [s1] (list (purecopy "--"))))
 
-(let ((map facemenu-menu)) (define-key map [in] (cons "Indentation" (quote facemenu-indentation-menu))) (define-key map [ju] (cons "Justification" (quote facemenu-justification-menu))) (define-key map [s2] (list "-----------------")) (define-key map [sp] (cons "Special Properties" (quote facemenu-special-menu))) (define-key map [bg] (cons "Background Color" (quote facemenu-background-menu))) (define-key map [fg] (cons "Foreground Color" (quote facemenu-foreground-menu))) (define-key map [fc] (cons "Face" (quote facemenu-face-menu))))
+(let ((map facemenu-menu)) (define-key map [in] (cons (purecopy "Indentation") (quote facemenu-indentation-menu))) (define-key map [ju] (cons (purecopy "Justification") (quote facemenu-justification-menu))) (define-key map [s2] (list (purecopy "--"))) (define-key map [sp] (cons (purecopy "Special Properties") (quote facemenu-special-menu))) (define-key map [bg] (cons (purecopy "Background Color") (quote facemenu-background-menu))) (define-key map [fg] (cons (purecopy "Foreground Color") (quote facemenu-foreground-menu))) (define-key map [fc] (cons (purecopy "Face") (quote facemenu-face-menu))))
 
 (defalias (quote facemenu-menu) facemenu-menu)
 
@@ -5997,7 +6111,7 @@ of colors that the current display can handle." t nil)
 ;;;***
 
 ;;;### (autoloads (turn-on-fast-lock fast-lock-mode) "fast-lock"
-;;;;;;  "fast-lock.el" (14263 35417))
+;;;;;;  "fast-lock.el" (14477 53252))
 ;;; Generated autoloads from fast-lock.el
 
 (autoload (quote fast-lock-mode) "fast-lock" "\
@@ -6461,7 +6575,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
 ;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
 ;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
-;;;;;;  (14424 65029))
+;;;;;;  (14477 53252))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -6652,7 +6766,7 @@ Visit a file in Forms mode in other window." t nil)
 ;;;***
 
 ;;;### (autoloads (fortran-mode fortran-tab-mode-default) "fortran"
-;;;;;;  "progmodes/fortran.el" (14454 142))
+;;;;;;  "progmodes/fortran.el" (14477 53257))
 ;;; Generated autoloads from progmodes/fortran.el
 
 (defvar fortran-tab-mode-default nil "\
@@ -6775,6 +6889,17 @@ comment characters, keywords, and the like.)
 
 To define a generic-mode, use the function `define-generic-mode'.
 Some generic modes are defined in `generic-x.el'." t nil)
+
+;;;***
+
+;;;### (autoloads (glasses-mode) "glasses" "progmodes/glasses.el"
+;;;;;;  (14480 59906))
+;;; Generated autoloads from progmodes/glasses.el
+
+(autoload (quote glasses-mode) "glasses" "\
+Minor mode for making identifiers likeThis readable.
+When this mode is active, it tries to add virtual separators (like underscores)
+at places they belong to." t nil)
 
 ;;;***
 
@@ -8001,7 +8126,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node info-standalone info info-other-window)
-;;;;;;  "info" "info.el" (14412 8715))
+;;;;;;  "info" "info.el" (14485 39769))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -8470,7 +8595,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;### (autoloads (iswitchb-buffer-other-frame iswitchb-display-buffer
 ;;;;;;  iswitchb-buffer-other-window iswitchb-buffer iswitchb-default-keybindings
-;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14384 5061))
+;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14482 55434))
 ;;; Generated autoloads from iswitchb.el
 
 (autoload (quote iswitchb-read-buffer) "iswitchb" "\
@@ -8575,7 +8700,7 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading." nil 
 ;;;***
 
 ;;;### (autoloads (turn-on-jit-lock jit-lock-mode) "jit-lock" "jit-lock.el"
-;;;;;;  (14275 59802))
+;;;;;;  (14485 51270))
 ;;; Generated autoloads from jit-lock.el
 
 (autoload (quote jit-lock-mode) "jit-lock" "\
@@ -8755,7 +8880,7 @@ The return value is number of composed characters." nil nil)
 ;;;***
 
 ;;;### (autoloads (turn-on-lazy-lock lazy-lock-mode) "lazy-lock"
-;;;;;;  "lazy-lock.el" (14263 35461))
+;;;;;;  "lazy-lock.el" (14477 53252))
 ;;; Generated autoloads from lazy-lock.el
 
 (autoload (quote lazy-lock-mode) "lazy-lock" "\
@@ -9123,8 +9248,8 @@ This function normally would be called when the message is sent." nil nil)
 
 ;;;### (autoloads (mail-fetch-field mail-unquote-printable-region
 ;;;;;;  mail-unquote-printable mail-quote-printable mail-file-babyl-p
-;;;;;;  mail-use-rfc822) "mail-utils" "mail/mail-utils.el" (14263
-;;;;;;  33297))
+;;;;;;  mail-use-rfc822) "mail-utils" "mail/mail-utils.el" (14480
+;;;;;;  16128))
 ;;; Generated autoloads from mail/mail-utils.el
 
 (defvar mail-use-rfc822 nil "\
@@ -10523,34 +10648,6 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
   perl-label-offset               -5   -8   -2   -2   -2
 
 Turning on Perl mode runs the normal hook `perl-mode-hook'." t nil)
-
-;;;***
-
-;;;### (autoloads (ph-query-form ph-expand-inline ph-get-phone ph-get-email)
-;;;;;;  "ph" "ph.el" (13623 48480))
-;;; Generated autoloads from ph.el
-
-(autoload (quote ph-get-email) "ph" "\
-Get the email field of NAME from the PH/QI directory server." t nil)
-
-(autoload (quote ph-get-phone) "ph" "\
-Get the phone field of NAME from the PH/QI directory server." t nil)
-
-(autoload (quote ph-expand-inline) "ph" "\
-Query the PH server, and expand the query string before point.
-The query string consists of the buffer substring from the point back to
-the preceding comma, colon or beginning of line.  If it contains more than
-one word, the variable `ph-inline-query-format-list' controls to map these
-onto CCSO database field names.
-After querying the server for the given string, the expansion specified by 
-`ph-inline-expansion-format' is inserted in the buffer at point.
-If REPLACE is t, then this expansion replaces the name in the buffer.
-If `ph-expanding-overwrites-query' is t, that inverts the meaning of REPLACE." t nil)
-
-(autoload (quote ph-query-form) "ph" "\
-Display a form to query the CCSO PH/QI nameserver.
-If given a non-nil argument the function first queries the server 
-for the existing fields and displays a corresponding form." t nil)
 
 ;;;***
 
@@ -12809,7 +12906,7 @@ Pick your favourite shortcuts:
 
 ;;;### (autoloads (reverse-region sort-columns sort-regexp-fields
 ;;;;;;  sort-fields sort-numeric-fields sort-pages sort-paragraphs
-;;;;;;  sort-lines sort-subr) "sort" "sort.el" (13304 43541))
+;;;;;;  sort-lines sort-subr) "sort" "sort.el" (14481 36636))
 ;;; Generated autoloads from sort.el
 
 (autoload (quote sort-subr) "sort" "\
@@ -12873,7 +12970,9 @@ the sort order." t nil)
 (autoload (quote sort-numeric-fields) "sort" "\
 Sort lines in region numerically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
-Specified field must contain a number in each line of the region.
+Specified field must contain a number in each line of the region,
+which may begin with \"0x\" or \"0\" for hexadecimal and octal values.
+Otherwise, the number is interpreted according to sort-numeric-base.
 With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort." t nil)
@@ -13798,7 +13897,7 @@ Info `g*' command is inadequate." t nil)
 ;;;### (autoloads (thai-composition-function thai-post-read-conversion
 ;;;;;;  thai-compose-buffer thai-compose-string thai-compose-region
 ;;;;;;  setup-thai-environment) "thai-util" "language/thai-util.el"
-;;;;;;  (14423 51008))
+;;;;;;  (14477 53255))
 ;;; Generated autoloads from language/thai-util.el
 
 (autoload (quote setup-thai-environment) "thai-util" "\
@@ -14062,7 +14161,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"." nil 
 ;;;***
 
 ;;;### (autoloads (tmm-prompt tmm-menubar-mouse tmm-menubar) "tmm"
-;;;;;;  "tmm.el" (14459 43081))
+;;;;;;  "tmm.el" (14467 13719))
 ;;; Generated autoloads from tmm.el
  (define-key global-map "\M-`" 'tmm-menubar)
  (define-key global-map [f10] 'tmm-menubar)
@@ -14388,7 +14487,7 @@ which specify the range to operate on." t nil)
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "mail/undigest.el" (13475 35727))
+;;;;;;  "undigest" "mail/undigest.el" (14473 58848))
 ;;; Generated autoloads from mail/undigest.el
 
 (autoload (quote undigestify-rmail-message) "undigest" "\
@@ -14448,8 +14547,8 @@ The buffer in question is current when this function is called." nil nil)
 ;;;;;;  vc-create-snapshot vc-directory vc-resolve-conflicts vc-merge
 ;;;;;;  vc-insert-headers vc-version-other-window vc-diff vc-register
 ;;;;;;  vc-next-action edit-vc-file with-vc-file vc-annotate-mode-hook
-;;;;;;  vc-before-checkin-hook vc-checkin-hook) "vc" "vc.el" (14460
-;;;;;;  19361))
+;;;;;;  vc-before-checkin-hook vc-checkin-hook) "vc" "vc.el" (14478
+;;;;;;  52465))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkin-hook nil "\
@@ -15324,6 +15423,48 @@ The optional ARGS are additional keyword arguments." nil nil)
 
 (autoload (quote widget-delete) "wid-edit" "\
 Delete WIDGET." nil nil)
+
+;;;***
+
+;;;### (autoloads (windmove-default-keybindings windmove-down windmove-right
+;;;;;;  windmove-up windmove-left) "windmove" "windmove.el" (14485
+;;;;;;  64019))
+;;; Generated autoloads from windmove.el
+
+(autoload (quote windmove-left) "windmove" "\
+Select the window to the left of the current one.
+With no prefix argument, or with prefix argument equal to zero,
+\"left\" is relative to the position of point in the window; otherwise
+it is relative to the top edge (for positive ARG) or the bottom edge
+\(for negative ARG) of the current window.
+If no window is at the desired location, an error is signaled." t nil)
+
+(autoload (quote windmove-up) "windmove" "\
+Select the window above the current one.
+With no prefix argument, or with prefix argument equal to zero, \"up\"
+is relative to the position of point in the window; otherwise it is
+relative to the left edge (for positive ARG) or the right edge (for
+negative ARG) of the current window.
+If no window is at the desired location, an error is signaled." t nil)
+
+(autoload (quote windmove-right) "windmove" "\
+Select the window to the right of the current one.
+With no prefix argument, or with prefix argument equal to zero,
+\"right\" is relative to the position of point in the window;
+otherwise it is relative to the top edge (for positive ARG) or the
+bottom edge (for negative ARG) of the current window.
+If no window is at the desired location, an error is signaled." t nil)
+
+(autoload (quote windmove-down) "windmove" "\
+Select the window below the current one.
+With no prefix argument, or with prefix argument equal to zero,
+\"down\" is relative to the position of point in the window; otherwise
+it is relative to the left edge (for positive ARG) or the right edge
+\(for negative ARG) of the current window.
+If no window is at the desired location, an error is signaled." t nil)
+
+(autoload (quote windmove-default-keybindings) "windmove" "\
+Set up default keybindings for `windmove'." t nil)
 
 ;;;***
 
