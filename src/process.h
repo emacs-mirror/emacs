@@ -75,6 +75,14 @@ struct Lisp_Process
     Lisp_Object tick;
     /* Event-count of last such event reported.  */
     Lisp_Object update_tick;
+    /* Coding-system for decoding the input from this process.  */
+    Lisp_Object decode_coding_system;
+    /* Working buffer for decoding.  */
+    Lisp_Object decoding_buf;
+    /* Coding-system for encoding the output to this process.  */
+    Lisp_Object encode_coding_system;
+    /* Working buffer for encoding.  */
+    Lisp_Object encoding_buf;
 };
 
 #define ChannelMask(n) (1<<(n))
