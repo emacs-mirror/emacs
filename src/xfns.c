@@ -1100,7 +1100,7 @@ x_real_positions (f, xptr, yptr)
 #endif
   Window tmp_root_window;
   Window *tmp_children;
-  int tmp_nchildren;
+  unsigned int tmp_nchildren;
 
   while (1)
     {
