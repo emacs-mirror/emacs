@@ -1837,7 +1837,7 @@ if the last match was on a buffer; integers or nil if a string was matched.\n\
 Use `store-match-data' to reinstate the data in this list.\n\
 \n\
 If INTEGERS (the optional first argument) is non-nil, always use integers\n\
-(rather than markers) to represent buffer positions.\n\
+\(rather than markers) to represent buffer positions.\n\
 If REUSE is a list, reuse it as part of the value.  If REUSE is long enough\n\
 to hold all the values, and if INTEGERS is non-nil, no consing is done.")
   (integers, reuse)
