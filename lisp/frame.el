@@ -403,7 +403,7 @@ Each frame listed in CONFIGURATION has its position, size, window
 configuration, and other parameters set as specified in CONFIGURATION.
 Ordinarily, this function deletes all existing frames not
 listed in CONFIGURATION.  But if optional second argument NODELETE
-is given and non-nil, the unwanted frames are made invisible instead."
+is given and non-nil, the unwanted frames are iconified instead."
   (or (frame-configuration-p configuration)
       (signal 'wrong-type-argument
 	      (list 'frame-configuration-p configuration)))
@@ -426,7 +426,11 @@ is given and non-nil, the unwanted frames are made invisible instead."
 		   (setq frames-to-delete (cons frame frames-to-delete))))))
 	    (frame-list))
     (if nodelete
-	(mapcar 'make-frame-invisible frames-to-delete)
+	;; Note: making frames invisible here was tried
+	;; but led to some strange behavior--each time the frame
+	;; was made visible again, the window manager asked afresh
+	;; for where to put it.
+	(mapcar 'iconify-frame frames-to-delete)
       (mapcar 'delete-frame frames-to-delete))))
 
 (defun frame-configuration-p (object)
