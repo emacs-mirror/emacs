@@ -156,9 +156,16 @@ or if the window is the only window of its frame."
 	  (window-min-height 0)
 	  (buffer-read-only nil)
 	  (modified (buffer-modified-p))
-	  (buffer (current-buffer)))
+	  (buffer (current-buffer))
+	  (mini (cdr (assq 'minibuffer (frame-parameters))))
+	  (edges (window-edges (selected-window))))
       (if (and (< 1 (count-windows))
-	       (pos-visible-in-window-p (point-min) window))
+	       (pos-visible-in-window-p (point-min) window)
+	       (or (not mini)
+		   (< (nth 3 edges)
+		      (nth 1 (window-edges mini)))
+		   (> (nth 1 edges)
+		      (cdr (assq 'menu-bar-lines (frame-parameters))))))
 	  (unwind-protect
 	      (progn
 		(select-window (or window w))
