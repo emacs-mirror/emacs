@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.11) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.12) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -144,8 +144,8 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 enum {
   RankAMBIG = 0,
   RankEXACT = 1,
-  RankWEAK = 2,
-  RankFINAL = 3,
+  RankFINAL = 2,
+  RankWEAK = 3,
   RankMAX
 };
 
