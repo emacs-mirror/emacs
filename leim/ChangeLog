@@ -1,3 +1,11 @@
+2001-02-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* CXTERM-DIC/ARRAY30.tit: Add Copyright notice.
+
+	* CXTERM-DIC/ETZY.tit: Likewise.
+
+	* CXTERM-DIC/ZOZY.tit: Likewise.
+
 2001-02-05  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (BUILT_EMACS): Use $(THISDIR) to make emacs.exe
