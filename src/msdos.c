@@ -214,6 +214,25 @@ mouse_released (b, xp, yp)
   return (regs.x.bx != 0);
 }
 
+static int
+mouse_button_depressed (b, xp, yp)
+     int b, *xp, *yp;
+{
+  union REGS regs;
+
+  if (b >= mouse_button_count)
+    return 0;
+  regs.x.ax = 0x0003;
+  int86 (0x33, &regs, &regs);
+  if ((regs.x.bx & (1 << mouse_button_translate[b])) != 0)
+    {
+      *xp = regs.x.cx / 8;
+      *yp = regs.x.dx / 8;
+      return 1;
+    }
+  return 0;
+}
+
 void
 mouse_get_pos (f, insist, bar_window, part, x, y, time)
      FRAME_PTR *f;
@@ -252,12 +271,25 @@ void
 mouse_init ()
 {
   union REGS regs;
+  int b;
 
   if (termscript)
     fprintf (termscript, "<M_INIT>");
 
   regs.x.ax = 0x0021;
   int86 (0x33, &regs, &regs);
+
+  /* Reset the mouse last press/release info.  It seems that Windows
+     doesn't do that automatically when function 21h is called, which
+     causes Emacs to ``remember'' the click that switched focus to the
+     window just before Emacs was started from that window.  */
+  for (b = 0; b < mouse_button_count; b++)
+    {
+      int dummy_x, dummy_y;
+
+      (void) mouse_pressed (b, &dummy_x, &dummy_y);
+      (void) mouse_released (b, &dummy_x, &dummy_y);
+    }
 
   regs.x.ax = 0x0007;
   regs.x.cx = 0;
@@ -1691,6 +1723,7 @@ and then the scan code.")
 /* Get a char from keyboard.  Function keys are put into the event queue.  */
 
 extern void kbd_buffer_store_event (struct input_event *);
+static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
 static int
 dos_rawgetc ()
@@ -1898,7 +1931,7 @@ dos_rawgetc ()
       kbd_buffer_store_event (&event);
     }
 
-  if (have_mouse > 0)
+  if (have_mouse > 0 && !mouse_preempted)
     {
       int but, press, x, y, ok;
 
@@ -2264,6 +2297,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   if (y0 <= 0)
     y0 = 1;
 
+  /* We will process all the mouse events directly, so we had
+     better prevented dos_rawgetc from stealing them from us.  */
+  mouse_preempted++;
+
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = screen_size * 2;
   faces[0]
@@ -2386,11 +2423,22 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 			   state[statecount - 1].x,
 			   faces);
 	}
-      for (b = 0; b < mouse_button_count; b++)
+      else
+	/* We are busy-waiting for the mouse to move, so let's be nice
+	   to other Windows applications by releasing our time slice.  */
+	__dpmi_yield ();
+      for (b = 0; b < mouse_button_count && !leave; b++)
 	{
-	  (void) mouse_pressed (b, &x, &y);
-	  if (mouse_released (b, &x, &y))
-	    leave = 1;
+	  /* Only leave if user both pressed and released the mouse, and in
+	     that order.  This avoids popping down the menu pane unless
+	     the user is really done with it.  */
+	  if (mouse_pressed (b, &x, &y))
+	    {
+	      while (mouse_button_depressed (b, &x, &y))
+		__dpmi_yield ();
+	      leave = 1;
+	    }
+	  (void) mouse_released (b, &x, &y);
 	}
     }
 
@@ -2401,6 +2449,14 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   while (statecount--)
     xfree (state[statecount].screen_behind);
   IT_display_cursor (1);	/* turn cursor back on */
+  /* Clean up any mouse events that are waiting inside Emacs event queue.
+     These events are likely to be generated before the menu was even
+     displayed, probably because the user pressed and released the button
+     (which invoked the menu) too quickly.  If we don't remove these events,
+     Emacs will process them after we return and surprise the user.  */
+  discard_mouse_events ();
+  /* Allow mouse events generation by dos_rawgetc.  */
+  mouse_preempted--;
   return result;
 }
 
