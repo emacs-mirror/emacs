@@ -4566,6 +4566,10 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 {
   Lisp_Object val;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  unsigned char *eol_str;
+  int eol_str_len;
+  /* The EOL conversion we are using.  */
+  Lisp_Object eoltype;
 
   val = coding_system;
 
@@ -4574,7 +4578,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       if (multibyte)
 	*buf++ = '-';
       if (eol_flag)
-	*buf++ = eol_mnemonic_undecided;
+	eoltype = eol_mnemonic_undecided;
       /* Don't mention EOL conversion if it isn't decided.  */
     }
   else
@@ -4595,10 +4599,6 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 
       if (eol_flag)
 	{
-	  unsigned char *eol_str;
-	  int eol_str_len;
-	  /* The EOL conversion we are using.  */
-	  Lisp_Object eoltype;
 	  /* The EOL conversion that is normal on this system.  */
 
 	  if (NILP (eolvalue))	/* Not yet decided.  */
@@ -4610,22 +4610,26 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 		       ? eol_mnemonic_unix
 		       : (XFASTINT (eolvalue) == 1
 			  ? eol_mnemonic_dos : eol_mnemonic_mac));
-
-	  /* Mention the EOL conversion if it is not the usual one.  */
-	  if (STRINGP (eoltype))
-	    {
-	      eol_str = XSTRING (eoltype)->data;
-	      eol_str_len = XSTRING (eoltype)->size;
-	    }
-	  else
-	    {
-	      eol_str = invalid_eol_type;
-	      eol_str_len = sizeof (invalid_eol_type) - 1;
-	    }
-	  strcpy (buf, eol_str);
-	  buf += eol_str_len;
 	}
     }
+
+  if (eol_flag)
+    {
+      /* Mention the EOL conversion if it is not the usual one.  */
+      if (STRINGP (eoltype))
+	{
+	  eol_str = XSTRING (eoltype)->data;
+	  eol_str_len = XSTRING (eoltype)->size;
+	}
+      else
+	{
+	  eol_str = invalid_eol_type;
+	  eol_str_len = sizeof (invalid_eol_type) - 1;
+	}
+      strcpy (buf, eol_str);
+      buf += eol_str_len;
+    }
+
   return buf;
 }
 
