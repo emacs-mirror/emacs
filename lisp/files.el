@@ -1415,12 +1415,15 @@ in order to initialize other data structure based on them.")
 	   (set var val))))
 
 
-(defun set-visited-file-name (filename)
+(defun set-visited-file-name (filename &optional no-query)
   "Change name of file visited in current buffer to FILENAME.
 The next time the buffer is saved it will go in the newly specified file.
 nil or empty string as argument means make buffer not be visiting any file.
 Remember to delete the initial contents of the minibuffer
-if you wish to pass an empty string as the argument."
+if you wish to pass an empty string as the argument.
+
+The optional second argument NO-QUERY, if non-nil, inhibits asking for
+confirmation in the case where the file FILENAME already exists."
   (interactive "FSet visited file name: ")
   (if (buffer-base-buffer)
       (error "An indirect buffer cannot visit a file"))
@@ -1437,6 +1440,7 @@ if you wish to pass an empty string as the argument."
 	      (setq filename truename))))
     (let ((buffer (and filename (find-buffer-visiting filename))))
       (and buffer (not (eq buffer (current-buffer)))
+	   (not no-query)
 	   (not (y-or-n-p (message "A buffer is visiting %s; proceed? "
 				   filename)))
 	   (error "Aborted")))
