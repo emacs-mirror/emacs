@@ -279,9 +279,8 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
 ;; Yes, there are weird people with digits in their names.
 ;; You will also notice the consideration for the
 ;; Swedish/Finnish/Norwegian character set.
-;; #### (go to \376 instead of \377 to work around bug in search.c...)
 (defconst mail-extr-all-letters-but-separators
-  (purecopy "][A-Za-z{|}'~0-9`\200-\376"))
+  (purecopy "][A-Za-z{|}'~0-9`\200-\377"))
 
 ;; Any character that can occur in a name in an RFC822 address including
 ;; the separator (hyphen and possibly period) for multipart names.
@@ -291,11 +290,11 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
 
 ;; Any character that can start a name.
 ;; Keep this set as minimal as possible.
-(defconst mail-extr-first-letters (purecopy "A-Za-z"))
+(defconst mail-extr-first-letters (purecopy "A-Za-z\200-\377"))
 
 ;; Any character that can end a name.
 ;; Keep this set as minimal as possible.
-(defconst mail-extr-last-letters (purecopy "[A-Za-z`'."))
+(defconst mail-extr-last-letters (purecopy "A-Za-z\200-\377`'."))
 
 (defconst mail-extr-leading-garbage
   (purecopy (format "[^%s]+" mail-extr-first-letters)))
