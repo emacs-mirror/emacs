@@ -1196,8 +1196,8 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (aset newstr i tochar)))
     newstr))
 
-(defun replace-regexps-in-string (regexp rep string &optional
-					 fixedcase literal subexp start)
+(defun replace-regexp-in-string (regexp rep string &optional
+					fixedcase literal subexp start)
   "Replace all matches for REGEXP with REP in STRING.
 
 Return a new string containing the replacements.
@@ -1211,7 +1211,11 @@ function.  If it is a function it is applied to each match to generate
 the replacement passed to `replace-match'; the match-data at this
 point are such that match 0 is the function's argument.
 
-To replace a single match, make REGEXP match up to \\'."
+To replace only the first match (if any), make REGEXP match up to \\'
+and replace a sub-expression, e.g.
+  (replace-regexp-in-string \"\\(foo\\).*\\'\" \"bar\" \" foo foo\" nil nil 1)
+    => \" bar foo\"
+"
 
   ;; To avoid excessive consing from multiple matches in long strings,
   ;; don't just call `replace-match' continually.  Walk down the
