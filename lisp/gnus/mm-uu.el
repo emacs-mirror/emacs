@@ -124,7 +124,7 @@ To disable dissecting shar codes, for instance, add
 `(shar . disabled)' to this list."
   :type '(repeat (choice (const :tag "postscript" (postscript . disabled))
 			 (const :tag "uu" (uu . disabled))
-			 (const :tag "binhax" (binhex . disabled))
+			 (const :tag "binhex" (binhex . disabled))
 			 (const :tag "shar" (shar . disabled))
 			 (const :tag "forward" (forward . disabled))))
   :group 'gnus-article-mime
