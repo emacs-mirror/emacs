@@ -169,6 +169,7 @@ Romain Francoise <romain at orebokech dot com>
 Ami Fischman <ami at fischman dot org>
 Istvan Marko <mi-mtty ar kismala dot com>
 Dan Nicolaescu <dann at ics dot uci dot edu>
+Gergely Nagy <algernon at debian dot org>
 Mark Plaksin <happy at mcplaksin dot org>
 
 Richard Stallman was kind enough to review my patches.
@@ -181,10 +182,21 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** Robert Chassell has found serious copy-paste bugs with the
+   multi-tty branch.  There seem to be redisplay bugs while copying
+   from X to a terminal frame.  Copying accented characters do not
+   work for me.
+
 ** Emacs assumes that all terminal frames have the same locale
    settings as Emacs itself.  This may lead to bogus results in a
    multi-locale setup. (E.g., while logging in from a remote client
    with a different locale.)
+
+** The single-keyboard mode of MULTI_KBOARD is extremely confusing
+   sometimes; Emacs does not respond to stimuli from other keyboards.
+   At least a beep or a message would be important, if the single-mode
+   is still required to prevent interference.  (Reported by Dan
+   Nicolaescu.)
 
 ** Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
    parameter or the frame-tty-type function instead.
@@ -203,6 +215,10 @@ THINGS TO DO
    X-related command-line arguments as Emacs.  Most of the X-related
    argument-handling is done in Lisp, so this should be quite easy to
    implement.
+
+** Gergely Nagy suggests that C-x # should only kill the current
+   frame, not any other emacsclient frame that may have the same file
+   opened for editing.  I think I agree with him.
 
 ** Make `struct display' accessible to Lisp programs.  Accessor functions:
 
