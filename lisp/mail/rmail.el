@@ -1829,7 +1829,8 @@ see the documentation of `rmail-resend'."
 			       (current-buffer)
 			       rmail-current-message)))
 	  (save-excursion
-	    (goto-char (point-max))
+	    ;; Insert after header separator--before signature if any.
+	    (search-forward-regexp (concat "^" mail-header-separator))
 	    (forward-line 1)
 	    (insert-buffer forward-buffer))))))
 
