@@ -125,7 +125,7 @@ and Sending Mail and Registers and Minibuffer.
 * Mac OS::              Using Emacs in the Mac.
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
-* Acknowldgments::     Major contributors to GNU Emacs.
+* Acknowledgments::     Major contributors to GNU Emacs.
 
 Indexes (nodes containing large menus)
 * Key Index::	        An item for each standard Emacs key sequence.
