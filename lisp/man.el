@@ -569,19 +569,16 @@ This guess is based on the text surrounding the cursor."
       (skip-chars-backward "-a-zA-Z0-9._+:")
       (let ((start (point)))
 	(skip-chars-forward "-a-zA-Z0-9._+:")
-	(setq word (buffer-substring start (point))))
+	(setq word (buffer-substring-no-properties start (point))))
       (if (string-match "[._]+$" word)
 	  (setq word (substring word 0 (match-beginning 0))))
       ;; If looking at something like ioctl(2) or brc(1M), include the
       ;; section number in the returned value.  Remove text properties.
       (forward-word 1)
-      ;; Use `format' here to clear any text props from `word'.
-      (format "%s%s"
-	      word
+      (concat word
 	      (if (looking-at
 		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-		  (format "(%s)" (match-string 1))
-		"")))))
+		  (format "(%s)" (match-string-no-properties 1)))))))
 
 
 ;; ======================================================================
