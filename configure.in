@@ -88,11 +88,11 @@ dnl These don't currently work.
 dnl	    o | op | ope | open | open- | open-l | open-lo \
 dnl		| open-loo | open-look )	val=open-look ;;
 	    * )
-dnl AC_MSG_ERROR([the \`--with-x-toolkit' option is supposed to have a value
-dnl which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'.])
-AC_MSG_ERROR([\`--with-x-toolkit=$withval' is invalid\;
-this option's value should be \`yes', \`no', \`lucid', \`athena', or \`motif'.
-Currently, \`yes', \`athena' and \`lucid' are synonyms.])
+dnl AC_MSG_ERROR([the `--with-x-toolkit' option is supposed to have a value
+dnl which is `yes', `no', `lucid', `athena', `motif' or `open-look'.])
+AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid\;
+this option's value should be `yes', `no', `lucid', `athena', or `motif'.
+Currently, `yes', `athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -142,23 +142,21 @@ esac
 #### Check if the source directory already has a configured system in it.
 if test `pwd` != `(cd ${srcdir} && pwd)` \
    && test -f "${srcdir}/src/config.h" ; then
-  AC_MSG_WARN([The directory tree \`${srcdir}' is being used
+  AC_MSG_WARN([[The directory tree `${srcdir}' is being used
    as a build directory right now; it has been configured in its own
    right.  To configure in another directory as well, you MUST
    use GNU make.  If you do not have GNU make, then you must
-   now do \`make distclean' in ${srcdir},
-   and then run $0 again.])
+   now do `make distclean' in ${srcdir},
+   and then run $0 again.]])
 
-changequote(, )dnl
-  extrasub='/^VPATH[	 ]*=/c\
-changequote([, ])dnl
+[extrasub='/^VPATH[	 ]*=/c\
 vpath %.c $(srcdir)\
 vpath %.h $(srcdir)\
 vpath %.y $(srcdir)\
 vpath %.l $(srcdir)\
 vpath %.s $(srcdir)\
 vpath %.in $(srcdir)\
-vpath %.texi $(srcdir)'
+vpath %.texi $(srcdir)']
 fi
 
 #### Given the configuration name, set machfile and opsysfile to the
@@ -170,7 +168,11 @@ AC_CANONICAL_HOST
 canonical=$host
 configuration=${host_alias-$host}
 
-changequote(, )dnl
+dnl This used to use changequote, but, apart from `changequote is evil'
+dnl per the autoconf manual, we can speed up autoconf somewhat by quoting
+dnl the great gob of text.  Thus it's not processed for possible expansion.
+dnl Just make sure the brackets remain balanced.
+[
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select
@@ -796,18 +798,6 @@ case "${canonical}" in
     machine=plexus opsys=usg5-2
   ;;
 
-  ## PowerPC reference platform
-  powerpcle-*-solaris2.5* )
-    machine=prep
-    opsys=sol2-5
-  ;;
-
-  ## PowerPC reference platform
-  powerpcle-*-solaris2* )
-    machine=prep
-    opsys=sol2-6
-  ;;
-
   ## Pyramid machines
   ## I don't really have any idea what sort of processor the Pyramid has,
   ## so I'm assuming it is its own architecture.
@@ -1160,11 +1150,11 @@ if test x"${opsys}" = x; then
   esac
 fi
 
-changequote([, ])dnl
+]
 
 if test $unported = yes; then
-  AC_MSG_ERROR([Emacs hasn't been ported to \`${canonical}' systems.
-Check \`etc/MACHINES' for recognized configuration names.])
+  AC_MSG_ERROR([Emacs hasn't been ported to `${canonical}' systems.
+Check `etc/MACHINES' for recognized configuration names.])
 fi
 
 machfile="m/${machine}.h"
@@ -1365,16 +1355,14 @@ configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
-changequote(, )dnl
-eval `${CPP} -Isrc ${tempcname} \
+[eval `${CPP} -Isrc ${tempcname} \
        | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
 if test "x$SPECIFIED_CFLAGS" = x; then
   eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
 	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
 else
   REAL_CFLAGS="$CFLAGS"
-fi
-changequote([, ])dnl
+fi]
 rm ${tempcname}
 
 ac_link="$ac_link $ld_switch_machine $ld_switch_system"
@@ -1402,12 +1390,13 @@ if test "${with_sound}" != "no"; then
 fi
 
 dnl checks for header files
-dnl NB. On Solaris 8 there's a warning from the check for term.h because
-dnl it needs something else (curses.h?) to define `bool'.
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h term.h strings.h coff.h pty.h sys/mman.h \
-  sys/param.h)
+  sys/param.h sys/vlimit.h sys/resource.h)
+dnl On Solaris 8 there's a compilation warning for term.h because
+dnl it doesn't define `bool'.
+AC_CHECK_HEADERS(term.h, , , -)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1889,8 +1878,10 @@ fi
 HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${USE_X_TOOLKIT}" != "none"; then
+    dnl Fixme: determine what Scrollbar.h needs to avoid compilation
+    dnl errors from the test without the `-'.
     AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
-	AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes))
+	[AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb, HAVE_XAW3D=yes)], , -)
     if test "${HAVE_XAW3D}" = "yes"; then
 	AC_DEFINE(HAVE_XAW3D, 1,
 		  [Define to 1 if you have the Xaw3d library (-lXaw3d).])
@@ -1967,10 +1958,7 @@ if test "${HAVE_X11}" = "yes"; then
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
   if test "${HAVE_JPEG}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
-    AC_EGREP_CPP(
-changequote({, })dnl avoid leadingspace on the next line
-{version= *(6[2-9]|[7-9][0-9])},
-changequote([, ])dnl
+    AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
         [#include <jpeglib.h>
 	 version=JPEG_LIB_VERSION
 ],    
@@ -2081,7 +2069,7 @@ if test "$ac_cv_lib_lockfile_maillock" = no; then
   if test $ac_cv_prog_liblockfile = yes; then
     AC_MSG_ERROR([Shared liblockfile found but can't link against it.
 This probably means that movemail could lose mail.
-There may be a \`development' package to install containing liblockfile.])
+There may be a `development' package to install containing liblockfile.])
   else AC_DEFINE(LIBMAIL, -llockfile, [Define to -llockfile if it is usable.])
   fi
   else :
@@ -2096,7 +2084,7 @@ strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove)
+gai_strerror mkstemp getline getdelim mremap memmove fsync)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -2281,6 +2269,7 @@ if test $ok_so_far = yes; then
   AC_CHECK_HEADER(arpa/inet.h, , ok_so_far=no)
 fi
 if test $ok_so_far = yes; then
+dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
   AC_DEFINE(HAVE_INET_SOCKETS, 1,
 	    [Define to 1 if you have inet sockets.])
 fi
@@ -2302,17 +2291,47 @@ AC_FUNC_FORK
 
 AC_CHECK_TYPES(size_t)
 
+dnl Restrict could probably be used effectively other than in regex.c.
+AC_CACHE_CHECK([for C restrict keyword], emacs_cv_c_restrict,
+  [AC_TRY_COMPILE([void fred (int *restrict x);], [],
+                  emacs_cv_c_restrict=yes,
+                  [AC_TRY_COMPILE([void fred (int *__restrict x);], [],
+                                  emacs_cv_c_restrict=__restrict,
+				  emacs_cv_c_restrict=no)])])
+case "$emacs_cv_c_restrict" in
+  yes) emacs_restrict=restrict;;
+  no) emacs_restrict="";;
+  *) emacs_restrict="$emacs_cv_c_restrict";;
+esac
+if test "$emacs_restrict" != __restrict; then
+  AC_DEFINE_UNQUOTED(__restrict, $emacs_restrict,
+    [Define to compiler's equivalent of C99 restrict keyword.
+     Don't define if equivalent is `__restrict'.])
+fi
+
+AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
+  [AC_TRY_COMPILE([void fred (int x[__restrict]);], [],
+                  emacs_cv_c_restrict_arr=yes, emacs_cv_c_restrict_arr=no)])
+if test "$emacs_cv_c_restrict_arr" = yes; then
+  AC_DEFINE(__restrict_arr, __restrict,
+    [Define to compiler's equivalent of C99 restrict keyword in array
+     declarations.  Define as empty for no equivalent.])
+fi
+
+dnl Fixme: AC_SYS_POSIX_TERMIOS should probably be used, but it's not clear
+dnl how the tty code is related to POSIX and/or other versions of termios.
+
+dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
+
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
 
-changequote(, )dnl
 #### Find out which version of Emacs this is.
-version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
-	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
-changequote([, ])dnl
+[version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
 if test x"${version}" = x; then
-  AC_MSG_ERROR(can't find current emacs version in \`${srcdir}/lisp/version.el'.)
+  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/lisp/version.el'.])
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
@@ -2431,7 +2450,7 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* No code in Emacs #includes config.h twice, but some of the code
+/* No code in Emacs #includes config.h twice, but some bits of code
    intended to work with other packages as well (like gmalloc.c) 
    think they can include it as many times as they like.  */
 #ifndef EMACS_CONFIG_H
@@ -2564,8 +2583,6 @@ AH_BOTTOM([
 extern char *getenv ();
 #endif
 
-#endif /* EMACS_CONFIG_H */
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 
@@ -2605,7 +2622,6 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-
 /* Don't include "string.h" or <stdlib.h> in non-C code.  */
 #ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
@@ -2617,10 +2633,19 @@ extern char *getenv ();
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifndef __GNUC__
+# ifdef HAVE_ALLOCA_H
+#  include <alloca.h>
+# else /* AIX files deal with #pragma.  */
+#  ifndef alloca /* predefined by HP cc +Olibcalls */
+char *alloca ();
+#  endif
+# endif /* HAVE_ALLOCA_H */
+#endif /* __GNUC__ */
 #ifndef HAVE_SIZE_T
 typedef size_t unsigned
 #endif
-#endif
+#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 
@@ -2646,8 +2671,36 @@ typedef size_t unsigned
 #define NO_RETURN	/* nothing */
 #endif
 
+/* These won't be used automatically yet.  We also need to know, at least,
+   that the stack is continuous.  */
+#ifdef __GNUC__
+#  ifndef GC_SETJMP_WORKS
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
+     see NON_SAVING_SETJMP in the target descriptions.  */   
+  /* Exceptions (see NON_SAVING_SETJMP in target description) are ns32k,
+     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
+     Fixme: Deal with ns32k, SVR3.  */
+#    define GC_SETJMP_WORKS 1
+#  endif
+#  ifndef GC_LISP_OBJECT_ALIGNMENT
+#    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
+#  endif
+#endif
+
+#ifndef HAVE_BCOPY
+#define bcopy(a,b,s) memcpy (b,a,s)
+#endif
+#ifndef HAVE_BZERO
+#define bzero(a,s) memset (a,0,s)
+#endif
+#ifndef HAVE_BCMP
+#define BCMP memcmp
+#endif
+
+#endif /* EMACS_CONFIG_H */
+
 /* 
-Local variables:
+Local Variables:
 mode: c
 End:
 */
@@ -2688,12 +2741,10 @@ echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SC
 echo
 
 # Remove any trailing slashes in these variables.
-changequote(, )dnl
-test "${prefix}" != NONE &&
+[test "${prefix}" != NONE &&
   prefix=`echo "${prefix}" | sed 's,\([^/]\)/*$,\1,'`
 test "${exec_prefix}" != NONE &&
-  exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
-changequote([, ])dnl
+  exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
 ## Check if the C preprocessor will convert `..' to `. .'.  If so, set
 ## CPP_NEED_TRADITIONAL to `yes' so that the code to generate Makefile
@@ -2718,18 +2769,16 @@ done
 # and lib-src/Makefile from ${srcdir}/lib-src/Makefile.c
 # This must be done after src/config.h is built, since we rely on that file.
 
-changequote(, )dnl The horror, the horror.
 # Now get this: Some word that is part of the ${srcdir} directory name
 # or the ${configuration} value might, just might, happen to be an
 # identifier like `sun4' or `i386' or something, and be predefined by
 # the C preprocessor to some helpful value like 1, or maybe the empty
 # string.  Needless to say consequent macro substitutions are less
 # than conducive to the makefile finding the correct directory.
-undefs="`echo $top_srcdir $configuration $canonical |
+[undefs="`echo $top_srcdir $configuration $canonical |
 sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
     -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g' \
-`"
-changequote([, ])dnl
+`"]
 
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
