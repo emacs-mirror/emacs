@@ -37,7 +37,7 @@
 ;;; Graphics
 
 ;;; Note that some of the following initial values also occur in calc.el.
-(defvar calc-gnuplot-tempfile (expand-file-name "calc" temporary-file-directory))
+(defvar calc-gnuplot-tempfile "calc")
 
 (defvar calc-gnuplot-default-device "default")
 (defvar calc-gnuplot-default-output "STDOUT")
@@ -845,7 +845,7 @@
     (setq calc-graph-file-cache (nconc calc-graph-file-cache (list nil))))
   (car (or (nth (1+ num) calc-graph-file-cache)
 	   (setcar (nthcdr (1+ num) calc-graph-file-cache)
-		   (list (make-temp-name
+		   (list (make-temp-file
 			  (concat calc-gnuplot-tempfile
 				  (if (<= num 0)
 				      (char-to-string (- ?A num))
