@@ -15,6 +15,7 @@ etags, ctags \- generate tag file for Emacs, vi
 \fBetags\fP [\|\-aCDGImRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
+[\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-no\-defines\|]
 [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
@@ -28,6 +29,7 @@ etags, ctags \- generate tag file for Emacs, vi
 \fBctags\fP [\|\-aCdgImRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
+[\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-backward\-search\|]
 [\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
@@ -136,6 +138,11 @@ Do not tag member variables.  This is the default behavior.
 .TP
 .B \-\-packages\-only
 Only tag packages in Ada files.
+.TP
+\fB\-\-parse\-stdin=\fIfile\fP
+May be used (only once) in place of a file name on the command line.
+\fBetags\fP will read from standard input and produce tags marking them
+as belonging to the file \fBFILE\fP.
 .TP
 \fB\-o\fP \fItagfile\fP, \fB\-\-output=\fItagfile\fP
 Explicit name of file for tag table; overrides default \fBTAGS\fP or
