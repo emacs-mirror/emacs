@@ -40,7 +40,7 @@
    cedilla   |    ,    | c, -> ,Ag(B
    nordic    |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
    special   |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B   << -> ,A+(B   >> -> ,A;(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A`" ?,A@(B)
@@ -138,7 +138,7 @@
      dot     |    .    | z. -> ,B?(B
     stroke   |    /    | d/ -> ,Bp(B
    special   |    /    | s/ -> ,B_(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,BA(B)
@@ -240,7 +240,7 @@
     tilde    |    ~    | n~ -> ,Cq(B
    stroke    |    /    | h/ -> ,C1(B
    special   |    /    | s/ -> ,C_(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A`" ?,C@(B)
@@ -334,7 +334,7 @@
    stroke    |    /    | d/ -> ,Dp(B
    nordic    |    /    | a/ -> ,De(B   e/ -> ,Df(B   o/ -> ,Dx(B
    special   |    /    | s/ -> ,D_(B   n/ -> ,D?(B   k/ -> ,D"(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A," ?,D!(B)
@@ -437,7 +437,7 @@
      dot     |    .    | i. -> ,M}(B   I. -> ,M](B
    nordic    |    /    | a/ -> ,Me(B   e/ -> ,Mf(B   o/ -> ,Mx(B
    special   |    /    | s/ -> ,M_(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,MA(B)
@@ -507,7 +507,7 @@
 (quail-define-package
  "danish-postfix" "Latin-1" "DA<" t
  "Danish input method (rule: AE -> ,AF(B, OE -> ,AX(B, AA -> ,AE(B, E' -> ,AI(B)"
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AF(B)
@@ -529,7 +529,7 @@
 
 Preceding ^ or following x will produce accented characters,
 e.g. ^C -> ,CF(B, Gx -> ,CX(B.
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("Cx" ?,CF(B)
@@ -568,7 +568,7 @@ e.g. ^C -> ,CF(B, Gx -> ,CX(B.
 (quail-define-package
  "finnish-postfix" "Latin-1" "FI<" t
  "Finnish (Suomi) input method (rule: AE -> ,AD(B, OE -> ,AV(B)"
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AD(B)
@@ -588,7 +588,7 @@ Par exemple A` -> ,A@(B, E' -> ,AI(B.
 ,AG(B, ,A+(B, et ,A;(B sont produits par C/, <<, et >>.
 
 <e dans l'o> n'est pas disponible."
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A`" ?,A@(B)
@@ -632,7 +632,7 @@ Par exemple A` -> ,A@(B, E' -> ,AI(B.
  "German (Deutsch) input method (rule: AE -> ,AD(B, OE -> ,AV(B, UE -> ,A\(B, sz -> ,A_(B)
 
 ,A_(B can also be input by 'ss' followed by M-n."
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AD(B)
@@ -662,7 +662,7 @@ AE -> ,AF(B
 OE -> ,AV(B
 D/ -> ,AP(B (eth)
 T/ -> ,A^(B (thorn)"
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,AA(B)
@@ -705,7 +705,7 @@ E` -> ,AH(B
 I` -> ,AL(B
 O` -> ,AR(B
 U` -> ,AY(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A`" ?,A@(B)
@@ -727,7 +727,7 @@ U` -> ,AY(B
 (quail-define-package
  "norwegian-postfix" "Latin-1" "NO<" t
  "Norwegian (Norsk) input method (rule: AE->,AF(B, OE->,AX(B, AA->,AE(B, E'->,AI(B)"
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" ?,AF(B)
@@ -751,7 +751,7 @@ Supported languages are Swidish, Norwegian, Danish, and Finnish.
 
 You can toggle between ,AD(B and ,AF(B, or between OE and ,AV(B, by typing M-n
 when the character is underlined.
-" nil)
+" nil nil nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AE" [?,AD(B ?,AF(B])
@@ -779,7 +779,7 @@ U' -> ,AZ(B
 N~ -> ,AQ(B
 !/ -> ,A!(B
 ?/ -> ,A?(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?,AA(B)
@@ -807,7 +807,7 @@ N~ -> ,AQ(B
 (quail-define-package
  "swedish-postfix" "Latin-1" "SV<" t
  "Swedish (Svenska) input method (rule: AA -> ,AE(B, AE -> ,AD(B, OE -> ,AV(B, E' -> ,AI(B)"
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("AA" ?,AE(B)
@@ -840,7 +840,7 @@ O\" -> ,CV(B
 S/ -> ,C*(B
 U\" -> ,C\(B
 U^ -> ,C[(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A^" ?,CB(B)
@@ -871,7 +871,7 @@ U^ -> ,C[(B
 (quail-define-package
  "british" "Latin-1" ",A#(B@" t
  "British English input method with Latin-1 character ,A#(B (# -> ,A#(B)"
- nil t)
+ nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("#" [?,A#(B ?#])
@@ -899,7 +899,7 @@ U^ -> ,C[(B
 (quail-define-package
  "french-keyboard" "Latin-1" "FR@" t
  "French (Fran,Ag(Bais) input method simulating some French keyboard
-<e dans l'o> n'est pas disponible." nil t t t t)
+<e dans l'o> n'est pas disponible." nil t t t t nil nil nil nil nil t)
 
 ;; ,Aj(B1  ,Ai(B2  ,Ah(B3  ,At(B4  ,An(B5  ,Ao(B6  ,Ab(B7  ,A{(B8  ,Ay(B9  ,A`(B0  -_  ,Ak(B+  `~
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,AgG(B  ,A|(B&
@@ -944,7 +944,7 @@ U^ -> ,C[(B
 
 Similaire au clavier fran,Ag(Bais de SUN.
 pr,Ai(Bfixes:  ^ pour circonflexe,  ,A((B pour tr,Ai(Bma.
-<e dans l'o> n'est pas disponible." nil t t t t)
+<e dans l'o> n'est pas disponible." nil t t t t nil nil nil nil nil t)
 
 ;; &1  ,Ai(B2  "3  '4  (5  ,A'(B6  ,Ah(B7  !8  ,Ag(B9  ,A`(B0  ),A0(B -_  @~
 ;;  aA  zZ  eE  rR  tT  yY  uU  iI  oO  pP  ^,A((B  `$
@@ -1064,7 +1064,7 @@ pr,Ai(Bfixes:  ^ pour circonflexe,  ,A((B pour tr,Ai(Bma.
  "icelandic-keyboard" "Latin-1" "IS@" t
  "Icelandic (,AM(Bslenska) input method simulating some Icelandic keyboard
 
-Dead accent is right to ,Af(B." nil t t t t)
+Dead accent is right to ,Af(B." nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3#  4$  5%  6^  7&  8*  9(  0)  ,AvV(B  -_  `~
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,ApP(B  '?
@@ -1111,7 +1111,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "danish-keyboard" "Latin-1" "DA@" t
  "Danish input method simulating SUN Danish keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3#  4,A$(B  5%  6&  7/  8(  9)  0=  +?  ,A='(B  ~^
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,AeE(B  ,AiI(B
@@ -1153,7 +1153,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "norwegian-keyboard" "Latin-1" "NO@" t
  "Norwegian (Norsk) input method simulating SUN Norwegian keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3#  4,A$(B  5%  6&  7/  8(  9)  0=  +?  |,A'(B  ~^
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,AeE(B  ,AiI(B
@@ -1196,7 +1196,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "swedish-keyboard" "Latin-1" "SV@" t
  "Swedish (Svenska) input method simulating SUN Swedish/Finnish keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3#  4,A$(B  5%  6&  7/  8(  9)  0=  +?  ,A'=(B  ~^
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,AeE(B  ,AiI(B
@@ -1238,7 +1238,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "finish-keyboard" "Latin-1" "FI@" t
  "Finish input method simulating SUN Finnish/Swedish keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3#  4,A$(B  5%  6&  7/  8(  9)  0=  +?  ,A'=(B  ~^
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,AeE(B  ,AiI(B
@@ -1280,7 +1280,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "german" "Latin-1" "DE@" t
  "German (Deutsch) input method simulating SUN German keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3,A'(B  4$  5%  6&  7/  8(  9)  0=  ,A_(B?  [{  ]}
 ;;  qQ  wW  eE  rR  tT  zZ  uU  iI  oO  pP  ,A|\(B  +*
@@ -1322,7 +1322,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "italian-keyboard" "Latin-1" "IT@" t
  "Italian (Italiano) input method simulating SUN Italian keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3,A#(B  4$  5%  6&  7/  8(  9)  0=  '?  ,Al(B^  `~
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,Ahi(B  +*
@@ -1363,7 +1363,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "spanish-keyboard" "Latin-1" "ES@" t
  "Spanish (Espa,Aq(Bol) input method simulating SUN Spanish keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3,A7(B  4$  5%  6&  7/  8(  9)  0=  '?  ,A!?(B  ,AmM(B
 ;;  qQ  wW  eE  rR  tT  yY  uU  iI  oO  pP  ,AiI(B  ,AsS(B
@@ -1405,7 +1405,7 @@ Dead accent is right to ,Af(B." nil t t t t)
 (quail-define-package
  "english-dvorak" "English" "DV@" t
  "English (ASCII) input method simulating Dvorak keyboard"
- nil t t t t)
+ nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2@  3#  4$  5%  6^  7&  8*  9(  0)  [{  ]}  `~
 ;;  '"  ,<  .>  pP  yY  fF  gG  cC  rR  lL  /?  =+

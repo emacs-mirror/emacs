@@ -44,7 +44,7 @@
    cedilla   |   ~    | ~c -> ,Ag(B
     misc     |  ----  | \"s -> ,A_(B, ~d -> ,Ap(B, ~t -> ,A~(B, /a -> ,Ae(B, /e -> ,Af(B, /o -> ,Ax(B
    symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B, ~! -> ,A!(B, ~? -> ,A?(B, ~~ -> ,A8(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,AA(B)
@@ -139,7 +139,7 @@
     tilde    |   ~    | ~n -> ,Aq(B
    cedilla   |   ~    | ~c -> ,Ag(B
    symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B, ~! -> ,A!(B, ~? -> ,A?(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,AA(B)
@@ -182,7 +182,7 @@
 Key translation rules are:
  ^H -> ?,A&(B, ^J -> ?,A,(B, ^h -> ?,A6(B, ^j -> ?,A<(B, ^C -> ?,AF(B, ^G -> ?,AX(B,
  ^S -> ?,A^(B, ^c -> ?,Af(B, ^g -> ?,Ax(B, ^s -> ?,A~(B, ~U -> ?,A](B, ~u -> ?,A}(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("^H" ?,A&(B)
@@ -214,7 +214,7 @@ Key translation rules are:
   diaeresis  |   \"   | \"i -> ,Ao(B
    cedilla   | ~ or , | ~c -> ,Ag(B, ,c -> ,Ag(B
    symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'E" ?,AI(B)
@@ -260,7 +260,7 @@ Key translation rules are:
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
  \"A -> ,AD(B -> \"O -> ,AV(B, \"U -> ,A\(B, \"s -> ?,A_(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("\"A" ?,AD(B)
@@ -278,7 +278,7 @@ Key translation rules are:
  "Irish input method with prefix modifiers
 Key translation rules are:
  'A -> ,AA(B, 'E -> ,AI(B, 'I -> ,AM(B, 'O -> ,AS(B, 'U -> ,AZ(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,AA(B)
@@ -306,7 +306,7 @@ Key translation rules are:
   diaeresis  |   \"    | \"u -> ,A|(B
     tilde    |   ~    | ~a -> ,Ac(B
    cedilla   | ' or , | 'c -> ,Ag(B, ,c -> ,Ag(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,AA(B)
@@ -355,7 +355,7 @@ Key translation rules are:
   diaeresis  |   \"    | \"u -> ,A|(B
     tilde    |   ~    | ~n -> ,Aq(B
    symbol    |   ~    | ~> -> ,A;(B, ~< -> ,A+(B, ~! -> ,A!(B, ~? -> ,A?(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,AA(B)
@@ -395,7 +395,7 @@ Key translation rules are:
    cedilla   |   `    | `c -> ,Bg(B, `e -> ?,Bj(B
     misc     |  ----  | 'd -> ,Bp(B, `l -> ,B3(B, `z -> ,B?(B, ~o -> ,Bu(B, ~u -> ,B{(B
    symbol    |   ~    | `. -> ,B(B, ~~ -> ,B"(B, ~. -> ?,B8(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,BA(B)
@@ -504,7 +504,7 @@ Key translation rules are:
   dot above  | ~ / .  | ~o -> ,Cu(B, /o -> ,Cu(B, .o -> ,Cu(B
     misc     |  ----  | \"s -> ,C_(B, ~g -> ,C;(B, ~u -> ,C}(B, /h -> ,C1(B, /i -> ,C9(B
    symbol    |   ~    | ~` -> ,C"(B, /# -> ,C#(B, /$ -> ,C$(B, // -> ,C0(B
-" nil t)
+" nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?,CA(B)
