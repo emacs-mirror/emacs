@@ -534,8 +534,8 @@ safe_bcopy (from, to, size)
 	}
       else
 	{
-	  /* Since the overlap is always less than SIZE, we can always
-	     safely do this loop once.  */
+	  /* Since TO - FROM >= 64, the overlap is less than SIZE,
+	     so we can always safely do this loop once.  */
 	  while (endt > to)
 	    {
 	      endt -= (to - from);
@@ -584,7 +584,7 @@ safe_bcopy (from, to, size)
 }
 #endif
 
-/* Rotate a vector of SIZE bytes, by DISTANCE bytes.
+/* Rotate a vector of SIZE bytes right, by DISTANCE bytes.
    DISTANCE may be negative.  */
 
 static void
@@ -1248,20 +1248,31 @@ buffer_posn_from_coords (window, col, line)
        in the buffer, or at the top of the window; both of these
        assure us that the character at bufp starts flush with the
        beginning of the line.  */
-    int i;
+    int start_line;
+
+#if 0
+    /* Unfortunately, the bufp array doesn't seem to be updated properly.  */
 
     /* Only works for the leftmost window on a line.  bufp is useless
        for the others.  */
     if (window_left == 0)
       {
-	for (i = line; i > XFASTINT (window->top); i--)
-	  if (FETCH_CHAR (bufp[i]-1) == '\n')
+	for (start_line = line; start_line > 0; start_line--)
+	  if (FETCH_CHAR (bufp[XFASTINT (window->top) + start_line]-1)
+	      == '\n')
 	    break;
+	posn = bufp[XFASTINT (window->top) + start_line];
+      }
+    else
+#endif
+      {
+	start_line = 0;
+	posn = Fmarker_position (window->start);
       }
 
     posn
-      = compute_motion (bufp[i], i, window_left,
-			ZV, col, line,
+      = compute_motion (posn, start_line, window_left,
+			ZV, line, col - window_left,
 			window_width, XINT (window->hscroll), 0)
 	->bufpos;
   }
