@@ -32,7 +32,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef close
 #undef signal
 
-
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 #include <stdio.h>
 
@@ -106,7 +105,7 @@ main ()
 
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
-      perror ("socket");
+      perror_1 ("socket");
       exit (1);
     }
   server.sun_family = AF_UNIX;
@@ -116,15 +115,13 @@ main ()
 
   if (unlink (server.sun_path) == -1 && errno != ENOENT)
     {
-      perror ("unlink");
+      perror_1 ("unlink");
       exit (1);
     }
 #else  
   if ((homedir = getenv ("HOME")) == NULL)
-    {
-      fprintf (stderr,"No home directory\n");
-      exit (1);
-    }
+    fatal_error ("No home directory\n");
+
   strcpy (server.sun_path, homedir);
   strcat (server.sun_path, "/.emacs-server-");
   gethostname (system_name, sizeof (system_name));
@@ -135,7 +132,7 @@ main ()
 
   if (bind (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2) < 0)
     {
-      perror ("bind");
+      perror_1 ("bind");
       exit (1);
     }
   /* Only this user can send commands to this Emacs.  */
@@ -145,7 +142,7 @@ main ()
    */
   if (listen (s, 5) < 0)
     {
-      perror ("listen");
+      perror_1 ("listen");
       exit (1);
     }
 
@@ -158,7 +155,7 @@ main ()
       FD_SET (0, &rmask);
       FD_SET (s, &rmask);
       if (select (s + 1, &rmask, 0, 0, 0) < 0)
-	perror ("select");
+	perror_1 ("select");
       if (FD_ISSET (s, &rmask))	/* client sends list of filenames */
 	{
 	  fromlen = sizeof (fromunix);
@@ -167,9 +164,9 @@ main ()
 	  if (infd < 0)
 	    {
 	      if (errno == EMFILE || errno == ENFILE)
-		printf ("Too many clients.\n");
+		fprintf (stderr, "Error: too many clients.\n");
 	      else
-		perror ("accept");
+		perror_1 ("accept");
 	      continue;
 	    }
 
@@ -185,7 +182,7 @@ main ()
 	  infile = fdopen (infd, "r+"); /* open stream */
 	  if (infile == NULL)
 	    {
-	      printf ("Too many clients.\n");
+	      fprintf (stderr, "Error: too many clients.\n");
 	      write (infd, "Too many clients.\n", 18);
 	      close (infd);		/* Prevent descriptor leak.. */
 	      continue;
@@ -193,7 +190,7 @@ main ()
 	  str = fgets (string, BUFSIZ, infile);
 	  if (str == NULL)
 	    {
-	      perror ("fgets");
+	      perror_1 ("fgets");
 	      close (infd);		/* Prevent descriptor leak.. */
 	      continue;
 	    }
@@ -218,10 +215,7 @@ main ()
 	  clearerr (stdin);
 	  scanf ("%s %d%*c", code, &infd);
 	  if (ferror (stdin) || feof (stdin))
-	    {
-	      fprintf (stderr, "server: error reading from standard input\n");
-	      exit (1);
-	    }
+	    fatal_error ("server: error reading from standard input\n");
 
 	  /* Transfer text from Emacs to the client, up to a newline.  */
 	  infile = openfiles[infd];
@@ -293,10 +287,8 @@ main ()
    * Create a message queue using ~/.emacs-server as the path for ftok
    */
   if ((homedir = getenv ("HOME")) == NULL)
-    {
-      fprintf (stderr,"No home directory\n");
-      exit (1);
-    }
+    fatal_error ("No home directory\n");
+
   strcpy (string, homedir);
 #ifndef HAVE_LONG_FILE_NAMES
   /* If file names are short, we can't fit the host name.  */
@@ -311,7 +303,7 @@ main ()
   s = msgget (key, 0600 | IPC_CREAT);
   if (s == -1)
     {
-      perror ("msgget");
+      perror_1 ("msgget");
       exit (1);
     }
 
@@ -372,7 +364,7 @@ main ()
 	  if (errno == EINTR)
 	    continue;
 #endif
-	  perror ("msgrcv");
+	  perror_1 ("msgrcv");
 	  exit (1);
         }
       else
@@ -409,3 +401,25 @@ main ()
 #endif /* HAVE_SYSVIPC */
 
 #endif /* HAVE_SOCKETS or HAVE_SYSVIPC */
+
+/* This is like perror but puts `Error: ' at the beginning.  */
+
+perror_1 (string)
+     char *string;
+{
+  char *copy = (char *) malloc (strlen (string) + 8);
+  if (copy == 0)
+    fatal_error ("Virtual memory exhausted");
+
+  strcpy (copy, "Error: ");
+  strcat (copy, string);
+  perror (copy);
+}
+
+fatal_error (string)
+     char *string;
+{
+  fprintf (stderr, "%s", "Error: ");
+  fprintf (stderr, string);
+  exit (1);
+}
