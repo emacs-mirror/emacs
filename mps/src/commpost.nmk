@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.16) $
+# $HopeName: MMsrc!commpost.nmk(trunk.17) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -15,14 +15,14 @@
 
 all: mpmss.exe amcss.exe amsss.exe awlut.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe mpmconft.exe \
-     finalcv.exe arenacv.exe bttest.exe mpm.lib
+     finalcv.exe arenacv.exe bttest.exe epvmss.exe mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 mpmss.exe amcss.exe amsss.exe awlut.exe dwstress.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe mpmconft.exe \
-     finalcv.exe arenacv.exe bttest.exe protcv.exe \
+     finalcv.exe arenacv.exe bttest.exe protcv.exe epvmss.exe \
      mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -92,18 +92,21 @@ $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 $(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
 	$(MPMOBJ) $(PLINTHOBJ) 
 
-$(PFM)\$(VARIETY)\qs.exe:  $(PFM)\$(VARIETY)\qs.obj \
+$(PFM)\$(VARIETY)\qs.exe: $(PFM)\$(VARIETY)\qs.obj \
 	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
+$(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\amsss.exe:  $(PFM)\$(VARIETY)\amsss.obj \
+$(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
 	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\mpsicv.exe:  $(PFM)\$(VARIETY)\mpsicv.obj \
+$(PFM)\$(VARIETY)\epvmss: $(PFM)\$(VARIETY)\epvmss.obj \
+        $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
+
+$(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(TESTLIBOBJ)
 
@@ -120,7 +123,7 @@ $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
 
 $(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
-	$(PFM)/$(VARIETY)/fmtdy.obj \
+	$(PFM)\$(VARIETY)\fmtdy.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
