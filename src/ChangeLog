@@ -1,5 +1,25 @@
 2000-09-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* ralloc.c (POINTER, SIZE) [emacs]: Define in terms of
+	POINTER_TYPE and size_t.
+	(struct mmap_region) [REL_ALLOC_MMAP]: New structure.
+	(mmap_regions, mmap_regions_1) [REL_ALLOC_MMAP]: New variables.
+	(ROUND, MMAP_REGION_STRUCT_SIZE, MMAP_REGION, MMAP_USER_AREA)
+	[REL_ALLOC_MMAP]: New macros.
+	(mmap_find, mmap_free, mmap_enlarge, mmap_set_vars)
+	(mmap_mapped_bytes, r_alloc, r_re_alloc, r_alloc_free)
+	[REL_ALLOC_MMAP]: New functions.
+
+	* emacs.c (Fdump_emacs) [REL_ALLOC_MMAP]: Call mmap_set_vars
+	before and after unexec.
+
+	* buffer.c (init_buffer) [REL_ALLOC_MMAP]: Map new buffer
+	text buffers if necessary.
+
+	* buffer.h (R_ALLOC_DECLARE): Removed because unused.
+	(r_alloc, r_re_alloc, r_alloc_free): Use POINTER_TYPE and size_t
+	in prototypes.
+
 	* config.in (HAVE_MMAP): Add #undef.
 
 2000-09-05  Gerd Moellmann  <gerd@gnu.org>
