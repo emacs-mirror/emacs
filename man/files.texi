@@ -1986,21 +1986,20 @@ If you do not use locking under CVS (the default), locking is also
 disabled for RCS, so that editing under RCS works exactly as under
 CVS.
 
-When you are done with your edits, you can commit the final version
-back to the CVS repository, typing @kbd{C-u C-x v v cvs @key{RET}}.  Emacs
-will initialize the log entry buffer (@pxref{Log Buffer}) to contain
-all the log entries you have recorded in the RCS master; you can make
-changes to these comments as needed, and then commit in CVS by typing
-@kbd{C-c C-c}.  If the commit is successful, VC removes the RCS
-master, so that the file is once again registered under CVS only.
-(The RCS master is not actually deleted, just renamed by appending
-@samp{~} to the name, so that you can refer to it later if you wish.)
+When you are done with local editing, you can commit the final version
+back to the CVS repository by typing @kbd{C-u C-x v v cvs @key{RET}}.
+This initializes the log entry buffer (@pxref{Log Buffer}) to contain
+all the log entries you have recorded in the RCS master; you can edit
+them as you wish, and then commit in CVS by typing @kbd{C-c C-c}.  If
+the commit is successful, VC removes the RCS master, so that the file
+is once again registered under CVS only.  (The RCS master is not
+actually deleted, just renamed by appending @samp{~} to the name, so
+that you can refer to it later if you wish.)
 
-While you are working with a local RCS master, you may still want to
-pick up recent changes from the CVS repository into your local file,
-or you might want to commit some of your changes back to CVS, without
-actually switching back to CVS completely.  You can do this by
-switching to another backend temporarily.
+While using local RCS, you can pick up recent changes from the CVS
+repository into your local file, or commit some of your changes back
+to CVS, without terminating local RCS version control.  To do this,
+switch to the CVS backend temporarily, with the @kbd{C-x v b} command:
 
 @table @kbd
 @item C-x v b
@@ -2022,18 +2021,18 @@ If the current file is registered in more than one back end, typing
 @kbd{C-x v b} ``cycles'' through all of these back ends.  With a
 prefix argument, it asks for the back end to use in the minibuffer.
 
-Thus, if you have a file under local RCS, and you want to pick up some
-recent changes from CVS, type @kbd{C-x v b} to switch to CVS, and then
-@kbd{C-x v m @key{RET}} to merge the news (@pxref{Merging}).  You can
-then switch back to RCS by typing @kbd{C-x v b} again, and continue to
-edit locally.
+Thus, if you are using local RCS, and you want to pick up some recent
+changes in the file from remote CVS, first visit the file, then type
+@kbd{C-x v b} to switch to CVS, and finally use @kbd{C-x v m
+@key{RET}} to merge the news (@pxref{Merging}).  You can then switch
+back to RCS by typing @kbd{C-x v b} again, and continue to edit
+locally.
 
-Note though, that if you do this, the revision numbers in the RCS
-master no longer correspond to those of CVS in a meaningful way.
-Technically, this is not a problem, but it might be more difficult for
-you to keep track of what is in the repository and what is not.  So we
-suggest that, frequently, you commit your changes back to CVS
-completely using @kbd{C-u C-x v v cvs @key{RET}}.
+But if you do this, the revision numbers in the RCS master no longer
+correspond to those of CVS.  Technically, this is not a problem, but
+it can become difficult to keep track of what is in the CVS repository
+and what is not.  So we suggest that you return from time to time to
+CVS-only operation, using @kbd{C-u C-x v v cvs @key{RET}}.
 
 @node Snapshots
 @subsection Snapshots
