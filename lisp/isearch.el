@@ -457,6 +457,15 @@ Type \\[isearch-ring-retreat] to search for the previous item in the search\
  ring.
 Type \\[isearch-complete] to complete the search string using the search ring.
 
+If an input method is turned on in the current buffer, the input
+method is also active while you are typing a characters to search.  To
+toggle the input method, type \\[isearch-toggle-input-method].  It
+also toggles the input method in the current buffer.
+
+To use a different input method for searching, type
+\\[isearch-toggle-input-method] and specify an input method
+you want to use.
+
 The above keys, bound in `isearch-mode-map', are often controlled by 
  options; do M-x apropos on search-.* to find them.
 Other control and meta characters terminate the search
