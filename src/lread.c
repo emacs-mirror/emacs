@@ -181,10 +181,6 @@ static int new_backquote_flag;
 
 static Lisp_Object Vloads_in_progress;
 
-/* Limit of the depth of recursive loads.  */
-
-Lisp_Object Vrecursive_load_depth_limit;
-
 /* Non-zero means load dangerous compiled Lisp files.  */
 
 int load_dangerous_libraries;
@@ -734,16 +730,18 @@ Return t if file exists.  */)
 
      Also, just loading a file recursively is not always an error in
      the general case; the second load may do something different.  */
-  if (INTEGERP (Vrecursive_load_depth_limit)
-      && XINT (Vrecursive_load_depth_limit) > 0)
-    {
-      Lisp_Object len = Flength (Vloads_in_progress);
-      if (XFASTINT (len) > XFASTINT (Vrecursive_load_depth_limit))
-	Fsignal (Qerror, Fcons (build_string ("Recursive load suspected"),
-				Fcons (found, Vloads_in_progress)));
-      record_unwind_protect (record_load_unwind, Vloads_in_progress);
-      Vloads_in_progress = Fcons (found, Vloads_in_progress);
-    }
+  {
+    int count = 0;
+    Lisp_Object tem;
+    for (tem = Vloads_in_progress; CONSP (tem); tem = XCDR (tem))
+      if (!NILP (Fequal (found, XCAR (tem))))
+	count++;
+    if (count > 3)
+      Fsignal (Qerror, Fcons (build_string ("Recursive load"),
+			      Fcons (found, Vloads_in_progress)));
+    record_unwind_protect (record_load_unwind, Vloads_in_progress);
+    Vloads_in_progress = Fcons (found, Vloads_in_progress);
+  }
 
   if (!bcmp (&(XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 4]),
 	     ".elc", 4))
@@ -3657,12 +3655,6 @@ When the regular expression matches, the file is considered to be safe
 to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
-
-  DEFVAR_LISP ("recursive-load-depth-limit", &Vrecursive_load_depth_limit,
-	       doc: /* Limit for depth of recursive loads.
-Value should be either an integer > 0 specifying the limit, or nil for
-no limit.  */);
-  Vrecursive_load_depth_limit = make_number (50);
 
   /* Vsource_directory was initialized in init_lread.  */
 
