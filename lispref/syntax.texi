@@ -885,6 +885,7 @@ corresponds to each syntax flag.
 @defun string-to-syntax @var{desc}
 This function returns the internal form @code{(@var{syntax-code} .
 @var{matching-char})} corresponding to the syntax descriptor @var{desc}.
+@end defun
 
 @node Categories
 @section Categories
