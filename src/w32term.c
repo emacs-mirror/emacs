@@ -6304,7 +6304,7 @@ note_mouse_movement (frame, msg)
       window = window_from_coordinates (frame, mouse_x, mouse_y, &area, 0);
 
       /* Window will be selected only when it is not selected now and
-	 last mouse movement event was not in it.  Minubuffer window
+	 last mouse movement event was not in it.  Minibuffer window
 	 will be selected iff it is active.  */
       if (!EQ (window, last_window)
 	  && !EQ (window, selected_window)

@@ -3422,7 +3422,7 @@ dos_rawgetc ()
 						      mouse_last_y,
 						      &mouse_area, 0);
 	      /* A window will be selected only when it is not
-		 selected now.  A minubuffer window will be selected
+		 selected now.  A minibuffer window will be selected
 		 iff it is active.  */
 	      if (!EQ (mouse_window, last_mouse_window)
 		  && !EQ (mouse_window, selected_window)

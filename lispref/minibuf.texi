@@ -1536,7 +1536,7 @@ contents of the minibuffer (that is, everything except the prompt), if
 a minibuffer is current.  Otherwise, it erases the entire buffer.
 @end defun
 
-@defun minubuffer-prompt-width
+@defun minibuffer-prompt-width
 This function returns the current display-width of the minibuffer
 prompt, if a minibuffer is current.  Otherwise, it returns zero.
 @end defun
