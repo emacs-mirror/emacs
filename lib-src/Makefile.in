@@ -346,7 +346,7 @@ getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
 getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 alloca.o: ${srcdir}/alloca.c
-	${CC} -c ${BASE_CFLAGS} ${srcdir}/alloca.c
+	${CC} -Demacs -c ${BASE_CFLAGS} ${srcdir}/alloca.c
 
 #ifdef REGEXP_IN_LIBC
 REGEXPOBJ =
