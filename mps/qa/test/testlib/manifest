@@ -1,4 +1,5 @@
 rankfmt.c
+fastfmt.c
 awlfmt.c
 exfmt.c
 lofmt.c
