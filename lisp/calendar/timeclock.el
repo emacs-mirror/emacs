@@ -84,7 +84,7 @@
 
 ;;; User Variables:
 
-(defcustom timeclock-file "~/.timelog"
+(defcustom timeclock-file (convert-standard-filename "~/.timelog")
   "*The file used to store timeclock data in."
   :type 'file
   :group 'timeclock)
