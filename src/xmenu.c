@@ -355,22 +355,6 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
 	   We don't try both, because that makes easymenu menus slow.  */
 	savedkey = Fwhere_is_internal (def, Qnil, Qt, Qnil);
 
-
-      if (VECTORP (savedkey)
-	  && EQ (XVECTOR (savedkey)->contents[0], Qmenu_bar))
-	savedkey = Qnil;
-      /* Reject two-key sequences that start with a mouse click.
-	 These are probably menu items.  */
-      if (VECTORP (savedkey)
-	  && XVECTOR (savedkey)->size > 1
-	  && SYMBOLP (XVECTOR (savedkey)->contents[0]))
-	{
-	  Lisp_Object tem;
-
-	  tem = Fget (XVECTOR (savedkey)->contents[0], Qevent_kind);
-	  if (EQ (tem, Qmouse_click))
-	    savedkey = Qnil;
-	}
       if (!NILP (savedkey))
 	{
 	  descrip = Fkey_description (savedkey);
