@@ -554,11 +554,12 @@ implies @samp{m}, and causes dots in @var{tagregexp} to match newlines
 as well.
 @end table
 
-  A @var{regexfile} is the name of a file where the arguments of
-@samp{--regex} options are stored, one per line.  The syntax is the
+  A @var{regexfile} is the name of a file where you can store the
+arguments of @samp{--regex} options, one per line.  The syntax is the
 same as the one used for the @samp{--regex} option, without the
-initial @samp{--regex=} part.  Lines beginning with space or tab are
-ignored: they can be used to include comments in the @var{regexfile}.
+initial @samp{--regex=} part.  @code{etags} ignores the lines that
+begin with space or tab: you can use them to include comments in the
+@var{regexfile}.
 
   The @samp{-R} option deletes all the regexps defined with
 @samp{--regex} options.  It applies to the file names following it, as
@@ -581,8 +582,8 @@ permitting multi-line matches, in a case-sensitive way.  @code{etags}
 uses the Lisp tags rules, and no regexp matching, to recognize tags in
 @file{los.er}.
 
-  A @samp{--regex} option can be restricted to match only files of a
-given language using the optional prefix @var{@{language@}}.
+  You can restrict a @samp{--regex} option to match only files of a
+given language by using the optional prefix @var{@{language@}}.
 (@samp{etags --help} prints the list of languages recognized by
 @code{etags}.)  This is particularly useful when storing many
 predefined regular expressions for @code{etags} in a file.  The
