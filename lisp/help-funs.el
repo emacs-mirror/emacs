@@ -453,24 +453,7 @@ it is displayed along with the global value."
 ;;   l)
 (defconst help-manyarg-func-alist
   (purecopy
-   '((list . "(list &rest OBJECTS)")
-     (vector . "(vector &rest OBJECTS)")
-     (make-byte-code . "(make-byte-code &rest ELEMENTS)")
-     (call-process
-      . "(call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)")
-     (call-process-region
-      . "(call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)")
-     (string . "(string &rest CHARACTERS)")
-     (+ . "(+ &rest NUMBERS-OR-MARKERS)")
-     (- . "(- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)")
-     (* . "(* &rest NUMBERS-OR-MARKERS)")
-     (/ . "(/ DIVIDEND DIVISOR &rest DIVISORS)")
-     (max . "(max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)")
-     (min . "(min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)")
-     (logand . "(logand &rest INTS-OR-MARKERS)")
-     (logior . "(logior &rest INTS-OR-MARKERS)")
-     (logxor . "(logxor &rest INTS-OR-MARKERS)")
-     (encode-time
+   '((encode-time
       . "(encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)")
      (insert . "(insert &rest ARGS)")
      (insert-and-inherit . "(insert-and-inherit &rest ARGS)")
