@@ -184,7 +184,7 @@ Remove indentation from each line."
 
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
-This uses the variables `adaptive-fill-prefix' and `adaptive-fill-function'
+This uses the variables `adaptive-fill-regexp' and `adaptive-fill-function'
 and `adaptive-fill-first-line-regexp'.  `paragraph-start' also plays a role;
 we reject a prefix based on a one-line paragraph if that prefix would
 act as a paragraph-separator."
