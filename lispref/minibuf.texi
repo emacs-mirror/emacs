@@ -601,10 +601,11 @@ commands won't exit unless the input typed is itself an element of
 commands work regardless of the input in the minibuffer.
 
 The user can exit with null input by typing @key{RET} with an empty
-minibuffer.  Then @code{completing-read} returns @code{nil}.  This is
-how the user requests whatever default the command uses for the value
-being read.  The user can return using @key{RET} in this way regardless
-of the value of @var{require-match}.
+minibuffer.  Then @code{completing-read} returns @code{""}.  This is how
+the user requests whatever default the command uses for the value being
+read.  The user can return using @key{RET} in this way regardless of the
+value of @var{require-match}, and regardless of whether the empty string
+is included in @var{collection}.
 
 The function @code{completing-read} works by calling
 @code{read-minibuffer}.  It uses @code{minibuffer-local-completion-map}
