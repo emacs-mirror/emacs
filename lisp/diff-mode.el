@@ -249,11 +249,11 @@ when editing big diffs)."
   :group 'diff-mode)
 (defvar diff-context-face 'diff-context-face)
 
-(defface diff-nonexistant-face
+(defface diff-nonexistent-face
   '((t (:inherit diff-file-header-face)))
-  "`diff-mode' face used to highlight nonexistant files in recursive diffs."
+  "`diff-mode' face used to highlight nonexistent files in recursive diffs."
   :group 'diff-mode)
-(defvar diff-nonexistant-face 'diff-nonexistant-face)
+(defvar diff-nonexistent-face 'diff-nonexistent-face)
 
 (defvar diff-font-lock-keywords
   '(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
@@ -271,7 +271,7 @@ when editing big diffs)."
     ("^[+>].*\n" . diff-added-face)
     ("^[-<].*\n" . diff-removed-face)
     ("^Index: \\(.+\\).*\n" (0 diff-header-face) (1 diff-index-face prepend))
-    ("^Only in .*\n" . diff-nonexistant-face)
+    ("^Only in .*\n" . diff-nonexistent-face)
     ("^#.*" . font-lock-string-face)
     ("^[^-=+*!<>].*\n" . diff-context-face)))
 
