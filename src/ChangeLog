@@ -1,3 +1,8 @@
+1999-12-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (read_process_output): Fix the args CHARPOS and LENINS
+	to signal_after_change.
+
 1999-12-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (dos_set_window_size) [__DJGPP__ > 1]: If the frame
