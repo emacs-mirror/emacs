@@ -16,6 +16,18 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** Variable `default-korean-keyboard' is initialized properly from the
+environment variable `HANGUL_KEYBOARD_TYPE'.
+
+** C-u C-x = provides detailed information about the character at
+point in a pop-up window.
+
+** New command M-x list-charset-chars reads a character set name and
+displays all characters in that character set.
+
+** M-x set-terminal-coding-system (C-x RET t) now allows CCL-based
+coding systems such as cpXXX and cyrillic-koi8.
+
 ** M-; now calls comment-dwim which tries to do something clever based
 on the context.
 
@@ -945,10 +957,10 @@ names of tags files in the *Tags List* buffer.
 and preferred and locale coding systems systematically from the
 LC_ALL, LC_CTYPE, and LANG environment variables during startup.
 
-** New language environments `Latin-8' and `Latin-9'.
-These correspond respectively to the ISO character sets 8859-14
-(Celtic) and 8859-15 (updated Latin-1, with the Euro sign).  There is
-currently no specific input method support for them.
+** New language environments `Polish', `Latin-8' and `Latin-9'.
+Latin-8 and Latin-9 correspond respectively to the ISO character sets
+8859-14 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).
+There is currently no specific input method support for them.
 
 ** Fortran mode has a new command `fortran-strip-sqeuence-nos' to
 remove text past column 72.  The syntax class of `\' in Fortran is now
@@ -1207,9 +1219,6 @@ buffer's local map and the map specified by the `local-map' property.
 This is probably what most current uses of `local-map' want, rather
 than replacing the local map.
 
-** The function `find-image' can be used to find a usable image
-satisfying one of a list of specifications.
-
 ** The obsolete variables before-change-function and
 after-change-function are no longer acted upon and have been removed.
 
@@ -1222,6 +1231,98 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+*** The functions `find-charset-region' and `find-charset-string' include
+`eight-bit-control' and/or `eight-bit-graphic' in the returned list
+when it finds 8-bit characters.  Previously, it included `ascii' in a
+multibyte buffer and `unknown' in a unibyte buffer.
+
+*** The functions `set-buffer-modified', `string-as-multibyte' and
+`string-as-unibyte' change the byte sequence of a buffer if it
+contains a character from the `eight-bit-control' character set.
+
+*** The handling of multibyte sequences in a multibyte buffer is
+changed.  Previously, a byte sequence matching the pattern
+[\200-\237][\240-\377]+ was interpreted as a single character
+regardless of the length of the trailing bytes [\240-\377]+.  Thus, if
+the sequence was longer than what the leading byte indicated, the
+extra trailing bytes were ignored by Lisp functions.  Now such extra
+bytes are independent 8-bit characters belonging to the charset
+eight-bit-graphic.
+
+** Fontsets are now implemented using char-tables.
+
+A fontset can now be specified for for each independent character, for
+a group of characters or for a character set rather than just for a
+character set as previously.
+
+*** The arguments of the function `set-fontset-font' are changed.
+They are NAME, CHARACTER, FONTNAME, and optional FRAME.  The function
+modifies fontset NAME to use FONTNAME for CHARACTER.
+
+CHARACTER may be a cons (FROM . TO), where FROM and TO are non-generic
+characters.  In that case FONTNAME is used for all characters in the
+range FROM and TO (inclusive).  CHARACTER may be a charset.  In that
+case FONTNAME is used for all character in the charset.
+
+FONTNAME may be a cons (FAMILY . REGISTRY), where FAMILY is the family
+name of a font and REGSITRY is a registry name of a font.
+
+*** Variable x-charset-registry has been deleted.  The default charset
+registries of character sets are set in the default fontset
+"fontset-default".
+
+*** The function `create-fontset-from-fontset-spec' ignores the second
+argument STYLE-VARIANT.  It never creates style-variant fontsets.
+
+** The method of composing characters is changed.  Now character
+composition is done by a special text property `composition' in
+buffers and strings.
+
+*** Charset composition is deleted.  Emacs never creates a `composite
+character' which is an independent character with a unique character
+code.  Thus the following functions handling `composite characters'
+have been deleted: composite-char-component,
+composite-char-component-count, composite-char-composition-rule,
+composite-char-composition-rule and decompose-composite-char delete.
+The variables leading-code-composition and min-composite-char have
+also been deleted.
+
+*** Three more glyph reference points are added.  They can be used to
+specify a composition rule.  See the documentation of the variable
+`reference-point-alist' for more detail.
+
+*** The function `compose-region' takes new arguments COMPONENTS and
+MODIFICATION-FUNC.  With COMPONENTS, you can specify not only a
+composition rule but also characters to be composed.  Such characters
+may differ between buffer and string text.
+
+*** The function `compose-string' takes new arguments START, END,
+COMPONENTS, and MODIFICATION-FUNC.
+
+*** The function `compose-string' puts text property `composition'
+directly on the argument STRING instead of returning a new string.
+Likewise, the function `decompose-string' just removes text property
+`composition' from STRING.
+
+*** The new function `find-composition' returns information about
+a composition at a specified position in a buffer or a string.
+
+*** The function `decompose-composite-char' is now labeled as
+obsolete.
+
+** The new character set `mule-unicode-0100-24ff' is introduced for
+Unicode characters of the range U+0100..U+24FF.  Currently, this
+character set is not used.
+
+** The new character sets `japanese-jisx0213-1' and
+`japanese-jisx0213-2' are introduced for the new Japanese standard JIS
+X 0213 Plane 1 and Plane 2.
+
++++
+** The new character sets `eight-bit-control' and `eight-bit-graphic'
+are introduced for 8-bit characters in the ranges 0x80..0x9F and
+0xA0..0xFF repectively.
 
 +++
 ** If the APPEND argument of `write-region' is an integer, it seeks to
@@ -1830,6 +1931,13 @@ strings that have been consed so far.
 
 * Lisp-level Display features added after release 2.6 of the Emacs
 Lisp Manual
+
+** The function `find-image' can be used to find a usable image
+satisfying one of a list of specifications.
+
++++
+** The STRING argument of `put-image' and `insert-image' is now
+optional.
 
 ** Image specifications may contain the property `:ascent center'.
 
