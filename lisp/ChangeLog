@@ -1,3 +1,14 @@
+2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/edebug.el (with-syntax-table): Add a def-edebug-spec.
+
+	* emacs-lisp/lisp-mode.el (with-syntax-table):
+	Set up lisp-indent-function property.
+
+	* subr.el (with-syntax-table): Moved from simple.el.
+
+	* simple.el (with-syntax-table): Moved to subr.el.
+
 2000-01-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* tmm.el (tmm-shortcut): Delete region after prompt instead

@@ -1,4 +1,4 @@
-2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* lisp.h (set_internal): Enter the new arg.
 
@@ -18,7 +18,7 @@
 	* .gdbinit: Adapt to new strings.  Add xbacktrace, xreload,
 	xprintsym.
 
-2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Ftry_completion): Doc fix.
 
@@ -399,7 +399,7 @@
 	* process.c (read_process_output): Fix the arg FROM to
 	update_compositions.
 
-1999-12-22  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Freplace_match): For nonliteral replacement in buffer,
 	construct all the new text first, then insert all at once.
@@ -867,11 +867,11 @@
 	* xterm.c (show_mouse_face): Don't use updated_area, use
 	TEXT_AREA.
 
-1999-12-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Fall_completions): Doc fix.
 
-1999-12-12  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* macros.c (Fstart_kbd_macro): Handle case where last-kbd-macro
 	has been changed by the Lisp code.
@@ -1157,7 +1157,7 @@
 	* emacs.c (synchronize_locale): Avoid compiler warnings about
 	pointer type mismatch.
 
-1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fdelete_field): Make it noninteractive.  Return nil.
 
@@ -1336,7 +1336,7 @@
 
 	* keyboard.c (command_loop_1): Remove no_redisplay.
 
-1999-11-16  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (PRINTPREPARE): Don't call setup_echo_area_for_printing
 	in noninteractive.
@@ -1378,7 +1378,7 @@
 	(tiff_image_p, jpeg_image_p, gif_image_p, gs_image_p): Call
 	parse_image_spec accordingly.
 
-1999-11-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-09  Richard M. Stallman  <rms@gnu.org>
 
 	* cmds.c (Fbeginning_of_line): Doc fix.
 	(Fend_of_line): Doc fix.
@@ -1389,7 +1389,7 @@
 	* syntax.c (Fforward_word): Handle fields even if would have hit
 	an edge of the buffer.  Return nil if affected by fields.
 
-1999-11-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-09  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (preceding_pos): Function deleted.
 	(text_property_stickiness): Decrement POS directly.
@@ -1528,7 +1528,7 @@
 	* syntax.c: Remove whitespace after open or in front of closing
 	parentheses.
 
-1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (w16select.o, sound.o): Don't depend on lisp.h.
 
@@ -1542,7 +1542,7 @@
 	(display_line): Set charpos of first glyph to -1 only if that
 	glyph is the space added by append_glyph.
 
-1999-10-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-30  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (strout): Consider `noninteractive' and use stdout
 	only when PRINTCHARFUN is t.
@@ -1574,12 +1574,12 @@
 	Redefine PTY_TTY_NAME_SPRINTF.
 	* config.in: Add undef for HAVE_DEV_PTMX.
 
-1999-10-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-26  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (POP_FAILURE_POINT): Use failure_id.integer
 	as arg to DEBUG_POP and DEBUG_PRINT.
 
-1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-27  Richard M. Stallman  <rms@gnu.org>
 
 	* data.c (Qad_activate_internal): Renamed from Qad_activate.
 	(Ffset): Call Qad_activate_internal.
@@ -1604,7 +1604,7 @@
 	(Ftype_of): Return it for hash tables.
 	(syms_of_data): Initialize Qhash_table.
 
-1999-10-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-25  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (POP_FAILURE_POINT): Extract failure_id as an integer.
 
@@ -2014,7 +2014,7 @@
 
 	* keyboard.c (auto-save-interval): Fix documentation.
 	
-1999-10-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-09  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print): When removing objects from Vprint_number_table,
 	only scan the newly added objects.
@@ -2046,7 +2046,7 @@
 
 	* bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
 
-1999-10-07  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-07  Richard M. Stallman  <rms@gnu.org>
 
 	* process.c (wait_reading_process_input): When trying to suck
 	input from one process, for accept-process-output,
@@ -2112,12 +2112,12 @@
 	* xdisp.c (resize_mini_window): Do nothing if frame is an X
 	frame that hasn't been initialized yet.
 
-1999-09-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-28  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (Fsingle_key_description): Make tem big enough.
 	(describe_buffer_bindings): Make buf big enough.
 
-1999-09-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-27  Richard M. Stallman  <rms@gnu.org>
 
 	* intervals.c (get_local_map): Use indirect_function,
 	not Findirect_function.
@@ -2324,7 +2324,7 @@
 	* xdisp.c (echo_area_display): Turn off code that returned
 	without doing anything when using a terminal frame.
 
-1999-09-17  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-17  Richard M. Stallman  <rms@gnu.org>
 
 	* unexelf.c (unexec): Don't get confused by a short section
 	just before the bss section.
@@ -4132,7 +4132,7 @@
 
 	* fns.c (internal_equal): Correct overlay comparison.
 
-1999-07-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-07-31  Richard M. Stallman  <rms@gnu.org>
 
 	* xfns.c (x_set_internal_border_width): 
 	Call do_pending_window_change.  Don't block input, don't call XFlush.
@@ -11858,7 +11858,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* msdos.c (unibyte_display_via_language_environment): Add extern.
 
-1999-05-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-05-02  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (display_text_line): Convert unibyte char to multibyte
 	if unibyte_display_via_language_environment is set.
@@ -12074,7 +12074,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(display_text_line): Stop the loop for processing overlay strings
 	when we reach the right edge of the window.
 
-1999-03-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-03-31  Richard M. Stallman  <rms@gnu.org>
 
 	* doc.c (get_doc_string): When UNIBYTE and DEFINITION are 0,
 	let the data control whether string is unibyte.
@@ -12194,7 +12194,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* fileio.c (Ffile_directory_p): Doc fix.
 
-1999-03-05  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-03-05  Richard M. Stallman  <rms@gnu.org>
 
 	* coding.c (setup_coding_system): Check for CODING_SYSTEM = nil.
 

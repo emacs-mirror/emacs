@@ -722,6 +722,7 @@ is the buffer position of the start of the containing expression."
 (put 'with-temp-file 'lisp-indent-function 1)
 (put 'with-temp-buffer 'lisp-indent-function 0)
 (put 'with-temp-message 'lisp-indent-function 1)
+(put 'with-syntax-table 'lisp-indent-function 1)
 (put 'let 'lisp-indent-function 1)
 (put 'let* 'lisp-indent-function 1)
 (put 'while 'lisp-indent-function 1)
