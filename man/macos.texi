@@ -226,9 +226,10 @@ the name @samp{-ETL-fixed-*-iso8859-1}.
 executes it as an AppleScript command, and returns the result as a
 string.
 
-@findex mac-filename-to-unix
-@findex unix-filename-to-mac
-  The function @code{mac-filename-to-unix} takes a Mac file name and
-returns the Posix equivalent.  The function @code{unix-filename-to-mac}
-performs the opposite conversion.  They are useful for constructing
-AppleScript commands to be passed to @code{do-applescript}.
+@findex mac-file-name-to-posix
+@findex posix-file-name-to-mac
+  The function @code{mac-file-name-to-posix} takes a Mac file name and
+returns the Posix equivalent.  The function
+@code{posix-file-name-to-mac} performs the opposite conversion.  They
+are useful for constructing AppleScript commands to be passed to
+@code{do-applescript}.
