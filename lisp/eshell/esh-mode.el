@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -1017,7 +1017,7 @@ a key."
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-truncate-buffer)
 
-(defun send-invisible (str)
+(defun eshell-send-invisible (str)
   "Read a string without echoing.
 Then send it to the process running in the current buffer."
   (interactive "P")                     ; Defeat snooping via C-x ESC ESC
@@ -1031,7 +1031,7 @@ Then send it to the process running in the current buffer."
 
 (defun eshell-watch-for-password-prompt ()
   "Prompt in the minibuffer for password and send without echoing.
-This function uses `send-invisible' to read and send a password to the
+This function uses `eshell-send-invisible' to read and send a password to the
 buffer's process if STRING contains a password prompt defined by
 `eshell-password-prompt-regexp'.
 
@@ -1042,7 +1042,7 @@ This function could be in the list `eshell-output-filter-functions'."
       (beginning-of-line)
       (if (re-search-forward eshell-password-prompt-regexp
 			     eshell-last-output-end t)
-	  (send-invisible nil)))))
+	  (eshell-send-invisible nil)))))
 
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-watch-for-password-prompt)
