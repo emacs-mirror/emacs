@@ -249,17 +249,13 @@ If TABLE is nil or omitted, `standard-display-table' is used."
     ;; to the ASCII apostrophe.
     (aset standard-display-table 146 [39])))
 
-(defun dos-codepage-setup ()
-  "Set up the MULE environment as appropriate for the installed DOS codepage.
+(defun dos-cpNNN-setup (codepage)
+  "Set up the MULE environment using the DOS codepage CODEPAGE.
 
-This function sets coding systems, display tables, and the language
-environment options as appropriate for the current value of `dos-codepage'.
-
-This function is automatically run at startup via the `term-setup-hook'
-list.  You can (and should) also run it whenever the value of
-`dos-codepage' changes."
-  (interactive)
-  (let* ((cp (format "cp%s" dos-codepage))
+This function creates the coding system cpNNN (where NNN is the value
+of the argument CODEPAGE), and then uses this coding system to set up
+display tables, and the language environment options as appropriate."
+  (let* ((cp (format "cp%s" codepage))
 	 (charset (cp-charset-for-codepage cp))
 	 (offset (cp-offset-for-codepage cp)))
     (cp-make-coding-systems-for-codepage cp charset offset)
@@ -304,9 +300,9 @@ list.  You can (and should) also run it whenever the value of
 	     ;; really are.)
 	     (chars
 	      (cond
-	       ((= dos-codepage 850)
+	       ((= codepage 850)
 		"‡€š‚ƒ¶„…·†ÆÇ µˆÒ‰ÓŠÔ‹ØŒ×Ş¡Ö‘’“â”™•ã¢à›–ê£é—ë˜Yìí¡I£é¤¥ĞÑçè")
-	       ((= dos-codepage 865)
+	       ((= codepage 865)
 		"‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y› A¡I¢O£U¤¥")
 	       ;; default is 437
 	       (t "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y A¡I¢O£U¤¥"))))
@@ -334,6 +330,47 @@ list.  You can (and should) also run it whenever the value of
     ;; squeeze every bit of support out of their terminal/font.
     (run-hooks 'dos-codepage-setup-hook)
     ))
+
+;; FIXME: Korean and Chinese codepages should be added here, but I
+;; don't know what coding systems do they support.  The codepages in
+;; point are 934, 936, 938, 944, and 948.
+(defvar cjk-codepages-alist
+  '((932 "Japanese" japanese-shift-jis))
+  "An alist of Far-Eastern codepages and the names of the associated
+language and supported coding system.")
+
+(defun dos-codepage-setup ()
+  "Set up the MULE environment as appropriate for the installed DOS codepage.
+
+This function sets coding systems, display tables, and the language
+environment options as appropriate for the current value of `dos-codepage'.
+
+This function is automatically run at startup via the `term-setup-hook'
+list.  You can (and should) also run it whenever the value of
+`dos-codepage' changes."
+  (interactive)
+  (let* ((desc (cdr (assq dos-codepage cjk-codepages-alist)))
+	 (lang (car desc))
+	 (coding (car (cdr desc)))
+	 coding-dos coding-unix)
+    (if (null desc)
+	(dos-cpNNN-setup dos-codepage)
+      ;; We've got one of the Far-Eastern codepages which support
+      ;; MULE native coding systems directly.
+      (setq coding-dos (intern (format "%s-dos" coding))
+	    coding-unix (intern (format "%s-unix" coding)))
+      (set-language-environment (car desc))
+      (set-selection-coding-system coding-dos)
+      (setq file-name-coding-system coding-unix)
+      (set-terminal-coding-system
+       (setq default-terminal-coding-system coding-unix))
+      ;; Assume they support non-ASCII Latin characters like the IBM
+      ;; codepage 437 does.
+      (IT-display-table-setup "cp437")
+      (prefer-coding-system coding-dos)
+      (if default-enable-multibyte-characters
+	  (setq unibyte-display-via-language-environment t))
+      )))
 
 ;; We want to delay the terminal and other codepage-related setup
 ;; until after the terminal is set and user's .emacs is processed,
