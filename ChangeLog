@@ -8,7 +8,7 @@
 	`configure' does its job.  Elaborate on image support libraries.
 	Add a pointer to Xaw3d library.  Add advice about solving
 	configure-time problems by looking in config.log and setting
-	variables in the envoronment.
+	variables in the environment.
 
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
