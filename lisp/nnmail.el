@@ -202,7 +202,7 @@ Example:
 (defvar nnmail-message-id-cache-length 1000
   "*The approximate number of Message-IDs nnmail will keep in its cache.
 If this variable is nil, no checking on duplicate messages will be
-perfomed.")
+performed.")
 
 (defvar nnmail-message-id-cache-file "~/.nnmail-cache"
   "*The file name of the nnmail Message-ID cache.")
@@ -570,7 +570,7 @@ FUNC will be called with the buffer narrowed to each mail."
 	  (current-buffer)
 	(kill-buffer (current-buffer))))))
 
-;; Mail crossposts syggested by Brian Edmonds <edmonds@cs.ubc.ca>. 
+;; Mail crossposts suggested by Brian Edmonds <edmonds@cs.ubc.ca>. 
 (defun nnmail-article-group (func)
   "Look at the headers and return an alist of groups that match.
 FUNC will be called with the group name to determine the article number."
@@ -610,7 +610,7 @@ FUNC will be called with the group name to determine the article number."
 Problems with `nnmail-split-methods', using `bogus' mail group")
 		      (sit-for 1)
 		      '("bogus")))))
-	  ;; Go throught the split methods to find a match.
+	  ;; Go through the split methods to find a match.
 	  (while (and methods (or nnmail-crosspost (not group-art)))
 	    (goto-char (point-max))
 	    (if (or (cdr methods)
@@ -688,7 +688,7 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
   (nnmail-split-it nnmail-split-fancy))
 
 (defvar nnmail-split-cache nil)
-;; Alist of split expresions their equivalent regexps.
+;; Alist of split expressions their equivalent regexps.
 
 (defun nnmail-split-it (split)
   ;; Return a list of groups matching SPLIT.
@@ -742,7 +742,7 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 		t (concat (if group group "")
 			  nnmail-procmail-suffix "$") t)))
 	 (p procmails))
-    ;; Remove any directories that inadvertantly match the procmail
+    ;; Remove any directories that inadvertently match the procmail
     ;; suffix, which might happen if the suffix is "".
     (while p
       (and (or (file-directory-p (car p))
