@@ -796,8 +796,7 @@ See also `comint-read-input-ring'."
 
 (defun comint-regexp-arg (prompt)
   ;; Return list of regexp and prefix arg using PROMPT.
-  (let* ((minibuffer-history-sexp-flag nil)
-	 ;; Don't clobber this.
+  (let* (;; Don't clobber this.
 	 (last-command last-command)
 	 (regexp (read-from-minibuffer prompt nil nil nil
 				       'minibuffer-history-search-history)))
