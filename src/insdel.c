@@ -271,6 +271,14 @@ make_gap (increment)
   /* If we have to get more space, get enough to last a while.  */
   increment += 2000;
 
+  /* Don't allow a buffer size that won't fit in an int
+     even if it will fit in a Lisp integer.
+     That won't work because so many places use `int'.  */
+     
+  if (VALBITS > INTBITS
+      && (Z - BEG + GAP_SIZE + increment) >= ((unsigned) 1 << (INTBITS - 1)))
+    error ("Buffer too big");
+
   BLOCK_INPUT;
   result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment));
 
