@@ -104,7 +104,7 @@ The value is only computed when needed to avoid an expensive search.")
 (defvar vc-header-alist
   '((SCCS "\%W\%") (RCS "\$Id\$"))
   "*Header keywords to be inserted when `vc-insert-headers' is executed.")
-(defconst vc-static-header-alist
+(defvar vc-static-header-alist
   '(("\\.c$" .
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "*Associate static header string templates with file types.  A \%s in the
