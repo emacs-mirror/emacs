@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.24 1996/05/21 14:51:17 kwzh Exp kwzh $
+;; Version: $Id: cmacexp.el,v 1.25 1996/05/21 15:42:13 kwzh Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -98,7 +98,13 @@
 
 (defvar c-macro-preprocessor
   ;; Cannot rely on standard directory on MS-DOS to find CPP.
-  (if (eq system-type 'ms-dos) "cpp -C" "/lib/cpp -C")
+  (cond ((eq system-type 'ms-dos) "cpp -C")
+	;; Solaris has it in an unusual place.
+	((and (string-match "^[^-]*-[^-]*-\\(solaris\\|sunos5\\)"
+			    system-configuration)
+	      (file-exists-p "/opt/SUNWspro/SC3.0.1/bin/acomp"))
+	 "/opt/SUNWspro/SC3.0.1/bin/acomp -C -E")
+	(t "/lib/cpp -C"))
   "The preprocessor used by the cmacexp package.
 
 If you change this, be sure to preserve the `-C' (don't strip comments)
