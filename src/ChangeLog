@@ -1,6 +1,7 @@
 2002-06-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (init_environment): Remove EMACSLOCKDIR.
+	(stat): Swap _S_IFDIR and _S_IFREG.
 
 2002-06-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 

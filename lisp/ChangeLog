@@ -1,3 +1,7 @@
+2002-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-charset-info-alist): Reorder.
+
 2002-06-13  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (auto-mode-alist): Move entry for ".in" to the end.
