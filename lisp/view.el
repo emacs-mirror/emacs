@@ -715,10 +715,12 @@ Also set the mark at the position where point was."
 (defun view-end-message ()
   ;; Tell that we are at end of buffer.
   (goto-char (point-max))
-  (message "End of buffer.  Type %s to quit viewing."
-	   (substitute-command-keys
-	    (if view-scroll-auto-exit "\\[View-scroll-page-forward]"
-	      "\\[View-quit]"))))
+  (if view-return-to-alist
+      (message "End of buffer.  Type %s to quit viewing."
+	       (substitute-command-keys
+		(if view-scroll-auto-exit "\\[View-scroll-page-forward]"
+		  "\\[View-quit]")))
+    (message "End of buffer")))
 
 (defun View-scroll-page-forward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines forward in View mode.
