@@ -721,25 +721,6 @@ width and the longest string in LIST."
 	  (insert (pop list)))
 	(insert "\n")))))
 
-(defun ibuffer-accumulate-lines (count)
-  (save-excursion
-    (let ((forwardp (> count 0))
-	  (result nil))
-      (while (not (or (zerop count)
-		      (if forwardp
-			  (eobp)
-			(bobp))))
-	(if forwardp
-	    (decf count)
-	  (incf count))
-	(push
-	 (buffer-substring
-	  (line-beginning-position)
-	  (line-end-position))
-	 result)
-	(forward-line (if forwardp 1 -1)))
-      (nreverse result))))
-
 (defsubst ibuffer-current-mark ()
   (cadr (get-text-property (line-beginning-position)
 			   'ibuffer-properties)))
