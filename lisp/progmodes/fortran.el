@@ -664,8 +664,9 @@ with no args, if that value is non-nil."
        ;; (concat "\\(\\)\\(![ \t]*\\|" fortran-comment-line-start-skip "\\)")
        "\\(\\)\\(?:^[CcDd*]\\|!\\)\\(?:\\([^ \t\n]\\)\\2+\\)?[ \t]*")
   (set (make-local-variable 'comment-padding) "$$$")
-  (make-local-variable 'comment-start)
-  (setq comment-start fortran-comment-line-start)
+  (set (make-local-variable 'comment-start) fortran-comment-line-start)
+  ;; The syntax tables don't understand the column-0 comment-markers.
+  (set (make-local-variable 'comment-use-syntax) nil)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
   (make-local-variable 'abbrev-all-caps)
@@ -1753,43 +1754,9 @@ file before the end or the first `fortran-analyze-depth' lines."
   "Fill surrounding comment block as paragraphs, else fill statement.
 Intended as the value of `fill-paragraph-function'."
   (interactive "P")
-  (save-excursion
-    (beginning-of-line)
-    (if (not (looking-at fortran-comment-line-start-skip))
-	(fortran-fill-statement)
-	;; We're in a comment block.  Find the start and end of a
-	;; paragraph, delimited either by non-comment lines or empty
-	;; comments.  (Get positions as markers, since the
-	;; `indent-region' below can shift the block's end).
-	(let* ((non-empty-comment
-		(concat fortran-comment-line-start-skip "[^ \t\n]"))
-	       (start (save-excursion
-			;; Find (start of) first line.
-			(while (and (zerop (forward-line -1))
-				    (looking-at non-empty-comment)))
-			(or (looking-at non-empty-comment)
-			    (forward-line)) ; overshot
-			(point-marker)))
-	       (end (save-excursion
-		      ;; Find start of first line past region to fill.
-		      (while (progn
-			       (forward-line)
-			       (looking-at non-empty-comment)))
-		      (point-marker))))
-	  ;; Indent the block, find the string comprising the effective
-	  ;; comment start skip and use that as a fill-prefix for
-	  ;; filling the region.
-	  (indent-region start end nil)
-	  (let ((paragraph-ignore-fill-prefix nil)
-		(fill-prefix (progn
-			       (beginning-of-line)
-			       (looking-at fortran-comment-line-start-skip)
-			       (match-string 0))))
-	    (let (fill-paragraph-function)
-	      (fill-region start end justify))) ; with normal `fill-paragraph'
-	  (set-marker start nil)
-	  (set-marker end nil))))
-  t)
+  (or (fill-comment-paragraph justify)
+      (fortran-fill-statement)
+      t))
 
 (defun fortran-fill-statement ()
   "Fill a fortran statement up to `fill-column'."
