@@ -791,7 +791,7 @@ documentation for additional customization information."
 (defvar find-file-default nil
   "Used within `find-file-read-args'.")
 
-(defun find-file-read-args (prompt)
+(defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
 	       (and buffer-file-name
 		    (abbreviate-file-name buffer-file-name)))
@@ -804,7 +804,7 @@ documentation for additional customization information."
 	      (minibuffer-setup-hook
 	       minibuffer-setup-hook))
 	  (add-hook 'minibuffer-setup-hook munge-default-fun)
-	  (read-file-name prompt nil default-directory))
+	  (read-file-name prompt nil default-directory mustmatch))
 	current-prefix-arg))
 
 (defun find-file (filename &optional wildcards)
@@ -819,7 +819,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  Wildcard expansion
 can be suppressed by setting `find-file-wildcards'."
   (interactive
-   (find-file-read-args "Find file: "))
+   (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -836,7 +836,7 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive (find-file-read-args "FFind file in other window: "))
+  (interactive (find-file-read-args "Find file in other window: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -856,7 +856,7 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive (find-file-read-args "FFind file in other frame: "))
+  (interactive (find-file-read-args "Find file in other frame: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -869,7 +869,7 @@ expand wildcards (if any) and visit multiple files."
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "fFind file read-only: "))
+  (interactive (find-file-read-args "Find file read-only: " t))
   (find-file filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -878,7 +878,7 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "fFind file read-only other window: "))
+  (interactive (find-file-read-args "Find file read-only other window: " t))
   (find-file-other-window filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -887,7 +887,7 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "fFind file read-only other frame: "))
+  (interactive (find-file-read-args "Find file read-only other frame: " t))
   (find-file-other-frame filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
