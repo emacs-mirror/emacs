@@ -996,6 +996,11 @@ This function is called by the editor initialization to begin editing.  */)
   int count = SPECPDL_INDEX ();
   Lisp_Object buffer;
 
+  /* If we enter while input is blocked, don't lock up here.
+     This may happen through the debugger during redisplay.  */
+  if (INPUT_BLOCKED_P)
+    return Qnil;
+
   command_loop_level++;
   update_mode_lines = 1;
 
@@ -1294,6 +1299,12 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
+
+  /* Unblock input if we enter with input blocked.  This may happen if
+     redisplay traps e.g. during tool-bar update with input blocked.  */
+  while (INPUT_BLOCKED_P)
+    UNBLOCK_INPUT;
+
   return Fthrow (Qtop_level, Qnil);
 }
 
