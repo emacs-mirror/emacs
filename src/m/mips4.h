@@ -14,10 +14,14 @@ NOTE-END  */
 /* Define MIPS2 if you have an R6000 or R4000.  */
 /* #define MIPS2 */
 
+#ifdef __GNUC__
+#define C_DEBUG_SWITCH -g -O
+#else
 #ifdef MIPS2
 #define C_DEBUG_SWITCH -systype bsd43 -O -Olimit 791 -g3 -mips2
 #else
 #define C_DEBUG_SWITCH -systype bsd43 -O -Olimit 791 -g3
+#endif
 #endif
 
 #ifdef TERMINFO
