@@ -1,3 +1,7 @@
+2002-09-15  Markus Rost  <rost@math.ohio-state.edu>
+
+	* dired.el (dired-move-to-filename): Fix previous change.
+
 2002-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/keypad.el (keypad-setup, keypad-shifted-setup)
