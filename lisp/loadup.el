@@ -55,6 +55,8 @@
       (load "frame")
       (load "mouse")
       (garbage-collect)
+      (load "faces")
+      (garbage-collect)
       (load "menu-bar")
       (load "scroll-bar")
       (load "select")))
@@ -166,6 +168,7 @@
 ;by writing a site-init.el that loads them.
 ;See also "site-load" above.
 (load "site-init" t)
+(setq current-load-list nil)
 (garbage-collect)
 
 ;;; At this point, we're ready to resume undo recording for scratch.
