@@ -4498,7 +4498,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	int eol_flag = (c == 'Z');
 	char *p = decode_mode_spec_buf;
 
-	if (FRAME_TERMCAP_P (f))
+	if (! FRAME_WINDOW_P (f))
 	  {
 	    /* No need to mention EOL here--the terminal never needs
 	       to do EOL conversion.  */
