@@ -35,8 +35,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <perror.h>
 #include <stddef.h>
 #include <string.h>
-#else
-#include <sys/dir.h>
 #endif
 
 #include <errno.h>
@@ -174,7 +172,7 @@ find_file_handler (filename)
 	  Lisp_Object string;
 	  string = XCONS (elt)->car;
 	  if (XTYPE (string) == Lisp_String
-	      && fast_string_match (string, filename))
+	      && fast_string_match (string, filename) >= 0)
 	    return XCONS (elt)->cdr;
 	}
     }
@@ -584,7 +582,7 @@ See also the function `substitute-in-file-name'.")
      call the corresponding file handler.  */
   handler = find_file_handler (name);
   if (!NILP (handler))
-    return call2 (handler, Qexpand_file_name, name);
+    return call3 (handler, Qexpand_file_name, name, defalt);
 
 #ifdef VMS
   /* Filenames on VMS are always upper case.  */
@@ -1875,9 +1873,9 @@ See also `file-readable-p' and `file-attributes'.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call2 (handler, Qfile_exists_p, filename);
+    return call2 (handler, Qfile_exists_p, abspath);
 
   return (access (XSTRING (abspath)->data, 0) >= 0) ? Qt : Qnil;
 }
@@ -1897,9 +1895,9 @@ For directories this means you can change to that directory.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call2 (handler, Qfile_executable_p, filename);
+    return call2 (handler, Qfile_executable_p, abspath);
 
   return (access (XSTRING (abspath)->data, 1) >= 0) ? Qt : Qnil;
 }
@@ -1918,9 +1916,9 @@ See also `file-exists-p' and `file-attributes'.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call2 (handler, Qfile_readable_p, filename);
+    return call2 (handler, Qfile_readable_p, abspath);
 
   return (access (XSTRING (abspath)->data, 4) >= 0) ? Qt : Qnil;
 }
@@ -1987,9 +1985,9 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call2 (handler, Qfile_writable_p, filename);
+    return call2 (handler, Qfile_writable_p, abspath);
 
   if (access (XSTRING (abspath)->data, 0) >= 0)
     return (access (XSTRING (abspath)->data, 2) >= 0) ? Qt : Qnil;
@@ -2017,9 +2015,9 @@ if the directory so specified exists and really is a directory.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call2 (handler, Qfile_directory_p, filename);
+    return call2 (handler, Qfile_directory_p, abspath);
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
@@ -2064,9 +2062,9 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call2 (handler, Qfile_modes, filename);
+    return call2 (handler, Qfile_modes, abspath);
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
@@ -2087,9 +2085,9 @@ Only the 12 low bits of MODE are used.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = find_file_handler (abspath);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_modes, filename, mode);
+    return call3 (handler, Qset_file_modes, abspath, mode);
 
 #ifndef APOLLO
   if (chmod (XSTRING (abspath)->data, XINT (mode)) < 0)
@@ -2179,12 +2177,16 @@ otherwise, if FILE2 does not exist, the answer is t.")
   struct stat st;
   int mtime1;
   Lisp_Object handler;
+  struct gcpro gcpro1, gcpro2;
 
   CHECK_STRING (file1, 0);
   CHECK_STRING (file2, 0);
 
+  abspath1 = Qnil;
+  GCPRO2 (abspath1, file2);
   abspath1 = expand_and_dir_to_file (file1, current_buffer->directory);
   abspath2 = expand_and_dir_to_file (file2, current_buffer->directory);
+  UNGCPRO;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2392,6 +2394,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
 #endif /* VMS */
   Lisp_Object handler;
+  struct gcpro gcpro1, gcpro2;
 
   /* Special kludge to simplify auto-saving */
   if (NILP (start))
@@ -2402,8 +2405,8 @@ to the file, instead of any buffer contents, and END is ignored.")
   else if (XTYPE (start) != Lisp_String)
     validate_region (&start, &end);
 
+  GCPRO2 (start, filename);
   filename = Fexpand_file_name (filename, Qnil);
-  fn = XSTRING (filename)->data;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2432,6 +2435,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 	  XFASTINT (current_buffer->save_length) = Z - BEG;
 	  current_buffer->filename = filename;
 	}
+      UNGCPRO;
       return val;
     }
 
@@ -2440,6 +2444,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     lock_file (filename);
 #endif /* CLASH_DETECTION */
 
+  fn = XSTRING (filename)->data;
   desc = -1;
   if (!NILP (append))
     desc = open (fn, O_WRONLY);
@@ -2493,6 +2498,8 @@ to the file, instead of any buffer contents, and END is ignored.")
 #else /* not VMS */
   desc = creat (fn, auto_saving ? auto_save_mode_bits : 0666);
 #endif /* not VMS */
+
+  UNGCPRO;
 
   if (desc < 0)
     {
@@ -2700,7 +2707,7 @@ This means that the file has not been changed since it was visited or saved.")
      call the corresponding file handler.  */
   handler = find_file_handler (b->filename);
   if (!NILP (handler))
-    return call2 (handler, Qverify_visited_file_modtime, b->filename);
+    return call2 (handler, Qverify_visited_file_modtime, buf);
 
   if (stat (XSTRING (b->filename)->data, &st) < 0)
     {
@@ -2901,36 +2908,46 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
      lambda for verify final value */
 {
   Lisp_Object name, specdir, realdir, val, orig_string;
+  int changed;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+  realdir = dir;
+  name = string;
+  orig_string = Qnil;
+  specdir = Qnil;
+  changed = 0;
+  /* No need to protect ACTION--we only compare it with t and nil.  */
+  GCPRO4 (string, realdir, name, specdir);
 
   if (XSTRING (string)->size == 0)
     {
-      orig_string = Qnil; 
-      name = string;
-      realdir = dir;
       if (EQ (action, Qlambda))
-	return Qnil;
+	{
+	  UNGCPRO;
+	  return Qnil;
+	}
     }
   else
     {
       orig_string = string;
       string = Fsubstitute_in_file_name (string);
+      changed = NILP (Fstring_equal (string, orig_string));
       name = Ffile_name_nondirectory (string);
-      realdir = Ffile_name_directory (string);
-      if (NILP (realdir))
-	realdir = dir;
-      else
-	realdir = Fexpand_file_name (realdir, dir);
+      val = Ffile_name_directory (string);
+      if (! NILP (val))
+	realdir = Fexpand_file_name (val, realdir);
     }
 
   if (NILP (action))
     {
       specdir = Ffile_name_directory (string);
       val = Ffile_name_completion (name, realdir);
+      UNGCPRO;
       if (XTYPE (val) != Lisp_String)
 	{
-	  if (NILP (Fstring_equal (string, orig_string)))
+	  if (changed)
 	    return string;
-	  return (val);
+	  return val;
 	}
 
       if (!NILP (specdir))
@@ -2962,8 +2979,9 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 	  }
       }
 #endif /* Not VMS */
-      return (val);
+      return val;
     }
+  UNGCPRO;
 
   if (EQ (action, Qt))
     return Ffile_name_all_completions (name, realdir);
@@ -3208,6 +3226,8 @@ passed to that primitive.  For example, if you do\n\
     (file-exists-p FILENAME)\n\
 and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
     (funcall HANDLER 'file-exists-p FILENAME)");
+  Vfile_name_handler_alist = Qnil;
+
   defsubr (&Sfile_name_directory);
   defsubr (&Sfile_name_nondirectory);
   defsubr (&Sfile_name_as_directory);
