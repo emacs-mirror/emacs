@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -307,13 +308,13 @@ as a multilingual text encoded in a coding system set by
       (let ((coding (keyboard-coding-system)))
 	(setq saved-input-mode  (current-input-mode))
 	(cond ((null coding)
-	       (setq encoded-kbd-mode nil) 
+	       (setq encoded-kbd-mode nil)
 	       (error "No coding system for keyboard input is set"))
 
 	      ((eq (coding-system-type coding) 'sjis)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))	
+		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'sjis))
 
 	      ((eq (coding-system-type coding) 'iso-2022)
@@ -321,7 +322,7 @@ as a multilingual text encoded in a coding system set by
 		   (setq encoded-kbd-coding 'iso2022-7)
 		 (set-input-mode
 		  (nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		  'use-8th-bit (nth 3 saved-input-mode))	
+		  'use-8th-bit (nth 3 saved-input-mode))
 		 (setq encoded-kbd-coding 'iso2022-8))
 	       (setq encoded-kbd-iso2022-designations
 		     (coding-system-get coding :designation))
@@ -332,13 +333,13 @@ as a multilingual text encoded in a coding system set by
 	      ((eq (coding-system-type coding) 'big5)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))	
+		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'big5))
 
 	      ((eq (coding-system-type coding) 'ccl)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))	
+		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'ccl))
 
 	      (t
