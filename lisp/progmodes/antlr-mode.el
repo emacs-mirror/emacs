@@ -161,7 +161,7 @@
 ;; More compile-time-macros
 (eval-when-compile
   (defmacro save-buffer-state-x (&rest body) ; similar to EMACS/lazy-lock.el
-    (let ((modified (gensym "save-buffer-state-x-modified-")))
+    (let ((modified (with-no-warnings (gensym "save-buffer-state-x-modified-"))))
       `(let ((,modified (buffer-modified-p)))
 	 (unwind-protect
 	     (let ((buffer-undo-list t) (inhibit-read-only t)
