@@ -2570,7 +2570,7 @@ handle_display_prop (it)
     }
   else
     {
-      object = Qnil;
+      object = it->w->buffer;
       position = &it->current.pos;
     }
 
