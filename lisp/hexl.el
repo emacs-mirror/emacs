@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
-;; Copyright (C) 1989, 1994, 1998, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -864,8 +864,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   ;; Make all self-inserting keys go through hexl-self-insert-command,
   ;; because we need to convert them to unibyte characters before
   ;; inserting them into the buffer.
-  (substitute-key-definition 'self-insert-command 'hexl-self-insert-command
-			     hexl-mode-map (current-global-map))
+  (define-key hexl-mode-map [remap 'self-insert-command] 'hexl-self-insert-command)
 
   (define-key hexl-mode-map [left] 'hexl-backward-char)
   (define-key hexl-mode-map [right] 'hexl-forward-char)
