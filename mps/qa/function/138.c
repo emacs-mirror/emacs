@@ -1,0 +1,88 @@
+/* $HopeName: MMQA_test_function!103.c(trunk.1) $
+TEST_HEADER
+ summary = test running out of memory while scanning roots
+ language = c
+ link = testlib.o rankfmt.o
+END_HEADER
+*/
+
+#include "testlib.h"
+#include "mpscamc.h"
+#include "mpsavm.h"
+#include "rankfmt.h"
+
+
+#define MEG (1024uL*1024uL)
+#define THIRTY_MEG (30uL*MEG)
+
+static void test(void)
+{
+ int j;
+ mps_ap_t ap;
+ mps_arena_t arena;
+ mps_fmt_t format;
+ mps_pool_t pool;
+ mps_root_t root1;
+ mps_thr_t thread;
+
+/* create an arena that can't grow beyond 30 M */
+
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)THIRTY_MEG),
+  "create arena");
+ cdie(mps_arena_commit_limit_set(arena, (size_t)THIRTY_MEG),
+  "commit limit set");
+
+ cdie(mps_thread_reg(&thread, arena), "register thread");
+
+ cdie(
+  mps_root_create_table(&root1,arena,MPS_RANK_EXACT,0,&exfmt_root,1),
+  "create table root");
+
+ cdie(
+  mps_fmt_create_A(&format, arena, &fmtA),
+  "create format");
+
+ cdie(
+  mps_pool_create(&pool, arena, mps_class_amc(), format),
+  "create pool");
+
+ cdie(
+  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+  "create ap");
+
+/* allocate a 16 M live object */
+
+ allocdumb(ap, 16*MEG, MPS_RANK_EXACT);
+
+ comment("collect world...");
+
+ for (j=0; j<1000; j++) {
+  mps_arena_collect(arena);
+ }
+
+ mps_ap_destroy(ap);
+ comment("Destroyed ap.");
+
+ mps_pool_destroy(pool);
+ comment("Destroyed pool.");
+
+ mps_fmt_destroy(format);
+ comment("Destroyed format.");
+
+ mps_root_destroy(root1);
+ comment("Destroyed roots.");
+
+ mps_thread_dereg(thread);
+ comment("Deregistered thread.");
+
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
+
+}
+
+int main(void)
+{
+ easy_tramp(test);
+ pass();
+ return 0;
+}
