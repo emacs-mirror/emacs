@@ -2930,6 +2930,9 @@ With prefix argument N, move N items (negative N means move backward)."
 ;; Switch to BUFFER and insert the completion choice CHOICE.
 ;; BASE-SIZE, if non-nil, says how many characters of BUFFER's text
 ;; to keep.  If it is nil, use choose-completion-delete-max-match instead.
+
+;; If BUFFER is the minibuffer, exit the minibuffer
+;; unless it is reading a file name and CHOICE is a directory.
 (defun choose-completion-string (choice &optional buffer base-size)
   (let ((buffer (or buffer completion-reference-buffer)))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
@@ -2953,7 +2956,12 @@ With prefix argument N, move N items (negative N means move backward)."
       ;; If completing for the minibuffer, exit it with this choice.
       (and (equal buffer (window-buffer (minibuffer-window)))
 	   minibuffer-completion-table
-	   (exit-minibuffer)))))
+	   ;; If this is reading a file name, and the file name chosen
+	   ;; is a directory, don't exit the minibuffer.
+	   (if (and (eq minibuffer-completion-table 'read-file-name-internal)
+		    (file-directory-p (buffer-string)))
+	       (select-window (active-minibuffer-window))
+	     (exit-minibuffer))))))
 
 (defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
