@@ -68,7 +68,7 @@
 	 '(isearch-input-method-after-insert-chunk-function))
 	(input-method-inactivate-hook '(exit-minibuffer))
 	;; Let input method work rather tersely.
-	(input-method-tersely-flag t)
+	(input-method-verbose-flag nil)
 	str)
     (setq unread-command-events (cons last-char unread-command-events))
     (setq str (read-multilingual-string
