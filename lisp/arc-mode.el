@@ -243,7 +243,7 @@ Archive and member names will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update
-  (if archive-zip-use-pkzip '("pkzip" "-u") '("zip" "-q"))
+  (if archive-zip-use-pkzip '("pkzip" "-u" "-P") '("zip" "-q"))
   "*Program and its options to run in order to update a zip file member.
 Options should ensure that specified directory will be put into the zip
 file.  Archive and member name will be added."
