@@ -657,9 +657,8 @@ For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar."
   (let* ((pair   (nth 2 position))
 	 (window (posn-window position))
-	 (vspacing (or (buffer-local-value 'line-spacing 
-					   (window-buffer window))
-		       0)))
+	 (vspacing (or (frame-parameter (window-frame window) 'line-spacing)
+		       default-line-spacing)))
     (if (eq (if (consp (nth 1 position))
 		(car (nth 1 position))
 	      (nth 1 position))
@@ -672,7 +671,8 @@ corresponds to the vertical position of the click in the scroll bar."
 	  (cons (scroll-bar-scale pair (window-width window)) 0)
 	(let* ((frame (if (framep window) window (window-frame window)))
 	       (x (/ (car pair) (frame-char-width frame)))
-	       (y (/ (cdr pair) (+ (frame-char-height frame) vspacing))))
+	       (y (/ (cdr pair) (+ (frame-char-height frame)
+				   (or vspacing 0)))))
 	  (cons x y))))))
 
 (defsubst posn-timestamp (position)
