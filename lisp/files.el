@@ -1994,6 +1994,11 @@ is considered risky."
 	   (message "Ignoring `eval:' in the local variables list")))
 	;; Ordinary variable, really set it.
 	(t (make-local-variable var)
+	   ;; Make sure the string has no text properties.
+	   ;; Some text properties can get evaluated in various ways,
+	   ;; so it is risky to put them on with a local variable list.
+	   (if (stringp val)
+	       (set-text-properties 0 (length val) nil val))
 	   (set var val))))
 
 
