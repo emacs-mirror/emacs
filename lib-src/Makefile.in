@@ -137,7 +137,7 @@ ${archlibdir}: all
 install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
-	for file in emacsclient etags ctags b2m ; do \
+	for file in ${INSTALLABLES} ${INSTALLABLE_SCRIPTS} ; do \
 	  cp $${file} ${bindir}/$${file}.new ; \
 	  chmod 755 ${bindir}/$${file}.new ; \
         done
