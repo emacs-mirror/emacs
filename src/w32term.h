@@ -75,6 +75,23 @@ struct win32_bitmap_record
   /* Record some info about this pixmap.  */
   int height, width, depth;
 };
+
+/* Palette book-keeping stuff for mapping requested colors into the
+   system palette.  Keep a ref-counted list of requested colors and
+   regenerate the app palette whenever the requested list changes. */
+
+extern Lisp_Object Vwin32_enable_palette;
+
+struct win32_palette_entry {
+  struct win32_palette_entry * next;
+  PALETTEENTRY entry;
+#if 0
+  unsigned refcount;
+#endif
+};
+
+extern void win32_regenerate_palette(struct frame *f);
+
 
 /* For each display (currently only one on win32), we have a structure that
    records information about it.  */
@@ -101,6 +118,15 @@ struct win32_display_info
   Window root_window;
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
+
+  /* color palette information */
+  int has_palette;
+  struct win32_palette_entry * color_list;
+  unsigned num_colors;
+  HPALETTE palette;
+
+  /* deferred action flags checked when starting frame update */
+  int regen_palette;
 
   /* A table of all the fonts we have already loaded.  */
   struct font_info *font_table;
@@ -187,6 +213,9 @@ extern struct win32_display_info *win32_term_init ();
 
 struct win32_output
 {
+  /* Original palette (used to deselect real palette after drawing) */
+  HPALETTE old_palette;
+
   /* Position of the Win32 window (x and y offsets in root window).  */
   int left_pos;
   int top_pos;
@@ -548,17 +577,24 @@ win32_fill_area (f,hdc,f->output_data.win32->background_pixel,x,y,nx,ny)
 extern XFontStruct *win32_load_font ();
 extern void win32_unload_font ();
 
-extern HDC map_mode();
-
-#define my_get_dc(hwnd) (map_mode (GetDC (hwnd)))
-
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0x00)
 #define WM_EMACS_CREATEWINDOW          (WM_EMACS_START + 0x01)
 #define WM_EMACS_DONE                  (WM_EMACS_START + 0x02)
 #define WM_EMACS_CREATESCROLLBAR       (WM_EMACS_START + 0x03)
-#define WM_EMACS_DESTROYWINDOW         (WM_EMACS_START + 0x04)
+#define WM_EMACS_SHOWWINDOW            (WM_EMACS_START + 0x04)
+#define WM_EMACS_SETWINDOWPOS          (WM_EMACS_START + 0x05)
+#define WM_EMACS_DESTROYWINDOW         (WM_EMACS_START + 0x06)
 #define WM_EMACS_END                   (WM_EMACS_START + 0x10)
+
+typedef struct {
+  HWND hwndAfter;
+  int x;
+  int y;
+  int cx;
+  int cy;
+  int flags;
+} Win32WindowPos;
 
 #define WND_X_UNITS_INDEX      (0) 
 #define WND_Y_UNITS_INDEX      (4) 
@@ -578,10 +614,18 @@ typedef struct Win32Msg {
     RECT rect;
 } Win32Msg;
 
+extern CRITICAL_SECTION critsect;
+
 extern void init_crit ();
-extern void enter_crit ();
-extern void leave_crit ();
 extern void delete_crit ();
+
+#define enter_crit() EnterCriticalSection (&critsect)
+#define leave_crit() LeaveCriticalSection (&critsect)
+
+extern void select_palette (struct frame * f, HDC hdc);
+extern void deselect_palette (struct frame * f, HDC hdc);
+extern HDC get_frame_dc (struct frame * f);
+extern int release_frame_dc (struct frame * f, HDC hDC);
 
 extern BOOL get_next_msg ();
 extern BOOL post_msg ();
