@@ -1,6 +1,6 @@
 ;;; diff.el --- Run `diff' in compilation-mode.
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Keywords: unix, tools
 
@@ -254,26 +254,29 @@ The backup file is the first file given to `diff'."
 
 (defun diff-latest-backup-file (fn)	; actually belongs into files.el
   "Return the latest existing backup of FILE, or nil."
-  ;; First try simple backup, then the highest numbered of the
-  ;; numbered backups.
-  ;; Ignore the value of version-control because we look for existing
-  ;; backups, which maybe were made earlier or by another user with
-  ;; a different value of version-control.
-  (setq fn (file-chase-links (expand-file-name fn)))
-  (or
-   (let ((bak (make-backup-file-name fn)))
-     (if (file-exists-p bak) bak))
-   (let* ((dir (file-name-directory fn))
-	  (base-versions (concat (file-name-nondirectory fn) ".~"))
-	  (bv-length (length base-versions)))
-     (concat dir
-	     (car (sort
-		   (file-name-all-completions base-versions dir)
-		   ;; bv-length is a fluid var for backup-extract-version:
-		   (function
-		    (lambda (fn1 fn2)
-		      (> (backup-extract-version fn1)
-			 (backup-extract-version fn2))))))))))
+  (let ((handler (find-file-name-handler fn)))
+    (if handler
+	(funcall handler fn)
+      ;; First try simple backup, then the highest numbered of the
+      ;; numbered backups.
+      ;; Ignore the value of version-control because we look for existing
+      ;; backups, which maybe were made earlier or by another user with
+      ;; a different value of version-control.
+      (setq fn (file-chase-links (expand-file-name fn)))
+      (or
+       (let ((bak (make-backup-file-name fn)))
+	 (if (file-exists-p bak) bak))
+       (let* ((dir (file-name-directory fn))
+	      (base-versions (concat (file-name-nondirectory fn) ".~"))
+	      (bv-length (length base-versions)))
+	 (concat dir
+		 (car (sort
+		       (file-name-all-completions base-versions dir)
+		       ;; bv-length is a fluid var for backup-extract-version:
+		       (function
+			(lambda (fn1 fn2)
+			  (> (backup-extract-version fn1)
+			     (backup-extract-version fn2))))))))))))
 
 (provide 'diff)
 
