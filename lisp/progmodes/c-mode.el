@@ -882,27 +882,32 @@ Returns nil if line starts inside a string, t if in a comment."
 			   (if (= (following-char) ?\{) c-brace-offset 0)))))
 		 ;; If no previous statement,
 		 ;; indent it relative to line brace is on.
-		 ;; For open brace in column zero, don't let statement
-		 ;; start there too.  If c-indent-level is zero,
-		 ;; use c-brace-offset + c-continued-statement-offset instead.
-		 ;; For open-braces not the first thing in a line,
-		 ;; add in c-brace-imaginary-offset.
-		 (+ (if (and (bolp) (zerop c-indent-level))
-			(+ c-brace-offset c-continued-statement-offset)
-		      c-indent-level)
-		    ;; Move back over whitespace before the openbrace.
-		    ;; If openbrace is not first nonwhite thing on the line,
-		    ;; add the c-brace-imaginary-offset.
-		    (progn (skip-chars-backward " \t")
-			   (if (bolp) 0 c-brace-imaginary-offset))
-		    ;; If the openbrace is preceded by a parenthesized exp,
-		    ;; move to the beginning of that;
-		    ;; possibly a different line
-		    (progn
-		      (if (eq (preceding-char) ?\))
-			  (forward-sexp -1))
-		      ;; Get initial indentation of the line we are on.
-		      (current-indentation))))))))))
+		 (calculate-c-indent-after-brace))))))))
+
+(defun calculate-c-indent-after-brace ()
+  "Return the proper C indent for the first line after an open-brace.
+This function is called with point before the brace."
+  ;; For open brace in column zero, don't let statement
+  ;; start there too.  If c-indent-level is zero,
+  ;; use c-brace-offset + c-continued-statement-offset instead.
+  ;; For open-braces not the first thing in a line,
+  ;; add in c-brace-imaginary-offset.
+  (+ (if (and (bolp) (zerop c-indent-level))
+	 (+ c-brace-offset c-continued-statement-offset)
+       c-indent-level)
+     ;; Move back over whitespace before the openbrace.
+     ;; If openbrace is not first nonwhite thing on the line,
+     ;; add the c-brace-imaginary-offset.
+     (progn (skip-chars-backward " \t")
+	    (if (bolp) 0 c-brace-imaginary-offset))
+     ;; If the openbrace is preceded by a parenthesized exp,
+     ;; move to the beginning of that;
+     ;; possibly a different line
+     (progn
+       (if (eq (preceding-char) ?\))
+	   (forward-sexp -1))
+       ;; Get initial indentation of the line we are on.
+       (current-indentation))))
 
 (defun calculate-c-indent-within-comment (&optional after-star)
   "Return the indentation amount for line inside a block comment.
@@ -1220,7 +1225,7 @@ If within a string or comment, move by sentences instead of statements."
 		(if (= (char-after (car contain-stack)) ?{)
 		    (save-excursion
 		      (goto-char (car contain-stack))
-		      (setq val (+ c-indent-level (current-column))))
+		      (setq val (calculate-c-indent-after-brace)))
 		  (setq val (calculate-c-indent
 			     (if (car indent-stack)
 				 (- (car indent-stack))
