@@ -1523,7 +1523,9 @@ mark_object (objptr)
       break;
 
     case Lisp_Vectorlike:
-      if (GC_SUBRP (obj))
+      if (GC_BUFFERP (obj))
+	mark_buffer (obj);
+      else if (GC_SUBRP (obj))
 	break;
       else if (GC_COMPILEDP (obj))
 	/* We could treat this just like a vector, but it is better
@@ -1703,11 +1705,6 @@ mark_object (objptr)
       break;
 #endif /* LISP_FLOAT_TYPE */
 
-    case Lisp_Buffer:
-      if (!XMARKBIT (XBUFFER (obj)->name))
-	mark_buffer (obj);
-      break;
-
     case Lisp_Int:
       break;
 
@@ -1724,12 +1721,13 @@ mark_buffer (buf)
 {
   register struct buffer *buffer = XBUFFER (buf);
   register Lisp_Object *ptr;
+  Lisp_Object base_buffer;
 
   /* This is the buffer's markbit */
   mark_object (&buffer->name);
   XMARK (buffer->name);
 
-  MARK_INTERVAL_TREE (buffer->intervals);
+  MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
 
 #if 0
   mark_object (buffer->syntax_table);
@@ -1753,6 +1751,13 @@ mark_buffer (buf)
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
     mark_object (ptr);
+
+  /* If this is an indirect buffer, mark its base buffer.  */
+  if (buffer->base_buffer)
+    {
+      XSETBUFFER (base_buffer, buffer->base_buffer); 
+      mark_buffer (base_buffer);
+    }
 }
 
 /* Sweep: find all structures not marked, and free them. */
@@ -1970,7 +1975,7 @@ gc_sweep ()
       else
 	{
 	  XUNMARK (buffer->name);
-	  UNMARK_BALANCE_INTERVALS (buffer->intervals);
+	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
 
 #if 0
 	  /* Each `struct Lisp_String *' was turned into a Lisp_Object
