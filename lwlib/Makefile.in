@@ -48,7 +48,8 @@ liblw.a: $(OBJS)
 #If running ranlib fails, probably there is none.
 #That's ok.  So don't stop the build.
 
-lwlib.o:  $(srcdir)/lwlib.c
+# Depend on Makefile so that we recompile if TOOLKIT_DEFINES changes.
+lwlib.o:  $(srcdir)/lwlib.c  Makefile
 	$(CC) -c $(TOOLKIT_DEFINES) $(ALL_CFLAGS) $(srcdir)/lwlib.c
 
 xrdb-cpp.o:  $(srcdir)/xrdb-cpp.c
