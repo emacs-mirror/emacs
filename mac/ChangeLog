@@ -1,3 +1,7 @@
+2003-11-22  Lars Hansen <larsh@math.ku.dk>
+
+	* inc/grp.h: Added.
+
 2003-11-02  Andrew Choi  <akochoi@shaw.ca>
 
 	* src/Emacs.r [!TARGET_API_MAC_CARBON]: Don't define hfdr

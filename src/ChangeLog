@@ -1,3 +1,10 @@
+2003-11-22  Lars Hansen <larsh@math.ku.dk>
+
+	* w32.c (struct the_group): Added.
+	(getgrgid): Added.
+	* mac.c (struct my_group): Added.
+	(getgrgid): Added.
+	
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Fassq, Fassoc, Frassq, Frassoc): Doc fixes.
