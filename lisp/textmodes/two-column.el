@@ -223,7 +223,7 @@
 (defcustom 2C-mode-line-format
 	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
 	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
-  "*Value of mode-line-format for a buffer in two-column minor mode."
+  "*Value of `mode-line-format' for a buffer in two-column minor mode."
   :type 'sexp
   :group 'two-column)
 
