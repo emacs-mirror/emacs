@@ -163,9 +163,10 @@ sample-text: one line short text containing characters of the language.
 input-method: alist of input method names for the language vs information
   for activating them.  Use `register-input-method' (which see)
   to add a new input method to the alist.
-documentation: a string describing how Emacs supports the langauge.
-describe-function: a function to call for descriebing how Emacs supports
- the language.  The function uses information listed abobe.
+documentation: a string describing how Emacs supports the language,
+  or a list of a string, or t.  In the latter two cases,
+  the other detailed information is also shown by the command
+  describe-language-support.
 setup-function: a function to call for setting up environment
  convenient for the language.
 
@@ -184,10 +185,10 @@ different kind of information."
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
     (setcdr key-slot info)
     ;; Setup menu.
-    (cond ((eq key 'describe-function)
+    (cond ((eq key 'documentation)
 	   (define-key-after mule-describe-language-support-map
 	     (vector (intern language-name))
-	     (cons language-name info)
+	     (cons language-name 'describe-specified-language-support)
 	     t))
 	  ((eq key 'setup-function)
 	   (define-key-after mule-set-language-environment-map
@@ -419,60 +420,65 @@ is called."
   (while args (princ (car args)) (setq args (cdr args)))
   (princ "\n"))
 
-(defun describe-language-support (language-name)
-  "Describe how Emacs supports LANGUAGE-NAME.
-
-For that, a function returned by:
-  (get-language-info LANGUAGE-NAME 'describe-function)
-is called."
-  (interactive (list (read-language-name 'documentation "Language: ")))
-  (let (func)
-    (if (or (null language-name)
-	    (null (setq func
-			(get-language-info language-name 'describe-function))))
-	(error "No documentation for the specified language"))
-    (funcall func)))
-
-;; Print LANGUAGE-NAME specific information such as input methods,
+;; Print a language specific information such as input methods,
 ;; charsets, and coding systems.  This function is intended to be
-;; called from various describe-LANGUAGE-support functions defined in
-;; lisp/language/LANGUAGE.el.
-(defun describe-language-support-internal (language-name)
-  (with-output-to-temp-buffer "*Help*"
-    (let ((doc (get-language-info language-name 'documentation)))
+;; called from the menu:
+;;   [menu-bar mule describe-language-support LANGUAGE]
+;; and should not run it by `M-x describe-current-input-method-function'.
+(defun describe-specified-language-support ()
+  "Describe how Emacs supports the specified langugage."
+  (interactive)
+  (let (language-name doc)
+    (if (not (and (symbolp last-command-event)
+		  (setq language-name (symbol-name last-command-event))
+		  (setq doc (get-language-info language-name 'documentation))))
+	(error "Bogus calling sequence"))
+    (with-output-to-temp-buffer "*Help*"
       (if (stringp doc)
-	  (princ-list doc)))
-    (princ "-----------------------------------------------------------\n")
-    (princ-list "List of items specific to "
-		language-name
-		" support")
-    (princ "-----------------------------------------------------------\n")
-    (let ((str (get-language-info language-name 'sample-text)))
-      (if (stringp str)
-	  (progn
-	    (princ "<sample text>\n")
-	    (princ-list "  " str))))
-    (princ "<input methods>\n")
-    (let ((l (get-language-info language-name 'input-method)))
-      (while l
-	(princ-list "  " (car (car l)))
-	(setq l (cdr l))))
-    (princ "<character sets>\n")
-    (let ((l (get-language-info language-name 'charset)))
-      (if (null l)
-	  (princ-list "  nothing specific to " language-name)
-	(while l
-	  (princ-list "  " (car l) ": "
-		      (charset-description (car l)))
-	  (setq l (cdr l)))))
-    (princ "<coding systems>\n")
-    (let ((l (get-language-info language-name 'coding-system)))
-      (if (null l)
-	  (princ-list "  nothing specific to " language-name)
-	(while l
-	  (princ-list "  " (car l) ":\n\t"
-		      (coding-system-docstring (car l)))
-	  (setq l (cdr l)))))))
+	  (princ-list doc)
+	(if (and (listp doc)
+		 (stringp (car doc)))
+	    (princ-list (car doc)))
+	(princ "-----------------------------------------------------------\n")
+	(princ-list "List of items specific to "
+		    language-name
+		    " support")
+	(princ "-----------------------------------------------------------\n")
+	(let ((str (get-language-info language-name 'sample-text)))
+	  (if (stringp str)
+	      (progn
+		(princ "<sample text>\n")
+		(princ-list "  " str))))
+	(princ "<input methods>\n")
+	(let ((l (get-language-info language-name 'input-method)))
+	  (while l
+	    (princ-list "  " (car (car l)))
+	    (setq l (cdr l))))
+	(princ "<character sets>\n")
+	(let ((l (get-language-info language-name 'charset)))
+	  (if (null l)
+	      (princ-list "  nothing specific to " language-name)
+	    (while l
+	      (princ-list "  " (car l) ": "
+			  (charset-description (car l)))
+	      (setq l (cdr l)))))
+	(princ "<coding systems>\n")
+	(let ((l (get-language-info language-name 'coding-system)))
+	  (if (null l)
+	      (princ-list "  nothing specific to " language-name)
+	    (while l
+	      (princ-list "  " (car l) ":\n\t"
+			  (coding-system-docstring (car l)))
+	      (setq l (cdr l)))))))))
+
+(defun describe-language-support (language-name)
+  "Describe how Emacs supports LANGUAGE-NAME."
+  (interactive (list (read-language-name 'documentation "Language: ")))
+  (if (or (null language-name)
+	  (null (get-language-info language-name 'documentation)))
+      (error "No documentation for the specified language"))
+  (let ((last-command-event (intern language-name)))
+    (describe-specified-language-support)))
 
 ;;; Charset property
 
