@@ -440,15 +440,35 @@ Optional prefix argument FORCE non-nil means CODING-SYSTEM is set
   (set-buffer-modified-p t)
   (force-mode-line-update))
 
-(defun set-current-process-coding-system (input output)
+(defun set-terminal-coding-system (coding-system)
+  "Set coding system of your terminal to CODING-SYSTEM.
+All outputs to terminal are encoded by the specified coding system."
+  (interactive "zCoding-system for terminal display: ")
+  (set-terminal-coding-system-internal coding-system)
+  (redraw-frame (selected-frame)))
+
+(defun set-keyboard-coding-system (coding-system)
+  "Set coding system of codes sent from terminal keyboard to CODING-SYSTEM.
+In addition, this command toggles Encoded-kbd minor mode.
+If the specified coding system is nil, Encoded-bkd mode is turned off,
+else it is turned on so that user inputs are decoded by the
+specified coding system."
+  (interactive "zCoding-system for keyboard input: ")
+  (set-keyboard-coding-system-internal coding-system)
+  (encoded-kbd-mode (if coding-system 1 0)))
+
+(defun set-buffer-process-coding-system (decoding encoding)
+  "Set coding systems to the process associated with the current buffer.
+DECODING is the coding system to be used to decode input from the process,
+ENCODING is to be used to encode output to the process."
   (interactive
    "zCoding-system for process input: \nzCoding-system for process output: ")
   (let ((proc (get-buffer-process (current-buffer))))
     (if (null proc)
 	(error "no process")
-      (check-coding-system input)
-      (check-coding-system output)
-      (set-process-coding-system proc input output)))
+      (check-coding-system decoding)
+      (check-coding-system encoding)
+      (set-process-coding-system proc decoding encoding)))
   (force-mode-line-update))
 
 (defvar default-process-coding-system (cons nil nil)
@@ -501,7 +521,7 @@ LIST is a list of coding-categories ordered by priority."
   "Return a coding system for a buffer when a file of CODING is inserted.
 The local variable `buffer-file-coding-system' of the current buffer
 is set to the returned value.
- Return nil if there's no need of setting new buffer-file-coding-system."
+Return nil if there's no need of setting new buffer-file-coding-system."
   (let (local-coding local-eol
 	found-eol
 	new-coding new-eol)
