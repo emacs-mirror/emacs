@@ -1,5 +1,17 @@
 2000-03-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/freebsd.h (GC_SETJMP_WORKS): Define.
+
+	* s/msdos.h (GC_SETJMP_WORKS): Define.
+	
+	* alloc.c (mark_maybe_object): New function.
+	(mark_memory): Use it.
+	(SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK): New macros.
+	(setjmp_tested_p, longjmp_done): New variables.
+	(test_setjmp): New function.
+	(mark_stack) [!GC_SETJMP_WORKS]: Call test_setjmp.
+	(init_alloc): Initialize setjmp_tested_p and longjmp_done.
+
 	* xdisp.c (face_before_or_after_it_pos): Pass multibyteness
 	to DEC_TEXT_POS and INC_TEXT_POS.
 
@@ -10,8 +22,8 @@
 	MULTIBYTE_P.
 
 	* editfns.c (Fsubst_char_in_region): Don't use INC_POS in unibyte
-	buffers because it looks for multibyte character sequences which
-	don't exist in unibyte text.
+	buffers because it looks for multibyte character byte sequences
+	which don't exist in unibyte text.
 
 	* xterm.h (x_specified_cursor_type, x_copy_color): Add prototypes.
 
