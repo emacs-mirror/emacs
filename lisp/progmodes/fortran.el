@@ -434,8 +434,8 @@ These get fixed-format comments fontified.")
 	 ["Reset to Saved" Custom-reset-saved t]
 	 ["Reset to Standard Settings" Custom-reset-standard t]
 	 "----"
-	 ["Toggle Auto-fill" fortran-auto-fill-mode :style toggle
-	  :selected (eq auto-fill-function 'fortran-auto-fill)]
+	 ["Toggle Auto-fill" auto-fill-mode :style toggle
+	  :selected auto-fill-function]
 	 ["Toggle abbrev-mode" abbrev-mode :style toggle :selected abbrev-mode]
 	 "----"
 	 ["Comment-out Region" fortran-comment-region mark-active]
@@ -662,6 +662,7 @@ with no args, if that value is non-nil."
   (setq imenu-generic-expression fortran-imenu-generic-expression)
   (setq imenu-syntax-alist '(("_$" . "w")))
   (set (make-local-variable 'fill-paragraph-function) 'fortran-fill-paragraph)
+  (set (make-local-variable 'normal-auto-fill-function) 'fortran-auto-fill)
   (set (make-local-variable 'indent-line-function) 'fortran-indent-line)
   (set (make-local-variable 'indent-region-function)
        (lambda (start end)
@@ -1594,19 +1595,8 @@ Return t if `comment-start-skip' found, nil if not."
 	  ;; result is
 	  (nth 3 parse-state))))))
 
-(defun fortran-auto-fill-mode (arg)
-  "Toggle fortran-auto-fill mode.
-With ARG, turn `fortran-auto-fill' mode on iff ARG is positive.
-In `fortran-auto-fill' mode, inserting a space at a column beyond `fill-column'
-automatically breaks the line at a previous space."
-  (interactive "P")
-  (prog1 (setq auto-fill-function
-	       (if (if (null arg)
-		       (not auto-fill-function)
-		     (> (prefix-numeric-value arg) 0))
-		   #'fortran-auto-fill
-		 nil))
-    (force-mode-line-update)))
+;; From old version.
+(defalias 'fortran-auto-fill-mode 'auto-fill-mode)
 
 (defun fortran-fill ()
   (let* ((auto-fill-function #'fortran-auto-fill)
