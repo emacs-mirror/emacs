@@ -152,6 +152,8 @@ and then returns."
 						       (point-max))
 						      "" " or Space to scroll")))
 				     char (aref key 0))))))
+		     ;; We don't need the prompt any more.
+		     (message "")
 		     ;; Mouse clicks are not part of the help feature,
 		     ;; so reexecute them in the standard environment.
 		     (if (listp char)
