@@ -188,16 +188,17 @@ files produced by @TeX{}, @samp{.bak} files, and the @samp{.orig} and
 @samp{.rej} files produced by @code{patch}.
 
 @kindex # @r{(Dired)}
-@kindex ~ @r{(Dired)}
 @findex dired-flag-auto-save-files
-@findex dired-flag-backup-files
 @cindex deleting auto-save files
   @kbd{#} (@code{dired-flag-auto-save-files}) flags for deletion all
 files whose names look like auto-save files (@pxref{Auto Save})---that
-is, files whose names begin and end with @samp{#}.  @kbd{~}
-(@code{dired-flag-backup-files}) flags for deletion all files whose
-names say they are backup files (@pxref{Backup})---that is, whose names
-end in @samp{~}.
+is, files whose names begin and end with @samp{#}.
+
+@kindex ~ @r{(Dired)}
+@findex dired-flag-backup-files
+  @kbd{~} (@code{dired-flag-backup-files}) flags for deletion all files
+whose names say they are backup files (@pxref{Backup})---that is, whose
+names end in @samp{~}.
 
 @kindex . @r{(Dired)}
 @vindex dired-kept-versions
@@ -450,7 +451,7 @@ name.
 @findex dired-undo
 Undo changes in the Dired buffer, such as adding or removing
 marks (@code{dired-undo}).  @emph{This command does not revert the
-actual file operations, nor recovers lost files!}  It just undoes
+actual file operations, nor recover lost files!}  It just undoes
 changes in the buffer itself.  For example, if used after renaming one
 or more files, @code{dired-undo} restores the original names, which
 will get the Dired buffer out of sync with the actual contents of the
@@ -1060,9 +1061,9 @@ know how to use @code{find}.
 @findex locate-with-filter
 @cindex file database (locate)
 @vindex locate-command
-  @kbd{M-x locate} provides a similar interface to the @code{locate}.
-@kbd{M-x locate-with-filter} is similar, but keeps only lines matching
-a given regular expression.
+  @kbd{M-x locate} provides a similar interface to the @code{locate}
+command.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
+matching a given regular expression.
 
 @vindex find-ls-option
   The format of listing produced by these commands is controlled by the
