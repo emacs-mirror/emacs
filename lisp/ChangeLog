@@ -1,3 +1,9 @@
+2004-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-termcap-format): Synchronyze with terminfo.
+	(term-emulate-terminal): Handle reset.
+	(term-reset-terminal): New function.
+
 2004-12-11  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* play/zone.el (zone-programs): Add `zone-pgm-random-life'.
