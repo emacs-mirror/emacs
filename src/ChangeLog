@@ -1,3 +1,28 @@
+2000-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix, try_window_id):
+	Before scrolling, turn off a mouse-highlight in the window
+	being scrolled.
+
+	* xterm.c (x_update_window_end): Add parameter
+	MOUSE_FACE_OVERWRITTEN_P.  If set, arrange for a mouse-highlight
+	redisplay in XTframe_up_to_date.
+	(x_clear_mouse_face): New function.
+	(x_redisplay_interface): Add pointer to x_clear_mouse_face.
+
+	* dispnew.c (make_current): Preserve the mouse_face_p flag of the
+	current glyph row.
+	(update_window_line): Add parameter MOUSE_FACE_OVERWRITTEN_P.  Set
+	it when any row is written to that contains glyphs highlighted in
+	mouse-face.
+	(update_window): Call the window update end hook with new
+	parameter MOUSE_FACE_OVERWRITTEN_P.
+	(direct_output_for_insert): Give up if row contains mouse-face.
+
+	* dispextern.h (struct redisplay_interface): Add parameter
+	MOUSE_FACE_OVERWRITTEN_P to update_window_end_hook function.
+	(clear_mouse_face): New function pointer member.
+
 2000-07-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (back_comment): Use one switch rather than a few `if's.
