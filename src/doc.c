@@ -633,7 +633,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  if (multibyte)
 	    {
 	      int len;
-	      int maxlen = XSTRING (string)->data + STRING_BYTES (XSTRING (string)) - strp;
 
 	      STRING_CHAR_AND_LENGTH (strp, maxlen, len);
 	      if (len == 1)
@@ -788,7 +787,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else
 	{
 	  int len;
-	  int maxlen = XSTRING (string)->data + STRING_BYTES (XSTRING (string)) - strp;
 
 	  STRING_CHAR_AND_LENGTH (strp, maxlen, len);
 	  if (len == 1)
