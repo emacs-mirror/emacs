@@ -1,3 +1,26 @@
+2003-06-18  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gud-display1): Keep the gdb command, "display", in
+	the command history.
+	(gdb-restore-windows): Make restore work when gdb-many-windows
+	is nil.
+	(gdb-source-info, gdba): Display assembler if there is no symbol
+	table for main, or message if there is no main.
+	(gdb-assembler-custom): Move point to current line of assembler.
+	
+	* progmodes/gud.el (gud-menu-map): Add dbx support for "run" and
+	"nexti".
+	(dbx): Define gud-nexti and gud-run.
+	(gud-find-expr, gud-find-fortran-expr): New functions.
+	(gud-find-expr): New variable.
+	(gud-find-c-expr): Simplify.
+
+	* progmodes/fortran.el (fortran-gud-syntax-table): Syntax table
+	for parsing Fortran expressions for gud-print. (Stefan Monnier)
+	(fortran-mode): Add local variable gud-find-expr.
+
+	* progmodes/cc-mode.el (c-mode): Add local variable gud-find-expr.
+
 2003-06-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (looking-back): Handle the case of non-trivial regexps.
