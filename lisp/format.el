@@ -425,7 +425,7 @@ Optional args BEG and END specify a region of the buffer on which to operate."
       (if end (narrow-to-region (point-min) end))
       (while alist
 	(let ((from (if reverse (cdr (car alist)) (car (car alist))))
-	      (to   (if reverse (car (cdr alist)) (cdr (car alist)))))
+	      (to   (if reverse (car (car alist)) (cdr (car alist)))))
 	  (goto-char beg)
 	  (while (search-forward from nil t)
 	    (goto-char (match-beginning 0))
