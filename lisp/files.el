@@ -1403,12 +1403,8 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	      (rename-buffer buffer-new-name)))
 	;; If buffer has no file name, ask user for one.
 	(or buffer-file-name
-	    (progn
-	      (setq buffer-file-name
-		    (expand-file-name (read-file-name "File to save in: ") nil)
-		    default-directory (file-name-directory buffer-file-name))
-	      (and auto-save-default (not buffer-auto-save-file-name)
-		   (auto-save-mode t))))
+	    (set-visited-file-name
+	     (expand-file-name (read-file-name "File to save in: ") nil)))
 	(or (verify-visited-file-modtime (current-buffer))
 	    (not (file-exists-p buffer-file-name))
 	    (yes-or-no-p
