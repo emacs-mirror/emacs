@@ -913,7 +913,12 @@ really-oldXMenu:
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
 #endif /* not USE_X_TOOLKIT */
-#endif /* HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS */
+#else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
+
+/* We don't really need this, but satisfy the dependency.  */
+stamp-oldxmenu:
+	touch stamp-oldxmenu
+#endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
 
 ../config.status:: paths.in
 	@echo "The file paths.h needs to be set up from paths.in."
