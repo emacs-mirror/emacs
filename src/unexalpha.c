@@ -398,9 +398,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 	 stat.st_size - ohdr.fhdr.f_symptr - cbHDRR,
 	 "writing symbol table of %s", new_name);
 
-#ifndef __linux__
+
   update_dynamic_symbols (oldptr, new_name, new, nhdr.aout);
-#endif
 
 #undef symhdr
 
@@ -415,15 +414,14 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 
 
 
-
-#ifndef __linux__
-
 update_dynamic_symbols (old, new_name, new, aout)
      char *old;			/* Pointer to old executable */
      char *new_name;            /* Name of new executable */
      int new;			/* File descriptor for new executable */
      struct aouthdr aout;	/* a.out info from the file header */
 {
+#if !defined (__linux__) && !defined (__NetBSD__)
+
   typedef struct dynrel_info {
     char * addr;
     unsigned type:8;
@@ -492,9 +490,8 @@ update_dynamic_symbols (old, new_name, new, aout)
 
   }
 
+#endif /* not __linux__ and not __NetBSD__ */
 }
-
-#endif /* !__linux__ */
 
 
 /*
