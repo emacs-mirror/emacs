@@ -43,11 +43,18 @@ even if it is active."
 
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
-This window becomes the uppermost of the two, and gets
-ARG lines.  No arg means split equally."
+The uppermost window gets ARG lines and the other gets the rest.
+With no argument, split equally or close to it.
+Both windows display the same buffer now current.
+The new selected window is the one that the current value of point
+appears in.
+
+The value of point can change if the text around point 
+is hidden by the new mode line."
   (interactive "P")
   (let ((old-w (selected-window))
-	new-w bottom)
+	(old-point (point))
+	new-w bottom switch)
     (setq new-w (split-window nil (and arg (prefix-numeric-value arg))))
     (save-excursion
       (set-buffer (window-buffer))
@@ -59,7 +66,11 @@ ARG lines.  No arg means split equally."
       (vertical-motion -1)
       (setq bottom (point)))
     (if (<= bottom (point))
-	(set-window-point old-w (1- bottom)))))
+	(set-window-point old-w (1- bottom)))
+    (if (< (window-start new-w) old-point)
+	(progn
+	  (set-window-point new-w old-point)
+	  (select-window new-w)))))
 
 (defun split-window-horizontally (&optional arg)
   "Split current window into two windows side by side.
