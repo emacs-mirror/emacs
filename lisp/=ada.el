@@ -1,8 +1,8 @@
 ;;; ada.el --- Ada editing support package in GNUlisp.  v1.0
 
-; Author: Vincent Broman <broman@bugs.nosc.mil>  May 1987.
-; (borrows heavily from Mick Jordan's Modula-2 package for GNU,
-; as modified by Peter Robinson, Michael Schmidt, and Tom Perrine.)
+;; Author: Vincent Broman <broman@bugs.nosc.mil>
+;; Last-Modified: 30 Jan 1991
+;; Keywords: languages
 
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -21,6 +21,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; Created May 1987.
+;; (borrows heavily from Mick Jordan's Modula-2 package for GNU,
+;; as modified by Peter Robinson, Michael Schmidt, and Tom Perrine.)
+
+;;; Code:
 
 (setq auto-mode-alist (cons (cons "\\.ada$" 'ada-mode) auto-mode-alist))
 

@@ -1,11 +1,13 @@
 ;;; map-ynp.el --- General-purpose boolean question-asker.
 
+;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Last-Modified: 14 Mar 1992
+
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
-;;; Written by Roland McGrath.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 ;;;
 ;;; This program is distributed in the hope that it will be useful,
@@ -17,7 +19,9 @@
 ;;; program's author (send electronic mail to roland@ai.mit.edu) or from
 ;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
 ;;; 02139, USA.
-;;;
+
+;;; Commentary:
+
 ;;; map-y-or-n-p is a general-purpose question-asking function.
 ;;; It asks a series of y/n questions (a la y-or-n-p), and decides to
 ;;; applies an action to each element of a list based on the answer.
@@ -25,6 +29,8 @@
 ;;; to use, reminiscent of query-replace: ! to answer y to all remaining
 ;;; questions; ESC or q to answer n to all remaining questions; . to answer
 ;;; y once and then n for the remainder; and you can get help with C-h.
+
+;;; Code:
 
 (defun map-y-or-n-p-help (object objects action)
   (format "Type SPC or `y' to %s the current %s;

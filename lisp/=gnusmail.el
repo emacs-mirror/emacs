@@ -1,13 +1,17 @@
 ;;; gnusmail.el --- mail reply commands for GNUS newsreader
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Last-Modified: 10 Jun 1992
+
 ;; $Header: gnusmail.el,v 1.1 90/03/23 13:24:39 umerin Locked $
+
+;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,7 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(require 'gnus)
+;;; Commentary:
 
 ;; Provides mail reply and mail other window command using usual mail
 ;; interface and mh-e interface.
@@ -31,6 +35,10 @@
 ;; To use MH-E: set the variables gnus-mail-reply-method and
 ;; gnus-mail-other-window-method to gnus-mail-reply-using-mhe and
 ;; gnus-mail-other-window-using-mhe, respectively.
+
+;;; Code:
+
+(require 'gnus)
 
 (autoload 'news-mail-reply "rnewspost")
 (autoload 'news-mail-other-window "rnewspost")

@@ -3,13 +3,15 @@
 ;; Maintainer: FSF
 ;; Last-Modified: 21 Jan 1987
 
+;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
+
 ;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -27,8 +29,6 @@
 ;;; Changes to Control-G handler require runtime version 13.85 or later
 
 ;;; Code:
-
-;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
 
 (require 'scheme)
 

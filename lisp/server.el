@@ -1,7 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
-;; Last-Modified: 5 Dec 1991
+;; Last-Modified: 05 Dec 1991
 
 ;; Changes by peck@sun.com and by rms.
 
@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,

@@ -1,5 +1,10 @@
 ;;; edt.el --- EDT emulation in Emacs
 
+;; Author: Mike Clarkson <mike@yetti.UUCP>
+;; Maintainer: FSF
+;; Created: 27 Aug 1986
+;; Last-Modified: 09 May 1991
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 ;;  It started from public domain code by Mike Clarkson
 ;;  but has been greatly altered.
@@ -8,7 +13,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -20,24 +25,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; From mike@yetti.UUCP Fri Aug 29 12:49:28 1986
-;; Path: yetti!mike@uunet.uu.net
-;; From: mike@yetti.UUCP (Mike Clarkson )
-;; Newsgroups: net.sources
-;; Subject: Gnu Emacs EDT Emulation - Introduction - 1/3
-;; Date: 27 Aug 86 23:30:33 GMT
-;; Reply-To: mike@yetti.UUCP (Mike Clarkson )
-;; Organization: York University Computer Science
-;; 
+;;; Commentary:
+
 ;; Here's my EDT emulation for GNU Emacs that is based on the EDT emulation
 ;; for Gosling's Emacs sent out on the net a couple of years ago by Lynn Olson
 ;; at Tektronics.  This emulation was widely distributed as the file edt.ml
 ;; in the maclib directory of most Emacs distributions.
-;;      
-;; My emulation consists of two files: edt.el and edtdoc.el.  The edtdoc.el
-;; file is the documentation, that you can add to the beginning of edt.el if
-;; you want.  I have split them because I have been loading the edt.el file a
-;; lot during debugging.
 ;;      
 ;; I will gladly take all criticisms and complaints to heart, and will fix what
 ;; bugs I can find.  As this is my first Emacs Lisp hack, you may have to root
@@ -120,12 +113,8 @@
 ;; UUCP.  If you have a UUCP or BITNET address please use it for communication
 ;; so that I can reach you directly.  If you have both, the BITNET address
 ;; is preferred.
-;; -- 
-;; Mike Clarkson,		  ...!allegra \		BITNET:	mike@YUYETTI or
-;; CRESS, York University,	  ...!decvax   \		SYMALG@YUSOL
-;; 4700 Keele Street,	  ...!ihnp4     > !utzoo!yetti!mike
-;; North York, Ontario,	  ...!linus    /		     
-;; CANADA M3J 1P3.		  ...!watmath /	Phone: +1 (416) 737-2100 x 7767
+
+;;; Code:
 
 (require 'keypad)
 

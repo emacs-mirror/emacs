@@ -1,8 +1,8 @@
 ;;; array.el --- array editing commands for Gnu Emacs
 
-;;;  Written by dmb%morgoth@harvard.harvard.edu (address is old)
-;;;   (David M. Brown at Goldberg-Zoino & Associates, Inc.)
-;;;  Thanks to cph@kleph.ai.mit.edu for assistance
+;; Author David M. Brown
+;; Maintainer: FSF
+;; Last-Modified: 30 Jan 1991
 
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -22,12 +22,19 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;;;  Written by dmb%morgoth@harvard.harvard.edu (address is old)
+;;;   (David M. Brown at Goldberg-Zoino & Associates, Inc.)
+;;;  Thanks to cph@kleph.ai.mit.edu for assistance
+
 ;;; To do:
 ;;;   Smooth initialization process by grokking local variables list
 ;;;     at end of buffer or parsing buffer using whitespace as delimiters.
 ;;;   Make 'array-copy-column-right faster.
 
 
+;;; Code:
 
 ;;; Internal information functions.
   

@@ -1,6 +1,30 @@
-;;; fortran.el --- Fortran mode for GNU Emacs  (version 1.28.3, July 15, 1991)
+;;; fortran.el --- Fortran mode for GNU Emacs
+
+;; Author: Michael D. Prange <prange@erl.mit.edu>
+;; Maintainer: bug-fortran-mode@erl.mit.edu
+;; Version 1.28.3
+;; Last-Modified: 15 Jul 1991
 
 ;;; Copyright (c) 1991 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
 ;;; Written by Michael D. Prange (prange@erl.mit.edu)
 ;;; Maintained (as of version 1.28) by Stephen A. Wood (saw@hallc1.cebaf.gov)
 ;;; This version is an update of version 1.21 (Oct 1, 1985).
@@ -70,25 +94,11 @@
 ;;; 14. When in tab mode, the fortran column ruler will not be correct if
 ;;;     tab-width is not 8.
 
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
-;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
 ;;; Author acknowledges help from Stephen Gildea <gildea@erl.mit.edu>
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
+
+;;; Code:
 
 ;;;###autoload
 (defvar fortran-tab-mode-default nil

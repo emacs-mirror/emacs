@@ -9,7 +9,7 @@
 
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 
 ;;; GNU Emacs is distributed in the hope that it will be useful,
@@ -579,7 +579,7 @@ This is a good place to put keybindings.")
 ;;;   The variables and functions that were changed to have "cmushell-" 
 ;;;   prefixes are:
 ;;;       shell-directory-stack (v), shell-directory-tracker (f)
-;;;   This should not affect users, only elisp hackers. Hopefully
+;;;   This should not affect users, only Emacs Lisp hackers. Hopefully
 ;;;   one day shell.el will just go away, and we can drop all this
 ;;;   "cmushell" bullshit.
 ;;; - Upgraded process sends to use comint-send-string instead of

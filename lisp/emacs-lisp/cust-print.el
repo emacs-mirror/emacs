@@ -1,9 +1,9 @@
 ;; cus-print.el -- handles print-level and print-circle.
 
-;; LCD Archive Entry:
-;; custom-print|Daniel LaLiberte|liberte@cs.uiuc.edu
-;; |Handle print-level, print-circle and more.
-;; |$Date: Tue Mar 17, 1992$|$Revision: 1.0$|
+;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Version: 1.0
+;; Last-Modified: 17 Mar 1992
+;; Adapted-By: ESR
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -22,6 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;; This package provides a general print handler for prin1 and princ
 ;; that supports print-level and print-circle, and by the way,
@@ -88,6 +90,7 @@
 ;; custom-message
 ;; custom-error
 
+;;; Code:
 
 (provide 'custom-print)
 ;; Abbreviated package name: "CP"

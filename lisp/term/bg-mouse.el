@@ -1,13 +1,18 @@
 ;;; bg-mouse.el --- GNU Emacs code for BBN Bitgraph mouse.
 
+;; Author: John Robinson <jr@bbn-unix.arpa>
+;;	Stephen Gildea <gildea@bbn.com>
+;; Maintainer: FSF
+;; Last-Modified: 14 Jul 1992
+;; Keywords: hardware
+
 ;; Copyright (C) Free Software Foundation, Inc. Oct 1985.
-;; Time stamp <89/03/21 14:27:08 gildea>
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,9 +24,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 ;;;  Original version by John Robinson (jr@bbn-unix.arpa, bbncca!jr), Oct 1985
 ;;;  Modularized and enhanced by gildea@bbn.com Nov 1987
+;;;  Time stamp <89/03/21 14:27:08 gildea>
 
 ;;;  User customization option:
 
@@ -62,9 +69,9 @@ To reinitialize the mouse if the terminal is reset, type ESC : RET"
   (interactive "P")
   (bg-get-tty-num semicolon)
   (let*
-      ((screen-mouse-x (min (1- (screen-width))	;don't hit column 86!
+      ((screen-mouse-x (min (1- (frame-width))	;don't hit column 86!
 			    (/ (bg-get-tty-num semicolon) 9)))
-       (screen-mouse-y (- (1- (screen-height)) ;assume default font size.
+       (screen-mouse-y (- (1- (frame-height)) ;assume default font size.
 			  (/ (bg-get-tty-num semicolon) 16))) 
        (bg-mouse-buttons (% (bg-get-tty-num ?c) 8))
        (bg-mouse-window (bg-window-from-x-y screen-mouse-x screen-mouse-y))

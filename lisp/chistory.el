@@ -1,13 +1,16 @@
 ;;; chistory.el --- list command history
 
+;; Author: K. Shane Hartman
+;; Maintainer: FSF
+;; Last-Modified: 16 Mar 1992
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
-;; Principal author K. Shane Hartman
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,11 +22,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ;; This really has nothing to do with list-command-history per se, but
 ;; its a nice alternative to C-x ESC (repeat-complex-command) and
 ;; functions as a lister if given no pattern.  It's not important
 ;; enough to warrant a file of its own.
+
+;;; Code:
 
 ;;;###autoload
 (defun repeat-matching-complex-command (&optional pattern)

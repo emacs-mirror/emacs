@@ -1,18 +1,15 @@
 ;;; page-ext.el --- page handling commands
 
-;;; by Robert J. Chassell
-
-;;; You may use these commands to handle an address list or other
-;;; small data base.
+;; Author: Robert J. Chassell <bob@gnu.ai.mit.edu>
+;; Last-Modified: 10 Apr 1991
 
 ;;; Copyright (C) 1990 Free Software Foundation
-;;; Please send bug reports to bob@ai.mit.edu
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -23,6 +20,13 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;;; You may use these commands to handle an address list or other
+;;; small data base.
+
+;;; Change Log:
 
 ;;; Change Log ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -132,6 +136,7 @@
 ;;; 28 Jan 1990 - Initial definitions.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;; Code:
 
 ;;;; Summary
 

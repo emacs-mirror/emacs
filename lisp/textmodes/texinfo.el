@@ -1,6 +1,8 @@
 ;;;; texinfo.el ---- major mode for editing Texinfo files.
 
-;;;; Version 2.00   14 Dec 1990
+;; Author: Bob Chassell <bob@gnu.ai.mit.edu>
+;; Version: 2.00
+;; Last-Modified: 14 Dec 1990
 
 ;; Copyright (C) 1985, 1988, 1989, 1990 Free Software Foundation, Inc.
 
@@ -8,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 (require 'texnfo-upd)
 (require 'tex-mode)

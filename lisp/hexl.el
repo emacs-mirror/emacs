@@ -1,4 +1,7 @@
-;;; hexl-mode.el --- edit a file in a hex dump format.
+;;; hexl-mode.el --- edit a file in a hex dump format using the hexl filter.
+
+;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
+;; Last-Modified: 06 Mar 1991
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
@@ -6,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,9 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;
-;; By: Keith Gabryelski (ag@wheaties.ai.mit.edu)
-;;
+;;; Commentary:
+
 ;; This may be useful in your .emacs:
 ;;
 ;;	(autoload 'hexl-find-file "hexl"
@@ -36,6 +38,8 @@
 ;; -iso in `hexl-options' will allow iso characters to display in the
 ;; ASCII region of the screen (if your emacs supports this) instead of
 ;; changing them to dots.
+
+;;; Code:
 
 ;;
 ;; vars here

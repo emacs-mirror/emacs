@@ -1,12 +1,17 @@
 ;;; appt.el --- appointment notification functions.
 
+;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
+;; Version: 2.1
+;; Last-Modified: 14 Jul 1992
+;; Keywords: calendar
+
 ;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,12 +23,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;;
 ;; appt.el - visible and/or audible notification of
 ;;           appointments from ~/diary file generated from
 ;;           Edward M. Reingold's calendar.el.
 ;;
-;; Version 2.1
 ;;
 ;; Comments, corrections, and improvements should be sent to
 ;; Neil M. Mager
@@ -99,6 +105,9 @@
 ;;; reads. This is all done automatically.
 ;;; It is invoked from the function list-diary-entries.
 ;;;
+
+;;; Code:
+
 (defvar appt-issue-message t
   "*Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the time

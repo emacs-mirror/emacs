@@ -1,13 +1,17 @@
 ;;; scheme.el --- Scheme mode, and its idiosyncratic commands.
 
+;; Author: Bill Rozas <jinz@prep.ai.mit.edu>
+;; Last-Modified: 16 Mar 1992
+
+;;; $Header: scheme.el,v 1.7 88/07/15 20:20:00 GMT cph Exp $
+
 ;; Copyright (C) 1986, 1987, 1988 Free Software Foundation, Inc.
-;; Adapted from Lisp mode by Bill Rozas, jinx@prep.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,13 +23,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
+;; Adapted from Lisp mode by Bill Rozas, jinx@prep.
 ;; Initially a query replace of Lisp mode, except for the indentation 
 ;; of special forms.  Probably the code should be merged at some point 
 ;; so that there is sharing between both libraries.
 
-;;; $Header: scheme.el,v 1.7 88/07/15 20:20:00 GMT cph Exp $
-
+;;; Code:
 
 (defvar scheme-mode-syntax-table nil "")
 (if (not scheme-mode-syntax-table)

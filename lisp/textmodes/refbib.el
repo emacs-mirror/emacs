@@ -1,12 +1,15 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
+;; Maintainer: FSF
+;; Last-Modified: 16 Mar 1992
+
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,10 +21,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;; Use: from a buffer containing the refer-style bibliography,
 ;;   M-x r2b-convert-buffer
 ;; Program will prompt for an output buffer name, and will log
 ;; warnings during the conversion process in the buffer *Log*.
+
+;;; Change Log:
 
 ; HISTORY
 ; 9/88, created
@@ -45,6 +52,9 @@
 ; modified 3/1/89,  fixed capitialize-title for first words all caps
 ; modified 3/15/89, allow use of " to delimit fields
 ; modified 4/18/89, properly "quote" special characters on output
+
+;;; Code:
+
 ;**********************************************************
 ; User Parameters
 

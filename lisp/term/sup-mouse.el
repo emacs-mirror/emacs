@@ -1,15 +1,11 @@
-;;; sup-mouse.el --- GNU Emacs code for lambda/supdup mouse
+;;; sup-mouse.el --- supdup mouse support for lisp machines
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;									     ;;
-;;	File:     sup-mouse.el						     ;;
-;;	Author:   Wolfgang Rupprecht					     ;;
-;;	Created:  Fri Nov 21 19:22:22 1986				     ;;
-;;	Contents: supdup mouse support for lisp machines		     ;;
-;;									     ;;
-;;     (from code originally written by John Robinson@bbn for the bitgraph)  ;;
-;;									     ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Author: Wolfgang Rupprecht
+;; Maintainer: FSF
+;; Created: 21 Nov 1986
+;; Last-Modified: 16 Mar 1992
+
+;;     (from code originally written by John Robinson@bbn for the bitgraph)
 
 ;; Copyright (C) Free Software Foundation 1985, 1986
 
@@ -17,7 +13,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -28,6 +24,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 ;;;  User customization option:
 

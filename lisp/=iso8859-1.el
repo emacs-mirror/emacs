@@ -1,11 +1,16 @@
-;; Set up case-conversion and syntax tables for ISO 8859/1 character set.
+;; iso8859-1.el --- set up case-conversion and syntax tables for ISO 8859/1
+
+;; Author: Howard Gayle
+;; Maintainer: FSF
+;; Last-Modified: 24 Jun 1992
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -17,6 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 ;; Written by Howard Gayle.  See case-table.el for details.
 

@@ -1,4 +1,8 @@
-;;; iso-ascii.el --- set up char tables for ISO 8859/1 character set for ASCII terminals.
+;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals.
+
+;; Author: Howard Gayle
+;; Maintainer: FSF
+;; Last-Modified: 16 Mar 1992
 
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
@@ -6,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,12 +22,15 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ;; Written by Howard Gayle.  See display-table.el for details.
 
 ;; This code sets up to display ISO 8859/1 characters on plain
 ;; ASCII terminals.  The display strings for the characters are
 ;; more-or-less based on TeX.
+
+;;; Code:
 
 (require 'disp-table)
 

@@ -1,12 +1,15 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands.
 
+;; Maintainer: FSF
+;; Last-Modified: 05 Dec 1991
+
 ;; Copyright (C) 1986, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,12 +21,15 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ;; These are default settings for names of certain files and directories
 ;; that Emacs needs to refer to from time to time.
 
 ;; If these settings are not right, override them with `setq'
 ;; in site-init.el.  Do not change this file.
+
+;;; Code:
 
 (defvar Info-default-directory-list
   (list "/usr/local/lib/info/"

@@ -1,7 +1,7 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file.
 
 ;; Maintainer: FSF
-;; Last-Modified: 1 Mar 1991
+;; Last-Modified: 01 Mar 1991
 
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,

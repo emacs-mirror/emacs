@@ -1,4 +1,8 @@
-;; Tags facility for Emacs.
+;; etags.el --- etags facility for Emacs
+
+;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Keywords: tools
+
 ;; Copyright (C) 1985, 1986, 1988, 1989, 1991, 1992
 ;;	Free Software Foundation, Inc.
 
@@ -17,6 +21,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 ;;;###autoload
 (defvar tags-file-name nil "\
@@ -1079,3 +1085,5 @@ for \\[find-tag] (which see).  See also `visit-tags-table-buffer'."
 ;;;###autoload (define-key esc-map "?" 'complete-tag)	;? XXX
 
 (provide 'etags)
+
+;;; etags.el ends here

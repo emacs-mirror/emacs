@@ -1,8 +1,8 @@
 ;;; profile.el -- generate run time measurements of Emacs Lisp functions
 
 ;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
-;; Created: 7 Feb 1992
-;; Last-Modified: 7 Feb 1992
+;; Created: 07 Feb 1992
+;; Last-Modified: 07 Feb 1992
 ;; Version: 1.0
 ;; Adapted-By: ESR
 
@@ -12,7 +12,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,

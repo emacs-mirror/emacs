@@ -1,9 +1,7 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-; buggestions to mly@ai.mit.edu
-
-;; who says one can't have typeout windows in gnu emacs?
-;; like ^r select buffer from its emacs lunar or tmacs libraries.
+;; Author: Richard Mlynarik <mly@ai.mit.edu>
+;; Last-Modified: 21 Dec 1991
 
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
@@ -11,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -23,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; who says one can't have typeout windows in gnu emacs?
+;; like ^r select buffer from its emacs lunar or tmacs libraries.
+
+;;; Code:
 
 (require 'electric)
 

@@ -1,6 +1,8 @@
 ;;;; texinfmt.el --- convert Texinfo files to Info files.
 
-;;;; Version 2.00   14 Dec 1990
+;; Author: Robert J. Chassell <bob@gnu.ai.mit.edu>
+;; Version: 2.00
+;; Last-Modified: 14 Dec 1990
 
 ;; Copyright (C) 1985, 1986, 1988, 1990 Free Software Foundation, Inc.
 
@@ -8,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -20,11 +22,15 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;; Updated May 1990 to correspond, more or less, to version 2.8 of
 ;; texinfo.tex.  NOTE: texinfmt.el is being phased out; it is being
 ;; replaced by makeinfo.c, which is faster and provides better error
 ;; checking.  
 ;; Robert J. Chassell, bob@ai.mit.edu
+
+;;; Code:
 
 (defvar texinfo-format-syntax-table nil)
 

@@ -1,12 +1,15 @@
 ;;; sun-fns.el --- subroutines of Mouse handling for Sun windows
 
+;; Author: Jeff Peck <peck@sun.com>
+;; Last-Modified: 14 Aug 1987
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;;; Submitted Mar. 1987, Jeff Peck
 ;;;		 	 Sun Microsystems Inc. <peck@sun.com>
 ;;; Conceived Nov. 1986, Stan Jefferson,
@@ -25,7 +30,6 @@
 ;;; GoodIdeas Feb. 1987, Steve Greenbaum
 ;;; & UpClicks           Reasoning Systems, Inc.
 ;;;
-(require 'sun-mouse)
 ;;;
 ;;; Functions for manipulating via the mouse and mouse-map definitions
 ;;; for accessing them.  Also definitons of mouse menus.
@@ -48,6 +52,11 @@
 ;;; bind the mouse button to an s-exp that contains the necessary parameters.
 ;;; See "minibuffer" bindings for examples.
 ;;;
+
+;;; Code:
+
+(require 'sun-mouse)
+
 (defconst cursor-pause-milliseconds 300
   "*Number of milliseconds to display alternate cursor (usually the mark)")
 

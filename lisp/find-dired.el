@@ -1,13 +1,18 @@
 ;; find-dired.el --- run a `find' command and dired the output
 
-;;; Copyright (C) 1991 Roland McGrath
+;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;;	Sebastian Kremer <sk@thp.uni-koeln.de>
+;; Maintainer: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Last-Modified: 16 Mar 1992
 
 (defconst find-dired-version (substring "$Revision: 1.9 $" 11 -2)
   "$Id: find-dired.el,v 1.9 1991/11/11 13:24:31 sk Exp $")
 
+;;; Copyright (C) 1991 Roland McGrath
+
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 ;;;
 ;;; This program is distributed in the hope that it will be useful,
@@ -19,13 +24,8 @@
 ;;; program's author (send electronic mail to roland@ai.mit.edu) or from
 ;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
 ;;; 02139, USA.
-;;;
-;; LISPDIR ENTRY for the Elisp Archive ===============================
-;;    LCD Archive Entry:
-;;    find-dired|Roland McGrath, Sebastian Kremer
-;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
-;;    |Run a `find' command and dired the output
-;;    |$Date: 1991/11/11 13:24:31 $|$Revision: 1.9 $|
+
+;;; Commentary:
 
 ;; INSTALLATION ======================================================
 
@@ -45,6 +45,8 @@
 ;;   (global-set-key "\C-cl" 'find-grep-dired)
 ;;
 ;; in your ~/.emacs.
+
+;;; Code:
 
 (require 'dired)
 ;;;###autoload

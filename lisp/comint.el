@@ -1,12 +1,16 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
+;; Maintainer: Olin Shivers <shivers@cs.cmu.edu>
+;; Last-Modified: 16 Jul 1992
+;; Version: 2.03
+
 ;;; Copyright Olin Shivers (1988).
 
 ;;; This file is part of GNU Emacs.
 
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 
 ;;; GNU Emacs is distributed in the hope that it will be useful,
@@ -17,6 +21,8 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
 
 ;;; The changelog is at the end of this file.
 
@@ -56,8 +62,6 @@
 ;;; For hints on converting existing process modes (e.g., tex-mode,
 ;;; background, dbx, gdb, kermit, prolog, telnet) to use comint-mode
 ;;; instead of shell-mode, see the notes at the end of this file.
-
-(defconst comint-version "2.03")
 
 
 ;;; Brief Command Documentation:
@@ -100,6 +104,10 @@
 
 ;;; comint-mode-hook is the comint mode hook. Basically for your keybindings.
 ;;; comint-load-hook is run after loading in this package.
+
+;;; Code:
+
+(defconst comint-version "2.03")
 
 
 ;;; Buffer Local Variables:

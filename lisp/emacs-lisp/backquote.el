@@ -1,13 +1,15 @@
 ;; backquote.el --- backquoting for Emacs Lisp macros
 
+;; Author: Dick King (king@kestrel).
+;; Last-Modified: 16 Mar 1992
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
-;; Written by Dick King (king@kestrel).
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,8 +21,9 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
-;;; This is a rudimentry backquote package written by D. King,
+ ;;; This is a rudimentry backquote package written by D. King,
  ;;; king@kestrel, on 8/31/85.  (` x) is a macro
  ;;; that expands to a form that produces x.  (` (a b ..)) is
  ;;; a macro that expands into a form that produces a list of what a b
@@ -58,6 +61,7 @@
  ;;; This is so crunchy that I am considering including a check for
  ;;; this or changing the syntax to ... ,(<form>).  RMS: opinion?
 
+;;; Code:
 
 ;;; a raft of general-purpose macros follows.  See the nearest
  ;;; Commonlisp manual.

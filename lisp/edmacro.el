@@ -1,4 +1,9 @@
-;;; edmacro.el --- keyboard macro editor for GNU Emacs.  Version 1.02.
+;;; edmacro.el --- keyboard macro editor
+
+;; Author: Dave Gillespie <daveg@csvax.caltech.edu>
+;; Maintainer: FSF
+;; Version: 1.02
+;; Last-Modified: 09 May 1991
 
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
@@ -6,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,13 +23,15 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Original from: Dave Gillespie, daveg@csvax.caltech.edu.
+;;; Commentary:
 
 ;; To use, type `M-x edit-last-kbd-macro' to edit the most recently
 ;; defined keyboard macro.  If you have used `M-x name-last-kbd-macro'
 ;; to give a keyboard macro a name, type `M-x edit-kbd-macro' to edit
 ;; the macro by name.  When you are done editing, type `C-c C-c' to
 ;; record your changes back into the original keyboard macro.
+
+;;; Code:
 
 ;;; The user-level commands for editing macros.
 

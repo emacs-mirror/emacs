@@ -1,7 +1,7 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
-;; Created: 4 Apr 1990
+;; Created: 04 Apr 1990
 ;; Version: 1.21
 ;; Last-Modified: 10 Mar 1991
 
@@ -11,7 +11,7 @@
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 ;;;
 ;;; GNU Emacs is distributed in the hope that it will be useful,

@@ -1,4 +1,8 @@
-;;; case-table.el --- functions for extending the character set and dealing with case tables.
+;;; case-table.el ---code to extend the character set and support case tables.
+
+;; Author: Howard Gayle
+;; Maintainer: FSF
+;; Last-Modified: 16 Mar 1992
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -6,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,6 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ;; Written by:
 ;; TN/ETX/TX/UMG Howard Gayle        UUCP : seismo!enea!erix!howard
@@ -25,6 +30,8 @@
 ;; Ericsson Telecom     	     Telex: 14910 ERIC S
 ;; S-126 25 Stockholm                FAX  : +46 8 719 64 82
 ;; Sweden
+
+;;; Code:
 
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."

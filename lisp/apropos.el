@@ -1,12 +1,15 @@
 ;;; apropos.el --- faster apropos commands.
 
+;; Author: Joe Wells <jbw@bigbird.bu.edu>
+;; Last-Modified: 5 May 1989
+
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,10 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Author: Joe Wells
-;; Last changed: Fri May  5 18:08:16 1989 by jbw (Joseph Wells) on bucsf
-;; jbw%bucsf.bu.edu@bu-it.bu.edu (school year)
-;; joew@uswest.com (summer)
+;;; Commentary:
 
 ;; The ideas for this package were derived from the C code in
 ;; src/keymap.c and elsewhere.  The functions in this file should
@@ -42,6 +42,8 @@
 ;; Changed doc strings to comments for helping functions.
 ;; Made doc file buffer read-only, buried it.
 ;; Only call substitute-command-keys if do-all set.
+
+;;; Code:
 
 (defvar apropos-do-all nil
   "*Whether `apropos' and `super-apropos' should do everything that they can.
