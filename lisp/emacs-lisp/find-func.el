@@ -418,8 +418,10 @@ The library where SYMBOL is defined is searched for in FILE or
     (let ((library (or file (symbol-file symbol type))))
       (find-function-search-for-symbol symbol type library))))
 
+;; For symmetry, this should be called find-face; but some programs
+;; assume that, if that name is defined, it means something else.
 ;;;###autoload
-(defun find-face (face)
+(defun find-face-definition (face)
   "Find the definition of FACE.  FACE defaults to the name near point.
 
 Finds the Emacs Lisp library containing the definition of the face
