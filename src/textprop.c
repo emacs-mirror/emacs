@@ -1250,7 +1250,7 @@ percentage by which the left interval tree should not differ from the right.");
   interval_balance_threshold = 8;
 
   DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
-	       "If nonnil, don't call the text property values of\n\
+	       "If non-nil, don't call the text property values of\n\
 `point-left' and `point-entered'.");
   Vinhibit_point_motion_hooks = Qnil;
 	       
