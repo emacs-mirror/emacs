@@ -487,15 +487,15 @@ struct x_output
   Cursor nontext_cursor;
   Cursor modeline_cursor;
   Cursor cross_cursor;
-  Cursor busy_cursor;
+  Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
-  /* Window whose cursor is busy_cursor.  This window is temporarily
-     mapped to display a busy-cursor.  */
-  Window busy_window;
+  /* Window whose cursor is hourglass_cursor.  This window is temporarily
+     mapped to display an hourglass cursor.  */
+  Window hourglass_window;
   
-  /* Non-zero means busy cursor is currently displayed.  */
-  unsigned busy_p : 1;
+  /* Non-zero means hourglass cursor is currently displayed.  */
+  unsigned hourglass_p : 1;
 
   /* Flag to set when the X window needs to be completely repainted.  */
   int needs_exposure;
