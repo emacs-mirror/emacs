@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.63 2003/09/01 15:45:17 miles Exp $
+;; $Id: vc-cvs.el,v 1.64 2003/09/24 11:55:45 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -921,23 +921,23 @@ is non-nil."
 	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
-		     (vc-cvs-parse-sticky-tag (match-string 4) (match-string 5)))
+		     (vc-cvs-parse-sticky-tag (match-string 4) 
+                                              (match-string 5)))
     ;; Compare checkout time and modification time.
     ;; This is intentionally different from the algorithm that CVS uses
-    ;; (based on textual comparison), because there can be problems
+    ;; (which is based on textual comparison), because there can be problems
     ;; generating a time string that looks exactly like the one from CVS.
-    (let ((mtime (nth 5 (file-attributes file))))
-      (require 'parse-time)
-      (let ((parsed-time
-	     (parse-time-string (concat (match-string 2) " +0000"))))
-	(cond ((and (not (string-match "\\+" (match-string 2)))
-		    (car parsed-time)
-		    (equal mtime (apply 'encode-time parsed-time)))
-	       (vc-file-setprop file 'vc-checkout-time mtime)
-	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
-	      (t
-	       (vc-file-setprop file 'vc-checkout-time 0)
-	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
+    (let ((mtime (nth 5 (file-attributes file)))
+          (parsed-time
+           (parse-time-string (concat (match-string 2) " +0000"))))
+      (cond ((and (not (string-match "\\+" (match-string 2)))
+                  (car parsed-time)
+                  (equal mtime (apply 'encode-time parsed-time)))
+             (vc-file-setprop file 'vc-checkout-time mtime)
+             (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
+            (t
+             (vc-file-setprop file 'vc-checkout-time 0)
+             (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
 
 (provide 'vc-cvs)
 
