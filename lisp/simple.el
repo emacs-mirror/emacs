@@ -1491,7 +1491,12 @@ at the place matched by the close of the first pair.")
   "*String to insert to end a new comment.
 Should be an empty string if comments are terminated by end-of-line.")
 
-(defconst comment-indent-hook
+(defconst comment-indent-hook nil
+  "Obsolete variable for function to compute desired indentation for a comment.
+This function is called with no args with point at the beginning of
+the comment's starting delimiter.")
+
+(defconst comment-indent-function
   '(lambda () comment-column)
   "Function to compute desired indentation for a comment.
 This function is called with no args with point at the beginning of
@@ -1521,7 +1526,9 @@ the comment's starting delimiter.")
       (setq begpos (point))
       ;; Compute desired indent.
       (if (= (current-column)
-	     (setq indent (funcall comment-indent-hook)))
+	     (if comment-indent-hook
+		 (funcall comment-indent-hook)
+	       (funcall comment-indent-function)))
 	  (goto-char begpos)
 	;; If that's different from current, change it.
 	(skip-chars-backward " \t")

@@ -2994,6 +2994,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 (make-obsolete-variable 'unread-command-event
   "use unread-command-events; this is now a list of events.")
 (make-obsolete-variable 'suspend-hook 'suspend-hooks)
+(make-obsolete-variable 'comment-indent-hook 'comment-indent-function)
 
 (provide 'byte-compile)
 
