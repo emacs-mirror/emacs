@@ -252,43 +252,64 @@ Returns list of symbols and documentation found."
       (setq map (cdr (car maps))
 	    sequence (car (car maps))	;keys to reach this map
 	    maps (cdr maps))
-      (setq i 0)
-      ;; In an alist keymap, skip the leading `keymap', doc string, etc.
-      (while (and (consp map) (not (consp (car map))))
+      ;; Skip the leading `keymap', doc string, etc.
+      (if (eq (car map) 'keymap)
+	  (setq map (cdr map)))
+      (while (stringp (car-safe map))
 	(setq map (cdr map)))
-      (while (and map (< i 128))	;vector keymaps have 128 entries
-	(cond ((consp map)
+      (while (consp map)
+	(cond ((consp (car map))
 	       (setq command (cdr (car map))
-		     key (car (car map))
-		     map (cdr map))
-	       ;; Skip any atoms in the keymap.
-	       (while (and (consp map) (not (consp (car map))))
-		 (setq map (cdr map))))
-	      ((vectorp map)
-	       (setq command (aref map i)
-		     key i
-		     i (1+ i))))
-	;; Skip any menu prompt in this key binding.
-	(and (consp command) (symbolp (cdr command))
-	     (setq command (cdr command)))
-	;; if is a symbol, and matches optional regexp, and is a car
-	;; in alist, and is not shadowed by a different local binding,
-	;; record it
-	(and (symbolp command)
-	     (if regexp (string-match regexp (symbol-name command)))
-	     (setq item (assq command alist))
-	     (if (or (vectorp sequence) (not (integerp key)))
-		 (setq key (vconcat sequence (vector key)))
-	       (setq key (concat sequence (char-to-string key))))
-	     ;; checking if shadowed by local binding.
-	     ;; either no local map, no local binding, or runs off the
-	     ;; binding tree (number), or is the same binding
-	     (or (not current-local-map)
-		 (not (setq local (lookup-key current-local-map key)))
-		 (numberp local)
-		 (eq command local))
-	     ;; add this key binding to the item in alist
-	     (nconc item (cons key nil))))))
+		     key (car (car map)))
+	       ;; Skip any menu prompt in this key binding.
+	       (and (consp command) (symbolp (cdr command))
+		    (setq command (cdr command)))
+	       ;; if is a symbol, and matches optional regexp, and is a car
+	       ;; in alist, and is not shadowed by a different local binding,
+	       ;; record it
+	       (and (symbolp command)
+		    (if regexp (string-match regexp (symbol-name command)))
+		    (setq item (assq command alist))
+		    (if (or (vectorp sequence) (not (integerp key)))
+			(setq key (vconcat sequence (vector key)))
+		      (setq key (concat sequence (char-to-string key))))
+		    ;; checking if shadowed by local binding.
+		    ;; either no local map, no local binding, or runs off the
+		    ;; binding tree (number), or is the same binding
+		    (or (not current-local-map)
+			(not (setq local (lookup-key current-local-map key)))
+			(numberp local)
+			(eq command local))
+		    ;; add this key binding to the item in alist
+		    (nconc item (cons key nil))))
+	      ((vectorp (car map))
+	       (let ((i 0)
+		     (vec (car map))
+		     (len (length (car map))))
+		 (while (< i len)
+		   (setq command (aref vec i))
+		   (setq key i)
+		   ;; Skip any menu prompt in this key binding.
+		   (and (consp command) (symbolp (cdr command))
+			(setq command (cdr command)))
+		   ;; This is the same as the code in the previous case.
+		   (and (symbolp command)
+			(if regexp (string-match regexp (symbol-name command)))
+			(setq item (assq command alist))
+			(if (or (vectorp sequence) (not (integerp key)))
+			    (setq key (vconcat sequence (vector key)))
+			  (setq key (concat sequence (char-to-string key))))
+			;; checking if shadowed by local binding.
+			;; either no local map, no local binding, or runs off the
+			;; binding tree (number), or is the same binding
+			(or (not current-local-map)
+			    (not (setq local (lookup-key current-local-map key)))
+			    (numberp local)
+			    (eq command local))
+			;; add this key binding to the item in alist
+			(nconc item (cons key nil)))
+		   (setq i (1+ i))))))
+	(setq map (cdr map)))))
   alist)
 
 ;; Get an alist item in alist apropos-accumulate whose car is SYMBOL.  Creates
