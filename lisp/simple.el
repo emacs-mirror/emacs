@@ -2265,8 +2265,8 @@ If ARG is zero, move to the beginning of the current line."
 	      (unless (bolp)
 		(goto-char opoint))))
 	(let ((first t))
-	  (while (or first (< arg 0))
-	    (if (zerop arg)
+	  (while (or first (<= arg 0))
+	    (if first
 		(beginning-of-line)
 	      (or (zerop (forward-line -1))
 		  (signal 'beginning-of-buffer nil)))
@@ -2275,13 +2275,12 @@ If ARG is zero, move to the beginning of the current line."
 	    (unless (bobp)
 	      (let ((prop
 		     (get-char-property (1- (point)) 'invisible)))
-		(if (if (eq buffer-invisibility-spec t)
-			prop
-		      (or (memq prop buffer-invisibility-spec)
-			  (assq prop buffer-invisibility-spec)))
-		    (setq arg (1+ arg)))))
-	    (setq first nil)
-	    (setq arg (1+ arg)))
+		(unless (if (eq buffer-invisibility-spec t)
+			    prop
+			  (or (memq prop buffer-invisibility-spec)
+			      (assq prop buffer-invisibility-spec)))
+		  (setq arg (1+ arg)))))
+	    (setq first nil))
 	  ;; If invisible text follows, and it is a number of complete lines,
 	  ;; skip it.
 	  (let ((opoint (point)))
