@@ -1,3 +1,7 @@
+2001-10-07  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): Add `button.elc'.
+
 2001-10-07  Ken Raeburn  <raeburn@gnu.org>
 
 	* minibuf.c (Fminibuffer_prompt_end): Don't apply make_number to a

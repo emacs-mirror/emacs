@@ -1,5 +1,43 @@
 2001-10-07  Miles Bader  <miles@gnu.org>
 
+	* loadup.el ("faces"): Move load before loading "loaddefs.el".
+	("button"): New load, just before "help" (which uses it).
+
+	* help.el (help-mode-map): Make button-buffer-map our parent.
+	Don't bind mouse events or tab/backtab.
+	(help-function, help-variable, help-face, help-coding-system)
+	(help-input-method, help-character-set, help-back, help-info)
+	(help-customize-variable,  help-function-def, help-variable-def):
+	New button types.
+	(help-button-action): New function.
+	(describe-function-1): Pass help button-types to
+	`help-xref-button' rather than help function and help-echo string.
+	Don't put multiple help-function args in a list to pass them to
+	help-xref-button, just pass them as multiple arguments.
+	Use `help-insert-xref-button' to make [back]-button, rather than
+	`help-xref-button'.
+	(help-xref-button): Take a button-type TYPE as a parameter rather
+	than a function.  Remove HELP-ECHO parameter.  Remove DATA parameter
+	and add a &rest parameter ARGS to serve the same purpose.
+	Use `make-text-button' to add the button.
+	(help-insert-xref-button): Use `insert-text-button' to add the button.
+	(help-follow-mouse, help-next-ref, help-previous-ref):
+	Functions removed.
+	(help-do-xref): New function.
+	(help-follow): Use `push-button' and `help-do-xref' to do most of
+	the work.
+
+	* apropos.el (apropos-symbol, apropos-label): New button types.
+	(apropos-symbol-button-display-help) 
+	(apropos-label-button-display-help, apropos-next-label-button):
+	New functions.
+	(apropos-mode-map): Make button-buffer-map our parent.
+	Don't bind mouse events.
+	(apropos-print, apropos-print-doc): Create buttons instead of text
+	properties.
+	(apropos-mouse-follow): Function removed.
+	(apropos-follow): Use buttons.
+
 	* button.el: New file.
 
 2001-10-07  Gerd Moellmann  <gerd@gnu.org>
