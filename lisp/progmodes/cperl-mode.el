@@ -360,7 +360,7 @@ Font for POD headers."
 
 (defcustom cperl-invalid-face ''underline ; later evaluated by `font-lock'
   "*The result of evaluation of this expression highlights trailing whitespace."
-  :type 'face
+  :type 'sexp
   :group 'cperl-faces)
 
 (defcustom cperl-pod-here-fontify '(featurep 'font-lock)
