@@ -1398,6 +1398,17 @@ specifies the value of ERROR-BUFFER."
     (define-key map [?7] 'digit-argument)
     (define-key map [?8] 'digit-argument)
     (define-key map [?9] 'digit-argument)
+    (define-key map [kp-0] 'digit-argument)
+    (define-key map [kp-1] 'digit-argument)
+    (define-key map [kp-2] 'digit-argument)
+    (define-key map [kp-3] 'digit-argument)
+    (define-key map [kp-4] 'digit-argument)
+    (define-key map [kp-5] 'digit-argument)
+    (define-key map [kp-6] 'digit-argument)
+    (define-key map [kp-7] 'digit-argument)
+    (define-key map [kp-8] 'digit-argument)
+    (define-key map [kp-9] 'digit-argument)
+    (define-key map [kp-subtract] 'universal-argument-minus)
     map)
   "Keymap used while processing \\[universal-argument].")
 
@@ -1450,7 +1461,10 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   "Part of the numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
-  (let ((digit (- (logand last-command-char ?\177) ?0)))
+  (let* ((char (if (integerp last-command-char)
+		   last-command-char
+		 (get last-command-char 'ascii-character)))
+	 (digit (- (logand char ?\177) ?0)))
     (cond ((integerp arg)
 	   (setq prefix-arg (+ (* arg 10)
 			       (if (< arg 0) (- digit) digit))))
