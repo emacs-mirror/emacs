@@ -8741,7 +8741,7 @@ x_draw_hollow_cursor (w, row)
      struct glyph_row *row;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  HDC hdc = get_frame_dc (f);
+  HDC hdc;
   RECT rect;
   int wd;
   struct glyph *cursor_glyph;
@@ -8770,7 +8770,7 @@ x_draw_hollow_cursor (w, row)
     wd = min (CANON_X_UNIT (f), wd);
 
   rect.right = rect.left + wd;
-
+  hdc = get_frame_dc (f);
   FrameRect (hdc, &rect, hb);
   DeleteObject (hb);
 
