@@ -214,7 +214,8 @@ or `keymap' property, return the binding of KEY in the string's keymap."
 	 (start (when (vectorp key)
 		  (if (memq (aref key 0) '(mode-line header-line))
 		      (event-start (aref key 1))
-		    (event-start (aref key 0)))))
+		    (and (consp (aref key 0)) 
+			 (event-start (aref key 0))))))
 	 (string-info (and (consp start) (nth 4 start))))
     (when string-info
       (let* ((string (car string-info))
