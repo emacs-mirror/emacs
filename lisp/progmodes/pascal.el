@@ -317,6 +317,7 @@ no args, if that value is non-nil."
   (set-syntax-table pascal-mode-syntax-table)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'pascal-indent-line)
+  (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'pascal-indent-comment)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments nil)
