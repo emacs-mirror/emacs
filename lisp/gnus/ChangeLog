@@ -1,3 +1,15 @@
+2004-08-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-decode.el (mime-display, mime-security): Fix custom-manual
+	entries.
+
+	* gnus-art.el (gnus-article): Ditto.  
+
+2004-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-hide-list-identifiers): Bind
+	inhibit-read-only as t.
+
 2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-mlspl.el (gnus-group-split-update): Fix docstring.
