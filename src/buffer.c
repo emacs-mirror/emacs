@@ -97,10 +97,6 @@ static Lisp_Object Vbuffer_local_symbols;
    buffer_slot_type_mismatch will signal an error.  */
 struct buffer buffer_local_types;
 
-/* Nonzero means don't allow modification of protected fields.  */
-
-int check_protected_fields;
-
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
 
@@ -1623,14 +1619,6 @@ The remaining five elements are ropes that control the display of\n\
   the decoration indicating the presence of invisible lines (element 260).\n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
-
-  DEFVAR_PER_BUFFER ("buffer-field-list", &current_buffer->fieldlist, Qnil,
-    "List of fields in the current buffer.  See `add-field'.");
-
-  DEFVAR_BOOL ("check-protected-fields", &check_protected_fields,
-    "Non-nil means don't allow modification of a protected field.\n\
-See `add-field'.");
-  check_protected_fields = 0;
 
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
