@@ -4317,11 +4317,13 @@ detect_eol (coding, src, src_bytes)
     {
       int src_multibyte = coding->src_multibyte;
       int dst_multibyte = coding->dst_multibyte;
+      struct composition_data *cmp_data = coding->cmp_data;
 
       setup_coding_system (XVECTOR (val)->contents[eol_type], coding);
       coding->src_multibyte = src_multibyte;
       coding->dst_multibyte = dst_multibyte;
       coding->heading_ascii = skip;
+      coding->cmp_data = cmp_data;
     }
 }
 
