@@ -1,5 +1,13 @@
 2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmode/texinfo.el (texinfo-open-quote, texinfo-close-quote):
+	New defcustoms.
+	(texinfo-insert-quote): Don't call tex-insert-quote, to avoid
+	autoloading tex-mode; instead, do the same manually.  Use
+	texinfo-open-quote and texinfo-close-quote.  Insert literal quote
+	with numeric argument.  Docstring fix.
+	(toplevel): Require cl when compiling.
+	
 	* internat/mule.el (make-char): Doc fix.
 
 2000-12-02  Jason Rumney  <jasonr@gnu.org>
