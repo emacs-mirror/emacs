@@ -8342,6 +8342,7 @@ Lisp_Object Qjpeg;
 enum jpeg_keyword_index
 {
   JPEG_TYPE,
+  JPEG_DATA,
   JPEG_FILE,
   JPEG_ASCENT,
   JPEG_MARGIN,
@@ -8357,7 +8358,8 @@ enum jpeg_keyword_index
 static struct image_keyword jpeg_format[JPEG_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
-  {":file",		IMAGE_STRING_VALUE,			1},
+  {":data",     IMAGE_STRING_VALUE,         0},
+  {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -8391,8 +8393,13 @@ jpeg_image_p (object)
       || (fmt[JPEG_ASCENT].count 
 	  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
     return 0;
-  return 1;
+
+  /* Must specify either the :data or :file keyword.  This should
+     probably be moved up into parse_image_spec, since it seems to be
+     a general requirement. */
+  return fmt[JPEG_FILE].count || fmt[JPEG_DATA].count;
 }
+
 
 struct my_jpeg_error_mgr
 {
@@ -8408,6 +8415,106 @@ my_error_exit (cinfo)
   longjmp (mgr->setjmp_buffer, 1);
 }
 
+
+/* Init source method for JPEG data source manager.  Called by
+   jpeg_read_header() before any data is actually read.  See
+   libjpeg.doc from the JPEG lib distribution.  */
+
+static void
+our_init_source (cinfo)
+     j_decompress_ptr cinfo;
+{
+}
+
+
+/* Fill input buffer method for JPEG data source manager.  Called
+   whenever more data is needed.  We read the whole image in one step,
+   so this only adds a fake end of input marker at the end.  */
+
+static boolean
+our_fill_input_buffer (cinfo)
+     j_decompress_ptr cinfo;
+{
+  /* Insert a fake EOI marker.  */
+  struct jpeg_source_mgr *src = cinfo->src;
+  static JOCTET buffer[2];
+
+  buffer[0] = (JOCTET) 0xFF;
+  buffer[1] = (JOCTET) JPEG_EOI;
+
+  src->next_input_byte = buffer;
+  src->bytes_in_buffer = 2;
+  return TRUE;
+}
+
+
+/* Method to skip over NUM_BYTES bytes in the image data.  CINFO->src
+   is the JPEG data source manager.  */
+
+static void
+our_skip_input_data (cinfo, num_bytes)
+     j_decompress_ptr cinfo;
+     long num_bytes;
+{
+  struct jpeg_source_mgr *src = (struct jpeg_source_mgr *) cinfo->src;
+
+  if (src)
+    {
+      if (num_bytes > src->bytes_in_buffer)
+	{
+	  ERREXIT (cinfo, JERR_INPUT_EOF);
+	  /*NOTREACHED*/
+	}
+      
+      src->bytes_in_buffer -= num_bytes;
+      src->next_input_byte += num_bytes;
+    }
+}
+
+
+/* Method to terminate data source.  Called by
+   jpeg_finish_decompress() after all data has been processed.  */
+
+static void
+our_term_source (cinfo)
+     j_decompress_ptr cinfo;
+{
+}
+
+
+/* Set up the JPEG lib for reading an image from DATA which contains
+   LEN bytes.  CINFO is the decompression info structure created for
+   reading the image.  */
+
+static void
+jpeg_memory_src (cinfo, data, len)
+     j_decompress_ptr cinfo;
+     JOCTET *data;
+     unsigned int len;
+{
+  struct jpeg_source_mgr *src;
+
+  if (cinfo->src == NULL)
+    {
+      /* First time for this JPEG object?  */
+      cinfo->src = (struct jpeg_source_mgr *)
+	(*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
+				    sizeof (struct jpeg_source_mgr));
+      src = (struct jpeg_source_mgr *) cinfo->src;
+      src->next_input_byte = data;
+    }
+  
+  src = (struct jpeg_source_mgr *) cinfo->src;
+  src->init_source = our_init_source;
+  src->fill_input_buffer = our_fill_input_buffer;
+  src->skip_input_data = our_skip_input_data;
+  src->resync_to_restart = jpeg_resync_to_restart; /* Use default method.  */
+  src->term_source = our_term_source;
+  src->bytes_in_buffer = len;
+  src->next_input_byte = data;
+}
+
+
 /* Load image IMG for use on frame F.  Patterned after example.c
    from the JPEG lib.  */
 
@@ -8419,7 +8526,8 @@ jpeg_load (f, img)
   struct jpeg_decompress_struct cinfo;
   struct my_jpeg_error_mgr mgr;
   Lisp_Object file, specified_file;
-  FILE *fp;
+  Lisp_Object specified_data;
+  FILE *fp = NULL;
   JSAMPARRAY buffer;
   int row_stride, x, y;
   XImage *ximg = NULL;
@@ -8430,21 +8538,27 @@ jpeg_load (f, img)
 
   /* Open the JPEG file.  */
   specified_file = image_spec_value (img->spec, QCfile, NULL);
-  file = x_find_image_file (specified_file);
-  GCPRO1 (file);
-  if (!STRINGP (file))
+  specified_data = image_spec_value (img->spec, QCdata, NULL);
+
+  /* Reading from :data takes precedence.  */
+  if (NILP (specified_data))
     {
-      image_error ("Cannot find image file %s", specified_file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
+      file = x_find_image_file (specified_file);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+	{
+	  image_error ("Cannot find image file %s", specified_file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
   
-  fp = fopen (XSTRING (file)->data, "r");
-  if (fp == NULL)
-    {
-      image_error ("Cannot open `%s'", file, Qnil);
-      UNGCPRO;
-      return 0;
+      fp = fopen (XSTRING (file)->data, "r");
+      if (fp == NULL)
+	{
+	  image_error ("Cannot open `%s'", file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
     }
 
   /* Customize libjpeg's error handling to call my_error_exit
@@ -8465,7 +8579,7 @@ jpeg_load (f, img)
 	}
 	  
       /* Close the input file and destroy the JPEG object.  */
-      fclose (fp);
+	  if (fp) fclose (fp);
       jpeg_destroy_decompress (&cinfo);
 
       BLOCK_INPUT;
@@ -8484,7 +8598,13 @@ jpeg_load (f, img)
   /* Create the JPEG decompression object.  Let it read from fp.
      Read the JPEG image header.  */
   jpeg_create_decompress (&cinfo);
-  jpeg_stdio_src (&cinfo, fp);
+
+  if (NILP (specified_data))
+    jpeg_stdio_src (&cinfo, fp);
+  else
+    jpeg_memory_src (&cinfo, XSTRING (specified_data)->data,
+		     STRING_BYTES (XSTRING (specified_data)));
+  
   jpeg_read_header (&cinfo, TRUE);
 
   /* Customize decompression so that color quantization will be used.
@@ -8556,7 +8676,7 @@ jpeg_load (f, img)
   /* Clean up.  */
   jpeg_finish_decompress (&cinfo);
   jpeg_destroy_decompress (&cinfo);
-  fclose (fp);
+  if (fp) fclose (fp);
   
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
