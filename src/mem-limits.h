@@ -20,6 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef MSDOS
 #include <dpmi.h>
+extern int etext;
 #endif
 
 /* Some systems need this before <sys/resource.h>.  */
