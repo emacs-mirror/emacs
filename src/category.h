@@ -106,7 +106,7 @@ extern Lisp_Object _temp_category_set;
      else								     \
        temp = Faref (table,						     \
 		     make_number (COMPOSITE_CHAR_P (c)			     \
-				  ? cmpchar_component (c, 0) : (c)));	     \
+				  ? cmpchar_component ((c), 0, 1) : (c)));   \
      temp; })
 #else
 #define CATEGORY_SET(c)							     \
@@ -114,7 +114,7 @@ extern Lisp_Object _temp_category_set;
    ? Faref (current_buffer->category_table, make_number ((unsigned char) c)) \
    : Faref (current_buffer->category_table,				     \
 	    make_number (COMPOSITE_CHAR_P (c)				     \
-			 ? cmpchar_component ((c), 0) : (c))))
+			 ? cmpchar_component ((c), 0, 1) : (c))))
 #endif   
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
