@@ -126,8 +126,8 @@ If THUNK returns nil, we display BUFFER starting at the top, and
 shrink the window to fit if `electric-help-shrink-window' is non-nil.
 If THUNK returns non-nil, we don't do those things.
 
-When the user exits (with `electric-help-exit', or otherwise) the help
-buffer's window disappears (i.e., we use `save-window-excursion')
+When the user exits (with `electric-help-exit', or otherwise), the help
+buffer's window disappears (i.e., we use `save-window-excursion'), and
 BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
   (setq buffer (get-buffer-create (or buffer "*Help*")))
   (let ((one (one-window-p t))
@@ -170,7 +170,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 
       ;; We should really get a usable *Help* buffer when retaining
       ;; the electric one with `r'.  The problem is that a simple
-      ;; call to help-mode won't cut it; at least RET is vound wrong
+      ;; call to help-mode won't cut it; at least RET is bound wrong
       ;; afterwards.  It's also not clear that `help-mode' is always
       ;; the right thing, maybe we should add an optional parameter.
       (condition-case ()
@@ -179,7 +179,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
       
       (set-window-configuration config)
       (when bury
-	;;>> Perhaps this shouldn't be done.
+	;;>> Perhaps this shouldn't be done,
 	;; so that when we say "Press space to bury" we mean it
 	(replace-buffer-in-windows buffer)
 	;; must do this outside of save-window-excursion
