@@ -97,7 +97,10 @@
        ;;
        ;; The symbol itself.
        (list (concat "\\`\\(" name-char "+\\)\\(\\(:\\)\\|\\('\\)\\)")
-	     '(1 font-lock-function-name-face))
+	     '(1 (if (match-beginning 3)
+		     font-lock-function-name-face
+		   font-lock-variable-name-face)
+		 nil t))
        ;;
        ;; Words inside `' which tend to be symbol names.
        (list (concat "`\\(" sym-char sym-char "+\\)'")
