@@ -477,51 +477,42 @@ All the directories are returned as absolute directories."
 
 (defun ada-xref-update-project-menu ()
   "Update the menu Ada->Project, with the list of available project files."
-  (let (submenu)
-
-    ;;  Create the standard items
-    (set 'submenu (list (cons 'Load (cons "Load..."
-					  'ada-set-default-project-file))
-			(cons 'New  (cons "New..."  'ada-prj-new))
-			(cons 'Edit (cons "Edit..." 'ada-prj-edit))
-			(cons 'sep  (cons "---" nil))))
-
-    ;;  Add the new items
-    (mapcar
-     (lambda (x)
-       (let ((name (or (car x) "<default>"))
-	     (command `(lambda ()
-			 "Change the active project file."
-			 (interactive)
-			 (ada-parse-prj-file ,(car x))
-			 (set 'ada-prj-default-project-file ,(car x))
-			 (ada-xref-update-project-menu))))
-	 (set 'submenu
-	      (append submenu
-		      (list (cons (intern name)
-				  (list
-				   'menu-item
-				   (if (string= (file-name-extension name)
-						ada-project-file-extension)
-				       (file-name-sans-extension
-					(file-name-nondirectory name))
-				     (file-name-nondirectory name))
-				   command
-				   :button (cons
-					    :toggle
-					    (equal ada-prj-default-project-file
-						   (car x))
-					    ))))))))
-
-     ;; Parses all the known project files, and insert at least the default
-     ;; one (in case ada-xref-project-files is nil)
-     (or ada-xref-project-files '(nil)))
-
-     (if (not (featurep 'xemacs))
-         (if (lookup-key ada-mode-map [menu-bar Ada Project])
-             (setcdr (lookup-key ada-mode-map [menu-bar Ada Project])
-		     submenu)))
-    ))
+  ;; Create the standard items.
+  (let ((submenu
+	 `("Project"
+	   ["Load..." ada-set-default-project-file t]
+	   ["New..."  ada-prj-new t]
+	   ["Edit..." ada-prj-edit t]
+	   "---"
+	   ;;  Add the new items
+	   ,@(mapcar
+	      (lambda (x)
+		(let ((name (or (car x) "<default>"))
+		      (command `(lambda ()
+				  "Change the active project file."
+				  (interactive)
+				  (ada-parse-prj-file ,(car x))
+				  (set 'ada-prj-default-project-file ,(car x))
+				  (ada-xref-update-project-menu))))
+		  (vector
+		   (if (string= (file-name-extension name)
+				ada-project-file-extension)
+		       (file-name-sans-extension
+			(file-name-nondirectory name))
+		     (file-name-nondirectory name))
+		   command
+		   :button (cons
+			    :toggle
+			    (equal ada-prj-default-project-file
+				   (car x))
+			    ))))
+     
+	      ;; Parses all the known project files, and insert at
+	      ;; least the default one (in case
+	      ;; ada-xref-project-files is nil)
+	      (or ada-xref-project-files '(nil))))))
+      
+    (easy-menu-add-item ada-mode-menu '() submenu)))
 
 
 ;;-------------------------------------------------------------
@@ -1042,7 +1033,7 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
 	     (message "Cross-referencing information is not up-to-date. Please recompile.")
 	     )))))))
 
-(defun ada-goto-declaration-other-frame (pos &optional other-frame)
+(defun ada-goto-declaration-other-frame (pos)
   "Display the declaration of the identifier around POS.
 The declation is shown in another frame if `ada-xref-other-buffer' is non-nil."
   (interactive "d")
@@ -1251,12 +1242,10 @@ If ARG is non-nil, ask the user to confirm the command."
     (if (or arg ada-xref-confirm-compile)
 	(set 'cmd (read-from-minibuffer "enter command to debug: " cmd)))
 
-    (let ((old-comint-exec (symbol-function 'comint-exec))
-	  comint-exec
-	  in-post-mode
-	  gud-gdb-massage-args)
+    (let ((old-comint-exec (symbol-function 'comint-exec)))
 
       ;;  Do not add -fullname, since we can have a 'rsh' command in front.
+      ;;  FIXME: This is evil but luckily a nop under Emacs-21.3.50 !  -stef
       (fset 'gud-gdb-massage-args (lambda (file args) args))
 
       (set 'pre-cmd  (mapconcat 'identity pre-cmd  ada-command-separator))
@@ -1265,12 +1254,12 @@ If ARG is non-nil, ask the user to confirm the command."
 
       (set 'post-cmd (mapconcat 'identity post-cmd "\n"))
       (if post-cmd
-	(set 'post-cmd (concat post-cmd "\n")))
+	  (set 'post-cmd (concat post-cmd "\n")))
 
 
       ;;  Temporarily replaces the definition of `comint-exec' so that we
       ;;  can execute commands before running gdb.
-      (make-local-variable 'comint-exec)
+      ;;  FIXME: This is evil and not temporary !!!  -stef
       (fset 'comint-exec
 	    `(lambda (buffer name command startfile switches)
 	       (let (compilation-buffer-name-function)
