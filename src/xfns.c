@@ -2081,8 +2081,7 @@ x_set_tool_bar_lines (f, value, oldval)
       int y = nlines * CANON_Y_UNIT (f);
 
       BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height, False);
+      x_clear_area (f, 0, y, width, height);
       UNBLOCK_INPUT;
     }
 }
@@ -4379,6 +4378,10 @@ This function is an internal primitive--use `make-frame' instead.")
   x_window (f, window_prompting, minibuffer_only);
 #else
   x_window (f);
+#endif
+
+#ifdef HAVE_DBE
+  dbe_make_frame_buffered (f);
 #endif
   
   x_icon (f, parms);
@@ -11730,5 +11733,131 @@ init_xfns ()
   define_image_type (&png_type);
 #endif
 }
+
+
+
+/***********************************************************************
+		       DOUBLE-BUFFER extension
+ ***********************************************************************/
+
+#ifdef HAVE_DBE
+
+#include <X11/extensions/Xdbe.h>
+
+#define INFINITY 10000000
+
+/* Initialize the DOUBLE-BUFFER extension.  Value is non-zero if
+   successful.  */
+
+int
+init_dbe (dpy)
+     Display *dpy;
+{
+  int major, minor, rc;
+  BLOCK_INPUT;
+  rc =  XdbeQueryExtension (dpy, &major, &minor) != 0;
+  UNBLOCK_INPUT;
+  return rc;
+}
+
+
+/* Make frame F double buffered, if possible.  Note that the back
+   buffer is destroyed automatically when the frame's X window is
+   destroyed.  */
+
+void
+dbe_make_frame_buffered (f)
+     struct frame *f;
+{
+  if (FRAME_X_DISPLAY_INFO (f)->dbe)
+    {
+      BLOCK_INPUT;
+      f->output_data.x->back_buffer
+	= XdbeAllocateBackBufferName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				      XdbeCopied);
+      if (f->output_data.x->back_buffer == XdbeBadBuffer)
+	abort ();
+      UNBLOCK_INPUT;
+    }
+}
+
+
+/* Reset the region to update to the null region.  */
+
+void
+dbe_reset_region (f)
+     struct frame *f;
+{
+  struct x_output *x = f->output_data.x;
+  x->dbe_min_y = x->dbe_min_x = INFINITY;
+  x->dbe_max_y = x->dbe_max_x = 0;
+}
+
+
+/* Record that the rectangle given by X, Y, WIDTH, and HEIGHT
+   must be copied from the back-buffer to the screen.  */
+
+void
+dbe_record_region (f, x, y, width, height)
+     struct frame *f;
+     int x, y, width, height;
+{
+  struct x_output *xo = f->output_data.x;
+  xo->dbe_min_y = min (xo->dbe_min_y, y);
+  xo->dbe_max_y = max (xo->dbe_max_y, y + height);
+  xo->dbe_min_x = min (xo->dbe_min_x, x);
+  xo->dbe_max_x = max (xo->dbe_max_x, x + width);
+}
+
+
+/* Copy what's necessary from the back-buffer of frame F to
+   the display.  */
+
+void
+dbe_show (f)
+     struct frame *f;
+{
+  if (f->output_data.x->back_buffer != XdbeBadBuffer)
+    {
+      struct x_output *x = f->output_data.x;
+      if (x->dbe_min_y != INFINITY
+	  && x->dbe_max_y - x->dbe_min_y > 0)
+	{
+	  int width, height;
+	  
+	  x->dbe_max_y = min (PIXEL_HEIGHT (f), x->dbe_max_y);
+	  x->dbe_max_x = min (PIXEL_WIDTH (f), x->dbe_max_x);
+	  height = x->dbe_max_y - x->dbe_min_y;
+	  width = x->dbe_max_x - x->dbe_min_x;
+	  
+	  BLOCK_INPUT;
+
+	  if (height > 200)
+	    {
+	      XdbeSwapInfo swap_info;
+  
+	      swap_info.swap_window = FRAME_X_WINDOW (f);
+	      swap_info.swap_action = XdbeCopied;
+
+	      XdbeSwapBuffers (FRAME_X_DISPLAY (f), &swap_info, 1);
+	    }
+	  else
+	    {
+	      XCopyArea (FRAME_X_DISPLAY (f),
+			 f->output_data.x->back_buffer,
+			 FRAME_X_WINDOW (f),
+			 f->output_data.x->normal_gc,
+			 x->dbe_min_x, x->dbe_min_y, width, height,
+			 x->dbe_min_x, x->dbe_min_y);
+	    }
+	  
+	  UNBLOCK_INPUT;
+	}
+
+      dbe_reset_region (f);
+    }
+}
+
+#endif /* HAVE_DBE */
 
 #endif /* HAVE_X_WINDOWS */
