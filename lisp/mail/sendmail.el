@@ -56,7 +56,7 @@ The headers are be delimited by a line which is `mail-header-separator'.")
 ;;;###autoload
 (defvar mail-archive-file-name nil "\
 *Name of file to write all outgoing messages in, or nil for none.
-Do not use an rmail file here!  Instead, use its inbox file.")
+This can be an inbox file or an Rmail file.")
 
 ;;;###autoload
 (defvar mail-default-reply-to t
@@ -71,12 +71,14 @@ This variable has no effect unless your system uses sendmail as its mailer.")
 
 (defvar mail-aliases t
   "Alist of mail address aliases,
-or t meaning should be initialized from `~/.mailrc'.
-The alias definitions in `~/.mailrc' have this form:
+or t meaning should be initialized from your mail aliases file.
+\(The file's name is normally `~/.mailrc', but your MAILRC environment
+variable can override that name.)
+The alias definitions in the file have this form:
     alias ALIAS MEANING")
 
 (defvar mail-alias-modtime nil
-  "The modification time of `~/.mailrc' when it was last examined.")
+  "The modification time of your mail alias file when it was last examined.")
 
 (defvar mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
