@@ -1,3 +1,14 @@
+2004-04-07  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-warning-face)
+	(compilation-info-face, compilation-skip-threshold)
+	(compilation-skip-visited, compilation-context-lines): Declare
+	:version when added to Emacs.
+	(compilation-error-regexp-alist-alist): Extend caml and irix.
+	(compilation-setup): Fix if font-locked w/o font-lock-defaults.
+	(compilation-mode-font-lock-keywords): Temporarily undo line as
+	function patch, which wasn't ready.
+
 2004-04-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/latin1-disp.el (latin1-display-setup): Check each
