@@ -128,72 +128,97 @@ PLIST (property list) may contain any type of information a user
     `(aref (charset-info ,charset) 0)))
 
 (defmacro charset-bytes (charset)
+  "Return bytes of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 1)
     `(aref (charset-info ,charset) 1)))
 
 (defmacro charset-dimension (charset)
+  "Return dimension of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 2)
     `(aref (charset-info ,charset) 2)))
 
 (defmacro charset-chars (charset)
+  "Return character numbers contained in a dimension of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 3)
     `(aref (charset-info ,charset) 3)))
 
 (defmacro charset-width (charset)
+  "Return width (how many column occupied on a screen) of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 4)
     `(aref (charset-info ,charset) 4)))
 
 (defmacro charset-direction (charset)
+  "Return direction of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 5)
     `(aref (charset-info ,charset) 5)))
 
 (defmacro charset-iso-final-char (charset)
+  "Return final char of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 8)
     `(aref (charset-info ,charset) 8)))
 
 (defmacro charset-iso-graphic-plane (charset)
+  "Return graphic plane of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 9)
     `(aref (charset-info ,charset) 9)))
 
 (defmacro charset-reverse-charset (charset)
+  "Return reverse charset of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 10)
     `(aref (charset-info ,charset) 10)))
 
 (defmacro charset-short-name (charset)
+  "Return short name of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 11)
     `(aref (charset-info ,charset) 11)))
 
 (defmacro charset-long-name (charset)
+  "Return long name of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 12)
     `(aref (charset-info ,charset) 12)))
 
 (defmacro charset-description (charset)
+  "Return descriptoin of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       (aref (charset-info (nth 1 charset)) 13)
     `(aref (charset-info ,charset) 13)))
 
 (defmacro charset-plist (charset)
+  "Return list charset property of CHARSET.
+See the function `charset-info' for more detail."
   (if (quoted-symbol-p charset)
       `(aref ,(charset-info (nth 1 charset)) 14)
     `(aref (charset-info ,charset) 14)))
 
 (defun set-charset-plist (charset plist)
+  "Set CHARSET's property list to PLIST, and retrun PLIST."
   (aset (charset-info  charset) 14 plist))
 
 (defmacro make-char (charset &optional c1 c2)
   "Return a character of CHARSET and position-codes CODE1 and CODE2.
 CODE1 and CODE2 are optional, but if you don't supply
- sufficient position-codes, return a generic character which stands for
+sufficient position-codes, return a generic character which stands for
 all characters or group of characters in the character sets.
 A generic character can be used to index a char table (e.g. syntax-table)."
   (if (quoted-symbol-p charset)
@@ -201,7 +226,10 @@ A generic character can be used to index a char table (e.g. syntax-table)."
     `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
 
 (defmacro charset-list ()
-  "Return list of charsets ever defined."
+  "Return list of charsets ever defined.
+
+This macro is provided for backward compatibility.
+Now we have the variable `charset-list'."
   'charset-list)
 
 (defsubst generic-char-p (char)
@@ -590,10 +618,6 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 	(if (null (numberp found-eol))
 	    ;; But eol-type is not found.
 	    (setq found-eol nil))
-	(if (eq (coding-system-type coding) t)
-	    ;; This is `undecided', which means nothing found except
-	    ;; for eol-type.
-	    (setq coding nil))
 
 	;; The local setting takes precedence over the found one.
 	(setq new-coding (or local-coding coding))
