@@ -68,6 +68,7 @@ A large number or nil slows down menu responsiveness.")
   '("--"))
 
 (define-key menu-bar-tools-menu [calendar] '("Display Calendar" . calendar))
+(define-key menu-bar-tools-menu [rmail] '("Send Mail" . compose-mail))
 (define-key menu-bar-tools-menu [rmail] '("Read Mail" . rmail))
 (define-key menu-bar-tools-menu [gnus] '("Read Net News" . gnus))
 
