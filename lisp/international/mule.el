@@ -195,8 +195,7 @@ PLIST (property list) may contain any type of information a user
 CODE1 and CODE2 are optional, but if you don't supply
  sufficient position-codes, return a generic character which stands for
 all characters or group of characters in the character sets.
-A generic character can be an argument of `modify-syntax-entry' and
-`modify-category-entry'."
+A generic character can be used to index a char table (e.g. syntax-table)."
   (if (quoted-symbol-p charset)
       `(make-char-internal ,(charset-id (nth 1 charset)) ,c1 ,c2)
     `(make-char-internal (charset-id ,charset) ,c1 ,c2)))
@@ -318,7 +317,7 @@ FLAGS specifies more precise information of each TYPE.
   If TYPE is 2 (ISO-2022), FLAGS should be a list of:
       CHARSET0, CHARSET1, CHARSET2, CHARSET3, SHORT-FORM,
       ASCII-EOL, ASCII-CNTL, SEVEN, LOCKING-SHIFT, SINGLE-SHIFT,
-      USE-ROMAN, USE-OLDJIS, NO-ISO6429.
+      USE-ROMAN, USE-OLDJIS, NO-ISO6429, INIT-BOL, DESIGNATION-BOL.
     CHARSETn are character sets initially designated to Gn graphic registers.
       If CHARSETn is nil, Gn is never used.
       If CHARSETn is t, Gn can be used but nothing designated initially.
@@ -419,7 +418,7 @@ FLAGS specifies more precise information of each TYPE.
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set buffer-file-coding-system of the current buffer to CODING-SYSTEM.
 If eol-type of the current buffer-file-coding-system is an integer value N, and
- eol-type of CODING-SYSTEM is a vector, the Nth element of the vector is set 
+ eol-type of CODING-SYSTEM is a vector, the Nth element of the vector is used
  instead of CODING-SYSTEM itself.
 Optional prefix argument FORCE non-nil means CODING-SYSTEM is set
  regardless of eol-type of the current buffer-file-coding-system."
@@ -493,9 +492,9 @@ LIST is a list of coding-categories ordered by priority."
 
 (defun find-new-buffer-file-coding-system (coding)
   "Return a coding system for a buffer when a file of CODING is inserted.
-The returned value is set to `buffer-file-coding-system' of the
-current buffer.  Return nil if there's no need of setting new
-buffer-file-coding-system."
+The local variable `buffer-file-coding-system' of the current buffer
+is set to the returned value.
+ Return nil if there's no need of setting new buffer-file-coding-system."
   (let (local-coding local-eol
 	found-eol
 	new-coding new-eol)
@@ -542,6 +541,49 @@ buffer-file-coding-system."
 	    (setq new-coding
 		  (aref (coding-system-eoltype new-coding) new-eol)))
 	new-coding))))
+
+(defun make-unification-table (&rest args)
+  "Make a unification table (char table) from arguments.
+Each argument is a list of cons cells of characters.
+While unifying characters in the unification table, a character of
+the car part is unified to a character of the corresponding cdr part.
+
+A characters can be a generic characters (see make-char).  In this case,
+all characters belonging to a generic character of the car part
+are unified to characters beloging to a generic characters of the
+corresponding cdr part without changing their position code(s)."
+  (let ((table (make-char-table 'character-unification-table))
+	revlist)
+    (while args
+      (let ((elts (car args)))
+	(while elts
+	  (let ((from (car (car elts)))
+		(to (cdr (car elts))))
+	    (if (or (not (integerp from)) (not (integerp to)))
+		(error "Invalid character pair (%s . %s)" from to))
+	    ;; If we have already unified TO to some char, FROM should
+	    ;; also be unified to the same char.
+	    (setq to (or (aref table to) to))
+	    (aset table from to)
+	    ;; If we have already unified some chars to FROM, they
+	    ;; should also be unified to TO.
+	    (let ((l (assq from revlist)))
+	      (if l
+		  (let ((ch (car l)))
+		    (setcar l to)
+		    (setq l (cdr l))
+		    (while l
+		      (aset table ch to)
+		      (setq l (cdr l)) ))))
+	    ;; Now update REVLIST.
+	    (let ((l (assq to revlist)))
+	      (if l
+		  (setcdr l (cons from (cdr l)))
+		(setq revlist (cons (list to from) revlist)))))
+	  (setq elts (cdr elts))))
+      (setq args (cdr args)))
+    ;; Return TABLE just created.
+    table))
 
 ;;; Initialize some variables.
 
