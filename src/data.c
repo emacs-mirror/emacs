@@ -1042,7 +1042,7 @@ for this variable.")
 
 DEFUN ("setq-default", Fsetq_default, Ssetq_default, 2, UNEVALLED, 0,
        "\
-(setq-default SYM VAL SYM VAL ...): set each SYM's default value to its VAL.\n\
+\(setq-default SYM VAL SYM VAL...): set each SYM's default value to its VAL.\n\
 VAL is evaluated; SYM is not.  The default value is seen in buffers that do\n\
 not have their own values for this variable.")
   (args)
@@ -1114,8 +1114,8 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
   1, 1, "vMake Local Variable: ",
   "Make VARIABLE have a separate value in the current buffer.\n\
 Other buffers will continue to share a common default value.\n\
-\(The buffer-local value of VARIABLE starts out as the same value\n
-VARIABLE previously had.  If VARIABLE was void, it remains void.\)\n
+\(The buffer-local value of VARIABLE starts out as the same value\n\
+VARIABLE previously had.  If VARIABLE was void, it remains void.\)\n\
 See also `make-variable-buffer-local'.\n\n\
 If the variable is already arranged to become local when set,\n\
 this function causes a local value to exist for this buffer,\n\
