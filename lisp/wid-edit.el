@@ -757,17 +757,13 @@ button end points.
 Optional ARGS are extra keyword arguments for TYPE."
   (let ((widget (apply 'widget-convert type :delete 'widget-leave-text args))
 	(from (copy-marker from))
-	(to (copy-marker to))
-	(personality (get-text-property from 'personality)))
+	(to (copy-marker to)))
     (set-marker-insertion-type from t)
     (set-marker-insertion-type to nil)
     (widget-put widget :from from)
     (widget-put widget :to to)
     (when button-from
       (widget-specify-button widget button-from button-to))
-    ;; W3 provides advice for this for Emacspeak's benefit.
-    (if personality
-	(put-text-property from to 'personality personality))
     widget))
 
 (defun widget-convert-button (type from to &rest args)
@@ -2377,57 +2373,31 @@ Return an alist of (TYPE MATCH)."
   ;; Pass notification to parent.
   (widget-apply widget :notify child event))
 
-;;; The `insert/delete-button' Widget.
-
-(define-widget 'insert/delete-button 'push-button
-  "An insert/delete item button for the `editable-list' widget."
-  :create (lambda (widget)
-	    (let* ((map (make-sparse-keymap))
-		   (parent (widget-get widget :keymap)))
-	      (if parent
-		  (set-keymap-parent map parent))
-	      (define-key map [?\C-k] #'widget-list-item-delete)
-	      (define-key map [?\C-o] #'widget-list-item-insert)
-	      (widget-put widget :keymap map))
-	    (widget-default-create widget))
-  :tag "+/-"
-  :help-echo "Insert or delete a new item into the list here"
-  :action 'widget-insert/delete-button-action)
-
-(defun widget-insert/delete-button-action (widget &optional event)
-  "Ask the parent to insert or delete a new item."
-  (if (y-or-n-p "Delete this item? (otherwise insert a new one)")
-      (widget-apply (widget-get widget :parent)
-		    :delete-at (widget-get widget :widget))
-    (widget-apply (widget-get widget :parent)
-		  :insert-before (widget-get widget :widget))))
-
-(defun widget-list-item-insert ()
-  "Delete the list item widget which is the parent of the widget at point."
-  (interactive)
-  (let ((widget (widget-at (point))))
-    (widget-apply (widget-get widget :parent)
-		  :insert-before (widget-get widget :widget))))
-
-(defun widget-list-item-delete ()
-  "Add a new list item widget after the parent of the widget at point."
-  (interactive)
-  (let ((widget (widget-at (point))))
-    (widget-apply (widget-get widget :parent)
-		  :delete-at (widget-get widget :widget))))
-
 ;;; The `insert-button' Widget.
 
 (define-widget 'insert-button 'push-button
-  "An append item button for the `editable-list' widget."
-  :tag "+"
-  :help-echo "Append a new item to the list"
+  "An insert button for the `editable-list' widget."
+  :tag "INS"
+  :help-echo "Insert a new item into the list at this position."
   :action 'widget-insert-button-action)
 
 (defun widget-insert-button-action (widget &optional event)
   ;; Ask the parent to insert a new item.
   (widget-apply (widget-get widget :parent)
 		:insert-before (widget-get widget :widget)))
+
+;;; The `delete-button' Widget.
+
+(define-widget 'delete-button 'push-button
+  "A delete button for the `editable-list' widget."
+  :tag "DEL"
+  :help-echo "Delete this item from the list."
+  :action 'widget-delete-button-action)
+
+(defun widget-delete-button-action (widget &optional event)
+  ;; Ask the parent to insert a new item.
+  (widget-apply (widget-get widget :parent)
+		:delete-at (widget-get widget :widget)))
 
 ;;; The `editable-list' Widget.
 
@@ -2442,7 +2412,7 @@ Return an alist of (TYPE MATCH)."
   :offset 12
   :format "%v%i\n"
   :format-handler 'widget-editable-list-format-handler
-  :entry-format "%- %v"
+  :entry-format "%i %d %v"
   :menu-tag "editable-list"
   :value-create 'widget-editable-list-value-create
   :value-delete 'widget-children-value-delete
@@ -2566,7 +2536,7 @@ Return an alist of (TYPE MATCH)."
   ;; Create a new entry to the list.
   (let ((type (nth 0 (widget-get widget :args)))
 ;;; 	(widget-push-button-gui widget-editable-list-gui)
-	child ins/del buttons)
+	child delete insert)
     (widget-specify-insert
      (save-excursion
        (and (widget-get widget :indent)
@@ -2578,11 +2548,14 @@ Return an alist of (TYPE MATCH)."
 	 (delete-backward-char 2)
 	 (cond ((eq escape ?%)
 		(insert ?%))
-	       ((eq escape ?-)
-		(setq ins/del (apply 'widget-create-child-and-convert
-				     widget 'insert/delete-button
-				     (widget-get widget
-						 :insert/delete-button-args))))
+	       ((eq escape ?i)
+		(setq insert (apply 'widget-create-child-and-convert
+				    widget 'insert-button
+				    (widget-get widget :insert-button-args))))
+	       ((eq escape ?d)
+		(setq delete (apply 'widget-create-child-and-convert
+				    widget 'delete-button
+				    (widget-get widget :delete-button-args))))
 	       ((eq escape ?v)
 		(if conv
 		    (setq child (widget-create-child-value
@@ -2593,17 +2566,18 @@ Return an alist of (TYPE MATCH)."
 					     (widget-default-get type))))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
-     (setq buttons (widget-get widget :buttons))
-     (if ins/del
-	 (push ins/del buttons))
-     (widget-put widget :buttons buttons)
+     (widget-put widget
+		 :buttons (cons delete
+				(cons insert
+				      (widget-get widget :buttons))))
      (let ((entry-from (point-min-marker))
 	   (entry-to (point-max-marker)))
        (set-marker-insertion-type entry-from t)
        (set-marker-insertion-type entry-to nil)
        (widget-put child :entry-from entry-from)
        (widget-put child :entry-to entry-to)))
-    (if ins/del (widget-put ins/del :widget child))
+    (widget-put insert :widget child)
+    (widget-put delete :widget child)
     child))
 
 ;;; The `group' Widget.
@@ -3014,7 +2988,6 @@ It will read a directory name from the minibuffer when invoked."
   "History of input to `widget-variable-prompt-value'.")
 
 (define-widget 'variable 'symbol
-  ;; Should complete on variables.
   "A Lisp variable."
   :prompt-match 'boundp
   :prompt-history 'widget-variable-prompt-value-history
