@@ -8992,7 +8992,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 									 
 /* Create a scroll bar and return the scroll bar vector for it.  W is
    the Emacs window on which to create the scroll bar. TOP, LEFT,
-   WIDTH and HEIGHT are.the pixel coordinates and dimensions of the
+   WIDTH and HEIGHT are the pixel coordinates and dimensions of the
    scroll bar. */
 
 static struct scroll_bar *
@@ -9334,7 +9334,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	}
 
       /* Clear areas not covered by the scroll bar because it's not as
-	 wide as the area reserved for it .  This makes sure a
+	 wide as the area reserved for it.  This makes sure a
 	 previous mode line display is cleared after C-x 2 C-x 1, for
 	 example.  */
       {
