@@ -480,6 +480,7 @@ a @dfn{body}, by indenting the second line @code{lisp-body-indent}
 additional columns beyond the open-parenthesis that starts the
 expression.
 
+@cindex @code{lisp-indent-function} property
   You can override the standard pattern in various ways for individual
 functions, according to the @code{lisp-indent-function} property of the
 function name.  There are four possibilities for this property:
