@@ -134,8 +134,8 @@ A value of `case-fold-search' means case is significant
  if `case-fold-search' is nil.
 Any other non-nil version means case is not significant."
   :type '(choice (const :tag "off" nil)
-		 (const :tag "on" t)
-		 (const :tag "like search" case-fold-search))
+		 (const :tag "like search" case-fold-search)
+		 (other :tag "on" t))
   :group 'dabbrev)
 
 (defcustom dabbrev-upcase-means-case-search nil
@@ -156,8 +156,8 @@ Any other non-nil version means do not preserve case.
 This variable has an effect only when the value of
 `dabbrev-case-fold-search' specifies to ignore case."
   :type '(choice (const :tag "off" nil)
-		 (const :tag "on" t)
-		 (const :tag "like M-x query-replace" case-replace))
+		 (const :tag "like M-x query-replace" case-replace)
+		 (other :tag "on" t))
   :group 'dabbrev)
 
 (defcustom dabbrev-abbrev-char-regexp nil
@@ -216,7 +216,7 @@ buffers too.
 The default value is t."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
-		 (const :tag "ask" other))
+		 (other :tag "ask" other))
   :group 'dabbrev)
 
 ;; I guess setting this to a function that selects all C- or C++-
