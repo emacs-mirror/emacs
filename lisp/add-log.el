@@ -267,7 +267,9 @@ Has a preference of looking backwards."
 			  (progn (forward-sexp -1)
 				 (>= location (point))))
 		     (progn
-		       (forward-word 1)
+		       (if (looking-at "\\s(")
+			   (forward-char 1))
+		       (forward-sexp 1)
 		       (skip-chars-forward " ")
 		       (buffer-substring (point)
 					 (progn (forward-sexp 1) (point))))))
