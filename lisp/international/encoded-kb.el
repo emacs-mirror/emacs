@@ -222,7 +222,7 @@ The following key sequence may cause multilingual text insertion."
 	 (if (or (< last-command-char ?\xA0) (>= last-command-char ?\xE0))
 	     (decode-sjis-char (+ (ash last-command-char 8)
 				  (read-char-exclusive)))
-	   (make-char 'latin-jisx0201 last-command-char))))
+	   (make-char 'katakana-jisx0201 last-command-char))))
     (self-insert-command 1)))
 
 (defun encoded-kbd-self-insert-big5 ()
