@@ -67,6 +67,97 @@
 	* xlwmenu.c (make_shadow_gcs): Call
 	x_alloc_nearest_color_for_widget.
 
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c: Add function prototypes.
+
+	* lwlib-Xm.c (xm_update_label): Use val->name to look up
+	a label string from resources.
+	(xm_update_label): Add some comments.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (all_dashes_p): Removed.
+	(size_menu_item): Call lw_separator_p.
+	(display_menu_item): Ditto.
+	(display_menu): Ditto.
+	(draw_separator): New.
+	(display_menu_item): Call it.
+	(separator_height): New.
+	(size_menu_item): Call it.
+
+	* lwlib-Xm.c (all_dashes_p): Removed.
+	(make_menu_in_widget): Use lw_separator_p.  Set Motif separator
+	type.
+
+	* lwlib.c (lw_separator_p): New.
+
+	* lwlib.h (enum menu_separator): New.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (make_menu_in_widget): Set alignment of menu
+	title after all widgets have been created.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (toggle_button_width): Renamed from
+	toggle_or_radio_button_width.
+	(radio_button_width): New.
+	(size_menu_item): Use new functions.
+	(draw_shadow_rhombus): New.
+	(draw_radio): Use radio_button_width and draw_shadow_rhombus.
+	(draw_toggle): Use toggle_button_width.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (xm_update_toggle): Add callback xm_generic_callback
+	instead of xm_internal_update_other_instances.
+
+	* lwlib-Xm.c (make_menu_in_widget): Do help button before managing
+	children to get it to the right place.
+	(make_menu_in_widget): Create toggle buttons.
+	(update_one_menu_entry): Update toggle buttons.
+
+	* xlwmenu.c (size_menu_item): Add parameter button_width.
+	(size_menu): Compute button_width.
+	(toggle_or_radio_button_width): New.
+	(draw_toggle): New.
+	(draw_radio): New.
+	(draw_shadow_rectangle): Add parameter `down_p'.
+
+	* xlwmenuP.h (_window_state): Add button_width.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (make_shadow_gcs) ]emacs]: Use x_alloc_nearest_color.
+
+	* lwlib.c (merge_widget_value): Handle button_type.
+	(copy_widget_value_tree): Copy button_type.
+
+	* lwlib.h (enum button_type): New.
+	(_widget_value): New member button_type.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (make_menu_in_widget): Test for menubar widgets
+	using XmNrowColumnType.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (abort_gracefully): New.
+	(display_menu): Use it instead of abort.
+	(size_menu): Ditto.
+
+1999-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (xlwMenuResources): Change previously unused 
+	XtNmargin to 4.
+	(size_menu): Take margin into account.
+	(display_menu_item): Ditto.
+	(remap_menubar): Ditto.
+	(draw_arrow): Draw it 3D.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.

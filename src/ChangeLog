@@ -4676,8 +4676,6 @@
 
 	* dispextern.h (struct glyph_matrix): Add member window_vscroll.
 
-	* lwlib-Xm.c: Add function prototypes.
-
 	* xdisp.c (debug_method_add): New.
 	(debug_redisplay_method): Removed.
 	(try_window_reusing_current_matrix): Handle case where old
@@ -4685,10 +4683,6 @@
 
 	* dispextern.h (struct glyph_matrix) [GLYPH_DEBUG]: Make `method'
 	an array instead of a pointer.
-
-	* lwlib-Xm.c (xm_update_label): Use val->name to look up
-	a label string from resources.
-	(xm_update_label): Add some comments.
 
 	* xfns.c (Fx_show_tip): Undo previous change.
 
@@ -4956,8 +4950,6 @@
 	value of realize_basic_faces.
 	(load_face_font_or_fontset): Store full font name in face.
 	(realize_default_face): Use full font name.
-
-	* xlwmenu.c (make_shadow_gcs) ]emacs]: Use x_alloc_nearest_color.
 
 	* xterm.c (x_produce_glyphs): Set member char_to_display.
 	(x_append_glyph): Store char_to_display in glyphs.
@@ -5351,23 +5343,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(x_set_scroll_bar_foreground): New.
 	(x_set_scroll_bar_background): New.
 
-	* xlwmenu.c (all_dashes_p): Removed.
-	(size_menu_item): Call lw_separator_p.
-	(display_menu_item): Ditto.
-	(display_menu): Ditto.
-	(draw_separator): New.
-	(display_menu_item): Call it.
-	(separator_height): New.
-	(size_menu_item): Call it.
-
-	* lwlib-Xm.c (all_dashes_p): Removed.
-	(make_menu_in_widget): Use lw_separator_p.  Set Motif separator
-	type.
-
-	* lwlib.c (lw_separator_p): New.
-
-	* lwlib.h (enum menu_separator): New.
-
 1999-01-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (handle_single_display_prop): New.
@@ -5550,10 +5525,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(xt_action_hook): Reset last_scroll_bar_part.
 	(XTredeem_scroll_bar): Reset bar->dragging to nil.
 
-	* xlwmenu.c (abort_gracefully): New.
-	(display_menu): Use it instead of abort.
-	(size_menu): Ditto.
-
 	* xfns.c (Fx_hide_busy_cursor): Don't try to hide busy cursor
 	window on newly created frames that don't have one.
 
@@ -5654,13 +5625,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (note_mouse_highlight): Don't highlight when popup
 	is active.
 
-	* xlwmenu.c (xlwMenuResources): Change previously unused 
-	XtNmargin to 4.
-	(size_menu): Take margin into account.
-	(display_menu_item): Ditto.
-	(remap_menubar): Ditto.
-	(draw_arrow): Draw it 3D.
-
 	* keyboard.c (timer_check): Inhibit busy cursor around calls to
 	timer-event-handler.  This busy cursor tends to be anoying if
 	fontifying stealthily.
@@ -5687,9 +5651,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(x_set_toolkit_scroll_bar_thumb): Add workaround for LessTif
 	XmScrollBarSetValues.
 	(SET_SAVED_MENU_EVENT): Give it statement form.
-
-	* lwlib-Xm.c (make_menu_in_widget): Set alignment of menu
-	title after all widgets have been created.
 
 	* xfaces.c (display_message): If waiting_for_input, don't display
 	the message.
@@ -5749,28 +5710,12 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	Lesstif not calling XmNpopdownCallback because it doesn't
 	handle the case where users don't select any menu item.
 
-	* xlwmenu.c (toggle_button_width): Renamed from
-	toggle_or_radio_button_width.
-	(radio_button_width): New.
-	(size_menu_item): Use new functions.
-	(draw_shadow_rhombus): New.
-	(draw_radio): Use radio_button_width and draw_shadow_rhombus.
-	(draw_toggle): Use toggle_button_width.
-
 	* insdel.c (modify_region): Set windows_or_buffers_changed.
 
 	* buffer.c (set_buffer_internal): Don't set
 	windows_or_buffers_changed.
 
-	* lwlib-Xm.c (xm_update_toggle): Add callback xm_generic_callback
-	instead of xm_internal_update_other_instances.
-
 	* xmenu.c (HAVE_BOXES): Define if USE_X_TOOLKIT.
-
-	* lwlib-Xm.c (make_menu_in_widget): Do help button before managing
-	children to get it to the right place.
-	(make_menu_in_widget): Create toggle buttons.
-	(update_one_menu_entry): Update toggle buttons.
 
 	* xmenu.c (menubar_selection_callback): Add workaround for
 	Lesstif not calling XmNpopdownCallback.
@@ -5784,15 +5729,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xmenu.c (HAVE_BOXES): Define if using Lucid menus.
 
-	* xlwmenu.c (size_menu_item): Add parameter button_width.
-	(size_menu): Compute button_width.
-	(toggle_or_radio_button_width): New.
-	(draw_toggle): New.
-	(draw_radio): New.
-	(draw_shadow_rectangle): Add parameter `down_p'.
-
-	* xlwmenuP.h (_window_state): Add button_width.
-
 1998-11-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (single_submenu): Set button_type of menu to 
@@ -5802,12 +5738,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	(xmenu_show): Likewise.
 	(single_submenu): Set widget values selected slot.
 	(xmenu_show): Likewise.
-
-	* lwlib.c (merge_widget_value): Handle button_type.
-	(copy_widget_value_tree): Copy button_type.
-
-	* lwlib.h (enum button_type): New.
-	(_widget_value): New member button_type.
 
 	* xmenu.c (push_menu_item): Add parameters `type' and
 	`selected'. Store it in menu_items.
@@ -5845,9 +5775,6 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (redo_mouse_highlight): New.
 
 1998-11-04  Gerd Moellmann  <gerd@gnu.org>
-
-	* lwlib-Xm.c (make_menu_in_widget): Test for menubar widgets
-	using XmNrowColumnType.
 
 	* xfns.c (x_create_x_image_and_pixmap): Add depth parameter.
 	(x_build_heuritic_mask): New.
