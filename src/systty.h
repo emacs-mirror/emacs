@@ -271,6 +271,19 @@ static struct sensemode {
 
 #endif
 
+/* EMACS_GETPGRP (arg) returns the process group of the terminal.  */
+
+#if defined (USG) && !defined (GETPGRP_NEEDS_ARG)
+#  if !defined (GETPGRP_NO_ARG)
+#    define GETPGRP_NO_ARG
+#  endif
+#endif
+
+#if defined (GETPGRP_NO_ARG)
+#  define EMACS_GETPGRP(x) getpgrp()
+#else
+#  define EMACS_GETPGRP(x) getpgrp(x)
+#endif /* !GETPGRP_NO_ARG */
 
 /* Manipulate a TTY's input/output processing parameters.  */
 
