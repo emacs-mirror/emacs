@@ -48,6 +48,8 @@ extern char *sbrk ();
 extern __malloc_size_t _bytes_used;
 extern int __malloc_extra_blocks;
 
+extern Lisp_Object Vhistory_length;
+
 #define max(A,B) ((A) > (B) ? (A) : (B))
 #define min(A,B) ((A) < (B) ? (A) : (B))
 
@@ -1497,10 +1499,13 @@ Garbage collection happens automatically if you cons more than\n\
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
-  /* Don't keep command history around forever */
-  tem = Fnthcdr (make_number (30), Vcommand_history);
-  if (CONSP (tem))
-    XCONS (tem)->cdr = Qnil;
+  /* Don't keep command history around forever.  */
+  if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
+    {
+      tem = Fnthcdr (Vhistory_length, Vcommand_history);
+      if (CONSP (tem))
+	XCONS (tem)->cdr = Qnil;
+    }
 
   /* Likewise for undo information.  */
   {
