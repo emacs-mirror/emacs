@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2518,6 +2518,40 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
     *prev_ptr = prev;
   return idx;
 }
+
+
+/* Return non-zero if there exists an overlay with a non-nil
+   `mouse-face' property overlapping OVERLAY.  */
+
+int
+mouse_face_overlay_overlaps (overlay)
+     Lisp_Object overlay;
+{
+  int start = OVERLAY_POSITION (OVERLAY_START (overlay));
+  int end = OVERLAY_POSITION (OVERLAY_END (overlay));
+  int n, i;
+  Lisp_Object *v, tem;
+  
+  n = 10;
+  v = (Lisp_Object *) alloca (n * sizeof *v);
+  i = overlays_in (start, end, 0, &v, &n, NULL, NULL);
+  if (i > n)
+    {
+      n = i;
+      v = (Lisp_Object *) alloca (n * sizeof *v);
+      overlays_in (start, end, 0, &v, &n, NULL, NULL);
+    }
+
+  for (i = 0; i < n; ++i)
+    if (!EQ (v[i], overlay)
+	&& (tem = Foverlay_get (overlay, Qmouse_face),
+	    !NILP (tem)))
+      break;
+
+  return i < n;
+}
+
+
 
 /* Fast function to just test if we're at an overlay boundary.  */
 int
