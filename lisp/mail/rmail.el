@@ -899,7 +899,8 @@ It returns t if it got any new messages."
 	    (make-backup-files (and make-backup-files (buffer-modified-p)))
 	    (buffer-read-only nil)
 	    ;; Don't make undo records for what we do in getting mail.
-	    (buffer-undo-list t))
+	    (buffer-undo-list t)
+	    success)
 	(goto-char (point-max))
 	(skip-chars-backward " \t\n")	    ; just in case of brain damage
 	(delete-region (point) (point-max)) ; caused by require-final-newline
@@ -914,8 +915,22 @@ It returns t if it got any new messages."
 	      (setq delete-files (rmail-insert-inbox-text rmail-inbox-list t)))
 	    ;; Scan the new text and convert each message to babyl format.
 	    (goto-char (point-min))
-	    (save-excursion
-	      (setq new-messages (rmail-convert-to-babyl-format)))
+	    (unwind-protect
+		(save-excursion
+		  (setq new-messages (rmail-convert-to-babyl-format)
+			success t))
+	      ;; If we could not convert the file's inboxes,
+	      ;; rename the files we tried to read
+	      ;; so we won't over and over again.
+	      (if (and (not file-name) (not success))
+		  (let ((files delete-files)
+			(count 0))
+		    (while files
+		      (while (file-exists-p (format "RMAILOSE.%d" count))
+			(setq count (1+ count)))
+		      (rename-file (car files)
+				   (format "RMAILOSE.%d" count))
+		      (setq files (cdr files))))))
 	    (or (zerop new-messages)
 		(let (success)
 		  (widen)
