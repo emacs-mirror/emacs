@@ -1429,6 +1429,86 @@ minibuffer contents show.")
     }
 }
 
+DEFUN ("message-box", Fmessage_box, Smessage_box, 1, MANY, 0,
+  "Display a message, in a dialog box if possible.\n\
+If a dialog box is not available, use the echo area.\n\
+The first argument is a control string.\n\
+It may contain %s or %d or %c to print successive following arguments.\n\
+%s means print an argument as a string, %d means print as number in decimal,\n\
+%c means print a number as a single character.\n\
+The argument used by %s must be a string or a symbol;\n\
+the argument used by %d or %c must be a number.\n\
+If the first argument is nil, clear any existing message; let the\n\
+minibuffer contents show.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  if (NILP (args[0]))
+    {
+      message (0);
+      return Qnil;
+    }
+  else
+    {
+      register Lisp_Object val;
+      val = Fformat (nargs, args);
+#ifdef HAVE_X_MENU
+      {
+	Lisp_Object pane, menu, obj;
+	struct gcpro gcpro1;
+	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
+	GCPRO1 (pane);
+	menu = Fcons (val, pane);
+	obj = Fx_popup_dialog (Qt, menu);
+	UNGCPRO;
+	return val;
+      }
+#else
+      /* Copy the data so that it won't move when we GC.  */
+      if (! message_text)
+	{
+	  message_text = (char *)xmalloc (80);
+	  message_length = 80;
+	}
+      if (XSTRING (val)->size > message_length)
+	{
+	  message_length = XSTRING (val)->size;
+	  message_text = (char *)xrealloc (message_text, message_length);
+	}
+      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size);
+      message2 (message_text, XSTRING (val)->size);
+      return val;
+#endif
+    }
+}
+#ifdef HAVE_X_MENU
+extern Lisp_Object last_nonmenu_event;
+#endif
+DEFUN ("message-or-box", Fmessage_or_box, Smessage_or_box, 1, MANY, 0,
+  "Display a message in a dialog box or in the echo area.\n\
+If this command was invoked with the mouse, use a dialog box.\n\
+Otherwise, use the echo area.\n\
+\n\
+The first argument is a control string.\n\
+It may contain %s or %d or %c to print successive following arguments.\n\
+%s means print an argument as a string, %d means print as number in decimal,\n\
+%c means print a number as a single character.\n\
+The argument used by %s must be a string or a symbol;\n\
+the argument used by %d or %c must be a number.\n\
+If the first argument is nil, clear any existing message; let the\n\
+minibuffer contents show.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+#ifdef HAVE_X_MENU
+  if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+    return Fbox_message (nargs, args);
+#endif
+  return Fmessage (nargs, args);
+}
+
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
   "Format a string out of a control-string and arguments.\n\
 The first argument is a control string.\n\
@@ -2014,6 +2094,8 @@ syms_of_editfns ()
   defsubr (&Scurrent_time_zone);
   defsubr (&Ssystem_name);
   defsubr (&Smessage);
+  defsubr (&Smessage_box);
+  defsubr (&Smessage_or_box);
   defsubr (&Sformat);
 
   defsubr (&Sinsert_buffer_substring);
