@@ -1023,10 +1023,10 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
    $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
-   buffer.h INTERVAL_SRC $(config_h)
+   termhooks.h buffer.h INTERVAL_SRC $(config_h)
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
    coding.h msdos.h $(config_h)
-filelock.o: filelock.c buffer.h paths.h $(config_h)
+filelock.o: filelock.c buffer.h systime.h paths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h charset.h fontset.h msdos.h $(config_h)
