@@ -18,11 +18,11 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* Important notice: defining MAIL_USE_FLOCK *will cause loss of mail*
-   if you do it on a system that does not normally use flock as its way of
-   interlocking access to inbox files.  The setting of MAIL_USE_FLOCK
-   *must agree* with the system's own conventions.
-   It is not a choice that is up to you.
+/* Important notice: defining MAIL_USE_FLOCK or MAIL_USE_LOCKF *will
+   cause loss of mail* if you do it on a system that does not normally
+   use flock as its way of interlocking access to inbox files.  The
+   setting of MAIL_USE_FLOCK and MAIL_USE_LOCKF *must agree* with the
+   system's own conventions.  It is not a choice that is up to you.
 
    So, if your system uses lock files rather than flock, then the only way
    you can get proper operation is to enable movemail to write lockfiles there.
@@ -75,6 +75,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/locking.h>
 #endif
 
+#ifdef MAIL_USE_LOCKF
+#define MAIL_USE_SYSTEM_LOCK
+#endif
+
+#ifdef MAIL_USE_FLOCK
+#define MAIL_USE_SYSTEM_LOCK
+#endif
+
 #ifdef MAIL_USE_MMDF
 extern int lk_open (), lk_close ();
 #endif
@@ -103,14 +111,14 @@ main (argc, argv)
   int nread;
   WAITTYPE status;
 
-#ifndef MAIL_USE_FLOCK
+#ifndef MAIL_USE_SYSTEM_LOCK
   struct stat st;
   long now;
   int tem;
   char *lockname, *p;
   char *tempname;
   int desc;
-#endif /* not MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_SYSTEM_LOCK */
 
   delete_lockname = 0;
 
@@ -164,7 +172,7 @@ main (argc, argv)
     pfatal_with_name (inname);
 
 #ifndef MAIL_USE_MMDF
-#ifndef MAIL_USE_FLOCK
+#ifndef MAIL_USE_SYSTEM_LOCK
   /* Use a lock file named /usr/spool/mail/$USER.lock:
      If it exists, the mail file is locked.  */
   /* Note: this locking mechanism is *required* by the mailer
@@ -183,9 +191,9 @@ main (argc, argv)
      which uses lock files for this purpose.  Some systems use other methods.
 
      If your system uses the `flock' system call for mail locking,
-     define MAIL_USE_FLOCK in config.h or the s-*.h file
+     define MAIL_USE_SYSTEM_LOCK in config.h or the s-*.h file
      and recompile movemail.  If the s- file for your system
-     should define MAIL_USE_FLOCK but does not, send a bug report
+     should define MAIL_USE_SYSTEM_LOCK but does not, send a bug report
      to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
 
   lockname = concat (inname, ".lock", "");
@@ -224,17 +232,19 @@ main (argc, argv)
     }
 
   delete_lockname = lockname;
-#endif /* not MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_SYSTEM_LOCK */
+#endif /* not MAIL_USE_MMDF */
 
   if (fork () == 0)
     {
       seteuid (getuid ());
 
-#ifdef MAIL_USE_FLOCK
+#ifndef MAIL_USE_MMDF
+#ifdef MAIL_USE_SYSTEM_LOCK
       indesc = open (inname, O_RDWR);
-#else  /* if not MAIL_USE_FLOCK */
+#else  /* if not MAIL_USE_SYSTEM_LOCK */
       indesc = open (inname, O_RDONLY);
-#endif /* not MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_SYSTEM_LOCK */
 #else  /* MAIL_USE_MMDF */
       indesc = lk_open (inname, O_RDONLY, 0, 0, 10);
 #endif /* MAIL_USE_MMDF */
@@ -252,13 +262,17 @@ main (argc, argv)
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
-#ifdef MAIL_USE_FLOCK
+#ifdef MAIL_USE_SYSTEM_LOCK
+#ifdef MAIL_USE_LOCKF
+      if (lockf (indesc, F_LOCK, 0) < 0) pfatal_with_name (inname);
+#else /* not MAIL_USE_LOCKF */
 #ifdef XENIX
       if (locking (indesc, LK_RLCK, 0L) < 0) pfatal_with_name (inname);
 #else
       if (flock (indesc, LOCK_EX) < 0) pfatal_with_name (inname);
 #endif
-#endif /* MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_LOCKF */
+#endif /* MAIL_USE_SYSTEM_LOCK */
 
       {
 	char buf[1024];
@@ -287,14 +301,14 @@ main (argc, argv)
       if (close (outdesc) != 0)
 	pfatal_and_delete (outname);
 
-#ifdef MAIL_USE_FLOCK
+#ifdef MAIL_USE_SYSTEM_LOCK
 #if defined (STRIDE) || defined (XENIX)
       /* Stride, xenix have file locking, but no ftruncate.  This mess will do. */
       close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
 #else
       ftruncate (indesc, 0L);
 #endif /* STRIDE or XENIX */
-#endif /* MAIL_USE_FLOCK */
+#endif /* MAIL_USE_SYSTEM_LOCK */
 
 #ifdef MAIL_USE_MMDF
       lk_close (indesc, 0, 0, 0);
@@ -302,7 +316,7 @@ main (argc, argv)
       close (indesc);
 #endif
 
-#ifndef MAIL_USE_FLOCK
+#ifndef MAIL_USE_SYSTEM_LOCK
       /* Delete the input file; if we can't, at least get rid of its
 	 contents.  */
 #ifdef MAIL_UNLINK_SPOOL
@@ -311,7 +325,7 @@ main (argc, argv)
       if (unlink (inname) < 0 && errno != ENOENT)
 #endif /* MAIL_UNLINK_SPOOL */
 	creat (inname, 0600);
-#endif /* not MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_SYSTEM_LOCK */
 
       exit (0);
     }
@@ -322,9 +336,9 @@ main (argc, argv)
   else if (WRETCODE (status) != 0)
     exit (WRETCODE (status));
 
-#if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_FLOCK)
+#if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
   unlink (lockname);
-#endif /* not MAIL_USE_MMDF and not MAIL_USE_FLOCK */
+#endif /* not MAIL_USE_MMDF and not MAIL_USE_SYSTEM_LOCK */
   exit (0);
 }
 
