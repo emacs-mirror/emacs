@@ -12,10 +12,6 @@
 ;; Also, the doc strings need fixing: the first line doesn't stand alone,
 ;; and other usage is not high quality.  Symbol names don't have `...'.
 
-;; So, for the meantime, this is not the default mode for makefiles.
-
-;; $Id: makefile.el,v 1.23 1995/06/24 07:34:27 rms Exp rms $
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -220,8 +216,12 @@ not be enclosed in { } or ( ).")
    ;; Do dependencies.  These get the function name face.
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
 
-   ;; Highlight leading spaces, since they are hard to see and
-   ;; can make a makefile fail to function.
+   ;; Highlight lines that contain just whitespace.
+   ;; They can cause trouble, especially if they start with a tab.
+   '("^[ \t]+$" . makefile-space-face)
+
+   ;; Highlight leading spaces, since they are hard to see before a tab
+   ;; and can make a makefile fail to function.
    ;; Don't highlight leading tabs, because they are normal
    ;; and people assume that 8 cols of whitespace means a tab.
    '("^ " . makefile-space-face)))
@@ -247,12 +247,11 @@ not be enclosed in { } or ( ).")
 ;;; ------------------------------------------------------------
 
 (defvar makefile-brave-make "make"
-  "A make that can handle the \'-q\' option.")
+  "A make that can handle the `-q' option.")
 
 (defvar makefile-query-one-target-method 'makefile-query-by-make-minus-q
-  "A function symbol [one that can be used as the first argument to
-funcall] that provides a function that must conform to the following
-interface:
+  "Function to call to determine whether a make target is up to date.
+The function must satisfy this calling convention:
 
 * As its first argument, it must accept the name of the target to
   be checked, as a string.
@@ -271,7 +270,8 @@ interface:
 ;;; --- end of up-to-date-overview configuration ------------------
 
 (defvar makefile-mode-map nil
-  "The keymap that is used in makefile-mode.")
+  "The keymap that is used in Makefile mode.")
+
 (if makefile-mode-map
     ()
   (setq makefile-mode-map (make-sparse-keymap))
@@ -356,7 +356,7 @@ interface:
   "Table of all macro names known for this buffer.")
 
 (defvar makefile-browser-client
-  "A buffer in makefile-mode that is currently using the browser.")
+  "A buffer in Makefile mode that is currently using the browser.")
 
 (defvar makefile-browser-selection-vector nil)
 (defvar makefile-has-prereqs nil)
@@ -401,8 +401,7 @@ interface:
 ;;;###autoload
 (defun makefile-mode ()
   "Major mode for editing Makefiles.
-Calling this function invokes the function(s) \"makefile-mode-hook\" before
-doing anything else.
+This function ends by invoking the function(s) `makefile-mode-hook'.
 
 \\{makefile-mode-map}
 
@@ -410,20 +409,19 @@ In the browser, use the following keys:
 
 \\{makefile-browser-map}
 
-makefile-mode can be configured by modifying the following
-variables:
+Makefile mode can be configured by modifying the following variables:
 
 makefile-browser-buffer-name:
     Name of the macro- and target browser buffer.
 
 makefile-target-colon:
     The string that gets appended to all target names
-    inserted by makefile-insert-target.
+    inserted by `makefile-insert-target'.
     \":\" or \"::\" are quite common values.
 
 makefile-macro-assign:
    The string that gets appended to all macro names
-   inserted by makefile-insert-macro.
+   inserted by `makefile-insert-macro'.
    The normal value should be \" = \", since this is what
    standard make expects. However, newer makes such as dmake
    allow a larger variety of different macro assignments, so you
@@ -453,8 +451,8 @@ makefile-browser-auto-advance-after-selection-p:
 
 makefile-pickup-everything-picks-up-filenames-p:
    If this variable is set to a non-nil value then
-   makefile-pickup-everything also picks up filenames as targets
-   (i.e. it calls makefile-find-filenames-as-targets), otherwise
+   `makefile-pickup-everything' also picks up filenames as targets
+   (i.e. it calls `makefile-find-filenames-as-targets'), otherwise
    filenames are omitted.
 
 makefile-cleanup-continuations-p:
@@ -464,7 +462,7 @@ makefile-cleanup-continuations-p:
    This is done by silently removing the trailing whitespace, leaving
    the backslash itself intact.
    IMPORTANT: Please note that enabling this option causes makefile-mode
-   to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \'it seems necessary\'.
+   to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\".
 
 makefile-browser-hook:
    A function or list of functions to be called just before the
@@ -472,8 +470,8 @@ makefile-browser-hook:
 
 makefile-special-targets-list:
    List of special targets. You will be offered to complete
-   on one of those in the minibuffer whenever you enter a \".\"
-   at the beginning of a line in makefile-mode."
+   on one of those in the minibuffer whenever you enter a `.'.
+   at the beginning of a line in Makefile mode."
 
   (interactive)
   (kill-all-local-variables)
@@ -528,7 +526,7 @@ makefile-special-targets-list:
 ;;; Motion code.
 
 (defun makefile-next-dependency ()
-  "Move (point) to the beginning of the next dependency line below (point)."
+  "Move point to the beginning of the next dependency line."
   (interactive)
   (let ((here (point)))
     (end-of-line)
@@ -537,7 +535,7 @@ makefile-special-targets-list:
       (goto-char here) nil)))
 
 (defun makefile-previous-dependency ()
-  "Move (point) to the beginning of the next dependency line above (point)."
+  "Move point to the beginning of the previous dependency line."
   (interactive)
   (let ((here (point)))
     (beginning-of-line)
@@ -593,7 +591,7 @@ Anywhere else just self-inserts."
 	(makefile-remember-macro macro-name))))
 
 (defun makefile-insert-macro-ref (macro-name)
-  "Complete on a list of known macros, then insert complete ref at (point)."
+  "Complete on a list of known macros, then insert complete ref at point."
   (interactive
    (list
     (progn
@@ -614,7 +612,7 @@ Anywhere else just self-inserts."
 	(makefile-remember-target target-name))))
 
 (defun makefile-insert-target-ref (target-name)
-  "Complete on a list of known targets, then insert target-ref at (point) ."
+  "Complete on a list of known targets, then insert target-ref at point."
   (interactive
    (list
     (progn
@@ -1002,7 +1000,7 @@ large dependencies from the browser to the client buffer.
 
 (defun makefile-browser-insert-selection ()
   "Insert all selected targets and/or macros in the makefile buffer.
-Insertion takes place at (point)."
+Insertion takes place at point."
   (interactive)
   (save-excursion
     (goto-line 1)
@@ -1130,7 +1128,7 @@ with the generated name!"
 	    my-uid))))
 
 (defun makefile-query-targets (filename target-table prereq-list)
-  "Fill the up-to-date-overview-buffer.
+  "Fill the up-to-date overview buffer.
 Checks each target in TARGET-TABLE using `makefile-query-one-target-method'
 and generates the overview, one line per target name."
   (insert
