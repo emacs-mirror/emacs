@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.60) $
+ * $HopeName: MMsrc!mpm.h(trunk.61) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -466,8 +466,6 @@ extern void (ArenaPoll)(Arena arena);
 #endif
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
-/* @@@@ Doesn't this break a rule that macro and function forms */
-/* must have identical behaviour?  GavinM 1997-09-12 */
 
 extern void ArenaClamp(Arena arena);
 extern void ArenaRelease(Arena arena);
@@ -479,14 +477,12 @@ extern void ArenaFree(Arena arena, void *base, Size size);
 
 /* Peek/Poke
  *
- * These are provided so that modules in the MPS can make
- * occasional access to client data.
- * They perform the appropriate shield and summary manipulations
- * that are necessary.
+ * These are provided so that modules in the MPS can make occasional
+ * access to client data.  They perform the appropriate shield and
+ * summary manipulations that are necessary.
  *
  * Note that Peek and Poke can be called with address that may or
- * may not be in arena managed memory.
- */
+ * may not be in arena managed memory.  */
 
 /* Peek reads a value */
 extern Ref ArenaPeek(Arena arena, Addr addr);
@@ -525,7 +521,7 @@ extern Size ArenaCommitted(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 extern Res ArenaRetract(Arena, Addr base, Size size);
-extern Res ArenaFinalize(Arena arena, Addr addr);
+extern Res ArenaFinalize(Arena arena, Ref obj);
 
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
