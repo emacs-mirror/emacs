@@ -499,7 +499,7 @@ string."
 
 (defconst sc-version "3.1"
   "Supercite version number.")
-(defconst sc-help-address "supercite-help@anthem.nlm.nih.gov"
+(defconst sc-help-address "bug-supercite@gnu.org"
   "Address accepting submissions of bug reports.")
 
 (defvar sc-mail-info nil
