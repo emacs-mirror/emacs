@@ -1522,7 +1522,9 @@ new_fontset_from_font_name (Lisp_Object fontname)
       ASET (vec, 13, build_string (temp));
       name = build_font_name_from_vector (vec);
     }
-  name = Fnew_fontset (name, Fcons (Fcons (Qascii, Fcons (fontname, Qnil)),
+  name = Fnew_fontset (name, Fcons (Fcons (Fcons (make_number (0),
+						  make_number (MAX_CHAR)),
+					   Fcons (fontname, Qnil)),
 				    Qnil));
   id = fs_query_fontset (name, 0);
   auto_fontset_alist
