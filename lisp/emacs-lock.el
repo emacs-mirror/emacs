@@ -1,11 +1,10 @@
 ;;; emacs-lock.el --- prevents you from exiting emacs if a buffer is locked
 
-;; Copyright (C) 1994 Free Software Foundation, Inc
+;; Copyright (C) 1994, 1997 Free Software Foundation, Inc
 
 ;; Author: Tom Wurgler <twurgler@goodyear.com>
 ;; Created: 12/8/94
-;; Version: 1.3
-;; Keywords: 
+;; Keywords:
 
 ;; This file is part of GNU Emacs.
 
@@ -37,32 +36,71 @@
 
 ;;; Code:
 
-(defvar lock-emacs-from-exiting nil
+(defvar emacs-lock-from-exiting nil
   "Whether emacs is locked to prevent exiting.  See `check-emacs-lock'.")
-(make-variable-buffer-local 'lock-emacs-from-exiting)
+(make-variable-buffer-local 'emacs-lock-from-exiting)
+
+(defvar emacs-lock-buffer-locked nil
+  "Whether a shell or telnet buffer was locked when its process was killed.")
+(make-variable-buffer-local 'emacs-lock-buffer-locked)
+(put 'emacs-lock-buffer-locked 'permanent-local t)
 
 (defun check-emacs-lock ()
-  "Check if variable `lock-emacs-from-exiting' is t for any buffer.
+  "Check if variable `emacs-lock-from-exiting' is t for any buffer.
 If any t is found, signal error and display the locked buffer name."
   (let ((buffers (buffer-list)))
     (save-excursion
-      (while buffers 
+      (while buffers
 	(set-buffer (car buffers))
-	(if lock-emacs-from-exiting
+	(if emacs-lock-from-exiting
 	    (error "Emacs is locked from exit due to buffer: %s" (buffer-name))
 	  (setq buffers (cdr buffers)))))))
 
 (defun toggle-emacs-lock ()
-  "Toggle `lock-emacs-from-exiting' between t and nil for the current buffer.
+  "Toggle `emacs-lock-from-exiting' between t and nil for the current buffer.
 See `check-emacs-lock'."
   (interactive)
-  (if lock-emacs-from-exiting
-      (setq lock-emacs-from-exiting nil)
-    (setq lock-emacs-from-exiting t))
-  (if lock-emacs-from-exiting
-      (message "Emacs is now locked from exiting.")
-    (message "Emacs is now unlocked.")))
+  (if emacs-lock-from-exiting
+      (setq emacs-lock-from-exiting nil)
+    (setq emacs-lock-from-exiting t))
+  (if emacs-lock-from-exiting
+      (message "Buffer is now locked")
+    (message "Buffer is now unlocked")))
+
+(defun emacs-lock-check-buffer-lock ()
+  "Check if variable `emacs-lock-from-exiting' is t for a buffer.
+If t is found, signal error and display the locked buffer name."
+  (if emacs-lock-from-exiting
+      (error "Buffer `%s' is locked, can't delete it" (buffer-name))))
+
+; These next defuns make it so if you exit a shell that is locked,  the lock
+; is shut off for that shell so you can exit emacs.  same for telnet.
+; Also, if a shell or a telnet buffer was locked and the process killed,
+; turn the lock back on again if the process is restarted.
+
+(defun emacs-lock-shell-sentinel ()
+  (set-process-sentinel
+   (get-buffer-process (buffer-name)) (function emacs-lock-clear-sentinel)))
+
+(defun emacs-lock-clear-sentinel (proc str)
+  (if emacs-lock-from-exiting
+      (progn
+        (setq emacs-lock-from-exiting nil)
+	(setq emacs-lock-buffer-locked t)
+	(message "Buffer is now unlocked"))
+    (setq emacs-lock-buffer-locked nil)))
+
+(defun emacs-lock-was-buffer-locked ()
+  (if emacs-lock-buffer-locked
+      (setq emacs-lock-from-exiting t)))
 
 (add-hook 'kill-emacs-hook 'check-emacs-lock)
+(add-hook 'kill-buffer-hook 'emacs-lock-check-buffer-lock)
+(add-hook 'shell-mode-hook 'emacs-lock-was-buffer-locked)
+(add-hook 'shell-mode-hook 'emacs-lock-shell-sentinel)
+(add-hook 'telnet-mode-hook 'emacs-lock-was-buffer-locked)
+(add-hook 'telnet-mode-hook 'emacs-lock-shell-sentinel)
 
-;; emacs-lock.el ends here
+(provide 'emacs-lock)
+
+;;; emacs-lock.el ends here
