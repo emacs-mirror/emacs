@@ -33,6 +33,7 @@ progname="$0"
 ### Print out each line we read, for debugging's sake.
 ### set -v
 
+update=yes
 clean_up=no
 make_tar=no
 newer=""
@@ -47,6 +48,10 @@ while [ $# -gt 0 ]; do
     ## This option tells make-dist to make a tar file.
     "--tar" )
       make_tar=yes
+    ;;
+    ## This option tells make-dist not to recompile or do analogous things.
+    "--no-update" )
+      update=no
     ;;
     ## This option tells make-dist to make the distribution normally, then
     ## remove all files older than the given timestamp file.  This is useful
@@ -77,6 +82,21 @@ if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
   exit 1
 fi
 
+### Find where to run Emacs.
+if [ $update = yes ];
+then
+  if [ -f src/emacs ];
+  then
+    EMACS=`pwd`/src/emacs
+  else
+    if [ x$EMACS = x ];
+    then 
+      echo You must specify the EMACS environment variable 2>&1
+      exit 1
+    fi
+  fi
+fi
+
 ### Find out which version of Emacs this is.
 shortversion=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
 	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
@@ -89,11 +109,14 @@ fi
 
 echo Version numbers are $version and $shortversion
 
-if grep -s "GNU Emacs version ${shortversion}" ./man/emacs.texi > /dev/null; then
-  true
-else
-  echo "You must update the version number in \`./man/emacs.texi'"
-  sleep 5
+if [ $update = yes ];
+then
+  if grep -s "GNU Emacs version ${shortversion}" ./man/emacs.texi > /dev/null; then
+    true
+  else
+    echo "You must update the version number in \`./man/emacs.texi'"
+    sleep 5
+  fi
 fi
 
 ### Make sure we don't already have a directory  emacs-${version}.
@@ -141,21 +164,24 @@ if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
   autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
 fi
 
-echo "Updating Info files"
+if [ $update = yes ];
+then
+  echo "Updating Info files"
 
-(cd man; make info)
+  (cd man; make info)
 
-echo "Updating finder-inf.el"
+  echo "Updating finder-inf.el"
 
-(cd lisp; ../src/emacs -batch -l finder -f finder-compile-keywords-make-dist)
+  (cd lisp; $EMACS -batch -l finder -f finder-compile-keywords-make-dist)
 
-echo "Recompiling Lisp files"
+  echo "Recompiling Lisp files"
 
-src/emacs -batch -f batch-byte-recompile-directory lisp
+  $EMACS -batch -f batch-byte-recompile-directory lisp
 
-echo "Updating autoloads"
+  echo "Updating autoloads"
 
-src/emacs -batch -f batch-update-autoloads lisp
+  $EMACS -batch -f batch-update-autoloads lisp
+fi
 
 echo "Making lisp/MANIFEST"
 
@@ -245,17 +271,31 @@ echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
 ### config.in, paths.in, or Makefile.in, or TAGS.
 (cd src
- echo "  (If we can't link gmalloc.c, that's okay.)"
+ echo "  (It is ok if ln fails in some cases.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
- ## Might be a symlink to a file on another filesystem.
- test -f ../${tempdir}/src/gmalloc.c || cp gmalloc.c ../${tempdir}/src
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.s ../${tempdir}/src
- ln README Makefile.in ChangeLog ChangeLog.? config.in paths.in \
-    ../${tempdir}/src
- ln makefile.nt ../${tempdir}/src
+ ln [a-zA-Z]*.in ../${tempdir}/src
+ ln [a-zA-Z]*.opt ../${tempdir}/src
+ ## If we ended up with a symlink, or if we did not get anything
+ ## due to a cross-device symlink, copy the file.
+ for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in [a-zA-Z]*.opt; do
+   if test -f ../${tempdir}/src/$file; then
+     # test -f appears to succeed for a symlink
+     if test -L ../${tempdir}/src/$file; then
+       rm ../${tempdir}/src/$file
+       cp $file ../${tempdir}/src
+       chmod a-w ../${tempdir}/src/$file
+     fi
+   else
+     rm ../${tempdir}/src/$file
+     cp $file ../${tempdir}/src
+     chmod a-w ../${tempdir}/src/$file
+   fi
+ done
+ ln README ChangeLog ChangeLog.*[0-9] ../${tempdir}/src
+ ln makefile.nt vms-pp.trans ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
- ln *.opt vms-pp.trans ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile Makefile.c
  rm -f =* TAGS)
@@ -278,8 +318,24 @@ echo "Making links to \`lib-src'"
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln emacs.csh rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
+ ## If we ended up with a symlink, or if we did not get anything
+ ## due to a cross-device symlink, copy the file.
+ for file in [a-zA-Z]*.[chy]; do
+   if test -f ../${tempdir}/lib-src/$file; then
+     # test -f appears to succeed for a symlink
+     if test -L ../${tempdir}/lib-src/$file; then
+       rm ../${tempdir}/lib-src/$file
+       cp $file ../${tempdir}/lib-src
+       chmod a-w ../${tempdir}/lib-src/$file
+     fi
+   else
+     rm ../${tempdir}/lib-src/$file
+     cp $file ../${tempdir}/lib-src
+     chmod a-w ../${tempdir}/lib-src/$file
+   fi
+ done
  cd ../${tempdir}/lib-src
- rm -f getdate.tab.c y.tab.c y.tab.h Makefile.c
+ rm -f Makefile.c
  rm -f =* TAGS)
 
 echo "Making links to \`nt'"
