@@ -342,10 +342,14 @@ Print value in minibuffer.
 With argument, insert value in current buffer after the defun."
   (interactive "P")
   (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
-	(form (save-excursion
-		(end-of-defun)
-		(beginning-of-defun)
-		(read (current-buffer)))))
+	 end form)
+    ;; Read the form from the buffer, and record where it ends.
+    (save-excursion
+      (end-of-defun)
+      (beginning-of-defun)
+      (setq form (read (current-buffer)))
+      (setq end (point)))
+    ;; Alter the form if necessary.
     (cond ((and (eq (car form) 'defvar)
 		(cdr-safe (cdr-safe form)))
 	   ;; Force variable to be bound.
@@ -354,7 +358,16 @@ With argument, insert value in current buffer after the defun."
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
 	   (set-default (nth 1 form) (eval (nth 2 form)))))
-    (prin1 (eval form))))
+    ;; Now arrange for eval-region to "read" the (possibly) altered form.
+    ;; eval-region handles recording which file defines a function or variable.
+    (save-excursion
+      (let ((load-read-function
+	     #'(lambda (ignore)
+		 ;; Skipping to the end of the specified region
+		 ;; will make eval-region return.
+		 (goto-char end)
+		 form)))
+	(eval-region (point) end standard-output)))))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
