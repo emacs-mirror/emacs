@@ -7835,6 +7835,7 @@ usage: (define-coding-system-internal ...)  */)
 
   if (EQ (coding_type, Qcharset))
     {
+      Lisp_Object list;
       /* Generate a lisp vector of 256 elements.  Each element is nil,
 	 integer, or a list of charset IDs.
 
@@ -7848,9 +7849,23 @@ usage: (define-coding-system-internal ...)  */)
 	 of one of them.  The list is sorted by dimensions of the
 	 charsets.  A charset of smaller dimension comes firtst.
       */
+      for (list = Qnil, tail = charset_list; CONSP (tail); tail = XCDR (tail))
+	{
+	  struct charset *charset = CHARSET_FROM_ID (XFASTINT (XCAR (tail)));
+
+	  if (charset->method == CHARSET_METHOD_SUPERSET)
+	    {
+	      val = CHARSET_SUPERSET (charset);
+	      for (; CONSP (val); val = XCDR (val))
+		list = Fcons (XCAR (XCAR (val)), list); 
+	    }
+	  else
+	    list = Fcons (XCAR (tail), list);
+	}
+
       val = Fmake_vector (make_number (256), Qnil);
 
-      for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
+      for (tail = Fnreverse (list); CONSP (tail); tail = XCDR (tail))
 	{
 	  struct charset *charset = CHARSET_FROM_ID (XFASTINT (XCAR (tail)));
 	  int dim = CHARSET_DIMENSION (charset);
