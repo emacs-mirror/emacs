@@ -1458,8 +1458,12 @@ Control characters turn into C-whatever, etc.")
     case Lisp_Symbol:		/* Function key or event-symbol */
       return Fsymbol_name (key);
 
+      /* Buffer names in the menubar can trigger this.  */
+    case Lisp_String:
+      return Fcopy_sequence (key);
+
     default:
-      error ("KEY must be an integer, cons, or symbol.");
+      error ("KEY must be an integer, cons, symbol, or string.");
     }
 }
 
