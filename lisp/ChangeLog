@@ -1,3 +1,9 @@
+2001-07-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-file-modtime): Ignore 226 responses
+	from the server.  Call encode-time only when we are sure that we
+	got a 213 response.
+
 2001-07-06  Simon Josefsson  <jas@extundo.com>
 
 	* mail/sendmail.el (mail-specify-envelope-from): Doc fix.
