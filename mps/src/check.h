@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.10) $
+ * $HopeName: MMsrc!check.h(trunk.11) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -31,18 +31,18 @@
 
 #if defined(MPS_HOT_WHITE)
 
-#define AVER(cond)                  NOCHECK(cond)
-#define AVERT(type, val)            NOCHECK(type ## Check(val))
-#define AVER_CRITICAL(cond)         NOCHECK(cond)
-#define AVERT_CRITICAL(type, val)   NOCHECK(type ## Check(val))
+#define AVER(cond)                  DISCARD(cond)
+#define AVERT(type, val)            DISCARD(type ## Check(val))
+#define AVER_CRITICAL(cond)         DISCARD(cond)
+#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
 
 #elif defined(MPS_HOT_RED) 
 
 #define AVER(cond)                  ASSERT(cond, #cond)
 #define AVERT(type, val)            ASSERT(type ## Check(val), \
         "TypeCheck " #type ": " #val)
-#define AVER_CRITICAL(cond)         NOCHECK(cond)
-#define AVERT_CRITICAL(type, val)   NOCHECK(type ## Check(val))
+#define AVER_CRITICAL(cond)         DISCARD(cond)
+#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
 
 #elif defined(MPS_COOL)
 
@@ -66,24 +66,11 @@ extern AssertHandler AssertDefault(void);
 
 extern void AssertFail1(const char *s);
 
-/* STR(x) expands into a string of the expansion of x. */
-/* Eg, if we have: */
-/* #define a b */
-/* STR(a) will expand into "b". */
-/* @@@@ really STR belongs in some generic support file. */
-#define STR_(x) #x
-#define STR(x) STR_(x)
 
 #define ASSERT(cond, condstring) \
   BEGIN \
     if(cond) NOOP; else \
       AssertFail1(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
-  END
-
-		 
-#define NOCHECK(cond) \
-  BEGIN \
-    (void)sizeof(cond); \
   END
 
     
@@ -114,16 +101,16 @@ extern void AssertFail1(const char *s);
  */
 
 #define CHECKS(type, val) \
-  BEGIN NOCHECK(CHECKT(type, val)); NOTREACHED; END
+  BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
 
 #define CHECKL(cond) \
-  BEGIN NOCHECK(cond); NOTREACHED; END
+  BEGIN DISCARD(cond); NOTREACHED; END
 
 #define CHECKD(type, val) \
-  BEGIN NOCHECK(CHECKT(type, val)); NOTREACHED; END
+  BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
 
 #define CHECKU(type, val) \
-  BEGIN NOCHECK(CHECKT(type, val)); NOTREACHED; END
+  BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
 
 #elif defined(MPS_HOT_RED)
 
@@ -131,9 +118,9 @@ extern void AssertFail1(const char *s);
 #define CHECKS(type, val)       CHECKC(CHECKT(type, val), \
 	"SigCheck " #type ": " #val)
 
-#define CHECKL(cond)       NOCHECK(cond)
-#define CHECKD(type, val)  NOCHECK(CHECKT(type, val))
-#define CHECKU(type, val)  NOCHECK(CHECKT(type, val))
+#define CHECKL(cond)       DISCARD(cond)
+#define CHECKD(type, val)  DISCARD(CHECKT(type, val))
+#define CHECKU(type, val)  DISCARD(CHECKT(type, val))
 
 #elif defined(MPS_COOL)
 
@@ -227,35 +214,6 @@ extern void AssertFail1(const char *s);
 #define CHECKFIELD(s1, f1, s2, f2) \
   (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
    CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
-
-
-/* STATISTIC 
- *
- * STATISTIC is used to gather statistics within the MPM.
- * In white-hot varieties, this compiles away to nothing.
- *
- * The argument to STATISTIC is syntactically an expression.
- * The expansion of STATISTIC followed by a semicolon is
- * syntactically a statement.
- *
- * .statistic.whitehot: The implementation of STATISTIC for 
- * white-hot varieties passes the parameter to NOCHECK to ensure
- * the parameter is syntactically an expression. The parameter is 
- * passed as part of a comma-expression so that it's type is not
- * important. This permits expression of type VOID.
- *
- */
-
-#if defined(MPS_HOT_WHITE)
-
-
-#define STATISTIC(gather)   NOCHECK(((gather), 0))
-
-#else
-
-#define STATISTIC(gather)   BEGIN (gather); END
-
-#endif
 
 
 #endif /* check_h */
