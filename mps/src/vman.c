@@ -1,6 +1,6 @@
 /* impl.c.vman: ANSI VM: MALLOC-BASED PSEUDO MEMORY MAPPING
  *
- * $HopeName: MMsrc!vman.c(trunk.18) $
+ * $HopeName: MMsrc!vman.c(trunk.19) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -9,7 +9,7 @@
 #include <stdlib.h>     /* for malloc and free */
 #include <string.h>     /* for memset */
 
-SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.18) $");
+SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.19) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -53,33 +53,34 @@ Res VMCreate(VM *vmReturn, Size size)
   VM vm;
 
   AVER(vmReturn != NULL);
-  size = SizeAlignUp(size, VMAN_ALIGN);
-  AVER(size != 0);
+
+  /* Note that because we add VMAN_ALIGN rather than */
+  /* VMAN_ALIGN-1 we are not in danger of overflowing */
+  /* vm->limit even if malloc were perverse enough to give us */
+  /* a block at the end of memory. */
+  size = SizeAlignUp(size, VMAN_ALIGN) + VMAN_ALIGN;
+  if((size < VMAN_ALIGN) || (size > (Size)(size_t)-1))
+    return ResRESOURCE;
 
   vm = (VM)malloc(sizeof(VMStruct));
   if(vm == NULL)
     return ResMEMORY;
 
-  /* Note that because we add VMAN_ALIGN rather than */
-  /* VMAN_ALIGN-1 we are not in danger of overflowing */
-  /* vm->limit even if malloc were peverse enough to give us */
-  /* a block at the end of memory. */
-
-  vm->block = malloc((Size)(size + VMAN_ALIGN));
+  vm->block = malloc((size_t)size);
   if(vm->block == NULL) {
     free(vm);
     return ResMEMORY;
   }
 
   vm->base  = AddrAlignUp((Addr)vm->block, VMAN_ALIGN);
-  vm->limit = AddrAdd(vm->base, size);
-  AVER(vm->limit < AddrAdd((Addr)vm->block, size + VMAN_ALIGN));
+  vm->limit = AddrAdd(vm->base, size - VMAN_ALIGN);
+  AVER(vm->limit < AddrAdd((Addr)vm->block, size));
 
-  memset((void *)vm->base, VM_JUNKBYTE, size);
+  memset((void *)vm->block, VM_JUNKBYTE, size);
   
   /* Lie about the reserved address space, to simulate real */
   /* virtual memory. */
-  vm->reserved = size;
+  vm->reserved = size - VMAN_ALIGN;
   vm->mapped = (Size)0;
   
   vm->sig = VMSig;
