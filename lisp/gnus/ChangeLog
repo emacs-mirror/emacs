@@ -1,3 +1,7 @@
+2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.
+
 2002-01-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el, gnus-art.el, gnus.el, gnus-cite.el: 

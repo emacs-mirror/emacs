@@ -1,5 +1,5 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -331,10 +331,8 @@ used as the line break code type of the coding system."
 	 )
     charset)
    ;; Translate invalid charsets.
-   ((mm-coding-system-p (setq charset
-			   (cdr (assq charset
-				      mm-charset-synonym-alist))))
-    charset)
+   ((let ((cs (cdr (assq charset mm-charset-synonym-alist))))
+      (and cs (mm-coding-system-p charset) cs)))
    ;; Last resort: search the coding system list for entries which
    ;; have the right mime-charset in case the canonical name isn't
    ;; defined (though it should be).
