@@ -60,7 +60,10 @@ The format is (FUNCTION ARGS...).")
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 
-
+(defcustom help-mode-hook nil
+  "Hook run by `help-mode'."
+  :type 'hook
+  :group 'help)
 
 ;; Button types used by help
 
@@ -137,15 +140,22 @@ The format is (FUNCTION ARGS...).")
 
 
 ;;;###autoload
-(define-derived-mode help-mode nil "Help"
+(defun help-mode ()
   "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
 Commands:
 \\{help-mode-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map help-mode-map)
+  (setq mode-name "Help")
+  (setq major-mode 'help-mode)
+  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults nil)         ; font-lock would defeat xref
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
-  (setq view-no-disable-on-exit t))
+  (setq view-no-disable-on-exit t)
+  (run-hooks 'help-mode-hook))
 
 ;;;###autoload
 (defun help-mode-setup ()
