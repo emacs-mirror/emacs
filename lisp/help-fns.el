@@ -210,6 +210,19 @@ and the file name is displayed in the echo area."
 	      (help-xref-button 1 'help-function def)))))
     (or file-name
 	(setq file-name (symbol-file function)))
+    (when (equal file-name "loaddefs.el")
+      ;; Find the real def site of the preloaded function.
+      ;; This is necessary only for defaliases.
+      (let ((location
+	     (condition-case nil
+		 (find-function-search-for-symbol function nil "loaddefs.el") 
+	       (error nil))))
+	(when location
+	  (with-current-buffer (car location)
+	    (goto-char (cdr location))
+	    (when (re-search-backward
+		   "^;;; Generated autoloads from \\(.*\\)" nil t)
+	      (setq file-name (match-string 1)))))))
     (cond
      (file-name
       (princ " in `")
