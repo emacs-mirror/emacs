@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.51) $
+ * $HopeName: MMsrc!mpmst.h(trunk.52) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -222,6 +222,11 @@ typedef struct MessageStruct {
  *
  * .seg: Segments are the basic units of memory allocation from
  * the arena.  See design.mps.seg.
+ * .seg.fieldnames: @@@@ Fieldnames all begin with underscore, for no 
+ *   documented reason.  GavinM tells me this was done by Richard as part 
+ *   of finding and removing some modularity-breaking accesses of SegStruct 
+ *   fields.  There is no reason not to revert these names at some point in 
+ *   the future.  richardk19980312.
  */
 
 typedef struct SegStruct {      /* segment structure */
