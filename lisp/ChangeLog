@@ -1,14 +1,12 @@
-2005-01-21  Carsten Dominik <dominik@science.uva.nl>
-	
+2005-01-24  Carsten Dominik <dominik@science.uva.nl>
+
 	* textmodes/reftex-global.el (reftex-isearch-push-state-function)
-	(reftex-isearch-pop-state-function)
-	(reftex-isearch-isearch-search)
+	(reftex-isearch-pop-state-function, reftex-isearch-isearch-search)
 	(reftex-isearch-switch-to-next-file, reftex-isearch-turn-off)
 	(reftex-isearch-turn-on, reftex-isearch-minor-mode): New functions.
 
 	* textmodes/reftex.el (reftex-mode-menu): Add entry for reftex
 	isearch minor mode.
-
 
 2005-01-24  Luc Teirlinck  <teirllm@auburn.edu>
 
