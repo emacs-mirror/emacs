@@ -336,21 +336,6 @@ nas returned by the `event-start' and `event-end' functions."
   (nth 3 position))
 
 
-;;;; Overlay dissection functions.
-
-(defsubst overlay-start (overlay)
-  "Return the position at which OVERLAY starts."
-  (marker-position (car (car overlay))))
-
-(defsubst overlay-end (overlay)
-  "Return the position at which OVERLAY ends."
-  (marker-position (cdr (car overlay))))
-
-(defsubst overlay-buffer (overlay)
-  "Return the buffer OVERLAY belongs to."
-  (marker-buffer (overlay-start overlay)))
-
-
 ;;;; Obsolescent names for functions.
 
 (defalias 'make-syntax-table 'copy-syntax-table)
