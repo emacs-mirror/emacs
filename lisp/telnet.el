@@ -63,7 +63,10 @@
   "Number of output strings from telnet process while looking for password.")
 (make-variable-buffer-local 'telnet-count)
 
-(defvar telnet-rsh-program
+(defvar telnet-program "telnet"
+  "Program to run to open a telnet connection.")
+
+(defvar rsh-program
   (if (memq system-type '(hpux usg-unix-v)) 
       "remsh" "rsh")
   "Program to run for opening a remote shell.")
@@ -187,7 +190,7 @@ Normally input is edited in Emacs and sent a line at a time."
 	 (buffer (get-buffer (concat "*" name "*"))))
     (if (and buffer (get-buffer-process buffer))
 	(switch-to-buffer (concat "*" name "*"))
-      (switch-to-buffer (make-comint name "telnet"))
+      (switch-to-buffer (make-comint name telnet-program))
       (set-process-filter (get-process name) 'telnet-initial-filter)
       ;; Don't send the `open' cmd till telnet is ready for it.
       (accept-process-output (get-process name))
@@ -222,7 +225,7 @@ Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat host "-rsh" )))
-    (switch-to-buffer (make-comint name telnet-rsh-program nil host))
+    (switch-to-buffer (make-comint name rsh-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
     (setq telnet-count -16)))
