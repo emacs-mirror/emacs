@@ -124,7 +124,7 @@ NAME:      a string which will appear in the status line (e.g. \"Hypertext\")
 DOCSTRING: an optional documentation string--if you do not supply one,
            the function will attempt to invent something useful.
 BODY:      forms to execute just before running the
-           hooks for the new mode.
+           hooks for the new mode.  Do not use `interactive' here.
 
 Here is how you could define LaTeX-Thesis mode as a variant of LaTeX mode:
 
