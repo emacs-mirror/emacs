@@ -1386,26 +1386,18 @@ function by default."
 	;; At first check the head.
 	(when head-found
 	  (goto-char head-start)
-	  (setq pos (re-search-forward "[\n\r]" head-end t))
-	  (if (and pos
-		   (= (char-after head-start) ?#)
-		   (= (char-after (1+ head-start)) ?!))
-	      ;; If the file begins with "#!" (exec interpreter magic),
-	      ;; look for coding frobs in the first two lines.  You cannot
-	      ;; necessarily put them in the first line of such a file
-	      ;; without screwing up the interpreter invocation.
-	      (setq pos (search-forward "\n" head-end t)))
-	  (if pos (setq head-end pos))
+	  (setq head-end (set-auto-mode-1))
+	  (setq head-start (point))
 	  (when (< head-found head-end)
 	    (goto-char head-start)
 	    (when (and set-auto-coding-for-load
 		       (re-search-forward
-			"-\\*-\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
+			"\\(.*;\\)?[ \t]*unibyte:[ \t]*\\([^ ;]+\\)"
 			head-end t))
 	      (setq coding-system 'raw-text))
 	    (when (and (not coding-system)
 		       (re-search-forward
-			"-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
+			"\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
 			head-end t))
 	      (setq coding-system (intern (match-string 2)))
 	      (or (coding-system-p coding-system)
