@@ -73,9 +73,14 @@ sub compile_and_link {
 }
 
 sub try_test {
- local ($exefile) = @_;
+ local ($exefile, $tim0) = @_;
 
+ $tim0 = time;
  system($try_command.$exefile);
+ $seconds = time-$tim0;
+ print "$seconds second";
+ unless ($seconds == 1) {print "s"};
+ print ".\n";
 }
 
 sub run_test {
