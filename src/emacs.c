@@ -261,7 +261,7 @@ Display options:\n\
 --border-width, -bw WIDTH	width of main border\n\
 --cursor-color, -cr COLOR	color of the Emacs cursor indicating point\n\
 --display, -d DISPLAY		use X server DISPLAY\n\
---font, -fn FONT		default font; must be fixed-widthp\n\
+--font, -fn FONT		default font; must be fixed-width\n\
 --foreground-color, -fg COLOR	window foreground color\n\
 --geometry, -g GEOMETRY		window geometry\n\
 --iconic			start Emacs in iconified state\n\
@@ -271,7 +271,7 @@ Display options:\n\
 --mouse-color, -ms COLOR 	mouse cursor color in Emacs window\n\
 --name NAME			title of main Emacs window\n\
 --reverse-video, -r, -rv	switch foreground and background\n\
---title, -T, -wn, TITLE		title for Emacs windows\n\
+--title, -T, -wn TITLE		title for Emacs windows\n\
 --vertical-scroll-bars, -vb	enable vertical scroll bars\n\
 --xrm XRESOURCES		set additional X resources\n\
 \n\
@@ -542,7 +542,7 @@ Any directory names are omitted.")
 
 DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
   0, 0, 0,
-  "Return the directory name in which the Emacs executable was located")
+  "Return the directory name in which the Emacs executable was located.")
   ()
 {
   return Fcopy_sequence (Vinvocation_directory);

@@ -1,3 +1,8 @@
+2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs.c (Finvocation_directory): Doc fix.
+	(USAGE2): Fix typos; from Pavel Janik <Pavel@Janik.cz>.
+
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_set_internal_border_width): Set frame garbaged
