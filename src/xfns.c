@@ -1410,7 +1410,6 @@ x_set_background_color (f, arg, oldval)
   if (FRAME_X_WINDOW (f) != 0)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
-      Lisp_Object bar;
       
       BLOCK_INPUT;
       XSetBackground (dpy, x->normal_gc, bg);
@@ -1418,13 +1417,19 @@ x_set_background_color (f, arg, oldval)
       XSetWindowBackground (dpy, FRAME_X_WINDOW (f), bg);
       XSetForeground (dpy, x->cursor_gc, bg);
 
-      for (bar = FRAME_SCROLL_BARS (f);
-	   !NILP (bar);
-	   bar = XSCROLL_BAR (bar)->next)
-	{
-	  Window window = SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar));
-	  XSetWindowBackground (dpy, window, bg);
-	}
+#ifndef USE_TOOLKIT_SCROLL_BARS /* Turns out to be annoying with
+				   toolkit scroll bars.  */
+      {
+	Lisp_Object bar;
+	for (bar = FRAME_SCROLL_BARS (f);
+	     !NILP (bar);
+	     bar = XSCROLL_BAR (bar)->next)
+	  {
+	    Window window = SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar));
+	    XSetWindowBackground (dpy, window, bg);
+	  }
+      }
+#endif /* USE_TOOLKIT_SCROLL_BARS */
 
       UNBLOCK_INPUT;
       update_face_from_frame_parameter (f, Qbackground_color, arg);
