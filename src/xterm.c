@@ -8252,7 +8252,7 @@ x_window_to_scroll_bar (window_id)
 }
 
 
-#if defined USE_X_TOOLKIT && defined USE_LUCID
+#if defined USE_LUCID
 
 /* Return the Lucid menu bar WINDOW is part of.  Return null
    if WINDOW is not part of a menu bar.  */
@@ -8277,7 +8277,7 @@ x_window_to_menu_bar (window)
   return NULL;
 }
 
-#endif /* USE_X_TOOLKIT && USE_LUCID */
+#endif /* USE_LUCID */
 
 
 /************************************************************************
@@ -8484,7 +8484,6 @@ xm_scroll_callback (widget, client_data, call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   XmScrollBarCallbackStruct *cs = (XmScrollBarCallbackStruct *) call_data;
-  double percent;
   int part = -1, whole = 0, portion = 0;
 
   switch (cs->reason)
@@ -8870,7 +8869,6 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 #ifdef USE_MOTIF
   {
     int size, value;
-    XmScrollBarWidget sb;
 
     /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
        is the scroll bar's maximum and MIN is the scroll bar's minimum
@@ -10293,7 +10291,7 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifndef USE_TOOLKIT_SCROLL_BARS
 		  struct scroll_bar *bar;
 #endif
-#if defined USE_X_TOOLKIT && defined USE_LUCID
+#if defined USE_LUCID
 		  /* Submenus of the Lucid menu bar aren't widgets
 		     themselves, so there's no way to dispatch events
 		     to them.  Recognize this case separately.  */
@@ -10303,8 +10301,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		    if (widget)
 		      xlwmenu_redisplay (widget);
 		  }
-#endif /* USE_X_TOOLKIT && USE_LUCID */
-		  
+#endif /* USE_LUCID */
+
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  /* Dispatch event to the widget.  */
 		  goto OTHER;
