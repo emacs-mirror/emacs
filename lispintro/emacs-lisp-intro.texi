@@ -1,6 +1,7 @@
-@c \input texinfo                                  @c -*-texinfo-*-
+\input texinfo                                  @c -*-texinfo-*-
 @comment %**start of header
 @setfilename ../info/eintr
+@c setfilename emacs-lisp-intro.info
 @c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp
 @syncodeindex vr cp
@@ -21,8 +22,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.12
-@set update-date 2003 Nov 19
+@set edition-number 2.13
+@set update-date 2004 Oct  5
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -60,6 +61,8 @@
 
       ## View Info output with standalone reader
       info emacs-lisp-intro.info
+
+ ## popd
 
 @end ignore
 
@@ -180,7 +183,7 @@ people who are not programmers.
 Edition @value{edition-number}, @value{update-date}
 @sp 1
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,
-2002, 2003 Free Software Foundation, Inc.
+2002, 2003, 2004 Free Software Foundation, Inc.
 @sp 1
 
 @iftex
@@ -1050,13 +1053,16 @@ Robert J. Chassell
 @chapter List Processing
 
 To the untutored eye, Lisp is a strange programming language.  In Lisp
-code there are parentheses everywhere.  Some people even claim that the
-name stands for `Lots of Isolated Silly Parentheses'.  But the claim is
-unwarranted.  Lisp stands for LISt Processing, and the programming
-language handles @emph{lists} (and lists of lists) by putting them
-between parentheses.  The parentheses mark the boundaries of the list.
-Sometimes a list is preceded by a single apostrophe or quotation mark,
-@samp{'}.  Lists are the basis of Lisp.
+code there are parentheses everywhere.  Some people even claim that
+the name stands for `Lots of Isolated Silly Parentheses'.  But the
+claim is unwarranted.  Lisp stands for LISt Processing, and the
+programming language handles @emph{lists} (and lists of lists) by
+putting them between parentheses.  The parentheses mark the boundaries
+of the list.  Sometimes a list is preceded by a single apostrophe or
+quotation mark, @samp{'}@footnote{The single apostrophe or quotation
+mark is an abbreviation for the function @code{quote}; you need not
+think about functions now; functions are defined in @ref{Making
+Errors, , Generate an Error Message}.}  Lists are the basis of Lisp.
 
 @menu
 * Lisp Lists::                  What are lists?
@@ -2135,7 +2141,8 @@ Debugger entered--Lisp error:
 
 @need 1250
 As usual, the error message tries to be helpful and makes sense after you
-learn how to read it.
+learn how to read it.@footnote{@code{(quote hello)} is an expansion of
+the abbreviation @code{'hello}.}
 
 The first part of the error message is straightforward; it says
 @samp{wrong type argument}.  Next comes the mysterious jargon word
@@ -20638,6 +20645,7 @@ each column."
 @end smallexample
 @end ifnottex
 
+@c qqq
 @ignore
 Graphing Definitions Re-listed
 
@@ -21137,6 +21145,7 @@ each column."
     (print-X-axis numbers-list horizontal-step)))
 @end group
 @end smallexample
+@c qqq
 @end ignore
 
 @page
