@@ -32,7 +32,7 @@
 ;;; Code:
 
 (defvar load-history-loaded nil
-  "Non-nil means we have loaded the file `etc/fns-VERSION.el'.
+  "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
 That file records the part of `load-history' for preloaded files,
 which is cleared out before dumping to make Emacs smaller.")
 
@@ -41,7 +41,7 @@ which is cleared out before dumping to make Emacs smaller.")
 This is a file name, or nil if the source was a buffer with no associated file."
   (unless load-history-loaded
     (load (expand-file-name (format "fns-%s.el" emacs-version)
-			    data-directory))
+			    exec-directory))
     (setq load-history-loaded t))
   (catch 'foundit
     (mapcar
