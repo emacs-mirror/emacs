@@ -5925,7 +5925,8 @@ for the left fringe.  Third parameter RIGHT-WIDTH does the same for
 the right fringe.  Fourth parameter OUTSIDE-MARGINS non-nil specifies
 that fringes are drawn outside of the display margins; by default, fringes
 are drawn between display marginal areas and the text area.
-A nil width parameter means to use the frame's corresponding fringe width.  */)
+A nil width parameter means to use the frame's default fringe width;
+default fringe widths can be set with the command `set-fringe-style'. */)
      (window, left, right, outside_margins)
      Lisp_Object window, left, right, outside_margins;
 {
