@@ -1,3 +1,8 @@
+2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* src/macfns.c (x_create_bitmap_from_file, x_find_image_file):
+	* src/mac.c (run_mac_command): Update calls to openp.
+
 2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* src/macmenu.c (Fx_popup_menu): Use Fkeymap_prompt.
@@ -8,7 +13,7 @@
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-09-04  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* src/macmenu.c (mac_menu_show): Use refcon of selected menu item.

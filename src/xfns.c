@@ -641,7 +641,7 @@ x_create_bitmap_from_file (f, file)
     }
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  fd = openp (Vx_bitmap_file_path, file, "", &found, 0);
+  fd = openp (Vx_bitmap_file_path, file, Qnil, &found, 0);
   if (fd < 0)
     return -1;
   emacs_close (fd);
@@ -2970,9 +2970,9 @@ x_default_scroll_bar_color_parameter (f, alist, prop, xprop, xclass,
 				    build_string (foreground_p
 						  ? "foreground"
 						  : "background"),
-				    build_string (""),
+				    empty_string,
 				    build_string ("verticalScrollBar"),
-				    build_string (""));
+				    empty_string);
       if (!STRINGP (tem))
 	{
 	  /* If nothing has been specified, scroll bars will use a
@@ -6359,7 +6359,7 @@ x_find_image_file (file)
   GCPRO2 (file_found, search_path);
 
   /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
-  fd = openp (search_path, file, "", &file_found, 0);
+  fd = openp (search_path, file, Qnil, &file_found, 0);
   
   if (fd == -1)
     file_found = Qnil;

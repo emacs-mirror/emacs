@@ -412,7 +412,7 @@ a system-dependent default device name is used.")
     {
       /* Open the sound file.  */
       s.fd = openp (Fcons (Vdata_directory, Qnil),
-		    attrs[SOUND_FILE], "", &file, 0);
+		    attrs[SOUND_FILE], Qnil, &file, 0);
       if (s.fd < 0)
 	sound_perror ("Open sound file");
 

@@ -2010,7 +2010,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 	  strcat (t, newargv[0]);
 #endif
 	  Lisp_Object path;
-	  openp (Vexec_path, build_string (newargv[0]), EXEC_SUFFIXES, &path,
+	  openp (Vexec_path, build_string (newargv[0]), Vexec_suffixes, &path,
 		 1);
 
 	  if (NILP (path))

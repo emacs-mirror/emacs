@@ -744,7 +744,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       
       full = Qnil;
       GCPRO1 (program);
-      openp (Vexec_path, program, EXEC_SUFFIXES, &full, 1);
+      openp (Vexec_path, program, Vexec_suffixes, &full, 1);
       UNGCPRO;
       if (NILP (full))
 	{

@@ -1196,7 +1196,7 @@ Remaining arguments are strings to give program as arguments.")
 
       tem = Qnil;
       GCPRO4 (name, program, buffer, current_dir);
-      openp (Vexec_path, program, EXEC_SUFFIXES, &tem, 1);
+      openp (Vexec_path, program, Vexec_suffixes, &tem, 1);
       UNGCPRO;
       if (NILP (tem))
 	report_file_error ("Searching for program", Fcons (program, Qnil));
@@ -3386,8 +3386,8 @@ send_process (proc, buf, len, object)
 	     Long lines need to be split into multiple batches.  */
 	  if (!NILP (XPROCESS (proc)->pty_flag))
 	    {
-	      /* Starting this at zero is always correct when not the first iteration
-		 because the previous iteration ended by sending C-d.
+	      /* Starting this at zero is always correct when not the first
+                 iteration because the previous iteration ended by sending C-d.
 		 It may not be correct for the first iteration
 		 if a partial line was sent in a separate send_process call.
 		 If that proves worth handling, we need to save linepos

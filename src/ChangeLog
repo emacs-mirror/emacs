@@ -1,8 +1,29 @@
 2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* xfns.c (x_create_bitmap_from_file, x_find_image_file):
+	* w32proc.c (sys_spawnve):
+	* w32fns.c (x_create_bitmap_from_file, x_find_image_file):
+	* w32.c (check_windows_init_file):
+	* sound.c (Fplay_sound):
+	* process.c (Fstart_process): Update calls to openp.
+
+	* callproc.c (Vexec_suffixes): New var.
+	(Fcall_process): Update call to openp.
+	(decode_suffixes): New function.
+	(syms_of_callproc): Init exec-suffixes.
+
+	* lread.c (Vload_suffixes, default_suffixes): New vars.
+	(openp): Take a lisp list of suffixes.
+	Check for file-name-handlers even if the file was absolute already.
+	(syms_of_lread): Declare load-suffixes.
+	(Fload): Fix up call to openp.
+	Don't bother checking for file-name-handler at the very beginning.
+
 	* keymap.h (Fcopy_keymap): Don't export.
 
 	* lisp.h (empty_string): Declare.
+	(Vload_suffixes, Vexec_suffixes): Declare.
+	(openp): Update prototype.
 
 	* emacs.c (empty_string): New var.
 	(syms_of_emacs): Initialize it.
