@@ -229,7 +229,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     }
   else if (COMPILEDP (fun))
     {
-      if (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK <= COMPILED_INTERACTIVE)
+      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_INTERACTIVE)
 	goto lose;
       specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
     }

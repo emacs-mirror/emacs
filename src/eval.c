@@ -1392,7 +1392,7 @@ Also, a symbol satisfies `commandp' if its function definition does so.")
      have an element whose index is COMPILED_INTERACTIVE, which is
      where the interactive spec is stored.  */
   else if (COMPILEDP (fun))
-    return (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK > COMPILED_INTERACTIVE
+    return ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE
 	    ? Qt : Qnil);
 
   /* Strings and vectors are keyboard macros.  */

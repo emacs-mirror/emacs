@@ -279,7 +279,7 @@ string is passed through `substitute-command-keys'.")
     }
   else if (COMPILEDP (fun))
     {
-      if (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK <= COMPILED_DOC_STRING)
+      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_DOC_STRING)
 	return Qnil;
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
       if (STRINGP (tem))
@@ -394,7 +394,7 @@ store_function_docstring (fun, offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK > COMPILED_DOC_STRING)
+      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
 	XSETFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING], offset);
     }
 }
