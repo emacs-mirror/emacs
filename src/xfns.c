@@ -4033,10 +4033,10 @@ x_char_height (f)
 }
 
 int
-x_screen_planes (frame)
-     Lisp_Object frame;
+x_screen_planes (f)
+     register struct frame *f;
 {
-  return FRAME_X_DISPLAY_INFO (XFRAME (frame))->n_planes;
+  return FRAME_X_DISPLAY_INFO (f)->n_planes;
 }
 
 #if 0  /* These no longer seem like the right way to do things.  */
