@@ -533,7 +533,7 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 
 		   ;; Windows and MSDOS (currently) do not count as
 		   ;; window systems, but do have mouse support.
-		   (if (or (memq (system-type '(msdos windowsnt)))
+		   (if (or (memq system-type '(msdos windowsnt))
 			   window-system)
 		       (insert "
 C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
