@@ -1,6 +1,7 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (c) 1994, 95, 96, 2001, 02, 03, 04 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 1995, 1996, 2001, 2002, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -507,10 +508,7 @@ as well as widgets, buttons, overlays, and text properties."
 		    (format "%d" (nth 1 split))
 		  (format "%d %d" (nth 1 split) (nth 2 split)))))
 	    ("syntax"
-	     ,(let* ((st (if parse-sexp-lookup-properties
-			     (get-char-property pos 'syntax-table)))
-		     (syntax (if (consp st) st
-			       (aref (or st (syntax-table)) (char-after pos)))))
+	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
 		  (internal-describe-syntax-value syntax)
 		  (buffer-string))))
@@ -687,5 +685,5 @@ as well as widgets, buttons, overlays, and text properties."
 
 (provide 'descr-text)
 
-;;; arch-tag: fc55a498-f3e9-4312-b5bd-98cc02480af1
+;; arch-tag: fc55a498-f3e9-4312-b5bd-98cc02480af1
 ;;; descr-text.el ends here

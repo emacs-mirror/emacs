@@ -1,3 +1,17 @@
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* descr-text.el (describe-char):
+	* paren.el (show-paren-function):
+	* subr.el (syntax-after): Undo last change.
+
+	* progmodes/python.el (run-python): Don't hard code *Python*.
+	Don't modify global process-environment.
+	(python-send-region, python-load-file): Don't assume that
+	python-buffer == (process-buffer (python-proc)).
+	(python-switch-to-python): Simplify.
+
+	* dired.el (dired-align-file): Don't assume line starts with spaces.
+
 2004-11-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (math-read-big-expr, math-read-big-bigp):
