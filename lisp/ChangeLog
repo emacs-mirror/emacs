@@ -1,3 +1,7 @@
+2005-03-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* help-fns.el (help-with-tutorial): Revert last change.
+
 2005-03-31  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-scroll-down): Add CUA property.
