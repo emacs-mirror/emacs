@@ -5462,9 +5462,11 @@ char * xlfd_charset_of_font (char * fontname)
   if (!encoding || encoding == fontname)
     return NULL;
 
-  charset = strrchr(encoding - 1, '-');
+  for (charset = encoding - 1; charset >= fontname; charset--)
+    if (*charset == '-')
+      break;
 
-  if (!charset || strcmp(charset, "-*-*") == 0)
+  if (charset == fontname || strcmp(charset, "-*-*") == 0)
     return NULL;
 
   return charset + 1;
