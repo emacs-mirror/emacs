@@ -7170,7 +7170,8 @@ echo_area_display (update_frame_p)
  ***********************************************************************/
 
 
-#ifdef HAVE_WINDOW_SYSTEM
+/* The frame title buffering code is also used by Fformat_mode_line.
+   So it is not conditioned by HAVE_WINDOW_SYSTEM.  */
 
 /* A buffer for constructing frame titles in it; allocated from the
    heap in init_xdisp and resized as needed in store_frame_title_char.  */
@@ -7238,6 +7239,7 @@ store_frame_title (str, field_width, precision)
   return n;
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Set the title of FRAME, if it has changed.  The title format is
    Vicon_title_format if FRAME is iconified, otherwise it is
@@ -7301,11 +7303,6 @@ x_consider_frame_title (frame)
 	x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
     }
 }
-
-#else /* not HAVE_WINDOW_SYSTEM */
-
-#define frame_title_ptr ((char *)0)
-#define store_frame_title(str, mincol, maxcol) 0
 
 #endif /* not HAVE_WINDOW_SYSTEM */
 
@@ -14018,6 +14015,65 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 }
 
 
+DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
+       0, 2, 0,
+       doc: /* Return the mode-line of selected window as a string.
+First optional arg FORMAT specifies a different format string (see
+`mode-line-format' for for details) to use.  If FORMAT is t, return
+the buffer's header-line.  Second optional arg WINDOW specifies a
+different window to use as the context for the formatting.  */)
+     (format, window)
+     Lisp_Object format, window;
+{
+  struct it it;
+  struct face *face;
+  int len;
+  struct window *w;
+  struct buffer *old_buffer = NULL;
+
+  if (NILP (window))
+    window = selected_window;
+  CHECK_WINDOW (window);
+  w = XWINDOW (window);
+  CHECK_BUFFER (w->buffer);
+
+  if (XBUFFER (w->buffer) != current_buffer)
+    {
+      old_buffer = current_buffer;
+      set_buffer_internal_1 (XBUFFER (w->buffer));
+    }
+
+  if (NILP (format) || EQ (format, Qt))
+    format = NILP (format) 
+      ? current_buffer->mode_line_format
+      : current_buffer->header_line_format;
+
+  init_iterator (&it, w, -1, -1, NULL, DEFAULT_FACE_ID);
+
+  frame_title_ptr = frame_title_buf;
+
+  push_frame_kboard (it.f);
+  display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
+  pop_frame_kboard ();
+
+  if (old_buffer)
+    set_buffer_internal_1 (old_buffer);
+
+  len = frame_title_ptr - frame_title_buf;
+  if (len > 0 && frame_title_ptr[-1] == '-')
+    {
+      /* Mode lines typically ends with numerous dashes; reduce to two dashes.  */
+      while (frame_title_ptr > frame_title_buf && *--frame_title_ptr == '-')
+	;
+      frame_title_ptr += 3;  /* restore last non-dash + two dashes */
+      if (len > frame_title_ptr - frame_title_buf)
+	len = frame_title_ptr - frame_title_buf;
+    }
+
+  frame_title_ptr = NULL;
+  return make_string (frame_title_buf, len);
+}
+
 /* Write a null-terminated, right justified decimal representation of
    the positive integer D to BUF using a minimal field width WIDTH.  */
 
@@ -14900,6 +14956,7 @@ syms_of_xdisp ()
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Stool_bar_lines_needed);
 #endif
+  defsubr (&Sformat_mode_line);
 
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
@@ -15295,7 +15352,6 @@ init_xdisp ()
 	default_invis_vector[i] = make_number ('.');
     }
 
-#ifdef HAVE_WINDOW_SYSTEM
   {
     /* Allocate the buffer for frame titles.  */
     int size = 100;
@@ -15303,7 +15359,6 @@ init_xdisp ()
     frame_title_buf_end = frame_title_buf + size;
     frame_title_ptr = NULL;
   }
-#endif /* HAVE_WINDOW_SYSTEM */
 
   help_echo_showing_p = 0;
 }
