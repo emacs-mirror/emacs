@@ -22,8 +22,8 @@ Boston, MA 02111-1307, USA.  */
    includes frame.h some emacs source includes both dispextern.h and
    frame.h */
 
-#ifndef EMACS_FRAME_H_INCLUDED
-#define EMACS_FRAME_H_INCLUDED
+#ifndef EMACS_FRAME_H
+#define EMACS_FRAME_H
 
 
 /* Miscellanea.  */
@@ -783,4 +783,4 @@ extern Lisp_Object selected_frame;
       ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
       : make_number ((Y) / CANON_Y_UNIT (F)))	
 			     
-#endif /* not EMACS_FRAME_H_INCLUDED */
+#endif /* not EMACS_FRAME_H */
