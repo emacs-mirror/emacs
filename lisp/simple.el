@@ -646,7 +646,8 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (constrain-to-field nil orig-pos t)))))
 
 (defvar inhibit-mark-movement nil
-  "If non-nil, \\[beginning-of-buffer] and \\[end-of-buffer] does not set the mark.")
+  "If non-nil, movement commands, such as \\[beginning-of-buffer], \
+do not set the mark.")
 
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
@@ -659,8 +660,10 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (unless (or inhibit-mark-movement (consp arg))
-    (push-mark))
+  (or inhibit-mark-movement
+      (consp arg)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
 		   (+ (point-min)
@@ -683,8 +686,10 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (unless (or inhibit-mark-movement (consp arg))
-    (push-mark))
+  (or inhibit-mark-movement
+      (consp arg)
+      (and transient-mark-mode mark-active)
+      (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
 		   (- (point-max)
@@ -2987,11 +2992,11 @@ You can also deactivate the mark by typing \\[keyboard-quit] or
 Many commands change their behavior when Transient Mark mode is in effect
 and the mark is active, by acting on the region instead of their usual
 default part of the buffer's text.  Examples of such commands include
-\\[comment-dwim], \\[flush-lines], \\[ispell], \\[keep-lines],
-\\[query-replace], \\[query-replace-regexp], and \\[undo].  Invoke
-\\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
-the prompt, to see the documentation of commands which are sensitive to
-the Transient Mark mode."
+\\[comment-dwim], \\[flush-lines], \\[keep-lines], \
+\\[query-replace], \\[query-replace-regexp], \\[ispell], and \\[undo].
+Invoke \\[apropos-documentation] and type \"transient\" or
+\"mark.*active\" at the prompt, to see the documentation of
+commands which are sensitive to the Transient Mark mode."
   :global t :group 'editing-basics :require nil)
 
 (defun pop-global-mark ()
@@ -3523,12 +3528,17 @@ With argument, do this that many times."
   (interactive "p")
   (forward-word (- (or arg 1))))
 
-(defun mark-word (arg)
-  "Set mark arg words away from point.
-If this command is repeated, it marks the next ARG words after the ones
-already marked."
-  (interactive "p")
-  (cond ((and (eq last-command this-command) (mark t))
+(defun mark-word (&optional arg)
+  "Set mark ARG words away from point.
+The place mark goes is the same place \\[forward-word] would
+move to with the same argument.
+If this command is repeated or mark is active in Transient Mark mode,
+it marks the next ARG words after the ones already marked."
+  (interactive "P")
+  (cond ((or (and (eq last-command this-command) (mark t))
+	     (and transient-mark-mode mark-active))
+	 (setq arg (if arg (prefix-numeric-value arg)
+		     (if (< (mark) (point)) -1 1)))
 	 (set-mark
 	  (save-excursion
 	    (goto-char (mark))
@@ -3537,7 +3547,7 @@ already marked."
 	(t
 	 (push-mark
 	  (save-excursion
-	    (forward-word arg)
+	    (forward-word (prefix-numeric-value arg))
 	    (point))
 	  nil t))))
 
@@ -4021,8 +4031,7 @@ or go back to just one window (by deleting all but the selected window)."
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((and transient-mark-mode
-	      mark-active)
+	((and transient-mark-mode mark-active)
 	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))
