@@ -15,7 +15,13 @@ relock:
 doit:
 
 cus-load.el: doit
-	$(EMACS) -batch -l ./cus-dep.el -f custom-make-dependencies
+	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies
+
+finder-inf.el: doit
+	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist
+
+autoloads: doit
+	$(EMACS) -batch -f batch-update-autoloads .
 
 TAGS: $(lisptagsfiles)
 	../lib-src/etags $(lisptagsfiles)
