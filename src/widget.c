@@ -238,6 +238,8 @@ get_wm_shell (w)
   return wmshell;
 }
 
+#if 0 /* Currently not used.  */
+
 static void
 mark_shell_size_user_specified (wmshell)
      Widget wmshell;
@@ -248,6 +250,8 @@ mark_shell_size_user_specified (wmshell)
   ((WMShellWidget) wmshell)->wm.size_hints.flags |= USSize;
 }
 
+#endif
+
 
 /* Can't have static frame locals because of some broken compilers.
    Normally, initializing a variable like this doesn't work in emacs,
@@ -255,7 +259,9 @@ mark_shell_size_user_specified (wmshell)
    thus have its data not go into text space) because Xt needs to
    write to initialized data objects too.
  */
+#if 0
 static Boolean first_frame_p = True;
+#endif
 
 static void
 set_frame_size (ew)
@@ -296,30 +302,12 @@ set_frame_size (ew)
 
    */
 
-  /* Geometry of the AppShell */
-  int app_flags = 0;
-  int app_x = 0;
-  int app_y = 0;
-  unsigned int app_w = 0;
-  unsigned int app_h = 0;
-  
-  /* Geometry of the EmacsFrame */
-  int frame_flags = 0;
-  int frame_x = 0;
-  int frame_y = 0;
-  unsigned int frame_w = 0;
-  unsigned int frame_h = 0;
-  
   /* Hairily merged geometry */
-  int x = 0;
-  int y = 0;
   unsigned int w = ew->emacs_frame.frame->width;
   unsigned int h = ew->emacs_frame.frame->height;
-  int flags = 0;
   
   Widget wmshell = get_wm_shell ((Widget) ew);
   /* Each Emacs shell is now independent and top-level.  */
-  Widget app_shell = wmshell;
   
   if (! XtIsSubclass (wmshell, shellWidgetClass)) abort ();
 
@@ -432,7 +420,6 @@ set_frame_size (ew)
   {
     struct frame* frame = ew->emacs_frame.frame;
     Dimension pixel_width, pixel_height;
-    char shell_position [32];
 
     /* Take into account the size of the scrollbar.  Always use the
        number of columns occupied by the scroll bar here otherwise we
@@ -546,6 +533,8 @@ update_wm_hints (ew)
 		 0);
 }
 
+#if 0
+
 static void
 create_frame_gcs (ew)
      EmacsFrame ew;
@@ -564,6 +553,8 @@ create_frame_gcs (ew)
   s->output_data.x->black_relief.gc = 0;
   s->output_data.x->white_relief.gc = 0;
 }
+
+#endif /* 0 */
 
 static char setup_frame_cursor_bits[] =
 {
@@ -906,12 +897,10 @@ EmacsFrameSetCharSize (widget, columns, rows)
      int rows;
 {
   EmacsFrame ew = (EmacsFrame) widget;
-  Dimension pixel_width, pixel_height, granted_width, granted_height;
-  XtGeometryResult result;
+  Dimension pixel_width, pixel_height;
   struct frame *f = ew->emacs_frame.frame;
   Arg al[10];
   int ac = 0;
-  Dimension border_width;
   
   if (columns < 3) columns = 3;  /* no way buddy */
 
