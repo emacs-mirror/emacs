@@ -774,13 +774,12 @@ a case-insensitive match is tried."
 		    (append Info-directory-list
 			    Info-additional-directory-list)
 		  Info-directory-list))
+	  (dir-file-attrs nil)
 	  ;; Bind this in case the user sets it to nil.
 	  (case-fold-search t)
 	  ;; This is set non-nil if we find a problem in some input files.
 	  problems
 	  buffers buffer others nodes dirs-done)
-
-      (setq Info-dir-file-attributes nil)
 
       ;; Search the directory list for the directory file.
       (while dirs
@@ -812,17 +811,19 @@ a case-insensitive match is tried."
 		      (condition-case nil
 			  (progn
 			    (insert-file-contents file)
-			    (make-local-variable 'Info-dir-file-name)
-			    (setq Info-dir-file-name file)
+			    (set (make-local-variable 'Info-dir-file-name)
+				 file)
 			    (push (current-buffer) buffers)
-			    (push (cons file attrs) Info-dir-file-attributes))
+			    (push (cons file attrs) dir-file-attrs))
 			(error (kill-buffer (current-buffer))))))))
-	  (or (cdr dirs) (setq Info-dir-contents-directory
-			       (file-name-as-directory (car dirs))))
+	  (unless (cdr dirs)
+	    (set (make-local-variable 'Info-dir-contents-directory)
+		 (file-name-as-directory (car dirs))))
 	  (setq dirs (cdr dirs))))
 
       (or buffers
 	  (error "Can't find the Info directory node"))
+
       ;; Distinguish the dir file that comes with Emacs from all the
       ;; others.  Yes, that is really what this is supposed to do.
       ;; The definition of `Info-directory-list' puts it first on that
@@ -900,8 +901,9 @@ a case-insensitive match is tried."
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
-	(message "Composing main Info directory...done")))
-    (setq Info-dir-contents (buffer-string)))
+	(message "Composing main Info directory...done"))
+      (set (make-local-variable 'Info-dir-contents) (buffer-string))
+      (set (make-local-variable 'Info-dir-file-attributes) dir-file-attrs)))
   (setq default-directory Info-dir-contents-directory))
 
 (defvar Info-streamline-headings
