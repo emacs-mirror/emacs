@@ -224,7 +224,6 @@ the car and cdr are the same symbol.")
 	?\" "\"\""
 	?\' "\"'"
 	?\` "\"`"
-	?$ "\\"			    ; `escape' so $# doesn't start a comment
 	?! "_"
 	?% "_"
 	?: "_"
@@ -605,15 +604,18 @@ See `sh-feature'.")
 	   '("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
 	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face)))
-  "*Rules for highlighting shell scripts.  See `sh-feature'.")
+  "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-1
   '((sh "[ \t]in\\>"))
-  "*Additional rules for highlighting shell scripts.  See `sh-feature'.")
+  "Subdued level highlighting for Shell Script modes.")
 
 (defvar sh-font-lock-keywords-2 ()
-  "*Yet more rules for highlighting shell scripts.  See `sh-feature'.")
+  "Gaudy level highlighting for Shell Script modes.")
 
+(defconst sh-font-lock-syntactic-keywords
+  ;; Mark a `#' character as having punctuation syntax in a variable reference.
+  '(("\\$[({]?\\(#\\)" 1 (1 . nil))))
 
 ;; mode-command and utility functions
 
@@ -709,12 +711,11 @@ with your script for an edit-interpret-debug cycle."
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
 	font-lock-defaults
-	  `((sh-font-lock-keywords
-	     sh-font-lock-keywords-1
-	     sh-font-lock-keywords-2)
-	    nil nil
-	    ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-	    (font-lock-comment-start-regexp . "#"))
+	'((sh-font-lock-keywords
+	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
+	  nil nil
+	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+	  (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
@@ -727,8 +728,7 @@ with your script for an edit-interpret-debug cycle."
 	 (save-excursion
 	   (goto-char (point-min))
 	   (if (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
-	       (buffer-substring (match-beginning 2)
-				 (match-end 2))))))
+	       (match-string 2)))))
     (if interpreter
 	(sh-set-shell interpreter nil nil)
       ;; If we don't know the shell for this file,
