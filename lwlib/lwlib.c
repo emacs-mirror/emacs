@@ -26,14 +26,14 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
+#include "../src/lisp.h"
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <ctype.h>
 #include "lwlib-int.h"
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>
-
-extern long *xmalloc();
 
 #if defined (USE_LUCID)
 #include "lwlib-Xlw.h"
@@ -237,9 +237,8 @@ free_widget_value_tree (wv)
   if (wv->name) free (wv->name);
   if (wv->value) free (wv->value);
   if (wv->key) free (wv->key);
-  if (wv->help) free (wv->help);
 
-  wv->name = wv->value = wv->key = wv->help = (char *) 0xDEADBEEF;
+  wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
 
   if (wv->toolkit_data && wv->free_toolkit_data)
     {
@@ -276,7 +275,7 @@ copy_widget_value_tree (val, change)
   copy->name = safe_strdup (val->name);
   copy->value = safe_strdup (val->value);
   copy->key = safe_strdup (val->key);
-  copy->help = safe_strdup (val->help);
+  copy->help = val->help;
   copy->enabled = val->enabled;
   copy->button_type = val->button_type;
   copy->selected = val->selected;
@@ -546,13 +545,12 @@ merge_widget_value (val1, val2, level, change_p)
       safe_free_str (val1->key);
       val1->key = safe_strdup (val2->key);
     }
-  if (safe_strcmp (val1->help, val2->help))
+  if (! EQ (val1->help, val2->help))
     {
       EXPLAIN (val1->name, change, VISIBLE_CHANGE, "help change",
 	       val1->help, val2->help);
       change = max (change, VISIBLE_CHANGE);
-      safe_free_str (val1->help);
-      val1->help = safe_strdup (val2->help);
+      val1->help = val2->help;
     }
   if (val1->enabled != val2->enabled)
     {
