@@ -516,6 +516,11 @@ case "${canonical}" in
     machine=7300 opsys=usg5-2-2
   ;;
 
+  ## Bull dpx20
+  rs6000-bull-bosx* )
+    machine=ibmrs6000 opsys=aix3-2
+  ;;
+
   ## Bull dpx2
   m68*-bull-sysv3* )
     machine=dpx2 opsys=usg5-3
