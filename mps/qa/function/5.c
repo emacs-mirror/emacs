@@ -57,7 +57,7 @@ static void test(void)
 
  die(mps_reserve(&p, apA, OBJ_SIZE), "Reserve: ");
 
- for (i=1; i<1000; i++)
+ for (i=1; i<10000; i++)
  {
   allocone(apB, 100);
  }
