@@ -26,25 +26,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Sam Kendall added C++.
  */
 
+#ifdef HAVE_CONFIG_H
 #include "../src/config.h"
-#undef static
-
-/* AIX requires this to be the first thing in the file. */
-#ifdef __GNUC__
-#ifndef alloca
-#define alloca __builtin_alloca
 #endif
-#else /* not __GNUC__ */
-#if HAVE_ALLOCA_H
-#include <alloca.h>
-#else /* not HAVE_ALLOCA_H */
-#ifdef _AIX
- #pragma alloca
-#else /* not _AIX */
-char *alloca ();
-#endif /* not _AIX */
-#endif /* not HAVE_ALLOCA_H */
-#endif /* not __GNUC__ */
 
 #include <stdio.h>
 #include <ctype.h>
@@ -548,7 +532,7 @@ main (argc, argv)
   char cmd[100];
   int i;
   unsigned int nincluded_files = 0;
-  char **included_files = (char **) alloca (argc * sizeof (char *));
+  char **included_files = xnew (argc, char *);
   char *this_file;
 #ifdef VMS
   char got_err;
