@@ -159,7 +159,7 @@
     (""       2   2 left  "  "))
   "*List specifying the layout of a Buffer Selection Menu buffer.
 Each entry specifies a column and is a list of the form of:
-(HEADER MINIMUM-LENGTH MAXIMUM-LENGTH ALIGNMENT FUN-OR-STRING)
+\(HEADER MINIMUM-LENGTH MAXIMUM-LENGTH ALIGNMENT FUN-OR-STRING)
 HEADER         : string for header for first line or a function
   which calculates column title.
 MINIMUM-LENGTH : minimum width of column (number or name of function).
