@@ -1,3 +1,11 @@
+2004-08-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Backup Deletion): Correct description of
+	`delete-old-versions'.
+	(Time Stamps): `time-stamp' needs to be added to `before-save-hook'.
+	(Auto Save Files): Recommend `auto-save-mode' to reenable
+	auto-saving, rather than the abbreviation `auto-save'.
+
 2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs.texi (Top): Mention "cutting" and "pasting" as synonyms
