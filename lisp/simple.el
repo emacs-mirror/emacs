@@ -533,7 +533,20 @@ Each language environment may show different external character components."
 		 (setq slot
 		       (coding-system-get coding-system 'charset-origin-alist))
 		 (setq slot (assq charset slot)))
-	    (setq external (list (nth 1 slot) (funcall (nth 2 slot) char))))
+	    (let ((encoder (nth 2 slot)))
+	      (setq external
+		    (list (nth 1 slot)
+			  (cond ((functionp encoder)
+				 (funcall encoder char))
+				((char-table-p encoder)
+				 (aref encoder char))
+				((and (symbolp encoder)
+				      (char-table-p
+				       (get encoder 'translation-table)))
+				 (aref (get encoder 'translation-table) char))
+				(t
+				 (error "Invalid property in %s"
+					coding-system)))))))
 	(setq encoding-msg
 	      (if external
 		  (format "(0%o, %d, 0x%x, ext 0x%x)"
