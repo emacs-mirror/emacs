@@ -424,24 +424,24 @@ unload_color (f, pixel)
 }
 
 DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
-  "Return t if ARG is a valid pixmap specification.")
-  (arg)
-     Lisp_Object arg;
+  "Return t if OBJECT is a valid pixmap specification.")
+  (object)
+     Lisp_Object object;
 {
   Lisp_Object height, width;
 
-  return ((STRINGP (arg)
-	   || (CONSP (arg)
-	       && CONSP (XCONS (arg)->cdr)
-	       && CONSP (XCONS (XCONS (arg)->cdr)->cdr)
-	       && NILP (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->cdr)
-	       && (width = XCONS (arg)->car, INTEGERP (width))
-	       && (height = XCONS (XCONS (arg)->cdr)->car, INTEGERP (height))
-	       && STRINGP (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)
+  return ((STRINGP (object)
+	   || (CONSP (object)
+	       && CONSP (XCONS (object)->cdr)
+	       && CONSP (XCONS (XCONS (object)->cdr)->cdr)
+	       && NILP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->cdr)
+	       && (width = XCONS (object)->car, INTEGERP (width))
+	       && (height = XCONS (XCONS (object)->cdr)->car, INTEGERP (height))
+	       && STRINGP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)
 	       && XINT (width) > 0
 	       && XINT (height) > 0
 	       /* The string must have enough bits for width * height.  */
-	       && ((XSTRING (XCONS (XCONS (XCONS (arg)->cdr)->cdr)->car)->size
+	       && ((XSTRING (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)->size
 		    * (BITS_PER_INT / sizeof (int)))
 		   >= XFASTINT (width) * XFASTINT (height))))
 	  ? Qt : Qnil);
