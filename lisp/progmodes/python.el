@@ -1246,8 +1246,6 @@ With prefix arg, position cursor at end of buffer."
     (push-mark)
     (goto-char (point-max))))
 
-(add-to-list 'debug-ignored-errors "^No current process buffer.")
-
 (defun python-send-region-and-go (start end)
   "Send the region to the inferior Python process.
 Then switch to the process buffer."
