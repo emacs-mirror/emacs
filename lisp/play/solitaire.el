@@ -134,7 +134,7 @@ Move around the board using the cursor keys.
 Move stones using \\[solitaire-move] followed by a direction key.
 Undo moves using \\[solitaire-undo].
 Check for possible moves using \\[solitaire-do-check].
-(The variable solitaire-auto-eval controls whether to automatically
+\(The variable solitaire-auto-eval controls whether to automatically
 check after each move or undo)
 
 What is Solitaire?
