@@ -96,6 +96,10 @@
 	describe-char-after instead of displaying the detail in the echo
 	area.
 
+2000-05-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Add define-minor-mode.
+
 2000-05-12  Dave Love  <fx@gnu.org>
 
 	* calendar/todo-mode.el: Remove some compatibility stuff and CL
