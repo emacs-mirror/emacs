@@ -1,3 +1,8 @@
+2000-10-09  Dave Love  <fx@gnu.org>
+
+	* toolbar/tool-bar.el (tool-bar-mode): Check whether tool-bar-map
+	has been initialized before calling tool-bar-setup.
+
 2000-10-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (send-mail-item-name): New function.
