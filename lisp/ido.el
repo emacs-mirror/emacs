@@ -1958,7 +1958,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	   (string-match "[$]" ido-text))
       (let ((evar (substitute-in-file-name (concat ido-current-directory ido-text))))
 	(if (not (file-exists-p (file-name-directory evar)))
-	    (message "Expansion generates non-existing directory.")
+	    (message "Expansion generates non-existing directory")
 	  (if (file-directory-p evar)
 	      (ido-set-current-directory evar)
 	    (let ((d (or (file-name-directory evar) "/"))
