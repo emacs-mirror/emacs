@@ -453,6 +453,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		     use it as the best match rather than one that is not
 		     an exact match.  This way, we get the case pattern
 		     of the actual match.  */
+		  /* This tests that the current file is an exact match
+		     but BESTMATCH is not (it is too long).  */
 		  if ((matchsize == len
 		       && matchsize + !!directoryp 
 			  < XSTRING (bestmatch)->size)
@@ -460,13 +462,15 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
 			 of the input.  */
+		      /* If there is more than one exact match aside from
+			 case, and one of them is exact including case,
+			 prefer that one.  */
+		      /* This == checks that, of current file and BESTMATCH,
+			 either both or neither are exact.  */
 		      (((matchsize == len)
 			==
 			(matchsize + !!directoryp 
 			 == XSTRING (bestmatch)->size))
-		       /* If there is more than one exact match aside from
-			  case, and one of them is exact including case,
-			  prefer that one.  */
 		       && !bcmp (p2, XSTRING (file)->data, XSTRING (file)->size)
 		       && bcmp (p1, XSTRING (file)->data, XSTRING (file)->size)))
 		    {
