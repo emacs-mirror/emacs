@@ -1881,7 +1881,6 @@ It returns t if it got any new messages."
 		     (save-excursion
 		       (unless
 			   (mail-unquote-printable-region header-end (point) nil t t)
-			 
 			 (message "Malformed MIME quoted-printable message"))
 		       ;; Change "quoted-printable" to "8bit",
 		       ;; to reflect the decoding we just did.
