@@ -107,6 +107,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
+
 ** Languange environment and various default coding systems are setup
 more correctly according to the current locale name.  If the locale
 name doesn't specify a charset, the default is what glibc defines.

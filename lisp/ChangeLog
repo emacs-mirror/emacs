@@ -351,8 +351,7 @@
 
 2005-03-21  Lute Kamstra  <lute@gnu.org>
 
-	* generic.el: Fix commentary section.  Don't require cl for
-	compilation.
+	* generic.el: Fix commentary section.  Don't require cl for compilation.
 	(generic-mode-list): Add autoload cookie.
 	(generic-use-find-file-hook, generic-lines-to-scan)
 	(generic-find-file-regexp, generic-ignore-files-regexp)
@@ -402,20 +401,27 @@
 
 	* tramp-smb.el (all): Remove debug construct for
 	`with-parsed-tramp-file-name'.
-	(tramp-smb-prompt): Prompt can contain spaces inside directory
-	names.
+	(tramp-smb-prompt): Prompt can contain spaces inside directory names.
 	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file):
 	No error message if DIRECTORY or FILENAME doesn't exist.
 	(tramp-smb-open-connection): Check existence of
 	`tramp-smb-program'.
 
+2005-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-face-function):
+	Properly handle the case where the `m' or `s' command's argument is not
+	yet terminated.
+	(perl-indent-new-calculate): New function.
+	(perl-indent-line): Use it.
+
 2005-03-20  Miles Bader  <miles@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Use breakpoint faces
 	in text-mode too.  Change to new face names.
-	(breakpoint-enabled): Renamed from `breakpoint-enabled-bitmap-face'.
+	(breakpoint-enabled): Rename from `breakpoint-enabled-bitmap-face'.
 	Add `:weight bold' attribute.
-	(breakpoint-disabled): Renamed from `breakpoint-disabled-bitmap-face'.
+	(breakpoint-disabled): Rename from `breakpoint-disabled-bitmap-face'.
 
 2005-03-19  Juri Linkov  <juri@jurta.org>
 
@@ -432,8 +438,7 @@
 
 2005-03-19  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny changes)
 
-	* finder.el (finder-current-item): Throw an error on an empty
-	line.
+	* finder.el (finder-current-item): Throw an error on an empty line.
 
 	* man.el (Man-follow-manual-reference): If current-word returns
 	nil, use "".
@@ -472,8 +477,8 @@
 
 2005-03-19  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el (ps-generate-string-list, ps-generate-header-line): Use
-	functionp instead of symbolp and fboundp.  Reported by Drkm
+	* ps-print.el (ps-generate-string-list, ps-generate-header-line):
+	Use functionp instead of symbolp and fboundp.  Reported by Drkm
 	<darkman_spam@yahoo.fr>.
 	(ps-print-version): New version 6.6.6.
 
