@@ -606,7 +606,7 @@ narrowed."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (narrow-to-region (mark) (point))
+      (narrow-to-region min max)
       (browse-url-of-buffer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
