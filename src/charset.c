@@ -2019,6 +2019,20 @@ usage: (set-charset-priority &rest charsets)  */)
 
   return Qnil;
 }
+
+DEFUN ("charset-id-internal", Fcharset_id_internal, Scharset_id_internal,
+       0, 1, 0,
+       doc: /* Internal use only.
+Return charset identification number of CHARSET.  */)
+     (charset)
+     Lisp_Object charset;
+{
+  int id;
+
+  CHECK_CHARSET_GET_ID (charset, id);
+  return make_number (id);
+}
+
 
 void
 init_charset ()
@@ -2110,6 +2124,7 @@ syms_of_charset ()
   defsubr (&Sclear_charset_maps);
   defsubr (&Scharset_priority_list);
   defsubr (&Sset_charset_priority);
+  defsubr (&Scharset_id_internal);
 
   DEFVAR_LISP ("charset-map-directory", &Vcharset_map_directory,
 	       doc: /* Directory of charset map files that come with GNU Emacs.
