@@ -15,5 +15,5 @@
 
 #ifndef __GNUC__
 /* Make room for enough symbols, so dispnew.c does not fail.  */
-#define C_SWITCH_SYSTEM -Wp,-H200000
+#define C_SWITCH_SYSTEM -Wp,-H200000 -D_BSD
 #endif
