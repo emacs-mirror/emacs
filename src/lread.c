@@ -2483,6 +2483,8 @@ read1 (readcharfun, pch, first_in_list)
 		  {
 		    if (p1[-1] == '.')
 		      p1[-1] = '\0';
+		    /* Fixme: if we have strtol, use that, and check
+		       for overflow.  */
 		    if (sizeof (int) == sizeof (EMACS_INT))
 		      XSETINT (val, atoi (read_buffer));
 		    else if (sizeof (long) == sizeof (EMACS_INT))
