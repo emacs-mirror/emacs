@@ -1,3 +1,7 @@
+2000-10-15  Dave Love  <fx@gnu.org>
+
+	* qp.el: Require mm-util.
+
 2000-10-13  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-decode-region): Avoid invalid

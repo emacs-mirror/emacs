@@ -1,3 +1,29 @@
+2000-10-15  Dave Love  <fx@gnu.org>
+
+	* progmodes/sh-script.el: Require skeleton and comint when
+	compiling.
+
+	* pcomplete.el (pcomplete) <defgroup>: Add :version.
+
+	* whitespace.el: Doc fixes.
+	(top-level): Don't add hooks here.
+	(whitespace-running-emacs): Deleted.
+	(timer): Don't require.
+	(whitespace): Add back :version conditional on xemacs test.
+	(whitespace-spacetab-regexp, whitespace-indent-regexp)
+	(whitespace-ateol-regexp, whitespace-modes): Fix custom type.
+	(whitespace-force-mode-line-update, whitespace-refresh-rescan-list)
+	(whitespace-tickle-timer, whitespace-rescan-files-in-buffers):
+	Avoid specific xemacs test.
+	(whitespace-global-mode): New option.
+	(whitespace-global-mode): New command.
+	(whitespace-unload-hook): New function.
+
+	* info.el (Info-mouse-follow-nearest-node): Use mouse-set-point.
+	(Info-fontify-node, Info-goto-node, Info-mode-menu) 
+	(Info-fontify-node): `Goto' goes to `Go to'.
+	(Info-fontify-node): Add help-echo to xref links.
+
 2000-10-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/em-unix.el (eshell-du-prefer-over-ange): Doc fix.
