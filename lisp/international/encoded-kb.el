@@ -298,7 +298,7 @@ The following key sequence may cause multilingual text insertion."
 	(setq i (1+ i)))))
 
    ((eq encoded-kbd-coding 'ccl)
-    (let ((valid-codes (or (coding-system-get coding 'valid-codes)
+    (let ((valid-codes (or (coding-system-get coding :valid)
 			   '((128 . 255))))
 	  elt from to)
       (while valid-codes
