@@ -1,5 +1,7 @@
 1999-10-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* recentf.el: New file.
+
 	* ps-mode.el: New file.
 
 	* files.el (auto-mode-alist): Add ps-mode for .eps and .ps,
