@@ -2218,6 +2218,9 @@ if test "${REL_ALLOC}" = "yes" ; then
   AC_DEFINE(REL_ALLOC)
 fi
 
+AC_CHECK_HEADERS(nlist.h, [AC_DEFINE(NLIST_STRUCT, 1,
+                 [Define if you have <nlist.h>.])])
+
 #### Report on what we decided to do.
 echo "
 Configured for \`${canonical}'.

@@ -1,3 +1,8 @@
+2001-11-06  Sam Steingold  <sds@gnu.org>
+
+	* configure.in: Added a check for <nlist.h>
+	* configure: Regenerated.
+
 2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* configure: Regenerated.
