@@ -2690,7 +2690,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	      ((eq ediff-autostore-merges t)
 	       ;; ask for file name
 	       (setq merge-store-file
-		     (read-file-name "Save the merge buffer in file: "))
+		     (read-file-name "Save the result of the merge in file: "))
 	       (ediff-write-merge-buffer-and-maybe-kill
 		ediff-buffer-C merge-store-file nil save-and-continue))
 	      ((and (ediff-buffer-live-p ediff-meta-buffer)

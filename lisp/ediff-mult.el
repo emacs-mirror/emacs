@@ -167,8 +167,14 @@ directories.")
 ;; buffer used to collect custom diffs from individual sessions in the group
 (ediff-defvar-local ediff-meta-diff-buffer nil "")
 
-;; history var to use for filtering groups
+;; history var to use for filtering groups of files
 (defvar ediff-filtering-regexp-history nil "")
+
+(defcustom ediff-default-filtering-regexp nil
+  "The default regular expression used as a filename filter in multifile comparisons.
+Should be a sexp. For instance (car ediff-filtering-regexp-history) or nil."
+  :type 'sexp
+  :group 'ediff-mult)
 
 ;; This has the form ((meta-buf regexp dir1 dir2 dir3 merge-auto-store-dir)
 ;; (ctl-buf session-status (file1 . eq-status) (file2 . eq-status) (file3
