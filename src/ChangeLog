@@ -1,3 +1,7 @@
+2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* s/sol2-6.h: Fix typo.  Add comment.
+
 2002-09-09  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (regnum_t): Use signed int, not unsigned int.
