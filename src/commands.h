@@ -48,6 +48,16 @@ extern Lisp_Object last_nonmenu_event;
 /* List of command events to be re-read, or Qnil.  */
 extern Lisp_Object unread_command_events;
 
+/* Last command executed by the editor command loop, not counting
+   commands that set the prefix argument.  */
+
+extern Lisp_Object last_command;
+
+/* The command being executed by the command loop.
+   Commands may set this, and the value set will be copied into last_command
+   instead of the actual command.  */
+extern Lisp_Object this_command;
+
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
    next command input, after any unread_command_events.
