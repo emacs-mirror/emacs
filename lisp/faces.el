@@ -1722,7 +1722,7 @@ created."
      )
     (t
      :inverse-video t))
-  "Basic face for the font and colors of menus."
+  "Basic face for the font and colors of the menu bar and popup menus."
   :version "21.1"
   :group 'menu
   :group 'basic-faces)
