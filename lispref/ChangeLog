@@ -1,3 +1,7 @@
+2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* display.texi (Fringes): Fix typo "set-buffer-window".
+
 2003-12-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi, eval.texi, help.texi, internals.texi, loading.texi:
