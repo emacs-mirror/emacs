@@ -1,3 +1,7 @@
+2004-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_read_socket): Fix last change to ButtonPress handling.
+
 2004-03-01  Juanma Barranquero  <lektu@terra.es>
 
 	* fringe.c (Fdefine_fringe_bitmap): Fix typo in docstring.
