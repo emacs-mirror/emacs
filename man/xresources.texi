@@ -52,7 +52,8 @@ Registry, under the key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
 and then under the key @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.
 The menu and scrollbars are native widgets on MS-Windows, so they are
 only customizable via the system-wide settings in the Display Control
-Panel.
+Panel.  You can also set resources using the @samp{-xrm} command line
+option (see below.)
 
   Programs define named resources with particular meanings.  They also
 define how to group resources into named classes.  For instance, in
@@ -668,8 +669,8 @@ or just the class.
 @end table
 
 @noindent
-You must soecify the class and the style in double-quotes, and put
-these commands at the top level in a @file{~/.gtkrc-2.0} file, like
+You must specify the class and the style in double-quotes, and put
+these commands at the top level in the GTK customization file, like
 this:
 
 @smallexample
@@ -782,7 +783,7 @@ widget "*emacs-menuitem* style "my_menu_style"
 automatically applies only to Emacs, since other programs don't read
 that file.  For example, the drop down menu in the file dialog can not
 be customized by any absolute widget name, only by an absolute class
-name.  This is so because the widgets in the drop down menu do not
+name.  This is because the widgets in the drop down menu do not
 have names and the menu is not contained in the Emacs GtkWindow.  To
 have all menus in Emacs look the same, use this in
 @file{~/.emacs.d/gtkrc}:
