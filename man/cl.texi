@@ -970,7 +970,7 @@ constructs.
 * Variable Bindings::      `progv', `lexical-let', `flet', `macrolet'
 * Conditionals::           `case', `typecase'
 * Blocks and Exits::       `block', `return', `return-from'
-* Iteration::              `do', `do-symbols'
+* Iteration::              `do', `dotimes', `dolist', `do-symbols'
 * Loop Facility::          The Common Lisp `loop' macro
 * Multiple Values::        `values', `multiple-value-bind', etc.
 @end menu
@@ -1924,7 +1924,7 @@ mylist
 
 @noindent
 In this example, the @code{my-dolist} macro is similar to @code{dolist}
-except that the variable @code{x} becomes a true
+(@pxref{Iteration}) except that the variable @code{x} becomes a true
 reference onto the elements of the list.  The @code{my-dolist} call
 shown here expands to
 
@@ -2058,7 +2058,7 @@ Lisp, but this package provides @code{defun*} and @code{defmacro*}
 forms which do create the implicit block.
 
 The Common Lisp looping constructs defined by this package,
-such as @code{loop}, also create implicit blocks
+such as @code{loop} and @code{dolist}, also create implicit blocks
 just as in Common Lisp.
 
 Because they are implemented in terms of Emacs Lisp @code{catch}
@@ -2081,7 +2081,7 @@ Otherwise, @code{nil} is returned.
 
 @defspec return [result]
 This macro is exactly like @code{(return-from nil @var{result})}.
-Common Lisp loops like @code{do} implicitly enclose
+Common Lisp loops like @code{do} and @code{dolist} implicitly enclose
 themselves in @code{nil} blocks.
 @end defspec
 
@@ -2189,6 +2189,26 @@ Here is another way to write the above loop:
    (nreverse z))
   (push (f x y) z))
 @end example
+@end defspec
+
+@defspec dolist (var list [result]) forms@dots{}
+This is a more specialized loop which iterates across the elements
+of a list.  @var{list} should evaluate to a list; the body @var{forms}
+are executed with @var{var} bound to each element of the list in
+turn.  Finally, the @var{result} form (or @code{nil}) is evaluated
+with @var{var} bound to @code{nil} to produce the result returned by
+the loop.  Unlike with Emacs's built in @code{dolist}, the loop is
+surrounded by an implicit @code{nil} block.
+@end defspec
+
+@defspec dotimes (var count [result]) forms@dots{}
+This is a more specialized loop which iterates a specified number
+of times.  The body is executed with @var{var} bound to the integers
+from zero (inclusive) to @var{count} (exclusive), in turn.  Then
+the @code{result} form is evaluated with @var{var} bound to the total
+number of iterations that were done (i.e., @code{(max 0 @var{count})})
+to get the return value for the loop form.  Unlike with Emacs's built in
+@code{dolist}, the loop is surrounded by an implicit @code{nil} block.
 @end defspec
 
 @defspec do-symbols (var [obarray [result]]) forms@dots{}
