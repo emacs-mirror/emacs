@@ -698,7 +698,7 @@ setting of the syntax table (@pxref{Syntax}).
 
   Here is a complicated regexp, stored in @code{sentence-end} and used
 by Emacs to recognize the end of a sentence together with any
-whitespace that follows.  We show it Lisp syntax to distinguish the
+whitespace that follows.  We show its Lisp syntax to distinguish the
 spaces from the tab characters.  In Lisp syntax, the string constant
 begins and ends with a double-quote.  @samp{\"} stands for a
 double-quote as part of the regexp, @samp{\\} for a backslash as part
