@@ -1,3 +1,13 @@
+2000-08-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* server.el (server-kill-new-buffers): New user option.
+	(server-existing-buffer): New buffer-local variable.
+	(server-visit-files): When using an existing buffer, set
+	server-existing-buffer to t.
+	(server-buffer-done): If server-kill-new-buffers is t, kill the
+	buffer, unless it was already present before visiting it with
+	Emacs server.
+	
 2000-08-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* man.el (Man-init-defvars): Don't reset Man-fontify-manpage-flag,

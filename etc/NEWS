@@ -261,6 +261,18 @@ There is now support for Imenu to index headings.  A new command
 `outline-headers-as-kill' copies the visible headings in the region to
 the kill ring, e.g. to produce a table of contents.
 
+** Changes to Emacs Server 
+
+*** There new option `server-kill-new-buffers' specifies what to do
+with buffers when done with them.  If non-nil, the default, buffers
+are killed, unless they were already present before visiting them with
+Emacs Server.  If nil, `server-temp-file-regexp' specifies which
+buffers to kill, as before.
+
+Please note that only buffers are killed that still have a client,
+i.e. buffers visited which `emacsclient --no-wait' are never killed in
+this way.
+
 ** Changes to Show Paren mode.
 
 *** Overlays used by Show Paren mode now use a priority property.
