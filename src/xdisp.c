@@ -13642,8 +13642,11 @@ Lisp_Object mode_line_proptrans_alist;
 
    PROPS is a property list to add to any string we encounter.
 
-   If RISKY is nonzero, remove (disregard) any properties in any string
-   we encounter, and ignore :eval and :propertize.  */
+   If RISKY is nonzero, remove (disregard) any properties in any string 
+   we encounter, and ignore :eval and :propertize.
+
+   If the global variable `frame_title_ptr' is non-NULL, then the output
+   is passed to `store_frame_title' instead of `display_string'.  */
 
 static int
 display_mode_element (it, depth, field_width, precision, elt, props, risky)
@@ -15353,7 +15356,8 @@ init_xdisp ()
     }
 
   {
-    /* Allocate the buffer for frame titles.  */
+    /* Allocate the buffer for frame titles.
+       Also used for `format-mode-line'.  */
     int size = 100;
     frame_title_buf = (char *) xmalloc (size);
     frame_title_buf_end = frame_title_buf + size;
