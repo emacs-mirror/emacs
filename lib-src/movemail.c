@@ -237,7 +237,7 @@ main (argc, argv)
 
   if (fork () == 0)
     {
-      seteuid (getuid ());
+      setuid (getuid ());
 
 #ifndef MAIL_USE_MMDF
 #ifdef MAIL_USE_SYSTEM_LOCK
