@@ -1,3 +1,9 @@
+2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* building.texi (Watch Expressions): Update.
+	(Commands of GUD): Include use of toolbar + breakpoints set from
+	fringe/margin.
+
 2003-12-03  Andre Spiegel  <spiegel@gnu.org>
 
 	* files.texi: Say how to disable VC.  Suggested by Alan Mackenzie
