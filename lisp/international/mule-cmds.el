@@ -1689,11 +1689,12 @@ The default status is as follows:
       ;; case the user has used standard-display-european earlier in
       ;; this session.  (The MS-DOS port doesn't use that setup, so it
       ;; doesn't need to undo it.)
-      (dotimes (i 128)
-	(aset standard-display-table (+ i 128) nil))
-      (aset standard-display-table 146 nil))
+      (when standard-display-table
+	(dotimes (i 128)
+	  (aset standard-display-table (+ i 128) nil))
+	(aset standard-display-table 146 nil)))
     (or (eq window-system 'pc)
-      (set-terminal-coding-system coding))))
+	(set-terminal-coding-system coding))))
 
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
