@@ -1,3 +1,8 @@
+2002-10-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (mule-utf-8): Don't specify
+	post-read-conversion function.
+
 2002-10-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/ucs-tables.el (unify-8859-on-encoding-mode): Set
