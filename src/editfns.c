@@ -531,6 +531,12 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
 	at_field_end = 1;
       if (!EQ (field, before_field))
 	at_field_start = 1;
+      if (NILP (field) && at_field_start && at_field_end)
+	/* If an inserted char would have a nil field while the surrounding
+	   text is non-nil, we're probably not looking at a
+	   zero-length field, but instead at a non-nil field that's
+	   not intended for editing (such as comint's prompts).  */
+	at_field_end = at_field_start = 0;
     }
 
   /* Note about special `boundary' fields:
