@@ -1,3 +1,7 @@
+2000-07-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* hilit-chg.el: Fix typo.
+
 2000-07-14  Dave Love  <fx@gnu.org>
 
 	* info.el (Info-mode-menu): Fix use of :help, :enable.

@@ -10,6 +10,12 @@
 
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_show_tip): If frame parameters contain a position,
+	use that instead of the mouse position.  Add parameters DX and DY.
+
+	* dispextern.h (Fx_show_tip): Adjust number of parameters
+	in prototype.
+
 	* keyboard.c (show_help_echo): Add parameters OBJECT and POS.
 	if HELP is a function, call it with OBJECT and POS as parameters
 	to get the help to display.
