@@ -157,7 +157,8 @@ and then select the region of un-tablified names and use
       (if (not (bolp))
 	  (forward-line 1))
       (while (< (point) end-marker)
-	(execute-kbd-macro (or macro last-kbd-macro))
+	(save-excursion
+	  (execute-kbd-macro (or macro last-kbd-macro)))
 	(forward-line 1)))))
 
 ;;;###autoload
