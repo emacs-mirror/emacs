@@ -77,6 +77,9 @@
   "*The program to use as the edit server")
 
 (defvar server-visit-hook nil
+  "*List of hooks to call when visiting a file for the Emacs server.")
+
+(defvar server-switch-hook nil
   "*List of hooks to call when switching to a buffer for the Emacs server.")
 
 (defvar server-process nil 
@@ -181,6 +184,7 @@ Prefix arg means just kill any existing server communications subprocess."
       ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
       (setq server-clients (cons client server-clients))
       (switch-to-buffer (nth 1 client))
+      (run-hooks 'server-switch-hook)
       (message (substitute-command-keys
 		"When done with a buffer, type \\[server-edit].")))))
 
