@@ -447,14 +447,17 @@ This function is called after the function pointed out by
 			elt)))
 	  alist))
 
-;;;
-;;; Find all items in this buffer that should be in the index.
-;;; Returns an alist on the form
-;;; ((NAME . POSITION) (NAME . POSITION) ...)
-;;;
-
 (defun imenu--make-index-alist (&optional noerror)
-  ;; Create a list for this buffer only when needed.
+  "Create an index-alist for the definitions in the current buffer.
+
+Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
+Special elements look like (INDEX-NAME FUNCTION ARGUMENTS...).
+A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
+The function `imenu--subalist-p' tests an element and returns t
+ if it is a sub-alist.
+
+There is one simple element with negative POSITION; that's intended
+as a way for the user to ask to recalculate the buffer's index alist."
   (or (and imenu--index-alist
 	   (or (not imenu-auto-rescan)
 	       (and imenu-auto-rescan
@@ -805,7 +808,7 @@ If `imenu-always-use-completion-buffer-p' is non-nil, then the
 completion buffer is always used, no matter if the mouse was used or
 not.
 
-The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
+The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
   (let (index-alist
 	(mouse-triggered (listp last-nonmenu-event))
 	(result t) )
