@@ -196,11 +196,11 @@ FTP or email may be obtained by sending an email message to
 enriched-verbose.
 
 </fixed></indent>-<indent> You can add annotations for your own text properties by making
-additions to <fixed>enriched-annotation-alist</fixed>.  Note that the
-standard requires you to name your annotation starting<italic> "x-"
-</italic>(as in <italic>"x-read-only"</italic>).  Please send me any such additions that
-you think might be of general interest so that I can include
-them in the distribution.</indent>
+additions to <fixed>enriched-translations</fixed>.  Note that the standard
+requires you to name your annotation starting<italic> "x-" </italic>(as in
+<italic>"x-read-only"</italic>).  Please send me any such additions that you
+think might be of general interest so that I can include them
+in the distribution.</indent>
 
 </indent>
 
@@ -252,5 +252,6 @@ bug reports are welcome.</indent>
 <bold><x-color><param>white</param><x-bg-color><param>blue</param>Boris Goldowsky</x-bg-color></x-color><x-color><param>light blue</param> </x-color></bold><x-color><param>light blue</param><fixed><<boris@gnu.ai.mit.edu></fixed></x-color><x-color><param>blue</param>
 
 </x-color><x-bg-color><param>blue</param><x-color><param>white</param>April 1995; updated August 1997</x-color></x-bg-color>
+
 
 
