@@ -147,6 +147,13 @@ visiting FILE."
 	       (concat " " (or label (symbol-name vc-type))
 		       (if (and vc-rcs-status (eq vc-type 'RCS))
 			   (vc-rcs-status file)))))
+    ;; Even root shouldn't modify a registered file without locking it first.
+    (and vc-type
+	 (not buffer-read-only)
+	 (zerop (user-uid))
+	 (require 'vc)
+	 (not (string-equal (user-login-name) (vc-locking-user file)))
+	 (setq buffer-read-only t))
     ;; force update of mode line
     (set-buffer-modified-p (buffer-modified-p))
     vc-type))
