@@ -522,6 +522,7 @@ longer used by Emacs.  These changes to PSGML 1.2.2 fix that.
 -    (let ((before-change-function nil))
 +    (let ((before-change-functions nil))
        (sgml-normalize-content element only-one)))
+Index: psgml-other.el
 --- psgml-other.el	2001/03/03 00:23:42	1.1
 +++ psgml-other.el	2001/03/03 00:30:05
 @@ -32,2 +32,3 @@
@@ -556,6 +557,7 @@ longer used by Emacs.  These changes to PSGML 1.2.2 fix that.
 +	(when (and (not modified) (buffer-modified-p))
 +	  (set-buffer-modified-p nil))))
       (t
+Index: psgml-parse.el
 --- psgml-parse.el	2001/03/03 00:23:57	1.1
 +++ psgml-parse.el	2001/03/03 00:29:56
 @@ -40,2 +40,4 @@
@@ -662,6 +664,7 @@ Apply the following patches which reportedly fix several problems:
  (defun calc-invert-func ()
    (save-excursion
 
+Index: Makefile
 --- Makefile.~1~	Sun Dec 15 23:50:45 1996
 +++ Makefile	Thu Nov 30 15:09:45 2000
 @@ -41,7 +41,7 @@
@@ -686,6 +689,7 @@ Apply the following patches which reportedly fix several problems:
  # Create an Emacs TAGS file
  tags: TAGS
 
+Index: calc-aent.el
 --- calc-aent.el.~1~	Sun Dec 15 23:50:36 1996
 +++ calc-aent.el	Tue Nov 21 18:34:33 2000
 @@ -385,7 +385,7 @@
@@ -731,6 +735,7 @@ Apply the following patches which reportedly fix several problems:
    (exit-minibuffer)
  )
  
+Index: calc.el
 --- calc.el.~1~	Sun Dec 15 23:50:47 1996
 +++ calc.el	Wed Nov 22 13:08:49 2000
 @@ -2051,11 +2051,11 @@
