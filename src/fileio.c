@@ -2460,11 +2460,19 @@ See also `file-exists-p' and `file-attributes'.")
   if (!NILP (handler))
     return call2 (handler, Qfile_readable_p, abspath);
 
+#ifdef MSDOS
+  /* Under MS-DOS, open does not work't right, because it doesn't work for
+     directories (MS-DOS won't let you open a directory).  */
+  if (access (XSTRING (abspath)->data, 0) == 0)
+    return Qt;
+  return Qnil;
+#else /* not MSDOS */
   desc = open (XSTRING (abspath)->data, O_RDONLY);
   if (desc < 0)
     return Qnil;
   close (desc);
   return Qt;
+#endif /* not MSDOS */
 }
 
 /* Having this before file-symlink-p mysteriously caused it to be forgotten
