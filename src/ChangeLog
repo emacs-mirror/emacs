@@ -1,5 +1,8 @@
 2002-01-02  Richard M. Stallman  <rms@gnu.org>
 
+	* keyboard.c (read_key_sequence): Handle the keymap property
+	before minor mode maps.
+
 	* editfns.c (Fformat): Update thissize from field_width
 	based on the actual width, in the string case.
 
