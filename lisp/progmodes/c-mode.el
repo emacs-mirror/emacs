@@ -33,26 +33,46 @@
   "Abbrev table in use in C mode.")
 (define-abbrev-table 'c-mode-abbrev-table ())
 
-(defvar c-mode-map ()
+(defvar c-mode-map (make-sparse-keymap)
   "Keymap used in C mode.")
-(if c-mode-map
-    ()
-  (setq c-mode-map (make-sparse-keymap))
-  (define-key c-mode-map "{" 'electric-c-brace)
-  (define-key c-mode-map "}" 'electric-c-brace)
-  (define-key c-mode-map ";" 'electric-c-semi)
-  (define-key c-mode-map "#" 'electric-c-sharp-sign)
-  (define-key c-mode-map ":" 'electric-c-terminator)
-  (define-key c-mode-map "\e\C-h" 'mark-c-function)
-  (define-key c-mode-map "\e\C-q" 'indent-c-exp)
-  (define-key c-mode-map "\ea" 'c-beginning-of-statement)
-  (define-key c-mode-map "\ee" 'c-end-of-statement)
-  (define-key c-mode-map "\eq" 'c-fill-paragraph)
-  (define-key c-mode-map "\C-c\C-n" 'c-forward-conditional)
-  (define-key c-mode-map "\C-c\C-p" 'c-backward-conditional)
-  (define-key c-mode-map "\C-c\C-u" 'c-up-conditional)
-  (define-key c-mode-map "\177" 'backward-delete-char-untabify)
-  (define-key c-mode-map "\t" 'c-indent-command))
+
+(define-key c-mode-map "{" 'electric-c-brace)
+(define-key c-mode-map "}" 'electric-c-brace)
+(define-key c-mode-map ";" 'electric-c-semi)
+(define-key c-mode-map "#" 'electric-c-sharp-sign)
+(define-key c-mode-map ":" 'electric-c-terminator)
+(define-key c-mode-map "\e\C-h" 'mark-c-function)
+(define-key c-mode-map "\e\C-q" 'indent-c-exp)
+(define-key c-mode-map "\ea" 'c-beginning-of-statement)
+(define-key c-mode-map "\ee" 'c-end-of-statement)
+(define-key c-mode-map "\eq" 'c-fill-paragraph)
+(define-key c-mode-map "\C-c\C-n" 'c-forward-conditional)
+(define-key c-mode-map "\C-c\C-p" 'c-backward-conditional)
+(define-key c-mode-map "\C-c\C-u" 'c-up-conditional)
+(define-key c-mode-map "\177" 'backward-delete-char-untabify)
+(define-key c-mode-map "\t" 'c-indent-command))
+
+(define-key c-mode-map [menu-bar] (make-sparse-keymap))
+
+(define-key c-mode-map [menu-bar c]
+  (cons "C" (make-sparse-keymap "C")))
+
+(define-key c-mode-map [menu-bar c indent-exp]
+  '("Indent Expression" . indent-c-exp))
+(define-key c-mode-map [menu-bar c indent-line]
+  '("Indent Line" . c-indent-command))
+(define-key c-mode-map [menu-bar c fill]
+  '("Fill Comment Paragraph" . c-fill-paragraph))
+(define-key c-mode-map [menu-bar c up]
+  '("Up Conditional" . c-up-conditional))
+(define-key c-mode-map [menu-bar c backward]
+  '("Backward Conditional" . c-backward-conditional))
+(define-key c-mode-map [menu-bar c forward]
+  '("Forward Conditional" . c-forward-conditional))
+(define-key c-mode-map [menu-bar c backward-stmt]
+  '("Backward Statement" . c-beginning-of-statement))
+(define-key c-mode-map [menu-bar c forward-stmt]
+  '("Forward Statement" . c-end-of-statement))
 
 ;; cmacexp is lame because it uses no preprocessor symbols.
 ;; It isn't very extensible either -- hardcodes /lib/cpp.
