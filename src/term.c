@@ -268,6 +268,27 @@ char *TS_cursor_invisible;	/* "vi" */
 char *TS_set_window;		/* "wi" (4 params, start and end of window,
 				   each as vpos and hpos) */
 
+/* Value of the "NC" (no_color_video) capability, or 0 if not
+   present.  */
+
+static int TN_no_color_video;
+
+/* Meaning of bits in no_color_video.  Each bit set means that the
+   corresponding attribute cannot be combined with colors.  */
+
+enum no_color_bit
+{
+  NC_STANDOUT	 = 1 << 0,
+  NC_UNDERLINE	 = 1 << 1,
+  NC_REVERSE	 = 1 << 2,
+  NC_BLINK	 = 1 << 3,
+  NC_DIM	 = 1 << 4,
+  NC_BOLD	 = 1 << 5,
+  NC_INVIS	 = 1 << 6,
+  NC_PROTECT	 = 1 << 7,
+  NC_ALT_CHARSET = 1 << 8
+};
+
 /* "md" -- turn on bold (extra bright mode).  */
 
 char *TS_enter_bold_mode;
@@ -1934,6 +1955,15 @@ estimate_mode_line_height (f, face_id)
 				Faces
  ***********************************************************************/
 
+/* Value is non-zero if attribute ATTR may be used.  ATTR should be
+   one of the enumerators from enum no_color_bit, or a bit set built
+   from them.  Some display attributes may not be used together with
+   color; the termcap capability `NC' specifies which ones.  */
+
+#define MAY_USE_WITH_COLORS_P(ATTR)		\
+     (TN_max_colors > 0				\
+      ? (TN_no_color_video & (ATTR)) == 0	\
+      : 1)
 
 /* Turn appearances of face FACE_ID on tty frame F on.  */
 
@@ -1947,26 +1977,34 @@ turn_on_face (f, face_id)
   xassert (face != NULL);
 
   if (face->tty_bold_p)
-    OUTPUT1_IF (TS_enter_bold_mode);
+    {
+      if (MAY_USE_WITH_COLORS_P (NC_BOLD))
+	OUTPUT1_IF (TS_enter_bold_mode);
+    }
   else if (face->tty_dim_p)
-    OUTPUT1_IF (TS_enter_dim_mode);
+    if (MAY_USE_WITH_COLORS_P (NC_DIM))
+      OUTPUT1_IF (TS_enter_dim_mode);
 
   /* Alternate charset and blinking not yet used.  */
-  if (face->tty_alt_charset_p)
+  if (face->tty_alt_charset_p
+      && MAY_USE_WITH_COLORS_P (NC_ALT_CHARSET))
     OUTPUT1_IF (TS_enter_alt_charset_mode);
 
-  if (face->tty_blinking_p)
+  if (face->tty_blinking_p
+      && MAY_USE_WITH_COLORS_P (NC_BLINK))
     OUTPUT1_IF (TS_enter_blink_mode);
 
   if (face->tty_underline_p
       /* Don't underline if that's difficult.  */
-      && TN_magic_cookie_glitch_ul <= 0)
+      && TN_magic_cookie_glitch_ul <= 0
+      && MAY_USE_WITH_COLORS_P (NC_UNDERLINE))
     OUTPUT1_IF (TS_enter_underline_mode);
 
-  if (face->tty_reverse_p
-      || face->foreground == FACE_TTY_DEFAULT_BG_COLOR
-      || face->background == FACE_TTY_DEFAULT_FG_COLOR)
-    OUTPUT1_IF (TS_enter_reverse_mode);
+  if (MAY_USE_WITH_COLORS_P (NC_REVERSE))
+    if (face->tty_reverse_p
+	|| face->foreground == FACE_TTY_DEFAULT_BG_COLOR
+	|| face->background == FACE_TTY_DEFAULT_FG_COLOR)
+      OUTPUT1_IF (TS_enter_reverse_mode);
 
   if (TN_max_colors > 0)
     {
@@ -2237,8 +2275,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	  TS_set_foreground = tgetstr ("Sf", address);
 	  TS_set_background = tgetstr ("Sb", address);
 	}
+      
       TN_max_colors = tgetnum ("Co");
       TN_max_pairs = tgetnum ("pa");
+      
+      TN_no_color_video = tgetnum ("NC");
+      if (TN_no_color_video == -1)
+	TN_no_color_video = 0;
     }
 
   MagicWrap = tgetflag ("xn");
