@@ -1,7 +1,7 @@
-$HopeName: MMQA_harness!README(trunk.1) $
+$HopeName: MMQA_harness!README(trunk.5) $
 
-This is the trunk of the QA harness for MM testing.
-To run tests, you should use the latest version --
-checkout MMQA_harness!(MMQA_tray).
+This is release MMQA_chinker of the QA harness
+for MM testing. Please report any problems and
+questions to Richard Tucker <rit> (ext 5453).
 
 
