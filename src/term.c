@@ -1321,7 +1321,7 @@ term_get_fkeys (address)
       /* if there's no key_next keycap, map key_npage to `next' keysym */
       CONDITIONAL_REASSIGN ("%5", "kN", "next");
       /* if there's no key_prev keycap, map key_ppage to `previous' keysym */
-      CONDITIONAL_REASSIGN ("%8", "kP", "previous");
+      CONDITIONAL_REASSIGN ("%8", "kP", "prior");
       /* if there's no key_dc keycap, map key_ic to `insert' keysym */
       CONDITIONAL_REASSIGN ("kD", "kI", "insert");
 #undef CONDITIONAL_REASSIGN
