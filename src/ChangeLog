@@ -1,3 +1,7 @@
+2004-06-11  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (shut_down_emacs): Inhibit redisplay during shutdown.
+
 2004-06-11  Juanma Barranquero  <lektu@terra.es>
 
 	* keyboard.c (Fposn_at_point): Doc fix.
