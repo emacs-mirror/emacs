@@ -1,3 +1,10 @@
+2002-04-02  Mike Williams  <mdub@bigfoot.com>
+
+	* sgml-mode.el (sgml-close-tag): Rename from
+	sgml-insert-end-tag. Simplify by using sgml-lexical-context.
+	(sgml-get-context): Remove use of sgml-inside-tag-p.
+	(sgml-inside-tag-p): Remove.
+
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/sgml-mode.el (sgml-at-indentation-p, sgml-tag)
@@ -21,6 +28,18 @@
 	(tcl-imenu-generic-expression): Use tcl-proc-regexp.
 	(tcl-do-auto-fill): Remove.
 	(tcl-auto-fill-mode): Rewrite using comment-auto-fill-only-comments.
+
+2002-04-01  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el: Doc fixes.
+	(sgml-mode): Set indent-line-function to sgml-indent-line.
+	(sgml-calculate-indent): Add an explicit check for 'text syntax,
+	to protect against future enhancements to sgml-lexical-context.
+	(sgml-empty-tag-p, sgml-unclosed-tag-p): New funcs.
+
+	* textmodes/xml-lite.el: Removed much redundant stuff.
+	(xml-lite-parse-tag-backward): Simplify parsing by assuming we
+	always start within text. Make use of sgml-unclosed-tag-p.
 
 2002-04-01  Ville Skytt,Ad(B  <ville.skytta@xemacs.org>
 
