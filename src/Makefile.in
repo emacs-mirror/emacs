@@ -1031,7 +1031,7 @@ keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    systty.h systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h \
    xterm.h puresize.h msdos.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   puresize.h charset.h $(config_h)
+   puresize.h charset.h intervals.h $(config_h)
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h $(config_h)
 malloc.o: malloc.c $(config_h)
