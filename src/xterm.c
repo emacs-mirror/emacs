@@ -3053,10 +3053,14 @@ x_scroll_bar_clear (f)
 {
   Lisp_Object bar;
 
-  for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
-       bar = XSCROLL_BAR (bar)->next)
-    XClearArea (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
-		0, 0, 0, 0, True);
+  /* We can have scroll bars even if this is 0,
+     if we just turned off scroll bar mode.
+     But in that case we should not clear them.  */
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+    for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
+	 bar = XSCROLL_BAR (bar)->next)
+      XClearArea (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
+		  0, 0, 0, 0, True);
 }
 
 /* This processes Expose events from the menubar specific X event
