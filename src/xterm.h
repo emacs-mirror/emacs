@@ -85,6 +85,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef XlibSpecificationRelease
 #if XlibSpecificationRelease >= 5
 #define HAVE_X11R5
+/* In case someone has X11R5 on AIX 3.1,
+   make sure HAVE_X11R4 is defined as well as HAVE_X11R5.  */
+#define HAVE_X11R4
 #endif
 #endif
 
