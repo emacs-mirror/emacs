@@ -1,3 +1,48 @@
+2001-05-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (enum symbol_interned): New enumeration.
+	(struct Lisp_Symbol): Remove member `obarray', add
+	`indirect_variable', `constant', and `interned'.
+	(SYMBOL_INTERNED_P, SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P)
+	(SYMBOL_CONSTANT_P, SYMBOL_VALUE, SET_SYMBOL_VALUE): New macros.
+	(indirect_variable): Add prototype.
+
+	* print.c (print_preprocess, print_object): Test internedness of
+	symbols differently.
+
+	* lread.c (Fintern, Funintern): Set symbol's interned and constant
+	bit-fields.
+	(init_obarray): Likewise for t and nil.
+
+	* eval.c Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
+	(Fdefvaralias): New function.
+	(specbind): Simplify the test if symbol is a constant.
+	(syms_of_eval): Defsubr Fdefvaralias.
+
+	* data.c: Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
+	(Qcyclic_variable_indirection): New variable.
+	(Fkeywordp): Check for internedness differently.
+	(Fmakunbound): Simplify the test if symbol is a constant.
+	(indirect_variable, Findirect_variable): New functions.
+	(swap_in_symval_forwarding): If SYMBOL is an alias, use the
+	aliased symbol.
+	(let_shadows_buffer_binding_p): Check for variable aliases.
+	(set_internal): Simplify the test if SYMBOL is a constant.  If
+	SYMBOL has a buffer-local value and is an alias, use the aliased
+	symbol instead.
+	(syms_of_data): Initialze Qcyclic_variable_indirection and defsubr
+	Sindirect_variable.
+
+	* bytecode.c (Fbyte_code) <varref>: Use SYMBOL_VALUE.
+	(Fbyte_code) <varset>: Simplify the test if symbol's value can be
+	set directly.
+
+	* alloc.c (Fmake_symbol): Adapt to changes of struct Lisp_Symbol.
+
+	* abbrev.c, buffer.c, coding.c, fns.c, frame.c, keyboard.c: Use
+	SYMBOL_VALUE/ SET_SYMBOL_VALUE macros instead of accessing
+	symbols' value directly.
+
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (call_debugger): Don't bind inhibit-eval-during-redisplay.
