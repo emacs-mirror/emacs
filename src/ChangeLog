@@ -1,3 +1,10 @@
+2000-11-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (HIGHLIGHT_COLOR_DARK_BOOST_LIMIT): New constant.
+	(w32_alloc_lighter_color): Use new brightness calculations from
+	xterm.c. Scale delta to be in the range expected by W32.
+	(w32_draw_relief_rect): Use frame relief colors.
+
 2000-11-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.c (syms_of_frame_1): Removed; code moved to syms_of_frame.
