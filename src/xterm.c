@@ -4911,7 +4911,7 @@ x_display_cursor (f, on, x, y)
 {
   BLOCK_INPUT;
 
- if ((unsigned) x >= FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f)
+ if ((unsigned) x >= FRAME_CURSOR_X_LIMIT (f)
       || (unsigned) y >= FRAME_HEIGHT (f))
     abort ();
 
