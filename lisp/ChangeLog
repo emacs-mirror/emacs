@@ -1,3 +1,8 @@
+2004-04-19  Stephen Eglen  <stephen@gnu.org>
+
+	* add-log.el (add-change-log-entry): Update doc string to mention
+	add-log-full-name and add-log-mailing-address.
+
 2004-04-18  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-find-file, Info-find-node-2): Add history and toc.
