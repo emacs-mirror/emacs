@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.297 2001/02/26 13:45:06 spiegel Exp $
+;; $Id: vc.el,v 1.298 2001/03/10 10:44:35 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1096,7 +1096,8 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	  (message "%s is up-to-date" file))))
 
        ;; Abnormal: edited but read-only
-       ((and visited (eq state 'edited) buffer-read-only)
+       ((and visited (eq state 'edited)
+	     buffer-read-only (not (file-writable-p file)))
 	;; Make the file+buffer read-write.  If the user really wanted to
 	;; commit, he'll get a chance to do that next time around, anyway.
 	(message "File is edited but read-only; making it writable")
@@ -2356,10 +2357,9 @@ allowed and simply skipped)."
         (setq update (and (eq result 'visited) update))
         (vc-file-tree-walk
          dir
-         (lambda (f) (and
-                      (vc-error-occurred
-                       (vc-call checkout f nil name)
-                       (if update (vc-resynch-buffer f t t))))))))))
+         (lambda (f) (vc-error-occurred
+		      (vc-call checkout f nil name)
+		      (if update (vc-resynch-buffer f t t)))))))))
 
 ;; Miscellaneous other entry points
 
