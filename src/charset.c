@@ -497,11 +497,9 @@ update_charset_table (charset_id, dimension, chars, width, direction,
 		 ? LEADING_CODE_PRIVATE_21
 		 : LEADING_CODE_PRIVATE_22)));
       leading_code_ext = charset;
-    } 
-
-  if (charset != CHARSET_ASCII && charset != CHARSET_8_BIT_GRAPHIC
-      &&BYTES_BY_CHAR_HEAD (leading_code_base) != bytes)
-    error ("Invalid dimension for the charset-ID %d", charset);
+      if (BYTES_BY_CHAR_HEAD (leading_code_base) != bytes)
+	error ("Invalid dimension for the charset-ID %d", charset);
+    }
 
   CHARSET_TABLE_INFO (charset, CHARSET_ID_IDX) = charset_id;
   CHARSET_TABLE_INFO (charset, CHARSET_BYTES_IDX) = make_number (bytes);
@@ -549,9 +547,10 @@ update_charset_table (charset_id, dimension, chars, width, direction,
 	= make_number (-1);
   }
 
-  if (charset != CHARSET_ASCII
+  if (charset != CHARSET_ASCII && charset != CHARSET_8_BIT_GRAPHIC
       && charset < MIN_CHARSET_PRIVATE_DIMENSION1)
     {
+      bytes_by_char_head[leading_code_base] = bytes;
       width_by_char_head[leading_code_base] = XINT (width);
 
       /* Update table emacs_code_class.  */
@@ -1570,12 +1569,6 @@ init_charset_once ()
 
   for (i = 0; i < 256; i++)
     bytes_by_char_head[i] = 1;
-  for (i = 128; i < MIN_CHARSET_OFFICIAL_DIMENSION2; i++)
-    bytes_by_char_head[i] = 2;
-  for (; i <= MAX_CHARSET_OFFICIAL_DIMENSION2; i++)
-    bytes_by_char_head[i] = 3;
-  for (; i < 160; i++)
-    bytes_by_char_head[i] = 2;
   bytes_by_char_head[LEADING_CODE_PRIVATE_11] = 3;
   bytes_by_char_head[LEADING_CODE_PRIVATE_12] = 3;
   bytes_by_char_head[LEADING_CODE_PRIVATE_21] = 4;
