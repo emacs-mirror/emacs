@@ -415,8 +415,8 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	 ((or (string-equal argi "-u")
 	      (string-equal argi "-user"))
 	  (or argval
-	      (setq argval (car args)
-		    args (cdr args)))
+	      (setq args (cdr args)
+		    argval (car args)))
 	  (setq init-file-user argval
 		argval nil
 		args (cdr args)))
