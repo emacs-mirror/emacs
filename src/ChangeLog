@@ -1,5 +1,8 @@
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* textprop.c (verify_interval_modification): Signal text-read-only
+	instead of calling error.
+
 	* data.c (Qtext_read_only): New built-in error.
 	(syms_of_data): Initialize it.
 
