@@ -27,7 +27,6 @@
 
 ;; History:
 ;; 1996.10.18 written by KAWABATA, Taichi <kawabata@is.s.u-tokyo.ac.jp>
-;; 1997.1.20 fixed some bugs.
 ;; 1997.3.24 fixed some bugs.
 
 ;; Future work ::
@@ -159,7 +158,7 @@
 ;; thus must be fixed.
 ;;
 ;; Note:
-;; Third case can be considered, which is acceptable syllable and can
+;; Third case can be considered, which is an acceptable syllable and can
 ;; not add any code more.
 ;;
 ;; [[C [N] H] [C [N] H] [C [N] H] C [N] H] C [N] [M] D
@@ -279,7 +278,6 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;;        Prepare multiple specific list of rules for each languages
 ;;        which adopts Devanagari script.
 ;;
-
 
 (defconst devanagari-char-to-glyph-rules
   '(
@@ -1085,12 +1083,17 @@ Ligatures and special rules are processed."
    ; return nil if it is not vertical modifier.
 (defun devanagari-vertical-modifier-p (glyph)
   (string-match (char-to-string glyph)
-		"[$(5!]!^!_!`!a!b!c!h!i"p"q"r#K#L#M(B]"))
+		"[$(5!"!]!^!_!`!a!b!c!h!i"p"q"r#K#L#M(B]"))
 
 (defun devanagari-non-vertical-modifier-p (glyph)
   (string-match (char-to-string glyph)
-		"[$(5!Z![!\!d!e!f!g(B]"))
+;		"[$(5!Z![!\!d!e!f!g(B]"))
+		"[$(5![(B]"))
 
+(defun devanagari-wide-to-narrow-char (char)
+  "Return the corresponding narrow character if it exists."
+  (let ((narrow (cdr (assq char devanagari-1-column-char))))
+    (if narrow narrow char)))
 
 ;;
 ;;    Phase 2.5  Convert Appropriate Character to 1-column shape.
@@ -1109,43 +1112,30 @@ Ligatures and special rules are processed."
 ;;(devanagari-wide-to-narrow '(?$(5!3(B (ml . ml) ?$(5!a(B))
 ;;(devanagari-wide-to-narrow '(?$(5!F(B (ml . ml) ?$(5!a(B))
 
-;(defun devanagari-wide-to-narrow (src-list)
-;  (if (null src-list) '()
-;    (cons 
-;     (if (and (numberp (car src-list))
-;	      (cdr (assq (car src-list) devanagari-1-column-char)))
-;	 (cdr (assq (car src-list) devanagari-1-column-char))
-;       (car src-list))
-;     (devanagari-wide-to-narrow (cdr src-list)))))
-
 (defun devanagari-wide-to-narrow (src-list)
   (devanagari-wide-to-narrow-iter src-list t))
 
-(defun devanagari-wide-to-narrow-iter (src-list wide-p)
+(defun devanagari-wide-to-narrow-iter (src-list 2-col-glyph)
   (let ((glyph (car src-list)))
     (cond ((null src-list) '())
 	  ; not glyph code
 	  ((not (numberp glyph)) 
-	   (cons glyph (devanagari-wide-to-narrow-iter (cdr src-list) wide-p)))
-	  ; vertical modifier glyph
-	  ((devanagari-vertical-modifier-p glyph)
-	   (if (and (null wide-p)
-		    (cdr (assq glyph devanagari-1-column-char)))
-	       (cons (cdr (assq glyph devanagari-1-column-char))
-		     (devanagari-wide-to-narrow-iter (cdr src-list) nil))
-	       (cons glyph
-		     (devanagari-wide-to-narrow-iter (cdr src-list) t))))
-	  ; nonvertical modifier glyph
+	   (cons glyph (devanagari-wide-to-narrow-iter (cdr src-list) 2-col-glyph)))
+	  ; glyphs to be processed regardless of the value of "2-col-glyph"
 	  ((devanagari-non-vertical-modifier-p glyph)
-	   (if (cdr (assq glyph devanagari-1-column-char))
-	       (cons (cdr (assq glyph devanagari-1-column-char))
-		     (devanagari-wide-to-narrow-iter (cdr src-list) wide-p))
+	   (cons (devanagari-wide-to-narrow-char glyph)
+		 (devanagari-wide-to-narrow-iter (cdr src-list) 2-col-glyph)))
+	  ; glyphs which are depends on the value of "2-col-glyph"
+	  ((devanagari-vertical-modifier-p glyph)
+	   (if 2-col-glyph
 	       (cons glyph
-		     (devanagari-wide-to-narrow-iter (cdr src-list) wide-p))))
+		     (devanagari-wide-to-narrow-iter (cdr src-list) t))
+	       (cons (devanagari-wide-to-narrow-char glyph)
+		     (devanagari-wide-to-narrow-iter (cdr src-list) 2-col-glyph))))
 	  ; normal glyph
 	  (t
 	   (if (cdr (assq glyph devanagari-1-column-char))
-	       (cons (cdr (assq glyph devanagari-1-column-char))
+	       (cons (devanagari-wide-to-narrow-char glyph)
 		     (devanagari-wide-to-narrow-iter (cdr src-list) nil))
 	       (cons glyph
 		     (devanagari-wide-to-narrow-iter (cdr src-list) t)))))))
