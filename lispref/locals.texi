@@ -132,7 +132,7 @@ Does not work yet.
 @xref{Display Margins}.
 
 @item line-spacing
-@xref{Window Frame Parameters}.
+@xref{Line Height}.
 
 @item local-abbrev-table
 @xref{Abbrevs}.
@@ -198,7 +198,7 @@ Used for communication between mouse commands and scroll-bar commands.
 @xref{Mode Line Variables}.
 
 @item vertical-scroll-bar
-@xref{Yet to be written}.
+@xref{Scroll Bars}.
 @end table
 
 @ignore
