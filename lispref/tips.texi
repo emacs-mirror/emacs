@@ -129,16 +129,17 @@ name that ends in @samp{-flag}.
 @cindex reserved keys
 @cindex keys, reserved
 Please do not define @kbd{C-c @var{letter}} as a key in your major
-modes.  These sequences are reserved for users; they are the
-@strong{only} sequences reserved for users, so do not block them.
+modes.  Sequences consisting of @kbd{C-c} and a letter (either upper
+or lower case) are reserved for users; they are the @strong{only}
+sequences reserved for users, so do not block them.
 
-Instead, define sequences consisting of @kbd{C-c} followed by a control
-character, a digit, or certain punctuation characters.  These sequences
-are reserved for major modes.
+Changing all the Emacs major modes to respect this convention was a
+lot of work; abandoning this convention would make that work go to
+waste, and inconvenience users.  Please comply with it.
 
-Changing all the Emacs major modes to follow this convention was a lot
-of work.  Abandoning this convention would make that work go to waste,
-and inconvenience users.
+@item
+Sequences consisting of @kbd{C-c} followed by a control character or a
+digit are reserved for major modes.
 
 @item
 Sequences consisting of @kbd{C-c} followed by @kbd{@{}, @kbd{@}},
