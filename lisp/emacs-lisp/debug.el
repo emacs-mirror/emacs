@@ -190,7 +190,7 @@ first will be printed into the backtrace buffer."
 	      (erase-buffer)
 	      (fundamental-mode))
 	  (kill-buffer debugger-buffer))
-	(store-match-data debugger-outer-match-data)))
+	(set-match-data debugger-outer-match-data)))
     ;; Put into effect the modified values of these variables
     ;; in case the user set them with the `e' command.
     (setq load-read-function debugger-outer-load-read-function)
@@ -347,7 +347,7 @@ Applies to the frame whose line point is on in the backtrace."
 	   (overriding-terminal-local-map
 	    debugger-outer-overriding-terminal-local-map)
 	   (load-read-function debugger-outer-load-read-function))
-       (store-match-data debugger-outer-match-data)
+       (set-match-data debugger-outer-match-data)
        (prog1 (progn (,@ body))
 	 (setq debugger-outer-match-data (match-data))
 	 (setq debugger-outer-load-read-function load-read-function)
