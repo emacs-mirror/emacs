@@ -967,7 +967,7 @@ the entire buffer is forced."
 
   (if hilit-mode
       (add-hook 'find-file-hook 'hilit-find-file-hook t)
-    (remove-hook 'find-file-hook 'hilit-find-file-hook t))
+    (remove-hook 'find-file-hook 'hilit-find-file-hook))
 
   (unless (and hilit-inhibit-hooks hilit-mode)
     (condition-case c
