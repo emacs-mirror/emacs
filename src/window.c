@@ -1735,7 +1735,9 @@ set_window_height (window, height, nodelete)
 
   if (!nodelete
       && ! NILP (w->parent)
-      && height < window_min_height)
+      && (MINI_WINDOW_P (w)
+	  ? height < 1
+	  : height < window_min_height))
     {
       delete_window (window);
       return;
@@ -2608,7 +2610,7 @@ change_window_height (delta, widthflag)
     maximum += (*sizefun) (prev) - MINSIZE (prev);
 
   /* If we can get it all from them, do so.  */
-  if (delta < maximum)
+  if (delta <= maximum)
     {
       Lisp_Object first_unaffected;
       Lisp_Object first_affected;
