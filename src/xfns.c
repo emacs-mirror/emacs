@@ -9003,7 +9003,7 @@ png_load (f, img)
 
   screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
 
-#if 0 /* avoid double gamma correction for PNG images */
+#if 0 /* Avoid double gamma correction for PNG images. */
   /* Tell the PNG lib to handle gamma correction for us.  */
 #if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
   if (png_get_sRGB (png_ptr, info_ptr, &intent))
