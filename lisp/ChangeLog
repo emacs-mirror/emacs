@@ -2,7 +2,9 @@
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
 	(gdb-goto-breakpoint): Make breakpoint handling work on template
-	functions in C++. Reported by Martin Reed <mjreed@essex.ac.uk>
+	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
+	(gdb-assembler-custom): Update to recognise breakpoint information
+	added on 2005-01-19.
 
 2005-01-28  Eli Zaretskii  <eliz@gnu.org>
 
