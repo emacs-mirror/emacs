@@ -1,3 +1,8 @@
+2005-03-23  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled): 
+	Remove tty-specific variants, as they're no longer needed.
+
 2005-03-23  Lute Kamstra  <lute@gnu.org>
 
 	* generic-x.el: Code cleanup: make arguments constant whenever
