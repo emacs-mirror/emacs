@@ -790,33 +790,108 @@ it returns a file name such as \"[X]Y.DIR.1\".")
   return build_string (buf);
 }
 
+static char make_temp_name_tbl[64] =
+{
+  'A','B','C','D','E','F','G','H',
+  'I','J','K','L','M','N','O','P',
+  'Q','R','S','T','U','V','W','X',
+  'Y','Z','a','b','c','d','e','f',
+  'g','h','i','j','k','l','m','n',
+  'o','p','q','r','s','t','u','v',
+  'w','x','y','z','0','1','2','3',
+  '4','5','6','7','8','9','-','_'
+};
+static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
+
 DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
   "Generate temporary file name (string) starting with PREFIX (a string).\n\
 The Emacs process number forms part of the result,\n\
 so there is no danger of generating a name being used by another process.\n\
+\n\
 In addition, this function makes an attempt to choose a name\n\
-which has no existing file.")
+which has no existing file.  To make this work,\n\
+PREFIX should be an absolute file name.")
   (prefix)
      Lisp_Object prefix;
 {
-  char *temp;
   Lisp_Object val;
-#ifdef MSDOS
-  /* Don't use too many characters of the restricted 8+3 DOS
-     filename space.  */
-  val = concat2 (prefix, build_string ("a.XXX"));
+  int len;
+  int pid;
+  unsigned char *p, *data;
+  char pidbuf[20];
+  int pidlen;
+
+  CHECK_STRING (prefix, 0);
+
+  /* VAL is created by adding 6 characters to PREFIX.  The first
+     three are the PID of this process, in base 64, and the second
+     three are incremented if the file already exists.  This ensures
+     262144 unique file names per PID per PREFIX.  */
+
+  pid = (int) getpid ();
+
+#ifdef HAVE_LONG_FILE_NAMES
+  sprintf (pidbuf, "%d", pid);
+  pidlen = strlen (pidbuf);
 #else
-  val = concat2 (prefix, build_string ("XXXXXX"));
+  pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
+  pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
+  pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
+  pidlen = 3;
 #endif
-  temp = mktemp (XSTRING (val)->data);
-  if (! temp)
-    error ("No temporary file names based on %s are available",
-	   XSTRING (prefix)->data);
-#ifdef DOS_NT
-  CORRECT_DIR_SEPS (XSTRING (val)->data);
-#endif
-  return val;
+
+  len = XSTRING (prefix)->size;
+  val = make_uninit_string (len + 3 + pidlen);
+  data = XSTRING (val)->data;
+  bcopy(XSTRING (prefix)->data, data, len);
+  p = data + len;
+
+  bcopy (pidbuf, p, pidlen);
+  p += pidlen;
+
+  /* Here we try to minimize useless stat'ing when this function is
+     invoked many times successively with the same PREFIX.  We achieve
+     this by initializing count to a random value, and incrementing it
+     afterwards.  */
+  if (!make_temp_name_count_initialized_p)
+    {
+      make_temp_name_count = (unsigned) time (NULL);
+      make_temp_name_count_initialized_p = 1;
+    }
+
+  while (1)
+    {
+      struct stat ignored;
+      unsigned num = make_temp_name_count++;
+
+      p[0] = make_temp_name_tbl[num & 63], num >>= 6;
+      p[1] = make_temp_name_tbl[num & 63], num >>= 6;
+      p[2] = make_temp_name_tbl[num & 63], num >>= 6;
+
+      if (stat (data, &ignored) < 0)
+	{
+	  /* We want to return only if errno is ENOENT.  */
+	  if (errno == ENOENT)
+	    return val;
+	  else
+	    /* The error here is dubious, but there is little else we
+	       can do.  The alternatives are to return nil, which is
+	       as bad as (and in many cases worse than) throwing the
+	       error, or to ignore the error, which will likely result
+	       in looping through 262144 stat's, which is not only
+	       SLOW, but also useless since it will fallback to the
+	       errow below, anyway.  */
+	    report_file_error ("Cannot create temporary name for prefix `%s'",
+			       Fcons (prefix, Qnil));
+	  /* not reached */
+	}
+    }
+
+  error ("Cannot create temporary name for prefix `%s'",
+	 XSTRING (prefix)->data);
+  return Qnil;
 }
+
 
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
   "Convert filename NAME to absolute, and canonicalize it.\n\
