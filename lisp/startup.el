@@ -479,9 +479,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(and window-setup-hook
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
-	    (if (memq window-system '(x w32))
-		(precompute-menubar-bindings)
-	      ))))))
+	    (if (display-popup-menus-p)
+		(precompute-menubar-bindings)))))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()
@@ -655,7 +654,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (when (and (not noninteractive)
-	     (memq window-system '(x w32))
+	     (display-graphic-p)
 	     (> (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode t))
 
@@ -1092,7 +1091,7 @@ where FACE is a valid face specification, as it can be used with
 	       (run-hooks 'window-setup-hook)
 	       (setq window-setup-hook nil))
 	     
- 	     (when (memq window-system '(x w32))
+ 	     (when (display-popup-menus-p)
  	       (precompute-menubar-bindings))
  	     (setq menubar-bindings-done t)
 	     
@@ -1172,9 +1171,7 @@ Activate menubar   F10  or  ESC `  or   M-`")
 			   (insert (substitute-command-keys "
 Activate menubar     \\[tmm-menubar]")))
 
-			 ;; Windows and MSDOS (currently) do not count as
-			 ;; window systems, but do have mouse support.
-			 (if window-system
+			 (if (display-mouse-p)
 			     (insert "
 Mode-specific menu   C-mouse-3 (third button, with CTRL)"))
 			 ;; Many users seem to have problems with these.
