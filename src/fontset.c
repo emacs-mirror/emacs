@@ -1404,7 +1404,7 @@ syms_of_fontset ()
 #elif defined (WINDOWSNT)
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
-	     build_string ("-outline-courier new-normal-r-*-*-*-120-*-*-*-*-iso8859-1"));
+	     build_string ("-*-courier new-normal-r-*-*-*-100-*-*-*-*-iso8859-1"));
 #else
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
