@@ -1,3 +1,19 @@
+2002-10-10  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_utf_8): Check incomplete byte sequence.
+	Don't update *mask even if correctly detected.
+	(detect_coding_utf_16): Likewise.
+	(detect_coding_emacs_mule): Likewise.
+	(detect_coding_iso_2022): Likewise.
+	(detect_coding_sjis): Likewise.
+	(detect_coding_big5): Likewise.
+	(detect_coding_ccl): Likewise.
+	(decode_coding_sjis): Fix decoding of katakana-jisx0201.
+	(detect_eol): Delete the argument CODING, and add the argument
+	CATEGORY.
+	(detect_coding): Adjusted for the changes above.
+	(detect_coding_system): Likewise.
+
 2002-10-09  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (char_string): Renamed from
