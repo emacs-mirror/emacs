@@ -192,6 +192,7 @@ static int
 unexec_copy (off_t dest, off_t src, ssize_t count)
 {
   ssize_t bytes_read;
+  ssize_t bytes_to_read;
 
   char buf[UNEXEC_COPY_BUFSZ];
 
@@ -203,7 +204,8 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 
   while (count > 0)
     {
-      bytes_read = read (infd, buf, UNEXEC_COPY_BUFSZ);
+      bytes_to_read = count > UNEXEC_COPY_BUFSZ ? UNEXEC_COPY_BUFSZ : count;
+      bytes_read = read (infd, buf, bytes_to_read);
       if (bytes_read <= 0)
 	return 0;
       if (write (outfd, buf, bytes_read) != bytes_read)
