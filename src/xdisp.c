@@ -407,6 +407,13 @@ redisplay ()
       && (XFASTINT (w->last_modified) >= MODIFF
 	  || (beg_unchanged >= tlbufpos - 1
 	      && GPT >= tlbufpos
+	      /* If selective display, can't optimize
+		 if the changes start at the beginning of the line.  */
+	      && ((XTYPE (current_buffer->selective_display) == Lisp_Int
+		   && XINT (current_buffer->selective_display) > 0
+		   ? (beg_unchanged >= tlbufpos
+		      && GPT > tlbufpos)
+		   : 1))
 	      && end_unchanged >= tlendpos
 	      && Z - GPT >= tlendpos)))
     {
@@ -1081,7 +1088,12 @@ try_window_id (window)
   /* If about to start displaying at the beginning of a continuation line,
      really start with previous screen line, in case it was not
      continued when last redisplayed */
-  if (bp.contin && bp.bufpos - 1 == beg_unchanged && vpos > 0)
+  if ((bp.contin && bp.bufpos - 1 == beg_unchanged && vpos > 0)
+      ||
+      /* Likewise if we have to worry about selective display.  */
+      (XTYPE (current_buffer->selective_display) == Lisp_Int
+       && XINT (current_buffer->selective_display) > 0
+       && bp.bufpos - 1 == beg_unchanged && vpos > 0))
     {
       bp = *vmotion (bp.bufpos, -1, width, hscroll, window);
       --vpos;
