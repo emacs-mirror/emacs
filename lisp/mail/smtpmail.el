@@ -117,7 +117,6 @@ This is relative to `smtpmail-queue-dir'.")
 		  0))
 	(tembuf (generate-new-buffer " smtpmail temp"))
 	(case-fold-search nil)
-	resend-to-addresses
 	delimline
 	(mailbuf (current-buffer)))
     (unwind-protect
@@ -145,36 +144,17 @@ This is relative to `smtpmail-queue-dir'.")
 		      (< (point) delimline))
 	    (replace-match "\n"))
 	  (let ((case-fold-search t))
-	    (goto-char (point-min))
-	    (goto-char (point-min))
-	    (while (re-search-forward "^Resent-to:" delimline t)
-	      (setq resend-to-addresses
-		    (save-restriction
-		      (narrow-to-region (point)
-					(save-excursion
-					  (end-of-line)
-					  (point)))
-		      (append (mail-parse-comma-list)
-			      resend-to-addresses))))
-;;; Apparently this causes a duplicate Sender.
-;;;	    ;; If the From is different than current user, insert Sender.
-;;;	    (goto-char (point-min))
-;;;	    (and (re-search-forward "^From:"  delimline t)
-;;;		 (progn
-;;;		   (require 'mail-utils)
-;;;		   (not (string-equal
-;;;			 (mail-strip-quoted-names
-;;;			  (save-restriction
-;;;			    (narrow-to-region (point-min) delimline)
-;;;			    (mail-fetch-field "From")))
-;;;			 (user-login-name))))
-;;;		 (progn
-;;;		   (forward-line 1)
-;;;		   (insert "Sender: " (user-login-name) "\n")))
+	    ;; We used to process Resent-... headers here,
+	    ;; but it was not done properly, and the job
+	    ;; is done correctly in smtpmail-deduce-address-list.
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
-	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
-		(replace-match ""))
+	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
+		(replace-match "")
+	      ;; This one matches a Subject just before the header delimiter.
+	      (if (and (re-search-forward "^Subject:\\([ \t]*\n\\)+" delimline t)
+		       (= (match-end 0) delimline))
+		  (replace-match "")))
 	    ;; Put the "From:" field in unless for some odd reason
 	    ;; they put one in themselves.
 	    (goto-char (point-min))
@@ -239,8 +219,7 @@ This is relative to `smtpmail-queue-dir'.")
 	  ;;
 	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
 	  (setq smtpmail-recipient-address-list
-		(or resend-to-addresses
-		    (smtpmail-deduce-address-list tembuf (point-min) delimline)))
+		    (smtpmail-deduce-address-list tembuf (point-min) delimline))
 	  (kill-buffer smtpmail-address-buffer)
 	  
 	  (smtpmail-do-bcc delimline)
@@ -644,9 +623,9 @@ This is relative to `smtpmail-queue-dir'.")
 	  (goto-char (point-min))
 	  ;; RESENT-* fields should stop processing of regular fields.
 	  (save-excursion
-	    (if (re-search-forward "^RESENT-TO:" header-end t)
-		(setq addr-regexp "^\\(RESENT-TO:\\|RESENT-CC:\\|RESENT-BCC:\\)")
-	      (setq addr-regexp  "^\\(TO:\\|CC:\\|BCC:\\)")))
+	    (if (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" header-end t)
+		(setq addr-regexp "^Resent-\\(to\\|cc\\|bcc\\):")
+	      (setq addr-regexp  "^\\(To:\\|Cc:\\|Bcc:\\)")))
 
 	  (while (re-search-forward addr-regexp header-end t)
 	    (replace-match "")
@@ -688,13 +667,13 @@ This is relative to `smtpmail-queue-dir'.")
 
 
 (defun smtpmail-do-bcc (header-end)
-  "Delete BCC: and their continuation lines from the header area.
+  "Delete [Resent-]BCC: and their continuation lines from the header area.
 There may be multiple BCC: lines, and each may have arbitrarily
 many continuation lines."
   (let ((case-fold-search t))
 	(save-excursion (goto-char (point-min))
 	  ;; iterate over all BCC: lines
-	  (while (re-search-forward "^BCC:" header-end t)
+	  (while (re-search-forward "^\(RESENT-\)?BCC:" header-end t)
 	        (delete-region (match-beginning 0) (progn (forward-line 1) (point)))
 		;; get rid of any continuation lines
 		(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
