@@ -864,7 +864,7 @@ DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 2, 0,
 This is updated by redisplay, when it runs to completion.\n\
 Simply changing the buffer text or setting `window-start'\n\
 does not update this value.\n\
-If UP-TO-DATE is non-nil, compute the up-to-date position\n\
+If UPDATE is non-nil, compute the up-to-date position\n\
 if it isn't already recorded.")
   (window, update)
      Lisp_Object window, update;
