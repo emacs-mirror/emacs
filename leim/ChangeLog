@@ -1,3 +1,7 @@
+2001-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* quail/latin-alt.el: Doc fixes.
+
 2000-12-18  Dave Love  <fx@gnu.org>
 
 	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate ,b((B entry.
