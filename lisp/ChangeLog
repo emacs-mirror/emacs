@@ -1,3 +1,12 @@
+2002-06-02  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el: Reworked 2001-06-01 change.
+	(choose-completion-string1): Merged back into choose-completion-string.
+	(choose-completion-string): Run choose-completion-string-functions
+	after checking for proper minibuffer window.  Added mini-p arg to
+	the hook functions.  Insert choice if all hook functions return nil.
+	(choose-completion-string-functions): Doc update.
+	
 2002-06-01  Sam Steingold  <sds@gnu.org>
 
 	* files.el (auto-mode-alist): Strip trailing ".in" from the file
