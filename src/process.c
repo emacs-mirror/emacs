@@ -307,7 +307,7 @@ struct sockaddr_and_len {
   int len;
 } datagram_address[MAXDESC];
 #define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
-#define DATAGRAM_CONN_P(proc)	(datagram_address[XPROCESS (proc)->infd].sa != 0)
+#define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XPROCESS (proc)->infd].sa != 0)
 #else
 #define DATAGRAM_CHAN_P(chan)	(0)
 #define DATAGRAM_CONN_P(proc)	(0)
