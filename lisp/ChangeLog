@@ -1,3 +1,12 @@
+2000-12-10  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* textmodes/reftex.el (reftex-scanning-info-available-p): New
+ 	function
+	(reftex-TeX-master-file): Check for `tex-main-file' early enough.
+
+	* textmodes/reftex-global.el (reftex-create-tags-file): Fixed bug
+	when master file is not open.
+
 2000-12-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/ada-stmt.el: Update `maintainer'.
