@@ -1,3 +1,8 @@
+2004-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* net/ldap.el (ldap-search-internal): Handle file URLs with drive
+	letters on DOS/Windows.
+
 2004-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-name): New var.
