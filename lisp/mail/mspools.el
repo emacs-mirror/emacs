@@ -1,6 +1,6 @@
 ;;; mspools.el --- Show mail spools waiting to be read
 
-;; Copyright (C) 1997 Stephen Eglen
+;; Copyright (C) 1997 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@cns.ed.ac.uk>
 ;; Maintainer: Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -33,7 +33,7 @@
 ;; arrives whilst you are reading the folder in emacs, hence the use
 ;; of a spool file.)  For example, the following procmail recipe puts
 ;; any mail with `emacs' in the subject line into the spool file
-;; `apple.spool', ready to go into the folder `emacs'.
+;; `emacs.spool', ready to go into the folder `emacs'.
 ;:0:
 ;* ^Subject.*emacs
 ;emacs.spool
@@ -62,6 +62,9 @@
 ;(autoload 'mspools-show "mspools" "Show outstanding mail spools." t)
 ; Point to directory where spool files and folders are:
 ; (setq mspools-folder-directory "~/MAIL/")
+;
+; If you use VM, mspools-folder-directory will default to vm-folder-directory
+; unless you have already given it a value.
 
 ;; Extras
 ; possibly bind it to a key:
@@ -144,7 +147,7 @@ Only used by VM." )
 (defvar mspools-mode-map nil
   "Keymap for the *spools* buffer.")
 
-(defvar mspools-folder-directory 
+(defvar mspools-folder-directory
   (if (boundp 'vm-folder-directory)
       vm-folder-directory
     nil)
@@ -162,7 +165,14 @@ at the end. ")
 
 ;;; VM Specific code
 (if mspools-using-vm
-    (require 'vm-vars))
+    ;; set up vm if not already loaded.
+    (progn
+      (require 'vm-vars)
+      (if (not vm-init-file-loaded)
+	  (load-file vm-init-file))
+      (if (not mspools-folder-directory)
+	  (setq mspools-folder-directory vm-folder-directory))
+      ))
 
 (defun mspools-set-vm-spool-files ()
   "Set value of `vm-spool-files'.  Only needed for VM."
@@ -177,6 +187,7 @@ at the end. ")
 	   ))
     
     ;; Mailing list inboxes
+    ;; must have VM already loaded to get vm-folder-directory.
     (mapcar '(lambda (s)
 	       "make the appropriate entry for vm-spool-files"
 	       (list
@@ -336,7 +347,7 @@ nil."
   "Major mode for output from mspools-show.
 \\<mspools-mode-map>Move point to one of the items in this buffer, then use
 \\[mspools-visit-spool] to go to the spool that the current line refers to.
-\\[mspools-show-again] to regenerate the list of spools.
+\\[revert-buffer] to regenerate the list of spools.
 \\{mspools-mode-map}"
   (kill-all-local-variables)
   (make-local-variable 'revert-buffer-function)
@@ -381,13 +392,15 @@ nil."
 (defun mspools-size-folder (spool)
   "Return (SPOOL . SIZE ) iff SIZE of spool file is non-zero."
   ;; 7th file attribute is the size of the file in bytes.
-  (let ((size (nth 7 
-		   (file-attributes (concat mspools-folder-directory spool)))))
-    ;; todo (if (and (not (null size)) (> size 0))
+  (let ((file (concat mspools-folder-directory spool))
+	size)
+    (setq file (or (file-symlink-p file) file))
+    (setq size (nth 7 (file-attributes file)))
     (if (> size 0)
 	(cons spool  size)
       ;; else SPOOL is empty
       nil)))
 
 (provide 'mspools)
-;;; MSPOOLS.EL ends here
+;;; mspools.el ends here
+
