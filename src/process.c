@@ -5594,15 +5594,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	  break;
 	}
 
-#ifndef _POSIX_VDISABLE
-#ifdef CVDISABLE
-#define _POSIX_VDISABLE CVDISABLE
-#else
-#define _POSIX_VDISABLE '\0'
-#endif
-#endif
-
-      if (sig_char && *sig_char != _POSIX_VDISABLE)
+      if (sig_char && *sig_char != CDISABLE)
 	send_process (proc, sig_char, 1, Qnil);
       return;
 #else /* ! HAVE_TERMIOS */
