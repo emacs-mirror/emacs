@@ -282,3 +282,18 @@ main (argc, argv)
 #endif /* HAVE_SYSVIPC */
 
 #endif /* HAVE_SOCKETS or HAVE_SYSVIPC */
+
+#ifndef HAVE_STRERROR
+char *
+strerror (errnum)
+     int errnum;
+{
+  extern char *sys_errlist[];
+  extern int sys_nerr;
+
+  if (errnum >= 0 && errnum < sys_nerr)
+    return sys_errlist[errnum];
+  return (char *) "Unknown error";
+}
+
+#endif /* ! HAVE_STRERROR */
