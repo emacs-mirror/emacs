@@ -788,9 +788,10 @@ original copy."
 	(while files
 	  (setq file (car files))
 	  (setq files (cdr files))
-	  (setq ret (nconc
-		     (rmail-find-all-files file)
-		     ret)))
+	  (or (member (file-name-nondirectory start) '("." ".."))
+	      (setq ret (nconc
+			 (rmail-find-all-files file)
+			 ret))))
 	;; Sort here instead of in directory-files
 	;; because this list is usually much shorter.
 	(sort ret 'string<))
