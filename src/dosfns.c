@@ -35,6 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dosfns.h"
 #include "msdos.h"
 #include <go32.h>
+#include <dirent.h>
 
 DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
   "Call specific MSDOS interrupt number INTERRUPT with REGISTERS.\n\
@@ -304,6 +305,17 @@ init_dosfns ()
       }
   else
     dos_codepage = regs.x.bx & 0xffff;
+
+#if __DJGPP__ >= 2
+
+  /* Without this, we never see hidden files.  */
+  __opendir_flags |= __OPENDIR_FIND_HIDDEN;
+
+  /* Under LFN, preserve the case of files as recorded in the directory.  */
+  if (!NILP (Fmsdos_long_file_names ()))
+    __opendir_flags |= __OPENDIR_PRESERVE_CASE;
+
+#endif
 }
 
 /*
