@@ -530,9 +530,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	       (not enable-multibyte-characters))
 	  (set-buffer-multibyte t))
       (goto-char (point-max)))
-    ;; Unconditionally rescan to find all the messages.
-    ;; It is useful to have M-x rmail as a way to do that.
-    (rmail-set-message-counters)
+    ;; If necessary, scan to find all the messages.
+    (rmail-maybe-set-message-counters)
     (unwind-protect
 	(unless (and (not file-name-arg)
 		     (rmail-get-new-mail))
@@ -1797,20 +1796,30 @@ otherwise, show it in full."
                               (match-string 0))))
             (old-screen-line (rmail-count-screen-lines (window-start) (point))))
         (save-excursion
-      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-      (if pruned
-	  (progn (goto-char (point-min))
-		 (forward-line 1)
-		 (delete-char 1)
-		 (insert ?0)
-		 (forward-line 1)
-		 (let ((case-fold-search t))
-		   (while (looking-at "Summary-Line:\\|Mail-From:")
-		     (forward-line 1)))
-		 (insert "*** EOOH ***\n")
-		 (forward-char -1)
-		     (search-forward "\n*** EOOH ***\n")
-		     (narrow-to-region (point) (point-max)))
+	  (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+	  (if pruned
+	      (let (new-start)
+		(goto-char (point-min))
+		(forward-line 1)
+		;; Change 1 to 0.
+		(delete-char 1)
+		(insert ?0)
+		;; Insert new EOOH line at the proper place.
+		(forward-line 1)
+		(let ((case-fold-search t))
+		  (while (looking-at "Summary-Line:\\|Mail-From:")
+		    (forward-line 1)))
+		(insert "*** EOOH ***\n")
+		(setq new-start (point))
+		;; Delete the old reformatted header.
+		(forward-char -1)
+		(search-forward "\n*** EOOH ***\n")
+		(forward-line -1)
+		(let ((start (point)))
+		  (search-forward "\n\n")
+		  (delete-region start (point)))
+		;; Narrow to after the new EOOH line.
+		(narrow-to-region new-start (point-max)))
 	    (rmail-reformat-message (point-min) (point-max))))
 	(cond (at-point-min
 	       (goto-char (point-min)))
