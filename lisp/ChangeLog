@@ -1,5 +1,10 @@
 2001-09-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* dos-fns.el (original-make-auto-save-file-name): New.
+	(make-auto-save-file-name): New function, overrides the definition
+	on files.el and calls the original function via
+	original-make-auto-save-file-name.
+
 	* mail/rmail.el (top-level): Require mule-utils when compiling.
 	(rmail-decode-babyl-format): Use detect-coding-with-priority
 	instead of detect-coding-region, to favor detection of emacs-mule
