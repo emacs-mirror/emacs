@@ -1,3 +1,15 @@
+2004-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-font-lock-url-regexp):
+	Use delete-dups when calculating the initial value.
+	(bibtex-autokey-get-title): Use <=.
+	(bibtex-goto-line): New function.
+	(bibtex-reposition-window): Use line numbers instead of point
+	positions.  Use window-body-height.
+	(bibtex-find-crossref): Use bibtex-reposition-window.
+	(bibtex-find-entry): Use bibtex-reposition-window.  Always return
+	position of entry if key is found or nil if not found.
+
 2004-12-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (custom-file): Escape double-quotes in docstring.
