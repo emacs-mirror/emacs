@@ -71,6 +71,15 @@ static __malloc_size_t bytes_used_when_full;
 /* Number of bytes of consing done since the last gc */
 int consing_since_gc;
 
+/* Count the amount of consing of various sorts of space.  */
+int cons_cells_consed;
+int floats_consed;
+int vector_cells_consed;
+int symbols_consed;
+int string_chars_consed;
+int misc_objects_consed;
+int intervals_consed;
+
 /* Number of bytes of consing since gc before another gc should be done. */
 int gc_cons_threshold;
 
@@ -445,6 +454,7 @@ make_interval ()
       val = &interval_block->intervals[interval_block_index++];
     }
   consing_since_gc += sizeof (struct interval);
+  intervals_consed++;
   RESET_INTERVAL (val);
   return val;
 }
@@ -584,6 +594,7 @@ make_float (float_value)
   XFLOAT (val)->data = float_value;
   XSETFASTINT (XFLOAT (val)->type, 0);	/* bug chasing -wsr */
   consing_since_gc += sizeof (struct Lisp_Float);
+  floats_consed++;
   return val;
 }
 
@@ -663,6 +674,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   XCONS (val)->car = car;
   XCONS (val)->cdr = cdr;
   consing_since_gc += sizeof (struct Lisp_Cons);
+  cons_cells_consed++;
   return val;
 }
 
@@ -714,6 +726,7 @@ allocate_vectorlike (len)
   VALIDATE_LISP_STORAGE (p, 0);
   consing_since_gc += (sizeof (struct Lisp_Vector)
 		       + (len - 1) * sizeof (Lisp_Object));
+  vector_cells_consed += len;
 
   p->next = all_vectors;
   all_vectors = p;
@@ -863,6 +876,7 @@ Its value and function definition are void, and its property list is nil.")
   p->function = Qunbound;
   p->next = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
+  symbols_consed++;
   return val;
 }
 
@@ -922,6 +936,7 @@ allocate_misc ()
       XSETMISC (val, &marker_block->markers[marker_block_index++]);
     }
   consing_since_gc += sizeof (union Lisp_Misc);
+  misc_objects_consed++;
   return val;
 }
 
@@ -1106,6 +1121,7 @@ make_uninit_string (length)
 		  (struct Lisp_String *) current_string_block->chars);
     }
     
+  string_chars_consed += fullsize;
   XSTRING (val)->size = length;
   XSTRING (val)->data[length] = 0;
   INITIALIZE_INTERVAL (XSTRING (val), NULL_INTERVAL);
@@ -2395,6 +2411,53 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.")
   return end;
 }
 
+DEFUN ("memory-use-counts", Fmemory_use_counts, Smemory_use_counts, 0, 0, 0,
+  "Return a list of counters that measure how much consing there has been.\n\
+Each of these counters increments for a certain kind of object.\n\
+The counters wrap around from the largest positive integer to zero.\n\
+Garbage collection does not decrease them.\n\
+The elements of the value are as follows:\n\
+  (CONSES FLOATS VECTOR-CELLS SYMBOLS STRING-CHARS MISCS INTERVALS)\n\
+All are in units of 1 = one object consed\n\
+except for VECTOR-CELLS and STRING-CHARS, which count the total length of\n\
+objects consed.\n\
+MISCS include overlays, markers, and some internal types.\n\
+Frames, windows, buffers, and subprocesses count as vectors\n\
+  (but the contents of a buffer's text do not count here).")
+  ()
+{
+  Lisp_Object lisp_cons_cells_consed;
+  Lisp_Object lisp_floats_consed;
+  Lisp_Object lisp_vector_cells_consed;
+  Lisp_Object lisp_symbols_consed;
+  Lisp_Object lisp_string_chars_consed;
+  Lisp_Object lisp_misc_objects_consed;
+  Lisp_Object lisp_intervals_consed;
+
+  XSETINT (lisp_cons_cells_consed,
+	   cons_cells_consed & ~(1 << (VALBITS - 1)));
+  XSETINT (lisp_floats_consed,
+	   floats_consed & ~(1 << (VALBITS - 1)));
+  XSETINT (lisp_vector_cells_consed,
+	   vector_cells_consed & ~(1 << (VALBITS - 1)));
+  XSETINT (lisp_symbols_consed,
+	   symbols_consed & ~(1 << (VALBITS - 1)));
+  XSETINT (lisp_string_chars_consed,
+	   string_chars_consed & ~(1 << (VALBITS - 1)));
+  XSETINT (lisp_misc_objects_consed,
+	   misc_objects_consed & ~(1 << (VALBITS - 1)));
+  XSETINT (lisp_intervals_consed,
+	   intervals_consed & ~(1 << (VALBITS - 1)));
+
+  return Fcons (lisp_cons_cells_consed,
+		Fcons (lisp_floats_consed,
+		       Fcons (lisp_vector_cells_consed,
+			      Fcons (lisp_symbols_consed,
+				     Fcons (lisp_string_chars_consed,
+					    Fcons (lisp_misc_objects_consed,
+						   Fcons (lisp_intervals_consed,
+							  Qnil)))))));
+}
 
 /* Initialization */
 
@@ -2502,4 +2565,5 @@ which includes both saved text and other data.");
   defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Smemory_limit);
+  defsubr (&Smemory_use_counts);
 }
