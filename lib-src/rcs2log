@@ -28,7 +28,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
 
-Id='$Id: rcs2log,v 1.38 1997/03/23 18:46:03 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.39 1997/05/11 18:43:55 eggert Exp eggert $'
 
 # Copyright 1992, 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -90,7 +90,10 @@ do
 				echo >&2 "$0: -n '$2' '$3' '$4': tabs, newlines not allowed"
 				exit 1
 			esac
-			loginFullnameMailaddrs=$loginFullnameMailaddrs$nl$2$tab$3$tab$4
+			case $loginFullnameMailaddrs in
+			'') loginFullnameMailaddrs=$2$tab$3$tab$4;;
+			?*) loginFullnameMailaddrs=$loginFullnameMailaddrs$nl$2$tab$3$tab$4
+			esac
 			shift; shift; shift;;
 		-u)
 			# If $2 is not tab-separated, use colon for separator.
@@ -113,12 +116,23 @@ do
 				echo >&2 "$0: -u '$2': not enough fields"
 				exit 1
 			esac
-			loginFullnameMailaddrs=$loginFullnameMailaddrs$nl$2
+			case $loginFullnameMailaddrs in
+			'') loginFullnameMailaddrs=$2;;
+			?*) loginFullnameMailaddrs=$loginFullnameMailaddrs$nl$2
+			esac
 			shift
 		esac
-		logins=$logins$nl$login
+		case $logins in
+		'') logins=$login;;
+		?*) logins=$logins$nl$login
+		esac
 		;;
-	-r)	rlog_options=$rlog_options$nl${2?}; shift;;
+	-r)
+		case $rlog_options in
+		'') rlog_options=${2?};;
+		?*) rlog_options=$rlog_options$nl${2?}
+		esac
+		shift;;
 	-R)	recursive=t;;
 	-t)	tabwidth=${2?}; shift;;
 	-v)	revision=t;;
@@ -225,7 +239,11 @@ fi
 # Use $rlog's -zLT option, if $rlog supports it.
 case `$rlog -zLT 2>&1` in
 *' option'*) ;;
-*) rlog_options=-zLT$nl$rlog_options
+*)
+	case $rlog_options in
+	'') rlog_options=-zLT;;
+	?*) rlog_options=-zLT$nl$rlog_options
+	esac
 esac
 
 # With no arguments, examine all files under the RCS directory.
@@ -265,7 +283,10 @@ case $# in
 				RCS/.rcsfreeze.log | RCS/.rcsfreeze.ver) continue;;
 				RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
 				esac
-				files=$files$nl$file
+				case $files in
+				'') files=$file;;
+				?*) files=$files$nl$file
+				esac
 			done
 			case $files in
 			'') exit 0
@@ -416,7 +437,7 @@ esac
 
 # Function to print a single log line.
 # We don't use awk functions, to stay compatible with old awk versions.
-# `Log' is the log message (with \n replaced by \r).
+# `Log' is the log message (with \n replaced by \001).
 # `files' contains the affected files.
 printlogline='{
 
@@ -432,13 +453,13 @@ printlogline='{
 
 	# If "label: comment" is too long, break the line after the ":".
 	sep = " "
-	if ('"$length"' <= '"$indent"' + 1 + length(files) + index(Log, CR)) sep = "\n" indent_string
+	if ('"$length"' <= '"$indent"' + 1 + length(files) + index(Log, SOH)) sep = "\n" indent_string
 
 	# Print the label.
 	printf "%s*%s:", indent_string, files
 
-	# Print each line of the log, transliterating \r to \n.
-	while ((i = index(Log, CR)) != 0) {
+	# Print each line of the log, transliterating \001 to \n.
+	while ((i = index(Log, SOH)) != 0) {
 		logline = substr(Log, 1, i-1)
 		if (logline ~ /[^'"$tab"' ]/) {
 			printf "%s%s\n", sep, logline
@@ -476,7 +497,7 @@ esac
 # Process the rlog output, generating ChangeLog style entries.
 
 # First, reformat the rlog output so that each line contains one log entry.
-# Transliterate \n to \r so that multiline entries fit on a single line.
+# Transliterate \n to \001 so that multiline entries fit on a single line.
 # Discard irrelevant rlog output.
 $AWK <$rlogout '
 	BEGIN { repository = "'"$repository"'" }
@@ -517,7 +538,7 @@ $AWK <$rlogout '
 			}
 			time = substr($3, 1, length($3) - 1)
 			author = substr($5, 1, length($5)-1)
-			printf "%s %s %s %s %s %c", filename, rev, date, time, author, 13
+			printf "%s %s %s %s %s %c", filename, rev, date, time, author, 1
 			rev = "?"
 			next
 		}
@@ -526,14 +547,14 @@ $AWK <$rlogout '
 		if ($0 == "Initial revision" || $0 ~ /^file .+ was initially added on branch .+\.$/) {
 			$0 = "New file."
         }
-		printf "%s%c", $0, 13
+		printf "%s%c", $0, 1
 	}
 ' |
 
 # Now each line is of the form
-# FILENAME REVISION YYYY-MM-DD HH:MM:SS[+-TIMEZONE] AUTHOR \rLOG
-#	where \r stands for a carriage return,
-#	and each line of the log is terminated by \r instead of \n.
+# FILENAME REVISION YYYY-MM-DD HH:MM:SS[+-TIMEZONE] AUTHOR \001LOG
+#	where \001 stands for a carriage return,
+#	and each line of the log is terminated by \001 instead of \n.
 # Sort the log entries, first by date+time (in reverse order),
 # then by author, then by log entry, and finally by file name and revision
 # (just in case).
@@ -545,9 +566,9 @@ $AWK '
 		logTZ = "'"$logTZ"'"
 		revision = "'"$revision"'"
 
-		# Some awk variants do not understand "\r" or "\015", so we have to
-		# put a carriage return directly in the file.
-		CR="" # <-- There is a single CR between the " chars here.
+		# Some awk variants do not understand "\001", so we have to
+		# put the char directly in the file.
+		SOH="" # <-- There is a single SOH (octal code 001) here.
 
 		# Initialize the fullname and mailaddr associative arrays.
 		'"$initialize_fullname"'
@@ -564,7 +585,7 @@ $AWK '
 	}
 
 	{
-		newlog = substr($0, 1 + index($0, CR))
+		newlog = substr($0, 1 + index($0, SOH))
 
 		# Ignore log entries prefixed by "#".
 		if (newlog ~ /^#/) { next }
