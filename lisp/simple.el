@@ -3189,6 +3189,15 @@ The variable `selective-display' has a separate value for each buffer."
   (prin1 selective-display t)
   (princ "." t))
 
+(defun toggle-truncate-lines (arg)
+  "Toggle whether to fold or truncate long lines on the screen.
+With arg, truncate long lines iff arg is positive."
+  (interactive "P")
+  (setq truncate-lines
+	(if (null arg)
+	    (not truncate-lines)
+	  (> (prefix-numeric-value arg) 0))))
+
 (defvar overwrite-mode-textual " Ovwrt"
   "The string displayed in the mode line when in overwrite mode.")
 (defvar overwrite-mode-binary " Bin Ovwrt"

@@ -1,3 +1,7 @@
+2002-07-04  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* simple.el (toggle-truncate-lines): New command.
+
 2002-07-04  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-displayed-dynamic-completions): New variable.
