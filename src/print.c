@@ -82,7 +82,15 @@ Lisp_Object Qprint_escape_newlines;
 
 int print_quoted;
 
-Lisp_Object Qprint_quoted;
+/* Nonzero means print #: before uninterned symbols.  */
+
+int print_gensym;
+
+/* Association list of certain objects that are `eq' in the form being
+   printed and which should be `eq' when read back in, using the #n=object
+   and #n# reader forms.  Each element has the form (object . n).  */
+
+Lisp_Object printed_gensyms;
 
 /* Nonzero means print newline to stdout before next minibuffer message.
    Defined in xdisp.c */
@@ -151,15 +159,17 @@ glyph_to_str_cpy (glyphs, str)
 /* Low level output routines for characters and strings */
 
 /* Lisp functions to do output using a stream
- must have the stream in a variable called printcharfun
- and must start with PRINTPREPARE and end with PRINTFINISH.
- Use PRINTCHAR to output one character,
- or call strout to output a block of characters.
- Also, each one must have the declarations
-   struct buffer *old = current_buffer;
-   int old_point = -1, start_point;
-   Lisp_Object original;
+   must have the stream in a variable called printcharfun
+   and must start with PRINTPREPARE, end with PRINTFINISH,
+   and use PRINTDECLARE to declare common variables.
+   Use PRINTCHAR to output one character,
+   or call strout to output a block of characters.
 */ 
+
+#define PRINTDECLARE						\
+   struct buffer *old = current_buffer;				\
+   int old_point = -1, start_point;				\
+   Lisp_Object original
 
 #define PRINTPREPARE						\
    original = printcharfun;					\
@@ -184,7 +194,8 @@ glyph_to_str_cpy (glyphs, str)
        print_buffer = (char *) xmalloc (print_buffer_size);	\
      }								\
    else								\
-     print_buffer = 0;
+     print_buffer = 0;						\
+   printed_gensyms = Qnil
 
 #define PRINTFINISH					\
    if (NILP (printcharfun))				\
@@ -196,7 +207,8 @@ glyph_to_str_cpy (glyphs, str)
      SET_PT (old_point + (old_point >= start_point	\
 			  ? PT - start_point : 0));	\
    if (old != current_buffer)				\
-     set_buffer_internal (old)
+     set_buffer_internal (old);				\
+   printed_gensyms = Qnil
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
@@ -366,10 +378,7 @@ PRINTCHARFUN defaults to the value of `standard-output' (which see).")
   (character, printcharfun)
      Lisp_Object character, printcharfun;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
+  PRINTDECLARE;
 
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
@@ -388,11 +397,8 @@ write_string (data, size)
      char *data;
      int size;
 {
-  struct buffer *old = current_buffer;
+  PRINTDECLARE;
   Lisp_Object printcharfun;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
 
   printcharfun = Vstandard_output;
 
@@ -410,10 +416,7 @@ write_string_1 (data, size, printcharfun)
      int size;
      Lisp_Object printcharfun;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
+  PRINTDECLARE;
 
   PRINTPREPARE;
   strout (data, size, printcharfun);
@@ -509,10 +512,7 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.")
   (printcharfun)
      Lisp_Object printcharfun;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
+  PRINTDECLARE;
 
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
@@ -530,10 +530,7 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
+  PRINTDECLARE;
 
 #ifdef MAX_PRINT_CHARS
   max_print = 0;
@@ -558,10 +555,8 @@ second argument NOESCAPE is non-nil.")
   (object, noescape)
      Lisp_Object object, noescape;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original, printcharfun;
+  PRINTDECLARE;
+  Lisp_Object printcharfun;
   struct gcpro gcpro1, gcpro2;
   Lisp_Object tem;
 
@@ -597,10 +592,7 @@ Output stream is PRINTCHARFUN, or value of standard-output (which see).")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
+  PRINTDECLARE;
 
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
@@ -619,10 +611,7 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
-  struct buffer *old = current_buffer;
-  int old_point = -1;
-  int start_point;
-  Lisp_Object original;
+  PRINTDECLARE;
   struct gcpro gcpro1;
 
 #ifdef MAX_PRINT_CHARS
@@ -976,6 +965,39 @@ print (obj, printcharfun, escapeflag)
 	    while (p != end && *p >= '0' && *p <= '9')
 	      p++;
 	    confusing = (end == p);
+	  }
+
+	/* If we print an uninterned symbol as part of a complex object and
+	   the flag print-gensym is non-nil, prefix it with #n= to read the
+	   object back with the #n# reader syntax later if needed.  */
+	if (print_gensym && NILP (XSYMBOL (obj)->obarray))
+	  {
+	    if (print_depth > 1)
+	      {
+		Lisp_Object tem;
+		tem = Fassq (obj, printed_gensyms);
+		if (CONSP (tem))
+		  {
+		    PRINTCHAR ('#');
+		    print (XCDR (tem), printcharfun, escapeflag);
+		    PRINTCHAR ('#');
+		    break;
+		  }
+		else
+		  {
+		    if (CONSP (printed_gensyms))
+		      XSETFASTINT (tem, XCDR (XCAR (printed_gensyms)) + 1);
+		    else
+		      XSETFASTINT (tem, 1);
+		    printed_gensyms = Fcons (Fcons (obj, tem), printed_gensyms);
+
+		    PRINTCHAR ('#');
+		    print (tem, printcharfun, escapeflag);
+		    PRINTCHAR ('=');
+		  }
+	      }
+	    PRINTCHAR ('#');
+	    PRINTCHAR (':');
 	  }
 
 	p = XSYMBOL (obj)->name->data;
@@ -1397,6 +1419,11 @@ I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and, backquoted\n\
 forms print in the new syntax.");
   print_quoted = 0;
 
+  DEFVAR_BOOL ("print-gensym", &print_gensym,
+    "Non-nil means print uninterned symbols so they will read as uninterned.\n\
+I.e., the value of (make-symbol "foobar") prints as #:foobar.");
+  print_gensym = 0;
+
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
 
@@ -1415,8 +1442,8 @@ forms print in the new syntax.");
   Qprint_escape_newlines = intern ("print-escape-newlines");
   staticpro (&Qprint_escape_newlines);
 
-  Qprint_quoted = intern ("print-quoted");
-  staticpro (&Qprint_quoted);
+  staticpro (&printed_gensyms);
+  printed_gensyms = Qnil;
 
 #ifndef standalone
   defsubr (&Swith_output_to_temp_buffer);
