@@ -1,3 +1,8 @@
+2002-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* files.texi (Auto Save Files, Remote Files): Mention
+	auto-save-file-name-transforms.
+	
 2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calc.texi: Place under GFDL.  Fix copyright years.
