@@ -116,14 +116,35 @@ struct frame
   /* Nonzero if last attempt at redisplay on this frame was preempted.  */
   char display_preempted;
 
-  /* Nonzero if frame is currently displayed.  */
-  char visible;
+  /* visible is nonzero if the frame is currently displayed; we check
+     it to see if we should bother updating the frame's contents.
 
-  /* Nonzero if window is currently iconified.
-     This and visible are mutually exclusive.  */
-  char iconified;
+     iconified is nonzero if the frame is currently iconified.
+
+     Asynchronous input handlers should NOT change these directly;
+     instead, they should change async_visible or async_iconified, and
+     let the FRAME_SAMPLE_VISIBILITY macro set visible and iconified
+     at the next redisplay.
+
+     These should probably be considered read-only by everyone except
+     FRAME_SAMPLE_VISIBILITY.
+
+     This two are mutually exclusive.  They might both be zero, if the
+     frame has been made invisible without an icon.  */
+  char visible, iconified;
+
+  /* Asynchronous input handlers change these, and
+     FRAME_SAMPLE_VISIBILITY copies them into visible and iconified.
+     See FRAME_SAMPLE_VISIBILITY, below.  */
+#ifdef __STDC__
+  volatile
+#endif
+  char async_visible, async_iconified;
 
   /* Nonzero if this frame should be redrawn.  */
+#ifdef __STDC__
+  volatile
+#endif
   char garbaged;
 
   /* True if frame actually has a minibuffer window on it.
@@ -199,6 +220,27 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
+
+/* Emacs's redisplay code could become confused if a frame's
+   visibility changes at arbitrary times.  For example, if a frame is
+   visible while the desired glyphs are being built, but becomes
+   invisible before they are updated, then some rows of the
+   desired_glyphs will be left marked as enabled after redisplay is
+   complete, which should never happen.  The next time the frame
+   becomes visible, redisplay will probably barf.
+
+   Currently, there are no similar situations involving iconified, but
+   the principle is the same.
+
+   So instead of having asynchronous input handlers directly set and
+   clear the frame's visibility and iconification flags, they just set
+   the async_visible and async_iconified flags; the redisplay code
+   calls the FRAME_SAMPLE_VISIBILITY macro before doing any redisplay,
+   which sets visible and iconified from their asynchronous
+   counterparts.  */
+#define FRAME_SAMPLE_VISIBILITY(f) \
+  ((f)->visible = (f)->async_visible, \
+   (f)->iconified = (f)->async_iconified)
 
 #define CHECK_FRAME(x, i)				\
   {							\
@@ -302,6 +344,9 @@ extern int message_buf_print;
 #define FRAME_MESSAGE_BUF(f) (the_only_frame.message_buf)
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (the_only_frame.scroll_bottom_vpos)
 #define FRAME_FOCUS_FRAME(f) (0)
+
+/* See comments in definition above.  */
+#define FRAME_SAMPLE_VISIBILITY(f) (0)
 
 #define CHECK_FRAME(x, i) do; while (0)
 #define CHECK_LIVE_FRAME(x, y) do; while (0)
