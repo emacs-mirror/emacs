@@ -313,7 +313,9 @@ to read a file name from the minibuffer."
 		      (find-file-noselect temp)))))
 	      (setq dirs-done
 		    (cons (file-truename (expand-file-name (car dirs)))
-			  dirs-done))
+			  (cons (directory-file-name
+				 (file-truename (expand-file-name (car dirs))))
+				dirs-done)))
 	      (if buffer (setq buffers (cons buffer buffers)))))
 	(setq dirs (cdr dirs)))
 
