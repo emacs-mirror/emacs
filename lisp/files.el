@@ -252,6 +252,13 @@ and ignores this variable.")
 		      inhibit-file-name-handlers)))
 	  (inhibit-file-name-operation op))
       (apply op args))))
+
+(defun convert-standard-filename (filename)
+  "Convert a standard file's name to something suitable for the current OS.
+This function's standard definition is trivial; it just returns the argument.
+However, on some systems, the function is redefined
+with a definition that really does change some file names."
+  filename)
 
 (defun pwd ()
   "Show the current default directory."
@@ -630,10 +637,12 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 	     ;; If the home dir is just /, don't change it.
 	     (not (and (= (match-end 0) 1)
 		       (= (aref filename 0) ?/)))
+	     ;; MS-DOS root directories can come with a drive letter;
+	     ;; Novell Netware allows drive letters beyond `Z:'.
 	     (not (and (or (eq system-type 'ms-dos)
 			   (eq system-type 'windows-nt))
 		       (save-match-data
-			 (string-match "^[a-zA-Z]:/$" filename)))))
+			 (string-match "^[a-zA-`]:/$" filename)))))
 	(setq filename
 	      (concat "~"
 		      (substring filename (match-beginning 1) (match-end 1))
@@ -886,7 +895,7 @@ run `normal-mode' explicitly."
 		    (prin1-to-string err)))))
 
 (defvar auto-mode-alist
-  '(("\\.text\\'" . text-mode)
+  '(("\\.te?xt\\'" . text-mode)
     ("\\.c\\'" . c-mode)
     ("\\.h\\'" . c-mode)
     ("\\.tex\\'" . tex-mode)
@@ -921,7 +930,7 @@ run `normal-mode' explicitly."
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
     ("\\.texinfo\\'" . texinfo-mode)
-    ("\\.texi\\'" . texinfo-mode)
+    ("\\.te?xi\\'" . texinfo-mode)
     ("\\.s\\'" . asm-mode)
     ("\\.S\\'" . asm-mode)
     ("\\.asm\\'" . asm-mode)
@@ -1521,8 +1530,11 @@ the modes of the new file to agree with the old modes."
 			(setq setmodes (file-modes backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in ~.
-		     (setq backupname (expand-file-name "~/%backup%~"))
-		     (message "Cannot write backup file; backing up in ~/%%backup%%~")
+		     (setq backupname (expand-file-name
+				       (convert-standard-filename
+					"~/%backup%~")))
+		     (message "Cannot write backup file; backing up in %s"
+			      (file-name-nondirectory backupname))
 		     (sleep-for 1)
 		     (condition-case ()
 			 (copy-file real-file-name backupname t t)
@@ -1850,7 +1862,11 @@ After saving the buffer, run `after-save-hook'."
 	    (setq nogood t)
 	    ;; Find the temporary name to write under.
 	    (while nogood
-	      (setq tempname (format "%s#tmp#%d" dir i))
+	      (setq tempname (format
+			      (if (eq system-type 'ms-dos)
+				  "%s#%d.tm#" ; MSDOS limits files to 8+3
+				"%s#tmp#%d")
+			      dir i))
 	      (setq nogood (file-exists-p tempname))
 	      (setq i (1+ i)))
 	    (unwind-protect
