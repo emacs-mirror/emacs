@@ -1,4 +1,4 @@
-;;; mm-uu.el -- Return uu stuff as mm handles
+;;; mm-uu.el --- return uu stuff as mm handles
 ;; Copyright (c) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -22,7 +22,6 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-
 
 ;;; Code:
 

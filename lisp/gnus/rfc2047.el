@@ -1,4 +1,4 @@
-;;; rfc2047.el --- Functions for encoding and decoding rfc2047 messages
+;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>

@@ -1,4 +1,4 @@
-;;; earcon.el --- Sound effects for messages
+;;; earcon.el --- sound effects for messages
 
 ;; Copyright (C) 1996, 2000 Free Software Foundation
 

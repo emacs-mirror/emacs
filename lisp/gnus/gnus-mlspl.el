@@ -22,6 +22,10 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;;; Code:
+
 (eval-when-compile (require 'cl))
 (require 'gnus)
 (require 'gnus-sum)
@@ -225,3 +229,5 @@ Calling (gnus-group-split-fancy nil nil \"mail.misc\") returns:
     split))
 
 (provide 'gnus-mlspl)
+
+;;; gnus-mlspl.el ends here

@@ -7918,7 +7918,7 @@ groups."
 		       force t))
      (t (setq force t)))
     (if (and raw (not force) (equal gnus-newsgroup-name "nndraft:drafts"))
-	(error "Can't edit the raw article in group nndraft:drafts."))
+	(error "Can't edit the raw article in group nndraft:drafts"))
     (save-excursion
       (set-buffer gnus-summary-buffer)
       (let ((mail-parse-charset gnus-newsgroup-charset)

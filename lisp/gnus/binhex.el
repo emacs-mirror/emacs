@@ -1,4 +1,4 @@
-;;; binhex.el -- elisp native binhex decode
+;;; binhex.el --- elisp native binhex decode
 ;; Copyright (c) 1998 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>

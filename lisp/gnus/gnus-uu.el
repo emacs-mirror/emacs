@@ -2134,4 +2134,4 @@ If no file has been included, the user will be asked for a file."
 
 (provide 'gnus-uu)
 
-;; gnus-uu.el ends here
+;;; gnus-uu.el ends here

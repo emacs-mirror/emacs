@@ -1,4 +1,4 @@
-;;; ietf-drums.el --- Functions for parsing RFC822bis headers
+;;; ietf-drums.el --- functions for parsing RFC822bis headers
 ;; Copyright (C) 1998, 1999, 2000
 ;;        Free Software Foundation, Inc.
 

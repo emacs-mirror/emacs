@@ -806,4 +806,4 @@ buffer.
 
 (provide 'gnus-srvr)
 
-;;; gnus-srvr.el ends here.
+;;; gnus-srvr.el ends here

@@ -1,4 +1,4 @@
-;;; gnus-setup.el --- Initialization & Setup for Gnus 5
+;;; gnus-setup.el --- initialization & setup for Gnus 5
 
 ;; Copyright (C) 1995, 1996, 2000 Free Software Foundation, Inc.
 

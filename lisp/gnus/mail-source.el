@@ -444,7 +444,7 @@ Return the number of files that were found."
 		 (error
 		  (unless (yes-or-no-p
 			   (format "Mail source error (%s).  Continue? " err))
-		    (error "Cannot get new mail."))
+		    (error "Cannot get new mail"))
 		  0))))))))
 
 (defun mail-source-make-complex-temp-name (prefix)
@@ -756,7 +756,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 This only works when `display-time' is enabled."
   (interactive "P")
   (if (not mail-source-primary-source)
-      (error "Need to set `mail-source-primary-source' to check for new mail."))
+      (error "Need to set `mail-source-primary-source' to check for new mail"))
   (let ((on (if (null arg)
 		(not mail-source-report-new-mail)
 	      (> (prefix-numeric-value arg) 0))))

@@ -51,6 +51,8 @@
 ;;; 1999-10-23  included in pgnus
 ;;; 2000-08-15  `rfc2104-hexstring-to-bitstring'
 ;;; 2000-05-12  added sha-1 example, added test case reference
+
+;;; Code:
  
 (eval-when-compile (require 'cl))
 

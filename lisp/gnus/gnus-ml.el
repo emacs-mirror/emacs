@@ -1,4 +1,4 @@
-;;; gnus-ml.el --- Mailing list minor mode for Gnus
+;;; gnus-ml.el --- mailing list minor mode for Gnus
 
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; gnus-audio.el --- Sound effects for Gnus
+;;; gnus-audio.el --- sound effects for Gnus
 ;; Copyright (C) 1996, 2000 Free Software Foundation
 
 ;; Author: Steven L. Baur <steve@miranova.com>

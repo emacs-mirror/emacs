@@ -2508,7 +2508,7 @@ The directory to save in defaults to `gnus-article-save-directory'."
   (when (string-equal command "")
     (if gnus-last-shell-command
 	(setq command gnus-last-shell-command)
-      (error "A command is required.")))
+      (error "A command is required")))
   (gnus-eval-in-buffer-window gnus-article-buffer
     (save-restriction
       (widen)

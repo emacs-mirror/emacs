@@ -1,4 +1,4 @@
-;;; mm-encode.el --- Functions for encoding MIME things 
+;;; mm-encode.el --- functions for encoding MIME things 
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>

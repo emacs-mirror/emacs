@@ -1,4 +1,4 @@
-;;; rfc2231.el --- Functions for decoding rfc2231 headers
+;;; rfc2231.el --- functions for decoding rfc2231 headers
 
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; mail-prsvr.el --- Interface variables for parsing mail
+;;; mail-prsvr.el --- interface variables for parsing mail
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>

@@ -1,4 +1,4 @@
-;;; mml.el --- A package for parsing and validating MML documents
+;;; mml.el --- package for parsing and validating MML documents
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>

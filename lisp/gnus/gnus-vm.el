@@ -105,4 +105,4 @@ save those articles instead."
 
 (provide 'gnus-vm)
 
-;;; gnus-vm.el ends here.
+;;; gnus-vm.el ends here

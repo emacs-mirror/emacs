@@ -1,5 +1,19 @@
 2001-07-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* gnus/binhex.el, gnus/binhex.el, gnus/earcon.el,
+	gnus/gnus-agent.el, gnus/gnus-art.el, gnus/gnus-audio.el,
+	gnus/gnus-logic.el, gnus/gnus-ml.el, gnus/gnus-mlspl.el,
+	gnus/gnus-setup.el, gnus/gnus-srvr.el, gnus/gnus-sum.el,
+	gnus/gnus-uu.el, gnus/gnus-vm.el, gnus/ietf-drums.el,
+	gnus/mail-parse.el, gnus/mail-prsvr.el, gnus/mail-source.el,
+	gnus/mm-bodies.el, gnus/mm-decode.el, gnus/mm-encode.el,
+	gnus/mm-partial.el, gnus/mm-util.el, gnus/mm-uu.el,
+	gnus/mm-view.el, gnus/mml.el, gnus/nnimap.el, gnus/nnoo.el,
+	gnus/parse-time.el, gnus/rfc1843.el, gnus/rfc2045.el,
+	gnus/rfc2047.el, gnus/rfc2104.el, gnus/rfc2231.el,
+	gnus/time-date.el, gnus/uudecode.el: Some fixes to follow coding
+	conventions in files from Gnus.
+
 	* abbrevlist.el, array.el, buff-menu.el, calendar/appt.el,
 	case-table.el, cdl.el, cmuscheme.el, compare-w.el, completion.el,
 	custom.el, derived.el, dired-aux.el, disp-table.el, dos-vars.el,

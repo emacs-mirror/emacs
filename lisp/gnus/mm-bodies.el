@@ -1,4 +1,4 @@
-;;; mm-bodies.el --- Functions for decoding MIME things
+;;; mm-bodies.el --- functions for decoding MIME things
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -264,4 +264,4 @@ The characters in CHARSET should then be decoded."
 
 (provide 'mm-bodies)
 
-;; mm-bodies.el ends here
+;;; mm-bodies.el ends here

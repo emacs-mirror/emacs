@@ -227,4 +227,4 @@
 
 (provide 'gnus-logic)
 
-;;; gnus-logic.el ends here.
+;;; gnus-logic.el ends here

@@ -1,4 +1,4 @@
-;;; mm-view.el --- Functions for viewing MIME objects
+;;; mm-view.el --- functions for viewing MIME objects
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -281,4 +281,4 @@
 
 (provide 'mm-view)
 
-;; mm-view.el ends here
+;;; mm-view.el ends here

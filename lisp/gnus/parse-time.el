@@ -1,4 +1,4 @@
-;;; parse-time.el --- Parsing time strings
+;;; parse-time.el --- parsing time strings
 
 ;; Copyright (C) 1996, 2000 by Free Software Foundation, Inc.
 

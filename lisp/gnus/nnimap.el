@@ -385,7 +385,7 @@ If EXAMINE is non-nil the group is selected read-only."
 		      "nnimap: Group %s is not uidvalid.  Continue? " group)))
 		imap-current-mailbox
 	      (imap-mailbox-unselect)
-	      (error "nnimap: Group %s is not uid-valid." group))
+	      (error "nnimap: Group %s is not uid-valid" group))
 	  (nnheader-report 'nnimap (imap-error-text)))))))
 
 (defun nnimap-replace-whitespace (string)

@@ -1,4 +1,4 @@
-;;; rfc2045.el --- Functions for decoding rfc2045 headers
+;;; rfc2045.el --- functions for decoding rfc2045 headers
 
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
