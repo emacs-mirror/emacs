@@ -1338,6 +1338,12 @@ unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
 int (PASCAL *pfn_gethostname) (char * name, int namelen);
 struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
 struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
+  
+/* SetHandleInformation is only needed to make sockets non-inheritable. */
+BOOL (WINAPI *pfn_SetHandleInformation) (HANDLE object, DWORD mask, DWORD flags);
+#ifndef HANDLE_FLAG_INHERIT
+#define HANDLE_FLAG_INHERIT	1
+#endif
 
 static int have_winsock;
 static HANDLE winsock_lib;
@@ -1356,6 +1362,13 @@ static void
 init_winsock ()
 {
   WSADATA  winsockData;
+
+  have_winsock = FALSE;
+
+  pfn_SetHandleInformation = NULL;
+  pfn_SetHandleInformation
+    = (void *) GetProcAddress (GetModuleHandle ("kernel32.dll"),
+			       "SetHandleInformation");
 
   winsock_lib = LoadLibrary ("wsock32.dll");
 
@@ -1396,7 +1409,6 @@ init_winsock ()
     fail:
       FreeLibrary (winsock_lib);
     }
-  have_winsock = FALSE;
 }
 
 
@@ -1488,16 +1500,27 @@ sys_socket(int af, int type, int protocol)
 
 	    parent = GetCurrentProcess ();
 
-	    DuplicateHandle (parent,
-			     (HANDLE) s,
-			     parent,
-			     &new_s,
-			     0,
-			     FALSE,
-			     DUPLICATE_SAME_ACCESS);
-	    pfn_closesocket (s);
-	    fd_info[fd].hnd = new_s;
-	    s = (SOCKET) new_s;
+	    /* Apparently there is a bug in NT 3.51 with some service
+	       packs, which prevents using DuplicateHandle to make a
+	       socket handle non-inheritable (causes WSACleanup to
+	       hang).  The work-around is to use SetHandleInformation
+	       instead if it is available and implemented. */
+	    if (!pfn_SetHandleInformation
+		|| !pfn_SetHandleInformation ((HANDLE) s,
+					      HANDLE_FLAG_INHERIT,
+					      HANDLE_FLAG_INHERIT))
+	      {
+		DuplicateHandle (parent,
+				 (HANDLE) s,
+				 parent,
+				 &new_s,
+				 0,
+				 FALSE,
+				 DUPLICATE_SAME_ACCESS);
+		pfn_closesocket (s);
+		s = (SOCKET) new_s;
+	      }
+	    fd_info[fd].hnd = (HANDLE) s;
 	  }
 #endif
 
