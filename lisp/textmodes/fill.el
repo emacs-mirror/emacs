@@ -48,6 +48,9 @@ A value of nil means that any change in indentation starts a new paragraph."
   "Mode-specific function to fill a paragraph, or nil if there is none.
 If the function returns nil, then `fill-paragraph' does its normal work.")
 
+(defvar fill-paragraph-handle-comment t
+  "If non-nil, paragraph filling will try to pay attention to comments.")
+
 (defvar enable-kinsoku t
   "*Non-nil means enable \"kinsoku\" processing on filling paragraph.
 Kinsoku processing is designed to prevent certain characters from being
@@ -689,10 +692,23 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full))))
+  ;; First try fill-paragraph-function.
   (or (and fill-paragraph-function
 	   (let ((function fill-paragraph-function)
+		 ;; If fill-paragraph-function is set, it probably takes care
+		 ;; of comments and stuff.  If not, it will have to set
+		 ;; fill-paragraph-handle-comment back to t explicitly or
+		 ;; return nil.
+		 (fill-paragraph-handle-comment nil)
 		 fill-paragraph-function)
 	     (funcall function arg)))
+      ;; Then try our syntax-aware filling code.
+      (and fill-paragraph-handle-comment
+	   ;; Our code only handle \n-terminated comments right now.
+	   comment-start comment-start-skip (equal comment-end "")
+	   (let ((fill-paragraph-handle-comment nil))
+	     (fill-comment-paragraph arg)))
+      ;; If it all fails, default to the good ol' text paragraph filling.
       (let ((before (point))
 	    ;; Fill prefix used for filling the paragraph.
 	    fill-pfx)
@@ -721,6 +737,90 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 	;; past it.
 	(skip-line-prefix fill-pfx)
 	fill-pfx)))
+
+(defun fill-comment-paragraph (&optional justify)
+  "Fill current comment.
+If we're not in a comment, just return nil so that the caller
+can take care of filling."
+  (let ((comment-re (concat "[ \t]*" comment-start-skip))
+	has-comment	   ; Non-nil if the current line contains a comment.
+	has-code-and-comment	; Non-nil if it contains code and a comment.
+	comment-fill-prefix)   ; If has-comment, the appropriate fill-prefix.
+
+    ;; Figure out what kind of comment we are looking at.
+    (save-excursion
+      (beginning-of-line)
+      (cond
+
+       ;; A line with nothing but a comment on it?
+       ((looking-at comment-re)
+	(setq has-comment t
+	      comment-fill-prefix (match-string 0)))
+
+       ;; A line with some code, followed by a comment?  Remember that the
+       ;; semi which starts the comment shouldn't be part of a string or
+       ;; character.
+       ((let ((state (syntax-ppss (line-end-position))))
+	  (when (nth 4 state)
+	    (goto-char (nth 8 state))
+	    (save-restriction
+	      ;; comment-start-skip sometimes tries to count \ quoting from ^.
+	      (narrow-to-region (point) (point-max))
+	      (looking-at comment-start-skip))))
+	(setq has-comment t has-code-and-comment t)
+	(setq comment-fill-prefix
+	      (concat (make-string (/ (current-column) tab-width) ?\t)
+		      (make-string (% (current-column) tab-width) ?\ )
+		      (match-string 0))))))
+
+    (if (not has-comment)
+	;; Return nil, so the normal filling will take place.
+	nil
+
+      ;; Narrow to include only the comment, and then fill the region.
+      (save-excursion
+	(save-restriction
+	  (beginning-of-line)
+	  (narrow-to-region
+	   ;; Find the first line we should include in the region to fill.
+	   (save-excursion
+	     (while (and (zerop (forward-line -1))
+			 (looking-at comment-re)))
+	     ;; We may have gone too far.  Go forward again.
+	     (or (looking-at (concat ".*" comment-start-skip))
+		 (forward-line 1))
+	     (point))
+	   ;; Find the beginning of the first line past the region to fill.
+	   (save-excursion
+	     (while (progn (forward-line 1)
+			   (looking-at comment-re)))
+	     (point)))
+
+	  ;; Lines with only semicolons on them can be paragraph boundaries.
+	  (let* ((paragraph-separate
+		  (concat paragraph-start "\\|" comment-re "$"))
+		 (paragraph-ignore-fill-prefix nil)
+		 (fill-prefix comment-fill-prefix)
+		 (after-line (if has-code-and-comment
+				 (line-beginning-position 2)))
+		 (end (progn
+			(forward-paragraph)
+			(or (bolp) (newline 1))
+			(point)))
+		 ;; If this comment starts on a line with code,
+		 ;; include that like in the filling.
+		 (beg (progn (backward-paragraph)
+			     (if (eq (point) after-line)
+				 (forward-line -1))
+			     (point))))
+	    (fill-region-as-paragraph beg end
+				      justify nil
+				      (save-excursion
+					(goto-char beg)
+					(if (looking-at fill-prefix)
+					    nil
+					  (re-search-forward comment-start-skip))))
+	    t))))))
 
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
