@@ -1256,8 +1256,11 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 {
   struct it it;
   struct text_pos top;
-  int visible_p;
+  int visible_p = 0;
   struct buffer *old_buffer = NULL;
+
+  if (noninteractive)
+    return visible_p;
 
   if (XBUFFER (w->buffer) != current_buffer)
     {
@@ -1265,7 +1268,6 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
       set_buffer_internal_1 (XBUFFER (w->buffer));
     }
 
-  visible_p = 0;
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
   /* Compute exact mode line heights, if requested.  */
