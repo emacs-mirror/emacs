@@ -4686,14 +4686,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_MENUSELECT:
-#if OLD_MENU_HELP
-      wmsg.dwModifiers = w32_get_modifiers ();
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-#else
+#if DIRECT_MENU_HELP
       {
-	/* Try to process these directly: the relevant parts of redisplay
-	   are supposed to be re-entrant now.  This should allow tooltips
-	   to be shown for menus.  */
+	/* Tooltips seemed to behave better when help_echo was directly
+	   displayed, but this causes crashes when GC kicks in when the
+	   tip_frame is active.  */
 	HMENU menu = (HMENU) lParam;
 	UINT menu_item = (UINT) LOWORD (wParam);
 	UINT flags = (UINT) HIWORD (wParam);
@@ -4702,6 +4699,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	w32_menu_display_help (menu, menu_item, flags);
 	UNBLOCK_INPUT;
       }
+#else
+      wmsg.dwModifiers = w32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 #endif
       return 0;
 
@@ -4835,6 +4835,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       return 0;
 
     case WM_WINDOWPOSCHANGING:
+      /* Don't restrict the sizing of tip frames.  */
+      if (hwnd == tip_window)
+	return 0;
       {
 	WINDOWPLACEMENT wp;
 	LPWINDOWPOS lppos = (WINDOWPOS *) lParam;
@@ -5062,30 +5065,40 @@ void
 my_create_tip_window (f)
      struct frame *f;
 {
-  HWND hwnd;
+  RECT rect;
 
-  FRAME_W32_WINDOW (f) = hwnd
+  rect.left = rect.top = 0;
+  rect.right = PIXEL_WIDTH (f);
+  rect.bottom = PIXEL_HEIGHT (f);
+
+  AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
+		    FRAME_EXTERNAL_MENU_BAR (f));
+
+  tip_window = FRAME_W32_WINDOW (f)
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
 		    f->output_data.w32->dwStyle,
 		    f->output_data.w32->left_pos,
 		    f->output_data.w32->top_pos,
-		    PIXEL_WIDTH (f),
-		    PIXEL_HEIGHT (f),
+		    rect.right - rect.left,
+		    rect.bottom - rect.top,
 		    FRAME_W32_WINDOW (SELECTED_FRAME ()), /* owner */
 		    NULL,
 		    hinst,
 		    NULL);
 
-  if (hwnd)
+  if (tip_window)
     {
-      SetWindowLong (hwnd, WND_FONTWIDTH_INDEX, FONT_WIDTH (f->output_data.w32->font));
-      SetWindowLong (hwnd, WND_LINEHEIGHT_INDEX, f->output_data.w32->line_height);
-      SetWindowLong (hwnd, WND_BORDER_INDEX, f->output_data.w32->internal_border_width);
-      SetWindowLong (hwnd, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
+      SetWindowLong (tip_window, WND_FONTWIDTH_INDEX, FONT_WIDTH (f->output_data.w32->font));
+      SetWindowLong (tip_window, WND_LINEHEIGHT_INDEX, f->output_data.w32->line_height);
+      SetWindowLong (tip_window, WND_BORDER_INDEX, f->output_data.w32->internal_border_width);
+      SetWindowLong (tip_window, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
+
+      /* Tip frames have no scrollbars.  */
+      SetWindowLong (tip_window, WND_SCROLLBAR_INDEX, 0);
 
       /* Do this to discard the default setting specified by our parent. */
-      ShowWindow (hwnd, SW_HIDE);
+      ShowWindow (tip_window, SW_HIDE);
     }
 }
 
@@ -13202,9 +13215,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
-  /* Default internalBorderWidth for tooltips to 2 on Windows to match
-     other programs.  */
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
+  x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
 
@@ -13330,7 +13341,6 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
      int *root_x, *root_y;
 {
   Lisp_Object left, top;
-  unsigned pmask;
   
   /* User-specified position?  */
   left = Fcdr (Fassq (Qleft, parms));
@@ -13361,7 +13371,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   if (INTEGERP (left))
     *root_x = XINT (left);
-  else if (*root_x + XINT (dx) + width > FRAME_WIDTH (f))
+  else if (*root_x + XINT (dx) + width > FRAME_W32_DISPLAY_INFO (f)->width)
     *root_x -= width + XINT (dx);
   else
     *root_x += XINT (dx);
@@ -13542,7 +13552,7 @@ Text larger than the specified size is clipped.  */)
 	row_width = row->pixel_width;
       
       /* TODO: find why tips do not draw along baseline as instructed.  */
-      height += row->height * 2;
+      height += row->height;
       width = max (width, row_width);
     }
 
@@ -13556,10 +13566,24 @@ Text larger than the specified size is clipped.  */)
   compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
   BLOCK_INPUT;
-  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
-		     root_x, root_y - height, width, height,
-		     SWP_NOACTIVATE);
-  my_show_window (f, FRAME_W32_WINDOW (f), SW_SHOWNORMAL);
+  {
+    /* Adjust Window size to take border into account.  */
+    RECT rect;
+    rect.left = rect.top = 0;
+    rect.right = width;
+    rect.bottom = height;
+    AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
+		      FRAME_EXTERNAL_MENU_BAR (f));
+
+    SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
+		  root_x, root_y, rect.right - rect.left,
+		  rect.bottom - rect.top, SWP_NOACTIVATE);
+
+    /* Let redisplay know that we have made the frame visible already.  */
+    f->async_visible = 1;
+
+    ShowWindow (FRAME_W32_WINDOW (f), SW_SHOWNOACTIVATE);
+  }
   UNBLOCK_INPUT;
 
   /* Draw into the window.  */
