@@ -1359,6 +1359,9 @@ struct face
      realize_x_face).  */
   unsigned colors_copied_bitwise_p : 1;
 
+  /* If non-zero, use overstrike (to simulate bold-face).  */
+  unsigned overstrike : 1;
+
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;
 
