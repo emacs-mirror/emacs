@@ -990,6 +990,14 @@ merge in the changes into your working copy."
 	     (remove-hook 'find-file-hooks 'vc-find-file-hook)
 	     (vc-revert-buffer1 t noquery)
 	     (add-hook 'find-file-hooks 'vc-find-file-hook)
+             (and view-read-only
+                  (if (file-writable-p file)
+                      (and view-mode
+                           (let ((view-old-buffer-read-only nil))
+                             (view-mode-exit)))
+                    (and (not view-mode)
+                         (not (eq (get major-mode 'mode-class) 'special))
+                         (view-mode-enter))))
 	     (vc-mode-line buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 
