@@ -622,7 +622,12 @@ C-w Display information on absence of warranty for GNU Emacs."
 	  ;; We used to add .el to the file name,
 	  ;; but that's completely wrong when the user used load-file.
 	  (princ file-name)
-	  (princ "'")))
+	  (princ "'")
+	  ;; Make a hyperlink to the library.
+	  (with-current-buffer "*Help*"
+	    (save-excursion
+	      (re-search-backward "`\\([^`']+\\)'" nil t)
+	      (help-xref-button 1 #'find-function function)))))
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
