@@ -1530,8 +1530,8 @@ oblookup (obarray, ptr, size)
   register Lisp_Object tail;
   Lisp_Object bucket, tem;
 
-  if (XTYPE (obarray) != Lisp_Vector ||
-      (obsize = XVECTOR (obarray)->size) == 0)
+  if (XTYPE (obarray) != Lisp_Vector
+      || (obsize = XVECTOR (obarray)->size) == 0)
     {
       obarray = check_obarray (obarray);
       obsize = XVECTOR (obarray)->size;
