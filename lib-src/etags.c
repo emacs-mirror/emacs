@@ -31,6 +31,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "../src/config.h"
+
 #include "getopt.h"
 
 #ifdef	__GNUC__
