@@ -73,7 +73,7 @@ main (argc, argv)
    ** <filename>	dump filename
    ** -		(as filename == stdin)
    */
-    
+
   while (*argv && *argv[0] == '-' && (*argv)[1])
     {
       /* A switch! */
@@ -270,12 +270,14 @@ main (argc, argv)
 	fclose (fp);
 
     } while (*argv != NULL);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 void
 usage ()
 {
   fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
+
+/* hexl.c ends here */

@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <../src/config.h>
 #undef signal
 
-#include <ctype.h> 
+#include <ctype.h>
 #include <stdio.h>
 #include <getopt.h>
 #ifdef HAVE_UNISTD_H
@@ -84,25 +84,25 @@ decode_options (argc, argv)
 	break;
 
       alternate_editor = getenv ("ALTERNATE_EDITOR");
-      
+
       switch (opt)
 	{
 	case 0:
 	  /* If getopt returns 0, then it has already processed a
 	     long-named option.  We should do nothing.  */
 	  break;
-	  
+
 	case 'a':
 	  alternate_editor = optarg;
 	  break;
-	  
+
 	case 'n':
 	  nowait = 1;
 	  break;
 
 	case 'V':
 	  fprintf (stderr, "emacsclient %s\n", VERSION);
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	  break;
 
 	case 'H':
@@ -123,7 +123,7 @@ print_help_and_exit ()
 	   progname);
   fprintf (stderr,
 	   "Report bugs to bug-gnu-emacs@gnu.org.\n");
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Return a copy of NAME, inserting a &
@@ -157,7 +157,7 @@ quote_file_name (name)
     }
   *q++ = 0;
 
-  
+
   return copy;
 }
 
@@ -171,7 +171,7 @@ xmalloc (size)
   if (result == NULL)
   {
     perror ("malloc");
-    exit (1);
+    exit (EXIT_FAILURE);
   }
   return result;
 }
@@ -193,12 +193,12 @@ fail (argc, argv)
     }
   else
     {
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 }
 
 
-       
+
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
@@ -272,7 +272,7 @@ main (argc, argv)
   if (argc - optind < 1)
     print_help_and_exit ();
 
-  /* 
+  /*
    * Open up an AF_UNIX socket in this person's home directory
    */
 
@@ -282,7 +282,7 @@ main (argc, argv)
       perror ("socket");
       fail (argc, argv);
     }
-  
+
   server.sun_family = AF_UNIX;
 
   {
@@ -317,11 +317,11 @@ main (argc, argv)
 	   our euid.  If so, look for a socket based on the UID
 	   associated with the name.  This is reminiscent of the logic
 	   that init_editfns uses to set the global Vuser_full_name.  */
- 
+
 	char *user_name = (char *) getenv ("LOGNAME");
 	if (!user_name)
 	  user_name = (char *) getenv ("USER");
-       
+
 	if (user_name)
 	  {
 	    struct passwd *pw = getpwnam (user_name);
@@ -334,7 +334,7 @@ main (argc, argv)
 	      }
 	  }
       }
- 
+
      switch (sock_status)
        {
        case 1:
@@ -346,7 +346,7 @@ main (argc, argv)
 	     fail (argc, argv);
 	   }
 	 break;
-	 
+
        case 2:
 	 /* `stat' failed */
 	 if (errno == ENOENT)
@@ -439,7 +439,7 @@ main (argc, argv)
 
   /* Maybe wait for an answer.   */
   if (nowait)
-    return 0;
+    return EXIT_SUCCESS;
 
   printf ("Waiting for Emacs...");
   fflush (stdout);
@@ -448,11 +448,11 @@ main (argc, argv)
      the first line we read will actually be the output we just sent.
      We can't predict whether that will happen, so if it does, we
      detect it by recognizing `Client: ' at the beginning.  */
-  
+
   while (str = fgets (string, BUFSIZ, in))
     printf ("%s", str);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #else /* This is the SYSV IPC section */
@@ -500,7 +500,7 @@ main (argc, argv)
   if ((homedir = getenv ("HOME")) == NULL)
     {
       fprintf (stderr, "%s: No home directory\n", argv[0]);
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   strcpy (buf, homedir);
 #ifndef HAVE_LONG_FILE_NAMES
@@ -518,7 +518,7 @@ main (argc, argv)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("msgget");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   /* Determine working dir, so we can prefix it to all the arguments.  */
@@ -615,7 +615,7 @@ main (argc, argv)
 
   /* Maybe wait for an answer.   */
   if (nowait)
-    return 0;
+    return EXIT_SUCCESS;
 
   printf ("Waiting for Emacs...");
   fflush (stdout);
@@ -626,7 +626,7 @@ main (argc, argv)
   printf ("\n");
   if (*buf)
     printf ("%s\n", buf);
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 #endif /* HAVE_SYSVIPC */
@@ -647,3 +647,5 @@ strerror (errnum)
 }
 
 #endif /* ! HAVE_STRERROR */
+
+/* emacsclient.c ends here */

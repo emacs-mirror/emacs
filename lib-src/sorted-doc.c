@@ -1,6 +1,6 @@
 /* Give this program DOCSTR.mm.nn as standard input and it outputs to
    standard output a file of texinfo input containing the doc strings.
-   
+
    Copyright (C) 1989, 1992, 1994, 1996, 1999, 2000, 2001
       Free Software Foundation Inc.
 
@@ -19,7 +19,7 @@
    You should have received a copy of the GNU General Public License
    along with GNU Emacs; see the file COPYING.  If not, write to
    the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-   
+
    This version sorts the output by function name.  */
 
 #include "config.h"
@@ -71,7 +71,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -117,7 +117,7 @@ char *states[] =
 {
   "WAITING", "BEG_NAME", "NAME_GET", "BEG_DESC", "DESC_GET"
 };
-    
+
 int
 main ()
 {
@@ -129,7 +129,7 @@ main ()
 
   DOCSTR *docs;			/* chain of allocated DOCSTRS */
   char buf[512];		/* line buffer */
-    
+
   while (1)			/* process one char at a time */
     {
       /* this char from the DOCSTR file */
@@ -177,7 +177,7 @@ main ()
 	  bp = buf;
 	  state = DESC_GET;
 	}
-	
+
       /* process gets */
 
       if (state == NAME_GET || state == DESC_GET)
@@ -275,5 +275,7 @@ main ()
     printf ("@bye\n");
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
+
+/* sorted-doc.c ends here */
