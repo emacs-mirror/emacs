@@ -503,15 +503,15 @@ In the browser, use the following keys:
 
 Makefile mode can be configured by modifying the following variables:
 
-makefile-browser-buffer-name:
+`makefile-browser-buffer-name':
     Name of the macro- and target browser buffer.
 
-makefile-target-colon:
+`makefile-target-colon':
     The string that gets appended to all target names
     inserted by `makefile-insert-target'.
     \":\" or \"::\" are quite common values.
 
-makefile-macro-assign:
+`makefile-macro-assign':
    The string that gets appended to all macro names
    inserted by `makefile-insert-macro'.
    The normal value should be \" = \", since this is what
@@ -519,35 +519,35 @@ makefile-macro-assign:
    allow a larger variety of different macro assignments, so you
    might prefer to use \" += \" or \" := \" .
 
-makefile-tab-after-target-colon:
+`makefile-tab-after-target-colon':
    If you want a TAB (instead of a space) to be appended after the
    target colon, then set this to a non-nil value.
 
-makefile-browser-leftmost-column:
+`makefile-browser-leftmost-column':
    Number of blanks to the left of the browser selection mark.
 
-makefile-browser-cursor-column:
+`makefile-browser-cursor-column':
    Column in which the cursor is positioned when it moves
    up or down in the browser.
 
-makefile-browser-selected-mark:
+`makefile-browser-selected-mark':
    String used to mark selected entries in the browser.
 
-makefile-browser-unselected-mark:
+`makefile-browser-unselected-mark':
    String used to mark unselected entries in the browser.
 
-makefile-browser-auto-advance-after-selection-p:
+`makefile-browser-auto-advance-after-selection-p':
    If this variable is set to a non-nil value the cursor
    will automagically advance to the next line after an item
    has been selected in the browser.
 
-makefile-pickup-everything-picks-up-filenames-p:
+`makefile-pickup-everything-picks-up-filenames-p':
    If this variable is set to a non-nil value then
    `makefile-pickup-everything' also picks up filenames as targets
    (i.e. it calls `makefile-pickup-filenames-as-targets'), otherwise
    filenames are omitted.
 
-makefile-cleanup-continuations-p:
+`makefile-cleanup-continuations-p':
    If this variable is set to a non-nil value then Makefile mode
    will assure that no line in the file ends with a backslash
    (the continuation character) followed by any whitespace.
@@ -556,11 +556,11 @@ makefile-cleanup-continuations-p:
    IMPORTANT: Please note that enabling this option causes Makefile mode
    to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\".
 
-makefile-browser-hook:
+`makefile-browser-hook':
    A function or list of functions to be called just before the
    browser is entered. This is executed in the makefile buffer.
 
-makefile-special-targets-list:
+`makefile-special-targets-list':
    List of special targets. You will be offered to complete
    on one of those in the minibuffer whenever you enter a `.'.
    at the beginning of a line in Makefile mode."
@@ -610,6 +610,9 @@ makefile-special-targets-list:
   (setq comment-end "")
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "#+[ \t]*")
+
+  ;; Make sure TAB really inserts \t.
+  (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
 
   ;; become the current major mode
   (setq major-mode 'makefile-mode)
@@ -1055,10 +1058,7 @@ definition and conveniently use this command."
       ;; Have a macro assign.  Fill just this line, and then backslash
       ;; resulting region.
       (save-restriction
-	(narrow-to-region (point) (save-excursion
-				    (end-of-line)
-				    (forward-char)
-				    (point)))
+	(narrow-to-region (point) (line-beginning-position 2))
 	(let ((fill-paragraph-function nil))
 	  (fill-paragraph nil))
 	(makefile-backslash-region (point-min) (point-max) nil)))))
@@ -1185,8 +1185,7 @@ This is most useful in the process of creating continued lines when copying
 large dependencies from the browser to the client buffer.
 \(point) advances accordingly in the client buffer."
   (interactive)
-  (save-excursion
-    (set-buffer makefile-browser-client)
+  (with-current-buffer makefile-browser-client
     (end-of-line)
     (insert "\\\n\t")))
 
@@ -1451,20 +1450,20 @@ This acts according to the value of `makefile-tab-after-target-colon'."
   "Determine if point is on a macro line in the browser."
   (save-excursion
     (beginning-of-line)
-    (re-search-forward "\\$[{(]" (makefile-end-of-line-point) t)))
+    (re-search-forward "\\$[{(]" (line-end-position) t)))
 
 (defun makefile-browser-this-line-target-name ()
   "Extract the target name from a line in the browser."
   (save-excursion
     (end-of-line)
     (skip-chars-backward "^ \t")
-    (buffer-substring (point) (1- (makefile-end-of-line-point)))))
+    (buffer-substring (point) (1- (line-end-position)))))
 
 (defun makefile-browser-this-line-macro-name ()
   "Extract the macro name from a line in the browser."
   (save-excursion
     (beginning-of-line)
-    (re-search-forward "\\$[{(]" (makefile-end-of-line-point) t)
+    (re-search-forward "\\$[{(]" (line-end-position) t)
     (let ((macro-start (point)))
       (skip-chars-forward "^})")
       (buffer-substring macro-start (point)))))
@@ -1488,21 +1487,11 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 (defun makefile-browser-toggle-state-for-line (n)
   (makefile-browser-set-state-for-line n (not (makefile-browser-get-state-for-line n))))
 
-(defun makefile-beginning-of-line-point ()
-  (save-excursion
-    (beginning-of-line)
-    (point)))
-
-(defun makefile-end-of-line-point ()
-  (save-excursion
-    (end-of-line)
-    (point)))
-
 (defun makefile-last-line-p ()
-  (= (makefile-end-of-line-point) (point-max)))
+  (= (line-end-position) (point-max)))
 
 (defun makefile-first-line-p ()
-  (= (makefile-beginning-of-line-point) (point-min)))
+  (= (line-beginning-position) (point-min)))
 
 
 
