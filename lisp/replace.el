@@ -257,7 +257,8 @@ It serves as a menu to find any of the occurrences in this buffer.
   (let ((first t)
 	(buffer (current-buffer))
 	(linenum 1)
-	(prevpos (point-min)))
+	(prevpos (point-min))
+	(final-context-start (make-marker)))
     (if (not occur-whole-buffer)
 	(save-excursion
 	  (beginning-of-line)
@@ -300,6 +301,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 		 (empty (make-string (length tag) ?\ ))
 		 tem)
 	    (save-excursion
+	      (setq tem (make-marker))
+	      (set-marker tem (point))
 	      (set-buffer standard-output)
 	      (setq occur-pos-list (cons tem occur-pos-list))
 	      (or first (zerop nlines)
@@ -312,8 +315,7 @@ It serves as a menu to find any of the occurrences in this buffer.
 		(insert empty ?:)
 		(forward-line 1)
 		(setq tem (1- tem)))
-	      (let ((final-context-start (make-marker))
-		    (this-linenum linenum))
+	      (let ((this-linenum linenum))
 		(set-marker final-context-start
 			    (+ (point) (- (match-end 0) (match-beginning 0))))
 		(while (< (point) final-context-start)
