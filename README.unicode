@@ -20,6 +20,10 @@ existing support and the extra stuff at
    (multibyte-string-p (concat [?£])) => nil
    (text-char-description ?£) => "M-#"
 
+	These examples are all fixed by the change of 2002-10-14, but
+	there still exist questionalble SINGLE_BYTE_CHAR_P in the
+	code.
+
  * Rationalize character syntax and its relationship to the Unicode
    database.  (Applies mainly to symbol an punctuation syntax.)
 
@@ -61,6 +65,8 @@ existing support and the extra stuff at
 	temacs is running can't be get rid of from the dumped emacs.
 
  * Translation tables for {en,de}code currently aren't supported.
+
+	This should be fixed by the changes of 2002-10-14.
 
  * Defining CCL coding systems currently doesn't work.
 

@@ -1,3 +1,28 @@
+2002-10-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (decode_coding): Fix args to translate_chars.  Pay
+	attention to Vstandard_translation_table_for_decode.
+	(encode_coding): Fix args to translate_chars.  Pay attention to
+	Vstandard_translation_table_for_encode.
+
+	* data.c (Faset): Check NEWELT by ASCII_CHAR_P, not by
+	SINGLE_BYTE_CHAR_P.
+
+	* editfns.c (general_insert_function): Check VAL by ASCII_CHAR_P,
+	not by SINGLE_BYTE_CHAR_P.
+
+	* fns.c (concat): Check CH by ASCII_CHAR_P, not by
+	SINGLE_BYTE_CHAR_P.
+
+	* insdel.c (copy_text): Check C by ASCII_CHAR_P, not by
+	SINGLE_BYTE_CHAR_P.
+
+	* keymap.c (Ftext_char_description): Check C by ASCII_CHAR_P, not
+	by SINGLE_BYTE_CHAR_P.
+
+	* search.c (Freplace_match): Check C by ASCII_CHAR_P, not by
+	SINGLE_BYTE_CHAR_P.
+
 2002-10-14  Dave Love  <fx@gnu.org>
 
 	* fns.c (Fstring_as_multibyte, Fstring_to_multibyte): Doc fix.
