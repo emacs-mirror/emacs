@@ -382,7 +382,8 @@ neighbouring windows in a frame.  @kbd{M-x windmove-right} selects the
 window immediately to the right of the currently-selected one and
 similarly for the `left', `up' and `down' counterparts.  @kbd{M-x
 windmove-default-keybindings} binds these commands to @kbd{S-right}
-etc.  (These bindings will only work under a windowing system.)
+etc.  (These bindings will only work if your terminal supports shifted
+arrow keys.)
 
 @cindex Follow mode
 @cindex windows, synchronizing
