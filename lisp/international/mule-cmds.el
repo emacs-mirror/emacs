@@ -1450,9 +1450,13 @@ specifies the character set for the major languages of Western Europe."
 	;; Make non-line-break space display as a plain space.
 	;; Most X fonts do the wrong thing for code 160.
 	(aset standard-display-table 160 [32])
-	;; Most Windows programs send out apostrophe's as \222.  Most X fonts
+	;; With luck, non-Latin-1 fonts are more recent and so don't
+	;; have this bug.
+	(aset standard-display-table 2208 [32]) ; Latin-1 NBSP
+	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
-	;; apostrophe.
+	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK
+	;; from the cp1252, aka Windows-1252 character set.  --fx]
 	(aset standard-display-table 146 [39]))))
 
 (defun set-language-environment-coding-systems (language-name
