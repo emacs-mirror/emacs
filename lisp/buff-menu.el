@@ -197,9 +197,15 @@ Letters do not insert themselves; instead, they are commands.
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
   ;; We can not use save-excursion here.  The buffer gets erased.
-  (let ((old-point (point)))
+  (let ((ocol (current-column))
+	(oline (progn (move-to-column 4)
+		      (get-text-property (point) 'buffer)))
+	(prop (point-min)))
     (list-buffers-noselect Buffer-menu-files-only)
-    (goto-char old-point)))
+    (while (setq prop (next-single-property-change prop 'buffer))
+      (when (eq (get-text-property prop 'buffer) oline)
+	(goto-char prop)
+	(move-to-column ocol)))))
 
 (defun Buffer-menu-toggle-files-only (arg)
   "Toggle whether the current buffer-menu displays only file buffers.
@@ -354,13 +360,16 @@ and then move up one line.  Prefix arg means move that many lines."
 	 (delete-char 1)
 	 (insert (if arg ?* ? ))))))
 
+(defun Buffer-menu-beginning ()
+  (goto-char (point-min))
+  (unless Buffer-menu-use-header-line
+    (forward-line)))
+
 (defun Buffer-menu-execute ()
   "Save and/or delete buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-save] or \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
   (interactive)
   (save-excursion
-    (goto-char (point-min))
-    (unless Buffer-menu-use-header-line
-      (forward-line 1))
+    (Buffer-menu-beginning)
     (while (re-search-forward "^..S" nil t)
       (let ((modp nil))
 	(save-excursion
@@ -371,9 +380,7 @@ and then move up one line.  Prefix arg means move that many lines."
 	  (delete-char -1)
 	  (insert (if modp ?* ? ))))))
   (save-excursion
-    (goto-char (point-min))
-    (unless Buffer-menu-use-header-line
-      (forward-line 1))
+    (Buffer-menu-beginning)
     (let ((buff-menu-buffer (current-buffer))
 	  (buffer-read-only nil))
       (while (re-search-forward "^D" nil t)
@@ -399,9 +406,7 @@ in the selected frame."
 	(menu (current-buffer))
 	(others ())
 	tem)
-    (goto-char (point-min))
-    (unless Buffer-menu-use-header-line
-      (forward-line 1))
+    (Buffer-menu-beginning)
     (while (re-search-forward "^>" nil t)
       (setq tem (Buffer-menu-buffer t))
       (let ((buffer-read-only nil))
@@ -581,7 +586,35 @@ For more information, see the function `buffer-menu'."
     (if (< column 2) (setq column 2))
     (if (> column 5) (setq column 5)))
   (setq Buffer-menu-sort-column column)
-  (Buffer-menu-revert))
+  (let (buffer-read-only l buf m1 m2)
+    (save-excursion
+      (Buffer-menu-beginning)
+      (while (not (eobp))
+	(when (buffer-live-p (setq buf (get-text-property (+ (point) 4) 'buffer)))
+	  (setq m1 (char-after)
+		m1 (if (memq m1 '(?> ?D)) m1)
+		m2 (char-after (+ (point) 2))
+		m2 (if (eq m2 ?S) m2))
+	  (if (or m1 m2)
+	      (push (list buf m1 m2) l)))
+	(forward-line)))
+    (Buffer-menu-revert)
+    (setq buffer-read-only)
+    (save-excursion
+      (Buffer-menu-beginning)
+      (while (not (eobp))
+	(when (setq buf (assq (get-text-property (+ (point) 4) 'buffer) l))
+	  (setq m1 (cadr buf)
+		m2 (cadr (cdr buf)))
+	  (when m1
+	    (delete-char 1)
+	    (insert m1)
+	    (backward-char 1))
+	  (when m2
+	    (forward-char 2)
+	    (delete-char 1)
+	    (insert m2)))
+	(forward-line)))))
 
 (defun Buffer-menu-make-sort-button (name column)
   (if (equal column Buffer-menu-sort-column) (setq column nil))
