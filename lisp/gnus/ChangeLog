@@ -1,3 +1,14 @@
+2004-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-tokenize-header): Fix 2004-09-06 change
+	which used point-min in the wrong place.
+
+2004-10-12  Simon Josefsson  <jas@extundo.com>
+
+	* net/tls.el (tls-certtool-program): New variable.
+	(tls-certificate-information): New function, based on
+	ssl-certificate-information.
+
 2004-10-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el: Mention that multibyte characters don't work as marks.

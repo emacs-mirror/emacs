@@ -1615,11 +1615,11 @@ is used by default."
   (if (not header)
       nil
     (let ((regexp (format "[%s]+" (or separator ",")))
-	  (beg (point-min))
 	  (first t)
-	  quoted elems paren)
+	  beg quoted elems paren)
       (with-temp-buffer
 	(mm-enable-multibyte)
+	(setq beg (point-min))
 	(insert header)
 	(goto-char (point-min))
 	(while (not (eobp))
