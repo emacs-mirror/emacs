@@ -801,7 +801,7 @@ string_char_to_byte (string, char_index)
      Lisp_Object string;
      int char_index;
 {
-  int i, i_byte;
+  int i_byte;
   int best_below, best_below_byte;
   int best_above, best_above_byte;
 
@@ -2802,7 +2802,7 @@ nl_langinfo(3), return nil.  */)
 		 code_convert_string (make_unibyte_string (str, strlen (str)),
 				      Vlocale_coding_system, Qnil, 0, 0, 1));
 	}
-      return val;
+      return v;
     }
 #endif
 #ifdef MON_1
