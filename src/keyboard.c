@@ -1231,6 +1231,35 @@ stop_polling ()
 #endif
 }
 
+/* Applying the control modifier to CHARACTER.  */
+int
+make_ctrl_char (c)
+     int c;
+{
+  /* If it's already a control character, don't mess with it.  */
+  if ((c & 0160) == 0)
+    ;
+  /* Making ? a control character should result in DEL.  */
+
+  else if ((c & 0177) == '?')
+    c |= 0177;
+
+  /* ASCII control chars are made from letters (both cases),
+     as well as the non-letters within 0100...0137.  */
+  else if ((c & 0137) >= 'A' && (c & 0137) <= 'Z')
+    c = (c & (037 | ~0177));
+  else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
+    c = (c & (037 | ~0177));
+
+  /* Anything else must get its high control bit set.  */
+  else
+    c = c | ctrl_modifier;
+
+  return c;
+}
+
+
+
 /* Input of single characters from keyboard */
 
 Lisp_Object print_help ();
@@ -1462,26 +1491,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if ((extra_keyboard_modifiers & CHAR_CTL)
 	  || ((extra_keyboard_modifiers & 0177) < ' '
 	      && (extra_keyboard_modifiers & 0177) != 0))
-	{
-	  /* If it's already a control character, don't mess with it.  */
-	  if ((c & 0177) == 0)
-	    ;
-
-	  /* Making ? a control character should result in DEL.  */
-	  else if ((c & 0177) == '?')
-	    c |= 0177;
-
-	  /* ASCII control chars are made from letters (both cases),
-	     as well as the non-letters within 0100...0137.  */
-	  else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
-	    c = (c & (037 | ~0177));
-	  else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
-	    c = (c & (037 | ~0177));
-
-	  /* Anything else must get its high control bit set.  */
-	  else
-	    c = c | ctrl_modifier;
-	}
+	XSETINT (c, make_ctrl_char (XINT (c)));
 
       /* Transfer any other modifier bits directly from
 	 extra_keyboard_modifiers to c.  Ignore the actual character code
@@ -1691,6 +1701,9 @@ kbd_buffer_store_event (event)
   if (event->kind == ascii_keystroke)
     {
       register int c = XFASTINT (event->code) & 0377;
+
+      if (event->modifiers & ctrl_modifier)
+	c = make_ctrl_char (c);
 
       if (c == quit_char)
 	{
