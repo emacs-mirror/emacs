@@ -172,7 +172,7 @@ then
 
   echo "Updating finder-inf.el"
 
-  (cd lisp; $EMACS -batch -l finder -f finder-compile-keywords-make-dist)
+  (cd lisp; make finder-inf.el))
 
   echo "Recompiling Lisp files"
 
@@ -180,7 +180,11 @@ then
 
   echo "Updating autoloads"
 
-  $EMACS -batch -f batch-update-autoloads lisp
+  (cd lisp; make autoloads)
+
+  echo "Updating cus-load.el"
+
+  (cd lisp; make cus-load.el)
 fi
 
 echo "Making lisp/MANIFEST"
