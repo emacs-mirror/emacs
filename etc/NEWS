@@ -1022,7 +1022,8 @@ as the place that holds the list to be changed.
 
 ** New dolist and dotimes macros.
 
-The dolist and dotimes macros of Common Lisp are now available.
+Simple versions of the dolist and dotimes macros of Common Lisp
+are now defined in Emacs Lisp.
 
 (dolist (VAR LIST [RESULT]) BODY...)
       Execute body once for each element of LIST,
