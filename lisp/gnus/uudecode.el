@@ -27,10 +27,17 @@
 ;;     Lots of codes are stolen from mm-decode.el, gnus-uu.el and
 ;;     base64.el
 
+;; This looks as though it could be made rather more efficient.
+;; Encoding could use a lookup table and decoding should presumably
+;; use a vector or list buffer for partial results rather than
+;; with-current-buffer.  -- fx
+
 ;;; Code:
 
-(if (not (fboundp 'char-int))
-    (defalias 'char-int 'identity))
+(defalias 'uudecode-char-int
+  (if (fboundp 'char-int)
+      'char-int
+    'identity))
 
 (defcustom uudecode-decoder-program "uudecode"
   "*Non-nil value should be a string that names a uu decoder.
@@ -112,7 +119,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
       (and work-buffer (kill-buffer work-buffer))
       (ignore-errors (or file-name (delete-file tempfile))))))
 
-(if (string-match "XEmacs" emacs-version)
+(if (featurep 'xemacs)
     (defalias 'uudecode-insert-char 'insert-char)
   (defun uudecode-insert-char (char &optional count ignored buffer)
     (if (or (null buffer) (eq buffer (current-buffer)))
@@ -145,7 +152,6 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 						    nil nil nil
 						    (match-string 1))))))
 	    (setq work-buffer (generate-new-buffer " *uudecode-work*"))
-	    (buffer-disable-undo work-buffer)
 	    (forward-line 1)
 	    (skip-chars-forward non-data-chars end)
 	    (while (not done)
@@ -155,14 +161,16 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	       ((> (skip-chars-forward uudecode-alphabet end) 0)
 		(setq lim (point))
 		(setq remain
-		      (logand (- (char-int (char-after inputpos)) 32) 63))
+		      (logand (- (uudecode-char-int (char-after inputpos)) 32)
+			      63))
 		(setq inputpos (1+ inputpos))
 		(if (= remain 0) (setq done t))
 		(while (and (< inputpos lim) (> remain 0))
 		  (setq bits (+ bits
 				(logand
 				 (-
-				  (char-int (char-after inputpos)) 32) 63)))
+				  (uudecode-char-int (char-after inputpos)) 32)
+				 63)))
 		  (if (/= counter 0) (setq remain (1- remain)))
 		  (setq counter (1+ counter)
 			inputpos (1+ inputpos))
