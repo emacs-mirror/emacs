@@ -5,8 +5,8 @@
 ;; Author:        1994-1997 Barry A. Warsaw
 ;; Maintainer:    tools-help@python.org
 ;; Created:       26-Feb-1994
-;; Version:       2.39
-;; Last Modified: 1997/02/28 18:15:35
+;; Version:       2.40
+;; Last Modified: 1997/04/21 15:48:26
 ;; Keywords:      debugging lisp tools
 
 ;; This file is part of GNU Emacs.
@@ -76,16 +76,6 @@
 ;; elp-restore-function.  The other instrument, restore, and reset
 ;; functions are provided for symmetry.
 
-;; Note that there are plenty of factors that could make the times
-;; reported unreliable, including the accuracy and granularity of your
-;; system clock, and the overhead spent in lisp calculating and
-;; recording the intervals.  The latter I figure is pretty constant
-;; so, while the times may not be entirely accurate, I think they'll
-;; give you a good feel for the relative amount of work spent in the
-;; various lisp routines you are profiling.  Note further that times
-;; are calculated using wall-clock time, so other system load will
-;; affect accuracy too.
-
 ;; Here is a list of variable you can use to customize elp:
 ;;   elp-function-list
 ;;   elp-reset-after-results
@@ -119,13 +109,13 @@
 
 ;;; Background:
 
-;; This program is based on the only two existing Emacs Lisp profilers
-;; that I'm aware of, Boaz Ben-Zvi's profile.el, and Root Boy Jim's
-;; profiler.el.  Both were written for Emacs 18 and both were pretty
-;; good first shots at profiling, but I found that they didn't provide
-;; the functionality or interface that I wanted.  So I wrote this.
-;; I've tested elp in Emacs 19 and in XEmacs.  There's no point in
-;; even trying to make this work with Emacs 18.
+;; This program was inspired by the only two existing Emacs Lisp
+;; profilers that I'm aware of, Boaz Ben-Zvi's profile.el, and Root
+;; Boy Jim's profiler.el. Both were written for Emacs 18 and both were
+;; pretty good first shots at profiling, but I found that they didn't
+;; provide the functionality or interface that I wanted, so I wrote
+;; this.  I've tested elp in XEmacs 19 and Emacs 19.  There's no point
+;; in even trying to make this work with Emacs 18.
 
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
 ;; current-time to return interval times.  This obviates the need for
@@ -139,7 +129,7 @@
 ;;; Code:
 
 
-;; start user configuration variables
+;; start of user configuration variables
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 (defgroup elp nil
@@ -181,7 +171,7 @@ If a number, no function that has been called fewer than that number
 of times will be displayed in the output buffer.  If nil, all
 functions will be displayed."
   :type '(choice integer
-		 (const :tag "All" nil))
+		 (const :tag "Show All" nil))
   :group 'elp)
 
 (defcustom elp-use-standard-output nil
@@ -201,7 +191,7 @@ In other words, a new unique buffer is create every time you run
 ;; end of user configuration variables
 
 
-(defconst elp-version "2.39"
+(defconst elp-version "2.40"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@python.org"
@@ -223,6 +213,7 @@ This variable is set by the master function.")
 (defvar elp-master nil
   "Master function symbol.")
 
+
 ;;;###autoload
 (defun elp-instrument-function (funsym)
   "Instrument FUNSYM for profiling.
@@ -343,13 +334,16 @@ For example, to instrument all ELP functions, do the following:
     \\[elp-instrument-package] RET elp- RET"
   (interactive "sPrefix of package to instrument: ")
   (elp-instrument-list
-   (mapcar 'intern
-	   (all-completions prefix obarray
-			    (function
-			     (lambda (sym)
-			       (and (fboundp sym)
-				    (not (memq (car-safe (symbol-function sym))
-					       '(autoload macro))))))))))
+   (mapcar
+    'intern
+    (all-completions
+     prefix obarray
+     (function
+      (lambda (sym)
+	(and (fboundp sym)
+	     (not (memq (car-safe (symbol-function sym)) '(autoload macro))))
+	))
+     ))))
 
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
@@ -609,7 +603,6 @@ displayed."
     '(elp-report-limit
       elp-reset-after-results
       elp-sort-by-function))))
-
 
 (provide 'elp)
 
