@@ -1,3 +1,10 @@
+2003-09-22  John Paul Wallington  <jpw@gnu.org>
+
+	* progmodes/ld-script.el: Add Commentary section,
+	minor cleanup of file header.
+	(ld-script-font-lock-keywords): Doc fix.
+	(toplevel): Provide `ld-script' feature.
+
 2003-09-21  Kim F. Storm  <storm@cua.dk>
 
 	* scroll-bar.el (set-scroll-bar-mode): Initialize to
