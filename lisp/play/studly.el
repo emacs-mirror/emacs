@@ -18,7 +18,7 @@
 
 ;;;###autoload
 (defun studlify-region (begin end)
-  "Studlify-case the region"
+  "Studlify-case the region."
   (interactive "*r")
   (save-excursion
     (goto-char begin)
@@ -52,7 +52,7 @@
 
 ;;;###autoload
 (defun studlify-word (count)
-  "Studlify-case the current word, or COUNT words if given an argument"
+  "Studlify-case the current word, or COUNT words if given an argument."
   (interactive "*p")
   (let ((begin (point)) end rb re)
     (forward-word count)
@@ -60,8 +60,9 @@
     (setq rb (min begin end) re (max begin end))
     (studlify-region rb re)))
 
+;;;###autoload
 (defun studlify-buffer ()
-  "Studlify-case the current buffer"
+  "Studlify-case the current buffer."
   (interactive "*")
   (studlify-region (point-min) (point-max)))
 
