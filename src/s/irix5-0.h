@@ -123,3 +123,7 @@ char *_getpty();
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH
 #endif
+
+/* Prevent the variable ospeed from being defined by -lcurses
+   because it defines it with too few bytes.  */
+#define ospeed ospeed_
