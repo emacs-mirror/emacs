@@ -69,7 +69,7 @@ commands for copying between Emacs and other X client programs.
   If you select a region with any of these mouse commands, and then
 immediately afterward type the @key{DELETE} function key, it deletes the
 region that you selected.  The @key{BACKSPACE} function key and the
-ASCII character @key{DEL} do not do this; if you type any other key
+@acronym{ASCII} character @key{DEL} do not do this; if you type any other key
 in between the mouse command and @key{DELETE}, it does not do this.
 
 @findex mouse-set-region

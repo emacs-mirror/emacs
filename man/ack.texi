@@ -26,7 +26,7 @@ for news articles and @file{cpp.el} which hides or highlights parts of
 C programs according to preprocessor conditionals.
 
 @item
-Tomas Abrahamsson wrote @file{artist.el}, a package for producing ASCII
+Tomas Abrahamsson wrote @file{artist.el}, a package for producing @acronym{ASCII}
 art with a mouse or with keyboard keys.
 
 @item
@@ -359,7 +359,7 @@ Odd Gripenstam wrote @file{dcl-mode.el} for editing DCL command files.
 
 @item
 Michael Gschwind wrote @file{iso-cvt.el}, a package to convert between
-the ISO 8859-1 character set and the notations for non-ASCII
+the ISO 8859-1 character set and the notations for non-@acronym{ASCII}
 characters used by @TeX{} and net tradition, and @file{latin-2.el}, code
 which sets up case-conversion and syntax tables for the ISO Latin-2
 character set.
@@ -374,10 +374,10 @@ Doug Gwyn wrote the portable @code{alloca} implementation.
 @item
 Ken'ichi Handa implemented most of the support for international
 character sets, and wrote @file{isearch-x.el}, a facility for searching
-non-ASCII text.  Together with Naoto Takahashi, he wrote
-@file{quail.el}, a simple input facility for typing non-ASCII text from
-an ASCII keyboard.  Ken'ichi also wrote @file{ps-bdf.el}, a BDF font
-support for printing non-ASCII text on a PostScript printer.
+non-@acronym{ASCII} text.  Together with Naoto Takahashi, he wrote
+@file{quail.el}, a simple input facility for typing non-@acronym{ASCII} text from
+an @acronym{ASCII} keyboard.  Ken'ichi also wrote @file{ps-bdf.el}, a BDF font
+support for printing non-@acronym{ASCII} text on a PostScript printer.
 
 @item
 Chris Hanson wrote @file{netuname.el}, a package to use HP-UX's Remote
@@ -396,7 +396,7 @@ command loop and appropriate help facilities,
 @item
 @file{emacsbug.el}, a package for reporting Emacs bugs,
 @item
-@file{picture.el}, a mode for editing ASCII pictures, and
+@file{picture.el}, a mode for editing @acronym{ASCII} pictures, and
 @item
 @file{view.el}, a package for perusing files and buffers without editing
 them.

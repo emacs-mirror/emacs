@@ -888,20 +888,20 @@ lines are displayed in the @code{mode-line} face.
 @section How Text Is Displayed
 @cindex characters (in text)
 
-  ASCII printing characters (octal codes 040 through 0176) in Emacs
+  @acronym{ASCII} printing characters (octal codes 040 through 0176) in Emacs
 buffers are displayed with their graphics, as are non-ASCII multibyte
 printing characters (octal codes above 0400).
 
-  Some ASCII control characters are displayed in special ways.  The
+  Some @acronym{ASCII} control characters are displayed in special ways.  The
 newline character (octal code 012) is displayed by starting a new line.
 The tab character (octal code 011) is displayed by moving to the next
 tab stop column (normally every 8 columns).
 
-  Other ASCII control characters are normally displayed as a caret
+  Other @acronym{ASCII} control characters are normally displayed as a caret
 (@samp{^}) followed by the non-control version of the character; thus,
 control-A is displayed as @samp{^A}.
 
-  Non-ASCII characters 0200 through 0237 (octal) are displayed with
+  Non-@acronym{ASCII} characters 0200 through 0237 (octal) are displayed with
 octal escape sequences; thus, character code 0230 (octal) is displayed
 as @samp{\230}.  The display of character codes 0240 through 0377
 (octal) may be either as escape sequences or as graphics.  They do not

@@ -683,7 +683,7 @@ terminal-dependent bug without access to a terminal of the type that
 stimulates the bug.@refill
 
 @item
-If non-ASCII text or internationalization is relevant, the locale that
+If non-@acronym{ASCII} text or internationalization is relevant, the locale that
 was current when you started Emacs.  On GNU/Linux and Unix systems, or
 if you use a Posix-style shell such as Bash, you can use this shell
 command to view the relevant values:

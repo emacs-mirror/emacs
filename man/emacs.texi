@@ -175,7 +175,7 @@ Major Structures of Emacs
 * Buffers::	        Multiple buffers; editing several files at once.
 * Windows::	        Viewing two pieces of text at once.
 * Frames::	        Running the same Emacs session in multiple X windows.
-* International::       Using non-ASCII character sets (the MULE features).
+* International::       Using non-@acronym{ASCII} character sets (the MULE features).
 
 Advanced Features
 * Major Modes::	        Text mode vs. Lisp mode vs. C mode ...
@@ -712,7 +712,7 @@ The Diary
 * Adding to Diary::	   Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
-@sc{Gnus}
+Gnus
 
 * Buffers of Gnus::	The group, summary, and article buffers.
 * Gnus Startup::	What you should know about starting Gnus.

@@ -15,33 +15,33 @@ how Emacs interprets your keyboard and mouse input.
 @cindex input with the keyboard
 @cindex keyboard input
 @cindex character set (keyboard)
-@cindex ASCII
+@cindex @acronym{ASCII}
 @cindex C-
 @cindex Control
 @cindex control characters
 
-  GNU Emacs uses an extension of the ASCII character set for keyboard
+  GNU Emacs uses an extension of the @acronym{ASCII} character set for keyboard
 input; it also accepts non-character input events including function
 keys and mouse button actions.
 
-  ASCII consists of 128 character codes.  Some of these codes are
+  @acronym{ASCII} consists of 128 character codes.  Some of these codes are
 assigned graphic symbols such as @samp{a} and @samp{=}; the rest are
 control characters, such as @kbd{Control-a} (usually written @kbd{C-a}
 for short).  @kbd{C-a} gets its name from the fact that you type it by
 holding down the @key{CTRL} key while pressing @kbd{a}.
 
-  Some ASCII control characters have special names, and most terminals
+  Some @acronym{ASCII} control characters have special names, and most terminals
 have special keys you can type them with: for example, @key{RET},
 @key{TAB}, @key{DEL} and @key{ESC}.  The space character is usually
 referred to below as @key{SPC}, even though strictly speaking it is a
 graphic character whose graphic happens to be blank.  Some keyboards
 have a key labeled ``linefeed'' which is an alias for @kbd{C-j}.
 
-  Emacs extends the ASCII character set with thousands more printing
+  Emacs extends the @acronym{ASCII} character set with thousands more printing
 characters (@pxref{International}), additional control characters, and a
 few more modifiers that can be combined with any character.
 
-  On ASCII terminals, there are only 32 possible control characters.
+  On @acronym{ASCII} terminals, there are only 32 possible control characters.
 These are the control variants of letters and @samp{@@[]\^_}.  In
 addition, the shift key is meaningless with control characters:
 @kbd{C-a} and @kbd{C-A} are the same character, and Emacs cannot
@@ -117,8 +117,8 @@ Reference Manual}, for more information.  If you are not doing Lisp
 programming, but simply want to redefine the meaning of some characters
 or non-character events, see @ref{Customization}.
 
-  ASCII terminals cannot really send anything to the computer except
-ASCII characters.  These terminals use a sequence of characters to
+  @acronym{ASCII} terminals cannot really send anything to the computer except
+@acronym{ASCII} characters.  These terminals use a sequence of characters to
 represent each function key.  But that is invisible to the Emacs user,
 because the keyboard input routines recognize these special sequences
 and convert them to function key events before any other part of Emacs
@@ -243,27 +243,27 @@ variables will make sense.  @xref{Variables}.
 @cindex characters (in text)
 
   Text in Emacs buffers is a sequence of 8-bit bytes.  Each byte can
-hold a single ASCII character.  Both ASCII control characters (octal
-codes 000 through 037, and 0177) and ASCII printing characters (codes
-040 through 0176) are allowed; however, non-ASCII control characters
+hold a single @acronym{ASCII} character.  Both @acronym{ASCII} control characters (octal
+codes 000 through 037, and 0177) and @acronym{ASCII} printing characters (codes
+040 through 0176) are allowed; however, non-@acronym{ASCII} control characters
 cannot appear in a buffer.  The other modifier flags used in keyboard
 input, such as Meta, are not allowed in buffers either.
 
-  Some ASCII control characters serve special purposes in text, and have
+  Some @acronym{ASCII} control characters serve special purposes in text, and have
 special names.  For example, the newline character (octal code 012) is
 used in the buffer to end a line, and the tab character (octal code 011)
 is used for indenting to the next tab stop column (normally every 8
 columns).  @xref{Text Display}.
 
-  Non-ASCII printing characters can also appear in buffers.  When
-multibyte characters are enabled, you can use any of the non-ASCII
+  Non-@acronym{ASCII} printing characters can also appear in buffers.  When
+multibyte characters are enabled, you can use any of the non-@acronym{ASCII}
 printing characters that Emacs supports.  They have character codes
 starting at 256, octal 0400, and each one is represented as a sequence
 of two or more bytes.  @xref{International}.  Single-byte characters
 with codes 128 through 255 can also appear in multibyte buffers.
 
   If you disable multibyte characters, then you can use only one
-alphabet of non-ASCII characters, but they all fit in one byte.  They
+alphabet of non-@acronym{ASCII} characters, but they all fit in one byte.  They
 use codes 0200 through 0377.  @xref{Single-Byte Character Support}.
 
 @ignore

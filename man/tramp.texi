@@ -208,7 +208,7 @@ control, and @command{dired} are transparently enabled.
 
 Your access to the remote machine can be with the @command{rsh},
 @command{rlogin}, @command{telnet} programs or with any similar
-connection method.  This connection must pass ASCII successfully to be
+connection method.  This connection must pass @acronym{ASCII} successfully to be
 usable but need not be 8-bit clean.
 
 The package provides support for @command{ssh} connections out of the

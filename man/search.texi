@@ -123,9 +123,9 @@ following character to be treated the way any ``ordinary'' character is
 treated in the same context.  You can also specify a character by its
 octal code: enter @kbd{C-q} followed by a sequence of octal digits.
 
-@cindex searching for non-ASCII characters
+@cindex searching for non-@acronym{ASCII} characters
 @cindex input method, during incremental search
-  To search for non-ASCII characters, you must use an input method
+  To search for non-@acronym{ASCII} characters, you must use an input method
 (@pxref{Input Methods}).  If an input method is enabled in the
 current buffer when you start the search, you can use it while you
 type the search string also.  Emacs indicates that by including the
@@ -534,9 +534,9 @@ matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character set, by writing the
 starting and ending characters with a @samp{-} between them.  Thus,
-@samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
+@samp{[a-z]} matches any lower-case @acronym{ASCII} letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
-which matches any lower-case ASCII letter or @samp{$}, @samp{%} or
+which matches any lower-case @acronym{ASCII} letter or @samp{$}, @samp{%} or
 period.
 
 Note that the usual regexp special characters are not special inside a
@@ -560,7 +560,7 @@ is somewhat ill-defined, and it may change in future Emacs versions.
 @item @kbd{[^ @dots{} ]}
 @samp{[^} begins a @dfn{complemented character set}, which matches any
 character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
-all characters @emph{except} ASCII letters and digits.
+all characters @emph{except} @acronym{ASCII} letters and digits.
 
 @samp{^} is not special in a character set unless it is the first
 character.  The character following the @samp{^} is treated as if it

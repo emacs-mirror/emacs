@@ -121,7 +121,7 @@ explained in more detail in the GNU Emacs Manual.
 @cindex end (of buffer)
 @cindex region
 
-Conceptually, a @dfn{buffer} is just a string of ASCII characters and two
+Conceptually, a @dfn{buffer} is just a string of @acronym{ASCII} characters and two
 special characters @key{PNT} (@dfn{point}) and @key{MRK} (@dfn{mark}) such
 that the character @key{PNT} occurs exactly once and @key{MRK} occurs at
 most once.  The @dfn{text} of a buffer is obtained by deleting the
@@ -1003,7 +1003,7 @@ The following commands are used to mark positions in the buffer.
 @item m @var{ch}
 @kindex 155 @kbd{m} (@code{vip-mark-point})
 Store current point in the register @var{ch}.  @var{ch} must be a
-lower-case ASCII letter.
+lower-case @acronym{ASCII} letter.
 @item m <
 Set mark at the beginning of current buffer.
 @item m >

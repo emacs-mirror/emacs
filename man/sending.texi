@@ -427,7 +427,7 @@ twice.
 
 @c This is indexed in mule.texi, node "Recognize Coding".
 @c @vindex sendmail-coding-system
-  When you send a message that contains non-ASCII characters, they need
+  When you send a message that contains non-@acronym{ASCII} characters, they need
 to be encoded with a coding system (@pxref{Coding Systems}).  Usually
 the coding system is specified automatically by your chosen language
 environment (@pxref{Language Environments}).  You can explicitly specify

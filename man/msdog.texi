@@ -141,7 +141,7 @@ the clipboard, and displays in the echo area a message to that effect.
 
 @vindex dos-display-scancodes
   The variable @code{dos-display-scancodes}, when non-@code{nil},
-directs Emacs to display the ASCII value and the keyboard scan code of
+directs Emacs to display the @acronym{ASCII} value and the keyboard scan code of
 each keystroke; this feature serves as a complement to the
 @code{view-lossage} command, for debugging.
 
@@ -466,7 +466,7 @@ Windows to capture a specific printer port such as @code{"LPT2"}, and
 redirect it to a networked printer via the @w{@code{Control
 Panel->Printers}} applet instead of @samp{net use}.
 
-  Some printers expect DOS codepage encoding of non-ASCII text, even
+  Some printers expect DOS codepage encoding of non-@acronym{ASCII} text, even
 though they are connected to a Windows machine which uses a different
 encoding for the same locale.  For example, in the Latin-1 locale, DOS
 uses codepage 850 whereas Windows uses codepage 1252.  @xref{MS-DOS and
@@ -594,7 +594,7 @@ Create a coding system for a certain DOS codepage.
   MS-DOS is designed to support one character set of 256 characters at
 any given time, but gives you a variety of character sets to choose
 from.  The alternative character sets are known as @dfn{DOS codepages}.
-Each codepage includes all 128 ASCII characters, but the other 128
+Each codepage includes all 128 @acronym{ASCII} characters, but the other 128
 characters (codes 128 through 255) vary from one codepage to another.
 Each DOS codepage is identified by a 3-digit number, such as 850, 862,
 etc.
@@ -614,7 +614,7 @@ executables on other systems such as MS-Windows.
 @cindex unibyte operation @r{(MS-DOS)}
   If you invoke Emacs on MS-DOS with the @samp{--unibyte} option
 (@pxref{Initial Options}), Emacs does not perform any conversion of
-non-ASCII characters.  Instead, it reads and writes any non-ASCII
+non-@acronym{ASCII} characters.  Instead, it reads and writes any non-@acronym{ASCII}
 characters verbatim, and sends their 8-bit codes to the display
 verbatim.  Thus, unibyte Emacs on MS-DOS supports the current codepage,
 whatever it may be, but cannot even represent any other characters.
@@ -668,7 +668,7 @@ language environment for that script (@pxref{Language Environments}).
 
   If a buffer contains a character belonging to some other ISO 8859
 character set, not the one that the chosen DOS codepage supports, Emacs
-displays it using a sequence of ASCII characters.  For example, if the
+displays it using a sequence of @acronym{ASCII} characters.  For example, if the
 current codepage doesn't have a glyph for the letter @samp{@`o} (small
 @samp{o} with a grave accent), it is displayed as @samp{@{`o@}}, where
 the braces serve as a visual indication that this is a single character.

@@ -139,7 +139,7 @@ literal @samp{~} should also be quoted with @samp{/:}.
 @code{substitute-in-file-name}.  The substitution is performed only on
 file names read as such using the minibuffer.
 
-  You can include non-ASCII characters in file names if you set the
+  You can include non-@acronym{ASCII} characters in file names if you set the
 variable @code{file-name-coding-system} to a non-@code{nil} value.
 @xref{Specify Coding}.
 
@@ -316,7 +316,7 @@ seek.  This feature is available only when you are using a window
 system.  @xref{Frames}.
 
 @findex find-file-literally
-  If you wish to edit a file as a sequence of ASCII characters with no special
+  If you wish to edit a file as a sequence of @acronym{ASCII} characters with no special
 encoding or conversion, use the @kbd{M-x find-file-literally} command.
 It visits a file, like @kbd{C-x C-f}, but does not do format conversion
 (@pxref{Formatted Text}), character code conversion (@pxref{Coding

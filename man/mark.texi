@@ -113,7 +113,7 @@ the new position with point back at its original position.
 @ref{Mark Ring}.
 
 @kindex C-@@
-  There is no such character as @kbd{C-@key{SPC}} in ASCII; when you
+  There is no such character as @kbd{C-@key{SPC}} in @acronym{ASCII}; when you
 type @key{SPC} while holding down @key{CTRL}, what you get on most
 ordinary terminals is the character @kbd{C-@@}.  This key is actually
 bound to @code{set-mark-command}.  But unless you are unlucky enough to
