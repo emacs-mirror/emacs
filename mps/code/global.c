@@ -567,6 +567,8 @@ Bool ArenaStep(Globals globals, double interval)
   double size;
   Bool b;
 
+  UNUSED(interval);
+
   AVERT(Globals, globals);
 
   b = TracePoll(globals);
