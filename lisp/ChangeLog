@@ -1,3 +1,8 @@
+2003-07-18  John Paul Wallington  <jpw@gnu.org>
+
+	* simple.el (current-word): Don't include punctuation char when
+	`really-word' arg is non-nil.
+
 2003-07-17  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/awk-mode.el: Obsoleted by the AWK support in CC Mode -
