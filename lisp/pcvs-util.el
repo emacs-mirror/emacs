@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.12 2001/04/13 14:56:10 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.13 2001/07/16 07:46:48 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -348,7 +348,7 @@ If it is \\[universal-argument] \\[universal-argument], behave just
 				 &optional qtypedesc hist-sym)
   (let ((cps (cvs-prefix-sym sym)))
     `(progn
-       (defvar ,sym nil ,(cons (or docstring "") "
+       (defvar ,sym nil ,(concat (or docstring "") "
 See `cvs-prefix-set' for further description of the behavior."))
        (defconst ,cps
 	 (let ((defaults ,defaults))
