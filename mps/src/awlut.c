@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.12) $
+ * $HopeName: MMsrc!awlut.c(trunk.13) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -13,19 +13,19 @@
  */
 
 
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#include "mps.h"
 #include "mpscawl.h"
 #include "mpsclo.h"
 #include "mpsavm.h"
 #include "fmtdy.h"
 #include "testlib.h"
+#include "mps.h"
 #include "mpstd.h"
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
 #endif
+#include <string.h>
+#include <assert.h>
+#include <stdio.h>
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
@@ -44,6 +44,8 @@
 static mps_word_t bogus_class;
 
 #define UNINIT 0x041412ED
+
+#define DYLAN_ALIGN 4 /* depends on value defined in fmtdy.c */
 
 
 static mps_word_t wrapper_wrapper[] = {
@@ -75,13 +77,13 @@ static mps_word_t table_wrapper[] = {
   1                             /* VL */
 };
 
+
 static void initialise_wrapper(mps_word_t *wrapper)
 {
   wrapper[0] = (mps_word_t)&wrapper_wrapper;
   wrapper[1] = (mps_word_t)&bogus_class;
 }
 
-#define DYLAN_ALIGN 4 /* depends on value defined in fmtdy.c */
 
 /* create a dylan string object (byte vector) whose contents
  * are the string s (including the terminating NUL)
@@ -114,7 +116,9 @@ static mps_word_t *alloc_string(char *s, mps_ap_t ap)
   return object;
 }
 
-/* create a table with n variable slots
+
+/* alloc_table -- create a table with n variable slots
+ *
  * .assume.dylan-obj
  */
 static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
@@ -168,17 +172,23 @@ static void table_link(mps_word_t *t1, mps_word_t *t2)
   t2[1] = (mps_word_t)t1;
 }
 
-static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
+
+static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
+                 mps_ap_t bogusap)
 {
   mps_word_t *weaktable;
   mps_word_t *exacttable;
   mps_word_t *preserve[TABLE_SLOTS];    /* preserves objects in the weak */
                                         /* table by referring to them */
   unsigned long i, j;
+  void *p;
 
   exacttable = alloc_table(TABLE_SLOTS, exactap);
   weaktable = alloc_table(TABLE_SLOTS, weakap);
   table_link(exacttable, weaktable);
+
+  /* Leave bogusap between reserve and commit for the duration */
+  die(mps_reserve(&p, bogusap, 64), "Reserve bogus");
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     mps_word_t *string;
@@ -220,6 +230,7 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
     }
   }
 
+  (void)mps_commit(bogusap, p, 64);
   puts("A okay\n");
 }
 
@@ -241,7 +252,7 @@ static void *setup(void *v, size_t s)
   mps_pool_t tablepool;
   mps_fmt_t dylanfmt;
   mps_fmt_t dylanweakfmt;
-  mps_ap_t leafap, exactap, weakap;
+  mps_ap_t leafap, exactap, weakap, bogusap;
   mps_root_t stack;
   mps_thr_t thr;
 
@@ -267,9 +278,12 @@ static void *setup(void *v, size_t s)
       "Exact AP Create\n");
   die(mps_ap_create(&weakap, tablepool, MPS_RANK_WEAK),
       "Weak AP Create\n");
+  die(mps_ap_create(&bogusap, tablepool, MPS_RANK_EXACT),
+      "Bogus AP Create\n");
     
-  test(leafap, exactap, weakap);
+  test(leafap, exactap, weakap, bogusap);
 
+  mps_ap_destroy(bogusap);
   mps_ap_destroy(weakap);
   mps_ap_destroy(exactap);
   mps_ap_destroy(leafap);
