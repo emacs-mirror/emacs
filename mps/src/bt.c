@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(MMdevel_drj_bt.1) $
+ * $HopeName: MMsrc!bt.c(trunk.2) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * DESIGN
@@ -18,7 +18,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(MMdevel_drj_bt.1) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.2) $");
 
 
 Size BTSize(unsigned long n)
@@ -97,7 +97,7 @@ Bool BTFindResRange(Index *iReturn, unsigned long *lReturn,
         return TRUE;
       }
       i = j;
-      continue;		/* necessary, consider j == s */
+      continue;         /* necessary, consider j == s */
     }
     /* wasn't long enough */
     ++i;

@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.11) $
+ * $HopeName: MMsrc!arenavm.c(trunk.12) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.11) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.12) $");
 
 
 /* Space Arena Projection
@@ -185,6 +185,15 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
   return ResOK;
 }
 
+Res ArenaExtend(Space space, Addr base, Size size)
+{
+  return ResUNIMPL;
+}
+
+Res ArenaRetract(Space space, Addr base, Size size)
+{
+  return ResUNIMPL;
+}
 
 /* ArenaDestroy -- finish the arena and destroy the space structure */
 
@@ -257,9 +266,48 @@ Bool SegCheck(Seg seg)
 }
 
 
+/* preferences... */
+
+Bool SegPrefCheck(SegPref pref)
+{
+  CHECKS(SegPref, pref);
+  CHECKL(BoolCheck(pref->high));
+  /* nothing else to check */
+  return TRUE;
+}
+
+static SegPrefStruct segPrefDefault = {SegPrefSig, FALSE};
+
+SegPref SegPrefDefault(void)
+{
+  return &segPrefDefault;
+}
+
+Res SegPrefExpress (SegPref sp, SegPrefKind kind, void *p)
+{
+  AVERT(SegPref,sp);
+  AVER(sp != &segPrefDefault);
+
+  switch(kind) {
+  case SegPrefHigh:
+    AVER(p == NULL);
+    sp->high = TRUE;
+    return ResOK;
+
+  case SegPrefLow:
+    AVER(p == NULL);
+    sp->high = FALSE;
+    return ResOK;
+
+  default:
+    /* see design.mps.pref.default */
+    return ResOK;
+  }
+}
+
 /* SegAlloc -- allocate a segment from the arena */
 
-Res SegAlloc(Seg *segReturn, Space space, Size size, Pool pool)
+Res SegAlloc(Seg *segReturn, SegPref pref, Space space, Size size, Pool pool)
 {
   Arena arena = SpaceArena(space);
   PI pi, count, pages, base = 0;        /* whinge stopper */
@@ -268,6 +316,7 @@ Res SegAlloc(Seg *segReturn, Space space, Size size, Pool pool)
   Res res;
 
   AVER(segReturn != NULL);
+  AVERT(SegPref, pref);
   AVERT(Arena, SpaceArena(space));
   AVER(size > 0);
   AVERT(Pool, pool);

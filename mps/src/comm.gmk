@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.6) $
+# $HopeName: MMsrc!comm.gmk(trunk.7) $
 # Copyright (C) 1995,1996 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -187,7 +187,7 @@ endif
 # %%TARGET: Add the target to the all dependencies.
 
 all: mpmss amcss dwstress mpsicv lockcov poolncv mps.a \
-     lo.a mrg.a locv qs weakcv mpmconft finalcv
+     lo.a mrg.a locv qs weakcv mpmconft finalcv mmsw.a
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
@@ -335,7 +335,7 @@ $(PFM)/$(VARIETY)/%.d: %.c
 ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
-include $(MPMDEP) $(AMCDEP) $(LODEP) $(MRGDEP)
+include $(MPMDEP) $(AMCDEP) $(LODEP) $(MRGDEP) $(SWDEP)
 endif
 endif
 
@@ -347,7 +347,6 @@ $(PFM)/$(VARIETY)/%.a:
 	$(ECHO) "$(PFM): $@"
 	rm -f $@
 	ar rc $@ $^
-	ranlib $@
 
 # Executable
 

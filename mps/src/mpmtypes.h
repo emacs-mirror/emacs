@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.16) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.17) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -16,7 +16,7 @@
 #ifndef mpmtypes_h
 #define mpmtypes_h
 
-#include "config.h"	/* this must come first: it defines target options */
+#include "config.h"     /* this must come first: it defines target options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "mpslib.h"
 
@@ -26,7 +26,7 @@
 typedef unsigned long Sig;              /* design.mps.sig */
 typedef int Bool;                       /* design.mps.type.bool */
 typedef int Res;                        /* design.mps.type.res */
-typedef void (*Fun)(void);		/* design.mps.type.fun */
+typedef void (*Fun)(void);              /* design.mps.type.fun */
 typedef MPS_T_WORD Word;                /* design.mps.type.word */
 typedef unsigned char Byte;             /* design.mps.type.byte */
 typedef struct AddrStruct *Addr;        /* design.mps.type.addr */
@@ -45,9 +45,9 @@ typedef unsigned TraceSet;              /* design.mps.tracer */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef int RootVar;                    /* design.mps.type.rootvar */
-typedef unsigned Serial;		/* design.mps.type.serial */
+typedef unsigned Serial;                /* design.mps.type.serial */
 typedef struct RingStruct *Ring;        /* design.mps.ring */
-typedef Word *BT;			/* design.mps.bt */
+typedef Word *BT;                       /* design.mps.bt */
 typedef struct BufferStruct *Buffer;    /* design.mps.buffer */
 typedef struct APStruct *AP;            /* design.mps.buffer */
 typedef struct FormatStruct *Format;    /* design.mps.format */
@@ -59,6 +59,8 @@ typedef struct PoolClassStruct *PoolClass; /* impl.c.poolclas */
 typedef struct TraceStruct *Trace;      /* design.mps.tracer */
 typedef struct ScanStateStruct *ScanState; /* design.mps.tracer */
 typedef struct SegStruct *Seg;          /* impl.c.arena* */
+typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, impl.c.arena* */
+typedef int SegPrefKind;                /* design.mps.pref, impl.c.arena* */
 typedef struct ArenaStruct *Arena;      /* impl.c.arena* */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
@@ -122,7 +124,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
-#define TraceSetEMPTY	BS_EMPTY(TraceSet) /* design.mps.tracer */
+#define TraceSetEMPTY   BS_EMPTY(TraceSet) /* design.mps.tracer */
 #define AttrFMT         ((Attr)(1<<0))  /* design.mps.type.attr */
 #define AttrSCAN        ((Attr)(1<<1))
 #define AttrPM_NO_READ  ((Attr)(1<<2))
@@ -139,6 +141,11 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                          AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
                          AttrGC | AttrINCR_RB | AttrINCR_WB)
+
+/* segment preference constants */
+
+#define SegPrefHigh     ((SegPrefKind) 0)
+#define SegPrefLow      ((SegPrefKind) 1)
 
 /* Rank constants -- see design.mps.type.rank */
 /* These definitions must match impl.h.mps.rank. */

@@ -1,7 +1,7 @@
 /* impl.c.lockutnt
  *                     LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockutnt.c(MMdevel_restr.2) $
+ * $HopeName: MMsrc!lockutnt.c(trunk.5) $
  */
 
 #include "mpm.h"
@@ -13,7 +13,7 @@
 
 #include <windows.h>
 
-SRCID(lockutnt, "$HopeName: MMsrc!lockutnt.c(MMdevel_restr.2) $");
+SRCID(lockutnt, "$HopeName: MMsrc!lockutnt.c(trunk.5) $");
 
 static LockStruct lockStruct;
 unsigned long shared,tmp;
@@ -46,7 +46,7 @@ void inc(unsigned long i)
     tmp=shared;
     shared=tmp+1;
     i--;
-    LockRelease(&lockStruct);
+    LockReleaseMPM(&lockStruct);
   }
 }
 

@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.17) $
+ * $HopeName: MMsrc!mps.h(trunk.18) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -32,7 +32,6 @@ typedef struct mps_ld_s     *mps_ld_t;     /* location dependency */
 typedef struct mps_reg_s    *mps_reg_t;    /* register file */
 typedef struct mps_ss_s     *mps_ss_t;     /* scan state */
 
-
 /* Concrete Types */
 
 typedef MPS_T_WORD mps_word_t;  /* machine word (target dep.) */
@@ -42,8 +41,7 @@ typedef unsigned mps_shift_t;   /* shift amount (unsigned int) */
 typedef void *mps_addr_t;       /* managed address (void *) */
 typedef size_t mps_align_t;     /* alignment (size_t) */
 typedef unsigned mps_rm_t;      /* root mode (unsigned) */
-typedef unsigned mps_rank_t;	/* ranks (unsigned) */
-
+typedef unsigned mps_rank_t;    /* ranks (unsigned) */
 
 /* Result Codes */
 /* .result-codes: Keep in sync with impl.h.mpmtypes.result-codes */
@@ -68,7 +66,6 @@ enum {
   MPS_RANK_FINAL = 2,           /* final reference */
   MPS_RANK_WEAK = 3             /* weak reference */
 };
-
 
 /* Root Modes */
 /* .rm: Keep in sync with impl.h.mpmtypes.rm */
@@ -158,11 +155,17 @@ extern mps_assert_t mps_assert_default(void);
 
 /* Spaces */
 
-extern mps_res_t mps_space_create_wmem(mps_space_t *, mps_addr_t,
-                                       size_t);
 extern mps_res_t mps_space_create(mps_space_t *);
 extern void mps_space_destroy(mps_space_t);
 
+/* Client memory spaces */
+
+extern mps_res_t mps_space_create_wmem(mps_space_t *, mps_addr_t, size_t);
+extern mps_res_t mps_space_extend(mps_space_t, mps_addr_t, size_t);
+extern mps_res_t mps_space_retract(mps_space_t, mps_addr_t, size_t);
+
+extern size_t mps_space_reserved(mps_space_t);
+extern size_t mps_space_committed(mps_space_t);
 
 /* Object Formats */
 

@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.6) $
+ * $HopeName: MMsrc!mpsicv.c(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -122,7 +122,7 @@ static void *test(void *arg, size_t s)
 
   die(mps_pool_create(&mv, space, mps_class_mv(), 0x10000, 32, 0x10000),
       "pool_create(mv)");
-
+  
   pool_create_v_test(space, format); /* creates amc pool */
 
   ap_create_v_test(amcpool, MPS_RANK_WEAK);
