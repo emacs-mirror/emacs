@@ -351,8 +351,15 @@ Do not specify them in other calls."
 	(if (string= filename "")
 	    (setq filename "/"))))
   (or counter (setq counter (list 100)))
-  (or prev-dirs (setq prev-dirs (list nil)))
-  (let (done)
+  (let (done
+	;; For speed, remove the ange-ftp completion handler from the list.
+	;; We know it's not needed here.
+	;; For even more speed, do this only on the outermost call.
+	(file-name-handler-alist
+	 (if prev-dirs file-name-handler-alist
+	   (let ((tem (copy-sequence file-name-handler-alist)))
+	     (delq (rassq 'ange-ftp-completion-hook-function tem) tem)))))
+    (or prev-dirs (setq prev-dirs (list nil)))
     ;; If this file directly leads to a link, process that iteratively
     ;; so that we don't use lots of stack.
     (while (not done)
