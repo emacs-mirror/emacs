@@ -55,6 +55,7 @@ however, we have renamed all of those.)
 @item command-history-hook
 @item command-line-functions
 @item comment-indent-function
+@item custom-define-hook
 @item deactivate-mark-hook
 @item diary-display-hook
 @item diary-hook
