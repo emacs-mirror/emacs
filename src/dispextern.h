@@ -2662,9 +2662,9 @@ int popup_activated P_ ((void));
 extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
-extern Lisp_Object mode_line_string P_ ((struct window *, int, int,
+extern Lisp_Object mode_line_string P_ ((struct window *, int *, int *,
 					 enum window_part, int *));
-extern Lisp_Object marginal_area_string P_ ((struct window *, int, int,
+extern Lisp_Object marginal_area_string P_ ((struct window *, int *, int *,
 					     enum window_part, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
