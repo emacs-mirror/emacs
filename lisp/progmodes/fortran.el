@@ -1507,9 +1507,8 @@ automatically breaks the line at a previous space."
 			(or (looking-at "     [^ 0\n]")
 			    (looking-at "\t[1-9]")))
 	(progn
-	  (forward-line 1)
-	  (delete-indentation)
-	  (delete-char 2)
+	  (end-of-line)
+	  (delete-region (point) (match-end 0))
 	  (delete-horizontal-space)
 	  (fortran-do-auto-fill))
       (fortran-split-line))
