@@ -66,6 +66,7 @@ Boston, MA 02111-1307, USA.
 #include "lisp.h"
 
 #include <pwd.h>
+#include <grp.h>
 
 #ifdef __GNUC__
 #define _ANONYMOUS_UNION
@@ -385,6 +386,13 @@ static struct passwd the_passwd =
   the_passwd_shell,
 };
 
+static struct group the_group =
+{
+  /* There are no groups on NT, so we just return "root" as the
+     group name.  */
+  "root",
+};
+
 int
 getuid ()
 {
@@ -418,6 +426,12 @@ getpwuid (int uid)
   if (uid == the_passwd.pw_uid)
     return &the_passwd;
   return NULL;
+}
+
+struct group *
+getgrgid (gid_t gid)
+{
+  return &the_group;
 }
 
 struct passwd *
