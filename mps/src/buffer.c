@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.31) $
+ * $HopeName: MMsrc!buffer.c(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.31) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.32) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -232,7 +232,7 @@ Res BufferInit(Buffer buffer, Pool pool, Rank rank)
 
 /* BufferDetach -- detach a buffer from a segment */
 
-static void BufferDetach(Buffer buffer, Pool pool)
+void BufferDetach(Buffer buffer, Pool pool)
 {
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
