@@ -811,7 +811,7 @@ shortlisp= \
    We must unconditionally put them in the DOC file.
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
-   for the sake of systems which can't handle large ones.  */
+   for the sake of systems which can\'t handle large ones.  */
 SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
   ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
@@ -955,7 +955,7 @@ really-oldXMenu:
 #endif /* not USE_X_TOOLKIT */
 #else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
 
-/* We don't really need this, but satisfy the dependency.  */
+/* We don\'t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu
 #endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS) */
@@ -1168,6 +1168,8 @@ sunfns.o: sunfns.c buffer.h window.h dispextern.h $(config_h)
 
 ${libsrc}emacstool: ${libsrc}emacstool.c
 	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool
+bootstrapclean:
+	rm -f bootstrap-emacs
 mostlyclean:
 	rm -f temacs prefix-args core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
@@ -1226,24 +1228,10 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 
 bootstrap: bootstrap-emacs
 
-/* Build a temacs with a sufficiently large PURESIZE to load the
-   Lisp files from loadup.el in source form.  */
-
-bootstrap-temacs: 
-	LC_ALL=C $(MAKE) $(MFLAGS) temacs ALL_CFLAGS="$(ALL_CFLAGS) -DPURESIZE=5000000 -I../src"
-
-/* Build a DOC file.  */
-
-bootstrap-doc: ${libsrc}make-docfile
-	-rm -f ${etc}DOC
-	els=`echo ${shortlisp} ${SOME_MACHINE_LISP} \
-		| sed -e "s/\\.elc/.el/g"`; \
-	${libsrc}make-docfile -d ${srcdir} $$els ${obj} > ${etc}DOC
-
 /* Dump an Emacs executable named bootstrap-emacs containing the 
    files from loadup.el in source form.  */
 
-bootstrap-emacs: bootstrap-temacs bootstrap-doc
+bootstrap-emacs: temacs
 #ifdef CANNOT_DUMP
 	ln temacs bootstrap-emacs
 #else
@@ -1254,5 +1242,4 @@ bootstrap-emacs: bootstrap-temacs bootstrap-doc
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 	mv -f emacs bootstrap-emacs
-	rm -f temacs
 
