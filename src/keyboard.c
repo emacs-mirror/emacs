@@ -7274,6 +7274,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  char *newmessage;
 	  char *oldmessage = echo_area_glyphs;
 	  int oldmessage_len = echo_area_glyphs_length;
+	  int oldmultibyte = message_enable_multibyte;
 
 	  binding = Fkey_description (bindings);
 
@@ -7288,7 +7289,10 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
 				? Vsuggest_key_bindings : make_number (2)),
 			       Qnil, Qnil)))
-	    message2_nolog (oldmessage, oldmessage_len);
+	    {
+	      message_enable_multibyte = oldmultibyte;
+	      message2_nolog (oldmessage, oldmessage_len);
+	    }
 	}
     }
 
