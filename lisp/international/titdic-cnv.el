@@ -976,7 +976,15 @@ the generated Quail package is saved."
 	name title dicfile coding quailfile converter copyright
 	dicbuf)
     (while tail
-      (when (string-match (nth 2 (car tail)) filename)
+      (when (or (string-match (nth 2 (car tail)) filename)
+		;; MS-DOS filesystem truncates file names to 8+3
+		;; limits, so "cangjie-table.cns" becomes
+		;; "cangjie-.cns", and the above string-match fails.
+		;; Give DOS users a chance...
+		(and (fboundp 'msdos-long-file-names)
+		     (not (msdos-long-file-names))
+		     (string-match (dos-truncate-to-8+3 (nth 2 (car tail)))
+				   filename)))
 	(setq slot (car tail)
 	      name (car slot)
 	      title (nth 1 slot)
