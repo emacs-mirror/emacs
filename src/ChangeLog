@@ -1,3 +1,12 @@
+2002-05-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (encode_coding_emacs_mule): Pay attention to raw-8-bit
+	chars.
+	(encode_coding_iso_2022): Likewise.
+	(encode_coding_sjis): Likewise.
+	(encode_coding_big5): Likewise.
+	(encode_coding_charset): Likewise.
+
 2002-05-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (lisp): Change chienese.elc to chinese.el.  They are

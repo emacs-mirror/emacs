@@ -1,3 +1,9 @@
+2002-05-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/indian.el: Replace commented-out lines with a condition
+	that is always false.  The same change by Eli on 2002-04-19 in
+	the HEAD trunk.
+
 2002-05-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (RUN-EMACS): Add LC_ALL=C.
