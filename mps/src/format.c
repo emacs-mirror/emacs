@@ -1,30 +1,27 @@
-/*  impl.c.format
+/* impl.c.format: OBJECT FORMATS
  *
- *           OBJECT FORMATS
- *
- *  $HopeName: MMsrc!format.c(trunk.3) $
- *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!format.c(trunk.4) $
  */
 
 #include "std.h"
+#include "space.h"
 #include "format.h"
+#include "pool.h"
+
+SRCID("$HopeName");
 
 
-#ifdef DEBUG_SIGN
 static struct SigStruct FormatSigStruct;
-#endif
 
 
-#ifdef DEBUG_ASSERT
+
+#ifdef DEBUG
 
 Bool FormatIsValid(Format format, ValidationType validParam)
 {
   AVER(format != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &FormatSigStruct));
   AVER(format->sig == &FormatSigStruct);
-#endif
   AVER(ISVALIDNESTED(Space, format->space));
   AVER(IsPoT(format->alignment));
   /* **** alignment should be less than maximum allowed */
@@ -33,10 +30,10 @@ Bool FormatIsValid(Format format, ValidationType validParam)
   AVER(format->move != NULL);
   AVER(format->isMoved != NULL);
   AVER(format->copy != NULL);
-  return(TRUE);
+  return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Error FormatCreate(Format *formatReturn, Space space,
@@ -65,10 +62,8 @@ Error FormatCreate(Format *formatReturn, Space space,
   format->isMoved = isMoved;
   format->copy = copy;
 
-#ifdef DEBUG_SIGN
   SigInit(&FormatSigStruct, "Format");
   format->sig = &FormatSigStruct;
-#endif
 
   AVER(ISVALID(Format, format));
   
@@ -80,9 +75,7 @@ Error FormatCreate(Format *formatReturn, Space space,
 void FormatDestroy(Format format)
 {
   AVER(ISVALID(Format, format));
-#ifdef DEBUG_SIGN
   format->sig = SigInvalid;
-#endif
 
   PoolFree(SpaceControlPool(format->space),
            (Addr)format, sizeof(FormatStruct));

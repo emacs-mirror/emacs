@@ -2,7 +2,7 @@
  *
  *                  ANSI RECURSIVE LOCKS
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!lockan.c(trunk.1) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -21,18 +21,17 @@
 #include "lock.h"
 #include "lockst.h"
 
-#ifdef DEBUG_SIGN
-static SigStruct LockSigStruct;
-#endif
+SRCID("$HopeName");
 
-#ifdef DEBUG_ASSERT
+static SigStruct LockSigStruct;
+
+
+#ifdef DEBUG
 
 Bool LockIsValid(Lock lock, ValidationType validParam)
 {
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, &LockSigStruct));
   AVER(lock->sig == &LockSigStruct);
-#endif
   return TRUE;
 }  
 
@@ -42,10 +41,8 @@ void LockInit(Lock lock)
 {
   AVER(lock != NULL);
   lock->claims = 0; 
-#ifdef DEBUG_SIGN
   SigInit(&LockSigStruct, "Lock");
   lock->sig = &LockSigStruct;
-#endif
   AVER(ISVALID(Lock, lock));
 }
 
@@ -53,9 +50,7 @@ void LockFinish(Lock lock)
 {
   AVER(ISVALID(Lock, lock));
   AVER(lock->claims == 0);
-#ifdef DEBUG_SIGN
   lock->sig = SigInvalid;
-#endif
 }
 
 void LockClaim(Lock lock)

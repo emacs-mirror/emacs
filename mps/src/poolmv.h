@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOLS ====
  *
- *  $HopeName: MMsrc/!poolmv.h(trunk.1)$
+ *  $HopeName: MMsrc!poolmv.h(trunk.2) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -47,6 +47,7 @@
 
 #include "std.h"
 #include "pool.h"
+#include "poolclas.h"
 #include "space.h"
 #include <stddef.h>
 

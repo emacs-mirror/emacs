@@ -2,7 +2,7 @@
  *
  *           MALLOC-BASED PSUEDO-VIRTUAL MEMORY MAPPING
  *
- *  $HopeName: MMsrc/!vman.c(trunk.3)$
+ *  $HopeName: MMsrc!vman.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -27,17 +27,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_SIGN
+
 static SigStruct VMSigStruct;
-#endif
+
 
 
 typedef struct VMStruct
 {
-#ifdef DEBUG_SIGN
   Sig sig;
-#endif
   Addr base, limit;	/* boundaries of malloc'd memory */
   void *block;		/* pointer to malloc'd block, for free() */
 } VMStruct;
@@ -45,19 +44,17 @@ typedef struct VMStruct
 
 Addr VMGrain(void)
 {
-  return(VMAN_GRAIN);	/* see .grain */
+  return VMAN_GRAIN;	/* see .grain */
 }
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool VMIsValid(VM vm, ValidationType validParam)
 {
   AVER(vm != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, vm->sig));
   AVER(vm->sig == &VMSigStruct);
-#endif
   AVER(vm->base != 0);
   AVER(vm->limit != 0);
   AVER(vm->base < vm->limit);
@@ -65,10 +62,10 @@ Bool VMIsValid(VM vm, ValidationType validParam)
   AVER(IsAligned(VMAN_GRAIN, vm->limit));
   AVER(vm->block != NULL);
   AVER(vm->block <= (void *)vm->base);
-  return(TRUE);
+  return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Error VMCreate(VM *vmReturn, Addr size)
@@ -80,7 +77,7 @@ Error VMCreate(VM *vmReturn, Addr size)
   AVER(sizeof(Addr) == sizeof(size_t));	/* must conform */
 
   vm = (VM)malloc(sizeof(VMStruct));
-  if(vm == NULL) return(ErrRESMEM);
+  if(vm == NULL) return ErrRESMEM;
     
   /* Note that because we add VMAN_GRAIN rather than VMAN_GRAIN-1 */
   /* we are not in danger of overflowing vm->limit even if malloc */
@@ -89,7 +86,7 @@ Error VMCreate(VM *vmReturn, Addr size)
   vm->block = malloc((size_t)(size + VMAN_GRAIN));
   if(vm->block == NULL) {
     free(vm);
-    return(ErrRESMEM);
+    return ErrRESMEM;
   }
 
   vm->base  = AlignUp(VMAN_GRAIN, (Addr)vm->block);
@@ -98,15 +95,13 @@ Error VMCreate(VM *vmReturn, Addr size)
 
   memset((void *)vm->base, VMAN_JUNKBYTE, (size_t)size);
 
-#ifdef DEBUG_SIGN
   SigInit(&VMSigStruct, "VM");
   vm->sig = &VMSigStruct;
-#endif
 
   AVER(ISVALID(VM, vm));
   
   *vmReturn = vm;
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
@@ -114,9 +109,7 @@ void VMDestroy(VM vm)
 {
   AVER(ISVALID(VM, vm));
   
-#ifdef DEBUG_SIGN
   vm->sig = SigInvalid;
-#endif
 
   memset((void *)vm->base, VMAN_JUNKBYTE, (size_t)(vm->limit - vm->base));
 
@@ -128,13 +121,13 @@ void VMDestroy(VM vm)
 Addr VMBase(VM vm)
 {
   AVER(ISVALID(VM, vm));
-  return(vm->base);
+  return vm->base;
 }
 
 Addr VMLimit(VM vm)
 {
   AVER(ISVALID(VM, vm));
-  return(vm->limit);
+  return vm->limit;
 }
 
 
@@ -150,7 +143,7 @@ Error VMMap(VM vm, Addr base, Addr limit)
   
   memset((void *)base, (int)0, (size_t)(limit - base));
 
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 

@@ -1,6 +1,6 @@
 /*  ==== MISCELLANEOUS DEFINITIONS ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!misc.h(trunk.1) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -16,9 +16,29 @@
 #ifndef misc_h
 #define misc_h
 
-#include "arch.h"
-#include "types.h"
 #include <stddef.h>
+
+
+/*  === MACRO BRACKETS ===
+ *
+ *  M_BEGIN and M_END should be used to bracked ALL multi-statement macros.
+ *  This ensures that such macros can be used in all statement contexts,
+ *  including in the first branch of an if() statement which has an else
+ *  clause.
+ */
+
+#define M_BEGIN		do {
+#define M_END		} while(0)
+
+
+/*  === STRINGIZING MACROS ===
+ *
+ *  M_STRING(<s>) converts <s> into a quoted string "<s>"
+ *  M_STR(<s>) does the same after substituting macros into <s>.
+ */
+
+#define M_STRING(s)	#s
+#define M_STR(s)	M_STRING(s)
 
 
 /*  == Null Statement ==
@@ -57,6 +77,22 @@
 #define forever		for(;;)		/* loop indefinitely */
 
 
+/*  == Boolean ==
+ *
+ *  Using a boolean type in C is a tricky thing.  Non-zero values are
+ *  "true" but are not all equal to TRUE.  The Bool type is therefore
+ *  mostly defined so that the intention of the code is clearer.
+ *  Use with care.
+ */
+
+enum
+{
+  FALSE = 0,
+  TRUE = 1
+};
+typedef int Bool;
+
+
 /*  == Align Address ==
  *
  *  AlignUp rounds up an Addr to the nearest N-boundary with N is a positive
@@ -65,12 +101,6 @@
  *  IsPoT tests whether an integer is a positive power of
  *  two.
  */
-
-#ifndef DEBUG_NOINLINE
-#define AlignUp(pot, i)   (((Addr)(i)+(Addr)(pot)-1)&~((Addr)(pot)-1))
-#define IsAligned(pot, i) (((Addr)(i) & ((Addr)(pot)-1)) == 0)
-#define IsPoT(pot)        ((pot)>0 && ((pot)&((pot)-1))==0)
-#endif
 
 extern Addr (AlignUp)(Addr pot, Addr i);
 extern Bool (IsAligned)(Addr pot, Addr i);

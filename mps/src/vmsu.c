@@ -2,7 +2,7 @@
  *
  *                     VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- *  $HopeName: MMsrc/!vmsu.c(trunk.4)$
+ *  $HopeName: MMsrc!vmsu.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -49,6 +49,8 @@
 #include <errno.h>
 #include <sys/errno.h>
 
+SRCID("$HopeName");
+
 
 /* Fix up unprototyped system calls.  */
 /* Note that these are not fixed up by std.h because that only fixes */
@@ -59,16 +61,12 @@ extern int munmap(caddr_t addr, int len);
 extern int getpagesize(void);
 
 
-#ifdef DEBUG_SIGN
 static SigStruct VMSigStruct;
-#endif
 
 
 typedef struct VMStruct
 {
-#ifdef DEBUG_SIGN
   Sig sig;
-#endif
   int zero_fd;		/* file descriptor for /dev/zero */
   int none_fd;          /* fildes used for PROT_NONE (/etc/passwd) */
   Addr base, limit;	/* boundaries of reserved space */
@@ -86,15 +84,13 @@ Addr VMGrain(void)
 }
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool VMIsValid(VM vm, ValidationType validParam)
 {
   AVER(vm != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, vm->sig));
   AVER(vm->sig == &VMSigStruct);
-#endif
   AVER(vm->zero_fd >= 0);
   AVER(vm->none_fd >= 0);
   AVER(vm->zero_fd != vm->none_fd);
@@ -106,7 +102,7 @@ Bool VMIsValid(VM vm, ValidationType validParam)
   return(TRUE);
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Error VMCreate(VM *vmReturn, Addr size)
@@ -168,10 +164,8 @@ Error VMCreate(VM *vmReturn, Addr size)
   vm->base = (Addr)addr;
   vm->limit = vm->base + size;
 
-#ifdef DEBUG_SIGN
   SigInit(&VMSigStruct, "VM");
   vm->sig = &VMSigStruct;
-#endif
 
   AVER(ISVALID(VM, vm));
 
@@ -191,9 +185,7 @@ void VMDestroy(VM vm)
   /* about to vanish completely.  However, munmap might fail for some */
   /* reason, and this would ensure that it was still discovered if sigs */
   /* were being checked. */
-#ifdef DEBUG_SIGN
   vm->sig = SigInvalid;
-#endif
 
   close(vm->zero_fd);
   close(vm->none_fd);
@@ -220,7 +212,7 @@ Addr VMLimit(VM vm)
 
 Error VMMap(VM vm, Addr base, Addr limit)
 {
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
   Addr grain = VMGrain();
 #endif
 
@@ -251,7 +243,7 @@ Error VMMap(VM vm, Addr base, Addr limit)
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   caddr_t addr;
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
   Addr grain = VMGrain();
 #endif
 

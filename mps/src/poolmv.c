@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName: MMsrc!poolmv.c(trunk.6) $
+ *  $HopeName: MMsrc!poolmv.c(trunk.7) $
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
@@ -43,6 +43,8 @@
 #include "poolmfs.h"
 #include <stdarg.h>
 
+SRCID("$HopeName");
+
 
 #define BLOCKPOOL(mv)   (PoolMFSPool(&(mv)->blockPoolStruct))
 #define SPANPOOL(mv)    (PoolMFSPool(&(mv)->spanPoolStruct))
@@ -70,7 +72,7 @@ PoolClass PoolClassMV(void)
                 NULL, NULL,             /* fix, relcaim */
                 NULL,                   /* access */
                 describe);
-  return(&PoolClassMVStruct);
+  return &PoolClassMVStruct;
 }
 
 
@@ -89,7 +91,7 @@ typedef struct BlockStruct
 } BlockStruct, *Block;
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 static Bool BlockIsValid(Block block, ValidationType validParam)
 {
@@ -98,7 +100,7 @@ static Bool BlockIsValid(Block block, ValidationType validParam)
   /* Check that it is in the block pool.  See note 7. */
   /* This turns out to be considerably tricky, as we cannot get hold
    * of the blockPool (pool is not a parameter). */
-  return(TRUE);
+  return TRUE;
 }
 
 #endif
@@ -125,7 +127,7 @@ typedef struct SpanStruct
 } SpanStruct, *Span;
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 static Bool SpanIsValid(Span span, ValidationType validParam)
 {
@@ -158,13 +160,13 @@ static Bool SpanIsValid(Span span, ValidationType validParam)
 
   /* Check that it is in the span pool.  See note 7. */
 
-  return(TRUE);
+  return TRUE;
 }
 
 #endif
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool PoolMVIsValid(PoolMV poolMV, ValidationType validParam)
 {
@@ -177,16 +179,16 @@ Bool PoolMVIsValid(PoolMV poolMV, ValidationType validParam)
 
   /* Could do more checks here. */
 
-  return(TRUE);
+  return TRUE;
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Pool PoolMVPool(PoolMV poolMV)
 {
   AVER(ISVALID(PoolMV, poolMV));
-  return(&poolMV->poolStruct);
+  return &poolMV->poolStruct;
 }
 
 
@@ -202,7 +204,7 @@ Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
   e = PoolAlloc((Addr *)&poolMV, SpaceControlPool(space),
     sizeof(PoolMVStruct));
   if(e != ErrSUCCESS)
-    return(e);
+    return e;
   
   e = PoolMVInit(poolMV, space, extendBy, avgSize, maxSize);
   if(e != ErrSUCCESS) {
@@ -211,7 +213,7 @@ Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
   }
   
   *poolMVReturn = poolMV;
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 static Error create(Pool *poolReturn, Space space, va_list arg)
@@ -372,14 +374,14 @@ static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
 
       span->space -= size;
       *addrReturn = new;
-      return(TRUE);
+      return TRUE;
     }
 
     block = block->next;
   }
   while(block->next != NULL);
 
-  return(FALSE);
+  return FALSE;
 }
 
 
@@ -434,7 +436,7 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
         /* block must be split into two parts.  */
 
         e = PoolAlloc((Addr *)&new, blockPool, sizeof(BlockStruct));
-        if(e != ErrSUCCESS) return(e);
+        if(e != ErrSUCCESS) return e;
 
         /* If the freed area is in the base sentinel then insert the new */
         /* descriptor after it, otherwise insert before. */
@@ -464,7 +466,7 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
 
       span->space += limit - base;
 
-      return(ErrSUCCESS);
+      return ErrSUCCESS;
     }
 
     prev = &block->next;
@@ -698,5 +700,5 @@ static Error describe(Pool pool, LibStream stream)
     span = span->next;
   }
 
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }

@@ -1,173 +1,122 @@
-/*  impl.c.shield
+/* impl.c.shield: SHIELD IMPLEMENTATION
  *
- *                         SHIELDING
+ * $HopeName: MMsrc!shield.c(trunk.2) $
  *
- *  $HopeName: MMsrc/!shield.c(trunk.1)$
+ * See: idea.shield, design.mps.shield.
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
- *  See: idea.shield, design.mps.shield.
- *
- *  Invariant: The protected memory is a subset of the shielded memory when
- *             inside the shield, and the same set when outside.
- *
- *  HACKY HACKY JOY JOY!
+ * Invariant: The protected memory is a subset of the shielded memory when
+ *            inside the shield, and the same set when outside.
  */
 
 #include "std.h"
-#include "shield.h"
-#include "shieldst.h"
 #include "space.h"
+#include "shield.h"
 #include "prot.h"
 #include "poolar.h"
+#include "th.h"
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_SIGN
-static SigStruct ShieldSigStruct;
-#endif
-
-
-Bool ShieldIsValid(Shield shield, ValidationType validParam)
+static void protect(Arena arena, Addr seg, ProtMode mode)
 {
-  AVER(shield != NULL);
-#ifdef DEBUG_SIGN
-  AVER(ISVALIDNESTED(Sig, &ShieldSigStruct));
-  AVER(shield->sig == &ShieldSigStruct);
-#endif /* DEBUG_SIGN */
-/*  AVER(ISVALIDNESTED(Space, shield->space)); @@@@ */
-/*  AVER(ISVALIDNESTED(Bool, shield->inside)); */
-  return TRUE;
-}
-
-
-void ShieldInit(Shield shield, Space space)
-{
-  AVER(shield != NULL);
-  AVER(ISVALID(Space, space));
-
-  shield->inside = FALSE;
-  shield->space = space;
-
-#ifdef DEBUG_SIGN
-  SigInit(&ShieldSigStruct, "Shield");
-  shield->sig = &ShieldSigStruct;
-#endif /* DEBUG_SIGN */
-
-  AVER(ISVALID(Shield, shield));
-}
-
-
-void ShieldFinish(Shield shield)
-{
-  AVER(!shield->inside);
-
-#ifdef DEBUG_SIGN
-  shield->sig = SigInvalid;
-#endif
-}
-
-
-static void protect(Arena arena, Addr base, Addr limit, ProtMode mode)
-{
-  if(ArenaProtMode(arena, base) != mode) {
-    ProtSet(base, limit, mode);
-    ArenaSetProtMode(arena, base, mode);
+  if(ArenaProtMode(arena, seg) != mode) {
+    ProtSet(seg, seg + ArenaSegSize(arena, seg), mode);
+    ArenaSetProtMode(arena, seg, mode);
   }
 }
 
-
-void ShieldRaise(Shield shield, Addr base, Addr limit, ProtMode mode)
+void ShieldRaise(Space space, Addr seg, ProtMode mode)
 {
   ProtMode shieldMode;
   Arena arena;
 
-  AVER(ISVALID(Shield, shield));
+  AVER(ISVALID(Space, space));
 
-  arena = SpaceArena(shield->space);
+  arena = SpaceArena(space);
 
-  shieldMode = ArenaShieldMode(arena, base);
+  shieldMode = ArenaShieldMode(arena, seg);
   AVER((shieldMode & mode) == ProtNONE);
   shieldMode |= mode;
-  ArenaSetShieldMode(arena, base, shieldMode);
+  ArenaSetShieldMode(arena, seg, shieldMode);
 
   if(shieldMode >> 2 == 0)
-    protect(arena, base, limit, shieldMode);
+    protect(arena, seg, shieldMode);
 }
 
-void ShieldLower(Shield shield, Addr base, Addr limit, ProtMode mode)
+void ShieldLower(Space space, Addr seg, ProtMode mode)
 {
   ProtMode shieldMode;
   Arena arena;
 
-  AVER(ISVALID(Shield, shield));
+  AVER(ISVALID(Space, space));
 
-  arena = SpaceArena(shield->space);
+  arena = SpaceArena(space);
 
-  shieldMode = ArenaShieldMode(arena, base);
+  shieldMode = ArenaShieldMode(arena, seg);
   AVER((shieldMode & mode) == mode);
   shieldMode &= ~mode;
-  ArenaSetShieldMode(arena, base, shieldMode);
+  ArenaSetShieldMode(arena, seg, shieldMode);
 
   if(shieldMode >> 2 == 0)
-    protect(arena, base, limit, shieldMode); /* will only remove protection */
+    protect(arena, seg, shieldMode); /* will only remove protection */
 }
 
 
-void ShieldEnter(Shield shield)
+void ShieldEnter(Space space)
 {
-  AVER(ISVALID(Shield, shield));
-  AVER(!shield->inside);
+  AVER(ISVALID(Space, space));
+  AVER(!space->insideShield);
 
-  ThreadDequeSuspend(SpaceThreadDeque(shield->space));
-  shield->inside = TRUE;
+  ThreadDequeSuspend(SpaceThreadDeque(space));
+  space->insideShield = TRUE;
 }
 
-void ShieldLeave(Shield shield)
+void ShieldLeave(Space space)
 {
-  AVER(ISVALID(Shield, shield));
-  AVER(shield->inside);
+  AVER(ISVALID(Space, space));
+  AVER(space->insideShield);
 
 /* .opt.lazy-cover:
   for all segs {
-    protect(arena, base, ArenaShieldMode(arena, base));
+    protect(arena, seg, ArenaShieldMode(arena, seg));
   }
  */
 
-  ThreadDequeResume(SpaceThreadDeque(shield->space));
-  shield->inside = FALSE;
+  ThreadDequeResume(SpaceThreadDeque(space));
+  space->insideShield = FALSE;
 }
 
 
-void ShieldExpose(Shield shield, Addr base, Addr limit)
+void ShieldExpose(Space space, Addr seg)
 {
   ProtMode shieldMode;
   Arena arena;
 
-  AVER(ISVALID(Shield, shield));
-  AVER(shield->inside);
+  AVER(ISVALID(Space, space));
+  AVER(space->insideShield);
 
-  arena = SpaceArena(shield->space);
-  shieldMode = ArenaShieldMode(arena, base);
+  arena = SpaceArena(space);
+  shieldMode = ArenaShieldMode(arena, seg);
   shieldMode += 4;
-  ArenaSetShieldMode(arena, base, shieldMode);
+  ArenaSetShieldMode(arena, seg, shieldMode);
 
-  protect(arena, base, limit, ProtNONE);
+  protect(arena, seg, ProtNONE);
 }
 
-void ShieldCover(Shield shield, Addr base, Addr limit)
+void ShieldCover(Space space, Addr seg)
 {
   ProtMode shieldMode;
   Arena arena;
 
-  AVER(ISVALID(Shield, shield));
-  AVER(ArenaProtMode(SpaceArena(shield->space), base) == ProtNONE);
+  AVER(ISVALID(Space, space));
+  AVER(ArenaProtMode(SpaceArena(space), seg) == ProtNONE);
 
-  arena = SpaceArena(shield->space);
-  shieldMode = ArenaShieldMode(arena, base);
+  arena = SpaceArena(space);
+  shieldMode = ArenaShieldMode(arena, seg);
   AVER(shieldMode >= 4);
   shieldMode -= 4;
-  ArenaSetShieldMode(arena, base, shieldMode);
+  ArenaSetShieldMode(arena, seg, shieldMode);
 
   if(shieldMode >> 2 == 0)
-    protect(arena, base, limit, shieldMode);
+    protect(arena, seg, shieldMode);
 }

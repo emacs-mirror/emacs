@@ -2,7 +2,7 @@
  *
  *                         NULL POOL
  *
- *  $HopeName: MMsrc/!pooln.c(trunk.2)$
+ *  $HopeName: MMsrc!pooln.c(trunk.3) $
  *
  *  Copyright(C) 1995 Harlequin Group, all rights reserved
  *
@@ -23,9 +23,10 @@
 #include "space.h"
 #include "trace.h"
 #include "prot.h"
-
 #include <stdarg.h>
 #include <stddef.h>
+
+SRCID("$HopeName");
 
 
 /*  Class's methods  */
@@ -165,11 +166,11 @@ static Error alloc(Addr *pReturn, Pool pool, Size size)
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
   AVER(size > 0);
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pReturn);
   UNUSED(pool);
   UNUSED(size);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   return ErrLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -180,11 +181,11 @@ static void free_(Pool pool, Addr old, Size size)
   AVER(pool->class == &PoolClassNStruct);
   AVER(old != (Addr)0);
   AVER(size > 0);
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
   UNUSED(old);
   UNUSED(size);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   NOTREACHED;  /* can't allocate, should never free */
 }
@@ -194,10 +195,10 @@ static Error bufferCreate(Buffer *bufReturn, Pool pool)
   AVER(bufReturn != NULL);
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(bufReturn);
   UNUSED(pool);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   return ErrLIMIT;  /* limit of nil buffers exceeded */
 }
@@ -205,9 +206,9 @@ static Error bufferCreate(Buffer *bufReturn, Pool pool)
 static void bufferDestroy(Buffer buf)
 {
   AVER(ISVALID(Buffer, buf));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(buf);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   NOTREACHED;  /* can't create, so shouldn't destroy */
 }
@@ -224,9 +225,9 @@ static Error describe(Pool pool, LibStream stream)
 
   poolN = PARENT(PoolNStruct, poolStruct, pool);
   AVER(ISVALID(PoolN, poolN));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(poolN);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   return ErrSUCCESS;
 }
@@ -237,10 +238,10 @@ static Error condemn(Pool pool, Trace trace)
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
   AVER(ISVALID(Trace, trace));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
   UNUSED(trace);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   return ErrSUCCESS;
 }
@@ -250,7 +251,7 @@ static void mark(Pool pool, Trace trace)
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
   AVER(ISVALID(Trace, trace));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
   UNUSED(trace);
 #endif
@@ -262,11 +263,11 @@ static Error scan(Pool pool, Trace trace, RefRank rank)
   AVER(pool->class == &PoolClassNStruct);
   AVER(ISVALID(Trace, trace));
   AVER(ISVALID(RefRank, rank));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
   UNUSED(trace);
   UNUSED(rank);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
   return ErrSUCCESS;
 }
@@ -279,13 +280,13 @@ static Error fix(Pool pool, Trace trace, RefRank rank,
   AVER(ISVALID(Trace, trace));
   AVER(ISVALID(RefRank, rank));
   AVER(ISVALID(Arena, arena));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
   UNUSED(trace);
   UNUSED(rank);
   UNUSED(arena);
   UNUSED(refIO);
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
   NOTREACHED;  /* since we don't allocate any objects, should never
                 * be called upon to fix a reference */
   return ErrFAILURE;
@@ -296,7 +297,7 @@ static void reclaim(Pool pool, Trace trace)
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
   AVER(ISVALID(Trace, trace));
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
   UNUSED(trace);
 #endif
@@ -309,7 +310,7 @@ static void access(Pool pool, Addr seg, ProtMode mode)
   AVER(pool->class == &PoolClassNStruct);
   UNUSED(seg);
   UNUSED(mode);
-#ifndef DEBUG_ASSERT
+#ifndef DEBUG
   UNUSED(pool);
 #endif
   /* deal with access to segment */

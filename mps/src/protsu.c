@@ -2,7 +2,7 @@
  *
  *                  PROTECTION FOR SUNOS
  *
- *  $HopeName: MMsrc/!protsu.c(trunk.1)$
+ *  $HopeName: MMsrc!protsu.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -26,6 +26,8 @@
 #ifndef OS_SUNOS
 #error "protsu.c is SunOS 4 specific, but OS_SUNOS is not set"
 #endif
+
+SRCID("$HopeName");
 
 
 /* .hack.sigdfl */
@@ -176,7 +178,7 @@ void ProtSetup(void)
 
 void ProtSet(Addr base, Addr limit, ProtMode mode)
 {
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
   Addr grain = ProtGrain();
 #endif
   int flags;

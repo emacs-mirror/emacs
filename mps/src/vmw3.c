@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc/!vmnt.c(trunk.2)$
+ *  $HopeName: MMsrc!vmnt.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -54,17 +54,15 @@
 #include <stddef.h>
 #include <windows.h>
 
+SRCID("$HopeName");
 
-#ifdef DEBUG_SIGN
+
 static SigStruct VMSigStruct;
-#endif
 
 
 typedef struct VMStruct
 {
-#ifdef DEBUG_SIGN
   Sig sig;
-#endif
   Addr base, limit;     /* boundaries of reserved space */
 } VMStruct;
 
@@ -85,15 +83,13 @@ Addr VMGrain(void)
 }
 
 
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
 
 Bool VMIsValid(VM vm, ValidationType validParam)
 {
   AVER(vm != NULL);
-#ifdef DEBUG_SIGN
   AVER(ISVALIDNESTED(Sig, vm->sig));
   AVER(vm->sig == &VMSigStruct);
-#endif
   AVER(vm->base != 0);
   AVER(vm->limit != 0);
   AVER(vm->base < vm->limit);
@@ -102,7 +98,7 @@ Bool VMIsValid(VM vm, ValidationType validParam)
   return(TRUE);
 }
 
-#endif /* DEBUG_ASSERT */
+#endif /* DEBUG */
 
 
 Error VMCreate(VM *vmReturn, Addr size)
@@ -136,10 +132,8 @@ Error VMCreate(VM *vmReturn, Addr size)
   vm->limit = (Addr)base + size;
   AVER(vm->base < vm->limit);  /* .assume.not-last */
   
-#ifdef DEBUG_SIGN
   SigInit(&VMSigStruct, "VM");
   vm->sig = &VMSigStruct;
-#endif
 
   AVER(ISVALID(VM, vm));
 
@@ -160,9 +154,7 @@ void VMDestroy(VM vm)
   /* This appears to be pretty pointless, since the vm descriptor page
    * is about to vanish completely.  However, the VirtaulFree might
    * fail and it would be nice to have a dead sig there. */
-#ifdef DEBUG_SIGN
   vm->sig = SigInvalid;
-#endif
 
   b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
   AVER(b == TRUE);
@@ -188,7 +180,7 @@ Addr VMLimit(VM vm)
 Error VMMap(VM vm, Addr base, Addr limit)
 {
   LPVOID b;
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
   Addr grain = VMGrain();
 #endif
 
@@ -214,7 +206,7 @@ Error VMMap(VM vm, Addr base, Addr limit)
 
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
-#ifdef DEBUG_ASSERT
+#ifdef DEBUG
   Addr grain = VMGrain();
 #endif
   BOOL b;
