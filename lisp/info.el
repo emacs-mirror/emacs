@@ -505,7 +505,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                        "No such anchor in tag table or node in tag table or file: %s"
                        nodename))))))
 
-          (Info-select-node)))
+          (Info-select-node)
+	  (goto-char (point-min))))
     ;; If we did not finish finding the specified node,
     ;; go back to the previous one.
     (or Info-current-node no-going-back (null Info-history)
@@ -575,11 +576,14 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		      (or buffers
 			  (message "Composing main Info directory..."))
 		      (set-buffer (generate-new-buffer " info dir"))
-		      (insert-file-contents file)
-		      (setq buffers (cons (current-buffer) buffers)
-			    Info-dir-file-attributes
-			    (cons (cons file attrs)
-				  Info-dir-file-attributes))))))
+		      (condition-case nil
+			  (progn
+			    (insert-file-contents file)
+			    (setq buffers (cons (current-buffer) buffers)
+				  Info-dir-file-attributes
+				  (cons (cons file attrs)
+					Info-dir-file-attributes)))
+			(error (kill-buffer (current-buffer))))))))
 	  (or (cdr dirs) (setq Info-dir-contents-directory
 			       (file-name-as-directory (car dirs))))
 	  (setq dirs (cdr dirs))))
