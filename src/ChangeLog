@@ -1,3 +1,14 @@
+2004-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* callint.c (Fcall_interactively): Avoid reusing EVENT for other data.
+
+	* xfaces.c (merge_named_face): GCPRO the face_name in the
+	named_merge_point struct that we make.
+	(merge_face_heights): Eliminate GCPRO arg.  All callers changed.
+
+	* keyboard.c (command_loop_1): Change Vtransient_mark_mode
+	before deciding whether to inactivate mark.
+
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
 	* config.in: Regenerate (add HAVE_GETRUSAGE).
@@ -17,7 +28,6 @@
 	* xmenu.c (popup_get_selection, create_and_show_popup_menu)
 	(create_and_show_dialog): Revert change from 2004-10-31.
 	
-
 2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* macros.c (syms_of_macros) <defining-kbd-macro>: Doc fix.
