@@ -837,10 +837,12 @@ internal_equal (o1, o2, depth)
 do_cdr:
   QUIT;
   if (EQ (o1, o2)) return Qt;
+#ifdef LISP_FLOAT_TYPE
   if (NUMBERP (o1) && NUMBERP (o2))
     {
       return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
     }
+#endif
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
   if (XTYPE (o1) == Lisp_Cons)
     {
