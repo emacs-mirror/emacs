@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.7 2001/04/13 14:55:48 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.8 2001/07/16 07:46:48 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -484,12 +484,15 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (cvs-match "new revision: \\([0-9.]*\\); previous revision: .*$"
 		  (subtype 'COMMITTED) (base-rev 1)))
       (cvs-match "done$")
-      ;; it's important here not to rely on the default directory management
-      ;; because `cvs commit' might begin by a series of Examining messages
-      ;; so the processing of the actual checkin messages might begin with
-      ;; a `current-dir' set to something different from ""
-      (cvs-parsed-fileinfo (cons 'UP-TO-DATE subtype) path 'trust
-			   :base-rev base-rev))
+      (progn
+	;; Try to remove the temp files used by VC.
+	(vc-delete-automatic-version-backups path)
+	;; it's important here not to rely on the default directory management
+	;; because `cvs commit' might begin by a series of Examining messages
+	;; so the processing of the actual checkin messages might begin with
+	;; a `current-dir' set to something different from ""
+	(cvs-parsed-fileinfo (cons 'UP-TO-DATE subtype) path 'trust
+			     :base-rev base-rev)))
      
      ;; useless message added before the actual addition: ignored
      (cvs-match "RCS file: .*\ndone$"))))
