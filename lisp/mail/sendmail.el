@@ -422,6 +422,7 @@ If within the headers, this makes the new lines into continuation lines."
   (define-key mail-mode-map "\C-c\C-f\C-r" 'mail-reply-to)
   (define-key mail-mode-map "\C-c\C-t" 'mail-text)
   (define-key mail-mode-map "\C-c\C-y" 'mail-yank-original)
+  (define-key mail-mode-map "\C-c\C-r" 'mail-yank-region)
   (define-key mail-mode-map "\C-c\C-q" 'mail-fill-yanked-message)
   (define-key mail-mode-map "\C-c\C-w" 'mail-signature)
   (define-key mail-mode-map "\C-c\C-v" 'mail-sent-via)
@@ -965,15 +966,15 @@ When this function returns, the region is again around the modified text.
 
 Normally, indent each nonblank line `mail-indentation-spaces' spaces.
 However, if `mail-yank-prefix' is non-nil, insert that prefix on each line."
-  (let ((start (point)))
-    (mail-yank-clear-headers start (mark t))
-    (if (null mail-yank-prefix)
-	(indent-rigidly start (mark t) mail-indentation-spaces)
-      (save-excursion
-	(goto-char start)
-	(while (< (point) (mark t))
-	  (insert mail-yank-prefix)
-	  (forward-line 1))))))
+  (mail-yank-clear-headers (region-beginning) (region-end))
+  (if (null mail-yank-prefix)
+      (indent-rigidly (region-beginning) (region-end)
+		      mail-indentation-spaces)
+    (save-excursion
+      (goto-char (region-beginning))
+      (while (< (point) (region-end))
+	(insert mail-yank-prefix)
+	(forward-line 1)))))
 
 (defun mail-yank-original (arg)
   "Insert the message being replied to, if any (in rmail).
@@ -1014,6 +1015,9 @@ and don't delete any header fields."
 	(if (not (eolp)) (insert ?\n)))))
 
 (defun mail-yank-clear-headers (start end)
+  (if (< end start)
+      (let (temp)
+	(setq temp start start end end temp)))
   (if mail-yank-ignored-headers
       (save-excursion
 	(goto-char start)
@@ -1028,6 +1032,34 @@ and don't delete any header fields."
 			       (progn (re-search-forward "\n[^ \t]")
 				      (forward-char -1)
 				      (point)))))))))
+
+(defun mail-yank-region (arg)
+  "Insert the selected region from the message being replied to.
+Puts point after the text and mark before.
+Normally, indents each nonblank line ARG spaces (default 3).
+However, if `mail-yank-prefix' is non-nil, insert that prefix on each line.
+
+Just \\[universal-argument] as argument means don't indent, insert no prefix,
+and don't delete any header fields."
+  (interactive "P")
+  (and (consp mail-reply-action)
+       (eq (car mail-reply-action) 'insert-buffer)
+       (let ((buffer (nth 1 mail-reply-action))
+	     (start (point)))
+	 ;; Insert the citation text.
+	 (insert (with-current-buffer buffer
+		   (buffer-substring (point) (mark))))
+	 (push-mark start)
+	 ;; Indent or otherwise annotate the citation text.
+	 (if (consp arg)
+	     nil
+	   (let ((mail-indentation-spaces (if arg (prefix-numeric-value arg)
+					    mail-indentation-spaces)))
+	     (if mail-citation-hook
+		 (run-hooks 'mail-citation-hook)
+	       (if mail-yank-hooks
+		   (run-hooks 'mail-yank-hooks)
+		 (mail-indent-citation))))))))
 
 ;; Put these last, to reduce chance of lossage from quitting in middle of loading the file.
 
