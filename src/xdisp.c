@@ -8737,6 +8737,7 @@ handle_tool_bar_click (f, x, y, down_p, modifiers)
     {
       Lisp_Object key, frame;
       struct input_event event;
+      EVENT_INIT (event);
 
       /* Show item in released state.  */
       show_mouse_face (dpyinfo, DRAW_IMAGE_RAISED);
