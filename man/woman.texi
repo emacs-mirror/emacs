@@ -1,10 +1,10 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.5 2001/02/17 16:58:25 rms Exp $
+@c $Id: woman.texi,v 1.6 2001/03/04 07:14:22 rms Exp $
 @c %**start of header
 @setfilename ../info/woman
-@settitle WoMan: Browse UN*X Manual Pages ``Wo (without) Man''
+@settitle WoMan: Browse Unix Manual Pages ``Wo (without) Man''
 @c Manual last updated:
-@set UPDATED Time-stamp: <2000-08-08 12:20:51 eliz>
+@set UPDATED Time-stamp: <2001-03-05 17:10:30 eliz>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -20,40 +20,34 @@
 @end direntry
 
 @ifinfo
-This file documents WoMan: A program to browse UN*X manual pages `wo
+This file documents WoMan: A program to browse Unix manual pages `wo
 (without) man'.
 
-Copyright @copyright{} 2000  Free Software Foundation, Inc.
+Copyright @copyright{} 2001  Free Software Foundation, Inc.
 
-This manual and the software that it describes are subject to the GNU
-General Public License that is distributed with GNU Emacs -- see the
-file @file{COPYING}.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
 
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 
-@ignore
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries a copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-
-@end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying and provided that the
-entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions.
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end ifinfo
 
 @finalout
 
 @titlepage
 @title WoMan
-@subtitle Browse UN*X Manual Pages ``Wo (without) Man''
+@subtitle Browse Unix Manual Pages ``Wo (without) Man''
 @subtitle Software Version @value{VERSION}
 @author Francis J. Wright
 @sp 2
@@ -69,23 +63,25 @@ into another language, under the above conditions for modified versions.
 @comment  The following two commands start the copyright page.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2000  Francis J. Wright
+@noindent
+Copyright @copyright{} 2001 Free Software Foundation, Inc.
 
-This manual and the software that it describes are subject to the GNU
-General Public License that is distributed with GNU Emacs -- see the
-file @file{COPYING}.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
 
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying and provided that the
-entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions.
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end titlepage
 
 @contents
@@ -95,7 +91,7 @@ into another language, under the above conditions for modified versions.
 @ifnottex
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
-@top WoMan: Browse UN*X Manual Pages ``Wo (without) Man''
+@top WoMan: Browse Unix Manual Pages ``Wo (without) Man''
 
 @display
 Software Version @value{VERSION}
@@ -143,7 +139,7 @@ documentation files are available from
 @uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, my web server}.
 
 WoMan implements a subset of the formatting performed by the Emacs
-@code{man} (or @code{manual-entry}) command to format a UN*X-style
+@code{man} (or @code{manual-entry}) command to format a Unix-style
 @dfn{manual page} (usually abbreviated to @dfn{man page}) for display,
 but without calling any external programs.  It is intended to emulate
 the whole of the @code{ROFF -man} macro package, plus those @code{ROFF}
@@ -181,7 +177,7 @@ either running the command @code{woman-mini-help} or selecting the WoMan
 menu option @samp{Mini Help}.
 
 WoMan is (of course) still under development!  Please
-@email{F.J.Wright@@qmw.ac.uk, let me know} what doesn't work -- I am
+@email{F.J.Wright@@qmw.ac.uk, let me know} what doesn't work---I am
 adding and improving functionality as testing shows that it is
 necessary.  Guidance on reporting bugs is given below.  @xref{Bugs, ,
 Reporting Bugs}.
@@ -193,10 +189,10 @@ Reporting Bugs}.
 @chapter Background
 @cindex background
 
-WoMan is a browser for traditional UN*X-style manual page documentation.
+WoMan is a browser for traditional Unix-style manual page documentation.
 Each such document is conventionally referred to as a @dfn{manual page},
 or @dfn{man page} for short, even though some are very much longer than
-one page.  A man page is a document written using the UN*X ``man''
+one page.  A man page is a document written using the Unix ``man''
 macros, which are themselves written in the NROFF/TROFF text processing
 markup language.  @code{NROFF} and @code{TROFF} are text processors
 originally written for the UNIX operating system by Joseph F. Ossanna at
@@ -229,7 +225,7 @@ most screens now support bit-mapped displays, so that any information
 that can be printed can also be rendered on screen, the only difference
 being the resolution.
 
-Nevertheless, UN*X-style manual page documentation is still normally
+Nevertheless, Unix-style manual page documentation is still normally
 browsed on screen by running a program called @code{man}.  This program
 looks in a predefined set of directories for the man page matching a
 specified topic, then either formats the source file by running
@@ -267,9 +263,9 @@ decompression facility, which does call an external program.
 
 I began developing WoMan in the Spring of 1997 and the first version was
 released in May 1997.  The original motivation for WoMan was the fact
-that many GNU and UN*X programs are ported to other platforms and come
-with UN*X-style manual page documentation.  This may be difficult to
-read because ports of the UN*X-style @code{man} program can be a little
+that many GNU and Unix programs are ported to other platforms and come
+with Unix-style manual page documentation.  This may be difficult to
+read because ports of the Unix-style @code{man} program can be a little
 awkward to set up.  I decided that it should not be too hard to emulate
 the 20 @code{man} macros directly, without treating them as macros and
 largely ignoring the underlying @code{ROFF} requests, given the text
@@ -398,9 +394,9 @@ add these autoloads to your @file{.emacs} file:
 
 @lisp
 (autoload 'woman "woman"
-  "Decode and browse a UN*X man page." t)
+  "Decode and browse a Unix man page." t)
 (autoload 'woman-find-file "woman"
-  "Find, decode and browse a specific UN*X man-page file." t)
+  "Find, decode and browse a specific Unix man-page file." t)
 (autoload 'woman-dired-find-file "woman"
   "In dired, run the WoMan man-page browser on this file." t)
 @end lisp
@@ -743,7 +739,7 @@ all (provided WoMan is installed and loaded or set up to autoload).
 This command can be used to browse any accessible man file, regardless
 of its filename or location.  If the file is compressed then automatic
 file decompression must already be turned on (e.g.@: see the
-@samp{Help->Options} submenu) -- it is turned on automatically only by
+@samp{Help->Options} submenu)---it is turned on automatically only by
 the @code{woman} topic interface.
 
 @findex woman-dired-find-file
@@ -794,7 +790,7 @@ is not really supported.  It originated during early experiments on how
 best to implement WoMan, before I implemented the current topic
 interface, and I subsequently stopped using it.  I might revive it as a
 mechanism for storing pre-formatted WoMan files, somewhat analogous to
-the standard UN*X @code{catman} facility.  In the meantime, it exists
+the standard Unix @code{catman} facility.  In the meantime, it exists
 for anyone who wants to experiment with it.  Once it is set up it is
 simply a question of visiting the file and there is no WoMan-specific
 user interface!
@@ -807,7 +803,7 @@ by automatic major mode selection.]
 (autoload 'woman-decode-region "woman")
 
 (add-to-list 'format-alist
-             '(man "UN*X man-page source format" "\\.\\(TH\\|ig\\) "
+             '(man "Unix man-page source format" "\\.\\(TH\\|ig\\) "
                    woman-decode-region nil nil
                    (lambda (arg)
                      set-visited-file-name
@@ -887,12 +883,12 @@ Scroll the man page down the window (@code{scroll-down}).
 @item n
 @kindex n
 @findex Man-next-section
-Move point to the Nth next section -- default 1 (@code{Man-next-section}).
+Move point to the Nth next section---default 1 (@code{Man-next-section}).
 
 @item p
 @kindex p
 @findex Man-previous-section
-Move point to Nth previous section -- default 1
+Move point to Nth previous section---default 1
 (@code{Man-previous-section}).
 
 @item g
@@ -1171,7 +1167,7 @@ set but a configuration file is found then it is parsed instead (or as
 well) to provide a default value for @code{woman-manpath}.
 
 @item woman-manpath
-A list of strings representing @emph{directory trees} to search for UN*X
+A list of strings representing @emph{directory trees} to search for Unix
 manual files.  Each element should be the name of a directory that
 contains subdirectories of the form @file{man?}, or more precisely
 subdirectories selected by the value of @code{woman-manpath-man-regexp}.
@@ -1191,7 +1187,7 @@ is
 ("/usr/man" "/usr/local/man")
 @end lisp
 
-Any environment variables (names of which must have the UN*X-style form
+Any environment variables (names of which must have the Unix-style form
 @code{$NAME}, e.g.@: @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
 evaluate to a @emph{single} directory name.  Trailing @file{/}s are
@@ -1207,7 +1203,7 @@ e.g.
 @cindex directory separator character
 @cindex @code{MANPATH}, directory separator
 The @code{MANPATH} environment variable may be set using DOS
-semi-colon-separated or UN*X / Cygwin colon-separated syntax (but not
+semi-colon-separated or Unix-style colon-separated syntax (but not
 mixed).
 
 @item woman-manpath-man-regexp
@@ -1220,7 +1216,7 @@ purpose is to avoid directories such as @file{cat?}, @file{.},
 
 @item woman-path
 A list of strings representing @emph{specific directories} to search for
-UN*X manual files.  For example
+Unix manual files.  For example
 
 @lisp
 ("/emacs/etc")
@@ -1241,7 +1237,7 @@ and unreadable files are ignored.  The default value on MS-DOS is
 @noindent
 and on other platforms is @code{nil}.
 
-Any environment variables (names of which must have the UN*X-style form
+Any environment variables (names of which must have the Unix-style form
 @code{$NAME}, e.g.@: @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
 evaluate to a @emph{single} directory name (regexp, see above).  For
@@ -1302,7 +1298,7 @@ automatically define @kbd{w} and @kbd{W} if they are unbound, or
 
 @item woman-imenu-generic-expression
 Imenu support for Sections and Subsections: an alist with elements of
-the form @code{(MENU-TITLE REGEXP INDEX)} -- see the documentation for
+the form @code{(MENU-TITLE REGEXP INDEX)}---see the documentation for
 @code{imenu-generic-expression}.  Default value is
 
 @lisp
