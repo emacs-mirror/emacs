@@ -684,8 +684,18 @@ There should be no more than seven characters after the final `/'")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
-;;;###autoload
-(defun auto-compression-mode (&optional arg)
+;;;###autoload(defun auto-compression-mode (&optional arg)
+;;;###autoload  "Toggle automatic file compression and uncompression.
+;;;###autoloadWith prefix argument ARG, turn auto compression on if positive, else off.
+;;;###autoloadReturns the new status of auto compression (non-nil means on)."
+;;;###autoload  (if (not (fboundp 'jka-compr-installed-p))
+;;;###autoload      (progn
+;;;###autoload        (require 'jka-compr)
+;;;###autoload        ;; That turned the mode on, so make it initially off.
+;;;###autoload        (toggle-auto-compression)))
+;;;###autoload  (toggle-auto-compression arg))
+
+(defun toggle-auto-compression (&optional arg)
   "Toggle automatic file compression and uncompression.
 With prefix argument ARG, turn auto compression on if positive, else off.
 Returns the new status of auto compression (non-nil means on)."
@@ -713,7 +723,6 @@ Returns the new status of auto compression (non-nil means on)."
 	   (message "Automatic file (de)compression is now OFF.")))
 
     flag))
-(defalias 'toggle-auto-compression 'auto-compression-mode)
 
 (defun jka-compr-build-file-regexp ()
   (concat
