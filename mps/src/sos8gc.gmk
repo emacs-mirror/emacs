@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SOLARIS/SPARC v8/GCC PLATFORM
 #
-#  $HopeName: MMsrc!sos8gc.gmk(trunk.22) $
+#  $HopeName: MMsrc!sos8gc.gmk(trunk.23) $
 #  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 #  This is the GNU makefile for platform.sos8gc.
@@ -12,7 +12,7 @@ PFM = sos8gc
 MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       arenavm.c arenacl.c arena.c pool.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
-      trace.c than.c protso.c shield.c mpsi.c ld.c vmso.c \
+      trace.c than.c protso.c prmcan.c shield.c mpsi.c ld.c vmso.c \
       mpsioan.c event.c action.c seg.c message.c poolmrg.c \
       span.c
 MPMS = sssos8.s
