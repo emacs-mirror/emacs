@@ -1,6 +1,6 @@
 ;;; tpu-mapper.el  ---  Create a TPU-edt keymap file for x-windows emacs.
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -361,13 +361,31 @@
 (set-buffer "Keys")
 
 ;;;
-;;;  Save the key mapping program and blow this pop stand
+;;;  Save the key mapping program
 ;;;
 (let ((file (if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-keys")))
   (set-visited-file-name
    (read-file-name (format "Save key mapping to file (default %s): " file) "" file)))
 (save-buffer)
 
-(message "tpu-mapper done")
+;;;
+;;;  Load the newly defined keys and clean up
+;;;
+(eval-current-buffer)
+(kill-buffer (current-buffer))
+(kill-buffer "*scratch*")
+(kill-buffer "Gold-Keys")
+
+;;;
+;;;  Let them know it worked.
+;;;
+(switch-to-buffer "Directions")
+(erase-buffer)
+(insert "
+    A custom TPU-edt keymap file has been created.
+
+    Press GOLD-k to remove this buffer and continue editing.
+")
+(goto-char (point-min))
 
 ;;; tpu-mapper.el ends here
