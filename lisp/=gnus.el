@@ -1,4 +1,4 @@
-;;; GNUS: an NNTP-based News Reader for GNU Emacs
+;;; gnus.el --- NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987,88,89,90,93,94 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
@@ -1442,8 +1442,9 @@ If optional argument VISIBLE-ONLY is non-nil, non displayed group is ignored."
   (save-excursion
     (beginning-of-line)
     (if (looking-at "^.+:[ \t]+\\([^ \t\n]+\\)\\([ \t].*\\|$\\)")
-	(buffer-substring (match-beginning 1) (match-end 1))
-      )))
+        (let ((group-name (buffer-substring (match-beginning 1) (match-end 1))))
+          (set-text-properties 0 (length group-name) nil group-name)
+          group-name))))
 
 (defun gnus-group-make-regexp (newsgroup)
   "Return regexp that matches for a line of NEWSGROUP."
