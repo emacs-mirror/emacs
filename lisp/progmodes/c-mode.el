@@ -447,6 +447,15 @@ preserving the comment indentation or line-starting decorations."
 				  (search-forward "*/" nil 'move)
 				  (forward-line 1)
 				  (point)))
+	      (goto-char (point-max))
+	      (forward-line -1)
+	      ;; And comment terminator was on a separate line before,
+	      ;; keep it that way.
+	      ;; This also avoids another problem:
+	      ;; if the fill-prefix ends in a *, it could eat up
+	      ;; the * of the comment terminator.
+	      (if (looking-at "[ \t]*\\*/")
+		  (narrow-to-region (point-min) (point)))
 	      (fill-paragraph arg)
 	      (save-excursion
 		;; Delete the chars we inserted to avoid clobbering
@@ -1504,7 +1513,9 @@ move backward across a preprocessor conditional."
 		    (if forward (forward-line 1))
 		    ;; If this line exits a level of conditional, exit inner loop.
 		    (if (< depth 0)
-			(setq found (point)))))))
+			(setq found (point))))
+		;; If the line is not really a conditional, skip past it.
+		(if forward (end-of-line)))))
 	  (or found
 	      (error "No containing preprocessor conditional"))
 	  (goto-char (setq new found)))
