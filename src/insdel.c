@@ -30,6 +30,7 @@ static void insert_from_string_1 ();
 static void gap_left ();
 static void gap_right ();
 static void adjust_markers ();
+static void adjust_point ();
 
 /* Move gap to position `pos'.
    Note that this can quit!  */
@@ -241,6 +242,19 @@ adjust_markers (from, to, amount)
       marker = m->chain;
     }
 }
+
+/* Add the specified amount to point.  This is used only when the value
+   of point changes due to an insert or delete; it does not represent
+   a conceptual change in point as a marker.  In particular, point is
+   not crossing any interval boundaries, so there's no need to use the
+   usual SET_PT macro.  In fact it would be incorrect to do so, because
+   either the old or the new value of point is out of synch with the
+   current set of intervals.  */
+static void
+adjust_point (amount)
+{
+  current_buffer->text.pt += amount;
+}
 
 /* Make the gap INCREMENT characters longer.  */
 
@@ -331,7 +345,7 @@ insert_1 (string, length)
   GPT += length;
   ZV += length;
   Z += length;
-  SET_PT (PT + length);
+  adjust_point (length);
 }
 
 /* Insert the part of the text of STRING, a Lisp object assumed to be
@@ -395,7 +409,7 @@ insert_from_string_1 (string, pos, length, inherit)
   graft_intervals_into_buffer (XSTRING (string)->intervals, PT, length,
 			       current_buffer, inherit);
 
-  SET_PT (PT + length);
+  adjust_point (length);
 }
 
 /* Insert the character C before point */
@@ -489,12 +503,7 @@ del_range_1 (from, to, prepare)
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
-    {
-      if (PT < to)
-	SET_PT (from);
-      else
-	SET_PT (PT - numdel);
-    }
+    adjust_point (from - (PT < to ? PT : to));
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   offset_intervals (current_buffer, from, - numdel);
