@@ -1,3 +1,8 @@
+2002-05-13  Kim F. Storm  <storm@cua.dk>
+
+	* variables.texi (Intro to Buffer-Local): Updated warning and
+	example relating to changing buffer inside let.
+
 2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
 	* os.texi (Session Management): New node about X Session management.
