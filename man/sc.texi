@@ -1565,7 +1565,7 @@ incorrectly.
 @vindex sc-use-only-preference-p
 @vindex use-only-preference-p (sc-)
 Also, if the preferred attribution, which you specified in your
-@code{sc-preferred-attribution-alist} variable cannot be found, a
+@code{sc-preferred-attribution-list} variable cannot be found, a
 secondary method can be employed to find a valid attribution string. The
 variable @code{sc-use-only-preference-p} controls what happens in this
 case.  If the variable's value is non-@code{nil}, then
