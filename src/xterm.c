@@ -770,22 +770,26 @@ x_after_update_window_line (desired_row)
   
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     {
+      struct frame *f;
+      int width;
+      
       BLOCK_INPUT;
       x_draw_row_bitmaps (w, desired_row);
 
       /* When a window has disappeared, make sure that no rest of
 	 full-width rows stays visible in the internal border.  */
-      if (windows_or_buffers_changed)
+      if (windows_or_buffers_changed
+	  && (f = XFRAME (w->frame),
+	      width = FRAME_INTERNAL_BORDER_WIDTH (f),
+	      width != 0))
 	{
-	  struct frame *f = XFRAME (w->frame);
-	  int width = FRAME_INTERNAL_BORDER_WIDTH (f);
 	  int height = desired_row->visible_height;
 	  int x = (window_box_right (w, -1)
 		   + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
 	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      x, y, width, height, False);
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			x, y, width, height, False);
 	}
       
       UNBLOCK_INPUT;
@@ -5152,6 +5156,22 @@ x_delete_glyphs (n)
 }
 
 
+/* Like XClearArea, but check that WIDTH and HEIGHT are reasonable.
+   If they are <= 0, this is probably an error.  */
+
+void
+x_clear_area (dpy, window, x, y, width, height, exposures)
+     Display *dpy;
+     Window window;
+     int x, y;
+     int width, height;
+     int exposures;
+{
+  xassert (width > 0 && height > 0);
+  XClearArea (dpy, window, x, y, width, height, exposures);
+}
+
+
 /* Erase the current text line from the nominal cursor position
    (inclusive) to pixel column TO_X (exclusive).  The idea is that
    everything from TO_X onward is already erased.
@@ -5219,9 +5239,9 @@ x_clear_end_of_line (to_x)
   if (to_x > from_x && to_y > from_y)
     {
       BLOCK_INPUT;
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  from_x, from_y, to_x - from_x, to_y - from_y,
-		  False);
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    from_x, from_y, to_x - from_x, to_y - from_y,
+		    False);
       UNBLOCK_INPUT;
     }
 }
@@ -8333,9 +8353,9 @@ x_scroll_bar_create (w, top, left, width, height)
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
-    XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		left, top, width,
-		window_box_height (w), False);
+    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  left, top, width,
+		  window_box_height (w), False);
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -8462,13 +8482,12 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     /* Draw the empty space above the handle.  Note that we can't clear
        zero-height areas; that means "clear to end of window."  */
     if (0 < start)
-      XClearArea (FRAME_X_DISPLAY (f), w,
-
-		  /* x, y, width, height, and exposures.  */
-		  VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		  VERTICAL_SCROLL_BAR_TOP_BORDER,
-		  inside_width, start,
-		  False);
+      x_clear_area (FRAME_X_DISPLAY (f), w,
+		    /* x, y, width, height, and exposures.  */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		    VERTICAL_SCROLL_BAR_TOP_BORDER,
+		    inside_width, start,
+		    False);
 
     /* Change to proper foreground color if one is specified.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -8491,13 +8510,12 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
     if (end < inside_height)
-      XClearArea (FRAME_X_DISPLAY (f), w,
-
-		  /* x, y, width, height, and exposures.  */
-		  VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		  VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		  inside_width, inside_height - end,
-		  False);
+      x_clear_area (FRAME_X_DISPLAY (f), w,
+		    /* x, y, width, height, and exposures.  */
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
+		    inside_width, inside_height - end,
+		    False);
 
   }
 
@@ -8582,8 +8600,8 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   if (NILP (w->vertical_scroll_bar))
     {
       BLOCK_INPUT;
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  left, top, width, height, False);
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    left, top, width, height, False);
       UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
     }
@@ -8609,8 +8627,8 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       /* Since toolkit scroll bars are smaller than the space reserved
 	 for them on the frame, we have to clear "under" them.  */
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  left, top, width, height, False);
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    left, top, width, height, False);
 
       /* Move/size the scroll bar widget.  */
       if (mask)
@@ -8628,13 +8646,13 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	     previous mode line display is cleared after C-x 2 C-x 1, for
 	     example.  Non-toolkit scroll bars are as wide as the area
 	     reserved for scroll bars - trim at both sides.  */
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		      height, False);
-	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		      top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		      height, False);
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+			height, False);
+	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+			top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+			height, False);
 	}
       
       /* Move/size the scroll bar window.  */
@@ -9045,7 +9063,8 @@ x_scroll_bar_clear (f)
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
     for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
 	 bar = XSCROLL_BAR (bar)->next)
-      XClearArea (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
+      XClearArea (FRAME_X_DISPLAY (f),
+		  SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
 		  0, 0, 0, 0, True);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
@@ -10772,13 +10791,13 @@ x_erase_phys_cursor (w)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
       
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  x,
-		  WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						   cursor_row->y)),
-		  cursor_glyph->pixel_width,
-		  cursor_row->visible_height,
-		  False);
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    x,
+		    WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
+						     cursor_row->y)),
+		    cursor_glyph->pixel_width,
+		    cursor_row->visible_height,
+		    False);
     }
   
   /* Erase the cursor by redrawing the character underneath it.  */
