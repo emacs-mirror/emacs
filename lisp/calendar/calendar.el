@@ -1986,7 +1986,7 @@ ERROR is t, otherwise just returns nil."
 	       (save-excursion
 		 (re-search-backward "[^*]")
 		 (looking-at ".\\*\\*")))
-	  (list month starred-day year)
+	  (list month calendar-starred-day year)
 	(if error (error "Cursor is not on a date!"))))))
 
 (defun calendar-cursor-to-nearest-date ()
@@ -2574,9 +2574,9 @@ MARK defaults to diary-entry-marker."
 This function can be used with the today-visible-calendar-hook run after the
 calendar window has been prepared."
   (let ((buffer-read-only nil))
-    (make-variable-buffer-local 'starred-day)
+    (make-variable-buffer-local 'calendar-starred-day)
     (forward-char 1)
-    (setq starred-day
+    (setq calendar-starred-day
           (string-to-int
            (buffer-substring (point) (- (point) 2))))
     (delete-char -2)
