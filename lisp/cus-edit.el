@@ -2666,9 +2666,9 @@ SPEC must be a full face spec."
 	  (t
 	   ;; Create tag.
 	   (insert tag)
+	   (widget-specify-sample widget begin (point))
 	   (if (eq custom-buffer-style 'face)
 	       (insert " ")
-	     (widget-specify-sample widget begin (point))
 	     (if (string-match "face\\'" tag)
 		 (insert ":")
 	       (insert " face: ")))
