@@ -1705,36 +1705,32 @@ start_display (it, w, pos)
      struct window *w;
      struct text_pos pos;
 {
-  int start_at_line_beg_p;
   struct glyph_row *row;
   int first_vpos = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
-  int first_y;
 
   row = w->desired_matrix->rows + first_vpos;
   init_iterator (it, w, CHARPOS (pos), BYTEPOS (pos), row, DEFAULT_FACE_ID);
-  first_y = it->current_y;
-  
-  /* If window start is not at a line start, move back to the line
-     start.  This makes sure that we take continuation lines into
-     account.  */
-  start_at_line_beg_p = (CHARPOS (pos) == BEGV
-			 || FETCH_BYTE (BYTEPOS (pos) - 1) == '\n');
-  if (!start_at_line_beg_p)
-    reseat_at_previous_visible_line_start (it);
 
-  /* If window start is not at a line start, skip forward to POS to
-     get the correct continuation_lines_width and current_x.  */
-  if (!start_at_line_beg_p)
+  if (!it->truncate_lines_p)
     {
-      move_it_to (it, CHARPOS (pos), -1, -1, -1, MOVE_TO_POS);
-
-      /* If lines are continued, this line may end in the middle of a
-	 multi-glyph character (e.g. a control character displayed as
-	 \003, or in the middle of an overlay string).  In this case
-	 move_it_to above will not have taken us to the start of
-	 the continuation line but to the end of the continued line.  */
-      if (!it->truncate_lines_p)
+      int start_at_line_beg_p;
+      int first_y = it->current_y;
+  
+      /* If window start is not at a line start, skip forward to POS to
+	 get the correct continuation lines width.  */
+      start_at_line_beg_p = (CHARPOS (pos) == BEGV
+			     || FETCH_BYTE (BYTEPOS (pos) - 1) == '\n');
+      if (!start_at_line_beg_p)
 	{
+	  reseat_at_previous_visible_line_start (it);
+	  move_it_to (it, CHARPOS (pos), -1, -1, -1, MOVE_TO_POS);
+
+	  /* If lines are continued, this line may end in the middle
+	     of a multi-glyph character (e.g. a control character
+	     displayed as \003, or in the middle of an overlay
+	     string).  In this case move_it_to above will not have
+	     taken us to the start of the continuation line but to the
+	     end of the continued line.  */
 	  if (it->current_x > 0)
 	    {
 	      if (it->current.dpvec_index >= 0
@@ -1743,7 +1739,7 @@ start_display (it, w, pos)
 		  set_iterator_to_next (it, 1);
 		  move_it_in_display_line_to (it, -1, -1, 0);
 		}
-	  
+	      
 	      it->continuation_lines_width += it->current_x;
 	    }
 
@@ -1752,11 +1748,11 @@ start_display (it, w, pos)
 	     fields in the iterator structure.  */
 	  it->max_ascent = it->max_descent = 0;
 	  it->max_phys_ascent = it->max_phys_descent = 0;
-	}
       
-      it->current_y = first_y;
-      it->vpos = 0;
-      it->current_x = it->hpos = 0;
+	  it->current_y = first_y;
+	  it->vpos = 0;
+	  it->current_x = it->hpos = 0;
+	}
     }
 
 #if 0 /* Don't assert the following because start_display is sometimes
