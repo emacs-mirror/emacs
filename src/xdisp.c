@@ -13810,8 +13810,10 @@ of the top or bottom of the window.");
   truncate_partial_width_windows = 1;
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
-    "*Non-nil means use inverse video for the mode line.");
-  mode_line_inverse_video = 1;
+    "Non-nil means use inverse video for the mode line.\n\
+\n\
+This variable is deprecated; please use the face `mode-line' instead.");
+  mode_line_inverse_video = 0;
 
   DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit,
     "*Maximum buffer size for which line number should be displayed.\n\
