@@ -1,3 +1,12 @@
+2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile (mostlyclean, clean, distclean, maintainer-clean):
+	Add *.dvi and *.log.
+	(SOURCES): Update the list of files.
+
+	* calccard.tex: New file.
+	* calccard.ps: New file.
+
 2001-11-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* etags.1: Replace presentation-level troff macros that simulate
