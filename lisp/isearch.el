@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/01/16 23:40:50 $|$Revision: 1.62 $
+;; |$Date: 1994/01/19 18:45:34 $|$Revision: 1.63 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1360,7 +1360,7 @@ If there is no completion possible, say so and continue searching."
 (defvar isearch-overlay nil)
 
 (defun isearch-highlight (beg end)
-  (if (null search-highlight)
+  (if (or (null search-highlight) (null window-system))
       nil
     (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
     (move-overlay isearch-overlay beg end (current-buffer))
