@@ -2891,10 +2891,20 @@ static void
 record_char (c)
      Lisp_Object c;
 {
-  total_keys++;
-  XVECTOR (recent_keys)->contents[recent_keys_index] = c;
-  if (++recent_keys_index >= NUM_RECENT_KEYS)
-    recent_keys_index = 0;
+  Lisp_Object help;
+
+  /* Don't record `help-echo' in recent_keys unless it shows some help
+     message.  */
+  if (!CONSP (c)
+      || !EQ (XCAR (c), Qhelp_echo)
+      || (help = Fnth (make_number (2), c),
+	  !NILP (help)))
+    {
+      total_keys++;
+      ASET (recent_keys, recent_keys_index, c);
+      if (++recent_keys_index >= NUM_RECENT_KEYS)
+	recent_keys_index = 0;
+    }
 
   /* Write c to the dribble file.  If c is a lispy event, write
      the event's symbol to the dribble file, in <brackets>.  Bleaugh.
@@ -2928,7 +2938,8 @@ record_char (c)
       fflush (dribble);
     }
 
-  store_kbd_macro_char (c);
+  if (!CONSP (c) || !EQ (Qhelp_echo, XCAR (c)))
+    store_kbd_macro_char (c);
 
   num_nonmacro_input_events++;
 }
