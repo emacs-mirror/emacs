@@ -2,7 +2,7 @@
  *
  *            Leaf Object Pool Class Coverage Test
  *
- *  $HopeName: MMsrc!locv.c(trunk.2) $
+ *  $HopeName: MMsrc!locv.c(trunk.3) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -12,15 +12,15 @@
 
 
 #include "std.h"
+#include "space.h"
 #include "lo.h"
 #include "testlib.h"
-#include "coll.h"
 #include "format.h"
 #include "pool.h"
 #include "poolclas.h"
-#include "sched.h"
-#include "space.h"
+#include "root.h"
 
+SRCID("$HopeName$");
 
 
 static Error scan(ScanState ss, Addr base, Addr limit);
@@ -40,8 +40,6 @@ main(void)
   Buffer buffer;
   Addr p;
   Bool b;
-  Coll coll;
-  int i;
   Root root;
 
   die(SpaceCreate(&space), "SpaceCreate");
@@ -72,16 +70,6 @@ main(void)
   *(Addr *)p = 4;
   b = BufferCommit(buffer, p, (Size)4);
   AVER(b);
-
-  die(CollCreate(&coll, pool), "CollCreate");
-  die(SchedProcAdd(SpaceSched(space), CollProc, coll, 0),
-      "SchedProcAdd");
-
-  /*  .collect.finish: impossible to tell when a collection
-   *  is finished */
-  for(i = 0; i < 10; ++i) {
-    SchedRun(SpaceSched(space));
-  }
 
   BufferDestroy(buffer);
   PoolDestroy(pool);
