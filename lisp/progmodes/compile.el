@@ -679,7 +679,7 @@ Does NOT find the source line like \\[next-error]."
 
 (defun compile-goto-error (&optional argp)
   "Visit the source for the error message point is on.
-Use this command in a compilation log buffer.
+Use this command in a compilation log buffer.  Sets the mark at point there.
 \\[universal-argument] as a prefix arg means to reparse the buffer's error messages first;
 other kinds of prefix arguments are ignored."
   (interactive "P")
@@ -707,6 +707,7 @@ other kinds of prefix arguments are ignored."
 	;; but we didn't want to do that.
 	(set-buffer compilation-last-buffer)))
 
+  (push-mark)
   (next-error 1))
 
 ;; Return a compilation buffer.
