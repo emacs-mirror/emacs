@@ -1,3 +1,58 @@
+2003-05-06  Jesper Harder  <harder@ifa.au.dk>
+
+	* progmodes/compile.el (compile-internal): Don't quote nil and t in
+	docstrings.
+
+	* emacs-lisp/eldoc.el (eldoc-echo-area-use-multiline-p): Likewise.
+
+	* emacs-lisp/cl-macs.el (case, typecase): Likewise.
+
+	* allout.el (allout-auto-activation)
+	(allout-use-mode-specific-leader, allout-reindent-bodies)
+	(allout-unprotected): Likewise.
+
+	* progmodes/tcl.el (tcl-explain-indentation): Likewise.
+
+	* progmodes/idlwave.el (idlwave-complete-special): Likewise.
+
+	* progmodes/cpp.el (cpp-edit-list): Likewise.
+
+	* progmodes/cperl-mode.el (cperl-lineup): Likewise.
+
+	* progmodes/cc-align.el (c-lineup-argcont, c-lineup-gcc-asm-reg):
+	Likewise.
+
+	* play/mpuz.el (mpuz-silent): Likewise.
+
+	* play/decipher.el (decipher-ignore-spaces): Likewise.
+
+	* net/rlogin.el (rlogin-process-connection-type): Likewise.
+
+	* mail/rmail.el (rmail-primary-inbox-list): Likewise.
+
+	* mail/mailalias.el (mail-directory-function)
+	(mail-directory-requery, mail-directory): Likewise.
+
+	* emacs-lisp/lucid.el (buffer-syntactic-context): Likewise.
+
+	* emacs-lisp/lmenu.el (popup-dialog-box): Likewise.
+
+	* type-break.el (type-break-good-rest-interval)
+	(type-break-query-mode, type-break-query-function)
+	(type-break-mode-line-message-mode): Likewise.
+
+	* skeleton.el (skeleton-autowrap, skeleton-untabify)
+	(skeleton-newline-indent-rigidly, skeleton-insert)
+	(skeleton-read): Likewise.
+
+	* simple.el (newline): Likewise.
+
+	* ps-print.el (ps-zebra-stripe-follow): Likewise.
+
+	* mwheel.el (mouse-wheel-scroll-amount): Likewise.
+
+	* env.el (setenv): Likewise.
+
 2003-05-06  Lute Kamstra  <lute@occarina.pna.cwi.nl>
 
 	* hl-line.el: Removed an erroneous comment.
@@ -38,7 +93,7 @@
 2003-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
         * dired.el (dired-find-file): Bind find-file-run-dired around
-        the call to find-file. 
+        the call to find-file.
 
 2003-05-04  Stefan Monnier  <monnier@cs.yale.edu>
 

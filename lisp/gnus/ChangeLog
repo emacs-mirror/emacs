@@ -1,3 +1,12 @@
+2003-05-06  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus-cus.el (gnus-group-customize, gnus-score-parameters): Don't
+	quote nil and t in docstrings.
+
+	* gnus-score.el (gnus-score-lower-thread): Likewise.
+
+	* gnus-art.el (gnus-article-mime-match-handle-function): Likewise.
+
 2003-02-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnfolder.el (nnfolder-request-accept-article): Don't use
