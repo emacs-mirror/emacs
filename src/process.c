@@ -2347,9 +2347,9 @@ read_process_output (proc, channel)
 
       /* Insert after old_begv, but before old_zv.  */
       if (point < XFASTINT (old_begv))
-	XFASTINT (old_begv) += nchars;
+	XSETFASTINT (old_begv, XFASTINT (old_begv) + nchars);
       if (point <= XFASTINT (old_zv))
-	XFASTINT (old_zv) += nchars;
+	XSETFASTINT (old_zv, XFASTINT (old_zv) + nchars);
 
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
