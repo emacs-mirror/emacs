@@ -657,6 +657,7 @@ point=26957 of 26956(100%)  column 0
 @end smallexample
 
 @cindex character set of character at point
+@cindex font of character at point
 @cindex text properties at point
   @w{@kbd{C-u C-x =}} displays additional information about a
 character, including the character set name and the codes that
@@ -664,7 +665,8 @@ identify the character within that character set; ASCII characters are
 identified as belonging to the @code{ascii} character set.  It also
 shows the character's syntax, categories, and encodings both
 internally in the buffer and externally if you save the file.  It also
-shows the character's text properties, if any.
+shows the character's text properties, if any, and the font used to
+display it.
 
   Here's an example showing the Latin-1 character A with grave accent,
 in a buffer whose coding system is @code{iso-2022-7bit}, whose
