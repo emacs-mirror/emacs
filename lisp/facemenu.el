@@ -168,6 +168,7 @@ when they are created.")
   (let ((map (make-sparse-keymap "Special")))
     (define-key map [read-only] (cons "Read-Only" 'facemenu-set-read-only))
     (define-key map [invisible] (cons "Invisible" 'facemenu-set-invisible))
+    (define-key map [intangible] (cons "Intangible" 'facemenu-set-intangible))
     map)
   "Menu keymap for non-face text-properties.")
 ;;;###autoload
@@ -391,17 +392,20 @@ This sets the `read-only' text property; it can be undone with
 
 ;;;###autoload
 (defun list-colors-display (&optional list)
-  "Display colors.
-You can optionally supply a LIST of colors to display, or this function will
-get a list for the current display, removing alternate names for the same
-color."
+  "Display names of defined colors, and show what they look like.
+If the optional argument LIST is non-nil, it should be a list of
+colors to display.  Otherwise, this command computes a list
+of colors that the current display can handle."
   (interactive)
   (if (and (null list) (eq 'x window-system))
-      (let ((l (setq list (x-defined-colors))))
-	(while (cdr l)
-	  (if (facemenu-color-equal (car l) (car (cdr l)))
-	      (setcdr l (cdr (cdr l)))
-	    (setq l (cdr l))))))
+      (progn
+	(setq list (x-defined-colors))
+	;; Delete duplicate colors.
+	(let ((l list))
+	  (while (cdr l)
+	    (if (facemenu-color-equal (car l) (car (cdr l)))
+		(setcdr l (cdr (cdr l)))
+	      (setq l (cdr l)))))))
   (with-output-to-temp-buffer "*Colors*"
     (save-excursion
       (set-buffer standard-output)
@@ -423,9 +427,10 @@ color."
 
 (defun facemenu-color-equal (a b)
   "Return t if colors A and B are the same color.
-A and B should be strings naming colors.  The window-system server is queried
-to find how they would actually be displayed.  Nil is always returned if the
-correct answer cannot be determined."
+A and B should be strings naming colors.
+This function queries the window-system server to find out what the
+color names mean.  It returns nil if the colors differ or if it can't
+determine the correct answer."
   (cond ((equal a b) t)
 	((and (eq 'x window-system)
 	      (equal (x-color-values a) (x-color-values b))))))
