@@ -1,3 +1,7 @@
+2005-02-06  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Example Major Modes): Fix typos.
+
 2005-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Margins): fill-nobreak-predicate can be one function.
