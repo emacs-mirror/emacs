@@ -76,7 +76,7 @@ but still shows the full information."
       (if arg
 	  (list-character-sets-2)
 	;; Insert header.
-	(insert "Indirectly supported character sets are shown below.\n")
+	(insert "Supplementary character sets are shown below.\n")
 	(insert
 	 (substitute-command-keys
 	  (concat "Use "
@@ -108,18 +108,12 @@ but still shows the full information."
 (defun sort-listed-character-sets (sort-key)
   (if sort-key
       (save-excursion
-	(help-setup-xref (list #'list-character-sets nil) t)
 	(let ((buffer-read-only nil))
 	  (goto-char (point-min))
-	  (re-search-forward "[0-9][0-9][0-9]")
-	  (beginning-of-line)
-	  (let ((pos (point)))
-	    (search-forward "----------")
-	    (beginning-of-line)
-	    (save-restriction
-	      (narrow-to-region pos (point))
-	      (delete-region (point-min) (point-max))
-	      (list-character-sets-1 sort-key)))))))
+	  (search-forward "\n-")
+	  (forward-line 1)
+	  (delete-region (point) (point-max))
+	  (list-character-sets-1 sort-key)))))
 
 (defun list-character-sets-1 (sort-key)
   "Insert a list of character sets sorted by SORT-KEY.
@@ -127,14 +121,16 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
   (or sort-key
       (setq sort-key 'name))
   (let ((tail charset-list)
-	charset-info-list charset sort-func)
+	charset-info-list supplementary-list charset sort-func)
     (dolist (charset charset-list)
       ;; Generate a list that contains all information to display.
-      (push (list charset
-		  (charset-dimension charset)
-		  (charset-chars charset)
-		  (charset-iso-final-char charset))
-	    charset-info-list))
+      (let ((elt (list charset
+		       (charset-dimension charset)
+		       (charset-chars charset)
+		       (charset-iso-final-char charset))))
+	(if (plist-get (charset-plist charset) :supplementary-p)
+	    (push elt supplementary-list)
+	  (push elt charset-info-list))))
 
     ;; Determine a predicate for `sort' by SORT-KEY.
     (setq sort-func
@@ -154,19 +150,23 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 		 (error "Invalid charset sort key: %s" sort-key))))
 
     (setq charset-info-list (sort charset-info-list sort-func))
+    (setq supplementary-list (sort supplementary-list sort-func))
 
     ;; Insert information of character sets.
-    (dolist (elt charset-info-list)
-      (insert-text-button (symbol-name (car elt))
-			  :type 'list-charset-chars
-			  'help-args (list (car elt)))
-      (goto-char (point-max))
-      (insert "\t")
-      (indent-to 48)
-      (insert (format "%d %3d " (nth 1 elt) (nth 2 elt)) ; DIMENSION and CHARS
-	      (if (< (nth 3 elt) 0)
-		  "none"
-		(nth 3 elt)))		; FINAL-CHAR
+    (dolist (elt (append charset-info-list (list t) supplementary-list))
+      (if (eq elt t)
+	  (insert "-------------- Supplementary Character Sets --------------")
+	(insert-text-button (symbol-name (car elt)) ; NAME
+			    :type 'list-charset-chars
+			    'help-args (list (car elt)))
+	(goto-char (point-max))
+	(insert "\t")
+	(indent-to 48)
+	(insert (format "%d %3d "
+			(nth 1 elt) (nth 2 elt)) ; DIMENSION and CHARS
+		(if (< (nth 3 elt) 0)
+		    "none"
+		  (nth 3 elt))))	; FINAL-CHAR
       (insert "\n"))))
 
 
@@ -267,6 +267,8 @@ detailed meanings of these arguments."
 (defun list-charset-chars (charset)
   "Display a list of characters in character set CHARSET."
   (interactive (list (read-charset "Character set: ")))
+  (or (charsetp charset)
+      (error "Invalid character set: %s" charset))
   (with-output-to-temp-buffer "*Character List*"
     (with-current-buffer standard-output
       (if (coding-system-p charset)
@@ -281,8 +283,6 @@ detailed meanings of these arguments."
 			  (cdr slot)))))
       (setq tab-width 4)
       (set-buffer-multibyte t)
-      (unless (charsetp charset)
-	(error "Invalid character set %s" charset))
       (let ((dim (charset-dimension charset))
 	    (chars (charset-chars charset))
 	    ;; 	(plane (charset-iso-graphic-plane charset))
