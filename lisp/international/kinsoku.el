@@ -78,8 +78,8 @@ The value 0 means there's no limitation.")
        (idx 0)
        ch)
   (while (< idx len)
-    (setq ch (sref kinsoku-bol idx)
-	  idx (+ idx (char-bytes ch)))
+    (setq ch (aref kinsoku-bol idx)
+	  idx (1+ idx))
     (modify-category-entry ch ?>)))
 
 ;; Setting character category `<' for characters which should not be
@@ -115,8 +115,8 @@ The value 0 means there's no limitation.")
        (idx 0)
        ch)
   (while (< idx len)
-    (setq ch (sref kinsoku-eol idx)
-	  idx (+ idx (char-bytes ch)))
+    (setq ch (aref kinsoku-eol idx)
+	  idx (1+ idx))
     (modify-category-entry ch ?<)))
 
 ;; Try to resolve `kinsoku' restriction by making the current line longer.

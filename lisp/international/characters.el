@@ -256,14 +256,14 @@
     (while (< i len)
       (if (= (aref chars i) ?-)
 	  (setq i (1+ i)
-		to (sref chars i))
-	(setq ch (sref chars i)
+		to (aref chars i))
+	(setq ch (aref chars i)
 	      to ch))
       (while (<= ch to)
 	(modify-syntax-entry ch syntax)
 	(modify-category-entry ch category)
 	(setq ch (1+ ch)))
-      (setq i (+ i (char-bytes to))))
+      (setq i (1+ i)))
     (setq deflist (cdr deflist))))
 
 ;; Ethiopic character set
@@ -317,6 +317,37 @@
 (modify-category-entry (make-char 'indian-is13194) ?i)
 (modify-category-entry (make-char 'indian-2-column) ?I)
 (modify-category-entry (make-char 'indian-1-column) ?I)
+
+(let ((deflist	
+	'(;; chars	syntax	category
+	  ("(5!"#(B"	"w"	?7) ; vowel-modifying diacritical mark
+				    ; chandrabindu, anuswar, visarga
+	  ("(5$(B-(52(B"	"w"	?1) ; base (independent) vowel
+	  ("(53(B-(5X(B"	"w"	?0) ; consonant
+	  ("(5Z(B-(5g(B"	"w"	?8) ; matra
+	  ("(5q(B-(5z(B"	"w"	?6) ; digit
+	  ))
+      elm chars len syntax category to ch i)
+  (while deflist
+    (setq elm (car deflist))
+    (setq chars (car elm)
+	  len (length chars)
+	  syntax (nth 1 elm)
+	  category (nth 2 elm)
+	  i 0)
+    (while (< i len)
+      (if (= (aref chars i) ?-)
+	  (setq i (1+ i)
+		to (aref chars i))
+	(setq ch (aref chars i)
+	      to ch))
+      (while (<= ch to)
+	(modify-syntax-entry ch syntax)
+	(modify-category-entry ch category)
+	(setq ch (1+ ch)))
+      (setq i (1+ i)))
+    (setq deflist (cdr deflist))))
+
 
 ;; Japanese character set (JISX0201-kana, JISX0201-roman, JISX0208, JISX0212)
 
@@ -425,14 +456,14 @@
     (while (< i len)
       (if (= (aref chars i) ?-)
 	  (setq i (1+ i)
-		to (sref chars i))
-	(setq ch (sref chars i)
+		to (aref chars i))
+	(setq ch (aref chars i)
 	      to ch))
       (while (<= ch to)
 	(modify-syntax-entry ch syntax)
 	(modify-category-entry ch category)
 	(setq ch (1+ ch)))
-      (setq i (+ i (char-bytes to))))
+      (setq i (1+ i)))
     (setq deflist (cdr deflist))))
 
 ;; Thai character set (TIS620)
@@ -459,14 +490,14 @@
     (while (< i len)
       (if (= (aref chars i) ?-)
 	  (setq i (1+ i)
-		to (sref chars i))
-	(setq ch (sref chars i)
+		to (aref chars i))
+	(setq ch (aref chars i)
 	      to ch))
       (while (<= ch to)
 	(modify-syntax-entry ch syntax)
 	(modify-category-entry ch category)
 	(setq ch (1+ ch)))
-      (setq i (+ i (char-bytes to))))
+      (setq i (1+ i)))
     (setq deflist (cdr deflist))))
 
 ;; Tibetan character set
@@ -505,14 +536,14 @@
     (while (< i len)
       (if (= (aref chars i) ?-)
 	  (setq i (1+ i)
-		to (sref chars i))
-	(setq ch (sref chars i)
+		to (aref chars i))
+	(setq ch (aref chars i)
 	      to ch))
       (while (<= ch to)
 	(modify-syntax-entry ch syntax)
 	(modify-category-entry ch category)
 	(setq ch (1+ ch)))
-      (setq i (+ i (char-bytes to))))
+      (setq i (1+ i)))
     (setq deflist (cdr deflist))))
 
 ;; Vietnamese character set
