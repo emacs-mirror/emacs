@@ -1988,9 +1988,10 @@ Returns the window displaying BUFFER.")
 	      && XWINDOW (other)->height > XWINDOW (window)->height)
 	    {
 	      int total = XWINDOW (other)->height + XWINDOW (window)->height;
-	      struct window *old_selected_window = selected_window;
+	      Lisp_Object old_selected_window;
+	      old_selected_window = selected_window;
 
-	      selected_window = XWINDOW (upper);
+	      selected_window = upper;
 	      change_window_height (total / 2 - XWINDOW (upper)->height, 0);
 	      selected_window = old_selected_window;
 	    }
