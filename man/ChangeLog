@@ -1,3 +1,7 @@
+2004-12-13  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Fix some TeX definitions.
+
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
 	* misc.texi (FFAP): Add C-x C-r, C-x C-v, C-x C-d,
