@@ -99,11 +99,7 @@ Optional argument YANK means yank original article."
   (news-mail-reply)
   (gnus-overload-functions)
   (if yank
-      (let ((last (point)))
-	(goto-char (point-max))
-	(mail-yank-original nil)
-	(goto-char last)
-	)))
+      (mail-yank-original nil)))
 
 (defun gnus-mail-forward-using-mail ()
   "Forward the current message to another user using mail."
