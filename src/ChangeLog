@@ -2,6 +2,7 @@
 
 	* process.c (Qconnect, Qfailed): New variables.
 	(syms_of_process): Intern and staticpro them.
+	(Fprocess_status): Document connect and failed return values.
 	[NON_BLOCKING_CONNECT]: New conditional.
 	(connect_wait_mask, num_pending_connects): New variables.
 	(status_message): Convert Qfailed status.
@@ -12,7 +13,7 @@
 	(wait_reading_process_input): Poll for status of non-blocking
 	connects.  Exec sentinel directly when connect succeeds.
 	(status_notify): Don't read process output if not yet connected.
-
+	
 2002-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* window.c: (minibuf_selected_window): Renamed from
