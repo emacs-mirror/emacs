@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.13) $
+ * $HopeName: MMsrc!poolamc.c(trunk.14) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.13) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.14) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -122,7 +122,6 @@ static AMCGen AMCSegGen(Seg seg)
 
 typedef struct AMCStruct {      /* design.mps.poolamc.struct */
   PoolStruct poolStruct;        /* generic pool structure */
-  Format format;                /* container format */
   RankSet rankSet;              /* rankSet for entire pool */
   RingStruct genRing;           /* ring of generations */
   AMCGen nursery;               /* the default mutator generation */
@@ -443,9 +442,9 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
 
   amc = PoolPoolAMC(pool);
 
-  amc->format = va_arg(arg, Format);
-  AVERT(Format, amc->format);
-  pool->alignment = amc->format->alignment;
+  pool->format = va_arg(arg, Format);
+  AVERT(Format, pool->format);
+  pool->alignment = pool->format->alignment;
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
@@ -650,7 +649,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer)
   size = AddrOffset(BufferGetInit(buffer), SegLimit(seg));
   if(size > 0) {
     ShieldExpose(arena, seg);
-    (*amc->format->pad)(BufferGetInit(buffer), size);
+    (*pool->format->pad)(BufferGetInit(buffer), size);
     ShieldCover(arena, seg);
   }
   EVENT_PPW(AMCBufferEmpty, amc, buffer, size);
@@ -975,7 +974,7 @@ static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   EVENT_PPP(AMCScanBegin, amc, seg, ss); /* @@@@ use own event */
 
-  format = amc->format;
+  format = pool->format;
   AMCSegNailBoard(seg)->newMarks = FALSE;
 
   p = SegBase(seg);
@@ -1083,7 +1082,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVERT(AMC, amc);
 
 
-  format = amc->format;
+  format = pool->format;
   arena = pool->arena;
 
   if(AMCSegHasNailBoard(seg)) {
@@ -1195,7 +1194,7 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   }
 
   ShieldExpose(arena, seg);
-  newRef = (*amc->format->isMoved)(*refIO);
+  newRef = (*pool->format->isMoved)(*refIO);
   ShieldCover(arena, seg);
   if(newRef != (Addr)0) {
     /* Object has been forwarded already, so snap-out pointer. */
@@ -1220,7 +1219,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Arena arena;
   AMC amc;
   Res res;
-  Format format;        /* cache of amc->format */
+  Format format;        /* cache of pool->format */
   Ref ref;              /* reference to be fixed */
   Ref newRef;           /* new location, if moved */
   Size length;          /* length of object to be relocated */
@@ -1268,7 +1267,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   amc = PoolPoolAMC(pool);
   AVERT_CRITICAL(AMC, amc);
-  format = amc->format;
+  format = pool->format;
   ref = *refIO;
 
   arena = pool->arena;
@@ -1389,7 +1388,7 @@ static void AMCReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   amc = PoolPoolAMC(pool);
   AVERT(AMC, amc);
-  format = amc->format;
+  format = pool->format;
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
@@ -1529,7 +1528,7 @@ static Res AMCSegDescribe(AMC amc, Seg seg, mps_lib_FILE *stream)
         c = '.';
       else if(j == p) {
         c = '*';
-        p = (*amc->format->skip)(p);
+        p = (*amc->poolStruct.format->skip)(p);
       } else
         c = '=';
       res = WriteF(stream, "$C", c, NULL);
@@ -1578,7 +1577,7 @@ static void AMCWalk(Pool pool, Seg seg,
 
     amc = PoolPoolAMC(pool);
     AVERT(AMC, amc);
-    format = amc->format;
+    format = pool->format;
 
     /* If the segment is buffered, only walk as far as the end */
     /* of the initialized objects.  cf. AMCScan */
@@ -1590,8 +1589,8 @@ static void AMCWalk(Pool pool, Seg seg,
     while(object < limit) {
       /* Check not a broken heart. */
       AVER((*format->isMoved)(object) == NULL);
-      (*f)(object, amc->format, pool, p, s);
-      nextObject = (*amc->format->skip)(object);
+      (*f)(object, pool->format, pool, p, s);
+      nextObject = (*pool->format->skip)(object);
       AVER(nextObject > object);
       object = nextObject;
     }
@@ -1649,8 +1648,6 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
                (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
                " $P {\n", (WriteFP)amc, "  pool $P ($U)  ",
                (WriteFP)AMCPool(amc), (WriteFU)AMCPool(amc)->serial,
-               "  format $P ($U)\n",
-               (WriteFP)amc->format, (WriteFU)amc->format->serial,
                NULL);
   if(res != ResOK)
     return res;
@@ -1848,7 +1845,6 @@ static Bool AMCCheck(AMC amc)
   CHECKD(Pool, &amc->poolStruct);
   CHECKL(amc->poolStruct.class == &PoolClassAMCStruct ||
          amc->poolStruct.class == &PoolClassAMCZStruct);
-  CHECKD(Format, amc->format);
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKL(RingCheck(&amc->genRing));
   if(amc->nursery != NULL)
