@@ -153,7 +153,7 @@ which is at least the number of distinct elements.")
       if (EQ (tail, halftail) && len != 0)
 	break;
       len++;
-      if (len & 1 == 0)
+      if ((len & 1) == 0)
 	halftail = XCONS (halftail)->cdr;
     }
 
