@@ -1314,10 +1314,12 @@ definition and conveniently use this command."
 
 (defun c-delete-backslash ()
   (end-of-line)
-  (forward-char -1)
-  (if (looking-at "\\\\")
-      (delete-region (1+ (point))
-		     (progn (skip-chars-backward " \t") (point)))))
+  (or (bolp)
+      (progn
+	(forward-char -1)
+	(if (looking-at "\\\\")
+	    (delete-region (1+ (point))
+			   (progn (skip-chars-backward " \t") (point)))))))
 
 (defun c-up-conditional (count)
   "Move back to the containing preprocessor conditional, leaving mark behind.
