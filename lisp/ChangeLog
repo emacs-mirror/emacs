@@ -1,4 +1,10 @@
-2002-09-14  Dave Love  <d.love@dl.ac.uk>
+2002-09-23  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Don't set char width of CJK
+	charsets generally.
+	(korean-ksc5601): Fix ranges with symbol syntax.
+
+2002-09-14  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (DONTCOMPILE): Add indian.el.
 
