@@ -137,8 +137,8 @@ not the default value itself."
 		((eq keyword :options)
 		 (if (get symbol 'custom-options)
 		     ;; Slow safe code to avoid duplicates.
-		     (mapcar (lambda (option)
-			       (custom-add-option symbol option))
+		     (mapc (lambda (option)
+			     (custom-add-option symbol option))
 			     value)
 		   ;; Fast code for the common case.
 		   (put symbol 'custom-options (copy-sequence value))))
@@ -453,7 +453,7 @@ COMMENT is a comment string about SYMBOL."
 		 set)
 	    (when requests
 	      (put symbol 'custom-requests requests)
-	      (mapcar 'require requests))
+	      (mapc 'require requests))
 	    (setq set (or (get symbol 'custom-set) 'custom-set-default))
 	    (put symbol 'saved-value (list value))
 	    (put symbol 'saved-variable-comment comment)
