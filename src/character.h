@@ -77,7 +77,7 @@ Boston, MA 02111-1307, USA.  */
 /* Nonzero iff X is a character.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
 
-/* Nozero iff C is valid as a charater code.  GENERICP is not used
+/* Nonzero iff C is valid as a character code.  GENERICP is not used
    now.  */
 #define CHAR_VALID_P(c, genericp) ((unsigned) (c) <= MAX_CHAR)
 

@@ -532,6 +532,7 @@ in *Help* buffer.  See also the command `describe-char-after'."
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
 	    (setq coding default-buffer-file-coding-system))
+	;; Fixme: can we actually have invalid chars now?
 	(if (not (char-valid-p char))
 	    (setq encoding-msg
 		  (format "(0%o, %d, 0x%x, invalid)" char char char))

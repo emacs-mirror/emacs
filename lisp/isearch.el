@@ -235,6 +235,7 @@ Default value, nil, means edit the string instead."
 	(char-table-p (nth 1 map))
 	(error "The initialization of isearch-mode-map must be updated"))
     ;; Make all multibyte characters search for themselves.
+    ;; Fixme: is this range right?
     (set-char-table-range (nth 1 map) (cons #x100 #x2FFFFF)
 			  'isearch-printing-char)
     ;; Make function keys, etc, exit the search.

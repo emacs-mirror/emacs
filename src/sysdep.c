@@ -3082,6 +3082,8 @@ seed_random (arg)
      long arg;
 {
 #ifdef HAVE_RANDOM
+  /* Fixme: needs __USE_XOPEN_EXTENDED defined to be picked up from
+     GNU stdlib.h.  */
   srandom ((unsigned int)arg);
 #else
 # ifdef HAVE_LRAND48
