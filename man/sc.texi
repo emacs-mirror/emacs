@@ -236,7 +236,7 @@ string carrying details about the citation it is about to perform.
 
 @cindex modeline
 Next, Supercite visits each line in the reply, transforming the line
-according to a customizable ``script''.  Lines which were not previously
+according to a customizable ``script.''  Lines which were not previously
 cited in the original message are given a citation, while already cited
 lines remain untouched, or are coerced to your preferred style.
 Finally, Supercite installs a keymap into the reply buffer so that you
@@ -797,7 +797,7 @@ original message is performed via a call through a configurable hook
 variable.  The name of this variable has been agreed to in advance as
 part of the @dfn{citation interface specification}.  By default this
 hook variable has a @code{nil} value, which the MUA recognizes to mean,
-``use your default citation function''.  When you add Supercite's
+``use your default citation function.''  When you add Supercite's
 citation function to the hook, thereby giving the variable a
 non-@code{nil} value, it tells the MUA to run the hook via
 @code{run-hooks} instead of using the default citation.@refill
@@ -1215,7 +1215,7 @@ The modeline of the reply buffer should indicate that Supercite is
 active in that buffer by displaying the string @samp{SC}.
 
 @item
-@emph{Sets the ``Undo Boundary''.}
+@emph{Sets the ``Undo Boundary.''}
 @cindex undo boundary
 Supercite sets an undo boundary before it begins to modify the original
 yanked text.  This allows you to easily undo Supercite's changes to
