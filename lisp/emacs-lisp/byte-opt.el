@@ -1263,14 +1263,15 @@
 	((>= op byte-constant)
 	 (prog1 (- op byte-constant)	;offset in opcode
 	   (setq op byte-constant)))
-	((and (>= op byte-constant2)
-	      (<= op byte-goto-if-not-nil-else-pop))
+	((or (and (>= op byte-constant2)
+		  (<= op byte-goto-if-not-nil-else-pop))
+	     (= op byte-stack-set2))
 	 (setq ptr (1+ ptr))		;offset in next 2 bytes
 	 (+ (aref bytes ptr)
 	    (progn (setq ptr (1+ ptr))
 		   (lsh (aref bytes ptr) 8))))
 	((and (>= op byte-listN)
-	      (<= op byte-insertN))
+	      (<= op byte-discardN))
 	 (setq ptr (1+ ptr))		;offset in next byte
 	 (aref bytes ptr))))
 
@@ -1332,7 +1333,9 @@
 	     (if (= ptr (1- length))
 		 (setq op nil)
 	       (setq offset (or endtag (setq endtag (byte-compile-make-tag)))
-		     op 'byte-goto))))
+		     op 'byte-goto)))
+	    ((eq op 'byte-stack-set2)
+	     (setq op 'byte-stack-set)))
       ;; lap = ( [ (pc . (op . arg)) ]* )
       (setq lap (cons (cons optr (cons op (or offset 0)))
 		      lap))
