@@ -1,3 +1,8 @@
+2000-08-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* help.el (help-make-xrefs): Don't make hyperlinks for incorrect
+	coding systems.
+
 2000-08-30  Andrew Innes  <andrewi@gnu.org>
 
 	* timer.el (run-with-idle-timer): Undo last change, so that timer
