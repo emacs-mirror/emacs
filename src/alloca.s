@@ -181,7 +181,7 @@ _alloca:
 	move.l	sp,d1		; get current SP value
 	sub.l	d0,d1		; adjust to reflect required size...
 	sub.l	#MAXREG*4,d1	; ...and space needed for registers
-	and.l	#-4,d1		; backup to longword boundry
+	and.l	#-4,d1		; backup to longword boundary
 	move.l	sp,a0		; save old SP value for register copy
 	move.l	d1,sp		; set the new SP value
 	tst.b	-4096(sp)	; grab an extra page (to cover caller)
