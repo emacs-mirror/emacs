@@ -2439,7 +2439,6 @@ handle_single_display_prop (it, prop, object, position)
 
       /* Characters having this form of property are not displayed, so
          we have to find the end of the property.  */
-      space_or_image_found_p = 1;
       start_pos = *position;
       *position = display_prop_end (it, object, start_pos);
       value = Qnil;
@@ -2489,6 +2488,8 @@ handle_single_display_prop (it, prop, object, position)
 	   || NILP (location))
 	  && valid_p)
 	{
+	  space_or_image_found_p = 1;
+	  
 	  /* Save current settings of IT so that we can restore them
 	     when we are finished with the glyph property value.  */
 	  push_it (it);
@@ -2534,6 +2535,10 @@ handle_single_display_prop (it, prop, object, position)
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
+      else
+	/* Invalid property or property not supported.  Restore
+	   the position to what it was before.  */
+	*position = start_pos;
     }
 
   return space_or_image_found_p;
