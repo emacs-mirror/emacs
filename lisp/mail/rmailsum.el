@@ -381,8 +381,15 @@ nil for FUNCTION means all messages."
 	  (save-excursion
 	    (save-restriction
 	      (widen)
-	      (let
-		  ((lines (count-lines (rmail-msgbeg msgnum) (rmail-msgend msgnum))))
+	      (let ((beg (rmail-msgbeg msgnum))
+		    (end (rmail-msgend msgnum))
+		    lines)
+		(save-excursion
+		  (goto-char beg)
+		  ;; Count only lines in the reformatted header,
+		  ;; if we have reformatted it.
+		  (search-forward "\n*** EOOH ***\n" end t)
+		  (setq lines (count-lines (point) end)))
 		(format (cond
 			 ((<= lines     9) "   [%d]")
 			 ((<= lines    99) "  [%d]")
