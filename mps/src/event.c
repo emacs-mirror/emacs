@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.5) $
+ * $HopeName: MMsrc!event.c(trunk.6) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.5) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.6) $");
 
 #ifdef EVENT /* .trans.ifdef */
 
@@ -125,6 +125,9 @@ void (EventFinish)(void)
 
 Word EventControl(Word resetMask, Word flipMask)
 {
+  UNUSED(resetMask);
+  UNUSED(flipMask);
+
   return (Word)0;
 }
 
