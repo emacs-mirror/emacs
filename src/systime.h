@@ -35,8 +35,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #endif
 
-/* AIX needs both <sys/time.h> and <time.h>.  */
-#ifdef _AIX
+/* AIX and SCO 3.2v4 need both <sys/time.h> and <time.h>.  */
+#if defined (_AIX) || defined (SCO)
 #include <time.h>
 #endif
 
