@@ -1,3 +1,9 @@
+2000-10-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* startup.el (fancy-splash-screens): Use local rather than global map.
+	Don't use `update-menu-bindings' any more.
+	Get rid of assumptions about keymap representation.
+
 2000-10-06  Dave Love  <fx@gnu.org>
 
 	* textmodes/fill.el (sentence-end-double-space) 
@@ -8,8 +14,7 @@
 
 	* net/eudc-vars.el (eudc): Add :version, :link.
 
-	* international/mule-conf.el (file-coding-system-alist): Use \',
-	not $.
+	* international/mule-conf.el (file-coding-system-alist): Use \', not $.
 
 	* emacs-lisp/find-func.el (find-function-regexp): Remove spurion.
 	Fix for define-minor-mode.
@@ -22,6 +27,21 @@
 	* image-file.el (image-file-name-regexp): image-file-regexps ->
 	image-file-name-regexps.
 	(image-file-name-extensions): Add pbm.
+
+2000-10-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* smerge-mode.el (smerge-diff): Setup the buffer's default-directory
+	and add filename to the names so that diff-mode can jump to source.
+
+	* font-lock.el (font-lock-defaults-alist): Remove the TeX entries.
+	(tex-font-lock-keywords, tex-font-lock-keywords-2) 
+	(tex-font-lock-keywords-1): Remove.
+	(font-lock-turn-on-thing-lock): Use jit-lock-register.
+	(font-lock-turn-off-thing-lock): Use jit-lock-unregister.
+	(font-lock-default-fontify-region): Expand beg..end correctly
+	when just following a multiline region.
+	(font-lock-fontify-anchored-keywords):
+	Include the anchor text as part of the multiline.
 
 2000-10-06  Gerd Moellmann  <gerd@gnu.org>
 
