@@ -1,3 +1,11 @@
+2002-05-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_create_pixmap_from_bitmap_data): New function.
+	(xbm_load_image): Use it.
+	(xbm_load): Ditto.
+	(xbm_read_bitmap_data): Reverted to xfns.c version.
+	From David Ponce <david@dponce.com>.
+
 2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (sig_suspender, sigprocmask): Don't define for DJGPP
