@@ -48,7 +48,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@bbn.com
-(defconst mh-e-RCS-id "$Header: /home/fsf/rms/e19/lisp/RCS/mh-e.el,v 1.14 1993/07/17 00:18:04 rms Exp rms $")
+(defconst mh-e-RCS-id "$Header: /home/fsf/rms/e19/lisp/RCS/mh-e.el,v 1.15 1993/07/20 04:35:00 rms Exp rms $")
 
 ;;; Code:
 
@@ -2334,7 +2334,7 @@ Use \\[kill-buffer] if you don't want to delete the draft message file."
 						 (match-end 0))))
       (cond ((looking-at "-")		; Message range
 	     (forward-char 1)
-	     (re-search-forward " [0-9]+" end-of-line t)
+	     (re-search-forward "[0-9]+" end-of-line t)
 	     (let ((num2 (string-to-int (buffer-substring (match-beginning 0)
 							  (match-end 0)))))
 	       (if (< num2 num)
