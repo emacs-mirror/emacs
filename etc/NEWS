@@ -9,7 +9,7 @@ Temporary note:
  +++ indicates that the appropriate manual has already been updated.
  --- means no change in the manuals is called for.
 When you add a new item, please add it without either +++ or ---
-so we will look at it
+so we will look at it and add it to the manual.
 
 
 * Installation Changes in Emacs 21.4
