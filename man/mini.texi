@@ -571,3 +571,7 @@ list in the variable @code{command-history}.  Each element is a Lisp
 expression which describes one command and its arguments.  Lisp programs
 can re-execute a command by calling @code{eval} with the
 @code{command-history} element.
+
+@ignore
+   arch-tag: ba913cfd-b70e-400f-b663-22b2c309227f
+@end ignore

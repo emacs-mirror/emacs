@@ -5,10 +5,59 @@
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
 @macro trampver{}
-2.0.31
+2.0.36
 @end macro
 
 @c Other flags from configuration
 @set prefix /usr/local
 @set lispdir /usr/local/share/emacs/site-lisp
 @set infodir /usr/local/info
+
+@c Some flags which make the text independent on the (X)Emacs flavor.
+@c "emacs" resp "xemacs" are set in the Makefile.  Default is "emacs".
+
+@ifclear emacs
+@ifclear xemacs
+@set emacs
+@end ifclear
+@end ifclear
+
+@c Emacs values.
+@ifset emacs
+@set emacs-name               Emacs
+@set emacs-dir                emacs
+@set ftp-package-name         Ange-FTP
+@set tramp-prefix             /
+@set tramp-prefix-single-hop
+@set tramp-postfix            :
+@set tramp-postfix-single-hop :
+@set tramp-postfix-multi-hop  :
+@end ifset
+
+@c XEmacs counterparts.
+@ifset xemacs
+@set emacs-name               XEmacs
+@set emacs-dir                xemacs
+@set ftp-package-name         EFS
+@set tramp-prefix             /[
+@set tramp-prefix-single-hop  [
+@set tramp-postfix            ]
+@set tramp-postfix-single-hop /
+@set tramp-postfix-multi-hop  :
+@end ifset
+
+@c Empty macro definitions in order to satisfy texi2dvi
+@macro otherflavor
+@end macro
+
+@macro installationchapter
+@end macro
+
+@c The installation chapter is needed only in case Tramp is installed
+@c standalone.  That's why it is included from `trampinst.texi'.
+@c Otherwise, '/dev/null/' is tken, which leaves this part empty.
+
+
+@ignore
+   arch-tag: e0fe322c-e06b-46eb-bb5b-d091b521f41c
+@end ignore

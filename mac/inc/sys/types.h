@@ -38,3 +38,6 @@ typedef unsigned long mode_t;
 #endif  /* __MRC__ */
 
 #endif  /* _SYS_TYPES_H */
+
+/* arch-tag: d4b69a6a-b2ff-4be2-a152-a162af81d823
+   (do not change this comment) */

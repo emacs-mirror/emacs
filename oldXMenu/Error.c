@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/Error.c,v 1.1 1992/04/11 22:10:18 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Error.c,v 1.2 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -28,3 +28,5 @@ XMenuError()
     return(message);
 }
 
+/* arch-tag: 5fff4a23-40ca-40d0-8887-c50fc73dea9d
+   (do not change this comment) */

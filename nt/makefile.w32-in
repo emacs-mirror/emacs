@@ -214,6 +214,15 @@ install-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) -C ../lisp install
 	$(MAKE) $(MFLAGS) -C ../leim install
 
+force-info:
+# Note that man/makefile knows how to
+# put the info files in $(infodir),
+# so we can do ok running make in the build dir.
+info: force-info
+	(cd ..\man && $(MAKE) $(MFLAGS) info)
+	(cd ..\lispref && $(MAKE) $(MFLAGS) info)
+	(cd ..\lispintro && $(MAKE) $(MFLAGS) info)
+
 #
 # Maintenance
 #
@@ -229,7 +238,13 @@ clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) clean
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) clean
+	cd ..\lispintro
+	$(MAKE) $(MFLAGS) clean
+	cd ..\lispref
+	$(MAKE) $(MFLAGS) clean
 	cd ..\leim
+	$(MAKE) $(MFLAGS) clean
+	cd ..\man
 	$(MAKE) $(MFLAGS) clean
 	cd ..\nt
 
@@ -258,3 +273,5 @@ cleanall: clean cleanall-other-dirs-$(MAKETYPE)
 
 realclean: cleanall
 	- $(DEL_TREE) ../bin
+
+# arch-tag: 6f5b23a6-774b-4598-9c29-58235b2b4219

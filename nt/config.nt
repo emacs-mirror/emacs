@@ -381,6 +381,8 @@ Boston, MA 02111-1307, USA.  */
 #define mktime emacs_mktime
 #endif
 
+#define my_strftime nstrftime   /* for strftime.c */
+
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.
    Note that on some SCO version it is possible to have bcopy and not bcmp.  */
@@ -466,3 +468,6 @@ extern char *getenv ();
 #define NO_RETURN	/* nothing */
 #endif
 #endif
+
+/* arch-tag: df720992-aa5a-499a-882d-958dc5eeb5e9
+   (do not change this comment) */

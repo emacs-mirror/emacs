@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/Destroy.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Destroy.c,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -114,3 +114,6 @@ XMenuDestroy(display, menu)
      */
     free(menu);
 }
+
+/* arch-tag: 44c9589f-5893-46fc-bc23-1b03a7f9c015
+   (do not change this comment) */

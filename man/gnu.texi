@@ -542,3 +542,7 @@ this are bureaucracy and isometric struggles against competition.  Free
 software will greatly reduce these drains in the area of software
 production.  We must do this, in order for technical gains in productivity
 to translate into less work for us.
+
+@ignore
+   arch-tag: 21eb38f8-6fa0-480a-91cd-f3dab7148542
+@end ignore

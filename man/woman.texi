@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.13 2002/12/10 13:20:09 pj Exp $
+@c $Id: woman.texi,v 1.15 2003/09/30 20:42:15 rms Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
@@ -1329,9 +1329,9 @@ The SysV standard man pages use two character suffixes, and this is
 becoming more common in the GNU world.  For example, the man pages in
 the @code{ncurses} package include @file{toe.1m}, @file{form.3x}, etc.
 
-@strong{Note:} an optional compression regexp will be appended, so this
-regexp @emph{must not} end with any kind of string terminator such as
-@code{$} or @code{\\'}.
+@strong{Please note:} an optional compression regexp will be appended,
+so this regexp @emph{must not} end with any kind of string terminator
+such as @code{$} or @code{\\'}.
 
 @item woman-file-compression-regexp
 A regular match expression used to match compressed man file extensions
@@ -1642,3 +1642,7 @@ Eli Zaretskii, @email{eliz@@is.elta.co.il}
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: a1a6b715-396f-4378-9b94-0b2ca0aa5028
+@end ignore

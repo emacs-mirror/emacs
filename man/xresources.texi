@@ -46,6 +46,9 @@ collection of related options, for one program or for several programs
 Emacs compiled for Windows looks for X resources in the Windows
 Registry, under the key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
 and then under the key @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.
+The menu and scrollbars are native widgets on MS-Windows, so they are
+only customizable via the system-wide settings in the Display Control
+Panel.
 
   Programs define named resources with particular meanings.  They also
 define how to group resources into named classes.  For instance, in
@@ -139,6 +142,7 @@ frame.  Select one of them, such as @samp{menubar}, then select
 @samp{Show Resource Box} from the @samp{Commands} menu.  This displays
 a list of all the meaningful X resources and allows you to edit them.
 Changes take effect immediately if you click on the @samp{Apply} button.
+(See the @code{editres} man page for more details.)
 
 @node Table of Resources
 @appendixsec Table of X Resources for Emacs
@@ -201,6 +205,7 @@ Width in pixels of the internal border.
 Additional space (@dfn{leading}) between lines, in pixels.
 
 @item @code{menuBar} (class @code{MenuBar})
+@cindex menu bar
 Give frames menu bars if @samp{on}; don't have menu bars if
 @samp{off}.  @xref{Lucid Resources}, and @ref{LessTif Resources}, for
 how to control the appearance of the menu bar if you have one.
@@ -249,10 +254,20 @@ useful for debugging X problems.
 Name to display in the title bar of the initial Emacs frame.
 
 @item @code{toolBar} (class @code{ToolBar})
+@cindex tool bar
 Number of lines to reserve for the tool bar.  A zero value suppresses
 the tool bar.  If the value is non-zero and
 @code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's size
 will be changed automatically so that all tool bar items are visible.
+
+@item @code{useXIM} (class @code{UseXIM})
+@cindex XIM
+@cindex X input methods
+@cindex input methods, X
+Turn off use of X input methods (XIM) if @samp{false} or @samp{off}.
+This is only relevant if your Emacs is actually built with XIM
+support.  It is potentially useful to turn off XIM for efficiency,
+especially slow X client/server links.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
@@ -378,15 +393,22 @@ In the menu bar, the color of the foreground for a selected item.
 @item horizontalSpacing
 Horizontal spacing in pixels between items.  Default is 3.
 @item verticalSpacing
-Vertical spacing in pixels between items.  Default is 1.
+Vertical spacing in pixels between items.  Default is 2.
 @item arrowSpacing
 Horizontal spacing between the arrow (which indicates a submenu) and
 the associated text.  Default is 10.
 @item shadowThickness
-Thickness of shadow line around the widget.
+Thickness of shadow line around the widget.  Default is 1.
+
+Also determines the thickness of shadow lines around other objects,
+for instance 3D buttons and arrows.  If you have the impression that
+the arrows in the menus do not stand out clearly enough or that the
+difference between ``in'' and ``out'' buttons is difficult to see, set
+this to 2.  If you have no problems with visibility, the default
+probably looks better.  The background color may also have some effect
+on the contrast.
 @item margin
-The margin of the menu bar, in characters.  The default of 4 makes the
-menu bar appear like the LessTif/Motif one.
+The margin of the menu bar, in characters.  Default is 1.
 @end table
 
 @node LessTif Resources
@@ -537,7 +559,12 @@ the standard GTK @file{~/.gtkrc-2.0} file or with the Emacs specific
 customizing specific GTK widget features.  To customize Emacs font,
 background, faces etc., use the normal X resources, see @ref{Resources}.
 
-In these files you first defines a style and then how to apply that style
+  Some GTK themes override these mechanisms, which means that using
+these mechanisms will not work to customize them.  We recommend that
+you use @file{~/.emacs.d/gtkrc} for customizations, since
+@file{~/.gtkrc-2.0} seems to be ignored when running GConf with GNOME.
+
+  In these files you first defines a style and then how to apply that style
 to widgets (@pxref{GTK widget names}).  Here is an example of how to
 change the font for Emacs menus:
 
@@ -550,6 +577,21 @@ style "menufont"
 
 widget "*emacs-menuitem*" style "menufont"
 
+@end smallexample
+
+  Here is a more elaborate example, showing how to change the parts of
+the scroll bar:
+
+@smallexample
+style "scroll"
+@{
+  fg[NORMAL] = "red"@ @ @ @ @ # The arrow color.
+  bg[NORMAL] = "yellow"@ @ # The thumb and background around the arrow.
+  bg[ACTIVE] = "blue"@ @ @ @ # The trough color.
+  bg[PRELIGHT] = "white"@ # The thumb color when the mouse is over it.
+@}
+
+widget "*verticalScrollBar*" style "scroll"
 @end smallexample
 
   There are some things you can set without using any style or widget name,
@@ -688,7 +730,7 @@ The names for the emacs widgets, and their classes, are:
 @tab @code{GtkVHbox}
 @item @code{emacs}
 @tab @code{GtkFixed}
-@item @code{verticalScrollbar}
+@item @code{verticalScrollBar}
 @tab @code{GtkVScrollbar}
 @item @code{emacs-toolbar}
 @tab @code{GtkToolbar}
@@ -703,7 +745,7 @@ Thus, for Emacs you can write the two examples above as:
 
 @smallexample
 widget "Emacs.pane.menubar" style "my_style"
-widget "Emacs.pane.emacs.verticalScrollbar" style "my_style"
+widget "Emacs.pane.emacs.verticalScrollBar" style "my_style"
 @end smallexample
 
   GTK absolute names are quite strange when it comes to menus
@@ -915,3 +957,7 @@ family.  It corresponds to the fifth part of an X font name.  It is one of
 
 @noindent
 @var{size} is a decimal number that describes the font size in points.
+
+@ignore
+   arch-tag: 9b6ff773-48b6-41f6-b2f9-f114b8bdd97f
+@end ignore

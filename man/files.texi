@@ -2,7 +2,7 @@
 @c Copyright (C) 1985,86,87,93,94,95,97,99, 2000, 2001
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Files, Buffers, Fixit, Top
+@node Files, Buffers, Keyboard Macros, Top
 @chapter File Handling
 @cindex files
 
@@ -1070,6 +1070,8 @@ file, sessions are not recorded for recovery.
 
 @node File Aliases
 @section File Name Aliases
+@cindex symbolic links (visiting)
+@cindex hard links (visiting)
 
   Symbolic links and hard links both make it possible for several file
 names to refer to the same file.  Hard links are alternate names that
@@ -2859,6 +2861,7 @@ file system.  On MS-DOS, it works by copying the file.
 the old contents of the file @var{new}.
 
 @findex make-symbolic-link
+@cindex symbolic links (creation)
   @kbd{M-x make-symbolic-link} reads two file names @var{target} and
 @var{linkname}, then creates a symbolic link named @var{linkname}, which
 points at @var{target}.  The effect is that future attempts to open file
@@ -3186,3 +3189,7 @@ powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
+
+@ignore
+   arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
+@end ignore

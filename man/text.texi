@@ -2277,3 +2277,6 @@ uncompression (@pxref{Compressed Files}).  To disable format conversion
 but allow character code conversion and/or automatic uncompression if
 appropriate, use @code{format-find-file} with suitable arguments.
 
+@ignore
+   arch-tag: 8db54ed8-2036-49ca-b0df-23811d03dc70
+@end ignore

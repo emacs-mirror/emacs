@@ -29,3 +29,6 @@ int ioctl(int, int, void *);
 #define TCGETA 2
 
 #endif  /* _SYS_IOCTL_H */
+
+/* arch-tag: fa0c3dda-dbe0-4a49-86c4-7516c83c3c8c
+   (do not change this comment) */

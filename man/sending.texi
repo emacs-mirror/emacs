@@ -447,7 +447,7 @@ user agent sends mail.  It should be set to a function.  The default
 is @code{sendmail-send-it}, which delivers mail using the Sendmail
 installation on the local host.  To send mail through a SMTP server,
 set it to @code{smtpmail-send-it} and set up the Emacs SMTP library
-(@pxref{Sending mail via SMTP,,,smtpmail}).  A third option is
+(@pxref{Top,, Sending mail via SMTP,smtpmail}).  A third option is
 @code{feedmail-send-it}, see the commentary section of the
 @file{feedmail.el} package for more information.
 
@@ -687,7 +687,7 @@ message into outgoing mail.  To do this, add
 and sending mail---Mail mode.  Emacs has alternative facilities for
 editing and sending mail, including
 MH-E and Message mode, not documented in this manual.
-@xref{MH-E,,,mh-e, The Emacs Interface to MH}.  @xref{Message,,,message,
+@xref{Top,,MH-E,mh-e, The Emacs Interface to MH}.  @xref{Top,,,message,
 Message Manual}.  You can choose any of them as your preferred method.
 The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
 whichever agent you have specified, as do various other Emacs commands
@@ -703,3 +703,7 @@ and facilities that send mail.
 in this chapter about the @samp{*mail*} buffer and Mail mode does not
 apply; the other methods use a different format of text in a different
 buffer, and their commands are different as well.
+
+@ignore
+   arch-tag: d8a3dfc3-5d87-45c5-a7f2-69871b8e4fd6
+@end ignore

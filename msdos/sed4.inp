@@ -20,3 +20,5 @@
 /^#define *PATH_DATA/s/".*"/rootrelativepath ("etc")/
 /^#define *PATH_DOC/s/".*"/rootrelativepath ("etc")/
 /^#define *PATH_INFO/s/".*"/rootrelativepath ("info")/
+
+# arch-tag: c84fa640-e434-4408-9e89-16d9e4ebe74e

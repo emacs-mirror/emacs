@@ -93,3 +93,5 @@ clean:
 	cd oldxmenu
 	-$(MAKE) clean
 	cd ..
+
+# arch-tag: d5a489bc-818e-4c3c-8040-b5205ed0602f

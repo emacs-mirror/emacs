@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Fixit, Files, Search, Top
+@node Fixit, Keyboard Macros, Search, Top
 @chapter Commands for Fixing Typos
 @cindex typos, fixing
 @cindex mistakes, correcting
@@ -342,3 +342,7 @@ dictionary.  The completion dictionary must be different because it
 cannot use employ root and affix information.  For some languages
 there is a spell checking dictionary but no word completion
 dictionary.
+
+@ignore
+   arch-tag: 3359a443-96ed-448f-9f05-c8111ba8eac0
+@end ignore

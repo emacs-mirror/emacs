@@ -596,7 +596,7 @@ Most commands, @kbd{~}, @kbd{[[}, @kbd{p}, @kbd{/}, @dots{}, etc., take counts.
 Viper uses Emacs Regular Expressions for searches.  These are a superset of
 Vi regular
 expressions, excepting the change-of-case escapes @samp{\u}, @samp{\L},
-@dots{}, etc.  @xref{Regular Expressions,,Regular Expressions,emacs,The
+@dots{}, etc.  @xref{Regexps,,Syntax of Regular Expressions,emacs,The
 GNU Emacs Manual}, for details.
 Files specified to @kbd{:e} use @code{csh} regular expressions
 (globbing, wildcards, what have you).
@@ -4542,3 +4542,7 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: f53e866a-15cf-4b1e-aead-77da9da1e864
+@end ignore

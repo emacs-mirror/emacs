@@ -700,6 +700,9 @@ where each @var{command} can either be a string or a lisp expression
 that evaluates to a string.  If several commands are given, all of
 them will temporarily be pushed onto the history.
 
+If @samp{*} in the shell command, that means to substitute the file
+name.
+
 You can set this variable in your @file{~/.emacs}.  For example,
 to add rules for @samp{.foo} and @samp{.bar} file extensions, write
 
@@ -1105,54 +1108,12 @@ will toggle between those two.
 @end table
 
 @table @kbd
-@findex dired-goto-file
-@kindex M-g
-@item M-g
-(@code{dired-goto-file}) Go to the line of a file (or directory).
-
 @findex dired-goto-subdir
 @kindex M-G
 @item M-G
 (@code{dired-goto-subdir}) Go to the header line of an inserted directory.
 This command reads its argument, with completion derived from the names of the
 inserted subdirectories.
-@end table
-
-@table @kbd
-@item w
-@cindex Adding to the kill ring in Dired.
-@kindex w
-@findex dired-copy-filename-as-kill
-(@code{dired-copy-filename-as-kill}) The @kbd{w} command puts the names
-of the marked (or next @var{N}) files into the kill ring, as if you had
-killed them with @kbd{C-w}.  With a zero prefix argument @var{N}=0, use the
-complete pathname of each file.  With a raw (just @kbd{C-u}) prefix argument,
-use the relative pathname of each marked file.  As a special case, if no
-prefix argument is given and point is on a directory headerline, it
-gives you the name of that directory, without looking for marked files.
-
-@vindex dired-marked-files
-The list of names is also stored onto the variable @code{dired-marked-files}
-for use, e.g., in the @kbd{M-:} (@code{eval-expression}) command.
-
-As this command also displays what was pushed onto the kill ring, you can
-use it to display the list of currently marked files in the
-echo area (unless you happen to be on a subdirectory headerline).
-
-You can then feed the file name to other Emacs commands with @kbd{C-y}.
-For example, say you want to rename a file with a long name to a slightly
-different name.  First type @kbd{w} to push the old name onto the kill
-ring.  Then type @kbd{R} to rename it and use @kbd{C-y} inside @kbd{R}'s
-minibuffer prompt to insert the old name at a convenient place.
-
-@item T
-@kindex T
-@cindex Toggling marks.
-@findex dired-do-toggle
-(@code{dired-do-toggle}) Toggle marks.  That is, currently marked
-files become unmarked and vice versa.  Files marked with other flags
-(such as @samp{D}) are not affected.  The special directories @file{.}
-and @file{..} are never toggled.
 @end table
 
 @table @code
@@ -1312,3 +1273,7 @@ Lawrence R. Dodd
 
 @bye
 @c dired-x.texi ends here.
+
+@ignore
+   arch-tag: 201727aa-9318-4c74-a0d7-4f51c550c4de
+@end ignore

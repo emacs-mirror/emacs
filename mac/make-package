@@ -313,13 +313,15 @@ if test "$with_app" == "yes"; then
   fi
 fi
 
+compver=powerpc-apple-darwin`uname -r`
+ 
 if test "$self_contained" = "yes"; then
     # Move shared files down to Resources directory
     mv $installprefix/share/emacs/$version/* $installprefix
     rm -rf $installprefix/share
     # These directories might remain in Resources
     mv $installprefix/bin $installprefix/../MacOS/bin
-    mv $installprefix/libexec $installprefix/../MacOS/libexec
+    mv $installprefix/libexec/emacs/$version/$compver $installprefix/../MacOS/libexec
     # Make the application binary a hard link
     rm $installprefix/../MacOS/Emacs
     ln $installprefix/../MacOS/bin/emacs $installprefix/../MacOS/Emacs
@@ -383,9 +385,9 @@ echo "CompressedSize ${compressedSize}" >> ${sizesfile}
 cat ${sizesfile}
 
 echo "Creating Disc Image"
-## Allocate an extra 5000 sectors (about 2.5 mg)
-## Note a sector appears to be 512k
-sectorsAlloced=`echo 2*${compressedSize}+20|bc`
+## From hdiutil man page, a sector is 512k.  Allocate an extra 5% for
+## directories and partition tables.
+sectorsAlloced=`echo 2.1*${compressedSize}|bc`
 hdiutil create -ov ${builddir}/mac/EmacsRW -sectors ${sectorsAlloced}
 ## Need to format the disc image before mounting
 mountLoc=`hdid -nomount ${builddir}/mac/EmacsRW.dmg | grep HFS | cut -f1`
@@ -423,4 +425,5 @@ rm ${builddir}/mac/EmacsRW.dmg
 echo "Cleaning up the staging directory"
 rm -rf ${builddir}/mac/Emacs.pkg ${removable_build_dir}
 
+# arch-tag: 1b631d0d-9fde-4f71-80c0-33e0e5815515
 ### make-package ends here

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/XMenu.h,v 1.3 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/XMenu.h,v 1.4 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -261,3 +261,6 @@ char *XMenuError();
 
 #endif
 /* Don't add after this point. */
+
+/* arch-tag: 7e57b5ac-9355-4057-9385-afbe6912d60f
+   (do not change this comment) */

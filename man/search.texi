@@ -385,6 +385,11 @@ Search}.
 @section Syntax of Regular Expressions
 @cindex syntax of regexps
 
+  This manual describes regular expression features that users
+typically want to use.  There are additional features that are
+mainly used in Lisp programs; see @ref{Regular Expressions,,,
+elisp, the same manual}.
+
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary
 character is a simple regular expression which matches that same
@@ -1116,3 +1121,7 @@ instead.
 (@pxref{Tags Search}) or through Dired @kbd{A} command
 (@pxref{Operating on Files}), or ask the @code{grep} program to do it
 (@pxref{Grep Searching}).
+
+@ignore
+   arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e
+@end ignore

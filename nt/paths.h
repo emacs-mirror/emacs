@@ -60,3 +60,6 @@ Boston, MA 02111-1307, USA.  */
    macro, and is then used to set the Info-default-directory-list.  */
 /* #define PATH_INFO "/usr/local/info" */
 #define PATH_INFO "C:/emacs/info"
+
+/* arch-tag: f6d46f3c-e1e9-436b-8629-edcaf6597973
+   (do not change this comment) */

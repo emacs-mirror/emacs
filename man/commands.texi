@@ -265,3 +265,7 @@ with codes 128 through 255 can also appear in multibyte buffers.
   If you disable multibyte characters, then you can use only one
 alphabet of non-ASCII characters, but they all fit in one byte.  They
 use codes 0200 through 0377.  @xref{Single-Byte Character Support}.
+
+@ignore
+   arch-tag: 9be43eef-d1f4-4d03-a916-c741ea713a45
+@end ignore

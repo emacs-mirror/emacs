@@ -572,6 +572,9 @@ point, and column of point (@code{what-cursor-position}).
 @item M-x hl-line-mode
 Enable or disable highlighting of the current line.  @xref{Cursor
 Display}.
+@item M-x size-indication-mode
+Toggle automatic display of the size of the buffer.
+@xref{Optional Mode Line}.
 @end table
 
 @findex what-page
@@ -810,3 +813,6 @@ additional times, to delete a total of 80 characters, by typing @kbd{C-x
 z z z}.  The first @kbd{C-x z} repeats the command once, and each
 subsequent @kbd{z} repeats it once again.
 
+@ignore
+   arch-tag: cda8952a-c439-41c1-aecf-4bc0d6482956
+@end ignore

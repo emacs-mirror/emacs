@@ -67,3 +67,6 @@
 #define gettext_noop(String) String
 
 #endif /* _LIBGETTEXT_H */
+
+/* arch-tag: 07b35a70-3531-4cda-9674-2968467143ec
+   (do not change this comment) */

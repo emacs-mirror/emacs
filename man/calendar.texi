@@ -183,6 +183,8 @@ specified in various ways.
 @table @kbd
 @item g d
 Move point to specified date (@code{calendar-goto-date}).
+@item g D
+Move point to specified day of year (@code{calendar-goto-day-of-year}).
 @item o
 Center calendar around specified month (@code{calendar-other-month}).
 @item .
@@ -195,6 +197,12 @@ Move point to today's date (@code{calendar-goto-today}).
 of the month, and then moves to that date.  Because the calendar includes all
 dates from the beginning of the current era, you must type the year in its
 entirety; that is, type @samp{1990}, not @samp{90}.
+
+@kindex g D @r{(Calendar mode)}
+@findex calendar-goto-day-of-year
+  @kbd{g D} (@code{calendar-goto-day-of-year}) prompts for a year and
+day number, and moves to that date.  Negative day numbers count backward
+from the end of the year.
 
 @kindex o @r{(Calendar mode)}
 @findex calendar-other-month
@@ -1116,8 +1124,11 @@ is, you can use @samp{11/12/1989} or @samp{11/12/89}.
 
   Dates can also have the form @samp{@var{monthname} @var{day}} or
 @samp{@var{monthname} @var{day}, @var{year}}, where the month's name can
-be spelled in full or abbreviated to three characters (with or without a
-period).  Case is not significant.
+be spelled in full or abbreviated (with or without a period).  The
+preferred abbreviations can be controlled using the variables
+@code{calendar-abbrev-length}, @code{calendar-month-abbrev-array}, and
+@code{calendar-day-abbrev-array}.  The default is to use the first three
+letters of a name as its abbreviation.  Case is not significant.
 
   A date may be @dfn{generic}; that is, partially unspecified.  Then the
 entry applies to all dates that match the specification.  If the date
@@ -1495,3 +1506,7 @@ timeclock file manually, or if you change the value of any of
 timeclock's customizable variables, you should run the command
 @kbd{M-x timeclock-reread-log} to update the data in Emacs from the
 file.
+
+@ignore
+   arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92
+@end ignore

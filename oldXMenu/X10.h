@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/X10.h,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/X10.h,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /*
  * Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
  *
@@ -76,3 +76,6 @@ XAssocTable *XCreateAssocTable();
 char *XLookUpAssoc();
 
 #endif /* _X10_H_ */
+
+/* arch-tag: b0b749fb-757b-470b-b405-af7d033a5aad
+   (do not change this comment) */

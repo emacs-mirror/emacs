@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/SetAEQ.c,v 1.1 1992/04/11 22:10:20 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/SetAEQ.c,v 1.2 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -27,3 +27,6 @@ XMenuSetAEQ(menu, aeq)
      */
     menu->aeq = aeq;
 }
+
+/* arch-tag: 48fc22b4-0722-4852-a044-788444e4a9dc
+   (do not change this comment) */

@@ -21,3 +21,7 @@ prep /m  ..\src\obj\i386\pemacs
 if errorlevel 1 goto done
 plist ..\src\obj\i386\pemacs > %1
 :done
+
+goto skipArchTag
+   arch-tag: 927c5199-a8a3-4cf0-ab56-62b66fc6520d
+:skipArchTag

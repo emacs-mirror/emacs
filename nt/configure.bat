@@ -433,6 +433,9 @@ copy paths.h ..\src\epaths.h
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
+copy /b config.settings+%MAKECMD%.defs+..\man\makefile.w32-in ..\man\makefile
+copy /b config.settings+%MAKECMD%.defs+..\lispref\makefile.w32-in ..\lispref\makefile
+copy /b config.settings+%MAKECMD%.defs+..\lispintro\makefile.w32-in ..\lispintro\makefile
 if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile.in Makefile.unix
 if exist ..\lisp\makefile rm -f ../lisp/[Mm]akefile
 copy /b config.settings+%MAKECMD%.defs+..\lisp\makefile.w32-in ..\lisp\makefile
@@ -463,3 +466,7 @@ set COMPILER=
 set MAKECMD=
 set usercflags=
 set userldflags=
+
+goto skipArchTag
+   arch-tag: 300d20a4-1675-4e75-b615-7ce1a8c5376c
+:skipArchTag

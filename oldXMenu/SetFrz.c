@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/SetFrz.c,v 1.1 1992/04/11 22:10:21 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/SetFrz.c,v 1.2 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -26,3 +26,6 @@ XMenuSetFreeze(menu, freeze)
      */
     menu->freeze = freeze;
 }
+
+/* arch-tag: 69c5670b-3a46-4c78-8fdb-305936d79772
+   (do not change this comment) */

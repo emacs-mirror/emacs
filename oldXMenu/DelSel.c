@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/DelSel.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/DelSel.c,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -70,3 +70,6 @@ XMenuDeleteSelection(display, menu, p_num, s_num)
     _XMErrorCode = XME_NO_ERROR;
     return(s_num);
 }
+
+/* arch-tag: 24ca2bc7-8a37-471a-8095-e6363fc1ed10
+   (do not change this comment) */

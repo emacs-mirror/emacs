@@ -445,3 +445,7 @@ customize dynamic abbreviation to handle optional prefixes by setting
 the variable @code{dabbrev-abbrev-skip-leading-regexp}.  Its value
 should be a regular expression that matches the optional prefix that
 dynamic abbreviation should ignore.
+
+@ignore
+   arch-tag: 638e0079-9540-48ec-9166-414083e16445
+@end ignore

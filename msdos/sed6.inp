@@ -27,3 +27,17 @@ export MAKEINFO := $(MAKEINFO) -I$(srcdir)
 texinputdir =\
 export texinputdir := $(srcdir)";"$(TEXINPUTS)
 /^SHELL *=/s/^/# /
+/^elisp.dvi:/,/^$/ {
+  /^	 *if \[ *\a${permuted_index}/,/^	 *fi *$/c\
+	command.com /c 'if not a${permuted_index}==a sh ./permute-index' \
+	command.com /c 'if not a${permuted_index}==a mv permuted.fns elisp.fns' \
+	command.com /c 'if not a${permuted_index}==a texindex elisp.tp' \
+	command.com /c 'if a${permuted_index}==a texindex elisp.??'
+}
+/^index.texi:/,/^$/ {
+  /^	 *if \[ *\a${permuted_index}/,/^	 *fi *$/c\
+	command.com /c 'if not a${permuted_index}==a cp -p ./index.perm index.texi' \
+	command.com /c 'if a${permuted_index}==a cp -p ./index.unperm index.texi'
+}
+
+# arch-tag: defe1001-f35a-47f7-9635-3f5d33ee5e97

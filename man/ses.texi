@@ -64,9 +64,7 @@ by formulas that can refer to the values of other cells.
 @end display
 @end ifnottex
 
-This (such as @pxref{Top,calc,,calc}) is good.
-
-To report bugs, send email to @email{jyavner@@engineer.com}.
+To report bugs, send email to @email{jyavner@@member.fsf.org}.
 
 @menu
 * Sales Pitch::                 Why use SES?
@@ -841,3 +839,7 @@ Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @c ===================================================================
 
 @bye
+
+@ignore
+   arch-tag: 10a4ee1c-7ef4-4c06-8b7a-f975e39f0dec
+@end ignore

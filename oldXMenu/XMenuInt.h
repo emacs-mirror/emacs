@@ -1,5 +1,5 @@
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/XMenuInt.h,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/XMenuInt.h,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -61,3 +61,6 @@ int _XMHighlightSelection();	/* No value actually returned. */
 
 #endif
 /* Don't add stuff after this #endif */
+
+/* arch-tag: 00640af1-9386-48b5-a4be-35620b8cd3aa
+   (do not change this comment) */

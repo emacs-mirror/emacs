@@ -47,3 +47,5 @@ XDestroyAssocTable(table)
 	free((char *)table);
 }
 
+/* arch-tag: a536bf02-8d63-45f2-8c1a-c7f9fd4da2cf
+   (do not change this comment) */

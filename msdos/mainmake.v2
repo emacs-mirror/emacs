@@ -93,7 +93,7 @@ src: FRC
 
 man lispref lispintro:	FRC
 	cd $@
-	$(MAKE) top_srcdir=${top_srcdir}
+	$(MAKE) top_srcdir=${top_srcdir} info
 	cd ..
 
 install: all
@@ -176,3 +176,5 @@ bootstrap-clean-before: FRC
 
 bootstrap-clean-after:
 	cd src; $(MAKE) $(MFLAGS) mostlyclean; cd ..
+
+# arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/Internal.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Internal.c,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -1004,3 +1004,5 @@ _XMRefreshSelection(display, menu, select)
     }
 }
 
+/* arch-tag: 3ac61957-0852-4e72-8b88-7dfab1a5dee9
+   (do not change this comment) */

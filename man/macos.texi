@@ -244,3 +244,7 @@ returns the GNU or Unix equivalent.  The function
 @code{posix-file-name-to-mac} performs the opposite conversion.  They
 are useful for constructing AppleScript commands to be passed to
 @code{do-applescript}.
+
+@ignore
+   arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
+@end ignore

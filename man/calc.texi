@@ -30801,7 +30801,7 @@ This command allows your keyboard macros to accept numbers or formulas
 as interactive input.  All the normal conventions of algebraic input,
 including the use of @kbd{$} characters, are supported.
 
-@xref{Kbd Macro Query, , , emacs, the Emacs Manual}, for a description of
+@xref{Keyboard Macro Query, , , emacs, the Emacs Manual}, for a description of
 @kbd{C-x q} (@code{kbd-macro-query}), the standard Emacs way to accept
 keyboard input during a keyboard macro.  In particular, you can use
 @kbd{C-x q} to enter a recursive edit, which allows the user to perform
@@ -35612,3 +35612,6 @@ the corresponding full Lisp name is derived by adding a prefix of
 @bye
 
 
+@ignore
+   arch-tag: 77a71809-fa4d-40be-b2cc-da3e8fb137c0
+@end ignore

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/EvHand.c,v 1.1 1992/04/11 22:10:19 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/EvHand.c,v 1.2 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -24,3 +24,5 @@ XMenuEventHandler(handler)
     _XMEventHandler = handler;
 }
 
+/* arch-tag: 8d614c8c-94d9-43c8-8e32-c438a3c8a8a3
+   (do not change this comment) */

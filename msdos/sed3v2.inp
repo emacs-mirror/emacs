@@ -24,15 +24,18 @@
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
 /^libdir *=/s!=.*$!=/emacs/bin!
-/^srcdir *=/s!=.*$!=.!
+/^srcdir=/s!srcdir=@srcdir@!srcdir := $(subst \\,/,$(shell command.com /c cd))!
 /^VPATH *=/s!=.*$!=.!
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
 /^LOADLIBES *=/s!=.*$!=!
 /^ALLOCA *=/s!@ALLOCA@!!
+/^EXEEXT *=/s!@EXEEXT@!!
 /^INSTALLABLES/s/emacsclient *//
 s!^	\./!	!
 /^UTILITIES=/s/ wakeup//
 /^UTILITIES=/s/ movemail//
 /^UTILITIES=/s/ emacsserver//
 /^UTILITIES=/s/ timer//
+
+# arch-tag: 16f3be18-a45b-496c-b19c-e43840359de8

@@ -8,12 +8,11 @@ Copyright @copyright{} 2003 Free Software Foundation, Inc.
 @quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''
+in the Emacs manual.
 
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
@@ -28,7 +27,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* Emacs SMTP Library: (smtpmail). Emacs library for sending mail via SMTP.
+* SMTP: (smtpmail). Emacs library for sending mail via SMTP.
 @end direntry
 
 @titlepage
@@ -53,7 +52,7 @@ license to the document, as described in section 6 of the license.
 * How Mail Works::	Brief introduction to mail concepts.
 * Emacs Speaks SMTP::   How to use the SMTP library in Emacs.
 * Authentication::	Authenticating yourself to the server.
-* Queued delivery::	Sending mail without an Internet connection.
+* Queued delivery::	Sending mail without an internet connection.
 * Server workarounds::	Mail servers with special requirements.
 * Debugging::		Tracking down problems.
 
@@ -67,10 +66,10 @@ Indices
 
 @cindex SMTP
 @cindex MTA
-   On the Internet, mail is sent from mail host to mail host using the
+   On the internet, mail is sent from mail host to mail host using the
 simple mail transfer protocol (SMTP).  To send and receive mail, you
 must get it from and send it to a mail host.  Every mail host runs a
-mail transger agent (MTA) such as Exim that accepts mails and passes
+mail transfer agent (MTA) such as Exim that accepts mails and passes
 them on.  The communication between a mail host and other clients does
 not necessarily involve SMTP, however.  Here is short overview of what
 is involved.
@@ -98,12 +97,12 @@ file by way of a mail delivery agent (MDA) such as procmail.  These
 delivery agents often allow you to filter and munge your mails before
 you get to see it.  When your computer is that mail host, this file is
 called a spool, and sometimes located in the directory
-/var/spool/mail/.  All your MUA has to do is read mail from the spool,
-then.
+@file{/var/spool/mail/}.  All your MUA has to do is read mail from the
+spool, then.
 
 @cindex POP3
 @cindex IMAP
-   When your computer is not always connected to the Internet, you
+   When your computer is not always connected to the internet, you
 must get the mail from the remote mail host using a protocol such as
 POP3 or IMAP.  POP3 essentially downloads all your mail from the mail
 host to your computer.  The mail is stored in some file on your
@@ -131,7 +130,7 @@ the ever-changing HTML of the web interface.
 have it take care of delivering it to the final destination, rather
 than letting the MTA on your local system take care of it.  This can
 be useful if you don't have a MTA set up on your host, or if your
-machine is often disconnected from the Internet.
+machine is often disconnected from the internet.
 
   Sending mail via SMTP requires configuring your mail user agent
 (@pxref{Mail Methods,,,emacs}) to use the SMTP library.  How to do
@@ -159,7 +158,7 @@ from.
 @vindex SMTPSERVER
   The variable @code{smtpmail-smtp-server} controls the hostname of
 the server to use.  It is a string with an IP address or hostname.  It
-defaults to the contents of the @code{SMTPSERVER} environment
+defaults to the contents of the @env{SMTPSERVER} environment
 variable, or, if empty, the contents of
 @code{smtpmail-default-smtp-server}.
 
@@ -238,7 +237,7 @@ used.  The hostname field follows the same format as
 @code{smtpmail-smtp-server} (i.e., a string) and the port field the
 same format as @code{smtpmail-smtp-service} (i.e., a string or an
 integer).  The username and password fields, which either can be
-@samp{nil} to indicate that the user is queried for the value
+@code{nil} to indicate that the user is queried for the value
 interactively, should be strings with the username and password,
 respectively, information that is normally provided by system
 administrators.
@@ -249,7 +248,7 @@ administrators.
 tuples with hostname, port, name of file containing client key, and
 name of file containing client certificate.  The processing is similar
 to the previous variable.  The client key and certificate may be
-@samp{nil} if you do not wish to use client authentication.  The use
+@code{nil} if you do not wish to use client authentication.  The use
 of this variable requires the @samp{starttls} external program to be
 installed, you can get @file{starttls-*.tar.gz} from
 @uref{ftp://ftp.opaopa.org/pub/elisp/}.
@@ -259,7 +258,7 @@ The following example illustrates what you could put in
 @file{~/.emacs} to enable both SASL authentication and STARTTLS.  The
 server name (@code{smtpmail-smtp-server}) is @var{hostname}, the
 server port (@code{smtpmail-smtp-service}) is @var{port}, and the
-username and password are @var{username} and "@var{password}
+username and password are @var{username} and @var{password}
 respectively.
 
 @example
@@ -275,8 +274,8 @@ respectively.
 @chapter Queued delivery
 
 @cindex Dialup connection
-If you connect to the Internet via a dialup connection, or for some
-other reason doesn't have permanent Internet connection, sending mail
+If you connect to the internet via a dialup connection, or for some
+other reason don't have permanent internet connection, sending mail
 will fail when you are not connected.  The SMTP library implements
 queued delivery, and the following variable control its behaviour.
 
@@ -285,13 +284,13 @@ queued delivery, and the following variable control its behaviour.
 @vindex smtpmail-queue-mail
   The variable @code{smtpmail-queue-mail} controls whether a simple
 off line mail sender is active.  This variable is a boolean, and
-defaults to @samp{nil} (disabled).  If this is non-nil, mail is not
-sent immediately but rather queued in the directory
+defaults to @code{nil} (disabled).  If this is non-@code{nil}, mail is
+not sent immediately but rather queued in the directory
 @code{smtpmail-queue-dir} and can be later sent manually by invoking
 @code{smtpmail-send-queued-mail} (typically when you connect to the
-Internet).
+internet).
 
-@item smtpmail-queue-mail
+@item smtpmail-queue-dir
 @vindex smtpmail-queue-dir
   The variable @code{smtpmail-queue-dir} specifies the name of the
 directory to hold queued messages.  It defaults to
@@ -301,8 +300,8 @@ directory to hold queued messages.  It defaults to
 @findex smtpmail-send-queued-mail
   The function @code{smtpmail-send-queued-mail} can be used to send
 any queued mail when @code{smtpmail-queue-mail} is enabled.  It is
-typically invoked interactively with @kbd{M-x RET
-smtpmail-send-queued-mail RET} when you are connected to the Internet.
+typically invoked interactively with @kbd{M-x
+smtpmail-send-queued-mail RET} when you are connected to the internet.
 
 @node Server workarounds
 @chapter Server workarounds
@@ -386,3 +385,7 @@ cannot accept mail.
 
 @contents
 @bye
+
+@ignore
+   arch-tag: 6316abdf-b366-4562-87a2-f37e8f894b6f
+@end ignore

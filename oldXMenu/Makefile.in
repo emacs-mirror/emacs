@@ -107,3 +107,5 @@ maintainer-clean: distclean
 
 tags::
 	$(TAGS) -t *.[ch]
+
+# arch-tag: dbfc0b16-4e0c-4acb-a9c1-fc12ee76db06

@@ -1,3 +1,35 @@
+2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mainmake.v2 (man lispref lispintro): Specify an explicit target
+	`info', like Makefile.in does.
+
+2003-08-31  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sed3v2.inp (srcdir): Use "command.com /c cd" to produce an
+	absolute file name of the current working directory.  This avoids
+	the warning from Make about circular dependencies.
+
+2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sedlisp.inp: Set FNCASE=y for all targets in the lisp directory,
+	so that CVS etc. file names are filtered out of the list of
+	subdirectories.
+
+2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sed6.inp (elisp.dvi, index.texi): Replace Unix shell commands
+	with equivalent COMMAND.COM commands.
+
+2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sed3v2.inp (EXEEXT): Define to an empty string.
+
+	* sed1v2.inp (EXEEXT): Define to an empty string.
+	Remove src/emacs after producing b-emacs.exe.
+
+	* sed2v2.inp (HAVE_DIFFTIME, HAVE_MEMCMP, HAVE_MEMMOVE)
+	(HAVE_SIZE_T): Define.
+
 2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2v2.inp: New file.
@@ -530,3 +562,5 @@
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: b602fbb5-3776-4053-8de2-03da33c29d44

@@ -10,7 +10,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2000, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2002, 2003 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -211,7 +211,16 @@ change you make must be contained within a single editable text field.
 For example, capitalizing all text from the middle of one field to the
 middle of another field is prohibited.
 
-Editing text fields are created by the @code{editable-field} widget.
+Editable text fields are created by the @code{editable-field} widget.
+
+An editable field must be surrounded by static text on both sides, that
+is, text that does not change in the lifetime of the widget.  If the
+field extends to the end of the line, the terminating line-feed character
+will count as the necessary static text on that end, but you will have
+to provide the static text before the field yourself.  The
+@code{:format} keyword is useful for generating the static text; for
+instance, if you give it a value of @code{"Name: %v"}, the "Name: " part
+will count as the static text.
 
 The editing text fields are highlighted with the
 @code{widget-field-face} face, making them easy to find.
@@ -573,8 +582,9 @@ Emacsen that supports it.
 Specifies how to display a message whenever you move to the widget with
 either @code{widget-forward} or @code{widget-backward} or move the mouse
 over it (using the standard @code{help-echo} mechanism).  The argument
-is either a string to display or a function of one argument, the widget,
-which should return a string to display.
+is either a string to display, a function of one argument, the widget,
+which should return a string to display, or a form that evaluates to
+such a string.
 
 @vindex indent@r{ keyword}
 @item :indent
@@ -1780,3 +1790,7 @@ variables, and widgets described in this manual.
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 2b427731-4c61-4e72-85de-5ccec9c623f0
+@end ignore

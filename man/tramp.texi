@@ -11,46 +11,16 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@include trampver.texi
 
-@c Entries for @command{install-info} to use
-@dircategory Emacs
-@direntry
-* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
-                                 Emacs remote file access via rsh and rcp.
-@end direntry
+@c Additionally, flags are set with respect to the Emacs flavor; and
+@c depending whether Tramp is packaged into (X)Emacs, or standalone.
+
+@include trampver.texi
 
 @c Macro to make formatting of the tramp program name consistent.
 @macro tramp
 @sc{tramp}
 @end macro
-
-@c Some flags which make the text independent on the (X)Emacs flavor.
-@c "emacs" resp "xemacs" are set in the Makefile.
-
-@c Emacs values.
-@ifset emacs
-@set emacs-name               Emacs
-@set emacs-dir                emacs
-@set ftp-package-name         Ange-FTP
-@set tramp-prefix             /
-@set tramp-prefix-single-hop
-@set tramp-postfix            :
-@set tramp-postfix-single-hop :
-@set tramp-postfix-multi-hop  :
-@end ifset
-
-@c XEmacs counterparts.
-@ifset xemacs
-@set emacs-name               XEmacs
-@set emacs-dir                xemacs
-@set ftp-package-name         EFS
-@set tramp-prefix             /[
-@set tramp-prefix-single-hop  [
-@set tramp-postfix            ]
-@set tramp-postfix-single-hop /
-@set tramp-postfix-multi-hop  :
-@end ifset
 
 @c Macros for formatting a filename.
 @c trampfn is for a full filename, trampfnmhp means method, host, localname
@@ -82,6 +52,13 @@ separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
+
+@c Entries for @command{install-info} to use
+@dircategory Emacs
+@direntry
+* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
+                                 Emacs remote file access via rsh and rcp.
+@end direntry
 
 @tex
 
@@ -118,6 +95,12 @@ programs, such as @command{ssh}/@command{scp}.
 You can find the latest version of this document on the web at
 @uref{http://www.freesoftware.fsf.org/tramp/}.
 
+@c Pointer to the other Emacs flavor is necessary only in case of
+@c standalone installation.  Text taken from trampinst.texi.
+@ifset tramp-inst
+@otherflavor{}
+@end ifset
+
 @ifhtml
 This manual is also available as a @uref{tramp_ja.html, Japanese
 translation}.
@@ -144,21 +127,34 @@ well as the usual Savannah archives.
 * Overview::                    What @tramp{} can and cannot do.
 
 For the end user:
+
 * Obtaining @tramp{}::             How to obtain @tramp{}.
 * History::                     History of @tramp{}.
+@ifset tramp-inst
 * Installation::                Installing @tramp{} with your @value{emacs-name}.
+@end ifset
 * Configuration::               Configuring @tramp{} for use.
 * Usage::                       An overview of the operation of @tramp{}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
+* Concept Index::               An item for each concept
 
 For the developer:
+
 * Version Control::             The inner workings of remote version control.
 * Files directories and localnames::  How file names, directories and localnames are mangled and managed.
 * Issues::                      Debatable Issues and What Was Decided.
 
 @detailmenu
  --- The Detailed Node Listing ---
+@c
+@ifset tramp-inst
+Installing @tramp{} with your @value{emacs-name}
+
+* Installation parameters::     Parameters in order to control installation.
+* Load paths::                  How to plug-in @tramp{} into your environment.
+
+@end ifset
 
 Configuring @tramp{} for use
 
@@ -194,7 +190,7 @@ Things related to Version Control that don't fit elsewhere
 * Remote File Ownership::       How VC determines who owns a workfile.
 * Back-end Versions::           How VC determines what release your RCS is.
 
-How file names, directories and localnames are mangled and managed.
+How file names, directories and localnames are mangled and managed
 
 * Localname deconstruction::    Breaking a localname into its components.
 
@@ -438,188 +434,10 @@ The most recent addition of major features were the multi-hop methods
 added in April 2000 and the unification of @tramp{} and Ange-FTP
 filenames in July 2002.
 
-
-@node Installation
-@chapter Installing @tramp{} into @value{emacs-name}.
-@cindex installation
-
-If you use the version that comes with your @value{emacs-name}, the
-following information is not necessary.  Installing @tramp{} into your
-@value{emacs-name} is a relatively easy process, at least compared
-to rebuilding your machine from scratch. ;)
-
-Seriously though, the installation should be a fairly simple matter.
-The easiest way to proceed is as follows:
-
-@itemize @bullet
-@item
-Choose a directory, say @file{~/@value{emacs-dir}/}.  Change into that
-directory and unpack the tarball.  This will give you a directory
-@file{~/@value{emacs-dir}/tramp-@trampver{}/} which contains
-subdirectories @file{lisp} for the Lisp code and @file{texi} for the
-documentation.  Make a symbolic link:
-
-@example
-ln -s tramp-@trampver{} tramp
-@end example
-
-@item
-@command{cd} to @file{~/@value{emacs-dir}/tramp/} and type
-@command{./configure} to configure Tramp for your system.
-
-Running `configure' takes awhile.  While running, it prints some
-messages telling which features it is checking for.
-
-@item
-Type @command{make} to build the byte-compiled Lisp files as well as
-the Info manual.
-
-@item
-Type @command{make install} to install the Tramp Lisp files and Info
-manual.
-
-@item
-You can remove the byte-compiled Lisp files and the Info manual from
-the source directory by typing @command{make clean}.  To also remove
-the files that @command{configure} created, type @command{make
-distclean}.
-
-@item
-NOTE: If you run into problems running the example @command{make}
-command, don't despair.  You can still byte compile the @file{*.el}
-files by opening @value{emacs-name} in @command{dired} (@command{C-x
-d}) mode, at @file{~/@value{emacs-dir}/tramp/lisp}.  Mark the lisp files with
-@kbd{m}, then press @kbd{B} to byte compile your selections.
-
-Something similar can be done to create the info manual.  Just change
-to directory @file{~/@value{emacs-dir}/tramp/texi} and load the
-@file{tramp.texi} file in @value{emacs-name}.  Then press @kbd{M-x
-texinfo-format-buffer @key{RET}} to generate
-@file{~/@value{emacs-dir}/tramp/info/tramp}.
-@end itemize
-
-@menu
-* Installation parameters::     Parameters in order to control installation.
-* Load paths::                  How to plug-in @tramp{} into your environment.
-@end menu
-
-@node Installation parameters
-@section Parameters in order to control installation.
-@cindex installation
-
-By default, @command{make install} will install @tramp{}'s files in
-@file{@value{lispdir}} and @file{@value{infodir}}.  You can specify an
-installation prefix other than @file{@value{prefix}} by giving
-@command{configure} the option @command{--prefix=PATH}.
-
-If your installed copy of Emacs is named something other than
-@command{@value{emacs-dir}}, you will need to tell `make' where to find it so
-that it can correctly byte-compile the @tramp{} sources.
-
-Also, the @command{--prefix=PATH} option to @command{configure} may
-not be general enough to set the paths you want.  If not, you can pass
-variables to the @command{make} command to control the installation.
-For a complete list of tweakable variables, look in the makefile.
-
-For example, to put the Lisp files in @file{~/elisp} and the Info file
-in @file{~/info}, you would type:
-
-@example
-./configure
-make
-make lispdir=~/elisp infodir=~/info install
-@end example
-
-@tramp{} has some packages in its @file{contrib} directory which are
-missing in older Emacsen.  If you want to use them, you must use the
-@command{USE_CONTRIB} environment variable:
-
-@example
-make USE_CONTRIB=1
-make USE_CONTRIB=1 install
-@end example
-
-@node Load paths
-@section How to plug-in @tramp{} into your environment.
-@cindex installation
-
-If you don't install @tramp{} into the intended directories, but prefer
-to use from the source directory, you need to add the following lines
-into your @file{.emacs}:
-
-@lisp
-(add-to-list 'load-path "~/@value{emacs-dir}/tramp/lisp/")
-(add-to-list 'load-path "~/@value{emacs-dir}/tramp/contrib/")
-(require 'tramp)
-@end lisp
-
-The second load-path must be used only if you've applied the
-@command{USE_CONTRIB} parameter.
-
-@ifset xemacs
-NOTE: For @value{emacs-name}, the package @file{fsf-compat} must be
-installed.  For details on package installation, see @ref{Packages, ,
-,xemacs}.
-@ifhtml
-(If the previous link doesn't work, try the @value{emacs-name}
-documentation at
-@uref{http://www.xemacs.org/Documentation/packageGuide.html,the
-@value{emacs-name} site}.)
-@end ifhtml
-@end ifset
-
-To be able to read the Info documentation, create a file
-@file{~/@value{emacs-dir}/tramp/info/dir} using the
-@command{install-info} command, and add the directory to the search
-path for Info.
-
-NOTE:
-On systems using the @cite{gnu} version of @command{install-info}, the
-@command{install-info} syntax is very direct and simple.  One can
-change to directory @file{~/@value{emacs-dir}/tramp/info} and type:
-
-@example
-install-info tramp dir
-@end example
-
-and a @file{dir} file will be created with the @tramp{}
-entry.  The info reader will know how to interpret it, but must
-be told where to find it (see below).  If you want anything fancier
-you'll need to look through @kbd{man install-info}.
-
-Debian gnu/linux doesn't default to @cite{gnu} @command{install-info}
-and uses its own version.  This version does not create a @file{dir}
-file for you from scratch.  You must provide a skeleton @file{dir}
-file it recognizes.  One can be found in a default installation of
-@value{emacs-name} at @file{/usr/info/dir}.  Copy the top of this file
-down to the first occurrence of @code{* Menu} including that line plus
-one more blank line, to your working directory
-@file{~/@value{emacs-dir}/tramp/info}, or use the sample
-@file{~/@value{emacs-dir}/tramp/texi/dir_sample}.
-
-Once a @file{dir} file is in place, this command will make the entry:
-
-@example
-install-info --infodir=. tramp
-@end example
-
-If you want it in a specific category see @kbd{man install-info} for
-further details.
-
-If the environment variable @env{INFOPATH} is set, add the directory
-@file{~/@value{emacs-dir}/tramp/info/} to it.  Else, add the directory to
-@ifset emacs
-@code{Info-default-directory-list}, as follows:
-
-@lisp
-(add-to-list 'Info-default-directory-list "~/@value{emacs-dir}/tramp/info/")
-@end lisp
-@end ifset
-@ifset xemacs
-@code{Info-directory-list}, as follows:
-@lisp
-(add-to-list 'Info-directory-list "~/@value{emacs-dir}/tramp/info/")
-@end lisp
+@c Installation chapter is necessary only in case of standalone
+@c installation.  Text taken from trampinst.texi.
+@ifset tramp-inst
+@installationchapter{}
 @end ifset
 
 @node Configuration
@@ -752,6 +570,10 @@ apply it for encoding and decoding.
 Connect to the remote host with @command{rsh}.  Due to the unsecure
 connection it is recommended for very local host topology only.
 
+On operating systems which provide the command @command{remsh} instead
+of @command{rsh}, you can use the method @option{remsh}.  This is true
+for HP-UX or Cray UNICOS, for example.
+
 
 @item @option{ssh}
 @cindex method ssh
@@ -856,6 +678,10 @@ This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
+Additionally, the method @option{plink1} is provided, which calls
+@samp{plink -1 -ssh} in order to use SSH protocol version 1
+explicitely.
+
 CCC: Do we have to connect to the remote host once from the command
 line to accept the SSH key?  Maybe this can be made automatic?
 
@@ -905,8 +731,12 @@ look at the @command{ssh} based inline methods.
 @cindex rsh (with rcp method)
 
 This method uses the @command{rsh} and @command{rcp} commands to connect
-to the remote machine and transfer files. This is probably the fastest
+to the remote machine and transfer files.  This is probably the fastest
 connection method available.
+
+The alternative method @option{remcp} uses the @command{remsh} and
+@command{rcp} commands.  It should be applied on machines where
+@command{remsh} is used instead of @command{rsh}.
 
 
 @item @option{scp}  ---  @command{ssh} and @command{scp}
@@ -1080,7 +910,7 @@ The @option{smb} method supports the @samp{-p} hack.
 @strong{Please note:} If Emacs runs locally under MS Windows, this
 method isn't available.  Instead of, you can use UNC file names like
 @file{//melancholia/daniel$$/.emacs}.  The only disadvantage is that
-there's no possiblity to specify another user name.
+there's no possibility to specify another user name.
 
 @end table
 
@@ -1122,6 +952,10 @@ user is queried for the password.
 
 This uses @command{rsh} to connect to the host.  You do not need to
 enter a password unless @command{rsh} explicitly asks for it.
+
+The variant @option{remsh} uses the @command{remsh} command.  It
+should be applied on machines where @command{remsh} is used instead of
+@command{rsh}.
 
 @item ssh
 @cindex hop method ssh
@@ -1308,7 +1142,7 @@ in such files, it can return host names only.
 @item @code{tramp-parse-sconfig}
 @findex tramp-parse-shosts
 
-This function returns the host nicnames defined by @code{Host} entries
+This function returns the host nicknames defined by @code{Host} entries
 in @file{~/.ssh/config} style files.
 
 @item @code{tramp-parse-hosts}
@@ -1475,6 +1309,51 @@ to @code{dumb}.
 The other approach is to teach @tramp{} about these questions.  See
 the variables @code{tramp-actions-before-shell} and
 @code{tramp-multi-actions} (for multi-hop connections).
+
+@item Non-Bourne commands in @file{.profile}
+
+After logging in to the remote host, @tramp{} issues the command
+@code{exec /bin/sh}.  (Actually, the command is slightly different.)
+When @code{/bin/sh} is executed, it reads some init files, such as
+@file{~/.shrc} or @file{~/.profile}.
+
+Now, some people have a login shell which is not @code{/bin/sh} but a
+Bourne-ish shell such as bash or ksh.  Some of these people might put
+their shell setup into the files @code{~/.shrc} or @code{~/.profile}.
+This way, it is possible for non-Bourne constructs to end up in those
+files.  Then, @code{exec /bin/sh} might cause the Bourne shell to barf
+on those constructs.
+
+As an example, imagine somebody putting @code{export FOO=bar} into the
+file @file{~/.profile}.  The standard Bourne shell does not understand
+this syntax and will emit a syntax error when it reaches this line.
+
+Another example is the tilde (@code{~}) character, say when adding
+@file{~/bin} to @code{$PATH}.  Many Bourne shells will not expand this
+character, and since there is usually no directory whose name consists
+of the single character tilde, strange things will happen.
+
+What can you do about this?
+
+Well, one possibility is to make sure that everything in @file{~/.shrc}
+and @file{~/.profile} on all remote hosts is Bourne-compatible.  In the
+above example, instead of @code{export FOO=bar}, you might use
+@code{FOO=bar; export FOO} instead.
+
+The other possibility is to put your non-Bourne shell setup into some
+other files.  For example, bash reads the file @file{~/.bash_profile}
+instead of @file{~/.profile}, if the former exists.  So bash
+aficionados just rename their @file{~/.profile} to
+@file{~/.bash_profile} on all remote hosts, and Bob's your uncle.
+
+The @tramp{} developers would like to circumvent this problem, so if you
+have an idea about it, please tell us.  However, we are afraid it is not
+that simple: before saying @code{exec /bin/sh}, @tramp{} does not know
+which kind of shell it might be talking to.  It could be a Bourne-ish
+shell like ksh or bash, or it could be a csh derivative like tcsh, or
+it could be zsh, or even rc.  If the shell is Bourne-ish already, then
+it might be prudent to omit the @code{exec /bin/sh} step.  But how to
+find out if the shell is Bourne-ish?
 
 @end table
 
@@ -2006,6 +1885,7 @@ documentation of @code{tramp-chunksize}.
 @c For the developer
 @node Version Control
 @chapter The inner workings of remote version control
+@cindex Version Control
 
 Unlike @value{ftp-package-name}, @tramp{} has full shell access to the
 remote machine. This makes it possible to provide version control for
@@ -2217,7 +2097,11 @@ would have to be installed from the start, too.
 
 @end itemize
 
-
+@node Concept Index
+@comment node-name,    next,  previous,      up
+@unnumbered Concept Index
+@printindex cp
+@contents
 @c End of tramp.texi - the TRAMP User Manual
 @bye
 
@@ -2235,3 +2119,7 @@ would have to be installed from the start, too.
 @c ** Use `filename' resp. `file name' consistently.
 @c ** Use `host' resp. `machine' consistently.
 @c ** Consistent small or capitalized words especially in menues.
+
+@ignore
+   arch-tag: f96dd66e-6dd3-4c92-8d77-9c56205ba808
+@end ignore

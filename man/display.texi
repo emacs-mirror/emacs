@@ -315,7 +315,8 @@ comments, use this:
 
 @findex font-lock-remove-keywords
   To remove keywords from the font-lock highlighting patterns, use the
-function @code{font-lock-remove-keywords}.
+function @code{font-lock-remove-keywords}.  @xref{Search-based
+Fontification,,,elisp}, for documentation of the format of this list.
 
 @cindex just-in-time (JIT) font-lock
 @cindex background syntax highlighting
@@ -755,13 +756,35 @@ hidden lines.  This variable becomes local automatically when set.
 @node Optional Mode Line
 @section Optional Mode Line Features
 
+@cindex buffer size display
+@cindex display of buffer size
+@findex size-indication-mode
+  The buffer percentage @var{pos} indicates the percentage of the
+buffer above the top of the window.  You can additionally display the
+size of the buffer by typing @kbd{M-x size-indication-mode} to turn on
+Size Indication mode.  The size will be displayed immediately
+following the buffer percentage like this:
+
+@example
+@var{POS} of @var{SIZE}
+@end example
+
+@noindent
+Here @var{SIZE} is the human readable representation of the number of
+characters in the buffer, which means that @samp{k} for 10^3, @samp{M}
+for 10^6, @samp{G} for 10^9, etc., are used to abbreviate.
+
+@cindex narrowing, and buffer size display
+  If you have narrowed the buffer (@pxref{Narrowing}), the size of the
+accessible part of the buffer is shown.
+
 @cindex line number display
 @cindex display of line number
 @findex line-number-mode
   The current line number of point appears in the mode line when Line
 Number mode is enabled.  Use the command @kbd{M-x line-number-mode} to
 turn this mode on and off; normally it is on.  The line number appears
-before the buffer percentage @var{pos}, with the letter @samp{L} to
+after the buffer percentage @var{pos}, with the letter @samp{L} to
 indicate what it is.  @xref{Minor Modes}, for more information about
 minor modes and about how to use this command.
 
@@ -1036,3 +1059,7 @@ tab character.  To enable this feature, set the variable
 a minor mode that highlights the line containing point.  Use @kbd{M-x
 hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
 global-hl-line-mode} enables or disables the same mode globally.
+
+@ignore
+   arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
+@end ignore

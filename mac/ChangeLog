@@ -1,3 +1,13 @@
+2003-04-28  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-package: Allocate 5% extra space on disk image for
+	directories and partition tables.
+
+2003-04-04  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Place libexec executables directly under the
+	Contents/MacOS/libexec if the application is self-contained
+
 2003-04-01  Kim F. Storm  <storm@cua.dk>
 
 	* makefile.MPW (frame.c.x): Add dependency on BLOCKINPUT_H_GROUP.
@@ -609,3 +619,5 @@
     Copyright (C) 2001 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: c6fd43f7-0e50-4c0a-ac82-1c8a9e45a9bf

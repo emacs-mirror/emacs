@@ -66,3 +66,5 @@ caddr_t XLookUpAssoc(dpy, table, x_id)
 	return(NULL);
 }
 
+/* arch-tag: d5075d0c-4b71-467d-b33c-3f5c4c4afcf2
+   (do not change this comment) */

@@ -1,3 +1,18 @@
+2003-09-03  Peter Runestig <peter@runestig.com>
+
+	* configure.bat: Create ``makefile'' in directories man, lispref
+	and lispintro.
+
+	* makefile.w32-in (force-info, info): New targets.
+
+	* envadd.bat: New file.
+
+	* multi-install-info.bat: New file.
+
+2003-06-27  Jan D.  <jan.h.d@swipnet.se>
+
+	* config.nt (my_strftime): New define.
+
 2003-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Automatically detect libXpm.
@@ -1016,3 +1031,5 @@
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: b3d2c29c-04a0-45d0-b52d-57354711c414

@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: speedbar.texi,v 1.11 2002/10/02 23:24:31 karl Exp $
+@c $Id: speedbar.texi,v 1.13 2003/10/08 22:02:52 nickrob Exp $
 
 @setfilename ../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility
@@ -648,10 +648,6 @@ You can click on any stack element and gdb will move to that stack
 level.  You can then check variables local to that level at the GDB
 prompt.
 
-This mode has the unfortunate side-effect of breaking GDB's repeat
-feature when you hit @kbd{RET} since your previous command is overridden
-with a stack fetching command.
-
 @node Customizing, Extending, Minor Modes, Top
 @comment  node-name,  next,  previous,  up
 @chapter Customizing
@@ -1247,3 +1243,7 @@ Two good values are @code{nil} and @code{'statictag}.
 @bye
 @c  LocalWords:  speedbar's xref slowbar kbd subsubsection
 @c  LocalWords:  keybindings
+
+@ignore
+   arch-tag: e1fc85f0-1eeb-489f-a8d4-a2bfe711fa02
+@end ignore

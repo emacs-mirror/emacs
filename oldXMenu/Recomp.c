@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/Recomp.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Recomp.c,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -102,3 +102,6 @@ XMenuRecompute(display, menu)
     _XMErrorCode = XME_NO_ERROR;
     return(XM_SUCCESS);
 }
+
+/* arch-tag: 1fe99b82-3873-4aab-b2b3-f277c93e00d9
+   (do not change this comment) */

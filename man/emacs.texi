@@ -115,6 +115,7 @@ and Sending Mail and Registers and Minibuffer.
 
 @menu
 * Distrib::	        How to get the latest Emacs distribution.
+* Acknowledgements::    Contributors to GNU Emacs.
 * Copying::	        The GNU General Public License gives you permission
 			  to redistribute GNU Emacs on certain terms;
 			  it also explains that there is no warranty.
@@ -166,6 +167,8 @@ Important Text-Changing Commands
 * Display::	        Controlling what text is displayed.
 * Search::	        Finding or replacing occurrences of a string.
 * Fixit::	        Commands especially useful for fixing typos.
+* Keyboard Macros::	A keyboard macro records a sequence of
+			  keystrokes to be replayed with a single command.
 
 Major Structures of Emacs
 * Files::	        All about handling files.
@@ -333,6 +336,16 @@ Commands for Fixing Typos
 * Transpose::	        Exchanging two characters, words, lines, lists...
 * Fixing Case::         Correcting case of last word entered.
 * Spelling::	        Apply spelling checker to a word or a whole buffer.
+
+Keyboard Macros
+
+* Basic Keyboard Macro::     Defining and running keyboard macros.
+* Keyboard Macro Ring::      Where previous keyboard macros are saved.
+* Keyboard Macro Counter::   Inserting incrementing numbers in macros.
+* Keyboard Macro Query::     Making keyboard macros do different things each time.
+* Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
+* Edit Keyboard Macro::      Editing keyboard macros.
+* Keyboard Macro Step-Edit::   Interactively executing and editing a keyboard macro.
 
 File Handling
 
@@ -721,8 +734,6 @@ Customization
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
-* Keyboard Macros::	A keyboard macro records a sequence of
-			  keystrokes to be replayed with a single command.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
 * Keyboard Translations::
@@ -743,12 +754,6 @@ Variables
 		          of Emacs to run on particular occasions.
 * Locals::	        Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
-
-Keyboard Macros
-
-* Basic Kbd Macro::     Defining and running keyboard macros.
-* Save Kbd Macro::      Giving keyboard macros names; saving them in files.
-* Kbd Macro Query::     Making keyboard macros do different things each time.
 
 Customizing Key Bindings
 
@@ -897,7 +902,7 @@ all GNU Emacs features.  We don't try to describe VMS usage in this
 manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
 @end iftex
 
-@node Distrib, Copying, Top, Top
+@node Distrib, Acknowledgements, Top, Top
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
@@ -924,9 +929,9 @@ redistribute the GNU Emacs received from them under the usual terms of the
 General Public License.  In other words, the program must be free for you
 when you get it, not just free for the manufacturer.
 
-You can also order copies of GNU Emacs from the Free Software Foundation
-on CD-ROM@.  This is a convenient and reliable way to get a copy; it is
-also a good way to help fund our work.  (The Foundation has always
+You can also order copies of GNU Emacs from the Free Software
+Foundation.  This is a convenient and reliable way to get a copy; it
+is also a good way to help fund our work.  (The Foundation has always
 received most of its funds in this way.)  An order form is included in
 the file @file{etc/ORDERS} in the Emacs distribution, and on our web
 site in @url{http://www.gnu.org/order/order.html}.  For further
@@ -951,7 +956,9 @@ company policy is unsympathetic to the idea of donating to charity, you
 might instead suggest ordering a CD-ROM from the Foundation
 occasionally, or subscribing to periodic updates.
 
-@iftex
+@node Acknowledgements, Copying, Distrib, Top
+@section Acknowledgements
+
 Contributors to GNU Emacs include Per Abrahamsen, Jay K. Adams, Joe
 Arceneaux, Boaz Ben-Zvi, Jim Blandy, Terrence Brannon, Frank Bresz,
 Peter Breton, Kevin Broadey, Vincent Broman, David M. Brown, Bill
@@ -969,7 +976,7 @@ Heuer, Manabu Higashida, Anders Holst, Kurt Hornik, Tom Houlder, Lars
 Ingebrigtsen, Andrew Innes, Michael K. Johnson, Kyle Jones, Tomoji
 Kagatani, Brewster Kahle, David Kaufman, Henry Kautz, Howard Kaye,
 Michael Kifer, Richard King, Larry K. Kolodney, Robert Krawitz,
-Sebastian Kremer, Geoff Kuenning, David K@aa gedal, Daniel LaLiberte,
+Sebastian Kremer, Geoff Kuenning, David K@aa{}gedal, Daniel LaLiberte,
 Aaron Larson, James R. Larus, Frederic Lepied, Lars Lindberg, Eric
 Ludlam, Neil M. Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
 Marshall, Bengt Martensson, Charlie Martin, Thomas May, Roland McGrath,
@@ -993,9 +1000,8 @@ Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, Ed
 Wilkinson, Mike Williams, Steven A. Wood, Dale R. Worley, Felix
 S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
-@end iftex
 
-@node Copying, GNU Free Documentation License, Distrib, Top
+@node Copying, GNU Free Documentation License, Acknowledgements, Top
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
@@ -1463,6 +1469,7 @@ edit files while running shell commands.
 @include display.texi
 @include search.texi
 @include fixit.texi
+@include kmacro.texi
 @include files.texi
 @include buffers.texi
 @include windows.texi
@@ -1542,3 +1549,6 @@ edit files while running shell commands.
 @contents
 @bye
 
+@ignore
+   arch-tag: ed48740a-410b-46ea-9387-c9a9252a3392
+@end ignore

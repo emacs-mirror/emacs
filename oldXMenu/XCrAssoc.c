@@ -66,3 +66,6 @@ XAssocTable *XCreateAssocTable(size)
 
 	return(table);
 }
+
+/* arch-tag: 5df3237d-ada0-4345-a3ab-282cafb397aa
+   (do not change this comment) */

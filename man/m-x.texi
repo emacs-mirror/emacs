@@ -73,3 +73,7 @@ together with following arguments.
   @kbd{M-x} works by running the command
 @code{execute-extended-command}, which is responsible for reading the
 name of another command and invoking it.
+
+@ignore
+   arch-tag: b67bff53-9628-4666-b94e-eda972a7ba56
+@end ignore

@@ -1558,7 +1558,7 @@ white space and newlines.  This feature can be toggled on/off interactively,
 via the command @kbd{##}.
 @end table
 
-@strong{Note:} In order for this feature to work, auto-refining of
+@strong{Please note:} in order for this feature to work, auto-refining of
 difference regions must be on, since otherwise Ediff won't know if there
 are fine differences between regions.  On devices where Emacs can display
 faces, auto-refining is a default, but it is not turned on by default on
@@ -1693,8 +1693,8 @@ faces, you can modify them when Ediff is being loaded using
               ediff-current-diff-face-B)))
 @end smallexample
 
-@strong{Note:} To set Ediff's faces, use only @code{copy-face} or
-@code{set/make-face-@dots{}} as shown above. Emacs' low-level
+@strong{Please note:} to set Ediff's faces, use only @code{copy-face}
+or @code{set/make-face-@dots{}} as shown above. Emacs' low-level
 face-manipulation functions should be avoided.
 
 @node Narrowing, Refinement of Difference Regions, Highlighting Difference Regions, Customization
@@ -2399,6 +2399,7 @@ Boris Goldowsky (boris@@cs.rochester.edu),
 Allan Gottlieb (gottlieb@@allan.ultra.nyu.edu),
 Aaron Gross (aaron@@bfr.co.il),
 Thorbjoern Hansen (thorbjoern.hansen@@mchp.siemens.de),
+Marcus Harnisch (marcus_harnisch@@mint-tech.com),
 Xiaoli Huang (hxl@@epic.com),
 Andreas Jaeger (aj@@suse.de),
 Lars Magne Ingebrigtsen (larsi@@ifi.uio.no),
@@ -2472,3 +2473,7 @@ Eli Zaretskii (eliz@@is.elta.co.il)
 @setchapternewpage odd
 @contents
 @bye
+
+@ignore
+   arch-tag: 165ecb88-d03c-44b1-a921-b93f50b05b46
+@end ignore

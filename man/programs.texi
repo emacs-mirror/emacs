@@ -486,49 +486,10 @@ expression.
 
 @cindex @code{lisp-indent-function} property
   You can override the standard pattern in various ways for individual
-functions, according to the @code{lisp-indent-function} property of the
-function name.  There are four possibilities for this property:
-
-@table @asis
-@item @code{nil}
-This is the same as no property---use the standard indentation pattern.
-@item @code{defun}
-Handle this function like a @samp{def} construct: treat the second
-line as the start of a @dfn{body}.
-@item a number, @var{number}
-The first @var{number} arguments of the function are
-@dfn{distinguished} arguments; the rest are considered the body
-of the expression.  A line in the expression is indented according to
-whether the first argument on it is distinguished or not.  If the
-argument is part of the body, the line is indented @code{lisp-body-indent}
-more columns than the open-parenthesis starting the containing
-expression.  If the argument is distinguished and is either the first
-or second argument, it is indented @emph{twice} that many extra columns.
-If the argument is distinguished and not the first or second argument,
-the line uses the standard pattern.
-@item a symbol, @var{symbol}
-@var{symbol} should be a function name; that function is called to
-calculate the indentation of a line within this expression.  The
-function receives two arguments:
-@table @asis
-@item @var{state}
-The value returned by @code{parse-partial-sexp} (a Lisp primitive for
-indentation and nesting computation) when it parses up to the
-beginning of this line.
-@item @var{pos}
-The position at which the line being indented begins.
-@end table
-@noindent
-It should return either a number, which is the number of columns of
-indentation for that line, or a list whose car is such a number.  The
-difference between returning a number and returning a list is that a
-number says that all following lines at the same nesting level should
-be indented just like this one; a list says that following lines might
-call for different indentations.  This makes a difference when the
-indentation is being computed by @kbd{C-M-q}; if the value is a
-number, @kbd{C-M-q} need not recalculate indentation for the following
-lines until the end of the list.
-@end table
+functions, according to the @code{lisp-indent-function} property of
+the function name.  Normally you would use this for macro definitions
+and specify it using the @code{declare} construct (@pxref{Defining
+Macros,,, elisp, the Emacs Lisp Reference Manual}).
 
 @node C Indent
 @subsection Commands for C Indentation
@@ -677,8 +638,6 @@ Move forward over a balanced expression (@code{forward-sexp}).
 Move backward over a balanced expression(@code{backward-sexp}).
 @item C-M-k
 Kill balanced expression forward (@code{kill-sexp}).
-@item C-M-@key{DEL}
-Kill balanced expression backward (@code{backward-kill-sexp}).
 @item C-M-t
 Transpose expressions (@code{transpose-sexps}).
 @item C-M-@@
@@ -725,17 +684,9 @@ opposite direction.
 @cindex killing expressions
 @kindex C-M-k
 @findex kill-sexp
-@kindex C-M-DEL
-@findex backward-kill-sexp
   Killing a whole balanced expression can be done with @kbd{C-M-k}
-(@code{kill-sexp}) or @kbd{C-M-@key{DEL}} (@code{backward-kill-sexp}).
-@kbd{C-M-k} kills the characters that @kbd{C-M-f} would move over, and
-@kbd{C-M-@key{DEL}} kills the characters that @kbd{C-M-b} would move
-over.  On some machines, @kbd{C-M-@key{DEL}} typed on the console is a
-command to reboot; when that is so, you cannot use it as an Emacs
-command.  This conflict is rare, though: usually the @key{DEL} key for
-Emacs is really @key{BACKSPACE}, and the reboot command is
-@kbd{C-M-@key{DELETE}}, so there is no conflict.
+(@code{kill-sexp}).  @kbd{C-M-k} kills the characters that @kbd{C-M-f}
+would move over.
 
 @cindex transposition of expressions
 @kindex C-M-t
@@ -2332,3 +2283,7 @@ Insert or align a comment.
 
   The variable @code{asm-comment-char} specifies which character
 starts comments in assembler syntax.
+
+@ignore
+   arch-tag: c7ee7409-40a4-45c7-bfb7-ae7f2c74d0c0
+@end ignore

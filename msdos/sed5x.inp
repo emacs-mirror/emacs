@@ -24,3 +24,5 @@
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 s/|| true//
+
+# arch-tag: 612a79be-2a02-4cb0-8dec-779aac0a2f4f

@@ -146,29 +146,28 @@ Each line in the list shows one buffer's name, major mode and visited
 file.  The buffers are listed in the order that they were current; the
 buffers that were current most recently come first.
 
-  @samp{*} at the beginning of a line indicates the buffer is ``modified.''
+  @samp{*} in the first field of a line indicates the buffer is ``modified.''
 If several buffers are modified, it may be time to save some with @kbd{C-x s}
 (@pxref{Saving}).  @samp{%} indicates a read-only buffer.  @samp{.} marks the
 current buffer.  Here is an example of a buffer list:@refill
 
 @smallexample
- MR Buffer         Size  Mode           File
- -- ------         ----  ----           ----
-.*  emacs.tex      383402 Texinfo       /u2/emacs/man/emacs.tex
-    *Help*         1287  Fundamental
-    files.el       23076 Emacs-Lisp     /u2/emacs/lisp/files.el
-  % RMAIL          64042 RMAIL          /u/rms/RMAIL
- *% man            747   Dired          /u2/emacs/man/
-    net.emacs      343885 Fundamental   /u/rms/net.emacs
-    fileio.c       27691 C              /u2/emacs/src/fileio.c
-    NEWS           67340 Text           /u2/emacs/etc/NEWS
-    *scratch*	   0	 Lisp Interaction
+CRM Buffer                Size  Mode              File
+. * .emacs                3294  Emacs-Lisp        ~/.emacs
+ %  *Help*                 101  Help
+    search.c             86055  C                 ~/cvs/emacs/src/search.c
+ %  src                  20959  Dired by name     ~/cvs/emacs/src/
+  * *mail*                  42  Mail
+ %  HELLO                 1607  Fundamental       ~/cvs/emacs/etc/HELLO
+ %  NEWS                481184  Outline           ~/cvs/emacs/etc/NEWS
+    *scratch*              191  Lisp Interaction
+  * *Messages*            1554  Fundamental
 @end smallexample
 
 @noindent
 Note that the buffer @samp{*Help*} was made by a help request; it is
-not visiting any file.  The buffer @code{man} was made by Dired on the
-directory @file{/u2/emacs/man/}.  You can list only buffers that are
+not visiting any file.  The buffer @code{src} was made by Dired on the
+directory @file{~/cvs/emacs/src/}.  You can list only buffers that are
 visiting files by giving the command a prefix; for instance, by typing
 @kbd{C-u C-x C-b}.
 
@@ -602,3 +601,7 @@ provides a different and customizable mouse buffer menu which you may
 prefer.  It replaces the bindings of @code{mouse-buffer-menu},
 normally on @kbd{C-Down-Mouse-1}, and the menu bar buffer menu.  You
 can customize the menu in the @code{msb} Custom group.
+
+@ignore
+   arch-tag: 08c43460-f4f4-4b43-9cb5-1ea9ad991695
+@end ignore

@@ -4611,3 +4611,7 @@ Since most @ccmode{} variables are prepended with the string
 @end iftex
 
 @bye
+
+@ignore
+   arch-tag: c4cab162-5e57-4366-bdce-4a9db2fc97f0
+@end ignore

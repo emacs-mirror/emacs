@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/Locate.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Locate.c,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -76,3 +76,6 @@ XMenuLocate(display, menu, p_num, s_num, x_pos, y_pos, ul_x, ul_y, width, height
     _XMErrorCode = XME_NO_ERROR;
     return(XM_SUCCESS);
 }
+
+/* arch-tag: 1ff94bab-cf67-4c92-bff4-dc0130153173
+   (do not change this comment) */

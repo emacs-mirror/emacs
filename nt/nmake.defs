@@ -230,3 +230,5 @@ EXTRA_LINK      = -profile
 .c{$(BLD)}.obj::
 		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
 !ENDIF
+
+# arch-tag: fefa49b0-c23c-46c7-9094-cab2a405058e

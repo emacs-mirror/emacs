@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.14 2003/02/04 14:53:28 lektu Exp $
+@c $Id: mh-e.texi,v 1.15 2003/09/01 15:45:46 miles Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -3952,3 +3952,7 @@ Public License instead of this License.
 @c XXX In the sections on customizing mh-e, you can add cross-references
 @c to the Emacs manual and the Emacs Lisp manual wherever they are
 @c useful. @pxref{node, , section, emacs, The GNU Emacs Manual}
+
+@ignore
+   arch-tag: b778477d-1a10-4a99-84de-f877a2ea6bef
+@end ignore

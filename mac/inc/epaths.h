@@ -59,3 +59,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Where Emacs should look for the application default file. */
 /* #define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S" */
+
+/* arch-tag: 32e95134-dfe4-47be-be28-e8cbf78505b6
+   (do not change this comment) */

@@ -25,6 +25,7 @@
 # utility programs is expected to be in ${srcdir}/lib-src.  This is
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
+top_srcdir=@top_srcdir@
 
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
@@ -99,9 +100,13 @@ EMACSSOURCES= \
 	${srcdir}/msdog.texi \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \
-	${srcdir}/ack.texi
+	${srcdir}/ack.texi \
+	${srcdir}/kmacro.texi
 
-info: $(INFO_TARGETS)
+$(top_srcdir)/info:
+	mkdir $@
+
+info: $(top_srcdir)/info $(INFO_TARGETS)
 
 dvi: $(DVI_TARGETS)
 
@@ -301,3 +306,5 @@ maintainer-clean: distclean
 # That caused trouble because this is run entirely in the source directory.
 # Since we expect to get texi2dvi from elsewhere,
 # it is ok to expect texindex from elsewhere also.
+
+# arch-tag: 19cdb89e-4acb-448e-b0cc-2ddc05948ee2

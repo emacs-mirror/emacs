@@ -35,3 +35,6 @@ struct passwd *getpwuid(uid_t);
 struct passwd *getpwnam(const char *);
 
 #endif /* _PWD_H */
+
+/* arch-tag: e169cad7-12ca-4660-a35e-36f80d5d345f
+   (do not change this comment) */

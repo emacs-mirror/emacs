@@ -10,7 +10,7 @@
 @set VER 21.3
 
 @copying
-Copyright 2001, 2002 Free Software Foundation, Inc.
+Copyright 2001, 2002, 2003 Free Software Foundation, Inc.
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
 Copyright 1992,1993 Steven Byrnes@*
 Copyright 1990,1991,1992 Joseph Brian Wells@*
@@ -58,8 +58,9 @@ This is the GNU Emacs FAQ, last updated on @today{}.
 The FAQ is maintained as a Texinfo document, allowing us to create HTML,
 Info, and TeX documents from a single source file, and is slowly but
 surely being improved.  Please bear with us as we improve on this
-format.  If you have any suggestions or questions, please contact
-@email{emacs-faq@@lerner.co.il, the FAQ maintainers}.
+format.  This FAQ is maintained as a part of GNU Emacs.  If you find
+any errors, or have any suggestions, please use @kbd{M-x report-emacs-bug}
+to report them.
 
 @menu
 * FAQ notation::
@@ -423,10 +424,11 @@ individual postings from, but pretty much everything is there.
 
 The archive is at @uref{ftp://ftp-mailing-list-archives.gnu.org}.
 
-As of this writing, the archives are not yet working.
+The archive can be browsed over the web at 
+@uref{http://mail.gnu.org/archive/html/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
-@uref{http://www.dejanews.com, DejaNews}, also archive the
+@uref{http://groups.google.com, Google}, also archive the
 @code{gnu.*} groups.
 
 @node Reporting bugs, Unsubscribing from Emacs lists, Newsgroup archives, General questions
@@ -524,8 +526,7 @@ USA@*
 
 @cindex Ordering GNU software
 For details on how to order items directly from the FSF, see the
-@uref{http://www.gnu.org/order/order.html, GNU Web site}, and also the
-files @file{etc/ORDERS}, @file{ORDERS.EUROPE}, and @file{ORDERS.JAPAN}.
+@uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 @c ------------------------------------------------------------
 @node Getting help, Status of Emacs, General questions, Top
@@ -656,8 +657,7 @@ information.  To get a list of these commands, type @samp{?} after
 @cindex Emacs manual, obtaining a printed or HTML copy of
 
 You can order a printed copy of the Emacs manual from the FSF.  For
-details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}
-and the file @file{etc/ORDERS}.
+details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 @c The number 620 below is version-dependent!
 The full Texinfo source for the manual also comes in the @file{man}
@@ -690,8 +690,7 @@ function, @kbd{C-h v} for a variable.
 
 For more information, obtain the Emacs Lisp Reference Manual.  Details
 on ordering it from FSF are on the
-@uref{http://www.gnu.org/order/order.html, GNU Web site} and in the file
-@file{etc/ORDERS}.
+@uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 The Emacs Lisp Reference Manual is also available on-line, in Info
 format.  Texinfo source for the manual (along with pregenerated Info
@@ -1214,10 +1213,11 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @node Setting up a customization file, Colors on a TTY, Common requests, Common requests
 @section How do I set up a @file{.emacs} file properly?
 @cindex @file{.emacs} file, setting up
+@cindex @file{.emacs} file, locating
 @cindex Init file, setting up
 @cindex Customization file, setting up
 
-@inforef{Init File, Init File, emacs}
+@inforef{Init File, Init File, emacs}.
 
 In general, new Emacs users should not have @file{.emacs} files, because
 it causes confusing non-standard behavior.  Then they send questions to
@@ -1236,6 +1236,10 @@ consider taking a bit of time to learn Emacs Lisp and modifying your
 @file{.emacs} directly.  Simple configuration options are described
 rather completely in @inforef{Init File, Init File, emacs}, for users
 interested in performing frequently requested, basic tasks.
+
+Sometimes users are unsure as to where their @file{.emacs} file should
+be found.  Visiting the file as @file{~/.emacs} from Emacs will find
+the correct file.
 
 @node Colors on a TTY, Debugging a customization file, Setting up a customization file, Common requests
 @section How do I get colors and syntax highlighting on a TTY?
@@ -1326,7 +1330,10 @@ instructions on how to get it.
 
 @cindex Set number capability in @code{vi} emulators
 None of the @code{vi} emulation modes provide the ``set number''
-capability of @code{vi} (as far as we know).
+capability of @code{vi} (as far as we know).  The @samp{setnu} package
+written by @email{kyle@@wonderworks.com, Kyle Jones} provides this
+feature.  So too does @samp{wb-line-number}, written by
+@email{naoki.y.nakamura@@nifty.com, Naoki Nakamura}.
 
 @node Displaying the current file name in the titlebar, Turning on abbrevs by default, Displaying the current line or column, Common requests
 @section How can I modify the titlebar to contain the current file name?
@@ -1657,15 +1664,17 @@ session, e.g., by means of a @code{screen} program.
 @cindex @code{gnuserv}
 There is an enhanced version of @samp{emacsclient}/server called
 @samp{gnuserv}, written by @email{ange@@hplb.hpl.hp.com, Andy Norman}
-which is available in the Emacs Lisp Archive (@pxref{Packages that do
-not come with Emacs}).  @samp{gnuserv} uses Internet domain sockets, so
-it can work across most network connections.  It also supports the
-execution of arbitrary Emacs Lisp forms and does not require the client
-program to wait for completion.
+(@pxref{Packages that do not come with Emacs}).  @samp{gnuserv} uses
+Internet domain sockets, so it can work across most network connections.
+It also supports the execution of arbitrary Emacs Lisp forms and does
+not require the client program to wait for completion.
 
 The alpha version of an enhanced @samp{gnuserv} is available at
 
 @uref{ftp://ftp.wellfleet.com/netman/psmith/emacs/gnuserv-2.1alpha.tar.gz}
+
+The version available from @uref{http://meltin.net/hacks/emacs/} is
+more recent, and has been tested with Emacs 21.2.
 
 @end itemize
 
@@ -1947,10 +1956,9 @@ prefix when refilling the paragraph.
 
 If you have paragraphs with different levels of indentation, you will
 have to set the fill prefix to the correct value each time you move to a
-new paragraph.  To avoid this hassle, try one of the many packages
-available from the Emacs Lisp Archive (@pxref{Packages that do not come
-with Emacs}.)  Look up ``fill'' and ``indent'' in the Lisp Code
-Directory for guidance.
+new paragraph.  There are many packages available to deal with this
+(@pxref{Packages that do not come with Emacs}).  Look for ``fill'' and
+``indent'' keywords for guidance.
 
 @node Matching parentheses, Hiding #ifdef lines, Automatic indentation, Common requests
 @section How do I show which parenthesis matches the one I'm looking at?
@@ -2025,8 +2033,7 @@ parenthesis, it simply inserts a % like normal.
 @cindex Selectively displaying @code{#ifdef} code
 
 @kbd{M-x hide-ifdef-mode}.  (This is a minor mode.)  You might also want
-to try @file{cpp.el}, available at the Emacs Lisp Archive
-(@pxref{Packages that do not come with Emacs}).
+to investigate @file{cpp.el}, which is distributed with Emacs.
 
 @node Repeating commands, Valid X resources, Hiding #ifdef lines, Common requests
 @section Is there an equivalent to the @code{.} (dot) command of vi?
@@ -2061,7 +2068,7 @@ support it.  (@xref{VIPER}.)
 @cindex X resources
 @cindex Setting X resources
 
-@inforef{Resources X, Resources X, emacs}.
+@inforef{X Resources, X Resources, emacs}.
 
 You can also use a resource editor, such as editres (for X11R5 and
 onwards), to look at the resource names for the menu bar, assuming Emacs
@@ -2189,7 +2196,7 @@ If you need to repeat a command a small number of times, you can use
 @cindex Suspending Emacs
 
 @kbd{C-z} iconifies Emacs when running under X and suspends Emacs
-otherwise.  @inforef{Misc X, Misc X, emacs}.
+otherwise.  @inforef{Frame Commands, Frame Commands, emacs}.
 
 @node Using regular expressions, Replacing text across multiple files, Forcing Emacs to iconify itself, Common requests
 @section How do I use regexps (regular expressions) in Emacs?
@@ -2306,8 +2313,7 @@ waits before auto-saving.  Increasing this value forces Emacs to wait
 longer between auto-saves, which might annoy you less.
 
 You might also want to look into Sebastian Kremer's @code{auto-save}
-package, available from the Lisp Code Archive (@pxref{Packages that do not come
-with Emacs}).  This
+package (@pxref{Packages that do not come with Emacs}).  This
 package also allows you to place all auto-save files in one directory,
 such as @file{/tmp}.
 
@@ -2627,11 +2633,10 @@ on DOS and Windows, where the DOS end-of-line (EOL) format is the
 default, a backslash (@samp{\}) will appear in the mode line.
 
 If you are running a version of Emacs before 20.1, get @code{crypt++}
-from the Emacs Lisp Archive (@pxref{Packages that do not come with
-Emacs}).  Among other things, @code{crypt++} transparently modifies
-MS-DOS files as they are loaded and saved, allowing you to ignore the
-different conventions that Unix and MS-DOS have for delineating the end
-of a line.
+(@pxref{Packages that do not come with Emacs}).  Among other things, 
+@code{crypt++} transparently modifies MS-DOS files as they are loaded
+and saved, allowing you to ignore the different conventions that Unix
+and MS-DOS have for delineating the end of a line.
 
 @node Filling paragraphs with a single space,  Escape sequences in shell output, Editing MS-DOS files, Common requests
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
@@ -3121,8 +3126,8 @@ by a directory name with a variable reference (@kbd{cd $HOME/bin}) or
 with a shell metacharacter (@kbd{cd ../lib*}), Emacs will fail to
 correctly guess the shell's new current directory.  A huge variety of
 fixes and enhancements to shell mode for this problem have been written
-to handle this problem.  Check the Lisp Code Directory (@pxref{Finding a
-package with particular functionality}).
+to handle this problem (@pxref{Finding a package with particular
+functionality}).
 
 You can tell Emacs the shell's current directory with the command
 @kbd{M-x dirs}.
@@ -3470,7 +3475,6 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 * Finding Emacs on the Internet::
 * Finding a package with particular functionality::
 * Packages that do not come with Emacs::
-* Submitting to the Emacs Lisp Archive::
 * Current GNU distributions::
 * Difference between Emacs and XEmacs::
 * Emacs for MS-DOS::
@@ -3493,10 +3497,9 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 @cindex Distribution, retrieving Emacs
 @cindex Internet, retrieving from
 
-Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for information
-on nearby archive sites and @file{etc/ORDERS} for mail orders.  If you
-don't already have Emacs, see @ref{Informational files for Emacs}, for how
-to get these files.
+Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for
+information on nearby archive sites.  If you don't already have Emacs,
+see @ref{Informational files for Emacs}, for how to get these files.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
@@ -3521,109 +3524,42 @@ should be loaded, invoked, and configured---so before you use or
 modify a Lisp package, see if the author has provided any hints in the
 source code.
 
-If a package does not come with Emacs, check the Lisp Code Directory.
-The LCD was originally maintained by @email{brennan@@hal.com, Dave
-Brennan}, but was recently taken over by @email{toby@@world.std.com,
-toby knudsen}, who maintains @uref{http://www.emacs.org}.  The LCD is
-currently being reorganized and updated, but you can meanwhile find many
-packages at @uref{ftp://ftp.emacs.org/pub}.
+The command @kbd{C-h p} (@code{finder-by-keyword}) allows you to browse
+the constituent Emacs packages.
 
-For now, you can search through the LCD with @file{lispdir.el}, which is
-in the process of being updated.  Download it from the LCD, in the
-@file{emacs-lisp-attic/misc} directory, and then evaluate the following
-Lisp form (@pxref{Evaluating Emacs Lisp code}):
+For advice on how to find extra packages that are not part of Emacs,
+see @ref{Packages that do not come with Emacs}.
 
-@lisp
-(setq lisp-code-directory
- "/anonymous@@ftp.emacs.org:pub/emacs-lisp-attic/emacs-lisp/LCD-datafile.gz"
-  elisp-archive-host "ftp.emacs.org"
-  elisp-archive-directory "/pub/emacs-lisp-attic/emacs-lisp/")
-@end lisp
-
-Once you have installed @file{lispdir.el}, you can use @kbd{M-x
-lisp-dir-apropos} to search the listing.  For example, @kbd{M-x
-lisp-dir-apropos @key{RET} ange-ftp @key{RET}} produces this output:
-
-@example
-         GNU Emacs Lisp Code Directory Apropos --- "ange-ftp"
-"~/" refers to archive.cis.ohio-state.edu:pub/elisp-archive/
-
-     ange-ftp (4.18)       15-Jul-1992
-          Andy Norman, <ange@@hplb.hpl.hp.com>
-          ~/packages/ange-ftp.tar.Z
-          transparent FTP Support for GNU Emacs
-     auto-save (1.19)      01-May-1992
-          Sebastian Kremer, <sk@@thp.uni-koeln.de>
-          ~/misc/auto-save.el.Z
-          Safer autosaving with support for ange-ftp and /tmp
-     ftp-quik (1.0)        28-Jul-1993
-          Terrence Brannon, <tb06@@pl122f.eecs.lehigh.edu>
-          ~/modes/ftp-quik.el.Z
-          Quik access to dired'ing of ange-ftp and normal paths
-@end example
-
-@node Packages that do not come with Emacs, Submitting to the Emacs Lisp Archive, Finding a package with particular functionality, Finding Emacs and related packages
+@node Packages that do not come with Emacs, Current GNU distributions, Finding a package with particular functionality, Finding Emacs and related packages
 @section Where can I get Emacs Lisp packages that don't come with Emacs?
 @cindex Unbundled packages
 @cindex Finding other packages
 @cindex Lisp packages that do not come with Emacs
 @cindex Packages, those that do not come with Emacs
-@cindex Emacs Lisp Archive, description of
-@cindex Archive, description of the Emacs Lisp
+@cindex Emacs Lisp List
+@cindex Emacs Lisp Archive
 
-First, check the Lisp Code Directory to find the name of the package you
-are looking for (@pxref{Finding a package with particular
-functionality}).  Next, check local archives and the Emacs Lisp Archive
-to find a copy of the relevant files.  If you still haven't found it,
-you can send e-mail to the author asking for a copy.  If you find Emacs
-Lisp code that doesn't appear in the LCD, please submit a copy to the
-LCD (@pxref{Submitting to the Emacs Lisp Archive}).
+@uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.html, The Emacs Lisp
+List (ELL)}, maintained by @email{stephen@@anc.ed.ac.uk, Stephen Eglen},
+aims to provide one compact list with links to all of the current Emacs
+lisp files on the internet.  The ELL can be browsed over the web, or
+from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el, 
+the @file{ell} package}.
 
-You can access the Emacs Lisp Archive at
+Many authors post their packages to the @uref{news:gnu.emacs.sources,
+Emacs sources newsgroup}.  You can search the archives of this
+group with @uref{http://groups.google.com, Google}, for example.
 
-@uref{ftp://archive.cis.ohio-state.edu/pub/emacs-lisp/}
+Several packages are stored in
+@uref{http://emacswiki.org/elisp/, the Lisp area of the Emacs Wiki}.
 
-@noindent
-or at
+For a long time, the Emacs Lisp Archive provided a central repository
+for Emacs packages.  Sadly, it has not been active for some time,
+although you can still access the old files at
 
-@uref{http://www.cis.ohio-state.edu/emacs-lisp}
+@uref{ftp://ftp.cis.ohio-state.edu/pub/emacs-lisp/WWW/index.html}
 
-@noindent
-Retrieve and read the file @file{README} first.
-
-@itemize @bullet
-
-@item
-The archive maintainers do not have time to answer individual
-requests for packages or the list of packages in the archive.  If you
-cannot use FTP or UUCP to access the archive yourself, try to find a
-friend who can, but please don't ask the maintainers.
-
-@item
-Any files with names ending in @file{.Z}, @file{.z}, or @file{.gz} are
-compressed, so you should use "binary" mode in FTP to retrieve them.
-You should also use binary mode whenever you retrieve any files with
-names ending in @file{.elc}.
-
-@end itemize
-
-@node Submitting to the Emacs Lisp Archive, Current GNU distributions, Packages that do not come with Emacs, Finding Emacs and related packages
-@section How do I submit code to the Emacs Lisp Archive?
-@cindex Submitting code to the Emacs Lisp Archive
-@cindex Emacs Lisp Archive, submissions to
-@cindex Lisp Archive, submissions to
-@cindex Archive, submitting to the Emacs Lisp
-
-Guidelines and procedures for submission to the archive can be found in
-the file @file{GUIDELINES} in the archive directory (@pxref{Packages that
-do not come with Emacs}).  It covers documentation, copyrights,
-packaging, submission, and the Lisp Code Directory Record.  Anonymous
-FTP uploads are not permitted.  Instead, all submissions are mailed to
-@email{elisp-archive@@cis.ohio-state.edu}.  The @file{lispdir.el}
-package has a function named @code{submit-lcd-entry} which will help you
-with this.
-
-@node Current GNU distributions, Difference between Emacs and XEmacs, Submitting to the Emacs Lisp Archive, Finding Emacs and related packages
+@node Current GNU distributions, Difference between Emacs and XEmacs, Packages that do not come with Emacs, Finding Emacs and related packages
 @section Where can I get other up-to-date GNU stuff?
 @cindex Current GNU distributions
 @cindex Sources for current GNU distributions
@@ -3680,10 +3616,10 @@ Many XEmacs features have found their way into recent versions of Emacs,
 and more features can be expected in the future, but there are still many
 differences between the two.
 
-The latest stable branch of XEmacs as of this writing is 21.1; you can
+The latest stable branch of XEmacs as of this writing is 21.4; you can
 get it at
 
-@uref{ftp://ftp.xemacs.org/pub/xemacs/xemacs-21.1.14.tar.gz}
+@uref{ftp://ftp.xemacs.org/pub/xemacs/xemacs-21.4/xemacs-21.4.12.tar.gz}
 
 More information about XEmacs, including a list of frequently asked
 questions (FAQ), is available at
@@ -3889,20 +3825,12 @@ available at @uref{http://vms.gnu.org/}.
 @cindex @code{cc-mode}
 
 Most of these modes are now available in standard Emacs distribution.
-To get additional modes, look in the Lisp Code Directory (@pxref{Finding
-a package with particular functionality}).  For C@t{++}, if you use
-@code{lisp-dir-apropos}, you must specify the pattern with something
-like @kbd{M-x lisp-dir-apropos @key{RET} c\+\+ @key{RET}}.@footnote{
-The backslashes in @samp{\+\+} are required because @kbd{M-x
-lisp-dir-apropos} expects a regular expression as its argument
-(@pxref{Using regular expressions}), and @samp{+} has a special meaning
-in regular expressions.}
+To get additional modes, see @ref{Finding a package with particular
+functionality}.  
 
 Barry Warsaw's @code{cc-mode} now works for C, C@t{++}, Objective-C, and
-Java code.  You can get the latest version from the Emacs Lisp Archive;
-@pxref{Packages that do not come with Emacs} for details.  A FAQ for
-@code{cc-mode} is available at
-@uref{http://www.python.org/emacs/cc-mode/}.
+Java code.  It is distributed with Emacs, but has
+@uref{http://cc-mode.sourceforge.net/, its own homepage}.
 
 @node Translating names to IP addresses,  , Modes for various languages, Finding Emacs and related packages
 @section What is the IP address of XXX.YYY.ZZZ?
@@ -3945,7 +3873,7 @@ Body: site XXX.YYY.ZZZ
 * Supercite::
 * Calc::
 * VIPER::
-* AUC-TeX::
+* AUCTeX::
 * BBDB::
 * Ispell::
 * w3-mode::
@@ -3965,30 +3893,26 @@ Body: site XXX.YYY.ZZZ
 @table @b
 
 @item Author
-@email{kyle@@uunet.uu.net, Kyle Jones}
+@email{kyle_jones@@wonderworks.com, Kyle Jones}
 
 @item Latest version
-6.72
+7.15
 
 @item Distribution
 @uref{ftp://ftp.wonderworks.com/pub/vm/vm.tar.gz}
 
-@item Informational newsgroup/mailing list
+@item Informational newsgroup
 @uref{news:gnu.emacs.vm.info}@*
-Subscription requests to @email{info-vm-request@@uunet.uu.net}@*
-Submissions to @email{info-vm@@uunet.uu.net}
 
-@item Bug reports newsgroup/mailing list
+@item Bug reports newsgroup
 @uref{news:gnu.emacs.vm.bug}@*
-Subscription requests to @email{bug-vm-request@@uunet.uu.net}@*
-Submissions to @email{bug-vm@@uunet.uu.net}
+Or send reports to @email{bug-vm@@wonderworks.com}
 @end table
 
-VM 6 works with Emacs 20.4, and may cause problems with Emacs 20.3 and
-below.  (But note that many people seem to use Emacs 20.3 with VM 6,
-without any problems.)  Risk-averse users might wish to try VM 5.97,
-available from @uref{ftp://ftp.wonderworks.com/pub/vm/, the same FTP
-site}.
+VM 7 works well with Emacs 21. Older versions of VM suitable for use
+with older versions of Emacs are available from
+@uref{ftp://ftp.wonderworks.com/pub/vm/, the same FTP site}.
+
 
 @node Supercite, Calc, VM, Major packages and programs
 @section Supercite --- mail and news citation package within Emacs
@@ -4001,10 +3925,10 @@ site}.
 @table @b
 
 @item Author
-@email{bwarsaw@@cen.com, Barry Warsaw}
+@email{barry@@python.org, Barry Warsaw}
 
 @item Latest version
-3.54 (comes bundled with Emacs 20)
+3.54 (comes bundled with Emacs since version 20)
 
 @item Distribution
 @uref{http://www.python.org/emacs/supercite.tar.gz}
@@ -4044,7 +3968,7 @@ It doesn't support all the mathematical wizardry offered by Calc, such
 as matrices, special functions, and statistics, but is more than
 adequate as a replacement for @code{xcalc} and similar programs.
 
-@node VIPER, AUC-TeX, Calc, Major packages and programs
+@node VIPER, AUCTeX, Calc, Major packages and programs
 @section VIPER --- @code{vi} emulation for Emacs
 @cindex @code{vi} emulation
 @cindex VIPER
@@ -4071,11 +3995,11 @@ better than the one distributed with Emacs:
 
 @end table
 
-@node AUC-TeX, BBDB, VIPER, Major packages and programs
-@section AUC TeX --- enhanced LaTeX mode with debugging facilities
+@node AUCTeX, BBDB, VIPER, Major packages and programs
+@section AUCTeX --- enhanced LaTeX mode with debugging facilities
 @cindex Mode for @TeX{}
 @cindex @TeX{} mode
-@cindex AUC-TeX mode for editing @TeX{}
+@cindex AUCTeX mode for editing @TeX{}
 @cindex Writing and debugging @TeX{}
 
 @table @b
@@ -4084,23 +4008,26 @@ better than the one distributed with Emacs:
 @email{krab@@iesd.auc.dk, Kresten Krab Thorup} and@*
 @email{abraham@@dina.kvl.dk, Per Abrahamsen}
 
+@item Maintainer
+@email{dak@@gnu.org, David Kastrup}
+
 @item Latest version
-9.9p
+11.13
 
 @item Distribution
-@uref{ftp://sunsite.auc.dk/packages/auctex/auctex.tar.gz}
+@uref{http://savannah.gnu.org/download/auctex/stable.pkg/11.13/auctex-11.13.tar.gz}
 
 @item Web site
-@uref{http://sunsite.auc.dk/auctex/}
+@uref{http://www.gnu.org/software/auctex/}
 
 @item Mailing list:
-Subscription requests to @email{auc-tex-request@@iesd.auc.dk}@*
-Submissions to @email{auc-tex@@iesd.auc.dk}@*
-Development team is at @email{auc-tex_mgr@@iesd.auc.dk}
+Subscription requests to @email{auc-tex-subscribe@@sunsite.dk}@*
+Submissions to @email{auc-tex@@sunsite.dk}@*
+Development team is at @email{auc-tex_mgr@@sunsite.dk}
 
 @end table
 
-@node BBDB, Ispell, AUC-TeX, Major packages and programs
+@node BBDB, Ispell, AUCTeX, Major packages and programs
 @section BBDB --- personal Info Rolodex integrated with mail/news readers
 @cindex BBDB
 @cindex Rolodex-like functionality
@@ -4112,18 +4039,18 @@ Development team is at @email{auc-tex_mgr@@iesd.auc.dk}
 @table @b
 
 @item Maintainer
-@email{simmonmt@@acm.org, Matt Simmons}
+@email{waider@@waider.ie, Ronan Waide}
 
 @item Latest version
-2.00
+2.34
 
 @item Distribution
-@uref{http://bbdb.sf.net/}
+@uref{http://bbdb.sourceforge.net/}
 
 @item Mailing lists
-Subscription requests to @email{info-bbdb-request@@xemacs.org}@*
-Submissions to @email{info-bbdb@@xemacs.org}@*
-Release announcements: @email{bbdb-announce-request@@xemacs.org}
+Subscription requests to @email{bbdb-info-request@@lists.sourceforge.net}@*
+Submissions to @email{bbdb-info@@lists.sourceforge.net}@*
+Release announcements: @email{bbdb-announce-request@@lists.sourceforge.net}
 
 @end table
 
@@ -4220,16 +4147,16 @@ Help to develop @code{w3-mode} at @email{w3-dev@@indiana.edu}
 @email{jin@@atype.com, Jin S. Choi}
 
 @item Maintainer
-@email{lbudney@@pobox.com, Len Budney}
+@email{warner-mailcrypt@@lothar.com, Brian Warner}
 
 @item Latest version
-3.5.3
+3.5.8
 
 @item Distribution
-@uref{http://www.nb.net/~lbudney/linux/software/mailcrypt/mailcrypt-3.5.3.tar.gz}
+@uref{http://dl.sourceforge.net/sourceforge/mailcrypt/mailcrypt-3.5.8.tar.gz}
 
 @item Web site
-@uref{http://www.nb.net/~lbudney/linux/software/mailcrypt.html}
+@uref{http://mailcrypt.sourceforge.net/}
 
 @end table
 
@@ -5503,11 +5430,10 @@ most folks as that update propagates around.
 @section Where can I find out more about Gnus?
 @cindex FAQ for Gnus
 @cindex Gnus FAQ
-@cindex Learning more about GNU
+@cindex Learning more about Gnus
 
-Look for the Gnus FAQ, available at
-
-@uref{http://www.ccs.neu.edu/software/contrib/gnus/}
+For more information on Gnus, consult the Gnus manual and FAQ, which are
+part of the Gnus distribution.
 
 @node Concept index,  , Mail and news, Top
 @unnumbered Concept Index
@@ -5515,3 +5441,7 @@ Look for the Gnus FAQ, available at
 
 @contents
 @bye
+
+@ignore
+   arch-tag: fee0d62d-06cf-43d8-ac21-123408eaf10f
+@end ignore

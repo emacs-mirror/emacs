@@ -169,3 +169,7 @@ However, this does not happen if the buffer contents specify a major
 mode, and certain ``special'' major modes do not allow the mode to
 change.  You can turn off this mode-changing feature by setting
 @code{change-major-mode-with-file-name} to @code{nil}.
+
+@ignore
+   arch-tag: f2558800-cf32-4839-8acb-7d3b4df2a155
+@end ignore

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /cvsroot/emacs/emacs/oldXMenu/FindPane.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/FindPane.c,v 1.3 2003/09/01 15:45:47 miles Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -62,3 +62,6 @@ XMenuFindPane(menu, label)
     _XMErrorCode = XME_P_NOT_FOUND;
     return (XM_FAILURE);
 }
+
+/* arch-tag: b6c94285-0d1d-4569-a071-b34b63c67a54
+   (do not change this comment) */

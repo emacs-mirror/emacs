@@ -138,3 +138,6 @@ Boston, MA 02111-1307, USA.  */
 extern int sign_extend_temp;
 #endif
 #endif
+
+/* arch-tag: 9e759031-ab7b-4c76-99d7-3ae94a98de38
+   (do not change this comment) */

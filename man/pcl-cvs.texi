@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.19 2003/02/04 14:53:28 lektu Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.23 2003/09/30 20:40:50 rms Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -477,7 +477,7 @@ although it has not been @samp{cvs remove}d.
 
 Many of the commands work on the current set of @dfn{selected} files
 which can be either the set of marked files (if any file is marked and
-marks are no ignored) or whichever file or directory the cursor is on.
+marks are not ignored) or whichever file or directory the cursor is on.
 
 If a directory is selected but the command cannot be applied to a
 directory, then it will be applied to the set of files under this
@@ -1088,7 +1088,7 @@ revision.
 This command use @code{ediff} (or @code{emerge}, see above) to allow you
 to do an interactive 3-way merge.
 
-@strong{Note:}  When the file status is @samp{Conflict},
+@strong{Please note:}  when the file status is @samp{Conflict},
 CVS has already performed a merge.  The resulting file is not used in
 any way if you use this command.  If you use the @kbd{q} command inside
 @samp{ediff} (to successfully terminate a merge) the file that CVS
@@ -1193,7 +1193,7 @@ kill the contents of the buffer with @kbd{C-w}.
 If you work by writing entries in the @file{ChangeLog}
 (@pxref{(emacs)Change Log}) and then commit the change under revision
 control, you can generate the Log Edit text from the ChangeLog using
-@kbd{C-a C-a} (@kbd{log-edit-insert-changelog}).  This looks for
+@kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
 entries for the file(s) concerned in the top entry in the ChangeLog
 and uses those paragraphs as the log text.  This text is only inserted
 if the top entry was made under your user name on the current date.
@@ -1443,3 +1443,7 @@ this manual.
 @summarycontents
 @contents
 @bye
+
+@ignore
+   arch-tag: 5c7178ce-56fa-40b0-abd7-f4a09758b235
+@end ignore

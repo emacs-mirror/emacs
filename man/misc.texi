@@ -921,13 +921,13 @@ to the bottom before inserting.
 
 @vindex comint-scroll-show-maximum-output
   If @code{comint-scroll-show-maximum-output} is non-@code{nil}, then
-scrolling due to the arrival of output tries to place the last line of
+arrival of output when point is at the end tries to place the last line of
 text at the bottom line of the window, so as to show as much useful
 text as possible.  (This mimics the scrolling behavior of many
 terminals.)  The default is @code{nil}.
 
-@vindex comint-scroll-to-bottom-on-output
-  By setting @code{comint-scroll-to-bottom-on-output}, you can opt for
+@vindex comint-move-point-for-output
+  By setting @code{comint-move-point-for-output}, you can opt for
 having point jump to the end of the buffer whenever output arrives---no
 matter where in the buffer point was before.  If the value is
 @code{this}, point jumps in the selected window.  If the value is
@@ -1875,55 +1875,44 @@ hexl-@key{RET}} for details.
 @cindex reload files
 @cindex desktop
 
-  You can use the Desktop library to save the state of Emacs from one
-session to another.  Saving the state means that Emacs starts up with
-the same set of buffers, major modes, buffer positions, and so on that
-the previous Emacs session had.
+   Use the desktop library to save the state of Emacs from one session
+to another.  Once you save the Emacs @dfn{desktop}---the buffers,
+their file names, major modes, buffer positions, and so on---then
+subsequent Emacs sessions reload the saved desktop.
 
-@vindex desktop-enable
-  To use Desktop, you should use the Customization buffer (@pxref{Easy
-Customization}) to set @code{desktop-enable} to a non-@code{nil} value,
-or add these lines at the end of your @file{.emacs} file:
+@findex desktop-save
+@vindex desktop-save-mode
+  You can save the desktop manually with the command @kbd{M-x
+desktop-save}.  You can also enable automatical desktop saving when
+you exit Emacs: use the Customization buffer (@pxref{Easy
+Customization}) to set @code{desktop-save-mode} to @code{t} for future
+sessions, or add this line in your @file{~/.emacs} file:
 
 @example
-(desktop-load-default)
-(desktop-read)
+(desktop-save-mode 1)
 @end example
 
-@noindent
-@findex desktop-save
-The first time you save the state of the Emacs session, you must do it
-manually, with the command @kbd{M-x desktop-save}.  Once you have done
-that, exiting Emacs will save the state again---not only the present
-Emacs session, but also subsequent sessions.  You can also save the
-state at any time, without exiting Emacs, by typing @kbd{M-x
-desktop-save} again.
+@findex desktop-change-dir
+@findex desktop-revert
+  When Emacs starts, it looks for a saved desktop in the current
+directory.  Thus, you can have separate saved desktops in different
+directories, and the starting directory determines which one Emacs
+reloads.  You can save the current desktop and reload one saved in
+another directory by typing @kbd{M-x desktop-change-dir}.  Typing
+@kbd{M-x desktop-revert} reverts to the desktop previously reloaded.
 
-  In order for Emacs to recover the state from a previous session, you
-must start it with the same current directory as you used when you
-started the previous session.  This is because @code{desktop-read} looks
-in the current directory for the file to read.  This means that you can
-have separate saved sessions in different directories; the directory in
-which you start Emacs will control which saved session to use.
+  Specify the option @samp{--no-desktop} on the command line when you
+don't want it to reload any saved desktop.
 
-@vindex desktop-files-not-to-save
-  The variable @code{desktop-files-not-to-save} controls which files are
-excluded from state saving.  Its value is a regular expression that
-matches the files to exclude.  By default, remote (ftp-accessed) files
-are excluded; this is because visiting them again in the subsequent
-session would be slow.  If you want to include these files in state
-saving, set @code{desktop-files-not-to-save} to @code{"^$"}.
-@xref{Remote Files}.
-
-@vindex save-place
-@cindex Saveplace
-@findex toggle-save-place
-  The Saveplace library provides a simpler feature that records your
-position in each file when you kill its buffer (or kill Emacs), and
-jumps to the same position when you visit the file again (even in
-another Emacs session).  Use @kbd{M-x toggle-save-place} to turn on
-place-saving in a given file.  Customize the option @code{save-place}
-to turn it on for all files in each session.
+@findex desktop-clear
+@vindex desktop-globals-to-clear
+@vindex desktop-clear-preserve-buffers-regexp
+  Type @kbd{M-x desktop-clear} to empty the Emacs desktop.  This kills
+all buffers except for internal ones, and clears the global variables
+listed in @code{desktop-globals-to-clear}.  If you want this to
+preserve certain buffers, customize the variable
+@code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
+expression matching the names of buffers not to kill.
 
 @node Recursive Edit, Emulation, Saving Emacs Sessions, Top
 @section Recursive Editing Levels
@@ -2450,3 +2439,7 @@ Likewise, @kbd{M-x snake} provides an implementation of Snake.
 @findex zone
 The command @kbd{M-x zone} plays games with the display when Emacs is
 idle.
+
+@ignore
+   arch-tag: 8f094220-c0d5-4e9e-af7d-3e0da8187474
+@end ignore
