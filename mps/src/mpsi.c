@@ -1,4 +1,14 @@
-/* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER */
+/* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
+ *
+ * $HopeName$
+ * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ *
+ * .thread-safety: Most calls through this interface lock the space
+ * and therefore make the MPM single-threaded.  In order to do this
+ * they must recover the space from their parameters.  Methods such
+ * as ThreadSpace() must therefore be callable when the space is
+ * _not_ locked.  These methods are tagged with the tag of this note.
+ */
 
 #include "std.h"
 #include "mps.h"
@@ -15,7 +25,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 /* Check consistency of interface mappings. */
@@ -87,27 +97,27 @@ void mps_space_destroy(mps_space_t mps_space)
   SpaceDestroy(space);
 }
 
-mps_res_t mps_form_create_A(mps_form_t *mps_form_o,
-                            mps_space_t mps_space,
-                            mps_form_A_t mps_form_A)
+mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
+                           mps_space_t mps_space,
+                           mps_fmt_A_t mps_fmt_A)
 {
-  Format *formatReturn = (Format *)mps_form_o;
+  Format *formatReturn = (Format *)mps_fmt_o;
   Error e;
-  AVER(mps_form_A != NULL);
+  AVER(mps_fmt_A != NULL);
   e = FormatCreate(formatReturn,
                    (Space)mps_space,
-                   (Addr)mps_form_A->align,
-                   (FormatScanMethod)mps_form_A->scan,
-                   (FormatSkipMethod)mps_form_A->skip,
-                   (FormatMoveMethod)mps_form_A->fwd,
-                   (FormatIsMovedMethod)mps_form_A->isfwd,
-                   (FormatCopyMethod)mps_form_A->copy);
+                   (Addr)mps_fmt_A->align,
+                   (FormatScanMethod)mps_fmt_A->scan,
+                   (FormatSkipMethod)mps_fmt_A->skip,
+                   (FormatMoveMethod)mps_fmt_A->fwd,
+                   (FormatIsMovedMethod)mps_fmt_A->isfwd,
+                   (FormatCopyMethod)mps_fmt_A->copy);
   return e;
 }
 
-void mps_form_destroy(mps_form_t mps_form)
+void mps_fmt_destroy(mps_fmt_t mps_fmt)
 {
-  FormatDestroy((Format)mps_form);
+  FormatDestroy((Format)mps_fmt);
 }
 
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
@@ -348,13 +358,13 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
                          (Addr *)base, (Addr *)base + size);
 }
 
-mps_res_t mps_root_create_form(mps_root_t *mps_root_o,
-                               mps_space_t mps_space,
-                               mps_rank_t mps_rank,
-                               mps_rm_t mps_rm,
-                               mps_form_scan_t mps_form_scan,
-                               mps_addr_t base,
-                               mps_addr_t limit)
+mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
+                              mps_space_t mps_space,
+                              mps_rank_t mps_rank,
+                              mps_rm_t mps_rm,
+                              mps_fmt_scan_t mps_fmt_scan,
+                              mps_addr_t base,
+                              mps_addr_t limit)
 {
   NOTREACHED;
   return MPS_RES_UNIMPL;

@@ -2,7 +2,7 @@
  *
  *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!mps.h(trunk.3) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
@@ -34,7 +34,7 @@
 
 typedef struct mps_space_s  *mps_space_t;  /* space */
 typedef struct mps_pool_s   *mps_pool_t;   /* pool */
-typedef struct mps_form_s   *mps_form_t;   /* object format */
+typedef struct mps_fmt_s    *mps_fmt_t;    /* object format */
 typedef struct mps_root_s   *mps_root_t;   /* root */
 typedef struct mps_class_s  *mps_class_t;  /* pool class */
 typedef struct mps_thr_s    *mps_thr_t;    /* thread registration */
@@ -149,21 +149,21 @@ typedef struct mps_ld_s         /* location dependency descriptor */
 
 
 /* Format and Root Method Types */
-/* .form-methods: Keep in sync with impl.h.mpmty.form-methods */
+/* .fmt-methods: Keep in sync with impl.h.mpmty.fmt-methods */
 
 typedef mps_res_t  (*mps_root_scan_t)  (mps_ss_t mps_ss,
                                         void *p, size_t s);
-typedef mps_res_t  (*mps_form_scan_t)  (mps_ss_t mps_ss,
+typedef mps_res_t  (*mps_fmt_scan_t)   (mps_ss_t mps_ss,
                                         mps_addr_t base,
                                         mps_addr_t limit);
 typedef mps_res_t  (*mps_reg_scan_t)   (mps_ss_t mps_ss,
                                         mps_reg_t mps_reg,
                                         void *p);
-typedef mps_addr_t (*mps_form_skip_t)  (mps_addr_t object);
-typedef void       (*mps_form_copy_t)  (mps_addr_t old, mps_addr_t new);
-typedef void       (*mps_form_fwd_t)   (mps_addr_t old, mps_addr_t new);
-typedef mps_addr_t (*mps_form_isfwd_t) (mps_addr_t object);
-typedef void       (*mps_form_pad_t)   (mps_addr_t base, size_t size);
+typedef mps_addr_t (*mps_fmt_skip_t)   (mps_addr_t object);
+typedef void       (*mps_fmt_copy_t)   (mps_addr_t old, mps_addr_t new);
+typedef void       (*mps_fmt_fwd_t)    (mps_addr_t old, mps_addr_t new);
+typedef mps_addr_t (*mps_fmt_isfwd_t)  (mps_addr_t object);
+typedef void       (*mps_fmt_pad_t)    (mps_addr_t base, size_t size);
 
 
 /* Scan State
@@ -181,17 +181,17 @@ typedef struct mps_ss_s
 
 /* Format Variants */
 
-typedef struct mps_form_A_s *mps_form_A_t;
-typedef struct mps_form_A_s
+typedef struct mps_fmt_A_s *mps_fmt_A_t;
+typedef struct mps_fmt_A_s
 {
-  mps_align_t       align;
-  mps_form_scan_t   scan;
-  mps_form_skip_t   skip;
-  mps_form_copy_t   copy;
-  mps_form_fwd_t    fwd;
-  mps_form_isfwd_t  isfwd;
-  mps_form_pad_t    pad;
-} mps_form_A_s;
+  mps_align_t     align;
+  mps_fmt_scan_t  scan;
+  mps_fmt_skip_t  skip;
+  mps_fmt_copy_t  copy;
+  mps_fmt_fwd_t   fwd;
+  mps_fmt_isfwd_t isfwd;
+  mps_fmt_pad_t   pad;
+} mps_fmt_A_s;
 
 
 /* Internal Definitions
@@ -232,10 +232,10 @@ extern void mps_space_destroy(mps_space_t mps_space);
 
 /* Object Formats */
 
-extern mps_res_t mps_form_create_A(mps_form_t *mps_form_o,
-                                   mps_space_t mps_space,
-                                   mps_form_A_t mps_form_A);
-extern void mps_form_destroy(mps_form_t mps_form);
+extern mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
+                                  mps_space_t mps_space,
+                                  mps_fmt_A_t mps_fmt_A);
+extern void mps_fmt_destroy(mps_fmt_t mps_fmt);
 
 
 /* Pools */
@@ -315,8 +315,8 @@ extern mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p,
  * roots may be protected by the MPS if MPS_RM_PROT is set in the
  * root mode.
  *
- * mps_root_create_form creates a root from a block of memory which
- * contains formatted objects.  Pages containing form roots may be
+ * mps_root_create_fmt creates a root from a block of memory which
+ * contains formatted objects.  Pages containing fmt roots may be
  * protected by the MPS if MPS_RM_PROT is set in the root mode.
  *
  * mps_root_create_reg creates a root which will be used to scan
@@ -334,13 +334,13 @@ extern mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
                                        mps_rank_t mps_rank,
                                        mps_rm_t mps_rm,
                                        mps_addr_t *base, size_t size);
-extern mps_res_t mps_root_create_form(mps_root_t *mps_root_o,
-                                      mps_space_t mps_space,
-                                      mps_rank_t mps_rank,
-                                      mps_rm_t mps_rm,
-                                      mps_form_scan_t mps_form_scan,
-                                      mps_addr_t base,
-                                      mps_addr_t limit);
+extern mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
+                                     mps_space_t mps_space,
+                                     mps_rank_t mps_rank,
+                                     mps_rm_t mps_rm,
+                                      mps_fmt_scan_t mps_fmt_scan,
+                                     mps_addr_t base,
+                                     mps_addr_t limit);
 extern mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
                                      mps_space_t mps_space,
                                      mps_rank_t mps_rank,
