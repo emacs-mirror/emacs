@@ -69,6 +69,8 @@ typedef struct _widget_value
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */ 
   char*		key;
+  /* Help string or null if none.  */
+  char		*help;
   /* true if enabled */
   Boolean	enabled;
   /* true if selected */
