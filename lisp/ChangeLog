@@ -1,3 +1,16 @@
+2003-07-05  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-backward-line, ibuffer-forward-line)
+	(ibuffer-mark-interactive): Use `or' instead of `unless'.
+	(define-ibuffer-column name): Add summarizer.
+	(define-ibuffer-column size): Likewise.
+	(define-ibuffer-column filename): Likewise.
+	(define-ibuffer-column process): Likewise.  Change BODY's output too.
+	(define-ibuffer-column filename-and-process): Likewise, likewise.
+	(ibuffer): Remove local vars `already-in' and `need-update'.
+
+	* ibuf-ext.el: Don't require `derived' at compile-time.
+
 2003-07-05  Kim F. Storm  <storm@cua.dk>
 
 	* info.el: Disable paragraph refilling.
