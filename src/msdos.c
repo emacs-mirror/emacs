@@ -124,6 +124,10 @@ event_timestamp ()
  * Mouse buttons are numbered from left to right and also zero based.
  */
 
+/* This used to be in termhooks.h, but mainstream Emacs code no longer
+   uses it, and it was removed...  */
+#define NUM_MOUSE_BUTTONS (5)
+
 int have_mouse;          /* 0: no, 1: enabled, -1: disabled */
 static int mouse_visible;
 
@@ -1898,6 +1902,8 @@ static void
 IT_frame_up_to_date (struct frame *f)
 {
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Lisp_Object new_cursor, frame_desired_cursor;
+  struct window *sw;
 
   if (dpyinfo->mouse_face_deferred_gc
       || f == dpyinfo->mouse_face_mouse_frame)
@@ -1911,8 +1917,32 @@ IT_frame_up_to_date (struct frame *f)
       UNBLOCK_INPUT;
     }
 
-  /* Set the cursor type to whatever they wanted.  */
-  IT_set_cursor_type (f, Fcdr (Fassq (Qcursor_type, f->param_alist)));
+  /* Set the cursor type to whatever they wanted.  In a minibuffer
+     window, we want the cursor to appear only if we are reading input
+     from this window, and we want the cursor to be taken from the
+     frame parameters.  For the selected window, we use either its
+     buffer-local value or the value from the frame parameters if the
+     buffer doesn't define its local value for the cursor type.  */
+  sw = XWINDOW (f->selected_window);
+  frame_desired_cursor = Fcdr (Fassq (Qcursor_type, f->param_alist));
+  if (cursor_in_echo_area
+      && FRAME_HAS_MINIBUF_P (f)
+      && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window)
+      && sw == XWINDOW (echo_area_window))
+    new_cursor = frame_desired_cursor;
+  else
+    {
+      struct buffer *b = XBUFFER (sw->buffer);
+
+      if (EQ (b->cursor_type, Qt))
+	new_cursor = frame_desired_cursor;
+      else if (NILP (b->cursor_type)) /* nil means no cursor */
+	new_cursor = Fcons (Qbar, make_number (0));
+      else
+	new_cursor = b->cursor_type;
+    }
+
+  IT_set_cursor_type (f, new_cursor);
 
   IT_cmgoto (f);  /* position cursor when update is done */
 }
