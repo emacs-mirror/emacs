@@ -44,7 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
-#ifdef WINDOWSNT
+#if defined(WINDOWSNT) || defined(UNIX98_PTYS)
 #include <stdlib.h>
 #include <fcntl.h>
 #endif /* not WINDOWSNT */
