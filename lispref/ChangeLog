@@ -1,3 +1,8 @@
+2001-09-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* keymaps.texi (Creating Keymaps): Fix the description of the
+	result of make-keymap. 
+
 2001-09-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* display.texi (Font Lookup, Attribute Functions)
