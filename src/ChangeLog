@@ -1,5 +1,25 @@
 2000-08-11  Kenichi Handa  <handa@etl.go.jp>
 
+	* regex.c (regex_compile) <normal_char>: Pay attention to
+	multibyteness.
+	(analyse_first) <exactn>: Setup fastmap correctly for
+	eight-bit-control characters.
+
+2000-08-11  Kenichi Handa  <handa@etl.go.jp>
+
+	* termhooks.h (enum event_kind): New member
+	multibyte_char_keystroke.
+
+	* keyboard.c (make_lispy_event): Handle the new event type
+	multibyte_char_keystroke.
+
+	* xterm.c: Include coding.h.
+	(XTread_socket): Work around a bug of XmbLookupString.  If the
+	input is from XIM, decode it according to the current locale.  In
+	that case, generate multibyte_char_keystroke events.
+
+2000-08-11  Kenichi Handa  <handa@etl.go.jp>
+
 	* xdisp.c (TRACE_MOVE) [GLYPH_DEBUG]: Delete the last semicolon.
 	(TRACE_MOVE) [not GLYPH_DEBUG]: Define dummy.
 
