@@ -119,7 +119,7 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   ("Set Cursor" sc:set-cursor
 		(sc::menu-choose-cursor *menu-window* *menu-x* *menu-y*)) 
   ("Reset Cursor" sc:set-cursor nil)
-  ("Help". sc::edit-icon-help-menu)
+  ("Help" sc::edit-icon-help-menu)
   ("Quit" sc::quit-edit)
   )
 
