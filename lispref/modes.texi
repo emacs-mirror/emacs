@@ -2242,11 +2242,8 @@ argument @var{append} is non-@code{nil}, the new hook function goes at
 the end of the hook list and will be executed last.
 
 If @var{local} is non-@code{nil}, that says to make the new hook
-function buffer-local in the current buffer.  Before you can do this, you must
-make the hook itself buffer-local by calling @code{make-local-hook}
-(@strong{not} @code{make-local-variable}).  If the hook itself is not
-buffer-local, then the value of @var{local} makes no difference---the
-hook function is always global.
+function buffer-local in the current buffer and automatically calls
+@code{make-local-hook} to make the hook itself buffer-local.
 @end defun
 
 @defun remove-hook hook function &optional local
