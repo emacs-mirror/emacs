@@ -1,6 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (c) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (c) 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon <brannon@rana.usc.edu>
 ;; Created: December 16, 1996 - first release to usenet
@@ -54,8 +54,6 @@
 ;;; a single move, one moves east,west and south, then both east and
 ;;; west will be improved when they shouldn't
 
-;;; For further references see
-;;; http://rana.usc.edu:8376/~brannon/warez/yours-truly/lm/
 ;;; Many thanks to Yuri Pryadkin (yuri@rana.usc.edu) for this
 ;;; concise problem description.
 
@@ -1117,8 +1115,6 @@ this program to add a random element to the way moves were made.")
 
 ;;;_* Terry's mods to create lm.el
 
-;;;_ + Debugging things
-(setq debug-on-error t)
 ;;;(setq lm-debug nil)
 (defvar lm-debug nil
   "If non-nil, debugging is printed.")
@@ -1655,7 +1651,7 @@ none / 1   | yes                   | no
 You start by moving to a square and typing \\[lm-start-robot],
 if you did not use a prefix arg to ask for automatic start.
 Use \\[describe-mode] for more info."
-  (interactive "p")
+  (interactive "P")
 
   (setf lm-n nil lm-m nil)
   (lm-switch-to-window)
