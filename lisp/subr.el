@@ -846,10 +846,15 @@ BUFFER is the buffer or (buffer-name) to associate with the process.
 Third arg is command name, the name of a shell command.
 Remaining arguments are the arguments for the command.
 Wildcards and redirection are handled as usual in the shell."
-  (if (eq system-type 'vax-vms)
-      (apply 'start-process name buffer args)
-    (start-process name buffer shell-file-name "-c"
-		   (concat "exec " (mapconcat 'identity args " ")))))
+  (cond
+   ((eq system-type 'vax-vms)
+    (apply 'start-process name buffer args))
+   ((eq system-type 'windows-nt)
+    (start-process name buffer shell-file-name shell-command-switch
+		   (mapconcat 'identity args " ")))
+   (t
+    (start-process name buffer shell-file-name shell-command-switch
+		   (concat "exec " (mapconcat 'identity args " "))))))
 
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
