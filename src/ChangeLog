@@ -1,7 +1,15 @@
+2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (x_set_toolkit_scroll_bar_thumb) <USE_MOTIF>:
+	Use a fixed-size thumb (based on an ad-hoc estimate of 30 chars per
+	line) to avoid annoying flicker.
+	(xm_scroll_callback): Get rid of the now unnecessary kludge.
+	(XTread_socket): Mark it static.
+
 2002-03-31  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (direct_output_for_insert): Call
-	mark_window_display_accurate.
+	* dispnew.c (direct_output_for_insert):
+	Call mark_window_display_accurate.
 
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
