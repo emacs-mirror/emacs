@@ -1,3 +1,7 @@
+2002-02-25  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.el (focus-follows-mouse): Doc fix.
+
 2002-02-26  Miles Bader  <miles@gnu.org>
 
 	* mwheel.el (mouse-wheel-mode): Pass vectors instead of symbols
