@@ -2540,7 +2540,8 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
       (cmpl-statistics-block (record-complete-failed))))
 
 (defun completion-before-command ()
-  (funcall (or (get this-command 'completion-function)
+  (funcall (or (and (symbolp this-command)
+		    (get this-command 'completion-function))
 	       'use-completion-under-or-before-point)))
 (add-hook 'pre-command-hook 'completion-before-command)
 
