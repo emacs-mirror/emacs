@@ -862,7 +862,7 @@ and added as a submenu of the \"Edit\" menu.")
 		    :help "Supply explicit path to dictionary"))
       (define-key ispell-menu-map [ispell-kill-ispell]
 	'(menu-item "Kill Process" ispell-kill-ispell
-		    :enable (and ispell-process
+		    :enable (and (boundp 'ispell-process) ispell-process
 				 (eq (ispell-process-status) 'run))
 		    :help "Terminate Ispell subprocess"))
       (define-key ispell-menu-map [ispell-pdict-save]
