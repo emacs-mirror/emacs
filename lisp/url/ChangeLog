@@ -1,3 +1,35 @@
+2004-10-10  Lars Hansen  <larsh@math.ku.dk>
+
+	* url-auth.el: Update header and footer.
+
+	* url-cache.el: Update header and footer.
+
+	* url-cid.el: Update header and footer.
+
+	* url-dired.el: Update header and footer.
+
+	* url-expand.el: Update header and footer.
+
+	* url-ftp.el: Update header and footer.
+
+	* url-gw.el: Update header and footer.
+
+	* url-imap.el: Update header and footer.
+
+	* url-irc.el: Update header and footer.
+
+	* url-misc.el: Update header and footer.
+
+	* url-news.el: Update header and footer.
+
+	* url-ns.el: Update header and footer.
+
+	* url-privacy.el: Update header and footer.
+
+	* url-proxy.el: Update header and footer.
+
+	* url-vars.el: Update header.
+
 2004-10-16  Richard M. Stallman  <rms@gnu.org>
 
 	* url.el (url-do-setup): Don't set url-passwd-entry-func.
