@@ -321,13 +321,21 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; xdb (HP PARISC debugger) functions
 
+(defvar gud-xdb-directories nil
+  "*A list of directories that xdb should search for source code.
+If nil, only source files in the program directory
+will be known to xdb.
+
+The file names should be absolute, or relative to the directory
+containing the executable being debugged.")
+
 (defun gud-xdb-debugger-startup (file args)
   (apply 'make-comint (concat "gud-" file) "xdb" nil
-         (append (let ((paths gud-xdb-paths)
+         (append (let ((directories gud-xdb-directories)
                        (result nil))
-                   (while paths
-                     (setq result (cons (car paths) (cons "-d" result)))
-                     (setq paths (cdr paths)))
+                   (while directories
+                     (setq result (cons (car directories) (cons "-d" result)))
+                     (setq directories (cdr directories)))
                    (nreverse result))
                  args)))
 
@@ -336,13 +344,13 @@ and source-file directory for your debugger."
   (let ((result nil))
     (if (file-exists-p f)
         (setq result (expand-file-name f))
-      (let ((paths gud-xdb-paths))
-        (while paths
-          (let ((path (concat (car paths) "/" f)))
+      (let ((directories gud-xdb-directories))
+        (while directories
+          (let ((path (concat (car directories) "/" f)))
             (if (file-exists-p path)
                 (setq result (expand-file-name path)
-                      paths nil)))
-          (setq paths (cdr paths)))))
+                      directories nil)))
+          (setq directories (cdr directories)))))
     result))
 
 ;; xdb does not print the lines all at once, so we have to accumulate them
@@ -367,15 +375,6 @@ and source-file directory for your debugger."
                   (setq gud-last-frame (cons file line))))))
     (or result "")))    
                
-(defvar gud-xdb-paths nil
-  "*A list of directories containing source code that should be made known
-to xdb on startup.  If nil, only source files in the program directory
-will be known to xdb.
-
-The pathnames should be full, or relative to the program directory.
-Program directory refers to the directory of the program that is being
-debugged.")
-
 (defun gud-xdb-find-file (f)
   (let ((realf (gud-xdb-file-name f)))
     (if realf (find-file-noselect realf))))
@@ -386,7 +385,7 @@ debugged.")
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
-The variable 'gud-xdb-paths' can be set to a list of program source
+You can set the variable 'gud-xdb-directories' to a list of program source
 directories if your program contains sources from more than one directory."
   (interactive "sRun xdb (like this): xdb")
   (gud-overload-functions '((gud-debugger-startup . gud-xdb-debugger-startup)
