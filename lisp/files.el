@@ -926,7 +926,14 @@ if you wish to pass an empty string as the argument."
 	 (setq backup-inhibited t)))
   ;; If auto-save was not already on, turn it on if appropriate.
   (if (not buffer-auto-save-file-name)
-      (auto-save-mode (and buffer-file-name auto-save-default)))
+      (auto-save-mode (and buffer-file-name auto-save-default))
+    ;; If auto save is on, start using a new name.
+    ;; We deliberately don't rename or delete the old auto save
+    ;; for the old visited file name.  This is because perhaps
+    ;; the user wants to save the new state and then compare with the
+    ;; previous state from the auto save file.
+    (setq buffer-auto-save-file-name
+	  (make-auto-save-file-name)))
   (if buffer-file-name
       (set-buffer-modified-p t)))
 
