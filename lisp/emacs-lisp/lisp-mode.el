@@ -128,7 +128,9 @@
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;; \\|(....")
+  (setq outline-regexp ";;;;* \\|(")
+  (make-local-variable 'outline-level)
+  (setq outline-level 'lisp-outline-level)
   (make-local-variable 'comment-start)
   (setq comment-start ";")
   (make-local-variable 'comment-start-skip)
@@ -141,6 +143,14 @@
   (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression lisp-imenu-generic-expression))
+
+(defun lisp-outline-level ()
+  "Lisp mode `outline-level' function."
+  (if (looking-at "(")
+      1000
+    (looking-at outline-regexp)
+    (- (match-end 0) (match-beginning 0))))
+
 
 (defvar shared-lisp-mode-map ()
   "Keymap for commands shared by all sorts of Lisp modes.")
