@@ -4227,7 +4227,22 @@ get_next_display_element (it)
 		  if (SINGLE_BYTE_CHAR_P (it->c))
 		    str[0] = it->c, len = 1;
 		  else
-		    len = CHAR_STRING (it->c, str);
+		    {
+		      len = CHAR_STRING_NO_SIGNAL (it->c, str);
+		      if (len < 0)
+			{
+			  /* It's an invalid character, which
+			     shouldn't happen actually, but due to
+			     bugs it may happen.  Let's print the char
+			     as is, there's not much meaningful we can
+			     do with it.  */
+			  str[0] = it->c;
+			  str[1] = it->c >> 8;
+			  str[2] = it->c >> 16;
+			  str[3] = it->c >> 24;
+			  len = 4;
+			}
+		    }
 
 		  for (i = 0; i < len; i++)
 		    {
