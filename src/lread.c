@@ -183,14 +183,46 @@ readchar (readcharfun)
       int pt_byte = BUF_PT_BYTE (inbuffer);
       int orig_pt_byte = pt_byte;
 
+      if (readchar_backlog > 0)
+	/* We get the address of the byte just passed,
+	   which is the last byte of the character.
+	   The other bytes in this character are consecutive with it,
+	   because the gap can't be in the middle of a character.  */
+	return *(BUF_BYTE_ADDRESS (inbuffer, BUF_PT_BYTE (inbuffer) - 1)
+		 - --readchar_backlog);
+
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
+      readchar_backlog = -1;
+
       if (! NILP (inbuffer->enable_multibyte_characters))
 	{
+	  unsigned char workbuf[4];
+	  unsigned char *str = workbuf;
+	  int length;
+
+	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
 	  BUF_INC_POS (inbuffer, pt_byte);
 	  c = STRING_CHAR (p, pt_byte - orig_pt_byte);
+
+	  /* Find the byte-sequence representation of that character.  */
+	  if (SINGLE_BYTE_CHAR_P (c))
+	    length = 1, workbuf[0] = c;
+	  else
+	    length = non_ascii_char_to_string (c, workbuf, &str);
+
+	  /* If the bytes for this character in the buffer
+	     are not identical with what the character code implies,
+	     read the bytes one by one from the buffer.  */
+	  if (length != pt_byte - orig_pt_byte
+	      || (length == 1 ? *str != *p : bcmp (str, p, length)))
+	    {
+	      readchar_backlog = pt_byte - orig_pt_byte;
+	      c = BUF_FETCH_BYTE (inbuffer, orig_pt_byte);
+	      readchar_backlog--;
+	    }
 	}
       else
 	{
@@ -208,14 +240,46 @@ readchar (readcharfun)
       int bytepos = marker_byte_position (readcharfun);
       int orig_bytepos = bytepos;
 
+      if (readchar_backlog > 0)
+	/* We get the address of the byte just passed,
+	   which is the last byte of the character.
+	   The other bytes in this character are consecutive with it,
+	   because the gap can't be in the middle of a character.  */
+	return *(BUF_BYTE_ADDRESS (inbuffer, XMARKER (readcharfun)->bytepos - 1)
+		 - --readchar_backlog);
+
       if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
+      readchar_backlog = -1;
+
       if (! NILP (inbuffer->enable_multibyte_characters))
 	{
+	  unsigned char workbuf[4];
+	  unsigned char *str = workbuf;
+	  int length;
+
+	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
 	  BUF_INC_POS (inbuffer, bytepos);
 	  c = STRING_CHAR (p, bytepos - orig_bytepos);
+
+	  /* Find the byte-sequence representation of that character.  */
+	  if (SINGLE_BYTE_CHAR_P (c))
+	    length = 1, workbuf[0] = c;
+	  else
+	    length = non_ascii_char_to_string (c, workbuf, &str);
+
+	  /* If the bytes for this character in the buffer
+	     are not identical with what the character code implies,
+	     read the bytes one by one from the buffer.  */
+	  if (length != bytepos - orig_bytepos
+	      || (length == 1 ? *str != *p : bcmp (str, p, length)))
+	    {
+	      readchar_backlog = bytepos - orig_bytepos;
+	      c = BUF_FETCH_BYTE (inbuffer, orig_bytepos);
+	      readchar_backlog--;
+	    }
 	}
       else
 	{
@@ -280,26 +344,36 @@ unreadchar (readcharfun, c)
       struct buffer *b = XBUFFER (readcharfun);
       int bytepos = BUF_PT_BYTE (b);
 
-      BUF_PT (b)--;
-      if (! NILP (b->enable_multibyte_characters))
-	BUF_DEC_POS (b, bytepos);
+      if (readchar_backlog >= 0)
+	readchar_backlog++;
       else
-	bytepos--;
+	{
+	  BUF_PT (b)--;
+	  if (! NILP (b->enable_multibyte_characters))
+	    BUF_DEC_POS (b, bytepos);
+	  else
+	    bytepos--;
 
-      BUF_PT_BYTE (b) = bytepos;
+	  BUF_PT_BYTE (b) = bytepos;
+	}
     }
   else if (MARKERP (readcharfun))
     {
       struct buffer *b = XMARKER (readcharfun)->buffer;
       int bytepos = XMARKER (readcharfun)->bytepos;
 
-      XMARKER (readcharfun)->charpos--;
-      if (! NILP (b->enable_multibyte_characters))
-	BUF_DEC_POS (b, bytepos);
+      if (readchar_backlog >= 0)
+	readchar_backlog++;
       else
-	bytepos--;
+	{
+	  XMARKER (readcharfun)->charpos--;
+	  if (! NILP (b->enable_multibyte_characters))
+	    BUF_DEC_POS (b, bytepos);
+	  else
+	    bytepos--;
 
-      XMARKER (readcharfun)->bytepos = bytepos;
+	  XMARKER (readcharfun)->bytepos = bytepos;
+	}
     }
   else if (STRINGP (readcharfun))
     {
@@ -959,7 +1033,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte)
   record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
   load_convert_to_unibyte = !NILP (unibyte);
 
-  readchar_backlog = 0;
+  readchar_backlog = -1;
 
   GCPRO1 (sourcename);
 
@@ -1147,7 +1221,7 @@ STREAM or the value of `standard-input' may be:\n\
   if (EQ (stream, Qt))
     stream = Qread_char;
 
-  readchar_backlog = 0;
+  readchar_backlog = -1;
   new_backquote_flag = 0;
   read_objects = Qnil;
 
@@ -1726,7 +1800,7 @@ read1 (readcharfun, pch, first_in_list)
 	return make_number (c);
       }
 
-    case '\"':
+    case '"':
       {
 	register char *p = read_buffer;
 	register char *end = read_buffer + read_buffer_size;
