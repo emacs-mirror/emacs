@@ -57,28 +57,27 @@
   :type 'boolean
   :group 'mpuz)
 
-(defcustom mpuz-unsolved-face
-  `(,(facemenu-get-face 'fg:red) bold)
+(defface mpuz-unsolved-face
+  '((((class color)) (:foreground "red1" :bold t))
+    (t (:bold t)))
   "*Face to use for letters to be solved."
-  :type '(repeat face)
   :group 'mpuz)
 
-(defcustom mpuz-solved-face
-  `(,(facemenu-get-face 'fg:green) bold)
+(defface mpuz-solved-face
+  '((((class color)) (:foreground "green1" :bold t))
+    (t (:bold t)))
   "*Face to use for solved digits."
-  :type '(repeat face)
   :group 'mpuz)
 
-(defcustom mpuz-trivial-face
-  `(,(facemenu-get-face 'fg:blue) bold)
+(defface mpuz-trivial-face
+  '((((class color)) (:foreground "blue" :bold t))
+    (t (:bold t)))
   "*Face to use for trivial digits solved for you."
-  :type '(repeat face)
   :group 'mpuz)
 
-(defcustom mpuz-text-face
-  '(variable-pitch)
+(defface mpuz-text-face
+  '((t (:inherit variable-pitch)))
   "*Face to use for text on right."
-  :type '(repeat face)
   :group 'mpuz)
 
 
@@ -296,7 +295,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defun mpuz-create-buffer ()
   "Create (or recreate) the puzzle buffer. Return it."
   (let ((buf (get-buffer-create "*Mult Puzzle*"))
-	(face `(face ,mpuz-text-face))
+	(face '(face mpuz-text-face))
 	buffer-read-only)
     (save-excursion
       (set-buffer buf)
@@ -347,9 +346,9 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 		  (+ digit ?0)
 		(+ (mpuz-to-letter digit) ?A)))
 	(face `(face
-		,(cond ((aref mpuz-trivial-digits digit) mpuz-trivial-face)
-		       ((aref mpuz-found-digits digit) mpuz-solved-face)
-		       (mpuz-unsolved-face))))
+		,(cond ((aref mpuz-trivial-digits digit) 'mpuz-trivial-face)
+		       ((aref mpuz-found-digits digit) 'mpuz-solved-face)
+		       ('mpuz-unsolved-face))))
 	buffer-read-only)
     (mapc (lambda (square)
 	    (goto-line (car square))	; line before column!
