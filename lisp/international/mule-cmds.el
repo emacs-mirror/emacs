@@ -1455,30 +1455,8 @@ specifies the character set for the major languages of Western Europe."
     (set-unibyte-charset nonascii))
 
   ;; Unibyte setups if necessary.
-  (unless default-enable-multibyte-characters
-    ;; Syntax and case table.
-    (let ((syntax (get-language-info language-name 'unibyte-syntax)))
-      (if syntax
-	  (let ((set-case-syntax-set-multibyte nil))
-	    (load syntax nil t))
-	;; No information for syntax and case.  Reset to the defaults.
-	(let ((syntax-table (standard-syntax-table))
-	      (case-table (standard-case-table))
-	      (ch (if (eq window-system 'pc) 128 160)))
-	  (while (< ch 256)
-	    (modify-syntax-entry ch " " syntax-table)
-	    (aset case-table ch ch)
-	    (setq ch (1+ ch)))
-	(set-char-table-extra-slot case-table 0 nil)
-	(set-char-table-extra-slot case-table 1 nil)
-	(set-char-table-extra-slot case-table 2 nil))
-	(set-standard-case-table (standard-case-table))
-	(let ((list (buffer-list)))
-	  (while list
-	    (with-current-buffer (car list)
-	      (set-case-table (standard-case-table)))
-	    (setq list (cdr list))))))
-    (set-display-table-and-terminal-coding-system language-name))
+  (or default-enable-multibyte-characters
+      (set-display-table-and-terminal-coding-system language-name))
 
   (let ((required-features (get-language-info language-name 'features)))
     (while required-features
