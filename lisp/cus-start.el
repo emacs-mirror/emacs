@@ -210,7 +210,7 @@
 	  type (nth 2 this))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
-	(message "Built-in variable `%S' not bound" symbol)
+	(message "Note, built-in variable `%S' not bound" symbol)
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
 	  (put symbol 'standard-value 
