@@ -1,8 +1,18 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
- * $HopeName: MMsrc!protsu.c(trunk.6) $
+ * $HopeName: MMsrc!protsu.c(trunk.7) $
+ * Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
  *
- * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ * READERSHIP
+ *
+ * .readership: Any MPS developer
+ *
+ * DESIGN
+ *
+ * see design.mps.prot for the generic design (including the interface),
+ * and design.mps.protsu for the design specific to this implementation.
+ *
+ * TRANSGRESSIONS
  *
  * .hack.sigdfl: GCC 2.5.8 produces a warning when we use SIG_DFL with
  * -Wstrict-prototypes, which we want.  SIG_DFL is just zero, so we
@@ -11,7 +21,7 @@
  */
 
 #include "mpm.h"
-#include <stdlib.h>
+
 #include <sys/mman.h>
 #include <signal.h>
 
@@ -19,7 +29,23 @@
 #error "protsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
 
-SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.6) $");
+SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.7) $");
+
+
+/* Fix up unprototyped system calls. */
+
+extern int getpagesize(void);
+extern int getpid(void);
+/* .depend.caddrt.self-promote: The following prototype for mprotect
+ * assumes that the type caddr_t is compatible with type that is produced
+ * when the default argument promotions are applied to caddr_t.  See
+ * ISO C clause 6.3.2.2.  caddr_t is defined is defined in
+ * /usr/include/sys/types.h to be char *, so this assumption is valid.
+ */
+extern int mprotect(caddr_t, int, int);
+extern int sigblock(int);
+extern int sigsetmask(int);
+typedef void (*handler_t)(int, int, struct sigcontext *, char *);
 
 
 /* .hack.sigdfl */
@@ -31,39 +57,31 @@ SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.6) $");
 #endif
 
 
-/* Fix up unprototyped system calls.  */
-/* Note that these are not fixed up by std.h because that only fixes */
-/* up discrepancies with ANSI. */
-
-extern int getpagesize(void);
-extern int getpid(void);
-extern int mprotect(caddr_t addr, int len, int prot);
-extern int sigblock(int);
-extern int sigsetmask(int);
-typedef void (*handler_t)(int sig, int code,
-                          struct sigcontext *scp, char *addr);
-
-
 /* Pointer to the previously-installed signal handler, as returned by */
 /* signal(3).  See ProtSetup. */
 
 static handler_t sigNext = NULL;
 
 
-/* sigHandle -- protection signal handler
+/* == sigHandle -- protection signal handler ==
  *
  * This is the signal handler installed by ProtSetup to deal with
  * protection faults.  It is installed on the SIGSEGV signal.
  * It decodes the protection fault details from the signal context
- * and passes them to FaultDispatch, which attempts to handle the
+ * and passes them to SpaceAccess, which attempts to handle the
  * fault and remove its cause.  If the fault is handled, then
- * the handler returns and execution resumes.  If it isn't handled,
- * then sigHandle does its best to pass the signal on to the
- * previously installed signal handler (sigNext).
+ * the handler returns and execution resumes.
  *
- * .sigh.addr: This code assumes that the system will decode the
- * address of the protection violation.  SunOS doesn't document
- * when this will or will not happen.
+ * If it isn't handled, then sigHandle does its best to pass the signal
+ * on to the previously installed signal handler (sigNext).  sigHandle
+ * cannot emulate a signal precisely.  The problems are that the signal
+ * mask for that signal (set by sigvec) will not be set properly, also
+ * the handler will be executed on the current stack and not on its own
+ * stack (if it requested it).
+ *
+ * .assume.addr: This code assumes that the system will decode the
+ * address of the protection violation.  This is documented in the
+ * "ADDR" section of the sigvec(2) man page.
  *
  * .sigh.decode: We can't determine the access mode (read, write, etc.)
  * without decoding the faulting instruction.  We don't bother to do
@@ -82,7 +100,7 @@ static void sigHandle(int sig, int code,
 
   if(code == SEGV_PROT) {
     AccessSet mode;
-    AVER(addr != SIG_NOADDR);           /* .sigh.addr */
+    AVER(addr != SIG_NOADDR);           /* .assume.addr */
     mode = AccessREAD | AccessWRITE;    /* .sigh.decode */
     if(SpaceAccess((Addr)addr, mode))   /* .sigh.size */
       return;
@@ -90,6 +108,7 @@ static void sigHandle(int sig, int code,
 
   /* The exception was not handled by any known protection structure, */
   /* so throw it to the previously installed handler. */
+  AVER(sigNext != NULL);
   (*sigNext)(sig, code, scp, addr);
 }
 
@@ -121,27 +140,27 @@ static void sigDefault(int sig, int code,
 
 /* ProtSetup -- global protection setup
  *
- * Under SunOS, the global setup involves installing a signal handler
- * on SIGSEGV to catch and handle protection faults (see sigHandle).
- * The previous handler is recorded so that it can be reached from
- * sigHandle if it fails to handle the fault.
- *
  * NOTE: There are problems with this approach:
- *   1. we can't honor the wishes of the sigvec(2) entry for the
- *      previous handler,
- *   2. what if this thread is suspended just after calling signal(3)?
- *      The sigNext variable will never be initialized!
+ *   1. If the thread is suspended just after calling signal(3)
+ *      then the sigNext variable will not be set and sigHandle will
+ *      be installed as the signal handler.  sigHandle will fall over
+ *      if it tries to call the next handler in the chain.
  */
 
 void ProtSetup(void)
 {
   handler_t next;
 
-  next = signal(SIGSEGV, sigHandle);
+  /* ProtSetup is called exactly once, see design.mps.prot.if.setup */
+  AVER(sigNext == NULL); 
 
-  if(next == SIG_DFL)           /* suicide function */
+  next = signal(SIGSEGV, sigHandle);
+  /* should always succeed as our parameters are valid */
+  AVER(next != (handler_t)-1);
+
+  if(next == SIG_DFL)           /* use the suicide function */
     sigNext = sigDefault;
-  else if(sigNext != sigHandle) /* already installed? */
+  else
     sigNext = next;
 }
 
@@ -149,45 +168,60 @@ void ProtSetup(void)
 /* ProtSet -- set the protection for a page
  *
  * This is just a thin veneer on top of mprotect(2).
+ *
+ * .assume.size: We asssume the type int and the type Size are the
+ * same size.  This assumption is made in the call to mprotect.
  */
 
 void ProtSet(Addr base, Addr limit, AccessSet mode)
 {
   int flags;
 
-  AVER(sizeof(int) == sizeof(Addr));
+  AVER(sizeof(int) == sizeof(Size));    /* See .assume.size */
   AVER(base < limit);
-  AVER(base != 0);
+  AVER(base != (Addr)0);
+  /* we assume that the difference between limit and base (which is */
+  /* positive) will fit in an int */
   AVER(AddrOffset(base, limit) <= INT_MAX); /* should be redundant */
+  /* There is no AccessSetCheck, so we don't */
 
-  flags = PROT_READ | PROT_WRITE | PROT_EXEC;
-  if((mode & AccessWRITE) != 0)
-    flags = PROT_READ | PROT_EXEC;
-  if((mode & AccessREAD) != 0)
+  /* convert between MPS AccessSet and SunOS PROT thingies. */
+  switch(mode) {
+  case AccessWRITE | AccessREAD:
+  case AccessREAD:      /* forbids writes as well */
     flags = PROT_NONE;
-
-  if(mprotect((caddr_t)base, (int)AddrOffset(base, limit), flags) != 0)
+    break;
+  case AccessWRITE:
+    flags = PROT_READ | PROT_EXEC;
+    break;
+  case AccessSetEMPTY:
+    flags = PROT_READ | PROT_WRITE | PROT_EXEC;
+    break;
+  default:
     NOTREACHED;
+    flags = PROT_NONE;
+  }
+
+  /* 2nd arg to mprotect, .assume.size */
+  if(mprotect((caddr_t)base, (int)AddrOffset(base, limit), flags) != 0) {
+    /* design.mps.protsu.fun.set.assume.mprotect */
+    NOTREACHED;
+  }
 }
 
 
 /* ProtSync -- synchronize protection settings with hardware
- *
- * This does nothing under SunOS.
  */
 
 void ProtSync(Space space)
 {
+  AVERT(Space, space);
+  UNUSED(space);
   NOOP;
 }
 
 
 /* ProtTramp -- protection trampoline
- *
- * The protection trampoline is trivial under SunOS, as there is nothing
- * that needs to be done in the dynamic context of the mutator in order
- * to catch faults.  (Contrast this with Win32 Structured Exception
- * Handling.)
  */
 
 void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
