@@ -78,6 +78,8 @@ AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(sound,
 [  --with-sound            native sound support for GNU/Linux and free BSDs])
+AC_ARG_WITH(toolkit-scroll-bars,
+[  --with-toolkit-scroll-bars  use Motif or Xaw3d scroll bars])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
@@ -1668,14 +1670,20 @@ fi
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 dnl Use toolkit scroll bars if configured for X toolkit and either
-dnl using Motif or Xaw3d is available.
+dnl using Motif or Xaw3d is available, and unless
+dnl --with-toolkit-scroll-bars=no was specified.
 
-if test "${USE_X_TOOLKIT}" != "none"; then
-  if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
-    HAVE_XAW3D=no
-  elif test "${HAVE_XAW3D}" = "yes"; then
-    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+USE_TOOLKIT_SCROLL_BARS=no
+if test "${with_toolkit_scroll_bars}" != "no"; then
+  if test "${USE_X_TOOLKIT}" != "none"; then
+    if test "${USE_X_TOOLKIT}" = "MOTIF"; then
+      AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+      HAVE_XAW3D=no
+      USE_TOOLKIT_SCROLL_BARS=yes
+    elif test "${HAVE_XAW3D}" = "yes"; then
+      AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+      USE_TOOLKIT_SCROLL_BARS=yes
+    fi
   fi
 fi
 
@@ -1960,6 +1968,7 @@ echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
 # Remove any trailing slashes in these variables.
