@@ -1221,7 +1221,7 @@ for `speedbar-this-file-in-vc' and `speedbar-vc-check-dir-p'
 
 Files with a `#' or `!' character after them are source files that
 have an object file associated with them.  The `!' indicates that the
-files is out of date.   You can control what source/object associations
+files is out of date.  You can control what source/object associations
 exist through the variable `speedbar-obj-alist'.
 
 Click on the [+] to display a list of tags from that file.  Click on
