@@ -1682,6 +1682,11 @@ command_loop_1 ()
 		  if (value == 2)
 		    nonundocount = 0;
 
+		  if (! NILP (Vpost_command_hook))
+		    /* Put this before calling adjust_point_for_property
+		       so it will only get called once in any case.  */
+		    goto directly_done;
+
 		  /* VALUE == 1 when AFTER-CHANGE functions are
 		     installed which is the case most of the time
 		     because FONT-LOCK installs one.  */
