@@ -1,6 +1,6 @@
 ;;; tooltip.el --- Show tooltip windows
 
-;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -93,6 +93,9 @@ Do so after `tooltip-short-delay'."
   "*Non-nil means show tooltips in GUD sessions."
   :type 'boolean
   :tag "GUD"
+  :set #'(lambda (symbol on)
+	   (setq tooltip-gud-tips-p on)
+	   (if on (tooltip-gud-tips-setup)))
   :group 'tooltip)
 
 
@@ -184,20 +187,22 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
     ;; `ignore' is the default binding for mouse movements.
     (define-key global-map [mouse-movement]
       (if on 'tooltip-mouse-motion 'ignore))
-    (when (and on tooltip-gud-tips-p)
-      (global-set-key [S-mouse-3] 'tooltip-gud-toggle-dereference)
-      (add-hook 'gdb-mode-hook
-		#'(lambda () (setq tooltip-gud-debugger 'gdb)))
-      (add-hook 'sdb-mode-hook
-		#'(lambda () (setq tooltip-gud-debugger 'sdb)))
-      (add-hook 'dbx-mode-hook
-		#'(lambda () (setq tooltip-gud-debugger 'dbx)))
-      (add-hook 'xdb-mode-hook
-		#'(lambda () (setq tooltip-gud-debugger 'xdb)))
-      (add-hook 'perldb-mode-hook
-		#'(lambda () (setq tooltip-gud-debugger 'perldb))))))
+    (tooltip-gud-tips-setup)))
 
-
+(defun tooltip-gud-tips-setup ()
+  "Setup debugger mode-hooks for tooltips."
+  (when (and tooltip-mode tooltip-gud-tips-p)
+    (global-set-key [S-mouse-3] 'tooltip-gud-toggle-dereference)
+    (add-hook 'gdb-mode-hook
+	      #'(lambda () (setq tooltip-gud-debugger 'gdb)))
+    (add-hook 'sdb-mode-hook
+	      #'(lambda () (setq tooltip-gud-debugger 'sdb)))
+    (add-hook 'dbx-mode-hook
+	      #'(lambda () (setq tooltip-gud-debugger 'dbx)))
+    (add-hook 'xdb-mode-hook
+	      #'(lambda () (setq tooltip-gud-debugger 'xdb)))
+    (add-hook 'perldb-mode-hook
+	      #'(lambda () (setq tooltip-gud-debugger 'perldb)))))
 
 ;;; Timeout for tooltip display
 
@@ -416,12 +421,12 @@ This function must return nil if it doesn't handle EVENT."
 		      (eval (cons 'and tooltip-gud-display))))
       (let ((expr (tooltip-expr-to-print event)))
 	(when expr
-	  (setq tooltip-gud-original-filter (process-filter process))
-	  (set-process-filter process 'tooltip-gud-process-output)
-	  (process-send-string
-	   process (concat (tooltip-gud-print-command expr) "\n"))
-	  expr)))))
-
+	  (let ((cmd (tooltip-gud-print-command expr)))
+	    (unless (null cmd)	       ; CMD can be nil if unknown debugger
+	      (setq tooltip-gud-original-filter (process-filter process))
+	      (set-process-filter process 'tooltip-gud-process-output)
+	      (gud-basic-call cmd)
+	      expr)))))))
 
 
 ;;; Tooltip help.
