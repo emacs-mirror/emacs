@@ -46,7 +46,6 @@
 ;;
 ;; If you decide you like this, add the following to your .emacs file:
 ;;
-;; (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
 ;; (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 ;;
 ;; SGR control sequences are defined in section 3.8.117 of the ECMA-48
