@@ -291,7 +291,7 @@ update_status (p)
   p->raw_status_high = Qnil;
 }
 
-/*  Convert a process status work in Unix format to 
+/*  Convert a process status word in Unix format to 
     the list that we use internally.  */
 
 Lisp_Object
