@@ -1,3 +1,9 @@
+2002-07-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* files.el (insert-directory): Be sure to bind
+	coding-system-for-write to the just decided
+	coding-system-for-read.
+
 2002-07-11  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (set-language-environment): Use
@@ -4257,7 +4263,7 @@
 	(toplevel): Add completion-list-mode-finish to temp-buffer-show-hook.
 
 	* language/european.el ("Polish"): Change sample text.
-	From jsbien@mimuw.edu.pl (Janusz S. Bie$,1 d(B).
+	From jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
 
 	* progmodes/sh-script.el (sh-indent-line): Add optional PREFIX-ARG
 	parameter.
