@@ -1,4 +1,4 @@
-;;; dired-aux.el --- all of dired except what people usually use
+;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
 ;; Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
 
@@ -252,7 +252,7 @@ with a prefix argument."
 	nil
       ;; If it looks like file FN has versions, return a list of the versions.
       ;;That is a list of strings which are file names.
-      ;;The caller may want to flag some of these files for deletion."
+      ;;The caller may want to flag some of these files for deletion.
       (let* ((base-versions
 	      (concat (file-name-nondirectory fn) ".~"))
 	     (bv-length (length base-versions))
@@ -966,36 +966,6 @@ Special value `always' suppresses confirmation.")
 	      (dired-normalize-subdir
 	       (dired-replace-in-string regexp newtext (car elt)))))))
 
-;; Cloning replace-match to work on strings instead of in buffer:
-;; The FIXEDCASE parameter of replace-match is not implemented.
-;;;###autoload
-(defun dired-string-replace-match (regexp string newtext
-					  &optional literal global)
-  "Replace first match of REGEXP in STRING with NEWTEXT.
-If it does not match, nil is returned instead of the new string.
-Optional arg LITERAL means to take NEWTEXT literally.
-Optional arg GLOBAL means to replace all matches."
-  (if global
-        (let ((result "") (start 0) mb me)
-	  (while (string-match regexp string start)
-	    (setq mb (match-beginning 0)
-		  me (match-end 0)
-		  result (concat result
-				 (substring string start mb)
-				 (if literal
-				     newtext
-				   (dired-expand-newtext string newtext)))
-		  start me))
-	  (if mb			; matched at least once
-	      (concat result (substring string start))
-	    nil))
-    ;; not GLOBAL
-    (if (not (string-match regexp string 0))
-	nil
-      (concat (substring string 0 (match-beginning 0))
-	      (if literal newtext (dired-expand-newtext string newtext))
-	      (substring string (match-end 0))))))
-
 (defun dired-expand-newtext (string newtext)
   ;; Expand \& and \1..\9 (referring to STRING) in NEWTEXT, using match data.
   ;; Note that in Emacs 18 match data are clipped to current buffer
