@@ -3940,6 +3940,7 @@ Optional argument FOLDER specifies folder name."
 If prefix argument ALL is non-nil, all articles are marked as read."
   (interactive "P")
   (if (or quietly
+	  (not gnus-interactive-catchup) ;Without confirmation?
 	  (y-or-n-p
 	   (if all
 	       "Do you really want to mark everything as read? "
@@ -3966,6 +3967,7 @@ If prefix argument ALL is non-nil, all articles are marked as read."
 If prefix argument ALL is non-nil, all articles are marked as read."
   (interactive "P")
   (if (or quietly
+	  (not gnus-interactive-catchup) ;Without confirmation?
 	  (y-or-n-p
 	   (if all
 	       "Do you really want to mark everything as read? "
