@@ -62,7 +62,7 @@ and need not be mentioned here.")
 
 ;; Non-nil means we have started showing an alternatives window.
 ;; This is the window config from before then.
-(defvar ispell-window-configuration)
+(defvar ispell-window-configuration nil)
 
 ;t when :dump command needed
 (defvar ispell-dump-needed nil)
@@ -214,7 +214,7 @@ that have not already been dumped will be lost."
   (memq major-mode '(plain-TeX-mode LaTeX-mode)))
 
 (defvar ispell-menu-map (make-sparse-keymap "Spell"))
-(defalias ispell-menu-map ispell-menu-map)
+(defalias 'ispell-menu-map ispell-menu-map)
 
 (define-key ispell-menu-map [reload-ispell]
   '("Reload Dictionary" . reload-ispell))
