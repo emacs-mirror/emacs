@@ -108,6 +108,8 @@ bitmapdir=@bitmapdir@
 # expected to be in ${srcdir}/src, and the source code for Emacs's
 # utility programs is expected to be in ${srcdir}/lib-src.  This is
 # set by the configure script's `--srcdir' option.
+
+# We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 
 # Tell make where to find source files; this is needed for the makefiles.
