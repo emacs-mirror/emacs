@@ -444,6 +444,14 @@ parameter, as shown here:
 (add-to-list 'default-frame-alist '(font . "10x20"))
 @end example
 
+@noindent
+Here's a similar example for specifying a foreground color:
+
+@example
+(add-to-list 'default-frame-alist '(background-color . "blue"))
+@end example
+
+
 @node Frame Commands
 @section Frame Commands
 
@@ -686,7 +694,10 @@ the menus and menu bar, you must use X resources (@pxref{Resources X}).
 @xref{Colors X}, regarding colors.  @xref{Font X}, regarding choice of
 font.
 
-  For information on frame parameters and customization, see @ref{Frame
+  Colors, fonts, and other attributes of the frame's display can also
+be customized by setting frame parameters in the variable
+@code{default-frame-alist} (@pxref{Creating Frames}).  For a detailed
+description of frame parameters and customization, see @ref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 
 @node Scroll Bars
