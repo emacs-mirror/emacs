@@ -667,9 +667,14 @@ emacs: temacs ${etc}DOC ${lisp}
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
+/* ${SOME_MACHINE_OBJECTS} comes before ${obj} because some files may
+   or may not be included in ${obj}, but they are always included in
+   ${SOME_MACHINE_OBJECTS}.  Since a file is processed when it is mentioned
+   for the first time, this prevents any variation between configurations
+   in the contents of the DOC file.  */
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	-rm -f ${etc}DOC
-	${libsrc}make-docfile -d ${srcdir} ${obj} ${SOME_MACHINE_OBJECTS} > ${etc}DOC
+	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
 	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir}  ${lisp}
 
 ${libsrc}make-docfile:
