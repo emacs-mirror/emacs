@@ -1,3 +1,11 @@
+2001-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* generic.el (generic-find-file-regexp): Doc fix.
+	(generic-ignore-files-regexp): New defcustom.
+	(generic-mode-find-file-hook): If the file's name matches the
+	regexp in `generic-ignore-files-regexp', don't enter
+	default-generic-mode.  Doc fix.
+
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-region, flyspell-buffer): 
