@@ -379,7 +379,10 @@ Arg is number of lines to scroll."
 (defun View-search-regexp-forward (n regexp)
   "Search forward for Nth occurrence of REGEXP.
 Displays line found at center of window.  REGEXP is remembered for
-searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
+searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring.
+
+The variable `view-highlight-face' controls the face that is used
+for highlighting the match that is found."
   (interactive "p\nsSearch forward (regexp): ")
 ;;;(view-last-command 'View-search-last-regexp-forward n)
   (view-search n (if (equal regexp "") view-last-regexp regexp)))
@@ -387,7 +390,10 @@ searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regex
 (defun View-search-regexp-backward (n regexp)
   "Search backward from window start for Nth instance of REGEXP.
 Displays line found at center of window.  REGEXP is remembered for
-searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
+searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring.
+
+The variable `view-highlight-face' controls the face that is used
+for highlighting the match that is found."
   (interactive "p\nsSearch backward (regexp): ")
   (View-search-regexp-forward (- n)
 			      (if (equal regexp "") view-last-regexp regexp)))
@@ -395,14 +401,20 @@ searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regex
 (defun View-search-last-regexp-forward (n)
   "Search forward from window end for Nth instance of last regexp.
 Displays line found at center of window.  Sets mark at starting position
-and pushes mark ring."
+and pushes mark ring.
+
+The variable `view-highlight-face' controls the face that is used
+for highlighting the match that is found."
   (interactive "p")
   (View-search-regexp-forward n view-last-regexp))
 
 (defun View-search-last-regexp-backward (n)
   "Search backward from window start for Nth instance of last regexp.
 Displays line found at center of window.  Sets mark at starting position and
-pushes mark ring."
+pushes mark ring.
+
+The variable `view-highlight-face' controls the face that is used
+for highlighting the match that is found."
   (interactive "p")
   (View-search-regexp-backward n view-last-regexp))
 
