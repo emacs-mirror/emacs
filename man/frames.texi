@@ -608,10 +608,16 @@ to set it.
 @code{special-display-buffer-names} or @code{special-display-regexps}
 can also be a list.  Then the first element is the buffer name or
 regular expression; the rest of the list specifies how to create the
-frame.  It can be an association list specifying frame parameter values;
-these values take precedence over parameter values specified in
-@code{special-display-frame-alist}.  Alternatively, it can have this
-form:
+frame.  It can be an association list specifying frame parameter
+values; these values take precedence over parameter values specified
+in @code{special-display-frame-alist}.  If you specify the symbol
+@code{same-window} as a ``frame parameter'' in this list, with a
+non-@code{nil} value, that means to use the selected window if
+possible.  If you use the symbol @code{same-frame} as a ``frame
+parameter'' in this list, with a non-@code{nil} value, that means to
+use the selected frame if possible.
+
+  Alternatively, the value can have this form:
 
 @example
 (@var{function} @var{args}...)
@@ -866,8 +872,12 @@ tooltip-mode}.  The customization group @code{tooltip} controls
 various aspects of how tooltips work.  When Tooltip mode is disabled,
 the help text is displayed in the echo area instead.
 
-  @xref{X Resources}, for information on customizing the windows
-that display tooltips.
+@vindex tooltip-delay
+  The variables @code{tooltip-delay} specifies how long Emacs should
+wait before displaying a tooltip.  For additional customization
+options for displaying tooltips, use @kbd{M-x customize-group
+@key{RET} tooltip @key{RET}}.  @xref{X Resources}, for information on
+customizing the windows that display tooltips.
 
 @node Mouse Avoidance
 @section Mouse Avoidance
