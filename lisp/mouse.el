@@ -249,7 +249,8 @@ release the mouse button.  Otherwise, it does not."
 		      (push-mark (overlay-start mouse-drag-overlay) t t)
 		      (goto-char (overlay-end mouse-drag-overlay))
 		      (copy-region-as-kill (point) (mark t)))
-		  (goto-char (overlay-end mouse-drag-overlay)))
+		  (goto-char (overlay-end mouse-drag-overlay))
+		  (setq this-command 'mouse-set-point))
 	      (if (fboundp fun)
 		  (funcall fun event)))))
       (delete-overlay mouse-drag-overlay))))
@@ -447,9 +448,8 @@ If you do this twice in the same position, the selection is killed."
 	  ;; mouse-save-then-kill, delete the text from the buffer.
 	  (mouse-save-then-kill-delete-region)
 	(if (or (eq last-command 'mouse-save-then-kill)
-		mark-active
+		(and mark-active transient-mark-mode)
 		(and (eq last-command 'mouse-drag-region)
-		     (mark t)
 		     (or mark-even-if-inactive
 			 (not transient-mark-mode))))
 	    ;; We have a selection or suitable region, so adjust it.
