@@ -1182,6 +1182,10 @@ yanking point; just return the Nth kill forward."
 (defvar kill-read-only-ok nil
   "*Non-nil means don't signal an error for killing read-only text.")
 
+(put 'text-read-only 'error-conditions
+     '(text-read-only buffer-read-only error))
+(put 'text-read-only 'error-message "Text is read-only")
+
 (defun kill-region (beg end)
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
@@ -1211,7 +1215,10 @@ to make one entry in the kill ring."
     (if kill-read-only-ok
 	(message "Read only text copied to kill ring")
       (setq this-command 'kill-region)
-      (barf-if-buffer-read-only)))
+      ;; Signal an error if the buffer is read-only.
+      (barf-if-buffer-read-only)
+      ;; If the buffer isn't read-only, the text is.
+      (signal 'text-read-only (list (current-buffer)))))
 
    ;; In certain cases, we can arrange for the undo list and the kill
    ;; ring to share the same string object.  This code does that.
@@ -1313,7 +1320,8 @@ comes the newest one."
   (if (not (eq last-command 'yank))
       (error "Previous command was not a yank"))
   (setq this-command 'yank)
-  (let ((before (< (point) (mark t))))
+  (let ((inhibit-read-only t)
+	(before (< (point) (mark t))))
     (delete-region (point) (mark t))
     (set-marker (mark-marker) (point) (current-buffer))
     (insert (current-kill arg))
