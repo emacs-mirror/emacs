@@ -514,7 +514,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 	{
 	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
 	  pos++;
-	  break;
+	  continue;
 	}
       if (c == '\n')
 	break;
