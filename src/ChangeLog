@@ -1,5 +1,8 @@
 2000-01-04  Kenichi Handa  <handa@etl.go.jp>
 
+	* fileio.c (Finsert_file_contents): Signal error if visiting file
+	in a non-empty buffer. 
+
 	* term.c (encode_terminal_code): Fix the previous change.
 
 2000-01-03  Gerd Moellmann  <gerd@gnu.org>
