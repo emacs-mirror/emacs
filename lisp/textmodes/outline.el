@@ -39,7 +39,7 @@
   "*Regular expression to match the beginning of a heading.
 Any line whose beginning matches this regexp is considered to start a heading.
 The recommended way to set this is with a Local Variables: list
-in the file it applies to.  See also outline-heading-end-regexp."
+in the file it applies to.  See also `outline-heading-end-regexp'."
   :type '(choice regexp (const nil))
   :group 'outlines)
 
