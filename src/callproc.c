@@ -539,6 +539,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   /* Close Emacs's descriptors that this process should not have.  */
   close_process_descs ();
 #endif
+  close_load_descs ();
 
   /* Note that use of alloca is always safe here.  It's obvious for systems
      that do not have true vfork or that have true (stack) alloca.
