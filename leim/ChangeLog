@@ -201,15 +201,15 @@
 
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* ja-dic/ja-dic.el, quail/cyril-jis.el, quail/cyrillic.el,
-	quail/czech.el, quail/devanagari.el, quail/ethiopic.el,
-	quail/greek.el, quail/hangul.el, quail/hangul3.el,
-	quail/hanja-jis.el, quail/hanja.el, quail/hanja3.el,
-	quail/hebrew.el, quail/ipa.el, quail/japanese.el, quail/lao.el,
-	quail/latin-alt.el, quail/latin-ltx.el, quail/latin-post.el,
-	quail/latin-pre.el, quail/lrt.el, quail/py-punct.el,
-	quail/pypunct-b5.el, quail/slovak.el, quail/symbol-ksc.el,
-	quail/thai.el, quail/tibetan.el, quail/viqr.el: Some fixes to
+	* ja-dic/ja-dic.el, quail/cyril-jis.el, quail/cyrillic.el
+	* quail/czech.el, quail/devanagari.el, quail/ethiopic.el
+	* quail/greek.el, quail/hangul.el, quail/hangul3.el
+	* quail/hanja-jis.el, quail/hanja.el, quail/hanja3.el
+	* quail/hebrew.el, quail/ipa.el, quail/japanese.el, quail/lao.el
+	* quail/latin-alt.el, quail/latin-ltx.el, quail/latin-post.el
+	* quail/latin-pre.el, quail/lrt.el, quail/py-punct.el
+	* quail/pypunct-b5.el, quail/slovak.el, quail/symbol-ksc.el
+	* quail/thai.el, quail/tibetan.el, quail/viqr.el: Some fixes to
 	follow coding conventions.
 
 2001-06-04  Andrew Choi  <akochoi@i-cable.com>
