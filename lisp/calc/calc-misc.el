@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc.el.
+
 (require 'calc)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-misc () nil)
-
 
 (defun calc-dispatch-help (arg)
   "M-# is a prefix key; follow it with one of these letters:
@@ -759,6 +756,8 @@ precise symptoms of the bug.  If possible, include a backtrace by
 doing 'M-x toggle-debug-on-error', then reproducing the bug.
 " )))
 (defalias 'calc-report-bug 'report-calc-bug)
+
+(provide 'calc-misc)
 
 ;;; arch-tag: 7984d9d0-62e5-41dc-afb8-e904b975f250
 ;;; calc-misc.el ends here
