@@ -46,7 +46,12 @@
 #include <errno.h>
 #include <unistd.h>
 
-SRCID(vmi5, "$HopeName: MMsrc!vmi5.c(trunk.2) $");
+/* No constant for the mmap error return on IRIX 5, so define one. */
+#if !defined(MAP_FAILED) && defined(MPS_OS_I5)
+#define MAP_FAILED ((void *)-1)
+#endif
+
+SRCID(vmi5, "$HopeName: MMsrc!vmi5.c(trunk.3) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -109,7 +114,7 @@ Res VMCreate(VM *vmReturn, Size size)
   addr = mmap((void *)0, (size_t)SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
-  if(addr == (void *)-1) {
+  if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM || errno == EAGAIN); /* .assume.mmap.err */
     res = (errno == ENOMEM || errno == EAGAIN) ? ResMEMORY : ResFAIL;
     goto failVMMap;
@@ -122,7 +127,7 @@ Res VMCreate(VM *vmReturn, Size size)
   /* .map.reserve: MAP_AUTORESRV is necessary to avoid reserving swap. */
   addr = mmap((void *)0, (size_t)size, PROT_NONE, MAP_SHARED | MAP_AUTORESRV,
 	      zero_fd, (off_t)0);
-  if(addr == (void *)-1) {
+  if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     res = (errno == ENOMEM) ? ResRESOURCE : ResFAIL;
     goto failReserve;
@@ -224,7 +229,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 	      PROT_READ | PROT_WRITE | PROT_EXEC,
 	      MAP_PRIVATE | MAP_FIXED,
 	      vm->zero_fd, (off_t)0);
-  if(addr == (void *)-1) {
+  if(addr == MAP_FAILED) {
     AVER(errno == ENOMEM || errno == EAGAIN); /* .assume.mmap.err */
     return ResMEMORY;
   }
