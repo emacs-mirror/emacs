@@ -3753,60 +3753,6 @@ or (if there were none) at the end of the buffer."
       (let ((file-precious-flag t))
 	(save-buffer)))))
 
-;;;###autoload
-(defun customize-mark-to-save (symbol)
-  "Mark SYMBOL for later saving.
-
-If the default value of SYMBOL is different from the standard value, 
-set the `saved-value' property to a list whose car evaluates to the
-default value. Otherwise, set it til nil.
-
-To actually save the value, call `custom-save-all'.
-
-Return non-nil iff the `saved-value' property actually changed."
-  (let* ((get (or (get symbol 'custom-get) 'default-value))
-	 (value (funcall get symbol))
-	 (saved (get symbol 'saved-value))
-	 (standard (get symbol 'standard-value))
-	 (comment (get symbol 'customized-variable-comment)))
-    ;; Save default value iff different from standard value.
-    (if (or (null standard)
-	    (not (equal value (condition-case nil
-				  (eval (car standard))
-				(error nil)))))
-	(put symbol 'saved-value (list (custom-quote value)))
-      (put symbol 'saved-value nil))
-    ;; Clear customized information (set, but not saved).
-    (put symbol 'customized-value nil)
-    ;; Save any comment that might have been set.
-    (when comment
-      (put symbol 'saved-variable-comment comment))
-    (not (equal saved (get symbol 'saved-value)))))
-
-;;;###autoload
-(defun customize-mark-as-set (symbol)
-  "Mark current value of SYMBOL as being set from customize.
-
-If the default value of SYMBOL is different from the saved value if any, 
-or else if it is different from the standard value, set the
-`customized-value' property to a list whose car evaluates to the 
-default value. Otherwise, set it til nil.
-
-Return non-nil iff the `customized-value' property actually changed."
-  (let* ((get (or (get symbol 'custom-get) 'default-value))
-	 (value (funcall get symbol))
-	 (customized (get symbol 'customized-value))
-	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
-    ;; Mark default value as set iff different from old value.
-    (if (or (null old)
-	    (not (equal value (condition-case nil 
-				  (eval (car old))
-				(error nil)))))
-	(put symbol 'customized-value (list (custom-quote value)))
-      (put symbol 'customized-value nil))
-    ;; Changed?
-    (not (equal customized (get symbol 'customized-value)))))
-
 ;;; The Customize Menu.
 
 ;;; Menu support
