@@ -18,11 +18,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#ifdef lint
-#include "undo.h"
-#endif /* lint */
-
-
 #ifdef USE_TEXT_PROPERTIES
 #define SET_PT(position) (set_point ((position), current_buffer))
 #define TEMP_SET_PT(position) (temp_set_point ((position), current_buffer))
