@@ -242,7 +242,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       if (CONSP (buffer))
 	{
 	  if (CONSP (XCONS (buffer)->cdr))
-	    error_file = XCONS (XCONS (buffer)->cdr)->car;
+	    error_file = Fexpand_file_name (XCONS (XCONS (buffer)->cdr)->car,
+					    Qnil);
 	  buffer = XCONS (buffer)->car;
 	}
 
@@ -820,8 +821,9 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   environ = env;
   execvp (new_argv[0], new_argv);
 
-  write (1, "Couldn't exec the program ", 26);
+  write (1, "Can't exec program: ", 26);
   write (1, new_argv[0], strlen (new_argv[0]));
+  write (1, "\n", 1);
   _exit (1);
 #endif /* not WINDOWSNT */
 #endif /* not MSDOS */
