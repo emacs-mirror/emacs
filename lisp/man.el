@@ -506,8 +506,7 @@ and the Man-section-translations-alist variables)."
 
 (defsubst Man-default-man-entry ()
   "Make a guess at a default manual entry.
-This guess is based on the text surrounding the cursor, and the
-default section number is selected from `Man-auto-section-alist'."
+This guess is based on the text surrounding the cursor."
   (let (word)
     (save-excursion
       ;; Default man entry title is any word the cursor is on, or if
@@ -831,7 +830,6 @@ The following variables may be of some use.  Try
 `Man-notify-method'		What happens when manpage formatting is done.
 `Man-downcase-section-letters-flag' Force section letters to lower case.
 `Man-circular-pages-flag'	Treat multiple manpage list as circular.
-`Man-auto-section-alist'	List of major modes and their section numbers.
 `Man-section-translations-alist' List of section numbers and their Un*x equiv.
 `Man-filter-list'		Background manpage filter command.
 `Man-mode-line-format'		Mode line format for Man mode buffers.
