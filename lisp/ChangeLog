@@ -1,3 +1,8 @@
+2001-03-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* startup.el (fancy-splash-tail, command-line-1): Fix the
+	copyright year.
+
 2001-03-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* term.el: These changes are based on a patch sent from Yong Lu
