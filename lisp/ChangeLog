@@ -5,6 +5,9 @@
 	(menu-bar-options-menu): Added toggle for cua-mode.  Disable
 	toggle for transient-mark-mode if cua-mode is enabled.
 
+	* emulation/cua-base.el (cua-inhibit-cua-keys): New buffer-local
+	variable.
+
 2002-05-01  Richard M. Stallman  <rms@gnu.org>
 
 	* help.el (view-todo): New function.
