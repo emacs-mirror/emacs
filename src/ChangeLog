@@ -1,3 +1,19 @@
+2001-01-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (Fgarbage_collect): Use a record_unwind_protect to
+	ensure that pop_message is called.
+
+	* keyboard.c (Fexecute_extended_command): Use a
+	record_unwind_protect to ensure that pop_message is called.
+
+	* lisp.h (push_message_unwind): Add prototype.
+
+	* xdisp.c (push_message_unwind): New function.
+
+	* fileio.c (do_auto_save_unwind): Do the pop_message here
+	instead of in Fdo_auto_save.
+	(Fdo_auto_save): Don't call pop_message.
+
 2001-01-08  Ken Raeburn  <raeburn@gnu.org>
 
 	* xfns.c (xpm_load) [!ALLOC_XPM_COLORS]: Declare local variable I
