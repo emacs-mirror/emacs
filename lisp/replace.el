@@ -476,7 +476,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 (defun occur-revert-function (ignore1 ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
-  (apply 'occur-1 occur-revert-arguments))
+  (apply 'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
 (defun occur-mode-mouse-goto (event)
   "In Occur mode, go to the occurrence whose line you click on."
@@ -678,8 +678,10 @@ See also `multi-occur'."
 			       buf))
 			   (buffer-list))))))
 
-(defun occur-1 (regexp nlines bufs)
-  (let ((occur-buf (get-buffer-create "*Occur*"))
+(defun occur-1 (regexp nlines bufs &optional buf-name)
+  (unless buf-name
+    (setq buf-name "*Occur*"))
+  (let ((occur-buf (get-buffer-create buf-name))
 	(made-temp-buf nil)
 	(active-bufs (delq nil (mapcar #'(lambda (buf)
 					   (when (buffer-live-p buf) buf))
@@ -701,13 +703,17 @@ See also `multi-occur'."
 			 (isearch-no-upper-case-p regexp t))
 		    nil nil nil nil)))
 	(let* ((diff (- (length bufs) (length active-bufs)))
+	       (bufcount (- (length bufs) diff))
 	       (msg (concat
-		     (format "Searched %d buffers" (- (length bufs) diff))
+		     (format "Searched %d buffer%s" bufcount (if (= bufcount 1) "" "s"))
 		     "%s; "
-		     (format "%s matches for `%s'"
+		     (format "%s match%s for `%s'"
 			     (if (zerop count)
 				 "no"
 			       (format "%d" count))
+			     (if (= count 1)
+				 ""
+			       "es")
 			     regexp))))
 	  (message msg (if (zerop diff)
 			   ""
@@ -715,9 +721,9 @@ See also `multi-occur'."
 	;; If we had to make a temporary buffer, make it the *Occur*
 	;; buffer now.
 	(when made-temp-buf
-	  (with-current-buffer (get-buffer "*Occur*")
-	    (kill-this-buffer))
-	  (rename-buffer "*Occur*"))
+	  (with-current-buffer (get-buffer buf-name)
+	    (kill-buffer (current-buffer)))
+	  (rename-buffer buf-name))
 	(setq occur-revert-arguments (list regexp nlines bufs)
 	      buffer-read-only t)
 	(if (> count 0)
@@ -817,9 +823,12 @@ See also `multi-occur'."
 					  mouse-face highlight help-echo
 					  "mouse-2: go to this occurrence")))))
 		    (goto-char endpt))
-		  (setq lines (1+ lines))
-		  ;; On to the next match...
-		  (forward-line 1))))
+		  (if endpt
+		      (progn
+			(setq lines (1+ lines))
+			;; On to the next match...
+			(forward-line 1))
+		    (goto-char (point-max))))))
 	    (when (not (zerop matches)) ;; is the count zero?
 	      (with-current-buffer out-buf
 		(goto-char headerpt)
