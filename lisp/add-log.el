@@ -486,7 +486,9 @@ non-nil, otherwise in local time."
       (if (not (save-excursion
 		 (beginning-of-line 1)
 		 (looking-at "\\s *\\(\\*\\s *\\)?$")))
-	  (insert ": ")))))
+	  (insert ": "
+		  (if version
+		      (concat version " ") ))))))
 
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
