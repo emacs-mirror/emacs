@@ -9507,12 +9507,14 @@ slurp_file (file, size)
 			      XBM images
  ***********************************************************************/
 
+static int xbm_scan P_ ((char **, char *, char *, int *));
 static int xbm_load P_ ((struct frame *f, struct image *img));
-static int xbm_load_image_from_file P_ ((struct frame *f, struct image *img,
-					 Lisp_Object file));
+static int xbm_load_image P_ ((struct frame *f, struct image *img,
+			       char *, char *));
 static int xbm_image_p P_ ((Lisp_Object object));
-static int xbm_read_bitmap_file_data P_ ((char *, int *, int *,
-					  unsigned char **));
+static int xbm_read_bitmap_data P_ ((char *, char *, int *, int *,
+				     unsigned char **));
+static int xbm_file_p P_ ((Lisp_Object));
 
 
 /* Indices of image specification fields in xbm_format, below.  */
@@ -9545,13 +9547,14 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":width",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":height",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":data",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,			0},
-  {":background",	IMAGE_STRING_OR_NIL_VALUE,			0},
-  {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
 /* Structure describing the image type XBM.  */
@@ -9594,10 +9597,14 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
+   4. A string containing an in-memory XBM file.  WIDTH and HEIGHT
+   may not be specified in this case because they are defined in the
+   XBM file.
+
    Both the file and data forms may contain the additional entries
    `:background COLOR' and `:foreground COLOR'.  If not present,
    foreground and background of the frame on which the image is
-   displayed, is used.  */
+   displayed is used.  */
 
 static int
 xbm_image_p (object)
@@ -9614,6 +9621,12 @@ xbm_image_p (object)
   if (kw[XBM_FILE].count)
     {
       if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_DATA].count)
+	return 0;
+    }
+  else if (kw[XBM_DATA].count && xbm_file_p (kw[XBM_DATA].value))
+    {
+      /* In-memory XBM file.  */
+      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_FILE].count)
 	return 0;
     }
   else
@@ -9677,11 +9690,6 @@ xbm_image_p (object)
 	return 0;
     }
 
-  /* Baseline must be a value between 0 and 100 (a percentage).  */
-  if (kw[XBM_ASCENT].count
-      && XFASTINT (kw[XBM_ASCENT].value) > 100)
-    return 0;
-  
   return 1;
 }
 
@@ -9780,6 +9788,21 @@ xbm_scan (s, end, sval, ival)
 }
 
 
+/* XBM bits seem to be backward within bytes compared with how
+   Windows does things.  */
+static unsigned char reflect_byte (unsigned char orig)
+{
+  int i;
+  unsigned char reflected = 0x00;
+  for (i = 0; i < 8; i++)
+    {
+      if (orig & (0x01 << i))
+	reflected |= 0x80 >> i;
+    }
+  return reflected;
+}
+
+
 /* Replacement for XReadBitmapFileData which isn't available under old
    X versions.  CONTENTS is a pointer to a buffer to parse; END is the
    buffer's end.  Set *WIDTH and *HEIGHT to the width and height of
@@ -9797,13 +9820,13 @@ xbm_read_bitmap_data (contents, end, width, height, data)
   char buffer[BUFSIZ];
   int padding_p = 0;
   int v10 = 0;
-  int bytes_per_line, i, nbytes;
+  int bytes_in_per_line, bytes_out_per_line, i, nbytes;
   unsigned char *p;
   int value;
   int LA1;
 
 #define match() \
-     LA1 = xbm_scan (contents, end, buffer, &value)
+     LA1 = xbm_scan (&s, end, buffer, &value)
 
 #define expect(TOKEN)		\
      if (LA1 != (TOKEN)) 	\
@@ -9850,6 +9873,10 @@ xbm_read_bitmap_data (contents, end, width, height, data)
   expect_ident ("static");
   if (LA1 == XBM_TK_IDENT)
     {
+      /* On Windows, all images need padding to 16 bit boundaries.  */
+      if (*width % 16 && *width % 16 < 9)
+	padding_p = 1;
+
       if (strcmp (buffer, "unsigned") == 0)
 	{
 	  match (); 
@@ -9859,8 +9886,6 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	{
 	  match ();
 	  v10 = 1;
-	  if (*width % 16 && *width % 16 < 9)
-	    padding_p = 1;
 	}
       else if (strcmp (buffer, "char") == 0)
 	match ();
@@ -9876,21 +9901,23 @@ xbm_read_bitmap_data (contents, end, width, height, data)
   expect ('=');
   expect ('{');
 
-  bytes_per_line = (*width + 7) / 8 + padding_p;
-  nbytes = bytes_per_line * *height;
-  p = *data = (char *) xmalloc (nbytes);
+  /* Bytes per line on input.  Only count padding for v10 XBMs.  */
+  bytes_in_per_line = (*width + 7) / 8 + (v10 ? padding_p : 0);
+  bytes_out_per_line = (*width + 7) / 8 + padding_p;
+
+  nbytes = bytes_in_per_line * *height;
+  p = *data = (char *) xmalloc (bytes_out_per_line * *height);
 
   if (v10)
     {
-      
       for (i = 0; i < nbytes; i += 2)
 	{
 	  int val = value;
 	  expect (XBM_TK_NUMBER);
 
-	  *p++ = val;
-	  if (!padding_p || ((i + 2) % bytes_per_line))
-	    *p++ = value >> 8;
+	  *p++ = reflect_byte (val);
+	  if (!padding_p || ((i + 2) % bytes_in_per_line))
+	    *p++ = reflect_byte (value >> 8);
 	  
 	  if (LA1 == ',' || LA1 == '}')
 	    match ();
@@ -9905,8 +9932,10 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	  int val = value;
 	  expect (XBM_TK_NUMBER);
 	  
-	  *p++ = val;
-	  
+	  *p++ = reflect_byte (val);
+	  if (padding_p && ((i + 1) % bytes_in_per_line) == 0)
+	    *p++ = 0;
+
 	  if (LA1 == ',' || LA1 == '}')
 	    match ();
 	  else
@@ -9949,9 +9978,6 @@ xbm_load_image (f, img, contents, end)
   rc = xbm_read_bitmap_data (contents, end, &img->width, &img->height, &data);
   if (rc)
     {
-      int depth = one_w32_display_info.n_cbits;
-      int planes = one_w32_display_info.n_planes;
-
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
       Lisp_Object value;
@@ -9970,7 +9996,7 @@ xbm_load_image (f, img, contents, end)
 	  img->background_valid = 1;
 	}
       img->pixmap
-	= CreateBitmap (img->width, img->height, planes, depth, data);
+	= CreateBitmap (img->width, img->height, 1, 1, data);
 
       xfree (data);
 
@@ -10061,7 +10087,7 @@ xbm_load (f, img)
       data = image_spec_value (img->spec, QCdata, NULL);
       in_memory_file_p = xbm_file_p (data);
 
-      /* Parse the list specification.  */
+      /* Parse the image specification.  */
       bcopy (xbm_format, fmt, sizeof fmt);
       parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
       xassert (parsed_p);
@@ -10073,6 +10099,7 @@ xbm_load (f, img)
 	  img->height = XFASTINT (fmt[XBM_HEIGHT].value);
 	  xassert (img->width > 0 && img->height > 0);
 	}
+
       /* Get foreground and background colors, maybe allocate colors.  */
       if (fmt[XBM_FOREGROUND].count
 	  && STRINGP (fmt[XBM_FOREGROUND].value))
@@ -10109,7 +10136,7 @@ xbm_load (f, img)
 	    bits = XSTRING (data)->data;
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
-#ifdef TODO /* image support.  */
+#ifdef TODO /* full image support.  */
 	  /* Create the pixmap.  */
 	  depth = one_w32_display_info.n_cbits;
 	  img->pixmap
@@ -11012,6 +11039,7 @@ x_build_heuristic_mask (f, img, how)
   return 0;
 #endif
 }
+
 
 /***********************************************************************
 		       PBM (mono, gray, color)
@@ -15339,9 +15367,8 @@ init_xfns ()
   Vimage_types = Qnil;
 
   define_image_type (&pbm_type);
-
-#if 0 /* TODO : Image support for W32 */
   define_image_type (&xbm_type);
+#if 0 /* TODO : Image support for W32 */
   define_image_type (&gs_type);
 #endif
   
