@@ -1525,33 +1525,76 @@ is not *inside* the region START...END."
 	     '(0 . 0)))
     '(0 . 0)))
 
+(defcustom undo-ask-before-discard t
+  "If non-nil ask about discarding undo info for the current command.
+Normally, Emacs discards the undo info for the current command if
+it exceeds `undo-outer-limit'.  But if you set this option
+non-nil, it asks in the echo area whether to discard the info.
+If you answer no, there a slight risk that Emacs might crash, so
+only do it if you really want to undo the command.
+
+This option is mainly intended for debugging.  You have to be
+careful if you use it for other purposes.  Garbage collection is
+inhibited while the question is asked, meaning that Emacs might
+leak memory.  So you should make sure that you do not wait
+excessively long before answering the question."
+  :type 'boolean
+  :group 'undo
+  :version "21.4")
+
 (defvar undo-extra-outer-limit nil
   "If non-nil, an extra level of size that's ok in an undo item.
 We don't ask the user about truncating the undo list until the
-current item gets bigger than this amount.")
+current item gets bigger than this amount.
+
+This variable only matters if `undo-ask-before-discard' is non-nil.")
 (make-variable-buffer-local 'undo-extra-outer-limit)
 
-;; When the first undo batch in an undo list is longer than undo-outer-limit,
-;; this function gets called to ask the user what to do.
-;; Garbage collection is inhibited around the call,
-;; so it had better not do a lot of consing.
+;; When the first undo batch in an undo list is longer than
+;; undo-outer-limit, this function gets called to warn the user that
+;; the undo info for the current command was discarded.  Garbage
+;; collection is inhibited around the call, so it had better not do a
+;; lot of consing.
 (setq undo-outer-limit-function 'undo-outer-limit-truncate)
 (defun undo-outer-limit-truncate (size)
-  (when (or (null undo-extra-outer-limit)
-	    (> size undo-extra-outer-limit))
-    ;; Don't ask the question again unless it gets even bigger.
-    ;; This applies, in particular, if the user quits from the question.
-    ;; Such a quit quits out of GC, but something else will call GC
-    ;; again momentarily.  It will call this function again,
-    ;; but we don't want to ask the question again.
-    (setq undo-extra-outer-limit (+ size 50000))
-    (if (let (use-dialog-box)
-	  (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
-			       (buffer-name) size)))
-	(progn (setq buffer-undo-list nil)
-	       (setq undo-extra-outer-limit nil)
-	       t)
-      nil)))
+  (if undo-ask-before-discard
+      (when (or (null undo-extra-outer-limit)
+		(> size undo-extra-outer-limit))
+	;; Don't ask the question again unless it gets even bigger.
+	;; This applies, in particular, if the user quits from the question.
+	;; Such a quit quits out of GC, but something else will call GC
+	;; again momentarily.  It will call this function again,
+	;; but we don't want to ask the question again.
+	(setq undo-extra-outer-limit (+ size 50000))
+	(if (let (use-dialog-box track-mouse executing-kbd-macro )
+	      (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+				   (buffer-name) size)))
+	    (progn (setq buffer-undo-list nil)
+		   (setq undo-extra-outer-limit nil)
+		   t)
+	  nil))
+    (display-warning '(undo discard-info)
+		     (concat
+		      (format "Buffer %s undo info was %d bytes long.\n"
+			      (buffer-name) size)
+		      "The undo info was discarded because it exceeded \
+`undo-outer-limit'.
+
+This is normal if you executed a command that made a huge change
+to the buffer.  In that case, to prevent similar problems in the
+future, set `undo-outer-limit' to a value that is large enough to
+cover the maximum size of normal changes you expect a single
+command to make, but not so large that it might exceed the
+maximum memory allotted to Emacs.
+
+If you did not execute any such command, the situation is
+probably due to a bug and you should report it.
+
+You can disable the popping up of this buffer by adding the entry
+\(undo discard-info) to the user option `warning-suppress-types'.\n")
+		     :warning)
+    (setq buffer-undo-list nil)
+    t))
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
