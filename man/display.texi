@@ -313,6 +313,30 @@ an icon instead of @samp{Mail} by customizing
 line.  You can customize @code{display-time-mail-face} to make the mail
 indicator prominent.
 
+@cindex mode line, 3D appearence
+@cindex attributes of mode line, changing
+@cindex non-integral number of lines in a window
+  By default, the mode line is drawn on graphics displays as a 3D
+released button.  Depending on the font used for the mode line's text,
+this might make the mode line use more space than a text line in a
+window, and cause the last line of the window be partially obscured.
+That is, the window displays a non-integral number of text lines.  If
+you don't like this effect, you can disable the 3D appearence of the
+mode line by customizing the attributes of the @code{mode-line} face in
+your @file{.emacs} init file, like this:
+
+@example
+ (set-face-attribute 'mode-line nil :box nil)
+@end example
+
+@noindent
+Alternatively, you could turn off the box attribute in your
+@file{.Xdefaults} file:
+
+@example
+ Emacs.mode-line.AttributeBox: off
+@end example
+
 @node Text Display
 @section How Text Is Displayed
 @cindex characters (in text)
