@@ -31,7 +31,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.9";
+char pot_etags_version[] = "@(#) pot revision number is 11.12";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -47,9 +47,8 @@ char pot_etags_version[] = "@(#) pot revision number is 11.9";
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-/* On some systems, Emacs defines static as nothing
-   for the sake of unexec.  We don't want that here
-   since we don't use unexec.  */
+/* On some systems, Emacs defines static as nothing for the sake
+   of unexec.  We don't want that here since we don't use unexec. */
 #undef static
 #endif
 
@@ -122,8 +121,8 @@ extern char *getenv ();
 
  /* real implementation */
 typedef long FILEPOS;
-#define GET_CHARNO(pos)	((pos) + 0)
-#define SET_FILEPOS(pos, fp, cno)	((void) ((pos) = (cno)))
+#define GET_CHARNO(pos)		((pos) + 0)
+#define SET_FILEPOS(pos,fp,cno)	((void) ((pos) = (cno)))
 
 #else
 #undef DEBUG
@@ -136,15 +135,14 @@ typedef struct
 } FILEPOS;
 
 #define GET_CHARNO(pos)	((pos).charno + 0)
-#define SET_FILEPOS(pos, fp, cno)					\
+#define SET_FILEPOS(pos,fp,cno)						\
     ((void) ((pos).charno = (cno),					\
 	     (cno) != ftell (fp) ? (error ("SET_FILEPOS inconsistency"), 0) \
 	     			 : 0))
 #endif
 
-#define streq(s, t)	(strcmp (s, t) == 0)
-#define strneq(s, t, n)	(strncmp (s, t, n) == 0)
-#define	logical		int
+#define streq(s,t)	(strcmp (s, t) == 0)
+#define strneq(s,t,n)	(strncmp (s, t, n) == 0)
 
 #define	TRUE	1
 #define	FALSE	0
@@ -155,6 +153,8 @@ typedef struct
 #define	endtoken(arg)	(_etk[arg])	/* T if char ends tokens	*/
 
 #define	max(I1,I2)	((I1) > (I2) ? (I1) : (I2))
+
+typedef int logical;
 
 struct nd_st
 {				/* sorting structure			*/
@@ -185,6 +185,7 @@ char *relative_filename (), *absolute_filename (), *absolute_dirname ();
 char *xmalloc (), *xrealloc ();
 
 typedef void Lang_function ();
+#if 0				/* many compilers barf on this */
 Lang_function Asm_labels;
 Lang_function default_C_entries;
 Lang_function C_entries;
@@ -198,6 +199,21 @@ Lang_function Prolog_functions;
 Lang_function Scheme_functions;
 Lang_function TeX_functions;
 Lang_function just_read_file;
+#else				/* so let's write it this way */
+void Asm_labels ();
+void default_C_entries ();
+void C_entries ();
+void Cplusplus_entries ();
+void Cstar_entries ();
+void Fortran_functions ();
+void Yacc_entries ();
+void Lisp_functions ();
+void Pascal_functions ();
+void Prolog_functions ();
+void Scheme_functions ();
+void TeX_functions ();
+void just_read_file ();
+#endif
 
 logical get_language ();
 int total_size_of_entries ();
@@ -226,7 +242,7 @@ void takeprec ();
  * SYNOPSIS
  *	Type *xnew (int n, Type);
  */
-#define xnew(n, Type)	((Type *) xmalloc ((n) * sizeof (Type)))
+#define xnew(n,Type)	((Type *) xmalloc ((n) * sizeof (Type)))
 
 /*
  *	Symbol table types.
@@ -320,10 +336,11 @@ FILE *tagf;			/* ioptr for tags file */
 NODE *head;			/* the head of the binary tree of tags */
 logical permit_duplicates = TRUE; /* allow duplicate tags */
 
-/* A `struct linebuffer' is a structure which holds a line of text.
- `readline' reads a line from a stream into a linebuffer
- and works regardless of the length of the line.  */
-
+/*
+ * A `struct linebuffer' is a structure which holds a line of text.
+ * `readline' reads a line from a stream into a linebuffer and works
+ * regardless of the length of the line.
+ */
 struct linebuffer
 {
   long size;
@@ -1237,8 +1254,12 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
   np->is_func = is_func;
   np->named = named;
   np->lno = lno;
-  /* UNCOMMENT THE +1 HERE: */
-  np->cno = cno /* + 1 */ ;	/* our char numbers are 0-base; emacs's are 1-base */
+  /* Our char numbers are 0-base, because of C language tradition?
+     ctags compatibility?  old versions compatibility?   I don't know.
+     Anyway, since emacs's are 1-base we espect etags.el to take care
+     of the difference.  If we wanted to have 1-based numbers, we would
+     uncomment the +1 below. */
+  np->cno = cno /* + 1 */ ;
   np->left = np->right = 0;
   if (!CTAGS)
     {
@@ -1973,9 +1994,6 @@ C_entries (c_ext, inf)
       c = *lp++;
       if (c == '\\')
 	{
-	  /* deal with \r (13) at end of msdos lines */
-	  if ((*lp =='\r')&&(*(lp+1)=='\0'))
-	      *lp = '\0';
 	  /* If we're at the end of the line, the next character is a
 	     '\0'; don't skip it, because it's the thing that tells us
 	     to read the next line.  */
@@ -2675,13 +2693,12 @@ Asm_labels (inf)
   dbp = lb.buffer; \
 }
 
-/*  Locates tags for procedures & functions.
- *  Doesn't do any type- or var-definitions.
- *  It does look for the keyword "extern" or "forward"
- *  immediately following the procedure statement;
- *  if found, the tag is skipped.
+/*
+ *  Locates tags for procedures & functions.  Doesn't do any type- or
+ *  var-definitions.  It does look for the keyword "extern" or
+ *  "forward" immediately following the procedure statement; if found,
+ *  the tag is skipped.
  */
-
 void
 Pascal_functions (inf)
      FILE *inf;
@@ -3040,7 +3057,6 @@ get_scheme ()
 /* TEX_toktab is a table of TeX control sequences that define tags.
    Each TEX_tabent records one such control sequence.
    CONVERT THIS TO USE THE Stab TYPE!! */
-
 struct TEX_tabent
 {
   char *name;
@@ -3067,7 +3083,6 @@ char TEX_clgrp = '}';
 /*
  * TeX/LaTeX scanning loop.
  */
-
 void
 TeX_functions (inf)
      FILE *inf;
@@ -3114,9 +3129,8 @@ TeX_functions (inf)
 #define TEX_SESC '!'
 #define TEX_cmt  '%'
 
-/* Figure out whether TeX's escapechar is '\\' or '!' and set grouping */
-/* chars accordingly. */
-
+/* Figure out whether TeX's escapechar is '\\' or '!' and set grouping
+   chars accordingly. */
 void
 TEX_mode (inf)
      FILE *inf;
@@ -3148,9 +3162,8 @@ TEX_mode (inf)
   rewind (inf);
 }
 
-/* Read environment and prepend it to the default string. */
-/* Build token table. */
-
+/* Read environment and prepend it to the default string.
+   Build token table. */
 struct TEX_tabent *
 TEX_decode_env (evarname, defenv)
      char *evarname;
@@ -3203,7 +3216,6 @@ TEX_decode_env (evarname, defenv)
 /* Record a tag defined by a TeX command of length LEN and starting at NAME.
    The name being defined actually starts at (NAME + LEN + 1).
    But we seem to include the TeX command in the tag name.  */
-
 void
 TEX_getit (name, len)
      char *name;
@@ -3227,9 +3239,8 @@ TEX_getit (name, len)
 
 /* If the text at CP matches one of the tag-defining TeX command names,
    return the pointer to the first occurrence of that command in TEX_toktab.
-   Otherwise return -1.  */
-
-/* Keep the capital `T' in `Token' for dumb truncating compilers
+   Otherwise return -1.
+   Keep the capital `T' in `Token' for dumb truncating compilers
    (this distinguishes it from `TEX_toktab' */
 int
 TEX_Token (cp)
@@ -3245,9 +3256,8 @@ TEX_Token (cp)
 
 /* Support for Prolog.  */
 
-/* whole head (not only functor, but also arguments)
+/* Whole head (not only functor, but also arguments)
    is gotten in compound term. */
-
 void
 prolog_getit (s)
      char *s;
@@ -3301,7 +3311,6 @@ prolog_getit (s)
 }
 
 /* It is assumed that prolog predicate starts from column 0. */
-
 void
 Prolog_functions (inf)
      FILE *inf;
@@ -3546,7 +3555,7 @@ readline_internal (linebuffer, stream)
   char *buffer = linebuffer->buffer;
   register char *p = linebuffer->buffer;
   register char *pend;
-  int newline;			/* 1 if ended with '\n', 0 if ended with EOF */
+  int chars_deleted;
 
   pend = p + linebuffer->size;	/* Separate to avoid 386/IX compiler bug.  */
 
@@ -3561,16 +3570,29 @@ readline_internal (linebuffer, stream)
 	  pend = buffer + linebuffer->size;
 	  linebuffer->buffer = buffer;
 	}
-      if (c == EOF || c == '\n')
+      if (c == EOF)
 	{
-	  *p = 0;
-	  newline = (c == '\n') ? 1 : 0;
+	  chars_deleted = 0;
+	  break;
+	}
+      if (c == '\n')
+	{
+	  if (p[-1] == '\r' && p > buffer)
+	    {
+	      *--p = '\0';
+	      chars_deleted = 2;
+	    }
+	  else
+	    {
+	      *p = '\0';
+	      chars_deleted = 1;
+	    }
 	  break;
 	}
       *p++ = c;
     }
 
-  return p - buffer + newline;
+  return p - buffer + chars_deleted;
 }
 
 /*
@@ -3674,7 +3696,6 @@ savenstr (cp, len)
  *
  * Identical to System V strrchr, included for portability.
  */
-
 char *
 etags_strrchr (sp, c)
      register char *sp, c;
@@ -3697,7 +3718,6 @@ etags_strrchr (sp, c)
  *
  * Identical to System V strchr, included for portability.
  */
-
 char *
 etags_strchr (sp, c)
      register char *sp, c;
@@ -3711,8 +3731,6 @@ etags_strchr (sp, c)
 }
 
 /* Print error message and exit.  */
-
-/* VARARGS1 */
 void
 fatal (s1, s2)
      char *s1, *s2;
@@ -3722,8 +3740,6 @@ fatal (s1, s2)
 }
 
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
-
-/* VARARGS1 */
 void
 error (s1, s2)
      char *s1, *s2;
@@ -3735,7 +3751,6 @@ error (s1, s2)
 
 /* Return a newly-allocated string whose contents
    concatenate those of s1, s2, s3.  */
-
 char *
 concat (s1, s2, s3)
      char *s1, *s2, *s3;
@@ -3771,10 +3786,11 @@ etags_getcwd ()
 char *
 etags_getcwd ()
 {
+  char *buf;
   int bufsize = 256;
-  char *buf = xnew (bufsize, char);
 
 #ifdef HAVE_GETCWD
+  buf = xnew (bufsize, char);
   while (getcwd (buf, bufsize / 2) == NULL)
     {
       if (errno != ERANGE)
@@ -3790,6 +3806,8 @@ etags_getcwd ()
     {
       FILE *pipe;
 
+      buf = xnew (bufsize, char);
+
       pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
       if (pipe == NULL)
 	{
@@ -3804,7 +3822,6 @@ etags_getcwd ()
       pclose (pipe);
 
       bufsize *= 2;
-      buf = xnew (bufsize, char);
 
     } while (buf[strlen (buf) - 1] != '\n');
 #endif
@@ -3817,7 +3834,6 @@ etags_getcwd ()
 /* Return a newly allocated string containing the filename
    of FILE relative to the absolute directory DIR (which
    should end with a slash). */
-
 char *
 relative_filename (file, dir)
      char *file, *dir;
@@ -3853,7 +3869,6 @@ relative_filename (file, dir)
 /* Return a newly allocated string containing the
    absolute filename of FILE given CWD (which should
    end with a slash). */
-
 char *
 absolute_filename (file, cwd)
      char *file, *cwd;
@@ -3908,7 +3923,6 @@ absolute_filename (file, cwd)
 /* Return a newly allocated string containing the absolute
    filename of dir where FILE resides given CWD (which should
    end with a slash). */
-
 char *
 absolute_dirname (file, cwd)
      char *file, *cwd;
@@ -3928,7 +3942,6 @@ absolute_dirname (file, cwd)
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
-
 char *
 xmalloc (size)
      unsigned int size;
