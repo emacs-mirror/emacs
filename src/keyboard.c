@@ -1206,7 +1206,7 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
   if (display_busy_cursor_p)
     cancel_busy_cursor ();
 #endif
-  Fthrow (Qtop_level, Qnil);
+  return Fthrow (Qtop_level, Qnil);
 }
 
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
@@ -1217,6 +1217,7 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
     Fthrow (Qexit, Qnil);
 
   error ("No recursive edit is in progress");
+  return Qnil;
 }
 
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
@@ -1227,6 +1228,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
     Fthrow (Qexit, Qt);
 
   error ("No recursive edit is in progress");
+  return Qnil;
 }
 
 /* This is the actual command reading loop,
@@ -1247,7 +1249,7 @@ command_loop_1 ()
   int i;
   int no_direct;
   int prev_modiff;
-  struct buffer *prev_buffer;
+  struct buffer *prev_buffer = NULL;
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
@@ -2029,15 +2031,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      Lisp_Object prev_event;
      int *used_mouse_menu;
 {
-  Lisp_Object c;
+  volatile Lisp_Object c;
   int count;
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
-  int key_already_recorded = 0;
+  volatile int key_already_recorded = 0;
   Lisp_Object tem, save;
-  Lisp_Object previous_echo_area_message;
-  Lisp_Object also_record;
-  int reread;
+  volatile Lisp_Object previous_echo_area_message;
+  volatile Lisp_Object also_record;
+  volatile int reread;
   struct gcpro gcpro1, gcpro2;
 
   also_record = Qnil;
@@ -3812,7 +3814,7 @@ timer_check (do_it_now)
   while (CONSP (timers) || CONSP (idle_timers))
     {
       Lisp_Object *vector;
-      Lisp_Object timer, idle_timer;
+      Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
       EMACS_TIME difference, timer_difference, idle_timer_difference;
 
@@ -4563,6 +4565,8 @@ make_lispy_event (event)
 	Lisp_Object position;
 	Lisp_Object *start_pos_ptr;
 	Lisp_Object start_pos;
+
+	position = Qnil;
 
 	/* Build the position as appropriate for this mouse click.  */
 	if (event->kind == mouse_click)
@@ -5690,7 +5694,10 @@ has the same base event type and all the specified modifiers.")
   else if (SYMBOLP (base))
     return apply_modifiers (modifiers, base);
   else
-    error ("Invalid base event");
+    {
+      error ("Invalid base event");
+      return Qnil;
+    }
 }
 
 /* Try to recognize SYMBOL as a modifier name.
@@ -7002,9 +7009,9 @@ parse_tool_bar_item (key, item)
   extern Lisp_Object QCbutton, QCtoggle, QCradio;
   int i;
 
-  /* Defininition looks like `(tool-bar-item CAPTION BINDING
-     PROPS...)'.  Rule out items that aren't lists, don't start with
-     `tool-bar-item' or whose rest following `tool-bar-item' is not a
+  /* Defininition looks like `(menu-item CAPTION BINDING PROPS...)'.
+     Rule out items that aren't lists, don't start with
+     `menu-item' or whose rest following `tool-bar-item' is not a
      list.  */
   if (!CONSP (item)
       || !EQ (XCAR (item), Qmenu_item)
@@ -7047,6 +7054,10 @@ parse_tool_bar_item (key, item)
   /* Store the binding.  */
   PROP (TOOL_BAR_ITEM_BINDING) = XCAR (item);
   item = XCDR (item);
+
+  /* Ignore cached key binding, if any.  */
+  if (CONSP (item) && CONSP (XCAR (item)))
+    item = XCDR (item);
 
   /* Process the rest of the properties.  */
   for (; CONSP (item) && CONSP (XCDR (item)); item = XCDR (XCDR (item)))
@@ -7307,6 +7318,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   Lisp_Object rest, vector;
   char *menu;
 
+  vector = Qnil;
+
   if (! menu_prompting)
     return Qnil;
 
@@ -7410,7 +7423,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		  /* 1 if the char to type matches the string.  */
 		  int char_matches;
 		  Lisp_Object upcased_event, downcased_event;
-		  Lisp_Object desc;
+		  Lisp_Object desc = Qnil;
 		  Lisp_Object s
 		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
 
@@ -7659,44 +7672,44 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      int can_return_switch_frame;
      int fix_current_buffer;
 {
-  int count = specpdl_ptr - specpdl;
+  volatile int count = specpdl_ptr - specpdl;
 
   /* How many keys there are in the current key sequence.  */
-  int t;
+  volatile int t;
 
   /* The length of the echo buffer when we started reading, and
      the length of this_command_keys when we started reading.  */
-  int echo_start;
-  int keys_start;
+  volatile int echo_start;
+  volatile int keys_start;
 
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
-  int nmaps;
-  int nmaps_allocated = 0;
+  volatile int nmaps;
+  volatile int nmaps_allocated = 0;
 
   /* defs[0..nmaps-1] are the definitions of KEYBUF[0..t-1] in
      the current keymaps.  */
-  Lisp_Object *defs;
+  Lisp_Object *volatile defs = NULL;
 
   /* submaps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
      in the current keymaps, or nil where it is not a prefix.  */
-  Lisp_Object *submaps;
+  Lisp_Object *volatile submaps = NULL;
 
   /* The local map to start out with at start of key sequence.  */
-  Lisp_Object orig_local_map;
+  volatile Lisp_Object orig_local_map;
 
   /* The map from the `keymap' property to start out with at start of
      key sequence.  */
-  Lisp_Object orig_keymap;
+  volatile Lisp_Object orig_keymap;
 
   /* 1 if we have already considered switching to the local-map property
      of the place where a mouse click occurred.  */
-  int localized_local_map = 0;
+  volatile int localized_local_map = 0;
 
   /* The index in defs[] of the first keymap that has a binding for
      this key sequence.  In other words, the lowest i such that
      defs[i] is non-nil.  */
-  int first_binding;
+  volatile int first_binding;
 
   /* If t < mock_input, then KEYBUF[t] should be read as the next
      input key.
@@ -7711,7 +7724,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      restart_sequence; the loop will read keys from keybuf up until
      mock_input, thus rebuilding the state; and then it will resume
      reading characters from the keyboard.  */
-  int mock_input = 0;
+  volatile int mock_input = 0;
 
   /* If the sequence is unbound in submaps[], then
      keybuf[fkey_start..fkey_end-1] is a prefix in Vfunction_key_map,
@@ -7721,24 +7734,24 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      should hold off until t reaches them.  We do this when we've just
      recognized a function key, to avoid searching for the function
      key's again in Vfunction_key_map.  */
-  int fkey_start = 0, fkey_end = 0;
-  Lisp_Object fkey_map;
+  volatile int fkey_start = 0, fkey_end = 0;
+  volatile Lisp_Object fkey_map;
 
   /* Likewise, for key_translation_map.  */
-  int keytran_start = 0, keytran_end = 0;
-  Lisp_Object keytran_map;
+  volatile int keytran_start = 0, keytran_end = 0;
+  volatile Lisp_Object keytran_map;
 
   /* If we receive a ``switch-frame'' event in the middle of a key sequence,
      we put it off for later.  While we're reading, we keep the event here.  */
-  Lisp_Object delayed_switch_frame;
+  volatile Lisp_Object delayed_switch_frame;
 
   /* See the comment below... */
 #if defined (GOBBLE_FIRST_EVENT)
   Lisp_Object first_event;
 #endif
 
-  Lisp_Object original_uppercase;
-  int original_uppercase_position = -1;
+  volatile Lisp_Object original_uppercase;
+  volatile int original_uppercase_position = -1;
 
   /* Gets around Microsoft compiler limitations.  */
   int dummyflag = 0;
@@ -7747,8 +7760,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   /* Nonzero if we seem to have got the beginning of a binding
      in function_key_map.  */
-  int function_key_possible = 0;
-  int key_translation_possible = 0;
+  volatile int function_key_possible = 0;
+  volatile int key_translation_possible = 0;
 
   /* Save the status of key translation before each step,
      so that we can restore this after downcasing.  */
@@ -7859,7 +7872,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 					      * sizeof (defs[0]));
 	    nmaps_allocated = nmaps + extra_maps;
 	  }
-	bcopy (maps, submaps, nmaps * sizeof (submaps[0]));
+	bcopy (maps, (void *) submaps, nmaps * sizeof (submaps[0]));
 	if (!NILP (orig_keymap))
 	  submaps[nmaps++] = orig_keymap;
 	submaps[nmaps++] = orig_local_map;
@@ -7906,13 +7919,13 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
          (say, a mouse click on the mode line which is being treated
          as [mode-line (mouse-...)], then we backtrack to this point
          of keybuf.  */
-      int last_real_key_start;
+      volatile int last_real_key_start;
 
       /* These variables are analogous to echo_start and keys_start;
 	 while those allow us to restart the entire key sequence,
 	 echo_local_start and keys_local_start allow us to throw away
 	 just one key.  */
-      int echo_local_start, keys_local_start, local_first_binding;
+      volatile int echo_local_start, keys_local_start, local_first_binding;
 
       if (t >= bufsize)
 	error ("Key sequence too long");
@@ -7985,7 +7998,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		goto replay_sequence;
 	      }
 #endif
-	    key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
+	    key = read_char (NILP (prompt), nmaps,
+			     (Lisp_Object *) submaps, last_nonmenu_event,
 			     &used_mouse_menu);
 	  }
 
