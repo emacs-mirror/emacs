@@ -66,7 +66,6 @@
 ;;; Code:
 
 (require 'sendmail)
-(require 'time-stamp)
 (autoload 'starttls-open-stream "starttls")
 (autoload 'starttls-negotiate "starttls")
 (autoload 'mail-strip-quoted-names "mail-utils")
@@ -343,14 +342,15 @@ This is relative to `smtpmail-queue-dir'.")
 			    smtpmail-recipient-address-list tembuf))
 		      (error "Sending failed; SMTP protocol error"))
 		(error "Sending failed; no recipients"))
-	    (let* ((file-data (concat
-			       smtpmail-queue-dir
-			       (concat (time-stamp-yyyy-mm-dd)
-				       "_" (time-stamp-hh:mm:ss)
-				       "_"
-				       (setq smtpmail-queue-counter
-					     (1+ smtpmail-queue-counter)))))
-		      (file-elisp (concat file-data ".el"))
+	    (let* ((file-data
+		    (expand-file-name
+		     (format "%s_%i"
+			     (format-time-string "%Y-%m-%d_%H:%M:%S")
+			     (setq smtpmail-queue-counter
+				   (1+ smtpmail-queue-counter)))
+		     smtpmail-queue-dir))
+		   (file-data (convert-standard-filename file-data))
+		   (file-elisp (concat file-data ".el"))
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
 		   (buffer-scratch "*queue-mail*"))
