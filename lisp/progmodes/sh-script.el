@@ -287,9 +287,10 @@ Variables only understood by some shells are associated to a list of those.")
 
 
 
-(defvar sh-font-lock-keywords
-  '(("[ \t]\\(#.*\\)" 1 font-lock-comment-face)
-    ("\"[^`]*\"\\|'.*'\\|\\\\[^\nntc]" . font-lock-string-face))
+(defvar sh-font-lock-keywords nil
+  ;; This is done syntactically:
+  ;'(("[ \t]\\(#.*\\)" 1 font-lock-comment-face)
+  ;  ("\"[^`]*\"\\|'.*'\\|\\\\[^\nntc]" . font-lock-string-face))
   "*Rules for highlighting shell scripts.
 This variable is included into the various variables
 `sh-SHELL-font-lock-keywords'.  If no such variable exists for some shell,
