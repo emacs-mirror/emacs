@@ -98,6 +98,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** In Outline mode, hide-body no longer hides lines at the top
+of the file that precede the first header line.
+
 +++
 ** `set-auto-mode' now gives the interpreter magic line (if present)
 precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
