@@ -169,8 +169,8 @@ key sequences, not one.@refill
 
   All told, the prefix keys in Emacs are @kbd{C-c}, @kbd{C-h},
 @kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x
-n}, @w{@kbd{C-x r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x
-6}, @key{ESC}, and @kbd{M-g}.  (@key{F1} and @key{F2} are aliases for
+n}, @w{@kbd{C-x r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x 6},
+@key{ESC}, @kbd{M-o} and @kbd{M-g}.  (@key{F1} and @key{F2} are aliases for
 @kbd{C-h} and @kbd{C-x 6}.)  But this list is not cast in concrete; it
 is just a matter of Emacs's standard key bindings.  If you customize
 Emacs, you can make new prefix keys, or eliminate these.  @xref{Key
