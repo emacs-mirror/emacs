@@ -49,6 +49,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 extern char **environ;
+extern int use_dialog_box;
 extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
 static int tm_diff ();
@@ -2750,7 +2751,8 @@ minibuffer contents show.")
      Lisp_Object *args;
 {
 #ifdef HAVE_MENUS
-  if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+      && NILP (use_dialog_box))
     return Fmessage_box (nargs, args);
 #endif
   return Fmessage (nargs, args);
