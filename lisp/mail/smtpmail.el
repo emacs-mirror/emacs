@@ -613,7 +613,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    (if (and do-starttls
 		     (smtpmail-find-credentials smtpmail-starttls-credentials host port)
 		     (member 'starttls supported-extensions)
-		     (process-id process))
+		     (numberp (process-id process)))
 		(progn
 		  (smtpmail-send-command process (format "STARTTLS"))
 		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
