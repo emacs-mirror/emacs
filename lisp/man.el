@@ -185,8 +185,8 @@ the manpage buffer.")
 (defvar Man-mode-map nil
   "*Keymap for Man mode.")
 
-(defvar Man-mode-hooks nil
-  "*Hooks for Man mode.")
+(defvar Man-mode-hook nil
+  "*Normal hook run when Man mode is enabled.")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
@@ -212,10 +212,11 @@ This regular expression should start with a `^' character.")
 ;; Would someone like to provide a good test for being on Solaris?
 ;; We could give it its own value of system-type, but that has drawbacks;
 ;; it would require changes in lots of places that test system-type.
-(defvar Man-specified-section-option ""
-  "*Option that indicates a specified a manual section name.
-On most Unix systems, no option is needed for this.
-On Solaris, you need to set this to \"-s \".")
+(defvar Man-specified-section-option
+  (if (string-match "-solaris[0-9.]*$" system-configuration)
+      "-s"
+    "")
+  "*Option that indicates a specified a manual section name.")
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user variables
@@ -259,7 +260,7 @@ On Solaris, you need to set this to \"-s \".")
 ;; utilities
 
 (defun Man-page-mode-string ()
-  "Formats part of the mode line for manual mode."
+  "Formats part of the mode line for Man mode."
   (format "%d (of %d)" Man-current-page (length Man-page-list)))
 
 (defun Man-delete-trailing-newline (str)
@@ -434,12 +435,12 @@ Universal argument ARG, is passed to `Man-getpage-in-background'."
     (Man-getpage-in-background man-args (consp arg))
     ))
 
-(defun Man-getpage-in-background (TOPIC &optional override-reuse-p)
+(defun Man-getpage-in-background (topic &optional override-reuse-p)
   "Uses TOPIC to build and fire off the manpage and cleaning command.
 Optional OVERRIDE-REUSE-P, when non-nil, means to
 start a background process even if a buffer already exists and
 `Man-reuse-okay-p' is non-nil."
-  (let* ((man-args TOPIC)
+  (let* ((man-args topic)
 	 (bufname (concat "*man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
     (if (and Man-reuse-okay-p
@@ -563,9 +564,9 @@ Man-circular-pages-p            Multiple manpage list treated as circular?
 Man-auto-section-alist          List of major modes and their section numbers.
 Man-section-translations-alist  List of section numbers and their Un*x equiv.
 Man-filter-list                 Background manpage filter command.
-Man-mode-line-format            Mode line format for Man-mode buffers.
-Man-mode-map                    Keymap bindings for Man-mode buffers.
-Man-mode-hooks                  Hooks for Man-mode.
+Man-mode-line-format            Mode line format for Man mode buffers.
+Man-mode-map                    Keymap bindings for Man mode buffers.
+Man-mode-hook                   Normal hook run on entry to Man mode.
 Man-section-regexp              Regexp describing manpage section letters.
 Man-heading-regexp              Regexp describing section headers.
 Man-see-also-regexp             Regexp for SEE ALSO section (or your equiv).
@@ -652,7 +653,7 @@ The following key bindings are currently in effect in the buffer:
 
 
 ;; ======================================================================
-;; Man-mode commands
+;; Man mode commands
 
 (defun Man-next-section (n)
   "Move point to Nth next section (default 1)."
@@ -706,25 +707,39 @@ Actually the section moved to is described by `Man-see-also-regexp'."
       (error (concat "No " Man-see-also-regexp
 		     " section found in current manpage."))))
 
-(defun Man-follow-manual-reference (arg)
+(defun Man-follow-manual-reference (arg reference)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
-Queries you for the page to retrieve.  Of course it does this in the
-background.  Universal argument ARG is passed to `Man-getpage-in-background'."
-  (interactive "P")
+Specify which reference to use; default is based on word at point.
+Prefix argument ARG is passed to `Man-getpage-in-background'."
+  (interactive
+   (if (not Man-refpages-alist)
+       (error "No references in current man page")
+     (list current-prefix-arg
+	   (let* ((default (or
+			     (car (all-completions
+				   (save-excursion
+				     (skip-syntax-backward "w()")
+				     (skip-chars-forward " \t")
+				     (let ((word (current-word)))
+				       ;; strip a trailing '-':
+				       (if (string-match "-$" word)
+					   (substring word 0 (match-beginning 0))
+					 word)))
+				   Man-refpages-alist))
+			     (aheadsym Man-refpages-alist)))
+		   chosen
+		   (prompt (concat "Refer to: (default " default ") ")))
+	      (setq chosen (completing-read prompt Man-refpages-alist nil t))
+	      (if (or (not chosen)
+		      (string= chosen ""))
+		  default
+		chosen)))))
   (if (not Man-refpages-alist)
-      (error (concat "No references found in current manpage."))
-    (aput 'Man-refpages-alist
-	  (let* ((default (aheadsym Man-refpages-alist))
-		 chosen
-		 (prompt (concat "Refer to: (default " default ") ")))
-	    (setq chosen (completing-read prompt Man-refpages-alist nil t))
-	    (if (or (not chosen)
-		    (string= chosen ""))
-		default
-	      chosen)))
+      (error "No references found in current manpage")
+    (aput 'Man-refpages-alist reference)
     (Man-getpage-in-background
      (Man-translate-references (aheadsym Man-refpages-alist))
-     (consp arg))))
+     arg)))
 
 (defun Man-quit ()
   "Kill the buffer containing the manpage."
