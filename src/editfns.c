@@ -2455,9 +2455,9 @@ Use %% to put a single % into the output.")
   /* Allocate the space for the result.
      Note that TOTAL is an overestimate.  */
   if (total < 1000)
-    buf = (unsigned char *) alloca (total + 1);
+    buf = (char *) alloca (total + 1);
   else
-    buf = (unsigned char *) xmalloc (total + 1);
+    buf = (char *) xmalloc (total + 1);
 
   p = buf;
   nchars = 0;
