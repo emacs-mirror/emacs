@@ -391,7 +391,7 @@ returns the command's exit status when it is called from a Lisp program.
 
   One use for @kbd{M-|} is to run @code{gpg} to see what keys are in
 the buffer.  For instance, if the buffer contains a GPG key, type
-@kbd{C-x h M-| uudecode @key{RET}} to feed the entire buffer contents
+@kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents
 to the @code{gpg} program.  That program will ignore everything except
 the encoded keys, and will output a list of the keys it contains.
 
@@ -958,7 +958,7 @@ point does not jump to the end.
 
 @vindex comint-prompt-read-only
   If you set @code{comint-prompt-read-only}, the prompts in the Comint
-buffer a read-only.
+buffer are read-only.
 
 @vindex comint-input-ignoredups
   The variable @code{comint-input-ignoredups} controls whether successive
