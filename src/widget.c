@@ -20,6 +20,16 @@ Boston, MA 02111-1307, USA.  */
 
 /* Emacs 19 face widget ported by Fred Pierresteguy */
 
+/* This file has been censored by the Communications Decency Act.
+   That law was passed under the guise of a ban on pornography, but
+   it bans far more than that.  This file did not contain pornography,
+   but it was censored nonetheless.
+
+   For information on US government censorship of the Internet, and
+   what you can do to bring back freedom of the press, see the web
+   site http://www.vtw.org/
+   */
+
 #include <config.h>
 #include <stdio.h>
 #include "lisp.h"
@@ -841,7 +851,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
      to wm_shell's iconic slot have no effect after it has been realized,
      and calling XIconifyWindow doesn't work either (even thought the window
      has been created.)  Perhaps there is some property we could smash
-     directly, but I'm sick of this for now.  Xt is a steaming pile of shit!
+     directly, but I'm sick of this for now.
    */
   if (cur->emacs_frame.iconic != new->emacs_frame.iconic)
     {
