@@ -190,6 +190,7 @@ frame_vector_add_frame (f)
   bcopy (XVECTOR (frame_vector)->contents,
 	 XVECTOR (new)->contents, sizeof (Lisp_Object) * length);
   
+  frame_vector = new;
   XVECTOR (frame_vector)->contents[length] = frame;
   return length;
 }
