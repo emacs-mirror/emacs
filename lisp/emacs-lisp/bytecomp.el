@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98 $")
+(defconst byte-compile-version "$Revision: 2.99 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1113,21 +1113,23 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	   (if (< ncall (car sig))
 	       "requires"
 	     "accepts only")
-	   (byte-compile-arglist-signature-string sig)))
-      (or (and (fboundp (car form))	; might be a subr or autoload.
-	       (not (get (car form) 'byte-compile-noruntime)))
-	  (eq (car form) byte-compile-current-form) ; ## this doesn't work
-						    ; with recursion.
-	  ;; It's a currently-undefined function.
-	  ;; Remember number of args in call.
-	  (let ((cons (assq (car form) byte-compile-unresolved-functions))
-		(n (length (cdr form))))
-	    (if cons
-		(or (memq n (cdr cons))
-		    (setcdr cons (cons n (cdr cons))))
-		(setq byte-compile-unresolved-functions
-		      (cons (list (car form) n)
-			    byte-compile-unresolved-functions))))))))
+	   (byte-compile-arglist-signature-string sig))))
+    ;; Check to see if the function will be available at runtime
+    ;; and/or remember its arity if it's unknown.
+    (or (and (or sig (fboundp (car form))) ; might be a subr or autoload.
+	     (not (get (car form) 'byte-compile-noruntime)))
+	(eq (car form) byte-compile-current-form) ; ## this doesn't work
+					; with recursion.
+	;; It's a currently-undefined function.
+	;; Remember number of args in call.
+	(let ((cons (assq (car form) byte-compile-unresolved-functions))
+	      (n (length (cdr form))))
+	  (if cons
+	      (or (memq n (cdr cons))
+		  (setcdr cons (cons n (cdr cons))))
+	    (setq byte-compile-unresolved-functions
+		  (cons (list (car form) n)
+			byte-compile-unresolved-functions)))))))
 
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
@@ -1492,7 +1494,7 @@ The value is non-nil if there were no errors, nil if errors."
 		    ;; the build tree, without causing problems when emacs-lisp
 		    ;; files in the build tree are recompiled).
 		    (delete-file target-file))
-		  (write-region 1 (point-max) target-file))
+		  (write-region (point-min) (point-max) target-file))
 	      ;; This is just to give a better error message than write-region
 	      (signal 'file-error
 		      (list "Opening output file"
@@ -1809,7 +1811,7 @@ list that represents a doc string reference.
 		(setq position
 		      (byte-compile-output-as-comment
 		       (nth (nth 1 info) form) nil))
-		(setq position (position-bytes position))
+		(setq position (- (position-bytes position) (point-min) -1))
 		;; If the doc string starts with * (a user variable),
 		;; negate POSITION.
 		(if (and (stringp (nth (nth 1 info) form))
@@ -1843,7 +1845,7 @@ list that represents a doc string reference.
 			   (byte-compile-output-as-comment
 			    (cons (car form) (nth 1 form))
 			    t)))
-		      (setq position (position-bytes position))
+		      (setq position (- (position-bytes position) (point-min) -1))
 		      (princ (format "(#$ . %d) nil" position) outbuffer)
 		      (setq form (cdr form))
 		      (setq index (1+ index))))
@@ -2404,10 +2406,10 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	 ;; constant was not optimized away because we chose to return it.
 	 (and (not (assq nil byte-compile-constants)) ; Nil is often there.
 	      (let ((tmp (reverse byte-compile-constants)))
-		(while (and tmp (not (or (symbolp (car (car tmp)))
-					 (numberp (car (car tmp))))))
+		(while (and tmp (not (or (symbolp (caar tmp))
+					 (numberp (caar tmp)))))
 		  (setq tmp (cdr tmp)))
-		(car (car tmp)))))))
+		(caar tmp))))))
   (byte-compile-out 'byte-return 0)
   (setq byte-compile-output (nreverse byte-compile-output))
   (if (memq byte-optimize '(t byte))
