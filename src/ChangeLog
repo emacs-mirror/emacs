@@ -1,3 +1,8 @@
+2001-03-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* keyboard.c (syms_of_keyboard) <overriding-terminal-local-map>:
+	Doc fix.
+
 2001-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xrdb.c (x_load_resources) [USE_MOTIF]: Remove extraneous arg
