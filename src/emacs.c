@@ -150,7 +150,9 @@ fatal_error_signal (sig)
      Remember that since we're in a signal handler, the signal we're
      going to send is probably blocked, so we have to unblock it if we
      want to really receive it.  */
+#ifndef MSDOS
   sigunblock (sigmask (fatal_error_code));
+#endif
   kill (getpid (), fatal_error_code);
 #endif /* not VMS */
 }
@@ -367,6 +369,15 @@ main (argc, argv, envp)
     }
 #endif	/* not SYSTEM_MALLOC */
 
+#ifdef MSDOS
+  /* We do all file input/output as binary files.  When we need to translate
+     newlines, we do that manually.  */
+  _fmode = O_BINARY;
+  (stdin)->_flag &= ~_IOTEXT;
+  (stdout)->_flag &= ~_IOTEXT;
+  (stderr)->_flag &= ~_IOTEXT;
+#endif /* MSDOS */
+
 #ifdef PRIO_PROCESS
   if (emacs_priority)
     nice (emacs_priority);
@@ -511,6 +522,13 @@ main (argc, argv, envp)
   init_alloc ();
   init_eval ();
   init_data ();
+
+#ifdef MSDOS
+  /* Call early 'cause init_environment needs it.  */
+  init_dosfns ();
+  /* Set defaults for several environment variables.  */
+  if (initialized) init_environment (argc, argv, skip_args);
+#endif
 
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
