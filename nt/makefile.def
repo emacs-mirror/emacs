@@ -131,6 +131,12 @@ CP_DIR		= xcopy /fried
 # This is completely braindamaged, but it's the only routine known to be there
 DEL_TREE	= echo y | rmdir /s
 
+# The location of the icon file
+EMACS_ICON_PATH = ..\nt\emacs.ico
+
+# Lets us add icons to the GNU Emacs folder
+ADDPM		= ..\nt\$(BLD)\addpm.exe
+
 !if "$(ARCH)" == "i386"
 ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -G3d -Zi -Od
 ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
