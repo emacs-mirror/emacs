@@ -319,6 +319,10 @@ Normally the command is run on each file individually.
 However, if there is a `*' in the command then it is run
 just once with the entire file list substituted there.
 
+If there is no `*', but a `?' in the command then it is still run
+on each file individually but with the filename substituted there
+instead of att the end of the command.
+
 No automatic redisplay of dired buffers is attempted, as there's no
 telling what files the command may have changed.  Type
 \\[dired-do-redisplay] to redisplay the marked files.
@@ -370,13 +374,17 @@ the list of file names explicitly with the FILE-LIST argument."
 ;; (coming from interactive P and currently ignored) to decide what to do.
 ;; Smart would be a way to access basename or extension of file names.
 ;; See dired-trns.el for an approach to this.
-  ;; Bug: There is no way to quote a *
-  ;; On the other hand, you can never accidentally get a * into your cmd.
+  ;; Bug: There is no way to quote a * or a ?
+  ;; On the other hand, you can never accidentally get a * or a ? into
+  ;; your cmd.
   (let ((stuff-it
-	 (if (string-match "\\*" command)
-	     (function (lambda (x)
-			 (dired-replace-in-string "\\*" x command)))
-	   (function (lambda (x) (concat command " " x))))))
+	 (cond ((string-match "\\*" command)
+		(function (lambda (x)
+			    (dired-replace-in-string "\\*" x command))))
+	       ((string-match "\\?" command)
+		(function (lambda (x)
+			     (dired-replace-in-string "\\?" x command))))
+	       (t (function (lambda (x) (concat command " " x)))))))
     (if on-each
 	(mapconcat stuff-it (mapcar 'shell-quote-argument file-list) ";")
       (let ((fns (mapconcat 'shell-quote-argument
