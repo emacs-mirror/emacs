@@ -1,8 +1,9 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright 1989, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright 1989, 1993, 1994, 1995, 1997, 2000
+;;;	Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1999-06-26 15:12:53 gildea>
+;; Maintainer's Time-stamp: <2000-06-07 13:05:45 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -94,14 +95,15 @@ See also the variable `time-stamp-warn-inactive'."
   :group 'time-stamp)
 
 (defcustom time-stamp-warn-inactive t
-  "Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
-A warning is printed if `time-stamp-active' disables time stamping and the
-buffer contains a template that would otherwise have been updated."
+  "Have \\[time-stamp] warn if a buffer did not get time-stamped.
+If non-nil, a warning is displayed if `time-stamp-active' disables time
+stamping and the buffer contains a template that would otherwise have
+been updated."
   :type 'boolean
   :group 'time-stamp)
 
 (defcustom time-stamp-old-format-warn 'ask
-  "Action to take if `time-stamp-format' is an old-style list.
+  "Action if `time-stamp-format' is an old-style list.
 If `error', the format is not used.  If `ask', the user is queried about
 using the time-stamp-format.  If `warn', a warning is displayed.
 If nil, no notification is given."
@@ -182,7 +184,7 @@ variables section of the time-stamped file itself.")
 
 
 (defvar time-stamp-count 1		;Do not change!
-  "How many time stamp templates \\[time-stamp] will look for in a buffer.
+  "How many templates \\[time-stamp] will look for in a buffer.
 The same time-stamp will be written in each case.
 
 Do not change `time-stamp-count' for yourself or you will be
@@ -275,9 +277,10 @@ template."
 	   ;; to output any warnings about time-stamp not being active.
 	   (setq ts-count 1)))
     ;; Figure out what lines the end should be on.
-    (let ((nl-start 0))
-      (while (string-match "\n" ts-format nl-start)
-	(setq format-lines (1+ format-lines) nl-start (match-end 0))))
+    (if (stringp ts-format)
+	(let ((nl-start 0))
+	  (while (string-match "\n" ts-format nl-start)
+	    (setq format-lines (1+ format-lines) nl-start (match-end 0)))))
     (let ((nl-start 0))
       (while (string-match "\n" ts-end nl-start)
 	(setq end-lines (1+ end-lines) nl-start (match-end 0))))
@@ -457,7 +460,7 @@ Optionally use FORMAT."
 				  ?\0))
 		 (or (eq ?. cur-char)
 		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
+		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char) 
 		     (eq ?\  cur-char) (eq ?# cur-char) (eq ?^ cur-char)
 		     (and (eq ?\( cur-char)
 			  (not (eq prev-char ?\\))
@@ -573,7 +576,7 @@ Optionally use FORMAT."
 	  (time-stamp-mail-host-name))
 	 ))
 	(if (string-equal field-width "")
-	    (format "%s" field-result)
+	    field-result
 	  (let ((padded-result
 		 (format (format "%%%s%c"
 				 field-width
@@ -608,8 +611,8 @@ Optionally use FORMAT."
       (string-to-int (format-time-string format-string time)))))
 
 (defvar time-stamp-conversion-warn t
-  "Non-nil to warn about soon-to-be-unsupported forms in `time-stamp-format'.
-In would be a bad idea to disable these warnings!
+  "Warn about soon-to-be-unsupported forms in `time-stamp-format'.
+If nil, these warnings are disabled, which would be a bad idea!
 You really need to update your files instead.
 
 The new formats will work with old versions of Emacs.
