@@ -567,7 +567,7 @@ case "${configuration}" in
     machine=is386 opsys=usg5-2-2
   ;;
   ## Intel 386 machines where we don't care about the manufacturer
-  i[34]86-* )
+  i[34]86-unknown-* )
     machine=intel386
     case "${configuration}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
