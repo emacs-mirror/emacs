@@ -5,7 +5,7 @@
 ;; Author: Oscar Figueiredo <Oscar.Figueiredo@di.epfl.ch>
 ;; Maintainer: Oscar Figueiredo <Oscar.Figueiredo@di.epfl.ch>
 ;; Created: May 1997
-;; Version: 2.6
+;; Version: 2.8
 ;; Keywords: help
 
 ;; This file is part of GNU Emacs
@@ -29,16 +29,16 @@
 ;;    This package provides functions to query CCSO PH/QI nameservers
 ;;    through an interactive form or replace inline query strings in
 ;;    buffers with appropriately formatted query results (especially
-;;    used to expand email addresses in message buffers). It also
+;;    used to expand email addresses in message buffers).  It also
 ;;    interfaces with the BBDB package to let you register entries of
 ;;    the CCSO PH/QI directory into your own database.  The CCSO PH/QI
 ;;    white pages system was developped at UIUC and is in use in more
-;;    than 300 sites in the world. The distribution can be found at
+;;    than 300 sites in the world.  The distribution can be found at
 ;;    ftp://uiarchive.cso.uiuc.edu/pub/packages/ph Traditionally the
 ;;    server is called QI while the client is called PH.
 
 ;;; Installation:
-;;    This package uses the custom and widget libraries. If they are not already 
+;;    This package uses the custom and widget libraries.  If they are not already 
 ;;    installed on your system get them from http://www.dina.kvl.dk/~abraham/custom/
 ;;    Then uncomment and add the following to your .emacs file:
 ;;      (require 'ph)
@@ -53,7 +53,7 @@
 ;;; Usage:
 ;;    - Provided you did the installation as proposed in the above section, 
 ;;      inline expansion will be available when you compose an email
-;;      message. Type the name of somebody recorded in your PH/QI server and hit
+;;      message.  Type the name of somebody recorded in your PH/QI server and hit
 ;;      C-c TAB, this will overwrite the name with the corresponding email 
 ;;      address
 ;;    - M-x ph-customize to customize inline expansion and other features to
@@ -85,7 +85,7 @@ number to the name of the server."
   :group 'ph)
 
 (defcustom ph-strict-return-matches t
-  "*If non-nil, entries that do not contain all the requested return fields are ignored."
+  "*If non-nil, entries not containing all requested return fields are ignored."
   :type  'boolean
   :group 'ph)
 
@@ -97,12 +97,12 @@ nil means return the default fields as configured in the server."
   :group 'ph)
 
 (defcustom ph-multiple-match-handling-method 'select
-  "*What to do when multiple entries match a query for an inline expansion.
+  "*What to do when multiple entries match an inline expansion query.
 Possible values are: 
-`first' (equivalent to nil) which means consider the first match.
-`select' pop-up a selection buffer
-`all' use all matches
-`abort' the operation is aborted, an error is signaled"
+`first' (equivalent to nil) which means consider the first match,
+`select' pop-up a selection buffer,
+`all' use all matches,
+`abort' the operation is aborted, an error is signaled."
   :type  '(choice :menu-tag "Method"
 		  (const :menu-tag "First"  first)
 		  (const :menu-tag "Select" select)
@@ -117,7 +117,7 @@ This is either an alist (FIELD . METHOD) or a symbol METHOD.
 The alist form of the variable associates a method to an individual field,
 the second form specifies a method applicable to all fields.
 Available methods are:
-`list' or nil lets the value of the field be a list of values
+`list' or nil lets the value of the field be a list of values,
 `first' keeps the first value and discards the others,
 `concat' concatenates the values into a single multiline string,
 `duplicate' duplicates the entire entry into as many instances as 
@@ -149,16 +149,16 @@ If nil all the words will be mapped onto the default CCSO database key."
   :group 'ph)
 
 (defcustom ph-expanding-overwrites-query t
-  "*If non nil, expanding a query overwrites the query string"
+  "*If non nil, expanding a query overwrites the query string."
   :type  'boolean
   :group 'ph)
 
 (defcustom ph-inline-expansion-format '("%s" email)
   "*A list specifying the format of the expansion of inline queries.
-This variable controls what ph-expand-inline actually inserts in the buffer.
-First element is a string passed to format. Remaining elements are symbols
+This variable controls what `ph-expand-inline' actually inserts in the buffer.
+First element is a string passed to `format'.  Remaining elements are symbols
 indicating CCSO database field names, corresponding field values are passed
-as additional arguments to format."
+as additional arguments to `format'."
   :type  '(list (string :tag "Format String")
 		(repeat :inline t
 			:tag "Field names"
@@ -176,8 +176,9 @@ as additional arguments to format."
 					   (id . "ID")
 					   (email . "E-Mail")
 					   (firstname . "First Name"))
-  "*A mapping of CCSO database field names onto prompt strings used in query/response forms.
-Prompt strings for fields that are not in this are derived by splitting the field name
+  "*Map CCSO database field names into prompt strings for query/response.
+Prompt strings for fields that are not listed here
+are derived by splitting the field name
 at `_' signs and capitalizing the individual words."
   :tag   "Mapping of Field Names onto Prompt Strings"
   :type  '(repeat (cons :tag "Field"
@@ -196,16 +197,16 @@ This is a list of cons cells (BBDB-FIELD . SPEC-OR-LIST) where
 BBDB-FIELD is the name of a field that must be defined in your BBDB
 environment (standard field names are `name', `company', `net', `phone',
 `address' and `notes').  SPEC-OR-LIST is either a single SPEC or a list
-of SPECs. Lists of specs are valid only for the `phone' and `address'
+of SPECs.  Lists of specs are valid only for the `phone' and `address'
 BBDB fields.  SPECs are sexps which are evaluated:
-  a string evaluates to itself
-  a symbol evaluates to the symbol value. Symbols naming PH/QI fields
-    present in the record evaluate to the value of the field in the record
-  a form is evaluated as a function. The argument list may contain PH/QI 
+  a string evaluates to itself,
+  a symbol evaluates to the symbol value.  Symbols naming PH/QI fields
+    present in the record evaluate to the value of the field in the record,
+  a form is evaluated as a function.  The argument list may contain PH/QI 
     field names which eval to the corresponding values in the
-    record. The form evaluation should return something appropriate for
-    the particular BBDB-FIELD (see bbdb-create-internal).
-    ph-bbdbify-phone and ph-bbdbify-address are provided as convenience
+    record.  The form evaluation should return something appropriate for
+    the particular BBDB-FIELD (see `bbdb-create-internal').
+    `ph-bbdbify-phone' and `ph-bbdbify-address' are provided as convenience
     functions to parse phones and addresses."
   :tag "BBDB to CCSO Field Name Mapping"
   :type '(repeat (cons :tag "Field Name"
@@ -214,11 +215,11 @@ BBDB fields.  SPECs are sexps which are evaluated:
   :group 'ph)
 
 (defcustom ph-options-file "~/.ph-options"
-  "*A file where the `servers' hotlist is stored."
+  "*A file where the PH `servers' hotlist is stored."
   :type '(file :Tag "File Name:"))
 
 (defcustom ph-mode-hook nil
-  "*Normal hook run on entry to ph-mode."
+  "*Normal hook run on entry to PH mode."
   :type '(repeat (sexp :tag "Hook")))
 
 ;;}}}
@@ -237,7 +238,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
 (defvar ph-server-hotlist nil)
 
 (defconst ph-default-server-port 105
-  "Default TCP port for CCSO directory services")
+  "Default TCP port for CCSO directory services.")
 
 (defvar ph-form-widget-list nil)
 (defvar ph-process-buffer nil)
@@ -260,8 +261,11 @@ BBDB fields.  SPECs are sexps which are evaluated:
 There is no sense in calling this command from a buffer other than
 one containing the results of a PH query.
 
-Available bindings:
-\\{ph-mode-map}"
+These are the special commands of PH mode:
+    q -- kill this buffer.
+    f -- Display a form to query the CCSO PH/QI nameserver.
+    n -- Move to next record.
+    p -- Move to previous record."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'ph-mode)
@@ -273,8 +277,8 @@ Available bindings:
 
 (defun ph-display-records (records &optional raw-field-names)
   "Display the record list RECORDS in a formatted buffer. 
-If RAW-FIELD-NAMES is non-nil, field names will be formatted to look
-more attractive byi capitalizing and forming strings."
+If RAW-FIELD-NAMES is non-nil, the raw field names are displayed
+otherwise they are formatted according to `ph-fieldname-formstring-alist'."
   (let ((buffer (get-buffer-create "*PH Query Results*"))
 	inhibit-read-only
 	precords
@@ -355,7 +359,7 @@ more attractive byi capitalizing and forming strings."
   )
 
 (defun ph-process-form ()
-  "Process the form in current buffer and display the results"
+  "Process the form in current buffer and display the results."
   (let (query-alist
 	value)
     (if (not (and (boundp 'ph-form-widget-list)
@@ -377,10 +381,10 @@ more attractive byi capitalizing and forming strings."
   "Query the PH/QI server with QUERY.
 QUERY can be a string NAME or a list made of strings NAME 
 and/or cons cells (KEY . VALUE) where KEYs should be valid 
-CCSO database keys. NAME is equivalent to (DEFAULT . NAME) where 
-DEFAULT is the default key of the database) 
-RETURN-FIELDS is a list of database fields to return defaulting to 
-ph-default-return-fields."
+CCSO database keys.  NAME is equivalent to (DEFAULT . NAME),
+where DEFAULT is the default key of the database.
+RETURN-FIELDS is a list of database fields to return,
+defaulting to `ph-default-return-fields'."
   (let (request)
     (if (null return-fields)
 	(setq return-fields ph-default-return-fields))
@@ -400,12 +404,15 @@ ph-default-return-fields."
 	 (ph-parse-query-result return-fields))))
 
 (defun ph-parse-query-result (&optional fields)
-  "Return a list of alists of key/values from the record in ph-process-buffer. 
+  "Return a list of alists of key/values from in `ph-process-buffer'. 
 Fields not in FIELDS are discarded."
-  (let (record records
-	       line-regexp
-	       current-key key value
-	       ignore)
+  (let (record 
+	records
+	line-regexp
+	current-key
+	key
+	value
+	ignore)
     (save-excursion
       (message "Parsing results...")
       (set-buffer ph-process-buffer)
@@ -420,7 +427,7 @@ Fields not in FIELDS are discarded."
 	  (while (re-search-forward line-regexp nil t)
 	    (catch 'skip-line
 	      (if (string= "-508" (match-string 1))
-		  ;; A field is missing in this entry. Skip it or skip the
+		  ;; A field is missing in this entry.  Skip it or skip the
 		  ;; whole record (see ph-strict-return-matches)
 		  (if (not ph-strict-return-matches)
 		      (throw 'skip-line t)
@@ -456,7 +463,7 @@ Fields not in FIELDS are discarded."
   )
 
 (defun ph-filter-duplicate-fields (record)
-  "Filter RECORD according to ph-duplicate-fields-handling-method."
+  "Filter RECORD according to `ph-duplicate-fields-handling-method'."
   (let ((rec record)
 	unique
 	duplicates
@@ -592,9 +599,9 @@ SERVER is either a string naming the server or a list (NAME PORT)."
 
 (defun ph-read-response (process &optional return-response)
   "Read a response from the PH/QI query process PROCESS.
-Returns nil if response starts with an error code. If the
+Returns nil if response starts with an error code.  If the
 response is successful the return code or the reponse itself is returned
-depending on RETURN-RESPONSE"
+depending on RETURN-RESPONSE."
   (let ((case-fold-search nil)
 	return-code
 	match-end)
@@ -617,7 +624,7 @@ depending on RETURN-RESPONSE"
 (defun ph-create-bbdb-record (record)
   "Create a BBDB record using the RECORD alist.
 RECORD is an alist of (KEY . VALUE) where KEY is a symbol naming a field
-of the PH/QI database and VALUE is the corresponding value for the record"
+of the PH/QI database and VALUE is the corresponding value for the record."
   ;; This function runs in a special context where lisp symbols corresponding
   ;; to field names in record are bound to the corresponding values
   (eval 
@@ -672,8 +679,8 @@ of the PH/QI database and VALUE is the corresponding value for the record"
       )))
 
 (defun ph-parse-spec (spec record recurse)
-  "Parse the conversion SPEC using RECORD. 
-If RECURSE is non-nil then SPEC may be a list of atomic specs"
+  "Parse the conversion SPEC using RECORD.
+If RECURSE is non-nil then SPEC may be a list of atomic specs."
   (cond 
    ((or (stringp spec)
 	(symbolp spec)
@@ -689,12 +696,12 @@ If RECURSE is non-nil then SPEC may be a list of atomic specs"
 	       (ph-parse-spec spec-elem record nil))
 	    spec))
    (t
-    (error "Invalid mapping specification for `%s'. Fix ph-bbdb-conversion-alist" spec))))
+    (error "Invalid specification for `%s' in `ph-bbdb-conversion-alist'" spec))))
 
 (defun ph-bbdbify-address (addr location)
-  "Parse ADDR into a vector compatible with bbdb-create-internal.
+  "Parse ADDR into a vector compatible with BBDB.
 ADDR should be an address string of no more than four lines or a
-list of lines. 
+list of lines.
 The last line is searched for the zip code, city and state name.
 LOCATION is used as the address location for bbdb."
   (let* ((addr-components (if (listp addr)
@@ -714,7 +721,7 @@ LOCATION is used as the address location for bbdb."
       (setq city (match-string 2 lastl)
 	    zip (string-to-number (match-string 1 lastl))))
      (t
-      (error "ph-bbdbify-address was unable to parse the address. Customize ph-bbdb-conversion-alist")))
+      (error "Cannot parse the address; see `ph-bbdb-conversion-alist'")))
     (vector location 
 	    (or (nth 0 addr-components) "")
 	    (or (nth 1 addr-components) "")
@@ -724,10 +731,10 @@ LOCATION is used as the address location for bbdb."
 	    zip)))
 
 (defun ph-bbdbify-phone (phone location)
-  "Parse PHONE into a vector compatible with bbdb-create-internal.
+  "Parse PHONE into a vector compatible with BBDB.
 PHONE is either a string supposedly containing a phone number or
 a list of such strings which are concatenated.
-LOCATION is used as the phone location for bbdb"
+LOCATION is used as the phone location for bbdb."
   (cond 
    ((stringp phone)
     (let (phone-list)
@@ -735,8 +742,8 @@ LOCATION is used as the phone location for bbdb"
 	  (setq phone-list (bbdb-parse-phone-number phone))
 	(error
 	 (if (string= "phone number unparsable." (ph-cadr err))
-	     (if (not (y-or-n-p (format "BBDB claims %S to be unparsable. Insert it unparsed ? " phone)))
-		 (error "phone number unparsable")
+	     (if (not (y-or-n-p (format "BBDB claims %S to be unparsable--insert anyway? " phone)))
+		 (error "Phone number unparsable")
 	       (setq phone-list (list (bbdb-string-trim phone))))
 	   (signal (car err) (cdr err)))))
       (if (= 3 (length phone-list))
@@ -745,7 +752,7 @@ LOCATION is used as the phone location for bbdb"
    ((listp phone)
     (vector location (mapconcat 'identity phone ", ")))
    (t
-    (error "Invalid phone specification. Cannot create bbdb record"))))
+    (error "Invalid phone specification"))))
       
 ;;}}}        
 
@@ -757,7 +764,7 @@ LOCATION is used as the phone location for bbdb"
   (customize-group 'ph))
 
 (defun ph-set-server (server)
-  "Set the server to SERVER."
+  "Set the PH server to SERVER."
   (interactive "sNew PH/QI Server: ")
   (message "Selected PH/QI server is now %s" server)
   (setq ph-server server))
@@ -799,15 +806,15 @@ otherwise a list of symbols is returned."
 
 ;;;###autoload
 (defun ph-expand-inline (&optional replace)
-  "Query the server and expand the query string before point.
+  "Query the PH server, and expand the query string before point.
 The query string consists of the buffer substring from the point back to
-the preceding comma, colon or beginning of line. If it consists of more than
-one word the variable ph-inline-query-format-list controls how these are mapped
+the preceding comma, colon or beginning of line.  If it contains more than
+one word, the variable `ph-inline-query-format-list' controls to map these
 onto CCSO database field names.
 After querying the server for the given string, the expansion specified by 
-ph-inline-expansion-format is inserted in the buffer at point. If REPLACE is t 
-then this expansion replaces the name in the buffer.
-If ph-expanding-overwrites-query is t then the meaning of REPLACE is inverted."
+`ph-inline-expansion-format' is inserted in the buffer at point.
+If REPLACE is t, then this expansion replaces the name in the buffer.
+If `ph-expanding-overwrites-query' is t, that inverts the meaning of REPLACE."
   (interactive)
   (let* ((end (point))
 	 (beg (save-excursion
@@ -890,7 +897,7 @@ If ph-expanding-overwrites-query is t then the meaning of REPLACE is inverted."
 
 ;;;###autoload
 (defun ph-query-form (&optional get-fields-from-server)
-  "*Display a form to query the CCSO PH/QI nameserver.
+  "Display a form to query the CCSO PH/QI nameserver.
 If given a non-nil argument the function first queries the server 
 for the existing fields and displays a corresponding form."
   (interactive "P")
@@ -960,8 +967,8 @@ for the existing fields and displays a corresponding form."
   )
 
 (defun ph-bookmark-server (server)
-  "Add SERVER to the `servers' hotlist."
-  (interactive "sServer: ")
+  "Add SERVER to the PH `servers' hotlist."
+  (interactive "sPH server: ")
   (if (member server ph-server-hotlist)
       (error "%s is already in the hotlist" server)
     (setq ph-server-hotlist (cons server ph-server-hotlist))
@@ -969,12 +976,12 @@ for the existing fields and displays a corresponding form."
     (ph-save-options)))
 
 (defun ph-bookmark-current-server ()
-  "Add current server to the `servers' hotlist."
+  "Add current server to the PH `servers' hotlist."
   (interactive)
   (ph-bookmark-server ph-server))
 
 (defun ph-save-options ()
-  "Save options (essentially the hotlist) to ph-options-file"
+  "Save options (essentially the hotlist) to `ph-options-file'."
   (interactive)
   (save-excursion
     (set-buffer (find-file-noselect ph-options-file t))
@@ -1026,7 +1033,7 @@ This function can only be called from a PH/QI query result buffer."
       (ph-create-bbdb-record record))))
 
 (defun ph-try-bbdb-insert ()
-  "Call ph-insert-record-at-point-into-bbdb if on a record"
+  "Call `ph-insert-record-at-point-into-bbdb' if on a record."
   (interactive)
   (and (or (featurep 'bbdb)
 	   (prog1 (locate-library "bbdb") (message "")))
@@ -1035,7 +1042,7 @@ This function can only be called from a PH/QI query result buffer."
        (ph-insert-record-at-point-into-bbdb)))
 
 (defun ph-move-to-next-record ()
-  "Move to next record in a buffer displaying ph query results"
+  "Move to next record, in a buffer displaying PH query results."
   (interactive)
   (if (not (eq major-mode 'ph-mode))
       (error "Not in a PH buffer")
@@ -1045,7 +1052,7 @@ This function can only be called from a PH/QI query result buffer."
 	(error "No more records after point")))))
 
 (defun ph-move-to-previous-record ()
-  "Move to next record in a buffer displaying ph query results"
+  "Move to previous record, in a buffer displaying PH query results."
   (interactive)
   (if (not (eq major-mode 'ph-mode))
       (error "Not in a PH buffer")
@@ -1076,11 +1083,6 @@ This function can only be called from a PH/QI query result buffer."
   `(["---" nil nil]
     ["Query Form" ph-query-form t]
     ["Expand Inline" ph-expand-inline t]
-    ["Insert Record into BBDB" ph-insert-record-at-point-into-bbdb 
-     (and (or (featurep 'bbdb)
-	      (prog1 (locate-library "bbdb") (message "")))
-	  (overlays-at (point))
-	  (overlay-get (car (overlays-at (point))) 'ph-record))]
     ["---" nil nil]
     ["Get Email" ph-get-email t]
     ["Get Phone" ph-get-phone t]
