@@ -489,7 +489,9 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (if (consp dir-or-list)
 	(setq dirname (car dir-or-list))
       (setq dirname dir-or-list))
-    (if (and (equal default-directory dirname)
+    ;; Expand before comparing in case one or both have been abbreviated.
+    (if (and (equal (expand-file-name default-directory)
+		    (expand-file-name dirname))
 	     (not (consp dir-or-list)))
 	;; If we are reading a whole single directory...
 	(dired-insert-directory dir-or-list dired-actual-switches nil t)
