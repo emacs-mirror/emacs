@@ -1425,12 +1425,15 @@ at the end of the line."
 		;; compilation-next-error-locus.
 		(or (null (marker-buffer (caar compilation-error-list)))
 		    (and (> (point) (caar compilation-error-list))
-			 (cdr compilation-error-list)
-			 ;; Don't skip too far: the text between two errors
-			 ;; belongs to the first.  Especially since this
-			 ;; in-between text might be other errors on the same
-			 ;; line (see compilation-skip-to-next-location).
-			 (>= (point) (caar (cdr compilation-error-list))))))
+			 (>= (point)
+			     ;; Don't skip too far: the text between
+			     ;; two errors belongs to the first.  This
+			     ;; in-between text might be other errors
+			     ;; on the same line (see
+			     ;; compilation-skip-to-next-location).
+			     (if (null (cdr compilation-error-list))
+				 compilation-parsing-end
+			       (caar (cdr compilation-error-list)))))))
       (setq compilation-error-list (cdr compilation-error-list)))
     (or compilation-error-list
 	(error "No error to go to")))
@@ -1462,8 +1465,15 @@ other kinds of prefix arguments are ignored."
 	      ;; compilation-next-error-locus.
 	      (or (null (marker-buffer (caar compilation-error-list)))
 		  (and (> (point) (caar compilation-error-list))
-		       (cdr compilation-error-list)
-		       (>= (point) (caar (cdr compilation-error-list))))))
+		       (>= (point)
+			   ;; Don't skip too far: the text between
+			   ;; two errors belongs to the first.  This
+			   ;; in-between text might be other errors
+			   ;; on the same line (see
+			   ;; compilation-skip-to-next-location).
+			   (if (null (cdr compilation-error-list))
+			       compilation-parsing-end
+			     (caar (cdr compilation-error-list)))))))
     (setq compilation-error-list (cdr compilation-error-list)))
 
   (push-mark)
