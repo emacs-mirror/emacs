@@ -183,15 +183,32 @@
 
 ;;; Code:
 
+;; Define core `font-lock' group.
 (defgroup font-lock nil
   "Font Lock mode text highlighting package."
   :link '(custom-manual "(emacs)Font Lock")
   :group 'faces)
 
-(defgroup font-lock-faces nil
-  "Font Lock mode faces."
+(defgroup font-lock-highlighting-faces nil
+  "Faces for highlighting text."
   :prefix "font-lock-"
-  :link '(custom-manual "(emacs)Font Lock")
+  :group 'font-lock)
+
+(defgroup font-lock-extra-types nil
+  "Extra mode-specific type names for highlighting declarations."
+  :group 'font-lock)
+
+;; Define support mode groups here for nicer `font-lock' group order.
+(defgroup fast-lock nil
+  "Font Lock support mode to cache fontification."
+  :link '(custom-manual "(emacs)Support Modes")
+  :load 'fast-lock
+  :group 'font-lock)
+
+(defgroup lazy-lock nil
+  "Font Lock support mode to fontify lazily."
+  :link '(custom-manual "(emacs)Support Modes")
+  :load 'lazy-lock
   :group 'font-lock)
 
 ;; User variables.
@@ -283,7 +300,7 @@ call to make the search (called with one argument, the limit of the search).
 MATCH is the subexpression of MATCHER to be highlighted.  MATCH can be
 calculated via the function `font-lock-keyword-depth'.  FACENAME is an
 expression whose value is the face name to use.  FACENAME's default attributes
-can be defined via the variable `font-lock-face-attributes'.
+can be modified via \\[customize].
 
 OVERRIDE and LAXMATCH are flags.  If OVERRIDE is t, existing fontification can
 be overwritten.  If `keep', only parts not already fontified are highlighted.
@@ -608,11 +625,9 @@ To fontify a block (the function or paragraph containing point, or a number of
 lines around point), perhaps because modification on the current line caused
 syntactic change on other lines, you can use \\[font-lock-fontify-block].
 
-The default Font Lock mode faces and their attributes are defined in the
-variable `font-lock-face-attributes', and Font Lock mode default settings in
-the variable `font-lock-defaults-alist'.  You can set your own default settings
-for some mode, by setting a buffer local value for `font-lock-defaults', via
-its mode hook."
+See the variable `font-lock-defaults-alist' for the Font Lock mode default
+settings.  You can set your own default settings for some mode, by setting a
+buffer local value for `font-lock-defaults', via its mode hook."
   (interactive "P")
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
@@ -1432,6 +1447,37 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
 
+;; Originally face attributes were specified via `font-lock-face-attributes'.
+;; Users then changed the default face attributes by setting this variable.
+;; However, we try and be back-compatible and respect its value if set except
+;; for faces where M-x customize has been used to save changes for the face.
+(when (boundp 'font-lock-face-attributes)
+  (let ((face-attributes font-lock-face-attributes))
+    (while face-attributes
+      (let* ((face-attribute (pop face-attributes))
+	     (face (car face-attribute)))
+	;; Rustle up a `defface' SPEC from a `font-lock-face-attributes' entry.
+	(unless (get face 'saved-face)
+	  (let ((foreground (nth 1 face-attribute))
+		(background (nth 2 face-attribute))
+		(bold-p (nth 3 face-attribute))
+		(italic-p (nth 4 face-attribute))
+		(underline-p (nth 5 face-attribute))
+		face-spec)
+	    (when foreground
+	      (setq face-spec (cons ':foreground (cons foreground face-spec))))
+	    (when background
+	      (setq face-spec (cons ':background (cons background face-spec))))
+	    (when bold-p
+	      (setq face-spec (append '(:bold t) face-spec)))
+	    (when italic-p
+	      (setq face-spec (append '(:italic t) face-spec)))
+	    (when underline-p
+	      (setq face-spec (append '(:underline t) face-spec)))
+	    (custom-declare-face face (list (list t face-spec)) nil)))))))
+
+;; But now we do it the custom way.  Note that `defface' will not overwrite any
+;; faces declared above via `custom-declare-face'.
 (defface font-lock-comment-face
   '((((class grayscale) (background light))
      (:foreground "DimGray" :bold t :italic t))
@@ -1441,7 +1487,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "OrangeRed"))
     (t (:bold t :italic t)))
   "Font Lock mode face used to highlight comments."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-string-face
   '((((class grayscale) (background light)) (:foreground "DimGray" :italic t))
@@ -1450,7 +1496,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
   "Font Lock mode face used to highlight strings."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-keyword-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
@@ -1459,7 +1505,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
   "Font Lock mode face used to highlight keywords."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-builtin-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
@@ -1468,7 +1514,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:bold t)))
   "Font Lock mode face used to highlight builtins."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-function-name-face
   ;; Currently, Emacs/Custom does not support a :reverse or :invert spec.
@@ -1477,7 +1523,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (t ;(:reverse t :bold t)
      (:italic t :bold t)))
   "Font Lock mode face used to highlight function names."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-variable-name-face
   '((((class grayscale) (background light))
@@ -1488,7 +1534,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
   "Font Lock mode face used to highlight variable names."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-type-face
   '((((class grayscale) (background light)) (:foreground "Gray90" :bold t))
@@ -1497,7 +1543,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
   "Font Lock mode face used to highlight types."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-reference-face
   '((((class grayscale) (background light))
@@ -1508,7 +1554,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:bold t :underline t)))
   "Font Lock mode face used to highlight references."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 (defface font-lock-warning-face
   ;; Currently, Emacs/Custom does not support a :reverse or :invert spec.
@@ -1517,7 +1563,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (t ;(:reverse t :bold t)
      (:italic t :bold t)))
   "Font Lock mode face used to highlight warnings."
-  :group 'font-lock-faces)
+  :group 'font-lock-highlighting-faces)
 
 ;;; End of Colour etc. support.
 
@@ -1679,7 +1725,7 @@ This means the number of parenthesized expressions."
      (list (concat "(\\(def\\("
 		   ;; Function declarations.
 		   "\\(advice\\|alias\\|"
-		   "ine-\\(derived-mode\\|function\\|skeleton\\)\\|"
+		   "ine-\\(derived-mode\\|function\\|skeleton\\|widget\\)\\|"
 		   "macro\\|subst\\|un\\)\\|"
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
@@ -1855,37 +1901,52 @@ This means the number of parenthesized expressions."
 ;; types might be the user's own or they might be generally accepted and used.
 ;; Generally accepted types are used to provide default variable values.
 
-(defvar c-font-lock-extra-types '("FILE" "\\sw+_t")
+(define-widget 'font-lock-extra-types-widget 'radio
+  "Widget `:type' for members of the custom group `font-lock-extra-types'.
+Members should `:load' the package `font-lock' to use this widget."
+  :args '((const :tag "none" nil)
+	  (repeat :tag "types"
+		  (string :tag "regexp"))))
+
+(defcustom c-font-lock-extra-types '("FILE" "\\sw+_t")
   "*List of extra types to fontify in C mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word FILE and words
 ending in _t are treated as type names.
 
-The value of this variable is used when Font Lock mode is turned on.")
+The value of this variable is used when Font Lock mode is turned on."
+  :type 'font-lock-extra-types-widget
+  :group 'font-lock-extra-types)
 
-(defvar c++-font-lock-extra-types '("string")
+(defcustom c++-font-lock-extra-types '("string")
   "*List of extra types to fontify in C++ mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"string\") means the word string is treated as a type
 name.
 
-The value of this variable is used when Font Lock mode is turned on.")
+The value of this variable is used when Font Lock mode is turned on."
+  :type 'font-lock-extra-types-widget
+  :group 'font-lock-extra-types)
 
-(defvar objc-font-lock-extra-types '("Class" "BOOL" "IMP" "SEL")
+(defcustom objc-font-lock-extra-types '("Class" "BOOL" "IMP" "SEL")
   "*List of extra types to fontify in Objective-C mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"Class\" \"BOOL\" \"IMP\" \"SEL\") means the words
 Class, BOOL, IMP and SEL are treated as type names.
 
-The value of this variable is used when Font Lock mode is turned on.")
+The value of this variable is used when Font Lock mode is turned on."
+  :type 'font-lock-extra-types-widget
+  :group 'font-lock-extra-types)
 
-(defvar java-font-lock-extra-types '("[A-Z\300-\326\330-\337]\\sw+")
+(defcustom java-font-lock-extra-types '("[A-Z\300-\326\330-\337]\\sw+")
   "*List of extra types to fontify in Java mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"[A-Z\300-\326\330-\337]\\\\sw+\") means capitalised
 words (and words conforming to the Java id spec) are treated as type names.
 
-The value of this variable is used when Font Lock mode is turned on.")
+The value of this variable is used when Font Lock mode is turned on."
+  :type 'font-lock-extra-types-widget
+  :group 'font-lock-extra-types)
 
 ;;; C.
 
