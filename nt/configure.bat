@@ -105,8 +105,8 @@ echo.   --ldflags FLAG          pass FLAG to compiler when linking
 echo.   --without-png           do not use libpng even if it is installed
 echo.   --without-jpeg          do not use jpeg-6b even if it is installed
 echo.   --without-gif           do not use libungif even if it is installed
-echo.   --without-tiff          do not use tiff even if it is installed
-echo.   --without-xpm		do not use libXpm even if it is installed
+echo.   --without-tiff          do not use libtiff even if it is installed
+echo.   --without-xpm           do not use libXpm even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
