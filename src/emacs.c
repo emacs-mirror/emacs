@@ -2281,7 +2281,8 @@ syms_of_emacs ()
   defsubr (&Sinvocation_directory);
 
   DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
-	       doc: /* Args passed by shell to Emacs, as a list of strings.  */);
+	       doc: /* Args passed by shell to Emacs, as a list of strings.
+Many arguments are deleted from the list as they are processed.  */);
 
   DEFVAR_LISP ("system-type", &Vsystem_type,
 	       doc: /* Value is symbol indicating type of operating system you are using.  */);
