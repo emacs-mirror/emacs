@@ -12,3 +12,6 @@
 
 /* Cancel definition from aix3-1.h.  */
 #undef sigsetmask
+
+#undef _setjmp
+#undef _longjmp
