@@ -83,9 +83,9 @@ static Lisp_Object set_case_table ();
 
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
   "Select a new case table for the current buffer.\n\
-A case table is a char-table which maps characters
-to their lower-case equivalents.  It also has three \"extra\" slots
-which may be additional char-tables or nil.
+A case table is a char-table which maps characters\n\
+to their lower-case equivalents.  It also has three \"extra\" slots\n\
+which may be additional char-tables or nil.\n\
 These slots are called UPCASE, CANONICALIZE and EQUIVALENCES.\n\
 UPCASE maps each character to its upper-case equivalent;\n\
  if lower and upper case characters are in 1-1 correspondence,\n\
