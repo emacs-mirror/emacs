@@ -3381,21 +3381,13 @@ re_compile_fastmap (bufp)
 	  {
 	    int fastmap_newline = fastmap['\n'];
 
-	    /* `.' matches anything (but if bufp->multibyte is
-	       nonzero, matches `\000' .. `\127' and possible multibyte
-	       character) ...  */
+	    /* `.' matches anything, except perhaps newline.
+	       Even in a multibyte buffer, it should match any
+	       conceivable byte value for the fastmap.  */
 	    if (bufp->multibyte)
-	      {
-		simple_char_max = 0x80;
+	      match_any_multibyte_characters = true;
 
-		for (j = 0x80; j < 0xA0; j++)
-		  if (BASE_LEADING_CODE_P (j))
-		    fastmap[j] = 1;
-		match_any_multibyte_characters = true;
-	      }
-	    else
-	      simple_char_max = (1 << BYTEWIDTH);
-
+	    simple_char_max = (1 << BYTEWIDTH);
 	    for (j = 0; j < simple_char_max; j++)
 	      fastmap[j] = 1;
 
