@@ -1030,7 +1030,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
   /* Null string is found at starting position.  */
   if (len == 0 || n == 0)
     {
-      set_search_regs (pos, 0);
+      set_search_regs (pos_byte, 0);
       return pos;
     }
 
