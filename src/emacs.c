@@ -452,11 +452,11 @@ main (argc, argv, envp)
   (stderr)->_flag &= ~_IOTEXT;
 #endif /* MSDOS */
 
-#ifdef PRIO_PROCESS
+#ifdef SET_EMACS_PRIORITY
   if (emacs_priority)
     nice (emacs_priority);
   setuid (getuid ());
-#endif /* PRIO_PROCESS */
+#endif /* SET_EMACS_PRIORITY */
 
 #ifdef EXTRA_INITIALIZE
   EXTRA_INITIALIZE;
@@ -1025,7 +1025,7 @@ expect to be able to interact with the user.");
 This value is effective only if set before Emacs is dumped,\n\
 and only if the Emacs executable is installed with setuid to permit\n\
 it to change priority.  (Emacs sets its uid back to the real uid.)\n\
-Currently, you need to define PRIO_PROCESS in `config.h'\n\
+Currently, you need to define SET_EMACS_PRIORITY in `config.h'\n\
 before you compile Emacs, to enable the code for this feature.");
   emacs_priority = 0;
 
