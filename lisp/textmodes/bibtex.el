@@ -604,11 +604,6 @@ checks that no non-optional fields are empty.
 Use \\[bibtex-find-text] to position the dot at the end of the current field.
 Use \\[bibtex-next-field] to move to end of the next field.
 
-\\[bibtex-x-environment] binds a mode-specific X menu to control+right
-mouse button.
-\\[bibtex-sun-environment] binds a mode-specific Sun menu to right
-mouse button.
-
 The following may be of interest as well:
 
   Functions:
@@ -1487,57 +1482,63 @@ an undefined location.
     (skip-whitespace-and-comments)))
 
 
+;;; Menus for bibtex mode
 
-;;; X window menus for bibtex mode
+(define-key bibtex-mode-map [menu-bar entry-types]
+  (make-sparse-keymap "Entry Types"))
 
-(defun bibtex-x-help (arg)
-  "Mouse commands for BibTeX mode"
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-InProceedings]
+  '(" article in conference Proceedings " . bibtex-InProceedings))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Article]
+  '("        Article in journal         " . bibtex-Article))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Book]
+  '("               Book                " . bibtex-Book))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Booklet]
+  '("             Booklet               " . bibtex-Booklet))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-InProceedings]
+  '("            Conference             " . bibtex-InProceedings))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-MastersThesis]
+  '("         Master's Thesis           " . bibtex-MastersThesis))
+;define-key bibtex-mode-map [menu-bar entry-types bibtex-DEAthesis]
+'(("            DEA Thesis             " . bibtex-DEAthesis))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-PhdThesis]
+  '("            Phd. Thesis            " . bibtex-PhdThesis))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-TechReport]
+  '("         Technical Report          " . bibtex-TechReport))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Manual]
+  '("         technical Manual          " . bibtex-Manual))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Proceedings]
+  '("      conference Proceedings       " . bibtex-Proceedings))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-InBook]
+  '("        a chapter in a Book        " . bibtex-InBook))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-InCollection]
+  '("    an article in a Collection     " . bibtex-InCollection))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Misc]
+  '("           miscellaneous           " . bibtex-Misc))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-Unpublished]
+  '("            unpublished            " . bibtex-Unpublished))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-string]
+  '("              string               " . bibtex-string))
+(define-key bibtex-mode-map [menu-bar entry-types bibtex-preamble]
+  '("             preamble              " . bibtex-preamble))
 
-  (let ((selection
-	 (x-popup-menu
-	  arg
-	  '("BibTeX commands"
-	    ("BibTeX entry types"
-	     (" article in conference Proceedings " . bibtex-InProceedings)
-	     ("        Article in journal         " . bibtex-Article)
-	     ("               Book                " . bibtex-Book)
-	     ("             Booklet               " . bibtex-Booklet)
-	     ("            Conference             " . bibtex-InProceedings)
-	     ("         Master's Thesis           " . bibtex-MastersThesis)
-;	     ("            DEA Thesis             " . bibtex-DEAthesis)
-	     ("            Phd. Thesis            " . bibtex-PhdThesis)
-	     ("         Technical Report          " . bibtex-TechReport)
-	     ("         technical Manual          " . bibtex-Manual)
-	     ("      conference Proceedings       " . bibtex-Proceedings)
-	     ("        a chapter in a Book        " . bibtex-InBook)
-	     ("    an article in a Collection     " . bibtex-InCollection)
-	     ("           miscellaneous           " . bibtex-Misc)
-	     ("            unpublished            " . bibtex-Unpublished)
-	     ("              string               " . bibtex-string)
-	     ("             preamble              " . bibtex-preamble)
-	     )
-	    ("Moving around and editing"
-	     ("            next field             " . bibtex-next-field)
-	     ("          to end of field          " . bibtex-find-text)
-	     ("snatch from similar preceding field" . bibtex-pop-previous)
-	     ("snatch from similar following field" . bibtex-pop-next)
-	     ("            remove OPT             " . bibtex-remove-OPT)
-	     ("           remove quotes           "
-	      . bibtex-remove-double-quotes)
-	     ("          clean up entry           " . bibtex-clean-entry)
-	     )
-	    ("help"
-	     ("       describe BibTeX mode        " . describe-mode)
-	     )))))
-    (and selection (call-interactively selection))))
+(define-key bibtex-mode-map [menu-bar move/edit]
+  (make-sparse-keymap "Bibtex Edit"))
 
-(defun bibtex-x-environment ()
-  "Set up X menus for BibTeX mode.  Call it as bibtex-mode-hook, or interactively"
-  (interactive)
-  (require 'x-mouse)
-  (define-key mouse-map x-button-c-right 'bibtex-x-help)
-  )
-
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-next-field]
+  '("            next field             " . bibtex-next-field))
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-find-text]
+  '("          to end of field          " . bibtex-find-text))
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-pop-previous]
+  '("snatch from similar preceding field" . bibtex-pop-previous))
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-pop-next]
+  '("snatch from similar following field" . bibtex-pop-next))
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-OPT]
+  '("            remove OPT             " . bibtex-remove-OPT)
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-remove-double-quotes]
+  '("           remove quotes           " . bibtex-remove-double-quotes))
+(define-key bibtex-mode-map [menu-bar move/edit bibtex-clean-entry]
+  '("          clean up entry           " . bibtex-clean-entry))
 
 
 ;; Please don't send anything to bug-gnu-emacs about these Sunwindows functions
