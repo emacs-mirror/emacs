@@ -5273,10 +5273,22 @@ displayed, no centering will be performed."
 	;; Set the window start to either `bottom', which is the biggest
 	;; possible valid number, or the second line from the top,
 	;; whichever is the least.
-	(set-window-start
-	 window (min bottom (save-excursion
-			      (forward-line (- top)) (point)))
-	 t))
+	(let ((top-pos (save-excursion (forward-line (- top)) (point))))
+	  (if (> bottom top-pos)
+	      ;; Keep the second line from the top visible
+	      (set-window-start window top-pos t)
+	    ;; Try to keep the bottom line visible; if it's partially
+	    ;; obscured, either scroll one more line to make it fully
+	    ;; visible, or revert to using TOP-POS.
+	    (save-excursion
+	      (goto-char (point-max))
+	      (forward-line -1)
+	      (let ((last-line-start (point)))
+		(goto-char bottom)
+		(set-window-start window (point) t)
+		(when (not (pos-visible-in-window-p last-line-start window))
+		  (forward-line 1)
+		  (set-window-start window (min (point) top-pos) t)))))))
       ;; Do horizontal recentering while we're at it.
       (when (and (get-buffer-window (current-buffer) t)
 		 (not (eq gnus-auto-center-summary 'vertical)))
