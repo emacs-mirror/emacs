@@ -1,3 +1,9 @@
+2004-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringes): Use consistent wording.
+	Note that window-fringe's window arg is optional.
+	(Scroll Bars): Use consistent wording.
+
 2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* tips.texi (Comment Tips): Document the new conventions for

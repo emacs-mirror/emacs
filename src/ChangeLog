@@ -1,3 +1,7 @@
+2004-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_fringes): Doc fix.
+
 2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c (x_get_foreign_selection): Add new optional parameter
