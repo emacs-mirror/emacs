@@ -264,10 +264,6 @@ This function is called, by name, directly by the C code."
 	(progn
 	  ;; Delete from queue.
 	  (cancel-timer timer)
-	  ;; Run handler
-	  (condition-case nil
-	      (apply (aref timer 5) (aref timer 6))
-	    (error nil))
 	  ;; Re-schedule if requested.
 	  (if (aref timer 4)
 	      (if (aref timer 7)
@@ -282,7 +278,13 @@ This function is called, by name, directly by the C code."
 				      (aref timer 4))))
 		      (if (> repeats timer-max-repeats)
 			  (timer-inc-time timer (* (aref timer 4) repeats)))))
-		(timer-activate timer))))
+		(timer-activate timer)))
+	  ;; Run handler.
+	  ;; We do this after rescheduling so that the handler function
+	  ;; can cancel its own timer successfully with cancel-timer.
+	  (condition-case nil
+	      (apply (aref timer 5) (aref timer 6))
+	    (error nil)))
       (error "Bogus timer event"))))
 
 ;; This function is incompatible with the one in levents.el.
