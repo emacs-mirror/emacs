@@ -694,7 +694,11 @@ used as key in `ispell-dictionary-alist' (which see).")
 (defun ispell-get-extended-character-mode ()
   (nth 6 (assoc ispell-dictionary ispell-dictionary-alist)))
 (defun ispell-get-coding-system ()
-  (nth 7 (assoc ispell-dictionary ispell-dictionary-alist)))
+  (or (nth 7 (assoc ispell-dictionary ispell-dictionary-alist))
+      ;; We default to Latin-1 because otherwise multibyte
+      ;; characters cause synchronization confusion
+      ;; with the Ispell process.
+      'iso-latin-1))
 
 (defvar ispell-process nil
   "The process object for Ispell.")
@@ -2133,16 +2137,7 @@ Return non-nil if not aborted."
 	  ;; Markers can move with highlighting!  This destroys
 	  ;; end of region markers line-end and ispell-region-end
 	  (let ((word-start
-		 (copy-marker
-		  (if (and (boundp 'enable-multibyte-characters)
-			   enable-multibyte-characters
-			   (ispell-get-coding-system))
-		      ;; skip over multibyte characters correctly
-		      (save-excursion
-			(goto-char (+ start ispell-offset))
-			(forward-char (car (cdr poss)))
-			(point))
-		    (+ start ispell-offset (car (cdr poss))))))
+		 (copy-marker (+ start ispell-offset (car (cdr poss)))))
 		(word-len (length (car poss)))
 		(line-end (copy-marker end))
 		(line-start (copy-marker start))
