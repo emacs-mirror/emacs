@@ -445,19 +445,27 @@ header-line."
   (when (null max-height)
     (setq max-height (frame-height (window-frame window))))
 
-  (let* ((window-height
+  (let* ((buf
+	  ;; Buffer that is displayed in WINDOW
+	  (window-buffer window))
+	 (window-height
 	  ;; The current height of WINDOW
 	  (window-height window))
-	 (text-height
+	 (desired-height
 	  ;; The height necessary to show the buffer displayed by WINDOW
 	  ;; (`count-screen-lines' always works on the current buffer).
-	  ;; We add 1 for mode-line.
-	  (1+ (with-current-buffer (window-buffer window)
-		(count-screen-lines))))
+	  (with-current-buffer buf
+	    (+ (count-screen-lines)
+	       ;; For non-minibuffers, count the mode-line, if any
+	       (if (and (not (window-minibuffer-p window))
+			mode-line-format)
+		   1 0)
+	       ;; Count the header-line, if any
+	       (if header-line-format 1 0))))
 	 (delta
 	  ;; Calculate how much the window height has to change to show
-	  ;; text-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
-	  (- (max (min text-height max-height)
+	  ;; desired-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
+	  (- (max (min desired-height max-height)
 		  (or min-height window-min-height))
 	     window-height))
 	 ;; We do our own height checking, so avoid any restrictions due to
@@ -466,31 +474,32 @@ header-line."
 
     ;; Don't try to redisplay with the cursor at the end
     ;; on its own line--that would force a scroll and spoil things.
-    (if (with-current-buffer (window-buffer window)
-	  (and (eobp) (bolp) (not (bobp))))
-	(set-window-point window (1- (window-point window))))
+    (when (with-current-buffer buf
+	    (and (eobp) (bolp) (not (bobp))))
+      (set-window-point window (1- (window-point window))))
 
-    (unless (zerop delta)
-      (if (eq window (selected-window))
-	  (enlarge-window delta)
-	(save-selected-window
-	  (select-window window)
-	  (enlarge-window delta))))
+    (save-selected-window
+      (select-window window)
 
-    ;; Check if the last line is surely fully visible.  If not,
-    ;; enlarge the window.
-    (let ((pos (with-current-buffer (window-buffer window)
-		 (save-excursion
-		   (goto-char (point-max))
-		   (if (and (bolp) (not (bobp)))
-		       (1- (point))
-		     (point))))))
-      (set-window-vscroll window 0)
-      (save-selected-window
-	(select-window window)
-	(while (and (< (window-height window) max-height) 
-		    (not (pos-visible-in-window-p pos window t)))
-	  (enlarge-window 1))))))
+      ;; Adjust WINDOW to the nominally correct size (which may actually
+      ;; be slightly off because of variable height text, etc).
+      (unless (zerop delta)
+	(enlarge-window delta))
+
+      ;; Check if the last line is surely fully visible.  If not,
+      ;; enlarge the window.
+      (let ((end (with-current-buffer buf
+		   (save-excursion
+		     (goto-char (point-max))
+		     (if (and (bolp) (not (bobp)))
+			 (1- (point))
+		       (point))))))
+	(set-window-vscroll window 0)
+	(while (and (< desired-height max-height)
+		    (= desired-height (window-height window))
+		    (not (pos-visible-in-window-p end window t)))
+	  (enlarge-window 1)
+	  (setq desired-height (1+ desired-height)))))))
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
