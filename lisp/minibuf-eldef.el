@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable
 ;;
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -76,15 +76,14 @@ regexp subexpression that matched.")
 (defun minibuf-eldef-setup-minibuffer ()
   "Set up a minibuffer for `minibuffer-electric-default-mode'.
 The prompt and initial input should already have been inserted."
-  (let ((prompt (field-string-no-properties (point-min)))
-	(regexps minibuffer-default-in-prompt-regexps)
+  (let ((regexps minibuffer-default-in-prompt-regexps)
 	(match nil)
 	(inhibit-point-motion-hooks t))
     (save-excursion
       (save-restriction
 	;; Narrow to only the prompt
 	(goto-char (point-min))
-	(narrow-to-region (point) (field-end))
+	(narrow-to-region (point) (minibuffer-prompt-end))
 	;; See the prompt contains a default input indicator
 	(while regexps
 	  (setq match (pop regexps))
@@ -101,7 +100,7 @@ The prompt and initial input should already have been inserted."
 	    (make-overlay (match-beginning match) (match-end match)))
       (setq minibuf-eldef-showing-default-in-prompt t)
       (setq minibuf-eldef-initial-input
-	    (field-string-no-properties (point-max)))
+	    (minibuffer-contents-no-properties))
       (setq minibuf-eldef-initial-buffer-length (point-max))
       (add-to-list 'minibuf-eldef-frobbed-minibufs (current-buffer))
       (add-hook 'post-command-hook #'minibuf-eldef-update-minibuffer nil t))))
@@ -114,7 +113,7 @@ This is intended to be used as a minibuffer post-command-hook for
 been set up by `minibuf-eldef-setup-minibuffer'."
   (unless (eq minibuf-eldef-showing-default-in-prompt
 	      (and (= (point-max) minibuf-eldef-initial-buffer-length)
-		   (string-equal (field-string-no-properties (point-max))
+		   (string-equal (minibuffer-contents-no-properties)
 				 minibuf-eldef-initial-input)))
     ;; swap state
     (setq minibuf-eldef-showing-default-in-prompt
