@@ -391,6 +391,7 @@
   :short-name "JISX0213-1"
   :iso-final-char ?O
   :emacs-mule-id  151
+  :unify-map "jisx0213-1"
   :code-space [33 126 33 126]
   :code-offset #x14C000)
 
@@ -399,6 +400,7 @@
   :short-name "JISX0213-2"
   :iso-final-char ?P
   :emacs-mule-id 254
+  :unify-map "jisx0213-2"
   :code-space [33 126 33 126]
   :code-offset #x150000)
 
@@ -984,22 +986,29 @@
 (unify-charset 'chinese-big5-2)
 (unify-charset 'vietnamese-viscii-lower)
 (unify-charset 'vietnamese-viscii-upper)
-;; (unify-charset 'chinese-sisheng)
+;; Fixme: unifying sucks in the charset tables, which may be large.
+;; (Can we avoid that and do it anyhow?)
+(unify-charset 'chinese-sisheng)
+(unify-charset 'indian-is13194)
 ;; (unify-charset 'ipa)
-;; (unify-charset 'indian-is13194)
 ;; (unify-charset 'tibetan)
 ;; (unify-charset 'ethiopic)
 ;; (unify-charset 'japanese-jisx0208-1978)
 ;; (unify-charset 'japanese-jisx0208)
 ;; (unify-charset 'japanese-jisx0212)
+;; (unify-charset 'japanese-jisx0213-1)
+;; (unify-charset 'japanese-jisx0213-2)
 
 
 ;; These are tables for translating characters on decoding and
 ;; encoding.
+;; Fixme: these aren't used now -- should they be?
 (setq standard-translation-table-for-decode nil)
 
 (setq standard-translation-table-for-encode nil)
 
+;; Fixme: should this be retained?  I guess it could be useful for
+;; non-unified charsets.
 (defvar translation-table-for-input nil
   "If non-nil, a char table used to translate characters from input methods.
 \(Currently only used by Quail.)")
