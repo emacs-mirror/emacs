@@ -613,6 +613,12 @@ This is an interface to the function `load'."
 			  (cons load-path load-suffixes))))
   (load library))
 
+(defun file-remote-p (file)
+  "Test whether FILE specifies a location on a remote system."
+  (let ((handler (find-file-name-handler file 'file-local-copy)))
+    (if handler
+	(get handler 'file-remote-p))))
+
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
@@ -2034,8 +2040,37 @@ is specified, returning t if it is specified."
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
 
+(put 'c-add-style 'safe-local-eval-function t)
+(put 'c-set-style 'safe-local-eval-function t)
+
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
+
+(defun hack-one-local-variable-constantp (exp)
+  (or (and (not (symbolp exp)) (not (consp exp)))
+      (memq exp '(t nil))
+      (keywordp exp)
+      (hack-one-local-variable-quotep exp)))
+
+(defun hack-one-local-variable-eval-safep (exp)
+  "Return t if it is safe to eval EXP when it is found in a file."
+  (and (consp exp)
+       (or (and (eq (car exp) 'put)
+		(hack-one-local-variable-quotep (nth 1 exp))
+		(hack-one-local-variable-quotep (nth 2 exp))
+		(memq (nth 1 (nth 2 exp))
+		      '(lisp-indent-hook))
+		;; Only allow safe values of lisp-indent-hook;
+		;; not functions.
+		(or (numberp (nth 3 exp))
+		    (equal (nth 3 exp) ''defun)))
+	   (and (symbolp (car exp))
+		(get (car exp) 'safe-local-eval-function)
+		(let ((ok t))
+		  (dolist (arg (cdr exp))
+		    (unless (hack-one-local-variable-constantp arg)
+		      (setq ok nil)))
+		  ok)))))
 
 (defun hack-one-local-variable (var val)
   "\"Set\" one variable in a local variables spec.
@@ -2059,16 +2094,7 @@ is considered risky."
 	 ;; Permit evalling a put of a harmless property.
 	 ;; if the args do nothing tricky.
 	 (if (or (and (eq var 'eval)
-		      (consp val)
-		      (eq (car val) 'put)
-		      (hack-one-local-variable-quotep (nth 1 val))
-		      (hack-one-local-variable-quotep (nth 2 val))
-		      ;; Only allow safe values of lisp-indent-hook;
-		      ;; not functions.
-		      (or (numberp (nth 3 val))
-			  (equal (nth 3 val) ''defun))
-		      (memq (nth 1 (nth 2 val))
-			    '(lisp-indent-hook)))
+		      (hack-one-local-variable-eval-safep val))
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
 		      (or (eq enable-local-eval t)
@@ -3849,7 +3875,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		 wildcard full-directory-p)
       (if (eq system-type 'vax-vms)
 	  (vms-read-directory file switches (current-buffer))
-	(let (result available)
+	(let (result available (beg (point)))
 
 	  ;; Read the actual directory using `insert-directory-program'.
 	  ;; RESULT gets the status code.
@@ -3926,15 +3952,28 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		(access-file file "Reading directory")
 		(error "Listing directory failed but `access-file' worked")))
 
+	  (when (string-match "--dired\\>" switches)
+	    (forward-line -2)
+	    (let ((end (line-end-position)))
+	      (forward-word 1)
+	      (forward-char 3)
+	      (while (< (point) end)
+		(let ((start (+ beg (read (current-buffer))))
+		      (end (+ beg (read (current-buffer)))))
+		  (put-text-property start end 'dired-filename t)))
+	      (goto-char end)
+	      (beginning-of-line)
+	      (delete-region (point) (progn (forward-line 2) (point)))))
+
 	  ;; Try to insert the amount of free space.
 	  (save-excursion
-	    (goto-char (point-min))
+	    (goto-char beg)
 	    ;; First find the line to put it on.
-	    (when (re-search-forward "^total" nil t)
+	    (when (re-search-forward "^ *\\(total\\)" nil t)
 	      (let ((available (get-free-disk-space ".")))
 		(when available
 		  ;; Replace "total" with "used", to avoid confusion.
-		  (replace-match "total used in directory")
+		  (replace-match "total used in directory" nil nil nil 1)
 		  (end-of-line)
 		  (insert " available " available))))))))))
 
