@@ -359,6 +359,8 @@ flyspell-buffer checks the whole buffer."
 	    '(lambda ()
 	       (if (and flyspell-multi-language-p ispell-process)
 		   (ispell-kill-ispell t))))
+  (make-local-hook 'change-major-mode-hook)
+  (add-hook 'change-major-mode-hook 'flyspell-mode-off)
   ;; we end with the flyspell hooks
   (run-hooks 'flyspell-mode-hook))
 
