@@ -8,6 +8,35 @@
 ; This is in the public domain
 ; since he distributed it without copyright notice in 1985.
 
+;;; Commentary:
+
+;; Solves the Towers of Hanoi puzzle while-U-wait.
+;;
+;; The puzzle: Start with N rings, decreasing in sizes from bottom to
+;; top, stacked around a post.  There are two other posts.  Your mission,
+;; should you choose to accept it, is to shift the pile, stacked in its
+;; original order, to another post.
+;;
+;; The challenge is to do it in the fewest possible moves.  Each move
+;; shifts one ring to a different post.  But there's a rule; you can
+;; only stack a ring on top of a larger one.
+;;
+;; The simplest nontrivial version of this puzzle is N = 3.  Solution
+;; time rises as 2**N, and programs to solve it have long been considered
+;; classic introductory exercises in the use of recursion.
+;;
+;; The puzzle is called `Towers of Hanoi' because an early popular
+;; presentation wove a fanciful legend around it.  According to this
+;; myth (uttered long before the Vietnam War), there is a Buddhist
+;; monastery at Hanoi which contains a large room with three time-worn
+;; posts in it surrounded by 21 golden discs.  Monks, acting out the
+;; command of an ancient prophecy, have been moving these disks, in
+;; accordance with the rules of the puzzle, once every day since the
+;; monastery was founded over a thousand years ago.  They are said
+;; believe that when the last move of the puzzle is completed, the
+;; world will end in a clap of thunder.  Fortunately, they are nowhere
+;; even close to being done...
+
 ;;; Code:
 
 ;;;

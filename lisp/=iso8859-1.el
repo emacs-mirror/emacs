@@ -22,9 +22,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Code:
+;;; Commentary:
 
 ;; Written by Howard Gayle.  See case-table.el for details.
+
+;;; Code:
 
 (require 'case-table)
 

@@ -21,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Basic functions for defining and expanding mail aliases.
+;; These seal off the interface to the alias-definition parts of a
+;; .mailrc file formatted for BSD's Mail or USL's mailx.
+
 ;;; Code:
 
 (defvar mail-aliases t

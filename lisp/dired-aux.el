@@ -22,6 +22,10 @@
 
 ;;; Commentary:
 
+;; The parts of dired mode not normally used.  This is a space-saving hack
+;; to avoid having to load a large mode when all that's wanted are a few
+;; functions.
+
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Finished up by rms in 1992.

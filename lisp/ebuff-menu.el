@@ -22,8 +22,9 @@
 
 ;;; Commentary:
 
-;; who says one can't have typeout windows in gnu emacs?
-;; like ^r select buffer from its emacs lunar or tmacs libraries.
+;; Who says one can't have typeout windows in GNU Emacs?   The entry
+;; point, `electric-buffer-list' works like ^r select buffer from the
+;; ITS Emacs lunar or tmacs libraries.
 
 ;;; Code:
 

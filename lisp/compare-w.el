@@ -20,6 +20,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides one entry point, compare-windows.  It compares
+;; text starting from point in two adjacent windows, advancing point
+;; until it finds a difference.  Option variables permit you to ignore
+;; whitespace differences, or case differences, or both.
+
 ;;; Code:
 
 (defvar compare-windows-whitespace " \t\n"

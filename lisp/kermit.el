@@ -4,6 +4,7 @@
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Created: 15 Feb 1988
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 
@@ -21,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Commentary
+;;; Commentary:
 
 ;; I'm not sure, but I think somebody asked about running kermit under shell
 ;; mode a while ago.  Anyway, here is some code that I find useful.  The result
@@ -51,8 +52,8 @@
 ;; ^C^Q^C to send an interrupt, and ^C^Q^Z for a stop signal, etc.  (since ^C^C
 ;; just generates a local stop signal, which kermit ignores).
 ;; To connect to a VMS system, I use a shell script to invoke kermit thru the
-;; tr filter, do "M-X kermit-send-cr", and then tell VMS that I'm on a half-duplex
-;; terminal.
+;; tr filter, do "M-X kermit-send-cr", and then tell VMS that I'm on a 
+;; half-duplex terminal.
 
 ;; Some caveats:
 ;; 1) Kermit under shell mode is a real pain if you don't have pty's.  I

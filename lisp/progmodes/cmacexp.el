@@ -1,4 +1,4 @@
-;;; cmacexp.el --- C macro expansion
+;;; cmacexp.el --- C preprocessor macro expansion
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -20,6 +20,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; This package gives you the ability to run the C macro preprocessor
+;; on the current region, expanding macros within it.  This can be useful
+;; when you're not sure of the value or expansion of such macros and want
+;; to make sure they're doing what you think they're doing.
+;;
+;; This package supports the following option variables:
+;;
+;; c-macro-preprocessor --- program to be used for macro expansion.
+;; c-macro-options --- command-line options to pass it.
 
 ;;; Code:
 

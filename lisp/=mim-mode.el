@@ -225,8 +225,8 @@ Entry to this mode calls the value of mim-mode-hook if non-nil."
   (setq comment-end "\"")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'indent-mim-comment)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'indent-mim-comment)
   ;; tell generic indenter how to indent.
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'indent-mim-line)

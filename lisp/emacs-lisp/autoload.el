@@ -21,6 +21,13 @@
 ;;; 02139, USA.
 ;;;
 
+;;; Commentary;:
+
+;; This code helps GNU Emacs maintainers keep the autoload.el file up to
+;; date.  It interprets magic cookies of the form ";;;###autoload" in
+;; lisp source files in various useful ways.  To learn more, read the
+;; source; if you're going to use this, you'd better be able to.
+
 ;;; Code:
 
 (defun make-autoload (form file)

@@ -22,9 +22,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Code:
+;;; Commentary:
 
 ;; Written by Howard Gayle.  See case-table.el for details.
+
+;;; Code:
 
 ;; This code sets up to display ISO 8859/1 characters on
 ;; terminals that have ASCII in the G0 set and a Swedish/Finnish

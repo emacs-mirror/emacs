@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Utility functions for maol and netnews handling.  These handle fine
+;; points of header parsing.
+
 ;;; Code:
 
 ;;; We require lisp-mode to make sure that lisp-mode-syntax-table has

@@ -23,15 +23,6 @@
 
 ;;; Commentary:
 
-;;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
-;;; Extensively modified by Daniel LaLiberte (while at Gould).
-;;;
-;;; You may freely modify and distribute this, but keep a record
-;;; of modifications and send comments to:
-;;; 	 liberte@a.cs.uiuc.edu  or  ihnp4!uiucdcs!liberte
-;;; I will continue to upgrade hide-ifdef-mode
-;;; with your contributions.
-
 ;;; To initialize, toggle the hide-ifdef minor mode with
 ;;;
 ;;; M-x hide-ifdef-mode
@@ -105,6 +96,15 @@
 ;;; If you have minor-mode-alist in your mode line (the default) two labels
 ;;; may appear.  "Ifdef" will appear when hide-ifdef-mode is active.  "Hiding"
 ;;; will appear when text may be hidden ("hide-ifdef-hiding" is non-nil).
+;;;
+;;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
+;;; Extensively modified by Daniel LaLiberte (while at Gould).
+;;;
+;;; You may freely modify and distribute this, but keep a record
+;;; of modifications and send comments to:
+;;; 	 liberte@a.cs.uiuc.edu  or  ihnp4!uiucdcs!liberte
+;;; I will continue to upgrade hide-ifdef-mode
+;;; with your contributions.
 
 ;;; Change Log:
 ;;;

@@ -21,6 +21,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Lisp ediing commands to go with Lisp major mode.
+
 ;;; Code:
 
 (defvar defun-prompt-regexp nil

@@ -6,7 +6,7 @@
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
-;; $Id: makefile.el,v 1.7.1.17 1992/07/15 20:05:15 tom Exp tom $
+;; $Id: makefile.el,v 1.3 1992/07/22 02:13:37 eric Exp eric $
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +23,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; A major mode for editing Makefiles.  Hairy.  Needs more documentation.
+;; If you get familiar with it, please write some and send it to the GNU
+;; Emacs maintainers.
 
 ;;; Code:
 

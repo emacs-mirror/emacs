@@ -23,6 +23,13 @@
 
 ;;; Code:
 
+;;; Commentary:
+
+;; The base major mode for editing Lisp code (used also for Emacs Lisp).
+;; This mode is documented in the Emacs manual
+
+;;; Code:
+
 (defvar lisp-mode-syntax-table nil "")
 (defvar emacs-lisp-mode-syntax-table nil "")
 (defvar lisp-mode-abbrev-table nil "")
@@ -94,8 +101,8 @@
   (setq comment-start-skip ";+ *")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'lisp-comment-indent))
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'lisp-comment-indent))
 
 (defvar shared-lisp-mode-map ()
   "Keymap for commands shared by all sorts of Lisp modes.")

@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Make GNU Emacs look like Gosling Emacs.  `M-x set-gosmacs-bindings'
+;; does this change; `M-x set-gnu-bindings' undoes it.
+
 ;;; Code:
 
 (require 'mlsupport)

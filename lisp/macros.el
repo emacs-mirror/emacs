@@ -21,6 +21,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Extension commands for keyboard macros.  These permit you to assign
+;; a name to the last-defined keyboard macro, expand and insert the
+;; lisp corresponding to a macro, query the user from within a macro,
+;; or apply a macro to each line in the reason.
+
 ;;; Code:
 
 ;;;###autoload

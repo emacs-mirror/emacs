@@ -20,6 +20,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Defines most of Emacs's file- and directory-handling functions,
+;; including basic file visiting, backup generation, link handling,
+;; ITS-id version control, load- and write-hook handling, and the like.
+
 ;;; Code:
 
 (defconst delete-auto-save-files t

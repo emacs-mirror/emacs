@@ -72,62 +72,65 @@
 ;;       '((lambda () 
 ;;           (define-key cmulisp-mode-map "\C-ct" 'favorite-cmd))))
 
-
-;;; Brief Command Documentation:
-;;;============================================================================
-;;; Comint Mode Commands: (common to cmulisp and all comint-derived modes)
-;;;
-;;; m-p	    comint-previous-input    	    Cycle backwards in input history
-;;; m-n	    comint-next-input  	    	    Cycle forwards
-;;; m-c-r   comint-previous-input-matching  Search backwards in input history
-;;; return  comint-send-input
-;;; c-a     comint-bol                      Beginning of line; skip prompt.
-;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
-;;; c-c c-u comint-kill-input	    	    ^u
-;;; c-c c-w backward-kill-word    	    ^w
-;;; c-c c-c comint-interrupt-subjob 	    ^c
-;;; c-c c-z comint-stop-subjob	    	    ^z
-;;; c-c c-\ comint-quit-subjob	    	    ^\
-;;; c-c c-o comint-kill-output		    Delete last batch of process output
-;;; c-c c-r comint-show-output		    Show last batch of process output
-;;;         send-invisible                  Read line w/o echo & send to proc
-;;;         comint-continue-subjob	    Useful if you accidentally suspend
-;;;					        top-level job.
-;;; comint-mode-hook is the comint mode hook.
+;; Brief Command Documentation:
+;;============================================================================
+;; Comint Mode Commands: (common to cmulisp and all comint-derived modes)
+;;
+;; m-p	    comint-previous-input    	    Cycle backwards in input history
+;; m-n	    comint-next-input  	    	    Cycle forwards
+;; m-c-r   comint-previous-input-matching  Search backwards in input history
+;; return  comint-send-input
+;; c-a     comint-bol                      Beginning of line; skip prompt.
+;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
+;; c-c c-u comint-kill-input	    	    ^u
+;; c-c c-w backward-kill-word    	    ^w
+;; c-c c-c comint-interrupt-subjob 	    ^c
+;; c-c c-z comint-stop-subjob	    	    ^z
+;; c-c c-\ comint-quit-subjob	    	    ^\
+;; c-c c-o comint-kill-output		    Delete last batch of process output
+;; c-c c-r comint-show-output		    Show last batch of process output
+;;         send-invisible                  Read line w/o echo & send to proc
+;;         comint-continue-subjob	    Useful if you accidentally suspend
+;;					        top-level job.
+;; comint-mode-hook is the comint mode hook.
 
-;;; CMU Lisp Mode Commands:
-;;; c-m-x   lisp-send-defun     This binding is a gnu convention.
-;;; c-c c-l lisp-load-file  	Prompt for file name; tell Lisp to load it.
-;;; c-c c-k lisp-compile-file	Prompt for file name; tell Lisp to kompile it.
-;;; 	    	    	    	Filename completion is available, of course.
-;;;
-;;; Additionally, these commands are added to the key bindings of Lisp mode:
-;;; c-m-x   lisp-eval-defun         This binding is a gnu convention.
-;;; c-c c-e lisp-eval-defun 	    Send the current defun to Lisp process.
-;;; c-x c-e lisp-eval-last-sexp     Send the previous sexp to Lisp process.
-;;; c-c c-r lisp-eval-region        Send the current region to Lisp process.
-;;; c-c c-c lisp-compile-defun      Compile the current defun in Lisp process.
-;;; c-c c-z switch-to-lisp          Switch to the Lisp process buffer.
-;;; c-c c-l lisp-load-file          (See above. In a Lisp file buffer, default
-;;; c-c c-k lisp-compile-file        is to load/compile the current file.)
-;;; c-c c-d lisp-describe-sym	    Query Lisp for a symbol's description.
-;;; c-c c-a lisp-show-arglist	    Query Lisp for function's arglist.
-;;; c-c c-f lisp-show-function-documentation Query Lisp for a function's doc.
-;;; c-c c-v lisp-show-variable-documentation Query Lisp for a variable's doc.
+;; CMU Lisp Mode Commands:
+;; c-m-x   lisp-send-defun     This binding is a gnu convention.
+;; c-c c-l lisp-load-file  	Prompt for file name; tell Lisp to load it.
+;; c-c c-k lisp-compile-file	Prompt for file name; tell Lisp to kompile it.
+;; 	    	    	    	Filename completion is available, of course.
+;;
+;; Additionally, these commands are added to the key bindings of Lisp mode:
+;; c-m-x   lisp-eval-defun         This binding is a gnu convention.
+;; c-c c-e lisp-eval-defun 	    Send the current defun to Lisp process.
+;; c-x c-e lisp-eval-last-sexp     Send the previous sexp to Lisp process.
+;; c-c c-r lisp-eval-region        Send the current region to Lisp process.
+;; c-c c-c lisp-compile-defun      Compile the current defun in Lisp process.
+;; c-c c-z switch-to-lisp          Switch to the Lisp process buffer.
+;; c-c c-l lisp-load-file          (See above. In a Lisp file buffer, default
+;; c-c c-k lisp-compile-file        is to load/compile the current file.)
+;; c-c c-d lisp-describe-sym	    Query Lisp for a symbol's description.
+;; c-c c-a lisp-show-arglist	    Query Lisp for function's arglist.
+;; c-c c-f lisp-show-function-documentation Query Lisp for a function's doc.
+;; c-c c-v lisp-show-variable-documentation Query Lisp for a variable's doc.
 
-;;; cmulisp	    	    	    Fires up the Lisp process.
-;;; lisp-compile-region     	    Compile all forms in the current region.
-;;;
-;;; CMU Lisp Mode Variables:
-;;; cmulisp-filter-regexp	    Match this => don't get saved on input hist
-;;; inferior-lisp-program   	    Name of Lisp program run-lisp executes
-;;; inferior-lisp-load-command	    Customises lisp-load-file
-;;; cmulisp-mode-hook  	    
-;;; inferior-lisp-prompt	    Initialises comint-prompt-regexp.
-;;;				    Backwards compatibility.
-;;; lisp-source-modes               Anything loaded into a buffer that's in
-;;;                                 one of these modes is considered Lisp 
-;;;                                 source by lisp-load/compile-file.
+;; cmulisp	    	    	    Fires up the Lisp process.
+;; lisp-compile-region     	    Compile all forms in the current region.
+;;
+;; CMU Lisp Mode Variables:
+;; cmulisp-filter-regexp	    Match this => don't get saved on input hist
+;; inferior-lisp-program   	    Name of Lisp program run-lisp executes
+;; inferior-lisp-load-command	    Customises lisp-load-file
+;; cmulisp-mode-hook  	    
+;; inferior-lisp-prompt	    Initialises comint-prompt-regexp.
+;;				    Backwards compatibility.
+;; lisp-source-modes               Anything loaded into a buffer that's in
+;;                                 one of these modes is considered Lisp 
+;;                                 source by lisp-load/compile-file.
+
+;;; Code:
+
+(require 'comint)
 
 ;;; Read the rest of this file for more information.
 

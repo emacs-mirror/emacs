@@ -89,8 +89,8 @@ Use \\[sgml-validate] to validate your document with an SGML parser."
   (setq comment-start "<!-- ")
   (make-local-variable 'comment-end)
   (setq comment-end " -->")
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'sgml-comment-indent)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'sgml-comment-indent)
   (make-local-variable 'comment-start-skip)
   ;; This will allow existing comments within declarations to be
   ;; recognized.

@@ -67,8 +67,8 @@ closing requests for requests that are used in matched pairs."
   (setq comment-start-skip "\\\\\"[ \t]*")
   (make-local-variable 'comment-column)
   (setq comment-column 24)
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'nroff-comment-indent)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'nroff-comment-indent)
   (run-hooks 'text-mode-hook 'nroff-mode-hook))
 
 ;;; Compute how much to indent a comment in nroff/troff source.

@@ -28,6 +28,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; The Emacs Lisp byte compiler.  This crunches lisp source into a sort
+;; of p-code which takes up less space and can be interpreted faster.
+;; The user entry points are byte-compile-file and byte-recompile-directory.
+
 ;;; Code:
 
 ;;; ========================================================================

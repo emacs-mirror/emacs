@@ -25,9 +25,14 @@
 
 ;;; Commentary:
 
-;;; Original version by Doug Cutting (doug@csli.stanford.edu)
-;;; Substantially modified by Jamie Zawinski <jwz@lucid.com> for
-;;; the new lapcode-based byte compiler.
+;; The single entry point, `disassemble', disassembles a code object generated
+;; by the Emacs Lisp byte-compiler.  This doesn't invert the compilation
+;; operation, not by a long shot, but it's useful for debugging.
+
+;;
+;; Original version by Doug Cutting (doug@csli.stanford.edu)
+;; Substantially modified by Jamie Zawinski <jwz@lucid.com> for
+;; the new lapcode-based byte compiler.
 
 ;;; Code:
 

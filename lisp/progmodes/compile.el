@@ -5,6 +5,7 @@
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
 ;; Keywords: tools, processes
+;; Info-Node: Emacs:Compilation
 
 ;; This file is part of GNU Emacs.
 

@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; The single entry point, `dissociatesd-press', applies a travesty
+;; generator to the current buffer.  The results can be quite amusing.
+
 ;;; Code:
 
 ;;;###autoload

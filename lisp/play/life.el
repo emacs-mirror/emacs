@@ -21,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; A demonstrator for John Horton Conway's "Life" cellular automaton
+;; in Emacs Lisp.  Picks a random one of a set of interesting Life
+;; patterns and avolves it according to the familiar rules.
+
 ;;; Code:
 
 (defconst life-patterns

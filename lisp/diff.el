@@ -20,6 +20,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package helps you explore differences between files, using the
+;; UNIX command diff(1).  The commands are `diff' and `diff-backup'.
+;; You can specify options with `diff-switches'.
+
 ;;; Code:
 
 (require 'compile)

@@ -104,8 +104,8 @@
   (setq comment-start-skip ";+[ \t]*")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'scheme-comment-indent)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'scheme-comment-indent)
   (setq mode-line-process '("" scheme-mode-line-process)))
 
 (defvar scheme-mode-line-process "")

@@ -25,6 +25,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; A major mode for entering and editing BibTex files, validating
+;; them, canonicalizing them, and sorting them.  Includes entry
+;; commands tailored to many different formats (book, master's this,
+;; journal article, etc).  Has loads of options.
+
 ;;; Change Log:
 
 ;;; alarson@src.honeywell.com 92-Jan-31

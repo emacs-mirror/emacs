@@ -21,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; The single entry point `doctor', simulates a Rogerian analyst using
+;; phrase-production techniques similar to the classic ELIZA demonstration
+;; of pseudo-AI.
+
 ;;; Code:
 
 (defun doctor-cadr (x) (car (cdr x)))

@@ -21,13 +21,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Code:
+;;; Commentary:
 
-;; Bib-Mode
 ;;   GNU Emacs code to help maintain databases compatible with (troff)
 ;;   refer and lookbib.  The file bib-file should be set to your 
 ;;   bibliography file.  Keys are automagically inserted as you type,
 ;;   and appropriate keys are presented for various kinds of entries.
+
+;;; Code:
 
 (defvar bib-file "~/my-bibliography.bib" 
    "Default name of file used by `addbib'.")

@@ -20,6 +20,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; All the commands for filling text.  These are documented in the Emacs
+;; manual.
+
 ;;; Code:
 
 (defconst fill-individual-varying-indent nil

@@ -354,8 +354,8 @@ with no args, if that value is non-nil."
   (setq fortran-break-before-delimiters t)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'fortran-indent-line)
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'fortran-comment-hook)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'fortran-comment-hook)
   (make-local-variable 'comment-line-start-skip)
   (setq comment-line-start-skip
 	"^[Cc*]\\(\\([^ \t\n]\\)\\2\\2*\\)?[ \t]*\\|^#.*")
@@ -475,7 +475,6 @@ Any other key combination is executed normally."
   "List the currently defined abbrevs in Fortran mode."
   (interactive)
   (message "Listing abbrev table...")
-  (require 'abbrevlist)
   (display-buffer (fortran-prepare-abbrev-list-buffer))
   (message "Listing abbrev table...done"))
 

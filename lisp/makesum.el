@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Displays a nice human-readable summary of all keybindings in a
+;; two-column format.
+
 ;;; Code:
 
 ;;;###autoload

@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Sets up C-mode with support for awk-style #-comments and a lightly
+;; hacked syntax table.
+
 ;;; Code:
 
 (defvar awk-mode-syntax-table nil
@@ -83,8 +88,8 @@ with no args, if that value is non-nil."
   (setq comment-column 32)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "#+ *")
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'c-comment-indent)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'c-comment-indent)
   (run-hooks 'awk-mode-hook))
 
 ;;; awk-mode.el ends here

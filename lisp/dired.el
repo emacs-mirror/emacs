@@ -23,6 +23,9 @@
 
 ;;; Commentary:
 
+;; This is a major mode for directory browsing and editing.  It is
+;; documented in the Emacs manual.
+
 ;; Rewritten in 1990/1991 to add tree features, file marking and
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Finished up by rms in 1992.

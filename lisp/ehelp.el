@@ -21,6 +21,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides a pre-packaged `Electric Help Mode' for
+;; browsing on-line help screens.  There is one entry point,
+;; `with-electric-help'; All you have to give it is a no-argument
+;; function that generates the actual text of the help into the urrent
+;; buffer.
+
 ;;; Code:
 
 (require 'electric)

@@ -1,4 +1,5 @@
 ;;; emerge.el --- merge diffs under Emacs control
+
 ;;; The author has placed this file in the public domain.
 
 ;; Author: Dale R. Worley <drw@math.mit.edu>
@@ -7,120 +8,8 @@
 
 ;;; Commentary:
 
-; - Changes from version 3 to version 4
-; 
-; More configuration variables are marked as user options.
-; 
-; Code is included for an improved version of make-auto-save-file-name
-; which eliminates many problems with the default version.  See the
-; documentation of emerge-make-auto-save-file-name to see how to
-; activate it.
-; 
-; Emerge now works with Gnu diff3, which can produce the groups of lines
-; from the various files in the order 1, 2, 3 or 1, 3, 2.
-; 
-; Added x f command to show what files or buffers are being operated on.
-; 
-; The merge buffer now starts read-only, which being in fast mode it
-; should be.
-; 
-; When merging buffers, Emerge writes their contents into temporary
-; files in the directory $TMPDIR (if it is defined), or /tmp by default.
-; 
-; Added x j command to join two differences.
-; 
-; Added x s command to split a difference into two differences.
-; 
-; Added emerge-version variable and function to report the version of Emerge
-; being run.
-; 
-; Added x t command to trim unchanged lines off top and bottom of
-; difference region.
-; 
-; Added x d, x a, and x b commands to locate the differences at or near
-; a given location in one of the buffers.
-; 
-; Emerge no longer tries to copy the minor modes from the A buffer to
-; the merge buffer, only the major mode.
-; 
-; The programs executed to find the differences between versions of the file
-; are no longer controlled by emerge-diff/diff3-command, but rather by:
-;   emerge-diff-program	      
-;     Variable: *Name of the program which compares two files.
-;   emerge-diff3-program	      
-;     Variable: *Name of the program which compares an ancestor file
-;     (first argument) and two variant files (second and third arguments).
-;   emerge-diff-options	      
-;     Variable: *Options to be passed to emerge-diff/diff3-program.
-; 
-; The names of the files are expanded (see expand-file-name) before being
-; passed to emerge-diff/diff3-program, so diff need not invoked under a shell
-; that understands '~', for instance.
-; 
-; If the diff/diff3 program reports errors, the user is notified and the
-; errors are displayed.
-; 
-; The command "0j" can be used to suppress the flags from showing in the buffers.
-; 
-; A discussion of the effect of the merge flags on indentation of code
-; has been added to the documentation.
-; 
-; If kill-fix.el is loaded, Emerge control variables new have their
-; 'preserved' property set, so setting the major mode in the merge
-; buffer doesn't destroy Emerge's state.
-; 
-; Added x c, x C, and x x commands to allow the A and B versions to be
-; combined into #ifdef - #endif forms.
-; 
-; Replaced calls of "ding" to calls of "error" where appropriate.
-; 
-; Added x m command to allow major mode of merge buffer to be changed.
-; 
-; Added x 1 command to shrink the merge window to one line.
-; 
-; Added emerge-startup-hook to allow customization.
-; 
-; Fixed a bug that is activated when a remote merge request is made when
-; the minibuffer window is selected.
-; 
-; - Changes from version 2 to version 3
-; 
-; The directory into which temporary files are written is now controlled
-; by a user option (emerge-temp-file-prefix).
-; 
-; The A and B versions of the difference can be loaded into the kill
-; ring with the "c a" and "c b" commands.
-; 
-; The A and B versions of the difference can be inserted into the merge
-; buffer with the "i a" and "i b" commands.
-; 
-; The difference region of the merge buffer can be surrounded by the
-; point and mark with the "m" command.
-; 
-; The three windows can be scrolled together with the "^", "v", "<",
-; ">", and "|" commands.
-; 
-; The "s s" and "s a" commands report the state of the option in the
-; echo area.  Similarly, the "f" and "e" commands report what they do in
-; the echo area.
-; 
-; The "q" command has been revamped, and its behavior is now controlled
-; by the manner in which Emerge is started.  In particular, if you wish
-; to write the merge buffer into a file upon exiting, invoke
-; emerge-files[-with-ancestor] with a prefix argument, and it will
-; prompt you for the file name.  Then exiting will write the merge
-; buffer to the file, unless "q" is given a prefix argument.
-; 
-; The "i a" and "i b" commands now work in fast mode.
-; 
-; The modifications that Emerge makes to save-buffer and write-file are
-; described.
-; 
-; Emerge now handles merging narrowed buffers correctly.
-; 
-; Emerge now isn't fooled when the buffer visiting a file is not the
-; same as the file on disk.
-; 
+;; This package assists you in reconciling differences between pair of files.
+
 ; - Starting
 ; 
 ; To start Emerge, you must run one of four commands:
@@ -557,6 +446,122 @@
 ; (autoload 'emerge-files-with-ancestor-remote "emerge")
 ; 
 ; ================================================================
+
+;;; Change Log:
+
+; - Changes from version 3 to version 4
+; 
+; More configuration variables are marked as user options.
+; 
+; Code is included for an improved version of make-auto-save-file-name
+; which eliminates many problems with the default version.  See the
+; documentation of emerge-make-auto-save-file-name to see how to
+; activate it.
+; 
+; Emerge now works with Gnu diff3, which can produce the groups of lines
+; from the various files in the order 1, 2, 3 or 1, 3, 2.
+; 
+; Added x f command to show what files or buffers are being operated on.
+; 
+; The merge buffer now starts read-only, which being in fast mode it
+; should be.
+; 
+; When merging buffers, Emerge writes their contents into temporary
+; files in the directory $TMPDIR (if it is defined), or /tmp by default.
+; 
+; Added x j command to join two differences.
+; 
+; Added x s command to split a difference into two differences.
+; 
+; Added emerge-version variable and function to report the version of Emerge
+; being run.
+; 
+; Added x t command to trim unchanged lines off top and bottom of
+; difference region.
+; 
+; Added x d, x a, and x b commands to locate the differences at or near
+; a given location in one of the buffers.
+; 
+; Emerge no longer tries to copy the minor modes from the A buffer to
+; the merge buffer, only the major mode.
+; 
+; The programs executed to find the differences between versions of the file
+; are no longer controlled by emerge-diff/diff3-command, but rather by:
+;   emerge-diff-program	      
+;     Variable: *Name of the program which compares two files.
+;   emerge-diff3-program	      
+;     Variable: *Name of the program which compares an ancestor file
+;     (first argument) and two variant files (second and third arguments).
+;   emerge-diff-options	      
+;     Variable: *Options to be passed to emerge-diff/diff3-program.
+; 
+; The names of the files are expanded (see expand-file-name) before being
+; passed to emerge-diff/diff3-program, so diff need not invoked under a shell
+; that understands '~', for instance.
+; 
+; If the diff/diff3 program reports errors, the user is notified and the
+; errors are displayed.
+; 
+; The command "0j" can be used to suppress the flags from showing in the buffers.
+; 
+; A discussion of the effect of the merge flags on indentation of code
+; has been added to the documentation.
+; 
+; If kill-fix.el is loaded, Emerge control variables new have their
+; 'preserved' property set, so setting the major mode in the merge
+; buffer doesn't destroy Emerge's state.
+; 
+; Added x c, x C, and x x commands to allow the A and B versions to be
+; combined into #ifdef - #endif forms.
+; 
+; Replaced calls of "ding" to calls of "error" where appropriate.
+; 
+; Added x m command to allow major mode of merge buffer to be changed.
+; 
+; Added x 1 command to shrink the merge window to one line.
+; 
+; Added emerge-startup-hook to allow customization.
+; 
+; Fixed a bug that is activated when a remote merge request is made when
+; the minibuffer window is selected.
+; 
+; - Changes from version 2 to version 3
+; 
+; The directory into which temporary files are written is now controlled
+; by a user option (emerge-temp-file-prefix).
+; 
+; The A and B versions of the difference can be loaded into the kill
+; ring with the "c a" and "c b" commands.
+; 
+; The A and B versions of the difference can be inserted into the merge
+; buffer with the "i a" and "i b" commands.
+; 
+; The difference region of the merge buffer can be surrounded by the
+; point and mark with the "m" command.
+; 
+; The three windows can be scrolled together with the "^", "v", "<",
+; ">", and "|" commands.
+; 
+; The "s s" and "s a" commands report the state of the option in the
+; echo area.  Similarly, the "f" and "e" commands report what they do in
+; the echo area.
+; 
+; The "q" command has been revamped, and its behavior is now controlled
+; by the manner in which Emerge is started.  In particular, if you wish
+; to write the merge buffer into a file upon exiting, invoke
+; emerge-files[-with-ancestor] with a prefix argument, and it will
+; prompt you for the file name.  Then exiting will write the merge
+; buffer to the file, unless "q" is given a prefix argument.
+; 
+; The "i a" and "i b" commands now work in fast mode.
+; 
+; The modifications that Emerge makes to save-buffer and write-file are
+; described.
+; 
+; Emerge now handles merging narrowed buffers correctly.
+; 
+; Emerge now isn't fooled when the buffer visiting a file is not the
+; same as the file on disk.
 
 ;;; Code:
 

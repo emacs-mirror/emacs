@@ -49,8 +49,6 @@
 ;;;           Duke University Medical Center
 ;;;           Durham, NC 27710
 ;;;	      (crm@cs.duke.edu,mcnc!duke!crm) 
-;;;
-;;;  Date: Fri Jul  1 16:15:31 EDT 1988
 
 ;;; Code:
 

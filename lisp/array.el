@@ -24,14 +24,18 @@
 
 ;;; Commentary:
 
-;;;  Written by dmb%morgoth@harvard.harvard.edu (address is old)
-;;;   (David M. Brown at Goldberg-Zoino & Associates, Inc.)
-;;;  Thanks to cph@kleph.ai.mit.edu for assistance
+;; Commands for editing a buffer interpreted as a rectangular array
+;; or matrix of whitespace-separated strings.  You specify the array
+;; dimensions and some other parameters at startup time.
 
-;;; To do:
-;;;   Smooth initialization process by grokking local variables list
-;;;     at end of buffer or parsing buffer using whitespace as delimiters.
-;;;   Make 'array-copy-column-right faster.
+;;  Written by dmb%morgoth@harvard.harvard.edu (address is old)
+;;   (David M. Brown at Goldberg-Zoino & Associates, Inc.)
+;;  Thanks to cph@kleph.ai.mit.edu for assistance
+
+;; To do:
+;;   Smooth initialization process by grokking local variables list
+;;     at end of buffer or parsing buffer using whitespace as delimiters.
+;;   Make 'array-copy-column-right faster.
 
 
 ;;; Code:

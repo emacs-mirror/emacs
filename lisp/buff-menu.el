@@ -20,6 +20,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Edit, delete, or change attributes of all currently active Emacs
+;; buffers from a list summarizing thir state.  A good way to browse
+;; any special or scratch buffers you have loaded, since you can't find
+;; them by filename.
+
 ;;; Code:
 
 ; Put buffer *Buffer List* into proper mode right away

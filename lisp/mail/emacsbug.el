@@ -23,6 +23,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; `M-x report-emacs-bug ' starts an email note to the Emacs maintainers
+;; describing a problem.  Here's how it's done...
+
 ;;; Code:
 
 ;; >> This should be an address which is accessible to your machine,

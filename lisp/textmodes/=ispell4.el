@@ -20,6 +20,11 @@
 ;;along with GNU Emacs; see the file COPYING.  If not, write to
 ;;the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides a graceful interface to ispell, the GNU
+;; spelling checker.
+
 ;;; Code:
 
 (defvar ispell-have-new-look t

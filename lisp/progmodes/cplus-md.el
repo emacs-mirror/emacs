@@ -21,9 +21,10 @@
 
 ;;; Commentary:
 
-;; 1987 Dave Detlefs  (dld@cs.cmu.edu) 
-;; and  Stewart Clamen (clamen@cs.cmu.edu).
+;; 1987 Dave Detlefs  <dld@cs.cmu.edu> 
+;; and  Stewart Clamen <clamen@cs.cmu.edu>.
 ;; Done by fairly faithful modification of:
+
 ;;; Change Log:
 
 ;; Feb, 1990 (Dave Detlefs, dld@cs.cmu.edu)
@@ -219,7 +220,7 @@ no args if that value is non-nil."
   (set (make-local-variable 'comment-start) "// ")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "/\\*+ *\\|// *")
-  (set (make-local-variable 'comment-indent-hook) 'c++-comment-indent)
+  (set (make-local-variable 'comment-indent-function) 'c++-comment-indent)
   (set (make-local-variable 'paragraph-start) (concat "^$\\|" page-delimiter))
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'paragraph-ignore-fill-prefix) t)

@@ -20,6 +20,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; A smart editing mode for C code.  It knows a lot about C syntax and tries
+;; to position the curser according to C layout conventions.  You can
+;; change the details of the layout style with option variables.  Load it
+;; and do M-x describe-mode for details.
+
 ;;; Code:
 
 (defvar c-mode-abbrev-table nil
@@ -204,8 +211,8 @@ if that value is non-nil."
   (setq comment-column 32)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "/\\*+ *")
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'c-comment-indent)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'c-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (run-hooks 'c-mode-hook))

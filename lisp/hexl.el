@@ -22,6 +22,12 @@
 
 ;;; Commentary:
 
+;; This package implements a major mode for editing binary files.  It uses
+;; a program called hexl, supplied with the GNU Emacs distribution, that
+;; can filter a binary into an editable format or from the format back into
+;; binary.  For full instructions, invoke `hexl-mode' on an empty buffer and
+;; do `M-x describe-mode'.
+;;
 ;; This may be useful in your .emacs:
 ;;
 ;;	(autoload 'hexl-find-file "hexl"
@@ -74,7 +80,7 @@ and \"-de\" when dehexlfying a buffer.")
 ;;;###autoload
 (defun hexl-mode (&optional arg)
   "\\<hexl-mode-map>
-A major mode for editting binary files in hex dump format.
+A major mode for editing binary files in hex dump format.
 
 This function automatically converts a buffer into the hexl format
 using the function `hexlify-buffer'.

@@ -21,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Commands to send the region or a buffer your printer.  Entry points
+;; are `lpr-buffer', `print-buffer', lpr-region', or `print-region'; option
+;; variables include `lpr-switches' and `lpr-command'.
+
 ;;; Code:
 
 ;;;###autoload

@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;; A major mode for editing the Icon programming language.
+;;
 ;; Note: use
 ;;  (autoload 'icon-mode "icon" nil t)
 ;;  (setq auto-mode-alist (cons '("\\.icn$" . icon-mode) auto-mode-alist))
@@ -146,8 +148,8 @@ with no args, if that value is non-nil."
   (setq comment-column 32)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "# *")
-  (make-local-variable 'comment-indent-hook)
-  (setq comment-indent-hook 'icon-comment-indent)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'icon-comment-indent)
   (run-hooks 'icon-mode-hook))
 
 ;; This is used by indent-for-comment to decide how much to

@@ -5,6 +5,10 @@
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Keywords: lisp, tools, maint
 
+;; This is Dan's 2.5 version with some header comments rearranged to separate
+;; the Change Log from the Commentary (so the package-finder code can browse
+;; the Commentary).
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -41,17 +45,30 @@
 
 ;;; Contents:
 ;;; =========
-;;; Change list
 ;;; Installation
-;;; Todo list
+;;; Change list
 ;;; Utilities
 ;;; Parser
 ;;; Debugger
 
 
-;;;================================================================
-;;; Change list
-;;; -----------
+;;; Installation
+;;; ------------
+;; Put edebug.el in some directory in your load-path and byte-compile it.
+
+;; Put the following forms in your .emacs file.
+;; (define-key emacs-lisp-mode-map "\^Xx" 'edebug-defun)
+;; (autoload 'edebug-defun "edebug")
+;; (autoload 'edebug-debug "edebug")
+;; (setq debugger 'edebug-debug)
+;; ... other options, described in the next section.
+
+;; Evaluate a defun for edebug with edebug-defun.  
+;; Evaluate your function normally.
+;; Use the "?" command in edebug to describe other commands.
+;; See edebug.texinfo for more instructions.
+
+;;; Change Log:
 
 ;;; Revision 2.5  91/07/25  13:32:53  liberte
 ;;; Doc string cleanup.
@@ -170,23 +187,6 @@
 ;;; Revision 1.1  88/11/28  12:11:27  liberte
 ;;; Initial revision
 ;;; 
-
-
-;;; Installation
-;;; ------------
-;; Put edebug.el in some directory in your load-path and byte-compile it.
-
-;; Put the following forms in your .emacs file.
-;; (define-key emacs-lisp-mode-map "\^Xx" 'edebug-defun)
-;; (autoload 'edebug-defun "edebug")
-;; (autoload 'edebug-debug "edebug")
-;; (setq debugger 'edebug-debug)
-;; ... other options, described in the next section.
-
-;; Evaluate a defun for edebug with edebug-defun.  
-;; Evaluate your function normally.
-;; Use the "?" command in edebug to describe other commands.
-;; See edebug.texinfo for more instructions.
 
 ;;; Code:
 

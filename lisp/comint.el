@@ -1,4 +1,5 @@
 ;;; comint.el --- general command interpreter in a window stuff
+
 ;; Copyright (C) 1988, 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>

@@ -1,11 +1,11 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
-;; Written by Richard Mlynarik July 1987
+
 ;; Author: Richard Mlynark <mly@eddie.mit.edu>
+;; Created: July 1987
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools
-
 
 ;; This file is part of GNU Emacs.
 
@@ -25,6 +25,12 @@
 
 ;;; Commentary:
 
+;; This package supplies a single entry point, common-lisp-indent-function,
+;; which performs indentation in the preferred style for Common Lisp code.
+;; To enable it:
+;;
+;; (setq lisp-indent-function 'common-lisp-indent-function)
+
 ;;>> TODO
 ;; :foo
 ;;   bar
@@ -40,8 +46,6 @@
 ;;  Need something better than &rest for such cases
 
 ;;; Code:
-
-;;; Hairy lisp indentation.
 
 (defvar lisp-indent-maximum-backtracking 3
   "*Maximum depth to backtrack out from a sublist for structured indentation.
@@ -465,11 +469,5 @@ by `lisp-body-indent'.")
 ;(put 'define-condition 'common-lisp-indent-function '((1 6) (2 6 ((* 1))) (3 4 ((* 1))) (4 &body)))
 ;(put 'with-condition-handler 'common-lisp-indent-function '((1 4 ((* 1))) (2 &body)))
 ;(put 'condition-case 'common-lisp-indent-function '((1 4) (* 2 ((0 1) (1 3) (2 &body)))))
-
-
-;;;; Turn it on.
-;(setq lisp-indent-function 'common-lisp-indent-function)
-
-;; To disable this stuff, (setq lisp-indent-function 'lisp-indent-function)
 
 ;;; cl-indent.el ends here
