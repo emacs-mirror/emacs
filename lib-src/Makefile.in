@@ -1,5 +1,5 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -57,6 +57,9 @@ bindir=@bindir@
 # data.  ${archlibdir} is usually below this.  This is set with the
 # --libexecdir option to `../configure'.
 libexecdir=@libexecdir@
+
+# Directory for local state files for all programs.
+localstatedir=@localstatedir@
 
 # Where to find the source code.  This is set by the configure
 # script's `--srcdir' option.  However, the value of ${srcdir} in
