@@ -98,7 +98,7 @@ and `current-time-string' are two valid values."
     ;; Conditionals.
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 font-lock-variable-name-face))
     ;;
-    ;; Acknowledgments.
+    ;; Acknowledgements.
     ("^\t\\(From\\|Reported by\\)" 1 font-lock-comment-face)
     )
   "Additional expressions to highlight in Change Log mode.")
