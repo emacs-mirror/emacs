@@ -238,6 +238,9 @@ This also sets the following values:
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
   o default value for the command `set-keyboard-coding-system'
 
+If CODING-SYSTEM specifies a certain type of EOL conversion, the coding
+systems set by this function will use that type of EOL conversion.
+
 This command does not change the default value of terminal coding system
 for MS-DOS terminal, because DOS terminals only support a single coding
 system, and Emacs automatically sets the default to that coding system at
@@ -246,7 +249,8 @@ startup."
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
   (let ((coding-category (coding-system-category coding-system))
-	(base (coding-system-base coding-system)))
+	(base (coding-system-base coding-system))
+	(eol-type (coding-system-eol-type coding-system)))
     (if (not coding-category)
 	;; CODING-SYSTEM is no-conversion or undecided.
 	(error "Can't prefer the coding system `%s'" coding-system))
@@ -260,7 +264,12 @@ startup."
     (if (and base (interactive-p))
 	(message "Highest priority is set to %s (base of %s)"
 		 base coding-system))
-    (set-default-coding-systems (or base coding-system))))
+    ;; If they asked for specific EOL conversion, honor that.
+    (if (memq eol-type '(0 1 2 unix dos mac))
+	(setq coding-system
+	      (coding-system-change-eol-conversion base eol-type))
+      (setq coding-system base))
+    (set-default-coding-systems coding-system)))
 
 (defun find-coding-systems-region-subset-p (list1 list2)
   "Return non-nil if all elements in LIST1 are included in LIST2.
