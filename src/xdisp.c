@@ -12881,7 +12881,10 @@ try_window_id (w)
 	 the window end again, since its offset from Z hasn't changed.  */
       r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
       if (CHARPOS (start) == MATRIX_ROW_START_CHARPOS (r0) + delta
-	  && BYTEPOS (start) == MATRIX_ROW_START_BYTEPOS (r0) + delta_bytes)
+	  && BYTEPOS (start) == MATRIX_ROW_START_BYTEPOS (r0) + delta_bytes
+	  /* PT must not be in a partially visible line.  */
+	  && !(PT >= MATRIX_ROW_START_CHARPOS (row) + delta
+	       && MATRIX_ROW_BOTTOM_Y (row) > window_text_bottom_y (w)))
 	{
 	  /* Adjust positions in the glyph matrix.  */
 	  if (delta || delta_bytes)
@@ -12926,7 +12929,10 @@ try_window_id (w)
 	 as is, without changing glyph positions since no text has
 	 been added/removed in front of the window end.  */
       r0 = MATRIX_FIRST_TEXT_ROW (current_matrix);
-      if (TEXT_POS_EQUAL_P (start, r0->start.pos))
+      if (TEXT_POS_EQUAL_P (start, r0->start.pos)
+	  /* PT must not be in a partially visible line.  */
+	  && !(PT >= MATRIX_ROW_START_CHARPOS (row)
+	       && MATRIX_ROW_BOTTOM_Y (row) > window_text_bottom_y (w)))
 	{
 	  /* We have to compute the window end anew since text
 	     can have been added/removed after it.  */
