@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.32) $
+ * $HopeName: MMsrc!mpsi.c(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.32) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.33) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -747,6 +747,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   Arena arena = (Arena)mps_arena;
   Rank rank = (Rank)mps_rank;
   Root root;
+  RootMode mode = (RootMode)mps_rm;
   Res res;
 
   ArenaEnter(arena);
@@ -760,8 +761,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   /* the size in bytes.  However, RootCreateTable expects */
   /* base and limit pointers.  Be careful. */
 
-  UNUSED(mps_rm); /* See .root-mode. */
-  res = RootCreateTable(&root, arena, rank,
+  res = RootCreateTable(&root, arena, rank, mode,
                         (Addr *)base, (Addr *)base + size);
 
   ArenaLeave(arena);
@@ -782,6 +782,7 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   Arena arena = (Arena)mps_arena;
   Rank rank = (Rank)mps_rank;
   Root root;
+  RootMode mode = (RootMode)mps_rm;
   Res res;
 
   ArenaEnter(arena);
@@ -796,8 +797,7 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   /* the size in bytes.  However, RootCreateTable expects */
   /* base and limit pointers.  Be careful. */
 
-  UNUSED(mps_rm); /* See .root-mode. */
-  res = RootCreateTableMasked(&root, arena, rank,
+  res = RootCreateTableMasked(&root, arena, rank, mode,
                               (Addr *)base, (Addr *)base + size,
                               mask);
 
@@ -820,6 +820,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
   Rank rank = (Rank)mps_rank;
   FormatScanMethod scan = (FormatScanMethod)mps_fmt_scan;
   Root root;
+  RootMode mode = (RootMode)mps_rm;
   Res res;
   
   ArenaEnter(arena);
@@ -830,8 +831,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
   AVER(base != NULL);
   AVER(base < limit);
 
-  UNUSED(mps_rm); /* See .root-mode. */
-  res = RootCreateFmt(&root, arena, rank, scan,
+  res = RootCreateFmt(&root, arena, rank, mode, scan,
                       (Addr)base, (Addr)limit);
 
   ArenaLeave(arena);
