@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.5)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.6)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -10,7 +10,7 @@ PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
 STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
-      <collect> <ref> <trace> \
+      <collect> <ref> <trace> <fault> <protnt> \
       <thnti3> <ssnti3>
 AMC = <amc> <amcgroup>
 DW  = <dw> <dwformat>
@@ -20,7 +20,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.5)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.6)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -218,12 +218,13 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # %%TARGET: Add the target  to the all dependencies
 
 all: dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-    mpmstres.exe std.lib mpm.lib
+    mpmstres.exe std.lib mpm.lib protcv.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
+dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
+	mpmstres.exe std.lib mpm.lib protcv.exe:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 amcdev.cov:
@@ -284,6 +285,9 @@ $(PFM)\$(VARIETY)\amcdev.exe:  $(PFM)\$(VARIETY)\amcdev.obj \
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
 	$(DWOBJ) $(MPMOBJ) $(STDOBJ) $(AMCOBJ)
+
+$(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
+	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
