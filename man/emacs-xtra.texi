@@ -327,47 +327,10 @@ diary suit your personal tastes.
 * Fancy Diary Display::    Enhancing the diary display, sorting entries,
                              using included diary files.
 * Sexp Diary Entries::     Fancy things you can do.
-* Appt Customizing::	   Customizing appointment reminders.
 @end menu
 
 @node Calendar Customizing
 @section Customizing the Calendar
-@vindex view-diary-entries-initially
-
-  If you set the variable @code{view-diary-entries-initially} to
-@code{t}, calling up the calendar automatically displays the diary
-entries for the current date as well.  The diary dates appear only if
-the current date is visible.  If you add both of the following lines to
-your init file:@refill
-
-@example
-(setq view-diary-entries-initially t)
-(calendar)
-@end example
-
-@noindent
-this displays both the calendar and diary windows whenever you start Emacs.
-
-@vindex view-calendar-holidays-initially
-  Similarly, if you set the variable
-@code{view-calendar-holidays-initially} to @code{t}, entering the
-calendar automatically displays a list of holidays for the current
-three-month period.  The holiday list appears in a separate
-window.
-
-@vindex mark-diary-entries-in-calendar
-  You can set the variable @code{mark-diary-entries-in-calendar} to
-@code{t} in order to mark any dates with diary entries.  This takes
-effect whenever the calendar window contents are recomputed.  There are
-two ways of marking these dates: by changing the face
-(@pxref{Faces,,, elisp, the Emacs Lisp Reference Manual}), or by placing
-a plus sign (@samp{+}) beside the date.
-
-@vindex mark-holidays-in-calendar
-  Similarly, setting the variable @code{mark-holidays-in-calendar} to
-@code{t} marks holiday dates, either with a change of face or with an
-asterisk (@samp{*}).
-
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
   The variable @code{calendar-holiday-marker} specifies how to mark a
@@ -1259,47 +1222,6 @@ the European style, the order of the parameters is changed to @var{day},
 @var{mark} which specifies how to mark the date in the calendar display.
 If one of these functions decides that it applies to a certain date,
 it returns a value that contains @var{mark}.
-
-@node Appt Customizing
-@section Customizing Appointment Reminders
-
-  You can specify exactly how Emacs reminds you of an appointment, and
-how far in advance it begins doing so, by setting these variables:
-
-@vindex appt-message-warning-time
-@vindex appt-audible
-@vindex appt-visible
-@vindex appt-display-mode-line
-@vindex appt-msg-window
-@vindex appt-display-duration
-@vindex appt-disp-window-function
-@vindex appt-delete-window-function
-@table @code
-@item appt-message-warning-time
-The time in minutes before an appointment that the reminder begins.  The
-default is 12 minutes.
-@item appt-audible
-If this is non-@code{nil}, Emacs rings the
-terminal bell for appointment reminders.  The default is @code{t}.
-@item appt-visible
-If this is non-@code{nil}, Emacs displays the appointment
-message in the echo area.  The default is @code{t}.
-@item appt-display-mode-line
-If this is non-@code{nil}, Emacs displays the number of minutes
-to the appointment on the mode line.  The default is @code{t}.
-@item appt-msg-window
-If this is non-@code{nil}, Emacs displays the appointment
-message in another window.  The default is @code{t}.
-@item appt-disp-window-function
-This variable holds a function to use to create the other window
-for the appointment message.
-@item appt-delete-window-function
-This variable holds a function to use to get rid of the appointment
-message window, when its time is up.
-@item appt-display-duration
-The number of seconds to display an appointment message.  The default
-is 10 seconds.
-@end table
 
 
 @node Index
