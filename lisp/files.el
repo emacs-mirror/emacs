@@ -698,6 +698,7 @@ The buffer is not selected, just returned to the caller."
 ;;;		(message "Symbolic link to file in buffer %s"
 ;;;			 (buffer-name linked-buf))))
 	  (setq buf (create-file-buffer filename))
+	  (set-buffer-major-mode buf)
 	  (set-buffer buf)
 	  (erase-buffer)
 	  (condition-case ()
