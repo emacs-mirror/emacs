@@ -1132,7 +1132,7 @@ describe_syntax (value)
     case Sclose:
       insert_string ("close"); break;
     case Squote:
-      insert_string ("quote"); break;
+      insert_string ("prefix"); break;
     case Sstring:
       insert_string ("string"); break;
     case Smath:
@@ -1145,6 +1145,12 @@ describe_syntax (value)
       insert_string ("comment"); break;
     case Sendcomment:
       insert_string ("endcomment"); break;
+    case Sinherit:
+      insert_string ("inherit"); break;
+    case Scomment_fence:
+      insert_string ("comment fence"); break;
+    case Sstring_fence:
+      insert_string ("string fence"); break;
     default:
       insert_string ("invalid");
       return;
