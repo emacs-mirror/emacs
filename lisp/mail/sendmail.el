@@ -907,6 +907,12 @@ See also the function `select-message-coding-system'.")
 		   (progn (skip-chars-forward "\0-\177")
 			  (/= (point) (point-max)))
 		   (setq coding-system (select-message-coding-system))
+		   ;; Set buffer-file-coding-system to the selected
+		   ;; one.  This prevent the later call of
+		   ;; select-message-coding-system asking a user
+		   ;; again.
+		   (prog1 t
+		     (set-buffer-file-coding-system coding-system))
 		   (setq charset
 			 (coding-system-get coding-system 'mime-charset))
 		   (goto-char delimline)
