@@ -87,8 +87,9 @@ thus showing a page other than the one point was originally in."
     ;; If we stopped due to end of buffer, stay there.
     ;; If we stopped after a page delimiter, put end of restriction
     ;; at the beginning of that line.
-    (if (save-excursion (beginning-of-line)
-			(looking-at page-delimiter))
+    (if (save-excursion
+	  (goto-char (match-beginning 0)) ; was (beginning-of-line)
+	  (looking-at page-delimiter))
 	(beginning-of-line))
     (narrow-to-region (point)
 		      (progn
@@ -136,5 +137,8 @@ thus showing a page other than the one point was originally in."
 	(message "Page %d, line %d"
 		 count
 		 (1+ (count-lines (point) opoint)))))))
+
+;;; Place `provide' at end of file.
+(provide 'page)
 
 ;;; page.el ends here
