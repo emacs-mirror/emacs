@@ -4,6 +4,8 @@
 
 ;; Author: Lars Ingebrigtsen <larsi@ifi.uio.no>
 ;; Created: 2 Oct 1993
+;; Version: v2.5.2
+;; Last Modified: 1994/04/13
 ;; Keyword: news
 
 ;; This file is part of GNU Emacs.
@@ -26,7 +28,7 @@
 
 ;; All gnus-uu commands start with `C-c C-v'.
 ;;
-;; Typing `C-c C-v C-v' (gnus-uu-decode-and-view) in the summary
+;; Typing `C-c C-v C-v' (`gnus-uu-decode-and-view') in the summary
 ;; buffer will try to find all articles in the same series, uudecode
 ;; them and view the resulting file(s).
 ;;
@@ -40,18 +42,18 @@
 ;; (2/3) Part 6 of a series", will not be properly recognized by 'C-c
 ;; C-v C-v', and you have to mark the articles manually with '#'.
 ;;
-;; Typing `C-c C-v v' (gnus-uu-decode-and-save) will do the same as
-;; `C-c C-v C-v', except that it will not display the resulting file, but
-;; save it instead.
+;; Typing `C-c C-v v' (`gnus-uu-decode-and-save') will do the same as
+;; `C-c C-v C-v', except that it will not display the resulting file,
+;; but save it instead.
 ;;
-;; Typing `C-c C-v s' (gnus-uu-shar-and-save) does the same as `C-c
-;; C-v v', and `C-c C-v C-s' (gnus-uu-shar-and-view) does the same as
-;; `C-c C-v C-v', except that they unshar files instead, i. e. run
+;; Typing `C-c C-v s' (`gnus-uu-shar-and-save') does the same as `C-c
+;; C-v v', and `C-c C-v C-s' (`gnus-uu-shar-and-view') does the same
+;; as `C-c C-v C-v', except that they unshar files instead, i. e. run
 ;; them through /bin/sh. Most shar files can be viewed and/or saved
 ;; with the normal uudecode commands, which is much safer, as no
 ;; foreign code is run.
 ;;
-;; `#' (gnus-uu-mark-article) marks an article for later
+;; `#' (`gnus-uu-mark-article') marks an article for later
 ;; decoding/unsharing/saving/viewing. The files will be decoded in the
 ;; sequence they were marked. To decode the files after you've marked
 ;; the articles you are interested in, type the corresponding key
@@ -62,19 +64,19 @@
 ;; handled the same way; marked uudecode and save is then `C-c C-v
 ;; M-v'.
 ;;
-;; `M-#' (gnus-uu-unmark-article) will remove the mark from a
+;; `M-#' (`gnus-uu-unmark-article') will remove the mark from a
 ;; previosly marked article.
 ;;
-;; `C-c C-v C-u' (gnus-uu-unmark-all-articles) will remove the mark from
+;; `C-c C-v C-u' (`gnus-uu-unmark-all-articles') will remove the mark from
 ;; all marked articles.
 ;;
-;; `C-c C-v C-r' (gnus-uu-mark-by-regexp) will prompt for a regular
+;; `C-c C-v C-r' (`gnus-uu-mark-by-regexp') will prompt for a regular
 ;; expression and mark (forward) all articles matching that regular
 ;; expression.
 ;;
 ;; There's an additional way to reach the decoding functions to make
 ;; future expansions easier: `C-c C-v C-m'
-;; (gnus-uu-multi-decode-and-view) and the corresponding save, marked
+;; (`gnus-uu-multi-decode-and-view') and the corresponding save, marked
 ;; view and marked save keystrokes, `C-c C-v m', `C-c C-v M-C-m' and
 ;; `C-c C-v M-m' respectively. You will be prompted for decoding
 ;; method, like uudecode, shar, binhex or plain save. Note that
@@ -82,12 +84,12 @@
 ;; issue a view command (`C-c C-v C-m' and "binhex"), gnus-uu will
 ;; just save the resulting binhex file.
 ;;
-;; `C-c C-v C-b' (gnus-uu-decode-and-show-in-buffer) will decode the
+;; `C-c C-v C-b' (`gnus-uu-decode-and-show-in-buffer') will decode the
 ;; current article and display the results in an emacs buffer. This
 ;; might be useful if there's jsut some text in the current article
 ;; that has been uuencoded by some perverse poster.
 ;;
-;; `C-c C-v a' (gnus-uu-decode-and-save-all-articles) looks at all the
+;; `C-c C-v a' (`gnus-uu-decode-and-save-all-articles') looks at all the
 ;; articles in the current newsgroup and tries to uudecode everything
 ;; it can find. The user will be prompted for a directory where the
 ;; resulting files (if any) will be stored. `C-c C-v M-a' only looks
@@ -96,22 +98,23 @@
 ;; weren't uuencoded articles. `C-c C-v M-w' is, as you might have
 ;; guessed, similar to `C-c C-v M-a'.
 ;;
-;; `C-c C-v C-l' (gnus-uu-edit-begin-line) lets you edit the begin
+;; `C-c C-v C-l' (`gnus-uu-edit-begin-line') lets you edit the begin
 ;; line of the current buffer. Useful to change an incorrect suffix or
 ;; an incorrect begin line.
 ;;
 ;;
 ;; When using the view commands, `C-c C-v C-v' for instance, gnus-uu
 ;; will (normally, see below) try to view the file according to the
-;; rules given in gnus-uu-default-view-rules and
-;; gnus-uu-user-view-rules. If it recognises the file, it will display
-;; it immediately. If the file is some sort of archive, gnus-uu will
-;; attempt to unpack the archive and see if any of the files in the
-;; archive can be viewed. For instance, if you have a gzipped tar file
-;; "pics.tar.gz" containing the files "pic1.jpg" and "pic2.gif",
-;; gnus-uu will uncompress and detar the main file, and then view the
-;; two pictures. This unpacking process is recursive, so if the
-;; archive contains archives of archives, it'll all be unpacked.
+;; rules given in `gnus-uu-default-view-rules' and
+;; `gnus-uu-user-view-rules'. If it recognises the file, it will
+;; display it immediately. If the file is some sort of archive,
+;; gnus-uu will attempt to unpack the archive and see if any of the
+;; files in the archive can be viewed. For instance, if you have a
+;; gzipped tar file "pics.tar.gz" containing the files "pic1.jpg" and
+;; "pic2.gif", gnus-uu will uncompress and detar the main file, and
+;; then view the two pictures. This unpacking process is recursive, so
+;; if the archive contains archives of archives, it'll all be
+;; unpacked.
 ;;
 ;; If the view command doesn't recognise the file type, or can't view
 ;; it because you don't have the viewer, or can't view *any* of the
@@ -127,27 +130,27 @@
 ;; that might have escaped deletion if the user typed `C-g'.
 ;;
 ;;
-;; `C-c C-v C-a' (gnus-uu-toggle-asynchronous) toggles the
-;; gnus-uu-asynchronous variable. See below for explanation.
+;; `C-c C-v C-a' (`gnus-uu-toggle-asynchronous') toggles the
+;; `gnus-uu-asynchronous' variable. See below for explanation.
 ;;
-;; `C-c C-v C-q' (gnus-uu-toggle-query) toggles the
-;; gnus-uu-ask-before-view variable. See below for explanation.
+;; `C-c C-v C-q' (`gnus-uu-toggle-query') toggles the
+;; `gnus-uu-ask-before-view' variable. See below for explanation.
 ;;
-;; `C-c C-v C-p' (gnus-uu-toggle-always-ask) toggles the
-;; gnus-uu-view-and-save variable. See below for explanation.
+;; `C-c C-v C-p' (`gnus-uu-toggle-always-ask') toggles the
+;; `gnus-uu-view-and-save' variable. See below for explanation.
 ;;
-;; `C-c C-v C-k' (gnus-uu-toggle-kill-carriage-return) toggles the
-;; gnus-uu-kill-carriage-return variable. See below for explanation.
+;; `C-c C-v C-k' (`gnus-uu-toggle-kill-carriage-return') toggles the
+;; `gnus-uu-kill-carriage-return' variable. See below for explanation.
 ;;
-;; `C-c C-v C-i' (gnus-uu-toggle-interactive-view) toggles interactive
+;; `C-c C-v C-i' (`gnus-uu-toggle-interactive-view') toggles interactive
 ;; mode. If it is turned on, gnus-uu won't view files immediately but
 ;; give you a buffer with the default commands and files and lets you
 ;; edit the commands and execute them at leisure.
 ;;
-;; `C-c C-v C-t' (gnus-uu-toggle-any-variable) is an interface to the
+;; `C-c C-v C-t' (`gnus-uu-toggle-any-variable') is an interface to the
 ;; five toggle commands listed above.
 ;;
-;; gnus-uu-toggle-correct-stripped-articles toggles whether to check
+;; `gnus-uu-toggle-correct-stripped-articles' toggles whether to check
 ;; and correct uuencoded articles that may have had trailing spaces
 ;; stripped by mailers.
 ;;
@@ -186,7 +189,7 @@
 ;;
 ;; in your .emacs file.
 ;;
-;; There's a similar variable called 'gnus-uu-user-archive-rules'
+;; There's a similar variable called `gnus-uu-user-archive-rules'
 ;; which gives a list of unarcers to use when looking inside archives
 ;; for files to display.
 ;;
@@ -228,7 +231,7 @@
 ;;
 ;; If you want gnus-uu to ignore the default file rules when viewing,
 ;; for instance if there's several file types that you can't view, set
-;; `gnus-uu-ignore-default-view-rules' to `t'. There's a similar
+;; `gnus-uu-ignore-default-view-rules' to t. There's a similar
 ;; variable to disable the default unarchive rule list,
 ;; `gnus-uu-ignore-default-archive-rules'.
 ;;
@@ -278,8 +281,13 @@
 ;; translated into "dir-file". Added a function for fixing stripped
 ;; uucode articles. Added binhex save.
 ;;
+;; v2.5: First version copyrighted by FSF. Changed lots of
+;; documentation strings.
 ;;
-;; Keymap overview:
+;; v2.5.1: Added uuencode/posting code to post binary files. 
+;;
+;;
+;; Default keymap overview:
 ;; 
 ;; All commands start with `C-c C-v'. The difference is in the third
 ;; keystroke.  All view commands are `C-LETTER'. All save commands are
@@ -321,6 +329,7 @@
 ;;; Code: 
 
 (require 'gnus)
+(require 'gnuspost)
 
 ;; Binding of keys to the gnus-uu functions.
 
@@ -366,9 +375,138 @@
 ;(load "rnewspost")
 ;(define-key news-reply-mode-map "\C-c\C-v" 'gnus-uu-uuencode-and-post)
 
+;; Dummy function gnus-uu
+
+(defun gnus-uu ()
+  "gnus-uu is a package for uudecoding and viewing articles.
+
+By default, all gnus-uu keystrokes begin with `C-c C-v'. 
+
+There four decoding commands categories:
+All commands for viewing are `C-c C-v C-LETTER'.
+All commands for saving are `C-c C-v LETTER'.
+All commands for marked viewing are `C-c C-v C-M-LETTER'.
+All commands for marked saving are `C-c C-v M-LETTER'.
+
+\\<gnus-summary-mode-map>\\[gnus-uu-decode-and-view]\tDecode and view articles
+\\[gnus-uu-decode-and-save]\tDecode and save articles
+\\[gnus-uu-shar-and-view]\tUnshar and view articles
+\\[gnus-uu-shar-and-save]\tUnshar and save articles
+\\[gnus-uu-multi-decode-and-view]\tChoose a decoding method, decode and view articles
+\\[gnus-uu-multi-decode-and-save]\tChoose a decoding method, decode and save articles
+
+\\[gnus-uu-decode-and-show-in-buffer]\tDecode the current article and view the result in a buffer
+\\[gnus-uu-edit-begin-line]\tEdit the 'begin' line of an uuencoded article
+
+\\[gnus-uu-decode-and-save-all-unread-articles]\tDecode and save all unread articles
+\\[gnus-uu-decode-and-save-all-articles]\tDecode and save all articles
+\\[gnus-uu-decode-and-save-all-unread-articles-and-mark]\tDecode and save all unread articles and catch up
+\\[gnus-uu-decode-and-save-all-articles-and-mark]\tDecode and save all articles and catch up
+
+\\[gnus-uu-mark-article]\tMark the current article for decoding
+\\[gnus-uu-unmark-article]\tUnmark the current article
+\\[gnus-uu-unmark-all-articles]\tUnmark all articles
+\\[gnus-uu-mark-by-regexp]\tMark articles for decoding by regexp
+\\[gnus-uu-marked-decode-and-view]\tDecode and view marked articles
+\\[gnus-uu-marked-decode-and-save]\tDecode and save marked articles
+\\[gnus-uu-marked-shar-and-view]\tUnshar and view marked articles
+\\[gnus-uu-marked-shar-and-save]\tUnshar and save marked articles
+\\[gnus-uu-marked-multi-decode-and-view]\tChoose decoding method, decode and view marked articles
+\\[gnus-uu-marked-multi-decode-and-save]\tChoose decoding method, decode and save marked articles
+
+\\[gnus-uu-toggle-asynchronous]\tToggle asynchronous viewing mode
+\\[gnus-uu-toggle-query]\tToggle whether to ask before viewing a file
+\\[gnus-uu-toggle-always-ask]\tToggle whether to ask to save a file after viewing
+\\[gnus-uu-toggle-kill-carriage-return]\tToggle whether to strip trailing carriage returns
+\\[gnus-uu-toggle-interactive-view]\tToggle whether to use interactive viewing mode
+\\[gnus-uu-toggle-any-variable]\tToggle any of the things above
+
+User configurable variables:
+
+   Rule Variables
+
+   gnus-uu uses \"rule\" variables to decide how to view a file. All
+   these variables are of the form
+  
+      (list '(regexp1 command2)
+            '(regexp2 command2)
+            ...)
+
+   `gnus-uu-user-view-rules'
+     This variable is consulted first when viewing files. If you wish
+     to use, for instance, sox to convert an .au sound file, you could
+     say something like:
+
+       (setq gnus-uu-user-view-rules
+         (list '(\"\\\\.au$\" \"sox %s -t .aiff > /dev/audio\")))
+
+   `gnus-uu-user-view-rules-end'
+     This variable is consulted if gnus-uu couldn't make any matches
+     from the user and default view rules.
+
+   `gnus-uu-user-interactive-view-rules'
+     This is the variable used instead of `gnus-uu-user-view-rules'
+     when in interactive mode.
+
+   `gnus-uu-user-interactive-view-rules-end'
+     This variable is used instead of `gnus-uu-user-view-rules-end'
+     when in interactive mode.
+
+   `gnus-uu-user-archive-rules`
+     This variable can be used to say what comamnds should be used to
+     unpack archives.
+
+   
+   Other Variables
+
+   `gnus-uu-tmp-dir'
+     Where gnus-uu does its work.
+
+   `gnus-uu-do-not-unpack-archives'
+     Non-nil means that gnus-uu won't peek inside archives looking for
+     files to dispay.
+
+   `gnus-uu-view-and-save'
+     Non-nil means that the user will always be asked to save a file
+     after viewing it.
+
+   `gnus-uu-asynchronous'
+     Non-nil means that files will be viewed asynchronously.
+
+   `gnus-uu-ask-before-view'
+     Non-nil means that gnus-uu will ask you before viewing each file
+
+   `gnus-uu-ignore-default-view-rules'
+     Non-nil means that gnus-uu will ignore the default viewing rules.
+
+   `gnus-uu-ignore-default-archive-rules'
+     Non-nil means that gnus-uu will ignore the default archive
+     unpacking commands.
+
+   `gnus-uu-kill-carriage-return'
+     Non-nil means that gnus-uu will strip all carriage returns from
+     articles.
+
+   `gnus-uu-unmark-articles-not-decoded'
+     Non-nil means that gnus-uu will mark articles that were
+     unsuccessfully decoded as unread.
+
+   `gnus-uu-output-window-height'
+     This variable says how tall the output buffer window is to be
+     when using interactive view mode.
+
+   `gnus-uu-correct-stripped-uucode'
+     Non-nil means that gnus-uu will *try* to fix uuencoded files that
+     have had traling spaces deleted.
+
+   `gnus-uu-use-interactive-view'
+     Non-nil means that gnus-uu will use interactive viewing mode."
+  (interactive)
+  )
+
 ;; Default viewing action rules
 
-(defconst gnus-uu-default-view-rules 
+(defvar gnus-uu-default-view-rules 
   (list 
    '("\\.\\(jpe?g\\|gif\\|tiff?\\|p[pgb]m\\|xwd\\|xbm\\|pcx\\)$" "xv")
    '("\\.tga$" "tgatoppm %s | xv -")
@@ -386,12 +524,9 @@
    '("\\.\\(tar\\|arj\\|zip\\|zoo\\|arc\\|gz\\|Z\\|lzh\\|ar\\)$" 
      "gnus-uu-archive"))
 
-
-  "This constant is a list that gives the default actions to be taken
-when the user asks to view a file. To change the behaviour, you can
-either edit this constant or set 'gnus-uu-user-view-rules' to
-something useful. To add a default \"end\" rule, edit the
-'gnus-uu-user-view-rules-end' variable.
+  "Default actions to be taken when the user asks to view a file.  
+To change the behaviour, you can either edit this variable or set
+`gnus-uu-user-view-rules' to something useful.
 
 For example:
 
@@ -400,40 +535,60 @@ following in your .emacs file
 
   (setq gnus-uu-user-view-rules (list '(\"jpg$\\\\|gif$\" \"xli\")))
 
-Both these variables are lists of lists of strings, where the first
-string is a regular expression. If the file name matches this regular
-expression, the command in the second string is fed the file.
+Both these variables are lists of lists with two string elements. The
+first string is a regular expression. If the file name matches this
+regular expression, the command in the second string is executed with
+the file as an argument.
 
 If the command string contains \"%s\", the file name will be inserted
 at that point in the command string. If there's no \"%s\" in the
-command string, the file name will be appended to the command before
-executing.  ")
+command string, the file name will be appended to the command string
+before executing.
+
+There are several user variables to tailor the behaviour of gnus-uu to
+your needs. First we have `gnus-uu-user-view-rules', which is the
+variable gnus-uu first consults when trying to decide how to view a
+file. If this variable contains no matches, gnus-uu examines the
+default rule vaiable provided in this package. If gnus-uu finds no
+match here, it uses `gnus-uu-user-view-rules-end' to try to make a
+match.
+
+Unless, of course, you are using the interactive view mode. Then
+`gnus-uu-user-interactive-view-rules' and
+`gnus-uu-user-interactive-view-rules-end' will be used instead.")
 
 (defvar gnus-uu-user-view-rules nil 
-  "User variable. See explanation of the 'gnus-uu-default-view-rules' for 
+  "Variable detailing what actions are to be taken to view a file.
+See the documentation on the `gnus-uu-default-view-rules' variable for 
 details.")
 
 (defvar gnus-uu-user-view-rules-end nil
-  "The user may use this variable to provide default viewing rules.")
+  "Variable saying what actions are to be taken if no rule matched the file name.
+See the documentation on the `gnus-uu-default-view-rules' variable for 
+details.")
 
 (defvar gnus-uu-user-interactive-view-rules nil
-  "If this variable is set and interactive mode is to be used, this
-variable will be used instead of gnus-uu-user-view-rules.")
+  "Variable detailing what actions are to be taken to view a file when using interactive mode.
+See the documentation on the `gnus-uu-default-view-rules' variable for 
+details.")
 
 (defvar gnus-uu-user-interactive-view-rules-end nil
-  "If this variable is set and interactive mode is to be used, this
-variable will be used instead of gnus-uu-user-view-rules-end.")
+  "Variable saying what actions are to be taken if no rule matched the file name when using interactive mode.
+See the documentation on the `gnus-uu-default-view-rules' variable for 
+details.")
 
-(defconst gnus-uu-default-interactive-view-rules-begin
+(defvar gnus-uu-default-interactive-view-rules-begin
   (list
-   '("\\.te?xt$\\|\\.doc$\\|read.*me\\|\\.c?$\\|\\.h$\\|\\.bat$\\|\\.asm$\\|makefile" "cat %s | sed s///g")
-   '("\\.pas$" "cat %s | sed s///g")
+   '("\\.te?xt$\\|\\.doc$\\|read.*me\\|\\.c?$\\|\\.h$\\|\\.bat$\\|\\.asm$\\|makefile" "cat %s | sed s/
+//g")
+   '("\\.pas$" "cat %s | sed s/
+//g")
    ))
 
 
 ;; Default unpacking commands
 
-(defconst gnus-uu-default-archive-rules 
+(defvar gnus-uu-default-archive-rules 
   (list '("\\.tar$" "tar xf")
 	'("\\.zip$" "unzip")
 	'("\\.ar$" "ar x")
@@ -443,82 +598,82 @@ variable will be used instead of gnus-uu-user-view-rules-end.")
 	'("\\.Z$" "uncompress")
 	'("\\.gz$" "gunzip")
 	'("\\.arc$" "arc -x"))
-  "*")
-(defvar gnus-uu-user-archive-rules nil)
+  )
+
+(defvar gnus-uu-user-archive-rules nil
+  "A list that can be set to override the default archive unpacking commands.
+To use, for instance, 'untar' to unpack tar files and 'zip -x' to
+unpack zip files, say the following:
+  (setq gnus-uu-user-archive-rules 
+    (list '(\"\\\\.tar$\" \"untar\")
+          '(\"\\\\.zip$\" \"zip -x\")))"
+  )
 
 
 ;; Various variables users may set 
 
 (defvar gnus-uu-tmp-dir "/tmp/" 
-  "Variable saying where gnus-uu is to do its work. Default is \"/tmp/\".")
+  "Variable saying where gnus-uu is to do its work.
+Default is \"/tmp/\".")
 
 (defvar gnus-uu-do-not-unpack-archives nil 
-  "Set this variable if you don't want gnus-uu to look inside
-archives for files to display. Default is `nil'.")
-
-(defvar gnus-uu-do-not-unpack-archives nil 
-  "Set this variable if you don't want gnus-uu to look inside
-archives for files to display. Default is `nil'.")
+  "Non-nil means that gnus-uu won't peek inside archives looking for files to dispay. 
+Default is nil.")
 
 (defvar gnus-uu-view-and-save nil 
-  "Set this variable if you want to be asked if you want to save the
-file after viewing. If this variable is nil, which is the default, 
-gnus-uu won't offer to save a file if viewing is successful. Default
-is `nil'.")
+  "Non-nil means that the user will always be asked to save a file after viewing it.
+If the variable is nil, the suer will only be asked to save if the
+viewing is unsuccessful. Default is nil.")
 
 (defvar gnus-uu-asynchronous nil
-  "Set this variable to `t' if you don't want gnus-uu to wait until 
-the viewing command has ended before returning control to emacs.
-Default is `nil'.")
+  "Non-nil means that files will be viewed asynchronously.
+Default is nil.")
 
 (defvar gnus-uu-ask-before-view nil
-  "Set this variable to `t' if you want gnus-uu to ask you before 
-viewing every file. Useful when `gnus-uu-asynchronous' is set. Default
-is `nil'.")
+  "Non-nil means that gnus-uu will ask you before viewing each file. 
+Especially useful when `gnus-uu-asynchronous' is set. Default is
+nil.")
 
 (defvar gnus-uu-ignore-default-view-rules nil
-  "Set this variable if you want gnus-uu to ignore the default viewing
-rules and just use the rules given in gnus-uu-user-view-rules. Default
-is `nil'.")
+  "Non-nil means that gnus-uu will ignore the default viewing rules.
+Only the user viewing rules will be consulted. Default is nil.")
 
-(defvar gnus-uu-ignore-default-archive-rules nil
-  "Set this variable if you want gnus-uu to ignore the default archive
-unpacking commands and just use the rules given in 
-gnus-uu-user-archive-rules. Default is `nil'.")
+(defvar gnus-uu-ignore-default-archive-rules nil 
+  "Non-nil means that gnus-uu will ignore the default archive unpacking commands.  
+Only the user unpacking commands will be consulted. Default is nil.")
 
 (defvar gnus-uu-kill-carriage-return t
-  "Set this variable if you want to remove all carriage returns from
-the mail articles. Default is `t'.")
+  "Non-nil means that gnus-uu will strip all carriage returns from articles.
+Default is t.")
 
 (defvar gnus-uu-unmark-articles-not-decoded nil
-  "If this variable is set, artciles that are unsuccessfully decoded
-are marked as unread. Default is `nil'.")
+  "Non-nil means that gnus-uu will mark articles that were unsuccessfully decoded as unread. 
+Default is nil.")
 
 (defvar gnus-uu-output-window-height 20 
-  "This variable says how hight the output buffer window is to be when
-using interactive view mode. Change it at your convenience. Default is 20.")
+  "This variable says how tall the output buffer window is to be when using interactive view mode. 
+Change it at your convenience. Default is 20.")
 
 (defvar gnus-uu-correct-stripped-uucode nil
-  "If this variable is set, gnus-uu will try to correct uuencoded files that
-have had trailing spaces stripped by nosy mail saoftware. Default is `nil'.")
+  "Non-nil means that gnus-uu will *try* to fix uuencoded files that have had traling spaces deleted. 
+Default is nil.")
 
 (defvar gnus-uu-use-interactive-view nil
-  "If this variable is set, gnus-uu will create a special buffer where
-the user may choose interactively which files to view and how. Default
-is `nil'.")
+  "Non-nil means that gnus-uu will use interactive viewing mode.
+Gnus-uu will create a special buffer where the user may choose
+interactively which files to view and how. Default is nil.")
 
 
 ;; Internal variables
 
-(defconst gnus-uu-begin-string "^begin[ \t]+[0-7][0-7][0-7][ \t]+\\(.*\\)$" 
-  "*")
+(defconst gnus-uu-begin-string "^begin[ \t]+[0-7][0-7][0-7][ \t]+\\(.*\\)$")
 (defconst gnus-uu-end-string "^end[ \t]*$")
 (defconst gnus-uu-body-line
-"^M.............................................................?$" "*")
-(defconst gnus-uu-shar-begin-string "^#! */bin/sh" "*")
+"^M.............................................................?$")
+(defconst gnus-uu-shar-begin-string "^#! */bin/sh")
 
-(defvar gnus-uu-shar-file-name nil "*")
-(defconst gnus-uu-shar-name-marker "begin [0-7][0-7][0-7][ \t]+\\(\\(\\w\\|\\.\\)*\\b\\)" "*")
+(defvar gnus-uu-shar-file-name nil)
+(defconst gnus-uu-shar-name-marker "begin [0-7][0-7][0-7][ \t]+\\(\\(\\w\\|\\.\\)*\\b\\)")
 (defvar gnus-uu-shar-directory nil)
 
 (defvar gnus-uu-file-name nil)
@@ -532,6 +687,7 @@ is `nil'.")
 (defconst gnus-uu-output-buffer-name "*Gnus UU Output*")
 (defconst gnus-uu-result-buffer "*Gnus UU Result Buffer*")
 
+(defconst gnus-uu-error-during-unarching nil)
 
 ;; Interactive functions
 
@@ -539,25 +695,27 @@ is `nil'.")
 
 (defun gnus-uu-decode-and-view ()
   "UUdecodes and 'views' (if possible) the resulting file.
-'Viewing' can be any action at all, as defined in the 
-'gnus-uu-file-action-list' variable. Running 'xv' on gifs and
-'play' on au files are popular actions. If the file can't be viewed,
-the user is asked if she would like to save the file instead."
-  (interactive)
+'Viewing' can be any action at all, as defined in the
+`gnus-uu-file-action-list' variable. Running 'xv' on gifs and 'cat
+>/dev/audio' on au files are popular actions. If the file can't be
+viewed, the user is asked if she would like to save the file instead."
+  (interactive) 
   (gnus-uu-decode-and-view-or-save t nil))
 
 (defun gnus-uu-decode-and-save ()
-  "uudecodes and saves the resulting file."
+  "Decodes and saves the resulting file."
   (interactive)
   (gnus-uu-decode-and-view-or-save nil nil))
 
 (defun gnus-uu-marked-decode-and-view ()
-  "The marked equivalent to gnus-uu-decode-and-view."
+  "Decodes and views articles marked.
+The marked equivalent to `gnus-uu-decode-and-view'."
   (interactive)
   (gnus-uu-decode-and-view-or-save t t))
 
 (defun gnus-uu-marked-decode-and-save ()
-  "The marked equivalent to gnus-uu-decode-and-save."
+  "Decodes and saves articles marked.
+The marked equivalent to `gnus-uu-decode-and-save'."
   (interactive)
   (gnus-uu-decode-and-view-or-save nil t))
       
@@ -565,22 +723,26 @@ the user is asked if she would like to save the file instead."
 ;; Unshar and view
 
 (defun gnus-uu-shar-and-view ()
-  "Does the same as gnus-uu-decode-and-view for shar files."
+  "Unshars and views articles.
+The shar equivalent of `gnus-uu-decode-and-view'."
   (interactive)
   (gnus-uu-unshar-and-view-or-save t nil))
 
 (defun gnus-uu-shar-and-save ()
-  "Does the same as gnus-uu-decode-and-save for shar files."
+  "Unshars and saves files.
+The shar equivalent to `gnus-uu-decode-and-save'."
   (interactive)
   (gnus-uu-unshar-and-view-or-save nil nil))
 
 (defun gnus-uu-marked-shar-and-view ()
-  "The marked equivalent to gnus-uu-shar-and-view."
+  "Unshars and views articles marked.
+The marked equivalent to `gnus-uu-shar-and-view'."
   (interactive)
   (gnus-uu-unshar-and-view-or-save t t))
 
 (defun gnus-uu-marked-shar-and-save ()
-  "The marked equivalent to gnus-uu-shar-and-save."
+  "Unshars and saves articles marked.
+The marked equivalent to `gnus-uu-shar-and-save'."
   (interactive)
   (gnus-uu-unshar-and-view-or-save nil t))
 
@@ -588,7 +750,9 @@ the user is asked if she would like to save the file instead."
 ;; Decode and show in buffer
 
 (defun gnus-uu-decode-and-show-in-buffer ()
-  "uudecodes the current article and displays the result in a buffer."
+  "Uudecodes the current article and displays the result in a buffer.
+Might be useful if someone has, for instance, some text uuencoded in
+their sigs. (Stranger things have happened.)"
   (interactive)
   (let ((uu-buffer (get-buffer-create gnus-uu-output-buffer-name))
 	list-of-articles file-name)
@@ -625,8 +789,7 @@ the user is asked if she would like to save the file instead."
     (message "gnus-uu will now view without asking first")))
 
 (defun gnus-uu-toggle-always-ask ()
-  "This function toggles whether to ask saving a file even after successful
-viewing."
+  "This function toggles whether to always ask to save a file after viewing."
   (interactive)
   (if (setq gnus-uu-view-and-save (not gnus-uu-view-and-save))
       (message "gnus-uu will now ask to save the file after viewing")
@@ -708,26 +871,32 @@ viewing."
 ;; Multi functions
 
 (defun gnus-uu-multi-decode-and-view ()
-  "This function lets the user decide what method to use for decoding.
-Other than that, it's equivalent to the other decode-and-view functions."
+  "Choose a method of decoding and then decode and view.
+This function lets the user decide what method to use for decoding.
+Other than that, it's equivalent to the other decode-and-view
+functions."
   (interactive)
   (gnus-uu-multi-decode-and-view-or-save t nil))
 
 (defun gnus-uu-multi-decode-and-save ()
-  "This function lets the user decide what method to use for decoding.
-Other than that, it's equivalent to the other decode-and-save functions."
+  "Choose a method of decoding and then decode and save.
+This function lets the user decide what method to use for decoding.
+Other than that, it's equivalent to the other decode-and-save 
+functions."
   (interactive)
   (gnus-uu-multi-decode-and-view-or-save nil nil))
 
 (defun gnus-uu-marked-multi-decode-and-view ()
-  "This function lets the user decide what method to use for decoding.
+  "Choose a method of decoding and then decode and view the marked articles.
+This function lets the user decide what method to use for decoding.
 Other than that, it's equivalent to the other marked decode-and-view 
 functions."
   (interactive)
   (gnus-uu-multi-decode-and-view-or-save t t))
 
 (defun gnus-uu-marked-multi-decode-and-save ()
-  "This function lets the user decide what method to use for decoding.
+  "Choose a method of decoding and then decode and save the marked articles.
+This function lets the user decide what method to use for decoding.
 Other than that, it's equivalent to the other marked decode-and-save 
 functions."
   (interactive)
@@ -737,7 +906,8 @@ functions."
   (let (decode-type)
     (message "(u)udecode, (s)har, s(a)ve, (b)inhex: ")
     (setq decode-type (read-char))
-    (if (= decode-type ?) (setq decode-type ?u))
+    (if (= decode-type ?
+) (setq decode-type ?u))
     (if (= decode-type ?u)
 	(gnus-uu-decode-and-view-or-save view marked)
       (if (= decode-type ?s)
@@ -752,63 +922,22 @@ functions."
 
 ;; uuencode and post
 
-(defun gnus-uu-news-inews ()
-  "Send a news message using inews."
+(defconst gnus-uu-uuencode-post-length 90)
+
+(defun gnus-uu-post ()
   (interactive)
-  (let* (newsgroups subject
-		    (case-fold-search nil))
-    (save-excursion
-      (save-restriction
-	(goto-char (point-min))
-	(search-forward (concat "\n" mail-header-separator "\n"))
-	(narrow-to-region (point-min) (point))
-	(setq newsgroups (mail-fetch-field "newsgroups")
-	      subject (mail-fetch-field "subject")))
-      (widen)
-      (goto-char (point-min))
-;      (run-hooks 'news-inews-hook)
-      (goto-char (point-min))
-      (search-forward (concat "\n" mail-header-separator "\n"))
-      (replace-match "\n\n")
-      (goto-char (point-max))
-      ;; require a newline at the end for inews to append .signature to
-      (or (= (preceding-char) ?\n)
-	  (insert ?\n))
-      (message "Posting to USENET...")
-      (call-process-region (point-min) (point-max) 
-			   news-inews-program nil 0 nil
-			   "-h")	; take all header lines!
-			   ;@@ setting of subject and newsgroups still needed?
-			   ;"-t" subject
-			   ;"-n" newsgroups
-      (message "Posting to USENET... done")
-      (goto-char (point-min))		;restore internal header separator
-      (search-forward "\n\n")
-      (replace-match (concat "\n" mail-header-separator "\n")))))
-
-(autoload 'news-inews "rnewspost")
-
-(defun gnus-uu-post-buffer (&optional first)
-  (append-to-file 1 (point-max) "/tmp/gnusuutull")
-;  (if first
-;      (news-inews)
-;    (gnus-uu-news-inews))
-  (message "posted"))
-
-(defconst gnus-uu-uuencode-post-length 20)
-
-(defun gnus-uu-uuencode-and-post ()
-  (interactive)
-  (let (file uubuf sendbuf short-file length parts header i end beg
-	     beg-line minlen)
+  (let ((uuencode-buffer-name "*uuencode buffer*")
+	(send-buffer-name "*uuencode send buffer*")
+	(top-string "[ cut here %s (%s %d/%d) %s gnus-uu ]")
+	file uubuf short-file length parts header i end beg
+	beg-line minlen buf post-buf whole-len)
     (setq file (read-file-name 
 		"What file do you want to uuencode and post? " "~/Unrd.jpg"))
     (if (not (file-exists-p file))
 	(message "%s: No such file" file)
       (save-excursion
-	(setq uubuf (get-buffer-create "*uuencode buffer*"))
-	(setq sendbuf (get-buffer-create "*uuencode send buffer*"))
-	(set-buffer uubuf)
+	(setq post-buf (current-buffer))
+	(set-buffer (setq uubuf (get-buffer-create uuencode-buffer-name)))
 	(erase-buffer)
 	(if (string-match "^~/" file)
 	    (setq file (concat "$HOME" (substring file 1))))
@@ -836,21 +965,32 @@ functions."
 	  (progn
 	    (end-of-line)
 	    (insert (format " (0/%d)" parts))))
-      (gnus-uu-post-buffer t)
+;	(save-excursion 
+;	  (set-buffer (get-buffer-create "*tull"))
+;	  (erase-buffer)
+;	  (goto-char (point-max))
+;	  (insert-buffer send-buffer-name))
+      (gnus-inews-news)
+
       (save-excursion
-	(set-buffer sendbuf)
 	(setq i 1)
 	(setq beg 1)
 	(while (not (> i parts))
-	  (set-buffer sendbuf)
+	  (set-buffer (get-buffer-create send-buffer-name))
 	  (erase-buffer)
 	  (insert header)
 	  (insert "\n")
-	  (setq minlen (/ (- 62 (length (format " (%d/%d) " i parts))) 2))
-	  (setq beg-line (format "[ cut here %s (%d/%d) %s gnus-uu ]\n" 
-			  (make-string (- minlen 11) ?-) i parts
-			  (make-string (- minlen 10) ?-)))
+	  (setq whole-len
+		(- 62 (length (format top-string "" short-file i parts ""))))
+	  (setq minlen (/ whole-len 2))
+	  (setq 
+	   beg-line 
+	   (format top-string
+	    (make-string minlen ?-) 
+	    short-file i parts
+	    (make-string (if (= 0 (% whole-len 2)) (1- minlen) minlen) ?-)))
 	  (insert beg-line)
+	  (insert "\n")
 	  (goto-char 1)
 	  (if (re-search-forward "^Subject: " nil t)
 	      (progn
@@ -866,10 +1006,19 @@ functions."
 	    (setq end (point)))
 	  (insert-buffer-substring uubuf beg end)
 	  (insert beg-line)
+	  (insert "\n")
 	  (setq beg end)
 	  (setq i (1+ i))
-	  (gnus-uu-post-buffer)))
-      )))
+;	  (save-excursion 
+;	    (set-buffer (get-buffer-create "*tull"))
+;	    (goto-char (point-max))
+;	    (insert-buffer send-buffer-name))
+	  (gnus-inews-news)
+	  ))
+      (and (setq buf (get-buffer send-buffer-name))
+	   (kill-buffer buf))
+      (and (setq buf (get-buffer uuencode-buffer-name))
+	   (kill-buffer buf)))))
 
 
 
@@ -877,29 +1026,33 @@ functions."
 
 (defconst gnus-uu-rest-of-articles nil)
 (defconst gnus-uu-do-sloppy-uudecode nil)
-(defvar gnus-uu-current-save-dir nil "*")
+(defvar gnus-uu-current-save-dir nil)
 
 (defun gnus-uu-decode-and-save-all-unread-articles ()
-  "This function reads all unread articles in the current group and
-sees whether it can uudecode the articles. The user will be prompted
-for an directory to put the resulting (if any) files."
+  "Try to decode all unread articles and saves the result.
+This function reads all unread articles in the current group and sees
+whether it can uudecode the articles. The user will be prompted for an
+directory to put the resulting (if any) files."
   (interactive)
   (gnus-uu-decode-and-save-articles t t))
 
 (defun gnus-uu-decode-and-save-all-articles ()
-  "Does the same as gnus-uu-decode-and-save-all-unread-articles, except
+  "Try to decode all articles and saves the result.
+Does the same as `gnus-uu-decode-and-save-all-unread-articles', except
 that it grabs all articles visible, unread or not."
   (interactive)
   (gnus-uu-decode-and-save-articles nil t))
 
 (defun gnus-uu-decode-and-save-all-unread-articles-and-mark ()
-  "Does the same as gnus-uu-decode-and-save-all-unread-articles, except that 
+  "Try to decode all unread articles and saves the result and marks everything as read.
+Does the same as `gnus-uu-decode-and-save-all-unread-articles', except that 
 it marks everything as read, even if it couldn't decode the articles."
   (interactive)
   (gnus-uu-decode-and-save-articles t nil))
 
 (defun gnus-uu-decode-and-save-all-articles-and-mark ()
-  "Does the same as gnus-uu-decode-and-save-all-articles, except that 
+  "Try to decode all articles and saves the result and marks everything as read.
+Does the same as `gnus-uu-decode-and-save-all-articles', except that 
 it marks everything as read, even if it couldn't decode the articles."
   (interactive)
   (gnus-uu-decode-and-save-articles nil nil))
@@ -949,15 +1102,18 @@ it marks everything as read, even if it couldn't decode the articles."
 
     (gnus-uu-summary-next-subject)
 
-    (if (and gnus-uu-use-interactive-view view decoded)
-	(gnus-uu-do-interactive))
+    (if gnus-uu-error-during-unarching 
+	(gnus-uu-clean-up)
+      (if (and gnus-uu-use-interactive-view view decoded)
+	  (gnus-uu-do-interactive)))
 
     (if (or (not gnus-uu-use-interactive-view) (not decoded))
 	(gnus-uu-clean-up))))
 
+
+; Unshars and views/saves marked/unmarked articles.
     
 (defun gnus-uu-unshar-and-view-or-save (view marked)
-  "Unshars and views/saves marked/unmarked articles."
   (gnus-uu-initialize)
   (let (tar-file files decoded)
     (save-excursion
@@ -1019,8 +1175,7 @@ it marks everything as read, even if it couldn't decode the articles."
 				      gnus-newsgroup-name)))
 	(gnus-uu-add-file gnus-uu-saved-article-name)
 	(if (gnus-uu-grab-articles list-of-articles 'gnus-uu-save-article)
-	    (gnus-uu-save-file gnus-uu-saved-article-name))
-	))))
+	    (gnus-uu-save-file gnus-uu-saved-article-name))))))
 
 
 (defun gnus-uu-save-article (buffer in-state)
@@ -1049,7 +1204,6 @@ it marks everything as read, even if it couldn't decode the articles."
 	  (setq list-of-articles (gnus-uu-get-list-of-articles))
 	(setq list-of-articles (reverse gnus-uu-marked-article-list))
 	(setq gnus-uu-marked-article-list nil))
-'      (setq gn-dummy-l list-of-articles)
       (if (not list-of-articles)
 	  (progn
 	    (message "No list of articles")
@@ -1061,8 +1215,7 @@ it marks everything as read, even if it couldn't decode the articles."
 				      gnus-newsgroup-name)))
 	(gnus-uu-add-file gnus-uu-binhex-article-name)
 	(if (gnus-uu-grab-articles list-of-articles 'gnus-uu-binhex-article)
-	    (gnus-uu-save-file gnus-uu-binhex-article-name))
-	))))
+	    (gnus-uu-save-file gnus-uu-binhex-article-name))))))
 
 
 (defun gnus-uu-binhex-article (buffer in-state)
@@ -1094,21 +1247,22 @@ it marks everything as read, even if it couldn't decode the articles."
 
 ;; Internal view commands
 
+; This function takes two parameters. The first is name of the file to
+; be viewed. `gnus-uu-view-file' will look for an action associated
+; with the file type of the file. If it finds an appropriate action,
+; the file will be attempted displayed.
+; 
+; The second parameter specifies if the user is to be asked whether to
+; save the file if viewing is unsuccessful. t means "do not ask."
+;
+; Note that the file given will be deleted by this function, one way
+; or another. If `gnus-uu-asynchronous' is set, it won't be deleted
+; right away, but sometime later. If the user is offered to save the
+; file, it'll be moved to wherever the user wants it.
+
+; `gnus-uu-view-file' returns t if viewing is successful.
+
 (defun gnus-uu-view-file (file-name &optional dont-ask)
-  "This function takes two parameters. The first is name of the file to be 
-viewed. gnus-uu-view-file will look for an action associated with the file
-type of the file. If it finds an appropriate action, the file will be
-attempted displayed.
-
-The second parameter specifies if the user is to be asked whether to
-save the file if viewing is unsuccessful. `t' means 'do not ask.'
-
-Note that the file given will be deleted by this function, one way or
-another. If `gnus-uu-asynchronous' is set, it won't be deleted right
-away, but sometime later. If the user is offered to save the file, it'll
-be moved to wherever the user wants it. 
-
-gnus-uu-view-file returns `t' if viewing is successful."
   (let (action did-view
 	(didnt-want t)
 	(do-view t))
@@ -1160,13 +1314,16 @@ gnus-uu-view-file returns `t' if viewing is successful."
 		   (if (and
 			didnt-want
 			(or (not action)
-			    (and (string= action "gnus-uu-archive") (not did-view))))
+			    (and (string= action "gnus-uu-archive") 
+				 (not did-view))))
 		       (progn
-			 (message (format "Could find no rule for %s" file-name))
+			 (message 
+			  (format "Could find no rule for %s" file-name))
 			 (sit-for 2)))
 		   (and (or (not did-view) gnus-uu-view-and-save)
 			(y-or-n-p 
-			 (format "Do you want to save the file %s? " file-name))
+			 (format "Do you want to save the file %s? "
+				 file-name))
 			(gnus-uu-save-file file-name))))
 
 	     (if (and (file-exists-p file-name) 
@@ -1179,17 +1336,16 @@ gnus-uu-view-file returns `t' if viewing is successful."
 	   did-view))
 
 
+; `gnus-uu-call-synchronous' takes two parameters: The name of the
+; file to be displayed and the command to display it with. Returns t
+; on success and nil if the file couldn't be displayed.
+
 (defun gnus-uu-call-synchronous (file-name action)
-  "Takes two parameters: The name of the file to be displayed and
-the command to display it with. Returns `t' on success and `nil' if
-the file couldn't be displayed."
   (let (did-view command)
     (save-excursion
       (set-buffer (get-buffer-create gnus-uu-output-buffer-name))
       (erase-buffer)
-      (if (string-match "%s" action)
-	  (setq command (format action (concat "'" file-name "'")))
-	(setq command (concat action " " (concat "'" file-name "'"))))
+      (setq command (gnus-uu-command action file-name))
       (message (format "Viewing with '%s'" command))
       (if (not (= 0 (call-process "sh" nil t nil "-c" command)))
 	  (progn
@@ -1202,14 +1358,14 @@ the file couldn't be displayed."
 	(setq did-view t)))
     did-view))
 
+; `gnus-uu-call-asyncronous' takes two parameters: The name of the
+; file to be displayed and the command to display it with. Since the
+; view command is executed asynchronously, it's kinda hard to decide
+; whether the command succeded or not, so this function always returns
+; t. It also adds "; rm -f file-name" to the end of the execution
+; string, so the file will be removed after viewing has ended.
 
 (defun gnus-uu-call-asynchronous (file-name action)
-  "Takes two parameters: The name of the file to be displayed and
-the command to display it with. Since the view command is executed
-asynchronously, it's kinda hard to decide whether the command succeded
-or not, so this function always returns `t'. It also adds \"; rm -f 
-file-name\" to the end of the execution string, so the file will be 
-removed after viewing has ended."
   (let (command file tmp-file start)
     (while (string-match "/" file-name start)
       (setq start (1+ (match-beginning 0))))
@@ -1220,23 +1376,21 @@ removed after viewing has ended."
       (rename-file file-name tmp-file t)
       (setq file-name tmp-file))
 
-    (if (string-match "%s" action)
-	(setq command (format action file-name))
-      (setq command (concat action " " file-name)))
+    (setq command (gnus-uu-command action file-name))
     (setq command (format "%s ; rm -f %s" command file-name))
     (message (format "Viewing with %s" command))
-    (start-process "gnus-uu-view" 
-		   nil "sh" "-c" command)
+    (start-process "gnus-uu-view" nil "sh" "-c" command)
     t))
 
 
+; `gnus-uu-decode-and-strip' does all the main work. It finds out what
+; articles to grab, grabs them, strips the result and decodes. If any
+; of these operations fail, it returns nil, t otherwise.  If shar is
+; t, it will pass this on to `gnus-uu-grab-articles', which will
+; (probably) unshar the articles. If use-marked is non-nil, it won't
+; try to find articles, but use the marked list.
+
 (defun gnus-uu-decode-and-strip (&optional shar use-marked)
-  "This function does all the main work. It finds out what articles
-to grab, grabs them, strips the result and decodes. If any of 
-these operations fail, it returns `nil', `t' otherwise.
-If shar is `t', it will pass this on to gnus-uu-grab-articles
-who will (probably) unshar the articles. If use-marked
-is non-nil, it won't try to find articles, but use the marked list."
   (let (list-of-articles)
     (save-excursion
 
@@ -1254,15 +1408,16 @@ is non-nil, it won't try to find articles, but use the marked list."
 				    'gnus-uu-uustrip-article-as))))))
 
 
+; Takes a string and puts a \ in front of every special character;
+; ignores any leading "version numbers" thingies that they use in the
+; comp.binaries groups, and either replaces anything that looks like
+; "2/3" with "[0-9]+/[0-9]+" or, if it can't find something like that,
+; replaces the last two numbers with "[0-9]+". This, in my experience,
+; should get most postings of a series."
+
 (defun gnus-uu-reginize-string (string)
-  "Takes a string and puts a \\ in front of every special character;
-ignores any leading \"version numbers\"
-thingies that they use in the comp.binaries groups, and either replaces
-anything that looks like \"2/3\" with \"[0-9]+/[0-9]+\" or, if it can't find
-something like that, replaces the last two numbers with \"[0-9]+\". This,
-in my experience, should get most postings of a series." 
   (let ((count 2)
-	(vernum "v[0-9][0-9][a-z][0-9]+:")
+	(vernum "v[0-9]+[a-z][0-9]+:")
 	reg beg)
     (save-excursion
       (set-buffer (get-buffer-create gnus-uu-output-buffer-name))
@@ -1302,9 +1457,10 @@ in my experience, should get most postings of a series."
       (buffer-substring 1 (point-max)))))
 
 
+; Finds all articles that matches the regular expression given.
+; Returns the resulting list.
+
 (defun gnus-uu-get-list-of-articles (&optional subject mark-articles only-unread)
-  "Finds all articles that matches the regular expression given.
-Returns the resulting list."
   (let (beg end reg-subject list-of-subjects list-of-numbers art-num)
     (save-excursion
       
@@ -1369,12 +1525,13 @@ Returns the resulting list."
       list-of-numbers)))
 
 
+; Takes a list of strings and "expands" all numbers in all the
+; strings.  That is, this function makes all numbers equal length by
+; prepending lots of zeroes before each number. This is to ease later
+; sorting to find out what sequence the articles are supposed to be
+; decoded in. Returns the list of expanded strings.
+
 (defun gnus-uu-expand-numbers (string-list)
-  "Takes a list of strings and \"expands\" all numbers in all the strings.
-That is, this function makes all numbers equal length by prepending lots
-of zeroes before each number. This is to ease later sorting to find out
-what sequence the articles are supposed to be decoded in. Returns the list
-of expanded strings."
   (let (string out-list pos num)
     (save-excursion
       (set-buffer (get-buffer-create gnus-uu-output-buffer-name))
@@ -1403,36 +1560,37 @@ of expanded strings."
     out-list))
 
 
+; Used in a sort for finding out what string is bigger, but ignoring
+; everything before the subject part.
+
 (defun gnus-uu-string< (string1 string2) 
-  "Used in a sort for finding out what string is bigger, but ignoring
-everything before the subject part."
   (string< (substring string1 (string-match "\\] " string1))
 	   (substring string2 (string-match "\\] " string2))))
 
 
 ;; gnus-uu-grab-article
-;;
-;; This is the general multi-article treatment function. 
-;; It takes a list of articles to be grabbed and a function
-;; to apply to each article. It puts the result in 
-;; gnus-uu-result-buffer.
-;;
-;; The function to be called should take two parameters.
-;; The first is the buffer that has the article that should
-;; be treated. The function should leave the result in this
-;; buffer as well. This result is then appended on to the
-;; gnus-uu-result-buffer.
-;; The second parameter is the state of the list of articles,
-;; and can have three values: 'start, 'middle and 'end.
-;; The function can have several return values. 
-;; 'error if there was an error while treating.
-;; 'end if the last article has been sighted.
-;; 'begin-and-end if the article is both the beginning and
-;;   the end. All these three return values results in 
-;;   gnus-uu-grab-articles stopping traversing of the list
-;;   of articles.
-;; 'middle if the article is a "middle" article.
-;; 'ok if everything is ok.
+;
+; This is the general multi-article treatment function.  It takes a
+; list of articles to be grabbed and a function to apply to each
+; article. It puts the result in `gnus-uu-result-buffer'.
+;
+; The function to be called should take two parameters.  The first is
+; the buffer that has the article that should be treated. The function
+; should leave the result in this buffer as well. This result is then
+; appended on to the `gnus-uu-result-buffer'.
+;
+; The second parameter is the state of the list of articles, and can
+; have three values: 'start, 'middle and 'end.
+;
+; The function can have several return values: 
+; 'error if there was an error while treating.
+; 'end if the last article has been sighted.
+; 'begin-and-end if the article is both the beginning and
+;   the end. All these three return values results in 
+;   `gnus-uu-grab-articles' stopping traversing of the list
+;   of articles.
+; 'middle if the article is a "middle" article.
+; 'ok if everything is ok.
 
 (defvar gnus-uu-has-been-grabbed nil)
 
@@ -1449,17 +1607,17 @@ everything before the subject part."
 	(gnus-summary-mark-as-unread (car gnus-uu-has-been-grabbed) t)
 	(setq gnus-uu-has-been-grabbed (cdr gnus-uu-has-been-grabbed)))
       (if dont-unmark-last-article
-	  (setq gnus-uu-has-been-grabbed (list art)))
-      )))
+	  (setq gnus-uu-has-been-grabbed (list art))))))
 
+
+; This function takes a list of articles and a function to apply to
+; each article grabbed. The result of the function is appended on to
+; `gnus-uu-result-buffer'.
+; 
+; This function returns t if the grabbing and the process-function
+; has been successful and nil otherwise."
 
 (defun gnus-uu-grab-articles (list-of-articles process-function)
-  "This function takes a list of articles and a function to apply 
-to each article grabbed. The result of the function is appended
-on to gnus-uu-result-buffer. 
-
-This function returns `t' if the grabbing and the process-function
-has been successful and `nil' otherwise."
   (let ((result-buffer (get-buffer-create gnus-uu-result-buffer))
 	(state 'first)
 	(process-state 'ok)
@@ -1555,14 +1713,17 @@ has been successful and `nil' otherwise."
 
       (if gnus-uu-kill-carriage-return
 	  (progn
-	    (while (search-forward "" nil t)
+	    (while (search-forward "
+" nil t)
 	      (delete-backward-char 1))
 	    (goto-char 1)))
 
-      (if (not (re-search-forward 
-		(concat gnus-uu-begin-string "\\|" gnus-uu-body-line) nil t))
-	    (setq state 'wrong-type)
+      (if (not (re-search-forward gnus-uu-begin-string nil t))
+	  (if (not (re-search-forward gnus-uu-body-line nil t))
+	    (setq state 'wrong-type)))
      
+      (if (eq state 'wrong-type)
+	  ()
 	(beginning-of-line)
 	(setq start-char (point))
 
@@ -1573,12 +1734,13 @@ has been successful and `nil' otherwise."
 	      (while (re-search-forward "/" name-end t)
 		(replace-match "-"))
 	      (setq gnus-uu-file-name (buffer-substring name-beg name-end))
-	      (setq pst (process-status 
-			 (or gnus-uu-uudecode-process "nevair")))
-	      (if (or (eq pst 'stop) (eq pst 'run))
-		  (progn
-		    (delete-process gnus-uu-uudecode-process)
-		    (gnus-uu-unmark-list-of-grabbed t)))
+	      (and gnus-uu-uudecode-process
+		   (setq pst (process-status 
+			  (or gnus-uu-uudecode-process "nevair")))
+		   (if (or (eq pst 'stop) (eq pst 'run))
+		       (progn
+			 (delete-process gnus-uu-uudecode-process)
+			 (gnus-uu-unmark-list-of-grabbed t))))
 	      (setq gnus-uu-uudecode-process
 		    (start-process 
 		     "*uudecode*" 
@@ -1592,33 +1754,53 @@ has been successful and `nil' otherwise."
 	  (setq state 'middle))
 	
 	(goto-char (point-max))
+
 	(re-search-backward 
 	 (concat gnus-uu-body-line "\\|" gnus-uu-end-string) nil t)
+	(beginning-of-line)
+
 	(if (looking-at gnus-uu-end-string)
 	    (if (eq state 'begin)
 		(setq state 'begin-and-end)
 	      (setq state 'end)))
 	(forward-line 1)
 
-	(setq pst (process-status (or gnus-uu-uudecode-process "nevair")))
-	(if (or (eq pst 'run) (eq pst 'stop))
-	    (progn
-	      (gnus-uu-check-correct-stripped-uucode start-char (point))
-	      (condition-case err
-		  (process-send-region gnus-uu-uudecode-process start-char 
-				       (point))
-		(error 
-		 (progn 
-		   (setq state 'wrong-type)
-		   (delete-process gnus-uu-uudecode-process)))))
-	  (setq state 'wrong-type)))
+;	(message "Ja: %s" state)(sit-for 0)(sleep-for 2)
+
+	(and gnus-uu-uudecode-process
+	     (setq pst (process-status (or gnus-uu-uudecode-process "nevair")))
+	     (if (or (eq pst 'run) (eq pst 'stop))
+		 (progn
+		   (if gnus-uu-correct-stripped-uucode
+		       (progn
+			 (gnus-uu-check-correct-stripped-uucode 
+			  start-char (point))
+			 (goto-char (point-max))
+			 (re-search-backward 
+			  (concat gnus-uu-body-line "\\|" gnus-uu-end-string) 
+			  nil t)
+			 (forward-line 1)))
+		   (condition-case err
+		       (process-send-region gnus-uu-uudecode-process 
+					    start-char (point))
+		     (error 
+		      (progn 
+			(message "Her var en uuerror")
+			(sleep-for 2)
+			(setq state 'wrong-type)
+			(delete-process gnus-uu-uudecode-process)))))
+	       (setq state 'wrong-type)))
+	(if (not gnus-uu-uudecode-process)
+	    (setq state 'wrong-type)))
+
       (setq buffer-read-only buf-state))
     state))
 
 
+; This function is used by `gnus-uu-grab-articles' to treat
+; a shared article.
+
 (defun gnus-uu-unshar-article (process-buffer in-state)
-  "This function is used by gnus-uu-grab-articles to treat
-a shared article."
   (let ((state 'ok)
 	start-char)
     (save-excursion
@@ -1635,8 +1817,9 @@ a shared article."
     state))
 
 
+; Returns the name of what the shar file is going to unpack.
+
 (defun gnus-uu-find-name-in-shar ()
-  "Returns the name of what the shar file is going to unpack."
   (let ((oldpoint (point))
 	res)
     (goto-char 1)
@@ -1646,8 +1829,9 @@ a shared article."
     res))
       
 
+; Returns the article number of the given subject.
+
 (defun gnus-uu-article-number (subject)
-  "Returns the article number of the given subject."
   (let (end)
     (string-match "[0-9]+[^0-9]" subject 1)
     (setq end (match-end 0))
@@ -1655,9 +1839,10 @@ a shared article."
      (substring subject (string-match "[0-9]" subject 1) end)))) 
 	      
 
+; UUdecodes everything in the buffer and returns the name of the
+; resulting file.
+
 (defun gnus-uu-decode (directory)
-  "UUdecodes everything in the buffer and returns the name of the resulting
-file."
   (let ((command (concat "cd " directory " ; uudecode"))
 	file-name)
     (save-excursion
@@ -1669,10 +1854,11 @@ file."
       file-name)))
 
 
+; `gnus-uu-choose-action' chooses what action to perform given the name
+; and `gnus-uu-file-action-list'.  Returns either nil if no action is
+; found, or the name of the command to run if such a rule is found.
+
 (defun gnus-uu-choose-action (file-name file-action-list)
-  "Chooses what action to perform given the name and gnus-uu-file-action-list.
-Returns either nil if no action is found, or the name of the command
-to run if such a rule is found."
   (let ((action-list (copy-sequence file-action-list))
 	rule action)
     (while (not (or (eq action-list ()) action))
@@ -1683,8 +1869,9 @@ to run if such a rule is found."
     action))
 
 
+; Moves the file from the tmp directory to where the user wants it.
+
 (defun gnus-uu-save-file (from-file-name &optional default-dir ignore-existing)
-  "Moves the file from the tmp directory to where the user wants it."
   (let (dir file-name command)
     (string-match "/[^/]*$" from-file-name)
     (setq file-name (substring from-file-name (1+ (match-beginning 0))))
@@ -1726,13 +1913,13 @@ to run if such a rule is found."
     (setq gnus-uu-current-save-dir (concat dir "/"))))
 
 
+; Unpacks an archive and views all the files in it. Returns t if
+; viewing one or more files is successful.
+
 (defun gnus-uu-treat-archive (file-name)
-  "Unpacks an archive and views all the files in it. Returns `t' if
-viewing one or more files is successful."
   (let ((arc-dir (make-temp-name 
 		  (concat gnus-uu-tmp-dir "gnusuu")))
-	action command files file did-view short-file-name
-	error-during-unarching)
+	action command files file did-view short-file-name)
     (setq action (gnus-uu-choose-action 
 		  file-name (append gnus-uu-user-archive-rules
 				    (if gnus-uu-ignore-default-archive-rules
@@ -1743,14 +1930,14 @@ viewing one or more files is successful."
 	       (sit-for 2))
       (string-match "/[^/]*$" file-name)
       (setq short-file-name (substring file-name (1+ (match-beginning 0))))
-      (setq command (format "%s %s %s ; cd %s ; %s %s " 
+      (setq command (format "%s %s %s ; cd %s ; %s " 
 			    (if (or (string= action "uncompress")
 				    (string= action "gunzip"))
 				"cp"
 			      "mv")
-			    file-name arc-dir 
+			    (gnus-uu-command "" file-name) arc-dir 
 			    arc-dir 
-			    action short-file-name))
+			    (gnus-uu-command action short-file-name)))
 
       (make-directory arc-dir)
       (gnus-uu-add-file arc-dir)
@@ -1760,21 +1947,21 @@ viewing one or more files is successful."
 	(erase-buffer))
 
       (message (format "Unpacking with %s..." action))
+      (sleep-for 1)
 
       (if (= 0 (call-process "sh" nil 
 			     (get-buffer-create gnus-uu-output-buffer-name)
 			     nil "-c" command))
 	  (message "")
 	(message "Error during unpacking of archive")
-	(sit-for 2)
-	(sit-for 2)
-	(setq error-during-unarching t))
+	(sit-for 0) (sleep-for 2)
+	(setq gnus-uu-error-during-unarching t))
 
       (if (not (or (string= action "uncompress")
 		   (string= action "gunzip")))
 	  (call-process "sh" nil (get-buffer gnus-uu-output-buffer-name)
-			nil "-c" (format "mv %s/%s %s" 
-					 arc-dir short-file-name
+			nil "-c" (format "mv %s %s" 
+					 (gnus-uu-command "" (concat arc-dir "/" short-file-name))
 					 gnus-uu-tmp-dir)))
       (gnus-uu-add-file (concat gnus-uu-tmp-dir short-file-name))
     
@@ -1789,9 +1976,10 @@ viewing one or more files is successful."
     did-view))
 
 
+; Tries to view all the files in the given directory. Returns t if
+; viewing one or more files is successful.
+
 (defun gnus-uu-show-directory (dir &optional dont-delete-files)
-  "Tries to view all the files in the given directory. Returns `t' if
-viewing one or more files is successful."
   (let (files file did-view)
     (setq files (directory-files dir t))
     (setq gnus-uu-generated-file-list
@@ -1868,7 +2056,7 @@ viewing one or more files is successful."
     (setq gnus-uu-marked-article-list ())))
 
 (defun gnus-uu-mark-by-regexp ()
-  "Asks for a regular expression and marks all articles that match for later decoding."
+  "Asks for a regular expression and marks all articles that match."
   (interactive)
   (let (exp)
     (setq exp (read-from-minibuffer "Enter regular expression: "))
@@ -1884,23 +2072,35 @@ viewing one or more files is successful."
     (if (not gnus-uu-correct-stripped-uucode)
 	()
       (goto-char start)
-      (while (< (point) end)
-	(if (looking-at (concat gnus-uu-begin-string "\\|" gnus-uu-end-string))
-	    ()
-	  (if (not found)
+
+      (if (re-search-forward " \\|`" end t)
+	  (progn
+	    (goto-char start)
+	    (while (not (eobp))
 	      (progn
-		(beginning-of-line)
-		(setq beg (point))
-		(end-of-line)
-		(setq length (- (point) beg))))
-	  (beginning-of-line)
-	  (setq beg (point))
-	  (end-of-line)
-	  (if (not (= length (- (point) beg)))
-	      (insert (make-string (- length (- (point) beg))) ? )))
-	(forward-line 1)))))
+		(if (looking-at "\n") (replace-match ""))
+		(forward-line 1))))
+	    
+	(while (not (eobp))
+	  (if (looking-at (concat gnus-uu-begin-string "\\|" 
+				  gnus-uu-end-string))
+	      ()
+	    (if (not found)
+		(progn
+		  (beginning-of-line)
+		  (setq beg (point))
+		  (end-of-line)
+		  (setq length (- (point) beg))))
+	    (setq found t)
+	    (beginning-of-line)
+	    (setq beg (point))
+	    (end-of-line)
+	    (if (not (= length (- (point) beg)))
+		(insert (make-string (- length (- (point) beg)) ? ))))
+	  (forward-line 1))))))
 
 (defun gnus-uu-initialize ()
+  (setq gnus-uu-error-during-unarching nil)
   (if (not gnus-uu-use-interactive-view)
       ()
     (save-excursion
@@ -1915,13 +2115,15 @@ viewing one or more files is successful."
 "))))
 
 
+; Kills the temporary uu buffers, kills any processes, etc.
+
 (defun gnus-uu-clean-up ()
-  "Kills the temporary uu buffers."
   (let (buf pst)
     (setq gnus-uu-do-sloppy-uudecode nil)
-    (setq pst (process-status (or gnus-uu-uudecode-process "nevair")))
-    (if (or (eq pst 'stop) (eq pst 'run))
-	(delete-process gnus-uu-uudecode-process))
+    (and gnus-uu-uudecode-process
+	 (setq pst (process-status (or gnus-uu-uudecode-process "nevair")))
+	 (if (or (eq pst 'stop) (eq pst 'run))
+	     (delete-process gnus-uu-uudecode-process)))
     (and (not gnus-uu-asynchronous) 
 	 (setq buf (get-buffer gnus-uu-output-buffer-name))
 	 (kill-buffer buf))
@@ -1929,9 +2131,11 @@ viewing one or more files is successful."
 	 (kill-buffer buf))))
 
 
+; `gnus-uu-check-for-generated-files' deletes any generated files that
+; hasn't been deleted, if, for instance, the user terminated decoding
+; with `C-g'.
+
 (defun gnus-uu-check-for-generated-files ()
-  "Deletes any generated files that hasn't been deleted, if, for
-instance, the user terminated decoding with `C-g'."
   (let (file)
     (while gnus-uu-generated-file-list
       (setq file (car gnus-uu-generated-file-list))
@@ -1944,10 +2148,15 @@ instance, the user terminated decoding with `C-g'."
 		  (delete-file file))))))))
 
 
+; Add a file to be checked (and deleted if it still exists upon
+; exiting the newsgroup) to a list
 (defun gnus-uu-add-file (file)
   (setq gnus-uu-generated-file-list 
 	(cons file gnus-uu-generated-file-list)))
 
+
+; Go to the next unread subject. If there is no further unread
+; subjects, go to the last subject in the buffer.
 (defun gnus-uu-summary-next-subject ()
   (if (not (gnus-summary-search-forward t))
       (progn
@@ -1959,6 +2168,21 @@ instance, the user terminated decoding with `C-g'."
 	(search-forward ":" nil t)))
   (sit-for 0)
   (gnus-summary-recenter))
+
+; Inputs an action and a file and returns a full command, putting
+; ticks round the file name and escaping any ticks in the file name.
+(defun gnus-uu-command (action file)
+  (let ((ofile ""))
+    (while (string-match "`\\|\"\\|\\$\\|\\\\" file)
+      (progn
+	(setq ofile
+	      (concat ofile (substring file 0 (match-beginning 0)) "\\"
+		      (substring file (match-beginning 0) (match-end 0))))
+	(setq file (substring file (1+ (match-beginning 0))))))
+    (setq ofile (concat "\"" ofile file "\""))
+    (if (string-match "%s" action)
+	(format action ofile)
+      (concat action " " ofile))))
 
 
 ;; Initializing
@@ -1999,14 +2223,12 @@ instance, the user terminated decoding with `C-g'."
       (setq gnus-uu-interactive-file-list
 	    (cons file gnus-uu-interactive-file-list))
       (set-buffer (get-buffer gnus-uu-interactive-buffer-name))
-      (if (string-match "%s" action)
-	  (setq command (format action (concat "'" file "'")))
-	(setq command (concat action " " (concat "'" file "'"))))
-
+      (setq command (gnus-uu-command action file))
       (insert (format "%s\n" command)))))
 
 
 (defun gnus-uu-interactive-execute ()
+  "Executes the command on the current line in interactive mode."
   (interactive)
   (let (beg out-buf command)
     (beginning-of-line)
@@ -2028,7 +2250,7 @@ instance, the user terminated decoding with `C-g'."
 
 
 (defun gnus-uu-interactive-end ()
-  "This function ends interactive view mode and returns to summary mode."
+  "This function exits interactive view mode and returns to summary mode."
   (interactive)
   (let (buf)
     (delete-window gnus-uu-output-window)
@@ -2056,6 +2278,7 @@ instance, the user terminated decoding with `C-g'."
 
 
 (defun gnus-uu-interactive-save-original-file ()
+  "Saves the file from whence the file on the current line came from."
   (interactive)
   (let (file)
     (if (file-exists-p 
@@ -2066,7 +2289,7 @@ instance, the user terminated decoding with `C-g'."
 
 
 (defun gnus-uu-interactive-save-current-file-silent ()
-  "hei"
+  "Saves the file referred to on the current line in the current directory."
   (interactive)
   (gnus-uu-interactive-save-current-file t))
 
@@ -2094,7 +2317,7 @@ instance, the user terminated decoding with `C-g'."
 
 
 (defun gnus-uu-interactive-save-all-files ()
-  "Saves all files referred to on the current line."
+  "Saves all files referred to in the interactive buffer."
   (interactive)
   (let (dir)
     (goto-char 1)
@@ -2105,15 +2328,14 @@ instance, the user terminated decoding with `C-g'."
 (defun gnus-uu-mode ()
   "Major mode for editing view commands in gnus-uu.
 
-
 Commands:
-Return, C-c C-v, C-c C-x        Execute the current command
-C-c C-c                         End interactive mode
-C-c s                           Save the current file
-C-c C-s                         Save the current file without asking 
+\\<gnus-uu-mode-map>Return, C-c C-v, C-c C-x        Execute the current command
+\\[gnus-uu-interactive-end]                         End interactive mode
+\\[gnus-uu-interactive-save-current-file]                           Save the current file
+\\[gnus-uu-interactive-save-current-file-silent]                         Save the current file without asking 
                                 where to put it
-C-c C-a                         Save all files
-C-c C-o                         Save the original file: If the files
+\\[gnus-uu-interactive-save-all-files]                         Save all files
+\\[gnus-uu-interactive-save-original-file]                         Save the original file: If the files
                                 originated in an archive, the archive 
                                 file is saved.
 "
