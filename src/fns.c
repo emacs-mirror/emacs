@@ -31,7 +31,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "keyboard.h"
 
-Lisp_Object Qstring_lessp;
+Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 
 static Lisp_Object internal_equal ();
 
@@ -1273,6 +1273,7 @@ DEFUN ("provide", Fprovide, Sprovide, 1, 1, 0,
   tem = Fmemq (feature, Vfeatures);
   if (NILP (tem))
     Vfeatures = Fcons (feature, Vfeatures);
+  LOADHIST_ATTACH (Fcons (Qprovide, feature));
   return feature;
 }
 
@@ -1287,6 +1288,7 @@ If FILENAME is omitted, the printname of FEATURE is used as the file name.")
   register Lisp_Object tem;
   CHECK_SYMBOL (feature, 0);
   tem = Fmemq (feature, Vfeatures);
+  LOADHIST_ATTACH (Fcons (Qrequire, feature));
   if (NILP (tem))
     {
       int count = specpdl_ptr - specpdl;
@@ -1314,6 +1316,10 @@ syms_of_fns ()
 {
   Qstring_lessp = intern ("string-lessp");
   staticpro (&Qstring_lessp);
+  Qprovide = intern ("provide");
+  staticpro (&Qprovide);
+  Qrequire = intern ("require");
+  staticpro (&Qrequire);
 
   DEFVAR_LISP ("features", &Vfeatures,
     "A list of symbols which are the features of the executing emacs.\n\
