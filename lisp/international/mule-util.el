@@ -211,16 +211,6 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;; Coding system related functions.
 
 ;;;###autoload
-(defun coding-system-base (coding-system)
-  "Return a base of CODING-SYSTEM.
-The base is a coding system of which coding-system property is a
-coding-spec (see the function `make-coding-system')."
-  (let ((coding-spec (get coding-system 'coding-system)))
-    (if (vectorp coding-spec)
-	coding-system
-      (coding-system-base coding-spec))))
-
-;;;###autoload
 (defun coding-system-eol-type-mnemonic (coding-system)
   "Return mnemonic letter of eol-type of CODING-SYSTEM."
   (let ((eol-type (coding-system-eol-type coding-system)))
@@ -232,39 +222,23 @@ coding-spec (see the function `make-coding-system')."
 
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
-  "Return post-read-conversion property of CODING-SYSTEM."
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'post-read-conversion)
-	   (coding-system-post-read-conversion
-	    (get coding-system 'coding-system)))))
+  "Return the value of CODING-SYSTEM's post-read-conversion property."
+  (coding-system-get coding-system 'post-read-conversion))
 
 ;;;###autoload
 (defun coding-system-pre-write-conversion (coding-system)
-  "Return pre-write-conversion property of CODING-SYSTEM."
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'pre-write-conversion)
-	   (coding-system-pre-write-conversion
-	    (get coding-system 'coding-system)))))
+  "Return the value of CODING-SYSTEM's pre-write-conversion property."
+  (coding-system-get coding-system 'pre-write-conversion))
 
 ;;;###autoload
 (defun coding-system-unification-table-for-decode (coding-system)
-  "Return unification-table-for-decode property of CODING-SYSTEM."
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'unification-table-for-decode)
-	   (coding-system-unification-table-for-decode
-	    (get coding-system 'coding-system)))))
+  "Return the value of CODING-SYSTEM's unification-table-for-decode property."
+  (coding-system-get coding-system 'character-unification-table-for-decode))
 
 ;;;###autoload
 (defun coding-system-unification-table-for-encode (coding-system)
-  "Return unification-table-for-encode property of CODING-SYSTEM."
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'unification-table-for-encode)
-	   (coding-system-unification-table-for-encode
-	    (get coding-system 'coding-system)))))
+  "Return the value of CODING-SYSTEM's unification-table-for-encode property."
+  (coding-system-get coding-system 'character-unification-table-for-encode))
 
 (defun coding-system-lessp (x y)
   (cond ((eq x 'no-conversion) t)
@@ -283,51 +257,22 @@ coding-spec (see the function `make-coding-system')."
 (defun coding-system-list (&optional base-only)
   "Return a list of all existing coding systems.
 If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
-  (let (l)
-    (mapatoms (lambda (x) (if (get x 'coding-system) (setq l (cons x l)))))
-    (let* ((codings (sort l 'coding-system-lessp))
-	   (tail (cons nil codings))
-	   coding)
-      ;; At first, remove subsidiary coding systems (eol variants) and
-      ;; alias coding systems (if necessary).
-      (while (cdr tail)
-	(setq coding (car (cdr tail)))
-	(if (or (get coding 'eol-variant)
-		(and base-only (coding-system-parent coding)))
+  (let* ((codings (sort (copy-sequence coding-system-list)
+			'coding-system-lessp))
+	 (tail (cons nil codings)))
+    ;; Remove subsidiary coding systems (eol variants) and alias
+    ;; coding systems (if necessary).
+    (while (cdr tail)
+      (let* ((coding (car (cdr tail)))
+	     (aliases (coding-system-get coding 'alias-coding-systems)))
+	(if (or
+	     ;; CODING is an eol varinant if not in ALIASES.
+	     (not (memq coding aliases))
+	     ;; CODING is an alias if it is not car of ALISES.
+	     (and base-only (not (eq coding (car aliases)))))
 	    (setcdr tail (cdr (cdr tail)))
-	  (setq tail (cdr tail))))
-      codings)))
-
-;;;###autoload
-(defun coding-system-plist (coding-system)
-  "Return property list of CODING-SYSTEM."
-  (let ((found nil)
-	coding-spec eol-type
-	post-read-conversion pre-write-conversion
-	unification-table)
-    (while (not found)
-      (or eol-type
-	  (setq eol-type (get coding-system 'eol-type)))
-      (or post-read-conversion
-	  (setq post-read-conversion
-		(get coding-system 'post-read-conversion)))
-      (or pre-write-conversion
-	  (setq pre-write-conversion
-		(get coding-system 'pre-write-conversion)))
-      (or unification-table
-	  (setq unification-table
-		(get coding-system 'unification-table)))
-      (setq coding-spec (get coding-system 'coding-system))
-      (if (and coding-spec (symbolp coding-spec))
-	  (setq coding-system coding-spec)
-	(setq found t)))
-    (if (not coding-spec)
-	(error "Invalid coding system: %s" coding-system))
-    (list 'coding-spec coding-spec
-	  'eol-type eol-type
-	  'post-read-conversion post-read-conversion
-	  'pre-write-conversion pre-write-conversion
-	  'unification-table unification-table)))
+	  (setq tail (cdr tail)))))
+    codings))
 
 ;;;###autoload
 (defun coding-system-equal (coding-system-1 coding-system-2)
@@ -335,8 +280,12 @@ If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
 Two coding systems are identical if two symbols are equal
 or one is an alias of the other."
   (or (eq coding-system-1 coding-system-2)
-      (equal (coding-system-plist coding-system-1)
-	     (coding-system-plist coding-system-2))))
+      (and (equal (coding-system-spec coding-system-1)
+		  (coding-system-spec coding-system-2))
+	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
+		 (eol-type-2 (coding-system-eol-type coding-system-2)))
+	     (or (eq eol-type-1 eol-type-2)
+		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 
 ;;; Composite charcater manipulations.
