@@ -139,7 +139,8 @@ FRAME specifies the frame and thus the display for interpreting COLOR."
 	 (r (nth 0 values))
 	 (g (nth 1 values))
 	 (b (nth 2 values)))
-    (and (< (abs (- r g)) (/ (max 1 (abs r) (abs g)) 20))
+    (and values
+	 (< (abs (- r g)) (/ (max 1 (abs r) (abs g)) 20))
 	 (< (abs (- g b)) (/ (max 1 (abs g) (abs b)) 20))
 	 (< (abs (- b r)) (/ (max 1 (abs b) (abs r)) 20)))))
 
