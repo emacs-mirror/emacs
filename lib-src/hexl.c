@@ -221,7 +221,7 @@ main (argc, argv)
 		  else
 		    {
 		      if (!i)
-			printf ("%08x: ", address);
+			printf ("%08lx: ", address);
 
 		      if (iso_flag)
 			string[i+1] =
