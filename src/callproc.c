@@ -200,7 +200,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   int fd[2];
   int filefd;
   register int pid;
-  char buf[1024];
+  char buf[16384];
+  char *bufptr = buf;
+  int bufsize = 16384;
   int count = specpdl_ptr - specpdl;
   register unsigned char **new_argv
     = (unsigned char **) alloca ((max (2, nargs - 2)) * sizeof (char *));
@@ -493,8 +495,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   {
     register int nread;
     int first = 1;
+    int total_read = 0;
 
-    while ((nread = read (fd[0], buf, sizeof buf)) != 0)
+    while ((nread = read (fd[0], bufptr, bufsize)) != 0)
       {
 	if (nread < 0)
 	  {
@@ -505,8 +508,19 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #endif
 	  }
 	immediate_quit = 0;
+	total_read += nread;
+	
 	if (!NILP (buffer))
-	  insert (buf, nread);
+	  insert (bufptr, nread);
+
+	/* Make the buffer bigger as we continue to read more data,
+	   but not past 64k.  */
+	if (bufsize < 64 * 1024 && total_read > 32 * bufsize)
+	  {
+	    bufsize *= 2;
+	    bufptr = (char *) alloca (bufsize);
+	  }
+
 	if (!NILP (display) && INTERACTIVE)
 	  {
 	    if (first)
