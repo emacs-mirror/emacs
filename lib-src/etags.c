@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.46";
+char pot_etags_version[] = "@(#) pot revision number is 16.54";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1765,12 +1765,8 @@ find_entries (inf)
 	  {
 	    fdesc *badfdp = *fdpp;
 
-	    if (DEBUG)
-	      fprintf (stderr,
-		       "Removing references to \"%s\" obtained from \"%s\"\n",
-		       badfdp->taggedfname, badfdp->infname);
-
-	    /* Delete the tags referring to badfdp. */
+	    /* Delete the tags referring to badfdp->taggedfname
+	       that were obtained from badfdp->infname. */
 	    invalidate_nodes (badfdp, &nodehead);
 
 	    *fdpp = badfdp->next; /* remove the bad description from the list */
@@ -2568,13 +2564,21 @@ static enum
  */
 static struct tok
 {
-  bool valid;
-  bool named;
-  int offset;
-  int length;
-  int lineno;
-  long linepos;
-  char *line;
+  char *line;			/* string containing the token */
+  int offset;			/* where the token starts in LINE */
+  int length;			/* token length */
+  /*
+    The previous members can be used to pass strings around for generic
+    purposes.  The following ones specifically refer to creating tags.  In this
+    case the token contained here is the pattern that will be used to create a
+    tag.
+  */
+  bool valid;			/* do not create a tag; the token should be
+				   invalidated whenever a state machine is
+				   reset prematurely */
+  bool named;			/* create a named tag */
+  int lineno;			/* source line number of tag */
+  long linepos;			/* source char number of tag */
 } token;			/* latest token read */
 
 /*
@@ -2811,8 +2815,8 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
       return FALSE;
     case st_C_template:
     case st_C_class:
-      if (cblev == 0
-	  && (*c_extp & C_AUTO)	/* automatic detection of C++ language */
+      if ((*c_extp & C_AUTO)	/* automatic detection of C++ language */
+	  && cblev == 0
 	  && definedef == dnone && structdef == snone
 	  && typdef == tnone && fvdef == fvnone)
 	*c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
@@ -2917,8 +2921,16 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
       fvextern = TRUE;
       /* FALLTHRU */
     case st_C_typespec:
-      if (fvdef != finlist && fvdef != fignore && fvdef != vignore)
-	fvdef = fvnone;		/* should be useless */
+      switch  (fvdef)
+	{
+	case finlist:
+	case flistseen:
+	case fignore:
+	case vignore:
+	  break;
+	default:
+	  fvdef = fvnone;
+	}
       return FALSE;
     case st_C_ignore:
       fvextern = FALSE;
@@ -2948,8 +2960,10 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
 	      fvdef = vignore;
 	      return FALSE;
 	    }
-	  if ((*c_extp & C_PLPL) && strneq (str+len-10, "::operator", 10))
+	  if (strneq (str+len-10, "::operator", 10))
 	    {
+	      if (*c_extp & C_AUTO) /* automatic detection of C++ */
+		*c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
 	      fvdef = foperator;
 	      *is_func_or_var = TRUE;
 	      return TRUE;
@@ -2986,7 +3000,8 @@ static struct
 #define curlinepos (lbs[curndx].linepos)
 #define newlinepos (lbs[newndx].linepos)
 
-#define cplpl ((c_ext & C_PLPL) == C_PLPL)
+#define plainc ((c_ext & C_EXT) == C_PLAIN)
+#define cplpl (c_ext & C_PLPL)
 #define cjava ((c_ext & C_JAVA) == C_JAVA)
 
 #define CNL_SAVE_DEFINEDEF()						\
@@ -3019,12 +3034,12 @@ make_C_tag (isfun)
   if (!DEBUG && !token.valid)
     return;
 
-  if (!token.valid)		/* this case is optimised away if !DEBUG */
-    make_tag (concat (token_name.buffer, "##invalid token##", ""),
-	      token_name.len + 17, isfun, token.line,
-	      token.offset+token.length+1, token.lineno, token.linepos);
-  else
+  if (token.valid)
     make_tag (token_name.buffer, token_name.len, isfun, token.line,
+	      token.offset+token.length+1, token.lineno, token.linepos);
+  else				/* this case is optimised away if !DEBUG */
+    make_tag (concat ("INVALID TOKEN:-->", token_name.buffer, ""),
+	      token_name.len + 17, isfun, token.line,
 	      token.offset+token.length+1, token.lineno, token.linepos);
 
   token.valid = FALSE;
@@ -3244,13 +3259,13 @@ C_entries (c_ext, inf)
 	    {
 	      if (endtoken (c))
 		{
-		  if (c == ':' && cplpl && *lp == ':' && begtoken (lp[1]))
+		  if (c == ':' && *lp == ':' && begtoken (lp[1]))
+		    /* This handles :: in the middle,
+		       but not at the beginning of an identifier.
+		       Also, space-separated :: is not recognised. */
 		    {
-		      /*
-		       * This handles :: in the middle, but not at the
-		       * beginning of an identifier.  Also, space-separated
-		       * :: is not recognised.
-		       */
+		      if (c_ext & C_AUTO) /* automatic detection of C++ */
+			c_ext = (c_ext | C_PLPL) & ~C_AUTO;
 		      lp += 2;
 		      toklen += 2;
 		      c = lp[-1];
@@ -3277,7 +3292,7 @@ C_entries (c_ext, inf)
 			      toklen += lp - oldlp;
 			    }
 			  token.named = FALSE;
-			  if ((c_ext & C_EXT)	/* not pure C */
+			  if (!plainc
 			      && nestlev > 0 && definedef == dnone)
 			    /* in struct body */
 			    {
@@ -3393,11 +3408,11 @@ C_entries (c_ext, inf)
 		      fvdef = finlist;
 		      continue;
 		    case flistseen:
-#if 0
-		      if (!instruct || members)
-#endif
-			make_C_tag (TRUE); /* a function */
-		      fvdef = fignore;
+		      if (plainc || declarations)
+			{
+			  make_C_tag (TRUE); /* a function */
+			  fvdef = fignore;
+			}
 		      break;
 		    case fvnameseen:
 		      fvdef = fvnone;
@@ -3454,14 +3469,13 @@ C_entries (c_ext, inf)
 	      structdef = scolonseen;
 	      break;
 	    }
-#if 0
+	  /* Should be useless, but may be work as a safety net. */
 	  if (cplpl && fvdef == flistseen)
 	    {
 	      make_C_tag (TRUE); /* a function */
 	      fvdef = fignore;
 	      break;
 	    }
-#endif
 	  break;
 	case ';':
 	  if (definedef != dnone)
@@ -3492,20 +3506,17 @@ C_entries (c_ext, inf)
 		  token.valid = FALSE;
 		  break;
 		case flistseen:
-		  if ((declarations && typdef == tnone && !instruct)
-		      || (members && typdef != tignore && instruct))
+		  if (declarations
+		      && (typdef == tnone || (typdef != tignore && instruct)))
 		    make_C_tag (TRUE);  /* a function declaration */
 		  /* FALLTHRU */
 		default:
 		  fvextern = FALSE;
 		  fvdef = fvnone;
 		  if (declarations
-		      && structdef == stagseen && (c_ext & C_PLPL))
+		       && cplpl && structdef == stagseen)
 		    make_C_tag (FALSE);	/* forward declaration */
 		  else
-		    /* The following instruction invalidates the token.
-		       Probably the token should be invalidated in all other
-		       cases where some state machine is reset prematurely. */
 		    token.valid = FALSE;
 		} /* switch (fvdef) */
 	      /* FALLTHRU */
@@ -3708,18 +3719,25 @@ C_entries (c_ext, inf)
 	  if (definedef != dnone)
 	    break;
 	  if (fvdef == fstartlist)
-	    fvdef = fvnone;	/* avoid tagging `foo' in `foo (*bar()) ()' */
+	    {
+	      fvdef = fvnone;	/* avoid tagging `foo' in `foo (*bar()) ()' */
+	      token.valid = FALSE;
+	    }
 	  break;
 	case '}':
 	  if (definedef != dnone)
 	    break;
 	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
+	      if (cblev != 0)
+		token.valid = FALSE;
 	      cblev = 0;	/* reset curly brace level if first column */
 	      parlev = 0;	/* also reset paren level, just in case... */
 	    }
 	  else if (cblev > 0)
 	    cblev--;
+	  else
+	    token.valid = FALSE; /* something gone amiss, token unreliable */
 	  popclass_above (cblev);
 	  structdef = snone;
 	  /* Only if typdef == tinbody is typdefcblev significant. */
