@@ -23,7 +23,9 @@
 
 ;;; Code:
 
-(require 'help-screen)
+;; Get the macro make-help-screen when this is compiled,
+;; or run interpreted, but not when the compiled code is loaded.
+(eval-when-compile (require 'help-screen))
 
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
