@@ -419,36 +419,36 @@ With a prefix argument, resume handling of the previous Ispell command."
     (setq start (point-marker))
     (ispell-find-word-end)		;now find correct end
     (setq end (point-marker))
-    (if (>= start end)
-	(error "No word %s" message))
-    (while (< start end)
-      (goto-char start)
-      (ispell-find-word-end)		;find end of current word
+    ;; Do nothing if we don't find a word.
+    (if (< start end)
+	(while (< start end)
+	  (goto-char start)
+	  (ispell-find-word-end)	;find end of current word
 					;could be before 'end' if
 					;user typed replacement
 					;that is more than one word
-      (set-marker wend (point))
-      (setq rescan nil)
-      (setq word (buffer-substring start wend))
-      (cond ((ispell-still-bad word)
+	  (set-marker wend (point))
+	  (setq rescan nil)
+	  (setq word (buffer-substring start wend))
+	  (cond ((ispell-still-bad word)
 ;;; This just causes confusion. -- rms.
 ;;;	     (goto-char start)
 ;;;	     (sit-for 0)
-	     (message (format "Ispell checking %s" word))
-	     (ispell-cmd word)
-	     (let ((message (ispell-next-message)))
-	       (cond ((eq message t)
-		      (message "%s: ok" word))
-		     ((or (null message)
-			  (consp message))
-		      (setq rescan
-			    (ispell-command-loop word start wend message)))
-		     (t
-		      (error "unknown ispell response %s" message))))))
-      (cond ((null rescan)
-	     (goto-char wend)
-	     (ispell-next-word)
-	     (set-marker start (point)))))
+		 (message (format "Ispell checking %s" word))
+		 (ispell-cmd word)
+		 (let ((message (ispell-next-message)))
+		   (cond ((eq message t)
+			  (message "%s: ok" word))
+			 ((or (null message)
+			      (consp message))
+			  (setq rescan
+				(ispell-command-loop word start wend message)))
+			 (t
+			  (error "unknown ispell response %s" message))))))
+	  (cond ((null rescan)
+		 (goto-char wend)
+		 (ispell-next-word)
+		 (set-marker start (point))))))
     ;;clear the choices buffer; otherwise it's hard for the user to tell
     ;;when we get back to the command loop
     (let ((buf (get-buffer "*ispell choices*")))
