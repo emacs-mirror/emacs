@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.19 $
+;; Version: $Revision: 1.20 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/06/03 21:09:19 $|$Revision: 1.19 $|~/modes/tcl.el.Z|
+;; $Date: 1994/06/05 16:57:22 $|$Revision: 1.20 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.20  1994/06/05  16:57:22  tromey
+; tcl-current-word does the right thing in inferior-tcl-mode.
+;
 ; Revision 1.19  1994/06/03  21:09:19  tromey
 ; Another menu fix.
 ;
@@ -255,7 +258,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.19 $")
+(defconst tcl-version "$Revision: 1.20 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -786,6 +789,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 ;; The mode itself.
 ;;
 
+;;;###autoload
 (defun tcl-mode ()
   "Major mode for editing Tcl code.
 Expression and list commands understand all Tcl brackets.
@@ -1439,6 +1443,7 @@ The following commands are available:
   (set-process-filter (get-buffer-process (current-buffer)) 'tcl-filter)
   (run-hooks 'inferior-tcl-mode-hook))
 
+;;;###autoload
 (defun inferior-tcl (cmd)
   "Run inferior Tcl process.
 Prefix arg means enter program name interactively.
@@ -1645,6 +1650,7 @@ Otherwise scans backward for most likely Tcl command word."
 	(error nil))
     (current-word)))
 
+;;;###autoload
 (defun tcl-help-on-word (command &optional arg)
   "Get help on Tcl command.  Default is word at point.
 Prefix argument means invert sense of `tcl-use-smart-word-finder'."
