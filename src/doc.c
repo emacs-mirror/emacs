@@ -730,7 +730,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
     }
 
   if (changed)			/* don't bother if nothing substituted */
-    tem = make_multibyte_string (buf, nchars, bufp - buf);
+    tem = make_string_from_bytes (buf, nchars, bufp - buf);
   else
     tem = string;
   xfree (buf);
