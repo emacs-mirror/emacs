@@ -274,10 +274,10 @@ value of texinfo-mode-hook."
 
 ;;; Texinfo file structure
 
-; The following is defined in `texnfo-upd.el'
-; (defvar texinfo-section-types-regexp
-;   "^@\\(chapter \\|sect\\|sub\\|unnum\\|major\\|heading \\|appendix\\)"
-;   "Regexp matching chapter, section, other headings (but not the top node).")
+;; This is also defined in `texnfo-upd.el'.
+(defvar texinfo-section-types-regexp
+  "^@\\(chapter \\|sect\\|sub\\|unnum\\|major\\|heading \\|appendix\\)"
+  "Regexp matching chapter, section, other headings (but not the top node).")
 
 (defun texinfo-show-structure (&optional nodes-too) 
   "Show the structure of a Texinfo file.
