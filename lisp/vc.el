@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.256 1999/10/02 10:53:18 spiegel Exp $
+;; $Id: vc.el,v 1.257 1999/10/15 15:44:52 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2284,21 +2284,23 @@ default directory."
 	     (unwind-protect
 		 (progn
 		   (cd odefault)
-		   (if (eq 0 (apply 'call-process "rcs2log" nil
-				       (list t tempfile) nil
-				       "-c" changelog
-				       "-u" (concat (vc-user-login-name)
-						    "\t" full-name
-						    "\t" mailing-address)
-				       (mapcar
-					(function
-					 (lambda (f)
-					   (file-relative-name
-					    (if (file-name-absolute-p f)
-						f
-					      (concat odefault f)))))
-					args)))
-			  "done"
+		   (if (eq 0 (apply 'call-process
+				    (expand-file-name "rcs2log" exec-directory)
+				    nil
+				    (list t tempfile) nil
+				    "-c" changelog
+				    "-u" (concat (vc-user-login-name)
+						 "\t" full-name
+						 "\t" mailing-address)
+				    (mapcar
+				     (function
+				      (lambda (f)
+					(file-relative-name
+					 (if (file-name-absolute-p f)
+					     f
+					   (concat odefault f)))))
+				     args)))
+		       "done"
 		     (pop-to-buffer
 		      (set-buffer (get-buffer-create "*vc*")))
 		     (erase-buffer)
