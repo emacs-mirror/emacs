@@ -2022,8 +2022,8 @@ true then the type of the file linked to by FILE is printed instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
   (with-temp-buffer
     (if deref-symlinks
-	(call-process "file" nil t t "-L" file)
-      (call-process "file" nil t t file))
+	(call-process "file" nil t t "-L" "--" file)
+      (call-process "file" nil t t "--" file))
     (when (bolp)
       (backward-delete-char 1))
     (message (buffer-string))))
