@@ -1,5 +1,9 @@
 2002-07-05  Dave Love  <fx@gnu.org>
 
+	* international/mule-cmds.el (leim-list-header): Add coding tag.
+
+2002-07-05  Dave Love  <fx@gnu.org>
+
 	* international/mule-cmds.el (find-coding-systems-region)
 	(language-info-alist, reset-language-environment, princ-list): Doc
 	fix.
