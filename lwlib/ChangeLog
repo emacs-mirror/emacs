@@ -1,3 +1,8 @@
+2003-04-30  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* Makefile.in: Make things function properly in case both LessTif
+	and Open Motif are installed.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
@@ -6,7 +11,6 @@
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
 	(destroy_all_children): Call it self to destroy sub menu children.
-
 
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
