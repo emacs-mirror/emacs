@@ -6989,9 +6989,13 @@ x_dispatch_event (event, display)
 {
   struct x_display_info *dpyinfo;
   struct input_event bufp[10];
-  struct input_event *bufpp = bufp;
+  struct input_event *bufpp;
   int numchars = 10;
   int finish = X_EVENT_NORMAL;
+
+  for (bufpp = bufp; bufpp != bufp + 10; bufpp++)
+    EVENT_INIT (*bufpp);
+  bufpp = bufp;
 
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     if (dpyinfo->display == display)
