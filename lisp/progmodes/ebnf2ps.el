@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/25 20:17:43 vinicius>
+;; Time-stamp: <2004/02/29 14:06:59 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -28,7 +28,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 (defconst ebnf-version "4.0"
-  "ebnf2ps.el, v 4.0 <2004/02/24 vinicius>
+  "ebnf2ps.el, v 4.0 <2004/02/28 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -70,8 +70,8 @@ Please send all bug fixes and enhancements to
 ;; Using ebnf2ps
 ;; -------------
 ;;
-;; ebnf2ps provides six commands for generating PostScript syntactic chart
-;; images of Emacs buffers:
+;; ebnf2ps provides the following commands for generating PostScript syntactic
+;; chart images of Emacs buffers:
 ;;
 ;;	ebnf-print-directory
 ;;	ebnf-print-file
@@ -193,7 +193,10 @@ Please send all bug fixes and enhancements to
 ;;    C D		sequence (C occurs before D)
 ;;    C | D		alternative (C or D occurs)
 ;;    A - B		exception (A excluding B, B without any non-terminal)
-;;    n * A		repetition (A repeats n (integer) times)
+;;    n * A		repetition (A repeats at least n (integer) times)
+;;    n * n A		repetition (A repeats exactly n (integer) times)
+;;    n * m A		repetition (A repeats at least n (integer) and at most
+;;			m (integer) times)
 ;;    (C)		group (expression C is grouped together)
 ;;    [C]		optional (C may or not occurs)
 ;;    C+		one or more occurrences of C
@@ -217,7 +220,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    exception = repeat [ "-" repeat].         ;; exception
 ;;
-;;    repeat = [ integer "*" ] term.            ;; repetition
+;;    repeat = [ integer "*" [ integer ]] term. ;; repetition
 ;;
 ;;    term = factor
 ;;         | [factor] "+"                       ;; one-or-more
@@ -302,7 +305,7 @@ Please send all bug fixes and enhancements to
 ;;			`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 ;;
 ;;    `abnf'		ebnf2ps recognizes the syntax described in the URL:
-;;			`http://www.faqs.org/rfcs/rfc2234.html'
+;;			`http://www.ietf.org/rfc/rfc2234.txt'
 ;;			("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
@@ -514,6 +517,12 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-setup' returns the current setup.
 ;;
+;; `ebnf-syntax-directory' does a syntactic analysis of your EBNF files in the
+;; given directory.
+;;
+;; `ebnf-syntax-file' does a syntactic analysis of your EBNF in the given
+;; file.
+;;
 ;; `ebnf-syntax-buffer' does a syntactic analysis of your EBNF in the current
 ;; buffer.
 ;;
@@ -522,8 +531,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-customize' activates a customization buffer for ebnf2ps options.
 ;;
-;; `ebnf-syntax-buffer', `ebnf-syntax-region' and `ebnf-customize' can be bound
-;; to keys in the same way as `ebnf-' commands.
+;; `ebnf-syntax-directory', `ebnf-syntax-file', `ebnf-syntax-buffer',
+;; `ebnf-syntax-region' and `ebnf-customize' can be bound to keys in the same
+;; way as `ebnf-' commands.
 ;;
 ;;
 ;; Hooks
@@ -1654,7 +1664,7 @@ Valid values are:
 		`ebnf-lex-comment-char' and `ebnf-lex-eop-char'.
 
    `abnf'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.faqs.org/rfcs/rfc2234.html'
+		`http://www.ietf.org/rfc/rfc2234.txt'
 		(\"Augmented BNF for Syntax Specifications: ABNF\").
 
    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
@@ -2058,6 +2068,34 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 ;;;###autoload
 (defalias 'ebnf-despool 'ps-despool)
+
+
+;;;###autoload
+(defun ebnf-syntax-directory (&optional directory)
+  "Does a syntactic analysis of the files in DIRECTORY.
+
+If DIRECTORY is nil, it's used `default-directory'.
+
+The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+processed.
+
+See also `ebnf-syntax-buffer'."
+  (interactive
+   (list (read-file-name "Directory containing EBNF files (syntax): "
+			 nil default-directory)))
+  (ebnf-directory 'ebnf-syntax-buffer directory))
+
+
+;;;###autoload
+(defun ebnf-syntax-file (file &optional do-not-kill-buffer-when-done)
+  "Does a syntactic analysis of the FILE.
+
+If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
+killed after syntax checking.
+
+See also `ebnf-syntax-buffer'."
+  (interactive "fEBNF file to check syntax: ")
+  (ebnf-file 'ebnf-syntax-buffer file do-not-kill-buffer-when-done))
 
 
 ;;;###autoload

@@ -2838,7 +2838,7 @@ x_window (f)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-if (use_xim)
+  if (use_xim)
   {
     BLOCK_INPUT;
     create_frame_xic (f);

@@ -122,12 +122,12 @@ and the bitmap on the bottom line in the right fringe.
 
 If value is a cons (ANGLES . ARROWS), the car specifies the position
 of the angle bitmaps, and the cdr specifies the position of the arrow
-bitmaps.  
+bitmaps.
 
 For example, (t .  right) places the top angle bitmap in left fringe,
 the bottom angle bitmap in right fringe, and both arrow bitmaps in
 right fringe.  To show just the angle bitmaps in the left fringe, but
-no arrow bitmaps, use (left . nil).  
+no arrow bitmaps, use (left . nil).
 
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
@@ -318,9 +318,6 @@ speed up Emacs with slow networking to the X server.
 
 If the configure option `--without-xim' was used to turn off use of
 XIM by default, the X resource useXIM can be used to turn it on.
-
-** `describe-char' can show data from the Unicode database file.  See
-user option `unicode-data'.
 
 ** `undo-only' does an undo which does not redo any previous undo.
 

@@ -1,3 +1,22 @@
+2004-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_window): Update header line also if there are
+	no other changes in window (move code after set_cursor label).
+
+	* lisp.h (mark_window_display_accurate): Remove prototype.
+
+	* window.c (window_loop, Fforce_window_update): Force mode line
+	updates by setting prevent_redisplay_optimizations_p and
+	update_mode_lines.
+
+2004-02-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_window): Fixed indentation.
+
+	* xterm.c (x_calc_absolute_position): Call x_real_positions
+	to get WM window sizes and use those to calculate position.
+	(x_set_offset): Removed code commented out.
+
 2004-02-28  Miles Bader  <miles@gnu.org>
 
 	* keyboard.c (adjust_point_for_property): #ifdef-out dodgy xassert.

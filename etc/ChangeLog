@@ -1,3 +1,7 @@
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* NEWS: Remove bogus reference to user option unicode-data.
+
 2004-02-16  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* PROBLEMS: Document crashes on X when build with GCC and GNU ld.
@@ -6,7 +10,7 @@
 
 	* NEWS: Fix typo.
 
-2003-12-29  Ognyan Kulev <ogi@fmi.uni-sofia.bg>
+2003-12-29  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>
 
 	* TUTORIAL.bg: Use windows-1251 encoding.  Fix punctuation errors.
 
@@ -14,8 +18,8 @@
 
 	* TODO: Add plans for change of file attributes UID and GID from
 	integer to string.
-	
-2003-11-10  Kailash C. Chowksey <klchxbec@m-net.arbornet.org>
+
+2003-11-10  Kailash C. Chowksey  <klchxbec@m-net.arbornet.org>
 
 	* HELLO: Add Kannada.
 
@@ -32,7 +36,7 @@
 2003-10-30  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Fix cases of language names.  Make German lines one.
-	Delete FORTRAN, add Mathematics
+	Delete FORTRAN, add Mathematics.
 
 2003-10-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

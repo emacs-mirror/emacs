@@ -1,4 +1,9 @@
-2003-11-16  Kevin Ryde <user42@zip.com.au>
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (mostlyclean, clean, maintainer-clean): Use
+	$(DEL) instead of rm, and ignore exit code.
+
+2003-11-16  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp-intro.texi: [CVS commitment by <bob@rattlesnake.com>]
 	Corrections to cross references,

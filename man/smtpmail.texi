@@ -3,7 +3,7 @@
 @settitle Emacs SMTP Library
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003 Free Software Foundation, Inc.
+Copyright @copyright{} 2003, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -207,7 +207,6 @@ The following example illustrates what you could put in
 
 @cindex SASL
 @cindex CRAM-MD5
-@cindex PLAIN
 @cindex LOGIN
 @cindex STARTTLS
 Many environments require SMTP clients to authenticate themselves
@@ -215,15 +214,14 @@ before they are allowed to route mail via a server.  The two following
 variables contains the authentication information needed for this.
 The first variable, @code{smtpmail-auth-credentials}, instructs the
 SMTP library to use a SASL authentication step, currently only the
-CRAM-MD5, PLAIN and LOGIN-MD5 mechanisms are supported and will be
-selected in that order if the server supports them.  The second
-variable, @code{smtpmail-starttls-credentials}, instructs the SMTP
-library to connect to the server using STARTTLS.  This means the
-protocol exchange can be integrity protected and confidential by using
-TLS, and optionally also authentication of the client.  It is common
-to use both these mechanisms, e.g., to use STARTTLS to achieve
-integrity and confidentiality and then use SASL for client
-authentication.
+CRAM-MD5 and LOGIN mechanisms are supported and will be selected in
+that order if the server supports them.  The second variable,
+@code{smtpmail-starttls-credentials}, instructs the SMTP library to
+connect to the server using STARTTLS.  This means the protocol
+exchange can be integrity protected and confidential by using TLS, and
+optionally also authentication of the client.  It is common to use
+both these mechanisms, e.g., to use STARTTLS to achieve integrity and
+confidentiality and then use SASL for client authentication.
 
 @table @code
 @item smtpmail-auth-credentials
