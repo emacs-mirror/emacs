@@ -451,8 +451,12 @@ C-mouse-2: hide tabs"
 (defmacro ruler-mode-left-scroll-bar-cols ()
   "Return the width, measured in columns, of the left vertical scrollbar."
   '(if (eq (frame-parameter nil 'vertical-scroll-bars) 'left)
-       (round (or (frame-parameter nil 'scroll-bar-width) 0)
-              (frame-char-width))
+       (let ((sbw (frame-parameter nil 'scroll-bar-width)))
+	 ;; nil means it's a non-toolkit scroll bar,
+	 ;; and its width in columns is 14 pixels rounded up.
+	 (unless sbw (setq sbw 14))
+	 ;; Always round up to multiple of columns.
+	 (ceiling sbw (frame-char-width)))
      0))
 
 (defmacro ruler-mode-right-scroll-bar-cols ()
