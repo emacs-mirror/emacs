@@ -175,9 +175,11 @@ struct iso2022_spec
 
 /* Return a charset which is currently designated to the graphic plane
    PLANE in the coding-system CODING.  */
-#define CODING_SPEC_ISO_PLANE_CHARSET(coding, plane) \
-  CODING_SPEC_ISO_DESIGNATION		 \
-  (coding, CODING_SPEC_ISO_INVOCATION (coding, plane))
+#define CODING_SPEC_ISO_PLANE_CHARSET(coding, plane)	\
+  ((CODING_SPEC_ISO_INVOCATION (coding, plane) < 0)	\
+   ? -1							\
+   : CODING_SPEC_ISO_DESIGNATION (coding,		\
+				  CODING_SPEC_ISO_INVOCATION (coding, plane)))
 
 /*** BIG5 section ***/
 
@@ -287,6 +289,9 @@ struct coding_system
   /* Lisp function (symbol) to be called before encoding to do
      additional conversion. */
   Lisp_Object pre_write_conversion;
+
+  /* Character unification table to look up, or nil.  */
+  Lisp_Object character_unification_table;
 
   /* Carryover yielded by decoding/encoding incomplete source.  No
      coding-system yields more than 7-byte of carryover.  This does
