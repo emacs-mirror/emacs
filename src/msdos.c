@@ -779,52 +779,38 @@ init_environment (argc, argv, skip_args)
 
 /* Flash the screen as a substitute for BEEPs.  */
 
-static unsigned char _xorattr;
-
 static void
 do_visible_bell (xorattr)
      unsigned char xorattr;
 {
-  _xorattr = xorattr;
   asm volatile
-    ("  pushl  %eax
-	pushl  %ebx
-	pushl  %ecx
-	pushl  %edx
-	movl   $1,%edx
+    ("  movb   $1,%%dl
 visible_bell_0:
-	call   _ScreenRows
-	pushl  %eax
-	call   _ScreenCols
-	pushl  %eax
-	movl   _ScreenPrimary,%eax
+	movl   _ScreenPrimary,%%eax
 	call   dosmemsetup
-	movl   %eax,%ebx
-	popl   %ecx
-	popl   %eax
-	imull  %eax,%ecx
-	movb   (__xorattr),%al
-	incl   %ebx
+	movl   %%eax,%%ebx
+	movl   %1,%%ecx
+	movb   %0,%%al
+	incl   %%ebx
 visible_bell_1:
-	xorb   %al,%gs:(%ebx)
-	addl   $2,%ebx
-	decl   %ecx
+	xorb   %%al,%%gs:(%%ebx)
+	addl   $2,%%ebx
+	decl   %%ecx
 	jne    visible_bell_1
-	decl   %edx
+	decb   %%dl
 	jne    visible_bell_3
 visible_bell_2:
-	movzwl %ax,%eax
-        movzwl %ax,%eax
-	movzwl %ax,%eax
-	movzwl %ax,%eax
-	decw   %cx
+	movzwl %%ax,%%eax
+        movzwl %%ax,%%eax
+	movzwl %%ax,%%eax
+	movzwl %%ax,%%eax
+	decw   %%cx
 	jne    visible_bell_2
 	jmp    visible_bell_0
-visible_bell_3:
-	popl  %edx
-	popl  %ecx
-	popl  %ebx
-	popl  %eax");
+visible_bell_3:"
+     : /* no output */
+     : "m" (xorattr), "g" (ScreenCols () * ScreenRows ())
+     : "%eax", "%ebx", /* "%gs",*/ "%ecx", "%edx");
 }
 
 /* At screen position (X,Y), output C characters from string S with
@@ -1044,7 +1030,7 @@ install_ctrl_break_check ()
   if (!ctrlbreakinstalled)
     {
       /* Don't press Ctrl-Break if you don't have either DPMI or Emacs
-	 was compiler with Djgpp 1.11 maintenance level 2 or later!  */
+	 was compiler with Djgpp 1.11 maintenance level 5 or later!  */
       ctrlbreakinstalled = 1;
       ctrl_break_vector.pm_offset = (int) ctrl_break_func;
       _go32_dpmi_allocate_real_mode_callback_iret (&ctrl_break_vector,
@@ -1122,7 +1108,7 @@ mouse_pressed (b, xp, yp)
   regs.x.bx = mouse_button_translate[b];
   int86 (0x33, &regs, &regs);
   if (regs.x.bx)
-    *xp = regs.x.cx / 8, *yp = regs.x.dx /8;
+    *xp = regs.x.cx / 8, *yp = regs.x.dx / 8;
   return (regs.x.bx != 0);
 }
 
