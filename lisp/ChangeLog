@@ -1,3 +1,8 @@
+2002-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/compile.el (grep-tree): Fixed autoload.
+	Corrected use of undefined variable `match-files-aliases'.
+
 2002-07-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (timeclock-get-workday-function):
