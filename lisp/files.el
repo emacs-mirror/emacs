@@ -1076,7 +1076,7 @@ If there is no such live buffer, return nil."
 			    ;; Verify this buffer's file number
 			    ;; still belongs to its file.
 			    (file-exists-p buffer-file-name)
-			    (equal (file-attributes buffer-file-name)
+			    (equal (file-attributes buffer-file-truename)
 				   attributes))
 		       (setq found (car list))))
 		 (setq list (cdr list))))
