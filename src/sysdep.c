@@ -1237,10 +1237,14 @@ int old_fcntl_owner;
    but if so, this does no harm,
    and using the same name avoids wasting the other one's space.  */
 
+#ifdef nec_ews_svr4
+extern char *_sobuf ;
+#else
 #if defined (USG) || defined (DGUX)
 unsigned char _sobuf[BUFSIZ+8];
 #else
 char _sobuf[BUFSIZ];
+#endif
 #endif
  
 #ifdef HAVE_LTCHARS
