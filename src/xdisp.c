@@ -315,7 +315,7 @@ Lisp_Object Vshow_trailing_whitespace;
 extern Lisp_Object Voverflow_newline_into_fringe;
 
 /* Test if overflow newline into fringe.  Called with iterator IT
-   at or past right window margin, and with IT->current_x set.  */ 
+   at or past right window margin, and with IT->current_x set.  */
 
 #define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it)	\
   (!NILP (Voverflow_newline_into_fringe)	\
@@ -407,7 +407,7 @@ Lisp_Object Vglobal_mode_string;
 
 /* List of variables (symbols) which hold markers for overlay arrows.
    The symbols on this list are examined during redisplay to determine
-   where to display overlay arrows.  */ 
+   where to display overlay arrows.  */
 
 Lisp_Object Voverlay_arrow_variable_list;
 
@@ -8367,7 +8367,7 @@ update_tool_bar (f, save_match_data)
 	  /* Redisplay the tool-bar if we changed it.  */
 	  if (! NILP (Fequal (old_tool_bar, f->tool_bar_items)))
 	    w->update_mode_line = Qt;
-	  
+
 	  UNGCPRO;
 
 	  unbind_to (count, Qnil);
@@ -9466,7 +9466,7 @@ overlay_arrow_at_row (f, row, pbitmap)
 	continue;
 
       val = find_symbol_value (var);
-      
+
       if (MARKERP (val)
 	  && current_buffer == XMARKER (val)->buffer
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
@@ -9573,7 +9573,7 @@ select_frame_for_redisplay (frame)
 {
   Lisp_Object tail, sym, val;
   Lisp_Object old = selected_frame;
-  
+
   selected_frame = frame;
 
   for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
@@ -11356,7 +11356,7 @@ set_vertical_scroll_bar (w)
      which reflect the whole buffer size, with special markers
      indicating narrowing, and scrollbars which reflect only the
      visible region.
-     
+
      Note that mini-buffers sometimes aren't displaying any text.  */
   if (!MINI_WINDOW_P (w)
       || (w == XWINDOW (minibuf_window)
@@ -11368,7 +11368,7 @@ set_vertical_scroll_bar (w)
       /* I don't think this is guaranteed to be right.  For the
 	 moment, we'll pretend it is.  */
       end = BUF_Z (buf) - XFASTINT (w->window_end_pos) - BUF_BEGV (buf);
-      
+
       if (end < start)
 	end = start;
       if (whole < (end - start))
@@ -16702,7 +16702,7 @@ invisible_p (propval, list)
 /* Calculate a width or height in pixels from a specification using
    the following elements:
 
-   SPEC ::= 
+   SPEC ::=
      NUM      - a (fractional) multiple of the default font width/height
      (NUM)    - specifies exactly NUM pixels
      UNIT     - a fixed number of pixels, see below.
@@ -16712,7 +16712,7 @@ invisible_p (propval, list)
      (- SPEC SPEC ...)  - subtract pixel values
      (- SPEC)           - negate pixel value
 
-   NUM ::= 
+   NUM ::=
      INT or FLOAT   - a number constant
      SYMBOL         - use symbol's (buffer local) variable binding.
 
@@ -16738,15 +16738,15 @@ invisible_p (propval, list)
    Examples:
 
    Pixels corresponding to 5 inches:
-     (5 . in)     
-		
+     (5 . in)
+
    Total width of non-text areas on left side of window (if scroll-bar is on left):
      '(space :width (+ left-fringe left-margin scroll-bar))
 
    Align to first text column (in header line):
      '(space :align-to 0)
 
-   Align to middle of text area minus half the width of variable `my-image' 
+   Align to middle of text area minus half the width of variable `my-image'
    containing a loaded image:
      '(space :align-to (0.5 . (- text my-image)))
 
@@ -18314,7 +18314,7 @@ produce_stretch_glyph (it)
 	   && calc_pixel_width_or_height (&tem, it, prop, font, 1, &align_to))
     {
       if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
-	align_to = (align_to < 0 
+	align_to = (align_to < 0
 		    ? 0
 		    : align_to - window_box_left_offset (it->w, TEXT_AREA));
       else if (align_to < 0)
@@ -20197,7 +20197,7 @@ on_hot_spot_p (hot_spot, x, y)
 	  int x0, y0;
 
 	  /* Need an even number of coordinates, and at least 3 edges.  */
-	  if (n < 6 || n & 1) 
+	  if (n < 6 || n & 1)
 	    return 0;
 
 	  /* Count edge segments intersecting line from (X,Y) to (X,infinity).
@@ -20248,13 +20248,13 @@ find_hot_spot (map, x, y)
 	return XCAR (map);
       map = XCDR (map);
     }
-  
+
   return Qnil;
 }
 
 DEFUN ("lookup-image-map", Flookup_image_map, Slookup_image_map,
        3, 3, 0,
-       doc: /* Lookup in image map MAP coordinates X and Y.  
+       doc: /* Lookup in image map MAP coordinates X and Y.
 An image map is an alist where each element has the format (AREA ID PLIST).
 An AREA is specified as either a rectangle, a circle, or a polygon:
 A rectangle is a cons (rect . ((x0 . y0) . (x1 . y1))) specifying the
@@ -21128,13 +21128,13 @@ phys_cursor_in_rect_p (w, r)
   cursor_glyph = get_phys_cursor_glyph (w);
   if (cursor_glyph)
     {
-      /* r is relative to W's box, but w->phys_cursor.x is relative 
+      /* r is relative to W's box, but w->phys_cursor.x is relative
 	 to left edge of W's TEXT area.  Adjust it.  */
       cr.x = window_box_left_offset (w, TEXT_AREA) + w->phys_cursor.x;
       cr.y = w->phys_cursor.y;
       cr.width = cursor_glyph->pixel_width;
       cr.height = w->phys_cursor_height;
-      /* ++KFS: W32 version used W32-specific IntersectRect here, but 
+      /* ++KFS: W32 version used W32-specific IntersectRect here, but
 	 I assume the effect is the same -- and this is portable.  */
       return x_intersect_rectangles (&cr, r, &result);
     }
@@ -21152,7 +21152,7 @@ x_draw_vertical_border (w)
      struct window *w;
 {
   /* We could do better, if we knew what type of scroll-bar the adjacent
-     windows (on either side) have...  But we don't :-( 
+     windows (on either side) have...  But we don't :-(
      However, I think this works ok.  ++KFS 2003-04-25 */
 
   /* Redraw borders between horizontally adjacent windows.  Don't
@@ -21643,7 +21643,9 @@ syms_of_xdisp ()
   Qinhibit_free_realized_faces = intern ("inhibit-free-realized-faces");
   staticpro (&Qinhibit_free_realized_faces);
 
-  list_of_error = Fcons (intern ("error"), Qnil);
+  list_of_error = Fcons (Fcons (intern ("error"),
+				Fcons (intern ("void-variable"), Qnil)),
+			 Qnil);
   staticpro (&list_of_error);
 
   Qlast_arrow_position = intern ("last-arrow-position");
@@ -21699,7 +21701,7 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
 Nil means to show the text pointer.  Other options are `arrow', `text',
-`hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */); 
+`hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
   Vvoid_text_area_pointer = Qarrow;
 
   DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
