@@ -8,6 +8,7 @@
 	No longer (require 'imenu) when compiling.
 	(f90-mark-subprogram, f90-indent-region, f90-fill-region)
 	(f90-abbrev-start): Use fboundp.
+	(f90-imenu-flag): Deleted - use imenu--index-alist instead.
 
 2002-08-23  Andre Spiegel  <spiegel@gnu.org>
 
