@@ -1,6 +1,8 @@
 /* Program to produce output at regular intervals.  */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include <stdio.h>
 #include <sys/types.h>
