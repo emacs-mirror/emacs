@@ -228,7 +228,8 @@ following the containing message."
 			  (rmail-msgend rmail-current-message))
 	(goto-char (point-min))
 	(let ((buffer-read-only nil)
-	      (who-forwarded-it (mail-fetch-field "From"))
+	      (forwarded-from (mail-fetch-field "From"))
+	      (forwarded-date (mail-fetch-field "Date"))
 	      beg end prefix forward-msg n)
 	  (cond ((re-search-forward
 		  "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage" nil t)
@@ -239,11 +240,17 @@ following the containing message."
 		 (setq forward-msg
 		       (replace-regexp-in-string
 			"^- -" "-" (buffer-substring beg end))))
-		((and (re-search-forward "^\\(> ?\\)From: .*\n" nil t)
+		((and (re-search-forward "^\\(> ?\\)[a-zA-Z-]+: .*\n" nil t)
 		      (setq beg (match-beginning 0))
 		      (setq prefix (match-string 1))
+		      (goto-char beg)
 		      (looking-at (concat "\\(" prefix ".+\n\\)*"
 					  prefix "Date: .+\n"
+					  "\\(" prefix ".+\n\\)*"
+					  "\\(> ?\\)?\n" prefix))
+		      (goto-char beg)
+		      (looking-at (concat "\\(" prefix ".+\n\\)*"
+					  prefix "From: .+\n"
 					  "\\(" prefix ".+\n\\)*"
 					  "\\(> ?\\)?\n" prefix)))
 		 (re-search-forward "^[^>\n]" nil 'move)
@@ -262,7 +269,8 @@ following the containing message."
 	  (narrow-to-region (point) (point))
 	  (insert rmail-mail-separator)
 	  (narrow-to-region (point) (point))
-	  (insert "Forwarded-by: " who-forwarded-it "\n")
+	  (insert "Forwarded-from: " forwarded-from "\n")
+	  (insert "Forwarded-date: " forwarded-date "\n")
 	  (insert forward-msg)
 	  (save-restriction
 	    (goto-char (point-min))
