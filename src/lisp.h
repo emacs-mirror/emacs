@@ -2804,7 +2804,6 @@ extern int getloadavg P_ ((double *, int));
 /* Defined in xfns.c */
 extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
-EXFUN (Fx_hide_busy_cursor, 1);
 extern void init_xfns P_ ((void));
 #endif
 
