@@ -583,7 +583,7 @@ Do the same for the keys of the same name."
     ;; These are set with `customize-set-variable'.
     (dolist (elt '(line-number-mode column-number-mode scroll-bar-mode
 		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
-		   save-place uniquify-buffer-name-style
+		   save-place uniquify-buffer-name-style fringe-mode
 		   case-fold-search cua-mode show-paren-mode
 		   transient-mark-mode global-font-lock-mode
 		   display-time-mode auto-compression-mode
@@ -652,6 +652,67 @@ Do the same for the keys of the same name."
 			      (frame-live-p (symbol-value 'speedbar-frame))
 			      (frame-visible-p
 			       (symbol-value 'speedbar-frame))))))
+
+(setq menu-bar-showhide-fringe-menu (make-sparse-keymap "Fringe"))
+
+(defun menu-bar-showhide-fringe-menu-customize ()
+  "Show customization buffer for `fringe-mode'."
+  (interactive)
+  (customize-variable 'fringe-mode))
+
+(define-key menu-bar-showhide-fringe-menu [customize]
+  '(menu-item "Customize" menu-bar-showhide-fringe-menu-customize
+	      :help "Detailed customization of fringe"
+	      :visible (display-graphic-p)))
+
+(defun menu-bar-showhide-fringe-menu-customize-reset ()
+  "Reset the default fringe mode."
+  (interactive)
+  (customize-set-variable 'fringe-mode nil))
+
+(define-key menu-bar-showhide-fringe-menu [default]
+  '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
+	      :help "Default width fringe on both left and right side"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-mode nil))))
+
+(defun menu-bar-showhide-fringe-menu-customize-left ()
+  "Make fringes appear only on the left."
+  (interactive)
+  (customize-set-variable 'fringe-mode nil '(nil . 0)))
+
+(define-key menu-bar-showhide-fringe-menu [left]
+  '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
+	      :help "Fringe only on the left side"
+	      :visible (display-graphic-p)
+	      :button (:radio . (equal fringe-mode '(nil . 0)))))
+
+(defun menu-bar-showhide-fringe-menu-customize-right ()
+  "Make fringes appear only on the right."
+  (interactive)
+  (customize-set-variable 'fringe-mode nil '(0 . nil)))
+
+(define-key menu-bar-showhide-fringe-menu [right]
+  '(menu-item "On the Right" menu-bar-showhide-fringe-menu-customize-right
+	      :help "Fringe only on the right side"
+	      :visible (display-graphic-p)
+	      :button (:radio . (equal fringe-mode '(0 . nil)))))
+
+(defun menu-bar-showhide-fringe-menu-customize-disable ()
+  "Make fringes disappear."
+  (interactive)
+  (customize-set-variable 'fringe-mode nil 0))
+
+(define-key menu-bar-showhide-fringe-menu [none]
+  '(menu-item "None" menu-bar-showhide-fringe-menu-customize-disable
+	      :help "Turn off fringe"
+	      :visible (display-graphic-p)
+	      :button (:radio . (eq fringe-mode 0))))
+
+(define-key menu-bar-showhide-menu [showhide-fringe]
+  (list 'menu-item "Fringe" menu-bar-showhide-fringe-menu
+	:visible `(display-graphic-p)
+	:help "Select fringe mode"))
 
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
