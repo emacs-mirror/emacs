@@ -446,11 +446,9 @@ create new @samp{*info*} or @samp{*Help*} buffers, for example.
 
 @menu
 * Uniquify::               Buffer names can contain directory parts.
-* BS::                     Configurable buffer menu.     
-@ignore
 * Iswitchb::               Switching between buffers with substrings.
-* MSB::                    
-@end ignore
+* BS::                     Configurable buffer menu.     
+* MSB::                    Customizing the Mouse Buffer Selection Menus.
 @end menu
 
 @node Uniquify
@@ -472,6 +470,32 @@ and @samp{Makefile<2>}).  You can turn on this mode and select other
 buffer name styles by customizing the user option
 @code{uniquify-buffer-name-style}.  The command @kbd{M-x
 toggle-uniquify-buffer-names} can also be used to toggle the mode.  
+
+@node Iswitchb
+@subsection Switching Between Buffers using Substrings
+
+@findex iswitchb-mode
+@cindex Iswitchb mode
+@cindex mode, Iswitchb
+@kindex C-x b @r{(Iswitchb mode)}
+@kindex C-x 4 b @r{(Iswitchb mode)}
+@kindex C-x 5 b @r{(Iswitchb mode)}
+@kindex C-x 4 C-o @r{(Iswitchb mode)}
+
+Iswitchb global minor mode provides convenient switching between buffers
+using substrings of their names by replacing the normal keybindings
+@kbd{C-x b}, @kbd{C-x 4 b}, @kbd{C-x 5 b} and @kbd{C-x 4 C-o}.
+
+When you are prompted for a buffer name, as you type in a substring the
+list of buffers currently matching it is displayed as you type, with the
+most recent buffers visited towards the start of the list.  The buffer
+at the start will be the one visited when you press @key{RET}.  By
+typing more of the substring, the list is narrowed down so that
+gradually the buffer you want will be at the top of the list.
+Alternatively, you can use @kbd{C-s} and @kbd{C-r} to rotate buffer
+names in the list until the one you want is at the top of the list.
+Completion is available so that you can see what is common to all of the
+matching buffers as you type.
 
 @node BS
 @subsection Configurable Buffer Menus
@@ -499,10 +523,18 @@ ones like @samp{*Messages*}---through which you can cycle with @kbd{M-x
 bs-cycle-next} and @kbd{M-x bs-cycle-previous}.  Those commands could be
 bound to convenient keys.
 
-@ignore
-@node Iswitchb
-@subsection Switching Between Buffers using Substrings
-
 @node MSB
-@subsection Customizable Buffer Selection with Multiple Menus
-@end ignore
+@subsection Customizing the Mouse Buffer Selection Menus
+
+@findex msb-mode
+@cindex mode, MSB
+@cindex MSB mode
+@cindex buffer menu
+@findex mouse-buffer-menu
+@kindex C-down-mouse-1
+
+MSB global minor mode provides a different and customizable mouse buffer
+menu which you may prefer.  It replaces the bindings of
+@code{mouse-buffer-menu}, normally on @kbd{C-down-mouse-1}, and the menu
+bar buffer menu.  You can customize the menu in the @code{msb} Custom
+group.
