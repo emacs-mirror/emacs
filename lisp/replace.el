@@ -36,9 +36,11 @@
 
 (defvar query-replace-history nil)
 
-(defvar query-replace-interactive nil
+(defcustom query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
-That becomes the \"string to replace\".")
+That becomes the \"string to replace\"."
+  :type 'boolean
+  :group 'matching)
 
 (defcustom query-replace-from-history-variable 'query-replace-history
   "History list to use for the FROM argument of `query-replace' commands.
