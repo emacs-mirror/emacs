@@ -331,14 +331,17 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	  (if new-mark (set-mark new-mark))))))
 
 
-(defun vc-buffer-sync ()
+(defun vc-buffer-sync (&optional not-urgent)
   ;; Make sure the current buffer and its working file are in sync
+  ;; NOT-URGENT means it is ok to continue if the user says not to save.
   (if (buffer-modified-p)
-      (progn
-	(or vc-suppress-confirm
-	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name)))
-	    (error "Aborted"))
-	(save-buffer))))
+      (if (or vc-suppress-confirm
+	      (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
+	  (save-buffer)
+	(if not-urgent
+	    nil
+	  (error "Aborted")))))
+
 
 (defun vc-workfile-unchanged-p (file &optional want-differences-if-changed)
   ;; Has the given workfile changed since last checkout?
@@ -748,7 +751,7 @@ If nil, uses `change-log-default-name'."
 ;; Additional entry points for examining version histories
 
 ;;;###autoload
-(defun vc-diff (historic)
+(defun vc-diff (historic &optional not-urgent)
   "Display diffs between file versions.
 Normally this compares the current file and buffer with the most recent 
 checked in version of that file.  This uses no arguments.
@@ -768,7 +771,7 @@ and two version designators specifying which versions to compare."
 	  unchanged)
       (or (and file (vc-name file))
 	  (vc-registration-error file))
-      (vc-buffer-sync)
+      (vc-buffer-sync not-urgent)
       (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
       (if unchanged
 	  (message "No changes to %s since latest version." file)
@@ -1120,7 +1123,7 @@ to that version."
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (let ((file buffer-file-name)
-	(obuf (current-buffer)) (changed (vc-diff nil)))
+	(obuf (current-buffer)) (changed (vc-diff nil t)))
     (if (and changed (or vc-suppress-confirm
 			 (not (yes-or-no-p "Discard changes? "))))
 	(progn
