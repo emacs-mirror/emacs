@@ -1,6 +1,6 @@
 ;;; ucs-tables.el --- translation to, from and via Unicode  -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This file provides tables mapping between Unicode numbers and
-;; emacs-mule characters from the iso-8859 charsets (and others).  It
+;; emacs-mule characters from the iso8859 charsets (and others).  It
 ;; also provides some auxiliary functions.
 
 ;; These tables are used to construct other mappings between the Mule
@@ -1159,8 +1159,7 @@ everything on input operations."
   (interactive "P")
   (unless encode-only
     ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
-    (set-char-table-parent standard-translation-table-for-decode
-			   ucs-mule-8859-to-mule-unicode))
+    (unify-8859-on-decoding-mode 1))
   ;; Adjust the 8859 coding systems to fragment the unified characters
   ;; on encoding.
   (dolist (n '(1 2 3 4 5 7 8 9 14 15))
@@ -1236,7 +1235,7 @@ unification on input operations."
   ;; Maybe fix decoding.
   (unless encode-only
     ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
-    (set-char-table-parent standard-translation-table-for-decode nil))
+    (unify-8859-on-decoding-mode -1))
   ;; Fix encoding.  For each charset, remove the entries in
   ;; `char-coding-system-table' added to its safe-chars table (as its
   ;; parent).
@@ -1295,24 +1294,26 @@ built-in ISO 8859 charsets are unified by mapping them into the
 `iso-latin-1' and `mule-unicode-0100-24ff' charsets.
 
 This sets the parent of `standard-translation-table-for-decode'.
+Also sets `translation-table-for-input' globally, so that Quail input
+methods produce unified characters.
 
 See also command `unify-8859-on-encoding-mode'."
   :group 'mule
   :global t
   :version 21.3				; who knows...?
   :init-value nil
-  (if unify-8859-on-decoding-mode
-      (set-char-table-parent standard-translation-table-for-decode
-			     ucs-mule-8859-to-mule-unicode)
-    (set-char-table-parent standard-translation-table-for-decode nil)))
+  (let ((table (if unify-8859-on-decoding-mode ucs-mule-8859-to-mule-unicode)))
+    (set-char-table-parent standard-translation-table-for-decode table)
+    (setq-default translation-table-for-input table)))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
 Interactively, prompts for a hex string giving the code."
   (interactive "sUnicode (hex): ")
-  (insert (decode-char 'ucs (if (integerp arg)
-				arg
-			      (string-to-number arg 16)))))
+  (insert (or (decode-char 'ucs (if (integerp arg)
+				    arg
+				  (string-to-number arg 16)))
+	      (error "Unknown Unicode character"))))
 
 ;;; Dealing with non-8859 character sets.
 
