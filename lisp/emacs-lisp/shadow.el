@@ -249,11 +249,11 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
 	  (message "This site has duplicate Lisp libraries with the same name.
 If a locally-installed Lisp library overrides a library in the Emacs release,
 that can cause trouble, and you should probably remove the locally-installed
-version unless you know what you are doing.\n"))
-	(while shadows
-	  (message "%s hides %s" (car shadows) (car (cdr shadows)))
-	  (setq shadows (cdr (cdr shadows))))
-	(message "%s" msg)))))
+version unless you know what you are doing.\n")
+	  (while shadows
+	    (message "%s hides %s" (car shadows) (car (cdr shadows)))
+	    (setq shadows (cdr (cdr shadows))))
+	  (message "%s" msg))))))
 
 (provide 'shadow)
 
