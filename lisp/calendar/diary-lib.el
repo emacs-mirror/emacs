@@ -882,27 +882,28 @@ A value of 0 in any position of the pattern is a wildcard."
 For example, returns 1325 for 1:25pm.  Returns -9999 if no time is recognized.
 The recognized forms are XXXX or X:XX or XX:XX (military time), XXam or XXpm,
 and XX:XXam or XX:XXpm."
-  (cond ((string-match;; Military time  
-          "^[ \t]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
-         (+ (* 100 (string-to-int
-                    (substring s (match-beginning 1) (match-end 1))))
-            (string-to-int (substring s (match-beginning 2) (match-end 2)))))
-        ((string-match;; Hour only  XXam or XXpm
-          "^[ \t]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
-         (+ (* 100 (% (string-to-int
-                         (substring s (match-beginning 1) (match-end 1)))
-                        12))
-            (if (equal ?a (downcase (aref s (match-beginning 2))))
-                0 1200)))
-        ((string-match;; Hour and minute  XX:XXam or XX:XXpm
-          "^[ \t]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
-         (+ (* 100 (% (string-to-int
-                         (substring s (match-beginning 1) (match-end 1)))
-                        12))
-            (string-to-int (substring s (match-beginning 2) (match-end 2)))
-            (if (equal ?a (downcase (aref s (match-beginning 3))))
-                0 1200)))
-        (t -9999)));; Unrecognizable
+  (let ((case-fold-search nil))
+    (cond ((string-match;; Military time  
+	    "^[ \t]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
+	   (+ (* 100 (string-to-int
+		      (substring s (match-beginning 1) (match-end 1))))
+	      (string-to-int (substring s (match-beginning 2) (match-end 2)))))
+	  ((string-match;; Hour only  XXam or XXpm
+	    "^[ \t]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
+	   (+ (* 100 (% (string-to-int
+			   (substring s (match-beginning 1) (match-end 1)))
+			  12))
+	      (if (equal ?a (downcase (aref s (match-beginning 2))))
+		  0 1200)))
+	  ((string-match;; Hour and minute  XX:XXam or XX:XXpm
+	    "^[ \t]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
+	   (+ (* 100 (% (string-to-int
+			   (substring s (match-beginning 1) (match-end 1)))
+			  12))
+	      (string-to-int (substring s (match-beginning 2) (match-end 2)))
+	      (if (equal ?a (downcase (aref s (match-beginning 3))))
+		  0 1200)))
+	  (t -9999))));; Unrecognizable
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
