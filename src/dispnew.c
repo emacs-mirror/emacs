@@ -1504,6 +1504,11 @@ buffer_posn_from_coords (window, col, line)
 
   current_buffer = XBUFFER (window->buffer);
 
+  /* We can't get a correct result in this case,
+     but at least prevent compute_motion from crashing.  */
+  if (startp < BEGV)
+    startp = BEGV;
+
   /* It would be nice if we could use FRAME_CURRENT_GLYPHS (XFRAME
      (window->frame))->bufp to avoid scanning from the very top of
      the window, but it isn't maintained correctly, and I'm not even
