@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.53) $
+ * $HopeName: MMsrc!trace.c(trunk.54) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.53) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.54) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -647,8 +647,8 @@ void ScanStateSetSummary(ScanState ss, RefSet summary)
 {
   AVERT(ScanState, ss);
 
-  ss->fixedSummary = RefSetInter(summary, ss->white);
-  ss->unfixedSummary = summary;
+  ss->unfixedSummary = RefSetEMPTY;
+  ss->fixedSummary = summary;
   AVER(ScanStateSummary(ss) == summary);
 }
 

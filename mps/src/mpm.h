@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.56) $
+ * $HopeName: MMsrc!mpm.h(trunk.57) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -360,6 +360,8 @@ extern Res PoolCollectAct(Pool pool, Action action);
 #define TraceSetInter(ts1, ts2) BS_INTER(ts1, ts2)
 #define TraceSetDiff(ts1, ts2)  BS_DIFF(ts1, ts2)
 #define TraceSetSuper(ts1, ts2) BS_SUPER(ts1, ts2)
+#define TraceSetSub(ts1, ts2)   BS_SUB(ts1, ts2)
+
 
 extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
@@ -546,6 +548,7 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 #define SegP(seg)               ((seg)->_p)
 #define SegGrey(seg)            ((TraceSet)(seg)->_grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->_white)
+#define SegNailed(seg)          ((seg)->_nailed)
 #define SegSummary(seg)         ((RefSet)(seg)->_summary)
 #define SegBuffer(seg)          ((seg)->_buffer)
 #define SegPoolRing(seg)        (&(seg)->_poolRing)
@@ -559,7 +562,8 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 #define SegSetDepth(seg, d)     ((void)((seg)->_depth = (d)))
 #define SegSetP(seg, pp)        ((void)((seg)->_p = (pp)))
 #define SegSetWhite(seg, ts)    ((void)((seg)->_white = (ts)))
-#define SegSetBuffer(seg, b)    ((void)((seg)->_buffer = (b)))
+#define SegSetNailed(seg, ts)   ((void)((seg)->_nailed = (ts)))
+#define SegSetBuffer(seg, b)	((void)((seg)->_buffer = (b)))
 
 
 /* Buffer Interface -- see impl.c.buffer */
