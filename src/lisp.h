@@ -647,6 +647,19 @@ struct Lisp_Vector
       : XCHAR_TABLE (CT)->defalt)			\
    : Faref (CT, make_number (IDX)))
 
+/* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
+   and 8-bit Europeans characters.  However, if the result is nil,
+   return IDX.
+
+   For these characters, do not check validity of CT
+   and do not follow parent.  */
+#define CHAR_TABLE_TRANSLATE(CT, IDX)			\
+  ((IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS			\
+   ? (!NILP (XCHAR_TABLE (CT)->contents[IDX])		\
+      ? XINT (XCHAR_TABLE (CT)->contents[IDX])		\
+      : IDX)						\
+   : char_table_translate (CT, IDX))
+
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
    8-bit Europeans characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)			\
