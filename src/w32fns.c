@@ -3355,45 +3355,6 @@ unregister_hot_keys (hwnd)
     }
 }
 
-static void
-post_character_message (hwnd, msg, wParam, lParam, modifiers)
-     HWND hwnd;
-     UINT msg;
-     WPARAM wParam;
-     LPARAM lParam;
-     DWORD  modifiers;
-
-{
-  W32Msg wmsg;
-
-  wmsg.dwModifiers = modifiers;
-
-  /* Detect quit_char and set quit-flag directly.  Note that we
-     still need to post a message to ensure the main thread will be
-     woken up if blocked in sys_select(), but we do NOT want to post
-     the quit_char message itself (because it will usually be as if
-     the user had typed quit_char twice).  Instead, we post a dummy
-     message that has no particular effect. */
-  {
-    int c = wParam;
-    if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
-      c = make_ctrl_char (c) & 0377;
-    if (c == quit_char)
-      {
-	Vquit_flag = Qt;
-
-	/* The choice of message is somewhat arbitrary, as long as
-	   the main thread handler just ignores it. */
-	msg = WM_NULL;
-
-	/* Interrupt any blocking system calls.  */
-	signal_quit ();
-      }
-  }
-
-  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-}
-
 /* Main message dispatch loop. */
 
 static void
@@ -3411,6 +3372,9 @@ w32_msg_pump (deferred_msg * msg_buf)
 	{
 	  switch (msg.message)
 	    {
+	    case WM_NULL:
+	      /* Produced by complete_deferred_msg; just ignore.  */
+	      break;
 	    case WM_EMACS_CREATEWINDOW:
 	      w32_createwindow ((struct frame *) msg.wParam);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
@@ -3560,7 +3524,8 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   deferred_msg * msg_buf = find_deferred_msg (hwnd, msg);
 
   if (msg_buf == NULL)
-    abort ();
+    /* Message may have been cancelled, so don't abort().  */
+    return;
 
   msg_buf->result = result;
   msg_buf->completed = 1;
@@ -3569,6 +3534,26 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
 }
 
+void
+cancel_all_deferred_msgs ()
+{
+  deferred_msg * item;
+
+  /* Don't actually need synchronization for read access, since
+     modification of single pointer is always atomic.  */
+  /* enter_crit (); */
+
+  for (item = deferred_msg_head; item != NULL; item = item->next)
+    {
+      item->result = 0;
+      item->completed = 1;
+    }
+
+  /* leave_crit (); */
+
+  /* Ensure input thread is woken so it notices the completion.  */
+  PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
+}
 
 DWORD 
 w32_msg_worker (dw)
@@ -3593,6 +3578,66 @@ w32_msg_worker (dw)
   w32_msg_pump (&dummy_buf);
 
   return 0;
+}
+
+static void
+post_character_message (hwnd, msg, wParam, lParam, modifiers)
+     HWND hwnd;
+     UINT msg;
+     WPARAM wParam;
+     LPARAM lParam;
+     DWORD  modifiers;
+
+{
+  W32Msg wmsg;
+
+  wmsg.dwModifiers = modifiers;
+
+  /* Detect quit_char and set quit-flag directly.  Note that we
+     still need to post a message to ensure the main thread will be
+     woken up if blocked in sys_select(), but we do NOT want to post
+     the quit_char message itself (because it will usually be as if
+     the user had typed quit_char twice).  Instead, we post a dummy
+     message that has no particular effect. */
+  {
+    int c = wParam;
+    if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
+      c = make_ctrl_char (c) & 0377;
+    if (c == quit_char)
+      {
+	Vquit_flag = Qt;
+
+	/* The choice of message is somewhat arbitrary, as long as
+	   the main thread handler just ignores it. */
+	msg = WM_NULL;
+
+	/* Interrupt any blocking system calls.  */
+	signal_quit ();
+
+	/* As a safety precaution, forcibly complete any deferred
+           messages.  This is a kludge, but I don't see any particularly
+           clean way to handle the situation where a deferred message is
+           "dropped" in the lisp thread, and will thus never be
+           completed, eg. by the user trying to activate the menubar
+           when the lisp thread is busy, and then typing C-g when the
+           menubar doesn't open promptly (with the result that the
+           menubar never responds at all because the deferred
+           WM_INITMENU message is never completed).  Another problem
+           situation is when the lisp thread calls SendMessage (to send
+           a window manager command) when a message has been deferred;
+           the lisp thread gets blocked indefinitely waiting for the
+           deferred message to be completed, which itself is waiting for
+           the lisp thread to respond.
+
+	   Note that we don't want to block the input thread waiting for
+	   a reponse from the lisp thread (although that would at least
+	   solve the deadlock problem above), because we want to be able
+	   to receive C-g to interrupt the lisp thread.  */
+	cancel_all_deferred_msgs ();
+      }
+  }
+
+  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 }
 
 /* Main window procedure */
@@ -6524,7 +6569,7 @@ If optional parameter FRAME is not specified, use selected frame.")
 
   CHECK_NUMBER (command, 0);
 
-  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
+  SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
 
   return Qnil;
 }
@@ -6700,13 +6745,13 @@ DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key, Sw32_reconstruct_hot
 
   key = Fcons (key, Qnil);
   if (w32_modifiers & MOD_SHIFT)
-    key = Fcons (intern ("shift"), key);
+    key = Fcons (Qshift, key);
   if (w32_modifiers & MOD_CONTROL)
-    key = Fcons (intern ("control"), key);
+    key = Fcons (Qctrl, key);
   if (w32_modifiers & MOD_ALT)
-    key = Fcons (intern (NILP (Vw32_alt_is_meta) ? "alt" : "meta"), key);
+    key = Fcons (NILP (Vw32_alt_is_meta) ? Qalt : Qmeta, key);
   if (w32_modifiers & MOD_WIN)
-    key = Fcons (intern ("hyper"), key);
+    key = Fcons (Qhyper, key);
 
   return key;
 }
