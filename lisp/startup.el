@@ -532,6 +532,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 (defconst tool-bar-images-pixel-height 24
   "Height in pixels of images in the tool bar.")
 
+(defvar tool-bar-originally-present nil
+  "Non-nil if tool-bars are present before user and site init files are read.")
+
 ;; Handle the X-like command line parameters "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
   (let ((rest nil))
@@ -803,6 +806,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; Modifying color mappings means realized faces don't
 	;; use the right colors, so clear them.
 	(clear-face-cache)))
+
+  ;; Record whether the tool-bar is present before the user and site
+  ;; init files are processed.  frame-notice-user-settings uses this
+  ;; to determine if the tool-bar has been disabled by the init files,
+  ;; and the frame needs to be resized.
+  (when (fboundp 'frame-notice-user-settings)
+    (let ((tool-bar-lines (or (assq 'tool-bar-lines initial-frame-alist)
+                              (assq 'tool-bar-lines default-frame-alist))))
+      (setq tool-bar-originally-present
+            (not (or (null tool-bar-lines)
+                     (null (cdr tool-bar-lines))
+                     ((eq 0 (cdr tool-bar-lines))))))))
 
   (run-hooks 'before-init-hook)
 
