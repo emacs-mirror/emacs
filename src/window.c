@@ -3298,7 +3298,8 @@ SIZE includes that window's scroll bar, or the divider column to its right.")
 
 DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
   "Make current window ARG lines bigger.\n\
-From program, optional second arg non-nil means grow sideways ARG columns.")
+From program, optional second arg non-nil means grow sideways ARG columns.\n\
+Interactively, if an argument is not given, make the window one line bigger.")
   (arg, side)
      register Lisp_Object arg, side;
 {
@@ -3313,7 +3314,8 @@ From program, optional second arg non-nil means grow sideways ARG columns.")
 
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
   "Make current window ARG lines smaller.\n\
-From program, optional second arg non-nil means shrink sideways arg columns.")
+From program, optional second arg non-nil means shrink sideways arg columns.\n\
+Interactively, if an argument is not given, make the window one line smaller.")
   (arg, side)
      register Lisp_Object arg, side;
 {
