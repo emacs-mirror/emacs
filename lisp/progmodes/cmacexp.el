@@ -108,8 +108,10 @@
   :group 'c-macro)
 
 (defcustom c-macro-preprocessor
-  ;; Cannot rely on standard directory on MS-DOS to find CPP.
-  (cond ((eq system-type 'ms-dos) "cpp -C")
+  ;; Cannot rely on standard directory on MS-DOS to find CPP.  In
+  ;; fact, cannot rely on having cpp.exe, either, in latest GCC
+  ;; versions.
+  (cond ((eq system-type 'ms-dos) "gcc -E -C -o - -")
 	;; Solaris has it in an unusual place.
 	((and (string-match "^[^-]*-[^-]*-\\(solaris\\|sunos5\\)"
 			    system-configuration)
