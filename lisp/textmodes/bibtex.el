@@ -2324,63 +2324,64 @@ The generation algorithm works as follows:
       (let* ((case-fold-search t)
 	     (reference-keys (if add bibtex-reference-keys)))
         (save-excursion
-          (goto-char (point-min))
-          (if verbose
-              (bibtex-progress-message
-               (concat (buffer-name) ": parsing reference keys")))
-          (if (catch 'userkey
-                (bibtex-skip-to-valid-entry)
-                (while (not (eobp))
-                  (if (and
-                       abortable
-                       (input-pending-p))
-                      (throw 'userkey t))
-                  (if verbose
-                      (bibtex-progress-message))
-                  (let (reference-key
-                        xrefd-reference-key)
-                    (cond
-                     ((looking-at bibtex-entry-head)
-                      (setq
-                       reference-key
-                       (buffer-substring-no-properties
-                        (match-beginning bibtex-key-in-head)
-                        (match-end bibtex-key-in-head)))
-                      (let ((p (point))
-                            (m (bibtex-end-of-entry)))
-                        (goto-char p)
-			(let ((bounds (bibtex-search-forward-field "crossref" m)))
-			  (if bounds
-			      (setq
-			       xrefd-reference-key
-			       (buffer-substring-no-properties
-				(1+ (bibtex-start-of-text-in-field bounds))
-				(1- (bibtex-end-of-text-in-field bounds))))))))
-                     ((bibtex-parse-string)
-		      (let ((bounds (bibtex-parse-string)))
-			(setq
-			 reference-key
-			 (buffer-substring-no-properties
-			  (bibtex-start-of-reference-key-in-string bounds)
-			  (bibtex-end-of-reference-key-in-string bounds))))))
-                    (forward-char)
-                    (bibtex-skip-to-valid-entry)
-                    (if (not (assoc reference-key reference-keys))
-                        (setq reference-keys
-                              (cons (list reference-key) reference-keys)))
-                    (if (and xrefd-reference-key
-                             (not (assoc xrefd-reference-key reference-keys)))
-                        (setq reference-keys
-                              (cons (list xrefd-reference-key) reference-keys))))))
-              ;; user has aborted by typing a key --> return nil
-              nil
-            ;; successful operation --> return t
-            (setq
-             bibtex-buffer-last-parsed-tick (buffer-modified-tick)
-             bibtex-reference-keys reference-keys)
+          (save-match-data
+            (goto-char (point-min))
             (if verbose
-                (bibtex-progress-message 'done))
-            t)))))
+                (bibtex-progress-message
+                 (concat (buffer-name) ": parsing reference keys")))
+            (if (catch 'userkey
+                  (bibtex-skip-to-valid-entry)
+                  (while (not (eobp))
+                    (if (and
+                         abortable
+                         (input-pending-p))
+                        (throw 'userkey t))
+                    (if verbose
+                        (bibtex-progress-message))
+                    (let (reference-key
+                          xrefd-reference-key)
+                      (cond
+                       ((looking-at bibtex-entry-head)
+                        (setq
+                         reference-key
+                         (buffer-substring-no-properties
+                          (match-beginning bibtex-key-in-head)
+                          (match-end bibtex-key-in-head)))
+                        (let ((p (point))
+                              (m (bibtex-end-of-entry)))
+                          (goto-char p)
+                          (let ((bounds (bibtex-search-forward-field "crossref" m)))
+                            (if bounds
+                                (setq
+                                 xrefd-reference-key
+                                 (buffer-substring-no-properties
+                                  (1+ (bibtex-start-of-text-in-field bounds))
+                                  (1- (bibtex-end-of-text-in-field bounds))))))))
+                       ((bibtex-parse-string)
+                        (let ((bounds (bibtex-parse-string)))
+                          (setq
+                           reference-key
+                           (buffer-substring-no-properties
+                            (bibtex-start-of-reference-key-in-string bounds)
+                            (bibtex-end-of-reference-key-in-string bounds))))))
+                      (forward-char)
+                      (bibtex-skip-to-valid-entry)
+                      (if (not (assoc reference-key reference-keys))
+                          (setq reference-keys
+                                (cons (list reference-key) reference-keys)))
+                      (if (and xrefd-reference-key
+                               (not (assoc xrefd-reference-key reference-keys)))
+                          (setq reference-keys
+                                (cons (list xrefd-reference-key) reference-keys))))))
+                ;; user has aborted by typing a key --> return nil
+                nil
+              ;; successful operation --> return t
+              (setq
+               bibtex-buffer-last-parsed-tick (buffer-modified-tick)
+               bibtex-reference-keys reference-keys)
+              (if verbose
+                  (bibtex-progress-message 'done))
+              t))))))
 
 (defun bibtex-parse-buffers-stealthily ()
   ;; Called by bibtex-run-with-idle-timer. Whenever emacs has been idle
@@ -2700,7 +2701,7 @@ non-nil.
       (bibtex-run-with-idle-timer
        1 nil
        (lambda ()
-         (bibtex-parse-keys nil t t))))
+         (bibtex-parse-keys nil nil t))))
   ;; to get buffer parsed once if everything else (including things
   ;; installed in bibtex-mode-hook) has done its work
   (if (not bibtex-parse-idle-timer)
