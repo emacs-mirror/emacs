@@ -1,3 +1,16 @@
+2000-02-09  Dave Love  <fx@gnu.org>
+
+	* bindings.el (mode-line-input-method-map): New variable.
+	(mode-line-mule-info): Use it; fix last change.
+	(mode-line-mode-menu): Move definition.
+	(mode-line-mouse-sensitive-p): Deleted.
+	(mode-line-mode-name): Don't use mode-line-mouse-sensitive-p.
+	(make-mode-line-mouse-sensitive): Deleted.  Body moved to top
+	level.
+
+	* startup.el (command-line-1): Don't call
+	make-mode-line-mouse-sensitive.
+
 2000-02-07  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
 
 	* mail/rmail.el (rmail-retry-failure): Use
