@@ -102,7 +102,7 @@
 ;; * delete unused variables.
 ;; * arrange for testing with different relative precedences of ! vs. @
 ;;   and %.
-;; * put variant-method back into mail-extract-address-components.
+;; * put mail-variant-method back into mail-extract-address-components.
 ;; * insert documentation strings!
 ;; * handle X.400-gatewayed addresses according to RFC 1148.
 
@@ -337,7 +337,7 @@
 
 ;; Utility functions and macros.
 
-(defmacro undo-backslash-quoting (beg end)
+(defmacro mail-undo-backslash-quoting (beg end)
   (`(save-excursion
       (save-restriction
 	(narrow-to-region (, beg) (, end))
@@ -388,7 +388,7 @@
 	 (setq list (cdr list)))
        (car list))))
   
-(defmacro safe-move-sexp (arg)
+(defmacro mail-safe-move-sexp (arg)
   "Safely skip over one balanced sexp, if there is one.  Return t if success."
   (` (condition-case error
 	 (progn
@@ -467,7 +467,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 		     (not (eq ?\) (char-after (point))))))
 	      (setq comment-beg (point)))
 	  ;; TODO: don't record if unbalanced
-	  (or (safe-move-sexp 1)
+	  (or (mail-safe-move-sexp 1)
 	      (forward-char 1))
 	  (set-syntax-table address-syntax-table)
 	  (if (and comment-beg
@@ -483,7 +483,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 		     (not (eq ?\" (char-after (point))))))
 	      (setq quote-beg (point)))
 	  ;; TODO: don't record if unbalanced
-	  (or (safe-move-sexp 1)
+	  (or (mail-safe-move-sexp 1)
 	      (forward-char 1))
 	  (if (and quote-beg
 		   (not quote-end))
@@ -491,7 +491,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 	 ;; domain literals
 	 ((eq char ?\[)
 	  (set-syntax-table address-domain-literal-syntax-table)
-	  (or (safe-move-sexp 1)
+	  (or (mail-safe-move-sexp 1)
 	      (forward-char 1))
 	  (set-syntax-table address-syntax-table))
 	 ;; commas delimit addresses when outside < > pairs.
@@ -767,7 +767,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 		  (car !-pos))
 		 (delete-char 1)
 		 (or (save-excursion
-		       (safe-move-sexp -1)
+		       (mail-safe-move-sexp -1)
 		       (skip-chars-backward mail-whitespace)
 		       (eq ?. (preceding-char)))
 		     (insert-before-markers
@@ -801,7 +801,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 				@-pos))
 		 (skip-chars-backward mail-whitespace)
 		 (save-excursion
-		   (safe-move-sexp -1)
+		   (mail-safe-move-sexp -1)
 		   (setq domain-pos (point))
 		   (skip-chars-backward mail-whitespace)
 		   (setq \.-pos (eq ?. (preceding-char))))
@@ -834,12 +834,12 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 		  (eq quote-beg phrase-beg)
 		  (<= quote-end phrase-end))
 	     (narrow-to-region (1+ quote-beg) (1- quote-end))
-	     (undo-backslash-quoting (point-min) (point-max)))
+	     (mail-undo-backslash-quoting (point-min) (point-max)))
 	    (phrase-beg
 	     (narrow-to-region phrase-beg phrase-end))
 	    (comment-beg
 	     (narrow-to-region (1+ comment-beg) (1- comment-end))
-	     (undo-backslash-quoting (point-min) (point-max)))
+	     (mail-undo-backslash-quoting (point-min) (point-max)))
 	    (t
 	     ;; *** Work in canon buffer instead?  No, can't.  Hmm.
 	     (delete-region (point-min) (point-max))
@@ -855,7 +855,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 	       (cond
 		((eq char ?\")
 		 (setq quote-beg (point))
-		 (or (safe-move-sexp 1)
+		 (or (mail-safe-move-sexp 1)
 		     ;; TODO: handle this error condition!!!!!
 		     (forward-char 1))
 		 ;; take into account deletions
@@ -865,7 +865,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 		   (delete-char 1)
 		   (goto-char quote-beg)
 		   (delete-char 1))
-		 (undo-backslash-quoting quote-beg quote-end)
+		 (mail-undo-backslash-quoting quote-beg quote-end)
 		 (or (eq mail-space-char (char-after (point)))
 		     (insert " "))
 		 (setq \.-ends-name t))
@@ -895,7 +895,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
       
       (set-syntax-table address-text-syntax-table)
       
-      (setq xxx (variant-method (buffer-string)))
+      (setq xxx (mail-variant-method (buffer-string)))
       (delete-region (point-min) (point-max))
       (insert xxx)
       (goto-char (point-min))
@@ -916,7 +916,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 ;;       (cond ((memq (char-after (1- (point))) '(?\) ?\} ?\]))
 ;; 	     (setq comment-end (point))
 ;; 	     (set-syntax-table address-text-comment-syntax-table)
-;; 	     (or (safe-move-sexp -1)
+;; 	     (or (mail-safe-move-sexp -1)
 ;; 		 (backward-char 1))
 ;; 	     (set-syntax-table address-text-syntax-table)
 ;; 	     (setq comment-beg (point))
@@ -1072,7 +1072,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
       )))
 
 ;; TODO: put this back in the above function now that it's proven:
-(defun variant-method (string)
+(defun mail-variant-method (string)
   (let ((variant-buffer (get-buffer-create "*variant method buffer*"))
 	(word-count 0)
 	mixed-case-flag lower-case-flag upper-case-flag
@@ -1183,7 +1183,7 @@ Returns a list of the form (FULL-NAME CANONICAL-ADDRESS)."
 		   (or (search-forward "'" nil t)
 		       (delete-char 1)))
 		  (t
-		   (or (safe-move-sexp 1)
+		   (or (mail-safe-move-sexp 1)
 		       (goto-char (point-max)))))
 	    (set-syntax-table address-text-syntax-table)
 	    (setq comment-end (point))
