@@ -724,7 +724,7 @@ reset_buffer_local_variables (b, permanent_too)
    rename the buffer properly.  */
 
 DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buffer_name,
-  1, 2, 0,
+       1, 2, 0,
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
@@ -809,7 +809,7 @@ If BUFFER is not indirect, return nil.  */)
 }
 
 DEFUN ("buffer-local-variables", Fbuffer_local_variables,
-  Sbuffer_local_variables, 0, 1, 0,
+       Sbuffer_local_variables, 0, 1, 0,
        doc: /* Return an alist of variables that are buffer-local in BUFFER.
 Most elements look like (SYMBOL . VALUE), describing one variable.
 For a symbol that is locally unbound, just the symbol appears in the value.
@@ -881,7 +881,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 
 
 DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
-  0, 1, 0,
+       0, 1, 0,
        doc: /* Return t if BUFFER was modified since its file was last read or saved.
 No argument or nil as argument means use current buffer as BUFFER.  */)
      (buffer)
@@ -900,7 +900,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 }
 
 DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
-  1, 1, 0,
+       1, 1, 0,
        doc: /* Mark current buffer as modified or unmodified according to FLAG.
 A non-nil FLAG means mark the buffer modified.  */)
      (flag)
@@ -981,7 +981,7 @@ state of the current buffer.  Use with care.  */)
 }
 
 DEFUN ("buffer-modified-tick", Fbuffer_modified_tick, Sbuffer_modified_tick,
-  0, 1, 0,
+       0, 1, 0,
        doc: /* Return BUFFER's tick counter, incremented for each change in text.
 Each buffer has a tick counter which is incremented each time the text in
 that buffer is changed.  It wraps around occasionally.
@@ -2208,7 +2208,7 @@ but the contents viewed as characters do change.  */)
 }
 
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
-  0, 0, 0,
+       0, 0, 0,
        doc: /* Switch to Fundamental mode by killing current buffer's local variables.
 Most local variable bindings are eliminated so that the default values
 become effective once more.  Also, the syntax table is set from
@@ -3698,7 +3698,7 @@ or between BEG and END.  */)
 }
 
 DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
-  1, 1, 0,
+       1, 1, 0,
        doc: /* Return the next position after POS where an overlay starts or ends.
 If there are no more overlay boundaries after POS, return (point-max).  */)
      (pos)
@@ -5030,43 +5030,43 @@ This is the same as (default-value 'cursor-type).  */);
 This is the same as (default-value 'line-spacing).  */);
 
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
-	      &buffer_defaults.abbrev_mode,
+		     &buffer_defaults.abbrev_mode,
 		     doc: /* Default value of `abbrev-mode' for buffers that do not override it.
 This is the same as (default-value 'abbrev-mode).  */);
 
   DEFVAR_LISP_NOPRO ("default-ctl-arrow",
-	      &buffer_defaults.ctl_arrow,
+		     &buffer_defaults.ctl_arrow,
 		     doc: /* Default value of `ctl-arrow' for buffers that do not override it.
 This is the same as (default-value 'ctl-arrow).  */);
 
    DEFVAR_LISP_NOPRO ("default-direction-reversed",
- 	      &buffer_defaults.direction_reversed,
+		      &buffer_defaults.direction_reversed,
 		      doc: /* Default value of `direction_reversed' for buffers that do not override it.
 This is the same as (default-value 'direction-reversed).  */);
  
    DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
- 	      &buffer_defaults.enable_multibyte_characters,
+		      &buffer_defaults.enable_multibyte_characters,
 		      doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
  
    DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
- 	      &buffer_defaults.buffer_file_coding_system,
+		      &buffer_defaults.buffer_file_coding_system,
 		      doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
 This is the same as (default-value 'buffer-file-coding-system).  */);
  
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
-	      &buffer_defaults.truncate_lines,
-    doc: /* Default value of `truncate-lines' for buffers that do not override it.
+		     &buffer_defaults.truncate_lines,
+		     doc: /* Default value of `truncate-lines' for buffers that do not override it.
 This is the same as (default-value 'truncate-lines).  */);
 
   DEFVAR_LISP_NOPRO ("default-fill-column",
-	      &buffer_defaults.fill_column,
-    doc: /* Default value of `fill-column' for buffers that do not override it.
+		     &buffer_defaults.fill_column,
+		     doc: /* Default value of `fill-column' for buffers that do not override it.
 This is the same as (default-value 'fill-column).  */);
 
   DEFVAR_LISP_NOPRO ("default-left-margin",
-	      &buffer_defaults.left_margin,
-    doc: /* Default value of `left-margin' for buffers that do not override it.
+		     &buffer_defaults.left_margin,
+		     doc: /* Default value of `left-margin' for buffers that do not override it.
 This is the same as (default-value 'left-margin).  */);
 
   DEFVAR_LISP_NOPRO ("default-tab-width",
@@ -5075,54 +5075,54 @@ This is the same as (default-value 'left-margin).  */);
 This is the same as (default-value 'tab-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-case-fold-search",
-	      &buffer_defaults.case_fold_search,
-    doc: /* Default value of `case-fold-search' for buffers that don't override it.
+		     &buffer_defaults.case_fold_search,
+		     doc: /* Default value of `case-fold-search' for buffers that don't override it.
 This is the same as (default-value 'case-fold-search).  */);
 
 #ifdef DOS_NT
   DEFVAR_LISP_NOPRO ("default-buffer-file-type", 
 		     &buffer_defaults.buffer_file_type,
-    doc: /* Default file type for buffers that do not override it.
+		     doc: /* Default file type for buffers that do not override it.
 This is the same as (default-value 'buffer-file-type).
 The file type is nil for text, t for binary.  */);
 #endif
 
   DEFVAR_LISP_NOPRO ("default-left-margin-width",
-	      &buffer_defaults.left_margin_width,
-    doc: /* Default value of `left-margin-width' for buffers that don't override it.
+		     &buffer_defaults.left_margin_width,
+		     doc: /* Default value of `left-margin-width' for buffers that don't override it.
 This is the same as (default-value 'left-margin-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-right-margin-width",
-	      &buffer_defaults.right_margin_width,
-    doc: /* Default value of `right_margin_width' for buffers that don't override it.
+		     &buffer_defaults.right_margin_width,
+		     doc: /* Default value of `right_margin_width' for buffers that don't override it.
 This is the same as (default-value 'right-margin-width).  */);
   
   DEFVAR_LISP_NOPRO ("default-indicate-empty-lines",
-	      &buffer_defaults.indicate_empty_lines,
-    doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
+		     &buffer_defaults.indicate_empty_lines,
+		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
   
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
-	      &buffer_defaults.scroll_up_aggressively,
-    doc: /* Default value of `scroll-up-aggressively' for buffers that
+		     &buffer_defaults.scroll_up_aggressively,
+		     doc: /* Default value of `scroll-up-aggressively' for buffers that
 don't override it.  This is the same as (default-value
 'scroll-up-aggressively).  */);
   
   DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
-	      &buffer_defaults.scroll_down_aggressively,
-    doc: /* Default value of `scroll-down-aggressively' for buffers that
+		     &buffer_defaults.scroll_down_aggressively,
+		     doc: /* Default value of `scroll-down-aggressively' for buffers that
 don't override it.  This is the same as (default-value
 'scroll-down-aggressively).  */);
   
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &current_buffer->header_line_format,
 		     Qnil,
-   doc: /* Analogous to `mode-line-format', but for the mode line that can be
+		     doc: /* Analogous to `mode-line-format', but for the mode line that can be
 displayed at the top of a window.  */);
   
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format,
-    Qnil,
-    doc: /* Template for displaying mode line for current buffer.
+		     Qnil,
+		     doc: /* Template for displaying mode line for current buffer.
 Each buffer has its own value of this variable.
 Value may be nil, a string, a symbol or a list or cons cell.
 A value of nil means don't display a mode line.
@@ -5164,39 +5164,39 @@ A string is printed verbatim in the mode line except for %-constructs:
 Decimal digits after the % specify field width to which to pad.  */);
 
   DEFVAR_LISP_NOPRO ("default-major-mode", &buffer_defaults.major_mode,
-    doc: /* *Major mode for new buffers.  Defaults to `fundamental-mode'.
+		     doc: /* *Major mode for new buffers.  Defaults to `fundamental-mode'.
 nil here means use current buffer's major mode.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &current_buffer->major_mode,
 		     make_number (Lisp_Symbol),
-    doc: /* Symbol for current buffer's major mode.  */);
+		     doc: /* Symbol for current buffer's major mode.  */);
 
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
                      make_number (Lisp_String),
-    doc: /* Pretty name of current buffer's major mode (a string).  */);
+		     doc: /* Pretty name of current buffer's major mode (a string).  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
-    doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);
+		     doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);
 
   DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search,
 		     Qnil,
-    doc: /* *Non-nil if searches and matches should ignore case.  */);
+		     doc: /* *Non-nil if searches and matches should ignore case.  */);
 
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
 		     make_number (Lisp_Int),
-    doc: /* *Column beyond which automatic line-wrapping should happen.  */);
+		     doc: /* *Column beyond which automatic line-wrapping should happen.  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
-    doc: /* *Column for the default indent-line-function to indent to.
+		     doc: /* *Column for the default indent-line-function to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
 		     make_number (Lisp_Int),
-    doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
+		     doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow, Qnil,
-    doc: /* *Non-nil means display control chars with uparrow.
+		     doc: /* *Non-nil means display control chars with uparrow.
 A value of nil means use backslash and octal digits.
 This variable does not apply to characters whose display is specified
 in the current display table (if there is one).  */);
@@ -5204,7 +5204,7 @@ in the current display table (if there is one).  */);
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
 		     &current_buffer->enable_multibyte_characters,
 		     make_number (-1),
-    doc: /* Non-nil means the buffer contents are regarded as multi-byte characters.
+		     doc: /* Non-nil means the buffer contents are regarded as multi-byte characters.
 Otherwise they are regarded as unibyte.  This affects the display,
 file I/O and the behavior of various editing commands.
 
@@ -5216,7 +5216,7 @@ See also variable `default-enable-multibyte-characters' and Info node
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
 		     &current_buffer->buffer_file_coding_system, Qnil,
-    doc: /* Coding system to be used for encoding the buffer contents on saving.
+		     doc: /* Coding system to be used for encoding the buffer contents on saving.
 This variable applies to saving the buffer, and also to `write-region'
 and other functions that use `write-region'.
 It does not apply to sending output to subprocesses, however.
@@ -5231,10 +5231,10 @@ This variable is never applied to a way of decoding a file while reading it.  */
 
   DEFVAR_PER_BUFFER ("direction-reversed", &current_buffer->direction_reversed,
 		     Qnil,
-    doc: /* *Non-nil means lines in the buffer are displayed right to left.  */);
+		     doc: /* *Non-nil means lines in the buffer are displayed right to left.  */);
 
   DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
-    doc: /* *Non-nil means do not display continuation lines;
+		     doc: /* *Non-nil means do not display continuation lines;
 give each line of text one screen line.
 
 Note that this is overridden by the variable
@@ -5244,7 +5244,7 @@ and this buffer is not full-frame width.  */);
 #ifdef DOS_NT
   DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
 		     Qnil,
-    doc: /* Non-nil if the visited file is a binary file.
+		     doc: /* Non-nil if the visited file is a binary file.
 This variable is meaningful on MS-DOG and Windows NT.
 On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.  */);
@@ -5252,12 +5252,12 @@ On other systems, this variable is normally always nil.  */);
 
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
 		     make_number (Lisp_String),
-    doc: /* Name of default directory of current buffer.  Should end with slash.
+		     doc: /* Name of default directory of current buffer.  Should end with slash.
 To interactively change the default directory, use command `cd'.  */);
 
   DEFVAR_PER_BUFFER ("auto-fill-function", &current_buffer->auto_fill_function,
 		     Qnil,
-    doc: /* Function called (if non-nil) to perform auto-fill.
+		     doc: /* Function called (if non-nil) to perform auto-fill.
 It is called after self-inserting any character specified in
 the `auto-fill-chars' table.
 NOTE: This variable is not a hook;
@@ -5265,35 +5265,35 @@ its value may not be a list of functions.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &current_buffer->filename,
 		     make_number (Lisp_String),
-    doc: /* Name of file visited in current buffer, or nil if not visiting a file.  */);
+		     doc: /* Name of file visited in current buffer, or nil if not visiting a file.  */);
 
   DEFVAR_PER_BUFFER ("buffer-file-truename", &current_buffer->file_truename,
 		     make_number (Lisp_String),
-    doc: /* Abbreviated truename of file visited in current buffer, or nil if none.
+		     doc: /* Abbreviated truename of file visited in current buffer, or nil if none.
 The truename of a file is calculated by `file-truename'
 and then abbreviated with `abbreviate-file-name'.  */);
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
 		     &current_buffer->auto_save_file_name,
 		     make_number (Lisp_String),
-    doc: /* Name of file for auto-saving current buffer,
+		     doc: /* Name of file for auto-saving current buffer,
 or nil if buffer should not be auto-saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-read-only", &current_buffer->read_only, Qnil,
-    doc: /* Non-nil if this buffer is read-only.  */);
+		     doc: /* Non-nil if this buffer is read-only.  */);
 
   DEFVAR_PER_BUFFER ("buffer-backed-up", &current_buffer->backed_up, Qnil,
-    doc: /* Non-nil if this buffer's file has been backed up.
+		     doc: /* Non-nil if this buffer's file has been backed up.
 Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length,
 		     make_number (Lisp_Int),
-    doc: /* Length of current buffer when last read in, saved or auto-saved.
+		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.  */);
 
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
 		     Qnil,
-    doc: /* Non-nil enables selective display:
+		     doc: /* Non-nil enables selective display:
 Integer N as value means display only lines
  that start with less than n columns of space.
 A value of t means, after a ^M, all the rest of the line is invisible.
@@ -5303,11 +5303,11 @@ A value of t means, after a ^M, all the rest of the line is invisible.
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		    &current_buffer->selective_display_ellipses,
 		     Qnil,
-    doc: /* t means display ... on previous line when a line is invisible.  */);
+		     doc: /* t means display ... on previous line when a line is invisible.  */);
 #endif
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode, Qnil,
-    doc: /* Non-nil if self-insertion should replace existing text.
+		     doc: /* Non-nil if self-insertion should replace existing text.
 The value should be one of `overwrite-mode-textual',
 `overwrite-mode-binary', or nil.
 If it is `overwrite-mode-textual', self-insertion still
@@ -5317,7 +5317,7 @@ If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
 		     Qnil,
-    doc: /* Display table that controls display of the contents of current buffer.
+		     doc: /* Display table that controls display of the contents of current buffer.
 
 If this variable is nil, the value of `standard-display-table' is used.
 Each window can have its own, overriding display table, see
@@ -5354,30 +5354,30 @@ See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
   DEFVAR_PER_BUFFER ("left-margin-width", &current_buffer->left_margin_width,
 		     Qnil,
-    doc: /* *Width of left marginal area for display of a buffer.
+		     doc: /* *Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
   
   DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_width,
 		     Qnil,
-    doc: /* *Width of right marginal area for display of a buffer.
+		     doc: /* *Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
   
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &current_buffer->indicate_empty_lines, Qnil,
-    doc: /* *Visually indicate empty lines after the buffer end.
+		     doc: /* *Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
   
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
-    doc: /* *If a number, scroll display up aggressively.
+		     doc: /* *If a number, scroll display up aggressively.
 If scrolling a window because point is above the window start, choose
 a new window start so that point ends up that fraction of the window's
 height from the top of the window.  */);
   
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
 		     &current_buffer->scroll_down_aggressively, Qnil,
-    doc: /* *If a number, scroll display down aggressively.
+		     doc: /* *If a number, scroll display down aggressively.
 If scrolling a window because point is below the window end, choose
 a new window start so that point ends up that fraction of the window's
 height from the bottom of the window.  */);
@@ -5427,7 +5427,7 @@ from happening repeatedly and making Emacs nonfunctional.  */);
   Vafter_change_functions = Qnil;
 
   DEFVAR_LISP ("first-change-hook", &Vfirst_change_hook,
-  doc: /* A list of functions to call before changing a buffer which is unmodified.
+	       doc: /* A list of functions to call before changing a buffer which is unmodified.
 The functions are run using the `run-hooks' function.  */);
   Vfirst_change_hook = Qnil;
 
@@ -5557,7 +5557,7 @@ Values are interpreted as follows:
 The space is measured in pixels, and put below lines on window systems.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
-    doc: /* List of functions called with no args to query before killing a buffer.  */);
+	       doc: /* List of functions called with no args to query before killing a buffer.  */);
   Vkill_buffer_query_functions = Qnil;
 
   defsubr (&Sbuffer_live_p);
