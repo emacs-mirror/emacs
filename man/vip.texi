@@ -784,8 +784,8 @@ typing @kbd{\}.  Thus @kbd{5 \ +}, as well as @kbd{\ C-u 5 +}, will insert
 @cindex current buffer
 
 In Emacs the text you edit is stored in a @dfn{buffer}.
-See GNU Emacs Manual, for details.  There is always one @dfn{selected}
-buffer which is called the @dfn{current buffer}.@refill
+See GNU Emacs Manual, for details.  There is always one @dfn{current}
+buffer, also called the @dfn{selected buffer}.@refill
 
 @cindex window
 @cindex modified (buffer)
