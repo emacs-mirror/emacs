@@ -28,11 +28,12 @@
 ;; Case-conversion and syntax tables for ISO-8859-15 (Latin-9),
 ;; adapted from latin-1.el.
 
-;; <URL:http://czyborra.com/charsets/iso8859.html>:
+;; <URL:http://czyborra.com/charsets/iso8859.html> (edited to remove
+;;   non-ASCII characters!):
 ;; The new Latin9 nicknamed Latin0 aims to update Latin1 by
-;; replacing the less needed symbols ¦¨´¸¼½¾ with forgotten French and
+;; replacing less needed symbols with forgotten French and
 ;; Finnish letters and placing the U+20AC Euro sign in the cell =A4 of
-;; the former international currency sign ¤.
+;; the former international currency sign.
 
 ;; The differences from Latin-1 are starred on the comments below.
 
@@ -116,4 +117,4 @@
 (or set-case-syntax-set-multibyte
     (provide 'latin-9))
 
-;;; latin-1.el ends here
+;;; latin-9.el ends here
