@@ -1,3 +1,37 @@
+2005-03-28  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mode-map): Add ellipsis to "Compare directories".
+
+	* menu-bar.el (menu-bar-file-menu): Remove ellipsis from
+	"Recover Crashed Session".
+	(menu-bar-search-menu): Add ellipsis to "Search tagged files".
+	(menu-bar-replace-menu): Add ellipsis to "Replace in tagged files".
+	(menu-bar-goto-menu): Add ellipsis to "Set Tags File Name".
+	(menu-bar-goto-menu): Add ellipsis to "Tags Apropos".
+	(menu-bar-options-menu): Add ellipsis to "Set Font/Fontset".
+	(menu-bar-manuals-menu): Add ellipsis to "Find Command in Manual".
+	(menu-bar-manuals-menu): Add ellipsis to "Find Key in Manual".
+	(menu-bar-help-menu): Remove ellipsis from "Find Emacs Packages".
+
+	* ediff-hook.el (menu-bar-ediff-misc-menu, ediff-misc-menu):
+	Remove ellipsis from "Ediff Manual", "Customize Ediff", "List
+	Ediff Sessions", "Toggle use of separate control buffer frame",
+	"Use separate frame for Ediff control buffer".
+
+	* bookmark.el (menu-bar-bookmark-map): Add ellipsis to "Jump to
+	Bookmark", "Set Bookmark", "Insert Contents", "Insert Location",
+	"Rename Bookmark", "Delete Bookmark".
+
+	* info.el (Info-mode-menu): Remove ellipsis from "Index".
+	Add ellipsis to "Lookup a String", "Lookup a string in all indices".
+	Add `:active Info-index-alternatives' to "Next Matching Item".
+
+	* wdired.el (wdired-change-to-wdired-mode):
+	Mention `wdired-abort-changes' key in the initial message.
+
+	* international/mule.el (auto-coding-alist): Associate non-ascii
+	image filename extensions with `no-conversion'.
+
 2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/sgml-mode.el (html-mode): Doc update.
