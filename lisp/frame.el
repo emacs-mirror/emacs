@@ -98,6 +98,16 @@ These supercede the values given in `default-frame-alist'.")
 	      (setq default-minibuffer-frame
 		    (setq frame-initial-frame
 			  (new-frame initial-frame-alist)))
+	      ;; Delete any specifications for window geometry parameters
+	      ;; so that we won't reapply them in frame-notice-user-settings.
+	      ;; It would be wrong to reapply them then,
+	      ;; because that would override explicit user resizing.
+	      (setq initial-frame-alist
+		    (delq (assq 'height initial-frame-alist)
+			  (delq (assq 'width initial-frame-alist)
+				(delq (assq 'left initial-frame-alist)
+				      (delq (assq 'top initial-frame-alist)
+					    initial-frame-alist)))))
 	      ;; Handle `reverse' as a parameter.
 	      (if (cdr (or (assq 'reverse initial-frame-alist)
 			   (assq 'reverse default-frame-alist)
