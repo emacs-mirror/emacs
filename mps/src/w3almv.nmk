@@ -1,6 +1,6 @@
 # impl.nmk.w3almv: WINDOWS (ALPHA) NMAKE FILE
 #
-# $HopeName: MMsrc!w3almv.nmk(trunk.39) $
+# $HopeName: MMsrc!w3almv.nmk(trunk.40) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3almv
@@ -24,7 +24,7 @@ MPM = <assert> <ring> <mpm> <bt> <protocol> \
 SW  = <assert> <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
       <pool> <poolabs> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <lockw3> \
+      <poolmv> <root> <format> <buffer> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
@@ -43,6 +43,7 @@ TESTLIB = <testlib>
 
 
 !INCLUDE commpre.nmk
+
 
 # Source to object file mappings
 # and CFLAGS amalgamation
