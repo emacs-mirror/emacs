@@ -821,11 +821,6 @@ These buffers can be cycled through via :R and :P commands.")
 (defvar vip-always t
   "t means, arrange that vi-state will be a default.")
 
-(defvar vip-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
-  "Tells if Emacs is running under an MS-style OS: ms-dos, windows-nt, W95.")
-(defvar vip-vms-os-p (memq system-type '(vax-vms axp-vms))
-  "Tells if Emacs is running under VMS.")
-
 (defvar vip-custom-file-name (cond (vip-vms-os-p "sys$login:.vip")
 				   ((memq system-type '(emx ms-dos))
 				    "/_vip")
