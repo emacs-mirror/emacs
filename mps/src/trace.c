@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.92) $
+ * $HopeName: MMsrc!trace.c(trunk.93) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.92) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.93) $");
 
 
 /* Types
@@ -16,11 +16,12 @@ SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.92) $");
  * These types only used internally to this trace module.
  */
 
-enum {TraceAccountingPhaseRootScan,
-      TraceAccountingPhaseSegScan,
+enum {TraceAccountingPhaseRootScan = 1, TraceAccountingPhaseSegScan,
       TraceAccountingPhaseSingleScan};
 typedef int TraceAccountingPhase;
 
+
+/* TraceMessage -- type of GC end messages */
 
 #define TraceMessageSig ((Sig)0x51926359)
 
