@@ -264,7 +264,7 @@ case "${canonical}" in
     # to have been a usable /usr/bin/cpp.
     NON_GNU_CPP='cpp'
     case "${canonical}" in
-    alpha*-dec-osf[4-9]*)
+    alpha*-dec-osf[5-9]*)
       opsys=osf5-0 ;;
     esac
   ;;
