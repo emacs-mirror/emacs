@@ -151,7 +151,7 @@ xg_process_timeouts (timer)
 
 /* Start the xg_timer with an interval of 0.1 seconds, if not already started.
    xg_process_timeouts is called when the timer expires.  The timer
-   stared is continuous, i.e. runs until xg_stop_timer is called.  */
+   started is continuous, i.e. runs until xg_stop_timer is called.  */
 static void
 xg_start_timer ()
 {
@@ -412,6 +412,54 @@ xg_pix_to_gcolor (w, pixel, c)
   gdk_colormap_query_color (map, pixel, c);
 }
 
+/* Turning off double buffering for our GtkFixed widget has the side
+   effect of turning it off also for its children (scroll bars).
+   But we want those to be double buffered to not flicker so handle
+   expose manually here.
+   WIDGET is the GtkFixed widget that gets exposed.
+   EVENT is the expose event.
+   USER_DATA is unused.
+
+   Return TRUE to tell GTK that this expose event has been fully handeled
+   and that GTK shall do nothing more with it.  */
+static gboolean
+xg_fixed_handle_expose(GtkWidget *widget,
+                       GdkEventExpose *event,
+                       gpointer user_data)
+{
+  GList *iter;
+  
+  for (iter = GTK_FIXED (widget)->children; iter; iter = g_list_next (iter))
+    {
+      GtkFixedChild *child_data = (GtkFixedChild *) iter->data;
+      GtkWidget *child = child_data->widget;
+      GdkWindow *window = child->window;
+      GdkRegion *region = gtk_widget_region_intersect (child, event->region);
+
+      if (! gdk_region_empty (region))
+        {
+          GdkEvent child_event;
+          child_event.expose = *event;
+          child_event.expose.region = region;
+
+          /* Turn on double buffering, i.e. draw to an off screen area.  */
+          gdk_window_begin_paint_region (window, region);
+
+          /* Tell child to redraw itself.  */
+          gdk_region_get_clipbox (region, &child_event.expose.area);
+          gtk_widget_send_expose (child, &child_event);
+          gdk_window_process_updates (window, TRUE);
+
+          /* Copy off screen area to the window.  */
+          gdk_window_end_paint (window);
+        }
+
+      gdk_region_destroy (region);
+     }
+
+  return TRUE;
+}
+
 /* Create and set up the GTK widgets for frame F.
    Return 0 if creation failed, non-zero otherwise.  */
 int
@@ -478,9 +526,19 @@ xg_create_frame_widgets (f)
   if (FRAME_EXTERNAL_TOOL_BAR (f) && FRAME_TOOLBAR_HEIGHT (f) == 0)
     FRAME_TOOLBAR_HEIGHT (f) = 34;
 
-  gtk_widget_set_double_buffered (wvbox, FALSE);
+
+  /* We don't want this widget double buffered, because we draw on it
+     with regular X drawing primitives, so from a GTK/GDK point of
+     view, the widget is totally blank.  When an expose comes, this
+     will make the widget blank, and then Emacs redraws it.  This flickers
+     a lot, so we turn off double buffering.  */
   gtk_widget_set_double_buffered (wfixed, FALSE);
-  gtk_widget_set_double_buffered (wtop, FALSE);
+
+  /* Turning off double buffering above has the side effect of turning
+     it off also for its children (scroll bars).  But we want those
+     to be double buffered to not flicker so handle expose manually.  */
+  g_signal_connect (G_OBJECT (wfixed), "expose-event",
+                    G_CALLBACK (xg_fixed_handle_expose), 0);
 
   /* GTK documents says use gtk_window_set_resizable.  But then a user
      can't shrink the window from its starting size.  */
@@ -1159,6 +1217,7 @@ make_widget_for_menu_item (utf8_label, utf8_key)
 
   gtk_widget_set_name (wlbl, MENU_ITEM_NAME);
   gtk_widget_set_name (wkey, MENU_ITEM_NAME);
+  gtk_widget_set_name (wbox, MENU_ITEM_NAME);
 
   return wbox;
 }
@@ -2497,7 +2556,8 @@ xg_find_top_left_in_fixed (w, wfixed, left, top)
    TOP/LEFT are the new pixel positions where the bar shall appear.
    WIDTH, HEIGHT is the size in pixels the bar shall have.  */
 void
-xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
+xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height,
+                         real_left, canon_width)
      FRAME_PTR f;
      int scrollbar_id;
      int top;
@@ -2507,19 +2567,18 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
 {
 
   GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
-  
+
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
       int gheight = max (height, 1);
-      int canon_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
       int winextra = canon_width > width ? (canon_width - width) / 2 : 0;
       int bottom = top + gheight;
 
       gint slider_width;
       int oldtop, oldleft, oldbottom;
       GtkRequisition req;
-      
+
       /* Get old values.  */
       xg_find_top_left_in_fixed (wscroll, wfixed, &oldleft, &oldtop);
       gtk_widget_size_request (wscroll, &req);
@@ -2547,49 +2606,57 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
          the remains of the mode line can be seen in these blank spaces.
          So we must clear them explicitly.
          GTK scroll bars should do that, but they don't.
-         Also, the scroll bar canonical width may be wider than the width
-         passed in here.  */
+         Also, the canonical width may be wider than the width for the
+         scroll bar so that there is some space (typically 1 pixel) between
+         the scroll bar and the edge of the window and between the scroll
+         bar and the fringe.  */
 
       if (oldtop != -1 && oldleft != -1)
         {
-          int gtkextra;
-          int xl, xr, wblank;
+          int gtkextral, gtkextrah;
+          int xl, xr, wbl, wbr;
           int bottomdiff, topdiff;
 
           gtk_widget_style_get (wscroll, "slider_width", &slider_width, NULL);
-          gtkextra = width > slider_width ? (width - slider_width) / 2 : 0;
-        
-          xl = left - winextra;
-          wblank = gtkextra + winextra;
-          xr = left + gtkextra + slider_width;
+          gtkextral = width > slider_width ? (width - slider_width) / 2 : 0;
+          gtkextrah = gtkextral ? (width - slider_width - gtkextral) : 0;
+
+          xl = real_left;
+          wbl = gtkextral + winextra;
+          wbr = gtkextrah + winextra;
+          xr = left + gtkextral + slider_width;
           bottomdiff = abs (oldbottom - bottom);
           topdiff = abs (oldtop - top);
 
+          if (oldleft != left)
+            {
+              gdk_window_clear_area (wfixed->window, xl, top, wbl, gheight);
+              gdk_window_clear_area (wfixed->window, xr, top, wbr, gheight);
+            }
+
           if (oldtop > top)
             {
-              gdk_window_clear_area (wfixed->window, xl, top, wblank, topdiff);
-              gdk_window_clear_area (wfixed->window, xr, top, wblank, topdiff);
+              gdk_window_clear_area (wfixed->window, xl, top, wbl, topdiff);
+              gdk_window_clear_area (wfixed->window, xr, top, wbr, topdiff);
             }
           else if (oldtop < top)
             {
-              gdk_window_clear_area (wfixed->window, xl, oldtop, wblank,
-                                     topdiff);
-              gdk_window_clear_area (wfixed->window, xr, oldtop, wblank,
-                                     topdiff);
+              gdk_window_clear_area (wfixed->window, xl, oldtop, wbl, topdiff);
+              gdk_window_clear_area (wfixed->window, xr, oldtop, wbr, topdiff);
             }
 
           if (oldbottom > bottom)
             {
-              gdk_window_clear_area (wfixed->window, xl, bottom, wblank,
+              gdk_window_clear_area (wfixed->window, xl, bottom, wbl,
                                      bottomdiff);
-              gdk_window_clear_area (wfixed->window, xr, bottom, wblank,
+              gdk_window_clear_area (wfixed->window, xr, bottom, wbr,
                                      bottomdiff);
             }
           else if (oldbottom < bottom)
             {
-              gdk_window_clear_area (wfixed->window, xl, oldbottom, wblank,
+              gdk_window_clear_area (wfixed->window, xl, oldbottom, wbl,
                                      bottomdiff);
-              gdk_window_clear_area (wfixed->window, xr, oldbottom, wblank,
+              gdk_window_clear_area (wfixed->window, xr, oldbottom, wbr,
                                      bottomdiff);
             }
         }
@@ -2597,12 +2664,6 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wscroll, left, top);
       gtk_widget_set_size_request (wscroll, width, gheight);
-
-      gtk_container_set_reallocate_redraws (GTK_CONTAINER (wfixed), TRUE);
-
-      /* Make GTK draw the new sizes.  We are not using a pure GTK event
-         loop so we need to do this.  */
-      gdk_window_process_all_updates ();
 
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
@@ -2620,15 +2681,14 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
-  BLOCK_INPUT;
-
   if (wscroll && NILP (bar->dragging))
     {
       GtkAdjustment *adj;
       gdouble shown;
       gdouble top;
       int size, value;
-      int new_upper, new_step;
+      int new_step;
+      int changed = 0;
 
       adj = gtk_range_get_adjustment (GTK_RANGE (wscroll));
 
@@ -2644,53 +2704,51 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
         top = 0, shown = 1;
       else
         {
-          shown = (gdouble) portion / whole;
           top = (gdouble) position / whole;
+          shown = (gdouble) portion / whole;
         }
 
-      size = shown * whole;
-      size = min (size, whole);
+      size = shown * XG_SB_RANGE;
+      size = min (size, XG_SB_RANGE);
       size = max (size, 1);
 
-      value = top * whole;
-      value = min (value, whole - size);
+      value = top * XG_SB_RANGE;
+      value = min (value, XG_SB_MAX - size);
       value = max (value, XG_SB_MIN);
 
-      /* gtk_range_set_value invokes the callback.  Set
-         ignore_gtk_scrollbar to make the callback do nothing  */
-      xg_ignore_gtk_scrollbar = 1;
-
-      new_upper = max (whole, size);
-      new_step  =  portion / max (1, FRAME_HEIGHT (f));
+      /* Assume all lines are of equal size.  */
+      new_step = size / max (1, FRAME_HEIGHT (f));
 
       if ((int) adj->page_size != size
-          || (int) adj->upper != new_upper
           || (int) adj->step_increment != new_step)
         {
-          adj->page_size = (int) size;
-
-          gtk_range_set_range (GTK_RANGE (wscroll), adj->lower,
-                               (gdouble) new_upper);
-
-          /* Assume all lines are of equal size.  */
+          adj->page_size = size;
+          adj->step_increment = new_step;
           /* Assume a page increment is about 95% of the page size  */
-          gtk_range_set_increments (GTK_RANGE (wscroll),
-                                    portion / max (1, FRAME_HEIGHT (f)),
-                                    (int) (0.95*adj->page_size));
-          
+          adj->page_increment = (int) (0.95*adj->page_size);
+          changed = 1;
         }
 
-      if ((int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
-        gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
+      if (changed || (int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+      {
+        GtkWidget *wfixed = f->output_data.x->edit_widget;
 
-      xg_ignore_gtk_scrollbar = 0;
+        BLOCK_INPUT;
 
-      /* Make GTK draw the new thumb.  We are not using a pure GTK event
-         loop so we need to do this.  */
-      gdk_window_process_all_updates ();
+        /* gtk_range_set_value invokes the callback.  Set
+           ignore_gtk_scrollbar to make the callback do nothing  */
+        xg_ignore_gtk_scrollbar = 1;
+
+        if ((int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+          gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
+        else if (changed)
+          gtk_adjustment_changed (adj);
+
+        xg_ignore_gtk_scrollbar = 0;
+
+        UNBLOCK_INPUT;
+      }
     }
-
-  UNBLOCK_INPUT;
 }
 
 
@@ -3098,7 +3156,7 @@ update_frame_tool_bar (f)
 
   /* Must force out update so changed images gets redrawn.  */
   gdk_window_process_all_updates ();
-
+ 
   if (icon_list) g_list_free (icon_list);
 
   UNBLOCK_INPUT;

@@ -4780,7 +4780,9 @@ x_scroll_bar_create (w, top, left, width, height)
                              top,
                              left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                             max (height, 1));
+                             max (height, 1),
+                             left,
+                             width);
     xg_show_scroll_bar (SCROLL_BAR_X_WINDOW (bar));
 #else /* not USE_GTK */
     Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
@@ -5030,7 +5032,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
                                  top,
                                  sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                                  sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                                 max (height, 1));
+                                 max (height, 1),
+                                 left,
+                                 width);
 #else /* not USE_GTK */
 
       /* Since toolkit scroll bars are smaller than the space reserved

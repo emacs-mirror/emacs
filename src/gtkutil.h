@@ -30,8 +30,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Minimum and maximum values used for GTK scroll bars  */
 
-#define XG_SB_MIN 0
+#define XG_SB_MIN 1
 #define XG_SB_MAX 10000000
+#define XG_SB_RANGE (XG_SB_MAX-XG_SB_MIN)
 
 /* Key for data that is valid for menus in a frame  */
 #define XG_FRAME_DATA "emacs_frame"
@@ -165,7 +166,9 @@ extern void xg_update_scrollbar_pos P_ ((FRAME_PTR f,
                                          int top,
                                          int left,
                                          int width,
-                                         int height));
+                                         int height,
+                                         int real_left,
+                                         int canon_width));
 
 extern void xg_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *bar,
                                                  int portion,

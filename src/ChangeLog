@@ -1,3 +1,24 @@
+2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h: Take two more arguments to xg_update_scrollbar_pos.
+	(XG_SB_RANGE): New define.
+
+	* gtkutil.c (xg_fixed_handle_expose): New function.
+	(xg_create_frame_widgets): Call xg_fixed_handle_expose for
+	expose events.
+	(xg_update_scrollbar_pos): Take two more arguments, left and width
+	of scroll bar including borders.
+	Clear left and right part outside scroll bar separately as some
+	themes have bars that are not an even number of pixels.
+	Don't set reallocate_redraws, don't call 
+	gdk_window_process_all_updates.
+	(xg_set_toolkit_scroll_bar_thumb): Upper value is fixed,
+	so no need to change it.  Calculate size and value with XG_SB_RANGE.
+
+	* xterm.c (x_scroll_bar_create, XTset_vertical_scroll_bar): Pass
+	left and width of scroll bar including borders to
+	xg_update_scrollbar_pos.
+
 2003-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* Makefile.in: Make sure space precedes end-of-line backslashes.
