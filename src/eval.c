@@ -2950,7 +2950,7 @@ specbind (symbol, value)
 
       specpdl_ptr++;
       if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
-	store_symval_forwarding (symbol, ovalue, value);
+	store_symval_forwarding (symbol, ovalue, value, NULL);
       else
 	set_internal (symbol, value, 0, 1);
     }
@@ -2990,10 +2990,10 @@ unbind_to (count, value)
 	 so in that case the "old value" is a list of forms to evaluate.  */
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
-      /* If the symbol is a list, it is really
-	 (SYMBOL BINDING_BUFFER . CURRENT_BUFFER)
-	 and it indicates we bound a variable that has
-	 buffer-local bindings.  */
+      /* If the symbol is a list, it is really (SYMBOL BINDING_BUFFER
+	 . CURRENT_BUFFER) and it indicates we bound a variable that
+	 has buffer-local bindings.  BINDING_BUFFER nil means that the
+	 variable had the default value when it was bound.  */
       else if (CONSP (specpdl_ptr->symbol))
 	{
 	  Lisp_Object symbol, buffer;
