@@ -1,3 +1,12 @@
+1999-12-01  Dave Love  <fx@gnu.org>
+
+	* emacs.c (main): Set LANG=C iff AX3_2 defined.
+
+1999-11-28  eliz  <eliz@dlpx1>
+
+	* emacs.c (synchronize_locale): Avoid compiler warnings about
+	pointer type mismatch.
+
 1999-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fwindow_end): Don't call temp_set_pt_both with
