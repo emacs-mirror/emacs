@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -427,7 +427,7 @@ static int lface_id_to_name_size;
 
 /* TTY color-related functions (defined in tty-colors.el).  */
 
-Lisp_Object Qtty_color_desc, Qtty_color_by_index;
+Lisp_Object Qtty_color_desc, Qtty_color_by_index, Qtty_color_standard_values;
 
 /* The name of the function used to compute colors on TTYs.  */
 
@@ -1305,6 +1305,98 @@ load_face_font (f, face, c)
 				X Colors
  ***********************************************************************/
 
+/* Parse RGB_LIST, and fill in the RGB fields of COLOR.
+   RGB_LIST should contain (at least) 3 lisp integers.
+   Return 0 if there's a problem with RGB_LIST, otherwise return 1.  */
+
+static int
+parse_rgb_list (rgb_list, color)
+     Lisp_Object rgb_list;
+     XColor *color;
+{
+#define PARSE_RGB_LIST_FIELD(field)					\
+  if (CONSP (rgb_list) && INTEGERP (XCAR (rgb_list)))			\
+    {									\
+      color->field = XINT (XCAR (rgb_list));				\
+      rgb_list = XCDR (rgb_list);					\
+    }									\
+  else									\
+    return 0;
+
+  PARSE_RGB_LIST_FIELD (red);
+  PARSE_RGB_LIST_FIELD (green);
+  PARSE_RGB_LIST_FIELD (blue);
+
+  return 1;
+}
+
+
+/* Lookup on frame F the color described by the lisp string COLOR.
+   The resulting tty color is returned in TTY_COLOR; if STD_COLOR is
+   non-zero, then the `standard' definition of the same color is
+   returned in it.  */
+
+static int
+tty_lookup_color (f, color, tty_color, std_color)
+     struct frame *f;
+     Lisp_Object color;
+     XColor *tty_color, *std_color;
+{
+  Lisp_Object frame, color_desc;
+
+  if (!STRINGP (color) || NILP (Ffboundp (Qtty_color_desc)))
+    return 0;
+
+  XSETFRAME (frame, f);
+
+  color_desc = call2 (Qtty_color_desc, color, frame);
+  if (CONSP (color_desc) && CONSP (XCDR (color_desc)))
+    {
+      Lisp_Object rgb;
+
+      if (! INTEGERP (XCAR (XCDR (color_desc))))
+	return 0;
+
+      tty_color->pixel = XINT (XCAR (XCDR (color_desc)));
+
+      rgb = XCDR (XCDR (color_desc));
+      if (! parse_rgb_list (rgb, tty_color))
+	return 0;
+
+      /* Should we fill in STD_COLOR too?  */
+      if (std_color)
+	{
+	  /* Default STD_COLOR to the same as TTY_COLOR.  */
+	  *std_color = *tty_color;
+
+	  /* Do a quick check to see if the returned descriptor is
+	     actually _exactly_ equal to COLOR, otherwise we have to
+	     lookup STD_COLOR separately.  If it's impossible to lookup
+	     a standard color, we just give up and use TTY_COLOR.  */
+	  if ((!STRINGP (XCAR (color_desc))
+	       || NILP (Fstring_equal (color, XCAR (color_desc))))
+	      && Ffboundp (Qtty_color_standard_values))
+	    {
+	      /* Look up STD_COLOR separately.  */
+	      rgb = call1 (Qtty_color_standard_values, color);
+	      if (! parse_rgb_list (rgb, std_color))
+		return 0;
+	    }
+	}
+
+      return 1;
+    }
+  else if (NILP (Fsymbol_value (intern ("tty-defined-color-alist"))))
+    /* We were called early during startup, and the colors are not
+       yet set up in tty-defined-color-alist.  Don't return a failure
+       indication, since this produces the annoying "Unable to
+       load color" messages in the *Messages* buffer.  */
+    return 1;
+  else
+    /* tty-color-desc seems to have returned a bad value.  */
+    return 0;
+}
+
 /* A version of defined_color for non-X frames.  */
 
 int
@@ -1314,51 +1406,27 @@ tty_defined_color (f, color_name, color_def, alloc)
      XColor *color_def;
      int alloc;
 {
-  Lisp_Object color_desc;
-  unsigned long color_idx = FACE_TTY_DEFAULT_COLOR;
-  unsigned long red = 0, green = 0, blue = 0;
   int status = 1;
 
-  if (*color_name && !NILP (Ffboundp (Qtty_color_desc)))
-    {
-      Lisp_Object frame;
+  /* Defaults.  */
+  color_def->pixel = FACE_TTY_DEFAULT_COLOR; 
+  color_def->red = 0;
+  color_def->blue = 0;
+  color_def->green = 0;
 
-      XSETFRAME (frame, f);
-      status = 0;
-      color_desc = call2 (Qtty_color_desc, build_string (color_name), frame);
-      if (CONSP (color_desc) && CONSP (XCDR (color_desc)))
-	{
-	  color_idx = XINT (XCAR (XCDR (color_desc)));
-	  if (CONSP (XCDR (XCDR (color_desc))))
-	    {
-	      red = XINT (XCAR (XCDR (XCDR (color_desc))));
-	      green = XINT (XCAR (XCDR (XCDR (XCDR (color_desc)))));
-	      blue = XINT (XCAR (XCDR (XCDR (XCDR (XCDR (color_desc))))));
-	    }
-	  status = 1;
-	}
-      else if (NILP (Fsymbol_value (intern ("tty-defined-color-alist"))))
-	/* We were called early during startup, and the colors are not
-	   yet set up in tty-defined-color-alist.  Don't return a failure
-	   indication, since this produces the annoying "Unable to
-	   load color" messages in the *Messages* buffer.  */
-	status = 1;
-    }
-  if (color_idx == FACE_TTY_DEFAULT_COLOR && *color_name)
+  if (*color_name)
+    status = tty_lookup_color (f, build_string (color_name), color_def, 0);
+
+  if (color_def->pixel == FACE_TTY_DEFAULT_COLOR && *color_name)
     {
       if (strcmp (color_name, "unspecified-fg") == 0)
-	color_idx = FACE_TTY_DEFAULT_FG_COLOR;
+	color_def->pixel = FACE_TTY_DEFAULT_FG_COLOR;
       else if (strcmp (color_name, "unspecified-bg") == 0)
-	color_idx = FACE_TTY_DEFAULT_BG_COLOR;
+	color_def->pixel = FACE_TTY_DEFAULT_BG_COLOR;
     }
 
-  if (color_idx != FACE_TTY_DEFAULT_COLOR)
+  if (color_def->pixel != FACE_TTY_DEFAULT_COLOR)
     status = 1;
-
-  color_def->pixel = color_idx;
-  color_def->red = red;
-  color_def->green = green;
-  color_def->blue = blue;
 
   return status;
 }
@@ -5024,6 +5092,249 @@ prepare_face_for_display (f, face)
 }
 
 
+/* Returns the `distance' between the colors X and Y.  */
+
+static int
+color_distance (x, y)
+     XColor *x, *y;
+{
+  /* This formula is from a paper title `Colour metric' by Thiadmer Riemersma.
+     Quoting from that paper:
+
+         This formula has results that are very close to L*u*v* (with the
+         modified lightness curve) and, more importantly, it is a more even
+         algorithm: it does not have a range of colours where it suddenly
+         gives far from optimal results.
+
+     See <http://www.compuphase.com/cmetric.htm> for more info.  */
+
+  long r = (x->red   - y->red)   >> 8;
+  long g = (x->green - y->green) >> 8;
+  long b = (x->blue  - y->blue)  >> 8;
+  long r_mean = (x->red + y->red) >> 9;
+
+  return
+    (((512 + r_mean) * r * r) >> 8)
+    + 4 * g * g
+    + (((767 - r_mean) * b * b) >> 8);
+}
+
+
+DEFUN ("color-distance", Fcolor_distance, Scolor_distance, 2, 3, 0,
+       doc: /* Return an integer distance between COLOR1 and COLOR2 on FRAME.
+COLOR1 and COLOR2 may be either strings containing the color name,
+or lists of the form (RED GREEN BLUE).
+If FRAME is unspecified or nil, the current frame is used.  */)
+     (color1, color2, frame)
+     Lisp_Object color1, color2, frame;
+{
+  struct frame *f;
+  XColor cdef1, cdef2;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  if ((CONSP (color1) && !parse_rgb_list (color1, &cdef1))
+      || !STRINGP (color1)
+      || !defined_color (f, XSTRING (color1)->data, &cdef1, 0))
+    signal_error ("Invalid color", color1);
+  if ((CONSP (color2) && !parse_rgb_list (color2, &cdef2))
+      || !STRINGP (color2)
+      || !defined_color (f, XSTRING (color2)->data, &cdef2, 0))
+    signal_error ("Invalid color", color2);
+
+  return make_number (color_distance (&cdef1, &cdef2));
+}
+
+
+/***********************************************************************
+		    Face capability testing for ttys
+ ***********************************************************************/
+
+
+/* If the distance (as returned by color_distance) between two colors is
+   less than this, then they are considered the same, for determining
+   whether a color is supported or not.  The range of values is 0-65535.  */
+
+#define TTY_SAME_COLOR_THRESHOLD  10000
+
+
+DEFUN ("tty-supports-face-attributes-p",
+       Ftty_supports_face_attributes_p, Stty_supports_face_attributes_p,
+       1, 2, 0,
+       doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
+The optional argument FRAME is the frame on which to test; if it is nil
+or unspecified, then the current frame is used.  If FRAME is not a tty
+frame, then nil is returned.
+
+The definition of `supported' is somewhat heuristic, but basically means
+that a face containing all the attributes in ATTRIBUTES, when merged
+with the default face for display, can be represented in a way that's
+
+ \(1) different in appearance than the default face, and
+ \(2) `close in spirit' to what the attributes specify, if not exact.
+
+Point (2) implies that a `:weight black' attribute will be satisified
+by any terminal that can display bold, and a `:foreground "yellow"' as
+long as the terminal can display a yellowish color, but `:slant italic'
+will _not_ be satisified by the tty display code's automatic
+substitution of a `dim' face for italic.  */)
+     (attributes, frame)
+     Lisp_Object attributes, frame;
+{
+  int weight, i;
+  struct frame *f;
+  Lisp_Object val, fg, bg;
+  XColor fg_tty_color, fg_std_color;
+  XColor bg_tty_color, bg_std_color;
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+  unsigned test_caps = 0;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  for (i = 0; i < LFACE_VECTOR_SIZE; i++)
+    attrs[i] = Qunspecified;
+  merge_face_vector_with_property (f, attrs, attributes);
+
+  /* This function only works on ttys.  */
+  if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
+    return Qnil;
+
+  /* First check some easy-to-check stuff; ttys support none of the
+     following attributes, so we can just return nil if any are requested.  */
+
+  /* stipple */
+  val = attrs[LFACE_STIPPLE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return Qnil;
+
+  /* font height */
+  val = attrs[LFACE_HEIGHT_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return Qnil;
+
+  /* font width */
+  val = attrs[LFACE_SWIDTH_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val)
+      && face_numeric_swidth (val) != XLFD_SWIDTH_MEDIUM)
+    return Qnil;
+
+  /* overline */
+  val = attrs[LFACE_OVERLINE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return Qnil;
+
+  /* strike-through */
+  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return Qnil;
+
+  /* boxes */
+  val = attrs[LFACE_BOX_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return Qnil;
+
+  /* slant (italics/oblique); We consider any non-default value
+     unsupportable on ttys, even though the face code actually `fakes'
+     them using a dim attribute if possible.  This is because the faked
+     result is too different from what the face specifies.  */
+  val = attrs[LFACE_SLANT_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val)
+      && face_numeric_slant (val) != XLFD_SLANT_ROMAN)
+    return Qnil;
+
+
+  /* Test for terminal `capabilities' (non-color character attributes).  */
+
+  /* font weight (bold/dim) */
+  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
+  if (weight >= 0)
+    {
+      if (weight > XLFD_WEIGHT_MEDIUM)
+	test_caps = TTY_CAP_BOLD;
+      else if (weight < XLFD_WEIGHT_MEDIUM)
+	test_caps = TTY_CAP_DIM;
+    }
+      
+  /* underlining */
+  val = attrs[LFACE_UNDERLINE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    {
+      if (STRINGP (val))
+	return Qnil;		/* ttys don't support colored underlines */
+      else
+	test_caps |= TTY_CAP_UNDERLINE;
+    }
+
+  /* inverse video */
+  val = attrs[LFACE_INVERSE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    test_caps |= TTY_CAP_INVERSE;
+
+
+  /* Color testing.  */
+
+  /* Default the color indices in FG_TTY_COLOR and BG_TTY_COLOR, since
+     we use them when calling `tty_capable_p' below, even if the face
+     specifies no colors.  */
+  fg_tty_color.pixel = FACE_TTY_DEFAULT_FG_COLOR;
+  bg_tty_color.pixel = FACE_TTY_DEFAULT_BG_COLOR;
+
+  /* Check if foreground color is close enough.  */
+  fg = attrs[LFACE_FOREGROUND_INDEX];
+  if (STRINGP (fg))
+    {
+      if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
+	return Qnil;
+      else if (color_distance (&fg_tty_color, &fg_std_color)
+	       > TTY_SAME_COLOR_THRESHOLD)
+	return Qnil;
+    }
+
+  /* Check if background color is close enough.  */
+  bg = attrs[LFACE_BACKGROUND_INDEX];
+  if (STRINGP (bg))
+    {
+      if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
+	return Qnil;
+      else if (color_distance (&bg_tty_color, &bg_std_color)
+	       > TTY_SAME_COLOR_THRESHOLD)
+	return Qnil;
+    }
+
+  /* If both foreground and background are requested, see if the
+     distance between them is OK.  We just check to see if the distance
+     between the tty's foreground and background is close enough to the
+     distance between the standard foreground and background.  */
+  if (STRINGP (fg) && STRINGP (bg))
+    {
+      int delta_delta
+	= (color_distance (&fg_std_color, &bg_std_color)
+	   - color_distance (&fg_tty_color, &bg_tty_color));
+      if (delta_delta > TTY_SAME_COLOR_THRESHOLD
+	  || delta_delta < -TTY_SAME_COLOR_THRESHOLD)
+	return Qnil;
+    }
+
+
+  /* See if the capabilities we selected above are supported, with the
+     given colors.  */
+  if (test_caps != 0 &&
+      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
+    return Qnil;
+
+
+  /* Hmmm, everything checks out, this terminal must support this face.  */
+  return Qt;
+}
+
+
+
 /***********************************************************************
 			      Face Cache
  ***********************************************************************/
@@ -7238,6 +7549,8 @@ syms_of_xfaces ()
   staticpro (&Qmode_line_inactive);
   Qtty_color_desc = intern ("tty-color-desc");
   staticpro (&Qtty_color_desc);
+  Qtty_color_standard_values = intern ("tty-color-standard-values");
+  staticpro (&Qtty_color_standard_values);
   Qtty_color_by_index = intern ("tty-color-by-index");
   staticpro (&Qtty_color_by_index);
   Qtty_color_alist = intern ("tty-color-alist");
@@ -7270,6 +7583,8 @@ syms_of_xfaces ()
   defsubr (&Sinternal_merge_in_global_face);
   defsubr (&Sface_font);
   defsubr (&Sframe_face_alist);
+  defsubr (&Stty_supports_face_attributes_p);
+  defsubr (&Scolor_distance);
   defsubr (&Sinternal_set_font_selection_order);
   defsubr (&Sinternal_set_alternative_font_family_alist);
   defsubr (&Sinternal_set_alternative_font_registry_alist);
