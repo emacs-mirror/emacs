@@ -821,7 +821,7 @@ window_text_bottom_y (w)
 
 
 /* Return the pixel width of display area AREA of window W.  AREA < 0
-   means return the total width of W, not including bitmap areas to
+   means return the total width of W, not including fringes to
    the left and right of the window.  */
 
 INLINE int
@@ -834,7 +834,7 @@ window_box_width (w, area)
   
   if (!w->pseudo_window_p)
     {
-      width -= FRAME_SCROLL_BAR_WIDTH (f) + FRAME_FLAGS_AREA_COLS (f);
+      width -= FRAME_SCROLL_BAR_WIDTH (f) + FRAME_FRINGE_COLS (f);
       
       if (area == TEXT_AREA)
 	{
@@ -903,8 +903,7 @@ window_box_height (w)
 
 /* Return the frame-relative coordinate of the left edge of display
    area AREA of window W.  AREA < 0 means return the left edge of the
-   whole window, to the right of any bitmap area at the left side of
-   W.  */
+   whole window, to the right of the left fringe of W.  */
 
 INLINE int
 window_box_left (w, area)
@@ -917,7 +916,7 @@ window_box_left (w, area)
   if (!w->pseudo_window_p)
     {
       x += (WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f)
-	    + FRAME_LEFT_FLAGS_AREA_WIDTH (f));
+	    + FRAME_LEFT_FRINGE_WIDTH (f));
       
       if (area == TEXT_AREA)
 	x += window_box_width (w, LEFT_MARGIN_AREA);
@@ -932,8 +931,7 @@ window_box_left (w, area)
 
 /* Return the frame-relative coordinate of the right edge of display
    area AREA of window W.  AREA < 0 means return the left edge of the
-   whole window, to the left of any bitmap area at the right side of
-   W.  */
+   whole window, to the left of the right fringe of W.  */
 
 INLINE int
 window_box_right (w, area)
@@ -946,7 +944,7 @@ window_box_right (w, area)
 
 /* Get the bounding box of the display area AREA of window W, without
    mode lines, in frame-relative coordinates.  AREA < 0 means the
-   whole window, not including bitmap areas to the left and right of
+   whole window, not including the left and right fringes of
    the window.  Return in *BOX_X and *BOX_Y the frame-relative pixel
    coordinates of the upper-left corner of the box.  Return in
    *BOX_WIDTH, and *BOX_HEIGHT the pixel width and height of the box.  */
@@ -970,8 +968,8 @@ window_box (w, area, box_x, box_y, box_width, box_height)
 
 
 /* Get the bounding box of the display area AREA of window W, without
-   mode lines.  AREA < 0 means the whole window, not including bitmap
-   areas to the left and right of the window.  Return in *TOP_LEFT_X
+   mode lines.  AREA < 0 means the whole window, not including the
+   left and right fringe of the window.  Return in *TOP_LEFT_X
    and TOP_LEFT_Y the frame-relative pixel coordinates of the
    upper-left corner of the box.  Return in *BOTTOM_RIGHT_X, and
    *BOTTOM_RIGHT_Y the coordinates of the bottom-right corner of the
@@ -1593,7 +1591,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
        || !NILP (current_buffer->truncate_lines));
 
   /* Get dimensions of truncation and continuation glyphs.  These are
-     displayed as bitmaps under X, so we don't need them for such
+     displayed as fringe bitmaps under X, so we don't need them for such
      frames.  */
   if (!FRAME_WINDOW_P (it->f))
     {
@@ -13100,7 +13098,7 @@ display_line (it)
       && STRINGP (Voverlay_arrow_string)
       && ! overlay_arrow_seen)
     {
-      /* Overlay arrow in window redisplay is a bitmap.  */
+      /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (!FRAME_WINDOW_P (it->f))
 	{
 	  struct glyph_row *arrow_row = get_overlay_arrow_glyph_row (it->w);
