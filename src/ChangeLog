@@ -1,5 +1,8 @@
 2000-10-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (direct_output_for_insert): Call set_iterator_to_next
+	with additional argument.
+
 	* xdisp.c (cursor_row_p): New function.
 	(try_cursor_movement, display_line): Use it.
 	
