@@ -276,11 +276,9 @@ x_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
 #ifdef USE_X_TOOLKIT
-      if (f->display.nothing == 1) 
-	return 0;
       if ((f->display.x->edit_widget 
 	   && XtWindow (f->display.x->edit_widget) == wdesc)
           || f->display.x->icon_desc == wdesc)
@@ -313,10 +311,8 @@ x_any_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
-      if (f->display.nothing == 1) 
-	return 0;
       x = f->display.x;
       /* This frame matches if the window is any of its widgets.  */
       if (wdesc == XtWindow (x->widget) 
@@ -348,10 +344,8 @@ x_top_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
-      if (f->display.nothing == 1) 
-	return 0;
       x = f->display.x;
       /* This frame matches if the window is its topmost widget.  */
       if (wdesc == XtWindow (x->widget))
