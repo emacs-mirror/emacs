@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2003 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.42 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.43 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.42 2001/07/16 12:22:58 pj Exp $")
+  $Id: forms.el,v 2.43 2002/05/18 08:04:49 pj Exp $")
 
 (defcustom forms-mode-hooks nil
   "Hook run upon entering Forms mode."
@@ -1423,23 +1423,15 @@ Commands:                        Equivalent keys in read-only mode:
   ;; scroll-up -> forms-next-record
   (if forms-forms-scroll
       (progn
-	(substitute-key-definition 'scroll-up 'forms-next-record
-				   (current-local-map)
-				   (current-global-map))
-	(substitute-key-definition 'scroll-down 'forms-prev-record
-				   (current-local-map)
-				   (current-global-map))))
+	(local-set-key [remap scroll-up] 'forms-next-record)
+	(local-set-key [remap scroll-down] 'forms-prev-record)))
   ;;
   ;; beginning-of-buffer -> forms-first-record
   ;; end-of-buffer -> forms-end-record
   (if forms-forms-jump
       (progn
-	(substitute-key-definition 'beginning-of-buffer 'forms-first-record
-				   (current-local-map)
-				   (current-global-map))
-	(substitute-key-definition 'end-of-buffer 'forms-last-record
-				   (current-local-map)
-				   (current-global-map))))
+	(local-set-key [remap beginning-of-buffer] 'forms-first-record)
+	(local-set-key [remap end-of-buffer] 'forms-last-record)))
   ;;
   ;; Save buffer
   (local-set-key "\C-x\C-s" 'forms-save-buffer)
