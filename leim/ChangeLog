@@ -1,6 +1,8 @@
 2000-09-21  Kenichi Handa  <handa@etl.go.jp>
 
-	* quail/.cvsignore: Include *.elc.	
+	* quail/.cvsignore: Include *.elc.
+
+	* ja-dic/.cvsignore: New file.
 
 2000-09-16  Andrew Innes  <andrewi@gnu.org>
 
