@@ -1574,7 +1574,7 @@ internal_equal (o1, o2, depth)
 	    return 1;
 	  }
 	if (WINDOW_CONFIGURATIONP (o1))
-	  return compare_window_configurations (o1, o2);
+	  return compare_window_configurations (o1, o2, 0);
 
 	/* Aside from them, only true vectors, char-tables, and compiled
 	   functions are sensible to compare, so eliminate the others now.  */
