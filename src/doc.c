@@ -313,6 +313,8 @@ string is passed through `substitute-command-keys'.")
   Lisp_Object funcar;
   Lisp_Object tem, doc;
 
+  doc = Qnil;
+  
   if (SYMBOLP (function)
       && (tem = Fget (function, Qfunction_documentation),
 	  !NILP (tem)))
@@ -587,7 +589,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   register unsigned char *bufp;
   int idx;
   int bsize;
-  unsigned char *new;
   Lisp_Object tem;
   Lisp_Object keymap;
   unsigned char *start;
@@ -686,9 +687,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {
-	      new = (unsigned char *) xrealloc (buf, bsize += 4);
-	      bufp += new - buf;
-	      buf = new;
+	      int offset = bufp - buf;
+	      buf = (unsigned char *) xrealloc (buf, bsize += 4);
+	      bufp = buf + offset;
 	      bcopy ("M-x ", bufp, 4);
 	      bufp += 4;
 	      nchars += 4;
@@ -771,14 +772,16 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  length = XSTRING (tem)->size;
 	  length_byte = STRING_BYTES (XSTRING (tem));
 	subst:
-	  new = (unsigned char *) xrealloc (buf, bsize += length_byte);
-	  bufp += new - buf;
-	  buf = new;
-	  bcopy (start, bufp, length_byte);
-	  bufp += length_byte;
-	  nchars += length;
-	  /* Check STRING again in case gc relocated it.  */
-	  strp = (unsigned char *) XSTRING (string)->data + idx;
+	  {
+	    int offset = bufp - buf;
+	    buf = (unsigned char *) xrealloc (buf, bsize += length_byte);
+	    bufp = buf + offset;
+	    bcopy (start, bufp, length_byte);
+	    bufp += length_byte;
+	    nchars += length;
+	    /* Check STRING again in case gc relocated it.  */
+	    strp = (unsigned char *) XSTRING (string)->data + idx;
+	  }
 	}
       else if (! multibyte)		/* just copy other chars */
 	*bufp++ = *strp++, nchars++;
