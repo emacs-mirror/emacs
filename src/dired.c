@@ -177,6 +177,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
   list = Qnil;
   dirnamelen = XSTRING (directory)->size;
+  re_match_object = Qt;
 
   /* Loop reading blocks */
   while (1)
