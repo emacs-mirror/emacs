@@ -1069,6 +1069,7 @@ emacs_get_tty (fd, settings)
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
 #ifdef HAVE_TCATTR
   /* We have those nifty POSIX tcmumbleattr functions.  */
+  bzero (&settings->main, sizeof (settings->main));
   if (tcgetattr (fd, &settings->main) < 0)
     return -1;
 
@@ -1147,6 +1148,7 @@ emacs_set_tty (fd, settings, flushp)
       {
 	struct termios new;
 
+	bzero (&new, sizeof (new));
 	/* Get the current settings, and see if they're what we asked for.  */
 	tcgetattr (fd, &new);
 	/* We cannot use memcmp on the whole structure here because under
