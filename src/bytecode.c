@@ -256,7 +256,20 @@ Lisp_Object Qbytecode;
 
 #define MAYBE_GC()				\
   if (consing_since_gc > gc_cons_threshold)	\
-    Fgarbage_collect ();
+    {						\
+      Fgarbage_collect ();			\
+      HANDLE_RELOCATION ();			\
+    }						\
+  else
+
+/* Relocate BYTESTR if there has been a GC recently.  */
+#define HANDLE_RELOCATION()						\
+  if (! EQ (string_saved, bytestr))					\
+    {									\
+      pc = pc - XSTRING (string_saved)->data + XSTRING (bytestr)->data;	\
+      string_saved = bytestr;						\
+    }									\
+  else
 
 /* Check for jumping out of range.  */
 #define CHECK_RANGE(ARG)			\
@@ -323,11 +336,8 @@ If the third argument is incorrect, Emacs may crash.")
 	       pc - XSTRING (string_saved)->data);
 #endif
 
-      if (! EQ (string_saved, bytestr))
-	{
-	  pc = pc - XSTRING (string_saved)->data + XSTRING (bytestr)->data;
-	  string_saved = bytestr;
-	}
+      /* Update BYTESTR if we had a garbage collection.  */
+      HANDLE_RELOCATION ();
 
 #ifdef BYTE_CODE_METER
       prev_op = this_op;
