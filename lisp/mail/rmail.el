@@ -3332,6 +3332,7 @@ second-lowest-byte with the second character of the string, etc.,
 restarting at the lowest byte of the mask whenever it runs out.
 Returns the encoded string.  Calling the function again with an
 encoded string (and the same mask) will decode the string."
+ (setq mask (abs mask))			; doesn't work if negative
  (let* ((string-vector (string-to-vector string)) (i 0) 
 	(len (length string-vector)) (curmask mask) charmask)
    (while (< i len)
