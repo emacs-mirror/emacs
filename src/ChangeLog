@@ -3,6 +3,8 @@
 	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING (coding)
 	instead of only for COMPOSITION_DISABLED.
 
+	* Makefile.in (xmenu.o, xterm.o, fontset.o): Depend on buffer.h.
+
 2001-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): Change heuristic
