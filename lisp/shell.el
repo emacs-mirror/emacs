@@ -310,7 +310,8 @@ Thus, this does not include the shell's current directory.")
        (setq shell-mode-map (nconc (make-sparse-keymap) comint-mode-map))
        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
-       (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+       (define-key shell-mode-map "\t" 'shell-pcomplete)
+       (define-key shell-mode-map "\M-\t" 'shell-pcomplete-reverse)
        (define-key shell-mode-map "\M-?"
 	 'comint-dynamic-list-filename-completions)
        (define-key shell-mode-map [menu-bar completion]
@@ -396,7 +397,6 @@ buffer."
   (setq comint-delimiter-argument-list shell-delimiter-argument-list)
   (setq comint-file-name-chars shell-file-name-chars)
   (setq comint-file-name-quote-list shell-file-name-quote-list)
-  (setq comint-dynamic-complete-functions shell-dynamic-complete-functions)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start comint-prompt-regexp)
   (make-local-variable 'font-lock-defaults)
@@ -857,6 +857,29 @@ See `shell-command-regexp'."
 	(progn (goto-char (match-beginning 1))
 	       (skip-chars-forward ";&|")))))
 
+(defun shell-pcomplete ()
+  "Cycle forwards through completions at point, using `pcomplete'.
+This function merely invokes `pcomplete', after ensuring this buffer
+is set up for it."
+  (interactive)
+  (unless (prog1 shell-pcomplete-setup-p
+           (setq shell-pcomplete-setup-p t))
+    (pcomplete-comint-setup 'shell-dynamic-complete-functions))
+  ;; Convince pcomplete we are calling it directly
+  (setq this-command 'pcomplete)
+  (call-interactively #'pcomplete))
+
+(defun shell-pcomplete-reverse ()
+  "Cycle backwards through completions at point, using `pcomplete'.
+This function merely invokes `pcomplete-reverse', after ensuring this
+buffer is set up for it."
+  (interactive)
+  (unless (prog1 shell-pcomplete-setup-p
+	    (setq shell-pcomplete-setup-p t))
+    (pcomplete-comint-setup 'shell-dynamic-complete-functions))
+  ;; Convince pcomplete we are calling it directly
+  (setq this-command 'pcomplete-reverse)
+  (call-interactively #'pcomplete-reverse))  
 
 (defun shell-dynamic-complete-command ()
   "Dynamically complete the command at point.
