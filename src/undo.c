@@ -55,7 +55,7 @@ record_insert (beg, length)
 
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
-  XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
+  XSETBUFFER (last_undo_buffer, current_buffer);
 
   if (MODIFF <= current_buffer->save_modified)
     record_first_change ();
@@ -77,7 +77,7 @@ record_insert (beg, length)
     }
 
   lbeg = beg;
-  XSET (lend, Lisp_Int, XINT (beg) + XINT (length));
+  XSETINT (lend, XINT (beg) + XINT (length));
   current_buffer->undo_list = Fcons (Fcons (lbeg, lend),
                                      current_buffer->undo_list);
 }
@@ -100,7 +100,7 @@ record_delete (beg, length)
 
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
-  XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
+  XSETBUFFER (last_undo_buffer, current_buffer);
 
   at_boundary = (CONSP (current_buffer->undo_list)
 		 && NILP (XCONS (current_buffer->undo_list)->car));
@@ -109,7 +109,7 @@ record_delete (beg, length)
     record_first_change ();
 
   if (point == beg + length)
-    XSET (sbeg, Lisp_Int, -beg);
+    XSETINT (sbeg, -beg);
   else
     XFASTINT (sbeg) = beg;
   XFASTINT (lbeg) = beg;
@@ -152,7 +152,7 @@ record_first_change ()
 
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
-  XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
+  XSETBUFFER (last_undo_buffer, current_buffer);
 
   XFASTINT (high) = (current_buffer->modtime >> 16) & 0xffff;
   XFASTINT (low) = current_buffer->modtime & 0xffff;
@@ -190,8 +190,8 @@ record_property_change (beg, length, prop, value, buffer)
   if (MODIFF <= current_buffer->save_modified)
     record_first_change ();
 
-  XSET (lbeg, Lisp_Int, beg);
-  XSET (lend, Lisp_Int, beg + length);
+  XSETINT (lbeg, beg);
+  XSETINT (lend, beg + length);
   entry = Fcons (Qnil, Fcons (prop, Fcons (value, Fcons (lbeg, lend))));
   current_buffer->undo_list = Fcons (entry, current_buffer->undo_list);
 
