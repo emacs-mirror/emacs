@@ -579,6 +579,28 @@ typedef unsigned char UCHAR;
 #define CHAR_SHIFT (0x200000)
 #define CHAR_CTL   (0x400000)
 #define CHAR_META  (0x800000)
+
+
+/* The glyph datatype, used to represent characters on the display.  */
+
+/* The low eight bits are the character code, and the bits above them
+   are the numeric face ID.  If FID is the face ID of a glyph on a
+   frame F, then F->display.x->faces[FID] contains the description of
+   that face.  This is an int instead of a short, so we can support a
+   good bunch of face ID's; given that we have no mechanism for
+   tossing unused frame face ID's yet, we'll probably run out of 255
+   pretty quickly.  */
+#define GLYPH unsigned int
+
+/* Given a character code and a face ID, return the appropriate glyph.  */
+#define MAKE_GLYPH(char, face) ((char) | ((face) << 8))
+
+/* Return a glyph's character code.  */
+#define GLYPH_CHAR(glyph) ((glyph) & 0xff)
+
+/* Return a glyph's face ID.  */
+#define GLYPH_FACE(glyph) (((glyph) >> 8) & 0xff)
+
 
 /* Data type checking */
 
