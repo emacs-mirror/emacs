@@ -1411,8 +1411,7 @@ Similarly for Soar, Scheme, etc."
 		  ;; input.  The terminating newline is put into a special
 		  ;; `boundary' field to make cursor movement between input
 		  ;; and output fields smoother.
-		  (overlay-put over 'field 'input)
-		  (overlay-put over 'front-sticky t))
+		  (overlay-put over 'field 'input))
 		(when comint-highlight-input
 		  (overlay-put over 'face 'comint-highlight-input)
 		  (overlay-put over 'mouse-face 'highlight)
@@ -1421,7 +1420,6 @@ Similarly for Soar, Scheme, etc."
 	      ;; Make an overlay for the terminating newline
 	      (let ((over (make-overlay end (1+ end) nil t nil)))
 		(overlay-put over 'field 'boundary)
-		(overlay-put over 'rear-nonsticky t)
 		(overlay-put over 'evaporate t))))
 
 	  (comint-snapshot-last-prompt)
@@ -1563,8 +1561,6 @@ This variable is permanent-local.")
 		(let ((over (make-overlay comint-last-output-start (point))))
 		  (overlay-put over 'field 'output)
 		  (overlay-put over 'inhibit-line-move-field-capture t)
-		  (overlay-put over 'front-sticky t)
-		  (overlay-put over 'rear-nonsticky t)
 		  (overlay-put over 'evaporate t)
 		  (setq comint-last-output-overlay over))))
 
@@ -1581,11 +1577,10 @@ This variable is permanent-local.")
 		      (move-overlay comint-last-prompt-overlay
 				    prompt-start (point))
 		    ;; Need to create the overlay
-		    (let ((over (make-overlay prompt-start (point))))
-		      (overlay-put over 'face 'comint-highlight-prompt)
-		      (overlay-put over 'front-sticky t)
-		      (overlay-put over 'rear-nonsticky t)
-		      (setq comint-last-prompt-overlay over))))))
+		    (setq comint-last-prompt-overlay
+			  (make-overlay prompt-start (point)))
+		    (overlay-put comint-last-prompt-overlay
+				 'face 'comint-highlight-prompt)))))
 
 	    (goto-char saved-point)
 
