@@ -2335,13 +2335,13 @@ rather than a date."
 	  (t (substring string 0 width)))))
 
 (defvar calendar-day-name-array
-  "Array of capitalized strings giving, in order, the day names."
-  ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
+  ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
+  "Array of capitalized strings giving, in order, the day names.")
 
 (defvar calendar-month-name-array
-  "Array of capitalized strings giving, in order, the month names."
   ["January" "February" "March"     "April"   "May"      "June"
-   "July"    "August"   "September" "October" "November" "December"])
+   "July"    "August"   "September" "October" "November" "December"]
+  "Array of capitalized strings giving, in order, the month names.")
 
 (defun calendar-make-alist (sequence &optional start-index filter)
   "Make an assoc list corresponding to SEQUENCE.
