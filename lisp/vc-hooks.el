@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.120 2000/09/21 13:15:26 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.121 2000/10/02 12:02:37 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -458,6 +458,28 @@ to do that, use this command a second time with no argument."
       (vc-next-action verbose)
     (toggle-read-only)))
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
+
+(defun vc-default-make-version-backups (backend file)
+  "Return non-nil if unmodified repository versions should 
+be backed up locally.  The default is to switch off this feature."
+  nil)
+
+(defun vc-version-backup-file-name (file &optional rev)
+  "Return a backup file name for REV or the current version of FILE."
+  (concat file ".~" (or rev (vc-workfile-version file)) "~"))
+
+(defun vc-before-save ()
+  "Function to be called by `basic-save-buffer' (in files.el)."
+  ;; If the file on disk is still in sync with the repository,
+  ;; and version backups should be made, copy the file to
+  ;; another name.  This enables local diffs and local reverting.
+  (let ((file (buffer-file-name)))
+    (and (vc-backend file)
+	 (vc-up-to-date-p file)
+	 (eq (vc-checkout-model file) 'implicit)
+	 (vc-call make-version-backups file)
+	 (copy-file file (vc-version-backup-file-name file) 
+		    'ok-if-already-exists 'keep-date))))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
