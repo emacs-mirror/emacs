@@ -227,7 +227,10 @@ Returns list of symbols and documentation found."
 	 (setcar p (list
 		    (setq symbol (car p))
 		    (when (fboundp symbol)
-		      (if (setq doc (documentation symbol t))
+                      (if (setq doc (condition-case nil
+                                        (documentation symbol t)
+                                      (void-function
+                                       "(alias for undefined function)")))
 			  (substring doc 0 (string-match "\n" doc))
 			"(not documented)"))
 		    (when (boundp symbol)
