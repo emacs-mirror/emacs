@@ -46,7 +46,9 @@
 ;; same buffer.
 (setq find-file-visit-truename t)
 
-(defvar w32-system-shells '("cmd" "cmd.exe" "command" "command.com")
+(defvar w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
+			    "4nt" "4nt.exe" "4dos" "4dos.exe"
+			    "ndos" "ndos.exe")
   "List of strings recognized as Windows NT/9X system shells.")
 
 (defun w32-using-nt ()
@@ -66,11 +68,15 @@
        (member (downcase (file-name-nondirectory shell-name)) 
 	       w32-system-shells)))
 
+(defvar w32-allow-system-shell nil
+  "*Disable startup warning when using \"system\" shells.")
+
 (defun w32-check-shell-configuration ()
   "Check the configuration of shell variables on Windows NT/9X.
 This function is invoked after loading the init files and processing
 the command line arguments.  It issues a warning if the user or site
 has configured the shell with inappropriate settings."
+  (interactive)
   (let ((prev-buffer (current-buffer))
 	(buffer (get-buffer-create "*Shell Configuration*"))
 	(system-shell))
@@ -94,6 +100,13 @@ You probably want to change it so that it uses cmdproxy.exe instead.\n\n"
 You probably want to change it so that it uses cmdproxy.exe instead.\n\n"
 			explicit-shell-file-name)))
     (setq system-shell (> (buffer-size) 0))
+
+    ;; Allow user to specify that they really do want to use one of the
+    ;; "system" shells, despite the drawbacks, but still warn if
+    ;; shell-command-switch doesn't match.
+    (if w32-allow-system-shell
+	(erase-buffer))
+
     (cond (system-shell
 	   ;; System shells.
 	   (if (string-equal "-c" shell-command-switch)
@@ -117,6 +130,44 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'after-init-hook 'w32-check-shell-configuration)
 
+
+;;; Basic support functions for managing Emacs' locale setting
+
+(defvar w32-valid-locales nil
+  "List of locale ids known to be supported.")
+
+;;; This is the brute-force version; an efficient version is now
+;;; built-in though.
+(if (not (fboundp 'w32-get-valid-locale-ids))
+    (defun w32-get-valid-locale-ids ()
+      "Return list of all valid Windows locale ids."
+      (let ((i 65535)
+	    locales)
+	(while (> i 0)
+	  (if (w32-get-locale-info i)
+	      (setq locales (cons i locales)))
+	  (setq i (1- i)))
+	locales)))
+
+(defun w32-list-locales ()
+  "List the name and id of all locales supported by Windows."
+  (interactive)
+  (if (null w32-valid-locales)
+      (setq w32-valid-locales (w32-get-valid-locale-ids)))
+  (switch-to-buffer-other-window (get-buffer-create "*Supported Locales*"))
+  (erase-buffer)
+  (insert "LCID\tAbbrev\tFull name\n\n")
+  (insert (mapconcat
+	   '(lambda (x)
+	      (format "%d\t%s\t%s"
+		      x
+		      (w32-get-locale-info x)
+		      (w32-get-locale-info x t)))
+	   w32-valid-locales "\n"))
+  (insert "\n")
+  (goto-char (point-min)))
+
+
 ;;; Setup Info-default-directory-list to include the info directory
 ;;; near where Emacs executable was installed.  We used to set INFOPATH,
 ;;; but when this is set Info-default-directory-list is ignored.  We
@@ -124,7 +175,7 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;; that configuration during build time is correct for runtime.
 (defun w32-init-info ()
   (let* ((instdir (file-name-directory invocation-directory))
-	 (dir1 (expand-file-name "info/" instdir))
+	 (dir1 (expand-file-name "../info/" instdir))
 	 (dir2 (expand-file-name "../../../info/" instdir)))
     (if (file-exists-p dir1)
 	(setq Info-default-directory-list 
