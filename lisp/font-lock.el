@@ -199,9 +199,9 @@
 (defcustom font-lock-verbose (* 0 1024)
   "*If non-nil, means show status messages for buffer fontification.
 If a number, only buffers greater than this size have fontification messages."
-  :type '(radio (const :tag "Never" nil)
-		(const :tag "Always" t)
-		(integer :tag "Size"))
+  :type '(choice (const :tag "never" nil)
+		 (const :tag "always" t)
+		 (integer :tag "size"))
   :group 'font-lock)
 
 (defcustom font-lock-maximum-decoration t
@@ -214,12 +214,19 @@ where MAJOR-MODE is a symbol or t (meaning the default).  For example:
  ((c-mode . t) (c++-mode . 2) (t . 1))
 means use the maximum decoration available for buffers in C mode, level 2
 decoration for buffers in C++ mode, and level 1 decoration otherwise."
-  :type '(radio (const :tag "Default" nil)
-		(const :tag "Maximum" t)
-		(integer :tag "Level")
-		(repeat (cons (symbol :tag "Major Mode")
-			      (radio (const :tag "Maximum" t)
-				     (integer :tag "Level")))))
+  :type '(choice (const :tag "default" nil)
+		 (const :tag "maximum" t)
+		 (integer :tag "level" 1)
+		 (repeat :menu-tag "mode specific" :tag "mode specific"
+			 :value ((t . t))
+			 (cons :tag "Instance"
+			       (radio :tag "Mode"
+				      (const :tag "all" t)
+				      (symbol :tag "name"))
+			       (radio :tag "Decoration"
+				      (const :tag "default" nil)
+				      (const :tag "maximum" t) 
+				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
 (defcustom font-lock-maximum-size (* 250 1024)
@@ -231,10 +238,17 @@ where MAJOR-MODE is a symbol or t (meaning the default).  For example:
  ((c-mode . 256000) (c++-mode . 256000) (rmail-mode . 1048576))
 means that the maximum size is 250K for buffers in C or C++ modes, one megabyte
 for buffers in Rmail mode, and size is irrelevant otherwise."
-  :type '(radio (const :tag "None" nil)
-		(integer :tag "Size")
-		(repeat (cons (symbol :tag "Major Mode")
-			      (integer :tag "Size"))))
+  :type '(choice (const :tag "none" nil)
+		 (integer :tag "size")
+		 (repeat :menu-tag "mode specific" :tag "mode specific"
+			 :value ((t . nil))
+			 (cons :tag "Instance"
+			       (radio :tag "Mode"
+				      (const :tag "all" t)
+				      (symbol :tag "name"))
+			       (radio :tag "Size"
+				      (const :tag "none" nil)
+				      (integer :tag "size")))))
   :group 'font-lock)
 
 ;; Fontification variables:
@@ -745,9 +759,12 @@ mode should be automatically turned on.  The sense of the list is negated if it
 begins with `not'.  For example:
  (c-mode c++-mode)
 means that Font Lock mode is turned on for buffers in C and C++ modes only."
-  :type '(radio (const :tag "None" nil)
-		(const :tag "All" t)
-		(repeat (symbol :tag "Major Mode")))
+  :type '(choice (const :tag "none" nil)
+		 (const :tag "all" t)
+		 (set :menu-tag "mode specific" :tag "modes"
+		      :value (not)
+		      (const :tag "Except" not)
+		      (repeat :inline t (symbol :tag "mode"))))
   :group 'font-lock)
 
 ;;;###autoload
@@ -829,12 +846,19 @@ means that Fast Lock mode is used to support Font Lock mode for buffers in C or
 C++ modes, and Lazy Lock mode is used to support Font Lock mode otherwise.
 
 The value of this variable is used when Font Lock mode is turned on."
-  :type '(radio (const :tag "None" nil)
-		(const :tag "Fast Lock" fast-lock-mode)
-		(const :tag "Lazy Lock" lazy-lock-mode)
-		(repeat (cons (symbol :tag "Major Mode")
-			      (radio (const :tag "Fast Lock" fast-lock-mode)
-				     (const :tag "Lazy Lock" lazy-lock-mode)))))
+  :type '(choice (const :tag "none" nil)
+		 (const :tag "fast lock" fast-lock-mode)
+		 (const :tag "lazy lock" lazy-lock-mode)
+		 (repeat :menu-tag "mode specific" :tag "mode specific"
+			 :value ((t . lazy-lock-mode))
+			 (cons :tag "Instance"
+			       (radio :tag "Mode"
+				      (const :tag "all" t)
+				      (symbol :tag "name"))
+			       (radio :tag "Decoration"
+				      (const :tag "fast lock" fast-lock-mode)
+				      (const :tag "lazy lock" lazy-lock-mode)))
+			 ))
   :group 'font-lock)
 
 (defvar fast-lock-mode nil)

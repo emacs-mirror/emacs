@@ -346,10 +346,17 @@ means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
 for buffers in Rmail mode, and size is irrelevant otherwise.
 
 The value of this variable is used when Lazy Lock mode is turned on."
-  :type '(radio (const :tag "None" nil)
-		(integer :tag "Size")
-		(repeat (cons (symbol :tag "Major Mode")
-			      (integer :tag "Size"))))
+  :type '(choice (const :tag "none" nil)
+		 (integer :tag "size")
+		 (repeat :menu-tag "mode specific" :tag "mode specific"
+			 :value ((t . nil))
+			 (cons :tag "Instance"
+			       (radio :tag "Mode"
+				      (const :tag "all" t)
+				      (symbol :tag "name"))
+			       (radio :tag "Size"
+				      (const :tag "none" nil)
+				      (integer :tag "size")))))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-on-the-fly t
@@ -364,9 +371,12 @@ means that on-the-fly fontification is deferred for buffers in C and C++ modes
 only, and deferral does not occur otherwise.
 
 The value of this variable is used when Lazy Lock mode is turned on."
-  :type '(radio (const :tag "Never" nil)
-		(const :tag "Always" t)
-		(repeat (symbol :tag "Major Mode")))
+  :type '(choice (const :tag "never" nil)
+		 (const :tag "always" t)
+		 (set :menu-tag "mode specific" :tag "modes"
+		      :value (not)
+		      (const :tag "Except" not)
+		      (repeat :inline t (symbol :tag "mode"))))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-on-scrolling nil
@@ -389,9 +399,9 @@ become faster.  (But, since contextual changes continually occur, such a value
 makes little sense if `lazy-lock-defer-contextually' is non-nil.)
 
 The value of this variable is used when Lazy Lock mode is turned on."
-  :type '(radio (const :tag "Never" nil)
-		(const :tag "Always" t)
-		(const :tag "Eventually" eventually))
+  :type '(choice (const :tag "never" nil)
+		 (const :tag "always" t)
+		 (const eventually))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-contextually 'syntax-driven
@@ -407,9 +417,9 @@ fontification occurs only if syntactic fontification is performed using the
 buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 
 The value of this variable is used when Lazy Lock mode is turned on."
-  :type '(radio (const :tag "Never" nil)
-		(const :tag "Always" t)
-		(const :tag "Syntax driven" syntax-driven))
+  :type '(choice (const :tag "never" nil)
+		 (const :tag "always" t)
+		 (const syntax-driven))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-time
@@ -421,8 +431,8 @@ variables `lazy-lock-defer-on-the-fly', `lazy-lock-defer-on-scrolling' and
 `lazy-lock-defer-contextually'.
 
 The value of this variable is used when Lazy Lock mode is turned on."
-  :type '(radio (const :tag "Never" nil)
-		(number :tag "Seconds"))
+  :type '(choice (const :tag "never" nil)
+		 (number :tag "seconds"))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-time 30
@@ -431,8 +441,8 @@ Stealth fontification occurs if there is no input within this time.
 If nil, means stealth fontification is never performed.
 
 The value of this variable is used when Lazy Lock mode is turned on."
-  :type '(radio (const :tag "Never" nil)
-		(number :tag "Seconds"))
+  :type '(choice (const :tag "never" nil)
+		 (number :tag "seconds"))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 250)
@@ -440,7 +450,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
 Each iteration of stealth fontification can fontify this number of lines.
 To speed up input response during stealth fontification, at the cost of stealth
 taking longer to fontify, you could reduce the value of this variable."
-  :type '(integer :tag "Lines")
+  :type '(integer :tag "lines")
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-load
@@ -454,8 +464,10 @@ If nil, means stealth fontification is never suspended.
 To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could reduce the value of this variable.
 See also `lazy-lock-stealth-nice'."
-  :type '(radio (const :tag "Never" nil)
-		(integer :tag "Load"))
+  :type (if (condition-case nil (load-average) (error))
+	    '(choice (const :tag "never" nil)
+		     (integer :tag "load"))
+	  '(const :tag "never" nil))
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-nice
@@ -467,8 +479,8 @@ If nil, means stealth fontification is never paused.
 To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.
 See also `lazy-lock-stealth-load'."
-  :type '(radio (const :tag "Never" nil)
-		(number :tag "Seconds"))
+  :type '(choice (const :tag "never" nil)
+		 (number :tag "seconds"))	  
   :group 'lazy-lock)
 
 (defcustom lazy-lock-stealth-verbose
