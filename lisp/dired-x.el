@@ -91,6 +91,7 @@
 ;;      dired-omit-files-p
 ;;      dired-omit-files
 ;;      dired-omit-extensions
+;;      dired-omit-size-limit
 ;;
 ;; To find out more about these variables, load this file, put your cursor at
 ;; the end of any of the variable names, and hit C-h v [RET].  *Please* see
@@ -167,6 +168,10 @@ This only has effect when `dired-omit-files-p' is t.  See interactive function
 `dired-omit-toggle' \(\\[dired-omit-toggle]\) and variable
 `dired-omit-extensions'.  The default is to omit  `.', `..', and auto-save
 files.")
+
+(defvar dired-omit-size-limit 20000
+  "*If a dired buffer listing contains more than this many characters,
+do not do omitting.  If nil, always do omitting.")
 
 (defvar dired-find-subdir nil           ; t is pretty near to DWIM...
   "*If non-nil, Dired always finds a directory in a buffer of its own.
@@ -262,6 +267,7 @@ For more features, see variables
   dired-omit-files-p
   dired-omit-files
   dired-omit-extensions
+  dired-omit-size-limit
   dired-find-subdir
   dired-enable-local-variables
   dired-local-variables-file
@@ -535,7 +541,8 @@ With an arg, and if omitting was on, turn it off but don't refresh the buffer."
     (if (not dired-omit-files-p)
         (revert-buffer)
       ;; this will mention how many were omitted:
-      (dired-omit-expunge))))
+      (let ((dired-omit-size-limit nil))
+        (dired-omit-expunge)))))
 
 (defvar dired-omit-extensions
   (append completion-ignored-extensions
@@ -552,7 +559,8 @@ variables `dired-omit-files-p' and `dired-omit-files'.")
 
 (defun dired-omit-expunge (&optional regexp)
   "Erases all unmarked files matching REGEXP.
-Does nothing if global variable `dired-omit-files-p' is nil.
+Does nothing if global variable `dired-omit-files-p' is nil, or if called
+  non-interactively and buffer is bigger than `dired-omit-size-limit'.
 If REGEXP is nil or not specified, uses `dired-omit-files', and also omits
   filenames ending in `dired-omit-extensions'.
 If REGEXP is the empty string, this function is a no-op.
@@ -560,7 +568,10 @@ If REGEXP is the empty string, this function is a no-op.
 This functions works by temporarily binding `dired-marker-char' to
 `dired-omit-marker-char' and calling `dired-do-kill-lines'."
   (interactive "sOmit files (regexp): ")
-  (if dired-omit-files-p
+  (if (and dired-omit-files-p
+           (or (interactive-p)
+               (not dired-omit-size-limit)
+               (< (buffer-size) dired-omit-size-limit)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
             count)
