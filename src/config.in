@@ -111,6 +111,8 @@ and this notice must be preserved on all copies.  */
 
 #undef HAVE_LIBXBSD
 #undef HAVE_XRMSETDATABASE
+#undef HAVE_XSCREENRESOURCESTRING
+
 #undef HAVE_RANDOM
 
 #undef HAVE_BCOPY

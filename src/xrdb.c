@@ -459,8 +459,7 @@ get_user_db (display)
       free (xdefault);
     }
 
-#ifdef XlibSpecificationRelease
-#if XlibSpecificationRelease >= 5
+#ifdef HAVE_XSCREENRESOURCESTRING
   /* Get the screen-specific resources too.  */
   xdefs = XScreenResourceString (DefaultScreenOfDisplay (display));
   if (xdefs != NULL)
@@ -468,7 +467,6 @@ get_user_db (display)
       XrmMergeDatabases (XrmGetStringDatabase (xdefs), &db);
       XFree (xdefs);
     }
-#endif
 #endif
 
   return db;
