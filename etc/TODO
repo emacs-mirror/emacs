@@ -17,6 +17,11 @@ Small but important fixes needed in existing features:
 
 Important features:
 
+* Write an INTRO_CVS file with basic instructions how to build emacs
+  from CVS (make bootstrap), some information on how the config
+  and build system is tied together, and all sorts of tips and tricks
+  (FAQ) which may be of interest to new (and old) emacs hackers.
+
 * Provide user-friendly ways to list all available font families,
   display a font as a sample, etc.
 
@@ -48,6 +53,14 @@ Important features:
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
+
+* Move fringe to be displayed between display margins and text area.
+  [KFS is looking into this].
+
+* Set fringe widths per-window/per-buffer.
+
+* Make fringe bitmaps user configurable.  Maybe add ability to add
+  additional bitmaps to the fringe from lisp.
 
 Other features we would like:
 
@@ -187,7 +200,7 @@ Other features we would like:
 
   Here's a list which is probably not complete/correct: align, allout,
   artist, ansi-color, array, battery, calculator, cdl, cmuscheme,
-  completion, delim-col, dirtrack, double, echistory, elide-head,
+  completion, cua, delim-col, dirtrack, double, echistory, elide-head,
   easymenu, expand, flow-ctrl, format [format-alist],
   generic/generic-x [various modes], kermit, log-edit, ledit
   [obsolete?], makesum, midnight [other than in Kill Buffer node],
