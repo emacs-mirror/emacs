@@ -154,6 +154,7 @@ non-@code{nil}, then it is called with no arguments after the abbrev is
 replaced with @var{expansion}; point is located at the end of
 @var{expansion} when @var{hook} is called.
 
+@cindex @code{no-self-insert} property
 If @var{hook} is a non-@code{nil} symbol whose @code{no-self-insert}
 property is non-@code{nil}, @var{hook} can explicitly control whether
 to insert the self-inserting input character that triggered the
