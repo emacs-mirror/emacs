@@ -360,13 +360,13 @@ whether to blink the matching beginning."
   (list
    ;; Special highlighting of "module procedure foo-list"
    '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
-   '("\\<\\(end[ \t]*\\(program\\|module\\|function\\|subroutine\\|type\\)\\)\\>[ \t]*\\(\\sw+\\)?"
+   '("\\<\\(end[ \t]*\\(program\\|module\\|function\\|subroutine\\)\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-   '("\\<\\(program\\|type\\|call\\|module\\|subroutine\\|function\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
+   '("\\<\\(program\\|call\\|module\\|subroutine\\|function\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-   ;; Highlight definition of new type
-;;;   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
-;;;     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+   ;; Highlight definition of derived type.
+   '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
+     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    "\\<\\(\\(end[ \t]*\\)?\\(interface\\|block[ \t]*data\\)\\|contains\\)\\>")
   "This does fairly subdued highlighting of comments and function calls.")
 
@@ -382,7 +382,7 @@ whether to blink the matching beginning."
        '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 	 (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
        ;; implicit declaration
-       '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|logical\\|type[ \t]*(\\sw+)\\|none\\)\\>" (1 font-lock-keyword-face) (2 font-lock-type-face))
+       '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|logical\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*" (1 font-lock-keyword-face) (2 font-lock-type-face))
        '("\\<\\(namelist\\|common\\)[ \t]*\/\\(\\sw+\\)?\/" (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
        "\\<else\\([ \t]*if\\|where\\)?\\>"
        "\\<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\>"
@@ -646,7 +646,7 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defconst f90-end-type-re 
   "end[ \t]*\\(type\\|interface\\|block[ \t]*data\\)")
 (defconst f90-type-def-re
-  "\\<\\(type\\)\\([^(\n]*\\)\\(::\\)?[ \t]*\\b\\(\\sw+\\)")
+  "\\<\\(type\\)\\>\\([^(\n]*::\\)?[ \t]*\\(\\sw+\\)")
 (defconst f90-no-break-re  "\\(\\*\\*\\|//\\|=>\\)")
 ;; A temporary position to make region operators faster
 (defvar f90-cache-position nil)
@@ -1011,7 +1011,7 @@ Name is nil if the statement has no label."
 Name is non-nil only for type."
   (cond 
    ((looking-at f90-type-def-re)
-    (list (f90-match-piece 1) (f90-match-piece 4)))
+    (list (f90-match-piece 1) (f90-match-piece 3)))
    ((looking-at "\\(interface\\|block[\t]*data\\)\\>")
     (list (f90-match-piece 1) nil))))
 
