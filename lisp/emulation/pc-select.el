@@ -108,7 +108,7 @@ and transient-mark-mode."
 (defun ensure-mark()
   ;; make sure mark is active
   ;; test if it is active, if it isn't, set it and activate it
-  (and (not mark-active) (set-mark-command nil)))
+  (or mark-active (set-mark-command nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; forward and mark
@@ -196,7 +196,10 @@ Negative ARG means scroll upward.
 When calling from a program, supply a number as argument or nil."
   (interactive "P") 
   (ensure-mark)
-  (scroll-down arg))
+  (cond (pc-select-override-scroll-error
+	 (condition-case nil (scroll-down arg)
+	   (beginning-of-buffer (goto-char (point-min)))))
+	(t (scroll-down arg))))
 
 (defun end-of-buffer-mark (&optional arg)
   "Ensure mark is active; move point to the end of the buffer.
@@ -318,7 +321,10 @@ Negative ARG means scroll upward.
 When calling from a program, supply a number as argument or nil."
   (interactive "P")
   (setq mark-active nil)
-  (scroll-down arg))
+  (cond (pc-select-override-scroll-error
+	 (condition-case nil (scroll-down arg)
+	   (beginning-of-buffer (goto-char (point-min)))))
+	(t (scroll-down arg))))
 
 (defun end-of-buffer-nomark (&optional arg)
   "Deactivate mark; move point to the end of the buffer.
@@ -422,7 +428,10 @@ Negative ARG means scroll downward.
 When calling from a program, supply a number as argument or nil."
   (interactive "P")
   (ensure-mark)
-  (scroll-up arg))
+  (cond (pc-select-override-scroll-error
+	 (condition-case nil (scroll-up arg)
+	   (end-of-buffer (goto-char (point-max)))))
+	(t (scroll-up arg))))
 
 (defun beginning-of-buffer-mark (&optional arg)
   "Ensure mark is active; move point to the beginning of the buffer.
@@ -508,7 +517,10 @@ Negative ARG means scroll downward.
 When calling from a program, supply a number as argument or nil."
   (interactive "P")
   (setq mark-active nil)
-  (scroll-up arg))
+  (cond (pc-select-override-scroll-error
+	 (condition-case nil (scroll-up arg)
+	   (end-of-buffer (goto-char (point-max)))))
+	(t (scroll-up arg))))
 
 (defun beginning-of-buffer-nomark (&optional arg)
   "Deactivate mark; move point to the beginning of the buffer.
@@ -673,14 +685,5 @@ In addition, certain other PC bindings are imitated:
   (setq transient-mark-mode t)
   (setq mark-even-if-inactive t)
   (delete-selection-mode 1)
-  (cond (pc-select-override-scroll-error
-	 (defadvice scroll-up (around scroll-to-bottom-if-eob activate)
-	   (condition-case nil
-	       ad-do-it
-	     (end-of-buffer (goto-char (point-max)))))
-	 (defadvice scroll-down (around scroll-to-top-if-bob activate)
-	   (condition-case nil
-	       ad-do-it
-	     (beginning-of-buffer (goto-char (point-min))))))))
-
+)
 ;;; pc-select.el ends here
