@@ -3718,7 +3718,7 @@ close_process_descs ()
 }
 
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
-       0, 3, 0,
+       0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
 It is read into the process' buffers or given to their filter functions.
 Non-nil arg PROCESS means do not return until some output has been received
@@ -3726,15 +3726,20 @@ from PROCESS.
 Non-nil second arg TIMEOUT and third arg TIMEOUT-MSECS are number of
 seconds and microseconds to wait; return after that much time whether
 or not there is input.
+If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
+from PROCESS, suspending reading output from other processes.
+If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil iff we received any output before the timeout expired.  */)
-     (process, timeout, timeout_msecs)
-     register Lisp_Object process, timeout, timeout_msecs;
+     (process, timeout, timeout_msecs, just_this_one)
+     register Lisp_Object process, timeout, timeout_msecs, just_this_one;
 {
   int seconds;
   int useconds;
 
   if (! NILP (process))
     CHECK_PROCESS (process);
+  else
+    just_this_one = Qnil;
 
   if (! NILP (timeout_msecs))
     {
@@ -3776,7 +3781,9 @@ Return non-nil iff we received any output before the timeout expired.  */)
     XSETFASTINT (process, 0);
 
   return
-    (wait_reading_process_input (seconds, useconds, process, 0)
+    (wait_reading_process_input (seconds, useconds, process,
+				 NILP (just_this_one) ? 0 :
+				 !INTEGERP (just_this_one) ? -1 : -2)
      ? Qt : Qnil);
 }
 
@@ -4009,8 +4016,11 @@ wait_reading_process_input_1 ()
        process.  The return value is true iff we read some input from
        that process.
 
-   DO_DISPLAY != 0 means redisplay should be done to show subprocess
-   output that arrives.
+   If READ_KBD is a process object, DO_DISPLAY < 0 means handle only
+     output from that process (suspending output from other processes)
+     and DO_DISPLAY == -2 specifically means don't run any timers either.
+   Otherwise, != 0 means redisplay should be done to show subprocess
+     output that arrives.
 
    If READ_KBD is a pointer to a struct Lisp_Process, then the
      function returns true iff we received input from that process
@@ -4032,6 +4042,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   EMACS_TIME timeout, end_time;
   int wait_channel = -1;
   struct Lisp_Process *wait_proc = 0;
+  int just_wait_proc = 0;
   int got_some_input = 0;
   /* Either nil or a cons cell, the car of which is of interest and
      may be changed outside of this routine.  */
@@ -4048,6 +4059,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       wait_proc = XPROCESS (read_kbd);
       wait_channel = XINT (wait_proc->infd);
       XSETFASTINT (read_kbd, 0);
+      if (do_display < 0)
+	{
+	  just_wait_proc = do_display;
+	  do_display = 0;
+	}
     }
 
   /* If waiting for non-nil in a cell, record where.  */
@@ -4122,7 +4138,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 But not if wait_for_cell; in those cases,
 	 the wait is supposed to be short,
 	 and those callers cannot handle running arbitrary Lisp code here.  */
-      if (NILP (wait_for_cell))
+      if (NILP (wait_for_cell)
+	  && just_wait_proc != -2)
 	{
 	  EMACS_TIME timer_delay;
 
@@ -4258,7 +4275,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Wait till there is something to do */
 
-      if (!NILP (wait_for_cell))
+      if (just_wait_proc)
+	{
+	  FD_SET (XINT (wait_proc->infd), &Available);
+	  check_connect = check_delay = 0;
+	}
+      else if (!NILP (wait_for_cell))
 	{
 	  Available = non_process_wait_mask;
 	  check_connect = check_delay = 0;
