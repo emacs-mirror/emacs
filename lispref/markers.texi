@@ -558,6 +558,16 @@ command loop deactivates the mark after the command returns (if
 Transient Mark mode is enabled).  All the primitives that change the
 buffer set @code{deactivate-mark}, to deactivate the mark when the
 command is finished.
+
+To write Lisp code that modifies the buffer without causing
+deactivation of the mark at the end of the command, bind
+@code{deactivate-mark} to @code{nil} around the code that does the
+modification.  For example:
+
+@example
+(let (deactivate-mark)
+  (insert " "))
+@end example
 @end defvar
 
 @defun deactivate-mark
