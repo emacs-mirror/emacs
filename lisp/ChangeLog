@@ -1,3 +1,9 @@
+2001-05-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-jump-to-old-file, diff-update-on-the-fly):
+	Renamed by removing the silly `-flag' suffix.
+	(diff-mode, diff-minor-mode, diff-find-source-location): Update.
+
 2001-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* replace.el (keep-lines-read-args): Use `copy-marker'.
