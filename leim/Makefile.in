@@ -171,6 +171,7 @@ install: all
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
 	else true; fi
+	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
 	ELC=`echo ${TIT} | sed 's/\.el/.elc/g'`; \
