@@ -94,7 +94,7 @@ Used to grey out relevant toolbar icons.")
     ([run]	menu-item "Run" gud-run
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb jdb))))
-    ([goto]	menu-item "Continue to selection" gud-goto
+    ([goto]	menu-item "Continue to selection" gud-until
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
@@ -151,7 +151,7 @@ Used to grey out relevant toolbar icons.")
 		     (gud-print . "gud-print")
 		     (gud-display . "gud-display")
 		     (gud-run . "gud-run")
-		     (gud-goto . "gud-goto")
+		     (gud-until . "gud-until")
 		     (gud-cont . "gud-cont")
 		     (gud-step . "gud-step")
 		     (gud-next . "gud-next")
@@ -469,7 +469,7 @@ and source-file directory for your debugger."
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
-  (gud-def gud-goto  "until %l"     "\C-u" "Continue up to current line.")
+  (gud-def gud-until  "until %l"     "\C-u" "Continue up to current line.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
