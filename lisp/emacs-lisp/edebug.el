@@ -2232,6 +2232,9 @@ expressions; a `progn' form will be returned enclosing these forms."
 (defvar edebug-outside-debug-on-error) ; the value of debug-on-error outside
 (defvar edebug-outside-debug-on-quit) ; the value of debug-on-quit outside
 
+(defvar edebug-outside-overriding-local-map)
+(defvar edebug-outside-overriding-terminal-local-map)
+
 (defvar edebug-outside-pre-command-hook)
 (defvar edebug-outside-post-command-hook)
 
@@ -2292,6 +2295,10 @@ error is signaled again."
 	    ;; Lexical bindings must be uncompiled for this to work.
 	    (cl-lexical-debug t)
 
+	    (edebug-outside-overriding-local-map overriding-local-map)
+	    (edebug-outside-overriding-terminal-local-map
+	     overriding-terminal-local-map)
+
 	    ;; Save the outside value of executing macro.  (here??)
 	    (edebug-outside-executing-macro executing-kbd-macro)
 	    (edebug-outside-pre-command-hook pre-command-hook)
@@ -2302,6 +2309,10 @@ error is signaled again."
 		  ;; non-nil.  Again, local binding may not be best.
 		  (executing-kbd-macro 
 		   (if edebug-continue-kbd-macro executing-kbd-macro))
+
+		  ;; Don't get confused by the user's keymap changes.
+		  (overriding-local-map nil)
+		  (overriding-terminal-local-map nil)
 
 		  (signal-hook-function 'edebug-signal)
 
