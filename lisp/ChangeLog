@@ -1,5 +1,7 @@
 2000-01-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* net: New directory.
+
 	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Renamed from
 	eval-last-sexp.  Don't bind debug-on-error here.
 	(eval-last-sexp): New function.  Bind debug-on-error if
