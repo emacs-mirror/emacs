@@ -5,8 +5,6 @@
 ;; Author: Lynn Slater <lrs@indetech.com>
 ;; Created: : Mon Oct  1 11:42:39 1990
 ;; Adapted-By: ESR
-;; Last Modified By: Lynn Slater x2048
-;; Last Modified On: Mon Sep 23 14:40:19 1991
 
 ;; This file is part of GNU Emacs.
 
