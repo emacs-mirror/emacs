@@ -93,8 +93,8 @@
 (put 'blackbox-mode 'mode-class 'special)
 
 (defun blackbox-mode ()
-  "Major mode for playing blackbox.  To learn how to play blackbox,
-see the documentation for function `blackbox'.
+  "Major mode for playing blackbox.
+To learn how to play blackbox, see the documentation for function `blackbox'.
 
 The usual mnemonic keys move the cursor around the box.
 \\<blackbox-mode-map>\\[bb-bol] and \\[bb-eol] move to the beginning and end of line, respectively.
@@ -111,8 +111,8 @@ The usual mnemonic keys move the cursor around the box.
 
 ;;;###autoload
 (defun blackbox (num)
-  "Play blackbox.  Optional prefix argument is the number of balls;
-the default is 4.
+  "Play blackbox.
+Optional prefix argument is the number of balls; the default is 4.
 
 What is blackbox?
 
