@@ -1,3 +1,8 @@
+2004-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_flush, XTframe_up_to_date): use FRAME_MAC_P
+	instead of FRAME_X_P
+
 2004-05-11  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (read_process_output): Grow decoding_buf when needed;

@@ -1210,7 +1210,7 @@ x_flush (f)
       FOR_EACH_FRAME (rest, frame)
 	x_flush (XFRAME (frame));
     }
-  else if (FRAME_X_P (f))
+  else if (FRAME_MAC_P (f))
     XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
 #endif /* TARGET_API_MAC_CARBON */
@@ -1410,7 +1410,7 @@ static void
 XTframe_up_to_date (f)
      struct frame *f;
 {
-  if (FRAME_X_P (f))
+  if (FRAME_MAC_P (f))
     {
       struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
