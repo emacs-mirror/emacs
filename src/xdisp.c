@@ -3487,7 +3487,11 @@ decode_mode_spec (w, c, maxwidth)
 
     case 'F':
       /* %F displays the frame name.  */
+#ifdef MULTI_FRAME
       return (char *) XSTRING (selected_frame->name)->data;
+#else
+      return "Emacs";
+#endif
 
     case 'f': 
       obj = b->filename;
