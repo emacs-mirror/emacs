@@ -1,5 +1,9 @@
 2001-03-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (realize_basic_faces): Decrement menu_face_change_count
+	instead of setting it to zero; it's incremented for each frame
+	where the menu face is changed.
+
 	* xterm.c (x_draw_relief_rect): Extend left shadow to the 
 	bottom; change bottom shadow accordingly.
 	
