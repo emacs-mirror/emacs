@@ -699,7 +699,7 @@ If the third argument is incorrect, Emacs may crash.")
 		v1 = TOP;
 		v2 = Fget (v1, Qbyte_code_meter);
 		if (INTEGERP (v2)
-		    && XINT (v2) != ((1<<VALBITS)-1))
+		    && XINT (v2) < MOST_POSITIVE_FIXNUM)
 		  {
 		    XSETINT (v2, XINT (v2) + 1);
 		    Fput (v1, Qbyte_code_meter, v2);
