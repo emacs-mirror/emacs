@@ -1,3 +1,25 @@
+2002-11-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/autoload.el (generate-file-autoloads)
+	(update-file-autoloads): Strip .gz and other such extensions.
+	(update-autoloads-from-directories): Also consider compressed files.
+
+	* info.el (Info-streamline-headings): New var.
+	(Info-dir-remove-duplicates): New fun.
+	(Info-insert-dir): Use it.  Simplify the code with push,mapc,dolist.
+	(Info-select-node): Simplify handling of Info-header-line.
+	(Info-forward-node): Undo 2000/12/15 since we don't narrow any more.
+	(Info-mode): Set header-line-format once and for all.
+	(Info-fontify-node): Accept bogus first line with `File:' missing.
+	Only make first line invisible if Info-use-header-line.
+	Don't use `intangible': it's evil.  Use inhibit-read-only.
+	(Info-follow-reference, Info-next-reference, Info-prev-reference)
+	(Info-try-follow-nearest-node): Don't bind inhibit-point-motion-hooks
+	since we don't use intangible any more.
+
+	* image.el (insert-image): Don't make intangible since
+	adjust_point_for_property should be sufficient by default.
+
 2002-11-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-paragraph-handle-comment): New var.

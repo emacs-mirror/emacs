@@ -1,5 +1,9 @@
 2002-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* xdisp.c (single_display_prop_intangible_p): Strings are intangible.
+
+	* editfns.c (get_pos_property): Don't hardcode Qfield.
+
 	* keyboard.c (adjust_point_for_property): Handle `display' prop on
 	overlays.  Also handle `invisible' prop.
 
