@@ -7,7 +7,6 @@
 	Remove colon from arg in all callers.
 	(list-faces-display): Hyperlink to face descriptions and customize
 	buffers.
-	(defined-colors): Fix typo for x-defined-colors.
 
 2000-02-16  Per Abrahamsen  <abraham@dina.kvl.dk>
 
