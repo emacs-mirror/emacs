@@ -1,3 +1,10 @@
+2001-12-17  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-dynamic-list-input-ring-select): New function.
+	Switches back to the old window configuration.
+	(comint-dynamic-list-input-ring): Bind RET to that function.
+	(comint-dynamic-list-input-ring-window-conf): New variable.
+
 2001-12-17  Werner Lemberg  <wl@gnu.org>
 
 	* international/mule-conf.el: Improve documentation strings of
@@ -9,6 +16,9 @@
 	(dired-mode-map): Bind w to dired-copy-filename-as-kill.
 
 	* dired-x.el (dired-copy-filename-as-kill): Moved to dired.el.
+
+	* autoinsert.el (auto-insert-alist): Redo finding C and C++ headers.
+	Add a DESCRIPTION for the makefile item.
 
 	* find-file.el (ff-other-file-name): New function.
 
