@@ -1751,6 +1751,30 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
      ("#\\*mail\\*" . mail-mode)
+     ("\\.g\\'" . antlr-mode)
+     ("\\.ses\\'" . ses-mode)
+     ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
+     ("\\.docbook\\'" . sgml-mode)
+     ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
+     ;; Windows candidates may be opened case sensitively on Unix
+     ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)
+     ("\\.\\(?:desktop\\|la\\)\\'" . conf-unix-mode)
+     ("java.+\\.conf\\'" . conf-javaprop-mode)
+     ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
+     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
+     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|mtab\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
+     ("\\`/etc/\\(?:aliases\\|ksysguarddrc\\|opera6rc\\)\\'" . conf-mode)
+     ;; either user's dot-files or under /etc or some such
+     ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
+     ;; alas not all ~/.*rc files are like this
+     ("/\\.\\(?:enigma\\|gltron\\|hxplayer\\|net\\|neverball\\|qt/.+\\|realplayer\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
+     ("/\\.\\(?:gdbtkinit\\|grip\\|orbital/.+txt\\|rhosts\\|tuxracer/options\\)\\'" . conf-mode)
+     ("/\\.?X\\(?:default\\|resource\\|re\\)s\\>" . conf-xdefaults-mode)
+     ("/X11.+app-defaults/" . conf-xdefaults-mode)
+     ("/X11.+locale/.+/Compose\\'" . conf-colon-mode)
+     ;; this contains everything twice, with space and with colon :-(
+     ("/X11.+locale/compose\\.dir\\'" . conf-javaprop-mode)
      ;; Get rid of any trailing .n.m and try again.
      ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
      ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
@@ -1761,11 +1785,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
      ("\\.[1-9]\\'" . nroff-mode)
-     ("\\.g\\'" . antlr-mode)
-     ("\\.ses\\'" . ses-mode)
-     ("\\.orig\\'" nil t)		; from patch
-     ("\\.\\(soa\\|zone\\)\\'" . dns-mode)
-     ("\\.in\\'" nil t)))
+     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -1847,16 +1867,17 @@ with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
   '(;; The < comes before the groups (but the first) to reduce backtracking.
-    ;; Is there a nicer way of getting . including \n?
+    ;; Is there a nicer way of getting . including \n like Perl's //s?
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ("\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\)?\\s *\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*[Hh][Tt][Mm][Ll]" . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     ("\\s *<\\(?:!--\\(?:.\\|\n\\)*?-->\\s *<\\)*!DOCTYPE " . sgml-mode)
-    ("%![^V]" . ps-mode))
-  "Alist of buffer beginnings vs corresponding major mode functions.
+    ("%![^V]" . ps-mode)
+    ("# xmcd " . conf-unix-mode))
+  "Alist of buffer beginnings vs. corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION).  FUNCTION will be
-called, unless it is nil.")
+called, unless it is nil (to allow `auto-mode-alist' to override).")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
