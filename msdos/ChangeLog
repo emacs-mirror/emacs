@@ -1,3 +1,10 @@
+2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (lispintro): New target.
+	(all): Add lispintro.
+
+	* sed6.inp (SHELL): Comment away, for lispintro.
+
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed6.inp (texinputdir): Add, for the lispref directory.

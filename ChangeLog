@@ -1,4 +1,8 @@
-2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
+2001-11-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in (AC_OUTPUT): Add lispintro/Makefile.
+
+	* configure: Regenerated.
 
 	* Makefile.in (SUBDIR_MAKEFILES): Add lispintro.
 	(lispref/Makefile): New target.
