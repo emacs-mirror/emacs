@@ -2816,10 +2816,12 @@ sys_signal (int signal_number, signal_handler_t action)
   struct sigaction new_action, old_action;
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
-#ifdef SA_RESTART
+#if defined (SA_RESTART) && ! defined (BROKEN_SA_RESTART)
   /* Emacs mostly works better with restartable system services. If this
-   * flag exists, we probably want to turn it on here.
-   */
+     flag exists, we probably want to turn it on here.
+     However, on some systems this resets the timeout of `select'
+     which means that `select' never finishes if it keeps getting signals.
+     BROKEN_SA_RESTART is defined on those systems.  */
   new_action.sa_flags = SA_RESTART;
 #else
   new_action.sa_flags = 0;
