@@ -3610,7 +3610,6 @@ Transposing beyond buffer boundaries is an error.")
   int start1_byte, start2_byte, len1_byte, len2_byte;
   int gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
-  struct gcpro gcpro1, gcpro2;
 
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
   cur_intv = BUF_INTERVALS (current_buffer);
