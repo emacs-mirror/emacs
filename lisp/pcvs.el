@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.34 2002/04/03 16:56:36 kai Exp $
+;; Revision: $Id: pcvs.el,v 1.35 2002/05/16 20:03:52 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1633,8 +1633,8 @@ Signal an error if there is no backup file."
   (if (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
       (dolist (fi (ewoc-collect c 'cvs-dir-member-p
 				(cvs-fileinfo->dir fi)))
-	(setf (cvs-fileinfo->type fi) 'DEAD))
-    (setf (cvs-fileinfo->type fi) 'DEAD)))
+	(setf (cvs-fileinfo->type fi) 'UP-TO-DATE))
+    (setf (cvs-fileinfo->type fi) 'UP-TO-DATE)))
 
 (defun cvs-is-within-p (fis dir)
   "Non-nil is buffer is inside one of FIS (in DIR)."
@@ -2126,8 +2126,12 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (defun cvs-vc-command-advice (command file flags)
   (when (and (equal command "cvs")
-	     ;; don't parse output we don't understand.
-	     (member (car flags) cvs-parse-known-commands))
+	     (progn
+	       (while (and (stringp (car flags))
+			   (string-match "\\`-" (car flags)))
+		 (pop flags))
+	       ;; don't parse output we don't understand.
+	       (member (car flags) cvs-parse-known-commands)))
     (save-excursion
       (let ((buffer (current-buffer))
 	    (dir default-directory)
