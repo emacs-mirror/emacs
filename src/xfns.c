@@ -48,6 +48,34 @@ extern void abort ();
 #include "[.bitmaps]gray.xbm"
 #endif
 
+#ifdef USE_X_TOOLKIT
+#include <X11/Shell.h>
+
+#include <X11/Xaw/Paned.h>
+#include <X11/Xaw/Label.h>
+
+#ifdef USG
+#undef USG	/* ####KLUDGE for Solaris 2.2 and up */
+#include <X11/Xos.h>
+#define USG
+#else
+#include <X11/Xos.h>
+#endif
+
+#include "widget.h"
+
+#include "../lwlib/lwlib.h"
+
+/* The one and only application context associated with the connection
+   to the one and only X display that Emacs uses.  */
+XtAppContext Xt_app_con;
+
+/* The one and only application shell.  Emacs screens are popup shells of this
+   application.  */
+Widget Xt_app_shell;
+
+#endif /* USE_X_TOOLKIT */
+
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
@@ -195,6 +223,7 @@ Lisp_Object Qvertical_scroll_bars;
 Lisp_Object Qvisibility;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
+Lisp_Object Qx_resource_name;
 
 /* The below are defined in frame.c. */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
@@ -230,12 +259,57 @@ x_window_to_frame (wdesc)
       if (XGCTYPE (frame) != Lisp_Frame)
         continue;
       f = XFRAME (frame);
+#ifdef USE_X_TOOLKIT
+      if (f->display.nothing == 1) 
+	return 0;
+      if (f->display.x->edit_widget 
+	  && XtWindow (f->display.x->edit_widget) == wdesc
+          || f->display.x->icon_desc == wdesc)
+        return f;
+#else /* not USE_X_TOOLKIT */
       if (FRAME_X_WINDOW (f) == wdesc
           || f->display.x->icon_desc == wdesc)
         return f;
+#endif /* not USE_X_TOOLKIT */
     }
   return 0;
 }
+
+#ifdef USE_X_TOOLKIT
+/* Like x_window_to_frame but also compares the window with the widget's
+   windows.  */
+
+struct frame *
+x_any_window_to_frame (wdesc)
+     int wdesc;
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+  struct x_display *x;
+
+  for (tail = Vframe_list; XGCTYPE (tail) == Lisp_Cons;
+       tail = XCONS (tail)->cdr)
+    {
+      frame = XCONS (tail)->car;
+      if (XGCTYPE (frame) != Lisp_Frame)
+        continue;
+      f = XFRAME (frame);
+      if (f->display.nothing == 1) 
+	return 0;
+      x = f->display.x;
+      /* This frame matches if the window is any of its widgets.  */
+      if (wdesc == XtWindow (x->widget) 
+	  || wdesc == XtWindow (x->column_widget) 
+	  || wdesc == XtWindow (x->edit_widget))
+	return f;
+      /* Match if the window is this frame's menubar.  */
+      if (x->menubar_widget 
+	  && wdesc == XtWindow (x->menubar_widget))
+	return f;
+    }
+  return 0;
+}
+#endif /* USE_X_TOOLKIT */
 
 
 /* Connect the frame-parameter names for X frames
@@ -856,6 +930,9 @@ x_set_icon_type (f, arg, oldval)
   /* If the window was unmapped (and its icon was mapped),
      the new icon is not mapped, so map the window in its stead.  */
   if (FRAME_VISIBLE_P (f))
+#ifdef USE_X_TOOLKIT
+    XtPopup (f->display.x->widget, XtGrabNone);
+#endif
     XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
 
   XFlushQueue ();
@@ -993,8 +1070,21 @@ x_set_menu_bar_lines (f, value, oldval)
   else
     nlines = 0;
 
+#ifdef USE_X_TOOLKIT
+  FRAME_MENU_BAR_LINES (f) = 0;
+  if (nlines)
+    FRAME_EXTERNAL_MENU_BAR (f) = 1;
+  else
+    {
+      if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
+	XtDestroyWidget (f->display.x->menubar_widget);
+      FRAME_EXTERNAL_MENU_BAR (f) = 0;
+      f->display.x->menubar_widget = 0;
+    }
+#else /* not USE_X_TOOLKIT */
   FRAME_MENU_BAR_LINES (f) = nlines;
   x_set_menu_bar_lines_1 (f->root_window, nlines - olines);
+#endif /* not USE_X_TOOLKIT */
 }
 
 /* Change the name of frame F to NAME.  If NAME is nil, set F's name to
@@ -1041,7 +1131,6 @@ x_set_name (f, name, explicit)
   if (FRAME_X_WINDOW (f))
     {
       BLOCK_INPUT;
-
 #ifdef HAVE_X11R4
       {
 	XTextProperty text;
@@ -1049,16 +1138,21 @@ x_set_name (f, name, explicit)
 	text.encoding = XA_STRING;
 	text.format = 8;
 	text.nitems = XSTRING (name)->size;
+#ifdef USE_X_TOOLKIT
+	XSetWMName (x_current_display, XtWindow (f->display.x->widget), &text);
+	XSetWMIconName (x_current_display, XtWindow (f->display.x->widget),
+			&text);
+#else /* not USE_X_TOOLKIT */
 	XSetWMName (x_current_display, FRAME_X_WINDOW (f), &text);
 	XSetWMIconName (x_current_display, FRAME_X_WINDOW (f), &text);
+#endif /* not USE_X_TOOLKIT */
       }
-#else
+#else /* not HAVE_X11R4 */
       XSetIconName (XDISPLAY FRAME_X_WINDOW (f),
 		    XSTRING (name)->data);
       XStoreName (XDISPLAY FRAME_X_WINDOW (f),
 		  XSTRING (name)->data);
-#endif
-
+#endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
     }
 
@@ -1153,6 +1247,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
   register char *value;
   char *name_key;
   char *class_key;
+  Lisp_Object resname;
 
   check_x ();
 
@@ -1167,12 +1262,13 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
 
   validate_x_resource_name ();
+  resname = Vx_resource_name;
 
   if (NILP (component))
     {
       /* Allocate space for the components, the dots which separate them,
 	 and the final '\0'.  */
-      name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
+      name_key = (char *) alloca (XSTRING (resname)->size
 				  + XSTRING (attribute)->size
 				  + 2);
       class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
@@ -1180,7 +1276,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 2);
 
       sprintf (name_key, "%s.%s",
-	       XSTRING (Vx_resource_name)->data,
+	       XSTRING (resname)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s",
 	       EMACS_CLASS,
@@ -1188,7 +1284,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     }
   else
     {
-      name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
+      name_key = (char *) alloca (XSTRING (resname)->size
 				  + XSTRING (component)->size
 				  + XSTRING (attribute)->size
 				  + 3);
@@ -1199,7 +1295,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 3);
 
       sprintf (name_key, "%s.%s.%s",
-	       XSTRING (Vx_resource_name)->data,
+	       XSTRING (resname)->data,
 	       XSTRING (component)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s.%s",
@@ -1269,7 +1365,7 @@ The defaults are specified in the file `~/.Xdefaults'.")
 }
 
 #define Fx_get_resource(attribute, class, component, subclass) \
-  Fx_get_default(attribute)
+  Fx_get_default (attribute)
 
 #endif	/* X10 */
 
@@ -1545,15 +1641,143 @@ XSetWMProtocols (dpy, w, protocols, count)
 		   (unsigned char *) protocols, count);
   return True;
 }
-#endif /* !HAVE_X11R4 && !HAVE_XSETWMPROTOCOLS */
+#endif /* not HAVE_X11R4 && not HAVE_XSETWMPROTOCOLS */
+
+#ifdef USE_X_TOOLKIT
+
+/* If the WM_PROTOCOLS property does not already contain WM_TAKE_FOCUS
+   and WM_DELETE_WINDOW, then add them.  (They may already be present
+   because of the toolkit (Motif adds them, for example, but Xt doesn't).  */
+
+static void
+hack_wm_protocols (widget)
+     Widget widget;
+{
+  Display *dpy = XtDisplay (widget);
+  Window w = XtWindow (widget);
+  int need_delete = 1;
+  int need_focus = 1;
+
+  BLOCK_INPUT;
+  {
+    Atom type, *atoms = 0;
+    int format = 0;
+    unsigned long nitems = 0;
+    unsigned long bytes_after;
+
+    if (Success == XGetWindowProperty (dpy, w, Xatom_wm_protocols,
+				       0, 100, False, XA_ATOM,
+				       &type, &format, &nitems, &bytes_after,
+				       (unsigned char **) &atoms)
+	&& format == 32 && type == XA_ATOM)
+      while (nitems > 0)
+	{
+	  nitems--;
+	  if (atoms [nitems] == Xatom_wm_delete_window)   need_delete = 0;
+	  else if (atoms [nitems] == Xatom_wm_take_focus) need_focus = 0;
+	}
+    if (atoms) XFree ((char *) atoms);
+  }
+  {
+    Atom props [10];
+    int count = 0;
+    if (need_delete) props [count++] = Xatom_wm_delete_window;
+    if (need_focus)  props [count++] = Xatom_wm_take_focus;
+    if (count)
+      XChangeProperty (dpy, w, Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
+		       (unsigned char *) props, count);
+  }
+  UNBLOCK_INPUT;
+}
+#endif
+
+/* Create and set up the X window or widget for frame F.  */
 
 static void
 x_window (f)
      struct frame *f;
 {
+  XClassHint class_hints;
+
+#ifdef USE_X_TOOLKIT
+  Widget shell_widget;
+  Widget pane_widget;
+  Widget screen_widget;
+  char* name;
+  Arg al [25];
+  int ac;
+
+  BLOCK_INPUT;
+
+  if (STRINGP (f->name))
+     name = (char*) XSTRING (f->name)->data;
+  else
+    name = "emacs";
+
+  ac = 0;
+  XtSetArg (al[ac], XtNallowShellResize, 1); ac++;
+  XtSetArg (al[ac], XtNinput, 1); ac++;
+  XtSetArg (al[ac], XtNx, f->display.x->left_pos); ac++;
+  XtSetArg (al[ac], XtNy, f->display.x->top_pos); ac++;
+  shell_widget = XtCreatePopupShell ("shell",
+				     topLevelShellWidgetClass,
+				     Xt_app_shell, al, ac);
+
+  /* maybe_set_screen_title_format (shell_widget); */
+
+
+  ac = 0;
+  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
+  pane_widget = XtCreateWidget ("pane",
+				panedWidgetClass,
+				shell_widget, al, ac);
+
+  /* mappedWhenManaged to false tells to the paned window to not map/unmap 
+   * the emacs screen when changing menubar.  This reduces flickering a lot.
+   */
+
+  ac = 0;
+  XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
+  XtSetArg (al[ac], XtNshowGrip, 0); ac++;
+  XtSetArg (al[ac], XtNallowResize, 1); ac++;
+  XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
+  XtSetArg (al[ac], XtNemacsFrame, f); ac++;
+  screen_widget = XtCreateWidget (name,
+				  emacsFrameClass,
+				  pane_widget, al, ac);
+ 
+  f->display.x->edit_widget = screen_widget;
+  f->display.x->widget = shell_widget;
+  f->display.x->column_widget = pane_widget;
+ 
+  XtManageChild (screen_widget); 
+  XtManageChild (pane_widget);
+  XtRealizeWidget (shell_widget);
+
+  FRAME_X_WINDOW (f) = XtWindow (screen_widget); 
+
+  validate_x_resource_name ();
+  class_hints.res_name = (char *) XSTRING (Vx_resource_name)->data;
+  class_hints.res_class = EMACS_CLASS;
+  XSetClassHint (x_current_display, XtWindow (shell_widget), &class_hints);
+
+  hack_wm_protocols (shell_widget);
+
+  /* Do a stupid property change to force the server to generate a
+     propertyNotify event so that the event_stream server timestamp will
+     be initialized to something relevant to the time we created the window.
+     */
+  XChangeProperty (XtDisplay (screen_widget), XtWindow (screen_widget),
+		   Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
+		   (unsigned char*) NULL, 0);
+
+  XtMapWidget (screen_widget);
+
+#else /* not USE_X_TOOLKIT */
+
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
-  XClassHint class_hints;
+
 
   attributes.background_pixel = f->display.x->background_pixel;
   attributes.border_pixel = f->display.x->border_pixel;
@@ -1595,6 +1819,8 @@ x_window (f)
   XSetWMProtocols (x_current_display, FRAME_X_WINDOW (f),
 		   &Xatom_wm_delete_window, 1);
 
+#endif /* not USE_X_TOOLKIT */
+
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
      place where that assumption isn't correct; f->name is set, but
@@ -1610,10 +1836,11 @@ x_window (f)
 
   XDefineCursor (XDISPLAY FRAME_X_WINDOW (f),
 		 f->display.x->text_cursor);
+
   UNBLOCK_INPUT;
 
   if (FRAME_X_WINDOW (f) == 0)
-    error ("Unable to create window.");
+    error ("Unable to create window");
 }
 
 /* Handle the icon stuff for this window.  Perhaps later we might
@@ -1676,13 +1903,13 @@ x_make_gc (f)
   BLOCK_INPUT;
 
   /* Create the GC's of this frame.
-     Note that many default values are used. */
+     Note that many default values are used.  */
 
   /* Normal video */
   gc_values.font = f->display.x->font->fid;
   gc_values.foreground = f->display.x->foreground_pixel;
   gc_values.background = f->display.x->background_pixel;
-  gc_values.line_width = 0;	/* Means 1 using fast algorithm. */
+  gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
   f->display.x->normal_gc = XCreateGC (x_current_display,
 				       FRAME_X_WINDOW (f),
 				       GCLineWidth | GCFont
@@ -1698,7 +1925,7 @@ x_make_gc (f)
 					| GCLineWidth,
 					&gc_values);
 
-  /* Cursor has cursor-color background, background-color foreground. */
+  /* Cursor has cursor-color background, background-color foreground.  */
   gc_values.foreground = f->display.x->background_pixel;
   gc_values.background = f->display.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
@@ -1713,7 +1940,7 @@ x_make_gc (f)
 
   /* Create the gray border tile used when the pointer is not in
      the frame.  Since this depends on the frame's pixel values,
-     this must be done on a per-frame basis. */
+     this must be done on a per-frame basis.  */
   f->display.x->border_tile
     = (XCreatePixmapFromBitmapData
        (x_current_display, ROOT_WINDOW, 
@@ -1745,6 +1972,7 @@ be shared by the new frame.")
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
+  int count = specpdl_ptr - specpdl;
 
   check_x ();
 
@@ -1781,6 +2009,8 @@ be shared by the new frame.")
     {
       f->name = name;
       f->explicit_name = 1;
+      /* use the frame's title when getting resources for this frame.  */
+      specbind (Qx_resource_name, name);
     }
 
   XSET (frame, Lisp_Frame, f);
@@ -1820,6 +2050,7 @@ be shared by the new frame.")
     x_default_parameter (f, parms, Qfont, font, 
 			 "font", "Font", string);
   }
+
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderwidth", "BorderWidth", number);
   /* This defaults to 2 in order to match xterm.  We recognize either
@@ -1915,7 +2146,7 @@ be shared by the new frame.")
       ;
   }
 
-  return frame;
+  return unbind_to (count, frame);
 #else /* X10 */
   struct frame *f;
   Lisp_Object frame, tem;
@@ -2755,8 +2986,8 @@ outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
   register int font_h = FONT_HEIGHT (f->display.x->font);
   int y = top_y;
   int x = line_len (y);
-  XPoint *pixel_points = (XPoint *)
-    alloca (((bottom_y - top_y + 2) * 4) * sizeof (XPoint));
+  XPoint *pixel_points
+    = (XPoint *) alloca (((bottom_y - top_y + 2) * 4) * sizeof (XPoint));
   register XPoint *this_point = pixel_points;
 
   /* Do the horizontal top line/lines */
@@ -3797,6 +4028,8 @@ syms_of_xfns ()
   staticpro (&Qwindow_id);
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
+  Qx_resource_name = intern ("x-resource-name");
+  staticpro (&Qx_resource_name);
   /* This is the end of symbol initialization.  */
 
   Fput (Qundefined_color, Qerror_conditions,
