@@ -47,12 +47,12 @@
 
 ;;; Code:
 
-(defun make-mode-line-mouse2-map (f) "\
-Return a keymap with single entry for mouse-2 on mode line.
-This is defined to run function F with no args in the buffer
+(defun make-mode-line-mouse-map (mouse function) "\
+Return a keymap with single entry for mouse key MOUSE on the mode line.
+MOUSE is defined to run function FUNCTION with no args in the buffer
 corresponding to the mode line clicked."
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-2] f)
+    (define-key map (vector 'mode-line mouse) function)
     map))
 
 
@@ -179,25 +179,26 @@ Normally nil in most modes, since there is no process to display.")
   (list (propertize
 	 "%1*"
 	 'help-echo (purecopy (lambda (window object point)
- 				(format "%sead-only: mouse-2 toggles"
+ 				(format "%sead-only: mouse-3 toggles"
 					(save-selected-window
 					  (select-window window)
 					  (if buffer-read-only
 					      "R"
 					    "Not r")))))
-	 'local-map (purecopy (make-mode-line-mouse2-map
+	 'local-map (purecopy (make-mode-line-mouse-map
+			       'mouse-3
 			       #'mode-line-toggle-read-only)))
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
-				 (format "%sodified: mouse-2 toggles"
+				 (format "%sodified: mouse-3 toggles"
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
 					     "M"
 					   "Not m")))))
-	 'local-map (purecopy (make-mode-line-mouse2-map
-			       #'mode-line-toggle-modified))))
+	 'local-map (purecopy (make-mode-line-mouse-map
+			       'mouse-3 #'mode-line-toggle-modified))))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
@@ -222,7 +223,8 @@ Normally nil in most modes, since there is no process to display.")
      (propertize "   %[(" 'help-echo help-echo)
      '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
      (propertize "%n" 'help-echo "mouse-2: widen"
-		 'local-map (make-mode-line-mouse2-map #'mode-line-widen))
+		 'local-map (make-mode-line-mouse-map 
+			     'mouse-2 #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)
      `(which-func-mode ("" which-func-format ,dashes))
      `(line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
@@ -244,14 +246,16 @@ is okay.  See `mode-line-format'.")
 	     (propertize " Abbrev"
 			 'help-echo (purecopy
 				     "mouse-2: turn off Abbrev mode")
-			 'local-map (purecopy (make-mode-line-mouse2-map
+			 'local-map (purecopy (make-mode-line-mouse-map
+					       'mouse-2
 					       #'mode-line-abbrev-mode))))
        '(overwrite-mode overwrite-mode)
        (list 'auto-fill-function
 	     (propertize " Fill"
 			 'help-echo (purecopy
 				     "mouse-2: turn off Autofill mode")
-			 'local-map (purecopy (make-mode-line-mouse2-map
+			 'local-map (purecopy (make-mode-line-mouse-map
+					       'mouse-2
 					       #'mode-line-auto-fill-mode))))
        ;; not really a minor mode...
        '(defining-kbd-macro " Def")))
@@ -355,16 +359,13 @@ Return a string to display in the mode line for the current mode name."
   (x-popup-menu event mode-line-mode-menu))
 
 ;; Add menu of buffer operations to the buffer identification part
-;; of the mode line.
+;; of the mode line.or header line.
+;
 (let ((map (make-sparse-keymap)))
-  (define-key map [mode-line mouse-1] 'mode-line-other-buffer)
-  (define-key map [header-line mouse-1] 'mode-line-other-buffer)
-  (define-key map [mode-line M-mouse-2] 'mode-line-unbury-buffer)
-  (define-key map [header-line M-mouse-2] 'mode-line-unbury-buffer)
-  (define-key map [mode-line mouse-2] 'bury-buffer)
-  (define-key map [header-line mouse-2] 'bury-buffer)
-  (define-key map [mode-line down-mouse-3] 'mouse-buffer-menu)
-  (define-key map [header-line down-mouse-3] 'mouse-buffer-menu)
+  (define-key map [mode-line mouse-1] 'mode-line-unbury-buffer)
+  (define-key map [header-line mouse-1] 'mode-line-unbury-buffer)
+  (define-key map [mode-line mouse-3] 'bury-buffer)
+  (define-key map [header-line mouse-3] 'bury-buffer)
   (setq mode-line-buffer-identification-keymap map))
 
 (defun propertized-buffer-identification (fmt)
@@ -373,8 +374,8 @@ FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face '(:weight bold)
-		    'help-echo (purecopy "mouse-1: other \
-buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
+		    'help-echo 
+		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
 		    'local-map mode-line-buffer-identification-keymap)))
   
 (setq-default mode-line-buffer-identification
