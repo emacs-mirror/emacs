@@ -142,22 +142,23 @@ the command as standard input.  If STRING is nil, no decoding is done.
 Because the SUFFIXes are tried in order, the empty string should
 be last in the list.")
 
-;; Concatenate SUFFIX onto FILENAME.
+;; Concatenate SUFFIX onto FILENAME.  SUFFIX should start with a dot.
 ;; First, on ms-dos, delete some of the extension in FILENAME
 ;; to make room.
 (defun info-insert-file-contents-1 (filename suffix)
   (if (not (eq system-type 'ms-dos))
       (concat filename suffix)
     (let* ((sans-exts (file-name-sans-extension filename))
-	   ;; How long is the extension in FILENAME.
-	   (ext-len (- (length filename) (length sans-exts) 1))
-	   ;; How many chars of that extension should we keep?
-	   (ext-left (max 0 (- 3 (length suffix)))))
+	   ;; How long is the extension in FILENAME (not counting the dot).
+	   (ext-len (max 0 (- (length filename) (length sans-exts) 1)))
+	   ext-left)
       ;; SUFFIX starts with a dot.  If FILENAME already has one,
       ;; get rid of the one in SUFFIX.
-      (or (and (zerop ext-len)
+      (or (and (<= ext-len 0)
 	       (not (eq (aref filename (1- (length filename))) ?.)))
 	  (setq suffix (substring suffix 1)))
+      ;; How many chars of that extension should we keep?
+      (setq ext-left (min ext-len (max 0 (- 3 (length suffix)))))
       ;; Get rid of the rest of the extension, and add SUFFIX.
       (concat (substring filename 0 (- (length filename)
 				       (- ext-len ext-left)))
