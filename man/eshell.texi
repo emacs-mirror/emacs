@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.4 2000/10/29 05:13:09 johnw Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.5 2000/10/29 05:46:42 johnw Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999-2000  Free Software Foundation, Inc.
@@ -601,15 +601,15 @@ Also a new @command{less} buffer was created with nothing in it@dots{}
 If @command{less.exe} is invoked from the Eshell command line, the
 expected output is written to the buffer.
 
-Note that this happens on NT-Emacs 20.6.1 on Win2000. The term.el
-package and the supplied shell both use the @command{cmdproxy} for
-running shells.
+Note that this happens on NT-Emacs 20.6.1 on Windows 2000. The term.el
+package and the supplied shell both use the @command{cmdproxy} program
+for running shells.
 
 @item Implement @samp{-r}, @samp{-n} and @samp{-s} switches for @command{cp}
 
 @item Make @kbd{M-5 M-x eshell} switch to ``*eshell<5>*'', creating if need be
 
-@item @samp{mv DIR FILE.tar} does not remove directories
+@item @samp{mv @var{dir} @var{file}.tar} does not remove directories
 
 This is because the tar option --remove-files doesn't do so.  Should it
 be Eshell's job?
@@ -660,7 +660,7 @@ globbing result, since otherwise hitting return here will result in
 In that case, having an alias command name @command{glob} for
 @command{identity} would be useful.
 
-@item Fix `file-name-all-completions' for XEmacs on Win32
+@item Fix `file-name-all-completions' for XEmacs on MS-Windows
 
 Make sure it returns directory names terminated by
 @code{directory-sep-char} (which is initialized to be @samp{?/}), rather
@@ -751,7 +751,7 @@ A special associate array, which can take references of the form
 
 @item Eshell scripts can't execute in the background
 
-@item Support zsh's ``Parameter Expansion'' syntax, i.e. @samp{$@{NAME:-VAL@}}
+@item Support zsh's ``Parameter Expansion'' syntax, i.e. @samp{$@{@var{name}:-@var{val}@}}
 
 @item Write an @command{info} alias that can take arguments
 
@@ -777,7 +777,7 @@ If it's a Lisp function, input redirection implies @command{xargs} (in a
 way@dots{}).  If input redirection is added, also update the
 @code{file-name-quote-list}, and the delimiter list.
 
-@item Allow @samp{#<WORD ARG>} as a generic syntax
+@item Allow @samp{#<@var{word} @var{arg}>} as a generic syntax
 
 With the handling of @emph{word} specified by an
 @code{eshell-special-alist}.
@@ -818,7 +818,7 @@ from @samp{!:1*}.
 
 @item Specifying a frame as a redirection target should imply the currently active window's buffer
 
-@item Implement @samp{>FUNC-OR-FUNC-LIST}
+@item Implement @samp{>@var{func-or-func-list}}
 
 This would allow for an ``output translators'', that take a function to
 modify output with, and a target.  Devise a syntax that works well with
@@ -832,12 +832,12 @@ This would allow it to be run from the command line (perhaps).
 
 @item Write a @command{help} command
 
-It would call subcommands with ``--help'', or ``-h'' or ``/?'', as
-appropriate.
+It would call subcommands with @option{--help}, or @option{-h} or
+@option{/?}, as appropriate.
 
 @item Implement @command{stty} in Lisp
 
-@item Support @command{rc}'s matching operator, e.g. @samp{~ (list) regexp}
+@item Support @command{rc}'s matching operator, e.g. @samp{~ (@var{list}) @var{regexp}}
 
 @item Implement @command{bg} and @command{fg} as editors of @code{eshell-process-list}
 
@@ -866,8 +866,9 @@ last command.
 Make it possible for the user to send char-by-char to the underlying
 process.  Ultimately, I should be able to move away from using term.el
 altogether, since everything but the ANSI code handling is already part
-of Eshell.  Then, things would work correctly on Win32 as well (which
-doesn't have @file{/bin/sh}, although @file{term.el} tries to use it)
+of Eshell.  Then, things would work correctly on MS-Windows as well
+(which doesn't have @file{/bin/sh}, although @file{term.el} tries to use
+it).
 
 @item Make the shell spawning commands be visual
 
@@ -877,7 +878,7 @@ That is, make (@command{su}, @command{bash}, @command{telnet},
 being used to invoke a single command.  Then, the behavior should be
 based on what that command is.
 
-@item Create an smart viewing command named @command{open}
+@item Create a smart viewing command named @command{open}
 
 This would search for some way to open its argument (similar to opening
 a file in the Windows Explorer).
@@ -939,7 +940,7 @@ perform this on-thy-fly rewriting.
 
 @item Write an alias for @command{less} that brings up a @code{view-mode} buffer
 
-Such that the user can press @kbd{SPC} and @kbd{DEL}, and then @kbd{q}
+Such that the user can press @key{SPC} and @key{DEL}, and then @key{q}
 to return to Eshell.  It would be equivalent to: 
 @samp{X > #<buffer Y>; view-buffer #<buffer Y>}.
 
