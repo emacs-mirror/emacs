@@ -259,30 +259,31 @@ Do the right thing if the file has been compressed or zipped."
 		       (expand-file-name "info/" installation-directory)))
 	  alternative)
       (setq Info-directory-list
-	    (if path
-		(split-string path (regexp-quote path-separator))
-	      (if (and sibling (file-exists-p sibling))
-		  ;; Uninstalled, Emacs builddir != srcdir.
-		  (setq alternative sibling)
-		;; Uninstalled, builddir == srcdir
-		(setq alternative source))
-	      (if (or (member alternative Info-default-directory-list)
-		      ;; On DOS/NT, we use movable executables always,
-		      ;; and we must always find the Info dir at run time.
-		      (if (memq system-type '(ms-dos windows-nt))
-			  nil
-			;; Use invocation-directory for Info
-			;; only if we used it for exec-directory also.
-			(not (string= exec-directory
-				      (expand-file-name "lib-src/"
-							installation-directory))))
-		      (not (file-exists-p alternative)))
-		  Info-default-directory-list
-		;; `alternative' contains the Info files that came with this
-		;; version, so we should look there first.  `Info-insert-dir'
-		;; currently expects to find `alternative' first on the list.
-		(cons alternative
-		      (reverse (cdr (reverse Info-default-directory-list))))))))))
+	    (prune-directory-list
+	     (if path
+		 (split-string path (regexp-quote path-separator))
+	       (if (and sibling (file-exists-p sibling))
+		   ;; Uninstalled, Emacs builddir != srcdir.
+		   (setq alternative sibling)
+		 ;; Uninstalled, builddir == srcdir
+		 (setq alternative source))
+	       (if (or (member alternative Info-default-directory-list)
+		       ;; On DOS/NT, we use movable executables always,
+		       ;; and we must always find the Info dir at run time.
+		       (if (memq system-type '(ms-dos windows-nt))
+			   nil
+			 ;; Use invocation-directory for Info
+			 ;; only if we used it for exec-directory also.
+			 (not (string= exec-directory
+				       (expand-file-name "lib-src/"
+							 installation-directory))))
+		       (not (file-exists-p alternative)))
+		   Info-default-directory-list
+		 ;; `alternative' contains the Info files that came with this
+		 ;; version, so we should look there first.  `Info-insert-dir'
+		 ;; currently expects to find `alternative' first on the list.
+		 (cons alternative
+		       (reverse (cdr (reverse Info-default-directory-list)))))))))))
 
 ;;;###autoload
 (defun info-other-window (&optional file)
