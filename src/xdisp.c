@@ -5082,6 +5082,20 @@ move_it_vertically (it, dy)
 }
 
 
+/* Move iterator IT past the end of the text line it is in.  */
+
+void
+move_it_past_eol (it)
+     struct it *it;
+{
+  enum move_it_result rc;
+  
+  rc = move_it_in_display_line_to (it, Z, 0, MOVE_TO_POS);
+  if (rc == MOVE_NEWLINE_OR_CR)
+    set_iterator_to_next (it, 0);
+}
+
+
 #if 0 /* Currently not used.  */
 
 /* Return non-zero if some text between buffer positions START_CHARPOS
