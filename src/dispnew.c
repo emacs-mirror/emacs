@@ -1753,7 +1753,10 @@ terminate any keyboard macro currently executing.")
 {
   if (!NILP (arg))
     {
-      ring_bell ();
+      if (noninteractive)
+	putchar (07);
+      else
+	ring_bell ();
       fflush (stdout);
     }
   else
