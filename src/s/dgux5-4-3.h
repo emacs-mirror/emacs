@@ -58,3 +58,7 @@ Boston, MA 02111-1307, USA.  */
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
 #endif
+
+/* This is needed according to Ehud Karni <ehud@unix.simonwiesel.co.il>
+   for m88k-dg-dgux5.4R3.10.  */
+#undef BSD_PGRPS
