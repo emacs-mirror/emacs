@@ -411,8 +411,9 @@ syntactic change on other lines, you can use \\[font-lock-fontify-window]."
 
 ;;;###autoload
 (defun turn-on-font-lock ()
-  "Unconditionally turn on Font Lock mode."
-  (font-lock-mode 1))
+  "Turn on Font Lock mode, if the terminal can display it."
+  (if window-system
+      (font-lock-mode 1)))
 
 ;;;###autoload
 (defun font-lock-fontify-buffer ()
