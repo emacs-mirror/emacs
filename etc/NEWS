@@ -684,7 +684,7 @@ compiled binary.  The same time-stamp will be written at each matching
 pattern.  The variable time-stamp-count enables this new feature; it
 defaults to 1.
 
-** Partial Completion mode now completes environment variables in 
+** Partial Completion mode now completes environment variables in
 file names.
 
 ** Tooltips.
@@ -924,7 +924,7 @@ Provan).
 
 *** The mode now uses the abbrev table `makefile-mode-abbrev-table'.
 
-*** Conditionals and include statements are now highlighted when 
+*** Conditionals and include statements are now highlighted when
 Fontlock mode is active.
 
 ** Isearch changes
@@ -946,7 +946,7 @@ Lazy highlighting is switched on/off by customizing variable
 search string are highlighted.  The current match is highlighted as
 before using face `isearch' or `region'.  All other matches are
 highlighted using face `isearch-lazy-highlight-face' which defaults to
-`secondary-selection'.  
+`secondary-selection'.
 
 The extra highlighting makes it easier to anticipate where the cursor
 will end up each time you press C-s or C-r to repeat a pending search.
@@ -1066,6 +1066,11 @@ appropriate for C-style escape sequences in strings.
 ** The Dabbrev package has a new user-option `dabbrev-ignore-regexps'
 containing a list of regular expressions.  Buffers matching a regular
 expression from that list, are not checked.
+
+** Emacs can now figure out modification times of remote files.
+When you do C-x C-f /user@host:/path/file RET and edit the file,
+and someone else modifies the file, you will be prompted to revert
+the buffer, just like for the local files.
 
 ** New modes and packages
 
@@ -1292,7 +1297,7 @@ for Autoconf, selected automatically.
 
 *** windmove.el provides moving between windows.
 
-*** crm.el provides a facility to read multiple strings from the 
+*** crm.el provides a facility to read multiple strings from the
 minibuffer with completion.
 
 *** todo-mode.el provides management of TODO lists and integration
@@ -1327,7 +1332,7 @@ or evaluated, if it is not a string already, to obtain a help string.
 ** Function `make-obsolete' now has an optional arg to say when the
 function was declared obsolete.
 
-** Function plist-member is renamed from widget-plist-member (which is
+** Function `plist-member' is renamed from `widget-plist-member' (which is
 retained as an alias).
 
 ** Easy-menu's :filter now works as in XEmacs.
@@ -1381,10 +1386,10 @@ call to `message', the echo area will not be resized to display that
 message; it will be truncated instead, as it was done in 20.x.
 Default value is nil.
 
-** The user option line-number-display-limit can now be set to nil,
+** The user option `line-number-display-limit' can now be set to nil,
 meaning no limit.
 
-** select-safe-coding-system now also checks the most preferred
+** `select-safe-coding-system' now also checks the most preferred
 coding-system if buffer-file-coding-system is `undecided' and
 DEFAULT-CODING-SYSTEM is not specified,
 
@@ -1404,6 +1409,7 @@ after-change-function are no longer acted upon and have been removed.
 ** `concat' no longer accepts individual integer arguments, as
 promised long ago.
 
+** The new function `float-time' returns the current time as a float.
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
@@ -1588,26 +1594,26 @@ other than 10.
 *** `#BINTEGER' or `#bINTEGER' reads INTEGER in binary (radix 2).
 INTEGER optionally contains a sign.
 
-  #b1111 
+  #b1111
     => 15
-  #b-1111 
+  #b-1111
     => -15
 
 *** `#OINTEGER' or `#oINTEGER' reads INTEGER in octal (radix 8).
 
-  #o666 
+  #o666
     => 438
 
 *** `#XINTEGER' or `#xINTEGER' reads INTEGER in hexadecimal (radix 16).
 
-  #xbeef 
+  #xbeef
     => 48815
 
 *** `#RADIXrINTEGER' reads INTEGER in radix RADIX, 2 <= RADIX <= 36.
 
-  #2R-111 
+  #2R-111
     => -7
-  #25rah 
+  #25rah
     => 267
 
 ** The function `documentation-property' now evaluates the value of
@@ -2647,12 +2653,12 @@ The following is a list of properties all image types share.
 
 ASCENT must be a number in the range 0..100, or the symbol `center'.
 If it is a number, it specifies the percentage of the image's height
-to use for its ascent.  
+to use for its ascent.
 
 If not specified, ASCENT defaults to the value 50 which means that the
 image will be centered with the base line of the row it appears in.
 
-If ASCENT is `center' the image is vertically centered around a 
+If ASCENT is `center' the image is vertically centered around a
 centerline which is the vertical center of text drawn at the position
 of the image, in the manner specified by the text properties and
 overlays that apply to the image.
