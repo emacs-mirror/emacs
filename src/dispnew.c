@@ -6331,12 +6331,7 @@ Emacs was built without floating point support.
   if (sec < 0 || (sec == 0 && usec == 0))
     return Qnil;
 
-  {
-    Lisp_Object zero;
-
-    XSETFASTINT (zero, 0);
-    wait_reading_process_input (sec, usec, zero, 0);
-  }
+  wait_reading_process_input (sec, usec, 0, 0, Qnil, NULL, 0);
 
   /* We should always have wait_reading_process_input; we have a dummy
      implementation for systems which don't support subprocesses.  */
@@ -6386,8 +6381,6 @@ Lisp_Object
 sit_for (sec, usec, reading, display, initial_display)
      int sec, usec, reading, display, initial_display;
 {
-  Lisp_Object read_kbd;
-
   swallow_events (display);
 
   if (detect_input_pending_run_timers (display) || !NILP (Vexecuting_macro))
@@ -6403,8 +6396,8 @@ sit_for (sec, usec, reading, display, initial_display)
   gobble_input (0);
 #endif
 
-  XSETINT (read_kbd, reading ? -1 : 1);
-  wait_reading_process_input (sec, usec, read_kbd, display);
+  wait_reading_process_input (sec, usec, reading ? -1 : 1, display,
+			      Qnil, NULL, 0);
 
   return detect_input_pending () ? Qnil : Qt;
 }

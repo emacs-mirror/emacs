@@ -3899,10 +3899,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	break;
 #endif
       {
-	Lisp_Object minus_one;
-
-	XSETINT (minus_one, -1);
-	wait_reading_process_input (0, 0, minus_one, 1);
+	wait_reading_process_input (0, 0, -1, 1, Qnil, NULL, 0);
 
 	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	  /* Pass 1 for EXPECT since we just waited to have input.  */
