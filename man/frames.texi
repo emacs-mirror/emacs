@@ -810,16 +810,18 @@ command @kbd{M-x toggle-scroll-bar}.
 usually click the wheel to act as either @kbd{Mouse-2} or
 @kbd{Mouse-3}, depending on the setup.  You can also use the wheel to
 scroll windows instead of using the scroll bar or keyboard commands.
-To do so, turn on Mouse Wheel global minor mode with the command
-@kbd{M-x mouse-wheel-mode} or by customizing the variable
-@code{mouse-wheel-mode}.  Support for the wheel depends on the system
-generating appropriate events for Emacs.
+Mouse wheel support only works if the system generates appropriate
+events; whenever possible, it is turned on by default.  To toggle this
+feature, use @kbd{M-x mouse-wheel-mode}.
 
 @vindex mouse-wheel-follow-mouse
 @vindex mouse-wheel-scroll-amount
+@vindex mouse-wheel-progressive-speed
   The variables @code{mouse-wheel-follow-mouse} and
 @code{mouse-wheel-scroll-amount} determine where and by how much
-buffers are scrolled.
+buffers are scrolled.  The variable
+@code{mouse-wheel-progressive-speed} determines whether the the scroll
+speed is linked to how fast you move the wheel.
 
 @node Drag and Drop
 @section Drag and Drop
