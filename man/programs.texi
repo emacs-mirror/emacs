@@ -8,7 +8,7 @@
 @cindex program editing
 
   Emacs has many commands designed to understand the syntax of programming
-languages such as Lisp and C.  These commands can
+languages such as Lisp and C.  These commands can:
 
 @itemize @bullet
 @item
@@ -25,16 +25,16 @@ Follow the usual indentation conventions of the language
 (@pxref{Program Indent}).
 @end itemize
 
-  The commands for words, sentences and paragraphs are very useful in
-editing code even though their canonical application is for editing
-human language text.  Most symbols contain words (@pxref{Words});
-sentences can be found in strings and comments (@pxref{Sentences}).
-Paragraphs per se don't exist in code, but the paragraph commands are
-useful anyway, because programming language major modes define
-paragraphs to begin and end at blank lines (@pxref{Paragraphs}).
-Judicious use of blank lines to make the program clearer will also
-provide useful chunks of text for the paragraph commands to work
-on.
+  Emacs commands that operate on words, sentences and paragraphs are
+very useful in editing code even though their canonical application is
+for editing human language text.  Most symbols contain words
+(@pxref{Words}); sentences can be found in strings and comments
+(@pxref{Sentences}).  Paragraphs per se don't exist in code, but the
+paragraph commands are useful anyway, because programming language major
+modes define paragraphs to begin and end at blank lines
+(@pxref{Paragraphs}).  Judicious use of blank lines to make the program
+clearer will also provide useful chunks of text for the paragraph
+commands to work on.
 
   The selective display feature is useful for looking at the overall
 structure of a function (@pxref{Selective Display}).  This feature
