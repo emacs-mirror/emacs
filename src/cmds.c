@@ -398,7 +398,7 @@ internal_self_insert (c, noautofill)
 		    && XINT (current_buffer->tab_width) > 0
 		    && XFASTINT (current_buffer->tab_width) < 20
 		    && (target_clm = (current_column () 
-				      + XINT (Fchar_width (make_number (c2)))),
+				      + XINT (Fchar_width (make_number (c)))),
 			target_clm % XFASTINT (current_buffer->tab_width)))))
 	{
 	  int pos = PT;
