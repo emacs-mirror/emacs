@@ -287,7 +287,7 @@ mkdir ${tempdir}
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
-ln FTP INSTALL README BUGS move-if-change ${tempdir}
+ln AUTHORS FTP INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in aclocal.m4 ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
