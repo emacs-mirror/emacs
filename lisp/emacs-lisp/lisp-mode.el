@@ -555,13 +555,15 @@ With argument, print output into current buffer."
 	))))
 
 
+(defvar eval-last-sexp-fake-value (make-symbol "t"))
+
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 Interactively, with prefix argument, print output into current buffer."
   (interactive "P")
   (if (null eval-expression-debug-on-error)
       (eval-last-sexp-1 eval-last-sexp-arg-internal)
-    (let ((old-value (make-symbol "t")) new-value value)
+    (let ((old-value eval-last-sexp-fake-value) new-value value)
       (let ((debug-on-error old-value))
 	(setq value (eval-last-sexp-1 eval-last-sexp-arg-internal))
 	(setq new-value debug-on-error))
