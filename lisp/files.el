@@ -170,6 +170,18 @@ If the buffer is visiting a new file, the value is nil.")
 (defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
   "Non-nil means that buffer-file-number uniquely identifies files.")
 
+(defvar file-name-invalid-regexp
+  (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
+	 (concat "\\(^\\([A-z]:\\)?/?.*:\\)\\|"   ; colon except after drive
+		 "[+, ;=|<>\"?*]\\|\\[\\|\\]\\|"  ; invalid characters
+		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
+		 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
+	((memq system-type '(ms-dos windows-nt))
+	 (concat "\\(^\\([A-z]:\\)?/?.*:\\)\\|"   ; colon except after drive
+		 "[|<>\"?*]"))			  ; invalid characters
+	(t "[\000]"))
+  "Regexp recognizing file names which aren't allowed by the filesystem.")
+
 (defcustom file-precious-flag nil
   "*Non-nil means protect against I/O errors while saving files.
 Some modes set this non-nil in particular buffers.
