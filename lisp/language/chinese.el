@@ -69,11 +69,11 @@
 
 (make-coding-system
  'chinese-iso-8bit 2 ?c
- "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:CN-GB)"
+ "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:GB2312)"
  '(ascii chinese-gb2312 nil nil
    nil ascii-eol ascii-cntl nil nil nil nil)
  '((safe-charsets ascii chinese-gb2312)
-   (mime-charset . cn-gb)))
+   (mime-charset . gb2312)))
 
 (define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-china 'chinese-iso-8bit)
@@ -126,10 +126,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-coding-system
- 'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:CN-BIG5)"
+ 'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:Big5)"
  nil
  '((safe-charsets ascii chinese-big5-1 chinese-big5-2)
-   (mime-charset . cn-big5)
+   (mime-charset . big5)
    (charset-origin-alist (chinese-big5-1  "BIG5" encode-big5-char)
 			 (chinese-big5-2  "BIG5" encode-big5-char))))
 

@@ -1,3 +1,8 @@
+2001-01-24  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* language/chinese.el (chinese-iso-8bit): MIME:GB2312.
+	(chinese-big5): MIME:Big5.
+
 2001-01-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/mule-cmds.el (universal-coding-system-argument): 
