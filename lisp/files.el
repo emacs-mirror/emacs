@@ -573,6 +573,38 @@ you may or may not want the visited file name to record the specific
 directory where the file was found.  If you *do not* want that, add the logical
 name to this list as a string.")
 
+(defun find-buffer-visiting (filename)
+  "Return the buffer visiting file FILENAME (a string).
+This is like `get-file-buffer', except that it checks for any buffer
+visiting the same file, possibly under a different name.
+If there is no such live buffer, return nil."
+  (let ((buf (get-file-buffer filename))
+	(truename (abbreviate-file-name (file-truename filename))))
+    (or buf
+	(let ((list (buffer-list)) found)
+	  (while (and (not found) list)
+	    (save-excursion
+	      (set-buffer (car list))
+	      (if (and buffer-file-name
+		       (string= buffer-file-truename truename))
+		  (setq found (car list))))
+	    (setq list (cdr list)))
+	  found)
+	(let ((number (nthcdr 10 (file-attributes )))
+	      (list (buffer-list)) found)
+	  (while (and (not found) list)
+	    (save-excursion
+	      (set-buffer (car list))
+	      (if (and (equal buffer-file-number number)
+		       ;; Verify this buffer's file number
+		       ;; still belongs to its file.
+		       (file-exists-p buffer-file-name)
+		       (equal (nthcdr 10 (file-attributes buffer-file-name))
+			      number))
+		  (setq found (car list))))
+	    (setq list (cdr list)))
+	  found))))
+
 (defun find-file-noselect (filename &optional nowarn)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -589,47 +621,16 @@ The buffer is not selected, just returned to the caller."
 	   (truename (abbreviate-file-name (file-truename filename)))
 	   (number (nthcdr 10 (file-attributes truename)))
 	   ;; Find any buffer for a file which has same truename.
-	   (same-truename
-	    (or buf ; Shortcut
-		(let (found
-		      (list (buffer-list)))
-		  (while (and (not found) list)
-		    (save-excursion
-		      (set-buffer (car list))
-		      (if (and buffer-file-name
-			       (string= buffer-file-truename truename))
-			(setq found (car list))))
-		    (setq list (cdr list)))
-		  found)))
-	   (same-number
-	    (or buf ; Shortcut
-		(and number
-		     (let (found
-			   (list (buffer-list)))
-		       (while (and (not found) list)
-			 (save-excursion
-			   (set-buffer (car list))
-			   (if (and (equal buffer-file-number number)
-				    ;; Verify this buffer's file number
-				    ;; still belongs to its file.
-				    (file-exists-p buffer-file-name)
-				    (equal (nthcdr 10 (file-attributes buffer-file-name)) number))
-			     (setq found (car list))))
-			 (setq list (cdr list)))
-		       found))))
+	   (other (and (not buf) (find-buffer-visiting filename)))
 	   error)
       ;; Let user know if there is a buffer with the same truename.
-      (if (and (not buf) same-truename (not nowarn))
-	  (message "%s and %s are the same file (%s)"
-		   filename (buffer-file-name same-truename)
-		   truename)
-	(if (and (not buf) same-number (not nowarn))
-	  (message "%s and %s are the same file"
-		   filename (buffer-file-name same-number))))
-
-      ;; Optionally also find that buffer.
-      (if (or find-file-existing-other-name find-file-visit-truename)
-	  (setq buf (or same-truename same-number)))
+      (if other
+	  (progn
+	    (or nowarn (message "%s and %s are the same file"
+				filename (buffer-file-name other)))
+	    ;; Optionally also find that buffer.
+	    (if (or find-file-existing-other-name find-file-visit-truename)
+		(setq buf other))))
       (if buf
 	  (or nowarn
 	      (verify-visited-file-modtime buf)
@@ -669,7 +670,7 @@ The buffer is not selected, just returned to the caller."
 					    t))))
 		 (setq hooks (cdr hooks))))))
 	  ;; Find the file's truename, and maybe use that as visited name.
-	  (setq buffer-file-truename (abbreviate-file-name truename))
+	  (setq buffer-file-truename truename)
 	  (setq buffer-file-number number)
 	  ;; On VMS, we may want to remember which directory in a search list
 	  ;; the file was found in.
