@@ -1,4 +1,4 @@
-2003-11-14  Thien-Thi Nguyen  <ttn@surf.glug.org>
+2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* diff-mode.el (diff-hunk-prev, diff-hunk-next): Support
 	operation while narrowed, with `diff-restrict-view'.
