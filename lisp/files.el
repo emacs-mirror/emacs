@@ -1173,8 +1173,11 @@ suppresses this warning."
   :type 'boolean)
 
 (defcustom large-file-warning-threshold 10000000
-  "Maximum size of file above which a confirmation is requested."
-  :type 'integer)
+  "Maximum size of file above which a confirmation is requested.
+When nil, never request confirmation."
+  :group 'files
+  :group 'find-file
+  :type '(choice integer (const :tag "Never request confirmation" nil)))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
