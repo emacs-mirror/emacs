@@ -144,6 +144,9 @@ to the present position of point, or to the beginning or end of the
 accessible portion of the buffer, or to the same place as another given
 marker.
 
+The next four functions all return markers with insertion type
+@code{nil}.  @xref{Marker Insertion Types}.
+
 @defun make-marker
 This function returns a newly created marker that does not point
 anywhere.
@@ -201,7 +204,7 @@ chapter.
 @end example
 @end defun
 
-@defun copy-marker marker-or-integer insertion-type
+@defun copy-marker marker-or-integer &optional insertion-type
 If passed a marker as its argument, @code{copy-marker} returns a
 new marker that points to the same place and the same buffer as does
 @var{marker-or-integer}.  If passed an integer as its argument,
@@ -320,6 +323,10 @@ marker should do by setting its @dfn{insertion type}.  Note that use of
 @code{insert-before-markers} ignores markers' insertion types, always
 relocating a marker to point after the inserted text.
 
+Most functions that create markers, without explicitly specifying an
+insertion type, create them with insertion type @code{nil}.  Also, the
+mark has, by default, insertion type @code{nil}.
+
 @defun set-marker-insertion-type marker type
 This function sets the insertion type of marker @var{marker} to
 @var{type}.  If @var{type} is @code{t}, @var{marker} will advance when
@@ -432,10 +439,11 @@ programming.  So we do not describe it here.
 @cindex current buffer mark
 This function returns the current buffer's mark position as an integer.
 
-If the mark is inactive, @code{mark} normally signals an error.
-However, if @var{force} is non-@code{nil}, then @code{mark} returns the
-mark position anyway---or @code{nil}, if the mark is not yet set for
-this buffer.
+If Transient Mark mode is enabled, @code{mark-even-if-inactive} is
+@code{nil} and and the mark is inactive, @code{mark} normally signals
+an error.  However, if @var{force} is non-@code{nil}, then @code{mark}
+returns the mark position anyway---or @code{nil}, if the mark is not
+yet set for this buffer.
 @end defun
 
 @defun mark-marker
@@ -617,20 +625,21 @@ Various functions operate on text delimited by point and the mark, but
 only those functions specifically related to the region itself are
 described here.
 
+The next two functions signal an error if the mark does not point
+anywhere.  If Transient Mark mode is enabled and
+@code{mark-even-if-inactive} is @code{nil}, they also signal an error
+if the mark is inactive.
+
 @defun region-beginning
 This function returns the position of the beginning of the region (as
 an integer).  This is the position of either point or the mark,
 whichever is smaller.
-
-If the mark does not point anywhere, an error is signaled.
 @end defun
 
 @defun region-end
 This function returns the position of the end of the region (as an
 integer).  This is the position of either point or the mark, whichever is
 larger.
-
-If the mark does not point anywhere, an error is signaled.
 @end defun
 
   Few programs need to use the @code{region-beginning} and
