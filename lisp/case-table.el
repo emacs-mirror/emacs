@@ -39,9 +39,9 @@
   (interactive)
   (let ((vector (make-vector 256 nil))
 	(case-table (current-case-table))
-	(i 0))
-    (while (< i 256)
-      (aset vector i 
+	(ch 0))
+    (while (< ch 256)
+      (aset vector ch
 	    (cond ((/= ch (downcase ch))
 		   (concat "uppercase, matches "
 			   (text-char-description (downcase ch))))
@@ -49,9 +49,11 @@
 		   (concat "lowercase, matches "
 			   (text-char-description (upcase ch))))
 		  (t "case-invariant")))
-      (setq i (1+ i)))
-    (with-output-to-temp-buffer "*Help*"
-      (describe-vector vector))))
+      (setq ch (1+ ch)))
+    (save-excursion
+     (with-output-to-temp-buffer "*Help*"
+       (set-buffer standard-output)
+       (describe-vector vector)))))
 
 ;;;###autoload
 (defun set-case-syntax-delims (l r table)
