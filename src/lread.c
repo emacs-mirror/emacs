@@ -80,6 +80,9 @@ Lisp_Object Vload_history;
 /* This is useud to build the load history. */
 Lisp_Object Vcurrent_load_list;
 
+/* List of descriptors now open for Fload.  */
+static Lisp_Object load_descriptor_list;
+
 /* File for get_file_char to read from.  Use by load */
 static FILE *instream;
 
@@ -303,6 +306,7 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
 
 static void readevalloop ();
 static Lisp_Object load_unwind ();
+static Lisp_Object load_descriptor_unwind ();
 
 DEFUN ("load", Fload, Sload, 1, 4, 0,
   "Execute a file of Lisp code named FILE.\n\
@@ -406,6 +410,9 @@ Return t if file exists.")
   *ptr = stream;
   XSET (lispstream, Lisp_Internal_Stream, (int) ptr);
   record_unwind_protect (load_unwind, lispstream);
+  record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
+  load_descriptor_list
+    = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
   readevalloop (Qget_file_char, stream, str, Feval, 0);
   unbind_to (count, Qnil);
@@ -431,6 +438,23 @@ load_unwind (stream)  /* used as unwind-protect function in load */
   return Qnil;
 }
 
+static Lisp_Object
+load_descriptor_unwind (oldlist)
+     Lisp_Object oldlist;
+{
+  load_descriptor_list = oldlist;
+}
+
+/* Close all descriptors in use for Floads.
+   This is used when starting a subprocess.  */
+
+void
+close_load_descs ()
+{
+  Lisp_Object tail;
+  for (tail = load_descriptor_list; !NILP (tail); tail = XCONS (tail)->cdr)
+    close (XFASTINT (XCONS (tail)->car));
+}
 
 static int
 complete_filename_p (pathname)
@@ -1871,6 +1895,8 @@ init_lread ()
   Vvalues = Qnil;
 
   load_in_progress = 0;
+
+  load_descriptor_list = Qnil;
 }
 
 void
@@ -1936,6 +1962,9 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
   DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
     "Used for internal purposes by `load'.");
   Vcurrent_load_list = Qnil;
+
+  load_descriptor_list = Qnil;
+  staticpro (&load_descriptor_list);
 
   Qcurrent_load_list = intern ("current-load-list");
   staticpro (&Qcurrent_load_list);
