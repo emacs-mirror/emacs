@@ -894,86 +894,35 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
   return Qnil;
 }
 
-/* This comment supplies the doc string for modify-syntax-entry,
-   for make-docfile to see.  We cannot put this in the real DEFUN
-   due to limits in the Unix cpp.
-
-DEFUN ("modify-syntax-entry", foo, bar, 2, 3, 0,
-  "Set syntax for character CHAR according to string S.\n\
-The syntax is changed only for table TABLE, which defaults to\n\
- the current buffer's syntax table.\n\
-The first character of S should be one of the following:\n\
-  Space or -  whitespace syntax.    w   word constituent.\n\
-  _           symbol constituent.   .   punctuation.\n\
-  (           open-parenthesis.     )   close-parenthesis.\n\
-  \"           string quote.         \\   escape.\n\
-  $           paired delimiter.     '   expression quote or prefix operator.\n\
-  <           comment starter.      >   comment ender.\n\
-  /           character-quote.      @   inherit from `standard-syntax-table'.\n\
-\n\
-Only single-character comment start and end sequences are represented thus.\n\
-Two-character sequences are represented as described below.\n\
-The second character of S is the matching parenthesis,\n\
- used only if the first character is `(' or `)'.\n\
-Any additional characters are flags.\n\
-Defined flags are the characters 1, 2, 3, 4, b, p, and n.\n\
- 1 means CHAR is the start of a two-char comment start sequence.\n\
- 2 means CHAR is the second character of such a sequence.\n\
- 3 means CHAR is the start of a two-char comment end sequence.\n\
- 4 means CHAR is the second character of such a sequence.\n\
-\n\
-There can be up to two orthogonal comment sequences.  This is to support\n\
-language modes such as C++.  By default, all comment sequences are of style\n\
-a, but you can set the comment sequence style to b (on the second character\n\
-of a comment-start, or the first character of a comment-end sequence) using\n\
-this flag:\n\
- b means CHAR is part of comment sequence b.\n\
- n means CHAR is part of a nestable comment sequence.\n\
-\n\
- p means CHAR is a prefix character for `backward-prefix-chars';\n\
-   such characters are treated as whitespace when they occur\n\
-   between expressions.")
-  (char, s, table)
-*/
-
-DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
-  /* I really don't know why this is interactive
-     help-form should at least be made useful whilst reading the second arg
-   */
-  "cSet syntax for character: \nsSet syntax for %s to: ",
-  0 /* See immediately above */)
-  (c, newentry, syntax_table)
-     Lisp_Object c, newentry, syntax_table;
+DEFUN ("string-to-syntax", Fstring_to_syntax, Sstring_to_syntax, 1, 1, 0,
+  "Convert a syntax specification STRING into syntax cell form.\n\
+STRING should be a string as it is allowed as argument of\n\
+`modify-syntax-entry'.  Value is the equivalent cons cell\n\
+\(CODE . MATCHING-CHAR) that can be used as value of a `syntax-table'\n\
+text property.")
+  (string)
+     Lisp_Object string;
 {
   register unsigned char *p;
   register enum syntaxcode code;
   int val;
   Lisp_Object match;
 
-  CHECK_NUMBER (c, 0);
-  CHECK_STRING (newentry, 1);
+  CHECK_STRING (string, 0);
 
-  if (NILP (syntax_table))
-    syntax_table = current_buffer->syntax_table;
-  else
-    check_syntax_table (syntax_table);
-
-  p = XSTRING (newentry)->data;
+  p = XSTRING (string)->data;
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
     error ("invalid syntax description letter: %c", p[-1]);
 
   if (code == Sinherit)
-    {
-      SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), Qnil);
-      return Qnil;
-    }
+    return Qnil;
 
   if (*p)
     {
       int len;
       int character = (STRING_CHAR_AND_LENGTH
-		       (p, STRING_BYTES (XSTRING (newentry)) - 1, len));
+		       (p, STRING_BYTES (XSTRING (string)) - 1, len));
       XSETINT (match, character);
       if (XFASTINT (match) == ' ')
 	match = Qnil;
@@ -1016,13 +965,72 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
       }
 	
   if (val < XVECTOR (Vsyntax_code_object)->size && NILP (match))
-    newentry = XVECTOR (Vsyntax_code_object)->contents[val];
+    return XVECTOR (Vsyntax_code_object)->contents[val];
   else
     /* Since we can't use a shared object, let's make a new one.  */
-    newentry = Fcons (make_number (val), match);
-    
-  SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), newentry);
+    return Fcons (make_number (val), match);
+}
 
+/* This comment supplies the doc string for modify-syntax-entry,
+   for make-docfile to see.  We cannot put this in the real DEFUN
+   due to limits in the Unix cpp.
+
+DEFUN ("modify-syntax-entry", foo, bar, 2, 3, 0,
+  "Set syntax for character CHAR according to string S.\n\
+The syntax is changed only for table TABLE, which defaults to\n\
+ the current buffer's syntax table.\n\
+The first character of S should be one of the following:\n\
+  Space or -  whitespace syntax.    w   word constituent.\n\
+  _           symbol constituent.   .   punctuation.\n\
+  (           open-parenthesis.     )   close-parenthesis.\n\
+  \"           string quote.         \\   escape.\n\
+  $           paired delimiter.     '   expression quote or prefix operator.\n\
+  <           comment starter.      >   comment ender.\n\
+  /           character-quote.      @   inherit from `standard-syntax-table'.\n\
+  |           generic string fence. !   generic comment fence.\n\
+\n\
+Only single-character comment start and end sequences are represented thus.\n\
+Two-character sequences are represented as described below.\n\
+The second character of S is the matching parenthesis,\n\
+ used only if the first character is `(' or `)'.\n\
+Any additional characters are flags.\n\
+Defined flags are the characters 1, 2, 3, 4, b, p, and n.\n\
+ 1 means CHAR is the start of a two-char comment start sequence.\n\
+ 2 means CHAR is the second character of such a sequence.\n\
+ 3 means CHAR is the start of a two-char comment end sequence.\n\
+ 4 means CHAR is the second character of such a sequence.\n\
+\n\
+There can be up to two orthogonal comment sequences.  This is to support\n\
+language modes such as C++.  By default, all comment sequences are of style\n\
+a, but you can set the comment sequence style to b (on the second character\n\
+of a comment-start, or the first character of a comment-end sequence) using\n\
+this flag:\n\
+ b means CHAR is part of comment sequence b.\n\
+ n means CHAR is part of a nestable comment sequence.\n\
+\n\
+ p means CHAR is a prefix character for `backward-prefix-chars';\n\
+   such characters are treated as whitespace when they occur\n\
+   between expressions.")
+  (char, s, table)
+*/
+
+DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
+  /* I really don't know why this is interactive
+     help-form should at least be made useful whilst reading the second arg
+   */
+  "cSet syntax for character: \nsSet syntax for %s to: ",
+  0 /* See immediately above */)
+  (c, newentry, syntax_table)
+     Lisp_Object c, newentry, syntax_table;
+{
+  CHECK_NUMBER (c, 0);
+
+  if (NILP (syntax_table))
+    syntax_table = current_buffer->syntax_table;
+  else
+    check_syntax_table (syntax_table);
+
+  SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), Fstring_to_syntax (newentry));
   return Qnil;
 }
 
@@ -1382,7 +1390,6 @@ skip_chars (forwardp, syntaxp, string, lim)
      Lisp_Object string, lim;
 {
   register unsigned int c;
-  register int ch;
   unsigned char fastmap[0400];
   /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
      of which codes don't fit in FASTMAP.  In that case, set the
@@ -1897,7 +1904,7 @@ between them, return t; otherwise return nil.")
     {
       while (1)
 	{
-	  int quoted, comstart_second;
+	  int quoted;
 
 	  if (from <= stop)
 	    {
@@ -3035,6 +3042,7 @@ relevant only for open/close type.");
   defsubr (&Sset_syntax_table);
   defsubr (&Schar_syntax);
   defsubr (&Smatching_paren);
+  defsubr (&Sstring_to_syntax);
   defsubr (&Smodify_syntax_entry);
   defsubr (&Sdescribe_syntax);
 
