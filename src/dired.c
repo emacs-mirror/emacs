@@ -382,7 +382,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	    {
 	      Lisp_Object regexps;
 	      Lisp_Object zero;
-	      XFASTINT (zero) = 0;
+	      XSETFASTINT (zero, 0);
 
 	      /* Ignore this element if it fails to match all the regexps.  */
 	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
