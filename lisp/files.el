@@ -2633,7 +2633,8 @@ sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
 Optional second argument NOCONFIRM means don't ask for confirmation at
-all.
+all.  (The local variable `revert-without-query', if non-nil, prevents 
+confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter
 the files modes.  Normally we reinitialize them using `normal-mode'.
