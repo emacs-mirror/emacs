@@ -1,3 +1,8 @@
+2004-12-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-describe-key): 
+	Set calc-summary-indentation even when Calc Summary buffer exists.
+
 2004-12-07  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/holidays.el (holiday-easter-etc): Make arguments
