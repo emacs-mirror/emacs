@@ -29,22 +29,15 @@
 
 ;;; Code:
 
-(define-prefix-command 'describe-cyrillic-environment-map)
-(define-key-after describe-language-environment-map [Cyrillic]
-  '("Cyrillic" . describe-cyrillic-environment-map)
-  t)
-
-(define-prefix-command 'setup-cyrillic-environment-map)
-(define-key-after setup-language-environment-map [Cyrillic]
-  '("Cyrillic" . setup-cyrillic-environment-map)
-  t)
-
 ;; ISO-8859-5 staff
 
 (make-coding-system
- 'iso-8859-5 2 ?5 "MIME ISO-8859-5"
+ 'cyrillic-iso-8bit 2 ?5
+ "ISO 2022 based 8-bit encoding for Cyrillic script (MIME:ISO-8859-5)"
  '((ascii t) (cyrillic-iso8859-5 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
+
+(define-coding-system-alias 'cyrillic-iso-8bit 'iso-8859-5)
 
 ;; KOI-8 staff
 
@@ -97,7 +90,7 @@
  ;; but it is also used for Korean.
  ;; So people who use koi8 for languages other than Russian
  ;; will have to forgive us.
- ?R "Coding-system used for KOI8."
+ ?R "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R)"
  (cons ccl-decode-koi8 ccl-encode-koi8))
 
 (define-coding-system-alias 'cyrillic-koi8 'koi8-r)
@@ -165,9 +158,11 @@
   "CCL program to encode Alternativnyj.")
 	     
 (make-coding-system
- 'alternativnyj 4
- ?A "Coding-system used for Alternativnyj"
+ 'cyrillic-alternativnyj 4 ?A
+ "ALTERNATIVNYJ 8-bit encoding for Cyrillic"
  (cons ccl-decode-alternativnyj ccl-encode-alternativnyj))
+
+(define-coding-system-alias 'cyrillic-alternativnyj 'alternativnyj)
 
 (define-ccl-program ccl-encode-alternativnyj-font
   '(0
@@ -188,43 +183,12 @@
 
 ;;; For all Cyrillics.
 
-(register-input-method
- "Cyrillic" '("quail-jcuken" quail-use-package "quail/cyrillic"))
-(register-input-method
- "Cyrillic" '("quail-macedonian" quail-use-package "quail/cyrillic"))
-(register-input-method
- "Cyrillic" '("quail-serbian" quail-use-package "quail/cyrillic"))
-(register-input-method
- "Cyrillic" '("quail-beylorussian" quail-use-package "quail/cyrillic"))
-(register-input-method
- "Cyrillic" '("quail-ukrainian" quail-use-package "quail/cyrillic"))
-(register-input-method
- "Cyrillic" '("quail-yawerty" quail-use-package "quail/cyrillic"))
-
 (set-language-info-alist
- "Cyrillic-ISO" '((setup-function . (setup-cyrillic-iso-environment
-				     . setup-cyrillic-environment-map))
-		  (charset . (cyrillic-iso8859-5))
-		  (coding-system . (iso-8859-5))
-		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		  (documentation . (t . describe-cyrillic-environment-map))))
-
-(set-language-info-alist
- "Cyrillic-KOI8" '((setup-function . (setup-cyrillic-koi8-environment
-				      . setup-cyrillic-environment-map))
-		   (charset . (cyrillic-iso8859-5))
-		   (coding-system . (cyrillic-koi8))
-		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		   (documentation . (t . describe-cyrillic-environment-map))))
-
-(set-language-info-alist
- "Cyrillic-Alternativnyj" '((setup-function
-			     . (setup-cyrillic-alternativnyj-environment
-				. setup-cyrillic-environment-map))
-			    (charset . (cyrillic-iso8859-5))
-			    (coding-system . (cyrillic-alternativnyj))
-			    (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-			    (documentation
-			     . (t . describe-cyrillic-environment-map))))
+ "Cyrillic" '((setup-function . setup-cyrillic-environment)
+	      (charset . (cyrillic-iso8859-5))
+	      (coding-system . (cyrillic-iso-8bit cyrillic-koi8
+						  cyrillic-alternativnyj))
+	      (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
+	      (documentation . t)))
 
 ;;; cyrillic.el ends here
