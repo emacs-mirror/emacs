@@ -131,7 +131,9 @@ main (argc, argv)
 	      while (p = strtok (NULL, " ,\r\n\t"))
 		labels = concat (labels, p, ", ");
 
-	      labels[strlen (labels) - 2] = '\0';
+	      p = &labels[strlen (labels) - 2];
+	      if (*p == ',')
+		*p = '\0';
 	      printing = header = FALSE;
 	      labels_saved = TRUE;
 	      continue;
