@@ -97,12 +97,6 @@ echo "Making links to top-level files."
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
 ln ChangeLog Makefile.in build-install.in configure config.sub ${tempdir}
 ln make-dist ${tempdir}
-# Copy these files; on the GNU machines, at least, they are symbolic
-# links to files on another file system, so we can't make a hard link
-# to it.  Eech.
-if [ ! -f ${tempdir}/config.sub ]; then
-  cp config.sub ${tempdir}
-fi
 
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
@@ -149,11 +143,6 @@ echo "Making links to \`src'."
     ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  ln *.com *.opt vms-pp.trans vmsbuild ../${tempdir}/src
- # gmalloc.c is a symbolic link to another file system, so we can't 
- # link it into ${tempdir}.  We copy it.  Eech.
- if [ ! -f ../${tempdir}/src/gmalloc.c ]; then
-   cp gmalloc.c ../${tempdir}/src
- fi
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile
  if [ -z "${newer}" ]; then
