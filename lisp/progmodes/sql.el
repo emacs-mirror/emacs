@@ -4,8 +4,9 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.6.1
+;; Version: 1.6.2
 ;; Keywords: comm languages processes
+;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
 
 ;; This file is part of GNU Emacs.
 
@@ -355,11 +356,12 @@ The program can also specify a TCP connection.  See `make-comint'."
 
 (defcustom sql-postgres-options '("-P" "pager=off")
   "*List of additional options for `sql-postgres-program'.
-The default setting includes the -P option which breaks
-older versions of the psql client (such as version 6.5.3).
-The -P option is equivalent to the --pset option.
-If you want the psql to prompt you for a user name, add the
-string \"-u\" to the list of options."
+The default setting includes the -P option which breaks older versions
+of the psql client (such as version 6.5.3).  The -P option is equivalent
+to the --pset option.  If you want the psql to prompt you for a user
+name, add the string \"-u\" to the list of options.  If you want to
+provide a user name on the command line (newer versions such as 7.1),
+add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
   :type '(repeat string)
   :version "20.8"
   :group 'SQL)
@@ -1672,13 +1674,14 @@ Try to set `comint-output-filter-functions' like this:
       (pop-to-buffer "*SQL*")
     (sql-get-login 'database 'server)
     (message "Login...")
-    ;; username and password are ignored.  Jason Beegan suggest using
-    ;; --pset and pager=off instead of \\o|cat.  The later was the
-    ;; solution by Gregor Zych.  Jason's suggestion is the default value
-    ;; for sql-postgres-options.
+    ;; username and password are ignored.  Mark Stosberg suggest to add
+    ;; the database at the end.  Jason Beegan suggest using --pset and
+    ;; pager=off instead of \\o|cat.  The later was the solution by
+    ;; Gregor Zych.  Jason's suggestion is the default value for
+    ;; sql-postgres-options.
     (let ((params sql-postgres-options))
       (if (not (string= "" sql-database))
-	  (setq params (append (list sql-database) params)))
+	  (setq params (append params (list sql-database))))
       (if (not (string= "" sql-server))
 	  (setq params (append (list "-h" sql-server) params)))
       (set-buffer (apply 'make-comint "SQL" sql-postgres-program
@@ -1760,13 +1763,10 @@ automatic login.
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
-If you use \\[sql-accumulate-and-indent] to send multiline commands to db2,
-newlines will be escaped if necessary.  If you don't want that, use 
-
-set `comint-input-sender' back to `comint-simple-send'.
-comint-input-sender's value is 
-comint-simple-send
-
+If you use \\[sql-accumulate-and-indent] to send multiline commands to
+db2, newlines will be escaped if necessary.  If you don't want that, set
+`comint-input-sender' back to `comint-simple-send' by writing an after
+advice.  See the elisp manual for more information.
 
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
