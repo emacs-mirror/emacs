@@ -266,6 +266,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 #ifdef _GOT
   if (got_section != NULL)
     {
+      bcopy (got_section, buffer, sizeof (struct scnhdr));
+
       got_section->s_vaddr = vaddr;
       got_section->s_paddr = vaddr;
       got_section->s_size = 0;
@@ -292,6 +294,21 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   WRITE (new, (char *)DATA_START, nhdr.aout.dsize,
 	 "writing data section to %s", new_name);
 
+#ifdef _GOT
+#define old_got_section ((struct scnhdr *)buffer)
+
+  if (got_section != NULL)
+    {
+      SEEK (new, old_got_section->s_scnptr,
+	    "seeking to start of got_section in %s", new_name);
+      WRITE (new, oldptr + old_got_section->s_scnptr, old_got_section->s_size,
+	     "writing new got_section of %s", new_name);
+      SEEK (new, nhdr.aout.tsize + nhdr.aout.dsize,
+	    "seeking to end of data section of %s", new_name);
+    }
+
+#undef old_got_section
+#endif
 
   /*
    * Construct new symbol table header
