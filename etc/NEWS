@@ -100,10 +100,13 @@ now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
 faces.
 
++++
 ** Limited support for charset unification has been added.
 By default, Emacs now knows how to translate latin-N chars between their
 charset and some other latin-N charset or unicode.  You can force a
 more complete unification by calling (unify-8859-on-decoding-mode 1).
+That maps all the Latin-N character sets into either Latin-1
+or Unicode characters.
 
 ---
 ** The scrollbar under LessTif or Motif has a smoother drag-scrolling.
@@ -181,11 +184,12 @@ Emacs window will select that window (minibuffer window can be selected
 only when it is active).  The default is nil, so that this feature is not
 enabled.
 
-** The new command `describe-char pops up a buffer with description
-various information about a character, including its encodings and
-syntax, its text properties, overlays, and widgets at point.  You can
-get more information about some of them, by clicking on
-mouse-sensitive areas or moving there and pressing RET.
++++
+** The new command `describe-char' (C-u C-x =) pops up a buffer with
+description various information about a character, including its
+encodings and syntax, its text properties, overlays, and widgets at
+point.  You can get more information about some of them, by clicking
+on mouse-sensitive areas or moving there and pressing RET.
 
 +++
 ** The new command `multi-occur' is just like `occur', except it can
@@ -300,8 +304,10 @@ When Emacs is invoked on a window system, the new command-line options
 whose width, height, or both width and height take up the entire
 screen size.  (For now, this does not work with some window managers.)
 
-** Info-index finally offers completion.
+---
+** Info-index offers completion.
 
+---
 ** shell-mode now supports programmable completion using `pcomplete'.
 
 ** Emacs now tries to set up buffer coding systems for HTML/XML files
@@ -378,16 +384,13 @@ be inconvenient when you did not expect them.  The variable
 `yank-excluded-properties' specifies which ones.  Insertion
 of register contents and rectangles also discards these properties.
 
++++
 ** Occur, Info, and comint-derived modes now support using
 M-x font-lock-mode to toggle fontification.  The variable
 `Info-fontify' is no longer applicable; to disable fontification,
 remove `turn-on-font-lock' from `Info-mode-hook'.
 
-** The Emacs Lisp byte-compiler now displays the actual line and
-character position of errors, where possible.  Additionally, the form
-of its warning and error messages have been brought more in line with
-the output of other GNU tools.
-
++++
 ** M-x grep now tries to avoid appending `/dev/null' to the command line
 by using GNU grep `-H' option instead.  M-x grep will automatically
 detect whether this is possible or not the first time it is invoked.
@@ -395,6 +398,7 @@ When `-H' is used, the grep command line supplied by the user is passed
 unchanged to the system to execute, which allows more complicated
 command lines to be used than was possible before.
 
+---
 ** The face-customization widget has been reworked to be less confusing.
 In particular, when you enable a face attribute using the corresponding
 check-box, there's no longer a redundant `*' option in value selection
@@ -442,10 +446,12 @@ counter to the specified source line (the one where point is).
 
 *** Do not allow debugger output history variable to grow without bounds.
 
++++
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands line C-e and C-p.
 
++++
 ** In Dired's ! command (dired-do-shell-command), `*' and `?' now
 control substitution of the file names only when they are surrounded
 by whitespace.  This means you can now use them as shell wildcards
@@ -453,15 +459,18 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
++++
 ** Dired's v command now runs external viewers to view certain
 types of files.  The variable `dired-view-command-alist' controls
 what external viewers to use and when.
 
++++
 ** Unquoted `$' in file names do not signal an error any more when
 the corresponding environment variable does not exist.
 Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
 is only rarely needed.
 
+---
 ** jit-lock can now be delayed with `jit-lock-defer-time'.
 
 If this variable is non-nil, its value should be the amount of Emacs
@@ -495,10 +504,12 @@ alters the buffer, or typing C-g.
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... will cycle through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
 
++++
 ** In the *Occur* buffer, `o' switches to it in another window, and
 C-o displays the current line's occurrence in another window without
 switching to it.
 
++++
 ** When you specify a frame size with --geometry, the size applies to
 all frames you create.  A position specified with --geometry only
 affects the initial frame.
@@ -512,11 +523,13 @@ paragraphs.
 ** In Dired, the w command now copies the current line's file name
 into the kill ring.
 
++++
 ** The variables dired-free-space-program and dired-free-space-args
 have been renamed to directory-free-space-program and
 directory-free-space-args, and they now apply whenever Emacs puts a
 directory listing into a buffer.
 
+---
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
@@ -540,22 +553,26 @@ modified buffers, it saves the abbrevs too if they have changed.  It
 can do this either silently or asking for confirmation first,
 according to the value of `save-abbrevs'.
 
++++
 ** Display of hollow cursors now obeys the buffer-local value (if any)
 of `cursor-in-non-selected-windows' in the buffer that the cursor
 appears in.
 
++++
 ** The default values of `tooltip-delay' and `tooltip-hide-delay'
 were changed.
 
 ** On terminals whose erase-char is ^H (Backspace), Emacs
 now uses normal-erase-is-backspace-mode.
 
+---
 ** The variable `auto-save-file-name-transforms' now has a third element that
 controls whether or not the function `make-auto-save-file-name' will
 attempt to construct a unique auto-save name (e.g. for remote files).
 
 ** VC Changes
 
++++
 *** There is a new user option `vc-cvs-global-switches' that allows
 you to specify switches that are passed to any CVS command invoked
 by VC.  These switches are used as "global options" for CVS, which
@@ -645,16 +662,20 @@ the file FILE.
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
++++
 ** The command `list-text-properties-at' has been deleted because
 C-u C-x = gives the same information and more.
 
++++
 ** `buffer-menu' and `list-buffers' now list buffers whose names begin
-with a space, if they visit files.
+with a space, when those buffers are visiting files.  Normally buffers
+whose names begin with space are omitted.
 
 ** You can now customize fill-nobreak-predicate to control where
 filling can break lines.  We provide two sample predicates,
 fill-single-word-nobreak-p and fill-french-nobreak-p.
 
++++
 ** New user option `add-log-always-start-new-record'.
 When this option is enabled, M-x add-change-log-entry will always
 start a new record regardless of when the last record is.
@@ -668,6 +689,7 @@ from the file name or buffer contents.
 
 ** `xml-mode' is now an alias for `smgl-mode', which has XML support.
 
++++
 ** New user option `isearch-resume-enabled'.
 This option can be disabled, to avoid the normal behaviour of isearch
 which puts calls to `isearch-resume' in the command history.
@@ -678,25 +700,27 @@ initial-major-mode, which normally is lisp-interaction-mode,
 instead of using default-major-mode.
 
 ---
-** Lisp-mode now uses font-lock-doc-face for the docstrings.
+** Lisp mode now uses font-lock-doc-face for the docstrings.
 
-** perl-mode has a new variable `perl-indent-continued-arguments'.
+---
+** Perl mode has a new variable `perl-indent-continued-arguments'.
 
-** fortran-mode has a new variable `fortran-directive-re'.
+** Fortran mode has a new variable `fortran-directive-re'.
 
-** f90-mode has new navigation commands `f90-end-of-block',
+---
+** F90 mode has new navigation commands `f90-end-of-block',
 `f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
 
-** prolog-mode has a new variable `prolog-font-lock-keywords'
+---
+** Prolog mode has a new variable `prolog-font-lock-keywords'
 to support use of font-lock.
 
++++
 ** `special-display-buffer-names' and `special-display-regexps' now
 understand two new boolean pseudo-frame-parameters `same-frame' and
 `same-window'.
 
-** When pure storage overflows while dumping, Emacs now prints how
-much pure storage it will approximately need.
-
++++
 ** M-x setenv now expands environment variables of the form `$foo' and
 `${foo}' in the specified new value of the environment variable.  To
 include a `$' in the value, use `$$'.
@@ -710,16 +734,17 @@ which do not end in a slash are never considered when a completion
 candidate is a directory.
 
 +++
+** Completion commands in the minibuffer apply only to the
+text before point.  If there is text in the buffer after point,
+it remains unchanged.
+
++++
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
-
-** When using M-x revert-buffer in a compilation buffer to rerun a
-compilation, it is now made sure that the compilation buffer is reused
-in case it has been renamed.
 
 ---
 ** On MS Windows, the "system caret" now follows the cursor.
@@ -735,6 +760,7 @@ See the Emacs 21.1 NEWS entry for tooltips for details.
 PBM and XBM images are supported, other formats which require external
 libraries may be supported in future.
 
+---
 ** Pointing devices with more than 3 buttons are now supported on MS Windows.
 The new variable `w32-pass-extra-mouse-buttons-to-system' controls
 whether Emacs should handle the extra buttons itself (the default), or
@@ -753,10 +779,6 @@ Meta and Alt:
 
 ---
 ** A French translation of the Emacs Tutorial is available.
-
-** When emacs is configured to use `xaw3d' scroll-bars, emacs will
-tell the scroll-bar library which colors to use for the bevels, to
-prevent the library from using dithering.
 
 ** New modes and packages
 
@@ -832,17 +854,6 @@ Shell connections can be acquired via `rsh', `ssh', `telnet' and also
 `su' and `sudo'.
 
 ---
-** Indentation of simple and extended loop forms has been added to the
-cl-indent package.  The new user options
-`lisp-loop-keyword-indentation', `lisp-loop-forms-indentation', and
-`lisp-simple-loop-indentation' can be used to customize the
-indentation of keywords and forms in loop forms.
-
----
-** Indentation of backquoted forms has been made customizable in the
-cl-indent package.  See the new user option `lisp-backquote-indentation'.
-
----
 *** The Introduction to Programming in Emacs Lisp manual is now part of
 the distribution.
 
@@ -884,6 +895,9 @@ mode-lines in inverse-video.
 
 * Lisp Changes in Emacs 21.4
 
+** When pure storage overflows while dumping, Emacs now prints how
+much pure storage it will approximately need.
+
 +++
 ** Renamed file hooks to follow the convention:
 find-file-hooks to find-file-hook,
@@ -905,7 +919,7 @@ to override the internal read-file-name function.
 `read-file-name' to read a directory name; when used, completion
 will only show directories.
 
-** The New lisp library fringe.el controls the apperance of fringes.
+** The new Lisp library fringe.el controls the apperance of fringes.
 
 ** The `defmacro' form may contain declarations specifying how to
 indent the macro in Lisp mode and how to debug it with Edebug.  The
@@ -1228,6 +1242,17 @@ Reference manual for more detailed documentation.
 ** Mode line display ignores text properties in the value
 of a variable whose `risky-local-variables' property is nil.
 
+---
+** Indentation of simple and extended loop forms has been added to the
+cl-indent package.  The new user options
+`lisp-loop-keyword-indentation', `lisp-loop-forms-indentation', and
+`lisp-simple-loop-indentation' can be used to customize the
+indentation of keywords and forms in loop forms.
+
+---
+** Indentation of backquoted forms has been made customizable in the
+cl-indent package.  See the new user option `lisp-backquote-indentation'.
+
 ** Already true in Emacs 21.1, but not emphasized clearly enough:
 
 Multibyte buffers can now faithfully record all 256 character codes
@@ -1389,6 +1414,11 @@ accepts a float as UID parameter.
 ** `define-derived-mode' now accepts nil as the parent.
 
 ** The local variable `no-byte-compile' in elisp files is now obeyed.
+
+** The Emacs Lisp byte-compiler now displays the actual line and
+character position of errors, where possible.  Additionally, the form
+of its warning and error messages have been brought more in line with
+the output of other GNU tools.
 
 ** New functions `keymap-prompt' and `current-active-maps'.
 
