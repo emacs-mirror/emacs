@@ -1,3 +1,13 @@
+2002-04-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_hollow_cursor, x_draw_bar_cursor)
+	(x_draw_phys_cursor_glyph): Set phys_cursor_width here.
+	(x_display_and_set_cursor): Don't set phys_cursor_width here, for
+	bar cursors only, to make phys_cursor_width contain what its name
+	suggests.
+	(notice_overwritten_cursor): Consider the cursor image erased if
+	the output area intersects the cursor image in y-direction.
+
 2002-04-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused global variable
