@@ -25,8 +25,9 @@
 
 ;;; Commentary:
 
-;; For European scripts, character sets ISO8859-1,2,3,4,9,13,14,15,
-;; windows-1250,2,4,7, mac-roman and next are supported.
+;; For European scripts, character sets ISO8859-1,2,3,4,9,10,13,14,15,
+;; windows-1250,2,4,7, mac-roman, adobe-standard-encoding, cp850 and
+;; next are supported.
 
 ;;; Code:
 
@@ -172,6 +173,53 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
  '("European"))
 
 
+;; Latin-6 (ISO-8859-10)
+
+(define-coding-system 'iso-latin-6
+  "ISO 2022 based 8-bit encoding for Latin-6 (MIME:ISO-8859-10)."
+  :coding-type 'charset
+  :mnemonic ?9
+  :charset-list '(iso-8859-10)
+  :mime-charset 'iso-8859-10)
+
+(define-coding-system-alias 'iso-8859-10 'iso-latin-6)
+(define-coding-system-alias 'latin-6 'iso-latin-6)
+
+(set-language-info-alist
+ "Latin-6" '((charset iso-8859-10)
+	     (coding-system iso-latin-6)
+	     (coding-priority iso-latin-6)
+	     (nonascii-translation . iso-8859-10)
+	     (unibyte-syntax . "latin-6")
+	     (unibyte-display . iso-latin-6)
+	     ;; Fixme: input method.
+	     (documentation . "Support for generic Latin-6 (Northern European)."))
+ '("European"))
+
+
+;; Latin-7 (ISO-8859-13)
+
+(define-coding-system 'iso-latin-7
+  "ISO 2022 based 8-bit encoding for Latin-7 (MIME:ISO-8859-13)."
+  :coding-type 'charset
+  :mnemonic ?9
+  :charset-list '(iso-8859-13)
+  :mime-charset 'iso-8859-13)
+
+(define-coding-system-alias 'iso-8859-13 'iso-latin-7)
+(define-coding-system-alias 'latin-7 'iso-latin-7)
+
+(set-language-info-alist
+ "Latin-7" '((charset iso-8859-13)
+	     (coding-system iso-latin-7)
+	     (coding-priority iso-latin-7)
+	     (nonascii-translation . iso-8859-13)
+	     (unibyte-syntax . "latin-7")
+	     (unibyte-display . iso-latin-7)
+	     ;; Fixme: input method.
+	     (documentation . "Support for generic Latin-7 (Baltic Rim)."))
+ '("European"))
+
 ;; Latin-8 (ISO-8859-14)
 
 (define-coding-system 'iso-latin-8
@@ -275,6 +323,14 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
   :charset-list '(windows-1257)
   :mime-charset 'windows-1257)
 (define-coding-system-alias 'cp1257 'windows-1257)
+
+(define-coding-system 'cp850
+  "DOS codepage 850 (Western European)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp850)
+  :mime-charset 'cp850)
+(define-coding-system-alias 'ibm850 'cp850)
 
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
@@ -423,7 +479,6 @@ but it selects the Dutch tutorial."))
   :coding-type 'charset
   :mnemonic ?M 
   :charset-list '(mac-roman)
-  ;; per IANA, rfc1345
   :mime-charset 'macintosh)
 
 (define-coding-system 'next
@@ -432,6 +487,20 @@ but it selects the Dutch tutorial."))
   :mnemonic ?*
   :charset-list '(next)
   :mime-charset 'next)
+
+(define-coding-system 'hp-roman8
+  "Hewlet-Packard roman-8 encoding (MIME:ROMAN-8)"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(hp-roman8)
+  :mime-charset 'hp-roman8)
+(define-coding-system-alias 'roman8 'hp-roman8)
+
+(define-coding-system 'adobe-standard-encoding
+  "Adobe `standard' encoding for PostScript"
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(adobe-standard-encoding) 'adobe-standard-encoding)
 
 (defconst diacritic-composition-pattern "\\C^\\c^+")
 
