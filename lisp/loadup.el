@@ -24,6 +24,8 @@
 
 (load "subr")
 (garbage-collect)
+(load "bytecomp-runtime")
+(garbage-collect)
 (load "map-ynp")
 (garbage-collect)
 (load "loaddefs.el")  ;Don't get confused if someone compiled loaddefs by mistake.

@@ -741,7 +741,7 @@ This function is more useful than \\[tex-buffer] when you need the
              (file-name-nondirectory (buffer-file-name))
            (error "Buffer does not seem to be associated with any file")))
 	(file-dir (file-name-directory (buffer-file-name))))
-    (if (tex-offer-save)
+    (if tex-offer-save
         (save-some-buffers))
     (if (tex-shell-running)
         (tex-kill-job)

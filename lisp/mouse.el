@@ -77,8 +77,9 @@ This must be bound to a mouse click."
   "Kill the region between point and the mouse click.
 The text is saved in the kill ring, as with \\[kill-region]."
   (interactive "K")
-  (mouse-set-mark click)
-  (kill-region))
+  (let ((click-posn (event-point click)))
+    (kill-region (min (point) click-posn)
+		 (max (point) click-posn))))
 
 (defun mouse-yank-at-click (click arg)
   "Insert the last stretch of killed text at the position clicked on.
@@ -262,75 +263,74 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 ;;
 ;; Dynamically put a box around the line indicated by point
 ;;
-
-(require 'backquote)
-
-(defun mouse-select-buffer-line (event)
-  (interactive "@e")
-  (let ((relative-coordinate
-	 (coordinates-in-window-p (car event) (selected-window)))
-	(abs-y (car (cdr (car event)))))
-    (if (consp relative-coordinate)
-	(progn
-	  (save-excursion
-	    (move-to-window-line (car (cdr relative-coordinate)))
-	    (x-draw-rectangle
-	     (selected-screen)
-	     abs-y 0
-	     (save-excursion
-		 (move-to-window-line (car (cdr relative-coordinate)))
-		 (end-of-line)
-		 (push-mark nil t)
-		 (beginning-of-line)
-		 (- (region-end) (region-beginning))) 1)
-	    (setq the-buffer (Buffer-menu-buffer t)))
-	  (sit-for 1)
-	  (x-erase-rectangle (selected-screen))))))
-
-(defvar last-line-drawn nil)
-(defvar begin-delim "[^ \t]")
-(defvar end-delim   "[^ \t]")
-
-(defun mouse-boxing (event)
-  (interactive "@e")
-  (save-excursion
-    (let ((screen (selected-screen)))
-      (while (= (x-mouse-events) 0)
-	(let* ((pos (read-mouse-position screen))
-	       (abs-x (car pos))
-	       (abs-y (cdr pos))
-	       (relative-coordinate
-		(coordinates-in-window-p (` ((, abs-x) (, abs-y)))
-					 (selected-window)))
-	       (begin-reg nil)
-	       (end-reg nil)
-	       (end-column nil)
-	       (begin-column nil))
-	  (if (and (consp relative-coordinate)
-		   (or (not last-line-drawn)
-		       (not (= last-line-drawn abs-y))))
-	      (progn
-		(move-to-window-line (car (cdr relative-coordinate)))
-		(if (= (following-char) 10)
-		    ()
-		  (progn
-		    (setq begin-reg (1- (re-search-forward end-delim)))
-		    (setq begin-column (1- (current-column)))
-		    (end-of-line)
-		    (setq end-reg (1+ (re-search-backward begin-delim)))
-		    (setq end-column (1+ (current-column)))
-		    (message "%s" (buffer-substring begin-reg end-reg))
-		    (x-draw-rectangle screen
-				      (setq last-line-drawn abs-y)
-				      begin-column
-				      (- end-column begin-column) 1))))))))))
-
-(defun mouse-erase-box ()
-  (interactive)
-  (if last-line-drawn
-      (progn
-	(x-erase-rectangle (selected-screen))
-	(setq last-line-drawn nil))))
+;;
+;;(require 'backquote)
+;;
+;;(defun mouse-select-buffer-line (event)
+;;  (interactive "@e")
+;;  (let ((relative-coordinate
+;;	 (coordinates-in-window-p (car event) (selected-window)))
+;;	(abs-y (car (cdr (car event)))))
+;;    (if (consp relative-coordinate)
+;;	(progn
+;;	  (save-excursion
+;;	    (move-to-window-line (car (cdr relative-coordinate)))
+;;	    (x-draw-rectangle
+;;	     (selected-screen)
+;;	     abs-y 0
+;;	     (save-excursion
+;;		 (move-to-window-line (car (cdr relative-coordinate)))
+;;		 (end-of-line)
+;;		 (push-mark nil t)
+;;		 (beginning-of-line)
+;;		 (- (region-end) (region-beginning))) 1))
+;;	  (sit-for 1)
+;;	  (x-erase-rectangle (selected-screen))))))
+;;
+;;(defvar last-line-drawn nil)
+;;(defvar begin-delim "[^ \t]")
+;;(defvar end-delim   "[^ \t]")
+;;
+;;(defun mouse-boxing (event)
+;;  (interactive "@e")
+;;  (save-excursion
+;;    (let ((screen (selected-screen)))
+;;      (while (= (x-mouse-events) 0)
+;;	(let* ((pos (read-mouse-position screen))
+;;	       (abs-x (car pos))
+;;	       (abs-y (cdr pos))
+;;	       (relative-coordinate
+;;		(coordinates-in-window-p (` ((, abs-x) (, abs-y)))
+;;					 (selected-window)))
+;;	       (begin-reg nil)
+;;	       (end-reg nil)
+;;	       (end-column nil)
+;;	       (begin-column nil))
+;;	  (if (and (consp relative-coordinate)
+;;		   (or (not last-line-drawn)
+;;		       (not (= last-line-drawn abs-y))))
+;;	      (progn
+;;		(move-to-window-line (car (cdr relative-coordinate)))
+;;		(if (= (following-char) 10)
+;;		    ()
+;;		  (progn
+;;		    (setq begin-reg (1- (re-search-forward end-delim)))
+;;		    (setq begin-column (1- (current-column)))
+;;		    (end-of-line)
+;;		    (setq end-reg (1+ (re-search-backward begin-delim)))
+;;		    (setq end-column (1+ (current-column)))
+;;		    (message "%s" (buffer-substring begin-reg end-reg))
+;;		    (x-draw-rectangle screen
+;;				      (setq last-line-drawn abs-y)
+;;				      begin-column
+;;				      (- end-column begin-column) 1))))))))))
+;;
+;;(defun mouse-erase-box ()
+;;  (interactive)
+;;  (if last-line-drawn
+;;      (progn
+;;	(x-erase-rectangle (selected-screen))
+;;	(setq last-line-drawn nil))))
 
 ;;; (defun test-x-rectangle ()
 ;;;   (use-local-mouse-map (setq rectangle-test-map (make-sparse-keymap)))
