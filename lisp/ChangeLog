@@ -1,3 +1,8 @@
+2002-12-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-mode-abbrev-table): Handle
+	`define-abbrev' with either 5 or 6 arguments.
+
 2002-12-12  Markus Rost  <rost@math.ohio-state.edu>
 
 	* international/mule-cmds.el (current-language-environment): Fix
