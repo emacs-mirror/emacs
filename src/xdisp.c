@@ -357,7 +357,7 @@ Lisp_Object Vicon_title_format;
 
 static Lisp_Object Vwindow_size_change_functions;
 
-Lisp_Object Qmenu_bar_update_hook;
+Lisp_Object Qmenu_bar_update_hook, Vmenu_bar_update_hook;
 
 /* Nonzero if overlay arrow has been displayed once in this window.  */
 
@@ -13645,6 +13645,11 @@ Each element of the list is a symbol for a supported image type.");
     "If non-nil, messages are truncated instead of resizing the echo area.\n\
 Bind this around calls to `message' to let it take effect.");
   message_truncate_lines = 0;
+
+  DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook,
+    "Normal hook run for clicks on menu bar, before displaying a submenu.\n\
+Can be used to update submenus whose contents should vary.");
+
 }
 
 
