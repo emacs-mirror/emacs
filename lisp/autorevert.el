@@ -71,9 +71,12 @@
 
 (require 'timer)
 (autoload 'dired-get-filename "dired")
+(autoload 'vc-workfile-version "vc-hooks")
+(autoload 'vc-mode-line        "vc-hooks")
 
 (eval-when-compile
   (defvar dired-directory)
+  (defvar vc-mode)
   (require 'cl))
 
 
@@ -294,9 +297,12 @@ Use `auto-revert-mode' to revert a particular buffer."
 
 (defun auto-revert-buffer-p ()
   "Check if current buffer should be reverted."
-  ;;  Always include dired buffers to list. It would be too expensive
+  ;;  - Always include dired buffers to list. It would be too expensive
   ;;  to test the "revert" status here each time timer launches.
+  ;;  - Same for VC buffers.
   (or (eq major-mode 'dired-mode)
+      (and (not (buffer-modified-p))
+	   (auto-revert-vc-buffer-p))
       (and (not (buffer-modified-p))
 	   (if (buffer-file-name)
 	       (and (file-readable-p (buffer-file-name))
@@ -306,23 +312,81 @@ Use `auto-revert-mode' to revert a particular buffer."
 			   global-auto-revert-non-file-buffers)
 		      auto-revert-mode))))))
 
+(defun auto-revert-vc-cvs-file-version (file)
+  "Get version of FILE by reading control file on disk."
+  (let* ((control "CVS/Entries")
+	 (name	  (file-name-nondirectory file))
+	 (path	  (format "%s/%s"
+			  (file-name-directory file)
+			  control)))
+    (when (file-exists-p path)
+      (with-temp-buffer
+	(insert-file-contents-literally path)
+	(goto-char (point-min))
+	(when (re-search-forward
+	       ;; /file.txt/1.3/Mon Sep 15 18:43:20 2003//
+	       (format "%s/\\([.0-9]+\\)" (regexp-quote name))
+	       nil t)
+	  (match-string 1))))))
+
+(defun auto-revert-vc-buffer-p ()
+  "Check if buffer is version controlled."
+  (and (boundp 'vc-mode)
+       (string-match "[0-9]" (or vc-mode ""))))
+
+(defun auto-revert-handler-vc ()
+  "Check if version controlled buffer needs revert."
+  ;; [Emacs 1]
+  ;; 1. File is saved	  (*)
+  ;; 2. checkin is done 1.1 -> 1.2
+  ;; 3. VC reverts, so that updated version number is shown in mode line
+  ;;
+  ;; Suppose the same file has been opened in another Emacs and
+  ;; autorevert.el is on.
+  ;;
+  ;; [Emacs 2]
+  ;; 1. Step (1) is detected and buffer is reverted.
+  ;; 2. But check in does not always change the file in dis, but possibly only
+  ;;	control files like CVS/Entries
+  ;; 3. The buffer is not reverted to update VC version line.
+  ;;	Incorrect version number 1.1 is shown in this Emacs
+  ;;
+  (when (featurep 'vc)
+    (let* ((file	   (buffer-file-name))
+	   (backend	   (vc-backend (buffer-file-name)))
+	   (version-buffer (vc-workfile-version file)))
+      (when (stringp version-buffer)
+	(cond
+	 ((eq backend 'CVS)
+	  (let ((version-file
+		 (auto-revert-vc-cvs-file-version (buffer-file-name))))
+	    (and (stringp version-file)
+		 (not (string-match version-file version-buffer)))))
+	 ((eq backend 'RCS)
+	  ;; TODO:
+	  ))))))
+
 (defun auto-revert-handler ()
   "Revert current buffer."
-  (let (done)
+  (let (revert)
     (cond
      ((eq major-mode 'dired-mode)
       ;;  Dired includes revert-buffer-function
       (when (and revert-buffer-function
 		 (auto-revert-dired-changed-p))
-	(setq done t)
-	(revert-buffer t t t)))
+	(setq revert t)))
+     ((auto-revert-vc-buffer-p)
+      (when (auto-revert-handler-vc)
+	(setq revert 'vc)))
      ((or (buffer-file-name)
 	  revert-buffer-function)
-      (setq done t)
-      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
-    (if (and done
-	     auto-revert-verbose)
-	(message "Reverting buffer `%s'." (buffer-name)))))
+      (setq revert t)))
+    (when revert
+      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+      (if (eq revert 'vc)
+	  (vc-mode-line buffer-file-name))
+      (if auto-revert-verbose
+	  (message "Reverting buffer `%s'." (buffer-name))))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
