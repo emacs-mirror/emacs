@@ -368,8 +368,8 @@ sorted-doc: ${srcdir}/sorted-doc.c ${ALLOCA}
 b2m: ${srcdir}/b2m.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
 
-movemail: movemail.o pop.o
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(LOADLIBES) $(LIBMAIL) $(MOVE_LIBS) -o movemail
+movemail: movemail.o pop.o $(GETOPTDEPS)
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBMAIL) $(MOVE_LIBS) -o movemail
 
 movemail.o: ${srcdir}/movemail.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
