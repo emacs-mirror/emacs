@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-#	$Id: rcs2log,v 1.6 1992/05/08 21:45:00 eggert Exp eggert $
+#	$Id: rcs2log,v 1.2 1992/09/27 01:55:21 roland Exp $
 
 # Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
 # Output the new prefix to standard output.
@@ -42,7 +42,7 @@ then
 	# It's a good thing `rlog' doesn't mind a time ending in `:60'.
 	e='
 		/^... ... [ 0-9][0-9] [ 0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9]+ /{
-			printf "%s%.2d %s\n", substr($0,1,17), substr($0,18,2)+1, $5
+			printf "%s%02d %s\n", substr($0,1,17), substr($0,18,2)+1, $5
 			exit
 		}
 	'
