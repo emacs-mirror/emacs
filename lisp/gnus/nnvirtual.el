@@ -465,10 +465,7 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
   "Merge many sorted lists of numbers."
   (if (null (cdr lists))
       (car lists)
-    (apply 'nnvirtual-merge-sorted-lists
-	   (merge 'list (car lists) (cadr lists) '<)
-	   (cddr lists))))
-
+    (sort (apply 'nconc lists) '<)))
 
 
 ;;; We map between virtual articles and real articles in a manner
@@ -626,8 +623,8 @@ the result."
 	  (setq entry (assoc (car article) carticles))
 	  (setcdr entry (cons (cdr article) (cdr entry))))
 	(setq i (1+ i))))
-    (mapc (lambda (x) (setcdr x (nreverse (cdr x))))
-	  carticles)
+    (mapcar (lambda (x) (setcdr x (nreverse (cdr x))))
+	    carticles)
     carticles))
 
 
@@ -732,7 +729,11 @@ based on the marks on the component groups."
 		 gnus-article-mark-lists))
 
     ;; Remove any empty marks lists, and store.
-    (setq nnvirtual-mapping-marks (delete-if-not 'cdr marks))
+    (setq nnvirtual-mapping-marks nil)
+    (while marks
+      (if (cdr (car marks))
+	  (push (car marks) nnvirtual-mapping-marks))
+      (setq marks (cdr marks)))
 
     ;; We need to convert the unreads to reads.  We compress the
     ;; sequence as we go, otherwise it could be huge.
