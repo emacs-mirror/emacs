@@ -1,3 +1,9 @@
+2002-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-make-merged-file-list): Move fully matching item to
+	head of list.
+	(ido-find-common-substring): Return substring instead of t.
+
 2002-07-08  Juanma Barranquero  <lektu@terra.es>
 
 	* info.el (Info-directory-list): Fix docstring.
