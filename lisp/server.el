@@ -249,7 +249,8 @@ Prefix arg means just kill any existing server communications subprocess."
   ;; Make sure there is a safe directory in which to place the socket.
   (server-ensure-safe-dir (file-name-directory server-socket-name))
   ;; kill it dead!
-  (condition-case () (delete-process server-process) (error nil))
+  (if server-process
+      (condition-case () (delete-process server-process) (error nil)))
   ;; Delete the socket files made by previous server invocations.
   (condition-case () (delete-file server-socket-name) (error nil))
   ;; If this Emacs already had a server, clear out associated status.
