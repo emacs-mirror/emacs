@@ -1938,9 +1938,44 @@ Both characters must have the same length of multi-byte form.")
 	      changed = 1;
 	    }
 
-	  if (NILP (noundo))
-	    record_change (pos, 1);
-	  for (i = 0; i < len; i++) *p++ = tostr[i];
+	  /* Take care of the case where the new character
+	     combines with neighboring bytes.  */ 
+	  if (len == 1
+	      && ((! CHAR_HEAD_P (tostr[0])
+		   && pos_byte > BEGV_BYTE
+		   && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))
+		  ||
+		  (! ASCII_BYTE_P (tostr[0])
+		   && pos_byte + 1 < ZV_BYTE
+		   && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1)))))
+	    {
+	      Lisp_Object tem, string;
+
+	      struct gcpro gcpro1;
+
+	      tem = current_buffer->undo_list;
+	      GCPRO1 (tem);
+
+	      /* Make a multibyte string containing this
+		 single-byte character.  */
+	      string = Fmake_string (make_number (1),
+				     make_number (tochar));
+	      SET_STRING_BYTES (XSTRING (string), 1);
+	      /* replace_range is less efficient, because it moves the gap,
+		 but it handles combining correctly.  */
+	      replace_range (pos, pos + 1, string,
+			     0, 0, 0);
+	      if (! NILP (noundo))
+		current_buffer->undo_list = tem;
+
+	      UNGCPRO;
+	    }
+	  else
+	    {
+	      if (NILP (noundo))
+		record_change (pos, 1);
+	      for (i = 0; i < len; i++) *p++ = tostr[i];
+	    }
 	}
       INC_BOTH (pos, pos_byte);
     }
@@ -1995,9 +2030,33 @@ It returns the number of characters changed.")
 	  nc = tt[oc];
 	  if (nc != oc)
 	    {
-	      record_change (pos, 1);
-	      *p = nc;
-	      signal_after_change (pos, 1, 1);
+	      /* Take care of the case where the new character
+		 combines with neighboring bytes.  */ 
+	      if ((! CHAR_HEAD_P (nc)
+		   && pos_byte > BEGV_BYTE
+		   && ! ASCII_BYTE_P (FETCH_BYTE (pos_byte - 1)))
+		  ||
+		  (! ASCII_BYTE_P (nc)
+		   && pos_byte + 1 < ZV_BYTE
+		   && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))))
+		{
+		  Lisp_Object string;
+
+		  string = Fmake_string (make_number (1),
+					 make_number (nc));
+		  SET_STRING_BYTES (XSTRING (string), 1);
+
+		  /* This is less efficient, because it moves the gap,
+		     but it handles combining correctly.  */
+		  replace_range (pos, pos + 1, string,
+				 1, 0, 0);
+		}
+	      else
+		{
+		  record_change (pos, 1);
+		  *p = nc;
+		  signal_after_change (pos, 1, 1);
+		}
 	      ++cnt;
 	    }
 	}
