@@ -2005,11 +2005,13 @@ xic_create_fontsetname (base_fontname, motif)
       else
 	{
 	  int len;
-	  char *p1 = NULL;
+	  char *p1 = NULL, *p2 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
+	  char *font_all = NULL;
 	  char *allcs = "*-*-*-*-*-*-*";
 	  char *allfamilies = "-*-*-";
+	  char *all = "*-*-*-*-";
 	  
 	  for (i = 0, p = base_fontname; i < 8; p++)
 	    {
@@ -2018,6 +2020,8 @@ xic_create_fontsetname (base_fontname, motif)
 		  i++;
 		  if (i == 3)
 		    p1 = p + 1;
+		  else if (i == 7)
+		    p2 = p + 1;
 		}
 	    }
 	  /* Build the font spec that matches all charsets.  */
@@ -2032,12 +2036,21 @@ xic_create_fontsetname (base_fontname, motif)
 	  font_allfamilies = (char *) alloca (len);
 	  bzero (font_allfamilies, len);
 	  strcpy (font_allfamilies, allfamilies);
-	  bcopy (p1, font_allfamilies + (strlen (allfamilies)), p - p1);
+	  bcopy (p1, font_allfamilies + strlen (allfamilies), p - p1);
 	  strcat (font_allfamilies, allcs);
+
+	  /* Build the font spec that matches all.  */
+	  len = p - p2 + strlen (allcs) + strlen (all) + strlen (allfamilies) + 1;
+	  font_all = (char *) alloca (len);
+	  bzero (font_all, len);
+	  strcpy (font_all, allfamilies);
+	  strcat (font_all, all);
+	  bcopy (p2, font_all + strlen (all) + strlen (allfamilies), p - p2);
+	  strcat (font_all, allcs);
 
 	  /* Build the actual font set name.  */
 	  len = strlen (base_fontname) + strlen (font_allcs)
-	    + strlen (font_allfamilies) + 4;
+	    + strlen (font_allfamilies) + strlen (font_all) + 5;
 	  fontsetname = xmalloc (len);
 	  bzero (fontsetname, len);
 	  strcpy (fontsetname, base_fontname);
@@ -2045,6 +2058,8 @@ xic_create_fontsetname (base_fontname, motif)
 	  strcat (fontsetname, font_allcs);
 	  strcat (fontsetname, sep);
 	  strcat (fontsetname, font_allfamilies);
+	  strcat (fontsetname, sep);
+	  strcat (fontsetname, font_all);
 	}
     }
   if (motif)
