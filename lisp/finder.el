@@ -147,6 +147,10 @@ arguments compiles from `load-path'."
       (eval-current-buffer) ;; So we get the new keyword list immediately
       (basic-save-buffer))))
 
+(defun finder-compile-keywords-make-dist ()
+  "Regenerate `finder-inf.el' for the Emacs distribution."
+  (finder-compile-keywords default-directory))
+
 ;;; Now the retrieval code
 
 (defun finder-insert-at-column (column &rest strings)
