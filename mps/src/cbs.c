@@ -1,6 +1,6 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(trunk.5) $
+ * $HopeName: MMsrc!cbs.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.5) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.6) $");
 
 typedef struct CBSEmergencyBlockStruct *CBSEmergencyBlock;
 typedef struct CBSEmergencyBlockStruct {
@@ -767,9 +767,7 @@ static void CBSFlushEmergencyLists(CBS cbs)
  * See design.mps.cbs.functions.cbs.insert.
  */
 
-Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
-                            CBS cbs, Addr base, Addr limit) {
-  Addr newBase, newLimit;
+Res CBSInsert(CBS cbs, Addr base, Addr limit) {
   Res res;
 
   AVERT(CBS, cbs);
@@ -781,16 +779,13 @@ Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
   AVER(AddrIsAligned(limit, cbs->alignment));
 
   if(cbs->mayUseInline) {
-    newBase = base;
-    newLimit = limit;
-
-    res = CBSCoalesceWithEmergencyLists(&newBase, &newLimit, cbs);
+    res = CBSCoalesceWithEmergencyLists(&base, &limit, cbs);
     if(res != ResOK) {
       AVER(res == ResFAIL);
       goto done;
     }
 
-    res = CBSInsertIntoTree(cbs, newBase, newLimit);
+    res = CBSInsertIntoTree(cbs, base, limit);
     if(ResIsAllocFailure(res)) {
       res = CBSAddToEmergencyLists(cbs, base, limit);
       if(res != ResOK) {
@@ -810,19 +805,6 @@ Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
   return res;
 }
 
-Res CBSInsert(CBS cbs, Addr base, Addr limit)
-{
-  Res res;
-  Addr newBase, newLimit;
-
-  /* all parameters checked by CBSInsertReturningRange */
-  /* CBSEnter/Leave done by CBSInsertReturningRange */
-
-  res = CBSInsertReturningRange(&newBase, &newLimit,
-                                cbs, base, limit);
-
-  return res;
-}
 
 static Res CBSDeleteFromTree(CBS cbs, Addr base, Addr limit) {
   Res res;
