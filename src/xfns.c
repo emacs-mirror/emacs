@@ -3560,7 +3560,7 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
 			   (char *) XSTRING (Vx_resource_name)->data,
 			   EMACS_CLASS);
   UNBLOCK_INPUT;
-#if defined (HAVE_X11R5)
+#ifdef HAVE_XRMSETDATABASE
   XrmSetDatabase (x_current_display, xrdb);
 #else
   x_current_display->db = xrdb;
