@@ -1343,7 +1343,7 @@ do_line_dance ()
     if (line_dance[i] != -1 && (distance = line_dance[i]-i) < 0)
       {
 	for (j = i; (--j >= 0 && line_dance[j] != -1
-		     && line_dance[j]-j == distance); --j);
+		     && line_dance[j]-j == distance););
 	/* Copy (j,i] downward from (j+distance, i+distance] */
 	XCopyArea (x_current_display, FRAME_X_WINDOW (f),
 		   FRAME_X_WINDOW (f), f->display.x->normal_gc,
