@@ -2176,7 +2176,7 @@ static int
 check_executable (filename)
      char *filename;
 {
-#ifdef __HURD__
+#ifdef HAVE_EACCESS
   return (eaccess (filename, 1) >= 0);
 #else
   /* Access isn't quite right because it uses the real uid
@@ -2192,7 +2192,7 @@ static int
 check_writable (filename)
      char *filename;
 {
-#ifdef __HURD__
+#ifdef HAVE_EACCESS
   return (eaccess (filename, 2) >= 0);
 #else
   /* Access isn't quite right because it uses the real uid
