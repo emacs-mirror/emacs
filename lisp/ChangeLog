@@ -1,3 +1,8 @@
+2001-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/makeinfo.el (makeinfo-compilation-sentinel): 
+	Display the output buffer in a more intelligent way.
+
 2001-12-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ls-lisp.el (insert-directory): Modify the "total" line wording,
