@@ -1,5 +1,7 @@
 2000-08-18  Miles Bader  <miles@gnu.org>
 
+	* lisp.h (Lisp_String): Replace DECLARE_INTERVALS with real decl.
+
 	* editfns.c (save_restriction_save): Rewrite to use markers.
 	(save_restriction_restore): Rewrite to understand new form of data
 	saved by save_restriction_save.
