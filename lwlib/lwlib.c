@@ -1345,9 +1345,10 @@ lw_window_is_in_menubar (win, menubar_widget)
       && XtWindow (menubar_widget) == win;
 #endif
 #if defined (USE_MOTIF)
-      && XtWindowToWidget (XtDisplay (menubar_widget), win)
-      && (XtParent (XtWindowToWidget (XtDisplay (menubar_widget), win))
-	  == menubar_widget);
+      && ((XtWindow (menubar_widget) == win)
+	  || (XtWindowToWidget (XtDisplay (menubar_widget), win)
+	      && (XtParent (XtWindowToWidget (XtDisplay (menubar_widget), win))
+		  == menubar_widget)));
 #endif
 }
 
