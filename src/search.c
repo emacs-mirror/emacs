@@ -944,7 +944,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		len--;
 		base_pat++;
 	      }
-	    *pat++ = (trt ? trt[*base_pat++] : *base_pat++);
+	    *pat++ = (trt ? XINT (trt[*base_pat++]) : *base_pat++);
 	  }
 	len = pat - patbuf;
 	pat = base_pat = patbuf;
@@ -999,13 +999,13 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	  if (i == dirlen) i = infinity;
 	  if (trt != 0)
 	    {
-	      k = (j = trt[j]);
+	      k = (j = XINT (trt[j]));
 	      if (i == infinity)
 		stride_for_teases = BM_tab[j];
 	      BM_tab[j] = dirlen - i;
 	      /* A translation table is accompanied by its inverse -- see */
 	      /* comment following downcase_table for details */ 
-	      while ((j = (unsigned char) inverse_trt[j]) != k)
+	      while ((j = (unsigned char) XINT (inverse_trt[j])) != k)
 		BM_tab[j] = dirlen - i;
 	    }
 	  else
@@ -1088,7 +1088,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  if (trt != 0)
 		    {
 		      while ((i -= direction) + direction != 0)
-			if (pat[i] != trt[*(cursor -= direction)])
+			if (pat[i] != XINT (trt[*(cursor -= direction)]))
 			  break;
 		    }
 		  else
@@ -1149,7 +1149,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		    {
 		      pos -= direction;
 		      if (pat[i] != (trt != 0
-				     ? trt[FETCH_BYTE (pos)]
+				     ? XINT (trt[FETCH_BYTE (pos)])
 				     : FETCH_BYTE (pos)))
 			break;
 		    }
