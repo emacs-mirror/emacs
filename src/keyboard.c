@@ -10032,9 +10032,11 @@ delete_kboard (kb)
   *kbp = kb->next_kboard;
 
   /* Prevent a dangling reference to KB.  */
-  if (kb == current_kboard)
+  if (kb == current_kboard
+      && FRAMEP (selected_frame)
+      && FRAME_LIVE_P (XFRAME (selected_frame)))
     {
-      current_kboard = SELECTED_FRAME ()->kboard;
+      current_kboard = XFRAME (selected_frame)->kboard;
       if (current_kboard == kb)
 	abort ();
     }
