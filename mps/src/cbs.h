@@ -1,7 +1,7 @@
 /* impl.h.cbs: CBS -- Coalescing Block Structure
  *
- * $HopeName$
- * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!cbs.h(trunk.2) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.cbs.
  */
@@ -99,7 +99,7 @@ extern Size (CBSBlockSize)(CBSBlock block);
 
 typedef unsigned CBSFindDelete;
 enum {
-  CBSFindDeleteNONE,    /* don't delete after finding */
+  CBSFindDeleteNONE = 1,/* don't delete after finding */
   CBSFindDeleteLOW,     /* delete precise size from low end */
   CBSFindDeleteHIGH,    /* delete precise size from high end */
   CBSFindDeleteENTIRE   /* delete entire range */
