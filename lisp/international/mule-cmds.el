@@ -575,8 +575,12 @@ or a string."
 (defcustom input-method-verbose-flag t
   "*If this flag is non-nil, input methods give extra guidance.
 
-For instance, Quail input method does not show guidance buffer while
-inputting at minibuffer if this flag is t."
+The extra guidance is done by showing list of avairable keys in echo
+area.
+
+If an input method is turned on in the minibuffer, the guidance is
+shown at the bottom short window (by splitting the existing one) only
+for such complex input methods as `chinese-py' and `japanese'."
   :type 'boolean
   :group 'mule)
 
