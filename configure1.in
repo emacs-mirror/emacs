@@ -101,7 +101,10 @@ Set compilation and installation parameters for GNU Emacs, and report.
 CONFIGURATION specifies the machine and operating system to build for.
 --with-x		Support the X Window System.
 --with-x=no		Don't support X.
---with-x-toolkit	Use an X toolkit.
+--with-x-toolkit=yes	Use the X toolkit. Default to Lucid/Athena widgets.
+--with-x-toolkit=athena	Use the X toolkit with Athena widgets.
+--with-x-toolkit=lucid	Use the X toolkit with Lucid widgets.
+--with-x-toolkit=motif	Use the X toolkit with Motif widgets.
 --with-x-toolkit=no	Don't use an X toolkit.
 --with-gcc		Use GCC to compile Emacs.
 --with-gcc=no		Don't use GCC to compile Emacs.
@@ -201,8 +204,8 @@ Set it to either \`yes' or \`no'."
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athena )	val=athena ;;
+	    m | mo | mot | moti | motif )	val=motif ;;
 # These don't currently work.
-#	    m | mo | mot | moti | motif )	val=motif ;;
 #	    o | op | ope | open | open- | open-l | open-lo \
 #		| open-loo | open-look )	val=open-look ;;
 	    * )
@@ -210,7 +213,7 @@ Set it to either \`yes' or \`no'."
 #echo "${progname}: the \`--${optname}' option is supposed to have a value
 #which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'."
 echo "${progname}: the \`--${optname}' option is supposed to have a value
-which is \`yes', \`no', \`lucid', or \`athena'.
+which is \`yes', \`no', \`lucid', \`athena', or \`motif'.
 Currently, \`yes', \`athena' and \`lucid' are synonyms."
 	       echo "${short_usage}") >&2
 	      exit 1
@@ -1573,7 +1576,7 @@ AC_ALLOCA
 AC_HAVE_LIBRARY(-lm)
 AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid \
-strerror fpathconf select utimes)
+strerror fpathconf select)
 
 ok_so_far=true
 AC_FUNC_CHECK(socket, , ok_so_far=)
