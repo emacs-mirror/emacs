@@ -2583,7 +2583,54 @@ rear delimiter advance when text is inserted there.")
 
   return overlay;
 }
+
+/* Mark a section of BUF as needing redisplay because of overlays changes.  */
 
+static void
+modify_overlay (buf, start, end)
+     struct buffer *buf;
+     int start, end;
+{
+  if (start == end)
+    return;
+
+  if (start > end)
+    {
+      int temp = start;
+      start = end; end = temp;
+    }
+
+  /* If this is a buffer not in the selected window,
+     we must do other windows.  */
+  if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
+    windows_or_buffers_changed = 1;
+  /* If it's not current, we can't use beg_unchanged, end_unchanged for it.  */
+  else if (buf != current_buffer)
+    windows_or_buffers_changed = 1;
+  /* If multiple windows show this buffer, we must do other windows.  */
+  else if (buffer_shared > 1)
+    windows_or_buffers_changed = 1;
+  else
+    {
+      if (unchanged_modified == MODIFF
+	  && overlay_unchanged_modified == OVERLAY_MODIFF)
+	{
+	  beg_unchanged = start - BEG;
+	  end_unchanged = Z - end;
+	}
+      else
+	{
+	  if (Z - end < end_unchanged)
+	    end_unchanged = Z - end;
+	  if (start - BEG < beg_unchanged)
+	    beg_unchanged = start - BEG;
+	}
+    }
+
+  ++OVERLAY_MODIFF;
+}
+
+
 DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
   "Set the endpoints of OVERLAY to BEG and END in BUFFER.\n\
 If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.\n\
@@ -2642,11 +2689,11 @@ buffer.")
 	  o_beg = OVERLAY_POSITION (o_beg);
 	  o_end = OVERLAY_POSITION (o_end);
 
-	  redisplay_region (ob, XINT (o_beg), XINT (o_end));
+	  modify_overlay (ob, XINT (o_beg), XINT (o_end));
 	}
 
       /* Redisplay where the overlay is going to be.  */
-      redisplay_region (b, XINT (beg), XINT (end));
+      modify_overlay (b, XINT (beg), XINT (end));
     }
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
@@ -2661,14 +2708,14 @@ buffer.")
       o_end = OVERLAY_POSITION (o_end);
 
       if (XINT (o_beg) == XINT (beg))
-	redisplay_region (b, XINT (o_end), XINT (end));
+	modify_overlay (b, XINT (o_end), XINT (end));
       else if (XINT (o_end) == XINT (end))
-	redisplay_region (b, XINT (o_beg), XINT (beg));
+	modify_overlay (b, XINT (o_beg), XINT (beg));
       else
 	{
 	  if (XINT (beg) < XINT (o_beg)) o_beg = beg;
 	  if (XINT (end) > XINT (o_end)) o_end = end;
-	  redisplay_region (b, XINT (o_beg), XINT (o_end));
+	  modify_overlay (b, XINT (o_beg), XINT (o_end));
 	}
     }
 
@@ -2716,7 +2763,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
 
-  redisplay_region (b,
+  modify_overlay (b,
 		    marker_position (OVERLAY_START (overlay)),
 		    marker_position (OVERLAY_END   (overlay)));
 
@@ -3025,7 +3072,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   if (! NILP (buffer))
     {
       if (changed)
-	redisplay_region (XBUFFER (buffer),
+	modify_overlay (XBUFFER (buffer),
 			  marker_position (OVERLAY_START (overlay)),
 			  marker_position (OVERLAY_END   (overlay)));
       if (EQ (prop, Qevaporate) && ! NILP (value)
