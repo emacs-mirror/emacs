@@ -1498,7 +1498,7 @@ Return t if `comment-start-skip' found, nil if not."
     (if (not found)
 	nil
       ;; Cheaper than `looking-at' "!.*".
-      (store-match-data
+      (set-match-data
        (list (1- (point)) (progn (end-of-line) (min (point) limit))))
       t)))
 
