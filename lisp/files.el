@@ -290,7 +290,8 @@ If the current buffer now contains an empty file that you just visited
      (and file
 	  (setq file-name (file-name-nondirectory file)
 		file-dir (file-name-directory file)))
-     (list (read-file-name "Find alternate file: " file-dir nil nil file-name))))
+     (list (read-file-name
+	    "Find alternate file: " file-dir nil nil file-name))))
   (and (buffer-modified-p)
        ;; (not buffer-read-only)
        (not (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
