@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-store () nil)
-
 
 ;;; Memory commands.
 
@@ -626,6 +623,8 @@
   (interactive "P")
   (calc-slow-wrapper
    (calc-binary-op "sub" 'calcFunc-subscr arg)))
+
+(provide 'calc-store)
 
 ;;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
 ;;; calc-store.el ends here
