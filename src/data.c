@@ -1334,18 +1334,22 @@ ARRAY may be a vector or a string, or a byte-code object.  INDEX starts at 0.")
 
   CHECK_NUMBER (idx, 1);
   idxval = XINT (idx);
-  if (!VECTORP (array) && !STRINGP (array) && !COMPILEDP (array))
-    array = wrong_type_argument (Qarrayp, array);
-  if (idxval < 0 || idxval >= XVECTOR (array)->size)
-    args_out_of_range (array, idx);
   if (STRINGP (array))
     {
       Lisp_Object val;
+      if (idxval < 0 || idxval >= XSTRING (array)->size)
+	args_out_of_range (array, idx);
       XSETFASTINT (val, (unsigned char) XSTRING (array)->data[idxval]);
       return val;
     }
   else
-    return XVECTOR (array)->contents[idxval];
+    {
+      if (!VECTORP (array) && !COMPILEDP (array))
+	array = wrong_type_argument (Qarrayp, array);
+      if (idxval < 0 || idxval >= XVECTOR (array)->size)
+	args_out_of_range (array, idx);
+      return XVECTOR (array)->contents[idxval];
+    }
 }
 
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
@@ -1361,30 +1365,23 @@ ARRAY may be a vector or a string.  IDX starts at 0.")
   idxval = XINT (idx);
   if (!VECTORP (array) && !STRINGP (array))
     array = wrong_type_argument (Qarrayp, array);
-  if (idxval < 0 || idxval >= XVECTOR (array)->size)
-    args_out_of_range (array, idx);
   CHECK_IMPURE (array);
 
   if (VECTORP (array))
-    XVECTOR (array)->contents[idxval] = newelt;
+    {
+      if (idxval < 0 || idxval >= XVECTOR (array)->size)
+	args_out_of_range (array, idx);
+      XVECTOR (array)->contents[idxval] = newelt;
+    }
   else
     {
+      if (idxval < 0 || idxval >= XSTRING (array)->size)
+	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt, 2);
       XSTRING (array)->data[idxval] = XINT (newelt);
     }
 
   return newelt;
-}
-
-Lisp_Object
-Farray_length (array)
-     register Lisp_Object array;
-{
-  register Lisp_Object size;
-  if (!VECTORP (array) && !STRINGP (array) && !COMPILEDP (array))
-    array = wrong_type_argument (Qarrayp, array);
-  XSETFASTINT (size, XVECTOR (array)->size);
-  return size;
 }
 
 /* Arithmetic functions */
