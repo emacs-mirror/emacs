@@ -3103,17 +3103,17 @@ Dired uses the function @code{dired-get-filename} to determine which
 file to visit, based on the position found in the event.
 
   Instead of defining a mouse command for the major mode, you can define
-a key binding for the clickable text itself, using the @code{local-map}
+a key binding for the clickable text itself, using the @code{keymap}
 text property:
 
 @example
 (let ((map (make-sparse-keymap)))
-  (define-key-binding map [mouse-2] 'operate-this-button)
+  (define-key map [mouse-2] 'operate-this-button)
   (put-text-property (point)
                      (save-excursion
                        (dired-move-to-end-of-filename)
                        (point))
-                     'local-map map))
+                     'keymap map))
 @end example
 
 @noindent
