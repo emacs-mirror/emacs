@@ -1104,6 +1104,7 @@ $(BLD)\w32fns.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32fns.c \
+	$(SRC)\x-list-font.c \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\w32gui.h \
