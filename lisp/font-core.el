@@ -148,7 +148,7 @@ buffer local value for `font-lock-defaults', via its mode hook.
 The above is the default behavior of `font-lock-mode'; you may specify
 your own function which is called when `font-lock-mode' is toggled via
 `font-lock-function'. "
-  nil nil nil
+  :group 'font-lock
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
   (when (or noninteractive (eq (aref (buffer-name) 0) ?\ ))
