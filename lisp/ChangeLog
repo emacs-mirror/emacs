@@ -1,3 +1,7 @@
+2004-08-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.el (edit-tab-stops-buffer): Doc fix.
+
 2004-08-28  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/grep.el (grep-default-command): Use find-tag-default.
