@@ -1,4 +1,4 @@
-2004-11-27  Per Abrahamsen  <abraham@dina.kvl.dk>
+2004-11-27  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
 
 	* wid-edit.el (widget-narrow-to-field): New function.
 	(widget-complete): Use it.
