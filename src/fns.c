@@ -61,28 +61,28 @@ All integers representable in Lisp are equally likely.\n\
   On most systems, this is 28 bits' worth.\n\
 With positive integer argument N, return random number in interval [0,N).\n\
 With argument t, set the random number seed from the current time and pid.")
-  (limit)
-     Lisp_Object limit;
+  (n)
+     Lisp_Object n;
 {
   EMACS_INT val;
   Lisp_Object lispy_val;
   unsigned long denominator;
 
-  if (EQ (limit, Qt))
+  if (EQ (n, Qt))
     seed_random (getpid () + time (NULL));
-  if (NATNUMP (limit) && XFASTINT (limit) != 0)
+  if (NATNUMP (n) && XFASTINT (n) != 0)
     {
       /* Try to take our random number from the higher bits of VAL,
 	 not the lower, since (says Gentzel) the low bits of `random'
 	 are less random than the higher ones.  We do this by using the
 	 quotient rather than the remainder.  At the high end of the RNG
-	 it's possible to get a quotient larger than limit; discarding
+	 it's possible to get a quotient larger than n; discarding
 	 these values eliminates the bias that would otherwise appear
-	 when using a large limit.  */
-      denominator = ((unsigned long)1 << VALBITS) / XFASTINT (limit);
+	 when using a large n.  */
+      denominator = ((unsigned long)1 << VALBITS) / XFASTINT (n);
       do
 	val = get_random () / denominator;
-      while (val >= XFASTINT (limit));
+      while (val >= XFASTINT (n));
     }
   else
     val = get_random ();
@@ -95,26 +95,26 @@ With argument t, set the random number seed from the current time and pid.")
 DEFUN ("length", Flength, Slength, 1, 1, 0,
   "Return the length of vector, list or string SEQUENCE.\n\
 A byte-code function object is also allowed.")
-  (obj)
-     register Lisp_Object obj;
+  (sequence)
+     register Lisp_Object sequence;
 {
   register Lisp_Object tail, val;
   register int i;
 
  retry:
-  if (STRINGP (obj))
-    XSETFASTINT (val, XSTRING (obj)->size);
-  else if (VECTORP (obj))
-    XSETFASTINT (val, XVECTOR (obj)->size);
-  else if (CHAR_TABLE_P (obj))
+  if (STRINGP (sequence))
+    XSETFASTINT (val, XSTRING (sequence)->size);
+  else if (VECTORP (sequence))
+    XSETFASTINT (val, XVECTOR (sequence)->size);
+  else if (CHAR_TABLE_P (sequence))
     XSETFASTINT (val, CHAR_TABLE_ORDINARY_SLOTS);
-  else if (BOOL_VECTOR_P (obj))
-    XSETFASTINT (val, XBOOL_VECTOR (obj)->size);
-  else if (COMPILEDP (obj))
-    XSETFASTINT (val, XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK);
-  else if (CONSP (obj))
+  else if (BOOL_VECTOR_P (sequence))
+    XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
+  else if (COMPILEDP (sequence))
+    XSETFASTINT (val, XVECTOR (sequence)->size & PSEUDOVECTOR_SIZE_MASK);
+  else if (CONSP (sequence))
     {
-      for (i = 0, tail = obj; !NILP (tail); i++)
+      for (i = 0, tail = sequence; !NILP (tail); i++)
 	{
 	  QUIT;
 	  tail = Fcdr (tail);
@@ -122,11 +122,11 @@ A byte-code function object is also allowed.")
 
       XSETFASTINT (val, i);
     }
-  else if (NILP (obj))
+  else if (NILP (sequence))
     XSETFASTINT (val, 0);
   else
     {
-      obj = wrong_type_argument (Qsequencep, obj);
+      sequence = wrong_type_argument (Qsequencep, sequence);
       goto retry;
     }
   return val;
@@ -563,19 +563,19 @@ N counts from zero.  If LIST is not that long, nil is returned.")
 
 DEFUN ("elt", Felt, Selt, 2, 2, 0,
   "Return element of SEQUENCE at index N.")
-  (seq, n)
-     register Lisp_Object seq, n;
+  (sequence, n)
+     register Lisp_Object sequence, n;
 {
   CHECK_NUMBER (n, 0);
   while (1)
     {
-      if (CONSP (seq) || NILP (seq))
-	return Fcar (Fnthcdr (n, seq));
-      else if (STRINGP (seq) || VECTORP (seq) || BOOL_VECTOR_P (seq)
-	       || CHAR_TABLE_P (seq))
-	return Faref (seq, n);
+      if (CONSP (sequence) || NILP (sequence))
+	return Fcar (Fnthcdr (n, sequence));
+      else if (STRINGP (sequence) || VECTORP (sequence)
+	       || BOOL_VECTOR_P (sequence) || CHAR_TABLE_P (sequence))
+	return Faref (sequence, n);
       else
-	seq = wrong_type_argument (Qsequencep, seq);
+	sequence = wrong_type_argument (Qsequencep, sequence);
     }
 }
 
@@ -832,8 +832,8 @@ DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
 Returns the sorted list.  LIST is modified by side effects.\n\
 PREDICATE is called with two elements of LIST, and should return T\n\
 if the first element is \"less\" than the second.")
-  (list, pred)
-     Lisp_Object list, pred;
+  (list, predicate)
+     Lisp_Object list, predicate;
 {
   Lisp_Object front, back;
   register Lisp_Object len, tem;
@@ -852,10 +852,10 @@ if the first element is \"less\" than the second.")
   Fsetcdr (tem, Qnil);
 
   GCPRO2 (front, back);
-  front = Fsort (front, pred);
-  back = Fsort (back, pred);
+  front = Fsort (front, predicate);
+  back = Fsort (back, predicate);
   UNGCPRO;
-  return merge (front, back, pred);
+  return merge (front, back, predicate);
 }
 
 Lisp_Object
@@ -1175,12 +1175,12 @@ ARRAY is a vector, string, char-table, or bool-vector.")
 DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
   "Return the subtype of char-table CHAR-TABLE.   The value is a symbol.")
-  (chartable)
-     Lisp_Object chartable;
+  (char_table)
+     Lisp_Object char_table;
 {
-  CHECK_CHAR_TABLE (chartable, 0);  
+  CHECK_CHAR_TABLE (char_table, 0);  
 
-  return XCHAR_TABLE (chartable)->purpose;
+  return XCHAR_TABLE (char_table)->purpose;
 }
 
 DEFUN ("char-table-parent", Fchar_table_parent, Schar_table_parent,
@@ -1190,24 +1190,24 @@ The value is either nil or another char-table.\n\
 If CHAR-TABLE holds nil for a given character,\n\
 then the actual applicable value is inherited from the parent char-table\n\
 \(or from its parents, if necessary).")
-  (chartable)
-     Lisp_Object chartable;
+  (char_table)
+     Lisp_Object char_table;
 {
-  CHECK_CHAR_TABLE (chartable, 0);  
+  CHECK_CHAR_TABLE (char_table, 0);  
 
-  return XCHAR_TABLE (chartable)->parent;
+  return XCHAR_TABLE (char_table)->parent;
 }
 
 DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
   "Set the parent char-table of CHAR-TABLE to PARENT.\n\
 PARENT must be either nil or another char-table.")
-  (chartable, parent)
-     Lisp_Object chartable, parent;
+  (char_table, parent)
+     Lisp_Object char_table, parent;
 {
   Lisp_Object temp;
 
-  CHECK_CHAR_TABLE (chartable, 0);  
+  CHECK_CHAR_TABLE (char_table, 0);  
 
   if (!NILP (parent))
     {
@@ -1218,7 +1218,7 @@ PARENT must be either nil or another char-table.")
 	  error ("Attempt to make a chartable be its own parent");
     }
 
-  XCHAR_TABLE (chartable)->parent = parent;
+  XCHAR_TABLE (char_table)->parent = parent;
 
   return parent;
 }
@@ -1226,60 +1226,60 @@ PARENT must be either nil or another char-table.")
 DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
        2, 2, 0,
   "Return the value in extra-slot number N of char-table CHAR-TABLE.")
-  (chartable, n)
-     Lisp_Object chartable, n;
+  (char_table, n)
+     Lisp_Object char_table, n;
 {
-  CHECK_CHAR_TABLE (chartable, 1);
+  CHECK_CHAR_TABLE (char_table, 1);
   CHECK_NUMBER (n, 2);
   if (XINT (n) < 0
-      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (chartable)))
-    args_out_of_range (chartable, n);
+      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
+    args_out_of_range (char_table, n);
 
-  return XCHAR_TABLE (chartable)->extras[XINT (n)];
+  return XCHAR_TABLE (char_table)->extras[XINT (n)];
 }
 
 DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
        Sset_char_table_extra_slot,
        3, 3, 0,
   "Set extra-slot number N of CHAR-TABLE to VALUE.")
-  (chartable, n, value)
-     Lisp_Object chartable, n, value;
+  (char_table, n, value)
+     Lisp_Object char_table, n, value;
 {
-  CHECK_CHAR_TABLE (chartable, 1);
+  CHECK_CHAR_TABLE (char_table, 1);
   CHECK_NUMBER (n, 2);
   if (XINT (n) < 0
-      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (chartable)))
-    args_out_of_range (chartable, n);
+      || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))
+    args_out_of_range (char_table, n);
 
-  return XCHAR_TABLE (chartable)->extras[XINT (n)] = value;
+  return XCHAR_TABLE (char_table)->extras[XINT (n)] = value;
 }
 
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
-  "Return the value in CHARTABLE for a range of characters RANGE.\n\
+  "Return the value in CHAR-TABLE for a range of characters RANGE.\n\
 RANGE should be t (for all characters), nil (for the default value)\n\
 a vector which identifies a character set or a row of a character set,\n\
 or a character code.")
-  (chartable, range)
-     Lisp_Object chartable, range;
+  (char_table, range)
+     Lisp_Object char_table, range;
 {
   int i;
 
-  CHECK_CHAR_TABLE (chartable, 0);
+  CHECK_CHAR_TABLE (char_table, 0);
   
   if (EQ (range, Qnil))
-    return XCHAR_TABLE (chartable)->defalt;
+    return XCHAR_TABLE (char_table)->defalt;
   else if (INTEGERP (range))
-    return Faref (chartable, range);
+    return Faref (char_table, range);
   else if (VECTORP (range))
     {
       for (i = 0; i < XVECTOR (range)->size - 1; i++)
-	chartable = Faref (chartable, XVECTOR (range)->contents[i]);
+	char_table = Faref (char_table, XVECTOR (range)->contents[i]);
 
       if (EQ (XVECTOR (range)->contents[i], Qnil))
-	return XCHAR_TABLE (chartable)->defalt;
+	return XCHAR_TABLE (char_table)->defalt;
       else
-	return Faref (chartable, XVECTOR (range)->contents[i]);
+	return Faref (char_table, XVECTOR (range)->contents[i]);
     }
   else
     error ("Invalid RANGE argument to `char-table-range'");
@@ -1287,33 +1287,33 @@ or a character code.")
 
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
-  "Set the value in CHARTABLE for a range of characters RANGE to VALUE.\n\
+  "Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.\n\
 RANGE should be t (for all characters), nil (for the default value)\n\
 a vector which identifies a character set or a row of a character set,\n\
 or a character code.")
-  (chartable, range, value)
-     Lisp_Object chartable, range, value;
+  (char_table, range, value)
+     Lisp_Object char_table, range, value;
 {
   int i;
 
-  CHECK_CHAR_TABLE (chartable, 0);
+  CHECK_CHAR_TABLE (char_table, 0);
   
   if (EQ (range, Qt))
     for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-      XCHAR_TABLE (chartable)->contents[i] = value;
+      XCHAR_TABLE (char_table)->contents[i] = value;
   else if (EQ (range, Qnil))
-    XCHAR_TABLE (chartable)->defalt = value;
+    XCHAR_TABLE (char_table)->defalt = value;
   else if (INTEGERP (range))
-    Faset (chartable, range, value);
+    Faset (char_table, range, value);
   else if (VECTORP (range))
     {
       for (i = 0; i < XVECTOR (range)->size - 1; i++)
-	chartable = Faref (chartable, XVECTOR (range)->contents[i]);
+	char_table = Faref (char_table, XVECTOR (range)->contents[i]);
 
       if (EQ (XVECTOR (range)->contents[i], Qnil))
-	XCHAR_TABLE (chartable)->defalt = value;
+	XCHAR_TABLE (char_table)->defalt = value;
       else
-	Faset (chartable, XVECTOR (range)->contents[i], value);
+	Faset (char_table, XVECTOR (range)->contents[i], value);
     }
   else
     error ("Invalid RANGE argument to `set-char-table-range'");
@@ -1364,16 +1364,16 @@ map_char_table (c_function, function, chartable, depth, indices)
 
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
   2, 2, 0,
-  "Call FUNCTION for each range of like characters in CHARTABLE.\n\
+  "Call FUNCTION for each range of like characters in CHAR-TABLE.\n\
 FUNCTION is called with two arguments--a key and a value.\n\
 The key is always a possible RANGE argument to `set-char-table-range'.")
-  (function, chartable)
-     Lisp_Object function, chartable;
+  (function, char_table)
+     Lisp_Object function, char_table;
 {
   Lisp_Object keyvec;
   Lisp_Object *indices = (Lisp_Object *) alloca (10 * sizeof (Lisp_Object));
 
-  map_char_table (NULL, function, chartable, 0, indices);
+  map_char_table (NULL, function, char_table, 0, indices);
   return Qnil;
 }
 
@@ -1489,11 +1489,11 @@ mapcar1 (leni, vals, fn, seq)
 }
 
 DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
-  "Apply FN to each element of SEQ, and concat the results as strings.\n\
-In between each pair of results, stick in SEP.\n\
-Thus, \" \" as SEP results in spaces between the values returned by FN.")
-  (fn, seq, sep)
-     Lisp_Object fn, seq, sep;
+  "Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.\n\
+In between each pair of results, stick in SEPARATOR.  Thus, \" \" as\n\
+SEPARATOR results in spaces between the values returned by FUNCTION.")
+  (function, sequence, separator)
+     Lisp_Object function, sequence, separator;
 {
   Lisp_Object len;
   register int leni;
@@ -1502,22 +1502,22 @@ Thus, \" \" as SEP results in spaces between the values returned by FN.")
   register int i;
   struct gcpro gcpro1;
 
-  len = Flength (seq);
+  len = Flength (sequence);
   leni = XINT (len);
   nargs = leni + leni - 1;
   if (nargs < 0) return build_string ("");
 
   args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
 
-  GCPRO1 (sep);
-  mapcar1 (leni, args, fn, seq);
+  GCPRO1 (separator);
+  mapcar1 (leni, args, function, sequence);
   UNGCPRO;
 
   for (i = leni - 1; i >= 0; i--)
     args[i + i] = args[i];
       
   for (i = 1; i < nargs; i += 2)
-    args[i] = sep;
+    args[i] = separator;
 
   return Fconcat (nargs, args);
 }
@@ -1526,18 +1526,18 @@ DEFUN ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
   "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.\n\
 The result is a list just as long as SEQUENCE.\n\
 SEQUENCE may be a list, a vector or a string.")
-  (fn, seq)
-     Lisp_Object fn, seq;
+  (function, sequence)
+     Lisp_Object function, sequence;
 {
   register Lisp_Object len;
   register int leni;
   register Lisp_Object *args;
 
-  len = Flength (seq);
+  len = Flength (sequence);
   leni = XFASTINT (len);
   args = (Lisp_Object *) alloca (leni * sizeof (Lisp_Object));
 
-  mapcar1 (leni, args, fn, seq);
+  mapcar1 (leni, args, function, sequence);
 
   return Flist (leni, args);
 }
