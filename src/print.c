@@ -205,12 +205,14 @@ printchar (ch, fun)
 	{
 	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
 	  printbufidx = 0;
+	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
 	}
 
       if (printbufidx < FRAME_WIDTH (selected_frame) - 1)
 	FRAME_MESSAGE_BUF (selected_frame)[printbufidx++] = ch;
       FRAME_MESSAGE_BUF (selected_frame)[printbufidx] = 0;
+      echo_area_glyphs_length = printbufidx;
 
       return;
     }
@@ -257,6 +259,7 @@ strout (ptr, size, printcharfun)
 	{
 	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
 	  printbufidx = 0;
+	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
 	}
 
@@ -264,6 +267,7 @@ strout (ptr, size, printcharfun)
 	i = FRAME_WIDTH (selected_frame) - printbufidx - 1;
       bcopy (ptr, &FRAME_MESSAGE_BUF (selected_frame) [printbufidx], i);
       printbufidx += i;
+      echo_area_glyphs_length = printbufidx;
       FRAME_MESSAGE_BUF (selected_frame) [printbufidx] = 0;
 
       return;
