@@ -1,3 +1,12 @@
+2000-11-02  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* tooltip.el (tooltip-gud-tips-setup): New function.
+	(tooltip-gud-tips-p): Add :set to call tooltip-gud-tips-setup.
+	(tooltip-mode): Call tooltip-gud-tips-setup.
+	(tooltip-gud-tips): Use `gud-basic-call' instead of
+	process-send-string, so the prompt gets frobbed appropriately.
+	Handle nil return value from `tooltip-gud-print-command'.
+
 2000-11-01  Eric M. Ludlam  <zappo@ultranet.com>
 
 	* comint.el (comint-add-to-input-history): New function.
