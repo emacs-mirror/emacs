@@ -1420,7 +1420,7 @@ See also the function `substitute-in-file-name'.")
 #ifndef VMS
       if (nm[0] == 0 || IS_DIRECTORY_SEP (nm[0]))
 	{
-#ifdef WINDOWSNT
+#ifdef DOS_NT
 	  /* If newdir is effectively "C:/", then the drive letter will have
 	     been stripped and newdir will be "/".  Concatenating with an
 	     absolute directory in nm produces "//", which will then be
