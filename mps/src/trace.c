@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.57) $
+ * $HopeName: MMsrc!trace.c(trunk.58) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.57) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.58) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -31,6 +31,42 @@ Bool ScanStateCheck(ScanState ss)
   CHECKL(RankCheck(ss->rank));
   CHECKL(BoolCheck(ss->wasMarked));
   return TRUE;
+}
+
+static void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
+                          Rank rank, RefSet white)
+{
+  /* we are initing it, so we can't check ss */
+  AVERT(Arena, arena);
+  AVER(RankCheck(rank));
+  /* white is arbitrary and can't be checked */
+
+  ss->rank = rank;
+  ss->traces = ts;
+  ss->fix = TraceFix;
+  ss->zoneShift = arena->zoneShift;
+  ss->unfixedSummary = RefSetEMPTY;
+  ss->fixedSummary = RefSetEMPTY;
+  ss->arena = arena;
+  ss->wasMarked = TRUE;
+  ss->white = white;
+  ss->fixRefCount = (Count)0;
+  ss->segRefCount = (Count)0;
+  ss->whiteSegRefCount = (Count)0;
+  ss->nailCount = (Count)0;
+  ss->snapCount = (Count)0;
+  ss->forwardCount = (Count)0;
+  ss->copiedSize = (Size)0;
+  ss->scannedSize = (Size)0;
+  ss->sig = ScanStateSig;
+
+  AVERT(ScanState, ss);
+}
+
+static void ScanStateFinish(ScanState ss)
+{
+  AVERT(ScanState, ss);
+  ss->sig = SigInvalid;
 }
 
 
@@ -95,6 +131,21 @@ Bool TraceCheck(Trace trace)
     NOTREACHED;
   }
   return TRUE;
+}
+
+static void TraceUpdateCounts(Trace trace, ScanState ss)
+{
+  AVERT(Trace, trace);
+  AVERT(ScanState, ss);
+
+  trace->rootScanSize += ss->scannedSize;
+  trace->rootCopiedSize += ss->copiedSize;
+  trace->fixRefCount += ss->fixRefCount;
+  trace->segRefCount += ss->segRefCount;
+  trace->whiteSegRefCount += ss->whiteSegRefCount;
+  trace->nailCount += ss->nailCount;
+  trace->snapCount += ss->snapCount;
+  trace->forwardCount += ss->forwardCount;
 }
 
 
@@ -461,21 +512,8 @@ Res TraceFlip(Trace trace)
   /* @@@@ This isn't correct if there are higher ranking roots than */
   /* data in pools. */
 
-  ss.fix = TraceFix;
-  ss.zoneShift = ArenaZoneShift(arena);
-  ss.white = trace->white;
-  ss.arena = arena;
-  ss.traces = TraceSetSingle(trace->ti);
-  ss.wasMarked = TRUE;
-  ss.fixRefCount = (Count)0;
-  ss.segRefCount = (Count)0;
-  ss.whiteSegRefCount = (Count)0;
-  ss.nailCount = (Count)0;
-  ss.snapCount = (Count)0;
-  ss.forwardCount = (Count)0;
-  ss.copiedSize = (Size)0;
-  ss.scannedSize = (Size)0;
-  ss.sig = ScanStateSig;
+  ScanStateInit(&ss, TraceSetSingle(trace->ti),
+                arena, RankAMBIG, trace->white);
 
   for(ss.rank = RankAMBIG; ss.rank <= RankEXACT; ++ss.rank) {
     ring = ArenaRootRing(arena);
@@ -501,16 +539,9 @@ Res TraceFlip(Trace trace)
       node = next;
     }
   }
-  trace->rootScanSize += ss.scannedSize;
-  trace->rootCopiedSize += ss.copiedSize;
-  trace->fixRefCount += ss.fixRefCount;
-  trace->segRefCount += ss.segRefCount;
-  trace->whiteSegRefCount += ss.whiteSegRefCount;
-  trace->nailCount += ss.nailCount;
-  trace->snapCount += ss.snapCount;
-  trace->forwardCount += ss.forwardCount;
+  TraceUpdateCounts(trace, &ss);
 
-  ss.sig = SigInvalid;  /* just in case */
+  ScanStateFinish(&ss);
 
   /* .flip.alloc: Allocation needs to become black now. While we flip */
   /* at the start, we can get away with always allocating black. This */
@@ -703,29 +734,11 @@ static Res TraceScan(TraceSet ts, Rank rank,
   if (RefSetInter(white, SegSummary(seg)) == RefSetEMPTY) { /* blacken it */
     PoolBlacken(SegPool(seg), ts, seg);
   } else {  /* scan it */
-    ss.rank = rank;
-    ss.traces = ts;
-    ss.fix = TraceFix;
-    ss.zoneShift = arena->zoneShift;
-    ss.unfixedSummary = RefSetEMPTY;
-    ss.fixedSummary = RefSetEMPTY;
-    ss.arena = arena;
-    ss.wasMarked = TRUE;
-    ss.white = white;
-    ss.fixRefCount = (Count)0;
-    ss.segRefCount = (Count)0;
-    ss.whiteSegRefCount = (Count)0;
-    ss.nailCount = (Count)0;
-    ss.snapCount = (Count)0;
-    ss.forwardCount = (Count)0;
-    ss.copiedSize = (Size)0;
-    ss.scannedSize = (Size)0;
-    ss.sig = ScanStateSig;
-    AVERT(ScanState, &ss);
-    
+    ScanStateInit(&ss, ts, arena, rank, white);
+
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
-    
+
     res = PoolScan(&ss, SegPool(seg), seg);
 
     if(res != ResOK) {
@@ -748,17 +761,9 @@ static Res TraceScan(TraceSet ts, Rank rank,
         Trace trace = ArenaTrace(arena, ti);
 
         ++trace->segScanCount;
-        trace->segScanSize += ss.scannedSize;
-        trace->segCopiedSize += ss.copiedSize;
-        trace->fixRefCount += ss.fixRefCount;
-        trace->segRefCount += ss.segRefCount;
-        trace->whiteSegRefCount += ss.whiteSegRefCount;
-        trace->nailCount += ss.nailCount;
-        trace->snapCount += ss.snapCount;
-        trace->forwardCount += ss.forwardCount;
+	TraceUpdateCounts(trace, &ss);
       }
-    
-    ss.sig = SigInvalid;                  /* just in case */
+    ScanStateFinish(&ss);
   }
 
   /* The segment is now black, so remove the greyness from it. */
@@ -951,7 +956,7 @@ Res TraceFix(ScanState ss, Ref *refIO)
     /* It is illegal for exact references to point to an */
     /* address that is currently reserved by the arena, but */
     /* not in use.  There can't possibly be any objects at */
-    /* those addresses.  We check that here.
+    /* those addresses.  We check that here. */
     /* This AVER might be a candidate for making CRITICAL in */
     /* some configurations */
     AVER(ss->rank < RankEXACT ||
@@ -972,6 +977,53 @@ Res TraceFix(ScanState ss, Ref *refIO)
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
+}
+
+
+Res TraceScanSingleRef(TraceSet ts, Arena arena, 
+                       Seg seg, Rank rank, Ref *refIO)
+{
+  RefSet summary;
+  RefSet white;
+  ScanStateStruct ss;
+  TraceId ti;
+  Res res;
+
+  AVER(TraceSetCheck(ts));
+  AVERT(Arena, arena);
+  AVER(SegCheck(seg));
+  AVER(RankCheck(rank));
+  AVER(refIO != NULL);
+
+  white = RefSetEMPTY;
+  for(ti = 0; ti < TRACE_MAX; ++ti) {
+    if(TraceSetIsMember(ts, ti)) {
+      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
+    }
+  }
+
+  if(RefSetInter(SegSummary(seg), white) == RefSetEMPTY) {
+    return ResOK;
+  }
+
+  ScanStateInit(&ss, ts, arena, rank, white);
+  ShieldExpose(arena, seg);
+
+  TRACE_SCAN_BEGIN(&ss) {
+    res = TRACE_FIX(&ss, refIO);
+  } TRACE_SCAN_END(&ss);
+
+  summary = SegSummary(seg);
+  summary = RefSetAdd(arena, summary, *refIO);
+  SegSetSummary(seg, summary);
+  ShieldCover(arena, seg);
+
+  for(ti = 0; ti < TRACE_MAX; ++ti) {
+    if(TraceSetIsMember(ts, ti)) {
+      TraceUpdateCounts(ArenaTrace(arena, ti), &ss);
+    }
+  }
+  return res;
 }
 
 
@@ -999,7 +1051,8 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   loop:
     if(p >= limit) goto out;
     ref = *p++;
-    if(!TRACE_FIX1(ss, ref)) goto loop;
+    if(!TRACE_FIX1(ss, ref))
+      goto loop;
     res = TRACE_FIX2(ss, p-1);
     if(res == ResOK)
       goto loop;
