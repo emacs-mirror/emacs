@@ -93,7 +93,7 @@ same as ENDRECFUN."
   nil)
 
 ;; Parse buffer into records using the arguments as Lisp expressions;
-;; return a list of records.  Each record looks like (KEY STARTPOS ENDPOS)
+;; return a list of records.  Each record looks like (KEY STARTPOS . ENDPOS)
 ;; where KEY is the sort key (a number or string),
 ;; and STARTPOS and ENDPOS are the bounds of this record in the buffer.
 
