@@ -378,7 +378,8 @@ sorted-doc: ${srcdir}/sorted-doc.c ${ALLOCA}
 	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
 
 b2m: ${srcdir}/b2m.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
+	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
+	   $(GETOPTOBJS) $(LOADLIBES) -o b2m 
 
 movemail: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBMAIL) $(MOVE_LIBS) -o movemail
