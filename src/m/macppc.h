@@ -98,6 +98,9 @@ Boston, MA 02111-1307, USA.  */
 #define LD_SWITCH_MACHINE -Xlinker -m -Xlinker elf32ppc
 #endif
 
+#if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,
+	  even with identical GCC, as, ld.  Let's take it out until we
+	  know what's really going on here.  */
 /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
    0x10000000.  */
 #if defined __linux__
@@ -105,3 +108,4 @@ Boston, MA 02111-1307, USA.  */
 #define DATA_SEG_BITS  0x10000000
 #endif
 #endif
+#endif /* 0 */
