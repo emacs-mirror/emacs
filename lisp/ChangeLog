@@ -1,5 +1,8 @@
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
+	* help-mode.el (help-make-xrefs): Recognize aliased variable with
+	inherited docstring.
+
 	* play/gamegrid.el (gamegrid-add-score-insecure): Use sort-fields.
 
 2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>

@@ -374,8 +374,14 @@ that."
                           (help-xref-button 8 'help-symbol sym))
                          ((and
 			   (boundp sym)
-			   (documentation-property sym
-						   'variable-documentation))
+ 			   (or
+ 			    (documentation-property
+ 			     sym 'variable-documentation)
+ 			    (condition-case nil
+ 				(documentation-property
+ 				 (indirect-variable sym)
+ 				 'variable-documentation)
+ 			      (cyclic-variable-indirection nil))))
 			  (help-xref-button 8 'help-variable sym))
 			 ((fboundp sym)
 			  (help-xref-button 8 'help-function sym)))))))
