@@ -1487,7 +1487,6 @@ Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
   unsigned int width, height;
   Lisp_Object values[4];
 
-  check_x ();
   CHECK_STRING (string, 0);
 
   geometry = XParseGeometry ((char *) XSTRING (string)->data,
