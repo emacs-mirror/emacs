@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.293 2001/01/08 16:23:33 spiegel Exp $
+;; $Id: vc.el,v 1.294 2001/01/10 14:42:53 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -465,6 +465,18 @@ These are passed to the checkin program by \\[vc-register]."
 ;;; This is duplicated in diff.el.
 (defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be passed to diff.")
+
+(defcustom vc-diff-switches nil
+  "*A string or list of strings specifying switches for diff under VC.
+There is also an option vc-BACKEND-diff-switches for each BACKEND that
+VC can handle."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List"
+			 :value ("")
+			 string))
+  :group 'vc
+  :version "21.1")
 
 ;;;###autoload
 (defcustom vc-checkin-hook nil
@@ -1751,6 +1763,9 @@ files in or below it."
 		 (append (if (listp diff-switches)
 			     diff-switches
 			   (list diff-switches))
+                         (if (listp vc-diff-switches)
+                             vc-diff-switches
+                           (list vc-diff-switches))
 			 (list (file-relative-name file-rel1)
 			       (file-relative-name file-rel2))))
 	(cd (file-name-directory file))
@@ -1774,6 +1789,17 @@ files in or below it."
 		      (goto-char (point-min))
 		      (shrink-window-if-larger-than-buffer)))
     t))
+
+(defmacro vc-diff-switches-list (backend)
+  "Make a list of `diff-switches', `vc-diff-switches', 
+and `vc-BACKEND-diff-switches'."
+  `(append 
+    (if (listp diff-switches) diff-switches (list diff-switches))
+    (if (listp vc-diff-switches) vc-diff-switches (list vc-diff-switches))
+    (let ((backend-switches 
+           (eval (intern (concat "vc-" (symbol-name ',backend) 
+                                 "-diff-switches")))))
+      (if (listp backend-switches) backend-switches (list backend-switches)))))
 
 ;;;###autoload
 (defun vc-version-other-window (rev)
