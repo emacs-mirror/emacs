@@ -1,7 +1,7 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1986, 1989, 1992, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2002, 2003, 2004  Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tex
@@ -602,7 +602,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; degenerate to nasty complexity (because we try to match the
 	   ;; closing brace, which forces trying all matching combinations).
 	   (arg "{\\(?:[^{}\\]\\|\\\\.\\|{[^}]*}\\)*"))
-       `((,(concat "[_^] *\\([^\n\\{}]\\|" slash general "\\|" arg "}\\)")
+       `((,(concat "[_^] *\\([^\n\\{}#]\\|" slash general "\\|#[0-9]\\|" arg "}\\)")
 	  (1 (tex-font-lock-suscript (match-beginning 0))
 	     append))))))
   "Experimental expressions to highlight in TeX modes.")
@@ -1027,10 +1027,8 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
        'tex-categorize-whitespace)
   (set (make-local-variable 'facemenu-add-face-function)
        (lambda (face end)
-	 (let ((face-text (cdr (assq face tex-face-alist))))
-	   (if face-text
-	       face-text
-	     (error "Face %s not configured for %s mode" face mode-name)))))
+	 (or (cdr (assq face tex-face-alist))
+	     (error "Face %s not configured for %s mode" face mode-name))))
   (set (make-local-variable 'facemenu-end-add-face) "}")
   (set (make-local-variable 'facemenu-remove-face-function) t)
   (set (make-local-variable 'font-lock-defaults)
