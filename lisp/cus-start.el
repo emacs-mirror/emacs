@@ -179,7 +179,10 @@
 	      "21.1")
 	     (minibuffer-auto-raise minibuffer boolean)
 	     ;; options property set at end
-	     (read-buffer-function minibuffer (choice (const nil) function))
+	     (read-buffer-function minibuffer
+				   (choice (const nil)
+					   (function-item iswitchb-read-buffer)
+					   function))
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
 	     ;; process.c
@@ -295,7 +298,6 @@
 	(put symbol 'custom-type type)
 	(put symbol 'custom-version version)))))
 
-(custom-add-option 'read-buffer-function 'iswitchb-read-buffer)
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
 
 ;; Record cus-start as loaded
