@@ -878,7 +878,7 @@ struct Lisp_Symbol
      and set a symbol's value, to take defvaralias into account.  */
   Lisp_Object value;
 
-  /* Function value of the symbol or Qunbound if not fcoundp.  */
+  /* Function value of the symbol or Qunbound if not fboundp.  */
   Lisp_Object function;
 
   /* The symbol's property list.  */
@@ -2451,7 +2451,6 @@ EXFUN (Frun_hooks, MANY);
 EXFUN (Frun_hook_with_args, MANY);
 EXFUN (Frun_hook_with_args_until_success, MANY);
 EXFUN (Frun_hook_with_args_until_failure, MANY);
-extern Lisp_Object run_hook_list_with_args P_ ((Lisp_Object, int, Lisp_Object *));
 extern void run_hook_with_args_2 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 EXFUN (Fand, UNEVALLED);
 EXFUN (For, UNEVALLED);
@@ -3110,7 +3109,7 @@ extern Lisp_Object Vdirectory_sep_char;
    ? 1							\
    : (CONSP (obj)					\
       ? 0						\
-      : (wrong_type_argument (Qlistp, (list), 0)), 1))
+      : (wrong_type_argument (Qlistp, (list))), 1))
 
 #define FOREACH(hare, list, tortoise, n)		\
   for (tortoise = hare = (list), n = 0;			\
@@ -3135,4 +3134,6 @@ extern Lisp_Object Vdirectory_sep_char;
    fixnum.  */
 
 #define make_fixnum_or_float(val) \
-   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number ((int)(val)))
+   (FIXNUM_OVERFLOW_P (val) \
+    ? make_float (val) \
+    : make_number ((EMACS_INT)(val)))
