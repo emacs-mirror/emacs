@@ -5003,8 +5003,10 @@ init_xdisp ()
   if (!noninteractive)
     {
       FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (root_window)));
-      XSETFASTINT (XWINDOW (root_window)->top, 0);
-      set_window_height (root_window, FRAME_HEIGHT (f) - 1, 0);
+      XSETFASTINT (XWINDOW (root_window)->top, FRAME_MENU_BAR_LINES (f));
+      set_window_height (root_window,
+			 FRAME_HEIGHT (f) - 1 - FRAME_MENU_BAR_LINES (f),
+			 0);
       XSETFASTINT (mini_w->top, FRAME_HEIGHT (f) - 1);
       set_window_height (minibuf_window, 1, 0);
 
