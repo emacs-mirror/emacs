@@ -50,7 +50,9 @@ printers, or \"//hostname/printer\" for a shared network printer.  You
 can also set it to a name of a file, in which case the output gets
 appended to that file.  If you want to discard the printed output, set
 this to \"NUL\"."
-  :type 'file ; could use string but then we lose completion for files.
+  :type '(choice ; could use string but then we lose completion for files.
+		 (file :tag "Name")
+		 (const :tag "Default" nil))
   :group 'lpr)
 
 ;;;###autoload
