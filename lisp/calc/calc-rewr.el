@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-rewr () nil)
-
 
 (defvar math-rewrite-default-iters 100)
 
@@ -2115,6 +2112,8 @@
 					  (list 'done new nil))
 				    nil nil)
 			      (cdr rules)))))))
+
+(provide 'calc-rewr)
 
 ;;; arch-tag: ca8d7b7d-bff1-4535-90f3-e2241f5e786b
 ;;; calc-rewr.el ends here
