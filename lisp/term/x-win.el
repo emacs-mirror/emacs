@@ -196,8 +196,8 @@
 (defvar x-invocation-args nil)
 
 (defun x-handle-args (args)
-  "Here the X-related command line options in ARGS are processed,
-before the user's startup file is loaded.  They are copied to
+  "Process the X-related command line options in ARGS.
+This is done before the user's startup file is loaded.  They are copied to
 x-invocation args from which the X-related things are extracted, first
 the switch (e.g., \"-fg\") in the following code, and possible values
 (e.g., \"black\") in the option handler code (e.g., x-handle-switch).
@@ -542,6 +542,10 @@ This returns ARGS with the arguments that have been processed removed."
 (defvar x-cut-buffer-max 20000
   "Max number of characters to put in the cut buffer.")
 
+(defvar x-select-enable-clipboard nil
+  "Non-nil means cutting and pasting uses the clipboard.
+This is in addition to the primary selection.")
+
 ;;; Make TEXT, a string, the primary X selection.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X applications.
@@ -554,6 +558,8 @@ This returns ARGS with the arguments that have been processed removed."
       (x-set-cut-buffer text push)
     (x-set-cut-buffer "" push))
   (x-set-selection 'PRIMARY text)
+  (if x-select-enable-clipboard
+      (x-set-selection 'CLIPBOARD text))
   (setq x-last-selected-text text))
 
 ;;; Return the value of the current X selection.
@@ -566,6 +572,12 @@ This returns ARGS with the arguments that have been processed removed."
     (condition-case c
 	(setq text (x-get-selection 'PRIMARY))
       (error (message "%s" c)))
+    (if (string= text "") (setq text nil))
+
+    (if x-select-enable-clipboard
+	(condition-case c
+	    (setq text (x-get-selection 'CLIPBOARD))
+	  (error (message "%s" c))))
     (if (string= text "") (setq text nil))
     (or text (setq text (x-get-cut-buffer 0)))
     (if (string= text "") (setq text nil))
