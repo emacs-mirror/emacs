@@ -1,3 +1,8 @@
+2003-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdetect_coding_region): Fix docstring.
+	(Fdetect_coding_string): Fix docstring.
+
 2003-03-13  Andreas Schwab  <schwab@suse.de>
 
 	* gtkutil.c: Add prototype for create_menus.
@@ -84,7 +89,7 @@
 	* xterm.c (handle_one_xevent): Pass ReparentNotify to Xt even if
 	the event isn't for a frame (i.e. for dialogs).
 
-2003-03-07  Kenichi Handa  <handa@etlken2>
+2003-03-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (CODING_ADD_COMPOSITION_COMPONENT): If the number of
 	composition components reaches the limit, terminate composing.
