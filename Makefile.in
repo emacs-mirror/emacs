@@ -212,7 +212,7 @@ EMACS = emacs
 SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -287,6 +287,9 @@ lib-src/Makefile: $(srcdir)/lib-src/Makefile.in config.status
 	./config.status
 
 man/Makefile: $(srcdir)/man/Makefile.in config.status
+	./config.status
+
+lispref/Makefile: $(srcdir)/lispref/Makefile.in config.status
 	./config.status
 
 oldXMenu/Makefile: $(srcdir)/oldXMenu/Makefile.in config.status
@@ -439,7 +442,7 @@ install-arch-indep: mkdir info
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
-	  for f in ada-mode autotype ccmode cl dired-x ebrowse ediff efaq emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc speedbar vip viper widget woman; do \
+	  for f in ada-mode autotype ccmode cl dired-x ebrowse ediff efaq elisp emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc speedbar vip viper widget woman; do \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
 	  done; \
@@ -505,7 +508,7 @@ uninstall:
 	done
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* ccmode* ebrowse* efaq* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
+	(cd ${infodir} && rm -f cl* ada-mode* autotype* ccmode* ebrowse* efaq* elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
 	(cd ${man1dir}  && rm -f emacs.1 etags.1 ctags.1)
 	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
 
@@ -527,6 +530,7 @@ mostlyclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd man &&   $(MAKE) $(MFLAGS) mostlyclean)
+	-(cd lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
 	(cd leim;     $(MAKE) $(MFLAGS) mostlyclean)
 
 ### `clean'
@@ -543,6 +547,7 @@ clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) clean)
+	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
 ### `distclean'
@@ -561,6 +566,7 @@ distclean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd man &&    $(MAKE) $(MFLAGS) distclean)
+	(cd lispref &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
@@ -582,6 +588,7 @@ maintainer-clean: FRC
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd man &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
@@ -618,6 +625,7 @@ unlock:
 	(cd lisp; $(MAKE) $(MFLAGS) unlock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
+	(cd lispref; chmod u+w *texi* ChangeLog)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
 	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) unlock)
@@ -630,6 +638,7 @@ relock:
 	(cd lisp; $(MAKE) $(MFLAGS) relock)
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
+	(cd lispref; chmod u+w *texi* ChangeLog)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
 	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) relock)
@@ -652,8 +661,10 @@ force-info:
 # so we can do ok running make in the build dir.
 info: force-info
 	(cd man; $(MAKE) $(MFLAGS) info)
+	(cd lispref; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
+	(cd lispref; $(MAKE) $(MFLAGS) elisp.dvi)
 
 #### Bootstrapping.
 
