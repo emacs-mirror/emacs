@@ -651,7 +651,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 /* This name should be removed once it is eliminated from elsewhere.  */
 
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
-  "Set SYMBOL's function definition to NEWVAL, and return NEWVAL.\n\
+  "Set SYMBOL's function definition to NEWDEF, and return NEWDEF.\n\
 Associates the function with the current load file, if any.")
   (symbol, newdef)
      register Lisp_Object symbol, newdef;
