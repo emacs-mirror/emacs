@@ -54,6 +54,7 @@ extern sigset_t sys_sigmask ();
 #define sigsetmask(SIG)  sys_sigsetmask (SIG)
 #define sighold(SIG)     ONLY_USED_IN_BSD_4_1
 #define sigrelse(SIG)    ONLY_USED_IN_BSD_4_1
+#define signal(SIG,ACT)      sys_signal(SIG,ACT)
 
 /* Whether this is what all systems want or not, this is what
    appears to be assumed in the source, for example data.c:arith_error.  */
