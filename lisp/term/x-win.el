@@ -425,13 +425,7 @@ This returns ARGS with the arguments that have been processed removed."
 
 ;;;; Function keys
 
-;; We use a different symbol to prevent
-;; doc strings from listing M-next as the preferred way to do this.
-(fset 'advertised-scroll-other-window 'scroll-other-window)
-(define-key global-map [M-next] 'scroll-other-window)
-(define-key global-map [begin] 'beginning-of-buffer)
-
-(define-key global-map "\C-z" 'iconify-frame)
+(substitute-key-definition 'suspend-emacs 'iconify-frame global-map)
 
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
