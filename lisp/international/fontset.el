@@ -527,7 +527,7 @@ replaced by the corresponding fields in XLFD-FIELDS."
 	  (setq font-spec (make-vector 6 nil))
 	  (dotimes (i 6)
 	    (aset font-spec i (match-string (1+ i) name)))
-	  (dotimes (i 6)
+	  (dotimes (i 5)
 	    (if (string-match "^[*-]+$" (aref font-spec i))
 		(aset font-spec i (aref default-spec i))))
 	  (setcar (cdr elt) font-spec))))
