@@ -5,7 +5,7 @@
 ;; Created: 16 Feb 1994
 ;; Version: 1.2.1
 ;; Keywords: extensions, languages, tools
-;; $Revision: 1.29 $
+;; $Revision: 1.5 $
 
 ;; This file is part of GNU Emacs.
 
@@ -211,9 +211,9 @@ it recognizes the argument, and NIL otherwise")
 	(l (car (cdr il))))
     (list 'tempo-mapc
 	  (list 'function (append (list 'lambda
-					(list (car il)))
+					(list i))
 				  forms))
-	  (cadr il))))
+	  l)))
 (put 'tempo-dolist 'lisp-indent-function 1)
 
 ;;
