@@ -27,16 +27,21 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-graph () nil)
-
 
 ;;; Graphics
 
-;;; Note that some of the following initial values also occur in calc.el.
+(defvar calc-gnuplot-name "gnuplot"
+  "*Name of GNUPLOT program, for calc-graph features.")
+
+(defvar calc-gnuplot-plot-command nil
+  "*Name of command for displaying GNUPLOT output; %s = file name to print.")
+
+(defvar calc-gnuplot-print-command "lp %s"
+  "*Name of command for printing GNUPLOT output; %s = file name to print.")
+
 (defvar calc-gnuplot-tempfile "calc")
 
 (defvar calc-gnuplot-default-device)
@@ -1471,6 +1476,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (progn
 	    (goto-char (point-max))
 	    (insert "\n"))))))
+
+(provide 'calc-graph)
 
 ;;; arch-tag: e4b06a52-c386-4d54-a2bb-7c0a0ef533c2
 ;;; calc-graph.el ends here
