@@ -131,7 +131,7 @@ If N is bigger than the length of X, return X."
 	  (setq m (1+ m) p (cdr p)))
 	(if (<= n 0) p
 	  (if (< n m) (nthcdr (- m n) x) x)))
-    (while (cdr x)
+    (while (consp (cdr x))
       (setq x (cdr x)))
     x))
 
