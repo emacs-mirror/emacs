@@ -145,7 +145,7 @@ extern reg_syntax_t re_syntax_options;
 #define RE_SYNTAX_AWK							\
   (RE_BACKSLASH_ESCAPE_IN_LISTS | RE_DOT_NOT_NULL			\
    | RE_NO_BK_PARENS            | RE_NO_BK_REFS				\
-   | RE_NO_BK_VAR               | RE_NO_EMPTY_RANGES			\
+   | RE_NO_BK_VBAR               | RE_NO_EMPTY_RANGES			\
    | RE_UNMATCHED_RIGHT_PAREN_ORD)
 
 #define RE_SYNTAX_POSIX_AWK 						\
