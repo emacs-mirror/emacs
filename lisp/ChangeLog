@@ -1,5 +1,11 @@
 2001-01-10  Dave Love  <fx@gnu.org>
 
+	* vc-cvs.el (vc-cvs-header): Fix :type.
+	* vc-rcs.el (vc-rcs-header): Fix :type.
+	* vc-sccs.el (vc-sccs-header): Fix :type.
+
+	* progmodes/ada-mode.el (ada-popup-key): Fix :type.
+
 	* ansi-color.el (ansi-colors) <defgroup>: Fix :version.
 
 	* eshell/esh-util.el (eshell-ange-ls-uids): Fix :type.
