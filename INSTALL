@@ -16,17 +16,22 @@ Copyright (c) 1992 Free software Foundation, Inc.
 
 
 BUILDING AND INSTALLATION:
+(This is for a Unix or Unix-like system.  For MSDOS, see below;
+search for MSDOG.)
 
 1) Make sure your system has enough swapping space allocated to handle
 a program whose pure code is 900k bytes and whose data area is at
 least 400k and can reach 8Mb or more.  If the swapping space is
 insufficient, you will get an error in the command `temacs -batch -l
-loadup dump', found in `./src/ymakefile', or possibly when running the
-final dumped Emacs.
+loadup dump', found in `./src/Makefile.in.in', or possibly when
+running the final dumped Emacs.
  
-Building Emacs requires about 30 Mb of disk space.  Installed, Emacs
-occupies about 20 Mb; this includes the executable files, lisp
-libraries, miscellaneous data files, and on-line documentation.
+Building Emacs requires about 30 Mb of disk space (including the Emacs
+sources).  Once installed, Emacs occupies about 20 Mb in the file
+system where it is installed; this includes the executable files, Lisp
+libraries, miscellaneous data files, and on-line documentation.  If
+the building and installation take place in different directories,
+then the installation procedure momentarily requires 30+20 Mb.
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file sometimes offers hints for
@@ -56,6 +61,10 @@ compiler should be able to find these by default; these options should
 only be necessary if you have your X Window System files installed in
 unusual places.
 
+You can specify toolkit operation when you configure Emacs; use the
+option --with-x-toolkit=athena, --with-x-toolkit=motif, or
+--with-x-toolkit=open-look.
+
 The `--run-in-place' option sets up default values for the path
 variables in `./Makefile' so that Emacs will expect to find its data
 files (lisp libraries, runnable programs, and the like) in the same
@@ -71,6 +80,11 @@ for GCC in your load path, and use it if present.
 The `--srcdir=DIR' option specifies that the configuration and build
 processes should look for the Emacs source code in DIR, when DIR is
 not the current directory.
+
+You can use `--srcdir' to build Emacs for several different machine
+types from a single source directory.  Make separate build directories
+for the different configuration types, and in each one, build Emacs
+specifying the common source directory with `--srcdir'.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -134,8 +148,12 @@ not use expand-file-name or any other function which may look
 something up in the system's password and user information database.
 See `./PROBLEMS' for more details on which systems this affects.
 
-5) Put into `./lisp/site-init.el' any Emacs Lisp code you want Emacs
-to load before it is dumped out.  
+5) Put into `./lisp/site-init.el' or `./lisp/site-load.el' any Emacs
+Lisp code you want Emacs to load before it is dumped out.  Use
+site-load.el for additional libraries if you arrange for their
+documentation strings to be in the etc/DOC file (see
+src/Makefile.in.in if you wish to figure out how to do that).  For all
+else, use site-load.el.
 
 Note that, on some systems, the code you place in site-init.el must
 not use expand-file-name or any other function which may look
@@ -217,7 +235,11 @@ information on this.
 /usr/local/info) to make sure that it has a menu entry for the Emacs
 info files.
 
-9) You are done!
+9) If your system uses lock files to interlock access to mailer inbox files,
+then you might need to make the program arch-lib/movemail setuid or setgid
+to enable it to write the lock files.  We believe this is safe.
+
+10) You are done!
 
 
 MAKE VARIABLES
@@ -313,14 +335,15 @@ The above variables serve analogous purposes in the makefiles for all
 GNU software; here are some variables specific to Emacs.
 
 `lispdir' indicates where Emacs installs and expects its lisp
-	library.  Its default value, based on `datadir' (which see),
+	library.  Its default value, based on `datadir' (see above),
 	is `/usr/local/lib/emacs/VERSION/lisp' (where `VERSION' is as
 	described above).
 
 `locallisppath' indicates where Emacs should search for lisp files
 	specific to your site.  It should be a colon-separated list of
 	directories; Emacs checks them in order before checking
-	`lispdir'.
+	`lispdir'.  Its default value, based on `datadir' (see above),
+	is `/usr/local/lib/emacs/site-lisp'.
 
 `lisppath' is the complete list of directories Emacs should search for
 	its lisp files; its default value is the concatenation of
@@ -375,31 +398,27 @@ files for your system and machine, do so by editing config.h, not by
 changing the s/*.h and m/*.h files.  Occasionally you may need to
 redefine parameters used in `./lib-src/movemail.c'.
 
-3) If you're going to use the make utility to build Emacs, copy
-`./Makefile.in' to `./Makefile', and then edit that to specify the
-appropriate values for the variables in the sections entitled "Things
-`configure' Might Edit" and "Where To Install Things."  Note that you
-may only need to change the variables `prefix' and `exec_prefix',
-since the rest of the variables have reasonable defaults based on
-them.
+3) If you're going to use the make utility to build Emacs, you will
+still need to run `configure' first, giving theappropriate values for
+the variables in the sections entitled "Things `configure' Might Edit"
+and "Where To Install Things."  Note that you may only need to change
+the variables `prefix' and `exec_prefix', since the rest of the
+variables have reasonable defaults based on them.  For each Makefile
+variable of this type, there is a corresponding configure option; for
+example, to change the location of the lock directory, you might use
 
-4) Typing `make src/Makefile lib-src/Makefile' builds the
-makefiles for the subdirectories, editing in the values for the path
-variables you establed in step 3.
-
--- or --
+	 ./configure --lockdir=/nfs/emacslock
 
 4) If you're going to use the build-install script to build Emacs,
-copy `./build-install.in' to `./build-install', and edit the similar
+copy `./build-ins.in' to `./build-install', and edit the
 definitions found at the top of the script.
-
 
 The `configure' script is built from `configure.in' by the `autoconf'
 program.  However, since Emacs has configuration requirements that
-autoconf can't meet, `configure.in' uses an unholy marriage of
-custom-baked configuration code and autoconf macros.  New versions of
-autoconf could very well break this arrangement, so it may be wise to
-avoid rebuilding `configure' from `configure.in' when possible.
+autoconf can't meet, `configure.in' uses an marriage of custom-baked
+configuration code and autoconf macros.  New versions of autoconf
+could very well break this arrangement, so it may be wise to avoid
+rebuilding `configure' from `configure.in' when possible.
 
 
 BUILDING GNU EMACS BY HAND
@@ -420,8 +439,8 @@ and `./lib-src' subdirectories using names `../lisp' and
 `../lib-src'.
 
 This creates a file `./src/emacs' which is the runnable Emacs,
-assigning it a new version number by incrementing the version stored
-in `./lisp/version.el'.
+assigning it a new build version number by incrementing the build
+version stored in `./lisp/version.el'.
 
 It also creates a file in `./etc' whose name is `DOC' followed by the
 current Emacs version.  This file contains documentation strings for
@@ -487,3 +506,18 @@ See the file PROBLEMS in this directory for a list of various
 problems sometimes encountered, and what to do about them.
 
 
+Installation on MSDOG (a.k.a. MSDOS)
+
+To install on MSDOG, you need to have the GNU C compiler (also known
+as djgpp), GNU Make, rm, mv, chmod, and sed.  Type these commands:
+
+config msdos
+make install
+
+To save disk space, Emacs is built in-place.  As the /usr/local/
+subtree does not exist on most MSDOG systems, the executables are
+placed in /emacs/bin/.
+
+MSDOG is a not a multi-tasking operating system, so Emacs features
+that depend on multitasking will not work.  Synchronous subprocesses
+do work.
