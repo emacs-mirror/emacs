@@ -1633,29 +1633,12 @@ the text killed this time appends to the text killed last time
 to make one entry in the kill ring."
   (interactive "*r")
   (condition-case nil
-      ;; Don't let the undo list be truncated before we can even access it.
-      (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100))
-	    (old-list buffer-undo-list)
-	    tail
-	    ;; If we can't rely on finding the killed text
-	    ;; in the undo list, save it now as a string.
-	    (string (if (or (eq buffer-undo-list t)
-			    (= beg end))
-			(buffer-substring beg end))))
-	(delete-region beg end)
-	;; Search back in buffer-undo-list for this string,
-	;; in case a change hook made property changes.
-	(setq tail buffer-undo-list)
-	(unless string
-	  (while (not (stringp (car (car tail))))
-	    (setq tail (cdr tail)))
-	  ;; If we did not already make the string to use,
-	  ;; use the same one that undo made for us.
-	  (setq string (car (car tail))))
-	;; Add that string to the kill ring, one way or another.
-	(if (eq last-command 'kill-region)
-	    (kill-append string (< end beg))
-	  (kill-new string))
+      (let ((string (delete-and-extract-region beg end)))
+	(when string			;STRING is nil if BEG = END
+	  ;; Add that string to the kill ring, one way or another.
+	  (if (eq last-command 'kill-region)
+	      (kill-append string (< end beg))
+	    (kill-new string)))
 	(setq this-command 'kill-region))
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters

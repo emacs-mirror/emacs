@@ -1,3 +1,14 @@
+1999-12-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* files.el (save-some-buffers): Turn EXITING into the more general
+	PRED argument to allow specifying a subset of buffers.
+
+	* simple.el (kill-region): Use the new `delete-and-extract-region'
+	rather than the undo log (which is incorrect with *-change-functions).
+
+	* font-lock.el (font-lock-default-fontify-region): Fix subtle
+	off-by-one problem that could force re-fontifying the whole buffer.
+
 1999-12-06  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-minibuffer-standard-hook,
@@ -167,7 +178,7 @@
 	(lm-summary, lm-authors, lm-maintainer, lm-creation-date)
 	(lm-last-modified-date, lm-version, lm-keywords, lm-adapted-by)
 	(lm-commentary, lm-verify, lm-synopsis): Use lm-with-file.
-	(lm-commentary): fix to handle the case when the change log is
+	(lm-commentary): Fix to handle the case when the change log is
 	at the end of the file.
 
 1999-12-02  Kenichi Handa  <handa@etl.go.jp>
@@ -867,7 +878,6 @@
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	Undo previous change.
 
->>>>>>> 1.97
 1999-10-28  Dave Love  <fx@gnu.org>
 
 	* help.el (help-follow): Make arg optional again and really
@@ -1255,7 +1265,6 @@
 	* emacs-lisp/cl-indent.el (common-lisp-indent-function): Use `eq'
 	instead of `eql'.
 
->>>>>>> 1.86
 1999-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* ange-ftp.el (ange-ftp-make-tmp-name, ange-ftp-del-tmp-name):
