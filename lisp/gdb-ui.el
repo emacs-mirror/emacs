@@ -41,6 +41,33 @@ Use `toggle-gdb-windows' to change this value during a gdb session"
 (defvar gdb-cdir nil "Compilation directory.")
 (defvar gdb-main-or-pc nil "Initialisation for Assembler buffer.")
 (defvar gdb-prev-main-or-pc nil)
+(defvar gdb-current-address nil)
+(defvar gdb-current-frame nil)
+(defvar gdb-display-in-progress nil)
+(defvar gdb-dive nil)
+(defvar gdb-first-time nil)
+(defvar breakpoint-enabled-icon 
+  "Icon for enabled breakpoint in display margin")
+(defvar breakpoint-disabled-icon 
+  "Icon for disabled breakpoint in display margin")
+(defvar gdb-nesting-level)
+(defvar gdb-expression-buffer-name)
+(defvar gdb-expression)
+(defvar gdb-point)
+(defvar gdb-annotation-arg)
+(defvar gdb-array-start)
+(defvar gdb-array-stop)
+(defvar gdb-display-number)
+(defvar gdb-dive-display-number)
+(defvar gdb-dive-map nil)
+(defvar gdb-display-string)
+(defvar gdb-values)
+(defvar gdb-array-size)
+(defvar gdb-array-slice-map nil)
+(defvar gdb-buffer-instance nil)
+(defvar gdb-source-window nil)
+(defvar gdb-target-name "--unknown--"
+  "The apparent name of the program being debugged in a gud buffer.")
 
 (defun gdba (command-line)
   "Run gdb on program FILE in buffer *gdb-FILE*.
@@ -289,26 +316,20 @@ The following interactive lisp functions help control operation :
 
 (defun make-gdb-instance (proc)
   "Create a gdb instance object from a gdb process."
-  (setq last-proc proc)
   (let ((instance (cons 'gdb-instance proc)))
-    (save-excursion
-      (set-buffer (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
       (setq gdb-buffer-instance instance)
       (progn
-	(mapcar 'make-variable-buffer-local gdb-instance-variables)
+	(mapc 'make-local-variable gdb-instance-variables)
 	(setq gdb-buffer-type 'gdba)
 	;; If we're taking over the buffer of another process,
-	;; take over it's ancillery buffers as well.
+	;; take over it's ancillary buffers as well.
 	;;
-	(let ((dead (or old-gdb-buffer-instance)))
-	  (mapcar
-	   (function
-	    (lambda (b)
-	      (progn
+	(let ((dead old-gdb-buffer-instance))
+	  (dolist (b (buffer-list))
 		(set-buffer b)
 		(if (eq dead gdb-buffer-instance)
-		    (setq gdb-buffer-instance instance)))))
-	     (buffer-list)))))
+		(setq gdb-buffer-instance instance))))))
     instance))
 
 (defun gdb-instance-process (inst) (cdr inst))
@@ -320,8 +341,7 @@ The following interactive lisp functions help control operation :
   "A list of variables that are local to the GUD buffer associated
 with a gdb instance.")
 
-(defmacro def-gdb-variable
-  (name accessor setter &optional default doc)
+(defmacro def-gdb-variable (name accessor setter &optional default doc)
   `(progn
      (defvar ,name ,default ,(or doc "undocumented"))
      (if (not (memq ',name gdb-instance-variables))
@@ -1159,7 +1179,7 @@ This filter may simply queue output for a later time."
     (let* ((depth (- (match-end 1) (match-beginning 1)))
 	   (indices  (make-vector depth '0))
 	   (index 0) (num 0) (array-start "")
-	   (array-stop "") (array-slice "")
+	   (array-stop "") (array-slice "") (array-range nil)
 	   (flag t) (indices-string ""))
       (while gdb-value-list
 	(string-match "{*\\([^}]*\\)\\(}*\\)" (car gdb-value-list))
@@ -1227,7 +1247,6 @@ This filter may simply queue output for a later time."
        (concat "\n     Slice : " array-slice "\n\nIndex\tValues\n\n"))))
   (setq buffer-read-only t))
 
-(defvar gdb-dive-map nil)
 (setq gdb-dive-map (make-keymap))
 (define-key gdb-dive-map [mouse-2] 'gdb-dive)
 (define-key gdb-dive-map [S-mouse-2] 'gdb-dive-new-frame)
@@ -1632,7 +1651,7 @@ buffer."
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
 	(error "Not recognized as break/watchpoint line")
-      (Gdb-instance-enqueue-idle-input
+      (gdb-instance-enqueue-idle-input
        gdb-buffer-instance
        (list
 	(concat
@@ -2115,7 +2134,10 @@ buffer."
   (gdb-display-buffer
    (gdb-get-create-instance-buffer instance 'gdba)))
 
-(defun make-windows-menu (map)
+(defun gdb-make-windows-menu (map)
+  ;; FIXME: This adds to the DBX, PerlDB, ... menu as well :-(
+  ;; Probably we should create gdb-many-windows-map and put those menus
+  ;; on that map.
   (define-key map [menu-bar displays]
     (cons "GDB-Windows" (make-sparse-keymap "GDB-Windows")))
   (define-key map [menu-bar displays gdb]
@@ -2137,14 +2159,14 @@ buffer."
 (define-key gud-minor-mode-map "\C-c\M-\C-f" 'gdb-display-stack-buffer)
 (define-key gud-minor-mode-map "\C-c\M-\C-b" 'gdb-display-breakpoints-buffer)
 
-(make-windows-menu gud-minor-mode-map)
+(gdb-make-windows-menu gud-minor-mode-map)
 
 (defun gdb-frame-gdb-buffer (instance)
   (interactive (list (gdb-needed-default-instance)))
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer instance 'gdba)))
 
-(defun make-frames-menu (map)
+(defun gdb-make-frames-menu (map)
   (define-key map [menu-bar frames]
     (cons "GDB-Frames" (make-sparse-keymap "GDB-Frames")))
   (define-key map [menu-bar frames gdb]
@@ -2163,10 +2185,7 @@ buffer."
     '("Assembler" . gdb-frame-assembler-buffer)))
 
 (if (display-graphic-p)
-    (make-frames-menu gud-minor-mode-map))
-
-(defvar gdb-target-name "--unknown--"
-  "The apparent name of the program being debugged in a gud buffer.")
+    (gdb-make-frames-menu gud-minor-mode-map))
 
 (defun gdb-proc-died (proc)
   ;; Stop displaying an arrow in a source file.
@@ -2212,7 +2231,7 @@ buffer."
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
-This arrangement depends on the value of `gdb-many-windows'"
+This arrangement depends on the value of `gdb-many-windows'."
   (interactive)
   (if gdb-many-windows
       (progn
@@ -2421,7 +2440,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-array-visualise ()
   "Visualise arrays and slices using graph program from plotutils."
-  (Interactive)
+  (interactive)
   (if (and (display-graphic-p) gdb-display-string)
      (let ((n 0) m)
        (catch 'multi-dimensional
@@ -2435,7 +2454,7 @@ BUFFER nil or omitted means use the current buffer."
 		t `(,(concat "Only one dimensional data can be visualised.\n"
 			     "Use an array slice to reduce the number of\n"
 			     "dimensions") ("OK" t)))
-	       (throw 'multi-dimensional))
+	       (throw 'multi-dimensional nil))
 	   (setq m (+ m 1))))
        (shell-command (concat "echo" gdb-display-string " | graph -a 1 "
 			      (int-to-string (aref gdb-array-start n))
@@ -2468,7 +2487,7 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-instance-buffer gdb-buffer-instance
 					 'gdb-assembler-buffer))
-	(gdb-arrow-position))
+	(gdb-arrow-position) (address) (flag))
     (if gdb-current-address
 	(progn
 	  (save-excursion
