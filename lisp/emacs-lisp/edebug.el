@@ -263,7 +263,7 @@ If the result is non-nil, then break.  Errors are ignored."
 
 ;;;###autoload
 (defmacro def-edebug-spec (symbol spec)
-  "Set the edebug-form-spec property of SYMBOL according to SPEC.
+  "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
 Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
 \(naming a function), or a list."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
@@ -2123,6 +2123,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec with-temp-file t)
 (def-edebug-spec with-temp-buffer t)
 (def-edebug-spec with-temp-message t)
+(def-edebug-spec with-syntax-table t)
 
 ;; Anything else?
 
