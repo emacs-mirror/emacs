@@ -1,11 +1,7 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.10) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
+ * $HopeName: MMsrc!poolsnc.c(trunk.11) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
@@ -26,7 +22,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.10) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.11) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -385,8 +381,9 @@ static Res SNCInit(Pool pool, va_list arg)
   /* clashes with collected pools */
   snc->segPrefStruct = *SegPrefDefault();
   snc->sig = SNCSig;
-  AVERT(SNC, snc);
 
+  AVERT(SNC, snc);
+  EVENT_PP(PoolInitSNC, pool, format);
   return ResOK;
 }
 

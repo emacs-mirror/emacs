@@ -1,11 +1,7 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.37) $
- * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer.
+ * $HopeName: MMsrc!poolmrg.c(trunk.38) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * DESIGN
  * 
@@ -34,7 +30,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.37) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.38) $");
 
 
 /* Types */
@@ -47,7 +43,9 @@ enum {
   MRGGuardianPOSTFINAL
 };
 
+
 /* Link -- Unprotectable part of guardian */
+
 typedef struct LinkStruct *Link;
 typedef struct LinkStruct {
   int state;                     /* Free, Prefinal, Final, Postfinal */
@@ -62,6 +60,7 @@ typedef struct LinkStruct {
 
 #define linkOfRing(ring) \
   PARENT(LinkStruct, the.linkRing, (ring))
+
 
 /* RefPart -- Protectable part of guardian 
  *
@@ -123,6 +122,7 @@ typedef struct MRGStruct {
 } MRGStruct;
 
 #define PoolPoolMRG(pool) PARENT(MRGStruct, poolStruct, pool)
+
 
 /* .check.norecurse: the expression &mrg->poolStruct is used instead */
 /* of the more natural MRGPool(mrg).  The latter results in infinite */
@@ -329,6 +329,7 @@ static Count MRGGuardiansPerSeg(MRG mrg)
   return(nGuardians);
 }
 
+
 /* design.mps.poolmrg.guardian.assoc */
 
 #define refPartOfIndex(refseg, index) \
@@ -402,8 +403,8 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
 }
 
 
-/* MRGMessage* -- Implementation of MRG's MessageClass 
- */
+/* MRGMessage* -- Implementation of MRG's MessageClass */
+
 
 /* deletes the message (frees up the memory) */
 static void MRGMessageDelete(Message message)
@@ -436,6 +437,7 @@ static void MRGMessageDelete(Message message)
   PoolFree(pool, (Addr)refPart, sizeof(RefPartStruct));
 }
 
+
 static void MRGMessageFinalizationRef(Ref *refReturn,
                                       Arena arena, Message message)
 {
@@ -462,6 +464,7 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
   AVER(ref != 0);
   *refReturn = ref;
 }
+
 
 static MessageClassStruct MRGMessageClassStruct = {
   MessageClassSig,             /* sig */
@@ -563,8 +566,8 @@ failLinkSegAlloc:
 }
 
 
-/* MRGFinalise -- finalize the indexth guardian in the segment
- */
+/* MRGFinalise -- finalize the indexth guardian in the segment */
+
 static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index index)
 {
   Link link;
@@ -635,6 +638,8 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 }
 
 
+/* MRGInit -- init method for MRG */
+
 static Res MRGInit(Pool pool, va_list args)
 {
   MRG mrg;
@@ -651,9 +656,10 @@ static Res MRGInit(Pool pool, va_list args)
   mrg->sig = MRGSig;
 
   AVERT(MRG, mrg);
-
+  EVENT_PPP(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }
+
 
 static void MRGFinish(Pool pool)
 {
@@ -699,6 +705,7 @@ static void MRGFinish(Pool pool)
   /* design.mps.poolmrg.trans.no-finish */
 }
 
+
 Res MRGRegister(Pool pool, Ref ref)
 {
   Ring freeNode;
@@ -743,6 +750,7 @@ Res MRGRegister(Pool pool, Ref ref)
   return ResOK;
 }
 
+
 static void MRGFree(Pool pool, Addr old, Size size)
 {
   MRG mrg;
@@ -770,7 +778,7 @@ static void MRGFree(Pool pool, Addr old, Size size)
 }
 
 
-/* Describe
+/* MRGDescribe
  *
  * This could be improved by implementing MRGSegDescribe
  * and having MRGDescribe iterate over all the pool's segments.
@@ -804,6 +812,7 @@ static Res MRGDescribe(Pool pool, mps_lib_FILE *stream)
 
   return ResOK;
 }
+
 
 static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
