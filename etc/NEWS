@@ -1322,6 +1322,8 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The function `delete' now also works on vectors and strings.
+
 ** The meaning of the `:weakness WEAK' argument of make-hash-table
 has been changed.
 

@@ -13,6 +13,9 @@
 
 2000-07-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (Fdelete): Make it work on vectors and strings in addition
+	to lists.
+
 	* fns.c (Qkey_or_value, Qkey_and_value): New variables.
 	(syms_of_fns): Initialize new variables.
 	(sweep_weak_table): Handle weakness `key-or-value' and
@@ -57,7 +60,7 @@
 2000-07-26  Sam Steingold  <sds@gnu.org>
 
 	* editfns.c (lisp_time_argument): Added third argument `usec'.
-	(Ffloat_time): new built-in Lisp function.
+	(Ffloat_time): New built-in Lisp function.
 
 2000-07-26  Gerd Moellmann  <gerd@gnu.org>
 
