@@ -31,6 +31,7 @@
 	      (coding-priority georgian-ps)
 	      (input-method . "georgian")
 	      (features code-pages)
+	      (nonascii-translation . georgian-ps)
 	      (documentation . "Support for georgian-ps character set."))
  '("European"))				; fixme: is this appropriate for
 					; a non-Latin script?
