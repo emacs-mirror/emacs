@@ -1956,20 +1956,41 @@ store_frame_param (f, prop, val)
      struct frame *f;
      Lisp_Object prop, val;
 {
-  register Lisp_Object tem;
+  register Lisp_Object old_alist_elt;
 
+  /* The buffer-alist parameter is stored in a special place and is
+     not in the alist.  */
   if (EQ (prop, Qbuffer_list))
     {
       f->buffer_list = val;
       return;
     }
 
-  tem = Fassq (prop, f->param_alist);
-  if (EQ (tem, Qnil))
+  /* If PROP is a symbol which is supposed to have frame-local values,
+     and it is set up based on this frame, switch to the global
+     binding.  That way, we can create or alter the frame-local binding
+     without messing up the symbol's status.  */
+  if (SYMBOLP (prop))
+    {
+      Lisp_Object valcontents;
+      valcontents = XSYMBOL (prop)->value;
+      if ((BUFFER_LOCAL_VALUEP (valcontents)
+  	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+	  && XBUFFER_LOCAL_VALUE (valcontents)->check_frame
+ 	  && XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame) == f)
+ 	swap_in_global_binding (prop);
+    }
+
+  /* Update the frame parameter alist.  */
+  old_alist_elt = Fassq (prop, f->param_alist);
+  if (EQ (old_alist_elt, Qnil))
     f->param_alist = Fcons (Fcons (prop, val), f->param_alist);
   else
-    Fsetcdr (tem, val);
+    Fsetcdr (old_alist_elt, val);
 
+  /* Update some other special parameters in their special places
+     in addition to the alist.  */
+  
   if (EQ (prop, Qbuffer_predicate))
     f->buffer_predicate = val;
 
@@ -2072,7 +2093,11 @@ ALIST is an alist of parameters to change and their new values.\n\
 Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.\n\
 The meaningful PARMs depend on the kind of frame.\n\
 Undefined PARMs are ignored, but stored in the frame's parameter list\n\
-so that `frame-parameters' will return them.")
+so that `frame-parameters' will return them.\n\
+\n\
+The value of frame parameter FOO can also be accessed\n\
+as a frame-local binding for the variable FOO, if you have\n\
+enabled such bindings for that variable with `make-variable-frame-local'.")
   (frame, alist)
      Lisp_Object frame, alist;
 {
