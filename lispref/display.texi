@@ -339,7 +339,9 @@ text property (@pxref{Text Properties}) or a property of an overlay
 In the simplest case, any non-@code{nil} @code{invisible} property makes
 a character invisible.  This is the default case---if you don't alter
 the default value of @code{buffer-invisibility-spec}, this is how the
-@code{invisible} property works.
+@code{invisible} property works.  You should normally use @code{t}
+as the value of the @code{invisible} property if you don't plan
+to set @code{buffer-invisibility-spec} yourself.
 
 More generally, you can use the variable @code{buffer-invisibility-spec}
 to control which values of the @code{invisible} property make text
@@ -387,19 +389,23 @@ by a visible newline, it displays an ellipsis.
 @code{buffer-invisibility-spec} and removing elements from it.
 
 @defun add-to-invisibility-spec element
-Add the element @var{element} to @code{buffer-invisibility-spec}
-(if it is not already present in that list).
+This function adds the element @var{element} to
+@code{buffer-invisibility-spec} (if it is not already present in that
+list).  If @code{buffer-invisibility-spec} was @code{t}, it changes to
+a list, @code{(t)}, so that text whose @code{invisible} property
+is @code{t} remains invisible.
 @end defun
 
 @defun remove-from-invisibility-spec element
-Remove the element @var{element} from @code{buffer-invisibility-spec}.
-This does nothing if @var{element} is not in the list.
+This removeds the element @var{element} from
+@code{buffer-invisibility-spec}.  This does nothing if @var{element}
+is not in the list.
 @end defun
 
-  One convention about the use of @code{buffer-invisibility-spec} is
-that a major mode should use the mode's own name as an element of
-@code{buffer-invisibility-spec} and as the value of the @code{invisible}
-property:
+  A convention for use of @code{buffer-invisibility-spec} is that a
+major mode should use the mode's own name as an element of
+@code{buffer-invisibility-spec} and as the value of the
+@code{invisible} property:
 
 @example
 ;; @r{If you want to display an ellipsis:}
