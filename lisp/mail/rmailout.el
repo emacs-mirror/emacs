@@ -110,7 +110,7 @@ Set `rmail-default-file' to this name as well as returning it."
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
 ;;;###autoload
-(defun rmail-output-to-rmail-file (file-name &optional count)
+(defun rmail-output-to-rmail-file (file-name &optional count stay)
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
@@ -122,7 +122,10 @@ The default file name comes from `rmail-default-rmail-file',
 which is updated to the name you use in this command.
 
 A prefix argument N says to output N consecutive messages
-starting with the current one.  Deleted messages are skipped and don't count."
+starting with the current one.  Deleted messages are skipped and don't count.
+
+If optional argument STAY is non-nil, then leave the last filed
+mesasge up instead of moving forward to the next non-deleted message."
   (interactive
    (list (rmail-output-read-rmail-file-name)
 	 (prefix-numeric-value current-prefix-arg)))
@@ -217,9 +220,15 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	  (if redelete (rmail-set-attribute "deleted" t))))
       (setq count (1- count))
       (if rmail-delete-after-output
-	  (unless (rmail-delete-forward) (setq count 0))
+	  (unless 
+	      (if (and (= count 0) stay)
+		  (rmail-delete-message)
+		(rmail-delete-forward))
+	    (setq count 0))
 	(if (> count 0)
-	    (unless (rmail-next-undeleted-message 1) (setq count 0)))))))
+	    (unless 
+		(if (not stay) (rmail-next-undeleted-message 1))
+	      (setq count 0)))))))
 
 ;;;###autoload
 (defcustom rmail-fields-not-to-output nil

@@ -268,6 +268,29 @@ before obeying `rmail-ignored-headers'."
   :group 'rmail-headers
   :type 'function)
 
+(defcustom rmail-automatic-folder-directives nil
+  "List of directives specifying where to put a message.
+Each element of the list is of the form:
+
+  (FOLDERNAME FIELD REGEXP [ FIELD REGEXP ] ... )
+
+Where FOLDERNAME is the name of a BABYL format folder to put the
+message.  If any of the field regexp's are nil, then it is ignored.
+
+If FOLDERNAME is \"/dev/null\", it is deleted.
+If FOLDERNAME is nil then it is deleted, and skipped.
+
+FIELD is the plain text name of a field in the message, such as
+\"subject\" or \"from\".  A FIELD of \"to\" will automatically include
+all text from the \"cc\" field as well.
+
+REGEXP is an expression to match in the preceeding specified FIELD.
+FIELD/REGEXP pairs continue in the list.
+
+examples:
+  (\"/dev/null\" \"from\" \"@spam.com\") ; delete all mail from spam.com
+  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS.")
+  
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
 
@@ -2228,6 +2251,7 @@ If summary buffer is currently displayed, update current message there also."
 	     (let ((curr-msg rmail-current-message))
 	       (rmail-select-summary
 		(rmail-summary-goto-msg curr-msg t t))))
+	(rmail-auto-file)
 	(if blurb
 	    (message blurb))))))
 
@@ -2273,6 +2297,42 @@ If summary buffer is currently displayed, update current message there also."
 		  (overlay-put overlay 'face face)
 		  (setq rmail-overlay-list
 			(cons overlay rmail-overlay-list))))))))))
+
+(defun rmail-auto-file ()
+  "Automatically move a message into a sub-folder based on criteria.
+Called when a new message is displayed."
+  (if (or (rmail-message-labels-p rmail-current-message "filed")
+	  (not (string= (buffer-file-name)
+			(expand-file-name rmail-file-name))))
+      ;; Do nothing if it's already been filed.
+      nil
+    ;; Find out some basics (common fields)
+    (let ((from (mail-fetch-field "from"))
+	  (subj (mail-fetch-field "subject"))
+	  (to   (concat (mail-fetch-field "to") "," (mail-fetch-field "cc")))
+	  (d rmail-automatic-folder-directives)
+	  (directive-loop nil)
+	  (folder nil))
+      (while d
+	(setq folder (car (car d))
+	      directive-loop (cdr (car d)))
+	(while (and (car directive-loop)
+		    (let ((f (cond
+			      ((string= (car directive-loop) "from") from)
+			      ((string= (car directive-loop) "to") to)
+			      ((string= (car directive-loop) "subject") subj)
+			      (t (mail-fetch-field (car directive-loop))))))
+		      (and f (string-match (car (cdr directive-loop)) f))))
+	  (setq directive-loop (cdr (cdr directive-loop))))
+	;; If there are no directives left, then it was a complete match.
+	(if (null directive-loop)
+	    (if (null folder)
+		(rmail-delete-forward)
+	      (if (string= "/dev/null" folder)
+		  (rmail-delete-message)
+		(rmail-output-to-rmail-file folder 1 t)
+		(setq d nil))))
+	(setq d (cdr d))))))
 
 (defun rmail-next-message (n)
   "Show following message whether deleted or not.
