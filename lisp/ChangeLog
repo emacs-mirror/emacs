@@ -432,8 +432,6 @@
 
 	* hi-lock.el (hi-lock-refontify): Call jit-lock-refontify.
 
-	* play/5x5.el (5x5-play-solution):
-
 2000-12-01  Miles Bader  <miles@gnu.org>
 
 	* window.el (fit-window-to-buffer): Handle non-nil `truncate-lines'.
