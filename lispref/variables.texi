@@ -603,7 +603,7 @@ The value is a list of functions.
 @item @dots{}-form
 The value is a form (an expression).
 
-@item @dots{}-functions
+@item @dots{}-forms
 The value is a list of forms (expressions).
 
 @item @dots{}-predicate
@@ -624,7 +624,7 @@ The value is a whole shell command.
 The value specifies options for a command.
 @end table
 
-  When you define a variable, always cvonsider whether you should mark
+  When you define a variable, always consider whether you should mark
 it as ``risky''; see @ref{File Local Variables}.
 
   When defining and initializing a variable that holds a complicated
