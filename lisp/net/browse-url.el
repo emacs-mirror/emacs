@@ -335,6 +335,13 @@ Defaults to the value of `browse-url-galeon-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+(defcustom browse-url-galeon-new-window-is-tab nil
+  "Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-galeon' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
 ;;;###autoload
 (defcustom browse-url-new-window-flag nil
   "*If non-nil, always open a new browser window with appropriate browsers.
@@ -893,7 +900,10 @@ used instead of `browse-url-new-window-flag'."
 			 browse-url-galeon-program
 			 (append
 			  browse-url-galeon-arguments
-                          (if new-window '("-w" "--noraise"))
+                          (if (browse-url-maybe-new-window new-window)
+			      (if browse-url-galeon-new-window-is-tab
+				  '("--new-tab")
+				'("--new-window" "--no-raise")))
                           (list "-x" url)))))
     (set-process-sentinel process
 			  `(lambda (process change)
