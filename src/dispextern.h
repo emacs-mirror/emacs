@@ -1778,6 +1778,10 @@ struct it
      thus we need at most 16 bytes here.  */
   Lisp_Object ctl_chars[16];
 
+  /* Initial buffer or string position of the iterator, before skipping
+     over display properties and invisible text.  */
+  struct display_pos start;
+
   /* Current buffer or string position of the iterator, including
      position in overlay strings etc.  */
   struct display_pos current;
