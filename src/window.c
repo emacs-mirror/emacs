@@ -2275,7 +2275,7 @@ Default for ARG is window width minus 2.")
 {
 
   if (NILP (arg))
-    XFASTINT (arg) = window_internal_width (selected_window) - 2;
+    XFASTINT (arg) = window_internal_width (XWINDOW (selected_window)) - 2;
   else
     arg = Fprefix_numeric_value (arg);
 
@@ -2292,7 +2292,7 @@ Default for ARG is window width minus 2.")
      register Lisp_Object arg;
 {
   if (NILP (arg))
-    XFASTINT (arg) = window_internal_width (selected_window) - 2;
+    XFASTINT (arg) = window_internal_width (XWINDOW (selected_window)) - 2;
   else
     arg = Fprefix_numeric_value (arg);
 
