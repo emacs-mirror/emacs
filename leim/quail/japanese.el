@@ -81,7 +81,8 @@
 (defun quail-japanese-kkc-mode-exit (arg)
   (setq overriding-terminal-local-map (quail-conversion-keymap))
   (if arg
-      (move-overlay quail-conv-overlay (car arg) (cdr arg))))
+      (move-overlay quail-conv-overlay (car arg) (cdr arg))
+    (run-hooks 'input-method-after-insert-chunk-hook)))
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
