@@ -4691,7 +4691,7 @@ gobble_input (expected)
   if (interrupt_input)
     {
       SIGMASKTYPE mask;
-      mask = sigblockx (SIGIO);
+      mask = sigblock (sigmask (SIGIO));
       read_avail_input (expected);
       sigsetmask (mask);
     }
@@ -4700,7 +4700,7 @@ gobble_input (expected)
   if (read_socket_hook && !interrupt_input && poll_suppress_count == 0)
     {
       SIGMASKTYPE mask;
-      mask = sigblockx (SIGALRM);
+      mask = sigblock (sigmask (SIGALRM));
       read_avail_input (expected);
       sigsetmask (mask);
     }
@@ -4740,7 +4740,7 @@ record_asynch_buffer_change ()
   if (interrupt_input)
     {
       SIGMASKTYPE mask;
-      mask = sigblockx (SIGIO);
+      mask = sigblock (sigmask (SIGIO));
       kbd_buffer_store_event (&event);
       sigsetmask (mask);
     }
