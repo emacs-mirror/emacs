@@ -1,5 +1,10 @@
 2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mouse.el (mouse-drag-mode-line-1): Fix an off-by-one error in
+	computing growth when dragging the header line.
+
+2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* simple.el (kill-line): Doc fix.
 
 2000-10-08  Miles Bader  <miles@gnu.org>
