@@ -31,55 +31,6 @@
 
 ;;; Code:
 
-(define-category ?q "Tibetan")
-(modify-category-entry (make-char 'tibetan) ?q)
-(modify-category-entry (make-char 'tibetan-1-column) ?q)
-
-(let ((row 33))
-  (while (< row 38)
-    (modify-category-entry (make-char 'tibetan row) ?q)
-    (setq row (1+ row))))
-
-(modify-category-entry (make-char 'tibetan-1-column 33) ?q)
-
-(let ((deflist	'(;; chars             syntax category
-		  ("$(7"!(B-$(7"J(B"        	"w"	?0) ; consonant
-		  ("$(7#!(B-$(7#J#P#Q(B"          "w"     ?0) ;
-		  ("$(7$!(B-$(7$e(B"              "w"     ?0) ;
-		  ("$(7%!(B-$(7%u(B"              "w"     ?0) ;
-		  ("$(7"S"["\"]"^"a(B"       "w"	?2) ; upper vowel
-		  ("$(7"_"c"d"g"h"i"j"k"l(B" "w"	?2) ; upper modifier
-		  ("$(7!I"Q"U"e!e!g(B"       "w"	?3) ; lowel vowel/modifier
-		  ("$(7!P(B-$(7!Y!Z(B-$(7!c(B"	        "w"	?6) ; digit
-		  ("$(7!;!=(B-$(7!B!D"`(B"        "."     ?|) ; line-break char
-		  ("$(8!;!=!?!@!A!D"`(B"            "."     ?|) ;
-		  ("$(7!8!;!=(B-$(7!B!D"`!m!d(B"  "."     ?>) ; prohibition
-		  ("$(8!;!=!?!@!A!D"`(B"            "."     ?>) ;
-		  ("$(7!0(B-$(7!:!l#R#S"f(B"      "."     ?<) ; prohibition
-		  ("$(7!C!E(B-$(7!H!J(B-$(7!O!f!h(B-$(7!k!n!o(B" "." ?q) ; others
-		  ))
-      elm chars len syntax category to ch i)
-  (while deflist
-    (setq elm (car deflist))
-    (setq chars (car elm)
-	  len (length chars)
-	  syntax (nth 1 elm)
-	  category (nth 2 elm)
-	  i 0)
-    (while (< i len)
-      (if (= (aref chars i) ?-)
-	  (setq i (1+ i)
-		to (sref chars i))
-	(setq ch (sref chars i)
-	      to ch))
-      (while (<= ch to)
-	(modify-syntax-entry ch syntax)
-	(modify-category-entry ch category)
-	(setq ch (1+ ch)))
-      (setq i (+ i (char-bytes to))))
-    (setq deflist (cdr deflist))))
-
-
 ;;; Tibetan Character set.
 ;;; \x2130 -- \x234a is a subset of Unicode v.2 \x0f00 - \x0fb9
 ;;; with a slight modification. And there are some subjoined
