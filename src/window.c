@@ -119,6 +119,9 @@ Lisp_Object Vwindow_configuration_change_hook;
    at the same screen height as previously.  */
 static int scroll_preserve_screen_position;
 
+/* Non-nil means we can split a frame even if it is "unsplittable".  */
+static int frame_override_unsplittable;
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 extern int scroll_margin;
@@ -2387,7 +2390,7 @@ and put SIZE columns in the first of the pair.")
 
   if (MINI_WINDOW_P (o))
     error ("Attempt to split minibuffer window");
-  else if (FRAME_NO_SPLIT_P (fo))
+  else if (FRAME_NO_SPLIT_P (fo) && ! frame_override_unsplittable)
     error ("Attempt to split unsplittable frame");
 
   check_min_window_sizes ();
@@ -3766,6 +3769,12 @@ If there is only one window, it is split regardless of this value.");
     "Functions to call when window configuration changes.\n\
 The selected frae is the one whose configuration has changed.");
   Vwindow_configuration_change_hook = Qnil;
+
+  DEFVAR_BOOL ("frame-override-unsplittable", &frame_override_unsplittable,
+    "Non-nil means allow splitting an `unsplittable' frame.\n\
+\(That means, a frame whise `unsplittable' parameter is non-nil.)\n\
+Packages such as Ispell that work by splitting the selected frame\n\
+can bind this, so that they will work when used in an unsplittable frame.");
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
