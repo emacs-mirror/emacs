@@ -153,22 +153,21 @@ current buffer.  Here is an example of a buffer list:@refill
 
 @smallexample
 CRM Buffer                Size  Mode             File
-. * *mail*                  42  Mail
+. * .emacs                3294  Emacs-Lisp        ~/.emacs
+ %  *Help*                 101  Help
     search.c             86055  C                 ~/cvs/emacs/src/search.c
  %  src                  20959  Dired by name     ~/cvs/emacs/src/
-  * .emacs                3294  Emacs-Lisp        ~/.emacs
- %  ~                     7677  Dired by name     ~/
+  * *mail*                  42  Mail
  %  HELLO                 1607  Fundamental       ~/cvs/emacs/etc/HELLO
  %  NEWS                481184  Outline           ~/cvs/emacs/etc/NEWS
     *scratch*              191  Lisp Interaction
- %  cvs                   1272  Dired by name     ~/cvs/
   * *Messages*            1554  Fundamental
 @end smallexample
 
 @noindent
 Note that the buffer @samp{*Help*} was made by a help request; it is
-not visiting any file.  The buffer @code{man} was made by Dired on the
-directory @file{/u2/emacs/man/}.  You can list only buffers that are
+not visiting any file.  The buffer @code{src} was made by Dired on the
+directory @file{~/cvs/emacs/src/}.  You can list only buffers that are
 visiting files by giving the command a prefix; for instance, by typing
 @kbd{C-u C-x C-b}.
 
