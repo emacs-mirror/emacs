@@ -1,6 +1,6 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
- * $HopeName$
+ * $HopeName: MMsrc!tract.h(trunk.2) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -211,29 +211,46 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
   AddrAdd((chunk)->base, ChunkPagesToSize(chunk, i))
 
 
+/* TractIsContiguousRange -- do base and limit define a contiguous range */
+
+#define AverTractIsContiguousRange(arena, rangeBase, rangeLimit) \
+  BEGIN \
+    Chunk _ch; \
+    \
+    UNUSED(_ch); \
+    AVER(ChunkOfAddr(&_ch, arena, rangeBase) && (rangeLimit) <= _ch->limit); \
+  END
+
+
 extern Bool TractFirst(Tract *tractReturn, Arena arena);
 extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
-extern Tract TractNextContig(Arena arena, Tract tract);
 
-/* .tract.tract.for: See design.mps.arena.tract.tract.for */
-/* paremeters arena & limit are evaluated multiple times */
-#define TRACT_TRACT_FOR(tract, addr, arena, firstTract, limit)     \
-  for((tract = (firstTract)), (addr = TractBase(tract)); \
-      tract != NULL;  \
-      (addr = AddrAdd(addr, (arena)->alignment)), \
-      ((addr < (limit)) ? \
-         (tract = TractNextContig(arena, tract)) : \
-         (tract = NULL) /* terminate loop */))
 
-/* .tract.for: See design.mps.arena.tract.for */
-/* paremeters arena & limit are evaluated multiple times */
-#define TRACT_FOR(tract, addr, arena, base, limit)     \
-  for((tract = TractOfBaseAddr(arena, base)), (addr = (base)); \
-      tract != NULL;  \
+/* TRACT_TRACT_FOR -- iterate over a range of tracts
+ *
+ * See design.mps.arena.tract-iter.if.macro.
+ * Parameters arena & limit are evaluated multiple times.
+ * Check first tract & last tract lie with the same chunk.
+ */
+
+#define TRACT_TRACT_FOR(tract, addr, arena, firstTract, limit) \
+  tract = (firstTract); addr = TractBase(tract); \
+  AverTractIsContiguousRange(arena, addr, limit); \
+  for(; tract != NULL; \
       (addr = AddrAdd(addr, (arena)->alignment)), \
-      ((addr < (limit)) ? \
-         (tract = TractNextContig(arena, tract)) : \
-         (tract = NULL) /* terminate loop */))
+      (addr < (limit) ? \
+        (tract = PageTract(PageOfTract(tract) + 1)) : \
+        (tract = NULL) /* terminate loop */))
+
+
+/* TRACT_FOR -- iterate over a range of tracts
+ *
+ * See design.mps.arena.tract.for.
+ * Parameters arena & limit are evaluated multiple times.
+ */
+
+#define TRACT_FOR(tract, addr, arena, base, limit) \
+  TRACT_TRACT_FOR(tract, addr, arena, TractOfBaseAddr(arena, base), limit)
 
 
 extern void PageAlloc(Chunk chunk, Index pi, Pool pool);
