@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.67) $
+# $HopeName: MMsrc!comm.gmk(trunk.68) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -104,6 +104,9 @@ else
 ifeq ($(TARGET),replaysw)
 CFLAGSTARGET = -DCONFIG_PROD_EPCORE
 else
+ifeq ($(TARGET),epdss)
+CFLAGSTARGET = -DCONFIG_PROD_EPCORE
+else
 ifeq ($(TARGET),mmdw.a)
 CFLAGSTARGET = -DCONFIG_PROD_DYLAN
 else
@@ -111,6 +114,7 @@ ifeq ($(TARGET),replay)
 CFLAGSTARGET = -DCONFIG_PROD_DYLAN
 else
 CFLAGSTARGET = -DCONFIG_PROD_MPS
+endif
 endif
 endif
 endif
@@ -268,7 +272,7 @@ all: mpmss sacss amcss amcsshe amsss segsmss awlut \
      abqtest cbstest btcv mv2test messtest \
      eventcnv mps.a
 
-swall: mmsw.a epvmss replaysw
+swall: mmsw.a epvmss replaysw epdss
 
 # Runs the automatic tests that are built with CONFIG_PROD_MPS
 # These tests are run overnight (see design.buildsys.overnight).
@@ -279,7 +283,7 @@ testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut mpsicv lockcov \
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
-testrunep: epvmss
+testrunep: epvmss epdss
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 
@@ -290,7 +294,7 @@ testrunep: epvmss
 
 mpmss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth \
   mpsicv lockcov poolncv locv qs apss \
-  finalcv arenacv bttest teletest epvmss \
+  finalcv arenacv bttest teletest epvmss epdss \
   abqtest cbstest btcv mv2test \
   messtest \
   eventcnv replay replaysw \
@@ -387,6 +391,9 @@ $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 
 $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
         $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
+
+$(PFM)/$(VARIETY)/epdss: $(PFM)/$(VARIETY)/epdss.o \
+        $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
