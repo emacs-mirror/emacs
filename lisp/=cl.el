@@ -1,5 +1,11 @@
 ;;; cl.el --- Common-Lisp extensions for GNU Emacs Lisp.
 
+;; Author: Cesar Quiroz <quiroz@cs.rochester.edu>
+;; Last-Modified: 16 Mar 1992
+;; Keywords: extensions
+
+(defvar cl-version "2.0 beta 29 October 1989")
+
 ;; Copyright (C) 1987, 1988, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +25,8 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;;;;
+;;; Commentary:
+
 ;;;; These are extensions to Emacs Lisp that provide some form of
 ;;;; Common Lisp compatibility, beyond what is already built-in
 ;;;; in Emacs Lisp.
@@ -41,11 +48,6 @@
 ;;;; the files are concatenated together one cannot ensure that
 ;;;; declaration always precedes use.
 ;;;;
-;;;; Bug reports, suggestions and comments,
-;;;; to quiroz@cs.rochester.edu
-
-(defvar cl-version "2.0 beta 29 October 1989")
-
 
 ;;;; GLOBAL
 ;;;;    This file provides utilities and declarations that are global
@@ -60,6 +62,8 @@
 ;;; Too many pieces of the rest of this package use psetq.  So it is unwise to
 ;;; use here anything but plain Emacs Lisp!  There is a neater recursive form
 ;;; for the algorithm that deals with the bodies.
+
+;;; Code:
 
 (defmacro psetq (&rest body)
   "(psetq {var value }...) => nil

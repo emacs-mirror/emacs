@@ -1,10 +1,15 @@
 ;;; cmulisp.el --- improved version of standard inferior-lisp mode
 
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
+;; Last-Modified: 16 Jul 1993
+
 ;;; Copyright Olin Shivers (1988).
 ;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
 ;;; notice appearing here to the effect that you may use this code any
 ;;; way you like, as long as you don't charge money for it, remove this
 ;;; notice, or hold me liable for its results.
+
+;;; Commentary:
 
 ;;; This replaces the standard inferior-lisp mode.
 ;;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
@@ -48,7 +53,6 @@
 ;;; Maybe I should ensure the process mark is in the window when I send
 ;;; text to the process? Switch selectable?
 
-(require 'comint)
 ;; YOUR .EMACS FILE
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
@@ -125,6 +129,10 @@
 ;;;                                 source by lisp-load/compile-file.
 
 ;;; Read the rest of this file for more information.
+
+;;; Code:
+
+(require 'comint)
 
 (defvar cmulisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "*What not to save on inferior Lisp's input history

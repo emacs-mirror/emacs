@@ -1,10 +1,20 @@
 ;;; c++-mode.el --- C++ code editing commands for Emacs
 
+;; Author: Dave Detlefs <dld@cs.cmu.edu>
+;; 	Stewart Clamen <clamen@cs.cmu.edu>
+;; Maintainer: Dave Detlefs <dld@cs.cmu.edu>
+;; Last-Modified: 09 May 1991
+;; Keywords: c
+
+;;; Commentary:
+
 ;; 1987 Dave Detlefs  (dld@cs.cmu.edu) 
 ;; and  Stewart Clamen (clamen@cs.cmu.edu).
 ;; Done by fairly faithful modification of:
 ;; c-mode.el, Copyright (C) 1985 Richard M. Stallman.
-;;
+
+;;; Change Log:
+
 ;; Feb, 1990 (Dave Detlefs, dld@cs.cmu.edu)
 ;;   Fixed electric-c++-terminator to handle double colons, at the
 ;;   request of John Hagerman.
@@ -69,6 +79,8 @@
 ;;   Also, made beginning(end)-of-defun, indent-defun work.
 ;;
 ;; August 1987: incorporated changes done by Glen Ditchfield of Waterloo.
+
+;;; Code:
 
 (defvar c++-mode-abbrev-table nil
   "Abbrev table used in C++ mode.")
