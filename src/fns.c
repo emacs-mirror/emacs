@@ -4964,11 +4964,13 @@ integers, including negative integers.")
 }
 
 
-
-
-
 
+/************************************************************************
+				 MD5
+ ************************************************************************/
+
 #include "md5.h"
+#include "coding.h"
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
   "Return MD5 message digest of OBJECT, a buffer or string.\n\
@@ -4997,41 +4999,32 @@ Emacsen and is ignored.")
   register struct buffer *bp;
   int temp;
 
-  if (STRINGP(object))
+  if (STRINGP (object))
     {
       if (NILP (coding_system))
 	{
-	  /* we should guess coding system */
-	  if (STRING_MULTIBYTE (object))
-	    {
-	      /* we make a unibyte string and guess it's coding system
-		 (is this correct?) */
-	      object = string_make_unibyte (object);
-	      coding_system = detect_coding_system 
-		(XSTRING(object)->data, STRING_BYTES(XSTRING (object)), 1);
-	    }
-	  else
-	    {
-	      /* guess coding system */
-	      coding_system = detect_coding_system
-		(XSTRING(object)->data, STRING_BYTES(XSTRING (object)), 1);
-	    }
+	  /* Decide the coding-system to encode the data with.  */
 
-	  /* encode unibyte string into desired coding system 
-	     (yes encoding functions handle unibyte source) */
-	  object = code_convert_string1 (object, coding_system, Qnil, 1);
-	}
-      else
-	{
-	  /* convert string into given coding system */
 	  if (STRING_MULTIBYTE (object))
-	    {
-	      /* just encode it */
-	      object = code_convert_string1 (object, coding_system, Qnil, 1);
-	    } else {
-	      /* assume string is encoded */
-	    }
+	    /* use default, we can't guess correct value */
+	    coding_system = XSYMBOL (XCAR (Vcoding_category_list))->value;
+	  else 
+	    coding_system = Qraw_text;
 	}
+      
+      if (NILP (Fcoding_system_p (coding_system)))
+	{
+	  /* Invalid coding system.  */
+	  
+	  if (!NILP (noerror))
+	    coding_system = Qraw_text;
+	  else
+	    while (1)
+	      Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+	}
+
+      if (STRING_MULTIBYTE (object))
+	object = code_convert_string1 (object, coding_system, Qnil, 1);
 
       size = XSTRING (object)->size;
       size_byte = STRING_BYTES (XSTRING (object));
@@ -5071,7 +5064,7 @@ Emacsen and is ignored.")
     }
   else
     {
-      CHECK_BUFFER(object, 0);
+      CHECK_BUFFER (object, 0);
 
       bp = XBUFFER (object);
 	  
@@ -5099,13 +5092,63 @@ Emacsen and is ignored.")
       
       if (NILP (coding_system))
 	{
-	  /* we should guess coding system of buffer */
-	  coding_system = XBUFFER (object)->buffer_file_coding_system;
-	  if (NILP (coding_system))
+	  /* Decide the coding-system to encode the data with. 
+	     See fileio.c:Fwrite-region */
+
+	  if (!NILP (Vcoding_system_for_write))
+	    coding_system = Vcoding_system_for_write;
+	  else
 	    {
-	      /* xxx this can (and should) be handled. I do not know how. */
-	      Fsignal (Qerror, 
-		       Fcons (build_string ("No coding system found"), Qnil));
+	      int force_raw_text = 0;
+
+	      coding_system = XBUFFER (object)->buffer_file_coding_system;
+	      if (NILP (coding_system)
+		  || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
+		{
+		  coding_system = Qnil;
+		  if (NILP (current_buffer->enable_multibyte_characters))
+		    force_raw_text = 1;
+		}
+
+	      if (NILP (coding_system) && !NILP (Fbuffer_file_name(object)))
+		{
+		  /* Check file-coding-system-alist.  */
+		  Lisp_Object args[4], val;
+		  
+		  args[0] = Qwrite_region; args[1] = start; args[2] = end;
+		  args[3] = Fbuffer_file_name(object);
+		  val = Ffind_operation_coding_system (4, args);
+		  if (CONSP (val) && !NILP (XCDR (val)))
+		    coding_system = XCDR (val);
+		}
+
+	      if (NILP (coding_system)
+		  && !NILP (XBUFFER (object)->buffer_file_coding_system))
+		{
+		  /* If we still have not decided a coding system, use the
+		     default value of buffer-file-coding-system.  */
+		  coding_system = XBUFFER (object)->buffer_file_coding_system;
+		}
+
+	      if (!force_raw_text
+		  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
+		/* Confirm that VAL can surely encode the current region.  */
+		coding_system = call3 (Vselect_safe_coding_system_function,
+				       b, e, coding_system);
+
+	      if (force_raw_text)
+		coding_system = Qraw_text;
+	    }
+
+	  if (NILP (Fcoding_system_p (coding_system)))
+	    {
+	      /* Invalid coding system.  */
+
+	      if (!NILP (noerror))
+		coding_system = Qraw_text;
+	      else
+		while (1)
+		  Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
 	    }
 	}
 
@@ -5115,12 +5158,12 @@ Emacsen and is ignored.")
 	object = code_convert_string1 (object, coding_system, Qnil, 1);
     }
 
-  md5_buffer (XSTRING(object)->data + start_byte, 
+  md5_buffer (XSTRING (object)->data + start_byte, 
 	      STRING_BYTES(XSTRING (object)) - (size_byte - end_byte), 
 	      digest);
 
   for (i = 0; i < 16; i++)
-    sprintf (&value[2*i], "%02x", digest[i]);
+    sprintf (&value[2 * i], "%02x", digest[i]);
   value[32] = '\0';
 
   return make_string (value, 32);
