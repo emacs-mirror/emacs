@@ -140,7 +140,11 @@ CFLAGS          = $(CFLAGS_COMMON)
 CFLAGS          = $(CFLAGS) -DHAVE_NTGUI=1
 !endif
 
+!ifdef BUILD_TYPE
+OBJDIR          = obj-$(BUILD_TYPE)
+!else
 OBJDIR          = obj
+!endif
 $(OBJDIR):;	-mkdir $(OBJDIR)
 BLD             = $(OBJDIR)\$(ARCH)
 $(BLD):         $(OBJDIR)
@@ -165,7 +169,11 @@ EMACS_ICON_PATH = ..\nt\emacs.ico
 ADDPM		= ..\nt\$(BLD)\addpm.exe
 
 !if "$(ARCH)" == "i386"
+!if "$(BUILD_TYPE)" == "spd"
+ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -O2b2 -G5d -Zi
+!else
 ARCH_CFLAGS     = -nologo -D_X86_=1 -c -Zel -W2 -H63 -G3d -Zi -Od
+!endif
 ARCH_LDFLAGS	= -align:0x1000 $(SYS_LDFLAGS)
 
 !else
