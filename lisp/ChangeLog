@@ -1,3 +1,7 @@
+2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (risky-local-variable-p): Make second argument optional.
+
 2003-11-03  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): If
@@ -17,7 +21,7 @@
 
 2003-11-01  Oliver Scholz  <epameinondas@gmx.de>
 
-	* emacs-lisp/rx.el (rx-or): Fix the case of 
+	* emacs-lisp/rx.el (rx-or): Fix the case of
 	"(rx (and ?a (or ?b ?c) ?d))".
 
 2003-11-01  Christoph Wedler  <wedler@users.sourceforge.net>  (tiny change)
