@@ -1,3 +1,35 @@
+1999-10-30  Rajesh Vaidheeswarran  <rv@dsmit.com>
+
+	* whitespace.el (whitespace-version): Update to 2.6
+
+	* whitespace.el (whitespace-display-in-modeline): Add custom
+	variable to control displaying the whitespace errors on the
+	modeline based on suggestion from <klaus.berndl@sdm.de>
+
+	* whitespace.el (whitespace-buffer): Now returns `t' if unclean
+	and `nil' if clean, to enable using as a hook function, as
+	suggested by Puneet Goel <puneet@computer.org>
+
+	* whitespace.el (whitespace-buffer): Fix a subtle bug that cleaned
+	up only if quiet was not set, even with whitespace-auto-cleanup set.
+
+	* whitespace.el (whitespace-mode-line): Now uses less modeline
+	real estate and shows whitespaces as W:<x>!<y> where <x> is any
+	type of whitespace which is present in the file, and <y> is any
+	type of whitespace whose check has been suppressed by setting
+	`whitespace-check-<whitespace-type>' to nil.
+
+	* whitespace.el (whitespace-unchecked-whitespaces): New function
+	to return the list of whitespaces for whom checks have been
+	suppressed.
+
+	* whitespace.el	(whitespace-display-unchecked-whitespaces):
+	Renamed to `whitespace-update-modeline' to reflect its functionality.
+
+1999-09-30  Rajesh Vaidheeswarran <rv@dsmit.com>
+
+	* whitespace.el (whitespace-version): Update to 2.5
+
 1999-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist): 
