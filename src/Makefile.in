@@ -802,13 +802,13 @@ really-oldXMenu:
 #endif /* HAVE_X11 */
 #endif /* HAVE_X_WINDOWS */
 
-paths.h: paths.h.in
-	@echo "The file paths.h needs to be set up from paths.h.in."
+paths.h: paths.in
+	@echo "The file paths.h needs to be set up from paths.in."
 	@echo "Consult the file \`INSTALL' for instructions for building Emacs."
 	exit 1
 
-config.h: config.h.in
-	@echo "The file config.h needs to be set up from config.h.in."
+config.h: config.in
+	@echo "The file config.h needs to be set up from config.in."
 	@echo "Consult the file \`INSTALL' for instructions for building Emacs."
 	exit 1
 
