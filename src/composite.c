@@ -777,8 +777,18 @@ See `find-composition' for more detail.")
     }
   else
     end = -1;
+  
   if (!NILP (string))
-    CHECK_STRING (string, 2);
+    {
+      CHECK_STRING (string, 2);
+      if (XINT (pos) < 0 || XINT (pos) >= XSTRING (string)->size)
+	args_out_of_range (string, pos);
+    }
+  else
+    {
+      if (XINT (pos) < BEGV || XINT (pos) >= ZV)
+	args_out_of_range (Fcurrent_buffer (), pos);
+    }
 
   if (!find_composition (start, end, &start, &end, &prop, string))
     return Qnil;
