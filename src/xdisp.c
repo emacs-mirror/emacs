@@ -1179,7 +1179,7 @@ redisplay_window (window, just_this_one)
   /* If current starting point was originally the beginning of a line
      but no longer is, find a new starting point.  */
   else if (!NILP (w->start_at_line_beg)
-	   && !(startp == BEGV
+	   && !(startp <= BEGV
 		|| FETCH_CHAR (startp - 1) == '\n'))
     {
       goto recenter;
@@ -1272,8 +1272,8 @@ recenter:
   try_window (window, pos.bufpos);
 
   startp = marker_position (w->start);
-  w->start_at_line_beg = 
-    (startp == BEGV || FETCH_CHAR (startp - 1) == '\n') ? Qt : Qnil;
+  w->start_at_line_beg 
+    = (startp == BEGV || FETCH_CHAR (startp - 1) == '\n') ? Qt : Qnil;
 
 done:
   if ((!NILP (w->update_mode_line)
