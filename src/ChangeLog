@@ -16,7 +16,7 @@
 	to detect a case where we have to highlight a different region
 	despite not having left the currently highlighted region.
 	Set mouse_face_overlay in the x_display_info.
-	(x_term_init): Initialze the x_display_info's mouse_face_overlay.
+	(x_term_init): Initialize the x_display_info's mouse_face_overlay.
 
 	* xterm.h (struct x_display_info): Add mouse_face_overlay.
 
