@@ -1,3 +1,8 @@
+2004-01-21  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* vc.el (vc-annotate-mode): Inherit from fundamental-mode and
+	activate view-mode explicitly.
+
 2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el: Call menu-bar-enable-clipboard and make Paste
