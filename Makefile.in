@@ -526,7 +526,7 @@ SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in PROBLEMS \
 .PHONY: unlock relock
 
 unlock:
-	chmod u+w $(SOURCES) cpp/*
+	chmod u+w $(SOURCES)
 	-(cd elisp; chmod u+w Makefile README *.texi)
 	(cd etc; $(MAKE) $(MFLAGS) unlock)
 	(cd lib-src; $(MAKE) $(MFLAGS) unlock)
@@ -538,7 +538,7 @@ unlock:
 	(cd src; $(MAKE) $(MFLAGS) unlock)
 
 relock:
-	chmod u-w $(SOURCES) cpp/*
+	chmod u-w $(SOURCES)
 	-(cd elisp; chmod u-w Makefile README *.texi)
 	(cd etc; $(MAKE) $(MFLAGS) relock)
 	(cd lib-src; $(MAKE) $(MFLAGS) relock)
