@@ -1,5 +1,8 @@
 1999-12-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/sh-script.el (sh-mode): If there is no #!-line, use
+	the shell from sh-shell-file.
+
 	* font-lock.el (java-keywords): Add Javadoc tags as of JDK 1.2.1.
 
 1999-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
