@@ -1,3 +1,7 @@
+2002-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* textprop.c (remove_properties): Fixed trap for malformed plist.
+
 2002-04-22  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (make_window): Initialize height_fixed_p,
