@@ -1,3 +1,21 @@
+2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* jit-lock.el (with-buffer-prepared-for-jit-lock):
+	Renamed from with-buffer-prepared-for-font-lock and use
+	inhibit-modification-hooks rather than setting *-change-functions.
+	Update all functions to use the new name.
+	(jit-lock-first-unfontify-pos): New semantics (and doc).
+	(jit-lock-mode): Make non-interactive.
+	Don't automatically turn on font-lock.
+	Set jit-lock-first-unfontify-pos to indicate deferred-contextual mode.
+	Always use jit-lock-after-change.
+	Remove and restore font-lock-after-change-function.
+	(turn-on-jit-lock, jit-lock-after-fontify-buffer)
+	(jit-lock-after-unfontify-buffer): Remove.
+	(jit-lock-stealth-fontify):
+	Reset jit-lock-first-unfontify-pos to point-max rather than to nil.
+	(jit-lock-after-change): Set the `fontified' text-prop to nil.
+
 2000-06-20  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/cl-indent.el (toplevel): Indent
@@ -10,23 +28,22 @@
 	(reftex-compile-variables): Fixed problem with end of section-re.
 
 	* texmodes/reftex-dcr.el (reftex-view-crossref,
-	reftex-view-crossref-from-bibtex): Deal with changed
-	`reftex-find-citation-regexp-format'.
+	reftex-view-crossref-from-bibtex):
+	Deal with changed `reftex-find-citation-regexp-format'.
 	(reftex-view-regexp-match, reftex-view-crossref-from-bibtex):
 	Replaced `remprop' with `put'.
-	(reftex-view-crossref, reftex-view-crossref-when-idle): Support
-	for bibentry.
+	(reftex-view-crossref, reftex-view-crossref-when-idle):
+	Support for bibentry.
 
-	* textmodes/reftex-vars.el (reftex-cite-format-builtin): New entry for
-	bibentry package.
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin):
+	New entry for bibentry package.
 
-	* textmodes/reftex-parse.el (reftex-locate-bibliography-files): Regexp
-	also matches "\nobibliography".
+	* textmodes/reftex-parse.el (reftex-locate-bibliography-files):
+	Regexp also matches "\nobibliography".
 
-	* textmodes/reftex-global.el (reftex-renumber-simple-labels): Call
-	`reftex-ensure-write-access' before doing anything.
+	* textmodes/reftex-global.el (reftex-renumber-simple-labels):
+	Call `reftex-ensure-write-access' before doing anything.
 	(reftex-ensure-write-access): New function.
-
 
 2000-06-14  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 

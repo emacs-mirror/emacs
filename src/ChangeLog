@@ -1,3 +1,10 @@
+2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
+	Based on a patch by Larry Jones <larry.jones@sdrc.com>.
+
+	* regex.c (re_match, re_match_2): Protect calls to alloca (0).
+	(re_comp): Cast gettext return value to avoid complaints when
+	!HAVE_LIBINTL.
+
 2000-06-20  Dave Love  <fx@gnu.org>
 
 	* m/stride.h, m/mips.h: Don't define HAVE_GETWD,
