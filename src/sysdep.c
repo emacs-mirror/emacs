@@ -2614,8 +2614,8 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 long
 random ()
 {
-#ifdef HAVE_RAND48
-  return rand48 ();
+#ifdef HAVE_LRAND48
+  return lrand48 ();
 #else
 /* The BSD rand returns numbers in the range of 0 to 2e31 - 1,
    with unusable least significant bits.  The USG rand returns
@@ -2632,7 +2632,7 @@ random ()
 srandom (arg)
      int arg;
 {
-#ifdef HAVE_RAND48
+#ifdef HAVE_LRAND48
   return srand48 ();
 #else
   srand (arg);
