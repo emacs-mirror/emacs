@@ -34,7 +34,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
+#ifndef BIG_ENDIAN
 #define BIG_ENDIAN
+#endif
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
