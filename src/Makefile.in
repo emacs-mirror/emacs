@@ -331,10 +331,15 @@ LIBXMENU=
 LIBW= -lXaw
 #endif
 #ifdef MOTIF
-#ifdef LIB_MOTIF
-LIBW= LIB_MOTIF
+#ifdef HAVE_MOTIF_2_1
+#define LIB_MOTIF_EXTRA -lXp
 #else
-LIBW= -lXm
+#define LIB_MOTIF_EXTRA
+#endif
+#ifdef LIB_MOTIF
+LIBW= LIB_MOTIF LIB_MOTIF_EXTRA
+#else
+LIBW= -lXm LIB_MOTIF_EXTRA
 #endif
 #endif
 #ifdef OPEN_LOOK
