@@ -21631,6 +21631,9 @@ x_draw_vertical_border (w)
      do it for frames with vertical scroll bars because either the
      right scroll bar of a window, or the left scroll bar of its
      neighbor will suffice as a border.  */
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (w->frame)))
+    return;
+
   if (!WINDOW_RIGHTMOST_P (w)
       && !WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     {
