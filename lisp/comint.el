@@ -486,10 +486,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
 
 (defun comint-check-proc (buffer)
   "Return t if there is a living process associated w/buffer BUFFER.
-Living means the status is `run' or `stop'.
+Living means the status is `open', `run', or `stop'.
 BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
-    (and proc (memq (process-status proc) '(run stop)))))
+    (and proc (memq (process-status proc) '(open run stop)))))
 
 ;;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
 ;;; for the second argument (program).
@@ -497,9 +497,13 @@ BUFFER can be either a buffer or the name of one."
 (defun make-comint (name program &optional startfile &rest switches)
   "Make a comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
-If there is already a running process in that buffer, it is not restarted.
-Optional third arg STARTFILE is the name of a file to send the contents of to 
-the process.  Any more args are arguments to PROGRAM."
+PROGRAM should be either a string denoting an executable program to create
+via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
+connection to be opened via `open-network-stream'.  If there is already a
+running process in that buffer, it is not restarted.  Optional third arg
+STARTFILE is the name of a file to send the contents of to the process.
+
+If PROGRAM is a string, any more args are arguments to PROGRAM."
   (let ((buffer (get-buffer-create (concat "*" name "*"))))
     ;; If no process, or nuked process, crank up a new one and put buffer in
     ;; comint mode.  Otherwise, leave buffer and existing process alone.
@@ -532,7 +536,10 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
       (if proc (delete-process proc)))
     ;; Crank up a new process
-    (let ((proc (comint-exec-1 name buffer command switches)))
+    (let ((proc
+	   (if (consp command)
+	       (open-network-stream name buffer (car command) (cdr command))
+	     (comint-exec-1 name buffer command switches))))
       (set-process-filter proc 'comint-output-filter)
       (make-local-variable 'comint-ptyp)
       (setq comint-ptyp process-connection-type) ; T if pty, NIL if pipe.
