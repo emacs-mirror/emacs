@@ -1,3 +1,7 @@
+2004-09-20  John Paul Wallington  <jpw@gnu.org>
+
+	* bindings.el (completion-ignored-extensions): Add .dfsl.
+
 2004-09-20  Richard M. Stallman  <rms@gnu.org>
 
 	* bindings.el (scroll-left): Make it disabled.
