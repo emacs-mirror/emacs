@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.33 2002/02/21 20:16:47 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.34 2002/02/25 22:03:24 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -397,7 +397,7 @@ REV is the revision to check out into WORKFILE."
                           (apply 'vc-do-command
                                  (current-buffer) 0 "cvs" file
                                  "-Q"	; suppress diagnostic output
-	 "update"
+                                 "update"
                                  (and rev (not (string= rev ""))
                                       (concat "-r" rev))
                                  "-p"
@@ -598,13 +598,13 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
                ;; in the tree via vc-cvs-dir-state-heuristic
                (unless (vc-up-to-date-p ',f)
                  (message "Looking at %s" ',f)
-                 (vc-diff-internal ',f ',rel1 ',rel2))))))
+                 (vc-diff-internal ',f ',rev1 ',rev2))))))
       ;; cvs diff: use a single call for the entire tree
       (let ((coding-system-for-read
              (or coding-system-for-read 'undecided)))
         (apply 'vc-do-command "*vc-diff*" 1 "cvs" nil "diff"
-               (and rel1 (concat "-r" rel1))
-               (and rel2 (concat "-r" rel2))
+               (and rev1 (concat "-r" rev1))
+               (and rev2 (concat "-r" rev2))
                (vc-diff-switches-list 'CVS))))))
 
 (defun vc-cvs-annotate-command (file buffer &optional version)
