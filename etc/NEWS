@@ -1041,6 +1041,16 @@ The new variable `w32-pass-extra-mouse-buttons-to-system' controls
 whether Emacs should handle the extra buttons itself (the default), or
 pass them to Windows to be handled with system-wide functions.
 
+---
+** Emacs takes note of colors defined in Control Panel on MS-Windows.
+The Control Panel defines some default colors for applications in
+much the same way as wildcard X Resources do on X.  Emacs now
+adds these colors to the colormap prefixed by System (eg SystemMenu
+for the default Menu background, SystemMenuText for the foreground),
+and uses some of them to initialize some of the default faces.
+`list-colors-display' will show the list of System color names if you
+wish to use them in other faces.
+
 +++
 ** Under X11, it is possible to swap Alt and Meta (and Super and Hyper).
 The new variables `x-alt-keysym', `x-hyper-keysym', `x-meta-keysym',
