@@ -82,7 +82,7 @@ Lisp_Object Vw32_start_process_inherit_error_mode;
    avoids the inefficiency of frequently reading small amounts of data.
    This is primarily necessary for handling DOS processes on Windows 95,
    but is useful for W32 processes on both Windows 95 and NT as well.  */
-Lisp_Object Vw32_pipe_read_delay;
+int w32_pipe_read_delay;
 
 /* Control conversion of upper case file names to lower case.
    nil means no, t means yes. */
@@ -366,8 +366,10 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   if (cp->pid < 0)
     cp->pid = -cp->pid;
 
+#if defined(NO_UNION_TYPE) && !defined (USE_LSB_TAG)
   /* pid must fit in a Lisp_Int */
   cp->pid = (cp->pid & VALMASK);
+#endif
 
   *pPid = cp->pid;
 
@@ -2202,7 +2204,7 @@ When non-nil, they inherit their error mode setting from Emacs, which stops
 them blocking when trying to access unmounted drives etc.  */);
   Vw32_start_process_inherit_error_mode = Qt;
 
-  DEFVAR_INT ("w32-pipe-read-delay", &Vw32_pipe_read_delay,
+  DEFVAR_INT ("w32-pipe-read-delay", &w32_pipe_read_delay,
 	      doc: /* Forced delay before reading subprocess output.
 This is done to improve the buffering of subprocess output, by
 avoiding the inefficiency of frequently reading small amounts of data.
@@ -2211,7 +2213,7 @@ If positive, the value is the number of milliseconds to sleep before
 reading the subprocess output.  If negative, the magnitude is the number
 of time slices to wait (effectively boosting the priority of the child
 process temporarily).  A value of zero disables waiting entirely.  */);
-  Vw32_pipe_read_delay = 50;
+  w32_pipe_read_delay = 50;
 
   DEFVAR_LISP ("w32-downcase-file-names", &Vw32_downcase_file_names,
 	       doc: /* Non-nil means convert all-upper case file names to lower case.
