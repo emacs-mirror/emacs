@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-     1999, 2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+     1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2851,7 +2851,7 @@ This happens for interactive use with M-x.  */)
     filename = Fexpand_file_name (filename, Qnil);
 
   if (!NILP (Ffile_directory_p (linkname)))
-    linkname = Fexpand_file_name (Ffile_name_nondirectory (file), linkname);
+    linkname = Fexpand_file_name (Ffile_name_nondirectory (filename), linkname);
   else
     linkname = Fexpand_file_name (linkname, Qnil);
 
