@@ -1,3 +1,14 @@
+2000-10-23  Miles Bader  <miles@lsi.nec.co.jp>
+
+	[the following changes fix a bug where `define-minor-mode' didn't
+	correctly generate :require clauses for defcustoms in compiled files]
+	* emacs-lisp/bytecomp.el (byte-compile-last-logged-file): New variable.
+	(byte-compile-log-file, byte-compile-log-1): Don't set
+	`byte-compile-current-file' to nil.  Instead set
+	`byte-compile-last-logged-file' to it.  Test whether
+	byte-compile-current-file equals byte-compile-last-logged-file
+	instead of whether its nil.
+
 2000-10-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/refill.el: Fix var names in doc.
