@@ -1539,17 +1539,27 @@ end_of_data ()
 #include <whoami.h>
 #endif
 
+/* Can't have this within the function since `static' is #defined to 
+   nothing for some USG systems.  */
 #ifdef USG
-/* Can't have this within the function since `static' is #defined to nothing */
+#ifdef HAVE_GETHOSTNAME
+static char get_system_name_name[256];
+#else /* not HAVE_GETHOSTNAME */
 static struct utsname get_system_name_name;
-#endif
+#endif /* not HAVE_GETHOSTNAME */
+#endif /* USG */
 
 char *
 get_system_name ()
 {
 #ifdef USG
+#ifdef HAVE_GETHOSTNAME
+  gethostname (get_system_name_name, sizeof (get_system_name_name));
+  return get_system_name_name;
+#else /* not HAVE_GETHOSTNAME */
   uname (&get_system_name_name);
   return (get_system_name_name.nodename);
+#endif /* not HAVE_GETHOSTNAME */
 #else /* Not USG */
 #ifdef BSD4_1
   return sysname;
