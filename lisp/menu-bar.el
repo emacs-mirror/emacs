@@ -206,4 +206,6 @@ and selects that window."
     (setq default-frame-alist
 	  (cons '(menu-bar-lines . 1) default-frame-alist)))
 
+(provide 'menu-bar)
+
 ;;; menu-bar.el ends here
