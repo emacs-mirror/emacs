@@ -1,3 +1,8 @@
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (mostlyclean, clean, maintainer-clean): Use
+	$(DEL) instead of rm, and ignore exit code.
+
 2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
 
 	Tramp version 2.0.39 released.

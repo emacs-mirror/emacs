@@ -292,30 +292,30 @@ smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/smtpmail.texi
 
 mostlyclean:
-	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
+	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
 clean: mostlyclean
-	rm -f *.dvi
-	rm -f $(infodir)/emacs* $(infodir)/ccmode* \
-		$(infodir)/cl* $(infodir)/dired-x* \
-		$(infodir)/ediff* $(infodir)/forms* \
-		$(infodir)/gnus* $(infodir)/info* \
-		$(infodir)/message* $(infodir)/mh-e* \
-		$(infodir)/reftex* $(infodir)/sc* \
-		$(infodir)/vip* $(infodir)/viper* \
-		$(infodir)/widget* $(infodir)/efaq* \
-		$(infodir)/ada-mode* $(infodir)/autotype* \
-		$(infodir)/calc* $(infodir)/idlwave* \
-		$(infodir)/eudc* $(infodir)/ebrowse* \
-		$(infodir)/pcl-cvs* $(infodir)/woman* \
-		$(infodir)/emacs-mime* $(infodir)/eshell* \
-		$(infodir)/speedbar* $(infodir)/tramp* \
-		$(infodir)/ses* $(infodir)/smtpmail*
+	- $(DEL) *.dvi
+	- $(DEL) $(infodir)/emacs* $(infodir)/ccmode* \
+		 $(infodir)/cl* $(infodir)/dired-x* \
+		 $(infodir)/ediff* $(infodir)/forms* \
+		 $(infodir)/gnus* $(infodir)/info* \
+		 $(infodir)/message* $(infodir)/mh-e* \
+		 $(infodir)/reftex* $(infodir)/sc* \
+		 $(infodir)/vip* $(infodir)/viper* \
+		 $(infodir)/widget* $(infodir)/efaq* \
+		 $(infodir)/ada-mode* $(infodir)/autotype* \
+		 $(infodir)/calc* $(infodir)/idlwave* \
+		 $(infodir)/eudc* $(infodir)/ebrowse* \
+		 $(infodir)/pcl-cvs* $(infodir)/woman* \
+		 $(infodir)/emacs-mime* $(infodir)/eshell* \
+		 $(infodir)/speedbar* $(infodir)/tramp* \
+		 $(infodir)/ses* $(infodir)/smtpmail*
 
 distclean: clean
 
 maintainer-clean: distclean
-	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
+	- $(DEL) *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
 # Don't delete these, because they are outside the current directory.
 #	for file in $(INFO_TARGETS); do rm -f $${file}*; done
 

@@ -56,15 +56,15 @@ emacs-lisp-intro.html: $(INFO_SOURCES)
 	$(DVIPS) $< -o $@
 
 mostlyclean:
-	rm -f  *.log *.cp *.fn *.ky *.pg *.vr *.tp
+	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr *.tp
 
 clean: mostlyclean
-	rm -f *.dvi $(infodir)/eintr*
+	- $(DEL) *.dvi $(infodir)/eintr*
 
 distclean: clean
 
 maintainer-clean: distclean
-	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
+	- $(DEL) *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
