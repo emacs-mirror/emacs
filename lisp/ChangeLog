@@ -38,6 +38,8 @@
 
 	* progmodes/f90.el (f90-abbrev-start): Only offer help if
 	abbrev-mode is active.
+	(f90-join-lines): Make it behave more like standard join-line.
+	(f90-fill-region, f90-menu): Adapt for new f90-join-lines.
 
 	* progmodes/fortran.el (fortran-abbrev-start): Only offer help if
 	abbrev-mode is active.
