@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.39 2002/09/03 01:40:29 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.40 2002/09/13 18:25:26 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2002,9 +2002,10 @@ Returns a list of FIS that should be `cvs remove'd."
 	 (tmpbuf (cvs-temp-buffer)))
     (when (and (not silent) (equal cvs-confirm-removals 'list))
       (with-current-buffer tmpbuf
-	(cvs-insert-strings (mapcar 'cvs-fileinfo->full-path fis))
-	(cvs-pop-to-buffer-same-frame (current-buffer))
-	(shrink-window-if-larger-than-buffer)))
+	(let ((inhibit-read-only t))
+	  (cvs-insert-strings (mapcar 'cvs-fileinfo->full-path fis))
+	  (cvs-pop-to-buffer-same-frame (current-buffer))
+	  (shrink-window-if-larger-than-buffer))))
     (if (not (or silent
 		 (unwind-protect
 		     (yes-or-no-p (format "Delete %d files? " (length files)))
