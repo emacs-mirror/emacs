@@ -1,3 +1,7 @@
+2000-08-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: New file.
+
 2000-08-22  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* comint.el (comint-output-filter): Compare end of
@@ -6624,5 +6628,5 @@
 See ChangeLog.8 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:

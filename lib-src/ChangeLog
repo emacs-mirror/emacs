@@ -1,3 +1,15 @@
+2000-08-22  Andrew Innes  <andrewi@gnu.org>
+
+	* ntlib.h (WIN32): Remove unnecessary definition.
+	(sleep): Make argument unsigned long.
+	(_WINSOCK_H): Undefine so normal winsock definitions can be used.
+
+	* ntlib.c (sleep): Make argument unsigned long.
+
+	* movemail.c (main) [WINDOWSNT]: Force binary mode for fileio.
+
+	* makefile.w32-in: New file.
+
 2000-08-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* etags.c (canonicalize_filename) [DOS_NT]: Upcase the first
@@ -4156,5 +4168,5 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:

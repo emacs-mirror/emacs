@@ -1,3 +1,39 @@
+2000-08-22  Andrew Innes  <andrewi@gnu.org>
+
+	* configure.bat: New file.
+
+	* gmake.defs: New file.
+
+	* nmake.defs: New file.
+
+	* makefile.w32-in: New file.
+
+	* INSTALL: Rewrite to match new configure process.
+
+	* config.nt [WINDOWSNT]: Don't declare getenv.
+	(EMACS_CONFIG_OPTIONS): Define according to compiler being used.
+
+	* addpm.c (main): Accept /q to mean install based on addpm's
+	location without asking.  Remove reference to emacs.bat which is
+	now obsolete.
+
+	* addsection.c (PTR_TO_OFFSET): Cast ptr to unsigned char*.
+
+	* paths.h: Use forward slash as directory separator in all path
+	definitions.
+	(PATH_DUMPLOADSEARCH): Revert to definition used on Unix.
+
+	* preprep.c (PTR_TO_OFFSET): Cast ptr to unsigned char *.
+
+	* runemacs.c: Remove WIN32 define.
+
+	* inc/sys/file.h (F_OK, X_OK, W_OK, R_OK, D_OK): Define if D_OK is
+	not defined.
+
+	* inc/sys/socket.h (_WINSOCK_H): Undefine if defined.
+	(fd_set): Define to new name, after including winsock.h, so we can
+	provide our own implementation.
+
 2000-07-05  Andrew Innes  <andrewi@gnu.org>
 
 	* ebuild.bat: Add support for specifying make arguments.
@@ -546,5 +582,5 @@
 	* _emacs: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
