@@ -1,4 +1,5 @@
 ;;; fortune.el --- use fortune to create signatures
+
 ;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
@@ -33,8 +34,8 @@
 
 ;;; Installation:
 
-;; Please check the customize settings - you will at least have to modify the
-;; values of `fortune-dir' and `fortune-file'.
+;; Please check the customize settings -- you will at least have to
+;; modify the values of `fortune-dir' and `fortune-file'.
 
 ;; I then use this in my .gnus:
 ;;(message "Making new signature: %s" (fortune-to-signature "~/fortunes/"))
@@ -44,9 +45,7 @@
 
 ;; If you like to get a new signature for every message, you can also hook
 ;; it into message-mode:
-;; (add-hook 'message-setup-hook
-;;           '(lambda ()
-;;              (fortune-to-signature)))
+;; (add-hook 'message-setup-hook 'fortune-to-signature)
 ;; This time no fortune-file is specified, so fortune-to-signature would use
 ;; the default-file as specified by fortune-file.
 
@@ -63,9 +62,9 @@
 ;;; Customizable Settings
 (defgroup fortune nil
   "Settings for fortune."
+  :link '(emacs-commentary-link "fortune.el")
   :version "21.1"
   :group 'games)
-
 (defgroup fortune-signature nil
   "Settings for use of fortune for signatures."
   :group 'fortune
@@ -73,78 +72,67 @@
 
 (defcustom fortune-dir "~/docs/ascii/misc/fortunes/"
   "*The directory to look in for local fortune cookies files."
-  :group 'fortune
-  :type 'directory)
-
-(defcustom fortune-file (expand-file-name "usenet" fortune-dir)
+  :type 'directory
+  :group 'fortune)
+(defcustom fortune-file
+  (expand-file-name "usenet" fortune-dir)
   "*The file in which local fortune cookies will be stored."
-  :group 'fortune
-  :type 'file)
-
+  :type 'file
+  :group 'fortune)
 (defcustom fortune-database-extension  ".dat"
   "The extension of the corresponding fortune database.
 Normally you won't have a reason to change it."
-  :group 'fortune
-  :type 'string)
-
+  :type 'string
+  :group 'fortune)
 (defcustom fortune-program "fortune"
   "Program to select a fortune cookie."
-  :group 'fortune
-  :type 'file)
-
+  :type 'string
+  :group 'fortune)
 (defcustom fortune-program-options ""
-  "Options to pass to the fortune program."
-  :group 'fortune
-  :type 'string)
-
+  "Options to pass to the fortune program (a string)."
+  :type 'string
+  :group 'fortune)
 (defcustom fortune-strfile "strfile"
   "Program to compute a new fortune database."
-  :group 'fortune
-  :type 'file)
-
+  :type 'string
+  :group 'fortune)
 (defcustom fortune-strfile-options ""
-  "Options to pass to the strfile program."
-  :group 'fortune
-  :type 'string)
-
+  "Options to pass to the strfile program (a string)."
+  :type 'string
+  :group 'fortune)
 (defcustom fortune-quiet-strfile-options "> /dev/null"
   "Text added to the command for running `strfile'.
 By default it discards the output produced by `strfile'.
 Set this to \"\" if you would like to see the output."
-  :group 'fortune
-  :type 'string)
+  :type 'string
+  :group 'fortune)
 
 (defcustom fortune-always-compile t
   "*Non-nil means automatically compile fortune files.
 If nil, you must invoke `fortune-compile' manually to do that."
-  :group 'fortune
-  :type 'boolean)
-
+  :type 'boolean
+  :group 'fortune)
 (defcustom fortune-author-line-prefix "                  -- "
   "Prefix to put before the author name of a fortunate."
-  :group 'fortune-signature
-  :type 'string)
-
+  :type 'string
+  :group 'fortune-signature)
 (defcustom fortune-fill-column fill-column
   "Fill column for fortune files."
-  :group 'fortune-signature
-  :type 'integer)
-
+  :type 'integer
+  :group 'fortune-signature)
 (defcustom fortune-from-mail "private e-mail"
   "String to use to characterize that the fortune comes from an e-mail.
 No need to add an `in'."
   :type 'string
   :group 'fortune-signature)
-
 (defcustom fortune-sigstart ""
   "*Some text to insert before the fortune cookie, in a mail signature."
-  :group 'fortune-signature
-  :type 'string)
-
+  :type 'string
+  :group 'fortune-signature)
 (defcustom fortune-sigend ""
   "*Some text to insert after the fortune cookie, in a mail signature."
-  :group 'fortune-signature
-  :type 'string)
+  :type 'string
+  :group 'fortune-signature)
 
 
 ;; not customizable settings
