@@ -1,5 +1,5 @@
 #!/usr/local/perl -w
-# $HopeName: MMQA_harness!script:optproc(trunk.12) $
+# $HopeName: MMQA_harness!script:optproc(trunk.13) $
 #
 # subroutines for processing options to qa commands
 # Each command can specify which options it requires,
@@ -158,6 +158,9 @@ sub applydefaults {
    } else {
     $val = $def;
    }
+  }
+  if (! defined $val) {
+   $val = "";
   }
   &setoption($opt, $val);
  }
