@@ -271,9 +271,9 @@ are used."
 	  (insert generate-autoload-section-trailer)))
     (message "Generating autoloads for %s...done" file)))
 
-(defconst generated-autoload-file "loaddefs.el"
+(defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
-A .el file can set this in its local variables section to make its
+A `.el' file can set this in its local variables section to make its
 autoloads go somewhere else.")
 
 ;;;###autoload
