@@ -36,6 +36,7 @@
 
 
 (require 'regi)
+(require 'sendmail)	;; For mail-header-end.
 
 ;; start user configuration variables
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -1577,8 +1578,7 @@ non-nil."
   (if (not (bobp))
       (if (and (eolp)
 	       (progn (forward-line -1)
-		      (or (looking-at
-			   (concat "^" (regexp-quote mail-header-separator) "$"))
+		      (or (= (point) (mail-header-end))
 			  (and (eq major-mode 'mh-letter-mode)
 			       (mh-in-header-p)))))
 	  (progn (forward-line)
