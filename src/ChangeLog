@@ -1,5 +1,8 @@
 2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xdisp.c (window_box_height): Do not return negative values.
+	From Gerd Moellmann <gerd@gnu.org>.
+
 	* keyboard.c (head_table): Add missing braces around initializer.
 
 	* term.c (keys): Likewise.
