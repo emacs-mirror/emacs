@@ -55,10 +55,12 @@ Leaves original message, deleted, before the undigestified messages."
 			      (point-max))
 	    (let* ((fill-prefix "")
 		   (case-fold-search t)
+		   start
 		   (digest-name
 		    (mail-strip-quoted-names
 		     (or (save-restriction
 			   (search-forward "\n\n")
+			   (setq start (point))
 			   (narrow-to-region (point-min) (point))
 			   (goto-char (point-max))
 			   (or (mail-fetch-field "Reply-To")
@@ -69,11 +71,10 @@ Leaves original message, deleted, before the undigestified messages."
 	      (save-excursion
 		(goto-char (point-max))
 		(skip-chars-backward " \t\n")
-		(let ((count 10) found)
+		(let (found)
 		  ;; compensate for broken un*x digestifiers.  Sigh Sigh.
-		  (while (and (> count 0) (not found))
+		  (while (and (> (point) start) (not found))
 		    (forward-line -1)
-		    (setq count (1- count))
 		    (if (looking-at (concat "End of.*Digest.*\n"
 					    (regexp-quote "*********") "*"
 					    "\\(\n------*\\)*"))
