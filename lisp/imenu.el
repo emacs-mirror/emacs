@@ -166,7 +166,7 @@ or like this:
  (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
 with zero or more ARGUMENTS.  The former format creates a simple element in
 the index alist when it matches; the latter creates a special element
-of the form  (NAME FUNCTION NAME POSITION-MARKER ARGUMENTS...)
+of the form  (NAME FUNCTION POSITION-MARKER ARGUMENTS...)
 with FUNCTION and ARGUMENTS beiong copied from `imenu-generic-expression'.
 
 MENU-TITLE is a string used as the title for the submenu or nil if the
@@ -203,7 +203,7 @@ It should be a function that takes no arguments and returns an index
 of the current buffer as an alist.
 
 Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
-Special elements look like (INDEX-NAME FUNCTION ARGUMENTS...).
+Special elements look like (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...).
 A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t
  if it is a sub-alist.
@@ -222,14 +222,21 @@ to a function that will find the next index, looking backwards in the
 file.
 
 The function should leave point at the place to be connected to the
-index and it should return nil when it doesn't find another index.")
+index and it should return nil when it doesn't find another index.
+
+This variable is local in all buffers.")
+
 (make-variable-buffer-local 'imenu-prev-index-position-function)
 
 (defvar imenu-extract-index-name-function nil
-  "Function for extracting the index name.
+  "Function for extracting the index item nam, given a position.
 
-This function is called after the function pointed out by
-`imenu-prev-index-position-function'.")
+This function is called after `imenu-prev-index-position-function'
+finds a position for an index item, with point at that position.
+It should return the name for that index item.
+
+This variable is local in all buffers.")
+
 (make-variable-buffer-local 'imenu-extract-index-name-function)
 
 (defvar imenu-default-goto-function 'imenu-default-goto-function
@@ -391,7 +398,14 @@ The function in this variable is called when selecting a normal index-item.")
 
 ;; The latest buffer index.
 ;; Buffer local.
-(defvar imenu--index-alist nil)
+(defvar imenu--index-alist nil
+  "The buffer index computed for this buffer in Imenu.
+Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
+Special elements look like (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...).
+A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
+
+This variable is local in all buffers, once set.")
+
 (make-variable-buffer-local 'imenu--index-alist)
 
 ;; The latest buffer index used to update the menu bar menu.
