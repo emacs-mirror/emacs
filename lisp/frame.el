@@ -221,13 +221,22 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
   "Act on user's init file settings of frame parameters.
 React to settings of `default-frame-alist', `initial-frame-alist' there."
   ;; Make menu-bar-mode and default-frame-alist consistent.
-  (if (boundp 'menu-bar-mode)
-      (let ((default (assq 'menu-bar-lines default-frame-alist)))
-	(if default
-	    (setq menu-bar-mode (not (eq (cdr default) 0)))
-	  (setq default-frame-alist
-		(cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		      default-frame-alist)))))
+  (when (boundp 'menu-bar-mode)
+    (let ((default (assq 'menu-bar-lines default-frame-alist)))
+      (if default
+	  (setq menu-bar-mode (not (eq (cdr default) 0)))
+	(setq default-frame-alist
+	      (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		    default-frame-alist)))))
+  
+  ;; Make tool-bar-mode and default-frame-alist consistent.
+  (when (boundp 'tool-bar-mode)
+    (let ((default (assq 'tool-bar-lines default-frame-alist)))
+      (if default
+	  (setq tool-bar-mode (not (eq (cdr default) 0)))
+	(setq default-frame-alist
+	      (cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
+		    default-frame-alist)))))
 
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
