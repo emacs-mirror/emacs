@@ -464,10 +464,10 @@ non-nil, otherwise in local time."
 	 (item (add-log-file-name buffer-file file-name))
 	 bound)
 
-    (if (or (and other-window (not (equal file-name buffer-file-name)))
-	    (window-dedicated-p (selected-window)))
-	(find-file-other-window file-name)
-      (find-file file-name))
+    (unless (equal file-name buffer-file-name)
+      (if (or other-window (window-dedicated-p (selected-window)))
+	  (find-file-other-window file-name)
+	(find-file file-name)))
     (or (eq major-mode 'change-log-mode)
 	(change-log-mode))
     (undo-boundary)
@@ -588,22 +588,16 @@ the change log file in another window."
 ;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
 ;;;###autoload
-(defun change-log-mode ()
+(define-derived-mode change-log-mode text-mode "Change Log"
   "Major mode for editing change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
 New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.
 Runs `change-log-mode-hook'."
-  (interactive)
-  (kill-all-local-variables)
-  (indented-text-mode)
-  (setq major-mode 'change-log-mode
-	mode-name "Change Log"
-	left-margin 8
+  (setq left-margin 8
 	fill-column 74
 	indent-tabs-mode t
 	tab-width 8)
-  (use-local-map change-log-mode-map)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
   ;; We really do want "^" in paragraph-start below: it is only the
@@ -616,10 +610,11 @@ Runs `change-log-mode-hook'."
   ;; is grouped with what follows.
   (set (make-local-variable 'page-delimiter) "^\\<\\|^\f")
   (set (make-local-variable 'version-control) 'never)
+  (set (make-local-variable 'smerge-resolve-function)
+       'change-log-resolve-conflict)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (set (make-local-variable 'font-lock-defaults)
-       '(change-log-font-lock-keywords t nil nil backward-paragraph))
-  (run-hooks 'change-log-mode-hook))
+       '(change-log-font-lock-keywords t nil nil backward-paragraph)))
 
 ;; It might be nice to have a general feature to replace this.  The idea I
 ;; have is a variable giving a regexp matching text which should not be
@@ -904,18 +899,34 @@ Point is assumed to be at the start of the entry."
 		(error nil)))))
     (error "Bad date")))
 
+(defun change-log-resolve-conflict ()
+  "Function to be used in `smerge-resolve-function'."
+  (let ((buf (current-buffer)))
+    (with-temp-buffer
+      (insert-buffer-substring buf (match-beginning 1) (match-end 1))
+      (save-match-data (change-log-mode))
+      (let ((other-buf (current-buffer)))
+	(with-current-buffer buf
+	  (save-excursion
+	    (save-restriction
+	      (narrow-to-region (match-beginning 0) (match-end 0))
+	      (replace-match (match-string 3) t t)
+	      (change-log-merge other-buf))))))))
+
 ;;;###autoload
 (defun change-log-merge (other-log)
   "Merge the contents of ChangeLog file OTHER-LOG with this buffer.
 Both must be found in Change Log mode (since the merging depends on
-the appropriate motion commands).
+the appropriate motion commands).  OTHER-LOG can be either a file name
+or a buffer.
 
 Entries are inserted in chronological order.  Both the current and
 old-style time formats for entries are supported."
   (interactive "*fLog file name to merge: ")
   (if (not (eq major-mode 'change-log-mode))
       (error "Not in Change Log mode"))
-  (let ((other-buf (find-file-noselect other-log))
+  (let ((other-buf (if (bufferp other-log) other-log
+		     (find-file-noselect other-log)))
 	(buf (current-buffer))
 	date1 start end)
     (save-excursion
@@ -938,12 +949,16 @@ old-style time formats for entries are supported."
 	      (insert-buffer-substring other-buf start end)
 	    ;; At the end of the original buffer, insert a newline to
 	    ;; separate entries and then the rest of the file being
-	    ;; merged.  Move to the end of it to terminate outer loop.
-	    (insert "\n")
-	    (insert-buffer-substring other-buf start
-				     (with-current-buffer other-buf
-				       (goto-char (point-max))
-				       (point)))))))))
+	    ;; merged.
+	    (unless (or (bobp)
+			(and (= ?\n (char-before))
+			     (or (<= (1- (point)) (point-min))
+				 (= ?\n (char-before (1- (point)))))))
+	      (insert "\n"))
+	    ;; Move to the end of it to terminate outer loop.
+	    (with-current-buffer other-buf
+	      (goto-char (point-max)))
+	    (insert-buffer-substring other-buf start)))))))
 
 ;;;###autoload
 (defun change-log-redate ()
