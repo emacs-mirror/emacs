@@ -190,7 +190,7 @@ and that its contents match what the master file says.")
       (fset 'shrink-window-if-larger-than-buffer 'beginning-of-buffer)
       ))
 
-(if (not (boundp 'file-regular-p))
+(if (not (fboundp 'file-regular-p))
     (fset 'file-regular-p 'file-regular-p-18))
 
 ;;; functions that operate on RCS revision numbers
