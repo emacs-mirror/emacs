@@ -2072,6 +2072,7 @@ Returns the window displaying BUFFER.")
 #endif
 	  /* If window appears above or below another,
 	     even out their heights.  */
+	  other = upper = lower = Qnil;
 	  if (!NILP (XWINDOW (window)->prev))
 	    other = upper = XWINDOW (window)->prev, lower = window;
 	  if (!NILP (XWINDOW (window)->next))
