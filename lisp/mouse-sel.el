@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1994, 1995, 2001 Free Software Foundation, Inc.
 
-;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
+;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
 
 ;; This file is part of GNU Emacs.
