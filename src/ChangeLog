@@ -1,3 +1,8 @@
+2004-12-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_iterator_to_next): Reset stop_charpos after display
+	vector.
+
 2004-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* indent.c (Fvertical_motion): Call move_it_by_lines even if LINES = 0.
