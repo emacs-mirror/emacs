@@ -380,7 +380,7 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
 extern Lisp_Object Vx_no_window_manager;
 
-extern Lisp_Object Qface, Qmouse_face;
+extern Lisp_Object Qface, Qmouse_face, Qeql;
 
 extern int errno;
 
@@ -391,6 +391,7 @@ extern EMACS_INT extra_keyboard_modifiers;
 /* The keysyms to use for the various modifiers.  */
 
 Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
+Lisp_Object Vx_keysym_table;
 static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 
 static Lisp_Object Qvendor_specific_keysyms;
@@ -8777,7 +8778,7 @@ xaw_jump_callback (widget, client_data, call_data)
    i.e. line or page up or down.  WIDGET is the Xaw scroll bar
    widget.  CLIENT_DATA is a pointer to the scroll_bar structure for
    the scroll bar.  CALL_DATA is an integer specifying the action that
-   has taken place.  It's magnitude is in the range 0..height of the
+   has taken place.  Its magnitude is in the range 0..height of the
    scroll bar.  Negative values mean scroll towards buffer start.
    Values < height of scroll bar mean line-wise movement.  */
 
@@ -10815,11 +10816,38 @@ XTread_socket (sd, bufp, numchars, expected)
 #endif
 				))
 			{
+			  Lisp_Object c;
+
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
 			    temp_index = 0;
 			  temp_buffer[temp_index++] = keysym;
-			  bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
-			  bufp->code = keysym;
+ 			  /* First deal with keysyms which have
+ 			     defined translations to characters.  */
+			  if (keysym >= 32 && keysym < 128)
+			    /* Avoid explicitly decoding each ASCII
+			       character.  */
+			    {
+			      bufp->kind = ASCII_KEYSTROKE_EVENT;
+			      bufp->code = c;
+			    }
+			  else if (! EQ ((c = Fgethash (make_number (keysym),
+							Vx_keysym_table,
+							Qnil)),
+					 Qnil))
+			    {
+			      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
+					    ? ASCII_KEYSTROKE_EVENT
+					    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+			      bufp->code = c;
+			    }
+			  else
+			    {
+			      /* Not a character keysym.
+				 make_lispy_event will convert it to a
+				 symbolic key.  */
+			      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
+			      bufp->code = keysym;
+			    }
 			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->arg = Qnil;
 			  bufp->modifiers
@@ -10831,7 +10859,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			  numchars--;
 			}
 		      else if (numchars > nbytes)
-			{
+			{	/* Raw bytes, not keysym.  */
 			  register int i;
 			  register int c;
 			  int nchars, len;
@@ -12614,6 +12642,11 @@ xim_destroy_callback (xim, client_data, call_data)
 
 #endif /* HAVE_X11R6 */
 
+#ifdef HAVE_X11R6
+/* This isn't prototyped in OSF 5.0 or 5.1a.  */
+extern char *XSetIMValues P_ ((XIM, ...));
+#endif
+
 /* Open the connection to the XIM server on display DPYINFO.
    RESOURCE_NAME is the resource name Emacs uses.  */
 
@@ -12640,7 +12673,6 @@ xim_open_dpy (dpyinfo, resource_name)
 #ifdef HAVE_X11R6
       destroy.callback = xim_destroy_callback;
       destroy.client_data = (XPointer)dpyinfo;
-      /* This isn't prototyped in OSF 5.0.  */
       XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
 #endif
     }
@@ -15362,6 +15394,12 @@ For example, `super' means use the Super_L and Super_R keysyms.  The
 default is nil, which is the same as `super'.  */);
   Vx_super_keysym = Qnil;
 
+  DEFVAR_LISP ("x-keysym-table", &Vx_keysym_table,
+    doc: /* Hash table of character codes indexed by X keysym codes.  */);
+  Vx_keysym_table = make_hash_table (Qeql, make_number (900),
+				     make_float (DEFAULT_REHASH_SIZE),
+				     make_float (DEFAULT_REHASH_THRESHOLD),
+				     Qnil, Qnil, Qnil);
 }
 
 #endif /* HAVE_X_WINDOWS */
