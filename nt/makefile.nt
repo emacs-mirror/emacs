@@ -90,6 +90,8 @@ all:		$(BLD) $(ALL)
 		$(BUILD_CMD)
 		cd ..\lisp
 		$(BUILD_CMD)
+		cd ..\leim
+		if exist makefile.nt $(BUILD_CMD)
 		cd ..\nt
 
 $(INSTALL_DIR):
@@ -126,6 +128,8 @@ install:	all $(INSTALL_DIR) batch_files
 		$(INSTALL_CMD)
 		cd ..\lisp
 		$(INSTALL_CMD)
+		cd ..\leim
+		if exist makefile.nt $(INSTALL_CMD)
 		cd ..\nt		
 		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\ddeclient.exe $(INSTALL_DIR)\bin
@@ -199,4 +203,6 @@ clean:;		- $(DEL) *~ *.pdb
 		$(CLEAN_CMD)
 		cd ..\lisp
 		$(CLEAN_CMD)
+		cd ..\leim
+		if exist makefile.nt $(CLEAN_CMD)
 		cd ..\nt
