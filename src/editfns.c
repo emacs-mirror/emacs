@@ -469,6 +469,26 @@ is in effect, in which case it is less.")
   return buildmark (ZV, ZV_BYTE);
 }
 
+DEFUN ("gap-position", Fgap_position, Sgap_position, 0, 0, 0,
+  "Return the position of the gap, in the current buffer.\n\
+See also `gap-size'.")
+  ()
+{
+  Lisp_Object temp;
+  XSETFASTINT (temp, GPT);
+  return temp;
+}
+
+DEFUN ("gap-size", Fgap_size, Sgap_size, 0, 0, 0,
+  "Return the size of the current buffer's gap.\n\
+See also `gap-position'.")
+  ()
+{
+  Lisp_Object temp;
+  XSETFASTINT (temp, GAP_SIZE);
+  return temp;
+}
+
 DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
   "Return the byte position for character position POSITION.")
   (position)
@@ -3074,6 +3094,8 @@ functions if all the text being accessed has this property.");
   defsubr (&Spoint_min);
   defsubr (&Spoint_min_marker);
   defsubr (&Spoint_max_marker);
+  defsubr (&Sgap_position);
+  defsubr (&Sgap_size);
   defsubr (&Sposition_bytes);
 
   defsubr (&Sbobp);
