@@ -806,8 +806,8 @@ char_valid_p (c, genericp)
 }
 
 DEFUN ("char-valid-p", Fchar_valid_p, Schar_valid_p, 1, 2, 0,
-  "Return t if OBJECT is a valid normal character.
-If optional arg GENERICP is non-nil, also return t if OBJECT is
+  "Return t if OBJECT is a valid normal character.\n\
+If optional arg GENERICP is non-nil, also return t if OBJECT is\n\
 a valid generic character.")
   (object, genericp)
      Lisp_Object object, genericp;
