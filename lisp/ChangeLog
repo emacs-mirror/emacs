@@ -1,5 +1,9 @@
 2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emulation/viper.el: Fix typo.
+
+	* startup.el (command-line-processed): Doc fix.
+
 	* apropos.el (apropos-next-label-button): Doc fix.
 
 2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>

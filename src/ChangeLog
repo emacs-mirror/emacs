@@ -1,3 +1,10 @@
+2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* data.c (Ftimes): Doc fix.
+	(Fquo): Likewise.
+	(Frem): Likewise.
+	(Fmod): Likewise.
+
 2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* fileio.c (choose_write_coding_system): New fun, extracted
