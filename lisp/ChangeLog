@@ -1,3 +1,80 @@
+2002-07-30  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: New version 2.0.5.
+	(tramp-methods): Remove inline encoding method parameters.  The
+	encoding is now autodetected.  Also shorten the list of
+	methods (u/m distinction gone) and rename the remaining methods to
+	have longer, but more mnemonic, names.
+	(tramp-login-prompt-regexp, tramp-password-prompt-regexp)
+	(tramp-wrong-passwd-regexp): Trailing `$' not needed, regexp is
+	matched at end of buffer anyway.
+	(tramp-yesno-prompt-regexp): New variable, for questions where the
+	user should say "yes" or "no".
+	(tramp-file-name-structure-unified)
+	(tramp-file-name-structure-separate): Allow dash in method names.
+	(tramp-actions-before-shell): New variable, contains list of
+	pattern/action pairs.  Output sent by remote end is scanned for
+	the patterns, then the actions are executed.
+	(tramp-multi-actions): Like `tramp-actions-before-shell', but
+	executed for each hop in a multi-hop connection.
+	(tramp-last-cmd-time): New variable.  If nothing has been sent to
+	remote end for 60 seconds, look to see if the remote end is still
+	alive.
+	(tramp-perl-mime-encode, tramp-perl-mime-decode): Remove.  It
+	didn't work.
+	(tramp-perl-encode, tramp-perl-decode): New variables, these
+	require the MIME::Base64 module on the remote end.
+	(tramp-handle-file-attributes): Restructure logic.
+	(tramp-handle-file-attributes-with-ls)
+	(tramp-handle-file-attributes-with-perl): More debugging.
+	(tramp-handle-directory-files): Grok fifth arg `files-only' for
+	XEmacs.
+	(tramp-handle-make-directory, tramp-handle-delete-directory)
+	(tramp-handle-delete-file, tramp-handle-insert-directory): Expand
+	file name.
+	(tramp-handle-shell-command): Use `when', not `if'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): Adapt
+	to autodetection of inline encoding.
+	(tramp-invoke-ange-ftp): Require ange-ftp to make sure that
+	variable ange-ftp-name-format is defined before binding it.
+	(tramp-action-login, tramp-action-password, tramp-action-succeed)
+	(tramp-action-permission-denied, tramp-action-yesno): Functions
+	called from `tramp-actions-before-shell'.
+	(tramp-multi-action-login, tramp-multi-action-password)
+	(tramp-multi-action-succeed)
+	(tramp-multi-action-permission-denied): Functions called from
+	`tramp-multi-actions'.
+	(tramp-process-one-action, tramp-process-actions): Pattern
+	matching and action invocation code for
+	`tramp-actions-before-shell'.
+	(tramp-process-one-multi-action, tramp-process-multi-actions):
+	Same for `tramp-multi-actions'.
+	(tramp-open-connection-telnet, tramp-open-connection-rsh)
+	(tramp-open-connection-su): Process actions instead of hardwired
+	logic.
+	(tramp-multi-connect-telnet, tramp-multi-connect-rlogin)
+	(tramp-multi-connect-su): Ditto.
+	(tramp-post-connection): New method for tramp_encode and
+	tramp_decode scripts.
+	(tramp-post-connection): Invoke inline autodetection code.
+	(tramp-coding-commands): List of inline codings.
+	(tramp-find-inline-encoding): This is the inline autodetection
+	code.
+	(tramp-maybe-open-connection): If nothing was sent to connection
+	for 60 seconds, look if it connection is still alive.
+	(tramp-send-command): Remember that something was sent to the
+	connection.
+	(tramp-make-tramp-file-name, tramp-make-tramp-multi-file-name):
+	Use backticks for constructing alist.
+	(tramp-get-encoding-command, tramp-set-encoding-command)
+	(tramp-get-decoding-command, tramp-set-decoding-command)
+	(tramp-get-encoding-function, tramp-set-encoding-function)
+	(tramp-get-decoding-function, tramp-set-decoding-function): Use
+	for results of inline autodetection.
+	(tramp-get-encoding-command, tramp-get-decoding-command)
+	(tramp-get-encoding-function, tramp-get-decoding-function):
+	Remove these old functions.
+
 2002-07-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/indian.el (in-is13194): Give correct `safe-chars' property.
