@@ -2668,6 +2668,10 @@ OS/2 Presentation Manager.")
 					   :sibling-args (:help-echo "\
 Windows NT/9X.")
 					   w32)
+				    (const :format "MAC "
+					   :sibling-args (:help-echo "\
+Macintosh OS.")
+					   mac)
 				    (const :format "DOS "
 					   :sibling-args (:help-echo "\
 Plain MS-DOS.")
