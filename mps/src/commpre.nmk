@@ -1,6 +1,6 @@
 # impl.nmk.commpre: FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.17) $
+# $HopeName: MMsrc!commpre.nmk(trunk.18) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -140,8 +140,8 @@ CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
 # Flags for use in the variety combinations
 CFLAGSHOT = /O2 /DNDEBUG
 CFLAGSCOOL = 
-CFLAGSINTERNAL = /Z7
-CFLAGSEXTERNAL = 
+CFLAGSINTERNAL = /Zi
+CFLAGSEXTERNAL =
 
 # The combinations of variety
 # %%VARIETY: Define a macro containing the set of flags for the new variety.
@@ -159,7 +159,7 @@ CFTI = /DCONFIG_VAR_TI $(CRTFLAGSC)  $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 # LINKER FLAGS
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
-LINKFLAGSCOMMON = /nologo /PDB:NONE
+LINKFLAGSCOMMON = /nologo
 LINKFLAGSINTERNAL = /DEBUG:full
 LINKFLAGSEXTERNAL = /RELEASE
 
