@@ -1,3 +1,33 @@
+2002-05-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* scroll-al.el (minor-mode-alist): `scroll-all-mode', not
+	`scroll-all-mode-mode'.
+	(scroll-all-page-down-all, scroll-all-page-up-all)
+	(scroll-all-check-to-scroll): Remove `fkey-' prefix from scroll
+	commands.
+
+	* progmodes/f90.el: Update maintainer.
+	(f90-startup-message): Obsolete variable removed.
+	(f90-font-lock-keywords-1): Move "module procedure" to front, remove
+	override. Fix highlighting of various "type" forms.
+	(f90-font-lock-keywords-2): Add override flag.
+	(f90-font-lock-keywords-3): Use 'keep rather than 'override.
+	(f90-line-continued): Recognize blank/comment lines embedded in
+	continuation lines.
+	(f90-looking-at-program-block-start): No extra indentation after
+	function or subroutine keyword appears in single quotes.
+	(f90-indent-new-line): Make it indent the current line, as it should.
+	(f90-indent-region): Correctly indent comments embedded in
+	continued lines.
+
+	* progmodes/fortran.el: Update maintainer.
+	(fortran-previous-statement, fortran-next-statement): Make them
+	skip over preprocessor lines as they do with comment lines.
+	(fortran-beginning-do): Make regexp match a DO statement
+	irrespective of numeric label.
+	(fortran-strip-sequence-nos): Rename from typo
+	`fortran-strip-sqeuence-nos'.
+
 2002-05-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* indent.el (indent-rigidly): Mention how to remove all indentation.
