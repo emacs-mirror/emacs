@@ -609,8 +609,8 @@ typedef struct frame *FRAME_PTR;
 #define FOR_EACH_FRAME(list_var, frame_var)			\
   for ((list_var) = Vframe_list;				\
        (CONSP (list_var)					\
-	&& (frame_var = XCONS (list_var)->car, 1));		\
-       list_var = XCONS (list_var)->cdr)
+	&& (frame_var = XCAR (list_var), 1));		\
+       list_var = XCDR (list_var))
 
 
 extern Lisp_Object Qframep, Qframe_live_p, Qicon;
@@ -708,7 +708,7 @@ extern Lisp_Object Vterminal_frame;
 #define PIXEL_X_FROM_CANON_X(F, X)			\
      (INTEGERP (X)					\
       ? XINT (X) * CANON_X_UNIT (F)			\
-      : (int) (XFLOAT (X)->data * CANON_X_UNIT (F)))
+      : (int) (XFLOAT_DATA (X) * CANON_X_UNIT (F)))
       
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
@@ -717,7 +717,7 @@ extern Lisp_Object Vterminal_frame;
 #define PIXEL_Y_FROM_CANON_Y(F, Y)			\
      (INTEGERP (Y)					\
       ? XINT (Y) * CANON_Y_UNIT (F)			\
-      : (int) (XFLOAT (Y)->data * CANON_Y_UNIT (F)))
+      : (int) (XFLOAT_DATA (Y) * CANON_Y_UNIT (F)))
 
 /* Convert pixel-value X to canonical units.  F is the frame whose
    canonical character width is to be used.  X is a C integer.  Result
