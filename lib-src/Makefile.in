@@ -59,6 +59,8 @@ libexecdir=@libexecdir@
 # script's `--srcdir' option.  However, the value of ${srcdir} in
 # this makefile is not identical to what was specified with --srcdir,
 # since the variable here has `/lib-src' added at the end.
+
+# We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 VPATH=@srcdir@
 
@@ -351,10 +353,10 @@ REGEXPOBJ =
 REGEXPDEPS =
 #else
 REGEXPOBJ = regex.o
-REGEXPDEPS = $(REGEXPOBJ) ../src/regex.h
+REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
 #endif
 
-regex.o: ../src/regex.c ../src/regex.h ../src/config.h
+regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
