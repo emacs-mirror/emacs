@@ -603,10 +603,9 @@ patches to related files.
 
 For best results apply to an older Emacs the patches from
   ftp://ftp.math.ohio-state.edu/pub/users/ilya/cperl-mode/patches
-\(this upgrades syntax-parsing abilities of RMS Emaxen v19.34 and
-v20.2 up to the level of RMS Emacs v20.3 - a must for a good Perl
-mode.)  You will not get much from XEmacs, it's syntax abilities are
-too primitive.
+\(this upgrades syntax-parsing abilities of Emaxen v19.34 and
+v20.2 up to the level of Emacs v20.3 - a must for a good Perl
+mode.)
 
 Get support packages choose-color.el (or font-lock-extra.el before
 19.30), imenu-go.el from the same place.  \(Look for other files there
@@ -662,11 +661,10 @@ install choose-color.el, available from
 paragraph.  Parsing of lines with several <<EOF is not implemented
 yet.
 
-Emacs had a _very_ restricted syntax parsing engine until RMS's Emacs
+Emacs had a _very_ restricted syntax parsing engine until version
 20.1.  Most problems below are corrected starting from this version of
-Emacs, and all of them should go with RMS's version 20.3.  (Or apply
-patches to Emacs 19.33/34 - see tips.)  XEmacs is very backward in
-this respect.
+Emacs, and all of them should be fixed in version 20.3.  (Or apply
+patches to Emacs 19.33/34 - see tips.)
 
 Note that even with newer Emacsen in some very rare cases the details
 of interaction of `font-lock' and syntaxification may be not cleaned
@@ -695,7 +693,7 @@ Similar problems arise in regexps, when /(\\s|$)/ should be rewritten
 as /($|\\s)/.  Note that such a transposition is not always possible.
 
 The solution is to upgrade your Emacs or patch an older one.  Note
-that RMS's 20.2 has some bugs related to `syntax-table' text
+that Emacs 20.2 has some bugs related to `syntax-table' text
 properties.  Patches are available on the main CPerl download site,
 and on CPAN.
 
@@ -706,7 +704,7 @@ via `cperl-use-syntax-table-text-property'." )
 (defvar cperl-non-problems 'please-ignore-this-line
 "As you know from `problems' section, Perl syntax is too hard for CPerl on
 older Emacsen.  Here is what you can do if you cannot upgrade, or if
-you want to switch off these capabilities on RMS Emacs 20.2 (+patches) or 20.3
+you want to switch off these capabilities on Emacs 20.2 (+patches) or 20.3
 or better.  Please skip this docs if you run a capable Emacs already.
 
 Most of the time, if you write your own code, you may find an equivalent
@@ -761,7 +759,7 @@ receive.  Note that some releases of XEmacs are better than the others
 as far as bugs reports I see are concerned.")
 
 (defvar cperl-praise 'please-ignore-this-line
-  "RMS asked me to list good things about CPerl.  Here they go:
+  "Advantages of CPerl mode.
 
 0) It uses the newest `syntax-table' property ;-);
 
