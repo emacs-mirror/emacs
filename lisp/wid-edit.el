@@ -3208,10 +3208,11 @@ To use this type, you must define :match or :match-alternatives."
 (defun widget-plist-convert-widget (widget)
   ;; Handle `:options'.
   (let* ((options (widget-get widget :options))
+	 (widget-plist-value-type (widget-get widget :value-type))
 	 (other `(editable-list :inline t
 				(group :inline t
 				       ,(widget-get widget :key-type)
-				       ,(widget-get widget :value-type))))
+				       ,widget-plist-value-type)))
 	 (args (if options
 		   (list `(checklist :inline t
 				     :greedy t
@@ -3252,10 +3253,11 @@ To use this type, you must define :match or :match-alternatives."
 (defun widget-alist-convert-widget (widget)
   ;; Handle `:options'.
   (let* ((options (widget-get widget :options))
+	 (widget-alist-value-type (widget-get widget :value-type))
 	 (other `(editable-list :inline t
 				(cons :format "%v"
 				      ,(widget-get widget :key-type)
-				      ,(widget-get widget :value-type))))
+				      ,widget-alist-value-type)))
 	 (args (if options
 		   (list `(checklist :inline t
 				     :greedy t
