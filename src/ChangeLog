@@ -1,3 +1,8 @@
+1999-10-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fileio.c (Fmake_temp_name): add a reference to `make-temp-file'
+	in the docstring.
+
 1999-10-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (XTread_socket) <ClientMessage, WM_TAKE_FOCUS>:
