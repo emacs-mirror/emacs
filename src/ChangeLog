@@ -1,5 +1,8 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* eval.c (Fif): Reindent.
+	(Fand): Likewise.
+
 	* editfns.c (Fuser_real_login_name): Reindent.
 	(Finsert_buffer_substring): Likewise.
 	(Fcompare_buffer_substrings): Likewise.
