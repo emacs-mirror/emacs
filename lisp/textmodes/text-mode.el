@@ -31,6 +31,9 @@
 (defvar text-mode-hook nil
   "Normal hook run when entering Text mode and many related modes.")
 
+(defvar text-mode-variant nil
+  "Non-nil if this buffer's major mode is a variant of Text mode.")
+
 (defvar text-mode-syntax-table nil
   "Syntax table used while in text mode.")
 
@@ -75,6 +78,8 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
+  (make-local-variable 'text-mode-variant)
+  (setq text-mode-variant t)
   (setq mode-name "Text")
   (setq major-mode 'text-mode)
   (run-hooks 'text-mode-hook))
@@ -98,6 +103,24 @@ Turning on Paragraph-Indent Text mode runs the normal hooks
       
 (defalias 'indented-text-mode 'text-mode)
 
+(defun toggle-text-mode-auto-fill ()
+  "Toggle whether to use Auto Fill in Text mode and related modes.
+This command affects all buffers that use modes related to Text mode,
+both existing buffers and buffers that you subsequently create."
+  (interactive)
+  (let ((enable-mode (not (memq 'turn-on-auto-fill text-mode-hook)))
+	(buffers (buffer-list)))
+    (if enable-mode
+	(add-hook 'text-mode-hook 'turn-on-auto-fill)
+      (remove-hook 'text-mode-hook 'turn-on-auto-fill))
+    (while buffers
+      (with-current-buffer (car buffers)
+	(if text-mode-variant
+	    (auto-fill-mode (if enable-mode 1 0))))
+      (setq buffers (cdr buffers)))
+    (message "Auto Fill %s in Text modes"
+	     (if enable-mode "enabled" "disabled"))))
+
 (defun center-paragraph ()
   "Center each nonblank line in the paragraph at or after point.
 See `center-line' for more info."
