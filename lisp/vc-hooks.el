@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.140 2002/07/16 17:42:57 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.141 2002/07/19 13:26:11 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -114,8 +114,9 @@ See also variable `vc-consult-headers'."
 	   (funcall vc-mistrust-permissions
 		    (vc-backend-subdirectory-name file)))))
 
+;;; This is handled specially now.
 ;; Tell Emacs about this new kind of minor mode
-(add-to-list 'minor-mode-alist '(vc-mode vc-mode))
+;; (add-to-list 'minor-mode-alist '(vc-mode vc-mode))
 
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
