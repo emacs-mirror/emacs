@@ -683,6 +683,8 @@ extern void deselect_palette (struct frame * f, HDC hdc);
 extern HDC get_frame_dc (struct frame * f);
 extern int release_frame_dc (struct frame * f, HDC hDC);
 
+extern void drain_message_queue ();
+
 extern BOOL get_next_msg ();
 extern BOOL post_msg ();
 extern void complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result);
