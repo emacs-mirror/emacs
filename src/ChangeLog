@@ -1,3 +1,7 @@
+2004-03-29  David Ponce  <david@dponce.com>
+
+	* callint.c (Fcall_interactively): Fix last change.
+
 2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fcommandp): Simplify.
