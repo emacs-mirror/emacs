@@ -1,6 +1,6 @@
 ;;; tpu-extras.el --- Scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -216,7 +216,7 @@ Accepts a prefix argument for the number of lines to move."
   (interactive "p")
   (let ((beg (tpu-current-line)))
     (backward-char 1)
-    (forward-line (- 1 num))
+    (forward-visible-line (- 1 num))
     (tpu-top-check beg num)))
 
 (defun tpu-next-end-of-line (num)
