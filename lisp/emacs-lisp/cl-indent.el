@@ -241,15 +241,16 @@ by `lisp-body-indent'."
           (setq tem (car method))
 
           (or (eq tem 'nil)             ;default indentation
-          (eq tem '&lambda)     ;lambda list
+	      (eq tem '&lambda)		;lambda list
               (and (eq tem '&body) (null (cdr method)))
               (and (eq tem '&rest)
-               (consp (cdr method)) (null (cddr method)))
+		   (consp (cdr method))
+		   (null (cddr method)))
               (integerp tem)            ;explicit indentation specified
               (and (consp tem)          ;destructuring
                    (eq (car tem) '&whole)
-               (or (symbolp (cadr tem))
-                   (integerp (cadr tem))))
+		   (or (symbolp (cadr tem))
+		       (integerp (cadr tem))))
               (and (symbolp tem)        ;a function to call to do the work.
                    (null (cdr method)))
               (lisp-indent-report-bad-format method))
