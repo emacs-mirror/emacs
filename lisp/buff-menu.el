@@ -548,7 +548,9 @@ The R column contains a % for buffers that are read-only."
                (put-text-property this-buffer-line-start (point)
                                   'buffer buffer)
                (put-text-property this-buffer-line-start name-end
-                                  'mouse-face 'highlight))
+                                  'mouse-face 'highlight)
+               (put-text-property this-buffer-line-start name-end
+                                  'help-echo "mouse-2: select this buffer"))
              (let ((size (format "%8d" this-buffer-size))
                    (mode this-buffer-mode-name)
                    (excess (- (current-column) 17)))
