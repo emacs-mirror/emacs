@@ -1,3 +1,10 @@
+2003-02-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (print-fontset): If FONTSET is nil,
+	use the default fontset.
+	(describe-fontset): If the current frame is not using a fontset,
+	call print-fontset with nil.
+
 2003-02-19  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-binary-assoc, vc-binary-suffixes): Removed; these 
