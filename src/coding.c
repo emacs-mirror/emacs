@@ -4611,7 +4611,7 @@ detect_coding_system (src, src_bytes, highest)
   coding_mask = detect_coding_mask (src, src_bytes, NULL, &dummy);
   eol_type  = detect_eol_type (src, src_bytes, &dummy);
   if (eol_type == CODING_EOL_INCONSISTENT)
-    eol_type == CODING_EOL_UNDECIDED;
+    eol_type = CODING_EOL_UNDECIDED;
 
   if (!coding_mask)
     {
