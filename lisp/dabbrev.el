@@ -765,15 +765,21 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (and nil use-case-replace
 	 (setq old (concat abbrev (or old "")))
 	 (setq expansion (concat abbrev expansion)))
-    ;; If the given abbrev is mixed case and its case pattern
+    ;; If the expansion has mixed case
+    ;; and it is not simply a capitalized word,
+    ;; or if the abbrev has mixed case,
+    ;; and if the given abbrev's case pattern
     ;; matches the start of the expansion,
     ;; copy the expansion's case
     ;; instead of downcasing all the rest.
-    (if (and (string= abbrev
-		      (substring expansion 0 (length abbrev)))
-	     (not (string= abbrev (downcase abbrev)))
-	     (not (string= abbrev (upcase abbrev))))
-	(setq use-case-replace nil))
+    (let ((expansion-rest (substring expansion 1)))
+      (if (and (not (and (or (string= expansion-rest (downcase expansion-rest))
+			     (string= expansion-rest (upcase expansion-rest)))
+			 (or (string= abbrev (downcase abbrev))
+			     (string= abbrev (upcase abbrev)))))
+	       (string= abbrev
+			(substring expansion 0 (length abbrev))))
+	  (setq use-case-replace nil)))
     (if (equal abbrev " ")
 	(setq use-case-replace nil))
     (if use-case-replace
