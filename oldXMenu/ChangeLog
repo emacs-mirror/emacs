@@ -1,3 +1,8 @@
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Activate.c (XMenuActivate): Return XM_NO_SELECT if Escape or C-g
+	was pressed.
+
 2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* XMenu.h (XMenuActivateSetWaitFunction): New function.
