@@ -42,10 +42,9 @@ even if it is active."
 				(enlarge-window (- size (window-height)))))
 		    'nomini))))
 
-;;; Many people find the minimal-redisplay window splitting annoying,
-;;; so we make it an option. 
+;;; I think this should be the default; I think people will prefer it--rms.
 
-(defvar split-window-keep-point nil
+(defvar split-window-keep-point t
   "*If non-nil, split windows so that both windows keep the original
 value of point.  This is often more convenient for editing.
 If nil, split windows to minimize redisplay.  This is convenient on
