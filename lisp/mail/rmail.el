@@ -966,8 +966,8 @@ Instead, these commands are available:
     (replace-buffer-in-windows rmail-summary-buffer)
     (bury-buffer rmail-summary-buffer))
   (let ((obuf (current-buffer)))
-    (replace-buffer-in-windows obuf)
-    (quit-window)))
+    (quit-window)
+    (replace-buffer-in-windows obuf)))
 
 (defun rmail-bury ()
   "Bury current Rmail buffer and its summary buffer."
