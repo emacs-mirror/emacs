@@ -1,4 +1,4 @@
-;;; which-func.el -- Print current function in mode line
+;;; which-func.el --- Print current function in mode line
 
 ;; Copyright (C) 1994, 1997 Free Software Foundation, Inc.
 
