@@ -460,7 +460,8 @@ The amount returned is relative to the value of `timeclock-workday'.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time.  This argument only makes
 a difference if `timeclock-relative' is non-nil."
-  (- (timeclock-find-discrep today-only)))
+  (let ((discrep (timeclock-find-discrep today-only)))
+    (or (and discrep (- discrep)) 0.0)))
 
 (defsubst timeclock-currently-in-p ()
   "Return non-nil if the user is currently clocked in."
