@@ -2836,7 +2836,6 @@ extern void frames_discard_buffer P_ ((Lisp_Object));
 extern void set_frame_buffer_list P_ ((Lisp_Object, Lisp_Object));
 extern void frames_bury_buffer P_ ((Lisp_Object));
 extern void syms_of_frame P_ ((void));
-extern void keys_of_frame P_ ((void));
 
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path P_ ((char *, char *));
