@@ -10,10 +10,9 @@
 	part of Tramp into a special file, so that the Tramp `core' is
 	just a dispatcher that dispatches to various handlers.
 	(tramp-sh-file-name-handler): New function.
-	(tramp-foreign-file-name-handler-alist): New default value.  Call
-	tramp-sh-file-name-handler as default case.
-	(tramp-file-name-handler): Do not invoke the old remote-shell
-	handler.
+	(tramp-foreign-file-name-handler-alist): New default value.
+	Call tramp-sh-file-name-handler as default case.
+	(tramp-file-name-handler): Do not invoke the old remote-shell handler.
 	(tramp-find-foreign-file-name-handler): Return after first match
 	is found.  From Francis Litterio <franl@world.std.com>.
 	(tramp-handle-file-newer-than-file-p):  `tramp-time-diff' returns
@@ -22,8 +21,8 @@
 	<ultrasoul@ultrasoul.com>.
 	(tramp-time-diff): Convert return value of subtract-time to a
 	number of seconds in a correct manner, by applying float-time or
-	time-to-seconds.  Also correct compat code accordingly.  The
-	XEmacs branch for itimer-time-difference didn't need correction,
+	time-to-seconds.  Also correct compat code accordingly.
+	The XEmacs branch for itimer-time-difference didn't need correction,
 	it returned a float already.  Reported by David D. Smith
 	<ultrasoul@ultrasoul.com>.
 	(tramp-handle-insert-file-contents): When calling
@@ -45,8 +44,8 @@
 	(tramp-shell-prompt-pattern): Allow multiple escape
 	sequences (each with optional trailing space).
 
-	* net/tramp-uu.el: 
-	* net/tramp-util.el: 
+	* net/tramp-uu.el:
+	* net/tramp-util.el:
 	* net/tramp-efs.el: Use iso-2022-7bit encoding with coding cookie
 	for XEmacs compatibility.
 
@@ -61,6 +60,38 @@
 	* select.el (x-get-selection): If the string returned by
 	x-get-selection-internal has text property `foreign-selection',
 	decode it while preserving that property.
+
+2003-06-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* menu-bar.el (ispell-menu-bar): Don't autoload.
+	(cvs-global-menu): Use the function rather than the variable.
+
+	* pcvs-defs.el (cvs-global-menu): Define as a function as well.
+
+	* emacs-lisp/debug.el (debug): Fix call to message.
+
+2003-06-16  Michael Mauger  <mmaug@yahoo.com> (tiny change)
+
+	* emulation/cua-base.el (cua-mode): Use explicit arg to turn off
+	minor modes.
+
+2003-06-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all):
+	Don't burp if (cadr (caddr found)) encounters a non-list element.
+
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause): Use map-keymap.
+	(defsubst*): Don't put a `cl-whole argument if it's not used.
+
+	* emacs-lisp/cl-specs.el (pushnew): Use keywordp.
+
+	* emacs-lisp/disass.el (disassemble): Accept plain expressions.
+
+	* add-log.el (add-log-edit-prev-comment, add-log-edit-next-comment):
+	New commands.
+	(change-log-mode-map): Bind them.
+	(smerge-resolve-function): Declare to quieten the byte-compiler.
+	(change-log-mode): Add the keymap to the docstring.
 
 2003-06-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
