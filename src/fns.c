@@ -30,6 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "buffer.h"
 #include "keyboard.h"
+#include "intervals.h"
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 
@@ -305,11 +306,19 @@ concat (nargs, args, target_type, last_special)
       if (!CONSP (this))
 	thislen = Flength (this), thisleni = XINT (thislen);
 
+      if (XTYPE (this) == Lisp_String && XTYPE (val) == Lisp_String
+	  && ! NULL_INTERVAL_P (XSTRING (this)->intervals))
+	{
+	  copy_text_properties (make_number (0), thislen, this,
+				make_number (toindex), val, Qnil);
+	}
+
       while (1)
 	{
 	  register Lisp_Object elt;
 
-	  /* Fetch next element of `this' arg into `elt', or break if `this' is exhausted. */
+	  /* Fetch next element of `this' arg into `elt', or break if
+             `this' is exhausted. */
 	  if (NILP (this)) break;
 	  if (CONSP (this))
 	    elt = Fcar (this), this = Fcdr (this);
@@ -389,6 +398,8 @@ If FROM or TO is negative, it counts from the end.")
      Lisp_Object string;
      register Lisp_Object from, to;
 {
+  Lisp_Object res;
+
   CHECK_STRING (string, 0);
   CHECK_NUMBER (from, 1);
   if (NILP (to))
@@ -404,8 +415,10 @@ If FROM or TO is negative, it counts from the end.")
         && XINT (to) <= XSTRING (string)->size))
     args_out_of_range_3 (string, from, to);
 
-  return make_string (XSTRING (string)->data + XINT (from),
-		      XINT (to) - XINT (from));
+  res = make_string (XSTRING (string)->data + XINT (from),
+		     XINT (to) - XINT (from));
+  copy_text_properties (from, to, string, make_number (0), res, Qnil);
+  return res;
 }
 
 DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
