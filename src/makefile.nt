@@ -36,6 +36,11 @@ LOCAL_FLAGS     = -Demacs=1 -DWINDOWSNT -DDOS_NT -DHAVE_CONFIG_H -I..\nt\inc
 !ifdef NTGUI
 LOCAL_FLAGS     = $(LOCAL_FLAGS) -DHAVE_NTGUI=1
 !endif
+!ifdef USE_CRT_DLL
+LOCAL_FLAGS     = $(LOCAL_FLAGS) -DUSE_CRT_DLL=1 -MD
+libc            = msvcrt.lib
+LINK_FLAGS      = -nodefaultlib
+!endif
 
 # From MSVC 5.0 onwards, it seem base relocation information is not included,
 # at least in release builds.  We need to ensure the reloc info is included
@@ -68,9 +73,9 @@ TLASTLIB	= $(BLD)\lastfile.lib
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -base settings.
 !if "$(BUILD_TYPE)" == "spd"
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
+LINK_FLAGS      = $(LINK_FLAGS) $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:$(BLD)\temacs.pdb -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd
 !else
-LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:none -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd $(EXTRA_LINK)
+LINK_FLAGS      = $(LINK_FLAGS) $(ARCH_LDFLAGS) -stack:0x00800000 -heap:0x00100000 -base:0x01000000 -debug:full -debugtype:both -pdb:none -machine:$(ARCH) -subsystem:$(SUBSYSTEM) -entry:_start -map:$(BLD)\temacs.map -swaprun:net -swaprun:cd $(EXTRA_LINK)
 !endif
 
 #
