@@ -341,16 +341,17 @@ Otherwise, it saves all modified buffers without asking."
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar grep-null-device "/dev/null" "The system null device.")
 
-;; Use zgrep if available, to work nicely with compressed files.
-;; Otherwise, use ordinary grep.
 (defvar grep-program
-  (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
-		 (call-process "zgrep" nil nil nil
-			       "foo" grep-null-device)
-	       (error nil))
-	     1)
-      "zgrep"
-    "grep")
+  ;; Currently zgrep has trouble.  It runs egrep instead of grep,
+  ;; and it doesn't pass along long options right.
+  "grep"
+;;;  (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
+;;;		 (call-process "zgrep" nil nil nil
+;;;			       "foo" grep-null-device)
+;;;	       (error nil))
+;;;	     1)
+;;;      "zgrep"
+;;;    "grep")
   "The default grep program for `grep-command' and `grep-find-command'.")
 
 ;; Use -e if grep supports it,
