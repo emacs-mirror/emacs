@@ -219,7 +219,7 @@ Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
-Lisp_Object QCeval, QCwhen;
+Lisp_Object QCeval, Qwhen;
 Lisp_Object Qfontified;
 
 /* Functions called to fontify regions of text.  */
@@ -2297,10 +2297,10 @@ handle_single_display_prop (it, prop, object, position)
 
   Lisp_Object form;
 
-  /* If PROP is a list of the form `(:when FORM . VALUE)', FORM is
+  /* If PROP is a list of the form `(when FORM . VALUE)', FORM is
      evaluated.  If the result is nil, VALUE is ignored. */
   form = Qt;
-  if (CONSP (prop) && EQ (XCAR (prop), QCwhen))
+  if (CONSP (prop) && EQ (XCAR (prop), Qwhen))
     {
       prop = XCDR (prop);
       if (!CONSP (prop))
@@ -12555,8 +12555,8 @@ syms_of_xdisp ()
   staticpro (&QCrelative_height);
   QCeval = intern (":eval");
   staticpro (&QCeval);
-  QCwhen = intern (":when");
-  staticpro (&QCwhen);
+  Qwhen = intern ("when");
+  staticpro (&Qwhen);
   Qfontified = intern ("fontified");
   staticpro (&Qfontified);
   Qfontification_functions = intern ("fontification-functions");
