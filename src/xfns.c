@@ -10424,7 +10424,10 @@ x_create_tip_frame (dpyinfo, parms)
     unsigned long mask;
     
     BLOCK_INPUT;
-    mask = CWBackPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask;
+    mask = CWBackPixel | CWOverrideRedirect | CWEventMask;
+    if (DoesSaveUnders (dpyinfo->screen))
+      mask |= CWSaveUnder;
+    
     /* Window managers look at the override-redirect flag to determine
        whether or net to give windows a decoration (Xlib spec, chapter
        3.2.8).  */
