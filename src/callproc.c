@@ -250,7 +250,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       {
 	int must_encode = 0;
 
-	for (i = 0; i < nargs; i++)
+	for (i = 4; i < nargs; i++)
 	  if (STRING_MULTIBYTE (args[i]))
 	    must_encode = 1;
 
