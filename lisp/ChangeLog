@@ -1,3 +1,9 @@
+2001-11-15  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/cl.el (values, values-list, multiple-value-list) 
+	(multiple-value-apply, nth-value): Use defsubst rather than defalias
+	to get better doc strings.
+
 2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* derived.el: Fix autoload cookie.
@@ -14,16 +20,6 @@
 
 	* dired.el (dired-undo): Display a message to explain
 	that this does not undo file system changes.
-
-2001-11-15  Alan Shutko  <ats@acm.org>
-
-	* compile.el (recompile): Use compilation-arguments if set, so as
-	to be able to M-x recompile the exact command which created a
-	compilation-mode buffer.
-
-2001-11-13  Richard M. Stallman  <rms@gnu.org>
-
-	* progmodes/ada-mode.el (ada-fill-comment-prefix): Doc fix.
 
 2001-11-15  David Kastrup  <David.Kastrup@t-online.de>
 
