@@ -660,13 +660,15 @@ See the variable `Man-notify-method' for the different notification behaviors."
      )))
 
 (defun Man-softhyphen-to-minus ()
-  ;; \255 is some kind of dash in Latin-1.
-  (goto-char (point-min))
-  (if enable-multibyte-characters
-      (while (search-forward "\255" nil t)
-	(if (= (preceding-char) ?\255)
-	    (replace-match "-")))
-    (while (search-forward "\255" nil t) (replace-match "-"))))
+  ;; \255 is some kind of dash in Latin-N.  Versions of Debian man, at
+  ;; least, emit it even when not in a Latin-N locale.
+  (unless (eq t (compare-strings "latin-" 0 nil
+				 current-language-environment 0 6 t))
+    (goto-char (point-min))
+    (let ((str "\255"))
+      (if enable-multibyte-characters
+	  (setq str (string-as-multibyte str)))
+      (while (search-forward str nil t) (replace-match "-")))))
 
 (defun Man-fontify-manpage ()
   "Convert overstriking and underlining to the correct fonts.
