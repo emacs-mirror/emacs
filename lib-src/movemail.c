@@ -679,9 +679,7 @@ popmail (user, outfile, preserve, password)
   int mbfi;
   FILE *mbf;
   char *getenv ();
-  int mbx_write ();
   popserver server;
-  extern char *strerror ();
 
   server = pop_open (0, user, password, POP_NO_GETPASS);
   if (! server)
@@ -723,7 +721,7 @@ popmail (user, outfile, preserve, password)
   for (i = 1; i <= nmsgs; i++)
     {
       mbx_delimit_begin (mbf);
-      if (pop_retr (server, i, mbx_write, mbf) != OK)
+      if (pop_retr (server, i, mbf) != OK)
 	{
 	  error (Errmsg);
 	  close (mbfi);
@@ -780,9 +778,10 @@ popmail (user, outfile, preserve, password)
   return (0);
 }
 
-pop_retr (server, msgno, action, arg)
+int
+pop_retr (server, msgno, arg)
      popserver server;
-     int (*action) ();
+     FILE *arg;
 {
   extern char *strerror ();
   char *line;
@@ -800,7 +799,7 @@ pop_retr (server, msgno, action, arg)
       if (! line)
 	break;
 
-      if ((*action)(line, arg) != OK)
+      if (mbx_write (line, arg) != OK)
 	{
 	  strcpy (Errmsg, strerror (errno));
 	  pop_close (server);
