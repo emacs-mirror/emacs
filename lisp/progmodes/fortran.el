@@ -1086,12 +1086,13 @@ Return point or nil."
 
 (defun fortran-beginning-do ()
   "Search backwards for first unmatched DO [WHILE].
-Return point or nil."
-  (let ((case-fold-search t))
+Return point or nil.  Ignores labelled DO loops (ie DO 10 ... 10 CONTINUE)."
+  (let ((case-fold-search t)
+        (dostart-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]"))
     (if (save-excursion
 	  (beginning-of-line)
 	  (skip-chars-forward " \t0-9")
-	  (looking-at "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+"))
+	  (looking-at dostart-re))
 	;; Sitting on one.
 	(match-beginning 0)
       ;; Search for one.
@@ -1103,9 +1104,9 @@ Return point or nil."
 		      (not (and (looking-at fortran-end-prog-re)
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
-	    (cond ((looking-at
-		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+")
+	    (cond ((looking-at dostart-re)
 		   (setq count (1- count)))
+                  ;; Note labelled loop ends not considered.
 		  ((looking-at "end[ \t]*do\\b")
 		   (setq count (1+ count)))))
 	  (and (= count 0)

@@ -1,3 +1,8 @@
+2002-10-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el (fortran-beginning-do): Ignore labelled DO
+	loops.
+
 2002-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (describe-coding-system): Describe
