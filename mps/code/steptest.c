@@ -188,13 +188,11 @@ static void set_clock_timing(void)
 static double time_since(double t)
 {
     t = my_clock() - t;
-    if (t < clock_time) {
-        total_clock_time += clock_time + t;
+    total_clock_time += clock_time + clock_time;
+    if (t < clock_time)
         return 0.0;
-    } else {
-        total_clock_time += clock_time + clock_time;
+    else
         return (t - clock_time);
-    }
 }
 
 /* print a number of microseconds in a useful format. */
@@ -468,7 +466,8 @@ static void *test(void *arg, size_t s)
                total_clock_time,
                " spent reading the clock;\n");
     printf("   %lu clock reads; ", (unsigned long)clock_reads);
-    print_time("", total_clock_time / clock_reads, " per read)\n");
+    print_time("", total_clock_time / clock_reads, " per read;");
+    print_time(" recently measured as ", clock_time, ").\n");
     mps_ap_destroy(ap);
     mps_root_destroy(exactRoot);
     mps_root_destroy(ambigRoot);
