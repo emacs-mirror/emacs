@@ -1604,7 +1604,7 @@ recorded is called a @dfn{tag}.
 @menu
 * Tag Syntax::		Tag syntax for various types of code and text files.
 * Create Tags Table::	Creating a tags table with @code{etags}.
-* Using Regexps::       Create arbitrary tags using regular expressions.
+* Etags Regexps::       Create arbitrary tags using regular expressions.
 * Select Tags Table::	How to visit a tags table.
 * Find Tag::		Commands to find the definition of a specific tag.
 * Tags Search::		Using a tags table for searching and replacing.
@@ -1804,9 +1804,9 @@ have a limit on its length.  The simplest way to circumvent this limit
 is to tell @code{etags} to read the file names from its standard input,
 by typing a dash in place of the file names, like this:
 
-@example
+@smallexample
 find . -name "*.[chCH]" -print | etags -
-@end example
+@end smallexample
 
   Use the option @samp{--language=@var{name}} to specify the language
 explicitly.  You can intermix these options with file names; each one
@@ -1815,38 +1815,33 @@ applies to the file names that follow it.  Specify
 language from the file names and file contents.  Specify
 @samp{--language=none} to turn off language-specific processing
 entirely; then @code{etags} recognizes tags by regexp matching alone
-(@pxref{Using Regexps}).  @samp{etags --help} prints the list of the
-languages @code{etags} knows, and the file name rules for guessing the
-language.
+(@pxref{Etags Regexps}).
 
-@node Using Regexps
-@subsection Using Regexps
+  @samp{etags --help} prints the list of the languages @code{etags}
+knows, and the file name rules for guessing the language. It also prints
+a list of all the available @code{etags} options, together with a short
+explanation.
+
+@node Etags Regexps
+@subsection Etags Regexps
 
   The @samp{--regex} option provides a general way of recognizing tags
 based on regexp matching.  You can freely intermix it with file names.
 Each @samp{--regex} option adds to the preceding ones, and applies only
 to the following files.  The syntax is:
 
-@example
+@smallexample
 --regex=/@var{tagregexp}[/@var{nameregexp}]/
-@end example
-
-or
-
-@example
---ignore-case-regex=/@var{tagregexp}[/@var{nameregexp}]/
-@end example
+@end smallexample
 
 @noindent
-where @var{tagregexp} is used to match the lines to tag.  The second
-form for the option syntax ignores the case when searching a match for
-the regular expression.  @var{tagregexp} is always anchored, that is, it
-behaves as if preceded by @samp{^}.  If you want to account for
-indentation, just match any initial number of blanks by beginning your
-regular expression with @samp{[ \t]*}.  In the regular expressions,
-@samp{\} quotes the next character, and @samp{\t} stands for the tab
-character.  Note that @code{etags} does not handle the other C escape
-sequences for special characters.
+where @var{tagregexp} is used to match the lines to tag.  It is always
+anchored, that is, it behaves as if preceded by @samp{^}.  If you want
+to account for indentation, just match any initial number of blanks by
+beginning your regular expression with @samp{[ \t]*}.  In the regular
+expressions, @samp{\} quotes the next character, and @samp{\t} stands
+for the tab character.  Note that @code{etags} does not handle the other
+C escape sequences for special characters.
 
 @cindex interval operator (in regexps)
   The syntax of regular expressions in @code{etags} is the same as in
@@ -1863,19 +1858,19 @@ pick out just the tag.  This will enable Emacs to find tags more
 accurately and to do completion on tag names more reliably.  You can
 find some examples below.
 
-  The option @samp{--case-folded-regexp} (or @samp{-c}) si like
+  The option @samp{--ignore-case-regex} (or @samp{-c}) is like
 @samp{--regex}, except that the regular expression provided will be
-matched with case folded, i.e. case-insensitively, which is appropriate
-for various programming languages.
+matched without regard to case, which is appropriate for various
+programming languages.
 
   The @samp{-R} option deletes all the regexps defined with
 @samp{--regex} options.  It applies to the file names following it, as
 you can see from the following example:
 
-@example
+@smallexample
 etags --regex=/@var{reg1}/ voo.doo --regex=/@var{reg2}/ \
     bar.ber -R --lang=lisp los.er
-@end example
+@end smallexample
 
 @noindent
 Here @code{etags} chooses the parsing language for @file{voo.doo} and
@@ -1885,16 +1880,54 @@ Here @code{etags} chooses the parsing language for @file{voo.doo} and
 @file{bar.ber}.  @code{etags} uses the Lisp tags rules, and no regexp
 matching, to recognize tags in @file{los.er}.
 
+  A regular expression can be bound to a given language, by prepending
+it with @samp{@{lang@}}.  When you do this, @code{etags} will use the
+regular expression only for files of that language.  @samp{etags --help}
+prints the list of languages recognised by @code{etags}.  The following
+example tags the @code{DEFVAR} macros in the Emacs source files.
+@code{etags} applies this regular expression to C files only:
+
+@smallexample
+--regex='@{c@}/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/'
+@end smallexample
+
+@noindent
+This feature is particularly useful when storing a list of regular
+expressions in a file.  The following option syntax instructs
+@code{etags} to read two files of regular expressions.  The regular
+expressions contained in the second file are matched without regard to
+case.
+
+@smallexample
+--regex=@@first-file --ignore-case-regex=@@second-file
+@end smallexample
+
+@noindent
+A regex file contains one regular expressions per line.  Empty lines,
+and lines beginning with space or tab are ignored.  When the first
+character in a line is @samp{@@}, @code{etags} assumes that the rest of
+the line is the name of a file of regular expressions.  This means that
+such files can be nested.  All the other lines are taken to be regular
+expressions.  For example, one can create a file called
+@samp{emacs.tags} with the following contents (the first line in the
+file is a comment):
+
+@smallexample
+        -- This is for GNU Emacs source files
+@{c@}/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/\1/
+@end smallexample
+
+@noindent
+and then use it like this:
+
+@smallexample
+etags --regex=@@emacs.tags *.[ch] */*.[ch]
+@end smallexample
+
   Here are some more examples.  The regexps are quoted to protect them
 from shell interpretation.
 
 @itemize @bullet
-@item
-Tag the @code{DEFVAR} macros in the emacs source files:
-
-@smallexample
---regex='/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/'
-@end smallexample
 
 @item
 Tag VHDL files (this example is a single long line, broken here for
@@ -1914,9 +1947,6 @@ Tag Tcl files (this last example shows the usage of a @var{nameregexp}):
 --lang=none --regex='/proc[ \t]+\([^ \t]+\)/\1/'
 @end smallexample
 @end itemize
-
-  For a list of the other available @code{etags} options, execute
-@code{etags --help}.
 
 @node Select Tags Table
 @subsection Selecting a Tags Table
