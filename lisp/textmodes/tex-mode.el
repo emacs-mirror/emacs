@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
 
-;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 97, 1998
+;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 97, 98, 1999
 ;;       Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -95,33 +95,36 @@ if the variable is non-nil."
 ;;;###autoload
 (defcustom tex-run-command "tex"
   "*Command used to run TeX subjob.
-If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise the value of `tex-start-options-string' and the file name are added
-at the end, with blanks as separators."
+TeX Mode sets `tex-command' to this string.
+See the documentation of that variable."
   :type 'string
   :group 'tex-run)
 
 ;;;###autoload
 (defcustom latex-run-command "latex"
   "*Command used to run LaTeX subjob.
-If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise the value of `tex-start-options-string' and the file name are added
-at the end, with blanks as separators."
+LaTeX Mode sets `tex-command' to this string.
+See the documentation of that variable."
   :type 'string
   :group 'tex-run)
 
 ;;;###autoload
 (defcustom slitex-run-command "slitex"
   "*Command used to run SliTeX subjob.
-If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end."
+SliTeX Mode sets `tex-command' to this string.
+See the documentation of that variable."
   :type 'string
   :group 'tex-run)
 
-(defcustom tex-start-options-string "\\\\nonstopmode\\\\input"
+;;;###autoload
+(defcustom tex-start-options-string "\\nonstopmode\\input"
   "*TeX options to use when running TeX.
-These precede the input file name."
-  :type 'string
+These precede the input file name. If nil, TeX runs without option.
+See the documentation of `tex-command'."
+  :type '(radio (const :tag "Interactive \(nil\)" nil)
+		(const :tag "Nonstop \(\"\\nonstopmode\\input\"\)"
+		       "\\nonstopmode\\input")
+		(string :tag "String at your choice"))
   :group 'tex-run
   :version "20.4")
 
@@ -230,9 +233,14 @@ Deleted when the \\[tex-region] or \\[tex-buffer] is next run, or when the
 tex shell terminates.")
 
 (defvar tex-command nil
-  "Command to run TeX.
-The usual values are `tex-run-command' and `latex-run-command'.
-See the documentations of these variables.")
+  "*Command to run TeX.
+If this string contains an asterisk \(`*'\), that is replaced by the file name\;
+otherwise the \(shell-quoted\) value of `tex-start-options-string' and
+the file name are added at the end, with blanks as separators.
+
+In TeX, LaTeX, and SliTeX Mode this variable becomes buffer local.
+In these modes, use \\[set-variable] if you want to change it for the
+current buffer.")
 
 (defvar tex-trailer nil
   "String appended after the end of a region sent to TeX by \\[tex-region].")
@@ -449,6 +457,8 @@ says which mode to use."
 ;;;###autoload
 (defalias 'TeX-mode 'tex-mode)
 ;;;###autoload
+(defalias 'plain-TeX-mode 'plain-tex-mode)
+;;;###autoload
 (defalias 'LaTeX-mode 'latex-mode)
 
 ;;;###autoload
@@ -502,8 +512,6 @@ special subshell is initiated, the hook `tex-shell-hook' is run."
   (setq tex-end-of-header "%\\*\\*end of header")
   (setq tex-trailer "\\bye\n")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'plain-tex-mode-hook))
-;;;###autoload
-(defalias 'plain-TeX-mode 'plain-tex-mode)
 
 ;;;###autoload
 (defun latex-mode ()
@@ -1102,7 +1110,9 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 		      (comint-quote-filename file)
 		      (substring command (1+ star)))
             (concat command " "
-		    (comint-quote-filename tex-start-options-string) " "
+		    (if (< 0 (length tex-start-options-string))
+			(concat
+			 (shell-quote-argument tex-start-options-string) " "))
 		    (comint-quote-filename file)))))
     (with-current-buffer (process-buffer (tex-send-command compile-command))
       (save-excursion
