@@ -1,3 +1,11 @@
+2004-01-21  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Avoid deleting
+	trailing white space and ensure a final newline.
+
+	* mail/rmail-spam-filter.el (rmail-use-spam-filter): Add autoload
+	cookie.
+
 2004-01-21  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* vc.el (vc-annotate-mode): Inherit from fundamental-mode and
