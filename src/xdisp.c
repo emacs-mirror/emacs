@@ -3309,12 +3309,16 @@ get_next_display_element (it)
 	     Control characters coming from a display table entry are
 	     currently not translated because we use IT->dpvec to hold
 	     the translation.  This could easily be changed but I
-	     don't believe that it is worth doing.  */
+	     don't believe that it is worth doing.
+
+	     Non-printable multibyte characters are also translated
+	     octal form.  */
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->c >= 127
-		       && it->len == 1))
+		       && it->len == 1)
+		   || !CHAR_PRINTABLE_P (it->c))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -3347,29 +3351,37 @@ get_next_display_element (it)
 		}
 	      else
 		{
+		  unsigned char work[4], *str;
+		  int len = CHAR_STRING (it->c, work, str);
+		  int i;
+		  GLYPH escape_glyph;
+
 		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
 		  if (it->dp
 		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
 		      && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    g = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
+		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
 		  else
-		    g = FAST_MAKE_GLYPH ('\\', 0);
-		  XSETINT (it->ctl_chars[0], g);
+		    escape_glyph = FAST_MAKE_GLYPH ('\\', 0);
 
-		  /* Insert three more glyphs into IT->ctl_chars for
-		     the octal display of the character.  */
-		  g = FAST_MAKE_GLYPH (((it->c >> 6) & 7) + '0', 0); 
-		  XSETINT (it->ctl_chars[1], g);
-		  g = FAST_MAKE_GLYPH (((it->c >> 3) & 7) + '0', 0); 
-		  XSETINT (it->ctl_chars[2], g);
-		  g = FAST_MAKE_GLYPH ((it->c & 7) + '0', 0); 
-		  XSETINT (it->ctl_chars[3], g);
+		  for (i = 0; i < len; i++)
+		    {
+		      XSETINT (it->ctl_chars[i * 4], escape_glyph);
+		      /* Insert three more glyphs into IT->ctl_chars for
+			 the octal display of the character.  */
+		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0', 0); 
+		      XSETINT (it->ctl_chars[i * 4 + 1], g);
+		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0', 0); 
+		      XSETINT (it->ctl_chars[i * 4 + 2], g);
+		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0', 0); 
+		      XSETINT (it->ctl_chars[i * 4 + 3], g);
+		    }
 
 		  /* Set up IT->dpvec and return the first character
                      from it.  */
 		  it->dpvec_char_len = it->len;
 		  it->dpvec = it->ctl_chars;
-		  it->dpend = it->dpvec + 4;
+		  it->dpend = it->dpvec + len * 4;
 		  it->current.dpvec_index = 0;
 		  it->method = next_element_from_display_vector;
 		  get_next_display_element (it);
