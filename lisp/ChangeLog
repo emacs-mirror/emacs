@@ -1,3 +1,15 @@
+2004-03-22  Juri Linkov  <juri@jurta.org>
+
+	* finder.el (finder-known-keywords): Fix data, tex, unix.
+
+	* play/landmark.el: Fix keywords.
+
+	* language/ethio-util.el (ethio-find-file): Doc fix.
+
+	* emacs-lisp/warnings.el: Doc fix.
+
+	* textmodes/ispell.el (ispell-help): Doc fix.
+
 2004-03-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* format.el (format-insert-file): Always return a list of two

@@ -1,3 +1,19 @@
+2004-03-22  Juri Linkov  <juri@jurta.org>
+
+	* emacs.texi (Top): Add `Misc X'.
+
+	* faq.texi, trouble.texi: Fix help key bindings.
+
+	* glossary.texi: Improve references.
+
+	* help.texi: Sync keywords with finder.el.
+
+	* mini.texi (Completion): Add description for menu items.
+
+	* misc.texi (Browse-URL, FFAP): Add information about keywords.
+
+	* sending.texi (Mail Methods): Fix xref to Message manual.
+
 2004-03-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* info.texi (Advanced): Replace @unnumberedsubsec by @subheading
