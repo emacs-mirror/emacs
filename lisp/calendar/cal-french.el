@@ -229,16 +229,12 @@ Echo French Revolutionary date unless NOECHO is t."
 				      (concat "Jour " x))
 				   special-days))))))))
 	    (completion-ignore-case t)
-	    (month (cdr (assoc
-			 (capitalize
-			  (completing-read
-			   "Mois ou Sansculottide: "
-			   month-list
-			   nil t))
-			 (calendar-make-alist
-			  month-list
-			  1
-			  '(lambda (x) (capitalize (car x)))))))
+	    (month (cdr (assoc-ignore-case
+                         (completing-read
+                          "Mois ou Sansculottide: "
+                          month-list
+                          nil t)
+			 (calendar-make-alist month-list 1 'car))))
 	    (decade (if (> month 12)
 			1
 		      (calendar-read
