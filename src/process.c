@@ -4896,6 +4896,8 @@ read_process_output (proc, channel)
 
       if (coding->carryover_bytes > 0)
 	{
+	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
+	    p->decoding_buf = make_uninit_string (coding->carryover_bytes);
 	  bcopy (coding->carryover, SDATA (p->decoding_buf),
 		 coding->carryover_bytes);
 	  XSETINT (p->decoding_carryover, coding->carryover_bytes);
@@ -5002,6 +5004,8 @@ read_process_output (proc, channel)
 	}
       if (coding->carryover_bytes > 0)
 	{
+	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
+	    p->decoding_buf = make_uninit_string (coding->carryover_bytes);
 	  bcopy (coding->carryover, SDATA (p->decoding_buf),
 		 coding->carryover_bytes);
 	  XSETINT (p->decoding_carryover, coding->carryover_bytes);
