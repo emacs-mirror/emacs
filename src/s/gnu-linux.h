@@ -176,10 +176,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* This is needed for sysdep.c */
 
-#define HAVE_UNISTD_H	      /* for getpagesize.h */
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
 #if 0 /* autoconf should take care of this.  */
+#define HAVE_UNISTD_H	      /* for getpagesize.h */
 #define HAVE_RANDOM           /* is builtin */
 #endif
 #define HAVE_GETPAGESIZE
