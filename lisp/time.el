@@ -74,6 +74,8 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	;; Start timer at the beginning of the next minute.
 	(run-at-time (apply 'encode-time 60 (cdr (decode-time)))
 		     display-time-interval 'display-time-event-handler))
+  ;; Make the time appear right away.
+  (display-time-event-handler)
   ;; When you get new mail, clear "Mail" from the mode line.
   (add-hook 'rmail-after-get-new-mail-hook 'display-time-event-handler))
 
