@@ -38,7 +38,7 @@
 
 ;;;###autoload
 (defcustom image-file-name-extensions
-  '("png" "jpeg" "jpg" "gif" "tiff" "xbm" "xpm" "pbm")
+  '("png" "jpeg" "jpg" "gif" "tiff" "xbm" "xpm" "pbm" "pgm" "ppm")
   "*A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
