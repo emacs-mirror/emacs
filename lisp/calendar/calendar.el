@@ -1828,10 +1828,9 @@ Or, for optional MON, YR."
 
 (defun generate-calendar-month (month year indent)
   "Produce a calendar for MONTH, YEAR on the Gregorian calendar.
-The calendar is inserted in the buffer starting at the line on which point
-is currently located, but indented INDENT spaces.  The indentation is done
-from the first character on the line and does not disturb the first INDENT
-characters on the line."
+The calendar is inserted at the beginning of the buffer,
+and is indented INDENT spaces.  The indentation is done
+by skipping the first INDENT characters on the line, if there are that many."
   (let* ((blank-days;; at start of month
           (mod
            (- (calendar-day-of-week (list month 1 year))
