@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -442,9 +442,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	 corresponding to the Lisp strings in visargs.  */
       for (j = 1; j < i; j++)
 	argstrings[j]
-	  = EQ (visargs[j], Qnil)
-	    ? (unsigned char *) ""
-	      : XSTRING (visargs[j])->data;
+	  = (EQ (visargs[j], Qnil)
+	     ? (unsigned char *) ""
+	     : XSTRING (visargs[j])->data);
 
       /* Process the format-string in prompt1, putting the output
 	 into callint_message.  Make callint_message bigger if necessary.
@@ -454,7 +454,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	{
 	  int nchars = doprnt (callint_message, callint_message_size,
 			       prompt1, (char *)0,
-			       j - 1, argstrings + 1);
+			       j - 1, (char **) argstrings + 1);
 	  if (nchars < callint_message_size)
 	    break;
 	  callint_message_size *= 2;
@@ -508,7 +508,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'd':		/* Value of point.  Does not do I/O.  */
-	  Fset_marker (point_marker, make_number (PT), Qnil);
+	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  args[i] = point_marker;
 	  /* visargs[i] = Qnil; */
 	  varies[i] = 1;
@@ -631,7 +631,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	case 'r':		/* Region, point and mark as 2 args. */
 	  check_mark ();
-	  Fset_marker (point_marker, make_number (PT), Qnil);
+	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
 	  foo = marker_position (current_buffer->mark);
 	  /* visargs[i] = Qnil; */
