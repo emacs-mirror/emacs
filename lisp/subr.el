@@ -79,12 +79,20 @@ BODY should be a list of lisp expressions."
   "Return the cdr of the cdr of X."
   (cdr (cdr x)))
 
-(defun last (x)
-  "Return the last element of the list X.
-If X is nil, return nil."
-  (while (cdr x)
-    (setq x (cdr x)))
-  x)
+(defun last (x &optional n)
+  "Return the last link of the list X.  Its car is the last element.
+If X is nil, return nil.
+If N is non-nil, return the Nth-to-last link of X.
+If N is bigger than the length of X, return X."
+  (if n
+      (let ((m 0) (p x))
+	(while (consp p)
+	  (setq m (1+ m) p (cdr p)))
+	(if (<= n 0) p
+	  (if (< n m) (nthcdr (- m n) x) x)))
+    (while (cdr x)
+      (setq x (cdr x)))
+    x))
 
 ;;;; Keymap support.
 
