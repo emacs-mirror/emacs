@@ -1,5 +1,8 @@
 2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* font-lock.el (font-lock-mode, global-font-lock-mode): Mention in
+	the doc strings how to customize Font Lock faces.
+
 	* mouse.el (mouse-drag-mode-line-1): Fix an off-by-one error in
 	computing growth when dragging the header line.
 

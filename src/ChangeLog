@@ -1,3 +1,10 @@
+2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (top-level) <Qbackground_color, Qforeground_color>: Make
+	them extern (they are defined on xfaces.c).
+	(syms_of_msdos): Don't intern and don't staticpro
+	Qbackground_color and Qforeground_color.
+
 2000-10-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fframe_parameter): For non-windowed frames, if
