@@ -1,3 +1,19 @@
+2003-06-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (looking-back): Handle the case of non-trivial regexps.
+	Add an optional `limit' argument.
+	(push, pop, with-temp-file, with-temp-message, delay-mode-hooks)
+	(with-syntax-table): Add edebug info.
+
+2003-06-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (kill-new): Leave yank-handler property alone if no
+	explicit yank-handler is specified.
+	(vis-mode-saved-buffer-invisibility-spec): Rename from
+	saved-buffer-invisibility-spec.
+	(vis-mode): Correctly handle the case where the mode is turned on
+	or off several times in a row.
+
 2003-06-17  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.el (Info-fontify-node): Give only the last whitespace
