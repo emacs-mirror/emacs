@@ -283,7 +283,11 @@
 ;; `make-coding-system'.
 
 (put 'no-conversion 'coding-system
-     (vector nil ?= "Do no conversion"
+     (vector nil ?= "Do no conversion.
+
+When you visit a file with this coding, the file is read into a
+unibyte buffer as is, thus each byte of a file is treated as a
+character."
 	     (list 'coding-category 'coding-category-binary
 		   'alias-coding-systems '(no-conversion))
 	     nil))
@@ -314,6 +318,7 @@
 (make-coding-system
  'emacs-mule 0 ?=
  "Emacs internal format used in buffer and string.
+
 Encoding text with this coding system produces the actual byte
 sequence of the text in buffers and strings.  An exception is made for
 eight-bit-control characters.  Each of them is encoded into a single
@@ -327,7 +332,11 @@ byte."
 Encoding text with this coding system produces the actual byte
 sequence of the text in buffers and strings.  An exception is made for
 eight-bit-control characters.  Each of them is encoded into a single
-byte."
+byte.
+
+When you visit a file with this coding, the file is read into a
+unibyte buffer as is (except for EOL format), thus each byte of a file
+is treated as a character."
  nil
  '((safe-charsets . t)))
 
