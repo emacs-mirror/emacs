@@ -2246,15 +2246,15 @@ make_dummy_parent (window)
 DEFUN ("split-window", Fsplit_window, Ssplit_window, 0, 3, "",
   "Split WINDOW, putting SIZE lines in the first of the pair.\n\
 WINDOW defaults to selected one and SIZE to half its size.\n\
-If optional third arg HOR-FLAG is non-nil, split side by side\n\
+If optional third arg HORFLAG is non-nil, split side by side\n\
 and put SIZE columns in the first of the pair.")
-  (window, chsize, horflag)
-     Lisp_Object window, chsize, horflag;
+  (window, size, horflag)
+     Lisp_Object window, size, horflag;
 {
   register Lisp_Object new;
   register struct window *o, *p;
   FRAME_PTR fo;
-  register int size;
+  register int size_int;
   int internal_width;
   int separator_width = 1;
 
@@ -2269,19 +2269,19 @@ and put SIZE columns in the first of the pair.")
     separator_width = FRAME_SCROLL_BAR_COLS (fo);
   internal_width = window_internal_width (o);
 
-  if (NILP (chsize))
+  if (NILP (size))
     {
       if (!NILP (horflag))
 	/* Calculate the size of the left-hand window, by dividing
 	   the usable space in columns by two. */
-        size = (internal_width - separator_width) >> 1;
+	size_int = (internal_width - separator_width) >> 1;
       else
-	size = XFASTINT (o->height) >> 1;
+	size_int = XFASTINT (o->height) >> 1;
     }
   else
     {
-      CHECK_NUMBER (chsize, 1);
-      size = XINT (chsize);
+      CHECK_NUMBER (size, 1);
+      size_int = XINT (size);
     }
 
   if (MINI_WINDOW_P (o))
@@ -2293,11 +2293,11 @@ and put SIZE columns in the first of the pair.")
 
   if (NILP (horflag))
     {
-      if (size < window_min_height)
-	error ("Window height %d too small (after splitting)", size);
-      if (size + window_min_height > XFASTINT (o->height))
+      if (size_int < window_min_height)
+	error ("Window height %d too small (after splitting)", size_int);
+      if (size_int + window_min_height > XFASTINT (o->height))
 	error ("Window height %d too small (after splitting)", 
-	       XFASTINT (o->height) - size);
+	       XFASTINT (o->height) - size_int);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->vchild))
 	{
@@ -2308,11 +2308,11 @@ and put SIZE columns in the first of the pair.")
     }
   else
     {
-      if (size < window_min_width)
-	error ("Window width %d too small (after splitting)", size);
-      if (internal_width - size - separator_width < window_min_width)
+      if (size_int < window_min_width)
+	error ("Window width %d too small (after splitting)", size_int);
+      if (internal_width - size_int - separator_width < window_min_width)
 	error ("Window width %d too small (after splitting)", 
-	       internal_width - size - separator_width);
+	       internal_width - size_int - separator_width);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{
@@ -2348,18 +2348,18 @@ and put SIZE columns in the first of the pair.")
     {
       p->height = o->height;
       p->top = o->top;
-      size += separator_width;
-      XSETFASTINT (p->width, internal_width - size);
-      XSETFASTINT (o->width, size);
-      XSETFASTINT (p->left, XFASTINT (o->left) + size);
+      size_int += separator_width;
+      XSETFASTINT (p->width, internal_width - size_int);
+      XSETFASTINT (o->width, size_int);
+      XSETFASTINT (p->left, XFASTINT (o->left) + size_int);
     }
   else
     {
       p->left = o->left;
       p->width = o->width;
-      XSETFASTINT (p->height, XFASTINT (o->height) - size);
-      XSETFASTINT (o->height, size);
-      XSETFASTINT (p->top, XFASTINT (o->top) + size);
+      XSETFASTINT (p->height, XFASTINT (o->height) - size_int);
+      XSETFASTINT (o->height, size_int);
+      XSETFASTINT (p->top, XFASTINT (o->top) + size_int);
     }
 
   return new;
