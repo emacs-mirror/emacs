@@ -1,3 +1,8 @@
+2000-05-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* add-log.el (add-change-log-entry): Merge the current entry with the
+	previous one if the previous one is empty.
+
 2000-05-26  Dave Love  <fx@gnu.org>
 
 	* loadhist.el (unload-feature): Fix interactive spec [from
