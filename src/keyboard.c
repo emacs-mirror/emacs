@@ -145,6 +145,10 @@ Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
 Lisp_Object this_command_keys;
 int this_command_key_count;
 
+/* 1 after calling Freset_this_command_lengths.
+   Usually it is 0.  */
+int this_command_key_count_reset;
+
 /* This vector is used as a buffer to record the events that were actually read
    by read_key_sequence.  */
 Lisp_Object raw_keybuf;
@@ -1373,6 +1377,7 @@ command_loop_1 ()
 
   nonundocount = 0;
   this_command_key_count = 0;
+  this_command_key_count_reset = 0;
   this_single_command_key_start = 0;
 
   if (NILP (Vmemory_full))
@@ -1505,6 +1510,7 @@ command_loop_1 ()
 	{
 	  cancel_echoing ();
 	  this_command_key_count = 0;
+	  this_command_key_count_reset = 0;
 	  this_single_command_key_start = 0;
 	  goto finalize;
 	}
@@ -1784,6 +1790,7 @@ command_loop_1 ()
 	  current_kboard->Vreal_last_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
+	  this_command_key_count_reset = 0;
 	  this_single_command_key_start = 0;
 	}
 
@@ -2384,6 +2391,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_for_input_method;
     }
 
+  this_command_key_count_reset = 0;
+
   if (!NILP (Vexecuting_macro))
     {
       /* We set this to Qmacro; since that's not a frame, nobody will
@@ -2949,7 +2958,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && (unsigned) XINT (c) < 256)
     {
       Lisp_Object keys;
-      int key_count;
+      int key_count, key_count_reset;
       struct gcpro gcpro1;
       int count = SPECPDL_INDEX ();
 
@@ -2971,6 +2980,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       /* Save the this_command_keys status.  */
       key_count = this_command_key_count;
+      key_count_reset = this_command_key_count_reset;
 
       if (key_count > 0)
 	keys = Fcopy_sequence (this_command_keys);
@@ -2980,6 +2990,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       /* Clear out this_command_keys.  */
       this_command_key_count = 0;
+      this_command_key_count_reset = 0;
 
       /* Now wipe the echo area.  */
       if (!NILP (echo_area_buffer[0]))
@@ -3002,6 +3013,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Restore the saved echoing state
 	 and this_command_keys state.  */
       this_command_key_count = key_count;
+      this_command_key_count_reset = key_count_reset;
       if (key_count > 0)
 	this_command_keys = keys;
 
@@ -3051,7 +3063,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto retry;
     }
 
-  if (this_command_key_count == 0 || ! reread)
+  if (! reread || this_command_key_count == 0
+      || this_command_key_count_reset)
     {
 
       /* Don't echo mouse motion events.  */
@@ -9404,6 +9417,7 @@ will read just one key sequence.  */)
   if (NILP (continue_echo))
     {
       this_command_key_count = 0;
+      this_command_key_count_reset = 0;
       this_single_command_key_start = 0;
     }
 
@@ -9463,6 +9477,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
   if (NILP (continue_echo))
     {
       this_command_key_count = 0;
+      this_command_key_count_reset = 0;
       this_single_command_key_start = 0;
     }
 
@@ -9656,6 +9671,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     int i;
 
     this_command_key_count = 0;
+    this_command_key_count_reset = 0;
     this_single_command_key_start = 0;
 
     keys = XVECTOR (saved_keys)->contents;
@@ -9891,23 +9907,27 @@ The value is always a vector.  */)
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
        Sreset_this_command_lengths, 0, 0, 0,
-       doc: /* Used for complicated reasons in `universal-argument-other-key'.
+       doc: /* Make the unread events replace the last command and echo.
+Used in `universal-argument-other-key'.
 
 `universal-argument-other-key' rereads the event just typed.
 It then gets translated through `function-key-map'.
-The translated event gets included in the echo area and in
-the value of `this-command-keys' in addition to the raw original event.
-That is not right.
-
-Calling this function directs the translated event to replace
-the original event, so that only one version of the event actually
-appears in the echo area and in the value of `this-command-keys'.  */)
+The translated event has to replace the real events,
+both in the value of (this-command-keys) and in echoing.
+To achieve this, `universal-argument-other-key' calls
+`reset-this-command-lengths', which discards the record of reading
+these events the first time.  */)
      ()
 {
   this_command_key_count = before_command_key_count;
   if (this_command_key_count < this_single_command_key_start)
     this_single_command_key_start = this_command_key_count;
+
   echo_truncate (before_command_echo_length);
+
+  /* Cause whatever we put into unread-command-events
+     to echo as if it were being freshly read from the keyboard.  */
+  this_command_key_count_reset = 1;
 
   return Qnil;
 }
@@ -9923,6 +9943,7 @@ KEEP-RECORD is non-nil.  */)
   int i;
 
   this_command_key_count = 0;
+  this_command_key_count_reset = 0;
 
   if (NILP (keep_record))
     {
