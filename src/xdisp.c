@@ -912,7 +912,6 @@ INLINE int
 window_text_bottom_y (w)
      struct window *w;
 {
-  struct frame *f = XFRAME (w->frame);
   int height = WINDOW_TOTAL_HEIGHT (w);
 
   if (WINDOW_WANTS_MODELINE_P (w))
@@ -9003,7 +9002,6 @@ draw_row_fringe_bitmaps (w, row)
      struct window *w;
      struct glyph_row *row;
 {
-  struct frame *f = XFRAME (w->frame);
   enum fringe_bitmap_type bitmap;
 
   xassert (interrupt_input_blocked);
@@ -20201,8 +20199,6 @@ void
 x_draw_vertical_border (w)
      struct window *w;
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-
   /* We could do better, if we knew what type of scroll-bar the adjacent
      windows (on either side) have...  But we don't :-( 
      However, I think this works ok.  ++KFS 2003-04-25 */
