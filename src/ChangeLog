@@ -1,3 +1,8 @@
+2001-04-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* editfns.c (save_excursion_restore): Don't use XBUFFER on
+	a non-buffer.
+
 2001-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.c (toggle_highlight): New function.
