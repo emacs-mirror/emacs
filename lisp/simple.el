@@ -513,33 +513,26 @@ addition, the encoding is fully shown."
 				"..."
 			      (concat
 			       (encoded-string-description encoded coding)
-			       (if (cmpcharp char) "..." ""))))
+			       (if (nth 2 (find-composition (point)))
+				   " (composed)" ""))))
 		  (format "(0%o, %d, 0x%x)" char char char))))
 	(if detail
 	    ;; We show the detailed information of CHAR.
-	    (let ((internal
-		   (if (cmpcharp char)
-		       ;; For a composite character, we show the
-		       ;; components only.
-		       (concat "(composed \""
-			       (decompose-composite-char char)
-			       "\")")
-		     (split-char char))))
-	      (message "Char: %s %s %s"
-		       (if (< char 256)
-			   (single-key-description char)
-			 (buffer-substring (point) (1+ (point))))
-		       encoding-msg internal))
+	    (message "Char: %s %s %s"
+		     (if (< char 256)
+			 (single-key-description char)
+		       (buffer-substring-no-properties (point) (1+ (point))))
+		     encoding-msg (split-char char))
 	  (if (or (/= beg 1) (/= end (1+ total)))
 	      (message "Char: %s %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
 		       (if (< char 256)
 			   (single-key-description char)
-			 (buffer-substring (point) (1+ (point))))
+			 (buffer-substring-no-properties (point) (1+ (point))))
 		       encoding-msg pos total percent beg end col hscroll)
 	    (message "Char: %s %s point=%d of %d(%d%%)  column %d %s"
 		     (if (< char 256)
 			 (single-key-description char)
-		       (buffer-substring (point) (1+ (point))))
+		       (buffer-substring-no-properties (point) (1+ (point))))
 		     encoding-msg pos total percent col hscroll)))))))
 
 (defvar read-expression-map (cons 'keymap minibuffer-local-map)
