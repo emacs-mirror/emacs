@@ -1,3 +1,9 @@
+2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xfaces.c (realize_default_face): Don't set the weight and slant
+	of the default face to Qnormal, unless these attributes are
+	unspecified.
+
 2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (command_loop_1) [HAVE_X_WINDOWS]: Call
