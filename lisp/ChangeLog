@@ -1,3 +1,8 @@
+2004-08-22  Andreas Schwab  <schwab@suse.de>
+
+	* cvs-status.el: Require pcvs during byte-compiling for
+	defun-cvs-mode.
+
 2004-08-22  Masatake YAMATO  <jet@gyve.org>
 
 	* cvs-status.el (cvs-status-checkout): New function.
