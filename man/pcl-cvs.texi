@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.8 2000/12/04 16:17:49 eliz Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.9 2000/12/06 20:03:33 fx Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000  Free Software Foundation, Inc.
@@ -122,9 +122,9 @@ of the various commands and major modes for further information.
 * Selected files::              To which files are commands applied.
 * Commands::                    All commands, grouped by type.
 
-* Log Edit Mode::               Major mode to edit log messages.
-* Log View Mode::               Major mode to browse log changes.
-* CVS Status Mode::             Major mode to view CVS' status output.
+@c * Log Edit Mode::               Major mode to edit log messages.
+@c * Log View Mode::               Major mode to browse log changes.
+@c * CVS Status Mode::             Major mode to view CVS' status output.
 * Customization::               How you can tailor PCL-CVS to suit your needs.
 * Bugs::                        Bugs (known and unknown).
 
@@ -546,7 +546,7 @@ it, it is quite powerful.
 
 For commands to mark and unmark files, see @ref{Marking files}.
 
-@node Commands, Log Edit Mode, Selected files, Top
+@node Commands, Customization, Selected files, Top
 @chapter Commands
 
 @iftex
@@ -842,7 +842,9 @@ After having selected the files you want to commit, you type either
 
 @item
 You type in the log message describing the changes you're about to
-commit (@pxref{Log Edit Mode}).@refill
+commit.
+@c Reinstate when node is written:
+@c (@pxref{Log Edit Mode}).@refill
 
 @item
 When you're happy with it, you type @kbd{C-c C-c} to do the actual
@@ -929,12 +931,16 @@ directory.  (@code{cvs-mode-add-change-log-entry-other-window}).@refill
 @item l
 Call the command @code{cvs-mode-log} which runs @samp{cvs log} on all
 selected files, and show the result in a temporary buffer
-@samp{*cvs-info*} (@pxref{Log View Mode}).
+@samp{*cvs-info*}.
+@c Fixme: reinstate when node is written:
+@c (@pxref{Log View Mode}).
 
 @item s
 Call the command @code{cvs-mode-status} which runs @samp{cvs status} on
 all selected files, and show the result in a temporary buffer
-@samp{*cvs-info*} (@pxref{CVS Status Mode}).
+@samp{*cvs-info*}.
+@c Fixme: reinstate when node is written:
+@c (@pxref{CVS Status Mode}).
 @end table
 
 
@@ -1205,16 +1211,16 @@ area (@code{cvs-help}).
 Quit PCL-CVS, killing the @samp{*cvs*} buffer (@code{cvs-mode-quit}).
 @end table
 
-@node Log Edit Mode, Log View Mode, Commands, Top
-@chapter Editing a Log Message
+@c @node Log Edit Mode, Log View Mode, Commands, Top
+@c @chapter Editing a Log Message
 
-@node Log View Mode, CVS Status Mode, Log Edit Mode, Top
-@chapter Browsing a Log of Changes
+@c @node Log View Mode, CVS Status Mode, Log Edit Mode, Top
+@c @chapter Browsing a Log of Changes
 
-@node CVS Status Mode, Customization, Log View Mode, Top
-@chapter Viewing CVS' Status output
+@c @node CVS Status Mode, Customization, Log View Mode, Top
+@c @chapter Viewing CVS' Status output
 
-@node Customization, Bugs, CVS Status Mode, Top
+@node Customization, Bugs, Commands, Top
 @chapter Customization
 @vindex log-edit-changelog-full-paragraphs@r{ (variable)}
 @vindex cvs-auto-remove-handled@r{ (variable)}
