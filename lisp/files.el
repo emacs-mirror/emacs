@@ -833,12 +833,12 @@ If `enable-local-variables' is nil, this function does not check for a
       (if (and enable-local-variables
 	       ;; Don't look for -*- if this file name matches any
 	       ;; of the regexps in inhibit-local-variables-regexps.
-	       (not (let ((temp inhibit-local-variables-regexps))
-		      (while (and temp
-				  (not (string-match (car temp)
-						     buffer-file-name)))
-			(setq temp (cdr temp)))
-		      (not temp)))
+	       (let ((temp inhibit-local-variables-regexps))
+		 (while (and temp
+			     (not (string-match (car temp)
+						buffer-file-name)))
+		   (setq temp (cdr temp)))
+		 (not temp))
 	       (search-forward "-*-" (save-excursion
 				       ;; If the file begins with "#!"
 				       ;; (exec interpreter magic), look
@@ -1880,7 +1880,11 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
       (if (eq system-type 'vax-vms)
 	  (vms-read-directory file switches (current-buffer))
 	(if wildcard
-	    (let ((default-directory (file-name-directory file)))
+	    ;; Run ls in the directory of the file pattern we asked for.
+	    (let ((default-directory
+		    (if (file-name-absolute-p file)
+			(file-name-directory file)
+		      (file-name-directory (expand-file-name file)))))
 	      (call-process shell-file-name nil t nil
 			    "-c" (concat insert-directory-program
 					 " -d " switches " "
