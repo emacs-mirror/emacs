@@ -7033,7 +7033,7 @@ void
 clear_mouse_face (dpyinfo)
      struct w32_display_info *dpyinfo;
 {
-  if (tip_frame)
+  if (!NILP (tip_frame))
     return;
 
   if (! NILP (dpyinfo->mouse_face_window))
@@ -9873,29 +9873,40 @@ x_iconify_frame (f)
   UNBLOCK_INPUT;
 }
 
-/* Destroy the window of frame F.  */
+/* Free X resources of frame F.  */
 
-x_destroy_window (f)
+void
+x_free_frame_resources (f)
      struct frame *f;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
   BLOCK_INPUT;
 
-  my_destroy_window (f, FRAME_W32_WINDOW (f));
+  if (FRAME_W32_WINDOW (f))
+    my_destroy_window (f, FRAME_W32_WINDOW (f));
+      
   free_frame_menubar (f);
-  free_frame_faces (f);
 
+  unload_color (f, f->output_data.x->foreground_pixel);
+  unload_color (f, f->output_data.x->background_pixel);
+  unload_color (f, f->output_data.w32->cursor_pixel);
+  unload_color (f, f->output_data.w32->cursor_foreground_pixel);
+  unload_color (f, f->output_data.w32->border_pixel);
+  unload_color (f, f->output_data.w32->mouse_pixel);
+      
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
+      
   xfree (f->output_data.w32);
-  f->output_data.w32 = 0;
+  f->output_data.w32 = NULL;
+  
   if (f == dpyinfo->w32_focus_frame)
     dpyinfo->w32_focus_frame = 0;
   if (f == dpyinfo->w32_focus_event_frame)
     dpyinfo->w32_focus_event_frame = 0;
   if (f == dpyinfo->w32_highlight_frame)
     dpyinfo->w32_highlight_frame = 0;
-
-  dpyinfo->reference_count--;
 
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
@@ -9904,9 +9915,24 @@ x_destroy_window (f)
       dpyinfo->mouse_face_end_row
 	= dpyinfo->mouse_face_end_col = -1;
       dpyinfo->mouse_face_window = Qnil;
+      dpyinfo->mouse_face_deferred_gc = 0;
+      dpyinfo->mouse_face_mouse_frame = 0;
     }
 
   UNBLOCK_INPUT;
+}
+
+
+/* Destroy the window of frame F.  */
+
+x_destroy_window (f)
+     struct frame *f;
+{
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+
+  x_free_frame_resources (f);
+
+  dpyinfo->reference_count--;
 }
 
 /* Setting window manager hints.  */
