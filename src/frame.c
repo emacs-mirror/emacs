@@ -197,14 +197,14 @@ make_frame (mini_p)
   f->width = 10;
   f->height = 10;
 
-  XFASTINT (XWINDOW (root_window)->width) = 10;
-  XFASTINT (XWINDOW (root_window)->height) = (mini_p ? 9 : 10);
+  XSETFASTINT (XWINDOW (root_window)->width, 10);
+  XSETFASTINT (XWINDOW (root_window)->height, (mini_p ? 9 : 10));
 
   if (mini_p)
     {
-      XFASTINT (XWINDOW (mini_window)->width) = 10;
-      XFASTINT (XWINDOW (mini_window)->top) = 9;
-      XFASTINT (XWINDOW (mini_window)->height) = 1;
+      XSETFASTINT (XWINDOW (mini_window)->width, 10);
+      XSETFASTINT (XWINDOW (mini_window)->top, 9);
+      XSETFASTINT (XWINDOW (mini_window)->height, 1);
     }
 
   /* Choose a buffer for the frame's root window.  */
@@ -233,7 +233,7 @@ make_frame (mini_p)
   f->selected_window = root_window;
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  */
-  XFASTINT (XWINDOW (f->selected_window)->use_time) = ++window_select_count;
+  XSETFASTINT (XWINDOW (f->selected_window)->use_time, ++window_select_count);
 
   return f;
 }
@@ -1430,7 +1430,7 @@ If FRAME is omitted, return information on the currently selected frame.")
     {
       /* This ought to be correct in f->param_alist for an X frame.  */
       Lisp_Object lines;
-      XFASTINT (lines) = FRAME_MENU_BAR_LINES (f);
+      XSETFASTINT (lines, FRAME_MENU_BAR_LINES (f));
       store_in_alist (&alist, Qmenu_bar_lines, lines);
     }
   return alist;
@@ -1856,7 +1856,7 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   ()
 {
   Lisp_Object tem;
-  XFASTINT (tem) = 0;
+  XSETFASTINT (tem, 0);
   return tem;
 }
 
@@ -2119,7 +2119,7 @@ syms_of_frame ()
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
     "The initial frame-object, which represents Emacs's stdout.");
-  XFASTINT (Vterminal_frame) = 0;
+  XSETFASTINT (Vterminal_frame, 0);
 
   defsubr (&Sselected_frame);
   defsubr (&Sframe_first_window);
