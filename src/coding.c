@@ -6409,7 +6409,9 @@ DEFUN ("find-coding-systems-region-internal",
     safe_codings = find_safe_codings (p2, p2end, safe_codings, work_table,
 				      &single_byte_char_found);
 
-  if (!single_byte_char_found)
+  if (EQ (safe_codings, Qt))
+    ; /* Nothing to be done.  */
+  else if (!single_byte_char_found)
     {
       /* Append generic coding systems.  */
       Lisp_Object args[2];
