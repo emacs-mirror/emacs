@@ -8,6 +8,11 @@
 
 @c The @ifinfo stuff only appears in the Info version
 @ifinfo
+@dircategory Editors
+@direntry
+* Emacs FAQ: (emacs-faq).	Frequently Asked Questions about Emacs.
+@end direntry
+
 Copyright 1994-1999 Reuven M. Lerner@*
 Copyright 1992-1993 Steven Byrnes@*
 Copyright 1990-1992 Joseph Brian Wells@*
@@ -25,6 +30,10 @@ latest version of the FAQ is archived (including FTP information).
 The FAQ may be copied and redistributed under these conditions, except that
 the FAQ may not be embedded in a larger literary work unless that work
 itself allows free copying and redistribution.
+
+[This version has been somewhat edited from the last-posted version
+(as of August 1999) for inclusion in the Emacs distribution.]
+
 @end ifinfo
 
 @c The @titlepage stuff only appears in the printed version
@@ -52,6 +61,9 @@ latest version of the FAQ is archived (including FTP information).
 The FAQ may be copied and redistributed under these conditions, except that
 the FAQ may not be embedded in a larger literary work unless that work
 itself allows free copying and redistribution.
+
+[This version has been somewhat edited from the last-posted version
+(as of August 1999) for inclusion in the Emacs distribution.]
 @end titlepage
 
 @node    Top, FAQ notation, (dir), (dir)
@@ -120,7 +132,7 @@ used in the FAQ.
 
 @item
 @kbd{M-x}: press the @key{x} key while holding down the @key{Meta} key
-(if your computer doesn't have a @key{Meta} key, see @xref{No Meta key})
+(if your computer doesn't have a @key{Meta} key, see @pxref{No Meta key})
 
 @item
 @kbd{M-C-x}: press the @key{x} key while holding down both @key{Control}
@@ -137,7 +149,7 @@ and @key{Meta}
 
 @item
 @key{DEL}: @key{Delete}, usually not the same as @key{Backspace}; same
-     as @kbd{C-?}  (@xref{Backspace invokes help} if deleting invokes Emacs help)
+     as @kbd{C-?}  (@pxref{Backspace invokes help} if deleting invokes Emacs help)
 
 @item
 @key{ESC}: Escape; same as @kbd{C-[}
@@ -167,7 +179,7 @@ pressing just @key{x}.  Essentially, @key{Control} turns off bits 5 and
 Also, on very few keyboards does @kbd{C-?} generate ASCII code 127.
 
 @inforef{Characters, Characters, emacs} and @inforef{Keys, Keys, emacs}
-for more information.  (@xref{On-line manual} for more information about
+for more information.  (@pxref{On-line manual} for more information about
 Info.)
 
 @node Extended commands, On-line manual, Basic keys, FAQ notation
@@ -177,7 +189,7 @@ Info.)
 @cindex M-x, meaning of
 
 @kbd{M-x @var{command}} means type @kbd{M-x}, then type the name of the
-command, then type @key{RET}.  (@xref{Basic keys} if you're not sure
+command, then type @key{RET}.  (@pxref{Basic keys} if you're not sure
 what @kbd{M-x} and @key{RET} mean.)
 
 @kbd{M-x} (by default) invokes the command
@@ -214,7 +226,7 @@ If we refer to topic XXX:YYY, type @kbd{C-h i m emacs @key{RET} m XXX
 Your system administrator may not have installed the Info files, or may
 have installed them improperly.  In this case you should complain.
 
-@xref{Getting a printed manual} if you would like a paper copy of the
+@xref{Getting a printed manual}, if you would like a paper copy of the
 Emacs manual.
 
 @node Filename conventions, Common acronyms, On-line manual, FAQ notation
@@ -369,7 +381,7 @@ same freedom that you enjoyed.
 @cindex Mailing lists, appropriate messages for
 
 The file @file{etc/MAILINGLISTS} discusses the purpose of each GNU
-mailing-list.  (@xref{Informational files for Emacs} if you want a copy
+mailing-list.  (@pxref{Informational files for Emacs} if you want a copy
 of the file.)  For those lists which are gatewayed with newsgroups, it
 lists both the newsgroup name and the mailing list address.
 
@@ -427,7 +439,7 @@ so you can be contacted for further details.
 
 Be sure to read the "Bugs" section of the Emacs manual before reporting
 a bug to bug-gnu-emacs!  The manual describes in detail how to submit a
-useful bug report.  (@xref{On-line manual} if you don't know how to read the
+useful bug report.  (@pxref{On-line manual} if you don't know how to read the
 manual.)
 
 RMS says:
@@ -614,18 +626,13 @@ file}).
 If you absolutely have to print your own copy, and you don't have @TeX{},
 you can get a PostScript version from
 
-@uref{ftp://ftp.cs.ubc.ca/pub/archive/gnu/manuals_ps/emacs-19.21.ps.gz}
+@uref{http://www.gnu.org/manual/emacs/ps/emacs.ps.gz}
 
-Note that the above document is somewhat out of date, although most
-major concepts are still relevant.  This site requests that you please
-@emph{confine any major ftping to late evenings or early mornings, local
-time} (Pacific time zone, GMT-8).
+A WWW version of the manual is at
 
-A WWW version of the (somewhat outdated) Emacs 19.34 manual is at
+@uref{www.gnu.org/manual/emacs/index.html}
 
-@uref{http://www.cl.cam.ac.uk/texinfodoc/emacs_toc.html}
-
-@xref{Learning how to do something} for how to view the manual on-line.
+@xref{Learning how to do something}, for how to view the manual on-line.
 
 @node Emacs Lisp documentation, Installing Texinfo documentation, Getting a printed manual, Getting help
 @section Where can I get documentation on Emacs Lisp?
@@ -647,18 +654,14 @@ files) is available at
 
 @uref{ftp://ftp.gnu.org/pub/gnu/emacs/elisp-manual-20-2.5.tar.gz}
 
-and all mirrors of @samp{ftp.gnu.org} (@xref{Current GNU distributions} for a
-list).  @xref{Installing Texinfo documentation} if you want to install
+and all mirrors of @samp{ftp.gnu.org} (@pxref{Current GNU distributions} for a
+list).  @xref{Installing Texinfo documentation}, if you want to install
 the Info files, or @ref{Printing a Texinfo file} if you want to use the
 Texinfo source to print the manual yourself.
 
-WWW versions of the Emacs Lisp Reference Manual are available at
+A WWW version of the Emacs Lisp Reference Manual is available at
 
-@uref{http://www.cl.cam.ac.uk/texinfodoc/elisp_1.html}
-
-and
-
-@uref{http://www.cs.indiana.edu/usr/local/www/elisp/lispref/elisp_toc.html}
+@uref{http://www.gnu.org/manual/elisp-manual-20-2.5/elisp.html}
 
 @node Installing Texinfo documentation, Printing a Texinfo file, Emacs Lisp documentation, Getting help
 @section How do I install a piece of Texinfo documentation?
@@ -673,7 +676,7 @@ Texinfo package at
 
 @uref{ftp://ftp.gnu.org/pub/gnu/texinfo/texinfo-3.12.tar.gz}
 
-and all mirrors of @samp{ftp.gnu.org} (@xref{Current GNU distributions}  for a list).
+and all mirrors of @samp{ftp.gnu.org} (@pxref{Current GNU distributions} for a list).
 
 For information about the Texinfo format, read the Texinfo manual which
 comes with Emacs.  This manual also comes installed in Info format, so
@@ -685,7 +688,7 @@ resulting Info files in Emacs's Info tree.  To install Info files:
 @enumerate
 
 @item Move the files to the @file{info} directory in the installed Emacs
- distribution.  @xref{Filename conventions} if you don't know where that is.
+ distribution.  @xref{Filename conventions}, if you don't know where that is.
 
 @item Edit the file @file{info/dir} in the installed Emacs distribution,
  and add a line for the top level node in the Info package that you are
@@ -770,7 +773,7 @@ Assuming you have @TeX{} installed on your system, follow these steps:
 @end enumerate
 
 To get more general instructions, retrieve the latest Texinfo package
-(@xref{Installing Texinfo documentation}).
+(@pxref{Installing Texinfo documentation}).
 
 @node Viewing Info files outside of Emacs, Informational files for Emacs, Printing a Texinfo file, Getting help
 @section Can I view Info files without using Emacs?
@@ -783,12 +786,12 @@ Yes.  Here are some alternative programs:
 @itemize @bullet
 
 @item Info, a stand-alone version of the Info program, comes as part of the
-Texinfo package.  @xref{Installing Texinfo documentation} for details.
+Texinfo package.  @xref{Installing Texinfo documentation}, for details.
 
 @item Xinfo, a stand-alone version of the Info program that runs under X
 Windows.  You can get it at
 @uref{ftp://ftp.gnu.org/pub/gnu/xinfo/xinfo-1.01.01.tar.gz} and all
-mirrors of @samp{ftp.gnu.org} (@xref{Current GNU distributions}  for a list).
+mirrors of @samp{ftp.gnu.org} (@pxref{Current GNU distributions}  for a list).
 
 @item Tkinfo, an Info viewer that runs under X Windows and uses Tcl/Tk.  You
 can get Tkinfo at @uref{http://math-www.uni-paderborn.de/~axel/tkinfo/}.
@@ -877,7 +880,7 @@ at
 @cindex Installation help
 @cindex Help installing Emacs
 
-@xref{Installing Emacs} for some basic installation hints, and question
+@xref{Installing Emacs}, for some basic installation hints, and question
 83 if you have problems with the installation.
 
 The file @file{etc/SERVICE} (@pxref{Filename conventions} if you're not
@@ -1019,7 +1022,7 @@ name, check out @file{etc/JOKES} (@pxref{Filename conventions}).
 @cindex Version, latest
 @cindex Latest version
 
-Emacs 20.4 is the current version as of this writing.
+Emacs 20.5 is the current version as of this writing.
 
 @node New in Emacs 20,  , Latest version of Emacs, Status of Emacs
 @section What is different about Emacs 20?
@@ -1186,7 +1189,7 @@ this variable.
 
 Users of all Emacs versions can display the current column using
 @email{abraham@@iesd.auc.dk, Per Abrahamsen's} "column" package.
-@xref{Packages that do not come with Emacs} for instructions on how to
+@xref{Packages that do not come with Emacs}, for instructions on how to
 get it.
 
 None of the vi emulation modes provide the "set number" capability of vi
@@ -1532,8 +1535,8 @@ at
 
 The variable @code{compilation-error-regexp-alist} helps control how
 Emacs parses your compiler output.  It is a list of triples of the form:
-@var{(REGEXP FILE-IDX LINE-IDX)}, where @var{REGEXP}, @var{FILE-IDX} and
-@var{LINE-IDX} are strings.  To help determine what the constituent
+@code{(@var{regexp} @var{file-idx} @var{line-idx})}, where @var{regexp}, @var{file-idx} and
+@var{line-idx} are strings.  To help determine what the constituent
 elements should be, load @file{compile.el} and then use @kbd{C-h v
 compilation-error-regexp-alist @key{RET}}
 
@@ -1905,7 +1908,7 @@ If you are trying to prefix a yanked mail message with @samp{>}, you
 might want to set the variable @code{mail-yank-prefix}.  Better yet, get
 the Supercite package (@pxref{Supercite}), which provides flexible
 citation for yanked mail and news messages.  @xref{Changing the included
-text prefix} for additional information.
+text prefix}, for additional information.
 
 @node Underlining paragraphs, Repeating a command as many times as possible, Inserting > at the beginning of each line, Common requests
 @section How do I insert "_^H" before each character in a region to get an underlined paragraph?
@@ -2134,7 +2137,7 @@ To move a menu option from one position to another, simply evaluate
 
 More detailed information --- and more examples of how to create and
 modify menu options --- are in the Emacs Lisp Reference Manual, under
-"Keymaps."  (@xref{Emacs Lisp documentation} for information on this
+"Keymaps".  (@pxref{Emacs Lisp documentation} for information on this
 manual.)
 
 @node Deleting menus and menu options, Turning on syntax highlighting, Modifying pull-down menus, Common requests
@@ -2829,20 +2832,20 @@ from scratch.  You will need:
 @itemize @bullet
 
 @item
-Emacs sources.  @xref{Current GNU distributions} for a list of ftp sites
+Emacs sources.  @xref{Current GNU distributions}, for a list of ftp sites
 that make them available.  On @file{ftp.gnu.org}, the main GNU
 distribution site, sources are available at
 
-@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.4.tar.gz}
-
-The above will obviously change as new versions of Emacs come out.  For
-instance, when Emacs 20.5 is released, it will most probably be
-available at
-
 @uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.5.tar.gz}
 
+The above will obviously change as new versions of Emacs come out.  For
+instance, when Emacs 21 is released, it will most probably be
+available at
+
+@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-21.1.tar.gz}
+
 Again, you should use one of the GNU mirror sites (@xref{Current GNU
-distributions} and adjust the URL accordingly) so as to reduce load on
+distributions}, and adjust the URL accordingly) so as to reduce load on
 @file{ftp.gnu.org}.
 
 @item
@@ -2853,11 +2856,11 @@ retrieved the Emacs sources, you will probably be able to uncompress
 them with the command
 
 @example
-gunzip --verbose emacs-20.4.tar.gz
+gunzip --verbose emacs-20.5.tar.gz
 @end example
 
-changing the Emacs version (20.4), as necessary.  Once gunzip has
-finished doing its job, a file by the name of "emacs-20.4.tar" should
+changing the Emacs version (20.5), as necessary.  Once gunzip has
+finished doing its job, a file by the name of "emacs-20.5.tar" should
 be in your build directory.
 
 @item 
@@ -2868,7 +2871,7 @@ extracted using @file{tar} before you can build Emacs.  Typically, the
 extraction command would look like
 
 @example
-tar -xvvf emacs-20.4.tar
+tar -xvvf emacs-20.5.tar
 @end example
 
 The @samp{x} indicates that we want to extract files from this tarfile,
@@ -2880,7 +2883,7 @@ If you're using GNU @file{tar} (available at mirrors of
 using the command
 
 @example
-tar -zxvvf emacs-20.4.tar.gz
+tar -zxvvf emacs-20.5.tar.gz
 @end example
 
 The additional @samp{z} at the beginning of the options list tells GNU tar
@@ -2890,18 +2893,18 @@ components.
 @end itemize
 
 At this point, the Emacs sources (all 25+ megabytes of them) should be
-sitting in a directory called @file{emacs-20.4}.  On most common Unix and
+sitting in a directory called @file{emacs-20.5}.  On most common Unix and
 Unix-like systems, you should be able to compile Emacs (with X Windows
 support) with the following commands:
 
 @example
-cd emacs-20.4       # change directory to emacs-20.4
+cd emacs-20.5       # change directory to emacs-20.5
 ./configure         # configure Emacs for your particular system 
 make                # use Makefile to build components, then Emacs 
 @end example
 
 If the @code{make} completes successfully, the odds are fairly good that
-the build has gone well.  (@xref{Problems building Emacs} if you weren't
+the build has gone well.  (@pxref{Problems building Emacs} if you weren't
 successful.)
 
 By default, Emacs is installed in the following directories:
@@ -2939,8 +2942,8 @@ come with the Emacs sources, in the file @file{INSTALL}.
 @xref{Installing Emacs}, and follow the instructions there for
 installation.
 
-Most files are placed in version-specific directories.  Emacs 20.4, for
-instance, places files in @file{/usr/local/share/emacs/20.4}.
+Most files are placed in version-specific directories.  Emacs 20.5, for
+instance, places files in @file{/usr/local/share/emacs/20.5}.
 
 Upgrading should overwrite only, @file{/usr/local/bin/emacs} (the Emacs
 binary) and documentation in @file{/usr/local/info}.  Back up these
@@ -3035,7 +3038,7 @@ on nearby archive sites and @file{etc/ORDERS} for mail orders.  If you
 don't already have Emacs, @pxref{Informational files for Emacs} for how
 to get these files.
 
-@xref{Installing Emacs} for information on how to obtain and build the latest
+@xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and @pxref{Current GNU distributions} for a list of
 archive sites that make GNU software available.
 
@@ -3191,28 +3194,23 @@ XEmacs, which began life as Lucid Emacs, is based on an early version of
 Emacs 19 and Epoch, an X-aware version of Emacs 18.
 
 Emacs (i.e., the version distributed by the FSF) has a larger installed
-base, while XEmacs can do some clever tricks with X Windows, such as
-putting arbitrary graphics in a buffer.  Emacs and XEmacs each come with
+base and now always contains the MULE multilingual facilities.
+XEmacs can do some clever tricks with X Windows, such as
+putting arbitrary graphics in a buffer.  Similar facilities have been
+implemented for Emacs as part of a new redisplay implementation for
+Emacs 21, expected to be released after Emacs 20.5.
+Emacs and XEmacs each come with
 Lisp packages that are lacking in the other; RMS says that the FSF would
 include more packages that come with XEmacs, but that the XEmacs
 maintainers don't always keep track of the authors of contributed code,
 which makes it impossible for the FSF to have certain legal papers
 signed.  (Without these legal papers, the FSF will not distribute Lisp
-packages with Emacs.)
+packages with Emacs.)  The two versions have some
+significant differences at the Lisp programming level.
 
 Many XEmacs features have found their way into recent versions of Emacs,
 and more features can be expected in the future, but there are still many
 differences between the two.
-
-The latest version of XEmacs as of this writing is 21.1; you can get it
-at
-
-@uref{ftp://ftp.xemacs.org/pub/xemacs/current/xemacs-21.1.4.tar.gz}
-
-More information about XEmacs, including a list of frequently asked
-questions (FAQ), is available at
-
-@uref{http://www.xemacs.org/faq/}
 
 @node Emacs for MS-DOS, Emacs for Windows, Difference between Emacs and XEmacs, Finding Emacs and related packages
 @section Where can I get Emacs for my PC running MS-DOS?
@@ -3224,8 +3222,8 @@ questions (FAQ), is available at
 
 A pre-built binary distribution of Emacs is available from the Simtel
 archives.  This version apparently works under MS-DOS and Windows (3.x,
-95, and NT) and supports long file names.  More information is availble
-from
+95x, and NT) and supports long file names under Windows 9x.  More
+information is available from
 
 @uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/emacs.README}
 
@@ -3234,8 +3232,9 @@ directory
 
 @uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/}
 
-If you prefer to compile Emacs for yourself, you will need a 386 (or
-better) processor, and are running MS-DOS 3.0 or later.  According to
+If you prefer to compile Emacs for yourself, you can do so with the
+current distribution directly.  You will need a 386 (or
+better) processor, and to be running MS-DOS 3.0 or later.  According to
 @email{eliz@@is.elta.co.il, Eli Zaretskii} and
 @email{hankedr@@dms.auburn.edu, Darrel Hankerson}, you will need the
 following:
@@ -3245,7 +3244,7 @@ following:
 @item Compiler
 djgpp version 1.12 maint 1 or later.  Djgpp 2.0 or later is
 recommended, since 1.x is being phased out.  Djgpp 2 supports
-long filenames under Windows 95.
+long filenames under Windows 9x.
 
 You can get the latest release of djgpp by retrieving all of
 the files in
@@ -3292,9 +3291,9 @@ lack certain features, such as the Emacs Lisp extension language.
 For information on Emacs for Windows 95 and NT, read the FAQ produced by
 @email{voelker@@cs.washington.edu, Geoff Voelker}, available at
 
-@uref{http://www.cs.washington.edu/homes/voelker/ntemacs.html}
+@uref{http://www.gnu.org/software/emacs/windows/ntemacs.html}
 
-@xref{Emacs for MS-DOS} for Windows 3.1.
+@xref{Emacs for MS-DOS}, for Windows 3.1.
 
 @node Emacs for OS/2, Emacs for Atari ST, Emacs for Windows, Finding Emacs and related packages
 @section Where can I get Emacs for my PC running OS/2?
@@ -3343,11 +3342,11 @@ An unofficial port of GNU Emacs 18.59 to the Macintosh is available at a
 number of ftp sites, the home being
 @uref{ftp://ftp.cs.cornell.edu/pub/parmet/Emacs-1.17.sit.bin}.
 
-To the best of our knowledge, Emacs 19 has not been ported to the
-Macintosh.
+A port of Emacs 20.4 is available at
+@uref{http://www.cs.hku.hk/~choi/emacs/index.html}.
 
 Apple's forthcoming "OS X" is based largely on NeXTSTEP and OpenStep.
-@xref{Emacs for NeXTSTEP} for more details about that version.
+@xref{Emacs for NeXTSTEP}, for more details about that version.
 
 @node Emacs for VMS and DECwindows, Modes for various languages, Emacs for Apple computers, Finding Emacs and related packages
 @section Where do I get Emacs that runs on VMS under DECwindows?
@@ -3740,7 +3739,7 @@ jde-subscribe@@sunsite.auc.dk
 2.5
 
 @item Distribution
-@xref{Current GNU distributions} 
+@xref{Current GNU distributions}.
 
 @end table
 
@@ -3885,7 +3884,7 @@ For information on what Emacs does every time it is started, see the
 @cindex X Windows and function keys
 @cindex Binding function keys
 
-With Emacs 19, functions keys under X are bound like any other key.  @xref{Binding keys to commands} for details.
+With Emacs 19, functions keys under X are bound like any other key.  @xref{Binding keys to commands}, for details.
 
 @node Working with function and arrow keys, X key translations for Emacs, Using function keys under X, Key bindings
 @section How do I tell what characters or symbols my function or arrow keys emit?
@@ -4044,12 +4043,12 @@ the top-level directory when you unpack the Emacs source).
 
 To bind @kbd{C-s} and @kbd{C-q}, use either @code{enable-flow-control}
 or @sc{enable-flow-control-on}.  @xref{Handling C-s and C-q with flow
-control} for usage and implementation details.
+control}, for usage and implementation details.
 
-To bind other keys, use @code{keyboard-translate}.  @xref{Swapping keys}
+To bind other keys, use @code{keyboard-translate}.  @xref{Swapping keys},
 for usage details.  To do this for an entire site, you should swap the
 keys in @file{lisp/site-start.el}.  @xref{Handling C-s and C-q with flow
-control} for an explanation of why @file{lisp/default.el} should not be
+control}, for an explanation of why @file{lisp/default.el} should not be
 used.
 
 @itemize @bullet
@@ -4108,7 +4107,7 @@ Under X or on a dumb terminal, it is possible to swap the
 (keyboard-translate ?\C-h ?\C-?)
 @end lisp
 
-@xref{Swapping keys} for further details of "keyboard-translate".
+@xref{Swapping keys}, for further details of "keyboard-translate".
 
 @item
 Another approach is to switch key bindings and put help on @kbd{C-x h}
@@ -4271,7 +4270,7 @@ are such keys).  Non-ASCII keys and mouse events (e.g. @kbd{C-=} and
 
 @end itemize
 
-@xref{Binding keys to commands} for general key binding instructions.
+@xref{Binding keys to commands}, for general key binding instructions.
 
 @node Meta key does not work in xterm, ExtendChar key does not work as Meta, Binding combinations of modifiers and function keys, Key bindings
 @section Why doesn't my @key{Meta} key work in an xterm window?
@@ -4422,7 +4421,7 @@ code 0264).
 @cindex Korean, handling with Emacs
 
 Emacs 20 now includes many of the features of MULE, the Multilingual
-Enhancement of Emacs.  @xref{Installing Emacs} for information on where
+Enhancement of Emacs.  @xref{Installing Emacs}, for information on where
 to find and download Emacs.
 
 @node Right-to-left alphabets,  , Kanji and Chinese characters, Alternate character sets
@@ -4721,7 +4720,7 @@ telnetting to the NNTP port (usually 119) on the news server machine
 (i.e., "telnet server-machine 119").  The server should give its version
 number in the welcome message.  Type "quit" to get out.
 
-@xref{Spontaneous entry into isearch-mode} for some additional ideas.
+@xref{Spontaneous entry into isearch-mode}, for some additional ideas.
 
 @node Viewing articles with embedded underlining, Saving a multi-part Gnus posting, Gnus does not work with NNTP, Mail and news
 @section How do I view news articles with embedded underlining (e.g., ClariNews)?
