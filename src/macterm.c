@@ -263,8 +263,6 @@ static Lisp_Object Qvendor_specific_keysyms;
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 #endif
 
-extern Lisp_Object x_icon_type P_ ((struct frame *));
-
 extern int inhibit_window_system;
 
 #if __MRC__
@@ -317,7 +315,6 @@ void deactivate_scroll_bars (FRAME_PTR);
 static int is_emacs_window (WindowPtr);
 
 extern int image_ascent (struct image *, struct face *);
-void x_set_offset (struct frame *, int, int, int);
 int x_bitmap_icon (struct frame *, Lisp_Object);
 void x_make_frame_visible (struct frame *);
 
@@ -8609,8 +8606,11 @@ mac_check_for_quit_char()
 
 /* Set up use of X before we make the first connection.  */
 
+extern frame_parm_handler mac_frame_parm_handlers[];
+
 static struct redisplay_interface x_redisplay_interface =
 {
+  mac_frame_parm_handlers,
   x_produce_glyphs,
   x_write_glyphs,
   x_insert_glyphs,
