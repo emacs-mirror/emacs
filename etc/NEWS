@@ -787,7 +787,7 @@ clone to the other.
 
 ** font-lock can manage arbitrary text-properties beside `face'.
 *** the FACENAME returned in font-lock-keywords can be a list
-of the form (face FACE PROP1 VAL1 PROP@ VAL2 ...) so you can set
+of the form (face FACE PROP1 VAL1 PROP2 VAL2 ...) so you can set
 other properties than `face'.
 *** font-lock-extra-managed-props can be set to make sure those extra
 properties are automatically cleaned up by font-lock.
