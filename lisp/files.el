@@ -1156,6 +1156,7 @@ If `enable-local-variables' is nil, this function does not check for a
 ;; Get confirmation before setting these variables as locals in a file.
 (put 'debugger 'risky-local-variable t)
 (put 'enable-local-eval 'risky-local-variable t)
+(put 'ignored-local-variables 'risky-local-variable t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
 (put 'minor-mode-map-alist 'risky-local-variable t)
