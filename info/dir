@@ -30,20 +30,20 @@ Emacs
 
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * Dired-X: (dired-x).   Dired Extra Features.
-* Ediff: (ediff).	A comprehensive visual interface to diff & patch.
+* Ediff: (ediff).	A visual interface for comparing and merging programs.
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * Speedbar: (speedbar).	File/Tag summarizing utility.
 
-* Ada mode: (ada-mode). The GNU Emacs mode for editing Ada code.
-* CC mode: (ccmode).	The GNU Emacs mode for editing C, C++, Objective-C
-			  and Java code.
+* Ada mode: (ada-mode). Emacs mode for editing Ada code.
+* CC mode: (ccmode).	Emacs mode for editing C, C++, Objective-C,
+			  Java, Pike, and IDL code.
 * Ebrowse: (ebrowse).	A C++ class browser for Emacs.
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 
 * Gnus: (gnus).		The news reader Gnus.
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
-* MIME: (emacs-mime).   The MIME de/composition library.
+* MIME: (emacs-mime).   Emacs MIME de/composition library.
 * SC: (sc).		Supercite lets you cite parts of messages you're 
 			  replying to, in flexible ways.
 
@@ -51,7 +51,7 @@ Emacs
                           in Emacs.
 * Calc: (calc). 	Advanced desk calculator and mathematical tool.
 * Eshell: (eshell).	A command shell implemented in Emacs Lisp.
-* EUDC: (eudc).		Emacs Unified Directory Client.
+* EUDC: (eudc).		An Emacs client for directory servers (LDAP, PH).
 * Forms: (forms).	Emacs package for editing data bases
 			  by filling in forms.
 * RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
@@ -60,4 +60,6 @@ Emacs
 * WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
 
 * VIPER: (viper).       The newest Emacs VI-emulation mode.
+                          (also, A VI Plan for Emacs Rescue
+                           or the VI PERil.)
 * VIP: (vip).		An older VI-emulation for Emacs.

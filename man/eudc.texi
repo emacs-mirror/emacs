@@ -12,7 +12,7 @@
 @ifinfo
 @dircategory Emacs
 @direntry
-* EUDC: (eudc).   A client for directory servers (LDAP, PH)
+* EUDC: (eudc).   An Emacs client for directory servers (LDAP, PH).
 @end direntry
 
 This file documents EUDC v1.30b

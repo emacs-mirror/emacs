@@ -7,7 +7,7 @@
 @synindex pg cp
 @dircategory Emacs
 @direntry
-* Emacs MIME: (emacs-mime).   The MIME de/composition library.
+* MIME: (emacs-mime).   Emacs MIME de/composition library.
 @end direntry
 @iftex
 @finalout

@@ -1,4 +1,4 @@
-\input texinfo                  @c -*-texinfo-*-  -*- coding: iso-latin-1 -*-
+\input texinfo                  @c -*- mode: texinfo; coding: iso-latin-1; -*-
 
 @setfilename ../info/gnus
 @settitle Gnus Manual

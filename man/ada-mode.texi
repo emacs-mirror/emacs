@@ -3,7 +3,7 @@
 @settitle Ada Mode
 @dircategory Emacs
 @direntry
-* Ada mode: (ada-mode). The GNU Emacs mode for editing Ada.
+* Ada mode: (ada-mode). Emacs mode for editing Ada code.
 @end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

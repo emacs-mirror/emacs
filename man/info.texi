@@ -6,11 +6,11 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.17 2001/09/26 15:26:30 eliz Exp $
+@comment $Id: info.texi,v 1.18 2002/01/23 00:00:23 rms Exp $
 
 @dircategory Texinfo documentation system
 @direntry
-* Info: (info).                 Documentation browsing system.
+* Info: (info).         How to use the documentation browsing system.
 @end direntry
 
 @ifinfo
