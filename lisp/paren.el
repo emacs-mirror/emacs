@@ -45,7 +45,9 @@
   ;; Do nothing if no window system to display results with.
   ;; Do nothing if executing keyboard macro.
   ;; Do nothing if input is pending.
-  (if (and window-system (not executing-kbd-macro) (sit-for 0 100))
+  (if (and window-system (not executing-kbd-macro)
+	   (not unread-command-events)
+	   (sit-for 0 100))
       (let (pos dir mismatch (oldpos (point))
 		(face show-paren-face))
 	(cond ((eq (char-syntax (preceding-char)) ?\))
