@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.29 2003/07/04 21:07:23 teirllm Exp $
+@comment $Id: info.texi,v 1.30 2003/07/08 01:21:43 teirllm Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -435,18 +435,19 @@ Thus it is useful to know it is there.
 
 @findex visible-mode
 You can make invisible text visible by using the command @kbd{M-x
-visible-mode}.  @code{visible-mode} is a minor mode, so using it a
-second time will make the text invisible again.  Use this command and
-watch its effect on the ``menu'' below and the top line of this node.
+visible-mode}.  @dfn{Visible mode} is a minor mode, so using the
+command a second time will make the text invisible again.  Watch the
+effects of the command on the ``menu'' below and the top line of this
+node.
 
 If you prefer to @emph{always} see the invisible text, you can set
-@code{Info-hide-note-references} to @code{nil}.  Enabling
-@code{visible-mode} permanently is not a real alternative, because
-Emacs Info also uses (although less extensively) another text property
-that can change the text being displayed, the @samp{display} property.
-Only the invisibility property is affected by @code{visible-mode}.
-When, in this tutorial, we refer to the @samp{Emacs} behavior, we mean
-the @emph{default} Emacs behavior.
+@code{Info-hide-note-references} to @code{nil}.  Enabling Visible mode
+permanently is not a real alternative, because Emacs Info also uses
+(although less extensively) another text property that can change the
+text being displayed, the @samp{display} property.  Only the
+invisibility property is affected by Visible mode.  When, in this
+tutorial, we refer to the @samp{Emacs} behavior, we mean the
+@emph{default} Emacs behavior.
 
 Now type @kbd{]}, to learn about the @kbd{]} and @kbd{[} commands.
 
@@ -526,7 +527,7 @@ there is no line above it which starts with @w{@samp{* Menu:}}.  Also,
 in a real menu item, the @samp{*} would appear at the very start of
 the line.  This is why the ``normally hidden'' text in Emacs, namely
 @samp{: Node about FOO.}, is actually visible in this example, even
-when @code{visible-mode} is off.]]
+when Visible mode is off.]]
 
   When you use a menu to go to another node (in a way that will be
 described soon), what you specify is the subtopic name, the first
@@ -619,7 +620,7 @@ three ways of going to one place, Help-FOO:
 * Help-FOO::            And yet another!
 @end menu
 
-(Turn @code{visible-mode} on if you are using Emacs.)
+(Turn Visible mode on if you are using Emacs.)
 
 @format
 >>  Now type just an @kbd{m} and see what happens:
