@@ -364,11 +364,15 @@ See also `comint-preoutput-filter-functions'.
 
 This variable is buffer-local.")
 
+(defvar comint-input-sender-no-newline nil
+  "Non-nil directs the `comint-input-sender' function not to send a newline.")
+
 (defvar comint-input-sender (function comint-simple-send)
   "Function to actually send to PROCESS the STRING submitted by user.
 Usually this is just `comint-simple-send', but if your mode needs to
 massage the input string, put a different function here.
 `comint-simple-send' just sends the string plus a newline.
+\(If `comint-input-sender-no-newline' is non-nil, it omits the newline.)
 This is called from the user command `comint-send-input'.")
 
 (defcustom comint-eol-on-send t
@@ -1365,7 +1369,7 @@ Ignore duplicates if `comint-input-ignoredups' is non-nil."
 				  cmd))))
       (ring-insert comint-input-ring cmd)))
 
-(defun comint-send-input ()
+(defun comint-send-input (&optional no-newline)
   "Send input to process.
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls
@@ -1440,15 +1444,17 @@ Similarly for Soar, Scheme, etc."
 			    (delete-region pmark start)
 			    copy))))
 
-	  (insert ?\n)
+	  (unless no-newline
+	    (insert ?\n))
 
 	  (comint-add-to-input-history history)
 
 	  (run-hook-with-args 'comint-input-filter-functions
-			      (concat input "\n"))
+			      (if no-newline input
+				(concat input "\n")))
 
 	  (let ((beg (marker-position pmark))
-		(end (1- (point))))
+		(end (if no-newline (point) (1- (point)))))
 	    (when (not (> beg end))	; handle a special case
 	      ;; Make an overlay for the input field
 	      (let ((over (make-overlay beg end nil nil t)))
@@ -1484,7 +1490,8 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker (process-mark proc) (point))
 	  ;; clear the "accumulation" marker
 	  (set-marker comint-accum-marker nil)
-	  (funcall comint-input-sender proc input)
+	  (let ((comint-input-sender-no-newline no-newline))
+	    (funcall comint-input-sender proc input))
 
 	  ;; Optionally delete echoed input (after checking it).
  	  (when comint-process-echoes
@@ -1842,7 +1849,10 @@ If this takes us past the end of the current line, don't skip at all."
 This just sends STRING plus a newline. To override this,
 set the hook `comint-input-sender'."
   (comint-send-string proc string)
-  (comint-send-string proc "\n"))
+  (if comint-input-sender-no-newline
+      (if (not (string-equal input ""))
+	  (process-send-eof))
+    (comint-send-string proc "\n")))
 
 (defun comint-line-beginning-position ()
   "Returns the buffer position of the beginning of the line, after any prompt.
@@ -2125,7 +2135,7 @@ Sends an EOF only if point is at the end of the buffer and there is no input."
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
   (interactive)
-  (comint-snapshot-last-prompt)
+  (comint-send-input t)
   (process-send-eof))
 
 
