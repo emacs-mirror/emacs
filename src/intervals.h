@@ -290,6 +290,7 @@ EXFUN (Fset_text_properties, 4);
 EXFUN (Fremove_text_properties, 4);
 EXFUN (Ftext_property_any, 5);
 EXFUN (Ftext_property_not_all, 5);
+EXFUN (Fprevious_single_char_property_change, 4);
 extern Lisp_Object copy_text_properties P_ ((Lisp_Object, Lisp_Object,
 					     Lisp_Object, Lisp_Object,
 					     Lisp_Object, Lisp_Object));
