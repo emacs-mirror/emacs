@@ -1709,11 +1709,15 @@ A prefix argument says to unflag those files instead."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-del-marker)))
     (dired-mark-if
-       (and (not (looking-at dired-re-dir))
-	    (let ((fn (dired-get-filename t t)))
-	      (if fn (auto-save-file-name-p
-		      (file-name-nondirectory fn)))))
-       "auto save file")))
+     ;; It is less than general to check for ~ here,
+     ;; but it's the only way this runs fast enough.
+     (and (save-excursion (end-of-line)
+			  (eq (preceding-char) ?#))
+	  (not (looking-at dired-re-dir))
+	  (let ((fn (dired-get-filename t t)))
+	    (if fn (auto-save-file-name-p
+		    (file-name-nondirectory fn)))))
+     "auto save file")))
 
 (defun dired-flag-backup-files (&optional unflag-p)
   "Flag all backup files (names ending with `~') for deletion.
@@ -1721,7 +1725,11 @@ With prefix argument, unflag these files."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-del-marker)))
     (dired-mark-if
-     (and (not (looking-at dired-re-dir))
+     ;; It is less than general to check for ~ here,
+     ;; but it's the only way this runs fast enough.
+     (and (save-excursion (end-of-line)
+			  (eq (preceding-char) ?~))
+	  (not (looking-at dired-re-dir))
 	  (let ((fn (dired-get-filename t t)))
 	    (if fn (backup-file-name-p fn))))
      "backup file")))
