@@ -501,7 +501,7 @@ Otherwise, list elements are:\n\
   First integer has high-order 16 bits of time, second has low 16 bits.\n\
  5. Last modification time, likewise.\n\
  6. Last status change time, likewise.\n\
- 7. Size in bytes.\n\
+ 7. Size in bytes (-1, if number is out of range).\n\
  8. File modes, as a string of ten letters or dashes as in ls -l.\n\
  9. t iff file's gid would change if file were deleted and recreated.\n\
 10. inode number.\n\
@@ -546,8 +546,10 @@ If file does not exist, returns nil.")
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
-  /* perhaps we should set this to most-positive-fixnum if it is too large? */
   values[7] = make_number (s.st_size);
+  /* If the size is out of range, give back -1.  */
+  if (XINT (values[7]) != s.st_size)
+    XSETINT (values[7], -1);
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
 #ifdef BSD4_3 /* Gross kludge to avoid lack of "#if defined(...)" in VMS */
