@@ -1,3 +1,7 @@
+2004-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* ps-print.el: Fix typos (kein'ichi -> ken'ichi)
+
 2004-06-05  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (help-argument-name): Reintroduce face.
