@@ -1846,6 +1846,8 @@ subprocesses inherit.
 
 ** Grep has been decoupled from compilation mode setup.
 
+*** There's a new separate package grep.el.
+
 *** Grep commands now have their own submenu and customization group.
 
 *** The new variables `grep-window-height', `grep-auto-highlight', and
