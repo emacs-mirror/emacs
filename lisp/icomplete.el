@@ -207,12 +207,10 @@ Conditions are:
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
   (cond ((and icomplete-mode (icomplete-simple-completing-p))
-	 (make-local-hook 'pre-command-hook)
 	 (add-hook 'pre-command-hook
 		   (function (lambda ()
 			       (run-hooks 'icomplete-pre-command-hook)))
 		   nil t)
-	 (make-local-hook 'post-command-hook)
 	 (add-hook 'post-command-hook
 		   (function (lambda ()
 			       (run-hooks 'icomplete-post-command-hook)))
