@@ -405,16 +405,27 @@ In that case, compose characters in the string.
 
 This function is the default value of `auto-composition-function' (which see)."
   (save-buffer-state nil
-    (save-match-data
-      (let ((start pos)
-	    (limit (if string (length string) (point-max)))
-	    ch func newpos)
-	(setq limit (or (text-property-any pos limit 'auto-composed t string)
-			limit))
-	(catch 'tag
-	  (if string
+    (save-excursion
+      (save-match-data
+	(let ((start pos)
+	      (limit (if string (length string) (point-max)))
+	      ch func newpos)
+	  (setq limit (or (text-property-any pos limit 'auto-composed t string)
+			  limit))
+	  (catch 'tag
+	    (if string
+		(while (< pos limit)
+		  (setq ch (aref string pos))
+		  (if (= ch ?\n)
+		      (throw 'tag nil))
+		  (setq func (aref composition-function-table ch))
+		  (if (and (functionp func)
+			   (setq newpos (funcall func pos string))
+			   (> newpos pos))
+		      (setq pos newpos)
+		    (setq pos (1+ pos))))
 	      (while (< pos limit)
-		(setq ch (aref string pos))
+		(setq ch (char-after pos))
 		(if (= ch ?\n)
 		    (throw 'tag nil))
 		(setq func (aref composition-function-table ch))
@@ -422,18 +433,8 @@ This function is the default value of `auto-composition-function' (which see)."
 			 (setq newpos (funcall func pos string))
 			 (> newpos pos))
 		    (setq pos newpos)
-		  (setq pos (1+ pos))))
-	    (while (< pos limit)
-	      (setq ch (char-after pos))
-	      (if (= ch ?\n)
-		  (throw 'tag nil))
-	      (setq func (aref composition-function-table ch))
-	      (if (and (functionp func)
-		       (setq newpos (funcall func pos string))
-		       (> newpos pos))
-		  (setq pos newpos)
-		(setq pos (1+ pos))))))
-	(put-text-property start pos 'auto-composed t string)))))
+		  (setq pos (1+ pos))))))
+	  (put-text-property start pos 'auto-composed t string))))))
 
 (setq auto-composition-function 'auto-compose-chars)
 
