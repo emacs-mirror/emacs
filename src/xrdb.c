@@ -319,7 +319,10 @@ get_user_db (display)
   /* Get the screen-specific resources too.  */
   xdefs = XScreenResourceString (DefaultScreenOfDisplay (display));
   if (xdefs != NULL)
-    XrmMergeDatabases (XrmGetStringDatabase (xdefs), &db);
+    {
+      XrmMergeDatabases (XrmGetStringDatabase (xdefs), &db);
+      XFree (xdefs);
+    }
 #endif
 #endif
 
