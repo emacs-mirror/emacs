@@ -1,3 +1,7 @@
+2003-08-11  Markus Rost  <rost@math.ohio-state.edu>
+
+	* textmodes/reftex-vars.el (reftex-auto-recenter-toc): Fix typo.
+
 2003-08-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* bookmark.el (bookmark-completing-read):
