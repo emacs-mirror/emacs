@@ -69,6 +69,10 @@ static int delete_exited_processes;
 #endif
 #endif /* not WINDOWSNT */
 
+#ifdef HAVE_CARBON
+#define read sys_read
+#endif
+
 /* Does anyone other than VMS need this? */
 #ifndef fwrite
 #define sys_fwrite fwrite
