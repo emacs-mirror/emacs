@@ -1,3 +1,19 @@
+2004-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nntp.el (nntp): New customization group.
+	(nntp-authinfo-file): Added customization group.
+
+	* mml2015.el (mml2015-unabbrev-trust-alist): Added customization
+	group.
+
+	* mml-sec.el (mml-signencrypt-style-alist): Ditto.
+
+	* gnus.el (to-address, to-list, subscribed)
+	(large-newsgroup-initial): Ditto.
+
+	* flow-fill.el (fill-flowed-display-column)
+	(fill-flowed-encode-column): Ditto.
+
 2004-09-06  Stefan  <monnier@iro.umontreal.ca>
 
 	* message.el (message-tokenize-header, message-send-mail-with-qmail):

@@ -1599,6 +1599,7 @@ to be desirable; see the manual for further details."
  "Return GROUP's to-address."
  :variable-document
  "*Alist of group regexps and correspondent to-addresses."
+ :variable-group gnus-group-parameter
  :parameter-type '(gnus-email-address :tag "To Address")
  :parameter-document "\
 This will be used when doing followups and posts.
@@ -1625,6 +1626,7 @@ address was listed in gnus-group-split Addresses (see below).")
  "Return GROUP's to-list."
  :variable-document
  "*Alist of group regexps and correspondent to-lists."
+ :variable-group gnus-group-parameter
  :parameter-type '(gnus-email-address :tag "To List")
  :parameter-document "\
 This address will be used when doing a `a' in the group.
@@ -1643,6 +1645,7 @@ address was listed in gnus-group-split Addresses (see below).")
  "Return GROUP's subscription status."
  :variable-document
  "*Groups which are automatically considered subscribed."
+ :variable-group gnus-group-parameter
  :parameter-type '(const :tag "Subscribed" t)
  :parameter-document "\
 Gnus assumed that you are subscribed to the To/List address.
@@ -1749,6 +1752,7 @@ posting an article."
  "Return GROUP's initial input of the number of articles."
  :variable-document
  "*Alist of group regexps and its initial input of the number of articles."
+ :variable-group gnus-group-parameter
  :parameter-type '(choice :tag "Initial Input for Large Newsgroup"
 			  (const :tag "All" nil)
 			  (integer))
