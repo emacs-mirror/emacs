@@ -179,7 +179,7 @@ Lisp_Object last_nonmenu_event;
 Lisp_Object last_input_char;
 
 /* If not Qnil, a list of objects to be read as subsequent command input.  */
-Lisp_Object unread_command_events;
+Lisp_Object Vunread_command_events;
 
 /* If not -1, an event to be read as subsequent command input.  */
 int unread_command_char;
@@ -965,7 +965,7 @@ command_loop_1 ()
 	  if (!NILP (Vquit_flag))
 	    {
 	      Vquit_flag = Qnil;
-	      unread_command_events = Fcons (make_number (quit_char), Qnil);
+	      Vunread_command_events = Fcons (make_number (quit_char), Qnil);
 	    }
 	}
 
@@ -1375,10 +1375,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   int count;
   jmp_buf save_jump;
 
-  if (CONSP (unread_command_events))
+  if (CONSP (Vunread_command_events))
     {
-      c = XCONS (unread_command_events)->car;
-      unread_command_events = XCONS (unread_command_events)->cdr;
+      c = XCONS (Vunread_command_events)->car;
+      Vunread_command_events = XCONS (Vunread_command_events)->cdr;
 
       if (this_command_key_count == 0)
 	goto reread_first;
@@ -1482,11 +1482,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      menu prompting. If EVENT_HAS_PARAMETERS then we are reading
      after a mouse event so don't try a minibuf menu. */
   c = Qnil;
-  if (nmaps > 0 && INTERACTIVE && 
-      !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event))
+  if (nmaps > 0 && INTERACTIVE
+      && !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event)
+      /* Don't bring up a menu if we already have another event.  */
+      && NILP (Vunread_command_events)
+      && unread_command_char < 0
+      && EVENT_QUEUES_EMPTY)
     {
       c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
-      if ( ! NILP(c) ) return c ;
+      if (! NILP (c))
+	return c;
     }
 
   /* If in middle of key sequence and minibuffer not active,
@@ -1525,11 +1530,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Try reading using an X menu.
-     This is never confused with reading using the minibuf because the recursive
-     call of read_char in read_char_minibuf_menu_prompt does not pass on
-     any keys maps */
-  if (nmaps > 0 && INTERACTIVE &&
-      !NILP (prev_event) && EVENT_HAS_PARAMETERS (prev_event))
+     This is never confused with reading using the minibuf
+     because the recursive call of read_char in read_char_minibuf_menu_prompt
+     does not pass on any keymaps.  */
+  if (nmaps > 0 && INTERACTIVE
+      && !NILP (prev_event) && EVENT_HAS_PARAMETERS (prev_event)
+      /* Don't bring up a menu if we already have another event.  */
+      && NILP (Vunread_command_events)
+      && unread_command_char < 0
+      && EVENT_QUEUES_EMPTY)
     c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
   /* Slow down auto saves logarithmically in size of current buffer,
@@ -3862,8 +3871,8 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	  /* If we got more than one event, put all but the first
 	     onto this list to be read later.
 	     Return just the first event now.  */
-	  unread_command_events
-	    = nconc2 (XCONS (value)->cdr, unread_command_events);
+	  Vunread_command_events
+	    = nconc2 (XCONS (value)->cdr, Vunread_command_events);
 	  value = XCONS (value)->car;
 	}
       else if (NILP (value))
@@ -3878,7 +3887,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 }
 
 static Lisp_Object
-read_char_minibuf_menu_prompt(commandflag, nmaps, maps)
+read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
      int commandflag ;
      int nmaps;
      Lisp_Object *maps;
@@ -5197,7 +5206,7 @@ DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
 Actually, the value is nil only if we can be sure that no input is available.")
   ()
 {
-  if (!NILP (unread_command_events) || unread_command_char != -1)
+  if (!NILP (Vunread_command_events) || unread_command_char != -1)
     return (Qt);
 
   return detect_input_pending () ? Qt : Qnil;
@@ -5271,7 +5280,7 @@ Also cancel any kbd macro being defined.")
   defining_kbd_macro = 0;
   update_mode_lines++;
 
-  unread_command_events = Qnil;
+  Vunread_command_events = Qnil;
   unread_command_char = -1;
 
   discard_tty_input ();
@@ -5532,7 +5541,7 @@ quit_throw_to_read_char ()
   clear_waiting_for_input ();
   input_pending = 0;
 
-  unread_command_events = Qnil;
+  Vunread_command_events = Qnil;
   unread_command_char = -1;
 
 #ifdef POLL_FOR_INPUT
@@ -5641,7 +5650,7 @@ init_keyboard ()
   command_loop_level = -1;
   immediate_quit = 0;
   quit_char = Ctl ('g');
-  unread_command_events = Qnil;
+  Vunread_command_events = Qnil;
   unread_command_char = -1;
   total_keys = 0;
   recent_keys_index = 0;
@@ -5829,6 +5838,9 @@ syms_of_keyboard ()
     = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
   staticpro (&kbd_buffer_frame_or_window);
 
+  accent_key_syms = Qnil;
+  staticpro (&accent_key_syms);
+
   func_key_syms = Qnil;
   staticpro (&func_key_syms);
 
@@ -5877,7 +5889,7 @@ so that you can determine whether the command was run by mouse or not.");
   DEFVAR_LISP ("last-input-event", &last_input_char,
     "Last input event.");
 
-  DEFVAR_LISP ("unread-command-events", &unread_command_events,
+  DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
     "List of objects to be read as next command input events.");
 
   DEFVAR_INT ("unread-command-char", &unread_command_char,
