@@ -1324,7 +1324,7 @@ created."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Make the standard faces.  The C code knows faces `default',
-;; `modeline', `toolbar' and `region', so they must be the first faces
+;; `modeline', `tool-bar' and `region', so they must be the first faces
 ;; made.  Unspecified attributes of these three faces are filled-in
 ;; from frame parameters in the C code.
 
@@ -1357,14 +1357,14 @@ created."
   :group 'basic-faces)
 
 
-(defface toolbar
+(defface tool-bar
   '((((type x) (class color))
      (:box (:line-width 1 :style released-button) :background "grey75"))
     (((type x) (class mono))
      (:box (:line-width 1 :style released-button) :background "grey"))
     (t
      ()))
-  "Basic toolbar face."
+  "Basic tool-bar face."
   :group 'basic-faces)
 
 
