@@ -1,3 +1,8 @@
+2004-05-13  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (mark_kboards): Don't mark x and y members
+	that are overloaded in selection request events.
+
 2004-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (USE_LSB_TAG): Make it the default when it is known to work.
