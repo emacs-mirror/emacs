@@ -11,7 +11,7 @@ alloc-color.c		a utility program that allocates a given number of
 			dense colormaps (PseudoColor).
 build-configs		build Emacs in various configurations
 check-doc-strings	check doc strings against documentation
-cus-test.el		functions for testing custom definitions
+cus-test.el		tests for custom types and load problems
 diff-tar-files		show files added/removed between two tar files
 make-emacs		build Emacs in various ways
 quick-install-emacs	install emacs quickly (`incrementally')
