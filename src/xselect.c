@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "coding.h"
 #include "process.h"
+#include "composite.h"
 
 #define CUT_BUFFER_SUPPORT
 
@@ -1551,6 +1552,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  xfree (buf);
 	  Vlast_coding_system_used = coding.symbol;
 	}
+      compose_chars_in_text (0, XSTRING (str)->size, str);
       return str;
     }
   /* Convert a single atom to a Lisp_Symbol.  Convert a set of atoms to
