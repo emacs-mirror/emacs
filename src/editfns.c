@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001, 02, 2003
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -399,19 +399,19 @@ get_pos_property (position, prop, object)
      Lisp_Object position, object;
      register Lisp_Object prop;
 {
-  struct window *w = 0;
-
   CHECK_NUMBER_COERCE_MARKER (position);
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
+  else if (WINDOWP (object))
+    object = XWINDOW (object)->buffer;
 
-  if (WINDOWP (object))
-    {
-      w = XWINDOW (object);
-      object = w->buffer;
-    }
-  if (BUFFERP (object))
+  if (!BUFFERP (object))
+    /* pos-property only makes sense in buffers right now, since strings
+       have no overlays and no notion of insertion for which stickiness
+       could be obeyed.  */
+    return Fget_text_property (position, prop, object);
+  else
     {
       int posn = XINT (position);
       int noverlays;
@@ -457,18 +457,18 @@ get_pos_property (position, prop, object)
 	    }
 	}
 
+      { /* Now check the text-properties.  */
+	int stickiness = text_property_stickiness (prop, position, object);
+	if (stickiness > 0)
+	  return Fget_text_property (position, prop, object);
+	else if (stickiness < 0
+		 && XINT (position) > BUF_BEGV (XBUFFER (object)))
+	  return Fget_text_property (make_number (XINT (position) - 1),
+				     prop, object);
+	else
+	  return Qnil;
+      }
     }
-
-  { /* Now check the text-properties.  */
-    int stickiness = text_property_stickiness (prop, position);
-    if (stickiness > 0)
-      return Fget_text_property (position, prop, Qnil);
-    else if (stickiness < 0 && XINT (position) > BEGV)
-      return Fget_text_property (make_number (XINT (position) - 1),
-				 prop, Qnil);
-    else
-      return Qnil;
-  }
 }
 
 /* Find the field surrounding POS in *BEG and *END.  If POS is nil,
