@@ -362,6 +362,7 @@ size field."
    (save-restriction
      (let ((inhibit-read-only t)
 	   result
+	   before-change-functions
 	   after-change-functions)
        (insert "<>")
        (narrow-to-region (- (point) 2) (point))
@@ -772,6 +773,7 @@ The optional ARGS are additional keyword arguments."
 (defun widget-insert (&rest args)
   "Call `insert' with ARGS and make the text read only."
   (let ((inhibit-read-only t)
+	before-change-functions
 	after-change-functions
 	(from (point)))
     (apply 'insert args)
@@ -1120,6 +1122,7 @@ When not inside a field, move to the previous button or field."
   "Setup current buffer so editing string widgets works."
   (let ((inhibit-read-only t)
 	(after-change-functions nil)
+	before-change-functions
 	field)
     (while widget-field-new
       (setq field (car widget-field-new)
@@ -1134,9 +1137,11 @@ When not inside a field, move to the previous button or field."
   (widget-clear-undo)
   ;; We need to maintain text properties and size of the editing fields.
   (make-local-variable 'after-change-functions)
-  (if widget-field-list
-      (setq after-change-functions '(widget-after-change))
-    (setq after-change-functions nil)))
+  (make-local-variable 'before-change-functions)
+  (setq after-change-functions
+	(if widget-field-list '(widget-after-change) nil))
+  (setq before-change-functions
+	(if widget-field-list '(widget-before-change) nil)))
 
 (defvar widget-field-last nil)
 ;; Last field containing point.
@@ -1179,6 +1184,14 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 	    (debug "Overlapping fields"))
 	  (setq found field))))
     found))
+
+;; This is how, for example, a variable changes its state to "set"
+;; when it is being edited.
+(defun widget-before-change (from &rest ignore)
+  (condition-case nil
+      (let ((field (widget-field-find from)))
+	(widget-apply field :notify field))
+    (error (debug "After Change"))))
 
 (defun widget-after-change (from to old)
   ;; Adjust field size and text properties.
@@ -1223,8 +1236,7 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 		    (unless (eq old secret)
 		      (subst-char-in-region begin (1+ begin) old secret)
 		      (put-text-property begin (1+ begin) 'secret old))
-		    (setq begin (1+ begin)))))))
-	  (widget-apply field :notify field)))
+		    (setq begin (1+ begin)))))))))
     (error (debug "After Change"))))
 
 ;;; Widget Functions
@@ -1435,6 +1447,7 @@ If that does not exists, call the value of `widget-complete-field'."
 	(to (widget-get widget :to))
 	(inactive-overlay (widget-get widget :inactive))
 	(button-overlay (widget-get widget :button-overlay))
+	before-change-functions
 	after-change-functions
 	(inhibit-read-only t))
     (widget-apply widget :value-delete)
@@ -1635,6 +1648,22 @@ If END is omitted, it defaults to the length of LIST."
 (defun widget-info-link-action (widget &optional event)
   "Open the info node specified by WIDGET."
   (Info-goto-node (widget-value widget)))
+
+;;; The `group-link' Widget.
+
+(define-widget 'group-link 'link
+  "A link to a customization group."
+  :create 'widget-group-link-create
+  :action 'widget-group-link-action)
+
+(defun widget-group-link-create (widget)
+  (let ((state (widget-get (widget-get widget :parent) :custom-state)))
+    (if (eq state 'hidden)
+	(widget-default-create widget))))
+
+(defun widget-group-link-action (widget &optional event)
+  "Open the info node specified by WIDGET."
+  (customize-group (widget-value widget)))
 
 ;;; The `url-link' Widget.
 
@@ -2422,6 +2451,7 @@ when he invoked the menu."
   (save-excursion
     (let ((children (widget-get widget :children))
 	  (inhibit-read-only t)
+	  before-change-functions
 	  after-change-functions)
       (cond (before 
 	     (goto-char (widget-get before :entry-from)))
@@ -2448,6 +2478,7 @@ when he invoked the menu."
     (let ((buttons (copy-sequence (widget-get widget :buttons)))
 	  button
 	  (inhibit-read-only t)
+	  before-change-functions
 	  after-change-functions)
       (while buttons
 	(setq button (car buttons)
@@ -2459,6 +2490,7 @@ when he invoked the menu."
     (let ((entry-from (widget-get child :entry-from))
 	  (entry-to (widget-get child :entry-to))
 	  (inhibit-read-only t)
+	  before-change-functions
 	  after-change-functions)
       (widget-delete child)
       (delete-region entry-from entry-to)
@@ -2579,8 +2611,8 @@ when he invoked the menu."
   :format "%[%v%]"
   :button-prefix ""
   :button-suffix ""
-  :on "hide"
-  :off "show"
+  :on "Hide"
+  :off "Show"
   :value-create 'widget-visibility-value-create
   :action 'widget-toggle-action
   :match (lambda (widget value) t))
@@ -2596,13 +2628,30 @@ when he invoked the menu."
       (setq on ""))
     (if off
 	(setq off (concat widget-push-button-prefix
-			 off
-			 widget-push-button-suffix))
+			  off
+			  widget-push-button-suffix))
       (setq off ""))
     (if (widget-value widget)
 	(widget-glyph-insert widget on "down" "down-pushed")
-      (widget-glyph-insert widget off "right" "right-pushed")
-      (insert "..."))))
+      (widget-glyph-insert widget off "right" "right-pushed"))))
+
+(define-widget 'group-visibility 'item
+  "An indicator and manipulator for hidden group contents."
+  :format "%[%v%]"
+  :create 'widget-group-visibility-create
+  :button-prefix ""
+  :button-suffix ""
+  :on "Hide"
+  :off "Show"
+  :value-create 'widget-visibility-value-create
+  :action 'widget-toggle-action
+  :match (lambda (widget value) t))
+
+(defun widget-group-visibility-create (widget)
+  (let ((visible (widget-value widget)))
+    (if visible
+	(insert "--------")))
+  (widget-default-create widget))
 
 ;;; The `documentation-link' Widget.
 ;;
@@ -2697,7 +2746,7 @@ link for that string."
 	  (push (widget-create-child-and-convert
 		 widget 'visibility
 		 :help-echo "Show or hide rest of the documentation."
-		 :off nil
+		 :off "More"
 		 :action 'widget-parent-action
 		 shown)
 		buttons)
@@ -3047,7 +3096,7 @@ It will read a directory name from the minibuffer when invoked."
 (define-widget 'choice 'menu-choice
   "A union of several sexp types."
   :tag "Choice"
-  :format "%{%t%}: %[value menu%] %v"
+  :format "%{%t%}: %[Value Menu%] %v"
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
   :prompt-value 'widget-choice-prompt-value)
@@ -3116,7 +3165,9 @@ It will read a directory name from the minibuffer when invoked."
   :prompt-value 'widget-boolean-prompt-value
   :button-prefix 'widget-push-button-prefix
   :button-suffix 'widget-push-button-suffix
-  :format "%{%t%}: %[toggle%] %v\n")
+  :format "%{%t%}: %[Toggle%]  %v\n"
+  :on "on (non-nil)"
+  :off "off (nil)")
 
 (defun widget-boolean-prompt-value (widget prompt value unbound)
   ;; Toggle a boolean.
