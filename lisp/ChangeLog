@@ -1,3 +1,9 @@
+1999-11-26  Dave Love  <fx@gnu.org>
+
+	* comint.el: Fix last change.
+
+	* emacs-lisp/advice.el: Fix last change.
+
 1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* cus-edit.el (Custom-reset-standard): Doc fix.
