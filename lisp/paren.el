@@ -102,8 +102,9 @@
 				       (+ (point) dir) (point)
 				       (current-buffer))
 		       (setq show-paren-overlay-1
-			     (make-overlay (- pos dir) pos))
-		       (overlay-put show-paren-overlay-1 'face face)))
+			     (make-overlay (- pos dir) pos)))
+		     ;; Always set the overlay face, since it varies.
+		     (overlay-put show-paren-overlay-1 'face face))
 		 ;; Otherwise, turn off any such highlighting.
 		 (and show-paren-overlay-1
 		      (overlay-buffer show-paren-overlay-1)
@@ -113,8 +114,9 @@
 		   (move-overlay show-paren-overlay (- pos dir) pos
 				 (current-buffer))
 		 (setq show-paren-overlay
-		       (make-overlay (- pos dir) pos))
-		 (overlay-put show-paren-overlay 'face face)))
+		       (make-overlay (- pos dir) pos)))
+	       ;; Always set the overlay face, since it varies.
+	       (overlay-put show-paren-overlay 'face face))
 	      (t
 	       ;; If not at a paren that has a match,
 	       ;; turn off any previous paren highlighting.
