@@ -50,8 +50,9 @@ backward compatibility; see variable `time-stamp-old-format-warn'.
 
 A string is used verbatim except for character sequences beginning
 with %, as follows.  The values of non-numeric formatted items depend
-on the locale setting recorded in `locale-coding-system'.  The
-examples here are for the default (`C') locale.
+on the locale setting recorded in `system-time-locale' and
+`locale-coding-system'.  The examples here are for the default
+(`C') locale.
 
 %:a  weekday name: `Monday'.		%#A gives uppercase: `MONDAY'
 %3a  abbreviated weekday: `Mon'.	%3A gives uppercase: `MON'
