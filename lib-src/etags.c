@@ -4969,7 +4969,7 @@ erlang_attribute (s)
 	{
 	  pos = skip_spaces (s + pos) - s;
 	  len = erlang_atom (s, pos);
-	  if (len != 0)
+	  if (len > 0)
 	    pfnote (savenstr (& s[pos], len), TRUE,
 		    s, pos + len, lineno, linecharno);
 	}
