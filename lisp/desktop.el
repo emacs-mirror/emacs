@@ -1,9 +1,9 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 2.05
+;; Version: 2.07
 ;; Keywords: customization
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -43,18 +43,18 @@
 ;;	(desktop-read)
 ;;
 ;; Between the second and the third line you may wish to add something that
-;; updates the variables `desktop-globals-to-save' and/or 
+;; updates the variables `desktop-globals-to-save' and/or
 ;; `desktop-locals-to-save'.  If for instance you want to save the local
 ;; variable `foobar' for every buffer in which it is local, you could add
 ;; the line
 ;;
 ;;	(setq desktop-locals-to-save (cons 'foobar desktop-locals-to-save))
 ;;
-;; To avoid saving excessive amounts of data you may also with to add 
+;; To avoid saving excessive amounts of data you may also with to add
 ;; something like the following
 ;;
 ;;	(add-hook 'kill-emacs-hook
-;;		  '(lambda () 
+;;		  '(lambda ()
 ;;		     (desktop-truncate search-ring 3)
 ;;		     (desktop-truncate regexp-search-ring 3)))
 ;;
@@ -67,7 +67,7 @@
 ;; all the files you were editing will be reloaded the next time you start
 ;; Emacs from the same directory and that points will be set where you
 ;; left them.  If you save a desktop file in your home directory it will
-;; act as a default desktop when you start Emacs from a directory that 
+;; act as a default desktop when you start Emacs from a directory that
 ;; doesn't have its own.  I never do this, but you may want to.
 
 ;; By the way: don't use desktop.el to customize Emacs -- the file .emacs
@@ -77,6 +77,8 @@
 ;; PLEASE NOTE: The kill ring can be saved as specified by the variable
 ;; `desktop-globals-to-save' (by default it isn't).  This may result in saving
 ;; things you did not mean to keep.  Use M-x desktop-clear RET.
+
+;; To submit a bug report, please use the command desktop-bug-report
 
 ;; Thanks to  hetrick@phys.uva.nl (Jim Hetrick)     for useful ideas.
 ;;            avk@rtsg.mot.com (Andrew V. Klein)    for a dired tip.
@@ -95,16 +97,12 @@
 ;; Make the compilation more silent
 (eval-when-compile
   ;; We use functions from these modules
-  (mapcar 'require '(info mh-e dired))
-  ;; We handle auto-fill-hook in a way that is ok.
-  (put 'auto-fill-hook 'byte-obsolete-variable nil)
-  ;; Some things are different in version 18.
-  (setq postv18 (string-lessp "19" emacs-version)))
+  (mapcar 'require '(info mh-e dired reporter)))
 ;; ----------------------------------------------------------------------------
 ;; USER OPTIONS -- settings you might want to play with.
 ;; ----------------------------------------------------------------------------
 (defconst desktop-basefilename
-  (if (equal system-type 'ms-dos)
+  (if (eq system-type 'ms-dos)
       "emacs.dsk" ; Ms-Dos does not support multiple dots in file name
     ".emacs.desktop")
   "File for Emacs desktop.  A directory name will be prepended to this name.")
@@ -121,6 +119,7 @@ Otherwise simply ignore the file.")
 	'tags-table-list
 	'search-ring
 	'regexp-search-ring
+	'register-alist
 	;; 'desktop-globals-to-save	; Itself!
 	)
   "List of global variables to save when killing Emacs.")
@@ -136,12 +135,13 @@ Otherwise simply ignore the file.")
 	)
   "List of local variables to save for each buffer.  The variables are saved
 only when they really are local.")
+(make-variable-buffer-local 'desktop-locals-to-save)
 
 ;; We skip .log files because they are normally temporary.
 ;;         (ftp) files because they require passwords and whatsnot.
 ;;         TAGS files to save time (tags-file-name is saved instead).
 (defvar desktop-buffers-not-to-save
- "\\(\\.log\\|(ftp)\\|^tags\\|^TAGS\\)$"
+ "\\(^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\|^tags\\|^TAGS\\)$"
  "Regexp identifying buffers that are to be excluded from saving.")
 
 (defvar desktop-buffer-handlers
@@ -167,12 +167,15 @@ If the function returns t then the buffer is considered created.")
 ;; Desktop File for Emacs
 ;; --------------------------------------------------------------------------
 " "*Header to place in Desktop file.")
+
+(defvar desktop-delay-hook nil
+  "Hooks run after all buffers are loaded; intended for internal use.")
 ;; ----------------------------------------------------------------------------
 (defun desktop-truncate (l n)
   "Truncate LIST to at most N elements destructively."
   (let ((here (nthcdr (1- n) l)))
     (if (consp here)
-	(setcdr here nil))))		  
+	(setcdr here nil))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-clear () "Empty the Desktop."
   (interactive)
@@ -181,37 +184,83 @@ If the function returns t then the buffer is considered created.")
   (mapcar (function kill-buffer) (buffer-list))
   (delete-other-windows))
 ;; ----------------------------------------------------------------------------
-;; This is a bit dirty for version 18 because that version of Emacs was not
-;; toilet-trained considering hooks.
-(defvar old-kill-emacs)
+(add-hook 'kill-emacs-hook 'desktop-kill)
 
-(if (eval-when-compile postv18)
-    (add-hook 'kill-emacs-hook 'desktop-kill)
-  (if (not (boundp 'desktop-kill))
-      (setq old-kill-emacs kill-emacs-hook
-	    kill-emacs-hook
-	    (function (lambda ()
-			(progn (desktop-kill)
-			       (if (or (null old-kill-emacs)
-				       (symbolp old-kill-emacs))
-				   (run-hooks old-kill-emacs)
-				 (funcall old-kill-emacs))))))))
-;; ----------------------------------------------------------------------------
 (defun desktop-kill ()
   (if desktop-dirname
       (progn
 	(desktop-save desktop-dirname))))
 ;; ----------------------------------------------------------------------------
+(defun desktop-internal-v2s (val)
+  "Convert VALUE to a pair (quote . txt) where txt is a string that when read
+and evaluated yields value.  quote may be 'may (value may be quoted), 
+'must (values must be quoted), or nil (value may not be quoted)."
+  (cond
+   ((or (numberp val) (stringp val) (null val) (eq t val))
+    (cons 'may (prin1-to-string val)))
+   ((symbolp val)
+    (cons 'must (prin1-to-string val)))
+   ((vectorp val)
+    (let* ((special nil)
+	   (pass1 (mapcar
+		   (lambda (el)
+		     (let ((res (desktop-internal-v2s el)))
+		       (if (null (car res))
+			   (setq special t))
+		       res))
+		   val)))
+      (if special
+	  (cons nil (concat "(vector "
+			    (mapconcat (lambda (el)
+					 (if (eq (car el) 'must)
+					     (concat "'" (cdr el))
+					   (cdr el)))
+				       pass1
+				       " ")
+			    ")"))
+	(cons 'may (concat "[" (mapconcat 'cdr pass1 " ") "]")))))
+   ((consp val)
+    (let ((car-q.txt (desktop-internal-v2s (car val)))
+	  (cdr-q.txt (desktop-internal-v2s (cdr val))))
+      (cond
+       ((or (null (car car-q.txt)) (null (car cdr-q.txt)))
+	(cons nil (concat "(cons " 
+			  (if (eq (car car-q.txt) 'must) "'")			      
+			  (cdr car-q.txt) " "
+			  (if (eq (car cdr-q.txt) 'must) "'")			      
+			  (cdr cdr-q.txt) ")")))
+       ((consp (cdr val))
+	(cons 'must (concat "(" (cdr car-q.txt) 
+			    " " (substring (cdr cdr-q.txt) 1 -1) ")")))
+       ((null (cdr val))
+	(cons 'must (concat "(" (cdr car-q.txt) ")")))
+       (t
+	(cons 'must (concat "(" (cdr car-q.txt) " . " (cdr cdr-q.txt) ")"))))))
+   ((subrp val)
+    (cons nil (concat "(symbol-function '"
+		      (substring (prin1-to-string val) 7 -1)
+		      ")")))
+   ((markerp val)
+    (let ((pos (prin1-to-string (marker-position val)))
+	  (buf (prin1-to-string (buffer-name (marker-buffer val)))))
+      (cons nil (concat "(let ((mk (make-marker)))"
+			" (add-hook 'desktop-delay-hook"
+			" (list 'lambda '() (list 'set-marker mk "
+			pos " (get-buffer " buf ")))) mk)"))))
+   (t					; save as text
+    (prin1-to-string (prin1-to-string val)))))
+
 (defun desktop-value-to-string (val)
-  (let ((print-escape-newlines t))
-    (concat
-     ;; symbols are needed for cons cells and for symbols except
-     ;; `t' and `nil'.
-     (if (or (consp val)
-	     (and (symbolp val) val (not (eq t val))))
-	 "'"
-       "")
-     (prin1-to-string val))))
+  "Convert VALUE to a string that when read evaluates to the same value.  Not
+all types of values are supported."
+  (let* ((print-escape-newlines t)
+	 (float-output-format nil)
+	 (quote.txt (desktop-internal-v2s val))
+	 (quote (car quote.txt))
+	 (txt (cdr quote.txt)))
+    (if (eq quote 'must)
+	(concat "'" txt)
+      txt)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-outvar (var)
   "Output a setq statement for VAR to the desktop file."
@@ -246,25 +295,18 @@ MODE is the major mode."
 			       (buffer-name)
 			       major-mode
 			       (list	; list explaining minor modes
-				     (not (null
-					   (if (eval-when-compile postv18)
-					       auto-fill-function
-					     auto-fill-hook))))
+				     (not (null auto-fill-function)))
 			       (point)
-			       (if (eval-when-compile postv18)
-				   (list (mark t) mark-active)
-				 (mark))
+			       (list (mark t) mark-active)
 			       buffer-read-only
 			       (cond ((eq major-mode 'Info-mode)
 				      (list Info-current-file
 					    Info-current-node))
 				     ((eq major-mode 'dired-mode)
-				      (if (eval-when-compile postv18)
-					  (nreverse
-					   (mapcar
-					    (function car)
-					    dired-subdir-alist))
-					(list default-directory)))
+				      (nreverse
+				       (mapcar
+					(function car)
+					dired-subdir-alist)))
 				     )
 			       (let ((locals desktop-locals-to-save)
 				     (loclist (buffer-local-variables))
@@ -282,11 +324,11 @@ MODE is the major mode."
 	  (buf (get-buffer-create "*desktop*")))
       (set-buffer buf)
       (erase-buffer)
-
+      
       (insert desktop-header
 	      ";; Created " (current-time-string) "\n"
-	      ";; Emacs version " emacs-version "\n\n"
-	      ";; Global section:\n")
+		  ";; Emacs version " emacs-version "\n\n"
+		      ";; Global section:\n")
       (mapcar (function desktop-outvar) desktop-globals-to-save)
       (if (memq 'kill-ring desktop-globals-to-save)
 	  (insert "(setq kill-ring-yank-pointer (nthcdr "
@@ -295,19 +337,18 @@ MODE is the major mode."
 		  " kill-ring))\n"))
 
       (insert "\n;; Buffer section:\n")
-      (let ((print-escape-newlines t))
-	(mapcar
-	 (function (lambda (l)
-		     (if (apply 'desktop-save-buffer-p l)
-			 (progn
-			   (insert desktop-create-buffer-form)
-			   (mapcar
-			    (function (lambda (e)
-					(insert "\n  "
-						(desktop-value-to-string e))))
-			    l)
-			   (insert ")\n\n")))))
-	 info))
+      (mapcar
+       (function (lambda (l)
+		   (if (apply 'desktop-save-buffer-p l)
+		       (progn
+			 (insert desktop-create-buffer-form)
+			 (mapcar
+			  (function (lambda (e)
+				      (insert "\n  "
+					      (desktop-value-to-string e))))
+			  l)
+			 (insert ")\n\n")))))
+       info)
       (setq default-directory dirname)
       (if (file-exists-p filename) (delete-file filename))
       (write-region (point-min) (point-max) filename nil 'nomessage)))
@@ -333,6 +374,7 @@ MODE is the major mode."
     (if desktop-dirname
 	(progn
 	  (load (concat desktop-dirname desktop-basefilename) t t t)
+	  (run-hooks 'desktop-delay-hook)
 	  (message "Desktop loaded."))
       (desktop-clear))))
 ;; ----------------------------------------------------------------------------
@@ -427,6 +469,24 @@ autoloaded files."
 			       (cons 'case-fold-search cfs)
 			       (cons 'case-replace cr)
 			       (cons 'overwrite-mode (car mim)))))
+;; ----------------------------------------------------------------------------
+(defun desktop-bug-report ()
+  "Submit a bug report on the desktop package to the maintainer."
+  (interactive)
+  (require 'reporter)
+  (and (y-or-n-p "Do you really want to submit a report on desktop.el? ")
+       (reporter-submit-bug-report
+	"terra@diku.dk"
+	"desktop.el version 2.07"
+	'(desktop-basefilename
+	  desktop-dirname
+	  desktop-globals-to-save	  
+	  desktop-buffer-handlers)
+	()
+	()
+	"Hi Morten!\n\nI have a problem with your desktop.el package, that\
+you might\nwant to take a look at:"
+	)))
 ;; ----------------------------------------------------------------------------
 (provide 'desktop)
 
