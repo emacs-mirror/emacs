@@ -260,8 +260,8 @@ will select it.)"
 
 
 ;;;###autoload
-(defun electric-helpify (fun)
-  (let ((name "*Help*"))
+(defun electric-helpify (fun &optional name)
+  (let ((name (or name "*Help*")))
     (if (save-window-excursion
 	  ;; kludge-o-rama
 	  (let* ((p (symbol-function 'print-help-return-message))
@@ -363,7 +363,7 @@ will select it.)"
 
 (defun electric-command-apropos ()
   (interactive)
-  (electric-helpify 'command-apropos))
+  (electric-helpify 'command-apropos "*Apropos*"))
 
 ;(define-key help-map "a" 'electric-command-apropos)
 
