@@ -119,7 +119,7 @@ Lisp_Object Vwindow_configuration_change_hook;
    at the same screen height as previously.  */
 static int scroll_preserve_screen_position;
 
-/* Non-nil means we can split a frame even if it is "unsplittable".  */
+/* Nonzero means we can split a frame even if it is "unsplittable".  */
 static int inhibit_frame_unsplittable;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -3784,6 +3784,7 @@ The selected frae is the one whose configuration has changed.");
 \(That means, a frame whise `unsplittable' parameter is non-nil.)\n\
 Packages such as Ispell that work by splitting the selected frame\n\
 can bind this, so that they will work when used in an unsplittable frame.");
+  inhibit_frame_unsplittable = 0;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
