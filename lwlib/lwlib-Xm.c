@@ -1409,23 +1409,26 @@ xm_destroy_instance (instance)
 
 /* popup utility */
 void
-xm_popup_menu (widget)
+xm_popup_menu (widget, event)
      Widget widget;
+     XEvent *event;
 {
   XButtonPressedEvent dummy;
-  XEvent* event;
 
-  dummy.type = ButtonPress;
-  dummy.serial = 0;
-  dummy.send_event = 0;
-  dummy.display = XtDisplay (widget);
-  dummy.window = XtWindow (XtParent (widget));
-  dummy.time = 0;
-  dummy.button = 0;
-  XQueryPointer (dummy.display, dummy.window, &dummy.root,
-		 &dummy.subwindow, &dummy.x_root, &dummy.y_root,
-		 &dummy.x, &dummy.y, &dummy.state);
-  event = (XEvent *) &dummy;
+  if (event == 0)
+    {
+      dummy.type = ButtonPress;
+      dummy.serial = 0;
+      dummy.send_event = 0;
+      dummy.display = XtDisplay (widget);
+      dummy.window = XtWindow (XtParent (widget));
+      dummy.time = 0;
+      dummy.button = 0;
+      XQueryPointer (dummy.display, dummy.window, &dummy.root,
+		     &dummy.subwindow, &dummy.x_root, &dummy.y_root,
+		     &dummy.x, &dummy.y, &dummy.state);
+      event = (XEvent *) &dummy;
+    }
 
   if (event->type == ButtonPress || event->type == ButtonRelease)
     {
