@@ -1,3 +1,8 @@
+2000-11-06  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Match
+	defun*.
+
 2000-11-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.el (composition-function-table): Variable declaration
