@@ -429,7 +429,7 @@ DEFUN ("exp", Fexp, Sexp, 1, 1, 0,
 }
 
 DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
-  "Return the exponential X ** Y.")
+  "Return the exponential ARG1 ** ARG2.")
   (arg1, arg2)
      register Lisp_Object arg1, arg2;
 {
