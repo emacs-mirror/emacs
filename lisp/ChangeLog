@@ -11,7 +11,7 @@
 
 	* pcomplete.el (pcomplete-file-ignore): Changed a :type field to
 	allow a choice of regexp or nil.
-	(pcomplete-dir-ignore): same.
+	(pcomplete-dir-ignore): Same.
 
 	* eshell/em-unix.el (eshell/occur): Fixed bug causing `occur' (as
 	a command) to always fail.
