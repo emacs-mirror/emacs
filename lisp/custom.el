@@ -185,8 +185,7 @@ The following KEYWORD's are defined:
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
-  `(eval-and-compile
-     (custom-declare-variable (quote ,symbol) (quote ,value) ,doc ,@args)))
+  `(custom-declare-variable (quote ,symbol) (quote ,value) ,doc ,@args))
 
 ;;; The `defface' Macro.
 
