@@ -186,10 +186,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
-#if 0 /* autoconf should take care of this.  */
-#define HAVE_UNISTD_H	      /* for getpagesize.h */
-#define HAVE_RANDOM           /* is builtin */
-#endif
 #define HAVE_GETPAGESIZE
 #define HAVE_VFORK
 #define HAVE_SYS_SIGLIST
@@ -205,6 +201,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
 /* we cannot get the maximum address for brk */
 #define ULIMIT_BREAK_VALUE (32*1024*1024)
+
+#define SEGMENT_MASK ((SEGMENT_SIZE)-1)
 
 /* Best not to include -lg, unless it is last on the command line */
 #define LIBS_DEBUG
