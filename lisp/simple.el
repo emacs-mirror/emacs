@@ -2823,8 +2823,9 @@ mail-sending package you prefer.
 
 Valid values include:
 
-    'sendmail-user-agent -- use Emacs built-in Mail package
-    'mh-e-user-agent     -- use the Emacs interface to the MH mail system
+    sendmail-user-agent -- use the default Emacs Mail package
+    mh-e-user-agent     -- use the Emacs interface to the MH mail system
+    message-user-agent  -- use the GNUS mail sending package
 
 Additional valid symbols may be available; check with the author of
 your package for details.")
@@ -2840,18 +2841,23 @@ properties on its property list, to encode the rest of the arguments.
 COMPOSEFUNC is program callable function that composes an outgoing
 mail message buffer.  This function should set up the basics of the
 buffer without requiring user interaction.  It should populate the
-standard mail headers, leaving the `to:' and `subject:' headers blank.
+standard mail headers, leaving the `to:' and `subject:' headers blank
+by default.
 
-SENDFUNC is the command a user would type to send the message.
+COMPOSEFUNC should accept two optional arguments:
+TO and SUBJECT.  TO specifies a string to insert in the `To:' field,
+and SUBJECT specifies a string to insert in the `Subject:' field.
 
-Optional ABORTFUNC is the command a user would type to abort the
+SENDFUNC is the command a user would run to send the message.
+
+Optional ABORTFUNC is the command a user would run to abort the
 message.  For mail packages that don't have a separate abort function,
 this can be `kill-buffer' (the equivalent of omitting this argument).
 
 Optional HOOKVAR is a hook variable that gets run before the message
-is actually sent.  Reporter will install `reporter-bug-hook' onto this
-hook so that empty bug reports can be suppressed by raising an error.
-If not supplied, `mail-send-hook' will be used.
+is actually sent.  Callers that use the `mail-user-agent' may
+install a hook function temporarily on this hook variable.
+If HOOKVAR is nil, `mail-send-hook' is used.
 
 The properties used on SYMBOL are `composefunc', `sendfunc',
 `abortfunc', and `hookvar'."
@@ -2861,8 +2867,9 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
 (define-mail-user-agent 'sendmail-user-agent
-  '(lambda (&rest args) (or (apply 'mail args)
-			    (error "Message aborted")))
+  '(lambda (&optional to subject)
+     (or (mail nil to subject)
+	 (error "Message aborted")))
   'mail-send-and-exit)
 
 (define-mail-user-agent 'mh-e-user-agent
