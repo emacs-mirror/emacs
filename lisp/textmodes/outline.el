@@ -284,7 +284,7 @@ See the command `outline-mode' for more information on this mode."
 	(make-local-hook 'change-major-mode-hook)
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
-		  '(lambda () (outline-minor-mode -1))
+		  (lambda () (outline-minor-mode -1))
 		  nil t)
 	(make-local-variable 'line-move-ignore-invisible)
 	(setq line-move-ignore-invisible t)
