@@ -1,3 +1,1279 @@
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-menus.el (cc-imenu-init): Do not set
+	`imenu-create-index-function' if the second argument is left
+	out.  This bug broke the imenu support in C, C++ and Java
+	modes.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el, progmodes/cc-align.el
+	(c-add-stmt-syntax, c-lineup-arglist,
+	c-lineup-arglist-close-under-paren): Fixes to cope with
+	special brace lists in Pike.
+
+2003-07-03  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: awk-mode: Call c-awk-after-change to
+	ensure syntax-table props at loading.
+
+	* progmodes/cc-fonts.el: Put (cc-require-when-compile 'cc-awk)
+	to eliminate compile-time errors.
+
+2003-07-03  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-awk.el, progmodes/cc-engine.el: Added code to
+	analyze AWK top-level forms properly (c-guess-basic-syntax
+	CASE 5P), c-awk-backward-syntactic-ws.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fix.el: cc-mode-19.el has been renamed to
+	progmodes/cc-fix.el since it now contains compatibility stuff
+	for later versions than (X)Emacs 19.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-paren-nontype-kwds): New language
+	constant.
+
+	(c-other-decl-kwds, c-postfix-decl-spec-kwds): Added compiler
+	specific declspec keywords: __attribute__ for gcc and
+	__declspec for msvc.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations,
+	c-complex-decl-matchers): Support specifiers in a couple more
+	contexts to cope with msvc '__declspec'.
+
+	* progmodes/cc-engine.el (c-forward-keyword-clause): Support
+	`c-paren-nontype-kwds'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-primary-expr-regexp): Don't match a
+	bare period as a float.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-setup-environment): Do
+	not cover functions that have been bound.
+
+	(cc-external-require): New macro to use for requiring external
+	packages, to handle the environment correctly.
+
+	* progmodes/cc-defs.el, progmodes/cc-fix.el,
+	progmodes/cc-fonts.el, progmodes/cc-mode.el: Replaced external
+	require's with `cc-external-require'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list,
+	c-guess-basic-syntax): Fixes in handling of bitfields.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (comment-end): Put a space in front of
+	the comment ender in C, as it was before the move from
+	progmodes/cc-mode.el.
+
+2003-07-03  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el: Do not load progmodes/cc-awk.elc or
+	awk-font-lock-keywords unless there is an AWK Mode buffer.
+
+2003-07-03  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-awk.el: New file that implements AWK support,
+	superseding the old separate derived mode in awk-mode.el.
+
+	* progmodes/cc-vars.el, cc-mode-19.el, progmodes/cc-langs.el,
+	progmodes/cc-mode.el, progmodes/cc-defs.el,
+	progmodes/cc-engine.el, progmodes/cc-fonts.el: Changes for the
+	new AWK support.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el, progmodes/cc-langs.el
+	(c-decl-block-key, c-search-uplist-for-classkey): Check that
+	the modifier is followed by "{" in Pike before considering it
+	to start a class-like block.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-initialize-cc-mode): Added some
+	compatibility to make this function behave somewhat more as
+	documented for derived modes.  It's still not enough to make
+	the old AWK mode behave reasonably, but it's been like this a
+	long time now so fixing it more might cause trouble
+	elsewhere. :P
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-remove-font-lock-face): New macro
+	to remove a font lock face properly (especially in XEmacs).
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-obsolete-fun): Added
+	the same kludge as in `cc-bytecomp-obsolete-var' to avoid a
+	confused compiler warning.
+
+	* progmodes/cc-engine.el (c-forward-type): Fixed a bug in the
+	handling of concatenated types when the component types are
+	known.
+
+	* progmodes/cc-fonts.el (c-constant-face-name): Added face name variable to
+	avoid the use of `font-lock-constant-face' for constants in
+	emacsen that doesn't have it.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-styles.el, progmodes/cc-vars.el,
+	progmodes/cc-cmds.el: Fixes for the syntactic symbols for
+	module and composition blocks.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-basic-common-init): Use
+	`open-paren-in-column-0-is-defun-start' if it exists and
+	works.
+
+	* progmodes/cc-vars.el (c-emacs-features): Added `col-0-paren'
+	to detect when `open-paren-in-column-0-is-defun-start' exists
+	and actually works.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-argcont,
+	c-lineup-gcc-asm-reg): Don't quote nil in docstrings.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el, progmodes/cc-langs.el
+	(c-primitive-type-kwds, c-font-lock-extra-types): "complex"
+	and "imaginary" aren't keywords in C99, only macros that
+	expand to the keywords "_Complex" and "_Imaginary", so make
+	the former a bit less hardcoded by putting it on
+	`c-font-lock-extra-types' instead.  There are also "bool" and
+	"_Bool" that work the same way.
+
+	(c-constant-kwds): "false" and "true" are standard constant
+	macros in C99.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-menus.el, progmodes/cc-langs.el,
+	progmodes/cc-engine.el, progmodes/cc-fonts.el,
+	progmodes/cc-cmds.el: Fixed various regexps to use POSIX char
+	classes when that is supported.
+
+	* progmodes/cc-defs.el (c-alpha, c-alnum, c-digit, c-upper,
+	c-lower): New constants to make it easier to create regexps
+	that use POSIX char classes in emacsen that support them.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el (c-emacs-features): Detect in the
+	regexp engine understands POSIX char classes.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-after-change): Added kludge for bug
+	where this function sometimes gets positions outside the
+	buffer range.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list):
+	Better handling of paretheses in unexpected places.
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Fixed a
+	regexp match order problem that could cause empty template
+	args on the form "<>" to be missed.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-parse-state): Added kludge to
+	avoid an infinite loop when Emacs' open-paren-in-column-zero
+	rule kicks in and causes the sexp functions to misbehave.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list):
+	Fixed bug when C++-like code is encountered in non-C++ mode.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el (c-make-keywords-re): Added option to
+	specify the language to look up `c-nonsymbol-key' in.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el
+	(c-auto-newline-analysis): New dynamically bound variable to
+	turn off the topmost-intro-cont/statement-cont kludge for
+	brace lists during the analysis for the auto newline feature.
+	This fixes some cases where the setting for `brace-list-open'
+	on `c-hanging-braces-alist' didn't have any effect.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-literal-start-regexp): Yet another
+	language variable.
+
+	* progmodes/cc-fonts.el (c-font-lock-doc-comments,
+	c-find-invalid-doc-markup, javadoc-font-lock-keywords): Fixed
+	fontification of the markup in Javadoc comments.
+
+	* progmodes/cc-engine.el: Fixes in face handling to cope with
+	doc comments.
+
+	(c-find-decl-spots): More failsafe skipping of comments and
+	strings that only have been partially fontified.
+
+	* progmodes/cc-defs.el (c-got-face-at): New subst to test
+	faces at positions easier.
+
+	* progmodes/cc-defs.el (c-safe-scan-lists): New wrapper macro
+	to avoid the warnings with too many args to `scan-lists' in
+	Emacs.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-syntactic-skip-backward): New
+	function to make syntactic searches in the backward direction
+	easier.
+
+	(c-beginning-of-statement-1): Optimized skipping over large paren
+	sexps somewhat.
+
+	(c-safe-position): Removed the odd macro handling which was
+	centered around the point instead of the passed position.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Do not trip up on
+	initialization expressions.
+
+	* progmodes/cc-align.el (c-lineup-arglist,
+	c-lineup-close-paren, c-lineup-arglist-close-under-paren):
+	Tuned the "macro block" heuristics to work better in nested
+	arglist situations.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-styles.el (c-set-offset): Don't find a default
+	syntactic element through syntactic analysis if called outside
+	a CC Mode buffer.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-basic-common-init): Install
+	`c-fill-paragraph' on `fill-paragraph-function'.  Although
+	it's not the normal way to call it in a CC Mode buffer it
+	makes a direct call to `fill-paragraph' work better.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el, progmodes/cc-mode.el
+	(c-require-final-newline): Made this variable an alist to
+	specify a value for each language.  The default value causes
+	`require-final-newline' to be set to t only in languages where
+	the standard requires a final newline.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el, progmodes/cc-vars.el
+	(c-require-final-newline): Added a variable to make the
+	initialization of `require-final-newline' more configurable.
+
+	* progmodes/cc-vars.el (c-mode-common-hook): Do not change the
+	format string to "CC Mode Common Hook" since that causes
+	confusion (although it is a more accurate name).
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (javadoc-font-lock-keywords,
+	autodoc-font-lock-keywords): Support for Javadoc and Pike
+	Autodoc doc comments.
+
+	* progmodes/cc-vars.el (c-doc-comment-style): New variable to
+	control the fontification of documentation comments on top of
+	the normal mode font lock.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el, progmodes/cc-fonts.el
+	(c-primary-expr-regexp, c-font-lock-declarations): Avoid false
+	recognition of parens as casts when they are followed by an
+	operator that is both prefix and infix.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-guess-fill-prefix): Tuned the
+	heuristics of when to use `c-block-comment-prefix' for an
+	unclosed block comment.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el, progmodes/cc-langs.el
+	(c-nonsymbol-sexp-kwds, c-forward-keyword-clause): Handle
+	keywords like "extern" that can be followed by e.g. a string
+	literal.
+
+	* progmodes/cc-defs.el (c-make-keywords-re): Make a regexp
+	correctly with one submatch when adorn is set and the list is
+	empty.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Fixed a
+	search that could go far past the relevant region and cause
+	slowness.  Do not limit the declaration detection to the
+	fontified region since that can cause misfontification in
+	multiline declarations.
+
+	* progmodes/cc-engine.el (c-find-decl-spots): Added limit
+	argument to handle declarations spanning the fontification
+	limit better.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-in-literal, c-literal-limits,
+	c-literal-limits-fast, c-beginning-of-inheritance-list): Use
+	the paren cache instead of the impaired ad hoc in
+	`beginning-of-defun', so that these functions doesn't trip up
+	on "{" in the first column inside strings or comments.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el (c-hanging-braces-alist): Added
+	`statement-cont' and made it auto newline free by default.
+
+	* progmodes/cc-cmds.el (c-electric-brace): Added
+	`statement-cont' to the list of syntactic symbols to consider
+	for auto newlines since it can be used for in-statement brace
+	lists.
+
+	* progmodes/cc-vars.el (c-emacs-features): There's no need to
+	have this constant autoloaded.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Use
+	`c-recognize-typeless-decls' to avoid fontifying some macro
+	constructs as declarations in languages where a preceding type
+	is mandatory.
+
+	* progmodes/cc-langs.el (c-recognize-typeless-decls): New
+	language variable.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-close-paren): Use
+	`c-syntactic-eol' when checking if the open paren ends its
+	line.
+
+	* progmodes/cc-langs.el (c-syntactic-eol): Handle a line
+	continuation backslash.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-snug-do-while): Compatibility fix
+	for changed structure in `c-syntactic-context'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-parse-state): Filter angle bracket
+	arglist parens in a better way than disabling the syntax table
+	properties completely.
+
+	* progmodes/cc-fonts.el (c-cpp-matchers): Handle line
+	continuations in cpp expressions. Do not fontify symbols after
+	#ifdef etc as variables since that isn't consistent with how
+	the face is used elsewhere (i.e. only for the definition of
+	the symbol).
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: Added autoload directives for the
+	interface functions in cc-langs.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Added a
+	property to handle refontication in multiline declaration
+	arglists better.
+
+	(c-font-lock-<>-arglists): Fix to handle recursive template
+	arglists better.  (As a side effect this will make
+	fontification work better in older emacsen too.)
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist,
+	c-remove-<>-arglist-properties): Use a common text property
+	`c-type' for all sorts of CC Mode char classification, to
+	avoid cases when then same char is given conflicting types.
+
+	(c-forward-<>-arglist): New reparse argument to control that
+	aspect explicitly.
+
+	(c-forward-name, c-forward-type): Changes in the handling of
+	recursive template arglists.  Fixes to cope with the new 'known
+	type classification.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-basic-common-init): Added the new
+	char property `c-type' to `text-property-default-nonsticky'.
+
+	* progmodes/cc-defs.el (c-put-char-property,
+	c-get-char-property, c-clear-char-property,
+	c-clear-char-properties): Generalized `c-put-char-syntax' and
+	`c-get-char-syntax' to handle any property.
+
+	* progmodes/cc-bytecomp.el (cc-bytecomp-defun): Fixed bug that
+	caused existing function definitions to be overridden by
+	phonies when the bytecomp environment is restored.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Masking is
+	necessary in normal code too to avoid getting a fill prefix
+	from a nearby comment.  Changed the name from `c-mask-comment'
+	to a more accurate one.
+
+	* progmodes/cc-defs.el, progmodes/cc-mode.el: Changed the
+	auto-load-alist strategy to not add entries on package load,
+	to be defensive in the case that autoloads are updated in
+	older emacsen.  The bug that would occur in that case would
+	probably be rather nasty for the average user.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Fine
+	tuning of the decision tree that tells declarations from
+	expressions to produce better results in some ambiguous cases.
+
+	* progmodes/cc-fonts.el (c-font-lock-syntactic-face-function):
+	Removed since it doesn't give the control we want.
+
+	(c-font-lock-invalid-string): Replacement for
+	`c-font-lock-syntactic-face-function' that puts the error face
+	on the string opener only, to avoid the annoying excessive use
+	of the error face while a string literal is being written.
+
+	(c-basic-matchers-before): Use `c-font-lock-invalid-string'.
+
+	* progmodes/cc-engine.el (c-string-syntax,
+	c-string-limit-regexp): Added constants to use when handling
+	string limits, since not all old emacsen react well to the "|"
+	syntax class.
+
+	(c-literal-limits, c-literal-limits-fast, c-literal-type): Use
+	`c-string-syntax' and `c-string-limit-regexp'.  Replaced some
+	hardcoded comment start regexps with `c-comment-start-regexp'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: Added an association for pike-mode on
+	`intepreter-mode-alist'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: Add the `auto-mode-alist' entries to
+	the end instead of the start of the list, to avoid overriding
+	user additions that are made before this file is loaded when
+	the entries don't correspond to any already on
+	`auto-mode-alist'.
+
+	This is done through the third append argument to
+	`auto-mode-alist'.  That doesn't exist in older (X)Emacsen, so
+	the function is adviced in cc-defs.  However, that advice
+	doesn't help if the autoloads are updated in an old (X)Emacs
+	with this version of CC Mode, but I believe it's unlikely that
+	anyone does that when CC Mode isn't distributed with with it.
+
+	* progmodes/cc-defs.el (add-to-list): Added advice to get the
+	optional third append argument in older (X)Emacsen.
+
+	* progmodes/cc-langs.el (c-keywords-obarray): Kludge for
+	strange bug in Emacs that gives so odd errors that I frankly
+	don't even muster to begin trying to narrow it down.  If
+	someone is so inclined, restore the commented code, byte
+	compile, and try to open a C++ file or something in font lock
+	mode.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el: Updated the IDL support from the
+	specs.  This also adds the keywords for the variants PSDL and
+	CIDL.  (This is mostly done from reading the grammars only;
+	very lightly tested.)
+
+	* progmodes/cc-langs.el (c-type-list-kwds): Added "new" in
+	Java.
+
+	* progmodes/cc-fonts.el: Made sure that
+	`parse-sexp-lookup-properties' is properly insulated from
+	clobbering by the font-lock package at all relevant entry
+	points.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-opt-after-id-concat-key): New
+	language constant to make the recognition of identifier
+	qualifiers more flexible.  Recognize the identifier before
+	".*" as a qualifier in Java.
+
+	(c-identifier-key): Recognize "::*" inside identifiers in C++.
+	Recognize identifiers ending with ".*" in Java for the sake of
+	import directives.
+
+	(c-type-list-kwds, c-ref-list-kwds): Recognize "import" and
+	"package" declarations in Java.
+
+	* progmodes/cc-vars.el (c-doc-face, c-doc-marker-face,
+	c-doc-markup-face): Removed since they aren't used (and
+	probably won't be).
+
+	* progmodes/cc-langs.el (c-ref-list-kwds): New language
+	constant to specify keywords followed by references.
+
+	(c-last-identifier-range): New variable to avoid going back to
+	search for the identifier to font lock after a call to
+	`c-forward-name'.
+
+	(c-type-prefix-kwds, c-type-list-kwds): Fixed classification of
+	"@interface" etc in Objective-C.
+
+	* progmodes/cc-engine.el (c-forward-keyword-clause): Fixed
+	handling of keyword prefixes in `c-type-list-kwds' and
+	`c-colon-type-list-kwds' clauses.
+
+	(c-keyword-sym, c-keyword-member): New functions to lookup and
+	categorize keywords.
+
+	(c-forward-keyword-clause): New function to move over a keyword
+	and its associated clause according to `c-<>-arglist-kwds' etc.
+
+	* progmodes/cc-langs.el (c-typeless-decl-kwds,
+	c-type-list-kwds, c-colon-type-list-kwds,
+	c-colon-type-list-re, c-paren-type-kwds): New language
+	constants and variables to generalize the recognition of
+	various language constructs.
+
+	(c-keywords): Did away with the list of `*-kwds' constants.  It's
+	now built through macro expansion.
+
+	(c-keywords-obarray): New language variable which contains each
+	keyword as a symbol, to make fast reverse lookup of keywords to
+	the `*-kwds' lists they come from.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el (c-lang-defconst-eval-immediately):
+	Added macro to be able to do direct evaluation in
+	`c-lang-defconst' forms.
+
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	Fixed a bug which could cause the point to end up outside the
+	containing sexp if PAREN-LEVEL was used.
+
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el,
+	progmodes/cc-langs.el: Generalized the C++ template arglist
+	support to handle angle bracket arglists in any language.
+
+	(c-recognize-<>-arglists, c-<>-arglist-kwds,
+	c-opt-<>-arglist-start): New language variables to control
+	angle bracket arglists.
+
+	(c-opt-type-suffix-key): Use `c-recognize-<>-arglists' in
+	Objective-C instead of matching a protocol reference list as a
+	type suffix.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-gnu-impose-minimum): Fixed a missing
+	`save-excursion' that caused the point to jump around.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el, progmodes/cc-menus.el (objc-mode,
+	cc-imenu-init): Fixed initialization bug that has made the
+	Objective-C support inoperational since 5.26.
+
+	(cc-imenu-objc-generic-expression): Updated submatch indices
+	due to changes in `cc-imenu-c++-generic-expression'.
+
+	(cc-imenu-objc-function): Don't add an empty "C" menu since
+	imenu doesn't like that.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-arglist,
+	c-lineup-arglist-close-under-paren, c-lineup-close-paren):
+	Added DWIM to the functions that line up at or after the
+	arglist open paren to avoid that if there are brace blocks
+	inside, e.g. when a macro contains a code block.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el (objc-font-lock-extra-types): Changed
+	default to treat identifiers starting with capital letters as
+	types, according to Objective-C naming conventions.  The types
+	previously on the list is part of the language and therefore
+	on `c-primitive-type-kwds' instead.
+
+	* progmodes/cc-fonts.el: Fixed font locking in Objective-C.
+	Be more careful about returning nil from functions used
+	directly as font-lock matchers.
+
+	* progmodes/cc-mode.el (c-font-lock-init): Made the syntax
+	table modification element of `font-lock-defaults'
+	parameterized over the languages.
+
+	* progmodes/cc-langs.el: Updated the Objective-C constants
+	according to the language spec.  The "@" chars that start
+	directives are now considered part of the keywords to make
+	things easier.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el: (c-(up|down)-list-(forward|backward)):
+	Made the position optional and added docstrings.
+
+	(c-go-(up|down)-list-(forward|backward)): Added variants of the
+	above that move point and return successfulness instead.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-<>-arglists): New
+	function to fontify all occurrences of template arglists in
+	C++.
+
+	* progmodes/cc-engine.el (c-disallow-comma-in-<>-arglists):
+	New variable to be able to avoid false recognition of template
+	arglists in some cases.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el, progmodes/cc-langs.el
+	(c-decl-prefix-re, c-font-lock-declarations): Match template
+	open brackets to get a declaration in the first template
+	argument.
+
+	(c-complex-decl-matchers): Fontify the second type in a "class
+	X = Y" expression in C++.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist): Broke out the
+	recursive part to a new function to improve efficiency when a
+	nested template arglist search turns out to be futile.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-menus.el (cc-imenu-java-generic-expression):
+	Improved to avoid false matches on e.g. "else if (foo)".
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-forward-token-2,
+	c-backward-token-2): New functions that work like the -1
+	variants but that handles multicharacter operator tokens.
+
+	* progmodes/cc-engine.el (c-inside-bracelist-p,
+	c-guess-basic-syntax): Did away with the hardcoded regexps to
+	recognize "typedef" declaration prefixes, "extern" and
+	"namespace" blocks, "enum"-style brace list declarations and
+	Java-style array initializers with "new".
+
+	* progmodes/cc-langs.el (c-brace-list-decl-kwds,
+	c-brace-list-key, c-inexpr-brace-list-kwds,
+	c-opt-inexpr-brace-list-key): New language constants and
+	variables to parameterize some more of the hardcoded regexps
+	in cc-engine.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-cascaded-calls): Do not
+	allow cascaded call lists containing both "->" and ".".
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el, progmodes/cc-cmds.el,
+	progmodes/cc-defs.el, progmodes/cc-engine.el,
+	progmodes/cc-fonts.el, progmodes/cc-langs.el,
+	progmodes/cc-mode.el, progmodes/cc-styles.el: New language
+	variable system to make it easier to set up optimized language
+	variables and to extend them in third party derived modes.
+	cc-langs is no longer required at runtime.
+
+	* progmodes/cc-mode.el (c-basic-common-init): No longer
+	initializes the language variables.  It's necessary that the
+	caller does that directly since the evaluated values for them
+	now get compiled in directly.
+
+	(c-font-lock-init, c-common-init): Separated the font-lock
+	initialization from `c-common-init'.
+
+	* progmodes/cc-mode.el (c-define-abbrev-table): Do not
+	override an existing abbrev table.
+
+	(c-Java-defun-prompt-regexp): Moved here from cc-langs since
+	cc-langs isn't always loaded at runtime.
+
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun,
+	c-init-language-vars): Changed to allow language variable
+	initialization from derived modes.
+
+	(c-mode-menu): New language variable for the mode menu.
+
+	(c-make-mode-syntax-table, c-mode-syntax-table,
+	make-c++-template-syntax-table): New language variables for syntax
+	tables.  The code that initializes them has been moved to cc-mode
+	to make it possible to avoid loading cc-langs at runtime.
+
+	* progmodes/cc-engine.el, progmodes/cc-langs.el
+	(c-hungry-delete-key, c-auto-newline, c-auto-hungry-string):
+	Moved these state variables from cc-langs to cc-engine to make
+	it possible to avoid loading cc-langs at runtime.
+
+	* progmodes/cc-defs.el (c-lang-defconst, c-lang-const): Moved
+	from cc-langs and rewritten to make the language constant
+	system usable from derived modes.
+
+	(c-add-language): New function intended for use from derived modes
+	that add new C-like languages.
+
+	* progmodes/cc-defs.el, progmodes/cc-vars.el
+	(c-buffer-is-cc-mode): Moved from cc-vars to cc-defs to define
+	it during compilation.
+
+	* progmodes/cc-bytecomp.el (cc-require-when-compile): New
+	support macro for compile time `require's.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el, progmodes/cc-mode.el (c-version):
+	Moved from cc-mode to cc-defs to make it accessible to the
+	other components.
+
+	* progmodes/cc-engine.el (c-forward-token-1,
+	c-backward-token-1): Compatibility fix for emacsen that
+	doesn't understand generic string delimiters.
+
+	* progmodes/cc-vars.el (c-emacs-features): Added detection of
+	generic string and comment delimiters.
+
+	* progmodes/cc-defs.el, progmodes/cc-langs.el
+	(c-make-keywords-re): Changed interface to make it more
+	extensible.
+
+	* progmodes/cc-langs.el, progmodes/cc-defs.el (c-regexp-opt,
+	c-regexp-opt-depth, c-make-keywords-re): Moved from cc-langs
+	to cc-defs since they are generally useful.
+
+	* progmodes/cc-bytecomp.el, progmodes/cc-defs.el
+	(cc-eval-when-compile): Moved from cc-bytecomp to cc-defs to
+	allow use at runtime.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-bytecomp.el (cc-eval-when-compile): Workaround
+	for a bug with nested `eval-when-compile' in XEmacs 21.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el: Added autoloaded forms to install the
+	appropriate file suffixes on `auto-mode-alist'.  Necessary in
+	XEmacs 21.5, and it can be useful elsewhere too.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-cascaded-calls): Handle "."
+	too, for use in Java.
+
+	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws): Do
+	not handle cpp directives in languages that doesn't have any.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-operators): Added a high level
+	description of all operators, along with their precedence and
+	associativity.
+
+	* progmodes/cc-align.el (c-lineup-multi-inher): Fixed bug
+	where the position of the point and not the beginning of the
+	line was used to calculate the indentation.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el, progmodes/cc-engine.el
+	(c-backward-single-comment, c-backward-comments): Added kludge
+	for the bug in `forward-comment' in most (X)Emacs versions
+	where it moves back over the "*/" of a block comment if
+	there's no matching "/*".  This has become more important now
+	since it can cause incorrect caching by `c-backward-sws'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-hungry-backspace,
+	c-hungry-delete-forward): New functions to do hungry deletion
+	regardless of hungry-delete mode.  Contributed by Kevin Ryde.
+
+	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws,
+	c-invalidate-sws-region): Use text properties to cache regions
+	with complex syntactic whitespace.  This helps a lot in
+	improving responsiveness when there are lots of comments and
+	cpp directives before point.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-guess.el, progmodes/cc-langs.el,
+	progmodes/cc-menus.el, progmodes/cc-mode.el,
+	progmodes/cc-styles.el, progmodes/cc-vars.el,
+	progmodes/cc-engine.el, progmodes/cc-fonts.el,
+	progmodes/cc-cmds.el, progmodes/cc-defs.el: Introduced a
+	classification of functions into those that make "hidden
+	buffer changes" and those who don't.  This is prompted by the
+	increasing use of text properties for various things, to
+	correctly cover the silly buffer modifications that is caused
+	by text property changes.
+
+	(c-save-buffer-state): New macro that's put around any code that
+	can manipulate text properties.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-basic-common-init): Setup
+	`text-property-default-nonsticky' to avoid messing with the
+	rear-nonsticky property on each character in Emacs 21.
+
+	* progmodes/cc-defs.el (c-clear-char-syntax,
+	c-put-char-syntax): Macros that sets and removes the
+	syntax-table property on a single character and makes the
+	property nonsticky in both directions in a suitable way for
+	each (X)Emacs flavor.
+
+	* progmodes/cc-vars.el, progmodes/cc-defs.el,
+	progmodes/cc-engine.el, progmodes/cc-mode.el: Use
+	`lookup-syntax-properties' in XEmacs to control whether the
+	syntax-table property has any effect or not.
+
+	(c-parse-sexp-lookup-properties): New macro that expands to either
+	`parse-sexp-lookup-properties' or `lookup-syntax-properties'.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el, progmodes/cc-engine.el,
+	progmodes/cc-fonts.el: Put the faces into the buffer in the
+	same way as the font-lock package does.  This fixes a
+	compatibility problem with XEmacs which sets an extra
+	font-lock property.
+
+	* progmodes/cc-fonts.el (c-put-font-lock-face): A macro that
+	finds out the right way to put font lock faces at compile
+	time.  We're definitely not byte code portable between Emacs
+	and XEmacs now.
+
+	* progmodes/cc-engine.el (c-forward-sws, c-backward-sws):
+	Implemented a cache for the last large skipped over syntactic
+	whitespace.  This also has most effect after many macros.
+
+	* progmodes/cc-engine.el, progmodes/cc-defs.el
+	(c-forward-syntactic-ws, c-backward-syntactic-ws): Utilize the
+	limit better when one is passed.  These are now macros to
+	avoid a little overhead when no limit is given.
+
+	(c-forward-sws, c-backward-sws): New functions called by the
+	macros above to do the unbounded search.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations):
+	Implemented a cache for the first backward search for a
+	preceding `c-decl-prefix-re' match.  This typically speeds up
+	interactive refontification a lot on the top level of macro
+	heavy header files.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el (c-emacs-features): Added check for
+	syntax text properties.
+
+	* progmodes/cc-mode.el (c-basic-common-init): Turn on
+	`parse-sexp-lookup-properties' if it's supported.  Define the
+	variable in any case since it's used at runtime to check on
+	this.
+
+	* progmodes/cc-langs.el (c-identifier-key): Support C++
+	destructor names.
+
+	(c-identifier-start, c-op-token-regexp, c-type-modifier-kwds,
+	c-opt-type-modifier-key, c-opt-type-component-key,
+	c-typedef-specifier-kwds, c-typedef-specifier-key,
+	c-paren-stmt-kwds, c-paren-stmt-key, c-syntactic-ws-start): A
+	bunch of new language constants and variables to support the
+	improved handling of names and types.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarators,
+	c-font-lock-declarations): Handle C++ template declarations
+	and template references.  Fontify complex types and names more
+	accurately by delegating it to `c-forward-type' and
+	`c-forward-name'.  Fontify the identifiers in typedef
+	declarations as types.
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist): New function
+	to move forward over a C++ template arglist.  It also marks
+	the '<' and '>' chars with paren syntax using the syntax-table
+	property, to speed up later calls in emacsen that support
+	syntax text properties (Emacs >= 20 and (undocumented) XEmacs
+	21).
+
+	This also has the very interesting effect that if font locking
+	is used with decoration level 3 or higher in these emacsen
+	then template arglists will behave just like paren sexps with
+	the various sexp movement commands.
+
+	(c-forward-name): New function to move over a name.  Simple in
+	most languages except C++ where a name can contain template
+	arglists and therefore almost arbitrary expressions.
+
+	(c-on-identifier): Fix for Pike operator identifiers.
+
+	(c-simple-skip-symbol-backward, c-syntactic-content,
+	c-remove-<>-paren-properties): New helper functions.
+
+	* progmodes/cc-defs.el: (c-clear-char-syntax,
+	c-mark-paren-open, c-mark-paren-close): New support functions
+	to handle syntactic properties on C++ template arglist
+	brackets.
+
+	(c-put-type-face, c-put-reference-face): Helpers to put faces on
+	regions, since there are a bit of that inside `c-forward-name' etc
+	in progmodes/cc-engine.el.
+
+	* progmodes/cc-engine.el, progmodes/cc-fonts.el,
+	progmodes/cc-langs.el: Fixed the names on a number of regexp
+	language variables to conform to the nomenclature and
+	shortened some names.
+
+	* progmodes/cc-align.el, progmodes/cc-cmds.el,
+	progmodes/cc-fonts.el, progmodes/cc-engine.el
+	(c-syntactic-re-search-forward): Removed the COUNT argument
+	since it's never used.  Added an argument to tell which
+	subexpression whose end should be tested for syntactic
+	relevance.  Using this also removes some optimizations, so
+	that it's possible to use a look behind subexpression that
+	matches the end of a literal or a close paren when PAREN-LEVEL
+	is used.
+
+	(c-guess-continued-construct): Don't match <<= or >>= for the
+	stream-op syntactic element.
+
+	* progmodes/cc-defs.el (c-paren-re, c-identifier-re): Removed
+	these helper macros since better and more correct tools are
+	now available in progmodes/cc-langs.el.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-string-cont): New lineup
+	function to line up string literals that will be concatenated.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-populate-syntax-table): XEmacs
+	classifies the hard space character as a symbol character but
+	it's better to let it be in the punctuation class so that it's
+	always highlighted with the inverted invalid face.  It can
+	perhaps be argued that that character is allowed in
+	identifiers in some languages (haven't checked), but using it
+	would still be extremely confusing.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Fixed a
+	case when a labeled substatement caused incorrect association
+	of the following continuation clause.
+
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	Handle the case when the syntactic match position is in the
+	middle of a comment starter.
+
+	(c-guess-continued-construct): Analyze the "K&R region" of a
+	function nested inside a function as func-decl-cont and not
+	statement-cont.  New case E.  Also cleaned up case C (stream-op
+	recognition) a bit.
+
+	* progmodes/cc-engine.el (c-parse-state, c-check-state-cache):
+	Moved the check on `c-state-cache-start' from
+	`c-check-state-cache' to `c-parse-state' so that the state
+	cache isn't zapped if `c-check-state-cache' but not
+	`c-parse-state' is called during a temporary narrowing.  This
+	fixes a performance problem that could occur when
+	`fill-paragraph' is used in font lock mode on a comment at the
+	end of a large class or function.
+
+	(c-state-cache-start): Fixed buffer localness.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el: Updates from the C99 standard (or
+	actually from the latest web accessible draft of it).
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el: Updated the keywords and operator
+	tokens from the latest C++ and Java standards.  Some other
+	multichar token corrections.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el, progmodes/cc-engine.el,
+	progmodes/cc-vars.el (c-syntactic-context,
+	c-syntactic-element): Do not bind any values to these
+	variables globally since they should always be dynamically
+	bound.  This makes it much easier to debug cases when they've
+	gotten global values somehow.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-regexp-opt): Fix to work around the
+	non-greedy behavior that the regexp engine sometimes exposes.
+	This bug only shows in (X)Emacs 19 where there's no regexp-opt
+	package.
+
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	Added a feature to filter out matches in the middle of tokens.
+	Changed the comment to a docstring since I consider this
+	function generally useful.
+
+	* progmodes/cc-defs.el (c-mode-symbol): Broke out a part of
+	`c-mode-var'.
+
+	* progmodes/cc-align.el (c-lineup-cascaded-calls,
+	c-lineup-gcc-asm-reg): Cope with that `c-most-enclosing-brace'
+	might return nil.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-found-types, c-clear-found-types,
+	c-add-type, c-check-type, c-add-complex-type,
+	c-list-found-types, c-forward-type): Added a sort of symbol
+	table for types: If a name is recognized as a type in a
+	declaration it's added in an obarray to be able to recognize
+	it in other ambiguous declarations.
+
+	(c-remove-ws): New helper function to canonicalize fully
+	qualified identifiers for `c-found-types'.
+
+	* progmodes/cc-defs.el (c-mode-var): New defsubst to access
+	mode prefixed variables uniformly.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-arglist-close-under-paren):
+	Work correctly with nested arglist-cont-nonempty symbols.
+
+	(c-lineup-arglist-operators): New lineup function to line up infix
+	operators under the open paren of the surrounding sexp.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-forward-syntactic-ws): Fixed a bug
+	that could cause an infinite loop if something that looks like
+	a macro begins in the middle of a line.
+
+	(c-parse-state): Fixed a bug that could cause `c-state-cache'
+	to contain two conses in sequence when there's an unbalanced
+	open paren in a macro.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el (c-face-name-p): A defsubst to
+	recognize the name of a face in a way that works also in
+	XEmacs.
+
+	* progmodes/cc-engine.el (c-forward-type): New function to
+	move past a type spec.
+
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	Fixed behavior when the limit is reached inside a comment,
+	string, or a macro.
+
+	* progmodes/cc-align.el, progmodes/cc-cmds.el,
+	progmodes/cc-engine.el (c-forward-single-comment,
+	c-forward-comments, c-backward-single-comment,
+	c-backward-comments): New replacements for `c-forward-comment'
+	that wraps `forward-comment' more efficiently in each of the
+	four different cases it's actually used.  These replacements
+	also treats line continuations as whitespace.
+
+	(c-forward-comment): Removed.  The four different cases above
+	are basically different, so it's better to make them into
+	separate functions than choose between them at runtime using
+	the argument.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-gnu-impose-minimum): Fixed bug due
+	to the new placement of cpp-macro and comment-intro in the
+	syntactic context, as pointed out by Kevin Ryde.  Changed the
+	method that decides whether point is inside a top-level
+	construct to one that doesn't depend on the set of syntactic
+	elements so much.
+
+	* progmodes/cc-defs.el (c-point): Use the functions
+	`line-beginning-position' and `line-end-position' in emacsen
+	that have them (currently Emacs 20 and later).
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-mask-comment): Fixed a bug that
+	sometimes caused code after a closed block comment to be taken
+	into account when the fill prefix is calculated.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el (c-lineup-arglist, c-lineup-argcont,
+	c-lineup-math, c-lineup-cascaded-calls, c-lineup-gcc-asm-reg):
+	Fixes to cope correctly with nested arglists for the lineups
+	that can be used with arglist-cont-nonempty.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-add-stmt-syntax,
+	c-guess-basic-syntax): Changed the anchor position of
+	arglist-cont-nonempty and arglist-close so that a relative
+	indentation like + can be used with consistent results.  Prior
+	to this, the indentation engine more or less assumed that
+	arglist-cont-nonempty always used `c-lineup-arglist'.  Those
+	two syntax symbols also get the opening paren as an extra
+	position, to make it possible for `c-lineup-arglist' to
+	continue to do a proper job.
+
+	* progmodes/cc-engine.el (c-get-syntactic-indentation): A
+	vector with an absolute indentation column now only overrides
+	the indentation for surrounding structures, i.e. those whose
+	syntactic elements are earlier in the `c-syntactic-context'
+	list, but not nested ones.  This so that
+	e.g. `c-lineup-arglist' can reliably line up with the first
+	argument but still allow relative indentation changes for
+	nested things, e.g. the arglist-close of a nested argument
+	list.  This change means that the order in
+	`c-syntactic-context' has become more essential.
+
+	(c-guess-basic-syntax): Changes to make the nesting order of the
+	returned syntax list correct.
+
+	Compatibility note: This change means that `c-lineup-dont-change'
+	now (again) isn't absolutely sure to keep the current indentation.
+	However, I believe that most people use it for comments, macros
+	and string literals, and since those are nested innermost it won't
+	matter.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-align.el, progmodes/cc-defs.el,
+	progmodes/cc-engine.el, progmodes/cc-vars.el
+	(c-guess-basic-syntax, c-calc-offset,
+	c-get-syntactic-indentation, c-syntactic-context): Extended
+	the representation of the syntactic context: Previously it was
+	a list containing cons cells of the found syntactic symbols
+	and their relpos values.  Now each element is instead a list
+	containing the syntactic symbol in the first element and the
+	relpos (if any) in the second.  After that there might be more
+	elements, depending on the syntactic symbol.  The line-up
+	functions get these additional elements as extra arguments.
+
+	This change is slightly incompatible.  Although the calling
+	convention for line-up functions is strictly extended, the format
+	of the `c-syntactic-context' variable has changed slightly.  It's
+	believed that this incompatibility is minor, though; not a single
+	line-up function distributed with CC Mode needed to be changed,
+	for instance.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-styles.el (c-set-style, c-set-style-1): Added
+	another state for the `dont-override' flag where it only keeps
+	globally set variables.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-postprocess-file-styles): Do nothing
+	except in CC Mode modes.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-vars.el, progmodes/cc-fonts.el,
+	progmodes/cc-langs.el, progmodes/cc-mode.el: Added font lock
+	support.
+
+	* progmodes/cc-engine.el (c-beginning-of-syntax): New function
+	to be used for font-lock-beginning-of-syntax-function.  It
+	uses the state cache to quickly find a good position.
+
+	* progmodes/cc-defs.el (c-major-mode-is): Allow a list of
+	modes.  Made it a macro ensure that it's optimized to either
+	eq or memq for constant arguments.
+
+	* progmodes/cc-mode.el (c-common-init): Did away with the
+	hardcoded setting of `comment-column'; it's a user variable
+	that we have no business meddling with.  Since the default
+	value for it is 32 in all supported (X)Emacs versions, it's
+	also safe from a compatibility perspective.
+
+	* progmodes/cc-mode.el (c-basic-common-init): New function
+	that contains only the syntax and line breaking/filling
+	initialization.  It's intended for use by other modes that
+	embed CC Mode.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-add-stmt-syntax): Fixed some cases
+	of wrong anchoring, e.g. for else-if compounds.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed anchor
+	position for defun-open in K&R style functions.
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Don't trip up on
+	macros.
+
+	(c-search-decl-header-end): Handle C++ template arguments more
+	correctly.
+
+	(c-beginning-of-decl-1): Fix when the declaration is first in a
+	macro.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-decl-1): Better way
+	to handle protection labels, one which doesn't get confused by
+	inherit colons.
+
+	(c-end-of-decl-1): Don't treat functions that have "class" or
+	"struct" in the return type as classes or structs.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-make-keywords-re): Fixed the
+	keyword adornment so that it works when a keyword ends with
+	"_".
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-mask-comment): More fixes when used
+	from `c-do-auto-fill' and point is at or near the limit of the
+	comment.  Fixed bug when the prefix from `c-guess-fill-prefix'
+	is longer than the text on the first line of the comment when
+	it's masked.
+
+2003-07-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-mask-comment): Fixed bug where point
+	was moved to the following line when it was at the first line
+	of a block comment where comment-start-skip matched to eol.
+
 2003-07-01  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.el (Info-fontify-menu-headers): Only fontify `* Menu:' at
