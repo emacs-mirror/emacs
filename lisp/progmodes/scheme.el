@@ -113,9 +113,9 @@
 (defvar scheme-imenu-generic-expression
       '((nil 
 	 "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\sw+\\)" 4)
-	(" Types" 
+	("Types" 
 	 "^(define-class\\s-+(?\\(\\sw+\\)" 1)
-	(" Macros"
+	("Macros"
 	 "^(\\(defmacro\\|define-macro\\|define-syntax\\)\\s-+(?\\(\\sw+\\)" 2))
   "Imenu generic expression for Scheme mode.  See `imenu-generic-expression'.")
 
@@ -270,15 +270,15 @@ See `run-hooks'."
   ;; not sure it's the best way to organize it; perhaps one type
   ;; should be at the first level, though you don't see this anyhow if
   ;; it gets split up.
-  '((" Defines" 
+  '(("Defines" 
      "^(define\\s-+(?\\(\\sw+\\)" 1)
-    (" Modes"
+    ("Modes"
      "^\\s-*(mode\\s-+\\(\\(\\sw\\|\\s-\\)+\\)" 1)
-    (" Elements"
+    ("Elements"
      ;; (element foo ...) or (element (foo bar ...) ...)
      ;; Fixme: Perhaps it should do `root'.
      "^\\s-*(element\\s-+(?\\(\\(\\sw\\|\\s-\\)+\\))?" 1)
-    (" Declarations" 
+    ("Declarations" 
      "^(declare\\(-\\sw+\\)+\\>\\s-+\\(\\sw+\\)" 2))
   "Imenu generic expression for DSSSL mode.  See `imenu-generic-expression'.")
 
