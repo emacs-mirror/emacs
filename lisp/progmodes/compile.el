@@ -1765,5 +1765,5 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
 
 (provide 'compile)
 
-;;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
+;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c
 ;;; compile.el ends here
