@@ -1,6 +1,18 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Building Emacs with GCC 2.9x fails in the `src' directory.
+
+This may happen if you use a development version of GNU `cpp' from one
+of the GCC snapshots around Oct 2000 and later, or from a released
+version of GCC newer than 2.95.2.  The preprocessor in those versions
+expands ".." into ". .", which breaks relative file names that
+reference the parent directory.
+
+The solution is to make sure the preprocessor is run with the
+`-traditional' option.  (The `configure' script should do that
+automatically with Emacs 21 and later.)
+
 * When using Xaw3d scroll bars without arrows, the very first mouse
 click in a scroll bar might be ignored by the scroll bar widget.  This
 is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
