@@ -1,3 +1,13 @@
+2003-10-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-xref-symbol-regexp): Treat newlines as
+	whitespace.
+	(help-make-xrefs): Only make cross-references for faces if
+	preceded or followed by the word `face'.  Do not make a
+	cross-reference for variables without variable documentation,
+	unless preceded by the word `variable'.  Update doc string
+	accordingly.
+
 2003-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el: Rewrite one-armed `if'
