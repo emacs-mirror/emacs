@@ -1130,7 +1130,7 @@
 	(c-initialize-cc-mode): Change accordingly.
 	(c-common-init): Ditto.
 	(c-mode): Ditto.
-	(c++-mode): Use function.
+	(c++-mode): Use `c-init-language-vars-for'.
 	(objc-mode): Ditto.
 	(java-mode): Ditto.
 	(idl-mode): Ditto.
