@@ -1,3 +1,18 @@
+2002-03-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (bootstrapclean): New target.
+	(bootstrap-temacs, bootstrap-doc): Remove.
+	(bootstrap-emacs): Use a bog-standard `temacs'.
+	Don't bother to build a DOC file.
+
+	* sysdep.c (wait_for_termination): Use sigsuspend rather than sigpause.
+
+	* emacs.c (main): Handle --unibyte, --multibyte, and --no-loadup
+	in temacs even if !CANNOT_DUMP.
+	(standard_args): Keep --no-loadup even if !CANNOT_DUMP.
+
+	* alloc.c (check_pure_size): Only output a warning.
+
 2002-03-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Enable tool-bar when images are

@@ -1,3 +1,22 @@
+2002-03-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (finder-inf.el): Remove.
+	(finder-data): Don't depend on finder-inf.el any more.
+	(compile, compile-always): Handle the case where some files
+	from DONTCOMPILE are missing (it tried to compile them).
+	(bootstrap-clean): Use src/emacs only if executable.
+	(bootstrap): Update subdirs.el and finder-inf.el.
+
+	* finder.el: Don't load finder-inf.el during byte-compilation.
+
+	* vc-cvs.el (vc-cvs-registered, vc-cvs-dir-state-heuristic):
+	Don't consider cvs-removed files as under VC control.
+	VC wouldn't handle them properly anyway and it confuses
+	vc-file-not-found-hook.
+
+	* emacs-lisp/bytecomp.el (batch-byte-compile-if-not-done):
+	Add autoload cookie.
+
 2002-03-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/calendar.el (calendar): Doc fix.
