@@ -54,8 +54,10 @@ The Lisp code is executed when the node is selected.")
 	;; which might get this info.el from the Texinfo distribution.
 	(path-separator (if (boundp 'path-separator) path-separator
 			  (if (eq system-type 'ms-dos) ";" ":")))
+	(source (expand-file-name "info/" source-directory))
 	(sibling (if installation-directory
-		     (expand-file-name "info/" installation-directory))))
+		     (expand-file-name "info/" installation-directory)))
+	alternative)
     (if path
 	(let ((list nil)
 	      idx)
@@ -65,9 +67,11 @@ The Lisp code is executed when the node is selected.")
 		  path (substring path (min (1+ idx)
 					    (length path)))))
 	  (nreverse list))
-      (if (or (null sibling)
-	      (member sibling Info-default-directory-list)
-	      (not (file-exists-p sibling))
+      (if (and sibling (file-exists-p sibling))
+	  (setq alternative sibling)
+	(setq alternative source))
+      (if (or (member alternative Info-default-directory-list)
+	      (not (file-exists-p alternative))
 	      ;; On DOS/NT, we use movable executables always,
 	      ;; and we must always find the Info dir at run time.
 	      (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
@@ -78,7 +82,8 @@ The Lisp code is executed when the node is selected.")
 			      (expand-file-name "lib-src/"
 						installation-directory)))))
 	  Info-default-directory-list
-	(reverse (cons sibling (cdr (reverse Info-default-directory-list)))))))
+	(reverse (cons alternative
+		       (cdr (reverse Info-default-directory-list)))))))
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
