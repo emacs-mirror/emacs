@@ -1,3 +1,7 @@
+2002-11-27  Dave Love  <fx@gnu.org>
+
+	* m/mips.h (WORDS_BIG_ENDIAN): Define conditionally.
+
 2002-11-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (sys_write): Avoid non-blocking mode, which is not fully
