@@ -392,6 +392,7 @@ directory, like `default-directory'."
     (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
 
     (define-key map (kbd "/ m") 'ibuffer-filter-by-mode)
+    (define-key map (kbd "/ M") 'ibuffer-filter-by-used-mode)
     (define-key map (kbd "/ n") 'ibuffer-filter-by-name)
     (define-key map (kbd "/ c") 'ibuffer-filter-by-content)
     (define-key map (kbd "/ e") 'ibuffer-filter-by-predicate)
@@ -520,6 +521,8 @@ directory, like `default-directory'."
 		  :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
     (define-key-after map [menu-bar view filter filter-by-mode]
       '(menu-item "Add filter by major mode..." ibuffer-filter-by-mode))
+    (define-key-after map [menu-bar view filter filter-by-mode]
+      '(menu-item "Add filter by major mode in use..." ibuffer-filter-by-used-mode))
     (define-key-after map [menu-bar view filter filter-by-name]
       '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))
     (define-key-after map [menu-bar view filter filter-by-filename]
@@ -2269,6 +2272,7 @@ Marking commands:
 Filtering commands:
 
   '\\[ibuffer-filter-by-mode]' - Add a filter by major mode.
+  '\\[ibuffer-filter-by-used-mode]' - Add a filter by major mode now in use.
   '\\[ibuffer-filter-by-name]' - Add a filter by buffer name.
   '\\[ibuffer-filter-by-content]' - Add a filter by buffer content.
   '\\[ibuffer-filter-by-filename]' - Add a filter by filename.
