@@ -10541,7 +10541,7 @@ by position only.");
 
   DEFVAR_INT ("double-click-fuzz", &double_click_fuzz,
     "*Maximum mouse movement between clicks to make a double-click.\n\
-Value is the number of pixels the mouse may ha moved horizontally or\n\
+Value is the number of pixels the mouse may have moved horizontally or\n\
 vertically between two clicks to make a double-click.");
   double_click_fuzz = 3;
   
