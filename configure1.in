@@ -267,7 +267,12 @@ Set it to either \`yes' or \`no'."
 
 	## Has the user asked for some help?
 	"usage" | "help" )
-	  echo "${short_usage}" | more
+	  if [ "x$PAGER" = x ]
+	  then
+	    echo "${short_usage}" | more
+	  else
+	    echo "${short_usage}" | $PAGER
+	  fi
 	  exit
 	;;
 
@@ -497,7 +502,7 @@ case "${canonical}" in
   ;;
 
   ## DECstations
-  mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0 | mips-dec-bsd4.2 )
+  mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0* | mips-dec-bsd4.2* )
     machine=pmax opsys=bsd4-2
   ;;
   mips-dec-ultrix* | mips-dec-bsd* )
@@ -539,10 +544,10 @@ case "${canonical}" in
   ## The GEC 93 - apparently, this port isn't really finished yet.
 
   ## Gould Power Node and NP1
-  pn-gould-bsd4.2 )
+  pn-gould-bsd4.2* )
     machine=gould opsys=bsd4-2
   ;;
-  pn-gould-bsd4.3 )
+  pn-gould-bsd4.3* )
     machine=gould opsys=bsd4-3
   ;;
   np1-gould-bsd* )
@@ -561,6 +566,9 @@ case "${canonical}" in
   ## HP/UX 7, 8 and 9 are supported on these machines.
   m68*-hp-hpux* )
     case "`uname -r`" in
+      ## Someone's system reports A.B8.05 for this.
+      ## I wonder what other possibilities there are.
+      *.B8.* ) machine=hp9000s300 opsys=hpux8 ;;
       *.08.* ) machine=hp9000s300 opsys=hpux8 ;;
       *.09.* ) machine=hp9000s300 opsys=hpux9 ;;
       *) machine=hp9000s300 opsys=hpux ;;
@@ -582,6 +590,9 @@ case "${canonical}" in
   hppa*-hp-hpux* )
     ## Cross-compilation?  Nah!
     case "`uname -r`" in
+      ## Someone's system reports A.B8.05 for this.
+      ## I wonder what other possibilities there are.
+      *.B8.* ) machine=hp9000s800 opsys=hpux8 ;;
       *.08.* ) machine=hp9000s800 opsys=hpux8 ;;
       *.09.* ) machine=hp9000s800 opsys=hpux9 ;;
       *) machine=hp9000s800 opsys=hpux ;;
@@ -597,31 +608,31 @@ case "${canonical}" in
   ;;
 
   ## IBM machines
-  i386-ibm-aix1.1 )
+  i386-ibm-aix1.1* )
     machine=ibmps2-aix opsys=usg5-2-2
   ;;
-  i386-ibm-aix1.[23] | i386-ibm-aix* )
+  i386-ibm-aix1.[23]* | i386-ibm-aix* )
     machine=ibmps2-aix opsys=usg5-3
   ;;
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
-  rs6000-ibm-aix3.1 )
+  rs6000-ibm-aix3.1* )
     machine=ibmrs6000 opsys=aix3-1
   ;;
-  rs6000-ibm-aix3.2 | rs6000-ibm-aix* )
+  rs6000-ibm-aix3.2* | rs6000-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
-  romp-ibm-bsd4-3 )
+  romp-ibm-bsd4.3* )
     machine=ibmrt opsys=bsd4-3
   ;;	
-  romp-ibm-bsd4-2 )
+  romp-ibm-bsd4.2* )
     machine=ibmrt opsys=bsd4-2
   ;;
-  romp-ibm-aos4-3 )
+  romp-ibm-aos4.3* )
     machine=ibmrt opsys=bsd4-3
   ;;	
-  romp-ibm-aos4-2 )
+  romp-ibm-aos4.2* )
     machine=ibmrt opsys=bsd4-2
   ;;
   romp-ibm-aos* )
@@ -635,10 +646,10 @@ case "${canonical}" in
   ;;
 
   ## Integrated Solutions `Optimum V'
-  m68*-isi-bsd4.2 )
+  m68*-isi-bsd4.2* )
     machine=isi-ov opsys=bsd4-2
   ;;
-  m68*-isi-bsd4.3 )
+  m68*-isi-bsd4.3* )
     machine=isi-ov opsys=bsd4-3
   ;;
 
@@ -658,28 +669,31 @@ case "${canonical}" in
   ;;
 
   ## Intel 860
-  i860-*-sysvr4 )
+  i860-*-sysvr4* )
     machine=i860 opsys=usg5-4
   ;;
 
   ## Silicon Graphics machines
   ## Iris 2500 and Iris 2500 Turbo (aka the Iris 3030)
-  m68*-sgi-iris3.5 )
+  m68*-sgi-iris3.5* )
     machine=irist opsys=iris3-5
   ;;
-  m68*-sgi-iris3.6 | m68*-sgi-iris*)
+  m68*-sgi-iris3.6* | m68*-sgi-iris*)
     machine=irist opsys=iris3-6
   ;;
   ## Iris 4D
   mips-sgi-irix3.* )
     machine=iris4d opsys=irix3-3
   ;;
+  mips-sgi-irix5.* )
+    machine=iris4d opsys=irix5-0
+  ;;
   mips-sgi-irix4.* | mips-sgi-irix* )
     machine=iris4d opsys=irix4-0
   ;;
 
   ## Masscomp machines
-  m68*-masscomp-rtu )
+  m68*-masscomp-rtu* )
     machine=masscomp opsys=rtu
   ;;
 
@@ -754,18 +768,21 @@ case "${canonical}" in
   ;;
 
   ## Sequent Balance
-  ns32k-sequent-bsd4.2 )
+  ns32k-sequent-bsd4.2* )
     machine=sequent opsys=bsd4-2
   ;;
-  ns32k-sequent-bsd4.3 )
+  ns32k-sequent-bsd4.3* )
     machine=sequent opsys=bsd4-3
   ;;
 
   ## SONY machines
-  m68*-sony-bsd4.2 )
+  m68*-sony-bsd4.2* )
     machine=news opsys=bsd4-2
   ;;
-  m68*-sony-bsd4.3 )
+  m68*-sony-bsd4.3* )
+    machine=news opsys=bsd4-3
+  ;;
+  m68*-sony-newsos3*)
     machine=news opsys=bsd4-3
   ;;
   mips-sony-bsd* )
@@ -802,10 +819,10 @@ case "${canonical}" in
   ;;
 
   ## Tahoe machines
-  tahoe-tahoe-bsd4.2 )
+  tahoe-tahoe-bsd4.2* )
     machine=tahoe opsys=bsd4-2
   ;;
-  tahoe-tahoe-bsd4.3 )
+  tahoe-tahoe-bsd4.3* )
     machine=tahoe opsys=bsd4-3
   ;;
 
@@ -826,7 +843,7 @@ case "${canonical}" in
   ## Tektronix 4300
   ## src/m/tek4300.h hints that this is a m68k machine.
   m68*-tektronix-bsd* )
-    machine=tex4300 opsys=bsd4-3
+    machine=tek4300 opsys=bsd4-3
   ;;
 
   ## Titan P2 or P3
@@ -844,10 +861,10 @@ case "${canonical}" in
   vax-dec-* )
     machine=vax
     case "${canonical}" in
-      *-bsd4.1 ) 					opsys=bsd4-1 ;;
-      *-bsd4.2 | *-ultrix[0-3].* | *-ultrix4.0 )	opsys=bsd4-2 ;;
-      *-bsd4.3 | *-ultrix* ) 				opsys=bsd4-3 ;;
-      *-bsd386 )					opsys=bsd386 ;;
+      *-bsd4.1* ) 					opsys=bsd4-1 ;;
+      *-bsd4.2* | *-ultrix[0-3].* | *-ultrix4.0* )	opsys=bsd4-2 ;;
+      *-bsd4.3* | *-ultrix* ) 				opsys=bsd4-3 ;;
+      *-bsd386* )					opsys=bsd386 ;;
       *-sysv[01]* | *-sysvr[01]* ) 			opsys=usg5-0 ;;
       *-sysv2* | *-sysvr2* )				opsys=usg5-2 ;;
       *-vms* ) 						opsys=vms ;;
@@ -872,7 +889,7 @@ case "${canonical}" in
     machine=intel386
     case "${canonical}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
-      *-isc2.2 )		opsys=isc2-2 ;;
+      *-isc2.2* )		opsys=isc2-2 ;;
       *-isc* )			opsys=isc3-0 ;;
       *-esix5* )		opsys=esix5r4 ;;
       *-esix* )			opsys=esix ;;
@@ -880,7 +897,7 @@ case "${canonical}" in
       *-linux* )		opsys=linux ;;
       *-sco3.2v4* )		opsys=sco4 ;;
       *-bsd386* )		opsys=bsd386 ;;
-      *-386bsd )	        opsys=386bsd ;;
+      *-386bsd* )	        opsys=386bsd ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
@@ -1088,7 +1105,7 @@ echo '
 @configure@ c_switch_system=C_SWITCH_SYSTEM
 
 #ifndef LIB_X11_LIB
-#define LIB_X11_LIB
+#define LIB_X11_LIB -lX11
 #endif
 
 #ifndef LIBX11_MACHINE
@@ -1172,14 +1189,14 @@ AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd"
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
-  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString)
+  AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString XScreenNumberOfScreen)
 fi
 
 AC_ALLOCA
 
 # logb and frexp are found in -lm on most systems.
 AC_HAVE_LIBRARY(-lm)
-AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir random bcopy logb frexp)
+AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir random bcopy logb frexp ftime)
 
 ok_so_far=true
 AC_FUNC_CHECK(socket, , ok_so_far=)
