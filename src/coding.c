@@ -263,7 +263,7 @@ int eol_mnemonic_undecided;
 
 #ifdef emacs
 
-Lisp_Object Qcoding_system_vector, Qcoding_system_p, Qcoding_system_error;
+Lisp_Object Qcoding_system_spec, Qcoding_system_p, Qcoding_system_error;
 
 /* Coding-systems are handed between Emacs Lisp programs and C internal
    routines by the following three variables.  */
@@ -280,7 +280,9 @@ struct coding_system terminal_coding;
 /* Coding-system of what is sent from terminal keyboard.  */
 struct coding_system keyboard_coding;
 
-Lisp_Object Vcoding_system_alist;
+Lisp_Object Vfile_coding_system_alist;
+Lisp_Object Vprocess_coding_system_alist;
+Lisp_Object Vnetwork_coding_system_alist;
 
 #endif /* emacs */
 
@@ -316,6 +318,9 @@ Lisp_Object Qcharacter_unification_table;
 
 /* Alist of charsets vs revision number.  */
 Lisp_Object Vcharset_revision_alist;
+
+/* Default coding systems used for process I/O.  */
+Lisp_Object Vdefault_process_coding_system;
 
 
 /*** 2. Emacs internal format (emacs-mule) handlers ***/
@@ -2771,9 +2776,9 @@ get_conversion_buffer (size)
 #ifdef emacs
 /*** 7. Emacs Lisp library functions ***/
 
-DEFUN ("coding-system-vector", Fcoding_system_vector, Scoding_system_vector,
+DEFUN ("coding-system-spec", Fcoding_system_spec, Scoding_system_spec,
        1, 1, 0,
-  "Return coding-vector of CODING-SYSTEM.\n\
+  "Return coding-spec of CODING-SYSTEM.\n\
 If CODING-SYSTEM is not a valid coding-system, return nil.")
   (obj)
      Lisp_Object obj;
@@ -2790,7 +2795,7 @@ See document of make-coding-system for coding-system object.")
   (obj)
      Lisp_Object obj;
 {
-  return ((NILP (obj) || !NILP (Fcoding_system_vector (obj))) ? Qt : Qnil);
+  return ((NILP (obj) || !NILP (Fcoding_system_spec (obj))) ? Qt : Qnil);
 }
 
 DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
@@ -2802,7 +2807,7 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
   Lisp_Object val;
   do
     {
-      val = Fcompleting_read (prompt, Vobarray, Qcoding_system_vector,
+      val = Fcompleting_read (prompt, Vobarray, Qcoding_system_spec,
 			      Qt, Qnil, Qnil, Qnil);
     }
   while (XSTRING (val)->size == 0);
@@ -2832,7 +2837,7 @@ The value of property should be a vector of length 5.")
   if (!NILP (Fcoding_system_p (coding_system)))
     return coding_system;
   while (1)
-    Fsignal (Qcoding_system_error, coding_system);
+    Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
 }
 
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
@@ -3398,10 +3403,12 @@ TARGET has a meaning which depends on OPERATION:\n\
   For process I/O, TARGET is a process name.\n\
   For network I/O, TARGET is a service name or a port number\n\
 \n\
-This function looks up what `coding-system-alist' specifies for\n\
-OPERATION and TARGET.  It may specify a cons cell which represents\n\
-a particular coding system or it may have a function to call.\n\
-In the latter case, we call the function with one argument,\n\
+This function looks up what specified for TARGET in,\n\
+`file-coding-system-alist', `process-coding-system-alist',\n\
+or `network-coding-system-alist' depending on OPERATION.\n\
+They may specify a coding system, a cons of coding systems,\n\
+or a function symbol to call.\n\
+In the last case, we call the function with one argument,\n\
 which is a list of all the arguments given to `find-coding-system'.")
   (nargs, args)
      int nargs;
@@ -3424,11 +3431,15 @@ which is a list of all the arguments given to `find-coding-system'.")
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
     error ("Invalid %dth argument", XINT (target_idx) + 1);
 
-  chain = Fassq (operation, Vcoding_system_alist);
+  chain = (operation == Qinsert_file_contents || operation == Qwrite_region
+	   ? Vfile_coding_system_alist
+	   : (operation == Qopen_network_stream
+	      ? Vnetwork_coding_system_alist
+	      : Vprocess_coding_system_alist));
   if (NILP (chain))
     return Qnil;
 
-  for (chain = XCONS (chain)->cdr; CONSP (chain); chain = XCONS (chain)->cdr)
+  for (; CONSP (chain); chain = XCONS (chain)->cdr)
     {
       Lisp_Object elt = XCONS (chain)->car;
 
@@ -3437,11 +3448,18 @@ which is a list of all the arguments given to `find-coding-system'.")
 	       && STRINGP (XCONS (elt)->car)
 	       && fast_string_match (XCONS (elt)->car, target) >= 0)
 	      || (INTEGERP (target) && EQ (target, XCONS (elt)->car))))
-	return (val = XCONS (elt)->cdr, CONSP (val)
-		? val
-		: ((SYMBOLP (val) && !NILP (Fboundp (val))
-		    ? call2 (val, Flist (nargs, args))
-		    : Qnil)));
+	{
+	  val = XCONS (elt)->cdr;
+	  if (CONSP (val))
+	    return val;
+	  if (! SYMBOLP (val))
+	    return Qnil;
+	  if (! NILP (Fcoding_system_p (val)))
+	    return Fcons (val, val);
+	  if (!NILP (Fboundp (val)))
+	    return call2 (val, Flist (nargs, args));
+	  return Qnil;
+	}
     }
   return Qnil;
 }
@@ -3539,8 +3557,8 @@ syms_of_coding ()
   Qpre_write_conversion = intern ("pre-write-conversion");
   staticpro (&Qpre_write_conversion);
 
-  Qcoding_system_vector = intern ("coding-system-vector");
-  staticpro (&Qcoding_system_vector);
+  Qcoding_system_spec = intern ("coding-system-spec");
+  staticpro (&Qcoding_system_spec);
 
   Qcoding_system_p = intern ("coding-system-p");
   staticpro (&Qcoding_system_p);
@@ -3572,7 +3590,7 @@ syms_of_coding ()
   Fput (Qcharacter_unification_table, Qchar_table_extra_slots,
 	make_number (0));
 
-  defsubr (&Scoding_system_vector);
+  defsubr (&Scoding_system_spec);
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
   defsubr (&Sread_non_nil_coding_system);
@@ -3619,26 +3637,51 @@ If not, an appropriate element in `coding-system-alist' (which see) is used.");
     "Coding-system used in the latest file or process I/O.");
   Vlast_coding_system_used = Qnil;
 
-  DEFVAR_LISP ("coding-system-alist", &Vcoding_system_alist,
-    "Nested alist to decide a coding system for a specific I/O operation.\n\
-The format is ((OPERATION . ((REGEXP . CODING-SYSTEMS) ...)) ...).\n\
+  DEFVAR_LISP ("file-coding-system-alist", &Vfile_coding_system_alist,
+    "Alist to decide a coding system to use for a file I/O operation.\n\
+The format is ((PATTERN . VAL) ...),\n\
+where PATTERN is a regular expression matching a file name,\n\
+VAL is a coding system, a cons of coding systems, or a function symbol.\n\
+If VAL is a coding system, it is used for both decoding and encoding\n\
+the file contents.\n\
+If VAL is a cons of coding systems, the car part is used for decoding,\n\
+and the cdr part is used for encoding.\n\
+If VAL is a function symbol, the function must return a coding system\n\
+or a cons of coding systems which are used as above.\n\
 \n\
-OPERATION is one of the following Emacs I/O primitives:\n\
-  For file I/O, insert-file-contents and write-region.\n\
-  For process I/O, call-process, call-process-region, and start-process.\n\
-  For network I/O, open-network-stream.\n\
-In addition, for process I/O, `process-argument' can be specified for\n\
-encoding arguments of the process.\n\
+See also the function `find-coding-system'.");
+  Vfile_coding_system_alist = Qnil;
+
+  DEFVAR_LISP ("process-coding-system-alist", &Vprocess_coding_system_alist,
+    "Alist to decide a coding system to use for a process I/O operation.\n\
+The format is ((PATTERN . VAL) ...),\n\
+where PATTERN is a regular expression matching a program name,\n\
+VAL is a coding system, a cons of coding systems, or a function symbol.\n\
+If VAL is a coding system, it is used for both decoding what received\n\
+from the program and encoding what sent to the program.\n\
+If VAL is a cons of coding systems, the car part is used for decoding,\n\
+and the cdr part is used for encoding.\n\
+If VAL is a function symbol, the function must return a coding system\n\
+or a cons of coding systems which are used as above.\n\
 \n\
-REGEXP is a regular expression matching a target of OPERATION, where\n\
-target is a file name for file I/O operations, a process name for\n\
-process I/O operations, or a service name for network I/O\n\
-operations.  REGEXP might be a port number for network I/O operation.\n\
+See also the function `find-coding-system'.");
+  Vprocess_coding_system_alist = Qnil;
+
+  DEFVAR_LISP ("network-coding-system-alist", &Vnetwork_coding_system_alist,
+    "Alist to decide a coding system to use for a network I/O operation.\n\
+The format is ((PATTERN . VAL) ...),\n\
+where PATTERN is a regular expression matching a network service name\n\
+or is a port number to connect to,\n\
+VAL is a coding system, a cons of coding systems, or a function symbol.\n\
+If VAL is a coding system, it is used for both decoding what received\n\
+from the network stream and encoding what sent to the network stream.\n\
+If VAL is a cons of coding systems, the car part is used for decoding,\n\
+and the cdr part is used for encoding.\n\
+If VAL is a function symbol, the function must return a coding system\n\
+or a cons of coding systems which are used as above.\n\
 \n\
-CODING-SYSTEMS is a cons of coding systems to encode and decode\n\
-character code on OPERATION, or a function symbol returning the cons.\n\
-See the documentation of `find-coding-system' for more detail.");
-  Vcoding_system_alist = Qnil;
+See also the function `find-coding-system'.");
+  Vnetwork_coding_system_alist = Qnil;
 
   DEFVAR_INT ("eol-mnemonic-unix", &eol_mnemonic_unix,
     "Mnemonic character indicating UNIX-like end-of-line format (i.e. LF) .");
@@ -3675,6 +3718,13 @@ See the documentation of `find-coding-system' for more detail.");
 While encoding, if a charset (car part of an element) is found,\n\
 designate it with the escape sequence identifing revision (cdr part of the element).");
   Vcharset_revision_alist = Qnil;
+
+  DEFVAR_LISP ("default-process-coding-system",
+	       &Vdefault_process_coding_system,
+    "Cons of coding systems used for process I/O by default.\n\
+The car part is used for decoding a process output,\n\
+the cdr part is used for encoding a text to be sent to a process.");
+  Vdefault_process_coding_system = Qnil;
 }
 
 #endif /* emacs */
