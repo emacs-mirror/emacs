@@ -36,54 +36,31 @@ that `read' can handle, whenever this is possible."
 	(progn
 	  (lisp-mode-variables nil)
 	  (set-syntax-table emacs-lisp-mode-syntax-table)
-	  (let ((print-escape-newlines pp-escape-newlines))
+	  (let ((print-escape-newlines pp-escape-newlines)
+		(print-quoted t))
 	    (prin1 object (current-buffer)))
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    ;; (message "%06d" (- (point-max) (point)))
 	    (cond
-	     ((looking-at "\\s(\\|#\\s(")
-	      (while (looking-at "\\s(\\|#\\s(")
-		(forward-char 1)))
-	     ((and (looking-at "\\(quote[ \t]+\\)\\([^.)]\\)")
-		   (> (match-beginning 1) 1)
-		   (= ?\( (char-after (1- (match-beginning 1))))
-		   ;; Make sure this is a two-element list.
-		   (save-excursion
-		     (goto-char (match-beginning 2))
-		     (forward-sexp)
-		     ;; (looking-at "[ \t]*\)")
-		     ;; Avoid mucking with match-data; does this test work?
-		     (char-equal ?\) (char-after (point)))))
-	      ;; -1 gets the paren preceding the quote as well.
-	      (delete-region (1- (match-beginning 1)) (match-end 1))
-	      (insert "'")
-	      (forward-sexp 1)
-	      (if (looking-at "[ \t]*\)")
-		  (delete-region (match-beginning 0) (match-end 0))
-		(error "Malformed quote"))
-	      (backward-sexp 1))	      
 	     ((condition-case err-var
 		  (prog1 t (down-list 1))
 		(error nil))
-	      (backward-char 1)
-	      (skip-chars-backward " \t")
-	      (delete-region
-	       (point)
-	       (progn (skip-chars-forward " \t") (point)))
-	      (if (not (char-equal ?' (char-after (1- (point)))))
-		  (insert ?\n)))
+	      (save-excursion
+		(backward-char 1)
+		(skip-chars-backward "'`#^")
+		(when (and (not (bobp)) (= ?\ (char-before)))
+		  (delete-char -1)
+		  (insert "\n"))))
 	     ((condition-case err-var
 		  (prog1 t (up-list 1))
 		(error nil))
 	      (while (looking-at "\\s)")
 		(forward-char 1))
-	      (skip-chars-backward " \t")
 	      (delete-region
 	       (point)
 	       (progn (skip-chars-forward " \t") (point)))
-	      (if (not (char-equal ?' (char-after (1- (point)))))
-		  (insert ?\n)))
+	      (insert ?\n))
 	     (t (goto-char (point-max)))))
 	  (goto-char (point-min))
 	  (indent-sexp)
