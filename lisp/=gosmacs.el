@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'mlsupport)
+
 (defvar non-gosmacs-binding-alist nil)
 
 ;;;###autoload
@@ -53,7 +55,7 @@ Use \\[set-gnu-bindings] to restore previous global bindings."
 	   ("\e(" backward-paragraph)
 	   ("\e)" forward-paragraph)
 	   ("\e?" apropos)
-	   ("\eh" backward-kill-word)
+	   ("\eh" delete-previous-word)
 	   ("\ej" indent-sexp)
 	   ("\eq" query-replace)
 	   ("\er" replace-string)
