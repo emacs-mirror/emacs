@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1236,15 +1236,10 @@ and nil is returned.")
       return Qnil;
     }
 
-  /* If in a mini-buffer and moving backwards, stop at the end of the
-     prompt.  This prevents accidentially moving into the read-only
-     prompt.  */
-  if (INTEGERP (current_buffer->prompt_end_charpos)
-      && (prompt_end = XINT (current_buffer->prompt_end_charpos),
-	  ((PT > prompt_end && val < prompt_end)
-	   || (PT < prompt_end && val > prompt_end))))
-    val = prompt_end;
-    
+  /* Avoid jumping out of an input field.  */
+  val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
+				       Qt, Qnil));
+
   SET_PT (val);
   return Qt;
 }
