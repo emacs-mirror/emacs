@@ -50,7 +50,7 @@
 
 ;;; Type checkers.
 (defsubst internal-facep (x)
-  (and (vectorp x) (= (length x) 10) (eq (aref x 0) 'face)))
+  (and (vectorp x) (= (length x) 12) (eq (aref x 0) 'face)))
 
 (defun facep (x)
   "Return t if X is a face name or an internal face vector."
@@ -79,10 +79,6 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
   of the form (bold), (italic) or (bold italic).
 If FRAME is omitted or nil, use the selected frame."
   (aref (internal-get-face face frame) 3))
-
-(defun face-font-explicit (face &optional frame)
-  "Return non-nil if this face's font was explicitly specified."
-  (aref (internal-get-face face frame) 9))
 
 (defun face-foreground (face &optional frame)
   "Return the foreground color name of face FACE, or nil if unspecified.
@@ -121,29 +117,23 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
  (aref (internal-get-face face frame) 8))
 
+(defun face-font-explicit (face &optional frame)
+  "Return non-nil if this face's font was explicitly specified."
+  (aref (internal-get-face face frame) 9))
+
 (defun face-bold-p (face &optional frame)
   "Return non-nil if the font of FACE is bold.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-  The font default for a face is either nil, or a list
-  of the form (bold), (italic) or (bold italic).
 If FRAME is omitted or nil, use the selected frame."
-  (let ((font (face-font face frame)))
-    (if (stringp font)
-	(not (equal font (x-make-font-unbold font)))
-      (memq 'bold font))))
+  (aref (internal-get-face face frame) 10))
 
 (defun face-italic-p (face &optional frame)
   "Return non-nil if the font of FACE is italic.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-  The font default for a face is either nil, or a list
-  of the form (bold), (italic) or (bold italic).
 If FRAME is omitted or nil, use the selected frame."
-  (let ((font (face-font face frame)))
-    (if (stringp font)
-	(not (equal font (x-make-font-unitalic font)))
-      (memq 'italic font))))
+  (aref (internal-get-face face frame) 11))
 
 (defalias 'face-doc-string 'face-documentation)
 (defun face-documentation (face)
@@ -510,7 +500,7 @@ and always make a face whose attributes are all nil.
 If the face already exists, it is unmodified."
   (interactive "SMake face: ")
   (or (internal-find-face name)
-      (let ((face (make-vector 10 nil)))
+      (let ((face (make-vector 12 nil)))
 	(aset face 0 'face)
 	(aset face 1 name)
 	(let* ((frames (frame-list))
@@ -905,6 +895,8 @@ If that can't be done, return nil."
   "Make the font of the given face be bold, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold: ")))
+  ;; Set the bold-p flag, first of all.
+  (internal-set-face-1 face nil t 10 frame)
   (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'italic (face-font face t))
 			      '(bold italic) '(bold))
@@ -942,6 +934,8 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be italic, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face italic: ")))
+  ;; Set the italic-p flag, first of all.
+  (internal-set-face-1 face nil t 11 frame)
   (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'bold (face-font face t))
 			      '(bold italic) '(italic))
@@ -979,6 +973,9 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be bold and italic, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold-italic: ")))
+  ;; Set the bold-p and italic-p flags, first of all.
+  (internal-set-face-1 face nil t 10 frame)
+  (internal-set-face-1 face nil t 11 frame)
   (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face '(bold italic) t)
     (let (font)
@@ -1030,6 +1027,8 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be non-bold, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face non-bold: ")))
+  ;; Clear the bold-p flag, first of all.
+  (internal-set-face-1 face nil nil 10 frame)
   (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'italic (face-font face t))
 			      '(italic) nil)
@@ -1060,6 +1059,8 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be non-italic, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face non-italic: ")))
+  ;; Clear the italic-p flag, first of all.
+  (internal-set-face-1 face nil nil 11 frame)
   (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'bold (face-font face t))
 			      '(bold) nil)
@@ -1348,7 +1349,9 @@ If FRAME is nil, the current FRAME is used."
 				     (vector 'face
 					     (face-name (cdr elt))
 					     (face-id (cdr elt))
-					     nil nil nil nil nil nil nil)))
+					     nil
+					     nil nil nil nil
+					     nil nil nil nil)))
 			    global-face-data))
 	      (set-frame-face-alist frame faces)
 
