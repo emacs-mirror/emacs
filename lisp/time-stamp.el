@@ -40,7 +40,7 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.19 1996/09/22 22:20:58 kwzh Exp rms $
+;; $Id: time-stamp.el,v 1.20 1996/11/05 18:27:41 rms Exp rms $
 
 ;;; Code:
 
@@ -56,44 +56,18 @@ a time stamp template that would otherwise have been updated.")
 
 (defvar time-stamp-old-format-warn 'ask
   "Action to take if `time-stamp-format' is an old-style list.
-If 'error, the format is not used.  If 'ask, the user is queried about
-using the time-stamp-format.  If 'warn, a warning is displayed.
+If `error', the format is not used.  If `ask', the user is queried about
+using the time-stamp-format.  If `warn', a warning is displayed.
 If nil, no notification is given.")
 
-(defvar time-stamp-format "%y-%02m-%02d %02H:%02M:%02S %u"
+(defvar time-stamp-format "%y-%m-%d %H:%M:%S %u"
   "*Format of the string inserted by \\[time-stamp].
-Value may be a string or a list.  (Lists are supported only for
-backward compatibility; see variable `time-stamp-old-format-warn'.)
-A string is used verbatim except for character sequences beginning with %:
+The value may be a string or a list.  Lists are supported only for
+backward compatibility; see variable `time-stamp-old-format-warn'.
 
-%a  weekday name: `Monday'.		%A gives uppercase: `MONDAY'
-%b  month name: `January'.		%B gives uppercase: `JANUARY'
-%d  day of month
-%H  24-hour clock hour
-%I  12-hour clock hour
-%m  month number
-%M  minute
-%p  `am' or `pm'.			%P gives uppercase: `AM' or `PM'
-%S  seconds
-%w  day number of week, Sunday is 0
-%y  year: `1995'
-%z  time zone name: `est'.		%Z gives uppercase: `EST'
-
-Non-date items:
-%%  a literal percent character: `%'
-%f  file name without directory		%F gives absolute pathname
-%s  system name
-%u  user's login name
-%h  mail host name
-
-Decimal digits between the % and the type character specify the
-field width.  Strings are truncated on the right; numbers on the left.
-A leading zero causes numbers to be zero-filled.
-
+A string is used with `format-time-string'.
 For example, to get the format used by the `date' command,
-use \"%3a %3b %2d %02H:%02M:%02S %Z %y\"")
-
-
+use \"%3a %3b %2d %H:%M:%S %Z %y\"")
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
 ;;; time-stamp-end in your .emacs or you will be incompatible
@@ -224,7 +198,7 @@ With arg, turn time stamping on if and only if arg is positive."
 (defun time-stamp-string ()
   "Generate the new string to be inserted by \\[time-stamp]."
   (if (stringp time-stamp-format)
-      (time-stamp-strftime time-stamp-format)
+      (format-time-string time-stamp-format (current-time))
     ;; handle version 1 compatibility
     (cond ((or (eq time-stamp-old-format-warn 'error)
 	       (and (eq time-stamp-old-format-warn 'ask)
@@ -247,170 +221,8 @@ With arg, turn time stamping on if and only if arg is positive."
   ["(zero)" "January" "February" "March" "April" "May" "June"
    "July" "August" "September" "October" "November" "December"])
 
-(defconst time-stamp-weekday-numbers
-  '(("Sun" . 0) ("Mon" . 1) ("Tue" . 2) ("Wed" . 3)
-    ("Thu" . 4) ("Fri" . 5) ("Sat" . 6))
-  "Alist of weekdays and their number.")
-
-(defconst time-stamp-weekday-full-names
-  ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
-
-(defconst time-stamp-am-pm '("am" "pm")
-  "List of strings used to denote morning and afternoon.")
-
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
-
-(defun time-stamp-strftime (format &optional time)
-  "Uses a FORMAT to format date, time, file, and user information.
-Optional second argument TIME will be used instead of the current time.
-See the documentation of the variable `time-stamp-format' for a description
-of the format string."
-  (let ((time-string (cond ((stringp time)
-			    time)
-			   (time
-			    (current-time-string time))
-			   (t
-			    (current-time-string))))
-	(fmt-len (length format))
-	(ind 0)
-	cur-char
-	(prev-char nil)
-	(result "")
-	field-index
-	field-width
-	field-result
-	(paren-level 0))
-    (while (< ind fmt-len)
-      (setq cur-char (aref format ind))
-      (setq
-       result
-       (concat result
-      (cond
-       ((eq cur-char ?%)
-	(setq field-index (1+ ind))
-	(while (progn
-		 (setq ind (1+ ind))
-		 (setq cur-char (if (< ind fmt-len)
-				    (aref format ind)
-				  ?\0))
-		 (and (<= ?0 cur-char) (>= ?9 cur-char))))
-	(setq field-width (substring format field-index ind))
-	;; eat any additional args to allow for future expansion
-	(while (or (and (<= ?0 cur-char) (>= ?9 cur-char)) (eq ?. cur-char)
-		   (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
-		   (eq ?- cur-char) (eq ?+ cur-char)
-		   (eq ?\  cur-char) (eq ?# cur-char)
-		   (and (eq ?\( cur-char)
-			(not (eq prev-char ?\\))
-			(setq paren-level (1+ paren-level)))
-		   (if (and (eq ?\) cur-char)
-			    (not (eq prev-char ?\\))
-			    (> paren-level 0))
-		       (setq paren-level (1- paren-level))
-		     (and (> paren-level 0)
-			  (< ind fmt-len))))
-	  (setq ind (1+ ind))
-	  (setq prev-char cur-char)
-	  (setq cur-char (if (< ind fmt-len)
-			     (aref format ind)
-			   ?\0)))
-	(setq field-result
-	(cond
-	 ((eq cur-char ?%)
-	  "%")
-	 ((or (eq cur-char ?a)		;weekday name
-	      (eq cur-char ?A))
-	  (let ((name
-		 (aref time-stamp-weekday-full-names
-		       (cdr (assoc (substring time-string 0 3)
-				   time-stamp-weekday-numbers)))))
-	    (if (eq cur-char ?a)
-		name
-	      (upcase name))))
-	 ((or (eq cur-char ?b)		;month name
-	      (eq cur-char ?B))
-	  (let ((name
-		 (aref time-stamp-month-full-names
-		       (cdr (assoc (substring time-string 4 7)
-				   time-stamp-month-numbers)))))
-	    (if (eq cur-char ?b)
-		name
-	      (upcase name))))
-	 ((eq cur-char ?d)		;day of month, 1-31
-	  (string-to-int (substring time-string 8 10)))
-	 ((eq cur-char ?H)		;hour, 0-23
-	  (string-to-int (substring time-string 11 13)))
-	 ((eq cur-char ?I)		;hour, 1-12
-	  (let ((hour (string-to-int (substring time-string 11 13))))
-	    (cond ((< hour 1)
-		   (+ hour 12))
-		  ((> hour 12)
-		   (- hour 12))
-		  (t
-		   hour))))
-	 ((eq cur-char ?m)		;month number, 1-12
-	  (cdr (assoc (substring time-string 4 7)
-		      time-stamp-month-numbers)))
-	 ((eq cur-char ?M)		;minute, 0-59
-	  (string-to-int (substring time-string 14 16)))
-	 ((or (eq cur-char ?p)		;am or pm
-	      (eq cur-char ?P))
-	  (let ((name
-		 (if (> 12 (string-to-int (substring time-string 11 13)))
-		     (car time-stamp-am-pm)
-		   (car (cdr time-stamp-am-pm)))))
-	    (if (eq cur-char ?p)
-		name
-	      (upcase name))))
-	 ((eq cur-char ?S)		;seconds, 00-60
-	  (string-to-int (substring time-string 17 19)))
-	 ((eq cur-char ?w)		;weekday number, Sunday is 0
-	  (cdr (assoc (substring time-string 0 3) time-stamp-weekday-numbers)))
-	 ((eq cur-char ?y)		;year
-	  (string-to-int (substring time-string -4)))
-	 ((or (eq cur-char ?z)		;time zone
-	      (eq cur-char ?Z))
-	  (let ((name
-		 (if (fboundp 'current-time-zone)
-		     (car (cdr (current-time-zone time))))))
-	    (or name (setq name ""))
-	    (if (eq cur-char ?z)
-		(downcase name)
-	      (upcase name))))
-	 ((eq cur-char ?f)		;buffer-file-name, base name only
-	  (if buffer-file-name
-	      (file-name-nondirectory buffer-file-name)
-	    time-stamp-no-file))
-	 ((eq cur-char ?F)		;buffer-file-name, full path
-	  (or buffer-file-name
-	      time-stamp-no-file))
-	 ((eq cur-char ?s)		;system name
-	  (system-name))
-	 ((eq cur-char ?u)		;user name
-	  (user-login-name))
-	 ((eq cur-char ?h)		;mail host name
-	  (time-stamp-mail-host-name))
-	 ))
-	(if (string-equal field-width "")
-	    field-result
-	  (let ((padded-result
-		 (format (format "%%%s%c"
-				 field-width
-				 (if (numberp field-result) ?d ?s))
-			 (or field-result ""))))
-	    (let ((initial-length (length padded-result))
-		  (desired-length (string-to-int field-width)))
-	      (if (> initial-length desired-length)
-		  ;; truncate strings on right, numbers on left
-		  (if (stringp field-result)
-		      (substring padded-result 0 desired-length)
-		    (substring padded-result (- desired-length)))
-		padded-result)))))
-       (t
-	(char-to-string cur-char)))))
-      (setq ind (1+ ind)))
-    result))
 
 (defun time-stamp-mail-host-name ()
   "Return the name of the host where the user receives mail.
