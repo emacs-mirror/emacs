@@ -299,9 +299,10 @@ The possible attributes are `:family', `:width', `:height', `:weight',
 `:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
 
 DISPLAY can either be the symbol t, which will match all frames, or an
-alist of the form \((REQ ITEM...)...).  For the DISPLAY to match a
-FRAME, the REQ property of the frame must match one of the ITEM.  The
-following REQ are defined:
+alist of elements of the form \(REQ ITEM...).  For the DISPLAY to match a
+FRAME, each of these elements must be satisfied, meaning that the
+REQ property of the frame must match one of the corresponding ITEMs.
+These are the defined REQ values:
 
 `type' (the value of `window-system')
   Under X, in addition to the values `window-system' can take,
