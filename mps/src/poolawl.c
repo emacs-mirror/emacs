@@ -4,6 +4,8 @@
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
+ * DESIGN
+ *
  * .design: See design.mps.poolawl.  This is Dylan-specific pool.
  *
  *
@@ -198,29 +200,29 @@ static Res awlSegInit(Seg seg, Pool pool, Addr base, Size size,
   rankSet = va_arg(args, RankSet);
   /* .assume.samerank */
   /* AWL only accepts two ranks */
-  AVER(RankSetSingle(RankEXACT) == rankSet || 
-       RankSetSingle(RankWEAK) == rankSet);
+  AVER(RankSetSingle(RankEXACT) == rankSet
+       || RankSetSingle(RankWEAK) == rankSet);
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(AWLSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   bits = size >> awl->alignShift;
   tableSize = BTSize(bits);
   res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failControlAllocMark;
   awlseg->mark = v;
   res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failControlAllocScanned;
   awlseg->scanned = v;
   res = ControlAlloc(&v, arena, tableSize, reservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failControlAllocAlloc;
   awlseg->alloc = v;
   awlseg->grains = bits;
@@ -439,16 +441,15 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
 
   size = SizeAlignUp(size, ArenaAlign(arena));
   /* beware of large sizes overflowing upon rounding */
-  if(size == 0) {
+  if (size == 0)
     return ResMEMORY;
-  }
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
   res = SegAlloc(&seg, EnsureAWLSegClass(),
                  &segPrefStruct, size, pool, 
                  reservoirPermit, rankSet);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   awlseg = SegAWLSeg(seg);
@@ -476,13 +477,11 @@ static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
   AVER(size << awl->alignShift >= size);
   seg = AWLSegSeg(awlseg);
 
-  if(size > SegSize(seg)) {
+  if (size > SegSize(seg))
     return FALSE;
-  }
   n = size >> awl->alignShift;
-  if(!BTFindLongResRange(&i, &j, awlseg->alloc, 0, awlseg->grains, n)) {
+  if (!BTFindLongResRange(&i, &j, awlseg->alloc, 0, awlseg->grains, n))
     return FALSE;
-  }
   awl->size += size;
   *baseReturn = AddrAdd(SegBase(seg), i << awl->alignShift);
   *limitReturn = AddrAdd(SegBase(seg), j << awl->alignShift);
@@ -522,6 +521,8 @@ static Res AWLInit(Pool pool, va_list arg)
 }
 
 
+/* AWLFinish -- finish an AWL pool */
+
 static void AWLFinish(Pool pool)
 {
   AWL awl;
@@ -540,6 +541,8 @@ static void AWLFinish(Pool pool)
   }
 }
 
+
+/* AWLBufferFill -- BufferFill method for AWL */
 
 static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size,
@@ -571,10 +574,9 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     /* Only try to allocate in the segment if it is not already */
     /* buffered, and has the same ranks as the buffer. */
-    if(SegBuffer(seg) == NULL &&
-       SegRankSet(seg) == BufferRankSet(buffer))
-      if(awlseg->free << awl->alignShift >= size &&
-         AWLSegAlloc(&base, &limit, awlseg, awl, size))
+    if (SegBuffer(seg) == NULL && SegRankSet(seg) == BufferRankSet(buffer))
+      if (awlseg->free << awl->alignShift >= size
+          && AWLSegAlloc(&base, &limit, awlseg, awl, size))
         goto found;
   }
 
@@ -582,9 +584,8 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size,
                      reservoirPermit);
-  if(res != ResOK) {
+  if (res != ResOK)
     return res;
-  }
   base = SegBase(AWLSegSeg(awlseg));
   limit = SegLimit(AWLSegSeg(awlseg));
 
@@ -608,8 +609,9 @@ found:
 }
 
 
-static void AWLBufferEmpty(Pool pool, Buffer buffer, 
-                           Addr init, Addr limit)
+/* AWLBufferEmpty -- BufferEmpty method for AWL */
+
+static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
   AWL awl;
   AWLSeg awlseg;
@@ -620,7 +622,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   seg = BufferSeg(buffer);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
   AVER(init <= limit);
 
   awl = PoolPoolAWL(pool);
@@ -633,7 +635,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer,
   i = awlIndexOfAddr(segBase, awl, init);
   j = awlIndexOfAddr(segBase, awl, limit);
   AVER(i <= j);
-  if(i < j) {
+  if (i < j) {
     BTResRange(awlseg->alloc, i, j);
     awlseg->free += j - i;
   }
@@ -645,7 +647,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer,
 /* Split out of AWLWhiten because it's used in more than one place. */
 static void AWLRangeWhiten(AWLSeg awlseg, Index base, Index limit)
 {
-  if(base != limit) {
+  if (base != limit) {
     AVER(base < limit);
     AVER(limit <= awlseg->grains);
     BTResRange(awlseg->mark, base, limit);
@@ -671,7 +673,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   /* see design.mps.poolawl.fun.condemn */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if(buffer == NULL) {
+  if (buffer == NULL) {
     AWLRangeWhiten(awlseg, 0, awlseg->grains);
     trace->condemned += SegSize(seg);
   } else {
@@ -688,7 +690,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     /* Check the buffer is black. */
     /* This really ought to change when we have a non-trivial */
     /* pre-flip phase. @@@@ ('coz then we'll be allocating white) */
-    if(scanLimitIndex != limitIndex) {
+    if (scanLimitIndex != limitIndex) {
       AVER(BTIsSetRange(awlseg->mark, scanLimitIndex, limitIndex));
       AVER(BTIsSetRange(awlseg->scanned, scanLimitIndex, limitIndex));
     }
@@ -704,13 +706,16 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   return ResOK;
 }
 
+
+/* AWLGrey -- Grey method for AWL pools */
+
 /* AWLRangeGrey -- subroutine for AWLGrey */
 static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
 {
   /* AWLSeg not checked as that's already been done */
   AVER(limit <= awlseg->grains);
   /* copes with degenerate case as that makes caller simpler */
-  if(base < limit) {
+  if (base < limit) {
     BTSetRange(awlseg->mark, base, limit);
     BTResRange(awlseg->scanned, base, limit);
   } else {
@@ -724,7 +729,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
 
-  if(!TraceSetIsMember(SegWhite(seg), trace)) {
+  if (!TraceSetIsMember(SegWhite(seg), trace)) {
     AWL awl;
     AWLSeg awlseg;
 
@@ -734,7 +739,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AVERT(AWLSeg, awlseg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if(SegBuffer(seg) != NULL) {
+    if (SegBuffer(seg) != NULL) {
       Addr base = SegBase(seg);
       Buffer buffer = SegBuffer(seg);
 
@@ -750,6 +755,9 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
   }
 }
 
+
+/* AWLBlacken -- Blacken method for AWL pools */
+
 static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
   AWL awl;
@@ -757,7 +765,7 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
 
   AVERT(Pool, pool);
   AVER(TraceSetCheck(traceSet));
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -768,9 +776,12 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
 }
 
 
-/* Returns the linked object (or possibly there is none) */
-/* see design.mps.poolawl.fun.dependent-object, and */
-/* analysis.mps.poolawl.improve.dependent.abstract */
+/* AWLDependentObject -- returns the linked object, if any
+ *
+ * see design.mps.poolawl.fun.dependent-object, and
+ * analysis.mps.poolawl.improve.dependent.abstract
+ */
+
 static Bool AWLDependentObject(Addr *objReturn, Addr parent)
 {
   Word *object;
@@ -796,9 +807,8 @@ static Bool AWLDependentObject(Addr *objReturn, Addr parent)
   fl = fword & ~3uL;
   /* At least one fixed field */
   AVER(fl >= 1);
-  if(object[1] == 0) {
+  if (object[1] == 0)
     return FALSE;
-  }
   *objReturn = (Addr)object[1];
   return TRUE;
 }
@@ -820,14 +830,10 @@ static Res awlScanObject(Arena arena, ScanState ss,
   AVER(base != 0);
   AVER(base < limit);
 
-  if(AWLDependentObject(&dependentObject, base) &&
-     SegOfAddr(&dependentSeg, arena, dependentObject)) {
-    dependent = TRUE;
-  } else {
-    dependent = FALSE;
-  }
+  dependent = AWLDependentObject(&dependentObject, base)
+              && SegOfAddr(&dependentSeg, arena, dependentObject);
 
-  if(dependent) {
+  if (dependent) {
     /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.expose */
     ShieldExpose(arena, dependentSeg);
     /* design.mps.poolawl.fun.scan.pass.repeat.object.dependent.summary */
@@ -835,12 +841,11 @@ static Res awlScanObject(Arena arena, ScanState ss,
   }
 
   res = (*scan)(ss, base, limit);
-  if(res == ResOK)
+  if (res == ResOK)
     ss->scannedSize += AddrOffset(base, limit);
 
-  if(dependent) {
+  if (dependent)
     ShieldCover(arena, dependentSeg);
-  }
 
   return res;
 }
@@ -878,31 +883,30 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
     Index i;        /* the index into the bit tables corresponding to p */
     Addr objectLimit;
     /* design.mps.poolawl.fun.scan.buffer */
-    if(SegBuffer(seg)) {
+    if (SegBuffer(seg)) {
       Buffer buffer = SegBuffer(seg);
 
-      if(p == BufferScanLimit(buffer) &&
-         BufferScanLimit(buffer) != BufferLimit(buffer)) {
+      if (p == BufferScanLimit(buffer)
+          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         p = BufferLimit(buffer);
         continue;
       }
     }
     i = awlIndexOfAddr(base, awl, p);
     /* design.mps.poolawl.fun.scan.free */
-    if(!BTGet(awlseg->alloc, i)) {
+    if (!BTGet(awlseg->alloc, i)) {
       p = AddrAdd(p, pool->alignment);
       continue;
     }
     /* design.mps.poolawl.fun.scan.object-end */
     objectLimit = (*pool->format->skip)(p);
     /* design.mps.poolawl.fun.scan.scan */
-    if(scanAllObjects ||
-         (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
+    if (scanAllObjects
+        || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
       Res res = awlScanObject(arena, ss, pool->format->scan,
                               p, objectLimit);
-      if(res != ResOK) {
+      if (res != ResOK)
         return res;
-      }
       *anyScannedReturn = TRUE;
       BTSet(awlseg->scanned, i);
     }
@@ -952,7 +956,7 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   do {
     res = awlScanSinglePass(&anyScanned, ss, pool, seg, scanAllObjects);
-    if(res != ResOK) {
+    if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
     }
@@ -966,6 +970,8 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   return ResOK;
 }
 
+
+/* AWLFix -- Fix method for AWL */
 
 static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
@@ -993,17 +999,15 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   switch(ss->rank) {
   case RankAMBIG:
     /* not a real pointer if not aligned or not allocated */
-    if(!AddrIsAligned((Addr)ref, pool->alignment) ||
-       !BTGet(awlseg->alloc, i)) {
+    if (!AddrIsAligned((Addr)ref, pool->alignment) || !BTGet(awlseg->alloc, i))
       return ResOK;
-    }
-  /* falls through */
+    /* falls through */
   case RankEXACT:
   case RankFINAL:
   case RankWEAK:
-    if(!BTGet(awlseg->mark, i)) {
+    if (!BTGet(awlseg->mark, i)) {
       ss->wasMarked = FALSE;
-      if(ss->rank == RankWEAK) {
+      if (ss->rank == RankWEAK) {
         *refIO = (Ref)0;
       } else {
         BTSet(awlseg->mark, i);
@@ -1011,7 +1015,6 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       }
     }
     break;
-  
   default:
     NOTREACHED;
     return ResUNIMPL;
@@ -1050,16 +1053,16 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     Addr p, q;
     Index j;
 
-    if(!BTGet(awlseg->alloc, i)) {
+    if (!BTGet(awlseg->alloc, i)) {
       ++i;
       continue;
     }
     p = AddrAdd(base, i << awl->alignShift);
-    if(SegBuffer(seg) != NULL) {
+    if (SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
 
-      if(p == BufferScanLimit(buffer) &&
-         BufferScanLimit(buffer) != BufferLimit(buffer)) {
+      if (p == BufferScanLimit(buffer)
+          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
         continue;
       }
@@ -1067,7 +1070,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     q = AddrAlignUp(pool->format->skip(p), pool->alignment);
     j = awlIndexOfAddr(base, awl, q);
     AVER(j <= awlseg->grains);
-    if(BTGet(awlseg->mark, i)) {
+    if (BTGet(awlseg->mark, i)) {
       AVER(BTGet(awlseg->scanned, i));
       BTSetRange(awlseg->mark, i, j);
       BTSetRange(awlseg->scanned, i, j);
@@ -1092,6 +1095,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   /* @@@@ never frees a segment */
 }
 
+
+/* AWLAccess -- handle a barrier hit */
 
 static Res AWLAccess(Pool pool, Seg seg, Addr addr, 
                      AccessSet mode, MutatorFaultContext context)
@@ -1124,13 +1129,14 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 
   /* Have to scan the entire seg anyway. */
   res = PoolSegAccess(pool, seg, addr, mode, context);
-  if(ResOK == res) {
+  if (ResOK == res)
     AWLNoteSegAccess(awl, seg, addr);
-  }
 
   return res;
 }
 
+
+/* AWLWalk -- walk all objects */
 
 static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                     void *p, unsigned long s)
@@ -1159,10 +1165,10 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
     Addr next;
     Index i;
 
-    if(SegBuffer(seg) != NULL) {
+    if (SegBuffer(seg) != NULL) {
       Buffer buffer = SegBuffer(seg);
-      if(object == BufferScanLimit(buffer) &&
-         BufferScanLimit(buffer) != BufferLimit(buffer)) {
+      if (object == BufferScanLimit(buffer)
+          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
         object = BufferLimit(buffer);
         continue;
@@ -1172,15 +1178,14 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
       AVER(object < BufferGetInit(buffer) || BufferLimit(buffer) <= object);
     }
     i = awlIndexOfAddr(base, awl, object);
-    if(!BTGet(awlseg->alloc, i)) {
+    if (!BTGet(awlseg->alloc, i)) {
       /* This grain is free */
       object = AddrAdd(object, pool->alignment);
       continue;
     }
     next = AddrAlignUp((*pool->format->skip)(object), pool->alignment);
-    if(BTGet(awlseg->mark, i) && BTGet(awlseg->scanned, i)) {
+    if (BTGet(awlseg->mark, i) && BTGet(awlseg->scanned, i))
       (*f)(object, pool->format, pool, p, s);
-    }
     object = next;
   }
 }
@@ -1226,8 +1231,10 @@ static Bool AWLCheck(AWL awl)
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == EnsureAWLPoolClass());
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
-
-  /* 30 is just a sanity check really, not a constraint */
+  CHECKD(Chain, awl->chain);
+  /* 30 is just a sanity check really, not a constraint. */
   CHECKL(0 <= awl->gen && awl->gen <= 30);
+  /* Nothing to check about succAccesses. */
+  /* Don't bother to check stats. */
   return TRUE;
 }
