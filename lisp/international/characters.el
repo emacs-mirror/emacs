@@ -609,7 +609,7 @@
 	   (indian-is13194	. devanagari)
 	   (indian-1-column	. devanagari)
 	   (tibetan-1-column	. tibetan)
-	   (ethiopic		. iso-2022-jp)
+	   (ethiopic		. iso-2022-7bit)
 	   (chinese-cns11643-3	. iso-2022-cn)
 	   (chinese-cns11643-4	. iso-2022-cn)
 	   (chinese-cns11643-5	. iso-2022-cn)
