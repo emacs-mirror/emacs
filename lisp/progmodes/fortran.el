@@ -189,7 +189,7 @@ typed."
 0        60        70\n\
 \[   ]|{   |    |    |    |    |    |    |    |    \
 \|    |    |    |    |}\n"
-  "*String displayed above current line by \\[fortran-column-ruler].
+  "String displayed above current line by \\[fortran-column-ruler].
 This variable used in fixed format mode.")
 
 (defvar fortran-column-ruler-tab
@@ -197,11 +197,8 @@ This variable used in fixed format mode.")
 0        60        70\n\
 \[   ]|  { |    |    |    |    |    |    |    |    \
 \|    |    |    |    |}\n"
-  "*String displayed above current line by \\[fortran-column-ruler].
+  "String displayed above current line by \\[fortran-column-ruler].
 This variable used in TAB format mode.")
-
-(defconst bug-fortran-mode "bug-fortran-mode@erl.mit.edu"
-  "Address of mailing list for Fortran mode bugs.")
 
 (defvar fortran-mode-syntax-table nil
   "Syntax table in use in Fortran mode buffers.")
@@ -408,6 +405,7 @@ subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t" fortran-continuation-strin
   (define-key fortran-mode-map "\C-c\C-p" 'fortran-previous-statement)
   (define-key fortran-mode-map "\C-c\C-n" 'fortran-next-statement)
   (define-key fortran-mode-map "\C-c\C-d" 'fortran-join-line)
+  (define-key fortran-mode-map "\C-xnd" 'fortran-narrow-to-subprogram)
   (define-key fortran-mode-map "\t" 'fortran-indent-line)
   (define-key fortran-mode-map "0" 'fortran-electric-line-number)
   (define-key fortran-mode-map "1" 'fortran-electric-line-number)
