@@ -1,3 +1,7 @@
+2003-12-31  John Paul Wallington  <jpw@gnu.org>
+
+	* bindings.el (completion-ignored-extensions): Add .pfsl.
+
 2003-12-31  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-nonreadable-directory-p): New defun to check for
