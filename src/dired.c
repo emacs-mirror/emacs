@@ -634,7 +634,7 @@ If file does not exist, returns nil.")
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
-  values[7] = make_number (s.st_size);
+  values[7] = make_number ((int) s.st_size);
   /* If the size is out of range, give back -1.  */
   if (XINT (values[7]) != s.st_size)
     XSETINT (values[7], -1);
