@@ -25,49 +25,23 @@ WHO IS DOING IT
 
 I'm Károly Lőrentey.  My address: lorentey@elte.hu.
 
-Comments, bug reports, suggestions and patches are welcome!
+Comments, bug reports, suggestions and patches are welcome; send them
+to multi-tty@lists.fnord.hu.
 
-Retrieving the latest version of the branch:
+MAILING LISTS
+-------------
 
-	tla register-archive lorentey@elte.hu--2004 http://lorentey.hu/arch/2004/
-	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+The multi-tty mailing list (discussion & bug reports):
 
-This incantation uses my private archive mirror that is hosted on a
-relatively low-bandwidth site; if you are outside Hungary, you will
-probably want to you use the Arch supermirror instead:
+    	Address:	multi-tty@lists.fnord.hu
+	Signup:		http://lists.fnord.hu/mailman/listinfo/multi-tty
+	Archive:	http://news.gmane.org/gmane.emacs.multi-tty/
 
-	tla register-archive lorentey@elte.hu--2004 http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
-	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+Commit notifications (read-only):
 
-(I use a recent arch development snapshot, but any of the released
-versions of arch will do fine, I think.)
+        Address:	multi-tty-commits@lists.fnord.hu
+	Signup:		http://lists.fnord.hu/mailman/listinfo/multi-tty-commits
 
-To update your source tree to the latest revision after the first
-checkout, simply use the following command:
-
-	tla replay lorentey@elte.hu--2004/emacs--multi-tty--0
-
-If you are interested, you can find more detailed information about
-Arch on http://wiki.gnuarch.org/.  It's a wonderful source control
-system, I highly recommend it.
-
-If you don't have arch, the branch has a homepage from which you can
-download conventional patches against Emacs CVS HEAD:
-
-	http://lorentey.hu/project/emacs.html
-
-If you want to be notified of new revisions, sign up to the
-multi-tty@listbox.elte.hu mailing list by visiting the
-below homepage and following its instructions.
-
-	https://listbox.elte.hu/mailman/listinfo/multi-tty
-
-Please note that the multi-tty mailing list is read-only, and is
-reserved for automatic commit messages.  Discussion about the branch
-and bug reports should be sent directly to me (lorentey@elte.hu), or
-to the emacs-devel@gnu.org mailing list.  (I hope to merge my branch
-into CVS HEAD reasonably soon, so I don't want to set up an elaborate
-development infrastructure for the multi-tty branch.)
 
 STATUS
 ------
@@ -85,6 +59,51 @@ development trunk to occur sometime during next year (2005), after the
 merge of the Unicode branch.
 
 Please let me know if you find any bugs in this branch.
+
+Known problems:
+
+	* Mac, Windows and DOS support is broken, probably doesn't
+	  even compile -- this will be solved later.
+
+	* Only tested on my GNU/Linux box, Solaris 8 and FreeBSD.
+
+
+HOW TO GET THE BRANCH
+---------------------
+
+The branch uses GNU Arch (http://www.gnuarch.org) for version control.
+
+Retrieving the latest version of the branch:
+
+	tla register-archive lorentey@elte.hu--2004 http://lorentey.hu/arch/2004/
+	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+
+This incantation uses my private archive mirror that is hosted on a
+relatively low-bandwidth site; if you are outside Hungary, you will
+probably want to you use the Arch supermirror instead:
+
+	tla register-archive lorentey@elte.hu--2004 http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
+	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+
+(I use a recent tla development snapshot, but any of the released
+versions of arch will do fine, I think.)  My GPG key id is 0FB27A3F;
+it is available from hkp://wwwkeys.eu.pgp.net/, or my homepage at
+http://lorentey.hu/rolam/gpg.html)
+
+To update your source tree to the latest revision after the first
+checkout, simply use the following command:
+
+	tla replay lorentey@elte.hu--2004/emacs--multi-tty--0
+
+If you are interested, you can find more information about Arch on
+http://wiki.gnuarch.org/.  It's a wonderful source control system, I
+highly recommend it.
+
+If you don't have tla, the branch has a homepage from which you can
+download conventional patches against Emacs CVS HEAD:
+
+	http://lorentey.hu/project/emacs.html
+
 
 HOW TO COMPILE
 --------------
@@ -124,26 +143,101 @@ This is work in progress, and probably full of bugs.  You should
 always run emacs from gdb, so that you'll have a live instance to
 debug if something goes wrong.  Please send me your bug reports.
 
+TIPS & TRICKS
+-------------
+
 I think the best way to use the new Emacs is to have it running inside
 a disconnected GNU screen session, and always use emacsclient for
-normal work.  This way not a single keystroke of your work will be
-lost if the display device that you are using crashes, or the network
-connection times out, or whatever.  As long as the server that runs
-your Emacs remains up, all your buffers remain exactly as they were
-before the crash, and you can continue working as if nothing had
-happened.  (I had an extremely unstable X server for some time while I
-was developing these patches, and running Emacs this way has saved me
-a number of M-x recover-session invocations.)
+normal work.  One advantage of this is that not a single keystroke of
+your work will be lost if the display device that you are using
+crashes, or the network connection times out, or whatever.  (I had an
+extremely unstable X server for some time while I was developing these
+patches, and running Emacs this way has saved me a number of M-x
+recover-session invocations.)
 
-(I am thinking about introducing a --daemon option to get rid of the
-above screen dependency.)
+I use the following two bash functions to handle my Emacs sessions:
 
-Problems:
+,----[ ~/.bash_profile
+| # Usage: preload-emacs <name> [<waitp>]
+| #
+| # Preloads the Emacs instance called NAME in a detached screen
+| # session.  Does nothing if the instance is already running.  If WAITP
+| # is non-empty, the function waits until the server starts up and
+| # creates its socket; otherwise it returns immediately.
+| function preload-emacs {
+|     local name="$1"
+|     local waitp="$2"
+|     local screendir="/var/run/screen/S-$USER"
+|     local serverdir="/tmp/emacs$UID"
+|     local emacs=emacs # Or wherever you installed your multi-tty Emacs
+| 
+|     if [ -z "$name" ]; then 
+| 	echo "Usage: preload-emacs <name> [<waitp>]" >&2
+| 	return 1
+|     fi
+| 
+|     if [ ! -e "$screendir"/*."$name" ]; then
+| 	if [ -e "$serverdir/$name" ]; then
+| 	    # Delete leftover socket (for preload-emacs-wait)
+| 	    rm "$serverdir/$name"
+| 	fi
+| 	screen -dmS "$name" "$emacs" -nw --eval "(setq server-name \"$name\")" -f server-start
+|     fi
+|     if [ ! -z "$waitp" ]; then
+| 	while [ ! -e "$serverdir/$name" ]; do sleep 0.1; done
+|     fi
+|     return 0
+| }
+| 
+| # Usage: connect-emacs <name> <args>...
+| #
+| # Connects to the Emacs instance called NAME.  Starts up the instance
+| # if it is not already running.  The rest of the arguments are passed
+| # to emacsclient.
+| function connect-emacs {
+|     local name="$1"
+|     shift
+|     
+|     if [ -z "$name" ]; then
+| 	echo "Usage: connect-emacs <name> <args>..." >&2
+|     fi
+|     preload-emacs "$name" wait
+|     emacsclient -s "$name" "$@"
+| }
+| 
+| export -f preload-emacs connect-emacs
+|
+| # Preload editor and gnus sessions for speedy initial connects.
+| preload-emacs editor
+| preload-emacs gnus
+`----
 
-	* Mac, Windows and DOS support is broken, probably doesn't
-	  even compile -- this will be solved later.
+,----[ ~/.bashrc
+| alias gnus="connect-emacs gnus"
+| alias edit="connect-emacs editor"
+| alias et="connect-emacs editor -t"
+| alias e=edit
+`----
 
-	* Only tested on my GNU/Linux box, Solaris 8 and FreeBSD.
+The following settings prevent me from accidentally killing the Emacs
+session.  (Maybe this should be the default binding of C-x C-c.)
+
+,----[ ~/.emacs
+| (defun lk-exit-emacs-or-delete-frame (&optional arg)
+|   "If the current frame has a client, kill it; otherwise kill Emacs itself.
+| Offer to save each buffer before the murder.  With prefix arg,
+| ignore client status and kill Emacs."
+|   (interactive "P")
+|   (let ((proc (frame-parameter (selected-frame) 'client)))
+|     (if (and (not arg) proc)
+| 	(progn
+| 	  (save-some-buffers nil t)
+| 	  (server-delete-client proc))
+|       (save-buffers-kill-emacs))))
+| 
+| (global-set-key (kbd "C-x C-c") 'lk-exit-emacs-or-delete-frame)
+`----
+
 
 NEWS
 ----
@@ -188,7 +282,8 @@ THANKS
 ------
 
 The following is an (incomplete) list of people who have contributed
-to the project by testing, bug reports, and suggestions.  Thanks!
+to the project by testing, submitting patches, bug reports, and
+suggestions.  Thanks!
 
 ARISAWA Akihiro <ari at mbf dot ocn dot ne dot jp>
 Robert J. Chassell <bob at rattlesnake dot com>
@@ -247,7 +342,10 @@ THINGS TO DO
    At least a beep or a message would be important, if the single-mode
    is still required to prevent interference.  (Reported by Dan
    Nicolaescu.)  (Update: selecting a region with the mouse enables
-   single_kboard under X.  This is very confusing.)
+   single_kboard under X.  This is very confusing.)  Update:
+   After discussions with Richard, this will be resolved by having
+   locked displays warn the user to wait, and introducing a complex
+   protocol to remotely bail out of single-kboard mode by pressing C-g.
 
 ** The terminal customization files in term/*.el tend to change global
    parameters, which may confuse Emacs with multiple displays.  Change
@@ -268,7 +366,9 @@ THINGS TO DO
    opened for editing.  I think I agree with him.
 
 ** Miles Bader suggests that C-x C-c on an emacsclient frame should
-   only close the frame, not exit the entire Emacs session.
+   only close the frame, not exit the entire Emacs session.  Update:
+   see above for a function that does this.  Maybe this should be the
+   new default?
 
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
