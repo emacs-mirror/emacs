@@ -6723,7 +6723,7 @@ note_mouse_highlight (f, x, y)
 
       /* Check for mouse-face and help-echo.  */
       {
-	Lisp_Object mouse_face, overlay, position;
+	Lisp_Object mouse_face = Qnil, overlay, position;
 	Lisp_Object *overlay_vec;
 	int len, noverlays;
 	struct buffer *obuf;
@@ -6769,7 +6769,14 @@ note_mouse_highlight (f, x, y)
 		   || hpos >= dpyinfo->mouse_face_beg_col)
 	       && (vpos < dpyinfo->mouse_face_end_row
 		   || hpos < dpyinfo->mouse_face_end_col
-		   || dpyinfo->mouse_face_past_end)))
+		   || dpyinfo->mouse_face_past_end))
+	    /* If there exists an overlay with mouse-face overlapping
+	       the one we are currently highlighting, we have to
+	       check if we enter the overlapping overlay, and then
+	       highlight only that.  */
+	    || (OVERLAYP (dpyinfo->mouse_face_overlay)
+		&& mouse_face_overlay_overlaps (dpyinfo->mouse_face_overlay)))
+	  
 	  {
 	    /* Clear the display of the old active region, if any.  */
 	    clear_mouse_face (dpyinfo);
@@ -6790,8 +6797,10 @@ note_mouse_highlight (f, x, y)
 	    if (NILP (overlay))
 	      mouse_face = Fget_text_property (position, Qmouse_face, w->buffer);
 
+	    dpyinfo->mouse_face_overlay = overlay;
+	    
 	    /* Handle the overlay case.  */
-	    if (! NILP (overlay))
+	    if (!NILP (overlay))
 	      {
 		/* Find the range of text around this char that
 		   should be active.  */
@@ -13779,6 +13788,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
   dpyinfo->mouse_face_face_id = DEFAULT_FACE_ID;
   dpyinfo->mouse_face_window = Qnil;
+  dpyinfo->mouse_face_overlay = Qnil;
   dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
   dpyinfo->mouse_face_defer = 0;
   dpyinfo->x_focus_frame = 0;
