@@ -118,9 +118,9 @@ information, for example."
   (define-key eshell-command-map [(control ?c)]  'eshell-interrupt-process)
   (define-key eshell-command-map [(control ?k)]  'eshell-kill-process)
   (define-key eshell-command-map [(control ?d)]  'eshell-send-eof-to-process)
-  (define-key eshell-command-map [(control ?q)]  'eshell-continue-process)
+; (define-key eshell-command-map [(control ?q)]  'eshell-continue-process)
   (define-key eshell-command-map [(control ?s)]  'list-processes)
-  (define-key eshell-command-map [(control ?z)]  'eshell-stop-process)
+; (define-key eshell-command-map [(control ?z)]  'eshell-stop-process)
   (define-key eshell-command-map [(control ?\\)] 'eshell-quit-process))
 
 (defun eshell-reset-after-proc (proc status)
@@ -480,20 +480,20 @@ See the variable `eshell-kill-processes-on-exit'."
   (unless (eshell-process-interact 'quit-process)
     (run-hook-with-args 'eshell-kill-hook nil "quit")))
 
-(defun eshell-stop-process ()
-  "Send STOP signal to process."
-  (interactive)
-  (unless (eshell-process-interact 'stop-process)
-    (run-hook-with-args 'eshell-kill-hook nil "stopped")))
+;(defun eshell-stop-process ()
+;  "Send STOP signal to process."
+;  (interactive)
+;  (unless (eshell-process-interact 'stop-process)
+;    (run-hook-with-args 'eshell-kill-hook nil "stopped")))
 
-(defun eshell-continue-process ()
-  "Send CONTINUE signal to process."
-  (interactive)
-  (unless (eshell-process-interact 'continue-process)
-    ;; jww (1999-09-17): this signal is not dealt with yet.  For
-    ;; example, `eshell-reset' will be called, and so will
-    ;; `eshell-resume-eval'.
-    (run-hook-with-args 'eshell-kill-hook nil "continue")))
+;(defun eshell-continue-process ()
+;  "Send CONTINUE signal to process."
+;  (interactive)
+;  (unless (eshell-process-interact 'continue-process)
+;    ;; jww (1999-09-17): this signal is not dealt with yet.  For
+;    ;; example, `eshell-reset' will be called, and so will
+;    ;; `eshell-resume-eval'.
+;    (run-hook-with-args 'eshell-kill-hook nil "continue")))
 
 (defun eshell-send-eof-to-process ()
   "Send EOF to process."
