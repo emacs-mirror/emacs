@@ -63,12 +63,12 @@ Boston, MA 02111-1307, USA.  */
 #if defined(_AIX) && defined(_I386)
 #include <termios.h>		/* termios.h needs to be before termio.h */
 #include <termio.h>
-#else /* not HAVE_TERMIOS */
+#else /* not (_AIX && _I386) */
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif
 #include <termios.h>
-#endif /* _AIX && _I386 */
+#endif /* not (_AIX && _I386) */
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
