@@ -1,6 +1,6 @@
 /* impl.c.messtest: MESSAGE TEST
  *
- * $HopeName: MMsrc!messtest.c(trunk.1) $
+ * $HopeName: MMsrc!messtest.c(trunk.2) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-SRCID(messtest, "$HopeName: MMsrc!messtest.c(trunk.1) $");
+SRCID(messtest, "$HopeName: MMsrc!messtest.c(trunk.2) $");
 
 
 /* Basic infrastructure for creating dummy messages */
@@ -86,16 +86,14 @@ static void postDummyMessage(Arena arena, MessageClass class,
 
 static void postFinalizationMessage(Arena arena)
 {
-  postDummyMessage(arena, &DFMessageClassStruct,
-                   MessageTypeFinalization);
+  postDummyMessage(arena, &DFMessageClassStruct, MessageTypeFINALIZATION);
 }
 
 /* postGCMessage -- post dummy GC message */
 
 static void postGCMessage(Arena arena)
 {
-  postDummyMessage(arena, &DGCMessageClassStruct,
-                   MessageTypeGC);
+  postDummyMessage(arena, &DGCMessageClassStruct, MessageTypeGC);
 }
 
 
@@ -134,10 +132,10 @@ static void eatHiddenMessage(Arena arena)
   MessageType type, eatType;
 
   topMessageType(&type, arena);
-  if (MessageTypeGC != type) {
+  if (type != MessageTypeGC) {
     eatType = MessageTypeGC;
   } else {
-    eatType = MessageTypeFinalization;
+    eatType = MessageTypeFINALIZATION;
   }
   eatMessageOfType(arena, eatType);
 }
@@ -187,7 +185,7 @@ static void testInterleaving(Arena arena)
 
   /* enable both types of message */
   MessageTypeEnable(arena, MessageTypeGC);
-  MessageTypeEnable(arena, MessageTypeFinalization);
+  MessageTypeEnable(arena, MessageTypeFINALIZATION);
 
   /* post a couple of interleaved messages of each type */
   postInterleavedMessages(arena);
@@ -213,13 +211,13 @@ static void testDisabling(Arena arena)
 
   /* enable both types of message */
   MessageTypeEnable(arena, MessageTypeGC);
-  MessageTypeEnable(arena, MessageTypeFinalization);
+  MessageTypeEnable(arena, MessageTypeFINALIZATION);
 
   /* post a couple of interleaved messages of each type */
   postInterleavedMessages(arena);
 
   /* Disable one of the types */
-  MessageTypeDisable(arena, MessageTypeFinalization);
+  MessageTypeDisable(arena, MessageTypeFINALIZATION);
 
   /* check that we can pull out 2 messages of the other type */
   eatTopMessageOfType(arena, MessageTypeGC);
@@ -236,9 +234,7 @@ static void testDisabling(Arena arena)
 }
 
 
-/* testGetEmpty -- test we don't AVER when getting a non-existent message
- *
- */
+/* testGetEmpty -- test we don't AVER when getting a non-existent message */
 
 static void testGetEmpty(Arena arena)
 {
@@ -255,7 +251,7 @@ static void testGetEmpty(Arena arena)
 extern int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
-  Arena arena; /* an ANSI arena for managing the mesasge queue */
+  Arena arena;
 
   testlib_unused(argc); 
   testlib_unused(argv);
