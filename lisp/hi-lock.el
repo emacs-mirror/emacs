@@ -83,7 +83,6 @@
 (eval-and-compile
   (require 'font-lock))
 
-;;;###autoload
 (defgroup hi-lock-interactive-text-highlighting nil
   "Interactively add and remove font-lock patterns for highlighting text."
   :group 'faces)
