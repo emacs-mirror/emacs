@@ -786,6 +786,21 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
     {
       if (NILP (tem))
 	Fset_default (sym, Feval (Fcar (tail)));
+      else
+	{ /* Check if there is really a global binding rather than just a let
+	     binding that shadows the global unboundness of the var.  */
+	  struct specbinding *pdl = specpdl_ptr;
+	  while (--pdl >= specpdl)
+	    {
+	      if (EQ (pdl->symbol, sym) && !pdl->func
+		  && EQ (pdl->old_value, Qunbound))
+		{
+		  message_with_string ("Warning: defvar ignored because %s is let-bound",
+				       SYMBOL_NAME (sym), 1);
+		  break;
+		}
+	    }
+	}
       tail = Fcdr (tail);
       tem = Fcar (tail);
       if (!NILP (tem))
