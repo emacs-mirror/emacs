@@ -76,6 +76,8 @@ PREFIX is the prefix argument (if any) to pass to the command."
 		       binding)
 		   (while (and map (null binding))
 		     (setq binding (lookup-key (car map) mouse-click))
+		     (if (numberp binding) ; `too long'
+		       (setq binding nil))
 		     (setq map (cdr map)))
 		   binding)
 	       ;; We were given a single keymap.
@@ -111,7 +113,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	 ;; Keymap from which to inherit; may be null.
 	 (ancestor (mouse-major-mode-menu-1
 		    (and (current-local-map)
-			 (lookup-key (current-local-map) [menu-bar]))))
+			 (local-key-binding [menu-bar]))))
 	 ;; Make a keymap in which our last command leads to a menu or
 	 ;; default to the edit menu.
 	 (newmap (if ancestor
@@ -169,6 +171,7 @@ not it is actually displayed."
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
 	 (local-title-or-map (and local-menu (cadr local-menu)))
+	 (minor-mode-menus (mapcar #'cdr (minor-mode-key-binding [menu-bar])))
 	 (global-title-or-map (cadr global-menu)))
     ;; If the keymaps don't have prompt string (a lazy programmer
     ;; didn't bother to provide one), create it and insert it into the
@@ -184,9 +187,10 @@ not it is actually displayed."
 			        (cons "Global Menu"
 				      (cdr global-menu)))))
     ;; Supplying the list is faster than making a new map.
-    (popup-menu (if local-menu
-		    (list global-menu local-menu)
-		  (list global-menu))
+    (popup-menu (append (list global-menu)
+			(if local-menu
+			    (list local-menu))
+			minor-mode-menus)
 		event prefix)))
 
 (defun mouse-popup-menubar-stuff (event prefix)
