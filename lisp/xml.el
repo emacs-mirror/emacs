@@ -184,7 +184,7 @@ Returns one of:
    ;; beginning of a document)
    ((looking-at "<\\?")
     (search-forward "?>" end)
-    (goto-char (- (re-search-forward "[^[:space:]]") 1))
+    (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
     (xml-parse-tag end))
    ;;  Character data (CDATA) sections, in which no tag should be interpreted
    ((looking-at "<!\\[CDATA\\[")
@@ -198,7 +198,7 @@ Returns one of:
       (if parse-dtd
 	  (setq dtd (xml-parse-dtd end))
 	(xml-skip-dtd end))
-      (goto-char (- (re-search-forward "[^[:space:]]") 1))
+      (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
       (if dtd
 	  (cons dtd (xml-parse-tag end))
 	(xml-parse-tag end))))
@@ -210,7 +210,7 @@ Returns one of:
    ((looking-at "</")
     '())
    ;;  opening tag
-   ((looking-at "<\\([^/>[:space:]]+\\)")
+   ((looking-at "<\\([^/> \t\n\r]+\\)")
     (goto-char (match-end 1))
     (let* ((case-fold-search nil) ;; XML is case-sensitive.
 	   (node-name (match-string 1))
@@ -219,7 +219,7 @@ Returns one of:
 	   pos)
 
       ;; is this an empty element ?
-      (if (looking-at "/[[:space:]]*>")
+      (if (looking-at "/[ \t\n\r]*>")
 	  (progn
 	    (forward-char 2)
 	    (nreverse (cons '("") children)))
@@ -230,7 +230,7 @@ Returns one of:
 	      (forward-char 1)
 	      ;;  Now check that we have the right end-tag. Note that this
 	      ;;  one might contain spaces after the tag name
-	      (while (not (looking-at (concat "</" node-name "[[:space:]]*>")))
+	      (while (not (looking-at (concat "</" node-name "[ \t\n\r]*>")))
 		(cond
 		 ((looking-at "</")
 		  (error (concat
@@ -248,12 +248,14 @@ Returns one of:
 		  (let ((string (buffer-substring-no-properties pos (point)))
 			(pos 0))
 
-		    ;; Clean up the string (no newline characters)
-		    ;; Not done, since as per XML specifications, the XML processor
-		    ;; should always pass the whole string to the application.
-		    ;; 	    (while (string-match "\\s +" string pos)
-		    ;; 	      (setq string (replace-match " " t t string))
-		    ;; 	      (setq pos (1+ (match-beginning 0))))
+		    ;; Clean up the string.  As per XML
+		    ;; specifications, the XML processor should
+		    ;; always pass the whole string to the
+		    ;; application.  But \r's should be replaced:
+		    ;; http://www.w3.org/TR/2000/REC-xml-20001006#sec-line-ends
+		    (while (string-match "\r\n?" string pos)
+		      (setq string (replace-match "\n" t t string))
+		      (setq pos (1+ (match-beginning 0))))
 
 		    (setq string (xml-substitute-special string))
 		    (setq children
@@ -280,28 +282,44 @@ Returns one of:
 The search for attributes end at the position END in the current buffer.
 Leaves the point on the first non-blank character after the tag."
   (let ((attlist ())
-	name)
-    (goto-char (- (re-search-forward "[^[:space:]]") 1))
-    (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[[:space:]]*=[[:space:]]*")
+	start-pos name)
+    (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
+    (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[ \t\n\r]*=[ \t\n\r]*")
       (setq name (intern (match-string 1)))
       (goto-char (match-end 0))
 
+      ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
+
       ;; Do we have a string between quotes (or double-quotes),
       ;;  or a simple word ?
-      (unless (looking-at "\"\\([^\"]*\\)\"")
-	(unless (looking-at "'\\([^']*\\)'")
+      (if (looking-at "\"\\([^\"]*\\)\"")
+	  (setq start-pos (match-beginning 0))
+	(if (looking-at "'\\([^']*\\)")
+	    (setq start-pos (match-beginning 0))
 	  (error "XML: Attribute values must be given between quotes")))
 
       ;; Each attribute must be unique within a given element
       (if (assoc name attlist)
 	  (error "XML: each attribute must be unique within an element"))
 
-      (push (cons name (match-string-no-properties 1)) attlist)
-      (goto-char (match-end 0))
-      (goto-char (- (re-search-forward "[^[:space:]]") 1))
+      ;; Multiple whitespace characters should be replaced with a single one
+      ;; in the attributes
+      (let ((string (match-string-no-properties 1))
+	    (pos 0))
+	(while (string-match "[ \t\n\r]+" string pos)
+	  (setq string (replace-match " " t nil string))
+	  (setq pos (1+ (match-beginning 0))))
+	(push (cons name (xml-substitute-special string)) attlist))
+
+      (goto-char start-pos)
+      (if (looking-at "\"\\([^\"]*\\)\"")
+	  (goto-char (match-end 0))
+	(if (looking-at "'\\([^']*\\)")
+	    (goto-char (match-end 0))))
+
+      (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
       (if (> (point) end)
-	  (error "XML: end of attribute list not found before end of region"))
-      )
+	  (error "XML: end of attribute list not found before end of region")))
     (nreverse attlist)))
 
 ;;*******************************************************************
@@ -318,15 +336,15 @@ The DTD must end before the position END in the current buffer.
 The point must be just before the starting tag of the DTD.
 This follows the rule [28] in the XML specifications."
   (forward-char (length "<!DOCTYPE"))
-  (if (looking-at "[[:space:]]*>")
+  (if (looking-at "[ \t\n\r]*>")
       (error "XML: invalid DTD (excepting name of the document)"))
   (condition-case nil
       (progn
-	(forward-word 1)  ;; name of the document
-	(goto-char (- (re-search-forward "[[:space:]]") 1))
-	(goto-char (- (re-search-forward "[^[:space:]]") 1))
+	(forward-word 1)
+	(goto-char (- (re-search-forward "[ \t\n\r]") 1))
+	(goto-char (- (re-search-forward "[^ \t\n\r]") 1))
 	(if (looking-at "\\[")
-	    (re-search-forward "\\][[:space:]]*>" end)
+	    (re-search-forward "\\][ \t\n\r]*>" end)
 	  (search-forward ">" end)))
     (error (error "XML: No end to the DTD"))))
 
@@ -334,7 +352,7 @@ This follows the rule [28] in the XML specifications."
   "Parse the DTD that point is looking at.
 The DTD must end before the position END in the current buffer."
   (forward-char (length "<!DOCTYPE"))
-  (goto-char (- (re-search-forward "[^[:space:]]") 1))
+  (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
   (if (looking-at ">")
       (error "XML: invalid DTD (excepting name of the document)"))
 
@@ -344,24 +362,24 @@ The DTD must end before the position END in the current buffer."
 	type element end-pos)
     (goto-char (match-end 0))
 
-    (goto-char (- (re-search-forward "[^[:space:]]") 1))
+    (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
 
-    ;;  External DTDs => don't know how to handle them yet
+    ;;	External DTDs => don't know how to handle them yet
     (if (looking-at "SYSTEM")
 	(error "XML: Don't know how to handle external DTDs"))
 
     (if (not (= (char-after) ?\[))
 	(error "XML: Unknown declaration in the DTD"))
 
-    ;;  Parse the rest of the DTD
+    ;;	Parse the rest of the DTD
     (forward-char 1)
-    (while (and (not (looking-at "[[:space:]]*\\]"))
+    (while (and (not (looking-at "[ \t\n\r]*\\]"))
 		(<= (point) end))
       (cond
 
        ;;  Translation of rule [45] of XML specifications
        ((looking-at
-	 "[[:space:]]*<!ELEMENT[[:space:]]+\\([a-zA-Z0-9.%;]+\\)[[:space:]]+\\([^>]+\\)>")
+	 "[ \t\n\r]*<!ELEMENT[ \t\n\r]+\\([a-zA-Z0-9.%;]+\\)[ \t\n\r]+\\([^>]+\\)>")
 
 	(setq element (intern (match-string-no-properties 1))
 	      type    (match-string-no-properties 2))
@@ -369,13 +387,13 @@ The DTD must end before the position END in the current buffer."
 
 	;;  Translation of rule [46] of XML specifications
 	(cond
-	 ((string-match "^EMPTY[[:space:]]*$" type)     ;; empty declaration
+	 ((string-match "^EMPTY[ \t\n\r]*$" type)     ;; empty declaration
 	  (setq type 'empty))
-	 ((string-match "^ANY[[:space:]]*$" type)       ;; any type of contents
+	 ((string-match "^ANY[ \t\n\r]*$" type)	      ;; any type of contents
 	  (setq type 'any))
-	 ((string-match "^(\\(.*\\))[[:space:]]*$" type) ;; children ([47])
+	 ((string-match "^(\\(.*\\))[ \t\n\r]*$" type) ;; children ([47])
 	  (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
-	 ((string-match "^%[^;]+;[[:space:]]*$" type)   ;; substitution
+	 ((string-match "^%[^;]+;[ \t\n\r]*$" type)   ;; substitution
 	  nil)
 	 (t
 	  (error "XML: Invalid element type in the DTD")))
@@ -417,8 +435,8 @@ The DTD must end before the position END in the current buffer."
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ","))))
 	      )))
-      (if (string-match "[[:space:]]*\\([^+*?]+\\)\\([+*?]?\\)" string)
-	  (setq elem     (match-string 1 string)
+      (if (string-match "[ \t\n\r]*\\([^+*?]+\\)\\([+*?]?\\)" string)
+	  (setq elem	 (match-string 1 string)
 		modifier (match-string 2 string))))
 
     (if (and (stringp elem) (string= elem "#PCDATA"))
@@ -434,6 +452,22 @@ The DTD must end before the position END in the current buffer."
      (t
       elem))))
 
+;;*******************************************************************
+;;**
+;;**  Converting code points to strings
+;;**
+;;*******************************************************************
+
+(defun xml-ucs-to-string (codepoint)
+  "Return a string representation of CODEPOINT.	 If it can't be
+converted, return '?'."
+  (cond ((boundp 'decode-char)
+	 (char-to-string (decode-char 'ucs codepoint)))
+	((and (< codepoint 128)
+	      (> codepoint 31))
+	 (char-to-string codepoint))
+	(t "?"))) ; FIXME: There's gotta be a better way to
+		  ; designate an unknown character.
 
 ;;*******************************************************************
 ;;**
@@ -451,6 +485,18 @@ The DTD must end before the position END in the current buffer."
     (setq string (replace-match "'"  t nil string)))
   (while (string-match "&quot;" string)
     (setq string (replace-match "\"" t nil string)))
+  (while (string-match "&#\\([0-9]+\\);" string)
+    (setq string (replace-match (xml-ucs-to-string
+				 (string-to-number
+				  (match-string-no-properties 1 string)))
+				t nil string)))
+  (while (string-match "&#x\\([0-9a-fA-F]+\\);" string)
+    (setq string (replace-match (xml-ucs-to-string
+				 (string-to-number
+				  (match-string-no-properties 1 string)
+                                  16))
+				t nil string)))
+
   ;; This goes last so it doesn't confuse the matches above.
   (while (string-match "&amp;" string)
     (setq string (replace-match "&"  t nil string)))
