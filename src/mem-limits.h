@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/resource.h>
 #endif /* BSD4_2 */
 
+#ifdef emacs
 /* The important properties of this type are that 1) it's a pointer, and
    2) arithmetic on it should work as if the size of the object pointed
    to has a size of 1.  */
@@ -42,9 +43,8 @@ typedef unsigned long SIZE;
 #endif
 #define NULL ((POINTER) 0)
 
-#ifdef emacs
 extern POINTER start_of_data ();
-#define EXCEEDS_ELISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
+#define EXCEEDS_LISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
 
 #ifdef BSD
 #ifndef DATA_SEG_BITS
@@ -66,7 +66,9 @@ static POINTER data_space_start;
 /* Number of bytes of writable memory we can expect to be able to get */
 static unsigned int lim_data;
 
-
+#ifndef emacs
+#define start_of_data (void *) &_end
+#endif
 
 #ifdef USG
 
