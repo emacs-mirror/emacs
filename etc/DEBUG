@@ -36,7 +36,7 @@ kick in, provided that you run under GDB.
 All Lisp errors go through there.
 
 It is useful, when debugging, to have a guaranteed way to return to
-the debugger at any time.  When using X, this is easy: type C-c at the
+the debugger at any time.  When using X, this is easy: type C-z at the
 window where Emacs is running under GDB, and it will stop Emacs just
 as it would stop any ordinary program.  When Emacs is running in a
 terminal, things are not so easy.
