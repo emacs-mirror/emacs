@@ -73,3 +73,9 @@ NOTE-END  */
 #define LD_SWITCH_MACHINE -n -Bstatic
 /* Get rid of the -e __start that s-sunos4.h does.  */
 #undef LD_SWITCH_SYSTEM
+
+#ifdef USG
+/* USG detects Solaris.  j.w.hawtin@lut.ac.uk says Solaris 2.1
+   on the 386 needs this.  */
+#define LIBS_MACHINE -lkvm
+#endif
