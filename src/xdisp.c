@@ -1590,7 +1590,8 @@ try_window_id (window)
       if (i == xp.bufpos)
 	return -2;
 
-      XFASTINT (w->window_end_vpos) += scroll_amount;
+      XSETFASTINT (w->window_end_vpos,
+		   XFASTINT (w->window_end_vpos) + scroll_amount);
 
       /* Before doing any scrolling, verify that point will be on frame. */
       if (PT > ep.bufpos && !(PT <= xp.bufpos && xp.bufpos < height))
@@ -1796,7 +1797,8 @@ try_window_id (window)
 	  val = *vmotion (Z - XFASTINT (w->window_end_pos),
 			  delta, width, hscroll, window);
 	  XSETFASTINT (w->window_end_pos, Z - val.bufpos);
-	  XFASTINT (w->window_end_vpos) += val.vpos;
+	  XSETFASTINT (w->window_end_vpos,
+		       XFASTINT (w->window_end_vpos) + val.vpos);
 	}
     }
 
