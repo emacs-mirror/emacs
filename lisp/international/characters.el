@@ -447,8 +447,7 @@
 ;; In some languages, U+0049 LATIN CAPITAL LETTER I and U+0131 LATIN
 ;; SMALL LETTER DOTLESS I make a case pair, and so do U+0130 LATIN
 ;; CAPITAL LETTER I WITH DOT ABOVE and U+0069 LATIN SMALL LETTER I.
-;; Thus we have to check language-environment to handle casing
-;; correctly.  Currently only I<->i is available.
+;; See the Turkish language environment.
 
   ;; Latin-1
 
