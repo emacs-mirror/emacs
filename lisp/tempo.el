@@ -1,6 +1,6 @@
 ;;; tempo.el --- Flexible template insertion
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2004 Free Software Foundation, Inc.
 
 ;; Author: David K}gedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994
@@ -182,7 +182,7 @@ the string between the first \\( and \\) is used for matching against
 each string in the tag list. If one is found, the whole text between
 the first \\( and the point is replaced with the inserted template.
 
-You will probably want to include \\ \= at the end of the regexp to
+You will probably want to include \\=\\= at the end of the regexp to
 make sure that the string is matched only against text adjacent to the
 point.
 
