@@ -1,3 +1,8 @@
+2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-dep): Don't let cd output go into
+	pipe for carbon_appdir.
+
 2003-12-24  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (PKG_CHECK_MODULES): Fix quoting.
