@@ -851,6 +851,7 @@ extern Lisp_Object Vtransient_mark_mode;
 
 extern char *r_alloc P_ ((char **, unsigned long));
 extern void r_alloc_free P_ ((char **ptr));
+extern char *r_re_alloc P_ ((char **, unsigned long));
 
 #define BUFFER_ALLOC(data,size) \
      ((unsigned char *) r_alloc ((char **)&data, (size)))
