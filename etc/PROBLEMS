@@ -1,6 +1,26 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
+
+Try other font set sizes (S-mouse-1).  If the problem persists with
+other sizes as well, your text is corrupted, probably through software
+that is not 8-bit clean.  If the problem goes away with another font
+size, it's probably because some fonts pretend to be ISO-8859-1 fonts
+when they are really ASCII fonts. In particular the schumacher-clean
+fonts have this bug in some versions of X.
+
+To see what glyphs are included in a font, use `xfd', like this:
+
+  xfd -fn -schumacher-clean-medium-r-normal--12-120-75-75-c-60-iso8859-1
+
+If this shows only ASCII glyphs, the font is indeed the source of the
+problem.
+
+The solution is to remove the corresponding lines from the appropriate
+`fonts.alias' file, then run `mkfontdir' in that directory, and then run
+`xset fp rehash'.
+
 * Large file support is disabled on HP-UX.  See the comments in
 src/s/hpux10.h.
 
