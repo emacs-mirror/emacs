@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -584,13 +584,13 @@ the user from the mailer."
       (progn (mail-position-on-field "to")
 	     (insert "\nBCC: "))))
 
-(defun mail-fcc ()
+(defun mail-fcc (folder)
   "Add a new FCC field, with file name completion."
-  (interactive)
+  (interactive "FFolder carbon copy: ")
   (expand-abbrev)
   (or (mail-position-on-field "fcc" t)	;Put new field after exiting FCC.
       (mail-position-on-field "to"))
-  (insert "\nFCC: " (read-file-name "Folder carbon copy: ")))
+  (insert "\nFCC: " folder))
 
 (defun mail-position-on-field (field &optional soft)
   (let (end
