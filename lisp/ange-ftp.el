@@ -1711,16 +1711,7 @@ been queued with no result.  CONT will still be called, however."
   (if (memq (process-status proc) '(run open))
       (save-excursion
 	(set-buffer (process-buffer proc))
-	(while ange-ftp-process-busy
-	  ;; This is a kludge to let user quit in case ftp gets hung.
-	  ;; It matters because this function can be called from the filter.
-	  ;; It is bad to allow quitting in a filter, but getting hung
-	  ;; is worse.  By binding quit-flag to nil, we might avoid
-	  ;; most of the probability of getting screwed because the user
-	  ;; wants to quit some command.
-	  (let ((quit-flag nil)
-		(inhibit-quit nil))
-	    (accept-process-output)))
+	(ange-ftp-wait-not-busy proc)
 	(setq ange-ftp-process-string ""
 	      ange-ftp-process-result-line ""
 	      ange-ftp-process-busy t
@@ -1744,16 +1735,32 @@ been queued with no result.  CONT will still be called, however."
 	(set-marker (process-mark proc) (point))
 	(if nowait
 	    nil
-	  ;; hang around for command to complete
-	  (while ange-ftp-process-busy
-	    ;; This is a kludge to let user quit in case ftp gets hung.
-	    ;; It matters because this function can be called from the filter.
-	    (let ((quit-flag nil)
-		  (inhibit-quit nil))
-	      (accept-process-output proc)))
+	  (ange-ftp-wait-not-busy proc)
 	  (if cont
 	      nil			;cont has already been called
 	    (cons ange-ftp-process-result ange-ftp-process-result-line))))))
+
+;; Wait for the ange-ftp process PROC not to be busy.
+(defun ange-ftp-wait-not-busy (proc)
+  (save-excursion
+    (set-buffer (process-buffer proc))
+    (condition-case nil
+	;; This is a kludge to let user quit in case ftp gets hung.
+	;; It matters because this function can be called from the filter.
+	;; It is bad to allow quitting in a filter, but getting hung
+	;; is worse.  By binding quit-flag to nil, we might avoid
+	;; most of the probability of getting screwed because the user
+	;; wants to quit some command.
+	(let ((quit-flag nil)
+	      (inhibit-quit nil))
+	  (while ange-ftp-process-busy
+	    (accept-process-output proc)))
+      (quit
+       ;; If the user does quit out of this,
+       ;; kill the process.  That stops any transfer in progress.
+       ;; The next operation will open a new ftp connection.
+       (delete-process proc)
+       (signal 'quit nil)))))
 
 (defun ange-ftp-nslookup-host (host)
   "Attempt to resolve the given HOSTNAME using nslookup if possible."
@@ -5281,7 +5288,7 @@ Other orders of $ and _ seem to all work just fine.")
 	      file
 	    ;; give up
 	    (ange-ftp-error ange-ftp-this-host ange-ftp-this-user
-			    (format "cd to minidisk %s failed: "
+			    (format "cd to minidisk %s failed: %s"
 				    minidisk (cdr result))))))))
    (t (error "Invalid CMS file name"))))
 
