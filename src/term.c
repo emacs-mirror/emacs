@@ -1517,6 +1517,8 @@ term_get_fkeys_1 ()
       CONDITIONAL_REASSIGN ("%8", "kP", "prior");
       /* if there's no key_dc keycap, map key_ic to `insert' keysym */
       CONDITIONAL_REASSIGN ("kD", "kI", "insert");
+      /* if there's no key_end keycap, map key_ll to 'end' keysym */
+      CONDITIONAL_REASSIGN ("@7", "kH", "end");
 
       /* IBM has their own non-standard dialect of terminfo.
 	 If the standard name isn't found, try the IBM name.  */
