@@ -30,11 +30,13 @@
 
 ;;; Code:
 
-;; uses address-start free, throws to address
+(defvar rfc822-address-start)
+
+;; uses rfc822-address-start free, throws to address
 (defun rfc822-bad-address (reason)
   (save-restriction
     (insert "_^_")
-    (narrow-to-region address-start
+    (narrow-to-region rfc822-address-start
 		      (if (re-search-forward "[,;]" nil t)
 			  (max (point-min) (1- (point)))
 			(point-max)))
@@ -52,7 +54,7 @@
 				    ": \"")
     (goto-char (point-max)) (insert "\")"))
   (rfc822-nuke-whitespace)
-  (throw 'address (buffer-substring address-start (point))))
+  (throw 'address (buffer-substring rfc822-address-start (point))))
 
 (defun rfc822-nuke-whitespace (&optional leave-space)
   (let (ch)
@@ -179,7 +181,7 @@
   ;;  domain-literal is  "[" *(dtext | quoted-pair) "]"
   ;;  dtext is "[^][\\n"
   ;;  domain-ref is atom
-  (let ((address-start (point))
+  (let ((rfc822-address-start (point))
 	(n 0))
     (catch 'address
       ;; optimize common cases:
@@ -198,14 +200,14 @@
 	    (or (bobp) (/= (preceding-char) ?\ ) (delete-char -1))
 	    ;; relying on the fact that rfc822-looking-at <char>
 	    ;;  doesn't mung match-data
-	    (throw 'address (buffer-substring address-start (match-end 0)))))
-      (goto-char address-start)
+	    (throw 'address (buffer-substring rfc822-address-start (match-end 0)))))
+      (goto-char rfc822-address-start)
       (while t
 	(cond ((and (= n 1) (rfc822-looking-at ?@))
 	       ;; local-part@domain
 	       (rfc822-snarf-domain)
 	       (throw 'address
-		 (buffer-substring address-start (point))))
+		 (buffer-substring rfc822-address-start (point))))
 	      ((rfc822-looking-at ?:)
 	       (cond ((not allow-groups)
 		      (rfc822-bad-address "A group name may not appear here"))
@@ -261,7 +263,7 @@
 	       (throw 'address nil))
 	      ((= n 1) ; allow "foo" (losing unix seems to do this)
 	       (throw 'address
-		 (buffer-substring address-start (point))))
+		 (buffer-substring rfc822-address-start (point))))
               ((> n 1)
                (rfc822-bad-address "Missing comma between addresses or badly-formatted address"))
 	      ((or (eobp) (= (following-char) ?,))
@@ -289,12 +291,12 @@
 	    (replace-match "\\1 " t))
 
 	  (goto-char (point-min))
-	  (rfc822-nuke-whitespace)
 	  (let ((list ())
 		tem
-		address-start); this is for rfc822-bad-address
+		rfc822-address-start); this is for rfc822-bad-address
+	    (rfc822-nuke-whitespace)
 	    (while (not (eobp))
-	      (setq address-start (point))
+	      (setq rfc822-address-start (point))
 	      (setq tem
 		    (catch 'address ; this is for rfc822-bad-address
 		      (cond ((rfc822-looking-at ?\,)
