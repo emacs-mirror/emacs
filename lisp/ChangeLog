@@ -1,3 +1,21 @@
+2005-03-25  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el: Optimize image filename extension regexps in
+	autoload cookies.  Associate .x[bp]m with `image-mode-maybe'
+	in `auto-mode-alist'.
+	(image-mode): Add `image-toggle-display-text' to local hook
+	`change-major-mode-hook'.  Display the image as an image by
+	default.  Set `cursor-type' and `truncate-lines' if the image
+	is already displayed.  Take into account the current mode (image
+	or text) in message.
+	(image-minor-mode): New minor mode.
+	(image-mode-maybe, image-toggle-display-text): New functions.
+	(image-toggle-display): Use called-interactively-p.
+	Let-bind `inhibit-read-only' to t.
+
+	* image-file.el (image-file-name-extensions): Remove .xbm and .xpm
+	associated with c-mode in `auto-mode-alist'.
+
 2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (set-locale-environment): For Mac OS X's
