@@ -167,7 +167,7 @@ echo "Making links to \`src'."
  ln README Makefile.in ymakefile ChangeLog config.h.in paths.h.in \
     ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
- ln *.opt vms-pp.trans precomp.com compile.com link.com ../${tempdir}/src
+ ln *.opt vms-pp.trans ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h paths.h Makefile
  if [ -z "${newer}" ]; then
