@@ -1912,16 +1912,22 @@ Setting this variable automatically makes it local to the current buffer.")
 	    (if (save-excursion
 		  (goto-char fill-point)
 		  (not (bolp)))
-		;; If point is at the fill-point, do not `save-excursion'.
-		;; Otherwise, if a comment prefix or fill-prefix is inserted,
-		;; point will end up before it rather than after it.
-		(if (save-excursion
-		      (skip-chars-backward " \t")
-		      (= (point) fill-point))
-		    (indent-new-comment-line)
-		  (save-excursion
-		    (goto-char fill-point)
-		    (indent-new-comment-line)))
+		(let ((prev-column (current-column)))
+		  ;; If point is at the fill-point, do not `save-excursion'.
+		  ;; Otherwise, if a comment prefix or fill-prefix is inserted,
+		  ;; point will end up before it rather than after it.
+		  (if (save-excursion
+			(skip-chars-backward " \t")
+			(= (point) fill-point))
+		      (indent-new-comment-line)
+		    (save-excursion
+		      (goto-char fill-point)
+		      (indent-new-comment-line)))
+		  ;; If making the new line didn't reduce the hpos of
+		  ;; the end of the line, then give up now;
+		  ;; trying again will not help.
+		  (if (>= (current-column) prev-column)
+		      (setq give-up t)))
 	      ;; No place to break => stop trying.
 	      (setq give-up t)))))))
 
