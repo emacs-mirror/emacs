@@ -670,6 +670,7 @@ void x_set_vertical_scroll_bars ();
 void x_set_visibility ();
 void x_set_menu_bar_lines ();
 void x_set_scroll_bar_width ();
+void x_set_title ();
 void x_set_unsplittable ();
 
 static struct x_frame_parm_table x_frame_parms[] =
@@ -690,6 +691,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "mouse-color", x_set_mouse_color,
   "name", x_explicitly_set_name,
   "scroll-bar-width", x_set_scroll_bar_width,
+  "title", x_set_title,
   "unsplittable", x_set_unsplittable,
   "vertical-scroll-bars", x_set_vertical_scroll_bars,
   "visibility", x_set_visibility,
@@ -1382,7 +1384,7 @@ x_set_cursor_color (f, arg, oldval)
 	}
     }
 }
-
+
 /* Set the border-color of frame F to value described by ARG.
    ARG can be a string naming a color.
    The border-color is used for the border that is drawn by the X server.
@@ -1461,7 +1463,7 @@ x_set_cursor_type (f, arg, oldval)
      often do people change cursor types?  */
   update_mode_lines++;
 }
-
+
 void
 x_set_icon_type (f, arg, oldval)
      struct frame *f;
@@ -1538,6 +1540,8 @@ x_set_icon_name (f, arg, oldval)
   result = x_text_icon (f,
 			(char *) XSTRING ((!NILP (f->icon_name)
 					   ? f->icon_name
+					   : !NILP (f->title)
+					   ? f->title
 					   : f->name))->data);
 
   if (result)
@@ -1549,7 +1553,7 @@ x_set_icon_name (f, arg, oldval)
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 }
-
+
 extern Lisp_Object x_new_font ();
 
 void
@@ -1638,7 +1642,7 @@ x_set_visibility (f, value, oldval)
   else
     Fmake_frame_visible (frame);
 }
-
+
 static void
 x_set_menu_bar_lines_1 (window, n)
   Lisp_Object window;
@@ -1703,7 +1707,7 @@ x_set_menu_bar_lines (f, value, oldval)
   x_set_menu_bar_lines_1 (f->root_window, nlines - olines);
 #endif /* not USE_X_TOOLKIT */
 }
-
+
 /* Change the name of frame F to NAME.  If NAME is nil, set F's name to
        x_id_name.
 
@@ -1752,6 +1756,13 @@ x_set_name (f, name, explicit)
   if (! NILP (Fstring_equal (name, f->name)))
     return;
 
+  f->name = name;
+
+  /* For setting the frame title, the title parameter should override
+     the name parameter.  */
+  if (! NILP (f->title))
+    name = f->title;
+
   if (FRAME_X_WINDOW (f))
     {
       BLOCK_INPUT;
@@ -1789,8 +1800,6 @@ x_set_name (f, name, explicit)
 #endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
     }
-
-  f->name = name;
 }
 
 /* This function should be called when the user's lisp code has
@@ -1814,7 +1823,73 @@ x_implicitly_set_name (f, arg, oldval)
 {
   x_set_name (f, arg, 0);
 }
+
+/* Change the title of frame F to NAME.
+   If NAME is nil, use the frame name as the title.
 
+   If EXPLICIT is non-zero, that indicates that lisp code is setting the
+       name; if NAME is a string, set F's name to NAME and set
+       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
+
+   If EXPLICIT is zero, that indicates that Emacs redisplay code is
+       suggesting a new name, which lisp code should override; if
+       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+
+void
+x_set_title (f, name)
+     struct frame *f;
+     Lisp_Object name;
+{
+  /* Don't change the title if it's already NAME.  */
+  if (EQ (name, f->title))
+    return;
+
+  update_mode_lines = 1;
+
+  f->title = name;
+
+  if (NILP (name))
+    name = f->name;
+
+  if (FRAME_X_WINDOW (f))
+    {
+      BLOCK_INPUT;
+#ifdef HAVE_X11R4
+      {
+	XTextProperty text, icon;
+	Lisp_Object icon_name;
+
+	text.value = XSTRING (name)->data;
+	text.encoding = XA_STRING;
+	text.format = 8;
+	text.nitems = XSTRING (name)->size;
+
+	icon_name = (!NILP (f->icon_name) ? f->icon_name : name);
+
+	icon.value = XSTRING (icon_name)->data;
+	icon.encoding = XA_STRING;
+	icon.format = 8;
+	icon.nitems = XSTRING (icon_name)->size;
+#ifdef USE_X_TOOLKIT
+	XSetWMName (FRAME_X_DISPLAY (f),
+		    XtWindow (f->output_data.x->widget), &text);
+	XSetWMIconName (FRAME_X_DISPLAY (f), XtWindow (f->output_data.x->widget),
+			&icon);
+#else /* not USE_X_TOOLKIT */
+	XSetWMName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &text);
+	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &icon);
+#endif /* not USE_X_TOOLKIT */
+      }
+#else /* not HAVE_X11R4 */
+      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    XSTRING (name)->data);
+      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  XSTRING (name)->data);
+#endif /* not HAVE_X11R4 */
+      UNBLOCK_INPUT;
+    }
+}
+
 void
 x_set_autoraise (f, arg, oldval)
      struct frame *f;
