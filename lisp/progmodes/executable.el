@@ -199,20 +199,20 @@ non-executable files."
 				     (file-modes buffer-file-name)))))))
 
 
+;;;###autoload
 (defun executable-interpret (command)
   "Run script with user-specified args, and collect output in a buffer.
-While script runs asynchronously, you can use the \\[next-error] command
-to find the next error."
+While script runs asynchronously, you can use the \\[next-error]
+command to find the next error.  The buffer is also in `comint-mode' and
+`compilation-shell-minor-mode', so that you can answer any prompts."
   (interactive (list (read-string "Run script: "
 				  (or executable-command
 				      buffer-file-name))))
   (require 'compile)
   (save-some-buffers (not compilation-ask-about-save))
-  (make-local-variable 'executable-command)
-  (compile-internal (setq executable-command command)
-		    "No more errors." "Interpretation"
-		    ;; Give it a simpler regexp to match.
-		    nil executable-error-regexp-alist))
+  (set (make-local-variable 'executable-command) command)
+  (let ((compilation-error-regexp-alist executable-error-regexp-alist))
+    (compilation-start command t (lambda (x) "*interpretation*"))))
 
 
 
