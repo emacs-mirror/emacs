@@ -550,8 +550,8 @@
         "Lisp code for GNU Emacs running as server process."
         (processes))
     ("shadowfile.el"
-        "automatic file copying for Emacs 19"
-        (comm))
+        "automatic file copying"
+        (comm files))
     ("shell.el"
         "specialized comint.el for running the shell."
         (processes))
@@ -795,6 +795,66 @@
     ("todo-mode.el"
         "Major mode for editing TODO list files"
         (calendar  todo))
+    ("ange-ftp.el"
+        "transparent FTP support for GNU Emacs"
+        (comm))
+    ("browse-url.el"
+        "Pass a URL to a WWW browser"
+        (hypertext  hypermedia  mouse))
+    ("eudc-bob.el"
+        "Binary Objects Support for EUDC"
+        (help))
+    ("eudc-export.el"
+        "Functions to export EUDC qeuery results"
+        (help))
+    ("eudc-hotlist.el"
+        "Hotlist Management for EUDC"
+        (help))
+    ("eudc-vars.el"
+        "Emacs Unified Directory Client"
+        (help))
+    ("eudc.el"
+        "Emacs Unified Directory Client"
+        (help))
+    ("eudcb-bbdb.el"
+        "Emacs Unified Directory Client - BBDB Backend"
+        (help))
+    ("eudcb-ldap.el"
+        "Emacs Unified Directory Client - LDAP Backend"
+        (help))
+    ("eudcb-ph.el"
+        "Emacs Unified Directory Client - CCSO PH/QI Backend"
+        (help))
+    ("goto-addr.el"
+        "click to browse URL or to send to e-mail address"
+        (mh-e  www  mouse  mail))
+    ("ldap.el"
+        "Client interface to LDAP for Emacs"
+        (comm))
+    ("net-utils.el"
+        "Network functions"
+        (network communications))
+    ("quickurl.el"
+        "Insert an URL based on text at point in buffer."
+        (hypermedia))
+    ("rcompile.el"
+        "run a compilation on a remote machine"
+        (tools  processes))
+    ("rlogin.el"
+        "remote login interface"
+        (unix  comm))
+    ("snmp-mode.el"
+        "SNMP & SNMPv2 MIB major mode."
+        (data))
+    ("telnet.el"
+        "run a telnet session from within an Emacs buffer"
+        nil)
+    ("webjump.el"
+        "programmable Web hotlist"
+        (comm www))
+    ("zone-mode.el"
+        "major mode for editing DNS zone files."
+        (dns  languages))
     ("advice.el"
         "an overloading mechanism for Emacs Lisp functions"
         (extensions  lisp  tools))
@@ -913,7 +973,7 @@
         "pretty printer for Emacs Lisp"
         nil)
     ("profile.el"
-        "generate run time measurements of Emacs Lisp functions"
+        "Emacs profiler (OBSOLETE; use elp.el instead)"
         (lisp  tools))
     ("re-builder.el"
         "Building Regexps with visual feedback"
@@ -1008,6 +1068,96 @@
     ("ws-mode.el"
         "WordStar emulation mode for GNU Emacs"
         (emulations))
+    ("em-alias.el"
+        "creation and management of command aliases"
+        nil)
+    ("em-banner.el"
+        "sample module that displays a login banner"
+        nil)
+    ("em-basic.el"
+        "basic shell builtin commands"
+        nil)
+    ("em-cmpl.el"
+        "completion using the TAB key"
+        nil)
+    ("em-dirs.el"
+        "directory navigation commands"
+        nil)
+    ("em-glob.el"
+        "extended file name globbing"
+        nil)
+    ("em-hist.el"
+        "history list management"
+        nil)
+    ("em-ls.el"
+        "implementation of ls in Lisp"
+        nil)
+    ("em-pred.el"
+        "argument predicates and modifiers (ala zsh)"
+        nil)
+    ("em-prompt.el"
+        "command prompts"
+        nil)
+    ("em-rebind.el"
+        "rebind keys when point is at current input"
+        nil)
+    ("em-script.el"
+        "Eshell script files"
+        nil)
+    ("em-smart.el"
+        "smart display of output"
+        nil)
+    ("em-term.el"
+        "running visual commands"
+        nil)
+    ("em-unix.el"
+        "UNIX command aliases"
+        nil)
+    ("em-xtra.el"
+        "extra alias functions"
+        nil)
+    ("esh-arg.el"
+        "argument processing"
+        nil)
+    ("esh-cmd.el"
+        "command invocation"
+        nil)
+    ("esh-ext.el"
+        "commands external to Eshell"
+        nil)
+    ("esh-groups.el"
+        nil
+        nil)
+    ("esh-io.el"
+        "I/O management"
+        nil)
+    ("esh-maint.el"
+        "init code for building eshell"
+        nil)
+    ("esh-mode.el"
+        "user interface"
+        nil)
+    ("esh-module.el"
+        "Eshell modules"
+        (processes))
+    ("esh-opt.el"
+        "command options processing"
+        nil)
+    ("esh-proc.el"
+        "process management"
+        nil)
+    ("esh-test.el"
+        "Eshell test suite"
+        nil)
+    ("esh-util.el"
+        "general utilities"
+        nil)
+    ("esh-var.el"
+        "handling of variables"
+        nil)
+    ("eshell.el"
+        "the Emacs command shell"
+        (processes))
     ("binhex.el"
         "elisp native binhex decode"
         (binhex news))
@@ -1309,7 +1459,7 @@
         "elisp native uudecode"
         (uudecode news))
     ("webmail.el"
-        "interfacing with web mail"
+        "interface of web mail"
         (hotmail netaddress my-deja netscape))
     ("ccl.el"
         "CCL (Code Conversion Language) compiler"
@@ -1412,7 +1562,7 @@
         (quail  tit  cxterm))
     ("utf-8.el"
         "Limited UTF-8 decoding/encoding support"
-        (multilingual  unicode  utf-8))
+        (multilingual  unicode  utf-8  i18n))
     ("china-util.el"
         "utilities for Chinese"
         (mule  multilingual  chinese))
@@ -1489,7 +1639,7 @@
         "Support for Thai"
         (multilingual  thai))
     ("tibet-util.el"
-        "Support for inputting Tibetan characters"
+        "utilities for Tibetan"
         (multilingual  tibetan))
     ("tibetan.el"
         "Support for Tibetan language"
@@ -1614,6 +1764,30 @@
     ("vms-pmail.el"
         "use Emacs as the editor within VMS mail."
         (vms))
+    ("auto-show.el"
+        "perform automatic horizontal scrolling as point moves"
+        (scroll display convenience))
+    ("c-mode.el"
+        "C code editing commands for Emacs"
+        (c))
+    ("cplus-md.el"
+        "old C++ code editing mode for Emacs"
+        (c))
+    ("hilit19.el"
+        "customizable highlighting for Emacs19"
+        (faces))
+    ("hscroll.el"
+        "automatically scroll truncated lines horizontally"
+        (display))
+    ("ooutline.el"
+        "outline mode commands for Emacs"
+        (outlines))
+    ("rnews.el"
+        "USENET news reader for gnu emacs"
+        (news))
+    ("rnewspost.el"
+        "USENET news poster/mailer for GNU Emacs"
+        (mail  news))
     ("5x5.el"
         "Simple little puzzle game."
         (games puzzles))
@@ -1722,6 +1896,9 @@
     ("cc-align.el"
         "custom indentation functions for CC Mode"
         (c languages oop))
+    ("cc-bytecomp.el"
+        "Compile time setup for proper compilation"
+        (c languages oop))
     ("cc-cmds.el"
         "user level commands for CC Mode"
         (c languages oop))
@@ -1735,7 +1912,7 @@
         "core syntax guessing engine for CC mode"
         (c languages oop))
     ("cc-langs.el"
-        "specific language support for CC Mode"
+        "language specific settings for CC Mode"
         (c languages oop))
     ("cc-menus.el"
         "imenu support for CC Mode"
@@ -1758,9 +1935,6 @@
     ("cperl-mode.el"
         "Perl code editing commands for Emacs"
         (languages  perl))
-    ("cplus-md.el"
-        "old C++ code editing mode for Emacs"
-        (c))
     ("cpp.el"
         "Highlight or hide text according to cpp conditionals."
         (c  faces  tools))
@@ -2094,182 +2268,16 @@
     ("underline.el"
         "insert/remove underlining (done by overstriking) in Emacs."
         (wp))
-    ("auto-show.el"
-        "perform automatic horizontal scrolling as point moves"
-        (scroll display convenience))
-    ("c-mode.el"
-        "C code editing commands for Emacs"
-        (c))
-    ("hilit19.el"
-        "customizable highlighting for Emacs19"
-        (faces))
-    ("hscroll.el"
-        "automatically scroll truncated lines horizontally"
-        (display))
-    ("ooutline.el"
-        "outline mode commands for Emacs"
-        (outlines))
-    ("rnews.el"
-        "USENET news reader for gnu emacs"
-        (news))
-    ("rnewspost.el"
-        "USENET news poster/mailer for GNU Emacs"
-        (mail  news))
     ("tool-bar.el"
         "Setting up the tool bar"
         (mouse frames))
-    ("em-alias.el"
-        "creation and management of command aliases"
-        nil)
-    ("em-banner.el"
-        "sample module that displays a login banner"
-        nil)
-    ("em-basic.el"
-        "basic shell builtin commands"
-        nil)
-    ("em-cmpl.el"
-        "completion using the TAB key"
-        nil)
-    ("em-dirs.el"
-        "directory navigation commands"
-        nil)
-    ("em-glob.el"
-        "extended file name globbing"
-        nil)
-    ("em-hist.el"
-        "history list management"
-        nil)
-    ("em-ls.el"
-        "implementation of ls in Lisp"
-        nil)
-    ("em-pred.el"
-        "argument predicates and modifiers (ala zsh)"
-        nil)
-    ("em-prompt.el"
-        "command prompts"
-        nil)
-    ("em-rebind.el"
-        "rebind keys when point is at current input"
-        nil)
-    ("em-script.el"
-        "Eshell script files"
-        nil)
-    ("em-smart.el"
-        "smart display of output"
-        nil)
-    ("em-term.el"
-        "running visual commands"
-        nil)
-    ("em-unix.el"
-        "UNIX command aliases"
-        nil)
-    ("em-xtra.el"
-        "extra alias functions"
-        nil)
-    ("esh-arg.el"
-        "argument processing"
-        nil)
-    ("esh-cmd.el"
-        "command invocation"
-        nil)
-    ("esh-ext.el"
-        "commands external to Eshell"
-        nil)
-    ("esh-groups.el"
-        nil
-        nil)
-    ("esh-io.el"
-        "I/O management"
-        nil)
-    ("esh-maint.el"
-        "init code for building eshell"
-        nil)
-    ("esh-mode.el"
-        "user interface"
-        nil)
-    ("esh-module.el"
-        "Eshell modules"
-        (processes))
-    ("esh-opt.el"
-        "command options processing"
-        nil)
-    ("esh-proc.el"
-        "process management"
-        nil)
-    ("esh-test.el"
-        "Eshell test suite"
-        nil)
-    ("esh-util.el"
-        "general utilities"
-        nil)
-    ("esh-var.el"
-        "handling of variables"
-        nil)
-    ("eshell.el"
-        "the Emacs command shell"
-        (processes))
-    ("ange-ftp.el"
-        "transparent FTP support for GNU Emacs"
-        (comm))
-    ("browse-url.el"
-        "Pass a URL to a WWW browser"
-        (hypertext  hypermedia  mouse))
-    ("eudc-bob.el"
-        "Binary Objects Support for EUDC"
-        (help))
-    ("eudc-export.el"
-        "Functions to export EUDC qeuery results"
-        (help))
-    ("eudc-hotlist.el"
-        "Hotlist Management for EUDC"
-        (help))
-    ("eudc-vars.el"
-        "Emacs Unified Directory Client"
-        (help))
-    ("eudc.el"
-        "Emacs Unified Directory Client"
-        (help))
-    ("eudcb-bbdb.el"
-        "Emacs Unified Directory Client - BBDB Backend"
-        (help))
-    ("eudcb-ldap.el"
-        "Emacs Unified Directory Client - LDAP Backend"
-        (help))
-    ("eudcb-ph.el"
-        "Emacs Unified Directory Client - CCSO PH/QI Backend"
-        (help))
-    ("goto-addr.el"
-        "click to browse URL or to send to e-mail address"
-        (mh-e  www  mouse  mail))
-    ("ldap.el"
-        "Client interface to LDAP for Emacs"
-        (comm))
-    ("net-utils.el"
-        "Network functions"
-        (network communications))
-    ("quickurl.el"
-        "Insert an URL based on text at point in buffer."
-        (hypermedia))
-    ("rcompile.el"
-        "run a compilation on a remote machine"
-        (tools  processes))
-    ("rlogin.el"
-        "remote login interface"
-        (unix  comm))
-    ("snmp-mode.el"
-        "SNMP & SNMPv2 MIB major mode."
-        (data))
-    ("telnet.el"
-        "run a telnet session from within an Emacs buffer"
-        nil)
-    ("webjump.el"
-        "programmable Web hotlist"
-        (comm www))
-    ("zone-mode.el"
-        "major mode for editing DNS zone files."
-        (dns  languages))
 ))
 
 (provide 'finder-inf)
 
+;;; Local Variables:
+;;; version-control: never
+;;; no-byte-compile: t
+;;; no-update-autoloads: t
+;;; End:
 ;;; finder-inf.el ends here

@@ -1,3 +1,11 @@
+2001-04-04  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-mule.el: Eliminate cl package dependence.
+	(char-valid-p, multibyte-string-p, string-make-multibyte): Define funs
+	if they aren't defined yet.
+	(ps-mule-encode-header-string, ps-mule-header-string-charsets):
+	Eliminate cl package dependence.
+
 2001-04-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/cc-cmds.el (c-outline-level):

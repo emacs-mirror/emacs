@@ -1,3 +1,8 @@
+2001-04-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* quail/japanese.el ("japanese-hankaku-kana"): Don't use
+	the same translations as for `japanese'.
+
 2001-04-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (TIT_GB): Delete quail/PY.elc and
