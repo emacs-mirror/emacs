@@ -53,6 +53,10 @@
 (defvar view-exit-position nil)
 (make-variable-buffer-local 'view-exit-position)
 
+(defvar view-overlay nil
+  "Overlay used to display where a search operation found its match.")
+(make-variable-buffer-local 'view-overlay)
+
 (or (assq 'view-mode minor-mode-alist)
     (setq minor-mode-alist
 	  (cons '(view-mode " View") minor-mode-alist)))
@@ -260,6 +264,7 @@ If you viewed an existing buffer, that buffer returns to its previous mode.
 If you viewed a file that was not present in Emacs, its buffer is killed."
   (interactive)
   (setq view-mode nil)
+  (delete-overlay view-overlay)
   (force-mode-line-update)
   (cond (view-mode-auto-exit
 	 (setq buffer-read-only view-old-buffer-read-only)
@@ -371,17 +376,16 @@ Arg is number of lines to scroll."
 Displays line found at center of window.  REGEXP is remembered for
 searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
   (interactive "p\nsSearch forward (regexp): ")
-  (if (> (length regexp) 0)
-      (progn
-       ;(view-last-command 'View-search-last-regexp-forward n)
-	(view-search n regexp))))
+;;;(view-last-command 'View-search-last-regexp-forward n)
+  (view-search n (if (equal regexp "") view-last-regexp regexp))))
 
 (defun View-search-regexp-backward (n regexp)
   "Search backward from window start for Nth instance of REGEXP.
 Displays line found at center of window.  REGEXP is remembered for
 searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
   (interactive "p\nsSearch backward (regexp): ")
-  (View-search-regexp-forward (- n) regexp))
+  (View-search-regexp-forward (- n)
+			      (if (equal regexp "") view-last-regexp regexp)))
 
 (defun View-search-last-regexp-forward (n)
   "Search forward from window end for Nth instance of last regexp.
@@ -417,6 +421,11 @@ invocations return to earlier marks."
 	(progn
 	  (push-mark)
 	  (goto-char where)
+	  (if view-overlay
+	      (move-overlay view-overlay (match-beginning 0) (match-end 0))
+	    (setq view-overlay
+		  (make-overlay (match-beginning 0) (match-end 0))))
+	  (overlay-put view-overlay 'face 'highlight)
 	  (beginning-of-line)
 	  (recenter (/ (view-window-size) 2)))
       (message "Can't find occurrence %d of %s" times regexp)
