@@ -76,6 +76,30 @@ and `current-time-string' are two valid values."
 		(function :tag "Other"))
   :group 'change-log)
 
+(defcustom add-log-keep-changes-together nil
+  "*If non-nil, then keep changes to the same file together.
+If this variable is nil and you add log for (e.g.) two files,
+the change log entries are added cumulatively to the beginning of log.
+This is the old behaviour:
+
+    Wday Mon DD TIME YYYY
+
+	file A log2  << added this later
+	file B log1
+	File A log1
+
+But if this variable is non-nil, then same file's changes are always kept
+together.  Notice that Log2 has been appended and it is the most recent
+for file A.
+
+    Wday Mon DD TIME YYYY
+
+	file B log1
+	File A log1
+	file A log2  << Added this later"
+  :type 'boolean
+  :group 'change-log)
+
 (defvar change-log-font-lock-keywords
   '(;;
     ;; Date lines, new and old styles.
@@ -225,11 +249,25 @@ current buffer to the complete file name."
   file-name)
 
 
+
+(defun change-log-add-make-room ()
+  "Begin a new empty change log entry at point."
+  ;; Delete excess empty lines; make just 2.
+  ;;
+  (while (and (not (eobp)) (looking-at "^\\s *$"))
+    (delete-region (point) (save-excursion (forward-line 1) (point))))
+  (insert "\n\n")
+  (forward-line -2)
+  (indent-relative-maybe)
+  )
+
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
   "Find change log file and add an entry for today.
-Optional arg (interactive prefix) non-nil means prompt for user name and site.
-Second arg is file name of change log.  If nil, uses `change-log-default-name'.
+Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
+name and site.
+
+Second arg is FILE-NAME of change log.  If nil, uses `change-log-default-name'.
 Third arg OTHER-WINDOW non-nil means visit in other window.
 Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry.  Today's date is calculated according to
@@ -251,8 +289,11 @@ never append to an existing entry.  Today's date is calculated according to
 	      (read-input "Mailing address: " add-log-mailing-address))))
   (let ((defun (funcall (or add-log-current-defun-function
 			    'add-log-current-defun)))
-	paragraph-end entry)
+	today-end
+	paragraph-end
+	entry
 
+	)
     (setq file-name (expand-file-name (find-change-log file-name)))
 
     ;; Set ENTRY to the file name to use in the new entry.
@@ -287,11 +328,23 @@ never append to an existing entry.  Today's date is calculated according to
     (setq paragraph-end (point))
     (goto-char (point-min))
 
+    ;; Today page's end point.  Used in search boundary
+
+    (save-excursion
+      (goto-char (point-min))	;Latest change log day
+      (forward-line 1)
+      (setq today-end
+	    (if (re-search-forward "^[^ \t\n]" nil t) ;Seek to next day's hdr
+		(match-beginning 0)
+	      (point-max))))		;No next day, use point max
+
     ;; Now insert the new line for this entry.
     (cond ((re-search-forward "^\\s *\\*\\s *$" paragraph-end t)
 	   ;; Put this file name into the existing empty entry.
 	   (if entry
-	       (insert entry)))
+	       (insert entry))
+	   )
+
 	  ((and (not new-entry)
 		(let (case-fold-search)
 		  (re-search-forward
@@ -303,12 +356,20 @@ never append to an existing entry.  Today's date is calculated according to
 	   ;; Add to the existing entry for the same file.
 	   (re-search-forward "^\\s *$\\|^\\s \\*")
 	   (goto-char (match-beginning 0))
-	   ;; Delete excess empty lines; make just 2.
-	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (save-excursion (forward-line 1) (point))))
-	   (insert "\n\n")
-	   (forward-line -2)
-	   (indent-relative-maybe))
+	   (change-log-add-make-room)
+	   )
+
+	  ;;  See if there is existing entry and append to it.
+	  ;;  * file.txt:
+	  ;;
+	  ((and add-log-keep-changes-together ;enabled ?
+		(re-search-forward (regexp-quote (concat "* " entry))
+				   today-end t))
+	   (re-search-forward "^\\s *$\\|^\\s \\*")
+	   (goto-char (match-beginning 0))
+	   (change-log-add-make-room)
+	   )
+
 	  (t
 	   ;; Make a new entry.
 	   (forward-line 1)
@@ -342,7 +403,8 @@ never append to an existing entry.  Today's date is calculated according to
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
   "Find change log file in other window and add an entry for today.
-Optional arg (interactive prefix) non-nil means prompt for user name and site.
+Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
+name and site.
 Second arg is file name of change log.  \
 If nil, uses `change-log-default-name'."
   (interactive (if current-prefix-arg
@@ -355,7 +417,7 @@ If nil, uses `change-log-default-name'."
 (defun change-log-mode ()
   "Major mode for editing change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
-New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
+New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-before-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.
 Runs `change-log-mode-hook'."
   (interactive)
@@ -515,7 +577,7 @@ Has a preference of looking backwards."
 			       (buffer-substring (point)
 						 (progn (forward-sexp 1) (point))))
                            (if (looking-at "^[+-]")
-                               (get-method-definition)
+                               (change-log-get-method-definition)
                              ;; Ordinary C function syntax.
                              (setq beg (point))
                              (if (and (condition-case nil
@@ -614,33 +676,33 @@ Has a preference of looking backwards."
 					 (match-end 1))))))))
     (error nil)))
 
-(defvar get-method-definition-md)
+(defvar change-log-get-method-definition-md)
 
-;; Subroutine used within get-method-definition.
+;; Subroutine used within change-log-get-method-definition.
 ;; Add the last match in the buffer to the end of `md',
 ;; followed by the string END; move to the end of that match.
-(defun get-method-definition-1 (end)
-  (setq get-method-definition-md
-	(concat get-method-definition-md
+(defun change-log-get-method-definition-1 (end)
+  (setq change-log-get-method-definition-md
+	(concat change-log-get-method-definition-md
 		(buffer-substring (match-beginning 1) (match-end 1))
 		end))
   (goto-char (match-end 0)))
 
 ;; For objective C, return the method name if we are in a method.
-(defun get-method-definition ()
-  (let ((get-method-definition-md "["))
+(defun change-log-get-method-definition ()
+  (let ((change-log-get-method-definition-md "["))
     (save-excursion
       (if (re-search-backward "^@implementation\\s-*\\([A-Za-z_]*\\)" nil t)
-	  (get-method-definition-1 " ")))
+	  (change-log-get-method-definition-1 " ")))
     (save-excursion
       (cond
        ((re-search-forward "^\\([-+]\\)[ \t\n\f\r]*\\(([^)]*)\\)?\\s-*" nil t)
-	(get-method-definition-1 "")
+	(change-log-get-method-definition-1 "")
 	(while (not (looking-at "[{;]"))
 	  (looking-at
 	   "\\([A-Za-z_]*:?\\)\\s-*\\(([^)]*)\\)?[A-Za-z_]*[ \t\n\f\r]*")
-	  (get-method-definition-1 ""))
-	(concat get-method-definition-md "]"))))))
+	  (change-log-get-method-definition-1 ""))
+	(concat change-log-get-method-definition-md "]"))))))
 
 
 (provide 'add-log)
