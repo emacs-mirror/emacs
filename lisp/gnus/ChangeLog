@@ -1,3 +1,38 @@
+2001-10-30 ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el, nnultimate.el, nnweb.el, nnslashdot.el: Sync with
+	the Gnus CVS.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Move down and call
+	mm-coding-system-p. Don't correct it only in XEmacs.
+	(mm-charset-to-coding-system): Use mm-coding-system-p and
+	mm-get-coding-system-list.
+	(mm-emacs-mule, mm-mule4-p): New.
+	(mm-enable-multibyte, mm-disable-multibyte,
+	mm-enable-multibyte-mule4, mm-disable-multibyte-mule4,
+	mm-with-unibyte-current-buffer,
+	mm-with-unibyte-current-buffer-mule4): Use them.
+	(mm-find-mime-charset-region): Treat iso-2022-jp.
+
+	From  Dave Love  <fx@gnu.org>:
+
+	* mm-util.el (mm-mime-mule-charset-alist): Make it correct by
+	construction.
+	(mm-charset-synonym-alist): Remove windows-125[02].  Make other
+	entries conditional on not having a coding system defined for
+	them.
+	(mm-mule-charset-to-mime-charset): Use
+	find-coding-systems-for-charsets if defined.
+	(mm-charset-to-coding-system): Don't use
+	mm-get-coding-system-list.  Look in mm-charset-synonym-alist
+	later.  Add last resort search of coding systems.
+	(mm-enable-multibyte-mule4, mm-disable-multibyte-mule4)
+	(mm-with-unibyte-current-buffer-mule4): Just treat Mule 5 like
+	Mule 4.
+	(mm-find-mime-charset-region): Re-write.
+	(mm-with-unibyte-current-buffer): Restore buffer as well as
+	multibyteness.
+	
 2001-10-30  Simon Josefsson  <jas@extundo.com>
 
 	* nnimap.el (nnimap-date-days-ago): Defeat locale.
