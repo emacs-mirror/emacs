@@ -334,36 +334,36 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 (defalias 'endp 'null)
 
 (defun third (x)
-  "Return the third element of the list LIST."
-  `(car (cdr (cdr ,x))))
+  "Return the third element of the list X."
+  (car (cdr (cdr x))))
 
 (defun fourth (x)
-  "Return the fourth element of the list LIST."
-  `(nth 3 ,x))
+  "Return the fourth element of the list X."
+  (nth 3 x))
 
 (defun fifth (x)
-  "Return the fifth element of the list LIST."
-  `(nth 4 ,x))
+  "Return the fifth element of the list X."
+  (nth 4 x))
 
 (defun sixth (x)
-  "Return the sixth element of the list LIST."
-  `(nth 5 ,x))
+  "Return the sixth element of the list X."
+  (nth 5 x))
 
 (defun seventh (x)
-  "Return the seventh element of the list LIST."
-  `(nth 6 ,x))
+  "Return the seventh element of the list X."
+  (nth 6 x))
 
 (defun eighth (x)
-  "Return the eighth element of the list LIST."
-  `(nth 7 ,x))
+  "Return the eighth element of the list X."
+  (nth 7 x))
 
 (defun ninth (x)
-  "Return the ninth element of the list LIST."
-  `(nth 8 ,x))
+  "Return the ninth element of the list X."
+  (nth 8 x))
 
 (defun tenth (x)
-  "Return the tenth element of the list LIST."
-  `(nth 9 ,x))
+  "Return the tenth element of the list X."
+  (nth 9 x))
 
 (defun caaar (x)
   "Return the `car' of the `car' of the `car' of X."
