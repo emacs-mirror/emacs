@@ -820,8 +820,8 @@ is the default binding of variable. */)
   register struct buffer *buf;
   register Lisp_Object result;
 
-  CHECK_SYMBOL (symbol, 0);
-  CHECK_BUFFER (buffer, 0);
+  CHECK_SYMBOL (symbol);
+  CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
 
   /* Look in local_var_list */
