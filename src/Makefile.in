@@ -1050,7 +1050,7 @@ malloc.o: malloc.c $(config_h)
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h)
-marker.o: marker.c buffer.h $(config_h)
+marker.o: marker.c buffer.h charset.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h \
    buffer.h commands.h charset.h $(config_h)
 mktime.o: mktime.c $(config_h)
