@@ -1714,6 +1714,8 @@ scroll the window of possible completions.")
       return Qnil;
 
     case 1:
+      if (PT != ZV)
+	Fgoto_char (make_number (ZV));
       temp_echo_area_glyphs (" [Sole completion]");
       break;
 
