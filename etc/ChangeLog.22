@@ -1,3 +1,8 @@
+2003-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* ps-prin1.ps (HeaderOrFooterTextLines): Handle multiple strings
+	in a line.
+
 2003-09-08  Kenichi Handa  <handa@m17n.org>
 
 	* charsets: New directory for charset mapping tables.

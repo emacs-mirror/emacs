@@ -1,7 +1,42 @@
+2003-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-chunk-size): Variable deleted.
+	(auto-compose-chars): Always stop after processing a newline.
+
 2003-09-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (define-coding-system): Fix attribute
 	name :for-unibyte.
+
+2003-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* ps-bdf.el: Mostly re-written.
+
+	* ps-mule.el: Mostly re-written.
+
+	* ps-print.el (ps-generate-string-list): Function deleted.
+	(ps-rh-cache, ps-lf-cache, ps-rf-cache): Variables deleted.
+	(ps-header-footer-string): Function deleted.
+	(ps-encode-header-string-function): New variable
+	(ps-generate-header-line): Call ps-encode-header-string-function.
+	(ps-basic-plot-string-function): New variable
+	(ps-begin-job): Set ps-basic-plot-string-function and
+	ps-encode-header-string-function.  For setting up headers and
+	footers, don't use caches such as ps-rh-cache.  Don't call
+	ps-mule-begin-page.
+	(ps-basic-plot-str): Don't call ps-mule-prepare-ascii-font.
+	(ps-basic-plot-string): Likewise.
+	(ps-control-character): Likewise.
+	(ps-plot-region): Don't pay attention to composition and
+	non-ASCII characters.
+	(ps-generate): Call ps-mule-end-job.
+	(ps-mule-prepare-ascii-font): Delete autoload.
+	(ps-mule-set-ascii-font): Likewise.
+	(ps-mule-plot-string): Likewise.
+	(ps-mule-begin-page): Likewise.
+	(ps-mule-end-job): Declare autoload.
+
+	* composite.el (auto-compose-region): New function.
 
 2003-09-11  Dave Love  <fx@gnu.org>
 

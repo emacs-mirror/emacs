@@ -1,3 +1,19 @@
+2003-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_auto_composed_prop): Check if the last
+	characters of auto-composed region is newly composed with the
+	following characters.
+	(handle_composition_prop): Fix checking of point being inside
+	composition.
+
+2003-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (concat): Don't change multibyteness of the result by
+	concatenating an 8-bit character.
+
+	* data.c (Faset): Check newelt by CHECK_CHARACTER.  Don't change
+	multibyteness of the result when newelt is an 8-bit character.
+
 2003-09-29  Dave Love  <fx@gnu.org>
 
 	* xmenu.c (find_and_call_menu_selection): Make menu_bar_items_used
@@ -98,6 +114,11 @@
 
 	* fileio.c (Finsert_file_contents): Call setup_coding_system in
 	the case of auto saving.
+
+2003-09-10  Andreas Schwab  <schwab@suse.de>
+
+	* chartab.c (map_char_table): Protect `range' from GC.
+	(map_char_table_for_charset): Likewise.
 
 2003-07-09  Kenichi Handa  <handa@m17n.org>
 
