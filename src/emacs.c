@@ -970,6 +970,9 @@ struct standard_args standard_args[] =
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
+  { "-i", "--icon-type", 15, 1 },
+  { "-itype", 0, 15, 1 },
+  { "-iconic", "--iconic", 15, 0 },
   { "-bg", "--background-color", 10, 1 },
   { "-background", 0, 10, 1 },
   { "-fg", "--foreground-color", 10, 1 },
@@ -984,15 +987,12 @@ struct standard_args standard_args[] =
   { "-g", "--geometry", 10, 1 },
   { "-geometry", 0, 10, 1 },
   { "-T", "--title", 10, 1 },
-  { "-i", "--icon-type", 10, 1 },
-  { "-itype", 0, 10, 1 },
   { "-name", "--name", 10, 1 },
   { "-xrm", "--xrm", 10, 1 },
   { "-r", "--reverse-video", 5, 0 },
   { "-rv", 0, 5, 0 },
   { "-reverse", 0, 5, 0 },
   { "-vb", "--vertical-scroll-bars", 5, 0 },
-  { "-iconic", "--iconic", 5, 0 },
   /* These have the same priority as ordinary file name args,
      so they are not reordered with respect to those.  */
   { "-l", "--load", 0, 1 },
@@ -1000,6 +1000,7 @@ struct standard_args standard_args[] =
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
   { "-insert", "--insert", 0, 1 },
+  /* This should be processed after ordinary file name args and the like.  */
   { "-kill", "--kill", -10, 0 },
 };
 
