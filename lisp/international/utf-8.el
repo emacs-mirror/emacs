@@ -55,8 +55,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'ucs-tables))
-
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
   ;;        charset         | bytes in utf-8 | bytes in emacs
@@ -273,6 +271,10 @@ Only characters from the charsets ascii, eight-bit-control,
 latin-iso8859-1 and mule-unicode-* are recognized.  Others are encoded
 as U+FFFD.")
 
+;; Dummy definition needed by the CCL program.  The real data are
+;; loaded on demand.
+(define-translation-table 'ucs-mule-8859-to-mule-unicode)
+
 (make-coding-system
  'mule-utf-8 4 ?u
  "UTF-8 encoding for Emacs-supported Unicode characters.
@@ -313,7 +315,8 @@ lower-casing commands won't work with them."
     mule-unicode-2500-33ff
     mule-unicode-e000-ffff)
    (mime-charset . utf-8)
-   ;; Kluge to ensure the translation table is loaded.
+   (valid-codes (0 . 255))
+   ;; Kluge to get the real translation table loaded.
    (pre-write-conversion . internal-require-ucs-tables)))
 
 (defun internal-require-ucs-tables (from to)
