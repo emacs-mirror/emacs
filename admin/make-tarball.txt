@@ -22,27 +22,21 @@ For each step, check for possible errors.
     admin/diff-tar-files against an older tar file.  Some old pretest
     tarballs are kept under fencepost.gnu.org:~pot/emacs-pretest/.
 
-7.  Make xdeltas:
-    xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
+7.  xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
 
-8.  tar -zxf emacs-NEW.tar.gz; cd NEW
-    Then, either using `script' or M-x compile, do
-     configure && make && make -n install
-    Save the compilation log in compile-NEW.log and compare it against
-    an old one.  The easiest way to do that is to visit the old log in
-    Emacs, change the version number of the old Emacs to __, do the same
-    with the new log and do M-x ediff. Especially check that Info files
-    aren't built.
+8.  tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
+    configure && make && make -n install
+    Use `script' or M-x compile to save the compilation log in
+    compile-NEW.log and compare it against an old one.  The easiest way
+    to do that is to visit the old log in Emacs, change the version
+    number of the old Emacs to __, do the same with the new log and do
+    M-x ediff. Especially check that Info files aren't built.
 
-9.  `cvs tag TAG' in the toplevel Emacs dir.  TAG is
-    EMACS_PRETEST_XX_YY_ZZZ for a pretest, don't know for a release.
+9.  cd EMACS_ROOT_DIR; cvs tag TAG
+    TAG is EMACS_PRETEST_XX_YY_ZZZ for a pretest.  Don't know for a release.
 
-10. For pretests, make an announcement by selecting new data from the
-    change logs and save it into emacs-NEW.announce, don't know for a
-    release.  To get the new data from change logs, you can use:
-    cvs -q diff -b -r EMACS_PRETEST_XX_YY_ZZZ $(find -name ChangeLog|sort) |
-    sed -n -e 's/^=\+//p' -e 's/^> //p' -e 's/^diff.*//p' \
-	   -e 's/^RCS file: .cvsroot.emacs.emacs.\(.*\),v/\1/p'
+10. admin/make-announcement OLD NEW
+    This creates an announcement for pretests.  Don't know for a release.
 
 11. rsync emacs-NEW.tar.gz emacs-OLD-NEW.xdelta compile-NEW.log \
     emacs-new.announce alpha.gnu.org:/home/alpha/gnu/emacs/pretest/
@@ -51,4 +45,5 @@ For each step, check for possible errors.
     ftp://alpha.gnu.org/gnu/emacs/pretest/.
 
 13. Let Richard Stallman know about the new pretest and tell him to
-    announce it using the announcement you prepared.
+    announce it using the announcement you prepared.  Remind him to set
+    a Reply-to header to <emacs-pretest-bug@gnu.org>.
