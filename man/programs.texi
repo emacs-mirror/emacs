@@ -1289,7 +1289,7 @@ removes comment delimiters on each line of the region.  (If every line
 is a comment, it removes comment delimiters from each; otherwise, it
 adds comment delimiters to each.)  If you are not using Transient Mark
 mode, then you should use the commands @code{comment-region} and
-@code{uncomment-region} to do these jobs (@pref{Multi-Line Comments}).
+@code{uncomment-region} to do these jobs (@pxref{Multi-Line Comments}).
 A prefix argument used in these circumstances specifies how many
 comment delimiters to add or how many to delete.
 
