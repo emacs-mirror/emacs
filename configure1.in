@@ -21,7 +21,7 @@
 # Shell script to edit files and make symlinks in preparation for
 # compiling Emacs.
 #
-# Usage: configure machine
+# Usage: configure config_name
 #
 # If configure succeeds, it leaves its status in config.status.
 # If configure fails after disturbing the status quo,
@@ -43,10 +43,14 @@ progname="`echo $0 | sed 's:^\./::'`"
 
 short_usage="Type \`${progname} -usage' for more information about options."
 
-usage_message="Usage: ${progname} MACHINENAME [-OPTION[=VALUE] ...]
+usage_message="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
+
 Set compilation and installation parameters for GNU Emacs, and report.
-MACHINENAME is the machine to build for.  For example:
-   ${progname} decstation
+CONFIGURATION specifies the machine and operating system to build for.
+For example:
+        ${progname} sparc-sun-sunos4.1
+configures Emacs to build on a Sun Sparc machine running SunOS 4.1, and 
+        ${progname} decstation
 configures Emacs to run on a DECstation running Ultrix.  See \`etc/MACHINES'.
 Options are:
   --with-x, --with-x11 or --with-x10 - what window system to use;
@@ -196,87 +200,472 @@ while [ $# != 0 ]; do
       eval "${optvar}=\"${val}\""
     ;;
     *)
-      machine=${arg}
+      configuration=${arg}
     ;;
   esac
   shift
 done
 
-if [ "${machine}" = "" ]; then
-  (echo "You must specify a machine name as an argument to ${progname}."
+if [ "${configuration}" = "" ]; then
+  (echo "You must specify a configuration name as an argument to ${progname}."
    echo "${short_usage}") | more
   exit 1
 fi
 
-# Canonicalize the machine name.
-echo "Checking the machine."
-machine=`./config.sub "${machine}"`
+# Canonicalize the configuration name.
+echo "Checking the configuration name."
+if configuration=`./config.sub "${configuration}"` ; then : ; else
+  exit $?
+fi
 
-# Given the canonicalized machine name, set machfile and opsysfile to
+# Given the canonicalized configuration name, set machfile and opsysfile to
 # the names of the m/*.h and s/*.h files we should use.
-case "${machine}" in
 
-  ## Alliant machines.
+### You would hope that you could choose an m/*.h file pretty much
+### based on the machine portion of the configuration name, and an s-
+### file based on the operating system portion.  However, it turns out
+### that each m/*.h file is pretty manufacturer-specific - for
+### example, apollo.h, hp9000s300.h, mega68k, news.h, and tad68k are
+### all 68000 machines; mips.h, pmax.h, and news-risc are all MIPS
+### machines.  So we basically have to have a special case for each
+### configuration name.
+
+### As far as handling version numbers on operating systems is
+### concerned, make sure things will fail in a fixable way.  If
+### /etc/MACHINES doesn't say anything about version numbers, be
+### prepared to handle anything reasonably.  If version numbers
+### matter, be sure /etc/MACHINES says something about it.
+machine='' opsys='' unported='false'
+case "${configuration}" in
+
+  ## Alliant machines
   ## Strictly speaking, we need the version of the alliant operating
   ## system to choose the right machine file, but currently the
   ## configuration name doesn't tell us enough to choose the right
   ## one; we need to give alliants their own operating system name to
   ## do this right.  When someone cares, they can help us.
   fx80-alliant-* )
-    machfile=m/alliant4.h opsysfile=s/bsd4-2.h
+    machine=alliant4 opsys=bsd4-2
   ;;
   i860-alliant-* )
-    machfile=m/alliant-2800.h opsysfile=s/bsd4-3.h
+    machine=alliant-2800 opsys=bsd4-3
   ;;
 
-  ## DECstations.
-  mips-*-ultrix* )
-    machfile=m/pmax.h opsysfile=s/bsd4-3.h
+  ## Altos 3068
+  m68*-altos-sysv* )
+    machine=altos opsys=usg5-2
   ;;
-  mips-*-osf* )
-    machfile=m/pmax.h opsysfile=s/osf1.h
+    
+  ## Amdahl UTS
+  580-amdahl-sysv* )
+    machine=amdahl opsys=usg5-2-2
   ;;
 
-  ## HP 9000 series 200 or 300.
+  ## Appallings - I mean, Apollos - running Domain
+  m68*-apollo* )
+    machine=apollo opsysfile=bsd4-2.h
+  ;;
+
+  ## AT&T 3b2, 3b5, 3b15, 3b20
+  we32k-att-sysv* )
+    machine=att3b opsys=usg5-2-2
+  ;;
+
+  ## AT&T 3b1 - The Mighty Unix PC!
+  m68*-att-sysv* )
+    machine=7300 opsys=usg5-2-2
+  ;;
+
+  ## Bull sps7
+  m68*-bull-sysv* )
+    machine=sps7 opsys=usg5-2
+  ;;
+
+  ## CCI 5/32, 6/32 -- see "Tahoe".
+
+  ## Celerity
+  ## I don't know what configuration name to use for this; config.sub
+  ## doesn't seem to know anything about it.  Hey, Celerity users, get
+  ## in touch with us!
+  celerity-celerity-bsd* )
+    machine=celerity opsys=bsd4-2
+  ;;
+
+  ## Clipper
+  ## What operating systems does this chip run that Emacs has been
+  ## tested on?
+  clipper-* )
+    machine=clipper
+    ## We'll use the catch-all code at the bottom to guess the
+    ## operating system.
+  ;;
+
+  ## Convex
+  *-convex-bsd* )
+    machine=convex opsys=bsd4-3
+  ;;
+
+  ## Cubix QBx/386
+  i386-cubix-sysv* )
+    machine=intel386 opsys=usg5-3
+  ;;
+
+  ## Cydra 5
+  cydra*-cydrome-sysv* )
+    machine=cydra5 opsys=usg5-3
+  ;;
+
+  ## DECstations
+  mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0 | mips-dec-bsd4.2 )
+    machine=pmax opsys=bsd4-2
+  ;;
+  mips-dec-ultrix* | mips-dec-bsd* )
+    machine=pmax opsys=bsd4-3
+  ;;
+  mips-dec-osf* )
+    machine=pmax opsys=osf1
+  ;;
+
+  ## Motorola Delta machines
+  m68*-motorola-sysv* )
+    machine=delta opsys=usg5-3
+  ;;
+  m88k-motorola-sysv* | m88k-motorola-m88kbcs* )
+    machine=delta88k opsys=usg5-3
+  ;;
+
+  ## Dual machines
+  m68*-dual-sysv* )
+    machine=dual opsys=usg5-2
+  ;;
+  m68*-dual-uniplus* )
+    machine=dual opsys=unipl5-2
+  ;;
+
+  ## Elxsi 6400
+  elxsi-elxsi-sysv* )
+    machine=elxsi opsys=usg5-2
+  ;;
+
+  ## Encore machines
+  ns16k-encore-bsd* )
+    machine=ns16000 opsys=umax
+  ;;
+
+  ## The GEC 93 - apparently, this port isn't really finished yet.
+
+  ## Gould Power Node and NP1
+  pn-gould-bsd4.2 )
+    machine=gould opsys=bsd4-2
+  ;;
+  pn-gould-bsd4.3 )
+    machine=gould opsys=bsd4-3
+  ;;
+  np1-gould-bsd* )
+    machine=gould-np1 opsys=bsd4-3
+  ;;
+
+  ## Honeywell XPS100
+  xps*-honeywell-sysv* )
+    machine=xps100 opsys=usg5-2
+  ;;
+
+  ## HP 9000 series 200 or 300
   m68*-hp-bsd* )
-    machfile=m/hp9000s300.h opsysfile=s/bsd4-3.h
+    machine=hp9000s300 opsys=bsd4-3
   ;;
-  ## If it's running an unspecified version of HP/UX, assume version 8.
-  m68*-hp-hpux7 )
-    machfile=m/hp9000s300.h opsysfile=s/hpux.h
-  ;;
+  ## HP/UX 8 doesn't run on these machines, so use HP/UX 7.
   m68*-hp-hpux* )
-    machfile=m/hp9000s300.h opsysfile=s/hpux8.h
+    machine=hp9000s300 opsys=hpux
   ;;
 
-  ## HP 9000 series 800, running HP/UX.
+  ## HP 9000 series 800, running HP/UX
   hppa1.0-hp-hpux* )
-    machfile=m/hp9000s800.h opsysfile=s/hpux.h
+    machine=hp9000s800 opsys=hpux
   ;;
 
-  ## Suns.
+  ## Orion machines
+  orion-orion-bsd* )
+    machine=orion opsys=bsd4-2
+  ;;
+  clipper-orion-bsd* )
+    machine=orion105 opsys=bsd4-2
+  ;;
+
+  ## IBM machines
+  i386-ibm-aix1.1 )
+    machine=ibmps2-aix opsys=usg5-2-2
+  ;;
+  i386-ibm-aix1.2 )
+    machine=ibmps2-aix opsys=usg5-3
+  ;;
+  rs6000-ibm-aix* )
+    machine=ibmrs6000 opsys=aix3-1
+  ;;
+  romp-ibm-bsd* )
+    machine=ibmrt opsys=bsd4-2
+  ;;
+  romp-ibm-aix* )
+    machine=ibmrt-aix opsys=usg5-2-2
+  ;;
+
+  ## Integrated Solutions `Optimum V'
+  m68*-isi-bsd4.2 )
+    machine=isi-ov opsys=bsd4-2
+  ;;
+  m68*-isi-bsd4.3 )
+    machine=isi-ov opsys=bsd4-3
+  ;;
+
+  ## Intel 386 machines where we do care about the manufacturer
+  i[34]86-intsys-sysv* )
+    machine=is386 opsys=usg5-2-2
+  ;;
+  ## Intel 386 machines where we don't care about the manufacturer
+  i[34]86-* )
+    machine=intel386
+    case "${configuration}" in
+      *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
+      *-isc* )			opsys=isc2-2 ;;
+      *-esix* )			opsys=esix ;;
+      *-xenix* )		opsys=xenix ;;
+      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
+    esac
+  ;;
+
+  ## Silicon Graphics machines
+  ## Iris 2500 and Iris 2500 Turbo (aka the Iris 3030)
+  m68*-sgi-iris3.5 )
+    machine=irist opsys=iris3-5
+  ;;
+  m68*-sgi-iris3.6 | m68*-sgi-iris*)
+    machine=irist opsys=iris3-6
+  ;;
+  ## Iris 4D
+  mips-sgi-irix3.* )
+    machine=iris4d opsys=irix3-3
+  ;;
+  mips-sgi-irix4.* | mips-sgi-irix* )
+    machine=iris4d opsys=irix4-0
+  ;;
+
+  ## Masscomp machines
+  m68*-masscomp-rtu )
+    machine=masscomp opsys=rtu
+  ;;
+
+  ## Megatest machines
+  m68*-megatest-bsd* )
+    machine=mega68 opsys=bsd4-2
+  ;;
+
+  ## Workstations sold by MIPS
+  ## This is not necessarily all workstations using the MIPS processor -
+  ## Irises are produced by SGI, and DECstations by DEC.
+
+  ## etc/MACHINES lists mips.h and mips4.h as possible machine files,
+  ## and usg5-2-2 and bsd4-3 as possible OS files.  The only guidance
+  ## it gives for choosing between the alternatives seems to be "Use
+  ## -machine=mips4 for RISCOS version 4; use -opsystem=bsd4-3 with
+  ## the BSD world."  I'll assume that these are instructions for
+  ## handling two odd situations, and that every other situation
+  ## should use mips.h and usg5-2-2, they being listed first.
+  mips-mips-riscos4* )
+    machine=mips4 opsys=usg5-2-2
+  ;;
+  mips-mips-bsd* )
+    machine=mips opsys=bsd4-3
+  ;;
+  mips-mips-* )
+    machine=mips opsys=usg5-2-2
+  ;;
+
+  ## The complete machine from National Semiconductor
+  ns32k-ns-genix* )
+    machine=ns32000 opsys=usg5-2
+  ;;
+
+  ## NCR machines
+  m68*-ncr-sysv2* )
+    machine=tower32 opsys=usg5-2-2
+  ;;
+  m68*-ncr-sysv3* )
+    machine=tower32v3 opsys=usg5-3
+  ;;
+
+  ## Nixdorf Targon 31
+  m68*-nixdorf-sysv* )
+    machine=targon31 opsys=usg5-2-2
+  ;;
+
+  ## Nu (TI or LMI)
+  m68*-nu-sysv* )
+    machine=nu opsys=usg5-2
+  ;;
+
+  ## Plexus
+  m68*-plexus-sysv* )
+    machine=plexus opsys=usg5-2
+  ;;
+
+  ## Prime EXL
+  i386-prime-sysv* )
+    machine=i386 opsys=usg5-3
+  ;;
+
+  ## Pyramid machines
+  ## I don't really have any idea what sort of processor the Pyramid has,
+  ## so I'm assuming it is its own architecture.
+  pyramid-pyramid-bsd* )
+    machine=pyramid opsys=bsd4-2
+  ;;
+
+  ## Sequent Balance
+  ns32k-sequent-bsd4.2 )
+    machine=sequent opsys=bsd4-2
+  ;;
+  ns32k-sequent-bsd4.3 )
+    machine=sequent opsys=bsd4-3
+  ;;
+  ## Sequent Symmetry
+  i386-sequent-bsd* )
+    machine=symmetry opsys=bsd4-3
+  ;;
+
+  ## SONY machines
+  m68*-sony-bsd4.2 )
+    machine=news opsys=bsd4-2
+  ;;
+  m68*-sony-bsd4.3 )
+    machine=news opsys=bsd4-3
+  ;;
+  mips-sony-bsd* )
+    machine=news-risc opsys=bsd4-3
+  ;;
+
+  ## Stride
+  m68*-stride-sysv* )
+    machine=stride opsys=usg5-2
+  ;;
+
+  ## Suns
   *-sun-sunos* | *-sun-bsd* )
-    case "${machine}" in
-      m68*-sunos1* )	machfile=m/sun1.h ;;
-      m68*-sunos2* )	machfile=m/sun2.h ;;
-      m68* )		machfile=m/sun3.h ;;
-      i[34]86* )	machfile=m/sun386.h ;;
-      * )		machfile=m/sparc.h ;;
+    case "${configuration}" in
+      m68*-sunos1* )	machine=sun1 ;;
+      m68*-sunos2* )	machine=sun2 ;;
+      m68* )		machine=sun3 ;;
+      i[34]86* )	machine=sun386 ;;
+      sparc* )		machine=sparc ;;
+      * )		unported=true ;;
     esac
-    case "${machine}" in
-      *-sunos4.0*	  ) opsysfile=s/sunos4-0.h ;;
-      *-sunos4* | *-sunos ) opsysfile=s/sunos4-1.h ;;
-      *			  ) opsysfile=s/bsd4-2.h   ;;
+    case "${configuration}" in
+      *-sunos4.0*	  ) opsys=sunos4-0 ;;
+      *-sunos4* | *-sunos ) opsys=sunos4-1 ;;
+      *			  ) opsys=bsd4-2   ;;
     esac
+  ;;
+
+  ## Tadpole 68k
+  m68*-tadpole-sysv* )
+    machine=tad68k opsys=usg5-3
+  ;;
+
+  ## Tahoe machines
+  tahoe-tahoe-bsd4.2 )
+    machine=tahoe opsys=bsd4-2
+  ;;
+  tahoe-tahoe-bsd4.3 )
+    machine=tahoe opsys=bsd4-3
+  ;;
+
+  ## Tandem Integrity S2
+  mips-tandem-sysv* )
+    machine=tandem-s2 opsys=usg5-3
+  ;;
+
+  ## Tektronix 16000 box (6130?)
+  ns16k-tektronix-bsd* )
+    machine=ns16000 opsys=bsd4-2
+  ;;
+  ## Tektronix 4300
+  ## src/m/tek4300.h hints that this is a m68k machine.
+  m68*-tektronix-bsd* )
+    machine=tex4300 opsys=bsd4-3
+  ;;
+
+  ## Titan P2 or P3
+  ## We seem to have lost the machine-description file titan.h!
+  titan-titan-sysv* )
+    machine=titan opsys=usg5-3
+  ;;
+  
+  ## Ustation E30 (SS5E)
+  m68*-unisys-uniplus* )
+    machine=ustation opsystem=unipl5-2
+  ;;
+
+  ## Vaxen.
+  vax-dec-* )
+    machine=vax
+    case "${configuration}" in
+      *-bsd4.1 ) opsys=bsd4-1 ;;
+      *-bsd4.2 | *-ultrix[0-3].* | *-ultrix4.0 ) opsys=bsd4-2 ;;
+      *-bsd4.3 | *-ultrix* ) opsys=bsd4-3 ;;
+      *-sysv[01]* ) opsys=usg5-0 ;;
+      *-sysv2* ) opsys=usg5-2 ;;
+      *-vms* ) opsys=vms ;;
+      * ) unported=true
+    esac
+  ;;
+
+  ## Whitechapel MG1
+  ns16k-whitechapel-* )
+    machine=mg1
+    ## We don't know what sort of OS runs on these; we'll let the
+    ## operating system guessing code below try.
+  ;;
+
+  ## Wicat
+  m68*-wicat-sysv* )
+    machine=wicat opsys=usg5-2
   ;;
 
   * )
-    (echo "${progname}: Emacs hasn't been ported to the machine \`${machine}'."
-     echo "${progname}: Check \`etc/MACHINES' for recognized machine names.") \
-    >&2
+    unported=true
   ;;
-    
 esac
+
+### If the code above didn't choose an operating system, just choose
+### an operating system based on the configuration name.  You really
+### only want to use this when you have no idea what the right
+### operating system is; if you know what operating systems a machine
+### runs, it's cleaner to make it explicit in the case statement
+### above.
+if [ ! "${opsys}" ]; then
+  case "${configuration}" in
+    *-bsd4.[01] )	opsys=bsd4-1 ;;
+    *-bsd4.2 )		opsys=bsd4-2 ;;
+    *-bsd4.3 )		opsys=bsd4-3 ;;
+    *-sysv0 )		opsys=usg5-0 ;;
+    *-sysv2 )		opsys=usg5-2 ;;
+    *-sysv2.2 )		opsys=usg5-2-2 ;;
+    *-sysv3 )		opsys=usg5-3 ;;
+    *-sysv4 )		opsys=usg5-4 ;;
+    * )
+      unported=true
+    ;;
+  esac
+fi
+
+if $unported ; then
+  (echo "${progname}: Emacs hasn't been ported to \`${configuration}' systems."
+   echo "${progname}: Check \`etc/MACHINES' for recognized configuration names."
+  ) >&2
+  exit 1
+fi
+
+machfile="m/${machine}.h"
+opsysfile="s/${opsys}.h"
 
 if [ ! "${prefix}" ]; then
   prefix="/usr/local"
@@ -327,7 +716,7 @@ if [ ! "${infodir}" ]; then
 fi
 
 echo "Checking window system."
-indow_system=''
+window_system=''
 case "${with_x}" in
   yes )
     window_system=${window_system}x11
@@ -365,14 +754,17 @@ case "${window_system}" in
   x11 )
     have_x_windows=yes
     have_x11=yes
+    echo "  Using X11."
   ;;
   x10 )
     have_x_windows=yes
     have_x11=no
+    echo "  Using X10."
   ;;
   none )
     have_x_windows=no
     have_x11=no
+    echo "  Using no window system."
   ;;
 esac
 
@@ -398,6 +790,7 @@ cc=`(
 
 case "${cc}" in
   "gcc" )
+    echo "  Using GCC."
     # With GCC, both O and g should default to yes, no matter what
     # the other is.
     case "${O},${g}" in
@@ -407,6 +800,7 @@ case "${cc}" in
     esac
   ;;
   "*" )
+    echo "  Using the system's CC."
     # With other compilers, treat them as mutually exclusive,
     # defaulting to debug.
     case "${O},${g}" in
@@ -442,6 +836,7 @@ if [ "${signal_h_file}" ]; then
   fi
   rm -f ${tempcname}
 fi
+echo "  Guessing that signals return \`${sigtype}'."
 
 echo "Examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
@@ -471,7 +866,7 @@ rm ${tempcname}
 if [ "${system_malloc}" = "yes" ]; then
   gnu_malloc=no
   gnu_malloc_reason="
-  (The GNU allocators don't work with this machine and/or operating system.)"
+  (The GNU allocators don't work with this system configuration.)"
 fi
 
 if [ ! "${rel_alloc}" ]; then
@@ -591,7 +986,8 @@ chmod -w lib-src/Makefile
 
 
 # Create a verbal description of what we have done.
-message="Configured for \`${machine}'.
+message="Configured for \`${configuration}'.
+
 The following values have been set in ./Makefile and ./build-install:
   \`make install' or \`build-install' will place executables in
         ${bindir}.
@@ -604,7 +1000,10 @@ The following values have been set in ./Makefile and ./build-install:
         ${libdir}.
   Emacs will keep track of file-locking in
         ${lockdir}.
+
 The following values have been set in src/config.h:
+  What operating system and machine description files should Emacs use?
+        \`${opsysfile}' and \`${machfile}'
   Should Emacs use the GNU version of malloc?             ${gnu_malloc}${gnu_malloc_reason}
   Should Emacs use the relocating allocator for buffers?  ${rel_alloc}
   Should Emacs support a floating point data type?        ${lisp_float_type}
