@@ -3248,10 +3248,10 @@ sigsetmask (x) int x; { return 0; }
 sigblock (mask) int mask; { return 0; } 
 #endif
 
-request_sigio () {}
+void request_sigio (void) {}
 setpgrp () {return 0; }
 setpriority (x,y,z) int x,y,z; { return 0; }
-unrequest_sigio () {}
+void unrequest_sigio (void) {}
 
 #if __DJGPP__ > 1
 
