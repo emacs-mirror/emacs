@@ -1,3 +1,11 @@
+2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* fileio.c (Fexpand_file_name): In the no-handler case, after
+	expanding, look again for a handler and invoke it.  This is needed
+	for filenames like "/foo/../user@host:/bar/../baz" -- the first
+	expansion produces "/user@host:/bar/../baz" which needs to be
+	expanded again for the finame result "/user@host:/baz".
+
 2003-03-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_item_expose_callback): Reduce size

@@ -1026,7 +1026,7 @@ See also the function `substitute-in-file-name'.  */)
   int is_escaped = 0;
 #endif /* DOS_NT */
   int length;
-  Lisp_Object handler;
+  Lisp_Object handler, result;
 
   CHECK_STRING (name);
 
@@ -1678,8 +1678,19 @@ See also the function `substitute-in-file-name'.  */)
   CORRECT_DIR_SEPS (target);
 #endif /* DOS_NT */
 
-  return make_specified_string (target, -1, o - target,
-				STRING_MULTIBYTE (name));
+  result = make_specified_string (target, -1, o - target,
+                                  STRING_MULTIBYTE (name));
+
+  /* Again look to see if the file name has special constructs in it
+     and perhaps call the corresponding file handler.  This is needed
+     for filenames such as "/foo/../user@host:/bar/../baz".  Expanding
+     the ".." component gives us "/user@host:/bar/../baz" which needs
+     to be expanded again. */
+  handler = Ffind_file_name_handler (result, Qexpand_file_name);
+  if (!NILP (handler))
+    return call3 (handler, Qexpand_file_name, result, default_directory);
+
+  return result;
 }
 
 #if 0
