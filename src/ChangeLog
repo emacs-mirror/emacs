@@ -1,5 +1,9 @@
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (echo_area_display): If cursor is in the echo area, make
+	sure that the next redisplay displays the minibuffer, so that
+	the cursor will be replaced with what the minibuffer wants.
+
 	* xterm.c: Test USE_TOOLKIT_SCROLL_BARS everywhere with #ifdef and
 	#ifndef instead of using #if.
 	(XTread_socket) [USE_MOTIF] <KeyPress>: Call XmIsScrollBar only if
