@@ -1,3 +1,8 @@
+2004-07-10  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
+
+	* ediff-mult.el (ediff-meta-truncate-filenames): Change type to
+	boolean.
+
 2004-07-09  Lars Hansen  <larsh@math.ku.dk>
 
 	* wid-edit.el (widget-field-buffer): Doc fix.
