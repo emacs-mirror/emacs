@@ -175,7 +175,7 @@
 (defvar cus-test-deps-errors nil
   "List of require/load problems found by `cus-test-deps'.")
 
-(defvar cus-test-deps-tested nil
+(defvar cus-test-deps-loaded nil
   "Dependencies loaded by `cus-test-deps'.")
 
 (defvar cus-test-libs-errors nil
@@ -276,7 +276,7 @@ The detected problematic options are stored in `cus-test-errors'."
 		    (length cus-test-tested-variables)))
     (if cus-test-errors
 	(let ((L cus-test-errors))
-	  (insert "The following variables seem to have errors:\n\n")
+	  (insert "The following variables seem to have problems:\n\n")
 	  (while L (insert (symbol-name (car L))) (insert "\n")
 		 (setq L (cdr L))))
       (insert "No errors found by cus-test."))))
@@ -315,7 +315,7 @@ This function is suitable for batch mode.  E.g., invoke
 in the emacs source directory."
   (interactive)
   (setq cus-test-deps-errors nil)
-  (setq cus-test-deps-tested nil)
+  (setq cus-test-deps-loaded nil)
   (mapatoms
    ;; This code is mainly from `custom-load-symbol'.
    (lambda (symbol)
@@ -326,11 +326,12 @@ in the emacs source directory."
 	    ((symbolp load)
 	     ;; (condition-case nil (require load) (error nil))
 	     (condition-case alpha
-		 (require load)
+		 (progn
+		   (require load)
+		   (push (list symbol load) cus-test-deps-loaded))
 	       (error
 		(push (list symbol load alpha) cus-test-deps-errors)
-		(message "Require problem: %s %s: %s" symbol load alpha)))
-	     (push (list symbol load) cus-test-deps-tested))
+		(message "Require problem: %s %s: %s" symbol load alpha))))
 	    ;; This is subsumed by the test below, but it's much
 	    ;; faster.
 	    ((assoc load load-history))
@@ -353,14 +354,15 @@ in the emacs source directory."
 	    (t
 	     ;; (condition-case nil (load load) (error nil))
 	     (condition-case alpha
-		 (load load)
+		 (progn
+		   (load load)
+		   (push (list symbol load) cus-test-deps-loaded))
 	       (error
 		(push (list symbol load alpha) cus-test-deps-errors)
-		(message "Load Problem: %s %s: %s" symbol load alpha)))
-	     (push (list symbol load) cus-test-deps-tested))
+		(message "Load Problem: %s %s: %s" symbol load alpha))))
 	    ))))))
   (message "Cus Test Deps loaded %s files."
-	   (length cus-test-deps-tested))
+	   (length cus-test-deps-loaded))
   (if cus-test-deps-errors
       (message "The following load problems appeared:\n%s"
 	       cus-test-deps-errors)
