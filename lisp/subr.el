@@ -111,11 +111,7 @@ If ALL-FRAMES is neither nil nor t, stick strictly to the selected frame."
   "Make MAP override all normally self-inserting keys to be undefined.
 Normally, as an exception, digits and minus-sign are set to make prefix args,
 but optional second arg NODIGITS non-nil treats them like other chars."
-  (let ((i 0))
-    (while (<= i 127)
-      (if (eql (lookup-key global-map (char-to-string i)) 'self-insert-command)
-	  (define-key map (char-to-string i) 'undefined))
-      (setq i (1+ i))))
+  (substitute-key-definition 'self-insert-command 'undefined map global-map)
   (or nodigits
       (let (loop)
 	(define-key map "-" 'negative-argument)
