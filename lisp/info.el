@@ -2221,10 +2221,25 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
+(defface Info-title-1-face
+  '((t (:family "helv" :height 240 :weight bold)))
+  "Face for Info titles at level 1."
+  :group 'info)
+
+(defface Info-title-2-face
+  '((t (:family "helv" :height 180 :weight bold)))
+  "Face for Info titles at level 2."
+  :group 'info)
+
+(defface Info-title-3-face
+  '((t (:family "helv" :height 160 :weight bold)))
+  "Face for Info titles at level 3."
+  :group 'info)
+
 (defcustom Info-title-face-alist
-  '((?* bold underline)
-    (?= bold-italic underline)
-    (?- italic underline))
+  '((?* (face (variable-pitch bold) display (height (+ 4))))
+    (?= (face (variable-pitch bold) display (height (+ 3))))
+    (?- (face (variable-pitch bold) display (height (+ 2)))))
   "*Alist of face or list of faces to use for pseudo-underlined titles.
 The alist key is the character the title is underlined with (?*, ?= or ?-)."
   :type '(repeat (list character face face))
@@ -2252,9 +2267,13 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
       (goto-char (point-min))
       (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\)$"
 				 nil t)
-	(put-text-property (match-beginning 1) (match-end 1)
-			   'face
-			   (cdr (assq (preceding-char) Info-title-face-alist)))
+	(let ((c (preceding-char))
+	      face)
+	  (cond ((= c ?*) (setq face 'Info-title-1-face))
+		((= c ?=) (setq face 'Info-title-2-face))
+		(t        (setq face 'Info-title-3-face))) 
+	  (put-text-property (match-beginning 1) (match-end 1)
+			     'face face))
 	;; This is a serious problem for trying to handle multiple
 	;; frame types at once.  We want this text to be invisible
 	;; on frames that can display the font above.
