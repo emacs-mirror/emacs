@@ -49,9 +49,9 @@
 
 ;;; Example
 
-;;If I have two buffers called "123456" and "123", with "123456" the
-;;most recent, when I use iswitchb, I first of all get presented with
-;;the list of all the buffers
+;; If I have two buffers called "123456" and "123", with "123456" the
+;; most recent, when I use iswitchb, I first of all get presented with
+;; the list of all the buffers
 ;;
 ;;       iswitch  {123456,123}
 ;;
@@ -73,12 +73,12 @@
 ;; wanted the second in the list, I could press C-s to move it to the
 ;; top of the list and then RET to select it.
 ;;
-;;However, If I type 4, I only have one match left:
+;; However, if I type 4, I only have one match left:
 ;;       iswitch 234[123456] [Matched]
 ;;
-;;Since there is only one matching buffer left, it is given in [] and we
-;;see the text [Matched] afterwards.  I can now press TAB or RET to go
-;;to that buffer.
+;; Since there is only one matching buffer left, it is given in [] and we
+;; see the text [Matched] afterwards.  I can now press TAB or RET to go
+;; to that buffer.
 ;;
 ;; If however, I now type "a":
 ;;       iswitch 234a [No match]
@@ -103,9 +103,8 @@
 ;; If you find that the file you are after is not in a buffer, you can
 ;; press C-x C-f to immediately drop into find-file.
 
-;;
-;;  See the doc string of iswitchb for full keybindings and features.
-;;  (describe-function 'iswitchb)
+;; See the doc string of iswitchb for full keybindings and features.
+;; (describe-function 'iswitchb)
 
 ;; Case matching: The case of strings when matching can be ignored or
 ;; used depending on the value of iswitchb-case (default is the same
@@ -176,10 +175,41 @@
 ;; for the normal buffer selection routine `read-buffer'.  To use
 ;; iswitch for all buffer selections in Emacs, add:
 ;; (setq read-buffer-function 'iswitchb-read-buffer)
-;; (This variable should be present in Emacs 20.3+)
+;; (This variable was introduced in Emacs 20.3.)
 ;; XEmacs users can get the same behaviour by doing:
 ;; (defalias 'read-buffer 'iswitchb-read-buffer)
 ;; since `read-buffer' is defined in lisp.
+
+;; Using iswitchb for other completion tasks.
+
+;; Kin Cho (kin@neoscale.com sent the following suggestion to use
+;; iswitchb for other completion tasks.  
+;;
+;; (defun my-icompleting-read (prompt choices)
+;;   "Use iswitch as a completing-read replacement to choose from
+;; choices.  PROMPT is a string to prompt with.  CHOICES is a list of
+;; strings to choose from."
+;;   (let ((iswitchb-make-buflist-hook
+;;          (lambda ()
+;;            (setq iswitchb-temp-buflist choices))))
+;;     (iswitchb-read-buffer prompt)))
+;;
+;; example:
+;; (my-icompleting-read "Which fruit? " '
+;; 		     ("apple" "pineapple" "pear" "bananas" "oranges") )
+
+;; Other lisp packages extend iswitchb behaviour to other tasks.  See
+;; ido.el (by Kim Storm) and mcomplete.el (Yuji Minejima).
+
+;; Window managers: Switching frames/focus follows mouse; Sawfish.
+
+;; If you switch to a buffer that is visible in another frame,
+;; iswitchb can switch focus to that frame.  If your window manager
+;; uses "click to focus" policy for window selection, you should also
+;; set focus-follows-mouse to nil.
+
+;; iswitch functionality has also been implemented for switching
+;; between windows in the Sawfish window manager.
 
 ;; Regexp matching
 
@@ -967,13 +997,12 @@ Return the modified list with the last element prepended to it."
 	     (or (eq iswitchb-method 'always-frame)
 		 (y-or-n-p "Jump to frame? ")))
 	(setq newframe (window-frame win))
-	(raise-frame newframe)
-	(select-frame newframe)
-	(select-window win)
-	(if (not iswitchb-xemacs)
-	    ;; reposition mouse to make frame active.  not needed in XEmacs
-	    ;; This line came from the other-frame defun in Emacs.
-	    (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
+        (if (not iswitchb-xemacs)
+            (select-frame-set-input-focus newframe)
+          (raise-frame newframe)
+          (select-frame newframe)
+          )
+	(select-window win))
        (t
 	;;  No buffer in other frames...
 	(switch-to-buffer buffer)
@@ -989,7 +1018,7 @@ Return the modified list with the last element prepended to it."
       (progn
 	(switch-to-buffer-other-frame buffer)
 	(if (not iswitchb-xemacs)
-	    (set-mouse-position (selected-frame) (1- (frame-width)) 0))
+            (select-frame-set-input-focus (selected-frame)))
 	)))))
 
 (defun iswitchb-possible-new-buffer (buf)
