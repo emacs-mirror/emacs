@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -1898,57 +1898,67 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (setq files (cdr files)))
 	  (car files)))
 
-  (unless locale-name
-    ;; Use the first of these three environment variables
-    ;; that has a nonempty value.
-    (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
-      (while (and vars (not (setq locale-name (getenv (car vars)))))
-	(setq vars (cdr vars)))))
+  (let ((locale locale-name))
 
-  (when locale-name
+    (unless locale
+      ;; Use the first of these three environment variables
+      ;; that has a nonempty value.
+      (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
+	(while (and vars (not (setq locale (getenv (car vars)))))
+	  (setq vars (cdr vars)))))
 
-    ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
-    ;; using the translation file that many systems have.
-    (when locale-translation-file-name
-      (with-temp-buffer
-	(insert-file-contents locale-translation-file-name)
-	(when (re-search-forward
-	       (concat "^" (regexp-quote locale-name) ":?[ \t]+") nil t)
-	  (setq locale-name (buffer-substring (point) (line-end-position))))))
+    (when locale
 
-    (setq locale-name (downcase locale-name))
+      ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
+      ;; using the translation file that many systems have.
+      (when locale-translation-file-name
+	(with-temp-buffer
+	  (insert-file-contents locale-translation-file-name)
+	  (when (re-search-forward
+		 (concat "^" (regexp-quote locale) ":?[ \t]+") nil t)
+	    (setq locale (buffer-substring (point) (line-end-position))))))
 
-    (let ((language-name
-	   (locale-name-match locale-name locale-language-names))
-	  (charset-language-name
-	   (locale-name-match locale-name locale-charset-language-names))
-	  (coding-system
-	   (locale-name-match locale-name locale-preferred-coding-systems)))
+      ;; Leave the system locales alone if the caller did not specify
+      ;; an explicit locale name, as their defaults are set from
+      ;; LC_MESSAGES and LC_TIME, not LC_CTYPE, and the user might not
+      ;; want to set them to the same value as LC_CTYPE.
+      (when locale-name
+	(setq system-messages-locale locale)
+	(setq system-time-locale locale))
 
-      (if (and charset-language-name
-	       (not
-		(equal (get-language-info language-name 'charset)
-		       (get-language-info charset-language-name 'charset))))
-	  (setq language-name charset-language-name))
+      (setq locale (downcase locale))
 
-      (when language-name
+      (let ((language-name
+	     (locale-name-match locale locale-language-names))
+	    (charset-language-name
+	     (locale-name-match locale locale-charset-language-names))
+	    (coding-system
+	     (locale-name-match locale locale-preferred-coding-systems)))
 
-	;; Set up for this character set.  This is now the right way
-	;; to do it for both unibyte and multibyte modes.
-	(set-language-environment language-name)
+	(if (and charset-language-name
+		 (not
+		  (equal (get-language-info language-name 'charset)
+			 (get-language-info charset-language-name 'charset))))
+	    (setq language-name charset-language-name))
 
-	;; If default-enable-multibyte-characters is nil,
-	;; we are using single-byte characters,
-	;; so the display table and terminal coding system are irrelevant.
-	(when default-enable-multibyte-characters
-	  (set-display-table-and-terminal-coding-system language-name))
+	(when language-name
 
-	(setq locale-coding-system
-	      (car (get-language-info language-name 'coding-priority))))
+	  ;; Set up for this character set.  This is now the right way
+	  ;; to do it for both unibyte and multibyte modes.
+	  (set-language-environment language-name)
 
-      (when coding-system
-	(prefer-coding-system coding-system)
-	(setq locale-coding-system coding-system)))))
+	  ;; If default-enable-multibyte-characters is nil,
+	  ;; we are using single-byte characters,
+	  ;; so the display table and terminal coding system are irrelevant.
+	  (when default-enable-multibyte-characters
+	    (set-display-table-and-terminal-coding-system language-name))
+
+	  (setq locale-coding-system
+		(car (get-language-info language-name 'coding-priority))))
+
+	(when coding-system
+	  (prefer-coding-system coding-system)
+	  (setq locale-coding-system coding-system))))))
 
 ;;; Charset property
 
