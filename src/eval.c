@@ -454,13 +454,12 @@ and input is currently coming from the keyboard (not in keyboard macro).")
       (if interpreted) or the frame of byte-code (if called from
       compiled function).  */
   btp = backtrace_list;
-  if (! XTYPE (*btp->function) == Lisp_Compiled)
+  if (XTYPE (*btp->function) != Lisp_Compiled)
     btp = btp->next;
-  for (;
-       btp && (btp->nargs == UNEVALLED
-	       || EQ (*btp->function, Qbytecode));
-       btp = btp->next)
-    {}
+  while (btp
+	 && (btp->nargs == UNEVALLED || EQ (*btp->function, Qbytecode)))
+    btp = btp->next;
+
   /* btp now points at the frame of the innermost function
      that DOES eval its args.
      If it is a built-in function (such as load or eval-region)
@@ -1445,12 +1444,12 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	      args_left = Fcdr (args_left);
 	      gcpro3.nvars = argnum;
 	    }
-	  UNGCPRO;
 
 	  backtrace.args = vals;
 	  backtrace.nargs = XINT (numargs);
 
 	  val = (*XSUBR (fun)->function) (XINT (numargs), vals);
+	  UNGCPRO;
 	  goto done;
 	}
 
@@ -1552,6 +1551,7 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun;
+  struct gcpro gcpro1;
 
   fun = args [0];
   funcall_args = 0;
@@ -1568,7 +1568,7 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
       return Ffuncall (nargs, args);
     }
 
-  numargs = nargs - 2 + numargs;
+  numargs += nargs - 2;
 
   while (XTYPE (fun) == Lisp_Symbol)
     {
@@ -1595,14 +1595,21 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
 						 * sizeof (Lisp_Object));
 	  for (i = numargs; i < XSUBR (fun)->max_args;)
 	    funcall_args[++i] = Qnil;
+	  GCPRO1 (*funcall_args);
+	  gcpro1.nvars = 1 + XSUBR (fun)->max_args;
 	}
     }
  funcall:
   /* We add 1 to numargs because funcall_args includes the
      function itself as well as its arguments.  */
   if (!funcall_args)
-    funcall_args = (Lisp_Object *) alloca ((1 + numargs)
-					   * sizeof (Lisp_Object));
+    {
+      funcall_args = (Lisp_Object *) alloca ((1 + numargs)
+					     * sizeof (Lisp_Object));
+      GCPRO1 (*funcall_args);
+      gcpro1.nvars = 1 + numargs;
+    }
+
   bcopy (args, funcall_args, nargs * sizeof (Lisp_Object));
   /* Spread the last arg we got.  Its first element goes in
      the slot that it used to occupy, hence this value of I.  */
@@ -1612,8 +1619,8 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
       funcall_args [i++] = XCONS (spread_arg)->car;
       spread_arg = XCONS (spread_arg)->cdr;
     }
-  
-  return Ffuncall (numargs + 1, funcall_args);
+
+  RETURN_UNGCPRO (Ffuncall (gcpro1.nvars, funcall_args));
 }
 
 /* Apply fn to arg */
@@ -1621,17 +1628,22 @@ Lisp_Object
 apply1 (fn, arg)
      Lisp_Object fn, arg;
 {
+  struct gcpro gcpro1;
+
+  GCPRO1 (fn);
   if (NULL (arg))
-    return Ffuncall (1, &fn);
+    RETURN_UNGCPRO (Ffuncall (1, &fn));
+  gcpro1.nvars = 2;
 #ifdef NO_ARG_ARRAY
   {
     Lisp_Object args[2];
     args[0] = fn;
     args[1] = arg;
-    return Fapply (2, args);
+    gcpro1.var = args;
+    RETURN_UNGCPRO (Fapply (2, args));
   }
 #else /* not NO_ARG_ARRAY */
-  return Fapply (2, &fn);
+  RETURN_UNGCPRO (Fapply (2, &fn));
 #endif /* not NO_ARG_ARRAY */
 }
 
@@ -1640,7 +1652,10 @@ Lisp_Object
 call0 (fn)
      Lisp_Object fn;
 {
-  return Ffuncall (1, &fn);
+  struct gcpro gcpro1;
+
+  GCPRO1 (fn);
+  RETURN_UNGCPRO (Ffuncall (1, &fn));
 }
 
 /* Call function fn with argument arg */
@@ -1649,13 +1664,19 @@ Lisp_Object
 call1 (fn, arg)
      Lisp_Object fn, arg;
 {
+  struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
-  Lisp_Object args[2];
+  Lisp_Object args[2];  
+
   args[0] = fn;
   args[1] = arg;
-  return Ffuncall (2, args);
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 2;
+  RETURN_UNGCPRO (Ffuncall (2, args));
 #else /* not NO_ARG_ARRAY */
-  return Ffuncall (2, &fn);
+  GCPRO1 (fn);
+  gcpro1.nvars = 2;
+  RETURN_UNGCPRO (Ffuncall (2, &fn));
 #endif /* not NO_ARG_ARRAY */
 }
 
@@ -1665,14 +1686,19 @@ Lisp_Object
 call2 (fn, arg, arg1)
      Lisp_Object fn, arg, arg1;
 {
+  struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[3];
   args[0] = fn;
   args[1] = arg;
   args[2] = arg1;
-  return Ffuncall (3, args);
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 3;
+  RETURN_UNGCPRO (Ffuncall (3, args));
 #else /* not NO_ARG_ARRAY */
-  return Ffuncall (3, &fn);
+  GCPRO1 (fn);
+  gcpro1.nvars = 3;
+  RETURN_UNGCPRO (Ffuncall (3, &fn));
 #endif /* not NO_ARG_ARRAY */
 }
 
@@ -1682,15 +1708,20 @@ Lisp_Object
 call3 (fn, arg, arg1, arg2)
      Lisp_Object fn, arg, arg1, arg2;
 {
+  struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[4];
   args[0] = fn;
   args[1] = arg;
   args[2] = arg1;
   args[3] = arg2;
-  return Ffuncall (4, args);
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 4;
+  RETURN_UNGCPRO (Ffuncall (4, args));
 #else /* not NO_ARG_ARRAY */
-  return Ffuncall (4, &fn);
+  GCPRO1 (fn);
+  gcpro1.nvars = 4;
+  RETURN_UNGCPRO (Ffuncall (4, &fn));
 #endif /* not NO_ARG_ARRAY */
 }
 
@@ -1712,15 +1743,7 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
 
   QUIT;
   if (consing_since_gc > gc_cons_threshold)
-    {
-      struct gcpro gcpro1;
-      
-      /* The backtrace protects the arguments for the rest of the function.  */
-      GCPRO1 (*args);
-      gcpro1.nvars = nargs;
-      Fgarbage_collect ();
-      UNGCPRO;
-    }
+    Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
