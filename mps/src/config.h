@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.28) $
+ * $HopeName: MMsrc!config.h(trunk.29) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -23,6 +23,51 @@
 
 #ifndef config_h
 #define config_h
+
+
+/* Variety Configuration
+ *
+ * Convert CONFIG_VAR_* defined on compiler command line into
+ * internal configuration parameters.  See design.mps.config.var
+ * and design.mps.variety.macro.  Note that MPS_HOT is subclassed
+ * into MPS_HOT_RED and MPS_HOT_WHITE; this distinction should
+ * be rarely used.
+ */
+
+#if defined(CONFIG_VAR_HI)      /* Hot, Internal; variety.hi */
+#define MPS_VARIETY_STRING      "hi"
+#define MPS_HOT
+#define MPS_HOT_RED
+#elif defined(CONFIG_VAR_CI)    /* Cool, Internal; variety.ci */
+#define MPS_VARIETY_STRING      "ci"
+#define MPS_COOL
+#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
+#define MPS_VARIETY_STRING      "ti"
+#define EVENT
+#define MPS_COOL
+#elif defined(CONFIG_VAR_HE)    /* Hot, External; variety.he */
+#define MPS_VARIETY_STRING      "he"
+#define MPS_HOT
+#define MPS_HOT_RED
+#elif defined(CONFIG_VAR_CE)    /* Cool, External; variety.ce */
+#define MPS_VARIETY_STRING      "ce"
+#define MPS_COOL
+#elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
+#define MPS_VARIETY_STRING      "wi"
+#define MPS_HOT
+#define MPS_HOT_WHITE
+#elif defined(CONFIG_VAR_WE)    /* White hot, External; variety.we */
+#define MPS_VARIETY_STRING      "we"
+#define MPS_HOT
+#define MPS_HOT_WHITE
+#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
+#define MPS_VARIETY_STRING      "ii"
+#define MPS_HOT
+#define MPS_HOT_RED
+#define EVENT
+#else
+#error "No target variety configured."
+#endif
 
 
 /* Platform Configuration */
@@ -77,46 +122,6 @@
 #endif /* MPS_BUILD_MV */
 
 
-
-/* Variety Configuration
- *
- * Convert CONFIG_VAR_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.var
- * and design.mps.variety.macro.  Note that MPS_HOT is subclassed
- * into MPS_HOT_RED and MPS_HOT_WHITE; this distinction should
- * be rarely used.
- */
-
-#if defined(CONFIG_VAR_HI)      /* Hot, Internal; variety.hi */
-#define MPS_VARIETY_STRING      "hi"
-#define MPS_HOT
-#define MPS_HOT_RED
-#elif defined(CONFIG_VAR_CI)    /* Cool, Internal; variety.ci */
-#define MPS_VARIETY_STRING      "ci"
-#define MPS_COOL
-#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
-#define MPS_VARIETY_STRING      "ti"
-#define EVENT
-#define MPS_COOL
-#elif defined(CONFIG_VAR_HE)    /* Hot, External; variety.he */
-#define MPS_VARIETY_STRING      "he"
-#define MPS_HOT
-#define MPS_HOT_RED
-#elif defined(CONFIG_VAR_CE)    /* Cool, External; variety.ce */
-#define MPS_VARIETY_STRING      "ce"
-#define MPS_COOL
-#elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
-#define MPS_VARIETY_STRING      "wi"
-#define MPS_HOT
-#define MPS_HOT_WHITE
-#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
-#define MPS_VARIETY_STRING      "ii"
-#define MPS_HOT
-#define MPS_HOT_RED
-#define EVENT
-#else
-#error "No target variety configured."
-#endif
 
 /* .ams-size: POOLAMS_MINIMUM_BENEFIT_SIZE is the size at which an AMS
  * pool will first be recommended for condemnation. See
