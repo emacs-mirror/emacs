@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
-;; Copyright (C) 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2003, 2004
+;; Copyright (C) 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -784,41 +784,56 @@ Used by `bibtex-complete-crossref-cleanup' and `bibtex-copy-summary-as-kill'."
                  (function :tag "Personalized function")))
 
 (defcustom bibtex-generate-url-list
-  '((("url" . ".*:.*"))
-    ;; Example of a complex setup.
-    (("journal" . "\\<\\(PR[ABCDEL]?\\|RMP\\)\\>")
-     "http://link.aps.org/abstract/"
-     ("journal" ".*" downcase)
-     "/v"
-     ("volume" ".*" 0)
-     "/p"
-     ("pages" "\\`\\([0-9]+\\)" 1)))
+  '((("url" . ".*:.*")))
   "List of schemes for generating the URL of a BibTeX entry.
 These schemes are used by `bibtex-url'.
 
-Each scheme is of the form ((FIELD . REGEXP) STEP...).
+Each scheme should have one of these forms:
+
+  ((FIELD . REGEXP))
+  ((FIELD . REGEXP) STEP...)
+  ((FIELD . REGEXP) STRING STEP...)
 
 FIELD is a field name as returned by `bibtex-parse-entry'.
-REGEXP is matched against the text of FIELD.  If the match succeeds, then
-this scheme is used.  If no STEPs are specified the matched text is used
-as the URL, otherwise the URL is built by concatenating the STEPs.
+REGEXP is matched against the text of FIELD.  If the match succeeds,
+then this scheme is used.  If no STRING and STEPs are specified
+the matched text is used as the URL, otherwise the URL is built
+by evaluating STEPs.  If no STRING is specified the STEPs must result
+in strings which are concatenated.  Otherwise the resulting objects
+are passed through `format' using STRING as format control string.
 
-A STEP can be a string or a list (FIELD REGEXP REPLACE) in which case
-the text of FIELD is matched against REGEXP, and is replaced with REPLACE.
-REPLACE can be a string, or a number (which selects the corresponding submatch)
-or a function called with the field's text as argument and with the
-`match-data' properly set.
+A STEP is a list (FIELD REGEXP REPLACE).  The text of FIELD
+is matched against REGEXP, and is replaced with REPLACE.
+REPLACE can be a string, or a number (which selects the corresponding
+submatch), or a function called with the field's text as argument
+and with the `match-data' properly set.
 
-Case is always ignored.  Always remove the field delimiters."
+Case is always ignored.  Always remove the field delimiters.
+
+The following is a complex example, see http://link.aps.org/linkfaq.html.
+
+   (((\"journal\" . \"\\\\=<\\(PR[ABCDEL]?\\|RMP\\)\\\\=>\")
+     \"http://link.aps.org/abstract/%s/v%s/p%s\"
+     (\"journal\" \".*\" downcase)
+     (\"volume\" \".*\" 0)
+     (\"pages\" \"\\`[A-Z]?[0-9]+\" 0)))"
   :group 'bibtex
   :type '(repeat
-          (list :tag "Scheme"
+          (cons :tag "Scheme"
                 (cons :tag "Matcher" :extra-offset 4
                       (string :tag "BibTeX field")
 		      (regexp :tag "Regexp"))
-                (repeat :tag "Steps to generate URL" :inline t
-                        (choice
-                         (string :tag "Literal text")
+                (choice
+                 (const :tag "Take match as is" nil)
+                 (cons :tag "Formatted"
+                  (string :tag "Format control string")
+                  (repeat :tag "Steps to generate URL"
+                          (list (string :tag "BibTeX field")
+                                (regexp :tag "Regexp")
+                                (choice (string :tag "Replacement")
+                                        (integer :tag "Sub-match")
+                                        (function :tag "Filter")))))
+                 (repeat :tag "Concatenated"
                          (list (string :tag "BibTeX field")
 			       (regexp :tag "Regexp")
                                (choice (string :tag "Replacement")
@@ -2662,11 +2677,10 @@ begins at the beginning of a line.  We use this function for font-locking."
       (let ((lst bibtex-generate-url-list) url)
         (goto-char start)
 	(while (and (not found)
-		    (setq url (caar lst)))
+		    (setq url (car (pop lst))))
 	  (setq found (and (bibtex-string= field (car url))
                            (re-search-forward (cdr url) end t)
-                           (>= (match-beginning 0) pnt))
-                lst (cdr lst))))
+                           (>= (match-beginning 0) pnt)))))
       (goto-char end))
     (if found (bibtex-button (match-beginning 0) (match-end 0)
                              'bibtex-url (match-beginning 0)))
@@ -4283,39 +4297,36 @@ The URL is generated using the schemes defined in `bibtex-generate-url-list'
           ;; Always ignore case,
           (case-fold-search t)
           (lst bibtex-generate-url-list)
-          field url scheme)
+          field url scheme obj fmt)
       (while (setq scheme (pop lst))
         (when (and (setq field (cdr (assoc-string (caar scheme)
 						  fields-alist t)))
                    ;; Always remove field delimiters
                    (progn (setq field (bibtex-remove-delimiters-string field))
                           (string-match (cdar scheme) field)))
-          (setq lst nil)
-	  (if (null (cdr scheme))
-	      (setq url (match-string 0 field)))
-          (dolist (step (cdr scheme))
-            (cond ((stringp step)
-                   (setq url (concat url step)))
-                  ((setq field (cdr (assoc-string (car step) fields-alist t)))
-                   ;; Always remove field delimiters
-                   (setq field (bibtex-remove-delimiters-string field))
-                   (if (string-match (nth 1 step) field)
-                       (setq field (cond
-                                    ((functionp (nth 2 step))
-                                     (funcall (nth 2 step) field))
-                                    ((numberp (nth 2 step))
-                                     (match-string (nth 2 step) field))
-                                    (t
-                                     (replace-match (nth 2 step) t nil field))))
-                     ;; If the scheme is set up correctly,
-                     ;; we should never reach this point
-                     (error "Match failed: %s" field))
-                   (setq url (concat url field)))
-                  ;; If the scheme is set up correctly,
-                  ;; we should never reach this point
-                  (t (error "Step failed: %s" step))))
-          (message "%s" url)
-          (browse-url url)))
+          (setq lst nil
+                scheme (cdr scheme)
+                url (if (null scheme) (match-string 0 field)
+                      (if (stringp (car scheme))
+                          (setq fmt (pop scheme)))
+                      (dolist (step scheme)
+                        ;; Always remove field delimiters
+                        (setq field (bibtex-remove-delimiters-string
+                                     (cdr (assoc-string (car step) fields-alist t))))
+                        (if (string-match (nth 1 step) field)
+                            (setq field (cond ((functionp (nth 2 step))
+                                               (funcall (nth 2 step) field))
+                                              ((numberp (nth 2 step))
+                                               (match-string (nth 2 step) field))
+                                              (t
+                                               (replace-match (nth 2 step) t nil field))))
+                          ;; If the scheme is set up correctly,
+                          ;; we should never reach this point
+                          (error "Match failed: %s" field))
+                        (push field obj))
+                      (if fmt (apply 'format fmt (nreverse obj))
+                        (apply 'concat (nreverse obj)))))
+          (browse-url (message "%s" url))))
       (unless url (message "No URL known.")))))
 
 

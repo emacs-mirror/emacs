@@ -129,9 +129,7 @@ extern void _XEditResCheckMessages ();
 #ifdef HAVE_XAW3D
 #include <X11/Xaw3d/Simple.h>
 #include <X11/Xaw3d/Scrollbar.h>
-#define ARROW_SCROLLBAR
-#define XAW_ARROW_SCROLLBARS
-#include <X11/Xaw3d/ScrollbarP.h>
+#include <X11/Xaw3d/ThreeD.h>
 #else /* !HAVE_XAW3D */
 #include <X11/Xaw/Simple.h>
 #include <X11/Xaw/Scrollbar.h>
@@ -4560,6 +4558,7 @@ x_create_toolkit_scroll_bar (f, bar)
       f->output_data.x->scroll_bar_bottom_shadow_pixel = pixel;
     }
 
+#ifdef XtNbeNiceToColormap
   /* Tell the toolkit about them.  */
   if (f->output_data.x->scroll_bar_top_shadow_pixel == -1
       || f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
@@ -4583,16 +4582,17 @@ x_create_toolkit_scroll_bar (f, bar)
       pixel = f->output_data.x->scroll_bar_top_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], "topShadowPixel", pixel);
+	  XtSetArg (av[ac], XtNtopShadowPixel, pixel);
 	  ++ac;
 	}
       pixel = f->output_data.x->scroll_bar_bottom_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], "bottomShadowPixel", pixel);
+	  XtSetArg (av[ac], XtNbottomShadowPixel, pixel);
 	  ++ac;
 	}
     }
+#endif
 
   widget = XtCreateWidget (scroll_bar_name, scrollbarWidgetClass,
 			   f->output_data.x->edit_widget, av, ac);
@@ -4738,30 +4738,11 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 	  XawScrollbarSetThumb (widget, top, shown);
 	else
 	  {
-#ifdef HAVE_XAW3D
-	    ScrollbarWidget sb = (ScrollbarWidget) widget;
-	    int scroll_mode = 0;
-
-	    /* `scroll_mode' only exists with Xaw3d + ARROW_SCROLLBAR.  */
-	    if (xaw3d_arrow_scroll)
-	      {
-		/* Xaw3d stupidly ignores resize requests while dragging
-		   so we have to make it believe it's not in dragging mode.  */
-		scroll_mode = sb->scrollbar.scroll_mode;
-		if (scroll_mode == 2)
-		  sb->scrollbar.scroll_mode = 0;
-	      }
-#endif
 	    /* Try to make the scrolling a tad smoother.  */
 	    if (!xaw3d_pick_top)
 	      shown = min (shown, old_shown);
 
 	    XawScrollbarSetThumb (widget, top, shown);
-
-#ifdef HAVE_XAW3D
-	    if (xaw3d_arrow_scroll && scroll_mode == 2)
-	      sb->scrollbar.scroll_mode = scroll_mode;
-#endif
 	  }
       }
   }

@@ -1,3 +1,138 @@
+2005-04-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change Calc version number.
+	(Customizable variables): Fix description of calc-language-alist.
+	(Copying): Put in version 2 of GPL.
+
+2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi (Diary): Mention shell utility `calendar'.
+
+2005-04-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Troubleshooting Commands): Remove comment about
+	installation.
+	(Installation): Remove section.
+	(Customizable Variables): New section.
+	(Basic Embedded Mode, Customizing Embedded Mode, Graphics)
+	(Graphical Devices): Add references to Customizable Variables.
+
+2005-04-01  Lute Kamstra  <lute@gnu.org>
+
+	* maintaining.texi (Change Log): add-change-log-entry uses
+	add-log-mailing-address.
+
+2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Reverting): Move `auto-revert-check-vc-info' to
+	`VC Mode Line' and put in an xref to that node.
+	(VC Mode Line): Move `auto-revert-check-vc-info' here and clarify
+	its description.
+
+2005-03-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calendar.texi (Calendar Systems): Say that the Persian calendar
+	implemented here is the arithmetical one championed by Birashk.
+
+2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* programs.texi (Fortran Motion): Fix previous change.
+
+2005-03-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Display Customization): Markup fixes.
+	(rfc2047): Update.
+
+2005-03-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi: Replaced with auto-generated version.
+
+2005-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* mule.texi (Single-Byte Character Support): Reinstall the C-x 8 info.
+
+2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Refill): Refer to Long Lines Mode.
+	(Longlines): New node.
+	(Auto Fill): Don't index "word wrap" here.
+	(Filling): Add Longlines to menu.
+
+2005-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* xresources.texi: Minor fixes.
+
+	* misc.texi (Emacs Server): Fix Texinfo usage.
+
+	* emacs.texi (Top): Don't use a real section heading for
+	"Detailed Node Listing".  Fake it instead.
+
+	* basic.texi (Position Info): Minor cleanup.
+
+	* mule.texi (Input Methods): Minor cleanup.
+
+2005-03-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* programs.texi (ForIndent Vars): `fortran-if-indent' does other
+	constructs as well.
+	(Fortran Motion): Add fortran-end-of-block,
+	fortran-beginning-of-block.
+
+2005-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Input Methods): Refer to the command C-u C-x =.
+
+	* basic.texi (Position Info): Update the description about the
+	command C-u C-x =.
+
+2005-03-28  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Use @section for the detailed node listing.
+
+	* calendar.texi: Minor fixes to previous change.
+
+	* programs.texi (Fortran): Small fixes to previous changes.
+
+	* emacs.texi (Top): Update list of subnodes of Dired.
+	Likewise for building.texi.
+
+	* files.texi (File Conveniences): Delete Auto Image File mode.
+
+2005-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (Flymake): New node.
+
+	* custom.texi (Function Keys): Document kp- event types and
+	keypad-setup package.
+
+	* dired.texi (Wdired): New node.
+
+	* files.texi (File Conveniences): Reorder entries.
+	Explain how to turn on Auto-image-file mode.
+	Document Thumbs mode.
+
+	* mule.texi (Specify Coding): Document recode-region and
+	recode-file-name.
+
+	* programs.texi (Program Modes): Add Conf mode and DNS mode.
+
+2005-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* commands.texi (Keys): M-o is now a prefix key.
+
+2005-03-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* programs.texi: Reformat and update copyright years.
+	(Fortran): Update section.
+
+2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi: Several small changes in addition to:
+	(Visiting): Change xref for Dialog Boxes to ref.
+	(Version Headers): Replace references to obsolete var
+	`vc-header-alist' with `vc-BACKEND-header'.
+	(Customizing VC): Update value of `vc-handled-backends'.
+
 2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* emacs-xtra.texi (Advanced Calendar/Diary Usage): New section;
@@ -49,7 +184,7 @@
 	* files.texi (Visiting): Fix cross-references introduced with the
 	last change.
 
-	* xresources.texi (GTK resources): Fix last change. 
+	* xresources.texi (GTK resources): Fix last change.
 
 2005-03-26  Jay Belanger  <belanger@truman.edu>
 

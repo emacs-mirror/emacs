@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999, 2000, 01, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: revision-control merge diff3 cvs conflict
@@ -667,7 +667,7 @@ buffer names."
 (define-minor-mode smerge-mode
   "Minor mode to simplify editing output from the diff3 program.
 \\{smerge-mode-map}"
-  nil " SMerge" nil
+  :group 'smerge :lighter " SMerge"
   (when (and (boundp 'font-lock-mode) font-lock-mode)
     (set (make-local-variable 'font-lock-multiline) t)
     (save-excursion

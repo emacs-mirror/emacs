@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Milan Zamazal <pdm@zamazal.org>
@@ -251,7 +251,7 @@ recognized according to the current value of the variable `glasses-separator'."
   "Minor mode for making identifiers likeThis readable.
 When this mode is active, it tries to add virtual separators (like underscores)
 at places they belong to."
-  nil " o^o" nil
+  :group 'glasses :lighter " o^o"
   (save-excursion
     (save-restriction
       (widen)

@@ -1,10 +1,9 @@
 ;;; thai-util.el --- utilities for Thai -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2005
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, thai
 
@@ -279,7 +278,7 @@ if necessary."
 
 (defun thai-compose-syllable (beg end &optional category-set string)
   (or category-set
-      (setq category-set 
+      (setq category-set
 	    (char-category-set (if string (aref string beg) (char-after beg)))))
   (if (aref category-set ?c)
       ;; Starting with a consonant.  We do relative composition.
@@ -288,9 +287,9 @@ if necessary."
 	(compose-region beg end))
     ;; Vowel tone sequence.
     (if string
-	(compose-string string beg end (list (aref string beg) '(Bc . Bc) 
+	(compose-string string beg end (list (aref string beg) '(Bc . Bc)
 					     (aref string (1+ beg))))
-      (compose-region beg end (list (char-after beg) '(Bc . Bc) 
+      (compose-region beg end (list (char-after beg) '(Bc . Bc)
 				    (char-after (1+ beg))))))
   (- end beg))
 
@@ -348,7 +347,7 @@ The return value is number of composed characters."
       (if string
 	  (if (eq (string-match thai-composition-pattern string from) from)
 	      (thai-compose-syllable from (match-end 0) nil string))
-	(if (save-excursion 
+	(if (save-excursion
 	      (goto-char from)
 	      (and (looking-at thai-composition-pattern)
 		   (setq to (match-end 0))))
@@ -376,11 +375,47 @@ The return value is number of composed characters."
 ;;;###autoload
 (define-minor-mode thai-auto-composition-mode
   "Minor mode for automatically correct Thai character composition."
-  nil nil nil
+  :group 'mule
   (cond ((null thai-auto-composition-mode)
 	 (remove-hook 'after-change-functions 'thai-auto-composition))
 	(t
 	 (add-hook 'after-change-functions 'thai-auto-composition))))
+
+;; Thai-word-mode requires functions in the feature `thai-word'.
+(require 'thai-word)
+
+(defvar thai-word-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap forward-word] 'thai-forward-word)
+    (define-key map [remap backward-word] 'thai-backward-word)
+    (define-key map [remap kill-word] 'thai-kill-word)
+    (define-key map [remap backward-kill-word] 'thai-backward-kill-word)
+    (define-key map [remap transpose-words] 'thai-transpose-words)
+    map)
+  "Keymap for `thai-word-mode'.")
+
+(define-minor-mode thai-word-mode
+  "Minor mode to make word-oriented commands aware of Thai words.
+The commands affected are \\[forward-word], \\[backward-word], \\[kill-word], \\[backward-kill-word], \\[transpose-words], and \\[fill-paragraph]."
+  :global t :group 'mule
+  (cond (thai-word-mode
+	 ;; This enables linebreak between Thai characters.
+	 (modify-category-entry (make-char 'thai-tis620) ?|)
+	 ;; This enables linebreak at a Thai word boundary.
+	 (put-charset-property 'thai-tis620 'fill-find-break-point-function
+			       'thai-fill-find-break-point))
+	(t
+	 (modify-category-entry (make-char 'thai-tis620) ?| nil t)
+	 (put-charset-property 'thai-tis620 'fill-find-break-point-function
+			       nil))))
+
+;; Function to call on entering the Thai language environment.
+(defun setup-thai-language-environment-internal ()
+  (thai-word-mode 1))
+
+;; Function to call on exiting the Thai language environment.
+(defun exit-thai-language-environment-internal ()
+  (thai-word-mode -1))
 
 ;;
 (provide 'thai-util)

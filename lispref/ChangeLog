@@ -1,3 +1,40 @@
+2005-04-03  Lute Kamstra  <lute@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add some hooks.  Add cross
+	references and/or descriptions.  Delete major mode hooks; mention
+	them as a category instead.  Rename or delete obsolete hooks.
+
+2005-04-02  Richard M. Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Coding System Basics): Another wording cleanup.
+
+2005-04-01  Richard M. Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Coding System Basics): Clarify previous change.
+
+2005-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Coding System Basics): Describe about rondtrip
+	identity of coding systems.
+
+2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Buffer Contents): Add filter-buffer-substring and
+	buffer-substring-filters.
+
+2005-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Mention `G' interactive code.
+
+	* tips.texi (Compilation Tips): Mention benchmark.el.
+
+2005-03-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Other Font Lock Variables): `font-lock-fontify-block'
+	is now bound to M-o M-o.
+
+	* keymaps.texi (Prefix Keys): `facemenu-keymap' is now on M-o.
+
 2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar.texi: Delete file (and move contents to emacs-xtra.texi

@@ -2250,7 +2250,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	       ,@(if (featurep 'xemacs) '(t)
 		   '(:help "Generate and print a PostScript image"))])
 	     ("Copy, move,... (Backend)"
-	      ,@(if (featurep 'xemacs) '(t)
+	      ,@(if (featurep 'xemacs) nil
 		  '(:help "Copying, moving, expiring articles..."))
 	      ["Respool article..." gnus-summary-respool-article t]
 	      ["Move article..." gnus-summary-move-article

@@ -1,6 +1,6 @@
 ;;; autorevert.el --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998, 1999, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
@@ -246,7 +246,7 @@ This currently works by automatically updating the version
 control info every `auto-revert-interval' seconds.  Nevertheless,
 it should not cause excessive CPU usage on a reasonably fast
 machine, if it does not apply to too many version controlled
-buffers.  CPU usage depends on the version control system"
+buffers.  CPU usage depends on the version control system."
   :group 'auto-revert
   :type 'boolean
   :version "22.1")
@@ -290,7 +290,7 @@ This is a minor mode that affects only the current buffer.
 Use `global-auto-revert-mode' to automatically revert all buffers.
 Use `auto-revert-tail-mode' if you know that the file will only grow
 without being changed in the part that is already in the buffer."
-  nil auto-revert-mode-text nil
+  :group 'auto-revert :lighter auto-revert-mode-text
   (if auto-revert-mode
       (if (not (memq (current-buffer) auto-revert-buffer-list))
 	  (push (current-buffer) auto-revert-buffer-list))

@@ -163,8 +163,8 @@
   (let ((map (make-sparse-keymap)))
     ;; Override the default move-beginning-of-line and move-end-of-line
     ;; which skips valuable invisible text.
-    (define-key map [?\C-a] 'beginning-of-line)
-    (define-key map [?\C-e] 'end-of-line)
+    (define-key map [remap move-beginning-of-line] 'beginning-of-line)
+    (define-key map [remap move-end-of-line] 'end-of-line)
     map))
 
 ;;;###autoload
@@ -175,6 +175,7 @@ Reveal mode renders invisible text around point visible again.
 Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG (or if ARG is nil) turn mode on.
 With zero or negative ARG turn mode off."
+  :group 'reveal
   :lighter (global-reveal-mode nil " Reveal")
   :keymap reveal-mode-map
   (if reveal-mode

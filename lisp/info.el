@@ -3026,12 +3026,12 @@ if point is in a menu item description, follow that menu item."
     :help "Go to menu of visited nodes"]
    ["Table of Contents" Info-toc
     :help "Go to table of contents"]
-   ("Index..."
-    ["Lookup a String" Info-index
+   ("Index"
+    ["Lookup a String..." Info-index
      :help "Look for a string in the index items"]
-    ["Next Matching Item" Info-index-next
+    ["Next Matching Item" Info-index-next :active Info-index-alternatives
      :help "Look for another occurrence of previous item"]
-    ["Lookup a string in all indices" info-apropos
+    ["Lookup a string in all indices..." info-apropos
      :help "Look for a string in the indices of all manuals"])
    ["Edit" Info-edit :help "Edit contents of this node"
     :active Info-enable-edit]

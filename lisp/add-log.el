@@ -1,7 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 97, 98, 2000, 03, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -225,20 +225,20 @@ Note: The search is conducted only within 10%, at the beginning of the file."
       (2 'change-log-email-face)))
     ;;
     ;; File names.
-    ("^\t\\* \\([^ ,:([\n]+\\)"
+    ("^\\(?: +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
      (1 'change-log-file-face)
      ;; Possibly further names in a list:
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file-face))
      ;; Possibly a parenthesized list of names:
-     ("\\= (\\([^() ,\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
+     ("\\= (\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
       nil nil (1 'change-log-list-face))
-     ("\\=, *\\([^() ,\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
+     ("\\=, *\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
       nil nil (1 'change-log-list-face)))
     ;;
     ;; Function or variable names.
-    ("^\t(\\([^() ,\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
+    ("^\t(\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
      (1 'change-log-list-face)
-     ("\\=, *\\([^() ,\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)" nil nil
+     ("\\=, *\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)" nil nil
       (1 'change-log-list-face)))
     ;;
     ;; Conditionals.

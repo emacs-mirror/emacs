@@ -403,13 +403,13 @@ Text}).
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Longlines::           Editing text with very long lines.
 @end menu
 
 @node Auto Fill
 @subsection Auto Fill Mode
 @cindex Auto Fill mode
 @cindex mode, Auto Fill
-@cindex word wrap
 
   @dfn{Auto Fill} mode is a minor mode in which lines are broken
 automatically when they become too wide.  Breaking happens only when
@@ -474,16 +474,19 @@ you type or modify them in other ways.  It provides an effect similar
 to typical word processor behavior.  This works by running a
 paragraph-filling command at suitable times.
 
-  When you are typing text, only characters which normally trigger
-auto filling, like the space character, will trigger refilling.  This
-is to avoid making it too slow.  Apart from self-inserting characters,
-other commands which modify the text cause refilling.
-
-  The current implementation is preliminary and probably not robust.
-We expect to improve on it.
-
   To toggle the use of Refill mode in the current buffer, type
-@kbd{M-x refill-mode}.
+@kbd{M-x refill-mode}.  When you are typing text, only characters
+which normally trigger auto filling, like the space character, will
+trigger refilling.  This is to avoid making it too slow.  Apart from
+self-inserting characters, other commands which modify the text cause
+refilling.
+
+  The current implementation is preliminary and not robust.  You can
+get better ``line wrapping'' behavior using Longlines mode.
+@xref{Longlines}.  However, Longlines mode has an important
+side-effect: the newlines that it inserts for you are not saved to
+disk, so the files that you make with Longlines mode will appear to be
+completely unfilled if you edit them without Longlines mode.
 
 @node Fill Commands
 @subsection Explicit Fill Commands
@@ -744,6 +747,56 @@ function.  This function is called with point after the left margin of a
 line, and it should return the appropriate fill prefix based on that
 line.  If it returns @code{nil}, that means it sees no fill prefix in
 that line.
+
+@node Longlines
+@subsection Long Lines Mode
+@cindex refilling text, word processor style
+@cindex modes, Long Lines
+@cindex word wrap
+@cindex Long Lines minor mode
+
+  Long Lines mode is a minor mode for @dfn{word wrapping}; it lets you
+edit ``unfilled'' text files, which Emacs would normally display as a
+bunch of extremely long lines.  Many text editors, such as those built
+into many web browsers, normally do word wrapping.
+
+@findex longlines-mode
+  To enable Long Lines mode, type @kbd{M-x longlines-mode}.  If the
+text is full of long lines, this will ``wrap'' them
+immediately---i.e., break up to fit in the window.  As you edit the
+text, Long Lines mode automatically re-wraps lines by inserting or
+deleting @dfn{soft newlines} as necessary (@pxref{Hard and Soft
+Newlines}.)  These soft newlines won't show up when you save the
+buffer into a file, or when you copy the text into the kill ring,
+clipboard, or a register.
+
+@findex longlines-auto-wrap
+  Word wrapping is @emph{not} the same as ordinary filling
+(@pxref{Fill Commands}).  It does not contract multiple spaces into a
+single space, recognize fill prefixes (@pxref{Fill Prefix}), or
+perform adaptive filling (@pxref{Adaptive Fill}).  The reason for this
+is that a wrapped line is still, conceptually, a single line.  Each
+soft newline is equivalent to exactly one space in that long line, and
+vice versa.  However, you can still call filling functions such as
+@kbd{M-q}, and these will work as expected, inserting soft newlines
+that won't show up on disk or when the text is copied.  You can even
+rely entirely on the normal fill commands by turning off automatic
+line wrapping, with @kbd{C-u M-x longlines-auto-wrap}.  To turn
+automatic line wrapping back on, type @kbd{M-x longlines-auto-wrap}.
+
+@findex longlines-show-hard-newlines
+  Whenever you type @kbd{RET}, you are inserting a hard newline.  If
+you want to see where all the hard newlines are, type @kbd{M-x
+longlines-show-hard-newlines}.  This will mark each hard newline with
+a special symbol.  The same command with a prefix argument turns this
+display off.
+
+  Long Lines mode does not change normal text files that are already
+filled, since the existing newlines are considered hard newlines.
+Before Long Lines can do anything, you need to transform each
+paragraph into a long line.  One way is to set @code{fill-column} to a
+large number (e.g., @kbd{C-u 9999 C-x f}), re-fill all the paragraphs,
+and then set @code{fill-column} back to its original value.
 
 @node Case
 @section Case Conversion Commands

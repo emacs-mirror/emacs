@@ -1,3 +1,7 @@
+2005-04-04  Lute Kamstra  <lute@gnu.org>
+
+	* url-handlers.el (url-handler-mode): Specify :group.
+
 2005-02-26  James Cloos  <cloos@jhcloos.com>  (tiny change)
 
 	* url-history.el (url-have-visited-url): Don't barf if

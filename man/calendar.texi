@@ -433,7 +433,7 @@ click on that date with @kbd{Mouse-2} and then choose @kbd{Holidays}
 from the menu that appears.  Either way, this displays the holidays for
 that date, in the echo area if they fit there, otherwise in a separate
 window.  If the variable @code{view-calendar-holidays-initially} is
-non-@code{nil}, holidays are displayed when the calendar is created.
+non-@code{nil}, creating the calendar displays holidays in this way.
 
 @kindex x @r{(Calendar mode)}
 @findex mark-calendar-holidays
@@ -449,9 +449,8 @@ both to the currently visible months and to other months that
 subsequently become visible by scrolling.  To turn marking off and erase
 the current marks, type @kbd{u}, which also erases any diary marks
 (@pxref{Diary}).  If the variable @code{mark-holidays-in-calendar} is
-non-@code{nil}, holidays are marked in the calendar when it is created
-(or recomputed).
-
+non-@code{nil}, creating or updating the calendar marks holidays
+automatically.
 
 @kindex a @r{(Calendar mode)}
 @findex list-calendar-holidays
@@ -692,6 +691,12 @@ Their calendar consists of twelve months of which the first six have 31
 days, the next five have 30 days, and the last has 29 in ordinary years
 and 30 in leap years.  Leap years occur in a complicated pattern every
 four or five years.
+The calendar implemented here is the arithmetical Persian calendar
+championed by Birashk, based on a 2,820-year cycle.  It differs from
+the astronomical Persian calendar, which is based on astronomical
+events.  As of this writing the first future discrepancy is projected
+to occur on March 20, 2025.  It is currently not clear what the
+official calendar of Iran will be that far into the future.
 
 @cindex Chinese calendar
   The Chinese calendar is a complicated system of lunar months arranged
@@ -937,7 +942,8 @@ date.
 
   The name of the diary file is specified by the variable
 @code{diary-file}; @file{~/diary} is the default.  A sample diary file
-is:
+is (note that the file format is essentially the same as that used by
+the external shell utility @samp{calendar}):
 
 @example
 12/22/1988  Twentieth wedding anniversary!!
@@ -1005,13 +1011,14 @@ of the new window shows the date of the diary entries and any holidays
 that fall on that date.  If you specify a numeric argument with @kbd{d},
 it shows all the diary entries for that many successive days.  Thus,
 @kbd{2 d} displays all the entries for the selected date and for the
-following day.  If the variable @code{view-diary-entries-initially} is
-non-@code{nil}, the diary entries for the current date are displayed
-when the calendar is created (provided the current date is visible).
+following day.
 
   Another way to display the diary entries for a date is to click
 @kbd{Mouse-2} on the date, and then choose @kbd{Diary entries} from
-the menu that appears.
+the menu that appears.  If the variable
+@code{view-diary-entries-initially} is non-@code{nil}, creating the
+calendar also lists diary entries for the current date (provided the
+current date is visible).
 
 @kindex m @r{(Calendar mode)}
 @findex mark-diary-entries
@@ -1023,10 +1030,10 @@ with multiple faces is not available).  @inforef{Calendar Customizing,
 diary-entry-marker, emacs-xtra}.  The command applies both to the
 currently visible months and to other months that subsequently become
 visible by scrolling.  To turn marking off and erase the current marks,
-type @kbd{u}, which also turns off holiday marks (@pxref{Holidays}).  If
-the variable @code{mark-diary-entries-in-calendar} is non-@code{nil},
-diary dates are marked in the calendar when it is created (or
-recomputed).
+type @kbd{u}, which also turns off holiday marks (@pxref{Holidays}).
+If the variable @code{mark-diary-entries-in-calendar} is
+non-@code{nil}, creating or updating the calendar marks diary dates
+automatically.
 
 @kindex s @r{(Calendar mode)}
 @findex show-all-diary-entries
@@ -1034,14 +1041,12 @@ recomputed).
 the @kbd{s} command.
 
   Display of selected diary entries uses the selective display feature
-to hide entries that don't apply.
-
-  The diary buffer as you see it is an illusion, so simply printing the
-buffer does not print what you see on your screen.  There is a special
-command to print hard copy of the diary buffer @emph{as it appears};
-this command is @kbd{M-x print-diary-entries}.  It sends the data
-directly to the printer.  You can customize it like @code{lpr-region}
-(@pxref{Hardcopy}).
+to hide entries that don't apply.  The diary buffer as you see it is
+an illusion, so simply printing the buffer does not print what you see
+on your screen.  There is a special command to print hard copy of the
+diary buffer @emph{as it appears}; this command is @kbd{M-x
+print-diary-entries}.  It sends the data directly to the printer.  You
+can customize it like @code{lpr-region} (@pxref{Hardcopy}).
 
 @findex diary
   The command @kbd{M-x diary} displays the diary entries for the current

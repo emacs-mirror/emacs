@@ -224,10 +224,12 @@ Recovery from Problems
 * Contributing::        How to contribute improvements to Emacs.
 * Service::	        How to get help for your own Emacs needs.
 
+
+Detailed Node Listing
+---------------------
+
 Here are some other nodes which are really inferiors of the ones
 already listed, mentioned here so you can get to them in one step:
-
- --- The Detailed Node Listing ---
 
 The Organization of the Screen
 
@@ -563,6 +565,8 @@ Compiling and Testing Programs
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
+* Grep Searching::      Searching with grep.
+* Flymake::             Finding syntax errors on the fly.
 * Debuggers::		Running symbolic debuggers for non-Lisp programs.
 * Executing Lisp::	Various modes for editing Lisp programs,
 			  with different facilities for running
@@ -676,6 +680,9 @@ Dired, the Directory Editor
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
 * Dired and Find::	     Using `find' to choose the files for Dired.
+* Dired and Find::           Using `find' to choose the files for Dired.
+* Wdired::                   Operating on files by editing the Dired buffer.
+* Misc Dired Features::      Various other features.
 
 The Calendar and the Diary
 

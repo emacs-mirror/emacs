@@ -1097,7 +1097,7 @@ delimit the region to fontify."
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
 (if (boundp 'facemenu-keymap)
-    (define-key facemenu-keymap "\M-g" 'font-lock-fontify-block))
+    (define-key facemenu-keymap "\M-o" 'font-lock-fontify-block))
 
 ;;; End of Fontification functions.
 

@@ -6364,7 +6364,8 @@ Optional DIGEST will use digest to forward."
 	(replace-match "X-From-Line: "))
       ;; Send it.
       (let ((message-inhibit-body-encoding t)
-	    message-required-mail-headers)
+	    message-required-mail-headers
+	    rfc2047-encode-encoded-words)
 	(message-send-mail))
       (kill-buffer (current-buffer)))
     (message "Resending message to %s...done" address)))

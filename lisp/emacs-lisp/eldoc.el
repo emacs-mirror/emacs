@@ -1,6 +1,7 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 97, 98, 99, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2003, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -150,7 +151,7 @@ If point is over a documented variable, print that variable's docstring
 instead.
 
 With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
-  nil eldoc-minor-mode-string nil
+  :group 'eldoc :lighter eldoc-minor-mode-string
   (setq eldoc-last-message nil)
   (if eldoc-mode
       (progn

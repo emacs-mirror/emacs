@@ -1,6 +1,6 @@
 ;;; hl-line.el --- highlight the current line
 
-;; Copyright (C) 1998, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -113,7 +113,7 @@ When `hl-line-sticky-flag' is nil, Hl-Line mode highlights the
 line about point in the selected window only.  In this case, it
 uses the function `hl-line-unhighlight' on `pre-command-hook' in
 addition to `hl-line-highlight' on `post-command-hook'."
-  nil nil nil
+  :group 'hl-line
   (if hl-line-mode
       (progn
         ;; In case `kill-all-local-variables' is called.

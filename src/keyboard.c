@@ -514,6 +514,10 @@ Lisp_Object Qmake_frame_visible;
 Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
+#ifdef HAVE_MOUSE
+Lisp_Object Qmouse_fixup_help_message;
+#endif
+
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
@@ -2297,6 +2301,11 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
       if (!STRINGP (help))
 	return;
     }
+
+#ifdef HAVE_MOUSE
+  if (!noninteractive && STRINGP (help))
+    help = call1 (Qmouse_fixup_help_message, help);
+#endif
 
   if (STRINGP (help) || NILP (help))
     {
@@ -11009,6 +11018,11 @@ syms_of_keyboard ()
   staticpro (&Qvertical_scroll_bar);
   Qmenu_bar = intern ("menu-bar");
   staticpro (&Qmenu_bar);
+
+#ifdef HAVE_MOUSE
+  Qmouse_fixup_help_message = intern ("mouse-fixup-help-message");
+  staticpro (&Qmouse_fixup_help_message);
+#endif
 
   Qabove_handle = intern ("above-handle");
   staticpro (&Qabove_handle);

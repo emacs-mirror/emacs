@@ -1,9 +1,9 @@
 ;;; appt.el --- appointment notification functions
 
-;; Copyright (C) 1989, 1990, 1994, 1998, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1994, 1998, 2004  Free Software Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
-;; Maintainer: FSF
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: calendar
 
 ;; This file is part of GNU Emacs.
@@ -181,7 +181,7 @@ Only relevant if reminders are being displayed in a window."
 
 ;;; Internal variables below this point.
 
-(defvar appt-buffer-name " *appt-buf*"
+(defconst appt-buffer-name " *appt-buf*"
   "Name of the appointments buffer.")
 
 (defvar appt-time-msg-list nil
@@ -486,9 +486,8 @@ Usually just deletes the appointment buffer."
 
 ;;;###autoload
 (defun appt-add (new-appt-time new-appt-msg)
-  "Add an appointment for the day at NEW-APPT-TIME and issue message NEW-APPT-MSG.
+  "Add an appointment for today at NEW-APPT-TIME with message NEW-APPT-MSG.
 The time should be in either 24 hour format or am/pm format."
-
   (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
   (unless (string-match "[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
 		    new-appt-time)

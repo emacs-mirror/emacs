@@ -511,7 +511,10 @@ element of the list."
 
 (defsubst ps-mule-printable-p (charset)
   "Non-nil if characters in CHARSET is printable."
-  (ps-mule-get-font-spec charset 'normal))
+  ;; ASCII and Latin-1 are always printable.
+  (or (eq charset 'ascii)
+      (eq charset 'latin-iso8859-1)
+      (ps-mule-get-font-spec charset 'normal)))
 
 (defconst ps-mule-external-libraries
   '((builtin nil nil
@@ -824,7 +827,9 @@ Returns the value:
 
 Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
 the sequence."
-  (setq ps-mule-current-charset (charset-after from))
+  (let ((ch (char-after from)))
+    (setq ps-mule-current-charset
+	  (char-charset (or (aref ps-print-translation-table ch) ch))))
   (let* ((wrappoint (ps-mule-find-wrappoint
 		     from to (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
@@ -832,6 +837,10 @@ the sequence."
 			      (ps-font-alist 'ps-font-for-text))))
 	 (font-spec (ps-mule-get-font-spec ps-mule-current-charset font-type))
 	 (string (buffer-substring-no-properties from to)))
+    (dotimes (i (length string))
+      (let ((ch (aref ps-print-translation-table (aref string i))))
+	(if ch
+	    (aset string i ch))))
     (cond
      ((= from to)
       ;; We can't print any more characters in the current line.
@@ -1393,6 +1402,7 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 (defun ps-mule-show-warning (charsets from to header-footer-list)
   (let ((table (make-category-table))
 	(buf (current-buffer))
+	(max-unprintable-chars 15)
 	char-pos-list)
     (define-category ?u "Unprintable charset" table)
     (dolist (cs charsets)
@@ -1400,19 +1410,22 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
     (with-category-table table
       (save-excursion
 	(goto-char from)
-	(while (and (< (length char-pos-list) 20)
+	(while (and (<= (length char-pos-list) max-unprintable-chars)
 		    (re-search-forward "\\cu" to t))
-	  (push (cons (preceding-char) (1- (point))) char-pos-list))
-	(setq char-pos-list (nreverse char-pos-list))))
+	  (push (cons (preceding-char) (1- (point))) char-pos-list))))
     (with-output-to-temp-buffer "*Warning*"
       (with-current-buffer standard-output
 	(when char-pos-list
 	  (let ((func #'(lambda (buf pos)
 			  (when (buffer-live-p buf)
 			    (pop-to-buffer buf)
-			    (goto-char pos)))))
+			    (goto-char pos))))
+		(more nil))
+	    (if (>= (length char-pos-list) max-unprintable-chars)
+		(setq char-pos-list (cdr char-pos-list)
+		      more t))
 	    (insert "These characters in the buffer can't be printed:\n")
-	    (dolist (elt char-pos-list)
+	    (dolist (elt (nreverse char-pos-list))
 	      (insert " ")
 	      (insert-text-button (string (car elt))
 				  :type 'help-xref
@@ -1421,8 +1434,10 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 				  'help-function func
 				  'help-args (list buf (cdr elt)))
 	      (insert ","))
-	    ;; Delete the last comma.
-	    (delete-char -1)
+	    (if more
+		(insert " and more...")
+	      ;; Delete the last comma.
+	      (delete-char -1))
 	    (insert "\nClick them to jump to the buffer position,\n"
 		    (substitute-command-keys "\
 or \\[universal-argument] \\[what-cursor-position] will give information about them.\n"))))
@@ -1469,13 +1484,15 @@ This checks if all multi-byte characters in the region are printable or not."
 	 (setq ps-mule-charset-list
 	       (delq 'ascii (delq 'eight-bit-control
 				  (delq 'eight-bit-graphic 
-					(find-charset-region from to))))
+					(find-charset-region
+					 from to ps-print-translation-table))))
 	       ps-mule-header-charsets
 	       (delq 'ascii (delq 'eight-bit-control
 				  (delq 'eight-bit-graphic 
 					(find-charset-string
 					 (mapconcat
-					  'identity header-footer-list ""))))))
+					  'identity header-footer-list "")
+					 ps-print-translation-table)))))
 	 (dolist (cs ps-mule-charset-list)
 	   (or (ps-mule-printable-p cs)
 	       (push cs unprintable-charsets)))

@@ -1,6 +1,6 @@
 ;;; iimage.el --- Inline image minor mode.
 
-;; Copyright (C) 2004 Free Software Foundation
+;; Copyright (C) 2004, 2005 Free Software Foundation
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: KOSEKI Yoshinori <kose@meadowy.org>
@@ -50,6 +50,11 @@
 
 (eval-when-compile
   (require 'image-file))
+
+(defgroup iimage nil
+  "Support for inline images."
+  :version "22.1"
+  :group 'image)
 
 (defconst iimage-version "1.1")
 (defvar iimage-mode nil)
@@ -137,7 +142,7 @@ With numeric ARG, display the images if and only if ARG is positive."
 ;;;###autoload
 (define-minor-mode iimage-mode
   "Toggle inline image minor mode."
-  nil " iImg" iimage-mode-map
+  :group 'iimage :lighter " iImg" :keymap iimage-mode-map
   (run-hooks 'iimage-mode-hook)
   (iimage-mode-buffer iimage-mode))
 

@@ -107,6 +107,20 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** Improved Thai support.  A new minor mode `thai-word-mode' (which is
+automatically activated if you select Thai as a language
+environment) changes key bindings of most word-oriented commands to
+versions which recognize Thai words.  Affected commands are
+    M-f     (forward-word)
+    M-b     (backward-word)
+    M-d     (kill-word)
+    M-DEL   (backward-kill-word)
+    M-t     (transpose-words)
+    M-q     (fill-paragraph)
+
+** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
+
+---
 ** Languange environment and various default coding systems are setup
 more correctly according to the current locale name.  If the locale
 name doesn't specify a charset, the default is what glibc defines.
@@ -254,7 +268,10 @@ in the region, rather than on all complete lines in the region.
 for matching the beginning and end of a symbol.  A symbol is a
 non-empty sequence of either word or symbol constituent characters, as
 specified by the syntax table.
+---
+*** rx.el has new corresponding `symbol-end' and `symbol-start' elements.
 
++++
 ** Passing resources on the command line now works on MS Windows.
 You can use --xrm to pass resource settings to Emacs, overriding any
 existing values.  For example:
@@ -837,6 +854,7 @@ possible matches.
 the current Info node name into the kill ring.  With a zero prefix
 arg, puts the node name inside the `info' function call.
 
+---
 *** New face `info-xref-visited' distinguishes visited nodes from unvisited
 and a new option `Info-fontify-visited-nodes' to control this.
 
@@ -848,6 +866,7 @@ references and following them calls `browse-url'.
 If you prefer the old behavior, you can set the new user option
 `Info-hide-note-references' to nil.
 
+---
 *** Images in Info pages are supported.
 Info pages show embedded images, in Emacs frames with image support.
 Info documentation that includes images, processed with makeinfo
@@ -934,6 +953,7 @@ horizontal scroll bars in a frame or window.
 +++
 ** Under X, mouse-wheel-mode is turned on by default.
 
++++
 ** The X resource useXIM can be used to turn off use of XIM, which may
 speed up Emacs with slow networking to the X server.
 
@@ -999,6 +1019,7 @@ You can now put the init files .emacs and .emacs_SHELL under
    instead.  The updated skeleton-insert docstring explains these new
    features along with other details of skeleton construction.
 
+---
 ** MH-E changes.
 
 Upgraded to MH-E version 7.82. There have been major changes since
@@ -1232,6 +1253,7 @@ when Emacs visits them.
 default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
 
+---
 ** The new variable `x-select-request-type' controls how Emacs
 requests X selection.  The default value is nil, which means that
 Emacs requests X selection with types COMPOUND_TEXT and UTF8_STRING,
@@ -2237,17 +2259,23 @@ from the file name or buffer contents.
 ---
 ** Perl mode has a new variable `perl-indent-continued-arguments'.
 
+---
+** Fortran mode does more font-locking by default. Use level 3
+highlighting for the old default.
+
 +++
 ** Fortran mode has a new variable `fortran-directive-re'.
 Adapt this to match the format of any compiler directives you use.
 Lines that match are never indented, and are given distinctive font-locking.
 
 +++
-** F90 mode has new navigation commands `f90-end-of-block',
-`f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
+** F90 mode and Fortran mode have new navigation commands
+`f90-end-of-block', `f90-beginning-of-block', `f90-next-block',
+`f90-previous-block', `fortran-end-of-block',
+`fortran-beginning-of-block'.
 
 ---
-** F90 mode now has support for hs-minor-mode (hideshow).
+** F90 mode and Fortran mode have support for hs-minor-mode (hideshow).
 It cannot deal with every code format, but ought to handle a sizeable
 majority.
 
@@ -2407,11 +2435,23 @@ used to effect hiding for hideshow minor mode.  Integration with isearch
 handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
 
++++
 ** New command `recode-region' decodes the region again by a specified
 coding system.
 
 
 * New modes and packages in Emacs 22.1
+
++++
+** The new package longlines.el provides a minor mode for editing text
+files composed of long lines, based on the `use-hard-newlines'
+mechanism.  The long lines are broken up by inserting soft newlines,
+which are automatically removed when saving the file to disk or
+copying into the kill ring, clipboard, etc.  By default, Longlines
+mode inserts soft newlines automatically during editing, a behavior
+referred to as "soft word wrap" in other text editors.  This is
+similar to Refill mode, but more reliable.  To turn the word wrap
+feature off, set `longlines-auto-wrap' to nil.
 
 +++
 ** The new package conf-mode.el handles thousands of configuration files, with
@@ -2421,10 +2461,12 @@ section { }).  Many files under /etc/, or with suffixes like .cf through
 .config, .properties (Java), .desktop (KDE/Gnome), .ini and many others are
 recognized.
 
++++
 ** The new package dns-mode.el add syntax highlight of DNS master files.
 The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
 to increment the SOA serial.
 
++++
 ** The new package flymake.el does on-the-fly syntax checking of program
 source files.  See the Flymake's Info manual for more details.
 
@@ -2432,9 +2474,11 @@ source files.  See the Flymake's Info manual for more details.
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
 
++++
 ** The wdired.el package allows you to use normal editing commands on Dired
 buffers to change filenames, permissions, etc...
 
++++
 ** The thumbs.el package allows you to preview image files as thumbnails
 and can be invoked from a Dired buffer.
 
@@ -2447,6 +2491,7 @@ and can be invoked from a Dired buffer.
 ** The new global minor mode `size-indication-mode' (off by default)
 shows the size of accessible part of the buffer on the mode line.
 
+---
 ** GDB-Script-mode is used for files like .gdbinit.
 
 ---
@@ -2502,6 +2547,7 @@ versions of cua.el and cua-mode.el.  To ensure proper operation, you
 must remove older versions of cua.el or cua-mode.el as well as the
 loading and customization of those packages from the .emacs file.
 
++++
 ** The new keypad setup package provides several common bindings for
 the numeric keypad which is available on most keyboards.  The numeric
 keypad typically has the digits 0 to 9, a decimal point, keys marked
@@ -2629,6 +2675,7 @@ There is also Global Reveal mode which affects all buffers.
 ** The new package ibuffer provides a powerful, completely
 customizable replacement for buff-menu.el.
 
++++
 ** The new package table.el implements editable, WYSIWYG, embedded
 `text tables' in Emacs buffers.  It simulates the effect of putting
 these tables in a special major mode.  The package emulates WYSIWYG
@@ -2651,17 +2698,20 @@ mode-lines in inverse-video.
 ---
 ** cplus-md.el has been removed to avoid problems with Custom.
 
++++
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
 
 ---
 ** The new Lisp library fringe.el controls the appearance of fringes.
 
+---
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
++++
 ** The new interactive-specification `G' reads a file name
 much like `F', but if the input is a directory name (even defaulted),
 it returns just the directory name.
@@ -2678,6 +2728,21 @@ the command `undefined'.  (In earlier Emacs versions, it used
 `risky-local-variable' property is nil.
 
 * Lisp Changes in Emacs 22.1
+
+---
+** easy-mmode-define-global-mode has been renamed to
+define-global-minor-mode.  The old name remains as an alias.
+
++++
+** The new function `filter-buffer-substring' extracts a buffer
+substring, passes it through a set of filter functions, and returns
+the filtered substring.  It is used instead of `buffer-substring' or
+`delete-and-extract-region' when copying text into a user-accessible
+data structure, like the kill-ring, X clipboard, or a register.  The
+list of filter function is specified by the new variable
+`buffer-substring-filters'.  For example, Longlines mode uses
+`buffer-substring-filters' to remove soft newlines from the copied
+text.
 
 +++
 ** An element of buffer-undo-list can now have the form (apply FUNNAME
@@ -3201,6 +3266,7 @@ contents are detected automatically.  However, certain implicit
 changes to mode lines, header lines, or display properties may require
 forcing an explicit window update.
 
+---
 ** New function `redirect-debugging-output' can be used to redirect
 debugging output on the stderr file handle to a file.
 
@@ -4401,6 +4467,7 @@ formerly used for that purpose is now an alias for locale-coding-system.
 display a prompt but don't use the minibuffer, now display the prompt
 using the text properties (esp. the face) of the prompt string.
 
+---
 ** New function x-send-client-message sends a client message when
 running under X.
 
@@ -4410,6 +4477,7 @@ all overlays in the buffer by just calling (remove-overlay).
 
 ** New packages:
 
++++
 *** The new package gdb-ui.el provides an enhanced graphical interface to
 GDB. You can interact with GDB through the GUD buffer in the usual way, but
 there are also further buffers which control the execution and describe the
@@ -4426,6 +4494,7 @@ current syntactic context (as returned by parse-partial-sexp).
 binary data structures, such as network packets, to and from Lisp
 data structures.
 
+---
 *** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
 

@@ -6150,6 +6150,19 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defvar ps-current-effect 0)
 
+(defvar ps-print-translation-table
+  (let ((tbl (make-char-table 'translation-table nil)))
+    (if (and (boundp 'ucs-mule-8859-to-mule-unicode)
+	   (char-table-p ucs-mule-8859-to-mule-unicode))
+	(map-char-table
+	 #'(lambda (k v) 
+	     (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
+		 (aset tbl k v)))
+	 ucs-mule-8859-to-mule-unicode))
+    tbl)
+  "Translation table for PostScript printing.
+The default value is a table that translates non-Latin-1 Latin characters
+to the equivalent Latin-1 characters.")
 
 (defun ps-plot-region (from to font &optional fg-color bg-color effects)
   (or (equal font ps-current-font)
@@ -6240,11 +6253,17 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      (ps-plot 'ps-mule-plot-composition match-point (point) bg-color))
 
 	     ((> match 255)		; a multi-byte character
+	      (setq match (or (aref ps-print-translation-table match) match))
 	      (let* ((charset (char-charset match))
 		     (composition (ps-e-find-composition match-point to))
 		     (stop (if (nth 2 composition) (car composition) to)))
 		(or (eq charset 'composition)
-		    (while (and (< (point) stop) (eq (charset-after) charset))
+		    (while (and (< (point) stop)
+				(let ((ch (following-char)))
+				  (setq ch
+					(or (aref ps-print-translation-table ch)
+					    ch))
+				  (eq (char-charset ch) charset)))
 		      (forward-char 1)))
 		(ps-plot 'ps-mule-plot-string match-point (point) bg-color)))
 					; characters from ^@ to ^_ and

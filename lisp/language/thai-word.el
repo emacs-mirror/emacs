@@ -1,7 +1,8 @@
 ;;; thai-word.el -- find Thai word boundaries
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004
-;; Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 
@@ -72,13 +73,10 @@
 ;; which means that you can easily index the list character by
 ;; character.
 
-(defconst thai-word-table nil)
-
-
-;; Set up `thai-word-table'.
-
-(let
-    ((l
+(defvar thai-word-table
+  (let ((table (list 'thai-words)))
+    (dolist (elt
+      ;;; The following is indented as this to minimize this file size.
       '("°°"
 	"°°≈"
 	"°°ÿ∏¿—≥±Ï"
@@ -10732,11 +10730,10 @@
 	"‰Œ‚°√¡‘‡µÕ√Ï"
 	"‰Œ‚¥√§“√Ï∫Õπ"
 	"‰Œ‚≈"
-	)))
-  (setq thai-word-table (list 'thai-words))
-  (while l
-    (set-nested-alist (car l) 1 thai-word-table)
-    (setq l (cdr l))))
+	))
+      (set-nested-alist elt 1 table))
+    table)
+  "Nested alist of Thai words.") 
 
 
 (defun thai-update-word-table (file &optional append)
@@ -10783,7 +10780,7 @@ the current word list."
       ;; character by character.
       (while this
 	(setq pos (1+ pos)
-	      char (char-after pos)
+	      char (or (char-after pos) 0)
 	      category-set (char-category-set char))
 	;; If the current sequence is recorded in `thai-word-table'
 	;; (i.e. (car THIS) is 1) and the following Thai character is
@@ -11041,6 +11038,33 @@ If COUNT is negative, move point forward (- COUNT) words."
   (interactive "p")
   (thai-forward-word (- count)))
 
+
+(defun thai-kill-word (arg)
+  "Like kill-word but pay attention to Thai word boundaries.
+With argument, do this that many times."
+  (interactive "p")
+  (kill-region (point) (progn (thai-forward-word arg) (point))))
+
+
+(defun thai-backward-kill-word (arg)
+  "Like backward-kill-word but pay attention to Thai word boundaries."
+  (interactive "p")
+  (thai-kill-word (- arg)))
+
+
+(defun thai-transpose-words (arg)
+  "Like transpose-words but pay attention to Thai word boundaries."
+  (interactive "*p")
+  (transpose-subr 'thai-forward-word arg))
+
+(defun thai-fill-find-break-point (linebeg)
+  "Go to a line breaking position near point considering Thai word boundaries."
+  (let ((pos (point)))
+    (thai-forward-word -1)
+    (when (<= (point) linebeg)
+      (goto-char pos)
+      (thai-forward-word 1))
+    (kinsoku linebeg)))
 
 (provide 'thai-word)
 

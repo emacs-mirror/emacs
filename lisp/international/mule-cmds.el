@@ -384,6 +384,7 @@ See also `coding-category-list' and `coding-system-category'."
 	;; CODING-SYSTEM is no-conversion or undecided.
 	(error "Can't prefer the coding system `%s'" coding-system))
     (set coding-category (or base coding-system))
+    ;; Changing the binding of a coding category requires this call.
     (update-coding-systems-internal)
     (or (eq coding-category (car coding-category-list))
 	;; We must change the order.
@@ -1691,6 +1692,7 @@ The default status is as follows:
      coding-category-ccl
      coding-category-binary))
 
+  ;; Changing the binding of a coding category requires this call.
   (update-coding-systems-internal)
 
   (set-default-coding-systems nil)
@@ -1904,6 +1906,7 @@ of `buffer-file-coding-system' set by this function."
 	  (while priority
 	    (set (car categories) (car priority))
 	    (setq priority (cdr priority) categories (cdr categories)))
+	  ;; Changing the binding of a coding category requires this call.
 	  (update-coding-systems-internal)))))
 
 (defsubst princ-list (&rest args)
