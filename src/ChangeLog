@@ -1,3 +1,23 @@
+2002-06-28  Jan D.  <jan.h.d@swipnet.se>
+
+	* keyboard.c (readable_filtered_events): New function that filters
+	FOCUS_IN_EVENT depending on parameter.
+	(readable_events): Calls readable_filtered_events, not filtering
+	FOCUS_IN_EVENT.
+	(get_filtered_input_pending): New function, filtering parameter passed
+	to readable_filtered_events.
+	(get_input_pending): Calls get_filtered_input_pending, not filtering
+	FOCUS_IN_EVENT.
+	(Finput_pending_p): Calls get_filtered_input_pending, DO filter
+	FOCUS_IN_EVENT.
+
+	* xterm.h (struct x_output): Add focus_state.
+
+	* xterm.c (x_focus_changed): New function.
+	(x_detect_focus_change): New function.
+	(XTread_socket): Call x_detect_focus_change for FocusIn/FocusOut
+	EnterNotify and LeaveNotify to track X focus changes.
+
 2002-06-28  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h: Remove duplicate declaration of
