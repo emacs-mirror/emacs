@@ -1245,9 +1245,14 @@ static void
 frame_highlight (frame)
      struct frame *frame;
 {
-  if (! EQ (Vx_no_window_manager, Qnil))
-    XSetWindowBorder (x_current_display, FRAME_X_WINDOW (frame),
-		      frame->display.x->border_pixel);
+  /* We used to only do this if Vx_no_window_manager was non-nil, but
+     the ICCCM (section 4.1.6) says that the window's border pixmap
+     and border pixel are window attributes which are "private to the
+     client", so we can always change it to whatever we want.  */
+  BLOCK_INPUT;
+  XSetWindowBorder (x_current_display, FRAME_X_WINDOW (frame),
+		    frame->display.x->border_pixel);
+  UNBLOCK_INPUT;
   x_display_cursor (frame, 1);
 }
 
@@ -1255,9 +1260,14 @@ static void
 frame_unhighlight (frame)
      struct frame *frame;
 {
-  if (! EQ (Vx_no_window_manager, Qnil))
-    XSetWindowBorderPixmap (x_current_display, FRAME_X_WINDOW (frame),
-			    frame->display.x->border_tile);
+  /* We used to only do this if Vx_no_window_manager was non-nil, but
+     the ICCCM (section 4.1.6) says that the window's border pixmap
+     and border pixel are window attributes which are "private to the
+     client", so we can always change it to whatever we want.  */
+  BLOCK_INPUT;
+  XSetWindowBorderPixmap (x_current_display, FRAME_X_WINDOW (frame),
+			  frame->display.x->border_tile);
+  UNBLOCK_INPUT;
   x_display_cursor (frame, 1);
 }
 #else /* ! defined (HAVE_X11) */
