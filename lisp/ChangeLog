@@ -1,5 +1,8 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* dired.el (dired-font-lock-keywords): Undo last change.
+	(dired-readin): Bind indent-tabs-mode to nil.
+
 	* startup.el (fancy-splash-head): If frame's background mode
 	is `dark', change the black background of the image to gray.
 	(fancy-splash-screens): Display startup echo area message.
