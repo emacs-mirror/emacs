@@ -279,7 +279,13 @@ Point is at POS when this function returns."
 ;;   (with-current-buffer (or buffer (current-buffer))
 ;;     (syntax-ppss-depth (syntax-ppss))))
 
-(elp-instrument-list '(syntax-ppss))
+(defun syntax-after (pos)
+  "Return the syntax of the char after POS."
+  (unless (or (< pos (point-min)) (>= pos (point-max)))
+    (let ((st (if parse-sexp-lookup-properties
+		  (get-char-property pos 'syntax-table))))
+      (if (consp st) st
+	(aref (or st (syntax-table)) (char-after pos))))))
 
 (provide 'syntax)
 ;;; syntax.el ends here
