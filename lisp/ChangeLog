@@ -1,3 +1,12 @@
+2003-08-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (list-diary-entries-hook)
+	(diary-display-hook, nongregorian-diary-listing-hook)
+	(mark-diary-entries-hook, nongregorian-diary-marking-hook): Add
+	some customize options for these hooks.
+	(calendar-abbrev-construct): Don't try to take a substring longer
+	than the original string.
+
 2003-08-05  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/testcover.el (noreturn): Report error if does return.
