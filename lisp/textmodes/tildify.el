@@ -4,7 +4,7 @@
 
 ;; Author:     Milan Zamazal <pdm@freesoft.cz>
 ;; Version:    4.4
-;; Keywords:   text, TeX, SGML
+;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
 
@@ -28,15 +28,16 @@
 ;; This package can be typically used for adding forgotten tildes in TeX
 ;; sources or adding `&nbsp;' sequences in SGML (e.g. HTML) texts.
 ;;
-;; For example, the Czech ortography requires to avoid one letter prepositions
-;; at line endings.  So they should be connected with following words by tilde.
-;; Some users forget to do this all the time.  Purpose of this program is to
-;; check the text and suggest adding of missing tildes on some places.  It
-;; works in similar manner like `query-replace-regexp'.
+;; For example, the Czech ortography requires avoiding one letter
+;; prepositions at line endings.  So they should be connected with the
+;; following words by a tilde.  Some users forget to do this all the
+;; time.  The purpose of this program is to check the text and suggest
+;; adding of missing tildes on some places.  It works in a similar
+;; manner to `query-replace-regexp'.
 ;;
-;; Functionality of this program is actually performing query replace on
-;; certain regions.  But from historical reasons explained above it is called
-;; `tildify'.
+;; The functionality of this program is actually performing query
+;; replace on certain regions, but for historical reasons explained
+;; above it is called `tildify'.
 ;;
 ;; The default variable settings are suited for Czech, so do not try to
 ;; understand them if you are not familiar with Czech grammar and spelling.
@@ -53,6 +54,7 @@
 
 (defgroup tildify nil
   "Adding missing hard spaces or other text fragments into texts."
+  :version "21.1"
   :group 'wp)
 
 (defcustom tildify-pattern-alist
@@ -75,8 +77,7 @@ NUMBER defines the number of the REGEXP subexpression which should be replaced
 by the hard space character.
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
-mode, the item for the mode SYMBOL is looked up in the alist instead.
-"
+mode, the item for the mode SYMBOL is looked up in the alist instead."
   :group 'tildify
   :type '(repeat (choice (list symbol regexp integer) (cons symbol symbol))))
 
@@ -101,8 +102,7 @@ STRING defines the hard space, which is inserted at places defined by
 for SGML.
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
-mode, the item for the mode SYMBOL is looked up in the alist instead.
-"
+mode, the item for the mode SYMBOL is looked up in the alist instead."
   :group 'tildify
   :type '(repeat (cons symbol (choice string symbol))))
      
@@ -158,8 +158,7 @@ END-REGEX defines end of the corresponding text part and can be either:
 - a list of regexps and numbers, which will compose the ending regexp by
   concatenating themselves, while replacing the numbers with corresponding
   subexpressions of BEG-REGEX (this is used to solve cases like
-  \\\\verb<character> in TeX)
-"
+  \\\\verb<character> in TeX)."
   :group 'tildify
   :type '(repeat (cons symbol (choice symbol (repeat sexp)))))
 
@@ -211,7 +210,7 @@ This function performs no refilling of the changed text."
 			(setq ask nil)
 		      (if (eq aux nil)
 			  (setq finish t)))))
-	      (if (>= (marker-position z) (marker-position marker-end)) 
+	      (if (>= (marker-position z) (marker-position marker-end))
 		  (setq finish t))
 	      (or (>= (point) (marker-position z))
 		  (goto-char (marker-position z)))
@@ -354,6 +353,3 @@ further questions)."
 ;; End:
 
 ;;; tildify.el ends here
-
-
-
