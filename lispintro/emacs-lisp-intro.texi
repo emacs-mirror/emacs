@@ -4517,6 +4517,7 @@ The arguments to @code{string-lessp} must be strings or symbols; the
 ordering is lexicographic, so case is significant.  The print names of
 symbols are used instead of the symbols themselves.
 
+@cindex @samp{empty string} defined
 An empty string, @samp{""}, a string with no characters in it, is
 smaller than any string of characters.
 
