@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.58) $
+ * $HopeName: MMsrc!trace.c(trunk.59) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.58) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.59) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -798,7 +798,7 @@ void TraceAccess(Arena arena, Seg seg, AccessSet mode)
   EVENT_PPU(TraceAccess, arena, seg, mode);
 
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
-    /* scan.conservative: At the moment we scan at RankEXACT.  Really */
+    /* .scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
     /* minimum rank of all grey segments. */
     /* design.mps.poolamc.access.multi @@@@ tag correct?? */
