@@ -172,6 +172,7 @@ value of this flag.")
   ;; (default 8 kByte), until the first occurence of
   ;; LIMIT is found. The function returns nil if FILE 
   ;; doesn't exist.
+  (erase-buffer)
   (cond ((file-exists-p file)
 	 (cond (limit
 		(if (not blocksize) (setq blocksize 8192))
@@ -231,8 +232,7 @@ value of this flag.")
      ((eq (vc-backend file) 'SCCS)
       (set-buffer (get-buffer-create "*vc-info*"))
       (if (vc-insert-file (vc-lock-file file))
-	  (progn (vc-parse-locks file (buffer-string))
-		 (erase-buffer))
+	  (vc-parse-locks file (buffer-string))
 	(vc-file-setprop file 'vc-master-locks 'none))
       (vc-insert-file (vc-name file) "^\001e")
       (vc-parse-buffer 
@@ -266,8 +266,7 @@ value of this flag.")
 			default-branch)
 	  (vc-file-setprop file 'vc-top-version default-branch))
 	 ;; else, search for the tip of the default branch
-	 (t (erase-buffer)
-	    (vc-insert-file (vc-name file) "^desc")
+	 (t (vc-insert-file (vc-name file) "^desc")
 	    (vc-parse-buffer (list (list 
 	       (concat "^\\(" 
 		       (regexp-quote default-branch)
@@ -586,7 +585,9 @@ value of this flag.")
 			   "author[ \t]+"
 			   (regexp-quote (user-login-name)) ";") 1 2))
        file
-       '(vc-latest-version vc-your-latest-version))))
+       '(vc-latest-version vc-your-latest-version))
+      (if (get-buffer "*vc-info*")
+	  (kill-buffer (get-buffer "*vc-info*")))))
    (t (vc-fetch-master-properties file))
    ))
 
