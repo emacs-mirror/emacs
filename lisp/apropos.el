@@ -125,6 +125,7 @@ for the regexp; the part that matches gets displayed in this font."
 (defvar apropos-item ()
   "Current item in or for apropos-accumulator.")
 
+;;;###autoload
 (defun apropos-mode ()
   "Major mode for following hyperlinks in output of apropos commands.
 
