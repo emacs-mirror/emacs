@@ -498,7 +498,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
         case 'c':		/* Character */
-	  args[i] = Fread_char (build_string (callint_message), Qt);
+	  args[i] = Fread_char (build_string (callint_message), Qnil);
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
