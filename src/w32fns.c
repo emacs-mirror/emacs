@@ -5677,8 +5677,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (HAVE_IMAGES),
+#ifdef HAVE_IMAGES
+  x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
                        "toolBar", "ToolBar", RES_TYPE_NUMBER);
+#else
+  x_default_parameter (f, parms, Qtool_bar_lines, make_number (0),
+                       "toolBar", "ToolBar", RES_TYPE_NUMBER);
+#endif
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil,
