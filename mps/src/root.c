@@ -1,6 +1,6 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.25) $
+ * $HopeName: MMsrc!root.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .scope: This is the implementation of the root datatype.
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.25) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.26) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -25,7 +25,22 @@ Bool RootVarCheck(RootVar rootVar)
        rootVar == RootFUN ||
        rootVar == RootFMT ||
        rootVar == RootREG);
-  return(TRUE);
+  return TRUE;
+}
+
+
+/* RootModeCheck */
+
+Bool RootModeCheck(RootMode mode)
+{
+  AVER((mode & (RootModeCONSTANT |
+		RootModePROTECTABLE |
+		RootModePROTECTABLE_INNER)) == mode);
+  /* RootModePROTECTABLE_INNER implies RootModePROTECTABLE */
+  AVER((mode & RootModePROTECTABLE_INNER) == 0 ||
+       (mode & RootModePROTECTABLE));
+  
+  return TRUE;
 }
 
 
@@ -74,6 +89,18 @@ Bool RootCheck(Root root)
     default:
     NOTREACHED;
   }
+  CHECKL(RootModeCheck(root->mode));
+  CHECKL(BoolCheck(root->protectable));
+  if(root->protectable) {
+    CHECKL(root->protBase != NULL);
+    CHECKL(root->protLimit != NULL);
+    CHECKL(root->protBase < root->protLimit);
+    /* there is no AccessSetCheck */
+  } else {
+    CHECKL(root->protBase == NULL);
+    CHECKL(root->protLimit == NULL);
+    CHECKL(root->pm == (AccessSet)0);
+  }
   return TRUE;
 }
 
@@ -86,7 +113,7 @@ Bool RootCheck(Root root)
  * See design.mps.root.init for initial value
  */
 
-static Res create(Root *rootReturn, Arena arena,
+static Res rootCreate(Root *rootReturn, Arena arena,
                   Rank rank, RootMode mode, RootVar type,
                   union RootUnion *theUnionP)
 {
@@ -112,11 +139,7 @@ static Res create(Root *rootReturn, Arena arena,
   root->summary = RefSetUNIV;
   root->mode = mode;
   root->pm = AccessSetEMPTY;
-  if(mode & RootModePROTECTABLE) {
-    root->protectable = TRUE;
-  } else {
-    root->protectable = FALSE;
-  }
+  root->protectable = FALSE;
   root->protBase = 0;
   root->protLimit = 0;
 
@@ -143,12 +166,14 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
 {
   Res res;
   Root root;
+  Ring node, next;
 
-  res = create(&root, arena, rank, mode, var, theUnion);
+  res = rootCreate(&root, arena, rank, mode, var, theUnion);
   if(res != ResOK) {
     return res;
   }
   if(mode & RootModePROTECTABLE) {
+    root->protectable = TRUE;
     if(mode & RootModePROTECTABLE_INNER) {
       root->protBase = AddrAlignUp(base, ArenaAlign(arena));
       root->protLimit = AddrAlignDown(limit, ArenaAlign(arena));
@@ -162,6 +187,24 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
       root->protLimit = AddrAlignUp(limit, ArenaAlign(arena));
     }
   }
+
+  /* Check that this root doesn't intersect with any other root */
+  RING_FOR(node, &arena->rootRing, next) {
+    Root trial = RING_ELT(Root, arenaRing, node);
+    if(trial != root) {
+      /* (trial->protLimit <= root->protBase || */
+      /*  root->protLimit <= trial->protBase) */
+      /* is the "okay" state.  The negation of this is: */
+      if(root->protBase < trial->protLimit &&
+         trial->protBase < root->protLimit) {
+	NOTREACHED;
+	RootDestroy(root);
+	return ResFAIL;
+      }
+    }
+  }
+
+  AVERT(Root, root);
 
   *rootReturn = root;
   return ResOK;
@@ -227,7 +270,7 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
   theUnion.reg.p = p;
   theUnion.reg.s = s;
 
-  return create(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
 }
 
 Res RootCreateFmt(Root *rootReturn, Arena arena,
@@ -267,7 +310,7 @@ Res RootCreateFun(Root *rootReturn, Arena arena,
   theUnion.fun.p = p;
   theUnion.fun.s = s;
 
-  return create(rootReturn, arena, rank, (RootMode)0, RootFUN, &theUnion);
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootFUN, &theUnion);
 }
 
 void RootDestroy(Root root)
