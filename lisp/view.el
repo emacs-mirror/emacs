@@ -447,12 +447,14 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 		(if (buffer-file-name)
 		    (file-name-nondirectory (buffer-file-name))
 		  (buffer-name))))
+  (force-mode-line-update)
   (run-hooks 'view-mode-hook))
 
 (defun view-mode-disable ()
   "Turn off View mode."
   (remove-hook 'change-major-mode-hook 'view-mode-disable t)
   (and view-overlay (delete-overlay view-overlay))
+  (force-mode-line-update)
   (setq view-mode nil
 	Helper-return-blurb view-old-Helper-return-blurb
 	buffer-read-only view-old-buffer-read-only))
