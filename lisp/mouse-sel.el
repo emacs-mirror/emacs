@@ -240,6 +240,7 @@ to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
 & mouse-3, but operate on the X secondary selection rather than the
 primary selection and region."
   :global t
+  :group 'mouse-sel
   (if mouse-sel-mode
       (progn
 	(add-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
