@@ -1,3 +1,8 @@
+2004-03-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-man.conf-path): Doc fix.
+	(woman-parse-man.conf): Also parse OPTIONAL_MANPATH.
+
 2004-03-07  Eli Zaretskii  <eliz@elta.co.il>
 
 	* sort.el (sort-columns): Remove ms-dos from the list of systems
