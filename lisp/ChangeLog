@@ -1,5 +1,10 @@
 2004-11-30  Jay Belanger  <belanger@truman.edu>
 
+	* calc/calc-arith.el (math-possible-signs): Made stronger checks
+	on signs of intervals.
+	(math-pow-of-zero): Strengthen checks for positive and negative
+	exponents.
+
 	* calc/calc-aent.el, calc/calc-alg.el, calc/calc-arith.el
 	* calc/calc-bin.el, calc/calc-comb.el, calc/calc-cplx.el
 	* calc/calc-embed.el, calc/calc-fin.el, calc/calc-forms.el
