@@ -47,6 +47,9 @@
 
 ;;; Code:
 
+;; Ensure `standard-display-table' is set up:
+(require 'disp-table)
+
 (defconst latin1-display-sets '(latin-2 latin-3 latin-4 latin-5 latin-8
 		                latin-9 cyrillic greek hebrew)
   "The ISO8859 character sets with defined Latin-1 display sequences.
@@ -82,11 +85,12 @@ use either M-x customize of the function `latin1-display'."
   :require 'latin1-disp
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
-	 (if value
-	     (mapc (if value
-		       #'latin1-display-setup
-		     #'latin1-display-reset)
-		   latin1-display-sets))))
+	 (set-default symbol value)
+	 (mapc (if value
+		   #'latin1-display-setup
+		 #'latin1-display-reset)
+	       latin1-display-sets)
+	 (redraw-display)))
 
 ;;;###autoload
 (defun latin1-display (&rest sets)
