@@ -1,3 +1,32 @@
+2000-04-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texinfo.el (texinfo-mode-syntax-table): Add \n as comment-end.
+	(texinfo-font-lock-syntactic-keywords): New var.
+	(texinfo-font-lock-keywords): Remove comment regexp.
+	(texinfo-insert-block): New function.
+	(texinfo-mode-map): Add C-c C-o -> texinfo-insert-block.
+	(texinfo-mode): Use define-derived-mode.
+	Tweak comment-start-skip and font-lock-defaults.
+	Use regexp-opt for outline-regexp.
+	(texinfo-environments): New var.
+	(texinfo-environment-regexp): Use regexp-opt and texinfo-environments.
+
+	* textmodes/ispell.el (ispell-menu-map-needed): Check that ispell-process
+	is bound since this might be eval'd before ispell is loaded.
+	(ispell-message): Use a tiny bit less magic and a bit more hard data
+	to figure out what kind of sc-cite-regexp to use.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Fix the regexp.
+
+	* calendar/diary-lib.el (fancy-diary-display, mark-diary-entries)
+	(insert-cyclic-diary-entry): Unquote the lambda.
+
+	* gud.el (gud-jdb-build-source-files-list): Fix typo.
+
+	* files.el (backup-enable-predicate): Unquote the lambda.
+
+	* cus-edit.el (custom-face, face): Unquote the lambda.
+
 2000-04-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Check for line-beginning-position definition.
