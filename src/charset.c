@@ -773,7 +773,7 @@ find_charset_in_str (str, len, charsets, table, multibyte)
      Lisp_Object table;
      int multibyte;
 {
-  register int num = 0, c;
+  register int num = 0;
 
   if (! multibyte)
     {
@@ -808,7 +808,7 @@ find_charset_in_str (str, len, charsets, table, multibyte)
 	{
 	  int c1 = translate_char (table, -1, charset, c1, c2);
 	  if (c1 >= 0)
-	    charset = CHAR_CHARSET (c);
+	    charset = CHAR_CHARSET (c1);
 	}
 
       if (!charsets[charset])
