@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,99, 2000, 2001
+@c Copyright (C) 1985,86,87,93,94,95,97,99, 2000, 2001, 2004
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
@@ -625,9 +625,10 @@ made backup is included in the count in @code{kept-new-versions}.  By
 default, both variables are 2.
 
 @vindex delete-old-versions
-  If @code{delete-old-versions} is non-@code{nil}, Emacs deletes the
-excess backup files silently.  If it is @code{nil}, the default, Emacs
-asks you whether it should delete the excess backup versions.
+  If @code{delete-old-versions} is @code{t}, Emacs deletes the excess
+backup files silently.  If it is @code{nil}, the default, Emacs asks
+you whether it should delete the excess backup versions.  If it has
+any other value, then Emacs never automatically deletes backups.
 
   Dired's @kbd{.} (Period) command can also be used to delete old versions.
 @xref{Dired Deletion}.
@@ -836,7 +837,7 @@ Time-stamp: " "
 @end example
 
   Then add the hook function @code{time-stamp} to the hook
-@code{write-file-functions}; that hook function will automatically update
+@code{before-save-hook}; that hook function will automatically update
 the time stamp, inserting the current date and time when you save the
 file.  You can also use the command @kbd{M-x time-stamp} to update the
 time stamp manually.  For other customizations, see the Custom group
@@ -942,7 +943,7 @@ when they are auto-saved, the auto-save file name is made by appending
 @samp{#} to the front and rear of buffer name, then
 adding digits and letters at the end for uniqueness.  For
 example, the @samp{*mail*} buffer in which you compose messages to be
-sent might auto-saved in a file named @file{#*mail*#704juu}.  Auto-save file
+sent might be auto-saved in a file named @file{#*mail*#704juu}.  Auto-save file
 names are made this way unless you reprogram parts of Emacs to do
 something different (the functions @code{make-auto-save-file-name} and
 @code{auto-save-file-name-p}).  The file name to be used for auto-saving
@@ -962,7 +963,7 @@ save turns off temporarily in that buffer.  This is because if you
 deleted the text unintentionally, you might find the auto-save file more
 useful if it contains the deleted text.  To reenable auto-saving after
 this happens, save the buffer with @kbd{C-x C-s}, or use @kbd{C-u 1 M-x
-auto-save}.
+auto-save-mode}.
 
 @vindex auto-save-visited-file-name
   If you want auto-saving to be done in the visited file rather than
@@ -1567,7 +1568,7 @@ the revision denoted on the current line was committed.
 
 @item
 Pressing @kbd{L} shows the log of the revision at line.  This is
-useful to see the author's description of the changes that occured
+useful to see the author's description of the changes that occurred
 when the revision denoted on the current line was committed.
 
 @item
@@ -1585,7 +1586,7 @@ use once a day.
 @menu
 * Registering::         Putting a file under version control.
 * VC Status::           Viewing the VC status of files.
-* VC Undo::             Cancelling changes before or after check-in.
+* VC Undo::             Canceling changes before or after check-in.
 * VC Dired Mode::       Listing files managed by version control.
 * VC Dired Commands::   Commands to use in a VC Dired buffer.
 @end menu

@@ -121,10 +121,10 @@ various structure fields. Lookup `defstruct' for more details."
     `(progn
        (defun* ,constructor (&key ,@(mapcar* #'(lambda (x y) (list x y))
                                              field-names field-init-forms))
-         (list ,@field-names))
+         (list (quote ,struct-name) ,@field-names))
        (defun ,predicate (arg)
-         (and (consp arg) (eql (length arg) ,(length fields))))
-       ,@(loop for x from 0
+         (and (consp arg) (eq (car arg) (quote ,struct-name))))
+       ,@(loop for x from 1
                for y in field-names
                collect `(defmacro ,(intern (format "%s%s" conc-name y)) (z)
                           (list 'nth ,x z)))

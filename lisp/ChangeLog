@@ -1,3 +1,125 @@
+2004-08-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* speedbar.el (speedbar-file-regexp): Give it a phony defvar
+	before and a real defvar after
+	`speedbar-supported-extension-expressions'.  This is to silence
+	the compiler without breaking bootstrapping.
+
+2004-08-22  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-word): Use
+	set-process-query-on-exit-flag.
+	(flyspell-highlight-duplicate-region): Take POSS as arg.
+	(flyspell-word): Pass POSS as arg.
+
+	* progmodes/ada-xref.el: Many doc and style fixes.
+	(ada-find-any-references): Use compilation-start.
+	(ada-get-ali-file-name): Improve error msg.
+	(ada-get-ada-file-name): Likewise.
+
+	* net/ange-ftp.el (ange-ftp-gwp-start, ange-ftp-nslookup-host)
+	(ange-ftp-start-process): Use set-process-query-on-exit-flag.
+
+	* mail/mail-extr.el (mail-extr-all-top-level-domains):
+	Add forward defvar.
+
+	* whitespace.el (global-whitespace-mode): New alias
+	for whitespace-global-mode.
+
+	* speedbar.el (speedbar-file-regexp): Definition moved up.
+	(speedbar-mode, speedbar-set-mode-line-format):
+	Use with-no-warnings.
+	(speedbar-emacs-popup-kludge): Delete Emacs 19 alternative.
+
+	* simple.el (shell-command-on-region): New arg DISPLAY-ERROR-BUFFER
+	controls whether to display the error buffer.
+
+	* ps-mule.el: Delete compatibility code for old Emacses.
+	(ps-mule-find-wrappoint): Don't use chars-in-region.
+
+	* frame.el (display-mouse-p, display-selections-p):
+	Use with-no-warnings.
+
+	* font-lock.el (font-lock-set-defaults): Use with-no-warnings.
+
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* textmodes/reftex-auc.el, progmodes/meta-mode.el: Update AUCTeX
+	information.
+
+	* speedbar.el, iswitchb.el, ido.el: Update AUCTeX information.
+
+2004-08-22  Andreas Schwab  <schwab@suse.de>
+
+	* cvs-status.el: Require pcvs during byte-compiling for
+	defun-cvs-mode.
+
+2004-08-22  Masatake YAMATO  <jet@gyve.org>
+
+	* cvs-status.el (cvs-status-checkout): New function.
+	(cvs-status-mode-map): Add a key definition for `cvs-status-checkout'.
+
+2004-08-21  David Kastrup  <dak@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-hash-entry-exists-p)
+	(ange-ftp-file-entry-p, ange-ftp-file-symlink-p): Since the code
+	has been converted to use hashtables, the relation `nil=none' is
+	no longer valid, as `nil' is not a hashtable.  This patch tries to
+	reduce the number of resulting errors.
+
+2004-08-21  John Paul Wallington  <jpw@gnu.org>
+
+	* subr.el (process-kill-without-query): Made obsolete in
+	version	21.4, not 21.5.
+
+	* log-edit.el (vc-comment-ring, vc-comment-ring-index)
+	(vc-previous-comment, vc-next-comment)
+	(vc-comment-search-reverse, vc-comment-search-forward)
+	(vc-comment-to-change-log): Likewise.
+
+	* international/latin1-disp.el (latin1-char-displayable-p): Likewise.
+
+2004-08-21  Peter Seibel  <peter@javamonkey.com>  (tiny patch)
+
+	* emacs-lisp/cl-indent.el (lisp-indent-defmethod):
+	Correct indentation of DEFMETHODS with non-standard method
+	combinations (e.g., PROGN, MIN, MAX).
+
+2004-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (normal-top-level-add-subdirs-to-load-path):
+	Avoid unnecessarily checking system-type.
+	(normal-top-level): Set TERM to "dumb".  Simplify.
+
+	* avoid.el (mouse-avoidance-ignore-p): New fun.
+	Also ignore switch-frame, select-window, double, and triple clicks.
+	(mouse-avoidance-banish-hook, mouse-avoidance-exile-hook)
+	(mouse-avoidance-fancy-hook): Use it.
+
+2004-08-20  Zoran Milojevic  <zoran@sipquest.com>  (tiny change)
+
+	* avoid.el (mouse-avoidance-nudge-mouse)
+	(mouse-avoidance-banish-destination): Stay within the current window
+	to avoid problems with mouse-autoselect-window.
+
+2004-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-table, cvs-parse-commit): Try to adapt to
+	the newer format of some messages in cvs-1.12.1.
+
+2004-08-19  Masatake YAMATO  <jet@gyve.org>
+
+	* emacs-lisp/elp.el (elp-results-symname-map): New keymap.
+	(elp-results-jump-to-definition-by-mouse)
+	(elp-results-jump-to-definition, elp-output-insert-symname): New funs.
+	(elp-output-result): Use elp-output-insert-symname.
+
+2004-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Register koi8-r in
+	ctext-non-standard-encodings-alist.
+	("Cyrillic-KOI8"): Add ctext-non-standard-encoding.
+
 2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/copyright.el (copyright-update-year): Delete code
@@ -97,35 +219,35 @@
 	CC Mode update to 5.30.9:
 
 	* progmodes/cc-defs.el, progmodes/cc-vars.el (c-emacs-features):
-	Moved from cc-vars to cc-defs for dependency reasons.  Fixed the
+	Move from cc-vars to cc-defs for dependency reasons.  Fix the
 	POSIX char class test to check that it works in
 	`skip-chars-(forward|backward)' too.
 
-	* progmodes/cc-align.el (c-lineup-arglist): Fixed bug when the
+	* progmodes/cc-align.el (c-lineup-arglist): Fix bug when the
 	first argument starts with a special brace list.
 
-	* progmodes/cc-engine.el (c-forward-type): Fixed promotion bug
+	* progmodes/cc-engine.el (c-forward-type): Fix promotion bug
 	when `c-opt-type-concat-key' is used (i.e. in Pike).
 
-	* progmodes/cc-engine.el (c-looking-at-special-brace-list): Fixed
-	bug when the inner char pair doesn't have paren syntax, i.e. "(<
+	* progmodes/cc-engine.el (c-looking-at-special-brace-list):
+	Fix bug when the inner char pair doesn't have paren syntax, i.e. "(<
 	>)".
 
 	* progmodes/cc-align.el (c-lineup-multi-inher): Made it syntactic
 	whitespace safe.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): Fixed anchor
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fix anchor
 	position for `arglist-intro', `arglist-cont-nonempty' and
 	`arglist-close' when there are two arglist open parens on the same
 	line and there's nothing in front of the first.
 
-	* progmodes/cc-fonts.el (c-basic-matchers-before): Fixed font
+	* progmodes/cc-fonts.el (c-basic-matchers-before): Fix font
 	locking of qualified names in Java, which previously could fontify
 	common indexing expressions in many cases.  The standard Java
 	naming conventions are used to tell them apart.
 
-	* progmodes/cc-align.el (c-lineup-whitesmith-in-block): Fixed
-	inconsistency wrt opening parens on the first line inside a paren
+	* progmodes/cc-align.el (c-lineup-whitesmith-in-block):
+	Fix inconsistency wrt opening parens on the first line inside a paren
 	block.
 
 	* progmodes/cc-defs.el (c-langs-are-parametric): Must be known at
@@ -135,29 +257,29 @@
 	`c-major-mode-is' in the event that this is used inside a
 	`c-lang-defconst'.
 
-	* progmodes/cc-defs.el (c-major-mode-is): Fixed expansion inside
+	* progmodes/cc-defs.el (c-major-mode-is): Fix expansion inside
 	`c-lang-defconst' so that it works better with fallback languages.
 
-	* progmodes/cc-defs.el (c-add-language): Fixed a typo that caused
+	* progmodes/cc-defs.el (c-add-language): Fix a typo that caused
 	it to fail to record the base mode.
 
-	* progmodes/cc-engine.el (c-syntactic-re-search-forward): Fixed
-	bug so that it doesn't go past the closing paren when PAREN-LEVEL
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	Fix bug so that it doesn't go past the closing paren when PAREN-LEVEL
 	is used.  Reordered the syntax checks to get more efficient
 	skipping in some situations.
 
 	* progmodes/cc-cmds.el (c-electric-brace): Don't trip up on a line
 	continuation which might precede the newly inserted '{'.
 
-	* progmodes/cc-engine.el (c-syntactic-re-search-forward): Fixed
-	cases where it could loop indefinitely.
+	* progmodes/cc-engine.el (c-syntactic-re-search-forward):
+	Fix cases where it could loop indefinitely.
 
 	* progmodes/cc-fonts.el (c-font-lock-declarators): Handle array
 	size specs correctly.  Only fontify identifiers in front of '('
 	with as functions - don't accept any paren char.  Tightened up
 	initializer skipping to stop before function and class blocks.
 
-	* progmodes/cc-engine.el (c-beginning-of-decl-1): Fixed bug where
+	* progmodes/cc-engine.el (c-beginning-of-decl-1): Fix bug where
 	the point could be left directly after an open paren when finding
 	the beginning of the first decl in the block.
 
@@ -166,13 +288,13 @@
 	This could cause cache inconsistencies when e.g.
 	`c++-template-syntax-table' was temporarily in use.
 
-	* progmodes/cc-engine.el (c-on-identifier,
-	c-simple-skip-symbol-backward): Small fix for handling "-"
+	* progmodes/cc-engine.el (c-on-identifier)
+	(c-simple-skip-symbol-backward): Small fix for handling "-"
 	correctly in `skip-chars-backward'.  Affected the operator lfun
 	syntax in Pike.
 
-	* progmodes/cc-engine.el (c-invalidate-sws-region-after): Fixed
-	bug that could cause an error from `after-change-functions' when
+	* progmodes/cc-engine.el (c-invalidate-sws-region-after):
+	Fix bug that could cause an error from `after-change-functions' when
 	the changed region is at bob.
 
 2004-08-11  Alan Mackenzie  <bug-cc-mode@gnu.org>
@@ -189,7 +311,7 @@
 	string.  (2) Check that settings to `c-offsets-alist' are not
 	spuriously quoted.
 
-	* progmodes/cc-cmds.el: (c-electric-brace): don't delete a comment
+	* progmodes/cc-cmds.el: (c-electric-brace): Don't delete a comment
 	which precedes the newly inserted `{'.
 
 2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
@@ -233,8 +355,7 @@
 
 2004-08-08  Lars Hansen  <larsh@math.ku.dk>
 
-	* wid-edit.el (widget-sexp-validate): Allow whitespace after
-	expression.
+	* wid-edit.el (widget-sexp-validate): Allow whitespace after expression.
 
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -266,8 +387,8 @@
 
 2004-08-04  Kenichi Handa  <handa@m17n.org>
 
-	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
-	previous change.
+	* international/encoded-kb.el (encoded-kbd-setup-keymap):
+	Fix previous change.
 
 2004-08-03  Kenichi Handa  <handa@m17n.org>
 
@@ -301,8 +422,8 @@
 
 2004-08-01  David Kastrup  <dak@gnu.org>
 
-	* replace.el (query-replace-read-from): Use
-	`query-replace-compile-replacement'.
+	* replace.el (query-replace-read-from):
+	Use `query-replace-compile-replacement'.
 	(query-replace-compile-replacement): New function.
 	(query-replace-read-to): Use `query-replace-compile-replacement'
 	for repeating the last command.

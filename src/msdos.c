@@ -5102,7 +5102,7 @@ dos_yield_time_slice (void)
 
 /* Only event queue is checked.  */
 /* We don't have to call timer_check here
-   because wait_reading_process_input takes care of that.  */
+   because wait_reading_process_output takes care of that.  */
 int
 sys_select (nfds, rfds, wfds, efds, timeout)
      int nfds;

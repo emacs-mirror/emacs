@@ -1516,7 +1516,9 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
     (let* ((defaults (or font-lock-defaults
-			 (cdr (assq major-mode font-lock-defaults-alist))))
+			 (cdr (assq major-mode
+				    (with-no-warnings
+				     font-lock-defaults-alist)))))
 	   (keywords
 	    (font-lock-choose-keywords (nth 0 defaults)
 				       (font-lock-value-in-major-mode font-lock-maximum-decoration)))

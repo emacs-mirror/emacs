@@ -1,3 +1,38 @@
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* reftex.texi (AUCTeX): Update links, section name.
+
+	* faq.texi (Calc): Update availability (included in 21.4).
+	(AUCTeX): Update availability, information, versions, description.
+
+2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi (Keyboard Macro Ring): Rename section.
+	Emacs treats the head of the macro ring as the `last keyboard macro'.
+	(Keyboard Macro Counter): Minor change.
+	(Save Keyboard Macro): Some clarifications.
+	(Edit Keyboard Macro): Rename section.
+
+	* buffers.texi (Buffers): Maximum buffer size is now 256M on
+	32-bit machines.
+	(Several Buffers): Clarify which buffer is selected if `2' is
+	pressed in the Buffer Menu.
+	Auto Revert mode can be used to update the Buffer Menu
+	automatically.
+
+2004-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.texi (Misc Help): Add an index entry for finding an Info
+	manual by its file name.
+
+2004-08-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Backup Deletion): Correct description of
+	`delete-old-versions'.
+	(Time Stamps): `time-stamp' needs to be added to `before-save-hook'.
+	(Auto Save Files): Recommend `auto-save-mode' to reenable
+	auto-saving, rather than the abbreviation `auto-save'.
+
 2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs.texi (Top): Mention "cutting" and "pasting" as synonyms

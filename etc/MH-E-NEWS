@@ -6,6 +6,17 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.81
+
+Version 7.81 fixes a `wrong-type-argument' argument error that
+sometimes occurred when processing the Message-ID, adds the ";
+(mh-toggle-mh-decode-mime-flag)" command, and uses ":default" instead
+of "default" in `mh-identity-handlers' to avoid problems with
+"Default:" as a user defined field. If you have modified
+`mh-identity-handlers' in your .emacs, you'll need to rename "default"
+to ":default". This release also corrects the release numbering; the
+previous version number was intended to be 7.80.
+
 * Changes in MH-E 7.4.80
 
 Version 7.4.80 now supports GNU mailutils, S/MIME, picons,

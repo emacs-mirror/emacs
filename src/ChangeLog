@@ -1,3 +1,45 @@
+2004-08-22  Richard M. Stallman  <rms@gnu.org>
+
+	* process.c (process_send_signal) [SIGNALS_VIA_CHARACTERS,
+	HAVE_TERMIOS]: If there's no char for this signal, drop through
+	and use system calls.
+
+	* bytecode.c (Fbyte_code) <unwind-protect>: Cannot GC.
+
+2004-08-20  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output): Rename from
+	wait_reading_process_input.  All uses changed.
+	(wait_reading_process_output_1): Rename from
+	wait_reading_process_input_1.  All uses changed.
+
+	* dispnew.c (Fsleep_for): Remove obsolete code.
+
+2004-08-20  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (skip_chars): Fix for unibyte case.
+
+2004-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (char_quoted): Mixup byte/char pos.
+	(back_comment): Fixup globals in all cases.
+
+2004-08-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_name, x_set_title): Encode title to UTF8 before
+	passing it to gtk_window_set_title.
+
+2004-08-19  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_input): Clean up.
+	Add wait_for_cell, wait_proc, and just_wait_proc args
+	to avoid overloading `read_kbd' and `do_display' args.
+	Change read_kbd arg to int.  All callers changed.
+
+	* process.c (process_send_signal): Use CDISABLE.
+
+	* sysdep.c (child_setup_tty, init_sys_modes): Use CDISABLE.
+
 2004-08-18  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Faccept_process_output): Add arg JUST-THIS-ONE;

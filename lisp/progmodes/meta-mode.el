@@ -32,7 +32,7 @@
 ;; a major mode including an approriate syntax table, keymap, and a
 ;; mode-specific pull-down menu.  It also provides a sophisticated set
 ;; of font-lock patterns, a fancy indentation function adapted from
-;; AUC-TeX's latex.el, and some basic mode-specific editing functions
+;; AUCTeX's latex.el, and some basic mode-specific editing functions
 ;; such as functions to move to the beginning or end of the enclosing
 ;; environment, or to mark, re-indent, or comment-out environments.
 ;; On the other hand, it doesn't yet provide any functionality for

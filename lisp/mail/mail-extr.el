@@ -687,6 +687,7 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 (defvar disable-initial-guessing-flag)	; dynamic assignment
 (defvar cbeg)				; dynamic assignment
 (defvar cend)				; dynamic assignment
+(defvar mail-extr-all-top-level-domains) ; Defined below.
 
 ;;;###autoload
 (defun mail-extract-address-components (address &optional all)

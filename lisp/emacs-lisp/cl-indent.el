@@ -458,7 +458,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 					    (forward-char 1)
                                             (forward-sexp 3)
                                             (backward-sexp)
-					    (looking-at ":")))
+					    (looking-at ":\\|\\sw+")))
 		       '(4 4 (&whole 4 &rest 4) &body)
 		     (get 'defun 'common-lisp-indent-function))
 		   path state indent-point sexp-column normal-indent))

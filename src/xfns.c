@@ -1661,7 +1661,7 @@ x_set_name (f, name, explicit)
 	  }
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (name));
+                              SDATA (ENCODE_UTF_8 (name)));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
@@ -1769,7 +1769,7 @@ x_set_title (f, name, old_name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (name));
+                              SDATA (ENCODE_UTF_8 (name)));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
