@@ -342,7 +342,7 @@ Remove the DIRECTORY(ies), if they are empty.")
 		 (eq system-type 'ms-dos))
 	     (setq attr (eshell-file-attributes (car files)))
 	     (nth 10 attr-target) (nth 10 attr)
-	     (= (nth 10 attr-target) (nth 10 attr))
+	     (equal (nth 10 attr-target) (nth 10 attr))
 	     (nth 11 attr-target) (nth 11 attr)
 	     (= (nth 11 attr-target) (nth 11 attr)))
 	(eshell-error (format "%s: `%s' and `%s' are the same file\n"
