@@ -27,28 +27,33 @@
 (require 'quail)
 (require 'kkc)
 
+(defvar quail-japanese-use-double-n nil
+  "If non-nil, use type \"nn\" to insert ん.")
+
 ;; Update Quail translation region while considering Japanese bizarre
 ;; translation rules.
 (defun quail-japanese-update-translation (control-flag)
-  (cond ((eq control-flag t)
-	 (insert quail-current-str)
-	 (quail-terminate-translation))
-	((null control-flag)
-	 (if (/= (aref quail-current-key 0) ?q)
-	     (insert (or quail-current-str quail-current-key))))
-	((= control-flag 0)
-	 (insert (aref quail-current-key 0))
-	 (quail-terminate-translation))
-	(t
-	 (cond ((= (aref quail-current-key 0) ?n)
-		(insert ?ん))
-	       ((= (aref quail-current-key 0) (aref quail-current-key 1))
-		(insert ?っ))
-	       (t
-		(insert (aref quail-current-key 0))))
-	 (setq unread-command-events
-	       (list (aref quail-current-key control-flag)))
-	 (quail-terminate-translation))))
+  (if (null control-flag)
+      (setq quail-current-str
+	    (if (/= (aref quail-current-key 0) ?q)
+		(or quail-current-str quail-current-key)
+	      ""))
+    (if (integerp control-flag)
+	(if (= control-flag 0)
+	    (setq quail-current-str (aref quail-current-key 0))
+	  (cond ((= (aref quail-current-key 0) ?n)
+		 (setq quail-current-str ?ん)
+		 (if (and quail-japanese-use-double-n
+			  (= (aref quail-current-key 1) ?n))
+		     (setq control-flag t)))
+		((= (aref quail-current-key 0) (aref quail-current-key 1))
+		 (setq quail-current-str ?っ))
+		(t
+		 (setq quail-current-str (aref quail-current-key 0))))
+	  (if (integerp control-flag)
+	      (setq unread-command-events
+		    (list (aref quail-current-key control-flag)))))))
+  control-flag)
 	 
 ;; Flag to control the behavior of `quail-japanese-toggle-kana'.
 (defvar quail-japanese-kana-state nil)
@@ -65,7 +70,10 @@
 	      (not quail-japanese-kana-state)))
     (if quail-japanese-kana-state
 	(japanese-hiragana-region start end)
-      (japanese-katakana-region start end))))
+      (japanese-katakana-region start end))
+    (setq quail-conversion-str
+	  (buffer-substring (overlay-start quail-conv-overlay)
+			    (overlay-end quail-conv-overlay)))))
 
 ;; Convert Hiragana in the current translation region to Kanji by KKC
 ;; (Kana Kanji Converter) utility.
@@ -77,6 +85,7 @@
     (quail-delete-overlays)
     (let ((result (kkc-region from to)))
       (move-overlay quail-conv-overlay from (point))
+      (setq quail-conversion-str (buffer-substring from (point)))
       (if (= (+ from result) (point))
 	  (setq quail-converting nil))
       (setq quail-translating nil))))
@@ -98,7 +107,9 @@
 
 (defun quail-japanese-switch-package (key idx)
   (quail-delete-region)
-  (setq quail-converting nil)
+  (setq quail-current-str nil
+	quail-converting nil
+	quail-conversion-str "")
   (let ((pkg (cdr (assq (aref key (1- idx)) quail-japanese-switch-table))))
     (if (null pkg)
 	(quail-error "No package to be switched")
