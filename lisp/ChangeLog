@@ -1,3 +1,9 @@
+2003-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: Rewrite one-armed `if'
+	constructs using either `when' or `unless'.
+	(hs-grok-mode-type): Elide superfluous `progn'; nfc.
+
 2003-10-16  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (breakpoint-xpm-data, breakpoint-enabled-pbm-data)
@@ -37,22 +43,22 @@
 	(set-fringe-style): Ditto.
 
 2003-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-mult.el (ediff-filegroup-action): Use
 	ediff-default-filtering-regexp.
-	
+
 	* ediff-util.el (ediff-recenter): Don't call
 	ediff-restore-highlighting twice.
 	(ediff-select-difference): Set current difference.
 	(ediff-unselect-and-select-difference): Added comment.
-	
+
 	* ediff.el (ediff-directories,ediff-directory-revisions)
 	(ediff-directories3,ediff-merge-directories)
 	(ediff-merge-directories-with-ancestor)
 	(ediff-merge-directory-revisions)
 	(ediff-merge-directory-revisions-with-ancestor): Use
 	ediff-default-filtering-regexp.
-	
+
 2003-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* international/mule-cmds.el (locale-charset-language-names):
