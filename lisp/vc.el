@@ -232,8 +232,9 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	 ))
      )))
 
-;; Here's the major entry point
+;; Here's the major entry point.
 
+;;;###autoload
 (defun vc-next-action (verbose)
   "Do the next logical checkin or checkout operation on the current file.
    If the file is not already registered, this registers it for version
@@ -299,6 +300,7 @@ the option to steal the lock."
 
 ;;; These functions help the vc-next-action entry point
 
+;;;###autoload
 (defun vc-register (&optional override)
   "Register the current file into your version-control system."
   (interactive "P")
@@ -473,6 +475,7 @@ popped up to accept a comment."
 
 ;; Additional entry points for examining version histories
 
+;;;###autoload
 (defun vc-diff (historic)
   "Display diffs between file versions."
   (interactive "P")
@@ -538,6 +541,7 @@ files in or below it."
 
 ;; Header-insertion code
 
+;;;###autoload
 (defun vc-insert-headers ()
   "Insert headers in a file for use with your version-control system.
 Headers desired are inserted at the start of the buffer, and are pulled from
@@ -567,6 +571,7 @@ the variable vc-header-strings"
 
 ;; Status-checking functions
 
+;;;###autoload
 (defun vc-directory (verbose)
   "Show version-control status of all files under the current directory."
   (interactive "P")
@@ -636,6 +641,7 @@ the variable vc-header-strings"
        dir)
       t)))
 
+;;;###autoload
 (defun vc-create-snapshot (name)
   "Make a snapshot called NAME.
 The snapshot is made from all registered files at or below the current
@@ -652,6 +658,7 @@ version becomes part of the named configuration."
      default-directory)
     ))
 
+;;;###autoload
 (defun vc-retrieve-snapshot (name)
   "Retrieve the snapshot called NAME.
 This function fails if any files are locked at or below the current directory
@@ -670,6 +677,7 @@ levels in the snapshot."
 
 ;; Miscellaneous other entry points
 
+;;;###autoload
 (defun vc-print-log ()
   "List the change log of the current buffer in a window."
   (interactive)
@@ -683,6 +691,7 @@ levels in the snapshot."
     )
   )
 
+;;;###autoload
 (defun vc-revert-buffer ()
   "Revert the current buffer's file back to the latest version."
   (interactive)
@@ -700,6 +709,7 @@ levels in the snapshot."
     )
   )
 
+;;;###autoload
 (defun vc-cancel-version (norevert)
   "Undo your latest checkin."
   (interactive "P")
@@ -744,6 +754,7 @@ levels in the snapshot."
 		       nil)
   )
 
+;;;###autoload
 (defun vc-update-change-log ()
   "Find change log file and add entries from recent RCS logs."
   (interactive)

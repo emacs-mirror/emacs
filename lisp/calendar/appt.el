@@ -384,6 +384,7 @@ The time should be in either 24 hour format or am/pm format."
 ;;                 Wednesday
 ;;                   10:00am group meeting"
 
+;;;###autoload
 (defun appt-make-list ()
   (setq appt-time-msg-list nil)
 

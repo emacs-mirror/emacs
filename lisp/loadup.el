@@ -90,6 +90,8 @@
     (progn		; floating pt. functions if 
       (garbage-collect)	; we have float support.
       (load "float-sup")))
+(garbage-collect)
+(load "vc-hooks")
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
