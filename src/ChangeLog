@@ -1,3 +1,8 @@
+2000-12-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* process.c (read_process_output): Don't run a filter if the code
+	decoder produces nothing but carryover.
+
 2000-12-17  Andrew Innes  <andrewi@gnu.org>
 
 	* w32.c (sys_rename): Only check errno against EEXIST, and not
