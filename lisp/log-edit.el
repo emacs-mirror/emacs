@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.8 2000/10/24 11:27:41 fx Exp $
+;; Revision: $Id: log-edit.el,v 1.9 2000/10/30 14:28:30 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -62,6 +62,23 @@
   :group 'log-edit
   :inherit (if (boundp 'vc-log-entry-mode) vc-log-entry-mode
 	     (if (boundp 'vc-log-mode-map) vc-log-mode-map)))
+
+(easy-menu-define log-edit-menu log-edit-mode-map
+  "Menu used for `log-edit-mode'."
+  '("Log-Edit"
+    ["Done" log-edit-done
+     :help "Exit log-edit and proceed with the actual action."]
+    "--"
+    ["Insert ChangeLog" log-edit-insert-changelog]
+    ["Add to ChangeLog" log-edit-add-to-changelog]
+    "--"
+    ["List files" log-edit-show-files
+     :help "Show the list of relevant files."]
+    "--"
+    ["Previous comment" vc-previous-comment]
+    ["Next comment" vc-next-comment]
+    ["Search comment forward" vc-comment-search-forward]
+    ["Search comment backward" vc-comment-search-reverse]))
 
 (defcustom log-edit-confirm 'changed
   "*If non-nil, `log-edit-done' will request confirmation.
