@@ -29,6 +29,10 @@
 
 ;;; Code:
 
+;; extract-rectangle-line stores lines into this list
+;; to accumulate them for extract-rectangle and delete-extract-rectangle.
+(defvar operate-on-rectangle-lines)
+
 (defun operate-on-rectangle (function start end coerce-tabs)
   "Call FUNCTION for each line of rectangle with corners at START, END.
 If COERCE-TABS is non-nil, convert multi-column characters
@@ -95,7 +99,7 @@ Point is at the end of the segment of this line within the rectangle."
 	(setq line (concat (spaces-string begextra)
 			   line
 			   (spaces-string endextra))))
-    (setq lines (cons line lines))))
+    (setq operate-on-rectangle-lines (cons line operate-on-rectangle-lines))))
 
 (defconst spaces-strings
   '["" " " "  " "   " "    " "     " "      " "       " "        "])
@@ -121,18 +125,18 @@ where the region begins and ending with the line where the region ends."
   "Delete contents of rectangle and return it as a list of strings.
 Arguments START and END are the corners of the rectangle.
 The value is list of strings, one for each line of the rectangle."
-  (let (lines)
+  (let (operate-on-rectangle-lines)
     (operate-on-rectangle 'delete-extract-rectangle-line
 			  start end t)
-    (nreverse lines)))
+    (nreverse operate-on-rectangle-lines)))
 
 ;;;###autoload
 (defun extract-rectangle (start end)
   "Return contents of rectangle with corners at START and END.
 Value is list of strings, one for each line of the rectangle."
-  (let (lines)
+  (let (operate-on-rectangle-lines)
     (operate-on-rectangle 'extract-rectangle-line start end nil)
-    (nreverse lines)))
+    (nreverse operate-on-rectangle-lines)))
 
 (defvar killed-rectangle nil
   "Rectangle for yank-rectangle to insert.")
@@ -217,6 +221,9 @@ rectangle, all continuous whitespace starting at that column is deleted."
 					      (point)))))
 			start end t))
 
+;; string-rectangle uses this variable to pass the string
+;; to string-rectangle-line.
+(defvar string-rectangle-string)
 
 ;;;###autoload
 (defun string-rectangle (start end string)
@@ -226,7 +233,8 @@ This command does not delete or overwrite any existing text.
 
 Called from a program, takes three args; START, END and STRING."
   (interactive "r\nsString rectangle: ")
-  (operate-on-rectangle 'string-rectangle-line start end t))
+  (let ((string-rectangle-string string))
+    (operate-on-rectangle 'string-rectangle-line start end t)))
 
 (defun string-rectangle-line (startpos begextra endextra)
   (let (whitespace)
@@ -238,7 +246,7 @@ Called from a program, takes three args; START, END and STRING."
     ;; Delete the following whitespace.
     (delete-region startpos (point))
     ;; Insert the desired string.
-    (insert string)
+    (insert string-rectangle-string)
     ;; Insert the same width of whitespace that we had before.
     (indent-to (+ (current-column) whitespace))))
 
