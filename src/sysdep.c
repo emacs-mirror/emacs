@@ -2740,7 +2740,7 @@ signal_handler_t
 sys_signal (int signal_number, signal_handler_t action)
 {
   sigemptyset (&new_action.sa_mask);
-  new_action.sa_handler = (void (*)(int)) action;
+  new_action.sa_handler = action;
 #ifdef SA_RESTART
   /* Emacs mostly works better with restartable system services. If this
    * flag exists, we probably want to turn it on here.
@@ -2750,7 +2750,7 @@ sys_signal (int signal_number, signal_handler_t action)
   new_action.sa_flags = 0;
 #endif
   sigaction (signal_number, &new_action, &old_action);
-  return ((void (*)(int)) old_action.sa_handler);
+  return (old_action.sa_handler);
 }
 
 #ifndef __GNUC__
