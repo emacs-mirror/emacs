@@ -524,7 +524,7 @@ This filter may simply queue output for a later time."
     ("signal" gdb-stopping)
     ("breakpoint" gdb-stopping)
     ("watchpoint" gdb-stopping)
-    ("frame-begin" gdb-frame-begin)
+;    ("frame-begin" gdb-frame-begin)
     ("stopped" gdb-stopped)
     ("display-begin" gdb-display-begin)
     ("display-end" gdb-display-end)
@@ -665,7 +665,8 @@ output from the current command if that happens to be appropriate."
 	(gdb-get-current-frame)
 	(gdb-invalidate-registers ignored)
 	(gdb-invalidate-locals ignored)
-	(gdb-invalidate-display ignored)))
+	(gdb-invalidate-display ignored)
+	(gdb-invalidate-threads)))
   (let ((sink (gdb-get-output-sink)))
     (cond
      ((eq sink 'user) t)
@@ -1572,6 +1573,82 @@ the source buffer."
   (gdb-frames-select))
 
 ;;
+;; Threads buffer.  This displays a selectable thread list.
+;;
+(gdb-set-buffer-rules 'gdb-threads-buffer
+		      'gdb-threads-buffer-name
+		      'gdb-threads-mode)
+
+(def-gdb-auto-updated-buffer gdb-threads-buffer
+  gdb-invalidate-threads
+  "info threads\n"
+  gdb-info-threads-handler
+  gdb-info-threads-custom)
+
+(defun gdb-info-threads-custom ()
+  (save-excursion
+    (set-buffer (gdb-get-buffer 'gdb-threads-buffer))
+    (let ((buffer-read-only nil))
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+	(put-text-property (progn (beginning-of-line) (point))
+			   (progn (end-of-line) (point))
+			   'mouse-face 'highlight)
+	(forward-line 1)))))
+
+(defun gdb-threads-buffer-name ()
+  (with-current-buffer gud-comint-buffer
+    (concat "*threads of " (gdb-get-target-string) "*")))
+
+(defun gdb-display-threads-buffer ()
+  (interactive)
+  (gdb-display-buffer
+   (gdb-get-create-buffer 'gdb-threads-buffer)))
+
+(defun gdb-frame-threads-buffer ()
+  (interactive)
+  (switch-to-buffer-other-frame
+   (gdb-get-create-buffer 'gdb-threads-buffer)))
+
+(defvar gdb-threads-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "\r" 'gdb-threads-select)
+    (define-key map [mouse-2] 'gdb-threads-mouse-select)
+    map))
+
+(defun gdb-threads-mode ()
+  "Major mode for gdb frames.
+
+\\{gdb-frames-mode-map}"
+  (setq major-mode 'gdb-threads-mode)
+  (setq mode-name "Threads")
+  (setq buffer-read-only t)
+  (use-local-map gdb-threads-mode-map)
+  (gdb-invalidate-threads))
+
+(defun gdb-get-thread-number ()
+  (save-excursion
+    (re-search-backward "^\\s-*\\([0-9]*\\)" nil t)
+    (match-string-no-properties 1)))
+
+
+(defun gdb-threads-select ()
+  "Make the thread on the current line become the current thread and display the
+source in the source buffer."
+  (interactive)
+  (gdb-enqueue-input
+   (list (concat "thread " (gdb-get-thread-number) "\n") 'ignore))
+  (gud-display-frame))
+
+(defun gdb-threads-mouse-select (event)
+  "Make the selected frame become the current frame and display the source in
+the source buffer."
+  (interactive "e")
+  (mouse-set-point event)
+  (gdb-threads-select))
+
+;;
 ;; Registers buffer.
 ;;
 (gdb-set-buffer-rules 'gdb-registers-buffer
@@ -1900,6 +1977,7 @@ the source buffer."
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer))
   (define-key menu [display] '("Display" . gdb-display-display-buffer))
+  (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
   (define-key menu [assembler] '("Assembler" . gdb-display-assembler-buffer)))
 
 (defun gdb-frame-gdb-buffer ()
@@ -1916,6 +1994,7 @@ the source buffer."
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
   (define-key menu [display] '("Display" . gdb-frame-display-buffer))
+  (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
   (define-key menu [assembler] '("Assembler" . gdb-frame-assembler-buffer)))
 
 (defvar gdb-main-file nil "Source file from which program execution begins.")
@@ -2246,11 +2325,11 @@ BUFFER nil or omitted means use the current buffer."
 	(save-excursion
 	  (set-buffer gud-comint-buffer)
 	  (let ((queue gdb-idle-input-queue) (item))
-	    (while queue
+	    (dolist (item queue)
 	      (setq item (car queue))
 	      (if (equal (cdr item) '(gdb-assembler-handler))
-		  (delete item gdb-idle-input-queue))
-	      (setq queue (cdr queue)))))
+		  (setq gdb-idle-input-queue 
+			(delete item gdb-idle-input-queue))))))
 	(gdb-enqueue-idle-input
 	 (list (concat "server disassemble " gdb-main-or-pc "\n")
 	       'gdb-assembler-handler))
