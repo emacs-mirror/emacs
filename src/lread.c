@@ -1503,14 +1503,21 @@ read_multibyte (c, readcharfun)
   return str[0];
 }
 
-/* Read a \-escape sequence, assuming we already read the `\'.  */
+/* Read a \-escape sequence, assuming we already read the `\'.
+   If the escape sequence forces unibyte, store 1 into *BYTEREP.
+   If the escape sequence forces multibyte, store 2 into *BYTEREP.
+   Otherwise store 0 into *BYTEREP.  */
 
 static int
-read_escape (readcharfun, stringp)
+read_escape (readcharfun, stringp, byterep)
      Lisp_Object readcharfun;
      int stringp;
+     int *byterep;
 {
   register int c = READCHAR;
+
+  *byterep = 0;
+
   switch (c)
     {
     case -1:
@@ -1547,7 +1554,7 @@ read_escape (readcharfun, stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun, 0, byterep);
       return c | meta_modifier;
 
     case 'S':
@@ -1556,7 +1563,7 @@ read_escape (readcharfun, stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun, 0, byterep);
       return c | shift_modifier;
 
     case 'H':
@@ -1565,7 +1572,7 @@ read_escape (readcharfun, stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun, 0, byterep);
       return c | hyper_modifier;
 
     case 'A':
@@ -1574,7 +1581,7 @@ read_escape (readcharfun, stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun, 0, byterep);
       return c | alt_modifier;
 
     case 's':
@@ -1583,7 +1590,7 @@ read_escape (readcharfun, stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun, 0, byterep);
       return c | super_modifier;
 
     case 'C':
@@ -1593,7 +1600,7 @@ read_escape (readcharfun, stringp)
     case '^':
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun, 0, byterep);
       if ((c & ~CHAR_MODIFIER_MASK) == '?')
 	return 0177 | (c & CHAR_MODIFIER_MASK);
       else if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
@@ -1632,6 +1639,8 @@ read_escape (readcharfun, stringp)
 		break;
 	      }
 	  }
+	
+	*byterep = 1;
 	return i;
       }
 
@@ -1662,6 +1671,8 @@ read_escape (readcharfun, stringp)
 		break;
 	      }
 	  }
+
+	*byterep = 2;
 	return i;
       }
 
@@ -2115,12 +2126,14 @@ read1 (readcharfun, pch, first_in_list)
 
     case '?':
       {
+	int discard;
+
 	c = READCHAR;
 	if (c < 0)
 	  end_of_file_error ();
 
 	if (c == '\\')
-	  c = read_escape (readcharfun, 0);
+	  c = read_escape (readcharfun, 0, &discard);
 	else if (BASE_LEADING_CODE_P (c))
 	  c = read_multibyte (c, readcharfun);
 
@@ -2155,7 +2168,9 @@ read1 (readcharfun, pch, first_in_list)
 
 	    if (c == '\\')
 	      {
-		c = read_escape (readcharfun, 1);
+		int byterep;
+
+		c = read_escape (readcharfun, 1, &byterep);
 
 		/* C is -1 if \ newline has just been seen */
 		if (c == -1)
@@ -2165,11 +2180,10 @@ read1 (readcharfun, pch, first_in_list)
 		    continue;
 		  }
 
-		/* If an escape specifies a non-ASCII single-byte character,
-		   this must be a unibyte string.  */
-		if (SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK))
-		    && ! ASCII_BYTE_P ((c & ~CHAR_MODIFIER_MASK)))
+		if (byterep == 1)
 		  force_singlebyte = 1;
+		else if (byterep == 2)
+		  force_multibyte = 1;
 	      }
 
 	    if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
