@@ -1181,7 +1181,7 @@ timing measurements of code (including the garbage collection component).
 
 ** The variable `face-font-rescale-alist' specifies how much larger
 (or smaller) font we should use.  For instance, if the value is
-'((SOME-FONTNAME-PATTERN . 1.3) and a face requests a font of 10
+'((SOME-FONTNAME-PATTERN . 1.3)) and a face requests a font of 10
 point, we actually use a font of 13 point if the font matches
 SOME-FONTNAME-PATTERN.
 
