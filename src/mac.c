@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include <errno.h>
+#include <time.h>
 #include <utime.h>
 #include <dirent.h>
 #include <sys/types.h>

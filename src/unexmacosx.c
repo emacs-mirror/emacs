@@ -99,7 +99,12 @@ Boston, MA 02111-1307, USA.  */
 #if defined (__ppc__)
 #include <mach-o/ppc/reloc.h>
 #endif
+#if defined (HAVE_MALLOC_MALLOC_H)
+#include <malloc/malloc.h>
+#else
 #include <objc/malloc.h>
+#endif
+
 
 #define VERBOSE 1
 

@@ -1,3 +1,12 @@
+2004-10-08  Steven Tamm  <steventamm@mac.com>
+
+	* config.in (HAVE_MALLOC_MALLOC_H): Regenerate
+	* macterm.c (mac_check_for_quit_char): Remove warning for using
+	NULL where 0 should be used
+	* unexmacosx.c: Use malloc/malloc.h on Tiger instead of
+	objc/malloc.h
+	* mac.c: Include time.h for Tiger compatibility
+
 2004-10-07  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Fix flicker on vertical line between
