@@ -2715,7 +2715,7 @@ init_syntax_once ()
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
 
   /* Create objects which can be shared among syntax tables.  */
-  Vsyntax_code_object = Fmake_vector (13, Qnil);
+  Vsyntax_code_object = Fmake_vector (make_number (13), Qnil);
   for (i = 0; i < XVECTOR (Vsyntax_code_object)->size; i++)
     XVECTOR (Vsyntax_code_object)->contents[i]
       = Fcons (make_number (i), Qnil);
