@@ -1492,7 +1492,7 @@ make_menubar (instance)
   ac = 0;
   XtSetArg(al[ac], XmNmenuAccelerator, 0); ++ac;
 
-#ifdef LESSTIF_VERSION
+#if 0
   /* As of 2000-01-17, the LessTif menu bar resizes to height 0 when
      all its children are removed, causing an annoying flickering
      behavior.  Prevent that by not allowing resizing.  */
