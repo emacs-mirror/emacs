@@ -734,3 +734,4 @@ ACTION and ARG should be legal convert command."
 ;;; thumbs.el ends here
 
 
+;;; arch-tag: f9ac1ef8-83fc-42c0-8069-1fae43fd2e5c
