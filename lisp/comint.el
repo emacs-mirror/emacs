@@ -559,6 +559,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
   (define-key comint-mode-map "\C-c\C-s" 'comint-write-output)
+  (define-key comint-mode-map "\C-c." 'comint-insert-previous-argument)
   ;; Mouse Buttons:
   (define-key comint-mode-map [mouse-2] 'comint-insert-clicked-input)
   ;; Menu bars:
@@ -1970,6 +1971,7 @@ This function could be in the list `comint-output-filter-functions'."
 	(comint-snapshot-last-prompt))
     (comint-snapshot-last-prompt))
   (process-send-region process start end))
+
 
 ;; Random input hackage
 
@@ -2197,6 +2199,58 @@ the beginning of the Nth previous `input' field, otherwise, it means the Nth
 occurance of text matching `comint-prompt-regexp'."
   (interactive "p")
   (comint-next-prompt (- n)))
+
+;; State used by `comint-insert-previous-argument' when cycling.
+(defvar comint-insert-previous-argument-last-start-pos nil)
+(make-variable-buffer-local 'comint-insert-previous-argument-last-start-pos)
+(defvar comint-insert-previous-argument-last-index nil)
+(make-variable-buffer-local 'comint-insert-previous-argument-last-index)
+
+;; Needs fixing:
+;;  make comint-arguments understand negative indices as bash does
+(defun comint-insert-previous-argument (index)
+  "Insert the INDEXth argument from the previous comint command-line at point.
+Spaces are added at beginning and/or end of the inserted string if
+necessary to ensure that it's separated from adjacent arguments.
+Interactively, if no prefix argument is given, the last argument is inserted.
+Repeated interactive invocations will cycle through the same argument
+from progressively earlier commands (using the value of INDEX specified
+with the first command).
+This command is like `M-.' in bash."
+  (interactive "P")
+  (unless (null index)
+    (setq index (prefix-numeric-value index)))
+  (cond ((eq last-command this-command)
+	 ;; Delete last input inserted by this command.
+	 (delete-region comint-insert-previous-argument-last-start-pos (point))
+	 (setq index comint-insert-previous-argument-last-index))
+	(t
+	 ;; This is a non-repeat invocation, so initialize state.
+	 (setq comint-input-ring-index nil)
+	 (setq comint-insert-previous-argument-last-index index)
+	 (when (null comint-insert-previous-argument-last-start-pos)
+	   ;; First usage; initialize to a marker
+	   (setq comint-insert-previous-argument-last-start-pos
+		 (make-marker)))))
+  ;; Make sure we're not in the prompt, and add a beginning space if necess.
+  (if (<= (point) (comint-line-beginning-position))
+      (comint-bol)
+    (just-one-space))
+  ;; Remember the beginning of what we insert, so we can delete it if
+  ;; the command is repeated.
+  (set-marker comint-insert-previous-argument-last-start-pos (point))
+  ;; Insert the argument.
+  (let ((input-string (comint-previous-input-string 0)))
+    (when (string-match "[ \t\n]*&" input-string)
+      ;; strip terminating '&'
+      (setq input-string (substring input-string 0 (match-beginning 0))))
+    (insert (comint-arguments input-string index index)))
+  ;; Make next invocation return arg from previous input
+  (setq comint-input-ring-index (1+ (or comint-input-ring-index 0)))
+  ;; Add a terminating space if necessary.
+  (unless (eolp)
+    (just-one-space)))
+
 
 ;; Support for source-file processing commands.
 ;;============================================================================
@@ -2745,6 +2799,7 @@ Typing SPC flushes the help buffer."
 	(if (eq first ?\ )
 	    (set-window-configuration conf)
 	  (setq unread-command-events (listify-key-sequence key)))))))
+
 
 (defun comint-get-next-from-history ()
   "After fetching a line from input history, this fetches the following line.
@@ -3161,6 +3216,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 	"^No history$"
 	"^Not found$"			; Too common?
 	"^Current buffer has no process$"))
+
 
 ;; Converting process modes to use comint mode
 ;; ===========================================================================
@@ -3245,6 +3301,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;; You could use comint-dynamic-simple-complete to do the bulk of the
 ;; completion job.
 
+
 (provide 'comint)
 
 ;;; comint.el ends here
