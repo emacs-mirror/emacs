@@ -16,10 +16,12 @@ info
 message
 mh-e
 mh-e-[1-9]*
+pgg
 reftex
 reftex-[1-9]*
 sc
 sc-[1-9]*
+sieve
 vip
 vip-[1-9]*
 viper
