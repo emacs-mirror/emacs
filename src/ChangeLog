@@ -1,5 +1,21 @@
 2000-06-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (display_line): Set row's and iterator's
+	starts_in_middle_of_char_p and ends_in_middle_of_char_p flags.
+	Set cursor even if row ends in the middle of a character.
+	(dump_glyph_row): Print values of new flags.
+	(redisplay_window) <cursor movement in unchanged window>: When
+	point has been moved forward, and PT is at the end of the cursor
+	row, don't place the cursor in the next row if the cursor row ends
+	in the middle of a character or at ZV.
+
+	* dispextern.h (struct it): Add starts_in_middle_of_char_p.
+	(struct glyph_row): Add starts_in_middle_of_char_p and
+	ends_in_middle_of_char_p.
+	(MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P): Test row's
+	ends_in_middle_of_char_p flag.
+	(MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P): Likewise.
+
 	* term.c (append_glyph): Revert change of 2000-06-06.
 
 	* xdisp.c (display_line): Revert change of 2000-06-06.  Treat
