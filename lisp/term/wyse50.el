@@ -37,58 +37,6 @@
 
 ;;; Code:
 
-;;; Functions especially for this terminal.
-
-(defun wyse-50-insert-line ()
-  "Insert an empty line."
-  (interactive)
-  (beginning-of-line)
-  (open-line 1))
-
-(defun wyse-50-delete-line ()
-  "Delete all of the current line."
-  (interactive)
-  (beginning-of-line)
-  (kill-line 1))
-
-(defun wyse-50-insert-char ()
-  "Insert a space, even in overwrite mode."
-  (interactive)
-  (insert ? ))
-
-(defun wyse-50-print-buffer ()
-  "Like ``print-buffer'', but verifies before printing.
-The `print' key is easy to hit on a Wyse 50."
-  (interactive)
-  (if (y-or-n-p
-       (concat "Print buffer "
-	       (buffer-name) "? "))
-      (print-buffer)))
-
-(defun wyse-50-top-of-window (n)
-  "Move point to the top line of the current window.
-With an argument N, move to the Nth line of the window."
-  (interactive "p")
-  (move-to-window-line (1- n)))
-
-(defun wyse-50-bottom-of-window (n)
-  "Move point to the last line of the current window.
-With an argument N, move to the Nth line from the bottom of the window."
-  (interactive "p")
-  (move-to-window-line (- n)))
-
-(defun wyse-50-toggle-screen-width ()
-  "Alternate between 80 and 132 columns."
-  (interactive)
-  (if (<= (frame-width) 80)
-      (progn
-	(send-string-to-terminal "\e`;")
-	(set-frame-width 131))
-    (send-string-to-terminal "\e`:")
-    (set-frame-width 79)))
-
-
-;;; Define the escape sequences for the function keys.
 (define-key function-key-map "\C-a" (make-keymap))
 (mapcar (function (lambda (key-definition)
 		    (define-key function-key-map
