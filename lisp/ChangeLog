@@ -1,3 +1,9 @@
+2004-08-21  Peter Seibel  <peter@javamonkey.com>  (tiny patch)
+
+	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): Correct
+	indentation of DEFMETHODS with non-standard method
+	combinations (e.g., PROGN, MIN, MAX).
+
 2004-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-parse.el (cvs-parse-table, cvs-parse-commit): Try to adapt to

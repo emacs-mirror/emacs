@@ -1,3 +1,8 @@
+2004-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.texi (Misc Help): Add an index entry for finding an Info
+	manual by its file name.
+
 2004-08-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi (Backup Deletion): Correct description of
