@@ -170,7 +170,7 @@ int region_face;
    does not specify that display aspect.  */
 #define FACE_DEFAULT (~0)
 
-Lisp_Object Qface, Qwindow, Qpriority;
+Lisp_Object Qface;
 
 static void build_face ( /* FRAME_PTR, struct face * */ );
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
@@ -700,26 +700,6 @@ compute_base_face (f, face)
 }
 
 
-struct sortvec
-{
-  Lisp_Object overlay;
-  int beg, end;
-  int priority;
-};
-
-static int
-sort_overlays (s1, s2)
-     struct sortvec *s1, *s2;
-{
-  if (s1->priority != s2->priority)
-    return s1->priority - s2->priority;
-  if (s1->beg != s2->beg)
-    return s1->beg - s2->beg;
-  if (s1->end != s2->end)
-    return s2->end - s1->end;
-  return 0;
-}
-
 /* Return the face ID associated with a buffer position POS.
    Store into *ENDPTR the position at which a different face is needed.
    This does not take account of glyphs that specify their own face codes.
@@ -745,7 +725,6 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
   int i, j, noverlays;
   int facecode;
   Lisp_Object *overlay_vec;
-  struct sortvec *sortvec;
   Lisp_Object frame;
   int endpos;
 
@@ -811,52 +790,12 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
 	merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
     }
 
-  /* Put the valid and relevant overlays into sortvec.  */
-  sortvec = (struct sortvec *) alloca (noverlays * sizeof (struct sortvec));
-
-  for (i = 0, j = 0; i < noverlays; i++)
-    {
-      Lisp_Object overlay = overlay_vec[i];
-
-      if (OVERLAY_VALID (overlay)
-	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
-	  && OVERLAY_POSITION (OVERLAY_END (overlay)) > 0)
-	{
-	  Lisp_Object window;
-	  window = Foverlay_get (overlay, Qwindow);
-
-	  /* Also ignore overlays limited to one window
-	     if it's not the window we are using.  */
-	  if (XTYPE (window) != Lisp_Window
-	      || XWINDOW (window) == w)
-	    {
-	      Lisp_Object tem;
-
-	      /* This overlay is good and counts:
-		 put it in sortvec.  */
-	      sortvec[j].overlay = overlay;
-	      sortvec[j].beg = OVERLAY_POSITION (OVERLAY_START (overlay));
-	      sortvec[j].end = OVERLAY_POSITION (OVERLAY_END (overlay));
-	      tem = Foverlay_get (overlay, Qpriority);
-	      if (INTEGERP (tem))
-		sortvec[j].priority = XINT (tem);
-	      else
-		sortvec[j].priority = 0;
-	      j++;
-	    }
-	}
-    }
-  noverlays = j;
-
-  /* Sort the overlays into the proper order: increasing priority.  */
-
-  if (noverlays > 1)
-    qsort (sortvec, noverlays, sizeof (struct sortvec), sort_overlays);
+  noverlays = sort_overlays (overlay_vec, noverlays, w);
 
   /* Now merge the overlay data in that order.  */
   for (i = 0; i < noverlays; i++)
     {
-      prop = Foverlay_get (sortvec[i].overlay, Qface);
+      prop = Foverlay_get (overlay_vec[i], Qface);
       if (!NILP (prop))
 	{
 	  Lisp_Object oend;
@@ -867,7 +806,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr, limit)
 	      && FRAME_PARAM_FACES (f) [facecode] != 0)
 	    merge_faces (FRAME_PARAM_FACES (f) [facecode], &face);
 
-	  oend = OVERLAY_END (sortvec[i].overlay);
+	  oend = OVERLAY_END (overlay_vec[i]);
 	  oendpos = OVERLAY_POSITION (oend);
 	  if (oendpos < endpos)
 	    endpos = oendpos;
@@ -1102,12 +1041,8 @@ face_name_id_number (f, name)
 void
 syms_of_xfaces ()
 {
-  Qwindow = intern ("window");
-  staticpro (&Qwindow);
   Qface = intern ("face");
   staticpro (&Qface);
-  Qpriority = intern ("priority");
-  staticpro (&Qpriority);
 
   DEFVAR_INT ("region-face", &region_face,
     "Face number to use to highlight the region\n\
