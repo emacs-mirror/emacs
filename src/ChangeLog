@@ -1,5 +1,11 @@
 2000-06-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* term.c (append_glyph): Revert change of 2000-06-06.
+
+	* xdisp.c (display_line): Revert change of 2000-06-06.  Treat
+	padding glyph not fitting on line as whole character not
+	fitting on line.
+
 	* xterm.c (x_produce_glyphs): Don't xassert `it->descent > 0';
 	this isn't true for images with `:ascent 100'.
 
