@@ -474,12 +474,14 @@ the face is also set; its value is the face name."
       (if font-lock-no-comments
 	  (remove-text-properties beg end '(face nil))
 	(font-lock-fontify-region beg end))
-      ;; Now scan for keywords, but not if we are inside a comment now.
-      (or (and (not font-lock-no-comments)
-	       (let ((state (parse-partial-sexp beg end nil nil 
-						font-lock-cache-state)))
-		 (or (nth 4 state) (nth 7 state))))
-	  (font-lock-hack-keywords beg end)))))
+      (font-lock-hack-keywords beg end))))
+
+;      ;; Now scan for keywords, but not if we are inside a comment now.
+;      (or (and (not font-lock-no-comments)
+;	       (let ((state (parse-partial-sexp beg end nil nil 
+;						font-lock-cache-state)))
+;		 (or (nth 4 state) (nth 7 state))))
+;	  (font-lock-hack-keywords beg end))
 
 ;;; Fontifying arbitrary patterns
 
@@ -721,7 +723,7 @@ This does fairly subdued highlighting.")
     '("\\\\\\\\\\[\\([^]\\\n]+\\)]" 1 font-lock-reference-face t)
     ;;
     ;; Words inside `' which tend to be function names
-    (let ((word-char "[-+a-zA-Z0-9_.*]"))
+    (let ((word-char "[-+a-zA-Z0-9_:*]"))
       (list (concat "`\\(" word-char word-char "+\\)'")
 	    1 'font-lock-reference-face t))
     ;;
