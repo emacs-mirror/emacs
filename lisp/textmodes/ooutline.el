@@ -139,7 +139,7 @@ in the file it applies to.")
 
 (defvar outline-font-lock-keywords
   '(;; Highlight headings according to the level.
-    ("^\\(\\*+\\)[ \t]*\\(.+\\)?[ \t]*$"
+    ("^\\([*]+\\)[ \t]*\\([^\n\r]+\\)?[ \t]*[\n\r]"
      (1 font-lock-string-face)
      (2 (let ((len (- (match-end 1) (match-beginning 1))))
 	  (or (cdr (assq len '((1 . font-lock-function-name-face)
