@@ -161,7 +161,6 @@ external version.  UNIX users may prefer this variable to be \."
 
 (defun eshell-ext-initialize ()
   "Initialize the external command handling code."
-  (make-local-hook 'eshell-named-command-hook)
   (add-hook 'eshell-named-command-hook 'eshell-explicit-command nil t))
 
 (defun eshell-explicit-command (command args)
