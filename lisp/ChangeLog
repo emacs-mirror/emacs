@@ -1,3 +1,14 @@
+2004-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only): Update docstring.
+
+	* comint.el (comint-prompt-read-only): Update docstring.
+	(comint-update-fence, comint-kill-whole-line)
+	(comint-kill-region): New functions.
+
+	* simple.el (kill-whole-line): Use "p" instead of "P" in
+	interactive form".
+
 2004-05-01  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (help-add-fundoc-usage): Use %S instead of %s to
