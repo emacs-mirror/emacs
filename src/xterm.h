@@ -17,16 +17,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifdef HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
-#else
-#include <X/Xlib.h>
-#endif /* HAVE_X11 */
 
 #ifdef USE_X_TOOLKIT
 #include <X11/StringDefs.h>
@@ -145,22 +141,43 @@ extern Visual *select_visual ();
 enum text_cursor_kinds {
   filled_box_cursor, hollow_box_cursor, bar_cursor
 };
+
+/* This data type is used for the font_table field
+   of struct x_display_info.  */
+
+struct font_info
+{
+  XFontStruct *font;
+  char *name;
+  char *full_name;
+};
+
+/* Structure recording X pixmap and reference count.
+   If REFCOUNT is 0 then this record is free to be reused.  */
+
+struct x_bitmap_record
+{
+  Pixmap pixmap;
+  char *file;
+  int refcount;
+  /* Record some info about this pixmap.  */
+  int height, width, depth;
+};
 
 /* For each X display, we have a structure that records
    information about it.  */
 
 struct x_display_info
 {
-  /* Chain of all x_display structures.  */
+  /* Chain of all x_display_info structures.  */
   struct x_display_info *next;
   /* Connection number (normally a file descriptor number).  */
   int connection;
   /* This says how to access this display in Xlib.  */
   Display *display;
-  /* This records previous values returned by x-list-fonts.  */
-  Lisp_Object font_list_cache;
-  /* The name of this display.  */
-  Lisp_Object name;
+  /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
+     The same cons cell also appears in x_display_name_list.  */
+  Lisp_Object name_list_element;
   /* Number of frames that are on this display.  */
   int reference_count;
   /* The Screen this connection is connected to.  */
@@ -178,9 +195,57 @@ struct x_display_info
   int icon_bitmap_id;
   /* The root window of this screen.  */
   Window root_window;
-
+  /* The cursor to use for vertical scroll bars.  */
+  Cursor vertical_scroll_bar_cursor;
   /* X Resource data base */
   XrmDatabase xrdb;
+
+  /* A table of all the fonts we have already loaded.  */
+  struct font_info *font_table;
+
+  /* The current capacity of x_font_table.  */
+  int font_table_size;
+
+  /* Reusable Graphics Context for drawing a cursor in a non-default face. */
+  GC scratch_cursor_gc;
+
+  /* These variables describe the range of text currently shown
+     in its mouse-face, together with the window they apply to.
+     As long as the mouse stays within this range, we need not
+     redraw anything on its account.  */
+  int mouse_face_beg_row, mouse_face_beg_col;
+  int mouse_face_end_row, mouse_face_end_col;
+  int mouse_face_past_end;
+  Lisp_Object mouse_face_window;
+  int mouse_face_face_id;
+
+  /* 1 if a mouse motion event came and we didn't handle it right away because
+     gc was in progress.  */
+  int mouse_face_deferred_gc;
+
+  /* FRAME and X, Y position of mouse when last checked for
+     highlighting.  X and Y can be negative or out of range for the frame.  */
+  struct frame *mouse_face_mouse_frame;
+  int mouse_face_mouse_x, mouse_face_mouse_y;
+
+  /* Nonzero means defer mouse-motion highlighting.  */
+  int mouse_face_defer;
+
+  char *x_id_name;
+
+  /* The number of fonts actually stored in x_font_table.
+     font_table[n] is used and valid iff 0 <= n < n_fonts.
+     0 <= n_fonts <= font_table_size.  */
+  int n_fonts;
+
+  /* Pointer to bitmap records.  */
+  struct x_bitmap_record *bitmaps;
+
+  /* Allocated size of bitmaps field.  */
+  int bitmaps_size;
+
+  /* Last used bitmap index.  */
+  int bitmaps_last;
 
   /* Which modifier keys are on which modifier bits?
 
@@ -229,6 +294,12 @@ struct x_display_info
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
 
+/* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
+   one for each element of x_display_list and in the same order.
+   NAME is the name of the frame.
+   FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
+extern Lisp_Object x_display_name_list;
+
 extern struct x_display_info *x_display_info_for_display ();
 extern struct x_display_info *x_display_info_for_name ();
 
@@ -253,7 +324,6 @@ struct x_display
   /* Height of a line, in pixels.  */
   int line_height;
 
-#ifdef HAVE_X11
   /* The tiled border used when the mouse is out of the frame.  */
   Pixmap border_tile;
 
@@ -261,7 +331,6 @@ struct x_display
   GC normal_gc;				/* Normal video */
   GC reverse_gc;			/* Reverse video */
   GC cursor_gc;				/* cursor drawing */
-#endif /* HAVE_X11 */
 
   /* Width of the internal border.  This is a line of background color
      just inside the window's border.  When the frame is selected,
@@ -309,14 +378,10 @@ struct x_display
   unsigned long cursor_foreground_pixel;
 
   /* Descriptor for the cursor in use for this window.  */
-#ifdef HAVE_X11
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
   Cursor cross_cursor;
-#else
-  Cursor cursor;
-#endif
 
   /* The name that was associated with the icon, the last time
      it was refreshed.  Usually the same as the name of the
