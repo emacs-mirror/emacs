@@ -2266,7 +2266,7 @@ x_window (f, window_prompting, minibuffer_only)
 
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
-        Dimension ibw;
+        Dimension ibw = 0;
         XtVaGetValues (pane_widget, XtNinternalBorderWidth, &ibw, NULL);
         menubar_size += ibw;
       }
@@ -2667,9 +2667,11 @@ This function is an internal primitive--use `make-frame' instead.")
 			 "font", "Font", string);
   }
 
+#ifdef USE_X_TOOLKIT
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
      whereby it fails to get any font.  */
   xlwmenu_default_font = f->display.x->font;
+#endif
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderwidth", "BorderWidth", number);
