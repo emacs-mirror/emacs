@@ -485,7 +485,7 @@ additional confirmation from the user.  If any of them returns
 @defvar kill-emacs-hook
 This variable is a normal hook; once @code{save-buffers-kill-emacs} is
 finished with all file saving and confirmation, it runs the functions in
-this hook.
+this hook.  This hook is not run in batch mode.
 @end defvar
 
 @node Suspending Emacs
