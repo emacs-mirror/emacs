@@ -220,7 +220,9 @@ Includes the new backup.  Must be > 0"
   "*Value of t says silently ensure a file ends in a newline when it is saved.
 Non-nil but not t says ask user whether to add a newline when there isn't one.
 nil means don't add newlines."
-  :type 'boolean
+  :type '(choice (const :tag "Off" nil)
+		 (const :tag "Add" t)
+		 (sexp :tag "Ask" :format "%t\n" ask))
   :group 'editing-basics)
 
 (defcustom auto-save-default t
