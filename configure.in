@@ -897,9 +897,13 @@ else
   window_system=x11
 fi
 
-test "${x_libraries}" != NONE && LD_SWITCH_X_SITE="-L${x_libraries}"
-test "${x_libraries}" != NONE && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
-test "${x_includes}" != NONE && C_SWITCH_X_SITE="-I${x_includes}"
+if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
+  LD_SWITCH_X_SITE="-L${x_libraries}"
+  LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
+fi
+if test "${x_includes}" != NONE && test -n "${x_includes}"; then
+  C_SWITCH_X_SITE="-I${x_includes}"
+fi
 
 if test x"${x_includes}" = x; then
   bitmapdir=/usr/include/X11/bitmaps
