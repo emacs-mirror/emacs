@@ -1,3 +1,8 @@
+2001-12-03  Jaeyoun Chung  <jay@kldp.org>
+
+	* quail/hangul3.el: added a few convenient composing sequence for
+	Korean keyboard type 3 users.
+
 2001-11-29  Dave Love  <fx@gnu.org>
 
 	* quail/latin-ltx.el: Extra translations.  Fix some
