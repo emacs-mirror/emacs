@@ -1,5 +1,8 @@
 2002-07-31  Andrew Choi  <akochoi@shaw.ca>
 
+	* Emacs.app/Contents/PkgInfo, Emacs.app/Contents/Info.plist:
+	change creator code from ???? to EMAx.
+
 	* INSTALL: Add instructions for building X Window version.
 
 2002-07-11  Andrew Choi  <akochoi@shaw.ca>
