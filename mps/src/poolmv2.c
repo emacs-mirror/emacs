@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.14) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.15) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A manual-variable pool designed to take advantage of
@@ -16,7 +16,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.14) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.15) $");
 
 
 /* Signatures */
@@ -256,13 +256,11 @@ static Res MV2Init(Pool pool, va_list arg)
     goto failABQ;
 
   {
-    RefSet refset;
+    ZoneSet zones;
     /* --- Loci needed here, what should the pref be? */
-    /* --- why not SegPrefDefault(MV2SegPref)? */
     *MV2SegPref(mv2) = *SegPrefDefault();
-    /* +++ Get own RefSet */
-    refset = RefSetComp(ARENA_DEFAULT_REFSET);
-    SegPrefExpress(MV2SegPref(mv2), SegPrefRefSet, (void *)&refset);
+    zones = ZoneSetComp(ArenaDefaultZONESET);
+    SegPrefExpress(MV2SegPref(mv2), SegPrefRefSet, (void *)&zones);
   }
 
   mv2->reuseSize = reuseSize;
@@ -336,8 +334,8 @@ failCBS:
 }
 
 
-/* MV2Check -- validate an MV2 Pool
- */
+/* MV2Check -- validate an MV2 Pool */
+
 static Bool MV2Check(MV2 mv2)
 {
   CHECKS(MV2, mv2);
@@ -491,8 +489,7 @@ found:
       Bool b = SegOfAddr(&seg, arena, base);
       AVER(b);
     }
-    /* Only pass out segments --- may not be the best long-term policy
-     */
+    /* Only pass out segments --- may not be the best long-term policy. */
     {
       Addr segLimit = SegLimit(seg);
 
@@ -812,9 +809,8 @@ PoolClass PoolClassMV2(void)
 /* MPS Interface */
 
 
-/*
- * mps_class_mv2 -- the class of an mv2 pool
- */
+/* mps_class_mv2 -- the class of an mv2 pool */
+
 mps_class_t mps_class_mv2(void)
 {
   return (mps_class_t)(PoolClassMV2());
@@ -824,8 +820,8 @@ mps_class_t mps_class_mv2(void)
 /* MPS Interface extensions --- should these be pool generics? */
 
 
-/* mps_mv2_size -- number of bytes committed to the pool
- */
+/* mps_mv2_size -- number of bytes committed to the pool */
+
 size_t mps_mv2_size(mps_pool_t mps_pool)
 {
   Pool pool;
