@@ -16,19 +16,19 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott
 Greek (,FEkkgmij\(B)	,FCei\(B ,Fsar(B
 Hebrew			,Hylem(B
-Hindi			$(6!F!L4"Wv#!Bv%!a0"W!B!a1(B, $(6!F!L4"Wv#$(5!3v#$(6!Z0"W$(5!3$(6!Z1!O(B $(6!j(B
+Hindi			$(6!F!L(B2$(6"WP!BR!a(B1, $(6!F!L(B2$(6"WP$(5!3P$(6!Z(B1$(6!O(B $(6!j(B
 Italiano		Ciao, Buon giorno
-Lao((1>RJRERG(B)            (1JP:R-04U1(B, 0(1"m1c0Ki1b*!04U1(B
+Lao((1>RJRERG(B)            (1JP:R-(B0(14U(B1, 0(1"m(B1(1c(B0(1Ki(B1(1b*!(B0(14U(B1
 Maltese			Ciao
 Nederlands, Vlaams	Hallo, Dag
 Norwegian (Norsk)	Hei, God dag
-Polish (polski)		Dzie,Bq(B dobry, Cze,B6f(B!
+Polish			Dzie,Bq(B dobry, Hej
 Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!
 Slovak			Dobr,B}(B de,Br(B
 Spanish (Espa,Aq(Bol)	,A!(BHola!
 Swedish (Svenska)	Hej, Goddag
-Thai (,T@RIRd7B(B)		,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B
-Tibetan ($(7"7"]"2$(8!;$(7%P"Q"2$(8!;(B)    $(7"7$P"Q$(8!;$(7"E"S"G$(8!;$(7"7"2"[$(8!;$(7"D"["#"G!>(B
+Thai (,T@RIRd7B(B)		,TJ(B0,TGQ(B1,TJ(B0,T4U(B1,T$(B0,TCQ(B1,T:(B, ,TJ(B0,TGQ(B1,TJ(B0,T4U(B10,T$h(B1,TP(B
+Tibetan (2$(7"70"](B1$(7"2$(8!;(B2$(7%P`"Q(B1$(7"2$(8!;(B)    $(7"7(B2$(7$P`"Q(B1$(8!;(B2$(7"E0"S(B1$(7"G$(8!;$(7"7(B2$(7"20"[(B1$(8!;(B2$(7"D0"[(B1$(7"#"G!>(B
 Tigrigna ($(3"8#r!N"^(B)	$(3!Q!,!<"8(B
 Turkish (T,M|(Brk,Mg(Be)	Merhaba
 Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn
@@ -44,4 +44,4 @@ Difference among chinese characters in GB, JIS, KSC, BIG5:
 	KSC  -- $(Cj*Q((B  $(CKR[!(B
 	BIG5 -- $(0&x86(B  $(0DeBv(B
 
-Just for a test of JISX0212:4$(6"Wv#!Bv%!a0(B $BqV$(DiQ1(B (th4$(6"Wv#$(5!3v#$(6!Z0(Be s1econd character is of JISX0212)
+Just for a test of JISX0212: $BqV$(DiQ(B (the second character is of JISX0212)

@@ -1,3 +1,7 @@
+2000-05-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/lao-util.el (lao-compose-region): New function.
+
 2000-05-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (recover-session): Make directories as necessary
