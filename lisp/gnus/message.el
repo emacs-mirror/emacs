@@ -269,10 +269,10 @@ If t, use `message-user-organization-file'."
   :type 'file
   :group 'message-headers)
 
-(defcustom message-autosave-directory "~/"
+(defcustom message-auto-save-directory "~/"
   ; (concat (file-name-as-directory message-directory) "drafts/")
-  "*Directory where message autosaves buffers.
-If nil, message won't autosave."
+  "*Directory where message auto-saves buffers.
+If nil, message won't auto-save."
   :group 'message-buffers
   :type 'directory)
 
@@ -1546,7 +1546,7 @@ name, rather than giving an automatic name."
 		       (read-string "New buffer name: " name-default)
 		     name-default))
 	     (default-directory
-	       (file-name-as-directory message-autosave-directory)))
+	       (file-name-as-directory message-auto-save-directory)))
 	(rename-buffer name t)))))
 
 (defun message-fill-yanked-message (&optional justifyp)
@@ -1790,7 +1790,7 @@ the user from the mailer."
 	;; (mail-hist-put-headers-into-history))
 	(run-hooks 'message-sent-hook)
 	(message "Sending...done")
-	;; If buffer has no file, mark it as unmodified and delete autosave.
+	;; If buffer has no file, mark it as unmodified and delete auto-save.
 	(unless buffer-file-name
 	  (set-buffer-modified-p nil)
 	  (delete-auto-save-file-if-necessary t))
@@ -1988,7 +1988,7 @@ to find out how to use this."
   (let ((mh-previous-window-config nil)
 	(name (make-temp-name
 	       (concat (file-name-as-directory
-			(expand-file-name message-autosave-directory))
+			(expand-file-name message-auto-save-directory))
 		       "msg."))))
     (setq buffer-file-name name)
     ;; MH wants to generate these headers itself.
@@ -3024,12 +3024,12 @@ Headers already prepared in the buffer are not modified."
 
 (defun message-set-auto-save-file-name ()
   "Associate the message buffer with a file in the drafts directory."
-  (when message-autosave-directory
-    (unless (file-exists-p message-autosave-directory)
-      (make-directory message-autosave-directory t))
+  (when message-auto-save-directory
+    (unless (file-exists-p message-auto-save-directory)
+      (make-directory message-auto-save-directory t))
     (let ((name (make-temp-name
 		 (expand-file-name
-		  (concat (file-name-as-directory message-autosave-directory)
+		  (concat (file-name-as-directory message-auto-save-directory)
 			  "msg."
 			  (nnheader-replace-chars-in-string
 			   (nnheader-replace-chars-in-string
