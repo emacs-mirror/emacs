@@ -6296,9 +6296,9 @@ message_dolog (m, nbytes, nlflag, multibyte)
 			  XMARKER (oldpoint)->bytepos);
 
       UNGCPRO;
-      unchain_marker (oldpoint);
-      unchain_marker (oldbegv);
-      unchain_marker (oldzv);
+      unchain_marker (XMARKER (oldpoint));
+      unchain_marker (XMARKER (oldbegv));
+      unchain_marker (XMARKER (oldzv));
 
       tem = Fget_buffer_window (Fcurrent_buffer (), Qt);
       set_buffer_internal (oldbuf);
