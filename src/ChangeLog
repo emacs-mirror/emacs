@@ -1,3 +1,10 @@
+1999-10-27  Noah Friedman  <friedman@splode.com>
+
+	* s/gnu-linux.h [HAVE_DEV_PTMX]: Redefine FIRST_PTY_LETTER to 'z'.
+	Define PTY_NAME_SPRINTF.
+	Redefine PTY_TTY_NAME_SPRINTF.
+	* config.in: Add undef for HAVE_DEV_PTMX.
+
 1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* data.c (Qad_activate_internal): Renamed from Qad_activate.
