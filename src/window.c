@@ -79,7 +79,7 @@ static int window_min_size P_ ((struct window *, int, int, int *));
 static void size_window P_ ((Lisp_Object, int, int, int));
 static int freeze_window_start P_ ((struct window *, void *));
 static int window_fixed_size_p P_ ((struct window *, int, int));
-static void enlarge_window P_ ((Lisp_Object, int, int));
+static void enlarge_window P_ ((Lisp_Object, int, int, int));
 static Lisp_Object window_list P_ ((void));
 static int add_window_to_list P_ ((struct window *, void *));
 static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -3043,7 +3043,7 @@ displayed.  */)
 			   + XFASTINT (XWINDOW (window)->height));
 	      enlarge_window (upper,
 			      total / 2 - XFASTINT (XWINDOW (upper)->height),
-			      0);
+			      0, 0);
 	    }
 	}
     }
@@ -3269,15 +3269,20 @@ SIZE includes that window's scroll bar, or the divider column to its right.  */)
   return new;
 }
 
-DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
+DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 3, "p",
        doc: /* Make current window ARG lines bigger.
 From program, optional second arg non-nil means grow sideways ARG columns.
-Interactively, if an argument is not given, make the window one line bigger.  */)
-     (arg, side)
-     register Lisp_Object arg, side;
+Interactively, if an argument is not given, make the window one line bigger.
+
+Optional third arg PRESERVE-BEFORE, if non-nil, means do not change the size
+of the siblings above or to the left of the selected window.  Only
+siblings to the right or below are changed.  */)
+     (arg, side, preserve_before)
+     register Lisp_Object arg, side, preserve_before;
 {
   CHECK_NUMBER (arg);
-  enlarge_window (selected_window, XINT (arg), !NILP (side));
+  enlarge_window (selected_window, XINT (arg), !NILP (side),
+		  !NILP (preserve_before));
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3293,7 +3298,7 @@ Interactively, if an argument is not given, make the window one line smaller.  *
      register Lisp_Object arg, side;
 {
   CHECK_NUMBER (arg);
-  enlarge_window (selected_window, -XINT (arg), !NILP (side));
+  enlarge_window (selected_window, -XINT (arg), !NILP (side), 0);
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3325,15 +3330,18 @@ window_width (window)
   *(widthflag ? &(XWINDOW (w)->width) : &(XWINDOW (w)->height))
 
 
-/* Enlarge selected_window by DELTA.  WIDTHFLAG non-zero means
+/* Enlarge WINDOW by DELTA.  WIDTHFLAG non-zero means
    increase its width.  Siblings of the selected window are resized to
-   fullfil the size request.  If they become too small in the process,
-   they will be deleted.  */
+   fulfill the size request.  If they become too small in the process,
+   they will be deleted.
+
+   If PRESERVE_BEFORE is nonzero, that means don't alter
+   the siblings to the left or above WINDOW.  */
 
 static void
-enlarge_window (window, delta, widthflag)
+enlarge_window (window, delta, widthflag, preserve_before)
      Lisp_Object window;
-     int delta, widthflag;
+     int delta, widthflag, preserve_before;
 {
   Lisp_Object parent, next, prev;
   struct window *p;
@@ -3378,16 +3386,35 @@ enlarge_window (window, delta, widthflag)
   {
     register int maxdelta;
 
-    maxdelta = (!NILP (parent) ? (*sizefun) (parent) - XINT (*sizep)
-		: !NILP (p->next) ? ((*sizefun) (p->next)
-				     - window_min_size (XWINDOW (p->next),
-							widthflag, 0, 0))
-		: !NILP (p->prev) ? ((*sizefun) (p->prev)
-				     - window_min_size (XWINDOW (p->prev),
-							widthflag, 0, 0))
-		/* This is a frame with only one window, a minibuffer-only
-		   or a minibufferless frame.  */
-		: (delta = 0));
+    /* Compute the maximum size increment this window can have.  */
+
+    if (preserve_before)
+      {
+	if (!NILP (parent))
+	  {
+	    maxdelta = (*sizefun) (parent) - XINT (*sizep);
+	    /* Subtract size of siblings before, since we can't take that.  */
+	    maxdelta -= CURBEG (window) - CURBEG (parent);
+	  }
+	else
+	  maxdelta = (!NILP (p->next) ? ((*sizefun) (p->next)
+					 - window_min_size (XWINDOW (p->next),
+							    widthflag, 0, 0))
+		      : (delta = 0));
+      }
+    else
+      maxdelta = (!NILP (parent) ? (*sizefun) (parent) - XINT (*sizep)
+		  /* This is a main window followed by a minibuffer.  */
+		  : !NILP (p->next) ? ((*sizefun) (p->next)
+				       - window_min_size (XWINDOW (p->next),
+							  widthflag, 0, 0))
+		  /* This is a minibuffer following a main window.  */
+		  : !NILP (p->prev) ? ((*sizefun) (p->prev)
+				       - window_min_size (XWINDOW (p->prev),
+							  widthflag, 0, 0))
+		  /* This is a frame with only one window, a minibuffer-only
+		     or a minibufferless frame.  */
+		  : (delta = 0));
 
     if (delta > maxdelta)
       /* This case traps trying to make the minibuffer
@@ -3405,16 +3432,17 @@ enlarge_window (window, delta, widthflag)
   if (delta == 0)
     return;
 
-  /* Find the total we can get from other siblings.  */
+  /* Find the total we can get from other siblings without deleting them.  */
   maximum = 0;
   for (next = p->next; ! NILP (next); next = XWINDOW (next)->next)
     maximum += (*sizefun) (next) - window_min_size (XWINDOW (next),
 						    widthflag, 0, 0);
-  for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
-    maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
-						    widthflag, 0, 0);
+  if (! preserve_before)
+    for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
+      maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
+						      widthflag, 0, 0);
 
-  /* If we can get it all from them, do so.  */
+  /* If we can get it all from them without deleting them, do so.  */
   if (delta <= maximum)
     {
       Lisp_Object first_unaffected;
@@ -3427,7 +3455,8 @@ enlarge_window (window, delta, widthflag)
       /* Look at one sibling at a time,
 	 moving away from this window in both directions alternately,
 	 and take as much as we can get without deleting that sibling.  */
-      while (delta != 0 && (!NILP (next) || !NILP (prev)))
+      while (delta != 0
+	     && (!NILP (next) || (!preserve_before && !NILP (prev))))
 	{
 	  if (! NILP (next))
 	    {
@@ -3451,7 +3480,7 @@ enlarge_window (window, delta, widthflag)
 	  if (delta == 0)
 	    break;
 	  
-	  if (! NILP (prev))
+	  if (!preserve_before && ! NILP (prev))
 	    {
 	      int this_one = ((*sizefun) (prev)
 			      - window_min_size (XWINDOW (prev),
@@ -3799,7 +3828,7 @@ shrink_mini_window (w)
 	 among the other windows.  */
       Lisp_Object window;
       XSETWINDOW (window, w);
-      enlarge_window (window, 1 - XFASTINT (w->height), 0);
+      enlarge_window (window, 1 - XFASTINT (w->height), 0, 0);
     }
 }
 
