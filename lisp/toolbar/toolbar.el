@@ -112,6 +112,8 @@ MAP must contain appropriate keymaps bound to `[menu-bar]' and
 			key kk)))))
       (when (and (symbolp submap) (boundp submap))
 	(setq submap (eval submap)))
+      (unless (image-mask-p image)
+	(setq image (append image '(:mask heuristic))))
       (define-key-after tb-map (vector key)
 	(append (cdr (assq key (cdr submap))) (list :image image))))))
 
