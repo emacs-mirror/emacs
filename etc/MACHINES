@@ -702,6 +702,11 @@ Iris 2500 and Iris 2500 Turbo (m68k-sgi-iris3.5 or m68k-sgi-iris3.6)
 
 Iris 4D (mips-sgi-irix[456].*)
 
+  You can build a 64-bit executable (with larger maximum buffer size)
+  on Irix 6.5 by specifying the 64-bit ABI using the `-64' compiler
+  flag or otherwise (see cc(1)).  This may work on earlier Irix 6
+  systems if you edit src/s/irix6-0.h following irix6-5.h.
+
   The 19.26 pretest was reported to work on IRIX 4.0.5 and 5.2.
   19.23 was reported to work on IRIX 5.2, but you may need to install
   the "compiler_dev.hdr.internal" subsystem in order to compile unexelfsgi.c.
@@ -965,11 +970,11 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
 			       sparc-sun-sunos4.1.3noshr, sparc-sun-solaris2.*,
 			       i386-sun-solaris2.*, sparc*-*-linux-gnu)
 
-  To build a 64-bit Emacs (including large file support) on a Solaris
-  system which supports 64-bit executables, use the Sun compiler,
-  configuring something like this (see the cc documentation for
-  information on 64-bit compilation):
-    env CC="cc -xarch=v9" ./configure --without-gcc
+  To build a 64-bit Emacs (with larger maximum buffer size and
+  including large file support) on a Solaris system which supports
+  64-bit executables, use the Sun compiler, configuring something like
+  this (see the cc documentation for information on 64-bit
+  compilation):  env CC="cc -xarch=v9" ./configure --without-gcc
 
   As of version 2.95, GCC doesn't support the 64-bit ABI properly, but
   later releases may.
