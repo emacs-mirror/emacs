@@ -1,9 +1,13 @@
 2002-09-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (list-character-sets): Use the buffer
-	name "*Character Set List*", not "*Help*".
+	name "*Character Set List*", not "*Help*".  List also indirectly
+	supported character sets.
 	(list-charset-chars): Use the buffer name "*Character List*", not
 	"*Help*".  Display the current charset name in the modeline.
+	(non-iso-charset-alist): Add mapped charset list for `mac-roman'.
+	(sort-listed-character-sets): Don't alter the region showing
+	indirectly supported charsets.
 
 2002-09-24  Markus Rost  <rost@math.ohio-state.edu>
 
