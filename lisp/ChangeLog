@@ -1,3 +1,8 @@
+2003-02-20  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* mail/undigest.el (unforward-rmail-message): Allow nested
+	unforwarding, that is, preserve old Forwarded-From/Date headers.
+
 2003-02-20  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (print-fontset): If FONTSET is nil,
@@ -7,7 +12,7 @@
 
 2003-02-19  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-binary-assoc, vc-binary-suffixes): Removed; these 
+	* vc.el (vc-binary-assoc, vc-binary-suffixes): Removed; these
 	were accidentally left over during the VC redesign in 2000.
 
 2003-02-18  Juanma Barranquero  <lektu@terra.es>
