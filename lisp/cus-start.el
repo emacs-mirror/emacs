@@ -45,6 +45,7 @@
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.
 	     (default-major-mode internal function)
+	     (enable-multibyte-characters mule boolean)
 	     (case-fold-search matching boolean)
 	     (fill-column fill integer)
 	     (left-margin fill integer)
