@@ -106,9 +106,11 @@ struct frame
   Lisp_Object scroll_bars;
   Lisp_Object condemned_scroll_bars;
 
-  /* List of elements to display in the menu bar.
-     The elements have the form (KEY STRING . nil) to start;
-     when they are displayed, the hpos of the left edge goes in the cddr.  */
+  /* Vector describing the items to display in the menu bar.
+     Each item has four elements in this vector.
+     They are KEY, STRING, SUBMAP, and HPOS.
+     (HPOS is not used in when the X toolkit is in use.)
+     There are four additional elements of nil at the end, to terminate.  */
   Lisp_Object menu_bar_items;
 
   /* Alist of elements (FACE-NAME . FACE-VECTOR-DATA).  */
