@@ -747,7 +747,10 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 char *
 get_system_name ()
 {
-  return (char *) XSTRING (Vsystem_name)->data;
+  if (STRINGP (Vsystem_name))
+    return (char *) XSTRING (Vsystem_name)->data;
+  else
+    return "";
 }
 
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
