@@ -55,24 +55,29 @@ With argument t, set the random number seed from the current time and pid.")
      Lisp_Object limit;
 {
   int val;
+  unsigned long denominator;
   extern long random ();
   extern srandom ();
   extern long time ();
 
   if (EQ (limit, Qt))
     srandom (getpid () + time (0));
-  val = random ();
-  if (XTYPE (limit) == Lisp_Int && XINT (limit) != 0)
+  if (XTYPE (limit) == Lisp_Int && XINT (limit) > 0)
     {
       /* Try to take our random number from the higher bits of VAL,
 	 not the lower, since (says Gentzel) the low bits of `random'
-	 are less random than the higher ones.  */
-      val &= 0xfffffff;		/* Ensure positive.  */
-      val >>= 5;
-      if (XINT (limit) < 10000)
-	val >>= 6;
-      val %= XINT (limit);
+	 are less random than the higher ones.  We do this by using the
+	 quotient rather than the remainder.  At the high end of the RNG
+	 it's possible to get a quotient larger than limit; discarding
+	 these values eliminates the bias that would otherwise appear
+	 when using a large limit.  */
+      denominator = (unsigned long)0x80000000 / XFASTINT (limit);
+      do
+	val = (random () & 0x7fffffff) / denominator;
+      while (val >= limit);
     }
+  else
+    val = random ();
   return make_number (val);
 }
 
