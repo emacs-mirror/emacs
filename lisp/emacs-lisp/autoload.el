@@ -67,7 +67,8 @@ Returns nil if FORM is not a `defun', `define-skeleton',
 or `easy-mmode-define-minor-mode'."
   (let ((car (car-safe form)))
     (if (memq car '(defun define-skeleton defmacro define-derived-mode 
-		     define-generic-mode easy-mmode-define-minor-mode))
+		     define-generic-mode easy-mmode-define-minor-mode
+		     defun*))
 	(let ((macrop (eq car 'defmacro))
 	      name doc)
 	  (setq form (cdr form)
