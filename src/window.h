@@ -173,6 +173,9 @@ struct window
     /* The column number currently displayed in this window's mode line,
        or nil if column numbers are not being displayed.  */
     Lisp_Object column_number_displayed;
+    /* If redisplay in this window goes beyond this buffer position,
+       must run the redisplay-end-trigger-hook.  */
+    Lisp_Object redisplay_end_trigger;
   };
 
 /* 1 if W is a minibuffer window.  */
