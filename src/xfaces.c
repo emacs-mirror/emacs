@@ -435,7 +435,7 @@ init_frame_faces (f)
     face->gc         = f->display.x->normal_gc;
     face->foreground = gcv.foreground;
     face->background = gcv.background;
-    face->font       = XQueryFont (x_current_display, gcv.font);
+    face->font       = f->display.x->font;
     face->stipple = 0;
     face->underline = 0;
   }
@@ -450,46 +450,11 @@ init_frame_faces (f)
     face->gc         = f->display.x->reverse_gc;
     face->foreground = gcv.foreground;
     face->background = gcv.background;
-    face->font       = XQueryFont (x_current_display, gcv.font);
+    face->font       = f->display.x->font;
     face->stipple = 0;
     face->underline = 0;
   }
 }
-
-#if 0
-void
-init_frame_faces (f)
-     struct frame *f;
-{
-  struct frame *other_frame = 0;
-  Lisp_Object rest;
-
-  for (rest = Vframe_list; !NILP (rest); rest = Fcdr (rest))
-    {
-      struct frame *f2 = XFRAME (Fcar (rest));
-      if (f2 != f && FRAME_X_P (f2))
-	{
-	  other_frame = f2;
-	  break;
-	}
-    }
-
-  if (other_frame)
-    {
-      /* Make sure this frame's face vector is as big as the others.  */
-      FRAME_N_FACES (f) = FRAME_N_FACES (other_frame);
-      FRAME_FACES (f)
-	= (struct face **) xmalloc (FRAME_N_FACES (f) * sizeof (struct face *));
-
-      /* Make sure the frame has the two basic faces.  */
-      FRAME_DEFAULT_FACE (f)
-	= copy_face (FRAME_DEFAULT_FACE (other_frame));
-      FRAME_MODE_LINE_FACE (f)
-	= copy_face (FRAME_MODE_LINE_FACE (other_frame));
-    }
-}
-#endif
-
 
 /* Called from Fdelete_frame.  */
 void
@@ -499,7 +464,10 @@ free_frame_faces (f)
   Display *dpy = x_current_display;
   int i;
 
-  for (i = 0; i < FRAME_N_FACES (f); i++)
+  /* The first two faces on the frame are just made of resources which 
+     we borrowed from the frame's GC's, so don't free them.  Let
+     them get freed by the x_destroy_window code.  */
+  for (i = 2; i < FRAME_N_FACES (f); i++)
     {
       struct face *face = FRAME_FACES (f) [i];
       if (! face)
