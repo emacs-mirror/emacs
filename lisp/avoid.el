@@ -352,8 +352,10 @@ definition of \"random distance\".)"
 	(t (setq mouse-avoidance-mode nil)))
   (force-mode-line-update))
 
-(or (assq 'mouse-avoidance-mode minor-mode-alist)
-    (setq minor-mode-alist (cons '(mouse-avoidance-mode " Avoid")
-				 minor-mode-alist)))
+;; Most people who use avoid mode leave it on all the time, so it's not
+;; very informative to announce it in the mode line.
+;;(or (assq 'mouse-avoidance-mode minor-mode-alist)
+;;    (setq minor-mode-alist (cons '(mouse-avoidance-mode " Avoid")
+;;				 minor-mode-alist)))
 
 ;;; End of avoid.el
