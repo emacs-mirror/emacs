@@ -133,7 +133,7 @@
 ---- Special key bindings ----
 qq:	toggle between input methods `japanese' and `japanese-ascii'
 qz:	use `japanese-zenkaku' package, \"qh\" puts you back to `japanese'
-K:	convert to Katakana
+K:	toggle converting region between Katakana and Hiragana
 SPC:	convert to Kanji&Kana
 z:	insert one Japanese symbol according to a key which follows
 "
