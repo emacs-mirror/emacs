@@ -3618,6 +3618,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	}
     }
 
+#ifdef X_IO_BUG
+  if (! event_found)
+    /* On some systems, an X bug causes Emacs to get no more events
+       when the window is destroyed.  Detect that.  */
+    XNoOp (x_current_display);
+#endif /* X_IO_BUG */
+
 #ifdef HAVE_SELECT
   if (expected && ! event_found)
     {
