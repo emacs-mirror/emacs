@@ -1,3 +1,7 @@
+2004-04-13  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+        * TUTORIAL.pt_BR: initial check-in.
+
 2004-05-06  Dave Love  <fx@gnu.org>
 
 	* emacs.py: New file for python-mode's internal use.
