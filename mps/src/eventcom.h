@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.14) $
+ * $HopeName: MMsrc!eventcom.h(trunk.15) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -10,13 +10,21 @@
 #ifndef eventcom_h
 #define eventcom_h
 
+#include "eventgen.h"
+#include "mpmtypes.h" /* for Word */
 
-#define EventMaxStringLength ((size_t)256) /* Including NUL */
+
+/* @@@@ Put these in eventdef? */
+#define EventArgsMAX ((size_t)16)
+#define EventNameMAX ((size_t)19)
+#define EventCodeMAX ((Word)0x0041)
+
 
 typedef Word EventType;
+typedef size_t EventCode;
 
 
-/* Event Codes -- see design.mps.telemetry
+/* Event types -- see design.mps.telemetry
  *
  * These names are intended to be mnemonic.  They are derived from 
  * selected letters as indicated, using the transliteration in 
