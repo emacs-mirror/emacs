@@ -48,8 +48,8 @@ static void test(void)
  lev1 = INIT_SAVE;
 
  for (i=0; i<50; i++) {
-  for (j=0; j<3000; j++) {
-   a = allocepvm(ap1s, (size_t) (8+8*ranint(4)));
+  for (j=0; j<10000; j++) {
+   a = allocepvm(ap1s, (size_t) (1+ranint(4)));
   }
   comment("collecting...");
   mps_epvm_collect(pool1);
