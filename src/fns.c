@@ -1482,11 +1482,13 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	  else
 	    call2 (function, make_number (i), elt);
 	}
+      if (NILP (current_buffer->enable_multibyte_characters))
+	return;
       to = CHAR_TABLE_ORDINARY_SLOTS;
     }
   else
     {
-      i = 0;
+      i = 32;
       to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
     }
 
