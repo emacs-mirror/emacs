@@ -732,7 +732,8 @@ cached information about equivalent key sequences.")
 	  unsigned long time;
 
 	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
+	    (*mouse_position_hook) (&new_f, 1, &bar_window,
+				    &part, &x, &y, &time);
 	  if (new_f != 0)
 	    XSETFRAME (window, new_f);
 	  else
@@ -922,7 +923,7 @@ on the left of the dialog box and all following items on the right.\n\
       unsigned long time;
       Lisp_Object x, y;
 
-      (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
+      (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
 
       if (new_f != 0)
 	XSETFRAME (window, new_f);
