@@ -20,7 +20,7 @@
 ;; along with this program; if not, write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
-;; $Id: rlogin.el,v 1.27 1995/04/07 22:27:24 friedman Exp roland $
+;; $Id: rlogin.el,v 1.28 1995/05/12 17:51:12 roland Exp roland $
 
 ;;; Commentary:
 
@@ -105,7 +105,7 @@ this variable is set from that.")
 (defvar rlogin-history nil)
 
 ;;;###autoload
-(defun rlogin (input-args &optional prefix)
+(defun rlogin (input-args &optional buffer)
   "Open a network login connection to HOST via the `rlogin' program.
 Input is sent line-at-a-time to the remote connection.
 
@@ -113,6 +113,9 @@ Communication with the remote host is recorded in a buffer `*rlogin-HOST*'
 \(or `*rlogin-USER@HOST*' if the remote username differs\).
 If a prefix argument is given and the buffer `*rlogin-HOST*' already exists,
 a new buffer with a different connection will be made.
+
+When called from a program, if the optional second argument is a string or 
+buffer, it names the buffer to use.
 
 The variable `rlogin-program' contains the name of the actual program to
 run.  It can be a relative or absolute path.
@@ -153,9 +156,11 @@ variable."
                         (format "*rlogin-%s@%s*" user host)))
 	 proc)
 
-    (cond ((null prefix))
-          ((numberp prefix)
-           (setq buffer-name (format "%s<%d>" buffer-name prefix)))
+    (cond ((null buffer))
+	  ((or (stringp buffer) (bufferp buffer))
+	   (setq buffer-name buffer))
+          ((numberp buffer)
+           (setq buffer-name (format "%s<%d>" buffer-name buffer)))
           (t
            (setq buffer-name (generate-new-buffer-name buffer-name))))
 
