@@ -37,10 +37,12 @@ extern char *strerror ();
 
 #include <sys/file.h>
 #ifdef USG5
+#define INCLUDED_FCNTL
 #include <fcntl.h>
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+#define INCLUDED_FCNTL
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/param.h>
