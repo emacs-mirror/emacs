@@ -1,3 +1,22 @@
+2002-04-13  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (ibuffer-forward-line): Just skip header if we're
+	only moving one line forward.
+	(ibuffer-map-lines): Preserve point position even if we delete
+	lines.  Only call mapping functions with buffer and mark
+	arguments; the other two were unused.
+	(ibuffer-redisplay, ibuffer-update): Always skip special areas.
+
+	* calc/calc-bin.el (math-format-radix-float): Load `calc-ext'
+	before we call `math-group-float'.
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
+	Renamed from `gamegrid-add-score'.
+	(gamegrid-add-score-insecure): Restored from the old
+	`update-game-score'.
+	(gamegrid-add-score): Just dispatch on `system-type' to one of the
+	previous two functions.
+
 2002-04-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* iswitchb.el: Update commentary to include new function
