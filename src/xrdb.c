@@ -288,20 +288,17 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 static char *
 gethomedir ()
 {
-  int uid;
   struct passwd *pw;
   char *ptr;
   char *copy;
 
   if ((ptr = getenv ("HOME")) == NULL)
     {
-      if ((ptr = getenv ("USER")) != NULL)
+      if ((ptr = getenv ("LOGNAME")) != NULL
+	  || (ptr = getenv ("USER")) != NULL)
 	pw = getpwnam (ptr);
       else
-	{
-	  uid = getuid ();
-	  pw = getpwuid (uid);
-	}
+	pw = getpwuid (getuid ());
 
       if (pw)
 	ptr = pw->pw_dir;
