@@ -380,7 +380,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
 Use `face-attribute' for finer control."
   (let ((italic (face-attribute face :slant frame)))
-    (not (memq italic '(normal unspecified)))))
+    (memq italic '(italic oblique))))
     
 
 
