@@ -1607,7 +1607,7 @@ switch_to_buffer_1 (buffer, norecord)
   Fset_window_buffer (EQ (selected_window, minibuf_window)
 		      ? Fnext_window (minibuf_window, Qnil, Qnil)
 		      : selected_window,
-		      buf);
+		      buf, Qnil);
 
   return buf;
 }
@@ -4927,6 +4927,13 @@ init_buffer_once ()
   buffer_defaults.cache_long_line_scans = Qnil;
   buffer_defaults.file_truename = Qnil;
   XSETFASTINT (buffer_defaults.display_count, 0);
+  XSETFASTINT (buffer_defaults.left_margin_cols, 0);
+  XSETFASTINT (buffer_defaults.right_margin_cols, 0);
+  buffer_defaults.left_fringe_width = Qnil;
+  buffer_defaults.right_fringe_width = Qnil;
+  buffer_defaults.fringes_outside_margins = Qnil;
+  buffer_defaults.scroll_bar_width = Qnil;
+  buffer_defaults.vertical_scroll_bar_type = Qt;
   buffer_defaults.indicate_empty_lines = Qnil;
   buffer_defaults.scroll_up_aggressively = Qnil;
   buffer_defaults.scroll_down_aggressively = Qnil;
@@ -4989,8 +4996,13 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.buffer_file_coding_system, idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
-  XSETFASTINT (buffer_local_flags.left_margin_width, idx); ++idx;
-  XSETFASTINT (buffer_local_flags.right_margin_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.left_margin_cols, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.right_margin_cols, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.left_fringe_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.right_fringe_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.fringes_outside_margins, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.scroll_bar_width, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.vertical_scroll_bar_type, idx); ++idx;
   XSETFASTINT (buffer_local_flags.indicate_empty_lines, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
@@ -5240,14 +5252,39 @@ The file type is nil for text, t for binary.  */);
 #endif
 
   DEFVAR_LISP_NOPRO ("default-left-margin-width",
-		     &buffer_defaults.left_margin_width,
+		     &buffer_defaults.left_margin_cols,
 		     doc: /* Default value of `left-margin-width' for buffers that don't override it.
 This is the same as (default-value 'left-margin-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-right-margin-width",
-		     &buffer_defaults.right_margin_width,
-		     doc: /* Default value of `right_margin_width' for buffers that don't override it.
+		     &buffer_defaults.right_margin_cols,
+		     doc: /* Default value of `right-margin-width' for buffers that don't override it.
 This is the same as (default-value 'right-margin-width).  */);
+
+  DEFVAR_LISP_NOPRO ("default-left-fringe-width",
+		     &buffer_defaults.left_fringe_width,
+		     doc: /* Default value of `left-fringe-width' for buffers that don't override it.
+This is the same as (default-value 'left-fringe-width).  */);
+
+  DEFVAR_LISP_NOPRO ("default-right-fringe-width",
+		     &buffer_defaults.right_fringe_width,
+		     doc: /* Default value of `right-fringe-width' for buffers that don't override it.
+This is the same as (default-value 'right-fringe-width).  */);
+
+  DEFVAR_LISP_NOPRO ("default-fringes-outside-margins",
+		     &buffer_defaults.fringes_outside_margins,
+		     doc: /* Default value of `fringes-outside-margins' for buffers that don't override it.
+This is the same as (default-value 'fringes-outside-margins).  */);
+
+  DEFVAR_LISP_NOPRO ("default-scroll-bar-width",
+		     &buffer_defaults.scroll_bar_width,
+		     doc: /* Default value of `scroll-bar-width' for buffers that don't override it.
+This is the same as (default-value 'scroll-bar-width).  */);
+
+  DEFVAR_LISP_NOPRO ("default-vertical-scroll-bar",
+		     &buffer_defaults.vertical_scroll_bar_type,
+		     doc: /* Default value of `vertical-scroll-bar' for buffers that don't override it.
+This is the same as (default-value 'vertical-scroll-bar).  */);
 
   DEFVAR_LISP_NOPRO ("default-indicate-empty-lines",
 		     &buffer_defaults.indicate_empty_lines,
@@ -5517,15 +5554,44 @@ In addition, a char-table has six extra slots to control the display of:
 
 See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
-  DEFVAR_PER_BUFFER ("left-margin-width", &current_buffer->left_margin_width,
+  DEFVAR_PER_BUFFER ("left-margin-width", &current_buffer->left_margin_cols,
 		     Qnil,
 		     doc: /* *Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
-  DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_width,
+  DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_cols,
 		     Qnil,
 		     doc: /* *Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
+
+  DEFVAR_PER_BUFFER ("left-fringe-width", &current_buffer->left_fringe_width,
+		     Qnil,
+		     doc: /* *Width of this buffer's left fringe (in pixels).
+A value of 0 means no left fringe is shown in this buffer's window.
+A value of nil means to use the left fringe width from the window's frame.  */);
+
+  DEFVAR_PER_BUFFER ("right-fringe-width", &current_buffer->right_fringe_width,
+		     Qnil,
+		     doc: /* *Width of this buffer's right fringe (in pixels).
+A value of 0 means no right fringe is shown in this buffer's window.
+A value of nil means to use the right fringe width from the window's frame.  */);
+
+  DEFVAR_PER_BUFFER ("fringes-outside-margins", &current_buffer->fringes_outside_margins,
+		     Qnil,
+		     doc: /* *Non-nil means to display fringes outside display margins.
+A value of nil means to display fringes between margins and buffer text.  */);
+
+  DEFVAR_PER_BUFFER ("scroll-bar-width", &current_buffer->scroll_bar_width,
+		     Qnil,
+		     doc: /* *Width of this buffer's scroll bars in pixels.
+A value of nil means to use the scroll bar width from the window's frame.  */);
+
+  DEFVAR_PER_BUFFER ("vertical-scroll-bar", &current_buffer->vertical_scroll_bar_type,
+		     Qnil,
+		     doc: /* *Position of this buffer's vertical scroll bar.
+A value of left or right means to place the vertical scroll bar at that side
+of the window; a value of nil means that this window has no vertical scroll bar.
+A value of t means to use the vertical scroll bar type from the window's frame.  */);
 
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &current_buffer->indicate_empty_lines, Qnil,
