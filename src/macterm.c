@@ -1291,9 +1291,8 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 				output_cursor.vpos,
 				output_cursor.x, output_cursor.y);
 
-      x_draw_vertical_border (w);
-
-      draw_window_fringes (w);
+      if (draw_window_fringes (w, 1))
+	x_draw_vertical_border (w);
 
       UNBLOCK_INPUT;
     }
@@ -5050,7 +5049,7 @@ mac_get_window_bounds (f, inner, outer)
   GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowStructureRgn, outer);
 #else /* not TARGET_API_MAC_CARBON */
   RgnHandle region = NewRgn ();
-    
+
   GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowContentRgn, region);
   *inner = (*region)->rgnBBox;
   GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowStructureRgn, region);
@@ -5143,7 +5142,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   {
     Rect inner, outer, screen_rect, dummy;
     RgnHandle region = NewRgn ();
-    
+
     mac_get_window_bounds (f, &inner, &outer);
     f->x_pixels_diff = inner.left - outer.left;
     f->y_pixels_diff = inner.top - outer.top;
@@ -8114,7 +8113,7 @@ XTread_socket (sd, expected, hold_quit)
 	switch (GetEventClass (eventRef))
 	  {
 	  case kEventClassWindow:
-	    if (GetEventKind (eventRef) == kEventWindowBoundsChanged) 
+	    if (GetEventKind (eventRef) == kEventWindowBoundsChanged)
 	      {
 		WindowPtr window_ptr;
 		GetEventParameter(eventRef, kEventParamDirectObject,
@@ -8431,7 +8430,7 @@ XTread_socket (sd, expected, hold_quit)
 
 	    if (!is_emacs_window (window_ptr))
 	      break;
-	    
+
 	    f = mac_window_to_frame (window_ptr);
 
 	    if ((er.modifiers & activeFlag) != 0)

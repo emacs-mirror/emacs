@@ -99,6 +99,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** New functions `make-progress-reporter', `progress-reporter-update',
+`progress-reporter-force-update' and `progress-reporter-done' provide
+a simple and efficient way of printing progress messages to the user.
+
++++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
 by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
 and `C-c C-r'.
@@ -1167,10 +1172,21 @@ to new-kill-line, these commands now report:
   new-kill-line is on C-k
 
 +++
+** Vertical scrolling is now possible within incremental search.
+To enable this feature, customize the new user option
+`isearch-allow-scroll'.  User written commands which satisfy stringent
+constraints can be marked as "scrolling commands".  See the Emacs manual
+for details.
+
++++
 ** C-w in incremental search now grabs either a character or a word,
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
+
++++
+** C-y in incremental search now grabs the next line if point is already
+at the end of a line.
 
 +++
 ** C-M-w deletes and C-M-y grabs a character in isearch mode.
@@ -2517,10 +2533,12 @@ If either property is not set, the default `overlay-arrow-string' or
 line in current buffer, or if optional buffer position is given, line
 number of corresponding line in current buffer.
 
++++
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters
 that end a sentence without following spaces.
 
++++
 ** The function `sentence-end' should be used to obtain the value of
 the variable `sentence-end'.  If the variable `sentence-end' is nil,
 then this function returns the regexp constructed from the variables

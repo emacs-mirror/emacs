@@ -1,3 +1,8 @@
+2004-10-08  Steven Tamm  <steventamm@mac.com>
+
+	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
+	* configure: Rebuild
+
 2004-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/searching
@@ -694,9 +694,9 @@ an @code{invalid-regexp} error is signaled.
 
   Here is a complicated regexp which was formerly used by Emacs to
 recognize the end of a sentence together with any whitespace that
-follows.  It was used as the variable @code{sentence-end}.  (Its value
-nowadays contains alternatives for @samp{.}, @samp{?} and @samp{!} in
-other character sets.)
+follows.  (Nowadays Emacs uses a similar but more complex default
+regexp constructed by the function @code{sentence-end}.
+@xref{Standard Regexps}.)
 
   First, we show the regexp as a string in Lisp syntax to distinguish
 spaces from tab characters.  The string constant begins and ends with a
@@ -730,9 +730,9 @@ deciphered as follows:
 The first part of the pattern is a character alternative that matches
 any one of three characters: period, question mark, and exclamation
 mark.  The match must begin with one of these three characters.  (This
-is the one point where the new value of @code{sentence-end} differs
-from the old.  The new value also lists sentence ending
-non-@acronym{ASCII} characters.)
+is one point where the new default regexp used by Emacs differs from
+the old.  The new value also allows some non-@acronym{ASCII}
+characters that end a sentence without any following whitespace.)
 
 @item []\"')@}]*
 The second part of the pattern matches any closing braces and quotation
@@ -1698,22 +1698,24 @@ whitespace or starting with a form feed (after its left margin).
 @end defvar
 
 @defvar sentence-end
-This is the regular expression describing the end of a sentence.  (All
-paragraph boundaries also end sentences, regardless.)  The (slightly
-simplified) default value is:
+If non-@code{nil}, the value should be a regular expression describing
+the end of a sentence, including the whitespace following the
+sentence.  (All paragraph boundaries also end sentences, regardless.)
 
-@example
-"[.?!][]\"')@}]*\\($\\| $\\|\t\\|@ @ \\)[ \t\n]*"
-@end example
-
-This means a period, question mark or exclamation mark (the actual
-default value also lists their alternatives in other character sets),
-followed optionally by closing parenthetical characters, followed by
-tabs, spaces or new lines.
-
-For a detailed explanation of this regular expression, see @ref{Regexp
-Example}.
+If the value is @code{nil}, the default, then the function
+@code{sentence-end} has to construct the regexp.  That is why you
+should always call the function @code{sentence-end} to obtain the
+regexp to be used to recognize the end of a sentence.
 @end defvar
+
+@defun sentence-end
+This function returns the value of the variable @code{sentence-end},
+if non-@code{nil}.  Otherwise it returns a default value based on the
+values of the variables @code{sentence-end-double-space}
+(@pxref{Definition of sentence-end-double-space}),
+@code{sentence-end-without-period} and
+@code{sentence-end-without-space}.
+@end defun
 
 @ignore
    arch-tag: c2573ca2-18aa-4839-93b8-924043ef831f

@@ -4009,7 +4009,7 @@ the @dfn{else-part}, for the case when the true-or-false-test returns
 false.  When this happens, the second argument or then-part of the
 overall @code{if} expression is @emph{not} evaluated, but the third or
 else-part @emph{is} evaluated.  You might think of this as the cloudy
-day alternative for the decision `if it is warm and sunny, then go to
+day alternative for the decision ``if it is warm and sunny, then go to
 the beach, else read a book!''.
 
 The word ``else'' is not written in the Lisp code; the else-part of an
@@ -18025,7 +18025,7 @@ beginning.
 
 Sometimes when you you write text, you duplicate words---as with ``you
 you'' near the beginning of this sentence.  I find that most
-frequently, I duplicate ``the'; hence, I call the function for
+frequently, I duplicate ``the''; hence, I call the function for
 detecting duplicated words, @code{the-the}.
 
 @need 1250

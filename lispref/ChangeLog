@@ -1,3 +1,17 @@
+2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* text.texi (Filling): Add anchor for definition of
+	`sentence-end-double-space'.
+
+	* searching.texi (Regexp Example): Update description of how
+	Emacs currently recognizes the end of a sentence.
+	(Standard Regexps): Update definition of the variable
+	`sentence-end'.  Add definition of the function `sentence-end'.
+
+2004-10-08  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* display.texi (Progress): New node.
+
 2004-10-05  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Fringe Bitmaps): Update fringe-bitmaps-at-pos.

@@ -540,9 +540,8 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 				output_cursor.vpos,
 				output_cursor.x, output_cursor.y);
 
-      x_draw_vertical_border (w);
-
-      draw_window_fringes (w);
+      if (draw_window_fringes (w, 1))
+	x_draw_vertical_border (w);
 
       UNBLOCK_INPUT;
     }

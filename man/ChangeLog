@@ -1,3 +1,21 @@
+2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Misc File Ops): View mode is a minor mode.
+
+2004-10-09  Juri Linkov  <juri@jurta.org>
+
+	* gnus.texi (Fancy Mail Splitting): Remove backslash in the
+	example of nnmail-split-fancy.
+
+2004-10-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi (iCalendar): Style changes.
+
+2004-10-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.texi (Regexps): The regexp described in the example is no
+	longer stored in the variable `sentence-end'.
+
 2004-10-06  Karl Berry  <karl@gnu.org>
 
 	* info.texi (@kbd{1}--@kbd{9}): no space around --, for
@@ -8,12 +26,14 @@
 	* building.texi (Starting GUD): Note that multiple debugging
 	sessions requires `gdb --fullname'.
 
+2004-10-05  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar.texi (iCalendar): New section for a new package.
+
 2004-10-05  Karl Berry  <karl@gnu.org>
 
 	* info.texi: consistently use --- throughout, periods at end of
 	menu descriptions, and a couple typos.
-	From: Benno Schulenberg <benno@nietvergeten.nl>,
-	in bug-texinfo mail.
 
 2004-10-05  Luc Teirlinck  <teirllm@auburn.edu>
 

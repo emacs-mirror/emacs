@@ -1,3 +1,48 @@
+2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/paragraphs.el (sentence-end-double-space)
+	(sentence-end-without-period, sentence-end-without-space)
+	(sentence-end): Doc fixes.
+
+2004-10-08  Peter Seibel  <peter@javamonkey.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Change
+	paragraph-start regexp so we don't fill code starting with #'(
+
+2004-10-08  Sebastien Kirche  <seki@seki.fr>  (tiny change)
+
+	* mail/mail-extr.el (mail-extr-ignore-realname-equals-mailbox-name):
+	New defcustom.
+	(extract-address-components): Use it.
+
+2004-10-08  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* subr.el (make-progress-reporter, progress-reporter-update)
+	(progress-reporter-force-update, progress-reporter-do-update)
+	(progress-reporter-done): New functions.
+
+	* tar-mode.el (tar-summarize-buffer): Use progress reporter.
+
+	* progmodes/etags.el (etags-tags-completion-table): Use progress
+	reporter.
+	(etags-tags-apropos): Likewise.
+
+2004-10-08  Alan Mackenzie  <acm@muc.de>
+
+	* isearch.el (isearch-yank-line): C-y yanks to next EOL, not end
+	of current line.
+
+2004-10-08  Masatake YAMATO  <jet@gyve.org>
+
+	* server.el (server-process-filter): Wrap `process-send-region'
+	by `condition-case' to guard the case when the pipe to PROC is
+	closed.
+
+2004-10-07  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Limit handling of external
+	entities.
+
 2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-ann3): (Re-)initialise gdb-input-queue.

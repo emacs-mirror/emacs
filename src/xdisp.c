@@ -12218,7 +12218,8 @@ redisplay_window (window, just_this_one_p)
     {
       update_begin (f);
       BLOCK_INPUT;
-      draw_window_fringes (w);
+      if (draw_window_fringes (w, 1))
+	x_draw_vertical_border (w);
       UNBLOCK_INPUT;
       update_end (f);
     }

@@ -234,6 +234,13 @@ we will act as though we couldn't find a full name in the address."
   :version "21.4"
   :group 'mail-extr)
 
+(defcustom mail-extr-ignore-realname-equals-mailbox-name t
+"*Whether to ignore a name that is equal to the mailbox name.
+If true, then when the address is like \"Single <single@address.com>\"
+we will act as though we couldn't find a full name in the address."
+  :type 'boolean
+  :group 'mail-extr)
+
 ;; Matches a leading title that is not part of the name (does not
 ;; contribute to uniquely identifying the person).
 (defcustom mail-extr-full-name-prefixes
@@ -694,7 +701,7 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
   "Given an RFC-822 address ADDRESS, extract full name and canonical address.
 Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).
 If no name can be extracted, FULL-NAME will be nil.  Also see
-`mail-extr-ignore-single-names'.
+`mail-extr-ignore-single-names' and `mail-extr-ignore-realname-equals-mailbox-name'.
 
 If the optional argument ALL is non-nil, then ADDRESS can contain zero
 or more recipients, separated by commas, and we return a list of
@@ -1404,8 +1411,9 @@ consing a string.)"
 		    (setq names-match-flag nil))
 		(setq i (1+ i)))
 	      (delete-region (+ (point-min) buffer-length) (point-max))
-	      (if names-match-flag
-		  (narrow-to-region (point) (point)))))
+	      (and names-match-flag 
+			   mail-extr-ignore-realname-equals-mailbox-name
+			   (narrow-to-region (point) (point)))))
 
 	  ;; Nuke name if it's just one word.
 	  (goto-char (point-min))
