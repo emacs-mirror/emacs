@@ -210,21 +210,21 @@ but no others."
       (and (featurep 'dired)
       (save-excursion
 	(set-buffer buffer)
-	     (and
-	      (eq major-mode 'dired-mode) ; do nothing if not a dired buffer
-	      (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
-		  list-buffers-directory
-		;; don't use default-directory if dired-directory is nil
-		(and dired-directory
-		     (expand-file-name
-		      (directory-file-name
-		       (if (consp dired-directory)
-			   (car dired-directory)
-			 dired-directory))))))))))
+	(when (eq major-mode 'dired-mode) ; do nothing if not a dired buffer
+	  (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
+	      list-buffers-directory
+	    ;; don't use default-directory if dired-directory is nil
+	    (and dired-directory
+		 (expand-file-name
+		  (directory-file-name
+		   (if (consp dired-directory)
+		       (car dired-directory)
+		     dired-directory))))))))))
 
 (defun uniquify-fix-list-filename-lessp (fixlist1 fixlist2)
   (uniquify-filename-lessp
-   (uniquify-fix-list-filename fixlist1) (uniquify-fix-list-filename fixlist2)))
+   (uniquify-fix-list-filename fixlist1
+			       ) (uniquify-fix-list-filename fixlist2)))
 
 ;; This examines the filename components in reverse order.
 (defun uniquify-filename-lessp (s1 s2)
