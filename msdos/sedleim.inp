@@ -2,8 +2,8 @@
 # Configuration script for leim/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 /^SHELL *=/c\
-SHELL=/dos/command\
-MAKESHELL=/dos/command
+SHELL=/xyzzy/command\
+MAKESHELL=/xyzzy/command
 
 /^version=/d
 /^prefix=/d
