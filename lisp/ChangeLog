@@ -1,3 +1,8 @@
+2002-09-10  Deepak Goel  <deego@glue.umd.edu>
+
+	* play/doctor.el (doc//): Rename from `//'.  Update callers.
+	(doc$): Rename from `$'.  Update callers.
+
 2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
 
 	* simple.el (transient-mark-mode, line-number-mode,
@@ -68,7 +73,7 @@
 
 	* play/doctor.el (doctor-cadr, doctor-caddr, doctor-cddr): Remove.
 	Update callers.
-	
+
 2002-09-08  Markus Rost  <rost@math.ohio-state.edu>
 
 	* diff.el (diff): Doc fix.
