@@ -1267,29 +1267,16 @@ The returned value is a Quail map specific to KEY."
 
 (defun quail-input-string-to-events (str)
   "Convert input string STR to a list of events.
-Do so while interleaving with the following special events:
-\(compose-last-chars LEN COMPONENTS)
-\(quail-advice INPUT-STRING)"
-  (let* ((events (mapcar
-		  (lambda (c)
-		    ;; This gives us the chance to unify on input
-		    ;; (e.g. using ucs-tables.el).
-		    ;; Fixme: Is this still useful?  (See also mule-conf.el.)
-		    (or (and translation-table-for-input
-			     (aref translation-table-for-input c))
-			c))
-		  str))
-	 (len (length str))
-	 (idx len)
-	 composition from to)
-    (while (and (> idx 0)
-		(setq composition (find-composition idx 0 str t)))
-      (setq from (car composition) to (nth 1 composition))
-      (setcdr (nthcdr (1- to) events)
-	      (cons (list 'compose-last-chars (- to from)
-			  (and (not (nth 3 composition)) (nth 2 composition)))
-		    (nthcdr to events)))
-      (setq idx (1- from)))
+If STR has `advice' text property, append the following special event:
+\(quail-advice STR)"
+  (let ((events (mapcar
+		 (lambda (c)
+		   ;; This gives us the chance to unify on input
+		   ;; (e.g. using ucs-tables.el).
+		   (or (and translation-table-for-input
+			    (aref translation-table-for-input c))
+		       c))
+		 str)))
     (if (or (get-text-property 0 'advice str)
 	    (next-single-property-change 0 'advice str))
 	(setq events
