@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
+#include "charset.h"
 #include "disptab.h"
 #include "dispextern.h"
 #include "keyboard.h"
@@ -1070,7 +1071,7 @@ Lisp_Object
 command_loop_1 ()
 {
   Lisp_Object cmd, tem;
-  int lose;
+  int lose, lose2;
   int nonundocount;
   Lisp_Object keybuf[30];
   int i;
@@ -1267,14 +1268,17 @@ command_loop_1 ()
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  lose = FETCH_CHAR (PT);
-		  SET_PT (PT + 1);
+		  lose = FETCH_BYTE (PT);
+		  SET_PT (forward_point (1));
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
                           : (NILP (DISP_CHAR_VECTOR (dp, lose))
                              && (lose >= 0x20 && lose < 0x7f)))
 		       : (lose >= 0x20 && lose < 0x7f))
+		      /* To extract the case of continuation on
+                         wide-column characters.  */
+		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT)) == 1)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -1293,8 +1297,8 @@ command_loop_1 ()
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
-		  SET_PT (PT - 1);
-		  lose = FETCH_CHAR (PT);
+		  SET_PT (forward_point (-1));
+		  lose = FETCH_BYTE (PT);
 		  if ((dp
 		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  ? XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1
@@ -1351,7 +1355,7 @@ command_loop_1 ()
 		    nonundocount = 0;
 
 		  if (!lose
-		      && (PT == ZV || FETCH_CHAR (PT) == '\n'))
+		      && (PT == ZV || FETCH_BYTE (PT) == '\n'))
 		    {
 		      struct Lisp_Char_Table *dp
 			= window_display_table (XWINDOW (selected_window));
@@ -3500,6 +3504,41 @@ char *lispy_function_keys[] =
 
 #define FUNCTION_KEY_OFFSET 0xff00
 
+#ifdef XK_kana_A
+static char *lispy_kana_keys[] =
+  {
+    /* X Keysym value */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x400 .. 0x40f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x410 .. 0x41f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x420 .. 0x42f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x430 .. 0x43f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x440 .. 0x44f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x450 .. 0x45f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x460 .. 0x46f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,"overline",0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x480 .. 0x48f */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x490 .. 0x49f */
+    0, "kana-fullstop", "kana-openingbracket", "kana-closingbracket", 
+    "kana-comma", "kana-conjunctive", "kana-WO", "kana-a",
+    "kana-i", "kana-u", "kana-e", "kana-o",
+    "kana-ya", "kana-yu", "kana-yo", "kana-tsu",
+    "prolongedsound", "kana-A", "kana-I", "kana-U",
+    "kana-E", "kana-O", "kana-KA", "kana-KI",
+    "kana-KU", "kana-KE", "kana-KO", "kana-SA",
+    "kana-SHI", "kana-SU", "kana-SE", "kana-SO",
+    "kana-TA", "kana-CHI", "kana-TSU", "kana-TE",
+    "kana-TO", "kana-NA", "kana-NI", "kana-NU",
+    "kana-NE", "kana-NO", "kana-HA", "kana-HI",
+    "kana-FU", "kana-HE", "kana-HO", "kana-MA",
+    "kana-MI", "kana-MU", "kana-ME", "kana-MO",
+    "kana-YA", "kana-YU", "kana-YO", "kana-RA",
+    "kana-RI", "kana-RU", "kana-RE", "kana-RO",
+    "kana-WA", "kana-N", "voicedsound", "semivoicedsound",
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x4e0 .. 0x4ef */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x4f0 .. 0x4ff */
+  };
+#endif /* XK_kana_A */
+
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
 static char *lispy_function_keys[] =
@@ -3519,7 +3558,8 @@ static char *lispy_function_keys[] =
     0, 0, 0, 0, 0, 0, 0,
     "escape",
     0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff20...2f */
+    0, "kanji", "muhenkan", 
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff20...2f */
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff30...3f */
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   /* 0xff40...4f */
 
@@ -3709,6 +3749,16 @@ make_lispy_event (event)
 				      0, &current_kboard->system_key_syms,
 				      (unsigned)-1);
 	}
+
+#ifdef XK_kana_A
+      if (event->code >= 0x400 && event->code < 0x500)
+	return modify_event_symbol (event->code - 0x400,
+				    event->modifiers & ~shift_modifier,
+				    Qfunction_key, Qnil,
+				    lispy_kana_keys, &func_key_syms,
+				    (sizeof (lispy_kana_keys)
+				     / sizeof (lispy_kana_keys[0])));
+#endif /* XK_kana_A */
 
       return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
 				  event->modifiers,
