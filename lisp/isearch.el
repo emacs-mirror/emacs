@@ -1178,9 +1178,14 @@ Obsolete."
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
   (interactive)
-  (if current-input-method
-      (isearch-process-search-multibyte-characters (isearch-last-command-char))
-    (isearch-process-search-char (isearch-last-command-char))))
+  (let ((char (isearch-last-command-char)))
+    (if (and enable-multibyte-characters
+	     (>= char ?\200)
+	     (<= char ?\377))
+	(isearch-process-search-char (+ char nonascii-insert-offset))
+      (if current-input-method
+	  (isearch-process-search-multibyte-characters char)
+	(isearch-process-search-char char)))))
 
 (defun isearch-whitespace-chars ()
   "Match all whitespace chars, if in regexp mode.
