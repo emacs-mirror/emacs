@@ -1,26 +1,26 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.10) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.11) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
 PFM = nti3mv
-PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
+PFMDEFS = /DWIN32 /D_WINDOWS
 
-STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
+STD = <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
-      <coll> <ref> <trace> <fault> <protnt> <shield> <sched> \
+      <ref> <trace> <protnt> <shield> \
       <thnti3> <ssnti3> <mpsi> <mpsint>
 AMC = <amc> <amcgroup>
-DW  = <dw> <dwformat>
+DW  = <dw> <fmtdy>
 TESTLIB = <testlib>
 
 #!INCLUDE mv.nmk
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.10) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.11) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -217,8 +217,8 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: amcss.exe lockutnt.exe lockcov.exe stdcover.exe \
-    mpmss.exe protcv.exe poolncv.exe std.lib mpm.lib
+all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
+     stdcover.exe poolncv.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
@@ -281,7 +281,7 @@ $(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
 	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
-	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
 	$(DWOBJ) $(MPMOBJ) $(STDOBJ) $(AMCOBJ)
