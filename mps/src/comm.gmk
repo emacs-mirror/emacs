@@ -1,7 +1,7 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.24) $
-# Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
+# $HopeName: MMsrc!comm.gmk(trunk.25) $
+# Copyright (C) 1995,1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
 #
@@ -148,6 +148,7 @@ TESTLIB = testlib.c
 FMTDY = fmtdy.c fmtdytst.c
 FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
+EVENT = event.c
 
 
 # These map the source file lists onto object files and dependency files
@@ -192,6 +193,8 @@ FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
+EVENTOBJ = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.o)
+EVENTDEP = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
@@ -229,7 +232,7 @@ endif
 # just a convenient set of targets to build.
 
 all: mpmss amcss amsss awlut dwstress mpsicv lockcov poolncv mps.a \
-     lo.a locv qs mpmconft finalcv arenacv bttest epvmss
+     lo.a locv qs mpmconft finalcv arenacv bttest
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
@@ -315,7 +318,7 @@ $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
-        $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
+        $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ) $(EVENTOBJ)
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
@@ -389,7 +392,7 @@ ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) $(ARENAANDEP) \
   $(AWLDEP) $(DWDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
-  $(PLINTHDEP)
+  $(PLINTHDEP) $(EVENTDEP)
 endif
 endif
 
