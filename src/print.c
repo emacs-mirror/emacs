@@ -601,6 +601,8 @@ temp_output_buffer_setup (bufname)
   eassert (current_buffer->overlays_after == NULL);
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   XSETBUFFER (buf, current_buffer);
 
