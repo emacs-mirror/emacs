@@ -118,6 +118,10 @@ Lisp_Object memory_signal_data;
 #define DONT_COPY_FLAG 1
 #endif /* no DONT_COPY_FLAG  */
 
+#if DONT_COPY_FLAG == MARKBIT
+you lose
+#endif
+
 /* Buffer in which we save a copy of the C stack at each GC.  */
 
 char *stack_copy;
