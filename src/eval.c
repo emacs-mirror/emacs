@@ -573,7 +573,7 @@ optional argument, and making the `interactive' spec specify non-nil
 unconditionally for that argument.  (`p' is a good way to do this.)  */)
      ()
 {
-  return (INTERACTIVE && interactive_p (1)) ? Qt : Qnil;
+  return interactive_p (1) ? Qt : Qnil;
 }
 
 
@@ -595,7 +595,8 @@ interactive_p (exclude_subrs_p)
   /* If this isn't a byte-compiled function, there may be a frame at
      the top for Finteractive_p.  If so, skip it.  */
   fun = Findirect_function (*btp->function);
-  if (SUBRP (fun) && XSUBR (fun) == &Sinteractive_p)
+  if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
+		      || XSUBR (fun) == &Scalled_interactively_p))
     btp = btp->next;
 
   /* If we're running an Emacs 18-style byte-compiled function, there
@@ -1173,9 +1174,10 @@ unwind_to_catch (catch, value)
   /* Save the value in the tag.  */
   catch->val = value;
 
-  /* Restore the polling-suppression count.  */
+  /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
   interrupt_input_blocked = catch->interrupt_input_blocked;
+  handling_signal = 0;
 
   do
     {
