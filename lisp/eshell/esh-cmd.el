@@ -613,10 +613,10 @@ must be implemented via rewriting, rather than as a function."
        (eshell-invokify-arg (cadr terms) nil t)
        (list 'eshell-protect
 	     (eshell-invokify-arg
-	      (if (= (length terms) 5)
-		  (car (last terms 3))
+	      (if (= (length terms) 4)
+		  (car (last terms 2))
 		(car (last terms))) t))
-       (if (= (length terms) 5)
+       (if (= (length terms) 4)
 	   (list 'eshell-protect
 		 (eshell-invokify-arg
 		  (car (last terms)))) t))))
@@ -625,7 +625,9 @@ must be implemented via rewriting, rather than as a function."
   "Return non-nil if the last command was \"successful\".
 For a bit of Lisp code, this means a return value of non-nil.
 For an external command, it means an exit code of 0."
-  (if (string= eshell-last-command-name "#<Lisp>")
+  (if (save-match-data
+	(string-match "#<\\(Lisp object\\|function .*\\)>"
+		      eshell-last-command-name))
       eshell-last-command-result
     (= eshell-last-command-status 0)))
 
