@@ -1498,13 +1498,9 @@ It returns t if it got any new messages."
                 (if rmail-use-spam-filter
                     ;; Loop through the new messages processing each
                     ;; message for spam.
-                    (save-excursion
-                      (while (<= current-message rmail-total-messages)
-                        (narrow-to-region
-                         (rmail-desc-get-start current-message)
-                         (rmail-desc-get-end current-message))
-                        (rmail-spam-filter current-message)
-                        (setq current-message (1+ current-message)))))
+                    (while (<= current-message rmail-total-messages)
+                      (rmail-spam-filter current-message)
+                      (setq current-message (1+ current-message))))
           
                 ;; Position the mail cursor again.
 		(setq current-message (rmail-first-unseen-message))

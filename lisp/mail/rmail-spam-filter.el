@@ -49,7 +49,7 @@
 ;;; (*) Block future mail with the subject or sender of a message
 ;;; while reading it in RMAIL: just click on the "Spam" item on the
 ;;; menubar, and add the subject or sender to the list of spam
-;;; definitions using the mouse and the appropriate menu item. Â  You
+;;; definitions using the mouse and the appropriate menu item.  You
 ;;; need to later also save the list of spam definitions using the
 ;;; same menu item, or alternatively, see variable
 ;;; `rmail-spam-filter-autosave-newly-added-spam-definitions'.
@@ -67,24 +67,41 @@
 ;;; header, the message is flagged as a valid, non-spam message (Ethan
 ;;; Brown <ethan@gso.saic.com>).
 
+;;; (*) rmail-spam-filter is best used with a general purpose spam
+;;; filter such as the procmail-based http://www.spambouncer.org/.
+;;; Spambouncer is set to only mark messages as spam/blocked/bulk/OK
+;;; via special headers, and these headers may then be defined in
+;;; rmail-spam-filter such that the spam is rejected by
+;;; rmail-spam-filter itself.
+
 ;;; (*) rmail spam filter also works with bbdb to prevent spam senders
 ;;; from entering into the .bbdb file.  See variable
-;;; "rmail-spam-filter-auto-delete-spam-bbdb-entries".  This is done
+;;; "spam-filter-auto-delete-spam-bbdb-entries".  This is done
 ;;; in two ways: (a) bbdb is made not to auto-create entries for
 ;;; messages that are deleted by the rmail-spam-filter, (b) when a
 ;;; message is deleted in rmail, the user is offered to delete the
 ;;; sender's bbdb entry as well _if_ it was created at the same day.
 
 (require 'rmail)
+(if (> emacs-major-version 20)
+    (require 'rmailsum)
+  (if (not (fboundp 'rmail-make-summary-line)) (load-library "rmailsum")))
 
-;; For find-if and other cool common lisp functions we may want to use. (EDB)
-(require 'cl)				
+(eval-when-compile
+  (require 'cl))
 
 (defgroup rmail-spam-filter nil
   "Spam filter for RMAIL, the mail reader for Emacs."
   :group 'rmail)
 
 (defcustom rmail-use-spam-filter nil
+  "*Non-nil to activate the rmail spam filter.
+Specify `rmail-spam-definitions-alist' to define what you consider spam
+emails."
+  :type 'boolean
+  :group 'rmail-spam-filter )
+
+(defcustom vm-use-spam-filter nil
   "*Non-nil to activate the rmail spam filter.
 Specify `rmail-spam-definitions-alist' to define what you consider spam
 emails."
@@ -119,8 +136,13 @@ spam, as one of the fields of `rmail-spam-definitions-alist'"
   "*Seconds to wait after display of message that spam was found."
   :type 'number
   :group 'rmail-spam-filter )
-  
-(defcustom rmail-spam-filter-auto-delete-spam-bbdb-entries nil
+
+(defcustom rmail-spam-filter-min-region-length-added-to-spam-list 7
+  "*Minimum size of region highllighted in a message that can be added to spam list"
+  :type 'integer
+  :group 'rmail-spam-filter )
+
+(defcustom spam-filter-auto-delete-spam-bbdb-entries nil
   "*Non-nil to make sure no entries are made in bbdb for spam emails.
 This is done in two ways: (1) bbdb is made not to auto-create entries
 for messages that are deleted by the `rmail-spam-filter', (2) when a
@@ -159,7 +181,9 @@ is defined as one that fits all of the specified elements of any one
 of the spam definitions.  The strings that specify spam subject,
 sender, etc, may be regexp.  For example, to specify that the subject
 may be either 'this is spam' or 'another spam', use the regexp: 'this
-is spam\|another spam' (without the single quotes)."
+is spam\\|another spam' (without the single quotes).  To specify that
+if the contents contain both this and that the message is spam,
+specify 'this\\&that' in the appropriate spam definition field."
   :type '(repeat 
           (list :format "%v"
 	   (cons :format "%v" :value (from . "")
@@ -185,7 +209,11 @@ is spam\|another spam' (without the single quotes)."
 
 (defvar rmail-spam-filter-scanning-messages-now nil
   "Non nil when rmail-spam-filter scans messages,
-for interaction with `rmail-bbdb-auto-delete-spam-entries'")
+for interaction with `spam-filter-bbdb-auto-delete-spam-entries'")
+
+(defvar spam-filter-working-with-vm nil
+  "Non nil when vm is active.  
+for interaction with `spam-filter-auto-delete-spam-bbdb-entries'")
 
 (defun rmail-spam-filter (msg)
   "Return nil if msg is spam based on rmail-spam-definitions-alist.
@@ -205,56 +233,63 @@ it from rmail file.  Called for each new message retrieved by
 	(exit-while-loop nil)
 	(saved-case-fold-search case-fold-search)
 	(save-current-msg)
-	(rmail-spam-filter-saved-bbdb/mail_auto_create_p nil)
-	)
+	(rmail-spam-filter-saved-bbdb/mail_auto_create_p nil))
     
     ;; make sure bbdb does not create entries for messages while spam
     ;; filter is scanning the rmail file:
-    (setq rmail-spam-filter-saved-bbdb/mail_auto_create_p 'bbdb/mail_auto_create_p)
-    (setq bbdb/mail_auto_create_p nil)
-    ;; let `rmail-bbdb-auto-delete-spam-entries' know that rmail spam
+    (setq rmail-spam-filter-saved-bbdb/mail_auto_create_p
+          'bbdb/mail_auto_create_p
+          bbdb/mail_auto_create_p nil)
+    ;; let `spam-filter-bbdb-auto-delete-spam-entries' know that rmail spam
     ;; filter is running, so that deletion of rmail messages should be
     ;; ignored for now:
     (setq rmail-spam-filter-scanning-messages-now t)
     (save-excursion
       (save-restriction
 	(setq this-is-a-spam-email nil)
+
 	;; Narrow buffer to header of message and get Sender and
 	;; Subject fields to be used below:
-	(save-restriction
-	  (goto-char (rmail-msgbeg msg))
-	  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
-	  (setq message-sender (mail-fetch-field "From"))
-	  (setq message-recipients (mail-fetch-field "To"))
-	  (setq message-subject (mail-fetch-field "Subject"))
-	  )
+        (narrow-to-region
+         (rmail-desc-get-start current-message)
+         (rmail-desc-get-end current-message))
+        (goto-char (point-min))
+        (setq message-sender (mail-fetch-field "From")
+              message-recipients
+              (concat (mail-fetch-field "To")
+                      (if (mail-fetch-field "Cc")
+                          (concat ", " (mail-fetch-field "Cc"))))
+              message-subject (mail-fetch-field "Subject")))
+
 	;; Find number of spam-definition elements in the list
 	;; rmail-spam-definitions-alist specified by user:
-	(setq num-spam-definition-elements (safe-length
-					    rmail-spam-definitions-alist))
+	(setq num-spam-definition-elements
+              (safe-length rmail-spam-definitions-alist))
 
 	;;; do we want to ignore case in spam definitions:
-	  (setq case-fold-search rmail-spam-filter-ignore-case)
+	(setq case-fold-search rmail-spam-filter-ignore-case)
 	
 	;; Check for blind CC condition.  Set vars such that while
 	;; loop will be bypassed and spam condition will trigger (EDB)
 	(if (and rmail-spam-no-blind-cc
 		 (null message-recipients))
-	    (progn
-	      (setq exit-while-loop t)
-	      (setq maybe-spam t)
-	      (setq this-is-a-spam-email t)))
+	    (setq exit-while-loop t
+		  maybe-spam t
+		  this-is-a-spam-email t))
 	
-	  ;; Check white list, and likewise cause while loop
-	  ;;  bypass. (EDB)
-	  (if (find-if '(lambda (white-str)
-			  (string-match white-str message-sender))
-		       rmail-spam-white-list)
-	      (progn
-		(setq exit-while-loop t)
-		(setq maybe-spam nil)
-		(setq this-is-a-spam-email nil)))
-	    
+	;; Check white list, and likewise cause while loop
+	;;  bypass. (EDB)
+	(if (let ((white-list rmail-spam-white-list)
+		  (found nil))
+	      (while (and (not found) white-list)
+		(if (string-match (car white-list) message-sender)
+		    (setq found t)
+		  (setq white-list (cdr white-list))))
+	      found)
+	    (setq exit-while-loop t
+		  maybe-spam nil
+		  this-is-a-spam-email nil))
+	
 	;; scan all elements of the list rmail-spam-definitions-alist
 	(while (and
 		(< num-element num-spam-definition-elements)
@@ -401,9 +436,11 @@ it from rmail file.  Called for each new message retrieved by
 				   (nth num-element rmail-spam-definitions-alist)))
 		       'output-and-delete)
 		(progn
-		  (rmail-output-to-rmail-file rmail-spam-file)
-		  (rmail-delete-message)
-		  ))
+		  (rmail-output rmail-spam-file)
+                   ;; Don't delete if automatic deletion after output
+                   ;; is turned on
+ 		  (unless rmail-delete-after-output (rmail-delete-message))
+		  (rmail-delete-message)))
 	       ((equal (cdr (assoc 'action
 				   (nth num-element rmail-spam-definitions-alist)))
 		       'delete-spam)
@@ -411,13 +448,14 @@ it from rmail file.  Called for each new message retrieved by
 		  (rmail-delete-message)
 		  ))
 	       )
-	       (setq rmail-current-message save-current-msg)
-	       (setq bbdb/mail_auto_create_p 'rmail-spam-filter-saved-bbdb/mail_auto_create_p)
+              (setq rmail-current-message save-current-msg)
+              (setq bbdb/mail_auto_create_p
+                    'rmail-spam-filter-saved-bbdb/mail_auto_create_p)
 	      ;; set return value.  These lines must be last in the
 	      ;; function, so that they will determine the value
 	      ;; returned by rmail-spam-filter:
 	      (setq return-value nil))
-	    (setq return-value t))))
+          (setq return-value t)))
     (setq case-fold-search saved-case-fold-search)
     (setq rmail-spam-filter-scanning-messages-now nil)
     return-value))
@@ -491,30 +529,37 @@ it from rmail file.  Called for each new message retrieved by
     (if (not (and mark-active (not (= (region-beginning) (region-end)))))
 	;; if inactive, print error message:
 	(message "you need to first highlight some text in the rmail buffer")
-      ;; if active, add to list of spam definisions:
-      (progn
-	(setq region-to-spam-list (buffer-substring (region-beginning) (region-end)))
-	;; note the use of a backquote and comma on the "from" line here,
-	;; to make sure message-sender is actually evaluated and its value
-	;; substituted:
-	(add-to-list 'rmail-spam-definitions-alist
-		     (list '(from . "")
-			   '(to . "")
-			   '(subject . "")
-			   `(contents . ,region-to-spam-list)
-			   '(action . output-and-delete))
-		     t)
-	(customize-mark-to-save 'rmail-spam-definitions-alist)
-	(if rmail-spam-filter-autosave-newly-added-spam-definitions
-	    (progn
-	      (custom-save-all)
-	      (message (concat "added highlighted text \n <<< \n" region-to-spam-list
-			       " \n >>> \n to list of spam definitions. \n"
-			       "and saved the spam definitions to file.")))
-	  (message (concat "added highlighted text \n <<< \n " region-to-spam-list
-			   " \n >>> \n to list of spam definitions."
-			   "Don't forget to save the spam definitions to file using the spam menu"))
-	  )))))
+      (if (< (- (region-end) (region-beginning))
+	     rmail-spam-filter-min-region-length-added-to-spam-list)
+	  (message
+	   (concat "highlighted region is too small; min length set by variable \n"
+		   "rmail-spam-filter-min-region-length-added-to-spam-list"
+		   " is " (number-to-string
+			   rmail-spam-filter-min-region-length-added-to-spam-list)))
+	;; if region active and long enough, add to list of spam definisions:
+	(progn
+	  (setq region-to-spam-list (buffer-substring (region-beginning) (region-end)))
+	  ;; note the use of a backquote and comma on the "from" line here,
+	  ;; to make sure message-sender is actually evaluated and its value
+	  ;; substituted:
+	  (add-to-list 'rmail-spam-definitions-alist
+		       (list '(from . "")
+			     '(to . "")
+			     '(subject . "")
+			     `(contents . ,region-to-spam-list)
+			     '(action . output-and-delete))
+		       t)
+	  (customize-mark-to-save 'rmail-spam-definitions-alist)
+	  (if rmail-spam-filter-autosave-newly-added-spam-definitions
+	      (progn
+		(custom-save-all)
+		(message (concat "added highlighted text \n <<< \n" region-to-spam-list
+				 " \n >>> \n to list of spam definitions. \n"
+				 "and saved the spam definitions to file.")))
+	    (message (concat "added highlighted text \n <<< \n " region-to-spam-list
+			     " \n >>> \n to list of spam definitions."
+			     "Don't forget to save the spam definitions to file using the spam menu"))
+	    ))))))
 
 
 (defun rmail-spam-filter-customize-spam-definitions ()
@@ -582,11 +627,11 @@ it from rmail file.  Called for each new message retrieved by
 (define-key rmail-mode-map "\C-cSt" 'rmail-spam-filter-add-subject-to-spam-list)
 
 
-(defun rmail-bbdb-auto-delete-spam-entries ()
+(defun spam-filter-bbdb-auto-delete-spam-entries ()
   "When deleting a message in RMAIL, check to see if the bbdb entry
 was created today, and if it was, prompt to delete it too.  This function 
 needs to be called via the `rmail-delete-message-hook' like this:
-\(add-hook 'rmail-delete-message-hook 'rmail-bbdb-auto-delete-spam-entries)"
+\(add-hook 'rmail-delete-message-hook 'spam-filter-bbdb-auto-delete-spam-entries)"
   (interactive)
   (require 'bbdb-hooks)
   (if (not rmail-spam-filter-scanning-messages-now)
@@ -599,34 +644,65 @@ needs to be called via the `rmail-delete-message-hook' like this:
 		     (bbdb-record-getprop (bbdb-current-record) 'creation-date))
 		    (bbdb-delete-current-record (bbdb-current-record))))))))
 
-(defun rmail-spam-filter-bbdb-dont-create-entries-for-spam ()
-  "Make sure senderes of rmail messages marked as deleted are not added to bbdb.
+(defun spam-filter-bbdb-dont-create-entries-for-deleted-messages ()
+  "Make sure senderes of messages marked as deleted are not added to bbdb.
+Works with vm and rmail.  Returns nil for deleted messages or for messages in spam-folder.
 Need to add this as a hook like this:
-\(setq bbdb/mail-auto-create-p 'rmail-spam-filter-bbdb-dont-create-entries-for-spam)
-and this is also used in conjunction with rmail-bbdb-auto-delete-spam-entries. 
-More doc: rmail-bbdb-auto-delete-spam-entries will delete newly created bbdb 
+\(setq bbdb/mail-auto-create-p 'spam-filter-bbdb-dont-create-entries-for-deleted-messages)
+and this is also used in conjunction with spam-filter-bbdb-auto-delete-spam-entries. 
+More doc: spam-filter-bbdb-auto-delete-spam-entries will delete newly created bbdb 
 entries of mail that is deleted.  However, if one scrolls back to the deleted 
 messages, then the sender is again added to the bbdb.  This function 
 prevents this.  Also, don't create entries for messages in the `rmail-spam-file'."
   (interactive)
-  (not
    ;; don't create a bbdb entry if one of the following conditions is satisfied: 
-   (or
-    ;; 1) looking at a deleted message:
-    (rmail-message-deleted-p rmail-current-message)
-    ;; 2) looking at messages in rmail-spam-file:
-    (string-match
-     (expand-file-name rmail-spam-file)
-     (expand-file-name (buffer-file-name rmail-buffer)))
-    )))
+  (let ((dont-create nil))
+    ;; use this only if appropriate variable is set and if
+    ;; rmail-buffer is set meaning that rmail is active:
+    (if (and rmail-use-spam-filter rmail-buffer)
+	(setq dont-create
+	      (or
+	       ;; 1) looking at a deleted message:
+	       (rmail-message-deleted-p rmail-current-message)
+	       ;; 2) looking at messages in rmail-spam-file:
+	       (string-match
+		(expand-file-name rmail-spam-file)
+		(expand-file-name (buffer-file-name rmail-buffer)))
+	       )))
+    (if (and vm-use-spam-filter spam-filter-working-with-vm)
+	(setq dont-create
+	      (vm-deleted-flag (car vm-message-pointer))))
+    (not dont-create)))
 
-;; activate bbdb-anti-spam measures:
-(if rmail-spam-filter-auto-delete-spam-bbdb-entries
+;; add a veriable that is set to t when vm is active:
+(if vm-use-spam-filter
+    (progn 
+      (add-hook 'vm-mode-hook 'spam-filter-working-with-vm-func)
+      (add-hook 'vm-quit-hook 'spam-filter-not-working-with-vm-func)))
+(defun spam-filter-working-with-vm-func ()
+  (interactive)
+  (setq spam-filter-working-with-vm t))
+(defun spam-filter-not-working-with-vm-func ()
+  (interactive)
+  (setq spam-filter-working-with-vm nil))
+
+;; activate bbdb-anti-spam measures for rmail or vm:
+(if spam-filter-auto-delete-spam-bbdb-entries
     (progn
-      (add-hook 'rmail-delete-message-hook 'rmail-bbdb-auto-delete-spam-entries)
-      (setq bbdb/mail-auto-create-p 'rmail-spam-filter-bbdb-dont-create-entries-for-spam)
+      ;; for rmail:
+      (if rmail-use-spam-filter
+	  (progn
+	    (add-hook 'rmail-delete-message-hook 'spam-filter-bbdb-auto-delete-spam-entries)
+	    (setq bbdb/mail-auto-create-p 'spam-filter-bbdb-dont-create-entries-for-deleted-messages)))
+      ;; for vm:
+      (if vm-use-spam-filter
+	  (progn
+	    (defadvice vm-delete-message
+	      (before advice-spam-filter-bbdb-auto-delete-spam-entries activate)
+	      (spam-filter-bbdb-auto-delete-spam-entries))
+	    (setq bbdb/mail-auto-create-p 'spam-filter-bbdb-dont-create-entries-for-deleted-messages)))
       ))
 
 (provide 'rmail-spam-filter)
 
-;;; rmail-spam-filter ends here
+;;; rmail-spam-fitler ends here
