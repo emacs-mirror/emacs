@@ -568,10 +568,6 @@ struct save_signal
 
 sys_suspend ()
 {
-#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
-  int st;
-  char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
-#endif
 #ifdef VMS
   /* "Foster" parentage allows emacs to return to a subprocess that attached
      to the current emacs as a cheaper than starting a whole new process.  This
@@ -630,6 +626,22 @@ sys_suspend ()
 /* On a system where suspending is not implemented,
    instead fork a subshell and let it talk directly to the terminal
    while we wait.  */
+  sys_subshell ();
+
+#endif /* no USG_JOBCTRL */
+#endif /* no SIGTSTP */
+#endif /* not VMS */
+}
+
+/* Fork a subshell.  */
+
+sys_subshell ()
+{
+#ifndef VMS
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+  int st;
+  char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
+#endif
   int pid = fork ();
   struct save_signal saved_handlers[5];
 
@@ -710,10 +722,7 @@ sys_suspend ()
   synch_process_alive = 1;
   wait_for_termination (pid);
   restore_signal_handlers (saved_handlers);
-
-#endif /* no USG_JOBCTRL */
-#endif /* no SIGTSTP */
-#endif /* not VMS */
+#endif /* !VMS */
 }
 
 save_signal_handlers (saved_handlers)
