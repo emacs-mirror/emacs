@@ -10977,7 +10977,7 @@ Value is t is tooltip was open, nil otherwise.")
 	extern void xlwmenu_redisplay P_ ((Widget));
 	
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
-	    && w != None)
+	    && w != NULL)
 	  {
 	    BLOCK_INPUT;
 	    xlwmenu_redisplay (w);
