@@ -981,28 +981,30 @@ If this is nil, no message will be displayed."
 	   "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
-	   "Useful File menu items:\n"
-	   :face variable-pitch "\
-Exit Emacs\t(or type Control-x followed by Control-c)
-Recover Session\trecover files you were editing before a crash
-
-
-"
-	   )
-  (:face variable-pitch
-	   "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n\n"
-	   :face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
 	   :face variable-pitch "\
-Emacs Tutorial\tLearn-by-doing tutorial for using Emacs efficiently.
+Emacs Tutorial\tLearn-by-doing tutorial for using Emacs efficiently
 Emacs FAQ\tFrequently asked questions and answers
 \(Non)Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
 	   "\
-Copying Conditions\tConditions for redistributing and changing Emacs\n"))
+Copying Conditions\tConditions for redistributing and changing Emacs
+Ordering Manuals\tHow to order Emacs manuals from the Free Software Foundation\n")
+  (:face variable-pitch
+	   "You can do basic editing with the menu bar and scroll bar \
+using the mouse.\n\n"
+	   :face (variable-pitch :weight bold)
+	   "Useful File menu items:\n"
+	   :face variable-pitch "\
+Exit Emacs\t(Or type Control-x followed by Control-c)
+Recover Session\tRecover files you were editing before a crash
+
+
+
+"
+	   ))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
@@ -1183,7 +1185,7 @@ where FACE is a valid face specification, as it can be used with
 				      "splash.xpm" "splash.pbm"))))
 	   (image-height (and img (cdr (image-size img))))
 	   (window-height (1- (window-height (selected-window)))))
-      (> window-height (+ image-height 14)))))
+      (> window-height (+ image-height 15)))))
 
 
 (defun startup-echo-area-message ()
