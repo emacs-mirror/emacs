@@ -1,6 +1,6 @@
 /* impl.c.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.c(trunk.17) $
+ * $HopeName: MMsrc!testlib.c(trunk.18) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -67,8 +67,7 @@ void randomize(int argc, char **argv)
 
 void die(mps_res_t res, const char *s)
 {
-  if(res != MPS_RES_OK)
-  {
+  if (res != MPS_RES_OK) {
     fflush(stdout); /* synchronize */
     fprintf(stderr, "\n%s: %d\n", s, res);
     exit(1);
@@ -80,8 +79,19 @@ void die(mps_res_t res, const char *s)
 
 void die_expect(mps_res_t res, mps_res_t expected, const char *s)
 {
-  if(res != expected)
-  {
+  if (res != expected) {
+    fflush(stdout); /* synchronize */
+    fprintf(stderr, "\n%s: %d\n", s, res);
+    exit(1);
+  }
+}
+
+
+/* cdie -- Test a C boolean, and exit on error */
+
+void cdie(int res, const char *s)
+{
+  if (!res) {
     fflush(stdout); /* synchronize */
     fprintf(stderr, "\n%s: %d\n", s, res);
     exit(1);
