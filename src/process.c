@@ -5391,14 +5391,46 @@ If PROCESS is a network process, resume handling of incoming traffic.  */)
 }
 
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
-       2, 2, "nProcess number: \nnSignal code: ",
-       doc: /* Send the process with process id PID the signal with code SIGCODE.
-PID must be an integer.  The process need not be a child of this Emacs.
+       2, 2, "sProcess (name or number): \nnSignal code: ",
+       doc: /* Send PROCESS the signal with code SIGCODE.
+PROCESS may also be an integer specifying the process id of the
+process to signal; in this case, the process need not be a child of
+this Emacs.
 SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
-     (pid, sigcode)
-     Lisp_Object pid, sigcode;
+     (process, sigcode)
+     Lisp_Object process, sigcode;
 {
-  CHECK_NUMBER (pid);
+  Lisp_Object pid;
+
+  if (INTEGERP (process))
+    {
+      pid = process;
+      goto got_it;
+    }
+
+  if (STRINGP (process))
+    {
+      Lisp_Object tem;
+      if (tem = Fget_process (process), NILP (tem))
+	{
+	  pid = Fstring_to_number (process, make_number (10));
+	  if (XINT (pid) != 0)
+	    goto got_it;
+	}
+      process = tem;
+    }
+  else
+    process = get_process (process);
+      
+  if (NILP (process))
+    return process;
+
+  CHECK_PROCESS (process);
+  pid = XPROCESS (process)->pid;
+  if (!INTEGERP (pid) || XINT (pid) <= 0)
+    error ("Cannot signal process %s", SDATA (XPROCESS (process)->name));
+
+ got_it:
 
 #define handle_signal(NAME, VALUE)		\
   else if (!strcmp (name, NAME))		\
