@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.120 $")
+(defconst byte-compile-version "$Revision: 2.121 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -91,17 +91,17 @@
 ;;				finding unused functions, as well as simple
 ;;				performance metering.
 ;; byte-compile-warnings	List of warnings to issue, or t.  May contain
-;;				'free-vars (references to variables not in the
-;;					    current lexical scope)
-;;				'unresolved (calls to unknown functions)
-;;				'callargs  (lambda calls with args that don't
-;;					    match the lambda's definition)
-;;				'redefine  (function cell redefined from
-;;					    a macro to a lambda or vice versa,
-;;					    or redefined to take other args)
-;;				'obsolete  (obsolete variables and functions)
-;;				'noruntime (calls to functions only defined
-;;					    within `eval-when-compile')
+;;				`free-vars' (references to variables not in the
+;;					     current lexical scope)
+;;				`unresolved' (calls to unknown functions)
+;;				`callargs'  (lambda calls with args that don't
+;;					     match the lambda's definition)
+;;				`redefine'  (function cell redefined from
+;;					     a macro to a lambda or vice versa,
+;;					     or redefined to take other args)
+;;				`obsolete'  (obsolete variables and functions)
+;;				`noruntime' (calls to functions only defined
+;;					     within `eval-when-compile')
 ;; byte-compile-compatibility	Whether the compiler should
 ;;				generate .elc files which can be loaded into
 ;;				generic emacs 18.
