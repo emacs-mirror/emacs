@@ -646,7 +646,7 @@ x_consider_frame_title (frame)
 #endif
 
 /* Prepare for redisplay by updating menu-bar item lists when appropriate.
-   This can't be done in `redisplay' itself because it can call eval.  */
+   This can call eval.  */
 
 void
 prepare_menu_bars ()
