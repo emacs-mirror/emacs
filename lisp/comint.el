@@ -582,13 +582,13 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	 (nconc
 	  ;; If using termcap, we specify `emacs' as the terminal type
 	  ;; because that lets us specify a width.
-	  ;; If using terminfo, we specify `unknown' because that is
+	  ;; If using terminfo, we specify `dumb' because that is
 	  ;; a defined terminal type.  `emacs' is not a defined terminal type
 	  ;; and there is no way for us to define it here.
 	  ;; Some programs that use terminfo get very confused
 	  ;; if TERM is not a valid terminal type.
 	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
-	      (list "TERM=unknown"
+	      (list "TERM=dumb"
 		    (format "COLUMNS=%d" (frame-width)))
 	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (frame-width))))
