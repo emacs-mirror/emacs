@@ -280,7 +280,10 @@ can be modified by the global variable `repeat-on-final-keystroke'."
 	(let ((indirect (indirect-function real-last-command)))
 	  (if (or (stringp indirect)
 		  (vectorp indirect))
-	      (execute-kbd-macro real-last-command)
+	      ;; Bind real-last-command so that executing the macro
+	      ;; does not alter it.
+	      (let ((real-last-command real-last-command))
+		(execute-kbd-macro real-last-command))
 	    (call-interactively real-last-command)))))
     (when repeat-repeat-char
       ;; A simple recursion here gets into trouble with max-lisp-eval-depth
