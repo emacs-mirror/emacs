@@ -780,7 +780,9 @@ language you are using."
 (define-key global-map [redo]		'repeat-complex-command)
 (define-key global-map [again]		'repeat-complex-command) ; Sun keyboard
 (define-key global-map [open]		'find-file) ; Sun
-(define-key global-map [stop]		'keyboard-quit)	; Sun
+;; The following wouldn't work to interrupt running code since C-g is
+;; treated specially in the event loop.
+;; (define-key global-map [stop]		'keyboard-quit) ; Sun
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
