@@ -3761,17 +3761,21 @@ syms_of_coding ()
   DEFVAR_LISP ("coding-system-for-read", &Vcoding_system_for_read,
     "A variable of internal use only.\n\
 If the value is a coding system, it is used for decoding on read operation.\n\
-If not, an appropriate element in `coding-system-alist' (which see) is used.");
+If not, an appropriate element is used from one of the coding system alists:\n\
+There are three of such tables, `file-coding-system-alist',\n\
+`process-coding-system-alist', and `network-coding-system-alist'.");
   Vcoding_system_for_read = Qnil;
 
   DEFVAR_LISP ("coding-system-for-write", &Vcoding_system_for_write,
     "A variable of internal use only.\n\
 If the value is a coding system, it is used for encoding on write operation.\n\
-If not, an appropriate element in `coding-system-alist' (which see) is used.");
+If not, an appropriate element is used from one of the coding system alists:\n\
+There are three of such tables, `file-coding-system-alist',\n\
+`process-coding-system-alist', and `network-coding-system-alist'.");
   Vcoding_system_for_write = Qnil;
 
   DEFVAR_LISP ("last-coding-system-used", &Vlast_coding_system_used,
-    "Coding-system used in the latest file or process I/O.");
+    "Coding system used in the latest file or process I/O.");
   Vlast_coding_system_used = Qnil;
 
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
