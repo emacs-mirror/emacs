@@ -770,6 +770,10 @@ Text Properties
                               them back.
 * Lazy Properties::         Computing text properties in a lazy fashion
                               only when text is examined.
+* Clickable Text::          Using text properties to make regions of text
+                              do something when you click on them.
+* Fields::                  The @code{field} property defines
+                              fields within the buffer.
 * Not Intervals::	    Why text properties do not use
 			      Lisp-visible text intervals.
 
