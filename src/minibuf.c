@@ -1028,7 +1028,7 @@ temp_echo_area_glyphs (m)
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
-      unread_command_events = Fcons (make_number (quit_char), Qnil);
+      Vunread_command_events = Fcons (make_number (quit_char), Qnil);
     }
   Vinhibit_quit = oinhibit;
 }
