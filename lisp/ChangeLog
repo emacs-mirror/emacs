@@ -1,3 +1,10 @@
+2001-02-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ebnf2ps.el: Eliminate time-stamp functions.
+	(ebnf-version): New version (3.5).
+	(ebnf-eps-finish-and-write): Replace time-stamp functions by
+	format-time-string.
+
 2001-02-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (next-line): Goto end-of-line before inserting a newline.
