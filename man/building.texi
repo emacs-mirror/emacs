@@ -113,6 +113,10 @@ that is running.
 recompile}.  This automatically reuses the compilation command from the
 last invocation of @kbd{M-x compile}.
 
+  Emacs does not expect a compiler to launch asynchronous
+subprocesses; if it does, and they keep running after the main
+compiler process has terminated, their output may not arrive in Emacs.
+
 @node Grep Searching
 @section Searching with Grep under Emacs
 
