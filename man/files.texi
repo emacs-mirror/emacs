@@ -112,7 +112,10 @@ done before Emacs is started.
 @cindex home directory shorthand
   You can use the @file{~/} in a file name to mean your home directory,
 or @file{~@var{user-id}/} to mean the home directory of a user whose
-login name is @code{user-id}.
+login name is @code{user-id}.  (On DOS and Windows systems, where a user
+doesn't have a home directory, Emacs substitutes @file{~/} with the
+value of the environment variable @code{HOME}; see @ref{General
+Variables}.)
 
   To access a file with @samp{$} in its name, type @samp{$$}.  This pair
 is converted to a single @samp{$} at the same time as variable
