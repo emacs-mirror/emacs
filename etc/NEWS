@@ -260,6 +260,11 @@ making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
 
+** Yanking text now discards certain text properties that can
+be inconvenient when you did not expect them.  The variable
+`yank-excluded-properties' specifies which ones.  Insertion
+of register contents and rectangles also discards these properties.
+
 ** M-x grep now tries to avoid appending `/dev/null' to the command line
 by using GNU grep `-H' option instead.  M-x grep will automatically
 detect whether this is possible or not the first time it is invoked.
@@ -775,6 +780,12 @@ would expect.  Non-nested use of change groups for the same buffer
 will lead to undesirable results, so don't let it happen; the first
 change group you start for any given buffer should be the last one
 finished.
+
+** New function remove-list-of-text-properties.
+
+The new function `remove-list-of-text-properties' is almost the same
+as `remove-text-properties'.  The only difference is that it takes
+a list of property names as argument rather than a property list.
 
 ** Enhanced networking support.
 
