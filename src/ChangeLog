@@ -1,5 +1,7 @@
 2003-03-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_clear_frame): Call xg_frame_cleared for GTK.
+
 	* gtkutil.c (struct xg_last_sb_pos): New structure.
 	(handle_fixed_child): New function.
 	(xg_resize_widgets): Call handle_fixed_child on all scroll bar widgets
@@ -11,6 +13,7 @@
 	and force a redraw on the scroll bar.
 	(xg_set_toolkit_scroll_bar_thumb): Do not change/redraw scroll bar
 	if xg_last_sb_pos shows the positions are up to date.
+	(xg_frame_cleared): New function.
 
 2003-03-13  Kenichi Handa  <handa@m17n.org>
 

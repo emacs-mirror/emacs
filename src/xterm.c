@@ -5343,6 +5343,11 @@ x_clear_frame ()
   x_scroll_bar_clear (f);
 
   XFlush (FRAME_X_DISPLAY (f));
+
+#ifdef USE_GTK
+  xg_frame_cleared (f);
+#endif
+
   UNBLOCK_INPUT;
 }
 

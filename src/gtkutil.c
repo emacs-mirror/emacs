@@ -316,6 +316,24 @@ static handle_fixed_child (w, client_data)
     }
 }
 
+/* This gets called after the frame F has been cleared.  Since that is
+   done with X calls, we need to redraw GTK widget (scroll bars).  */
+void
+xg_frame_cleared (f)
+     FRAME_PTR f;
+{
+  GtkWidget *wfixed = f->output_data.x->edit_widget;
+
+  if (wfixed)
+    {
+      gtk_container_foreach (GTK_CONTAINER (wfixed),
+                             (GtkCallback) handle_fixed_child,
+                             NULL);
+      gtk_container_set_reallocate_redraws (GTK_CONTAINER (wfixed), TRUE);
+      gdk_window_process_all_updates ();
+    }
+}
+
 /* Function to handle resize of our widgets.  Since Emacs has some layouts
    that does not fit well with GTK standard containers, we do most layout
    manually.
@@ -346,12 +364,7 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
 
       gtk_widget_size_allocate (x->edit_widget, &all);
 
-      gtk_container_foreach (GTK_CONTAINER (x->edit_widget),
-                             (GtkCallback) handle_fixed_child,
-                             NULL);
-      gtk_container_set_reallocate_redraws (GTK_CONTAINER (x->edit_widget),
-                                            TRUE);
-      gdk_window_process_all_updates ();
+      xg_frame_cleared (f);
 
       change_frame_size (f, rows, columns, 0, 1, 0);
       SET_FRAME_GARBAGED (f);
