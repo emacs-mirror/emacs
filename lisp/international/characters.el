@@ -105,6 +105,8 @@
 ;; not careful.
 
 ;; Chinese characters (Unicode)
+(modify-category-entry '(#x2E80 . #x312F) ?|)
+(modify-category-entry '(#x3190 . #x33FF) ?|)
 (modify-category-entry '(#x3400 . #x9FAF) ?C)
 (modify-category-entry '(#x3400 . #x9FAF) ?c)
 (modify-category-entry '(#x3400 . #x9FAF) ?|)
