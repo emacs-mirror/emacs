@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.24 $")
+(defconst ange-ftp-version "$Revision: 1.25 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3546,8 +3546,12 @@ system TYPE.")
 	(ange-ftp-del-hash-entry dir ange-ftp-files-hashtable)
 	(ange-ftp-get-files dir t))))
 
-(defun ange-ftp-make-directory (dir)
+(defun ange-ftp-make-directory (dir &optional parents)
   (interactive (list (expand-file-name (read-file-name "Make directory: "))))
+  (if parents
+      (let ((parent (file-name-directory (directory-file-name dir))))
+	(or (file-exists-p parent)
+	    (ange-ftp-make-directory parent parents))))
   (if (file-exists-p dir)
       (error "Cannot make directory %s: file already exists" dir)
     (let ((parsed (ange-ftp-ftp-name dir)))
