@@ -55,7 +55,7 @@ env_vars[] =
 {
   {"emacs_dir", NULL},
   {"EMACSLOADPATH", "%emacs_dir%\\lisp"},
-  {"SHELL", "cmd"},
+  {"SHELL", "%COMSPEC%"},
   {"EMACSDATA", "%emacs_dir%\\etc"},
   {"EMACSPATH", "%emacs_dir%\\bin"},
   {"EMACSLOCKDIR", "%emacs_dir%\\lock"},
