@@ -2122,13 +2122,41 @@ xlfd_point_size (f, font)
      struct font_name *font;
 {
   double resy = FRAME_X_DISPLAY_INFO (f)->resy;
-  double font_pixel = atoi (font->fields[XLFD_PIXEL_SIZE]);
+  char *pixel_field = font->fields[XLFD_PIXEL_SIZE];
+  double pixel;
   int real_pt;
 
-  if (font_pixel == 0)
+  if (*pixel_field == '[')
+    {
+      /* The pixel size field is `[A B C D]' which specifies
+	 a transformation matrix.
+
+	 A  B  0
+	 C  D  0
+	 0  0  1
+
+	 by which all glyphs of the font are transformed.  The spec
+	 says that s scalar value N for the pixel size is equivalent
+	 to A = N * resx/resy, B = C = 0, D = N.  */
+      char *start = pixel_field + 1, *end;
+      double matrix[4];
+      int i;
+
+      for (i = 0; i < 4; ++i)
+	{
+	  matrix[i] = strtod (start, &end);
+	  start = end;
+	}
+
+      pixel = matrix[3] / 10.0;
+    }
+  else
+    pixel = atoi (pixel_field);
+  
+  if (pixel == 0)
     real_pt = 0;
   else
-    real_pt = PT_PER_INCH * 10.0 * font_pixel / resy + 0.5;
+    real_pt = PT_PER_INCH * 10.0 * pixel / resy + 0.5;
 
   return real_pt;
 }
@@ -2162,9 +2190,7 @@ pixel_point_size (f, pixel)
    XLFD_RESY, XLFD_SLANT, and XLFD_WEIGHT in FONT->numeric.  Value is
    zero if the font name doesn't have the format we expect.  The
    expected format is a font name that starts with a `-' and has
-   XLFD_LAST fields separated by `-'.  (The XLFD specification allows
-   forms of font names where certain field contents are enclosed in
-   square brackets.  We don't support that, for now.  */
+   XLFD_LAST fields separated by `-'.  */
 
 static int
 split_font_name (f, font, numeric_p)
@@ -2179,10 +2205,36 @@ split_font_name (f, font, numeric_p)
     {
       char *p = xstrlwr (font->name) + 1;
 
-      while (i < XLFD_LAST)
+      for (; i < XLFD_LAST; ++i)
 	{
 	  font->fields[i] = p;
-	  ++i;
+
+	  /* Pixel and point size may be of the form `[....]'.  For
+	     BNF, see XLFD spec, chapter 4.  Negative values are
+	     indicated by tilde characters which we replace with
+	     `-' characters, here.  */
+	  if (*p == '['
+	      && (i == XLFD_PIXEL_SIZE
+		  || i == XLFD_POINT_SIZE))
+	    {
+	      char *start, *end;
+	      int j;
+	      
+	      for (++p; *p && *p != ']'; ++p)
+		if (*p == '~')
+		  *p = '-';
+
+	      /* Check that the matrix contains 4 floating point
+		 numbers.  */
+	      for (j = 0, start = font->fields[i] + 1;
+		   j < 4;
+		   ++j, start = end)
+		if (strtod (start, &end) == 0 && start == end)
+		  break;
+
+	      if (j < 4)
+		break;
+	    }
 
 	  while (*p && *p != '-')
 	    ++p;
