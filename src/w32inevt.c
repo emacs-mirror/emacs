@@ -279,7 +279,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 
 /* Mouse position hook.  */
 void 
-win32_mouse_position (FRAME_PTR *f,
+win32_mouse_position (FRAME_PTR *f, int insist,
 		      Lisp_Object *bar_window,
 		      enum scroll_bar_part *part,
 		      Lisp_Object *x,
