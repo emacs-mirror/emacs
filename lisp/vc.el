@@ -159,8 +159,8 @@ is sensitive to blank lines.")
 
 (defun vc-registration-error (file)
   (if file
-      (error "File %s is not under version control." file)
-    (error "Buffer %s is not associated with a file." (buffer-name))))
+      (error "File %s is not under version control" file)
+    (error "Buffer %s is not associated with a file" (buffer-name))))
 
 (defvar vc-binary-assoc nil)
 
@@ -372,7 +372,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
      ;; a checked-out version exists, but the user may not own the lock
      ((not (string-equal owner (user-login-name)))
       (if comment
-	  (error "Sorry, you can't steal the lock on %s this way." file))
+	  (error "Sorry, you can't steal the lock on %s this way" file))
       (vc-steal-lock
        file
        (and verbose (read-string "Version to steal: "))
@@ -472,7 +472,7 @@ lock steals will raise an error."
   "Register the current file into your version-control system."
   (interactive "P")
   (if (vc-name buffer-file-name)
-      (error "This file is already registered."))
+      (error "This file is already registered"))
   ;; Watch out for new buffers of size 0: the corresponding file
   ;; does not exist yet, even though buffer-modified-p is nil.
   (if (and (not (buffer-modified-p))
@@ -554,7 +554,7 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
   (if (not owner)
       (setq owner (vc-locking-user file)))
   (if (not (y-or-n-p (format "Take the lock on %s:%s from %s? " file rev owner)))
-      (error "Steal cancelled."))
+      (error "Steal cancelled"))
   (pop-to-buffer (get-buffer-create "*VC-mail*"))
   (setq default-directory (expand-file-name "~/"))
   (auto-save-mode auto-save-default)
@@ -619,7 +619,7 @@ See `vc-update-change-log'."
 		 vc-log-file
 		 vc-log-version
 		 (buffer-string)))
-    (error "No log operation is pending."))
+    (error "No log operation is pending"))
   ;; Return to "parent" buffer of this checkin and remove checkin window
   (pop-to-buffer vc-parent-buffer)
   (delete-windows-on (get-buffer "*VC-log*"))
@@ -708,7 +708,7 @@ and two version designators specifying which versions to compare."
   (if historic
       (call-interactively 'vc-version-diff)
     (if (or (null buffer-file-name) (null (vc-name buffer-file-name)))
-	(error "There is no version-control master associated with this buffer."))
+	(error "There is no version-control master associated with this buffer"))
     (let ((file buffer-file-name)
 	  unchanged)
       (or (and file (vc-name file))
@@ -979,7 +979,7 @@ directory.  For each file, the version level of its latest
 version becomes part of the named configuration."
   (interactive "sNew snapshot name: ")
   (if (not (vc-quiescent-p))
-      (error "Can't make a snapshot, locked files are in the way.")
+      (error "Can't make a snapshot since some files are locked")
     (vc-file-tree-walk
      (function (lambda (f) (and
 		   (vc-name f)
@@ -994,7 +994,7 @@ Otherwise, all registered files are checked out (unlocked) at their version
 levels in the snapshot."
   (interactive "sSnapshot name to retrieve: ")
   (if (not (vc-quiescent-p))
-      (error "Can't retrieve a snapshot, locked files are in the way.")
+      (error "Can't retrieve snapshot sine some files are locked")
     (vc-file-tree-walk
      (function (lambda (f) (and
 		   (vc-name f)
@@ -1038,7 +1038,7 @@ to that version."
 			 (not (yes-or-no-p "Discard changes? "))))
 	(progn
 	  (delete-window)
-	  (error "Revert cancelled."))
+	  (error "Revert cancelled"))
       (set-buffer obuf))
     (if changed
 	(delete-window))
@@ -1059,8 +1059,8 @@ A prefix argument means do not revert the buffer afterwards."
   (let* ((target (concat (vc-latest-version (buffer-file-name))))
 	(yours (concat (vc-your-latest-version (buffer-file-name))))
 	(prompt (if (string-equal yours target)
-		    "Remove your version %s from master?"
-		  "Version %s was not your change.  Remove it anyway?")))
+		    "Remove your version %s from master? "
+		  "Version %s was not your change.  Remove it anyway? ")))
     (if (null (yes-or-no-p (format prompt target)))
 	nil
       (vc-backend-uncheck (buffer-file-name) target)
@@ -1075,17 +1075,17 @@ A prefix argument means do not revert the buffer afterwards."
   (interactive "fVC rename file: \nFRename to: ")
   (let ((oldbuf (get-file-buffer old)))
     (if (buffer-modified-p oldbuf)
-	(error "Please save files before moving them."))
+	(error "Please save files before moving them"))
     (if (get-file-buffer new)
-	(error "Already editing new file name."))
+	(error "Already editing new file name"))
     (let ((oldmaster (vc-name old)))
       (if oldmaster
 	(if (vc-locking-user old)
-	    (error "Please check in files before moving them."))
+	    (error "Please check in files before moving them"))
 	(if (or (file-symlink-p oldmaster)
 		;; This had FILE, I changed it to OLD. -- rms.
 		(file-symlink-p (vc-backend-subdirectory-name old)))
-	    (error "This is not a safe thing to do in the presence of symbolic links."))
+	    (error "This is not a safe thing to do in the presence of symbolic links"))
 	(rename-file oldmaster (vc-name new)))
       (if (or (not oldmaster) (file-exists-p old))
 	  (rename-file old new)))
@@ -1390,7 +1390,7 @@ Return nil if there is no such person."
        (progn
 	 (goto-char 512)
 	 (error
-	  "Log must be less than 512 characters.  Point is now at char 512.")))
+	  "Log must be less than 512 characters; point is now at pos 512")))
    nil)
   )
 
