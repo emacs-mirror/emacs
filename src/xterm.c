@@ -3738,7 +3738,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   if (left_p)
     for (i = 0; i < width; ++i)
       XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		 left_x + i, top_y + i, left_x + i, bottom_y - i);
+		 left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
 
   XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
   if (raised_p)
@@ -3750,7 +3750,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   /* Bottom.  */
   for (i = 0; i < width; ++i)
     XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-	       left_x + i * left_p, bottom_y - i,
+	       left_x + i * left_p + 1, bottom_y - i,
 	       right_x + 1 - i * right_p, bottom_y - i);
   
   /* Right.  */
