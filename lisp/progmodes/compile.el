@@ -1148,6 +1148,9 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     ;; later on.
     (goto-char omax)
     (insert ?\n mode-name " " (car status))
+    (if (and (numberp compilation-window-height)
+             (zerop compilation-window-height))
+        (message "%s" (cdr status)))
     (if (bolp)
 	(forward-char -1))
     (insert " at " (substring (current-time-string) 0 19))
