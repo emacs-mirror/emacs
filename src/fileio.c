@@ -3613,7 +3613,8 @@ This does code conversion according to the value of\n\
   /* Use the conversion type to determine buffer-file-type
      (find-buffer-file-type is now used to help determine the
      conversion).  */
-  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
+  if (coding.eol_type != CODING_EOL_UNDECIDED 
+      && coding.eol_type != CODING_EOL_LF)
     current_buffer->buffer_file_type = Qnil;
   else
     current_buffer->buffer_file_type = Qt;
