@@ -25,7 +25,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "blockinput.h"
 
-static void insert_1 ();
 static void insert_from_string_1 ();
 static void insert_from_buffer_1 ();
 static void gap_left ();
@@ -36,6 +35,7 @@ static void adjust_point ();
 /* Move gap to position `pos'.
    Note that this can quit!  */
 
+void
 move_gap (pos)
      int pos;
 {
@@ -259,6 +259,7 @@ adjust_point (amount)
 
 /* Make the gap INCREMENT characters longer.  */
 
+void
 make_gap (increment)
      int increment;
 {
@@ -309,33 +310,35 @@ make_gap (increment)
    DO NOT use this for the contents of a Lisp string or a Lisp buffer!
    prepare_to_modify_buffer could relocate the text.  */
 
+void
 insert (string, length)
      register unsigned char *string;
      register length;
 {
   if (length > 0)
     {
-      insert_1 (string, length, 0);
+      insert_1 (string, length, 0, 1);
       signal_after_change (PT-length, 0, length);
     }
 }
 
+void
 insert_and_inherit (string, length)
      register unsigned char *string;
      register length;
 {
   if (length > 0)
     {
-      insert_1 (string, length, 1);
+      insert_1 (string, length, 1, 1);
       signal_after_change (PT-length, 0, length);
     }
 }
 
-static void
-insert_1 (string, length, inherit)
+void
+insert_1 (string, length, inherit, prepare)
      register unsigned char *string;
-     register length;
-     int inherit;
+     register int length;
+     int inherit, prepare;
 {
   register Lisp_Object temp;
 
@@ -344,7 +347,8 @@ insert_1 (string, length, inherit)
   if (length + Z != XINT (temp))
     error ("maximum buffer size exceeded");
 
-  prepare_to_modify_buffer (PT, PT);
+  if (prepare)
+    prepare_to_modify_buffer (PT, PT);
 
   if (PT != GPT)
     move_gap (PT);
@@ -384,6 +388,7 @@ insert_1 (string, length, inherit)
    before we bcopy the stuff into the buffer, and relocate the string
    without insert noticing.  */
 
+void
 insert_from_string (string, pos, length, inherit)
      Lisp_Object string;
      register int pos, length;
@@ -536,6 +541,7 @@ insert_string (s)
    Don't use this function to insert part of a Lisp string,
    since gc could happen and relocate it.  */
 
+void
 insert_before_markers (string, length)
      unsigned char *string;
      register int length;
@@ -543,12 +549,13 @@ insert_before_markers (string, length)
   if (length > 0)
     {
       register int opoint = PT;
-      insert_1 (string, length, 0);
+      insert_1 (string, length, 0, 1);
       adjust_markers (opoint - 1, opoint, length);
       signal_after_change (PT-length, 0, length);
     }
 }
 
+void
 insert_before_markers_and_inherit (string, length)
      unsigned char *string;
      register int length;
@@ -556,7 +563,7 @@ insert_before_markers_and_inherit (string, length)
   if (length > 0)
     {
       register int opoint = PT;
-      insert_1 (string, length, 1);
+      insert_1 (string, length, 1, 1);
       adjust_markers (opoint - 1, opoint, length);
       signal_after_change (PT-length, 0, length);
     }
@@ -564,6 +571,7 @@ insert_before_markers_and_inherit (string, length)
 
 /* Insert part of a Lisp string, relocating markers after.  */
 
+void
 insert_from_string_before_markers (string, pos, length, inherit)
      Lisp_Object string;
      register int pos, length;
@@ -581,14 +589,16 @@ insert_from_string_before_markers (string, pos, length, inherit)
 /* Delete characters in current buffer
    from FROM up to (but not including) TO.  */
 
+void
 del_range (from, to)
      register int from, to;
 {
-  return del_range_1 (from, to, 1);
+  del_range_1 (from, to, 1);
 }
 
 /* Like del_range; PREPARE says whether to call prepare_to_modify_buffer.  */
 
+void
 del_range_1 (from, to, prepare)
      register int from, to, prepare;
 {
@@ -644,6 +654,7 @@ del_range_1 (from, to, prepare)
    to END.  This checks the read-only properties of the region, calls
    the necessary modification hooks, and warns the next redisplay that
    it should pay attention to that area.  */
+void
 modify_region (buffer, start, end)
      struct buffer *buffer;
      int start, end;
@@ -674,6 +685,7 @@ modify_region (buffer, start, end)
    verify that the text to be modified is not read-only, and call
    any modification properties the text may have. */
 
+void
 prepare_to_modify_buffer (start, end)
      Lisp_Object start, end;
 {
@@ -744,6 +756,7 @@ after_change_functions_restore (value)
    START and END are the bounds of the text to be changed,
    as Lisp objects.  */
 
+void
 signal_before_change (start, end)
      Lisp_Object start, end;
 {
@@ -820,6 +833,7 @@ signal_before_change (start, end)
 
    (Hence POS + LENINS - LENDEL is the position after the changed text.)  */
 
+void
 signal_after_change (pos, lendel, lenins)
      int pos, lendel, lenins;
 {
