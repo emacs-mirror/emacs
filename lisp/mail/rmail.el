@@ -751,7 +751,8 @@ argument causes us to read a file name and use that file as the inbox."
 (defun rmail-insert-inbox-text (files renamep)
   (let (file tofile delete-files movemail popmail)
     (while files
-      (setq file (expand-file-name (substitute-in-file-name (car files)))
+      (setq file (file-truename
+		  (expand-file-name (substitute-in-file-name (car files))))
 	    ;;>> un*x specific <<
 	    ;; The "+" used to be "~", which is an extremely poor choice;
 	    ;; it might accidentally be deleted when space is low
@@ -760,7 +761,8 @@ argument causes us to read a file name and use that file as the inbox."
       ;; If getting from mail spool directory,
       ;; use movemail to move rather than just renaming,
       ;; so as to interlock with the mailer.
-      (setq movemail (equal (file-name-directory file) rmail-spool-directory)
+      (setq movemail (string= (file-name-directory file)
+			      (file-truename rmail-spool-directory))
 	    popmail (string-match "^po:" (file-name-nondirectory file)))
       (if popmail (setq file (file-name-nondirectory file)
 			renamep t))
