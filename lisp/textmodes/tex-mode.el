@@ -1062,9 +1062,11 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
   (let ((print-file-name-dvi (tex-append tex-print-file ".dvi"))
 	test-name)
     (if (and (not (equal (current-buffer) tex-last-buffer-texed))
+	     (buffer-file-name)
+	     ;; Check that this buffer's printed file is up to date.
 	     (file-newer-than-file-p
 	      (setq test-name (tex-append (buffer-file-name) ".dvi"))
-	      print-file-name-dvi))
+	      (buffer-file-name)))
 	(setq print-file-name-dvi test-name))
     (if (not (file-exists-p print-file-name-dvi))
         (error "No appropriate `.dvi' file could be found")
