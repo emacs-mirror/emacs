@@ -1,3 +1,9 @@
+2003-10-01  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* ffap.el: Remove defadvice related code from CVS since
+	  `complete' provides a `PC-completion-as-file-name-predicate'
+	  variable that ffap can override.
+
 2003-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (ccl-decode-mule-utf-8): Lookup

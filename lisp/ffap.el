@@ -1249,9 +1249,7 @@ which may actually result in an url rather than a filename."
 ;; This code assumes that you load ffap.el after complete.el.
 ;;
 ;; We must inform complete about whether our completion function
-;; will do filename style completion.  For earlier versions of
-;; complete.el, this requires a defadvice.  For recent versions
-;; there may be a special variable for this purpose.
+;; will do filename style completion.
 
 (defun ffap-complete-as-file-p nil
   ;; Will `minibuffer-completion-table' complete the minibuffer
@@ -1265,15 +1263,7 @@ which may actually result in an url rather than a filename."
  (featurep 'complete)
  (if (boundp 'PC-completion-as-file-name-predicate)
      ;; modern version of complete.el, just set the variable:
-     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)
-   (require 'advice)
-   (defadvice PC-do-completion (around ffap-fix act)
-     "Work with ffap."
-     (let ((minibuffer-completion-table
-	    (if (eq t (ffap-complete-as-file-p))
-		'read-file-name-internal
-	      minibuffer-completion-table)))
-       ad-do-it))))
+     (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)))
 
 
 ;;; Highlighting (`ffap-highlight'):
