@@ -1,3 +1,20 @@
+2000-03-07  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
+
+	* international/mule.el: Modify comment about coding system
+	property `coding-category'.
+	(make-coding-system): New argument EOL-TYPE.  Pay attention to
+	coding-category property of PROPERTIES.
+
+	* international/mule-conf.el (coding-category-utf-8,
+	coding-category-utf-16-be, coding-category-utf-16-le): New coding
+	categories.  Include them in the argument for set-coding-priority.
+
+	* international/mule-cmds.el (reset-language-environment): Include
+	coding-category-utf-8, coding-category-utf-16-be, and
+	coding-category-utf-16-le in the argument for set-coding-priority.
+	(reset-language-environment): Initialize coding-category-utf-8,
+	coding-category-utf-16-be, and coding-category-utf-16-le to nil.
+
 2000-03-06  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-file-or-variation-thereof): New func, for
