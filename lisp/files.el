@@ -1116,8 +1116,11 @@ run `normal-mode' explicitly."
     ("\\.TeX\\'" . tex-mode)
     ("\\.sty\\'" . latex-mode)
     ("\\.cls\\'" . latex-mode)		;LaTeX 2e class
+    ("\\.clo\\'" . latex-mode)		;LaTeX 2e class option
     ("\\.bbl\\'" . latex-mode)
     ("\\.bib\\'" . bibtex-mode)
+    ("\\.mf\\'" . metafont-mode)
+    ("\\.mp\\'" . metapost-mode)
     ("\\.article\\'" . text-mode)
     ("\\.letter\\'" . text-mode)
     ("\\.tcl\\'" . tcl-mode)
