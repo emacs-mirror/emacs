@@ -1,5 +1,14 @@
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/sh-script.el (sh-mode): Don't use define-derived-mode.
+	(sh-mode-syntax-table): Function restored.
+	Variable set up for use by function sh-mode-syntax-table.
+	(sh-set-shell): Set the syntax table.
+
+	* play/gomoku.el (gomoku-mode): Don't use define-derived-mode.
+
+	* progmodes/perl-mode.el (perl-mode): Don't use define-derived-mode.
+
 	* international/encoded-kb.el: Don't alter minor-map-alist.
 
 2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
