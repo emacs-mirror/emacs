@@ -882,17 +882,13 @@ See also the function `nreverse', which is used more often.")
   (list)
      Lisp_Object list;
 {
-  Lisp_Object length;
-  register Lisp_Object *vec;
-  register Lisp_Object tail;
-  register int i;
+  Lisp_Object new;
 
-  length = Flength (list);
-  vec = (Lisp_Object *) alloca (XINT (length) * sizeof (Lisp_Object));
-  for (i = XINT (length) - 1, tail = list; i >= 0; i--, tail = Fcdr (tail))
-    vec[i] = Fcar (tail);
-
-  return Flist (XINT (length), vec);
+  for (new = Qnil; CONSP (list); list = XCONS (list)->cdr)
+    new = Fcons (XCONS (list)->car, new);
+  if (!NILP (list))
+    wrong_type_argument (Qconsp, list);
+  return new;
 }
 
 Lisp_Object merge ();
