@@ -436,7 +436,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 			 (and (= (car (nth 5 attributes)) (car modtime))
 			      (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
 		   nil
-		 (message
+		 (message "%s"
 		  (substitute-command-keys
 		   "Directory has changed on disk; type \\[revert-buffer] to update Dired")))))
       ;; Else a new buffer
