@@ -28,6 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termopts.h"
 #include "disptab.h"
 #include "intervals.h"
+#include "region-cache.h"
 
 /* Indentation can insert tabs if this is non-zero;
    otherwise always uses spaces */
@@ -63,6 +64,112 @@ buffer_display_table ()
     return XVECTOR (Vstandard_display_table);
   return 0;
 }
+
+/* Width run cache considerations.  */
+
+/* Return the width of character C under display table DP.  */
+static int
+character_width (c, dp)
+     int c;
+     struct Lisp_Vector *dp;
+{
+  Lisp_Object elt;
+
+  /* These width computations were determined by examining the cases
+     in display_text_line.  */
+
+  /* Some characters are never handled by the display table.  */
+  if (c == '\n' || c == '\t' || c == '\015')
+    return 0;
+
+  /* Everything else might be handled by the display table, if it's
+     present and the element is right.  */
+  else if (dp && (elt = DISP_CHAR_VECTOR (dp, c),
+                  VECTORP (elt)))
+    return XVECTOR (elt)->size;
+
+  /* In the absence of display table perversities, printing characters
+     have width 1.  */
+  else if (c >= 040 && c < 0177)
+    return 1;
+
+  /* Everybody else (control characters, metacharacters) has other
+     widths.  We could return their actual widths here, but they
+     depend on things like ctl_arrow and crud like that, and they're
+     not very common at all.  So we'll just claim we don't know their
+     widths.  */
+  else
+    return 0;
+}
+
+/* Return true iff the display table DISPTAB specifies the same widths
+   for characters as WIDTHTAB.  We use this to decide when to
+   invalidate the buffer's width_run_cache.  */
+int
+disptab_matches_widthtab (disptab, widthtab)
+     struct Lisp_Vector *disptab;
+     struct Lisp_Vector *widthtab;
+{
+  int i;
+
+  if (widthtab->size != 256)
+    abort ();
+
+  for (i = 0; i < 256; i++)
+    if (character_width (i, disptab)
+        != XFASTINT (widthtab->contents[i]))
+      return 0;
+
+  return 1;
+}  
+
+/* Recompute BUF's width table, using the display table DISPTAB.  */
+void
+recompute_width_table (buf, disptab)
+     struct buffer *buf;
+     struct Lisp_Vector *disptab;
+{
+  int i;
+  struct Lisp_Vector *widthtab
+    = (VECTORP (buf->width_table)
+       ? XVECTOR (buf->width_table)
+       : XVECTOR (Fmake_vector (make_number (256), make_number (0))));
+
+  if (widthtab->size != 256)
+    abort ();
+
+  for (i = 0; i < 256; i++)
+    widthtab->contents[i] = character_width (i, disptab);
+}
+
+/* Allocate or free the width run cache, as requested by the current
+   state of current_buffer's cache_long_line_scans variable.  */
+static void
+width_run_cache_on_off ()
+{
+  if (NILP (current_buffer->cache_long_line_scans))
+    {
+      /* It should be off.  */
+      if (current_buffer->width_run_cache)
+        {
+          free_region_cache (current_buffer->width_run_cache);
+          current_buffer->width_run_cache = 0;
+          current_buffer->width_table = Qnil;
+        }
+    }
+  else
+    {
+      /* It should be on.  */
+      if (current_buffer->width_run_cache == 0)
+        { 
+          current_buffer->width_run_cache = new_region_cache ();
+          current_buffer->width_table = Fmake_vector (make_number (256),
+                                                      make_number (0));
+          recompute_width_table (current_buffer, buffer_display_table ());
+        }
+    }
+}
+
 
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
   "Return the horizontal position of point.  Beginning of line is column 0.\n\
@@ -173,7 +280,6 @@ current_column ()
   return col;
 }
 
-
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
   "Indent from point with tabs and spaces until COLUMN is reached.\n\
 Optional second argument MIN says always do at least MIN spaces\n\
@@ -221,6 +327,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
   XSETINT (col, mincol);
   return col;
 }
+
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
   0, 0, 0,
@@ -282,6 +389,7 @@ indented_beyond_p (pos, column)
     pos = find_next_newline_no_quit (pos - 1, -1);
   return (position_indentation (pos) >= column);
 }
+
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, 0,
   "Move point to column COLUMN in the current line.\n\
@@ -379,13 +487,18 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
   XSETFASTINT (val, col);
   return val;
 }
+
 
+/* compute_motion: compute buffer posn given screen posn and vice versa */
+
 struct position val_compute_motion;
 
 /* Scan the current buffer forward from offset FROM, pretending that
    this is at line FROMVPOS, column FROMHPOS, until reaching buffer
    offset TO or line TOVPOS, column TOHPOS (whichever comes first),
-   and return the ending buffer position and screen location.
+   and return the ending buffer position and screen location.  If we
+   can't hit the requested column exactly (because of a tab or other
+   multi-column character), overshoot.
 
    WIDTH is the number of columns available to display text;
    compute_motion uses this to handle continuation lines and such.
@@ -397,8 +510,14 @@ struct position val_compute_motion;
 
    compute_motion returns a pointer to a struct position.  The bufpos
    member gives the buffer position at the end of the scan, and hpos
-   and vpos give its cartesian location.  I'm not clear on what the
-   other members are.
+   and vpos give its cartesian location.  prevhpos is the column at
+   which the character before bufpos started, and contin is non-zero
+   if we reached the current line by continuing the previous.
+
+   Note that FROMHPOS and TOHPOS should be expressed in real screen
+   columns, taking HSCROLL and the truncation glyph at the left margin
+   into account.  That is, beginning-of-line moves you to the hpos
+   -HSCROLL + (HSCROLL > 0).
 
    Note that FROMHPOS and TOHPOS should be expressed in real screen
    columns, taking HSCROLL and the truncation glyph at the left margin
@@ -452,7 +571,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
-  int prev_vpos, prev_hpos = 0;
+  int prev_vpos = vpos, prev_hpos = 0;
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
@@ -462,8 +581,30 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   Lisp_Object prop, position;
 #endif
 
+  /* For computing runs of characters with similar widths.
+     Invariant: width_run_width is zero, or all the characters
+     from width_run_start to width_run_end have a fixed width of 
+     width_run_width.  */
+  int width_run_start = from;
+  int width_run_end   = from;
+  int width_run_width = 0;
+  Lisp_Object *width_table;
+
+  /* The next buffer pos where we should consult the width run cache. */
+  int next_width_run = from;
+
+  width_run_cache_on_off ();
+  if (dp == buffer_display_table ())
+    width_table = (VECTORP (current_buffer->width_table)
+                   ? XVECTOR (current_buffer->width_table)->contents
+                   : 0);
+  else
+    /* If the window has its own display table, we can't use the width
+       run cache, because that's based on the buffer's display table.  */
+    width_table = 0;
+
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  for (pos = from; pos < to; pos++)
+  for (pos = from; pos < to; )
     {
       /* Stop if past the target screen position.  */
       if (vpos > tovpos
@@ -504,74 +645,158 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
       if (pos >= to)
 	break;
 #endif
-      c = FETCH_CHAR (pos);
-      if (c >= 040 && c < 0177
-	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
-	hpos++;
-      else if (c == '\t')
-	{
-	  hpos += tab_width - ((hpos + tab_offset + hscroll - (hscroll > 0)
-				/* Add tab_width here to make sure positive.
-				   hpos can be negative after continuation
-				   but can't be less than -tab_width.  */
-				+ tab_width)
-			       % tab_width);
-	}
-      else if (c == '\n')
-	{
-	  if (selective > 0 && indented_beyond_p (pos + 1, selective))
-	    {
-	      /* Skip any number of invisible lines all at once */
-	      do
-		{
-		  while (++pos < to && FETCH_CHAR (pos) != '\n');
-		}
-	      while (pos < to && indented_beyond_p (pos + 1, selective));
-	      pos--;		/* Reread the newline on the next pass.  */
-	      /* Allow for the " ..." that is displayed for them. */
-	      if (selective_rlen)
-		{
-		  hpos += selective_rlen;
-		  if (hpos >= width)
-		    hpos = width;
-		}
-	      /* We have skipped the invis text, but not the newline after.  */
-	    }
-	  else
-	    {
-	      /* A visible line.  */
-	      vpos++;
-	      hpos = 0;
-	      hpos -= hscroll;
-	      if (hscroll > 0) hpos++; /* Truncation glyph on column 0 */
-	      tab_offset = 0;
-	    }
-	}
-      else if (c == CR && selective < 0)
-	{
-	  /* In selective display mode,
-	     everything from a ^M to the end of the line is invisible */
-	  while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
-	  /* Stop *before* the real newline.  */
-	  pos--;
-	  /* Allow for the " ..." that is displayed for them. */
-	  if (selective_rlen)
-	    {
-	      hpos += selective_rlen;
-	      if (hpos >= width)
-		hpos = width;
-	    }
-	}
-      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+
+      /* Consult the width run cache to see if we can avoid inspecting
+         the text character-by-character.  */
+      if (current_buffer->width_run_cache && pos >= next_width_run)
+        {
+          int run_end;
+          int common_width
+            = region_cache_forward (current_buffer,
+                                    current_buffer->width_run_cache,
+                                    pos, &run_end);
+
+          /* A width of zero means the character's width varies (like
+             a tab), is meaningless (like a newline), or we just don't
+             want to skip over it for some other reason.  */
+          if (common_width != 0)
+            {
+              int run_end_hpos;
+
+              /* Don't go past the final buffer posn the user
+                 requested.  */
+              if (run_end > to)
+                run_end = to;
+
+              run_end_hpos = hpos + (run_end - pos) * common_width;
+
+              /* Don't go past the final horizontal position the user
+                 requested.  */
+              if (vpos == tovpos && run_end_hpos > tohpos)
+                {
+                  run_end      = pos + (tohpos - hpos) / common_width;
+                  run_end_hpos = hpos + (run_end - pos) * common_width;
+                }
+            
+              /* Don't go past the margin.  */
+              if (run_end_hpos >= width)
+                {
+                  run_end      = pos + (width  - hpos) / common_width;
+                  run_end_hpos = hpos + (run_end - pos) * common_width;
+                }
+
+              hpos = run_end_hpos;
+              if (run_end > pos)
+                prev_hpos = hpos - common_width;
+              pos = run_end;
+            }
+
+          next_width_run = run_end + 1;
+        }
+
+      /* We have to scan the text character-by-character.  */
       else
-	hpos += (ctl_arrow && c < 0200) ? 2 : 4;
+        {
+          c = FETCH_CHAR (pos);
+          pos++;
+
+          /* Perhaps add some info to the width_run_cache.  */
+          if (current_buffer->width_run_cache)
+            {
+              /* Is this character part of the current run?  If so, extend
+                 the run.  */
+              if (pos - 1 == width_run_end
+                  && width_table[c] == width_run_width)
+                width_run_end = pos;
+
+              /* The previous run is over, since this is a character at a
+                 different position, or a different width.  */
+              else
+                {
+                  /* Have we accumulated a run to put in the cache?
+                     (Currently, we only cache runs of width == 1.  */
+                  if (width_run_start < width_run_end
+                      && width_run_width == 1)
+                    know_region_cache (current_buffer,
+                                       current_buffer->width_run_cache,
+                                       width_run_start, width_run_end);
+              
+                  /* Start recording a new width run.  */
+                  width_run_width = width_table[c];
+                  width_run_start = pos - 1;
+                  width_run_end = pos;
+                }
+            }
+
+          if (c >= 040 && c < 0177
+              && (dp == 0 || ! VECTORP (DISP_CHAR_VECTOR (dp, c))))
+            hpos++;
+          else if (c == '\t')
+            {
+              hpos += tab_width - ((hpos + tab_offset + hscroll - (hscroll > 0)
+                                    /* Add tab_width here to make sure
+                                       positive.  hpos can be negative
+                                       after continuation but can't be
+                                       less than -tab_width.  */
+                                    + tab_width)
+                                   % tab_width);
+            }
+          else if (c == '\n')
+            {
+              if (selective > 0 && indented_beyond_p (pos, selective))
+                {
+                  /* Skip any number of invisible lines all at once */
+                  do
+                    pos = find_before_next_newline (pos, to, 1);
+                  while (pos < to
+                         && indented_beyond_p (pos, selective));
+                  /* Allow for the " ..." that is displayed for them. */
+                  if (selective_rlen)
+                    {
+                      hpos += selective_rlen;
+                      if (hpos >= width)
+                        hpos = width;
+                    }
+                  /* We have skipped the invis text, but not the
+                     newline after.  */
+                }
+              else
+                {
+                  /* A visible line.  */
+                  vpos++;
+                  hpos = 0;
+                  hpos -= hscroll;
+                  /* Count the truncation glyph on column 0 */
+                  if (hscroll > 0)
+                    hpos++;
+                  tab_offset = 0;
+                }
+            }
+          else if (c == CR && selective < 0)
+            {
+              /* In selective display mode,
+                 everything from a ^M to the end of the line is invisible.
+                 Stop *before* the real newline.  */
+              pos = find_before_next_newline (pos, to, 1);
+              /* Allow for the " ..." that is displayed for them. */
+              if (selective_rlen)
+                {
+                  hpos += selective_rlen;
+                  if (hpos >= width)
+                    hpos = width;
+                }
+            }
+          else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+            hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+          else
+            hpos += (ctl_arrow && c < 0200) ? 2 : 4;
+        }
 
       /* Handle right margin.  */
       if (hpos >= width
 	  && (hpos > width
-	      || (pos < ZV - 1
-		  && FETCH_CHAR (pos + 1) != '\n')))
+	      || (pos < ZV
+		  && FETCH_CHAR (pos) != '\n')))
 	{
 	  if (vpos > tovpos
 	      || (vpos == tovpos && hpos >= tohpos))
@@ -582,8 +807,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline.  */
-	      while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
-	      pos--;
+              pos = find_before_next_newline (pos, to, 1);
 	      hpos = width;
 	    }
 	  else
@@ -596,6 +820,13 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 
 	}
     }
+
+  /* Remember any final width run in the cache.  */
+  if (current_buffer->width_run_cache
+      && width_run_width == 1
+      && width_run_start < width_run_end)
+    know_region_cache (current_buffer, current_buffer->width_run_cache,
+                       width_run_start, width_run_end);
 
   val_compute_motion.bufpos = pos;
   val_compute_motion.hpos = hpos;
@@ -710,8 +941,8 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
 
 }
 
-/* Return the column of position POS in window W's buffer,
-   rounded down to a multiple of the internal width of W.
+/* Return the column of position POS in window W's buffer.
+   The result is rounded down to a multiple of the internal width of W.
    This is the amount of indentation of position POS
    that is not visible in its horizontal position in the window.  */
 
@@ -732,10 +963,8 @@ pos_tab_offset (w, pos)
   return col - (col % width);
 }
 
-/* start_hpos is the hpos of the first character of the buffer:
-   zero except for the minibuffer window,
-   where it is the width of the prompt.  */
-
+
+/* Fvertical_motion and vmotion */
 struct position val_vmotion;
 
 struct position *
@@ -884,6 +1113,8 @@ if beginning or end of buffer was reached.")
   return make_number (pos.vpos);
 }
 
+/* file's initialization.  */
+
 syms_of_indent ()
 {
   DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
