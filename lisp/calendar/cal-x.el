@@ -103,11 +103,13 @@ Can be used to change frame parameters, such as font, color, location, etc.")
           (set-window-dedicated-p (selected-window) 'calendar)
           (set-window-dedicated-p
            (display-buffer
-            (if (memq 'fancy-diary-display diary-display-hook)
-                fancy-diary-buffer
-              (get-file-buffer diary-file)))
+            (if (not (memq 'fancy-diary-display diary-display-hook))
+                (get-file-buffer diary-file)
+              (if (not (bufferp (get-buffer fancy-diary-buffer)))
+                  (make-fancy-diary-buffer))
+              fancy-diary-buffer))
            'diary))))))
-    
+
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames."
   (if (not window-system)
@@ -136,9 +138,11 @@ Can be used to change frame parameters, such as font, color, location, etc.")
         (save-excursion (diary))
         (set-window-dedicated-p
          (display-buffer
-          (if (memq 'fancy-diary-display diary-display-hook)
-              fancy-diary-buffer
-            (get-file-buffer diary-file)))
+          (if (not (memq 'fancy-diary-display diary-display-hook))
+              (get-file-buffer diary-file)
+            (if (not (bufferp (get-buffer fancy-diary-buffer)))
+                (make-fancy-diary-buffer))
+            fancy-diary-buffer))
          'diary)))))
 
 (setq special-display-buffer-names
