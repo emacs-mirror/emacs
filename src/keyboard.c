@@ -10849,8 +10849,7 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 
   DEFVAR_LISP ("post-command-idle-hook", &Vpost_command_idle_hook,
 	       doc: /* Normal hook run after each command is executed, if idle.
-Errors running the hook are caught and ignored.
-This feature is obsolete; use idle timers instead.  See `etc/NEWS'.  */);
+Errors running the hook are caught and ignored.  */);
   Vpost_command_idle_hook = Qnil;
 
   DEFVAR_INT ("post-command-idle-delay", &post_command_idle_delay,
