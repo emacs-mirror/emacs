@@ -493,7 +493,7 @@ the user from the mailer."
 	    (replace-match "\n"))
 	  (let ((case-fold-search t))
 	    (goto-char (point-min))
-	    (while (re-search-forward "^Resent-to:" delimline t)
+	    (while (re-search-forward "^Resent-\\(to\\|cc\\|bcc\\):" delimline t)
 	      (setq resend-to-addresses
 		    (save-restriction
 		      (narrow-to-region (point)
@@ -501,7 +501,12 @@ the user from the mailer."
 					  (end-of-line)
 					  (point)))
 		      (append (mail-parse-comma-list)
-			      resend-to-addresses))))
+			      resend-to-addresses)))
+	      ;; Delete Resent-BCC ourselves
+	      (if (save-excursion (beginning-of-line)
+				  (looking-at "resent-bcc"))
+		  (delete-region (save-excursion (beginning-of-line) (point))
+				 (save-excursion (end-of-line) (1+ (point))))))
 ;;; Apparently this causes a duplicate Sender.
 ;;;	    ;; If the From is different than current user, insert Sender.
 ;;;	    (goto-char (point-min))
