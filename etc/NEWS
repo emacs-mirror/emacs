@@ -1494,8 +1494,8 @@ Latin-8 and Latin-9 correspond respectively to the ISO character sets
 8859-14 (Celtic) and 8859-15 (updated Latin-1, with the Euro sign).
 GNU Intlfonts doesn't support these yet but recent X releases have
 8859-15.  See etc/INSTALL for information on obtaining extra fonts.
-There are new Latin-8 and Latin-9 prefix (only) and Polish slash input
-methods in Leim.
+There are new Leim input methods for Latin-8 and Latin-9 prefix (only)
+and Polish `slash'.
 
 +++
 ** New language environments `Dutch' and `Spanish'.
@@ -2133,8 +2133,8 @@ dimension-2 private charset.  User code which tries to add more than
 one extra will fail unless you rebuild Emacs with some standard
 charset(s) removed; that is probably inadvisable because it changes
 the emacs-mule encoding.  Also, files stored in the emacs-mule
-encoding using an Emacs 20 with additional private charsets defined
-will probably not be read correctly by Emacs 21.
+encoding using Emacs 20 with additional private charsets defined will
+probably not be read correctly by Emacs 21.
 
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
@@ -2348,7 +2348,7 @@ restriction to be restored incorrectly.
 
 *** The functions `find-charset-region' and `find-charset-string' include
 `eight-bit-control' and/or `eight-bit-graphic' in the returned list
-when it finds 8-bit characters.  Previously, it included `ascii' in a
+when they find 8-bit characters.  Previously, they included `ascii' in a
 multibyte buffer and `unknown' in a unibyte buffer.
 
 *** The functions `set-buffer-modified', `string-as-multibyte' and
@@ -2447,7 +2447,10 @@ have been introduced.
 +++
 ** The new character sets `eight-bit-control' and `eight-bit-graphic'
 have been introduced for 8-bit characters in the ranges 0x80..0x9F and
-0xA0..0xFF respectively.
+0xA0..0xFF respectively.  Note that the multibyte representation of
+eight-bit-control is never exposed; this leads to an exception in the
+emacs-mule coding system, which encodes everything else to the
+buffer/string internal representation.
 
 +++
 ** If the APPEND argument of `write-region' is an integer, it seeks to

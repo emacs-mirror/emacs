@@ -1,3 +1,21 @@
+2001-03-01  Dave Love  <fx@gnu.org>
+
+	* textmodes/reftex.el (defvar): Wrap some defvars in
+	eval-when-compile.  From Markus Rost <rost@math.ohio-state.edu>.
+
+	* subr.el (event-basic-type): Doc fix.
+
+	* international/quail.el: Doc fixes.
+
+	* international/utf-8.el: Doc fixes.
+
+	* international/mule-cmds.el: Doc fixes.
+	(leim-list-header): Fix header text.
+
+	* international/mule.el (coding-system-category): Doc fix.
+
+	* international/ccl.el (ccl-compile): Doc fix.
+
 2001-03-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (save-buffer-state): Use inhibit-modification-hooks

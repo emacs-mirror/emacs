@@ -1,3 +1,7 @@
+2001-03-01  Dave Love  <fx@gnu.org>
+
+	* ccl.c (Fccl_execute): Doc fix.
+
 2001-03-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_create_frame): Adjust the frame's height for presence
