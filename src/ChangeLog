@@ -1,3 +1,11 @@
+2002-09-29  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (STOP_POLLING, RESUME_POLLING): New macros.
+	(redisplay_internal): Use them.  Do RESUME_POLLING at end of function.
+
+	* keyboard.c (STOP_POLLING, RESUME_POLLING): New macros.
+	(read_char): Use them.  Do all exits thru the end of the function.
+
 2002-09-06  Juanma Barranquero  <lektu@terra.es>
 
 	* coding.c (syms_of_coding): Fix spacing.

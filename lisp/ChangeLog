@@ -1,3 +1,20 @@
+2002-09-29  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (grep-compute-defaults): Move definition
+	up before `grep-command'.
+
+2002-09-29  Richard M. Stallman  <rms@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-write-region):
+	Don't bind executing-kbd-macro; instead, pass non-nil VISIT arg
+	to ange-ftp-real-write-region.
+
+2002-09-29  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-delete-errors): Default to nil.
+
+	* simple.el (undo-elt-in-region): Fix one-off error at END.
+
 2002-09-28  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* progmodes/m4-mode.el (m4-font-lock-keywords)
