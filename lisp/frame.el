@@ -181,8 +181,7 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	(or (delq terminal-frame (minibuffer-frame-list))
 	    (progn
 	      (setq frame-initial-frame-alist
-		    (append initial-frame-alist default-frame-alist
-			    '((visibility . nil)) nil))
+		    (append initial-frame-alist default-frame-alist nil))
 	      (or (assq 'horizontal-scroll-bars frame-initial-frame-alist)
 		  (setq frame-initial-frame-alist
 			(cons '(horizontal-scroll-bars . t)
@@ -233,8 +232,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
   ;; Make tool-bar-mode and default-frame-alist consistent.  Don't do
   ;; it in batch mode since that would leave a tool-bar-lines
   ;; parameter in default-frame-alist in a dumped Emacs, which is not
-  ;; what we want.  For some reason, menu-bar-mode is not bound
-  ;; in this case, but tool-bar-mode is.
+  ;; what we want.
   (when (and (boundp 'tool-bar-mode)
 	     (not noninteractive))
     (let ((default (assq 'tool-bar-lines default-frame-alist)))
@@ -285,150 +283,183 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 
     ;; If the initial frame is still around, apply initial-frame-alist
     ;; and default-frame-alist to it.
-    (if (frame-live-p frame-initial-frame)
+    (when (frame-live-p frame-initial-frame)
 
-	;; The initial frame we create above always has a minibuffer.
-	;; If the user wants to remove it, or make it a minibuffer-only
-	;; frame, then we'll have to delete the current frame and make a
-	;; new one; you can't remove or add a root window to/from an
-	;; existing frame.
-	;;
-	;; NOTE: default-frame-alist was nil when we created the
-	;; existing frame.  We need to explicitly include
-	;; default-frame-alist in the parameters of the screen we
-	;; create here, so that its new value, gleaned from the user's
-	;; .emacs file, will be applied to the existing screen.
-	(if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
+      ;; When tool-bar has been switched off, correct the frame size
+      ;; by the lines added in x-create-frame for the tool-bar and
+      ;; switch `tool-bar-mode' off.
+      (when (or (eq 0 (cdr (assq 'tool-bar-lines initial-frame-alist)))
+		(eq 0 (cdr (assq 'tool-bar-lines default-frame-alist))))
+	(let* ((char-height (frame-char-height frame-initial-frame))
+	       (image-height 24)
+	       (margin (cond ((and (consp tool-bar-button-margin)
+				   (integerp (cdr tool-bar-button-margin))
+				   (> tool-bar-button-margin 0))
+			      (cdr tool-bar-button-margin))
+			     ((and (integerp tool-bar-button-margin)
+				   (> tool-bar-button-margin 0))
+			      tool-bar-button-margin)
+			     (t 0)))
+	       (relief (if (and (integerp tool-bar-button-relief)
+				(> tool-bar-button-relief 0))
+			   tool-bar-button-relief 3))
+	       (lines (/ (+ image-height 
+			    (* 2 margin)
+			    (* 2 relief)
+			    (1- char-height))
+			 char-height))
+	       (height (frame-parameter frame-initial-frame 'height)))
+	  (modify-frame-parameters frame-initial-frame
+				   (list (cons 'height (- height lines))))
+	  (tool-bar-mode -1)))
+			  
+
+      ;; The initial frame we create above always has a minibuffer.
+      ;; If the user wants to remove it, or make it a minibuffer-only
+      ;; frame, then we'll have to delete the current frame and make a
+      ;; new one; you can't remove or add a root window to/from an
+      ;; existing frame.
+      ;;
+      ;; NOTE: default-frame-alist was nil when we created the
+      ;; existing frame.  We need to explicitly include
+      ;; default-frame-alist in the parameters of the screen we
+      ;; create here, so that its new value, gleaned from the user's
+      ;; .emacs file, will be applied to the existing screen.
+      (when (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
 			      (assq 'minibuffer default-frame-alist)
 			      '(minibuffer . t)))
 		     t))
-	    ;; Create the new frame.
-	    (let (parms new)
-	      ;; If the frame isn't visible yet, wait till it is.
-	      ;; If the user has to position the window,
-	      ;; Emacs doesn't know its real position until
-	      ;; the frame is seen to be visible.
-	      (while (not (cdr (assq 'visibility
-				     (frame-parameters frame-initial-frame))))
-		(sleep-for 1))
-	      (setq parms (frame-parameters frame-initial-frame))
-	      ;; Get rid of `name' unless it was specified explicitly before.
-	      (or (assq 'name frame-initial-frame-alist)
-		  (setq parms (delq (assq 'name parms) parms)))
-	      (setq parms (append initial-frame-alist
-				  default-frame-alist
-				  parms
-				  nil))
-	      ;; Get rid of `reverse', because that was handled
-	      ;; when we first made the frame.
-	      (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
-	      (if (assq 'height frame-initial-geometry-arguments)
-		  (setq parms (assq-delete-all 'height parms)))
-	      (if (assq 'width frame-initial-geometry-arguments)
-		  (setq parms (assq-delete-all 'width parms)))
-	      (if (assq 'left frame-initial-geometry-arguments)
-		  (setq parms (assq-delete-all 'left parms)))
-	      (if (assq 'top frame-initial-geometry-arguments)
-		  (setq parms (assq-delete-all 'top parms)))
-	      (setq new
-		    (make-frame
-		     ;; Use the geometry args that created the existing
-		     ;; frame, rather than the parms we get for it.
-		     (append frame-initial-geometry-arguments
-			     '((user-size . t) (user-position . t))
-			     parms)))
-	      ;; The initial frame, which we are about to delete, may be
-	      ;; the only frame with a minibuffer.  If it is, create a
-	      ;; new one.
-	      (or (delq frame-initial-frame (minibuffer-frame-list))
-		  (make-initial-minibuffer-frame nil))
+	;; Create the new frame.
+	(let (parms new)
+	  ;; If the frame isn't visible yet, wait till it is.
+	  ;; If the user has to position the window,
+	  ;; Emacs doesn't know its real position until
+	  ;; the frame is seen to be visible.
+	  (while (not (cdr (assq 'visibility
+				 (frame-parameters frame-initial-frame))))
+	    (sleep-for 1))
+	  (setq parms (frame-parameters frame-initial-frame))
 
-	      ;; If the initial frame is serving as a surrogate
-	      ;; minibuffer frame for any frames, we need to wean them
-	      ;; onto a new frame.  The default-minibuffer-frame
-	      ;; variable must be handled similarly.
-	      (let ((users-of-initial
-		     (filtered-frame-list
-		      (function (lambda (frame)
-				  (and (not (eq frame frame-initial-frame))
-				       (eq (window-frame
-					    (minibuffer-window frame))
-					   frame-initial-frame)))))))
-		(if (or users-of-initial
-			(eq default-minibuffer-frame frame-initial-frame))
+       ;; Get rid of `name' unless it was specified explicitly before.
+	  (or (assq 'name frame-initial-frame-alist)
+	      (setq parms (delq (assq 'name parms) parms)))
 
-		    ;; Choose an appropriate frame.  Prefer frames which
-		    ;; are only minibuffers.
-		    (let* ((new-surrogate
-			    (car
-			     (or (filtered-frame-list
-				  (function
-				   (lambda (frame)
-				     (eq (cdr (assq 'minibuffer
-						    (frame-parameters frame)))
-					 'only))))
-				 (minibuffer-frame-list))))
-			   (new-minibuffer (minibuffer-window new-surrogate)))
+	  (setq parms (append initial-frame-alist
+			      default-frame-alist
+			      parms
+			      nil))
 
-		      (if (eq default-minibuffer-frame frame-initial-frame)
-			  (setq default-minibuffer-frame new-surrogate))
+	  ;; Get rid of `reverse', because that was handled
+	  ;; when we first made the frame.
+	  (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
 
-		      ;; Wean the frames using frame-initial-frame as
-		      ;; their minibuffer frame.
-		      (mapcar
-		       (function
-			(lambda (frame)
-			  (modify-frame-parameters
-			   frame (list (cons 'minibuffer new-minibuffer)))))
-		       users-of-initial))))
+	  (if (assq 'height frame-initial-geometry-arguments)
+	      (setq parms (assq-delete-all 'height parms)))
+	  (if (assq 'width frame-initial-geometry-arguments)
+	      (setq parms (assq-delete-all 'width parms)))
+	  (if (assq 'left frame-initial-geometry-arguments)
+	      (setq parms (assq-delete-all 'left parms)))
+	  (if (assq 'top frame-initial-geometry-arguments)
+	      (setq parms (assq-delete-all 'top parms)))
+	  (setq new
+		(make-frame
+		 ;; Use the geometry args that created the existing
+		 ;; frame, rather than the parms we get for it.
+		 (append frame-initial-geometry-arguments
+			 '((user-size . t) (user-position . t))
+			 parms)))
+	  ;; The initial frame, which we are about to delete, may be
+	  ;; the only frame with a minibuffer.  If it is, create a
+	  ;; new one.
+	  (or (delq frame-initial-frame (minibuffer-frame-list))
+	      (make-initial-minibuffer-frame nil))
 
-	      ;; Redirect events enqueued at this frame to the new frame.
-	      ;; Is this a good idea?
-	      (redirect-frame-focus frame-initial-frame new)
+	  ;; If the initial frame is serving as a surrogate
+	  ;; minibuffer frame for any frames, we need to wean them
+	  ;; onto a new frame.  The default-minibuffer-frame
+	  ;; variable must be handled similarly.
+	  (let ((users-of-initial
+		 (filtered-frame-list
+		  (function (lambda (frame)
+			      (and (not (eq frame frame-initial-frame))
+				   (eq (window-frame
+					(minibuffer-window frame))
+				       frame-initial-frame)))))))
+	    (if (or users-of-initial
+		    (eq default-minibuffer-frame frame-initial-frame))
 
-	      ;; Finally, get rid of the old frame.
-	      (delete-frame frame-initial-frame t))
+		;; Choose an appropriate frame.  Prefer frames which
+		;; are only minibuffers.
+		(let* ((new-surrogate
+			(car
+			 (or (filtered-frame-list
+			      (function
+			       (lambda (frame)
+				 (eq (cdr (assq 'minibuffer
+						(frame-parameters frame)))
+				     'only))))
+			     (minibuffer-frame-list))))
+		       (new-minibuffer (minibuffer-window new-surrogate)))
 
-	  ;; Otherwise, we don't need all that rigamarole; just apply
-	  ;; the new parameters.
-	  (let (newparms allparms tail)
-	    (setq allparms (append initial-frame-alist
-				   default-frame-alist nil))
-	    (if (assq 'height frame-initial-geometry-arguments)
-		(setq allparms (assq-delete-all 'height allparms)))
-	    (if (assq 'width frame-initial-geometry-arguments)
-		(setq allparms (assq-delete-all 'width allparms)))
-	    (if (assq 'left frame-initial-geometry-arguments)
-		(setq allparms (assq-delete-all 'left allparms)))
-	    (if (assq 'top frame-initial-geometry-arguments)
-		(setq allparms (assq-delete-all 'top allparms)))
-	    (setq tail allparms)
-	    ;; Find just the parms that have changed since we first
-	    ;; made this frame.  Those are the ones actually set by
-	    ;; the init file.  For those parms whose values we already knew
-	    ;; (such as those spec'd by command line options)
-	    ;; it is undesirable to specify the parm again
-	    ;; once the user has seen the frame and been able to alter it
-	    ;; manually.
-	    (while tail
-	      (let (newval oldval)
-		(setq oldval (assq (car (car tail))
-				   frame-initial-frame-alist))
-		(setq newval (cdr (assq (car (car tail)) allparms)))
-		(or (and oldval (eq (cdr oldval) newval))
-		    (setq newparms
-			  (cons (cons (car (car tail)) newval) newparms))))
-	      (setq tail (cdr tail)))
-	    (setq newparms (nreverse newparms))
-	    (modify-frame-parameters frame-initial-frame
-				     newparms)
-	    ;; If we changed the background color,
-	    ;; we need to update the background-mode parameter
-	    ;; and maybe some faces too.
-	    (when (assq 'background-color newparms)
-	      (unless (assq 'background-mode newparms)
-		(frame-set-background-mode frame-initial-frame))
-	      (face-set-after-frame-default frame-initial-frame)))))
+		  (if (eq default-minibuffer-frame frame-initial-frame)
+		      (setq default-minibuffer-frame new-surrogate))
+
+		  ;; Wean the frames using frame-initial-frame as
+		  ;; their minibuffer frame.
+		  (mapcar
+		   (function
+		    (lambda (frame)
+		      (modify-frame-parameters
+		       frame (list (cons 'minibuffer new-minibuffer)))))
+		   users-of-initial))))
+
+	  ;; Redirect events enqueued at this frame to the new frame.
+	  ;; Is this a good idea?
+	  (redirect-frame-focus frame-initial-frame new)
+
+	  ;; Finally, get rid of the old frame.
+	  (delete-frame frame-initial-frame t))
+
+	;; Otherwise, we don't need all that rigamarole; just apply
+	;; the new parameters.
+	(let (newparms allparms tail)
+	  (setq allparms (append initial-frame-alist
+				 default-frame-alist nil))
+	  (if (assq 'height frame-initial-geometry-arguments)
+	      (setq allparms (assq-delete-all 'height allparms)))
+	  (if (assq 'width frame-initial-geometry-arguments)
+	      (setq allparms (assq-delete-all 'width allparms)))
+	  (if (assq 'left frame-initial-geometry-arguments)
+	      (setq allparms (assq-delete-all 'left allparms)))
+	  (if (assq 'top frame-initial-geometry-arguments)
+	      (setq allparms (assq-delete-all 'top allparms)))
+	  (setq tail allparms)
+	  ;; Find just the parms that have changed since we first
+	  ;; made this frame.  Those are the ones actually set by
+       ;; the init file.  For those parms whose values we already knew
+	  ;; (such as those spec'd by command line options)
+	  ;; it is undesirable to specify the parm again
+	 ;; once the user has seen the frame and been able to alter it
+	  ;; manually.
+	  (while tail
+	    (let (newval oldval)
+	      (setq oldval (assq (car (car tail))
+				 frame-initial-frame-alist))
+	      (setq newval (cdr (assq (car (car tail)) allparms)))
+	      (or (and oldval (eq (cdr oldval) newval))
+		  (setq newparms
+			(cons (cons (car (car tail)) newval) newparms))))
+	    (setq tail (cdr tail)))
+	  (setq newparms (nreverse newparms))
+	  (modify-frame-parameters frame-initial-frame
+				   newparms)
+	  ;; If we changed the background color,
+	  ;; we need to update the background-mode parameter
+	  ;; and maybe some faces too.
+	  (when (assq 'background-color newparms)
+	    (unless (assq 'background-mode newparms)
+	      (frame-set-background-mode frame-initial-frame))
+	    (face-set-after-frame-default frame-initial-frame)))))
 
     ;; Restore the original buffer.
     (set-buffer old-buffer)
