@@ -34,7 +34,6 @@ INSTALLDIR=${datadir}/emacs/${version}/leim
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
-dotdot = ${dot}${dot}
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
@@ -47,7 +46,7 @@ RUN-EMACS = ${EMACS} -batch --no-init-file --no-site-file
 
 # Subdirectories to be made if ${srcdir} is different from the current
 # directory.
-SUBDIRS=quail skk
+SUBDIRS=quail
 
 # Files generated from TIT dictionaries for Chinese GB character set.
 TIT-GB=\
@@ -123,7 +122,7 @@ WORLD=${ASIA} ${EUROPEAN} ${MISC}
 TIT=${CHINESE-TIT}
 NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
 
-all: ${EMACS} ${SUBDIRS} ${WORLD} leim-list.el
+all: ${EMACS} ${SUBDIRS} ${TIT} leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -136,29 +135,19 @@ ${SUBDIRS}:
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 ${TIT}:
+	[ -d quail ] || mkdir quail
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
 	${RUN-EMACS} -f batch-byte-compile ${TIT}
 
-# Emacs Lisp source files not generated from TIT dictionaries are
-# distributed as is.  So, hitting this target means that ${srcdir} is
-# different from the current directory.  In this case, we just make
-# links.
-%.el:
-	@LN_S@ ${srcdir}/$@ $@
-	@LN_S@ ${srcdir}/$@c $@c
-
-# Before running update-leim-list-file, delete all old files which are
-# not contained in ${WORLD}.
-leim-list.el: ${SUBDIRS} ${WORLD}
-	for dir in ${SUBDIRS}; do \
-	  for f in $${dir}/*.el; do \
-	    if echo ${WORLD} | grep $${f} > /dev/null; then true; \
-	    else rm -f $${f}* ; fi; \
-	  done; \
-	done
-	${RUN-EMACS} -l ${buildlisppath}/international/quail \
-	    --eval "(update-leim-list-file \".\")"
+leim-list.el: ${SUBDIRS} ${TIT}
+	if [ x`(cd ${srcdir}; /bin/pwd)` = x`(/bin/pwd)` ] ; then \
+	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	    --eval "(update-leim-list-file \".\")" ; \
+	else \
+	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
+	    --eval "(update-leim-list-file \".\" \"${srcdir}\")" ; \
+	fi
 
 install: all
 	if [ x`(cd ${INSTALLDIR}; /bin/pwd)` != x`(/bin/pwd)` ] ; then \
@@ -166,11 +155,13 @@ install: all
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  cp leim-list.el ${INSTALLDIR} ; \
-	  tar -cf - ${TIT} \
+	  tar -cf - leim-list.el ${SUBDIRS} \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
-	  cd ${srcdir}; \
-	  tar -cf - ${NON-TIT} \
+	  if [ x`(cd ${srcdir}; /bin/pwd)` != x`(/bin/pwd)` ] ; then \
+	    cd ${srcdir}; \
+	    tar -cf - ${SUBDIRS} \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
+	  else true; fi; \
 	else true; fi
 
 clean mostlyclean:
