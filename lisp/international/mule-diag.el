@@ -324,8 +324,8 @@ detailed meanings of these arguments."
       (insert "Number of contained characters: ")
       (dotimes (i (charset-dimension charset))
 	(unless (= i 0)
-	  (insert ?x))
-	(insert (format "%d" (charset-chars charset) (1+ i))))
+	  (insert ?×))
+	(insert (format "%d" (charset-chars charset (1+ i)))))
       (insert ?\n)
       (let ((char (charset-iso-final-char charset)))
 	(when (> char 0)
@@ -1394,4 +1394,7 @@ character)")
 				      (string (string-to-number
 					       (nth 13 fields) 16)))))))))))
 
+;; Local Variables:
+;; coding: utf-8
+;; End:
 ;;; mule-diag.el ends here
