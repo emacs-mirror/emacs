@@ -3,4 +3,3 @@
 #include "windowsnt.h"
 
 #define WINDOWS95
-#define CANNOT_DUMP
