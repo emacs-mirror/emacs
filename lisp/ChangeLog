@@ -1,3 +1,10 @@
+2003-01-25  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--init-keymaps): Move C-S-x and C-S-c
+	bindings from cua--cua-keys-keymap to cua--region-keymap, as they are
+	only needed when the region is active.  This also makes the output
+	from C-h b look normal when cua-mode is enabled (no C-S-x/c bindings).
+
 2003-01-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
         * ediff.el (ediff-revision): better defaults.
@@ -10,12 +17,10 @@
 	* info.el (Info-extract-menu-node-name): When looking for end of menu
 	item, don't stop at first ":"; instead, continue until trailing
 	context is either a space or newline.
-	(Info-complete-menu-item): Change var `pattern' to allow ":" in menu
-	item.
+	(Info-complete-menu-item): Var `pattern': allow ":" in menu item.
 	(Info-menu): Likewise, for regexp used in backwards search.
 	(Info-try-follow-nearest-node): Remove case added in previous edit.
-	Instead, change the regexp in the following case to allow ":" in menu
-	item.
+	Change regexp in the following case to allow ":" in menu item.
 	(Info-fontify-node): Fix bug: Handle `next-property-change' returning
 	point-max as "hasn't already been done".
 
