@@ -1676,8 +1676,8 @@ determines whether case is significant or ignored.")
       int c2 = *BUF_CHAR_ADDRESS (bp2, begp2 + i);
       if (trt)
 	{
-	  c1 = trt[c1];
-	  c2 = trt[c2];
+	  c1 = XINT (trt[c1]);
+	  c2 = XINT (trt[c2]);
 	}
       if (c1 < c2)
 	return make_number (- 1 - i);
@@ -2369,7 +2369,7 @@ transpose_markers (start1, end1, start2, end2)
   for (marker = BUF_MARKERS (current_buffer); !NILP (marker);
        marker = XMARKER (marker)->chain)
     {
-      mpos = Fmarker_position (marker);
+      mpos = marker_position (marker);
       if (mpos >= start1 && mpos < end2)
 	{
 	  if (mpos < end1)
