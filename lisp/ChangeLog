@@ -1,5 +1,7 @@
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/fortune.el (fortune-from-region): Use `eq' instead of `eql'.
+
 	* textmodes/ispell.el, emacs-lisp/checkdoc.el,
 	* progmodes/ebrowse.el, play/fortune.el: Fix autoload cookies.
 
