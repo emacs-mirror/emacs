@@ -7493,12 +7493,81 @@ note_tool_bar_highlight (f, x, y)
 
 
 
-/* Find the glyph matrix position of buffer position POS in window W.
-   *HPOS, *VPOS, *X, and *Y are set to the positions found.  W's
-   current glyphs must be up to date.  If POS is above window start
-   return (0, 0, 0, 0).  If POS is after end of W, return end of
-   last line in W.  In the row containing POS, stop before glyphs
+/* Find the glyph matrix position of buffer position CHARPOS in window
+   *W.  HPOS, *VPOS, *X, and *Y are set to the positions found.  W's
+   current glyphs must be up to date.  If CHARPOS is above window
+   start return (0, 0, 0, 0).  If CHARPOS is after end of W, return end
+   of last line in W.  In the row containing CHARPOS, stop before glyphs
    having STOP as object.  */
+
+#if 0 /* This is a version of fast_find_position that's more correct
+	 in the presence of hscrolling, for example.  I didn't install
+	 it right away because the problem fixed is minor, it failed
+	 in 20.x as well, and I think it's too risky to install 
+	 so near the release of 21.1.  2001-09-25 gerd.  */
+
+static int
+fast_find_position (w, charpos, hpos, vpos, x, y, stop)
+     struct window *w;
+     int charpos;
+     int *hpos, *vpos, *x, *y;
+     Lisp_Object stop;
+{
+  struct glyph_row *row, *first;
+  struct glyph *glyph, *end;
+  int i, past_end = 0;
+
+  first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  row = row_containing_pos (w, charpos, first, NULL);
+  if (row == NULL)
+    {
+      if (charpos < MATRIX_ROW_START_CHARPOS (first))
+	{
+	  *x = *y = *hpos = *vpos = 0;
+	  return 0;
+	}
+      else
+	{
+	  row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+	  past_end = 1;
+	}
+    }
+
+  *x = row->x;
+  *y = row->y;
+  *vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
+  
+  glyph = row->glyphs[TEXT_AREA];
+  end = glyph + row->used[TEXT_AREA];
+  
+  /* Skip over glyphs not having an object at the start of the row.
+     These are special glyphs like truncation marks on terminal
+     frames.  */
+  if (row->displays_text_p)
+    while (glyph < end
+	   && INTEGERP (glyph->object)
+	   && !EQ (stop, glyph->object)
+	   && glyph->charpos < 0)
+      {
+	*x += glyph->pixel_width;
+	++glyph;
+      }
+
+  while (glyph < end
+	 && !INTEGERP (glyph->object)
+	 && !EQ (stop, glyph->object)
+	 && (!BUFFERP (glyph->object)
+	     || glyph->charpos < charpos))
+    {
+      *x += glyph->pixel_width;
+      ++glyph;
+    }
+
+  *hpos = glyph - row->glyphs[TEXT_AREA];
+  return past_end;
+}
+
+#else /* not 0 */
 
 static int
 fast_find_position (w, pos, hpos, vpos, x, y, stop)
@@ -7595,6 +7664,8 @@ fast_find_position (w, pos, hpos, vpos, x, y, stop)
   *y = best_row->y;
   return 0;
 }
+
+#endif /* not 0 */
 
 
 /* Find the position of the the glyph for position POS in OBJECT in
