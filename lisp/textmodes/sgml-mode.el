@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992, 1995, 1996, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992,95,96,98,2001  Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
@@ -80,7 +80,7 @@ This takes effect when first loading the sgml-mode library.")
 
 
 (defvar sgml-mode-map
-  (let ((map (list 'keymap (make-vector 256 nil)))
+  (let ((map (make-keymap))	;`sparse' doesn't allow binding to charsets.
 	(menu-map (make-sparse-keymap "SGML")))
     (define-key map "\C-c\C-i" 'sgml-tags-invisible)
     (define-key map "/" 'sgml-slash)
@@ -106,10 +106,7 @@ This takes effect when first loading the sgml-mode library.")
 	      (define-key map "\"" 'sgml-name-self))
 	  (if (memq ?' sgml-specials)
 	      (define-key map "'" 'sgml-name-self))))
-    (let ((c 127)
-	  (map (nth 1 map)))
-      (while (< (setq c (1+ c)) 256)
-	(aset map c 'sgml-maybe-name-self)))
+    (define-key map (make-char 'latin-iso8859-1) 'sgml-maybe-name-self)
     (define-key map [menu-bar sgml] (cons "SGML" menu-map))
     (define-key menu-map [sgml-validate] '("Validate" . sgml-validate))
     (define-key menu-map [sgml-name-8bit-mode]
@@ -203,8 +200,8 @@ separated by a space."
   "The command last used to validate in this buffer.")
 
 
-;;; I doubt that null end tags are used much for large elements,
-;;; so use a small distance here.
+;; I doubt that null end tags are used much for large elements,
+;; so use a small distance here.
 (defcustom sgml-slash-distance 1000
   "*If non-nil, is the maximum distance to search for matching `/'."
   :type '(choice (const nil) integer)
@@ -478,7 +475,10 @@ or M-- for a soft hyphen."
   "Insert a symbolic character name according to `sgml-char-names'."
   (interactive "*")
   (if sgml-name-8bit-mode
-      (sgml-name-char last-command-char)
+      (sgml-name-char
+       (if (eq (char-charset last-command-char) 'latin-iso8859-1)
+	   (+ 128 (- last-command-char (make-char 'latin-iso8859-1)))
+	 last-command-char))
     (self-insert-command 1)))
 
 
@@ -717,34 +717,38 @@ With prefix argument ARG, repeat this ARG times."
   (interactive "P")
   (let ((modified (buffer-modified-p))
 	(inhibit-read-only t)
+	(inhibit-modification-hooks t)
+	;; Avoid spurious the `file-locked' checks.
+	(buffer-file-name nil)
 	;; This is needed in case font lock gets called,
 	;; since it moves point and might call sgml-point-entered.
 	(inhibit-point-motion-hooks t)
 	symbol)
-    (save-excursion
-      (goto-char (point-min))
-      (if (setq sgml-tags-invisible
-		(if arg
-		    (>= (prefix-numeric-value arg) 0)
-		  (not sgml-tags-invisible)))
-	  (while (re-search-forward "<\\([!/?A-Za-z][-A-Za-z0-9]*\\)"
-				    nil t)
-	    (setq symbol (intern-soft (downcase (match-string 1))))
-	    (goto-char (match-beginning 0))
-	    (and (get symbol 'before-string)
-		 (not (overlays-at (point)))
-		 (overlay-put (make-overlay (point)
-					    (match-beginning 1))
-			      'category symbol))
-	    (put-text-property (point)
-			       (progn (forward-list) (point))
-			       'category 'sgml-tag))
-	(let ((pos (point)))
-	  (while (< (setq pos (next-overlay-change pos)) (point-max))
-	    (delete-overlay (car (overlays-at pos)))))
-	(remove-text-properties (point-min) (point-max)
-				'(category sgml-tag intangible t))))
-    (set-buffer-modified-p modified)
+    (unwind-protect
+	(save-excursion
+	  (goto-char (point-min))
+	  (if (setq sgml-tags-invisible
+		    (if arg
+			(>= (prefix-numeric-value arg) 0)
+		      (not sgml-tags-invisible)))
+	      (while (re-search-forward "<\\([!/?A-Za-z][-A-Za-z0-9]*\\)"
+					nil t)
+		(setq symbol (intern-soft (downcase (match-string 1))))
+		(goto-char (match-beginning 0))
+		(and (get symbol 'before-string)
+		     (not (overlays-at (point)))
+		     (overlay-put (make-overlay (point)
+						(match-beginning 1))
+				  'category symbol))
+		(put-text-property (point)
+				   (progn (forward-list) (point))
+				   'category 'sgml-tag))
+	    (let ((pos (point)))
+	      (while (< (setq pos (next-overlay-change pos)) (point-max))
+		(delete-overlay (car (overlays-at pos)))))
+	    (remove-text-properties (point-min) (point-max)
+				    '(category sgml-tag intangible t))))
+      (restore-buffer-modified-p modified))
     (run-hooks 'sgml-tags-invisible-hook)
     (message "")))
 
@@ -753,7 +757,8 @@ With prefix argument ARG, repeat this ARG times."
   (let ((inhibit-point-motion-hooks t))
     (save-excursion
       (message "Invisible tag: %s"
-	       (buffer-substring
+	       ;; Strip properties, otherwise, the text is invisible.
+	       (buffer-substring-no-properties
 		(point)
 		(if (or (and (> x y)
 			     (not (eq (following-char) ?<)))
@@ -821,9 +826,10 @@ See `sgml-tag-alist' for info about attributerules.."
       (if alist
 	  (insert (skeleton-read '(completing-read "Value: " alist))))
       (insert ?\"))))
-
-(provide 'sgml-mode)
 
+
+;;; HTML mode
+
 (defcustom html-mode-hook nil
   "Hook run by command `html-mode'.
 `text-mode-hook' and `sgml-mode-hook' are run first."
@@ -937,7 +943,7 @@ This takes effect when first loading the library.")
 ;; should code exactly HTML 3 here when that is finished
 (defvar html-tag-alist
   (let* ((1-7 '(("1") ("2") ("3") ("4") ("5") ("6") ("7")))
-	 (1-9 '(,@1-7 ("8") ("9")))
+	 (1-9 `(,@1-7 ("8") ("9")))
 	 (align '(("align" ("left") ("center") ("right"))))
 	 (valign '(("top") ("middle") ("bottom") ("baseline")))
 	 (rel '(("next") ("previous") ("parent") ("subdocument") ("made")))
@@ -949,10 +955,9 @@ This takes effect when first loading the library.")
 		 ("rel" ,@rel)
 		 ("rev" ,@rel)
 		 ("title")))
-	 (list '((nil \n ( "List item: "
-			   "<li>" str \n))))
+	 (list '((nil \n ("List item: " "<li>" str \n))))
 	 (cell `(t
-		 ,align
+		 ,@align
 		 ("valign" ,@valign)
 		 ("colspan" ,@1-9)
 		 ("rowspan" ,@1-9)
@@ -1021,6 +1026,7 @@ This takes effect when first loading the library.")
       ("dd" t)
       ("del")
       ("dfn")
+      ("div")
       ("dl" (nil \n
 		 ( "Term: "
 		   "<dt>" str "<dd>" _ \n)))
@@ -1055,6 +1061,7 @@ This takes effect when first loading the library.")
       ("s")
       ("samp")
       ("small")
+      ("span")
       ("strong")
       ("sub")
       ("sup")
@@ -1220,8 +1227,9 @@ To work around that, do:
 	outline-level (lambda ()
 			(char-after (1- (match-end 0)))))
   (setq imenu-create-index-function 'html-imenu-index)
-  (make-local-variable 'imenu-sort-function)
-  (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
+  ;; It's for the user to decide if it defeats it or not  -stef
+  ;; (make-local-variable 'imenu-sort-function)
+  ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   (run-hooks 'text-mode-hook 'sgml-mode-hook 'html-mode-hook))
 
 (defvar html-imenu-regexp
@@ -1376,4 +1384,5 @@ Can be used as a value for `html-mode-hook'."
 			     "")))
    \n))
 
+(provide 'sgml-mode)
 ;;; sgml-mode.el ends here
