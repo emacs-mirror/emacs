@@ -4986,7 +4986,10 @@ e_write (desc, string, start, end, coding)
 	      break;
 	    }
 	}
-      if (result == CODING_FINISH_INSUFFICIENT_SRC)
+      nbytes -= coding->consumed;
+      addr += coding->consumed;
+      if (result == CODING_FINISH_INSUFFICIENT_SRC
+	  && nbytes > 0)
 	{
 	  /* The source text ends by an incomplete multibyte form.
              There's no way other than write it out as is.  */
@@ -4999,8 +5002,6 @@ e_write (desc, string, start, end, coding)
 	}
       if (nbytes <= 0)
 	break;
-      nbytes -= coding->consumed;
-      addr += coding->consumed;
       start += coding->consumed_char;
       if (coding->cmp_data)
 	coding_adjust_composition_offset (coding, start);
