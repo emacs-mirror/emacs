@@ -1,3 +1,9 @@
+2003-09-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* xresources.texi (Resources): Refer to `editres' man page.
+	(Lucid Resources): Update defaults.  Expand desciption of
+	`shadowThickness'.
+
 2003-09-04  Miles Bader  <miles@gnu.org>
 
 	* Makefile.in (top_srcdir): New variable.
