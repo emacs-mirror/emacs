@@ -1159,8 +1159,9 @@ ${libsrc}emacstool: ${libsrc}emacstool.c
 mostlyclean:
 	rm -f temacs prefix-args core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
+	rm -f bootstrap-emacs
 clean: mostlyclean
-	rm -f emacs-* emacs bootstrap-emacs
+	rm -f emacs-* emacs
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
