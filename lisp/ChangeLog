@@ -1,5 +1,7 @@
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* ehelp.el (electric-help-mode-hook): Add defcustom.
+
 	* mail/sendmail.el (mail-mode): Activate case-folding in
 	font-lock-defaults.
 
