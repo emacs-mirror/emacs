@@ -489,6 +489,9 @@ update_compositions (from, to, check_mask)
   Lisp_Object prop;
   int start, end;
 
+  if (inhibit_modification_hooks)
+    return;
+  
   /* If FROM and TO are not in a valid range, do nothing.  */
   if (! (BEGV <= from && from <= to && to <= ZV))
     return;
@@ -602,7 +605,7 @@ compose_chars_in_text (start, end, string)
      int start, end;
      Lisp_Object string;
 {
-  int count;
+  int count = 0;
   struct gcpro gcpro1;
   Lisp_Object tail, elt, val, to;
   /* Set to nonzero if we don't have to compose ASCII characters.  */
