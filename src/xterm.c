@@ -8420,15 +8420,15 @@ x_scroll_bar_create (w, top, left, width, height)
 
   /* Map the window/widget.  */
 #ifdef USE_TOOLKIT_SCROLL_BARS
- {
-   Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
-   XtConfigureWidget (scroll_bar,
-		     left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		     top,
-		     width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-		     height, 0);
-   XtMapWidget (scroll_bar);
- }
+  {
+    Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
+    XtConfigureWidget (scroll_bar,
+		       left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		       top,
+		       width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
+		       max (height, 1), 0);
+    XtMapWidget (scroll_bar);
+    }
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   XMapRaised (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -8628,8 +8628,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   if (NILP (w->vertical_scroll_bar))
     {
       BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    left, top, width, height, False);
+      if (width && height)
+	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      left, top, width, height, False);
       UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
     }
@@ -8655,8 +8656,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       /* Since toolkit scroll bars are smaller than the space reserved
 	 for them on the frame, we have to clear "under" them.  */
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    left, top, width, height, False);
+      if (width && height)
+	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      left, top, width, height, False);
 
       /* Move/size the scroll bar widget.  */
       if (mask)
@@ -8664,7 +8666,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 			   sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 			   top,
 			   sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-			   height, 0);
+			   max (height, 1), 0);
 
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   
