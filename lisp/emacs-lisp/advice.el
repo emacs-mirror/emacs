@@ -1,6 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993,1994,2000  Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -2234,7 +2234,7 @@ which PREDICATE returns non-nil)."
       (intern function))))
 
 (defvar ad-advice-class-completion-table
-  (mapcar '(lambda (class) (list (symbol-name class)))
+  (mapcar (lambda (class) (list (symbol-name class)))
 	  ad-advice-classes))
 
 (defun ad-read-advice-class (function &optional prompt default)
@@ -3457,7 +3457,7 @@ advised definition from scratch."
 		(ad-safe-fset 'ad-make-advised-definition-docstring
 			      'ad-make-freeze-docstring)
 		;; Make sure `unique-origname' is used as the origname:
-		(ad-safe-fset 'ad-make-origname '(lambda (x) unique-origname))
+		(ad-safe-fset 'ad-make-origname (lambda (x) unique-origname))
 		;; No we reset all current advice information to nil and
 		;; generate an advised definition that's solely determined
 		;; by ADVICE and the current origdef of FUNCTION:
