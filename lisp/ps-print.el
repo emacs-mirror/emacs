@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2001/04/07 13:41:03 Vinicius>
-;; Version:	6.5.1
+;; Time-stamp:	<2001/04/24 15:31:37 vinicius>
+;; Version:	6.5.1.1
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.1"
-  "ps-print.el, v 6.5.1 <2001/04/07 vinicius>
+(defconst ps-print-version "6.5.1.1"
+  "ps-print.el, v 6.5.1.1 <2001/04/24 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2338,11 +2338,11 @@ changing variables `ps-left-header' and `ps-right-header'."
   :group 'ps-print-headers)
 
 (defcustom ps-header-frame-alist
-  '((fore-color   . 0)
+  '((fore-color   . 0.0)
     (back-color   . 0.9)
     (border-width . 0.4)
-    (border-color . 0)
-    (shadow-color . 0))
+    (border-color . 0.0)
+    (shadow-color . 0.0))
   "*Specify header frame properties alist.
 
 Valid frame properties are:
@@ -2375,9 +2375,9 @@ Don't change this alist directly, instead use customization, or `ps-value',
 			(const :format "" fore-color)
 			(choice :menu-tag "Foreground Color"
 				:tag "Foreground Color"
-				(number :tag "Gray Scale" :value 0)
+				(number :tag "Gray Scale" :value 0.0)
 				(string :tag "Color Name" :value "black")
-				(list :tag "RGB Color" :value (0 0 0)
+				(list :tag "RGB Color" :value (0.0 0.0 0.0)
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))
@@ -2398,9 +2398,9 @@ Don't change this alist directly, instead use customization, or `ps-value',
 			(const :format "" border-color)
 			(choice :menu-tag "Border Color"
 				:tag "Border Color"
-				(number :tag "Gray Scale" :value 0)
+				(number :tag "Gray Scale" :value 0.0)
 				(string :tag "Color Name" :value "black")
-				(list :tag "RGB Color" :value (0 0 0)
+				(list :tag "RGB Color" :value (0.0 0.0 0.0)
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))
@@ -2408,9 +2408,9 @@ Don't change this alist directly, instead use customization, or `ps-value',
 			(const :format "" shadow-color)
 			(choice :menu-tag "Shadow Color"
 				:tag "Shadow Color"
-				(number :tag "Gray Scale" :value 0)
+				(number :tag "Gray Scale" :value 0.0)
 				(string :tag "Color Name" :value "black")
-				(list :tag "RGB Color" :value (0 0 0)
+				(list :tag "RGB Color" :value (0.0 0.0 0.0)
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))))
@@ -2437,11 +2437,11 @@ Footers are customizable by changing variables `ps-left-footer' and
   :group 'ps-print-headers)
 
 (defcustom ps-footer-frame-alist
-  '((fore-color   . 0)
+  '((fore-color   . 0.0)
     (back-color   . 0.9)
     (border-width . 0.4)
-    (border-color . 0)
-    (shadow-color . 0))
+    (border-color . 0.0)
+    (shadow-color . 0.0))
   "*Specify footer frame properties alist.
 
 Don't change this alist directly, instead use customization, or `ps-value',
@@ -2456,9 +2456,9 @@ See also `ps-header-frame-alist' for documentation."
 			(const :format "" fore-color)
 			(choice :menu-tag "Foreground Color"
 				:tag "Foreground Color"
-				(number :tag "Gray Scale" :value 0)
+				(number :tag "Gray Scale" :value 0.0)
 				(string :tag "Color Name" :value "black")
-				(list :tag "RGB Color" :value (0 0 0)
+				(list :tag "RGB Color" :value (0.0 0.0 0.0)
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))
@@ -2479,9 +2479,9 @@ See also `ps-header-frame-alist' for documentation."
 			(const :format "" border-color)
 			(choice :menu-tag "Border Color"
 				:tag "Border Color"
-				(number :tag "Gray Scale" :value 0)
+				(number :tag "Gray Scale" :value 0.0)
 				(string :tag "Color Name" :value "black")
-				(list :tag "RGB Color" :value (0 0 0)
+				(list :tag "RGB Color" :value (0.0 0.0 0.0)
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))
@@ -2489,9 +2489,9 @@ See also `ps-header-frame-alist' for documentation."
 			(const :format "" shadow-color)
 			(choice :menu-tag "Shadow Color"
 				:tag "Shadow Color"
-				(number :tag "Gray Scale" :value 0)
+				(number :tag "Gray Scale" :value 0.0)
 				(string :tag "Color Name" :value "black")
-				(list :tag "RGB Color" :value (0 0 0)
+				(list :tag "RGB Color" :value (0.0 0.0 0.0)
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))))
@@ -3274,34 +3274,14 @@ The table depends on the current ps-print setup."
   (interactive (list (count-lines (mark) (point))))
   (ps-nb-pages nb-lines))
 
+(defvar ps-prefix-quote nil)
+
 ;;;###autoload
 (defun ps-setup ()
   "Return the current PostScript-generation setup."
-  (let (prefix)
+  (let (ps-prefix-quote)
     (mapconcat
-     #'(lambda (elt)
-	 (cond
-	  ((null elt)    "")
-	  ((stringp elt) elt)
-	  (t
-	   (let* ((col (car elt))
-		  (sym (cdr elt))
-		  (key (symbol-name sym))
-		  (len (length key))
-		  (val (symbol-value sym)))
-	     (concat (if prefix
-			 prefix
-		       (setq prefix "      ")
-		       "(setq ")
-		     key
-		     (if (> col len)
-			 (make-string (- col len) ?\ )
-		       " ")
-		     (cond ((null val) "nil")
-			   ((eq val t) "t")
-			   ((or (symbolp val) (listp val)) (format "'%S" val))
-			   (t          (format "%S" val))))))
-	  ))
+     #'ps-print-quote
      (list
       (concat "\n;;; ps-print version " ps-print-version "\n")
       '(25 . ps-print-color-p)
@@ -3418,6 +3398,31 @@ The table depends on the current ps-print setup."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
+
+
+(defun ps-print-quote (elt)
+  (cond
+   ((null elt)    "")
+   ((stringp elt) elt)
+   (t
+    (let* ((col (car elt))
+	   (sym (cdr elt))
+	   (key (symbol-name sym))
+	   (len (length key))
+	   (val (symbol-value sym)))
+      (concat (if ps-prefix-quote
+		  ps-prefix-quote
+		(setq ps-prefix-quote "      ")
+		"(setq ")
+	      key
+	      (if (> col len)
+		  (make-string (- col len) ?\ )
+		" ")
+	      (cond ((null val) "nil")
+		    ((eq val t) "t")
+		    ((or (symbolp val) (listp val)) (format "'%S" val))
+		    (t          (format "%S" val))))))
+   ))
 
 
 (defun ps-value (alist-sym key)
@@ -4455,11 +4460,11 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 (defun ps-output-frame-properties (name alist)
   (ps-output "/" name " ["
-	     (ps-format-color (cdr (assq 'fore-color alist)) 0)
+	     (ps-format-color (cdr (assq 'fore-color alist)) 0.0)
 	     (ps-format-color (cdr (assq 'back-color alist)) 0.9)
 	     (ps-float-format (or (cdr (assq 'border-width alist)) 0.4))
-	     (ps-format-color (cdr (assq 'border-color alist)) 0)
-	     (ps-format-color (cdr (assq 'shadow-color alist)) 0)
+	     (ps-format-color (cdr (assq 'border-color alist)) 0.0)
+	     (ps-format-color (cdr (assq 'shadow-color alist)) 0.0)
 	     "]def\n"))
 
 
@@ -4507,12 +4512,13 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 (defun ps-float-format (value &optional default)
   (let ((literal (or value default)))
-    (if literal
-	(format (if (numberp literal)
-		    ps-float-format
-		  "%s ")
-		literal)
-      " ")))
+    (cond ((null literal)
+	   " ")
+	  ((numberp literal)
+	    (format ps-float-format (* literal 1.0))) ; force float number
+	  (t
+	   (format "%s " literal))
+	  )))
 
 
 (defun ps-background-text ()
@@ -5297,9 +5303,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (if (and the-color (listp the-color))
 	(concat "["
 		(format ps-color-format
-			(nth 0 the-color)
-			(nth 1 the-color)
-			(nth 2 the-color))
+			(* (nth 0 the-color) 1.0) ; force float number
+			(* (nth 1 the-color) 1.0) ; force float number
+			(* (nth 2 the-color) 1.0)) ; force float number
 		"] ")
       (ps-float-format (if (numberp the-color) the-color default)))))
 
@@ -5644,15 +5650,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 
 (defun ps-plot-region (from to font &optional fg-color bg-color effects)
-  (if (not (equal font ps-current-font))
+  (or (equal font ps-current-font)
       (ps-set-font font))
 
   ;; Specify a foreground color only if one's specified and it's
   ;; different than the current.
-  (if (not (equal fg-color ps-current-color))
-      (ps-set-color fg-color))
+  (let ((fg (or fg-color ps-default-foreground)))
+    (or (equal fg ps-current-color)
+	(ps-set-color fg)))
 
-  (if (not (equal bg-color ps-current-bg))
+  (or (equal bg-color ps-current-bg)
       (ps-set-bg bg-color))
 
   ;; Specify effects (underline, overline, box, etc)
