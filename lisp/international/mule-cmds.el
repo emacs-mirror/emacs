@@ -50,7 +50,9 @@
 (defvar mule-menu-keymap (make-sparse-keymap "Mule")
   "Keymap for MULE (Multilingual environment) menu specific commands.")
 
-(define-key global-map [menu-bar mule] (cons "Mule" mule-menu-keymap))
+(define-key global-map [menu-bar mule]
+  `(menu-item "Mule" ,mule-menu-keymap
+	      :visible default-enable-multibyte-characters))
 
 (setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 
