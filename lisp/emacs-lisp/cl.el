@@ -203,12 +203,38 @@ Keywords supported:  :test :test-not :key"
 ;;; simulated.  Instead, multiple-value-bind and friends simply expect
 ;;; the target form to return the values as a list.
 
-(defalias 'values 'list)
-(defalias 'values-list 'identity)
-(defalias 'multiple-value-list 'identity)
-(defalias 'multiple-value-call 'apply)  ; only works for one arg
-(defalias 'nth-value 'nth)
+(defsubst values (&rest values)
+  "Return multiple values, Common Lisp style.
+The arguments of `values' are the values
+that the containing function should return."
+  (apply 'list values))
 
+(defsubst values-list (list)
+  "Return multiple values, Common Lisp style, taken from a list.
+LIST specifies the list of values
+that the containing function should return."
+  list)
+
+(defsubst multiple-value-list (expression)
+  "Return a list of the multiple values produced by EXPRESSION.
+This handles multiple values in Common Lisp style, but it does not
+work right when EXPRESSION calls an ordinary Emacs Lisp function
+that returns just one value."
+  expression)
+
+(defsubst multiple-value-apply (function expression)
+  "Evaluate EXPRESSION to get multiple values and apply FUNCTION to them.
+This handles multiple values in Common Lisp style, but it does not work
+right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
+one value."
+  (apply function expression))
+
+(defsubst nth-value (n expression)
+  "Evaluate EXPRESSION to get multiple values and return the Nth one.
+This handles multiple values in Common Lisp style, but it does not work
+right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
+one value."
+  (nth n expression))
 
 ;;; Macros.
 
