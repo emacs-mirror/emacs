@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.8) $
+ * $HopeName: MMsrc!poolamc.c(trunk.9) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.8) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.9) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -639,8 +639,8 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer)
 
 /* AMCBenefit -- calculate benefit of collecting some generation */
 
-/* defined here, not used elsewhere */
-Serial AMCTopGen = 2;
+/* Binary i/f used by ASG (drj 1998-06-11) */
+unsigned long AMCTopGen = 2;
 
 static double AMCBenefit(Pool pool, Action action)
 {
@@ -1577,7 +1577,7 @@ static PoolClassStruct PoolClassAMCStruct = {
 
 static PoolClassStruct PoolClassAMCZStruct = {
   PoolClassSig,
-  "AMCZ",                                /* name */
+  "AMCZ",                               /* name */
   sizeof(AMCStruct),                    /* size */
   offsetof(AMCStruct, poolStruct),      /* offset */
   AttrFMT | AttrBUF | AttrBUF_RESERVE |
@@ -1703,5 +1703,8 @@ static Bool AMCCheck(AMC amc)
   CHECKL(RingCheck(&amc->genRing));
   if(amc->nursery != NULL)
     CHECKD(AMCGen, amc->nursery);
+
+  CHECKL((unsigned long)(Serial)AMCTopGen == AMCTopGen);
+
   return TRUE;
 }
