@@ -204,8 +204,7 @@ This variable used in TAB format mode.")
                    "program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?")
            '(1 font-lock-keyword-face)
            '(2 font-lock-function-name-face nil t))))
-  "For consideration as a value of `fortran-font-lock-keywords'.
-This does fairly subdued highlighting.")
+  "Subdued level highlighting for Fortran mode.")
 
 (defconst fortran-font-lock-keywords-2
   (append fortran-font-lock-keywords-1
@@ -264,8 +263,7 @@ This does fairly subdued highlighting.")
 	    '(1 font-lock-keyword-face)
 	    '(2 font-lock-reference-face nil t))
       (cons "^ *\\([0-9]+\\)" 'font-lock-reference-face))))
-  "For consideration as a value of `fortran-font-lock-keywords'.
-This does a lot more highlighting.")
+  "Medium level highlighting for Fortran mode.")
 
 (defconst fortran-font-lock-keywords-3
   (append fortran-font-lock-keywords-2
@@ -279,16 +277,10 @@ This does a lot more highlighting.")
     ;; Highlight a standard continuation character and in a TAB-formatted line.
     '("^     \\([^ 0]\\)" 1 font-lock-string-face)
     '("^\t\\([1-9]\\)" 1 font-lock-string-face)))
-  "For consideration as a value of `fortran-font-lock-keywords'.
-This does even more highlighting.")
+  "Gaudy level highlighting for Fortran mode.")
 
-(defvar fortran-font-lock-keywords (cond ((null font-lock-maximum-decoration)
-					  fortran-font-lock-keywords-1)
-					 ((eq font-lock-maximum-decoration 2)
-					  fortran-font-lock-keywords-2)
-					 (t
-					  fortran-font-lock-keywords-3))
-  "Additional expressions to highlight in Fortran mode.")
+(defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
+  "Default expressions to highlight in Fortran mode.")
 
 (defvar fortran-mode-map () 
   "Keymap used in Fortran mode.")
@@ -465,8 +457,10 @@ with no args, if that value is non-nil."
   (setq fortran-startup-message nil)
   (setq local-abbrev-table fortran-mode-abbrev-table)
   (set-syntax-table fortran-mode-syntax-table)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(fortran-font-lock-keywords t t))
+  ;; Font Lock mode support.
+  (set (make-local-variable 'font-lock-defaults)
+       '((fortran-font-lock-keywords fortran-font-lock-keywords-1
+	  fortran-font-lock-keywords-2 fortran-font-lock-keywords-3) t t))
   (make-local-variable 'fortran-break-before-delimiters)
   (setq fortran-break-before-delimiters t)
   (make-local-variable 'indent-line-function)
