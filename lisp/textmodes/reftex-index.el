@@ -299,8 +299,6 @@ Here are all local bindings.
 	      "  R<" 'reftex-index-restriction-indicator ">"
 	      " -%-"))
   (setq truncate-lines t)
-  (make-local-hook 'post-command-hook)
-  (make-local-hook 'pre-command-hook)
   (make-local-variable 'reftex-last-follow-point)
   (easy-menu-add reftex-index-menu reftex-index-map)
   (add-hook 'post-command-hook 'reftex-index-post-command-hook nil t)
