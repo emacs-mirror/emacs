@@ -159,12 +159,32 @@ These supercede the values given in default-screen-alist.")
 (defun new-screen (&optional parameters)
   "Create a new screen, displaying the current buffer.
 
-Optional argument PARAMETERS is an association-list of parameters
-describing the screen to create.  Specifically, PARAMETERS is a list
-of elements of the form (NAME . VALUE), where NAME is a symbol from
-the following list:
-  name		VALUE is the name to give
-"
+Optional argument PARAMETERS is an alist of parameters for the new
+screen.  Specifically, PARAMETERS is a list of pairs, each having one
+of the following forms:
+
+(name . STRING)	- The screen should be named STRING.
+
+(height . NUMBER) - The screen should be NUMBER text lines high.  If
+	this parameter is present, the width parameter must also be
+	given.
+
+(width . NUMBER) - The screen should be NUMBER characters in width.
+	If this parameter is present, the height parameter must also
+	be given.
+
+(minibuffer . t) - the screen should have a minibuffer
+(minibuffer . none) - the screen should have no minibuffer
+(minibuffer . only) - the screen should contain only a minibuffer
+(minibuffer . WINDOW) - the screen should use WINDOW as its minibuffer window.
+
+(NAME . VALUE), specifying the parameter and the value it should have.
+NAME should be one of the following symbols:
+  name		VALUE 
+
+The documentation for the function x-create-screen describes
+additional screen parameters that Emacs will recognize when running
+under the X Window System."
   (interactive)
   (funcall screen-creation-function parameters))
 
