@@ -1,3 +1,18 @@
+2003-11-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (init_iterator): Initialize it->start to position
+	before reseating (in case start position is invisible).
+	(init_to_row_start): Set it->start to row-start.
+	(redisplay_window): Accept optional_new_start if start position
+	is invisible (in which case IT_CHARPOS overshoots PT).
+	(display_line): Setup row->start from it->start (rather than
+	it->current which is wrong if first char on line is invisible).
+	When done, reseat it->start to it->current (= start of next row).
+	(expose_area): Fix exposure of text area when first char (e.g. TAB)
+	is only partially visible.
+
+	* dispextern.h (struct it): New member start.
+
 2003-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (parse_modifiers, apply_modifiers): Use INTMASK instead
