@@ -4427,6 +4427,7 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
     = encodep ? &coding->spec.ccl.encoder : &coding->spec.ccl.decoder;
   unsigned char *dst = destination;
 
+  ccl->suppress_error = coding->suppress_error;
   ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
   if (encodep)
     {
@@ -6651,6 +6652,8 @@ DEFUN ("set-terminal-coding-system-internal",
   terminal_coding.flags |= CODING_FLAG_ISO_SAFE;
   /* Characer composition should be disabled.  */
   terminal_coding.composing = COMPOSITION_DISABLED;
+  /* Error notification should be suppressed.  */
+  terminal_coding.suppress_error = 1;
   terminal_coding.src_multibyte = 1;
   terminal_coding.dst_multibyte = 0;
   return Qnil;
@@ -6667,6 +6670,8 @@ DEFUN ("set-safe-terminal-coding-system-internal",
 		       &safe_terminal_coding);
   /* Characer composition should be disabled.  */
   safe_terminal_coding.composing = COMPOSITION_DISABLED;
+  /* Error notification should be suppressed.  */
+  terminal_coding.suppress_error = 1;
   safe_terminal_coding.src_multibyte = 1;
   safe_terminal_coding.dst_multibyte = 0;
   return Qnil;
