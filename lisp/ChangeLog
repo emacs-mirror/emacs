@@ -139,6 +139,10 @@
 	* files.el (directory-free-space-args): Don't use `-P' on Darwin.
 	* term/mac-win.el: Don't set it here.
 
+2002-06-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-defs.el (cvs-mode-map): Bind ! to `force'.
+
 2002-06-29  Andreas Schwab  <schwab@suse.de>
 
 	* term/mac-win.el: Use directory-free-space-program instead of
@@ -170,6 +174,12 @@
 2002-06-28  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el: New file.
+
+2002-06-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* derived.el (define-derived-mode): Preserve the `mode-class' rather
+	than the `special' symbol property.
+	(derived-mode-class): Make it obsolete.
 
 2002-06-27  Andreas Schwab  <schwab@suse.de>
 
