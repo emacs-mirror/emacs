@@ -1735,6 +1735,7 @@ Motif version prior to 2.1.
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no))
   HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
+    HAVE_LIBXP=no
     AC_DEFINE(HAVE_MOTIF_2_1)
     AC_CHECK_LIB(Xp, XpCreateContext, HAVE_LIBXP=yes, , -lXext)
     if test ${HAVE_LIBXP} = yes; then
