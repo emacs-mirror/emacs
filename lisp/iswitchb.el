@@ -271,6 +271,14 @@ example functions that filter buffernames."
   :type '(repeat regexp)
   :group 'iswitchb)
 
+(defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
+  "*Hook run when `iswitchb-complete' can't complete any more.
+The most useful values are `iswitchb-completion-help', which pops up a
+window with completion alternatives, or `iswitchb-next-match' or
+`iswitchb-prev-match', which cycle the buffer list."
+  :type 'hook
+  :group 'iswitchb)
+
 ;;; Examples for setting the value of iswitchb-buffer-ignore
 ;(defun iswitchb-ignore-c-mode (name)
 ;  "Ignore all c mode buffers -- example function for iswitchb."
@@ -632,7 +640,7 @@ The result is stored in `iswitchb-common-match-string'."
   (interactive)
   (let (res)
     (cond ((not  iswitchb-matches)
-	   (iswitchb-completion-help))
+	   (run-hooks 'iswitchb-cannot-complete-hook))
 	  
 	  ((= 1 (length iswitchb-matches))
 	   ;; only one choice, so select it.
@@ -649,7 +657,7 @@ The result is stored in `iswitchb-common-match-string'."
 		 (delete-region (minibuffer-prompt-end) (point))
 		 (insert  res))
 	     ;; else nothing to complete
-	     (iswitchb-completion-help)
+	     (run-hooks 'iswitchb-cannot-complete-hook)
 	     )))))
 
 ;;; TOGGLE FUNCTIONS
