@@ -2807,10 +2807,13 @@ non-nil, it is called instead of rereading visited file contents."
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
 	   (let ((buffer-read-only nil)
+		 ;; Keep the current buffer-file-coding-system.
+		 (coding-system buffer-file-coding-system)
 		 ;; Auto-saved file shoule be read without any code conversion.
 		 (coding-system-for-read 'no-conversion))
 	     (erase-buffer)
-	     (insert-file-contents file-name nil))
+	     (insert-file-contents file-name nil)
+	     (set-buffer-file-coding-system coding-system))
 	   (after-find-file nil nil t))
 	  (t (error "Recover-file cancelled")))))
 
