@@ -120,7 +120,8 @@ struct dim
 
 /* Function prototypes.  */
 
-static void save_or_restore_current_matrix P_ ((struct frame *, int));
+static struct glyph_matrix *save_current_matrix P_ ((struct frame *));
+static void restore_current_matrix P_ ((struct frame *, struct glyph_matrix *));
 static void fake_current_matrices P_ ((Lisp_Object));
 static void redraw_overlapping_rows P_ ((struct window *, int));
 static void redraw_overlapped_rows P_ ((struct window *, int));
@@ -2153,36 +2154,61 @@ fake_current_matrices (window)
 }
 
 
-/* Save or restore the contents of frame F's current frame matrix.
-   SAVE_P non-zero means save it.  */
+/* Save away the contents of frame F's current frame matrix.  Value is
+   a glyph matrix holding the contents of F's current frame matrix. '*/
 
-static void
-save_or_restore_current_matrix (f, save_p)
+static struct glyph_matrix *
+save_current_matrix (f)
      struct frame *f;
-     int save_p;
 {
-  struct glyph_row *from, *to, *end;
+  int i;
+  struct glyph_matrix *saved;
 
-  if (save_p)
+  saved = (struct glyph_matrix *) xmalloc (sizeof *saved);
+  bzero (saved, sizeof *saved);
+  saved->nrows = f->current_matrix->nrows;
+  saved->rows = (struct glyph_row *) xmalloc (saved->nrows
+					      * sizeof *saved->rows);
+  bzero (saved->rows, saved->nrows * sizeof *saved->rows);
+
+  for (i = 0; i < saved->nrows; ++i)
     {
-      from = f->current_matrix->rows;
-      end = from + f->current_matrix->nrows;
-      to = f->desired_matrix->rows;
-    }
-  else
-    {
-      from = f->desired_matrix->rows;
-      end = from + f->desired_matrix->nrows;
-      to = f->current_matrix->rows;
-    }
-  
-  for (; from < end; ++from, ++to)
-    {
+      struct glyph_row *from = f->current_matrix->rows + i;
+      struct glyph_row *to = saved->rows + i;
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+      to->glyphs[TEXT_AREA] = (struct glyph *) xmalloc (nbytes);
       bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
     }
+
+  return saved;
 }
+
+
+/* Restore the contents of frame F's current frame matrix from SAVED,
+   and free memory associated with SAVED.  */
+
+static void
+restore_current_matrix (f, saved)
+     struct frame *f;
+     struct glyph_matrix *saved;
+{
+  int i;
+
+  for (i = 0; i < saved->nrows; ++i)
+    {
+      struct glyph_row *from = saved->rows + i;
+      struct glyph_row *to = f->current_matrix->rows + i;
+      size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+      bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
+      to->used[TEXT_AREA] = from->used[TEXT_AREA];
+      xfree (from->glyphs[TEXT_AREA]);
+    }
+  
+  xfree (saved->rows);
+  xfree (saved);
+}
+
 
 
 /* Allocate/reallocate glyph matrices of a single frame F for
@@ -2256,9 +2282,6 @@ adjust_frame_glyphs_for_frame_redisplay (f)
       xassert (matrix_dim.width == FRAME_WIDTH (f)
 	       && matrix_dim.height == FRAME_HEIGHT (f));
   
-      /* Resize frame matrices.  */
-      adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
-
       /* Pointers to glyph memory in glyph rows are exchanged during
 	 the update phase of redisplay, which means in general that a
 	 frame's current matrix consists of pointers into both the
@@ -2273,13 +2296,15 @@ adjust_frame_glyphs_for_frame_redisplay (f)
 	  && matrix_dim.width == f->current_matrix->matrix_w
 	  && matrix_dim.height == f->current_matrix->matrix_h)
 	{
-	  save_or_restore_current_matrix (f, 1);
+	  struct glyph_matrix *copy = save_current_matrix (f);
+	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
 	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
-	  save_or_restore_current_matrix (f, 0);
+	  restore_current_matrix (f, copy);
 	  fake_current_matrices (FRAME_ROOT_WINDOW (f));
 	}
       else
 	{
+	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
 	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
 	  SET_FRAME_GARBAGED (f);
 	}
