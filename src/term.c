@@ -2055,9 +2055,10 @@ turn_off_face (f, face_id)
 /* Return non-zero if the terminal is capable to display colors.  */
 
 DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
-       0, 0, 0,
-  "Return non-nil if TTY can display colors.")
-     ()
+       0, 1, 0,
+  "Return non-nil if TTY can display colors on FRAME.")
+     (frame)
+     Lisp_Object frame;
 {
   return TN_max_colors > 0 ? Qt : Qnil;
 }
