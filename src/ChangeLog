@@ -355,7 +355,7 @@
 
 2001-11-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* fontset.h: Remove prototypes for variables
+	* fontset.h: Remove declarations of variables
 	`Vhighlight_wrong_size_font' and `Vclip_large_size_font'.
 
 	* fontset.c: Remove variables `Vhighlight_wrong_size_font' and
