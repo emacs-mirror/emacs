@@ -510,6 +510,10 @@ Customised bindings may be defined in `ielm-map', which currently contains:
     ;; Add a silly header
     (insert ielm-header)
     (ielm-set-pm (point-max))
+    (unless comint-use-prompt-regexp-instead-of-fields
+      (add-text-properties
+       1 (point-max)
+       '(rear-nonsticky t field output inhibit-line-move-field-capture t)))
     (comint-output-filter (ielm-process) ielm-prompt)
     (set-marker comint-last-input-start (ielm-pm))
     (set-process-filter (get-buffer-process (current-buffer)) 'comint-output-filter))
