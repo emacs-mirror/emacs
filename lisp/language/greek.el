@@ -32,7 +32,7 @@
   "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)."
   :coding-type 'charset
   :mnemonic ?7
-  :charset-list'(iso-8859-7)
+  :charset-list '(iso-8859-7)
   :plist '(mime-charset iso-8859-7))
 
 (define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
