@@ -1162,6 +1162,8 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
 
 int parse_sexp_ignore_comments;
 
+Lisp_Object Vnext_word_boundary_function_table;
+
 /* Return the position across COUNT words from FROM.
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
@@ -1183,6 +1185,8 @@ scan_words (from, count)
 
   while (count > 0)
     {
+      Lisp_Object func;
+
       while (1)
 	{
 	  if (from == end)
@@ -1202,23 +1206,36 @@ scan_words (from, count)
 	}
       /* Now CH0 is a character which begins a word and FROM is the
          position of the next character.  */
-      while (1)
+      func = CHAR_TABLE_REF (Vnext_word_boundary_function_table, ch0);
+      if (! NILP (Ffboundp (func)))
 	{
-	  if (from == end) break;
-	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  ch1 = FETCH_CHAR (from_byte);
-	  code = SYNTAX (ch1);
-	  if (!(words_include_escapes
-		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
-	      break;
-	  INC_BOTH (from, from_byte);
-	  ch0 = ch1;
+	  Lisp_Object pos;
+
+	  pos = call2 (func, make_number (from - 1), make_number (end));
+	  from = XINT (pos);
+	  from_byte = CHAR_TO_BYTE (from);
 	}
+      else
+	while (1)
+	  {
+	    if (from == end) break;
+	    UPDATE_SYNTAX_TABLE_FORWARD (from);
+	    ch1 = FETCH_CHAR (from_byte);
+	    code = SYNTAX (ch1);
+	    if (code != Sword
+		&& (! words_include_escapes
+		    || (code != Sescape && code != Scharquote)))
+		break;
+	    INC_BOTH (from, from_byte);
+	    ch0 = ch1;
+	  }
+
       count--;
     }
   while (count < 0)
     {
+      Lisp_Object func;
+
       while (1)
 	{
 	  if (from == beg)
@@ -1238,23 +1255,33 @@ scan_words (from, count)
 	}
       /* Now CH1 is a character which ends a word and FROM is the
          position of it.  */
-      while (1)
+      func = CHAR_TABLE_REF (Vnext_word_boundary_function_table, ch1);
+      if (! NILP (Ffboundp (func)))
 	{
-	  int temp_byte;
+	  Lisp_Object pos;
 
-	  if (from == beg)
-	    break;
-	  temp_byte = dec_bytepos (from_byte);
-	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  ch0 = FETCH_CHAR (temp_byte);
-	  code = SYNTAX (ch0);
-	  if (!(words_include_escapes
-		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
-	      break;
-	  DEC_BOTH (from, from_byte);
-	  ch1 = ch0;
+	  pos = call2 (func, make_number (from), make_number (beg));
+	  from = XINT (pos);
+	  from_byte = CHAR_TO_BYTE (from);
 	}
+      else
+	while (1)
+	  {
+	    int temp_byte;
+
+	    if (from == beg)
+	      break;
+	    temp_byte = dec_bytepos (from_byte);
+	    UPDATE_SYNTAX_TABLE_BACKWARD (from);
+	    ch0 = FETCH_CHAR (temp_byte);
+	    code = SYNTAX (ch0);
+	    if (code != Sword
+		&& (! words_include_escapes
+		    || (code != Sescape && code != Scharquote)))
+	      break;
+	    DEC_BOTH (from, from_byte);
+	    ch1 = ch0;
+	  }
       count++;
     }
 
@@ -2983,6 +3010,24 @@ See the info node `(elisp)Syntax Properties' for a description of the
 	       &open_paren_in_column_0_is_defun_start,
 	       doc: /* Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
+
+  DEFVAR_LISP ("next-word-boundary-function-table",
+	       &Vnext_word_boundary_function_table,
+	       doc: /*
+Char table of functions to search for the next word boundary.
+Each function is called with two arguments; POS and LIMIT.
+POS and LIMIT are character positions in the current buffer.
+
+If POS is less than LIMIT, POS is at the first character of a word,
+and the return value of a function is a position after the last
+character of that word.
+
+If POS is not less than LIMIT, POS is at the last character of a word,
+and the return value of a function is a position at the first
+character of that word.
+
+In both cases, LIMIT bounds the search. */);
+  Vnext_word_boundary_function_table = Fmake_char_table (Qnil, Qnil);
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);
