@@ -861,7 +861,7 @@ typedef unsigned char UCHAR;
  `doc' is documentation for the user.
 */
 
-#ifndef __STDC__
+#if !defined (__STDC__) || defined (USE_NONANSI_DEFUN)
 #define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc) \
   Lisp_Object fnname (); \
   struct Lisp_Subr sname = {fnname, minargs, maxargs, lname, prompt, 0}; \
