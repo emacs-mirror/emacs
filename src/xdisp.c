@@ -4441,7 +4441,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
       /* coding-system (including end-of-line type) */
       {
 	int eol_flag = (c == 'Z');
-	char *p;
+	char *p = decode_mode_spec_buf;
 
 	if (FRAME_TERMCAP_P (f))
 	  {
@@ -4451,7 +4451,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
 	  }
 	p = decode_mode_spec_coding (b->buffer_file_coding_system,
-				     decode_mode_spec_buf, eol_flag);
+				     p, eol_flag);
 
 #if 0 /* This proves to be annoying; I think we can do without.  -- rms.  */
 #ifdef subprocesses
