@@ -672,7 +672,7 @@ height."
 
 (defcustom table-command-prefix [(control c) (control c)]
   "*Key sequence to be used as prefix for table command key bindings."
-  :type '((vector (list symbol) symbol))
+  :type '(vector (repeat :inline t sexp))
   :tag "Table Command Prefix"
   :group 'table)
 
