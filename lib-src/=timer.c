@@ -1,17 +1,17 @@
-/*
- * timer.c --- daemon to provide a tagged interval timer service
- *
- * This little daemon runs forever waiting for signals.  SIGIO (or SIGUSR1)
- * causes it to read an event spec from stdin; that is, a date followed by
- * colon followed by an event label.  SIGALRM causes it to check its queue
- * for events attached to the current second; if one is found, its label
- * is written to stdout.  SIGTERM causes it to terminate, printing a list
- * of pending events.
- *
- * This program is intended to be used with the lisp package called timer.el.
- * It was written anonymously in 1990.  This version was documented and
- * rewritten for portability by esr@snark,thyrsus.com, Aug 7 1992. 
- */
+/* timer.c --- daemon to provide a tagged interval timer service
+
+   This little daemon runs forever waiting for signals.  SIGIO (or
+   SIGUSR1) causes it to read an event spec from stdin; that is, a
+   date followed by colon followed by an event label.  SIGALRM causes
+   it to check its queue for events attached to the current second; if
+   one is found, its label is written to stdout.  SIGTERM causes it to
+   terminate, printing a list of pending events.
+
+   This program is intended to be used with the lisp package called
+   timer.el.  It was written anonymously in 1990.  This version was
+   documented and rewritten for portability by esr@snark,thyrsus.com,
+   Aug 7 1992.  */
+
 #include <stdio.h>
 #include <signal.h>
 #include <fcntl.h>      /* FASYNC */
@@ -24,10 +24,8 @@
 #endif
 
 extern int errno;
-extern char *sys_errlist[], *malloc();
-extern time_t time();
-
-#define MAXEVENTS 256
+extern char *sys_errlist[], *malloc ();
+extern time_t time ();
 
 /*
  * The field separator for input.  This character shouldn't be legal in a date,
@@ -37,185 +35,235 @@ extern time_t time();
 #define FS '@'
 
 struct event
-{
+  {
     char *token;
     time_t reply_at;
-}
-events[MAXEVENTS];
+  };
+int events_size;		/* How many slots have we allocated?  */
+int num_events;			/* How many are actually scheduled?  */
+struct event *events;		/* events[0 .. num_events-1] are the
+				   valid events.  */
 
 char *pname;      /* programme name for error messages */
 
 /* Accepts a string of two fields seperated by FS.
- * First field is string for getdate, saying when to wake-up.
- * Second field is a token to identify the request.
- */
-void schedule(str)
-	char *str;
-{
-    extern time_t getdate();
-    extern char *strcpy();
-    time_t now;
-    register char *p;
-    static struct event *ep;
-
-#ifdef DEBUG
-    (void) fprintf(stderr, "Timer sees: %s", str);
-#endif /* DEBUG */
-
-    /* check entry format */
-    for(p = str; *p && *p != FS; p++)
-	continue;
-    if (!*p)
-    {
-	(void)fprintf(stderr, "%s: bad input format: %s", pname, str);
-	return;
-    }
-    *p++ = 0;
-  
-    /* allocate an event slot */
-    for(ep = events; ep < events + MAXEVENTS; ep++)
-	if (ep->token == (char *)NULL)
-	    break;
-    if (ep == events + MAXEVENTS)
-	(void) fprintf(stderr, "%s: too many events: %s", pname, str);
-
-    /* don't allow users to schedule events in past time */
-    else if ((ep->reply_at = get_date(str, NULL)) - time(&now) < 0)
-	(void)fprintf(stderr, "%s: bad time spec: %s%c%s", pname, str, FS, p);
-
-    /* save the event description */
-    else if ((ep->token = malloc((unsigned)strlen(p) + 1)) == NULL)
-	(void)fprintf(stderr, "%s: malloc %s: %s%c%s",
-		      pname, sys_errlist[errno], str, FS, p);
-    else
-    {
-	(void)strcpy(ep->token, p);
-
-#ifdef DEBUG
-	(void) fprintf(stderr,
-		       "New event: %ld: %s", ep->reply_at, ep->token);
-#endif /* DEBUG */
-    }
-}
-
+   First field is string for getdate, saying when to wake-up.
+   Second field is a token to identify the request.  */
 void
-notify()
+schedule (str)
+     char *str;
 {
-    time_t now, tdiff, waitfor = -1;
-    register struct event *ep;
+  extern time_t getdate ();
+  extern char *strcpy ();
+  time_t now;
+  register char *p;
+  static struct event *ep;
 
-    now = time((time_t *)NULL);
+  /* check entry format */
+  for (p = str; *p && *p != FS; p++)
+    continue;
+  if (!*p)
+    {
+      fprintf (stderr, "%s: bad input format: %s", pname, str);
+      return;
+    }
+  *p++ = 0;
+  
+  /* allocate an event slot */
+  ep = events + num_events;
 
-    for(ep = events; ep < events + MAXEVENTS; ep++)
-	if (ep->token)
+  /* If the event array is full, stretch it.  After stretching, we know
+     that ep will be pointing to an available event spot.  */
+  if (ep == events + events_size)
+    {
+      int old_size = events_size;
+
+      events_size *= 2;
+      events = ((struct event *)
+		realloc (events, events_size * sizeof (struct event)));
+      if (! events)
 	{
-	    /* any events ready to fire? */
-	    if (ep->reply_at <= now)
-	    {
-#ifdef DEBUG
-		(void) fprintf(stderr,
-			       "Event %d firing: %ld @ %s",
-			       (ep - events), ep->reply_at, ep->token);
-#endif /* DEBUG */
-		(void)fputs(ep->token, stdout);
-		free(ep->token);
-		ep->token = (char *)NULL;
-	    }
-	    else
-	    {
-#ifdef DEBUG
-		(void) fprintf(stderr,
-			   "Event %d still waiting: %ld @ %s",
-			   (ep - events), ep->reply_at, ep->token);
-#endif /* DEBUG */
+	  fprintf (stderr, "%s: virtual memory exhausted.\n", pname);
 
-		/* next timeout should be the soonest of any remaining */
-		if ((tdiff = ep->reply_at - now) < waitfor || waitfor < 0)
-		    waitfor = (long)tdiff;
-	    }
+	  /* Should timer exit now?  Well, we've still got other
+	     events in the queue, and more memory might become
+	     available in the future, so we'll just toss this event.
+	     This will screw up whoever scheduled the event, but
+	     maybe someone else will survive.  */
+	  return;
 	}
 
-    /* If there's no more events, SIGIO should be next wake-up */
-    if (waitfor != -1)
-    {
-#ifdef DEBUG
-	(void) fprintf(stderr,
-		       "Setting %d-second alarm\n", waitfor);
-#endif /* DEBUG */
-	(void)alarm(waitfor);
+      while (old_size < events_size)
+	events[old_size++].token = NULL;
     }
+
+  /* Don't allow users to schedule events in past time.  */
+  ep->reply_at = get_date (str, NULL);
+  if (ep->reply_at - time (&now) < 0)
+    {
+      fprintf (stderr, "%s: bad time spec: %s%c%s", pname, str, FS, p);
+      return;
+    }
+
+  /* save the event description */
+  ep->token = (char *) malloc ((unsigned) strlen (p) + 1);
+  if (! ep->token)
+    {
+      fprintf (stderr, "%s: malloc %s: %s%c%s",
+	       pname, sys_errlist[errno], str, FS, p);
+      return;
+    }
+
+  strcpy (ep->token, p);
+  num_events++;
 }
 
 void
-getevent()
+notify ()
 {
-    extern char *fgets();
-    struct event *ep;
-    char buf[BUFSIZ];
+  time_t now, tdiff, waitfor;
+  register struct event *ep;
 
-    /* in principle the itimer should be disabled on entry to this function,
-       but it really doesn't make any important difference if it isn't */
+  now = time ((time_t *) NULL);
 
-    if (fgets(buf, sizeof(buf), stdin) == NULL)
-	exit(0);
+  for (ep = events; ep < events + num_events; ep++)
+    /* Are any events ready to fire?  */
+    if (ep->reply_at <= now)
+      {
+	fputs (ep->token, stdout);
+	free (ep->token);
 
-    /* register the event */
-    schedule(buf);
+	/* We now have a hole in the event array; fill it with the last
+	   event.  */
+	ep->token = events[num_events].token;
+	ep->reply_at = events[num_events].reply_at;
+	num_events--;
 
-    /* Who knows what this interrupted, or if it said "now"? */
-    notify();
+	/* We ought to scan this event again.  */
+	ep--;
+      }
+    else
+      {
+	/* next timeout should be the soonest of any remaining */
+	if ((tdiff = ep->reply_at - now) < waitfor || waitfor < 0)
+	  waitfor = (long)tdiff;
+      }
+
+  /* If there are no more events, we needn't bother setting an alarm.  */
+  if (num_events > 0)
+    alarm (waitfor);
 }
 
 void
-sigcatch(sig)
+getevent ()
+{
+  int i;
+  char *buf;
+  int buf_size;
+
+  /* In principle the itimer should be disabled on entry to this
+     function, but it really doesn't make any important difference
+     if it isn't.  */
+
+  buf_size = 80;
+  buf = (char *) malloc (buf_size);
+
+  /* Read a line from standard input, expanding buf if it is too short
+     to hold the line.  */
+  for (i = 0; ; i++)
+    {
+      int c;
+
+      if (i >= buf_size)
+	{
+	  buf_size *= 2;
+	  buf = (char *) realloc (buf, buf_size);
+
+	  /* If we're out of memory, toss this event.  */
+	  do
+	    {
+	      c = getchar ();
+	    }
+	  while (c != '\n' && c != EOF);
+	  
+	  return;
+	}
+
+      c = getchar ();
+
+      if (c == EOF)
+	exit (0);
+
+      if (c == '\n')
+	{
+	  buf[i] = '\0';
+	  break;
+	}
+
+      buf[i] = c;
+    }
+
+  /* Register the event.  */
+  schedule (buf);
+  free (buf);
+
+  /* Who knows what this interrupted, or if it said "now"? */
+  notify ();
+}
+
+void
+sigcatch (sig)
+     int sig;
 /* dispatch on incoming signal, then restore it */
 {
-    struct event *ep;
+  struct event *ep;
 
-    switch(sig)
+  switch (sig)
     {
     case SIGALRM:
-#ifdef DEBUG
-	(void) fprintf(stderr, "Alarm signal received\n");
-#endif /* DEBUG */
-	notify();
-	break;
+      notify ();
+      break;
     case SIGIO:
-	getevent();
-	break;
+      getevent ();
+      break;
     case SIGTERM:
-	(void) fprintf(stderr, "Events still queued:\n");
-	for (ep = events; ep < events + MAXEVENTS; ep++)
-	    if (ep->token)
-		(void) fprintf(stderr, "%d = %ld @ %s",
-			       ep - events, ep->reply_at, ep->token);
-	exit(0);
-	break;
+      fprintf (stderr, "Events still queued:\n");
+      for (ep = events; ep < events + num_events; ep++)
+	fprintf (stderr, "%d = %ld @ %s",
+		 ep - events, ep->reply_at, ep->token);
+      exit (0);
+      break;
     }
 
-    /* required on older UNIXes; harmless on newer ones */
-    (void) signal(sig, sigcatch);
+  /* required on older UNIXes; harmless on newer ones */
+  signal (sig, sigcatch);
 }
 
 /*ARGSUSED*/
 int
-main(argc, argv)
+main (argc, argv)
      int argc;
      char **argv;
 {
-  for (pname = argv[0] + strlen(argv[0]); *pname != '/' && pname != argv[0];
+  for (pname = argv[0] + strlen (argv[0]);
+       *pname != '/' && pname != argv[0];
        pname--);
-  if (*pname == '/') pname++;
+  if (*pname == '/')
+    pname++;
 
-  (void)signal(SIGIO, sigcatch);
-  (void)signal(SIGALRM, sigcatch);
-  (void)signal(SIGTERM, sigcatch);
+  events_size = 16;
+  events = ((struct event *) malloc (events_size * sizeof (*events)));
+  num_events = 0;
+
+  signal (SIGIO, sigcatch);
+  signal (SIGALRM, sigcatch);
+  signal (SIGTERM, sigcatch);
 
 #ifndef USG
-  (void)fcntl(0, F_SETFL, FASYNC);
+  fcntl (0, F_SETFL, FASYNC);
 #endif /* USG */
 
-  while (1) pause();
+  while (1) pause ();
 }
 
 /* timer.c ends here */

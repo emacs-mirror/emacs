@@ -198,6 +198,7 @@ before `hide-ifdef-mode' modifies it.")
           (cons '(hide-ifdef-mode " Ifdef")
                 minor-mode-alist)))
 
+;;;###autoload
 (defun hide-ifdef-mode (arg)
   "Toggle Hide-Ifdef mode.  This is a minor mode, albeit a large one.
 With ARG, turn Hide-Ifdef mode on iff arg is positive.
@@ -845,6 +846,7 @@ to redo on a recursive entry."
 
 ;===%%SF%% exports (Start)  ===
 
+;;;###autoload
 (defvar hide-ifdef-initially nil
   "*Non-nil if `hide-ifdefs' should be called when Hide-Ifdef mode
 is first activated.")
@@ -852,12 +854,14 @@ is first activated.")
 (defvar hide-ifdef-hiding nil
   "Non-nil if text might be hidden.")
 
+;;;###autoload
 (defvar hide-ifdef-read-only nil
   "*Set to non-nil if you want buffer to be read-only while hiding text.")
 
 (defvar hif-outside-read-only nil
   "Internal variable.  Saves the value of `buffer-read-only' while hiding.")
 
+;;;###autoload
 (defvar hide-ifdef-lines nil
   "*Set to t if you don't want to see the #ifX, #else, and #endif lines.")
 

@@ -1,11 +1,11 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 1986, 1990 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1990, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -295,6 +295,15 @@ extern struct buffer buffer_local_flags;
    that don't have such names.  */
 
 extern struct buffer buffer_local_symbols;
+
+/* This structure holds the required types for the values in the
+   buffer-local slots.  If a slot contains Qnil, then the
+   corresponding buffer slot may contain a value of any type.  If a
+   slot contains an integer, then prospective values' tags must be
+   equal to that integer.  When a tag does not match, the function
+   buffer_slot_type_mismatch will signal an error.  The value Qnil may
+   always be safely stored in any slot.  */
+struct buffer buffer_local_types;
 
 /* Point in the current buffer. */
 

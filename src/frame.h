@@ -73,7 +73,7 @@ struct frame
   /* New height and width for pending size change.  0 if no change pending.  */
   int new_height, new_width;
 
-  /* Name of this frame: a Lisp string.  */
+  /* Name of this frame: a Lisp string.  See also `explicit_name'.  */
   Lisp_Object name;
 
   /* The frame which should recieve keystrokes that occur in this
@@ -142,6 +142,12 @@ struct frame
 
   /* True if frame's root window can't be split.  */
   char no_split;
+
+  /* If this is set, then Emacs won't change the frame name to indicate
+     the current buffer, etcetera.  If the user explicitly sets the frame
+     name, this gets set.  If the user sets the name to Qnil, this is
+     cleared.  */
+  char explicit_name;
 
   /* Storage for messages to this frame. */
   char *message_buf;
@@ -285,8 +291,8 @@ extern int message_buf_print;
 #define FRAME_NO_SPLIT_P(f) 0
 #define FRAME_WANTS_MODELINE_P(f) 1
 #define FRAME_ICONIFIED_P(f) 0
-#define FRAME_MINIBUF_WINDOW(f) (minibuf_window)
-#define FRAME_ROOT_WINDOW(f) (XWINDOW (minibuf_window)->prev)
+#define FRAME_MINIBUF_WINDOW(f) (the_only_frame.root_window)
+#define FRAME_ROOT_WINDOW(f) (the_only_frame.root_window)
 #define FRAME_SELECTED_WINDOW(f) (selected_window)
 #define SET_GLYPHS_FRAME(glyphs,frame) do ; while (0)
 #define FRAME_INSERT_COST(frame)  (the_only_frame.insert_line_cost)

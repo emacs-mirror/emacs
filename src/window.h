@@ -63,11 +63,12 @@ initially the root window is a leaf window, but if more windows
 are created then that leaf window ceases to be root and a newly
 made combination window becomes root instead.
 
-In any case, prev of the minibuf window is the root window and
-next of the root window is the minibuf window.  To find the
-root window at any time, do XWINDOW (minibuf_window)->prev.
+In any case, on screens which have an ordinary window and a
+minibuffer, prev of the minibuf window is the root window and next of
+the root window is the minibuf window.  On minibufferless screens or
+minibuffer-only screens, the root window and the minibuffer window are
+one and the same, so its prev and next members are nil.  */
 
-*/
 
 struct window
   {
@@ -174,8 +175,7 @@ extern int window_select_count;
 
 /* The minibuffer window of the selected frame.
    Note that you cannot test for minibufferness of an arbitrary window
-   by comparing against this; but you can test for minibufferness of
-   the selected window or of any window that is displayed.  */
+   by comparing against this; use the MINI_WINDOW_P macro instead.  */
 
 extern Lisp_Object minibuf_window;
 
@@ -247,3 +247,7 @@ extern int windows_or_buffers_changed;
 /* Number of windows displaying the selected buffer.
    Normally this is 1, but it can be more.  */
 extern int buffer_shared;
+
+/* If *ROWS or *COLS are too small a size for FRAME, set them to the
+   minimum allowable size.  */
+extern void check_frame_size ( /* FRAME_PTR frame, int *rows, int *cols */ );

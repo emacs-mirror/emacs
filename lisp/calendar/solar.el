@@ -328,40 +328,40 @@ latitude, time zone, and date.
 
 This function is suitable for execution in a .emacs file."
  (interactive "p")
- (if (< arg 16)
-     (if (not (and calendar-latitude calendar-longitude calendar-time-zone))
-         (solar-setup)))
+ (if (and (< arg 16)
+          (not (and calendar-latitude calendar-longitude calendar-time-zone)))
+     (solar-setup))
  (let* ((calendar-longitude
-         (if (< arg 16)
-             calendar-longitude
+         (if (< arg 16) calendar-longitude
            (solar-get-number
             "Enter longitude (decimal fraction; + east, - west): ")))
         (calendar-latitude
-         (if (< arg 16)
-             calendar-latitude
+         (if (< arg 16) calendar-latitude
            (solar-get-number
             "Enter latitude (decimal fraction; + north, - south): ")))
         (calendar-time-zone
-         (if (< arg 16)
-             calendar-time-zone
+         (if (< arg 16) calendar-time-zone
            (solar-get-number
             "Enter difference from Universal Time (in minutes): ")))
         (calendar-location-name
-         (let ((float-output-format "%.1f"))
-           (format "%s%s, %s%s"
-                   (abs calendar-latitude)
-                   (if (> calendar-latitude 0) "N" "S")
-                   (abs calendar-longitude)
-                   (if (> calendar-longitude 0) "E" "W"))))
+         (if (< arg 16) calendar-location-name
+           (let ((float-output-format "%.1f"))
+             (format "%s%s, %s%s"
+                     (abs calendar-latitude)
+                     (if (> calendar-latitude 0) "N" "S")
+                     (abs calendar-longitude)
+                     (if (> calendar-longitude 0) "E" "W")))))
         (calendar-standard-time-zone-name
-         (cond ((= calendar-time-zone 0) "UT")
-               ((< calendar-time-zone 0) (format "UT%dmin" calendar-time-zone))
-               (t                   (format "UT+%dmin" calendar-time-zone))))
-        (calendar-daylight-savings-starts nil)
-        (calendar-daylight-savings-ends nil)
-        (date (if (< arg 4)
-                  (calendar-current-date)
-                (calendar-read-date)))
+         (if (< arg 16) calendar-standard-time-zone-name
+           (cond ((= calendar-time-zone 0) "UT")
+                 ((< calendar-time-zone 0)
+                     (format "UT%dmin" calendar-time-zone))
+                 (t  (format "UT+%dmin" calendar-time-zone)))))
+        (calendar-daylight-savings-starts
+         (if (< arg 16) calendar-daylight-savings-starts))
+        (calendar-daylight-savings-ends
+         (if (< arg 16) calendar-daylight-savings-ends))
+        (date (if (< arg 4) (calendar-current-date) (calendar-read-date)))
         (date-string (calendar-date-string date t))
         (time-string (solar-sunrise-sunset date))
         (msg (format "%s: %s" date-string time-string))

@@ -50,7 +50,7 @@ the call to the function."
          (continue-process timer-process)))
   ;; There should be a living, breathing timer process now
   (let ((token (concat (current-time-string) "-" (length timer-alist))))
-    (send-string timer-process (concat time "\001" token "\n"))
+    (send-string timer-process (concat time "@" token "\n"))
     (setq timer-alist (cons (list token repeat function args) timer-alist))))
 
 (defun timer-process-filter (proc str)
@@ -63,9 +63,9 @@ the call to the function."
       (cond
        (do (apply (nth 2 do) (nth 3 do))   ; do it
            (if (natnump (nth 1 do))        ; reschedule it
-               (send-string proc (concat (nth 1 do) " sec\001" (car do) "\n"))
+               (send-string proc (concat (nth 1 do) " sec@" (car do) "\n"))
              (setq timer-alist (delq do timer-alist))))
-       ((string-match "timer: \\([^:]+\\): \\([^\001]*\\)\001\\(.*\\)$" token)
+       ((string-match "timer: \\([^:]+\\): \\([^@]*\\)@\\(.*\\)$" token)
         (setq error (substring token (match-beginning 1) (match-end 1))
               do    (substring token (match-beginning 2) (match-end 2))
               token (assoc (substring token (match-beginning 3) (match-end 3))

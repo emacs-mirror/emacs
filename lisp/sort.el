@@ -29,9 +29,10 @@
 Arguments are REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN.
 
 We divide the accessible portion of the buffer into disjoint pieces
-called sort records.  A portion of each sort record (perhaps all of it)
-is designated as the sort key.  The records are rearranged in the buffer
-in order by their sort keys.  The records may or may not be contiguous.
+called sort records.  A portion of each sort record (perhaps all of
+it) is designated as the sort key.  The records are rearranged in the
+buffer in order by their sort keys.  The records may or may not be
+contiguous.
 
 Usually the records are rearranged in order of ascending sort key.
 If REVERSE is non-nil, they are rearranged in order of descending sort key.
@@ -78,19 +79,19 @@ same as ENDRECFUN."
 				    'buffer-substring-lessp)
 				   (t
 				    'string<)))
-		    (sort sort-lists
-			  (cond ((numberp (car (car sort-lists)))
-				 (function
-				  (lambda (a b)
-				    (< (car a) (car b)))))
-				((consp (car (car sort-lists)))
-				 (function
-				  (lambda (a b)
-				    (buffer-substring-lessp (car a) (car b)))))
-				(t
-				 (function
-				  (lambda (a b)
-				    (string< (car a) (car b)))))))))
+		  (sort sort-lists
+			(cond ((numberp (car (car sort-lists)))
+			       (function
+				(lambda (a b)
+				  (< (car a) (car b)))))
+			      ((consp (car (car sort-lists)))
+			       (function
+				(lambda (a b)
+				  (buffer-substring-lessp (car a) (car b)))))
+			      (t
+			       (function
+				(lambda (a b)
+				  (string< (car a) (car b)))))))))
 	  (if reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Reordering buffer..."))
 	  (sort-reorder-buffer sort-lists old)))

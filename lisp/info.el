@@ -179,7 +179,7 @@ to read a file name from the minibuffer."
 			    (insert-buffer-substring buf)
 			    (set-marker Info-tag-table-marker
 					(match-end 0))))
-		     (set-marker Info-tag-table-marker pos))))
+		      (set-marker Info-tag-table-marker pos))))
 	      (setq Info-current-file
 		    (file-name-sans-versions buffer-file-name))))
 	(if (equal nodename "*")
