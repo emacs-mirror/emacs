@@ -1,3 +1,7 @@
+2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+
+	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
+
 2003-01-21  Jan D.  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Must include stdio.h before termhooks.h
@@ -124,7 +128,6 @@
 	(x_window): Call xg_create_frame_widgets for USE_GTK.
 	(Fx_create_frame): Check for USE_GTK
 	(Fx_file_dialog): New implementation for USE_GTK.
-	
 
 	* xdisp.c: Add check for USE_GTK for extern void set_frame_menubar.
 	(update_menu_bar): Add check for USE_GTK.
