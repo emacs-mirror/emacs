@@ -249,15 +249,15 @@ f} command, then go on editing.
   @kbd{C-h v} (@code{describe-variable}) is like @kbd{C-h f} but describes
 Lisp variables instead of Lisp functions.  Its default is the Lisp symbol
 around or before point, but only if that is the name of a known Lisp
-variable.  @xref{Variables}.@refill
+variable.  @xref{Variables}.
 
-  Help buffers describing variables or functions defined in Lisp
-normally have hyperlinks to the Lisp definition, if you have the Lisp
-source files installed.  If you know Lisp, this provides the ultimate
-documentation.  If you don't know Lisp, you should learn it.  If you
-are just @emph{using} Emacs, treating Emacs as an object (file), then
-you don't really love it.  For true intimacy with your editor, you
-need to read the source code.
+  Help buffers describing Emacs variables and functions normally have
+hyperlinks to the definition, if you have the source files installed.
+(@xref{Hyperlinking}.)  If you know Lisp (or C), this provides the
+ultimate documentation.  If you don't know Lisp, you should learn it.
+If you are just @emph{using} Emacs, treating Emacs as an object
+(file), then you don't really love it.  For true intimacy with your
+editor, you need to read the source code.
 
 @node Apropos
 @section Apropos
