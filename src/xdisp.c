@@ -512,6 +512,11 @@ static int last_max_ascent, last_height;
 int trace_redisplay_p;
 #endif
 
+/* Non-zero means automatically scroll windows horizontally to make
+   point visible.  */
+
+int automatic_hscrolling_p;
+
 /* Value returned from text property handlers (see below).  */
 
 enum prop_handled
@@ -1194,6 +1199,16 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   XSETWINDOW (it->window, w);
   it->w = w;
   it->f = XFRAME (w->frame);
+
+  /* Extra space between lines (on window systems only).  */
+  if (base_face_id == DEFAULT_FACE_ID
+      && FRAME_WINDOW_P (it->f))
+    {
+      if (NATNUMP (current_buffer->extra_line_spacing))
+	it->extra_line_spacing = XFASTINT (current_buffer->extra_line_spacing);
+      else if (it->f->extra_line_spacing > 0)
+	it->extra_line_spacing = it->f->extra_line_spacing;
+    }
 
   /* If realized faces have been removed, e.g. because of face
      attribute changes of named faces, recompute them.  */
@@ -6913,9 +6928,16 @@ static int
 hscroll_windows (window)
      Lisp_Object window;
 {
-  int hscrolled_p = hscroll_window_tree (window);
-  if (hscrolled_p)
-    clear_desired_matrices (XFRAME (WINDOW_FRAME (XWINDOW (window))));
+  int hscrolled_p;
+  
+  if (automatic_hscrolling_p)
+    {
+      hscrolled_p = hscroll_window_tree (window);
+      if (hscrolled_p)
+	clear_desired_matrices (XFRAME (WINDOW_FRAME (XWINDOW (window))));
+    }
+  else
+    hscrolled_p = 0;
   return hscrolled_p;
 }
 
@@ -13040,6 +13062,10 @@ If nil, don't resize.");
     "*Non-nil means display a hollow cursor in non-selected windows.\n\
 Nil means don't display a cursor there.");
   cursor_in_non_selected_windows = 1;
+  
+  DEFVAR_BOOL ("automatic-hscrolling", &automatic_hscrolling_p,
+    "*Non-nil means scroll the display automatically to make point visible.");
+  automatic_hscrolling_p = 1;
 }
 
 
