@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 01, 02
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
-
+#include "coding.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
@@ -56,11 +56,13 @@ int use_dialog_box;
 
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
+extern Lisp_Object Vlocale_coding_system;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
 Lisp_Object Qwidget_type;
+Lisp_Object Qcodeset, Qdays, Qmonths;
 
 extern Lisp_Object Qinput_method_function;
 
@@ -579,8 +581,8 @@ concat (nargs, args, target_type, last_special)
 	    for (i = 0; i < len; i++)
 	      {
 		ch = XVECTOR (this)->contents[i];
-		if (! INTEGERP (ch))
-		  wrong_type_argument (Qintegerp, ch);
+		if (! CHARACTERP (ch))
+		  wrong_type_argument (Qcharacterp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
 		if (!SINGLE_BYTE_CHAR_P (XINT (ch)))
@@ -592,8 +594,8 @@ concat (nargs, args, target_type, last_special)
 	    for (; CONSP (this); this = XCDR (this))
 	      {
 		ch = XCAR (this);
-		if (! INTEGERP (ch))
-		  wrong_type_argument (Qintegerp, ch);
+		if (! CHARACTERP (ch))
+		  wrong_type_argument (Qcharacterp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
 		if (!SINGLE_BYTE_CHAR_P (XINT (ch)))
@@ -2737,19 +2739,63 @@ usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
 #include <langinfo.h>
 #endif
 
-/* Fixme: is it useful to get more general info from the locale?  */
-DEFUN ("locale-codeset", Flocale_codeset, Slocale_codeset, 0, 0, 0,
-       doc: /* Return a string indicating the code set in the current locale.
+DEFUN ("langinfo", Flanginfo, Slanginfo, 1, 1, 0,
+       doc: /* Access locale category ITEM, if available.
+
+ITEM may be one of the following:
+`codeset', returning the character set as a string (CODESET);
+`days', returning a 7-element vector of day names (DAY_n);
+`months', returning a 12-element vector of month names (MON_n).
+
 If the system can't provide such information through a call to
 nl_langinfo(3), return nil.  */)
-     ()
+     (item)
+     Lisp_Object item;
 {
+  char *str = NULL;
 #ifdef HAVE_LANGINFO_CODESET
-  char *str = nl_langinfo (CODESET);
-  return make_string (str, strlen (str));
-#else
-  return Qnil;
+  Lisp_Object val;
+  if (EQ (item, Qcodeset))
+    str = nl_langinfo (CODESET);
+#ifdef DAY_1
+  else if (EQ (item, Qdays))	/* e.g. for calendar-day-name-array */
+    {
+      Lisp_Object v = Fmake_vector (make_number (7), Qnil);
+      int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
+      int i;
+      for (i = 0; i < 7; i++)
+	{
+	  str = nl_langinfo (days[i]);
+	  Faset (v, make_number (i),
+		 code_convert_string (make_unibyte_string (str, strlen (str)),
+				      Vlocale_coding_system, Qnil, 0, 0, 1));
+	}
+      return val;
+    }
 #endif
+#ifdef MON_1
+  else if (EQ (item, Qmonths))	/* e.g. for calendar-month-name-array */
+    {
+      struct Lisp_Vector *p = allocate_vector (12);
+      int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
+			MON_8, MON_9, MON_10, MON_11, MON_12};
+      int i;
+      for (i = 0; i < 12; i++)
+	{
+	  str = nl_langinfo (months[i]);
+	  p->contents[i] =
+	    code_convert_string (make_unibyte_string (str, strlen (str)),
+				 Vlocale_coding_system, Qnil, 0, 0, 1);
+	}
+      XSETVECTOR (val, p);
+      return val;
+    }
+#endif
+#endif
+  if (str)
+    return build_string (str);
+  else
+    return Qnil;
 }
 
 /* base64 encode/decode functions (RFC 2045).
@@ -4530,7 +4576,6 @@ including negative integers.  */)
  ************************************************************************/
 
 #include "md5.h"
-#include "coding.h"
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
        doc: /* Return MD5 message digest of OBJECT, a buffer or string.
@@ -4824,6 +4869,13 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   Qsubfeatures = intern ("subfeatures");
   staticpro (&Qsubfeatures);
 
+  Qcodeset = intern ("codeset");
+  staticpro (&Qcodeset);
+  Qdays = intern ("days");
+  staticpro (&Qdays);
+  Qmonths = intern ("months");
+  staticpro (&Qmonths);
+
   DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
     doc: /* *Non-nil means mouse commands use dialog boxes to ask questions.
 This applies to y-or-n and yes-or-no questions asked by commands
@@ -4887,7 +4939,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
-  defsubr (&Slocale_codeset);
+  defsubr (&Slanginfo);
 }
 
 
