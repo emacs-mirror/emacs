@@ -83,6 +83,19 @@ If ALL-FRAMES is neither nil nor t, stick strictly to the selected frame."
 	     (funcall proc walk-windows-current)
 	     (not (eq walk-windows-current walk-windows-start))))))
 
+(defun minibuffer-window-active-p (window)
+  "Return t if WINDOW (a minibuffer window) is now active."
+  ;; nil nil means include WINDOW's frame
+  ;; and other frames using WINDOW as minibuffer,
+  ;; and include minibuffer if active.
+  (let ((prev (previous-window window nil nil)))
+    ;; If PREV equals WINDOW, WINDOW must be on a minibuffer-only frame
+    ;; and it's not currently being used.  So return nil.
+    (and (not (eq window prev))
+	 (let ((should-be-same (next-window prev nil nil)))
+	   ;; If next-window doesn't reverse previous-window,
+	   ;; WINDOW must be outside the cycle specified by nil nil.
+	   (eq should-be-same window)))))
 
 ;;;; Keymap support.
 
