@@ -1,3 +1,21 @@
+2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Defining Variables): Second argument to
+	`defconst' is not optional.
+	(Setting Variables): Mention optional argument APPEND to
+	`add-to-list'.
+	(Creating Buffer-Local): Expand description of
+	`make-variable-buffer-local'.
+	(Frame-Local Variables): Expand description of
+	`make-variable-frame-local'.
+	(Variable Aliases): Correct description of optional argument
+	DOCSTRING to `defvaralias'.  Mention return value of
+	`defvaralias'.
+	(File Local Variables): Add xref to `File variables' in Emacs
+	Manual.  Correct description of `hack-local-variables'.  Mention
+	`safe-local-variable' property.  Mention optional second argument
+	to `risky-local-variable-p'.
+
 2003-11-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* symbols.texi (Symbol Plists): Mention return value of `setplist'.

@@ -1695,6 +1695,12 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** If optional third argument APPEND to `add-to-list' is non-nil, a
+new element gets added at the end of the list instead of at the
+beginning.  This change actually occurred in Emacs-21.1, but was not
+documented.
+
 ** Major modes can define `eldoc-print-current-symbol-info-function'
 locally to provide Eldoc functionality by some method appropriate to
 the language.
