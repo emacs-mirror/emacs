@@ -225,6 +225,40 @@ split_non_ascii_string (str, len, charset, c1, c2)
   return 0;
 }
 
+/* Return a character unified with C (or a character made of CHARSET,
+   C1, and C2) in unification table TABLE.  If no unification is found
+   in TABLE, return C.  */
+unify_char (table, c, charset, c1, c2)
+     Lisp_Object table;
+     int c, charset, c1, c2;
+{
+  Lisp_Object ch;
+  int alt_charset, alt_c1, alt_c2, dimension;
+
+  if (c < 0) c = MAKE_CHAR (charset, c1, c2);
+  if (!CHAR_TABLE_P (table)
+      || (ch = Faref (table, make_number (c)), !INTEGERP (ch))
+      || XINT (ch) < 0)
+    return c;
+
+  SPLIT_CHAR (XFASTINT (ch), alt_charset, alt_c1, alt_c2);
+  dimension = CHARSET_DIMENSION (alt_charset);
+  if (dimension == 1 && alt_c1 > 0 || dimension == 2 && alt_c2 > 0)
+    /* CH is not a generic character, just return it.  */
+    return XFASTINT (ch);
+
+  /* Since CH is a generic character, we must return a specific
+     charater which has the same position codes as C from CH.  */
+  if (charset < 0)
+    SPLIT_CHAR (c, charset, c1, c2);
+  if (dimension != CHARSET_DIMENSION (charset))
+    /* We can't make such a character because of dimension mismatch.  */
+    return c;
+  if (!alt_c1) alt_c1 = c1;
+  if (!alt_c2) alt_c2 = c2;
+  return MAKE_CHAR (alt_charset, c1, c2);
+}
+
 /* Update the table Vcharset_table with the given arguments (see the
    document of `define-charset' for the meaning of each argument).
    Several other table contents are also updated.  The caller should
@@ -390,7 +424,7 @@ get_new_private_charset_id (dimension, width)
 
 DEFUN ("define-charset", Fdefine_charset, Sdefine_charset, 3, 3, 0,
   "Define CHARSET-ID as the identification number of CHARSET with INFO-VECTOR.\n\
-If CHARSET-ID is nil, it is set automatically, which means CHARSET is\n\
+If CHARSET-ID is nil, it is decided automatically, which means CHARSET is\n\
  treated as a private charset.\n\
 INFO-VECTOR is a vector of the format:\n\
    [DIMENSION CHARS WIDTH DIRECTION ISO-FINAL-CHAR ISO-GRAPHIC-PLANE\n\
@@ -494,19 +528,36 @@ CHARSET should be defined by `defined-charset' in advance.")
 
 /* Return number of different charsets in STR of length LEN.  In
    addition, for each found charset N, CHARSETS[N] is set 1.  The
-   caller should allocate CHARSETS (MAX_CHARSET + 1 bytes) in advance.  */
+   caller should allocate CHARSETS (MAX_CHARSET + 1 bytes) in advance.
+   It may lookup a unification table TABLE if supplied.  */
 
 int
-find_charset_in_str (str, len, charsets)
+find_charset_in_str (str, len, charsets, table)
      unsigned char *str, *charsets;
      int len;
+     Lisp_Object table;
 {
   int num = 0;
+
+  if (! CHAR_TABLE_P (table))
+    table = Qnil;
 
   while (len > 0)
     {
       int bytes = BYTES_BY_CHAR_HEAD (*str);
-      int charset = CHARSET_AT (str);
+      int charset;
+      
+      if (NILP (table))
+	charset = CHARSET_AT (str);
+      else
+	{
+	  int c, charset;
+	  unsigned char c1, c2;
+
+	  SPLIT_STRING(str, bytes, charset, c1, c2);
+	  if ((c = unify_char (table, -1, charset, c1, c2)) >= 0)
+	    charset = CHAR_CHARSET (c);
+	}
 
       if (!charsets[charset])
 	{
@@ -520,11 +571,12 @@ find_charset_in_str (str, len, charsets)
 }
 
 DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
-       2, 2, 0,
+       2, 3, 0,
   "Return a list of charsets in the region between BEG and END.\n\
-BEG and END are buffer positions.")
-  (beg, end)
-     Lisp_Object beg, end;
+BEG and END are buffer positions.\n\
+Optional arg TABLE if non-nil is a unification table to look up.")
+  (beg, end, table)
+     Lisp_Object beg, end, table;
 {
   char charsets[MAX_CHARSET + 1];
   int from, to, stop, i;
@@ -538,7 +590,7 @@ BEG and END are buffer positions.")
   bzero (charsets, MAX_CHARSET + 1);
   while (1)
     {
-      find_charset_in_str (POS_ADDR (from), stop - from, charsets);
+      find_charset_in_str (POS_ADDR (from), stop - from, charsets, table);
       if (stop < to)
 	from = stop, stop = to;
       else
@@ -552,10 +604,11 @@ BEG and END are buffer positions.")
 }
 
 DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
-       1, 1, 0,
-  "Return a list of charsets in STR.")
-  (str)
-     Lisp_Object str;
+       1, 2, 0,
+  "Return a list of charsets in STR.\n\
+Optional arg TABLE if non-nil is a unification table to look up.")
+  (str, table)
+     Lisp_Object str, table;
 {
   char charsets[MAX_CHARSET + 1];
   int i;
@@ -563,7 +616,8 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
 
   CHECK_STRING (str, 0);
   bzero (charsets, MAX_CHARSET + 1);
-  find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size, charsets);
+  find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size,
+		       charsets, table);
   val = Qnil;
   for (i = MAX_CHARSET; i >= 0; i--)
     if (charsets[i])
