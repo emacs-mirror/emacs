@@ -86,15 +86,7 @@ If this contains a %s, that will be replaced by the matching rule.")
 
     ("[Mm]akefile\\'" . "makefile.inc")
 
-    ("\\.html\\'"
-     nil
-     "<html>\n"
-     "<head>\n"
-     "<title>" _ "</title>\n"
-     "</head>\n"
-     "<body>\n\n"
-     "</body>\n"
-     "</html>")
+    (html-mode . (lambda () (sgml-tag "html")))
     
     (plain-tex-mode . "tex-insert.tex")
     (bibtex-mode . "tex-insert.tex")
