@@ -1,36 +1,35 @@
-/*  ==== MANUAL VARIABLE POOL ====
+/* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- *  $HopeName: MMsrc!poolmv.c(trunk.9) $
+ * $HopeName: MMsrc!poolmv.c(trunk.10) $
+ * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
- *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
+ * **** RESTRICTION: This pool may not allocate from the arena control
+ *                   pool, since it is used to implement that pool.
+ *                   It may call PoolCreate, which allocates from the
+ *                   poolPool.
  *
- *  **** RESTRICTION: This pool may not allocate from the arena control
- *                    pool, since it is used to implement that pool.
- *                    It may call PoolCreate, which allocates from the
- *                    poolPool.
+ * An observation: Freeing memory introduces more information
+ * into the system than allocating it.  This causes the problem described
+ * in note 2.
  *
- *  An observation: Freeing memory introduces more information
- *  into the system than allocating it.  This causes the problem described
- *  in note 2.
- *
- *  Notes
- *   1. Need to measure typical fragmentation levels and adjust the
- *      blockExtendBy parameter appropriately.  richard 1994-11-08
- *   2. free can lose memory if it can't allocate a block descriptor.  The
- *      memory could be pushed onto a special chain to be reclaimed later.
- *      richard 1994-11-09
- *   3. The span chain could be adaptive.  richard 1994-11-09
- *   4. Spans with no blocks could be freed.  richard 1994-11-09
- *   5. An MFS pool for the block descriptors is justified, but not really
- *      for the spans, which are much rarer. richard 1994-11-09
- *   7. IsValid should check pointer destinations are in the right pools.
- *      richard 1994-11-10
- *   8. By changing SpanAlloc it might be possible to keep track of all
- *      allocated blocks using descriptors, for debugging purposes.  richard
- *      1994-11-10
- *   9. (See note 7.) IsValid methods can't easily get hold of the relevant
- *      pools in ordr to check pointers using PoolAddrPool.
- *      1995-01-19 drj
+ * Notes
+ *  1. Need to measure typical fragmentation levels and adjust the
+ *     blockExtendBy parameter appropriately.  richard 1994-11-08
+ *  2. free can lose memory if it can't allocate a block descriptor.  The
+ *     memory could be pushed onto a special chain to be reclaimed later.
+ *     richard 1994-11-09
+ *  3. The span chain could be adaptive.  richard 1994-11-09
+ *  4. Spans with no blocks could be freed.  richard 1994-11-09
+ *  5. An MFS pool for the block descriptors is justified, but not really
+ *     for the spans, which are much rarer. richard 1994-11-09
+ *  7. IsValid should check pointer destinations are in the right pools.
+ *     richard 1994-11-10
+ *  8. By changing SpanAlloc it might be possible to keep track of all
+ *     allocated blocks using descriptors, for debugging purposes.  richard
+ *     1994-11-10
+ *  9. (See note 7.) IsValid methods can't easily get hold of the relevant
+ *     pools in ordr to check pointers using PoolAddrPool.
+ *     1995-01-19 drj
  */
  
 #include "std.h"
@@ -44,7 +43,7 @@
 #include "mpscmv.h"
 #include <stdarg.h>
 
-SRCID("$HopeName: MMsrc!poolmv.c(trunk.9) $");
+SRCID("$HopeName: MMsrc!poolmv.c(trunk.10) $");
 
 
 #define BLOCKPOOL(mv)   (PoolMFSPool(&(mv)->blockPoolStruct))
@@ -69,7 +68,9 @@ PoolClass PoolClassMV(void)
                 create, destroy,
                 alloc, free_,
                 NULL, NULL,             /* bufferCreate, bufferDestroy */
-                NULL, NULL, NULL,       /* condemn, mark, scan */
+                NULL, NULL,		/* bufferFill, bufferTrip */
+                NULL, NULL,		/* bufferExpose, bufferCover */
+                NULL, NULL,             /* mark, scan */
                 NULL, NULL,             /* fix, relcaim */
                 NULL, NULL,             /* access, poll */
                 describe);
