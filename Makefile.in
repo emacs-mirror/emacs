@@ -255,8 +255,10 @@ FRC:
 
 clean mostlyclean:
 	cd src; make clean
+	cd lib-src; make clean
 	if [ `/bin/pwd` != `(cd ${DESTDIR}${LIBDIR}; /bin/pwd)` ] ; then \
 		cd etc; make clean; \
+                cd arch-lib; make clean; \
 	else true; \
 	fi
 	cd oldXMenu; make clean
