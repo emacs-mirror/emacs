@@ -1,6 +1,6 @@
 /*  impl.c.qs: QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.16) $
+ *  $HopeName: MMsrc!qs.c(trunk.17) $
  *  Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
@@ -32,7 +32,13 @@
 #include <stdlib.h>
 
 
-#define testArenaSIZE   ((size_t)16<<20)
+#define testArenaSIZE ((size_t)1000*1024)
+#define genCOUNT 2
+
+/* testChain -- generation parameters for the test */
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 150, 0.85 }, { 170, 0.45 } };
 
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
@@ -64,7 +70,6 @@ typedef struct QSCellStruct {
 
 
 static mps_arena_t arena;
-static mps_fmt_t format;
 static mps_pool_t pool;     /* automatic pool */
 static mps_ap_t ap;         /* AP for above */
 static mps_pool_t mpool;    /* manual pool */
@@ -319,6 +324,9 @@ static void validate(void)
 
 static void *go(void *p, size_t s)
 {
+  mps_fmt_t format;
+  mps_chain_t chain;
+
   testlib_unused(p);
   testlib_unused(s);
 
@@ -327,7 +335,8 @@ static void *go(void *p, size_t s)
                       (size_t)65536),
       "MVCreate");
   die(mps_fmt_create_A(&format, arena, &fmt_A_s), "FormatCreate");
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format),
+  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "AMCCreate");
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
   die(mps_root_create_table(&regroot, arena, MPS_RANK_AMBIG, 0,
@@ -351,6 +360,7 @@ static void *go(void *p, size_t s)
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
   mps_pool_destroy(mpool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;
