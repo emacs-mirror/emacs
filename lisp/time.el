@@ -57,6 +57,13 @@ default, which is system-dependent, and is the same as used by Rmail."
 		 (file :format "%v"))
   :group 'display-time)
 
+(defcustom display-time-mail-function nil
+  "*Function to call, for indicating existence of new mail.
+nil means use the default method of checking `display-time-mail-file'."
+  :type '(choice (const :tag "Default" nil)
+		 (function))
+  :group 'display-time)
+
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
 *Non-nil means \\[display-time] should display day and date as well as time."
@@ -251,24 +258,26 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
                               (getenv "MAIL")
                               (concat rmail-spool-directory
                                       (user-login-name))))
-	 (mail (and (stringp mail-spool-file)
-		    (or (null display-time-server-down-time)
-			;; If have been down for 20 min, try again.
-			(> (- (nth 1 now) display-time-server-down-time)
-			   1200)
-			(and (< (nth 1 now) display-time-server-down-time)
-			     (> (- (nth 1 now) display-time-server-down-time)
-				-64336)))
-		    (let ((start-time (current-time)))
-		      (prog1
-			  (display-time-file-nonempty-p mail-spool-file)
-			(if (> (- (nth 1 (current-time)) (nth 1 start-time))
-			       20)
-			    ;; Record that mail file is not accessible.
-			    (setq display-time-server-down-time
-				  (nth 1 (current-time)))
-			  ;; Record that mail file is accessible.
-			  (setq display-time-server-down-time nil))))))
+	 (mail (or (and display-time-mail-function
+			(funcall display-time-mail-function))
+		   (and (stringp mail-spool-file)
+			(or (null display-time-server-down-time)
+			    ;; If have been down for 20 min, try again.
+			    (> (- (nth 1 now) display-time-server-down-time)
+			       1200)
+			    (and (< (nth 1 now) display-time-server-down-time)
+				 (> (- (nth 1 now) display-time-server-down-time)
+				    -64336)))
+			(let ((start-time (current-time)))
+			  (prog1
+			      (display-time-file-nonempty-p mail-spool-file)
+			    (if (> (- (nth 1 (current-time)) (nth 1 start-time))
+				   20)
+				;; Record that mail file is not accessible.
+				(setq display-time-server-down-time
+				      (nth 1 (current-time)))
+			      ;; Record that mail file is accessible.
+			      (setq display-time-server-down-time nil)))))))
          (24-hours (substring time 11 13))
          (hour (string-to-int 24-hours))
          (12-hours (int-to-string (1+ (% (+ hour 11) 12))))
