@@ -1,6 +1,8 @@
-/* test MV functional tests  allocate and free in manual variable pool
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = MV functional tests  allocate and free in manual variable pool
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include <time.h>

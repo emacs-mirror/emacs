@@ -1,6 +1,8 @@
-/* test Allocate but never look at objects
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = Allocate but never look at objects
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

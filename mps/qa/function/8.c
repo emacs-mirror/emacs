@@ -1,7 +1,10 @@
-/* test create spaces at once until an error results!
-   language c
-   link testlib.o
-   space>10
+/* TEST_HEADER
+ summary = create spaces at once until an error results!
+ language = c
+ link = testlib.o
+OUTPUT_SPEC
+ space > 10
+END_HEADER
 */
 
 #include "testlib.h"

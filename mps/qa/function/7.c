@@ -1,6 +1,8 @@
-/* test create 1000 spaces and destroy each one just after the next is created
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = create 1000 spaces and destroy each one just after the next is created
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

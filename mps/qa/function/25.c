@@ -1,6 +1,8 @@
-/* test string twiddling with an LO pool
-   language c
-   link lofmt.o testlib.o
+/* TEST_HEADER
+ summary = string twiddling with an LO pool
+ language = c
+ link = lofmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"
