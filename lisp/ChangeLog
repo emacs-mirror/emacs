@@ -1,5 +1,9 @@
 2001-09-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* hexl.el (hexl-mode-map): Fix the change of 2001-08-23: use
+	make-keymap instead of copy-keymap, since copying the global
+	keymap messes up the menu bar.
+
 	* info.el (Info-goto-node, Info-menu): Doc fix.  Suggested by
 	Roland Winkler <Roland.Winkler@physik.uni-erlangen.de>.
 
