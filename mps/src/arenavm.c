@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName$
+ * $HopeName: MMsrc!arenavm.c(trunk.63) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  *
@@ -27,7 +27,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.62) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.63) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -484,7 +484,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
 
   AVERT(VMArena, vmArena);
-  EVENT_PP(ArenaCreate, vmArena, chunk);
   *arenaReturn = arena;
   return ResOK;
 
