@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,88,93,94,95,97,98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,88,93,94,95,97,98,99,2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -90,6 +90,7 @@ static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
 Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
+static Lisp_Object Qsubrp, Qmany, Qunevalled;
 
 static Lisp_Object swap_in_symval_forwarding ();
 
@@ -707,6 +708,28 @@ DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
   CHECK_SYMBOL (symbol, 0);
   XSYMBOL (symbol)->plist = newplist;
   return newplist;
+}
+
+DEFUN ("subr-arity", Fsubr_arity, Ssubr_arity, 1, 1, 0,
+  "Return minimum and maximum number of args allowed for SUBR.\n\
+SUBR must be a built-in function.\n\
+The returned value is a pair (MIN . MAX).  MIN is the minimum number\n\
+of args.  MAX is the maximum number or the symbol `many', for a\n\
+function with `&rest' args, or `unevalled' for a special form.")
+  (subr)
+     Lisp_Object subr;
+{
+  short minargs, maxargs;
+  if (!SUBRP (subr))
+    wrong_type_argument (Qsubrp, subr);
+  minargs = XSUBR (subr)->min_args;
+  maxargs = XSUBR (subr)->max_args;
+  if (maxargs == MANY)
+    return Fcons (make_number (minargs), Qmany);
+  else if (maxargs == UNEVALLED)
+    return Fcons (make_number (minargs), Qunevalled);
+  else
+    return Fcons (make_number (minargs), make_number (maxargs));
 }
 
 
@@ -2597,6 +2620,10 @@ syms_of_data ()
   Qchar_table_p = intern ("char-table-p");
   Qvector_or_char_table_p = intern ("vector-or-char-table-p");
 
+  Qsubrp = intern ("subrp");
+  Qunevalled = intern ("unevalled");
+  Qmany = intern ("many");
+
   Qcdr = intern ("cdr");
 
   /* Handle automatic advice activation */
@@ -2786,6 +2813,9 @@ syms_of_data ()
   staticpro (&Qnumber_or_marker_p);
   staticpro (&Qchar_table_p);
   staticpro (&Qvector_or_char_table_p);
+  staticpro (&Qsubrp);
+  staticpro (&Qmany);
+  staticpro (&Qunevalled);
 
   staticpro (&Qboundp);
   staticpro (&Qfboundp);
@@ -2916,6 +2946,7 @@ syms_of_data ()
   defsubr (&Sadd1);
   defsubr (&Ssub1);
   defsubr (&Slognot);
+  defsubr (&Ssubr_arity);
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
 }
