@@ -1,3 +1,9 @@
+2002-09-12  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-send-it): Don't use : in filenames
+	(for cygwin). Suggested by Andrew Senior <aws@watson.ibm.com>.
+	Use expand-file-name.  Also don't require time-stamp.
+
 2002-09-11  Richard M. Stallman  <rms@gnu.org>
 
 	* derived.el (define-derived-mode): When making new abbrev table,
@@ -41,6 +47,8 @@
 	* newcomment.el (uncomment-region): Fix let/let* use.
 
 2002-09-11  Simon Josefsson  <jas@extundo.com>
+
+	* time-stamp.el (time-stamp-hhmmss): New function.
 
 	* gud.el (gud-gdb-massage-args): Don't secretly add -fullname.
 	(gud-query-cmdline): Add --fullname to the user cmdline.
