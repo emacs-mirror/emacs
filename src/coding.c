@@ -6498,6 +6498,142 @@ DEFUN ("find-coding-systems-region-internal",
 }
 
 
+/* Search from position POS for such characters that are unencodable
+   accoding to SAFE_CHARS, and return a list of their positions.  P
+   points where in the memory the character at POS exists.  Limit the
+   search at PEND or when Nth unencodable characters are found.
+
+   If SAFE_CHARS is a char table, an element for an unencodable
+   character is nil.
+
+   If SAFE_CHARS is nil, all non-ASCII characters are unencodable.
+
+   Otherwise, SAFE_CHARS is t, and only eight-bit-contrl and
+   eight-bit-graphic characters are unencodable.  */
+
+static Lisp_Object
+unencodable_char_position (safe_chars, pos, p, pend, n)
+     Lisp_Object safe_chars;
+     int pos;
+     unsigned char *p, *pend;
+     int n;
+{
+  Lisp_Object pos_list;
+
+  pos_list = Qnil;
+  while (p < pend)
+    {
+      int len;
+      int c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
+      
+      if (c >= 128
+	  && (CHAR_TABLE_P (safe_chars)
+	      ? NILP (CHAR_TABLE_REF (safe_chars, c))
+	      : (NILP (safe_chars) || c < 256)))
+	{
+	  pos_list = Fcons (make_number (pos), pos_list);
+	  if (--n <= 0)
+	    break;
+	}
+      pos++;
+      p += len;
+    }
+  return Fnreverse (pos_list);
+}
+
+
+DEFUN ("unencodable-char-position", Funencodable_char_position,
+       Sunencodable_char_position, 3, 5, 0,
+       doc: /*
+Return position of first un-encodable character in a region.
+START and END specfiy the region and CODING-SYSTEM specifies the
+encoding to check.  Return nil if CODING-SYSTEM does encode the region.
+
+If optional 4th argument COUNT is non-nil, it specifies at most how
+many un-encodable characters to search.  In this case, the value is a
+list of positions.
+
+If optional 5th argument STRING is non-nil, it is a string to search
+for un-encodable characters.  In that case, START and END are indexes
+to the string.  */)
+     (start, end, coding_system, count, string)
+     Lisp_Object start, end, coding_system, count, string;
+{
+  int n;
+  Lisp_Object safe_chars;
+  struct coding_system coding;
+  Lisp_Object positions;
+  int from, to;
+  unsigned char *p, *pend;
+
+  if (NILP (string))
+    {
+      validate_region (&start, &end);
+      from = XINT (start);
+      to = XINT (end);
+      if (NILP (current_buffer->enable_multibyte_characters))
+	return Qnil;
+      p = CHAR_POS_ADDR (from);
+      pend = CHAR_POS_ADDR (to);
+    }
+  else
+    {
+      CHECK_STRING (string);
+      CHECK_NATNUM (start);
+      CHECK_NATNUM (end);
+      from = XINT (start);
+      to = XINT (end);
+      if (from > to
+	  || to > SCHARS (string))
+	args_out_of_range_3 (string, start, end);
+      if (! STRING_MULTIBYTE (string))
+	return Qnil;
+      p = SDATA (string) + string_char_to_byte (string, from);
+      pend = SDATA (string) + string_char_to_byte (string, to);
+    }
+
+  setup_coding_system (Fcheck_coding_system (coding_system), &coding);
+
+  if (NILP (count))
+    n = 1;
+  else
+    {
+      CHECK_NATNUM (count);
+      n = XINT (count);
+    }
+
+  if (coding.type == coding_type_no_conversion
+      || coding.type == coding_type_raw_text)
+    return Qnil;
+
+  if (coding.type == coding_type_undecided)
+    safe_chars = Qnil;
+  else
+    safe_chars = coding_safe_chars (&coding);
+
+  if (STRINGP (string)
+      || from >= GPT || to <= GPT)
+    positions = unencodable_char_position (safe_chars, from, p, pend, n);
+  else
+    {
+      Lisp_Object args[2];
+
+      args[0] = unencodable_char_position (safe_chars, from, p, GPT_ADDR, n);
+      n -= Flength (args[0]);
+      if (n <= 0)
+	positions = args[0];
+      else
+	{
+	  args[1] = unencodable_char_position (safe_chars, GPT, GAP_END_ADDR,
+					       pend, n);
+	  positions = Fappend (2, args);
+	}
+    }
+
+  return  (NILP (count) ? Fcar (positions) : positions);
+}
+
+
 Lisp_Object
 code_convert_region1 (start, end, coding_system, encodep)
      Lisp_Object start, end, coding_system;
@@ -7189,6 +7325,7 @@ syms_of_coding ()
   defsubr (&Sdetect_coding_region);
   defsubr (&Sdetect_coding_string);
   defsubr (&Sfind_coding_systems_region_internal);
+  defsubr (&Sunencodable_char_position);
   defsubr (&Sdecode_coding_region);
   defsubr (&Sencode_coding_region);
   defsubr (&Sdecode_coding_string);
