@@ -558,6 +558,9 @@ Hewlett-Packard operating system.
 @item irix
 Silicon Graphics Irix system.
 
+@item linux
+The free Linux operating system.
+
 @item rtu
 Masscomp RTU, UCB universe.
 
