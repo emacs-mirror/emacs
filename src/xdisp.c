@@ -1854,7 +1854,11 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  pos.bufpos = PT;
 	}
       else if (PT > XFASTINT (w->last_point)
-	       && XFASTINT (w->last_point) > startp && just_this_one)
+	       && XFASTINT (w->last_point) > startp && just_this_one
+	       /* We can't use this if point is in the left margin of a
+		  hscrolled window, because w->last_point_x has been
+		  clipped to the window edges.  */
+	       && !(last_point_x <= 0 && hscroll))
 	{
 	  pos = *compute_motion (XFASTINT (w->last_point),
 				 last_point_y, last_point_x, 0,
