@@ -24,7 +24,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#include <ctype.h>
 #include <errno.h>
 #include "lisp.h"
 
@@ -1266,7 +1265,7 @@ read1 (readcharfun, pch)
 	int next_char = READCHAR;
 	UNREAD (next_char);
 
-	if (! isdigit (next_char))
+	if (! (next_char >= '0' && next_char <= '9'))
 #endif
 	  {
 	    *pch = c;
@@ -1379,21 +1378,21 @@ isfloat_string (cp)
   if (*cp == '+' || *cp == '-')
     cp++;
 
-  if (isdigit(*cp))
+  if (*cp >= '0' && *cp <= '9')
     {
       state |= LEAD_INT;
-      while (isdigit (*cp))
-	cp ++;
+      while (*cp >= '0' && *cp <= '9')
+	cp++;
     }
   if (*cp == '.')
     {
       state |= DOT_CHAR;
       cp++;
     }
-  if (isdigit(*cp))
+  if (*cp >= '0' && *cp <= '9')
     {
       state |= TRAIL_INT;
-      while (isdigit (*cp))
+      while (*cp >= '0' && *cp <= '9')
 	cp++;
     }
   if (*cp == 'e')
@@ -1404,10 +1403,10 @@ isfloat_string (cp)
   if ((*cp == '+') || (*cp == '-'))
     cp++;
 
-  if (isdigit (*cp))
+  if (*cp >= '0' && *cp <= '9')
     {
       state |= EXP_INT;
-      while (isdigit (*cp))
+      while (*cp >= '0' && *cp <= '9')
 	cp++;
     }
   return (*cp == 0
