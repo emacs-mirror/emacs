@@ -863,7 +863,8 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (EQ (attr_name, intern ("font")))
     {
       XFontStruct *font = load_font (f, attr_value);
-      unload_font (f, face->font);
+      if (face->font != f->display.x->font)
+	unload_font (f, face->font);
       face->font = font;
     }
   else if (EQ (attr_name, intern ("foreground")))
