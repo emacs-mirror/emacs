@@ -134,7 +134,23 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
 (defun display-time-event-handler ()
   (display-time-update)
   ;; Do redisplay right now, if no input pending.
-  (sit-for 0))
+  (sit-for 0)
+  (let ((current (current-time))
+	(timer display-time-timer))
+    ;; If the next activation time is already in the past,
+    ;; skip executions until we reach a time in the future.
+    ;; This avoids a long pause if Emacs has been suspended for hours.
+    (or (> (aref timer 1) (nth 0 current))
+	(and (= (aref timer 1) (nth 0 current))
+	     (> (aref timer 2) (nth 1 current)))
+	(and (= (aref timer 1) (nth 0 current))
+	     (= (aref timer 2) (nth 1 current))
+	     (> (aref timer 3) (nth 2 current)))
+	(progn
+	  (cancel-timer timer)
+	  (timer-set-time timer (timer-next-integral-multiple-of-time
+				 current display-time-interval))
+	  (timer-activate timer)))))
 
 ;; Update the display-time info for the mode line
 ;; but don't redisplay right now.  This is used for
