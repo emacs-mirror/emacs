@@ -3206,6 +3206,7 @@ detect_coding_mask (source, src_bytes, priorities, skip)
     /* We found nothing other than ASCII.  There's nothing to do.  */
     return 0;
 
+  c = *src;
   /* The text seems to be encoded in some multilingual coding system.
      Now, try to find in which coding system the text is encoded.  */
   if (c < 0x80)
