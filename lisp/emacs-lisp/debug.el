@@ -138,6 +138,7 @@ first will be printed into the backtrace buffer."
 	  (save-excursion
 	    (save-window-excursion
 	      (pop-to-buffer debugger-buffer)
+	      (setq buffer-read-only nil)
 	      (erase-buffer)
 	      (set-buffer-multibyte nil)
 	      (let ((standard-output (current-buffer))
