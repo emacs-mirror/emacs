@@ -4774,6 +4774,9 @@ gc_sweep ()
 
 	for (; sym < end; ++sym)
 	  {
+	    /* Check if the symbol was created during loadup.  In such a case
+	       it might be pointed to by pure bytecode which we don't trace,
+	       so we conservatively assume that it is live.  */
 	    int pure_p = PURE_POINTER_P (sym->name);
 	    
 	    if (!XMARKBIT (sym->plist) && !pure_p)
