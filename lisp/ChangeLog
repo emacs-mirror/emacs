@@ -1,5 +1,7 @@
 2002-06-27  Juanma Barranquero  <lektu@terra.es>
 
+	* composite.el (decompose-composite-char): Fix docstring.
+
 	* faces.el (describe-face): Capitalize "not documented" message.
 
 	* help-fns.el (describe-variable): Likewise.
