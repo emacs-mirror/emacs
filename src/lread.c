@@ -1453,7 +1453,7 @@ isfloat_string (cp)
       while (*cp >= '0' && *cp <= '9')
 	cp++;
     }
-  return (*cp == 0
+  return (((*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
 	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
 	      || state == (DOT_CHAR|TRAIL_INT)
 	      || state == (LEAD_INT|E_CHAR|EXP_INT)
