@@ -5,6 +5,7 @@
 ;; Author: James Clark <jjc@jclark.com>
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
+;; Maintainer: ???
 ;; Keywords: wp, hypermedia, comm, languages
 
 ;; This file is part of GNU Emacs.
@@ -81,7 +82,6 @@ This takes effect when first loading the sgml-mode library.")
 (defvar sgml-mode-map
   (let ((map (list 'keymap (make-vector 256 nil)))
 	(menu-map (make-sparse-keymap "SGML")))
-    (define-key map "\t" 'indent-relative-maybe)
     (define-key map "\C-c\C-i" 'sgml-tags-invisible)
     (define-key map "/" 'sgml-slash)
     (define-key map "\C-c\C-n" 'sgml-name-char)
@@ -501,7 +501,8 @@ Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase do \\[set-variable]
 skeleton-transformation RET upcase RET, or put this in your `.emacs':
   (setq sgml-transformation 'upcase)"
-  (completing-read "Tag: " sgml-tag-alist)
+  (funcall skeleton-transformation
+	   (completing-read "Tag: " sgml-tag-alist))
   ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
   `(("") '(setq v2 (sgml-attributes ,str t)) ?>
@@ -512,12 +513,14 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
 	      (string-match "^[/!?]" ,str))
 	  ()
 	(if (symbolp v2)
-	    '(("") v2 _ v2 "</" ,str ?>)
+	    ;; We go use `identity' to prevent skeleton from passing
+	    ;; `str' through skeleton-transformation a second time.
+	    '(("") v2 _ v2 "</" (identity ',str) ?>)
 	  (if (eq (car v2) t)
 	      (cons '("") (cdr v2))
 	    (append '(("") (car v2))
 		    (cdr v2)
-		    '(resume: (car v2) _ "</" ,str ?>))))))))
+		    '(resume: (car v2) _ "</" (identity ',str) ?>))))))))
 
 (autoload 'skeleton-read "skeleton")
 
@@ -834,8 +837,9 @@ This defaults to `sgml-quick-keys'.
 This takes effect when first loading the library.")
 
 (defvar html-mode-map
-  (let ((map (nconc (make-sparse-keymap) sgml-mode-map))
+  (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "HTML")))
+    (set-keymap-parent map  sgml-mode-map)
     (define-key map "\C-c6" 'html-headline-6)
     (define-key map "\C-c5" 'html-headline-5)
     (define-key map "\C-c4" 'html-headline-4)
