@@ -1,3 +1,8 @@
+2000-02-11  Kenichi Handa  <handa@etl.go.jp>
+
+	* insdel.c (del_range_1): Call update_compositions.
+	(del_range_both): Call update_compositions just once..
+
 2000-02-10  Dave Love  <fx@gnu.org>
 
 	* xfns.c (create_frame_xic): Fix initialization of automatic
