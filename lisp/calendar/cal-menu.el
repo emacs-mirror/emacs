@@ -167,51 +167,6 @@
 (define-key calendar-mode-map [menu-bar scroll fwd-1]
   '("Forward 1 Month" . scroll-calendar-left))
 
-(put 'calendar-forward-day 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-backward-day 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-forward-week 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-backward-week 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-forward-month 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-backward-month 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-forward-year 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-backward-year 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-beginning-of-year 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-end-of-year 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-beginning-of-month 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-end-of-month 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-end-of-week 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-beginning-of-week 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-mouse-print-dates 'menu-enable '(calendar-event-to-date))
-(put 'calendar-sunrise-sunset 'menu-enable '(calendar-event-to-date))
-(put 'calendar-cursor-holidays 'menu-enable '(calendar-cursor-to-date))
-(put 'view-diary-entries 'menu-enable '(calendar-cursor-to-date))
-(put 'view-other-diary-entries 'menu-enable '(calendar-cursor-to-date))
-(put 'calendar-mouse-insert-hebrew-diary-entry
-     'menu-enable
-     '(calendar-cursor-to-date))
-(put 'calendar-mouse-insert-islamic-diary-entry
-     'menu-enable
-     '(calendar-cursor-to-date))
-(put 'insert-cyclic-diary-entry 'menu-enable '(calendar-cursor-to-date))
-(put 'insert-block-diary-entry 'menu-enable '(calendar-cursor-to-date))
-(put 'insert-anniversary-diary-entry 'menu-enable '(calendar-cursor-to-date))
-(put 'insert-yearly-diary-entry 'menu-enable '(calendar-cursor-to-date))
-(put 'insert-monthly-diary-entry 'menu-enable '(calendar-cursor-to-date))
-(put 'insert-weekly-diary-entry 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-day 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week2 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week-iso 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week-monday 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-filofax-2week
-     'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-filofax-week 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-month 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-month-landscape 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-year 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-filofax-year 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-year-landscape 'menu-enable '(calendar-cursor-to-date))
-
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
 If event is not on a specific date, signals an error if optional parameter
