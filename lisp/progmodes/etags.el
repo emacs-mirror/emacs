@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'ring)
+(require 'button)
 
 ;;;###autoload
 (defvar tags-file-name nil
@@ -1413,16 +1414,41 @@ where they were found."
   (goto-char (point-min))
   (while (re-search-forward string nil t)
     (beginning-of-line)
-    (let ((tag (buffer-substring (point)
-				 (progn (skip-chars-forward "^\177")
-					(point))))
-          (props `(action find-tag-other-window mouse-face highlight
-			  face ,tags-tag-face))
-          (pt (with-current-buffer standard-output (point))))
-      (princ tag)
-      (when (= (aref tag 0) ?\() (princ " ...)"))
-      (add-text-properties pt (with-current-buffer standard-output (point))
-                           `(item ,tag ,@props) standard-output))
+    (let* ((tag-info (save-excursion (funcall snarf-tag-function)))
+	   (tag (if (eq t (car tag-info)) nil (car tag-info)))
+	   (file (if tag (file-of-tag)
+		   (save-excursion (next-line 1)
+				   (file-of-tag))))
+	   (pt (with-current-buffer standard-output (point))))
+      (if tag
+	  (progn
+	    (princ (format "[%s]: " file))
+	    (princ tag)
+	    (when (= (aref tag 0) ?\() (princ " ...)"))
+	    (with-current-buffer standard-output
+	    (make-text-button pt (point)
+			      'tag-info tag-info
+			      'file file
+			      'action (lambda (button)
+					;; TODO: just `find-file is too simple.
+					;; Use code `find-tag-in-order'.
+					(let ((tag-info (button-get button 'tag-info)))
+					  (find-file (button-get button 'file))
+					  (etags-goto-tag-location tag-info)))
+			      'face 'tags-tag-face
+			      'type 'button)))
+	(princ (format "- %s" file))
+	(with-current-buffer standard-output
+	  (make-text-button pt (point)
+	  'file file
+	  'action (lambda (button)
+		    ;; TODO: just `find-file is too simple.
+		    ;; Use code `find-tag-in-order'.
+		    (find-file (button-get button 'file))
+		    (goto-char (point-min)))
+	  'face 'tags-tag-face
+	  'type 'button))
+	))
     (terpri)
     (forward-line 1))
   (when tags-apropos-verbose (princ "\n")))
@@ -1814,8 +1840,10 @@ directory specification."
 	  (funcall tags-apropos-function regexp))))
     (etags-tags-apropos-additional regexp))
   (with-current-buffer "*Tags List*"
-    (setq buffer-read-only t)
-    (apropos-mode)))
+    (apropos-mode)
+    ;; apropos-mode is derived from fundamental-mode and it kills
+    ;; all local variables.
+    (setq buffer-read-only t)))
 
 ;; XXX Kludge interface.
 
