@@ -666,12 +666,15 @@ x_report_frame_params (f, alistptr)
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
 }
 
-/* Decide if color named COLOR is valid for the display
-   associated with the selected frame. */
+/* Decide if color named COLOR is valid for the display associated with
+   the selected frame; if so, return the rgb values in COLOR_DEF.
+   If ALLOC is nonzero, allocate a new colormap cell.  */
+
 int
-defined_color (color, color_def)
+defined_color (color, color_def, alloc)
      char *color;
      Color *color_def;
+     int alloc;
 {
   register int foo;
   Colormap screen_colormap;
@@ -681,11 +684,13 @@ defined_color (color, color_def)
   screen_colormap
     = DefaultColormap (x_current_display, XDefaultScreen (x_current_display));
 
-  foo = XParseColor (x_current_display, screen_colormap,
-       	      color, color_def)
-    && XAllocColor (x_current_display, screen_colormap, color_def);
+  foo = XParseColor (x_current_display, screen_colormap, color, color_def);
+  if (foo && alloc)
+    foo = XAllocColor (x_current_display, screen_colormap, color_def);
 #else
-  foo = XParseColor (color, color_def) && XGetHardwareColor (color_def);
+  foo = XParseColor (color, color_def);
+  if (foo && alloc)
+    foo = XGetHardwareColor (color_def);
 #endif /* not HAVE_X11 */
   UNBLOCK_INPUT;
 
@@ -722,7 +727,7 @@ x_decode_color (arg, def)
     return def;
 #endif
 
-  if (defined_color (XSTRING (arg)->data, &cdef))
+  if (defined_color (XSTRING (arg)->data, &cdef, 1))
     return cdef.pixel;
   else
     Fsignal (Qundefined_color, Fcons (arg, Qnil));
@@ -2944,8 +2949,7 @@ even if they match PATTERN and FACE.")
 
 
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
-  "Return non-nil if the X display supports the color named COLOR.\n\
-The value is actually a list of integer RGB values--(RED GREEN BLUE).")
+  "Return non-nil if the X display supports the color named COLOR.")
   (color)
      Lisp_Object color;
 {
@@ -2954,7 +2958,25 @@ The value is actually a list of integer RGB values--(RED GREEN BLUE).")
   check_x ();
   CHECK_STRING (color, 0);
 
-  if (defined_color (XSTRING (color)->data, &foo))
+  if (defined_color (XSTRING (color)->data, &foo, 0))
+    return Qt;
+  else
+    return Qnil;
+}
+
+DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 1, 0,
+  "Return a description of the color named COLOR.\n\
+The value is a list of integer RGB values--(RED GREEN BLUE).\n\
+These values appear to range from 0 to 65280; white is (65280 65280 65280).")
+  (color)
+     Lisp_Object color;
+{
+  Color foo;
+  
+  check_x ();
+  CHECK_STRING (color, 0);
+
+  if (defined_color (XSTRING (color)->data, &foo, 0))
     {
       Lisp_Object rgb[3];
 
@@ -4467,6 +4489,7 @@ or when you set the mouse color.");
   defsubr (&Sx_display_color_p);
   defsubr (&Sx_list_fonts);
   defsubr (&Sx_color_defined_p);
+  defsubr (&Sx_color_values);
   defsubr (&Sx_server_max_request_size);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
