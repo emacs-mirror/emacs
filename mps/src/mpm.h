@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.15) $
+ * $HopeName: MMsrc!mpm.h(trunk.16) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -45,7 +45,7 @@ extern Bool BoolCheck(Bool b);
 extern Bool FunCheck(Fun f);
 extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
-#define FUNCHECK(f)	(FunCheck((Fun)f))
+#define FUNCHECK(f)     (FunCheck((Fun)f))
 
 
 /* Address/Size Interface -- see impl.c.mpm */
@@ -183,7 +183,7 @@ extern Align (PoolAlignment)(Pool pool);
 #define PoolAlignment(pool)     ((pool)->alignment)
 
 extern Ring (PoolSegRing)(Pool pool);
-#define PoolSegRing(pool)	(&(pool)->segRing)
+#define PoolSegRing(pool)       (&(pool)->segRing)
 
 extern Res PoolSegAlloc(Seg *segReturn, Pool pool, Size size);
 extern void PoolSegFree(Pool pool, Seg seg);
@@ -232,17 +232,15 @@ extern void PoolNoAccess(Pool pool, Seg seg, AccessSet mode);
 
 /* Trace Interface -- see impl.c.trace */
 
-extern TraceSet (TraceSetAdd)(TraceSet set, TraceId id);
-#define TraceSetAdd(set, id)            ((set) | ((TraceSet)1 << (id)))
+#define TraceSetIsMember(ts, ti)BS_IS_MEMBER(ts, ti)
+#define TraceSetAdd(ts, ti)     BS_ADD(TraceSet, ts, ti)
+#define TraceSetDel(ts, ti)     BS_DEL(TraceSet, ts, ti)
+#define TraceSetUnion(ts1, ts2) BS_UNION(ts1, ts2)
 
-extern TraceSet (TraceSetDelete)(TraceSet set, TraceId id);
-#define TraceSetDelete(set, id)         ((set) & ~((TraceSet)1 << (id)))
-
-extern Bool (TraceSetIsMember)(TraceSet set, TraceId id);
-#define TraceSetIsMember(set, id)       (((set) >> (id)) & 1)
-
-extern TraceSet (TraceSetUnion)(TraceSet set1, TraceSet set2);
-#define TraceSetUnion(set1, set2)       ((set1) | (set2))
+extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
+extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
+extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
+extern Bool (TraceSetIsMember)(TraceSet ts, TraceId id);
 
 extern Res TraceCreate(TraceId *tiReturn, Space space);
 extern void TraceDestroy(Space space, TraceId ti);
@@ -354,23 +352,23 @@ extern void BufferReset(Buffer buffer);
 extern Bool BufferIsReset(Buffer buffer);
 extern Bool BufferIsReady(Buffer buffer);
 extern AP (BufferAP)(Buffer buffer);
-#define BufferAP(buffer)	(&(buffer)->apStruct)
+#define BufferAP(buffer)        (&(buffer)->apStruct)
 extern Buffer BufferOfAP(AP ap);
 extern Space BufferSpace(Buffer buffer);
 extern Pool (BufferPool)(Buffer buffer);
-#define BufferPool(buffer)	((buffer)->pool)
+#define BufferPool(buffer)      ((buffer)->pool)
 extern Seg (BufferSeg)(Buffer buffer);
-#define BufferSeg(buffer)	((buffer)->seg)
+#define BufferSeg(buffer)       ((buffer)->seg)
 extern Rank (BufferRank)(Buffer buffer);
-#define BufferRank(buffer)	((buffer)->rank)
+#define BufferRank(buffer)      ((buffer)->rank)
 extern Addr (BufferBase)(Buffer buffer);
-#define BufferBase(buffer)	((buffer)->base)
+#define BufferBase(buffer)      ((buffer)->base)
 extern Addr (BufferGetInit)(Buffer buffer);
-#define BufferGetInit(buffer)	(BufferAP(buffer)->init)
+#define BufferGetInit(buffer)   (BufferAP(buffer)->init)
 extern Addr (BufferAlloc)(Buffer buffer);
-#define BufferAlloc(buffer)	(BufferAP(buffer)->alloc)
+#define BufferAlloc(buffer)     (BufferAP(buffer)->alloc)
 extern Addr (BufferLimit)(Buffer buffer);
-#define BufferLimit(buffer)	(BufferAP(buffer)->limit)
+#define BufferLimit(buffer)     (BufferAP(buffer)->limit)
 
 
 /* Format Interface -- see impl.c.format */
@@ -393,16 +391,16 @@ extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
 
 extern Bool RankCheck(Rank rank);
 
-#define RefSetEmpty             ((RefSet)0)
-#define RefSetUniv              ((RefSet)-1)
-#define RefSetUnion(rs1, rs2)   ((rs1) | (rs2))
-#define RefSetInter(rs1, rs2)   ((rs1) & (rs2))
 #define RefSetZone(space, addr) \
   (((Word)(addr) >> space->zoneShift) & (WORD_WIDTH - 1))
+#define RefSetUnion(rs1, rs2)   BS_UNION(rs1, rs2)
+#define RefSetInter(rs1, rs2)   BS_INTER(rs1, rs2)
 #define RefSetAdd(space, rs, addr) \
-  ((rs) | ((RefSet)1 << RefSetZone(space, addr)))
+  BS_ADD(RefSet, rs, RefSetZone(space, addr))
 #define RefSetIsMember(space, rs, addr) \
-  (((rs) >> RefSetZone(space, addr)) & 1)
+  BS_IS_MEMBER(rs, RefSetZone(space, addr))
+#define RefSetSuper(rs1, rs2)   BS_SUPER(rs1, rs2)
+
 extern RefSet RefSetOfSeg(Space space, Seg seg);
 
 

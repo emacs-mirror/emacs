@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.3) $
+ * $HopeName: MMsrc!ld.c(trunk.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -48,7 +48,7 @@
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.3) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.4) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -71,7 +71,7 @@ void LDReset(LD ld, Space space)
     ShieldExpose(space, seg);   /* .ld.access */
   }
   ld->epoch = space->epoch;
-  ld->rs = RefSetEmpty;
+  ld->rs = RefSetEMPTY;
   if(b) {
     ShieldCover(space, seg);
   }
@@ -151,7 +151,7 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
     rs = space->prehistory;     /* .stale.old */
   }
 
-  return RefSetInter(ld->rs, rs) != RefSetEmpty;
+  return RefSetInter(ld->rs, rs) != RefSetEMPTY;
 }
 
 
@@ -166,12 +166,12 @@ void LDAge(Space space, RefSet rs)
   Size i;
 
   AVERT(Space, space);
-  AVER(rs != RefSetEmpty);
+  AVER(rs != RefSetEMPTY);
 
   /* Replace the entry for epoch - SPACE_LD_LENGTH by an empty */
   /* set which will become the set which has moved since the */
   /* current epoch. */
-  space->history[space->epoch % SPACE_LD_LENGTH] = RefSetEmpty;
+  space->history[space->epoch % SPACE_LD_LENGTH] = RefSetEMPTY;
 
   /* Record the fact that the moved set has moved, by adding it */
   /* to all the sets in the history, including the set for the */
