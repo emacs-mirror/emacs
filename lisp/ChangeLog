@@ -1,3 +1,10 @@
+2000-07-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* mail/mail-utils.el (mail-strip-quoted-names): 
+	Handle case where <...> appears inside "...".
+	Use replace-match to edit the string more simply.
+	(rmail-dont-reply-to): Cope with an unmatched ".
+
 2000-07-19  Dave Love  <fx@gnu.org>
 
 	* ediff-init.el (ediff-region-help-echo): Partially fix for Emacs
