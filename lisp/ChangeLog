@@ -1,5 +1,8 @@
 2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
 
+	* frame.el (display-multi-frame-p, display-multi-font-p): New
+	defaliases for display-graphic-p.
+
 	* hl-line.el: Fixed a typo in commentary.
 
 2000-06-13  Kenichi Handa  <handa@etl.go.jp>
