@@ -678,7 +678,6 @@ one showing the selected frame."
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
   "Ask the Netscape WWW browser to load URL.
-
 Default to the URL around or before point.  The strings in variable
 `browse-url-netscape-arguments' are also passed to Netscape.
 
@@ -689,7 +688,7 @@ the effect of `browse-url-new-window-p'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
-  (interactive (browse-url-interactive-arg "Netscape URL: "))
+  (interactive (browse-url-interactive-arg "URL: "))
   ;; URL encode any `confusing' characters in the URL.  This needs to
   ;; include at least commas; presumably also close parens.
   (while (string-match "[,)]" url)
@@ -742,6 +741,36 @@ How depends on `browse-url-netscape-version'."
            browse-url-netscape-program
            (append browse-url-netscape-arguments
                    (list "-remote" command)))))
+
+;; GNOME means of invoking either Mozilla or Netrape.
+
+(defcustom browse-url-gnome-moz-arguments '()
+  "A list of strings passed to the GNOME mozilla viewer as arguments."
+  :version "21.1"
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defun browse-url-gnome-moz (url &optional new-window)
+  "Ask Mozilla/Netscape to load URL via the GNOME program `gnome-moz-remote'.
+Default to the URL around or before point.  The strings in variable
+`browse-url-gnome-moz-arguments' are also passed.
+
+When called interactively, if variable `browse-url-new-window-p' is
+non-nil, load the document in a new browser window, otherwise use an
+existing one.  A non-nil interactive prefix argument reverses the
+effect of `browse-url-new-window-p'.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-p'."
+  (interactive (browse-url-interactive-arg "URL: "))  
+  (apply 'start-process (concat "gnome-moz-remote " url)
+	 nil
+	 "gnome-moz-remote"
+	 (append
+	  browse-url-gnome-moz-arguments
+	  (if (browse-url-maybe-new-window new-window)
+	    '("--newwin"))
+	  (list "--raise" url))))
 
 ;; --- Mosaic ---
 
