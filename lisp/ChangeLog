@@ -1,5 +1,9 @@
 2000-05-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/ebrowse.el: Change file name `EBROWSE' to `BROWSE'.
+
+	* files.el (auto-mode-alist): Change `EBROWSE' to `BROWSE'.
+
 	* subr.el (substitute-key-definition): Clarify documentation.
 
 2000-05-04  Milan Zamazal  <pdm@freesoft.cz>

@@ -1,3 +1,7 @@
+2000-05-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (DEFAULT_OUTFILE): Set to `BROWSE'.
+
 2000-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ebrowse.c (PATH_LIST_SEPARATOR) [__MSDOS__ || WINDOWSNT]: Define
@@ -16,6 +20,7 @@
 	(lang_names): Install it.
 	(Texinfo_suffixes): New variable.
 
+>>>>>>> 2.24
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (xmalloc, xrealloc): Rewritten.
