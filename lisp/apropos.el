@@ -268,7 +268,9 @@ Returns list of symbols and documentation found."
 	       ;; in alist, and is not shadowed by a different local binding,
 	       ;; record it
 	       (and (symbolp command)
-		    (if regexp (string-match regexp (symbol-name command)))
+		    (if regexp
+			(string-match regexp (symbol-name command))
+		      t)
 		    (setq item (assq command alist))
 		    (if (or (vectorp sequence) (not (integerp key)))
 			(setq key (vconcat sequence (vector key)))
@@ -294,7 +296,9 @@ Returns list of symbols and documentation found."
 			(setq command (cdr command)))
 		   ;; This is the same as the code in the previous case.
 		   (and (symbolp command)
-			(if regexp (string-match regexp (symbol-name command)))
+			(if regexp
+			    (string-match regexp (symbol-name command))
+			  t)
 			(setq item (assq command alist))
 			(if (or (vectorp sequence) (not (integerp key)))
 			    (setq key (vconcat sequence (vector key)))
