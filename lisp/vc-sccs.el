@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.12 2001/07/16 12:22:59 pj Exp $
+;; $Id: vc-sccs.el,v 1.13 2001/08/28 17:05:55 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -308,7 +308,7 @@ EDITABLE non-nil means previous version should be locked."
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))
-                 (vc-diff-switches-list sccs))))
+                 (vc-diff-switches-list 'SCCS))))
 
 
 ;;;
