@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2002
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3734,6 +3734,7 @@ dump_zombies ()
 static void
 mark_stack ()
 {
+  int i;
   jmp_buf j;
   volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
@@ -3769,17 +3770,11 @@ mark_stack ()
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
      over the stack segments.  */
-#if GC_LISP_OBJECT_ALIGNMENT == 1
-  mark_memory (stack_base, end);
-  mark_memory ((char *) stack_base + 1, end);
-  mark_memory ((char *) stack_base + 2, end);
-  mark_memory ((char *) stack_base + 3, end);
-#elif GC_LISP_OBJECT_ALIGNMENT == 2
-  mark_memory (stack_base, end);
-  mark_memory ((char *) stack_base + 2, end);
-#else
-  mark_memory (stack_base, end);
+#ifndef GC_LISP_OBJECT_ALIGNMENT
+#define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
 #endif
+  for (i = 0; i < sizeof (Lisp_Object) / GC_LISP_OBJECT_ALIGNMENT; i++)
+    mark_memory ((char *) stack_base + i, end);
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
   check_gcpros ();
