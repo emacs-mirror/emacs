@@ -1292,9 +1292,16 @@ the value is 3 or greater.  If @var{event} is an ordinary mouse event
 (not a repeat event), the value is 1.
 @end defun
 
-@defvar double-click-time
+@defvar double-click-fuzz
 To generate repeat events, successive mouse button presses must be at
-the same screen position, and the number of milliseconds between
+approximately the same screen position.  The value of
+@code{double-click-fuzz} specifies the maximum number of pixels the
+mouse may be moved between two successive clicks to make a
+double-click.
+@end defvar
+
+@defvar double-click-time
+To generate repeat events, the number of milliseconds between
 successive button presses must be less than the value of
 @code{double-click-time}.  Setting @code{double-click-time} to
 @code{nil} disables multi-click detection entirely.  Setting it to
