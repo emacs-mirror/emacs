@@ -220,7 +220,7 @@ xaw_pop_instance (instance, up)
 	     life easier?
 	   */
 	  {
-	    int x, y, w, h;
+	    unsigned int x, y, w, h;
 	    Widget topmost = instance->parent;
 	    Arg args[2];
 
