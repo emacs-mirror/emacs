@@ -185,7 +185,7 @@ Thus ARG can also contain additional grep options."
   (find-dired dir
 	      (concat "-type f -exec grep " find-grep-options " -e "
 		      (shell-quote-argument regexp)
-		      args " {} \\\; ")))
+		      " {} \\\; ")))
 
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.
