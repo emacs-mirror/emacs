@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName: MMsrc/!poolmv.c(trunk.5)$
+ *  $HopeName: MMsrc!poolmv.c(trunk.6) $
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
@@ -473,9 +473,7 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
   while(block != NULL);
 
   /* The freed area is in the span, but not within a block. */
-  ASSERT2(PoolFree(poolMV), FALSE,
-    "Block %p size %lu is already partially free in pool.",
-    (void *)base, (unsigned long)(limit-base));
+  NOTREACHED;
 
   return ErrSUCCESS;
 }
