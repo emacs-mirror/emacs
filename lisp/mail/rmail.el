@@ -1928,7 +1928,7 @@ typically for purposes of moderating a list."
 	  ;; Don't expand aliases in the destination fields
 	  ;; of the original message.
 	  (let (mail-aliases)
-	    (sendmail-send-it)))
+	    (funcall send-mail-function)))
       (kill-buffer tembuf))
     (rmail-set-attribute "resent" t rmail-current-message)))
 
