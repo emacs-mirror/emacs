@@ -1505,6 +1505,13 @@ x_find_modifier_meanings ()
       x_alt_mod_mask = 0;
     }
 
+  /* If some keys are both alt and meta,
+     make them just meta, not alt.  */
+  if (x_alt_mod_mask & x_meta_mod_mask)
+    {
+      x_alt_mod_mask &= ~x_meta_mod_mask;
+    }
+  
   XFree ((char *) syms);
   XFreeModifiermap (mods);
 }
