@@ -1,5 +1,16 @@
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
+	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Always return nil.
+	This fixes a bug that treated all files as directories.
+
+	* international/iso-transl.el (iso-transl-char-map) Eliminate the
+	alias symbols--put the translated sequences here directly.
+
+	* progmodes/cc-mode.el (c-mode-abbrev-table) 
+	(c++-mode-abbrev-table, objc-mode-abbrev-table) 
+	(java-mode-abbrev-table, pike-mode-abbrev-table):
+	Mark all the predefined abbrevs as "system" abbrevs.
+
 	* mail/sendmail.el (mail-envelope-from): Fix custom type.
 	(sendmail-send-it): Check mail-specify-envelope-from
 	and mail-envelope-from in the mail buffer at start.
