@@ -1959,7 +1959,7 @@ If FILENAME is omitted, the printname of FEATURE is used as the file name.")
       Vautoload_queue = Qt;
 
       Fload (NILP (file_name) ? Fsymbol_name (feature) : file_name,
-	     Qnil, Qt, Qnil);
+	     Qnil, Qt, Qnil, Qt);
 
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
