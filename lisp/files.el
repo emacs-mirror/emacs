@@ -1990,11 +1990,24 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	    (let ((default-directory
 		    (if (file-name-absolute-p file)
 			(file-name-directory file)
-		      (file-name-directory (expand-file-name file)))))
+		      (file-name-directory (expand-file-name file))))
+		  (pattern (file-name-nondirectory file))
+		  (beg 0))
+	      ;; Quote some characters that have special meanings in shells;
+	      ;; but don't quote the wildcards--we want them to be special.
+	      ;; We also currently don't quote the quoting characters
+	      ;; in case people want to use them explicitly to quote
+	      ;; wildcard characters.
+	      (while (string-match "[ \t\n;<>&|{}()#$]" pattern beg)
+		(setq pattern
+		      (concat (substring pattern 0 (match-beginning 0))
+			      "\\"
+			      (substring pattern (match-beginning 0)))
+		      beg (1+ (match-end 0))))
 	      (call-process shell-file-name nil t nil
 			    "-c" (concat insert-directory-program
 					 " -d " switches " "
-					 (file-name-nondirectory file))))
+					 pattern)))
 	  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 	  ;; directory if FILE is a symbolic link.
 	  (call-process insert-directory-program nil t nil switches
