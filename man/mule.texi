@@ -52,15 +52,15 @@ have been merged from the modified version of Emacs known as MULE (for
 @node International Intro
 @section Introduction to International Character Sets
 
-  The users of these scripts have established many more-or-less standard
-coding systems for storing files.  Emacs internally uses a single
-multibyte character encoding, so that it can intermix characters from
-all these scripts in a single buffer or string.  This encoding
-represents each non-ASCII character as a sequence of bytes in the range
-0200 through 0377.  Emacs translates between the multibyte character
-encoding and various other coding systems when reading and writing
-files, when exchanging data with subprocesses, and (in some cases) in
-the @kbd{C-q} command (@pxref{Multibyte Conversion}).
+  The users of international character sets and scripts have established
+many more-or-less standard coding systems for storing files.  Emacs
+internally uses a single multibyte character encoding, so that it can
+intermix characters from all these scripts in a single buffer or string.
+This encoding represents each non-ASCII character as a sequence of bytes
+in the range 0200 through 0377.  Emacs translates between the multibyte
+character encoding and various other coding systems when reading and
+writing files, when exchanging data with subprocesses, and (in some
+cases) in the @kbd{C-q} command (@pxref{Multibyte Conversion}).
 
 @kindex C-h h
 @findex view-hello-file
@@ -69,6 +69,11 @@ the @kbd{C-q} command (@pxref{Multibyte Conversion}).
 This illustrates various scripts.  If the font you're using doesn't have
 characters for all those different languages, you will see some hollow
 boxes instead of characters; see @ref{Fontsets}.
+
+@findex list-charset-chars
+@cindex characters in a certain charset
+  The command @kbd{M-x list-charset-chars} prompts for a name of a
+character set, and displays all the characters in that character set.
 
   Keyboards, even in the countries where these character sets are used,
 generally don't have keys for all the characters in them.  So Emacs
