@@ -2,16 +2,16 @@
 
 ;;; Copyright (C) 1985,86,87,88,90,92,93,94,95 Free Software Foundation, Inc.
 
-(defconst mh-e-time-stamp "Time-stamp: <95/04/11 15:43:42 gildea>")
-(defconst mh-e-version "5.0.1"
+(defconst mh-e-time-stamp "Time-stamp: <95/10/30 19:14:06 gildea>")
+(defconst mh-e-version "5.0.2"
   "Version numbers of this version of mh-e.")
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Version: 5.0.1
+;; Version: 5.0.2
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
 
-;; This file is part of GNU Emacs.
+;; This file is part of mh-e, part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.7 1995/04/20 23:35:01 kwzh Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.8 1995/04/25 22:28:04 kwzh Exp kwzh $")
 
 ;;; Code:
 
@@ -786,6 +786,7 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
    'mh-narrowed-to-seq nil		; Sequence display is narrowed to
    'mh-first-msg-num nil		; Number of first msg in buffer
    'mh-last-msg-num nil			; Number of last msg in buffer
+   'mh-msg-count nil			; Number of msgs in buffer
    'mh-mode-line-annotation nil		; Indiction this is not the full folder
    'mh-previous-window-config nil)	; Previous window configuration
   (setq truncate-lines t)
@@ -901,8 +902,8 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	(mh-notate-user-sequences)
 	(if new-mail-p
 	    (progn
-	      (mh-goto-cur-msg)
-	      (mh-make-folder-mode-line))
+	      (mh-make-folder-mode-line)
+	      (mh-goto-cur-msg))
 	    (goto-char point-before-inc))))))
 
 
@@ -916,19 +917,19 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
     (setq mh-first-msg-num (mh-get-msg-num nil))
     (mh-last-msg)
     (setq mh-last-msg-num (mh-get-msg-num nil))
-    (let ((lines (count-lines (point-min) (point-max))))
-      (setq mode-line-buffer-identification
-	    (list (format "{%%b%s} %d msg%s"
-			  (if mh-mode-line-annotation
-			      (format "/%s" mh-mode-line-annotation)
-			    "")
-			  lines
-			  (if (zerop lines)
-			      "s"
-			      (if (> lines 1)
-				  (format "s (%d-%d)" mh-first-msg-num
-					  mh-last-msg-num)
-				  (format " (%d)" mh-first-msg-num)))))))))
+    (setq mh-msg-count (count-lines (point-min) (point-max)))
+    (setq mode-line-buffer-identification
+	  (list (format "{%%b%s} %d msg%s"
+			(if mh-mode-line-annotation
+			    (format "/%s" mh-mode-line-annotation)
+			  "")
+			mh-msg-count
+			(if (zerop mh-msg-count)
+			    "s"
+			  (if (> mh-msg-count 1)
+			      (format "s (%d-%d)" mh-first-msg-num
+				      mh-last-msg-num)
+			    (format " (%d)" mh-first-msg-num))))))))
 
 
 (defun mh-unmark-all-headers (remove-all-flags)
@@ -1061,16 +1062,11 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 
 (defun mh-delete-scan-msgs (msgs)
   ;; Delete the scan listing lines for each of the msgs in the LIST.
-  ;; Optimized for speed (i.e., no regular expressions).
-  (setq msgs (sort msgs '<))	;okay to clobber msgs
   (save-excursion
-    (mh-first-msg)
-    (while (and msgs (< (point) (point-max)))
-      (cond ((equal (mh-get-msg-num nil) (car msgs))
-	     (delete-region (point) (save-excursion (forward-line) (point)))
-	     (setq msgs (cdr msgs)))
-	    (t
-	     (forward-line))))))
+    (while msgs
+      (if (mh-goto-msg (car msgs) t t)
+	  (mh-delete-line 1))
+      (setq msgs (cdr msgs)))))
 
 
 (defun mh-outstanding-commands-p ()
@@ -1328,6 +1324,8 @@ inform MH of the change."
 (define-key mh-folder-mode-map "\C-o" 'mh-write-msg-to-file)
 (define-key mh-folder-mode-map ">" 'mh-write-msg-to-file)
 (define-key mh-folder-mode-map "!" 'mh-refile-or-write-again)
+
+;; "C-c /" prefix is used in mh-folder-mode by pgp.el and mailcrypt
 
 
 
