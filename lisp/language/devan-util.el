@@ -75,6 +75,15 @@
     (devanagari-compose-region (point-min) (point-max))
     (buffer-string)))
 
+(defun devanagari-post-read-conversion (len)
+  (save-excursion
+    (save-restriction
+      (let ((buffer-modified-p (buffer-modified-p)))
+	(narrow-to-region (point) (+ (point) len))
+	(devanagari-compose-region (point-min) (point-max))
+	(set-buffer-modified-p buffer-modified-p)
+	(- (point-max) (point-min))))))
+
 (defun range (from to)
   "Make the list of the integers of range FROM to TO."
   (let (result) 
