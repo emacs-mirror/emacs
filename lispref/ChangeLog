@@ -1,3 +1,7 @@
+2003-10-10  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network): Introduce make-network-process.
+
 2003-10-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* tips.texi (Library Headers): Fix typo.
