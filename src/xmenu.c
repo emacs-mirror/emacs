@@ -189,7 +189,7 @@ static int menu_items_submenu_depth;
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
-static int popup_activated_flag;
+int popup_activated_flag;
 
 static int next_menubar_widget_id;
 
@@ -1149,7 +1149,6 @@ popup_activated ()
   return popup_activated_flag;
 }
 
-
 /* This callback is invoked when the user selects a menubar cascade
    pushbutton, but before the pulldown menu is posted.  */
 
@@ -1159,7 +1158,27 @@ popup_activate_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
+#ifdef USE_MOTIF
+  ++popup_activated_flag;
+#else
   popup_activated_flag = 1;
+#endif
+}
+
+/* This callback is invoked when a dialog or menu is finished being
+   used and has been unposted.  */
+
+static void
+popup_deactivate_callback (widget, id, client_data)
+     Widget widget;
+     LWLIB_ID id;
+     XtPointer client_data;
+{
+#ifdef USE_MOTIF
+  --popup_activated_flag;
+#else
+  popup_activated_flag = 0;
+#endif
 }
 
 /* Lwlib callback called when menu items are highlighted/unhighlighted
@@ -1289,18 +1308,6 @@ menubar_selection_callback (widget, id, client_data)
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
-}
-
-/* This callback is invoked when a dialog or menu is finished being
-   used and has been unposted.  */
-
-static void
-popup_deactivate_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
-{
-  popup_activated_flag = 0;
 }
 
 /* Allocate a widget_value, blocking input.  */
