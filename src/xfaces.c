@@ -6215,6 +6215,12 @@ build_scalable_font_name (f, font, specified_pt)
   double resy = FRAME_X_DISPLAY_INFO (f)->resy;
   double pt;
 
+  if (font->numeric[XLFD_PIXEL_SIZE] != 0
+      || font->numeric[XLFD_POINT_SIZE] != 0)
+    /* This is a scalable font but is requested for a specific size.
+       We should not change that size.  */
+    return build_font_name (font);
+
   /* If scalable font is for a specific resolution, compute
      the point size we must specify from the resolution of
      the display and the specified resolution of the font.  */
@@ -6511,7 +6517,16 @@ try_font_list (f, pattern, family, registry, fonts)
   int nfonts = 0;
 
   if (STRINGP (pattern))
-    nfonts = font_list (f, pattern, Qnil, Qnil, fonts);
+    {
+      nfonts = font_list (f, pattern, Qnil, Qnil, fonts);
+      if (nfonts == 0 && ! EQ (Vscalable_fonts_allowed, Qt))
+	{
+	  int count = SPECPDL_INDEX ();
+	  specbind (Qscalable_fonts_allowed, Qt);
+	  nfonts = font_list (f, pattern, Qnil, Qnil, fonts);
+	  unbind_to (count, Qnil);
+	}
+    }
   else
     {
       Lisp_Object tail;
