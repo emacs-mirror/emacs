@@ -1307,7 +1307,7 @@ update_menu_bar (f, save_match_data)
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 #ifdef USE_X_TOOLKIT
-	  set_frame_menubar (f, 0);
+	  set_frame_menubar (f, 0, 0);
 #endif /* USE_X_TOOLKIT */
 
 	  unbind_to (count, Qnil);
@@ -4206,8 +4206,8 @@ If this is zero, point is always centered after it moves off frame.");
   DEFVAR_BOOL ("multiple-frames", &multiple_frames,
     "Non-nil if more than one frame is visible on this display.\n\
 Minibuffer-only frames don't count, but iconified frames do.\n\
-This variable is not guaranteed to be accurate except while parsing\n\
-frame-title-format.");
+This variable is not guaranteed to be accurate except while processing\n\
+`frame-title-format' and `icon-title-format'.");
 
   DEFVAR_LISP ("frame-title-format", &Vframe_title_format,
     "Template for displaying the titlebar of visible frames.\n\
