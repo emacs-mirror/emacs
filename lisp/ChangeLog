@@ -1,3 +1,10 @@
+2004-02-16  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
+
+	* net/telnet.el (telnet-interrupt-subjob): Move doc string to the
+	correct place.
+	* progmodes/icon.el (icon-indent-command): Ditto.
+	* textmodes/paragraphs.el (repunctuate-sentences): Ditto.
+
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* progmodes/grep.el (grep-compute-defaults): Undo change from
