@@ -1,13 +1,15 @@
 ;;; ispell.el --- Interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
 
-;; Authors         : Ken Stevens <k.stevens@ieee.org>
-;; Stevens Mod Date: Mon 29 Nov 11:38:34 PST 1999
-;; Stevens Revision: 3.3
+;; Author: Ken Stevens <k.stevens@ieee.org>
+;; Maintainer: <k.stevens@ieee.org>
+;; Stevens Mod Date: Fri Aug  4 09:41:50 PDT 2000
+;; Stevens Revision: 3.4
 ;; Status          : Release with 3.1.12+ and 3.2.0+ ispell.
 ;; Bug Reports     : ispell-el-bugs@itcorp.com
 ;; Web Site        : http://kdstevens.com/~stevens/ispell-page.html
+;; Keywords: unix wp
 
 ;; This file is part of GNU Emacs.
 
@@ -127,6 +129,17 @@
 
 ;; Modifications made in latest versions:
 
+;; Revision 3.4 2000/8/4 09:41:50	kss
+;; Support new color display functions.
+;; Fixed misalignment offset bug when replacing a string after a shift made.
+;; Set to standard Author/Maintainer heading,
+;; ensure localwords lists are separated from the text by newline. (Dave Love)
+;; Added dictionary definition for Italian (William Deakin)
+;; HTML region skipping greatly improved. (Chuck D. Phillips)
+;; improved menus.  Fixed regexp matching http/email addresses.
+;; one arg always for xemacs sleep-for (gunnar Evermann)
+;; support for synchronous processes (Eli Zaretskii)
+
 ;; Revision 3.3  1999/11/29 11:38:34     kss
 ;; Only word replacements entered in from the keyboard are rechecked.
 ;; This fixes a bug in tex parsing and misalignment.
@@ -183,6 +196,9 @@
 	"User variables for emacs ispell interface."
 	:group 'applications)))
 
+(if (not (fboundp 'buffer-substring-no-properties))
+    (defun buffer-substring-no-properties (start end)
+      (buffer-substring start end)))
 
 ;;;###autoload
 (defconst xemacsp (string-match "Lucid\\|XEmacs" emacs-version)
@@ -195,6 +211,11 @@
 ;;;###autoload
 (defconst version20p (string-match "20\\.[0-9]+\\.[0-9]+" emacs-version)
   "Non nil if using emacs version 20.")
+
+(and (not version18p)
+     (not (boundp 'epoch::version))
+     (defalias 'ispell 'ispell-buffer)
+     (defalias 'ispell-check-version 'check-ispell-version))
 
 
 ;;; **********************************************************************
@@ -358,7 +379,7 @@ The following values are supported:
              there for a couple of seconds.
   t          Pop up a new buffer and display a short help message there
              for a couple of seconds.
-  electric   Pop up a new buffer and display a long help message there. 
+  electric   Pop up a new buffer and display a long help message there.
              User can browse and then exit the help mode."
   :type '(choice (const electric) (const :tag "off" nil) (const :tag "on" t))
   :group 'ispell)
@@ -429,6 +450,17 @@ for language-specific arguments."
   :group 'ispell)
 
 
+
+(defcustom ispell-skip-html 'use-mode-name
+  "*Indicates whether ispell should skip spell checking of SGML markup.
+If t, always skip SGML markup; if nil, never skip; if non-t and non-nil,
+guess whether SGML markup should be skipped according to the name of the
+buffer's major mode."
+  :type '(choice (const :tag "always" t) (const :tag "never" nil)
+		 (const :tag "use-mode-name" use-mode-name))
+  :group 'ispell)
+
+
 ;;; Define definitions here only for personal dictionaries.
 ;;;###autoload
 (defcustom ispell-local-dictionary-alist nil
@@ -446,7 +478,7 @@ See `ispell-dictionary-alist'."
 		       (choice :tag "Extended character mode"
 			       (const "~tex") (const "~plaintex")
 			       (const "~nroff") (const "~list")
-			       (const "~latin1") (const "~latin3") 
+			       (const "~latin1") (const "~latin3")
  			       (const :tag "default" nil))
 		       (choice :tag "Character set"
 			       (const iso-8859-1)
@@ -465,7 +497,7 @@ See `ispell-dictionary-alist'."
     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
    ("american"				; Yankee English
     "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1)
-   ("brasiliano"			; Brazilian mode
+   ("brasileiro"			; Brazilian mode
     "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
     "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]"
     "[']" nil ("-d" "brasileiro") nil iso-8859-1)
@@ -474,11 +506,11 @@ See `ispell-dictionary-alist'."
    ("castellano"			; Spanish mode
     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[---]" nil ("-B" "-d" "castellano") "~tex" iso-8859-1)
+    "[-]" nil ("-B" "-d" "castellano") "~tex" iso-8859-1)
    ("castellano8"			; 8 bit Spanish mode
     "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
     "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]"
-    "[---]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1)))
+    "[-]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1)))
 
 
 ;;; Second part of dictionary, shortened for loaddefs.el
@@ -518,7 +550,7 @@ See `ispell-dictionary-alist'."
    ("francais"				; Francais.aff
     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374]"
-    "[---']" t nil "~list" iso-8859-1)))
+    "[-']" t nil "~list" iso-8859-1)))
 
 
 ;;; Fourth part of dictionary, shortened for loaddefs.el
@@ -528,7 +560,11 @@ See `ispell-dictionary-alist'."
  '(("francais-tex"			; Francais.aff
     "[A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
     "[^A-Za-z\300\302\306\307\310\311\312\313\316\317\324\331\333\334\340\342\347\350\351\352\353\356\357\364\371\373\374\\]"
-    "[---'^`\"]" t nil "~tex" iso-8859-1)
+    "[-'^`\"]" t nil "~tex" iso-8859-1)
+   ("italiano"                         ; Italian.aff
+    "[A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
+    "[^A-Z\300\301\310\311\314\315\322\323\331\332a-z\340\341\350\351\354\355\363\371\372]"
+    "[-]" nil ("-B" "-d" "italian") "~tex" iso-8859-1)
    ("nederlands"			; Nederlands.aff
     "[A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
     "[^A-Za-z\300-\305\307\310-\317\322-\326\331-\334\340-\345\347\350-\357\361\362-\366\371-\374]"
@@ -550,7 +586,7 @@ See `ispell-dictionary-alist'."
    ("norsk7-tex"			; 7 bit Norwegian TeX mode
     "[A-Za-z{}\\'^`]" "[^A-Za-z{}\\'^`]"
     "[\"]" nil ("-d" "norsk") "~plaintex" iso-8859-1)
-   ("polish"				; polish mode 
+   ("polish"				; polish mode
     "[A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
     "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
     "" nil ( "-d" "polish") nil iso-8859-2)))
@@ -637,7 +673,7 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 		       (choice :tag "Extended character mode"
 			       (const "~tex") (const "~plaintex")
 			       (const "~nroff") (const "~list")
-			       (const "~latin1") (const "~latin3") 
+			       (const "~latin1") (const "~latin3")
  			       (const :tag "default" nil))
 		       (choice :tag "Character set"
 			       (const iso-8859-1)
@@ -652,9 +688,13 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 	      ispell-dictionary-alist-3 ispell-dictionary-alist-4
 	      ispell-dictionary-alist-5 ispell-dictionary-alist-6))
 
-;;; The preparation of the menu bar menu must be autoloaded
-;;; because otherwise this file gets autoloaded every time Emacs starts
-;;; so that it can set up the menus and determine keyboard equivalents.
+
+
+
+;;; **********************************************************************
+;;; The following are used by ispell, and should not be changed.
+;;; **********************************************************************
+
 
 
 ;;; The version must be 3.1 or greater for this version of ispell.el
@@ -664,7 +704,7 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 (defvar ispell-offset -1
   "Offset that maps protocol differences between ispell 3.1 versions.")
 
-(defconst ispell-version "ispell.el 3.3 -- Mon 29 Nov 11:38:34 PST 1999")
+(defconst ispell-version "ispell.el 3.4 -- Fri Aug  4 09:41:50 PDT 2000")
 
 
 (defun check-ispell-version (&optional interactivep)
@@ -731,6 +771,12 @@ Otherwise returns the library path if defined."
     result))
 
 
+
+;;; The preparation of the menu bar menu must be autoloaded
+;;; because otherwise this file gets autoloaded every time Emacs starts
+;;; so that it can set up the menus and determine keyboard equivalents.
+
+
 ;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu.")
 ;;; redo menu when loading ispell to get dictionary modifications
@@ -773,8 +819,10 @@ and added as a submenu of the \"Edit\" menu.")
 	(cond ((not (stringp name))
 	       (define-key ispell-menu-map (vector 'default)
 		 (cons "Select Default Dict"
-		       (list 'lambda () '(interactive)
-			     (list 'ispell-change-dictionary "default")))))
+		       (cons "Dictionary for which Ispell was configured"
+			     (list 'lambda () '(interactive)
+				   (list
+				     'ispell-change-dictionary "default"))))))
 	      ((or (not path)		; load all if library dir not defined
 		   (file-exists-p (concat path "/" name ".hash"))
 		   (file-exists-p (concat path "/" name ".has"))
@@ -782,7 +830,7 @@ and added as a submenu of the \"Edit\" menu.")
 			(or (file-exists-p(concat path "/" load-dict ".hash"))
 			    (file-exists-p(concat path "/" load-dict ".has")))))
 	       (define-key ispell-menu-map (vector (intern name))
-		 (cons (concat "Select " (capitalize name))
+		 (cons (concat "Select " (capitalize name) " Dict")
 		       (list 'lambda () '(interactive)
 			     (list 'ispell-change-dictionary name)))))))))
 
@@ -792,39 +840,61 @@ and added as a submenu of the \"Edit\" menu.")
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-change-dictionary]
-	'("Change Dictionary" . ispell-change-dictionary))
+	'(menu-item "Change Dictionary..." ispell-change-dictionary
+		    :help "Supply explicit path to dictionary"))
       (define-key ispell-menu-map [ispell-kill-ispell]
-	'("Kill Process" . ispell-kill-ispell))
+	'(menu-item "Kill Process" ispell-kill-ispell
+		    :enable (and ispell-process
+				 (eq (ispell-process-status) 'run))
+		    :help "Terminate Ispell subprocess"))
       (define-key ispell-menu-map [ispell-pdict-save]
-	'("Save Dictionary" . (lambda ()(interactive) (ispell-pdict-save t t))))
+	'(menu-item "Save Dictionary"
+		    (lambda () (interactive) (ispell-pdict-save t t))
+		    :help "Save personal dictionary"))
+      (define-key ispell-menu-map [ispell-help]
+	;; use (x-popup-menu last-nonmenu-event(list "" ispell-help-list)) ?
+	'(menu-item "Help"
+		    (lambda () (interactive) (describe-function 'ispell-help))
+		    :help "Show standard Ispell keybindings and commands"))
       (define-key ispell-menu-map [ispell-complete-word]
-	'("Complete Word" . ispell-complete-word))
+	'(menu-item "Complete Word" ispell-complete-word
+		    :help "Complete word at cursor using dictionary"))
       (define-key ispell-menu-map [ispell-complete-word-interior-frag]
-	'("Complete Word Frag" . ispell-complete-word-interior-frag))))
+	'(menu-item "Complete Word Fragment" ispell-complete-word-interior-frag
+		    :help "Complete word fragment at cursor"))))
 
 ;;;###autoload
 (if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-continue]
-	'("Continue Check" . ispell-continue))
+	'(menu-item "Continue Spell-Checking" ispell-continue
+		    :enable (and (boundp 'ispell-region-end)
+				 (marker-position ispell-region-end)
+				 (equal (marker-buffer ispell-region-end)
+					(current-buffer)))
+		    :help "Continue spell checking last region"))
       (define-key ispell-menu-map [ispell-word]
-	'("Check Word" . ispell-word))
+	'(menu-item "Spell-Check Word" ispell-word
+		    :help "Spell-check word at cursor"))
       (define-key ispell-menu-map [ispell-comments-and-strings]
-	'("Check Comments" . ispell-comments-and-strings))
-      (define-key ispell-menu-map [ispell-region]
-	'("Check Region" . ispell-region))
-      (define-key ispell-menu-map [ispell-buffer]
-	'("Check Buffer" . ispell-buffer))))
+	'(menu-item "Spell-Check Comments" ispell-comments-and-strings
+		    :help "Spell-check only comments and strings"))))
+
 
 ;;;###autoload
 (if ispell-menu-map-needed
     (progn
+      (define-key ispell-menu-map [ispell-region]
+	'(menu-item "Spell-Check Region" ispell-region
+		    :enable mark-active
+		    :help "Spell-check text in marked region"))
       (define-key ispell-menu-map [ispell-message]
-	'("Check Message" . ispell-message))
-      (define-key ispell-menu-map [ispell-help]
-	;; use (x-popup-menu last-nonmenu-event(list "" ispell-help-list)) ?
-	'("Help" . (lambda () (interactive) (describe-function 'ispell-help))))
-      (put 'ispell-region 'menu-enable 'mark-active)
+	'(menu-item "Spell-Check Message" ispell-message
+		    :help "Skip headers and included message text"))
+      (define-key ispell-menu-map [ispell-buffer]
+	'(menu-item "Spell-Check Buffer" ispell-buffer
+		    :help "Check spelling of selected buffer"))
+      ;;(put 'ispell-region 'menu-enable 'mark-active)
       (fset 'ispell-menu-map (symbol-value 'ispell-menu-map))))
 
 ;;; XEmacs versions 19 & 20
@@ -888,8 +958,6 @@ and added as a submenu of the \"Edit\" menu.")
 
 
 ;;; **********************************************************************
-;;; The following are used by ispell, and should not be changed.
-;;; **********************************************************************
 
 
 ;;; This variable contains the current dictionary being used if the ispell
@@ -934,6 +1002,15 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 (defvar ispell-process nil
   "The process object for Ispell.")
 
+(defvar ispell-async-processp (and (fboundp 'kill-process)
+				   (fboundp 'process-send-string)
+				   (fboundp 'accept-process-output)
+				   ;;(fboundp 'start-process)
+				   ;;(fboundp 'set-process-filter)
+				   ;;(fboundp 'process-kill-without-query)
+				   )
+  "Non-nil means that the OS supports asynchronous processes.")
+
 (defvar ispell-pdict-modified-p nil
   "Non-nil means personal dictionary has modifications to be saved.")
 
@@ -942,14 +1019,23 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 ;;; When numeric, contains cursor location in buffer, and cursor remains there.
 (defvar ispell-quit nil)
 
+(defvar ispell-process-directory nil
+  "The directory where `ispell-process' was started.")
+
 (defvar ispell-filter nil
   "Output filter from piped calls to Ispell.")
 
 (defvar ispell-filter-continue nil
   "Control variable for Ispell filter function.")
 
-(defvar ispell-process-directory nil
-  "The directory where `ispell-process' was started.")
+(defvar ispell-output-buffer nil
+  "Buffer used for reading output of a synchronous Ispell subprocess.")
+
+(defvar ispell-session-buffer nil
+  "Buffer used for passing input to a synchronous Ispell subprocess.")
+
+(defvar ispell-cmd-args nil
+  "Command-line arguments to pass to a synchronous Ispell subprocess.")
 
 (defvar ispell-query-replace-marker (make-marker)
   "Marker for `query-replace' processing.")
@@ -999,15 +1085,16 @@ The last occurring definition in the buffer will be used.")
     (ispell-parsing-keyword	   forward-line)
     ("^---*BEGIN PGP [A-Z ]*--*" . "^---*END PGP [A-Z ]*--*")
     ("^---* \\(Start of \\)?[Ff]orwarded [Mm]essage"   . "^---* End of [Ff]orwarded [Mm]essage")
-    ;; matches e-mail addresses, file names, http addresses, etc.
-    ("\\(/\\|\\(\\(\\w\\|-\\)+[.:@]\\)\\)\\(\\w\\|-\\)*\\([.:/@]+\\(\\w\\|-\\|~\\)+\\)+")
+    ;; Matches e-mail addresses, file names, http addresses, etc.  The `-+'
+    ;; pattern necessary for performance reasons when `-' part of word syntax.
+    ("\\(-+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_]\\|~\\)+\\)+\\)")
     ;; This is a pretty complex regexp.  It can be simplified to the following:
-    ;; "\\(\\w\\|-\\)*\\([.:/@]+\\(\\w\\|-\\|~\\)+\\)+"
+    ;; "\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_]\\|~\\)+\\)+"
     ;; but some valid text will be skipped, e.g. "his/her".  This could be
     ;; fixed up (at the expense of a moderately more complex regexp)
     ;; by not allowing "/" to be the character which triggers the
     ;; identification of the computer name, e.g.:
-    ;; "\\(\\w\\|-\\)+[.:@]\\(\\w\\|-\\)*\\([.:/@]+\\(\\w\\|-\\|~\\)+\\)+"
+    ;; "\\(\\w\\|[-_]\\)+[.:@]\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_]\\|~\\)+\\)+"
     )
   "Alist expressing beginning and end of regions not to spell check.
 The alist key must be a regular expression.
@@ -1048,15 +1135,6 @@ Delete or add any regions you want to be automatically selected
 for skipping in latex mode.")
 
 
-(defcustom ispell-skip-sgml 'use-mode-name
-  "*Indicates whether ispell should skip spell checking of SGML markup.
-If t, always skip SGML markup; if nil, never skip; if non-t and non-nil,
-guess whether SGML markup should be skipped according to the name of the
-buffer's major mode."
-  :type '(choice (const :tag "always" t) (const :tag "never" nil)
-		 (const :tag "use-mode-name" use-mode-name))
-  :group 'ispell)
-
 (defvar ispell-local-pdict ispell-personal-dictionary
   "A buffer local variable containing the current personal dictionary.
 If non-nil, the value must be a string, which is a file name.
@@ -1095,18 +1173,108 @@ You can set this variable in hooks in your init file -- eg:
 
 
 
-(and (not version18p)
-     (not (boundp 'epoch::version))
-     (defalias 'ispell 'ispell-buffer)
-     (defalias 'ispell-check-version 'check-ispell-version))
-
-
-(if (not (fboundp 'buffer-substring-no-properties))
-    (defun buffer-substring-no-properties (start end)
-      (buffer-substring start end)))
-
 ;;;###autoload
 (define-key esc-map "$" 'ispell-word)
+
+
+(defun ispell-accept-output (&optional timeout-secs timeout-msecs)
+  "Wait for output from ispell process, or TIMEOUT-SECS and TIMEOUT-MSECS.
+If asynchronous subprocesses are not supported, call `ispell-filter' and
+pass it the output of the last ispell invocation."
+  (if ispell-async-processp
+      (accept-process-output ispell-process timeout-secs timeout-msecs)
+    (if (null ispell-process)
+	(error "No Ispell process to read output from!")
+      (let ((buf ispell-output-buffer)
+	    ispell-output)
+	(if (not (bufferp buf))
+	    (setq ispell-filter nil)
+	  (save-excursion
+	    (set-buffer buf)
+	    (setq ispell-output (buffer-substring-no-properties
+				 (point-min) (point-max))))
+	  (ispell-filter t ispell-output)
+	  (save-excursion
+	    (set-buffer buf)
+	    (erase-buffer)))))))
+
+
+(defun ispell-send-string (string)
+  "Send the string STRING to the Ispell process."
+  (if ispell-async-processp
+      (process-send-string ispell-process string)
+    ;; Asynchronous subprocesses aren't supported on this losing system.
+    ;; We keep all the directives passed to Ispell during the entire
+    ;; session in a buffer, and pass them anew each time we invoke
+    ;; Ispell to process another chunk of text.  (Yes, I know this is a
+    ;; terrible kludge, and it's a bit slow, but it does get the work done.)
+    (let ((cmd (aref string 0))
+	  ;; The following commands are not passed to Ispell until
+	  ;; we have a *reall* reason to invoke it.
+	  (cmds-to-defer '(?* ?@ ?~ ?+ ?- ?! ?%))
+	  (default-major-mode 'fundamental-mode)
+	  (session-buf ispell-session-buffer)
+	  (output-buf ispell-output-buffer)
+	  (ispell-args ispell-cmd-args)
+	  (defdir ispell-process-directory)
+	  prev-pos)
+      (save-excursion
+	(set-buffer session-buf)
+	(setq prev-pos (point))
+	(setq default-directory defdir)
+	(insert string)
+	(if (not (memq cmd cmds-to-defer))
+	    (let (coding-system-for-read coding-system-for-write status)
+	      (if (or xemacsp
+		      (and (boundp 'enable-multibyte-characters)
+			   enable-multibyte-characters))
+		  (setq coding-system-for-read (ispell-get-coding-system)
+			coding-system-for-write (ispell-get-coding-system)))
+	      (set-buffer output-buf)
+	      (erase-buffer)
+	      (set-buffer session-buf)
+	      (setq status
+		    (apply 'call-process-region (point-min) (point-max)
+			   ispell-program-name nil
+			   output-buf nil
+			   "-a" "-m" ispell-args))
+	      (set-buffer output-buf)
+	      (goto-char (point-min))
+	      (save-match-data
+		(if (not (looking-at "@(#) "))
+		    (error "Ispell error: %s"
+			   (buffer-substring-no-properties
+			    (point) (progn (end-of-line) (point)))))
+		;; If STRING is "^Z\n", we just started Ispell and need
+		;; to retain its version ID line in the output buffer.
+		;; Otherwise, remove the ID line, as it will confuse
+		;; `ispell-filter'.
+		(or (string= string "\032\n")
+		    (progn
+		      (forward-line)
+		      (delete-region (point-min) (point))))
+		;; If STRING begins with ^ or any normal character, we need
+		;; to remove the last line from the session buffer, since it
+		;; was just spell-checked, and we don't want to check it again.
+		;; The same goes for the # command, since Ispell already saved
+		;; the personal dictionary.
+		(set-buffer session-buf)
+		(delete-region prev-pos (point))
+		;; Ispell run synchronously saves the personal dictionary
+		;; after each successful command.  So we can remove any
+		;; lines in the session buffer that insert words into the
+		;; dictionary.
+		(if (memq status '(0 nil))
+		    (let ((more-lines t))
+		      (goto-char (point-min))
+		      (while more-lines
+			(if (looking-at "^\\*")
+			    (let ((start (point)))
+			      (forward-line)
+			      (delete-region start (point)))
+			  (setq more-lines (= 0 (forward-line))))))))))))))
+
+
 
 ;;;###autoload
 (defun ispell-word (&optional following quietly continue)
@@ -1156,13 +1324,13 @@ quit          spell session exited."
 	(or quietly
 	    (message "Checking spelling of %s..."
 		     (funcall ispell-format-word word)))
-	(process-send-string ispell-process "%\n") ;put in verbose mode
-	(process-send-string ispell-process (concat "^" word "\n"))
+	(ispell-send-string "%\n")	; put in verbose mode
+	(ispell-send-string (concat "^" word "\n"))
 	;; wait until ispell has processed word
 	(while (progn
-		 (accept-process-output ispell-process)
+		 (ispell-accept-output)
 		 (not (string= "" (car ispell-filter)))))
-	;;(process-send-string ispell-process "!\n") ;back to terse mode.
+	;;(ispell-send-string "!\n") ;back to terse mode.
 	(setq ispell-filter (cdr ispell-filter)) ; remove extra \n
 	(if (and ispell-filter (listp ispell-filter))
 	    (if (> (length ispell-filter) 1)
@@ -1296,7 +1464,7 @@ If so, ask if it needs to be saved."
   (if (or ispell-pdict-modified-p force-save)
       (if (or no-query (y-or-n-p "Personal dictionary modified.  Save? "))
 	  (progn
-	    (process-send-string ispell-process "#\n") ; save dictionary
+	    (ispell-send-string "#\n")	; save dictionary
 	    (message "Personal dictionary saved."))))
   ;; unassert variable, even if not saved to avoid questioning.
   (setq ispell-pdict-modified-p nil))
@@ -1372,7 +1540,7 @@ Global `ispell-quit' set to start location to continue spell session."
     ;; ensure word is visible
     (if (not (pos-visible-in-window-p end))
 	(sit-for 0))
-    
+
     ;; allow temporary split of dedicated windows...
     (if dedicated
 	(progn
@@ -1418,11 +1586,11 @@ Global `ispell-quit' set to start location to continue spell session."
 		  (cond
 		   ((= char ? ) nil)	; accept word this time only
 		   ((= char ?i)		; accept and insert word into pers dict
-		    (process-send-string ispell-process (concat "*" word "\n"))
+		    (ispell-send-string (concat "*" word "\n"))
 		    (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
 		    nil)
 		   ((or (= char ?a) (= char ?A)) ; accept word without insert
-		    (process-send-string ispell-process (concat "@" word "\n"))
+		    (ispell-send-string (concat "@" word "\n"))
 		    (if (null ispell-pdict-modified-p)
 			(setq ispell-pdict-modified-p
 			      (list ispell-pdict-modified-p)))
@@ -1518,14 +1686,12 @@ Global `ispell-quit' set to start location to continue spell session."
 							  'block))
 		    t)			; reselect from new choices
 		   ((= char ?u)		; insert lowercase into dictionary
-		    (process-send-string ispell-process
-					 (concat "*" (downcase word) "\n"))
+		    (ispell-send-string (concat "*" (downcase word) "\n"))
 		    (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
 		    nil)
 		   ((= char ?m)		; type in what to insert
-		    (process-send-string
-		     ispell-process (concat "*" (read-string "Insert: " word)
-					    "\n"))
+		    (ispell-send-string
+		     (concat "*" (read-string "Insert: " word) "\n"))
 		    (setq ispell-pdict-modified-p '(t))
 		    (cons word nil))
 		   ((and (>= num 0) (< num count))
@@ -1641,7 +1807,7 @@ SPC:   Accept word this time.
   (if (equal ispell-help-in-bufferp 'electric)
       (progn
 	(require 'ehelp)
-	(with-electric-help 
+	(with-electric-help
 	 (function (lambda ()
 		     ;;This shouldn't be necessary: with-electric-help needs
 		     ;; an optional argument telling it about the smallest
@@ -1859,7 +2025,9 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
    (xemacsp
     (ispell-highlight-spelling-error-xemacs start end highlight))
    ((and (not version18p)
-	 (featurep 'faces) window-system)
+	 (featurep 'faces)
+	 (or (and (fboundp 'display-color-p) (display-color-p))
+	     window-system))
     (ispell-highlight-spelling-error-overlay start end highlight))
    (t (ispell-highlight-spelling-error-generic start end highlight refresh))))
 
@@ -1942,11 +2110,52 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
 	      (nreverse miss-list) (nreverse guess-list)))))))
 
 
+(defun ispell-process-status ()
+  "Return the status of the Ispell process.
+When asynchronous processes are not supported, `run' is always returned."
+  (if ispell-async-processp
+      (process-status ispell-process)
+    (and ispell-process 'run)))
+
+
+(defun ispell-start-process ()
+  "Start the ispell process, with support for no asynchronous processes.
+Keeps argument list for future ispell invocations for no async support."
+  (let (args)
+    ;; Local dictionary becomes the global dictionary in use.
+    (if ispell-local-dictionary
+	(setq ispell-dictionary ispell-local-dictionary))
+    (setq args (ispell-get-ispell-args))
+    (if ispell-dictionary		; use specified dictionary
+	(setq args
+	      (append (list "-d" ispell-dictionary) args)))
+    (if ispell-personal-dictionary	; use specified pers dict
+	(setq args
+	      (append args
+		      (list "-p"
+			    (expand-file-name ispell-personal-dictionary)))))
+    (setq args (append args ispell-extra-args))
+
+    (if ispell-async-processp
+	(let ((process-connection-type ispell-use-ptys-p))
+	  (apply 'start-process
+		 "ispell" nil ispell-program-name
+		 "-a"			; accept single input lines
+		 "-m"			; make root/affix combos not in dict
+		 args))
+      (setq ispell-cmd-args args
+	    ispell-output-buffer (generate-new-buffer " *ispell-output*")
+	    ispell-session-buffer (generate-new-buffer " *ispell-session*"))
+      (ispell-send-string "\032\n")	; so Ispell prints version and exits
+      t)))
+
+
+
 (defun ispell-init-process ()
   "Check status of Ispell process and start if necessary."
   (if (and ispell-process
-	   (eq (process-status ispell-process) 'run)
-	   ;; If we're using a personal dictionary, assure
+	   (eq (ispell-process-status) 'run)
+	   ;; If we're using a personal dictionary, ensure
 	   ;; we're in the same default directory!
 	   (or (not ispell-personal-dictionary)
 	       (equal ispell-process-directory default-directory)))
@@ -1956,32 +2165,12 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
     (message "Starting new Ispell process...")
     (sit-for 0)
     (check-ispell-version)
-    (setq ispell-process
-	  (let ((process-connection-type ispell-use-ptys-p))
-	    (apply 'start-process
-		   "ispell" nil ispell-program-name
-		   "-a"			; accept single input lines
-		   "-m"			; make root/affix combos not in dict
-		   (let (args)
-		     ;; Local dictionary becomes the global dictionary in use.
-		     (if ispell-local-dictionary
-			 (setq ispell-dictionary ispell-local-dictionary))
-		     (setq args (ispell-get-ispell-args))
-		     (if ispell-dictionary ; use specified dictionary
-			 (setq args
-			       (append (list "-d" ispell-dictionary) args)))
-		     (if ispell-personal-dictionary ; use specified pers dict
-			 (setq args
-			       (append args
-				       (list "-p"
-					     (expand-file-name
-					      ispell-personal-dictionary)))))
-		     (setq args (append args ispell-extra-args))
-		     args)))
+    (setq ispell-process-directory default-directory
+	  ispell-process (ispell-start-process)
 	  ispell-filter nil
-	  ispell-filter-continue nil
-	  ispell-process-directory default-directory)
-    (set-process-filter ispell-process 'ispell-filter)
+	  ispell-filter-continue nil)
+    (if ispell-async-processp
+	(set-process-filter ispell-process 'ispell-filter))
     ;; protect against bogus binding of `enable-multibyte-characters' in XEmacs
     (if (and (or xemacsp
 		 (and (boundp 'enable-multibyte-characters)
@@ -1991,10 +2180,10 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
 				   (ispell-get-coding-system)))
     ;; Get version ID line
     (if (not version18p)
-	(accept-process-output ispell-process 3)
-      (accept-process-output ispell-process))
+	(ispell-accept-output 3)
+      (ispell-accept-output))
     ;; get more output if filter empty?
-    (if (null ispell-filter) (accept-process-output ispell-process 3))
+    (if (null ispell-filter) (ispell-accept-output 3))
     (cond ((null ispell-filter)
 	   (error "%s did not output version line" ispell-program-name))
 	  ((and
@@ -2002,8 +2191,8 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
 	    (if (string-match "warning: " (car ispell-filter))
 		(progn
 		  (if (not version18p)
-		      (accept-process-output ispell-process 3) ; was warn msg.
-		    (accept-process-output ispell-process))
+		      (ispell-accept-output 3) ; was warn msg.
+		    (ispell-accept-output))
 		  (stringp (car ispell-filter)))
 	      (null (cdr ispell-filter)))
 	    (string-match "^@(#) " (car ispell-filter)))
@@ -2015,14 +2204,14 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
 	   ;; But first wait to see if some more output is going to arrive.
 	   ;; Otherwise we get cool errors like "Can't open ".
 	   (sleep-for 1)
-	   (accept-process-output ispell-process 3)
+	   (ispell-accept-output 3)
 	   (error "%s" (mapconcat 'identity ispell-filter "\n"))))
     (setq ispell-filter nil)		; Discard version ID line
     (let ((extended-char-mode (ispell-get-extended-character-mode)))
       (if extended-char-mode		; ~ extended character mode
-	  (process-send-string ispell-process
-			       (concat extended-char-mode "\n"))))
-    (process-kill-without-query ispell-process)))
+	  (ispell-send-string (concat extended-char-mode "\n"))))
+    (if ispell-async-processp
+	(process-kill-without-query ispell-process))))
 
 ;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)
@@ -2030,18 +2219,26 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
 With NO-ERROR, just return non-nil if there was no Ispell running."
   (interactive)
   (if (not (and ispell-process
-		(eq (process-status ispell-process) 'run)))
+		(eq (ispell-process-status) 'run)))
       (or no-error
 	  (error "There is no ispell process running!"))
-    (process-send-eof ispell-process)
-    (if (eq (process-status ispell-process) 'run)
-	(accept-process-output ispell-process 1))
-    (if (eq (process-status ispell-process) 'run)
-	(kill-process ispell-process))
-    (while (not (or (eq (process-status ispell-process) 'exit)
-		    (eq (process-status ispell-process) 'signal)))
-      (if version20p (sleep-for 0.25)
-	(sleep-for 0 250)))
+    (if ispell-async-processp
+	(progn
+	  (process-send-eof ispell-process)
+	  (if (eq (ispell-process-status) 'run)
+	      (ispell-accept-output 1))
+	  (if (eq (ispell-process-status) 'run)
+	      (kill-process ispell-process))
+	  (while (not (or (eq (ispell-process-status) 'exit)
+			  (eq (ispell-process-status) 'signal)))
+	    (if (or xemacsp version20p) (sleep-for 0.25)
+	      (sleep-for 0 250))))
+      ;; synchronous processes
+      (ispell-send-string "\n")		; make sure side effects occurred.
+      (kill-buffer ispell-output-buffer)
+      (kill-buffer ispell-session-buffer)
+      (setq ispell-output-buffer nil
+	    ispell-session-buffer nil))
     (setq ispell-process nil)
     (message "Ispell process killed")
     nil))
@@ -2210,13 +2407,13 @@ Return nil if spell session is quit,
 				  "\\|" skip-regexp)))
     (if ispell-skip-tib
 	(setq skip-regexp (concat ispell-tib-ref-beginning "\\|" skip-regexp)))
-    (if ispell-skip-sgml
-	(setq skip-regexp (concat "<author>" "\\|"
-				  "<[cC][oO][dD][eE]>" "\\|" 
-				  "<[vV][eE][rR][bB]>" "\\|" 
-				  ;; "<[tT][tT]>" "\\|"
+    (if ispell-skip-html
+	(setq skip-regexp (concat "<[cC][oO][dD][eE]\\>[^>]*>" "\\|"
+				  "<[sS][cC][rR][iI][pP][tT]\\>[^>]*>" "\\|"
+				  "<[aA][pP][pP][lL][eE][tT]\\>[^>]*>" "\\|"
+				  "<[vV][eE][rR][bB]\\>[^>]*>" "\\|"
+				  ;; "<[tT][tT]\\>[^>]*>" "\\|"
 				  "<[tT][tT]/" "\\|"
-				  "</" "\\|"
 				  "<" "\\|"
 				  "&" "\\|"
 				  skip-regexp)))
@@ -2282,22 +2479,26 @@ otherwise, the current line is skipped."
       (search-forward comment-start ispell-region-end :end))
      ((and ispell-skip-tib (string-match ispell-tib-ref-beginning key))
       (re-search-forward ispell-tib-ref-end ispell-region-end t))
-     ((and ispell-skip-sgml (string-match "<author>" key))
-      (search-forward-regexp ".$" ispell-region-end t))
-     ((and ispell-skip-sgml (string-match "</" key))
+     ((and ispell-skip-html (string-match "</" key))
       (search-forward ">" ispell-region-end t))
-     ((and ispell-skip-sgml (string-match "<[cC][oO][dD][eE]>" key))  
+     ((and ispell-skip-html (string-match "<[cC][oO][dD][eE]\\>[^>]*>" key))
       (search-forward-regexp "</[cC][oO][dD][eE]>" ispell-region-end t))
-     ((and ispell-skip-sgml (string-match "<[vV][eE][rR][bB]>" key))  
+     ((and ispell-skip-html
+	   (string-match "<[sS][cC][rR][iI][pP][tT]\\>[^>]*>" key))
+      (search-forward-regexp "</[sS][cC][rR][iI][pP][tT]>" ispell-region-end t))
+     ((and ispell-skip-html
+	   (string-match "<[aA][pP][pP][lL][eE][tT]\\>[^>]*>" key))
+      (search-forward-regexp "</[aA][pP][pP][lL][eE][tT]>" ispell-region-end t))
+     ((and ispell-skip-html (string-match "<[vV][eE][rR][bB]\\>[^>]*>" key))
       (search-forward-regexp "</[vV][eE][rR][bB]>" ispell-region-end t))
-     ;;((and ispell-skip-sgml (string-match "<[tT][tT]>" key))  
-     ;; (search-forward-regexp "</[tT][tT]>" ispell-region-end t))     
-     ((and ispell-skip-sgml (string-match "<[tT][tT]/" key))  
-      (search-forward "/" ispell-region-end t))      
-     ((and ispell-skip-sgml (string-match "<" key))
-      (search-forward-regexp "[/>]" ispell-region-end t))
-     ((and ispell-skip-sgml (string-match "&" key))
-      (search-forward ";" ispell-region-end t))
+     ;;((and ispell-skip-html (string-match "<[tT][tT]\\>[^>]*>" key))
+     ;; (search-forward-regexp "</[tT][tT]>" ispell-region-end t))
+     ((and ispell-skip-html (string-match "<[tT][tT]/" key))
+      (search-forward "/" ispell-region-end t))
+     ((and ispell-skip-html (string-match "<" key))
+      (search-forward ">" ispell-region-end t))
+     ((and ispell-skip-html (string-match "&" key))
+      (search-forward-regexp "[; \t\n]" ispell-region-end t))
      ;; markings from alist
      (t
       (while alist
@@ -2335,7 +2536,7 @@ otherwise, the current line is skipped."
     (cond				; LOOK AT THIS LINE AND SKIP OR PROCESS
      ((eolp)				; END OF LINE, just go to next line.
       (forward-line))
-     ;;((looking-at "[---#@*+!%~^]")	; SKIP SPECIAL ISPELL CHARACTERS
+     ;;((looking-at "[-#@*+!%~^]")	; SKIP SPECIAL ISPELL CHARACTERS
      ;; (forward-char 1))		; not needed as quoted below.
      ((or (re-search-forward ispell-casechars end t) ; TEXT EXISTS
 	  (re-search-forward "[][()${}]" end t)) ; or MATH COMMANDS
@@ -2345,6 +2546,11 @@ otherwise, the current line is skipped."
      (t (goto-char end)))		; EMPTY LINE, skip it.
     string))
 
+
+;;; Avoid error messages when compiling for these dynamic variables.
+(eval-when-compile
+  (defvar start)
+  (defvar end))
 
 (defun ispell-process-line (string shift)
   "Sends a LINE of text to ispell and processes the result.
@@ -2356,9 +2562,9 @@ Returns the sum shift due to changes in word replacements."
     (if (not (numberp shift))
 	(setq shift 0))
     ;; send string to spell process and get input.
-    (process-send-string ispell-process string)
+    (ispell-send-string string)
     (while (progn
-	     (accept-process-output ispell-process)
+	     (ispell-accept-output)
 	     ;; Last item of output contains a blank line.
 	     (not (string= "" (car ispell-filter)))))
     ;; parse all inputs from the stream one word at a time.
@@ -2386,7 +2592,6 @@ Returns the sum shift due to changes in word replacements."
 	    (ispell-horiz-scroll)
 	    (goto-char word-start)
 	    (ispell-horiz-scroll)
-
 	    ;; Alignment cannot be tracked and this error will occur when
 	    ;; `query-replace' makes multiple corrections on the starting line.
 	    (if (/= (+ word-len (point))
@@ -2426,7 +2631,7 @@ Returns the sum shift due to changes in word replacements."
 		  (set-marker line-end (point))
 		  (setq ispell-filter nil
 			recheck-region t)))
-				       
+
 	    ;; insert correction if needed
 	    (cond
 	     ((or (null replace)
@@ -2458,6 +2663,7 @@ Returns the sum shift due to changes in word replacements."
 		    (let ((region-end (copy-marker ispell-region-end)))
 		      (setq recheck-region ispell-filter
 			    ispell-filter nil ; save filter
+			    shift 0	; already accounted
 			    shift (ispell-region
 				  word-start
 				  (+ word-start (length replace-word))
@@ -2655,7 +2861,7 @@ Standard ispell choices are then available."
 (defun ispell-minor-mode (&optional arg)
   "Toggle Ispell minor mode.
 With prefix arg, turn Ispell minor mode on iff arg is positive.
- 
+
 In Ispell minor mode, pressing SPC or RET
 warns you if the previous word is incorrectly spelled.
 
@@ -2666,7 +2872,7 @@ them into the running ispell process, type \\[ispell-word] SPC."
 	(not (or (and (null arg) ispell-minor-mode)
 		 (<= (prefix-numeric-value arg) 0))))
   (force-mode-line-update))
- 
+
 (defun ispell-minor-check ()
   "Check previous word then continue with the normal binding of this key.
 Don't check previous word when character before point is a space or newline.
@@ -2677,8 +2883,8 @@ Don't read buffer-local settings or word lists."
 	(last-char (char-after (1- (point)))))
     (command-execute (key-binding (this-command-keys)))
     (if (not (or (eq last-char ?\ ) (eq last-char ?\n)
-		 (and ispell-skip-sgml (eq last-char ?>))
-		 (and ispell-skip-sgml (eq last-char ?\;))))
+		 (and ispell-skip-html (eq last-char ?>))
+		 (and ispell-skip-html (eq last-char ?\;))))
 	(ispell-word nil t))))
 
 
@@ -2852,7 +3058,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 Overrides the default parsing mode.
 Includes Latex/Nroff modes and extended character mode."
   ;; (ispell-init-process) must already be called.
-  (process-send-string ispell-process "!\n") ; Put process in terse mode.
+  (ispell-send-string "!\n")		; Put process in terse mode.
   ;; We assume all major modes with "tex-mode" in them should use latex parsing
   ;; When exclusively checking comments, set to raw text mode (nroff).
   (if (and (not (eq 'exclusive ispell-check-comments))
@@ -2861,19 +3067,19 @@ Includes Latex/Nroff modes and extended character mode."
 				  (symbol-name major-mode)))
 	       (eq ispell-parser 'tex)))
       (progn
-	(process-send-string ispell-process "+\n") ; set ispell mode to tex
+	(ispell-send-string "+\n")	; set ispell mode to tex
 	(if (not (eq ispell-parser 'tex))
 	    (set (make-local-variable 'ispell-parser) 'tex)))
-    (process-send-string ispell-process "-\n"))	; set mode to normal (nroff)
+    (ispell-send-string "-\n"))		; set mode to normal (nroff)
   ;; If needed, test for SGML & HTML modes and set a buffer local nil/t value.
-  (if (and ispell-skip-sgml (not (eq ispell-skip-sgml t)))
-      (set (make-local-variable 'ispell-skip-sgml)
+  (if (and ispell-skip-html (not (eq ispell-skip-html t)))
+      (set (make-local-variable 'ispell-skip-html)
 	   (not (null (string-match "sgml\\|html"
 				    (downcase (symbol-name major-mode)))))))
   ;; Set default extended character mode for given buffer, if any.
   (let ((extended-char-mode (ispell-get-extended-character-mode)))
     (if extended-char-mode
-	(process-send-string ispell-process (concat extended-char-mode "\n"))))
+	(ispell-send-string (concat extended-char-mode "\n"))))
   ;; Set buffer-local parsing mode and extended character mode, if specified.
   (save-excursion
     (goto-char (point-max))
@@ -2888,11 +3094,11 @@ Includes Latex/Nroff modes and extended character mode."
 				    (match-beginning 1) (match-end 1))))
 	    (cond ((and (string-match "latex-mode" string)
 			(not (eq 'exclusive ispell-check-comments)))
-		   (process-send-string ispell-process "+\n~tex\n"))
+		   (ispell-send-string "+\n~tex\n"))
 		  ((string-match "nroff-mode" string)
-		   (process-send-string ispell-process "-\n~nroff\n"))
+		   (ispell-send-string "-\n~nroff\n"))
 		  ((string-match "~" string) ; Set extended character mode.
-		   (process-send-string ispell-process (concat string "\n")))
+		   (ispell-send-string (concat string "\n")))
 		  (t (message "Invalid Ispell Parsing argument!")
 		     (sit-for 2))))))))
 
@@ -2965,8 +3171,7 @@ Both should not be used to define a buffer-local dictionary."
 	  ;; Error handling needs to be added between ispell and emacs.
 	  (if (and (< 1 (length string))
 		   (equal 0 (string-match ispell-casechars string)))
-	      (process-send-string ispell-process
-				   (concat "@" string "\n"))))))))
+	      (ispell-send-string (concat "@" string "\n"))))))))
 
 
 ;;; returns optionally adjusted region-end-point.
@@ -2978,10 +3183,11 @@ Both should not be used to define a buffer-local dictionary."
   (save-excursion
     (goto-char (point-min))
     (let ((old-case-fold-search case-fold-search)
-	  line-okay search done string)
+	  line-okay search done found)
       (while (not done)
 	(setq case-fold-search nil
 	      search (search-forward ispell-words-keyword nil 'move)
+	      found (or found search)
 	      line-okay (< (+ (length word) 1 ; 1 for space after word..
 			      (progn (end-of-line) (current-column)))
 			   80)
@@ -2993,16 +3199,15 @@ Both should not be used to define a buffer-local dictionary."
 	      (if (null search)
 		  (progn
 		    (open-line 1)
-		    (setq string (concat comment-start " "
-					 ispell-words-keyword))
-		    (insert string)
-		    (if (and comment-end (not (equal "" comment-end)))
+		    (unless found (newline))
+		    (insert (concat comment-start " " ispell-words-keyword))
+		    (if (> (length comment-end) 0)
 			(save-excursion
-			  (open-line 1)
-			  (forward-line 1)
+			  (newline)
 			  (insert comment-end)))))
 	      (insert (concat " " word))))))))
 
+(add-to-list 'debug-ignored-errors "^No word found to check!$")
 
 (provide 'ispell)
 
