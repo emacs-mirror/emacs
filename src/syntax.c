@@ -1348,11 +1348,33 @@ skip_chars (forwardp, syntaxp, string, lim)
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
   int size_byte;
+  unsigned char *str;
+  int len;
 
   CHECK_STRING (string, 0);
   char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
   string_multibyte = STRING_MULTIBYTE (string);
+  str = XSTRING (string)->data;
   size_byte = STRING_BYTES (XSTRING (string));
+
+  /* Adjust the multibyteness of the string to that of the buffer.  */
+  if (multibyte != string_multibyte)
+    {
+      int nbytes;
+
+      if (multibyte)
+	nbytes = count_size_as_multibyte (XSTRING (string)->data,
+					  XSTRING (string)->size);
+      else
+	nbytes = XSTRING (string)->size;
+      if (nbytes != size_byte)
+	{
+	  str = (unsigned char *) alloca (nbytes);
+	  copy_text (XSTRING (string)->data, str, nbytes,
+		     string_multibyte, multibyte);
+	  size_byte = nbytes;
+	}
+    }
 
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
@@ -1367,12 +1389,12 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   bzero (fastmap, sizeof fastmap);
 
-  i = 0, i_byte = 0;
+  i_byte = 0;
 
   if (i_byte < size_byte
       && XSTRING (string)->data[0] == '^')
     {
-      negate = 1; i++, i_byte++;
+      negate = 1; i_byte++;
     }
 
   /* Find the characters specified and set their elements of fastmap.
@@ -1381,16 +1403,10 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   while (i_byte < size_byte)
     {
-      int c_leading_code = XSTRING (string)->data[i_byte];
+      int c_leading_code = str[i_byte];
 
-      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
-
-      /* Convert multibyteness between what the string has
-	 and what the buffer has.  */
-      if (multibyte)
-	c = unibyte_char_to_multibyte (c);
-      else
-	c &= 0377;
+      c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte - i_byte, len);
+      i_byte += len;
 
       if (syntaxp)
 	fastmap[syntax_spec_code[c & 0377]] = 1;
@@ -1401,23 +1417,25 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      if (i_byte == size_byte)
 		break;
 
-	      c_leading_code = XSTRING (string)->data[i_byte];
-	      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+	      c_leading_code = str[i_byte];
+	      c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      i_byte += len;
 	    }
 	  if (i_byte < size_byte
-	      && XSTRING (string)->data[i_byte] == '-')
+	      && str[i_byte] == '-')
 	    {
 	      unsigned int c2, c2_leading_code;
 
 	      /* Skip over the dash.  */
-	      i++, i_byte++;
+	      i_byte++;
 
 	      if (i_byte == size_byte)
 		break;
 
 	      /* Get the end of the range.  */
-	      c2_leading_code = XSTRING (string)->data[i_byte];
-	      FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
+	      c2_leading_code = str[i_byte];
+	      c2 =STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      i_byte += len;
 
 	      if (SINGLE_BYTE_CHAR_P (c))
 		{
