@@ -79,7 +79,7 @@ enum Lisp_Misc_Type
     Lisp_Misc_Buffer_Local_Value,
     Lisp_Misc_Some_Buffer_Local_Value,
     Lisp_Misc_Overlay,
-    Lisp_Misc_Display_Objfwd,
+    Lisp_Misc_Kboard_Objfwd,
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
@@ -384,7 +384,7 @@ extern int pure_size;
 #define XBUFFER_OBJFWD(a) (&(XMISC(a)->u_buffer_objfwd))
 #define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
 #define XOVERLAY(a) (&(XMISC(a)->u_overlay))
-#define XDISPLAY_OBJFWD(a) (&(XMISC(a)->u_display_objfwd))
+#define XKBOARD_OBJFWD(a) (&(XMISC(a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
@@ -486,17 +486,18 @@ typedef struct interval *INTERVAL;
 #endif /* USE_TEXT_PROPERTIES */
 
 #define ECHOBUFSIZE 300
-/* All of the per-display objects, packaged together in a struct.  */
-typedef struct PERDISPLAY PERDISPLAY;
-struct PERDISPLAY
+/* When more than one keyboard is in use (via make-frame-on-display),
+   each will have a separate instance of this structure.  */
+typedef struct KBOARD KBOARD;
+struct KBOARD
   {
-    PERDISPLAY *next_perdisplay;
+    KBOARD *next_kboard;
 
     /* The state of a prefix arg.  */
     Lisp_Object prefix_factor, prefix_value;
     int prefix_sign, prefix_partial;
 
-    /* Unread events specific to this display.  */
+    /* Unread events specific to this kboard.  */
     Lisp_Object kbd_queue;
 
     /* Non-nil while a kbd macro is being defined.  */
@@ -528,7 +529,11 @@ struct PERDISPLAY
     int kbd_queue_has_data;
 
     /* Placeholder for future vars that will be moved here.  */
-    Lisp_Object unused[18];
+    Lisp_Object unused[17];
+
+    /* This is normally 1, but can be larger if you have multiple screens
+       on a single X display.  */
+    int reference_count;
 
     /* Nonzero means echo each character as typed.  */
     int immediate_echo;
@@ -545,26 +550,25 @@ struct PERDISPLAY
     char echobuf[ECHOBUFSIZE];
   };
 
-#ifdef MULTI_PERDISPLAY
-/* The perdisplay object associated with a particular frame.  */
-extern PERDISPLAY *get_perdisplay ();
+#ifdef MULTI_KBOARD
+/* Temporarily used before a frame has been opened, and for termcap frames */
+extern KBOARD *initial_kboard;
 
-/* The perdisplay object associated with the command currently being read
+/* The kboard object associated with the command currently being read
    or executed.  */
-extern PERDISPLAY *current_perdisplay;
+extern KBOARD *current_kboard;
 
-/* A list of all perdisplay objects, linked through next_perdisplay.  */
-extern PERDISPLAY *all_perdisplays;
+/* A list of all kboard objects, linked through next_kboard.  */
+extern KBOARD *all_kboards;
 
-/* Nonzero if current_perdisplay has exclusive use of the keyboard.
+/* Nonzero if current_kboard has exclusive use of the keyboard.
    Usually this means that a command is being executed.  */
-extern int display_locked;
+extern int kboard_locked;
 #else
-extern PERDISPLAY the_only_perdisplay;
-#define get_perdisplay(f) (&the_only_perdisplay)
-#define current_perdisplay (&the_only_perdisplay)
-#define all_perdisplays (&the_only_perdisplay)
-#define display_locked 1
+extern KBOARD the_only_kboard;
+#define current_kboard (&the_only_kboard)
+#define all_kboards (&the_only_kboard)
+#define kboard_locked 1
 #endif
 
 /* In a cons, the markbit of the car is the gc mark bit */
@@ -759,10 +763,10 @@ struct Lisp_Overlay
   };
 
 /* Like Lisp_Objfwd except that value lives in a slot in the
-   current perdisplay.  */
-struct Lisp_Display_Objfwd
+   current kboard.  */
+struct Lisp_Kboard_Objfwd
   {
-    int type : 16;	/* = Lisp_Misc_Display_Objfwd */
+    int type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
     int spacer : 16;
     int offset;
   };
@@ -779,7 +783,7 @@ union Lisp_Misc
     struct Lisp_Buffer_Objfwd u_buffer_objfwd;
     struct Lisp_Buffer_Local_Value u_buffer_local_value;
     struct Lisp_Overlay u_overlay;
-    struct Lisp_Display_Objfwd u_display_objfwd;
+    struct Lisp_Kboard_Objfwd u_kboard_objfwd;
   };
 
 #ifdef LISP_FLOAT_TYPE
@@ -938,8 +942,8 @@ typedef unsigned char UCHAR;
 #define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
 #define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
 #define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
-#define DISPLAY_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Display_Objfwd)
-#define GC_DISPLAY_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Display_Objfwd)
+#define KBOARD_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Kboard_Objfwd)
+#define GC_KBOARD_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Kboard_Objfwd)
 
 
 /* True if object X is a pseudovector whose code is CODE.  */
@@ -1142,7 +1146,7 @@ extern void defsubr ();
 extern void defvar_lisp ();
 extern void defvar_bool ();
 extern void defvar_int ();
-extern void defvar_display ();
+extern void defvar_kboard ();
 
 /* Macros we use to define forwarded Lisp variables.
    These are used in the syms_of_FILENAME functions.  */
@@ -1153,10 +1157,10 @@ extern void defvar_display ();
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
 #define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
  defvar_per_buffer (lname, vname, type, 0)
-#define DEFVAR_DISPLAY(lname, vname, doc) \
- defvar_display (lname, \
-		 (int)((char *)(&current_perdisplay->vname) \
-		       - (char *)current_perdisplay))
+#define DEFVAR_KBOARD(lname, vname, doc) \
+ defvar_kboard (lname, \
+		(int)((char *)(&current_kboard->vname) \
+		      - (char *)current_kboard))
 
 /* Structure for recording Lisp call stack for backtrace purposes.  */
 
