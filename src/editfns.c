@@ -589,15 +589,14 @@ is returned as a character.")
     pos_byte = PT_BYTE;
   else if (MARKERP (pos))
     pos_byte = marker_byte_position (pos);
+  else if (pos <= BEGV || pos > ZV)
+    return Qnil;
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
-
-  if (pos_byte <= BEGV_BYTE || pos_byte > ZV_BYTE)
-    return Qnil;
 
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
