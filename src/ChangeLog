@@ -1,5 +1,7 @@
 2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_frame_set_char_size): Call x_wm_set_size_hint.
+
 	* xfaces.c (lface_fully_specified_p): Take into account that
 	MAC OS always have unspecified stipple.
 
