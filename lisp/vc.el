@@ -1545,7 +1545,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  ((eq backend 'CVS)
 	   (vc-do-command 0 "cvs" file 'WORKFILE ;; CVS
 			  "add"
-			  (and comment (not (string= comment ""))
+			  (and comment (string-match "[^\t\n ]" comment)
 			       (concat "-m" comment)))
 	   )))
   (message "Registering %s...done" file)
@@ -1688,8 +1688,9 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; accordingly.
   (message "Checking in %s..." file)
   ;; "This log message intentionally left almost blank".
-  (and (or (not comment) (string= comment ""))
-       (setq comment "*** empty log message ***"))
+  ;; RCS 5.7 gripes about white-space-only comments too.
+  (or (and comment (string-match "[^\t\n ]" comment))
+      (setq comment "*** empty log message ***"))
   (save-excursion
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
