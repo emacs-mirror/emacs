@@ -268,6 +268,10 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 
 (defvar tex-mode-syntax-table nil
   "Syntax table used while in TeX mode.")
+
+;;;;
+;;;; Imenu support
+;;;;
 
 (defcustom latex-imenu-indent-string ". "
   "*String to add repeated in front of nested sectional units for Imenu.
@@ -281,9 +285,19 @@ An alternative value is \" . \", if you use a font with a narrow period."
     ("subsubsection" . 4)
     ("paragraph" . 5) ("subparagraph" . 6)))
 
+(defvar latex-metasection-list
+  '("documentstyle" "documentclass"
+    "begin{document}" "end{document}"
+    "appendix" "frontmatter" "mainmatter" "backmatter"))
+
 (defun latex-imenu-create-index ()
-  "Generates an alist for imenu from a LaTeX buffer."
-  (let (i0 menu case-fold-search)
+  "Generate an alist for imenu from a LaTeX buffer."
+  (let ((section-regexp
+	 (concat "\\\\" (regexp-opt (mapcar 'car latex-section-alist) t)
+		 "\\*?[ \t]*{"))
+	(metasection-regexp
+	 (concat "\\\\" (regexp-opt latex-metasection-list t)))
+	i0 menu case-fold-search)
     (save-excursion
       ;; Find the top-most level in this file but don't allow it to be
       ;; any deeper than "section" (which is top-level in an article).
@@ -296,10 +310,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
       ;; Look for chapters and sections.
       (goto-char (point-min))
-      (while (search-forward-regexp
-	      (progn
-		(concat "\\\\" (regexp-opt (mapcar 'car latex-section-alist) t)
-			"\\*?[ \t]*{")) nil t)
+      (while (search-forward-regexp section-regexp nil t)
 	(let ((start (match-beginning 0))
 	      (here (point))
 	      (i (cdr (assoc (buffer-substring-no-properties
@@ -326,30 +337,167 @@ An alternative value is \" . \", if you use a font with a narrow period."
       (goto-char (point-min))
       (while (search-forward-regexp
 	      "\\\\\\(include\\|input\\|verbatiminput\\|bibliography\\)\
-[ \t]*{\\([^}\n]+\\)}"
+\[ \t]*{\\([^}\n]+\\)}"
 	      nil t)
-	(setq menu
-	      (cons (cons (concat "<<" (buffer-substring-no-properties
-					(match-beginning 2)
-					(match-end 2))
-				  (if (= (char-after (match-beginning 1)) ?b)
-				      ".bbl"
-				    ".tex"))
-			  (match-beginning 0))
-		    menu)))
+	(push (cons (concat "<<" (buffer-substring-no-properties
+				  (match-beginning 2)
+				  (match-end 2))
+			    (if (= (char-after (match-beginning 1)) ?b)
+				".bbl"
+			      ".tex"))
+		    (match-beginning 0))
+	      menu))
 
       ;; Look for \frontmatter, \mainmatter, \backmatter, and \appendix.
       (goto-char (point-min))
-      (while (search-forward-regexp
-	      "\\\\\\(frontmatter\\|mainmatter\\|backmatter\\|appendix\\)\\b"
-	      nil t)
-	(setq menu
-	      (cons (cons "--" (match-beginning 0))
-		    menu)))
+      (while (search-forward-regexp metasection-regexp nil t)
+	(push (cons "--" (match-beginning 0)) menu))
 
       ;; Sort in increasing buffer position order.
       (sort menu (function (lambda (a b) (< (cdr a) (cdr b))))))))
+
+;;;;
+;;;; Outline support
+;;;;
 
+(defvar latex-outline-regexp
+  (concat "\\\\"
+	  (regexp-opt (append latex-metasection-list
+			      (mapcar 'car latex-section-alist)) t)))
+
+(defun latex-outline-level ()
+  (if (looking-at latex-outline-regexp)
+      (1+ (or (cdr (assoc (match-string 1) latex-section-alist)) -1))
+    1000))
+
+;;;;
+;;;; Font-Lock support
+;;;;
+
+;(defvar tex-font-lock-keywords
+;  ;; Regexps updated with help from Ulrik Dickow <dickow@nbi.dk>.
+;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
+;     2 font-lock-function-name-face)
+;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
+;     2 font-lock-constant-face)
+;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
+;    ;; not be able to display those fonts.
+;    ("{\\\\bf\\([^}]+\\)}" 1 'bold keep)
+;    ("{\\\\\\(em\\|it\\|sl\\)\\([^}]+\\)}" 2 'italic keep)
+;    ("\\\\\\([a-zA-Z@]+\\|.\\)" . font-lock-keyword-face)
+;    ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
+;  ;; Rewritten and extended for LaTeX2e by Ulrik Dickow <dickow@nbi.dk>.
+;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
+;     2 font-lock-function-name-face)
+;    ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
+;     2 font-lock-constant-face)
+;    ("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)" 1 font-lock-function-name-face)
+;    "\\\\\\([a-zA-Z@]+\\|.\\)"
+;    ;; It seems a bit dubious to use `bold' and `italic' faces since we might
+;    ;; not be able to display those fonts.
+;    ;; LaTeX2e: \emph{This is emphasized}.
+;    ("\\\\emph{\\([^}]+\\)}" 1 'italic keep)
+;    ;; LaTeX2e: \textbf{This is bold}, \textit{...}, \textsl{...}
+;    ("\\\\text\\(\\(bf\\)\\|it\\|sl\\){\\([^}]+\\)}"
+;     3 (if (match-beginning 2) 'bold 'italic) keep)
+;    ;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
+;    ("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
+;     3 (if (match-beginning 2) 'bold 'italic) keep))
+
+;; Rewritten with the help of Alexandra Bac <abac@welcome.disi.unige.it>.
+(defconst tex-font-lock-keywords-1
+  (eval-when-compile
+    (let* (;; Names of commands whose arg should be fontified as heading, etc.
+	   (headings (regexp-opt
+		      '("title"  "begin" "end" "chapter" "part"
+			"section" "subsection" "subsubsection"
+			"paragraph" "subparagraph" "subsubparagraph"
+			"newcommand" "renewcommand" "newenvironment"
+			"newtheorem")
+		      t))
+	   (variables (regexp-opt
+		       '("newcounter" "newcounter*" "setcounter" "addtocounter"
+			 "setlength" "addtolength" "settowidth")
+		       t))
+	   (includes (regexp-opt
+		      '("input" "include" "includeonly" "bibliography"
+			"epsfig" "psfig" "epsf" "nofiles" "usepackage"
+			"includegraphics" "includegraphics*")
+		      t))
+	   ;; Miscellany.
+	   (slash "\\\\")
+	   (opt "\\(\\[[^]]*\\]\\)?")
+	   (arg "{\\(\\(?:[^{}]+\\(?:{[^}]*}\\)?\\)+\\)"))
+      (list
+       ;; Heading args.
+       (list (concat slash headings "\\*?" opt arg)
+	     3 'font-lock-function-name-face 'prepend)
+       ;; Variable args.
+       (list (concat slash variables arg) 2 'font-lock-variable-name-face)
+       ;; Include args.
+       (list (concat slash includes opt arg) 3 'font-lock-builtin-face)
+       ;; Definitions.  I think.
+       '("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)"
+	 1 font-lock-function-name-face)
+       )))
+  "Subdued expressions to highlight in TeX modes.")
+
+(defconst tex-font-lock-keywords-2
+  (append tex-font-lock-keywords-1
+   (eval-when-compile
+     (let* (;;
+	    ;; Names of commands whose arg should be fontified with fonts.
+	    (bold (regexp-opt '("bf" "textbf" "textsc" "textup"
+				"boldsymbol" "pmb") t))
+	    (italic (regexp-opt '("it" "textit" "textsl" "emph") t))
+	    (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
+	    ;;
+	    ;; Names of commands whose arg should be fontified as a citation.
+	    (citations (regexp-opt
+			'("label" "ref" "pageref" "vref" "eqref"
+			  "cite" "nocite" "caption" "index" "glossary"
+			  "footnote" "footnotemark" "footnotetext")
+			t))
+	    ;;
+	    ;; Names of commands that should be fontified.
+	    (specials (regexp-opt
+		       '("\\"
+			 "linebreak" "nolinebreak" "pagebreak" "nopagebreak"
+			 "newline" "newpage" "clearpage" "cleardoublepage"
+			 "displaybreak" "allowdisplaybreaks" "enlargethispage")
+		       t))
+	    (general "\\([a-zA-Z@]+\\**\\|[^ \t\n]\\)")
+	    ;;
+	    ;; Miscellany.
+	    (slash "\\\\")
+	    (opt "\\(\\[[^]]*\\]\\)?")
+	    (arg "{\\(\\(?:[^{}]+\\(?:{[^}]*}\\)?\\)+\\)"))
+       (list
+	;;
+	;; Citation args.
+	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
+	;;
+	;; Command names, special and general.
+	(cons (concat slash specials) 'font-lock-warning-face)
+	(concat slash general)
+	;;
+	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
+	;; since we might not be able to display those fonts.
+	(list (concat slash bold arg) 2 '(quote bold) 'append)
+	(list (concat slash italic arg) 2 '(quote italic) 'append)
+	(list (concat slash type arg) 2 '(quote bold-italic) 'append)
+	;;
+	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
+	(list (concat "\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>"
+		      "\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)")
+	      3 '(if (match-beginning 2) 'bold 'italic) 'append)
+	))))
+   "Gaudy expressions to highlight in TeX modes.")
+
+(defvar tex-font-lock-keywords tex-font-lock-keywords-1
+  "Default expressions to highlight in TeX modes.")
+
+
 (defun tex-define-common-keys (keymap)
   "Define the keys that we want defined both in TeX mode and in the TeX shell."
   (define-key keymap "\C-c\C-k" 'tex-kill-job)
@@ -592,6 +740,7 @@ subshell is initiated, `tex-shell-hook' is run."
        'latex-fill-nobreak-predicate)
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
+  (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
   (run-hooks 'tex-mode-hook))
 
 ;;;###autoload
@@ -676,7 +825,6 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (set (make-local-variable 'comment-add) 1)
   (set (make-local-variable 'comment-start-skip)
        "\\(\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
-  (set (make-local-variable 'comment-indent-function) 'tex-comment-indent)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'compare-windows-whitespace)
        'tex-categorize-whitespace)
@@ -698,13 +846,6 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (make-local-variable 'tex-start-of-header)
   (make-local-variable 'tex-end-of-header)
   (make-local-variable 'tex-trailer))
-
-(defun tex-comment-indent ()
-  (if (looking-at "%%%")
-      (current-column)
-    (skip-chars-backward " \t")
-    (max (if (bolp) 0 (1+ (current-column)))
-	 comment-column)))
 
 (defun tex-categorize-whitespace (backward-limit)
   ;; compare-windows-whitespace is set to this.
@@ -895,27 +1036,45 @@ A prefix arg inhibits the checking."
 	    (setq inside t)))))
     inside))
 
+(defvar latex-block-default "enumerate")
+
 ;;; Like tex-insert-braces, but for LaTeX.
 (define-skeleton tex-latex-block
   "Create a matching pair of lines \\begin[OPT]{NAME} and \\end{NAME} at point.
 Puts point on a blank line between them."
-  (completing-read "LaTeX block name: "
-		   (mapcar 'list
-			   (append standard-latex-block-names
-				   latex-block-names)))
-  "\\begin["
-  (skeleton-read "[options]: ") & ?\] | -1
-  ?\{
-  str
-  ?\} \n
-  _ \n
-  "\\end{" str ?\})
+  (let ((choice (completing-read (format "LaTeX block name [%s]: "
+					 latex-block-default)
+				 (mapcar 'list
+					 (append standard-latex-block-names
+						 latex-block-names))
+				 nil nil nil nil latex-block-default)))
+    (setq latex-block-default choice)
+    (unless (or (member choice standard-latex-block-names)
+		(member choice latex-block-names))
+      ;; Remember new block names for later completion.
+      (push choice latex-block-names))
+    choice)
+  "\\begin{" str ?\}
+  ?\[ (skeleton-read "[options]: ") & ?\] | -1
+  \n _ \n
+  "\\end{" str ?\} >)
+
+
+;;;;
+;;;; LaTeX syntax navigation
+;;;;
 
 (defun tex-last-unended-begin ()
   "Leave point at the beginning of the last `\\begin{...}' that is unended."
-  (while (and (re-search-backward "\\(\\\\begin\\s *{\\)\\|\\(\\\\end\\s *{\\)")
-              (looking-at "\\\\end{"))
+  (while (and (re-search-backward "\\\\\\(begin\\|end\\)\\s *{")
+              (looking-at "\\\\end"))
     (tex-last-unended-begin)))
+
+(defun tex-next-unmatched-end ()
+  "Leave point at the end of the next `\\end' that is unended."
+  (while (and (re-search-forward "\\\\\\(begin\\|end\\)\\s *{[^}]+}")
+              (looking-at "\\\\begin"))
+    (tex-next-unmatched-end)))
 
 (defun tex-goto-last-unclosed-latex-block ()
   "Move point to the last unclosed \\begin{...}.
@@ -929,6 +1088,57 @@ Mark is left at original location."
       (setq spot (point)))
     (push-mark)
     (goto-char spot)))
+
+(defun latex-backward-sexp-1 ()
+  "Like (backward-sexp 1) but aware of multi-char elements."
+  (let ((pos (point))
+	(forward-sexp-function))
+    (backward-sexp 1)
+    (if (looking-at "\\\\begin\\>")
+	(signal 'scan-error
+		(list "Containing expression ends prematurely"
+		      (point) (prog1 (point) (goto-char pos))))
+      (when (eq (char-after) ?{)
+	(let ((newpos (point)))
+	  (when (ignore-errors (backward-sexp 1) t)
+	    (if (looking-at "\\\\end\\>")
+		(tex-last-unended-begin)
+	      (goto-char newpos))))))))
+
+(defun latex-forward-sexp-1 ()
+  "Like (forward-sexp 1) but aware of multi-char elements."
+  (let ((pos (point))
+	(forward-sexp-function))
+    (forward-sexp 1)
+    (let ((newpos (point)))
+      (skip-syntax-backward "/w")
+      (cond
+       ((looking-at "\\\\end\\>")
+	(signal 'scan-error
+		(list "Containing expression ends prematurely"
+		      (point)
+		      (prog1
+			  (progn (ignore-errors (forward-sexp 2)) (point))
+			(goto-char pos)))))
+       ((looking-at "\\\\begin\\>")
+	(goto-char (match-end 0))
+	(tex-next-unmatched-end))
+       (t (goto-char newpos))))))
+
+(defun latex-forward-sexp (&optional arg)
+  "Like `forward-sexp' but aware of multi-char elements."
+  (interactive "P")
+  (unless arg (setq arg 1))
+  (let ((pos (point)))
+    (condition-case err
+	(while (/= arg 0)
+	  (setq arg
+		(if (> arg 0)
+		    (progn (latex-forward-sexp-1) (1- arg))
+		  (progn (latex-backward-sexp-1) (1+ arg)))))
+      (scan-error
+       (goto-char pos)
+       (signal (car err) (cdr err))))))
 
 (defun tex-close-latex-block ()
   "Creates an \\end{...} to match the last unclosed \\begin{...}."
@@ -1460,23 +1670,6 @@ Runs the shell command defined by `tex-show-queue-command'."
     (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-bibtex-command tex-out-file))
   (tex-display-shell))
-
-;;;;
-;;;; Outline support
-;;;;
-
-(defvar latex-outline-regexp
-  (concat "\\\\"
-	  (regexp-opt (nconc (list "documentstyle" "documentclass"
-				   "begin{document}" "end{document}"
-				   "appendix")
-			     (mapcar 'car latex-section-alist)) t)))
-
-(defun latex-outline-level ()
-  (if (looking-at latex-outline-regexp)
-      (1+ (or (cdr (assoc (match-string 1) latex-section-alist)) -1))
-    1000))
-
 
 (run-hooks 'tex-mode-load-hook)
 
