@@ -85,7 +85,7 @@
 	    cmd this-command)
       (if (or (prog1 quit-flag (setq quit-flag nil))
 	      (= last-input-char ?\C-g))
-	  (progn (setq unread-command-char -1
+	  (progn (setq unread-command-event nil
 		       prefix-arg nil)
 		 ;; If it wasn't cancelling a prefix character, then quit.
 		 (if (or (= (length (this-command-keys)) 1)
@@ -101,7 +101,7 @@
 		     (setq last-command this-command)
 		     (if (or (prog1 quit-flag (setq quit-flag nil))
 			     (= last-input-char ?\C-g))
-			 (progn (setq unread-command-char -1)
+			 (progn (setq unread-command-event nil)
 				(if (not inhibit-quit)
 				    (progn (ding)
 					   (message "Quit")
