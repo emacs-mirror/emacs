@@ -211,6 +211,7 @@ extern int command_loop_level;
 extern int minibuffer_auto_raise;
 
 extern Lisp_Object Qface;
+extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
 
 extern Lisp_Object Voverriding_local_map;
 extern Lisp_Object Voverriding_local_map_menu_flag;
@@ -762,6 +763,7 @@ static int display_line P_ ((struct it *));
 static int display_mode_lines P_ ((struct window *));
 static int display_mode_line P_ ((struct window *, enum face_id, Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object, Lisp_Object, int));
+static int store_mode_line_string P_ ((char *, Lisp_Object, int, int, int, Lisp_Object));
 static char *decode_mode_spec P_ ((struct window *, int, int, int, int *));
 static void display_menu_bar P_ ((struct window *));
 static int display_count_lines P_ ((int, int, int, int, int *));
@@ -13625,6 +13627,14 @@ display_mode_line (w, face_id, format)
    Each element is (PROPERTIZED-STRING . PROPERTY-LIST).  */
 Lisp_Object mode_line_proptrans_alist;
 
+/* List of strings making up the mode-line.  */
+Lisp_Object mode_line_string_list;
+
+/* Base face property when building propertized mode line string.  */
+static Lisp_Object mode_line_string_face;
+static Lisp_Object mode_line_string_face_prop;
+
+
 /* Contribute ELT to the mode line for window IT->w.  How it
    translates into text depends on its data type.
 
@@ -13733,6 +13743,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	    prec = precision - n;
 	    if (frame_title_ptr)
 	      n += store_frame_title (SDATA (elt), -1, prec);
+	    else if (!NILP (mode_line_string_list))
+	      n += store_mode_line_string (NULL, elt, 1, 0, prec, Qnil);
 	    else
 	      n += display_string (NULL, elt, Qnil, 0, 0, it,
 				   0, prec, 0, STRING_MULTIBYTE (elt));
@@ -13743,6 +13755,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	while ((precision <= 0 || n < precision)
 	       && *this
 	       && (frame_title_ptr
+		   || !NILP (mode_line_string_list)
 		   || it->current_x < it->last_visible_x))
 	  {
 	    unsigned char *last = this;
@@ -13764,6 +13777,15 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 
 		if (frame_title_ptr)
 		  n += store_frame_title (last, 0, prec);
+		else if (!NILP (mode_line_string_list))
+		  {
+		    int bytepos = last - lisp_string;
+		    int charpos = string_byte_to_char (elt, bytepos);
+		    n += store_mode_line_string (NULL,
+						 Fsubstring (elt, make_number (charpos),
+							     make_number (charpos + prec)),
+						 0, 0, 0, Qnil);
+		  }
 		else
 		  {
 		    int bytepos = last - lisp_string;
@@ -13810,6 +13832,14 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 
 		    if (frame_title_ptr)
 		      n += store_frame_title (spec, field, prec);
+		    else if (!NILP (mode_line_string_list))
+		      {
+			int len = strlen (spec);
+			Lisp_Object tem = make_string (spec, len);
+			props = Ftext_properties_at (make_number (charpos), elt);
+			/* Should only keep face property in props */
+			n += store_mode_line_string (NULL, tem, 0, field, prec, props);
+		      }
 		    else
 		      {
 			int nglyphs_before, nwritten;
@@ -13998,6 +14028,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
     invalid:
       if (frame_title_ptr)
 	n += store_frame_title ("*invalid*", 0, precision - n);
+      else if (!NILP (mode_line_string_list))
+	n += store_mode_line_string ("*invalid*", Qnil, 0, 0, precision - n, Qnil);
       else
 	n += display_string ("*invalid*", Qnil, Qnil, 0, 0, it, 0,
 			     precision - n, 0, 0);
@@ -14009,6 +14041,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
     {
       if (frame_title_ptr)
 	n += store_frame_title ("", field_width - n, 0);
+      else if (!NILP (mode_line_string_list))
+	n += store_mode_line_string ("", Qnil, 0, field_width - n, 0, Qnil);
       else
 	n += display_string ("", Qnil, Qnil, 0, 0, it, field_width - n,
 			     0, 0, 0);
@@ -14017,22 +14051,123 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
   return n;
 }
 
+/* Store a mode-line string element in mode_line_string_list.
+
+   If STRING is non-null, display that C string.  Otherwise, the Lisp
+   string LISP_STRING is displayed.
+
+   FIELD_WIDTH is the minimum number of output glyphs to produce.
+   If STRING has fewer characters than FIELD_WIDTH, pad to the right
+   with spaces.  FIELD_WIDTH <= 0 means don't pad.
+
+   PRECISION is the maximum number of characters to output from
+   STRING.  PRECISION <= 0  means don't truncate the string.
+
+   If COPY_STRING is non-zero, make a copy of LISP_STRING before adding
+   properties to the string.
+
+   PROPS are the properties to add to the string.  
+   The mode_line_string_face face property is always added to the string.
+ */
+
+static int store_mode_line_string (string, lisp_string, copy_string, field_width, precision, props)
+     char *string;
+     Lisp_Object lisp_string;
+     int copy_string;
+     int field_width;
+     int precision;
+     Lisp_Object props;
+{
+  int len;
+  int n = 0;
+
+  if (string != NULL)
+    {
+      len = strlen (string);
+      if (precision > 0 && len > precision)
+	len = precision;
+      lisp_string = make_string (string, len);
+      if (NILP (props))
+	props = mode_line_string_face_prop;
+      else if (!NILP (mode_line_string_face))
+	{
+	  Lisp_Object face = Fplist_get (props, Qface);
+	  props = Fcopy_sequence (props);
+	  if (NILP (face))
+	    face = mode_line_string_face;
+	  else
+	    face = Fcons (face, Fcons (mode_line_string_face, Qnil));
+	  props = Fplist_put (props, Qface, face);
+	}
+      Fadd_text_properties (make_number (0), make_number (len),
+			    props, lisp_string);
+    }
+  else 
+    {
+      len = Flength (lisp_string);
+      if (precision > 0 && len > precision)
+	{
+	  len = precision;
+	  lisp_string = Fsubstring (lisp_string, make_number (0), make_number (len));
+	  precision = -1;
+	}
+      if (!NILP (mode_line_string_face))
+	{
+	  Lisp_Object face;
+	  if (NILP (props))
+	    props = Ftext_properties_at (make_number (0), lisp_string);
+	  face = Fplist_get (props, Qface);
+	  if (NILP (face))
+	    face = mode_line_string_face;
+	  else
+	    face = Fcons (face, Fcons (mode_line_string_face, Qnil));
+	  props = Fcons (Qface, Fcons (face, Qnil));
+	  if (copy_string)
+	    lisp_string = Fcopy_sequence (lisp_string);
+	}
+      if (!NILP (props))
+	Fadd_text_properties (make_number (0), make_number (len),
+			      props, lisp_string);
+    }
+
+  if (len > 0)
+    {
+      mode_line_string_list = Fcons (lisp_string, mode_line_string_list);
+      n += len; 
+    }
+
+  if (field_width > len)
+    {
+      field_width -= len;
+      lisp_string = Fmake_string (make_number (field_width), make_number (' '));
+      if (!NILP (props))
+	Fadd_text_properties (make_number (0), make_number (field_width),
+			      props, lisp_string);
+      mode_line_string_list = Fcons (lisp_string, mode_line_string_list);
+      n += field_width; 
+    }
+
+  return n;
+}
+
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
-       0, 2, 0,
+       0, 3, 0,
        doc: /* Return the mode-line of selected window as a string.
 First optional arg FORMAT specifies a different format string (see
 `mode-line-format' for details) to use.  If FORMAT is t, return
 the buffer's header-line.  Second optional arg WINDOW specifies a
-different window to use as the context for the formatting.  */)
-     (format, window)
-     Lisp_Object format, window;
+different window to use as the context for the formatting.
+If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
+     (format, window, no_props)
+     Lisp_Object format, window, no_props;
 {
   struct it it;
   struct face *face;
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
+  enum face_id face_id = DEFAULT_FACE_ID;
 
   if (NILP (window))
     window = selected_window;
@@ -14047,13 +14182,41 @@ different window to use as the context for the formatting.  */)
     }
 
   if (NILP (format) || EQ (format, Qt))
-    format = NILP (format) 
-      ? current_buffer->mode_line_format
-      : current_buffer->header_line_format;
+    {
+      face_id = NILP (format)
+	? CURRENT_MODE_LINE_FACE_ID (w) :
+	HEADER_LINE_FACE_ID;
+      format = NILP (format)
+	? current_buffer->mode_line_format
+	: current_buffer->header_line_format;
+    }
 
-  init_iterator (&it, w, -1, -1, NULL, DEFAULT_FACE_ID);
+  init_iterator (&it, w, -1, -1, NULL, face_id);
 
-  frame_title_ptr = frame_title_buf;
+  if (NILP (no_props))
+    {
+      mode_line_string_face =
+	(face_id == MODE_LINE_FACE_ID ? Qmode_line :
+	 face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive :
+	 face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
+
+      mode_line_string_face_prop =
+	NILP (mode_line_string_face) ? Qnil :
+	Fcons (Qface, Fcons (mode_line_string_face, Qnil));
+
+      /* We need a dummy last element in mode_line_string_list to
+	 indicate we are building the propertized mode-line string.
+	 Using mode_line_string_face_prop here GC protects it.  */
+      mode_line_string_list = 
+	Fcons (mode_line_string_face_prop, Qnil);
+      frame_title_ptr = NULL;
+    }
+  else
+    {
+      mode_line_string_face_prop = Qnil;
+      mode_line_string_list = Qnil;
+      frame_title_ptr = frame_title_buf;
+    }
 
   push_frame_kboard (it.f);
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
@@ -14061,6 +14224,17 @@ different window to use as the context for the formatting.  */)
 
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
+
+  if (NILP (no_props))
+    {
+      Lisp_Object str;
+      mode_line_string_list = Fnreverse (mode_line_string_list);
+      str = Fmapconcat (intern ("identity"), XCDR (mode_line_string_list),
+			make_string ("", 0));
+      mode_line_string_face_prop = Qnil;
+      mode_line_string_list = Qnil;
+      return str;
+    }
 
   len = frame_title_ptr - frame_title_buf;
   if (len > 0 && frame_title_ptr[-1] == '-')
@@ -14273,6 +14447,8 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	register int i;
 
 	/* Let lots_of_dashes be a string of infinite length.  */
+	if (!NILP (mode_line_string_list))
+	  return "--";
 	if (field_width <= 0
 	    || field_width > sizeof (lots_of_dashes))
 	  {
@@ -15061,6 +15237,9 @@ syms_of_xdisp ()
 
   mode_line_proptrans_alist = Qnil;
   staticpro (&mode_line_proptrans_alist);
+
+  mode_line_string_list = Qnil;
+  staticpro (&mode_line_string_list);
 
   DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
     doc: /* Non-nil means highlight trailing whitespace.
