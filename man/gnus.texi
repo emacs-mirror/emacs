@@ -8027,6 +8027,13 @@ something like
 (define-coding-system-alias 'windows-1251 'cp1251)
 @end lisp
 
+while if you use a non-Latin-1 language environment you could see the
+Latin-1 subset of @code{windows-1252} using:
+
+@lisp
+(define-coding-system-alias 'windows-1252 'latin-1)
+@end lisp
+
 
 @node Article Commands
 @section Article Commands
