@@ -13,8 +13,8 @@
 
 	* calendar/calendar.el (calendar-holidays): Doc fix.
 
-	* calendar/cal-coptic.el (coptic-prompt-for-date): Use
-	assoc-string instead of assoc-ignore-case.
+	* calendar/cal-coptic.el (coptic-prompt-for-date):
+	Use assoc-string instead of assoc-ignore-case.
 	* calendar/cal-french.el (calendar-goto-french-date): Ditto.
 	* calendar/cal-hebrew.el (calendar-goto-hebrew-date)
 	(mark-hebrew-diary-entries, list-yahrzeit-dates): Ditto.
@@ -28,8 +28,8 @@
 
 2004-02-18  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
-	* progmodes/executable.el (executable-command-find-posix-p):  Fix
-	choice of the directory.
+	* progmodes/executable.el (executable-command-find-posix-p):
+	Fix choice of the directory.
 
 2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -83,11 +83,11 @@
 
 	* rmail-spam-filter.el: (vm-use-spam-filter)
 	(rsf-min-region-length-added-to-spam-list): New	variables.
-	(rsf-bbdb-auto-delete-spam-bbdb-entries): Renamed from
+	(rsf-bbdb-auto-delete-spam-bbdb-entries): Rename from
 	rmail-bbdb-auto-delete-spam-entries.  Added cc: to recipients for
 	spam testing.  Don't delete spam message if automatic deletion
 	after output via variable rmail-delete-after-output is turned on.
-	(rsf-bbdb-dont-create-entries-for-deleted-messages): Renamed from
+	(rsf-bbdb-dont-create-entries-for-deleted-messages): Rename from
 	rsf-bbdb-dont-create-entries-for-spam.
 	(check-field): New function, extracted from code in
 	rmail-spam-filter to ease addition of header fields like
@@ -97,11 +97,10 @@
 	(rmail-spam-filter): Replace repeated test code for header fields
 	by calls to check-field; change the call to
 	rmail-output-to-rmail-file such that rmail-current-message stays
-	the same to avoid wrong deletion of unseen
-	flags.
+	the same to avoid wrong deletion of unseen flags.
 	(rsf-add-contents-type): New function to convert old format
 	of rmail-spam-definitions-alist into new one.
-	Changed prefixes of all variables and functions from
+	Change prefixes of all variables and functions from
 	rmail-spam-filter- or spam-filter- or rmail-spam- to rsf-.
 
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
@@ -125,8 +124,8 @@
 2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* emacs-lisp/rx.el (rx-check, rx-check-any, rx-check-not)
-	(rx-repeat, rx-check-backref, rx-syntax, rx-to-string): Use
-	lower-case "rx" in all error message.
+	(rx-repeat, rx-check-backref, rx-syntax, rx-to-string):
+	Use lower-case "rx" in all error message.
 
 2004-02-16  Dave Love  <fx@gnu.org>
 
@@ -153,7 +152,7 @@
 	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
 	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
 	(auto-revert-handler, auto-revert-active-p): New functions.
-	(auto-revert-buffers): Moved revert logic to `auto-revert-handler'
+	(auto-revert-buffers): Move revert logic to `auto-revert-handler'
 	and `auto-revert-active-p'.
 	(eval-when-compile): Defvar dired-directory and vc-mode.
 	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
@@ -216,12 +215,23 @@
 
 2004-02-14  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* Makefile.in: Fixed the CC Mode recompile kludge so it works
+	* Makefile.in: Fix the CC Mode recompile kludge so it works
 	when building in a different directory.
 
 2004-02-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (kill-new): Put yank-handler property on the entire string.
+
+2004-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff.el: Don't use compile any more, use diff-mode instead.
+	(diff-regexp-alist, diff-old-file, diff-new-file)
+	(diff-parse-differences, diff-process-setup): Remove.
+	(diff-sentinel): New fun.
+	(diff): Use it.  Run the process ourselves.
+	Use diff-mode for the rest of the processing.
+
+	* diff.el (diff): Simplify code handling `switch'.
 
 2004-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
