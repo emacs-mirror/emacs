@@ -4628,8 +4628,16 @@ window_scroll_pixel_based (window, n, whole, noerror)
       if (dy <= 0)
 	move_it_vertically_backward (&it, -dy);
       else if (dy > 0)
-	move_it_to (&it, ZV, -1, it.current_y + dy, -1,
-		    MOVE_TO_POS | MOVE_TO_Y);
+	{
+	  int start_pos = IT_CHARPOS (it);
+	  move_it_to (&it, ZV, -1, it.current_y + dy, -1,
+		      MOVE_TO_POS | MOVE_TO_Y);
+	  /* Ensure we actually does move, e.g. in case we are currently
+	     looking at an image that is taller that the window height.  */
+	  while (start_pos == IT_CHARPOS (it)
+		 && start_pos < ZV)
+	    move_it_by_lines (&it, 1, 1);
+	}
     }
   else
     move_it_by_lines (&it, n, 1);
