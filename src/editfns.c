@@ -1826,8 +1826,6 @@ Both characters must have the same length of multi-byte form.")
 	  if (NILP (noundo))
 	    record_change (pos, 1);
 	  for (i = 0; i < len; i++) *p++ = tostr[i];
-	  pos++;
-	  pos_byte += len;
 	}
       INC_BOTH (pos, pos_byte);
     }
