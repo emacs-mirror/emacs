@@ -1,3 +1,10 @@
+2001-09-13  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/compile.el (grep-compute-defaults): Don't set
+	grep-command/grep-find-command when it is already non-nil.
+	(grep-command): Make it a user option.
+	(grep-find-command): Likewise.
+
 2001-09-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Avoid `$@' which is handled specially in

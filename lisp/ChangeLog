@@ -1,9 +1,20 @@
+2001-09-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (minibuffer-prompt-modification)
+	(minibuffer-prompt-insertion): New functions.
+	(minibuffer-prompt-properties): Use `modification-hooks' and
+	`insert-in-front-hooks'.
+
 2001-09-12  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/outline.el (outline-regexp): Doc fix.
 	Initialize it in the defcustom, the usual way.
 
 2001-09-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* ediff-mult.el (ediff-get-meta-info): Take into account that data
+	from `ediff-meta-info' properties need not be an overlay.  From
+	David Ponce <dponce@voila.fr>.
 
 	* isearch.el (isearch-intersects-p): Fix end checks.
 
