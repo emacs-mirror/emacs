@@ -159,7 +159,7 @@ This variable should be set in `site-start'.el."
              (if (numberp calendar-longitude)
                  (if (> calendar-longitude 0) "E" "W")
                (if (equal (aref calendar-longitude 2) 'east) "E" "W"))))
-  "*Expression evaluating to name of `calendar-longitude', calendar-latitude'.
+  "*Expression evaluating to name of `calendar-longitude', `calendar-latitude'.
 For example, \"New York City\".  Default value is just the latitude, longitude
 pair.
 
