@@ -38,7 +38,7 @@
 
 ;; TO DO:
 ;;
-;; (apply '(lambda (x &rest y) ...) 1 (foo))
+;; (apply (lambda (x &rest y) ...) 1 (foo))
 ;;
 ;; maintain a list of functions known not to access any global variables
 ;; (actually, give them a 'dynamically-safe property) and then
@@ -192,7 +192,7 @@
   (byte-compile-log-1
    (apply 'format format
      (let (c a)
-       (mapcar '(lambda (arg)
+       (mapcar (lambda (arg)
 		  (if (not (consp arg))
 		      (if (and (symbolp arg)
 			       (string-match "^byte-" (symbol-name arg)))
@@ -232,7 +232,7 @@
   "byte-optimize-handler for the `inline' special-form."
   (cons 'progn
 	(mapcar
-	 '(lambda (sexp)
+	 (lambda (sexp)
 	    (let ((fn (car-safe sexp)))
 	      (if (and (symbolp fn)
 		    (or (cdr (assq fn byte-compile-function-environment))
@@ -385,7 +385,7 @@
 	   ;; are more deeply nested are optimized first.
 	   (cons fn
 	     (cons
-	      (mapcar '(lambda (binding)
+	      (mapcar (lambda (binding)
 			 (if (symbolp binding)
 			     binding
 			   (if (cdr (cdr binding))
@@ -397,7 +397,7 @@
 	      (byte-optimize-body (cdr (cdr form)) for-effect))))
 	  ((eq fn 'cond)
 	   (cons fn
-		 (mapcar '(lambda (clause)
+		 (mapcar (lambda (clause)
 			    (if (consp clause)
 				(cons
 				 (byte-optimize-form (car clause) nil)
@@ -1025,8 +1025,8 @@
 
 
 (defun byte-optimize-funcall (form)
-  ;; (funcall '(lambda ...) ...) ==> ((lambda ...) ...)
-  ;; (funcall 'foo ...) ==> (foo ...)
+  ;; (funcall (lambda ...) ...) ==> ((lambda ...) ...)
+  ;; (funcall foo ...) ==> (foo ...)
   (let ((fn (nth 1 form)))
     (if (memq (car-safe fn) '(quote function))
 	(cons (nth 1 fn) (cdr (cdr form)))
@@ -1042,7 +1042,7 @@
 	    (if (listp (nth 1 last))
 		(let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
 		  (nconc (list 'funcall fn) butlast
-			 (mapcar '(lambda (x) (list 'quote x)) (nth 1 last))))
+			 (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
 	      (byte-compile-warn
 	       "Last arg to apply can't be a literal atom: `%s'"
 	       (prin1-to-string last))
@@ -1933,10 +1933,10 @@
      (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))
-       (mapcar '(lambda (x)
-		  (or noninteractive (message "compiling %s..." x))
-		  (byte-compile x)
-		  (or noninteractive (message "compiling %s...done" x)))
+       (mapcar (lambda (x)
+		 (or noninteractive (message "compiling %s..." x))
+		 (byte-compile x)
+		 (or noninteractive (message "compiling %s...done" x)))
 	       '(byte-optimize-form
 		 byte-optimize-body
 		 byte-optimize-predicate
