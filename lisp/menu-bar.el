@@ -64,7 +64,7 @@
   '("Apply Patch" . menu-bar-epatch-menu))
 (define-key menu-bar-tools-menu [ediff-merge]
   '("Merge" . menu-bar-ediff-merge-menu))
-(define-key menu-bar-tools-menu [ediff]
+(define-key menu-bar-tools-menu [compare]
   '("Compare" . menu-bar-ediff-menu))
 
 (define-key menu-bar-tools-menu [separator-print]
