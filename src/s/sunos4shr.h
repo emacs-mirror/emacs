@@ -27,7 +27,7 @@
 
 #define UNEXEC	unexsunos4.o
 #define RUN_TIME_REMAP
-#define LINKER cc
+#define ORDINARY_LINK
 
 #undef LD_SWITCH_SYSTEM
 
