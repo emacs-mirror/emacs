@@ -1,5 +1,9 @@
 2002-03-14  Miles Bader  <miles@gnu.org>
 
+	* net/rlogin.el (rlogin-carriage-filter): Function removed.
+	(rlogin): Don't install the `rlogin-carriage-filter' filter, as
+	comint removes carriage returns itself now.
+
 	* rfn-eshadow.el (rfn-eshadow-update-overlay): Bind
 	`inhibit-point-motion-hooks' to t while messing around, to avoid
 	getting hosed by our own intangible property.
