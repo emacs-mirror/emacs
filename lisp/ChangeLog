@@ -1,3 +1,15 @@
+2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-vars.el: eliminated.
+
+	* ps-mule.el: ps-vars eliminated, ps-multibyte-buffer now is
+	`;;;###autoload'.
+
+	* ps-print.el: ps-vars eliminated, doc fix.
+	(ps-print-version): New version number (5.0.2).
+	(ps-spool-config): Initialization fix.
+	(ps-print-customize): New fun.
+
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* autorevert.el (auto-revert-mode): Return value of
