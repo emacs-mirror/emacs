@@ -336,11 +336,10 @@ The value is never nil.")
   return buf;
 }
 
-DEFUN ("make-indirect-buffer",
-       Fmake_indirect_buffer, Smake_indirect_buffer, 2, 2,
+DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer, 2, 2,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
-  "Create and return an indirect buffer for buffer BASE, named NAME.\n\
-BASE should be an existing buffer (or buffer name).\n\
+  "Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.\n\
+BASE-BUFFER should be an existing buffer (or buffer name).\n\
 NAME should be a string which is not the name of an existing buffer.")
   (base_buffer, name)
      register Lisp_Object base_buffer, name;
@@ -1136,8 +1135,8 @@ DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 
   "Set an appropriate major mode for BUFFER, according to `default-major-mode'.\n\
 Use this function before selecting the buffer, since it may need to inspect\n\
 the current buffer's major mode.")
-  (buf)
-     Lisp_Object buf;
+  (buffer)
+     Lisp_Object buffer;
 {
   int count;
   Lisp_Object function;
@@ -1156,7 +1155,7 @@ the current buffer's major mode.")
 
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
 
-  Fset_buffer (buf);
+  Fset_buffer (buffer);
   call0 (function);
 
   return unbind_to (count, Qnil);
@@ -1212,8 +1211,8 @@ If BUFFER is nil, then some other buffer is chosen.\n\
 If `pop-up-windows' is non-nil, windows can be split to do this.\n\
 If optional second arg OTHER-WINDOW is non-nil, insist on finding another\n\
 window even if BUFFER is already visible in the selected window.")
-  (buffer, other)
-     Lisp_Object buffer, other;
+  (buffer, other_window)
+     Lisp_Object buffer, other_window;
 {
   register Lisp_Object buf;
   if (NILP (buffer))
@@ -1229,7 +1228,7 @@ window even if BUFFER is already visible in the selected window.")
     }
   Fset_buffer (buf);
   record_buffer (buf);
-  Fselect_window (Fdisplay_buffer (buf, other));
+  Fselect_window (Fdisplay_buffer (buf, other_window));
   return buf;
 }
 
@@ -1438,32 +1437,32 @@ thus, the least likely buffer for \\[switch-to-buffer] to select by default.\n\
 If BUFFER is nil or omitted, bury the current buffer.\n\
 Also, if BUFFER is nil or omitted, remove the current buffer from the\n\
 selected window if it is displayed there.")
-  (buf)
-     register Lisp_Object buf;
+  (buffer)
+     register Lisp_Object buffer;
 {
   /* Figure out what buffer we're going to bury.  */
-  if (NILP (buf))
+  if (NILP (buffer))
     {
-      XSETBUFFER (buf, current_buffer);
+      XSETBUFFER (buffer, current_buffer);
 
       /* If we're burying the current buffer, unshow it.  */
-      Fswitch_to_buffer (Fother_buffer (buf, Qnil), Qnil);
+      Fswitch_to_buffer (Fother_buffer (buffer, Qnil), Qnil);
     }
   else
     {
       Lisp_Object buf1;
       
-      buf1 = Fget_buffer (buf);
+      buf1 = Fget_buffer (buffer);
       if (NILP (buf1))
-	nsberror (buf);
-      buf = buf1;
+	nsberror (buffer);
+      buffer = buf1;
     }
 
-  /* Move buf to the end of the buffer list.  */
+  /* Move buffer to the end of the buffer list.  */
   {
     register Lisp_Object aelt, link;
 
-    aelt = Frassq (buf, Vbuffer_alist);
+    aelt = Frassq (buffer, Vbuffer_alist);
     link = Fmemq (aelt, Vbuffer_alist);
     Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
     XCONS (link)->cdr = Qnil;
@@ -2932,7 +2931,7 @@ DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
 }
 
 DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
-  "Get the property of overlay OVERLAY with property name NAME.")
+  "Get the property of overlay OVERLAY with property name PROP.")
   (overlay, prop)
      Lisp_Object overlay, prop;
 {
