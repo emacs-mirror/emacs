@@ -754,7 +754,7 @@ next enabled. Depends upon the caller to determine whether group renaming is sup
 disabled, as the old cache files would corrupt gnus when the cache was
 next enabled. Depends upon the caller to determine whether group deletion is supported."
   (let ((dir (gnus-cache-file-name group "")))
-    (gnus-delete-file dir))
+    (gnus-delete-directory dir))
 
   (let ((no-save gnus-cache-active-hashtb))
     (unless gnus-cache-active-hashtb
