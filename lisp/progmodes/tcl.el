@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.37 $
+;; Version: $Revision: 1.38 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/09 18:52:16 $|$Revision: 1.37 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/09 21:30:32 $|$Revision: 1.38 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.38  1995/07/09  21:30:32  tromey
+;; (tcl-mode): Fixes to 19.29 paragraph variables.
+;;
 ;; Revision 1.37  1995/07/09  18:52:16  tromey
 ;; (tcl-do-auto-fill): Set fill-prefix.
 ;;
@@ -322,7 +325,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.37 $")
+(defconst tcl-version "$Revision: 1.38 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -912,6 +915,8 @@ Commands:
     (setq paragraph-separate paragraph-start))
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'tcl-do-fill-paragraph)
 
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'tcl-indent-line)
@@ -1659,6 +1664,47 @@ of comment."
 	   tcl-use-hairy-comment-detector)
       (tcl-hairy-in-comment)
     (tcl-simple-in-comment)))
+
+(defun tcl-do-fill-paragraph (ignore)
+  "fill-paragraph function for Tcl mode.  Only fills in a comment."
+  (let (in-comment col where)
+    (save-excursion
+      (end-of-line)
+      (setq in-comment (tcl-in-comment))
+      (if in-comment
+	  (progn
+	    (setq where (1+ (point)))
+	    (setq col (1- (current-column))))))
+    (and in-comment
+	 (save-excursion
+	   (back-to-indentation)
+	   (= col (current-column)))
+	 ;; In a comment.  Set the fill prefix, and find the paragraph
+	 ;; boundaries by searching for lines that look like
+	 ;; comment-only lines.
+	 (let ((fill-prefix (buffer-substring (progn
+						(beginning-of-line)
+						(point))
+					      where))
+	       p-start p-end)
+	   ;; Search backwards.
+	   (save-excursion
+	     (while (looking-at "^[ \t]*#")
+	       (forward-line -1))
+	     (forward-line)
+	     (setq p-start (point)))
+
+	   ;; Search forwards.
+	   (save-excursion
+	     (while (looking-at "^[ \t]*#")
+	       (forward-line))
+	     (setq p-end (point)))
+
+	   ;; Narrow and do the fill.
+	   (save-restriction
+	     (narrow-to-region p-start p-end)
+	     (fill-paragraph ignore)))))
+  t)
 
 (defun tcl-do-auto-fill ()
   "Auto-fill function for Tcl mode.  Only auto-fills in a comment."
