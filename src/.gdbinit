@@ -69,7 +69,7 @@ Print the name of the buffer.
 end
 
 define xsymbol
-print (struct Lisp_Symbol *) (($ & 0x00ffffff) | $data_seg_bits)
+print (struct Lisp_Symbol *) ((((int) $) & 0x00ffffff) | $data_seg_bits)
 output &$->name->data
 echo \n
 end
@@ -80,7 +80,7 @@ end
 
 define xstring
 print (struct Lisp_String *) (($ & 0x00ffffff) | $data_seg_bits)
-output ($->size > 10000) ? "big string" : ($->data[0])@($->size)
+output ($->size > 1000) ? 0 : ($->data[0])@($->size)
 echo \n
 end
 document xstring
@@ -90,7 +90,7 @@ end
 
 define xvector
 print (struct Lisp_Vector *) (($ & 0x00ffffff) | $data_seg_bits)
-output ($->size > 1000) ? "big vector" : ($->contents[0])@($->size)
+output ($->size > 50) ? 0 : ($->contents[0])@($->size)
 echo \n
 end
 document xvector
