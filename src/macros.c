@@ -115,8 +115,8 @@ An argument of zero means repeat until error.")
     Fexecute_kbd_macro (Vlast_kbd_macro, arg);
   else
     {
-      XFASTINT (arg)--;
-      if (XFASTINT (arg) > 0)
+      XSETINT (arg, XINT (arg)-1);
+      if (XINT (arg) > 0)
 	Fexecute_kbd_macro (Vlast_kbd_macro, arg);
     }
   return Qnil;
@@ -217,6 +217,8 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
       executing_macro_index = 0;
 
       command_loop_1 ();
+
+      QUIT;
     }
   while (--repeat && (XTYPE (Vexecuting_macro) == Lisp_String
 		      || XTYPE (Vexecuting_macro) == Lisp_Vector));
