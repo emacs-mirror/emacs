@@ -2352,6 +2352,19 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
+#ifdef MSDOS
+  {
+    int len;
+    char *suffix;
+    if (S_ISREG (st.st_mode)
+	&& (len = XSTRING (abspath)->size) >= 5
+	&& (stricmp ((suffix = XSTRING (abspath)->data + len-4), ".com") == 0
+	    || stricmp (suffix, ".exe") == 0
+	    || stricmp (suffix, ".bat") == 0))
+      st.st_mode |= S_IEXEC;
+  }
+#endif /* MSDOS */
+
   return make_number (st.st_mode & 07777);
 }
 
