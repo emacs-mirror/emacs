@@ -358,10 +358,12 @@ reset_buffer_local_variables (b)
   for (offset = (char *)&buffer_local_flags.name - (char *)&buffer_local_flags;
        offset < sizeof (struct buffer);
        offset += sizeof (Lisp_Object)) /* sizeof EMACS_INT == sizeof Lisp_Object */
-    if (*(EMACS_INT *)(offset + (char *) &buffer_local_flags) > 0
-	|| *(EMACS_INT *)(offset + (char *) &buffer_local_flags) == -2)
-      *(Lisp_Object *)(offset + (char *)b) =
-	*(Lisp_Object *)(offset + (char *)&buffer_defaults);
+    {
+      int flag = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
+      if (flag > 0 || flag == -2)
+	*(Lisp_Object *)(offset + (char *)b) =
+	  *(Lisp_Object *)(offset + (char *)&buffer_defaults);
+    }
 }
 
 /* We split this away from generate-new-buffer, because rename-buffer
@@ -487,10 +489,12 @@ No argument or nil as argument means use current buffer as BUFFER.")
 	 offset < sizeof (struct buffer);
 	 offset += (sizeof (EMACS_INT))) /* sizeof EMACS_INT == sizeof Lisp_Object */
       {
-	mask = *(EMACS_INT *)(offset + (char *) &buffer_local_flags);
+	mask = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
 	if (mask == -1 || (buf->local_var_flags & mask))
-	  if (SYMBOLP (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols)))
-	    result = Fcons (Fcons (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols),
+	  if (SYMBOLP (*(Lisp_Object *)(offset
+					+ (char *)&buffer_local_symbols)))
+	    result = Fcons (Fcons (*((Lisp_Object *)
+				     (offset + (char *)&buffer_local_symbols)),
 				   *(Lisp_Object *)(offset + (char *)buf)),
 			    result);
       }
@@ -2486,16 +2490,16 @@ init_buffer_once ()
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   bzero (&buffer_local_flags, sizeof buffer_local_flags);
-  XSETFASTINT (buffer_local_flags.filename, -1);
-  XSETFASTINT (buffer_local_flags.directory, -1);
-  XSETFASTINT (buffer_local_flags.backed_up, -1);
-  XSETFASTINT (buffer_local_flags.save_length, -1);
-  XSETFASTINT (buffer_local_flags.auto_save_file_name, -1);
-  XSETFASTINT (buffer_local_flags.read_only, -1);
-  XSETFASTINT (buffer_local_flags.major_mode, -1);
-  XSETFASTINT (buffer_local_flags.mode_name, -1);
-  XSETFASTINT (buffer_local_flags.undo_list, -1);
-  XSETFASTINT (buffer_local_flags.mark_active, -1);
+  XSETINT (buffer_local_flags.filename, -1);
+  XSETINT (buffer_local_flags.directory, -1);
+  XSETINT (buffer_local_flags.backed_up, -1);
+  XSETINT (buffer_local_flags.save_length, -1);
+  XSETINT (buffer_local_flags.auto_save_file_name, -1);
+  XSETINT (buffer_local_flags.read_only, -1);
+  XSETINT (buffer_local_flags.major_mode, -1);
+  XSETINT (buffer_local_flags.mode_name, -1);
+  XSETINT (buffer_local_flags.undo_list, -1);
+  XSETINT (buffer_local_flags.mark_active, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
