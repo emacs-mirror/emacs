@@ -1,11 +1,11 @@
 ;;;_* allout.el - Extensive outline mode for use alone and with other modes.
 
-;;;_* Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@nist.gov>
 ;; Maintainer: Ken Manheimer <klm@nist.gov>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.7 1994/05/09 06:36:19 rms Exp rms $||
+;; Version: Id: allout.el,v 4.3 1994/05/12 17:43:08 klm Exp ||
 ;; Keywords: outline mode
 
 ;; This file is part of GNU Emacs.
@@ -383,11 +383,18 @@ lisp-archive package.]")
 (make-variable-buffer-local 'outline-use-hanging-indents)
 
 ;;;_  = outline-reindent-bodies
-(defvar outline-reindent-bodies outline-use-hanging-indents
+(defvar outline-reindent-bodies (if outline-use-hanging-indents
+				    'text)
   "*Non-nil enables auto-adjust of topic body hanging indent with depth shifts.
 
-Indented hanging bodies are adjusted to remain even with \(or
-right-indented from\) the beginning of heading text.") 
+When active, topic body lines that are indented even with or beyond
+their topic header are reindented to correspond with depth shifts of
+the header.
+
+A value of `t' enables reindent in non-programming-code buffers, ie
+those that do not have the variable `comment-start' set.  A value of
+`force' enables reindent whether or not `comment-start' is set.")
+
 (make-variable-buffer-local 'outline-reindent-bodies)
 
 ;;;_  = outline-inhibit-protection
@@ -408,14 +415,13 @@ behavior.")
 ;;;_  - Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.7 $"))
+  (let ((rcs-rev "Revision: 4.3"))
     (condition-case err
 	(save-match-data
-	  (string-match "\\$Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
+	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
 	  (substring rcs-rev (match-beginning 1) (match-end 1)))
       (error rcs-rev)))
-  "Revision number of currently loaded outline package.  (Currently
-specific to allout.el.)")
+  "Revision number of currently loaded outline package.  \(allout.el)")
 ;;;_   > outline-version
 (defun outline-version (&optional here)
   "Return string describing the loaded outline version."
@@ -468,14 +474,14 @@ that (match-beginning 2) and (match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'outline-plain-bullets-string-len)
 
 
-;;;_   > outline-reset-header-lead (header-lead)
+;;;_   X outline-reset-header-lead (header-lead)
 (defun outline-reset-header-lead (header-lead)
   "*Reset the leading string used to identify topic headers."
   (interactive "sNew lead string: ")
   (setq outline-header-prefix header-lead)
   (setq outline-header-subtraction (1- (length outline-header-prefix)))
   (set-outline-regexp))
-;;;_   > outline-lead-with-comment-string (header-lead)
+;;;_   X outline-lead-with-comment-string (header-lead)
 (defun outline-lead-with-comment-string (&optional header-lead)
   "*Set the topic-header leading string to specified string.
 
@@ -489,18 +495,19 @@ language comments.  Returns the leading string."
   (setq outline-reindent-bodies nil)
   (outline-reset-header-lead header-lead)
   header-lead)
-;;;_   > outline-infer-header-lead (&optional reset)
-(defun outline-infer-header-lead (&optional set)
+;;;_   > outline-infer-header-lead ()
+(defun outline-infer-header-lead ()
   "Determine appropriate `outline-header-prefix'.
 
 Works according to settings of:
 
+       `comment-start'
        `outline-header-prefix' (default)
        `outline-use-mode-specific-leader'
 and    `outline-mode-leaders'.
 
-Optional arg SET means to do the processing to establish that prefix
-for current outline processing, if it has changed from prior setting."
+Apply this via \(re\)activation of `outline-mode', rather than
+invoking it directly."
   (let* ((use-leader (and (boundp 'outline-use-mode-specific-leader)
 			  (if (or (stringp outline-use-mode-specific-leader)
 				  (memq outline-use-mode-specific-leader
@@ -537,8 +544,18 @@ for current outline processing, if it has changed from prior setting."
       (if (string= leader outline-header-prefix)
 	  nil				; no change, nothing to do.
 	(setq outline-header-prefix leader)
-	(if set (outline-reset-header-lead outline-header-prefix))
 	outline-header-prefix))))
+;;;_   > outline-infer-body-reindent ()
+(defun outline-infer-body-reindent ()
+  "Determine proper setting for `outline-reindent-bodies'.
+
+Depends on default setting of `outline-reindent-bodies' \(which see)
+and presence of setting for `comment-start', to tell whether the
+file is programming code."
+  (if (and outline-reindent-bodies
+	   comment-start
+	   (not (eq 'force outline-reindent-bodies)))
+      (setq outline-reindent-bodies nil)))
 ;;;_   > set-outline-regexp ()
 (defun set-outline-regexp ()
   "Generate proper topic-header regexp form for outline functions.
@@ -740,17 +757,19 @@ protection knows to keep inactive during file write."
   "Outline-mode was last deliberately deactived.
 So outline-post-command-business should not reactivate it...")
 (make-variable-buffer-local 'outline-explicitly-deactivated)
-;;;_  > outline-init (mode)
-(defun outline-init (mode)
+;;;_  > outline-init (&optional mode)
+(defun outline-init (&optional mode)
   "Prime outline-mode to enable/disable auto-activation, wrt `outline-layout'.
 
-MODE is one of:
+MODE is one of the following symbols:
 
- - nil, for no auto-activation,
- - `activation', for auto-activation only,
- - `ask' for auto-activation and auto-layout on confirmation from user,
- - anything else, for auto-activation and auto-layout, without any
-   confirmation check.
+ - nil \(or no argument) deactivate auto-activation/layou;
+ - 'activate', enable auto-activation only;
+ - 'ask', enable auto-activation, and enable auto-layout but with
+   confirmation for layout operation solicitated from user each time;
+ - 'report', just report and return the current auto-activation state;
+ - anything else \(eg, t) for auto-activation and auto-layout, without
+   any confirmation check.
 
 Use this function to setup your emacs session for automatic activation
 of allout outline mode, contingent to the buffer-specific setting of
@@ -767,22 +786,52 @@ the following two lines in your emacs init file:
 \(require 'allout)
 \(outline-init t)"
 
-  (if (not mode)
+  (interactive)
+  (if (interactive-p)
       (progn
-	(setq find-file-hooks (delq 'outline-find-file-hook find-file-hooks))
-	(if (interactive-p)
-	    (message "Allout outline mode auto-activation inhibited.")))
-    (add-hook 'find-file-hooks 'outline-find-file-hook)
-    (setq outline-auto-activation
-	  (cond ((eq mode 'activation)
-		 (message "Allout outline mode auto-activation enabled.")
-		 'activate)
-		((eq mode 'ask)
-		 (message "Allout outline mode auto-activation enabled.")
-		 'ask)
-		((message
-		  "Allout outline mode auto-activation and -layout enabled.")
-		 t)))))
+	(setq mode
+	      (completing-read
+	       (concat "Select outline auto setup mode "
+		       "(empty for report, ? for options) ")
+	       '(("nil")("full")("activate")("deactivate")
+		 ("ask") ("report") (""))
+	       nil
+	       t))
+	(if (string= mode "")
+	    (setq mode 'report)
+	  (setq mode (intern-soft mode)))))
+  (let
+      ;; convenience aliases, for consistent ref to respective vars:
+      ((hook 'outline-find-file-hook)
+       (curr-mode 'outline-auto-activation))
+	
+    (cond ((not mode)
+	   (setq find-file-hooks (delq hook find-file-hooks))
+	   (if (interactive-p)
+	       (message "Allout outline mode auto-activation inhibited.")))
+	  ((eq mode 'report)
+	   (if (not (memq hook find-file-hooks))
+	       (outline-init nil)
+	     ;; Just punt and use the reports from each of the modes:
+	     (outline-init (symbol-value curr-mode))))
+	  (t (add-hook 'find-file-hooks hook)
+	     (set curr-mode		; 'set', not 'setq'!
+		  (cond ((eq mode 'activate)
+			 (message
+			  "Outline mode auto-activation enabled.")
+			 'activate)
+			((eq mode 'report)
+			 ;; Return the current mode setting:
+			 (outline-init mode))
+			((eq mode 'ask)
+			 (message
+			  (concat "Outline mode auto-activation and "
+				  "-layout \(upon confirmation) enabled."))
+			 'ask)
+			((message
+			  "Outline mode auto-activation and -layout enabled.")
+			 'full)))))))
+		   
 ;;;_  > outline-mode (&optional toggle)
 ;;;_   : Defun:
 (defun outline-mode (&optional toggle)
@@ -1049,6 +1098,7 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 	   (outline-resumptions 'outline-old-style-prefixes '(()))))
 
       (outline-infer-header-lead)
+      (outline-infer-body-reindent)
 
       (set-outline-regexp)
 
@@ -1128,7 +1178,8 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
       (setq outline-mode t))
 
      ;; Reactivation:
-     ((setq do-layout t))
+     ((setq do-layout t)
+      (outline-infer-body-reindent))
      )					; cond
 
     (if (and do-layout
@@ -1140,16 +1191,21 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 					    (buffer-name)
 					    outline-layout))
 			  t
-			(message "Not doing %s layout.")
+			(message "Skipped %s layout." (buffer-name))
 			nil)
 		    t)))
 	(save-excursion
 	  (message "Adjusting '%s' exposure..." (buffer-name))
 	  (goto-char 0)
-	  (if (not (outline-goto-prefix))
-	     (outline-next-heading))
-	  (apply 'outline-expose-topic (list outline-layout))
-	  (message "Adjusting '%s' exposure... done." (buffer-name))))
+	  (outline-this-or-next-heading)
+	  (condition-case err
+	      (progn 
+		(apply 'outline-expose-topic (list outline-layout))
+		(message "Adjusting '%s' exposure... done." (buffer-name)))
+	    ;; Problem applying exposure - notify user, but don't
+	    ;; interrupt, eg, file visit:
+	    (error (message "%s" (car (cdr err)))
+		   (sit-for 1)))))
     outline-mode
     )					; let*
   )  					; defun
@@ -1313,6 +1369,12 @@ Returns the location of the heading, or nil if none found."
 	  (goto-char (or (match-beginning 2)
 			 outline-recent-prefix-beginning))
 	  (or (match-end 2) outline-recent-prefix-end)))))
+;;;_   : outline-this-or-next-heading
+(defun outline-this-or-next-heading ()
+  "Position cursor on current or next heading."
+  ;; A throwaway non-macro that is defined after outline-next-heading
+  ;; and usable by outline-mode.
+  (if (not (outline-goto-prefix)) (outline-next-heading)))
 ;;;_   > outline-previous-heading ()
 (defmacro outline-previous-heading ()
   "Move to the prior \(possibly invisible) heading line.
@@ -4277,4 +4339,3 @@ function.  If HOOK is void, it is first set to nil."
 ;;;End:
 
 ;; allout.el ends here
-
