@@ -24,9 +24,6 @@ Boston, MA 02111-1307, USA.  */
 #include "xlwmenu.h"
 #include <X11/CoreP.h>
 
-/* FIXME: HAVE_X_I18N does not work yet. */
-#undef HAVE_X_I18N
-
 /* Elements in the stack arrays. */
 typedef struct _window_state
 {
@@ -47,11 +44,10 @@ typedef struct _XlwMenu_part
 {
   /* slots set by the resources */
 #ifdef HAVE_X_I18N
-  XFontSet	font;
+  XFontSet	fontSet;
   XFontSetExtents *font_extents;
-#else
-  XFontStruct*	font;
 #endif
+  XFontStruct*	font;
   Pixel		foreground;
   Pixel		disabled_foreground;
   Pixel		button_foreground;
