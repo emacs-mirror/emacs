@@ -525,9 +525,14 @@ case "${canonical}" in
     machine=hp800 opsys=hpux9
   ;;
 
+  hppa*-hp-hpux10.2* )
+    machine=hp800 opsys=hpux10-20
+  ;;
+
   hppa*-hp-hpux10* )
     machine=hp800 opsys=hpux10
   ;;
+
   hppa*-hp-hpux1[1-9]* )
     machine=hp800 opsys=hpux11
   ;;
