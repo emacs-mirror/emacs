@@ -1025,15 +1025,6 @@ extern Lisp_Object x_property_data_to_lisp P_ ((struct frame *,
 
 extern struct x_display_info * check_x_display_info P_ ((Lisp_Object frame));
 extern int have_menus_p P_ ((void));
-extern int x_bitmap_height P_ ((struct frame *, int));
-extern int x_bitmap_width P_ ((struct frame *, int));
-extern int x_bitmap_pixmap P_ ((struct frame *, int));
-extern void x_reference_bitmap P_ ((struct frame *, int));
-extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
-					  unsigned int, unsigned int));
-extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
-extern void x_destroy_bitmap P_ ((struct frame *, int));
-extern int x_create_bitmap_mask P_ ((struct frame * , int));
 
 #ifdef USE_GTK
 extern int xg_set_icon P_ ((struct frame *, Lisp_Object));
