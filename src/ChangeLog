@@ -1,5 +1,8 @@
 2000-10-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (size_window): Compute size difference from sum of old
+	child window sizes instead of from parent's size.
+
 	* xdisp.c (pos_visible_p): Change current buffer if necessary.
 	Handle obscured lines at the top of the window.
 
