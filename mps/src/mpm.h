@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.85) $
+ * $HopeName: MMsrc!mpm.h(trunk.86) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -383,7 +383,6 @@ extern void MessageNoFinalizationRef(Ref *refReturn,
 #define TraceSetSuper(ts1, ts2) BS_SUPER((ts1), (ts2))
 #define TraceSetSub(ts1, ts2)   BS_SUB((ts1), (ts2))
 
-
 extern TraceSet (TraceSetAdd)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetDel)(TraceSet ts, TraceId id);
 extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
@@ -579,6 +578,7 @@ extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
+extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
 
 #define SegPool(seg)            ((seg)->_pool)
 /* .bitfield.promote: The bit field accesses need to be cast to the */
@@ -713,6 +713,10 @@ extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
 
 /* Shield Interface -- see impl.c.shield */
+
+#define AccessSetIsMember(as, a) BS_IS_MEMBER((as), (a))
+#define AccessSetAdd(as, a)      BS_ADD(AccessSet, (as), (a))
+#define AccessSetDel(as, a)      BS_DEL(AccessSet, (as), (a))
 
 extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
 extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
