@@ -978,6 +978,21 @@ STRING should be given if the last search was by `string-match' on STRING."
 	  (substring string (match-beginning num) (match-end num))
 	(buffer-substring (match-beginning num) (match-end num)))))
 
+(defun match-string-no-properties (num &optional string)
+  "Return string of text matched by last search, without text properties.
+NUM specifies which parenthesized expression in the last regexp.
+ Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
+Zero means the entire text matched by the whole regexp or whole string.
+STRING should be given if the last search was by `string-match' on STRING."
+  (if (match-beginning num)
+      (if string
+	  (let ((result
+		 (substring string (match-beginning num) (match-end num))))
+	    (set-text-properties 0 (length result) nil result)
+	    result)
+	(buffer-substring-no-properties (match-beginning num)
+					(match-end num)))))
+
 (defun split-string (string &optional separators)
   "Splits STRING into substrings where there are matches for SEPARATORS.
 Each match for SEPARATORS is a splitting point.
