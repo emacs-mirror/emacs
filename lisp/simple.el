@@ -2482,6 +2482,8 @@ it were the arg to `interactive' (which see) to interactively read the value."
       (set-buffer buffer)
       (choose-completion-delete-max-match choice)
       (insert choice)
+      (remove-text-properties (- (point) (length choice)) (point)
+			      '(mouse-face nil))
       ;; Update point in the window that BUFFER is showing in.
       (let ((window (get-buffer-window buffer t)))
 	(set-window-point window (point)))
