@@ -1,3 +1,8 @@
+2003-01-27  Juanma Barranquero  <lektu@terra.es>
+
+	* w32fns.c (init_external_image_libraries): Try alternate names for the
+	jpeg dll.
+
 2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (create_dialog, xg_separator_p)
