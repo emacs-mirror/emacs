@@ -496,7 +496,7 @@ that determines the value of this function.")
 DEFUN ("user-real-login-name", Fuser_real_login_name, Suser_real_login_name,
   0, 0, 0,
   "Return the name of the user's real uid, as a string.\n\
-This ignores the environment variables LOGNAME and USER, so it differs from
+This ignores the environment variables LOGNAME and USER, so it differs from\n\
 `user-login-name' when running under `su'.")
   ()
 {
