@@ -196,7 +196,7 @@ echo "Updating version number in README"
 echo "Creating subdirectories"
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
-	      nt nt/inc nt/inc/sys \
+	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
 	      etc etc/e lock cpp info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
@@ -279,7 +279,7 @@ echo "Making links to \`lib-src'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.ico emacs.rc config.nt config.w95 [a-z]*.in [a-z]*.c ../${tempdir}/nt
+ ln emacs.ico emacs.rc config.nt [a-z]*.in [a-z]*.c ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
  ln TODO ChangeLog INSTALL README ../${tempdir}/nt)
 
@@ -290,6 +290,14 @@ echo "Making links to \`nt/inc'"
 echo "Making links to \`nt/inc/sys'"
 (cd nt/inc/sys
  ln [a-z]*.h ../../../${tempdir}/nt/inc/sys)
+
+echo "Making links to \`nt/inc/arpa'"
+(cd nt/inc/arpa
+ ln [a-z]*.h ../../../${tempdir}/nt/inc/arpa)
+
+echo "Making links to \`nt/inc/netinet'"
+(cd nt/inc/netinet
+ ln [a-z]*.h ../../../${tempdir}/nt/inc/netinet)
 
 echo "Making links to \`msdos'"
 (cd msdos
