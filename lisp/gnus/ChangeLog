@@ -1,3 +1,7 @@
+2000-12-21  Miles Bader  <miles@gnu.org>
+
+	* message.el (message-mode): Set `comment-start' to the  yank prefix.
+
 2000-12-20  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-narrow-to-head-1): New function.

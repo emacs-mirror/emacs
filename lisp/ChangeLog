@@ -1,3 +1,7 @@
+2000-12-21  Miles Bader  <miles@gnu.org>
+
+	* mail/sendmail.el (mail-mode): Set `comment-start' to the  yank prefix.
+
 2000-12-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (describe-char-after): Make *Help*
