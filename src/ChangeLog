@@ -13,6 +13,46 @@
 
 	* print.c (print_object): Increase buf size.
 
+2004-05-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_register_hot_key, Fw32_unregister_hot_key)
+	(Fw32_toggle_lock_key) [USE_LISP_UNION_TYPE]: Cast from
+	Lisp_Object using i member.
+	(w32_quit_key): Rename from Vw32_quit_key, and make an int.
+	(syms_of_w32fns, globals_of_w32fns): Use Lisp_Object and int
+	consistently.
+
+	* w32proc.c (create_child): Use make_number instead of masking pid.
+
+	* w32fns.c (w32_color_map_lookup): Return a Lisp_Object.
+	(x_to_w32_charset, w32_to_x_charset, w32_to_all_x_charsets):
+	Use EQ to compare Lisp_Objects.
+	(w32_parse_hot_key): Use int for lisp_modifiers consistently.
+
+	* w32term.c (w32_num_mouse_buttons): Rename from
+	Vw32_num_mouse_buttons and make it an int.
+
+	* w32.c (init_environment): Use it.
+
+	* w32fns.c (w32_wnd_proc): Likewise.
+
+	* w32proc.c (w32_pipe_read_delay): Rename from
+	Vw32_pipe_read_delay and make it an int.
+
+	* w32.c (_sys_read_ahead): Use it.
+
+	* lisp.h (egetenv) [USE_CRT_DLL]: Remove condition.
+
+	* w32proc.c (create_child) [USE_LSB_TAG]: Don't try to mask pid.
+
+	* w32inevt.c (w32_console_mouse_position, do_mouse_event)
+	(key_event): Don't mix Lisp_Object and int.
+
+	* w32heap.c (init_heap) [USE_LSB_TAG]: Don't check heap location.
+
+	* keyboard.c (kbd_buffer_get_event): Don't use event->code and
+	modifiers in language change event.
+
 2004-05-17  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (mark_object): Ignore Lisp_Misc_Free objects.
