@@ -1,3 +1,8 @@
+2002-02-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* gud.el (gud-refresh): Call recenter only after we are sure we
+	are in the right window.
+
 2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el (x-use-underline-position-properties):
