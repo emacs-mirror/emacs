@@ -30,6 +30,23 @@
 
 ;;; Code:
 
+;; History list for environment variable names.
+(defvar read-envvar-name-history nil)
+
+(defun read-envvar-name (prompt &optional mustmatch)
+  "Read environment variable name, prompting with PROMPT.
+Optional second arg MUSTMATCH, if non-nil, means require existing envvar name."
+  (completing-read prompt
+		   (mapcar (function
+			    (lambda (enventry)
+			      (list (substring enventry 0
+					       (string-match "=" enventry)))))
+			   process-environment)
+		   nil mustmatch nil 'read-envvar-name-history))
+
+;; History list for VALUE argument to setenv.
+(defvar setenv-history nil)
+
 ;;;###autoload
 (defun setenv (variable &optional value unset)
   "Set the value of the environment variable named VARIABLE to VALUE.
@@ -37,12 +54,36 @@ VARIABLE should be a string.  VALUE is optional; if not provided or is
 `nil', the environment variable VARIABLE will be removed.  
 
 Interactively, a prefix argument means to unset the variable.
+Interactively, the current value (if any) of the variable
+appears at the front of the history list when you type in the new value.
+
 This function works by modifying `process-environment'."
   (interactive
    (if current-prefix-arg
-       (list (read-string "Clear environment variable: ") nil t)
-     (let ((var (read-string "Set environment variable: ")))
-       (list var (read-string (format "Set %s to value: " var))))))
+       (list (read-envvar-name "Clear environment variable: " t) nil t)
+     (let* ((var (read-envvar-name "Set environment variable: " nil))
+	    (oldval (getenv var))
+	    newval
+	    oldhist)
+       ;; Don't put the current value on the history
+       ;; if it is already there.
+       (if (equal oldval (car setenv-history))
+	   (setq oldval nil))
+       ;; Now if OLDVAL is non-nil, we should add it to the history.
+       (if oldval
+	   (setq setenv-history (cons oldval setenv-history)))
+       (setq oldhist setenv-history)
+       (setq newval (read-from-minibuffer (format "Set %s to value: " var)
+					  nil nil nil 'setenv-history))
+       ;; If we added the current value to the history, remove it.
+       ;; Note that read-from-minibuffer may have added the new value.
+       ;; Don't remove that!
+       (if oldval
+	   (if (eq oldhist setenv-history)
+	       (setq setenv-history (cdr setenv-history))
+	     (setcdr setenv-history (cdr (cdr setenv-history)))))
+       ;; Here finally we specify the args to give call setenv with.
+       (list var newval))))
   (if unset (setq value nil))
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable)
