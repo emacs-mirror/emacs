@@ -517,10 +517,8 @@ This returns ARGS with the arguments that have been processed removed."
 		   "GreenYellow")
   "The full list of X colors from the `rgb.text' file.")
 
-(defun x-defined-colors (&optional frame)
-  "Return a list of colors supported for a particular frame.
-The argument FRAME specifies which frame to try.
-The value may be different for frames on different X displays."
+(defun xw-defined-colors (&optional frame)
+  "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
   (let* ((color-map-colors (mapcar (lambda (clr) (car clr)) w32-color-map))
 	 (all-colors (or color-map-colors x-colors))

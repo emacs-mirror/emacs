@@ -735,16 +735,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (funcall initial-major-mode))))
 
   ;; Register default TTY colors for the case the terminal hasn't a
-  ;; terminal init file.  The colors are good for xterm-color and the
-  ;; FreeBSD console (cons.*).  They should be sufficient for Linux
-  ;; too, I guess.
-  (or (eq window-system 'pc)	; pc-win.el did this already
-      (let ((colors '("black" "red" "green" "yellow" "blue" "magenta"
-		      "cyan" "white"))
-	    (i 0))
+  ;; terminal init file.
+  (or (memq window-system '(x w32))
+      (not (tty-display-color-p))
+      (let* ((colors (if (eq window-system 'pc)
+			 msdos-color-values
+		       tty-standard-colors))
+	     (color (car colors)))
 	(while colors
-	  (face-register-tty-color (car colors) i)
-	  (setq colors (cdr colors) i (1+ i)))))
+	  (tty-color-define (car color) (cadr color) (cddr color))
+	  (setq colors (cdr colors) color (car colors)))))
   
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.

@@ -758,8 +758,7 @@ an integer value."
 		       (internal-lisp-face-attribute-values attribute))))
 	    ((:foreground :background)
 	     (mapcar #'(lambda (c) (cons c c))
-		     (or (and window-system (x-defined-colors frame))
-			 (tty-defined-colors))))
+		     (defined-colors frame)))
 	    ((:height)
 	     'integerp)
 	    (:stipple
@@ -858,6 +857,13 @@ of a global face.  Value is the new attribute value."
     (cond ((listp valid)
 	   (setq new-value
 		 (face-read-string face old-value attribute-name valid))
+	   ;; Terminal frames can support colors that don't appear
+	   ;; explicitly in VALID, using color approximation code
+	   ;; in tty-colors.el.
+	   (if (and (memq attribute '(:foreground :background))
+		    (not (memq window-system '(x w32 mac)))
+		    (not (eq new-value 'unspecified)))
+	       (setq new-value (car (tty-color-desc new-value))))
 	   (unless (eq new-value 'unspecified)
 	     (setq new-value (cdr (assoc new-value valid)))))
 	  ((eq valid 'integerp)
@@ -1138,6 +1144,60 @@ is used.  If nil or omitted, use the selected frame."
   "Return t if FACE, on FRAME, matches what SPEC says it should look like."
   (face-attr-match-p face (face-spec-choose spec frame) frame))
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Frame-type independent color support.
+;;; We keep the old x-* names as aliases for back-compatibility.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun defined-colors (&optional frame)
+  "Return a list of colors supported for a particular frame.
+The argument FRAME specifies which frame to try.
+The value may be different for frames on different display types.
+If FRAME doesn't support colors, the value is nil."
+  (if (memq (framep (or frame (selected-frame))) '(x w32))
+      (xw-defined-colors frame)
+    (mapcar 'car tty-color-alist)))
+(defalias 'x-defined-colors 'defined-colors)
+
+(defun color-defined-p (color &optional frame)
+  "Return non-nil if color COLOR is supported on frame FRAME.
+If FRAME is omitted or nil, use the selected frame.
+If COLOR is the symbol `unspecified', the value is nil."
+  (if (eq color 'unspecified)
+      nil
+    (if (memq (framep (or frame (selected-frame))) '(x w32))
+	(xw-color-defined-p color frame)
+      (numberp (tty-color-translate color)))))
+(defalias 'x-color-defined-p 'color-defined-p)
+
+(defun color-values (color &optional frame)
+  "Return a description of the color named COLOR on frame FRAME.
+The value is a list of integer RGB values--\(RED GREEN BLUE\).
+These values appear to range from 0 to 65280 or 65535, depending
+on the system; white is \(65280 65280 65280\) or \(65535 65535 65535\).
+If FRAME is omitted or nil, use the selected frame.
+If FRAME cannot display COLOR, the value is nil.
+If COLOR is the symbol `unspecified', the value is nil."
+  (if (eq color 'unspecified)
+      nil
+    (if (memq (framep (or frame (selected-frame))) '(x w32))
+	(xw-color-values color frame)
+      (tty-color-values color frame))))
+(defalias 'x-color-values 'color-values)
+
+(defun display-color-p (&optional display)
+  "Return t if DISPLAY supports color.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  (if (and (stringp display) (not (fboundp 'x-display-list)))
+      nil
+    (if (memq (framep (or display (selected-frame))) '(x w32))
+	(xw-display-color-p display)
+      (tty-display-color-p))))
+(defalias 'x-display-color-p 'display-color-p)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

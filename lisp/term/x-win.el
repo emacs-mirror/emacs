@@ -428,10 +428,8 @@ This function returns ARGS minus the arguments that have been processed."
 		   "GreenYellow")
   "The list of X colors from the `rgb.txt' file.")
 
-(defun x-defined-colors (&optional frame)
-  "Return a list of colors supported for a particular frame.
-The argument FRAME specifies which frame to try.
-The value may be different for frames on different X displays."
+(defun xw-defined-colors (&optional frame)
+  "Internal function called by `defined-colors', which see."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)

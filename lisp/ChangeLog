@@ -1,3 +1,52 @@
+1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Changes for automatic remapping of X colors on terminal frames:
+
+	* term/pc-win.el (msdos-setup-initial-frame): New function, run by
+	term-setup-hook.  Call msdos-remember-default-colors and
+	msdos-handle-reverse-video.
+	(msdos-face-setup): Parts of code moved to
+	msdos-setup-initial-frame.
+	(msdos-handle-reverse-video): New function, modeled after
+	x-handle-reverse-video.
+	(make-msdos-frame): Don't use initial-frame-alist and
+	default-frame-alist.  Call msdos-handle-reverse-video.
+	(msdos-color-aliases): Remove.
+	(msdos-color-translate, msdos-approximate-color): Remove.
+	(msdos-color-values): Use 16-bit RGB values.  RGB values updated
+	for better approximation of X colors.
+	(msdos-face-setup): Call tty-color-clear.  Remove code that sets
+	up tty-color-alist (it is now on startup.el).
+	(x-display-color-p, x-color-defined-p, x-color-values,
+	x-defined-colors, face-color-supported-p, face-color-gray-p):
+	Remove.
+
+	* facemenu.el (facemenu-read-color, list-colors-display): Use
+	defined-colors for all frame types.
+	(facemenu-color-equal): Use color-values for all frame types.
+
+	* faces.el (read-face-attribute): For :foreground and :background
+	attributes and frames on character terminals, translate the color
+	to the closest supported one before looking it up in the list of
+	valid values.
+	(face-valid-attribute-values): Call defined-colors for all types
+	of frames.
+	(defined-colors, color-defined-p, color-values, display-color-p):
+	New finctions.
+	(x-defined-colors, x-color-defined-p, x-color-values,
+	x-display-color-p): Aliases for the above.
+
+	* startup.el (command-line): Register terminal colors for frame
+	types other than x and w32, but only if the terminal supports
+	colors.  Call tty-color-define instead of face-register-tty-color.
+
+	* term/x-win.el (xw-defined-colors): Renamed from
+	x-defined-colors.
+	* term/w32-win.el (xw-defined-colors): Likewise.
+
+	* term/tty-colors.el: New file.
+	* loadup.el: Load term/tty-colors.
+
 1999-12-06  Dave Love  <fx@gnu.org>
 
 	* ffap.el: Autoload the ffap alias directly.

@@ -107,6 +107,7 @@
 (load "isearch")
 (load "window")
 (load "frame")
+(load "term/tty-colors")
 (load "faces")
 (if (fboundp 'frame-face-alist)
     (progn

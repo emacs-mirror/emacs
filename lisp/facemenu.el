@@ -467,9 +467,7 @@ These special properties include `invisible', `intangible' and `read-only'."
   "Read a color using the minibuffer."
   (let ((col (completing-read (or prompt "Color: ") 
 			      (or facemenu-color-alist
-				  (if window-system
-				      (mapcar 'list (x-defined-colors))
-				    (mapcar 'list (tty-defined-colors))))
+				  (mapcar 'list (defined-colors)))
 			      nil t)))
     (if (equal "" col)
 	nil
@@ -483,9 +481,7 @@ colors to display.  Otherwise, this command computes a list
 of colors that the current display can handle."
   (interactive)
   (when (null list)
-    (setq list (if window-system
-		   (x-defined-colors)
-		 (tty-defined-colors)))
+    (setq list (defined-colors))
     ;; Delete duplicate colors.
     (let ((l list))
       (while (cdr l)
@@ -511,15 +507,11 @@ of colors that the current display can handle."
 (defun facemenu-color-equal (a b)
   "Return t if colors A and B are the same color.
 A and B should be strings naming colors.
-This function queries the window-system server to find out what the
-color names mean.  It returns nil if the colors differ or if it can't
+This function queries the display system to find out what the color
+names mean.  It returns nil if the colors differ or if it can't
 determine the correct answer."
   (cond ((equal a b) t)
-	((and (memq window-system '(x w32))
-	      (equal (x-color-values a) (x-color-values b))))
-	((eq window-system 'pc)
-	 (and (x-color-defined-p a) (x-color-defined-p b)
-	      (eq (msdos-color-translate a) (msdos-color-translate b))))))
+	((equal (color-values a) (color-values b)))))
 
 (defun facemenu-add-face (face &optional start end)
   "Add FACE to text between START and END.

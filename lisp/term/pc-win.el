@@ -26,285 +26,46 @@
 
 (load "term/internal" nil t)
 
-;; Color translation -- doesn't really need to be fast.
-;; Colors listed here do not include the "light-",
-;; "medium-" and "dark-" prefixes that are accounted for
-;; by `msdos-color-translate', which see below).
-
-(defvar msdos-color-aliases
-  '(("snow"		. "white")
-    ("ghost white"	. "white")
-    ("ghostwhite"	. "white")
-    ("white smoke"	. "white")
-    ("whitesmoke"	. "white")
-    ("gainsboro"	. "white")
-    ("floral white"	. "white")
-    ("floralwhite"	. "white")
-    ("old lace"		. "white")
-    ("oldlace"		. "white")
-    ("linen"		. "white")
-    ("antique white"	. "white")
-    ("antiquewhite"	. "white")
-    ("papaya whip"	. "white")
-    ("papayawhip"	. "white")
-    ("blanched almond"	. "white")
-    ("blanchedalmond"	. "white")
-    ("bisque"		. "white")
-    ("peach puff"	. "lightred")
-    ("peachpuff"	. "lightred")
-    ("navajo white"	. "lightred")
-    ("navajowhite"	. "lightred")
-    ("moccasin"		. "lightred")
-    ("cornsilk"		. "white")
-    ("ivory"		. "white")
-    ("lemon chiffon"	. "yellow")
-    ("lemonchiffon"	. "yellow")
-    ("seashell"		. "white")
-    ("honeydew"		. "white")
-    ("mint cream"	. "white")
-    ("mintcream"	. "white")
-    ("azure"		. "lightcyan")
-    ("alice blue"	. "lightcyan")
-    ("aliceblue"	. "lightcyan")
-    ("lavender"		. "lightcyan")
-    ("lavender blush"	. "lightcyan")
-    ("lavenderblush"	. "lightcyan")
-    ("misty rose"	. "lightred")
-    ("mistyrose"	. "lightred")
-    ("aquamarine" 	. "blue")
-    ("cadet blue"	. "blue")
-    ("cadetblue"	. "blue")
-    ("cornflower blue"	. "lightblue")
-    ("cornflowerblue"	. "lightblue")
-    ("midnight blue"	. "blue")
-    ("midnightblue"	. "blue")
-    ("navy blue"	. "cyan")
-    ("navyblue"		. "cyan")
-    ("navy"		. "cyan")
-    ("royalblue"	. "blue")
-    ("royal blue"	. "blue")
-    ("sky blue"		. "lightblue")
-    ("skyblue"		. "lightblue")
-    ("dodger blue"	. "blue")
-    ("dodgerblue"	. "blue")
-    ("powder blue"	. "lightblue")
-    ("powderblue"	. "lightblue")
-    ("slate blue"	. "cyan")
-    ("slateblue"	. "cyan")
-    ("steel blue"	. "blue")
-    ("steelblue"	. "blue")
-    ("coral"		. "lightred")
-    ("tomato"		. "lightred")
-    ("firebrick"	. "red")
-    ("gold"		. "yellow")
-    ("goldenrod"	. "yellow")
-    ("goldenrod yellow"	. "yellow")
-    ("goldenrodyellow"	. "yellow")
-    ("pale goldenrod"	. "yellow")
-    ("palegoldenrod"	. "yellow")
-    ("olive green"	. "lightgreen")
-    ("olivegreen"	. "lightgreen")
-    ("olive drab"	. "green")
-    ("olivedrab"	. "green")
-    ("forest green"	. "green")
-    ("forestgreen"	. "green")
-    ("lime green"	. "lightgreen")
-    ("limegreen"	. "lightgreen")
-    ("sea green"	. "lightcyan")
-    ("seagreen"		. "lightcyan")
-    ("spring green"	. "green")
-    ("springgreen"	. "green")
-    ("lawn green"	. "lightgreen")
-    ("lawngreen"	. "lightgreen")
-    ("chartreuse"	. "yellow")
-    ("yellow green"	. "lightgreen")
-    ("yellowgreen"	. "lightgreen")
-    ("green yellow"	. "lightgreen")
-    ("greenyellow"	. "lightgreen")
-    ("slate grey"	. "lightgray")
-    ("slategrey"	. "lightgray")
-    ("slate gray"	. "lightgray")
-    ("slategray"	. "lightgray")
-    ("dim grey"		. "darkgray")
-    ("dimgrey"		. "darkgray")
-    ("dim gray"		. "darkgray")
-    ("dimgray"		. "darkgray")
-    ("light grey"	. "lightgray")
-    ("lightgrey"	. "lightgray")
-    ("light gray"	. "lightgray")
-    ("gray"		. "darkgray")
-    ("grey"		. "darkgray")
-    ("khaki"		. "green")
-    ("maroon"		. "red")
-    ("orange"		. "brown")
-    ("orchid"		. "brown")
-    ("saddle brown"	. "red")
-    ("saddlebrown"	. "red")
-    ("peru"		. "red")
-    ("burlywood"	. "brown")
-    ("sandy brown"	. "brown")
-    ("sandybrown"	. "brown")
-    ("pink"		. "lightred")
-    ("hotpink"		. "lightred")
-    ("hot pink"		."lightred")
-    ("plum"		. "magenta")
-    ("indian red"	. "red")
-    ("indianred"	. "red")
-    ("violet red"	. "magenta")
-    ("violetred"	. "magenta")
-    ("orange red"	. "red")
-    ("orangered"	. "red")
-    ("salmon"		.  "lightred")
-    ("sienna"		. "lightred")
-    ("tan"		. "lightred")
-    ("chocolate"	. "brown")
-    ("thistle"		. "magenta")
-    ("turquoise"	. "lightgreen")
-    ("pale turquoise"	. "cyan")
-    ("paleturquoise"	. "cyan")
-    ("violet"		. "magenta")
-    ("blue violet"	. "lightmagenta")
-    ("blueviolet"	. "lightmagenta")
-    ("wheat"		. "white")
-    ("green yellow"	. "yellow")
-    ("greenyellow"	. "yellow")
-    ("purple"		. "magenta")
-    ("rosybrown"	. "brown")
-    ("rosy brown"	. "brown")
-    ("beige"		. "brown"))
-  "List of alternate names for colors.")
-
-(defun msdos-color-translate (name)
-  "Translate color specification in NAME into something DOS terminal groks."
-  (setq name (downcase name))
-  (let* ((len (length name))
-	 (val (- (length x-colors)
-		 (length (member name x-colors))))
-	 (try))
-    (if (or (< val 0) (>= val (length x-colors))) (setq val nil))
-    (or val
-	(and (setq try (cdr (assoc name msdos-color-aliases)))
-	     (msdos-color-translate try))
-	(and (> len 5)
-	     (string= "light" (substring name 0 5))
-	     (setq try (msdos-color-translate (substring name 5)))
-	     (logior try 8))
-	(and (> len 6)
-	     (string= "light " (substring name 0 6))
-	     (setq try (msdos-color-translate (substring name 6)))
-	     (logior try 8))
-	(and (> len 4)
-	     (string= "pale" (substring name 0 4))
-	     (setq try (msdos-color-translate (substring name 4)))
-	     (logior try 8))
-	(and (> len 5)
-	     (string= "pale " (substring name 0 5))
-	     (setq try (msdos-color-translate (substring name 5)))
-	     (logior try 8))
-	(and (> len 6)
-	     (string= "medium" (substring name 0 6))
-	     (msdos-color-translate (substring name 6)))
-	(and (> len 7)
-	     (string= "medium " (substring name 0 7))
-	     (msdos-color-translate (substring name 7)))
-	(and (> len 4)
-	     (or (string= "dark" (substring name 0 4))
-		 (string= "deep" (substring name 0 4)))
-	     (msdos-color-translate (substring name 4)))
-	(and (> len 5)
-	     (or (string= "dark " (substring name 0 5))
-		 (string= "deep " (substring name 0 5)))
-	     (msdos-color-translate (substring name 5)))
-	(and (> len 4) ;; gray shades: gray0 to gray100
-	     (save-match-data
-	       (and
-		(string-match "gr[ae]y[0-9]" name)
-		(string-match "[0-9]+\\'" name)
-		(let ((num (string-to-int
-			    (substring name (match-beginning 0)))))
-		  (msdos-color-translate
-		   (cond
-		    ((> num 90) "white")
-		    ((> num 50) "lightgray")
-		    ((> num 10) "darkgray")
-		    (t "black")))))))
-	(and (> len 1) ;; purple1 to purple4 and the like
-	     (save-match-data
-	       (and
-		(string-match "[1-4]\\'" name)
-		(msdos-color-translate
-		 (substring name 0 (match-beginning 0))))))
-	(and (= len 7)	;; X-style "#XXYYZZ" color spec
-	     (eq (aref name 0) ?#)
-	     (member (aref name 1)
-		     '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-			  ?A ?B ?C ?D ?E ?F ?a ?b ?c ?d ?e ?f))
-	     (msdos-color-translate
-	      (msdos-approximate-color (string-to-number
-					(substring name 1) 16)))))))
-;;;
 ;;; This is copied from etc/rgb.txt, except that some values were changed
-;;; a bit to make them consistent with DOS console colors.  The order of
-;;; the colors is according to the PC text mode color codes.
+;;; a bit to make them consistent with DOS console colors, and the RGB
+;;; values were scaled up to 16 bits, as `tty-define-color' requires.
+;;;
+;;; The mapping between the 16 standard EGA/VGA colors and X color names
+;;; was done by running a Unix version of Emacs inside an X client and a
+;;; DJGPP-compiled Emacs on the same PC.  The names of X colors used to
+;;; define the pixel values are shown as comments to each color below.
 ;;;
 ;;; If you want to change the RGB values, keep in mind that various pieces
 ;;; of Emacs think that a color whose RGB values add up to less than 0.6 of
-;;; the values for WHITE (i.e. less than 459) are ``dark'', otherwise the
+;;; the values for WHITE (i.e. less than 117963) are ``dark'', otherwise the
 ;;; color is ``light''; see `frame-set-background-mode' in lisp/faces.el for
 ;;; an example.
 (defvar msdos-color-values
-  '(("black"          0   0   0)
-    ("blue"           0   0 255)
-    ("green"          0 255   0)
-    ("cyan"           0 255 255)
-    ("red"          255   0   0)
-    ("magenta"      139   0 139)	; dark magenta
-    ("brown"        165  42  42)
-    ("lightgray"    211 211 211)
-    ("darkgray"     102 102 102)	; gray40
-    ("lightblue"    173 216 230)
-    ("lightgreen"   144 238 144)
-    ("lightcyan"    224 255 255)
-    ("lightred"     255  52 179)	; maroon1
-    ("lightmagenta" 238   0 238)	; magenta2
-    ("yellow"       255 255   0)
-    ("white"        255 255 255))
-  "A list of MS-DOS console colors and their RGB values.")
+  '(("white"         15 65535 65535 65535)
+    ("yellow"        14 65535 65535     0) ; Yellow
+    ("lightmagenta"  13 65535     0 65535) ; Magenta
+    ("lightred"      12 65535     0     0) ; Red
+    ("lightcyan"     11     0 65535 65535) ; Cyan
+    ("lightgreen"    10     0 65535     0) ; Green
+    ("lightblue"      9     0     0 65535) ; Blue
+    ("darkgray"       8 26112 26112 26112) ; Gray40
+    ("lightgray"      7 48640 48640 48640) ; Gray
+    ("brown"          6 40960 20992 11520) ; Sienna
+    ("magenta"        5 35584     0 35584) ; DarkMagenta
+    ("red"            4 45568  8704  8704) ; FireBrick
+    ("cyan"           3     0 52736 53504) ; DarkTurquoise
+    ("green"          2  8704 35584  8704) ; ForestGreen
+    ("blue"           1     0     0 52480) ; MediumBlue
+    ("black"          0     0     0     0))
+  "A list of MS-DOS console colors, their indices and 16-bit RGB values.")
 
-(defun msdos-approximate-color (num)
-  "Return a DOS color name which is the best approximation for the number NUM."
-  (let ((color-values msdos-color-values)
-	(candidate (car msdos-color-values))
-	(best-distance 16777216)	;; 0xFFFFFF + 1
-	best-color)
-    (while candidate
-      (let* ((values (cdr candidate))
-	     (value (+ (lsh (car values) 16)
-		       (lsh (car (cdr values)) 8)
-		       (nth 2 values))))
-	 (if (< (abs (- value num)) best-distance)
-	     (setq best-distance (abs (- value num))
-		   best-color (car candidate))))
-      (setq color-values (cdr color-values))
-      (setq candidate (car color-values)))
-    best-color))
 ;; ---------------------------------------------------------------------------
 ;; We want to delay setting frame parameters until the faces are setup
 (defvar default-frame-alist nil)
 (modify-frame-parameters terminal-frame default-frame-alist)
+(tty-color-clear)
 
 (defun msdos-face-setup ()
-  (modify-frame-parameters terminal-frame default-frame-alist)
-  (face-clear-tty-colors)
-  (let ((colors msdos-color-values)
-	(i 0))
-    (while colors
-      (face-register-tty-color (car (car colors)) i)
-      (setq colors (cdr colors) i (1+ i))))
-
-  (frame-set-background-mode terminal-frame)
-  (face-set-after-frame-default terminal-frame)
-
   (set-face-foreground 'bold "yellow" terminal-frame)
   (set-face-foreground 'italic "red" terminal-frame)
   (set-face-foreground 'bold-italic "lightred" terminal-frame)
@@ -319,18 +80,47 @@
   (set-face-background 'msdos-menu-passive-face "blue" terminal-frame)
   (set-face-background 'msdos-menu-select-face "red" terminal-frame))
 
-;; We have only one font, so...
 (add-hook 'before-init-hook 'msdos-face-setup)
+
+(defun msdos-handle-reverse-video (frame parameters)
+  "Handle the reverse-video frame parameter on MS-DOS frames."
+  (when (cdr (assq 'reverse parameters))
+      (let* ((params (frame-parameters frame))
+	     (bg (cdr (assq 'foreground-color params)))
+	     (fg (cdr (assq 'background-color params))))
+	(modify-frame-parameters frame '((reverse . nil)))
+	(if (equal bg (cdr (assq 'mouse-color params)))
+	    (modify-frame-parameters frame
+				     (list (cons 'mouse-color fg))))
+	(if (equal bg (cdr (assq 'cursor-color params)))
+	    (modify-frame-parameters frame
+				     (list (cons 'cursor-color fg)))))))
+
+;; This must run after all the default colors are inserted into
+;; tty-color-alist, since msdos-handle-reverse-video needs to know the
+;; actual frame colors.  tty-color-alist is set up by startup.el, but
+;; only after it runs before-init-hook and after-init-hook.
+(defun msdos-setup-initial-frame ()
+  (modify-frame-parameters terminal-frame default-frame-alist)
+  ;; This remembers the screen colors after applying default-frame-alist,
+  ;; so that all subsequent frames could begin with those colors.
+  (msdos-remember-default-colors terminal-frame)
+  (modify-frame-parameters terminal-frame initial-frame-alist)
+  (msdos-handle-reverse-video terminal-frame
+			      (frame-parameters terminal-frame))
+
+  (frame-set-background-mode terminal-frame)
+  (face-set-after-frame-default terminal-frame))
+
+(add-hook 'term-setup-hook 'msdos-setup-initial-frame)
 
 ;; We create frames as if we were a terminal, but with a twist.
 (defun make-msdos-frame (&optional parameters)
-  (let* ((parms
-	  (append initial-frame-alist default-frame-alist parameters nil))
-	 (frame (make-terminal-frame parms))
-	 success)
+  (let ((frame (make-terminal-frame parameters))
+	success)
     (unwind-protect
 	(progn
-	  (x-handle-reverse-video frame parms)
+	  (msdos-handle-reverse-video frame (frame-parameters frame))
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
 	  (setq success t))
@@ -346,12 +136,10 @@
 ;; a useful function for returning 'nil regardless of argument.
 
 ;; From src/xfns.c
-(defun x-display-color-p (&optional display) 't)
 (defun x-list-fonts (pattern &optional face frame maximum width)
   (if (or (null width) (and (numberp width) (= width 1)))
       (list "ms-dos")
     (list "no-such-font")))
-(defun x-color-defined-p (color) (numberp (msdos-color-translate color)))
 (defun x-display-pixel-width (&optional frame) (frame-width frame))
 (defun x-display-pixel-height (&optional frame) (frame-height frame))
 (defun x-display-planes (&optional frame) 4) ;bg switched to 16 colors as well
@@ -367,33 +155,12 @@
 (fset 'x-display-save-under 'ignore)
 (fset 'x-get-resource 'ignore)
 
-(defun x-color-values (color &optional frame)
-  "Return a description of the color named COLOR on frame FRAME.\n\
-The value is a list of integer RGB values--(RED GREEN BLUE).\n\
-These values range from 0 to 255; white is (255 255 255).\n\
-If FRAME is omitted or nil, use the selected frame."
-  (if (x-color-defined-p color)
-      (let ((frame (or frame (selected-frame)))
-	    (color-code (msdos-color-translate color)))
-	(cdr (nth color-code msdos-color-values)))))
-
 ;; From lisp/term/x-win.el
-(setq x-display-name "pc")
+(defvar x-display-name "pc"
+  "The display name specifying the MS-DOS display and frame type.")
 (setq split-window-keep-point t)
 (defvar x-colors (mapcar 'car msdos-color-values)
   "The list of colors available on a PC display under MS-DOS.")
-(defun x-defined-colors (&optional frame)
-  "Return a list of colors supported for a particular frame.
-The argument FRAME specifies which frame to try.
-The value may be different for frames on different X displays."
-  x-colors)
-
-(defun face-color-supported-p (color)
-  (x-color-defined-p color))
-
-(defun face-color-gray-p (color)
-  (member (msdos-color-translate color)
-	  '("black" "lightgray" "darkgray" "white")))
 
 ;; From lisp/term/w32-win.el
 ;
