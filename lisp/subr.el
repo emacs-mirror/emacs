@@ -51,12 +51,12 @@ BODY should be a list of lisp expressions."
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
-(defmacro push (value listname)
-  "Add VALUE to the list which is the value of LISTNAME.
-This is equivalent to (setq LISTNAME (cons VALUE LISTNAME)).
+(defmacro push (newelt listname)
+  "Add NEWELT to the list which is the value of LISTNAME.
+This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
   (list 'setq list
-	(list 'cons value list)))
+	(list 'cons newelt list)))
 
 (defmacro pop (listname)
   "Return the first element of LISTNAME's value, and remove it from the list.
