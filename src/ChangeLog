@@ -1,3 +1,8 @@
+2004-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_line_height_property): Use string position when
+	object is a string.
+
 2004-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (count_combining): Delete it.
