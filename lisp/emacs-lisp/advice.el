@@ -5,7 +5,7 @@
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Created: 12 Dec 1992
 ;; Version: advice.el,v 2.1 1993/05/26 00:07:58 hans Exp
-;; Keywords: advice, function hooks
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
