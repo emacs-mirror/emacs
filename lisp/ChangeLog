@@ -1,3 +1,11 @@
+2000-10-25  Miles Bader  <miles@gnu.org>
+
+	* recentf.el (recentf-mode): Variable removed.
+	(recentf-mode): Use `define-minor-mode'.
+
+	* mwheel.el (mouse-wheel-mode): New global minor mode.
+	(mwheel-install): Use `mouse-wheel-mode'.
+
 2000-10-25  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-field-keymap, widget-text-keymap): Don't
