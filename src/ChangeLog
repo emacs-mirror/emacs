@@ -1,3 +1,9 @@
+2001-03-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Don't try to reuse the current
+	matrix of a window when the header line changes, when
+	new rows are allocated, or when the width changes.
+
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* print.c (Fprin1, Fprin1_to_string, Fprinc, Fprint): Fix last
