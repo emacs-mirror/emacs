@@ -1776,17 +1776,20 @@ x_window (f)
     char *tem, shell_position[32];
     Arg al[2];
     int ac = 0;
+    int menubar_size = 
+      (f->display.x->menubar_widget
+       ? (f->display.x->menubar_widget->core.height
+	  + f->display.x->menubar_widget->core.border_width)
+       : 0);
 
     if (window_prompting & USPosition)
       sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
-	       PIXEL_HEIGHT (f) + f->display.x->menubar_widget->core.height
-	       + f->display.x->menubar_widget->core.border_width,
+	       PIXEL_HEIGHT (f) + menubar_size,
 	       '+', f->display.x->left_pos,
 	       '+', f->display.x->top_pos);
     else
       sprintf (shell_position, "=%dx%d", PIXEL_WIDTH (f), 
-	       PIXEL_HEIGHT (f) + f->display.x->menubar_widget->core.height
-	       + f->display.x->menubar_widget->core.border_width);
+	       PIXEL_HEIGHT (f) + menubar_size);
     len = strlen (shell_position) + 1;
     tem = (char *) xmalloc (len);
     strncpy (tem, shell_position, len);
