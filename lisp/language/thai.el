@@ -32,7 +32,7 @@
  'thai-tis620 2 ?T
  "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
  '(ascii thai-tis620 nil nil
-   nil ascii-eol)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii thai-tis620)
    (mime-charset . tis-620)
    (post-read-conversion . thai-post-read-conversion)))
