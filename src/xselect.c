@@ -1491,7 +1491,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  int bufsize, dummy;
 	  unsigned char *buf;
 	  struct coding_system coding;
-	  Lisp_Object sym = intern ("iso-8859-1");
+	  Lisp_Object sym = intern ("iso-latin-1");
 
 	  setup_coding_system (Fcheck_coding_system (sym), &coding);
 	  coding.last_block = 1;
@@ -1622,7 +1622,7 @@ lisp_data_to_selection_data (display, obj,
 	  int bufsize, dummy;
 	  unsigned char *buf;
 	  struct coding_system coding;
-	  Lisp_Object sym = intern ("iso-8859-1");
+	  Lisp_Object sym = intern ("iso-latin-1");
 
 	  setup_coding_system (Fcheck_coding_system (sym), &coding);
 	  coding.last_block = 1;
