@@ -504,8 +504,8 @@ The value is actually the tail of LIST whose car is ELT.")
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
-  "Return non-nil if ELT is `eq' to the car of an element of LIST.\n\
-The value is actually the element of LIST whose car is ELT.\n\
+  "Return non-nil if KEY is `eq' to the car of an element of LIST.\n\
+The value is actually the element of LIST whose car is KEY.\n\
 Elements of LIST that are not conses are ignored.")
   (key, list)
      register Lisp_Object key;
@@ -545,8 +545,8 @@ assq_no_quit (key, list)
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
-  "Return non-nil if ELT is `equal' to the car of an element of LIST.\n\
-The value is actually the element of LIST whose car is ELT.")
+  "Return non-nil if KEY is `equal' to the car of an element of LIST.\n\
+The value is actually the element of LIST whose car is KEY.")
   (key, list)
      register Lisp_Object key;
      Lisp_Object list;
