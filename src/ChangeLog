@@ -1,3 +1,10 @@
+2001-04-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): If the file size returned from
+	stat is zero, set END to READ_BUF_SIZE.  This makes sure we can
+	read from files on a procfs whose contents are generated
+	dynamically.
+
 2001-04-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* gmalloc.c (__malloc_size_t) [__GNUC__]: If STDC_HEADERS is not

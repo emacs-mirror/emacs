@@ -1,5 +1,8 @@
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/cl-indent.el (toplevel): Comment out the spec
+	for defmethod.
+
 	* comint.el (comint-cr-magic): New function.
 	(toplevel): Add it to comint-preoutput-filter-functions.
 
