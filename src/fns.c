@@ -2822,7 +2822,7 @@ is nil and `use-dialog-box' is non-nil.")
 	  && have_menus_p ())
 	{
 	  Lisp_Object pane, menu;
-	  redisplay_preserve_echo_area ();
+	  redisplay_preserve_echo_area (3);
 	  pane = Fcons (Fcons (build_string ("Yes"), Qt),
 			Fcons (Fcons (build_string ("No"), Qnil),
 			       Qnil));
@@ -2942,7 +2942,7 @@ is nil, and `use-dialog-box' is non-nil.")
       && have_menus_p ())
     {
       Lisp_Object pane, menu, obj;
-      redisplay_preserve_echo_area ();
+      redisplay_preserve_echo_area (4);
       pane = Fcons (Fcons (build_string ("Yes"), Qt),
 		    Fcons (Fcons (build_string ("No"), Qnil),
 			   Qnil));

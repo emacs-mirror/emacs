@@ -849,7 +849,7 @@ x_handle_selection_clear (event)
 	for (; CONSP (rest); rest = Fcdr (rest))
 	  call1 (Fcar (rest), selection_symbol);
 	prepare_menu_bars ();
-	redisplay_preserve_echo_area ();
+	redisplay_preserve_echo_area (20);
       }
   }
 }
@@ -886,7 +886,7 @@ x_clear_frame_selections (f)
 #if 0 /* This can crash when deleting a frame
 	 from x_connection_closed.  Anyway, it seems unnecessary;
 	 something else should cause a redisplay.  */
-	  redisplay_preserve_echo_area ();
+	  redisplay_preserve_echo_area (21);
 #endif
 	}
 
@@ -908,7 +908,7 @@ x_clear_frame_selections (f)
 	    for (; CONSP (hooks); hooks = Fcdr (hooks))
 	      call1 (Fcar (hooks), selection_symbol);
 #if 0 /* See above */
-	    redisplay_preserve_echo_area ();
+	    redisplay_preserve_echo_area (22);
 #endif
 	  }
 	XCDR (rest) = Fcdr (XCDR (rest));

@@ -6143,7 +6143,7 @@ sit_for (sec, usec, reading, display, initial_display)
     return Qnil;
 
   if (initial_display)
-    redisplay_preserve_echo_area ();
+    redisplay_preserve_echo_area (2);
 
   if (sec == 0 && usec == 0)
     return Qt;

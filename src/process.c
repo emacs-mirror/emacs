@@ -2444,7 +2444,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      if (timers_run != old_timers_run && do_display)
 		/* We must retry, since a timer may have requeued itself
 		   and that could alter the time_delay.  */
-		redisplay_preserve_echo_area ();
+		redisplay_preserve_echo_area (9);
 	      else
 		break;
 	    }
@@ -2537,7 +2537,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #endif
 	    }
 	  if (total_nread > 0 && do_display)
-	    redisplay_preserve_echo_area ();
+	    redisplay_preserve_echo_area (10);
 
 	  break;
 	}
@@ -2559,7 +2559,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (frame_garbaged && do_display)
 	{
 	  clear_waiting_for_input ();
-	  redisplay_preserve_echo_area ();
+	  redisplay_preserve_echo_area (11);
 	  if (XINT (read_kbd) < 0)
 	    set_waiting_for_input (&timeout);
 	}
@@ -2742,7 +2742,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		  FD_ZERO (&Available);
 
 		  if (do_display)
-		    redisplay_preserve_echo_area ();
+		    redisplay_preserve_echo_area (12);
 		}
 #ifdef EWOULDBLOCK
 	      else if (nread == -1 && errno == EWOULDBLOCK)
@@ -4454,7 +4454,7 @@ status_notify ()
     } /* end for */
 
   update_mode_lines++;  /* in case buffers use %s in mode-line-format */
-  redisplay_preserve_echo_area ();
+  redisplay_preserve_echo_area (13);
 
   UNGCPRO;
 }
@@ -4794,7 +4794,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	      if (timers_run != old_timers_run && do_display)
 		/* We must retry, since a timer may have requeued itself
 		   and that could alter the time delay.  */
-		redisplay_preserve_echo_area ();
+		redisplay_preserve_echo_area (14);
 	      else
 		break;
 	    }
@@ -4834,7 +4834,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (frame_garbaged && do_display)
 	{
 	  clear_waiting_for_input ();
-	  redisplay_preserve_echo_area ();
+	  redisplay_preserve_echo_area (15);
 	  if (XINT (read_kbd) < 0)
 	    set_waiting_for_input (&timeout);
 	}

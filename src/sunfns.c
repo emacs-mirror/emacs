@@ -164,7 +164,7 @@ Redisplay does not happen if input is available before it starts.")
   Timeout.tv_usec = (XINT(n) - (Timeout.tv_sec * 1000)) * 1000;
 
   if (detect_input_pending()) return(Qnil);
-  redisplay_preserve_echo_area ();
+  redisplay_preserve_echo_area (16);
   /*
    *	Check for queued keyboard input/mouse hits again
    *	(A bit screen update can take some time!)
@@ -197,7 +197,7 @@ DEFUN ("update-display", Fupdate_display, Supdate_display, 0, 0, 0,
        "Perform redisplay.")
      ()
 {
-  redisplay_preserve_echo_area ();
+  redisplay_preserve_echo_area (17);
   return(Qt);
 }
 

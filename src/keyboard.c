@@ -2221,7 +2221,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       while (!input_pending)
 	{
 	  if (help_echo_showing_p && !EQ (selected_window, minibuf_window))
-	    redisplay_preserve_echo_area ();
+	    redisplay_preserve_echo_area (5);
 	  else
 	    redisplay ();
 
@@ -3039,7 +3039,7 @@ tracking_off (old_value)
 	 redisplay.  */
       if (!readable_events (1))
 	{
-	  redisplay_preserve_echo_area ();
+	  redisplay_preserve_echo_area (6);
 	  get_input_pending (&input_pending, 1);
 	}
     }
@@ -3810,7 +3810,7 @@ swallow_events (do_display)
   get_input_pending (&input_pending, 1);
 
   if (timers_run != old_timers_run && do_display)
-    redisplay_preserve_echo_area ();
+    redisplay_preserve_echo_area (7);
 }
 
 static EMACS_TIME timer_idleness_start_time;
@@ -8919,8 +8919,8 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
        Sread_key_sequence_vector, 1, 5, 0,
   "Like `read-key-sequence' but always return a vector.")
-     /* Don't break the following line for documentation's sake.  */
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame, command_loop)
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
+   command_loop)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
      Lisp_Object can_return_switch_frame, command_loop;
 {
@@ -9288,7 +9288,7 @@ detect_input_pending_run_timers (do_display)
 
   if (old_timers_run != timers_run && do_display)
     {
-      redisplay_preserve_echo_area ();
+      redisplay_preserve_echo_area (8);
       /* The following fixes a bug when using lazy-lock with
 	 lazy-lock-defer-on-the-fly set to t, i.e.  when fontifying
 	 from an idle timer function.  The symptom of the bug is that

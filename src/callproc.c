@@ -836,7 +836,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    if (first)
 	      prepare_menu_bars ();
 	    first = 0;
-	    redisplay_preserve_echo_area ();
+	    redisplay_preserve_echo_area (1);
 	  }
 	immediate_quit = 1;
 	QUIT;

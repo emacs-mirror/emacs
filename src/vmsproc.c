@@ -608,7 +608,7 @@ if you quit, the process is killed.")
 	      InsCStr (vs->inputBuffer, vs->iosb[1]);
 	    }
 	  if (!NILP (display) && INTERACTIVE)
-	  redisplay_preserve_echo_area ();
+	  redisplay_preserve_echo_area (19);
 	  immediate_quit = 1;
 	  QUIT;
 	  if (!start_vms_process_read (vs))
