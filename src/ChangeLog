@@ -1,3 +1,8 @@
+2000-03-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* search.c (Freplace_match): Adjust multibyteness of the current
+	buffer and NEWTEXT.
+
 2000-03-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* eval.c (call_debugger): Cancel busy-cursor.
