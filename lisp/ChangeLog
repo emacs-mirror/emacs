@@ -1,3 +1,9 @@
+2001-05-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* jit-lock.el (jit-lock-after-change): Check the font-lock-multiline
+	text-property after moving to the beginning of line and regardless
+	of the value of font-lock-multiline.
+
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-screens): Ignore events on the mode-line.
@@ -27,8 +33,8 @@
 	of `c'.
 
 	* textmodes/outline.el (outline-font-lock-level): Remove the
-	condition-case, test what outline-level returns instead, to ease
-	debugging.
+	condition-case, test what outline-level returns instead, to
+	ease debugging.
 
 	* international/mule.el (auto-coding-regexp-alist): New user-option.
 	(auto-coding-from-file-contents): New function.
@@ -38,9 +44,9 @@
 
 	* mouse.el (mouse-delete-other-windows): Doc fix.
 
-	* emacs-lisp/lisp-mode.el (lisp-mode): Make
-	font-lock-keywords-case-fold-search a buffer-local variable
-	with make-local-variable before setting it.
+	* emacs-lisp/lisp-mode.el (lisp-mode):
+	Make font-lock-keywords-case-fold-search a buffer-local variable with
+	make-local-variable before setting it.
 
 2001-05-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
