@@ -2,6 +2,8 @@
 
 	* calendar/timeclock.el (timeclock-find-discrep): Initialize
 	`elapsed' to 0.
+	(timeclock-find-discrep): Set `timeclock-last-event-workday' if
+	it's still nil.
 
 2001-05-09  Stefan Monnier  <monnier@cs.yale.edu>
 
