@@ -2500,11 +2500,13 @@ x_window (f, window_prompting, minibuffer_only)
     char *tem, shell_position[32];
     Arg al[2];
     int ac = 0;
+    int extra_borders = 0;
     int menubar_size 
       = (f->display.x->menubar_widget
 	 ? (f->display.x->menubar_widget->core.height
 	    + f->display.x->menubar_widget->core.border_width)
 	 : 0);
+    extern char *lwlib_toolkit_type;
 
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
@@ -2514,6 +2516,13 @@ x_window (f, window_prompting, minibuffer_only)
       }
 
     f->display.x->menubar_height = menubar_size;
+
+    /* Motif seems to need this amount added to the sizes
+       specified for the shell widget.  The Athena/Lucid widgets don't.
+       Both conclusions reached experimentally.  -- rms.  */
+    if (!strcmp (lwlib_toolkit_type, "motif"))
+      XtVaGetValues (f->display.x->edit_widget, XtNinternalBorderWidth,
+		     &extra_borders, NULL);
 
     /* Convert our geometry parameters into a geometry string
        and specify it.
@@ -2531,13 +2540,15 @@ x_window (f, window_prompting, minibuffer_only)
 	top = -top;
 
       if (window_prompting & USPosition)
-	sprintf (shell_position, "=%dx%d%c%d%c%d", PIXEL_WIDTH (f), 
-		 PIXEL_HEIGHT (f) + menubar_size,
+	sprintf (shell_position, "=%dx%d%c%d%c%d",
+		 PIXEL_WIDTH (f) + extra_borders, 
+		 PIXEL_HEIGHT (f) + menubar_size + extra_borders,
 		 (xneg ? '-' : '+'), left,
 		 (yneg ? '-' : '+'), top);
       else
-	sprintf (shell_position, "=%dx%d", PIXEL_WIDTH (f), 
-		 PIXEL_HEIGHT (f) + menubar_size);
+	sprintf (shell_position, "=%dx%d",
+		 PIXEL_WIDTH (f) + extra_borders, 
+		 PIXEL_HEIGHT (f) + menubar_size + extra_borders);
     }
 
     len = strlen (shell_position) + 1;
