@@ -550,9 +550,9 @@ in your .emacs file.
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!
   (flyspell-accept-buffer-local-defs)
-  ;; we put the `flyspel-delayed' property on some commands
+  ;; we put the `flyspell-delayed' property on some commands
   (flyspell-delay-commands)
-  ;; we put the `flyspel-deplacement' property on some commands
+  ;; we put the `flyspell-deplacement' property on some commands
   (flyspell-deplacement-commands)
   ;; we bound flyspell action to post-command hook
   (add-hook 'post-command-hook (function flyspell-post-command-hook) t t)
@@ -1495,6 +1495,7 @@ for the overlay."
     (overlay-put flyspell-overlay 'mouse-face mouse-face)
     (overlay-put flyspell-overlay 'flyspell-overlay t)
     (overlay-put flyspell-overlay 'evaporate t)
+    (overlay-put flyspell-overlay 'help-echo "mouse-2: correct word at point")
     (if flyspell-use-local-map
         (overlay-put flyspell-overlay
                      flyspell-overlay-keymap-property-name
