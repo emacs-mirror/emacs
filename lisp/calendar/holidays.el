@@ -48,6 +48,38 @@
 
 (require 'calendar)
 
+(autoload 'holiday-julian "cal-julian"
+  "Holiday on MONTH, DAY  (Julian) called STRING."
+  t)
+
+(autoload 'holiday-hebrew "cal-hebrew"
+  "Holiday on MONTH, DAY (Hebrew) called STRING."
+  t)
+
+(autoload 'holiday-rosh-hashanah-etc "cal-hebrew"
+  "List of dates related to Rosh Hashanah, as visible in calendar window."
+  t)
+
+(autoload 'holiday-hanukkah "cal-hebrew"
+  "List of dates related to Hanukkah, as visible in calendar window."
+  t)
+
+(autoload 'holiday-passover-etc "cal-hebrew"
+  "List of dates related to Passover, as visible in calendar window."
+  t)
+
+(autoload 'holiday-tisha-b-av-etc "cal-hebrew"
+  "List of dates around Tisha B'Av, as visible in calendar window."
+  t)
+
+(autoload 'holiday-islamic "cal-islamic"
+  "Holiday on MONTH, DAY (Islamic) called STRING."
+  t)
+
+(autoload 'holiday-chinese-new-year "cal-chinese"
+  "Date of Chinese New Year."
+  t)
+
 (autoload 'solar-equinoxes-solstices "solar"
   "Date and time of equinoxes and solstices, if visible in the calendar window.
 Requires floating point."
@@ -208,87 +240,6 @@ Returns nil if it is not visible in the current calendar window."
     (if (> m 9)
       (list (list (calendar-nth-named-day n dayname month y day) string)))))
 
-(defun holiday-julian (month day string)
-  "Holiday on MONTH, DAY  (Julian) called STRING.
-If MONTH, DAY (Julian) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
-  (let ((m1 displayed-month)
-        (y1 displayed-year)
-        (m2 displayed-month)
-        (y2 displayed-year)
-        (year))
-    (increment-calendar-month m1 y1 -1)
-    (increment-calendar-month m2 y2 1)
-    (let* ((start-date (calendar-absolute-from-gregorian
-                        (list m1 1 y1)))
-           (end-date (calendar-absolute-from-gregorian
-                      (list m2 (calendar-last-day-of-month m2 y2) y2)))
-           (julian-start (calendar-julian-from-absolute start-date))
-           (julian-end (calendar-julian-from-absolute end-date))
-           (julian-y1 (extract-calendar-year julian-start))
-           (julian-y2 (extract-calendar-year julian-end)))
-      (setq year (if (< 10 month) julian-y1 julian-y2))
-      (let ((date (calendar-gregorian-from-absolute
-                   (calendar-absolute-from-julian
-                    (list month day year)))))
-        (if (calendar-date-is-visible-p date)
-            (list (list date string)))))))
-
-(defun holiday-islamic (month day string)
-  "Holiday on MONTH, DAY (Islamic) called STRING.
-If MONTH, DAY (Islamic) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
-  (let* ((islamic-date (calendar-islamic-from-absolute
-                        (calendar-absolute-from-gregorian
-                         (list displayed-month 15 displayed-year))))
-         (m (extract-calendar-month islamic-date))
-         (y (extract-calendar-year islamic-date))
-        (date))
-    (if (< m 1)
-        nil;;   Islamic calendar doesn't apply.
-      (increment-calendar-month m y (- 10 month))
-      (if (> m 7);;  Islamic date might be visible
-          (let ((date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-islamic (list month day y)))))
-            (if (calendar-date-is-visible-p date)
-                (list (list date string))))))))
-
-(defun holiday-hebrew (month day string)
-  "Holiday on MONTH, DAY (Hebrew) called STRING.
-If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
-  (if (memq displayed-month;;  This test is only to speed things up a bit;
-            (list          ;;  it works fine without the test too.
-             (if (< 11 month) (- month 11) (+ month 1))
-             (if (< 10 month) (- month 10) (+ month 2))
-             (if (<  9 month) (- month  9) (+ month 3))
-             (if (<  8 month) (- month  8) (+ month 4))
-             (if (<  7 month) (- month  7) (+ month 5))))
-      (let ((m1 displayed-month)
-            (y1 displayed-year)
-            (m2 displayed-month)
-            (y2 displayed-year)
-            (year))
-        (increment-calendar-month m1 y1 -1)
-        (increment-calendar-month m2 y2 1)
-        (let* ((start-date (calendar-absolute-from-gregorian
-                            (list m1 1 y1)))
-               (end-date (calendar-absolute-from-gregorian
-                          (list m2 (calendar-last-day-of-month m2 y2) y2)))
-               (hebrew-start (calendar-hebrew-from-absolute start-date))
-               (hebrew-end (calendar-hebrew-from-absolute end-date))
-               (hebrew-y1 (extract-calendar-year hebrew-start))
-               (hebrew-y2 (extract-calendar-year hebrew-end)))
-          (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
-          (let ((date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-hebrew
-                        (list month day year)))))
-            (if (calendar-date-is-visible-p date)
-                (list (list date string))))))))
-
 (defun holiday-sexp (sexp string)
   "Sexp holiday for dates in the calendar window.
 SEXP is an expression in variable `year' evaluates to `date'.
@@ -415,202 +366,6 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
              (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))))
       (if (calendar-date-is-visible-p nicaean-easter)
           (list (list nicaean-easter "Pascha (Greek Orthodox Easter)"))))))
-
-(defun holiday-rosh-hashanah-etc ()
-  "List of dates related to Rosh Hashanah, as visible in calendar window."
-  (if (or (< displayed-month 8)
-          (> displayed-month 11))
-      nil;; None of the dates is visible
-    (let* ((abs-r-h (calendar-absolute-from-hebrew
-                      (list 7 1 (+ displayed-year 3761))))
-            (mandatory
-             (list
-              (list (calendar-gregorian-from-absolute abs-r-h)
-                    (format "Rosh HaShanah %d" (+ 3761 displayed-year)))
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 9))
-                    "Yom Kippur")
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 14))
-                    "Sukkot")
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 21))
-                    "Shemini Atzeret")
-              (list (calendar-gregorian-from-absolute (+ abs-r-h 22))
-                    "Simchat Torah")))
-           (optional
-            (list 
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-r-h 4)))
-                   "Selichot (night)")
-             (list (calendar-gregorian-from-absolute (1- abs-r-h))
-                   "Erev Rosh HaShannah")
-             (list (calendar-gregorian-from-absolute (1+ abs-r-h))
-                   "Rosh HaShanah (second day)")
-             (list (calendar-gregorian-from-absolute
-                    (if (= (% abs-r-h 7) 4) (+ abs-r-h 3) (+ abs-r-h 2)))
-                   "Tzom Gedaliah")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (+ 7 abs-r-h)))
-                   "Shabbat Shuvah")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 8))
-                   "Erev Yom Kippur")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 13))
-                   "Erev Sukkot")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 15))
-                   "Sukkot (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 16))
-                   "Hol Hamoed Sukkot (first day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 17))
-                   "Hol Hamoed Sukkot (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 18))
-                   "Hol Hamoed Sukkot (third day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 19))
-                   "Hol Hamoed Sukkot (fourth day)")
-             (list (calendar-gregorian-from-absolute (+ abs-r-h 20))
-                   "Hoshannah Rabbah")))
-            (output-list
-             (filter-visible-calendar-holidays mandatory)))
-      (if all-hebrew-calendar-holidays
-          (setq output-list
-                (append 
-                 (filter-visible-calendar-holidays optional)
-                 output-list)))
-      output-list)))
-
-(defun holiday-hanukkah ()
-  "List of dates related to Hanukkah, as visible in calendar window."
-    (if (memq displayed-month;;  This test is only to speed things up a bit;
-              '(10 11 12 1 2));; it works fine without the test too.
-        (let ((m displayed-month)
-              (y displayed-year))
-          (increment-calendar-month m y 1)
-          (let* ((h-y (extract-calendar-year
-                         (calendar-hebrew-from-absolute
-                          (calendar-absolute-from-gregorian
-                           (list m (calendar-last-day-of-month m y) y)))))
-                 (abs-h (calendar-absolute-from-hebrew (list 9 25 h-y))))
-            (filter-visible-calendar-holidays
-             (list
-              (list (calendar-gregorian-from-absolute (1- abs-h))
-                    "Erev Hanukkah")
-              (list (calendar-gregorian-from-absolute abs-h)
-                    "Hanukkah (first day)")
-              (list (calendar-gregorian-from-absolute (1+ abs-h))
-                    "Hanukkah (second day)")
-              (list (calendar-gregorian-from-absolute (+ abs-h 2))
-                    "Hanukkah (third day)")
-              (list (calendar-gregorian-from-absolute (+ abs-h 3))
-                    "Hanukkah (fourth day)")
-              (list (calendar-gregorian-from-absolute (+ abs-h 4))
-                    "Hanukkah (fifth day)")
-              (list (calendar-gregorian-from-absolute (+ abs-h 5))
-                    "Hanukkah (sixth day)")
-              (list (calendar-gregorian-from-absolute (+ abs-h 6))
-                    "Hanukkah (seventh day)")
-              (list (calendar-gregorian-from-absolute (+ abs-h 7))
-                    "Hanukkah (eighth day)")))))))
-
-(defun holiday-passover-etc ()
-  "List of dates related to Passover, as visible in calendar window."
- (if (< 7 displayed-month)
-      nil;; None of the dates is visible
-    (let* ((abs-p (calendar-absolute-from-hebrew
-                      (list 1 15 (+ displayed-year 3760))))
-           (mandatory
-            (list
-             (list (calendar-gregorian-from-absolute abs-p)
-                   "Passover")
-             (list (calendar-gregorian-from-absolute (+ abs-p 50))
-                   "Shavuot")))
-           (optional
-            (list 
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-p 43)))
-                   "Shabbat Shekalim")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-p 30)))
-                   "Shabbat Zachor")
-             (list (calendar-gregorian-from-absolute
-                    (if (= (% abs-p 7) 2) (- abs-p 33) (- abs-p 31)))
-                   "Fast of Esther")
-             (list (calendar-gregorian-from-absolute (- abs-p 31))
-                   "Erev Purim")
-             (list (calendar-gregorian-from-absolute (- abs-p 30))
-                   "Purim")
-             (list (calendar-gregorian-from-absolute
-                    (if (zerop (% abs-p 7)) (- abs-p 28) (- abs-p 29)))
-                   "Shushan Purim")
-             (list (calendar-gregorian-from-absolute
-                    (- (calendar-dayname-on-or-before 6 (- abs-p 14)) 7))
-                   "Shabbat Parah")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (- abs-p 14)))
-                   "Shabbat HaHodesh")
-             (list (calendar-gregorian-from-absolute
-                    (calendar-dayname-on-or-before 6 (1- abs-p)))
-                   "Shabbat HaGadol")
-             (list (calendar-gregorian-from-absolute (1- abs-p))
-                   "Erev Passover")
-             (list (calendar-gregorian-from-absolute (1+ abs-p))
-                   "Passover (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 2))
-                   "Hol Hamoed Passover (first day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 3))
-                   "Hol Hamoed Passover (second day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 4))
-                   "Hol Hamoed Passover (third day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 5))
-                   "Hol Hamoed Passover (fourth day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 6))
-                   "Passover (seventh day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 7))
-                   "Passover (eighth day)")
-             (list (calendar-gregorian-from-absolute (+ abs-p 12))
-                   "Yom HaShoah")
-             (list (calendar-gregorian-from-absolute
-                    (if (zerop (% abs-p 7))
-                        (+ abs-p 18)
-                      (if (= (% abs-p 7) 6)
-                          (+ abs-p 19)
-                        (+ abs-p 20))))
-                   "Yom HaAtzma'ut")
-             (list (calendar-gregorian-from-absolute (+ abs-p 33))
-                   "Lag BaOmer")
-             (list (calendar-gregorian-from-absolute (+ abs-p 43))
-                   "Yom Yerushalim")
-             (list (calendar-gregorian-from-absolute (+ abs-p 49))
-                   "Erev Shavuot")
-             (list (calendar-gregorian-from-absolute (+ abs-p 51))
-                   "Shavuot (second day)")))
-           (output-list
-             (filter-visible-calendar-holidays mandatory)))
-      (if all-hebrew-calendar-holidays
-          (setq output-list
-                (append 
-                 (filter-visible-calendar-holidays optional)
-                 output-list)))
-      output-list)))
-
-(defun holiday-tisha-b-av-etc ()
-  "List of dates around Tisha B'Av, as visible in calendar window."
-  (if (or (< displayed-month 5)
-          (> displayed-month 9))
-      nil;; None of the dates is visible
-    (let* ((abs-t-a (calendar-absolute-from-hebrew
-                      (list 5 9 (+ displayed-year 3760)))))
-
-      (filter-visible-calendar-holidays
-       (list 
-        (list (calendar-gregorian-from-absolute
-               (if (= (% abs-t-a 7) 6) (- abs-t-a 20) (- abs-t-a 21)))
-              "Tzom Tammuz")
-        (list (calendar-gregorian-from-absolute
-               (calendar-dayname-on-or-before 6 abs-t-a))
-              "Shabbat Hazon")
-        (list (calendar-gregorian-from-absolute
-               (if (= (% abs-t-a 7) 6) (1+ abs-t-a) abs-t-a))
-              "Tisha B'Av")
-        (list (calendar-gregorian-from-absolute
-               (calendar-dayname-on-or-before 6 (+ abs-t-a 7)))
-              "Shabbat Nahamu"))))))
 
 (defun filter-visible-calendar-holidays (l)
   "Return a list of all visible holidays of those on L."
