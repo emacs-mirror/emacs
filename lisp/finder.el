@@ -174,7 +174,7 @@ arguments compiles from `load-path'."
   (interactive)
   (if (get-buffer "*Finder*")
       (pop-to-buffer "*Finder*")
-    (pop-to-buffer (set-buffer "*Finder*"))
+    (pop-to-buffer (set-buffer (get-buffer-create "*Finder*")))
     (finder-mode)
     (setq buffer-read-only nil)
     (erase-buffer)
