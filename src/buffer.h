@@ -804,6 +804,7 @@ extern struct buffer buffer_local_symbols;
 
 extern struct buffer buffer_local_types;
 
+extern void delete_all_overlays P_ ((struct buffer *));
 extern void reset_buffer P_ ((struct buffer *));
 extern void evaporate_overlays P_ ((EMACS_INT));
 extern int overlays_at P_ ((EMACS_INT, int, Lisp_Object **, int *, int *, int *, int));
