@@ -206,7 +206,8 @@ but instead winds up to the right of the rectangle."
     (indent-to (+ endcol whitewidth))))
 
 ;;;###autoload
-(defun close-rectangle (start end)
+(defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
+(defun delete-whitespace-rectangle (start end)
   "Delete all whitespace following a specified column in each line.
 The left edge of the rectangle specifies the position in each line
 at which whitespace deletion should begin.  On each line in the
