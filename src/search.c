@@ -84,7 +84,8 @@ Lisp_Object Qinvalid_regexp;
 
 static void set_search_regs ();
 static void save_search_regs ();
-
+static int simple_search ();
+static int boyer_moore ();
 static int search_buffer ();
 
 static void
@@ -102,7 +103,7 @@ matcher_overflow ()
 /* Compile a regexp and signal a Lisp error if anything goes wrong.
    PATTERN is the pattern to compile.
    CP is the place to put the result.
-   TRANSLATE is a translation table for ignoring case, or NULL for none.
+   TRANSLATE is a translation table for ignoring case, or nil for none.
    REGP is the structure that says where to store the "register"
    values that will result from matching this pattern.
    If it is 0, we should compile the pattern not to record any
@@ -117,7 +118,7 @@ static void
 compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
      struct regexp_cache *cp;
      Lisp_Object pattern;
-     Lisp_Object *translate;
+     Lisp_Object translate;
      struct re_registers *regp;
      int posix;
      int multibyte;
@@ -155,11 +156,11 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
       raw_pattern_size = XSTRING (pattern)->size;
       raw_pattern = (char *) alloca (raw_pattern_size + 1);
       copy_text (XSTRING (pattern)->data, raw_pattern,
-		 XSTRING (pattern)->size, 1, 0);
+		 XSTRING (pattern)->size_byte, 1, 0);
     }
 
   cp->regexp = Qnil;
-  cp->buf.translate = translate;
+  cp->buf.translate = (! NILP (translate) ? translate : 0);
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
   BLOCK_INPUT;
@@ -177,7 +178,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
 /* Compile a regexp if necessary, but first check to see if there's one in
    the cache.
    PATTERN is the pattern to compile.
-   TRANSLATE is a translation table for ignoring case, or NULL for none.
+   TRANSLATE is a translation table for ignoring case, or nil for none.
    REGP is the structure that says where to store the "register"
    values that will result from matching this pattern.
    If it is 0, we should compile the pattern not to record any
@@ -189,7 +190,7 @@ struct re_pattern_buffer *
 compile_pattern (pattern, regp, translate, posix, multibyte)
      Lisp_Object pattern;
      struct re_registers *regp;
-     Lisp_Object *translate;
+     Lisp_Object translate;
      int posix, multibyte;
 {
   struct regexp_cache *cp, **cpp;
@@ -199,7 +200,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
       cp = *cpp;
       if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
-	  && cp->buf.translate == translate
+	  && cp->buf.translate == (! NILP (translate) ? translate : 0)
 	  && cp->posix == posix
 	  && cp->buf.multibyte == multibyte)
 	break;
@@ -255,7 +256,7 @@ looking_at_1 (string, posix)
   CHECK_STRING (string, 0);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? XCHAR_TABLE (DOWNCASE_TABLE)->contents : 0),
+			   ? DOWNCASE_TABLE : Qnil),
 			  posix,
 			  !NILP (current_buffer->enable_multibyte_characters));
 
@@ -360,7 +361,7 @@ string_match_1 (regexp, string, start, posix)
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
-			   ? XCHAR_TABLE (DOWNCASE_TABLE)->contents : 0),
+			   ? DOWNCASE_TABLE : Qnil),
 			  posix,
 			  STRING_MULTIBYTE (string));
   immediate_quit = 1;
@@ -424,7 +425,8 @@ fast_string_match (regexp, string)
   int val;
   struct re_pattern_buffer *bufp;
 
-  bufp = compile_pattern (regexp, 0, 0, 0, STRING_MULTIBYTE (string));
+  bufp = compile_pattern (regexp, 0, Qnil,
+			  0, STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
   
@@ -454,7 +456,7 @@ fast_c_string_match_ignore_case (regexp, string)
   regexp = string_make_unibyte (regexp);
   re_match_object = Qt;
   bufp = compile_pattern (regexp, 0,
-			  XCHAR_TABLE (Vascii_downcase_table)->contents, 0,
+			  Vascii_downcase_table, 0,
 			  0);
   immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
@@ -889,11 +891,11 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
 		      (!NILP (current_buffer->case_fold_search)
-		       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents
-		       : 0),
+		       ? current_buffer->case_canon_table
+		       : make_number (0)),
 		      (!NILP (current_buffer->case_fold_search)
-		       ? XCHAR_TABLE (current_buffer->case_eqv_table)->contents
-		       : 0),
+		       ? current_buffer->case_eqv_table
+		       : make_number (0)),
 		      posix);
   if (np <= 0)
     {
@@ -963,12 +965,15 @@ trivial_regexp_p (regexp)
    If N is positive, searching is forward and LIM must be greater than POS.
    If N is negative, searching is backward and LIM must be less than POS.
 
-   Returns -x if only N-x occurrences found (x > 0),
+   Returns -x if x occurrences remain to be found (x > 0),
    or else the position at the beginning of the Nth occurrence
    (if searching backward) or the end (if searching forward).
 
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.  */
+
+#define TRANSLATE(trt, d) \
+   (! NILP (trt) ? XINT (Faref (trt, make_number (d))) : (d))
 
 static int
 search_buffer (string, pos, pos_byte, lim, lim_byte, n,
@@ -980,22 +985,13 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
      int lim_byte;
      int n;
      int RE;
-     Lisp_Object *trt;
-     Lisp_Object *inverse_trt;
+     Lisp_Object trt;
+     Lisp_Object inverse_trt;
      int posix;
 {
   int len = XSTRING (string)->size;
   int len_byte = XSTRING (string)->size_byte;
-  unsigned char *base_pat = XSTRING (string)->data;
-  register int *BM_tab;
-  int *BM_tab_base;
-  register int direction = ((n > 0) ? 1 : -1);
-  register int dirlen;
-  int infinity, limit, k, stride_for_teases;
-  register unsigned char *pat, *cursor, *p_limit;  
-  register int i, j;
-  unsigned char *p1, *p2;
-  int s1, s2;
+  register int i;
 
   if (running_asynch_code)
     save_search_regs ();
@@ -1013,6 +1009,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 
   if (RE && !trivial_regexp_p (string))
     {
+      unsigned char *p1, *p2;
+      int s1, s2;
       struct re_pattern_buffer *bufp;
 
       bufp = compile_pattern (string, &search_regs, trt, posix,
@@ -1112,304 +1110,727 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
     }
   else				/* non-RE case */
     {
-#ifdef C_ALLOCA
-      int BM_tab_space[0400];
-      BM_tab = &BM_tab_space[0];
-#else
-      BM_tab = (int *) alloca (0400 * sizeof (int));
-#endif
-      {
-	unsigned char *raw_pattern;
-	int raw_pattern_size;
-	unsigned char *patbuf;
-	int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+      unsigned char *raw_pattern, *pat;
+      int raw_pattern_size;
+      int raw_pattern_size_byte;
+      unsigned char *patbuf;
+      int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+      unsigned char *base_pat = XSTRING (string)->data;
+      int charset_base = -1;
+      int simple = 1;
 
-	/* MULTIBYTE says whether the text to be searched is multibyte.
-	   We must convert PATTERN to match that, or we will not really
-	   find things right.  */
+      /* MULTIBYTE says whether the text to be searched is multibyte.
+	 We must convert PATTERN to match that, or we will not really
+	 find things right.  */
 
-	if (multibyte == STRING_MULTIBYTE (string))
-	  {
-	    raw_pattern = (char *) XSTRING (string)->data;
-	    raw_pattern_size = XSTRING (string)->size_byte;
-	  }
-	else if (multibyte)
-	  {
-	    raw_pattern_size = count_size_as_multibyte (XSTRING (string)->data,
-							XSTRING (string)->size);
-	    raw_pattern = (char *) alloca (raw_pattern_size + 1);
-	    copy_text (XSTRING (string)->data, raw_pattern,
-		       XSTRING (string)->size, 0, 1);
-	  }
-	else
-	  {
-	    /* Converting multibyte to single-byte.
-
-	       ??? Perhaps this conversion should be done in a special way
-	       by subtracting nonascii-insert-offset from each non-ASCII char,
-	       so that only the multibyte chars which really correspond to
-	       the chosen single-byte character set can possibly match.  */
-	    raw_pattern_size = XSTRING (string)->size;
-	    raw_pattern = (char *) alloca (raw_pattern_size + 1);
-	    copy_text (XSTRING (string)->data, raw_pattern,
-		       XSTRING (string)->size, 1, 0);
-	  }
-
-	len_byte = raw_pattern_size;
-	patbuf = (unsigned char *) alloca (len_byte);
-	pat = patbuf;
-	base_pat = raw_pattern;
-	while (--len_byte >= 0)
-	  {
-	    /* If we got here and the RE flag is set, it's because we're
-	       dealing with a regexp known to be trivial, so the backslash
-	       just quotes the next character.  */
-	    if (RE && *base_pat == '\\')
-	      {
-		len_byte--;
-		base_pat++;
-	      }
-	    *pat++ = (trt ? XINT (trt[*base_pat++]) : *base_pat++);
-	  }
-	len_byte = pat - patbuf;
-	pat = base_pat = patbuf;
-      }
-      /* The general approach is that we are going to maintain that we know */
-      /* the first (closest to the present position, in whatever direction */
-      /* we're searching) character that could possibly be the last */
-      /* (furthest from present position) character of a valid match.  We */
-      /* advance the state of our knowledge by looking at that character */
-      /* and seeing whether it indeed matches the last character of the */
-      /* pattern.  If it does, we take a closer look.  If it does not, we */
-      /* move our pointer (to putative last characters) as far as is */
-      /* logically possible.  This amount of movement, which I call a */
-      /* stride, will be the length of the pattern if the actual character */
-      /* appears nowhere in the pattern, otherwise it will be the distance */
-      /* from the last occurrence of that character to the end of the */
-      /* pattern. */
-      /* As a coding trick, an enormous stride is coded into the table for */
-      /* characters that match the last character.  This allows use of only */
-      /* a single test, a test for having gone past the end of the */
-      /* permissible match region, to test for both possible matches (when */
-      /* the stride goes past the end immediately) and failure to */
-      /* match (where you get nudged past the end one stride at a time). */ 
-
-      /* Here we make a "mickey mouse" BM table.  The stride of the search */
-      /* is determined only by the last character of the putative match. */
-      /* If that character does not match, we will stride the proper */
-      /* distance to propose a match that superimposes it on the last */
-      /* instance of a character that matches it (per trt), or misses */
-      /* it entirely if there is none. */  
-
-      dirlen = len_byte * direction;
-      infinity = dirlen - (lim_byte + pos_byte + len_byte + len_byte) * direction;
-      if (direction < 0)
-	pat = (base_pat += len_byte - 1);
-      BM_tab_base = BM_tab;
-      BM_tab += 0400;
-      j = dirlen;		/* to get it in a register */
-      /* A character that does not appear in the pattern induces a */
-      /* stride equal to the pattern length. */
-      while (BM_tab_base != BM_tab)
+      if (multibyte == STRING_MULTIBYTE (string))
 	{
-	  *--BM_tab = j;
-	  *--BM_tab = j;
-	  *--BM_tab = j;
-	  *--BM_tab = j;
+	  raw_pattern = (char *) XSTRING (string)->data;
+	  raw_pattern_size = XSTRING (string)->size;
+	  raw_pattern_size_byte = XSTRING (string)->size_byte;
 	}
-      i = 0;
-      while (i != infinity)
+      else if (multibyte)
 	{
-	  j = pat[i]; i += direction;
-	  if (i == dirlen) i = infinity;
-	  if (trt != 0)
-	    {
-	      k = (j = XINT (trt[j]));
-	      if (i == infinity)
-		stride_for_teases = BM_tab[j];
-	      BM_tab[j] = dirlen - i;
-	      /* A translation table is accompanied by its inverse -- see */
-	      /* comment following downcase_table for details */ 
-	      while ((j = (unsigned char) XINT (inverse_trt[j])) != k)
-		BM_tab[j] = dirlen - i;
-	    }
-	  else
-	    {
-	      if (i == infinity)
-		stride_for_teases = BM_tab[j];
-	      BM_tab[j] = dirlen - i;
-	    }
-	  /* stride_for_teases tells how much to stride if we get a */
-	  /* match on the far character but are subsequently */
-	  /* disappointed, by recording what the stride would have been */
-	  /* for that character if the last character had been */
-	  /* different. */
+	  raw_pattern_size = XSTRING (string)->size;
+	  raw_pattern_size_byte
+	    = count_size_as_multibyte (XSTRING (string)->data,
+				       raw_pattern_size);
+	  raw_pattern = (char *) alloca (raw_pattern_size_byte + 1);
+	  copy_text (XSTRING (string)->data, raw_pattern,
+		     XSTRING (string)->size, 0, 1);
 	}
-      infinity = dirlen - infinity;
-      pos_byte += dirlen - ((direction > 0) ? direction : 0);
-      /* loop invariant - POS_BYTE points at where last char (first
-	 char if reverse) of pattern would align in a possible match.  */
-      while (n != 0)
+      else
 	{
-	  /* It's been reported that some (broken) compiler thinks that
-	     Boolean expressions in an arithmetic context are unsigned.
-	     Using an explicit ?1:0 prevents this.  */
-	  if ((lim_byte - pos_byte - ((direction > 0) ? 1 : 0)) * direction
-	      < 0)
-	    return (n * (0 - direction));
-	  /* First we do the part we can by pointers (maybe nothing) */
-	  QUIT;
-	  pat = base_pat;
-	  limit = pos_byte - dirlen + direction;
-	  limit = ((direction > 0)
-		   ? BUFFER_CEILING_OF (limit)
-		   : BUFFER_FLOOR_OF (limit));
-	  /* LIMIT is now the last (not beyond-last!) value POS_BYTE
-	     can take on without hitting edge of buffer or the gap.  */
-	  limit = ((direction > 0)
-		   ? min (lim_byte - 1, min (limit, pos_byte + 20000))
-		   : max (lim_byte, max (limit, pos_byte - 20000)));
-	  if ((limit - pos_byte) * direction > 20)
+	  /* Converting multibyte to single-byte.
+
+	     ??? Perhaps this conversion should be done in a special way
+	     by subtracting nonascii-insert-offset from each non-ASCII char,
+	     so that only the multibyte chars which really correspond to
+	     the chosen single-byte character set can possibly match.  */
+	  raw_pattern_size = XSTRING (string)->size;
+	  raw_pattern_size_byte = XSTRING (string)->size;
+	  raw_pattern = (char *) alloca (raw_pattern_size + 1);
+	  copy_text (XSTRING (string)->data, raw_pattern,
+		     XSTRING (string)->size_byte, 1, 0);
+	}
+
+      /* Copy and optionally translate the pattern.  */
+      len = raw_pattern_size;
+      len_byte = raw_pattern_size_byte;
+      patbuf = (unsigned char *) alloca (len_byte);
+      pat = patbuf;
+      base_pat = raw_pattern;
+      if (multibyte)
+	{
+	  while (--len >= 0)
 	    {
-	      p_limit = BYTE_POS_ADDR (limit);
-	      p2 = (cursor = BYTE_POS_ADDR (pos_byte));
-	      /* In this loop, pos + cursor - p2 is the surrogate for pos */
-	      while (1)		/* use one cursor setting as long as i can */
+	      unsigned char workbuf[4], *str;
+	      int c, translated;
+	      int in_charlen, charlen;
+
+	      /* If we got here and the RE flag is set, it's because we're
+		 dealing with a regexp known to be trivial, so the backslash
+		 just quotes the next character.  */
+	      if (RE && *base_pat == '\\')
 		{
-		  if (direction > 0) /* worth duplicating */
-		    {
-		      /* Use signed comparison if appropriate
-			 to make cursor+infinity sure to be > p_limit.
-			 Assuming that the buffer lies in a range of addresses
-			 that are all "positive" (as ints) or all "negative",
-			 either kind of comparison will work as long
-			 as we don't step by infinity.  So pick the kind
-			 that works when we do step by infinity.  */
-		      if ((EMACS_INT) (p_limit + infinity) > (EMACS_INT) p_limit)
-			while ((EMACS_INT) cursor <= (EMACS_INT) p_limit)
-			  cursor += BM_tab[*cursor];
-		      else
-			while ((EMACS_UINT) cursor <= (EMACS_UINT) p_limit)
-			  cursor += BM_tab[*cursor];
-		    }
-		  else
-		    {
-		      if ((EMACS_INT) (p_limit + infinity) < (EMACS_INT) p_limit)
-			while ((EMACS_INT) cursor >= (EMACS_INT) p_limit)
-			  cursor += BM_tab[*cursor];
-		      else
-			while ((EMACS_UINT) cursor >= (EMACS_UINT) p_limit)
-			  cursor += BM_tab[*cursor];
-		    }
-/* If you are here, cursor is beyond the end of the searched region. */
- /* This can happen if you match on the far character of the pattern, */
- /* because the "stride" of that character is infinity, a number able */
- /* to throw you well beyond the end of the search.  It can also */
- /* happen if you fail to match within the permitted region and would */
- /* otherwise try a character beyond that region */
-		  if ((cursor - p_limit) * direction <= len_byte)
-		    break;	/* a small overrun is genuine */
-		  cursor -= infinity; /* large overrun = hit */
-		  i = dirlen - direction;
-		  if (trt != 0)
-		    {
-		      while ((i -= direction) + direction != 0)
-			if (pat[i] != XINT (trt[*(cursor -= direction)]))
-			  break;
-		    }
-		  else
-		    {
-		      while ((i -= direction) + direction != 0)
-			if (pat[i] != *(cursor -= direction))
-			  break;
-		    }
-		  cursor += dirlen - i - direction;	/* fix cursor */
-		  if (i + direction == 0)
-		    {
-		      int position;
-
-		      cursor -= direction;
-
-		      position = pos_byte + cursor - p2 + ((direction > 0)
-							   ? 1 - len_byte : 0);
-		      set_search_regs (position, len_byte);
-
-		      if ((n -= direction) != 0)
-			cursor += dirlen; /* to resume search */
-		      else
-			return ((direction > 0)
-				? search_regs.end[0] : search_regs.start[0]);
-		    }
-		  else
-		    cursor += stride_for_teases; /* <sigh> we lose -  */
+		  len--;
+		  len_byte--;
+		  base_pat++;
 		}
-	      pos_byte += cursor - p2;
-	    }
-	  else
-	    /* Now we'll pick up a clump that has to be done the hard */
-	    /* way because it covers a discontinuity */
-	    {
-	      limit = ((direction > 0)
-		       ? BUFFER_CEILING_OF (pos_byte - dirlen + 1)
-		       : BUFFER_FLOOR_OF (pos_byte - dirlen - 1));
-	      limit = ((direction > 0)
-		       ? min (limit + len_byte, lim_byte - 1)
-		       : max (limit - len_byte, lim_byte));
-	      /* LIMIT is now the last value POS_BYTE can have
-		 and still be valid for a possible match.  */
-	      while (1)
+
+	      c = STRING_CHAR_AND_LENGTH (base_pat, len_byte, in_charlen);
+	      /* Translate the character, if requested.  */
+	      translated = TRANSLATE (trt, c);
+	      /* If translation changed the byte-length, go back
+		 to the original character.  */
+	      charlen = CHAR_STRING (translated, workbuf, str);
+	      if (in_charlen != charlen)
 		{
-		  /* This loop can be coded for space rather than */
-		  /* speed because it will usually run only once. */
-		  /* (the reach is at most len + 21, and typically */
-		  /* does not exceed len) */    
-		  while ((limit - pos_byte) * direction >= 0)
-		    pos_byte += BM_tab[FETCH_BYTE (pos_byte)];
-		  /* now run the same tests to distinguish going off the */
-		  /* end, a match or a phony match. */
-		  if ((pos_byte - limit) * direction <= len_byte)
-		    break;	/* ran off the end */
-		  /* Found what might be a match.
-		     Set POS_BYTE back to last (first if reverse) pos.  */
-		  pos_byte -= infinity;
-		  i = dirlen - direction;
+		  translated = c;
+		  charlen = CHAR_STRING (c, workbuf, str);
+		}
+
+	      /* Did this char actually get translated?
+		 Would any other char get translated into it?  */
+	      if (translated != c
+		  || TRANSLATE (inverse_trt, c) != c)
+		{
+		  /* Keep track of which character set row
+		     contains the characters that need translation.  */
+		  int charset_base_code = c & ~0xff;
+		  if (charset_base == -1)
+		    charset_base = charset_base_code;
+		  else if (charset_base != charset_base_code)
+		    /* If two different rows appear, needing translation,
+		       then we cannot use boyer_moore search.  */
+		    simple = 0;
+		    /* ??? Handa: this must do simple = 0
+		       if c is a composite character.  */
+		}		    
+
+	      /* Store this character into the translated pattern.  */
+	      bcopy (str, pat, charlen);
+	      pat += charlen;
+	      base_pat += in_charlen;
+	      len_byte -= in_charlen;
+	    }
+	}
+      else
+	{
+	  while (--len >= 0)
+	    {
+	      int c, translated;
+
+	      /* If we got here and the RE flag is set, it's because we're
+		 dealing with a regexp known to be trivial, so the backslash
+		 just quotes the next character.  */
+	      if (RE && *base_pat == '\\')
+		{
+		  len--;
+		  base_pat++;
+		}
+	      c = *base_pat++;
+	      translated = TRANSLATE (trt, c);
+
+	      /* Did this char actually get translated?
+		 Would any other char get translated into it?  */
+	      if (translated != c
+		  || TRANSLATE (inverse_trt, c) != c)
+		{
+		  /* Keep track of which character set row
+		     contains the characters that need translation.  */
+		  int charset_base_code = c & ~0xff;
+		  if (charset_base == -1)
+		    charset_base = charset_base_code;
+		  else if (charset_base != charset_base_code)
+		    /* If two different rows appear, needing translation,
+		       then we cannot use boyer_moore search.  */
+		    simple = 0;
+		}		    
+	      *pat++ = translated;
+	    }
+	}
+
+      len_byte = pat - patbuf;
+      len = raw_pattern_size;
+      pat = base_pat = patbuf;
+
+      if (simple)
+	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
+			    pos, pos_byte, lim, lim_byte);
+      else
+	return simple_search (n, pat, len, len_byte, trt,
+			      pos, pos_byte, lim, lim_byte);
+    }
+}
+
+/* Do a simple string search N times for the string PAT,
+   whose length is LEN/LEN_BYTE,
+   from buffer position POS/POS_BYTE until LIM/LIM_BYTE.
+   TRT is the translation table.
+
+   Return the character position where the match is found.
+   Otherwise, if M matches remained to be found, return -M.
+
+   This kind of search works regardless of what is in PAT and
+   regardless of what is in TRT.  It is used in cases where
+   boyer_moore cannot work.  */
+
+static int
+simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
+     int n;
+     unsigned char *pat;
+     int len, len_byte;
+     Lisp_Object trt;
+     int pos, pos_byte;
+     int lim, lim_byte;
+{
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+
+  if (lim > pos && multibyte)
+    while (n > 0)
+      {
+	while (1)
+	  {
+	    /* Try matching at position POS.  */
+	    int this_pos = pos;
+	    int this_pos_byte = pos_byte;
+	    int this_len = len;
+	    int this_len_byte = len_byte;
+	    unsigned char *p = pat;
+	    if (pos + len > lim)
+	      goto stop;
+
+	    while (this_len > 0)
+	      {
+		int charlen, buf_charlen;
+		int pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
+		int buf_ch;
+
+		this_len_byte -= charlen;
+		this_len--;
+		p += charlen;
+
+		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
+						 ZV_BYTE - this_pos_byte,
+						 buf_charlen);
+		this_pos_byte += buf_charlen;
+		this_pos++;
+		buf_ch = TRANSLATE (trt, buf_ch);
+
+		if (buf_ch != pat_ch)
+		  break;
+	      }
+
+	    if (this_len == 0)
+	      {
+		pos += len;
+		pos_byte += len_byte;
+		break;
+	      }
+
+	    INC_BOTH (pos, pos_byte);
+	  }
+
+	n--;
+      }
+  else if (lim > pos)
+    while (n > 0)
+      {
+	while (1)
+	  {
+	    /* Try matching at position POS.  */
+	    int this_pos = pos;
+	    int this_len = len;
+	    unsigned char *p = pat;
+
+	    if (pos + len > lim)
+	      goto stop;
+
+	    while (this_len > 0)
+	      {
+		int pat_ch = *p++;
+		int buf_ch = FETCH_BYTE (this_pos);
+		this_len--;
+		this_pos++;
+		buf_ch = TRANSLATE (trt, buf_ch);
+
+		if (buf_ch != pat_ch)
+		  break;
+	      }
+
+	    if (this_len == 0)
+	      {
+		pos += len;
+		break;
+	      }
+
+	    pos++;
+	  }
+
+	n--;
+      }
+  /* Backwards search.  */
+  else if (lim < pos && multibyte)
+    while (n < 0)
+      {
+	while (1)
+	  {
+	    /* Try matching at position POS.  */
+	    int this_pos = pos - len;
+	    int this_pos_byte = pos_byte - len_byte;
+	    int this_len = len;
+	    int this_len_byte = len_byte;
+	    unsigned char *p = pat;
+
+	    if (pos - len < lim)
+	      goto stop;
+
+	    while (this_len > 0)
+	      {
+		int charlen, buf_charlen;
+		int pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
+		int buf_ch;
+
+		this_len_byte -= charlen;
+		this_len--;
+		p += charlen;
+
+		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
+						 ZV_BYTE - this_pos_byte,
+						 buf_charlen);
+		this_pos_byte += buf_charlen;
+		this_pos++;
+		buf_ch = TRANSLATE (trt, buf_ch);
+
+		if (buf_ch != pat_ch)
+		  break;
+	      }
+
+	    if (this_len == 0)
+	      {
+		pos -= len;
+		pos_byte -= len_byte;
+		break;
+	      }
+
+	    DEC_BOTH (pos, pos_byte);
+	  }
+
+	n++;
+      }
+  else if (lim < pos)
+    while (n < 0)
+      {
+	while (1)
+	  {
+	    /* Try matching at position POS.  */
+	    int this_pos = pos - len;
+	    int this_len = len;
+	    unsigned char *p = pat;
+
+	    if (pos - len < lim)
+	      goto stop;
+
+	    while (this_len > 0)
+	      {
+		int pat_ch = *p++;
+		int buf_ch = FETCH_BYTE (this_pos);
+		this_len--;
+		this_pos++;
+		buf_ch = TRANSLATE (trt, buf_ch);
+
+		if (buf_ch != pat_ch)
+		  break;
+	      }
+
+	    if (this_len == 0)
+	      {
+		pos -= len;
+		break;
+	      }
+
+	    pos--;
+	  }
+
+	n++;
+      }
+
+ stop:
+  if (n == 0)
+    return pos;
+  else if (n > 0)
+    return -n;
+  else
+    return n;
+}
+
+/* Do Boyer-Moore search N times for the string PAT,
+   whose length is LEN/LEN_BYTE,
+   from buffer position POS/POS_BYTE until LIM/LIM_BYTE.
+   DIRECTION says which direction we search in.
+   TRT and INVERSE_TRT are translation tables.
+
+   This kind of search works if all the characters in PAT that have
+   nontrivial translation are the same aside from the last byte.  This
+   makes it possible to translate just the last byte of a character,
+   and do so after just a simple test of the context.
+
+   If that criterion is not satisfied, do not call this function.  */
+
+static int
+boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
+	     pos, pos_byte, lim, lim_byte)
+     int n;
+     unsigned char *base_pat;
+     int len, len_byte;
+     Lisp_Object trt;
+     Lisp_Object inverse_trt;
+     int pos, pos_byte;
+     int lim, lim_byte;
+{
+  int direction = ((n > 0) ? 1 : -1);
+  register int dirlen;
+  int infinity, limit, k, stride_for_teases;
+  register int *BM_tab;
+  int *BM_tab_base;
+  register unsigned char *cursor, *p_limit;  
+  register int i, j;
+  unsigned char *pat;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+
+  unsigned char simple_translate[0400];
+  int translate_prev_byte;
+  int translate_anteprev_byte;
+
+#ifdef C_ALLOCA
+  int BM_tab_space[0400];
+  BM_tab = &BM_tab_space[0];
+#else
+  BM_tab = (int *) alloca (0400 * sizeof (int));
+#endif
+  /* The general approach is that we are going to maintain that we know */
+  /* the first (closest to the present position, in whatever direction */
+  /* we're searching) character that could possibly be the last */
+  /* (furthest from present position) character of a valid match.  We */
+  /* advance the state of our knowledge by looking at that character */
+  /* and seeing whether it indeed matches the last character of the */
+  /* pattern.  If it does, we take a closer look.  If it does not, we */
+  /* move our pointer (to putative last characters) as far as is */
+  /* logically possible.  This amount of movement, which I call a */
+  /* stride, will be the length of the pattern if the actual character */
+  /* appears nowhere in the pattern, otherwise it will be the distance */
+  /* from the last occurrence of that character to the end of the */
+  /* pattern. */
+  /* As a coding trick, an enormous stride is coded into the table for */
+  /* characters that match the last character.  This allows use of only */
+  /* a single test, a test for having gone past the end of the */
+  /* permissible match region, to test for both possible matches (when */
+  /* the stride goes past the end immediately) and failure to */
+  /* match (where you get nudged past the end one stride at a time). */ 
+
+  /* Here we make a "mickey mouse" BM table.  The stride of the search */
+  /* is determined only by the last character of the putative match. */
+  /* If that character does not match, we will stride the proper */
+  /* distance to propose a match that superimposes it on the last */
+  /* instance of a character that matches it (per trt), or misses */
+  /* it entirely if there is none. */  
+
+  dirlen = len_byte * direction;
+  infinity = dirlen - (lim_byte + pos_byte + len_byte + len_byte) * direction;
+  if (direction < 0)
+    pat = (base_pat += len_byte - 1);
+  else
+    pat = base_pat;
+  BM_tab_base = BM_tab;
+  BM_tab += 0400;
+  j = dirlen;		/* to get it in a register */
+  /* A character that does not appear in the pattern induces a */
+  /* stride equal to the pattern length. */
+  while (BM_tab_base != BM_tab)
+    {
+      *--BM_tab = j;
+      *--BM_tab = j;
+      *--BM_tab = j;
+      *--BM_tab = j;
+    }
+
+  /* We use this for translation, instead of TRT itself.
+     We fill this in to handle the characters that actually
+     occur in the pattern.  Others don't matter anyway!  */
+  bzero (simple_translate, sizeof simple_translate);
+  for (i = 0; i < 0400; i++)
+    simple_translate[i] = i;
+
+  i = 0;
+  while (i != infinity)
+    {
+      unsigned char *ptr = pat + i;
+      i += direction;
+      if (i == dirlen)
+	i = infinity;
+      if (! NILP (trt))
+	{
+	  int ch;
+	  int this_translated = 1;
+
+	  if (multibyte
+	      && (ptr + 1 == pat + len_byte || CHAR_HEAD_P (ptr[1])))
+	    {
+	      unsigned char *charstart = ptr;
+	      while (! CHAR_HEAD_P (*charstart))
+		charstart--;
+	      if (! CHAR_HEAD_P (*ptr))
+		{
+		  translate_prev_byte = ptr[-1];
+		  if (! CHAR_HEAD_P (translate_prev_byte))
+		    translate_anteprev_byte = ptr[-2];
+		}
+	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
+	      ch = TRANSLATE (trt, ch);
+	    }
+	  else if (!multibyte)
+	    ch = TRANSLATE (trt, *ptr);
+	  else
+	    {
+	      ch = *ptr;
+	      this_translated = 0;
+	    }
+
+	  k = j = (unsigned char) ch;
+	  if (i == infinity)
+	    stride_for_teases = BM_tab[j];
+	  BM_tab[j] = dirlen - i;
+	  /* A translation table is accompanied by its inverse -- see */
+	  /* comment following downcase_table for details */ 
+	  if (this_translated)
+	    while (1)
+	      {
+		ch = TRANSLATE (inverse_trt, ch);
+		/* For all the characters that map into K,
+		   set up simple_translate to map them into K.  */
+		simple_translate[(unsigned char) ch] = k;
+		if ((unsigned char) ch == k)
+		  break;
+		BM_tab[(unsigned char) ch] = dirlen - i;
+	      }
+	}
+      else
+	{
+	  j = *ptr;
+
+	  if (i == infinity)
+	    stride_for_teases = BM_tab[j];
+	  BM_tab[j] = dirlen - i;
+	}
+      /* stride_for_teases tells how much to stride if we get a */
+      /* match on the far character but are subsequently */
+      /* disappointed, by recording what the stride would have been */
+      /* for that character if the last character had been */
+      /* different. */
+    }
+  infinity = dirlen - infinity;
+  pos_byte += dirlen - ((direction > 0) ? direction : 0);
+  /* loop invariant - POS_BYTE points at where last char (first
+     char if reverse) of pattern would align in a possible match.  */
+  while (n != 0)
+    {
+      int tail_end;
+      unsigned char *tail_end_ptr;
+
+      /* It's been reported that some (broken) compiler thinks that
+	 Boolean expressions in an arithmetic context are unsigned.
+	 Using an explicit ?1:0 prevents this.  */
+      if ((lim_byte - pos_byte - ((direction > 0) ? 1 : 0)) * direction
+	  < 0)
+	return (n * (0 - direction));
+      /* First we do the part we can by pointers (maybe nothing) */
+      QUIT;
+      pat = base_pat;
+      limit = pos_byte - dirlen + direction;
+      limit = ((direction > 0)
+	       ? BUFFER_CEILING_OF (limit)
+	       : BUFFER_FLOOR_OF (limit));
+      /* LIMIT is now the last (not beyond-last!) value POS_BYTE
+	 can take on without hitting edge of buffer or the gap.  */
+      limit = ((direction > 0)
+	       ? min (lim_byte - 1, min (limit, pos_byte + 20000))
+	       : max (lim_byte, max (limit, pos_byte - 20000)));
+      tail_end = BUFFER_CEILING_OF (pos_byte) + 1;
+      tail_end_ptr = BYTE_POS_ADDR (tail_end);
+
+      if ((limit - pos_byte) * direction > 20)
+	{
+	  unsigned char *p2;
+
+	  p_limit = BYTE_POS_ADDR (limit);
+	  p2 = (cursor = BYTE_POS_ADDR (pos_byte));
+	  /* In this loop, pos + cursor - p2 is the surrogate for pos */
+	  while (1)		/* use one cursor setting as long as i can */
+	    {
+	      if (direction > 0) /* worth duplicating */
+		{
+		  /* Use signed comparison if appropriate
+		     to make cursor+infinity sure to be > p_limit.
+		     Assuming that the buffer lies in a range of addresses
+		     that are all "positive" (as ints) or all "negative",
+		     either kind of comparison will work as long
+		     as we don't step by infinity.  So pick the kind
+		     that works when we do step by infinity.  */
+		  if ((EMACS_INT) (p_limit + infinity) > (EMACS_INT) p_limit)
+		    while ((EMACS_INT) cursor <= (EMACS_INT) p_limit)
+		      cursor += BM_tab[*cursor];
+		  else
+		    while ((EMACS_UINT) cursor <= (EMACS_UINT) p_limit)
+		      cursor += BM_tab[*cursor];
+		}
+	      else
+		{
+		  if ((EMACS_INT) (p_limit + infinity) < (EMACS_INT) p_limit)
+		    while ((EMACS_INT) cursor >= (EMACS_INT) p_limit)
+		      cursor += BM_tab[*cursor];
+		  else
+		    while ((EMACS_UINT) cursor >= (EMACS_UINT) p_limit)
+		      cursor += BM_tab[*cursor];
+		}
+/* If you are here, cursor is beyond the end of the searched region. */
+/* This can happen if you match on the far character of the pattern, */
+/* because the "stride" of that character is infinity, a number able */
+/* to throw you well beyond the end of the search.  It can also */
+/* happen if you fail to match within the permitted region and would */
+/* otherwise try a character beyond that region */
+	      if ((cursor - p_limit) * direction <= len_byte)
+		break;	/* a small overrun is genuine */
+	      cursor -= infinity; /* large overrun = hit */
+	      i = dirlen - direction;
+	      if (! NILP (trt))
+		{
 		  while ((i -= direction) + direction != 0)
 		    {
-		      pos_byte -= direction;
-		      if (pat[i] != (trt != 0
-				     ? XINT (trt[FETCH_BYTE (pos_byte)])
-				     : FETCH_BYTE (pos_byte)))
+		      int ch;
+		      cursor -= direction;
+		      /* Translate only the last byte of a character.  */
+		      if (! multibyte
+			  || ((cursor == tail_end_ptr
+			       || CHAR_HEAD_P (cursor[1]))
+			      && (CHAR_HEAD_P (cursor[0])
+				  || (translate_prev_byte == cursor[-1]
+				      && (CHAR_HEAD_P (translate_prev_byte)
+					  || translate_anteprev_byte == cursor[-2])))))
+			ch = simple_translate[*cursor];
+		      else
+			ch = *cursor;
+		      if (pat[i] != ch)
 			break;
 		    }
-		  /* Above loop has moved POS_BYTE part or all the way
-		     back to the first pos (last pos if reverse).
-		     Set it once again at the last (first if reverse) char.  */
-		  pos_byte += dirlen - i- direction;
-		  if (i + direction == 0)
-		    {
-		      int position;
-		      pos_byte -= direction;
-
-		      position = pos_byte + ((direction > 0) ? 1 - len_byte : 0);
-
-		      set_search_regs (position, len_byte);
-
-		      if ((n -= direction) != 0)
-			pos_byte += dirlen; /* to resume search */
-		      else
-			return ((direction > 0)
-				? search_regs.end[0] : search_regs.start[0]);
-		    }
-		  else
-		    pos_byte += stride_for_teases;
 		}
-	      }
-	  /* We have done one clump.  Can we continue? */
-	  if ((lim_byte - pos_byte) * direction < 0)
-	    return ((0 - n) * direction);
+	      else
+		{
+		  while ((i -= direction) + direction != 0)
+		    {
+		      cursor -= direction;
+		      if (pat[i] != *cursor)
+			break;
+		    }
+		}
+	      cursor += dirlen - i - direction;	/* fix cursor */
+	      if (i + direction == 0)
+		{
+		  int position;
+
+		  cursor -= direction;
+
+		  position = pos_byte + cursor - p2 + ((direction > 0)
+						       ? 1 - len_byte : 0);
+		  set_search_regs (position, len_byte);
+
+		  if ((n -= direction) != 0)
+		    cursor += dirlen; /* to resume search */
+		  else
+		    return ((direction > 0)
+			    ? search_regs.end[0] : search_regs.start[0]);
+		}
+	      else
+		cursor += stride_for_teases; /* <sigh> we lose -  */
+	    }
+	  pos_byte += cursor - p2;
 	}
-      return BYTE_TO_CHAR (pos_byte);
+      else
+	/* Now we'll pick up a clump that has to be done the hard */
+	/* way because it covers a discontinuity */
+	{
+	  limit = ((direction > 0)
+		   ? BUFFER_CEILING_OF (pos_byte - dirlen + 1)
+		   : BUFFER_FLOOR_OF (pos_byte - dirlen - 1));
+	  limit = ((direction > 0)
+		   ? min (limit + len_byte, lim_byte - 1)
+		   : max (limit - len_byte, lim_byte));
+	  /* LIMIT is now the last value POS_BYTE can have
+	     and still be valid for a possible match.  */
+	  while (1)
+	    {
+	      /* This loop can be coded for space rather than */
+	      /* speed because it will usually run only once. */
+	      /* (the reach is at most len + 21, and typically */
+	      /* does not exceed len) */    
+	      while ((limit - pos_byte) * direction >= 0)
+		pos_byte += BM_tab[FETCH_BYTE (pos_byte)];
+	      /* now run the same tests to distinguish going off the */
+	      /* end, a match or a phony match. */
+	      if ((pos_byte - limit) * direction <= len_byte)
+		break;	/* ran off the end */
+	      /* Found what might be a match.
+		 Set POS_BYTE back to last (first if reverse) pos.  */
+	      pos_byte -= infinity;
+	      i = dirlen - direction;
+	      while ((i -= direction) + direction != 0)
+		{
+		  int ch;
+		  unsigned char *ptr;
+		  pos_byte -= direction;
+		  ptr = BYTE_POS_ADDR (pos_byte);
+		  /* Translate only the last byte of a character.  */
+		  if (! multibyte
+		      || ((ptr == tail_end_ptr
+			   || CHAR_HEAD_P (ptr[1]))
+			  && (CHAR_HEAD_P (ptr[0])
+			      || (translate_prev_byte == ptr[-1]
+				  && (CHAR_HEAD_P (translate_prev_byte)
+				      || translate_anteprev_byte == ptr[-2])))))
+		    ch = simple_translate[*ptr];
+		  else
+		    ch = *ptr;
+		  if (pat[i] != ch)
+		    break;
+		}
+	      /* Above loop has moved POS_BYTE part or all the way
+		 back to the first pos (last pos if reverse).
+		 Set it once again at the last (first if reverse) char.  */
+	      pos_byte += dirlen - i- direction;
+	      if (i + direction == 0)
+		{
+		  int position;
+		  pos_byte -= direction;
+
+		  position = pos_byte + ((direction > 0) ? 1 - len_byte : 0);
+
+		  set_search_regs (position, len_byte);
+
+		  if ((n -= direction) != 0)
+		    pos_byte += dirlen; /* to resume search */
+		  else
+		    return ((direction > 0)
+			    ? search_regs.end[0] : search_regs.start[0]);
+		}
+	      else
+		pos_byte += stride_for_teases;
+	    }
+	  }
+      /* We have done one clump.  Can we continue? */
+      if ((lim_byte - pos_byte) * direction < 0)
+	return ((0 - n) * direction);
     }
+  return BYTE_TO_CHAR (pos_byte);
 }
 
 /* Record beginning BEG_BYTE and end BEG_BYTE + NBYTES
