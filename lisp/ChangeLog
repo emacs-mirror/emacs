@@ -1,3 +1,8 @@
+2002-09-18  Miles Bader  <miles@gnu.org>
+
+	* diff-mode.el (diff-mode): Don't evaluate `compilation-last-buffer'
+	unless it's bound.
+
 2002-09-16  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ls-lisp.el (ls-lisp-format-time-list): Fix type and provide
