@@ -19,7 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef POSIX_SIGNALS
 
-/* Don't #include <signal.h>.  That header shouldalways be #included
+/* Don't #include <signal.h>.  That header should always be #included
    before "config.h", because some configuration files (like s/hpux.h)
    indicate that SIGIO doesn't work by #undef-ing SIGIO.  If this file
    #includes <signal.h>, then that will re-#define SIGIO and confuse
