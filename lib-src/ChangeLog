@@ -1,3 +1,12 @@
+2002-02-03  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs2log (Copyright): Update to 2002.
+	Add '(C)' as per coding guidelines.
+	(AWK, TMPDIR): Work around portability problem in broken shells that
+	don't understand `: ${VAR=val}'.
+	(SORT_K_OPTIONS): New var, for hosts that conform to POSIX 1003.1-2001.
+	Prefer the new -k option to the traditional +M -N option.
+
 2001-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (matching_regexp): Escape '\\'.
