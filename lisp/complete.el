@@ -110,8 +110,8 @@ When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
 nil) is enhanced so that if some string is divided into words and each word is
 delimited by a character in `PC-word-delimiters', partial words are completed
 as much as possible and `*' characters are treated likewise in file names.
-You must modify via \\[customize] for this variable to have an effect;
-but also see the function `partial-completion-mode'."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `partial-completion-mode'."
   :set (lambda (symbol value)
 	 (partial-completion-mode (or value 0)))
   :initialize 'custom-initialize-default
