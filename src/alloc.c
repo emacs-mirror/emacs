@@ -860,7 +860,7 @@ allocate_vectorlike (len)
   consing_since_gc += (sizeof (struct Lisp_Vector)
 		       + (len - 1) * sizeof (Lisp_Object));
   vector_cells_consed += len;
-  n_vectors;
+  n_vectors++;
 
   p->next = all_vectors;
   all_vectors = p;
