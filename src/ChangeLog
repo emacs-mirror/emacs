@@ -1,5 +1,8 @@
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (direct_output_for_insert): If char_ins_del_ok is
+	zero, use this method only at the end of a line.
+
 	* xfaces.c (x_face_list_fonts): Don't BLOCK_INPUT around the 
 	call to x_list_fonts.  Call x_list_fonts with SIZE -1 only
 	if SCALABLE_FONTS_P is set.
