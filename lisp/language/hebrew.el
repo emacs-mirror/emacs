@@ -40,8 +40,8 @@
   "Setup multilingual environment (MULE) for Hebrew.
 But, please note that right-to-left writing is not yet supported."
   (interactive)
-  (setup-8-bit-environment 'hebrew-iso8859-8 'hebrew-iso-8bit
-			   '("Hebrew" . "quail-hebrew")))
+  (setup-8-bit-environment "Hebrew" 'hebrew-iso8859-8 'hebrew-iso-8bit
+			   "hebrew"))
 
 (set-language-info-alist
  "Hebrew" '((setup-function . setup-hebrew-environment)
