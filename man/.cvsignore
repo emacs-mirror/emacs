@@ -1,0 +1,9 @@
+*.aux
+*.fns?
+*.cps?
+*.kys?
+*.toc
+*.pgs?
+*.log
+*.vrs?
+*.dvi
