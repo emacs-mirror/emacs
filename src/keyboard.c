@@ -584,7 +584,13 @@ echo ()
       immediate_echo = 1;
 
       for (i = 0; i < this_command_key_count; i++)
-	echo_char (XVECTOR (this_command_keys)->contents[i]);
+	{
+	  Lisp_Object c;
+	  c = XVECTOR (this_command_keys)->contents[i];
+	  if (! (EVENT_HAS_PARAMETERS (c)
+		 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+	    echo_char (c);
+	}
       echo_dash ();
     }
 
@@ -1309,12 +1315,21 @@ set_poll_suppress_count (count)
 #endif
 }
 
+/* Bind polling_period to a value at least N.
+   But don't decrease it.  */
+
 bind_polling_period (n)
      int n;
 {
 #ifdef POLL_FOR_INPUT
+  int new = polling_period;
+
+  if (n > new)
+    new = n;
+
   stop_polling ();
-  specbind (Qpolling_period, make_number (n));
+  specbind (Qpolling_period, make_number (new));
+  /* Start a new alarm with the new period.  */
   start_polling ();
 #endif
 }
