@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.17 2000/07/24 00:37:03 friedman Exp $
+;; $Id: eldoc.el,v 1.18 2000/12/02 20:10:49 schwab Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -58,24 +58,6 @@
   "Show function arglist or variable docstring in echo area."
   :group 'lisp
   :group 'extensions)
-
-;;;###autoload
-(defcustom eldoc-mode nil
-  "*If non-nil, show the defined parameters for the elisp function near point.
-
-For the emacs lisp function at the beginning of the sexp which point is
-within, show the defined parameters for the function in the echo area.
-This information is extracted directly from the function or macro if it is
-in pure lisp.  If the emacs function is a subr, the parameters are obtained
-from the documentation string if possible.
-
-If point is over a documented variable, print that variable's docstring
-instead.
-
-This variable is buffer-local."
-  :type 'boolean
-  :group 'eldoc)
-(make-variable-buffer-local 'eldoc-mode)
 
 (defcustom eldoc-idle-delay 0.50
   "*Number of seconds of idle time to wait before printing.
@@ -168,27 +150,23 @@ Non-nil values for this variable have no effect unless
 ;; This is used to determine if eldoc-idle-delay is changed by the user.
 (defvar eldoc-current-idle-delay eldoc-idle-delay)
 
-;; Put minor mode string on the global minor-mode-alist.
-;;;###autoload
-(cond ((fboundp 'add-minor-mode)
-       (add-minor-mode 'eldoc-mode 'eldoc-minor-mode-string))
-      ((assq 'eldoc-mode (default-value 'minor-mode-alist)))
-      (t
-       (setq-default minor-mode-alist
-                     (append (default-value 'minor-mode-alist)
-                             '((eldoc-mode eldoc-minor-mode-string))))))
-
 
 ;;;###autoload
-(defun eldoc-mode (&optional prefix)
-  "*Enable or disable eldoc mode.
-See documentation for the variable of the same name for more details.
+(define-minor-mode eldoc-mode
+  "Toggle ElDoc mode on or off.
+Show the defined parameters for the elisp function near point.
 
-If called interactively with no prefix argument, toggle current condition
-of the mode.
-If called with a positive or negative prefix argument, enable or disable
-the mode, respectively."
-  (interactive "P")
+For the emacs lisp function at the beginning of the sexp which point is
+within, show the defined parameters for the function in the echo area.
+This information is extracted directly from the function or macro if it is
+in pure lisp.  If the emacs function is a subr, the parameters are obtained
+from the documentation string if possible.
+
+If point is over a documented variable, print that variable's docstring
+instead.
+
+With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
+  nil eldoc-minor-mode-string nil
   (setq eldoc-last-message nil)
   (cond (eldoc-use-idle-timer-p
          (add-hook 'post-command-hook 'eldoc-schedule-timer)
@@ -205,15 +183,7 @@ the mode, respectively."
          ;; quick and dirty hack for seeing if this is XEmacs
          (and (fboundp 'display-message)
               (add-hook 'pre-command-hook
-                        'eldoc-pre-command-refresh-echo-area t t))))
-  (setq eldoc-mode (if prefix
-                       (>= (prefix-numeric-value prefix) 0)
-                     (not eldoc-mode)))
-  (and (interactive-p)
-       (if eldoc-mode
-           (message "eldoc-mode is enabled")
-         (message "eldoc-mode is disabled")))
-  eldoc-mode)
+                        'eldoc-pre-command-refresh-echo-area t t)))))
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()
