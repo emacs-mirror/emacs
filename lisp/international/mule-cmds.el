@@ -2121,14 +2121,6 @@ the language name that would otherwise be used for this locale.")
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.")
 
-(defconst standard-keyboard-coding-systems
-  (purecopy
-   '(iso-latin-1 iso-latin-2 iso-latin-3 iso-latin-4 iso-latin-5
-     iso-latin-6 iso-latin-7 iso-latin-8 iso-latin-9 koi8-u koi8-r))
-  "Coding systems that are commonly used for keyboards.
-`set-locale-environment' will set the `keyboard-coding-system' if the
-coding-system specified by the locale setting is a member of this list.")
-
 (defun locale-name-match (key alist)
   "Search for KEY in ALIST, which should be a list of regexp-value pairs.
 Return the value corresponding to the first regexp that matches the
@@ -2236,12 +2228,14 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (when default-enable-multibyte-characters
 	    (set-display-table-and-terminal-coding-system language-name))
 
-	  ;; Set the `keyboard-coding-system' if appropriate.
-	  (let ((kcs (or coding-system
-			 (car (get-language-info language-name
-						 'coding-system)))))
-	    (if (memq kcs standard-keyboard-coding-systems)
-		(set-keyboard-coding-system kcs)))
+	  ;; Set the `keyboard-coding-system' if appropriate (tty
+	  ;; only).  At least X and MS Windows can generate
+	  ;; multilingual input.
+	  (unless window-system
+	    (let ((kcs (or coding-system
+			   (car (get-language-info language-name
+						   'coding-system)))))
+	      (if kcs (set-keyboard-coding-system kcs))))
 
 	  (setq locale-coding-system
 		(car (get-language-info language-name 'coding-priority))))
