@@ -313,9 +313,11 @@ you lose
 #define XSETTYPE(a, b) ((a)  =  XUINT (a) | ((EMACS_INT)(b) << VALBITS))
 #endif
 
-/* Use XFASTINT for fast retrieval and storage of integers known
-  to be positive.  This takes advantage of the fact that Lisp_Int is 0.  */
+/* For integers known to be positive, XFASTINT provides fast retrieval
+   and XSETFASTINT provides fast storage.  This takes advantage of the
+   fact that Lisp_Int is 0.  */
 #define XFASTINT(a) (a)
+#define XSETFASTINT(a, b) ((a) = (b))
 
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
@@ -395,9 +397,11 @@ extern int pure_size;
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
 #define XSETTYPE(a, b) ((a).u.type = (char) (b))
 
-/* Use XFASTINT for fast retrieval and storage of integers known
-  to be positive.  This takes advantage of the fact that Lisp_Int is 0.  */
+/* For integers known to be positive, XFASTINT provides fast retrieval
+   and XSETFASTINT provides fast storage.  This takes advantage of the
+   fact that Lisp_Int is 0.  */
 #define XFASTINT(a) ((a).i)
+#define XSETFASTINT(a, b) ((a).i = (b))
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
@@ -785,7 +789,7 @@ typedef unsigned char UCHAR;
   do { if (!MARKERP ((x))) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
 
 #define CHECK_NUMBER_COERCE_MARKER(x, i) \
-  do { if (MARKERP ((x))) XFASTINT (x) = marker_position (x); \
+  do { if (MARKERP ((x))) XSETFASTINT (x, marker_position (x)); \
     else if (!INTEGERP ((x))) x = wrong_type_argument (Qinteger_or_marker_p, (x)); } while (0)
 
 #ifdef LISP_FLOAT_TYPE
@@ -805,7 +809,7 @@ typedef unsigned char UCHAR;
     x = wrong_type_argument (Qnumberp, (x)); } while (0)
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x, i) \
-  do { if (MARKERP (x)) XFASTINT (x) = marker_position (x);	\
+  do { if (MARKERP (x)) XSETFASTINT (x, marker_position (x));	\
   else if (!INTEGERP (x) && !FLOATP (x))		\
     x = wrong_type_argument (Qnumber_or_marker_p, (x)); } while (0)
 
