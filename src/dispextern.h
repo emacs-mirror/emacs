@@ -2159,6 +2159,7 @@ void start_display P_ ((struct it *, struct window *, struct text_pos));
 void move_it_to P_ ((struct it *, int, int, int, int, int));
 void move_it_vertically P_ ((struct it *, int));
 void move_it_by_lines P_ ((struct it *, int, int));
+void move_it_past_eol P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
