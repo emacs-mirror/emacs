@@ -96,6 +96,9 @@ void setenv ();
 void fatal ();
 char *myindex ();
 
+extern char *strerror ();
+
+
 main (argc, argv, envp)
      register int argc;
      register char **argv;
