@@ -563,8 +563,9 @@ If N is negative, find the next or Nth next match."
 					'minibuffer-history-search-history)))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
-	       (setcar minibuffer-history-search-history
-		       (nth 1 minibuffer-history-search-history))
+	       (if minibuffer-history-search-history
+		   (car minibuffer-history-search-history)
+		 (error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
   (let ((history (symbol-value minibuffer-history-variable))
