@@ -2448,10 +2448,9 @@ well.")
                                   desktop-buffer-name
                                   desktop-buffer-misc)
   "Restore an mh folder buffer specified in a desktop file."
-  (with-no-warnings
-    (mh-find-path)
-    (mh-visit-folder desktop-buffer-name)
-    (current-buffer)))
+  (mh-find-path)
+  (mh-visit-folder desktop-buffer-name)
+  (current-buffer))
 
 (provide 'mh-e)
 
