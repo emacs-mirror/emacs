@@ -3112,7 +3112,7 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	 ;; A list of all dirs that DIRPART specifies.
 	 ;; This can be more than one dir
 	 ;; if DIRPART contains wildcards.
-	 (dirs (if (and dirpart (string-match "[[.*+\\^$?]" dirpart))
+	 (dirs (if (and dirpart (string-match "[[*?]" dirpart))
 		   (mapcar 'file-name-as-directory
 			   (file-expand-wildcards (directory-file-name dirpart)))
 		 (list dirpart)))
@@ -3121,8 +3121,14 @@ default directory.  However, if FULL is non-nil, they are absolute."
       (when (or (null (car dirs))	; Possible if DIRPART is not wild.
 		(file-directory-p (directory-file-name (car dirs))))
 	(let ((this-dir-contents
-	       (directory-files (or (car dirs) ".") full
-				(wildcard-to-regexp nondir))))
+	       ;; Filter out "." and ".."
+	       (delq nil
+		     (mapcar #'(lambda (name)
+				 (unless (string-match "\\`\\.\\.?\\'"
+						       (file-name-nondirectory name))
+				   name))
+			     (directory-files (or (car dirs) ".") full
+					      (wildcard-to-regexp nondir))))))
 	  (setq contents
 		(nconc
 		 (if (and (car dirs) (not full))
