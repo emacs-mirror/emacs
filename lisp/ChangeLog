@@ -1,3 +1,10 @@
+2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* filesets.el (filesets-menu-path, filesets-menu-before)
+	(filesets-menu-in-menu): Doc fix.  Now valid in GNU Emacs.
+	(filesets-menu-cache-file): Use directory ~/.emacs.d.
+	(filesets-add-submenu): Delete and use add-submenu instead.
+
 2005-03-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset) 
