@@ -106,6 +106,10 @@
 (load "language/tibetan")
 (load "language/vietnamese")
 (load "language/misc-lang")
+
+(load "international/ucs-tables")
+(ucs-unify-8859 'encode-only)
+
 (update-coding-systems-internal)
 
 (load "indent")
