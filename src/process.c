@@ -644,7 +644,7 @@ signal -- for a process that has got a fatal signal.\n\
 open -- for a network stream connection that is open.\n\
 closed -- for a network stream connection that is closed.\n\
 nil -- if arg is a process name and no such process exists.\n\
-PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
+PROCESS may be a process, a buffer, the name of a process, or\n\
 nil, indicating the current buffer's process.")
   (process)
      register Lisp_Object process;
