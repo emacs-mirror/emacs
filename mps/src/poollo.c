@@ -1,34 +1,21 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.15) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * .readership: Any MPS developer
+ * $HopeName: MMsrc!poollo.c(trunk.16) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
- * .design: see design.mps.poollo
- *
- * This is the implementation of the leaf pool class.
+ * .design: See design.mps.poollo.  This is a leaf pool class.
  */
-
 
 #include "mpsclo.h"
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.15) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.16) $");
 
-
-/* MACROS */
 
 #define LOGen ((Serial)1)
-
-#define PoolPoolLO(pool)        PARENT(LOStruct, poolStruct, pool)
-
-#define ActionLO(action)        PARENT(LOStruct, actionStruct, action)
 
 
 /* LOStruct -- leaf object pool instance structure */
@@ -40,22 +27,18 @@ typedef struct LOStruct *LO;
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   Shift alignShift;             /* log_2 of pool alignment */
-  ActionStruct actionStruct;    /* action of collecting this pool */
-  Size objectsSize;             /* total size of all objects */
-  Size lastRememberedSize;      /* total object size at last collection */
-  Serial gen;                   /* associated generation */
-  Sig sig;                      /* impl.h.misc.sig */
+  Serial gen;                   /* generation for placement */
+  Chain chain;                  /* chain used by this pool */
+  PoolGenStruct pgen;           /* generation representing the pool */
+  Sig sig;
 } LOStruct;
 
+#define PoolPoolLO(pool)        PARENT(LOStruct, poolStruct, pool)
+#define LOPool(lo) (&(lo)->poolStruct)
+
+
+/* forward declaration */
 static Bool LOCheck(LO lo);
-
-
-static Pool (LOPool)(LO lo)
-{
-  AVERT(LO, lo);
-
-  return &lo->poolStruct;
-}
 
 
 /* LOGSegStruct -- LO segment structure */
@@ -76,7 +59,27 @@ typedef struct LOSegStruct {
 #define SegLOSeg(seg)             ((LOSeg)(seg))
 #define LOSegSeg(loseg)           ((Seg)(loseg))
 
-extern SegClass EnsureLOSegClass(void);
+
+/* forward decls */
+static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, 
+                     Bool reservoirPermit, va_list args);
+static void loSegFinish(Seg seg);
+
+
+/* LOSegClass -- Class definition for LO segments */
+
+DEFINE_SEG_CLASS(LOSegClass, class)
+{
+  INHERIT_CLASS(class, GCSegClass);
+  SegClassMixInNoSplitMerge(class);
+  class->name = "LOSEG";
+  class->size = sizeof(LOSegStruct);
+  class->init = loSegInit;
+  class->finish = loSegFinish;
+}
+
+
+/* LOSegCheck -- check an LO segment */
 
 static Bool LOSegCheck(LOSeg loseg)
 {
@@ -85,8 +88,8 @@ static Bool LOSegCheck(LOSeg loseg)
   CHECKU(LO, loseg->lo);
   CHECKL(loseg->mark != NULL);
   CHECKL(loseg->alloc != NULL);
-  CHECKL(loseg->free <= /* Could check exactly */
-         SegSize(LOSegSeg(loseg)) >> loseg->lo->alignShift);
+  CHECKL(loseg->free /* Could check exactly */
+         <= SegSize(LOSegSeg(loseg)) >> loseg->lo->alignShift);
   return TRUE;
 }
 
@@ -179,19 +182,6 @@ static void loSegFinish(Seg seg)
   super = SEG_SUPERCLASS(LOSegClass);
   super->finish(seg);
 }
-  
-
-/* LOSegClass -- Class definition for LO segments */
-
-DEFINE_SEG_CLASS(LOSegClass, class)
-{
-  INHERIT_CLASS(class, GCSegClass);
-  SegClassMixInNoSplitMerge(class);
-  class->name = "LOSEG";
-  class->size = sizeof(LOSegStruct);
-  class->init = loSegInit;
-  class->finish = loSegFinish;
-}
 
 
 static Count loSegBits(LOSeg loseg)
@@ -216,25 +206,18 @@ static Count loSegBits(LOSeg loseg)
   (AddrAdd((base), (i) << (lo)->alignShift))
 
 
+/* loSegFree -- mark block from baseIndex to limitIndex free */
+
 static void loSegFree(LOSeg loseg, Index baseIndex, Index limitIndex)
 {
-  Count bits;
-  Size size;
-
   AVERT(LOSeg, loseg);
   AVER(baseIndex < limitIndex);
-
-  bits = loSegBits(loseg);
-  AVER(limitIndex <= bits);
+  AVER(limitIndex <= loSegBits(loseg));
 
   AVER(BTIsSetRange(loseg->alloc, baseIndex, limitIndex));
   BTResRange(loseg->alloc, baseIndex, limitIndex);
   BTSetRange(loseg->mark, baseIndex, limitIndex);
   loseg->free += limitIndex - baseIndex;
-
-  size = (limitIndex - baseIndex) << loseg->lo->alignShift;
-  AVER(size <= loseg->lo->objectsSize);
-  loseg->lo->objectsSize -= size;
 }
 
 
@@ -322,15 +305,20 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size,
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
   res = SegAlloc(&seg, EnsureLOSegClass(), &segPrefStruct, 
                  asize, pool, withReservoirPermit);
-  if (ResOK != res)
+  if (res != ResOK)
     return res;
+  PoolGenUpdateZones(&lo->pgen, seg);
 
   *loSegReturn = SegLOSeg(seg);
   return ResOK;
 }
 
 
-/* consider implementing Reclaim using Walk @@@@ */
+/* loSegReclaim -- reclaim white objects in an LO segment
+ *
+ * Could consider implementing this using Walk.
+ */
+
 static void loSegReclaim(LOSeg loseg, Trace trace)
 {
   Addr p, base, limit;
@@ -363,8 +351,8 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 
     if(buffer != NULL) {
       marked = TRUE;
-      if(p == BufferScanLimit(buffer) &&
-         BufferScanLimit(buffer) != BufferLimit(buffer)) {
+      if (p == BufferScanLimit(buffer)
+          && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
         p = BufferLimit(buffer);
         continue;
@@ -396,10 +384,11 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
 
   AVER(bytesReclaimed <= SegSize(seg));
   trace->reclaimSize += bytesReclaimed;
+  lo->pgen.totalSize -= bytesReclaimed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
-  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
+  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
   if(!marked) {
     SegFree(seg);
@@ -466,11 +455,15 @@ static void LOWalk(Pool pool, Seg seg,
 }
 
 
+/* LOInit -- initialize an LO pool */
+
 static Res LOInit(Pool pool, va_list arg)
 {
   Format format;
   LO lo;
   Arena arena;
+  Res res;
+  static GenParamStruct loGenParam = { 1024, 0.2 };
 
   AVERT(Pool, pool);
 
@@ -485,17 +478,28 @@ static Res LOInit(Pool pool, va_list arg)
   lo->poolStruct.alignment = format->alignment;
   lo->alignShift = 
     SizeLog2((unsigned long)PoolAlignment(&lo->poolStruct));
-  ActionInit(&lo->actionStruct, pool);
-  lo->objectsSize = 0;
-  lo->lastRememberedSize = 0;
   lo->gen = LOGen; /* may be modified in debugger */
+  res = ChainCreate(&lo->chain, arena, 1, &loGenParam);
+  if (res != ResOK)
+    return res;
+  /* .gen: This must be the nursery in the chain, because it's the only */
+  /* generation.  lo->gen is just a hack for segment placement. */
+  res = PoolGenInit(&lo->pgen, lo->chain, 0 /* .gen */, pool);
+  if (res != ResOK)
+    goto failGenInit;
 
   lo->sig = LOSig;
-
   AVERT(LO, lo);
   EVENT_PP(PoolInitLO, pool, format);
   return ResOK;
+
+failGenInit:
+  ChainDestroy(lo->chain);
+  return res;
 }
+
+
+/* LOFinish -- finish an LO pool */
 
 static void LOFinish(Pool pool)
 {
@@ -509,11 +513,13 @@ static void LOFinish(Pool pool)
   RING_FOR(node, &pool->segRing, nextNode) {
     Seg seg = SegOfPoolRing(node);
     LOSeg loseg = SegLOSeg(seg);
+
     AVERT(LOSeg, loseg);
     SegFree(seg);
   }
+  PoolGenFinish(&lo->pgen);
+  ChainDestroy(lo->chain);
 
-  ActionFinish(&lo->actionStruct);
   lo->sig = SigInvalid;
 }
 
@@ -576,10 +582,8 @@ found:
     loseg->free -= limitIndex - baseIndex;
   }
 
-  /* update live object size */
-  /* Check for overflow insanity */
-  AVER(lo->objectsSize < lo->objectsSize + AddrOffset(base, limit));
-  lo->objectsSize += AddrOffset(base, limit);
+  lo->pgen.totalSize += AddrOffset(base, limit);
+  lo->pgen.newSize += AddrOffset(base, limit);
 
   *baseReturn = base;
   *limitReturn = limit;
@@ -592,8 +596,7 @@ failCreate:
 
 /* Synchronise the buffer with the alloc Bit Table in the segment. */
 
-static void LOBufferEmpty(Pool pool, Buffer buffer, 
-                          Addr init, Addr limit)
+static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
   LO lo;
   Addr base, segBase;
@@ -608,7 +611,7 @@ static void LOBufferEmpty(Pool pool, Buffer buffer,
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
   seg = BufferSeg(buffer);
-  AVER(SegCheck(seg));
+  AVERT(Seg, seg);
   AVER(init <= limit);
   
   loseg = SegLOSeg(seg);
@@ -630,10 +633,12 @@ static void LOBufferEmpty(Pool pool, Buffer buffer,
 
   /* Record the unused portion at the end of the buffer */
   /* as being free. */
-  AVER(baseIndex == limitIndex ||
-       BTIsSetRange(loseg->alloc, baseIndex, limitIndex));
+  AVER(baseIndex == limitIndex
+       || BTIsSetRange(loseg->alloc, baseIndex, limitIndex));
   if(initIndex != limitIndex) {
     loSegFree(loseg, initIndex, limitIndex);
+    lo->pgen.totalSize -= AddrOffset(init, limit);
+    lo->pgen.newSize -= AddrOffset(init, limit);
   }
 }
 
@@ -663,7 +668,7 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
     BTCopyInvertRange(loseg->alloc, loseg->mark, 0, bits);
     /* @@@@ We could subtract all the free grains. */
     trace->condemned += SegSize(seg);
-    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
 
   return ResOK;
@@ -732,49 +737,10 @@ static void LOReclaim(Pool pool, Trace trace, Seg seg)
 
   AVERT(Trace, trace);
   AVERT(Seg, seg);
-  AVER(TraceSetIsMember(SegWhite(seg), trace->ti));
+  AVER(TraceSetIsMember(SegWhite(seg), trace));
 
   loseg = SegLOSeg(seg);
   loSegReclaim(loseg, trace);
-
-  lo->lastRememberedSize = lo->objectsSize;
-}
-
-static Res LOTraceBegin(Pool pool, Trace trace)
-{
-  LO lo;
-
-  AVERT(Pool, pool);
-  lo = PoolPoolLO(pool);
-  AVERT(LO, lo);
-  AVERT(Trace, trace);
-
-  lo->lastRememberedSize = lo->objectsSize;
-
-  return ResOK;
-}
-
-int LORatioDenominator = 1;
-int LORatioNumerator = 2;
-unsigned long LOMinimumCollectableSize = 128*1024uL;
-
-static double LOBenefit(Pool pool, Action action)
-{
-  LO lo;
-
-  AVERT(Pool, pool);
-  lo = PoolPoolLO(pool);
-  AVERT(LO, lo);
-  AVERT(Action, action);
-  AVER(lo == ActionLO(action));
-
-  /* objects > k*lastRemembered, (k = p/q) */
-  /* @@@@ ignoring overflow in multiplication */
-  if(lo->objectsSize > LOMinimumCollectableSize &&
-     lo->objectsSize * LORatioDenominator >
-     lo->lastRememberedSize * LORatioNumerator) 
-     return 1.0;
-  return 0.0;
 }
 
 
@@ -792,7 +758,6 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   this->finish = LOFinish;
   this->bufferFill = LOBufferFill;
   this->bufferEmpty = LOBufferEmpty;
-  this->traceBegin = LOTraceBegin;
   this->whiten = LOWhiten;
   this->grey = PoolNoGrey;
   this->blacken = PoolNoBlacken;
@@ -800,16 +765,19 @@ DEFINE_POOL_CLASS(LOPoolClass, this)
   this->fix = LOFix;
   this->fixEmergency = LOFix;
   this->reclaim = LOReclaim;
-  this->benefit = LOBenefit;
   this->walk = LOWalk;
 }
 
+
+/* mps_class_lo -- the external interface to get the LO pool class */
 
 mps_class_t mps_class_lo(void)
 {
   return (mps_class_t)EnsureLOPoolClass();
 }
 
+
+/* LOCheck -- check an LO pool */
 
 static Bool LOCheck(LO lo)
 {
@@ -818,7 +786,7 @@ static Bool LOCheck(LO lo)
   CHECKL(lo->poolStruct.class == EnsureLOPoolClass());
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(1uL << lo->alignShift == PoolAlignment(&lo->poolStruct));
-  CHECKD(Action, &lo->actionStruct);
-  /* can't check lastRememberedSize or objectsSize */
+  CHECKD(Chain, lo->chain);
+  CHECKD(PoolGen, &lo->pgen);
   return TRUE;
 }
