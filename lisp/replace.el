@@ -528,13 +528,13 @@ which will run faster and probably do exactly what you want."
 	      ;; Loop reading commands until one of them sets done,
 	      ;; which means it has finished handling this occurrence.
 	      (while (not done)
+		(store-match-data real-match-data)
 		(replace-highlight (match-beginning 0) (match-end 0))
 		(message message from-string next-replacement)
 		(setq key (read-event))
 		(setq key (vector key))
 		(setq def (lookup-key map key))
 		;; Restore the match data while we process the command.
-		(store-match-data real-match-data)
 		(cond ((eq def 'help)
 		       (with-output-to-temp-buffer "*Help*"
 			 (princ
