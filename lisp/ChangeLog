@@ -1,3 +1,14 @@
+2000-10-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* term/mac-win.el: (decode-mac-roman, encode-mac-roman,
+	mac-roman): Moved to european.el.
+	(ccl-encode-mac-roman-font, fontset-mac): Modified for
+	mule-unicode-2500-33ff and mule-unicode-e000-ffff.
+	(mac-roman-kbd-insert, mac-roman-kbd-mode): These functions
+	deleted.
+	(mac-roman-kbd-mode, mac-roman-kbd-mode-map): These variables
+	deleted.
+
 2000-10-30  Dave Love  <fx@gnu.org>
 
 	* progmodes/cc-menus.el (imenu-generic-expression)
