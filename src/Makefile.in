@@ -813,6 +813,7 @@ shortlisp= \
 	../lisp/startup.elc \
 	../lisp/subr.elc \
 	../lisp/term/tty-colors.elc \
+	../lisp/font-core.elc \
 	../lisp/textmodes/fill.elc \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \
