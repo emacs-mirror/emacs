@@ -3353,6 +3353,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.point_before_scroll, -1);
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
+  XSETFASTINT (buffer_local_flags.file_format, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3372,7 +3373,6 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.display_table, 0x2000);
   XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
-  XSETFASTINT (buffer_local_flags.file_format, 0x20000);
 #ifdef DOS_NT
   XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
 #endif
