@@ -236,8 +236,7 @@ compile: $(lisp)/subdirs.el doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) --eval "(setq max-specpdl-size 650)" \
-		     -f batch-byte-compile-if-not-done $$el || exit 1; \
+	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
 	  fi \
 	done
 
@@ -282,10 +281,7 @@ compile-after-backup: backup-compiled-files compile-always
 # .elc is present.
 
 recompile: doit $(lisp)/progmodes/cc-mode.elc
-	$(EMACS) $(EMACSOPT) \
-	  --eval "(setq max-specpdl-size 650)" \
-	  --eval "(batch-byte-recompile-directory 0)" \
-	  $(lisp)
+	$(EMACS) $(EMACSOPT) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-mode.elc on the macros in cc-langs.el and the
