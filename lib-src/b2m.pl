@@ -30,7 +30,7 @@ use Mail::Address;
 use Date::Parse;
 
 my($whoami) = basename $0;
-my($version) = '$Revision: 1.4 $';
+my($version) = '$Revision: 1.1 $';
 my($usage) = "Usage: $whoami [--help] [--version] [--[no]full-headers] [Babyl-file]
 \tBy default, full headers are printed.\n";
 
@@ -62,7 +62,7 @@ if (<> !~ /^BABYL OPTIONS:/) {
 
 while (<>) {
     my($msg_num) = $. - 1;
-    my($labels, $full_header, $header);
+    my($labels, $pruned, $full_header, $header);
     my($from_line, $from_addr);
     my($time);
 
@@ -79,7 +79,11 @@ while (<>) {
     }
     $labels = $1;
 
-    s/(?:((?:.+\n)+)\n+)?\*\*\* EOOH \*\*\*\n+// || goto malformatted;
+    # Strip the integer indicating whether the header is pruned
+    $labels =~ s/^(\d+)[,\s]*//; 
+    $pruned = $1;
+
+    s/(?:((?:.+\n)+)\n*)?\*\*\* EOOH \*\*\*\n+// || goto malformatted;
     $full_header = $1;
 
     if (s/((?:.+\n)+)\n+//) {
@@ -91,7 +95,10 @@ while (<>) {
 	$_ = '';
     }
 
-    if (! $full_header) {
+    # "$pruned eq '0'" is different from "! $pruned".  We want to make
+    # sure that we found a valid label line which explicitly indicated
+    # that the header was not pruned.
+    if ((! $full_header) || ($pruned eq '0')) {
 	$full_header = $header;
     }
 
@@ -101,8 +108,6 @@ while (<>) {
     # Quote "^From "
     s/(^|\n)From /$1>From /g;
 
-    # Strip the integer indicating whether the header is pruned
-    $labels =~ s/^\d+[,\s]*//; 
     # Strip extra commas and whitespace from the end
     $labels =~ s/[,\s]+$//;
     # Now collapse extra commas and whitespace in the remaining label string
