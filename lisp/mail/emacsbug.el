@@ -120,9 +120,11 @@ translators to read other languages for them.\n\n")
 	(insert "configured using `configure "
 		system-configuration-options "'\n"))
     (insert "Important settings:\n")
-    (insert (format "  value of $LC_ALL: %s\n" (getenv "LC_ALL")))
-    (insert (format "  value of $LC_CTYPE: %s\n" (getenv "LC_CTYPE")))
-    (insert (format "  value of $LANG: %s\n" (getenv "LANG")))
+    (mapcar
+     '(lambda (var)
+	(insert (format "  value of $%s: %s\n" var (getenv var))))
+     '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
+       "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default-enable-multibyte-characters: %s\n"
 		    default-enable-multibyte-characters))
