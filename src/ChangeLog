@@ -1,3 +1,45 @@
+2003-01-06  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (CATEGORY_MASK_RAW_TEXT): New macro.
+	(detect_coding_utf_8, detect_coding_utf_16)
+	(detect_coding_emacs_mule, detect_coding_iso_2022)
+	(detect_coding_sjis, detect_coding_big5)
+	(detect_coding_ccl, detect_coding_charset): Change argument MASK
+	to DETECT_INFO.  Update DETECT_INFO and return 1 if the byte
+	sequence is valid in this coding system.  Callers changed.
+	(MAX_ANNOTATION_LENGTH): New macro.
+	(ADD_ANNOTATION_DATA): New macro.
+	(ADD_COMPOSITION_DATA): Argument changed.  Callers changed.  Call
+	ADD_ANNOTATION_DATA.  The format of annotation data changed.
+	(ADD_CHARSET_DATA): New macro.
+	(emacs_mule_char): New argument ID.  Callers changed.
+	(decode_coding_emacs_mule, decode_coding_iso_2022)
+	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
+	Produce charset annotation data in coding->charbuf.
+	(encode_coding_emacs_mule, encode_coding_iso_2022): Pay attention
+	to charset annotation data in coding->charbuf.
+	(setup_coding_system): Add CODING_ANNOTATE_CHARSET_MASK
+	coding->common_flags if the coding system is iso-2022 based and
+	uses designation.
+	(produce_composition): Adjusted for the new annotation data
+	format.
+	(produce_charset): New function.
+	(produce_annotation): Handle charset annotation.
+	(handle_composition_annotation, handle_charset_annotation): New
+	functions.
+	(consume_chars): Handle charset annotation.  Utilize the above two
+	functions.
+	(encode_coding_object): If SRC_OBJECT and DST_OBJECT are the same
+	buffer, get the deleted text as a string and set
+	coding->src_object to that string.
+	(detect_coding, detect_coding_system): Use the new struct
+	coding_detection_info.
+
+	* coding.h (struct coding_detection_info): New structure.
+	(struct coding_system): Prototype of the member `detector'
+	adjusted.
+	(CODING_ANNOTATE_CHARSET_MASK): New macro.
+
 2003-01-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* insdel.c (insert_from_gap): Fix argument to offset_intervals.
