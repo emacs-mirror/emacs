@@ -1,3 +1,8 @@
+2004-02-04  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fset_char_table_range): Handle charsets ascii,
+	eight-bit-control, and eight-bit-graphic correctly.
+
 2004-02-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32select.c (Fw32_set_clipboard_data): Make coding iso2022 safe.
