@@ -1,3 +1,8 @@
+2000-07-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (HAVE_XPM): Undo previous change.  Check for
+	preprocessor define XpmReturnAllocPixels.
+
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (HAVE_XPM): Check for XpmReturnAllocPixels

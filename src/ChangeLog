@@ -1,5 +1,15 @@
 2000-07-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_window_id): If changes are all below what is
+	displayed in the window, and point is in the window, we still
+	might have to find point on the display.
+
+	* xterm.c (x_fill_stretch_glyph_string): Consume runs of stretch
+	glyphs instead of a single one.
+	(BUILD_STRETCH_GLYPH_STRING): Call x_fill_stretch_glyph_string
+	with new argument list.
+	(x_set_glyph_string_gc): Make sure the face's GC is valid.
+
 	* keymap.c (get_keymap_1): Add comment that this function can GC.
 	(where_is_internal_2, where_is_internal_1): Add GCPROs, add
 	comment that functions can GC.

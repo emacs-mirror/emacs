@@ -1,3 +1,10 @@
+2000-07-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (yylex): Accept string literals with newlines in them.
+	(process_pp_line): Handle case of string literal with newline
+	in it in replacement text, which counts as continuing the
+	replacement text in GNU C.
+
 2000-07-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (token_string): Add missing tokens.
