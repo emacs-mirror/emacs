@@ -1,3 +1,24 @@
+2005-02-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnheader.el (nnheader-find-file-noselect): Added doc string.
+
+	* nnfolder.el (nnfolder-read-folder): Use RAWFILE for
+	`nnheader-find-file-noselect' to avoid
+	`large-file-warning-threshold'.
+
+	* gnus-sum.el (gnus-summary-caesar-message): Apply
+	`gnus-treat-article' after rotation.
+
+	* gnus-group.el (gnus-group-clear-data): Mention process/prefix in
+	doc string.
+
+2005-02-22  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* smime.el (smime-sign-buffer): Signal an error if
+	`smime-sign-region' fails.
+	(smime-encrypt-buffer): Signal an error if `smime-encrypt-region'
+	fails.
+
 2005-02-21  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-parse-news-url, gnus-button-handle-news):
@@ -12,8 +33,8 @@
 
 	* mml.el (mime-to-mml): Ditto.
 
-	* rfc2047.el (rfc2047-encode-parameter): Use ietf-drums-tspecials.
-	(rfc2047-quote-decoded-words-containing-tspecials): New variable.
+	* rfc2047.el (rfc2047-quote-decoded-words-containing-tspecials):
+	New variable.
 	(rfc2047-decode-region): Quote decoded words containing special
 	characters when rfc2047-quote-decoded-words-containing-tspecials
 	is non-nil.
