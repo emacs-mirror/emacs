@@ -105,6 +105,15 @@ value and might not know how to override it.")
   "*Expression evaluating to name of `calendar-longitude', calendar-latitude'.
 Default value is just the latitude, longitude pair.")
 
+;;; List of names of the seasons, dependent on your hemisphere.
+(defconst n-hemi-seasons
+  '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
+  "List of season changes for the northern hemisphere.")
+
+(defconst s-hemi-seasons
+  '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
+  "List of season changes for the southern hemisphere.")
+
 (defun solar-setup ()
   "Prompt user for latitude, longitude, and time zone."
   (beep)
@@ -495,18 +504,10 @@ Requires floating point."
 	   (date (list (extract-calendar-month date)
 		       (truncate day)
 		       (extract-calendar-year date))))
-      (list
-       (list date
-             (format "%s %s"
-		     (cond ((= k 0)
-			    (if s-hemi "Autumnal Equinox" "Vernal Equinox"))
-			   ((= k 1)
-			    (if s-hemi "Winter Solstice" "Summer Solstice"))
-			   ((= k 2)
-			    (if s-hemi "Vernal Equinox" "Autumnal Equinox"))
-			   ((= k 3)
-			    (if s-hemi "Summer Solstice" "Winter Solstice")))
-		     (solar-time-string time date)))))))
+      (list (list date
+		  (format "%s %s"
+			  (nth k (if s-hemi s-hemi-seasons n-hemi-seasons))
+			  (solar-time-string time date)))))))
 
 (provide 'solar)
 
