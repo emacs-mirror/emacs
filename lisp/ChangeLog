@@ -1,3 +1,8 @@
+2003-11-01  Oliver Scholz  <epameinondas@gmx.de>
+
+	* emacs-lisp/rx.el (rx-or): Fix the case of 
+	"(rx (and ?a (or ?b ?c) ?d))".
+
 2003-11-01  Christoph Wedler  <wedler@users.sourceforge.net>  (tiny change)
 
 	* textmodes/texinfmt.el (texinfo-pre-format-hook): New variable.
