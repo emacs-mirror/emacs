@@ -34,7 +34,6 @@ however, we have renamed all of those.)
 
 @table @code
 @item activate-mark-hook
-@item after-change-function
 @item after-change-functions
 @item after-init-hook
 @item after-insert-file-functions
@@ -43,7 +42,6 @@ however, we have renamed all of those.)
 @item after-save-hook
 @item auto-fill-function
 @item auto-save-hook
-@item before-change-function
 @item before-change-functions
 @item before-init-hook
 @item before-make-frame-hook
@@ -72,8 +70,6 @@ however, we have renamed all of those.)
 @item first-change-hook
 @item fortran-comment-hook
 @item fortran-mode-hook
-@item ftp-setup-write-file-hooks
-@item ftp-write-file-hook
 @item indent-mim-hook
 @item initial-calendar-window-hook
 @item kill-buffer-hook
@@ -87,7 +83,6 @@ however, we have renamed all of those.)
 @item lisp-mode-hook
 @item list-diary-entries-hook
 @item local-write-file-hooks
-@item m2-mode-hook
 @item mail-mode-hook
 @item mail-setup-hook
 @item mark-diary-entries-hook
@@ -95,6 +90,7 @@ however, we have renamed all of those.)
 @item menu-bar-update-hook
 @item minibuffer-setup-hook
 @item minibuffer-exit-hook
+@item mouse-position-function
 @item news-mode-hook
 @item news-reply-mode-hook
 @item news-setup-hook
