@@ -746,6 +746,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   int stack_idx = 0;
   /* For the moment, we only support depth 256 of stack.  */ 
   struct ccl_prog_stack ccl_prog_stack_struct[256];
+  /* Instruction counter of the current CCL code. */
+  int this_ic;
 
   if (ic >= ccl->eof_ic)
     ic = CCL_HEADER_MAIN;
@@ -778,6 +780,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  break;
 	}
 
+      this_ic = ic;
       code = XINT (ccl_prog[ic]); ic++;
       field1 = code >> 8;
       field2 = (code & 0xFF) >> 5;
@@ -1552,7 +1555,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	{
 	case CCL_STAT_INVALID_CMD:
 	  sprintf(msg, "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
-		  code & 0x1F, code, ic);
+		  code & 0x1F, code, this_ic);
 #ifdef CCL_DEBUG
 	  {
 	    int i = ccl_backtrace_idx - 1;
