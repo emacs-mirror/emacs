@@ -1,3 +1,9 @@
+2000-11-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.c (directory_files_internal) [EAGAIN || EINTR]: Retry
+	reading the directory if readdir returns null and errno is EAGAIN
+	or EINTR.
+
 2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xdisp.c (try_scrolling): Set scroll_max to max of scroll_* args
