@@ -215,7 +215,7 @@ message is printed.  @xref{Interlocking,,Simultaneous Editing}.
 
 @cindex creating files
   What if you want to create a new file?  Just visit it.  Emacs prints
-@samp{(New File)} in the echo area, but in other respects behaves as if
+@samp{(New file)} in the echo area, but in other respects behaves as if
 you had visited an existing empty file.  If you make any changes and
 save them, the file is created.
 
@@ -774,9 +774,9 @@ it will copy the file you edited to the other files in its group.  You
 can also do the copying without exiting Emacs, by typing @kbd{M-x
 shadow-copy-files}.
 
-To set up a file group, use @kbd{M-x shadow-define-literal-group} or
-@kbd{M-x shadow-define-regexp-group}.  See their documentation strings
-for further information.
+To set up a shadow file group, use @kbd{M-x
+shadow-define-literal-group} or @kbd{M-x shadow-define-regexp-group}.
+See their documentation strings for further information.
 
 Before copying a file to its shadows, Emacs asks for confirmation.
 You can answer ``no'' to bypass copying of this file, this time.  If
@@ -1481,15 +1481,16 @@ Register the visited file for version control.
 to use for it.  If the file's directory already contains files
 registered in a version control system, Emacs uses that system.  If
 there is more than one system in use for a directory, Emacs uses the one
-that appears first in @var{vc-handled-backends} (@pxref{Customizing VC}).
+that appears first in @code{vc-handled-backends} (@pxref{Customizing VC}).
 On the other hand, if there are no files already registered,
-Emacs uses the first system from @var{vc-handled-backends} that could
+Emacs uses the first system from @code{vc-handled-backends} that could
 register the file---for example, you cannot register a file under CVS if
 its directory is not already part of a CVS tree.
 
-  With the default value of @var{vc-handled-backends}, this means that
-Emacs uses RCS if there are any files under RCS control, or CVS if
-there are any files under CVS, or RCS as the ultimate default.
+  With the default value of @code{vc-handled-backends}, this means
+that Emacs uses RCS if there are any files under RCS control, CVS if
+there are any files under CVS, SCCS if any files are under SCCS, or
+RCS as the ultimate default.
 
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
 read-only.  Type @kbd{C-x C-q} if you wish to start editing it.  After
@@ -1687,7 +1688,7 @@ change.
 @findex vc-dired-mark-locked
   You can toggle between terse display (only locked files, or files not
 up-to-date) and full display at any time by typing @kbd{v t}
-@code{vc-dired-toggle-terse-mode}.  There is also a special command
+(@code{vc-dired-toggle-terse-mode}).  There is also a special command
 @kbd{* l} (@code{vc-dired-mark-locked}), which marks all files currently
 locked (or, with CVS, all files not up-to-date).  Thus, typing @kbd{* l
 t k} is another way to delete from the buffer all files except those
@@ -1969,7 +1970,7 @@ mechanism works with any combination of version control systems
 
 To make it work with other back ends, you must make sure that the
 ``more local'' back end comes before the ``more remote'' back end in
-the setting of @var{vc-handled-backends} (@pxref{Customizing VC}).  By
+the setting of @code{vc-handled-backends} (@pxref{Customizing VC}).  By
 default, this variable is set up so that you can use remote CVS and
 local RCS as described here.
 
@@ -2403,15 +2404,15 @@ headers.
 @subsection Customizing VC
 
 @vindex vc-handled-backends
-The variable @var{vc-handled-backends} determines which version
+The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
 SCCS)}, so it contains all three version systems that are currently
 supported.  If you want VC to ignore one or more of these systems,
 exclude its name from the list.
 
 The order of systems in the list is significant: when you visit a file
-is registered in more than one system (@pxref{Local Version Control}),
-VC uses the system that comes first in @var{vc-handled-backends} by
+registered in more than one system (@pxref{Local Version Control}),
+VC uses the system that comes first in @code{vc-handled-backends} by
 default.  The order is also significant when you register a file for
 the first time, @pxref{Registering} for details.
 
@@ -2513,8 +2514,8 @@ Then VC always checks the master file to determine the file's status.
 
   VC determines the version control state of files under SCCS much as
 with RCS.  It does not consider SCCS version headers, though.  Thus,
-the variable @var{vc-mistrust-permissions} affects SCCS use, but
-@var{vc-consult-headers} does not.
+the variable @code{vc-mistrust-permissions} affects SCCS use, but
+@code{vc-consult-headers} does not.
 
 @node CVS Options
 @subsubsection Options specific for CVS
@@ -2550,7 +2551,7 @@ using the watch feature.
 @cindex remote repositories (CVS)
   When a file's repository is on a remote machine, VC tries to keep
 network interactions to a minimum.  This is controlled by the variable
-@var{vc-cvs-stay-local}.  If it is @code{t} (the default), then VC uses
+@code{vc-cvs-stay-local}.  If it is @code{t} (the default), then VC uses
 only the entry in the local CVS subdirectory to determine the file's
 state (and possibly information returned by previous CVS commands).  One
 consequence of this is that when you have modified a file, and somebody
@@ -2559,16 +2560,16 @@ notified of it until you actually try to commit.  (But you can try to
 pick up any recent changes from the repository first, using @kbd{C-x v m
 @key{RET}}, @pxref{Merging}).
 
-  When @var{vc-cvs-stay-local} is @code{t}, VC also makes local
+  When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
 completely local (@pxref{Version Backups}).
 
-  On the other hand, if you set @var{vc-cvs-stay-local} to @code{nil},
+  On the other hand, if you set @code{vc-cvs-stay-local} to @code{nil},
 then VC queries the remote repository @emph{before} it decides what to
 do in @code{vc-next-action} (@kbd{C-x v v}), just as it does for local
 repositories.  It also does not make any version backups.
 
-  You can also set @var{vc-cvs-stay-local} to a regular expression
+  You can also set @code{vc-cvs-stay-local} to a regular expression
 that is matched against the repository hostname; VC then stays local
 only for repositories from hosts that match the pattern.
 
@@ -2617,7 +2618,7 @@ C-x C-d /u2/emacs/src/*.c @key{RET}
 
   Normally, @kbd{C-x C-d} prints a brief directory listing containing
 just file names.  A numeric argument (regardless of value) tells it to
-make a verbose listing including sizes, dates, and authors (like
+make a verbose listing including sizes, dates, and owners (like
 @samp{ls -l}).
 
 @vindex list-directory-brief-switches
@@ -2636,11 +2637,11 @@ use in a verbose listing (@code{"-l"} by default).
 @findex diff
 @vindex diff-switches
   The command @kbd{M-x diff} compares two files, displaying the
-differences in an Emacs buffer named @samp{*Diff*}.  It works by running
+differences in an Emacs buffer named @samp{*diff*}.  It works by running
 the @code{diff} program, using options taken from the variable
 @code{diff-switches}, whose value should be a string.
 
-  The buffer @samp{*Diff*} has Compilation mode as its major mode, so
+  The buffer @samp{*diff*} has Compilation mode as its major mode, so
 you can use @kbd{C-x `} to visit successive changed locations in the two
 source files.  You can also move to a particular hunk of changes and
 type @key{RET} or @kbd{C-c C-c}, or click @kbd{Mouse-2} on it, to move
@@ -2782,7 +2783,7 @@ in use.  Note that not all systems support symbolic links.
 compressed files when you visit them, and automatically recompress them
 if you alter them and save them.  To enable this feature, type the
 command @kbd{M-x auto-compression-mode}.  You can enable it permanently
-by customizing the option @var{auto-compression-mode}.
+by customizing the option @code{auto-compression-mode}.
 
   When automatic compression (which implies automatic uncompression as
 well) is enabled, Emacs recognizes compressed files by their file names.
@@ -2865,8 +2866,8 @@ owner, are supported only for some of the archive formats.
   Unlike Tar mode, Archive mode runs the archiving program to unpack
 and repack archives.  Details of the program names and their options
 can be set in the @samp{Archive} Customize group.  However, you don't
-need these programs to the archive table of contents, only to extract
-or manipulate the subfiles in the archive.
+need these programs to look at the archive table of contents, only to
+extract or manipulate the subfiles in the archive.
 
 @node Remote Files
 @section Remote Files
@@ -2934,8 +2935,8 @@ ange-ftp @key{RET}}.
 @vindex file-name-handler-alist
 @cindex disabling remote files
   You can entirely turn off the FTP file name feature by removing the
-entries @var{ange-ftp-completion-hook-function} and
-@var{ange-ftp-hook-function} from the variable
+entries @code{ange-ftp-completion-hook-function} and
+@code{ange-ftp-hook-function} from the variable
 @code{file-name-handler-alist}.  You can turn off the feature in
 individual cases by quoting the file name with @samp{/:} (@pxref{Quoted
 File Names}).
@@ -2959,7 +2960,7 @@ refers to a file whose name is @file{~hack} in directory @file{/tmp}.
 
   Likewise, quoting with @samp{/:} is one way to enter in the minibuffer
 a file name that contains @samp{$}.  However, the @samp{/:} must be at
-the beginning of the buffer in order to quote @samp{$}.
+the beginning of the minibuffer in order to quote @samp{$}.
 
   You can also quote wildcard characters with @samp{/:}, for visiting.
 For example, @file{/:/tmp/foo*bar} visits the file @file{/tmp/foo*bar}.
@@ -3017,9 +3018,10 @@ Clear the cache; that is, remove all file names from it.
 @findex recentf-save-list
 @findex recentf-edit-list
   If you enable Recentf mode, with @kbd{M-x recentf-mode}, the
-@samp{Files} menu includes a submenu containing a list of recently
+@samp{File} menu includes a submenu containing a list of recently
 opened files.  @kbd{M-x recentf-save-list} saves the current
-recent-file-list to a file, and @kbd{M-x recentf-edit-list} edits it.
+@code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
+edits it.
 
 @findex auto-image-file-mode
 @findex mode, auto-image-file
