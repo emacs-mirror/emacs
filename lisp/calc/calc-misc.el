@@ -160,21 +160,25 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
   (select-window (get-largest-window))
   (info "Calc"))
 
+(defun calc-info-goto-node (node)
+  "Go to a node in the Calculator info documentation."
+  (interactive)
+  (select-window (get-largest-window))
+  (Info-goto-node (concat "(Calc)" node)))
+
 (defun calc-tutorial ()
   "Run the Emacs Info system on the Calculator Tutorial."
   (interactive)
   (if (get-buffer-window "*Calculator*")
       (calc-quit))
-  (calc-info)
-  (Info-goto-node "Interactive Tutorial")
+  (calc-info-goto-node "Interactive Tutorial")
   (calc-other-window)
   (message "Welcome to the Calc Tutorial!"))
 
 (defun calc-info-summary ()
   "Run the Emacs Info system on the Calculator Summary."
   (interactive)
-  (calc-info)
-  (Info-goto-node "Summary"))
+  (calc-info-goto-node "Summary"))
 
 (defun calc-help ()
   (interactive)
