@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-1999, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1991,92,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
    This file is part of the GNU Emacs.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -77,14 +77,13 @@ extern char *tzname[];
   static const mbstate_t mbstate_zero;
 #endif
 
-#if HAVE_LIMITS_H
+#ifdef HAVE_LIMITS_H
 # include <limits.h>
 #endif
 
-#if STDC_HEADERS
+#ifdef STDC_HEADERS
 # include <stddef.h>
 # include <stdlib.h>
-# include <string.h>
 #else
 # ifndef HAVE_MEMCPY
 #  define memcpy(d, s, n) bcopy ((s), (d), (n))
