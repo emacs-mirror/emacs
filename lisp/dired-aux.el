@@ -768,22 +768,16 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 		    (dired-goto-next-nontrivial-file))
 		;; not found
 		(throw 'not-found "Subdir not found")))
-	    ;; found and point is at The Right Place:
-	    (let (buffer-read-only (opoint (point)))
+	    (let (buffer-read-only opoint)
 	      (beginning-of-line)
+	      (setq opoint (point))
 	      (dired-add-entry-do-indentation marker-char)
-	      ;; don't expand `.' !
+	      ;; don't expand `.'.  Show just the file name within directory.
 	      (let ((default-directory directory))
 		(insert-directory filename
 				  (concat dired-actual-switches "d")))
 	      (dired-insert-set-properties opoint (point))
 	      (forward-line -1)
-	      ;; We want to have the non-directory part, only:
-	      (let* ((beg (dired-move-to-filename t)) ; error for strange output
-		     (end (dired-move-to-end-of-filename)))
-		(setq filename (buffer-substring beg end))
-		(delete-region beg end)
-		(insert (file-name-nondirectory filename)))
 	      (if dired-after-readin-hook;; the subdir-alist is not affected...
 		  (save-excursion;; ...so we can run it right now:
 		    (save-restriction
