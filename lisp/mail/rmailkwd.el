@@ -70,7 +70,7 @@ Completion is performed over known labels when reading."
   (interactive (list (rmail-read-label "Remove label")))
   (rmail-set-label string nil))
 
-;;; mbox: not ready
+;;; mbox: ready to define and execute test
 ;;;###autoload
 (defun rmail-read-label (prompt)
   (with-current-buffer rmail-buffer
@@ -88,7 +88,7 @@ Completion is performed over known labels when reading."
 	  rmail-last-label
 	(setq rmail-last-label (rmail-make-label result t))))))
 
-;;; mbox: not ready
+;;; mbox: ready
 (defun rmail-set-label (l state &optional n)
   "Add (STATE is non-nil) or remove (STATE is nil) label L in message N.
 If N is nil then use the current Rmail message.  The current buffer,
