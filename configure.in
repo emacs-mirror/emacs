@@ -516,6 +516,11 @@ case "${canonical}" in
     NON_GNU_CPP="/lib/cpp"
   ;;
 
+  ## ncr machine running svr4.3.
+  i[3456]86-ncr-sysv4.3 )
+    machine=ncr386 opsys=usg5-4-3
+  ;;
+
   ## Unspecified sysv on an ncr machine defaults to svr4.2.
   ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
   i[3456]86-ncr-sysv* )
