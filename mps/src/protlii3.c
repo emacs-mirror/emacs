@@ -1,7 +1,14 @@
 /*  impl.c.protlii3: PROTECTION FOR LINUX (Intel 386)
  *
- *  $HopeName: $
+ *  $HopeName: MMsrc!protlii3.c(trunk.1) $
  *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
+ *
+ * SOURCES
+ *
+ * .source.i486: Intel486 Microprocessor Family Programmer's 
+ * Reference Manual
+ *
+ * .source.linux.kernel: Linux kernel source files.
  *
  */
 
@@ -23,17 +30,17 @@
 #include <stdlib.h>
 #include <signal.h>
 
-SRCID(protlii3, "$HopeName: $");
+SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.1) $");
 
 /* Useful stuff that doesn't appear to be in any header files. */
 
-/*
- * Bits in err field of sigcontext for interrupt 14 (page fault)
- */
+/* Interrupt number 14 is Page Fault. */ 
+#define TRAPNO_PAGE_FAULT 14
 
-#define INT14_ERR_PAGEPROT   0x1
-#define INT14_ERR_WRITE      0x2
-#define INT14_ERR_USERMODE   0x4
+/* Bits in err field of sigcontext for interrupt 14 (page fault) */
+#define PAGE_FAULT_ERR_PAGEPROT   0x1
+#define PAGE_FAULT_ERR_WRITE      0x2
+#define PAGE_FAULT_ERR_USERMODE   0x4
 
 /* The previously-installed signal action, as returned by */
 /* sigaction(3).  See ProtSetup. */
@@ -55,12 +62,15 @@ typedef void (*__real_lii3_sighandler_t) (int, struct sigcontext);
  *  previously installed signal handler (sigNext).
  *
  *  .sigh.args: There is no officially documented way of getting the
- *  sigcontext, but on x86 Linux at least it is passed BY VALUE as a second
- *  argument to the signal handler.  The prototype doesn't include this arg.
+ *  sigcontext, but on x86 Linux at least it is passed BY VALUE as a
+ *  second argument to the signal handler.  The prototype doesn't
+ *  include this arg.
+ *  See .source.linux.kernel (linux/arch/i386/kernel/signal.c).
  *
- *  .sigh.context: We only know how to handler interrupt 14, where context.err
- *  gives the page fault error code and context.cr2 gives the fault address.
- *  @@ The details of this should be checked somewhere (kernel sources?).
+ *  .sigh.context: We only know how to handle interrupt 14, where
+ *  context.err gives the page fault error code and context.cr2 gives
+ *  the fault address.  See .source.i486 (14.9.14) and
+ *  .source.linux.kernel (linux/arch/i386/mm/fault.c).
  *
  *  .sigh.addr: We assume that the OS decodes the address to something
  *  sensible
@@ -70,14 +80,14 @@ static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
 {
   AVER(sig == SIGSEGV);
 
-  if(context.trapno == 14) {  /* .sigh.context */
+  if(context.trapno == TRAPNO_PAGE_FAULT) {  /* .sigh.context */
     AccessSet mode;
     Addr base, limit;
     MutatorFaultContextStruct mfContext;
 
     mfContext.scp = &context;
 
-    mode = ((context.err & INT14_ERR_WRITE) != 0)  /* .sigh.context */
+    mode = ((context.err & PAGE_FAULT_ERR_WRITE) != 0)  /* .sigh.context */
              ? (AccessREAD | AccessWRITE)
              : AccessREAD;
 
@@ -95,14 +105,17 @@ static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
   /* The exception was not handled by any known protection structure, */
   /* so throw it to the previously installed handler. */
 
-  /* @@ This is really weak.
-   * Need to implement rest of the contract of sigaction
-   * We might want to set SA_RESETHAND in the flags and explicitly reinstall
-   * the handler from withint itself so the SIG_DFL/SIG_IGN case can work
-   * properly by just returning. */
+  /* @@@@ This is really weak. */
+  /* Need to implement rest of the contract of sigaction */
+  /* We might also want to set SA_RESETHAND in the flags and explicitly */
+  /* reinstall the handler from withint itself so the SIG_DFL/SIG_IGN */
+  /* case can work properly by just returning. */
   switch ((int)sigNext.sa_handler) {
   case (int)SIG_DFL:
   case (int)SIG_IGN:
+    abort();
+    NOTREACHED;
+    break;
   default:
     (*(__real_lii3_sighandler_t)sigNext.sa_handler)(sig, context);
     break;
