@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -72,9 +72,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
 #ifndef VMS
-#ifndef MSDOS
+#ifndef DOS_NT
 #include <sgtty.h>
-#endif
+#endif /* not DOS_NT */
 #else /* VMS */
 #include <descrip.h>
 static struct iosb
@@ -356,11 +356,11 @@ struct emacs_tty {
 #ifdef VMS
   struct sensemode main;
 #else
-#ifdef MSDOS
+#ifdef DOS_NT
   int main;
-#else
+#else  /* not DOS_NT */
   struct sgttyb main;
-#endif
+#endif /* not DOS_NT */
 #endif
 #endif
 #endif
@@ -411,11 +411,11 @@ struct emacs_tty {
 
 #else
 
-#ifdef MSDOS
+#ifdef DOS_NT
 #define EMACS_TTY_TABS_OK(p) 0
-#else /* not MSDOS */
+#else /* not DOS_NT */
 #define EMACS_TTY_TABS_OK(p) (((p)->main.sg_flags & XTABS) != XTABS)
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 
 #endif /* not def VMS */
 #endif /* not def HAVE_TERMIO */
