@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001, 2002
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -71,6 +71,9 @@ some of the `ls' switches are not supported; see the doc string of
 	"/usr/sbin/chown"
       "/etc/chown"))
   "Name of chown command (usually `chown' or `/etc/chown').")
+
+(defvar dired-use-ls-dired (not (not (string-match "gnu" system-configuration)))
+  "Non-nil means Dired should use `ls --dired'.")
 
 (defvar dired-chmod-program "chmod"
   "Name of chmod command (usually `chmod').")
@@ -217,9 +220,10 @@ This is what the `do' commands look for and what the `mark' commands store.")
 (defvar dired-file-version-alist)
 
 (defvar dired-directory nil
-  "The directory name or shell wildcard that was used as argument to `ls'.
+  "The directory name or wildcard spec that this Dired directory lists.
 Local to each dired buffer.  May be a list, in which case the car is the
-directory name and the cdr is the actual files to list.")
+directory name and the cdr is the list of files to mention.
+The directory name must be absolute, but need not be fully expanded.")
 
 (defvar dired-actual-switches nil
   "The value of `dired-listing-switches' used to make this buffer's text.")
@@ -420,9 +424,6 @@ Optional third argument FILTER, if non-nil, is a function to select
 	    (push file result)))
       result)))
 
-;; Function dired-ls is redefinable for VMS, ange-ftp, Prospero or
-;; other special applications.
-
 ;; The dired command
 
 (defun dired-read-dir-and-switches (str)
@@ -511,14 +512,17 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; like find-file does.
   ;; Optional argument MODE is passed to dired-find-buffer-nocreate,
   ;; see there.
-  (let* ((dirname (if (consp dir-or-list) (car dir-or-list) dir-or-list))
-	 ;; The following line used to use dir-or-list.
-	 ;; That never found an existing buffer, in the case
-	 ;; where it is a list.
-	 (buffer (dired-find-buffer-nocreate dirname mode))
+  (let* (dirname
+	 buffer
 	 ;; note that buffer already is in dired-mode, if found
-	 (new-buffer-p (not buffer))
+	 new-buffer-p
 	 (old-buf (current-buffer)))
+    (if (consp dir-or-list)
+	(setq dirname (car dir-or-list))
+      (setq dirname dir-or-list))
+    ;; Look for an existing buffer.
+    (setq buffer (dired-find-buffer-nocreate dirname mode)
+	  new-buffer-p (null buffer))
     (or buffer
 	(let ((default-major-mode 'fundamental-mode))
 	  ;; We don't want default-major-mode to run hooks and set auto-fill
@@ -529,8 +533,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (if (not new-buffer-p)     ; existing buffer ...
 	(cond (switches        ; ... but new switches     
 	       ;; file list may have changed
-	       (if (consp dir-or-list) 
-		   (setq dired-directory dir-or-list))
+	       (setq dired-directory dir-or-list)
 	       ;; this calls dired-revert
 	       (dired-sort-other switches))  
 	      ;; If directory has changed on disk, offer to revert.
@@ -553,21 +556,16 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	    (file-name-directory dirname))
       (or switches (setq switches dired-listing-switches))
       (if mode (funcall mode)
-        (dired-mode dirname switches))
+        (dired-mode dir-or-list switches))
       ;; default-directory and dired-actual-switches are set now
       ;; (buffer-local), so we can call dired-readin:
       (let ((failed t))
 	(unwind-protect
-	    (progn (dired-readin dir-or-list buffer)
+	    (progn (dired-readin)
 		   (setq failed nil))
 	  ;; dired-readin can fail if parent directories are inaccessible.
 	  ;; Don't leave an empty buffer around in that case.
 	  (if failed (kill-buffer buffer))))
-      ;; No need to narrow since the whole buffer contains just
-      ;; dired-readin's output, nothing else.  The hook can
-      ;; successfully use dired functions (e.g. dired-get-filename)
-      ;; as the subdir-alist has been built in dired-readin.
-      (run-hooks 'dired-after-readin-hook)
       (goto-char (point-min))
       (dired-initial-position dirname))
     (set-buffer old-buf)
@@ -583,6 +581,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; This differs from dired-buffers-for-dir in that it does not consider
   ;; subdirs of default-directory and searches for the first match only.
   ;; Also, the major mode must be MODE.
+  (setq dirname (expand-file-name dirname))
   (let (found (blist dired-buffers))    ; was (buffer-list)
     (or mode (setq mode 'dired-mode))
     (while blist
@@ -591,9 +590,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	(save-excursion
 	  (set-buffer (cdr (car blist)))
 	  (if (and (eq major-mode mode)
-		   (if (consp dired-directory)
-		       (equal (car dired-directory) dirname)
-		     (equal dired-directory dirname)))
+		   (equal dirname
+			  (expand-file-name
+			   (if (consp dired-directory)
+			       (car dired-directory)
+			     dired-directory))))
 	      (setq found (cdr (car blist))
 		    blist nil)
 	    (setq blist (cdr blist))))))
@@ -605,40 +606,30 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 ;; dired-readin differs from dired-insert-subdir in that it accepts
 ;; wildcards, erases the buffer, and builds the subdir-alist anew
 ;; (including making it buffer-local and clearing it first).
-(defun dired-readin (dir-or-list buffer)
+(defun dired-readin ()
   ;; default-directory and dired-actual-switches must be buffer-local
   ;; and initialized by now.
-  ;; Thus we can test (equal default-directory dirname) instead of
-  ;; (file-directory-p dirname) and save a filesystem transaction.
-  ;; Also, we can run this hook which may want to modify the switches
-  ;; based on default-directory, e.g. with ange-ftp to a SysV host
-  ;; where ls won't understand -Al switches.
-  (let (dirname
-	(indent-tabs-mode nil))
-    (if (consp dir-or-list)
-	(setq dirname (car dir-or-list))
-      (setq dirname dir-or-list))
+  (let (dirname)
+    (if (consp dired-directory)
+	(setq dirname (car dired-directory))
+      (setq dirname dired-directory))
     (setq dirname (expand-file-name dirname))
-    (if (consp dir-or-list)
-	(setq dir-or-list (cons dirname (cdr dir-or-list))))
-    (run-hooks 'dired-before-readin-hook)
     (save-excursion
+      ;; This hook which may want to modify dired-actual-switches
+      ;; based on dired-directory, e.g. with ange-ftp to a SysV host
+      ;; where ls won't understand -Al switches.
+      (run-hooks 'dired-before-readin-hook)
       (message "Reading directory %s..." dirname)
-      (set-buffer buffer)
-      (let (buffer-read-only (failed t))
+      (if (consp buffer-undo-list)
+	  (setq buffer-undo-list nil))
+      (let (buffer-read-only
+	    ;; Don't make undo entries for readin.
+	    (buffer-undo-list t))
 	(widen)
 	(erase-buffer)
-	(dired-readin-insert dir-or-list)
-	(indent-rigidly (point-min) (point-max) 2)
-	;; We need this to make the root dir have a header line as all
-	;; other subdirs have:
-	(goto-char (point-min))
-        (if (not (looking-at "^  /.*:$"))
-            (dired-insert-headerline default-directory))
-	;; can't run dired-after-readin-hook here, it may depend on the subdir
-	;; alist to be OK.
-	)
+	(dired-readin-insert))
       (message "Reading directory %s...done" dirname)
+      (goto-char (point-min))
       ;; Must first make alist buffer local and set it to nil because
       ;; dired-build-subdir-alist will call dired-clear-alist first
       (set (make-local-variable 'dired-subdir-alist) nil)
@@ -646,56 +637,56 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
 	    (set-visited-file-modtime (nth 5 attributes))))
-      (if (consp buffer-undo-list)
-	  (setq buffer-undo-list nil))
-      (set-buffer-modified-p nil))))
+      (set-buffer-modified-p nil)
+      ;; No need to narrow since the whole buffer contains just
+      ;; dired-readin's output, nothing else.  The hook can
+      ;; successfully use dired functions (e.g. dired-get-filename)
+      ;; as the subdir-alist has been built in dired-readin.
+      (run-hooks 'dired-after-readin-hook))))
 
 ;; Subroutines of dired-readin
 
-(defun dired-readin-insert (dir-or-list)
-  ;; Just insert listing for the passed-in directory or
-  ;; directory-and-file list, assuming a clean buffer.
-  (let (dirname)
-    (if (consp dir-or-list)
-	(setq dirname (car dir-or-list))
-      (setq dirname dir-or-list))
-    ;; Expand before comparing in case one or both have been abbreviated.
-    (if (and (equal (expand-file-name default-directory)
-		    (expand-file-name dirname))
-	     (not (consp dir-or-list)))
+(defun dired-readin-insert ()
+  ;; Insert listing for the specified dir (and maybe file list)
+  ;; already in dired-directory, assuming a clean buffer.
+  (let (dir file-list)
+    (if (consp dired-directory)
+	(setq dir (car dired-directory)
+	      file-list (cdr dired-directory))
+      (setq dir dired-directory
+	    file-list nil))
+    (if (and (equal "" (file-name-nondirectory dir))
+	     (not file-list))
 	;; If we are reading a whole single directory...
-	(dired-insert-directory dir-or-list dired-actual-switches nil t)
+	(dired-insert-directory dir dired-actual-switches nil nil t)
       (if (not (file-readable-p
-		(directory-file-name (file-name-directory dirname))))
-	  (error "Directory %s inaccessible or nonexistent" dirname)
-	;; Else assume it contains wildcards,
-	;; unless it is an explicit list of files.
-	(dired-insert-directory dir-or-list dired-actual-switches
-				(not (listp dir-or-list)))
-	(or (consp dir-or-list)
-	    (save-excursion	;; insert wildcard instead of total line:
-	      (goto-char (point-min))
-	      (insert "wildcard " (file-name-nondirectory dirname) "\n")))))))
+		(directory-file-name (file-name-directory dir))))
+	  (error "Directory %s inaccessible or nonexistent" dir)
+	;; Else treat it as a wildcard spec
+	;; unless we have an explicit list of files.
+	(dired-insert-directory dir dired-actual-switches
+				file-list (not file-list) t)))))
 
-(defun dired-insert-directory (dir-or-list switches &optional wildcard full-p)
-  ;; Do the right thing whether dir-or-list is atomic or not.  If it is,
-  ;; inset all files listed in the cdr (the car is the passed-in directory
-  ;; list).
+(defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
+  "Insert a directory listing of DIR, Dired style.
+Use SWITCHES to make the listings.
+If FILE-LIST is non-nil, list only those files.
+Otherwise, if WILDCARD is non-nil, expand wildcards;
+ in that case, DIR should be a file name that uses wildcards.
+In other cases, DIR should be a directory name or a directory filename.
+If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
+    (if dired-use-ls-dired
+	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,
     ;; with the new value of dired-move-to-filename-regexp.
-    (if (consp dir-or-list)
-	;; In this case, use the file names in the cdr
-	;; exactly as originally given to dired-noselect.
-	(mapcar
-	 (function (lambda (x) (insert-directory x switches wildcard full-p)))
-	 (cdr dir-or-list))
-      ;; Expand the file name here because it may have been abbreviated
-      ;; in dired-noselect.
-      (insert-directory (expand-file-name dir-or-list) switches wildcard full-p))
+    (if file-list
+	(dolist (f file-list)
+	  (insert-directory f switches nil nil))
+      (insert-directory dir switches wildcard (not wildcard)))
     ;; Quote certain characters, unless ls quoted them for us.
     (if (not (string-match "b" dired-actual-switches))
 	(save-excursion
@@ -707,8 +698,25 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	  (while (search-forward "\^m" end t)
 	    (replace-match "\\015" nil t))
 	  (set-marker end nil)))
-    (dired-insert-set-properties opoint (point)))
-  (setq dired-directory dir-or-list))
+    (dired-insert-set-properties opoint (point))
+    ;; If we used --dired and it worked, the lines are already indented.
+    ;; Otherwise, indent them.
+    (unless (save-excursion
+	      (forward-line -1)
+	      (looking-at "  "))
+      (let ((indent-tabs-mode nil))
+	(indent-rigidly opoint (point) 2)))
+    ;; Insert text at the beginning to standardize things.
+    (save-excursion
+      (goto-char opoint)
+      (if (and (or hdr wildcard) (not (looking-at "^  /.*:$")))
+	  ;; Note that dired-build-subdir-alist will replace the name
+	  ;; by its expansion, so it does not matter whether what we insert
+	  ;; here is fully expanded, but it should be absolute.
+	  (insert "  " (directory-file-name (file-name-directory dir)) ":\n"))
+      (when wildcard
+	;; Insert "wildcard" line where "total" line would be for a full dir.
+	(insert "  wildcard " (file-name-nondirectory dir) "\n")))))
 
 ;; Make the file names highlight when the mouse is on them.
 (defun dired-insert-set-properties (beg end)
@@ -726,13 +734,6 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 		 help-echo "mouse-2: visit this file in other window")))
 	(error nil))
       (forward-line 1))))
-
-(defun dired-insert-headerline (dir);; also used by dired-insert-subdir
-  ;; Insert DIR's headerline with no trailing slash, exactly like ls
-  ;; would, and put cursor where dired-build-subdir-alist puts subdir
-  ;; boundaries.
-  (save-excursion (insert "  " (directory-file-name dir) ":\n")))
-
 
 ;; Reverting a dired buffer
 
@@ -755,7 +756,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     ;; treat top level dir extra (it may contain wildcards)
     (dired-uncache
      (if (consp dired-directory) (car dired-directory) dired-directory))
-    (dired-readin dired-directory (current-buffer))
+    (dired-readin)
     (let ((dired-after-readin-hook nil))
       ;; don't run that hook for each subdir...
       (dired-insert-old-subdirs old-subdir-alist))
@@ -1474,6 +1475,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
       (let ((handler (find-file-name-handler file nil)))
 	;; check for safe-magic property so that we won't
 	;; put /: for names that don't really need them.
+	;; For instance, .gz files when auto-compression-mode is on.
 	(if (and handler (not (get handler 'safe-magic)))
 	    (concat "/:" file)
 	  file)))
@@ -1584,10 +1586,14 @@ regardless of the language.")
   ;; This is the UNIX version.
   (or eol (setq eol (progn (end-of-line) (point))))
   (beginning-of-line)
-  (if (re-search-forward dired-move-to-filename-regexp eol t)
-      (goto-char (match-end 0))
-    (if raise-error
-	(error "No file on this line"))))
+  ;; First try assuming `ls --dired' was used.
+  (let ((change (next-single-property-change (point) 'dired-filename
+					     nil eol)))
+    (if change (goto-char change)
+      (if (re-search-forward dired-move-to-filename-regexp eol t)
+	  (goto-char (match-end 0))
+	(if raise-error
+	    (error "No file on this line"))))))
 
 (defun dired-move-to-end-of-filename (&optional no-error)
   ;; Assumes point is at beginning of filename,
@@ -1596,63 +1602,65 @@ regardless of the language.")
   ;; (dired-move-to-filename t).
   ;; On failure, signals an error (with non-nil NO-ERROR just returns nil).
   ;; This is the UNIX version.
-  (let (opoint file-type executable symlink hidden case-fold-search used-F eol)
-    ;; case-fold-search is nil now, so we can test for capital F:
-    (setq used-F (string-match "F" dired-actual-switches)
-	  opoint (point)
-          eol (save-excursion (end-of-line) (point))
-	  hidden (and selective-display
-		      (save-excursion (search-forward "\r" eol t))))
-    (if hidden
-	nil
-      (save-excursion;; Find out what kind of file this is:
-	;; Restrict perm bits to be non-blank,
-	;; otherwise this matches one char to early (looking backward):
-	;; "l---------" (some systems make symlinks that way)
-	;; "----------" (plain file with zero perms)
-	(if (re-search-backward
-	     dired-permission-flags-regexp nil t)
-	    (setq file-type (char-after (match-beginning 1))
-		  symlink (eq file-type ?l)
-		  ;; Only with -F we need to know whether it's an executable
-		  executable (and
-			      used-F
-			      (string-match
-			       "[xst]";; execute bit set anywhere?
-			       (concat
-				(buffer-substring (match-beginning 2)
-						  (match-end 2))
-				(buffer-substring (match-beginning 3)
-						  (match-end 3))
-				(buffer-substring (match-beginning 4)
-						  (match-end 4))))))
-	  (or no-error (error "No file on this line"))))
-      ;; Move point to end of name:
-      (if symlink
-	  (if (search-forward " ->" eol t)
-	      (progn
-		(forward-char -3)
-		(and used-F
-		     dired-ls-F-marks-symlinks
-		     (eq (preceding-char) ?@);; did ls really mark the link?
-		     (forward-char -1))))
-	(goto-char eol);; else not a symbolic link
-	;; ls -lF marks dirs, sockets and executables with exactly one
-	;; trailing character. (Executable bits on symlinks ain't mean
-	;; a thing, even to ls, but we know it's not a symlink.)
-	(and used-F
-	     (or (memq file-type '(?d ?s))
-		 executable)
-	     (forward-char -1))))
-    (or no-error
-	(not (eq opoint (point)))
-	(error (if hidden
-		   (substitute-command-keys
-		    "File line is hidden, type \\[dired-hide-subdir] to unhide")
-		 "No file on this line")))
-    (if (eq opoint (point))
-	nil
-      (point))))
+  (if (get-text-property (point) 'dired-filename)
+      (goto-char (next-single-property-change (point) 'dired-filename))
+    (let (opoint file-type executable symlink hidden case-fold-search used-F eol)
+      ;; case-fold-search is nil now, so we can test for capital F:
+      (setq used-F (string-match "F" dired-actual-switches)
+	    opoint (point)
+	    eol (save-excursion (end-of-line) (point))
+	    hidden (and selective-display
+			(save-excursion (search-forward "\r" eol t))))
+      (if hidden
+	  nil
+	(save-excursion	;; Find out what kind of file this is:
+	  ;; Restrict perm bits to be non-blank,
+	  ;; otherwise this matches one char to early (looking backward):
+	  ;; "l---------" (some systems make symlinks that way)
+	  ;; "----------" (plain file with zero perms)
+	  (if (re-search-backward
+	       dired-permission-flags-regexp nil t)
+	      (setq file-type (char-after (match-beginning 1))
+		    symlink (eq file-type ?l)
+		    ;; Only with -F we need to know whether it's an executable
+		    executable (and
+				used-F
+				(string-match
+				 "[xst]" ;; execute bit set anywhere?
+				 (concat
+				  (buffer-substring (match-beginning 2)
+						    (match-end 2))
+				  (buffer-substring (match-beginning 3)
+						    (match-end 3))
+				  (buffer-substring (match-beginning 4)
+						    (match-end 4))))))
+	    (or no-error (error "No file on this line"))))
+	;; Move point to end of name:
+	(if symlink
+	    (if (search-forward " ->" eol t)
+		(progn
+		  (forward-char -3)
+		  (and used-F
+		       dired-ls-F-marks-symlinks
+		       (eq (preceding-char) ?@)	;; did ls really mark the link?
+		       (forward-char -1))))
+	  (goto-char eol) ;; else not a symbolic link
+	  ;; ls -lF marks dirs, sockets and executables with exactly one
+	  ;; trailing character. (Executable bits on symlinks ain't mean
+	  ;; a thing, even to ls, but we know it's not a symlink.)
+	  (and used-F
+	       (or (memq file-type '(?d ?s))
+		   executable)
+	       (forward-char -1))))
+      (or no-error
+	  (not (eq opoint (point)))
+	  (error (if hidden
+		     (substitute-command-keys
+		      "File line is hidden, type \\[dired-hide-subdir] to unhide")
+		   "No file on this line")))
+      (if (eq opoint (point))
+	  nil
+	(point)))))
 
 
 ;;; COPY NAMES OF MARKED FILES INTO KILL-RING.
@@ -2645,38 +2653,50 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 	    (progn
 	      (select-window window)
 	      (goto-char (point-max))
-	      (recenter -1))
+	      (forward-line -1)
+	      (backward-page 1)
+	      (recenter 0))
 	  (select-window owindow)))))
 
 (defun dired-log (log &rest args)
   ;; Log a message or the contents of a buffer.
   ;; If LOG is a string and there are more args, it is formatted with
   ;; those ARGS.  Usually the LOG string ends with a \n.
-  ;; End each bunch of errors with (dired-log t): this inserts
-  ;; current time and buffer, and a \f (formfeed).
+  ;; End each bunch of errors with (dired-log t): 
+  ;; this inserts the current time and buffer at the start of the page,
+  ;; and \f (formfeed) at the end.
   (let ((obuf (current-buffer)))
-    (unwind-protect			; want to move point
-	(progn
-	  (set-buffer (get-buffer-create dired-log-buffer))
-	  (goto-char (point-max))
-	  (let (buffer-read-only)
-	    (cond ((stringp log)
-		   (insert (if args
-			       (apply (function format) log args)
-			     log)))
-		  ((bufferp log)
-		   (insert-buffer log))
-		  ((eq t log)
-		   (insert "\n\t" (current-time-string)
-			   "\tBuffer `" (buffer-name obuf) "'\n\f\n")))))
-      (set-buffer obuf))))
+    (with-current-buffer (get-buffer-create dired-log-buffer)
+      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+	(cond ((stringp log)
+	       (insert (if args
+			   (apply (function format) log args)
+			 log)))
+	      ((bufferp log)
+	       (insert-buffer log))
+	      ((eq t log)
+	       (backward-page 1)
+	       (unless (bolp)
+		 (insert "\n"))
+	       (insert (current-time-string)
+		       "\tBuffer `" (buffer-name obuf) "'\n")
+	       (goto-char (point-max))
+	       (insert "\f\n")))))))
 
 (defun dired-log-summary (string failures)
-  (message (if failures "%s--type ? for details (%s)"
-	     "%s--type ? for details")
-	   string failures)
+  (if (= (length failures) 1)
+      (message "%s"
+	       (with-current-buffer dired-log-buffer
+		 (goto-char (point-max))
+		 (backward-page 1)
+		 (if (eolp) (forward-line 1))
+		 (buffer-substring (point) (point-max))))
+    (message (if failures "%s--type ? for details (%s)"
+	       "%s--type ? for details")
+	     string failures))
   ;; Log a summary describing a bunch of errors.
-  (dired-log (concat "\n" string))
+  (dired-log (concat "\n" string "\n"))
   (dired-log t))
 
 ;;; Sorting
