@@ -412,15 +412,15 @@ typedef struct
    unfortunately clutters up the declarations a bit, but I think it's
    worth it.  */
 
-#if __STDC__
+#if defined __STDC__ || defined PROTOTYPES
 
 #define _RE_ARGS(args) args
 
-#else /* not __STDC__ */
+#else /* not __STDC__  || PROTOTYPES */
 
 #define _RE_ARGS(args) ()
 
-#endif /* not __STDC__ */
+#endif /* not __STDC__  || PROTOTYPES */
 
 /* Sets the current default syntax to SYNTAX, and return the old syntax.
    You can also simply assign to the `re_syntax_options' variable.  */
