@@ -1,3 +1,10 @@
+2002-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (quail-misc-package-ext-info):
+	Remove duplicate entry for chinese-b5-quick.
+	(batch-miscdic-convert): Don't try to call miscdic-convert on
+	files in the directory just following the arg "-dir".
+
 2002-12-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gdb-ui.el: Fold top-level `setq's and `define-key's into their
