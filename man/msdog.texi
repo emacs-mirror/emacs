@@ -443,6 +443,22 @@ of servers, and @samp{net view @var{server-name}} to see the names of printers
 @samp{Network Neighborhood} icon on your desktop, and look for machines
 which share their printers via the network.
 
+@cindex @samp{net use}, and printing on MS-Windows
+@cindex networked printers (MS-Windows)
+  If the printer doesn't appear in the output of @samp{net view}, or
+if setting @code{printer-name} to the UNC share name doesn't produce a
+hardcopy on that printer, you can use the @samp{net use} command to
+connect a local print port such as @code{"LPT2"} to the networked
+printer.  For example, typing @kbd{net use LPT2:
+\\joes_pc\hp4si}@footnote{
+Note that the @samp{net use} command requires the UNC share name to be
+typed with the Windows-style backslashes, while the value of
+@code{printer-name} can be set with either forward- or backslashes.}
+causes Windows to @dfn{capture} the LPT2 port and redirect the printed
+material to the printer connected to the machine @code{joes_pc}.
+After this command, setting @code{printer-name} to @code{"LPT2"}
+should send the printed material to the networked printer.
+
   Some printers expect DOS codepage encoding of non-ASCII text, even
 though they are connected to a Windows machine which uses a different
 encoding for the same locale.  For example, in the Latin-1 locale, DOS
