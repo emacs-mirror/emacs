@@ -1,3 +1,17 @@
+2000-12-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (SAFE_ONE_MORE_BYTE): New macro.
+	(DECODE_EMACS_MULE_COMPOSITION_CHAR): New macro.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE): New macro.
+	(decode_composition_emacs_mule): New function.
+	(decode_coding_emacs_mule): Decode composition sequence by calling
+	decode_composition_emacs_mule.
+	(ENCODE_COMPOSITION_EMACS_MULE): New macro.
+	(encode_coding_emacs_mule): Changed from macro to function.  If
+	a text contains compostions, encode them correctly.
+	(setup_coding_system): Set coding->commong_flags for emacs-mule so
+	that decoding and encoding are required.
+
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (PT_PER_INCH): New macro.
