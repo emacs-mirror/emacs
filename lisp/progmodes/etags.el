@@ -1743,7 +1743,7 @@ See documentation of variable `tags-file-name'."
 				   ;; will see it.
 				   '(goto-char (match-beginning 0))))
 	tags-loop-operate (list 'perform-replace
-				(list 'quote from) (list 'quote to) nil nil
+				(list 'quote from) (list 'quote to)
 				t t (list 'quote delimited)))
   (tags-loop-continue (or file-list-form t)))
 
