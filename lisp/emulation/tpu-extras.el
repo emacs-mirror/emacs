@@ -21,7 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Revision: $Id: tpu-extras.el,v 3.3 1993/08/01 21:38:06 riepel Exp $
+;;; Revision: $Id: tpu-extras.el,v 1.2 1993/08/04 08:19:13 rms Exp rms $
 
 ;;; Commentary:
 
@@ -105,7 +105,7 @@
 
 ;;;  Revision Information
 
-(defconst tpu-extras-revision "$Revision: 3.3 $"
+(defconst tpu-extras-revision "$Revision: 1.2 $"
   "Revision number of the TPU-edt extras.")
 
 
@@ -133,7 +133,7 @@ the previous line when starting from a line beginning.")
 ;;;  Hooks  --  Set cursor free in picture mode.
 ;;;             Clean up when writing a file from cursor free mode.
 
-(setq edit-picture-hook 'tpu-set-cursor-free)
+(add-hook 'edit-picture-hook 'tpu-set-cursor-free)
 
 (defun tpu-write-file-hook nil
   "Eliminate whitespace at ends of lines, if the cursor is free."
