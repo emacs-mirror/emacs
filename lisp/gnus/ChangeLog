@@ -1,3 +1,8 @@
+2001-06-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* qp.el (quoted-printable-decode-region): If called interactively,
+	use coding-system-for-read.
+
 2001-03-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.el (gnus-interactive): Fix parenthesis errors.
