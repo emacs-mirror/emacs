@@ -2123,7 +2123,7 @@ fast_find_position (window, pos, columnp, rowp)
   if (maybe_next_line)
     {
       row++;
-      i = 0;
+      lastcol = 0;
     }
 
   *rowp = row + top;
