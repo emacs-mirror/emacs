@@ -3404,13 +3404,14 @@ are cleared.
 
 @node Buttons
 @section Buttons
+@cindex buttons
 @cindex buttons in buffers
 @cindex clickable buttons in buffers
 
   The @emph{button} package defines functions for inserting and
 manipulating clickable (with the mouse, or via keyboard commands)
-buttons in Emacs buffers, such as might be used for help hyperlinks,
-etc.  Emacs uses buttons for the hyperlinks in help text and the like.
+buttons in Emacs buffers, such as might be used for help hyper-links,
+etc.  Emacs uses buttons for the hyper-links in help text and the like.
 
 A button is essentially a set of properties attached (via text
 properties or overlays) to a region of text in an emacs buffer, which
@@ -3434,7 +3435,7 @@ entries).
 @menu
 * Button Properties::      Button properties with special meanings.
 * Button Types::           Defining common properties for classes of buttons.
-* Making buttons::         Adding buttons to emacs buffers.
+* Making Buttons::         Adding buttons to emacs buffers.
 * Manipulating Buttons::   Getting and setting properties of buttons.
 * Button Buffer Commands:: Buffer-wide commands and bindings for buttons.
 * Manipulating Button Types:: 
@@ -3454,41 +3455,49 @@ include:
 @table @code
 
 @item action
+@kindex action @r{(button property)}
 The function to call when the user invokes the button, which is passed
 the single argument @var{button}.  By default this is @code{ignore},
 which does nothing.
 
 @item mouse-action
+@kindex mouse-action @r{(button property)}
 This is similar to @code{action}, and when present, will be used
 instead of @code{action} for button invocations resulting from
 mouse-clicks (instead of the user hitting @key{RET}).  If not
 present, mouse-clicks use @code{action} instead.
 
 @item face
+@kindex face @r{(button property)}
 This is an emacs face controlling how buttons of this type are
 displayed; by default this is the @code{button} face.
 
 @item mouse-face
+@kindex mouse-face @r{(button property)}
 This is an additional face which controls appearance during
 mouse-overs (merged with the usual button face); by default this is
 the usual emacs @code{highlight} face.
 
 @item keymap
+@kindex keymap @r{(button property)}
 The button's keymap, defining bindings active within the button
 region.  By default this is the usual button region keymap, stored
 in the variable @code{button-map}, which defines @key{RET} and
 @key{down-mouse-1} to invoke the button.
 
 @item type
+@kindex type @r{(button property)}
 The button-type of the button.  When creating a button, this is
 usually specified using the @code{:type} keyword argument.
 @xref{Button Types}.
 
 @item help-echo
-A string displayed by the emacs tooltip help system; by default,
+@kindex help-index @r{(button property)}
+A string displayed by the emacs tool-tip help system; by default,
 @code{"mouse-2, RET: Push this button"}.
 
 @item button
+@kindex button @r{(button property)}
 All buttons have a non-@code{nil} @code{button} property, which may be useful
 in finding regions of text that comprise buttons (which is what the
 standard button functions do).
@@ -3502,10 +3511,10 @@ button, but these are not generally interesting for typical uses.
 @cindex button types
 
   Every button has a button @emph{type}, which defines default values
-for the button's properties; button types are arranged in a hierarchy,
-with specialized types inheriting from more general types, so that
-it's easy to define special-purpose types of buttons for specific
-tasks.
+for the button's properties.  Button types are arranged in a
+hierarchy, with specialized types inheriting from more general types,
+so that it's easy to define special-purpose types of buttons for
+specific tasks.
 
 @defun define-button-type name &rest properties
 @tindex define-button-type
@@ -3523,11 +3532,12 @@ reflected in its subtypes.
 @end defun
 
 Using @code{define-button-type} to define default properties for
-buttons is not necessary, but it is is encouraged, since doing so
-usually makes the resulting code clearer and more efficient.
+buttons is not necessary---buttons without any specified type use the
+built-in button-type @code{button}---but it is is encouraged, since
+doing so usually makes the resulting code clearer and more efficient.
 
-@node Making buttons
-@subsection Making buttons
+@node Making Buttons
+@subsection Making Buttons
 @cindex making buttons
 
   Buttons are associated with a region of text, using an overlay or
@@ -3624,9 +3634,8 @@ Set @var{button}'s @var{prop} property to @var{val}.
 @tindex button-activate
 Call @var{button}'s @code{action} property (i.e., invoke it).  If
 @var{use-mouse-action} is non-@code{nil}, try to invoke the button's
-@code{mouse-action} property instead of @code{action}, but if the
-button has no @code{mouse-action} property, use @code{action} as
-normal.
+@code{mouse-action} property instead of @code{action}; if the button
+has no @code{mouse-action} property, use @code{action} as normal.
 @end defun
 
 @defun button-label button
@@ -3670,12 +3679,13 @@ parent keymap for its keymap.
 @tindex push-button
 Perform the action specified by a button at location @var{pos}.
 @var{pos} may be either a buffer position or a mouse-event.  If
-@var{use-mouse-action} is non-@code{nil}, try to invoke the button's
-@code{mouse-action} property instead of @code{action}, but if the
-button has no @code{mouse-action} property, use @code{action} as
-normal.  @var{pos} defaults to point, except when `push-button' is
-invoked interactively as the result of a mouse-event, in which case,
-the mouse event is used.  If there's no button at @var{pos}, do
+@var{use-mouse-action} is non-@code{nil}, or @var{pos} is a
+mouse-event (@pxref{Mouse Events}), try to invoke the button's
+@code{mouse-action} property instead of @code{action}; if the button
+has no @code{mouse-action} property, use @code{action} as normal.
+@var{pos} defaults to point, except when @code{push-button} is invoked
+interactively as the result of a mouse-event, in which case, the mouse
+event's position is used.  If there's no button at @var{pos}, do
 nothing and return @code{nil}, otherwise return @code{t}.
 @end deffn
 
@@ -3686,8 +3696,8 @@ Move to the @var{n}th next button, or @var{n}th previous button if
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
 end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
-is displayed.  Any button with a non-@code{nil} `skip' property is
-skipped over.  Returns the button found.
+is displayed.  Any button with a non-@code{nil} @code{skip} property
+is skipped over.  Returns the button found.
 @end deffn
 
 @deffn Command backward-button n &optional wrap display-message
@@ -3697,8 +3707,8 @@ Move to the @var{n}th previous button, or @var{n}th next button if
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
 end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
-is displayed.  Any button with a non-@code{nil} `skip' property is
-skipped over.  Returns the button found.
+is displayed.  Any button with a non-@code{nil} @code{skip} property
+is skipped over.  Returns the button found.
 @end deffn
 
 @defun next-button pos &optional count-current
