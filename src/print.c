@@ -41,6 +41,8 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
+Lisp_Object Qtemp_buffer_setup_hook;
+
 /* These are used to print like we read.  */
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
@@ -727,8 +729,11 @@ void
 temp_output_buffer_setup (bufname)
     char *bufname;
 {
+  int count = specpdl_ptr - specpdl;
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
+
+  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 
@@ -741,11 +746,13 @@ temp_output_buffer_setup (bufname)
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
   Ferase_buffer ();
-
   XSETBUFFER (buf, current_buffer);
-  specbind (Qstandard_output, buf);
 
-  set_buffer_internal (old);
+  call1 (Vrun_hooks, Qtemp_buffer_setup_hook);
+
+  unbind_to (count, Qnil);
+
+  specbind (Qstandard_output, buf);
 }
 
 Lisp_Object
@@ -779,10 +786,15 @@ DEFUN ("with-output-to-temp-buffer", Fwith_output_to_temp_buffer, Swith_output_t
 The buffer is cleared out initially, and marked as unmodified when done.\n\
 All output done by BODY is inserted in that buffer by default.\n\
 The buffer is displayed in another window, but not selected.\n\
-The hook `temp-buffer-show-hook' is run with that window selected\n\
-temporarily and its buffer current.\n\
 The value of the last form in BODY is returned.\n\
-If BODY does not finish normally, the buffer BUFNAME is not displayed.\n\n\
+If BODY does not finish normally, the buffer BUFNAME is not displayed.\n\
+\n\
+The hook `temp-buffer-setup-hook' is run before BODY,\n\
+with the buffer BUFNAME temporarily current.\n\
+The hook `temp-buffer-show-hook' is run after the buffer is displayed,\n\
+with the buffer temporarily current, and the window that was used\n\
+to display it temporarily selected.\n\
+\n\
 If variable `temp-buffer-show-function' is non-nil, call it at the end\n\
 to get the buffer displayed instead of just displaying the non-selected\n\
 buffer and calling the hook.  It gets one argument, the buffer to display.")
@@ -1834,6 +1846,9 @@ print_interval (interval, printcharfun)
 void
 syms_of_print ()
 {
+  Qtemp_buffer_setup_hook = intern ("temp-buffer-setup-hook");
+  staticpro (&Qtemp_buffer_setup_hook);
+
   DEFVAR_LISP ("standard-output", &Vstandard_output,
     "Output stream `print' uses by default for outputting a character.\n\
 This may be any function of one argument.\n\
