@@ -655,22 +655,23 @@ emacs_blocked_free (ptr)
   BLOCK_INPUT;
 
 #ifdef GC_MALLOC_CHECK
-  {
-    struct mem_node *m;
+  if (ptr)
+    {
+      struct mem_node *m;
   
-    m = mem_find (ptr);
-    if (m == MEM_NIL || m->start != ptr)
-      {
-	fprintf (stderr,
-		 "Freeing `%p' which wasn't allocated with malloc\n", ptr);
-	abort ();
-      }
-    else
-      {
-	/* fprintf (stderr, "free %p...%p (%p)\n", m->start, m->end, ptr); */
-	mem_delete (m);
-      }
-  }
+      m = mem_find (ptr);
+      if (m == MEM_NIL || m->start != ptr)
+	{
+	  fprintf (stderr,
+		   "Freeing `%p' which wasn't allocated with malloc\n", ptr);
+	  abort ();
+	}
+      else
+	{
+	  /* fprintf (stderr, "free %p...%p (%p)\n", m->start, m->end, ptr); */
+	  mem_delete (m);
+	}
+    }
 #endif /* GC_MALLOC_CHECK */
   
   __free_hook = old_free_hook;
