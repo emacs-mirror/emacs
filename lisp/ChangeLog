@@ -1,3 +1,9 @@
+1999-10-27  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/advice.el: Doc fixes.
+	(ad-lemacs-p): Removed.
+	(advice): Add :link to defgroup.
+
 1999-10-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* ange-ftp.el (ange-ftp-insert-file-contents): Don't change
