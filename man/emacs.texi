@@ -759,7 +759,7 @@ Command Line Options and Arguments
 * Icons X::             Choosing what sort of icon to use, under X.
 * Resources X::         Advanced use of classes and resources, under X.
 * Lucid Resources::     X resources for Lucid menus.
-* Motif Resources::     X resources for Motif menus.
+* LessTif Resources::   X resources for LessTif and Motif menus.
 
 Environment Variables
 
