@@ -1610,11 +1610,11 @@ variable."
 (defun ps-print-buffer (&optional filename)
   "Generate and print a PostScript image of the buffer.
 
-When called with a numeric prefix argument (C-u), prompts the user for
-the name of a file to save the PostScript image in, instead of sending
-it to the printer.
+Interactively, when you use a prefix argument (C-u), the command
+prompts the user for a file name, and saves the PostScript image
+in that file instead of sending it to the printer.
 
-More specifically, the FILENAME argument is treated as follows: if it
+Noninteractively, the argument FILENAME is treated as follows: if it
 is nil, send the image to the printer.  If FILENAME is a string, save
 the PostScript image in a file with that name.  If FILENAME is a
 number, prompt the user for the name of the file to save in."
