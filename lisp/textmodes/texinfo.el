@@ -208,21 +208,20 @@ chapter."
   "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.")
 
 (defvar texinfo-font-lock-keywords
-  (list
-   ;; All but the first 2 had an OVERRIDE of t.
-   ;; It didn't seem to be any better, and it's slower--simon.
-   '("^\\(@c\\|@comment\\)\\>.*" . font-lock-comment-face) 	;comments
-   ;; Robert J. Chassell <bob@gnu.ai.mit.edu> says remove this line.
-   ;'("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
-   "@\\(@\\|[^}\t \n{]+\\)"					;commands
-   '("^\\(*.*\\)[\t ]*$" 1 font-lock-function-name-face t) 	;menu items
-   '("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face)
-   '("@\\(file\\|kbd\\|key\\){\\([^}]+\\)" 2 font-lock-string-face)
-   '("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
+  '(;; All but the first 2 had an OVERRIDE of t.
+    ;; It didn't seem to be any better, and it's slower--simon.
+    ("^\\(@c\\|@comment\\)\\>.*" . font-lock-comment-face) 	;comments
+    ;; Robert J. Chassell <bob@gnu.ai.mit.edu> says remove this line.
+    ;("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
+    ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face)	;commands
+    ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) 	;menu items
+    ("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face)
+    ("@\\(file\\|kbd\\|key\\){\\([^}]+\\)" 2 font-lock-string-face)
+    ("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
      2 font-lock-variable-name-face)
-   '("@\\(cite\\|xref\\|pxref\\){\\([^}]+\\)" 2 font-lock-reference-face)
-   '("@\\(end\\|item\\) *\\(.+\\)" 2 font-lock-function-name-face keep)
-   )
+    ("@\\(cite\\|xref\\|pxref\\){\\([^}]+\\)" 2 font-lock-reference-face)
+    ("@\\(end\\|item\\) *\\(.+\\)" 2 font-lock-function-name-face keep)
+    )
   "Additional expressions to highlight in TeXinfo mode.")
 
 ;;; Keybindings
