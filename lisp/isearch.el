@@ -437,9 +437,8 @@ Each set is a vector of the form:
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
 
-(defvar isearch-success t)		; Searching is currently successful.
-(defvar isearch-invalid-regexp nil)	; Regexp not well formed.
-(defvar isearch-within-brackets nil)	; Regexp has unclosed [.
+(defvar isearch-success t)	; Searching is currently successful.
+(defvar isearch-error nil)	; Error message for failed search.
 (defvar isearch-other-end nil)	; Start (end) of match if forward (backward).
 (defvar isearch-wrapped nil)	; Searching restarted from the top (bottom).
 (defvar isearch-barrier 0)
@@ -640,8 +639,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-barrier (point)
 	isearch-adjusted nil
 	isearch-yank-flag nil
-	isearch-invalid-regexp nil
-	isearch-within-brackets nil
+	isearch-error nil
 	isearch-slow-terminal-mode (and (<= baud-rate search-slow-speed)
 					(> (window-height)
 					   (* 4
@@ -867,7 +865,7 @@ REGEXP says which ring to use."
 (defsubst isearch-word-state (frame)
   "Return the search-by-word flag in FRAME."
   (aref frame 6))
-(defsubst isearch-invalid-regexp-state (frame)
+(defsubst isearch-error-state (frame)
   "Return the regexp error message in FRAME, or nil if its regexp is valid."
   (aref frame 7))
 (defsubst isearch-wrapped-state (frame)
@@ -876,15 +874,12 @@ REGEXP says which ring to use."
 (defsubst isearch-barrier-state (frame)
   "Return the barrier value in FRAME."
   (aref frame 9))
-(defsubst isearch-within-brackets-state (frame)
-  "Return the in-character-class flag in FRAME."
-  (aref frame 10))
 (defsubst isearch-case-fold-search-state (frame)
   "Return the case-folding flag in FRAME."
-  (aref frame 11))
+  (aref frame 10))
 (defsubst isearch-pop-fun-state (frame)
   "Return the function restoring the mode-specific isearch state in FRAME."
-  (aref frame 12))
+  (aref frame 11))
 
 (defun isearch-top-state ()
   (let ((cmd (car isearch-cmds)))
@@ -894,10 +889,9 @@ REGEXP says which ring to use."
 	  isearch-forward (isearch-forward-state cmd)
 	  isearch-other-end (isearch-other-end-state cmd)
 	  isearch-word (isearch-word-state cmd)
-	  isearch-invalid-regexp (isearch-invalid-regexp-state cmd)
+	  isearch-error (isearch-error-state cmd)
 	  isearch-wrapped (isearch-wrapped-state cmd)
 	  isearch-barrier (isearch-barrier-state cmd)
-	  isearch-within-brackets (isearch-within-brackets-state cmd)
 	  isearch-case-fold-search (isearch-case-fold-search-state cmd))
     (if (functionp (isearch-pop-fun-state cmd))
 	(funcall (isearch-pop-fun-state cmd) cmd))
@@ -912,8 +906,8 @@ REGEXP says which ring to use."
 	(cons (vector isearch-string isearch-message (point)
 		      isearch-success isearch-forward isearch-other-end
 		      isearch-word
-		      isearch-invalid-regexp isearch-wrapped isearch-barrier
-		      isearch-within-brackets isearch-case-fold-search
+		      isearch-error isearch-wrapped isearch-barrier
+		      isearch-case-fold-search
 		      (if isearch-push-state-function
 			  (funcall isearch-push-state-function)))
 	      isearch-cmds)))
@@ -976,8 +970,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	      (isearch-barrier isearch-barrier)
 	      (isearch-adjusted isearch-adjusted)
 	      (isearch-yank-flag isearch-yank-flag)
-	      (isearch-invalid-regexp isearch-invalid-regexp)
-	      (isearch-within-brackets isearch-within-brackets)
+	      (isearch-error isearch-error)
   ;;; Don't bind this.  We want isearch-search, below, to set it.
   ;;; And the old value won't matter after that.
   ;;;	    (isearch-other-end isearch-other-end)
@@ -1124,7 +1117,7 @@ Use `isearch-exit' to quit without signaling."
         (isearch-cancel))
     ;; If search is failing, or has an incomplete regexp,
     ;; rub out until it is once more successful.
-    (while (or (not isearch-success) isearch-invalid-regexp)
+    (while (or (not isearch-success) isearch-error)
       (isearch-pop-state))
     (isearch-update)))
 
@@ -1146,10 +1139,11 @@ Use `isearch-exit' to quit without signaling."
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
+	      ;; Set isearch-wrapped before calling isearch-wrap-function
+	      (setq isearch-wrapped t)
 	      (if isearch-wrap-function
 		  (funcall isearch-wrap-function)
-	        (goto-char (if isearch-forward (point-min) (point-max))))
-	      (setq isearch-wrapped t))))
+	        (goto-char (if isearch-forward (point-min) (point-max)))))))
     ;; C-s in reverse or C-r in forward, change direction.
     (setq isearch-forward (not isearch-forward)))
 
@@ -1384,8 +1378,7 @@ might return the position of the end of the line."
 		     (min isearch-opoint isearch-barrier))))
 	(progn
 	  (setq isearch-success t
-		isearch-invalid-regexp nil
-		isearch-within-brackets nil
+		isearch-error nil
 		isearch-other-end (match-end 0))
 	  (if (and (eq isearch-case-fold-search t) search-upper-case)
 	      (setq isearch-case-fold-search
@@ -1432,8 +1425,8 @@ barrier."
 				(not want-backslash))
 	     ;; We have to check 2 stack frames because the last might be
 	     ;; invalid just because of a backslash.
-	     (or (not isearch-invalid-regexp)
-		 (not (isearch-invalid-regexp-state (cadr isearch-cmds)))
+	     (or (not isearch-error)
+		 (not (isearch-error-state (cadr isearch-cmds)))
 		 allow-invalid))
     (if to-barrier
 	(progn (goto-char isearch-barrier)
@@ -1448,7 +1441,7 @@ barrier."
 	;; Also skip over postfix operators -- though horrid,
 	;; 'ab?\{5,6\}+\{1,2\}*' is perfectly legal.
 	(while (and previous
-		    (or (isearch-invalid-regexp-state frame)
+		    (or (isearch-error-state frame)
 			(let* ((string (isearch-string-state frame))
 			       (lchar (aref string (1- (length string)))))
 			  ;; The operators aren't always operators; check
@@ -1981,11 +1974,10 @@ If there is no completion possible, say so and continue searching."
   ;; If about to search, and previous search regexp was invalid,
   ;; check that it still is.  If it is valid now,
   ;; let the message we display while searching say that it is valid.
-  (and isearch-invalid-regexp ellipsis
+  (and isearch-error ellipsis
        (condition-case ()
 	   (progn (re-search-forward isearch-string (point) t)
-		  (setq isearch-invalid-regexp nil
-			isearch-within-brackets nil))
+		  (setq isearch-error nil))
 	 (error nil)))
   ;; If currently failing, display no ellipsis.
   (or isearch-success (setq ellipsis nil))
@@ -2011,8 +2003,8 @@ If there is no completion possible, say so and continue searching."
 
 (defun isearch-message-suffix (&optional c-q-hack ellipsis)
   (concat (if c-q-hack "^Q" "")
-	  (if isearch-invalid-regexp
-	      (concat " [" isearch-invalid-regexp "]")
+	  (if isearch-error
+	      (concat " [" isearch-error "]")
 	    "")))
 
 
@@ -2049,8 +2041,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	    (case-fold-search isearch-case-fold-search)
 	    (search-spaces-regexp search-whitespace-regexp)
 	    (retry t))
-	(if isearch-regexp (setq isearch-invalid-regexp nil))
-	(setq isearch-within-brackets nil)
+	(setq isearch-error nil)
 	(while retry
 	  (setq isearch-success
 		(funcall
@@ -2074,16 +2065,19 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	  (setq isearch-success nil))
 
     (invalid-regexp
-     (setq isearch-invalid-regexp (car (cdr lossage)))
-     (setq isearch-within-brackets (string-match "\\`Unmatched \\["
-						 isearch-invalid-regexp))
+     (setq isearch-error (car (cdr lossage)))
      (if (string-match
 	  "\\`Premature \\|\\`Unmatched \\|\\`Invalid "
-	  isearch-invalid-regexp)
-	 (setq isearch-invalid-regexp "incomplete input")))
+	  isearch-error)
+	 (setq isearch-error "incomplete input")))
+
+    (search-failed
+     (setq isearch-success nil)
+     (setq isearch-error (nth 2 lossage)))
+
     (error
      ;; stack overflow in regexp search.
-     (setq isearch-invalid-regexp (format "%s" lossage))))
+     (setq isearch-error (format "%s" lossage))))
 
   (if isearch-success
       nil
@@ -2315,7 +2309,7 @@ since they have special meaning in a regexp."
 ;;    `isearch-word' and `isearch-regexp';
 ;;  - the direction of the current search is expected to be given by
 ;;    `isearch-forward';
-;;  - the variable `isearch-invalid-regexp' is expected to be true
+;;  - the variable `isearch-error' is expected to be true
 ;;    iff `isearch-string' is an invalid regexp.
 
 (defvar isearch-lazy-highlight-overlays nil)
@@ -2369,7 +2363,7 @@ by other Emacs features."
                          isearch-lazy-highlight-window-end))))
     ;; something important did indeed change
     (isearch-lazy-highlight-cleanup t) ;kill old loop & remove overlays
-    (when (not isearch-invalid-regexp)
+    (when (not isearch-error)
       (setq isearch-lazy-highlight-start-limit beg
 	    isearch-lazy-highlight-end-limit end)
       (setq isearch-lazy-highlight-window       (selected-window)
@@ -2391,18 +2385,20 @@ by other Emacs features."
 Attempt to do the search exactly the way the pending isearch would."
   (let ((case-fold-search isearch-case-fold-search)
 	(search-spaces-regexp search-whitespace-regexp))
-    (funcall (isearch-search-fun)
-             isearch-string
-             (if isearch-forward
-                 (min (or isearch-lazy-highlight-end-limit (point-max))
-		      (if isearch-lazy-highlight-wrapped
-			  isearch-lazy-highlight-start
-			(window-end)))
-               (max (or isearch-lazy-highlight-start-limit (point-min))
-		    (if isearch-lazy-highlight-wrapped
-			isearch-lazy-highlight-end
-		      (window-start))))
-             t)))
+    (condition-case nil
+	(funcall (isearch-search-fun)
+		 isearch-string
+		 (if isearch-forward
+		     (min (or isearch-lazy-highlight-end-limit (point-max))
+			  (if isearch-lazy-highlight-wrapped
+			      isearch-lazy-highlight-start
+			    (window-end)))
+		   (max (or isearch-lazy-highlight-start-limit (point-min))
+			(if isearch-lazy-highlight-wrapped
+			    isearch-lazy-highlight-end
+			  (window-start))))
+		 t)
+      (error nil))))
 
 (defun isearch-lazy-highlight-update ()
   "Update highlighting of other matches for current search."
