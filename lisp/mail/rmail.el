@@ -657,7 +657,7 @@ Instead, these commands are available:
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
-  (let (revert-buffer-function)
+  (let ((revert-buffer-function (default-value 'revert-buffer-function)))
     ;; Call our caller again, but this time it does the default thing.
     (if (revert-buffer arg noconfirm)
 	;; If the user said "yes", and we changed something,
