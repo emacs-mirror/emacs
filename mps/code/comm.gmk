@@ -266,7 +266,7 @@ endif
 
 all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
-     finalcv arenacv bttest teletest \
+     finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
      eventcnv mps.a
 
@@ -277,7 +277,7 @@ swall: mmsw.a replaysw
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
 testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
-         mpsicv lockcov poolncv locv qs finalcv arenacv \
+         mpsicv lockcov poolncv locv qs finalcv finaltest arenacv \
          abqtest cbstest btcv messtest steptest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
@@ -288,7 +288,7 @@ testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
 
 mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   awluthe mpsicv lockcov poolncv locv qs apss \
-  finalcv arenacv bttest teletest \
+  finalcv finaltest arenacv bttest teletest \
   abqtest cbstest btcv mv2test \
   messtest steptest \
   eventcnv replay replaysw \
@@ -342,6 +342,9 @@ endif
 ifdef VARIETY
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
