@@ -38,6 +38,32 @@ in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
 which can be used to unpack `.tar.gz' and `.zip' archives without
 mangling them.
 
+* Building `ctags' for MS-Windows with the MinGW port of GCC fails.
+
+This might happen due to a bug in the MinGW header assert.h, which
+defines the `assert' macro with a trailing semi-colon.  The following
+patch to assert.h should solve this:
+
+*** include/assert.h.orig	Sun Nov  7 02:41:36 1999
+--- include/assert.h	Mon Jan 29 11:49:10 2001
+***************
+*** 41,47 ****
+  /*
+   * If not debugging, assert does nothing.
+   */
+! #define assert(x)	((void)0);
+  
+  #else /* debugging enabled */
+  
+--- 41,47 ----
+  /*
+   * If not debugging, assert does nothing.
+   */
+! #define assert(x)	((void)0)
+  
+  #else /* debugging enabled */
+  
+
 * `put-image' and `insert-image' don't work with JPEG images
 
 This can happen if Emacs is built with jpeg-6a library.  Upgrading to
@@ -78,6 +104,35 @@ you can not even get to the virtual console.
 We still don't know what causes these problems; they are not
 reproducible on some systems, notably those used by Emacs developers.
 
+* Known problems with the MS-Windows port of Emacs 21.1.
+
+Emacs 21.1 built for MS-Windows doesn't support images, the tool bar,
+and tooltips.  Support for these will be added in future versions.
+
+There are problems with display if the variable `redisplay-dont-pause'
+is set to nil (w32-win.el sets it to t by default, to avoid these
+problems).  The problems include:
+
+  . No redisplay as long as help echo is displayed in the echo area,
+    e.g. if the mouse is on a mouse-sensitive part of the mode line.
+
+  . When mode line is dragged with the mouse, multiple copies of the
+    mode line are left behind, until the mouse button is released and
+    the next input event occurs.
+
+  . Window contents is not updated when text is selected by dragging
+    the mouse and the mouse is dragged below the bottom line of the
+    window.  When the mouse button is released, the window display is
+    correctly updated.
+
+Again, these problems only occur if `redisplay-dont-pause' is nil.
+
+Emacs can sometimes abort when non-ASCII text, possibly with null
+characters, is copied and pasted into a buffer.
+
+An inactive cursor remains in an active window after the Windows
+Manager driven switch of the focus, until a key is pressed.
+
 * Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
@@ -103,6 +158,14 @@ src/s/hpux10.h.
 
 * Crashes when displaying uncompressed GIFs with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
+
+* Interrupting Cygwin port of Bash from Emacs doesn't work.
+
+Cygwin 1.x builds of the ported Bash cannot be interrupted from the
+MS-Windows version of Emacs.  This is due to some change in the Bash
+port or in the Cygwin library which apparently make Bash ignore the
+keyboard interrupt event sent by Emacs to Bash.  (Older Cygwin ports
+of Bash, up to b20.1, did receive SIGINT from Emacs.)
 
 * The W3 package (either from from the CVS sources or the last
 release) currently (2000-12-14) doesn't run properly with Emacs 21 and
