@@ -2658,6 +2658,7 @@ With a prefix argument you can edit the current listing switches instead."
   (revert-buffer))
 
 ;; Some user code loads dired especially for this.
+;; Don't do that--use replace-regexp-in-string instead.
 (defun dired-replace-in-string (regexp newtext string)
   ;; Replace REGEXP with NEWTEXT everywhere in STRING and return result.
   ;; NEWTEXT is taken literally---no \\DIGIT escapes will be recognized.
