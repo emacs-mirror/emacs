@@ -887,7 +887,7 @@ region, clear header."
   "Make VARIABLE available for future completing reads in this buffer."
   (or (< (length var) sh-remember-variable-min)
       (getenv var)
-      (setq process-environment (cons (concat var "=0") process-environment)))
+      (setq process-environment (cons (concat var "=") process-environment)))
   var)
 
 
