@@ -52,75 +52,79 @@ encoding to Emacs multibyte characters.
 ENCODER is a translation table for encoding Emacs multibyte characters into
 external DOS codepage codes.
 
-Note that the coding systems created by this function don't support
-automatic detection of the EOL format.  Use explicit -dos or -unix variants
-as appropriate (Mac EOL style is not supported, as it doesn't make sense for
-these coding systems).
-
-If the coding system's name ends with \"-dos\", this function automatically
-creates a coding system which converts from and to DOS EOL format; otherwise
-the created coding system assumes Unix-style EOL (i.e., it doesn't perform
-any EOL conversions)."
+Note that the coding systems created by this function support automatic
+detection of the EOL format."
   (save-match-data
     (let* ((coding-name (symbol-name coding))
-	   (eol-type (string-match "-\\(dos\\|unix\\)\\'" coding-name))
-	   (dos-p
-	    (and eol-type
-		 (string= "-dos" (substring coding-name eol-type))))
-	   (coding-sans-eol
-	    (if eol-type (substring coding-name 0 eol-type) coding-name))
-	   (ccl-decoder
-	    (if dos-p
-		(ccl-compile
-		 `(4 (loop (read r1)
-			   (if (r1 != ?\r)
-			       (if (r1 >= 128)
-				   ((r0 = ,(charset-id 'ascii))
-				    (translate-character ,decoder r0 r1)
-				    (if (r0 == ,(charset-id 'ascii))
-					(write r1)
-				      (write-multibyte-character r0 r1)))
-				 (write r1)))
-			   (repeat))))
-	      (ccl-compile
-	       `(4 (loop (read r1)
-			 (if (r1 >= 128)
-			     ((r0 = ,(charset-id 'ascii))
-			      (translate-character ,decoder r0 r1)
-			      (if (r0 == ,(charset-id 'ascii))
-				  (write r1)
-				(write-multibyte-character r0 r1)))
-			   (write r1))
-			 (repeat))))))
-	   (ccl-encoder
-	    (if dos-p
-		(ccl-compile
-		 `(1 (loop (read-multibyte-character r0 r1)
-			   (if (r1 == ?\n)
-			       (write ?\r)
-			     (if (r0 != ,(charset-id 'ascii))
-				 ((translate-character ,encoder r0 r1)
-				  (if (r0 == ,(charset-id 'japanese-jisx0208))
-				      ((r1 = ??)
-				       (write r1))))))
-			   (write-repeat r1))))
-	      (ccl-compile
-	       `(1 (loop (read-multibyte-character r0 r1)
+	   (ccl-decoder-dos
+	    (ccl-compile
+	     `(4 (loop (read r1)
+		       (if (r1 != ?\r)
+			   (if (r1 >= 128)
+			       ((r0 = ,(charset-id 'ascii))
+				(translate-character ,decoder r0 r1)
+				(if (r0 == ,(charset-id 'ascii))
+				    (write r1)
+				  (write-multibyte-character r0 r1)))
+			     (write r1)))
+		       (repeat)))))
+	   (ccl-decoder-unix
+	    (ccl-compile
+	     `(4 (loop (read r1)
+		       (if (r1 >= 128)
+			   ((r0 = ,(charset-id 'ascii))
+			    (translate-character ,decoder r0 r1)
+			    (if (r0 == ,(charset-id 'ascii))
+				(write r1)
+			      (write-multibyte-character r0 r1)))
+			 (write r1))
+		       (repeat)))))
+	   (ccl-encoder-dos
+	    (ccl-compile
+	     `(1 (loop (read-multibyte-character r0 r1)
+		       (if (r1 == ?\n)
+			   (write ?\r)
 			 (if (r0 != ,(charset-id 'ascii))
 			     ((translate-character ,encoder r0 r1)
 			      (if (r0 == ,(charset-id 'japanese-jisx0208))
 				  ((r1 = ??)
-				   (write r1)))))
-			 (write-repeat r1)))))))
+				   (write r1))))))
+		       (write-repeat r1)))))
+	   (ccl-encoder-unix
+	    (ccl-compile
+	     `(1 (loop (read-multibyte-character r0 r1)
+		       (if (r0 != ,(charset-id 'ascii))
+			   ((translate-character ,encoder r0 r1)
+			    (if (r0 == ,(charset-id 'japanese-jisx0208))
+				((r1 = ??)
+				 (write r1)))))
+		       (write-repeat r1))))))
       (if (memq coding coding-system-list)
 	  (setq coding-system-list (delq coding coding-system-list)))
+
+      ;; Make coding system CODING.
       (make-coding-system
        coding 4 mnemonic
        (concat "8-bit encoding of " (symbol-name iso-name)
-	       " characters using IBM codepage " (substring coding-sans-eol 2))
-       (cons ccl-decoder ccl-encoder)
+	       " characters using IBM codepage " coding-name)
+       (cons ccl-decoder-unix ccl-encoder-unix)
        `((safe-charsets ascii ,iso-name)))
-      (put coding 'eol-type (if dos-p 1 0)))))
+      ;;; Make coding systems CODING-unix, CODING-dos, CODING-mac.
+      (make-subsidiary-coding-system coding)
+      (put coding 'eol-type (vector (intern (format "%s-unix" coding))
+				    (intern (format "%s-dos" coding))
+				    (intern (format "%s-mac" coding))))
+      ;; Change CCL code for CODING-dos.
+      (let ((coding-spec (copy-sequence (get coding 'coding-system))))
+	(aset coding-spec 4
+	      (cons (check-ccl-program
+		     ccl-decoder-dos
+		     (intern (format "%s-dos-decoder" coding)))
+		    (check-ccl-program
+		     ccl-encoder-dos
+		     (intern (format "%s-dos-encoder" coding)))))
+	(put (intern (concat coding-name "-dos")) 'coding-system
+	     coding-spec)))))
 
 (defun cp-decoding-vector-for-codepage (table charset offset)
   "Create a vector for decoding IBM PC characters using conversion table
@@ -418,11 +422,7 @@ perform any EOL conversions."
 	 (decode-translation
 	  (intern (format "%s-decode-translation-table" codepage)))
 	 (encode-translation
-	  (intern (format "%s-encode-translation-table" codepage)))
-	 (codepage-dos
-	  (intern (format "%s-dos" codepage)))
-	 (codepage-unix
-	  (intern (format "%s-unix" codepage))))
+	  (intern (format "%s-encode-translation-table" codepage))))
     (set nonascii-table
 	 (make-translation-table-from-vector
 	  (cp-decoding-vector-for-codepage
@@ -444,9 +444,8 @@ perform any EOL conversions."
     (define-translation-table decode-translation
       (symbol-value nonascii-table))
     (cp-coding-system-for-codepage-1
-     codepage-dos ?D iso-name decode-translation encode-translation)
-    (cp-coding-system-for-codepage-1
-     codepage-unix ?D iso-name decode-translation encode-translation)))
+     (intern codepage) ?D iso-name decode-translation encode-translation)
+    ))
 
 (defun cp-codepage-decoder (codepage)
   "If CODEPAGE is the name of a supported codepage, return its decode table;
