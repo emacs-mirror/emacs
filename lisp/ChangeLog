@@ -1,3 +1,12 @@
+2004-06-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.el (dired-omit-mode): Rename from
+	dired-omit-files-p. Use define-minor-mode to define it.
+	(dired-omit-files-p): Add as alias for dired-omit-mode.
+	(dired-omit-toggle): Delete. Replaced by dired-omit-mode and
+	dired-mark-omitted.
+	(dired-mark-omitted): Add. Bind to M-O.
+
 2004-06-05  Kenichi Handa  <handa@m17n.org>
 
 	* ps-print.el: Fix typos (kein'ichi -> ken'ichi)
