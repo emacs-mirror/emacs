@@ -89,7 +89,7 @@ With argument, asks for a command line."
 	       (read-string "Run Scheme: " default)
 	       default))))
   (setq xscheme-process-command-line command-line)
-  (switch-to-buffer (xscheme-start-process command-line)))
+  (pop-to-buffer (xscheme-start-process command-line)))
 
 (defun reset-scheme ()
   "Reset the Scheme process."
