@@ -380,6 +380,11 @@ static void
 x_flush (f)
      struct frame *f;
 {
+  /* Don't call XFlush when it is not safe to redisplay; the X
+     connection may be broken.  */
+  if (!NILP (Vinhibit_redisplay))
+    return;
+
   BLOCK_INPUT;
   if (f == NULL)
     {
