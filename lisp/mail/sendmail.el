@@ -346,7 +346,7 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   '("Send Message" . mail-send-and-exit))
 
 (define-key mail-mode-map [menu-bar headers]
-  (cons "Headers" (make-sparse-keymap "Headers")))
+  (cons "Headers" (make-sparse-keymap "Move to Header")))
 
 (define-key mail-mode-map [menu-bar headers reply-to]
   '("Reply-To" . mail-reply-to))
