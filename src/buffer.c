@@ -2798,7 +2798,7 @@ modify_overlay (buf, start, end)
 	}
     }
 
-  ++OVERLAY_MODIFF;
+  ++BUF_OVERLAY_MODIFF (buf);
 }
 
 
