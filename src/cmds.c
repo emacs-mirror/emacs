@@ -221,6 +221,18 @@ Whichever character you type to run this command is inserted.")
   /* Barf if the key that invoked this was not a character.  */
   if (!INTEGERP (last_command_char))
     bitch_at_user ();
+  else if (XINT (arg) >= 2 && NILP (current_buffer->overwrite_mode))
+    {
+      XSETFASTINT (arg, XFASTINT (arg) - 2);
+      /* The first one might want to expand an abbrev.  */
+      internal_self_insert (XINT (last_command_char), 1);
+      /* The bulk of the copies of this char can be inserted simply.
+	 We don't have to handle a user-specified face specially
+	 because it will get inherited from the first char inserted.  */
+      Finsert_char (last_command_char, arg, Qt);
+      /* The last one might want to auto-fill.  */
+      internal_self_insert (XINT (last_command_char), 0);
+    }
   else
     while (XINT (arg) > 0)
       {
@@ -313,7 +325,8 @@ internal_self_insert (c1, noautofill)
 #endif
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
-      && !NILP (Vblink_paren_function) && INTERACTIVE)
+      && !NILP (Vblink_paren_function) && INTERACTIVE
+      && !noautofill)
     {
       call0 (Vblink_paren_function);
       hairy = 2;
