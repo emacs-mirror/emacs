@@ -834,6 +834,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
       minibuf_window = selected_frame->minibuffer_window;
     }
 
+  /* Clear any X selections for this frame.  */
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (f))
+    x_clear_frame_selections (f);
+#endif
+
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
   delete_all_subwindows (XWINDOW (f->root_window));
