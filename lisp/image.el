@@ -176,7 +176,7 @@ means display it in the right marginal area."
 
 
 ;;;###autoload
-(defun insert-image (image &optional string area)
+(defun insert-image (image &optional string area slice)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
 with a `display' property whose value is the image.  STRING is
@@ -184,7 +184,12 @@ defaulted if you omit it.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
-means display it in the right marginal area."
+means display it in the right marginal area.
+SLICE specifies slice of IMAGE to insert.  SLICE nil or omitted
+means insert whole image.  SLICE is a list (X Y WIDTH HEIGHT)
+specifying the X and Y positions and WIDTH and HEIGHT of image area
+to insert.  A float value 0.0 - 1.0 means relative to the width or
+height of the image; integer values are taken as pixel values."
   ;; Use a space as least likely to cause trouble when it's a hidden
   ;; character in the buffer.
   (unless string (setq string " "))
@@ -204,7 +209,40 @@ means display it in the right marginal area."
   (let ((start (point)))
     (insert string)
     (add-text-properties start (point)
-			 `(display ,image rear-nonsticky (display)))))
+			 `(display ,(if slice
+					(list (cons 'slice slice) image)
+				      image) rear-nonsticky (display)))))
+
+
+(defun insert-sliced-image (image &optional string area rows cols)
+  (unless string (setq string " "))
+  (unless (eq (car-safe image) 'image)
+    (error "Not an image: %s" image))
+  (unless (or (null area) (memq area '(left-margin right-margin)))
+    (error "Invalid area %s" area))
+  (if area
+      (setq image (list (list 'margin area) image))
+    ;; Cons up a new spec equal but not eq to `image' so that
+    ;; inserting it twice in a row (adjacently) displays two copies of
+    ;; the image.  Don't try to avoid this by looking at the display
+    ;; properties on either side so that we DTRT more often with
+    ;; cut-and-paste.  (Yanking killed image text next to another copy
+    ;; of it loses anyway.)
+    (setq image (cons 'image (cdr image))))
+  (let ((x 0.0) (dx (/ 1.0001 (or cols 1)))
+	 (y 0.0) (dy (/ 1.0001 (or rows 1))))
+    (while (< y 1.0)
+      (while (< x 1.0)
+	(let ((start (point)))
+	  (insert string)
+	  (add-text-properties start (point)
+			       `(display ,(list (list 'slice x y dx dy) image)
+					 rear-nonsticky (display)))
+	  (setq x (+ x dx))))
+      (setq x 0.0
+	    y (+ y dy))
+      (insert "\n"))))
+
 
 
 ;;;###autoload
