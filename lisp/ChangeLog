@@ -1,3 +1,9 @@
+2004-10-28  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (set-auto-mode-0): New function.
+	(set-auto-mode): Use it to handle aliased modes and to
+	be consistent between C-x C-f and C-x C-w.
+
 2004-10-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (utf-translate-cjk-charsets): Add
