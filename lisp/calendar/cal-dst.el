@@ -46,21 +46,6 @@
   (calendar-absolute-from-gregorian '(1 1 1970))
   "Absolute date of starting date of system clock.")
 
-(defun calendar-/ (a b)
-  "Floor(A/B) = the greatest integer not greater than A divided by B.
-A and B be must both be integers, and B must be positive."
-  (if (< a 0)
-      (- (/ (- b 1 a) b))
-    (/ a b)))
-
-(defun calendar-% (a b)
-  "A modulo B; always nonnegative.
-A and B be must both be integers, and B must be positive."
-  (let ((m (% a b)))
-    (if (< m 0)
-        (+ m b)
-      m)))
-
 (defun calendar-absolute-from-time (x utc-diff)
   "Absolute local date of time X; local time is UTC-DIFF seconds from UTC.
 
@@ -73,13 +58,13 @@ absolute date ABS-DATE is the equivalent moment to X."
   (let* ((h (car x))
 	 (xtail (cdr x))
          (l (+ utc-diff (if (numberp xtail) xtail (car xtail))))
-         (u (+ (* 512 (calendar-% h 675)) (calendar-/ l 128))))
+         (u (+ (* 512 (mod h 675)) (floor l 128))))
     ;; Overflow is a terrible thing!
     (cons (+ calendar-system-time-basis
 	     ;; floor((2^16 h +l) / (60*60*24))
-	     (* 512 (calendar-/ h 675)) (calendar-/ u 675))
+	     (* 512 (mod h 675)) (floor u 675))
 	  ;; (2^16 h +l) % (60*60*24)
-	  (+ (* (calendar-% u 675) 128) (calendar-% l 128)))))
+	  (+ (* (mod u 675) 128) (floor l 128)))))
 
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
@@ -89,13 +74,13 @@ Returns the pair (HIGH . LOW) where HIGH and LOW are the high and low
 ignoring leap seconds, that is the equivalent moment to S seconds after
 midnight UTC on absolute date ABS-DATE."
   (let* ((a (- abs-date calendar-system-time-basis))
-         (u (+ (* 163 (calendar-% a 512)) (calendar-/ s 128))))
+         (u (+ (* 163 (mod a 512)) (floor s 128))))
     ;; Overflow is a terrible thing!
     (cons
      ;; (60*60*24*a + s) / 2^16
-     (+ a (* 163 (calendar-/ a 512)) (calendar-/ u 512))
+     (+ a (* 163 (floor a 512)) (floor u 512))
      ;; (60*60*24*a + s) % 2^16
-     (+ (* 128 (calendar-% u 512)) (calendar-% s 128)))))
+     (+ (* 128 (mod u 512)) (mod s 128)))))
 
 (defun calendar-next-time-zone-transition (time)
   "Return the time of the next time zone transition after TIME.

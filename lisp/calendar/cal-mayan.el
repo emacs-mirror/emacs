@@ -53,16 +53,9 @@
 
 (require 'calendar)
 
-(defun mayan-mod (m n)
-  "Returns M mod N; value is *always* non-negative when N>0."
-  (let ((v (% m n)))
-    (if (and (> 0 v) (> n 0))
-	(+ v n)
-      v)))
-
 (defun mayan-adjusted-mod (m n)
   "Non-negative remainder of M/N with N instead of 0."
-  (1+ (mayan-mod (1- m) n)))
+  (1+ (mod (1- m) n)))
 
 (defconst calendar-mayan-days-before-absolute-zero 1137140
   "Number of days of the Mayan calendar epoch before absolute day 0.
@@ -132,9 +125,9 @@ research.  Using 1232041 will give you the correlation used by Spinden.")
 
 (defun calendar-mayan-haab-difference (date1 date2)
   "Number of days from Mayan haab DATE1 to next occurrence of haab date DATE2."
-  (mayan-mod (+ (* 20 (- (cdr date2) (cdr date1)))
-                (- (car date2) (car date1)))
-             365))
+  (mod (+ (* 20 (- (cdr date2) (cdr date1)))
+	  (- (car date2) (car date1)))
+       365))
 
 (defun calendar-mayan-haab-on-or-before (haab-date date)
   "Absolute date of latest HAAB-DATE on or before absolute DATE."
@@ -193,10 +186,10 @@ Echo Mayan date if NOECHO is t."
   "Number of days from Mayan tzolkin DATE1 to next occurrence of tzolkin DATE2."
   (let ((number-difference (- (car date2) (car date1)))
         (name-difference (- (cdr date2) (cdr date1))))
-    (mayan-mod (+ number-difference
-                  (* 13 (mayan-mod (* 3 (- number-difference name-difference))
-                                   20)))
-               260)))
+    (mod (+ number-difference
+	    (* 13 (mod (* 3 (- number-difference name-difference))
+		       20)))
+	 260)))
 
 (defun calendar-mayan-tzolkin-on-or-before (tzolkin-date date)
   "Absolute date of latest TZOLKIN-DATE on or before absolute DATE."
@@ -250,9 +243,9 @@ Returns nil if such a tzolkin-haab combination is impossible."
          (difference (- tzolkin-difference haab-difference)))
     (if (= (% difference 5) 0)
         (- date
-           (mayan-mod (- date
-                         (+ haab-difference (* 365 difference)))
-                      18980))
+           (mod (- date
+		   (+ haab-difference (* 365 difference)))
+		18980))
       nil)))
 
 (defun calendar-read-mayan-haab-date ()
