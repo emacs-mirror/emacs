@@ -30,9 +30,7 @@
 
 ;;; Code:
 
-(defalias 'custom-facep 
-  (if (fboundp 'facep) 'facep
-    '(lambda (face) nil)))
+(defalias 'custom-facep 'facep)
 
 ;;; Declaring a face.
 
@@ -63,48 +61,243 @@
     (run-hooks 'custom-define-hook))
   face)
 
-;;; Font Attributes.
+;;; Face attributes.
+
+;; Below, nil is used in widget specifications for `unspecified' face
+;; attributes and `off' is used instead of nil attribute values.  The
+;; reason for this is that nil corresponds to the result you get when
+;; looking up an attribute in a defface spec that isn't contained in
+;; the spec.
 
 (defconst custom-face-attributes
-  '((:bold (boolean :tag "Bold"
-		    :help-echo "Control whether a bold font should be used.")
-	   set-face-bold-p
-	   face-bold-p)
-    (:italic (boolean :tag "Italic"
-		      :help-echo "\
-Control whether an italic font should be used.")
-	     set-face-italic-p
-	     face-italic-p)
-    (:underline (boolean :tag "Underline"
-			 :help-echo "\
-Control whether the text should be underlined.")
-		set-face-underline-p
-		face-underline-p)
-    (:inverse-video (boolean :tag "Inverse Video"
-			     :help-echo "\
-Control whether the text should be in inverse video.")
-		set-face-inverse-video-p
-		face-inverse-video-p)
-    (:foreground (color :tag "Foreground"
-			:value ""
-			:help-echo "Set foreground color.")
-		 set-face-foreground
-		 face-foreground)
-    (:background (color :tag "Background"
-			:value ""
-			:help-echo "Set background color.")
-		 set-face-background
-		 face-background)
-    (:stipple (editable-field :format "Stipple: %v"
-			      :help-echo "Name of background bitmap file.")
-	      set-face-stipple
-	      face-stipple))
-  "Alist of face attributes. 
-The elements are of the form (KEY TYPE SET GET),
-where KEY is the name of the attribute,
-TYPE is a widget type for editing the attribute,
-SET is a function for setting the attribute value,
-and GET is a function for getiing the attribute value. 
+  '((:family
+     (choice :tag "Font family"
+	     :help-echo "Font family or fontset alias name."
+	     (const :tag "*" nil)
+	     (string :tag "Family"))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :family (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((family (face-attribute face :family frame)))
+	 (if (eq family 'unspecified) nil family))))
+    
+    (:width
+     (choice :tag "Width"
+	     :help-echo "Font width."
+	     (const :tag "*" nil)
+	     (const :tag "compressed" condensed)
+	     (const :tag "condensed" condensed)
+	     (const :tag "demiexpanded" semi-expanded)
+	     (const :tag "expanded" expanded)
+	     (const :tag "extracondensed" extra-condensed)
+	     (const :tag "extraexpanded" extra-expanded)
+	     (const :tag "medium" normal)
+	     (const :tag "narrow" condensed)
+	     (const :tag "normal" normal)
+	     (const :tag "regular" normal)
+	     (const :tag "semicondensed" semi-condensed)
+	     (const :tag "semiexpanded" semi-expanded)
+	     (const :tag "ultracondensed" ultra-condensed)
+	     (const :tag "ultraexpanded" ultra-expanded)
+	     (const :tag "wide" extra-expanded))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :width (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((width (face-attribute face :width frame)))
+	 (if (eq width 'unspecified) nil width))))
+    
+    (:height
+     (choice :tag "Height"
+	     :help-echo "Face's font height."
+	     (const :tag "*" nil)
+	     (integer :tag "Height in 1/10 pt"))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :height (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((height (face-attribute face :height frame)))
+	 (if (eq height 'unspecified) nil height))))
+    
+    (:weight
+     (choice :tag "Weight"
+	     :help-echo "Font weight."
+	     (const :tag "*" nil)
+	     (const :tag "black" ultra_bold)
+	     (const :tag "bold" bold)
+	     (const :tag "book" semi-light)
+	     (const :tag "demibold" semi-bold)
+	     (const :tag "extralight" extra-light)
+	     (const :tag "extrabold" extra-bold)
+	     (const :tag "heavy" extra-bold)
+	     (const :tag "light" light)
+	     (const :tag "medium" normal)
+	     (const :tag "normal" normal)
+	     (const :tag "regular" normal)
+	     (const :tag "semibold" semi-bold)
+	     (const :tag "semilight" semi-light)
+	     (const :tag "ultralight" ultra-light)
+	     (const :tag "ultrabold" ultra-bold))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :weight (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((weight (face-attribute face :weight frame)))
+	 (if (eq weight 'unspecified) nil weight))))
+    
+    (:slant
+     (choice :tag "Slant"
+	     :help-echo "Font slant."
+	     (const :tag "*" nil)
+	     (const :tag "italic" italic)
+	     (const :tag "oblique" oblique)
+	     (const :tag "normal" normal))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :slant (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((slant (face-attribute face :slant frame)))
+	 (if (eq slant 'unspecified) nil slant))))
+    
+    (:underline
+     (choice :tag "Underline"
+	     :help-echo "Control text underlining."
+	     (const :tag "*" nil)
+	     (const :tag "On" t)
+	     (const :tag "Off" off)
+	     (color :tag "Colored"))
+     (lambda (face value &optional frame)
+       (cond ((eq value 'off) (setq value nil))
+	     ((null value) (setq value 'unspecified)))
+       (set-face-attribute face frame :underline value))
+     (lambda (face &optional frame)
+       (let ((underline (face-attribute face :underline frame)))
+	 (cond ((eq underline 'unspecified) (setq underline nil))
+	       ((null underline) (setq underline 'off)))
+	 underline)))
+    
+    (:overline
+     (choice :tag "Overline"
+	     :help-echo "Control text overlining."
+	     (const :tag "*" nil)
+	     (const :tag "On" t)
+	     (const :tag "Off" off)
+	     (color :tag "Colored"))
+     (lambda (face value &optional frame)
+       (cond ((eq value 'off) (setq value nil))
+	     ((null value) (setq value 'unspecified)))
+       (set-face-attribute face frame :overline value))
+     (lambda (face &optional frame)
+       (let ((overline (face-attribute face :overline frame)))
+	 (cond ((eq overline 'unspecified) (setq overline nil))
+	       ((null overline) (setq overline 'off)))
+	 overline)))
+    
+    (:strike-through
+     (choice :tag "Strike-through"
+	     :help-echo "Control text strike-through."
+	     (const :tag "*" nil)
+	     (const :tag "On" t)
+	     (const :tag "Off" off)
+	     (color :tag "Colored"))
+     (lambda (face value &optional frame)
+       (cond ((eq value 'off) (setq value nil))
+	     ((null value) (setq value 'unspecified)))
+       (set-face-attribute face frame :strike-through value))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :strike-through frame)))
+	 (cond ((eq value 'unspecified) (setq value nil))
+	       ((null value) (setq value 'off)))
+	 value)))
+    
+    (:box
+     (choice :tag "Box around text"
+	     :help-echo "Control box around text."
+	     (const :tag "*" nil)
+	     (const :tag "Off" off)
+	     (list :tag "Box"
+		   :value (1 "black" nil)
+		   (integer :tag "Width")
+		   (color :tag "Color")
+		   (choice :tag "Shadows"
+			   (const :tag "None" nil)
+			   (const :tag "Raised" raised)
+			   (const :tag "Sunken" sunken))))
+     (lambda (face value &optional frame)
+       (cond ((consp value)
+	      (let ((width (nth 0 value))
+		    (color (nth 1 value))
+		    (shadow (nth 2 value)))
+		(setq value (list :width width :color color :shadow shadow))))
+	     ((eq value 'off)
+	      (setq value nil))
+	     ((null value)
+	      (setq value 'unspecified)))
+       (set-face-attribute face frame :box value))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :box frame)))
+	 (cond ((consp value)
+		(let ((width (plist-get value :width))
+		      (color (plist-get value :color))
+		      (shadow (plist-get value :shadow)))
+		  (setq value (list width color shadow))))
+	       ((eq value 'unspecified)
+		(setq value nil))
+	       ((null value)
+		(setq value 'off)))
+	 value)))
+    
+    (:inverse-video
+     (choice :tag "Inverse-video"
+	     :help-echo "Control whether text should be in inverse-video."
+	     (const :tag "*" nil)
+	     (const :tag "On" t)
+	     (const :tag "Off" off))
+     (lambda (face value &optional frame)
+       (cond ((eq value 'off) (setq value nil))
+	     ((null value) (setq value 'unspecified)))
+       (set-face-attribute face frame :inverse-video value))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :inverse-video frame)))
+	 (cond ((eq value 'unspecified) (setq value nil))
+	       ((null value) (setq value 'off)))
+	 value)))
+    
+    (:foreground
+     (choice :tag "Foreground"
+	     :help-echo "Set foreground color."
+	     (const :tag "*" nil)
+	     (color :tag "Color"))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :foreground (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :foreground frame)))
+	 (if (eq value 'unspecified) nil value))))
+    
+    (:background
+     (choice :tag "Background"
+	     :help-echo "Set background color."
+	     (const :tag "*" nil)
+	     (color :tag "Color"))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :background (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :background frame)))
+	 (if (eq value 'unspecified) nil value))))
+    
+    (:stipple
+     (choice :tag "Stipple"
+	     :help-echo "Name of background bitmap file."
+	     (const :tag "*" nil)
+	     (file :tag "File" :must-match t))
+     (lambda (face value &optional frame)
+       (set-face-attribute face frame :stipple (or value 'unspecified)))
+     (lambda (face &optional frame)
+       (let ((value (face-attribute face :stipple frame)))
+	 (if (eq value 'unspecified) nil value)))))
+       
+  "Alist of face attributes.
+
+The elements are of the form (KEY TYPE SET GET), where KEY is the name
+of the attribute, TYPE is a widget type for editing the attibute, SET
+is a function for setting the attribute value, and GET is a function
+for getiing the attribute value.
 
 The SET function should take three arguments, the face to modify, the
 value of the attribute, and optionally the frame where the face should
@@ -113,25 +306,22 @@ be changed.
 The GET function should take two arguments, the face to examine, and
 optionally the frame where the face should be examined.")
 
+
 (defun custom-face-attributes-get (face frame)
   "For FACE on FRAME, return an alternating list describing its attributes.
 The list has the form (KEYWORD VALUE KEYWORD VALUE...).
 Each keyword should be listed in `custom-face-attributes'.
-We include only those attributes that differ from the default face.
 
 If FRAME is nil, use the global defaults for FACE."
-  (let ((atts custom-face-attributes)
-	att result get)
-    (while atts
-      (setq att (car atts)
-	    atts (cdr atts)
-	    get (nth 3 att))
-      (when get 
-	(let ((answer (funcall get face frame)))
-	  (if (and (not (equal answer (funcall get 'default frame)))
-		   (widget-apply (nth 1 att) :match answer))
-	      (setq result (cons (nth 0 att) (cons answer result)))))))
-    result))
+  (let ((attrs custom-face-attributes)
+	plist)
+    (while attrs
+      (let* ((attribute (car (car attrs)))
+	     (value (face-attribute face attribute frame)))
+	(setq attrs (cdr attrs))
+	(unless (eq value 'unspecified)
+	  (setq plist (cons attribute (cons value plist))))))
+    plist))
 
 ;;; Initializing.
 
