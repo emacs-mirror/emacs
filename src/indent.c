@@ -800,11 +800,6 @@ struct position val_compute_motion;
    into account.  That is, beginning-of-line moves you to the hpos
    -HSCROLL + (HSCROLL > 0).
 
-   Note that FROMHPOS and TOHPOS should be expressed in real screen
-   columns, taking HSCROLL and the truncation glyph at the left margin
-   into account.  That is, beginning-of-line moves you to the hpos
-   -HSCROLL + (HSCROLL > 0).
-
    For example, to find the buffer position of column COL of line LINE
    of a certain window, pass the window's starting location as FROM
    and the window's upper-left coordinates as FROMVPOS and FROMHPOS.
