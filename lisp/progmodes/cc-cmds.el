@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.14
+;; Version:    5.15
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -354,17 +354,28 @@ the brace is inserted inside a literal."
       
 (defun c-electric-slash (arg)
   "Insert a slash character.
-If slash is second of a double-slash C++ style comment introducing
-construct, and we are on a comment-only-line, indent line as comment.
+
+Indent the line as a comment, if:
+
+  1. The slash is second of a `//' line oriented comment introducing
+     token and we are on a comment-only-line, or
+
+  2. The slash is part of a `*/' token that closes a block oriented
+     comment.
+
 If numeric ARG is supplied or point is inside a literal, indentation
 is inhibited."
   (interactive "P")
-  (let ((indentp (and (not arg)
-		      (eq (char-before) ?/)
-		      (eq last-command-char ?/)
-		      (not (c-in-literal))))
-	;; shut this up
-	(c-echo-syntactic-information-p nil))
+  (let* ((ch (char-before))
+	 (indentp (and (not arg)
+		       (eq last-command-char ?/)
+		       (or (and (eq ch ?/)
+				(not (c-in-literal)))
+			   (and (eq ch ?*)
+				(c-in-literal)))
+		       ))
+	 ;; shut this up
+	 (c-echo-syntactic-information-p nil))
     (self-insert-command (prefix-numeric-value arg))
     (if indentp
 	(c-indent-line))))
@@ -734,6 +745,38 @@ comment."
 	 (t (max (1+ (current-column))
 		 comment-column))
 	 )))))
+
+;; for proposed new variable comment-line-break-function
+(defun c-comment-line-break-function (&optional soft)
+  ;; we currently don't do anything with soft line breaks
+  (if (not c-comment-continuation-stars)
+      (indent-new-comment-line soft)
+    (let ((here (point))
+	  (leader c-comment-continuation-stars))
+      (back-to-indentation)
+      ;; are we looking at a block or lines style comment?
+      (if (and (looking-at (concat "\\(" c-comment-start-regexp "\\)[ \t]+"))
+	       (string-equal (match-string 1) "//"))
+	  ;; line style
+	  (setq leader "// "))
+      (goto-char here)
+      (delete-region (progn (skip-chars-backward " \t") (point))
+		     (progn (skip-chars-forward " \t") (point)))
+      (newline)
+      ;; to avoid having an anchored comment that c-indent-line will
+      ;; trip up on
+      (insert " " leader)
+      (c-indent-line))))
+
+;; advice for indent-new-comment-line for older Emacsen
+(if (boundp 'comment-line-break-function)
+    nil
+  (require 'advice)
+  (defadvice indent-new-comment-line (around c-line-break-advice activate)
+    (if (or (not c-buffer-is-cc-mode)
+	    (not c-comment-continuation-stars))
+	ad-do-it
+      (c-comment-line-break-function (ad-get-arg 0)))))
 
 ;; used by outline-minor-mode
 (defun c-outline-level ()
