@@ -46,8 +46,9 @@
 (load "widget")
 (garbage-collect)
 (load "custom")
+(load "cus-start")
 (garbage-collect)
-(load "bindings.el")  ;Don't get confused if someone compiled this by mistake.
+(load "bindings")
 (garbage-collect)
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (garbage-collect)
