@@ -1,3 +1,9 @@
+2003-01-26  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-extract-menu-node-name): Fix 2003-01-24 change.
+	Don't search for next colon if current colon is followed by
+	one of ".", ",", ";", or ")".
+
 2003-01-26  Richard M. Stallman  <rms@gnu.org>
 
 	* thingatpt.el (thing-at-point-file-name-chars): Undo previous change.
