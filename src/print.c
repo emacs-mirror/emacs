@@ -573,11 +573,24 @@ print_string (string, printcharfun)
      Lisp_Object printcharfun;
 {
   if (EQ (printcharfun, Qt) || NILP (printcharfun))
-    /* strout is safe for output to a frame (echo area) or to print_buffer.  */
-    strout (XSTRING (string)->data,
-	    XSTRING (string)->size,
-	    STRING_BYTES (XSTRING (string)),
-	    printcharfun, STRING_MULTIBYTE (string));
+    {
+      int chars;
+
+      if (STRING_MULTIBYTE (string))
+	chars = XSTRING (string)->size;
+      else if (EQ (printcharfun, Qt)
+	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
+	       : ! NILP (current_buffer->enable_multibyte_characters))
+	chars = multibyte_chars_in_text (XSTRING (string)->data,
+					 STRING_BYTES (XSTRING (string)));
+      else
+	chars = STRING_BYTES (XSTRING (string));
+
+      /* strout is safe for output to a frame (echo area) or to print_buffer.  */
+      strout (XSTRING (string)->data,
+	      chars, STRING_BYTES (XSTRING (string)),
+	      printcharfun, STRING_MULTIBYTE (string));
+    }
   else
     {
       /* Otherwise, string may be relocated by printing one char.
