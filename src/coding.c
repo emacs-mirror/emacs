@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, and etc).
-   Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995, 1997, 1998, 2002 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
    Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -7248,7 +7248,7 @@ If VAL is a cons of coding systems, the car part is used for decoding,
 and the cdr part is used for encoding.
 If VAL is a function symbol, the function must return a coding system
 or a cons of coding systems which are used as above.  The function gets
-the arguments with which `find-operation-coding-systems' was called.
+the arguments with which `find-operation-coding-system' was called.
 
 See also the function `find-operation-coding-system'
 and the variable `auto-coding-alist'.  */);
