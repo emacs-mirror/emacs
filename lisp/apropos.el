@@ -90,6 +90,8 @@ This looks good, but slows down the commands several times.")
 (defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-m" 'apropos-follow)
+    (define-key map " "      'scroll-up)
+    (define-key map "\177"   'scroll-down)
     (define-key map [mouse-2] 'apropos-mouse-follow)
     (define-key map [down-mouse-2] nil)
     map)
@@ -115,7 +117,6 @@ This looks good, but slows down the commands several times.")
   (interactive)
   (kill-all-local-variables)
   (use-local-map apropos-mode-map)
-  (view-mode)
   (setq major-mode 'apropos-mode
 	mode-name "Apropos"))
 
