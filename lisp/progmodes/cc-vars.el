@@ -135,7 +135,7 @@ the value set here overrides the style system (there is a variable
 `c-old-style-variable-behavior' that changes this, though).")
       ,@(plist-put
 	 args ':type
-	 `(` (radio
+	 `(\` (radio
 	      (const :tag "Use style settings"
 		     set-from-style)
 	      ,(, (let ((type (eval (plist-get args ':type))))
