@@ -3,8 +3,8 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
-;; Last change: 6 August 1995
-;; Version: 1.4
+;; Last change: 28 May 1997
+;; Version: 1.5
 ;; Keywords: abbrev
 
 ;; This file is part of GNU Emacs.
@@ -260,8 +260,7 @@ undoes the expansion."
 	    (if (and hippie-expand-verbose
 		     (not (window-minibuffer-p (selected-window))))
 		(message "Using %s"
-			 (prin1-to-string (nth he-num 
-				   hippie-expand-try-functions-list))))))
+                         (nth he-num hippie-expand-try-functions-list)))))
       (if (and (>= he-num 0)
 	       (eq (marker-buffer he-string-beg) (current-buffer)))
 	  (progn
@@ -463,9 +462,12 @@ otherwise."
   "Characters that are considered part of the file name to expand.")
 
 (defun he-file-name-beg ()
-  (save-excursion
-    (skip-chars-backward he-file-name-chars)
-    (point)))
+  (let ((op (point)))
+    (save-excursion
+      (skip-chars-backward he-file-name-chars)
+      (if (> (skip-syntax-backward "w") 0)  ;; No words with non-file chars
+          op
+        (point)))))
 
 ;; Thanks go to Richard Levitte <levitte@e.kth.se> who helped to make these
 ;; work under VMS, and to David Hughes <ukchugd@ukpmr.cs.philips.nl> who 
@@ -573,10 +575,9 @@ otherwise."
 	t))))
 
 (defun he-lisp-symbol-beg ()
-  (let ((skips "-a-zA-Z0-9_."))
-    (save-excursion
-      (skip-chars-backward skips)
-      (point))))
+  (save-excursion
+    (skip-syntax-backward "w_")
+    (point)))
 
 (defun try-expand-line (old)
   "Try to complete the current line to an entire line in the buffer.
@@ -991,15 +992,20 @@ string).  It returns t if a new expansion is found, nil otherwise."
 
 (defun he-dabbrev-search (pattern &optional reverse limit)
   (let ((result ())
-	(regpat (if (eq (char-syntax (aref pattern 0)) ?_)
-		    (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+")
-		  (concat "\\<" (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+"))))
+	(regpat (cond ((not he-dabbrev-as-symbol)
+                       (concat "\\<" (regexp-quote pattern) "\\sw+"))
+                      ((eq (char-syntax (aref pattern 0)) ?_)
+                       (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+"))
+                      (t
+                       (concat "\\<" (regexp-quote pattern)
+                               "\\(\\sw\\|\\s_\\)+")))))
     (while (and (not result) 
 		(if reverse
 		     (re-search-backward regpat limit t)
 		     (re-search-forward regpat limit t)))
       (setq result (buffer-substring (match-beginning 0) (match-end 0)))
-      (if (or (and (> (match-beginning 0) (point-min))
+      (if (or (and he-dabbrev-as-symbol
+                   (> (match-beginning 0) (point-min))
 		   (memq (char-syntax (char-after (1- (match-beginning 0))))
 			 '(?_ ?w)))
 	      (he-string-member result he-tried-table t))
@@ -1009,12 +1015,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
 (defvar he-dabbrev-skip-space ()
   "Non-NIL means tolerate trailing spaces in the abbreviation to expand.")
 
+(defvar he-dabbrev-as-symbol t
+  "Non-NIL means expand as symbols, i.e. syntax '_' is considered a letter.")
+
 (defun he-dabbrev-beg ()
   (let ((op (point)))
     (save-excursion
       (if he-dabbrev-skip-space
 	  (skip-syntax-backward ". "))
-      (if (= (skip-syntax-backward "w_") 0)
+      (if (= (skip-syntax-backward (if he-dabbrev-as-symbol "w_" "w")) 0)
 	  op
 	(point)))))
 
@@ -1043,9 +1052,13 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (defun he-dabbrev-kill-search (pattern)
   (let ((result ())
-	(regpat (if (eq (char-syntax (aref pattern 0)) ?_)
-		    (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+")
-		  (concat "\\<" (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+")))
+	(regpat (cond ((not he-dabbrev-as-symbol)
+                       (concat "\\<" (regexp-quote pattern) "\\sw+"))
+                      ((eq (char-syntax (aref pattern 0)) ?_)
+                       (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+"))
+                      (t
+                       (concat "\\<" (regexp-quote pattern)
+                               "\\(\\sw\\|\\s_\\)+"))))
 	(killstr (car he-expand-list)))
     (while (and (not result) 
 		he-expand-list)
@@ -1053,7 +1066,8 @@ string).  It returns t if a new completion is found, nil otherwise."
 		  (string-match regpat killstr he-search-loc2))
 	(setq result (substring killstr (match-beginning 0) (match-end 0)))
 	(setq he-search-loc2 (1+ (match-beginning 0)))
-	(if (or (and (> (match-beginning 0) 0)
+	(if (or (and he-dabbrev-as-symbol
+                     (> (match-beginning 0) 0)
 		     (memq (char-syntax (aref killstr (1- (match-beginning 0))))
 			   '(?_ ?w)))
 		(he-string-member result he-tried-table t))
