@@ -855,8 +855,8 @@ buffer to be saved):
 ;; This uses ediff to find the differences.
 
 ;;;###autoload
-(defun compare-with-file (file-b)
-  "Compare this buffer with a file.
+(defun highlight-compare-with-file (file-b)
+  "Compare this buffer with a file, and highlight differences.
 
 The current buffer must be an unmodified buffer visiting a file,
 and not in read-only mode.
