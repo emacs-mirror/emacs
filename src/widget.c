@@ -732,13 +732,8 @@ EmacsFrameRealize (widget, mask, attrs)
 {
   EmacsFrame ew = (EmacsFrame)widget;
 
-  attrs->event_mask = (KeyPressMask | ExposureMask | ButtonPressMask |
-		       ButtonReleaseMask | StructureNotifyMask |
-		       FocusChangeMask | PointerMotionHintMask |
-		       PointerMotionMask | LeaveWindowMask | EnterWindowMask |
-		       VisibilityChangeMask | PropertyChangeMask |
-		       StructureNotifyMask | SubstructureNotifyMask |
-		       SubstructureRedirectMask);
+  attrs->event_mask = (STANDARD_EVENT_SET | PropertyChangeMask
+		       | SubstructureNotifyMask | SubstructureRedirectMask);
   *mask |= CWEventMask;
   XtCreateWindow (widget, InputOutput, (Visual *)CopyFromParent, *mask,
 		  attrs);
