@@ -5,8 +5,8 @@
 
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.12
-;; Date: $Date: 2000/01/05 12:39:30 $
+;; Version: 3.15
+;; Date: $Date: 2000/02/04 09:19:36 $
 ;; Keywords: languages
 
 ;; This file is part of the GNU Emacs.
@@ -109,7 +109,7 @@
 ;;   point backward, e.g., "\cl" expanded with a space becomes
 ;;   "LONG( )" with point before the close paren.  This is solved by
 ;;   using a temporary function in `post-command-hook' - not pretty, 
-;;   but it works.<
+;;   but it works.
 ;;
 ;;   Tabs and spaces are treated equally as whitespace when filling a
 ;;   comment paragraph.  To accomplish this, tabs are permanently
@@ -128,18 +128,13 @@
 ;;   problems with pointer dereferencing statements.  I don't use
 ;;   pointers often enough to find out - please report any problems.
 ;;
-;;   Completion of keywords for SETPROPERTY and GETPROPERTY assumes that
-;;   all INIT keywords are allowed in these methods as well.  In some
-;;   cases, there are exceptions to this rule and IDLWAVE will offer
-;;   a few illegal keyword parameters.
-;;
 ;;   Completion and Routine Info do not know about inheritance.  Thus,
 ;;   Keywords inherited from superclasses are not displayed and cannot
 ;;   completed.
 ;;
 ;;   When forcing completion of method keywords, the initial
 ;;   query for a method has multiple entries for some methods.  Would
-;;   be too difficult to fix this hardly used problem.
+;;   be too difficult to fix this hardly used case.
 ;;
 
 ;;; Code:
@@ -161,8 +156,8 @@
   :tag "IDLWAVE"
   :link '(url-link :tag "Home Page" 
 		   "http://strw.leidenuniv.nl/~dominik/Tools/idlwave")
-  :link '(emacs-commentary-link :tag "Commentary in idlwave-shell.el"
-				"idlwave-shell.el")
+  :link '(emacs-commentary-link :tag "Commentary in idlw-shell.el"
+				"idlw-shell.el")
   :link '(emacs-commentary-link :tag "Commentary in idlwave.el" "idlwave.el")
   :link '(custom-manual "(idlwave)Top")
   :prefix "idlwave"
@@ -307,7 +302,8 @@ However, under Windows and MacOS, the IDLWAVE shell does not work.  In this
 case, this variable specifies the path where IDLWAVE can find library files.
 The shell will only be asked when this variable is nil.
 The value is a list of directories.  A directory preceeded by a `+' will
-be search recursively."
+be searched recursively.  If you set this variable on a UNIX system, the shell
+will not be asked."
   :group 'idlwave-routine-info-and-completion
   :type '(repeat (directory)))
 
@@ -568,7 +564,7 @@ is loaded."
 
 (defcustom idlwave-surround-by-blank nil
   "*Non-nil means, enable `idlwave-surround'.
-If non-nil, `=',`<',`>',`&',`,' are surrounded with spaces by
+If non-nil, `=',`<',`>',`&',`,', `->' are surrounded with spaces by
 `idlwave-surround'.
 See help for `idlwave-indent-action-table' for symbols using `idlwave-surround'.
 
@@ -783,7 +779,7 @@ If nil it will not be inserted."
   :group 'idlwave)
 
 ;; WARNING: The following variable has recently been moved from
-;; idlwave-shell.el to this file.  I hope this does not break
+;; idlw-shell.el to this file.  I hope this does not break
 ;; anything.
 
 (defcustom idlwave-shell-explicit-file-name "idl"
@@ -885,16 +881,24 @@ class-arrows         Object Arrows with class property"
        ;; The following are the reserved words in IDL.  Maybe we should
        ;; highlight some more stuff as well?       
        (idl-keywords
-;	'("and" "or" "xor" "not"
-;	  "eq" "ge" "gt" "le" "lt" "ne" 
-;	  "for" "do" "endfor"
-;	  "if" "then" "endif" "else" "endelse" 
-;	  "case" "of" "endcase"
-;	  "begin" "end"
-;	  "repeat" "until" "endrep"
-;	  "while" "endwhile" 
-;	  "goto" "return"
-;         "inherits" "mod" "on_error" "on_ioerror")  ;; on_error is not reserved
+	;; To update this regexp, update the list of keywords and 
+	;; evaluate the form.
+;	(insert 
+;	 (concat 
+;	  "\"\\\\<"
+;	  (regexp-opt 
+;	   '("and" "or" "xor" "not"
+;	     "eq" "ge" "gt" "le" "lt" "ne" 
+;	     "for" "do" "endfor"
+;	     "if" "then" "endif" "else" "endelse" 
+;	     "case" "of" "endcase"
+;	     "begin" "end"
+;	     "repeat" "until" "endrep"
+;	     "while" "endwhile" 
+;	     "goto" "return"
+;	     "inherits" "mod"
+;	     "on_error" "on_ioerror"))  ; on_error is not officially reserved
+;	  "\\\\>\""))
 	(concat	"\\<\\("
 		"and\\|begin\\|case\\|do\\|e\\(lse\\|nd\\(case\\|else\\|"
 		"for\\|if\\|rep\\|while\\)?\\|q\\)\\|for\\|g\\(oto\\|[et]\\)"
@@ -942,12 +946,13 @@ class-arrows         Object Arrows with class property"
 
        ;; Named parameters, like /xlog or ,xrange=[]
        ;; This is anchored to the comma preceeding the keyword.
-       ;; With continuation lines, works only during whole buffer fontification.
+       ;; Treats continuation lines, works only during whole buffer
+       ;; fontification.  Slow, use it only in fancy fontification.
        (keyword-parameters
-	'("[(,][ \t]*\\(\\$[ \t]*\n[ \t]*\\)?\\(/[a-zA-Z_]\\sw*\\|[a-zA-Z_]\\sw*[ \t]*=\\)"
-	  (2 font-lock-reference-face)))
+	'("[(,][ \t]*\\(\\$[ \t]*\\(;.*\\)?\\(\n[ \t]*;.*\\)*\n[ \t]*\\)?\\(/[a-zA-Z_]\\sw*\\|[a-zA-Z_]\\sw*[ \t]*=\\)"
+	  (4 font-lock-reference-face)))
 
-       ;; System variables stars with a bang.
+       ;; System variables start with a bang.
        (system-variables
 	'("\\(![a-zA-Z_]+\\(\\.\\sw+\\)?\\)"
 	  (1 font-lock-variable-name-face)))
@@ -1102,7 +1107,7 @@ blocks starting with a BEGIN statement.  The matches must have associations
    '(goto . ("goto\\>" nil))
    '(case . ("case\\>" nil))
    (cons 'call (list (concat idlwave-identifier "\\(\\s *$\\|\\s *,\\)") nil))
-   '(assign . ("[^=\n]*=" nil)))
+   '(assign . ("[^=>\n]*=" nil)))
   
   "Associated list of statement matching regular expressions.
 Each regular expression matches the start of an IDL statement.  The
@@ -1134,7 +1139,7 @@ Normally a space.")
   "Character which is inserted as a last character on previous line by
    \\[idlwave-split-line] to begin a continuation line.  Normally $.")
 
-(defconst idlwave-mode-version " 3.12")
+(defconst idlwave-mode-version " 3.15")
 
 (defmacro idlwave-keyword-abbrev (&rest args)
   "Creates a function for abbrev hooks to call `idlwave-check-abbrev' with args."
@@ -1240,6 +1245,8 @@ Capitalize system variables - action only
 
 (fset 'idlwave-debug-map (make-sparse-keymap))
 
+(define-key idlwave-mode-map "\C-c "    'idlwave-hard-tab)
+;(define-key idlwave-mode-map "\C-c\C- " 'idlwave-hard-tab)
 (define-key idlwave-mode-map "'"        'idlwave-show-matching-quote)
 (define-key idlwave-mode-map "\""       'idlwave-show-matching-quote)
 (define-key idlwave-mode-map "\C-c;"    'idlwave-toggle-comment-region)
@@ -1294,6 +1301,7 @@ Capitalize system variables - action only
 (idlwave-action-and-binding "&"  '(idlwave-surround -1 -1))
 (idlwave-action-and-binding "<"  '(idlwave-surround -1 -1))
 (idlwave-action-and-binding ">"  '(idlwave-surround -1 -1 '(?-)))
+(idlwave-action-and-binding "->" '(idlwave-surround -1 -1 nil 2))
 (idlwave-action-and-binding ","  '(idlwave-surround 0 -1))
 ;; Automatically add spaces to equal sign if not keyword
 (idlwave-action-and-binding "="  '(idlwave-expand-equal -1 -1))
@@ -1796,42 +1804,48 @@ Also checks if the correct end statement has been used."
     (insert end)
     (idlwave-newline)))
 
-(defun idlwave-surround (&optional before after escape-chars)
-  "Surround the character before point with blanks.
+(defun idlwave-surround (&optional before after escape-chars length)
+  "Surround the LENGTH characters before point with blanks.
+LENGTH defaults to 1.
 Optional arguments BEFORE and AFTER affect the behavior before and
-after the previous character. See description of `idlwave-make-space'.
+after the characters (see also description of `idlwave-make-space'):
+
+nil            do nothing
+0              force no spaces
+integer > 0    force exactly n spaces
+integer < 0    at least |n| spaces
 
 The function does nothing if any of the following conditions is true:
 - `idlwave-surround-by-blank' is nil
 - the character before point is inside a string or comment
+- the char preceeding the string to be surrounded is a member of ESCAPE-CHARS.
+  This hack is used to avoid padding of `>' when it is part of
+  the '->' operator.  In this case, ESCAPE-CHARS would be '(?-)."
 
-When the character 2 positions before point is a member of
-ESCAPE-CHARS, BEFORE is forced to nil."
+  (setq length (or length 1))   ; establish a default for LENGTH
 
-  (if (and idlwave-surround-by-blank
-	   (not (idlwave-quoted)))
-      (progn
-	(if (memq (char-after (- (point) 2)) escape-chars)
-	    (setq before nil))
-        (backward-char 1)
-        (save-restriction
-          (let ((here (point)))
-            (skip-chars-backward " \t")
-            (if (bolp)
-                ;; avoid clobbering indent
-                (progn
-                  (move-to-column (idlwave-calculate-indent))
-                  (if (<= (point) here)
-                      (narrow-to-region (point) here))
-                  (goto-char here)))
-            (idlwave-make-space before))
-          (skip-chars-forward " \t"))
-        (forward-char 1)
-        (idlwave-make-space after)
-        ;; Check to see if the line should auto wrap
-        (if (and (equal (char-after (1- (point))) ? )
-                 (> (current-column) fill-column))
-            (funcall auto-fill-function)))))
+  (when (and idlwave-surround-by-blank
+	     (not (idlwave-quoted))
+	     (not (memq (char-after (- (point) (1+ length))) escape-chars)))
+    (backward-char length)
+    (save-restriction
+      (let ((here (point)))
+	(skip-chars-backward " \t")
+	(if (bolp)
+	    ;; avoid clobbering indent
+	    (progn
+	      (move-to-column (idlwave-calculate-indent))
+	      (if (<= (point) here)
+		  (narrow-to-region (point) here))
+	      (goto-char here)))
+	(idlwave-make-space before))
+      (skip-chars-forward " \t"))
+    (forward-char length)
+    (idlwave-make-space after)
+    ;; Check to see if the line should auto wrap
+    (if (and (equal (char-after (1- (point))) ? )
+	     (> (current-column) fill-column))
+	(funcall auto-fill-function))))
 
 (defun idlwave-make-space (n)
   "Make space at point.
@@ -1841,10 +1855,10 @@ the contiguous space.
 The amount of space at point is determined by N.
 If the value of N is:
 nil   - do nothing.
-c > 0 - exactly c spaces.
-c < 0 - a minimum of -c spaces, i.e., do not change if there are
-        already -c spaces.
-0     - no spaces."
+> 0   - exactly N spaces.
+< 0   - a minimum of -N spaces, i.e., do not change if there are
+        already -N spaces.
+0     - no spaces (i.e. remove any existing space)."
   (if (integerp n)
       (let
           ((start-col (progn (skip-chars-backward " \t") (current-column)))
@@ -3026,13 +3040,18 @@ constants - a double quote followed by an octal digit."
 
 Opens a line if point is not followed by a newline modulo intervening
 whitespace.  S1 and S2 are strings.  S1 is inserted at point followed
-by S2.  Point is inserted between S1 and S2.  If optional argument
+by S2.  Point is inserted between S1 and S2.  The case of S1 and S2 is
+adjusted according to `idlwave-abbrev-change-case'.  If optional argument
 PROMPT is a string then it is displayed as a message in the
 minibuffer.  The PROMPT serves as a reminder to the user of an
 expression to enter.
 
 The lines containing S1 and S2 are reindented using `indent-region'
 unless the optional second argument NOINDENT is non-nil."
+  (cond ((eq idlwave-abbrev-change-case 'down)
+	 (setq s1 (downcase s1) s2 (downcase s2)))
+	(idlwave-abbrev-change-case
+	 (setq s1 (upcase s1) s2 (upcase s2))))
   (let ((beg (save-excursion (beginning-of-line) (point)))
         end)
     (if (not (looking-at "\\s-*\n"))
@@ -3046,43 +3065,71 @@ unless the optional second argument NOINDENT is non-nil."
     (if (stringp prompt)
         (message prompt))))
 
+(defun idlwave-rw-case (string)
+  "Make STRING have the case required by `idlwave-reserved-word-upcase'."
+  (if idlwave-reserved-word-upcase
+      (upcase string)
+    string))
+
 (defun idlwave-elif ()
   "Build skeleton IDL if-else block."
   (interactive)
-  (idlwave-template "if" 
-		    " then begin\n\nendif else begin\n\nendelse"
-		    "Condition expression"))
+  (idlwave-template
+   (idlwave-rw-case "if")
+   (idlwave-rw-case " then begin\n\nendif else begin\n\nendelse")
+   "Condition expression"))
 
 (defun idlwave-case ()
   "Build skeleton IDL case statement."
   (interactive)
-  (idlwave-template "case" " of\n\nendcase" "Selector expression"))
+  (idlwave-template 
+   (idlwave-rw-case "case")
+   (idlwave-rw-case " of\n\nendcase")
+   "Selector expression"))
 
 (defun idlwave-for ()
   "Build skeleton for loop statment."
   (interactive)
-  (idlwave-template "for" " do begin\n\nendfor" "Loop expression"))
+  (idlwave-template 
+   (idlwave-rw-case "for")
+   (idlwave-rw-case " do begin\n\nendfor")
+   "Loop expression"))
 
 (defun idlwave-if ()
   "Build skeleton for loop statment."
   (interactive)
-  (idlwave-template "if" " then begin\n\nendif" "Scalar logical expression"))
+  (idlwave-template
+   (idlwave-rw-case "if")
+   (idlwave-rw-case " then begin\n\nendif")
+   "Scalar logical expression"))
 
 (defun idlwave-procedure ()
   (interactive)
-  (idlwave-template "pro" "\n\nreturn\nend" "Procedure name"))
+  (idlwave-template 
+   (idlwave-rw-case "pro")
+   (idlwave-rw-case "\n\nreturn\nend")
+   "Procedure name"))
 
 (defun idlwave-function ()
   (interactive)
-  (idlwave-template "function" "\n\nreturn\nend" "Function name"))
+  (idlwave-template 
+   (idlwave-rw-case "function")
+   (idlwave-rw-case "\n\nreturn\nend")
+   "Function name"))
 
 (defun idlwave-repeat ()
   (interactive)
-  (idlwave-template "repeat begin\n\nendrep until" "" "Exit condition"))
+  (idlwave-template
+   (idlwave-rw-case "repeat begin\n\nendrep until")
+   (idlwave-rw-case "")
+   "Exit condition"))
 
 (defun idlwave-while ()
   (interactive)
-  (idlwave-template "while" " do begin\n\nendwhile" "Entry condition"))
+  (idlwave-template 
+   (idlwave-rw-case "while")
+   (idlwave-rw-case " do begin\n\nendwhile")
+   "Entry condition"))
 
 (defun idlwave-split-string (string &optional pattern)
   "Return a list of substrings of STRING which are separated by PATTERN.
@@ -4133,8 +4180,7 @@ When we force a method or a method keyword, CLASS can specify the class."
 	      (idlwave-make-force-complete-where-list arg module class)
 	    (idlwave-where)))
 	 (what (nth 2 where-list))
-	 (idlwave-force-class-query (equal arg '(4)))
-	 cwin)
+	 (idlwave-force-class-query (equal arg '(4))))
 
     (if (and module (string-match "::" module))
 	(setq class (substring module 0 (match-beginning 0))
@@ -4144,7 +4190,7 @@ When we force a method or a method keyword, CLASS can specify the class."
 
      ((and (null arg)
 	   (eq (car-safe last-command) 'idlwave-display-completion-list)
-	   (setq cwin (get-buffer-window "*Completions*")))
+	   (get-buffer-window "*Completions*"))
       (setq this-command last-command)
       (idlwave-scroll-completions))
 
@@ -5611,7 +5657,7 @@ Assumes that point is at the beginning of the unit as found by
      ["Abbreviation List" idlwave-list-abbrevs t]
      "--"
      ["Commentary in idlwave.el" idlwave-show-commentary t]
-     ["Commentary in idlwave-shell.el" idlwave-shell-show-commentary t]
+     ["Commentary in idlw-shell.el" idlwave-shell-show-commentary t]
      "--"
      ["Info" idlwave-info t]
      "--"
@@ -5671,10 +5717,10 @@ Assumes that point is at the beginning of the unit as found by
   (finder-commentary "idlwave.el"))
 
 (defun idlwave-shell-show-commentary ()
-  "Use the finder to view the file documentation from `idlwave-shell.el'."
+  "Use the finder to view the file documentation from `idlw-shell.el'."
   (interactive)
   (require 'finder)
-  (finder-commentary "idlwave-shell.el"))
+  (finder-commentary "idlw-shell.el"))
 
 (defun idlwave-info ()
   "Read documentation for IDLWAVE in the info system."
@@ -5750,4 +5796,6 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 (provide 'idlwave)
 
 ;;; idlwave.el ends here
+
+
 
