@@ -836,7 +836,17 @@ w32_ring_bell (void)
   BLOCK_INPUT;
 
   if (visible_bell)
-      FlashWindow (FRAME_W32_WINDOW (selected_frame), TRUE);
+    {
+      int i;
+      HWND hwnd = FRAME_W32_WINDOW (selected_frame);
+
+      for (i = 0; i < 5; i++) 
+	{
+	  FlashWindow (hwnd, TRUE);
+	  Sleep (10);
+	}
+      FlashWindow (hwnd, FALSE);
+    }
   else
       w32_sys_ring_bell ();
 
