@@ -24,22 +24,22 @@
 
 2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* message.el (message-forward-rmail-make-body):
+	* message.el (message-forward-rmail-make-body): Use
 	save-window-excursion.
-	(message-encode-message-body): No error.
-	(message-setup-1): Compose-mail send-actions are different from
+	(message-encode-message-body): Use noerror when search.
+	(message-setup-1): Convert compose-mail send-actions to
 	message-send-actions.
 
 	* message.el (message-forward-subject-author-subject): Don't use
 	message-news-p, which widens the buffer.
 	(message-forward-make-body): New function.
 	(message-forward): Use it.
-	(message-insinuate-rmail): New.
-	(message-forward-rmail-make-body): New.
+	(message-insinuate-rmail): New function.
+	(message-forward-rmail-make-body): New function.
 
-	* gnus-util.el (gnus-directory-sep-char-regexp): New.
+	* gnus-util.el (gnus-directory-sep-char-regexp): New variable.
 	* gnus-score.el (gnus-score-find-bnews): Sync with Gnus CVS.
-	* mm-util.el: Sync.
+	* mm-util.el: Sync. Read ChangeLog in Gnus CVS.
 
 	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
 	(gnus-summary-limit-to-author): Ditto.
