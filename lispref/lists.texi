@@ -1227,6 +1227,13 @@ compare @var{object} against the elements of the list.  For example:
 @end example
 @end defun
 
+@defun member-ignore-case object list
+This function is like @code{member}, except that it ignores
+differences in letter-case and text representation: upper-case and
+lower-case letters are treated as equal, and unibyte strings are
+converted to multibyte prior to comparison.
+@end defun
+
 @defun delq object list
 @cindex deletion of elements
 This function destructively removes all elements @code{eq} to
