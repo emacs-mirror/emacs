@@ -4025,32 +4025,30 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 
       if (len > width)
 	len = width;
-#ifdef HAVE_FACES
-      if (!NULL_INTERVAL_P (XSTRING (Voverlay_arrow_string)->intervals))
+
+      /* If the arrow string has text props, obey them when displaying.  */
+      for (i = 0, i_byte = 0; i < len; )
 	{
-	  /* If the arrow string has text props, obey them when displaying.  */
-	  for (i = 0, i_byte = 0; i < len; )
+	  int c;
+	  Lisp_Object face, ilisp;
+	  int newface;
+	  int idx = i;
+
+	  if (STRING_MULTIBYTE (Voverlay_arrow_string))
+	    FETCH_STRING_CHAR_ADVANCE (c, Voverlay_arrow_string, i, i_byte);
+	  else
+	    c = XSTRING (Voverlay_arrow_string)->data[i++];
+
+	  XSETFASTINT (ilisp, i);
+#ifdef HAVE_FACES
+	  if (FRAME_WINDOW_P (f))
 	    {
-	      int c;
-	      Lisp_Object face, ilisp;
-	      int newface;
-
-	      if (STRING_MULTIBYTE (Voverlay_arrow_string))
-		FETCH_STRING_CHAR_ADVANCE (c, Voverlay_arrow_string, i, i_byte);
-	      else
-		c = XSTRING (Voverlay_arrow_string)->data[i++];
-
-	      XSETFASTINT (ilisp, i);
 	      face = Fget_text_property (ilisp, Qface, Voverlay_arrow_string);
 	      newface = compute_glyph_face_1 (f, face, 0);
-	      leftmargin[i] = FAST_MAKE_GLYPH (c, newface);
+	      c = FAST_MAKE_GLYPH (c, newface);
 	    }
-	}
-      else
 #endif /* HAVE_FACES */
-	{
-	  for (i = 0; i < len; i++)
-	    leftmargin[i] = p[i];
+	  leftmargin[idx] = c;
 	}
 
       /* Bug in SunOS 4.1.1 compiler requires this intermediate variable.  */
