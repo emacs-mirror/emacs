@@ -1,3 +1,9 @@
+2003-07-22  Andrew Choi  <akochoi@shaw.ca>
+
+	* unexmacosx.c (unexec_regions_sort_compare):
+	(unexec_regions_merge): New functions.  Sort and merge unexec
+	regions before dumping them.
+
 2003-07-22  Dave Love  <fx@gnu.org>
 
 	* xfns.c [HAVE_PNG]: Consider both png.h and libpng/png.h.
