@@ -1607,10 +1607,6 @@ encode_char (charset, c)
 	c = XINT (deunified);
     }
 
-  if (! CHARSET_FAST_MAP_REF ((c), charset->fast_map)
-      || c < CHARSET_MIN_CHAR (charset) || c > CHARSET_MAX_CHAR (charset))
-    return CHARSET_INVALID_CODE (charset);
-
   if (method == CHARSET_METHOD_SUBSET)
     {
       Lisp_Object subset_info;
@@ -1644,6 +1640,10 @@ encode_char (charset, c)
 	}
       return CHARSET_INVALID_CODE (charset);
     }
+
+  if (! CHARSET_FAST_MAP_REF ((c), charset->fast_map)
+      || c < CHARSET_MIN_CHAR (charset) || c > CHARSET_MAX_CHAR (charset))
+    return CHARSET_INVALID_CODE (charset);
 
   if (method == CHARSET_METHOD_MAP_DEFERRED)
     {
