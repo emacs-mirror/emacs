@@ -1,3 +1,7 @@
+2000-11-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* bs.el: Undo mistaken change of 2000-11-28.  Update copyright.
+
 2000-11-30  Rob Riepel  <riepel@Stanford.EDU>
 
 	* emulation/tpu-edt.el (tpu-version): New version.

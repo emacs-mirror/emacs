@@ -1,5 +1,7 @@
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xmenu.c (popup_get_selection): Use xmalloc instead of malloc.
+
 	* xterm.c (x_estimate_mode_line_height): If `mode-line' face
 	hasn't a font, use that of the frame, as drawing glyphs
 	does.
