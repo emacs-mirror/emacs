@@ -295,7 +295,7 @@ If a number, only buffers greater than this size have fontification messages."
 
 (defvar font-lock-keywords nil
   "A list of the keywords to highlight.
-Each element should be of the form:
+Each element should have one of these forms:
 
  MATCHER
  (MATCHER . MATCH)
@@ -318,7 +318,7 @@ MATCH-HIGHLIGHT should be of the form:
 
  (MATCH FACENAME OVERRIDE LAXMATCH)
 
-Where MATCHER can be either the regexp to search for, or the function name to
+where MATCHER can be either the regexp to search for, or the function name to
 call to make the search (called with one argument, the limit of the search) and
 return non-nil if it succeeds (and set `match-data' appropriately).
 MATCHER regexps can be generated via the function `regexp-opt'.  MATCH is the
@@ -351,7 +351,7 @@ MATCH-ANCHORED should be of the form:
 
  (MATCHER PRE-MATCH-FORM POST-MATCH-FORM MATCH-HIGHLIGHT ...)
 
-Where MATCHER is as for MATCH-HIGHLIGHT with one exception; see below.
+where MATCHER is as for MATCH-HIGHLIGHT with one exception; see below.
 PRE-MATCH-FORM and POST-MATCH-FORM are evaluated before the first, and after
 the last, instance MATCH-ANCHORED's MATCHER is used.  Therefore they can be
 used to initialise before, and cleanup after, MATCHER is used.  Typically,
