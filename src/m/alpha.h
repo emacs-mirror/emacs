@@ -159,7 +159,7 @@ NOTE-END
 
 #define DATA_SEG_BITS 0x140000000
 
-#ifdef __osf1__
+#ifdef OSF1
 #define ORDINARY_LINK
 
 /* Some systems seem to have this, others don't.  */
@@ -168,7 +168,7 @@ NOTE-END
 #else
 #define LIBS_MACHINE -ldnet_stub
 #endif
-#endif /* __osf1__ */
+#endif /* OSF1 */
 
 #if 0 /* Rainer Schoepf <schoepf@uni-mainz.de> says this loses with X11R6
 	 since it has only shared libraries.  */
@@ -180,7 +180,7 @@ NOTE-END
 #endif
 #endif /* 0 */
 
-#ifdef __osf1__
+#ifdef OSF1
 #define LIBS_DEBUG
 #define START_FILES pre-crt0.o
 #endif
@@ -263,6 +263,7 @@ extern void r_alloc_free ();
 #endif /* not THIS_IS_YMAKEFILE */
 #endif /* not NOT_C_CODE */
 
+#ifdef OSF1
 #define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
@@ -275,6 +276,7 @@ extern void r_alloc_free ();
       close (dummy);					\
     }							\
   while (0)
+#endif
 
 #ifdef linux
 #define COFF
