@@ -3410,7 +3410,8 @@ This is all buffers that have auto-saving enabled\n\
 and are changed since last auto-saved.\n\
 Auto-saving writes the buffer into a file\n\
 so that your editing is not lost if the system crashes.\n\
-This file is not the file you visited; that changes only when you save.\n\n\
+This file is not the file you visited; that changes only when you save.\n\
+Normally we run the normal hook `auto-save-hook' before saving.\n\n\
 Non-nil first argument means do not print any message if successful.\n\
 Non-nil second argument means save only current buffer.")
   (no_message, current_only)
@@ -3437,8 +3438,6 @@ Non-nil second argument means save only current buffer.")
   if (minibuf_level)
     no_message = Qt;
 
-  /* Vrun_hooks is nil before emacs is dumped, and inc-vers.el will
-     eventually call do-auto-save, so don't err here in that case. */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("auto-save-hook"));
 
