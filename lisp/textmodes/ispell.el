@@ -1036,6 +1036,8 @@ used."
 				ispell-choices-win-default-height))
 	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
 	(skipped 0)
+	(window (selected-window))
+	(dedicated (window-dedicated-p (selected-window)))
 	char num result textwin highlighted)
 
     ;; setup the *Choices* buffer with valid data.
@@ -1263,7 +1265,8 @@ used."
       (if ispell-highlight-p		; unhighlight
 	  (save-window-excursion
 	    (select-window textwin)
-	    (ispell-highlight-spelling-error start end))))))
+	    (ispell-highlight-spelling-error start end)))
+      (set-window-dedicated-p window dedicated))))
 
 
 ;;;###autoload
@@ -1497,6 +1500,12 @@ scrolling the current window.  Leave the new window selected."
       (if (string-match "19\.9.*Lucid" (emacs-version))
 	  (setq height (1+ height)))
       (split-window nil height)
+      ;; The lower of the two windows is the logical successor
+      ;; of the original window, so move the dedicated flag to there.
+      ;; The new upper window should not be dedicated.
+      (set-window-dedicated-p (next-window)
+			      (window-dedicated-p (selected-window)))
+      (set-window-dedicated-p (selected-window) nil)
       (set-window-start (next-window) top))))
 
 
