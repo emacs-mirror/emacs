@@ -558,7 +558,19 @@ sigsetmask (int signal_mask)
 }
 
 int 
+sigmask (int sig) 
+{ 
+  return 0;
+}
+
+int 
 sigblock (int sig) 
+{ 
+  return 0;
+}
+
+int 
+sigunblock (int sig) 
 { 
   return 0;
 }
