@@ -551,7 +551,7 @@ nunix-61|nu-telnet-61|nu-full| Full nu screen thru telnet:\
 d0|vt200-80|vt200|VT 200 with 80 columns, on VMS:\
 	:AL=\E[%dL:DC=\E[%dP:DL=\E[%dM:DO=\E[%dB:IC=\E[%d@:\
 	:LE=\E[%dD:RI=\E[%dC:SR=1*\E[%dM:UP=\E[%dA:al=\E[L:\
-	:am:bl=^G:bs:cd=2*\E[J:ce=2\E[K:cl=45\E[H\E[2J:\
+	:am:bl=^G:bs:cd=2*\E[J:ce=2*\E[K:cl=45\E[H\E[2J:\
 	:cm=%i\E[%d;%dH:co#80:cr=\r:cs=\E[%i%d;%dr:ct=\E[3g:\
 	:dc=\E[P:dl=\E[M:dm=:do=\ED:ec=\E[%dX:ed=:ei=\E[4l:\
 	:ho=\E[H:ic:im=\E[4h:it#8:k1=\EOP:k2=\EOQ:k3=\EOR:\
