@@ -429,6 +429,8 @@ A large number or nil slows down menu responsiveness.")
 	   file))
 	(car elt)))
 
+(defvar menu-bar-buffers-menu-list-buffers-entry nil)
+
 (defun menu-bar-update-buffers ()
   ;; If user discards the Buffers item, play along.
   (and (lookup-key (current-global-map) [menu-bar buffer])
@@ -486,6 +488,25 @@ A large number or nil slows down menu responsiveness.")
 				(setq maxlen (length (car (car alist))))))
 			 (setq tail (cdr tail)))
 		       (setq alist (nreverse alist))
+		       ;; Make the menu item for list-buffers
+		       ;; or reuse the one we already have.
+		       ;; The advantage in reusing one
+		       ;; is that it already has the keyboard equivalent
+		       ;; cached, so we save the time to look that up again.
+		       (or menu-bar-buffers-menu-list-buffers-entry
+			   (setq menu-bar-buffers-menu-list-buffers-entry
+				 (cons
+				  'list-buffers
+				  (cons
+				   ""
+				   'list-buffers))))
+		       ;; Update the item string for menu's new width.
+		       (setcar (cdr menu-bar-buffers-menu-list-buffers-entry)
+			       (concat (make-string (max (- (/ maxlen 2) 8) 0)
+						    ?\ )
+				       "List All Buffers"))
+		       ;; Now make the actual list of items,
+		       ;; ending with the list-buffers item.
 		       (nconc (mapcar '(lambda (pair)
 					 ;; This is somewhat risque, to use
 					 ;; the buffer name itself as the event
@@ -498,14 +519,7 @@ A large number or nil slows down menu responsiveness.")
 						      (cons nil nil))
 						'menu-bar-select-buffer))
 				      alist)
-			      (list
-			       (cons
-				'list-buffers
-				(cons
-				 (concat (make-string (max (- (/ maxlen 2) 8) 0)
-						      ?\ )
-					 "List All Buffers")
-				 'list-buffers)))))))
+			      (list menu-bar-buffers-menu-list-buffers-entry)))))
 
 
 	 ;; Make a Frames menu if we have more than one frame.
