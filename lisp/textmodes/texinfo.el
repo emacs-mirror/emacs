@@ -358,8 +358,8 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ("@\\(anchor\\){\\([^}]+\\)" 2 font-lock-type-face)
     ("@\\(dmn\\|acronym\\|value\\){\\([^}]+\\)" 2 font-lock-builtin-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-keyword-face keep)
-    (,texinfo-environment-regexp
-     1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
+    ;; (,texinfo-environment-regexp
+    ;;  1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
 	       ".*\n") 0 texinfo-heading-face t))
   "Additional expressions to highlight in TeXinfo mode.")
@@ -377,7 +377,8 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 	    (forward-word 1)
 	    (texinfo-next-unmatched-end))
 	  (skip-syntax-forward "^w")
-	  (when (looking-at (regexp-quote (buffer-substring start end)))
+	  (when (looking-at
+		 (concat (regexp-quote (buffer-substring start end)) "\\>"))
 	    (text-clone-create start end 'spread "\\w*")))))))
 
 (defun texinfo-outline-level ()
