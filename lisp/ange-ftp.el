@@ -671,7 +671,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^Connected \\|^$\\|^Remote system\\|^Using\\|^ \\|Password:\\|"
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
-	  "^227 .*[Pp]assive")
+	  "^227 .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
   "*Regular expression matching ftp messages that can be ignored."
   :group 'ange-ftp
   :type 'regexp)
