@@ -1,3 +1,20 @@
+2000-05-22  Dave Love  <fx@gnu.org>
+
+	* loadhist.el (feature-symbols, file-provides, file-requires): Use
+	mapc.
+	(feature-file): Avoid calling symbol-name.  Doc fix.
+	(file-set-intersect, file-dependents): Use dolist, not mapcar.
+	(loadhist-hook-functions): Add mouse-position-function.
+	(unload-feature): Change uses of mapcar.
+
+	* files.el (parse-colon-path): Doc fix.
+	(auto-mode-alist, interpreter-mode-alist): Purecopy the cars.
+	(set-auto-mode): Use mapc.
+
+	* complete.el (PC-look-for-include-file): Use :alnum: character
+	class.
+	(partial-completion-mode): Add autoload cookie.
+
 2000-05-22  Sam Steingold  <sds@gnu.org>
 
 	* info.el (Info-fontify-node): fixed the call to
