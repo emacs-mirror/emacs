@@ -61,6 +61,8 @@ enum button_type
   BUTTON_TYPE_RADIO
 };
 
+/* This structure is based on the one in ../lwlib/lwlib.h, modified
+   for Windows.  */
 typedef struct _widget_value
 {
   /* name of widget */
@@ -69,8 +71,10 @@ typedef struct _widget_value
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */ 
   char*		key;
-  /* Help string or null if none.  */
-  char		*help;
+  /* Help string or nil if none.
+     GC finds this string through the frame's menu_bar_vector
+     or through menu_items.  */
+  Lisp_Object	help;
   /* true if enabled */
   Boolean	enabled;
   /* true if selected */
@@ -1269,10 +1273,10 @@ single_submenu (item_key, item_name, maps)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-	  if (STRINGP (help))
-	    wv->help = (char *) XSTRING (help)->data;
-          else
-            wv->help = NULL;
+	  if (!STRINGP (help))
+	    help = Qnil;
+
+	  wv->help = help;
 
 	  prev_wv = wv;
 
@@ -1727,8 +1731,10 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-          if (STRINGP (help))
-            wv->help = XSTRING (help)->data;
+          if (!STRINGP (help))
+	    help = Qnil;
+
+	  wv->help = help;
 
 	  prev_wv = wv;
 
@@ -2083,13 +2089,18 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	out_string = wv->name;
 
-      if (wv->title || wv->call_data == 0)
+      if (item != NULL)
+	fuFlags = MF_POPUP;
+      else if (wv->title || wv->call_data == 0)
 	{
 	  /* Only use MF_OWNERDRAW if GetMenuItemInfo is usable, since
 	     we can't deallocate the memory otherwise.  */
 	  if (get_menu_item_info)
 	    {
-	      out_string = LocalAlloc (LPTR, strlen (wv->name) + 1);
+	      out_string = (char *) LocalAlloc (LPTR, strlen (wv->name) + 1);
+#ifdef MENU_DEBUG
+	      DebPrint ("Menu: allocing %ld for owner-draw", info.dwItemData);
+#endif
 	      strcpy (out_string, wv->name);
 	      fuFlags = MF_OWNERDRAW | MF_DISABLED;
 	    }
@@ -2104,9 +2115,6 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	fuFlags |= MF_UNCHECKED;
     }
-
-  if (item != NULL)
-    fuFlags = MF_POPUP;
 
   return_value =
     AppendMenu (menu,
@@ -2124,15 +2132,11 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  info.cbSize = sizeof (info);
 	  info.fMask = MIIM_DATA;
 
-	  /* Set help string for menu item.  Allocate new memory
-	     from the heap for it, since garbage collection can
-	     occur while menus are active.  */
+	  /* Set help string for menu item.  Leave it as a Lisp_Object
+	     until it is ready to be displayed, since GC can happen while
+	     menus are active.  */
 	  if (wv->help)
-	    {
-	      info.dwItemData
-		= (DWORD) LocalAlloc (LPTR, strlen(wv->help) + 1);
-	      strcpy (info.dwItemData, wv->help);
-	    }
+	    info.dwItemData = (DWORD) wv->help;
 
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
@@ -2213,7 +2217,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	  info.fMask = MIIM_DATA;
 	  get_menu_item_info (menu, item, FALSE, &info);
 
-	  help = info.dwItemData ? build_string ((char *)info.dwItemData) : Qnil;
+	  help = info.dwItemData ? (Lisp_Object) info.dwItemData : Qnil;
 	}
 
       /* Store the help echo in the keyboard buffer as the X toolkit
@@ -2232,7 +2236,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
     }
 }
 
-/* Free memory used by owner-drawn and help_echo strings.  */
+/* Free memory used by owner-drawn strings.  */
 static void
 w32_free_submenu_strings (menu)
      HMENU menu;
@@ -2243,13 +2247,18 @@ w32_free_submenu_strings (menu)
       MENUITEMINFO info;
 
       info.cbSize = sizeof (info);
-      info.fMask = MIIM_DATA | MIIM_SUBMENU;
+      info.fMask = MIIM_DATA | MIIM_TYPE | MIIM_SUBMENU;
 
       get_menu_item_info (menu, i, TRUE, &info);
 
-      /* Both owner-drawn names and help strings are held in dwItemData.  */
-      if (info.dwItemData)
-	LocalFree (info.dwItemData);
+      /* Owner-drawn names are held in dwItemData.  */
+      if ((info.fType & MF_OWNERDRAW) && info.dwItemData)
+	{
+#ifdef MENU_DEBUG
+	  DebPrint ("Menu: freeing %ld for owner-draw", info.dwItemData);
+#endif
+	  LocalFree (info.dwItemData);
+	}
 
       /* Recurse down submenus.  */
       if (info.hSubMenu)
