@@ -870,6 +870,19 @@ store_in_keymap (keymap, idx, def)
 		ASET (elt, XFASTINT (idx), def);
 		return def;
 	      }
+	    else if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	      {
+		int from = XFASTINT (XCAR (idx));
+		int to = XFASTINT (XCDR (idx));
+
+		if (to >= ASIZE (elt))
+		  to = ASIZE (elt) - 1;
+		for (; from <= to; from++)
+		  ASET (elt, from, def);
+		if (to == XFASTINT (XCDR (idx)))
+		  /* We have defined all keys in IDX.  */
+		  return def;
+	      }
 	    insertion_point = tail;
 	  }
 	else if (CHAR_TABLE_P (elt))
@@ -900,6 +913,19 @@ store_in_keymap (keymap, idx, def)
 		XSETCDR (elt, def);
 		return def;
 	      }
+	    else if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	      {
+		int from = XFASTINT (XCAR (idx));
+		int to = XFASTINT (XCDR (idx));
+
+		if (from <= XFASTINT (XCAR (elt))
+		    && to >= XFASTINT (XCAR (elt)))
+		  {
+		    XSETCDR (elt, def);
+		    if (from == to)
+		      return def;
+		  }
+	      }
 	  }
 	else if (EQ (elt, Qkeymap))
 	  /* If we find a 'keymap' symbol in the spine of KEYMAP,
@@ -914,8 +940,21 @@ store_in_keymap (keymap, idx, def)
   keymap_end:
     /* We have scanned the entire keymap, and not found a binding for
        IDX.  Let's add one.  */
-    XSETCDR (insertion_point,
-	     Fcons (Fcons (idx, def), XCDR (insertion_point)));
+    {
+      Lisp_Object elt;
+
+      if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	{
+	  /* IDX specifies a range of characters, and not all of them
+	     were handled yet, which means this keymap doesn't have a
+	     char-table.  So, we insert a char-table now.  */
+	  elt = Fmake_char_table (Qkeymap, Qnil);
+	  Fset_char_table_range (elt, idx, NILP (def) ? Qt : def);
+	}
+      else
+	elt = Fcons (idx, def);
+      XSETCDR (insertion_point, Fcons (elt, XCDR (insertion_point)));
+    }
   }
 
   return def;
