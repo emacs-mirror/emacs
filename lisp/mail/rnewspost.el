@@ -96,8 +96,6 @@
 	(cons "News" (make-sparse-keymap "News")))
       (define-key news-reply-mode-map [menu-bar news news-caesar-buffer-body]
 	'("Rot13" . news-caesar-buffer-body))
-      (define-key news-reply-mode-map [menu-bar news news-reply-signature]
-	'("Signature" . news-reply-signature))
       (define-key news-reply-mode-map [menu-bar news news-reply-yank-original]
 	'("Yank Original" . news-reply-yank-original))
       (define-key news-reply-mode-map [menu-bar news mail-fill-yanked-message]
@@ -140,13 +138,11 @@ C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13)."
 		paragraph-separate))
   (run-hooks 'text-mode-hook 'news-reply-mode-hook))
 
-(defvar news-reply-yank-from
-  "Save `From:' field for `news-reply-yank-original'."
-  "")
+(defvar news-reply-yank-from ""
+  "Save `From:' field for `news-reply-yank-original'.")
 
-(defvar news-reply-yank-message-id
-  "Save `Message-Id:' field for `news-reply-yank-original'."
-  "")
+(defvar news-reply-yank-message-id ""
+  "Save `Message-Id:' field for `news-reply-yank-original'.")
 
 (defun news-reply-yank-original (arg)
   "Insert the message being replied to, if any (in Mail mode).
@@ -222,7 +218,7 @@ summary (abstract) of the message."
 (defun news-reply-signature ()
   "The inews program appends `~/.signature' automatically."
   (interactive)
-  (message "`~/.signature' will be appended automatically."))
+  (message "Posting news will append your signature automatically."))
 
 (defun news-setup (to subject in-reply-to newsgroups replybuffer)
   "Set up the news reply or posting buffer with the proper headers and mode."
