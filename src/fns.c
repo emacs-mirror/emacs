@@ -2510,9 +2510,9 @@ a coding system, or a character code.  */)
 
 DEFUN ("set-char-table-default", Fset_char_table_default,
        Sset_char_table_default, 3, 3, 0,
-       doc: /* Set the default value in CHAR-TABLE for a generic character CHAR to VALUE.
+       doc: /* Set the default value in CHAR-TABLE for generic character CH to VALUE.
 The generic character specifies the group of characters.
-See also the documentation of make-char.  */)
+See also the documentation of `make-char'.  */)
      (char_table, ch, value)
      Lisp_Object char_table, ch, value;
 {
@@ -3221,7 +3221,12 @@ When USE-FLOATS is non-nil, floats will be used instead of integers.
 These floats are not multiplied by 100.
 
 If the 5-minute or 15-minute load averages are not available, return a
-shortened list, containing only those averages which are available.  */)
+shortened list, containing only those averages which are available.
+
+An error is thrown if the load average can't be obtained.  In some
+cases making it work would require Emacs being installed setuid or
+setgid so that it can read kernel information, and that usually isn't
+advisable.  */)
      (use_floats)
      Lisp_Object use_floats;
 {
@@ -3478,15 +3483,19 @@ DEFUN ("langinfo", Flanginfo, Slanginfo, 1, 1, 0,
        doc: /* Access locale data ITEM, if available.
 
 ITEM may be one of the following:
+
 `codeset', returning the character set as a string (locale item CODESET);
+
 `days', returning a 7-element vector of day names (locale items DAY_n);
+
 `months', returning a 12-element vector of month names (locale items MON_n);
+
 `paper', returning a list (WIDTH, HEIGHT) for the default paper size,
   where the width and height are in mm (locale items PAPER_WIDTH,
   PAPER_HEIGHT).
 
 If the system can't provide such information through a call to
-nl_langinfo(3), return nil.
+nl_langinfo(3) or if ITEM isn't from the list above, return nil.
 
 See also Info node `(libc)Locales'.
 
@@ -3551,7 +3560,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
     }
 #endif	/* PAPER_WIDTH */
 #endif	/* HAVE_LANGINFO_CODESET*/
-    return Qnil;
+  return Qnil;
 }
 
 /* base64 encode/decode functions (RFC 2045).
