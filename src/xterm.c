@@ -871,7 +871,7 @@ XTflash (f)
       {
 	struct timeval wakeup, now;
 
-	EMACS_GET_TIME (&wakeup);
+	EMACS_GET_TIME (wakeup);
 
 	/* Compute time to wait until, propagating carry from usecs.  */
 	wakeup.tv_usec += 150000;
@@ -883,7 +883,7 @@ XTflash (f)
 	  {
 	    struct timeval timeout;
 
-	    EMACS_GET_TIME (&timeout);
+	    EMACS_GET_TIME (timeout);
 
 	    /* In effect, timeout = wakeup - timeout.
 	       Break if result would be negative.  */
