@@ -1,3 +1,11 @@
+2001-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c: Include unistd.h, if it exists.
+
+	* editfns.c: Move the include of ctype.h after unistd.h.
+
+	* gmalloc.c: Test BROKEN_PROTOTYPES.
+
 2001-11-03  Ken Raeburn  <raeburn@gnu.org>
 
 	* lisp.h (CHECK_STRING_CAR): New macro.
