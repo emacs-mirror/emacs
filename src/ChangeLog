@@ -1,3 +1,8 @@
+2001-01-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* md5.c (WORDS_BIG_ENDIAN) [__BYTE_ORDER == __BIG_ENDIAN]: Define
+	it instead of WORDS_BIGENDIAN.  Caller changed.
+
 2001-01-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fimage_size, image_ascent, lookup_image)

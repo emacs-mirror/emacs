@@ -1,3 +1,7 @@
+2001-01-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* configure.in: Fix typo in the code setting x_search_path.
+
 2001-01-10  Dave Love  <fx@gnu.org>
 
 	* configure.in: Don't reset LIBS at end of -lXmu test.  Test for
