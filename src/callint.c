@@ -465,7 +465,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	{
 	case 'a':		/* Symbol defined as a function */
 	  visargs[i] = Fcompleting_read (build_string (callint_message),
-					 Vobarray, Qfboundp, Qt, Qnil, Qnil);
+					 Vobarray, Qfboundp, Qt,
+					 Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
@@ -498,7 +499,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	case 'C':		/* Command: symbol with interactive function */
 	  visargs[i] = Fcompleting_read (build_string (callint_message),
-					 Vobarray, Qcommandp, Qt, Qnil, Qnil);
+					 Vobarray, Qcommandp,
+					 Qt, Qnil, Qnil, Qnil);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = visargs[i];
 	  args[i] = Fintern (teml, Qnil);
@@ -595,7 +597,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		first = 0;
 
 		tem = Fread_from_minibuffer (build_string (callint_message),
-					     Qnil, Qnil, Qnil, Qnil);
+					     Qnil, Qnil, Qnil, Qnil, Qnil);
 		if (! STRINGP (tem) || XSTRING (tem)->size == 0)
 		  args[i] = Qnil;
 		else
@@ -645,7 +647,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	case 'v':		/* Variable name: symbol that is
 				   user-variable-p. */
-	  args[i] = Fread_variable (build_string (callint_message));
+	  args[i] = Fread_variable (build_string (callint_message), Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
