@@ -25,9 +25,9 @@
 
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
 (defvar menu-bar-help-menu (make-sparse-keymap "Help"))
-;; Put Help item in help-menu-bar-map so it always goes last.
-(setq help-menu-bar-map (make-sparse-keymap))
-(define-key help-menu-bar-map [help] (cons "Help" menu-bar-help-menu))
+;; Put Help item last.
+(setq menu-bar-final-items '(help))
+(define-key global-map [menu-bar help] (cons "Help" menu-bar-help-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
 (define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
@@ -103,7 +103,10 @@
     (> count 1)))
 
 (put 'save-buffer 'menu-enable '(buffer-modified-p))
-(put 'revert-buffer 'menu-enable '(and (buffer-modified-p) (buffer-file-name)))
+(put 'revert-buffer 'menu-enable
+     '(or revert-buffer-function revert-buffer-insert-file-contents-function
+	  (and (buffer-file-name)
+	       (not (verify-visited-file-modtime (current-buffer))))))
 (put 'delete-frame 'menu-enable '(cdr (visible-frame-list)))
 (put 'kill-this-buffer 'menu-enable '(kill-this-buffer-enabled-p))
 
