@@ -42,12 +42,17 @@
 
 2004-07-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el: Doc fix.  Improve the DSC compliance of the generated
-	PostScript.  Suggested by Michael Piotrowski <mxp@dynalabs.de>.
+	* ps-print.el: Doc fix.
 	(ps-print-version): New version 6.6.5.
 	(ps-printing-region): Doc fix.
 	(ps-generate-string-list): Comment fix.
-	(ps-message-log-max, ps-begin-file): Code fix.
+	(ps-message-log-max): Code fix.
+
+
+2004-07-22  Michael Piotrowski  <mxp@dynalabs.de>  (tiny change)
+
+	* ps-print.el (ps-begin-file): Improve the DSC compliance of the
+	generated PostScript.
 
 2004-07-22  Kim F. Storm  <storm@cua.dk>
 
