@@ -1,3 +1,10 @@
+1999-11-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Fbyte_code: Use block statements in cases and declare v1 and v2
+	locally there.  Rearrange case statements so that thos most
+	frequently executed come first.  Avoid goto's in frequently
+	executed cases.
+
 1999-11-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecode.c (Fbyte_code): Use BEFORE_POTENTIAL_GC and
