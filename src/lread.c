@@ -2502,6 +2502,16 @@ init_lread ()
 		   Lisp dirs instead.  */
 		Vload_path = nconc2 (Vload_path, dump_path);
 
+	      /* Add leim under the installation dir, if it exists.  */
+	      tem = Fexpand_file_name (build_string ("leim"),
+				       Vinstallation_directory);
+	      tem1 = Ffile_exists_p (tem);
+	      if (!NILP (tem1))
+		{
+		  if (NILP (Fmember (tem, Vload_path)))
+		    Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+		}
+
 	      /* Add site-list under the installation dir, if it exists.  */
 	      tem = Fexpand_file_name (build_string ("site-lisp"),
 				       Vinstallation_directory);
@@ -2513,9 +2523,8 @@ init_lread ()
 		}
 
 	      /* If Emacs was not built in the source directory,
-		 and it is run from where it was built,
-		 add to load-path
-		 the lisp and site-lisp dirs under the source directory.  */
+		 and it is run from where it was built, add to load-path
+		 the lisp, leim and site-lisp dirs under that directory.  */
 
 	      if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
 		{
@@ -2525,6 +2534,12 @@ init_lread ()
 		  if (!NILP (tem1))
 		    {
 		      tem = Fexpand_file_name (build_string ("lisp"),
+					       Vsource_directory);
+
+		      if (NILP (Fmember (tem, Vload_path)))
+			Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+
+		      tem = Fexpand_file_name (build_string ("leim"),
 					       Vsource_directory);
 
 		      if (NILP (Fmember (tem, Vload_path)))
