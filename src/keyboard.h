@@ -20,6 +20,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Total number of times read_char has returned.  */
 extern int num_input_chars;
 
+/* Total number of times read_char has returned, outside of macros.  */
+extern int num_nonmacro_input_chars;
+
 /* Nonzero means polling for input is temporarily suppresed.  */
 extern int poll_suppress_count;
 
