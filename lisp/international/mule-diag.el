@@ -539,7 +539,8 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
 POS defaults to point.
 The information includes character code, charset and code points in it,
 syntax, category, how the character is encoded in a file,
-which font is being used for displaying the character."
+which font is being used for displaying the character,
+and text properties."
   (interactive)
   (or pos
       (setq pos (point)))
@@ -663,7 +664,6 @@ which font is being used for displaying the character."
 	  (insert "\nText properties\n")
 	  (require 'descr-text)
 	  (describe-text-properties props))))))
-
 
 ;;; CODING-SYSTEM
 
