@@ -1443,115 +1443,115 @@ Please send all bug fixes and enhancements to
 
 ;;; Code:
 
-(eval-and-compile
-  (require 'lpr)
 
-  (or (featurep 'lisp-float-type)
-      (error "`ps-print' requires floating point support"))
+(require 'lpr)
 
-
-  (defvar ps-print-emacs-type
-    (let ((case-fold-search t))
-      (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	    ((string-match "Lucid" emacs-version)
-	     (error "`ps-print' doesn't support Lucid"))
-	    ((string-match "Epoch" emacs-version)
-	     (error "`ps-print' doesn't support Epoch"))
-	    (t
-	     (unless (and (boundp 'emacs-major-version)
-			  (> emacs-major-version 19))
-	       (error "`ps-print' only supports Emacs 20 and higher"))
-	     'emacs))))
+(or (featurep 'lisp-float-type)
+    (error "`ps-print' requires floating point support"))
 
 
-  ;; For Emacs 20.2 and the earlier version.
-
-  (or (fboundp 'set-buffer-multibyte)
-      (defun set-buffer-multibyte (arg)
-	(setq enable-multibyte-characters arg)))
-
-  (or (fboundp 'string-as-unibyte)
-      (defun string-as-unibyte (arg) arg))
-
-  (or (fboundp 'string-as-multibyte)
-      (defun string-as-multibyte (arg) arg))
-
-  (or (fboundp 'char-charset)
-      (defun char-charset (arg) 'ascii))
-
-  (or (fboundp 'charset-after)
-      (defun charset-after (&optional arg)
-	(char-charset (char-after arg))))
+(defvar ps-print-emacs-type
+  (let ((case-fold-search t))
+    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
+	  ((string-match "Lucid" emacs-version)
+	   (error "`ps-print' doesn't support Lucid"))
+	  ((string-match "Epoch" emacs-version)
+	   (error "`ps-print' doesn't support Epoch"))
+	  (t
+	   (unless (and (boundp 'emacs-major-version)
+			(> emacs-major-version 19))
+	     (error "`ps-print' only supports Emacs 20 and higher"))
+	   'emacs))))
 
 
-  ;; GNU Emacs
-  (or (fboundp 'line-beginning-position)
-      (defun line-beginning-position (&optional n)
-	(save-excursion
-	  (and n (/= n 1) (forward-line (1- n)))
-	  (beginning-of-line)
-	  (point))))
+;; For Emacs 20.2 and the earlier version.
+
+(or (fboundp 'set-buffer-multibyte)
+    (defun set-buffer-multibyte (arg)
+      (setq enable-multibyte-characters arg)))
+
+(or (fboundp 'string-as-unibyte)
+    (defun string-as-unibyte (arg) arg))
+
+(or (fboundp 'string-as-multibyte)
+    (defun string-as-multibyte (arg) arg))
+
+(or (fboundp 'char-charset)
+    (defun char-charset (arg) 'ascii))
+
+(or (fboundp 'charset-after)
+    (defun charset-after (&optional arg)
+      (char-charset (char-after arg))))
 
 
-  ;; to avoid compilation gripes
-
-  ;; XEmacs
-  (defalias 'ps-x-color-instance-p              'color-instance-p)
-  (defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
-  (defalias 'ps-x-color-name                    'color-name)
-  (defalias 'ps-x-color-specifier-p             'color-specifier-p)
-  (defalias 'ps-x-copy-coding-system            'copy-coding-system)
-  (defalias 'ps-x-device-class                  'device-class)
-  (defalias 'ps-x-extent-end-position           'extent-end-position)
-  (defalias 'ps-x-extent-face                   'extent-face)
-  (defalias 'ps-x-extent-priority               'extent-priority)
-  (defalias 'ps-x-extent-start-position         'extent-start-position)
-  (defalias 'ps-x-face-font-instance            'face-font-instance)
-  (defalias 'ps-x-find-coding-system            'find-coding-system)
-  (defalias 'ps-x-font-instance-properties      'font-instance-properties)
-  (defalias 'ps-x-make-color-instance           'make-color-instance)
-  (defalias 'ps-x-map-extents                   'map-extents)
-
-  ;; GNU Emacs
-  (defalias 'ps-e-face-bold-p         'face-bold-p)
-  (defalias 'ps-e-face-italic-p       'face-italic-p)
-  (defalias 'ps-e-next-overlay-change 'next-overlay-change)
-  (defalias 'ps-e-overlays-at         'overlays-at)
-  (defalias 'ps-e-overlay-get         'overlay-get)
-  (defalias 'ps-e-overlay-end         'overlay-end)
-  (defalias 'ps-e-x-color-values      'x-color-values)
-  (defalias 'ps-e-color-values        'color-values)
-  (if (fboundp 'find-composition)
-      (defalias 'ps-e-find-composition 'find-composition)
-    (defalias 'ps-e-find-composition 'ignore))
+;; GNU Emacs
+(or (fboundp 'line-beginning-position)
+    (defun line-beginning-position (&optional n)
+      (save-excursion
+	(and n (/= n 1) (forward-line (1- n)))
+	(beginning-of-line)
+	(point))))
 
 
-  (defconst ps-windows-system
-    (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
-  (defconst ps-lp-system
-    (memq system-type '(usg-unix-v dgux hpux irix)))
+;; to avoid compilation gripes
+
+;; XEmacs
+(defalias 'ps-x-color-instance-p              'color-instance-p)
+(defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
+(defalias 'ps-x-color-name                    'color-name)
+(defalias 'ps-x-color-specifier-p             'color-specifier-p)
+(defalias 'ps-x-copy-coding-system            'copy-coding-system)
+(defalias 'ps-x-device-class                  'device-class)
+(defalias 'ps-x-extent-end-position           'extent-end-position)
+(defalias 'ps-x-extent-face                   'extent-face)
+(defalias 'ps-x-extent-priority               'extent-priority)
+(defalias 'ps-x-extent-start-position         'extent-start-position)
+(defalias 'ps-x-face-font-instance            'face-font-instance)
+(defalias 'ps-x-find-coding-system            'find-coding-system)
+(defalias 'ps-x-font-instance-properties      'font-instance-properties)
+(defalias 'ps-x-make-color-instance           'make-color-instance)
+(defalias 'ps-x-map-extents                   'map-extents)
+
+;; GNU Emacs
+(defalias 'ps-e-face-bold-p         'face-bold-p)
+(defalias 'ps-e-face-italic-p       'face-italic-p)
+(defalias 'ps-e-next-overlay-change 'next-overlay-change)
+(defalias 'ps-e-overlays-at         'overlays-at)
+(defalias 'ps-e-overlay-get         'overlay-get)
+(defalias 'ps-e-overlay-end         'overlay-end)
+(defalias 'ps-e-x-color-values      'x-color-values)
+(defalias 'ps-e-color-values        'color-values)
+(if (fboundp 'find-composition)
+    (defalias 'ps-e-find-composition 'find-composition)
+  (defalias 'ps-e-find-composition 'ignore))
 
 
-  (defun ps-xemacs-color-name (color)
-    (if (ps-x-color-specifier-p color)
-	(ps-x-color-name color)
-      color))
+(defconst ps-windows-system
+  (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
+(defconst ps-lp-system
+  (memq system-type '(usg-unix-v dgux hpux irix)))
 
 
-  (cond ((eq ps-print-emacs-type 'emacs) ; emacs
-	 (defvar mark-active nil)
-	 (defun ps-mark-active-p ()
-	   mark-active)
-	 (defalias 'ps-face-foreground-name 'face-foreground)
-	 (defalias 'ps-face-background-name 'face-background)
-	 )
-	(t				; xemacs
-	 (defalias 'ps-mark-active-p 'region-active-p)
-	 (defun ps-face-foreground-name (face)
-	   (ps-xemacs-color-name (face-foreground face)))
-	 (defun ps-face-background-name (face)
-	   (ps-xemacs-color-name (face-background face)))
-	 )))
+(defun ps-xemacs-color-name (color)
+  (if (ps-x-color-specifier-p color)
+      (ps-x-color-name color)
+    color))
+
+
+(cond ((featurep 'xemacs)		; xemacs
+       (defalias 'ps-mark-active-p 'region-active-p)
+       (defun ps-face-foreground-name (face)
+	 (ps-xemacs-color-name (face-foreground face)))
+       (defun ps-face-background-name (face)
+	 (ps-xemacs-color-name (face-background face)))
+       )
+      (t				; emacs
+       (defvar mark-active nil)
+       (defun ps-mark-active-p ()
+	 mark-active)
+       (defalias 'ps-face-foreground-name 'face-foreground)
+       (defalias 'ps-face-background-name 'face-background)
+       ))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1563,12 +1563,14 @@ Please send all bug fixes and enhancements to
 (defgroup postscript nil
   "PostScript Group"
   :tag "PostScript"
+  :version "20"
   :group 'emacs)
 
 (defgroup ps-print nil
   "PostScript generator for Emacs"
   :link '(emacs-library-link :tag "Source Lisp File" "ps-print.el")
   :prefix "ps-"
+  :version "20"
   :group 'wp
   :group 'postscript)
 
@@ -1576,36 +1578,42 @@ Please send all bug fixes and enhancements to
   "Horizontal page layout"
   :prefix "ps-"
   :tag "Horizontal"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-vertical nil
   "Vertical page layout"
   :prefix "ps-"
   :tag "Vertical"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-headers nil
   "Headers & footers layout"
   :prefix "ps-"
   :tag "Header & Footer"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-font nil
   "Fonts customization"
   :prefix "ps-"
   :tag "Font"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-color nil
   "Color customization"
   :prefix "ps-"
   :tag "Color"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-face nil
   "Faces customization"
   :prefix "ps-"
   :tag "PS Faces"
+  :version "20"
   :group 'ps-print
   :group 'faces)
 
@@ -1613,36 +1621,42 @@ Please send all bug fixes and enhancements to
   "N-up customization"
   :prefix "ps-"
   :tag "N-Up"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-zebra nil
   "Zebra customization"
   :prefix "ps-"
   :tag "Zebra"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-background nil
   "Background customization"
   :prefix "ps-"
   :tag "Background"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-printer '((lpr custom-group))
   "Printer customization"
   :prefix "ps-"
   :tag "Printer"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-page nil
   "Page customization"
   :prefix "ps-"
   :tag "Page"
+  :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-miscellany nil
   "Miscellany customization"
   :prefix "ps-"
   :tag "Miscellany"
+  :version "20"
   :group 'ps-print)
 
 
@@ -1669,6 +1683,7 @@ Any other value is treated as `paper'."
 		 :tag "Error Handler Message"
 		 (const none)   (const paper)
 		 (const system) (const paper-and-system))
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-user-defined-prologue nil
@@ -1700,6 +1715,7 @@ As an example for `ps-user-defined-prologue' setting:
   :type '(choice :menu-tag "User Defined Prologue"
 		 :tag "User Defined Prologue"
 		 (const :tag "none" nil) string symbol)
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-prologue-header nil
@@ -1729,6 +1745,7 @@ For more information about PostScript document comments, see:
   :type '(choice :menu-tag "Prologue Header"
 		 :tag "Prologue Header"
 		 (const :tag "none" nil) string symbol)
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-printer-name (and (boundp 'printer-name)
@@ -1760,6 +1777,7 @@ See also `ps-printer-name-option' for documentation."
 		 (const :tag "No Printer Name" t)
 		 (file :tag "Print to file")
 		 (string :tag "Pipe to ps-lpr-command"))
+  :version "20"
   :group 'ps-print-printer)
 
 (defcustom ps-printer-name-option
@@ -1803,6 +1821,7 @@ Novell Netware respectively) are handled specially, using `ps-printer-name' as
 the destination for output; any other program is treated like `lpr' except that
 an explicit filename is given as the last argument."
   :type 'string
+  :version "20"
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-switches lpr-switches
@@ -1811,6 +1830,7 @@ an explicit filename is given as the last argument."
 		 (choice :menu-tag "PostScript lpr Switch"
 			 :tag "PostScript lpr Switch"
 			 string symbol (repeat sexp)))
+  :version "20"
   :group 'ps-print-printer)
 
 (defcustom ps-print-region-function nil
@@ -1818,6 +1838,7 @@ an explicit filename is given as the last argument."
 See definition of `call-process-region' for calling conventions.  The fourth
 and the sixth arguments are both nil."
   :type '(choice (const nil) function)
+  :version "20"
   :group 'ps-print-printer)
 
 (defcustom ps-manual-feed nil
@@ -1825,12 +1846,14 @@ and the sixth arguments are both nil."
 
 If it's nil, automatic feeding takes place."
   :type 'boolean
+  :version "20"
   :group 'ps-print-printer)
 
 (defcustom ps-end-with-control-d (and ps-windows-system t)
   "*Non-nil means insert C-d at end of PostScript file generated."
   :version "21.1"
   :type 'boolean
+  :version "20"
   :group 'ps-print-printer)
 
 ;;; Page layout
@@ -1874,6 +1897,7 @@ See `ps-paper-type'."
 		       (number :tag "Width")
 		       (number :tag "Height")
 		       (string :tag "Media")))
+  :version "20"
   :group 'ps-print-page)
 
 ;;;###autoload
@@ -1887,6 +1911,7 @@ example `letter', `legal' or `a4'."
 				 nil
 			       (widget-put wid :error "Unknown paper size")
 			       wid)))
+  :version "20"
   :group 'ps-print-page)
 
 (defcustom ps-warn-paper-type t
@@ -1894,11 +1919,13 @@ example `letter', `legal' or `a4'."
 
 It's used when `ps-spool-config' is set to `setpagedevice'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-page)
 
 (defcustom ps-landscape-mode nil
   "*Non-nil means print in landscape mode."
   :type 'boolean
+  :version "20"
   :group 'ps-print-page)
 
 (defcustom ps-print-upside-down nil
@@ -1931,6 +1958,7 @@ See also `ps-even-or-odd-pages'."
 			(cons :tag "Range"
 			      (integer :tag "From")
 			      (integer :tag "To"))))
+  :version "20"
   :group 'ps-print-page)
 
 (defcustom ps-even-or-odd-pages nil
@@ -1989,6 +2017,7 @@ sheet parity."
 		 (const :tag "Only Odd Pages" odd-page)
 		 (const :tag "Only Even Sheets" even-sheet)
 		 (const :tag "Only Odd Sheets" odd-sheet))
+  :version "20"
   :group 'ps-print-page)
 
 (defcustom ps-print-control-characters 'control-8-bit
@@ -2020,6 +2049,7 @@ Any other value is treated as nil."
 		 :tag "Control Char"
 		 (const 8-bit)   (const control-8-bit)
 		 (const control) (const :tag "nil" nil))
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-n-up-printing 1
@@ -2035,16 +2065,19 @@ Any other value is treated as nil."
 	       wid :error
 	       "Number of pages per sheet paper must be between 1 and 100.")
 	      wid)))
+  :version "20"
   :group 'ps-print-n-up)
 
 (defcustom ps-n-up-margin (/ (* 72  1.0) 2.54) ; 1 cm
   "*Specify the margin in points between the sheet border and n-up printing."
   :type 'number
+  :version "20"
   :group 'ps-print-n-up)
 
 (defcustom ps-n-up-border-p t
   "*Non-nil means a border is drawn around each page."
   :type 'boolean
+  :version "20"
   :group 'ps-print-n-up)
 
 (defcustom ps-n-up-filling 'left-top
@@ -2076,23 +2109,27 @@ Any other value is treated as `left-top'."
 		 (const right-top) (const right-bottom)
 		 (const top-left)  (const bottom-left)
 		 (const top-right) (const bottom-right))
+  :version "20"
   :group 'ps-print-n-up)
 
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
   "*Specify the number of columns."
   :type 'number
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-zebra-stripes nil
   "*Non-nil means print zebra stripes.
 See also documentation for `ps-zebra-stripe-height' and `ps-zebra-color'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-stripe-height 3
   "*Number of zebra stripe lines.
 See also documentation for `ps-zebra-stripes' and `ps-zebra-color'."
   :type 'number
+  :version "20"
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-color 0.95
@@ -2106,6 +2143,7 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
 		       (number :tag "Red")
 		       (number :tag "Green")
 		       (number :tag "Blue")))
+  :version "20"
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-stripe-follow nil
@@ -2149,11 +2187,13 @@ Any other value is treated as nil."
 		 (const :tag "Continue on Next Page" follow)
 		 (const :tag "Print Only Full Stripe" full)
 		 (const :tag "Continue on Full Stripe" full-follow))
+  :version "20"
   :group 'ps-print-zebra)
 
 (defcustom ps-line-number nil
   "*Non-nil means print line number."
   :type 'boolean
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-step 1
@@ -2183,6 +2223,7 @@ Any other value is treated as `zebra'."
 		 :tag "Line Number Step"
 		 (integer :tag "Step Interval")
 		 (const :tag "Synchronize Zebra" zebra))
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-start 1
@@ -2212,6 +2253,7 @@ The values for `ps-line-number-start':
      value of `ps-zebra-strip-height' inclusive.  Use this combination if you
      wish that line number be relative to zebra stripes."
   :type '(integer :tag "Start Step Interval")
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-print-background-image nil
@@ -2258,6 +2300,7 @@ For example, if you wish to print an EPS image on all pages do:
 			  (cons :tag "Range"
 				(integer :tag "From")
 				(integer :tag "To"))))))
+  :version "20"
   :group 'ps-print-background)
 
 (defcustom ps-print-background-text nil
@@ -2309,6 +2352,7 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 			  (cons :tag "Range"
 				(integer :tag "From")
 				(integer :tag "To"))))))
+  :version "20"
   :group 'ps-print-background)
 
 ;;; Horizontal layout
@@ -2322,16 +2366,19 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 (defcustom ps-left-margin   (/ (* 72  2.0) 2.54) ;   2 cm
   "*Left margin in points (1/72 inch)."
   :type 'number
+  :version "20"
   :group 'ps-print-horizontal)
 
 (defcustom ps-right-margin  (/ (* 72  2.0) 2.54) ;   2 cm
   "*Right margin in points (1/72 inch)."
   :type 'number
+  :version "20"
   :group 'ps-print-horizontal)
 
 (defcustom ps-inter-column  (/ (* 72  2.0) 2.54) ;   2 cm
   "*Horizontal space between columns in points (1/72 inch)."
   :type 'number
+  :version "20"
   :group 'ps-print-horizontal)
 
 ;;; Vertical layout
@@ -2351,16 +2398,19 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 (defcustom ps-bottom-margin (/ (* 72  1.5) 2.54) ; 1.5 cm
   "*Bottom margin in points (1/72 inch)."
   :type 'number
+  :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-top-margin    (/ (* 72  1.5) 2.54) ; 1.5 cm
   "*Top margin in points (1/72 inch)."
   :type 'number
+  :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-header-offset (/ (* 72  1.0) 2.54) ; 1.0 cm
   "*Vertical space in points (1/72 inch) between the main text and the header."
   :type 'number
+  :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-header-line-pad 0.15
@@ -2368,11 +2418,13 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 The insertion is done between the header frame and the text it contains,
 both in the vertical and horizontal directions."
   :type 'number
+  :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-footer-offset (/ (* 72  1.0) 2.54) ; 1.0 cm
   "*Vertical space in points (1/72 inch) between the main text and the footer."
   :type 'number
+  :version "20"
   :group 'ps-print-vertical)
 
 (defcustom ps-footer-line-pad 0.15
@@ -2380,6 +2432,7 @@ both in the vertical and horizontal directions."
 The insertion is done between the footer frame and the text it contains,
 both in the vertical and horizontal directions."
   :type 'number
+  :version "20"
   :group 'ps-print-vertical)
 
 ;;; Header/Footer setup
@@ -2390,11 +2443,13 @@ By default, the header displays the buffer name, page number, and, if the
 buffer is visiting a file, the file's directory.  Headers are customizable by
 changing variables `ps-left-header' and `ps-right-header'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-print-header-frame t
   "*Non-nil means draw a gaudy frame around the header."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-header-frame-alist
@@ -2474,11 +2529,13 @@ Don't change this alist directly, instead use customization, or `ps-value',
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))))
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-header-lines 2
   "*Number of lines to display in page header, when generating PostScript."
   :type 'integer
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-print-footer nil
@@ -2486,14 +2543,14 @@ Don't change this alist directly, instead use customization, or `ps-value',
 By default, the footer displays page number.
 Footers are customizable by changing variables `ps-left-footer' and
 `ps-right-footer'."
-  :version "21.1"
   :type 'boolean
+  :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-print-footer-frame t
   "*Non-nil means draw a gaudy frame around the footer."
-  :version "21.1"
   :type 'boolean
+  :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-footer-frame-alist
@@ -2508,7 +2565,6 @@ Don't change this alist directly, instead use customization, or `ps-value',
 `ps-get', `ps-put' and `ps-del' functions (see them for documentation).
 
 See also `ps-header-frame-alist' for documentation."
-  :version "21.1"
   :type '(repeat
 	  (choice :menu-tag "Header Frame Element"
 		  :tag ""
@@ -2555,12 +2611,13 @@ See also `ps-header-frame-alist' for documentation."
 				      (number :tag "Red")
 				      (number :tag "Green")
 				      (number :tag "Blue"))))))
+  :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-footer-lines 2
   "*Number of lines to display in page footer, when generating PostScript."
-  :version "21.1"
   :type 'integer
+  :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-print-only-one-header nil
@@ -2569,6 +2626,7 @@ This is useful when printing more than one column, so it is possible to have
 only one header/footer over all columns or one header/footer per column.
 See also `ps-print-header' and `ps-print-footer'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-switch-header 'duplex
@@ -2591,6 +2649,7 @@ See also `ps-print-header' and `ps-print-footer'."
 		 (const :tag "Never Switch" nil)
 		 (const :tag "Always Switch" t)
 		 (const :tag "Switch When Duplexing" duplex))
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-show-n-of-n t
@@ -2598,6 +2657,7 @@ See also `ps-print-header' and `ps-print-footer'."
 NOTE: page numbers are displayed as part of headers,
       see variable `ps-print-header'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-spool-config
@@ -2633,6 +2693,7 @@ WARNING: The setpagedevice PostScript operator affects ghostview utility when
 		 :tag "Spool Config"
 		 (const lpr-switches) (const setpagedevice)
 		 (const :tag "nil" nil))
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-spool-duplex nil		; Not many people have duplex printers,
@@ -2646,6 +2707,7 @@ even-numbered pages.
 
 See also `ps-spool-tumble'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-spool-tumble nil
@@ -2656,6 +2718,7 @@ binding at the top or bottom.
 
 It has effect only when `ps-spool-duplex' is non-nil."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 ;;; Fonts
@@ -2806,11 +2869,13 @@ uses the fonts resident in your printer."
 		(cons :format "%v"
 		      (const :format "" avg-char-width)
 		      (number :tag "Average Character Width"))))
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-font-family 'Courier
   "*Font family name for ordinary text, when generating PostScript."
   :type 'symbol
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-font-size   '(7 . 8.5)
@@ -2821,11 +2886,13 @@ uses the fonts resident in your printer."
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Text Size")
 		       (number :tag "Portrait Text Size")))
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-header-font-family      'Helvetica
   "*Font family name for text in the header, when generating PostScript."
   :type 'symbol
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-header-font-size       '(10 . 12)
@@ -2836,6 +2903,7 @@ uses the fonts resident in your printer."
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Header Size")
 		       (number :tag "Portrait Header Size")))
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-header-title-font-size '(12 . 14)
@@ -2846,23 +2914,24 @@ uses the fonts resident in your printer."
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Header Title Size")
 		       (number :tag "Portrait Header Title Size")))
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-footer-font-family      'Helvetica
   "*Font family name for text in the footer, when generating PostScript."
-  :version "21.1"
   :type 'symbol
+  :version "21.1"
   :group 'ps-print-font)
 
 (defcustom ps-footer-font-size       '(10 . 12)
   "*Font size, in points, for text in the footer, when generating PostScript."
-  :version "21.1"
   :type '(choice :menu-tag "Footer Font Size"
 		 :tag "Footer Font Size"
 		 (number :tag "Footer Size")
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Footer Size")
 		       (number :tag "Portrait Footer Size")))
+  :version "21.1"
   :group 'ps-print-font)
 
 (defcustom ps-line-number-color      "black"
@@ -2882,6 +2951,7 @@ uses the fonts resident in your printer."
 (defcustom ps-line-number-font      "Times-Italic"
   "*Font for line-number, when generating PostScript."
   :type 'string
+  :version "20"
   :group 'ps-print-font
   :group 'ps-print-miscellany)
 
@@ -2893,6 +2963,7 @@ uses the fonts resident in your printer."
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Font Size")
 		       (number :tag "Portrait Font Size")))
+  :version "20"
   :group 'ps-print-font
   :group 'ps-print-miscellany)
 
@@ -2923,6 +2994,7 @@ Any other value is treated as t."
 		 (const :tag "Do NOT Print Color" nil)
 		 (const :tag "Print Always Color" t)
 		 (const :tag "Print Black/White Color" black-white))
+  :version "20"
   :group 'ps-print-color)
 
 (defcustom ps-default-fg '(0.0 0.0 0.0) ; black
@@ -2962,6 +3034,7 @@ It's used only when `ps-print-color-p' is non-nil."
 		       (number :tag "Red")
 		       (number :tag "Green")
 		       (number :tag "Blue")))
+  :version "20"
   :group 'ps-print-color)
 
 (defcustom ps-default-bg '(1.0 1.0 1.0) ; white
@@ -3003,6 +3076,7 @@ See also `ps-use-face-background'."
 		       (number :tag "Red")
 		       (number :tag "Green")
 		       (number :tag "Blue")))
+  :version "20"
   :group 'ps-print-color)
 
 (defcustom ps-auto-font-detect t
@@ -3010,6 +3084,7 @@ See also `ps-use-face-background'."
 If nil, we rely solely on the lists `ps-bold-faces', `ps-italic-faces', and
 `ps-underlined-faces'."
   :type 'boolean
+  :version "20"
   :group 'ps-print-font)
 
 (defcustom ps-black-white-faces
@@ -3049,6 +3124,7 @@ This variable is used only when `ps-print-color-p' is set to `black-white'."
 				(const shadow)
 				(const box)
 				(const outline)))))
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-bold-faces
@@ -3061,6 +3137,7 @@ This variable is used only when `ps-print-color-p' is set to `black-white'."
   "*A list of the \(non-bold\) faces that should be printed in bold font.
 This applies to generating PostScript."
   :type '(repeat face)
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-italic-faces
@@ -3073,6 +3150,7 @@ This applies to generating PostScript."
   "*A list of the \(non-italic\) faces that should be printed in italic font.
 This applies to generating PostScript."
   :type '(repeat face)
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-underlined-faces
@@ -3083,6 +3161,7 @@ This applies to generating PostScript."
   "*A list of the \(non-underlined\) faces that should be printed underlined.
 This applies to generating PostScript."
   :type '(repeat face)
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-use-face-background nil
@@ -3102,6 +3181,7 @@ Any other value will be treated as t."
 		 (repeat :menu-tag "Face Background List"
 			 :tag "Face Background List"
 			 face))
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-left-header
@@ -3125,6 +3205,7 @@ If symbols are unbounded, they are silently ignored."
   :type '(repeat (choice :menu-tag "Left Header"
 			 :tag "Left Header"
 			 string symbol))
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-right-header
@@ -3155,6 +3236,7 @@ You can also create your own time stamp function by using `format-time-string'
   :type '(repeat (choice :menu-tag "Right Header"
 			 :tag "Right Header"
 			 string symbol))
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-left-footer
@@ -3175,10 +3257,10 @@ should be a string to be inserted into the array.  In either case, function or
 variable, the string value has PostScript string delimiters added to it.
 
 If symbols are unbounded, they are silently ignored."
-  :version "21.1"
   :type '(repeat (choice :menu-tag "Left Footer"
 			 :tag "Left Footer"
 			 string symbol))
+  :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-right-footer
@@ -3206,15 +3288,16 @@ There are the following basic functions implemented:
 
 You can also create your own time stamp function by using `format-time-string'
 \(which see)."
-  :version "21.1"
   :type '(repeat (choice :menu-tag "Right Footer"
 			 :tag "Right Footer"
 			 string symbol))
+  :version "21.1"
   :group 'ps-print-headers)
 
 (defcustom ps-razzle-dazzle t
   "*Non-nil means report progress while formatting buffer."
   :type 'boolean
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-adobe-tag "%!PS-Adobe-3.0\n"
@@ -3222,6 +3305,7 @@ You can also create your own time stamp function by using `format-time-string'
 By default, `ps-adobe-tag' contains the standard identifier.  Some printers
 require slightly different versions of this line."
   :type 'string
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-build-face-reference t
@@ -3236,6 +3320,7 @@ You should set this value back to t after you change the attributes of any
 face, or create new faces.  Most users shouldn't have to worry about its
 setting, though."
   :type 'boolean
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-always-build-face-reference nil
@@ -3245,28 +3330,30 @@ If this variable is non-nil, ps-print will rebuild its internal reference lists
 of bold and italic faces *every* time one of the ...-with-faces commands is
 called.  Most users shouldn't need to set this variable."
   :type 'boolean
+  :version "20"
   :group 'ps-print-face)
 
 (defcustom ps-banner-page-when-duplexing nil
   "*Non-nil means the very first page is skipped.
 It's like the very first character of buffer (or region) is ^L (\\014)."
   :type 'boolean
+  :version "20"
   :group 'ps-print-headers)
 
 (defcustom ps-postscript-code-directory
-  (or (cond
-       ((eq ps-print-emacs-type 'emacs)	; emacs
-	data-directory)
-       ((fboundp 'locate-data-directory) ; xemacs
-	(locate-data-directory "ps-print"))
-       ((boundp 'data-directory)	; xemacs
-	data-directory)
-       (t				; don't know what to do
-	nil))
+  (or (if (featurep 'xemacs)
+	  (cond ((fboundp 'locate-data-directory) ; xemacs
+		 (locate-data-directory "ps-print"))
+		((boundp 'data-directory) ; xemacs
+		 data-directory)
+		(t			; don't know what to do
+		 nil))
+	data-directory)			; emacs
       (error "`ps-postscript-code-directory' isn't set properly"))
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
+  :version "20"
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-spacing 0
@@ -3749,106 +3836,105 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   (format-time-string "%T"))
 
 
-(eval-and-compile
-  (and (eq ps-print-emacs-type 'xemacs)
-       ;; XEmacs change: Need to check for emacs-major-version too.
-       (or (< emacs-major-version 19)
-	   (and (= emacs-major-version 19) (< emacs-minor-version 12)))
-       (setq ps-print-color-p nil))
+(and (featurep 'xemacs)
+     ;; XEmacs change: Need to check for emacs-major-version too.
+     (or (< emacs-major-version 19)
+	 (and (= emacs-major-version 19) (< emacs-minor-version 12)))
+     (setq ps-print-color-p nil))
 
 
-  ;; Return t if the device (which can be changed during an emacs session)
-  ;; can handle colors.
-  ;; This function is not yet implemented for GNU emacs.
-  (cond ((and (eq ps-print-emacs-type 'xemacs)
-	      ;; XEmacs change: Need to check for emacs-major-version too.
-	      (or (> emacs-major-version 19)
-		  (and (= emacs-major-version 19)
-		       (>= emacs-minor-version 12)))) ; xemacs >= 19.12
-	 (defun ps-color-device ()
-	   (eq (ps-x-device-class) 'color)))
+;; Return t if the device (which can be changed during an emacs session)
+;; can handle colors.
+;; This function is not yet implemented for GNU emacs.
+(cond ((and (featurep 'xemacs)
+	    ;; XEmacs change: Need to check for emacs-major-version too.
+	    (or (> emacs-major-version 19)
+		(and (= emacs-major-version 19)
+		     (>= emacs-minor-version 12)))) ; xemacs >= 19.12
+       (defun ps-color-device ()
+	 (eq (ps-x-device-class) 'color)))
 
-	(t				; emacs
-	 (defun ps-color-device ()
-	   (if (fboundp 'color-values)
-	       (ps-e-color-values "Green")
-	     t))))
+      (t				; emacs
+       (defun ps-color-device ()
+	 (if (fboundp 'color-values)
+	     (ps-e-color-values "Green")
+	   t))))
 
 
-  (defun ps-mapper (extent list)
-    (nconc list
-	   (list (list (ps-x-extent-start-position extent) 'push extent)
-		 (list (ps-x-extent-end-position extent) 'pull extent)))
-    nil)
+(defun ps-mapper (extent list)
+  (nconc list
+	 (list (list (ps-x-extent-start-position extent) 'push extent)
+	       (list (ps-x-extent-end-position extent) 'pull extent)))
+  nil)
 
-  (defun ps-extent-sorter (a b)
-    (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
+(defun ps-extent-sorter (a b)
+  (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
 
-  (defun ps-xemacs-face-kind-p (face kind kind-regex)
-    (let* ((frame-font (or (ps-x-face-font-instance face)
-			   (ps-x-face-font-instance 'default)))
-	   (kind-cons
-	    (and frame-font
-		 (assq kind
-		       (ps-x-font-instance-properties frame-font))))
-	   (kind-spec (cdr-safe kind-cons))
-	   (case-fold-search t))
-      (and kind-spec (string-match kind-regex kind-spec))))
+(defun ps-xemacs-face-kind-p (face kind kind-regex)
+  (let* ((frame-font (or (ps-x-face-font-instance face)
+			 (ps-x-face-font-instance 'default)))
+	 (kind-cons
+	  (and frame-font
+	       (assq kind
+		     (ps-x-font-instance-properties frame-font))))
+	 (kind-spec (cdr-safe kind-cons))
+	 (case-fold-search t))
+    (and kind-spec (string-match kind-regex kind-spec))))
 
-  (cond ((eq ps-print-emacs-type 'emacs) ; emacs
+(cond ((featurep 'xemacs)		; xemacs
 
-	 (defun ps-color-values (x-color)
+       ;; to avoid XEmacs compilation gripes
+       (defvar coding-system-for-write   nil)
+       (defvar coding-system-for-read    nil)
+       (defvar buffer-file-coding-system nil)
+
+       (and (fboundp 'find-coding-system)
+	    (or (ps-x-find-coding-system 'raw-text-unix)
+		(ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix)))
+
+       (defun ps-color-values (x-color)
+	 (let ((color (ps-xemacs-color-name x-color)))
 	   (cond
-	    ((fboundp 'color-values)
-	     (ps-e-color-values x-color))
 	    ((fboundp 'x-color-values)
-	     (ps-e-x-color-values x-color))
+	     (ps-e-x-color-values color))
+	    ((and (fboundp 'color-instance-rgb-components)
+		  (ps-color-device))
+	     (ps-x-color-instance-rgb-components
+	      (if (ps-x-color-instance-p x-color)
+		  x-color
+		(ps-x-make-color-instance color))))
 	    (t
-	     (error "No available function to determine X color values"))))
+	     (error "No available function to determine X color values")))))
 
-	 (defun ps-face-bold-p (face)
-	   (or (ps-e-face-bold-p face)
-	       (memq face ps-bold-faces)))
+       (defun ps-face-bold-p (face)
+	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
+	     (memq face ps-bold-faces))) ; Kludge-compatible
 
-	 (defun ps-face-italic-p (face)
-	   (or (ps-e-face-italic-p face)
-	       (memq face ps-italic-faces)))
-	 )
+       (defun ps-face-italic-p (face)
+	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
+	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
+	     (memq face ps-italic-faces))) ; Kludge-compatible
+       )
 
-	(t				; xemacs
+      (t				; emacs
 
-	 ;; to avoid XEmacs compilation gripes
-	 (defvar coding-system-for-write   nil)
-	 (defvar coding-system-for-read    nil)
-	 (defvar buffer-file-coding-system nil)
+       (defun ps-color-values (x-color)
+	 (cond
+	  ((fboundp 'color-values)
+	   (ps-e-color-values x-color))
+	  ((fboundp 'x-color-values)
+	   (ps-e-x-color-values x-color))
+	  (t
+	   (error "No available function to determine X color values"))))
 
-	 (and (fboundp 'find-coding-system)
-	      (or (ps-x-find-coding-system 'raw-text-unix)
-		  (ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix)))
+       (defun ps-face-bold-p (face)
+	 (or (ps-e-face-bold-p face)
+	     (memq face ps-bold-faces)))
 
-	 (defun ps-color-values (x-color)
-	   (let ((color (ps-xemacs-color-name x-color)))
-	     (cond
-	      ((fboundp 'x-color-values)
-	       (ps-e-x-color-values color))
-	      ((and (fboundp 'color-instance-rgb-components)
-		    (ps-color-device))
-	       (ps-x-color-instance-rgb-components
-		(if (ps-x-color-instance-p x-color)
-		    x-color
-		  (ps-x-make-color-instance color))))
-	      (t
-	       (error "No available function to determine X color values")))))
-
-	 (defun ps-face-bold-p (face)
-	   (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
-	       (memq face ps-bold-faces))) ; Kludge-compatible
-
-	 (defun ps-face-italic-p (face)
-	   (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
-	       (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
-	       (memq face ps-italic-faces))) ; Kludge-compatible
-	 )))
+       (defun ps-face-italic-p (face)
+	 (or (ps-e-face-italic-p face)
+	     (memq face ps-italic-faces)))
+       ))
 
 
 (defvar ps-print-color-scale 1.0)
@@ -3931,15 +4017,14 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 
 (defvar ps-color-p nil)
 (defvar ps-color-format
-  (if (eq ps-print-emacs-type 'emacs)
+  (if (featurep 'xemacs)
+      ;; XEmacs will have to make do with %s (princ) for floats.
+      "%s %s %s"
 
-      ;; Emacs understands the %f format; we'll use it to limit color RGB
-      ;; values to three decimals to cut down some on the size of the
-      ;; PostScript output.
-      "%0.3f %0.3f %0.3f"
-
-    ;; XEmacs will have to make do with %s (princ) for floats.
-    "%s %s %s"))
+    ;; Emacs understands the %f format; we'll use it to limit color RGB
+    ;; values to three decimals to cut down some on the size of the
+    ;; PostScript output.
+    "%0.3f %0.3f %0.3f"))
 
 ;; These values determine how much print-height to deduct when headers/footers
 ;; are turned on.  This is a pretty clumsy way of handling it, but it'll do for
@@ -4723,7 +4808,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
   (save-excursion
     (set-buffer ps-spool-buffer)
     (goto-char (point-max))
-    (insert-file fname)))
+    (insert-file-contents fname)))
 
 ;; These functions are used in `ps-mule' to get charset of header and footer.
 ;; To avoid unnecessary calls to functions in `ps-left-header',
@@ -4855,9 +4940,9 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 ;; to three decimals to cut down some on the size of the PostScript output.
 ;; XEmacs will have to make do with %s (princ) for floats.
 
-(defvar ps-float-format (if (eq ps-print-emacs-type 'emacs)
-			    "%0.3f "	; emacs
-			  "%s "))	; xemacs
+(defvar ps-float-format (if (featurep 'xemacs)
+			    "%s "	; xemacs
+			  "%0.3f "))	; emacs
 
 
 (defun ps-float-format (value &optional default)
@@ -6360,14 +6445,16 @@ If FACE is not a valid face name, it is used default face."
 
 
 ;; to avoid compilation gripes
+(defalias 'ps-jitify 'jit-lock-fontify-now)
+(defalias 'ps-lazify 'lazy-lock-fontify-region)
+
+
+;; to avoid compilation gripes
 (defun ps-print-ensure-fontified (start end)
-  (cond
-   ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
-    (defalias 'ps-jitify 'jit-lock-fontify-now) ; avoid compilation gripes
-    (ps-jitify start end))
-   ((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
-    (defalias 'ps-lazify 'lazy-lock-fontify-region) ; avoid compilation gripes
-    (ps-lazify start end))))
+  (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
+	 (ps-jitify start end))
+	((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
+	 (ps-lazify start end))))
 
 
 (defun ps-generate-postscript-with-faces (from to)
@@ -6393,7 +6480,7 @@ If FACE is not a valid face name, it is used default face."
     (let ((face 'default)
 	  (position to))
       (cond
-       ((eq ps-print-emacs-type 'xemacs)
+       ((featurep 'xemacs)		; xemacs
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
@@ -6437,7 +6524,7 @@ If FACE is not a valid face name, it is used default face."
 		  from position
 		  a (cdr a)))))
 
-       ((eq ps-print-emacs-type 'emacs)
+       (t				; emacs
 	(let ((property-change from)
 	      (overlay-change from)
 	      (save-buffer-invisibility-spec buffer-invisibility-spec)
@@ -6714,11 +6801,11 @@ If FACE is not a valid face name, it is used default face."
 ;; Don't use it unless you understand what it does!
 
 (defmacro ps-prsc ()
-  `(if (eq ps-print-emacs-type 'emacs) [f22] 'f22))
+  `(if (featurep 'xemacs) 'f22           [f22]))
 (defmacro ps-c-prsc ()
-  `(if (eq ps-print-emacs-type 'emacs) [C-f22] '(control f22)))
+  `(if (featurep 'xemacs) '(control f22) [C-f22]))
 (defmacro ps-s-prsc ()
-  `(if (eq ps-print-emacs-type 'emacs) [S-f22] '(shift f22)))
+  `(if (featurep 'xemacs) '(shift f22)   [S-f22]))
 
 ;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
 ;; `ps-left-headers' specially for mail messages.
