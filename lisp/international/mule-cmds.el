@@ -565,7 +565,7 @@ or a string."
 	(or input-method
 	    default-input-method
 	    (read-input-method-name "Input method: " nil t)))
-  (if (and input-method (symbolp input-method)
+  (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
   (let ((current-input-method input-method))
     (read-string prompt initial-input nil nil t)))
