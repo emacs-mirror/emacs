@@ -1,3 +1,9 @@
+2002-05-17  Thomas Morgan <tlm@pocketmail.com>
+
+	* forms.el (forms-jump-record, forms-insert-record)
+	(forms-delete-record): Calculate lines from the beginning of the
+	accessible portion rather than from the beginning of the buffer.
+
 2002-05-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ps-mule.el (eval-and-compile): Add a trivial replacement for a
