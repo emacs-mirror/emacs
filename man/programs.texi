@@ -281,8 +281,8 @@ buffer.
   When you change the contents of a buffer, if you add or delete
 definitions, you can update the buffer's index based on the
 new contents by invoking the @samp{*Rescan*} item in the menu.
-Rescanning happens automatically you set @code{imenu-auto-rescan} to a
-non-@code{nil} value.  There is no need to rescan because of small
+Rescanning happens automatically if you set @code{imenu-auto-rescan} to
+a non-@code{nil} value.  There is no need to rescan because of small
 changes in the text.
 
 @vindex imenu-sort-function
