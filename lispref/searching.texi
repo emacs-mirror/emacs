@@ -264,6 +264,19 @@ is a postfix operator, similar to @samp{*} except that it must match the
 preceding expression either once or not at all.  For example,
 @samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
+@item @samp{*?}, @samp{+?}, @samp{??}
+These are ``non-greedy'' variants of the operators @samp{*}, @samp{+}
+and @samp{?}.  Where those operators match the largest possible
+substring (consistent with matching the entire containing expression),
+the non-greedy variants match the smallest possible substring
+(consistent with matching the entire containing expression).
+
+For example, the regular expression @samp{c[ad]*a} when applied to the
+string @samp{cdaaada} matches the whole string; but the regular
+expression @samp{c[ad]*?a}, applied to that same string, matches just
+@samp{cda}.  (The smallest possible match here for @samp{[ad]*?} that
+permits the whole expression to match is @samp{d}.)
+
 @item @samp{[ @dots{} ]}
 @cindex character alternative (in regexp)
 @cindex @samp{[} in regexp
