@@ -1,3 +1,8 @@
+2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (syms_of_keyboard) <overriding-terminal-local-map>:
+	Doc fix.
+
 2004-08-03  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_string): Adjust coding->consumed, and
