@@ -284,6 +284,10 @@ This is like using -q --no-site-file, but in addition it also disables
 the menu-bar, the tool-bar, the scroll-bars, tool tips, the blinking
 cursor, and the fancy startup screen.
 
++++
+** New command line option -nbc or --no-blinking-cursor disables
+the blinking cursor on graphical terminals.
+
 ** C-h v and C-h f commands now include a hyperlink to the C source for
 variables and functions defined in C (if the C source is available).
 
