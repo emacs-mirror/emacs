@@ -1,3 +1,8 @@
+2003-01-22  Andreas Schwab  <schwab@suse.de>
+
+	* jka-compr.el (jka-compr-insert-file-contents): Fix typo in last
+	change.
+
 2003-01-22  Markus Rost  <rost@math.ohio-state.edu>
 
 	* Makefile.in (bootstrap-after): New target.
