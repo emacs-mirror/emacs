@@ -1,5 +1,11 @@
 2001-02-24  Andrew Innes  <andrewi@gnu.org>
 
+	* _emacs: Remove obsolete file.
+
+	* emacs.bat.in: Remove obsolete file.
+
+	* debug.bat.in: Remove obsolete file.
+
 	* inc/sys/socket.h: Add copyright notice.
 
 	* paths.h: Add copyright notice.

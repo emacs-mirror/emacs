@@ -1,3 +1,7 @@
+2001-02-24  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: Fix copyright notice.
+
 2001-02-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/utf-8.el (mule-utf-8): Set correct value for

@@ -1,3 +1,7 @@
+2001-02-24  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: Update copyright notice.
+
 2001-02-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (where_is_internal): Accept non-ascii integer prefixes.
