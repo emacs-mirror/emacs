@@ -1,3 +1,13 @@
+2001-12-30  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* progmodes/octave-mod.el (octave-abbrev-table):
+	* progmodes/idlwave.el (idlwave-mode-abbrev-table):
+	* progmodes/fortran.el (fortran-mode-abbrev-table):
+	* progmodes/f90.el (f90-mode-abbrev-table):
+	* progmodes/vhdl-mode.el (vhdl-mode-abbrev-table-init):
+	* progmodes/sql.el (sql-mode-abbrev-table): Mark all the
+	predefined abbrevs as "system" abbrevs.
+
 2001-12-30  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-fontify-node): For a **** underline line, put the
