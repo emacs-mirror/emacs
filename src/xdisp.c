@@ -664,7 +664,7 @@ static int string_char_and_length P_ ((unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
 					     struct text_pos));
 static int compute_window_start_on_continuation_line P_ ((struct window *));
-static Lisp_Object eval_handler P_ ((Lisp_Object));
+static Lisp_Object safe_eval_handler P_ ((Lisp_Object));
 static void insert_left_trunc_glyphs P_ ((struct it *));
 static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
 static void extend_face_to_end_of_line P_ ((struct it *));
@@ -1089,10 +1089,10 @@ compute_string_pos (newpos, pos, string)
 			Lisp form evaluation
  ***********************************************************************/
 
-/* Error handler for eval_form and call_function.  */
+/* Error handler for safe_eval and safe_call.  */
 
 static Lisp_Object
-eval_handler (arg)
+safe_eval_handler (arg)
      Lisp_Object arg;
 {
   return Qnil;
@@ -1103,7 +1103,7 @@ eval_handler (arg)
    wrong.  */
 
 Lisp_Object
-eval_form (sexpr)
+safe_eval (sexpr)
      Lisp_Object sexpr;
 {
   int count = specpdl_ptr - specpdl;
@@ -1112,7 +1112,7 @@ eval_form (sexpr)
 
   GCPRO1 (sexpr);
   specbind (Qinhibit_redisplay, Qt);
-  val = internal_condition_case_1 (Feval, sexpr, Qerror, eval_handler);
+  val = internal_condition_case_1 (Feval, sexpr, Qerror, safe_eval_handler);
   UNGCPRO;
   return unbind_to (count, val);
 }
@@ -1122,7 +1122,7 @@ eval_form (sexpr)
    Return the result, or nil if something went wrong.  */
 
 Lisp_Object
-call_function (nargs, args)
+safe_call (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -1134,9 +1134,23 @@ call_function (nargs, args)
   gcpro1.nvars = nargs;
   specbind (Qinhibit_redisplay, Qt);
   val = internal_condition_case_2 (Ffuncall, nargs, args, Qerror,
-				   eval_handler);
+				   safe_eval_handler);
   UNGCPRO;
   return unbind_to (count, val);
+}
+
+
+/* Call function FN with one argument ARG.
+   Return the result, or nil if something went wrong.  */
+
+Lisp_Object
+safe_call1 (fn, arg)
+     Lisp_Object fn, arg;
+{
+  Lisp_Object args[2];
+  args[0] = fn;
+  args[1] = arg;
+  return safe_call (2, args);
 }
 
 
@@ -1891,7 +1905,7 @@ handle_fontified_prop (it)
       specbind (Qafter_change_functions, Qnil);
   
       if (!CONSP (val) || EQ (XCAR (val), Qlambda))
-	call1 (val, pos);
+	safe_call1 (val, pos);
       else
 	{
 	  Lisp_Object globals, fn;
@@ -1917,11 +1931,11 @@ handle_fontified_prop (it)
 		    {
 		      fn = XCAR (globals);
 		      if (!EQ (fn, Qt))
-			call1 (fn, pos);
+			safe_call1 (fn, pos);
 		    }
 		}
 	      else
-		call1 (fn, pos);
+		safe_call1 (fn, pos);
 	    }
 
 	  UNGCPRO;
@@ -2453,7 +2467,7 @@ handle_single_display_prop (it, prop, object, position)
 	  TEMP_SET_PT_BOTH (CHARPOS (end_pos), BYTEPOS (end_pos));
 	}
       
-      form = eval_form (form);
+      form = safe_eval (form);
       
       if (BUFFERP (object))
 	TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
@@ -2493,12 +2507,9 @@ handle_single_display_prop (it, prop, object, position)
 	    {
 	      /* Call function with current height as argument.
 		 Value is the new height.  */
-	      Lisp_Object args[2], height;
-	      
-	      args[0] = it->font_height;
-	      args[1] = face->lface[LFACE_HEIGHT_INDEX];
-	      height = call_function (2, args);
-	      
+	      Lisp_Object height;
+	      height = safe_call1 (it->font_height,
+				   face->lface[LFACE_HEIGHT_INDEX]);
 	      if (NUMBERP (height))
 		new_height = XFLOATINT (height);
 	    }
@@ -2519,7 +2530,7 @@ handle_single_display_prop (it, prop, object, position)
 	      int count = specpdl_ptr - specpdl;
 	      
 	      specbind (Qheight, face->lface[LFACE_HEIGHT_INDEX]);
-	      value = eval_form (it->font_height);
+	      value = safe_eval (it->font_height);
 	      unbind_to (count, Qnil);
 	      
 	      if (NUMBERP (value))
@@ -12411,7 +12422,7 @@ display_mode_element (it, depth, field_width, precision, elt)
 	    struct gcpro gcpro1;
 	    Lisp_Object spec;
 
-	    spec = eval_form (XCAR (XCDR (elt)));
+	    spec = safe_eval (XCAR (XCDR (elt)));
 	    GCPRO1 (spec);
 	    n += display_mode_element (it, depth, field_width - n,
 				       precision - n, spec);
