@@ -2654,7 +2654,7 @@ Normally the return value is FEATURE.")
 		     noerror, Qt, Qnil, (NILP (file_name) ? Qt : Qnil));
       /* If load failed entirely, return nil.  */
       if (NILP (tem))
-	return Qnil;
+	return unbind_to (count, Qnil);
 
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
