@@ -2783,7 +2783,7 @@ of each directory."
 	    (insert-file-contents (car pkg-list))
 	    (goto-char (point-min))
 	    ;; Don't get fooled by commented-out code.
-	    (while (search-forward "^[ \t]*(quail-define-package" nil t)
+	    (while (re-search-forward "^[ \t]*(quail-define-package" nil t)
 	      (goto-char (match-beginning 0))
 	      (condition-case nil
 		  (let ((form (read (current-buffer))))
