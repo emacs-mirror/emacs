@@ -1,3 +1,15 @@
+2001-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-load-symbol): Don't always load locate-library.
+
+2001-11-26  Richard M. Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-toggle-value-create): On graphic terminal,
+	if :on-glyph or :off-glyph is a list, eval it and store it back.
+	(checkbox): Quote the values for :on-glyph and :off-glyph.
+
+	* cus-start.el (recursive-load-depth-limit): Delete item.
+
 2001-11-26  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cc-mode.el (c-submit-bug-report): Make sure that the
