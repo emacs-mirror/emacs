@@ -211,7 +211,10 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
       (narrow-to-region beg end)
       (goto-char (point-min))
       (sort-subr reverse
-		 (function (lambda () (skip-chars-forward "\n \t\f")))
+		 (function
+		  (lambda ()
+		    (while (and (not (eobp)) (looking-at paragraph-separate))
+		      (forward-line 1))))
 		 'forward-paragraph))))
 
 ;;;###autoload
