@@ -686,21 +686,28 @@ If INITVALUE is missing, SYMBOL's value is not set.")
   if (!NILP (Fcdr (Fcdr (tail))))
     error ("too many arguments");
 
+  tem = Fdefault_boundp (sym);
   if (!NILP (tail))
     {
-      tem = Fdefault_boundp (sym);
       if (NILP (tem))
-	Fset_default (sym, Feval (Fcar (Fcdr (args))));
+	Fset_default (sym, Feval (Fcar (tail)));
+      tail = Fcdr (tail);
+      if (!NILP (Fcar (tail)))
+	{
+	  tem = Fcar (tail);
+	  if (!NILP (Vpurify_flag))
+	    tem = Fpurecopy (tem);
+	  Fput (sym, Qvariable_documentation, tem);
+	}
+      LOADHIST_ATTACH (sym);
     }
-  tail = Fcdr (Fcdr (args));
-  if (!NILP (Fcar (tail)))
-    {
-      tem = Fcar (tail);
-      if (!NILP (Vpurify_flag))
-	tem = Fpurecopy (tem);
-      Fput (sym, Qvariable_documentation, tem);
-    }
-  LOADHIST_ATTACH (sym);
+  else
+    /* A (defvar <var>) should not take precedence in the load-history over
+       an earlier (defvar <var> <val>), so only add to history if the default
+       value is still unbound.  */
+    if (NILP (tem))
+      LOADHIST_ATTACH (sym);
+    
   return sym;
 }
 
