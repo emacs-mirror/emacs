@@ -574,7 +574,7 @@ to provide correct modes for autoloaded files."
       (if (file-directory-p (file-name-directory (car desktop-buffer-misc)))
 	  (progn
             (dired (car desktop-buffer-misc))
-	    (mapcar 'dired-insert-subdir (cdr desktop-buffer-misc))
+	    (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
 	    (current-buffer))
 	(message "Directory %s no longer exists." (car desktop-buffer-misc))
 	(sit-for 1)
