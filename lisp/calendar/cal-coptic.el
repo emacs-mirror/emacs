@@ -164,10 +164,10 @@ Echo Coptic date unless NOECHO is t."
 
 (defun diary-coptic-date ()
   "Coptic calendar equivalent of date diary entry."
-  (let ((f (calendar-coptic-date-string (calendar-cursor-to-date t))))
+  (let ((f (calendar-coptic-date-string date)))
     (if (string-equal f "")
         (format "Date is pre-%s calendar" coptic-name)
-      f)))
+      (format "%s date: %s" coptic-name f))))
 
 (defconst ethiopic-calendar-month-name-array
   ["Maskaram" "Teqemt" "Khedar" "Takhsas" "Ter" "Yakatit" "Magabit" "Miyazya"
