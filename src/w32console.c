@@ -507,26 +507,26 @@ initialize_w32_display (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
   
-  cursor_to_hook		= (term_hook) move_cursor;
-  raw_cursor_to_hook		= (term_hook) move_cursor;
-  clear_to_end_hook		= (term_hook) clear_to_end;
-  clear_frame_hook		= (term_hook) clear_frame;
-  clear_end_of_line_hook	= (term_hook) clear_end_of_line;
-  ins_del_lines_hook		= (term_hook) ins_del_lines;
-  change_line_highlight_hook	= (term_hook) change_line_highlight;
-  reassert_line_highlight_hook  = (term_hook) reassert_line_highlight;
-  insert_glyphs_hook		= (term_hook) insert_glyphs;
-  write_glyphs_hook		= (term_hook) write_glyphs;
-  delete_glyphs_hook		= (term_hook) delete_glyphs;
-  ring_bell_hook		= (term_hook) w32_sys_ring_bell;
-  reset_terminal_modes_hook	= (term_hook) reset_terminal_modes;
-  set_terminal_modes_hook	= (term_hook) set_terminal_modes;
-  set_terminal_window_hook	= (term_hook) set_terminal_window;
-  update_begin_hook		= (term_hook) update_begin;
-  update_end_hook		= (term_hook) update_end;
+  cursor_to_hook		= move_cursor;
+  raw_cursor_to_hook		= move_cursor;
+  clear_to_end_hook		= clear_to_end;
+  clear_frame_hook		= clear_frame;
+  clear_end_of_line_hook	= clear_end_of_line;
+  ins_del_lines_hook		= ins_del_lines;
+  change_line_highlight_hook	= change_line_highlight;
+  reassert_line_highlight_hook  = reassert_line_highlight;
+  insert_glyphs_hook		= insert_glyphs;
+  write_glyphs_hook		= write_glyphs;
+  delete_glyphs_hook		= delete_glyphs;
+  ring_bell_hook		= w32_sys_ring_bell;
+  reset_terminal_modes_hook	= reset_terminal_modes;
+  set_terminal_modes_hook	= set_terminal_modes;
+  set_terminal_window_hook	= set_terminal_window;
+  update_begin_hook		= update_begin;
+  update_end_hook		= update_end;
   
   read_socket_hook = w32_console_read_socket;
-  mouse_position_hook = w32_mouse_position;
+  mouse_position_hook = w32_console_mouse_position;
 
   /* Remember original console settings.  */
   keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
