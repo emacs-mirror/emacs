@@ -1,5 +1,5 @@
-;;; time-date.el --- date and time handling functions
-;; Copyright (C) 1998, 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
+;;; time-date.el --- Date and time handling functions
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
