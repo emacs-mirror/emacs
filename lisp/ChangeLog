@@ -1,3 +1,7 @@
+2004-12-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-file): Escape double-quotes in docstring.
+
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-file): Doc fix.
@@ -7,7 +11,7 @@
 2004-12-02  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (widget-specify-field): Add `real-field' property to
-	boundary. 
+	boundary.
 	(widget-field-at): Use it.
 
 2004-12-02  Richard M. Stallman  <rms@gnu.org>
