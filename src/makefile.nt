@@ -40,7 +40,7 @@ LOCAL_FLAGS     = $(LOCAL_FLAGS) -DHAVE_NTGUI=1
 # From MSVC 5.0 onwards, it seem base relocation information is not included,
 # at least in release builds.  We need to ensure the reloc info is included
 # in order to use the MSVC profiler.
-!IF ($(_NMAKE_VER) == $(_NMAKE_VER_4))
+!IF ("$(_NMAKE_VER)" == "$(_NMAKE_VER_4)")
 EXTRA_LINK      =
 !ELSE
 EXTRA_LINK      = -profile
