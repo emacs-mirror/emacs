@@ -1,5 +1,5 @@
 /* Merge parameters into a termcap entry string.
-   Copyright (C) 1985, 87, 93, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 87, 93, 95, 2000 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -150,21 +150,22 @@ tparam1 (string, outstring, len, up, left, argp)
       if (op + 5 >= outend)
 	{
 	  register char *new;
+	  int offset = op - outstring;
+
 	  if (outlen == 0)
 	    {
 	      outlen = len + 40;
 	      new = (char *) xmalloc (outlen);
-	      outend += 40;
-	      bcopy (outstring, new, op - outstring);
+	      bcopy (outstring, new, offset);
 	    }
 	  else
 	    {
-	      outend += outlen;
 	      outlen *= 2;
 	      new = (char *) xrealloc (outstring, outlen);
 	    }
-	  op += new - outstring;
-	  outend += new - outstring;
+	  
+	  op = new + offset;
+	  outend = new + outlen;
 	  outstring = new;
 	}
       c = *p++;
