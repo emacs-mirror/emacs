@@ -1596,18 +1596,18 @@ This is a separate function so you can redefine it for customization."
   (if (eq system-type 'ms-dos)
       (let ((fn (file-name-nondirectory file)))
 	(concat (file-name-directory file)
-		(if (string-match "\\([^.]*\\)\\(\\..*\\)?" fn)
-		    (substring fn 0 (match-end 1)))
-		".bak"))
+		(or
+		 (and (string-match "\\`[^.]+\\'" fn)
+		      (concat (match-string 0 fn) ".~"))
+		 (and (string-match "\\`[^.]+\\.\\(..?\\)?" fn)
+		      (concat (match-string 0 fn) "~")))))
     (concat file "~")))
 
 (defun backup-file-name-p (file)
   "Return non-nil if FILE is a backup file name (numeric or not).
 This is a separate function so you can redefine it for customization.
 You may need to redefine `file-name-sans-versions' as well."
-  (if (eq system-type 'ms-dos)
-      (string-match "\\.bak$" file)
-    (string-match "~$" file)))
+    (string-match "~\\'" file))
 
 ;; This is used in various files.
 ;; The usage of bv-length is not very clean,
