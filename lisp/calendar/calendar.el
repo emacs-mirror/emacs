@@ -597,7 +597,7 @@ See the documentation for `calendar-holidays' for details.")
 See the documentation for `calendar-holidays' for details.")
 
 ;;;###autoload
-(defvar hebrew-holidays
+(defvar hebrew-holidays-1
   '((holiday-rosh-hashanah-etc)
     (if all-hebrew-calendar-holidays
         (holiday-julian
@@ -612,8 +612,11 @@ See the documentation for `calendar-holidays' for details.")
                           (list m 1 y))))))
              (if (zerop (% (1+ year) 4))
                  22
-               21))) "\"Tal Umatar\" (evening)"))
-    (if all-hebrew-calendar-holidays
+               21))) "\"Tal Umatar\" (evening)"))))
+
+;;;###autoload
+(defvar hebrew-holidays-2
+  '((if all-hebrew-calendar-holidays
         (holiday-hanukkah)
       (holiday-hebrew 9 25 "Hanukkah"))
     (if all-hebrew-calendar-holidays
@@ -629,8 +632,11 @@ See the documentation for `calendar-holidays' for details.")
              11 10))
        "Tzom Teveth"))
     (if all-hebrew-calendar-holidays
-        (holiday-hebrew 11 15 "Tu B'Shevat"))
-    (if all-hebrew-calendar-holidays
+        (holiday-hebrew 11 15 "Tu B'Shevat"))))
+
+;;;###autoload
+(defvar hebrew-holiday-3
+  '((if all-hebrew-calendar-holidays
         (holiday-hebrew
          11
          (let ((m displayed-month)
@@ -657,8 +663,11 @@ See the documentation for `calendar-holidays' for details.")
                           (list 11 16 h-year))))))
                   (day (extract-calendar-day s-s)))
              day))
-         "Shabbat Shirah"))
-    (holiday-passover-etc)
+         "Shabbat Shirah"))))
+
+;;;###autoload
+(defvar hebrew-holidays-4
+  '((holiday-passover-etc)
     (if (and all-hebrew-calendar-holidays
              (let* ((m displayed-month)
                     (y displayed-year)
@@ -671,7 +680,11 @@ See the documentation for `calendar-holidays' for details.")
                  (= 21 (% year 28)))))
         (holiday-julian 3 26 "Kiddush HaHamah"))
     (if all-hebrew-calendar-holidays
-        (holiday-tisha-b-av-etc)))
+        (holiday-tisha-b-av-etc))))
+
+;;;###autoload
+(defvar hebrew-holidays (append hebrew-holidays-1 hebrew-holidays-2
+				hebrew-holidays-3 hebrew-holidays-4)
   "*Jewish holidays.
 See the documentation for `calendar-holidays' for details.")
 
