@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate September 15, 1998
+@set lastupdate September 18, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -279,13 +279,9 @@ Extend Octave to support programs that were written
 to run on Khoros.
 
 @item
-Rewrite Automake and Deja-GNU in Scheme, so they can run in Guile.
-Right now they are written in Perl and TCL, respectively.  There are
-also other programs, not terribly long, which we would also like
-to have rewritten in Scheme.
-
-Deja-GNU uses TCL via Expect.  It may be easy to adapt Expect
-to work with Scheme instead of TCL.
+Rewrite Automake in Scheme, so it can run in Guile.  Right now it is
+written in Perl.  There are also other programs, not terribly long,
+which we would also like to have rewritten in Scheme.
 
 @item
 Finish the partially-implemented C interpreter project.
