@@ -1,3 +1,69 @@
+2003-04-15  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/fortran.el: Whitespace changes, some re-ordering of
+	code, trivial commentary change.
+	(fortran, fortran-indent, fortran-comment)
+	(fortran-tab-mode-default, fortran-continuation-indent)
+	(fortran-comment-indent-style, fortran-blink-matching-if)
+	(fortran-continuation-string, fortran-electric-line-number)
+	(fortran-break-before-delimiters, fortran-mode-hook)
+	(fortran-end-prog-re, fortran-imenu-generic-expression): Minor
+	doc changes.
+	(fortran-tab-mode-minor-mode-string): New variable.
+	(fortran-tab-mode-string): Now customization is meaningful.
+	(fortran-column-ruler-fixed, fortran-column-ruler-tab)
+	(fortran-analyze-depth): Use defcustom.
+	(fortran-if-start-re, fortran-end-prog-re1, fortran-fill)
+	(fortran-break-line, fortran-prepare-abbrev-list-buffer)
+	(fortran-auto-fill): Add doc string.
+	(fortran-type-types): New constant (was local to let binding).
+	(fortran-font-lock-keywords-1, fortran-font-lock-keywords-2)
+	(fortran-font-lock-syntactic-keywords): Initialize in defvar.
+	(fortran-font-lock-keywords-3): Initialize in defvar.  Use 1+ now
+	depth of fortran-type-types has changed.  Remove extra and.
+	(fortran-mode-menu): Minor re-organization.  Use lookup-key.
+	(fortran-mode): Doc changes.  Some re-organization.  Use
+	fortran-tab-mode-minor-mode-string.
+	(fortran-comment-indent): Add doc string.  Move save-excursion.
+	Use 1+.
+	(fortran-indent-comment, fortran-fill-statement): Change
+	interactive spec.  Use unless.
+	(fortran-comment-region): Doc change.  Reverse logic of arg
+	test.  Use zerop.
+	(fortran-abbrev-start, fortran-split-line)
+	(fortran-electric-line-number, fortran-indent-subprogram)
+	(fortran-strip-sequence-nos): Change interactive spec.
+	(fortran-remove-continuation): Add doc string.  Use when.
+	(fortran-numerical-continuation-char): Doc change.  Use 1+.
+	(fortran-previous-statement, fortran-next-statement)
+	(fortran-beginning-do, fortran-calculate-indent)
+	(fortran-end-do, fortran-end-if, fortran-beginning-if): Use
+	zerop, 1+, 1-.	
+	(fortran-blink-match, fortran-check-for-matching-do): Use when.
+	(fortran-indent-line): Change interactive spec.  Remove un-needed
+	if.  Use when.
+	(fortran-indent-to-column): Doc change.  Use when, unless.
+	(fortran-find-comment-start-skip): No longer interactive.
+	(fortran-analyze-file-format): Minor doc change.  Remove
+	un-needed setq.
+	(minor-mode-alist): Use add-to-list.
+	(fortran-fill-paragraph): Change interactive spec, doc string.
+	
+	* progmodes/f90.el: Whitespace changes, trivial commentary
+	changes.
+	(f90, f90-indent, f90-program-indent, f90-continuation-indent)
+	(f90-indented-comment-re, f90-imenu-generic-expression)
+	(f90-mark-subprogram, f90-join-lines): Minor doc changes.
+	(f90-menu): Shift definition to initialization of f90-mode-map.
+	Add customization section.
+	(f90-mode): Minor doc change.  Do not call easy-menu-add.
+	Set `beginning-of-defun-function' and `end-of-defun-function' to
+	appropriate F90 functions.
+	(f90-indent-line, f90-indent-line, f90-indent-subprogram)
+	(f90-break-line, f90-do-auto-fill, f90-insert-end)
+	(f90-upcase-keywords, f90-capitalize-keywords)
+	(f90-downcase-keywords): Change interactive spec.
+	
 2003-04-14  Andrew Choi  <akochoi@shaw.ca>
 
 	* term/mac-win.el: Unconditionally set process-connection-type to
