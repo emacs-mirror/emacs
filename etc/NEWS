@@ -21,6 +21,10 @@ displays a buffer menu.  This option turns the buffer menu off.
 
 ** Rmail now displays 5-digit message ids in its summary buffer.
 
+** When using M-x revert-buffer in a compilation buffer to rerun a
+compilation, it is now made sure that the compilation buffer is reused
+in case it has been renamed.
+
 
 * Lisp Changes in Emacs 21.2
 
