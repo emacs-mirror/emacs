@@ -15,6 +15,9 @@
 
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* replace.el (occur): Make line-number-width 1 smaller for the
+	colon following the line number.
+
 	* startup.el (fancy-splash-text, command-line-1): Use
 	`File' for the menu name instead of `Files'.
 	

@@ -10,6 +10,13 @@
 
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (underlying_face_id): New function.
+	(handle_face_prop, face_before_or_after_it_pos): Use it
+	to determine the face ``under'' a string.  Let strings inherit
+	the face of the buffer under them.
+
+	* xfaces.c (face_at_string_position): Update function comment.
+	
 	* dispnew.c (adjust_glyph_matrix): Don't reuse a window's current
 	matrix if the window's left position has changed; we need to
 	redraw it in this case.
