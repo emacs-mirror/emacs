@@ -50,15 +50,6 @@ Boston, MA 02111-1307, USA.  */
 #include <pwd.h>
 #endif
 
-#ifdef MSDOS
-#include "msdos.h"
-#include <sys/param.h>
-#if __DJGPP__ >= 2
-#include <fcntl.h>
-#include <string.h>
-#endif
-#endif
-
 #include <ctype.h>
 
 #ifdef VMS
@@ -103,6 +94,15 @@ extern char *strerror ();
 #include <stdlib.h>
 #include <fcntl.h>
 #endif /* not WINDOWSNT */
+
+#ifdef MSDOS
+#include "msdos.h"
+#include <sys/param.h>
+#if __DJGPP__ >= 2
+#include <fcntl.h>
+#include <string.h>
+#endif
+#endif
 
 #ifdef DOS_NT
 #define CORRECT_DIR_SEPS(s) \
