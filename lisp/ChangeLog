@@ -1,3 +1,9 @@
+2004-10-08  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* subr.el (make-progress-reporter, progress-reporter-update)
+	(progress-reporter-force-update, progress-reporter-do-update)
+	(progress-reporter-done): New functions.
+
 2004-10-08  Alan Mackenzie  <acm@muc.de>
 
 	* isearch.el (isearch-yank-line): C-y yanks to next EOL, not end
