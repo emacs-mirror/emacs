@@ -105,7 +105,7 @@
 
 (defface makefile-space-face
    '((((class color)) (:background  "hotpink"))
-         (t (:reverse-video t)))
+     (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
   :group 'faces
   :group 'makemode)
