@@ -1206,8 +1206,8 @@ For a terminal screen, the value is always 1.")
 
 DEFUN ("frame-pixel-height", Fframe_pixel_height, 
        Sframe_pixel_height, 0, 1, 0,
-  "Return a FRAME's heightin pixels.\n\
-For a terminal frame, the result really gives the sizes in characters.\n\
+  "Return a FRAME's height in pixels.\n\
+For a terminal frame, the result really gives the height in characters.\n\
 If FRAME is omitted, the selected frame is used.")
   (frame)
      Lisp_Object frame;
@@ -1233,7 +1233,7 @@ If FRAME is omitted, the selected frame is used.")
 DEFUN ("frame-pixel-width", Fframe_pixel_width, 
        Sframe_pixel_width, 0, 1, 0,
   "Return FRAME's width in pixels.\n\
-For a terminal frame, the result really gives the sizes in characters.\n\
+For a terminal frame, the result really gives the width in characters.\n\
 If FRAME is omitted, the selected frame is used.")
   (frame)
      Lisp_Object frame;
