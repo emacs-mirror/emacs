@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9944
+;; Version: 1.9945
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -450,11 +450,11 @@ new value."
 
 (defun widget-specify-sample (widget from to)
   ;; Specify sample for WIDGET between FROM and TO.
-  (let ((face (widget-apply widget :sample-face-get)))
-    (when face
-      (add-text-properties from to (list 'start-open t
-					 'end-open t
-					 'face face)))))
+  (let ((face (widget-apply widget :sample-face-get))
+	(overlay (make-overlay from to nil t nil)))
+    (overlay-put overlay 'face face)
+    (widget-put widget :sample-overlay overlay)))
+
 (defun widget-specify-doc (widget from to)
   ;; Specify documentation for WIDGET between FROM and TO.
   (add-text-properties from to (list 'widget-doc widget
@@ -920,12 +920,15 @@ button end points."
   (let ((from (widget-get widget :from))
 	(to (widget-get widget :to))
 	(button (widget-get widget :button-overlay))
+	(sample (widget-get widget :sample-overlay))
 	(field (widget-get widget :field-overlay))
 	(children (widget-get widget :children)))
     (set-marker from nil)
     (set-marker to nil)
     (when button
       (delete-overlay button))
+    (when sample
+      (delete-overlay sample))
     (when field
       (delete-overlay field))
     (mapcar 'widget-leave-text children)))
@@ -1562,6 +1565,7 @@ If that does not exists, call the value of `widget-complete-field'."
 	(to (widget-get widget :to))
 	(inactive-overlay (widget-get widget :inactive))
 	(button-overlay (widget-get widget :button-overlay))
+	(sample-overlay (widget-get widget :sample-overlay))
 	before-change-functions
 	after-change-functions
 	(inhibit-read-only t))
@@ -1570,6 +1574,8 @@ If that does not exists, call the value of `widget-complete-field'."
       (delete-overlay inactive-overlay))
     (when button-overlay
       (delete-overlay button-overlay))
+    (when sample-overlay
+      (delete-overlay sample-overlay))
     (when (< from to)
       ;; Kludge: this doesn't need to be true for empty formats.
       (delete-region from to))
@@ -3345,12 +3351,37 @@ To use this type, you must define :match or :match-alternatives."
 
 ;;; The `color' Widget.
 
-(define-widget 'color-item 'choice-item
-  "A color name (with sample)."
-  :format "%v (%{sample%})\n"
-  :sample-face-get 'widget-color-item-button-face-get)
+(define-widget 'color 'editable-field 
+  "Choose a color name (with sample)."
+  :format "%t: %v (%{sample%})\n"
+  :size 10
+  :tag "Color"
+  :value "black"
+  :complete 'widget-color-complete
+  :sample-face-get 'widget-color-sample-face-get
+  :notify 'widget-color-notify
+  :action 'widget-color-action)
 
-(defun widget-color-item-button-face-get (widget)
+(defun widget-color-complete (widget)
+  "Complete the color in WIDGET."
+  (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
+						 (point)))
+	 (list (widget-color-choice-list))
+	 (completion (try-completion prefix list)))
+    (cond ((eq completion t)
+	   (message "Exact match."))
+	  ((null completion)
+	   (error "Can't find completion for \"%s\"" prefix))
+	  ((not (string-equal prefix completion))
+	   (insert-and-inherit (substring completion (length prefix))))
+	  (t
+	   (message "Making completion list...")
+	   (let ((list (all-completions prefix list nil)))
+	     (with-output-to-temp-buffer "*Completions*"
+	       (display-completion-list list)))
+	   (message "Making completion list...done")))))
+
+(defun widget-color-sample-face-get (widget)
   (let ((symbol (intern (concat "fg:" (widget-value widget)))))
     (if (string-match "XEmacs" emacs-version)
 	(prog1 symbol
@@ -3360,41 +3391,17 @@ To use this type, you must define :match or :match-alternatives."
 	  (facemenu-get-face symbol)
 	(error 'default)))))
 
-(define-widget 'color 'push-button
-  "Choose a color name (with sample)."
-  :format "%[%t%]: %v"
-  :tag "Color"
-  :value "black"
-  :value-create 'widget-color-value-create
-  :value-delete 'widget-children-value-delete
-  :value-get 'widget-color-value-get
-  :value-set 'widget-color-value-set
-  :action 'widget-color-action
-  :match 'widget-field-match
-  :tag "Color")
-
 (defvar widget-color-choice-list nil)
 ;; Variable holding the possible colors.
 
 (defun widget-color-choice-list ()
   (unless widget-color-choice-list
     (setq widget-color-choice-list 
-	  (mapcar '(lambda (color) (list color))
-		  (x-defined-colors))))
+	  (if (fboundp 'read-color-completion-table)
+	      (read-color-completion-table)
+	    (mapcar '(lambda (color) (list color))
+		    (x-defined-colors)))))
   widget-color-choice-list)
-
-(defun widget-color-value-create (widget)
-  (let ((child (widget-create-child-and-convert
-		widget 'color-item (widget-get widget :value))))
-    (widget-put widget :children (list child))))
-
-(defun widget-color-value-get (widget)
-  ;; Pass command to first child.
-  (widget-apply (car (widget-get widget :children)) :value-get))
-
-(defun widget-color-value-set (widget value)
-  ;; Pass command to first child.
-  (widget-apply (car (widget-get widget :children)) :value-set value))
 
 (defvar widget-color-history nil
   "History of entered colors")
@@ -3416,29 +3423,11 @@ To use this type, you must define :match or :match-alternatives."
       (widget-setup)
       (widget-apply widget :notify widget event))))
 
-;;; The alternative `editable-color' widget and its subroutine.
-
-(define-widget 'color-sample 'choice-item
-  "A color name (with sample)."
-  :format "(%{sample%})"
-  :sample-face-get 'widget-color-item-button-face-get)
-
-(define-widget 'editable-color 'editable-field
-  "A color name, editable"
-  :tag "Color"
-  :format "%{%t%}: %v"
-  :complete-function 'widget-color-complete
-  :value-create 'widget-editable-color-value-create
-  :prompt-match '(lambda (color) (member color widget-color-choice-list))
-  :prompt-history 'widget-string-prompt-value-history)
-
-(defun widget-editable-color-value-create (widget)
-  (widget-field-value-create widget)
-  (forward-line -1)
-  (end-of-line)
-  (let ((child (widget-create-child-and-convert
-		widget 'color-sample (widget-get widget :value))))
-    (widget-put widget :children (list child))))
+(defun widget-color-notify (widget child &optional event)
+  "Update the sample, and notofy the parent."
+  (overlay-put (widget-get widget :sample-overlay) 
+	       'face (widget-apply widget :sample-face-get))
+  (widget-default-notify widget child event))
 
 ;;; The Help Echo
 
