@@ -1,6 +1,6 @@
 ;;; browse-url.el --- Pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 96-99, 2000 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: Dave Love <fx@gnu.org>
@@ -85,9 +85,8 @@
 ;; Python see <url:http://www.python.org/>.  Grail support in
 ;; browse-url.el written by Barry Warsaw <bwarsaw@python.org>.
 
-;; MMM is the freely available WWW browser implemented in Objective
-;; Caml, a cool impure functional programming language, by Francois
-;; Rouaix.  See the MMM home page
+;; MMM is a semi-free WWW browser implemented in Objective Caml, an
+;; interesting impure functional programming language.  See
 ;; <URL:http://pauillac.inria.fr/%7Erouaix/mmm/>.
 
 ;; Lynx is now distributed by the FSF.  See also
@@ -98,7 +97,8 @@
 ;; <URL:http://www.unlv.edu/chimera/>, Arena
 ;; <URL:ftp://ftp.yggdrasil.com/pub/dist/web/arena> and Amaya
 ;; <URL:ftp://ftp.w3.org/pub/amaya>.  mMosaic
-;; <URL:ftp://sig.enst.fr/pub/multicast/mMosaic/> (with development
+;; <URL:ftp://sig.enst.fr/pub/multicast/mMosaic/>,
+;; <URL:http://sig.enst.fr/~dauphin/mMosaic/> (with development
 ;; support for Java applets and multicast) can be used like Mosaic by
 ;; setting `browse-url-mosaic-program' appropriately.
 
@@ -223,6 +223,7 @@
 
 (eval-when-compile (require 'thingatpt)
                    (require 'term)
+		   (require 'dired)
 		   (require 'w3-auto nil t))
 
 (defgroup browse-url nil
@@ -598,16 +599,19 @@ narrowed."
 Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
-  (let ((bf browse-url-browser-function) re)
-    (unless (functionp bf)
-      (while (consp bf)
-	(setq re (car (car bf))
-	      bf (if (string-match re url)
-		     (cdr (car bf))	; The function
-		   (cdr bf)))))		; More pairs
-    (or bf (error "No browser in browse-url-browser-function matching URL %s"
-                  url))
-    (apply bf url args)))
+  (if (functionp browse-url-browser-function)
+      (apply browse-url-browser-function url args)
+    ;; The `function' can be an alist; look down it for first match
+    ;; and apply the function (which might be a lambda).
+    (catch 'done
+      (mapcar
+       (lambda (bf)
+	 (when (string-match (car bf) url)
+	   (apply (cdr bf) url args)
+	   (throw 'done t)))
+       browse-url-browser-function)
+      (error "No browser in browse-url-browser-function matching URL %s"
+	     url))))
 
 ;;;###autoload
 (defun browse-url-at-point ()
