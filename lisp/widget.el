@@ -36,13 +36,14 @@
 (eval-when-compile (require 'cl))
 
 (defmacro define-widget-keywords (&rest keys)
-  (`
-   (eval-and-compile
-     (let ((keywords (quote (, keys))))
-       (while keywords
-	 (or (boundp (car keywords))
-	     (set (car keywords) (car keywords)))
-	 (setq keywords (cdr keywords)))))))
+  ;; Don't use backquote, since that makes trouble trying to
+  ;; re-bootstrap from just the .el files.
+  (list 'eval-and-compile
+    (list 'let (list (list 'keywords (list 'quote keys)))
+      (list 'while 'keywords
+       (list 'or (list 'boundp (list 'car 'keywords))
+           (list 'set (list 'car 'keywords) (list 'car 'keywords)))
+       (list 'setq 'keywords (list 'cdr 'keywords))))))
 
 (define-widget-keywords :documentation-indent
   :complete-function :complete :button-overlay
