@@ -1,7 +1,7 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.16) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpm.c(trunk.17) $
+ * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
  *
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.16) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.17) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -104,6 +104,9 @@ Bool AttrCheck(Attr attr)
 Bool AlignCheck(Align align)
 {
   CHECKL(align > 0 && (align & (align - 1)) == 0);
+  /* .check.unused: Check methods for signatureless types don't use */
+  /* their argument in hot varieties, so UNUSED is needed. */
+  UNUSED(align);
   return TRUE;
 }
 
