@@ -263,7 +263,7 @@ Interactively, the face to be used is prompted for.
 If the region is active, it will be set to the requested face.  If 
 it is inactive \(even if mark-even-if-inactive is set) the next
 character that is typed \(or otherwise inserted) will be set to
-the the selected face.  Moving point or switching buffers before
+the selected face.  Moving point or switching buffers before
 typing a character cancels the request." 
   (interactive (list (read-face-name "Use face: ")))
   (barf-if-buffer-read-only)
@@ -281,7 +281,7 @@ The color is prompted for.  A face named `fg:color' is used \(or created).
 If the region is active, it will be set to the requested face.  If
 it is inactive \(even if mark-even-if-inactive is set) the next
 character that is typed \(via `self-insert-command') will be set to
-the the selected face.  Moving point or switching buffers before
+the selected face.  Moving point or switching buffers before
 typing a character cancels the request." 
   (interactive (list (facemenu-read-color "Foreground color: ")))
   (let ((face (intern (concat "fg:" color))))
@@ -296,7 +296,7 @@ The color is prompted for.  A face named `bg:color' is used \(or created).
 If the region is active, it will be set to the requested face.  If
 it is inactive \(even if mark-even-if-inactive is set) the next
 character that is typed \(via `self-insert-command') will be set to
-the the selected face.  Moving point or switching buffers before
+the selected face.  Moving point or switching buffers before
 typing a character cancels the request." 
   (interactive (list (facemenu-read-color "Background color: ")))
   (let ((face (intern (concat "bg:" color))))
@@ -312,7 +312,7 @@ is the menu item's name.
 If the region is active, it will be set to the requested face.  If
 it is inactive \(even if mark-even-if-inactive is set) the next
 character that is typed \(or otherwise inserted) will be set to
-the the selected face.  Moving point or switching buffers before
+the selected face.  Moving point or switching buffers before
 typing a character cancels the request." 
   (interactive (list last-command-event
 		     (if mark-active (region-beginning))
