@@ -17,7 +17,8 @@
 
 2001-11-22  Colin Walters  <walters@debian.org>
 
-	* calc/calc-misc.el (report-calc-bug): Use `reporter-prompt-for-summary-p'.
+	* calc/calc-misc.el (report-calc-bug): 
+	Use `reporter-prompt-for-summary-p'.
 
 	* calc/INSTALL, calc/Makefile: Remove.
 
