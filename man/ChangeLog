@@ -1,3 +1,8 @@
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add idlwave.
+	(../info/idlwave, idlwave.dvi): New targets.
+
 1999-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* cc-mode.texi: Set file name to ../info/ccmode, to avoid problems
