@@ -5930,7 +5930,7 @@ decode_mac_font_name (name, size, scriptcode)
 
 
 static char *
-mac_to_x_fontname (name, size, style, scriptcode, encoding_base)
+mac_to_x_fontname (name, size, style, scriptcode)
      char *name;
      int size;
      Style style;

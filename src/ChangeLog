@@ -1,3 +1,7 @@
+2005-01-16  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_to_x_fontname): Removed spurious argument.
+
 2005-01-16  Andreas Schwab  <schwab@suse.de>
 
 	* macterm.c (mac_draw_string_common): Fix compilation on OSX 10.1.
