@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1992/11/16 01:37:06 $|$Revision: 1.16 $|~/modes/isearch-mode.el
+;; |$Date: 1993/01/26 01:48:27 $|$Revision: 1.17 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.16 1992/11/16 01:37:06 jimb Exp jimb $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.17 1993/01/26 01:48:27 jimb Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.17  1993/01/26  01:48:27  jimb
+; JimB's changes since January 18th
+;
 ; Revision 1.16  1992/11/16  01:37:06  jimb
 ; 	* bytecomp.el: Declare unread-command-char an obsolete variable.
 ; 	* vip.el (vip-escape-to-emacs, vip-prefix-arg-value,
@@ -423,7 +426,7 @@ Default value, nil, means edit the string instead.")
 ;;; An alternative is to fset isearch-forward etc to isearch-mode,
 ;;; and look at this-command to set the options accordingly.
 
-(defun isearch-forward (&optional regexp-p)
+(defun isearch-forward (&optional regexp-p no-recursive-edit)
   "\
 Do incremental search forward.
 With a prefix argument, do an incremental regular expression search instead.
@@ -462,34 +465,34 @@ Other control and meta characters terminate the search
 If this function is called non-interactively, it does not return to
 the calling function until the search is done."
 
-  (interactive "P")
-  (isearch-mode t (not (null regexp-p)) nil (not (interactive-p))))
+  (interactive "P\np")
+  (isearch-mode t (not (null regexp-p)) nil no-recursive-edit))
 
-(defun isearch-forward-regexp (&optional regexp-p)
+(defun isearch-forward-regexp (&optional not-regexp no-recursive-edit)
   "\
 Do incremental search forward for regular expression.
 With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input
 is treated as a regexp.  See \\[isearch-forward] for more info."
-  (interactive)
-  (isearch-mode t (null regexp-p) nil (not (interactive-p))))
+  (interactive "P\np")
+  (isearch-mode t (null not-regexp) nil no-recursive-edit))
 
-(defun isearch-backward (&optional regexp-p)
+(defun isearch-backward (&optional regexp-p no-recursive-edit)
   "\
 Do incremental search backward.
 With a prefix argument, do a regular expression search instead.
 See \\[isearch-forward] for more information."
-  (interactive)
-  (isearch-mode nil (not (null regexp-p)) nil (not (interactive-p))))
+  (interactive "P\np")
+  (isearch-mode nil (not (null regexp-p)) nil no-recursive-edit))
 
-(defun isearch-backward-regexp (&optional regexp-p)
+(defun isearch-backward-regexp (&optional not-regexp no-recursive-edit)
   "\
 Do incremental search backward for regular expression.
 With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input
 is treated as a regexp.  See \\[isearch-forward] for more info."
-  (interactive)
-  (isearch-mode nil (null regexp-p) nil (not (interactive-p))))
+  (interactive "P\np")
+  (isearch-mode nil (null not-regexp) nil no-recursive-edit))
 
 
 (defun isearch-mode-help ()
