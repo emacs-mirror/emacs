@@ -1,3 +1,8 @@
+2004-02-19  Andreas Schwab  <schwab@suse.de>
+
+	* fringe.c (Fdefine_fringe_bitmap): Use && instead of & to avoid
+	warning.
+
 2004-02-18  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type, display_and_set_cursor):
