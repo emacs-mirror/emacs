@@ -45,7 +45,6 @@
 (define-key c-mode-map "\e\C-q" 'indent-c-exp)
 (define-key c-mode-map "\ea" 'c-beginning-of-statement)
 (define-key c-mode-map "\ee" 'c-end-of-statement)
-(define-key c-mode-map "\eq" 'c-fill-paragraph)
 (define-key c-mode-map "\C-c\C-n" 'c-forward-conditional)
 (define-key c-mode-map "\C-c\C-p" 'c-backward-conditional)
 (define-key c-mode-map "\C-c\C-u" 'c-up-conditional)
@@ -226,6 +225,8 @@ if that value is non-nil."
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'c-fill-paragraph)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'c-indent-line)
   (make-local-variable 'indent-region-function)
@@ -476,7 +477,8 @@ preserving the comment indentation or line-starting decorations."
 		      (forward-line -1)
 		      (fill-region-as-paragraph (point) (point-max)))))))
 	;; Outside of comments: do ordinary filling.
-	(fill-paragraph arg)))))
+	(fill-paragraph arg)))
+    t))
 
 (defun electric-c-brace (arg)
   "Insert character and correct line's indentation."
