@@ -2071,7 +2071,7 @@ set_point_both (buffer, charpos, bytepos)
 
       if (backwards)
 	{
-	  /* If the preceeding character is both intangible and invisible,
+	  /* If the preceding character is both intangible and invisible,
 	     and the invisible property is `rear-sticky', perturb it so
 	     that the search starts one character earlier -- this ensures
 	     that point can never move to the end of an invisible/
