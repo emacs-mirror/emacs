@@ -150,7 +150,11 @@ in that frame; otherwise change each frame."
   ;; For a specific frame, use gray stipple instead of gray color
   ;; if the display does not support a gray color.
   (if (and frame (not (eq frame t)) color
-	   (not (face-color-supported-p frame color t)))
+	   ;; Check for supportedness for foreground, not for background!
+	   ;; face-color-supported-p is smart enough to know
+	   ;; that grays are "supported" as background
+	   ;; because we are supposed to use stipple for them!
+	   (not (face-color-supported-p frame color nil)))
       (set-face-stipple face face-default-stipple frame)
     (if (null frame)
 	(let ((frames (frame-list)))
