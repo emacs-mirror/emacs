@@ -2381,14 +2381,17 @@ DEFUN ("y-or-n-p", Fy_or_n_p, Sy_or_n_p, 1, 1, 0,
 Takes one argument, which is the string to display to ask the question.\n\
 It should end in a space; `y-or-n-p' adds `(y or n) ' to it.\n\
 No confirmation of the answer is requested; a single character is enough.\n\
-Also accepts Space to mean yes, or Delete to mean no.\n\
+Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses\n\
+the bindings in query-replace-map; see the documentation of that variable\n\
+for more information.  In this case, the useful bindings are `act', `skip',\n\
+`recenter', and `quit'.\)\n\
 \n\
 Under a windowing system a dialog box will be used if `last-nonmenu-event'\n\
 is nil.")
   (prompt)
      Lisp_Object prompt;
 {
-  register Lisp_Object obj, key, def, answer_string, map;
+  register Lisp_Object obj, key, def, map;
   register int answer;
   Lisp_Object xprompt;
   Lisp_Object args[2];
@@ -2442,7 +2445,6 @@ is nil.")
 
       key = Fmake_vector (make_number (1), obj);
       def = Flookup_key (map, key, Qt);
-      answer_string = Fsingle_key_description (obj);
 
       if (EQ (def, intern ("skip")))
 	{
