@@ -4931,7 +4931,8 @@ message3_nolog (m, nbytes, multibyte)
       if (STRINGP (m) && XSTRING (m)->size)
 	{
 	  set_message (NULL, m, nbytes, multibyte);
-	  Fraise_frame (frame);
+	  if (minibuffer_auto_raise)
+	    Fraise_frame (frame);
 	}
       else
 	clear_message (1, 1);
@@ -9891,7 +9892,7 @@ try_window_id (w)
     delta = dvpos = dy = run.current_y = run.desired_y = run.height = 0;
   IF_DEBUG (debug_dvpos = dvpos; debug_dy = dy);
 
-  
+k  
   /* Find the cursor if not already found.  We have to decide whether
      PT will appear on this window (it sometimes doesn't, but this is
      not a very frequent case.)  This decision has to be made before
@@ -9920,6 +9921,7 @@ try_window_id (w)
       else if (first_unchanged_at_end_row)
 	{
 	  row = first_unchanged_at_end_row;
+	  
 	  while (MATRIX_ROW_DISPLAYS_TEXT_P (row))
 	    {
 	      if (PT - delta >= MATRIX_ROW_START_CHARPOS (row)
@@ -9933,6 +9935,14 @@ try_window_id (w)
 		break;
 	      ++row;
 	    }
+
+	  /* If PT is at ZV, this is not in a line displaying text.
+	     Check that case.  */
+	  if (w->cursor.vpos < 0
+	      && PT - delta == MATRIX_ROW_START_CHARPOS (row)
+	      && row->ends_at_zv_p)
+	    set_cursor_from_row (w, row, w->current_matrix, delta,
+				 delta_bytes, dy, dvpos);
 	}
 
       /* Give up if cursor was not found.  */
