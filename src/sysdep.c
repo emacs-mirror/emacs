@@ -1382,6 +1382,10 @@ init_sys_modes ()
 #endif
 #endif
 
+#if defined (HAVE_TERMIOS) || defined (HPUX9)
+      if (!flow_control) tcflow (input_fd, TCOON);
+#endif
+
 #ifdef AIX
       hft_init ();
 #ifdef IBMR2AIX
