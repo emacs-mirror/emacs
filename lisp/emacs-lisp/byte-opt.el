@@ -663,7 +663,10 @@
   (setq form (byte-optimize-delay-constants-math form 2 '*))
   (let ((last (car (reverse (cdr (cdr form))))))
     (if (numberp last)
-	(cond ((= last 1)
+	(cond ((= (length form) 3)
+	       ;; Don't shrink to less than two arguments--would get an error.
+	       nil)
+	      ((= last 1)
 	       (setq form (byte-compile-butlast form)))
 	      ((numberp (nth 1 form))
 	       (setq form (cons (car form)
