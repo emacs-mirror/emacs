@@ -1748,6 +1748,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  if (xerrno == EINTR)
 	    FD_ZERO (&Available);
+#ifdef __ultrix__
+	  /* Ultrix select seems to return ENOMEM when it is interrupted.
+	     Treat it just like EINTR.  Bleah.  -JimB  */
+	  else if (xerrno == ENOMEM)
+	    FD_ZERO (&Available);
+#endif
 #ifdef ALLIANT
 	  /* This happens for no known reason on ALLIANT.
 	     I am guessing that this is the right response. -- RMS.  */
