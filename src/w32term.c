@@ -496,30 +496,18 @@ w32_draw_rectangle (HDC hdc, XGCValues *gc, int x, int y,
 
 /* Draw a filled rectangle at the specified position. */
 void 
-w32_fill_rect (f, _hdc, pix, lprect)
+w32_fill_rect (f, hdc, pix, lprect)
      FRAME_PTR f;
-     HDC _hdc;
+     HDC hdc;
      COLORREF pix;
      RECT * lprect;
 {
-  HDC hdc;
   HBRUSH hb;
   RECT rect;
 
-  if (_hdc)
-    hdc = _hdc;
-  else 
-    {
-      if (!f) return;
-      hdc = get_frame_dc (f);
-    }
-  
   hb = CreateSolidBrush (pix);
   FillRect (hdc, lprect, hb);
   DeleteObject (hb);
-  
-  if (!_hdc)
-    release_frame_dc (f, hdc);
 }
 
 void 
@@ -527,9 +515,11 @@ w32_clear_window (f)
      FRAME_PTR f;
 {
   RECT rect;
+  HDC hdc = get_frame_dc (f);
 
   GetClientRect (FRAME_W32_WINDOW (f), &rect);
-  w32_clear_rect (f, NULL, &rect);
+  w32_clear_rect (f, hdc, &rect);
+  release_frame_dc (f, hdc);
 }
 
 
@@ -627,13 +617,16 @@ x_draw_vertical_border (w)
       && !FRAME_HAS_VERTICAL_SCROLL_BARS (f))
     {
       RECT r;
+      HDC hdc;
 
       window_box_edges (w, -1, &r.left, &r.top, &r.right, &r.bottom);
       r.left = r.right + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f);
       r.right = r.left + 1;
       r.bottom -= 1;
 
-      w32_fill_rect (f, NULL, FRAME_FOREGROUND_PIXEL (f), r);
+      hdc = get_frame_dc (f);
+      w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), r);
+      release_frame_dc (f, hdc);
     }
 }
 
@@ -727,8 +720,10 @@ x_after_update_window_line (desired_row)
 	  int x = (window_box_right (w, -1)
                    + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
 	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+          HDC hdc = get_frame_dc (f);
 
-          w32_clear_area (f, NULL, x, y, width, height);
+          w32_clear_area (f, hdc, x, y, width, height);
+          release_frame_dc (f, hdc);
 	}
       
       UNBLOCK_INPUT;
@@ -742,15 +737,14 @@ x_after_update_window_line (desired_row)
    drawn.  */
 
 static void
-w32_draw_bitmap (w, _hdc, row, which)
+w32_draw_bitmap (w, hdc, row, which)
      struct window *w;
-     HDC _hdc;
+     HDC hdc;
      struct glyph_row *row;
      enum bitmap_type which;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Window window = FRAME_W32_WINDOW (f);
-  HDC hdc = _hdc ? _hdc : get_frame_dc (f);
   HDC compat_hdc;
   int x, y, wd, h, dy;
   unsigned short *bits;
@@ -848,9 +842,6 @@ w32_draw_bitmap (w, _hdc, row, which)
   DeleteObject (fg_brush);
   DeleteDC (compat_hdc);
   RestoreDC (hdc, -1);
-
-  if (!_hdc)
-    release_frame_dc (f, hdc);
 }
 
 
@@ -1102,7 +1093,7 @@ w32_per_char_metric (hdc, font, char2b, unicode_p)
   /* The result metric information.  */
   XCharStruct *pcm;
   ABC char_widths;
-  int char_total_width;
+  SIZE sz;
   BOOL retval;
 
   xassert (font && char2b);
@@ -1125,15 +1116,17 @@ w32_per_char_metric (hdc, font, char2b, unicode_p)
     }
   else
     {
+      /* Windows 9x does not implement GetCharABCWidthsW, so if that
+         failed, try GetTextExtentPoint32W, which is implemented and
+         at least gives us some of the info we are after (total
+         character width). */
       if (unicode_p)
-        retval = GetCharWidth32W (hdc, *char2b, *char2b, &char_total_width);
-      else
-        retval = GetCharWidth32A (hdc, *char2b, *char2b, &char_total_width);
+          retval = GetTextExtentPoint32W (hdc, char2b, 1, &sz);
 
       if (retval)
         {
-          pcm->width = char_total_width;
-          pcm->rbearing = char_total_width;
+          pcm->width = sz.cx;
+          pcm->rbearing = sz.cx;
           pcm->lbearing = 0;
         }
       else
@@ -1302,9 +1295,11 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
 	  if (font_info)
 	    {
 	      x_encode_char (c, char2b, font_info);
+#if 0 /* NTEMACS_TODO: Isn't this undoing what we just did?  Investigate. */
 	      if (charset == charset_latin_iso8859_1)
                 *char2b = BUILD_WCHAR_T (BYTE1 (*char2b),
                                          BYTE2 (*char2b) | 0x80);
+#endif
 	    }
 	}
     }
@@ -1364,9 +1359,11 @@ x_get_glyph_face_and_encoding (f, glyph, char2b)
 	  if (font_info)
 	    {
 	      x_encode_char (glyph->u.ch, char2b, font_info);
+#if 0 /* NTEMACS_TODO: Isn't this undoing what we just did?  Investigate. */
 	      if (charset == charset_latin_iso8859_1)
 		*char2b = BUILD_WCHAR_T (BYTE1 (*char2b),
                                          BYTE2 (*char2b) | 0x80);
+#endif
 	    }
 	}
     }
@@ -1763,7 +1760,7 @@ x_produce_glyphs (it)
       XFontStruct *font;
       struct face *face;
       XCharStruct *pcm;
-      int font_not_found_p;
+     int font_not_found_p;
       struct font_info *font_info;
       int boff;                 /* baseline offset */
       HDC hdc;
@@ -1911,19 +1908,30 @@ x_produce_glyphs (it)
 	}
       else 
 	{
-	  /* A multi-byte character.  Assume that the display width of the
-	     character is the width of the character multiplied by the
-	     width of the font.  */
-
-          /* If we found a font, this font should give us the right
+	  /* A multi-byte character.
+             If we found a font, this font should give us the right
              metrics.  If we didn't find a font, use the frame's
              default font and calculate the width of the character
              from the charset width; this is what old redisplay code
              did.  */
-          pcm = w32_per_char_metric (hdc, font, &char2b, 1);
-          it->pixel_width = pcm->width;
           if (font_not_found_p)
-            it->pixel_width *= CHARSET_WIDTH (it->charset);
+            {
+              wchar_t dummy = BUILD_WCHAR_T (0, 'X');
+
+              /* Get some metrics for the default font.  */
+              pcm = w32_per_char_metric (hdc, font, &dummy, 0);
+
+              /* Ignore the width obtained above, and use the average
+                 width of a character in the default font. */
+              it->pixel_width = FONT_WIDTH (font)
+                * CHARSET_WIDTH (it->charset);
+            }
+          else
+            {
+              pcm = w32_per_char_metric (hdc, font, &char2b, 1);
+              it->pixel_width = pcm->width;
+            }
+
           it->nglyphs = 1;
           it->ascent = FONT_BASE (font) + boff;
           it->descent = FONT_DESCENT (font) - boff;
@@ -1933,7 +1941,7 @@ x_produce_glyphs (it)
               && (pcm->lbearing < 0
                   || pcm->rbearing > pcm->width))
             it->glyph_row->contains_overlapping_glyphs_p = 1;
-	
+
 	  if (face->box != FACE_NO_BOX)
 	    {
 	      int thick = face->box_line_width;
@@ -2869,14 +2877,13 @@ x_compute_overhangs_and_x (s, x, backward_p)
    assumed to be zero.  */
 
 static void
-w32_get_glyph_overhangs (_hdc, glyph, f, left, right, unicode_p)
-     HDC _hdc;
+w32_get_glyph_overhangs (hdc, glyph, f, left, right, unicode_p)
+     HDC hdc;
      struct glyph *glyph;
      struct frame *f;
      int *left, *right, unicode_p;
 {
   int c;
-  HDC hdc = _hdc ? _hdc : get_frame_dc (f);
 
   *left = *right = 0;
   
@@ -2901,8 +2908,6 @@ w32_get_glyph_overhangs (_hdc, glyph, f, left, right, unicode_p)
 	    *left = -pcm->lbearing;
 	}
     }
-  if (!_hdc)
-    release_frame_dc (f, hdc);
 }
 
 
@@ -3397,34 +3402,31 @@ w32_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
      int left_x, top_y, right_x, bottom_y, width, left_p, right_p;
      RECT *clip_rect;
 {
-  HDC hdc = get_frame_dc (s->f);
-
-  w32_set_clip_rectangle (hdc, clip_rect);
+  w32_set_clip_rectangle (s->hdc, clip_rect);
   
   /* Top.  */
-  w32_fill_area (s->f, hdc, s->face->box_color,
+  w32_fill_area (s->f, s->hdc, s->face->box_color,
 		  left_x, top_y, right_x - left_x, width);
 
   /* Left.  */
   if (left_p)
     {
-      w32_fill_area (s->f, hdc, s->face->box_color,
+      w32_fill_area (s->f, s->hdc, s->face->box_color,
                      left_x, top_y, width, bottom_y - top_y);
     }
   
   /* Bottom.  */
-  w32_fill_area (s->f, hdc, s->face->box_color,
+  w32_fill_area (s->f, s->hdc, s->face->box_color,
                  left_x, bottom_y - width, right_x - left_x, width);
   
   /* Right.  */
   if (right_p)
     {
-      w32_fill_area (s->f, hdc, s->face->box_color,
+      w32_fill_area (s->f, s->hdc, s->face->box_color,
                      right_x - width, top_y, width, bottom_y - top_y);
     }
 
-  w32_set_clip_rectangle (hdc, NULL);
-  release_frame_dc (s->f, hdc);
+  w32_set_clip_rectangle (s->hdc, NULL);
 }
 
 
@@ -4889,8 +4891,12 @@ x_clear_end_of_line (to_x)
   /* Prevent inadvertently clearing to end of the X window.  */
   if (to_x > from_x && to_y > from_y)
     {
+      HDC hdc;
       BLOCK_INPUT;
-      w32_clear_area (f, NULL, from_x, from_y, to_x - from_x, to_y - from_y);
+      hdc = get_frame_dc (f);
+
+      w32_clear_area (f, hdc, from_x, from_y, to_x - from_x, to_y - from_y);
+      release_frame_dc (f, hdc);
       UNBLOCK_INPUT;
     }
 }
@@ -7167,9 +7173,13 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
     {
+      HDC hdc;
       BLOCK_INPUT;
-      w32_clear_area (f, NULL, left, top, width, height);
+      hdc = get_frame_dc (f);
+      w32_clear_area (f, hdc, left, top, width, height);
+      release_frame_dc (f, hdc);
       UNBLOCK_INPUT;
+
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
     }
   else
@@ -7192,15 +7202,18 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
         }
       else
         {
+          HDC hdc;
           BLOCK_INPUT;
 
+          hdc = get_frame_dc (f);
           /* Since Windows scroll bars are smaller than the space reserved
              for them on the frame, we have to clear "under" them.  */
-          w32_clear_area (f, NULL,
+          w32_clear_area (f, hdc,
                           left,
                           top,
                           width,
                           height);
+          release_frame_dc (f, hdc);
 
           /* Make sure scroll bar is "visible" before moving, to ensure the
              area of the parent window now exposed will be refreshed.  */
@@ -7217,10 +7230,10 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
               si.nMax = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height)
                 + VERTICAL_SCROLL_BAR_MIN_HANDLE;
 
-              pfnSetScrollInfo (w, SB_CTL, &si, FALSE);
+              pfnSetScrollInfo (hwnd, SB_CTL, &si, FALSE);
             }
           else
-            SetScrollRange (w, SB_CTL, 0,
+            SetScrollRange (hwnd, SB_CTL, 0,
                             VERTICAL_SCROLL_BAR_TOP_RANGE (f, height), FALSE);
           my_show_window (f, hwnd, SW_NORMAL);
           //  InvalidateRect (w, NULL, FALSE);
@@ -7681,8 +7694,11 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  }
 		else
 		  {
+                    HDC hdc = get_frame_dc (f);
+
 		    /* Erase background again for safety.  */
-		    w32_clear_rect (f, NULL, &msg.rect);
+		    w32_clear_rect (f, hdc, &msg.rect);
+                    release_frame_dc (f, hdc);
 		    expose_frame (f,
                                   msg.rect.left,
                                   msg.rect.top,
@@ -8397,7 +8413,7 @@ x_draw_bar_cursor (w, row)
       struct frame *f = XFRAME (w->frame);
       struct glyph *cursor_glyph;
       int x;
-      HDC hdc = get_frame_dc (f);
+      HDC hdc;
 
       cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph == NULL)
@@ -8405,6 +8421,7 @@ x_draw_bar_cursor (w, row)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
 
+      hdc = get_frame_dc (f);
       w32_fill_area (f, hdc, f->output_data.w32->cursor_pixel,
                      x,
                      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
@@ -8524,18 +8541,21 @@ x_erase_phys_cursor (w)
     {
       int x;
       int header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
+      HDC hdc;
 
       cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph == NULL)
 	goto mark_cursor_off;
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-      
-      w32_clear_area (f, NULL, x,
+
+      hdc = get_frame_dc (f);
+      w32_clear_area (f, hdc, x,
                       WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
                                                        cursor_row->y)),
                       cursor_glyph->pixel_width,
                       cursor_row->visible_height);
+      release_frame_dc (f, hdc);
     }
   
   /* Erase the cursor by redrawing the character underneath it.  */
