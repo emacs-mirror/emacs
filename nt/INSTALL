@@ -18,6 +18,13 @@
   build (latest versions of the Cygwin toolkit, at least since v1.3.3,
   include the MinGW headers and libraries as an integral part).
 
+  Other compilers may work, but specific reports from people that have
+  tried suggest that the Intel C compiler (for example) may produce an
+  Emacs executable with strange filename completion behaviour.  Unless
+  you would like to assist by finding and fixing the cause of any bugs
+  like this, we recommend the use of the supported compilers mentioned
+  in the previous paragraph.
+
   If you build Emacs on Windows 9X or ME, not on Windows 2000 or
   Windows NT, we suggest to install the Cygwin port of Bash.
 
