@@ -2361,9 +2361,11 @@ range; more often, it is useful to add, change, or delete just certain
 properties specified by name.
 
   Since text properties are considered part of the contents of the
-buffer (or string), and can affect how a buffer looks on the screen, any
-change in buffer text properties marks the buffer as modified.  Buffer
-text property changes are undoable also (@pxref{Undo}).
+buffer (or string), and can affect how a buffer looks on the screen,
+any change in buffer text properties marks the buffer as modified.
+Buffer text property changes are undoable also (@pxref{Undo}).
+Positions in a string start from 0, whereas positions in a buffer
+start from 1.
 
 @defun put-text-property start end prop value &optional object
 This function sets the @var{prop} property to @var{value} for the text
