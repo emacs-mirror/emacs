@@ -1652,7 +1652,9 @@ new buffer."
 	    (save-excursion
 	      (goto-char p)
 	      (end-of-line)
-	      (if (re-search-backward "\n\\* +\\([^\t\n]*\\):" beg t)
+	      (if (re-search-backward (concat "\n\\* +\\("
+					      Info-menu-entry-name-re
+					      "\\):") beg t)
 		  (setq default (match-string-no-properties 1))))))
      (let ((item nil))
        (while (null item)
