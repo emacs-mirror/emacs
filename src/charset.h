@@ -447,7 +447,7 @@ extern int width_by_char_head[256];
 
 #define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)	\
   (((str)[0] < 0x80 || (str)[0] >= 0xA0)		\
-   ? (bytes) = 1					\
+   ? ((bytes) = 1)					\
    : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),	\
       ((bytes) > 1 && (bytes) <= (length)		\
        && (str)[0] != LEADING_CODE_8_BIT_CONTROL	\
