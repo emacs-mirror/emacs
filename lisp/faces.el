@@ -928,17 +928,21 @@ selected frame."
 			   (if resource
 			       (cons nil (member (downcase resource)
 						 '("on" "true")))))))
-		(let ((params (frame-parameters frame)))
-		  (modify-frame-parameters
-		   frame
-		   (list (cons 'foreground-color (cdr (assq 'background-color params)))
-			 (cons 'background-color (cdr (assq 'foreground-color params)))
-			 (cons 'mouse-color (cdr (assq 'background-color params)))
-			 (cons 'border-color (cdr (assq 'background-color params)))))
-		  (modify-frame-parameters
-		   frame
-		   (list (cons 'cursor-color (cdr (assq 'background-color params)))))))
-
+		(let* ((params (frame-parameters frame))
+		       (bg (cdr (assq 'foreground-color params)))
+		       (fg (cdr (assq 'background-color params))))
+		  (modify-frame-parameters frame
+					   (list (cons 'foreground-color fg)
+						 (cons 'background-color bg)))
+		  (if (equal bg (cdr (assq 'border-color params)))
+		      (modify-frame-parameters frame
+					       (list (cons 'border-color fg))))
+		  (if (equal bg (cdr (assq 'mouse-color params)))
+		      (modify-frame-parameters frame
+					       (list (cons 'mouse-color fg))))
+		  (if (equal bg (cdr (assq 'cursor-color params)))
+		      (modify-frame-parameters frame
+					       (list (cons 'cursor-color fg))))))
 	    ;; Copy the vectors that represent the faces.
 	    ;; Also fill them in from X resources.
 	    (while rest
