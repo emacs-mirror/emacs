@@ -987,11 +987,10 @@ If COUNT is negative, move backward instead."
 			       (simula-backward-up-level 1)
 			       (if (pos-visible-in-window-p)
 				   (sit-for 1)
-				 (message
-				  (concat "Matches "
+				 (message "Matches %s"
 					  (buffer-substring
 					   (point)
-					   (+ (point) (window-width))))))))
+					   (+ (point) (window-width)))))))
 			 (skip-chars-backward " \t\f")
 			 (bolp)))
 		  (let ((indent (simula-calculate-indent)))
