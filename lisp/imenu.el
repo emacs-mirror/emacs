@@ -406,25 +406,35 @@ This function is called after the function pointed out by
 ;;; Split the alist MENULIST into a nested alist, if it is long enough.
 ;;; In any case, add TITLE to the front of the alist.
 (defun imenu--split-menu (menulist title)
-  (if imenu-sort-function
-      (setq menulist
-	    (sort
-	     (let ((res nil)
-		   (oldlist menulist))
-	       ;; Copy list method from the cl package `copy-list'
-	       (while (consp oldlist) (push (pop oldlist) res))
-	       (prog1 (nreverse res) (setcdr res oldlist)))
-	     imenu-sort-function)))
-  (if (> (length menulist) imenu-max-items)
-      (let ((count 0))
-	(cons title
-	      (mapcar
-	       (function
-		(lambda (menu)
-		  (cons (format "(%s-%d)" title (setq count (1+ count)))
-			menu)))
-	       (imenu--split menulist imenu-max-items))))
-    (cons title menulist)))
+  (let (keep-at-top tail)
+    (if (memq imenu--rescan-item menulist)
+	(setq keep-at-top (cons imenu--rescan-item nil)
+	      menulist (delq imenu--rescan-item menulist)))
+    (setq tail menulist)
+    (while tail
+      (if (imenu--subalist-p (car tail))
+	  (setq keep-at-top (cons (car tail) keep-at-top)
+		menulist (delq (car tail) menulist)))
+      (setq tail (cdr tail)))
+    (if imenu-sort-function
+	(setq menulist
+	      (sort
+	       (let ((res nil)
+		     (oldlist menulist))
+		 ;; Copy list method from the cl package `copy-list'
+		 (while (consp oldlist) (push (pop oldlist) res))
+		 (prog1 (nreverse res) (setcdr res oldlist)))
+	       imenu-sort-function)))
+    (if (> (length menulist) imenu-max-items)
+	(let ((count 0))
+	  (setq menulist
+		(mapcar
+		 (function
+		  (lambda (menu)
+		    (cons (format "From: %s" (caar menu)) menu)))
+		 (imenu--split menulist imenu-max-items)))))
+    (cons title
+	  (nconc (nreverse keep-at-top) menulist))))
 
 ;;; Split up each long alist that are nested within ALIST
 ;;; into nested alists.
@@ -675,7 +685,8 @@ pattern.
 	   patterns))))
     (imenu-progress-message prev-pos 100 t)
     (let ((main-element (assq nil index-alist)))
-      (nconc (delq main-element (delq 'dummy index-alist)) main-element))))
+      (nconc (delq main-element (delq 'dummy index-alist))
+	     (cdr main-element)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
