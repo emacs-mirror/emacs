@@ -666,11 +666,15 @@ x_set_frame_parameters (f, alist)
   /* Same here.  */
   Lisp_Object left, top;
 
+  /* Same with these.  */
+  Lisp_Object icon_left, icon_top;
+
   /* Record in these vectors all the parms specified.  */
   Lisp_Object *parms;
   Lisp_Object *values;
   int i;
   int left_no_change = 0, top_no_change = 0;
+  int icon_left_no_change = 0, icon_top_no_change = 0;
 
   i = 0;
   for (tail = alist; CONSP (tail); tail = Fcdr (tail))
@@ -693,6 +697,7 @@ x_set_frame_parameters (f, alist)
     }
 
   width = height = top = left = Qunbound;
+  icon_left = icon_top = Qunbound;
 
   /* Now process them in reverse of specified order.  */
   for (i--; i >= 0; i--)
@@ -710,6 +715,10 @@ x_set_frame_parameters (f, alist)
 	top = val;
       else if (EQ (prop, Qleft))
 	left = val;
+      else if (EQ (prop, Qicon_top))
+	icon_top = val;
+      else if (EQ (prop, Qicon_left))
+	icon_left = val;
       else
 	{
 	  register Lisp_Object param_index, old_value;
@@ -740,6 +749,22 @@ x_set_frame_parameters (f, alist)
 	top = Fcons (Qplus, Fcons (make_number (f->display.x->top_pos), Qnil));
       else
 	XSETINT (top, f->display.x->top_pos);
+    }
+
+  /* If one of the icon positions was not set, preserve or default it.  */
+  if (EQ (icon_left, Qunbound) || ! INTEGERP (icon_left))
+    {
+      icon_left_no_change = 1;
+      icon_left = Fcdr (Fassq (Qicon_left, f->param_alist));
+      if (NILP (icon_left))
+	XSETINT (icon_left, 0);
+    }
+  if (EQ (icon_top, Qunbound) || ! INTEGERP (icon_top))
+    {
+      icon_top_no_change = 1;
+      icon_top = Fcdr (Fassq (Qicon_top, f->param_alist));
+      if (NILP (icon_top))
+	XSETINT (icon_top, 0);
     }
 
   /* Don't die if just one of these was set.  */
@@ -831,6 +856,10 @@ x_set_frame_parameters (f, alist)
 	/* Actually set that position, and convert to absolute.  */
 	x_set_offset (f, leftpos, toppos, 0);
       }
+
+    if ((!NILP (icon_left) || !NILP (icon_top))
+	&& ! (icon_left_no_change && icon_top_no_change))
+      x_wm_set_icon_position (f, XINT (icon_left), XINT (icon_top));
   }
 }
 
@@ -1819,7 +1848,7 @@ enum resource_types
 
    If no default is specified, return Qunbound.  If you call
    x_get_arg, make sure you deal with Qunbound in a reasonable way,
-   and don't let it get stored in any lisp-visible variables!  */
+   and don't let it get stored in any Lisp-visible variables!  */
 
 static Lisp_Object
 x_get_arg (alist, param, attribute, class, type)
@@ -2382,7 +2411,7 @@ x_window (f)
   BLOCK_INPUT;
   FRAME_X_WINDOW (f)
     = XCreateWindow (FRAME_X_DISPLAY (f),
-		     FRAME_X_DISPLAY_INFO (f)->root_window,
+		     f->display.x->parent_desc,
 		     f->display.x->left_pos,
 		     f->display.x->top_pos,
 		     PIXEL_WIDTH (f), PIXEL_HEIGHT (f),
@@ -2575,6 +2604,7 @@ This function is an internal primitive--use `make-frame' instead.")
   struct gcpro gcpro1;
   Lisp_Object display;
   struct x_display_info *dpyinfo;
+  Lisp_Object parent;
 
   check_x ();
 
@@ -2588,6 +2618,13 @@ This function is an internal primitive--use `make-frame' instead.")
       && ! EQ (name, Qunbound)
       && ! NILP (name))
     error ("Invalid frame name--not a string or nil");
+
+  /* See if parent window is specified.  */
+  parent = x_get_arg (parms, Qparent_id, NULL, NULL, number);
+  if (EQ (parent, Qunbound))
+    parent = Qnil;
+  if (! NILP (parent))
+    CHECK_NUMBER (parent, 0);
 
   tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
@@ -2614,6 +2651,19 @@ This function is an internal primitive--use `make-frame' instead.")
   f->display.x->icon_bitmap = -1;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+
+  /* Specify the parent under which to make this X window.  */
+
+  if (!NILP (parent))
+    {
+      f->display.x->parent_desc = parent;
+      f->display.x->explicit_parent = 1;
+    }
+  else
+    {
+      f->display.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
+      f->display.x->explicit_parent = 0;
+    }
 
   /* Note that the frame has no physical cursor right now.  */
   f->phys_cursor_x = -1;
@@ -2778,22 +2828,24 @@ This function is an internal primitive--use `make-frame' instead.")
   FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
   /* Make the window appear on the frame and enable display,
-     unless the caller says not to.  */
-  {
-    Lisp_Object visibility;
+     unless the caller says not to.  However, with explicit parent,
+     Emacs cannot control visibility, so don't try.  */
+  if (! f->display.x->explicit_parent)
+    {
+      Lisp_Object visibility;
 
-    visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
-    if (EQ (visibility, Qunbound))
-      visibility = Qt;
+      visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
+      if (EQ (visibility, Qunbound))
+	visibility = Qt;
 
-    if (EQ (visibility, Qicon))
-      x_iconify_frame (f);
-    else if (! NILP (visibility))
-      x_make_frame_visible (f);
-    else
-      /* Must have been Qnil.  */
-      ;
-  }
+      if (EQ (visibility, Qicon))
+	x_iconify_frame (f);
+      else if (! NILP (visibility))
+	x_make_frame_visible (f);
+      else
+	/* Must have been Qnil.  */
+	;
+    }
 
   return unbind_to (count, frame);
 }
@@ -3034,7 +3086,8 @@ If FRAME is omitted or nil, use the selected frame.")
 DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 2, 0,
   "Return a description of the color named COLOR on frame FRAME.\n\
 The value is a list of integer RGB values--(RED GREEN BLUE).\n\
-These values appear to range from 0 to 65280; white is (65280 65280 65280).\n\
+These values appear to range from 0 to 65280 or 65535, depending\n\
+on the system; white is (65280 65280 65280) or (65535 65535 65535).\n\
 If FRAME is omitted or nil, use the selected frame.")
   (color, frame)
      Lisp_Object color, frame;
