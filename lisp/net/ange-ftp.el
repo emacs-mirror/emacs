@@ -2120,14 +2120,14 @@ Create a new process if needed."
 				   'string-match)
 		    (if ange-ftp-try-passive-mode "on"))))
 	  (if passive
-	      (ange-ftp-passive-mode passive)))
+	      (ange-ftp-passive-mode proc passive)))
 
 	;; Run any user-specified hooks.  Note that proc, host and user are
 	;; dynamically bound at this point.
 	(run-hooks 'ange-ftp-process-startup-hook))
       proc)))
 
-(defun ange-ftp-passive-mode (on-or-off)
+(defun ange-ftp-passive-mode (proc on-or-off)
   (if (string-match (concat "Passive mode " on-or-off)
                     (cdr (ange-ftp-raw-send-cmd
                           proc (concat "passive " on-or-off)
