@@ -543,24 +543,34 @@ static Lisp_Object
 get_process (name)
      register Lisp_Object name;
 {
-  register Lisp_Object proc;
-  if (NILP (name))
-    proc = Fget_buffer_process (Fcurrent_buffer ());
+  register Lisp_Object proc, obj;
+  if (STRINGP (name))
+    {
+      obj = Fget_process (name);
+      if (NILP (obj))
+	obj = Fget_buffer (name);
+      if (NILP (obj))
+	error ("Process %s does not exist", XSTRING (name)->data);
+    }
+  else if (NILP (name))
+    obj = Fcurrent_buffer ();
+  else
+    obj = name;
+
+  /* Now obj should be either a buffer object or a process object.
+   */
+  if (BUFFERP (obj))
+    {
+      proc = Fget_buffer_process (obj);
+      if (NILP (proc))
+	error ("Buffer %s has no process", XSTRING (XBUFFER (obj)->name)->data);
+    }
   else
     {
-      proc = Fget_process (name);
-      if (NILP (proc))
-	proc = Fget_buffer_process (Fget_buffer (name));
+      CHECK_PROCESS (obj, 0);
+      proc = obj;
     }
-
-  if (!NILP (proc))
-    return proc;
-
-  if (NILP (name))
-    error ("Current buffer has no process");
-  else
-    error ("Process %s does not exist", XSTRING (name)->data);
-  /* NOTREACHED */
+  return proc;
 }
 
 DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
