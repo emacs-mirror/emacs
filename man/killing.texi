@@ -15,6 +15,11 @@ is versatile, because the many commands for killing syntactic units can
 also be used for moving those units.  But there are other ways of
 copying text for special purposes.
 
+  On terminals that support multiple windows for multiple applications,
+the kill commands also provide a way to select text for other applications
+to copy, and the Emacs yank commands can access selections made by
+other programs.
+
   Emacs has only one kill ring for all buffers, so you can kill text in
 one buffer and yank it in another buffer.
 
@@ -53,6 +58,11 @@ newlines.  Commands that can destroy significant amounts of nontrivial
 data generally do a kill operation instead.  The commands' names and
 individual descriptions use the words @samp{kill} and @samp{delete} to
 say which kind of operation they perform.
+
+  On window systems, the most recent kill done in Emacs is also the
+primary selection, if it is more recent than any selection you made in
+another program.  This means that the paste commands of other window
+applications copy the text that you killed in Emacs.
 
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
@@ -278,6 +288,11 @@ Save region as last killed text without actually killing it
 @item C-M-w
 Append next kill to last batch of killed text (@code{append-next-kill}).
 @end table
+
+  On window systems, if there is a current selection in some other
+application, and you selected it more recently than you killed any
+text in Emacs, @kbd{C-y} copies the selection instead of text
+killed within Emacs.
 
 @menu
 * Kill Ring::		Where killed text is stored.  Basic yanking.
