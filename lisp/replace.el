@@ -115,6 +115,7 @@ and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
   (interactive (query-replace-read-args "Query replace regexp" t))
   (perform-replace regexp to-string t t arg))
+(define-key esc-map [?\C-%] 'query-replace-regexp)
 
 (defun map-query-replace-regexp (regexp to-strings &optional arg)
   "Replace some matches for REGEXP with various strings, in rotation.
