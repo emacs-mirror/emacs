@@ -28,6 +28,26 @@
 ;; This collection of functions implements the features of calendar.el
 ;; and diary.el that deal with the Baha'i calendar.
 
+;; The Baha'i (http://www.bahai.org) calendar system is based on a
+;; solar cycle of 19 months with 19 days each.  The four remaining
+;; "intercalary" days are called the Ayyam-i-Ha (days of Ha), and are
+;; placed between the 18th and 19th months.  They are meant as a time
+;; of festivals preceding the 19th month, which is the month of
+;; fasting.  In Gregorian leap years, there are 5 of these days (Ha
+;; has the numerical value of 5 in the arabic abjad, or
+;; letter-to-number, reckoning).
+
+;; Each month is named after an attribute of God, as are the 19 days
+;; -- which have the same names as the months.  There is also a name
+;; for each year in every 19 year cycle.  These cycles are called
+;; Vahids.  A cycle of 19 Vahids (361 years) is called a Kullu-Shay,
+;; which means "all things".
+
+;; The calendar was named the "Badi calendar" by its author, the Bab.
+;; It uses a week of seven days, corresponding to the Gregorian week,
+;; each of which has its own name, again patterned after the
+;; attributes of God.
+
 ;; Note: The days of Ayyam-i-Ha are encoded as zero and negative
 ;; offsets from the first day of the final month.  So, (19 -3 157) is
 ;; the first day of Ayyam-i-Ha, in the year 157 BE.
