@@ -146,7 +146,7 @@ A multibyte character is handled correctly.")
   CHECK_STRING (string, 0);
   p = XSTRING (string);
   if (p->size)
-    XSETFASTINT (val, STRING_CHAR (p->data, p->size_byte));
+    XSETFASTINT (val, STRING_CHAR (p->data, STRING_BYTES (p)));
   else
     XSETFASTINT (val, 0);
   return val;
@@ -867,7 +867,7 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
     error ("Invalid time specification");
 
   /* This is probably enough.  */
-  size = XSTRING (format_string)->size_byte * 6 + 50;
+  size = STRING_BYTES (XSTRING (format_string)) * 6 + 50;
 
   while (1)
     {
@@ -1294,7 +1294,7 @@ general_insert_function (insert_func, insert_from_string_func,
 	{
 	  (*insert_from_string_func) (val, 0, 0,
 				      XSTRING (val)->size,
-				      XSTRING (val)->size_byte,
+				      STRING_BYTES (XSTRING (val)),
 				      inherit);
 	}
       else
@@ -1896,7 +1896,7 @@ It returns the number of characters changed.")
   validate_region (&start, &end);
   CHECK_STRING (table, 2);
 
-  size = XSTRING (table)->size_byte;
+  size = STRING_BYTES (XSTRING (table));
   tt = XSTRING (table)->data;
 
   pos_byte = CHAR_TO_BYTE (XINT (start));
@@ -2110,13 +2110,13 @@ minibuffer contents show.")
 	  message_text = (char *)xmalloc (80);
 	  message_length = 80;
 	}
-      if (XSTRING (val)->size_byte > message_length)
+      if (STRING_BYTES (XSTRING (val)) > message_length)
 	{
-	  message_length = XSTRING (val)->size_byte;
+	  message_length = STRING_BYTES (XSTRING (val));
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
-      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size_byte);
-      message2 (message_text, XSTRING (val)->size_byte,
+      bcopy (XSTRING (val)->data, message_text, STRING_BYTES (XSTRING (val)));
+      message2 (message_text, STRING_BYTES (XSTRING (val)),
 		STRING_MULTIBYTE (val));
       return val;
     }
@@ -2161,13 +2161,13 @@ minibuffer contents show.")
 	  message_text = (char *)xmalloc (80);
 	  message_length = 80;
 	}
-      if (XSTRING (val)->size_byte > message_length)
+      if (STRING_BYTES (XSTRING (val)) > message_length)
 	{
-	  message_length = XSTRING (val)->size_byte;
+	  message_length = STRING_BYTES (XSTRING (val));
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
-      bcopy (XSTRING (val)->data, message_text, XSTRING (val)->size_byte);
-      message2 (message_text, XSTRING (val)->size_byte);
+      bcopy (XSTRING (val)->data, message_text, STRING_BYTES (XSTRING (val)));
+      message2 (message_text, STRING_BYTES (XSTRING (val)));
       return val;
 #endif /* not HAVE_MENUS */
     }
@@ -2211,8 +2211,8 @@ DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
 #define CONVERTED_BYTE_SIZE(MULTIBYTE, STRING)				\
   (((MULTIBYTE) && ! STRING_MULTIBYTE (STRING))				\
    ? count_size_as_multibyte (XSTRING (STRING)->data,			\
-			      XSTRING (STRING)->size_byte)		\
-   : XSTRING (STRING)->size_byte)
+			      STRING_BYTES (XSTRING (STRING)))		\
+   : STRING_BYTES (XSTRING (STRING)))
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
   "Format a string out of a control-string and arguments.\n\
@@ -2265,7 +2265,7 @@ Use %% to put a single % into the output.")
  retry:
 
   format = XSTRING (args[0])->data;
-  end = format + XSTRING (args[0])->size_byte;
+  end = format + STRING_BYTES (XSTRING (args[0]));
   longest_format = 0;
 
   /* Make room in result for all the non-%-codes in the control string.  */
@@ -2348,7 +2348,7 @@ Use %% to put a single % into the output.")
 		    goto retry;
 		  }
 		args[n] = Fchar_to_string (args[n]);
-		thissize = XSTRING (args[n])->size_byte;
+		thissize = STRING_BYTES (XSTRING (args[n]));
 	      }
 	  }
 #ifdef LISP_FLOAT_TYPE
@@ -2429,7 +2429,7 @@ Use %% to put a single % into the output.")
 	    {
 	      int padding, nbytes;
 	      int width = strwidth (XSTRING (args[n])->data,
-				    XSTRING (args[n])->size_byte);
+				    STRING_BYTES (XSTRING (args[n])));
 
 	      /* If spec requires it, pad on right with spaces.  */
 	      padding = minlen - width;
@@ -2441,7 +2441,7 @@ Use %% to put a single % into the output.")
 		  }
 
 	      nbytes = copy_text (XSTRING (args[n])->data, p,
-				  XSTRING (args[n])->size_byte,
+				  STRING_BYTES (XSTRING (args[n])),
 				  STRING_MULTIBYTE (args[n]), multibyte);
 	      p += nbytes;
 	      nchars += XSTRING (args[n])->size;
@@ -2650,6 +2650,9 @@ Transposing beyond buffer boundaries is an error.")
   int start1_byte, start2_byte, len1_byte, len2_byte;
   int gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
+  int combined_before_bytes_1, combined_after_bytes_1;
+  int combined_before_bytes_2, combined_after_bytes_2;
+  struct gcpro gcpro1, gcpro2;
 
 #ifdef USE_TEXT_PROPERTIES
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
@@ -2680,9 +2683,9 @@ Transposing beyond buffer boundaries is an error.")
   len2 = end2 - start2;
 
   if (start2 < end1)
-    error ("Transposed regions not properly ordered");
+    error ("Transposed regions overlap");
   else if (start1 == end1 || start2 == end2)
-    error ("Transposed region may not be of length 0");
+    error ("Transposed region has length 0");
 
   /* The possibilities are:
      1. Adjacent (contiguous) regions, or separate but equal regions
@@ -2720,6 +2723,61 @@ Transposing beyond buffer boundaries is an error.")
   start2_byte = CHAR_TO_BYTE (start2);
   len1_byte = CHAR_TO_BYTE (end1) - start1_byte;
   len2_byte = CHAR_TO_BYTE (end2) - start2_byte;
+
+  if (end1 == start2)
+    {
+      combined_before_bytes_2
+	= count_combining_before (BYTE_POS_ADDR (start2_byte),
+				  len2_byte, start1, start1_byte);
+      combined_before_bytes_1
+	= count_combining_before (BYTE_POS_ADDR (start1_byte),
+				  len1_byte, end2, start2_byte + len2_byte);
+      combined_after_bytes_1
+	= count_combining_after (BYTE_POS_ADDR (start1_byte),
+				 len1_byte, end2, start2_byte + len2_byte);
+      combined_after_bytes_2 = 0;
+    }
+  else
+    {
+      combined_before_bytes_2
+	= count_combining_before (BYTE_POS_ADDR (start2_byte),
+				  len2_byte, start1, start1_byte);
+      combined_before_bytes_1
+	= count_combining_before (BYTE_POS_ADDR (start1_byte),
+				  len1_byte, start2, start2_byte);
+      combined_after_bytes_2
+	= count_combining_after (BYTE_POS_ADDR (start2_byte),
+				 len2_byte, end1, start1_byte + len1_byte);
+      combined_after_bytes_1
+	= count_combining_after (BYTE_POS_ADDR (start1_byte),
+				 len1_byte, end2, start2_byte + len2_byte);
+    }
+
+  /* If any combining is going to happen, do this the stupid way,
+     because replace handles combining properly.  */
+  if (combined_before_bytes_1 || combined_before_bytes_2
+      || combined_after_bytes_1 || combined_after_bytes_2)
+    {
+      Lisp_Object text1, text2;
+
+      text1 = text2 = Qnil;
+      GCPRO2 (text1, text2);
+
+      text1 = make_buffer_string_both (start1, start1_byte,
+				       end1, start1_byte + len1_byte, 1);
+      text2 = make_buffer_string_both (start2, start2_byte,
+				       end2, start2_byte + len2_byte, 1);
+
+      transpose_markers (start1, end1, start2, end2,
+			 start1_byte, start1_byte + len1_byte,
+			 start2_byte, start2_byte + len2_byte);
+
+      replace_range (text1, start2, end2, 1, 0, 1);
+      replace_range (text2, start1, end1, 1, 0, 1);
+
+      UNGCPRO;
+      return Qnil;
+    }
       
   /* Hmmm... how about checking to see if the gap is large
      enough to use as the temporary storage?  That would avoid an
