@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.36 $
+;; Version: $Revision: 1.37 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/09 01:07:57 $|$Revision: 1.36 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/09 18:52:16 $|$Revision: 1.37 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.37  1995/07/09  18:52:16  tromey
+;; (tcl-do-auto-fill): Set fill-prefix.
+;;
 ;; Revision 1.36  1995/07/09  01:07:57  tromey
 ;; (tcl-imenu-create-index-function): Work with imenu from Emacs 19.29
 ;;
@@ -319,7 +322,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.36 $")
+(defconst tcl-version "$Revision: 1.37 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -897,9 +900,16 @@ Commands:
   (set-syntax-table tcl-mode-syntax-table)
 
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
+  (if (and tcl-using-emacs-19-23
+	   (>= emacs-minor-version 29))
+      (progn
+	;; In Emacs 19.29, you aren't supposed to start these with a
+	;; ^.
+	(setq paragraph-start "$\\|")
+	(setq paragraph-separate paragraph-start))
+    (setq paragraph-start (concat "^$\\|" page-delimiter))
+    (setq paragraph-separate paragraph-start))
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
 
