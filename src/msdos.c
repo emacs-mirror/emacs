@@ -412,7 +412,7 @@ static unsigned short screen_virtual_offset = 0;
 /* A flag to control how to display unibyte 8-bit characters.  */
 extern int unibyte_display_via_language_environment;
 
-Lisp_Object Qbar;
+Lisp_Object Qbar, Qhbar;
 
 /* The screen colors of the curent frame, which serve as the default
    colors for newly-created frames.  */
@@ -820,12 +820,14 @@ msdos_set_cursor_shape (struct frame *f, int start_line, int width)
 static void
 IT_set_cursor_type (struct frame *f, Lisp_Object cursor_type)
 {
-  if (EQ (cursor_type, Qbar))
+  if (EQ (cursor_type, Qbar) || EQ (cursor_type, Qhbar))
     {
       /* Just BAR means the normal EGA/VGA cursor.  */
       msdos_set_cursor_shape (f, DEFAULT_CURSOR_START, DEFAULT_CURSOR_WIDTH);
     }
-  else if (CONSP (cursor_type) && EQ (XCAR (cursor_type), Qbar))
+  else if (CONSP (cursor_type)
+	   && (EQ (XCAR (cursor_type), Qbar)
+	       || EQ (XCAR (cursor_type), Qhbar)))
     {
       Lisp_Object bar_parms = XCDR (cursor_type);
       int width;
@@ -2477,7 +2479,9 @@ IT_set_frame_parameters (f, alist)
 	  IT_set_cursor_type (f, val);
 	  if (termscript)
 	    fprintf (termscript, "<CTYPE: %s>\n",
-		     EQ (val, Qbar) || CONSP (val) && EQ (XCAR (val), Qbar)
+		     EQ (val, Qbar) || EQ (val, Qhbar)
+		     || CONSP (val) && (EQ (XCAR (val), Qbar)
+					|| EQ (XCAR (val), Qhbar))
 		     ? "bar" : "box");
 	}
       store_frame_param (f, prop, val);
@@ -5351,6 +5355,8 @@ syms_of_msdos ()
   /* The following two are from xfns.c:  */
   Qbar = intern ("bar");
   staticpro (&Qbar);
+  Qhbar = intern ("hbar");
+  staticpro (&Qhbar);
   Qcursor_type = intern ("cursor-type");
   staticpro (&Qcursor_type);
   Qreverse = intern ("reverse");
