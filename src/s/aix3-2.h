@@ -2,6 +2,8 @@
 
 #include "aix3-1.h"
 
+#define AIX3_2
+
 /* No need to define this--the header files indicate X11R4,
    and that's supposedly what 3.2 will come with.  */
 #undef SPECIFY_X11R4
