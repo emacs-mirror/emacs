@@ -63,11 +63,8 @@
 	  (delete-region (point-min) (point-max))
 	  (insert (devanagari-compose-string dstr 'sanskrit))
 	  (goto-char (point-max)))
-	(move-overlay quail-conv-overlay from (point))
-	(setq unread-command-events (list last-command-event))
-	(throw 'exit nil))
-    (setq unread-command-events (list last-command-event))
-    (throw 'exit nil)))
+	(move-overlay quail-conv-overlay from (point))))
+  (setq unread-command-events (list last-command-event)))
 
 (quail-define-package 
  "devanagari-keyboard-a" "Devanagari" "DevK" t
@@ -478,11 +475,8 @@ Special Keys : Anuswar         n'
 	  (delete-region (point-min) (point-max))
 	  (insert (devanagari-compose-string dstr))
 	  (goto-char (point-max)))
-	(move-overlay quail-conv-overlay from (point))
-	(setq unread-command-events (list last-command-event))
-	(throw 'exit nil))
-    (setq unread-command-events (list last-command-event))
-    (throw 'exit nil)))
+	(move-overlay quail-conv-overlay from (point))))
+  (setq unread-command-events (list last-command-event)))
 
 (eval-when-compile
 
