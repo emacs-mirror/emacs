@@ -518,7 +518,7 @@ The @code{defvar} form returns @var{symbol}, but it is normally used
 at top level in a file where its value does not matter.
 @end defspec
 
-@defspec defconst symbol [value [doc-string]]
+@defspec defconst symbol value [doc-string]
 This special form defines @var{symbol} as a value and initializes it.
 It informs a person reading your code that @var{symbol} has a standard
 global value, established here, that should not be changed by the user
@@ -526,10 +526,10 @@ or by other programs.  Note that @var{symbol} is not evaluated; the
 symbol to be defined must appear explicitly in the @code{defconst}.
 
 @code{defconst} always evaluates @var{value}, and sets the value of
-@var{symbol} to the result if @var{value} is given.  If @var{symbol}
-does have a buffer-local binding in the current buffer, @code{defconst}
-sets the default value, not the buffer-local value.  (But you should not
-be making buffer-local bindings for a symbol that is defined with
+@var{symbol} to the result.  If @var{symbol} does have a buffer-local
+binding in the current buffer, @code{defconst} sets the default value,
+not the buffer-local value.  (But you should not be making
+buffer-local bindings for a symbol that is defined with
 @code{defconst}.)
 
 Here, @code{pi} is a constant that presumably ought not to be changed
@@ -858,11 +858,16 @@ always affects the most local existing binding.
   One other function for setting a variable is designed to add
 an element to a list if it is not already present in the list.
 
-@defun add-to-list symbol element
+@defun add-to-list symbol element &optional append
 This function sets the variable @var{symbol} by consing @var{element}
 onto the old value, if @var{element} is not already a member of that
 value.  It returns the resulting list, whether updated or not.  The
 value of @var{symbol} had better be a list already before the call.
+Membership is tested using @code{equal}.
+
+Normally, if @var{element} is added, it is added to the front of
+@var{symbol}, but if the optional argument @var{append} is
+non-@code{nil}, it is added at the end.
 
 The argument @var{symbol} is not implicitly quoted; @code{add-to-list}
 is an ordinary function, like @code{set} and unlike @code{setq}.  Quote
@@ -1296,7 +1301,14 @@ local to the current buffer at the time.
 A peculiar wrinkle of this feature is that binding the variable (with
 @code{let} or other binding constructs) does not create a buffer-local
 binding for it.  Only setting the variable (with @code{set} or
-@code{setq}) does so.
+@code{setq}), while the variable does not have a @code{let}-style
+binding that was made in the current buffer, does so.
+
+If @var{variable} does not have a default value, then calling this
+command will give it a default value of @code{nil}.  If @var{variable}
+already has a default value, that value remains unchanged.
+Subsequently calling @code{makunbound} on @var{variable} will result
+in a void buffer-local value and leave the default value unaffected.
 
 The value returned is @var{variable}.
 
@@ -1556,11 +1568,17 @@ not in itself create any frame-local bindings for the variable; however,
 if some frame already has a value for @var{variable} as a frame
 parameter, that value automatically becomes a frame-local binding.
 
+If @var{variable} does not have a default value, then calling this
+command will give it a default value of @code{nil}.  If @var{variable}
+already has a default value, that value remains unchanged.
+
 If the variable is terminal-local, this function signals an error,
 because such variables cannot have frame-local bindings as well.
 @xref{Multiple Displays}.  A few variables that are implemented
 specially in Emacs can be (and usually are) buffer-local, but can never
 be frame-local.
+
+This command returns @var{variable}.
 @end deffn
 
   Buffer-local bindings take precedence over frame-local bindings.  Thus,
@@ -1675,7 +1693,11 @@ value of @var{alias-var} changes the value of @var{base-var}.
 
 If the @var{docstring} argument is non-@code{nil}, it specifies the
 documentation for @var{alias-var}; otherwise, the alias gets the same
-documentation as @var{base-var} has, if any.
+documentation as @var{base-var} has, if any, unless @var{base-var} is
+itself an alias, in which case @var{alias-var} gets the documentation
+of the variable at the end of the chain of aliases.
+
+This function returns @var{base-var}.
 @end defun
 
 @defun indirect-variable variable
@@ -1693,8 +1715,10 @@ not defined as an alias, the function returns @var{variable}.
 (setq bar 2)
 bar
      @result{} 2
+@group
 foo
      @result{} 2
+@end group
 (setq foo 0)
 bar
      @result{} 0
@@ -1706,7 +1730,9 @@ foo
 @section File Local Variables
 
   This section describes the functions and variables that affect
-processing of local variables lists in files.
+processing of local variables lists in files. @xref{File variables, ,
+Local Variables in Files, emacs, The GNU Emacs Manual}, for basic
+information about file local variables.
 
 @defopt enable-local-variables
 This variable controls whether to process file local variables lists.  A
@@ -1715,13 +1741,19 @@ unconditionally; @code{nil} means ignore them; anything else means ask
 the user what to do for each file.  The default value is @code{t}.
 @end defopt
 
-@defun hack-local-variables &optional force
+@defun hack-local-variables &optional mode-only
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable
-@code{enable-local-variables} has its effect here.
+@code{enable-local-variables} has its effect here.  However, this
+function does not look for the @samp{mode:} local variable in the
+@w{@samp{-*-}} line.  @code{set-auto-mode} does that, also taking
+@code{enable-local-variables} into account.
 
-The argument @var{force} usually comes from the argument @var{find-file}
-given to @code{normal-mode}.
+If the optional argument @var{mode-only} is non-@code{nil}, then all
+this function does is return @code{t} if the @w{@samp{-*-}} line
+specifies a mode and @code{nil} otherwise.  It does not set the mode
+nor any other file local variable.  It does not check whether a mode
+is specified in the local variables list at the end of the file.
 @end defun
 
   If a file local variable list could specify a function that will
@@ -1738,7 +1770,15 @@ you should use such a name whenever it is appropriate for the
 variable's meaning.  The variables @samp{font-lock-keywords},
 @samp{font-lock-keywords-[0-9]}, and
 @samp{font-lock-syntactic-keywords} cannot be set in a local variable
-list, either.
+list, either.  These rules can be overridden by giving the variable's
+name a non-@code{nil} @code{safe-local-variable} property.  If one
+gives it a @code{safe-local-variable} property of @code{t}, then one
+can give the variable any file local value.  One can also give any
+symbol, including the above, a @code{safe-local-variable} property
+that is a function taking exactly one argument.  In that case, giving
+a variable with that name a file local value is only allowed if the
+function returns non-@code{nil} when called with that value as
+argument.
 
   In addition, any variable whose name has a non-@code{nil}
 @code{risky-local-variable} property is also ignored.  So are all
@@ -1750,9 +1790,12 @@ set by a file's local variables list.  Any value specified
 for one of these variables is ignored.
 @end defvar
 
-@defun risky-local-variable-p sym
-Returns non-@code{nil} if @var{sym} is risky for any of the reasons
-stated above.
+@defun risky-local-variable-p sym &optional val
+If @var{val} is non-@code{nil}, returns non-@code{nil} if giving
+@var{sym} a file local value of @var{val} would be risky, for any of
+the reasons stated above.  If @var{val} is @code{nil} or omitted, only
+returns @code{nil} if @var{sym} can be safely assigned any file local
+value whatsoever.
 @end defun
 
   The @samp{Eval:} ``variable'' is also a potential loophole, so Emacs
