@@ -8,6 +8,9 @@
 
 #define HPUX8
 
+/* dob@inel.gov says HPUX 8.07 needs this.  He was using X11R5, I think.  */
+#define LIBX11_SYSTEM -lXext
+
 #define LIB_X11_LIB -L/usr/lib/X11R5 -L/usr/lib/X11R4 -lX11
 #define C_SWITCH_SYSTEM -I/usr/lib/X11R5 -I/usr/include/X11R4
 
