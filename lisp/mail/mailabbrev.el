@@ -1,6 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases.
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 87, 92, 93, 1996 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: Jamie Zawinski <jwz@lucid.com>
@@ -136,12 +136,27 @@ If this is nil, it means the aliases have not yet been initialized and
 should be read from the .mailrc file.  (This is distinct from there being
 no aliases, which is represented by this being a table with no entries.)")
 
+(defvar mail-abbrev-modtime nil
+  "The modification time of your mail alias file when it was last examined.")
+
+(defun mail-abbrevs-sync-aliases ()
+  (if (file-exists-p mail-personal-alias-file)
+      (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	(if (not (equal mail-abbrev-modtime modtime))
+	    (progn
+	      (setq mail-abbrev-modtime modtime)
+	      (build-mail-abbrevs))))))
+
 ;;;###autoload
 (defun mail-abbrevs-setup ()
   "Initialize use of the `mailabbrev' package."
   (if (and (not (vectorp mail-abbrevs))
 	   (file-exists-p mail-personal-alias-file))
-      (build-mail-abbrevs))
+      (progn
+	(setq mail-abbrev-modtime 
+	      (nth 5 (file-attributes mail-personal-alias-file)))
+	(build-mail-abbrevs)))
+  (mail-abbrevs-sync-aliases)
   (make-local-hook 'pre-abbrev-expand-hook)
   (add-hook 'pre-abbrev-expand-hook 'sendmail-pre-abbrev-expand-hook
 	    nil t)
