@@ -1,3 +1,7 @@
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in: New file.
+
 2003-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* misc.texi (Saving Emacs Sessions): Correct previous change.
@@ -898,7 +902,7 @@
 	University of Washington.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001

@@ -1,3 +1,7 @@
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in: New file.
+
 2003-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Overlay Properties): Clarify how priorities
@@ -847,7 +851,7 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 	for the Project GNU development environment.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
