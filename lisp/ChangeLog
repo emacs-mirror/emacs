@@ -1,3 +1,8 @@
+2000-07-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mouse.el (popup-menu): New function.
+	(mouse-major-mode-menu): Use it.
+
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* bindings.el (mode-line-mule-info, mode-line-modified): help-echo
@@ -5,7 +10,7 @@
 
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* faces.el (face-font-selection-order) 
+	* faces.el (face-font-selection-order)
 	(face-font-family-alternatives): Add custom type.
 	
 2000-07-18  Dave Love  <fx@gnu.org>
@@ -46,27 +51,26 @@
 	* eshell/esh-cmd.el (eshell-cmd): Ditto.
 	* eshell/em-smart.el (eshell-smart): Ditto.
 	* eshell/em-banner.el (eshell-banner): Ditto.
-	* eshell/em-alias.el (eshell-alias, eshell-bad-command-tolerance):
-	Ditto.
+	* eshell/em-alias.el (eshell-alias, eshell-bad-command-tolerance): Ditto.
 
 	* eshell/em-unix.el (eshell-shuffle-files): Don't disable
 	same-file check in the MS-DOS version (it does support inodes).
 
 	* eshell/em-alias.el (eshell-maybe-replace-by-alias): Doc fix.
 
-	* eshell/eshell.el (eshell-directory-name): Run default directory
-	name through convert-standard-filename.
+	* eshell/eshell.el (eshell-directory-name):
+	Run default directory name through convert-standard-filename.
 
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-cmds.el (select-safe-coding-system): Fix typo
-	in the comment.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Fix typo in the comment.
 
-	* language/european.el (compound-text): Force katakana-jisx0201 to
-	be designated to G1.
+	* language/european.el (compound-text):
+	Force katakana-jisx0201 to be designated to G1.
 
-	* international/mule-conf.el (oldjis-newjis-jisroman-ascii): Don't
-	translate some national variant characters of latin-jisx0201.
+	* international/mule-conf.el (oldjis-newjis-jisroman-ascii):
+	Don't translate some national variant characters of latin-jisx0201.
 	(x-ctext): Force katakana-jisx0201 to be designated to G1.
 
 	* international/kkc.el (kkc-after-update-conversion-functions):
@@ -75,14 +79,13 @@
 
 2000-07-16  John Wiegley  <johnw@gnu.org>
 
-	* lisp/align.el (align-newline-and-indent): Adding new function.
-	for auto-aligning blocks of code on RET.
+	* lisp/align.el (align-newline-and-indent):
+	Adding new function.  for auto-aligning blocks of code on RET.
 	(align-region): Fixed badly formatted minibuffer message.
 
 2000-07-17  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/kkc.el (kkc-show-conversion-list-count): Customize
-	it.
+	* international/kkc.el (kkc-show-conversion-list-count): Customize it.
 	(kkc-region): Update kkc-next-count and kkc-prev-count here.  Show
 	the conversion list at first if appropriate.
 	(kkc-next): Don't update kkc-next-count here.
