@@ -1,18 +1,7 @@
 GNU Emacs Installation Guide
 Copyright (c) 1992, 1994, 1996, 1997, 2000 Free software Foundation, Inc.
+See the end of the file for copying permissions.
 
-   Permission is granted to anyone to make or distribute verbatim copies
-   of this document as received, in any medium, provided that the
-   copyright notice and permission notice are preserved,
-   and that the distributor grants the recipient permission
-   for further redistribution as permitted by this notice.
-
-   Permission is granted to distribute modified versions
-   of this document, or of portions of it,
-   under the above conditions, provided also that they
-   carry prominent notices stating who last changed them,
-   and that any new or changed statements about the activities
-   of the Free Software Foundation are approved by the Foundation.
 
 BASIC INSTALLATION
 
@@ -874,3 +863,16 @@ corrected versions of two files from djgpp in the msdos subdirectory:
 is_exec.c and sigaction.c.  To work around the bugs, compile these
 files and link them into temacs.  Djgpp versions 2.01 and later have
 these bugs fixed, so upgrade if you can before building Emacs.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and permission notice are preserved,
+   and that the distributor grants the recipient permission
+   for further redistribution as permitted by this notice.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them,
+   and that any new or changed statements about the activities
+   of the Free Software Foundation are approved by the Foundation.
