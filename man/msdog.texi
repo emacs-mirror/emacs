@@ -419,7 +419,7 @@ when @code{lpr-command} is not @code{""}.  If the variable
 
 @findex ps-print-buffer @r{(MS-DOS)}
 @findex ps-spool-buffer @r{(MS-DOS)}
-@vindex ps-printer-name
+@vindex ps-printer-name @r{(MS-DOS)}
 @vindex ps-lpr-command @r{(MS-DOS)}
 @vindex ps-lpr-switches @r{(MS-DOS)}
   A parallel set of variables, @code{ps-lpr-command},
@@ -448,7 +448,7 @@ string, it will be added to the list of switches as the value for the
 ignored.)
 
   For example, to use Ghostscript for printing on an Epson printer
-connected to @samp{LPT2} port, put this on your @file{.emacs} file:
+connected to the @samp{LPT2} port, put this in your @file{_emacs} file:
 
 @example
 (setq ps-printer-name t)  ; Ghostscript doesn't understand -P
