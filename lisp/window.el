@@ -33,26 +33,52 @@ even if it is active."
      count))
 
 (defun balance-windows ()
-  "Makes all visible windows the same size (approximately)."
+  "Makes all visible windows the same height (approximately)."
   (interactive)
-  (let ((count 0))
+  (let ((count -1) levels newsizes size)
+    ;; Find all the different vpos's at which windows start,
+    ;; then count them.  But ignore levels that differ by only 1.
+    (save-window-excursion
+      (let (tops (prev-top -2))
+	(walk-windows (function (lambda (w)
+				  (setq tops (cons (nth 1 (window-edges w))
+						   tops))))
+		      'nomini)
+	(setq tops (sort tops '<))
+	(while tops
+	  (if (> (car tops) (1+ prev-top))
+	      (setq prev-top (car tops)
+		    count (1+ count)))
+	  (setq levels (cons (cons (car tops) count) levels))
+	  (setq tops (cdr tops)))
+	(setq count (1+ count))))
+    ;; Subdivide the frame into that many vertical levels.
+    (setq size (/ (frame-height) count))
+    (walk-windows (function
+		   (lambda (w)
+		     (select-window w)
+		     (let ((newtop (cdr (assq (nth 1 (window-edges))
+					      levels)))
+			   (newbot (or (cdr (assq (+ (window-height)
+						     (nth 1 (window-edges)))
+						  levels))
+				       count)))
+		       (setq newsizes
+			     (cons (cons w (* size (- newbot newtop)))
+				   newsizes))))))
     (walk-windows (function (lambda (w)
-			      (setq count (+ count 1))))
-		  'nomini)
-    (let ((size (/ (frame-height) count)))
-      (walk-windows (function (lambda (w)
-				(select-window w)
-				(enlarge-window (- size (window-height)))))
-		    'nomini))))
+			      (select-window w)
+			      (let ((newsize (cdr (assq w newsizes))))
+				(enlarge-window (- newsize
+						   (window-height))))))
+		  'nomini)))
 
 ;;; I think this should be the default; I think people will prefer it--rms.
-
 (defvar split-window-keep-point t
-  "*If non-nil, split windows so that both windows keep the original
-value of point.  This is often more convenient for editing.
-If nil, split windows to minimize redisplay.  This is convenient on
-slow terminals, but point may be moved strangely to accommodate the
-redisplay.")
+  "*If non-nil, split windows keeps the original point in both children.
+This is often more convenient for editing.
+If nil, adjust point in each of the two windows to minimize redisplay.
+This is convenient on slow terminals, but point can move strangely.")
 
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
