@@ -627,8 +627,7 @@ It is passed through FILTER before we look at it."
   "Run COMMAND, and return the list of lines it outputs.
 BUFFER is the GUD buffer in which to run the command.
 SKIP is the number of chars to skip on each lines, it defaults to 0."
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (if (save-excursion
 	  (goto-char (point-max))
 	  (forward-line 0)
@@ -2503,9 +2502,7 @@ Obeying it means displaying in another window the specified file and line."
 (defun gud-display-line (true-file line)
   (let* ((last-nonmenu-event t)	 ; Prevent use of dialog box for questions.
 	 (buffer
-	  (save-excursion
-	    (or (eq (current-buffer) gud-comint-buffer)
-		(set-buffer gud-comint-buffer))
+	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
 	 (window (and buffer (or (get-buffer-window buffer)
 				 (if (eq gud-minor-mode 'gdba)
@@ -2514,8 +2511,7 @@ Obeying it means displaying in another window the specified file and line."
 	 (pos))
     (if buffer
 	(progn
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (if (not (or (verify-visited-file-modtime buffer) gud-keep-buffer))
 		(progn
 		  (if
