@@ -1810,12 +1810,10 @@ if there are no flagged files."
       )))
 
 (defvar dired-no-confirm nil
-;;  "If non-nil, list of symbols for commands dired should not confirm.
-;;It can be a sublist of
-;;
-;;  '(byte-compile chgrp chmod chown compress copy delete hardlink load
-;;    move print shell symlink uncompress)"
-  )
+  "A list of symbols for commands dired should not confirm.
+Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
+`copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink' and
+`uncompress'.")
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
   ;;"Args BUFNAME OP-SYMBOL FILES FUNCTION &rest ARGS.
@@ -1828,7 +1826,8 @@ if there are no flagged files."
   ;; OP-SYMBOL is a member of the list in `dired-no-confirm'.
   ;;FILES is the list of marked files."
   (or bufname (setq bufname  " *Marked Files*"))
-  (if (or (memq op-symbol dired-no-confirm)
+  (if (or (eq dired-no-confirm t)
+	  (memq op-symbol dired-no-confirm)
 	  (= (length files) 1))
       (apply function args)
     (save-excursion
