@@ -3,12 +3,12 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/compile
-@node Byte Compilation, Debugging, Loading, Top
+@node Byte Compilation, Advising, Loading, Top
 @chapter Byte Compilation
 @cindex byte-code
 @cindex compilation
 
-  GNU Emacs Lisp has a @dfn{compiler} that translates functions written
+  Emacs Lisp has a @dfn{compiler} that translates functions written
 in Lisp into a special representation called @dfn{byte-code} that can be
 executed more efficiently.  The compiler replaces Lisp function
 definitions with byte-code.  When a byte-code function is called, its
@@ -21,15 +21,17 @@ transportable from machine to machine without recompilation.  It is not,
 however, as fast as true compiled code.
 
   In general, any version of Emacs can run byte-compiled code produced
-by recent earlier versions of Emacs, but the reverse is not true.  In
-particular, if you compile a program with Emacs 19.29, the compiled
-code does not run in earlier versions.
+by recent earlier versions of Emacs, but the reverse is not true.  A
+major incompatible change was introduced in Emacs version 19.29, and
+files compiled with versions since that one will definitely not run
+in earlier versions unless you specify a special option.
 @iftex
 @xref{Docs and Compilation}.
 @end iftex
-Files compiled in versions before 19.29 may not work in 19.29 if they
-contain character constants with modifier bits, because the bits were
-renumbered in Emacs 19.29.
+In addition, the modifier bits in keyboard characters were renumbered in
+Emacs 19.29; as a result, files compiled in versions before 19.29 will
+not work in subsequent versions if they contain character constants with
+modifier bits.
 
   @xref{Compilation Errors}, for how to investigate errors occurring in
 byte compilation.
@@ -99,9 +101,10 @@ in a buffer called @samp{*Compile-Log*}.  These report things in your
 program that suggest a problem but are not necessarily erroneous.
 
 @cindex macro compilation
-  Be careful when byte-compiling code that uses macros.  Macro calls are
-expanded when they are compiled, so the macros must already be defined
-for proper compilation.  For more details, see @ref{Compiling Macros}.
+  Be careful when writing macro calls in files that you may someday
+byte-compile.  Macro calls are expanded when they are compiled, so the
+macros must already be defined for proper compilation.  For more
+details, see @ref{Compiling Macros}.
 
   Normally, compiling a file does not evaluate the file's contents or
 load the file.  But it does execute any @code{require} calls at top
@@ -200,10 +203,9 @@ This function recompiles every @samp{.el} file in @var{directory} that
 needs recompilation.  A file needs recompilation if a @samp{.elc} file
 exists but is older than the @samp{.el} file.
 
-When a @samp{.el} file has no corresponding @samp{.elc} file, then
-@var{flag} says what to do.  If it is @code{nil}, these files are
-ignored.  If it is non-@code{nil}, the user is asked whether to compile
-each such file.
+When a @samp{.el} file has no corresponding @samp{.elc} file, @var{flag}
+says what to do.  If it is @code{nil}, these files are ignored.  If it
+is non-@code{nil}, the user is asked whether to compile each such file.
 
 The returned value of this command is unpredictable.
 @end deffn
@@ -225,12 +227,13 @@ status code.
 @cindex byte-code interpreter
 This function actually interprets byte-code.  A byte-compiled function
 is actually defined with a body that calls @code{byte-code}.  Don't call
-this function yourself.  Only the byte compiler knows how to generate
+this function yourself---only the byte compiler knows how to generate
 valid calls to this function.
 
-In newer Emacs versions (19 and up), byte-code is usually executed as
-part of a byte-code function object, and only rarely due to an explicit
-call to @code{byte-code}.
+In Emacs version 18, byte-code was always executed by way of a call to
+the function @code{byte-code}.  Nowadays, byte-code is usually executed
+as part of a byte-code function object, and only rarely through an
+explicit call to @code{byte-code}.
 @end defun
 
 @node Docs and Compilation
@@ -269,13 +272,14 @@ directory where you built it, you will experience this problem
 occasionally if you edit and recompile Lisp files.  When it happens, you
 can cure the problem by reloading the file after recompiling it.
 
-  Byte-compiled files made with Emacs 19.29 will not load into older
-versions because the older versions don't support this feature.  You can
-turn off this feature by setting @code{byte-compile-dynamic-docstrings}
-to @code{nil}.  Once this is done, you can compile files that will load
-into older Emacs versions.  You can do this globally, or for one source
-file by specifying a file-local binding for the variable.  Here's one
-way to do that:
+  Byte-compiled files made with recent versions of Emacs (since 19.29)
+will not load into older versions because the older versions don't
+support this feature.  You can turn off this feature at compile time by
+setting @code{byte-compile-dynamic-docstrings} to @code{nil}; then you
+can compile files that will load into older Emacs versions.  You can do
+this globally, or for one source file by specifying a file-local binding
+for the variable.  One way to do that is by adding this string to the
+file's first line:
 
 @example
 -*-byte-compile-dynamic-docstrings: nil;-*-
@@ -292,7 +296,9 @@ that are set up for dynamic loading of documentation strings.
 use a special Lisp reader construct, @samp{#@@@var{count}}.  This
 construct skips the next @var{count} characters.  It also uses the
 @samp{#$} construct, which stands for ``the name of this file, as a
-string.''  It is best not to use these constructs in Lisp source files.
+string.''  It is usually best not to use these constructs in Lisp source
+files, since they are not designed to be clear to humans reading the
+file.
 
 @node Dynamic Loading
 @section Dynamic Loading of Individual Functions
@@ -309,10 +315,10 @@ replace the place-holder.
 
   The advantage of dynamic function loading is that loading the file
 becomes much faster.  This is a good thing for a file which contains
-many separate commands, provided that using one of them does not imply
-you will soon (or ever) use the rest.  A specialized mode which provides
-many keyboard commands often has that usage pattern: a user may invoke
-the mode, but use only a few of the commands it provides.
+many separate user-callable functions, if using one of them does not
+imply you will probably also use the rest.  A specialized mode which
+provides many keyboard commands often has that usage pattern: a user may
+invoke the mode, but use only a few of the commands it provides.
 
   The dynamic loading feature has certain disadvantages:
 
@@ -323,19 +329,21 @@ longer load the remaining function definitions not already loaded.
 
 @item
 If you alter the compiled file (such as by compiling a new version),
-then trying to load any function not already loaded will get nonsense
+then trying to load any function not already loaded will yield nonsense
 results.
 @end itemize
 
-  If you compile a new version of the file, the best thing to do is
-immediately load the new compiled file.  That will prevent any future
-problems.
+  These problems will never happen in normal circumstances with
+installed Emacs files.  But they are quite likely to happen with Lisp
+files that you are changing.  The easiest way to prevent these problems
+is to reload the new compiled file immediately after each recompilation.
 
   The byte compiler uses the dynamic function loading feature if the
 variable @code{byte-compile-dynamic} is non-@code{nil} at compilation
 time.  Do not set this variable globally, since dynamic loading is
 desirable only for certain files.  Instead, enable the feature for
-specific source files with file-local variable bindings, like this:
+specific source files with file-local variable bindings.  For example,
+you could do it by writing this text in the source file's first line:
 
 @example
 -*-byte-compile-dynamic: t;-*-
@@ -363,9 +371,8 @@ This form marks @var{body} to be evaluated both when you compile the
 containing code and when you run it (whether compiled or not).
 
 You can get a similar result by putting @var{body} in a separate file
-and referring to that file with @code{require}.  Using @code{require} is
-preferable if there is a substantial amount of code to be executed in
-this way.
+and referring to that file with @code{require}.  That method is
+preferable when @var{body} is large.
 @end defspec
 
 @defspec eval-when-compile body
@@ -375,10 +382,10 @@ compiler becomes a constant which appears in the compiled program.  If
 you load the source file, rather than compiling it, @var{body} is
 evaluated normally.
 
-At top level, this is analogous to the Common Lisp idiom
-@code{(eval-when (compile eval) @dots{})}.  Elsewhere, the Common Lisp
-@samp{#.} reader macro (but not when interpreting) is closer to what
-@code{eval-when-compile} does.
+@strong{Common Lisp Note:} At top level, this is analogous to the Common
+Lisp idiom @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the
+Common Lisp @samp{#.} reader macro (but not when interpreting) is closer
+to what @code{eval-when-compile} does.
 @end defspec
 
 @node Byte-Code Objects
@@ -395,12 +402,8 @@ as a function to be called.  The printed representation for a byte-code
 function object is like that for a vector, with an additional @samp{#}
 before the opening @samp{[}.
 
-  In Emacs version 18, there was no byte-code function object data type;
-compiled functions used the function @code{byte-code} to run the byte
-code.
-
   A byte-code function object must have at least four elements; there is
-no maximum number, but only the first six elements are actually used.
+no maximum number, but only the first six elements have any normal use.
 They are:
 
 @table @var

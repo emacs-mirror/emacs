@@ -144,6 +144,9 @@ This means that if you insert text with text properties into the minibuffer,
 the minibuffer value really will contain text properties.
 
 @item
+Only the simple menu item format is supported (@pxref{Simple Menu Items}).
+
+@item
 You can still bind @code{x-resource-class} around a call to
 @code{x-get-resource}, but it won't do anything special.
 
@@ -225,7 +228,7 @@ special events.  If you want to hold a party in Emacs, please let us
 know.
 
 @item
-You can't do date arithmentic with @code{encode-time} any more.
+You can't do date arithmetic with @code{encode-time} any more.
 
 @item
 The functions @code{command-execute} and @code{call-interactively} no

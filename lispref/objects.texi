@@ -25,7 +25,7 @@ but not for ``the'' type of an object.
 which all other types are constructed, are called @dfn{primitive
 types}.  Each object belongs to one and only one primitive type.  These
 types include @dfn{integer}, @dfn{float}, @dfn{cons}, @dfn{symbol},
-@dfn{string}, @dfn{vector}, @dfn{subr}, @dfn{byte-code function}, and
+@dfn{string}, @dfn{vector}, @dfn{subr}, @dfn{byte-code function}, plus
 several special types, such as @dfn{buffer}, that are related to
 editing.  (@xref{Editing Types}.)
 
@@ -69,8 +69,9 @@ input accepted by the Lisp reader (the function @code{read}) for that
 object.  @xref{Read and Print}.
 
   Most objects have more than one possible read syntax.  Some types of
-object have no read syntax; except for these cases, the printed
-representation of an object is also a read syntax for it.
+object have no read syntax, since it may not make sense to enter objects
+of these types directly in a Lisp program.  Except for these cases, the
+printed representation of an object is also a read syntax for it.
 
   In other languages, an expression is text; it has no other form.  In
 Lisp, an expression is primarily a Lisp object and only secondarily the
@@ -80,14 +81,12 @@ mind, or you will occasionally be very confused.
 
 @cindex hash notation
   Every type has a printed representation.  Some types have no read
-syntax, since it may not make sense to enter objects of these types
-directly in a Lisp program.  For example, the buffer type does not have
-a read syntax.  Objects of these types are printed in @dfn{hash
-notation}: the characters @samp{#<} followed by a descriptive string
-(typically the type name followed by the name of the object), and closed
-with a matching @samp{>}.  Hash notation cannot be read at all, so the
-Lisp reader signals the error @code{invalid-read-syntax} whenever it
-encounters @samp{#<}.
+syntax---for example, the buffer type has none.  Objects of these types
+are printed in @dfn{hash notation}: the characters @samp{#<} followed by
+a descriptive string (typically the type name followed by the name of
+the object), and closed with a matching @samp{>}.  Hash notation cannot
+be read at all, so the Lisp reader signals the error
+@code{invalid-read-syntax} whenever it encounters @samp{#<}.
 @kindex invalid-read-syntax
 
 @example
@@ -190,8 +189,7 @@ leading @samp{+} or a final @samp{.}.
 1                ; @r{The integer 1.}
 1.               ; @r{Also The integer 1.}
 +1               ; @r{Also the integer 1.}
-268435457        ; @r{Also the integer 1!} 
-                 ; @r{  (on a 28-bit implementation)}
+268435457        ; @r{Also the integer 1 on a 28-bit implementation.}
 @end group
 @end example
 
@@ -226,9 +224,10 @@ characters.  @xref{String Type}.
 
   Characters in strings, buffers, and files are currently limited to the
 range of 0 to 524287---nineteen bits.  But not all values in that range
-are valid character codes.  Characters that represent keyboard input
-have a much wider range, so they can modifier keys such as Control, Meta
-and Shift.
+are valid character codes.  Codes 0 through 127 are ASCII codes; the
+rest are non-ASCII (@pxref{Non-ASCII Characters}).  Characters that represent
+keyboard input have a much wider range, to encode modifier keys such as
+Control, Meta and Shift.
 
 @cindex read syntax for characters
 @cindex printed representation for characters
@@ -283,7 +282,7 @@ respectively.  Thus,
 ?\a @result{} 7                 ; @r{@kbd{C-g}}
 ?\b @result{} 8                 ; @r{backspace, @key{BS}, @kbd{C-h}}
 ?\t @result{} 9                 ; @r{tab, @key{TAB}, @kbd{C-i}}
-?\n @result{} 10                ; @r{newline, @key{LFD}, @kbd{C-j}}
+?\n @result{} 10                ; @r{newline, @kbd{C-j}}
 ?\v @result{} 11                ; @r{vertical tab, @kbd{C-k}}
 ?\f @result{} 12                ; @r{formfeed character, @kbd{C-l}}
 ?\r @result{} 13                ; @r{carriage return, @key{RET}, @kbd{C-m}}
@@ -314,9 +313,9 @@ equivalent to @samp{?\^I} and to @samp{?\^i}:
 that exist in @sc{ASCII}; but for keyboard input purposes, you can turn
 any character into a control character with @samp{C-}.  The character
 codes for these non-@sc{ASCII} control characters include the
-@iftex
+@tex
 $2^{26}$
-@end iftex
+@end tex
 @ifinfo
 2**26
 @end ifinfo
@@ -334,21 +333,22 @@ the control equivalent of @kbd{?}:
 
 @noindent
 As a result, it is currently not possible to represent the character
-@kbd{Control-?}, which is a meaningful input character under X.  It is
-not easy to change this as various Lisp files refer to @key{DEL} in this
-way.
+@kbd{Control-?}, which is a meaningful input character under X, using
+@samp{\C-}.  It is not easy to change this, as various Lisp files refer
+to @key{DEL} in this way.
 
   For representing control characters to be found in files or strings,
 we recommend the @samp{^} syntax; for control characters in keyboard
-input, we prefer the @samp{C-} syntax.  This does not affect the meaning
-of the program, but may guide the understanding of people who read it.
+input, we prefer the @samp{C-} syntax.  Which one you use does not
+affect the meaning of the program, but may guide the understanding of
+people who read it.
 
 @cindex meta characters
   A @dfn{meta character} is a character typed with the @key{META}
 modifier key.  The integer that represents such a character has the
-@iftex
+@tex
 $2^{27}$
-@end iftex
+@end tex
 @ifinfo
 2**27
 @end ifinfo
@@ -357,9 +357,9 @@ use high bits for this and other modifiers to make possible a wide range
 of basic character codes.
 
   In a string, the
-@iftex
+@tex
 $2^{7}$
-@end iftex
+@end tex
 @ifinfo
 2**7
 @end ifinfo
@@ -380,15 +380,15 @@ or as @samp{?\M-\101}.  Likewise, you can write @kbd{C-M-b} as
 for example, @sc{ASCII} distinguishes between the characters @samp{a}
 and @samp{A}.  But @sc{ASCII} has no way to represent whether a control
 character is upper case or lower case.  Emacs uses the
-@iftex
+@tex
 $2^{25}$
-@end iftex
+@end tex
 @ifinfo
 2**25
 @end ifinfo
-bit to indicate that the shift key was used for typing a control
+bit to indicate that the shift key was used in typing a control
 character.  This distinction is possible only when you use X terminals
-or other special terminals; ordinary terminals do not indicate the
+or other special terminals; ordinary terminals do not report the
 distinction to the computer in any way.
 
 @cindex hyper characters
@@ -398,10 +398,10 @@ distinction to the computer in any way.
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
 for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  Thus,
 @samp{?\H-\M-\A-x} represents @kbd{Alt-Hyper-Meta-x}.
-@iftex
+@tex
 Numerically, the
 bit values are $2^{22}$ for alt, $2^{23}$ for super and $2^{24}$ for hyper.
-@end iftex
+@end tex
 @ifinfo
 Numerically, the
 bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
@@ -434,7 +434,7 @@ digits, so you can represent any character code in this way.
 Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
 character @kbd{C-a}, and @code{?\x8c0} for the character
 @iftex
-@`a.
+@samp{@`a}.
 @end iftex
 @ifinfo
 @samp{a} with grave accent.
@@ -478,7 +478,7 @@ backslash.  In contrast to its use in strings, however, a backslash in
 the name of a symbol simply quotes the single character that follows the
 backslash.  For example, in a string, @samp{\t} represents a tab
 character; in the name of a symbol, however, @samp{\t} merely quotes the
-letter @kbd{t}.  To have a symbol with a tab character in its name, you
+letter @samp{t}.  To have a symbol with a tab character in its name, you
 must actually use a tab (preceded with a backslash).  But it's rare to
 do such a thing.
 
@@ -525,26 +525,28 @@ elements.  There are two kinds of sequence in Emacs Lisp, lists and
 arrays.  Thus, an object of type list or of type array is also
 considered a sequence.
 
-  Arrays are further subdivided into strings and vectors.  Vectors can
-hold elements of any type, but string elements must be characters in the
-range from 0 to 255.  However, the characters in a string can have text
-properties like characters in a buffer (@pxref{Text Properties});
-vectors do not support text properties even when their elements happen
-to be characters.
+  Arrays are further subdivided into strings, vectors, char-tables and
+bool-vectors.  Vectors can hold elements of any type, but string
+elements must be characters, and bool-vector elements must be @code{t}
+or @code{nil}.  The characters in a string can have text properties like
+characters in a buffer (@pxref{Text Properties}); vectors and
+bool-vectors do not support text properties even when their elements
+happen to be characters.  Char-tables are like vectors except that they
+are indexed by any valid character code.
 
-  Lists, strings and vectors are different, but they have important
-similarities.  For example, all have a length @var{l}, and all have
-elements which can be indexed from zero to @var{l} minus one.  Also,
-several functions, called sequence functions, accept any kind of
+  Lists, strings and the other array types are different, but they have
+important similarities.  For example, all have a length @var{l}, and all
+have elements which can be indexed from zero to @var{l} minus one.
+Several functions, called sequence functions, accept any kind of
 sequence.  For example, the function @code{elt} can be used to extract
 an element of a sequence, given its index.  @xref{Sequences Arrays
 Vectors}.
 
-  It is impossible to read the same sequence twice, since sequences are
-always created anew upon reading.  If you read the read syntax for a
-sequence twice, you get two sequences with equal contents.  There is one
-exception: the empty list @code{()} always stands for the same object,
-@code{nil}.
+  It is generally impossible to read the same sequence twice, since
+sequences are always created anew upon reading.  If you read the read
+syntax for a sequence twice, you get two sequences with equal contents.
+There is one exception: the empty list @code{()} always stands for the
+same object, @code{nil}.
 
 @node Cons Cell Type
 @subsection Cons Cell and List Types
@@ -596,8 +598,9 @@ violet buttercup)}:
 
 @example
 @group
-    ___ ___      ___ ___      ___ ___
-   |___|___|--> |___|___|--> |___|___|--> nil
+    --- ---      --- ---      --- ---
+   |   |   |--> |   |   |--> |   |   |--> nil
+    --- ---      --- ---      --- ---
      |            |            |
      |            |            |
       --> rose     --> violet   --> buttercup
@@ -653,8 +656,9 @@ depicted with boxes and arrows:
 
 @example
 @group
-    ___ ___      ___ ___
-   |___|___|--> |___|___|--> nil
+    --- ---      --- ---
+   |   |   |--> |   |   |--> nil
+    --- ---      --- ---
      |            |
      |            |
       --> A        --> nil
@@ -688,8 +692,9 @@ shows the pair @code{(rose . violet)}:
 
 @example
 @group
-    ___ ___
-   |___|___|--> violet
+    --- ---
+   |   |   |--> violet
+    --- ---
      |
      |
       --> rose
@@ -703,8 +708,9 @@ chain of cons cells with a non-@code{nil} final @sc{cdr}.  For example,
 
 @example
 @group
-    ___ ___      ___ ___
-   |___|___|--> |___|___|--> buttercup
+    --- ---      --- ---
+   |   |   |--> |   |   |--> buttercup
+    --- ---      --- ---
      |            |
      |            |
       --> rose     --> violet
@@ -720,8 +726,9 @@ and looks like this:
 
 @example
 @group
-    ___ ___      ___ ___
-   |___|___|--> |___|___|--> nil
+    --- ---      --- ---
+   |   |   |--> |   |   |--> nil
+    --- ---      --- ---
      |            |
      |            |
       --> rose     --> violet
@@ -735,8 +742,9 @@ It looks like this:
 
 @example
 @group
-    ___ ___      ___ ___      ___ ___
-   |___|___|--> |___|___|--> |___|___|--> nil
+    --- ---      --- ---      --- ---
+   |   |   |--> |   |   |--> |   |   |--> nil
+    --- ---      --- ---      --- ---
      |            |            |
      |            |            |
       --> rose     --> violet   --> buttercup
@@ -775,27 +783,35 @@ functions that work on alists.
 
   An @dfn{array} is composed of an arbitrary number of slots for
 referring to other Lisp objects, arranged in a contiguous block of
-memory.  Accessing any element of an array takes the same amount of
-time.  In contrast, accessing an element of a list requires time
-proportional to the position of the element in the list.  (Elements at
-the end of a list take longer to access than elements at the beginning
-of a list.)
+memory.  Accessing any element of an array takes approximately the same
+amount of time.  In contrast, accessing an element of a list requires
+time proportional to the position of the element in the list.  (Elements
+at the end of a list take longer to access than elements at the
+beginning of a list.)
 
-  Emacs defines two types of array, strings and vectors.  A string is an
-array of characters and a vector is an array of arbitrary objects.  Both
-are one-dimensional.  (Most other programming languages support
-multidimensional arrays, but they are not essential; you can get the
-same effect with an array of arrays.)  Each type of array has its own
-read syntax; see @ref{String Type}, and @ref{Vector Type}.
+  Emacs defines four types of array: strings, vectors, bool-vectors, and
+char-tables.
 
-  An array may have any length up to the largest integer; but once
-created, it has a fixed size.  The first element of an array has index
-zero, the second element has index 1, and so on.  This is called
-@dfn{zero-origin} indexing.  For example, an array of four elements has
-indices 0, 1, 2, @w{and 3}.
+  A string is an array of characters and a vector is an array of
+arbitrary objects.  A bool-vector can hold only @code{t} or @code{nil}.
+These kinds of array may have any length up to the largest integer.
+Char-tables are sparse arrays indexed by any valid character code; they
+can hold arbitrary objects.
 
-  The array type is contained in the sequence type and contains both the
-string type and the vector type.
+  The first element of an array has index zero, the second element has
+index 1, and so on.  This is called @dfn{zero-origin} indexing.  For
+example, an array of four elements has indices 0, 1, 2, @w{and 3}.  The
+largest possible index value is one less than the length of the array.
+Once an array is created, its length is fixed.
+
+  All Emacs Lisp arrays are one-dimensional.  (Most other programming
+languages support multidimensional arrays, but they are not essential;
+you can get the same effect with an array of arrays.)  Each type of
+array has its own read syntax; see the following sections for details.
+
+  The array type is contained in the sequence type and
+contains the string type, the vector type, the bool-vector type, and the
+char-table type.
 
 @node String Type
 @subsection String Type
@@ -854,10 +870,13 @@ but the newline is ignored if escaped."
 constant by writing it literally.  There are two text representations
 for non-@sc{ASCII} characters in Emacs strings (and in buffers): unibyte
 and multibyte.  If the string constant is read from a multibyte source,
-then the character is read as a multibyte character, and that makes the
-string multibyte.  If the string constant is read from a unibyte source,
-then the character is read as unibyte and that makes the string unibyte.
+such as a multibyte buffer or string, or a file that would be visited as
+multibyte, then the character is read as a multibyte character, and that
+makes the string multibyte.  If the string constant is read from a
+unibyte source, then the character is read as unibyte and that makes the
+string unibyte.
 
+@c ??? Change this?
   You can also represent a multibyte non-@sc{ASCII} character with its
 character code, using a hex escape, @samp{\x@var{nnnnnnn}}, with as many
 digits as necessary.  (Multibyte non-@sc{ASCII} character codes are all
@@ -895,9 +914,9 @@ characters.
 
   If you use the @samp{\M-} syntax to indicate a meta character in a
 string constant, this sets the
-@iftex
+@tex
 $2^{7}$
-@end iftex
+@end tex
 @ifinfo
 2**7
 @end ifinfo
@@ -975,9 +994,24 @@ special purposes.  A char-table can also specify a single value for
 a whole character set.
 
   The printed representation of a char-table is like a vector
-except that there is an extra @samp{#} at the beginning.
+except that there is an extra @samp{#^} at the beginning.
 
   @xref{Char-Tables}, for special functions to operate on char-tables.
+Uses of char-tables include:
+
+@itemize @bullet
+@item
+Case tables (@pxref{Case Tables}).
+
+@item
+Character category tables (@pxref{Categories}).
+
+@item
+Display Tables (@pxref{Display Tables}).
+
+@item
+Syntax tables (@pxref{Syntax Tables}).
+@end itemize
 
 @node Bool-Vector Type
 @subsection Bool-Vector Type
@@ -999,6 +1033,9 @@ make no difference.
      @result{} #&3"\377"
 (make-bool-vector 3 nil)
      @result{} #&3"\0""
+;; @r{These are equal since only the first 3 bits are used.}
+(equal #&3"\377" #&3"\340")
+     @result{} t
 @end example
 
 @node Function Type
@@ -1027,7 +1064,7 @@ functions @code{funcall} and @code{apply}.  @xref{Calling Functions}.
 
   A @dfn{Lisp macro} is a user-defined construct that extends the Lisp
 language.  It is represented as an object much like a function, but with
-different parameter-passing semantics.  A Lisp macro has the form of a
+different argument-passing semantics.  A Lisp macro has the form of a
 list whose first element is the symbol @code{macro} and whose @sc{cdr}
 is a Lisp function object, including the @code{lambda} symbol.
 
@@ -1053,12 +1090,12 @@ not evaluate all its arguments is called a @dfn{special form}
 (@pxref{Special Forms}).@refill
 
   It does not matter to the caller of a function whether the function is
-primitive.  However, this does matter if you try to substitute a
-function written in Lisp for a primitive of the same name.  The reason
-is that the primitive function may be called directly from C code.
-Calls to the redefined function from Lisp will use the new definition,
-but calls from C code may still use the built-in definition.  Therefore,
-@strong{we discourage redefinition of primitive functions}.
+primitive.  However, this does matter if you try to redefine a primitive
+with a function written in Lisp.  The reason is that the primitive
+function may be called directly from C code.  Calls to the redefined
+function from Lisp will use the new definition, but calls from C code
+may still use the built-in definition.  Therefore, @strong{we discourage
+redefinition of primitive functions}.
 
   The term @dfn{function} refers to all Emacs functions, whether written
 in Lisp or C.  @xref{Function Type}, for information about the
@@ -1114,9 +1151,10 @@ symbol.  @xref{Autoload}, for more details.
 @section Editing Types
 @cindex editing types
 
-  The types in the previous section are common to many Lisp dialects.
-Emacs Lisp provides several additional data types for purposes connected
-with editing.
+  The types in the previous section used for general programming
+purposes, and most of them are common to most Lisp dialects.  Emacs Lisp
+provides several additional data types for purposes connected with
+editing.
 
 @menu
 * Buffer Type::         The basic object of editing.
@@ -1124,11 +1162,10 @@ with editing.
 * Window Type::         Buffers are displayed in windows.
 * Frame Type::		Windows subdivide frames.
 * Window Configuration Type::   Recording the way a frame is subdivided.
+* Frame Configuration Type::    Recording the status of all frames.
 * Process Type::        A process running on the underlying OS.
 * Stream Type::         Receive or send characters.
 * Keymap Type::         What function a keystroke invokes.
-* Syntax Table Type::   What a character means.
-* Display Table Type::  How display tables are represented.
 * Overlay Type::        How an overlay is represented.
 @end menu
 
@@ -1144,8 +1181,8 @@ buffer need not be displayed in any window.
 
   The contents of a buffer are much like a string, but buffers are not
 used like strings in Emacs Lisp, and the available operations are
-different.  For example, insertion of text into a buffer is very
-efficient, whereas ``inserting'' text into a string requires
+different.  For example, you can insert text efficiently into an
+existing buffer, whereas ``inserting'' text into a string requires
 concatenating substrings, and the result is an entirely new string
 object.
 
@@ -1167,10 +1204,10 @@ a local syntax table (@pxref{Syntax Tables});
 a local keymap (@pxref{Keymaps}); and,
 
 @item
-a local variable binding list (@pxref{Buffer-Local Variables}).
+a list of buffer-local variable bindings (@pxref{Buffer-Local Variables}).
 
 @item
-a list of overlays (@pxref{Overlays}).
+overlays (@pxref{Overlays}).
 
 @item
 text properties for the text in the buffer (@pxref{Text Properties}).
@@ -1183,7 +1220,7 @@ behavior of programs in different buffers, without actually changing the
 programs.
 
   A buffer may be @dfn{indirect}, which means it shares the text
-of another buffer.  @xref{Indirect Buffers}.
+of another buffer, but presents it differently.  @xref{Indirect Buffers}.
 
   Buffers have no read syntax.  They print in hash notation, showing the
 buffer name.
@@ -1263,7 +1300,7 @@ uniquely).
 @example
 @group
 (selected-frame)
-     @result{} #<frame xemacs@@mole.gnu.ai.mit.edu 0xdac80>
+     @result{} #<frame emacs@@mole.gnu.ai.mit.edu 0xdac80>
 @end group
 @end example
 
@@ -1281,6 +1318,19 @@ same arrangement of windows later.
 looks like @samp{#<window-configuration>}.  @xref{Window
 Configurations}, for a description of several functions related to
 window configurations.
+
+@node Frame Configuration Type
+@subsection Frame Configuration Type
+@cindex screen layout
+
+  A @dfn{frame configuration} stores information about the positions,
+sizes, and contents of the windows in all frames.  It is actually
+a list whose @sc{car} is @code{frame-configuration} and whose
+@sc{cdr} is an alist.  Each alist element describes one frame,
+which appears as the @sc{car} of that element.
+
+  @xref{Frame Configurations}, for a description of several functions
+related to frame configurations.
 
 @node Process Type
 @subsection Process Type
@@ -1342,36 +1392,6 @@ a list whose @sc{car} is the symbol @code{keymap}.
 
   @xref{Keymaps}, for information about creating keymaps, handling prefix
 keys, local as well as global keymaps, and changing key bindings.
-
-@node Syntax Table Type
-@subsection Syntax Table Type
-
-  A @dfn{syntax table} is a char-table which specifies the syntax of
-each character, for word and list parsing.  Each element of the syntax
-table defines how one character is interpreted when it appears in a
-buffer.  For example, in C mode (@pxref{Major Modes}), the @samp{+}
-character is punctuation, but in Lisp mode it is a valid character in a
-symbol.  These modes specify different interpretations by changing the
-syntax table entry for @samp{+}, at index 43 in the syntax table.
-
-  Syntax tables are used only to control primitives that scan text in
-buffers, not for reading Lisp expressions.  The syntax that the Lisp
-interpreter uses to read expressions is built into the Emacs source code
-and cannot be changed; thus, to change the list delimiters to be
-@samp{@{} and @samp{@}} instead of @samp{(} and @samp{)} would be
-impossible.  (Some Lisp systems provide ways to redefine the read
-syntax, but we decided to leave this feature out of Emacs Lisp for
-simplicity.)
-
-  @xref{Syntax Tables}, for details about syntax classes and how to make
-and modify syntax tables.
-
-@node Display Table Type
-@subsection Display Table Type
-
-  A @dfn{display table} specifies how to display each character code.
-Each buffer and each window can have its own display table.  A display
-table is actually a char-table.  @xref{Display Tables}.
 
 @node Overlay Type
 @subsection Overlay Type
@@ -1437,7 +1457,7 @@ a list and @code{symbolp} to check for a symbol.
          (setq list (append x list)))
 @need 3000
         (t
-         ;; We only handle symbols and lists.
+         ;; We handle only symbols and lists.
          (error "Invalid argument %s in add-on" x))))
 @end example
 
@@ -1451,6 +1471,9 @@ with references to further information.
 @item arrayp
 @xref{Array Functions, arrayp}.
 
+@item bool-vector-p
+@xref{Bool-Vectors, bool-vector-p}.
+
 @item bufferp
 @xref{Buffer Basics, bufferp}.
 
@@ -1458,10 +1481,13 @@ with references to further information.
 @xref{Byte-Code Type, byte-code-function-p}.
 
 @item case-table-p
-@xref{Case Table, case-table-p}.
+@xref{Case Tables, case-table-p}.
 
 @item char-or-string-p
 @xref{Predicates for Strings, char-or-string-p}.
+
+@item char-table-p
+@xref{Char-Tables, char-table-p}.
 
 @item commandp
 @xref{Interactive Call, commandp}.
@@ -1469,8 +1495,14 @@ with references to further information.
 @item consp
 @xref{List-related Predicates, consp}.
 
+@item display-table-p
+@xref{Display Tables, display-table-p}.
+
 @item floatp
 @xref{Predicates on Numbers, floatp}.
+
+@item frame-configuration-p
+@xref{Frame Configurations, frame-configuration-p}.
 
 @item frame-live-p
 @xref{Deleting Frames, frame-live-p}.
@@ -1556,8 +1588,9 @@ types.  In most cases, it is more convenient to use type predicates than
 This function returns a symbol naming the primitive type of
 @var{object}.  The value is one of the symbols @code{symbol},
 @code{integer}, @code{float}, @code{string}, @code{cons}, @code{vector},
-@code{marker}, @code{overlay}, @code{window}, @code{buffer},
-@code{subr}, @code{compiled-function}, @code{process}, or
+@code{char-table}, @code{bool-vector}, @code{subr},
+@code{compiled-function}, @code{marker}, @code{overlay}, @code{window},
+@code{buffer}, @code{frame}, @code{process}, or
 @code{window-configuration}.
 
 @example
@@ -1593,11 +1626,6 @@ unique, if the arguments are symbols with the same name, they are
 arguments with the same contents or elements are not necessarily
 @code{eq} to each other: they are @code{eq} only if they are the same
 object.
-
-(The @code{make-symbol} function returns an uninterned symbol that is
-not interned in the standard @code{obarray}.  When uninterned symbols
-are in use, symbol names are no longer unique.  Distinct symbols with
-the same name are not @code{eq}.  @xref{Creating Symbols}.)
 
 @example
 @group
@@ -1640,6 +1668,17 @@ the same name are not @code{eq}.  @xref{Creating Symbols}.)
 @end group
 @end example
 
+(The @code{make-symbol} function returns an uninterned symbol that is
+not interned in the standard @code{obarray}.  When uninterned symbols
+are in use, symbol names are no longer unique.  Distinct symbols with
+the same name are not @code{eq}.  @xref{Creating Symbols}.)
+
+@example
+@group
+(eq (make-symbol "foo") 'foo)
+     @result{} nil
+@end group
+@end example
 @end defun
 
 @defun equal object1 object2

@@ -504,7 +504,9 @@ for other purposes as well, such as writing editing commands.
 with its own idiosyncrasies.  Many of them were inspired by Maclisp,
 which was written in the 1960's at MIT's Project MAC.  Eventually the
 implementors of the descendants of Maclisp came together and developed a
-standard for Lisp systems, called Common Lisp.
+standard for Lisp systems, called Common Lisp.  In the mean time, Gerry
+Sussman and Guy Steele at MIT developed a simplified but very powerful
+dialect of Lisp, called Scheme.
 
   GNU Emacs Lisp is largely inspired by Maclisp, and a little by Common
 Lisp.  If you know Common Lisp, you will notice many similarities.
@@ -514,6 +516,10 @@ Sometimes the simplifications are so drastic that a Common Lisp user
 might be very confused.  We will occasionally point out how GNU Emacs
 Lisp differs from Common Lisp.  If you don't know Common Lisp, don't
 worry about it; this manual is self-contained.
+
+  Emacs Lisp is not at all influenced by Scheme; but the GNU project has
+an implementation of Scheme, called Guile.  We use Guile for
+extensibility in all new GNU software that calls for extensibility.
 
 @node Conventions
 @section Conventions
@@ -529,6 +535,7 @@ manual.  You may want to skip this section and refer back to it later.
 * Error Messages::           The format we use for examples of errors.
 * Buffer Text Notation::     The format we use for buffer contents in examples.
 * Format of Descriptions::   Notation for describing functions, variables, etc.
+* Version Info::             Which Emacs version is running?
 @end menu
 
 @node Some Terms
@@ -544,8 +551,9 @@ including those you write.
 
 @cindex fonts
   Examples of Lisp code appear in this font or form: @code{(list 1 2
-3)}.  Names that represent arguments or metasyntactic variables appear
-in this font or form: @var{first-number}.
+3)}.  Names that represent metasyntactic variables, or arguments to a
+function being described, appear in this font or form:
+@var{first-number}.
 
 @node nil and t
 @subsection @code{nil} and @code{t}
@@ -587,7 +595,8 @@ choosing, use @code{t}.  The symbol @code{t} always has value @code{t}.
   In Emacs Lisp, @code{nil} and @code{t} are special symbols that always
 evaluate to themselves.  This is so that you do not need to quote them
 to use them as constants in a program.  An attempt to change their
-values results in a @code{setting-constant} error.  @xref{Accessing
+values results in a @code{setting-constant} error.  The same is true of
+any symbol whose name starts with a colon (@samp{:}).  @xref{Constant
 Variables}.
 
 @node Evaluation Notation
@@ -675,7 +684,7 @@ the buffer in question between two lines of dashes containing the buffer
 name.  In addition, @samp{@point{}} indicates the location of point.
 (The symbol for point, of course, is not part of the text in the buffer;
 it indicates the place @emph{between} two characters where point is
-located.)
+currently located.)
 
 @example
 ---------- Buffer: foo ----------
@@ -723,18 +732,18 @@ The description follows on succeeding lines, sometimes with examples.
 @cindex special form descriptions
 
   In a function description, the name of the function being described
-appears first.  It is followed on the same line by a list of parameters.
-The names used for the parameters are also used in the body of the
-description.
+appears first.  It is followed on the same line by a list of argument
+names.  These names are also used in the body of the description, to
+stand for the values of the arguments.
 
-  The appearance of the keyword @code{&optional} in the parameter list
-indicates that the arguments for subsequent parameters may be omitted
-(omitted parameters default to @code{nil}).  Do not write
-@code{&optional} when you call the function.
+  The appearance of the keyword @code{&optional} in the argument list
+indicates that the subsequent arguments may be omitted (omitted
+arguments default to @code{nil}).  Do not write @code{&optional} when
+you call the function.
 
   The keyword @code{&rest} (which will always be followed by a single
-parameter) indicates that any number of arguments can follow.  The value
-of the single following parameter will be a list of all these arguments.
+argument name) indicates that any number of arguments can follow.  The value
+of the single following arguments name will be a list of all these arguments.
 Do not write @code{&rest} when you call the function.
 
   Here is a description of an imaginary function @code{foo}:
@@ -760,15 +769,15 @@ More generally,
 @end example
 @end defun
 
-  Any parameter whose name contains the name of a type (e.g.,
+  Any argument whose name contains the name of a type (e.g.,
 @var{integer}, @var{integer1} or @var{buffer}) is expected to be of that
 type.  A plural of a type (such as @var{buffers}) often means a list of
-objects of that type.  Parameters named @var{object} may be of any type.
-(@xref{Lisp Data Types}, for a list of Emacs object types.)
-Parameters with other sorts of names (e.g., @var{new-file}) are
-discussed specifically in the description of the function.  In some
-sections, features common to parameters of several functions are
-described at the beginning.
+objects of that type.  Arguments named @var{object} may be of any type.
+(@xref{Lisp Data Types}, for a list of Emacs object types.)  Arguments
+with other sorts of names (e.g., @var{new-file}) are discussed
+specifically in the description of the function.  In some sections,
+features common to the arguments of several functions are described at
+the beginning.
 
   @xref{Lambda Expressions}, for a more complete description of optional
 and rest arguments.
@@ -780,7 +789,7 @@ interactively; macros process their arguments differently from functions
 (the arguments are not evaluated), but are presented the same way.
 
   Special form descriptions use a more complex notation to specify
-optional and repeated parameters because they can break the argument
+optional and repeated arguments because they can break the argument
 list down into separate arguments in more complicated ways.
 @samp{@code{@r{[}@var{optional-arg}@r{]}}} means that @var{optional-arg} is
 optional and @samp{@var{repeated-args}@dots{}} stands for zero or more
@@ -798,7 +807,8 @@ if @var{var} equals @var{to}.  Here is an example:
 @example
 (count-loop (i 0 10)
   (prin1 i) (princ " ")
-  (prin1 (aref vector i)) (terpri))
+  (prin1 (aref vector i))
+  (terpri))
 @end example
 
 If @var{from} and @var{to} are omitted, then @var{var} is bound to
@@ -841,6 +851,59 @@ have not yet thought about executing.
 
   User option descriptions have the same format, but `Variable' is
 replaced by `User Option'.
+
+@node Version Info
+@section Version Information
+
+  These functions and variables provide information about which
+version of Emacs is in use.
+
+@deffn Command emacs-version
+This function returns a string describing the version of Emacs that is
+running.  It is useful to include this string in bug reports.
+
+@example
+@group
+(emacs-version)
+  @result{} "GNU Emacs 20.3.5 (i486-pc-linux-gnulibc1, X toolkit)
+ of Sat Feb 14 1998 on psilocin.gnu.org"
+@end group
+@end example
+
+Called interactively, the function prints the same information in the
+echo area.
+@end deffn
+
+@defvar emacs-build-time
+The value of this variable is the time at which Emacs was built at the
+local site.
+
+@example
+@group
+emacs-build-time
+     @result{} "Tue Jun  6 14:55:57 1995"
+@end group
+@end example
+@end defvar
+
+@defvar emacs-version
+The value of this variable is the version of Emacs being run.  It is a
+string such as @code{"20.3.1"}.  The last number in this string is not
+really part of the Emacs release version number; it is incremented each
+time you build Emacs in any given directory.
+@end defvar
+
+  The following two variables have existed since Emacs version 19.23,
+
+@defvar emacs-major-version
+The major version number of Emacs, as an integer.  For Emacs version
+20.3, the value is 20.
+@end defvar
+
+@defvar emacs-minor-version
+The minor version number of Emacs, as an integer.  For Emacs version
+20.3, the value is 3.
+@end defvar
 
 @node Acknowledgements
 @section Acknowledgements

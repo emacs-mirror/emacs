@@ -48,11 +48,12 @@ Here's a macro definition that does the job:
 @end group
 @end example
 
-  When this is called with @code{(inc x)}, the argument @code{var} has
-the value @code{x}---@emph{not} the @emph{value} of @code{x}.  The body
-of the macro uses this to construct the expansion, which is @code{(setq
-x (1+ x))}.  Once the macro definition returns this expansion, Lisp
-proceeds to evaluate it, thus incrementing @code{x}.
+  When this is called with @code{(inc x)}, the argument @var{var} is the
+symbol @code{x}---@emph{not} the @emph{value} of @code{x}, as it would
+be in a function.  The body of the macro uses this to construct the
+expansion, which is @code{(setq x (1+ x))}.  Once the macro definition
+returns this expansion, Lisp proceeds to evaluate it, thus incrementing
+@code{x}.
 
 @node Expansion
 @section Expansion of a Macro Call
@@ -192,6 +193,7 @@ like this:
 (macro lambda @var{argument-list} . @var{body-forms})
 @end example
 
+(Note that the @sc{cdr} of this list is a function---a lambda expression.)
 This macro object is stored in the function cell of @var{name}.  The
 value returned by evaluating the @code{defmacro} form is @var{name}, but
 usually we ignore this value.
@@ -210,8 +212,8 @@ called interactively.
 @findex `
 
   Macros often need to construct large list structures from a mixture of
-constants and nonconstant parts.  To make this easier, use the macro
-@samp{`} (often called @dfn{backquote}).
+constants and nonconstant parts.  To make this easier, use the @samp{`}
+syntax (usually called @dfn{backquote}).
 
   Backquote allows you to quote a list, but selectively evaluate
 elements of that list.  In the simplest case, it is identical to the
@@ -299,18 +301,16 @@ Here are some examples:
 @end group
 @end example
 
-@quotation
-Before Emacs version 19.29, @samp{`} used a different syntax which
-required an extra level of parentheses around the entire backquote
-construct.  Likewise, each @samp{,} or @samp{,@@} substition required an
-extra level of parentheses surrounding both the @samp{,} or @samp{,@@}
-and the following expression.  The old syntax required whitespace
-between the @samp{`}, @samp{,} or @samp{,@@} and the following
-expression.
+In old Emacs versions, before version 19.29, @samp{`} used a different
+syntax which required an extra level of parentheses around the entire
+backquote construct.  Likewise, each @samp{,} or @samp{,@@} substitution
+required an extra level of parentheses surrounding both the @samp{,} or
+@samp{,@@} and the following expression.  The old syntax required
+whitespace between the @samp{`}, @samp{,} or @samp{,@@} and the
+following expression.
 
 This syntax is still accepted, for compatibility with old Emacs
 versions, but we recommend not using it in new programs.
-@end quotation
 
 @node Problems with Macros
 @section Common Problems Using Macros
@@ -371,10 +371,10 @@ For example, (for i from 1 to 10 do (print i))."
 @end smallexample
 
 @noindent
-(The arguments @code{from}, @code{to}, and @code{do} in this macro are
+The arguments @code{from}, @code{to}, and @code{do} in this macro are
 ``syntactic sugar''; they are entirely ignored.  The idea is that you
 will write noise words (such as @code{from}, @code{to}, and @code{do})
-in those positions in the macro call.)
+in those positions in the macro call.
 
 Here's an equivalent definition simplified through use of backquote:
 
@@ -428,10 +428,8 @@ Here is a macro definition that creates this expansion:
 @end group
 @end smallexample
 
-  Unfortunately, this introduces another problem.
-@ifinfo
-Proceed to the following node.
-@end ifinfo
+  Unfortunately, this fix introduces another problem,
+described in the following section.
 
 @node Surprising Local Vars
 @subsection Local Variables in Macro Expansions
@@ -536,17 +534,18 @@ it.  Here is an example:
 @code{x}, because @code{a} conflicts with the macro argument variable
 @code{a}.
 
-  Another reason not to call @code{eval} in a macro definition is that
+  Another problem with calling @code{eval} in a macro definition is that
 it probably won't do what you intend in a compiled program.  The
 byte-compiler runs macro definitions while compiling the program, when
 the program's own computations (which you might have wished to access
 with @code{eval}) don't occur and its local variable bindings don't
 exist.
 
-  The safe way to work with the run-time value of an expression is to
-put the expression into the macro expansion, so that its value is
-computed as part of executing the expansion.  This is what the other
-examples in this chapter do.
+  To avoid these problems, @strong{don't evaluate an argument expression
+while computing the macro expansion.}  Instead, substitute the
+expression into the macro expansion, so that its value will be computed
+as part of executing the expansion.  This is how the other examples in
+this chapter work.
 
 @node Repeated Expansion
 @subsection How Many Times is the Macro Expanded?
@@ -557,15 +556,25 @@ expanded only once (during compilation) for a compiled function.  If the
 macro definition has side effects, they will work differently depending
 on how many times the macro is expanded.
 
-  In particular, constructing objects is a kind of side effect.  If the
-macro is called once, then the objects are constructed only once.  In
-other words, the same structure of objects is used each time the macro
-call is executed.  In interpreted operation, the macro is reexpanded
-each time, producing a fresh collection of objects each time.  Usually
-this does not matter---the objects have the same contents whether they
-are shared or not.  But if the surrounding program does side effects
-on the objects, it makes a difference whether they are shared.  Here is
-an example:
+  Therefore, you should avoid side effects in computation of the
+macro expansion, unless you really know what you are doing.
+
+  One special kind of side effect can't be avoided: constructing Lisp
+objects.  Almost all macro expansions include constructed lists; that is
+the whole point of most macros.  This is usually safe; there is just one
+case where you must be careful: when the object you construct is part of a
+quoted constant in the macro expansion.
+
+  If the macro is expanded just once, in compilation, then the object is
+constructed just once, during compilation.  But in interpreted
+execution, the macro is expanded each time the macro call runs, and this
+means a new object is constructed each time.
+
+  In most clean Lisp code, this difference won't matter.  It can matter
+only if you perform side-effects on the objects constructed by the macro
+definition.  Thus, to avoid trouble, @strong{avoid side effects on
+objects constructed by macro definitions}.  Here is an example of how
+such side effects can get you into trouble:
 
 @lisp
 @group

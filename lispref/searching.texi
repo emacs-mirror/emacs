@@ -199,15 +199,15 @@ the string @samp{fo}.  Still trivial.  To do something more powerful, you
 need to use one of the special characters.  Here is a list of them:
 
 @need 1200
-@table @kbd
-@item .@: @r{(Period)}
+@table @asis
+@item @samp{.}@: @r{(Period)}
 @cindex @samp{.} in regexp
 is a special character that matches any single character except a newline.
 Using concatenation, we can make regular expressions like @samp{a.b}, which
 matches any three-character string that begins with @samp{a} and ends with
 @samp{b}.@refill
 
-@item *
+@item @samp{*}
 @cindex @samp{*} in regexp
 is not a construct by itself; it is a postfix operator that means to
 match the preceding regular expression repetitively as many times as
@@ -237,35 +237,35 @@ Emacs must try each imaginable way of grouping the 35 @samp{x}'s before
 concluding that none of them can work.  To make sure your regular
 expressions run fast, check nested repetitions carefully.
 
-@item +
+@item @samp{+}
 @cindex @samp{+} in regexp
 is a postfix operator, similar to @samp{*} except that it must match
 the preceding expression at least once.  So, for example, @samp{ca+r}
 matches the strings @samp{car} and @samp{caaaar} but not the string
 @samp{cr}, whereas @samp{ca*r} matches all three strings.
 
-@item ?
+@item @samp{?}
 @cindex @samp{?} in regexp
 is a postfix operator, similar to @samp{*} except that it must match the
 preceding expression either once or not at all.  For example,
 @samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
 
-@item [ @dots{} ]
-@cindex character set (in regexp)
+@item @samp{[ @dots{} ]}
+@cindex character alternative (in regexp)
 @cindex @samp{[} in regexp
 @cindex @samp{]} in regexp
-is a @dfn{character set}, which begins with @samp{[} and is terminated
-by @samp{]}.  In the simplest case, the characters between the two
-brackets are what this set can match.
+is a @dfn{character alternative}, which begins with @samp{[} and is
+terminated by @samp{]}.  In the simplest case, the characters between
+the two brackets are what this character alternative can match.
 
 Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
 @samp{[ad]*} matches any string composed of just @samp{a}s and @samp{d}s
 (including the empty string), from which it follows that @samp{c[ad]*r}
 matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
-You can also include character ranges in a character set, by writing the
-starting and ending characters with a @samp{-} between them.  Thus,
-@samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
+You can also include character ranges in a character alternative, by
+writing the starting and ending characters with a @samp{-} between them.
+Thus, @samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
 which matches any lower case ASCII letter or @samp{$}, @samp{%} or
 period.
@@ -284,33 +284,33 @@ The beginning and end of a range must be in the same character set
 (@samp{a} with grave accent) is in the Latin-1 character set.
 
 Note that the usual regexp special characters are not special inside a
-character set.  A completely different set of special characters exists
-inside character sets: @samp{]}, @samp{-} and @samp{^}.
+character alternative.  A completely different set of characters are
+special inside character alternatives: @samp{]}, @samp{-} and @samp{^}.
 
-To include a @samp{]} in a character set, you must make it the first
-character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To
-include a @samp{-}, write @samp{-} as the first or last character of the
-set, or put it after a range.  Thus, @samp{[]-]} matches both @samp{]}
-and @samp{-}.
+To include a @samp{]} in a character alternative, you must make it the
+first character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.
+To include a @samp{-}, write @samp{-} as the first or last character of
+the character alternative, or put it after a range.  Thus, @samp{[]-]}
+matches both @samp{]} and @samp{-}.
 
-To include @samp{^} in a set, put it anywhere but at the beginning of
-the set.
+To include @samp{^} in a character alternative, put it anywhere but at
+the beginning.
 
-@item [^ @dots{} ]
+@item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
-@samp{[^} begins a @dfn{complemented character set}, which matches any
+@samp{[^} begins a @dfn{complemented character alternative}, which matches any
 character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
 all characters @emph{except} letters and digits.
 
-@samp{^} is not special in a character set unless it is the first
+@samp{^} is not special in a character alternative unless it is the first
 character.  The character following the @samp{^} is treated as if it
 were first (in other words, @samp{-} and @samp{]} are not special there).
 
-A complemented character set can match a newline, unless newline is
+A complemented character alternative can match a newline, unless newline is
 mentioned as one of the characters not to match.  This is in contrast to
 the handling of regexps in programs such as @code{grep}.
 
-@item ^
+@item @samp{^}
 @cindex @samp{^} in regexp
 @cindex beginning of line in regexp
 is a special character that matches the empty string, but only at the
@@ -321,7 +321,7 @@ the beginning of a line.
 When matching a string instead of a buffer, @samp{^} matches at the
 beginning of the string or after a newline character @samp{\n}.
 
-@item $
+@item @samp{$}
 @cindex @samp{$} in regexp
 is similar to @samp{^} but matches only at the end of a line.  Thus,
 @samp{x+$} matches a string of one @samp{x} or more at the end of a line.
@@ -329,7 +329,7 @@ is similar to @samp{^} but matches only at the end of a line.  Thus,
 When matching a string instead of a buffer, @samp{$} matches at the end
 of the string or before a newline character @samp{\n}.
 
-@item \
+@item @samp{\}
 @cindex @samp{\} in regexp
 has two functions: it quotes the special characters (including
 @samp{\}), and it introduces additional special constructs.
@@ -360,7 +360,7 @@ sequences starting with @samp{\} which have special meanings.  The
 second character in the sequence is always an ordinary character on
 their own.  Here is a table of @samp{\} constructs.
 
-@table @kbd
+@table @samp
 @item \|
 @cindex @samp{|} in regexp
 @cindex regexp alternative
@@ -454,7 +454,7 @@ matches any character whose syntax is not @var{code}.
 they don't use up any characters---but whether they match depends on the
 context.
 
-@table @kbd
+@table @samp
 @item \`
 @cindex @samp{\`} in regexp
 matches the empty string, but only at the beginning
@@ -519,7 +519,7 @@ string match when calling a function that wants a regular expression.
 
 One use of @code{regexp-quote} is to combine an exact string match with
 context described as a regular expression.  For example, this searches
-for the string that is the value of @code{string}, surrounded by
+for the string that is the value of @var{string}, surrounded by
 whitespace:
 
 @example
@@ -558,7 +558,7 @@ regular expression which is equivalent to the actual value
 @tindex regexp-opt-depth
 @defun regexp-opt-depth regexp
 This function returns the total number of grouping constructs
-(parenthesised expressions) in @var{regexp}.
+(parenthesized expressions) in @var{regexp}.
 @end defun
 
 @node Regexp Example
@@ -579,14 +579,14 @@ tab and @samp{\n} for a newline.
 "[.?!][]\"')@}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
 @end example
 
-  In contrast, if you evaluate the variable @code{sentence-end}, you
+@noindent
+In contrast, if you evaluate the variable @code{sentence-end}, you
 will see the following:
 
 @example
 @group
 sentence-end
-@result{}
-"[.?!][]\"')@}]*\\($\\| $\\|  \\|  \\)[       
+     @result{} "[.?!][]\"')@}]*\\($\\| $\\|  \\|  \\)[       
 ]*"
 @end group
 @end example
@@ -599,16 +599,16 @@ deciphered as follows:
 
 @table @code
 @item [.?!]
-The first part of the pattern is a character set that matches any one of
-three characters: period, question mark, and exclamation mark.  The
-match must begin with one of these three characters.
+The first part of the pattern is a character alternative that matches
+any one of three characters: period, question mark, and exclamation
+mark.  The match must begin with one of these three characters.
 
 @item []\"')@}]*
 The second part of the pattern matches any closing braces and quotation
 marks, zero or more of them, that may follow the period, question mark
 or exclamation mark.  The @code{\"} is Lisp syntax for a double-quote in
 a string.  The @samp{*} at the end indicates that the immediately
-preceding regular expression (a character set, in this case) may be
+preceding regular expression (a character alternative, in this case) may be
 repeated zero or more times.
 
 @item \\($\\|@ $\\|\t\\|@ @ \\)
@@ -630,11 +630,11 @@ beyond the minimum needed to end a sentence.
 @cindex regexp searching
 @cindex searching for regexp
 
-  In GNU Emacs, you can search for the next match for a regexp either
-incrementally or not.  For incremental search commands, see @ref{Regexp
-Search, , Regular Expression Search, emacs, The GNU Emacs Manual}.  Here
-we describe only the search functions useful in programs.  The principal
-one is @code{re-search-forward}.
+  In GNU Emacs, you can search for the next match for a regular
+expression either incrementally or not.  For incremental search
+commands, see @ref{Regexp Search, , Regular Expression Search, emacs,
+The GNU Emacs Manual}.  Here we describe only the search functions
+useful in programs.  The principal one is @code{re-search-forward}.
 
   These search functions convert the regular expression to multibyte if
 the buffer is multibyte; they convert the regular expression to unibyte
@@ -704,8 +704,8 @@ matching a regular expression at a given spot always works from
 beginning to end, and starts at a specified beginning position.
 
 A true mirror-image of @code{re-search-forward} would require a special
-feature for matching regexps from end to beginning.  It's not worth the
-trouble of implementing that.
+feature for matching regular expressions from end to beginning.  It's
+not worth the trouble of implementing that.
 @end deffn
 
 @defun string-match regexp string &optional start
@@ -1001,12 +1001,75 @@ can't avoid another intervening search, you must save and restore the
 match data around it, to prevent it from being overwritten.
 
 @menu
+* Replacing Match::	  Replacing a substring that was matched.
 * Simple Match Data::     Accessing single items of match data,
 			    such as where a particular subexpression started.
-* Replacing Match::	  Replacing a substring that was matched.
 * Entire Match Data::     Accessing the entire match data at once, as a list.
 * Saving Match Data::     Saving and restoring the match data.
 @end menu
+
+@node Replacing Match
+@subsection Replacing the Text That Matched
+
+  This function replaces the text matched by the last search with
+@var{replacement}.
+
+@cindex case in replacements
+@defun replace-match replacement &optional fixedcase literal string subexp
+This function replaces the text in the buffer (or in @var{string}) that
+was matched by the last search.  It replaces that text with
+@var{replacement}.
+
+If you did the last search in a buffer, you should specify @code{nil}
+for @var{string}.  Then @code{replace-match} does the replacement by
+editing the buffer; it leaves point at the end of the replacement text,
+and returns @code{t}.
+
+If you did the search in a string, pass the same string as @var{string}.
+Then @code{replace-match} does the replacement by constructing and
+returning a new string.
+
+If @var{fixedcase} is non-@code{nil}, then the case of the replacement
+text is not changed; otherwise, the replacement text is converted to a
+different case depending upon the capitalization of the text to be
+replaced.  If the original text is all upper case, the replacement text
+is converted to upper case.  If the first word of the original text is
+capitalized, then the first word of the replacement text is capitalized.
+If the original text contains just one word, and that word is a capital
+letter, @code{replace-match} considers this a capitalized first word
+rather than all upper case.
+
+If @code{case-replace} is @code{nil}, then case conversion is not done,
+regardless of the value of @var{fixed-case}.  @xref{Searching and Case}.
+
+If @var{literal} is non-@code{nil}, then @var{replacement} is inserted
+exactly as it is, the only alterations being case changes as needed.
+If it is @code{nil} (the default), then the character @samp{\} is treated
+specially.  If a @samp{\} appears in @var{replacement}, then it must be
+part of one of the following sequences:
+
+@table @asis
+@item @samp{\&}
+@cindex @samp{&} in replacement
+@samp{\&} stands for the entire text being replaced.
+
+@item @samp{\@var{n}}
+@cindex @samp{\@var{n}} in replacement
+@samp{\@var{n}}, where @var{n} is a digit, stands for the text that
+matched the @var{n}th subexpression in the original regexp.
+Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
+
+@item @samp{\\}
+@cindex @samp{\} in replacement
+@samp{\\} stands for a single @samp{\} in the replacement text.
+@end table
+
+If @var{subexp} is non-@code{nil}, that says to replace just
+subexpression number @var{subexp} of the regexp that was matched, not
+the entire match.  For example, after matching @samp{foo \(ba*r\)},
+calling @code{replace-match} with 1 as @var{subexp} means to replace
+just the text that matched @samp{\(ba*r\)}.
+@end defun
 
 @node Simple Match Data
 @subsection Simple Match Data Access
@@ -1038,7 +1101,7 @@ range, or if that subexpression didn't match anything, the value is
 
 If the last such operation was done against a string with
 @code{string-match}, then you should pass the same string as the
-argument @var{in-string}.  Otherwise, after a buffer search or match,
+argument @var{in-string}.  After a buffer search or match,
 you should omit @var{in-string} or pass @code{nil} for it; but you
 should make sure that the current buffer when you call
 @code{match-string} is the one in which you did the searching or
@@ -1056,7 +1119,7 @@ last regular expression searched for, or a subexpression of it.
 
 If @var{count} is zero, then the value is the position of the start of
 the entire match.  Otherwise, @var{count} specifies a subexpression in
-the regular expresion, and the value of the function is the starting
+the regular expression, and the value of the function is the starting
 position of the match for that subexpression.
 
 The value is @code{nil} for a subexpression inside a @samp{\|}
@@ -1136,69 +1199,6 @@ I read "The cat @point{}in the hat comes back" twice.
 (In this case, the index returned is a buffer position; the first
 character of the buffer counts as 1.)
 
-@node Replacing Match
-@subsection Replacing the Text That Matched
-
-  This function replaces the text matched by the last search with
-@var{replacement}.
-
-@cindex case in replacements
-@defun replace-match replacement &optional fixedcase literal string subexp
-This function replaces the text in the buffer (or in @var{string}) that
-was matched by the last search.  It replaces that text with
-@var{replacement}.
-
-If you did the last search in a buffer, you should specify @code{nil}
-for @var{string}.  Then @code{replace-match} does the replacement by
-editing the buffer; it leaves point at the end of the replacement text,
-and returns @code{t}.
-
-If you did the search in a string, pass the same string as @var{string}.
-Then @code{replace-match} does the replacement by constructing and
-returning a new string.
-
-If @var{fixedcase} is non-@code{nil}, then the case of the replacement
-text is not changed; otherwise, the replacement text is converted to a
-different case depending upon the capitalization of the text to be
-replaced.  If the original text is all upper case, the replacement text
-is converted to upper case.  If the first word of the original text is
-capitalized, then the first word of the replacement text is capitalized.
-If the original text contains just one word, and that word is a capital
-letter, @code{replace-match} considers this a capitalized first word
-rather than all upper case.
-
-If @code{case-replace} is @code{nil}, then case conversion is not done,
-regardless of the value of @var{fixed-case}.  @xref{Searching and Case}.
-
-If @var{literal} is non-@code{nil}, then @var{replacement} is inserted
-exactly as it is, the only alterations being case changes as needed.
-If it is @code{nil} (the default), then the character @samp{\} is treated
-specially.  If a @samp{\} appears in @var{replacement}, then it must be
-part of one of the following sequences:
-
-@table @asis
-@item @samp{\&}
-@cindex @samp{&} in replacement
-@samp{\&} stands for the entire text being replaced.
-
-@item @samp{\@var{n}}
-@cindex @samp{\@var{n}} in replacement
-@samp{\@var{n}}, where @var{n} is a digit, stands for the text that
-matched the @var{n}th subexpression in the original regexp.
-Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
-
-@item @samp{\\}
-@cindex @samp{\} in replacement
-@samp{\\} stands for a single @samp{\} in the replacement text.
-@end table
-
-If @var{subexp} is non-@code{nil}, that says to replace just
-subexpression number @var{subexp} of the regexp that was matched, not
-the entire match.  For example, after matching @samp{foo \(ba*r\)},
-calling @code{replace-match} with 1 as @var{subexp} means to replace
-just the text that matched @samp{\(ba*r\)}.
-@end defun
-
 @node Entire Match Data
 @subsection Accessing the Entire Match Data
 
@@ -1230,9 +1230,7 @@ corresponds to @code{(match-end @var{n})}.
 
 All the elements are markers or @code{nil} if matching was done on a
 buffer, and all are integers or @code{nil} if matching was done on a
-string with @code{string-match}.  (In Emacs 18 and earlier versions,
-markers were used even for matching on a string, except in the case
-of the integer 0.)
+string with @code{string-match}.
 
 As always, there must be no possibility of intervening searches between
 the call to a search function and the call to @code{match-data} that is
@@ -1258,7 +1256,7 @@ If @var{match-list} refers to a buffer that doesn't exist, you don't get
 an error; that sets the match data in a meaningless but harmless way.
 
 @findex store-match-data
-@code{store-match-data} is an alias for @code{set-match-data}.
+@code{store-match-data} is a semi-obsolete alias for @code{set-match-data}.
 @end defun
 
 @node Saving Match Data
@@ -1287,9 +1285,9 @@ This special form executes @var{body}, saving and restoring the match
 data around it.
 @end defmac
 
-  You can use @code{set-match-data} together with @code{match-data} to
-imitate the effect of the special form @code{save-match-data}.  This is
-useful for writing code that can run in Emacs 18.  Here is how:
+  You could use @code{set-match-data} together with @code{match-data} to
+imitate the effect of the special form @code{save-match-data}.  Here is
+how:
 
 @example
 @group
@@ -1384,9 +1382,10 @@ same as @code{(default-value 'case-fold-search)}.
 used for certain purposes in editing:
 
 @defvar page-delimiter
-This is the regexp describing line-beginnings that separate pages.  The
-default value is @code{"^\014"} (i.e., @code{"^^L"} or @code{"^\C-l"});
-this matches a line that starts with a formfeed character.
+This is the regular expression describing line-beginnings that separate
+pages.  The default value is @code{"^\014"} (i.e., @code{"^^L"} or
+@code{"^\C-l"}); this matches a line that starts with a formfeed
+character.
 @end defvar
 
   The following two regular expressions should @emph{not} assume the

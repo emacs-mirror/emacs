@@ -460,8 +460,8 @@ first argument of @code{while}, as shown here:
 
 @noindent
 This moves forward one line and continues moving by lines until it
-reaches an empty.  It is unusual in that the @code{while} has no body,
-just the end test (which also does the real work of moving point).
+reaches an empty line.  It is peculiar in that the @code{while} has no
+body, just the end test (which also does the real work of moving point).
 @end defspec
 
 @node Nonlocal Exits
@@ -718,15 +718,13 @@ These examples show typical uses of @code{error}:
 
 @example
 @group
-(error "You have committed an error.  
-        Try something else.")
-     @error{} You have committed an error.  
-        Try something else.
+(error "That is an error -- try something else")
+     @error{} That is an error -- try something else
 @end group
 
 @group
-(error "You have committed %d errors." 10)
-     @error{} You have committed 10 errors.  
+(error "You have committed %d errors" 10)
+     @error{} You have committed 10 errors
 @end group
 @end example
 
@@ -752,7 +750,7 @@ errors.
 
 The number and significance of the objects in @var{data} depends on
 @var{error-symbol}.  For example, with a @code{wrong-type-arg} error,
-there are two objects in the list: a predicate that describes the type
+there should be two objects in the list: a predicate that describes the type
 that was expected, and the object that failed to fit that type.
 @xref{Error Symbols}, for a description of error symbols.
 
@@ -772,8 +770,8 @@ it could sometimes return).
 @end group
 
 @group
-(signal 'no-such-error '("My unknown error condition."))
-     @error{} peculiar error: "My unknown error condition."
+(signal 'no-such-error '("My unknown error condition"))
+     @error{} peculiar error: "My unknown error condition"
 @end group
 @end smallexample
 @end defun
@@ -876,8 +874,8 @@ execution at the point of the error, nor can it examine variable
 bindings that were made within the protected form.  All it can do is
 clean up and proceed.
 
-  @code{condition-case} is often used to trap errors that are
-predictable, such as failure to open a file in a call to
+  The @code{condition-case} construct is often used to trap errors that
+are predictable, such as failure to open a file in a call to
 @code{insert-file-contents}.  It is also used to trap errors that are
 totally unpredictable, such as when the program evaluates an expression
 read from the user.
@@ -1159,7 +1157,12 @@ You might think that we could just as well write @code{(kill-buffer
 However, the way shown above is safer, if @var{body} happens to get an
 error after switching to a different buffer!  (Alternatively, you could
 write another @code{save-excursion} around the body, to ensure that the
-temporary buffer becomes current in time to kill it.)
+temporary buffer becomes current again in time to kill it.)
+
+  Emacs includes a standard macro called @code{with-temp-buffer} which
+expands into more or less the code shown above (@pxref{Current Buffer}).
+Several of the macros defined in this manual use @code{unwind-protect}
+in this way.
 
 @findex ftp-login
   Here is an actual example taken from the file @file{ftp.el}.  It
@@ -1188,18 +1191,3 @@ quit, and the quit happens immediately after the function
 @code{ftp-setup-buffer} returns but before the variable @code{process} is
 set, the process will not be killed.  There is no easy way to fix this bug,
 but at least it is very unlikely.
-
-  Here is another example which uses @code{unwind-protect} to make sure
-to kill a temporary buffer.  In this example, the value returned by
-@code{unwind-protect} is used.
-
-@smallexample
-(defun shell-command-string (cmd)
-  "Return the output of the shell command CMD, as a string."
-  (save-excursion
-    (set-buffer (generate-new-buffer " OS*cmd"))
-    (shell-command cmd t)
-    (unwind-protect
-        (buffer-string)
-      (kill-buffer (current-buffer)))))
-@end smallexample

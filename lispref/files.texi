@@ -35,7 +35,6 @@ substitutions such as @samp{$HOME}.  @xref{File Name Expansion}.
 * Magic File Names::	     Defining "magic" special handling
 			       for certain file names.
 * Format Conversion::        Conversion to and from various file formats.
-* Files and MS-DOS::         Distinguishing text and binary files on MS-DOS.
 @end menu
 
 @node Visiting Files
@@ -116,12 +115,11 @@ saved in that buffer.  If the file has changed, then this function asks
 the user whether to reread the changed file.  If the user says
 @samp{yes}, any changes previously made in the buffer are lost.
 
-If @code{find-file-noselect} needs to create a buffer, and there is no
-file named @var{filename}, it displays the message @samp{New file} in
-the echo area, and leaves the buffer empty.
-
 This function displays warning or advisory messages in various peculiar
-cases, unless the optional argument @var{nowarn} is non-@code{nil}.
+cases, unless the optional argument @var{nowarn} is non-@code{nil}.  For
+example, if it needs to create a buffer, and there is no file named
+@var{filename}, it displays the message @samp{New file} in the echo
+area, and leaves the buffer empty.
 
 The @code{find-file-noselect} function normally calls
 @code{after-find-file} after reading the file (@pxref{Subroutines of
@@ -297,26 +295,20 @@ the user.
 
 The optional @var{exiting} argument, if non-@code{nil}, requests this
 function to offer also to save certain other buffers that are not
-visiting files.  These are buffers that have a non-@code{nil} local
-value of @code{buffer-offer-save}.  (A user who says yes to saving one
-of these is asked to specify a file name to use.)  The
+visiting files.  These are buffers that have a non-@code{nil}
+buffer-local value of @code{buffer-offer-save}.  (A user who says yes to
+saving one of these is asked to specify a file name to use.)  The
 @code{save-buffers-kill-emacs} function passes a non-@code{nil} value
 for this argument.
 @end deffn
-
-@defvar buffer-offer-save
-When this variable is non-@code{nil} in a buffer, Emacs offers to save
-the buffer on exit even if the buffer is not visiting a file.  The
-variable is automatically local in all buffers.  Normally, Mail mode
-(used for editing outgoing mail) sets this to @code{t}.
-@end defvar
 
 @deffn Command write-file filename
 This function writes the current buffer into file @var{filename}, makes
 the buffer visit that file, and marks it not modified.  Then it renames
 the buffer based on @var{filename}, appending a string like @samp{<2>}
 if necessary to make a unique buffer name.  It does most of this work by
-calling @code{set-visited-file-name} and @code{save-buffer}.
+calling @code{set-visited-file-name} (@pxref{Buffer File Name}) and
+@code{save-buffer}.
 @end deffn
 
   Saving a buffer runs several hooks.  It also performs format
@@ -352,8 +344,8 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 @c Emacs 19 feature
 @defvar local-write-file-hooks
 This works just like @code{write-file-hooks}, but it is intended to be
-made local to particular buffers, and used for hooks that pertain to the
-file name or the way the buffer contents were obtained.
+made buffer-local in particular buffers, and used for hooks that pertain
+to the file name or the way the buffer contents were obtained.
 
 The variable is marked as a permanent local, so that changing the major
 mode does not alter a buffer-local value.  This is convenient for
@@ -372,7 +364,7 @@ This variable automatically becomes buffer-local whenever it is set;
 switching to a new major mode always resets this variable.  When you use
 @code{add-hooks} to add an element to this hook, you should @emph{not}
 specify a non-@code{nil} @var{local} argument, since this variable is
-used @emph{only} locally.
+used @emph{only} buffer-locally.
 @end defvar
 
 @c Emacs 19 feature
@@ -392,8 +384,8 @@ As a side effect, backups are necessarily made by copying.  @xref{Rename
 or Copy}.  Yet, at the same time, saving a precious file always breaks
 all hard links between the file you save and other file names.
 
-Some modes set this variable non-@code{nil} locally in particular
-buffers.
+Some modes give this variable non-@code{nil} buffer-local value
+in particular buffers.
 @end defvar
 
 @defopt require-final-newline
@@ -410,16 +402,8 @@ doesn't add newlines at all.  @code{nil} is the default value, but a few
 major modes set it to @code{t} in particular buffers.
 @end defopt
 
-@deffn Command set-visited-file-name filename &optional no-query
-This function changes the visited file name of the current buffer to
-@var{filename}.  It also renames the buffer based on @var{filename},
-appending a string like @samp{<2>} if necessary to make a unique buffer
-name.  It marks the buffer as @emph{modified},a since the contents do not
-(as far as Emacs knows) match the actual file's contents.
-
-If the specified file already exists, @code{set-visited-file-name}
-asks for confirmation unless @var{no-query} is non-@code{nil}.
-@end deffn
+  See also the function @code{set-visited-file-name} (@pxref{Buffer File
+Name}).
 
 @node Reading from Files
 @comment  node-name,  next,  previous,  up
@@ -542,15 +526,12 @@ files that the user does not need to know about.
 
 @tindex with-temp-file
 @defmac with-temp-file file body...
-The @code{with-temp-file} macro evaluates the @var{body} forms
-with a temporary buffer as the current buffer; then, at the end, it
-writes the buffer contents into file @var{file}.  It kills the temporary
-buffer when finished, restoring the buffer that was current before the
-@code{with-temp-file} form.
-
-The return value is the value of the last form in @var{body}.  You can
-return the contents of the temporary buffer by using
-@code{(buffer-string)} as the last form.
+The @code{with-temp-file} macro evaluates the @var{body} forms with a
+temporary buffer as the current buffer; then, at the end, it writes the
+buffer contents into file @var{file}.  It kills the temporary buffer
+when finished, restoring the buffer that was current before the
+@code{with-temp-file} form.  Then it returns the value of the last form
+in @var{body}.
 
 The current buffer is restored even in case of an abnormal exit via
 @code{throw} or error (@pxref{Nonlocal Exits}).
@@ -568,13 +549,12 @@ arising by recording a @dfn{file lock} when a file is being modified.
 Emacs can then detect the first attempt to modify a buffer visiting a
 file that is locked by another Emacs job, and ask the user what to do.
 
-  File locks do not work properly when multiple machines can share
-file systems, such as with NFS.  Perhaps a better file locking system
-will be implemented in the future.  When file locks do not work, it is
-possible for two users to make changes simultaneously, but Emacs can
-still warn the user who saves second.  Also, the detection of
-modification of a buffer visiting a file changed on disk catches some
-cases of simultaneous editing; see @ref{Modification Time}.
+  File locks are not completely reliable when multiple machines can
+share file systems.  When file locks do not work, it is possible for two
+users to make changes simultaneously, but Emacs can still warn the user
+who saves second.  Also, the detection of modification of a buffer
+visiting a file changed on disk catches some cases of simultaneous
+editing; see @ref{Modification Time}.
 
 @defun file-locked-p filename
   This function returns @code{nil} if the file @var{filename} is not
@@ -1032,18 +1012,12 @@ For example, here are the file attributes for @file{files.texi}:
 @example
 @group
 (file-attributes "files.texi")
-     @result{}  (nil 
-          1 
-          2235 
-          75 
+     @result{}  (nil 1 2235 75 
           (8489 20284) 
           (8489 20284) 
           (8489 20285)
-          14906 
-          "-rw-rw-rw-" 
-          nil 
-          129500
-          -32252)
+          14906 "-rw-rw-rw-" 
+          nil 129500 -32252)
 @end group
 @end example
 
@@ -1614,7 +1588,7 @@ form.
 @defvar default-directory
 The value of this buffer-local variable is the default directory for the
 current buffer.  It should be an absolute directory name; it may start
-with @samp{~}.  This variable is local in every buffer.
+with @samp{~}.  This variable is buffer-local in every buffer.
 
 @code{expand-file-name} uses the default directory when its second
 argument is @code{nil}.
@@ -1651,8 +1625,8 @@ the user's home directory name, has value @samp{/xcssun/users/rms}.
 @end group
 @end example
 
-If a @samp{~} or a @samp{/} appears following a @samp{/}, after
-substitution, everything before the following @samp{/} is discarded:
+After substitution, if a @samp{~} or a @samp{/} appears following a
+@samp{/}, everything before the following @samp{/} is discarded:
 
 @example
 @group
@@ -1996,18 +1970,21 @@ Here are the operations that a magic file name handler gets to handle:
 
 @noindent
 @code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
-@code{delete-file},@*
+@code{delete-file},
 @code{diff-latest-backup-file},
 @code{directory-file-name},
-@code{directory-files},@*
+@code{directory-files},
 @code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},
-@code{expand-file-name},@*
-@code{file-accessible-directory-p},
-@code{file-attributes}, @code{file-directory-p},@*
-@code{file-executable-p}, @code{file-exists-p}, @code{file-local-copy},
-@code{file-modes}, @code{file-name-all-completions},
-@code{file-name-as-directory}, @code{file-name-completion},@*
+@code{expand-file-name},
+@code{file-accessible-directory-p},@*
+@code{file-attributes},
+@code{file-directory-p},
+@code{file-executable-p}, @code{file-exists-p},@*
+@code{file-local-copy},
+@code{file-modes}, @code{file-name-all-completions},@*
+@code{file-name-as-directory},
+@code{file-name-completion},
 @code{file-name-directory},
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
@@ -2015,15 +1992,16 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
 @code{find-backup-file-name},
-@code{get-file-buffer},
-@code{insert-directory},@*
+@code{get-file-buffer},@*
+@code{insert-directory},
 @code{insert-file-contents},
 @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
-@code{set-visited-file-modtime}, @code{shell-command}.
-@code{unhandled-file-name-directory},@*
+@code{set-visited-file-modtime}, @code{shell-command}.@*
+@code{unhandled-file-name-directory},
 @code{vc-registered},
-@code{verify-visited-file-modtime}, @code{write-region}.
+@code{verify-visited-file-modtime},@*
+@code{write-region}.
 
 Handlers for @code{insert-file-contents} typically need to clear the
 buffer's modified flag, with @code{(set-buffer-modified-p nil)}, if the
@@ -2140,10 +2118,13 @@ A regular expression which is used to recognize files represented in
 this format.
 
 @item from-fn
-A function or shell command to decode data in this format (to convert
+A shell command or function to decode data in this format (to convert
 file data into the usual Emacs data representation).
 
-If @var{from-fn} is a function, it is called with two args, @var{begin}
+A shell command is represented as a string; Emacs runs the command as a
+filter to perform the conversion.
+
+If @var{from-fn} is a function, it is called with two arguments, @var{begin}
 and @var{end}, which specify the part of the buffer it should convert.
 It should convert the text by editing it in place.  Since this can
 change the length of the text, @var{from-fn} should return the modified
@@ -2153,17 +2134,14 @@ One responsibility of @var{from-fn} is to make sure that the beginning
 of the file no longer matches @var{regexp}.  Otherwise it is likely to
 get called again.
 
-If @var{from-fn} is a string, it is a shell command; Emacs runs the
-command as a filter to perform the conversion.
-
 @item to-fn
-A function or shell command to encode data in this format (to convert
-the usual Emacs data representation into this format).
+A shell command or function to encode data in this format---that is, to
+convert the usual Emacs data representation into this format.
 
 If @var{to-fn} is a string, it is a shell command; Emacs runs the
 command as a filter to perform the conversion.
 
-If @var{to-fn} is a function, it is called with two args, @var{begin}
+If @var{to-fn} is a function, it is called with two arguments, @var{begin}
 and @var{end}, which specify the part of the buffer it should convert.
 There are two ways it can do the conversion:
 
@@ -2209,7 +2187,7 @@ buffer-local variable @code{buffer-file-format}.
 @defvar buffer-file-format
 This variable states the format of the visited file.  More precisely,
 this is a list of the file format names that were decoded in the course
-of visiting the current buffer's file.  It is always local in all
+of visiting the current buffer's file.  It is always buffer-local in all
 buffers.
 @end defvar
 
@@ -2234,7 +2212,7 @@ The argument @var{format} is a list of format names.  If @var{format} is
 @key{RET} for @var{format} specifies @code{nil}.
 @end deffn
 
-@deffn format-insert-file file format %optional beg end
+@deffn Command format-insert-file file format &optional beg end
 This command inserts the contents of file @var{file}, converting it
 according to format @var{format}.  If @var{beg} and @var{end} are
 non-@code{nil}, they specify which part of the file to read, as in
@@ -2254,62 +2232,5 @@ This variable specifies the format to use for auto-saving.  Its value is
 a list of format names, just like the value of
 @code{buffer-file-format}; but it is used instead of
 @code{buffer-file-format} for writing auto-save files.  This variable
-is always local in all buffers.
+is always buffer-local in all buffers.
 @end defvar
-
-@node Files and MS-DOS
-@section Files and MS-DOS
-@cindex MS-DOS file types
-@cindex file types on MS-DOS
-@cindex text files and binary files
-@cindex binary files and text files
-@cindex Windows file types
-
-@c ??? This needs to be updated.
-
-  Emacs on MS-DOS and on Windows NT or 95 makes a distinction between
-text files and binary files.  This is necessary because ordinary text
-files on MS-DOS use a two character sequence between lines:
-carriage-return and linefeed (@sc{crlf}).  Emacs expects just a newline
-character (a linefeed) between lines.  When Emacs reads or writes a text
-file on MS-DOS, it needs to convert the line separators.  This means it
-needs to know which files are text files and which are binary.  It makes
-this decision when visiting a file, and records the decision in the
-variable @code{buffer-file-type} for use when the file is saved.
-
-  @xref{MS-DOS Subprocesses}, for a related feature for subprocesses.
-
-@defvar buffer-file-type
-This variable, automatically local in each buffer, records the file type
-of the buffer's visited file.  The value is @code{nil} for text,
-@code{t} for binary.
-@end defvar
-
-@defun find-buffer-file-type filename
-This function determines whether file @var{filename} is a text file
-or a binary file.  It returns @code{nil} for text, @code{t} for binary.
-@end defun
-
-@defopt file-name-buffer-file-type-alist
-This variable holds an alist for distinguishing text files from binary
-files.  Each element has the form (@var{regexp} . @var{type}), where
-@var{regexp} is matched against the file name, and @var{type} may be
-@code{nil} for text, @code{t} for binary, or a function to call to
-compute which.  If it is a function, then it is called with a single
-argument (the file name) and should return @code{t} or @code{nil}.
-@end defopt
-
-@defopt default-buffer-file-type
-This variable specifies the default file type for files whose names
-don't indicate anything in particular.  Its value should be @code{nil}
-for text, or @code{t} for binary.
-@end defopt
-
-@deffn Command find-file-text filename
-Like @code{find-file}, but treat the file as text regardless of its name.
-@end deffn
-
-@deffn Command find-file-binary filename
-Like @code{find-file}, but treat the file as binary regardless of its
-name.
-@end deffn

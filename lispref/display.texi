@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
-@node Display, Calendar, System Interface, Top
+@node Display, Calendar, Processes, Top
 @chapter Emacs Display
 
   This chapter describes a number of features related to the display
@@ -62,7 +62,7 @@ resumption.
 @cindex resume (cf. @code{no-redraw-on-reenter})
 This variable controls whether Emacs redraws the entire screen after it
 has been suspended and resumed.  Non-@code{nil} means there is no need
-to redraw, @code{nil} means redrawing is needed.
+to redraw, @code{nil} means redrawing is needed.  The default is @code{nil}.
 @end defvar
 
 @node Screen Size
@@ -136,9 +136,9 @@ line can either be continued on the next screen line, or truncated to
 one screen line.  The additional screen lines used to display a long
 text line are called @dfn{continuation} lines.  Normally, a @samp{$} in
 the rightmost column of the window indicates truncation; a @samp{\} on
-the rightmost column indicates a line that ``wraps'' or is continued
-onto the next line.  (The display table can specify alternative
-indicators; see @ref{Display Tables}.)
+the rightmost column indicates a line that ``wraps'' onto the next line,
+which is also called @dfn{continuing} the line.  (The display table can
+specify alternative indicators; see @ref{Display Tables}.)
 
   Note that continuation is different from filling; continuation happens
 on the screen only, not in the buffer contents, and it breaks a line
@@ -157,7 +157,7 @@ frame) regardless of the value of @code{truncate-lines}.
 
 @defopt default-truncate-lines
 This variable is the default value for @code{truncate-lines}, for
-buffers that do not have local values for it.
+buffers that do not have buffer-local values for it.
 @end defopt
 
 @defopt truncate-partial-width-windows
@@ -184,7 +184,7 @@ unless they are modified.
 
 Turning on the cache slows down processing of short lines somewhat.
 
-This variable is automatically local in every buffer.
+This variable is automatically buffer-local in every buffer.
 @end defvar
 
 @node The Echo Area
@@ -242,6 +242,16 @@ This function returns the message currently being displayed in the
 echo area, or @code{nil} if there is none.
 @end defun
 
+@defvar cursor-in-echo-area
+This variable controls where the cursor appears when a message is
+displayed in the echo area.  If it is non-@code{nil}, then the cursor
+appears at the end of the message.  Otherwise, the cursor appears at
+point---not in the echo area at all.
+
+The value is normally @code{nil}; Lisp programs bind it to @code{t}
+for brief periods of time.
+@end defvar
+
 @tindex echo-area-clear-hook
 @defvar echo-area-clear-hook
 This normal hook is run whenever the echo area is cleared---either by
@@ -274,16 +284,6 @@ characters in the same command will be echoed as well.
 If the value is zero, then command input is not echoed.
 @end defvar
 
-@defvar cursor-in-echo-area
-This variable controls where the cursor appears when a message is
-displayed in the echo area.  If it is non-@code{nil}, then the cursor
-appears at the end of the message.  Otherwise, the cursor appears at
-point---not in the echo area at all.
-
-The value is normally @code{nil}; Lisp programs bind it to @code{t}
-for brief periods of time.
-@end defvar
-
 @node Invisible Text
 @section Invisible Text
 
@@ -295,8 +295,7 @@ text property or a property of an overlay.
 In the simplest case, any non-@code{nil} @code{invisible} property makes
 a character invisible.  This is the default case---if you don't alter
 the default value of @code{buffer-invisibility-spec}, this is how the
-@code{invisibility} property works.  This feature is much like selective
-display (@pxref{Selective Display}), but more general and cleaner.
+@code{invisible} property works.
 
 More generally, you can use the variable @code{buffer-invisibility-spec}
 to control which values of the @code{invisible} property make text
@@ -322,17 +321,17 @@ A character is invisible if its @code{invisible} property is
 non-@code{nil}.  This is the default.
 
 @item a list
-Each element of the list makes certain characters invisible.
-Ultimately, a character is invisible if any of the elements of this list
-applies to it.  The list can have two kinds of elements:
+Each element of the list specifies a criterion for invisibility; if a
+character's @code{invisible} property fits any one of these criteria,
+the character is invisible.  The list can have two kinds of elements:
 
 @table @code
 @item @var{atom}
-A character is invisible if its @code{invisible} propery value
+A character is invisible if its @code{invisible} property value
 is @var{atom} or if it is a list with @var{atom} as a member.
 
 @item (@var{atom} . t)
-A character is invisible if its @code{invisible} propery value
+A character is invisible if its @code{invisible} property value
 is @var{atom} or if it is a list with @var{atom} as a member.
 Moreover, if this character is at the end of a line and is followed
 by a visible newline, it displays an ellipsis.
@@ -360,17 +359,17 @@ that a major mode should use the mode's own name as an element of
 property:
 
 @example
-;; If we want to display an ellipsis:
+;; @r{If you want to display an ellipsis:}
 (add-to-invisibility-spec '(my-symbol . t)) 
-;; If you don't want ellipsis:
+;; @r{If you don't want ellipsis:}
 (add-to-invisibility-spec 'my-symbol) 
 
 (overlay-put (make-overlay beginning end)
              'invisible 'my-symbol)
 
-;; When done with the overlays:
+;; @r{When done with the overlays:}
 (remove-from-invisibility-spec '(my-symbol . t))
-;; Or respectively:
+;; @r{Or respectively:}
 (remove-from-invisibility-spec 'my-symbol)
 @end example
 
@@ -401,14 +400,13 @@ it invisible again.
 @section Selective Display
 @cindex selective display
 
-  @dfn{Selective display} is a pair of features that hide certain
-lines on the screen.
+  @dfn{Selective display} refers to a pair of related features for
+hiding certain lines on the screen.
 
   The first variant, explicit selective display, is designed for use in
-a Lisp program.  The program controls which lines are hidden by altering
-the text.  Outline mode has traditionally used this variant.  It has
-been partially replaced by the invisible text feature (@pxref{Invisible
-Text}); there is a new version of Outline mode which uses that instead.
+a Lisp program: it controls which lines are hidden by altering the text.
+The invisible text feature (@pxref{Invisible Text}) has partially
+replaced this feature.
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
@@ -441,7 +439,8 @@ lines, or portions of lines, may be made invisible.
 @itemize @bullet
 @item
 If the value of @code{selective-display} is @code{t}, then any portion
-of a line that follows a control-m is not displayed.
+of a line that follows a control-m is not displayed.  This is explicit
+selective display.
 
 @item
 If the value of @code{selective-display} is a positive integer, then
@@ -543,15 +542,15 @@ given time.
 @c now.  Is it?
 @end defvar
 
-  You can do the same job by creating an overlay with a
+  You can do a similar job by creating an overlay with a
 @code{before-string} property.  @xref{Overlay Properties}.
 
 @node Temporary Displays
 @section Temporary Displays
 
-  Temporary displays are used by commands to put output into a buffer
-and then present it to the user for perusal rather than for editing.
-Many of the help commands use this feature.
+  Temporary displays are used by Lisp programs to put output into a
+buffer and then present it to the user for perusal rather than for
+editing.  Many help commands use this feature.
 
 @defspec with-output-to-temp-buffer buffer-name forms@dots{}
 This function executes @var{forms} while arranging to insert any
@@ -599,9 +598,6 @@ The value of the last form in @var{forms} is returned.
 If this variable is non-@code{nil}, @code{with-output-to-temp-buffer}
 calls it as a function to do the job of displaying a help buffer.  The
 function gets one argument, which is the buffer it should display.
-
-In Emacs versions 18 and earlier, this variable was called
-@code{temp-buffer-show-hook}.
 @end defvar
 
 @defun momentary-string-display string position &optional char message
@@ -620,8 +616,9 @@ the display and later (presumably) move point forward.  The argument
 The return value of @code{momentary-string-display} is not meaningful.
 
 If the string @var{string} does not contain control characters, you can
-do the same job in a more general way by creating an overlay with a
-@code{before-string} property.  @xref{Overlay Properties}.
+do the same job in a more general way by creating (and then subsequently
+deleting) an overlay with a @code{before-string} property.
+@xref{Overlay Properties}.
 
 If @var{message} is non-@code{nil}, it is displayed in the echo area
 while @var{string} is displayed in the buffer.  If it is @code{nil}, a
@@ -685,7 +682,7 @@ not to be part of the text.  Thus, copying text between various buffers
 and strings preserves text properties, but does not try to preserve
 overlays.  Changing a buffer's text properties marks the buffer as
 modified, while moving an overlay or changing its properties does not.
-Unlike text propery changes, overlay changes are not recorded in the
+Unlike text property changes, overlay changes are not recorded in the
 buffer's undo list.
 
 @table @code
@@ -803,8 +800,8 @@ If this property is non-@code{nil}, the overlay is deleted automatically
 if it ever becomes empty (i.e., if it spans no characters).
 
 @item local-map
-@cindex keymap of character
-@kindex local-map @r{(text property)}
+@cindex keymap of character (and overlays)
+@kindex local-map @r{(overlay property)}
 If this property is non-@code{nil}, it specifies a keymap for a portion
 of the text.  The property's value replaces the buffer's local map, when
 the character after point is within the overlay.  @xref{Active Keymaps}.
@@ -912,10 +909,8 @@ end of an overlay, before @var{pos}.
 @section Width
 
 Since not all characters have the same width, these functions let you
-check the width of a character.  @ref{Primitive Indent}
-
-@xref{Screen Lines}, for related
-functions.
+check the width of a character.  @xref{Primitive Indent}, and
+@ref{Screen Lines}, for related functions.
 
 @tindex char-width
 @defun char-width char
@@ -970,7 +965,7 @@ foreground color, background color, and optional underlining.  Faces
 control the display of text on the screen.
 
 @cindex face id
-Each face has its own @dfn{face id number} which distinguishes faces at
+Each face has its own @dfn{face number}, which distinguishes faces at
 low levels within Emacs.  However, for most purposes, you can refer to
 faces in Lisp programs by their names.
 
@@ -986,6 +981,7 @@ face name a special meaning in one frame if you wish.
 
 @menu
 * Standard Faces::      The faces Emacs normally comes with.
+* Defining Faces::      How to define a face with @code{defface}.
 * Merging Faces::	How Emacs decides which face to use for a character.
 * Face Functions::	How to define and examine faces.
 @end menu
@@ -1036,6 +1032,90 @@ This face uses the bold italic variant of the frame's font, if it has
 one.
 @end table
 
+@node Defining Faces
+@section Defining Faces
+
+  The way to define a new face is with @code{defface}.  This creates a
+kind of customization item (@pxref{Customization}) which the user can
+customize using the Customization buffer (@pxref{Easy Customization,,,
+emacs, The GNU Emacs Manual}).
+
+@tindex defface
+@defmac defface face spec doc [keyword value]... 
+Declare @var{face} as a customizable face that defaults according to
+@var{spec}.  Do not quote the symbol @var{face}.  The argument @var{doc}
+specifies the face documentation.
+
+When @code{defface} executes, it defines the face according to
+@var{spec}, then uses any customizations saved in the @file{.emacs} file
+to override that specification.
+
+The purpose of @var{spec} is to specify how the face should appear on
+different kinds of terminals.  It should be an alist whose elements have
+the form @code{(@var{display} @var{atts})}.  The element's @sc{car},
+@var{display}, specifies a class of terminals.  The @sc{cdr},
+@var{atts}, is a list of face attributes and their values; it specifies
+what the face should look like on that kind of terminal.  The possible
+attributes are defined in the value of @code{custom-face-attributes}.
+
+The @var{display} part of an element of @var{spec} determines which
+frames the element applies to.  If more than one element of @var{spec}
+matches a given frame, the first matching element is the only one used
+for that frame.  There are two possibilities for @var{display}:
+
+@table @asis
+@item @code{t}
+This element of @var{spec} matches all frames.  Therefore, any
+subsequent elements of @var{spec} are never used.  Normally
+@code{t} is used in the last (or only) element of @var{spec}.
+
+@item an list
+If @var{display} is alist, each elements should have the form
+@code{(@var{characteristic} @var{value}@dots{})}.  Here
+@var{characteristic} specifies a way of classifying frames, and the
+@var{value}s are possible classifications which @var{display} should
+apply to.  Here are the possible values of @var{characteristic}:
+
+@table @code
+@item type
+The kind of window system the frame uses---either @code{x}, @code{pc}
+(for the MS-DOS console), @code{w32} (for MS Windows 9X/NT), or
+@code{tty}.
+
+@item class
+What kinds of colors the frame supports---either @code{color},
+@code{grayscale}, or @code{mono}.
+
+@item background
+The kind of background--- either @code{light} or @code{dark}.
+@end table
+
+If an element of @var{display} specifies more than one @var{value} for a
+given @var{characteristic}, any of those values is acceptable.  If
+@var{display} has more than one element, each element should specify a
+different @var{characteristic}; then @emph{each} characteristic of the
+frame must match one of the @var{value}s specified for it in
+@var{display}.
+@end table
+@end defmac
+
+  Here's how the standard face @code{region} could be defined
+with @code{defface}:
+
+@example
+(defface region
+         ((((class color) (background dark))
+           (:background "blue"))
+          (t (:background "gray")))
+  "Used for displaying the region.")
+@end example
+
+  Internally, @code{defface} uses the symbol property
+@code{face-defface-spec} to record the face attributes specified in
+@code{defface}, @code{saved-face} for the attributes saved by the user
+with the customization buffer, and @code{face-documentation} for the
+documentation string.
+
 @node Merging Faces
 @subsection Merging Faces for Display
 
@@ -1043,9 +1123,9 @@ one.
 
 @itemize @bullet
 @item
-With defaults.  Each frame has a @dfn{default face}, whose id number is
-zero, which is used for all text that doesn't somehow specify another
-face.
+With defaults.  Each frame has a @dfn{default face}, which is used for
+all text that doesn't somehow specify another face.  (We may change this
+in a forthcoming Emacs version to serve as a default for all text.)
 
 @item
 With text properties.  A character may have a @code{face} property; if so,
@@ -1064,7 +1144,7 @@ With a region that is active.  In Transient Mark mode, the region is
 highlighted with a particular face (see @code{region-face}, below).
 
 @item
-With special glyphs.  Each glyph can specify a particular face id
+With special glyphs.  Each glyph can specify a particular face 
 number.  @xref{Glyphs}.
 @end itemize
 
@@ -1147,11 +1227,6 @@ and italic attributes cease to have any effect, because the precise font
 that you specified is always used.
 @end defun
 
-@defun set-face-underline-p face underline-p &optional frame
-This function sets the underline attribute of face @var{face}.
-Non-@code{nil} means do underline; @code{nil} means don't.
-@end defun
-
 @tindex set-face-bold-p
 @defun set-face-bold-p face bold-p &optional frame
 This function sets the bold attribute of face @var{face}.
@@ -1162,6 +1237,11 @@ Non-@code{nil} means bold; @code{nil} means non-bold.
 @defun set-face-italic-p face italic-p &optional frame
 This function sets the italic attribute of face @var{face}.
 Non-@code{nil} means italic; @code{nil} means non-italic.
+@end defun
+
+@defun set-face-underline-p face underline-p &optional frame
+This function sets the underline attribute of face @var{face}.
+Non-@code{nil} means do underline; @code{nil} means don't.
 @end defun
 
 @defun invert-face face &optional frame
@@ -1189,10 +1269,6 @@ This function returns the name of the background stipple pattern of face
 This function returns the name of the font of face @var{face}.
 @end defun
 
-@defun face-underline-p face &optional frame
-This function returns the underline attribute of face @var{face}.
-@end defun
-
 @tindex face-bold-p
 @defun face-bold-p face &optional frame
 This function returns the bold attribute of face @var{face}.
@@ -1203,8 +1279,12 @@ This function returns the bold attribute of face @var{face}.
 This function returns the italic attribute of face @var{face}.
 @end defun
 
+@defun face-underline-p face &optional frame
+This function returns the underline attribute of face @var{face}.
+@end defun
+
 @defun face-id face
-This function returns the face id number of face @var{face}.
+This function returns the face number of face @var{face}.
 @end defun
 
 @tindex face-documentation
@@ -1226,13 +1306,13 @@ face if each attribute is either the same as that of the default face or
 @end defun
 
 @defvar region-face
-This variable's value specifies the face id to use to display characters
+This variable's value specifies the face number to use to display characters
 in the region when it is active (in Transient Mark mode only).  The face
 thus specified takes precedence over all faces that come from text
 properties and overlays, for characters in the region.  @xref{The Mark},
 for more information about Transient Mark mode.
 
-Normally, the value is the id number of the face named @code{region}.
+Normally, the value is the face number of the face named @code{region}.
 @end defvar
 
 @node Blinking
@@ -1245,19 +1325,11 @@ Normally, the value is the id number of the face named @code{region}.
   This section describes the mechanism by which Emacs shows a matching
 open parenthesis when the user inserts a close parenthesis.
 
-@vindex blink-paren-hook
 @defvar blink-paren-function
 The value of this variable should be a function (of no arguments) to
 be called whenever a character with close parenthesis syntax is inserted.
 The value of @code{blink-paren-function} may be @code{nil}, in which
 case nothing is done.
-
-@quotation
-@strong{Please note:} This variable was named @code{blink-paren-hook} in
-older Emacs versions, but since it is not called with the standard
-convention for hooks, it was renamed to @code{blink-paren-function} in
-version 19.
-@end quotation
 @end defvar
 
 @defvar blink-matching-paren
@@ -1321,7 +1393,7 @@ is non-@code{nil}, then mode lines are displayed in inverse video.
 Otherwise, mode lines are displayed normally, just like text.  The
 default is @code{t}.
 
-For X window frames, this displays mode lines using the face named
+For window frames, this displays mode lines using the face named
 @code{modeline}, which is normally the inverse of the default face
 unless you change it.
 @end defopt
@@ -1356,14 +1428,19 @@ just like the codes in the range 128 to 255.
 @item
 Character codes 128 through 255 map to sequences of four glyphs, where
 the first glyph is the @sc{ASCII} code for @samp{\}, and the others are
-digit characters representing the code in octal.  (A display table can
-specify a glyph to use instead of @samp{\}.)
+digit characters representing the charatcer code in octal.  (A display
+table can specify a glyph to use instead of @samp{\}.)
+
+@item
+Multibyte character codes above 256 are displayed as themselves, or as a
+question mark or empty box if the terminal cannot display that
+character.
 @end itemize
 
   The usual display conventions apply even when there is a display
 table, for any character whose entry in the active display table is
 @code{nil}.  Thus, when you set up a display table, you need only
-specify the characters for which you want unusual behavior.
+specify the characters for which you want special behavior.
 
   These variables affect the way certain characters are displayed on the
 screen.  Since they change the number of columns the characters occupy,
@@ -1397,10 +1474,10 @@ stops used by the command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 @section Display Tables
 
 @cindex display table
-You can use the @dfn{display table} feature to control how all 256
-possible character codes display on the screen.  This is useful for
-displaying European languages that have letters not in the @sc{ASCII}
-character set.
+You can use the @dfn{display table} feature to control how all possible
+character codes display on the screen.  This is useful for displaying
+European languages that have letters not in the @sc{ASCII} character
+set.
 
 The display table maps each character code into a sequence of
 @dfn{glyphs}, each glyph being an image that takes up one character
@@ -1438,8 +1515,8 @@ display that character according to the usual display conventions
 characters, the whole buffer will be displayed as one long ``line.''
 
   The display table also has six ``extra slots'' which serve special
-purposes.  Here is a table of their meanings; @code{nil} means to use
-the default stated below.
+purposes.  Here is a table of their meanings; @code{nil} in any slot
+means to use the default for that slot, as stated below.
 
 @table @asis
 @item 0
@@ -1514,9 +1591,10 @@ The argument @var{table} should be either a display table or
 @end defun
 
 @defvar buffer-display-table
-This variable is automatically local in all buffers; its value in a
-particular buffer is the display table for that buffer, or @code{nil} if
-the buffer does not have an assigned display table.
+This variable is automatically buffer-local in all buffers; its value in
+a particular buffer specifies the display table for that buffer.  If it
+is @code{nil}, that means the buffer does not have an assigned display
+table.
 @end defvar
 
 @defvar standard-display-table
@@ -1556,22 +1634,23 @@ below).
 @item string
 Send the characters in @var{string} to the terminal to output
 this glyph.  This alternative is available on character terminals,
-but not under X.
+but not under a window system.
 
 @item integer
-Define this glyph code as an alias for code @var{integer}.  You can use
-an alias to specify a face code for the glyph; see below.
+Define this glyph code as an alias for glyph code @var{integer}.  You
+can use an alias to specify a face code for the glyph; see below.
 
 @item @code{nil}
-This glyph is simple.  On an ordinary terminal, the glyph code mod 524288
-is the character to output.  With X, the glyph code mod 524288 is the
-character to output, and the glyph code divided by 524288 specifies the
-@dfn{face id number} to use while outputting it.  (524288 is
+This glyph is simple.  On an ordinary terminal, the glyph code mod
+524288 is the character to output.  In a window system, the glyph code
+mod 524288 is the character to output, and the glyph code divided by
+524288 specifies the face number (@pxref{Face Functions}) to use while
+outputting it.  (524288 is
 @ifinfo
-2**19.
+2**19.)
 @end ifinfo
 @tex
-$2^{19}$.
+$2^{19}$.)
 @end tex
 @xref{Faces}.
 @end table
@@ -1604,9 +1683,9 @@ This is a synonym for @code{ding}.
 @defvar visible-bell
 This variable determines whether Emacs should flash the screen to
 represent a bell.  Non-@code{nil} means yes, @code{nil} means no.  This
-is effective under X windows, and on a character-only terminal provided
-the terminal's Termcap entry defines the visible bell capability
-(@samp{vb}).
+is effective on a window system, and on a character-only terminal
+provided the terminal's Termcap entry defines the visible bell
+capability (@samp{vb}).
 @end defvar
 
 @tindex ring-bell-function

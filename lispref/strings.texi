@@ -29,8 +29,8 @@ keyboard character events.
 * Text Comparison::           Comparing characters or strings.
 * String Conversion::         Converting characters or strings and vice versa.
 * Formatting Strings::        @code{format}: Emacs's analog of @code{printf}.
-* Character Case::            Case conversion functions.
-* Case Table::		      Customizing case conversion.
+* Case Conversion::           Case conversion functions.
+* Case Tables::		      Customizing case conversion.
 @end menu
 
 @node String Basics
@@ -38,19 +38,19 @@ keyboard character events.
 
   Strings in Emacs Lisp are arrays that contain an ordered sequence of
 characters.  Characters are represented in Emacs Lisp as integers;
-whether an integer was intended as a character or not is determined only
-by how it is used.  Thus, strings really contain integers.
+whether an integer is a character or not is determined only by how it is
+used.  Thus, strings really contain integers.
 
   The length of a string (like any array) is fixed, and cannot be
 altered once the string exists.  Strings in Lisp are @emph{not}
 terminated by a distinguished character code.  (By contrast, strings in
 C are terminated by a character with @sc{ASCII} code 0.)
 
-  Since strings are considered arrays, you can operate on them with the
-general array functions.  (@xref{Sequences Arrays Vectors}.)  For
-example, you can access or change individual characters in a string
-using the functions @code{aref} and @code{aset} (@pxref{Array
-Functions}).
+  Since strings are arrays, and therefore sequences as well, you can
+operate on them with the general array and sequence functions.
+(@xref{Sequences Arrays Vectors}.)  For example, you can access or
+change individual characters in a string using the functions @code{aref}
+and @code{aset} (@pxref{Array Functions}).
 
   There are two text representations for non-@sc{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
@@ -62,8 +62,8 @@ representations.
 
   Sometimes key sequences are represented as strings.  When a string is
 a key sequence, string elements in the range 128 to 255 represent meta
-characters (which are extremely large integers) rather than keyboard
-events in the range 128 to 255.
+characters (which are extremely large integers) rather than character
+codes in the range 128 to 255.
 
   Strings cannot hold characters that have the hyper, super or alt
 modifiers; they can hold @sc{ASCII} control characters, but no other
@@ -201,13 +201,18 @@ Functions}).
 If the characters copied from @var{string} have text properties, the
 properties are copied into the new string also.  @xref{Text Properties}.
 
+@code{substring} also allows vectors for the first argument.
+For example:
+
+@example
+(substring [a b (c) "d"] 1 3)
+     @result{} [b (c)]
+@end example
+
 A @code{wrong-type-argument} error is signaled if either @var{start} or
 @var{end} is not an integer or @code{nil}.  An @code{args-out-of-range}
 error is signaled if @var{start} indicates a character following
 @var{end}, or if either integer is out of range for @var{string}.
-
-@code{substring} actually allows vectors as well as strings for
-the first argument.
 
 Contrast this function with @code{buffer-substring} (@pxref{Buffer
 Contents}), which returns a string containing a portion of the text in
@@ -313,7 +318,7 @@ Empty matches do count, when not adjacent to another match:
 @var{idx} @var{char})} stores @var{char} into @var{string} at index
 @var{idx}.  Each character occupies one or more bytes, and if @var{char}
 needs a different number of bytes from the character already present at
-that index, @code{aset} gets an error.
+that index, @code{aset} signals an error.
 
   A more powerful function is @code{store-substring}:
 
@@ -325,8 +330,8 @@ may be either a character or a (smaller) string.
 
 Since it is impossible to change the length of an existing string, it is
 an error if @var{obj} doesn't fit within @var{string}'s actual length,
-or if it requires a different number of bytes from the characters
-currently present at that point in @var{string}.
+of if any new character requires a different number of bytes from the
+character currently present at that point in @var{string}.
 @end defun
 
 @need 2000
@@ -365,7 +370,7 @@ The function @code{string=} ignores the text properties of the two
 strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
 strings, it uses @code{string=}.
 
-If the arguments contain non-@sc{ASCII} characters, and one is unibyte
+If the strings contain non-@sc{ASCII} characters, and one is unibyte
 while the other is multibyte, then they cannot be equal.  @xref{Text
 Representations}.
 @end defun
@@ -385,11 +390,12 @@ function returns @code{t}.  If the lesser character is the one from
 @var{string2}, then @var{string1} is greater, and this function returns
 @code{nil}.  If the two strings match entirely, the value is @code{nil}.
 
-Pairs of characters are compared by their @sc{ASCII} codes.  Keep in
-mind that lower case letters have higher numeric values in the
-@sc{ASCII} character set than their upper case counterparts; numbers and
+Pairs of characters are compared according to their character codes.
+Keep in mind that lower case letters have higher numeric values in the
+@sc{ASCII} character set than their upper case counterparts; digits and
 many punctuation characters have a lower numeric value than upper case
-letters.  A unibyte non-@sc{ASCII} character is always less than any
+letters.  An @sc{ASCII} character is less than any non-@sc{ASCII}
+character; a unibyte non-@sc{ASCII} character is always less than any
 multibyte non-@sc{ASCII} character (@pxref{Text Representations}).
 
 @example
@@ -453,23 +459,9 @@ functions are used primarily for making help messages.
 
 @defun char-to-string character
 @cindex character to string
-  This function returns a new string with a length of one character.
-The value of @var{character}, modulo 256, is used to initialize the
-element of the string.
-
-This function is similar to @code{make-string} with an integer argument
-of 1.  (@xref{Creating Strings}.)  This conversion can also be done with
-@code{format} using the @samp{%c} format specification.
-(@xref{Formatting Strings}.)
-
-@example
-(char-to-string ?x)
-     @result{} "x"
-(char-to-string (+ 256 ?x))
-     @result{} "x"
-(make-string 1 ?x)
-     @result{} "x"
-@end example
+This function returns a new string containing one character,
+@var{character}.  This function is semi-obsolete because the function
+@code{string} is more general.  @xref{Creating Strings}.
 @end defun
 
 @defun string-to-char string
@@ -579,7 +571,7 @@ formatting feature described here; they differ from @code{format} only
 in how they use the result of formatting.
 
 @defun format string &rest objects
-  This function returns a new string that is made by copying
+This function returns a new string that is made by copying
 @var{string} and then replacing any format specification 
 in the copy with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
@@ -619,7 +611,7 @@ meaningless.
 @item %s
 Replace the specification with the printed representation of the object,
 made without quoting (that is, using @code{princ}, not
-@code{print}---@pxref{Output Functions}).  Thus, strings are represented
+@code{prin1}---@pxref{Output Functions}).  Thus, strings are represented
 by their contents alone, with no @samp{"} characters, and symbols appear
 without @samp{\} characters.
 
@@ -740,12 +732,13 @@ not truncated.  In the third case, the padding is on the right.
 @end group
 @end smallexample
 
-@node Character Case
+@node Case Conversion
 @comment node-name, next, previous, up 
-@section Character Case
+@section Case Conversion in Lisp
 @cindex upper case 
 @cindex lower case 
 @cindex character case 
+@cindex case conversion in Lisp
 
   The character case functions change the case of single characters or
 of the contents of strings.  The functions convert only alphabetic
@@ -827,18 +820,39 @@ has the same result as @code{upcase}.
 @end example
 @end defun
 
-@node Case Table
+@defun upcase-initials string
+This function capitalizes the initials of the words in @var{string}.
+without altering any letters other than the initials.  It returns a new
+string whose contents are a copy of @var{string-or-char}, in which each
+word has been converted to upper case.
+
+The definition of a word is any sequence of consecutive characters that
+are assigned to the word constituent syntax class in the current syntax
+table (@xref{Syntax Class Table}).
+
+@example
+@group
+(upcase-initials "The CAT in the hAt")
+     @result{} "The CAT In The HAt"
+@end group
+@end example
+@end defun
+
+@node Case Tables
 @section The Case Table
 
   You can customize case conversion by installing a special @dfn{case
 table}.  A case table specifies the mapping between upper case and lower
-case letters.  It affects both the string and character case conversion
-functions (see the previous section) and those that apply to text in the
-buffer (@pxref{Case Changes}).
+case letters.  It affects both the case conversion functions for Lisp
+objects (see the previous section) and those that apply to text in the
+buffer (@pxref{Case Changes}).  Each buffer has a case table; there is
+also a standard case table which is used to initialize the case table
+of new buffers.
 
-  A case table is a char-table whose subtype is @code{case-table}.  This
-char-table maps each character into the corresponding lower case
-character  It has three extra slots, which are related tables:
+  A case table is a char-table (@pxref{Char-Tables}) whose subtype is
+@code{case-table}.  This char-table maps each character into the
+corresponding lower case character.  It has three extra slots, which
+hold related tables:
 
 @table @var
 @item upcase
@@ -874,16 +888,12 @@ equivalent).  (For ordinary @sc{ASCII}, this would map @samp{a} into
 equivalent characters.)
 
   When you construct a case table, you can provide @code{nil} for
-@var{canonicalize}; then Emacs fills in this string from the lower case
+@var{canonicalize}; then Emacs fills in this slot from the lower case
 and upper case mappings.  You can also provide @code{nil} for
-@var{equivalences}; then Emacs fills in this string from
+@var{equivalences}; then Emacs fills in this slot from
 @var{canonicalize}.  In a case table that is actually in use, those
 components are non-@code{nil}.  Do not try to specify @var{equivalences}
 without also specifying @var{canonicalize}.
-
-  Each buffer has a case table.  Emacs also has a @dfn{standard case
-table} which is copied into each buffer when you create the buffer.
-Changing the standard case table doesn't affect any existing buffers.
 
   Here are the functions for working with case tables:
 
@@ -894,7 +904,7 @@ table.
 
 @defun set-standard-case-table table
 This function makes @var{table} the standard case table, so that it will
-apply to any buffers created subsequently.
+be used in any buffers created subsequently.
 @end defun
 
 @defun standard-case-table
@@ -912,7 +922,8 @@ This sets the current buffer's case table to @var{table}.
   The following three functions are convenient subroutines for packages
 that define non-@sc{ASCII} character sets.  They modify the specified
 case table @var{case-table}; they also modify the standard syntax table.
-@xref{Syntax Tables}.
+@xref{Syntax Tables}.  Normally you would use these functions to change
+the standard case table.
 
 @defun set-case-syntax-pair uc lc case-table
 This function specifies a pair of corresponding letters, one upper case

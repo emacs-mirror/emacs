@@ -44,9 +44,10 @@ buffer.  Relocation changes the integer equivalent of the marker.
 @cindex marker relocation
   Deleting text around a marker's position leaves the marker between the
 characters immediately before and after the deleted text.  Inserting
-text at the position of a marker normally leaves the marker in front of
-the new text---unless it is inserted with @code{insert-before-markers}
-(@pxref{Insertion}).
+text at the position of a marker normally leaves the marker either in
+front of or after the new text, depending on the marker's @dfn{insertion
+type} (@pxref{Marker Insertion Types})---unless the insertion is done
+with @code{insert-before-markers} (@pxref{Insertion}).
 
 @cindex marker garbage collection
   Insertion and deletion in a buffer must check all the markers and
@@ -306,7 +307,9 @@ if they both point nowhere.
   When you insert text directly at the place where a marker points,
 there are two possible ways to relocate that marker: it can point before
 the inserted text, or point after it.  You can specify which one a given
-marker should do by setting its @dfn{insertion type}.
+marker should do by setting its @dfn{insertion type}.  Note that use of
+@code{insert-before-markers} ignores markers' insertion types, always
+relocating a marker to point after the inserted text.
 
 @tindex set-marker-insertion-type
 @defun set-marker-insertion-type marker type
@@ -396,11 +399,12 @@ absence of a mark in that buffer.''
 
   Once the mark ``exists'' in a buffer, it normally never ceases to
 exist.  However, it may become @dfn{inactive}, if Transient Mark mode is
-enabled.  The variable @code{mark-active}, which is always local in all
-buffers, indicates whether the mark is active: non-@code{nil} means yes.
-A command can request deactivation of the mark upon return to the editor
-command loop by setting @code{deactivate-mark} to a non-@code{nil} value
-(but this causes deactivation only if Transient Mark mode is enabled).
+enabled.  The variable @code{mark-active}, which is always buffer-local
+in all buffers, indicates whether the mark is active: non-@code{nil}
+means yes.  A command can request deactivation of the mark upon return
+to the editor command loop by setting @code{deactivate-mark} to a
+non-@code{nil} value (but this causes deactivation only if Transient
+Mark mode is enabled).
 
   The main motivation for using Transient Mark mode is that this mode
 also enables highlighting of the region when the mark is active.
@@ -529,20 +533,30 @@ consequence of this is that commands that modify the buffer normally
 make the mark inactive.
 @end defopt
 
+@defopt mark-even-if-inactive
+If this is non-@code{nil}, Lisp programs and the Emacs user can use the
+mark even when it is inactive.  This option affects the behavior of
+Transient Mark mode.  When the option is non-@code{nil}, deactivation of
+the mark turns off region highlighting, but commands that use the mark
+behave as if the mark were still active.
+@end defopt
+
 @defvar deactivate-mark
 If an editor command sets this variable non-@code{nil}, then the editor
-command loop deactivates the mark after the command returns, but only if
-Transient Mark mode is enabled.
+command loop deactivates the mark after the command returns (if
+Transient Mark mode is enabled).  All the primitives that change the
+buffer set @code{deactivate-mark}, to deactivate the mark when the
+command is finished.
 @end defvar
 
 @defun deactivate-mark
-This function deactivates the mark, but only if Transient Mark mode
-is enabled.
+This function deactivates the mark, if Transient Mark mode is enabled.
+Otherwise it does nothing.
 @end defun
 
 @defvar mark-active
 The mark is active when this variable is non-@code{nil}.  This variable
-is always local in each buffer.
+is always buffer-local in each buffer.
 @end defvar
 
 @defvar activate-mark-hook

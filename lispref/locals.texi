@@ -8,143 +8,151 @@
 @c The title "Standard Buffer-Local Variables" is too long for
 @c smallbook. --rjc 30mar92
 
-  The table below lists the general-purpose Emacs variables that are
-automatically local (when set) in each buffer.  Many Lisp packages
-define such variables for their internal use; we don't list them here.
+  The table below lists the general-purpose Emacs variables that
+automatically become buffer-local in each buffer.  Most become
+buffer-local only when set; a few of them are always local in every
+buffer.  Many Lisp packages define such variables for their internal
+use, but we don't try to list them all here.
 
 @table @code
 @item abbrev-mode
-@pxref{Abbrevs}
+@xref{Abbrevs}.
 
 @item auto-fill-function
-@pxref{Auto Filling}
+@xref{Auto Filling}.
 
 @item buffer-auto-save-file-name
-@pxref{Auto-Saving}
+@xref{Auto-Saving}.
 
 @item buffer-backed-up
-@pxref{Backup Files}
+@xref{Backup Files}.
+
+@item buffer-display-count
+@xref{Displaying Buffers}.
 
 @item buffer-display-table
-@pxref{Display Tables}
+@xref{Display Tables}.
 
 @item buffer-file-format
-@pxref{Format Conversion}
+@xref{Format Conversion}.
 
 @item buffer-file-name
-@pxref{Buffer File Name}
+@xref{Buffer File Name}.
 
 @item buffer-file-number
-@pxref{Buffer File Name}
+@xref{Buffer File Name}.
 
 @item buffer-file-truename
-@pxref{Buffer File Name}
+@xref{Buffer File Name}.
 
 @item buffer-file-type
-@pxref{Files and MS-DOS}
+@xref{MS-DOS File Types}.
 
 @item buffer-invisibility-spec
-@pxref{Invisible Text}
+@xref{Invisible Text}.
 
 @item buffer-offer-save
-@pxref{Saving Buffers}
+@xref{Saving Buffers}.
 
 @item buffer-read-only
-@pxref{Read Only Buffers}
+@xref{Read Only Buffers}.
 
 @item buffer-saved-size
-@pxref{Point}
+@xref{Point}.
 
 @item buffer-undo-list
-@pxref{Undo}
+@xref{Undo}.
 
 @item cache-long-line-scans
-@pxref{Text Lines}
+@xref{Text Lines}.
 
 @item case-fold-search
-@pxref{Searching and Case}
+@xref{Searching and Case}.
 
 @item ctl-arrow
-@pxref{Usual Display}
+@xref{Usual Display}.
 
 @item comment-column
-@pxref{Comments,,, emacs, The GNU Emacs Manual}
+@xref{Comments,,, emacs, The GNU Emacs Manual}.
 
 @item default-directory
-@pxref{System Environment}
+@xref{System Environment}.
 
 @item defun-prompt-regexp
-@pxref{List Motion}
+@xref{List Motion}.
+
+@item enable-multibyte-characters
+@ref{Non-ASCII Characters}.
 
 @item fill-column
-@pxref{Auto Filling}
+@xref{Auto Filling}.
 
 @item goal-column
-@pxref{Moving Point,,, emacs, The GNU Emacs Manual}
+@xref{Moving Point,,, emacs, The GNU Emacs Manual}.
 
 @item left-margin
-@pxref{Indentation}
+@xref{Indentation}.
 
 @item local-abbrev-table
-@pxref{Abbrevs}
+@xref{Abbrevs}.
 
 @item local-write-file-hooks
-@pxref{Saving Buffers}
+@xref{Saving Buffers}.
 
 @item major-mode
-@pxref{Mode Help}
+@xref{Mode Help}.
 
 @item mark-active
-@pxref{The Mark}
+@xref{The Mark}.
 
 @item mark-ring
-@pxref{The Mark}
+@xref{The Mark}.
 
 @item minor-modes
-@pxref{Minor Modes}
+@xref{Minor Modes}.
 
 @item mode-line-buffer-identification
-@pxref{Mode Line Variables}
+@xref{Mode Line Variables}.
 
 @item mode-line-format
-@pxref{Mode Line Data}
+@xref{Mode Line Data}.
 
 @item mode-line-modified
-@pxref{Mode Line Variables}
+@xref{Mode Line Variables}.
 
 @item mode-line-process
-@pxref{Mode Line Variables}
+@xref{Mode Line Variables}.
 
 @item mode-name
-@pxref{Mode Line Variables}
+@xref{Mode Line Variables}.
 
 @item overwrite-mode
-@pxref{Insertion}
+@xref{Insertion}.
 
 @item paragraph-separate
-@pxref{Standard Regexps}
+@xref{Standard Regexps}.
 
 @item paragraph-start
-@pxref{Standard Regexps}
+@xref{Standard Regexps}.
 
 @item point-before-scroll
-Used for communication between mouse commands and scroll-bar commands.
+Ued for communication between mouse commands and scroll-bar commands..
 
 @item require-final-newline
-@pxref{Insertion}
+@xref{Insertion}.
 
 @item selective-display
-@pxref{Selective Display}
+@xref{Selective Display}.
 
 @item selective-display-ellipses
-@pxref{Selective Display}
+@xref{Selective Display}.
 
 @item tab-width
-@pxref{Usual Display}
+@xref{Usual Display}.
 
 @item truncate-lines
-@pxref{Truncation}
+@xref{Truncation}.
 
 @item vc-mode
-@pxref{Mode Line Variables}
+@xref{Mode Line Variables}.
 @end table

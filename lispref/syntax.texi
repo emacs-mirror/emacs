@@ -44,12 +44,16 @@ list motion functions (@pxref{List Motion}) as well as the functions in
 this chapter.
 @end ifinfo
 
-  A syntax table is a char-table (@pxref{Char-Tables}).  Each element is
-a list that encodes the syntax of the character in question.
+  A syntax table is a char-table (@pxref{Char-Tables}).  The element at
+index @var{c} describes the character with code @var{c}.  The element's
+value should be a list that encodes the syntax of the character in
+question.
 
   Syntax tables are used only for moving across text, not for the Emacs
 Lisp reader.  Emacs Lisp uses built-in syntactic rules when reading Lisp
-expressions, and these rules cannot be changed.
+expressions, and these rules cannot be changed.  (Some Lisp systems
+provide ways to redefine the read syntax, but we decided to leave this
+feature out of Emacs Lisp for simplicity.)
 
   Each buffer has its own major mode, and each major mode has its own
 idea of the syntactic class of various characters.  For example, in Lisp
@@ -80,12 +84,11 @@ This function returns @code{t} if @var{object} is a syntax table.
   This section describes the syntax classes and flags that denote the
 syntax of a character, and how they are represented as a @dfn{syntax
 descriptor}, which is a Lisp string that you pass to
-@code{modify-syntax-entry} to specify the desired syntax.
+@code{modify-syntax-entry} to specify the syntax you want.
 
-  Emacs defines a number of @dfn{syntax classes}.  Each syntax table
-puts each character into one class.  There is no necessary relationship
-between the class of a character in one syntax table and its class in
-any other table.
+  The syntax table specifies a syntax class for each character.  There
+is no necessary relationship between the class of a character in one
+syntax table and its class in any other table.
 
   Each class is designated by a mnemonic character, which serves as the
 name of the class when you need to specify a class.  Usually the
@@ -124,7 +127,8 @@ their meanings, and examples of their use.
 separate symbols and words from each other.  Typically, whitespace
 characters have no other syntactic significance, and multiple whitespace
 characters are syntactically equivalent to a single one.  Space, tab,
-newline and formfeed are almost always classified as whitespace.
+newline and formfeed are classified as whitespace in almost all major
+modes.
 @end deffn
 
 @deffn {Syntax class} @w{word constituent}
@@ -384,9 +388,9 @@ prefix (@samp{'}).  @xref{Motion and Syntax}.
 altering syntax tables.
 
 @defun make-syntax-table
-This function creates a new syntax table.  Character codes 32 through
-127 are set up by copying the syntax from the standard syntax table.
-All other codes are set up to inherit from the standard syntax table.
+This function creates a new syntax table.  It inherits the syntax for
+letters and control characters from the standard syntax table.  For
+other characters, the syntax is copied from the standard syntax table.
 
 Most major mode syntax tables are created in this way.
 @end defun
@@ -465,20 +469,23 @@ character, @samp{)}.
 
 @example
 @group
-(char-to-string (char-syntax ?\ ))
+(string (char-syntax ?\ ))
      @result{} " "
 @end group
 
 @group
-(char-to-string (char-syntax ?/))
+(string (char-syntax ?/))
      @result{} "."
 @end group
 
 @group
-(char-to-string (char-syntax ?\())
+(string (char-syntax ?\())
      @result{} "("
 @end group
 @end example
+
+We use @code{string} to make it easier to see the character returned by
+@code{char-syntax}.
 @end defun
 
 @defun set-syntax-table table
@@ -500,7 +507,7 @@ language, you can use @code{syntax-table} text properties to override
 the syntax table for specific character occurrences in the buffer.
 @xref{Text Properties}.
 
-The valid values of @code{syntax-table} text property are
+The valid values of @code{syntax-table} text property are:
 
 @table @asis
 @item @var{syntax-table}
@@ -527,9 +534,8 @@ table.
 @node Motion and Syntax
 @section Motion and Syntax
 
-  This section describes functions for moving across characters in
-certain syntax classes.  None of these functions exists in Emacs
-version 18 or earlier.
+  This section describes functions for moving across characters that
+have certain syntax classes.
 
 @defun skip-syntax-forward syntaxes &optional limit
 This function moves point forward across characters having syntax classes
@@ -596,7 +602,7 @@ string, or the of a comment or a string, whichever comes first.
 
 @cindex parse state
 The fifth argument @var{state} is a nine-element list of the same form
-as the value of this function, described below.  (It is ok to omit the
+as the value of this function, described below.  (It is OK to omit the
 last element of the nine.)  The return value of one call may be used to
 initialize the state of the parse on another call to
 @code{parse-partial-sexp}.
@@ -758,42 +764,46 @@ a character to match was specified.
   This table gives the value of @var{syntax-code} which corresponds
 to each syntactic type.
 
-@table @asis
-@item @i{Integer}
-@i{Class}
-@item 0
-whitespace
-@item 1
-punctuation
-@item 2
-word
-@item 3
-symbol
-@item 4
-open parenthesis
-@item 5
-close parenthesis
-@item 6
-expression prefix
-@item 7
-string quote
-@item 8
-paired delimiter
-@item 9
-escape
-@item 10
-character quote
-@item 11
-comment-start
-@item 12
-comment-end
-@item 13
-inherit
-@item 14
-comment-fence
-@item 15
-string-fence
-@end table
+@multitable @columnfractions .05 .3 .3 .3
+@item@tab
+@i{Integer} @i{Class}
+@tab
+@i{Integer} @i{Class}
+@tab
+@i{Integer} @i{Class}
+@item@tab
+0 @ @  whitespace
+@tab
+5 @ @  close parenthesis
+@tab
+10 @ @  character quote
+@item@tab
+1 @ @  punctuation
+@tab
+6 @ @  expression prefix
+@tab
+11 @ @  comment-start
+@item@tab
+2 @ @  word
+@tab
+7 @ @  string quote
+@tab
+12 @ @  comment-end
+@item@tab
+3 @ @  symbol
+@tab
+8 @ @  paired delimiter
+@tab
+13 @ @  inherit
+@item@tab
+4 @ @  open parenthesis
+@tab
+9 @ @  escape
+@tab
+14 @ @  comment-fence
+@item@tab
+15 @  string-fence
+@end multitable
 
   For example, the usual syntax value for @samp{(} is @code{(4 . 41)}.
 (41 is the character code for @samp{)}.)
@@ -802,39 +812,46 @@ string-fence
 least significant bit.  This table gives the power of two which
 corresponds to each syntax flag.
 
-@table @samp
-@item @i{Flag}
-@i{Bit value}
-@item 1
-@code{(lsh 1 16)}
-@item 2
-@code{(lsh 1 17)}
-@item 3
-@code{(lsh 1 18)}
-@item 4
-@code{(lsh 1 19)}
-@item p
-@code{(lsh 1 20)}
-@item b
-@code{(lsh 1 21)}
-@end table
+@multitable @columnfractions .05 .3 .3 .3
+@item@tab
+@i{Prefix} @i{Flag}
+@tab
+@i{Prefix} @i{Flag}
+@tab
+@i{Prefix} @i{Flag}
+@item@tab
+@samp{1} @ @  @code{(lsh 1 16)}
+@tab
+@samp{3} @ @  @code{(lsh 1 18)}
+@tab
+@samp{p} @ @  @code{(lsh 1 20)}
+@item@tab
+@samp{2} @ @  @code{(lsh 1 17)}
+@tab
+@samp{4} @ @  @code{(lsh 1 19)}
+@tab
+@samp{b} @ @  @code{(lsh 1 21)}
+@end multitable
 
 @node Categories
 @section Categories
 @cindex categories of characters
 
   @dfn{Categories} provide an alternate way of classifying characters
-syntactically.  You can define a large number of categories, and then
-independently assign each character to one or more of them.  Unlike
+syntactically.  You can define several categories as needed, then
+independently assign each character to one or more categories.  Unlike
 syntax classes, categories are not mutually exclusive; it is normal for
 one character to belong to several categories.
 
   Each buffer has a @dfn{category table} which records which categories
 are defined and also which characters belong to each category.  Each
-category table defines its own categories.  Each category has a name,
-which is an @sc{ASCII} printing character in the range @w{@samp{ }} to
-@samp{~}.  You specify the name of a category when you define it with
-@code{define-category}.
+category table defines its own categories, but normally these are
+initialized by copying from the standard categories table, so that the
+standard categories are available in all modes.
+
+  Each category has a name, which is an @sc{ASCII} printing character in
+the range @w{@samp{ }} to @samp{~}.  You specify the name of a category
+when you define it with @code{define-category}.
 
   The category table is actually a char-table (@pxref{Char-Tables}).
 The element of the category table at index @var{c} is a @dfn{category
@@ -865,8 +882,8 @@ in category table @var{table}.
 
 @defun get-unused-category table
 This function returns a category name (a character) which is not
-currently defined in @var{table}.  If none is still available, it
-returns @code{nil},
+currently defined in @var{table}.  If all possible categories are in use
+in @var{table}, it returns @code{nil},
 @end defun
 
 @defun category-table

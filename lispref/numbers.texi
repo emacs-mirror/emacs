@@ -12,9 +12,9 @@
 @dfn{floating point numbers}.  Integers are whole numbers such as
 @minus{}3, 0, 7, 13, and 511.  Their values are exact.  Floating point
 numbers are numbers with fractional parts, such as @minus{}4.5, 0.0, or
-2.71828.  They can also be expressed in exponential notation:
-1.5e2 equals 150; in this example, @samp{e2} stands for ten to the
-second power, and is multiplied by 1.5.  Floating point values are not
+2.71828.  They can also be expressed in exponential notation: 1.5e2
+equals 150; in this example, @samp{e2} stands for ten to the second
+power, and that is multiplied by 1.5.  Floating point values are not
 exact; they have a fixed, limited amount of precision.
 
 @menu
@@ -149,9 +149,9 @@ values.  It also provides for a class of values called NaN or
 there is no correct answer.  For example, @code{(sqrt -1.0)} returns a
 NaN.  For practical purposes, there's no significant difference between
 different NaN values in Emacs Lisp, and there's no rule for precisely
-which NaN value should be used in a particular case, so this manual
+which NaN value should be used in a particular case, so Emacs Lisp
 doesn't try to distinguish them.  Here are the read syntaxes for
-these numbers:
+these special floating point values:
 
 @table @asis
 @item positive infinity
@@ -161,6 +161,10 @@ these numbers:
 @item Not-a-number
 @samp{0.0e+NaN}.
 @end table
+
+  In addition, the value @code{-0.0} is distinguishable from ordinary
+zero in IEEE floating point (although @code{equal} and @code{=} consider
+them equal values).
 
   You can use @code{logb} to extract the binary exponent of a floating
 point number (or estimate the logarithm of an integer):
@@ -323,6 +327,10 @@ This function returns the smallest of its arguments.
 @end example
 @end defun
 
+@defun abs number
+This returns the absolute value of @var{number}.
+@end defun
+
 @node Numeric Conversions
 @section Numeric Conversions
 @cindex rounding in conversions
@@ -378,7 +386,7 @@ commonly used.
   All of these functions except @code{%} return a floating point value
 if any argument is floating.
 
-  It is important to note that in GNU Emacs Lisp, arithmetic functions
+  It is important to note that in Emacs Lisp, arithmetic functions
 do not check for overflow.  Thus @code{(1+ 134217727)} may evaluate to
 @minus{}134217728, depending on your hardware.
 
@@ -412,10 +420,6 @@ like this:
 
 @defun 1- number-or-marker
 This function returns @var{number-or-marker} minus 1.
-@end defun
-
-@defun abs number
-This returns the absolute value of @var{number}.
 @end defun
 
 @defun + &rest numbers-or-markers
@@ -478,8 +482,10 @@ permits machine-dependent rounding.  As a practical matter, all known
 machines round in the standard fashion.
 
 @cindex @code{arith-error} in division
-If you divide by 0, an @code{arith-error} error is signaled.
-(@xref{Errors}.)
+If you divide an integer by 0, an @code{arith-error} error is signaled.
+(@xref{Errors}.)  Floating point division by zero returns either
+infinity or a NaN if your machine supports IEEE floating point;
+otherwise, it signals an @code{arith-error} error.
 
 @example
 @group
@@ -488,6 +494,12 @@ If you divide by 0, an @code{arith-error} error is signaled.
 @end group
 (/ 5 2)
      @result{} 2
+(/ 5.0 2)
+     @result{} 2.5
+(/ 5 2.0)
+     @result{} 2.5
+(/ 5.0 2.0)
+     @result{} 2.5
 (/ 25 3 2)
      @result{} 4
 (/ -17 6)
@@ -925,9 +937,8 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @cindex transcendental functions
 @cindex mathematical functions
 
-These mathematical functions are available if floating point is
-supported.  They allow integers as well as floating point numbers
-as arguments.
+  These mathematical functions allow integers as well as floating point
+numbers as arguments.
 
 @defun sin arg
 @defunx cos arg

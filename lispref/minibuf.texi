@@ -13,8 +13,8 @@
 arguments more complicated than the single numeric prefix argument.
 These arguments include file names, buffer names, and command names (as
 in @kbd{M-x}).  The minibuffer is displayed on the bottom line of the
-screen, in the same place as the echo area, but only while it is in
-use for reading an argument.
+frame, in the same place as the echo area, but only while it is in use
+for reading an argument.
 
 @menu
 * Intro to Minibuffers::      Basic information about minibuffers.
@@ -100,26 +100,25 @@ string; however, if @var{read} is non-@code{nil}, then it uses
 @code{read} to convert the text into a Lisp object (@pxref{Input
 Functions}).
 
-The first thing this function does is to activate a minibuffer and 
+The first thing this function does is to activate a minibuffer and
 display it with @var{prompt-string} as the prompt.  This value must be a
-string.
+string.  Then the user can edit text in the minibuffer.
 
-Then, if @var{initial-contents} is a string, @code{read-from-minibuffer}
-inserts it into the minibuffer, leaving point at the end.  The
-minibuffer appears with this text as its contents.
+When the user types a command to exit the minibuffer,
+@code{read-from-minibuffer} constructs the return value from the text in
+the minibuffer.  Normally it returns a string containing that text.
+However, if @var{read} is non-@code{nil}, @code{read-from-minibuffer}
+reads the text and returns the resulting Lisp object, unevaluated.
+(@xref{Input Functions}, for information about reading.)
 
-@strong{Usage note:} The @var{initial-contents} argument and the
-@var{default} argument are two alternative features for the same job.
-It usually does not make sense to use both at once.  In most cases, you
-should use @var{default}, since this permits the user to insert the
-default value but does not burden the user with deleting it from the
-minibuffer.
-
-@c Emacs 19 feature
-The value of @var{initial-contents} may also be a cons cell of the form
-@code{(@var{string} . @var{position})}.  This means to insert
-@var{string} in the minibuffer but put point @var{position} characters
-from the beginning, rather than at the end.
+The argument @var{default} specifies a default value to make available
+through the history commands.  It should be a string, or @code{nil}.  If
+@var{read} is non-@code{nil}, then @var{default} is also used as the
+input to @code{read}, if the user enters empty input.  However, in the
+usual case (where @var{read} is @code{nil}, @code{read-from-minibuffer}
+does not return @var{default} when the user enters empty input; it
+returns an empty string, @code{""}.  In this respect, it is different
+from all the other minibuffer input functions in this chapter.
 
 If @var{keymap} is non-@code{nil}, that keymap is the local keymap to
 use in the minibuffer.  If @var{keymap} is omitted or @code{nil}, the
@@ -131,30 +130,33 @@ The argument @var{hist} specifies which history list variable to use
 for saving the input and for history commands used in the minibuffer.
 It defaults to @code{minibuffer-history}.  @xref{Minibuffer History}.
 
-When the user types a command to exit the minibuffer,
-@code{read-from-minibuffer} uses the text in the minibuffer to produce
-its return value.  Normally it simply makes a string containing that
-text.  However, if @var{read} is non-@code{nil},
-@code{read-from-minibuffer} reads the text and returns the resulting
-Lisp object, unevaluated.  (@xref{Input Functions}, for information
-about reading.)
-
 If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string which is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.
 
-The argument @var{default} specifies a default value to make available
-through the history list.  It should be a string, or @code{nil}.  If
-@var{read} is non-@code{nil}, then @var{default} is passed through
-@code{read}, just as ordinary user input would be.  Unlike many other
-minibuffer functions, this function does @emph{not} return @var{default}
-if the user enters empty input.  It returns @code{""} in that case.
-
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
 minibuffer inherits the current input method and the setting of
 @code{enable-multibyte-characters} from whichever buffer was current
 before entering the minibuffer.
+
+If @var{initial-contents} is a string, @code{read-from-minibuffer}
+inserts it into the minibuffer, leaving point at the end, before the
+user starts to edit the text.  The minibuffer appears with this text as
+its initial contents.
+
+Alternatively, @var{initial-contents} can be a cons cell of the form
+@code{(@var{string} . @var{position})}.  This means to insert
+@var{string} in the minibuffer but put point @var{position} characters
+from the beginning, rather than at the end.
+
+@strong{Usage note:} The @var{initial-contents} argument and the
+@var{default} argument are two alternative features for more or less the
+same job.  It does not make sense to use both features in a single call
+to @code{read-from-minibuffer}.  In general, we recommend using
+@var{default}, since this permits the user to insert the default value
+when it is wanted, but does not burden the user with deleting it from
+the minibuffer on other occasions.
 @end defun
 
 @defun read-string prompt &optional initial history default inherit-input-method
@@ -177,8 +179,12 @@ This function is a simplified interface to the
 @group
 (read-string @var{prompt} @var{initial} @var{history} @var{default} @var{inherit})
 @equiv{}
-(read-from-minibuffer @var{prompt} @var{initial} nil nil
-                      @var{history} @var{default} @var{inherit})
+(let ((value
+       (read-from-minibuffer @var{prompt} @var{initial} nil nil
+                             @var{history} @var{default} @var{inherit})))
+  (if (equal value "")
+      @var{default}
+    value))
 @end group
 @end smallexample
 @end defun
@@ -195,7 +201,7 @@ This is the default local keymap for reading from the minibuffer.  By
 default, it makes the following bindings:
 
 @table @asis
-@item @key{LFD}
+@item @kbd{C-j}
 @code{exit-minibuffer}
 
 @item @key{RET}
@@ -368,16 +374,16 @@ expression, thus moving point forward one word.
 @cindex minibuffer history
 @cindex history list
 
-A @dfn{minibuffer history list} records previous minibuffer inputs so
+  A @dfn{minibuffer history list} records previous minibuffer inputs so
 the user can reuse them conveniently.  A history list is actually a
 symbol, not a list; it is a variable whose value is a list of strings
 (previous inputs), most recent first.
 
-There are many separate history lists, used for different kinds of
+  There are many separate history lists, used for different kinds of
 inputs.  It's the Lisp programmer's job to specify the right history
 list for each use of the minibuffer.
 
-The basic minibuffer input functions @code{read-from-minibuffer} and
+  The basic minibuffer input functions @code{read-from-minibuffer} and
 @code{completing-read} both accept an optional argument named @var{hist}
 which is how you specify the history list.  Here are the possible
 values:
@@ -395,17 +401,19 @@ If you specify @var{startpos}, then you should also specify that element
 of the history as the initial minibuffer contents, for consistency.
 @end table
 
-If you don't specify @var{hist}, then the default history list
+  If you don't specify @var{hist}, then the default history list
 @code{minibuffer-history} is used.  For other standard history lists,
 see below.  You can also create your own history list variable; just
 initialize it to @code{nil} before the first use.
 
-Both @code{read-from-minibuffer} and @code{completing-read} add new
+  Both @code{read-from-minibuffer} and @code{completing-read} add new
 elements to the history list automatically, and provide commands to
 allow the user to reuse items on the list.  The only thing your program
 needs to do to use a history list is to initialize it and to pass its
 name to the input functions when you wish.  But it is safe to modify the
 list by hand when the minibuffer input functions are not using it.
+
+  Here are some of the standard minibuffer history list variables:
 
 @defvar minibuffer-history
 The default history list for minibuffer history input.
@@ -580,7 +588,7 @@ too short).  Both of those begin with the string @samp{foobar}.
 
 @defun all-completions string collection &optional predicate nospace
 This function returns a list of all possible completions of
-@var{string}.  The parameters to this function are the same as to
+@var{string}.  The arguments to this function are the same as those of
 @code{try-completion}.
 
 If @var{collection} is a function, it is called with three arguments:
@@ -624,10 +632,7 @@ minibuffer with completion.
 @defun completing-read prompt collection &optional predicate require-match initial hist default inherit-input-method
 This function reads a string in the minibuffer, assisting the user by
 providing completion.  It activates the minibuffer with prompt
-@var{prompt}, which must be a string.  If @var{initial} is
-non-@code{nil}, @code{completing-read} inserts it into the minibuffer as
-part of the input.  Then it allows the user to edit the input, providing
-several commands to attempt completion.
+@var{prompt}, which must be a string.
 
 The actual completion is done by passing @var{collection} and
 @var{predicate} to the function @code{try-completion}.  This happens in
@@ -642,7 +647,8 @@ input already in the buffer matches an element of @var{collection}.
 
 However, empty input is always permitted, regardless of the value of
 @var{require-match}; in that case, @code{completing-read} returns
-@var{default}.
+@var{default}.  The value of @var{default} (if non-@code{nil}) is also
+available to the user through the history commands.
 
 The user can exit with null input by typing @key{RET} with an empty
 minibuffer.  Then @code{completing-read} returns @code{""}.  This is how
@@ -661,8 +667,10 @@ The argument @var{hist} specifies which history list variable to use for
 saving the input and for minibuffer history commands.  It defaults to
 @code{minibuffer-history}.  @xref{Minibuffer History}.
 
-The optional argument @var{default} specifies a default value to return
-if the user enters null input; it should be a string.
+If @var{initial} is non-@code{nil}, @code{completing-read} inserts it
+into the minibuffer as part of the input.  Then it allows the user to
+edit the input, providing several commands to attempt completion.
+In most cases, we recommend using @var{default}, and not @var{initial}.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
 minibuffer inherits the current input method and the setting of
@@ -750,7 +758,7 @@ bindings:
 @item @key{TAB}
 @code{minibuffer-complete}
 
-@item @key{LFD}
+@item @kbd{C-j}
 @code{minibuffer-complete-and-exit}
 
 @item @key{RET}
@@ -903,10 +911,10 @@ which @code{commandp} returns @code{t}, and a command name is a symbol
 for which @code{commandp} returns @code{t}.  @xref{Interactive Call}.
 
 The argument @var{default} specifies what to return if the user enters
-null input.  It can be a symbol or a string, but the value returned by
-@code{read-command} is always a symbol.  If @var{default} is @code{nil},
-that means no default has been specified; then if the user enters null
-input, the return value is @code{nil}.
+null input.  It can be a symbol or a string; if it is a string,
+@code{read-command} interns it before returning it.  If @var{default} is
+@code{nil}, that means no default has been specified; then if the user
+enters null input, the return value is @code{nil}.
 
 @example
 (read-command "Command name? ")
@@ -948,10 +956,10 @@ This function reads the name of a user variable and returns it as a
 symbol.
 
 The argument @var{default} specifies what to return if the user enters
-null input.  It can be a symbol or a string, but the value returned by
-@code{read-variable} is always a symbol.  If @var{default} is
-@code{nil}, that means no default has been specified; then if the user
-enters null input, the return value is @code{nil}.
+null input.  It can be a symbol or a string; if it is a string,
+@code{read-variable} interns it before returning it.  If @var{default}
+is @code{nil}, that means no default has been specified; then if the
+user enters null input, the return value is @code{nil}.
 
 @example
 @group
@@ -988,21 +996,8 @@ predicate @code{user-variable-p} instead of @code{commandp}:
 @end example
 @end defun
 
-@tindex read-coding-system
-@defun read-coding-system prompt default
-This function reads a coding system using the minibuffer, prompting with
-string @var{prompt}, and returns the coding system name as a symbol.  If
-the user tries to enter null input, it asks the user to try again.
-@xref{Coding Systems}.
-@end defun
-
-@tindex read-non-nil-coding-system
-@defun read-non-nil-coding-system prompt
-This function reads a coding system using the minibuffer, prompting with
-string @var{prompt},and returns the coding system name as a symbol.  If
-the user enters null input, it returns @var{default-coding-system}.
-which should be a symbol or a string.  @xref{Coding Systems}.
-@end defun
+  See also the functions @code{read-coding-system} and
+@code{read-non-nil-coding-system}, in @ref{Lisp and Coding Systems}.
 
 @node Reading File Names
 @subsection Reading File Names
@@ -1037,7 +1032,8 @@ If you specify @var{initial}, that is an initial file name to insert in
 the buffer (after with @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} is @code{nil}---don't insert any file name.  To see what
-@var{initial} does, try the command @kbd{C-x C-v}.
+@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Note:} we
+recommend using @var{default} rather than @var{initial} in most cases.
 
 Here is an example: 
 
@@ -1153,7 +1149,7 @@ string is a unique and exact match already, or @code{nil} if the string
 matches no possibility.
 
 If the string is an exact match for one possibility, but also matches
-other longer possibilities, the function shuold return the string, not
+other longer possibilities, the function should return the string, not
 @code{t}.
 
 @item
@@ -1533,15 +1529,14 @@ returns zero.
 
 @defopt enable-recursive-minibuffers
 If this variable is non-@code{nil}, you can invoke commands (such as
-@code{find-file}) that use minibuffers even while in the minibuffer
-window.  Such invocation produces a recursive editing level for a new
+@code{find-file}) that use minibuffers even while the minibuffer window
+is active.  Such invocation produces a recursive editing level for a new
 minibuffer.  The outer-level minibuffer is invisible while you are
 editing the inner one.
 
-This variable only affects invoking the minibuffer while the
-minibuffer window is selected.   If you switch windows while in the 
-minibuffer, you can always invoke minibuffer commands while some other
-window is selected.
+If this variable is @code{nil}, you cannot invoke minibuffer
+commands when the minibuffer window is active, not even if you switch to
+another window to do it.
 @end defopt
 
 @c Emacs 19 feature

@@ -92,8 +92,9 @@ like this:
 
 @example
 @group
-    ___ ___      ___ ___
-   |___|___|--> |___|___|--> nil
+    --- ---      --- ---
+   |   |   |--> |   |   |--> nil
+    --- ---      --- ---
      |            |
      |            |
       --> tulip    --> lily
@@ -106,14 +107,16 @@ two-element list:
 
 @example
 @group
-    ___ ___      ___ ___      ___ ___
-   |___|___|--> |___|___|--> |___|___|--> nil
+    --- ---      --- ---      --- ---
+   |   |   |--> |   |   |--> |   |   |--> nil
+    --- ---      --- ---      --- ---
      |            |            |
      |            |            |
      |             --> oak      --> maple
      |
-     |     ___ ___      ___ ___
-      --> |___|___|--> |___|___|--> nil
+     |     --- ---      --- ---
+      --> |   |   |--> |   |   |--> nil
+           --- ---      --- ---
             |            |
             |            |
              --> pine     --> needles
@@ -323,6 +326,10 @@ If @var{n} is negative, @code{nth} returns the first element of
 (nth n x) @equiv{} (car (nthcdr n x))
 @end group
 @end example
+
+The function @code{elt} is similar, but applies to any kind of sequence.
+For historical reasons, it takes its arguments in the opposite order.
+@xref{Sequence Functions}.
 @end defun
 
 @defun nthcdr n list
@@ -351,7 +358,7 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
 @end defun
 
 @tindex safe-length
-@defun safe-length sequence
+@defun safe-length list
 This function returns the length of @var{list}, with no risk
 of either an error or an infinite loop.
 
@@ -360,26 +367,30 @@ If @var{list} is not really a list, @code{safe-length} returns 0.  If
 number of distinct elements.
 @end defun
 
+  The most common way to compute the length of a list, when you are not
+worried that it may be circular, is with @code{length}.  @xref{Sequence
+Functions}.
+
 @tindex caar
-@defun caar list
-This is the same as @code{(car (car @var{list}))}.
+@defun caar cons-cell
+This is the same as @code{(car (car @var{cons-cell}))}.
 @end defun
 
 @tindex cadr
-@defun cadr list
-This is the same as @code{(car (cdr @var{list}))}
-or @code{(nth 1 @var{list})}.
+@defun cadr cons-cell
+This is the same as @code{(car (cdr @var{cons-cell}))}
+or @code{(nth 1 @var{cons-cell})}.
 @end defun
 
 @tindex cdar
-@defun cdar list
-This is the same as @code{(cdr (car @var{list}))}.
+@defun cdar cons-cell
+This is the same as @code{(cdr (car @var{cons-cell}))}.
 @end defun
 
 @tindex cddr
-@defun cddr list
-This is the same as @code{(cdr (cdr @var{list}))}
-or @code{(nthcdr 2 @var{list})}.
+@defun cddr cons-cell
+This is the same as @code{(cdr (cdr @var{cons-cell}))}
+or @code{(nthcdr 2 @var{cons-cell})}.
 @end defun
 
 @node Building Lists
@@ -470,9 +481,11 @@ elements have the identical value @var{object}.  Compare
 @defun append &rest sequences
 @cindex copying lists
 This function returns a list containing all the elements of
-@var{sequences}.  The @var{sequences} may be lists, vectors, or strings,
-but the last one should usually be a list.  All arguments except the
-last one are copied, so none of the arguments is altered.
+@var{sequences}.  The @var{sequences} may be lists, vectors,
+bool-vectors, or strings, but the last one should usually be a list.
+All arguments except the last one are copied, so none of the arguments
+is altered.  (See @code{nconc} in @ref{Rearrangement}, for a way to join
+lists with no copying.)
 
 More generally, the final argument to @code{append} may be any Lisp
 object.  The final argument is not copied or converted; it becomes the
@@ -481,9 +494,6 @@ is itself a list, then its elements become in effect elements of the
 result list.  If the final element is not a list, the result is a
 ``dotted list'' since its final @sc{cdr} is not @code{nil} as required
 in a true list.
-
-See @code{nconc} in @ref{Rearrangement}, for a way to join lists with no
-copying.
 
 Here is an example of using @code{append}:
 
@@ -517,8 +527,9 @@ original list:
 @group
 more-trees                trees
 |                           |
-|     ___ ___      ___ ___   -> ___ ___      ___ ___
- --> |___|___|--> |___|___|--> |___|___|--> |___|___|--> nil
+|     --- ---      --- ---   -> --- ---      --- ---
+ --> |   |   |--> |   |   |--> |   |   |--> |   |   |--> nil
+      --- ---      --- ---      --- ---      --- ---
        |            |            |            |
        |            |            |            |
         --> maple    -->birch     --> pine     --> oak
@@ -535,7 +546,7 @@ trees
      @result{} (pine oak)
 @end group
 @group
-(setq wood (append trees ()))
+(setq wood (append trees nil))
      @result{} (pine oak)
 @end group
 @group
@@ -551,6 +562,15 @@ wood
 @noindent
 This once was the usual way to copy a list, before the function
 @code{copy-sequence} was invented.  @xref{Sequences Arrays Vectors}.
+
+Here we show the use of vectors and strings as arguments to @code{append}:
+
+@example
+@group
+(append [a b] "cd" nil)
+     @result{} (a b 99 100)
+@end group
+@end example
 
 With the help of @code{apply}, we can append all the lists in a list of
 lists:
@@ -707,14 +727,16 @@ changes them both:
 
 @example
 @group
-        ___ ___        ___ ___      ___ ___
-x1---> |___|___|----> |___|___|--> |___|___|--> nil
+        --- ---        --- ---      --- ---
+x1---> |   |   |----> |   |   |--> |   |   |--> nil
+        --- ---        --- ---      --- ---
          |        -->   |            |
          |       |      |            |
           --> a  |       --> b        --> c
                  |
-       ___ ___   |
-x2--> |___|___|--
+       --- ---   |
+x2--> |   |   |--
+       --- ---
         |
         |
          --> z
@@ -903,6 +925,8 @@ x
      @result{} (1 2 3 . z)
 @end group
 @end example
+
+However, the other arguments (all but the last) must be lists.
 
 A common pitfall is to use a quoted constant list as a non-last
 argument to @code{nconc}.  If you do this, your program will change
@@ -1157,7 +1181,8 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 @end example
 
 The following two functions are like @code{memq} and @code{delq} but use
-@code{equal} rather than @code{eq} to compare elements.
+@code{equal} rather than @code{eq} to compare elements.  @xref{Equality
+Predicates}.
 
 @defun member object list
 The function @code{member} tests to see whether @var{object} is a member

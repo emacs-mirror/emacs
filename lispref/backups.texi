@@ -294,8 +294,7 @@ The standard definition of this function is as follows:
 @smallexample
 @group
 (defun make-backup-file-name (file)
-  "Create the non-numeric backup file name for FILE.
-@dots{}"
+  "Create the non-numeric backup file name for FILE@enddots{}"
   (concat file "~"))
 @end group
 @end smallexample
@@ -442,8 +441,7 @@ The standard definition of this function is as follows:
 @group
 (defun make-auto-save-file-name ()
   "Return file name to use for auto-saves \
-of current buffer.
-@dots{}"
+of current buffer@enddots{}"
   (if buffer-file-name
 @end group
 @group
@@ -550,7 +548,7 @@ buffer as of the last time it was read in, saved, or auto-saved.  This is
 used to detect a substantial decrease in size, and turn off auto-saving
 in response.
 
-If it is -1, that means auto-saving is temporarily shut off in this
+If it is @minus{}1, that means auto-saving is temporarily shut off in this
 buffer due to a substantial deletion.  Explicitly saving the buffer
 stores a positive value in this variable, thus reenabling auto-saving.
 Turning auto-save mode off or on also alters this variable.

@@ -54,7 +54,7 @@ of abbrevs when their abbreviations are inserted into a buffer.
 If the value is @code{nil}, abbrevs may be defined, but they are not
 expanded automatically.
 
-This variable automatically becomes local when set in any fashion.
+This variable automatically becomes buffer-local when set in any fashion.
 @end defvar
 
 @defvar default-abbrev-mode
@@ -335,10 +335,6 @@ it is the local abbrev table in all buffers in Fundamental mode.
 
 @defvar text-mode-abbrev-table
 This is the local abbrev table used in Text mode.
-@end defvar
-
-@defvar c-mode-abbrev-table
-This is the local abbrev table used in C mode.
 @end defvar
 
 @defvar lisp-mode-abbrev-table

@@ -112,8 +112,8 @@ byte compiler.  @xref{Byte-Code Type}.
 
 @tindex functionp
 @defun functionp object
-This function returns @code{t} if @var{object} is any kind of function;
-that is, anything that could be called as a function.
+This function returns @code{t} if @var{object} is any kind of function,
+or a special form or macro.
 @end defun
 
 @defun subrp object
@@ -386,7 +386,7 @@ facilities.  @xref{Documentation}, for how the @var{documentation-string} is
 accessed.
 
   It is a good idea to provide documentation strings for all the
-functions in your program, even those that are only called from within
+functions in your program, even those that are called only from within
 your program.  Documentation strings are like comments, except that they
 are easier to access.
 
@@ -419,7 +419,7 @@ as the return value and as the documentation.
   In most computer languages, every function has a name; the idea of a
 function without a name is nonsensical.  In Lisp, a function in the
 strictest sense has no name.  It is simply a list whose first element is
-@code{lambda}, or a primitive subr-object.
+@code{lambda}, a byte-code function object, or a primitive subr-object.
 
   However, a symbol can serve as the name of a function.  This happens
 when you put the function in the symbol's @dfn{function cell}
@@ -580,7 +580,8 @@ name it calls is written in your program.  This means that you choose
 which function to call, and how many arguments to give it, when you
 write the program.  Usually that's just what you want.  Occasionally you
 need to compute at run time which function to call.  To do that, use the
-functions @code{funcall} and @code{apply}.
+function @code{funcall}.  When you also need to determine at run time
+how may arguments to pass, use @code{apply}.
 
 @defun funcall function &rest arguments
 @code{funcall} calls @var{function} with @var{arguments}, and returns
@@ -690,15 +691,19 @@ This function ignores any arguments and returns @code{nil}.
 list or other collection.  Emacs Lisp has several such functions;
 @code{mapcar} and @code{mapconcat}, which scan a list, are described
 here.  @xref{Creating Symbols}, for the function @code{mapatoms} which
-maps over the symbols in an obarray.  @xref{Char-Tables}, for the
-function @code{map-char-table}, which maps over the elements in a
-char-table.
+maps over the symbols in an obarray.
+
+  These mapping functions do not allow char-tables because a char-table
+is a sparse array whose nominal range of indices is very large.  To map
+over a char-table in a way that deals properly with its sparse nature,
+use the function @code{map-char-table} (@pxref{Char-Tables}).
 
 @defun mapcar function sequence
 @code{mapcar} applies @var{function} to each element of @var{sequence}
 in turn, and returns a list of the results.
 
-The argument @var{sequence} may be a list, a vector, or a string.  The
+The argument @var{sequence} can be any kind of sequence except a
+char-table; that is, a list, a vector, a bool-vector, or a string.  The
 result is always a list.  The length of the result is the same as the
 length of @var{sequence}.
 
@@ -720,14 +725,14 @@ length of @var{sequence}.
 @end group
 
 @group
-(defun mapcar* (f &rest args)
+(defun mapcar* (function &rest args)
   "Apply FUNCTION to successive cars of all ARGS.
 Return the list of results."
   ;; @r{If no list is exhausted,}
   (if (not (memq 'nil args))              
-      ;; @r{apply function to @sc{CAR}s.}
-      (cons (apply f (mapcar 'car args))  
-            (apply 'mapcar* f             
+      ;; @r{apply function to @sc{car}s.}
+      (cons (apply function (mapcar 'car args))  
+            (apply 'mapcar* function             
                    ;; @r{Recurse for rest of elements.}
                    (mapcar 'cdr args)))))
 @end group
@@ -747,7 +752,9 @@ Between each pair of result strings, @code{mapconcat} inserts the string
 other suitable punctuation.
 
 The argument @var{function} must be a function that can take one
-argument and return a string.
+argument and return a string.  The argument @var{sequence} can be any
+kind of sequence except a char-table; that is, a list, a vector, a
+bool-vector, or a string.
   
 @smallexample
 @group
@@ -823,7 +830,7 @@ uses a function as its third argument:
 
 @noindent
 Here we define a function that uses @code{change-property},
-passing a function that doubles its argument:
+passing it a function to double a number:
 
 @example
 @group
@@ -978,15 +985,18 @@ There are three normal uses of this function:
 
 @itemize @bullet
 @item
-Copying one symbol's function definition to another.  (In other words,
-making an alternate name for a function.)
+Copying one symbol's function definition to another---in other words,
+making an alternate name for a function.  (If you think of this as the
+definition of the new name, you should use @code{defalias} instead of
+@code{fset}; see @ref{Defining Functions}.)
 
 @item
 Giving a symbol a function definition that is not a list and therefore
 cannot be made with @code{defun}.  For example, you can use @code{fset}
 to give a symbol @code{s1} a function definition which is another symbol
 @code{s2}; then @code{s1} serves as an alias for whatever definition
-@code{s2} presently has.
+@code{s2} presently has.  (Once again use @code{defalias} instead of
+@code{fset} if you think of this as the definition of @code{s1}.)
 
 @item
 In constructs for defining or altering functions.  If @code{defun}
@@ -994,21 +1004,17 @@ were not a primitive, it could be written in Lisp (as a macro) using
 @code{fset}.
 @end itemize
 
-Here are examples of the first two uses:
+Here are examples of these uses:
 
 @example
 @group
-;; @r{Give @code{first} the same definition @code{car} has.}
-(fset 'first (symbol-function 'car))
-     @result{} #<subr car>
-@end group
-@group
-(first '(1 2 3))
-     @result{} 1
+;; @r{Save @code{foo}'s definition in @code{old-foo}.}
+(fset 'old-foo (symbol-function 'foo))
 @end group
 
 @group
 ;; @r{Make the symbol @code{car} the function definition of @code{xfirst}.}
+;; @r{(Most likely, @code{defalias} would be better than @code{fset} here.)}
 (fset 'xfirst 'car)
      @result{} car
 @end group
@@ -1030,10 +1036,14 @@ Here are examples of the first two uses:
 (fset 'kill-two-lines "\^u2\^k")
      @result{} "\^u2\^k"
 @end group
-@end example
 
-See also the related function @code{defalias}, in @ref{Defining
-Functions}.
+@group
+;; @r{Here is a function that alters other functions.}
+(defun copy-function-definition (new old)
+  "Define NEW with the same function definition as OLD."
+  (fset new (symbol-function old)))
+@end group
+@end example
 @end defun
 
   When writing a function that extends a previously defined function,
@@ -1058,7 +1068,8 @@ proper results.  The only way to avoid this problem is to make sure the
 file is loaded before moving aside the old definition of @code{foo}.
 
   But it is unmodular and unclean, in any case, for a Lisp file to
-redefine a function defined elsewhere.
+redefine a function defined elsewhere.  It is cleaner to use the advice
+facility (@pxref{Advising Functions}).
 
 @node Inline Functions
 @section Inline Functions
@@ -1083,15 +1094,14 @@ advantage of inline functions is greatest for small functions, you
 generally should not make large functions inline.
 
 It's possible to define a macro to expand into the same code that an
-inline function would execute.  But the macro would have a limitation:
-you can use it only explicitly---a macro cannot be called with
+inline function would execute.  (@xref{Macros}.)  But the macro would be
+limited to direct use in expressions---a macro cannot be called with
 @code{apply}, @code{mapcar} and so on.  Also, it takes some work to
-convert an ordinary function into a macro.  (@xref{Macros}.)  To convert
-it into an inline function is very easy; simply replace @code{defun}
-with @code{defsubst}.  Since each argument of an inline function is
-evaluated exactly once, you needn't worry about how many times the
-body uses the arguments, as you do for macros.  (@xref{Argument
-Evaluation}.)
+convert an ordinary function into a macro.  To convert it into an inline
+function is very easy; simply replace @code{defun} with @code{defsubst}.
+Since each argument of an inline function is evaluated exactly once, you
+needn't worry about how many times the body uses the arguments, as you
+do for macros.  (@xref{Argument Evaluation}.)
 
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
@@ -1127,6 +1137,9 @@ See @ref{Eval}.
 @item funcall
 See @ref{Calling Functions}.
 
+@item function
+See @ref{Anonymous Functions}.
+
 @item ignore
 See @ref{Calling Functions}.
 
@@ -1144,6 +1157,9 @@ See @ref{Creating Symbols}.
 
 @item mapcar
 See @ref{Mapping Functions}.
+
+@item map-char-table
+See @ref{Char-Tables}.
 
 @item mapconcat
 See @ref{Mapping Functions}.

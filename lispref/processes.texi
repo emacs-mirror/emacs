@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/processes
-@node Processes, System Interface, Abbrevs, Top
+@node Processes, Display, Abbrevs, Top
 @chapter Processes
 @cindex child process
 @cindex parent process
@@ -35,8 +35,6 @@ This function returns @code{t} if @var{object} is a process,
 @menu
 * Subprocess Creation::      Functions that start subprocesses.
 * Synchronous Processes::    Details of using synchronous subprocesses.
-* MS-DOS Subprocesses::      On MS-DOS, you must indicate text vs binary
-                                for data sent to and from a subprocess.
 * Asynchronous Processes::   Starting up an asynchronous subprocess.
 * Deleting Processes::       Eliminating an asynchronous subprocess.
 * Process Information::      Accessing run-status and other attributes.
@@ -127,6 +125,46 @@ The value of @code{exec-path} is used by @code{call-process} and
 file name.
 @end defopt
 
+@node Shell Arguments
+@section Shell Arguments
+
+  Lisp programs sometimes need to run a shell and give it a command
+which contains file names that were specified by the user.  These
+programs ought to be able to support any valid file name.  But the shell
+gives special treatment to certain characters, and if these characters
+occur in the file name, they will confuse the shell.  To handle these
+characters, use the function @code{shell-quote-argument}:
+
+@defun shell-quote-argument argument
+This function returns a string which represents, in shell syntax,
+an argument whose actual contents are @var{argument}.  It should
+work reliably to concatenate the return value into a shell command
+and then pass it to a shell for execution.
+
+Precisely what this function does depends on your operating system.  The
+function is designed to work with the usual shell syntax; if you use an
+unusual shell, you will need to redefine this function.  On MS-DOS, the
+function returns @var{argument} unchanged; while this is not really
+correct, it is the best one can do, since the MS-DOS shell has no
+quoting features.
+
+@example
+;; @r{This example shows the behavior on GNU and Unix systems.}
+(shell-quote-argument "foo > bar")
+     @result{} "foo\\ \\>\\ bar"
+@end example
+
+Here's an example of using @code{shell-quote-argument} to construct
+a shell command:
+
+@example
+(concat "diff -c "
+        (shell-quote-argument oldfile)
+        " "
+        (shell-quote-argument newfile))
+@end example
+@end defun
+
 @node Synchronous Processes
 @section Creating a Synchronous Process
 @cindex synchronous subprocess
@@ -145,13 +183,15 @@ subprocess actually terminates before quitting.  If during that time the
 user types another @kbd{C-g}, that kills the subprocess instantly with
 @code{SIGKILL} and quits immediately.  @xref{Quitting}.
 
-  The synchronous subprocess functions returned @code{nil} in version
-18.  Now they return an indication of how the process terminated.
+  The synchronous subprocess functions return an indication of how the
+process terminated.
 
   The output from a synchronous subprocess is generally decoded using a
 coding system, much like text read from a file.  The input sent to a
 subprocess by @code{call-process-region} is encoded using a coding
 system, much like text written into a file.  @xref{Coding Systems}.
+On Microsoft operating systems, additional variables control
+the conversion for end-of-line (@pxref{MS-DOS Subprocesses}).
 
 @defun call-process program &optional infile destination display &rest args
 This function calls @var{program} in a separate process and waits for
@@ -168,8 +208,7 @@ Insert the output in that buffer, before point.  This includes both the
 standard output stream and the standard error stream of the process.
 
 @item a string
-Find the buffer with that name, then insert the output in that buffer,
-before point.
+Insert the output in a buffer with that name, before point.
 
 @item @code{t}
 Insert the output in the current buffer, before point.
@@ -190,9 +229,9 @@ function returns.
 Keep the standard output stream separate from the standard error stream;
 deal with the ordinary output as specified by @var{real-destination},
 and dispose of the error output according to @var{error-destination}.
-The value @code{nil} means discard it, @code{t} means mix it with the
-ordinary output, and a string specifies a file name to redirect error
-output into.
+If @var{error-destination} is @code{nil}, that means to discard the
+error output, @code{t} means mix it with the ordinary output, and a
+string specifies a file name to redirect error output into.
 
 You can't directly specify a buffer to put the error output in; that is
 too difficult to implement.  But you can achieve this result by sending
@@ -237,12 +276,12 @@ lewis:5LTsHm66CSWKg:398:21:Bil Lewis:/user/lewis:/bin/csh
 @end group
 @end smallexample
 
-The @code{insert-directory} function contains a good example of the use
-of @code{call-process}:
+Here is a good example of the use of @code{call-process}, which used to
+be found in the definition of @code{insert-directory}:
 
 @smallexample
 @group
-(call-process insert-directory-program nil t nil switches
+(call-process insert-directory-program nil t nil @var{switches}
               (if full-directory-p
                   (concat (file-name-as-directory file) ".")
                 file))
@@ -318,32 +357,6 @@ This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
 @end defun
 
-@node MS-DOS Subprocesses
-@section MS-DOS Subprocesses
-
-  On MS-DOS, you must indicate whether the data going to and from
-a synchronous subprocess are text or binary.  Text data requires
-translation between the end-of-line convention used within Emacs
-(a single newline character) and the convention used outside Emacs
-(the two-character sequence, @sc{crlf}).
-
-  The variable @code{binary-process-input} applies to input sent to the
-subprocess, and @code{binary-process-output} applies to output received
-from it.  A non-@code{nil} value means the data is non-text; @code{nil}
-means the data is text, and calls for conversion.
-
-@defvar binary-process-input
-If this variable is @code{nil}, convert newlines to @sc{crlf} sequences in
-the input to a synchronous subprocess.
-@end defvar
-
-@defvar binary-process-output
-If this variable is @code{nil}, convert @sc{crlf} sequences to newlines in
-the output from a synchronous subprocess.
-@end defvar
-
-  @xref{Files and MS-DOS}, for related information.
-
 @node Asynchronous Processes
 @section Creating an Asynchronous Process
 @cindex asynchronous subprocess
@@ -403,6 +416,14 @@ to execute the specified command.  The argument @var{command} is a shell
 command name, and @var{command-args} are the arguments for the shell
 command.  The variable @code{shell-file-name} specifies which shell to
 use.
+
+The point of running a program through the shell, rather than directly
+with @code{start-process}, is so that you can employ shell features such
+as wildcards in the arguments.  It follows that if you include an
+arbitrary user-specified filename in the command, you should quote it
+with @code{shell-quote-argument} first, so that any special shell
+characters in the file name do @emph{not} have their special shell
+meanings.  @xref{Shell Arguments}.
 @end defun
 
 @defvar process-connection-type
@@ -602,9 +623,6 @@ x
 For a network connection, @code{process-status} returns one of the symbols
 @code{open} or @code{closed}.  The latter means that the other side
 closed the connection, or Emacs did @code{delete-process}.
-
-In Emacs version 18, the status of a network connection was @code{run}
-if open, and @code{exit} if closed.
 @end defun
 
 @defun process-exit-status process
@@ -628,8 +646,7 @@ for decoding output from @var{process} and for encoding input to
 @var{process} (@pxref{Coding Systems}).  The value has this form:
 
 @example
-(@var{coding-system-for-decoding}
- . @var{coding-system-for-encoding})
+(@var{coding-system-for-decoding} . @var{coding-system-for-encoding})
 @end example
 @end defun
 
@@ -789,7 +806,7 @@ This function stops the process @var{process-name} by sending the
 signal @code{SIGTSTP}.  Use @code{continue-process} to resume its
 execution.
 
-On systems with job control, outside of Emacs)\, the ``stop character''
+Outside of Emacs, on systems with job control, the ``stop character''
 (usually @kbd{C-z}) normally sends this signal.  When
 @var{current-group} is non-@code{nil}, you can think of this function as
 ``typing @kbd{C-z}'' on the terminal Emacs uses to communicate with the

@@ -18,10 +18,10 @@ horizontally into smaller windows.
 @dfn{terminal frame}.  If you create additional ones, Emacs displays
 one and only one at any given time---on the terminal screen, of course.
 
-  When Emacs communicates directly with an X server, it does not have a
-terminal frame; instead, it starts with a single @dfn{X window frame}.
-It can display multiple X window frames at the same time, each in its
-own X window.
+  When Emacs communicates directly with a supported window system, such
+as X Windows, it does not have a terminal frame; instead, it starts with
+a single @dfn{window frame}, but you can create more, and Emacs can
+display several such frames at once as is usual for window systems.
 
 @defun framep object
 This predicate returns @code{t} if @var{object} is a frame, and
@@ -30,7 +30,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 
 @menu
 * Creating Frames::		Creating additional frames.
-* Multiple Displays::           Creating frames on other X displays.
+* Multiple Displays::           Creating frames on other displays.
 * Frame Parameters::		Controlling frame size, position, font, etc.
 * Frame Titles::                Automatic updating of frame titles.
 * Deleting Frames::		Frames last until explicitly deleted.
@@ -40,7 +40,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Minibuffers and Frames::	How a frame finds the minibuffer to use.
 * Input Focus::			Specifying the selected frame.
 * Visibility of Frames::	Frames may be visible or invisible, or icons.
-* Raising and Lowering::	Raising a frame makes it hide other X windows;
+* Raising and Lowering::	Raising a frame makes it hide other windows;
 				  lowering it makes the others hide them.
 * Frame Configurations::	Saving the state of all frames.
 * Mouse Tracking::		Getting events that say when the mouse moves.
@@ -48,7 +48,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Pop-Up Menus::		Displaying a menu for the user to select from.
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shapes::              Specifying the shape of the mouse pointer.
-* X Selections::		Transferring text to and from other X clients.
+* Window System Selections::    Transferring text to and from other X clients.
 * Font Names::                  Looking up font names.
 * Color Names::	                Getting the definitions of color names.
 * Resources::		        Getting resource values from the server.
@@ -63,16 +63,17 @@ This predicate returns @code{t} if @var{object} is a frame, and
 To create a new frame, call the function @code{make-frame}.
 
 @defun make-frame &optional alist
-This function creates a new frame.  If you are using X, it makes
-an X window frame; otherwise, it makes a terminal frame.
+This function creates a new frame.  If you are using a supported window
+system, it makes a window frame; otherwise, it makes a terminal frame.
 
 The argument is an alist specifying frame parameters.  Any parameters
 not mentioned in @var{alist} default according to the value of the
 variable @code{default-frame-alist}; parameters not specified even there
-default from the standard X defaults file and X resources.
+default from the standard X resources or whatever is used instead on
+your system.
 
 The set of possible parameters depends in principle on what kind of
-window system Emacs uses to display its frames.  @xref{X Frame
+window system Emacs uses to display its frames.  @xref{Window Frame
 Parameters}, for documentation of individual parameters you can specify.
 @end defun
 
@@ -95,7 +96,7 @@ frame just created.
 @cindex multiple X terminals
 @cindex displays, multiple
 
-  A single Emacs can talk to more than one X Windows display.
+  A single Emacs can talk to more than one X Window display.
 Initially, Emacs uses just one display---the one chosen with the
 @code{DISPLAY} environment variable or with the @samp{--display} option
 (@pxref{Initial Options,,, emacs, The GNU Emacs Manual}).  To connect to
@@ -108,7 +109,8 @@ have values local to the current terminal (that is, the terminal
 corresponding to the currently selected frame): these are
 @code{default-minibuffer-frame}, @code{defining-kbd-macro},
 @code{last-kbd-macro}, and @code{system-key-alist}.  These variables are
-always terminal-local and can never be buffer-local.
+always terminal-local and can never be buffer-local or frame-local
+(@pxref{Buffer-Local Variables}).
 
   A single X server can handle more than one screen.  A display name
 @samp{@var{host}.@var{server}.@var{screen}} has three parts; the last
@@ -163,12 +165,13 @@ uses.
 
 Frame parameters exist for the sake of window systems.  A terminal frame
 has a few parameters, mostly for compatibility's sake; only the height,
-width and @code{buffer-predicate} parameters really do something.
+width, @code{name}, @code{title}, @code{buffer-list} and
+@code{buffer-predicate} parameters do something special.
 
 @menu
 * Parameter Access::       How to change a frame's parameters.
 * Initial Parameters::	   Specifying frame parameters when you make a frame.
-* X Frame Parameters::     List of frame parameters.
+* Window Frame Parameters:: List of frame parameters for window systems.
 * Size and Position::      Changing the size and position of a frame.
 @end menu
 
@@ -199,7 +202,7 @@ by setting @code{initial-frame-alist} in your @file{.emacs} file.
 
 @defvar initial-frame-alist
 This variable's value is an alist of parameter values used when creating
-the initial X window frame.  You can set this variable to specify the
+the initial window frame.  You can set this variable to specify the
 appearance of the initial frame without altering subsequent frames.
 Each element has the form:
 
@@ -239,8 +242,9 @@ to the parameters for the main initial frame.
 
 @defvar default-frame-alist
 This is an alist specifying default values of frame parameters for all
-Emacs frames---the first frame, and subsequent frames.  In many cases,
-you can get the same results by means of X resources.
+Emacs frames---the first frame, and subsequent frames.  When using the X
+Window System, you can get the same results by means of X resources
+in many cases.
 @end defvar
 
 See also @code{special-display-frame-alist}, in @ref{Choosing Window}.
@@ -251,27 +255,33 @@ exception is @samp{-geometry}, which adds the specified position to
 @code{initial-frame-alist} instead.  @xref{Command Arguments,,, emacs,
 The GNU Emacs Manual}.
 
-@node X Frame Parameters
-@subsection X Window Frame Parameters
+@node Window Frame Parameters
+@subsection Window Frame Parameters
 
 Just what parameters a frame has depends on what display mechanism it
-uses.  Here is a table of the parameters of an X window frame; of these,
-@code{name}, @code{height}, @code{width}, and @code{buffer-predicate}
-provide meaningful information in non-X frames.
+uses.  Here is a table of the parameters that have special meanings in a
+window frame; of these, @code{name}, @code{title}, @code{height},
+@code{width}, @code{buffer-list} and @code{buffer-predicate} provide
+meaningful information in terminal frames.
 
 @table @code
+@item title
+If a frame has a non-@code{nil} title, it appears in the window system's
+border for the frame, and also in the mode line of windows in that frame
+if @code{mode-line-frame-identification} uses @samp{%F}
+(@pxref{%-Constructs}).  This is normally the case when Emacs is not
+using a window system, and can only display one frame at a time.
+@xref{Frame Titles}.
+
 @item name
-The name of the frame.  Most window managers display the frame's name in
-the frame's border, at the top of the frame.  If you don't specify a
-name, and you have more than one frame, Emacs sets the frame name based
-on the buffer displayed in the frame's selected window.
+The name of the frame.  The frame name serves as a default for the frame
+title, if the @code{title} parameter is unspecified or @code{nil}.  If
+you don't specify a name, Emacs sets the frame name automatically
+(@pxref{Frame Titles}).
 
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
-
-Since a non-window terminal can display only one frame at a time, the
-frame name appears in the mode line.
 
 @item display
 The display on which to open this frame.  It should be a string of the
@@ -287,8 +297,9 @@ negative @var{pos} value.
 A negative number @minus{}@var{pos}, or a list of the form @code{(-
 @var{pos})}, actually specifies the position of the right edge of the
 window with respect to the right edge of the screen.  A positive value
-of @var{pos} counts toward the left.  If the parameter is a negative
-integer @minus{}@var{pos} then @var{pos} is positive!
+of @var{pos} counts toward the left.  @strong{Reminder:} if the
+parameter is a negative integer @minus{}@var{pos}, then @var{pos} is
+positive.
 
 Some window managers ignore program-specified positions.  If you want to
 be sure the position you specify is not ignored, specify a
@@ -303,8 +314,9 @@ negative @var{pos} value.
 A negative number @minus{}@var{pos}, or a list of the form @code{(-
 @var{pos})}, actually specifies the position of the bottom edge of the
 window with respect to the bottom edge of the screen.  A positive value
-of @var{pos} counts toward the top.  If the parameter is a negative
-integer @minus{}@var{pos} then @var{pos} is positive!
+of @var{pos} counts toward the top.  @strong{Reminder:} if the
+parameter is a negative integer @minus{}@var{pos}, then @var{pos} is
+positive.
 
 Some window managers ignore program-specified positions.  If you want to
 be sure the position you specify is not ignored, specify a
@@ -348,7 +360,7 @@ The width of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
 @item window-id
-The number of the X window for the frame.
+The number of the window-system window used by the frame.
 
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means
@@ -360,12 +372,13 @@ the new frame uses that minibuffer.
 The buffer-predicate function for this frame.  The function
 @code{other-buffer} uses this predicate (from the selected frame) to
 decide which buffers it should consider, if the predicate is not
-@code{nil}.  It calls the predicate with one arg, a buffer, once for
+@code{nil}.  It calls the predicate with one argument, a buffer, once for
 each buffer; if the predicate returns a non-@code{nil} value, it
 considers that buffer.
 
 @item buffer-list
-A list of buffers recently selected in this frame.
+A list of buffers that have been selected in this frame,
+ordered most-recently-selected first.
 
 @item font
 The name of the font for displaying text in the frame.  This is a
@@ -401,8 +414,8 @@ The name to use in the icon for this frame, when and if the icon
 appears.  If this is @code{nil}, the frame's title is used.
 
 @item foreground-color
-The color to use for the image of a character.  This is a string; the X
-server defines the meaningful color names.
+The color to use for the image of a character.  This is a string; the
+window system defines the meaningful color names.
 
 @item background-color
 The color to use for the background of characters.
@@ -507,7 +520,7 @@ Size}.
 
 @defun x-parse-geometry geom
 @cindex geometry specification
-The function @code{x-parse-geometry} converts a standard X windows
+The function @code{x-parse-geometry} converts a standard X Windows
 geometry string to an alist that you can use as part of the argument to
 @code{make-frame}.
 
@@ -560,24 +573,25 @@ the second.
 @node Frame Titles
 @section Frame Titles
 
-Every frame has a title; most window managers display the frame title at
-the top of the frame.  You can specify an explicit title with the
-@code{name} frame property.  But normally you don't specify this
-explicitly, and Emacs computes the title automatically.
+  Every frame has a @code{name} parameter; this serves as the default
+for the frame title which window systems typically display at the top of
+the frame.  You can specify a name explicitly by setting the @code{name}
+frame property.
 
-Emacs computes the frame title based on a template stored in the
-variable @code{frame-title-format}.
+  Normally you don't specify the name explicitly, and Emacs computes the
+frame name automatically based on a template stored in the variable
+@code{frame-title-format}.  Emacs recomputes the name each time the
+frame is redisplayed.
 
 @defvar frame-title-format
-This variable specifies how to compute a title for a frame
-when you have not explicitly specified one.
-
-The variable's value is actually a mode line construct, just like
-@code{mode-line-format}.  @xref{Mode Line Data}.
+This variable specifies how to compute a name for a frame when you have
+not explicitly specified one.  The variable's value is actually a mode
+line construct, just like @code{mode-line-format}.  @xref{Mode Line
+Data}.
 @end defvar
 
 @defvar icon-title-format
-This variable specifies how to compute the title for an iconified frame,
+This variable specifies how to compute the name for an iconified frame,
 when you have not explicitly specified the frame title.  This title
 appears in the icon itself.
 @end defvar
@@ -694,11 +708,11 @@ This function returns the window on @var{frame} that is selected within
 @var{frame}.
 @end defun
 
-Conversely, selecting a window for Emacs with @code{select-window} also
+  Conversely, selecting a window for Emacs with @code{select-window} also
 makes that window selected within its frame.  @xref{Selecting Windows}.
 
-Another function that (usually) returns one of the windows in a frame is
-@code{minibuffer-window}.  @xref{Minibuffer Misc}.
+  Another function that (usually) returns one of the windows in a given
+frame is @code{minibuffer-window}.  @xref{Minibuffer Misc}.
 
 @node Minibuffers and Frames
 @section Minibuffers and Frames
@@ -736,23 +750,23 @@ window always resides on the selected frame.
 This function returns the selected frame.
 @end defun
 
-The X server normally directs keyboard input to the X window that the
-mouse is in.  Some window managers use mouse clicks or keyboard events
-to @dfn{shift the focus} to various X windows, overriding the normal
-behavior of the server.
+Some window systems and window managers direct keyboard input to the
+window object that the mouse is in; others require explicit clicks or
+commands to @dfn{shift the focus} to various window objects.  Either
+way, Emacs automatically keeps track of which frame has the focus.
 
-Lisp programs can switch frames ``temporarily'' by calling
-the function @code{select-frame}.  This does not override the window
-manager; rather, it escapes from the window manager's control until
-that control is somehow reasserted.
+Lisp programs can also switch frames ``temporarily'' by calling the
+function @code{select-frame}.  This does not alter the window system's
+concept of focus; rather, it escapes from the window manager's control
+until that control is somehow reasserted.
 
-When using a text-only terminal, there is no window manager; therefore,
-@code{switch-frame} is the only way to switch frames, and the effect
-lasts until overridden by a subsequent call to @code{switch-frame}.
-Only the selected terminal frame is actually displayed on the terminal.
-Each terminal screen except for the initial one has a number, and the
-number of the selected frame appears in the mode line after the word
-@samp{Emacs} (@pxref{Mode Line Variables}).
+When using a text-only terminal, only the selected terminal frame is
+actually displayed on the terminal.  @code{switch-frame} is the only way
+to switch frames, and the change lasts until overridden by a subsequent
+call to @code{switch-frame}.  Each terminal screen except for the
+initial one has a number, and the number of the selected frame appears
+in the mode line after the word @samp{Emacs} (@pxref{Mode Line
+Variables}).
 
 @c ??? This is not yet implemented properly.
 @defun select-frame frame
@@ -762,10 +776,10 @@ the next time the user does something to select a different frame, or
 until the next time this function is called.
 @end defun
 
-Emacs cooperates with the X server and the window managers by arranging
-to select frames according to what the server and window manager ask
-for.  It does so by generating a special kind of input event, called a
-@dfn{focus} event.  The command loop handles a focus event by calling
+Emacs cooperates with the window system by arranging to select frames as
+the server and window manager request.  It does so by generating a
+special kind of input event, called a @dfn{focus} event, when
+appropriate.  The command loop handles a focus event by calling
 @code{handle-switch-frame}.  @xref{Focus Events}.
 
 @deffn Command handle-switch-frame frame
@@ -806,6 +820,14 @@ The redirection lasts until @code{redirect-frame-focus} is called to
 change it.
 @end defun
 
+@tindex focus-follows-mouse
+@defopt focus-follows-mouse
+This option is how you inform Emacs whether the window manager transfers
+focus when the user moves the mouse.  Non-@code{nil} says that it does.
+When this is so, the command @code{other-frame} moves the mouse to a
+position consistent with the new selected frame.
+@end defopt
+
 @node Visibility of Frames
 @section Visibility of Frames
 @cindex visible frame
@@ -813,7 +835,7 @@ change it.
 @cindex iconified frame
 @cindex frame visibility
 
-An X window frame may be @dfn{visible}, @dfn{invisible}, or
+A window frame may be @dfn{visible}, @dfn{invisible}, or
 @dfn{iconified}.  If it is visible, you can see its contents.  If it is
 iconified, the frame's contents do not appear on the screen, but an icon
 does.  If the frame is invisible, it doesn't show on the screen, not
@@ -844,7 +866,7 @@ This returns the visibility status of frame @var{frame}.  The value is
 @end defun
 
   The visibility status of a frame is also available as a frame
-parameter.  You can read or change it as such.  @xref{X Frame
+parameter.  You can read or change it as such.  @xref{Window Frame
 Parameters}.
 
   The user can iconify and deiconify frames with the window manager.
@@ -855,23 +877,23 @@ changes.  @xref{Misc Events}.
 @node Raising and Lowering
 @section Raising and Lowering Frames
 
-  The X Window System uses a desktop metaphor.  Part of this metaphor is
+  Most window systems use a desktop metaphor.  Part of this metaphor is
 the idea that windows are stacked in a notional third dimension
 perpendicular to the screen surface, and thus ordered from ``highest''
-to ``lowest''.  Where two X windows overlap, the one higher up covers
-the one underneath.  Even an X window at the bottom of the stack can be
-seen if no other X window overlaps it.
+to ``lowest''.  Where two windows overlap, the one higher up covers
+the one underneath.  Even a window at the bottom of the stack can be
+seen if no other window overlaps it.
 
 @cindex raising a frame
 @cindex lowering a frame
-  An X window's place in this ordering is not fixed; in fact, users tend
-to change the order frequently.  @dfn{Raising} an X window means moving
-it ``up'', to the top of the stack.  @dfn{Lowering} an X window means
+  A window's place in this ordering is not fixed; in fact, users tend
+to change the order frequently.  @dfn{Raising} a window means moving
+it ``up'', to the top of the stack.  @dfn{Lowering} a window means
 moving it to the bottom of the stack.  This motion is in the notional
-third dimension only, and does not change the position of the X window
+third dimension only, and does not change the position of the window
 on the screen.
 
-You can raise and lower Emacs's X windows with these functions:
+  You can raise and lower Emacs frame Windows with these functions:
 
 @deffn Command raise-frame frame
 This function raises frame @var{frame}.
@@ -888,7 +910,7 @@ that the minibuffer window is in.
 
 You can also enable auto-raise (raising automatically when a frame is
 selected) or auto-lower (lowering automatically when it is deselected)
-for any frame using frame parameters.  @xref{X Frame Parameters}.
+for any frame using frame parameters.  @xref{Window Frame Parameters}.
 
 @node Frame Configurations
 @section Frame Configurations
@@ -896,6 +918,7 @@ for any frame using frame parameters.  @xref{X Frame Parameters}.
 
   A @dfn{frame configuration} records the current arrangement of frames,
 all their properties, and the window configuration of each one.
+(@xref{Window Configurations}.)
 
 @defun current-frame-configuration
 This function returns a frame configuration list that describes
@@ -925,12 +948,15 @@ mouse forever---only until some other event, such as the release of a
 button.
 
 @defspec track-mouse body@dots{}
-Execute @var{body}, meanwhile generating input events for mouse motion.
-The code in @var{body} can read these events with @code{read-event} or
-@code{read-key-sequence}.  @xref{Motion Events}, for the format of mouse
-motion events.
+This special form executes @var{body}, with generation of mouse motion
+events enabled.  Typically @var{body} would use @code{read-event} to
+read the motion events and modify the display accordingly.  @xref{Motion
+Events}, for the format of mouse motion events.
 
 The value of @code{track-mouse} is that of the last form in @var{body}.
+You should design @var{body} to return when it sees the up-event that
+indicates the release of the button, or whatever kind of event means
+it is time to stop tracking.
 @end defspec
 
 The usual purpose of tracking mouse motion is to indicate on the screen
@@ -947,7 +973,7 @@ Lisp-level mouse tracking.
 
 These functions change the screen appearance instantaneously.  The
 effect is transient, only until the next ordinary Emacs redisplay.  That
-is ok for mouse tracking, since it doesn't make sense for mouse tracking
+is OK for mouse tracking, since it doesn't make sense for mouse tracking
 to change the text, and the body of @code{track-mouse} normally reads
 the events itself and does not do redisplay.
 
@@ -1015,8 +1041,8 @@ characters.  These coordinates are not required to be within the frame.
 @node Pop-Up Menus
 @section Pop-Up Menus
 
-  When using X windows, a Lisp program can pop up a menu which the
-user can choose from with the mouse.
+  When using a window system, a Lisp program can pop up a menu so that
+the user can choose an alternative with the mouse.
 
 @defun x-popup-menu position menu
 This function displays a pop-up menu and returns an indication of
@@ -1083,13 +1109,13 @@ the menu keymap as necessary.
 @section Dialog Boxes
 @cindex dialog boxes
 
-  A dialog box is a variant of a pop-up menu.  It looks a little
-different (if Emacs uses an X toolkit), it always appears in the center
-of a frame, and it has just one level and one pane.  The main use of
-dialog boxes is for asking questions that the user can answer with
-``yes'', ``no'', and a few other alternatives.  The functions
-@code{y-or-n-p} and @code{yes-or-no-p} use dialog boxes instead of the
-keyboard, when called from commands invoked by mouse clicks.
+  A dialog box is a variant of a pop-up menu---it looks a little
+different, it always appears in the center of a frame, and it has just
+one level and one pane.  The main use of dialog boxes is for asking
+questions that the user can answer with ``yes'', ``no'', and a few other
+alternatives.  The functions @code{y-or-n-p} and @code{yes-or-no-p} use
+dialog boxes instead of the keyboard, when called from commands invoked
+by mouse clicks.
 
 @defun x-popup-dialog position contents
 This function displays a pop-up dialog box and returns an indication of
@@ -1121,9 +1147,9 @@ Dialog boxes always appear in the center of a frame; the argument
 @code{x-popup-menu}, but the precise coordinates don't matter; only the
 frame matters.
 
-If your Emacs executable does not use an X toolkit, then it cannot
-display a real dialog box; so instead it displays the same items in a
-pop-up menu in the center of the frame.
+In some configurations, Emacs cannot display a real dialog box; so
+instead it displays the same items in a pop-up menu in the center of the
+frame.
 @end defun
 
 @node Pointer Shapes
@@ -1132,7 +1158,7 @@ pop-up menu in the center of the frame.
 @cindex mouse pointer shape
 
   These variables specify which shape to use for the mouse pointer in
-various situations:
+various situations, when using the X Window System:
 
 @table @code
 @item x-pointer-shape
@@ -1149,14 +1175,14 @@ is over mouse-sensitive text.
   These variables affect newly created frames.  They do not normally
 affect existing frames; however, if you set the mouse color of a frame,
 that also updates its pointer shapes based on the current values of
-these variables.  @xref{X Frame Parameters}.
+these variables.  @xref{Window Frame Parameters}.
 
   The values you can use, to specify either of these pointer shapes, are
 defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
 @key{RET} x-pointer @key{RET}} to see a list of them.
 
-@node X Selections
-@section X Selections
+@node Window System Selections
+@section Window System Selections
 @cindex selection (for X windows)
 
 The X server records a set of @dfn{selections} which permit transfer of
@@ -1221,9 +1247,9 @@ like the way successive kills in Emacs move down the kill ring.
 
 @defun x-list-font pattern &optional face frame maximum
 This function returns a list of available font names that match
-@var{pattern}.  If the optional arguments FACE and FRAME are specified,
-then the list is limited to fonts that are the same size as @var{face}
-currently is on @var{frame}.
+@var{pattern}.  If the optional arguments @var{face} and @var{frame} are
+specified, then the list is limited to fonts that are the same size as
+@var{face} currently is on @var{frame}.
 
 The argument @var{pattern} should be a string, perhaps with wildcard
 characters: the @samp{*} character matches any substring, and the

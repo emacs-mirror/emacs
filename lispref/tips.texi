@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/tips
-@node Tips, GNU Emacs Internals, Calendar, Top
+@node Tips, GNU Emacs Internals, System Interface, Top
 @appendix Tips and Conventions
 @cindex tips
 @cindex standards of coding style
@@ -37,10 +37,11 @@ names of all global variables, constants, and functions with the chosen
 prefix.  This helps avoid name conflicts.
 
 This recommendation applies even to names for traditional Lisp
-primitives that are not primitives in Emacs Lisp---even to @code{cadr}.
-Believe it or not, there is more than one plausible way to define
-@code{cadr}.  Play it safe; append your name prefix to produce a name
-like @code{foo-cadr} or @code{mylib-cadr} instead.
+primitives that are not primitives in Emacs Lisp---even to
+@code{copy-list}.  Believe it or not, there is more than one plausible
+way to define @code{copy-list}.  Play it safe; append your name prefix
+to produce a name like @code{foo-copy-list} or @code{mylib-copy-list}
+instead.
 
 If you write a function that you think ought to be added to Emacs under
 a certain name, such as @code{twiddle-files}, don't call it by that name
@@ -75,11 +76,11 @@ macro:
 @end example
 
 @noindent
-(And @var{bar} should contain @code{(provide '@var{bar})}, to make the
-@code{require} work.)  This will cause @var{bar} to be loaded when you
-byte-compile @var{foo}.  Otherwise, you risk compiling @var{foo} without
-the necessary macro loaded, and that would produce compiled code that
-won't work right.  @xref{Compiling Macros}.
+(And the library @var{bar} should contain @code{(provide '@var{bar})},
+to make the @code{require} work.)  This will cause @var{bar} to be
+loaded when you byte-compile @var{foo}.  Otherwise, you risk compiling
+@var{foo} without the necessary macro loaded, and that would produce
+compiled code that won't work right.  @xref{Compiling Macros}.
 
 Using @code{eval-when-compile} avoids loading @var{bar} when
 the compiled version of @var{foo} is @emph{used}.
@@ -111,9 +112,9 @@ Instead, define sequences consisting of @kbd{C-c} followed by a control
 character, a digit, or certain punctuation characters.  These sequences
 are reserved for major modes.
 
-Changing all the major modes in Emacs 18 so they would follow this
-convention was a lot of work.  Abandoning this convention would make
-that work go to waste, and inconvenience users.
+Changing all the Emacs major modes to follow this convention was a lot
+of work.  Abandoning this convention would make that work go to waste,
+and inconvenience users.
 
 @item
 Sequences consisting of @kbd{C-c} followed by @kbd{@{}, @kbd{@}},
@@ -136,7 +137,7 @@ as a help character for listing the subcommands of the prefix character.
 
 @item
 Do not bind a key sequence ending in @key{ESC} except following
-another @key{ESC}.  (That is, it is ok to bind a sequence ending in
+another @key{ESC}.  (That is, it is OK to bind a sequence ending in
 @kbd{@key{ESC} @key{ESC}}.)
 
 The reason for this rule is that a non-prefix binding for @key{ESC} in
@@ -251,7 +252,7 @@ user switch back at will.  @xref{Recursive Editing}.
 In some other systems there is a convention of choosing variable names
 that begin and end with @samp{*}.  We don't use that convention in Emacs
 Lisp, so please don't use it in your programs.  (Emacs uses such names
-only for program-generated buffers.)  The users will find Emacs more
+only for special-purpose buffers.)  The users will find Emacs more
 coherent if all libraries use the same conventions.
 
 @item
@@ -273,7 +274,7 @@ default indentation parameters.
 Don't make a habit of putting close-parentheses on lines by themselves;
 Lisp programmers find this disconcerting.  Once in a while, when there
 is a sequence of many consecutive close-parentheses, it may make sense
-to split them in one or two significant places.
+to split the sequence in one or two significant places.
 
 @item
 Please put a copyright notice on the file if you give copies to anyone.
@@ -366,7 +367,11 @@ the speed.  @xref{Inline Functions}.
 @node Documentation Tips
 @section Tips for Documentation Strings
 
-  Here are some tips for the writing of documentation strings.
+@tindex checkdoc-minor-mode
+@findex checkdoc-minor-mode
+  Here are some tips and conventions for the writing of documentation
+strings.  You can check many of these conventions by running the command
+@kbd{M-x checkdoc-minor-mode}.
 
 @itemize @bullet
 @item
@@ -471,9 +476,17 @@ write @code{t} and @code{nil} without single-quotes.
 When a documentation string refers to a Lisp symbol, write it as it
 would be printed (which usually means in lower case), with single-quotes
 around it.  For example: @samp{lambda}.  There are two exceptions: write
-t and nil without single-quotes.  (In this manual, we normally do use
-single-quotes for those symbols.)
+t and nil without single-quotes.  (In this manual, we use a different
+convention, with single-quotes for all symbols.)
 @end ifinfo
+
+For example:
+
+@example
+The value of `swim-speed' specifies how fast to swim.
+Possible values are t for high speed, nil for low speed,
+and `medium' for medium speed.
+@end example
 
 @item
 Don't write key sequences directly in documentation strings.  Instead,
@@ -541,11 +554,12 @@ at that point.  For example:
 @end group
 @end smallexample
 
-Every function that has no documentation string (because it is use only
-internally within the package it belongs to), should have instead a
-two-semicolon comment right before the function, explaining what the
-function does and how to call it properly.  Explain precisely what each
-argument means and how the function interprets its possible values.
+Every function that has no documentation string (presumably one that is
+used only internally within the package it belongs to), should have
+instead a two-semicolon comment right before the function, explaining
+what the function does and how to call it properly.  Explain precisely
+what each argument means and how the function interprets its possible
+values.
 
 @item ;;;
 Comments that start with three semicolons, @samp{;;;}, should start at
@@ -584,7 +598,7 @@ program.  For example:
 
 @noindent
 The indentation commands of the Lisp modes in Emacs, such as @kbd{M-;}
-(@code{indent-for-comment}) and @key{TAB} (@code{lisp-indent-line})
+(@code{indent-for-comment}) and @key{TAB} (@code{lisp-indent-line}),
 automatically indent comments according to these conventions,
 depending on the number of semicolons.  @xref{Comments,,
 Manipulating Comments, emacs, The GNU Emacs Manual}.
@@ -613,7 +627,9 @@ them.  This section explains these conventions.  First, an example:
 ;; Keywords: docs
 
 ;; This file is part of GNU Emacs.
-@var{copying permissions}@dots{}
+@dots{}
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 @end group
 @end smallexample
 

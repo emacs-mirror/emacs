@@ -145,7 +145,8 @@ variable.
 
   @code{defvar} and @code{defconst} are special forms that define a
 symbol as a global variable.  They are documented in detail in
-@ref{Defining Variables}.
+@ref{Defining Variables}.  For defining user option variables that can
+be customized, use @code{defcustom} (@pxref{Customization}).
 
   @code{defun} defines a symbol as a function, creating a lambda
 expression and storing it in the function cell of the symbol.  This
@@ -228,11 +229,6 @@ with @code{(make-vector @var{length} 0)}.  @strong{This is the only
 valid way to create an obarray.}  Prime numbers as lengths tend
 to result in good hashing; lengths one less than a power of two are also
 good.
-
-  It is possible for two different symbols to have the same name in
-different obarrays; these symbols are not @code{eq} or @code{equal}.
-However, this normally happens only as part of the abbrev mechanism
-(@pxref{Abbrevs}).
 
   @strong{Do not try to put symbols in an obarray yourself.}  This does
 not work---only @code{intern} can enter a symbol in an obarray properly.
@@ -440,10 +436,10 @@ an association list than to update a property.  All properties for a
 symbol are stored in the same property list, so there is a possibility
 of a conflict between different uses of a property name.  (For this
 reason, it is a good idea to choose property names that are probably
-unique, such as by including the name of the library in the property
-name.)  An association list may be used like a stack where associations
-are pushed on the front of the list and later discarded; this is not
-possible with a property list.
+unique, such as by beginning the property name with the program's usual
+name-prefix for variables and functions.)  An association list may be
+used like a stack where associations are pushed on the front of the list
+and later discarded; this is not possible with a property list.
 
 @node Symbol Plists
 @subsection Property List Functions for Symbols
@@ -532,3 +528,10 @@ in the place where you got @var{plist}.  For example,
 @end example
 @end defun
 
+  You could define @code{put} in terms of @code{plist-put} as follows:
+
+@example
+(defun put (symbol prop value)
+  (setplist symbol
+            (plist-put (symbol-plist symbol) prop value)))
+@end example

@@ -12,14 +12,15 @@ the preloaded Lisp libraries in it, how storage is allocated, and some
 internal aspects of GNU Emacs that may be of interest to C programmers.
 
 @menu
-* Building Emacs::      How to preload Lisp libraries into Emacs.
+* Building Emacs::      How to the dumped Emacs is made.
 * Pure Storage::        A kludge to make preloaded Lisp functions sharable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
+* Memory Usage::        Info about total size of Lisp objects made so far.
 * Writing Emacs Primitives::   Writing C code for Emacs.
 * Object Internals::    Data formats of buffers, windows, processes.
 @end menu
 
-@node Building Emacs, Pure Storage, GNU Emacs Internals, GNU Emacs Internals
+@node Building Emacs
 @appendixsec Building Emacs
 @cindex building Emacs
 @pindex temacs
@@ -118,54 +119,7 @@ If you want to use this function in an Emacs that was already dumped,
 you must run Emacs with @samp{-batch}.
 @end defun
 
-@deffn Command emacs-version
-  This function returns a string describing the version of Emacs that is
-running.  It is useful to include this string in bug reports.
-
-@example
-@group
-(emacs-version)
-  @result{} "GNU Emacs 20.2.5 (i486-pc-linux-gnulibc1, X toolkit)
- of Sat Feb 14 1998 on psilocin.gnu.org"
-@end group
-@end example
-
-Called interactively, the function prints the same information in the
-echo area.
-@end deffn
-
-@defvar emacs-build-time
-The value of this variable is the time at which Emacs was built at the
-local site.
-
-@example
-@group
-emacs-build-time
-     @result{} "Tue Jun  6 14:55:57 1995"
-@end group
-@end example
-@end defvar
-
-@defvar emacs-version
-The value of this variable is the version of Emacs being run.  It is a
-string such as @code{"20.3.1"}.  The last number in this string is not
-really part of the Emacs release version number; it is incremented each
-time you build Emacs in any given directory.
-@end defvar
-
-  The following two variables have existed since Emacs version 19.23,
-
-@defvar emacs-major-version
-The major version number of Emacs, as an integer.  For Emacs version
-20.2, the value is 20.
-@end defvar
-
-@defvar emacs-minor-version
-The minor version number of Emacs, as an integer.  For Emacs version
-20.2, the value is 2.
-@end defvar
-
-@node Pure Storage, Garbage Collection, Building Emacs, GNU Emacs Internals
+@node Pure Storage
 @appendixsec Pure Storage
 @cindex pure storage
 
@@ -221,7 +175,7 @@ before and after dumping.
 You should not change this flag in a running Emacs.
 @end defvar
 
-@node Garbage Collection, Writing Emacs Primitives, Pure Storage, GNU Emacs Internals
+@node Garbage Collection
 @appendixsec Garbage Collection
 @cindex garbage collector
 
@@ -291,11 +245,16 @@ information:
 ((@var{used-conses} . @var{free-conses})
  (@var{used-syms} . @var{free-syms})
 @end group
- (@var{used-markers} . @var{free-markers})
+ (@var{used-miscs} . @var{free-miscs})
  @var{used-string-chars} 
  @var{used-vector-slots}
  (@var{used-floats} . @var{free-floats})
  (@var{used-intervals} . @var{free-intervals}))
+@end example
+
+Here is an example:
+
+@example
 @group
 (garbage-collect)
      @result{} ((106886 . 13184) (9769 . 0)
@@ -321,12 +280,13 @@ The number of symbols in use.
 The number of symbols for which space has been obtained from the
 operating system, but that are not currently being used.
 
-@item used-markers
-The number of markers in use.
+@item used-miscs
+The number of miscellaneous objects in use.  These include markers and
+overlays, plus certain objects not visible to users.
 
-@item free-markers
-The number of markers for which space has been obtained from the
-operating system, but that are not currently being used.
+@item free-miscs
+The number of miscellaneous objects for which space has been obtained
+from the operating system, but that are not currently being used.
 
 @item used-string-chars
 The total size of all strings, in characters.
@@ -373,6 +333,11 @@ until the subsequent garbage collection, at which time
 @code{garbage-collect} will set the threshold back to 10,000.
 @end defopt
 
+  The value return by @code{garbage-collect} describes the amount of
+memory used by Lisp data, broken down by data type.  By contrast, the
+function @code{memory-limit} provides information on the total amount of
+memory Emacs is currently using.
+
 @c Emacs 19 feature
 @defun memory-limit
 This function returns the address of the last byte Emacs has allocated,
@@ -383,7 +348,53 @@ You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
 
-@node Writing Emacs Primitives, Object Internals, Garbage Collection, GNU Emacs Internals
+@node Memory Usage
+@section Memory Usage
+
+  These functions and variables give information about the total amount
+of memory allocation that Emacs has done, broken down by data type.
+Note the difference between these and the values returned by
+@code{(garbage-collect)}; those count objects that currently exist, but
+these count the number or size of all allocations, including those for
+objects that have since been freed.
+
+@defvar cons-cells-consed
+The total number of cons cells that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar floats-consed
+The total number of floats that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar vector-cells-consed
+The total number of vector cells that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar symbols-consed
+The total number of symbols that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar string-chars-consed
+The total number of string characters that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar misc-objects-consed
+The total number of miscellaneous objects that have been allocated so
+far in this Emacs session.  These include markers and overlays, plus
+certain objects not visible to users.
+@end defvar
+
+@defvar intervals-consed
+The total number of intervals that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@node Writing Emacs Primitives
 @appendixsec Writing Emacs Primitives
 @cindex primitive function internals
 
@@ -576,57 +587,69 @@ visible in Lisp with a value that is always an integer.
 @code{DEFVAR_BOOL} makes a C variable of type @code{int} visible in Lisp
 with a value that is either @code{t} or @code{nil}.
 
+  If you define a file-scope C variable of type @code{Lisp_Object},
+you must protect it for garbage-collection by calling @code{staticpro}
+in @code{syms_of_@var{filename}}, like this:
+
+@example
+staticpro (&@var{variable});
+@end example
+
   Here is another example function, with more complicated arguments.
-This comes from the code for the X Window System, and it demonstrates
-the use of macros and functions to manipulate Lisp objects.
+This comes from the code in @file{window.c}, and it demonstrates the use
+of macros and functions to manipulate Lisp objects.
 
 @smallexample
 @group
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   Scoordinates_in_window_p, 2, 2,
   "xSpecify coordinate pair: \nXExpression which evals to window: ",
-  "Return non-nil if POSITIONS is in WINDOW.\n\  
-  \(POSITIONS is a list, (SCREEN-X SCREEN-Y)\)\n\
+  "Return non-nil if COORDINATES is in WINDOW.\n\  
+COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
+...
 @end group
 @group
-  Returned value is list of positions expressed\n\
-  relative to window upper left corner.")
-  (coordinate, window)
-     register Lisp_Object coordinate, window;
+If they are on the border between WINDOW and its right sibling,\n\
+   `vertical-line' is returned.")
+  (coordinates, window)
+     register Lisp_Object coordinates, window;
 @{
-  register Lisp_Object xcoord, ycoord;
+  int x, y;
 @end group
 
 @group
-  if (!CONSP (coordinate)) wrong_type_argument (Qlistp, coordinate);
-  CHECK_WINDOW (window, 2);
-  xcoord = Fcar (coordinate);
-  ycoord = Fcar (Fcdr (coordinate));
-  CHECK_NUMBER (xcoord, 0);
-  CHECK_NUMBER (ycoord, 1);
+  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_CONS (coordinates, 1);
+  x = XINT (Fcar (coordinates));
+  y = XINT (Fcdr (coordinates));
 @end group
+
 @group
-  if ((XINT (xcoord) < XINT (XWINDOW (window)->left))
-      || (XINT (xcoord) >= (XINT (XWINDOW (window)->left)
-                            + XINT (XWINDOW (window)->width))))
-    return Qnil;
-  /* @r{Subtracting from XFASTINT (xcoord) is safe}
-     @r{as long as we know the result is not negative.}  */
-  XFASTINT (xcoord) -= XFASTINT (XWINDOW (window)->left);
+  switch (coordinates_in_window (XWINDOW (window), &x, &y))
+    @{
+    case 0:			/* NOT in window at all. */
+      return Qnil;
 @end group
+
 @group
-  if (XINT (ycoord) == (screen_height - 1))
-    return Qnil;
+    case 1:			/* In text part of window. */
+      return Fcons (make_number (x), make_number (y));
 @end group
+
 @group
-  if ((XINT (ycoord) < XINT (XWINDOW (window)->top))
-      || (XINT (ycoord) >= (XINT (XWINDOW (window)->top)
-                            + XINT (XWINDOW (window)->height)) - 1))
-    return Qnil;
+    case 2:			/* In mode line of window. */
+      return Qmode_line;
 @end group
+
 @group
-  XFASTINT (ycoord) -= XFASTINT (XWINDOW (window)->top);
-  return (Fcons (xcoord, Fcons (ycoord, Qnil)));
+    case 3:			/* On right border of window.  */
+      return Qvertical_line;
+@end group
+
+@group
+    default:
+      abort ();
+    @}
 @}
 @end group
 @end smallexample
@@ -650,7 +673,7 @@ number of arguments.  They work by calling @code{Ffuncall}.
 @file{lisp.h} contains the definitions for some important macros and
 functions.
 
-@node Object Internals,  , Writing Emacs Primitives, GNU Emacs Internals
+@node Object Internals
 @appendixsec Object Internals
 @cindex object internals
 
@@ -678,7 +701,7 @@ explicitly using a suitable predicate (@pxref{Type Predicates}).
 * Process Internals::   Components of a process structure.
 @end menu
 
-@node Buffer Internals, Window Internals, Object Internals, Object Internals
+@node Buffer Internals
 @appendixsubsec Buffer Internals
 @cindex internals, of buffer
 @cindex buffer internals
@@ -717,19 +740,19 @@ This field contains the syntax table for the buffer.  @xref{Syntax Tables}.
 
 @item downcase_table
 This field contains the conversion table for converting text to lower case.
-@xref{Case Table}.
+@xref{Case Tables}.
 
 @item upcase_table
 This field contains the conversion table for converting text to upper case.
-@xref{Case Table}.
+@xref{Case Tables}.
 
 @item case_canon_table
 This field contains the conversion table for canonicalizing text for
-case-folding search.  @xref{Case Table}.
+case-folding search.  @xref{Case Tables}.
 
 @item case_eqv_table
 This field contains the equivalence table for case-folding search.
-@xref{Case Table}.
+@xref{Case Tables}.
 
 @item display_table
 This field contains the buffer's display table, or @code{nil} if it doesn't
@@ -753,10 +776,11 @@ hence it is also included on the list @code{markers}.  @xref{The Mark}.
 This field is non-@code{nil} if the buffer's mark is active.
 
 @item local_var_alist
-This field contains the association list describing the variables local
-in this buffer, and their values, with the exception of local variables
-that have special slots in the buffer object.  (Those slots are omitted
-from this table.)  @xref{Buffer-Local Variables}.
+This field contains the association list describing the buffer-local
+variable bindings of this buffer, not including the built-in
+buffer-local bindings that that have special slots in the buffer object.
+(Those slots are omitted from this table.)  @xref{Buffer-Local
+Variables}.
 
 @item base_buffer
 This field holds the buffer's base buffer (if it is an indirect buffer),
@@ -777,9 +801,13 @@ decreasing end position.
 This field holds a list of the overlays in this buffer that end after
 the current overlay center position.  They are sorted in order of
 increasing beginning position.
+
+@item enable_multibyte_characters
+This field holds the buffer's local value of
+@code{enable-multibyte-characters}---either @code{t} or @code{nil}.
 @end table
 
-@node Window Internals, Process Internals, Buffer Internals, Object Internals
+@node Window Internals
 @appendixsubsec Window Internals
 @cindex internals, of window
 @cindex window internals
@@ -886,7 +914,7 @@ holds the mark position that made one end of that region.  Otherwise,
 this field is @code{nil}.
 @end table
 
-@node Process Internals,  , Window Internals, Object Internals
+@node Process Internals
 @appendixsubsec Process Internals
 @cindex internals, of process
 @cindex process internals

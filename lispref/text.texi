@@ -79,6 +79,13 @@ buffer is @samp{@@}:
 @end example
 @end defun
 
+@defun char-before position
+This function returns the character in the current buffer immediately
+before position @var{position}.  If @var{position} is out of range for
+this purpose, either before the beginning of the buffer, or at or beyond
+the end, then the value is @code{nil}.
+@end defun
+
 @defun following-char
 This function returns the character following point in the current
 buffer.  This is similar to @code{(char-after (point))}.  However, if
@@ -185,19 +192,6 @@ This is the contents of buffer foo
 @defun buffer-substring-no-properties start end
 This is like @code{buffer-substring}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
-Here's an example of using this function to get a word to look up in an
-alist:
-
-@example
-(setq flammable
-      (assoc (buffer-substring-no-properties start end)
-             '(("wood" . t) ("paper" . t)
-               ("steel" . nil) ("asbestos" . nil))))
-@end example
-
-If this were written using @code{buffer-substring} instead, it would not
-work reliably; any text properties that happened to be in the word
-copied from the buffer would make the comparisons fail.
 @end defun
 
 @defun buffer-string
@@ -282,23 +276,22 @@ at the second character.
 @cindex insertion of text
 @cindex text insertion
 
+@cindex insertion before point
+@cindex before point, insertion
   @dfn{Insertion} means adding new text to a buffer.  The inserted text
 goes at point---between the character before point and the character
-after point.
+after point.  Some insertion functions leave point before the inserted
+text, while other functions leave it after.  We call the former
+insertion @dfn{after point} and the latter insertion @dfn{before point}.
 
   Insertion relocates markers that point at positions after the
 insertion point, so that they stay with the surrounding text
 (@pxref{Markers}).  When a marker points at the place of insertion,
-insertion normally doesn't relocate the marker, so that it points to the
-beginning of the inserted text; however, certain special functions such
-as @code{insert-before-markers} relocate such markers to point after the
-inserted text.
-
-@cindex insertion before point
-@cindex before point, insertion
-  Some insertion functions leave point before the inserted text, while
-other functions leave it after.  We call the former insertion @dfn{after
-point} and the latter insertion @dfn{before point}.
+insertion may or may not relocate the marker, depending on the marker's
+insertion type (@pxref{Marker Insertion Types}).  Certain special
+functions such as @code{insert-before-markers} relocate all such markers
+to point after the inserted text, regardless of the markers' insertion
+type.
 
   Insertion functions signal an error if the current buffer is
 read-only.
@@ -329,11 +322,11 @@ inserted text falls outside the overlay; if a nonempty overlay ends at
 the insertion point, the inserted text falls inside that overlay.
 @end defun
 
-@defun insert-char character count &optional inherit
+@defun insert-char character &optional count inherit
 This function inserts @var{count} instances of @var{character} into the
-current buffer before point.  The argument @var{count} must be a number,
-and @var{character} must be a character.  The value is @code{nil}.
-@c It's unfortunate that count comes second.  Not like make-string, etc.
+current buffer before point.  The argument @var{count} should be a
+number (@code{nil} means 1), and @var{character} must be a character.
+The value is @code{nil}.
 
 If @var{inherit} is non-@code{nil}, then the inserted characters inherit
 sticky text properties from the two characters before and after the
@@ -531,6 +524,16 @@ the kill ring.
 The value returned is always @code{nil}.
 @end deffn
 
+@tindex backward-delete-char-untabify-method
+@defopt backward-delete-char-untabify-method
+This option specifies how @code{backward-delete-char-untabify} should
+deal with whitespace.  Possible values include @code{untabify}, the
+default, meaning convert a tab to many spaces and delete one;
+@code{hungry}, meaning delete all the whitespace characters before point
+with one command, and @code{nil}, meaning do nothing special for
+whitespace characters.
+@end defopt
+
 @node User-Level Deletion
 @section User-Level Deletion Commands
 
@@ -668,7 +671,7 @@ A blank line is defined as a line containing only tabs and spaces.
 @section The Kill Ring
 @cindex kill ring
 
-  @dfn{Kill} functions delete text like the deletion functions, but save
+  @dfn{Kill functions} delete text like the deletion functions, but save
 it so that the user can reinsert it by @dfn{yanking}.  Most of these
 functions have @samp{kill-} in their name.  By contrast, the functions
 whose names start with @samp{delete-} normally do not save text for
@@ -828,10 +831,10 @@ The value is always @code{nil}.
 @node Low-Level Kill Ring
 @subsection Low-Level Kill Ring
 
-  These functions and variables provide access to the kill ring at a lower
-level, but still convenient for use in Lisp programs.  They take care of
-interaction with X Window selections.  They do not exist in Emacs
-version 18.
+  These functions and variables provide access to the kill ring at a
+lower level, but still convenient for use in Lisp programs, because they
+take care of interaction with window system selections
+(@pxref{Window System Selections}).
 
 @defun current-kill n &optional do-not-move
 The function @code{current-kill} rotates the yanking pointer which
@@ -873,9 +876,9 @@ If the value is a function, @code{current-kill} calls it to get the
 then that value is used as the ``most recent kill''.  If it returns
 @code{nil}, then the first element of @code{kill-ring} is used.
 
-The normal use of this hook is to get the X server's primary selection
-as the most recent kill, even if the selection belongs to another X
-client.  @xref{X Selections}.
+The normal use of this hook is to get the window system's primary
+selection as the most recent kill, even if the selection belongs to
+another application.  @xref{Window System Selections}.
 @end defvar
 
 @defvar interprogram-cut-function
@@ -886,8 +889,8 @@ programs, when you are using a window system.  Its value should be
 If the value is a function, @code{kill-new} and @code{kill-append} call
 it with the new first element of the kill ring as an argument.
 
-The normal use of this hook is to set the X server's primary selection
-from the newly killed text.
+The normal use of this hook is to set the window system's primary
+selection from the newly killed text.  @xref{Window System Selections}.
 @end defvar
 
 @node Internals of Kill Ring
@@ -925,10 +928,12 @@ different piece of text" "yet older text")}.
 
 @example
 @group
-kill-ring       kill-ring-yank-pointer
-  |               |
-  |     ___ ___    --->  ___ ___      ___ ___
-   --> |___|___|------> |___|___|--> |___|___|--> nil
+kill-ring                  ---- kill-ring-yank-pointer
+  |                       |
+  |                       v
+  |     --- ---          --- ---      --- ---
+   --> |   |   |------> |   |   |--> |   |   |--> nil
+        --- ---          --- ---      --- ---
          |                |            |            
          |                |            |            
          |                |             -->"yet older text" 
@@ -1103,8 +1108,7 @@ has no effect.
 This function returns @code{nil}.  It cannot be called interactively.
 
 The name @code{buffer-flush-undo} is not considered obsolete, but the
-preferred name @code{buffer-disable-undo} is new as of Emacs versions
-19.
+preferred name is @code{buffer-disable-undo}.
 @end defun
 
   As editing continues, undo lists get longer and longer.  To prevent
@@ -1153,7 +1157,8 @@ If it is non-@code{nil}, that requests some kind of justification.  It
 can be @code{left}, @code{right}, @code{full}, or @code{center}, to
 request a specific style of justification.  If it is @code{t}, that
 means to use the current justification style for this part of the text
-(see @code{current-justification}, below).
+(see @code{current-justification}, below).  Any other value is treated
+as @code{full}.
 
   When you call the filling functions interactively, using a prefix
 argument implies the value @code{full} for @var{justify}.
@@ -1358,8 +1363,17 @@ whitespace.
 
 @defvar left-margin
 This variable specifies the base left margin column.  In Fundamental
-mode, @key{LFD} indents to this column.  This variable automatically
+mode, @kbd{C-j} indents to this column.  This variable automatically
 becomes buffer-local when set in any fashion.
+@end defvar
+
+@tindex fill-nobreak-predicate
+@defvar fill-nobreak-predicate
+This variable gives major modes a way to specify not to break a line at
+certain places.  Its value should be a function.  This function is
+called during filling, with no arguments and with point located at the
+place where a break is being considered.  If the function returns
+non-@code{nil}, then the line won't be broken there.
 @end defvar
 
 @node Auto Filling
@@ -1395,7 +1409,8 @@ was renamed to @code{auto-fill-function} in version 19.
 @defvar normal-auto-fill-function
 This variable specifies the function to use for
 @code{auto-fill-function}, if and when Auto Fill is turned on.  Major
-modes can set this locally to alter how Auto Fill works.
+modes can set buffer-local values for this variable to alter how Auto
+Fill works.
 @end defvar
 
 @node Sorting
@@ -1485,9 +1500,7 @@ the sort order.
   (save-restriction
     (narrow-to-region beg end)
     (goto-char (point-min))
-    (sort-subr reverse
-               'forward-line
-               'end-of-line)))
+    (sort-subr reverse 'forward-line 'end-of-line)))
 @end group
 @end example
 
@@ -1503,8 +1516,7 @@ its @code{sort-subr} call looks like this:
 @group
 (sort-subr reverse
            (function 
-            (lambda () 
-              (skip-chars-forward "\n \t\f")))
+            (lambda () (skip-chars-forward "\n \t\f")))
            'forward-paragraph)
 @end group
 @end example
@@ -1630,7 +1642,7 @@ containing position @var{beg}, and the entire line containing position
 
 Note that @code{sort-columns} uses the @code{sort} utility program,
 and so cannot work properly on text containing tab characters.  Use
-@kbd{M-x @code{untabify}} to convert tabs to spaces before sorting.
+@kbd{M-x untabify} to convert tabs to spaces before sorting.
 @end deffn
 
 @node Columns
@@ -1715,7 +1727,7 @@ count from zero at the left margin.
 
   This section describes the primitive functions used to count and
 insert indentation.  The functions in the following sections use these
-primitives.
+primitives.  @xref{Width}, for related functions.
 
 @defun current-indentation
 @comment !!Type Primitive Function
@@ -1745,7 +1757,7 @@ Properties}.
 @comment !!SourceFile indent.c
 If this variable is non-@code{nil}, indentation functions can insert
 tabs as well as spaces.  Otherwise, they insert only spaces.  Setting
-this variable automatically makes it local to the current buffer.
+this variable automatically makes it buffer-local in the current buffer.
 @end defopt
 
 @node Mode-Specific Indent
@@ -2009,11 +2021,11 @@ nonblank character on that line.  It returns @code{nil}.
 @node Case Changes
 @comment  node-name,  next,  previous,  up
 @section Case Changes
-@cindex case changes
+@cindex case conversion in buffers
 
   The case change commands described here work on text in the current
-buffer.  @xref{Character Case}, for case conversion commands that work
-on strings and characters.  @xref{Case Table}, for how to customize
+buffer.  @xref{Case Conversion}, for case conversion functions that work
+on strings and characters.  @xref{Case Tables}, for how to customize
 which characters are upper or lower case and how to convert them.
 
 @deffn Command capitalize-region start end
@@ -2417,9 +2429,9 @@ for @var{object} is the current buffer.
 @subsection Properties with Special Meanings
 
   Here is a table of text property names that have special built-in
-meanings.  The following section lists a few more special property names
-that are used to control filling.  All other names have no standard
-meaning, and you can use them as you like.
+meanings.  The following sections list a few additional special property
+names that control filling and property inheritance.  All other names
+have no standard meaning, and you can use them as you like.
 
 @table @code
 @cindex category of text character
@@ -2813,8 +2825,8 @@ is done by the command definition.  Here is how Dired does it:
     (save-excursion
       (set-buffer (window-buffer (posn-window (event-end event))))
       (save-excursion
-	(goto-char (posn-point (event-end event)))
-	(setq file (dired-get-filename))))
+        (goto-char (posn-point (event-end event)))
+        (setq file (dired-get-filename))))
     (select-window (posn-window (event-end event)))
     (find-file-other-window (file-name-sans-versions file t))))
 @end smallexample
@@ -2955,15 +2967,11 @@ translation table.
 @cindex registers
 
   A register is a sort of variable used in Emacs editing that can hold a
-marker, a string, a rectangle, a window configuration (of one frame), or
-a frame configuration (of all frames).  Each register is named by a
-single character.  All characters, including control and meta characters
-(but with the exception of @kbd{C-g}), can be used to name registers.
-Thus, there are 255 possible registers.  A register is designated in
-Emacs Lisp by a character that is its name.
-
-  The functions in this section return unpredictable values unless
-otherwise stated.
+variety of different kinds of values.  Each register is named by a
+single character.  All ASCII characters and their meta variants (but
+with the exception of @kbd{C-g}) can be used to name registers.  Thus,
+there are 255 possible registers.  A register is designated in Emacs
+Lisp by the character that is its name.
 
 @defvar register-alist
 This variable is an alist of elements of the form @code{(@var{name} .
@@ -2971,12 +2979,46 @@ This variable is an alist of elements of the form @code{(@var{name} .
 register that has been used.
 
 The object @var{name} is a character (an integer) identifying the
-register.  The object @var{contents} is a string, marker, window
-configuration, frame configuration, or list representing the register
-contents.  A string represents text stored in the register.  A marker
-represents a position.  A list represents a rectangle; its elements are
-strings, one per line of the rectangle.
+register.
 @end defvar
+
+  The @var{contents} of a register can have several possible types:
+
+@table @asis
+@item a number
+A number stands for itself.  If @code{insert-register} finds a number
+in the register, it converts the number to decimal.
+
+@item a marker
+A marker represents a buffer position to jump to.
+
+@item a string
+A string is text saved in the register.
+
+@item a rectangle
+A rectangle is represented by a list of strings.
+
+@item @code{(@var{window-configuration} @var{position})}
+This represents a window configuration to restore in one frame, and a
+position to jump to in the current buffer.
+
+@item @code{(@var{frame-configuration} @var{position})}
+This represents a frame configuration to restore, and a position
+to jump to in the current buffer.
+
+@item (file @var{filename})
+This represents a file to visit; jumping to this value visits file
+@var{filename}.
+
+@item (file-query @var{filename} @var{position})
+This represents a file to visit and a position in it; jumping to this
+value visits file @var{filename} and goes to buffer position
+@var{position}.  Restoring this type of position asks the user for
+confirmation first.
+@end table
+
+  The functions in this section return unpredictable values unless
+otherwise stated.
 
 @defun get-register reg
 This function returns the contents of the register
@@ -3136,11 +3178,18 @@ that seems safe.
 If a program makes several text changes in the same area of the buffer,
 using the macro @code{combine-after-change-calls} around that part of
 the program can make it run considerably faster when after-change hooks
-are in use.
+are in use.  When the after-change hooks are ultimately called, the
+arguments specify a portion of the buffer including all of the changes
+made within the @code{combine-after-change-calls} body.
 
 @strong{Warning:} You must not alter the values of
 @code{after-change-functions} and @code{after-change-function} within
 the body of a @code{combine-after-change-calls} form.
+
+@strong{Note:} If the changes you combine occur in widely scattered
+parts of the buffer, this will still work, but it is not advisable,
+because it may lead to inefficient behavior for some change hook
+functions.
 @end defmac
 
 @defvar before-change-function
@@ -3177,8 +3226,11 @@ to call.  Here is an example:
     (while list
       (funcall (car list) beg end len)
       (setq list (cdr list)))))
+
+@group
 (add-hooks 'after-change-functions
            'indirect-after-change-function)
+@end group
 @end example
 
 @defvar first-change-hook

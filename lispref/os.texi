@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
-@node System Interface, Display, Processes, Top
+@node System Interface, Tips, Calendar, Top
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to
@@ -64,7 +64,7 @@ It processes the initial options.  (Some of them are handled
 even earlier than this.)
 
 @item
-It initializes the X window frame and faces, if appropriate.
+It initializes the window frame and faces, if appropriate.
 
 @item
 It runs the normal hook @code{before-init-hook}.
@@ -76,13 +76,13 @@ It loads the library @file{site-start}, unless the option
 @cindex @file{site-start.el}
 
 @item 
-It loads the file @file{~/.emacs} unless @samp{-q} was specified on
-the command line.  (This is not done in @samp{-batch} mode.)  The @samp{-u}
-option can specify the user name whose home directory should be used
+It loads the file @file{~/.emacs}, unless @samp{-q} was specified on the
+command line.  (This is not done in @samp{-batch} mode.)  The @samp{-u}
+option can specify another user name whose home directory should be used
 instead of @file{~}.
 
 @item 
-It loads the library @file{default} unless @code{inhibit-default-init}
+It loads the library @file{default}, unless @code{inhibit-default-init}
 is non-@code{nil}.  (This is not done in @samp{-batch} mode or if
 @samp{-q} was specified on the command line.)  The library's file name
 is usually @file{default.el}.
@@ -461,11 +461,11 @@ likely @code{fg}.
 systems, ``suspension'' actually creates a new shell temporarily as a
 subprocess of Emacs.  Then you would exit the shell to return to Emacs.
 
-  Suspension is not useful with window systems such as X, because the
-Emacs job may not have a parent that can resume it again, and in any
-case you can give input to some other job such as a shell merely by
-moving to a different window.  Therefore, suspending is not allowed
-when Emacs is an X client.
+  Suspension is not useful with window systems, because the Emacs job
+may not have a parent that can resume it again, and in any case you can
+give input to some other job such as a shell merely by moving to a
+different window.  Therefore, suspending is not allowed when Emacs is using
+a window system.
 
 @defun suspend-emacs string
 This function stops Emacs and returns control to the superior process.
@@ -478,10 +478,7 @@ as terminal input by Emacs's superior shell.  The characters in
 appear.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
-@code{suspend-hook}.  In Emacs version 18, @code{suspend-hook} was not a
-normal hook; its value was a single function, and if its value was
-non-@code{nil}, then @code{suspend-emacs} returned immediately without
-actually suspending anything.
+@code{suspend-hook}.
 
 After the user resumes Emacs, @code{suspend-emacs} runs the normal hook
 @code{suspend-resume-hook}.  @xref{Hooks}.
@@ -553,6 +550,12 @@ This variable is a normal hook run after suspending.
 through various functions.  These variables include the name of the
 system, the user's @sc{uid}, and so on.
 
+@defvar system-configuration
+This variable holds the GNU configuration name for the hardware/software
+configuration of your system, as a string.  The convenient way to test
+parts of this string is with @code{string-match}.
+@end defvar
+
 @defvar system-type
 The value of this variable is a symbol indicating the type of operating
 system Emacs is operating on.  Here is a table of the possible values:
@@ -568,10 +571,12 @@ Berkeley BSD.
 Data General DGUX operating system.
 
 @item gnu
-A GNU system (using the GNU kernel, which consists of the HURD and Mach).
+the GNU system (using the GNU kernel, which consists of the HURD and Mach).
 
 @item gnu/linux
-A variant GNU system using the Linux kernel.
+A GNU/Linux system---that is, a variant GNU system, using the Linux
+kernel.  (These systems are the ones people often call ``Linux,'' but
+actually Linux is just the kernel, not the whole system.)
 
 @item hpux
 Hewlett-Packard HPUX operating system.
@@ -609,12 +614,6 @@ is absolutely necessary!  In fact, we hope to eliminate some of these
 alternatives in the future.  We recommend using
 @code{system-configuration} to distinguish between different operating
 systems.
-@end defvar
-
-@defvar system-configuration
-This variable holds the GNU configuration name for the hardware/software
-configuration of your system, as a string.  The convenient way to test
-parts of this string is with @code{string-match}.
 @end defvar
 
 @defun system-name
@@ -944,7 +943,7 @@ in the past or future.
 Time conversion functions always use the Gregorian calendar, even for
 dates before the Gregorian calendar was introduced.  Year numbers count
 the number of years since the year 1 B.C., and do not skip zero as
-traditional Gregorian years do; for example, the year number -37
+traditional Gregorian years do; for example, the year number @minus{}37
 represents the Gregorian year 38 B.C@.
 
 @defun format-time-string format-string time
@@ -1012,11 +1011,11 @@ This stands for the numeric day of week (0-6).  Sunday is day 0.
 This stands for the week of the year (01-52), assuming that weeks
 start on Monday.
 @item %x
-This has a locale-specific meaning.  In the default locale (named C), it
-is equivalent to @samp{%D}.
+This has a locale-specific meaning.  In the default locale (named
+@samp{C}), it is equivalent to @samp{%D}.
 @item %X
-This has a locale-specific meaning.  In the default locale (named C), it
-is equivalent to @samp{%T}.
+This has a locale-specific meaning.  In the default locale (named
+@samp{C}), it is equivalent to @samp{%T}.
 @item %y
 This stands for the year without century (00-99).
 @item %Y
@@ -1026,8 +1025,8 @@ This stands for the time zone abbreviation.
 @end table
 
 You can also specify the field width and type of padding for any of
-these @samp{%}-constructs.  This works as in @code{printf}: you write
-the field width as digits in the middle of a @samp{%}-construct.  If you
+these @samp{%}-sequences.  This works as in @code{printf}: you write
+the field width as digits in the middle of a @samp{%}-sequences.  If you
 start the field width with 0, it means to pad with zeros.
 
 For example, @samp{%S} specifies the number of seconds since the minute;
@@ -1069,8 +1068,8 @@ An integer indicating the time zone, as the number of seconds east of
 Greenwich.
 @end table
 
-Note that Common Lisp has different meanings for @var{dow} and
-@var{zone}.
+@strong{Common Lisp Note:} Common Lisp has different meanings for
+@var{dow} and @var{zone}.
 @end defun
 
 @defun encode-time seconds minutes hour day month year &optional @dots{}zone
@@ -1111,7 +1110,7 @@ arguments; for example, day 0 means the day preceding the given month.
   You can set up a @dfn{timer} to call a function at a specified future time or
 after a certain length of idleness.
 
-  Emacs cannot run a timer at any arbitrary point in a Lisp program; it
+  Emacs cannot run timers at any arbitrary point in a Lisp program; it
 can run them only when Emacs could accept output from a subprocess:
 namely, while waiting or inside certain primitive functions such as
 @code{sit-for} or @code{read-char} which @emph{can} wait.  Therefore, a
@@ -1124,10 +1123,11 @@ at time @var{time}.  The argument @var{function} is a function to call
 later, and @var{args} are the arguments to give it when it is called.
 The time @var{time} is specified as a string.
 
-Absolute times may be specified in a variety of formats; The form
+Absolute times may be specified in a wide variety of formats, and tries
+to accept all common date formats.  One valid format is
 @samp{@var{hour}:@var{min}:@var{sec} @var{timezone}
-@var{month}/@var{day}/@var{year}}, where all fields are numbers, works;
-the format that @code{current-time-string} returns is also allowed.
+@var{month}/@var{day}/@var{year}}, where all fields are numbers; the
+format that @code{current-time-string} returns is also allowed.
 
 To specify a relative time, use numbers followed by units.
 For example:
@@ -1208,12 +1208,12 @@ idleness will continue to increase and will not go down to five seconds
 again.
 
   Emacs can do various things while idle: garbage collect, autosave or
-handle data from a subprocess.  But these interludes during idleness
-have little effect on idle timers.  An idle timer set for 600 seconds
-will run when ten minutes have elapsed since the last user command was
-finished, even if subprocess output has been accepted thousands of times
-within those ten minutes, even if there have been garbage collections
-and autosaves.
+handle data from a subprocess.  But these interludes during idleness do
+not interfere with idle timers, because they do not reset the clock of
+idleness to zero.  An idle timer set for 600 seconds will run when ten
+minutes have elapsed since the last user command was finished, even if
+subprocess output has been accepted thousands of times within those ten
+minutes, even if there have been garbage collections and autosaves.
 
   When the user supplies input, Emacs becomes non-idle while executing the
 input.  Then it becomes idle again, and all the idle timers that are
@@ -1249,16 +1249,16 @@ functions.
 @defun set-input-mode interrupt flow meta quit-char
 This function sets the mode for reading keyboard input.  If
 @var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
-@code{nil}, then it uses @sc{cbreak} mode.  When Emacs communicates
-directly with X, it ignores this argument and uses interrupts if that is
-the way it knows how to communicate.
+@code{nil}, then it uses @sc{cbreak} mode.  The default setting is
+system dependent.  Some systems always use @sc{cbreak} mode regardless
+of what is specified.
 
-If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff} (@kbd{C-q},
-@kbd{C-s}) flow control for output to the terminal.  This has no effect except
-in @sc{cbreak} mode.  @xref{Flow Control}.
+When Emacs communicates directly with X, it ignores this argument and
+uses interrupts if that is the way it knows how to communicate.
 
-The default setting is system dependent.  Some systems always use
-@sc{cbreak} mode regardless of what is specified.
+If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff}
+(@kbd{C-q}, @kbd{C-s}) flow control for output to the terminal.  This
+has no effect except in @sc{cbreak} mode.  @xref{Flow Control}.
 
 @c Emacs 19 feature
 The argument @var{meta} controls support for input character codes
@@ -1267,7 +1267,7 @@ the 8th bit set into Meta characters.  If @var{meta} is @code{nil},
 Emacs disregards the 8th bit; this is necessary when the terminal uses
 it as a parity bit.  If @var{meta} is neither @code{t} nor @code{nil},
 Emacs uses all 8 bits of input unchanged.  This is good for terminals
-using European 8-bit character sets.
+that use 8-bit character sets.
 
 @c Emacs 19 feature
 If @var{quit-char} is non-@code{nil}, it specifies the character to
@@ -1290,8 +1290,8 @@ is non-@code{nil} when Emacs is using interrupt-driven input.  If
 @code{nil}, Emacs is using @sc{cbreak} mode.
 @item flow
 is non-@code{nil} if Emacs uses @sc{xon/xoff} (@kbd{C-q}, @kbd{C-s})
-flow control for output to the terminal.  This value has no effect
-unless @var{interrupt} is non-@code{nil}.
+flow control for output to the terminal.  This value has effect when
+unless @var{interrupt} is @code{nil}.
 @item meta
 is @code{t} if Emacs treats the eighth bit of input characters as
 the meta bit; @code{nil} means Emacs clears the eighth bit of every
@@ -1310,10 +1310,11 @@ is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 other input events before they become part of key sequences.  These
 features apply to each event in the order they are described here: each
 event is first modified according to @code{extra-keyboard-modifiers},
-then translated through @code{keyboard-translate-table} (if applicable).
-If it is being read as part of a key sequence, it is then added to the
-sequece being read; then subsequences containing it are checked first
-with @code{function-key-map} and then with @code{key-translation-map}.
+then translated through @code{keyboard-translate-table} (if applicable),
+and finally decoded with the specified keyboard coding system.  If it is
+being read as part of a key sequence, it is then added to the sequence
+being read; then subsequences containing it are checked first with
+@code{function-key-map} and then with @code{key-translation-map}.
 
 @c Emacs 19 feature
 @defvar extra-keyboard-modifiers
@@ -1334,9 +1335,9 @@ The @key{META} key.
 Each time the user types a keyboard key, it is altered as if the
 modifier keys specified in the bit mask were held down.
 
-When using X windows, the program can ``press'' any of the modifier
-keys in this way.  Otherwise, only the @key{CTL} and @key{META} keys can
-be virtually pressed.
+When using a window system, the program can ``press'' any of the
+modifier keys in this way.  Otherwise, only the @key{CTL} and @key{META}
+keys can be virtually pressed.
 @end defvar
 
 @defvar keyboard-translate-table
@@ -1392,7 +1393,7 @@ the keyboard translate table if necessary.
 
   The remaining translation features translate subsequences of key
 sequences being read.  They are implemented in @code{read-key-sequence}
-and have no effect on @code{read-char}.
+and have no effect on input read with @code{read-event}.
 
 @defvar function-key-map
 This variable holds a keymap that describes the character sequences sent
@@ -1406,7 +1407,7 @@ If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
 key sequence, it is replaced with the events in @var{v}.
 
 For example, VT100 terminals send @kbd{@key{ESC} O P} when the
-keypad PF1 key is pressed.  Therefore, we want Emacs to translate
+keypad @key{PF1} key is pressed.  Therefore, we want Emacs to translate
 that sequence of events into the single event @code{pf1}.  We accomplish
 this by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
 @code{function-key-map}, when using a VT100.
@@ -1419,7 +1420,8 @@ this back into @kbd{C-c @key{PF1}}, which it returns as the vector
 Entries in @code{function-key-map} are ignored if they conflict with
 bindings made in the minor mode, local, or global keymaps.  The intent
 is that the character sequences that function keys send should not have
-command bindings in their own right.
+command bindings in their own right---but if they do, the ordinary
+bindings take priority.
 
 The value of @code{function-key-map} is usually set up automatically
 according to the terminal's Terminfo or Termcap entry, but sometimes
@@ -1427,9 +1429,6 @@ those need help from terminal-specific Lisp files.  Emacs comes with
 terminal-specific files for many common terminals; their main purpose is
 to make entries in @code{function-key-map} beyond those that can be
 deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
-
-Emacs versions 18 and earlier used totally different means of detecting
-the character sequences that represent function keys.
 @end defvar
 
 @defvar key-translation-map
@@ -1494,21 +1493,21 @@ to turn the character that follows into a Hyper character:
 @end group
 @end example
 
-@pindex iso-transl
-@cindex Latin-1 character set (input)
-@cindex ISO Latin-1 characters (input)
-The @file{iso-transl} library uses this feature to provide a way of
-inputting non-ASCII Latin-1 characters.
+Finally, if you have enabled keyboard character set decoding using
+@code{set-keyboard-coding-system}, decoding is done after the
+translations listed above.  @xref{Specifying Coding Systems}.  In future
+Emacs versions, character set decoding may be done before the other
+translations.
 
 @node Recording Input
 @subsection Recording Input
 
 @defun recent-keys
-This function returns a vector containing the last 100 input events
-from the keyboard or mouse.  All input events are included, whether or
-not they were used as parts of key sequences.  Thus, you always get the
-last 100 inputs, not counting keyboard macros.  (Events from keyboard
-macros are excluded because they are less interesting for debugging; it
+This function returns a vector containing the last 100 input events from
+the keyboard or mouse.  All input events are included, whether or not
+they were used as parts of key sequences.  Thus, you always get the last
+100 input events, not counting events generated by keyboard macros.
+(These are excluded because they are less interesting for debugging; it
 should be enough to see the events that invoked the macros.)
 @end defun
 
@@ -1565,9 +1564,8 @@ not.  If Emacs has the wrong value, it makes decisions that are less
 than optimal.  To fix the problem, set @code{baud-rate}.
 
 @defun baud-rate
-This function returns the value of the variable @code{baud-rate}.  In
-Emacs versions 18 and earlier, this was the only way to find out the
-terminal speed.
+This obsolete function returns the value of the variable
+@code{baud-rate}.
 @end defun
 
 @defun send-string-to-terminal string
@@ -1619,15 +1617,28 @@ To define system-specific X11 keysyms, set the variable
 This variable's value should be an alist with one element for each
 system-specific keysym.  An element has this form: @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
-including the ``vendor specific'' bit, 1 << 28), and @var{symbol} is the
-name for the function key.
+including the ``vendor specific'' bit, 
+@ifinfo 
+-2**28,
+@end ifinfo
+@tex 
+$-2^{28}$,
+@end tex
+and @var{symbol} is the name for the function key.
 
 For example @code{(168 . mute-acute)} defines a system-specific key used
-by HP X servers whose numeric code is (1 << 28) + 168.
+by HP X servers whose numeric code is
+@ifinfo 
+-2**28
+@end ifinfo
+@tex 
+$-2^{28}$
+@end tex
++ 168.
 
-It is not a problem if the alist defines keysyms for other X servers, as
-long as they don't conflict with the ones used by the X server actually
-in use.
+It is not crucial to exclude from the alist the keysyms of other X
+servers; those do no harm, as long as they don't conflict with the ones
+used by the X server actually in use.
 
 The variable is always local to the current X terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
@@ -1637,9 +1648,9 @@ buffer-local.  @xref{Multiple Displays}.
 @section Flow Control
 @cindex flow control characters
 
-  This section attempts to answer the question ``Why does Emacs choose
-to use flow-control characters in its command character set?''  For a
-second view on this issue, read the comments on flow control in the
+  This section attempts to answer the question ``Why does Emacs use
+flow-control characters in its command character set?''  For a second
+view on this issue, read the comments on flow control in the
 @file{emacs/INSTALL} file from the distribution; for help with Termcap
 entries and DEC terminal concentrators, see @file{emacs/etc/TERMS}.
 
@@ -1647,20 +1658,20 @@ entries and DEC terminal concentrators, see @file{emacs/etc/TERMS}.
 @cindex @kbd{C-q}
   At one time, most terminals did not need flow control, and none used
 @code{C-s} and @kbd{C-q} for flow control.  Therefore, the choice of
-@kbd{C-s} and @kbd{C-q} as command characters was uncontroversial.
-Emacs, for economy of keystrokes and portability, used nearly all the
-@sc{ASCII} control characters, with mnemonic meanings when possible;
-thus, @kbd{C-s} for search and @kbd{C-q} for quote.
+@kbd{C-s} and @kbd{C-q} as command characters for searching and quoting
+was natural and uncontroversial.  With so many commands needing key
+assignments. of course we assigned meanings to nearly all @sc{ASCII}
+control characters.
 
   Later, some terminals were introduced which required these characters
 for flow control.  They were not very good terminals for full-screen
-editing, so Emacs maintainers did not pay attention.  In later years,
-flow control with @kbd{C-s} and @kbd{C-q} became widespread among
-terminals, but by this time it was usually an option.  And the majority
-of users, who can turn flow control off, were unwilling to switch to
-less mnemonic key bindings for the sake of flow control.
+editing, so Emacs maintainers ignored them.  In later years, flow
+control with @kbd{C-s} and @kbd{C-q} became widespread among terminals,
+but by this time it was usually an option.  And the majority of Emacs
+users, who can turn flow control off, did not want to switch to less
+mnemonic key bindings for the sake of flow control.
 
-  So which usage is ``right'', Emacs's or that of some terminal and
+  So which usage is ``right''---Emacs's or that of some terminal and
 concentrator manufacturers?  This question has no simple answer.
 
   One reason why we are reluctant to cater to the problems caused by
@@ -1668,13 +1679,13 @@ concentrator manufacturers?  This question has no simple answer.
 techniques (albeit less common in practice) for flow control that
 preserve transparency of the character stream.  Note also that their use
 for flow control is not an official standard.  Interestingly, on the
-model 33 teletype with a paper tape punch (which is very old), @kbd{C-s}
-and @kbd{C-q} were sent by the computer to turn the punch on and off!
+model 33 teletype with a paper tape punch (around 1970), @kbd{C-s} and
+@kbd{C-q} were sent by the computer to turn the punch on and off!
 
-  As X servers and other window systems replace character-only
-terminals, this problem is gradually being cured.  For the mean time,
-Emacs provides a convenient way of enabling flow control if you want it:
-call the function @code{enable-flow-control}.
+  As window systems and PC terminal emulators replace character-only
+terminals, the flow control problem is gradually disappearing.  For the
+mean time, Emacs provides a convenient way of enabling flow control if
+you want it: call the function @code{enable-flow-control}.
 
 @deffn Command enable-flow-control
 This function enables use of @kbd{C-s} and @kbd{C-q} for output flow

@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/debugging
-@node Debugging, Read and Print, Byte Compilation, Top
+@node Debugging, Read and Print, Advising, Top
 @chapter Debugging Lisp Programs
 
   There are three ways to investigate a problem in an Emacs Lisp program,
@@ -104,14 +104,18 @@ that error does not enter the debugger, regardless of the value of
 @code{debug-on-error}.
 
 The normal value of this variable lists several errors that happen often
-during editing but rarely result from bugs in Lisp programs.
+during editing but rarely result from bugs in Lisp programs.  However,
+``rarely'' is not ``never''; if your program fails with an error that
+matches this list, you will need to change this list in order to debug
+the error.  The easiest way is usually to set
+@code{debug-ignored-errors} to @code{nil}.
 @end defopt
 
 @defopt debug-on-signal
 Normally, errors that are caught by @code{condition-case} never run the
 debugger, even if @code{debug-on-error} is non-@code{nil}.  In other
-words, @code{condition-case} gets a chance to catch the error before the
-debugger gets a chance.
+words, @code{condition-case} gets a chance to handle the error before
+the debugger gets a chance.
 
 If you set @code{debug-on-signal} non-@code{nil}, then the debugger gets
 first chance at every error; an error will invoke the debugger
@@ -119,7 +123,7 @@ regardless of any @code{condition-case}, if the fits the criterion
 specified by the values of @code{debug-on-error} and
 @code{debug-ignored-errors}.
 
-@strong{Warning:} This variable is strong medecine!  Various parts of
+@strong{Warning:} This variable is strong medicine!  Various parts of
 Emacs handle errors in the normal course of affairs, and you may not
 even realize that errors happen there.  If you set
 @code{debug-on-signal} to a non-@code{nil} value, those errors will
@@ -132,7 +136,7 @@ enter the debugger.
   To debug an error that happens during loading of the @file{.emacs}
 file, use the option @samp{-debug-init}, which binds
 @code{debug-on-error} to @code{t} while @file{.emacs} is loaded and
-inhibits use of @code{condition-case} to catch init file errors.
+inhibits use of @code{condition-case} to catch init-file errors.
 
   If your @file{.emacs} file sets @code{debug-on-error}, the effect may
 not last past the end of loading @file{.emacs}.  (This is an undesirable
@@ -190,26 +194,25 @@ called shortly before the problem, step quickly over the call to that
 function, and then step through its caller.
 
 @deffn Command debug-on-entry function-name
-  This function requests @var{function-name} to invoke the debugger each time
+This function requests @var{function-name} to invoke the debugger each time
 it is called.  It works by inserting the form @code{(debug 'debug)} into
 the function definition as the first form.
 
-  Any function defined as Lisp code may be set to break on entry,
+Any function defined as Lisp code may be set to break on entry,
 regardless of whether it is interpreted code or compiled code.  If the
 function is a command, it will enter the debugger when called from Lisp
 and when called interactively (after the reading of the arguments).  You
 can't debug primitive functions (i.e., those written in C) this way.
 
-  When @code{debug-on-entry} is called interactively, it prompts
-for @var{function-name} in the minibuffer.
+When @code{debug-on-entry} is called interactively, it prompts for
+@var{function-name} in the minibuffer.  If the function is already set
+up to invoke the debugger on entry, @code{debug-on-entry} does nothing.
+@code{debug-on-entry} always returns @var{function-name}.
 
-  If the function is already set up to invoke the debugger on entry,
-@code{debug-on-entry} does nothing.
-
-  @strong{Note:} if you redefine a function after using
-@code{debug-on-entry} on it, the code to enter the debugger is lost.
-
-  @code{debug-on-entry} returns @var{function-name}.
+@strong{Note:} if you redefine a function after using
+@code{debug-on-entry} on it, the code to enter the debugger is discarded
+by the redefinition.  In effect, redefining the function cancels
+the break-on-entry feature for that function.
 
 @example
 @group
@@ -252,11 +255,12 @@ Entering:
 This function undoes the effect of @code{debug-on-entry} on
 @var{function-name}.  When called interactively, it prompts for
 @var{function-name} in the minibuffer.  If @var{function-name} is
-@code{nil} or the empty string, it cancels debugging for all functions.
+@code{nil} or the empty string, it cancels break-on-entry for all
+functions.
 
-If @code{cancel-debug-on-entry} is called more than once on the same
-function, the second call does nothing.  @code{cancel-debug-on-entry}
-returns @var{function-name}.
+Calling @code{cancel-debug-on-entry} does nothing to a function which is
+not currently set up to break on entry.  It always returns
+@var{function-name}.
 @end deffn
 
 @node Explicit Debug
@@ -326,8 +330,8 @@ code, so that you can see how control flows.  The debugger can step
 through the control structures of an interpreted function, but cannot do
 so in a byte-compiled function.  If you would like to step through a
 byte-compiled function, replace it with an interpreted definition of the
-same function.  (To do this, visit the source file for the function and
-type @kbd{C-M-x} on its definition.)
+same function.  (To do this, visit the source for the function and type
+@kbd{C-M-x} on its definition.)
 
   Here is a list of Debugger mode commands:
 
@@ -360,7 +364,8 @@ in the backtrace buffer.
 
 @item u
 Don't enter the debugger when the current frame is exited.  This
-cancels a @kbd{b} command on that frame.
+cancels a @kbd{b} command on that frame.  The visible effect is to
+remove the star from the line in the backtrace buffer.
 
 @item e
 Read a Lisp expression in the minibuffer, evaluate it, and print the
@@ -370,6 +375,10 @@ temporarily restores their outside-the-debugger values so you can
 examine them.  This makes the debugger more transparent.  By contrast,
 @kbd{M-:} does nothing special in the debugger; it shows you the
 variable values within the debugger.
+
+@item R
+Like @kbd{e}, but also save the result of evaluation in the
+buffer @samp{*Debugger-record*}.
 
 @item q
 Terminate the program being debugged; return to top-level Emacs
@@ -383,11 +392,11 @@ Return a value from the debugger.  The value is computed by reading an
 expression with the minibuffer and evaluating it.
 
 The @kbd{r} command is useful when the debugger was invoked due to exit
-from a Lisp call frame (as requested with @kbd{b}); then the value
-specified in the @kbd{r} command is used as the value of that frame.  It
-is also useful if you call @code{debug} and use its return value.
-Otherwise, @kbd{r} has the same effect as @kbd{c}, and the specified
-return value does not matter.
+from a Lisp call frame (as requested with @kbd{b} or by entering the
+frame with @kbd{d}); then the value specified in the @kbd{r} command is
+used as the value of that frame.  It is also useful if you call
+@code{debug} and use its return value.  Otherwise, @kbd{r} has the same
+effect as @kbd{c}, and the specified return value does not matter.
 
 You can't use @kbd{r} when the debugger was entered due to an error.
 @end table
@@ -448,11 +457,11 @@ Beginning evaluation of function call form:
 @end smallexample
 
 @item exit
-When the first argument is @code{exit}, it indicates the exit of a
-stack frame previously marked to invoke the debugger on exit.  The
-second argument given to @code{debug} in this case is the value being
-returned from the frame.  The debugger displays @samp{Return value:} on
-the top line of the buffer, followed by the value being returned.
+When the first argument is @code{exit}, it indicates the exit of a stack
+frame previously marked to invoke the debugger on exit.  The second
+argument given to @code{debug} in this case is the value being returned
+from the frame.  The debugger displays @samp{Return value:} in the top
+line of the buffer, followed by the value being returned.
 
 @item error
 @cindex @code{error} in debug
@@ -605,8 +614,8 @@ bound to @code{nil}.  The debugger can set this variable to leave
 information for future debugger invocations during the same command
 invocation.
 
-The advantage, for the debugger, of using this variable rather than
-another global variable is that the data will never carry over to a
+The advantage, for the debugger, of using this variable rather than an
+ordinary global variable is that the data will never carry over to a
 subsequent command invocation.
 @end defvar
 
@@ -671,7 +680,8 @@ close parenthesis, and finally return to the mark.)
 way to be sure of this except by studying the program, but often the
 existing indentation is a clue to where the parentheses should have
 been.  The easiest way to use this clue is to reindent with @kbd{C-M-q}
-and see what moves.
+and see what moves.  @strong{But don't do this yet!}  Keep reading,
+first.
 
   Before you do this, make sure the defun has enough close parentheses.
 Otherwise, @kbd{C-M-q} will get an error, or will reindent all the rest
@@ -702,7 +712,7 @@ parenthesis at the beginning of the file, back up over it, and type
 insertion of the open parenthesis, and finally return to the mark.)
 
   Then find the actual matching close parenthesis by typing @kbd{C-M-f}
-at the beginning of the defun.  This will leave you somewhere short of
+at the beginning of that defun.  This will leave you somewhere short of
 the place where the defun ought to end.  It is possible that you will
 find a spurious close parenthesis in that vicinity.
 

@@ -241,7 +241,7 @@ puts point @var{n} tenths of the way from the beginning of the buffer.
 In an interactive call, @var{n} is the numeric prefix argument,
 if provided; otherwise @var{n} defaults to @code{nil}.
 
-Don't use this function in Lisp programs!
+@strong{Warning:} Don't use this function in Lisp programs!
 @end deffn
 
 @deffn Command end-of-buffer &optional n
@@ -253,7 +253,7 @@ point @var{n} tenths of the way from the end of the buffer.
 In an interactive call, @var{n} is the numeric prefix argument,
 if provided; otherwise @var{n} defaults to @code{nil}.
 
-Don't use this function in Lisp programs!
+@strong{Warning:} Don't use this function in Lisp programs!
 @end deffn
 
 @node Text Lines
@@ -758,6 +758,11 @@ The value returned by @code{save-excursion} is the result of the last of
 @end group
 @end example
 @end defspec
+
+  Although @code{save-excursion} saves the location of the mark, it does
+not prevent functions which modify the buffer from setting
+@code{deactivate-mark}, and thus causing the deactivation of the mark
+after the command finishes.  @xref{The Mark}.
 
 @node Narrowing
 @section Narrowing

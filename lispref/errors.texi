@@ -55,8 +55,7 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @xref{Read Only Buffers}.
 
 @item cyclic-function-indirection
-@code{"Symbol's chain of function indirections contains a@*
-loop"}@*
+@code{"Symbol's chain of function indirections contains a loop"}@*
 @xref{Function Indirection}.
 
 @item end-of-buffer
@@ -65,8 +64,13 @@ loop"}@*
 
 @item end-of-file
 @code{"End of file during parsing"}@*
-This is not a @code{file-error}.@*
+Note that this is not a @code{file-error}
+because it pertains to the Lisp reader, not to file I/O.
 @xref{Input Functions}.
+
+@item file-already-exists
+This is a @code{file-error}.@*
+@xref{Writing to Files}.
 
 @item file-date-error
 This is a subcategory of @code{file-error}.  It occurs when
@@ -82,10 +86,6 @@ condition @code{file-error} is present.@*
 @item file-locked     
 This is a @code{file-error}.@*
 @xref{File Locks}.
-
-@item file-already-exists
-This is a @code{file-error}.@*
-@xref{Writing to Files}.
 
 @item file-supersession
 This is a @code{file-error}.@*
@@ -103,9 +103,19 @@ This is a @code{file-error}.@*
 @code{"Invalid regexp"}@*
 @xref{Regular Expressions}.
 
+@item mark-inactive
+@code{Mark inactive"}@*
+@xref{The Mark}.
+
 @item no-catch
 @code{"No catch for tag"}@*
 @xref{Catch and Throw}.
+
+@item scan-error
+@code{"Scan error"}@*
+This happens when certain syntax-parsing functions
+find invalid syntax or mismatched parentheses.@*
+@xref{List Motion}, and @ref{Parsing Expressions}.
 
 @item search-failed
 @code{"Search failed"}@*
@@ -113,7 +123,8 @@ This is a @code{file-error}.@*
 
 @item setting-constant
 @code{"Attempt to set a constant symbol"}@* 
-The values of the symbols @code{nil} and @code{t}
+The values of the symbols @code{nil} and @code{t},
+and any symbols that start with @samp{:},
 may not be changed.@*
 @xref{Constant Variables, , Variables that Never Change}.
 
@@ -138,7 +149,7 @@ may not be changed.@*
 @xref{Type Predicates}.
 @end table
 
-  These error types, which are all classified as special cases of
+  These kinds of error, which are classified as special cases of
 @code{arith-error}, can occur on certain systems for invalid use of
 mathematical functions.
 

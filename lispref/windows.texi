@@ -246,7 +246,7 @@ Now, the screen looks like this:
 @end smallexample
 
 Normally, Emacs indicates the border between two side-by-side windows
-with a scroll bar (@pxref{X Frame Parameters,Scroll Bars}) or @samp{|}
+with a scroll bar (@pxref{Window Frame Parameters,Scroll Bars}) or @samp{|}
 characters.  The display table can specify alternative border
 characters; see @ref{Display Tables}.
 @end deffn
@@ -328,8 +328,7 @@ of a window aside from restoring a saved window configuration
 deletes any windows that aren't part of that configuration.
 
   When you delete a window, the space it took up is given to one
-adjacent sibling.  (In Emacs version 18, the space was divided evenly
-among all the siblings.)
+adjacent sibling.
 
 @c Emacs 19 feature
 @defun window-live-p window
@@ -341,14 +340,10 @@ using a deleted window as if it were live.
 @end defun
 
 @deffn Command delete-window &optional window
-This function removes @var{window} from the display.  If @var{window}
-is omitted, then the selected window is deleted.  An error is signaled
-if there is only one window when @code{delete-window} is called.
-
-This function returns @code{nil}.
-
-When @code{delete-window} is called interactively, @var{window}
-defaults to the selected window.
+This function removes @var{window} from display, and returns @code{nil}.
+If @var{window} is omitted, then the selected window is deleted.  An
+error is signaled if there is only one window when @code{delete-window}
+is called.
 @end deffn
 
 @deffn Command delete-other-windows &optional window
@@ -356,7 +351,7 @@ This function makes @var{window} the only window on its frame, by
 deleting the other windows in that frame.  If @var{window} is omitted or
 @code{nil}, then the selected window is used by default.
 
-The result is @code{nil}.
+The return value is @code{nil}.
 @end deffn
 
 @deffn Command delete-windows-on buffer &optional frame
@@ -426,7 +421,7 @@ or contents of windows; therefore, if the @var{forms} change them,
 the change persists.
 
 Each frame, at any time, has a window selected within the frame.  This
-macro only saves @emph{the} selected window; it does not save anything
+macro saves only @emph{the} selected window; it does not save anything
 about other frames.  If the @var{forms} select some other frame and
 alter the window selected within it, the change persists.
 @end defmac
@@ -565,8 +560,8 @@ include in the cycle, as in @code{next-window}.
 
 @deffn Command other-window count
 This function selects the @var{count}th following window in the cyclic
-order.  If count is negative, then it selects the @minus{}@var{count}th
-preceding window.  It returns @code{nil}.
+order.  If count is negative, then it moves back @minus{}@var{count}
+windows in the cycle, rather than forward.  It returns @code{nil}.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 @end deffn
@@ -695,7 +690,7 @@ low-level functions that give you more precise control.
   Do not use the functions in this section in order to make a buffer
 current so that a Lisp program can access or modify it; they are too
 drastic for that purpose, since they change the display of buffers in
-windows, which is gratuitous and will surprise the user.  Instead, use
+windows, which would be gratuitous and surprise the user.  Instead, use
 @code{set-buffer} (@pxref{Current Buffer}) and @code{save-excursion}
 (@pxref{Excursions}), which designate buffers as current for programmed
 access without affecting the display of buffers in windows.
@@ -713,8 +708,9 @@ buffer by that name is created.  The major mode for the new buffer is
 set according to the variable @code{default-major-mode}.  @xref{Auto
 Major Mode}.
 
-Normally the specified buffer is put at the front of the buffer list.
-This affects the operation of @code{other-buffer}.  However, if
+Normally the specified buffer is put at the front of the buffer list
+(both the selected frame's buffer list and the frame-independent buffer
+list).  This affects the operation of @code{other-buffer}.  However, if
 @var{norecord} is non-@code{nil}, this is not done.  @xref{The Buffer
 List}.
 
@@ -792,7 +788,7 @@ This function returns @code{nil}.
 
 @tindex buffer-display-count
 @defvar buffer-display-count
-This variable is always local in each buffer.  When the buffer is
+This variable is always buffer-local in each buffer.  When the buffer is
 created, @code{buffer-display-count} has value 0.  Each time the buffer
 is displayed in a window, that increments the value of
 @code{buffer-display-count}.
@@ -965,7 +961,8 @@ described above.
 @c Emacs 19 feature
 @cindex dedicated window
 A window can be marked as ``dedicated'' to its buffer.  Then
-@code{display-buffer} does not try to use that window.
+@code{display-buffer} will not try to use that window to display any
+other buffer.
 
 @defun window-dedicated-p window
 This function returns @code{t} if @var{window} is marked as dedicated;
@@ -1069,32 +1066,23 @@ For a realistic example of using @code{window-start}, see the
 description of @code{count-lines} in @ref{Text Lines}.
 @end defun
 
-@defun window-end &optional window
+@defun window-end &optional window update
 This function returns the position of the end of the display in window
 @var{window}.  If @var{window} is @code{nil}, the selected window is
 used.
 
 Simply changing the buffer text or moving point does not update the
 value that @code{window-end} returns.  The value is updated only when
-Emacs redisplays and redisplay actually finishes.
+Emacs redisplays and redisplay completes without being preempted.
 
 If the last redisplay of @var{window} was preempted, and did not finish,
 Emacs does not know the position of the end of display in that window.
-In that case, this function returns a value that is not correct.  In a
-future version, @code{window-end} will return @code{nil} in that case.
-@ignore
-in that case, this function returns @code{nil}.  You can compute where
-the end of the window @emph{would} have been, if redisplay had finished,
-like this:
+In that case, this function returns @code{nil}.
 
-@example
-(save-excursion
-  (goto-char (window-start window))
-  (vertical-motion (1- (window-height window))
-                   window)
-  (point))
-@end example
-@end ignore
+If you @var{update} is non-@code{nil}, @code{window-end} always returns
+an up-to-date value for where the window ends.  If the saved value is
+valid, @code{window-end} returns that; otherwise it computes the correct
+value by scanning the buffer text.
 @end defun
 
 @defun set-window-start window position &optional noforce
@@ -1428,10 +1416,10 @@ characters that separates side-by-side windows.
   The following three functions return size information about a window:
 
 @defun window-height &optional window
-This function returns the number of lines in @var{window}, including
-its mode line.  If @var{window} fills its entire frame, this is one less
-than the value of @code{frame-height} on that frame (since the last line
-is always reserved for the minibuffer).
+This function returns the number of lines in @var{window}, including its
+mode line.  If @var{window} fills its entire frame, this is typically
+one less than the value of @code{frame-height} on that frame (since the
+last line is always reserved for the minibuffer).
 
 If @var{window} is @code{nil}, the function uses the selected window.
 
@@ -1654,16 +1642,9 @@ If you omit @var{frame}, the selected frame is used.
 This function checks whether a particular frame position falls within
 the window @var{window}.
 
-@need 3000
-The argument @var{coordinates} is a cons cell of this form:
-
-@example
-(@var{x} . @var{y})
-@end example
-
-@noindent
-The coordinates @var{x} and @var{y} are measured in characters, and
-count from the top left corner of the screen or frame.
+The argument @var{coordinates} is a cons cell of the form @code{(@var{x}
+. @var{y})}.  The coordinates @var{x} and @var{y} are measured in
+characters, and count from the top left corner of the screen or frame.
 
 The value returned by @code{coordinates-in-window-p} is non-@code{nil}
 if the coordinates are inside @var{window}.  The value also indicates
@@ -1713,7 +1694,9 @@ This function returns a new object representing the selected frame's
 current window configuration, including the number of windows, their
 sizes and current buffers, which window is the selected window, and for
 each window the displayed buffer, the display-start position, and the
-positions of point and the mark.  An exception is made for point in the
+positions of point and the mark.  It also includes the values of
+@code{window-min-height}, @code{window-min-width} and
+@code{minibuffer-scroll-window}.  An exception is made for point in the
 current buffer, whose value is not saved.
 @end defun
 
@@ -1721,14 +1704,17 @@ current buffer, whose value is not saved.
 This function restores the configuration of windows and buffers as
 specified by @var{configuration}.  The argument @var{configuration} must
 be a value that was previously returned by
-@code{current-window-configuration}.  This function operates on the
-frame for which @var{configuration} was made, whether that frame is
-selected or not.
+@code{current-window-configuration}.  This configuration is restored in
+the frame from which @var{configuration} was made, whether that frame is
+selected or not.  This always counts as a window size change and
+triggers execution of the @code{window-size-change-functions}
+(@pxref{Window Hooks}), because @code{set-window-configuration} doesn't
+know how to tell whether the new configuration actually differs from the
+old one.
 
-This function always counts as a window size change and triggers
-execution of the @code{window-size-change-functions}.  (It doesn't know
-how to tell whether the new configuration actually differs from the old
-one.)
+If the frame which @var{configuration} was saved from is dead, all this
+function does is restore the three variables @code{window-min-height},
+@code{window-min-width} and @code{minibuffer-scroll-window}.
 
 Here is a way of using this function to get the same effect
 as @code{save-window-excursion}:
@@ -1786,6 +1772,17 @@ For example:
 This function returns @code{t} if @var{object} is a window configuration.
 @end defun
 
+@defun compare-window-configurations config1 config2
+This function compares two window configurations as regards the
+structure of windows, but ignores the values of point and mark and the
+saved scrolling positions---it can return @code{t} even if those
+aspects differ.
+
+The function @code{equal} can also compare two window configurations; it
+regards configurations as unequal if they differ in any respect, even a
+saved point or mark.
+@end defun
+
   Primitives to look inside of window configurations would make sense,
 but none are implemented.  It is not clear they are useful enough to be
 worth implementing.
@@ -1799,8 +1796,8 @@ There are three actions that can change this: scrolling the window,
 switching buffers in the window, and changing the size of the window.
 The first two actions run @code{window-scroll-functions}; the last runs
 @code{window-size-change-functions}.  The paradigmatic use of these
-hooks is Lazy Lock mode; see @ref{Support Modes, Lazy Lock, Font Lock
-Support Modes, emacs, The GNU Emacs Manual}.
+hooks is in the implementation of Lazy Lock mode; see @ref{Support
+Modes, Lazy Lock, Font Lock Support Modes, emacs, The GNU Emacs Manual}.
 
 @defvar window-scroll-functions
 This variable holds a list of functions that Emacs should call before

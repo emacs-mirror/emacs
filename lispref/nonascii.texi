@@ -20,9 +20,12 @@ characters and how they are stored in strings and buffers.
 * Scanning Charsets::
 * Chars and Bytes::
 * Coding Systems::
+* Lisp and Coding System::
 * Default Coding Systems::
 * Specifying Coding Systems::
 * Explicit Encoding::
+* MS-DOS File Types::
+* MS-DOS Subprocesses::
 @end menu
 
 @node Text Representations
@@ -41,8 +44,8 @@ attention to the difference.
   In unibyte representation, each character occupies one byte and
 therefore the possible character codes range from 0 to 255.  Codes 0
 through 127 are @sc{ASCII} characters; the codes from 128 through 255
-are used for one non-@sc{ASCII} character set (you can choose which one
-by setting the variable @code{nonascii-insert-offset}).
+are used for one non-@sc{ASCII} character set (you can choose which
+character set by setting the variable @code{nonascii-insert-offset}).
 
 @cindex leading code
 @cindex multibyte text
@@ -67,9 +70,8 @@ This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
 it contains unibyte text.
 
-@strong{Warning:} do not set this variable directly; instead, use the
-function @code{set-buffer-multibyte} to change a buffer's
-representation.
+You cannot set this variable directly; instead, use the function
+@code{set-buffer-multibyte} to change a buffer's representation.
 @end defvar
 
 @tindex default-enable-multibyte-characters
@@ -112,17 +114,17 @@ to unibyte, even though this conversion cannot in general preserve all
 the characters that might be in the multibyte text.  The other natural
 alternative, to convert the buffer contents to multibyte, is not
 acceptable because the buffer's representation is a choice made by the
-user that cannot simply be overrided.
+user that cannot be overridden automatically.
 
   Converting unibyte text to multibyte text leaves @sc{ASCII} characters
-unchanged.  It converts the non-@sc{ASCII} codes 128 through 255 by
-adding the value @code{nonascii-insert-offset} to each character code.
-By setting this variable, you specify which character set the unibyte
-characters correspond to.  For example, if @code{nonascii-insert-offset}
-is 2048, which is @code{(- (make-char 'latin-iso8859-1 0) 128)}, then
-the unibyte non-@sc{ASCII} characters correspond to Latin 1.  If it is
-2688, which is @code{(- (make-char 'greek-iso8859-7 0) 128)}, then they
-correspond to Greek letters.
+unchanged, and likewise 128 through 159.  It converts the non-@sc{ASCII}
+codes 160 through 255 by adding the value @code{nonascii-insert-offset}
+to each character code.  By setting this variable, you specify which
+character set the unibyte characters correspond to.  For example, if
+@code{nonascii-insert-offset} is 2048, which is @code{(- (make-char
+'latin-iso8859-1 0) 128)}, then the unibyte non-@sc{ASCII} characters
+correspond to Latin 1.  If it is 2688, which is @code{(- (make-char
+'greek-iso8859-7 0) 128)}, then they correspond to Greek letters.
 
   Converting multibyte text to unibyte is simpler: it performs
 logical-and of each character code with 255.  If
@@ -150,22 +152,21 @@ This variable provides a more general alternative to
 @code{nonascii-insert-offset}.  You can use it to specify independently
 how to translate each code in the range of 128 through 255 into a
 multibyte character.  The value should be a vector, or @code{nil}.
+If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 @end defvar
 
 @tindex string-make-unibyte
 @defun string-make-unibyte string
 This function converts the text of @var{string} to unibyte
 representation, if it isn't already, and return the result.  If
-conversion does not change the contents, the value may be @var{string}
-itself.
+@var{string} is a unibyte string, it is returned unchanged.
 @end defun
 
 @tindex string-make-multibyte
 @defun string-make-multibyte string
 This function converts the text of @var{string} to multibyte
 representation, if it isn't already, and return the result.  If
-conversion does not change the contents, the value may be @var{string}
-itself.
+@var{string} is a multibyte string, it is returned unchanged.
 @end defun
 
 @node Selecting a Representation
@@ -188,8 +189,8 @@ representation.
 
 This function sets @code{enable-multibyte-characters} to record which
 representation is in use.  It also adjusts various data in the buffer
-(including its overlays, text properties and markers) so that they
-cover or fall between the same text as they did before.
+(including overlays, text properties and markers) so that they cover the
+same text as they did before.
 @end defun
 
 @tindex string-as-unibyte
@@ -198,7 +199,7 @@ This function returns a string with the same bytes as @var{string} but
 treating each byte as a character.  This means that the value may have
 more characters than @var{string} has.
 
-If @var{string} is unibyte already, then the value may be @var{string}
+If @var{string} is unibyte already, then the value is @var{string}
 itself.
 @end defun
 
@@ -208,7 +209,7 @@ This function returns a string with the same bytes as @var{string} but
 treating each multibyte sequence as one character.  This means that the
 value may have fewer characters than @var{string} has.
 
-If @var{string} is multibyte already, then the value may be @var{string}
+If @var{string} is multibyte already, then the value is @var{string}
 itself.
 @end defun
 
@@ -221,8 +222,9 @@ codes.  The valid character codes for unibyte representation range from
 0 to 255---the values that can fit in one byte.  The valid character
 codes for multibyte representation range from 0 to 524287, but not all
 values in that range are valid.  In particular, the values 128 through
-255 are not valid in multibyte text.  Only the @sc{ASCII} codes 0
-through 127 are used in both representations.
+255 are not legitimate in multibyte text (though they can occur in ``raw
+bytes''; @pxref{Explicit Encoding}).  Only the @sc{ASCII} codes 0
+through 127 are fully legitimate in both representations.
 
 @defun char-valid-p charcode
 This returns @code{t} if @var{charcode} is valid for either one of the two
@@ -249,11 +251,11 @@ only one character set.
   In general, there is one character set for each distinct script.  For
 example, @code{latin-iso8859-1} is one character set,
 @code{greek-iso8859-7} is another, and @code{ascii} is another.  An
-Emacs character set can hold at most 9025 characters; therefore. in some
-cases, a set of characters that would logically be grouped together are
-split into several character sets.  For example, one set of Chinese
-characters is divided into eight Emacs character sets,
-@code{chinese-cns11643-1} through @code{chinese-cns11643-7}.
+Emacs character set can hold at most 9025 characters; therefore, in some
+cases, characters that would logically be grouped together are split
+into several character sets.  For example, one set of Chinese characters
+is divided into eight Emacs character sets, @code{chinese-cns11643-1}
+through @code{chinese-cns11643-7}.
 
 @tindex charsetp
 @defun charsetp object
@@ -299,14 +301,17 @@ that appear in the string @var{string}.
 
   In multibyte representation, each character occupies one or more
 bytes.  The functions in this section convert between characters and the
-byte values used to represent them.
+byte values used to represent them.  For most purposes, there is no need
+to be concerned with the number of bytes used to represent a character
+because Emacs translates automatically when necessary.
 
 @tindex char-bytes
 @defun char-bytes character
 This function returns the number of bytes used to represent the
 character @var{character}.  In most cases, this is the same as
 @code{(length (split-char @var{character}))}; the only exception is for
-ASCII characters, which use just one byte.
+ASCII characters and the codes used in unibyte text, which use just one
+byte.
 
 @example
 (char-bytes 2248)
@@ -378,16 +383,17 @@ cases, Emacs supports several alternative encodings for the same
 characters; for example, there are three coding systems for the Cyrillic
 (Russian) alphabet: ISO, Alternativnyj, and KOI8.
 
-@cindex end of line conversion
-  @dfn{End of line conversion} handles three different conventions used
-on various systems for end of line.  The Unix convention is to use the
-linefeed character (also called newline).  The DOS convention is to use
-the two character sequence, carriage-return linefeed, at the end of a
-line.  The Mac convention is to use just carriage-return.
-
   Most coding systems specify a particular character code for
 conversion, but some of them leave this unspecified---to be chosen
 heuristically based on the data.
+
+@cindex end of line conversion
+  @dfn{End of line conversion} handles three different conventions used
+on various systems for representing end of line in files.  The Unix
+convention is to use the linefeed character (also called newline).  The
+DOS convention is to use the two character sequence, carriage-return
+linefeed, at the end of a line.  The Mac convention is to use just
+carriage-return.
 
 @cindex base coding system
 @cindex variant coding system
@@ -397,6 +403,9 @@ coding systems} such as @code{latin-1-unix}, @code{latin-1-dos} and
 @code{latin-1-mac} specify the end-of-line conversion explicitly as
 well.  Each base coding system has three corresponding variants whose
 names are formed by adding @samp{-unix}, @samp{-dos} and @samp{-mac}.
+
+@node Lisp and Coding Systems
+@subsection Coding Systems in Lisp
 
   Here are Lisp facilities for working with coding systems;
 
@@ -420,11 +429,21 @@ If that is valid, it returns @var{coding-system}.
 Otherwise it signals an error with condition @code{coding-system-error}.
 @end defun
 
+@tindex find-safe-coding-system
+@defun find-safe-coding-system from to
+Return a list of proper coding systems to encode a text between
+@var{from} and @var{to}.  All coding systems in the list can safely
+encode any multibyte characters in the text.
+
+If the text contains no multibyte characters, return a list of a single
+element @code{undecided}.
+@end defun
+
 @tindex detect-coding-region
 @defun detect-coding-region start end highest
 This function chooses a plausible coding system for decoding the text
 from @var{start} to @var{end}.  This text should be ``raw bytes''
-(@pxref{Specifying Coding Systems}).
+(@pxref{Explicit Encoding}).
 
 Normally this function returns is a list of coding systems that could
 handle decoding the text that was scanned.  They are listed in order of
@@ -473,6 +492,25 @@ This function looks up the target in @code{file-coding-system-alist},
 @xref{Default Coding Systems}.
 @end defun
 
+  Here are two functions you can use to let the user specify a coding
+system, with completion.  @xref{Completion}.
+
+@tindex read-coding-system
+@defun read-coding-system prompt default
+This function reads a coding system using the minibuffer, prompting with
+string @var{prompt}, and returns the coding system name as a symbol.  If
+the user enters null input, @var{default} specifies which coding system
+to return.  It should be a symbol or a string.
+@end defun
+
+@tindex read-non-nil-coding-system
+@defun read-non-nil-coding-system prompt
+This function reads a coding system using the minibuffer, prompting with
+string @var{prompt},and returns the coding system name as a symbol.  If
+the user tries to enter null input, it asks the user to try again.
+@xref{Coding Systems}.
+@end defun
+
 @node Default Coding Systems
 @section Default Coding Systems
 
@@ -480,9 +518,9 @@ This function looks up the target in @code{file-coding-system-alist},
 certain files or when running certain subprograms.  The idea of these
 variables is that you set them once and for all to the defaults you
 want, and then do not change them again.  To specify a particular coding
-system for a particular operation, don't change these variables;
-instead, override them using @code{coding-system-for-read} and
-@code{coding-system-for-write} (@pxref{Specifying Coding Systems}).
+system for a particular operation in a Lisp program, don't change these
+variables; instead, override them using @code{coding-system-for-read}
+and @code{coding-system-for-write} (@pxref{Specifying Coding Systems}).
 
 @tindex file-coding-system-alist
 @defvar file-coding-system-alist
@@ -519,7 +557,7 @@ other coding systems later using @code{set-process-coding-system}.
 @defvar network-coding-system-alist
 This variable is an alist that specifies the coding system to use for
 network streams.  It works much like @code{file-coding-system-alist},
-with the difference that the @var{pattern} in an elemetn may be either a
+with the difference that the @var{pattern} in an element may be either a
 port number or a regular expression.  If it is a regular expression, it
 is matched against the network service name used to open the network
 stream.
@@ -561,7 +599,7 @@ of the right way to use the variable:
 
 @example
 ;; @r{Read the file with no character code conversion.}
-;; @r{Assume CRLF represents end-of-line.}
+;; @r{Assume @sc{crlf} represents end-of-line.}
 (let ((coding-system-for-write 'emacs-mule-dos))
   (insert-file-contents filename))
 @end example
@@ -587,7 +625,7 @@ affect it.
 
 @tindex last-coding-system-used
 @defvar last-coding-system-used
-All operations that use a coding system set this variable
+All I/O operations that use a coding system set this variable
 to the coding system name that was used.
 @end defvar
 
@@ -646,32 +684,34 @@ text.  They are ``raw bytes''---bytes that represent text in the same
 way that an external file would.  When a buffer contains raw bytes, it
 is most natural to mark that buffer as using unibyte representation,
 using @code{set-buffer-multibyte} (@pxref{Selecting a Representation}),
-but this is not required.
+but this is not required.  If the buffer's contents are only temporarily
+raw, leave the buffer multibyte, which will be correct after you decode
+them.
 
   The usual way to get raw bytes in a buffer, for explicit decoding, is
-to read them with from a file with @code{insert-file-contents-literally}
+to read them from a file with @code{insert-file-contents-literally}
 (@pxref{Reading from Files}) or specify a non-@code{nil} @var{rawfile}
-arguments when visiting a file with @code{find-file-noselect}.
+argument when visiting a file with @code{find-file-noselect}.
 
   The usual way to use the raw bytes that result from explicitly
 encoding text is to copy them to a file or process---for example, to
-write it with @code{write-region} (@pxref{Writing to Files}), and
+write them with @code{write-region} (@pxref{Writing to Files}), and
 suppress encoding for that @code{write-region} call by binding
 @code{coding-system-for-write} to @code{no-conversion}.
 
 @tindex encode-coding-region
 @defun encode-coding-region start end coding-system
 This function encodes the text from @var{start} to @var{end} according
-to coding system @var{coding-system}.  The encoded text replaces
-the original text in the buffer.  The result of encoding is
-``raw bytes.''
+to coding system @var{coding-system}.  The encoded text replaces the
+original text in the buffer.  The result of encoding is ``raw bytes,''
+but the buffer remains multibyte if it was multibyte before.
 @end defun
 
 @tindex encode-coding-string
 @defun encode-coding-string string coding-system
 This function encodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
-encoded text.  The result of encoding is ``raw bytes.''
+encoded text.  The result of encoding is a unibyte string of ``raw bytes.''
 @end defun
 
 @tindex decode-coding-region
@@ -689,3 +729,72 @@ system @var{coding-system}.  It returns a new string containing the
 decoded text.  To make explicit decoding useful, the contents of
 @var{string} ought to be ``raw bytes.''
 @end defun
+
+@node MS-DOS File Types
+@section MS-DOS File Types
+@cindex DOS file types
+@cindex MS-DOS file types
+@cindex Windows file types
+@cindex file types on MS-DOS and Windows
+@cindex text files and binary files
+@cindex binary files and text files
+
+  Emacs on MS-DOS and on MS-Windows recognizes certain file names as
+text files or binary files.  For a text file, Emacs always uses DOS
+end-of-line conversion.  For a binary file, Emacs does no end-of-line
+conversion and no character code conversion.
+
+@defvar buffer-file-type
+This variable, automatically buffer-local in each buffer, records the
+file type of the buffer's visited file.  The value is @code{nil} for
+text, @code{t} for binary.  When a buffer does not specify a coding
+system with @code{buffer-file-coding-system}, this variable is used by
+the function @code{find-buffer-file-type-coding-system} to determine
+which coding system to use when writing the contents of the buffer.
+@end defvar
+
+@defopt file-name-buffer-file-type-alist
+This variable holds an alist for recognizing text and binary files.
+Each element has the form (@var{regexp} . @var{type}), where
+@var{regexp} is matched against the file name, and @var{type} may be
+@code{nil} for text, @code{t} for binary, or a function to call to
+compute which.  If it is a function, then it is called with a single
+argument (the file name) and should return @code{t} or @code{nil}.
+
+Emacs when running on MS-DOS or MS-Windows checks this alist to decide
+which coding system to use when reading a file.  For a text file,
+@code{undecided-dos} is used.  For a binary file, @code{no-conversion}
+is used.
+
+If no element in this alist matches a given file name, then
+@code{default-buffer-file-type} says how to treat the file.
+@end defopt
+
+@defopt default-buffer-file-type
+This variable says how to handle files for which
+@code{file-name-buffer-file-type-alist} says nothing about the type.
+
+If this variable is non-@code{nil}, then these files are treated as
+binary.  Otherwise, nothing special is done for them---the coding system
+is deduced solely from the file contents, in the usual Emacs fashion.
+@end defopt
+
+@node MS-DOS Subprocesses
+@section MS-DOS Subprocesses
+
+  On Microsoft operating systems, these variables provide an alternative
+way to specify the kind of end-of-line conversion to use for input and
+output.  The variable @code{binary-process-input} applies to input sent
+to the subprocess, and @code{binary-process-output} applies to output
+received from it.  A non-@code{nil} value means the data is ``binary,''
+and @code{nil} means the data is text.
+
+@defvar binary-process-input
+If this variable is @code{nil}, convert newlines to @sc{crlf} sequences in
+the input to a synchronous subprocess.
+@end defvar
+
+@defvar binary-process-output
+If this variable is @code{nil}, convert @sc{crlf} sequences to newlines in
+the output from a synchronous subprocess.
+@end defvar

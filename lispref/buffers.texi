@@ -130,11 +130,11 @@ string abridged):
 @end example
 
 @noindent
-This function binds a local variable to the current buffer, and then
-@code{save-current-buffer} records which buffer that was.  Next,
-@code{set-buffer} makes another buffer current.  Finally,
+This function binds a local variable to record the current buffer, and
+then @code{save-current-buffer} arranges to make it current again.
+Next, @code{set-buffer} makes the specified buffer current.  Finally,
 @code{insert-buffer-substring} copies the string from the original
-current buffer to the new current buffer.
+current buffer to the specified (and now current) buffer.
 
   If the buffer appended to happens to be displayed in some window, 
 the next redisplay will show how its text has changed.  Otherwise, you
@@ -204,10 +204,10 @@ existing buffer.
 @tindex save-current-buffer
 @defmac save-current-buffer body...
 The @code{save-current-buffer} macro saves the identity of the current
-buffer, evaluates the @var{body} forms, and finally restores the buffer.
-The return value is the value of the last form in @var{body}.  The
-current buffer is restored even in case of an abnormal exit via
-@code{throw} or error (@pxref{Nonlocal Exits}).
+buffer, evaluates the @var{body} forms, and finally restores that buffer
+as current.  The return value is the value of the last form in
+@var{body}.  The current buffer is restored even in case of an abnormal
+exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 
 If the buffer that used to be current has been killed by the time of
 exit from @code{save-current-buffer}, then it is not made current again,
@@ -383,10 +383,10 @@ buffer-file-name
 @end example
 
 It is risky to change this variable's value without doing various other
-things.  See the definition of @code{set-visited-file-name} in
-@file{files.el}; some of the things done there, such as changing the
-buffer name, are not strictly necessary, but others are essential to
-avoid confusing Emacs.
+things.  Normally it is better to use @code{set-visited-file-name} (see
+below); some of the things done there, such as changing the buffer name,
+are not strictly necessary, but others are essential to avoid confusing
+Emacs.
 @end defvar
 
 @defvar buffer-file-truename
@@ -399,7 +399,7 @@ local, unaffected by @code{kill-local-variables}.  @xref{Truenames}.
 This buffer-local variable holds the file number and directory device
 number of the file visited in the current buffer, or @code{nil} if no
 file or a nonexistent file is visited.  It is a permanent local,
-unaffected by @code{kill-local-variables}.  @xref{Truenames}.
+unaffected by @code{kill-local-variables}.
 
 The value is normally a list of the form @code{(@var{filenum}
 @var{devnum})}.  This pair of numbers uniquely identifies the file among
@@ -443,9 +443,6 @@ the buffer as having no visited file.
 @c Wordy to avoid overfull hbox.  --rjc 16mar92
 When the function @code{set-visited-file-name} is called interactively, it
 prompts for @var{filename} in the minibuffer.
-
-See also @code{clear-visited-file-modtime} and
-@code{verify-visited-file-modtime} in @ref{Buffer Modification}.
 @end deffn
 
 @defvar list-buffers-directory
@@ -669,19 +666,23 @@ buried (see @code{bury-buffer}, below).  Several functions, notably
 @code{other-buffer}, use this ordering.  A buffer list displayed for the
 user also follows this order.
 
+  In addition to the fundamental Emacs buffer list, each frame has its
+own version of the buffer list, in which the buffers that have been
+selected in that frame come first, starting with the buffers most
+recently selected @emph{in that frame}.  (This order is recorded in
+@var{frame}'s @code{buffer-list} frame parameter; see @ref{Window Frame
+Parameters}.)  The buffers that were never selected in @var{frame} come
+afterward, ordered according to the fundamental Emacs buffer list.
+
 @defun buffer-list &optional frame
-This function returns a list of all buffers, including those whose names
-begin with a space.  The elements are actual buffers, not their names.
+This function returns the buffer list, including all buffers, even those
+whose names begin with a space.  The elements are actual buffers, not
+their names.
 
-If @var{frame} is @code{nil}, all the buffers appear in order of most
-recent selection, regardless of which frames they were selected in.
-
-If @var{frame} is a frame, then the buffers that have been selected in
-@var{frame} all come at the front of the list, ordered by most recent
-selection in @var{frame}.  (This order is recorded in @var{frame}'s
-@code{buffer-list} frame parameter; see @ref{X Frame Parameters}.)  The
-buffers that were never selected in @var{frame} come afterward, ordered
-according to most recent selection in other frames.
+If @var{frame} is a frame, this returns @var{frame}'s buffer list.  If
+@var{frame} is @code{nil}, the fundamental Emacs buffer list is used:
+all the buffers appear in order of most recent selection, regardless of
+which frames they were selected in.
 
 @example
 @group
@@ -735,7 +736,7 @@ buffer list that is not now visible in any window in a visible frame.
 If the selected frame has a non-@code{nil} @code{buffer-predicate}
 parameter, then @code{other-buffer} uses that predicate to decide which
 buffers to consider.  It calls the predicate once for each buffer, and
-if the value is @code{nil}, that buffer is ignored.  @xref{X Frame
+if the value is @code{nil}, that buffer is ignored.  @xref{Window Frame
 Parameters}.
 
 @c Emacs 19 feature
@@ -946,7 +947,7 @@ themselves.
 completely separate.  They have different names, different values of
 point, different narrowing, different markers and overlays (though
 inserting or deleting text in either buffer relocates the markers and
-overlays for both), different major modes, and different local
+overlays for both), different major modes, and different buffer-local
 variables.
 
   An indirect buffer cannot visit a file, but its base buffer can.  If
