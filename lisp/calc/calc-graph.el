@@ -391,7 +391,7 @@
 	 (delete-region (match-beginning 0) (match-end 0))
 	 (if (looking-at ",")
 	     (delete-char 1)
-	   (while (memq (preceding-char) '(?\ ?\t))
+	   (while (memq (preceding-char) '(?\s ?\t))
 	     (forward-char -1))
 	   (if (eq (preceding-char) ?\,)
 	       (delete-backward-char 1))))
