@@ -126,9 +126,16 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
      Lisp_Object histvar;
      Lisp_Object histpos;
 {
-  register Lisp_Object val;
+  Lisp_Object val;
   int count = specpdl_ptr - specpdl;
   Lisp_Object mini_frame;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+
+  val = Qnil;
+  /* Don't need to protect PROMPT, HISTVAR, and HISTPOS because we
+     store them away before we can GC.  Don't need to protect
+     BACKUP_N because we use the value only if it is an integer.  */
+  GCPRO3 (map, initial, val);
 
   if (!STRINGP (prompt))
     prompt = build_string ("");
@@ -154,7 +161,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
-  minibuf_prompt_width = 0;
+  minibuf_prompt_width = 0;	/* xdisp.c puts in the right value.  */
+  minibuf_prompt = Fcopy_sequence (prompt);
+  Vminibuffer_history_position = histpos;
+  Vminibuffer_history_variable = histvar;
 
   record_unwind_protect (Fset_window_configuration,
 			 Fcurrent_window_configuration (Qnil));
@@ -231,15 +241,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 	Fforward_char (backup_n);
     }
 
-  minibuf_prompt = Fcopy_sequence (prompt);
   echo_area_glyphs = 0;
   /* This is in case the minibuffer-setup-hook calls Fsit_for.  */
   previous_echo_glyphs = 0;
 
   Vhelp_form = Vminibuffer_help_form;
   current_buffer->keymap = map;
-  Vminibuffer_history_position = histpos;
-  Vminibuffer_history_variable = histvar;
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
@@ -301,8 +308,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
       val = Fcar (expr_and_pos);
     }
 
-  return unbind_to (count, val); /* The appropriate frame will get selected
-				    in set-window-configuration.  */
+  /* The appropriate frame will get selected
+     in set-window-configuration.  */
+  RETURN_UNGCPRO (unbind_to (count, val));
 }
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
