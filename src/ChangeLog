@@ -1,3 +1,8 @@
+2001-09-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/macppc.h (DATA_SEG_BITS) [__linux__]: Define for GCC
+	versions >= 2.95.
+
 2001-09-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.c (Ffile_attributes): Doc fix.

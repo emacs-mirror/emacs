@@ -1,3 +1,9 @@
+2001-09-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* gs.el (gs-set-ghostview-window-prop): Use `elt' instead
+	of `nth' so that using a vector as bounding-box works.
+	From David.Kastrup@neuroinformatik.ruhr-uni-bochum.de.
+
 2001-09-17  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-annotate): Use current workfile version explicitly as

@@ -1,3 +1,7 @@
+2001-09-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-srvr.el (gnus-server-mode): Doc fix.
+
 2001-09-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.el (gnus-local-domain): Undo change of 2001-07-02.
