@@ -357,10 +357,7 @@ static struct input_event *kbd_fetch_ptr;
 /* Pointer to next place to store character in kbd_buffer.  This
    may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the next
    character should go in kbd_buffer[0].  */
-#ifdef __STDC__
-volatile
-#endif
-static struct input_event *kbd_store_ptr;
+static volatile struct input_event *kbd_store_ptr;
 
 /* The above pair of variables forms a "queue empty" flag.  When we
    enqueue a non-hook event, we increment kbd_write_count.  When we
