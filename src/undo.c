@@ -1,5 +1,6 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993, 1994, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993, 1994, 2000, 2002, 2004, 2005
+	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -454,6 +455,8 @@ Return what remains of the list.  */)
   Lisp_Object next;
   int count = SPECPDL_INDEX ();
   register int arg;
+  Lisp_Object oldlist;
+  int did_apply = 0;
 
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
@@ -470,6 +473,8 @@ Return what remains of the list.  */)
   arg = XINT (n);
   next = Qnil;
   GCPRO2 (next, list);
+  /* I don't think we need to gcpro oldlist, as we use it only
+     to check for EQ.  ++kfs  */
 
   /* In a writable buffer, enable undoing read-only text that is so
      because of text properties.  */
@@ -478,6 +483,8 @@ Return what remains of the list.  */)
 
   /* Don't let `intangible' properties interfere with undo.  */
   specbind (Qinhibit_point_motion_hooks, Qt);
+
+  oldlist = current_buffer->undo_list;
 
   while (arg > 0)
     {
@@ -549,7 +556,6 @@ Return what remains of the list.  */)
 		}
 	      else if (EQ (car, Qapply))
 		{
-		  Lisp_Object oldlist = current_buffer->undo_list;
 		  /* Element (apply FUNNAME . ARGS) means call FUNNAME to undo.  */
 		  car = Fcar (cdr);
 		  if (INTEGERP (car))
@@ -560,13 +566,7 @@ Return what remains of the list.  */)
 		    }
 		  cdr = Fcdr (cdr);
 		  apply1 (car, cdr);
-
-		  /* Make sure this produces at least one undo entry,
-		     so the test in `undo' for continuing an undo series
-		     will work right.  */
-		  if (EQ (oldlist, current_buffer->undo_list))
-		    current_buffer->undo_list
-		      = Fcons (list3 (Qapply, Qcdr, Qnil), current_buffer->undo_list);
+		  did_apply = 1;
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
 		{
@@ -610,6 +610,15 @@ Return what remains of the list.  */)
 	}
       arg--;
     }
+
+
+  /* Make sure an apply entry produces at least one undo entry,
+     so the test in `undo' for continuing an undo series
+     will work right.  */
+  if (did_apply
+      && EQ (oldlist, current_buffer->undo_list))
+    current_buffer->undo_list
+      = Fcons (list3 (Qapply, Qcdr, Qnil), current_buffer->undo_list);
 
   UNGCPRO;
   return unbind_to (count, list);
