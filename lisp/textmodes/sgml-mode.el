@@ -1197,7 +1197,10 @@ To work around that, do:
   (make-local-variable 'outline-level)
   (make-local-variable 'sentence-end)
   (setq sentence-end
-	"[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
+	(if sentence-end-double-space
+	    "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
+	    
+	  "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| \\|\t\\)[ \t\n]*"))
   (setq sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
 	sgml-tag-help html-tag-help
