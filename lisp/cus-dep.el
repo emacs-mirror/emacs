@@ -58,9 +58,10 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
 			  (insert " ")
 			(insert "(put '" (symbol-name symbol) 
 				" 'custom-loads '("))
-		      (insert (prin1-to-string where))
+		      (prin1 where (current-buffer))
 		      (push where found)))
-		  (insert "))\n")))))
+		  (when found
+		    (insert "))\n"))))))
   (insert "\n;;; cus-load.el ends here\n")
   (save-buffer)
   (message "Generating cus-load.el..."))
