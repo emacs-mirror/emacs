@@ -1,4 +1,4 @@
-;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision: 1.3 $
+;;;; dired-lisp.el - emulate ls completely in Emacs Lisp. $Revision: 1.4 $
 ;;;; Copyright (C) 1991 Sebastian Kremer <sk@thp.uni-koeln.de>
 
 ;;;; READ THE WARNING BELOW BEFORE USING THIS PROGRAM!
@@ -127,7 +127,7 @@ SWITCHES default to dired-listing-switches."
 
 (defun dired-lisp-delete-matching (regexp list)
   ;; Delete all elements matching REGEXP from LIST, return new list.
-  ;; Should perhaps use setcdr for efficiency
+  ;; Should perhaps use setcdr for efficiency.
   (let (result)
     (while list
       (or (string-match regexp (car list))
@@ -138,6 +138,7 @@ SWITCHES default to dired-listing-switches."
 (defun dired-lisp-handle-switches (file-alist switches)
   ;; FILE-ALIST's elements are (FILE . FILE-ATTRIBUTES).
   ;; Return new alist sorted according to switches.
+  ;; Default sorting is alphabetically.
   (setq file-alist
 	(sort file-alist
 	      (cond ((memq ?S switches)
@@ -145,8 +146,7 @@ SWITCHES default to dired-listing-switches."
 		      (lambda (x y)
 			;; 7th file attribute is file size
 			;; Make largest file come first
-			(< (nth 7 (cdr y)) 
-			   (nth 7 (cdr x))))))
+			(< (nth 7 (cdr y)) (nth 7 (cdr x))))))
 		    (t			; sorted alphabetically
 		     (function
 		      (lambda (x y)
@@ -158,27 +158,24 @@ SWITCHES default to dired-listing-switches."
 (defun dired-lisp-format (file-name file-attr &optional switches)
   (let ((file-type (nth 0 file-attr)))
     (concat (if (memq ?i switches)	; inode number
-		(concat (dired-lisp-pad (nth 10 file-attr) -6)
-			" "))
+		(format "%6d " (nth 10 file-attr)))
+	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
-		(concat (dired-lisp-pad (1+ (/ (nth 7 file-attr) 1024))
-					-4)
-			" "))
+		(format "%4d " (1+ (/ (nth 7 file-attr) 1024))))
 	    (nth 8 file-attr)		; permission bits
-	    " "
-	    (dired-lisp-pad (nth 1 file-attr) -3) ; no. of links
 	    ;; numeric uid/gid are more confusing than helpful
 	    ;; Emacs should be able to make strings of them.
 	    ;; user-login-name and user-full-name could take an
 	    ;; optional arg.
-	    " " (dired-lisp-pad (nth 2 file-attr) -6)		; uid
-	    " " (dired-lisp-pad (nth 3 file-attr) -6)		; gid
-	    " "
-	    (dired-lisp-pad (nth 7 file-attr) -8) ; size in bytes
-	    " "
+	    (format " %3d %-8d %-8d %8d "
+		    (nth 1 file-attr)	; no. of links
+		    (nth 2 file-attr)	; uid
+		    (nth 3 file-attr)	; gid
+		    (nth 7 file-attr)	; size in bytes
+		    )
 	    ;; file-attributes's time is in a braindead format
 	    ;; Emacs should have a ctime function
-	    ;; Or current-time-string could take an optional arg.
+	    ;; current-time-string could take an optional arg.
 	    "Jan 00 00:00 "		; fake time
 	    file-name
 	    (if (stringp file-type)	; is a symbolic link
@@ -187,21 +184,3 @@ SWITCHES default to dired-listing-switches."
 	    "\n"
 	    )))
 
-;; format should really do anything printf can!!
-(defun dired-lisp-pad (arg width &optional pad-char)
-  "Pad ARG to WIDTH, from left if WIDTH < 0.
-Non-nil third arg optional PAD-CHAR defaults to a space."
-  (or pad-char (setq pad-char ?\040))
-  (if (integerp arg)
-      (setq arg (int-to-string arg)))
-  (let (pad reverse)
-    (if (< width 0)
-	(setq reverse t
-	      width (- width)))
-    (setq pad (- width (length arg)))
-    (if (> pad 0)			; ARG needs padding
-	(if reverse
-	    (concat (make-string pad pad-char) arg)
-	  (concat arg (make-string pad pad-char)))
-      ;; else unpadded (perhaps longer than WIDTH)
-      arg)))
