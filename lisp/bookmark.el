@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cyclic.com>
 ;; Maintainer: Karl Fogel <kfogel@cyclic.com>
 ;; Created: July, 1993
-;; Version: 2.6.5
+;; Version: 2.6.6
 ;; Keywords: bookmarks, placeholders, annotations
 
 ;;; Summary:
@@ -68,7 +68,7 @@
 ;; LCD Archive Entry:
 ;; bookmark|Karl Fogel|kfogel@cyclic.com|
 ;; Setting bookmarks in files or directories, jumping to them later.|
-;; 06-March-1995|Version: 2.6.5|~/misc/bookmark.el.Z|
+;; 06-March-1995|Version: 2.6.6|~/misc/bookmark.el.Z|
 
 ;; Enough with the credits already, get on to the good stuff:
 
@@ -446,18 +446,22 @@ Takes ANNOTATION as an argument."
       (front-context-string
        . (, (if (>= (- (point-max) (point)) bookmark-search-size)
                 ;; strip text props via `format':
-                (format "%s"
+		(let ((string
                         (buffer-substring 
                          (point)
-                         (+ (point) bookmark-search-size)))
+                         (+ (point) bookmark-search-size))))
+                  (set-text-properties 0 (length string) nil string)
+                  string)
               nil)))
       (rear-context-string
        . (, (if (>= (- (point) (point-min)) bookmark-search-size)
                 ;; strip text props via `format':
-                (format "%s"
+		(let ((string
                         (buffer-substring 
                          (point)
-                         (- (point) bookmark-search-size)))
+                         (- (point) bookmark-search-size))))
+                  (set-text-properties 0 (length string) nil string)
+                  string)
               nil)))
       (position . (, (point)))
       (annotation . (, annotation)))))
@@ -668,7 +672,7 @@ the list of bookmarks.\)"
 	     (progn (define-key now-map  "\C-w" 
 		      'bookmark-yank-word)
 		    (define-key now-map  "\C-v" 
-		      'bookmark-insert-current-file-name)
+		      'bookmark-insert-buffer-name)
 		    (define-key now-map  "\C-u" 
 		      'bookmark-insert-current-bookmark))
 	     now-map)))
@@ -841,18 +845,42 @@ as the new annotation for a bookmark."
 	 (save-excursion
 	   (set-buffer bookmark-current-buffer)
 	   bookmark-current-bookmark)))
-    (if str (insert str) (bookmark-insert-current-file-name))))
+    (if str (insert str) (bookmark-insert-buffer-name))))
 
 
-(defun bookmark-insert-current-file-name ()
+(defun bookmark-insert-buffer-name ()
   ;; insert the name (sans path) of the current file into the bookmark
   ;; name that is being set.
   (interactive)
   (let ((str
          (save-excursion
            (set-buffer bookmark-current-buffer)
-           (file-name-nondirectory (bookmark-buffer-file-name)))))
+           (bookmark-buffer-name))))
     (insert str)))
+
+
+(defun bookmark-buffer-name ()
+  "Return the name of the current buffer's file, non-directory.
+In Info, return the current node."
+  (cond
+   ;; Are we in Info?
+   ((string-equal mode-name "Info") Info-current-node)
+   ;; Or are we a file?
+   (buffer-file-name (file-name-nondirectory buffer-file-name))
+   ;; Or are we a directory?
+   ((and (boundp 'dired-directory) dired-directory)
+    (let* ((dirname (if (stringp dired-directory)
+                        dired-directory
+                      (car dired-directory)))
+           (idx (1- (length dirname))))
+      ;; Strip the trailing slash.
+      (if (= ?/ (aref dirname idx))
+          (file-name-nondirectory (substring dirname 0 idx))
+        ;; Else return the current-buffer
+        (buffer-name (current-buffer)))))
+   ;; If all else fails, use the buffer's name.
+   (t
+    (buffer-name (current-buffer)))))
 
 
 (defun bookmark-yank-word ()
@@ -875,19 +903,6 @@ as the new annotation for a bookmark."
 For example, if this is a Info buffer, return the Info file's name."
   (if (eq major-mode 'Info-mode)
         Info-current-file
-    (or
-     buffer-file-name
-     (if (and (boundp 'dired-directory) dired-directory)
-         (if (stringp dired-directory)
-             dired-directory
-           (car dired-directory))))))
-
-
-(defun bookmark-buffer-name ()
-  "Return the name of the current buffer in a way useful for bookmarks.
-For example, if this is a Info buffer, return the Info node's name."
-  (if (string-equal mode-name "Info")
-      Info-current-node
     (or
      buffer-file-name
      (if (and (boundp 'dired-directory) dired-directory)
@@ -1081,7 +1096,7 @@ just want to make minor changes to the old name."
                              (interactive)
                              (insert old)))
                          (define-key now-map  "\C-v" 
-                           'bookmark-insert-current-file-name))
+                           'bookmark-insert-buffer-name))
                   now-map)))))
       (progn
 	(bookmark-set-name old newname)
