@@ -1419,7 +1419,8 @@ non-nil."
   (if (not (bobp))
       (if (and (eolp)
 	       (progn (forward-line -1)
-		      (or (looking-at mail-header-separator)
+		      (or (looking-at
+			   (concat "^" (regexp-quote mail-header-separator) "$"))
 			  (and (eq major-mode 'mh-letter-mode)
 			       (mh-in-header-p)))))
 	  (progn (forward-line)
