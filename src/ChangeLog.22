@@ -1,6 +1,18 @@
 2004-03-11  Kenichi Handa  <handa@etlken2>
 
-	* coding.c (get_translation_table): Allow max_lookup to be NULL.
+	* xdisp.c (handle_auto_composed_prop): Fix Lisp_Object/int mixup.
+
+	* print.c (print_prune_string_charset): Fix Lisp_Object/int mixup.
+
+	* fontset.c: Include "intervals.h".
+	(fontset_face): Fix comparing of Lisp_Objects.
+	(free_face_fontset): Fix Lisp_Object/int mixup.
+	(new_fontset_from_font_name): Likewise.
+
+	* editfns.c (Ftranslate_region_internal): Fix Lisp_Object/int mixup.
+
+	* coding.c: Add many prototypes for static functions.
+	(get_translation_table): Allow max_lookup to be NULL.
 	(decode_coding): Call get_translation_table with max_lookup NULL.
 	(Ffind_coding_systems_region_internal): Likewise.
 	(Funencodable_char_position, Fcheck_coding_systems_region):
