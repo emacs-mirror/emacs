@@ -118,14 +118,18 @@ strings or patterns."
 		    ((eq char ?\,)
 		     (setq pos (read-from-string to))
 		     (push `(replace-quote ,(car pos)) list)
-		     (setq to (substring
-			       to (+ (cdr pos)
-				     ;; Swallow a space after a symbol
-				     ;; if there is a space.
-				     (if (string-match
-                                          "^[^])\"] "
-                                          (substring to (1- (cdr pos))))
-					 1 0))))))
+		     (let ((end
+			    ;; Swallow a space after a symbol
+			    ;; if there is a space.
+			    (if (and (or (symbolp (car pos))
+					 ;; Swallow a space after 'foo
+					 ;; but not after (quote foo).
+					 (and (eq (car-safe (car pos)) 'quote)
+					      (= ?\( (aref to 0))))
+				     (string-match " " to (cdr pos)))
+				(1+ (cdr pos))
+			      (cdr pos))))
+		       (setq to (substring to end)))))
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
 	(setq to (nreverse (delete "" (cons to list)))))
       (replace-match-string-symbols to)
