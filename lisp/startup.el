@@ -1014,13 +1014,13 @@ where FACE is a valid face specification, as it can be used with
 	  (define-key map [mouse-movement] 'ignore)
 	  (setq cursor-type nil
 		display-busy-cursor nil
+		buffer-undo-list t
 		mode-line-format
 		(propertize "---- %b %-" 'face '(:weight bold))
 		timer (run-with-timer 0 5 #'fancy-splash-screens-1
 				      splash-buffer))
 	  (recursive-edit))
       (cancel-timer timer)
-      (remove-hook 'pre-command-hook 'fancy-splash-pre-command)
       (setq display-busy-cursor old-busy-cursor)
       (kill-buffer splash-buffer))))
 
