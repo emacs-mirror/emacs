@@ -1,3 +1,7 @@
+2004-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-decode.el (mm-copy-to-buffer): Preserve the data's unibyteness.
+
 2004-09-20  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* uudecode.el (uudecode-use-external): Add :version.
@@ -12,7 +16,7 @@
 	* pgg-def.el (pgg-query-keyserver): Add :version.
 
 	* nnmail.el (nnmail-fancy-expiry-targets)
-	(nnmail-mail-splitting-charset, nnmail-mail-splitting-decodes): 
+	(nnmail-mail-splitting-charset, nnmail-mail-splitting-decodes):
 
 	* nnimap.el (nnimap-split-download-body, nnimap-dont-close)
 	(nnimap-retrieve-groups-asynchronous): Add :version.
@@ -21,7 +25,7 @@
 	* mml.el (mml-content-disposition-parameters)
 	(mml-insert-mime-headers-always): Add :version.
 
-	* mm-util.el (mm-coding-system-priorities): 
+	* mm-util.el (mm-coding-system-priorities):
 
 	* mm-decode.el (mm-inline-text-html-with-images)
 	(mm-keep-viewer-alive-types, mm-external-terminal-program)
@@ -49,7 +53,7 @@
 	(message-insert-canlock, message-wide-reply-confirm-recipients):
 	Change :version.
 
-	* mail-source.el (mail-source-ignore-errors): Added :group, :type
+	* mail-source.el (mail-source-ignore-errors): Add :group, :type
 	and :version.
 	(mail-source-delete-old-incoming-confirm)
 	(mail-source-movemail-program): Add :version.
@@ -78,7 +82,7 @@
 	* gnus-srvr.el (gnus-server-browse-in-group-buffer)
 	(gnus-server-offline-face): Add :version.
 
-	* gnus-score.el (gnus-adaptive-word-length-limit): 
+	* gnus-score.el (gnus-adaptive-word-length-limit):
 
 	* gnus-msg.el (gnus-gcc-externalize-attachments)
 	(gnus-debug-files, gnus-debug-exclude-variables)
@@ -146,7 +150,7 @@
 
 2004-09-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-sum.el (gnus-fetch-old-headers): Added custom choices `t'
+	* gnus-sum.el (gnus-fetch-old-headers): Add custom choices `t'
 	and `invisible'.
 
 2004-09-13  Simon Josefsson  <jas@extundo.com>
@@ -155,7 +159,7 @@
 
 2004-09-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-sum.el (gnus-summary-copy-article): Fixed doc string.
+	* gnus-sum.el (gnus-summary-copy-article): Fix doc string.
 
 2004-09-10  Miles Bader  <miles@gnu.ai.mit.edu>
 
@@ -163,10 +167,10 @@
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* nnimap.el (nnimap-open-connection): allow 'imaps' as a synonym
+	* nnimap.el (nnimap-open-connection): Allow 'imaps' as a synonym
 	for the 'imap' port in netrc files
 
-	* gnus-registry.el (gnus-registry-trim): watch out for negatives
+	* gnus-registry.el (gnus-registry-trim): Watch out for negatives
 	in gnus-registry-trim
 
 2004-09-10  Simon Josefsson  <jas@extundo.com>
@@ -176,10 +180,9 @@
 2004-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nntp.el (nntp): New customization group.
-	(nntp-authinfo-file): Added customization group.
+	(nntp-authinfo-file): Add customization group.
 
-	* mml2015.el (mml2015-unabbrev-trust-alist): Added customization
-	group.
+	* mml2015.el (mml2015-unabbrev-trust-alist): Add customization group.
 
 	* mml-sec.el (mml-signencrypt-style-alist): Ditto.
 

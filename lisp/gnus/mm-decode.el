@@ -623,11 +623,14 @@ Postpone undisplaying of viewers for types in
   "Copy the contents of the current buffer to a fresh buffer."
   (save-excursion
     (let ((obuf (current-buffer))
+	  (multibyte enable-multibyte-characters)
 	  beg)
       (goto-char (point-min))
       (search-forward-regexp "^\n" nil t)
       (setq beg (point))
       (set-buffer (generate-new-buffer " *mm*"))
+      ;; Preserve the data's unibyteness (for url-insert-file-contents).
+      (set-buffer-multibyte multibyte)
       (insert-buffer-substring obuf beg)
       (current-buffer))))
 
@@ -1486,5 +1489,5 @@ If RECURSIVE, search recursively."
 
 (provide 'mm-decode)
 
-;;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
+;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
 ;;; mm-decode.el ends here
