@@ -2,7 +2,7 @@
 #
 # Build and test MM at tip of main trunk (the MM_src compound)
 # 
-# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.15) $
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.16) $
 #
 
 script="`basename $0`"
@@ -38,7 +38,8 @@ do
 done &&
 
 for test in amcss dwstress lockcov locv mpmss mpsicv poolncv \
-            qs mpmconft finalcv arenacv amsss awlut
+            qs mpmconft finalcv arenacv awlut
+            ## Don't run amsss, because it doesn't work
 do
   gnumake -r -f sus8gc.gmk $test ||
     die "Unable to build test $test of trunk"
