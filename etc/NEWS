@@ -64,7 +64,7 @@ is only rarely needed.
 ** jit-lock can now be delayed with `jit-lock-defer-time'.
 
 If this variable is non-nil, its value should be the amount of Emacs
-idle time inseconds to wait before starting fontification.  For
+idle time in seconds to wait before starting fontification.  For
 example, if you set `jit-lock-defer-time' to 0.25, fontification will
 only happen after 0.25s of idle time.
 
@@ -73,8 +73,8 @@ will now be extended each time, so you can mark the next two sexps with
 M-C-SPC M-C-SPC, for example.
 
 +++
-** M-h (mark-pagaraph) now accepts a prefix arg.
-With positive arg, M-h marks the current and the following pargraphs;
+** M-h (mark-paragraph) now accepts a prefix arg.
+With positive arg, M-h marks the current and the following paragraphs;
 if the arg is negative, it marks the current and the preceding
 paragraphs.
 
@@ -119,7 +119,7 @@ now uses normal-erase-is-backspace-mode.
 
 *** In Prolog, etags creates tags for rules in addition to predicates.
 
-*** New language PHP: tags are function, classes and defines.  If
+*** New language PHP: tags are functions, classes and defines.  If
 the --members option is specified to etags, tags are vars also.
 
 +++
@@ -290,7 +290,7 @@ property over the second half of the command to force (deferred)
 refontification of `bar' whenever the `e' is added/removed.
 
 ** describe-vector now takes a second argument `describer' which is
-called to print the entries' values.  It default to `princ'.
+called to print the entries' values.  It defaults to `princ'.
 
 ** defcustom and other custom declarations now use a default group
 (the last group defined in the same file) when no :group was given.
