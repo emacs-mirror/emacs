@@ -1,6 +1,6 @@
 ;;; rcompile.el Run a compilation on a remote machine
 
-;;; Copyright (C) 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Albert    <alon@milcse.rtsg.mot.com>
 ;; Maintainer: FSF
@@ -163,6 +163,11 @@ See \\[compile]."
                   compile-command)))
     (setq remote-compile-host host)
     (save-some-buffers nil nil)
-    (compile-internal compile-command "No more errors")))
+    (compile-internal compile-command "No more errors")
+    ;; Set comint-file-name-prefix in the compilation buffer so
+    ;; compilation-parse-errors will find referenced files by ange-ftp.
+    (save-excursion
+      (set-buffer compilation-last-buffer)
+      (setq comint-file-name-prefix (concat "/" host ":")))))
 
 ;;; rcompile.el ends here
