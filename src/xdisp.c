@@ -7274,6 +7274,10 @@ display_tool_bar_line (it)
   
   prepare_desired_row (row);
   row->y = it->current_y;
+
+  /* Note that this isn't made use of if the face hasn't a box,
+     so there's no need to check the face here.  */
+  it->start_of_box_run_p = 1;
   
   while (it->current_x < max_x)
     {
@@ -7321,6 +7325,8 @@ display_tool_bar_line (it)
   extend_face_to_end_of_line (it);
   last = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA] - 1;
   last->right_box_line_p = 1;
+  if (last == row->glyphs[TEXT_AREA])
+    last->left_box_line_p = 1;
   compute_line_metrics (it);
   
   /* If line is empty, make it occupy the rest of the tool-bar.  */
