@@ -147,12 +147,7 @@ install: ${archlibdir}
 	  cp ${srcdir}/$${file} ${bindir}/$${file}.n ; \
 	  chmod 755 ${bindir}/$${file}.n ; \
 	done
-	@echo
-	@echo "Changing the owner and group of utility programs to \`bin'."
-	@echo "(You may ignore errors here if you don't care about this.)"
 	-for file in ${INSTALLABLES}  ${INSTALLABLE_SCRIPTS} ; do \
-	  chgrp bin ${bindir}/$${file}.n ; \
-	  chown bin ${bindir}/$${file}.n ; \
 	  rm -f ${bindir}/$${file} ; \
 	  mv ${bindir}/$${file}.n ${bindir}/$${file} ; \
 	done
