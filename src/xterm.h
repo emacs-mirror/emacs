@@ -167,7 +167,7 @@ struct x_display_info
   /* The colormap being used.  */
   Colormap cmap;
 
-  /* Number of panes on this screen.  */
+  /* Number of planes on this screen.  */
   int n_planes;
 
   /* Dimensions of this screen.  */

@@ -606,6 +606,14 @@ x_create_bitmap_mask (f, id)
 
 static struct image_type *image_types;
 
+/* A list of symbols, one for each supported image type.  */
+
+Lisp_Object Vimage_types;
+
+/* Cache for delayed-loading image types.  */
+
+static Lisp_Object Vimage_type_cache;
+
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
 Lisp_Object Qxbm;
@@ -630,7 +638,7 @@ Lisp_Object Vimage_cache_eviction_delay;
 
 /* Function prototypes.  */
 
-static void define_image_type P_ ((struct image_type *type));
+static Lisp_Object define_image_type P_ ((struct image_type *type, int loaded));
 static struct image_type *lookup_image_type P_ ((Lisp_Object symbol));
 static void image_error P_ ((char *format, Lisp_Object, Lisp_Object));
 static void x_laplace P_ ((struct frame *, struct image *));
@@ -638,21 +646,37 @@ static void x_emboss P_ ((struct frame *, struct image *));
 static int x_build_heuristic_mask P_ ((struct frame *, struct image *,
 				       Lisp_Object));
 
+#define CACHE_IMAGE_TYPE(type, status) \
+  do { Vimage_type_cache = Fcons (Fcons (type, status), Vimage_type_cache); } while (0)
+
+#define ADD_IMAGE_TYPE(type) \
+  do { Vimage_types = Fcons (type, Vimage_types); } while (0)
 
 /* Define a new image type from TYPE.  This adds a copy of TYPE to
-   image_types and adds the symbol *TYPE->type to Vimage_types.  */
+   image_types and caches the loading status of TYPE.  */
 
-static void
-define_image_type (type)
+static Lisp_Object
+define_image_type (type, loaded)
      struct image_type *type;
+     int loaded;
 {
-  /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
-     The initialized data segment is read-only.  */
-  struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
-  bcopy (type, p, sizeof *p);
-  p->next = image_types;
-  image_types = p;
-  Vimage_types = Fcons (*p->type, Vimage_types);
+  Lisp_Object success;
+
+  if (!loaded)
+    success = Qnil;
+  else
+    {
+      /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
+         The initialized data segment is read-only.  */
+      struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
+      bcopy (type, p, sizeof *p);
+      p->next = image_types;
+      image_types = p;
+      success = Qt;
+    }
+
+  CACHE_IMAGE_TYPE(*type->type, success);
+  return success;
 }
 
 
@@ -1788,6 +1812,33 @@ forall_images_in_image_cache (f, fn)
     fn_##func = (void *) GetProcAddress (lib, #func);			\
     if (!fn_##func) return 0;						\
   }
+
+/* Load a DLL implementing an image type.
+   The `image-library-alist' variable associates a symbol,
+   identifying  an image type, to a list of possible filenames.
+   The function returns NULL if no library could be loaded for
+   the given image type, or if the library was previously loaded;
+   else the handle of the DLL.  */
+static HMODULE
+w32_delayed_load (Lisp_Object libraries, Lisp_Object type)
+{
+  HMODULE library = NULL;
+
+  if (CONSP (libraries) && NILP (Fassq (type, Vimage_type_cache)))
+    {
+      Lisp_Object dlls = Fassq (type, libraries);
+
+      if (CONSP (dlls))
+        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
+          {
+            CHECK_STRING_CAR (dlls);
+            if (library = LoadLibrary (SDATA (XCAR (dlls))))
+              break;
+          }
+    }
+
+  return library;
+}
 
 #endif /* HAVE_NTGUI */
 
@@ -3489,13 +3540,12 @@ DEF_IMGLIB_FN (XpmCreateImageFromBuffer);
 DEF_IMGLIB_FN (XpmReadFileToImage);
 DEF_IMGLIB_FN (XImageFree);
 
-
 static int
-init_xpm_functions (void)
+init_xpm_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libXpm.dll")))
+  if (!(library = w32_delayed_load (libraries, Qxpm)))
     return 0;
 
   LOAD_IMGLIB_FN (library, XpmFreeAttributes);
@@ -5589,21 +5639,12 @@ DEF_IMGLIB_FN (png_read_end);
 DEF_IMGLIB_FN (png_error);
 
 static int
-init_png_functions (void)
+init_png_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  /* Ensure zlib is loaded.  Try debug version first.  */
-  if (!LoadLibrary ("zlibd.dll")
-      && !LoadLibrary ("zlib.dll"))
-    return 0;
-
   /* Try loading libpng under probable names.  */
-  if (!(library = LoadLibrary ("libpng13d.dll"))
-      && !(library = LoadLibrary ("libpng13.dll"))
-      && !(library = LoadLibrary ("libpng12d.dll"))
-      && !(library = LoadLibrary ("libpng12.dll"))
-      && !(library = LoadLibrary ("libpng.dll")))
+  if (!(library = w32_delayed_load (libraries, Qpng)))
     return 0;
 
   LOAD_IMGLIB_FN (library, png_get_io_ptr);
@@ -6247,13 +6288,11 @@ DEF_IMGLIB_FN (jpeg_std_error);
 DEF_IMGLIB_FN (jpeg_resync_to_restart);
 
 static int
-init_jpeg_functions (void)
+init_jpeg_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libjpeg.dll"))
-      && !(library = LoadLibrary ("jpeg-62.dll"))
-      && !(library = LoadLibrary ("jpeg.dll")))
+  if (!(library = w32_delayed_load (libraries, Qjpeg)))
     return 0;
 
   LOAD_IMGLIB_FN (library, jpeg_finish_decompress);
@@ -6684,11 +6723,11 @@ DEF_IMGLIB_FN (TIFFReadRGBAImage);
 DEF_IMGLIB_FN (TIFFClose);
 
 static int
-init_tiff_functions (void)
+init_tiff_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libtiff.dll")))
+  if (!(library = w32_delayed_load (libraries, Qtiff)))
     return 0;
 
   LOAD_IMGLIB_FN (library, TIFFSetErrorHandler);
@@ -7104,11 +7143,11 @@ DEF_IMGLIB_FN (DGifOpen);
 DEF_IMGLIB_FN (DGifOpenFileName);
 
 static int
-init_gif_functions (void)
+init_gif_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libungif.dll")))
+  if (!(library = w32_delayed_load (libraries, Qgif)))
     return 0;
 
   LOAD_IMGLIB_FN (library, DGifCloseFile);
@@ -7881,9 +7920,81 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 			    Initialization
  ***********************************************************************/
 
+#ifdef HAVE_NTGUI
+/* Image types that rely on external libraries are loaded dynamically
+   if the library is available.  */
+#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn) \
+  define_image_type (image_type, init_lib_fn (libraries))
+#else
+#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn) \
+  define_image_type (image_type, TRUE)
+#endif /* HAVE_NTGUI */
+
+DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 2, 2, 0,
+       doc: /* Initialize image library implementing image type TYPE.
+Return non-nil if TYPE is a supported image type.
+
+Image types pbm and xbm are prebuilt; other types are loaded here.
+Libraries to load are specified in alist LIBRARIES (usually, the value
+of `image-library-alist', which see.  */)
+  (type, libraries)
+{
+  Lisp_Object tested;
+
+  /* Don't try to reload the library.  */
+  tested = Fassq (type, Vimage_type_cache);
+  if (CONSP (tested))
+    return XCDR (tested);
+
+#if defined (HAVE_XPM) || defined (MAC_OS)
+  if (EQ (type, Qxpm))
+    return CHECK_LIB_AVAILABLE(&xpm_type, init_xpm_functions);
+#endif
+
+#if defined (HAVE_JPEG) || defined (MAC_OS)
+  if (EQ (type, Qjpeg))
+    return CHECK_LIB_AVAILABLE(&jpeg_type, init_jpeg_functions);
+#endif
+
+#if defined (HAVE_TIFF) || defined (MAC_OS)
+  if (EQ (type, Qtiff))
+    return CHECK_LIB_AVAILABLE(&tiff_type, init_tiff_functions);
+#endif
+
+#if defined (HAVE_GIF) || defined (MAC_OS)
+  if (EQ (type, Qgif))
+    return CHECK_LIB_AVAILABLE(&gif_type, init_gif_functions);
+#endif
+
+#if defined (HAVE_PNG) || defined (MAC_OS)
+  if (EQ (type, Qpng))
+    return CHECK_LIB_AVAILABLE(&png_type, init_png_functions);
+#endif
+
+#ifdef HAVE_GHOSTSCRIPT
+  if (EQ (type, Qpostscript))
+    return CHECK_LIB_AVAILABLE(&gs_type, init_gs_functions);
+#endif
+
+  /* If the type is not recognized, avoid testing it ever again.  */
+  CACHE_IMAGE_TYPE(type, Qnil);
+  return Qnil;
+}
+
 void
 syms_of_image ()
 {
+  /* Must be defined now becase we're going to update it below, while
+     defining the supported image types.  */
+  DEFVAR_LISP ("image-types", &Vimage_types,
+    doc: /* List of potentially supported image types.
+Each element of the list is a symbol for a image type, like 'jpeg or 'png.
+To check whether it is really supported, use `image-type-available-p'.  */);
+  Vimage_types = Qnil;
+
+  Vimage_type_cache = Qnil;
+  staticpro (&Vimage_type_cache);
+
   QCascent = intern (":ascent");
   staticpro (&QCascent);
   QCmargin = intern (":margin");
@@ -7917,6 +8028,7 @@ syms_of_image ()
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);
 #ifdef HAVE_GHOSTSCRIPT
+  ADD_IMAGE_TYPE(Qpostscript);
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
@@ -7929,35 +8041,43 @@ syms_of_image ()
 
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
+  ADD_IMAGE_TYPE(Qpbm);
 
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
+  ADD_IMAGE_TYPE(Qxbm);
 
 #if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
   staticpro (&Qxpm);
+  ADD_IMAGE_TYPE(Qxpm);
 #endif
 
 #if defined (HAVE_JPEG) || defined (MAC_OS)
   Qjpeg = intern ("jpeg");
   staticpro (&Qjpeg);
+  ADD_IMAGE_TYPE(Qjpeg);
 #endif
 
 #if defined (HAVE_TIFF) || defined (MAC_OS)
   Qtiff = intern ("tiff");
   staticpro (&Qtiff);
+  ADD_IMAGE_TYPE(Qtiff);
 #endif
 
 #if defined (HAVE_GIF) || defined (MAC_OS)
   Qgif = intern ("gif");
   staticpro (&Qgif);
+  ADD_IMAGE_TYPE(Qgif);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
   Qpng = intern ("png");
   staticpro (&Qpng);
+  ADD_IMAGE_TYPE(Qpng);
 #endif
 
+  defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
@@ -7985,52 +8105,13 @@ meaning don't clear the cache.  */);
   Vimage_cache_eviction_delay = make_number (30 * 60);
 }
 
-
-#ifdef HAVE_NTGUI
-/* Image types that rely on external libraries are loaded dynamically
-   if the library is available.  */
-#define IF_LIB_AVAILABLE(init_lib_fn)  if (init_lib_fn())
-#else
-#define IF_LIB_AVAILABLE(init_func)    /* Load unconditionally */
-#endif /* HAVE_NTGUI */
-
 void
 init_image ()
 {
   image_types = NULL;
-  Vimage_types = Qnil;
 
-  define_image_type (&xbm_type);
-  define_image_type (&pbm_type);
-
-#if defined (HAVE_XPM) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_xpm_functions)
-    define_image_type (&xpm_type);
-#endif
-
-#if defined (HAVE_JPEG) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_jpeg_functions)
-    define_image_type (&jpeg_type);
-#endif
-
-#if defined (HAVE_TIFF) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_tiff_functions)
-    define_image_type (&tiff_type);
-#endif
-
-#if defined (HAVE_GIF) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_gif_functions)
-    define_image_type (&gif_type);
-#endif
-
-#if defined (HAVE_PNG) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_png_functions)
-    define_image_type (&png_type);
-#endif
-
-#ifdef HAVE_GHOSTSCRIPT
-  define_image_type (&gs_type);
-#endif
+  define_image_type (&xbm_type, TRUE);
+  define_image_type (&pbm_type, TRUE);
 
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */

@@ -2560,7 +2560,6 @@ extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
 extern int redisplaying_p;
-extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
@@ -2645,6 +2644,8 @@ void w32_reset_fringes P_ ((void));
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM
+
+extern Lisp_Object Vimage_types;
 
 extern int x_bitmap_height P_ ((struct frame *, int));
 extern int x_bitmap_width P_ ((struct frame *, int));

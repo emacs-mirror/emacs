@@ -1,9 +1,51 @@
+2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): New function.
+	(xg_get_gdk_pixmap_and_mask): Removed.
+	(update_frame_tool_bar): Call xg_get_image_for_pixmap instead of
+	xg_get_gdk_pixmap_and_mask.
+	
+	* xterm.h (struct x_display_info): Typo in comment fixed.
+
+2004-06-14  Juanma Barranquero  <lektu@terra.es>
+
+	* dispextern.h (Vimage_types): Make it conditional on
+	HAVE_WINDOW_SYSTEM.
+
+	* image.c (Vimage_types): Move from xdisp.c.
+	(Vimage_type_cache): New variable.
+	(define_image_type): New argument indicating whether an image
+	library was loaded; cache loaded status and return t on success,
+	nil otherwise.
+	(CACHE_IMAGE_TYPE, ADD_IMAGE_TYPE): New macros.
+	(w32_delayed_load): New function to load an image library from a
+	list of possible filenames.
+	(init_xpm_functions, init_png_functions, init_jpeg_functions)
+	(init_tiff_functions, init_gif_functions): Use `w32_delayed_load'.
+	(CHECK_LIB_AVAILABLE): Call `define_image_library' with new
+	argument.
+	(Finit_image_library): New function, extracted from `init_image'.
+	Try to initialize an image library on demand and cache whether we
+	were successful or not.
+	(syms_of_image): Initialize `Vimage_types' and
+	`Vimage_type_cache'.  Add recognized image types to Vimage_types.
+	Export `init-image-library'.
+	(init_image): Remove initialization of all image types, except xbm
+	and pbm.
+
+	* xdisp.c (Vimage_types): Delete (moved to image.c).
+
+2004-06-14  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
+	Avoid calling specbind when completion-regexp-list is empty.
+
 2004-06-13  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.h (CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
 	(re_wctype, re_iswctype, re_wctype_to_bit):
 	Non-function definitions moved here from regex.c.
-	
+
 	* regex.c (re_wctype, re_iswctype): Function defs longer static.
 	(CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
 	(re_wctype, re_iswctype, re_wctype_to_bit):
