@@ -26,7 +26,7 @@ Makes the commands to define mode-specific abbrevs define global ones instead.")
 
 (defun abbrev-mode (arg)
   "Toggle abbrev mode.
-With ARG, turn abbrev mode on iff ARG is positive.
+With argument ARG, turn abbrev mode on iff ARG is positive.
 In abbrev mode, inserting an abbreviation causes it to expand
 and be replaced by its expansion."
   (interactive "P")
