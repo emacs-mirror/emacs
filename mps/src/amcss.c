@@ -1,7 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.32) $
- * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!amcss.c(trunk.33) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 #include "fmtdy.h"
@@ -21,13 +21,18 @@
 #include <string.h>
 
 
-/* These values have been tuned to cause one top generation collection. */
+/* These values have been tuned to cause one top-generation collection. */
 #define testArenaSIZE     ((size_t)1600*1024)
+#ifdef MPS_OS_W3
+#define collectionFreqMULTIPLIER 0.03
+#else
+#define collectionFreqMULTIPLIER 0.05
+#endif
 #define avLEN             3
 #define exactRootsCOUNT   224
 #define ambigRootsCOUNT   50
-#define collectionsCOUNT  44
-#define rampSIZE          10
+#define collectionsCOUNT  39
+#define rampSIZE          9
 #define initTestFREQ      6000
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((mps_addr_t)0xDECEA5ED)
@@ -138,6 +143,13 @@ static void *test(void *arg, size_t s)
         if(ramping) {
           mps_ap_alloc_pattern_end(ap, ramp);
           mps_ap_alloc_pattern_end(busy_ap, ramp);
+          /* kill half of the roots */
+          for(i = 0; i < exactRootsCOUNT; i += 2) {
+            if(exactRoots[i] != objNULL) {
+              cdie(dylan_check(exactRoots[i]), "ramp kill check");
+              exactRoots[i] = objNULL;
+            }
+          }
           /* Every other time, switch back immediately. */
           if(collections & 1) ramping = 0;
         }
