@@ -1343,8 +1343,7 @@ includes this.");
   DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
     "Pattern for making names for temporary files.\n\
 This is used by `call-process-region'.");
-  /* The real initialization is when we start again.  */
-  Vtemp_file_name_pattern = Qnil;
+  /* This variable is initialized in init_callproc.  */
 
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
     "List of environment variables for subprocesses to inherit.\n\
