@@ -53,7 +53,7 @@
 
 ;;; Code:
 
-(defgroup shadow nil
+(defgroup lisp-shadow nil
   "Locate Emacs Lisp file shadowings."
   :prefix "shadows-"
   :group 'lisp)
@@ -62,7 +62,7 @@
   "*If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
   :type 'boolean
-  :group 'shadow)
+  :group 'lisp-shadow)
 
 (defun find-emacs-lisp-shadows (&optional path)
   "Return a list of Emacs Lisp files that create shadows.
