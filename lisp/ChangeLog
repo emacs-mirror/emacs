@@ -1,3 +1,10 @@
+2001-11-05  Paul Eggert  <eggert@twinsun.com>
+
+	* ls-lisp.el (ls-lisp-time-to-seconds): New function.
+	(ls-lisp-format-time): Emulate GNU fileutils 4.1.1 ls, whose time
+	stamps always line up by default.  Also, it uses a slightly
+	different window to determine whether files are "recent".
+
 2001-11-05  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH): Don't
