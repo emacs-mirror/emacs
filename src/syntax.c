@@ -291,7 +291,7 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 {
   register unsigned char *p, match;
   register enum syntaxcode code;
-  Lisp_Object val;
+  int val;
 
   CHECK_NUMBER (c, 0);
   CHECK_STRING (newentry, 1);
@@ -309,36 +309,36 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   if (match) p++;
   if (match == ' ') match = 0;
 
-  XSETFASTINT (val, (match << 8) + (int) code);
+  val = (match << 8) + (int) code;
   while (*p)
     switch (*p++)
       {
       case '1':
-	XFASTINT (val) |= 1 << 16;
+	val |= 1 << 16;
 	break;
 
       case '2':
-	XFASTINT (val) |= 1 << 17;
+	val |= 1 << 17;
 	break;
 
       case '3':
-	XFASTINT (val) |= 1 << 18;
+	val |= 1 << 18;
 	break;
 
       case '4':
-	XFASTINT (val) |= 1 << 19;
+	val |= 1 << 19;
 	break;
 
       case 'p':
-	XFASTINT (val) |= 1 << 20;
+	val |= 1 << 20;
 	break;
 
       case 'b':
-	XFASTINT (val) |= 1 << 21;
+	val |= 1 << 21;
 	break;
       }
 	
-  XVECTOR (syntax_table)->contents[0xFF & XINT (c)] = val;
+  XSETFASTINT (XVECTOR (syntax_table)->contents[0xFF & XINT (c)], val);
 
   return Qnil;
 }
