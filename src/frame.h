@@ -59,6 +59,8 @@ enum vertical_scroll_bar_type
 
 #if !defined(HAVE_X_WINDOWS)
 
+#define PIX_TYPE int
+
 /* A (mostly empty) x_output structure definition for building Emacs
    on Unix and GNU/Linux without X support.  */
 struct x_output
