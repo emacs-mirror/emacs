@@ -1605,10 +1605,11 @@ Optional prefix ARG says how many lines to unflag; default is one line."
 
 ;;; Commands to mark or flag files based on their characteristics or names.
 
-(defun dired-read-regexp (prompt &optional initial)
-;; This is an extra function so that gmhist can redefine it.
-  (setq dired-flagging-regexp
-	(read-string prompt (or initial dired-flagging-regexp))))
+(defvar dired-regexp-history nil
+  "History list of regular expressions used in Dired commands.")
+
+(defun dired-read-regexp (prompt)
+  (read-from-minibuffer prompt nil nil nil 'dired-regexp-history))
 
 (defun dired-mark-files-regexp (regexp &optional marker-char)
   "Mark all files matching REGEXP for use in later commands.
