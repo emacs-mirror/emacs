@@ -1,3 +1,8 @@
+2002-06-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* dired.el (dired-find-file): Bind find-file-run-dired around the
+	call to find-file.  From Dan Nicolaescu <dann@ics.uci.edu>.
+
 2002-06-18  Juanma Barranquero  <lektu@terra.es>
 
 	* eshell/em-pred.el (eshell-modifier-help-string): Fix typos.
