@@ -90,7 +90,7 @@ casify_object (flag, obj)
 		  : ! SINGLE_BYTE_CHAR_P (c))
 		break;
 
-	      SREF (obj, i) = c;
+	      SSET (obj, i, c);
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;
 	      i++;
