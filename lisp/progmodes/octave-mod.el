@@ -55,6 +55,7 @@ All Octave abbrevs start with a grave accent (`).")
     (define-abbrev-table 'octave-abbrev-table ())
     (define-abbrev octave-abbrev-table "`a" "all_va_args" nil)
     (define-abbrev octave-abbrev-table "`b" "break" nil)
+    (define-abbrev octave-abbrev-table "`cs" "case" nil)
     (define-abbrev octave-abbrev-table "`ca" "catch" nil)
     (define-abbrev octave-abbrev-table "`c" "continue" nil)
     (define-abbrev octave-abbrev-table "`el" "else" nil)
@@ -64,6 +65,7 @@ All Octave abbrevs start with a grave accent (`).")
     (define-abbrev octave-abbrev-table "`ef" "endfor" nil)
     (define-abbrev octave-abbrev-table "`efu" "endfunction" nil)
     (define-abbrev octave-abbrev-table "`ei" "endif" nil)
+    (define-abbrev octave-abbrev-table "`es" "endswitch" nil)
     (define-abbrev octave-abbrev-table "`ew" "endwhile" nil)
     (define-abbrev octave-abbrev-table "`f" "for" nil)
     (define-abbrev octave-abbrev-table "`fu" "function" nil)
@@ -71,8 +73,10 @@ All Octave abbrevs start with a grave accent (`).")
     (define-abbrev octave-abbrev-table "`gp" "gplot" nil)
     (define-abbrev octave-abbrev-table "`gs" "gsplot" nil)
     (define-abbrev octave-abbrev-table "`if" "if ()" nil)
+    (define-abbrev octave-abbrev-table "`o" "otherwise" nil)
     (define-abbrev octave-abbrev-table "`rp" "replot" nil)
     (define-abbrev octave-abbrev-table "`r" "return" nil)
+    (define-abbrev octave-abbrev-table "`s" "switch" nil)
     (define-abbrev octave-abbrev-table "`t" "try" nil)
     (define-abbrev octave-abbrev-table "`up" "unwind_protect" nil)
     (define-abbrev octave-abbrev-table "`upc" "unwind_protect_cleanup" nil)
@@ -88,15 +92,17 @@ All Octave abbrevs start with a grave accent (`).")
   "Regexp to match the start of an Octave comment up to its body.")
 
 (defvar octave-begin-keywords
-  '("for" "function" "if" "try" "unwind_protect" "while"))
+  '("for" "function" "if" "switch" "try" "unwind_protect" "while"))
 (defvar octave-else-keywords
-  '("catch" "else" "elseif" "unwind_protect_cleanup"))
+  '("case" "catch" "else" "elseif" "otherwise" "unwind_protect_cleanup"))
 (defvar octave-end-keywords
-  '("end" "endfor" "endfunction" "endif" "end_try_catch"
+  '("end" "endfor" "endfunction" "endif" "endswitch" "end_try_catch"
     "end_unwind_protect" "endwhile"))
 
 (defvar octave-reserved-words
-  (append octave-begin-keywords octave-else-keywords octave-end-keywords
+  (append octave-begin-keywords
+	  octave-else-keywords
+	  octave-end-keywords
 	  '("all_va_args" "break" "continue" "global" "gplot" "gsplot"
 	    "replot" "return"))
   "Reserved words in Octave.")
@@ -319,6 +325,7 @@ newline or semicolon after an else or end keyword.")
   '(("for" . ("end" "endfor"))
     ("function" . ("end" "endfunction"))
     ("if" . ("else" "elseif" "end" "endif"))
+    ("switch" . ("case" "end" "endswitch" "otherwise"))
     ("try" . ("catch" "end" "end_try_catch"))
     ("unwind_protect" . ("unwind_protect_cleanup" "end"
 			 "end_unwind_protect"))
@@ -618,6 +625,8 @@ level."
 		(while (< (point) eol)
 		  (if (octave-not-in-string-or-comment-p)
 		      (cond
+		       ((looking-at "\\<switch\\>")
+			(setq icol (+ icol (* 2 octave-block-offset))))
 		       ((looking-at octave-block-begin-regexp)
 			(setq icol (+ icol octave-block-offset)))
 		       ((looking-at octave-block-else-regexp)
@@ -625,22 +634,31 @@ level."
 			    (setq icol (+ icol octave-block-offset))))
 		       ((looking-at octave-block-end-regexp)
 			(if (not (= bot (point)))
-			    (setq icol (- icol octave-block-offset))))))
+			    (setq icol (- icol
+					  (octave-block-end-offset)))))))
 		  (forward-char)))
 	      (if is-continuation-line
 		  (setq icol (+ icol octave-continuation-offset)))))))
     (save-excursion
       (back-to-indentation)
       (cond
-       ((and (or (looking-at octave-block-else-regexp)
-		 (looking-at octave-block-end-regexp))
+       ((and (looking-at octave-block-else-regexp)
 	     (octave-not-in-string-or-comment-p))
 	(setq icol (- icol octave-block-offset)))
+       ((and (looking-at octave-block-end-regexp)
+	     (octave-not-in-string-or-comment-p))
+	(setq icol (- icol (octave-block-end-offset))))
        ((looking-at "\\s<\\s<\\s<\\S<")
 	(setq icol (list 0 icol)))
        ((looking-at "\\s<\\S<")
 	(setq icol (list comment-column icol)))))
     icol))
+
+(defun octave-block-end-offset ()
+  (save-excursion
+    (octave-backward-up-block 1)
+    (* octave-block-offset
+       (if (string-match (match-string 0) "switch") 2 1))))
 
 (defun octave-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
@@ -648,7 +666,7 @@ level."
     (if (looking-at "\\s<\\s<")
 	(calculate-octave-indent)
       (skip-syntax-backward " ")
-      (max (if (bolp) 0 (+ (current-column)))
+      (max (if (bolp) 0 (+ 1 (current-column)))
 	   comment-column))))
 
 (defun octave-indent-for-comment ()
