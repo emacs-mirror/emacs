@@ -35,8 +35,11 @@
 ;; in Jan-Feb 1994.
 ;;
 ;; Supported version-control systems presently include SCCS, RCS, and CVS.
-;; The RCS lock-stealing code doesn't work right unless you use RCS 5.6.2
-;; or newer.  Currently (January 1994) that is only a beta test release.
+;;
+;; Some features will not work with old RCS versions.  Where
+;; appropriate, VC finds out which version you have, and allows or
+;; disallows those features (stealing locks, for example, works only 
+;; from 5.6.2 onwards).
 ;; Even initial checkins will fail if your RCS version is so old that ci
 ;; doesn't understand -t-; this has been known to happen to people running
 ;; NExTSTEP 3.0. 
@@ -149,6 +152,18 @@ is sensitive to blank lines.")
 Verify that the file really is not locked
 and that its contents match what the master file says.")
 
+(defvar vc-rcs-release nil
+  "*The release number of your RCS installation, as a string.
+If nil, VC itself computes this value when it is first needed.")
+
+(defvar vc-sccs-release nil
+  "*The release number of your SCCS installation, as a string.
+If nil, VC itself computes this value when it is first needed.")
+
+(defvar vc-cvs-release nil
+  "*The release number of your SCCS installation, as a string.
+If nil, VC itself computes this value when it is first needed.")
+
 ;; Variables the user doesn't need to know about.
 (defvar vc-log-entry-mode nil)
 (defvar vc-log-operation nil)
@@ -192,6 +207,70 @@ and that its contents match what the master file says.")
 
 (if (not (fboundp 'file-regular-p))
     (fset 'file-regular-p 'file-regular-p-18))
+
+;;; Find and compare backend releases
+
+(defun vc-backend-release (backend)
+  ;; Returns which backend release is installed on this system.
+  (cond
+   ((eq backend 'RCS)
+    (or vc-rcs-release
+	(and (zerop (vc-do-command nil 2 "rcs" nil nil "-V"))
+	     (save-excursion
+	       (set-buffer (get-buffer "*vc*"))
+	       (setq vc-rcs-release
+		     (car (vc-parse-buffer
+			   '(("^RCS version \\([0-9.]+ *.*\\)" 1)))))))
+	(setq vc-rcs-release 'unknown)))
+   ((eq backend 'CVS)
+    (or vc-cvs-release
+	(and (zerop (vc-do-command nil 1 "cvs" nil nil "-v"))
+	     (save-excursion
+	       (set-buffer (get-buffer "*vc*"))
+	       (setq vc-cvs-release
+		     (car (vc-parse-buffer
+			   '(("^Concurrent Versions System (CVS) \\([0-9.]+\\)"
+			      1)))))))
+	(setq vc-cvs-release 'unknown)))
+     ((eq backend 'SCCS)
+      vc-sccs-release)))
+
+(defun vc-release-greater-or-equal (r1 r2)
+  ;; Compare release numbers, represented as strings.
+  ;; Release components are assumed cardinal numbers, not decimal
+  ;; fractions (5.10 is a higher release than 5.9).  Omitted fields
+  ;; are considered lower (5.6.7 is earlier than 5.6.7.1).
+  ;; Comparison runs till the end of the string is found, or a
+  ;; non-numeric component shows up (5.6.7 is earlier than "5.6.7 beta",
+  ;; which is probably not what you want in some cases).
+  ;;   This code is suitable for existing RCS release numbers.  
+  ;; CVS releases are handled reasonably, too (1.3 < 1.4* < 1.5).
+  (let (v1 v2 i1 i2)
+    (catch 'done
+      (or (and (string-match "^\\.?\\([0-9]+\\)" r1)
+	       (setq i1 (match-end 0))
+	       (setq v1 (string-to-number (match-string 1 r1)))
+	       (or (and (string-match "^\\.?\\([0-9]+\\)" r2)
+			(setq i2 (match-end 0))
+			(setq v2 (string-to-number (match-string 1 r2)))
+			(if (> v1 v2) (throw 'done t)
+			  (if (< v1 v2) (throw 'done nil)
+			    (throw 'done
+				   (vc-release-greater-or-equal
+				    (substring r1 i1)
+				    (substring r2 i2)))))))
+		   (throw 'done t)))
+	  (or (and (string-match "^\\.?\\([0-9]+\\)" r2)
+		   (throw 'done nil))
+	      (throw 'done t)))))
+
+(defun vc-backend-release-p (backend release)
+  ;; Return t if we have RELEASE of BACKEND or better
+  (let (i r (ri 0) (ii 0) is rs (installation (vc-backend-release backend)))
+    (if (not (eq installation 'unknown))
+	(cond
+	 ((or (eq backend 'RCS) (eq backend 'CVS))
+	  (vc-release-greater-or-equal installation release))))))
 
 ;;; functions that operate on RCS revision numbers
 
@@ -300,7 +379,7 @@ The command is successful if its exit status does not exceed OKSTATUS.
 The last argument of the command is the master name of FILE if LAST is 
 `MASTER', or the workfile of FILE if LAST is `WORKFILE'; this is appended 
 to an optional list of FLAGS."
-  (setq file (expand-file-name file))
+  (and file (setq file (expand-file-name file)))
   (if (not buffer) (setq buffer "*vc*"))
   (if vc-command-messages
       (message "Running %s on %s..." command file))
@@ -567,6 +646,9 @@ to an optional list of FLAGS."
 	   (not (string-equal owner (user-login-name))))
       (if comment
 	  (error "Sorry, you can't steal the lock on %s this way" file))
+      (and (eq vc-type 'RCS)
+	   (not (vc-backend-release-p 'RCS "5.6.2"))
+	   (error "File is locked by %s." owner))
       (vc-steal-lock
        file
        (if verbose (read-string "Version to steal: ")
@@ -575,7 +657,9 @@ to an optional list of FLAGS."
 
      ;; OK, user owns the lock on the file
      (t
-	  (find-file file)
+	  (if vc-dired-mode 
+	      (find-file-other-window file) 
+	    (find-file file))
 
 	  ;; give luser a chance to save before checking in.
 	  (vc-buffer-sync)
@@ -602,18 +686,19 @@ to an optional list of FLAGS."
 	    )))))
 
 (defun vc-next-action-dired (file rev comment)
-  ;; We've accepted a log comment, now do a vc-next-action using it on all
-  ;; marked files.
-  (let ((configuration (current-window-configuration)))
+  ;; Do a vc-next-action-on-file on all the marked files, possibly 
+  ;; passing on the log comment we've just entered.
+  (let ((configuration (current-window-configuration))
+	(dired-buffer (current-buffer)))
     (dired-map-over-marks
-     (save-window-excursion
-       (let ((file (dired-get-filename)))
-	 (message "Processing %s..." file)
-	 (vc-next-action-on-file file nil comment)
-	 (message "Processing %s...done" file)))
-     nil t)
-    (set-window-configuration configuration))
-  )
+     (let ((file (dired-get-filename)) p)
+       (message "Processing %s..." file)
+       (vc-next-action-on-file file nil comment)
+       (set-buffer dired-buffer)
+       (vc-dired-update-line file)
+       (set-window-configuration configuration)
+       (message "Processing %s...done" file))
+    nil t)))
 
 ;; Here's the major entry point.
 
@@ -662,9 +747,18 @@ merge in the changes into your working copy."
 	(let ((files (dired-get-marked-files)))
 	  (if (= (length files) 1)
 	      (find-file-other-window (car files))
-	    (vc-start-entry nil nil nil
-			    "Enter a change comment for the marked files."
-			    'vc-next-action-dired)
+	    (if (string= "" 
+                  (mapconcat
+	             (function (lambda (f)
+			 (if (eq (vc-backend f) 'CVS)
+			     (if (eq (vc-cvs-status f) 'locally-modified)
+				 "@" "")
+			   (if (vc-locking-user f) "@" ""))))
+		     files ""))
+		(vc-next-action-dired nil nil "dummy")
+	      (vc-start-entry nil nil nil
+			      "Enter a change comment for the marked files."
+			      'vc-next-action-dired))
 	    (throw 'nogo nil))))
     (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
@@ -728,7 +822,7 @@ merge in the changes into your working copy."
 	 (kill-buffer (current-buffer)))))
 
 (defun vc-resynch-buffer (file &optional keep noquery)
-  ;; if FILE is currently visited, resynch it's buffer
+  ;; if FILE is currently visited, resynch its buffer
   (let ((buffer (get-file-buffer file)))
     (if buffer
 	(save-excursion
@@ -781,9 +875,7 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
   (if (and (string-match "^/[^/:]+:" file) (vc-find-binary "ftp"))
       (error "Sorry, you can't check out files over FTP"))
   (vc-backend-checkout file writable rev)
-  (if (string-equal file buffer-file-name)
-      (vc-resynch-window file t t))
-  )
+  (vc-resynch-buffer file t t))
 
 (defun vc-steal-lock (file rev &optional owner)
   "Steal the lock on the current workfile."
@@ -1138,6 +1230,8 @@ the variable `vc-header-alist'."
 
 (defvar vc-dired-prefix-map (make-sparse-keymap))
 (define-key vc-dired-prefix-map "\C-xv" vc-prefix-map)
+(define-key vc-dired-prefix-map "g" 'vc-directory)
+(define-key vc-dired-prefix-map "=" 'vc-diff)
 
 (or (not (boundp 'minor-mode-map-alist))
     (assq 'vc-dired-mode minor-mode-map-alist)
@@ -1154,6 +1248,20 @@ on a buffer attached to the file named in the current Dired buffer line."
   (setq vc-dired-mode t)
   (setq vc-mode " under VC"))
 
+(defun vc-dired-state-info (file)
+  ;; Return the string that indicates the version control status
+  ;; on a VC dired line.
+  (let ((cvs-state (and (eq (vc-backend file) 'CVS)
+			(vc-cvs-status file))))
+    (if cvs-state
+	(cond ((eq cvs-state 'up-to-date) nil)
+	      ((eq cvs-state 'needs-checkout)      "patch")
+	      ((eq cvs-state 'locally-modified)    "modified")
+	      ((eq cvs-state 'needs-merge)         "merge")
+	      ((eq cvs-state 'unresolved-conflict) "conflict")
+	      ((eq cvs-state 'locally-added)       "added"))
+      (vc-locking-user file))))
+
 (defun vc-dired-reformat-line (x)
   ;; Hack a directory-listing line, plugging in locking-user info in
   ;; place of the user and group info.  Should have the beneficial
@@ -1165,26 +1273,22 @@ on a buffer attached to the file named in the current Dired buffer line."
   ;; (insert (concat x "\t")))
   ;;
   ;; This code, like dired, assumes UNIX -l format.
-  (forward-word 1)	;; skip over any extra field due to -ibs options
   (cond
-   ;; This hack is used by the CVS code.  See vc-locking-user.
-   ((numberp x)
-    (cond
-     ((re-search-forward "\\([0-9]+ \\)\\([^ ]+\\)\\( .*\\)" nil 0)
-      (save-excursion
-       (goto-char (match-beginning 2))
-       (insert "(")
-       (goto-char (1+ (match-end 2)))
-       (insert ")")
-       (delete-char (- 17 (- (match-end 2) (match-beginning 2))))
-       (insert (substring "      " 0
-                          (- 7 (- (match-end 2) (match-beginning 2)))))))))
-   (t
+   ((re-search-forward 
+        "\\([drwx-]+ \\) *[0-9]+ \\([^ ]+\\) +[0-9]+\\( .*\\)" 
+	nil 0)
+    (if (numberp x) (setq x (match-string 2)))
     (if x (setq x (concat "(" x ")")))
-    (if (re-search-forward "\\([0-9]+ \\).................\\( .*\\)" nil 0)
-       (let ((rep (substring (concat x "                 ") 0 10)))
-         (replace-match (concat "\\1" rep "\\2") t)))
-    )))
+    (let ((rep (substring (concat x "                 ") 0 10)))
+      (replace-match (concat "\\1" rep "\\3"))))))
+
+(defun vc-dired-update-line (file)
+  ;; Update the vc-dired listing line of file -- it is assumed 
+  ;; that point is already on this line.
+  (dired-do-redisplay 1)
+  (dired-previous-line 1)
+  (beginning-of-line)
+  (vc-dired-reformat-line (vc-dired-state-info file)))
 
 ;;; Note in Emacs 18 the following defun gets overridden
 ;;; with the symbol 'vc-directory-18.  See below.
@@ -1196,41 +1300,66 @@ in all these directories.  With a prefix argument, it lists all files."
   (interactive "P")
   (let (nonempty
 	(dl (length (expand-file-name default-directory)))
-	(filelist nil) (userlist nil)
+	(filelist nil) (statelist nil)
 	dired-buf
 	dired-buf-mod-count)
     (vc-file-tree-walk
-     (function (lambda (f)
-		 (if (vc-registered f)
-		     (let ((user (vc-locking-user f)))
-		       (and (or verbose user)
-			    (setq filelist (cons (substring f dl) filelist))
-			    (setq userlist (cons user userlist))))))))
-    (save-excursion
-      ;; This uses a semi-documented feature of dired; giving a switch
-      ;; argument forces the buffer to refresh each time.
-      (dired
-       (cons default-directory (nreverse filelist))
-       dired-listing-switches)
-      (setq dired-buf (current-buffer))
-      (setq nonempty (not (zerop (buffer-size)))))
+     (function 
+      (lambda (f)
+	(if (vc-registered f)
+	    (let ((state (vc-dired-state-info f)))
+	      (and (or verbose state)
+		   (setq filelist (cons (substring f dl) filelist))
+		   (setq statelist (cons state statelist))))))))
+    (save-window-excursion
+      (save-excursion
+	;; First, kill any existing vc-dired buffers of this directory.
+	;; (Code much like dired-find-buffer-nocreate.)
+	(let ((buffers (buffer-list)) 
+	      (dir (expand-file-name default-directory)))
+	  (while buffers
+	    (if (buffer-name (car buffers))
+		(progn (set-buffer (car buffers))
+		       (if (and (eq major-mode 'dired-mode)
+				(string= dir 
+					 (expand-file-name default-directory))
+				vc-dired-mode)
+			   (kill-buffer (car buffers)))))
+	    (setq buffers (cdr buffers)))
+	  ;; This uses a semi-documented feature of dired; giving a switch
+	  ;; argument forces the buffer to refresh each time.
+	  (dired
+	   (cons dir (nreverse filelist))
+	   dired-listing-switches)
+	  (setq dired-buf (current-buffer))
+	  (setq nonempty (not (eq 2 (count-lines (point-min) 
+						 (point-max))))))))
     (if nonempty
 	(progn
-	  (pop-to-buffer dired-buf)
+	  (switch-to-buffer dired-buf)
 	  (vc-dired-mode)
-	  (goto-char (point-min))
+	  ;; Make a few aesthetical modifications to the header
 	  (setq buffer-read-only nil)
-	  (forward-line 1)	;; Skip header line
+	  (goto-char (point-min))
+	  (insert "\n")             ;; Insert a blank line
+	  (forward-line 1)	    ;; Skip header line
+	  (let ((start (point)))    ;; Erase (but don't remove) the 
+	    (end-of-line)           ;; "wildcard" line.
+	    (delete-region start (point)))
+	  (beginning-of-line)
+	  ;; Now plug the version information into the individual lines
 	  (mapcar
 	   (function
 	    (lambda (x)
 	     (forward-char 2)	;; skip dired's mark area
 	     (vc-dired-reformat-line x)
 	     (forward-line 1)))	;; go to next line
-	   (nreverse userlist))
+	   (nreverse statelist))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min))
+	  (dired-next-line 3)
 	  )
+      (kill-buffer dired-buf)
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
     ))
@@ -1619,6 +1748,8 @@ From a program, any arguments are passed to the `rcs2log' script."
 	       (vc-do-command nil 0 "get" file 'MASTER)))
 	  ((eq backend 'RCS)
 	   (vc-do-command nil 0 "ci" file 'MASTER	;; RCS
+                          ;; if available, use the secure registering option
+			  (and (vc-backend-release-p 'RCS "5.6.4") "-i")
 			  (concat (if vc-keep-workfiles "-u" "-r") rev)
 			  (and comment (concat "-t-" comment))
 			  file))
@@ -1825,6 +1956,8 @@ From a program, any arguments are passed to the `rcs2log' script."
       ;; RCS
       (let ((old-version (vc-workfile-version file)) new-version)
 	(apply 'vc-do-command nil 0 "ci" file 'MASTER
+	       ;; if available, use the secure check-in option
+	       (and (vc-backend-release-p 'RCS "5.6.4") "-j")
 	       (concat (if vc-keep-workfiles "-u" "-r") rev)
 	       (concat "-m" comment)
 	       vc-checkin-switches)
@@ -1843,8 +1976,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		   (vc-file-setprop file 'vc-workfile-version new-version)))
 
 	;; if we got to a different branch, adjust the default
-	;; branch accordingly, and remove any remaining 
-	;; lock on the old version.
+	;; branch accordingly
 	(cond 
 	 ((and old-version new-version
 	       (not (string= (vc-branch-part old-version)
@@ -1852,10 +1984,13 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (vc-do-command nil 0 "rcs" file 'MASTER 
 			 (if (vc-trunk-p new-version) "-b"
 			   (concat "-b" (vc-branch-part new-version))))
-	  ;; exit status of 1 is also accepted.
-	  ;; It means that the lock was removed before.
-	  (vc-do-command nil 1 "rcs" file 'MASTER 
-			 (concat "-u" old-version)))))
+	  ;; If this is an old RCS release, we might have 
+	  ;; to remove a remaining lock.
+	  (if (not (vc-backend-release-p 'RCS "5.6.2"))
+	      ;; exit status of 1 is also accepted.
+	      ;; It means that the lock was removed before.
+	      (vc-do-command nil 1 "rcs" file 'MASTER 
+			     (concat "-u" old-version))))))
       ;; CVS
       (progn
 	;; explicit check-in to the trunk requires a 
@@ -1991,18 +2126,20 @@ From a program, any arguments are passed to the `rcs2log' script."
 		   (if cmp (cdr options) options))
 	  status)))
      ;; CVS is different.  
-     ;; cmp is not yet implemented -- we always do a full diff.
      ((eq backend 'CVS)
       (if (string= (vc-workfile-version file) "0") ;CVS
 	  ;; This file is added but not yet committed; there is no master file.
-	  ;; diff it against /dev/null.
 	  (if (or oldvers newvers)
-	      (error "No revisions of %s exists" file)
-	    (apply 'vc-do-command
-		   "*vc-diff*" 1 "diff" file 'WORKFILE "/dev/null"
-		   (if (listp diff-switches)
-		       diff-switches
-		     (list diff-switches))))
+	      (error "No revisions of %s exist" file)
+	    (if cmp 1 ;; file is added but not committed, 
+	              ;; we regard this as "changed".
+	      ;; diff it against /dev/null.
+	      (apply 'vc-do-command
+		     "*vc-diff*" 1 "diff" file 'WORKFILE
+		     (append (if (listp diff-switches) 
+				 diff-switches
+			       (list diff-switches)) '("/dev/null")))))
+	;; cmp is not yet implemented -- we always do a full diff.
 	(apply 'vc-do-command
 	       "*vc-diff*" 1 "cvs" file 'WORKFILE "diff"
 	       (and oldvers (concat "-r" oldvers))
@@ -2232,7 +2369,7 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;;  B 5  .  6  7  8   co -l              get -e                  checkout
 ;;;  C 9  10 .  11 12  co -u              unget; get              revert
 ;;;  D 13 14 15 .  16  ci -u -m<comment>  delta -y<comment>; get  checkin
-;;;  E 17 18 19 20 .   rcs -u -M ; rcs -l unget -n ; get -g       steal lock
+;;;  E 17 18 19 20 .   rcs -u -M -l       unget -n ; get -g       steal lock
 ;;; 
 ;;; All commands take the master file name as a last argument (not shown).
 ;;; 
@@ -2290,7 +2427,9 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;;    Potential cause: someone else's admin during window P, with
 ;;; caller's admin happening before their checkout.
 ;;; 
-;;;    RCS: ci will fail with a "no lock set by <user>" message.
+;;;    RCS: Prior to version 5.6.4, ci fails with message
+;;;         "no lock set by <user>".  From 5.6.4 onwards, VC uses the new
+;;;         ci -i option and the message is "<file>,v: already exists".
 ;;;    SCCS: admin will fail with error (ad19).
 ;;; 
 ;;;    We can let these errors be passed up to the user.
@@ -2299,7 +2438,9 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;; 
 ;;;    Potential cause: self-race during window P.
 ;;; 
-;;;    RCS: will revert the file to the last saved version and unlock it.
+;;;    RCS: Prior to version 5.6.4, reverts the file to the last saved
+;;;         version and unlocks it.  From 5.6.4 onwards, VC uses the new
+;;;         ci -i option, failing with message "<file>,v: already exists".
 ;;;    SCCS: will fail with error (ad19).
 ;;; 
 ;;;    Either of these consequences is acceptable.
@@ -2308,8 +2449,10 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;; 
 ;;;    Potential cause: self-race during window P.
 ;;; 
-;;;    RCS: will register the caller's workfile as a delta with a
-;;; null change comment (the -t- switch will be ignored).
+;;;    RCS: Prior to version 5.6.4, VC registers the caller's workfile as 
+;;;         a delta with a null change comment (the -t- switch will be 
+;;;         ignored). From 5.6.4 onwards, VC uses the new ci -i option,
+;;;         failing with message "<file>,v: already exists".
 ;;;    SCCS: will fail with error (ad19).
 ;;; 
 ;;; 4. File looked unregistered but is locked by someone else.
@@ -2317,7 +2460,10 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;;    Potential cause: someone else's admin during window P, with
 ;;; caller's admin happening *after* their checkout.
 ;;; 
-;;;    RCS: will fail with a "no lock set by <user>" message.
+;;;    RCS: Prior to version 5.6.4, ci fails with a 
+;;;         "no lock set by <user>" message.  From 5.6.4 onwards, 
+;;;         VC uses the new ci -i option, failing with message 
+;;;         "<file>,v: already exists".
 ;;;    SCCS: will fail with error (ad19).
 ;;; 
 ;;;    We can let these errors be passed up to the user.
@@ -2405,11 +2551,13 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;; 
 ;;;    Potential cause: master file got nuked during window P.
 ;;; 
-;;;    RCS: Checks in the user's version as an initial delta.
+;;;    RCS: Prior to version 5.6.4, checks in the user's version as an 
+;;;         initial delta.  From 5.6.4 onwards, VC uses the new ci -j
+;;;         option, failing with message "no such file or directory".
 ;;;    SCCS: will fail with error ut4.
 ;;;
-;;;    This case is kind of nasty.  It means VC may fail to detect the
-;;; loss of previous version information.
+;;;    This case is kind of nasty.  Under RCS prior to version 5.6.4,
+;;; VC may fail to detect the loss of previous version information.
 ;;; 
 ;;; 14. File looks like it's locked by the calling user and changed, but it's
 ;;; actually unlocked.
@@ -2476,7 +2624,7 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 ;;; 
 ;;;    In order of decreasing severity:
 ;;; 
-;;;    Cases 11 and 15 under RCS are the only one that potentially lose work.
+;;;    Cases 11 and 15 are the only ones that potentially lose work.
 ;;; They would require a self-race for this to happen.
 ;;; 
 ;;;    Case 13 in RCS loses information about previous deltas, retaining
