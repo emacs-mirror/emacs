@@ -2,7 +2,7 @@
  *
  *                GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!trace.c(trunk.1)$
+ *  $HopeName: MMsrc/!trace.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -317,27 +317,21 @@ Error TraceFix(Trace trace, RefRank rank, Ref *refIO)
   return ErrSUCCESS;
 }
 
-Error TraceScanRegion(Addr *a, Addr *b, Trace trace, RefRank rank)
+
+Error TraceScanArea(Addr *base, Addr *limit, Trace trace, RefRank rank)
 {
   Error e;
 
-  AVER(a != NULL);
-  AVER(b != NULL);
+  AVER(base != NULL);
+  AVER(limit != NULL);
+  AVER(base < limit);
 
-  while(a < b) {
-    e = TraceFix(trace, rank, (Ref *)a);
+  while(base < limit) {
+    e = TraceFix(trace, rank, (Ref *)base);
     if(e != ErrSUCCESS)
       return e;
-    ++a;
+    ++base;
   }
-  while(b < a) {
-    ++b;
-    e = TraceFix(trace, rank, (Ref *)b);
-    if(e != ErrSUCCESS)
-      return e;
-  }
-
-  AVER(a == b);
   
   return ErrSUCCESS;
 }
