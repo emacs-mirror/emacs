@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.54) $
+ * $HopeName: MMsrc!buffer.c(trunk.55) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.54) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.55) $");
 
 
 /* forward declarations */
@@ -1016,6 +1016,23 @@ Addr (BufferLimit)(Buffer buffer)
 }
 
 
+/* BufferReassignSeg -- adjust the seg of an attached buffer
+ *
+ * Used for segment splitting and merging.
+ */
+
+void BufferReassignSeg(Buffer buffer, Seg seg)
+{
+  AVERT(Buffer, buffer);
+  AVERT(Seg, seg);
+  AVER(!BufferIsReset(buffer));
+  AVER(BufferBase(buffer) >= SegBase(seg));
+  AVER(BufferLimit(buffer) <= SegLimit(seg));
+  AVER(BufferPool(buffer) == SegPool(seg));
+  buffer->class->reassignSeg(buffer, seg);
+}
+
+
 /* BufferIsTrapped
  *
  * Indicates whether the buffer is trapped - either by MPS or the mutator
@@ -1227,6 +1244,20 @@ static void bufferNoSetRankSet (Buffer buffer, RankSet rankset)
 }
 
 
+/* bufferNoReassignSeg -- basic BufferReassignSeg method 
+ *
+ * .noseg: basic buffers don't support attachment to sements, 
+ * so this method should not be called.
+ */
+
+static void bufferNoReassignSeg (Buffer buffer, Seg seg)
+{
+  AVERT(Buffer, buffer);
+  AVERT(Seg, seg);
+  NOTREACHED; /* .noseg */
+}
+
+
 /* bufferTrivDescribe -- basic Buffer describe method */
 
 static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
@@ -1251,8 +1282,10 @@ Bool BufferClassCheck(BufferClass class)
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->attach));
   CHECKL(FUNCHECK(class->detach));
+  CHECKL(FUNCHECK(class->seg));
   CHECKL(FUNCHECK(class->rankSet));
   CHECKL(FUNCHECK(class->setRankSet));
+  CHECKL(FUNCHECK(class->reassignSeg));
   CHECKL(FUNCHECK(class->describe));
   CHECKS(BufferClass, class);
   return TRUE;
@@ -1277,6 +1310,7 @@ DEFINE_CLASS(BufferClass, class)
   class->seg = bufferNoSeg;
   class->rankSet = bufferTrivRankSet;
   class->setRankSet = bufferNoSetRankSet;
+  class->reassignSeg = bufferNoReassignSeg;
   class->sig = BufferClassSig;
 }
 
@@ -1329,6 +1363,7 @@ static Res segBufInit (Buffer buffer, Pool pool, va_list args)
 {
   BufferClass super;
   SegBuf segbuf;
+  Res res;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
@@ -1336,7 +1371,9 @@ static Res segBufInit (Buffer buffer, Pool pool, va_list args)
 
   /* Initialize the superclass fields first via next-method call */
   super = EnsureBufferClass();
-  super->init(buffer, pool, args);
+  res = super->init(buffer, pool, args);
+  if (res != ResOK)
+    return res;
 
   segbuf->seg = NULL;
   segbuf->sig = SegBufSig;
@@ -1456,6 +1493,30 @@ static void segBufSetRankSet (Buffer buffer, RankSet rankset)
 }
 
 
+/* segBufReassignSeg -- BufferReassignSeg method for SegBuf
+ *
+ * Used to support segment merging and splitting.
+ *
+ * .invseg: On entry the buffer is attached to an invalid segment,
+ * which can't be checked. The method is called to make the 
+ * attachment valid.
+ */
+
+static void segBufReassignSeg (Buffer buffer, Seg seg)
+{
+  SegBuf segbuf;
+
+  AVERT(Buffer, buffer);
+  AVERT(Seg, seg);
+  segbuf = BufferSegBuf(buffer);
+  /* Can't check segbuf on entry. See .invseg */
+  AVER(NULL != segbuf->seg);
+  AVER(seg != segbuf->seg);
+  segbuf->seg = seg;
+  AVERT(SegBuf, segbuf);
+}
+
+
 /* segBufDescribe --  describe method for SegBuf */
 
 static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
@@ -1508,6 +1569,7 @@ DEFINE_CLASS(SegBufClass, class)
   class->seg = segBufSeg;
   class->rankSet = segBufRankSet;
   class->setRankSet = segBufSetRankSet;
+  class->reassignSeg = segBufReassignSeg;
 }
 
 
@@ -1523,6 +1585,7 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
   /* Which is checked by mpsi_check in impl.c.mpsi */
   Rank rank = va_arg(args, Rank);
   BufferClass super;
+  Res res;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
@@ -1530,7 +1593,9 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
 
   /* Initialize the superclass fields first via next-method call */
   super = EnsureSegBufClass();
-  super->init(buffer, pool, args);
+  res = super->init(buffer, pool, args);
+  if (res != ResOK)
+    return res;
 
   BufferSetRankSet(buffer, RankSetSingle(rank));
   return ResOK;
