@@ -1279,7 +1279,7 @@ See also the function `condition-case'.")
 
 #ifdef HAVE_X_WINDOWS
   if (display_busy_cursor_p)
-    Fx_hide_busy_cursor (Qt);
+    cancel_busy_cursor ();
 #endif
 
   /* This hook is used by edebug.  */
