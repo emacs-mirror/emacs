@@ -1098,7 +1098,8 @@ command_loop_1 ()
 	call0 (Qrecompute_lucid_menubar);
 
       /* Read next key sequence; i gets its length.  */
-      i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0], Qnil, 0);
+      i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
+			     Qnil, 0, 1);
 
       ++num_input_keys;
 
@@ -4798,11 +4799,13 @@ follow_key (key, nmaps, current, defs, next)
    read_char will return it.  */
 
 static int
-read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
+read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
+		   can_return_switch_frame)
      Lisp_Object *keybuf;
      int bufsize;
      Lisp_Object prompt;
      int dont_downcase_last;
+     int can_return_switch_frame;
 {
   int count = specpdl_ptr - specpdl;
 
@@ -5228,10 +5231,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
 	    }
 	  else if (EQ (kind, Qswitch_frame))
 	    {
-	      /* If we're at the beginning of a key sequence, go
-		 ahead and return this event.  If we're in the
-		 midst of a key sequence, delay it until the end. */
-	      if (t > 0)
+	      /* If we're at the beginning of a key sequence, and the caller
+		 says it's okay, go ahead and return this event.  If we're
+		 in the midst of a key sequence, delay it until the end. */
+	      if (t > 0 || !can_return_switch_frame)
 		{
 		  delayed_switch_frame = key;
 		  goto replay_key;
@@ -5717,7 +5720,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
 
 #if 0 /* This doc string is too long for some compilers.
 	 This commented-out definition serves for DOC.  */
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
   "Read a sequence of keystrokes and return as a string or vector.\n\
 The sequence is sufficient to specify a non-prefix command in the\n\
 current local and global maps.\n\
@@ -5750,8 +5753,11 @@ between click and drag, double, or triple events unless you want to.\n\
 lines separating windows, and scroll bars with imaginary keys\n\
 `mode-line', `vertical-line', and `vertical-scroll-bar'.\n\
 \n\
-If the user switches frames in the middle of a key sequence, the\n\
-frame-switch event is put off until after the current key sequence.\n\
+Optional fourth argument CAN-RETURN-SWITCH-FRAME non-nil means that this\n\
+function will process a switch-frame event if the user switches frames\n\
+before typing anything.  If the user switches frames in the middle of a\n\
+key sequence, or at the start of the sequence but CAN-RETURN-SWITCH-FRAME\n\
+is nil, then the event will be put off until after the current key sequence.\n\
 \n\
 `read-key-sequence' checks `function-key-map' for function key\n\
 sequences, where they wouldn't conflict with ordinary bindings.  See\n\
@@ -5759,10 +5765,11 @@ sequences, where they wouldn't conflict with ordinary bindings.  See\n\
   (prompt, continue_echo)
 #endif
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 3, 0,
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
   0)
-  (prompt, continue_echo, dont_downcase_last)
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
+     Lisp_Object can_return_switch_frame;
 {
   Lisp_Object keybuf[30];
   register int i;
@@ -5780,7 +5787,8 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 3, 0,
     this_command_key_count = 0;
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
-			 prompt, ! NILP (dont_downcase_last));
+			 prompt, ! NILP (dont_downcase_last),
+			 ! NILP (can_return_switch_frame));
 
   if (i == -1)
     {
