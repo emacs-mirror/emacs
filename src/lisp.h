@@ -568,18 +568,42 @@ struct Lisp_Vector
    but with a few other slots.  For some purposes, it makes sense
    to handle a chartable with type struct Lisp_Vector.  */
 
-/* This is the number of slots that apply to characters
-   or character sets.  */
-#define CHAR_TABLE_ORDINARY_SLOTS 256
+/* This is the number of slots that apply to characters or character
+   sets.  The first 128 are for ASCII, the next 128 are for 8-bit
+   European characters, and the last 128 are for multibyte characters.  */
+#define CHAR_TABLE_ORDINARY_SLOTS 384
+
+/* This is the number of slots that apply to characters of ASCII and
+   8-bit Europeans only.  */
+#define CHAR_TABLE_SINGLE_BYTE_SLOTS 256
 
 /* This is the number of slots that every char table must have.
    This counts the ordinary slots and the parent and defalt slots.  */
-#define CHAR_TABLE_STANDARD_SLOTS (256+3)
+#define CHAR_TABLE_STANDARD_SLOTS (CHAR_TABLE_ORDINARY_SLOTS + 3)
 
 /* Return the number of "extra" slots in the char table CT.  */
 
 #define CHAR_TABLE_EXTRA_SLOTS(CT)	\
   (((CT)->size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
+
+/* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
+   and 8-bit Europeans characters.  Do not follow parent.  */
+#define CHAR_TABLE_REF(CT, IDX)						\
+  (CHAR_TABLE_P (CT) && IDX >= 0 && IDX < CHAR_TABLE_SINGLE_BYTE_SLOTS	\
+   ? (!NILP (XCHAR_TABLE (CT)->contents[IDX])				\
+      ? XCHAR_TABLE (CT)->contents[IDX]					\
+      : XCHAR_TABLE (CT)->default)					\
+   : Faref (CT, IDX))
+
+/* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
+   8-bit Europeans characters.  */
+#define CHAR_TABLE_SET(CT, IDX, VAL)					     \
+  do {									     \
+    if (CHAR_TABLE_P (CT) && IDX >= 0 && IDX < CHAR_TABLE_SINGLE_BYTE_SLOTS) \
+      XCHAR_TABLE (CT)->contents[IDX] = VAL;				     \
+    else								     \
+      Faset (CT, IDX, VAL);						     \
+  } while (0)
 
 struct Lisp_Char_Table
   {
@@ -913,6 +937,10 @@ typedef unsigned char UCHAR;
 #define GLYPH_FACE(f, g) ((g) & GLYPH_MASK_FACE)
 #define FAST_GLYPH_FACE(g) ((g) & GLYPH_MASK_FACE)
 #endif /* not HAVE_FACES */
+
+/* Return 1 iff GLYPH contains valid character code.  */
+#define GLYPH_CHAR_VALID_P(glyph) \
+  ((GLYPH) (FAST_GLYPH_CHAR (glyph)) <= MAX_CHAR)
 
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
