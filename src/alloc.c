@@ -21,6 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <limits.h>		/* For CHAR_BIT.  */
 
 #ifdef ALLOC_DEBUG
 #undef INLINE
@@ -418,8 +419,9 @@ static POINTER_TYPE *pure_alloc P_ ((size_t, int));
 /* Value is SZ rounded up to the next multiple of ALIGNMENT.
    ALIGNMENT must be a power of 2.  */
 
-#define ALIGN(SZ, ALIGNMENT) \
-  (((SZ) + (ALIGNMENT) - 1) & ~((ALIGNMENT) - 1))
+#define ALIGN(ptr, ALIGNMENT) \
+  ((POINTER_TYPE *) ((((EMACS_UINT)(ptr)) + (ALIGNMENT) - 1) \
+		     & ~((ALIGNMENT) - 1)))
 
 
 
@@ -635,6 +637,202 @@ lisp_free (block)
   UNBLOCK_INPUT;
 }
 
+/* Allocation of aligned blocks of memory to store Lisp data.              */
+/* The entry point is lisp_align_malloc which returns blocks of at most    */
+/* BLOCK_BYTES and guarantees they are aligned on a BLOCK_ALIGN boundary.  */
+
+
+/* BLOCK_ALIGN has to be a power of 2.  */
+#define BLOCK_ALIGN (1 << 10)
+#define BLOCK_BYTES \
+  (BLOCK_ALIGN - sizeof (struct aligned_block *) - ABLOCKS_PADDING)
+
+/* Internal data structures and constants.  */
+
+/* Padding to leave at the end of a malloc'd block.  This is to give
+   malloc a chance to minimize the amount of memory wasted to alignment.
+   It should be tuned to the particular malloc library used.
+   The current setting is based on glibc-2.3.2.  */
+#define ABLOCKS_PADDING 0
+#define ABLOCKS_SIZE 16
+
+/* An aligned block of memory.  */
+struct ablock
+{
+  union
+  {
+    char payload[BLOCK_BYTES];
+    struct ablock *next_free;
+  } x;
+  /* `abase' is the aligned base of the ablocks.  */
+  /* It is overloaded to hold the virtual `busy' field that counts
+     the number of used ablock in the parent ablocks.
+     The first ablock has the `busy' field, the others have the `abase'
+     field.  To tell the difference, we assume that pointers will have
+     integer values larger than 2 * ABLOCKS_SIZE.  The lowest bit of `busy'
+     is used to tell whether the real base of the parent ablocks is `abase'
+     (if not, the word before the first ablock holds a pointer to the
+     real base).  */
+  struct ablocks *abase;
+  /* The padding of all but the last ablock is unused.  The padding of
+     the last ablock in an ablocks is not allocated.  */
+  char padding[ABLOCKS_PADDING];
+};
+
+/* A bunch of consecutive aligned blocks.  */
+struct ablocks
+{
+  struct ablock blocks[ABLOCKS_SIZE];
+};
+
+/* Size of the block requested from malloc or memalign.  */
+#define ABLOCKS_BYTES (sizeof (struct ablocks) - ABLOCKS_PADDING)
+
+#define ABLOCK_ABASE(block) \
+  (((unsigned long) (block)->abase) <= (1 + 2 * ABLOCKS_SIZE)   \
+   ? (struct ablocks *)(block)					\
+   : (block)->abase)
+
+/* Virtual `busy' field.  */
+#define ABLOCKS_BUSY(abase) ((abase)->blocks[0].abase)
+
+/* Pointer to the (not necessarily aligned) malloc block.  */
+#define ABLOCKS_BASE(abase) \
+  (1 & (int) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
+
+/* The list of free ablock.   */
+static struct ablock *free_ablock;
+
+/* Allocate an aligned block of nbytes.
+   Alignment is on a multiple of BLOCK_ALIGN and `nbytes' has to be
+   smaller or equal to BLOCK_BYTES.  */
+static POINTER_TYPE *
+lisp_align_malloc (nbytes, type)
+     size_t nbytes;
+     enum mem_type type;
+{
+  void *base, *val;
+  struct ablocks *abase;
+
+  eassert (nbytes <= BLOCK_BYTES);
+
+  BLOCK_INPUT;
+
+#ifdef GC_MALLOC_CHECK
+  allocated_mem_type = type;
+#endif
+
+  if (!free_ablock)
+    {
+      int i, aligned;
+
+#ifdef DOUG_LEA_MALLOC
+      /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
+	 because mapped region contents are not preserved in
+	 a dumped Emacs.  */
+      mallopt (M_MMAP_MAX, 0);
+#endif
+
+      base = malloc (ABLOCKS_BYTES);
+      abase = ALIGN (base, BLOCK_ALIGN);
+
+      aligned = (base == abase);
+      if (!aligned)
+	((void**)abase)[-1] = base;
+
+#ifdef DOUG_LEA_MALLOC
+      /* Back to a reasonable maximum of mmap'ed areas.  */
+      mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
+#endif
+
+      /* Initialize the blocks and put them on the free list.
+	 Is `base' was not properly aligned, we can't use the last block.  */
+      for (i = 0; i < (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1); i++)
+	{
+	  abase->blocks[i].abase = abase;
+	  abase->blocks[i].x.next_free = free_ablock;
+	  free_ablock = &abase->blocks[i];
+	}
+      ABLOCKS_BUSY (abase) = (struct ablocks *) aligned;
+
+      eassert (ABLOCK_ABASE (&abase->blocks[3]) == abase); /* 3 is arbitrary */
+      eassert (ABLOCK_ABASE (&abase->blocks[0]) == abase);
+      eassert (ABLOCKS_BASE (abase) == base);
+      eassert (aligned == (int)ABLOCKS_BUSY (abase));
+    }
+
+  abase = ABLOCK_ABASE (free_ablock);
+  ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (int) ABLOCKS_BUSY (abase));
+  val = free_ablock;
+  free_ablock = free_ablock->x.next_free;
+
+  /* If the memory just allocated cannot be addressed thru a Lisp
+     object's pointer, and it needs to be,
+     that's equivalent to running out of memory.  */
+  if (val && type != MEM_TYPE_NON_LISP)
+    {
+      Lisp_Object tem;
+      XSETCONS (tem, (char *) val + nbytes - 1);
+      if ((char *) XCONS (tem) != (char *) val + nbytes - 1)
+	{
+	  lisp_malloc_loser = val;
+	  free (val);
+	  val = 0;
+	}
+    }
+
+#if GC_MARK_STACK && !defined GC_MALLOC_CHECK
+  if (val && type != MEM_TYPE_NON_LISP)
+    mem_insert (val, (char *) val + nbytes, type);
+#endif
+
+  UNBLOCK_INPUT;
+  if (!val && nbytes)
+    memory_full ();
+
+  eassert (0 == ((EMACS_UINT)val) % BLOCK_ALIGN);
+  return val;
+}
+
+static void
+lisp_align_free (block)
+     POINTER_TYPE *block;
+{
+  struct ablock *ablock = block;
+  struct ablocks *abase = ABLOCK_ABASE (ablock);
+
+  BLOCK_INPUT;
+#if GC_MARK_STACK && !defined GC_MALLOC_CHECK
+  mem_delete (mem_find (block));
+#endif
+  /* Put on free list.  */
+  ablock->x.next_free = free_ablock;
+  free_ablock = ablock;
+  /* Update busy count.  */
+  ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (int) ABLOCKS_BUSY (abase));
+  
+  if (2 > (int) ABLOCKS_BUSY (abase))
+    { /* All the blocks are free.  */
+      int i = 0, aligned = (int) ABLOCKS_BUSY (abase);
+      struct ablock **tem = &free_ablock;
+      struct ablock *atop = &abase->blocks[aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1];
+
+      while (*tem)
+	{
+	  if (*tem >= (struct ablock *) abase && *tem < atop)
+	    {
+	      i++;
+	      *tem = (*tem)->x.next_free;
+	    }
+	  else
+	    tem = &(*tem)->x.next_free;
+	}
+      eassert ((aligned & 1) == aligned);
+      eassert (i == (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1));
+      free (ABLOCKS_BASE (abase));
+    }
+  UNBLOCK_INPUT;
+}
 
 /* Return a new buffer structure allocated from the heap with
    a call to lisp_malloc.  */
@@ -1899,20 +2097,47 @@ make_uninit_multibyte_string (nchars, nbytes)
 /* We store float cells inside of float_blocks, allocating a new
    float_block with malloc whenever necessary.  Float cells reclaimed
    by GC are put on a free list to be reallocated before allocating
-   any new float cells from the latest float_block.
-
-   Each float_block is just under 1020 bytes long, since malloc really
-   allocates in units of powers of two and uses 4 bytes for its own
-   overhead. */
+   any new float cells from the latest float_block.  */
 
 #define FLOAT_BLOCK_SIZE \
-  ((1020 - sizeof (struct float_block *)) / sizeof (struct Lisp_Float))
+  (((BLOCK_BYTES - sizeof (struct float_block *)) * CHAR_BIT) \
+   / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
+
+#define GETMARKBIT(block,n)				\
+  (((block)->gcmarkbits[(n) / (sizeof(int) * CHAR_BIT)]	\
+    >> ((n) % (sizeof(int) * CHAR_BIT)))		\
+   & 1)
+
+#define SETMARKBIT(block,n)				\
+  (block)->gcmarkbits[(n) / (sizeof(int) * CHAR_BIT)]	\
+  |= 1 << ((n) % (sizeof(int) * CHAR_BIT))
+
+#define UNSETMARKBIT(block,n)				\
+  (block)->gcmarkbits[(n) / (sizeof(int) * CHAR_BIT)]	\
+  &= ~(1 << ((n) % (sizeof(int) * CHAR_BIT)))
+
+#define FLOAT_BLOCK(fptr) \
+  ((struct float_block *)(((EMACS_UINT)(fptr)) & ~(BLOCK_ALIGN - 1)))
+
+#define FLOAT_INDEX(fptr) \
+  ((((EMACS_UINT)(fptr)) & (BLOCK_ALIGN - 1)) / sizeof (struct Lisp_Float))
 
 struct float_block
 {
-  struct float_block *next;
+  /* Place `floats' at the beginning, to ease up FLOAT_INDEX's job.  */
   struct Lisp_Float floats[FLOAT_BLOCK_SIZE];
+  int gcmarkbits[1 + FLOAT_BLOCK_SIZE / (sizeof(int) * CHAR_BIT)];
+  struct float_block *next;
 };
+
+#define FLOAT_MARKED_P(fptr) \
+  GETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+
+#define FLOAT_MARK(fptr) \
+  SETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
+
+#define FLOAT_UNMARK(fptr) \
+  UNSETMARKBIT (FLOAT_BLOCK (fptr), FLOAT_INDEX ((fptr)))
 
 /* Current float_block.  */
 
@@ -1936,10 +2161,11 @@ struct Lisp_Float *float_free_list;
 void
 init_float ()
 {
-  float_block = (struct float_block *) lisp_malloc (sizeof *float_block,
-						    MEM_TYPE_FLOAT);
+  float_block = (struct float_block *) lisp_align_malloc (sizeof *float_block,
+							  MEM_TYPE_FLOAT);
   float_block->next = 0;
   bzero ((char *) float_block->floats, sizeof float_block->floats);
+  bzero ((char *) float_block->gcmarkbits, sizeof float_block->gcmarkbits);
   float_block_index = 0;
   float_free_list = 0;
   n_float_blocks = 1;
@@ -1953,9 +2179,6 @@ free_float (ptr)
      struct Lisp_Float *ptr;
 {
   *(struct Lisp_Float **)&ptr->data = float_free_list;
-#if GC_MARK_STACK
-  ptr->type = Vdead;
-#endif
   float_free_list = ptr;
 }
 
@@ -1981,8 +2204,8 @@ make_float (float_value)
 	{
 	  register struct float_block *new;
 
-	  new = (struct float_block *) lisp_malloc (sizeof *new,
-						    MEM_TYPE_FLOAT);
+	  new = (struct float_block *) lisp_align_malloc (sizeof *new,
+							  MEM_TYPE_FLOAT);
 	  new->next = float_block;
 	  float_block = new;
 	  float_block_index = 0;
@@ -1992,7 +2215,7 @@ make_float (float_value)
     }
 
   XFLOAT_DATA (val) = float_value;
-  XSETFASTINT (XFLOAT (val)->type, 0);	/* bug chasing -wsr */
+  FLOAT_UNMARK (XFLOAT (val));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
   return val;
@@ -3240,14 +3463,12 @@ live_float_p (m, p)
       struct float_block *b = (struct float_block *) m->start;
       int offset = (char *) p - (char *) &b->floats[0];
 
-      /* P must point to the start of a Lisp_Float, not be
-	 one of the unused cells in the current float block,
-	 and not be on the free-list.  */
+      /* P must point to the start of a Lisp_Float and not be
+	 one of the unused cells in the current float block.  */
       return (offset >= 0
 	      && offset % sizeof b->floats[0] == 0
 	      && (b != float_block
-		  || offset / sizeof b->floats[0] < float_block_index)
-	      && !EQ (((struct Lisp_Float *) p)->type, Vdead));
+		  || offset / sizeof b->floats[0] < float_block_index));
     }
   else
     return 0;
@@ -3394,8 +3615,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Float:
-	  mark_p = (live_float_p (m, po)
-		    && !XMARKBIT (XFLOAT (obj)->type));
+	  mark_p = (live_float_p (m, po) && !FLOAT_MARKED_P (XFLOAT (obj)));
 	  break;
 
 	case Lisp_Vectorlike:
@@ -3483,8 +3703,7 @@ mark_maybe_pointer (p)
 	  break;
 
 	case MEM_TYPE_FLOAT:
-	  if (live_float_p (m, p)
-	      && !XMARKBIT (((struct Lisp_Float *) p)->type))
+	  if (live_float_p (m, p) && !FLOAT_MARKED_P (p))
 	    XSETFLOAT (obj, p);
 	  break;
 
@@ -3741,7 +3960,7 @@ mark_stack ()
 
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
-  /* Fixme: Code in the Boehm GC sugests flushing (with `flushrs') is
+  /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
      needed on ia64 too.  See mach_dep.c, where it also says inline
      assembler doesn't work with relevant proprietary compilers.  */
 #ifdef sparc
@@ -3823,7 +4042,7 @@ pure_alloc (size, type)
     }
 
  again:
-  result = (POINTER_TYPE *) ALIGN ((EMACS_UINT)purebeg + pure_bytes_used, alignment);
+  result = ALIGN (purebeg + pure_bytes_used, alignment);
   pure_bytes_used = ((char *)result - (char *)purebeg) + size;
 
   if (pure_bytes_used <= pure_size)
@@ -4825,7 +5044,7 @@ mark_object (argptr)
 
     case Lisp_Float:
       CHECK_ALLOCATED_AND_LIVE (live_float_p);
-      XMARK (XFLOAT (obj)->type);
+      FLOAT_MARK (XFLOAT (obj));
       break;
 
     case Lisp_Int:
@@ -4948,7 +5167,7 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Float:
-      survives_p = XMARKBIT (XFLOAT (obj)->type);
+      survives_p = FLOAT_MARKED_P (XFLOAT (obj));
       break;
 
     default:
@@ -5039,19 +5258,16 @@ gc_sweep ()
 	register int i;
 	int this_free = 0;
 	for (i = 0; i < lim; i++)
-	  if (!XMARKBIT (fblk->floats[i].type))
+	  if (!FLOAT_MARKED_P (&fblk->floats[i]))
 	    {
 	      this_free++;
 	      *(struct Lisp_Float **)&fblk->floats[i].data = float_free_list;
 	      float_free_list = &fblk->floats[i];
-#if GC_MARK_STACK
-	      float_free_list->type = Vdead;
-#endif
 	    }
 	  else
 	    {
 	      num_used++;
-	      XUNMARK (fblk->floats[i].type);
+	      FLOAT_UNMARK (&fblk->floats[i]);
 	    }
 	lim = FLOAT_BLOCK_SIZE;
 	/* If this block contains only free floats and we have already
@@ -5062,7 +5278,7 @@ gc_sweep ()
 	    *fprev = fblk->next;
 	    /* Unhook from the free list.  */
 	    float_free_list = *(struct Lisp_Float **) &fblk->floats[0].data;
-	    lisp_free (fblk);
+	    lisp_align_free (fblk);
 	    n_float_blocks--;
 	  }
 	else
@@ -5372,6 +5588,9 @@ init_alloc_once ()
   pure_size = PURESIZE;
   pure_bytes_used = 0;
   pure_bytes_used_before_overflow = 0;
+
+  /* Initialize the list of free aligned blocks.  */
+  free_ablock = NULL;
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();
