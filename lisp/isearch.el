@@ -966,7 +966,11 @@ If no previous match was done, just beep."
   (isearch-yank-string (current-kill 0)))
 
 (defun isearch-yank-x-selection ()
-  "Pull current X selection into search string."
+  "Pull current X selection into search string.
+Some users like to put this command on Mouse-2.
+To do that, evaluate these expressions:
+    (define-key isearch-mode-map [down-mouse-2] nil)
+    (define-key isearch-mode-map [mouse-2] 'isearch-yank-x-selection)"
   (interactive)
   (isearch-yank-string (x-get-selection)))
 
