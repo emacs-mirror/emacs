@@ -1,5 +1,18 @@
 2001-03-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispextern.h (string_buffer_position): Add prototype.
+
+	* xdisp.c (string_buffer_position, display_prop_string_p) 
+	(single_display_prop_string_p): New functions.
+
+	* xterm.c (note_mouse_highlight): If there's no help-echo on
+	a string, look at the buffer text ``under'' it.
+
+	* keyboard.c (make_lispy_event): Add string info to the event,
+	analogous to what's done on mode lines.
+	(read_key_sequence): For a click on a string, consider `local-map'
+	and `keymap' of that string.
+
 	* keyboard.c (make_lispy_event, make_lispy_movement): Adjust
 	calls to buffer_posn_from_coords to new format.
 
