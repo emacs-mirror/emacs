@@ -1,5 +1,8 @@
 2000-07-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* xfaces.c (realize_x_face): Make fontset using the base of the
+	default'face's fontset, not using the default fontset.
+
 	* coding.c (inhibit_iso_escape_detection): New variable.
 	(syms_of_coding): Make it a Lisp variable.
 	(detect_coding_iso2022): If inhibit_iso_escape_detection is
