@@ -1,5 +1,8 @@
 2001-06-26  Richard M. Stallman  <rms@gnu.org>
 
+	* dired.el (dired-get-filename): A file name starting with ~
+	is not absolute in this context.
+
 	* which-func.el (which-func-maxout): Increase default to 500000.
 	(which-function-mode): This is now the "real" name of the function.
 	(which-func-mode): Now an alias.
