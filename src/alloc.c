@@ -1833,6 +1833,7 @@ mark_object (argptr)
 	  mark_object (&ptr->face_alist);
 	  mark_object (&ptr->menu_bar_vector);
 	  mark_object (&ptr->buffer_predicate);
+	  mark_object (&ptr->buffer_list);
 	}
       else if (GC_BOOL_VECTOR_P (obj))
 	{
