@@ -122,10 +122,12 @@ This should only be bound to mouse buttons 4 and 5."
                      (prog1
                          (selected-window)
                        (select-window (mwheel-event-window event)))))
-         (mods (delete 'click (event-modifiers event)))
-         (amt (if mods
-                  (cdr (assoc mods (cdr mouse-wheel-scroll-amount)))
-                  (car mouse-wheel-scroll-amount))))
+         (mods
+	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
+         (amt
+	  (or (and mods
+		   (cdr (assoc mods (cdr mouse-wheel-scroll-amount))))
+	      (car mouse-wheel-scroll-amount))))
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
     (when (and mouse-wheel-progessive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
