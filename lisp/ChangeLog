@@ -1,3 +1,12 @@
+2000-05-31  Rajesh Vaidheeswarran <rv@gnu.org>
+
+	* whitespace.el (whitespace-rescan-timer-time): Update interval
+	set to 600 seconds (10 minutes) instead of 60 seconds since
+	a large number of whitespace buffers causes emacs to `freeze'
+	for a considerable amount of time.
+
+	* whitespace.el: Updated e-mail address
+
 2000-05-31  Dave Love  <fx@gnu.org>
 
 	* add-log.el (change-log-font-lock-keywords) <function>: Add
@@ -54,7 +63,7 @@
 	(antlr-tiny-action-length): New user option.
 	(antlr-hide-actions): New command.  Suggested by
 	Bjoern Mielenhausen <Bjoern.Mielenhausen@sap.com>.
- 	(antlr-mode-map): New binding [C-c C-v].
+	(antlr-mode-map): New binding [C-c C-v].
 	(antlr-mode-menu): New entries.
 	(antlr-downcase-literals): New command.
 	(antlr-upcase-literals): Ditto.
@@ -165,10 +174,10 @@
 	defcustom.
 
 2000-05-25  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-diff.el (ediff-exec-process): delete --binary option from
 	non-buffer ediff jobs.
-	
+
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hilit-chg.el (highlight-changes-mode): Ask about color or
@@ -235,23 +244,23 @@
 	(rmail-auto-file): New function.
 
 2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-diff.el (ediff-forward-word): Take syntactic word class into
 	account.
 	(ediff-test-utility,ediff-diff-mandatory-option)
 	(ediff-reset-diff-options): Utilities for proper initialization of
 	ediff-diff-options and ediff-diff3-options on Windows.
-	
+
 	* ediff-init.el (ediff-merge-filename-prefix): New customizable
 	variable.
-	
+
 	* ediff-mult.el (ediff-filegroup-action): Use
 	ediff-merge-filename-prefix.
 
 2000-05-24  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper-ex.el (ex-write): Set selective display to nil.
-	
+
 2000-05-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* language/hebrew.el (iso-8859-8-e, iso-8859-8-i): For now, just
@@ -301,7 +310,7 @@
 	* sb-pg.xpm: Renamed from sb-file.xpm
 	* sb-tag-plus.xpm: Renamed from sb-tag+.xpm
 	* sb-tag-minus.xpm: Renamed from sb-tag-.xpm
-	
+
 2000-05-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-show-guidance-buf): Set
@@ -329,7 +338,7 @@
 	is older than its source file.
 
 	* ffap.el (ffap-url-regexp): Add `https'.
-	
+
 2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (make-backup-file-name-1): Replace slashes with `!'
@@ -3871,8 +3880,8 @@
 1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
 	* antlr-mode.el: Menu/keymap additions for commenting/uncommenting
- 	regions.  Suggested by Dale Davis <Dale_Davis@securify.com>.
- 	(antlr-mode-map): New binding [C-c C-c].
+	regions.  Suggested by Dale Davis <Dale_Davis@securify.com>.
+	(antlr-mode-map): New binding [C-c C-c].
 	(antlr-mode-menu): New entries.
 
 1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
@@ -3895,10 +3904,10 @@
 	(antlr-set-tabs): Don't use hard-coded values.
 
 	* antlr-mode.el: Minor navigation changes.  Not perfect, but this
- 	won't be possible without a huge time penalty.
+	won't be possible without a huge time penalty.
 	(antlr-skip-exception-part): Be more specific.
 	(antlr-skip-file-prelude): Don't skip action prelude of next rule.
-  	Renamed from `antlr-skip-grammar-header'.
+	Renamed from `antlr-skip-grammar-header'.
 	(antlr-next-rule): Change accordingly.
 	(antlr-end-of-body): Ditto.  Better error message.
 	(antlr-beginning-of-body): Better error message.
@@ -6184,7 +6193,7 @@
 
 	* ada-stmt.el (ada-stmt-add-to-ada-menu): New function
 
-  	* ada-stmt.el (ada-subprogram-body): Correctly find the name of the
+	* ada-stmt.el (ada-subprogram-body): Correctly find the name of the
 	subprogram being created.
 
 	* ada-mode.el (ada-get-indent-*, ada-indent-current, ada-goto-*,
@@ -7353,7 +7362,7 @@
 	* autorevert.el (auto-revert-mode): Add autoload cookie.
 
 	* hscroll.el, auto-show.el: Files deleted -- we have built-in
- 	hscroll.
+	hscroll.
 
 	* simple.el (hscroll-step, hscroll-point-visible)
 	(hscroll-window-column): Remove now we have the mentioned real
@@ -7411,7 +7420,7 @@
 1999-08-10  Dave Love  <fx@melange.gnu.org>
 
 	* emacs-lisp/advice.el (ad-make-single-advice-docstring): Treat
- 	case with no docstring specially.
+	case with no docstring specially.
 
 1999-08-09  Eli Zaretskii  <eliz@gnu.org>
 

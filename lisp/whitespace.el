@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1999 Free Software Foundation, Inc.
 
-;; Author: Rajesh Vaidheeswarran <rv@dsmit.com>
+;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
@@ -176,7 +176,7 @@ following to your `.emacs':
 Or, alternately, you can use the Emacs `customize' command to set this."
   :group 'whitespace)
 
-(defcustom whitespace-rescan-timer-time 60
+(defcustom whitespace-rescan-timer-time 600
   "Period in seconds to rescan modified buffers for whitespace creep.
 
 This is the period after which the timer will fire causing
