@@ -671,7 +671,7 @@ archive.
   ;; as an archive by other software.
   (let (case-fold-search)
     (cond ((looking-at "[P]K\003\004") 'zip)
-	  ((looking-at "..-l[hz][0-9]-") 'lzh)
+	  ((looking-at "..-l[hz][0-9ds]-") 'lzh)
 	  ((looking-at "....................[\334]\247\304\375") 'zoo)
 	  ((and (looking-at "\C-z")	; signature too simple, IMHO
 		(string-match "\\.[aA][rR][cC]$"
@@ -1276,23 +1276,51 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(maxlen 8)
         files
 	visual)
-    (while (progn (goto-char p) (looking-at "..-l[hz][0-9]-"))
+    (while (progn (goto-char p) 
+		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
       (let* ((hsize   (char-after p))
              (csize   (archive-l-e (+ p 7) 4))
              (ucsize  (archive-l-e (+ p 11) 4))
 	     (modtime (archive-l-e (+ p 15) 2))
 	     (moddate (archive-l-e (+ p 17) 2))
+	     (hdrlvl  (char-after (+ p 20)))
 	     (fnlen   (char-after (+ p 21)))
 	     (efnname (buffer-substring (+ p 22) (+ p 22 fnlen)))
 	     (fiddle  (string= efnname (upcase efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (p2      (+ p 22 fnlen))
 	     (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	     (mode    (if (= creator ?U) (archive-l-e (+ p2 8) 2) ?\666))
-	     (modestr (if mode (archive-int-to-mode mode) "??????????"))
-	     (uid     (if (= creator ?U) (archive-l-e (+ p2 10) 2)))
-	     (gid     (if (= creator ?U) (archive-l-e (+ p2 12) 2)))
-	     (text    (if archive-alternate-display
+	     mode modestr uid gid text path prname
+	     )
+	(if (= hdrlvl 0)
+	    (setq mode    (if (= creator ?U) (archive-l-e (+ p2 8) 2) ?\666)
+		  uid     (if (= creator ?U) (archive-l-e (+ p2 10) 2))
+		  gid     (if (= creator ?U) (archive-l-e (+ p2 12) 2)))
+	  (if (= creator ?U)
+	      (let* ((p3 (+ p2 3))
+		     (hsize (archive-l-e p3 2))
+		     (etype (char-after (+ p3 2))))
+		(while (not (= hsize 0))
+		  (cond
+		   ((= etype 2) (let ((i (+ p3 3)))
+				  (while (< i (+ p3 hsize))
+				    (setq path (concat path
+						       (if (= (char-after i)
+							      255)
+							   "/"
+							 (char-to-string
+							  (char-after i)))))
+				    (setq i (1+ i)))))
+		   ((= etype 80) (setq mode (archive-l-e (+ p3 3) 2)))
+		   ((= etype 81) (progn (setq uid (archive-l-e (+ p3 3) 2))
+					(setq gid (archive-l-e (+ p3 5) 2))))
+		   )
+		  (setq p3 (+ p3 hsize))
+		  (setq hsize (archive-l-e p3 2))
+		  (setq etype (char-after (+ p3 2)))))))
+	(setq prname (if path (concat path ifnname) ifnname))
+	(setq modestr (if mode (archive-int-to-mode mode) "??????????"))
+	(setq text    (if archive-alternate-display
 			  (format "  %8d  %5S  %5S  %s"
 				  ucsize
 				  (or uid "?")
@@ -1303,14 +1331,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				ucsize
 				(archive-dosdate moddate)
 				(archive-dostime modtime)
-				ifnname))))
+				ifnname)))
         (setq maxlen (max maxlen fnlen)
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
 				   (- (length text) (length ifnname))
 				   (length text))
 			   visual)
-	      files (cons (vector efnname ifnname fiddle mode (1- p))
+	      files (cons (vector prname ifnname fiddle mode (1- p))
                           files)
               p (+ p hsize 2 csize))))
     (goto-char (point-min))
