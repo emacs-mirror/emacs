@@ -1,6 +1,7 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -75,6 +76,7 @@
 (define-key help-map "l" 'view-lossage)
 
 (define-key help-map "m" 'describe-mode)
+(define-key help-map "\C-m" 'view-order-manuals)
 
 (define-key help-map "\C-n" 'view-emacs-news)
 (define-key help-map "n" 'view-emacs-news)
@@ -447,6 +449,11 @@ With numeric argument, display information on correspondingly older changes."
     (if file
 	(find-file-read-only (expand-file-name file data-directory))
       (error "No such old news"))))
+
+(defun view-order-manuals ()
+  "Display the Emacs ORDERS file."
+  (interactive)
+  (find-file-read-only (expand-file-name "ORDERS" data-directory)))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
