@@ -1,3 +1,11 @@
+2002-02-03  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fdo_auto_save): Improve "auto save disabled" msg.
+
+	* lread.c (read1): Redesign strategy for force_multibyte and
+	force_singlebyte.  Now is_multibyte records whether read_buffer
+	is multibyte.  Encountering any multibyte character makes it so.
+	
 2002-02-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* term.c (term_get_fkeys_1): If `k0' and `k;' are both specified and
