@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.24) $
+ * $HopeName: MMsrc!amcss.c(trunk.25) $
  * Copyright (C) 1996, 1998 Harlequin Group, all rights reserved
  */
 
@@ -26,6 +26,8 @@
 #define exactRootsCOUNT   50
 #define ambigRootsCOUNT   50
 #define collectionsCOUNT  5
+#define initTestFREQ      6000
+
 #define objNULL           ((mps_addr_t)0xDECEA5ED)
 
 static mps_pool_t pool;
@@ -67,6 +69,8 @@ static void *test(void *arg, size_t s)
   mps_root_t exactRoot, ambigRoot;
   unsigned long i;
   mps_word_t collections;
+  mps_ap_t busy_ap;
+  mps_addr_t busy_init;
 
   arena = (mps_arena_t)arg;
   (void)s; /* unused */
@@ -77,25 +81,26 @@ static void *test(void *arg, size_t s)
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate");
+
+  for(i=0; i<exactRootsCOUNT; ++i)
+    exactRoots[i] = objNULL;
+  for(i=0; i<ambigRootsCOUNT; ++i)
+    ambigRoots[i] = (mps_addr_t)rnd();
 
   die(mps_root_create_table(&exactRoot, arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
                             &exactRoots[0], exactRootsCOUNT),
                             "root_create_table(exact)");
-
   die(mps_root_create_table(&ambigRoot, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
                             "root_create_table(ambig)");
 
-  for(i=0; i<exactRootsCOUNT; ++i)
-    exactRoots[i] = objNULL;
-
-  for(i=0; i<ambigRootsCOUNT; ++i)
-    ambigRoots[i] = (mps_addr_t)rnd();
+  /* create an ap, and leave it busy */
+  die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
   collections = 0;
-
   i = 0;
   while(collections < collectionsCOUNT) {
     unsigned long c;
@@ -128,6 +133,9 @@ static void *test(void *arg, size_t s)
     if(exactRoots[r] != objNULL)
       assert(dylan_check(exactRoots[r]));
 
+    if(rnd() % initTestFREQ == 0)
+      *(int*)busy_init = -1; /* check that the buffer is still there */
+
     if(i % 1000 == 0) {
       putchar('.');
       fflush(stdout);
@@ -136,6 +144,8 @@ static void *test(void *arg, size_t s)
     ++i;
   }
 
+  (void)mps_commit(busy_ap, busy_init, 64);
+  mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
