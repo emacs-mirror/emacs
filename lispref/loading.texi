@@ -687,9 +687,14 @@ However, in this case, @code{require} insists on finding @var{feature}
 with an added suffix; a file whose name is just @var{feature} won't be
 used.
 
-If loading the file fails to provide @var{feature}, @code{require}
-signals an error, @samp{Required feature @var{feature} was not
-provided}, unless @var{noerror} is non-@code{nil}.
+If @var{noerror} is non-@code{nil}, that suppresses errors from actual
+loading of the file.  In that case, @code{require} returns @code{nil}
+if loading the file fails.  Normally, @code{require} returns
+@var{feature}.
+
+If loading the file succeeds but does not provide @var{feature},
+@code{require} signals an error, @samp{Required feature @var{feature}
+was not provided}.
 @end defun
 
 @defun featurep feature &optional subfeature

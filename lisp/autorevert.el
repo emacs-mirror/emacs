@@ -36,8 +36,12 @@
 ;; Auto-Revert Mode.  Both modes automatically revert buffers
 ;; whenever the corresponding files have been changed on disk.
 ;;
-;; Auto-Revert Mode can be activated for individual buffers.
-;; Global Auto-Revert Mode applies to all file buffers.
+;; Auto-Revert Mode can be activated for individual buffers.  Global
+;; Auto-Revert Mode applies to all file buffers. (If the user option
+;; `global-auto-revert-non-file-buffers' is non-nil, it also applies
+;; to some non-file buffers.  This option is disabled by default.)
+;; Since checking a remote file is too slow, these modes do not check
+;; or revert remote files.
 ;;
 ;; Both modes operate by checking the time stamp of all files at
 ;; intervals of `auto-revert-interval'.  The default is every five

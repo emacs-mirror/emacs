@@ -1634,9 +1634,7 @@ Otherwise, an error occurs in these cases."
      ((eq localp 'verbatim)
       file)
      ((and (not no-error-if-not-filep)
-	   (save-excursion
-	     (beginning-of-line)
-	     (looking-at dired-re-dot)))
+	   (member file '("." "..")))
       (error "Cannot operate on `.' or `..'"))
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))

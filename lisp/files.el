@@ -481,10 +481,15 @@ Runs the usual ange-ftp hook, but only for completion operations."
 
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
-This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined with a definition
-that really does change some file names to canonicalize certain
-patterns and to guarantee valid names."
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+This function's standard definition is trivial; it just returns
+the argument.  However, on Windows and DOS, replace invalid
+characters.  On DOS, make sure to obey the 8.3 limitations.  On
+Windows, turn Cygwin names into native names, and also turn
+slashes into backslashes if the shell requires it (see
+`w32-shell-dos-semantics')."
   filename)
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
@@ -906,8 +911,11 @@ but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files.  Wildcard expansion
-can be suppressed by setting `find-file-wildcards'."
+expand wildcards (if any) and visit multiple files.  You can
+suppress wildcard expansion by setting `find-file-wildcards'.
+
+To visit a file without any kind of conversion and without
+automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))

@@ -326,7 +326,7 @@ NAME is the name of the buffer-local variable indicating that the minor
 mode is active.  RESTORE-FUNCTION is the function to activate the minor mode.
 called.  RESTORE-FUNCTION nil means don't try to restore the minor mode.
 Only minor modes for which the name of the buffer-local variable
-and the name of the minor mode function are different have to added to
+and the name of the minor mode function are different have to be added to
 this table."
   :type 'sexp
   :group 'desktop)
@@ -589,16 +589,17 @@ See also `desktop-base-file-name'."
                     major-mode
                     ;; minor modes
                     (let (ret)
-                      (mapcar
-                        #'(lambda (mim)
+                      (mapc
+                        #'(lambda (minor-mode)
                           (and
-                            (boundp mim)
-                            (symbol-value mim)
-                            (setq ret
-                              (cons
-                                (let ((special (assq mim desktop-minor-mode-table)))
-                                  (if special (cadr special) mim))
-                                ret))))
+                            (boundp minor-mode)
+                            (symbol-value minor-mode)
+                            (let ((special (assq minor-mode desktop-minor-mode-table)))
+                              (when (or special (functionp minor-mode))
+                                (setq ret
+                                  (cons
+                                    (if special (cadr special) minor-mode)
+                                    ret))))))
                         (mapcar #'car minor-mode-alist))
                       ret)
                     (point)

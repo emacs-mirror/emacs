@@ -2081,7 +2081,7 @@
 	completion-regexp-list.  Define Qcase_fold_search and staticpro it.
 	(read_minibuf): Fix initial comment.
 	(Ftry_completion, Fall_completions, Ftest_completion): Bind
-	case-fold-serach to the value of completion-ignore-case when
+	case-fold-search to the value of completion-ignore-case when
 	checking completion-regexp-list.
 	(Fdisplay_completion_list): Make it handle arguments that are
 	symbols.  Doc fix.
