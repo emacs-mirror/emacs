@@ -1070,8 +1070,8 @@ and source-file directory for your debugger."
 				 (concat perldb-command-name
 					 " "
 					 (or (buffer-file-name)
-					     "-e 0"))
-					 " ")
+					     "-e 0")
+					 " "))
 			       nil nil
 			       '(gud-perldb-history . 1))))
 
