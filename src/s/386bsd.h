@@ -1,3 +1,5 @@
+/* s/ file for 386bsd system.  */
+
 /* Get most of the stuff from bsd4.3 */
 #include "bsd4-3.h"
 
