@@ -3650,7 +3650,8 @@ Provided for backwards compatibility."
       ;; save it to file.
       (goto-char (point-max))
       (insert "\n")
-      (mm-append-to-file (point-min) (point-max) file-name)
+      (let ((file-name-coding-system nnmail-pathname-coding-system))
+	(mm-append-to-file (point-min) (point-max) file-name))
       t)))
 
 (defun gnus-narrow-to-page (&optional arg)

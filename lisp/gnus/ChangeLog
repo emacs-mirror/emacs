@@ -1,3 +1,12 @@
+2001-08-18  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (gnus-output-to-file): Bind file-name-coding-system.
+
+	* gnus-util.el (gnus-output-to-rmail): Ditto.
+	(gnus-output-to-mail): Ditto.
+
+	* nnmail.el (nnmail-pathname-coding-system): Set default to nil.
+	
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* mm-uu.el (mm-uu-dissect, mm-uu-test): Fix autoload cookies.

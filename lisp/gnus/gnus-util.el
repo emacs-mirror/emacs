@@ -691,7 +691,8 @@ with potentially long computations."
       ;; Decide whether to append to a file or to an Emacs buffer.
       (let ((outbuf (get-file-buffer filename)))
 	(if (not outbuf)
-	    (mm-append-to-file (point-min) (point-max) filename)
+	    (let ((file-name-coding-system nnmail-pathname-coding-system))
+	      (mm-append-to-file (point-min) (point-max) filename))
 	  ;; File has been visited, in buffer OUTBUF.
 	  (set-buffer outbuf)
 	  (let ((buffer-read-only nil)
@@ -760,7 +761,8 @@ with potentially long computations."
 		    (insert "\n"))
 		  (insert "\n"))
 		(goto-char (point-max))
-		(mm-append-to-file (point-min) (point-max) filename)))
+		(let ((file-name-coding-system nnmail-pathname-coding-system))
+		  (mm-append-to-file (point-min) (point-max) filename))))
 	  ;; File has been visited, in buffer OUTBUF.
 	  (set-buffer outbuf)
 	  (let ((buffer-read-only nil))
