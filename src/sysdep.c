@@ -1105,24 +1105,27 @@ unrequest_sigio ()
    the tty's pgroup just like any other terminal setting.  If
    inherited_group was not the tty's pgroup, then we'll get a
    SIGTTmumble when we try to change the tty's pgroup, and a CONT if
-   it goes foreground in the future, which is what should happen.  */
+   it goes foreground in the future, which is what should happen.
+
+   This variable is initialized in emacs.c.  */
 int inherited_pgroup;
 
-/* Split off the foreground process group to Emacs alone.
-   When we are in the foreground, but not started in our own process
-   group, redirect the TTY to point to our own process group.  We need
-   to be in our own process group to receive SIGIO properly.  */
+/* Split off the foreground process group to Emacs alone.  When we are
+   in the foreground, but not started in our own process group,
+   redirect the tty device handle FD to point to our own process
+   group.  We need to be in our own process group to receive SIGIO
+   properly.  */
 void
 narrow_foreground_group (int fd)
 {
   int me = getpid ();
 
+  setpgrp (0, inherited_pgroup);
   if (! inherited_pgroup)
-    inherited_pgroup = getpgid (0);
-  /* XXX This only works on the controlling tty. */
+    abort ();                   /* Should not happen. */
   if (inherited_pgroup != me)
-    EMACS_SET_TTY_PGRP (fd, &me);
-  setpgid (0, me);
+      EMACS_SET_TTY_PGRP (fd, &me); /* XXX This only works on the controlling tty. */
+  setpgrp (0, me);
 }
 
 /* Set the tty to our original foreground group.  */
@@ -1131,7 +1134,7 @@ widen_foreground_group (int fd)
 {
   if (inherited_pgroup != getpid ())
     EMACS_SET_TTY_PGRP (fd, &inherited_pgroup);
-  setpgid (0, inherited_pgroup);
+  setpgrp (0, inherited_pgroup);
 }
 
 #endif /* BSD_PGRPS */

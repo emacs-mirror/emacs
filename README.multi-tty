@@ -164,10 +164,10 @@ to the project by testing, bug reports, and suggestions.  Thanks!
 Robert J. Chassel <bob at rattlesnake dot com>
 Romain Francoise <romain at orekobech dot com>
 Ami Fischman <ami at fischman dot org>
+Istvan Marko <mi-mtty ar kismala dot com>
 Dan Nicolaescu <dann at ics dot uci dot edu>
 
 Richard Stallman was kind enough to review my patches.
-
 
 CHANGELOG
 ---------
@@ -176,6 +176,12 @@ See arch logs.
 
 THINGS TO DO
 ------------
+
+** There is a flicker during the startup of `emacs -nw'; it's as if
+   the terminal is initialized, reset and then initialialized again.
+   Debug this.  (Hint: narrow_foreground_group is called twice during
+   startup.)
+
 ** Dan Nicolaescu (dann at ics dot uci dot edu) suggests that -nw
    should be added as an alias for -t in emacsclient.  Good idea.
    (Alas, implementing this is not trivial, getopt_long does not seem
@@ -648,5 +654,12 @@ DIARY OF CHANGES
    gives unexpected results.
 
    (Fixed.)
+
+-- Istvan Marko reported that Emacs hang on ttys if it was started
+   from a shell script.
+
+   (Fixed.  There was a bug in the multi-tty version of
+   narrow_foreground_group.  tcsetpgrp blocks if it is called from a
+   process that is not in the same process group as the tty.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
