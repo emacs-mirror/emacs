@@ -121,10 +121,10 @@ bottom of the buffer stack."
 	  (apply 'nconc
 		 (mapcar
 		  (lambda (buf)
-		    (if (= (string-to-char (buffer-name (car (cdr tail))))
-			   ?\ )
+		    (if (= ?\  (string-to-char (buffer-name buf)))
 			nil
-		      (list buf)))))))))
+		      (list buf)))
+		  (buffer-list)))))))
 
 (defalias 'find-face 'internal-find-face)
 (defalias 'get-face 'internal-get-face)
