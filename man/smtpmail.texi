@@ -281,7 +281,6 @@ will fail when you are not connected.  The SMTP library implements
 queued delivery, and the following variable control its behaviour.
 
 @table @code
-
 @item smtpmail-queue-mail
 @vindex smtpmail-queue-mail
   The variable @code{smtpmail-queue-mail} controls whether a simple
@@ -297,15 +296,13 @@ Internet).
   The variable @code{smtpmail-queue-dir} specifies the name of the
 directory to hold queued messages.  It defaults to
 @file{~/Mail/queued-mail/}.
+@end table
 
 @findex smtpmail-send-queued-mail
   The function @code{smtpmail-send-queued-mail} can be used to send
 any queued mail when @code{smtpmail-queue-mail} is enabled.  It is
 typically invoked interactively with @kbd{M-x RET
 smtpmail-send-queued-mail RET} when you are connected to the Internet.
-
-@end table
-
 
 @node Server workarounds
 @chapter Server workarounds
