@@ -248,7 +248,6 @@ For most purposes, consider using `format-decode-region' instead."
     (unwind-protect
 	(progn
 	  ;; Don't record undo information for the decoding.
-	  (setq buffer-undo-list t)
 	  
 	  (if (null format)
 	      ;; Figure out which format it is in, remember list in `format'.
@@ -286,8 +285,8 @@ For most purposes, consider using `format-decode-region' instead."
 	  (if visit-flag
 	      (setq buffer-file-format format)))
       
-      (set-buffer-modified-p mod)
-      (setq buffer-undo-list nil))
+      (set-buffer-modified-p mod))
+
       ;; Return new length of region
     (- end begin)))
 
