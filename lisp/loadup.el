@@ -179,7 +179,7 @@
 			   (substring name (match-end 0)))))
       (if (memq system-type '(ms-dos windows-nt))
 	  (setq name (expand-file-name
-		      (if (fboundp 'make-frame) "DOC-X" "DOC") "../etc"))
+		      (if (fboundp 'x-create-frame) "DOC-X" "DOC") "../etc"))
 	(setq name (concat (expand-file-name "../etc/DOC-") name))
 	(if (file-exists-p name)
 	    (delete-file name))
