@@ -810,7 +810,7 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
   CHECK_NATNUM (height, 0);
   CHECK_NATNUM (width, 0);
   
-  if (XINT (XPROCESS (process)->infd < 0)
+  if (XINT (XPROCESS (process)->infd) < 0
       || set_window_size (XINT (XPROCESS (process)->infd),
 			  XINT (height), XINT (width)) <= 0)
     return Qnil;
