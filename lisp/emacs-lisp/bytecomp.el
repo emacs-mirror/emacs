@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.87 $")
+(defconst byte-compile-version "$Revision: 2.88.1.1 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2133,12 +2133,37 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		       (nth 3 function))))))
 
 
+(defun byte-compile-check-lambda-list (list)
+  "Check lambda-list LIST for errors."
+  (let (vars)
+    (while list
+      (let ((arg (car list)))
+	(cond ((or (not (symbolp arg)) 
+		   (keywordp arg)
+		   (memq arg '(t nil)))
+	       (error "Invalid lambda variable %s" arg))
+	      ((eq arg '&rest)
+	       (unless (cdr list)
+		 (error "&rest without variable name"))
+	       (when (cddr list)
+		 (error "Garbage following &rest VAR in lambda-list")))
+	      ((eq arg '&optional)
+	       (unless (cdr list)
+		 (error "Variable name missing after &optional")))
+	      ((memq arg vars)
+	       (error "Repeated variable %s in lambda-list" arg))
+	      (t 
+	       (push arg vars))))
+      (setq list (cdr list)))))
+
+
 ;; Byte-compile a lambda-expression and return a valid function.
 ;; The value is usually a compiled function but may be the original
 ;; lambda-expression.
 (defun byte-compile-lambda (fun)
   (unless (eq 'lambda (car-safe fun))
     (error "Not a lambda list: %S" fun))
+  (byte-compile-check-lambda-list (nth 1 fun))
   (let* ((arglist (nth 1 fun))
 	 (byte-compile-bound-variables
 	  (nconc (and (memq 'free-vars byte-compile-warnings)
@@ -3216,6 +3241,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 (defun byte-compile-defun (form)
   ;; This is not used for file-level defuns with doc strings.
+  (unless (symbolp (car form))
+    (error "defun name must be a symbol, not %s" (car form)))
   (byte-compile-two-args ; Use this to avoid byte-compile-fset's warning.
    (list 'fset (list 'quote (nth 1 form))
 	 (byte-compile-byte-code-maker
