@@ -601,6 +601,10 @@ extern void coding_save_composition P_ ((struct coding_system *, int, int,
 extern void coding_free_composition_data P_ ((struct coding_system *));
 extern void coding_adjust_composition_offset P_ ((struct coding_system *,
 						  int));
+extern void coding_allocate_composition_data P_ ((struct coding_system *,
+						  int));
+extern void coding_restore_composition P_ ((struct coding_system *,
+					    Lisp_Object));
 extern int code_convert_region P_ ((int, int, int, int, struct coding_system *,
 				    int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
