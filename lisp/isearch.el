@@ -774,9 +774,9 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
   (signal 'quit nil))  ; and pass on quit signal
 
 (defun isearch-abort ()
-  "Abort incremental search mode if searching is successful, signalling quit.
+  "Abort incremental search mode if searching is successful, signaling quit.
 Otherwise, revert to previous successful search and continue searching.
-Use `isearch-exit' to quit without signalling."
+Use `isearch-exit' to quit without signaling."
   (interactive)
 ;;  (ding)  signal instead below, if quitting
   (discard-input)
@@ -1223,7 +1223,7 @@ If you want to search for just a space, type C-q SPC."
       ;; isearch-string stays the same
       t)
      ((or completion ; not nil, must be a string
-	  (= 0 (length isearch-string))) ; shouldnt have to say this
+	  (= 0 (length isearch-string))) ; shouldn't have to say this
       (if (equal completion isearch-string)  ;; no extension?
 	  (if completion-auto-help
 	      (with-output-to-temp-buffer "*Isearch completions*"
@@ -1419,7 +1419,7 @@ If there is no completion possible, say so and continue searching."
 
 (defun isearch-no-upper-case-p (string regexp-flag)
   "Return t if there are no upper case chars in STRING.
-If REGEXP-FLAG is non-nil, disregard letters preceeded by `\\' (but not `\\\\')
+If REGEXP-FLAG is non-nil, disregard letters preceded by `\\' (but not `\\\\')
 since they have special meaning in a regexp."
   (let ((case-fold-search nil))
     (not (string-match (if regexp-flag "\\(^\\|\\\\\\\\\\|[^\\]\\)[A-Z]"
