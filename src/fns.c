@@ -1136,6 +1136,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	  && using_x_p ())
 	{
 	  Lisp_Object pane, menu;
+	  redisplay_preserve_echo_area ();
 	  pane = Fcons (Fcons (build_string ("Yes"), Qt),
 			Fcons (Fcons (build_string ("No"), Qnil),
 			       Qnil));
@@ -1238,6 +1239,7 @@ and can edit it until it as been confirmed.")
       && using_x_p ())
     {
       Lisp_Object pane, menu, obj;
+      redisplay_preserve_echo_area ();
       pane = Fcons (Fcons (build_string ("Yes"), Qt),
 		    Fcons (Fcons (build_string ("No"), Qnil),
 			   Qnil));
