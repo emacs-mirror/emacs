@@ -1087,6 +1087,7 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 		    (fill-individual-paragraphs-citation two-lines-prefix
 							 citation-regexp)
 		  just-one-line-prefix))
+	  (or two-lines-citation-part (setq two-lines-citation-part ""))
 	  (setq adjusted-two-lines-citation-part
 		(substring two-lines-citation-part 0
 			   (string-match "[ \t]*\\'"
