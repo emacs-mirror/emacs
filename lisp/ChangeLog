@@ -1,3 +1,8 @@
+2004-02-14  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* Makefile.in: Fixed the CC Mode recompile kludge so it works
+	when building in a different directory.
+
 2004-02-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (kill-new): Put yank-handler property on the entire
