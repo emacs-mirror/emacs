@@ -104,7 +104,7 @@ would have the following buffer names in the various styles:
   :type '(radio (const forward)
 		(const reverse)
 		(const post-forward)
-		(const podt-forward-angle-brackets)
+		(const post-forward-angle-brackets)
 		(const :tag "standard Emacs behavior (nil)" nil))
   :group 'uniquify)
 
