@@ -513,10 +513,13 @@ list of hooks to run in HOOK, then nothing is done.  See `add-hook'."
 (defun eval-after-load (file form)
   "Arrange that, if FILE is ever loaded, FORM will be run at that time.
 This makes or adds to an entry on `after-load-alist'.
+It does nothing if FORM is already on the list for FILE.
 FILE should be the name of a library, with no directory name."
   (or (assoc file after-load-alist)
       (setq after-load-alist (cons (list file) after-load-alist)))
-  (nconc (assoc file after-load-alist) (list form))
+  (let ((elt (assoc file after-load-alist)))
+    (or (member form (cdr elt))
+	(nconc elt (list form))))
   form)
 
 (defun eval-next-after-load (file)
