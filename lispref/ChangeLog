@@ -1,3 +1,16 @@
+2003-11-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hash.texi (Creating Hash): Clarify description of `eql'.
+	`makehash' is obsolete.
+	(Hash Access): Add Common Lisp notes for `remhash' and `clrhash'.
+
+	* positions.texi (Point): Change description of `buffer-end', so
+	that it is also correct for floating point arguments.
+	(List Motion): Correct argument lists of `beginning-of-defun' and
+	`end-of-defun'.
+	(Excursions): Add xref to `Marker Insertion Types'.
+	(Narrowing): Argument to `narrow-to-page' is optional.
+
 2003-11-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* streams.texi (Output Streams): Clarify behavior of point for
