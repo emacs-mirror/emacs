@@ -1,3 +1,8 @@
+2002-08-15  Carsten Dominik  <dominik@sand.science.uva.nl>
+
+	* textmodes/reftex.el (reftex-mode): Moved the creation of special
+	syntax tables to top-level.
+
 2002-08-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* help-fns.el (locate-library): Use locate-file(-completion).
