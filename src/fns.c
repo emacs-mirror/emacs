@@ -3430,7 +3430,7 @@ cmpfn_eql (h, key1, hash1, key2, hash2)
 {
   return (FLOATP (key1)
 	  && FLOATP (key2)
-	  && XFLOAT (key1)->data == XFLOAT (key2)->data);
+	  && XFLOAT_DATA (key1) == XFLOAT_DATA (key2));
 }
 
 
@@ -4151,8 +4151,8 @@ sxhash (obj, depth)
 
     case Lisp_Float:
       {
-	unsigned char *p = (unsigned char *) &XFLOAT (obj)->data;
-	unsigned char *e = p + sizeof XFLOAT (obj)->data;
+	unsigned char *p = (unsigned char *) &XFLOAT_DATA (obj);
+	unsigned char *e = p + sizeof XFLOAT_DATA (obj);
 	for (hash = 0; p < e; ++p)
 	  hash = SXHASH_COMBINE (hash, *p);
 	break;
@@ -4416,7 +4416,8 @@ DEFUN ("hash-table-test", Fhash_table_test, Shash_table_test, 1, 1, 0,
 }
 
   
-DEFUN ("hash-table-weak", Fhash_table_weak, Shash_table_weak, 1, 1, 0,
+DEFUN ("hash-table-weakness", Fhash_table_weakness, Shash_table_weakness,
+       1, 1, 0,
   "Return the weakness of TABLE.")
   (table)
        Lisp_Object table;
@@ -4569,7 +4570,7 @@ syms_of_fns ()
   defsubr (&Shash_table_rehash_threshold);
   defsubr (&Shash_table_size);
   defsubr (&Shash_table_test);
-  defsubr (&Shash_table_weak);
+  defsubr (&Shash_table_weakness);
   defsubr (&Shash_table_p);
   defsubr (&Sclrhash);
   defsubr (&Sgethash);
