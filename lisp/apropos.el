@@ -591,14 +591,15 @@ alphabetically by symbol name; but this function also sets
 				   "Macro"
 				 "Function"))
 			     t)
-	  ;; We used to use customize-variable-other-window instead
+	  ;; We used to use `customize-variable-other-window' instead
 	  ;; for a customizable variable, but that is slow.
 	  ;; It is better to show an ordinary help buffer
 	  ;; and let the user click on the customization button
 	  ;; in that buffer, if he wants to.
+	  ;; Likewise for `customize-face-other-window'.
 	  (apropos-print-doc 'describe-variable 2 "Variable" t)
 	  (apropos-print-doc 'customize-group-other-window 6 "Group" t)
-	  (apropos-print-doc 'customize-face-other-window 5 "Face" t)
+	  (apropos-print-doc 'describe-face 5 "Face" t)
 	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" t)
 	  (apropos-print-doc 'apropos-describe-plist 3
 			     "Plist" nil))
