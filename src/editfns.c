@@ -1633,12 +1633,9 @@ static int message_length;
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
   "Print a one-line message at the bottom of the screen.\n\
-The first argument is a control string.\n\
-It may contain %s or %d or %c to print successive following arguments.\n\
-%s means print an argument as a string, %d means print as number in decimal,\n\
-%c means print a number as a single character.\n\
-The argument used by %s must be a string or a symbol;\n\
-the argument used by %d or %c must be a number.\n\
+The first argument is a format control string, and the rest are data\n\
+to be formatted under control of the string.  See `format' for details.\n\
+\n\
 If the first argument is nil, clear any existing message; let the\n\
 minibuffer contents show.")
   (nargs, args)
