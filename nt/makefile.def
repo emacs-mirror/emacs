@@ -45,6 +45,8 @@ LINK            = link32.exe
 # If you are using VC 2.0, define COMPAT_LIB (only tested on i386)
 #COMPAT_LIB	= $(SYS_LIB_DIR)\oldnames.lib
 
+CVTRES		= cvtres.exe
+
 #
 # END CONFIGURATION
 #
