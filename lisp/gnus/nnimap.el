@@ -106,7 +106,7 @@ If you'd like, for instance, one mail group for mail from the
 everything else in the incoming mailbox, you could do something like
 this:
 
-(setq nnimap-split-rule '((\"INBOX.gnus-imap\"   \"From:.*gnus-imap\")
+\(setq nnimap-split-rule '((\"INBOX.gnus-imap\"   \"From:.*gnus-imap\")
 			  (\"INBOX.junk\"        \"Subject:.*buy\")))
 
 As you can see, `nnimap-split-rule' is a list of lists, where the first
@@ -127,7 +127,7 @@ To allow for different split rules on different virtual servers, and
 even different split rules in different inboxes on the same server,
 the syntax of this variable have been extended along the lines of:
 
-(setq nnimap-split-rule
+\(setq nnimap-split-rule
       '((\"my1server\"    (\".*\"    ((\"ding\"    \"ding@gnus.org\")
                                   (\"junk\"    \"From:.*Simon\")))
         (\"my2server\"    (\"INBOX\" nnimap-split-fancy))
