@@ -1,10 +1,9 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
-;; Version: 2.03
 ;; Special thanks to Hallvard Furuseth for his many ideas and contributions.
 
 ;; This file is part of GNU Emacs.
@@ -78,12 +77,6 @@
 ;; The regular M-TAB (lisp-complete-symbol) command also supports
 ;; partial completion in this package.
 
-;; This package also contains a wildcard feature for C-x C-f (find-file).
-;; For example, `C-x C-f *.c RET' loads all .c files at once, exactly
-;; as if you had typed C-x C-f separately for each file.  Completion
-;; is supported in connection with wildcards.  Currently only the `*'
-;; wildcard character works.
-
 ;; File name completion does not do partial completion of directories
 ;; on the path, e.g., "/u/b/f" will not complete to "/usr/bin/foo",
 ;; but you can put *'s in the path to accomplish this:  "/u*/b*/f".
@@ -155,11 +148,6 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
   :type '(repeat directory)
   :group 'partial-completion)
 
-(defcustom PC-disable-wildcards nil
-  "*If non-nil, wildcard support in \\[find-file] is disabled."
-  :type 'boolean
-  :group 'partial-completion)
-
 (defcustom PC-disable-includes nil
   "*If non-nil, include-file support in \\[find-file] is disabled."
   :type 'boolean
@@ -185,11 +173,6 @@ command begins with that sequence of characters, and
 \\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
 other file in that directory begin with that sequence of characters.
 
-Unless `PC-disable-wildcards' is non-nil, the \"*\" wildcard is interpreted
-specially when entering file or directory names.  For example,
-\\[find-file] *.c RET finds each C file in the current directory, and
-\\[find-file] */foo_bar.c TAB completes the directory name as far as possible.
-
 Unless `PC-disable-includes' is non-nil, the \"<...>\" sequence is interpreted
 specially in \\[find-file].  For example,
 \\[find-file] <sys/time.h> RET finds the file /usr/include/sys/time.h.
@@ -200,11 +183,6 @@ See also the variable `PC-include-file-path'."
 		(not partial-completion-mode))))
     ;; Deal with key bindings...
     (PC-bindings on-p)
-    ;; Deal with wildcard file feature...
-    (cond ((not on-p)
-	   (remove-hook 'find-file-not-found-hooks 'PC-try-load-many-files))
-	  ((not PC-disable-wildcards)
-	   (add-hook 'find-file-not-found-hooks 'PC-try-load-many-files)))
     ;; Deal with include file feature...
     (cond ((not on-p)
 	   (remove-hook 'find-file-not-found-hooks 'PC-look-for-include-file))
@@ -771,58 +749,8 @@ or properties are considered."
 	 (PC-not-minibuffer t))
     (PC-do-completion nil beg end)))
 
-
-;;; Wildcards in `C-x C-f' command.  This is independent from the main
-;;; completion code, except for `PC-expand-many-files' which is called
-;;; when "*"'s are found in the path during filename completion.  (The
-;;; above completion code always understands "*"'s, except in file paths,
-;;; without relying on the following code.)
-
-(defvar PC-many-files-list nil)
-
-(defun PC-try-load-many-files ()
-  (if (string-match "\\*" buffer-file-name)
-      (let* ((pat buffer-file-name)
-	     (files (PC-expand-many-files pat))
-	     (first (car files))
-	     (next (reverse (cdr files))))
-	(kill-buffer (current-buffer))
-	(or files
-	    (error "No matching files"))
-	;; Bring the other files (not the first) into buffers.
-	(save-window-excursion
-	  (while next
-	    (let ((buf (find-file-noselect (car next))))
-	      ;; Put this buffer at the front of the buffer list.
-	      (switch-to-buffer buf))
-	    (setq next (cdr next))))
-	;; This modifies the `buf' variable inside find-file-noselect.
-	(setq buf (get-file-buffer first))
-	(if buf
-	    nil   ; should do verify-visited-file-modtime stuff.
-	  (setq filename first)
-	  (setq buf (create-file-buffer filename))
-	  ;; This modified `truename' inside find-file-noselect.
-	  (setq truename (abbreviate-file-name (file-truename filename)))
-	  (set-buffer buf)
-	  (erase-buffer)
-	  (insert-file-contents filename t))
-	(if (cdr files)
-	    (setq PC-many-files-list (mapconcat
-				      (if (string-match "\\*.*/" pat)
-					  'identity
-					'file-name-nondirectory)
-				      (cdr files) ", ")
-		  find-file-hooks (cons 'PC-after-load-many-files
-					find-file-hooks)))
-	;; This modifies the "error" variable inside find-file-noselect.
-	(setq error nil)
-	t)
-    nil))
-
-(defun PC-after-load-many-files ()
-  (setq find-file-hooks (delq 'PC-after-load-many-files find-file-hooks))
-  (message "Also loaded %s." PC-many-files-list))
+;;; Use the shell to do globbing.
+;;; This could now use file-expand-wildcards instead.
 
 (defun PC-expand-many-files (name)
   (save-excursion
@@ -914,7 +842,7 @@ or properties are considered."
 		       default-directory)))
 	    (if (file-exists-p (concat dir name))
 		(setq name (concat dir name))
-	      (error "No such include file: \"%s\"" name))))
+	      (error "No such include file: `%s'" name))))
 	(setq new-buf (get-file-buffer name))
 	(if new-buf
 	    ;; no need to verify last-modified time for this!
@@ -923,9 +851,8 @@ or properties are considered."
 	  (set-buffer new-buf)
 	  (erase-buffer)
 	  (insert-file-contents name t))
-	(setq filename name
-	      error nil
-	      buf new-buf)
+	;; Returning non-nil with the new buffer current
+	;; is sufficient to tell find-file to use it.
 	t)
     nil))
 
