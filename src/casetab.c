@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 
 Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
@@ -178,25 +178,52 @@ set_case_table (table, standard)
    char-tables CANON, UP, and DOWN are in CASE_TABLE.  */
 
 static void
-set_canon (case_table, c, elt)
-     Lisp_Object case_table, c, elt;
+set_canon (case_table, range, elt)
+     Lisp_Object case_table, range, elt;
 {
   Lisp_Object up = XCHAR_TABLE (case_table)->extras[0];
   Lisp_Object canon = XCHAR_TABLE (case_table)->extras[1];
+  int from, to;
 
   if (NATNUMP (elt))
-    Faset (canon, c, Faref (case_table, Faref (up, elt)));
+    {
+      if (CONSP (range))
+	{
+	  from = XINT (XCAR (range));
+	  to = XINT (XCDR (range));
+	}
+      else
+	from = to = XINT (range);
+
+      for (; from <= to; from++)
+	{
+	  Lisp_Object val1, val2;
+
+	  val1 = Faref (up, elt);
+	  if (EQ (val1, Qt))
+	    val1 = elt;
+	  else if (! NATNUMP (val1))
+	    continue;
+	  val2 = Faref (case_table, val1);
+	  if (EQ (val2, Qt))
+	    val2 = val1;
+	  else if (! NATNUMP (val2))
+	    continue;
+	  Faset (canon, make_number (from), val2);
+	}
+    }
 }
 
-/* Set elements of char-table TABLE for C to C itself.  This is done
-   only when ELT is a character.  This is called in map_char_table.  */
+/* Set elements of char-table TABLE for characters in RANGE to
+   themselves.  This is done only when ELT is a character.  This is
+   called in map_char_table.  */
 
 static void
-set_identity (table, c, elt)
-     Lisp_Object table, c, elt;
+set_identity (table, range, elt)
+     Lisp_Object table, range, elt;
 {
-  if (NATNUMP (elt))
-    Faset (table, c, c);
+  if (EQ (elt, Qt) || NATNUMP (elt))
+    Fset_char_table_range (table, range, Qt);
 }
 
 /* Permute the elements of TABLE (which is initially an identity
@@ -205,14 +232,32 @@ set_identity (table, c, elt)
    operated.  */
 
 static void
-shuffle (table, c, elt)
-     Lisp_Object table, c, elt;
+shuffle (table, range, elt)
+     Lisp_Object table, range, elt;
 {
-  if (NATNUMP (elt) && !EQ (c, elt))
+  int from, to;
+
+  if (NATNUMP (elt))
     {
-      Lisp_Object tem = Faref (table, elt);
-      Faset (table, elt, c);
-      Faset (table, c, tem);
+      Lisp_Object tem;
+
+      if (CONSP (range))
+	{
+	  from = XINT (XCAR (range));
+	  to = XINT (XCDR (range));
+	}
+      else
+	from = to = XINT (range);
+
+      for (; from <= to; from++)
+	if (from != XINT (elt))
+	  {
+	    tem = Faref (table, elt);
+	    if (EQ (tem, Qt))
+	      tem = elt;
+	    Faset (table, elt, make_number (from));
+	    Faset (table, make_number (from), tem);
+	  }
     }
 }
 
@@ -237,22 +282,20 @@ init_casetab_once ()
   Vascii_downcase_table = down;
   XCHAR_TABLE (down)->purpose = Qcase_table;
 
-  for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
-    XSETFASTINT (XCHAR_TABLE (down)->contents[i],
-		 (i >= 'A' && i <= 'Z') ? i + ('a' - 'A') : i);
+  for (i = 0; i < 128; i++)
+    CHAR_TABLE_SET (down, i, (i >= 'A' && i <= 'Z') ? i + ('a' - 'A') : i);
 
   XCHAR_TABLE (down)->extras[1] = Fcopy_sequence (down);
 
   up = Fmake_char_table (Qcase_table, Qnil);
   XCHAR_TABLE (down)->extras[0] = up;
 
-  for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
-    XSETFASTINT (XCHAR_TABLE (up)->contents[i],
-		 ((i >= 'A' && i <= 'Z')
-		  ? i + ('a' - 'A')
-		  : ((i >= 'a' && i <= 'z')
-		     ? i + ('A' - 'a')
-		     : i)));
+  for (i = 0; i < 128; i++)
+    CHAR_TABLE_SET (up, i, ((i >= 'A' && i <= 'Z')
+			    ? i + ('a' - 'A')
+			    : ((i >= 'a' && i <= 'z')
+			       ? i + ('A' - 'a')
+			       : i)));
 
   XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
 }
