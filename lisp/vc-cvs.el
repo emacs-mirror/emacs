@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.43 2002/10/04 18:38:53 monnier Exp $
+;; $Id: vc-cvs.el,v 1.44 2002/10/08 15:38:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -376,7 +376,9 @@ This is only possible if CVS is responsible for FILE's directory."
 	 (and rev (not (string= rev ""))
 	      (concat "-r" rev))
 	 "-p"
-	 vc-checkout-switches))
+	 (if (stringp vc-checkout-switches)
+	     (list vc-checkout-switches)
+	   vc-checkout-switches)))
 
 (defun vc-cvs-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
@@ -436,22 +438,22 @@ REV is the revision to check out into WORKFILE."
 	    (if (and (file-exists-p file) (not rev))
 		;; If no revision was specified, just make the file writable
 		;; if necessary (using `cvs-edit' if requested).
-      (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
-		     (if vc-cvs-use-edit
-			 (vc-cvs-command nil 0 file "edit")
-		       (set-file-modes file (logior (file-modes file) 128))
-		       (if file-buffer (toggle-read-only -1))))
-	      ;; Check out a particular version (or recreate the file).
-	      (vc-file-setprop file 'vc-workfile-version nil)
-	      (apply 'vc-cvs-command nil 0 file
-                     (and editable
-                          (or (not (file-exists-p file))
-                              (not (eq (vc-cvs-checkout-model file)
-                                       'implicit)))
-                          "-w")
-                     "update"
-                     ;; default for verbose checkout: clear the sticky tag so
-                     ;; that the actual update will get the head of the trunk
+	      (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
+		   (if vc-cvs-use-edit
+		       (vc-cvs-command nil 0 file "edit")
+		     (set-file-modes file (logior (file-modes file) 128))
+		     (if file-buffer (toggle-read-only -1))))
+	    ;; Check out a particular version (or recreate the file).
+	    (vc-file-setprop file 'vc-workfile-version nil)
+	    (apply 'vc-cvs-command nil 0 file
+		   (and editable
+			(or (not (file-exists-p file))
+			    (not (eq (vc-cvs-checkout-model file)
+				     'implicit)))
+			"-w")
+		   "update"
+		   ;; default for verbose checkout: clear the sticky tag so
+		   ;; that the actual update will get the head of the trunk
 		     (if (or (not rev) (string= rev ""))
 			 "-A"
 		       (concat "-r" rev))
