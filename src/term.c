@@ -1299,6 +1299,10 @@ term_get_fkeys (address)
    * Various mappings to try and get a better fit.
    */
   {
+/* ??? I have never heard of tigetstr, and it does not exist.
+   This at least enables the code below to compile -- rms.  */
+#define tigetstr(foo) 0
+
 #define CONDITIONAL_REASSIGN(cap1, cap2, sym) \
       if (!tigetstr(cap1) && tgetstr(cap2)) \
 	    Fdefine_key (Vfunction_key_map, \
