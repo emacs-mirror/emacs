@@ -1486,18 +1486,20 @@ If COMMAND is present and non-nil, `this-command' is set to COMMAND
  after calling FUNCTION (or insert).  Note that setting `this-command'
  to a value different from `yank' will prevent `yank-pop' from undoing
  this yank."
-  (let* ((method (get-text-property 0 'yank-handler string))
-	 (param (or (nth 1 method) string))
+  (let* ((handler (and (stringp string)
+		       (get-text-property 0 'yank-handler string)))
+	 (param (or (nth 1 handler) string))
 	 (opoint (point)))
-    (setq yank-undo-function (nth 3 method)) ;; UNDO
-    (if (nth 0 method) ;; FUNCTION
-	(funcall (car method) param)
-      (setq opoint (point))
+    (setq yank-undo-function t)
+    (if (nth 0 handler) ;; FUNCTION
+	(funcall (car handler) param)
       (insert param))
-    (unless (nth 2 method) ;; NOEXCLUDE
+    (unless (nth 2 handler) ;; NOEXCLUDE
       (remove-yank-excluded-properties opoint (point)))
-    (if (nth 4 method) ;; COMMAND
-	(setq this-command (nth 4 method)))))
+    (if (eq yank-undo-function t)  ;; not set by FUNCTION
+	(setq yank-undo-function (nth 3 handler))) ;; UNDO
+    (if (nth 4 handler) ;; COMMAND
+	(setq this-command (nth 4 handler)))))
     
 (defun insert-buffer-substring-no-properties (buf &optional start end)
   "Insert before point a substring of buffer BUFFER, without text properties.
