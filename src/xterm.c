@@ -4052,8 +4052,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  }
 		else if (event.type == ButtonRelease)
 		  {
-		    if (!f) f = last_mouse_press_frame;
-		    SET_SAVED_BUTTON_EVENT;
+		    if (!f)
+		      f = last_mouse_press_frame;
+		    if (f)
+		      {
+			SET_SAVED_BUTTON_EVENT;
+		      }
 		  }
 		else
 		  goto OTHER;
