@@ -2180,6 +2180,8 @@ xg_update_frame_menubar (f)
 
   SET_FRAME_GARBAGED (f);
   UNBLOCK_INPUT;
+
+  return 1;
 }
 
 /* Get rid of the menu bar of frame F, and free its storage.
