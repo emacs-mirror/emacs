@@ -113,7 +113,8 @@ Non-nil argument (prefix, if interactive) means don't make tag table
 and don't split the file if large.  You can use Info-tagify and
 Info-split to do these manually."
   (interactive "P")
-  (let ((lastmessage "Formatting Info file..."))
+  (let ((lastmessage "Formatting Info file...")
+	(coding-system-for-write buffer-file-coding-system))
     (message lastmessage)
     (widen)
     (texinfo-format-buffer-1)
