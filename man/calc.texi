@@ -1,7 +1,7 @@
 \input texinfo                  @c -*-texinfo-*-
 @dircategory Emacs
 @direntry
-* Calc: (Calc).   The GNU Emacs Calculator.
+* Calc: (calc). 	Advanced desk calculator and mathematical tool.
 @end direntry
 @comment %**start of header (This is for running Texinfo on a region.)
 @c smallbook
