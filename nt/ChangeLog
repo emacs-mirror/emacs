@@ -18,7 +18,7 @@
 	* makefile.nt, ebuild.bat, install.bat, fast-install.bat:
 	* makefile.def: Remove.
 
-	* nmake.defs (SYS_LDFLAGS): Add -nologo
+	* nmake.defs (SYS_LDFLAGS): Add -nologo.
 
 	* makefile.w32-in (info-gmake, info-nmake): New targets.
 	(info): Use them.
@@ -33,7 +33,7 @@
 
 2004-04-10  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
 
-	* runemacs.c (WinMain): Let emacs environment default to parent.
+	* runemacs.c (WinMain): Let Emacs environment default to parent.
 
 2004-03-11  Jason Rumney  <jasonr@gnu.org>
 
@@ -54,7 +54,7 @@
 
 2003-11-22  Lars Hansen  <larsh@math.ku.dk>
 
-	* inc/grp.h: Added.
+	* inc/grp.h: New file.
 
 2003-09-03  Peter Runestig  <peter@runestig.com>
 
@@ -190,7 +190,7 @@
 	* INSTALL: Update table of versions of make that are suitable
 	for building Emacs, based on recent feedback.
 
-	* TODO, _emacs, emacs.bat.in, debug.bat.in: Removed.
+	* TODO, _emacs, emacs.bat.in, debug.bat.in: Remove.
 
 2001-11-19  Andrew Innes  <andrewi@gnu.org>
 
