@@ -144,7 +144,7 @@ add a `#define NARROWPROTO' to your Emacs system configuration file.
 The reason for this is that one Xaw3d function uses `double' or
 `float' function parameters depending on the setting of NARROWPROTO.
 This is not a problem when Imakefiles are used because each system's
-image configuration file contains the necessary information.  Since
+imake configuration file contains the necessary information.  Since
 Emacs doesn't use imake, this has do be done manually.
 
 +++
