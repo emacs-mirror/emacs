@@ -99,11 +99,16 @@ static Lisp_Object Vbuffer_local_symbols;
    buffer_slot_type_mismatch will signal an error.  */
 struct buffer buffer_local_types;
 
+/* Flags indicating which built-in buffer-local variables
+   are permanent locals.  */
+static int buffer_permanent_local_flags;
+
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
 void set_buffer_internal_1 ();
 static void call_overlay_mod_hooks ();
 static void swap_out_buffer_local_variables ();
+static void reset_buffer_local_variables ();
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -335,7 +340,7 @@ The value is never nil.")
     b->undo_list = Qt;
 
   reset_buffer (b);
-  reset_buffer_local_variables (b);
+  reset_buffer_local_variables (b, 1);
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buf, b);
@@ -399,7 +404,7 @@ NAME should be a string which is not the name of an existing buffer.")
   b->name = name;
 
   reset_buffer (b);
-  reset_buffer_local_variables (b);
+  reset_buffer_local_variables (b, 1);
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buf, b);
@@ -474,12 +479,25 @@ reset_buffer (b)
 /* Reset buffer B's local variables info.
    Don't use this on a buffer that has already been in use;
    it does not treat permanent locals consistently.
-   Instead, use Fkill_all_local_variables.  */
+   Instead, use Fkill_all_local_variables.
 
-reset_buffer_local_variables (b)
+   If PERMANENT_TOO is 1, then we reset permanent built-in
+   buffer-local variables.  If PERMANENT_TOO is 0,
+   we preserve those.  */
+
+static void
+reset_buffer_local_variables (b, permanent_too)
      register struct buffer *b;
+     int permanent_too;
 {
   register int offset;
+  int dont_reset;
+
+  /* Decide which built-in local variables to reset.  */
+  if (permanent_too)
+    dont_reset = 0;
+  else
+    dont_reset = buffer_permanent_local_flags;
 
   /* Reset the major mode to Fundamental, together with all the
      things that depend on the major mode.
@@ -502,7 +520,6 @@ reset_buffer_local_variables (b)
   b->upcase_table = XCHAR_TABLE (Vascii_downcase_table)->extras[0];
   b->case_canon_table = XCHAR_TABLE (Vascii_downcase_table)->extras[1];
   b->case_eqv_table = XCHAR_TABLE (Vascii_downcase_table)->extras[2];
-  b->buffer_file_type = Qnil;
   b->invisibility_spec = Qt;
 
 #if 0
@@ -510,9 +527,9 @@ reset_buffer_local_variables (b)
   b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
 #endif /* 0 */
 
-  /* Reset all per-buffer variables to their defaults.  */
+  /* Reset all (or most) per-buffer variables to their defaults.  */
   b->local_var_alist = Qnil;
-  b->local_var_flags = 0;
+  b->local_var_flags &= dont_reset;
 
   /* For each slot that has a default value,
      copy that into the slot.  */
@@ -522,9 +539,12 @@ reset_buffer_local_variables (b)
        offset += sizeof (Lisp_Object)) /* sizeof EMACS_INT == sizeof Lisp_Object */
     {
       int flag = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
-      if (flag > 0 || flag == -2)
-	*(Lisp_Object *)(offset + (char *)b) =
-	  *(Lisp_Object *)(offset + (char *)&buffer_defaults);
+      if ((flag > 0
+	   /* Don't reset a permanent local.  */
+	   && ! (dont_reset & flag))
+	  || flag == -2)
+	*(Lisp_Object *)(offset + (char *)b)
+	  = *(Lisp_Object *)(offset + (char *)&buffer_defaults);
     }
 }
 
@@ -1090,7 +1110,7 @@ with SIGHUP.")
      if they happened to remain encached in their symbols.
      This gets rid of them for certain.  */
   swap_out_buffer_local_variables (b);
-  reset_buffer_local_variables (b);
+  reset_buffer_local_variables (b, 1);
 
   b->name = Qnil;
 
@@ -1553,7 +1573,7 @@ the normal hook `change-major-mode-hook'.")
 
   /* Actually eliminate all local bindings of this buffer.  */
 
-  reset_buffer_local_variables (current_buffer);
+  reset_buffer_local_variables (current_buffer, 0);
 
   /* Redisplay mode lines; we are changing major mode.  */
 
@@ -3315,12 +3335,14 @@ init_buffer_once ()
 {
   register Lisp_Object tem;
 
+  buffer_permanent_local_flags = 0;
+
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
   reset_buffer (&buffer_defaults);
-  reset_buffer_local_variables (&buffer_defaults);
+  reset_buffer_local_variables (&buffer_defaults, 1);
   reset_buffer (&buffer_local_symbols);
-  reset_buffer_local_variables (&buffer_local_symbols);
+  reset_buffer_local_variables (&buffer_local_symbols, 1);
   /* Prevent GC from getting confused.  */
   buffer_defaults.text = &buffer_defaults.own_text;
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
@@ -3410,7 +3432,10 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
 #ifdef DOS_NT
   XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
+  /* Make this one a permanent local.  */
+  buffer_permanent_local_flags |= 0x4000;
 #endif
+
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;
