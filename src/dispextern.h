@@ -1964,6 +1964,9 @@ struct it
      glyph_row in move_it_to and display_line.  */
   int current_y;
 
+  /* Vertical matrix position of first text line in window.  */
+  int first_vpos;
+
   /* Current vertical matrix position, or line number.  Automatically
      incremented by move_it_to and display_line.  */
   int vpos;
