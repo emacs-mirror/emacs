@@ -5623,7 +5623,7 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 	/* This element was already checked.  Ignore it.  */
 	continue;
       /* Remember that we checked this element.  */
-      CHAR_TABLE_SET (work_table, idx, Qt);
+      CHAR_TABLE_SET (work_table, make_number (idx), Qt);
 
       /* If there are some safe coding systems for C and we have
 	 already found the other set of coding systems for the
@@ -5713,7 +5713,7 @@ DEFUN ("find-coding-systems-region-internal",
       args[0] = safe_codings;
       args[1] = Fchar_table_extra_slot (Vchar_coding_system_table,
 					make_number (0));
-      safe_codings = Fappend (make_number (2), args);
+      safe_codings = Fappend (2, args);
     }
   else
     safe_codings = Fcons (Qraw_text, Fcons (Qemacs_mule, safe_codings));
