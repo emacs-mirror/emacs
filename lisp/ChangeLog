@@ -1,3 +1,11 @@
+2003-09-04  Mario Lang  <mlang@delysid.org>
+
+	* battery.el (battery-linux-proc-acpi): New function.
+	(battery-status-function): Modified default value calculation to also
+	check for availability of ACPI.
+	(battery-echo-area-format): Ditto.
+	(battery-mode-line-format): Ditto.
+
 2003-09-06  Dave Love  <fx@gnu.org>
 
 	* ielm.el (ielm-mode-hook): Add :options.
