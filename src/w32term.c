@@ -359,8 +359,6 @@ static void x_draw_phys_cursor_glyph P_ ((struct window *,
 					  enum draw_glyphs_face));
 static void x_update_end P_ ((struct frame *));
 static void w32_frame_up_to_date P_ ((struct frame *));
-static void w32_reassert_line_highlight P_ ((int, int));
-static void x_change_line_highlight P_ ((int, int, int, int));
 static void w32_set_terminal_modes P_ ((void));
 static void w32_reset_terminal_modes P_ ((void));
 static void w32_cursor_to P_ ((int, int, int, int));
@@ -985,53 +983,6 @@ x_draw_row_bitmaps (w, row)
 }
 
 
-/***********************************************************************
-			  Line Highlighting
- ***********************************************************************/
-
-/* External interface to control of standout mode. Not used for W32
-   frames. Aborts when called.  */
-
-static void
-w32_reassert_line_highlight (new, vpos)
-     int new, vpos;
-{
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
-  if (! FRAME_W32_P (f))
-    return;
-
-  abort ();
-}
-
-
-/* Call this when about to modify line at position VPOS and change
-   whether it is highlighted. Not used for W32 frames.  Aborts when
-   called.  */
-
-static void
-x_change_line_highlight (new_highlight, vpos, y, first_unused_hpos)
-     int new_highlight, vpos, y, first_unused_hpos;
-{
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
-  if (! FRAME_W32_P (f))
-    return;
-
-  abort ();
-}
-
-
 /* This is called when starting Emacs and when restarting after
    suspend.  When starting Emacs, no window is mapped.  And nothing
    must be done to Emacs's own window if it is suspended (though that
@@ -5108,8 +5059,7 @@ x_fix_overlapping_area (w, row, area)
 		 && row->glyphs[area][i].overlaps_vertically_p);
 
 	  x_draw_glyphs (w, start_x, row, area, start, i,
-			 (row->inverse_p
-			  ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT),
+			 DRAW_NORMAL_TEXT,
 			 NULL, NULL, 1);
 	}
       else
@@ -5145,8 +5095,7 @@ x_write_glyphs (start, len)
   x = x_draw_glyphs (updated_window, output_cursor.x,
 		     updated_row, updated_area,
 		     hpos, hpos + len,
-		     (updated_row->inverse_p
-		      ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT),
+		     DRAW_NORMAL_TEXT,
 		     &real_start, &real_end, 0);
 
   /* If we drew over the cursor, note that it is not visible any more.  */
@@ -5611,7 +5560,7 @@ expose_area (w, row, r, area)
     /* If row extends face to end of line write the whole line.  */
     x_draw_glyphs (w, 0, row, area,
 		   0, row->used[area],
-		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
+		   DRAW_NORMAL_TEXT,
 		   NULL, NULL, 0);
   else
     {
@@ -5650,7 +5599,7 @@ expose_area (w, row, r, area)
         x_draw_glyphs (w, first_x - start_x, row, area,
                        first - row->glyphs[area],
                        last - row->glyphs[area],
-                       row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
+                       DRAW_NORMAL_TEXT,
                        NULL, NULL, 0);
     }
 }
@@ -5669,8 +5618,7 @@ expose_line (w, row, r)
   
   if (row->mode_line_p || w->pseudo_window_p)
     x_draw_glyphs (w, 0, row, TEXT_AREA, 0, row->used[TEXT_AREA],
-		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
-		   NULL, NULL, 0);
+		   DRAW_NORMAL_TEXT, NULL, NULL, 0);
   else
     {
       if (row->used[LEFT_MARGIN_AREA])
@@ -9057,8 +9005,6 @@ x_erase_phys_cursor (w)
   /* Erase the cursor by redrawing the character underneath it.  */
   if (mouse_face_here_p)
     hl = DRAW_MOUSE_FACE;
-  else if (cursor_row->inverse_p)
-    hl = DRAW_INVERSE_VIDEO;
   else
     hl = DRAW_NORMAL_TEXT;
   x_draw_phys_cursor_glyph (w, cursor_row, hl);
