@@ -291,6 +291,7 @@ xrealloc (ptr, size)
 
 void
 fatal (message)
+     char *message;
 {
   fprintf (stderr, "%s: %s\n", progname, message);
   exit (BAD);
