@@ -997,7 +997,7 @@ Some window systems and window managers direct keyboard input to the
 window object that the mouse is in; others require explicit clicks or
 commands to @dfn{shift the focus} to various window objects.  Either
 way, Emacs automatically keeps track of which frame has the focus.  To
-switch to a different frame from a lisp function, call
+switch to a different frame from a Lisp function, call
 @code{select-frame-set-input-focus}.
 
 Lisp programs can also switch frames ``temporarily'' by calling the
