@@ -710,9 +710,9 @@ output from the current command if that happens to be appropriate."
   (gdb-clear-partial-output)
   (setq gdb-display-in-progress t))
 
-(defvar gdb-expression-buffer-name)
-(defvar gdb-display-number)
-(defvar gdb-dive-display-number)
+(defvar gdb-expression-buffer-name nil)
+(defvar gdb-display-number nil)
+(defvar gdb-dive-display-number nil)
 
 (defun gdb-display-number-end (ignored)
   (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
@@ -730,26 +730,27 @@ output from the current command if that happens to be appropriate."
 	    (gdb-expressions-mode)
 	    (setq gdb-dive-display-number number)))
       (set-buffer (get-buffer-create gdb-expression-buffer-name))
-      (gdb-expressions-mode)
-      (if (and (display-graphic-p) (not gdb-dive))
+      (if (display-graphic-p)
 	  (catch 'frame-exists
 	    (dolist (frame (frame-list))
 	      (if (string-equal (frame-parameter frame 'name)
 				gdb-expression-buffer-name)
 		  (throw 'frame-exists nil)))
+	    (gdb-expressions-mode)
 	    (make-frame `((height . ,gdb-window-height)
 			  (width . ,gdb-window-width)
 			  (tool-bar-lines . nil)
 			  (menu-bar-lines . nil)
 			  (minibuffer . nil))))
+	(gdb-expressions-mode)
 	(gdb-display-buffer (get-buffer gdb-expression-buffer-name)))))
   (set-buffer (gdb-get-buffer 'gdb-partial-output-buffer))
   (setq gdb-dive nil))
 
-(defvar gdb-nesting-level)
-(defvar gdb-expression)
-(defvar gdb-point)
-(defvar gdb-annotation-arg)
+(defvar gdb-nesting-level nil)
+(defvar gdb-expression nil)
+(defvar gdb-point nil)
+(defvar gdb-annotation-arg nil)
 
 (defun gdb-delete-line ()
   "Delete the current line."
@@ -954,7 +955,7 @@ output from the current command if that happens to be appropriate."
 			   'local-map gdb-dive-map)))
     (delete-region start end)))
 
-(defvar gdb-values)
+(defvar gdb-values nil)
 
 (defun gdb-array-format ()
   (while (re-search-forward "##" nil t)
@@ -980,18 +981,23 @@ output from the current command if that happens to be appropriate."
 	  (setq gdb-nesting-level (- gdb-nesting-level 1))
 	  (gdb-array-format)))))
 
-(defvar gdb-array-start)
-(defvar gdb-array-stop)
+(defvar gdb-array-start nil)
+(defvar gdb-array-stop nil)
 
 (defvar gdb-array-slice-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'gdb-array-slice)
+    (define-key map "\r" 'gdb-array-slice)
+    (define-key map [mouse-2] 'gdb-mouse-array-slice)
     map))
 
-(defun gdb-array-slice (event)
+(defun gdb-mouse-array-slice (event)
   "Select an array slice to display."
   (interactive "e")
   (mouse-set-point event)
+  (gdb-array-slice))
+
+(defun gdb-array-slice ()
+  (interactive)
   (save-excursion
     (let ((n -1) (stop 0) (start 0) (point (point)))
       (beginning-of-line)
@@ -1003,8 +1009,8 @@ output from the current command if that happens to be appropriate."
       (aset gdb-array-stop n stop)))
   (gdb-array-format1))
 
-(defvar gdb-display-string)
-(defvar gdb-array-size)
+(defvar gdb-display-string nil)
+(defvar gdb-array-size nil)
 
 (defun gdb-array-format1 ()
   (setq gdb-display-string "")
@@ -2002,7 +2008,7 @@ the source buffer."
 			"Display other windows" "Many Windows %s"
 			"Display locals, stack and breakpoint information"))
 
- (let ((menu (make-sparse-keymap "GDB-Frames")))
+(let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
     `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
@@ -2036,7 +2042,7 @@ the source buffer."
    (define-key menu [assembler] '(menu-item "Assembler" gdb-view-assembler
 	       :help "Display assembler only"
 	       :button (:radio . (eq gdb-selected-view 'assembler))))
-   (define-key menu [source] '(menu-item "Source" gdb-view-source
+   (define-key menu [source] '(menu-item "Source" gdb-view-source-function
 	       :help "Display source only"
 	       :button (:radio . (eq gdb-selected-view 'source)))))
 
@@ -2052,7 +2058,7 @@ the source buffer."
 
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
-(defun gdb-view-source()
+(defun gdb-view-source-function ()
   (interactive)
   (if gdb-view-source
       (if gud-last-last-frame
