@@ -1,7 +1,7 @@
 /*  impl.c.than: ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.16) $
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!than.c(trunk.17) $
+ *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.
@@ -14,7 +14,7 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.16) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.17) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -58,6 +58,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   return ResOK;
 }
 
+
 void ThreadDeregister(Thread thread, Arena arena)
 {
   AVERT(Thread, thread);
@@ -72,6 +73,7 @@ void ThreadDeregister(Thread thread, Arena arena)
   ArenaFree(arena, thread, sizeof(ThreadStruct));
 }
 
+
 void ThreadRingSuspend(Ring threadRing)
 {
   AVERT(Ring, threadRing);
@@ -84,6 +86,7 @@ void ThreadRingResume(Ring threadRing)
   return;
 }
 
+
 /* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
 Arena ThreadArena(Thread thread)
 {
@@ -92,10 +95,13 @@ Arena ThreadArena(Thread thread)
   return thread->arena;
 }
 
+
 Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 {
+  UNUSED(thread);
   return StackScan(ss, stackBot);
 }
+
 
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 {
