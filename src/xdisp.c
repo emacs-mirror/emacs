@@ -1991,6 +1991,10 @@ face_before_or_after_it_pos (it, before_p)
     }
   else
     {
+      if ((IT_CHARPOS (*it) >= ZV && !before_p)
+	  || (IT_CHARPOS (*it) <= BEGV && before_p))
+	return it->face_id;
+      
       limit = IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT;
       pos = it->current.pos;
       
@@ -1998,7 +2002,7 @@ face_before_or_after_it_pos (it, before_p)
 	DEC_TEXT_POS (pos);
       else
 	INC_TEXT_POS (pos);
-      
+
       /* Determine face for CHARSET_ASCII, or unibyte.  */
       face_id = face_at_buffer_position (it->w,
 					 CHARPOS (pos),
