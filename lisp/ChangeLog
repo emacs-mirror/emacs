@@ -1,3 +1,10 @@
+2004-06-24  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/grep.el (grep-error-screen-columns): New variable.
+	(grep-regexp-alist): Give it the full functionality of gnu style
+	compilation messages with line and column ranges.  Ask me for the
+	perl script I'm working on, that uses these.
+
 2004-06-23  Nick Roberts  <nickrob@gnu.org>
 
 	* comint.el: (comint-insert-clicked-input, comint-copy-old-input):
