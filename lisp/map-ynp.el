@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- General-purpose boolean question-asker.
 
-;;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: lisp, extensions
@@ -44,9 +44,8 @@ object or nil.
 If PROMPTER is a string, the prompt is \(format PROMPTER OBJECT\).  If not
 a string, PROMPTER is a function of one arg (an object from LIST), which
 returns a string to be used as the prompt for that object.  If the return
-value is not a string, it is eval'd to get the answer; it may be nil to
-ignore the object, t to act on the object without asking the user, or a
-form to do a more complex prompt.
+value is not a string, it may be nil to ignore the object or non-nil to act
+on the object without asking the user.
 
 ACTOR is a function of one arg (an object from LIST),
 which gets called with each object that the user answers `yes' for.
@@ -130,116 +129,114 @@ Returns the number of actions taken."
 				  (format (, prompter) object)))))
 	  (while (funcall next)
 	    (setq prompt (funcall prompter elt))
-	    (if (stringp prompt)
-		(progn
-		  (setq quit-flag nil)
-		  ;; Prompt the user about this object.
-		  (if mouse-event
-		      (setq def (or (x-popup-dialog mouse-event
-						    (cons prompt map))
-				    'quit))
-		    ;; Prompt in the echo area.
-		    (let ((cursor-in-echo-area (not no-cursor-in-echo-area))
-			  (message-log-max nil))
-		      (message "%s(y, n, !, ., q, %sor %s) "
-			       prompt user-keys
-			       (key-description (vector help-char)))
-		      (setq char (read-event))
-		      ;; Show the answer to the question.
-		      (message "%s(y, n, !, ., q, %sor %s) %s"
-			       prompt user-keys
-			       (key-description (vector help-char))
-			       (single-key-description char)))
-		    (setq def (lookup-key map (vector char))))
-		  (cond ((eq def 'exit)
-			 (setq next (function (lambda () nil))))
-			((eq def 'act)
-			 ;; Act on the object.
-			 (funcall actor elt)
-			 (setq actions (1+ actions)))
-			((eq def 'skip)
-			 ;; Skip the object.
-			 )
-			((eq def 'act-and-exit)
-			 ;; Act on the object and then exit.
-			 (funcall actor elt)
-			 (setq actions (1+ actions)
-			       next (function (lambda () nil))))
-			((or (eq def 'quit) (eq def 'exit-prefix))
-			 (setq quit-flag t)
-			 (setq next (` (lambda ()
-					 (setq next '(, next))
-					 '(, elt)))))
-			((eq def 'automatic)
-			 ;; Act on this and all following objects.
-			 (if (eval (funcall prompter elt))
-			     (progn
-			       (funcall actor elt)
-			       (setq actions (1+ actions))))
-			 (while (funcall next)
-			   (if (eval (funcall prompter elt))
-			       (progn
-				 (funcall actor elt)
-				 (setq actions (1+ actions))))))
-			((eq def 'help)
-			 (with-output-to-temp-buffer "*Help*"
-			   (princ
-			    (let ((object (if help (nth 0 help) "object"))
-				  (objects (if help (nth 1 help) "objects"))
-				  (action (if help (nth 2 help) "act on")))
-			      (concat
-			       (format "Type SPC or `y' to %s the current %s;
+	    (cond ((stringp prompt)
+		   ;; Prompt the user about this object.
+		   (setq quit-flag nil)
+		   (if mouse-event
+		       (setq def (or (x-popup-dialog mouse-event
+						     (cons prompt map))
+				     'quit))
+		     ;; Prompt in the echo area.
+		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area))
+			   (message-log-max nil))
+		       (message "%s(y, n, !, ., q, %sor %s) "
+				prompt user-keys
+				(key-description (vector help-char)))
+		       (setq char (read-event))
+		       ;; Show the answer to the question.
+		       (message "%s(y, n, !, ., q, %sor %s) %s"
+				prompt user-keys
+				(key-description (vector help-char))
+				(single-key-description char)))
+		     (setq def (lookup-key map (vector char))))
+		   (cond ((eq def 'exit)
+			  (setq next (function (lambda () nil))))
+			 ((eq def 'act)
+			  ;; Act on the object.
+			  (funcall actor elt)
+			  (setq actions (1+ actions)))
+			 ((eq def 'skip)
+			  ;; Skip the object.
+			  )
+			 ((eq def 'act-and-exit)
+			  ;; Act on the object and then exit.
+			  (funcall actor elt)
+			  (setq actions (1+ actions)
+				next (function (lambda () nil))))
+			 ((or (eq def 'quit) (eq def 'exit-prefix))
+			  (setq quit-flag t)
+			  (setq next (` (lambda ()
+					  (setq next '(, next))
+					  '(, elt)))))
+			 ((eq def 'automatic)
+			  ;; Act on this and all following objects.
+			  (if (funcall prompter elt)
+			      (progn
+				(funcall actor elt)
+				(setq actions (1+ actions))))
+			  (while (funcall next)
+			    (if (funcall prompter elt)
+				(progn
+				  (funcall actor elt)
+				  (setq actions (1+ actions))))))
+			 ((eq def 'help)
+			  (with-output-to-temp-buffer "*Help*"
+			    (princ
+			     (let ((object (if help (nth 0 help) "object"))
+				   (objects (if help (nth 1 help) "objects"))
+				   (action (if help (nth 2 help) "act on")))
+			       (concat
+				(format "Type SPC or `y' to %s the current %s;
 DEL or `n' to skip the current %s;
 ! to %s all remaining %s;
 ESC or `q' to exit;\n"
-				       action object object action objects)
-			       (mapconcat (function
-					   (lambda (elt)
-					     (format "%c to %s"
-						     (nth 0 elt)
-						     (nth 2 elt))))
-					  action-alist
-					  ";\n")
-			       (if action-alist ";\n")
-			       (format "or . (period) to %s \
+					action object object action objects)
+				(mapconcat (function
+					    (lambda (elt)
+					      (format "%c to %s"
+						      (nth 0 elt)
+						      (nth 2 elt))))
+					   action-alist
+					   ";\n")
+				(if action-alist ";\n")
+				(format "or . (period) to %s \
 the current %s and exit."
-				       action object))))
-			   (save-excursion
-			     (set-buffer standard-output)
-			     (help-mode)))
+					action object))))
+			    (save-excursion
+			      (set-buffer standard-output)
+			      (help-mode)))
 
-			 (setq next (` (lambda ()
-					 (setq next '(, next))
-					 '(, elt)))))
-			((vectorp def)
-			 ;; A user-defined key.
-			 (if (funcall (aref def 0) elt) ;Call its function.
-			     ;; The function has eaten this object.
-			     (setq actions (1+ actions))
-			   ;; Regurgitated; try again.
-			   (setq next (` (lambda ()
-					   (setq next '(, next))
-					   '(, elt))))))
-			((and (consp char)
-			      (eq (car char) 'switch-frame))
-			 ;; switch-frame event.  Put it off until we're done.
-			 (setq delayed-switch-frame char)
-			 (setq next (` (lambda ()
-					 (setq next '(, next))
-					 '(, elt)))))
-			(t
-			 ;; Random char.
-			 (message "Type %s for help."
-				  (key-description (vector help-char)))
-			 (beep)
-			 (sit-for 1)
-			 (setq next (` (lambda ()
-					 (setq next '(, next))
-					 '(, elt)))))))
-	      (if (eval prompt)
-		  (progn
-		    (funcall actor elt)
-		    (setq actions (1+ actions)))))))
+			  (setq next (` (lambda ()
+					  (setq next '(, next))
+					  '(, elt)))))
+			 ((vectorp def)
+			  ;; A user-defined key.
+			  (if (funcall (aref def 0) elt) ;Call its function.
+			      ;; The function has eaten this object.
+			      (setq actions (1+ actions))
+			    ;; Regurgitated; try again.
+			    (setq next (` (lambda ()
+					    (setq next '(, next))
+					    '(, elt))))))
+			 ((and (consp char)
+			       (eq (car char) 'switch-frame))
+			  ;; switch-frame event.  Put it off until we're done.
+			  (setq delayed-switch-frame char)
+			  (setq next (` (lambda ()
+					  (setq next '(, next))
+					  '(, elt)))))
+			 (t
+			  ;; Random char.
+			  (message "Type %s for help."
+				   (key-description (vector help-char)))
+			  (beep)
+			  (sit-for 1)
+			  (setq next (` (lambda ()
+					  (setq next '(, next))
+					  '(, elt)))))))
+		  (prompt
+		   (funcall actor elt)
+		   (setq actions (1+ actions))))))
       (if delayed-switch-frame
 	  (setq unread-command-events
 		(cons delayed-switch-frame unread-command-events))))
