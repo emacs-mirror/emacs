@@ -660,7 +660,9 @@ argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
 static void
 malloc_initialize_hook ()
 {
+#ifndef USE_CRT_DLL
   extern char **environ;
+#endif
 
   if (initialized)
     {
@@ -705,8 +707,10 @@ main (argc, argv, envp)
   char stack_bottom_variable;
   int do_initial_setlocale;
   int skip_args = 0;
+#ifndef USE_CRT_DLL
   extern int errno;
   extern int sys_nerr;
+#endif
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
 #endif
