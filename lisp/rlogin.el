@@ -49,8 +49,8 @@
   "*Hooks to run after setting current buffer to rlogin-mode.")
 
 (defvar rlogin-process-connection-type nil
-  "*If non-`nil', use a pty for the local rlogin process.  
-If `nil', use a pipe (if pipes are supported on the local system).  
+  "*If non-`nil', use a pty for the local rlogin process.
+If `nil', use a pipe (if pipes are supported on the local system).
 
 Generally it is better not to waste ptys on systems which have a static
 number of them.  On the other hand, some implementations of `rlogin' assume
@@ -87,7 +87,7 @@ this variable is set from that.")
 
 ;; Initialize rlogin mode map.
 (defvar rlogin-mode-map '())
-(cond 
+(cond
  ((null rlogin-mode-map)
   (setq rlogin-mode-map (if (consp shell-mode-map)
                             (cons 'keymap shell-mode-map)
@@ -111,7 +111,7 @@ If a prefix argument is given and the buffer *rlogin-HOST* already exists,
 a new buffer with a different connection will be made.
 
 The variable `rlogin-program' contains the name of the actual program to
-run.  It can be a relative or absolute path. 
+run.  It can be a relative or absolute path.
 
 The variable `rlogin-explicit-args' is a list of arguments to give to
 the rlogin when starting.  They are added after any arguments given in
@@ -172,7 +172,7 @@ variable."
       ;; buffer from a previous exited process.
       (set-marker (process-mark proc) (point-max))
       (rlogin-mode)
-      
+
       ;; comint-output-filter-functions is just like a hook, except that the
       ;; functions in that list are passed arguments.  add-hook serves well
       ;; enough for modifying it.
@@ -188,7 +188,7 @@ variable."
         ;; Do this here, rather than calling the tracking mode function, to
         ;; avoid a gratuitous resync check; the default should be the
         ;; user's home directory, be it local or remote.
-        (setq comint-file-name-prefix 
+        (setq comint-file-name-prefix
               (concat "/" rlogin-remote-user "@" rlogin-host ":"))
         (cd-absolute comint-file-name-prefix))
        ((null rlogin-directory-tracking-mode))
@@ -196,7 +196,7 @@ variable."
         (cd-absolute (concat comint-file-name-prefix "~/"))))))))
 
 (defun rlogin-mode ()
-  "Set major-mode for rlogin sessions. 
+  "Set major-mode for rlogin sessions.
 If `rlogin-mode-hook' is set, run it."
   (interactive)
   (kill-all-local-variables)
@@ -218,7 +218,7 @@ ange-ftp.  If called as a function, give it no argument.
 If called with a negative prefix argument, disable directory tracking
 entirely.
 
-If called with a positive, numeric prefix argument, e.g. 
+If called with a positive, numeric prefix argument, e.g.
 ``\\[universal-argument] 1 M-x rlogin-directory-tracking-mode\'',
 then do directory tracking but assume the remote filesystem is the same as
 the local system.  This only works in general if the remote machine and the
@@ -229,7 +229,7 @@ local one share the same directories (through NFS)."
         (consp prefix))
     (setq rlogin-directory-tracking-mode t)
     (setq shell-dirtrack-p t)
-    (setq comint-file-name-prefix 
+    (setq comint-file-name-prefix
           (concat "/" rlogin-remote-user "@" rlogin-host ":")))
    ((< prefix 0)
     (setq rlogin-directory-tracking-mode nil)
@@ -238,7 +238,7 @@ local one share the same directories (through NFS)."
     (setq rlogin-directory-tracking-mode 'local)
     (setq comint-file-name-prefix "")
     (setq shell-dirtrack-p t)))
-  (cond 
+  (cond
    (shell-dirtrack-p
     (let* ((proc (get-buffer-process (current-buffer)))
            (proc-mark (process-mark proc))
@@ -271,13 +271,14 @@ local one share the same directories (through NFS)."
     (store-match-data (match-data))
     (nreverse list)))
 
-(defun rlogin-carriage-filter (&rest ignored)
-  ;; When this function is called, the buffer will already have been
-  ;; narrowed to the region containing the most recently-inserted text.
-  ;; (See `comint-output-filter' in comint.el.)  
-  (let ((point-marker (point-marker)))
-    (goto-char (point-min))
-    (while (search-forward "\C-m" (point-max) t)
+(defun rlogin-carriage-filter (string)
+  (let* ((point-marker (point-marker))
+         (end (process-mark (get-buffer-process (current-buffer))))
+         (beg (or (and (boundp 'comint-last-output-start)
+                       comint-last-output-start)
+                  (- end (length string)))))
+    (goto-char beg)
+    (while (search-forward "\C-m" end t)
       (delete-char -1))
     (goto-char point-marker)))
 
@@ -299,8 +300,8 @@ local one share the same directories (through NFS)."
 
 (defun rlogin-delchar-or-send-Ctrl-D (arg)
   "\
-Delete ARG characters forward, or send a C-d to process if at end of buffer."  
-  (interactive "p") 
+Delete ARG characters forward, or send a C-d to process if at end of buffer."
+  (interactive "p")
   (if (eobp)
       (rlogin-send-Ctrl-D)
     (delete-char arg)))
