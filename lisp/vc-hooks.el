@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.111 1998/08/08 07:11:40 rms Exp fx $
+;; $Id: vc-hooks.el,v 1.112 1998/09/14 17:26:39 fx Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -962,7 +962,10 @@ For CVS, the full name of CVS/Entries is returned."
   "Change read-only status of current buffer, perhaps via version control.
 If the buffer is visiting a file registered with version control,
 then check the file in or out.  Otherwise, just change the read-only flag
-of the buffer.  With prefix argument, ask for version number."
+of the buffer.
+With prefix argument, ask for version number to check in or check out.
+Check-out of a specified version number does not lock the file;
+to do that, use this command a second time with no argument."
   (interactive "P")
   (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
           ;; use boundp because vc.el might not be loaded
