@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.13) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.14) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -68,6 +68,17 @@
 
 #define notreached()    assert(0)
 #define unused(param)   ((void)param)
+
+/* MSVC 2.0 generates a warning when using unused */
+#ifdef MPS_BUILD_MV
+#ifdef _MSC_VER
+#if _MSC_VER < 1000
+#pragma warning(disable: 4705)
+#endif /* _MSC_VER < 1000 */
+#else /* _MSC_VER */
+#error "Expected _MSC_VER to be defined for builder.mv"
+#endif /* _MSC_VER */
+#endif /* MPS_BUILD_MV */
 
 #define ALIGN           sizeof(mps_word_t)
 
