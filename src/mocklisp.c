@@ -67,27 +67,28 @@ DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0, "Mocklisp version of `if'.")
   return val;
 }
 
-/* Now converted to regular "while" by hairier conversion code.
-* DEFUN ("ml-while", Fml_while, Sml_while, 1, UNEVALLED, 0, "while  for mocklisp programs")
-*   (args)
-*      Lisp_Object args;
-* {
-*   Lisp_Object test, body, tem;
-*   struct gcpro gcpro1, gcpro2;
-*
-*   GCPRO2 (test, body);
-*
-*   test = Fcar (args);
-*   body = Fcdr (args);
-*   while (tem = Feval (test), XINT (tem))
-*     {
-*       QUIT;
-*       Fprogn (body);
-*    }
-*
-*   UNGCPRO;
-*   return Qnil;
-*}
+#if 0 /* Now converted to regular "while" by hairier conversion code.  */
+/**/DEFUN ("ml-while", Fml_while, Sml_while, 1, UNEVALLED, 0, "while  for mocklisp programs")
+  (args)
+     Lisp_Object args;
+{
+  Lisp_Object test, body, tem;
+  struct gcpro gcpro1, gcpro2;
+
+  GCPRO2 (test, body);
+
+  test = Fcar (args);
+  body = Fcdr (args);
+  while (tem = Feval (test), XINT (tem))
+    {
+      QUIT;
+      Fprogn (body);
+   }
+
+  UNGCPRO;
+  return Qnil;
+}
+#endif
 
 /* This is the main entry point to mocklisp execution.
  When eval sees a mocklisp function being called, it calls here
