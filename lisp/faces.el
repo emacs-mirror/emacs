@@ -124,7 +124,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((font (face-font face frame)))
     (if (stringp font)
-	(not (eq font (x-make-font-unbold font)))
+	(not (equal font (x-make-font-unbold font)))
       (memq 'bold font))))
 
 (defun face-italic-p (face &optional frame)
@@ -136,7 +136,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((font (face-font face frame)))
     (if (stringp font)
-	(not (eq font (x-make-font-unitalic font)))
+	(not (equal font (x-make-font-unitalic font)))
       (memq 'italic font))))
 
 (defun face-doc-string (face)
@@ -1211,7 +1211,6 @@ If FRAME is nil, the current FRAME is used."
 	(setq frame (x-create-frame (cons '(visibility . nil) parameters)))
 	(unwind-protect
 	    (progn
-
 	      ;; Copy the face alist, copying the face vectors
 	      ;; and emptying out their attributes.
 	      (setq faces
@@ -1251,27 +1250,7 @@ If FRAME is nil, the current FRAME is used."
 
 	      (frame-set-background-mode frame)
 
-	      ;; Set up faces from the defface information
-	      (mapcar (lambda (symbol)
-			(let ((spec (or (get symbol 'saved-face)
-					(get symbol 'face-defface-spec))))
-			  (when spec 
-			    (face-spec-set symbol spec frame))))
-		      (face-list))
-
-	      ;; Set up faces from the global face data.
-	      (setq rest faces)
-	      (while rest
-		(let* ((face (car (car rest)))
-		       (global (cdr (assq face global-face-data))))
-		  (face-fill-in face global frame))
-		(setq rest (cdr rest)))
-
-	      ;; Set up faces from the X resources.
-	      (setq rest faces)
-	      (while rest
-		(make-face-x-resource-internal (cdr (car rest)) frame)
-		(setq rest (cdr rest)))
+	      (face-set-after-frame-default frame)
 
 	      ;; Make the frame visible, if desired.
 	      (if (null visibility-spec)
@@ -1281,6 +1260,25 @@ If FRAME is nil, the current FRAME is used."
 	  (or success
 	      (delete-frame frame)))))
     frame))
+
+;; Update a frame's faces after the frame font changes.
+;; This is called from modify-frame-parameters
+;; as well as from elsewhere in this file.
+(defun face-set-after-frame-default (frame)
+  (let ((rest (frame-face-alist frame)))
+    (while rest
+      ;; Set up each face, first from the defface information,
+      ;; then the global face data, and then the X resources.
+      (let* ((face (car (car rest)))
+	     (spec (or (get face 'saved-face)
+		       (get face 'face-defface-spec)))
+	     (global (cdr (assq face global-face-data)))
+	     (local (cdr (car rest))))
+	(when spec 
+	  (face-spec-set face spec frame))
+	(face-fill-in face global frame)
+	(make-face-x-resource-internal local frame))
+      (setq rest (cdr rest)))))
 
 (defcustom frame-background-mode nil
   "*The brightness of the background.
@@ -1320,26 +1318,7 @@ examine the brightness for you."
 					       (t 'mono)))))))
 
 ;; Update a frame's faces when we change its default font.
-(defun frame-update-faces (frame)
-  (let* ((faces global-face-data)
-	 (rest faces))
-    (while rest
-      (let* ((face (car (car rest)))
-	     (font (face-font face t)))
-	(if (listp font)
-	    (let ((bold (memq 'bold font))
-		  (italic (memq 'italic font)))
-	      ;; Ignore any previous (string-valued) font, it might not even
-	      ;; be the right size anymore.
-	      (set-face-font face nil frame)
-	      (cond ((and bold italic)
-		     (make-face-bold-italic face frame t))
-		    (bold
-		     (make-face-bold face frame t))
-		    (italic
-		     (make-face-italic face frame t)))))
-      (setq rest (cdr rest)))
-    frame)))
+(defun frame-update-faces (frame) nil)
 
 ;; Update the colors of FACE, after FRAME's own colors have been changed.
 ;; This applies only to faces with global color specifications
