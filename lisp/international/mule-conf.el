@@ -42,62 +42,74 @@
 ;;    [1 94 1 0 ?B 0 "ASCII" "ASCII" "ASCII (ISO646 IRV)"])
 
 (define-charset 129 'latin-iso8859-1
-  [1 96 1 0 ?A 1 "Latin-1" "ISO8859-1 (Latin-1)" "ISO8859-1 (Latin-1)"])
+  [1 96 1 0 ?A 1 "RHP of Latin-1" "RHP of Latin-1 (ISO 8859-1): ISO-IR-100"
+     "Right-Hand Part of Latin Alphabet 1 (ISO/IEC 8859-1): ISO-IR-100"])
 (define-charset 130 'latin-iso8859-2
-  [1 96 1 0 ?B 1 "Latin-2" "ISO8859-2 (Latin-2)" "ISO8859-2 (Latin-2)"])
+  [1 96 1 0 ?B 1 "RHP of Latin-2" "RHP of Latin-2 (ISO 8859-2): ISO-IR-101"
+     "Right-Hand Part of Latin Alphabet 2 (ISO/IEC 8859-2): ISO-IR-101"])
 (define-charset 131 'latin-iso8859-3
-  [1 96 1 0 ?C 1 "Latin-3" "ISO8859-3 (Latin-3)" "ISO8859-3 (Latin-3)"])
+  [1 96 1 0 ?C 1 "RHP of Latin-3" "RHP of Latin-3 (ISO 8859-3): ISO-IR-109"
+     "Right-Hand Part of Latin Alphabet 3 (ISO/IEC 8859-3): ISO-IR-109"])
 (define-charset 132 'latin-iso8859-4
-  [1 96 1 0 ?D 1 "Latin-4" "ISO8859-4 (Latin-4)" "ISO8859-4 (Latin-4)"])
+  [1 96 1 0 ?D 1 "RHP of Latin-4" "RHP of Latin-4 (ISO 8859-4): ISO-IR-110"
+     "Right-Hand Part of Latin Alphabet 4 (ISO/IEC 8859-4): ISO-IR-110"])
 (define-charset 133 'thai-tis620
-  [1 96 1 0 ?T 1 "TIS620" "TIS620 (Thai)" "TIS620.2529 (Thai)"])
+  [1 96 1 0 ?T 1 "RHP of TIS620" "RHP of Thai (TIS620): ISO-IR-166"
+     "Right-Hand Part of TIS620.2533 (Thai): ISO-IR-166"])
 (define-charset 134 'greek-iso8859-7
-  [1 96 1 0 ?F 1 "ISO8859-7" "ISO8859-7 (Greek)" "ISO8859-7 (Greek)"])
+  [1 96 1 0 ?F 1 "RHP of ISO8859/7" "RHP of Greek (ISO 8859-7): ISO-IR-126"
+     "Right-Hand Part of Latin/Greek Alphabet (ISO/IEC 8859-7): ISO-IR-126"])
 (define-charset 135 'arabic-iso8859-6
-  [1 96 1 1 ?G 1 "ISO8859-6" "ISO8859-6 (Arabic)" "ISO8859-6 (Arabic)"])
+  [1 96 1 1 ?G 1 "RHP of ISO8859/6" "RHP of Arabic (ISO 8859-6): ISO-IR-127"
+     "Right-Hand Part of Latin/Alabic Alphabet (ISO/IEC 8859-6): ISO-IR-127"])
 (define-charset 136 'hebrew-iso8859-8
-  [1 96 1 1 ?H 1 "ISO8859-8" "ISO8859-8 (Hebrew)" "ISO8859-8 (Hebrew)"])
+  [1 96 1 1 ?H 1 "RHP of ISO8859/8" "RHP of Hebrew (ISO 8859-8): ISO-IR-138"
+     "Right-Hand Part of Latin/Hebrew Alphabet (ISO/IEC 8859-8): ISO-IR-138"])
 (define-charset 137 'katakana-jisx0201
-  [1 94 1 0 ?I 1 "JISX0201 Kana" "JISX0201.1976 (Japanese Kana)"
-     "JISX0201.1976 Japanese Kana"])
+  [1 94 1 0 ?I 1 "JISX0201 Katakana" "Japanese Katakana (JISX0201.1976)"
+     "Katakana Part of JISX0201.1976"])
 (define-charset 138 'latin-jisx0201
-  [1 94 1 0 ?J 0 "JISX0201 Roman" "JISX0201.1976 (Japanese Roman)"
-     "JISX0201.1976 Japanese Roman"])
+  [1 94 1 0 ?J 0 "JISX0201 Roman" "Japanese Roman (JISX0201.1976)"
+     "Roman Part of JISX0201.1976"])
 (define-charset 140 'cyrillic-iso8859-5
-  [1 96 1 0 ?L 1 "ISO8859-5" "ISO8859-5 (Cyrillic)"
-     "ISO8859-5 (Cyrillic)"])
+  [1 96 1 0 ?L 1 "RHP of ISO8859/5" "RHP of Cyrillic (ISO 8859-5): ISO-IR-144"
+     "Right-Hand Part of Latin/Cyrillic Alphabet (ISO/IEC 8859-5): ISO-IR-144"])
 (define-charset 141 'latin-iso8859-9
-  [1 96 1 0 ?M 1 "Latin-5" "ISO8859-9 (Latin-5)" "ISO8859-9 (Latin-5)"])
+  [1 96 1 0 ?M 1 "RHP of Latin-5" "RHP of Latin-5 (ISO 8859-9): ISO-IR-148"
+     "Right-Hand Part of Latin Alphabet 5 (ISO/IEC 8859-9): ISO-IR-148"])
 (define-charset 142 'latin-iso8859-15
-  [1 96 1 0 ?b 1 "Latin-9" "ISO8859-15 (Latin-9)" "ISO8859-15 (Latin-9)"])
+  [1 96 1 0 ?b 1 "RHP of Latin-9" "RHP of Latin-9 (ISO 8859-15): ISO-IR-203"
+     "Right-Hand Part of Latin Alphabet 9 (ISO/IEC 8859-15): ISO-IR-203"])
 (define-charset 143 'latin-iso8859-14
-  [1 96 1 0 ?_ 1 "Latin-8" "ISO8859-14 (Latin-8)" "ISO8859-14 (Latin-8)"])
+  [1 96 1 0 ?_ 1 "RHP of Latin-8" "RHP of Latin-8 (ISO 8859-14)"
+     "Right-Hand Part of Latin Alphabet 8 (ISO/IEC 8859-14)"])
 (define-charset 144 'japanese-jisx0208-1978
-  [2 94 2 0 ?@ 0 "JISX0208.1978" "JISX0208.1978 (Japanese)"
-     "JISX0208.1978 Japanese Kanji (so called \"old JIS\")"])
+  [2 94 2 0 ?@ 0 "JISX0208.1978" "JISX0208.1978 (Japanese): ISO-IR-42"
+     "JISX0208.1978 Japanese Kanji (so called \"old JIS\"): ISO-IR-42"])
 (define-charset 145 'chinese-gb2312
-  [2 94 2 0 ?A 0 "GB2312" "GB2312" "GB2312 Chinese simplified"])
+  [2 94 2 0 ?A 0 "GB2312" "GB2312: ISO-IR-58"
+     "GB2312 Chinese simplified: ISO-IR-58"])
 (define-charset 146 'japanese-jisx0208
-  [2 94 2 0 ?B 0 "JISX0208" "JISX0208.1983/1990 (Japanese)"
-     "JISX0208.1983/1990 Japanese Kanji"])
+  [2 94 2 0 ?B 0 "JISX0208" "JISX0208.1983/1990 (Japanese): ISO-IR-87"
+     "JISX0208.1983/1990 Japanese Kanji: ISO-IR-87"])
 (define-charset 147 'korean-ksc5601
-  [2 94 2 0 ?C 0 "KSC5601" "KSC5601 (Korean)"
-     "KSC5601 Korean Hangul and Hanja"])
+  [2 94 2 0 ?C 0 "KSC5601" "KSC5601 (Korean): ISO-IR-149"
+     "KSC5601 Korean Hangul and Hanja: ISO-IR-149"])
 (define-charset 148 'japanese-jisx0212
-  [2 94 2 0 ?D 0 "JISX0212" "JISX0212 (Japanese)"
-     "JISX0212 Japanese supplement"])
+  [2 94 2 0 ?D 0 "JISX0212" "JISX0212 (Japanese): ISO-IR-159"
+     "JISX0212 Japanese supplement: ISO-IR-159"])
 (define-charset 149 'chinese-cns11643-1
-  [2 94 2 0 ?G 0 "CNS11643-1" "CNS11643-1 (Chinese traditional)"
-     "CNS11643 Plane 1 Chinese traditional"])
+  [2 94 2 0 ?G 0 "CNS11643-1" "CNS11643-1 (Chinese traditional): ISO-IR-171"
+     "CNS11643 Plane 1 Chinese traditional: ISO-IR-171"])
 (define-charset 150 'chinese-cns11643-2
-  [2 94 2 0 ?H 0 "CNS11643-2" "CNS11643-2 (Chinese traditional)"
-     "CNS11643 Plane 2 Chinese traditional"])
+  [2 94 2 0 ?H 0 "CNS11643-2" "CNS11643-2 (Chinese traditional): ISO-IR-172"
+     "CNS11643 Plane 2 Chinese traditional: ISO-IR-172"])
 (define-charset 152 'chinese-big5-1
-  [2 94 2 0 ?0 0 "Big5" "Big5 (Level-1)"
-     "Big5 Level-1 Chinese traditional"])
+  [2 94 2 0 ?0 0 "Big5 (Level-1)" "Big5 (Level-1) A141-C67F"
+     "Frequentry used part (A141-C67F) of Big5 (Chinese traditional)"])
 (define-charset 153 'chinese-big5-2
-  [2 94 2 0 ?1 0 "Big5" "Big5 (Level-2)"
-     "Big5 Level-2 Chinese traditional"])
+  [2 94 2 0 ?1 0 "Big5 (Level-2)" "Big5 (Level-2) C940-FEFE"
+     "Less frequentry used part (C940-FEFE) of Big5 (Chinese traditional)"])
 
 ;; Additional (private) character sets.  These character sets are
 ;; treated less space-efficiently in the buffer.
@@ -148,25 +160,25 @@
 ;; character sets, the use is rare and don't have to be treated
 ;; space-efficiently in the buffer.
 (define-charset nil 'chinese-cns11643-3
-  [2 94 2 0 ?I 0 "CNS11643-3" "CNS11643-3 (Chinese traditional)"
-     "CNS11643 Plane 3 Chinese Traditional"])
+  [2 94 2 0 ?I 0 "CNS11643-3" "CNS11643-3 (Chinese traditional): ISO-IR-183"
+     "CNS11643 Plane 3 Chinese Traditional: ISO-IR-183"])
 (define-charset nil 'chinese-cns11643-4
-  [2 94 2 0 ?J 0 "CNS11643-4" "CNS11643-4 (Chinese traditional)"
-     "CNS11643 Plane 4 Chinese Traditional"])
+  [2 94 2 0 ?J 0 "CNS11643-4" "CNS11643-4 (Chinese traditional): ISO-IR-184"
+     "CNS11643 Plane 4 Chinese Traditional: ISO-IR-184"])
 (define-charset nil 'chinese-cns11643-5
-  [2 94 2 0 ?K 0 "CNS11643-5" "CNS11643-5 (Chinese traditional)"
-     "CNS11643 Plane 5 Chinese Traditional"])
+  [2 94 2 0 ?K 0 "CNS11643-5" "CNS11643-5 (Chinese traditional): ISO-IR-185"
+     "CNS11643 Plane 5 Chinese Traditional: ISO-IR-185"])
 (define-charset nil 'chinese-cns11643-6
-  [2 94 2 0 ?L 0 "CNS11643-6" "CNS11643-6 (Chinese traditional)"
-     "CNS11643 Plane 6 Chinese Traditional"])
+  [2 94 2 0 ?L 0 "CNS11643-6" "CNS11643-6 (Chinese traditional): ISO-IR-186"
+     "CNS11643 Plane 6 Chinese Traditional: ISO-IR-186"])
 (define-charset nil 'chinese-cns11643-7
-  [2 94 2 0 ?M 0 "CNS11643-7" "CNS11643-7 (Chinese traditional)"
-     "CNS11643 Plane 7 Chinese Traditional"])
+  [2 94 2 0 ?M 0 "CNS11643-7" "CNS11643-7 (Chinese traditional): ISO-IR-187"
+     "CNS11643 Plane 7 Chinese Traditional: ISO-IR-187"])
 
 ;; ASCII with right-to-left direction.
 (define-charset nil 'ascii-right-to-left
   [1 94 1 1 ?B 0 "rev ASCII" "ASCII with right-to-left direction"
-     "ASCII (left half of ISO8859-1) with right-to-left direction"])
+     "ASCII (left half of ISO 8859-1) with right-to-left direction"])
 
 ;; Indian scripts.  Symbolic charset for data exchange.  Glyphs are
 ;; not assigned.  They are automatically converted to each Indian
