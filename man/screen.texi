@@ -75,25 +75,26 @@ the @samp{b}, as before.
   Sometimes people speak of ``the cursor'' when they mean ``point,'' or
 speak of commands that move point as ``cursor motion'' commands.
 
-  Terminals have only one cursor, and when output is in progress it must
-appear where the typing is being done.  This does not mean that point is
-moving.  It is only that Emacs has no way to show you the location of point
-except when the terminal is idle.
+  Text-only terminals have only one cursor, and when output is in
+progress it must appear where the output is being displayed.  This
+does not mean that point is moving.  It is only that Emacs has no way
+to show you the location of point except when the terminal is idle.
 
   If you are editing several files in Emacs, each in its own buffer,
 each buffer has its own point location.  A buffer that is not currently
 displayed remembers where point is in case you display it again later.
 
-  When there are multiple windows in a frame, each window has its own
-point location.  The cursor shows the location of point in the selected
-window.  This also is how you can tell which window is selected.  If the
-same buffer appears in more than one window, each window has its own
-position for point in that buffer.
+  When Emacs displays multiple windows, each window has its own point
+location.  On text-only terminals, the cursor shows the location of
+point in the selected window.  On graphical terminals, Emacs shows a
+cursor in each window; the selected window's cursor is solid, and the
+other cursors are hollow.  Either way, the cursor or cursors tell you
+which window is selected.  If the same buffer appears in more than one
+window, each window has its own position for point in that buffer, and
+(when possible) its own cursor.
 
-  When there are multiple frames, each frame can display one cursor.
-The cursor in the selected frame is solid; the cursor in other frames is
-a hollow box, and appears in the window that would be selected if you
-give the input focus to that frame.
+  @xref{Cursor Display}, for customization options that control display
+of the cursor or cursors.
 
   The term ``point'' comes from the character @samp{.}, which was the
 command in TECO (the language in which the original Emacs was written)
