@@ -2532,7 +2532,7 @@ Calc does many of its internal calculations to a slightly higher
 precision, but it doesn't always bump the precision up enough.
 In each case, Calc added about two digits of precision during
 its calculation and then rounded back down to 12 digits
-afterward.  In one case, it was enough; in the the other, it
+afterward.  In one case, it was enough; in the other, it
 wasn't.  If you really need @var{x} digits of precision, it
 never hurts to do the calculation with a few extra guard digits.
 
@@ -16395,7 +16395,7 @@ or matrix argument, these functions operate element-wise.@refill
 @kindex v p (complex)
 @pindex calc-pack
 The @kbd{v p} (@code{calc-pack}) command can pack the top two numbers on
-the the stack into a composite object such as a complex number.  With
+the stack into a composite object such as a complex number.  With
 a prefix argument of @i{-1}, it produces a rectangular complex number;
 with an argument of @i{-2}, it produces a polar complex number.
 (Also, @pxref{Building Vectors}.)
@@ -21195,7 +21195,7 @@ the right of the @samp{b}, the selection would have been:
 @noindent
 The portion selected is always large enough to be considered a complete
 formula all by itself, so selecting the parenthesis selects the whole
-formula that it encloses.  Putting the cursor on the the @samp{+} sign
+formula that it encloses.  Putting the cursor on the @samp{+} sign
 would have had the same effect.
 
 (Strictly speaking, the Emacs cursor is really the manifestation of
@@ -23738,7 +23738,7 @@ to @kbd{a R} (@code{calc-find-root}):  You give the formula and an initial
 guess on the stack, and are prompted for the name of a variable.  The guess
 may be either a number near the desired minimum, or an interval enclosing
 the desired minimum.  The function returns a vector containing the
-value of the the variable which minimizes the formula's value, along
+value of the variable which minimizes the formula's value, along
 with the minimum value itself.
 
 Note that this command looks for a @emph{local} minimum.  Many functions
@@ -33996,7 +33996,7 @@ command uses this when only one stack entry is being edited.
 
 @defun format-value a width
 Convert the Calc number or formula @var{a} to string form, using the
-format seen in the stack buffer.  Beware the the string returned may
+format seen in the stack buffer.  Beware the string returned may
 not be re-readable by @code{read-expr}, for example, because of digit
 grouping.  Multi-line objects like matrices produce strings that
 contain newline characters to separate the lines.  The @var{w}

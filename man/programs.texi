@@ -254,7 +254,7 @@ bindings for that purpose.
 @cindex buffer definitions index
 @cindex tags
 
-  The Imenu facility offers a way to find the the major definitions in
+  The Imenu facility offers a way to find the major definitions in
 a file by name.  It is also useful in text formatter major modes,
 where it treats each chapter, section, etc., as a definition.
 (@xref{Tags}, for a more powerful feature that handles multiple files
@@ -475,7 +475,7 @@ the containing list.
 
 @vindex lisp-body-indent
   Certain functions override the standard pattern.  Functions whose
-names start with @code{def} treat the the second lines as the start of
+names start with @code{def} treat the second lines as the start of
 a @dfn{body}, by indenting the second line @code{lisp-body-indent}
 additional columns beyond the open-parenthesis that starts the
 expression.
