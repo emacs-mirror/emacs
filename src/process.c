@@ -1421,7 +1421,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 #else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
-  /* If program file name is not absolute, search our path for it */
+  /* If program file name is not absolute, search our path for it.
+     Put the name we will really use in TEM.  */
   if (!IS_DIRECTORY_SEP (SREF (program, 0))
       && !(SCHARS (program) > 1
 	   && IS_DEVICE_SEP (SREF (program, 1))))
@@ -1435,17 +1436,24 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       if (NILP (tem))
 	report_file_error ("Searching for program", Fcons (program, Qnil));
       tem = Fexpand_file_name (tem, Qnil);
-      tem = ENCODE_FILE (tem);
-      new_argv[0] = SDATA (tem);
     }
   else
     {
       if (!NILP (Ffile_directory_p (program)))
 	error ("Specified program for new process is a directory");
-
-      tem = ENCODE_FILE (program);
-      new_argv[0] = SDATA (tem);
+      tem = program;
     }
+
+  /* If program file name starts with /: for quoting a magic name,
+     discard that.  */
+  if (SBYTES (tem) > 2 && SREF (tem, 0) == '/'
+      && SREF (tem, 1) == ':')
+    tem = Fsubstring (tem, make_number (2), Qnil);
+
+  /* Encode the file name and put it in NEW_ARGV.
+     That's where the child will use it to execute the program.  */
+  tem = ENCODE_FILE (tem);
+  new_argv[0] = SDATA (tem);
 
   /* Here we encode arguments by the coding system used for sending
      data to the process.  We don't support using different coding
