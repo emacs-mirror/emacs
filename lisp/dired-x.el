@@ -3,8 +3,8 @@
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
 ;; Maintainer: Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Version: 2.31
-;; Date: 1994/06/09 21:31:53
+;; Version: 2.37
+;; Date: 1994/06/28 15:53:34
 ;; Keywords: dired extensions
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation
@@ -31,9 +31,11 @@
 ;;; 1.191, hacked up for GNU Emacs 19.  Redundant or conflicting material
 ;;; has been removed or renamed in order to work properly with dired of
 ;;; GNU Emacs 19.  All suggestions or comments are most welcomed.
-;;;  
-;;; *Please* see the info pages.
 
+;;;  
+;;; Please, PLEASE, *PLEASE* see the info pages.
+;;; 
+ 
 ;;; BUGS: Type M-x dired-x-submit-report and a report will be generated.
 
 ;;; INSTALLATION: In your ~/.emacs,
@@ -49,6 +51,22 @@
 ;;; At load time dired-x.el will install itself, redefine some functions, and
 ;;; bind some dired keys.  *Please* see the info pages for more details.
 
+;;; CAUTION: If you are using a version of GNU Emacs earlier than 19.20 than
+;;; you may have to edit dired.el.  The copy of dired.el in GNU Emacs versions
+;;; earlier than 19.20 incorrectly had the call to run-hooks *before* the call
+;;; to provide.  In such a case, it is possible that byte-compiling and/or
+;;; loading dired can cause an infinite loop.  To prevent this, make sure the
+;;; line of code
+;;;  
+;;;         (run-hooks 'dired-load-hook) 
+;;;  
+;;; is the *last* executable line in the file dired.el.  That is, make sure it
+;;; comes *after* the line
+;;;  
+;;;         (provide 'dired) 
+;;; 
+;;; *Please* see the info pages for more details. 
+
 ;;; User defined variables:
 ;;;
 ;;;      dired-bind-vm
@@ -56,6 +74,7 @@
 ;;;      dired-bind-jump
 ;;;      dired-bind-info
 ;;;      dired-bind-man
+;;;      dired-x-hands-off-my-keys 
 ;;;      dired-find-subdir
 ;;;      dired-enable-local-variables
 ;;;      dired-local-variables-file
@@ -1488,24 +1507,71 @@ to mark all zero length files."
 
 
 ;;;; FIND FILE AT POINT.
-(defun dired-find-this-file (&optional other-window)
-  "Edit filename or directory at point.
-Switch to a buffer visiting filename, creating one if none already exists.
-With non-nil prefix argument OTHER-WINDOW do so in the other window.
 
-Useful for editing the file mentioned in the buffer you are viewing, or to
-test if that file exists.  Use minibuffer after snatching the filename."
+(defvar dired-x-hands-off-my-keys t
+  "*t means don't bind `dired-x-find-file' over `find-file' on keyboard.
+Similarly for `dired-x-find-file-other-window' over `find-file-other-window'.
+If you change this variable after dired-x.el is loaded then do
+\\[dired-x-bind-find-file].")
 
-  (interactive "P")
-  (let* ((guess (dired-filename-at-point))
-         (file (read-file-name "Find file: " guess guess nil nil)))
-    (if other-window
-        (find-file-other-window (expand-file-name file))
-      (find-file (expand-file-name file)))))
+;;; Bind `dired-x-find-file{-other-window}' over wherever
+;;; `find-file{-other-window}' is bound?
+(defun dired-x-bind-find-file ()
+  "Bind `dired-x-find-file' in place of `find-file' \(or reverse\).
+Similarly for `dired-x-find-file-other-window' and `find-file-other-window'.
+Binding direction based on `dired-x-hands-off-my-keys'.
+This function part of `after-init-hook'."
+  (interactive)
+  (if (interactive-p)
+      (setq dired-x-hands-off-my-keys
+            (not (y-or-n-p "Bind dired-x-find-file over find-file? "))))
+  (cond ((not dired-x-hands-off-my-keys)
+         (substitute-key-definition 'find-file
+                                    'dired-x-find-file
+                                    (current-global-map))
+         (substitute-key-definition 'find-file-other-window
+                                    'dired-x-find-file-other-window
+                                    (current-global-map)))
+        (t
+         (substitute-key-definition 'dired-x-find-file
+                                    'find-file
+                                    (current-global-map))
+         (substitute-key-definition 'dired-x-find-file-other-window
+                                    'find-file-other-window
+                                    (current-global-map))))
+  ;; Clear mini-buffer.
+  (message nil))
 
-(fset 'find-this-file 'dired-find-this-file)
+;;; Now call it so binding is correct and put on `after-init-hook' in case
+;;; user changes binding.
+(dired-x-bind-find-file)
+(add-hook 'after-init-hook 'dired-x-bind-find-file)
 
-;;; Internal function.
+(defun dired-x-find-file (filename)
+  "Edit file FILENAME.
+May create a new window, or reuse an existing one.
+See the function `display-buffer'.
+
+Identical to `find-file' except when called interactively, with a prefix arg
+\(e.g., \\[universal-argument]\), in which case it guesses filename near
+point.  Useful for editing file mentioned in buffer you are viewing, or to
+test if that file exists.  Use minibuffer after snatching filename."
+  (interactive (list (read-filename-at-point "Find file: ")))
+  (find-file (expand-file-name filename)))
+
+(defun dired-x-find-file-other-window (filename)
+  "Edit file FILENAME, in another window.
+May create a new window, or reuse an existing one.
+See the function `display-buffer'.
+
+Identical to `find-file-other-window' except when called interactively, with a
+prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename
+near point.  Useful for editing file mentioned in buffer you are viewing, or
+to test if that file exists.  Use minibuffer after snatching filename."
+  (interactive (list (read-filename-at-point "Find file: ")))
+  (find-file-other-window (expand-file-name filename)))
+
+;;; Internal functions.
 (defun dired-filename-at-point ()
 
   ;; Get the filename closest to point, but do not change position.  Has a
@@ -1540,13 +1606,24 @@ test if that file exists.  Use minibuffer after snatching the filename."
       ;; Return string.
       (expand-file-name (buffer-substring start (point))))))
 
+(defun read-filename-at-point (prompt)
+  ;;; Returns filename prompting with PROMPT with completion.  If
+  ;;; `current-prefix-arg' is non-nil, uses name at point as guess.
+  (if current-prefix-arg
+      (let ((guess (dired-filename-at-point)))
+        (read-file-name prompt
+                        (file-name-directory guess)
+                        guess
+                        nil (file-name-nondirectory guess)))
+    (read-file-name prompt default-directory)))
+
 
 ;;;; BUG REPORTS
 
 ;;; This section is provided for reports.  It uses Barry A. Warsaw's
 ;;; reporter.el which is bundled with GNU Emacs v19.
 
-(defconst dired-x-version "2.31"
+(defconst dired-x-version "2.37"
   "Revision number of dired-x.el -- dired extra for GNU Emacs v19.
 Type \\[dired-x-submit-report] to send a bug report.  Available via anonymous
 ftp in
