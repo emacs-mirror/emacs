@@ -1,3 +1,8 @@
+2000-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mule.texi (Recognize Coding): Document the variable
+	inhibit-iso-escape-detection.
+
 2000-07-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired.texi (Dired Visiting): Describe dired-find-alternate-file.
