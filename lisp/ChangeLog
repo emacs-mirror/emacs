@@ -1,3 +1,9 @@
+2001-09-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (make-auto-save-file-name): If long file names are not
+	supported on MS-DOS, truncate the file name to DOS 8+3 limits before
+	generating an auto-save file name from it.
+
 2001-09-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* ps-print.el (ps-print-region, ps-print-region-with-faces) 
