@@ -712,7 +712,9 @@ The buffer is not selected, just returned to the caller."
 	 (expand-file-name filename)))
   (if (file-directory-p filename)
       (if find-file-run-dired
-	  (dired-noselect filename)
+	  (dired-noselect (if find-file-visit-truename
+			      (abbreviate-file-name (file-truename filename))
+			    filename))
 	(error "%s is a directory." filename))
     (let* ((buf (get-file-buffer filename))
 	   (truename (abbreviate-file-name (file-truename filename)))
