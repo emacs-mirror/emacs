@@ -640,6 +640,11 @@ language you are using."
 
 ;; From frame.c
 (global-set-key [switch-frame] 'handle-switch-frame)
+(global-set-key [select-window] 'handle-select-window)
+
+;; FIXME: Do those 3 events really ever reach the global-map ?
+;;        It seems that they can't because they're handled via
+;;        special-event-map which is used at very low-level.  -stef
 (global-set-key [delete-frame] 'handle-delete-frame)
 (global-set-key [iconify-frame] 'ignore-event)
 (global-set-key [make-frame-visible] 'ignore-event)
