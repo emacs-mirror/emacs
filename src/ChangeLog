@@ -1,3 +1,24 @@
+2003-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (parse_modifiers, apply_modifiers): Use INTMASK instead
+	of VALMASK.
+
+	* fns.c (hashfn_eq, hashfn_eql, hashfn_equal, hash_put)
+	(sxhash_string, sxhash): Use INTMASK instead of VALMASK.
+	(maybe_resize_hash_table): Use MOST_POSITIVE_FIXNUM.
+
+	* lisp.h (VALMASK): Only define for non-union type.
+	(MARKBIT): Remove.
+	(ARRAY_MARK_FLAG): Use previous value of MARKBIT.
+	(XTYPE): Define unconditionally.
+	(XSETTYPE): Remove one more remnant.
+	(EQ): Define differently for the union and non-union cases.
+	(INTMASK): New bit mask.
+	(struct Lisp_Marker): Move down to prepare for upcoming patch.
+	(GC_EQ): Delegate to EQ.
+
+	* coding.c (coding_restore_composition): Lisp_Object/int mixup.
+
 2003-11-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_window_to_scroll_bar): Move check of display to
@@ -14,12 +35,12 @@
 2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* w32fns.c (XPutPixel):
-	* w32bdf.c (w32_init_bdf_font): 
-	* sunfns.c (sel_read): 
-	* process.c (Fmake_network_process): 
-	* frame.c (store_frame_param): 
-	* fontset.c (Fset_fontset_font): 
-	* emacs.c (shut_down_emacs): 
+	* w32bdf.c (w32_init_bdf_font):
+	* sunfns.c (sel_read):
+	* process.c (Fmake_network_process):
+	* frame.c (store_frame_param):
+	* fontset.c (Fset_fontset_font):
+	* emacs.c (shut_down_emacs):
 	* ccl.c (ccl_driver):  Remove period at end of error message.
 
 	* config.in: Regenerate.
@@ -37,7 +58,7 @@
 	x_window_to_scroll_bar.
 	(x_window_to_scroll_bar): Take a Display* argument.
 	Check that display for frame is equal to Display* argument.
-	(event_handler_gdk): current_dpyinfo removed.  Get dpyinfo from
+	(event_handler_gdk): Remove current_dpyinfo.  Get dpyinfo from
 	x_display_info_for_display instead.  Use Display in xev instead
 	of GDK_DISPLAY.
 	(x_dispatch_event): Call x_display_info_for_display.
@@ -57,8 +78,8 @@
 	(xg_display_close, xg_create_default_cursor)
 	(xg_get_gdk_pixmap_and_mask): New functions for multiple display
 	handling.
-	(xg_left_ptr_cursor): Removed.
-	(xg_set_cursor): cursor changed to GdkCursor*.  Do not create
+	(xg_left_ptr_cursor): Remove.
+	(xg_set_cursor): Change cursor to GdkCursor*.  Do not create
 	cursor here.
 	(xg_win_to_widget): Take Display* argument, call
 	gdk_xid_table_lookup_for_display.
@@ -68,7 +89,7 @@
 	in FRAME_X_DISPLAY_INFO.
 	(xg_get_scroll_id_for_window): Take Display* argument.
 	(update_frame_tool_bar): Call xg_get_gdk_pixmap_and_mask.
-	(xg_initialize): xg_left_ptr_cursor removed.
+	(xg_initialize): Remove xg_left_ptr_cursor.
 
 	* gtkutil.h: xg_get_scroll_id_for_window, xg_win_to_widget takes
 	Display* argument also.  Declare xg_display_open,
@@ -83,7 +104,7 @@
 
 	* dispnew.c (update_text_area): Fix redisplay error when hscroll
 	is active and first glyph is only partially visible.
-	
+
 2003-11-13  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (select_frame_for_redisplay): New function.
@@ -116,10 +137,21 @@
 
 2003-11-07  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (coding_allocate_composition_data): Reset
-	coding->composing to COMPOSITION_NO.
+	* coding.c (coding_allocate_composition_data):
+	Reset coding->composing to COMPOSITION_NO.
 	(coding_restore_composition): Detect invalid composition data.
 	Give Fstring and Fvector a Lispy integer, not C int.
+
+2003-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* floatfns.c (Flogb): Don't use VALMASK.
+
+	* m/amdx86-64.h (VALBITS, XINT, XUINT): Remove.
+	* m/ia64.h (VALBITS, XINT, XUINT): Remove.
+
+	* lisp.h (XINT): Move the cast to clarify what is going on.
+	(GCTYPEMASK, XSETTYPE): Remove.
+	(XGCTYPE): Make it an alias of XTYPE.
 
 2003-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -135,7 +167,7 @@
 	(tearoff_remove): Just decrease xg_detached_menus.
 	(tearoff_activate): Increase xg_detached_menus and call
 	tearoff_remove when tearoff is removed.
-	(xg_keep_popup): Removed function.
+	(xg_keep_popup): Remove function.
 	(create_menus): Give add_tearoff_p as argument to recursive
 	call to create_menus.
 	(xg_create_widget): Use variables instead of multiple
@@ -156,7 +188,7 @@
 
 	* macterm.c (XTread_socket): Handle menubar selection and grow
 	window only for mouseDown events.
-	
+
 2003-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): For GTK part, increase x_initialized
@@ -164,8 +196,7 @@
 
 2003-10-31  Andrew Choi  <akochoi@shaw.ca>
 
-	* unexmacosx.c (unrelocate): New function (contributed by Nozomu
-	Ando).
+	* unexmacosx.c (unrelocate): New function (contributed by Nozomu Ando).
 	(copy_dysymtab): Call it.
 
 2003-10-31  Luc Teirlinck  <teirllm@auburn.edu>
@@ -181,6 +212,7 @@
 	* window.c (Fset_window_fringes): Clarify docstring.
 
 2003-10-14  Kim F. Storm  <storm@cua.dk>
+
 	* window.c (Fset_window_margins): Simplify arg checking.
 
 2003-10-13  Richard M. Stallman  <rms@gnu.org>
@@ -201,8 +233,7 @@
 
 2003-10-12  Andrew Choi  <akochoi@shaw.ca>
 
-	* macterm.c (XTread_socket): Call DragWindow only for mouseDown
-	events.
+	* macterm.c (XTread_socket): Call DragWindow only for mouseDown events.
 
 	* s/darwin.h (GC_MARK_STACK): Define.
 
@@ -218,8 +249,7 @@
 
 2003-10-08  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (Fcoding_system_p): Return t for auto-loading coding
-	system.
+	* coding.c (Fcoding_system_p): Return t for auto-loading coding system.
 
 2003-10-07  Kenichi Handa  <handa@m17n.org>
 
@@ -247,7 +277,7 @@
 
 	* xterm.h (struct x_output): New members: move_offset_top/left.
 
-	* frame.c (x_set_frame_parameters): x_fullscreen_move removed,
+	* frame.c (x_set_frame_parameters): Remove x_fullscreen_move,
 	call x_set_offset directly.
 
 	* frame.h (enum): FULLSCREEN_MOVE_WAIT removed.
@@ -257,8 +287,8 @@
 	* xterm.c (x_delete_display): Free font names and font_encoder
 	in dpyinfo->font_table.
 
-	* xfns.c (Fx_close_connection): Only call XFreeFont here.  xfree
-	of font names moved to x_delete_display.
+	* xfns.c (Fx_close_connection): Only call XFreeFont here.
+	Move xfree of font names to x_delete_display.
 
 	* xterm.h (struct x_display_info): New member, wm_type.
 	(struct x_output): New members, expected_top/left and
@@ -266,11 +296,11 @@
 
 	* xterm.c (handle_one_xevent): Reset wm_type when ReparentNotify
 	is received.
-	(handle_one_xevent): x_check_expected_move renamed from
-	x_check_fullscreen_move
+	(handle_one_xevent): Rename x_check_expected_move from
+	x_check_fullscreen_move.
 	(x_set_offset): Only add WM decoration sizes to	modified_top/left
 	for X_WMTYPE_A.  Set check_expected_move when WM type is unknown.
-	(x_check_expected_move): Renamed from x_check_fullscreen_move.
+	(x_check_expected_move): Rename from x_check_fullscreen_move.
 	Removed fullscreen specific code.  Use check_expected_move,
 	expected_left/top instead.  Also, set wm_type.
 	(x_term_init): Initialize wm_type to unknown.
@@ -298,8 +328,8 @@
 
 2003-10-02  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (emacs.o, coding.o, bytecode.o): Sync
-	dependancies with Makefile.in.
+	* makefile.w32-in (emacs.o, coding.o, bytecode.o):
+	Sync dependencies with Makefile.in.
 	(alloca.o): Remove.
 
 	* w32fns.c (w32_load_system_font): Clear all members of FONTP before
@@ -312,7 +342,7 @@
 	* term.c (set_tty_color_mode): Calculate current_mode_spec
 	regardless of value of VAL.
 
-	* intervals.c (graft_intervals_into_buffer): 
+	* intervals.c (graft_intervals_into_buffer):
 	Set BUF_INTERVALS (buffer)->up_obj when appropriate.
 	Handle over_used when splitting UNDER.
 
@@ -383,8 +413,7 @@
 
 2003-09-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.c (x_set_offset): Take window manager decorations
-	into account.
+	* xterm.c (x_set_offset): Take window manager decorations into account.
 
 2003-09-19  Richard M. Stallman  <rms@gnu.org>
 
