@@ -2111,7 +2111,7 @@ may require changes to existing code. Here is a list for reference.
 See the sections below for details.
 
 ** Since `format' preserves text properties, the idiom
-`(format %s foo)' no longer works to copy and remove properties.
+`(format "%s" foo)' no longer works to copy and remove properties.
 Use `copy-sequence' and `set-text-properties'.
 
 ** Since the `keymap' text property now has significance, some code
@@ -2386,7 +2386,7 @@ eight-bit-graphic.
 
 ** Fontsets are now implemented using char-tables.
 
-A fontset can now be specified for for each independent character, for
+A fontset can now be specified for each independent character, for
 a group of characters or for a character set rather than just for a
 character set as previously.
 
@@ -2400,7 +2400,7 @@ range FROM and TO (inclusive).  CHARACTER may be a charset.  In that
 case FONTNAME is used for all character in the charset.
 
 FONTNAME may be a cons (FAMILY . REGISTRY), where FAMILY is the family
-name of a font and REGSITRY is a registry name of a font.
+name of a font and REGISTRY is a registry name of a font.
 
 *** Variable x-charset-registry has been deleted.  The default charset
 registries of character sets are set in the default fontset
@@ -3583,7 +3583,7 @@ Return the position closest to NEW-POS that is in the same field as OLD-POS.
 
 A field is a region of text with the same `field' property.
 If NEW-POS is nil, then the current point is used instead, and set to the
-constrained position if that is is different.
+constrained position if that is different.
 
 If OLD-POS is at the boundary of two fields, then the allowable
 positions for NEW-POS depends on the value of the optional argument
