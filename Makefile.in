@@ -349,17 +349,20 @@ do-install: mkdir
 		 rm -f  $${subdir}/*~ ; \
 	       done) ; \
 	 done
-	-[ `(cd ./etc; /bin/pwd)` != `(cd ${srcdir}etc; /bin/pwd)` ] \
-	 && (echo "Copying etc/DOC* ..." ; \
-	     (cd etc; tar -cf - DOC*)|(cd ${etcdir}; umask 0; tar -xvf - ))
-	-[ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ] \
-	 && (cd ${srcdir}/info ; \
+	if [ `(cd ./etc; /bin/pwd)` != `(cd ${srcdir}/etc; /bin/pwd)` ]; \
+	then \
+	   echo "Copying etc/DOC* ..." ; \
+	   (cd etc; tar -cf - DOC*)|(cd ${etcdir}; umask 0; tar -xvf - ); \
+	else true; fi
+	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
+	then (cd ${srcdir}/info ; \
 	     if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	       ${INSTALL_DATA} dir ${infodir}/dir ; \
 	     fi ; \
 	     for f in cl* emacs* forms* info* vip* ; do \
 	       ${INSTALL_DATA} $$f ${infodir}/$$f ; \
-	     done)
+	     done); \
+	else true; fi
 	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
 	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
 	done
