@@ -36,6 +36,7 @@
 (defvar default-menubar)
 (defvar frame-icon-title-format)
 (defvar ediff-diff-status)
+(defvar ediff-emacs-p)
 
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
@@ -74,7 +75,7 @@
   "*Function called to set up windows.
 Ediff provides a choice of two functions: ediff-setup-windows-plain, for
 doing everything in one frame, and ediff-setup-windows-multiframe,
-which sets the control panel in a separate frame. Also, if the latter
+which sets the control panel in a separate frame.  Also, if the latter
 function detects that one of the buffers A/B is seen in some other frame,
 it will try to keep that buffer in that frame.
 
@@ -153,6 +154,9 @@ In this case, Ediff will use those frames to display these buffers."
    ;; don't lower and auto-raise
    '(auto-lower . nil)
    '(auto-raise . t)
+   '(visibility . nil)
+   ;; make initial frame small to avoid distraction
+   '(width . 1) '(height . 1)
    ;; this blocks queries from  window manager as to where to put
    ;; ediff's control frame. we put the frame outside the display,
    ;; so the initial frame won't jump all over the screen
@@ -164,7 +168,7 @@ In this case, Ediff will use those frames to display these buffers."
 		 3000))
    )
   "Frame parameters for displaying Ediff Control Panel.
-Do not specify width and height here. These are computed automatically.")
+Used internally---not a user option.")
 
 ;; position of the mouse; used to decide whether to warp the mouse into ctl
 ;; frame
@@ -177,7 +181,7 @@ Do not specify width and height here. These are computed automatically.")
 (defcustom ediff-grab-mouse t
   "*If t, Ediff will always grab the mouse and put it in the control frame.
 If 'maybe, Ediff will do it sometimes, but not after operations that require
-relatively long time. If nil, the mouse will be entirely user's
+relatively long time.  If nil, the mouse will be entirely user's
 responsibility."
   :type 'boolean
   :group 'ediff-window)
@@ -185,17 +189,17 @@ responsibility."
 (defcustom ediff-control-frame-position-function 'ediff-make-frame-position
   "Function to call to determine the desired location for the control panel.
 Expects three parameters: the control buffer, the desired width and height
-of the control frame. It returns an association list
+of the control frame.  It returns an association list
 of the form \(\(top . <position>\) \(left . <position>\)\)"
   :type 'function
   :group 'ediff-window)
 
-(defcustom ediff-control-frame-upward-shift (if ediff-xemacs-p 42 14)
+(defcustom ediff-control-frame-upward-shift 42
   "*The upward shift of control frame from the top of buffer A's frame.
 Measured in pixels.
 This is used by the default control frame positioning function,
-`ediff-make-frame-position'. This variable is provided for easy
-customization of the default."
+`ediff-make-frame-position'.  This variable is provided for easy
+customization of the default control frame positioning."
   :type 'integer
   :group 'ediff-window)
 
@@ -204,7 +208,7 @@ customization of the default."
 Measured in characters.
 This is used by the default control frame positioning function,
 `ediff-make-frame-position' to adjust the position of the control frame
-when it shows the short menu. This variable is provided for easy
+when it shows the short menu.  This variable is provided for easy
 customization of the default."
   :type 'integer
   :group 'ediff-window)
@@ -214,7 +218,7 @@ customization of the default."
 Measured in characters.
 This is used by the default control frame positioning function,
 `ediff-make-frame-position' to adjust the position of the control frame
-when it shows the full menu. This variable is provided for easy
+when it shows the full menu.  This variable is provided for easy
 customization of the default."
   :type 'integer
   :group 'ediff-window)
@@ -232,7 +236,7 @@ display off.")
   "Frame to be used for wide display.")
 (ediff-defvar-local ediff-make-wide-display-function 'ediff-make-wide-display
   "The value is a function that is called to create a wide display.
-The function is called without arguments. It should resize the frame in
+The function is called without arguments.  It should resize the frame in
 which buffers A, B, and C are to be displayed, and it should save the old
 frame parameters in `ediff-wide-display-orig-parameters'.
 The variable `ediff-wide-display-frame' should be set to contain
@@ -248,7 +252,7 @@ If t, hitting `?' to toggle control panel off iconifies it.
 
 This is only useful in Emacs and only for certain kinds of window managers,
 such as TWM and its derivatives, since the window manager must permit
-keyboard input to go into icons. XEmacs completely ignores keyboard input
+keyboard input to go into icons.  XEmacs completely ignores keyboard input
 into icons, regardless of the window manager."
   :type 'boolean
   :group 'ediff-window)
@@ -258,7 +262,7 @@ into icons, regardless of the window manager."
 (defun ediff-get-window-by-clicking (wind prev-wind wind-number)
   (let (event)
     (message
-     "Select windows by clicking. Please click on Window %d " wind-number)
+     "Select windows by clicking.  Please click on Window %d " wind-number)
     (while (not (ediff-mouse-event-p (setq event (ediff-read-event))))
       (if (sit-for 1) ; if sequence of events, wait till the final word
 	  (beep 1))
@@ -652,7 +656,7 @@ into icons, regardless of the window manager."
 ;;;    If it is not seen, use the current frame.
 ;;;    If both buffers are not seen, they share the current frame.  If one
 ;;;    of the buffers is not seen, it is placed in the current frame (where
-;;;    ediff started). If that frame is displaying the other buffer, it is
+;;;    ediff started).  If that frame is displaying the other buffer, it is
 ;;;    shared between the two buffers.
 ;;;    However, if we decide to put both buffers in one frame
 ;;;    and the selected frame isn't splittable, we create a new frame and
@@ -813,7 +817,7 @@ into icons, regardless of the window manager."
 	    (window-frame (minibuffer-window frame-A))))
     
     ;; It is unlikely that we'll implement a version of ediff-windows that
-    ;; would compare 3 windows at once. So, we don't use buffer C here.
+    ;; would compare 3 windows at once.  So, we don't use buffer C here.
     (if ediff-windows-job
 	(progn
 	  (set-window-start wind-A wind-A-start)
@@ -831,7 +835,11 @@ into icons, regardless of the window manager."
 		    (or
 		     (ediff-frame-has-dedicated-windows (selected-frame))
 		     (ediff-frame-iconified-p (selected-frame))
+		     ;; skip small frames
 		     (< (frame-height (selected-frame))
+			(* 3 window-min-height))
+		     ;; skip small windows
+		     (< (window-height (selected-window))
 			(* 3 window-min-height))
 		     (if ok-unsplittable
 			 nil
@@ -850,9 +858,8 @@ into icons, regardless of the window manager."
 	ans)
     (select-frame frame)
     (walk-windows 
-     (function (lambda (wind)
-		 (if (window-dedicated-p wind)
-		     (setq ans t))))
+     (lambda (wind) (if (window-dedicated-p wind)
+			(setq ans t)))
      'ignore-minibuffer
      frame)
     (select-frame cur-fr)
@@ -944,9 +951,9 @@ into icons, regardless of the window manager."
 	  ))
     
     ;; Under OS/2 (emx) we have to call modify frame parameters twice, in order
-    ;; to make sure that at least once we do it for non-iconified frame. If
+    ;; to make sure that at least once we do it for non-iconified frame.  If
     ;; appears that in the OS/2 port of Emacs, one can't modify frame
-    ;; parameters of iconified frames. As a precaution, we do likewise for
+    ;; parameters of iconified frames.  As a precaution, we do likewise for
     ;; windows-nt.
     (if (memq system-type '(emx windows-nt windows-95))
 	(modify-frame-parameters ctl-frame adjusted-parameters))
@@ -959,7 +966,7 @@ into icons, regardless of the window manager."
     (modify-frame-parameters ctl-frame adjusted-parameters)
     (make-frame-visible ctl-frame)
     
-    ;; This works around a bug in 19.25 and earlier. There, if frame gets
+    ;; This works around a bug in 19.25 and earlier.  There, if frame gets
     ;; iconified, the current buffer changes to that of the frame that
     ;; becomes exposed as a result of this iconification.
     ;; So, we make sure the current buffer doesn't change.
@@ -974,7 +981,7 @@ into icons, regardless of the window manager."
     
     (set-window-dedicated-p (selected-window) t)
 
-    ;; Now move the frame. We must do it separately due to an obscure bug in
+    ;; Now move the frame.  We must do it separately due to an obscure bug in
     ;; XEmacs
     (modify-frame-parameters
      ctl-frame
@@ -1033,7 +1040,7 @@ into icons, regardless of the window manager."
 	   ctl-frame-top ctl-frame-left) 
       
       ;; Multiple control frames are clipped based on the value of
-      ;; ediff-control-buffer-number. This is done in order not to obscure
+      ;; ediff-control-buffer-number.  This is done in order not to obscure
       ;; other active control panels.
       (setq horizontal-adjustment (* 2 ediff-control-buffer-number)
 	    upward-adjustment (* -14 ediff-control-buffer-number))

@@ -65,6 +65,13 @@ It must return code 0, if its arguments are identical files."
   :type 'string
   :group 'ediff-diff)
 
+(defcustom ediff-cmp-options nil
+  "*Options to pass to `ediff-cmp-program'.  If GNUS diff is used as
+`ediff-cmp-program', then the most useful options are `-I' RE, to
+ignore changes whose lines all match RE."
+  :type '(repeat string)
+  :group 'ediff-diff)
+
 (defcustom ediff-diff-program "diff"
   "*Program to use for generating the differential of the two files."
   :type 'string
@@ -270,19 +277,19 @@ one optional arguments, diff-number to refine.")
     ;; fixup diff-list
     (if diff3-job
 	(cond ((not file-A)
-	       (mapcar (function (lambda (elt)
-				   (aset elt 0 nil)
-				   (aset elt 1 nil)))
+	       (mapcar (lambda (elt)
+			 (aset elt 0 nil)
+			 (aset elt 1 nil))
 		       (cdr diff-list)))
 	      ((not file-B)
-	       (mapcar (function (lambda (elt)
-				   (aset elt 2 nil)
-				   (aset elt 3 nil)))
+	       (mapcar (lambda (elt)
+			 (aset elt 2 nil)
+			 (aset elt 3 nil))
 		       (cdr diff-list)))
 	      ((not file-C)
-	       (mapcar (function (lambda (elt)
-				   (aset elt 4 nil)
-				   (aset elt 5 nil)))
+	       (mapcar (lambda (elt)
+			 (aset elt 4 nil)
+			 (aset elt 5 nil))
 		       (cdr diff-list)))
 	  ))
     
@@ -475,13 +482,14 @@ one optional arguments, diff-number to refine.")
   (if ediff-merge-job
       (setq ediff-state-of-merge
 	    (vconcat
-	     (mapcar (function
-		      (lambda (elt)
-			(let ((state-of-merge (aref elt 9))
-			      (state-of-ancestor (aref elt 10)))
-			  (vector
-			   (if state-of-merge (format "%S" state-of-merge))
-			   state-of-ancestor))))
+	     (mapcar (lambda (elt)
+		       (let ((state-of-merge (aref elt 9))
+			     (state-of-ancestor (aref elt 10)))
+			 (vector
+			  ;; state of merge: prefers/default-A/B or combined
+			  (if state-of-merge (format "%S" state-of-merge))
+			  ;; whether the ancestor region is empty
+			  state-of-ancestor)))
 		     ;; the first elt designates type of list
 		     (cdr diff-list))
 	     )))
@@ -554,9 +562,11 @@ one optional arguments, diff-number to refine.")
       (if (= 0 (mod current-diff 10))
 	  (message "Buffer %S: Processing difference region %d of %d"
 		   buf-type current-diff total-diffs))
-      ;; record all overlays for this difference
-      ;; the second elt, nil, is a place holder for the fine diff vector.
-      ;; the third elt, nil, is a place holder for no-fine-diffs flag.
+      ;; Record all overlays for this difference.
+      ;; The 2-d elt, nil, is a place holder for the fine diff vector.
+      ;; The 3-d elt, nil, is a place holder for no-fine-diffs flag.
+      ;; The 4-th elt says which diff region is different from the other two
+      ;; (3-way jobs only).
       (setq diff-overlay-list
 	    (nconc
 	     diff-overlay-list
@@ -646,7 +656,7 @@ one optional arguments, diff-number to refine.")
 	       (or (ediff-get-fine-diff-vector n 'A)
 		   (memq ediff-auto-refine '(off nix))
 		   (ediff-message-if-verbose
-		    "Region %d exceeds auto-refine limit. Type `%s' to refine"
+		    "Region %d exceeds the auto-refinement limit. Type `%s' to refine"
 		    (1+ n)
 		    (substitute-command-keys
 		     "\\[ediff-make-or-kill-fine-diffs]")
@@ -784,11 +794,10 @@ one optional arguments, diff-number to refine.")
 			       ediff-current-diff-overlay-alist))
 			     'priority)
 			    0)))))
-    (mapcar
-     (function (lambda (overl)
-		 (ediff-set-overlay-face overl face)
-		 (ediff-overlay-put overl 'priority priority)))
-     fine-diff-vector)))
+    (mapcar (lambda (overl)
+	      (ediff-set-overlay-face overl face)
+	      (ediff-overlay-put overl 'priority priority))
+	    fine-diff-vector)))
      
 ;; This assumes buffer C and that the region looks like a combination of
 ;; regions in buffer A and C.
@@ -1079,6 +1088,7 @@ one optional arguments, diff-number to refine.")
 ;; args.
 (defun ediff-exec-process (program buffer synch options &rest files)
   (let ((data (match-data))
+	(coding-system-for-read 'no-conversion)
 	args)
     (setq args (append (split-string options) files))
     (setq args (delete "" (delq nil args))) ; delete nil and "" from arguments
@@ -1252,7 +1262,9 @@ argument to `skip-chars-forward'."
 
 (defun ediff-same-file-contents (f1 f2)
   "T if F1 and F2 have identical contents."
-  (let ((res (call-process ediff-cmp-program nil nil nil f1 f2)))
+  (let ((res 
+	 (apply 'call-process ediff-cmp-program nil nil nil
+ 		(append ediff-cmp-options (list f1 f2)))))
     (and (numberp res) (eq res 0))))
 
 

@@ -1,3 +1,57 @@
+1999-11-01  Michael Kifer  <kifer@cs.sunysb.edu>
+
+	* ediff.el: version change.
+	
+	* ediff-util.el (ediff-cleanup-mess): fixed the case of dead windows.
+	make sure you are in a good frame before deleting other
+	windows.
+	(ediff-file-checked-in-p): don't consider CVS
+	files checked in.
+	(ediff-make-temp-file,ediff-make-empty-tmp-file):  Make sure you
+	are writing to a newly created empty file.
+
+	* ediff-mult.el (ediff-show-session-group-hook): new default.
+
+	* ediff-vers.el (ediff-pcl-cvs-view-revision):
+	first cd to the file directory. reportedly works
+	better with remote files.
+
+	* ediff-vers.el (ediff-pcl-cvs-internal, ediff-pcl-cvs-merge-internal):
+	use file-name-nondirectory when passing files to CVS.
+	
+	* ediff-diff.el (ediff-cmp-options): new var.
+	(ediff-same-file-contents): use ediff-cmp-options.
+	
+	* ediff-ptch.el (ediff-prompt-for-patch-buffer,
+	ediff-get-patch-buffer): use current buffer if it appears to be a
+	patch.
+	
+	* viper-keym.el: Fixed calls to viper-ex,
+	change key C-cg to C-cC-g
+
+	* viper-util.el (viper-nontrivial-find-file-function): deleted.
+	(viper-glob-unix-files, viper-glob-mswindows-files): new functions.
+	(viper-save-cursor-color,viper-restore-cursor-color):
+	improved cursor color handling.
+	(viper-get-saved-cursor-color-in-replace-mode,
+	viper-get-saved-cursor-color-in-insert-mode): new functions for
+	better cursor color handling.
+
+	* viper-ex.el (ex-read,ex-edit):
+	fixes for correct interpretation of #,%.
+	(viper-ex): now works correctly when called from other functions.
+	(viper-glob-function): new variable.
+	(viper-ex): save excursion before doing :global.
+
+	* viper-mous.el (viper-counting-clicks-p): bug fixes.
+	
+	* viper-cmd.el (viper-post-command-sentinel,
+	viper-insert-state-post-command-sentinel,
+	viper-insert-state-pre-command-sentinel): takes better care of
+	 cursor colors.
+	
+        * viper.el: version change.
+
 1999-10-31  Rajesh Vaidheeswarran  <rv@dsmit.com>
 
 	* whitespace.el (whitespace-update-modeline): Bugfix to ensure

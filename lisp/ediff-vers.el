@@ -94,7 +94,7 @@
 (defun ediff-rcs-get-output-buffer (file name)
   ;; Get a buffer for RCS output for FILE, make it writable and clean it up.
   ;; Optional NAME is name to use instead of `*RCS-output*'.
-  ;; This is a modified version from rcs.el v1.1. I use it here to make
+  ;; This is a modified version from rcs.el v1.1.  I use it here to make
   ;; Ediff immune to changes in rcs.el
   (let* ((default-major-mode 'fundamental-mode) ; no frills!
 	 (buf (get-buffer-create name)))
@@ -159,8 +159,9 @@
       (setq buf2 (current-buffer)))
     (if ancestor-rev
 	(save-excursion
-	  (or (string= ancestor-rev "")
-	      (vc-version-other-window ancestor-rev))
+	  (if (string= ancestor-rev "")
+	      (setq ancestor-rev (vc-workfile-version buffer-file-name)))
+	  (vc-version-other-window ancestor-rev)
 	  (setq ancestor-buf (current-buffer))))
     (setq startup-hooks 
 	  (cons 
@@ -231,102 +232,6 @@
 
 
 ;; PCL-CVS.el support
-
-(defun ediff-pcl-cvs-internal (rev1 rev2 &optional startup-hooks)
-;; Run Ediff on a pair of revisions of the current buffer.
-;; If REV1 is "", use the latest revision.
-;; If REV2 is "", use the current buffer as the second file to compare.
-  (let ((orig-buf (current-buffer))
-	orig-file-name buf1 buf2 file1 file2)
-    
-    (or (setq orig-file-name (buffer-file-name (current-buffer)))
-	(error "Current buffer is not visiting any file"))
-    (if (string= rev1 "") (setq rev1 nil)) ; latest revision
-    (setq buf1 (ediff-pcl-cvs-view-revision orig-file-name rev1)
-	  buf2 (if (string= rev2 "")
-		   orig-buf
-		 (ediff-pcl-cvs-view-revision orig-file-name rev2))
-	  file1 (buffer-file-name buf1)
-	  file2 (buffer-file-name buf2))
-    (setq startup-hooks
-	  (cons (` (lambda ()
-		     (delete-file (, file1))
-		     (or (, (string= rev2 "")) (delete-file (, file2)))
-		     ))
-		startup-hooks))
-    (ediff-buffers buf1 buf2 startup-hooks 'ediff-revision)))
-
-;; This function is the standard Ediff's interface to pcl-cvs.
-;; Works like with other interfaces: runs ediff on versions of the file in the
-;; current buffer.
-(defun ediff-pcl-cvs-merge-internal (rev1 rev2 ancestor-rev
-					  &optional
-					  startup-hooks merge-buffer-file)
-;; Ediff-merge appropriate revisions of the selected file.
-;; If REV1 is "" then use the latest revision.
-;; If REV2 is "" then merge current buffer's file with REV1.
-;; If ANCESTOR-REV is "" then use current buffer's file as ancestor.
-;; If ANCESTOR-REV is nil, then merge without the ancestor.
-  (let ((orig-buf (current-buffer))
-	orig-file-name buf1 buf2 ancestor-buf)
-
-    (or (setq orig-file-name (buffer-file-name (current-buffer)))
-	(error "Current buffer is not visiting any file"))
-    (if (string= rev1 "") (setq rev1 nil)) ; latest revision
-
-    (setq buf1 (ediff-pcl-cvs-view-revision orig-file-name rev1))
-    (setq buf2 (if (string= rev2 "")
-		   orig-buf
-		 (ediff-pcl-cvs-view-revision orig-file-name rev2)))
-    (if (stringp ancestor-rev)
-	(setq ancestor-buf
-	      (if (string= ancestor-rev "")
-		  orig-buf
-		(ediff-pcl-cvs-view-revision orig-file-name ancestor-rev))))
-
-    (setq startup-hooks 
-	  (cons 
-	   (` (lambda () 
-		(delete-file (, (buffer-file-name buf1)))
-		(or (, (string= rev2 ""))
-		    (delete-file (, (buffer-file-name buf2))))
-		(or (, (string= ancestor-rev ""))
-		    (, (not ancestor-rev))
-		    (delete-file (, (buffer-file-name ancestor-buf))))
-		))
-	   startup-hooks))
-
-    (if ancestor-buf
-	(ediff-merge-buffers-with-ancestor
-	 buf1 buf2 ancestor-buf startup-hooks 
-	 'ediff-merge-revisions-with-ancestor merge-buffer-file)
-      (ediff-merge-buffers
-       buf1 buf2 startup-hooks 'ediff-merge-revisions merge-buffer-file))
-    ))
-
-(defun ediff-pcl-cvs-view-revision (file rev)
-;; if rev = "", get the latest revision
-  (let ((temp-name (make-temp-file
-		    (concat ediff-temp-file-prefix
-			    "ediff_" rev))))
-    (cvs-kill-buffer-visiting temp-name)
-    (if rev
-	(message "Retrieving revision %s..." rev)
-      (message "Retrieving latest revision..."))
-    (let ((res (call-process cvs-shell nil nil nil "-c"
-			     (concat cvs-program " update -p "
-				     (if rev
-					 (concat "-r " rev " ")
-				       "")
-				     file
-				     " > " temp-name))))
-      (if (and res (not (and (integerp res) (zerop res))))
-	  (error "Failed to retrieve revision: %s" res))
-
-      (if rev
-	  (message "Retrieving revision %s... Done." rev)
-	(message "Retrieving latest revision... Done."))
-      (find-file-noselect temp-name))))
 
 
 (defun cvs-run-ediff-on-file-descriptor (tin)

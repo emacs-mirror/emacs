@@ -1,4 +1,4 @@
-;;; viper.el --- A full-featured Vi emulator for Emacs.
+;;; viper.el --- A full-featured Vi emulator for GNU Emacs and XEmacs,
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
@@ -6,9 +6,9 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994 -- 1999 Free Software Foundation, Inc.
 
-(defconst viper-version "3.03 (Polyglot) of May 21, 1998"
+(defconst viper-version "3.08 of October 31, 1999"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -30,11 +30,11 @@
 
 ;;; Commentary:
 
-;; Viper is a full-featured Vi emulator for Emacs and XEmacs. It emulates and
+;; Viper is a full-featured Vi emulator for Emacs and XEmacs.  It emulates and
 ;; improves upon the standard features of Vi and, at the same time, allows
 ;; full access to all Emacs facilities.  Viper supports multiple undo,
 ;; file name completion, command, file, and search history and it extends
-;; Vi in many other ways. Viper is highly customizable through the various
+;; Vi in many other ways.  Viper is highly customizable through the various
 ;; hooks, user variables, and keymaps.  It is implemented as a collection
 ;; of minor modes and it is designed to provide full access to all Emacs
 ;; major and minor modes.
@@ -44,11 +44,11 @@
 ;; Viper is a new name for a package formerly known as VIP-19,
 ;; which was a successor of VIP version 3.5 by Masahiko Sato
 ;; <ms@sail.stanford.edu> and VIP version 4.2 by Aamod Sane
-;; <sane@cs.uiuc.edu>. Some ideas from vip 4.4.2 by Aamod Sane
+;; <sane@cs.uiuc.edu>.  Some ideas from vip 4.4.2 by Aamod Sane
 ;; were also shamelessly plagiarized.
 ;;
 ;; Viper maintains some degree of compatibility with these older
-;; packages. See the documentation for customization.
+;; packages.  See the documentation for customization.
 ;;
 ;; The main difference between Viper and these older packages are:
 ;;
@@ -82,9 +82,9 @@
 ;; 9. Viper has Vi-style keyboard macros, which enhances the similar
 ;;    facility in the original Vi.
 ;;    First, one can execute any Emacs command while defining a
-;;    macro, not just the Vi commands. Second, macros are defined in a
+;;    macro, not just the Vi commands.  Second, macros are defined in a
 ;;    WYSYWYG mode, using an interface to Emacs' WYSIWYG style of defining
-;;    macros. Third, in Viper, one can define macros that are specific to
+;;    macros.  Third, in Viper, one can define macros that are specific to
 ;;    a given buffer, a given major mode, or macros defined for all buffers.
 ;;    The same macro name can have several different definitions:
 ;;    one global, several definitions for various major modes, and
@@ -110,12 +110,12 @@
 ;;
 ;; 1. Major modes.
 ;; In most cases, Viper handles major modes correctly, i.e., they come up
-;; in the right state (either  vi-state or emacs-state). For instance, text
+;; in the right state (either  vi-state or emacs-state).  For instance, text
 ;; files come up in vi-state, while, say, Dired appears in emacs-state by
 ;; default. 
 ;; However, some modes do not appear in the right mode in the beginning,
 ;; usually because they neglect to follow Emacs conventions (e.g., they don't
-;; use kill-all-local-variables when they start). Some major modes
+;; use kill-all-local-variables when they start).  Some major modes
 ;; may fail to come up in emacs-state if they call hooks, such as
 ;; text-hook, for no good reason. 
 ;; 
@@ -126,7 +126,7 @@
 ;; or    
 ;;     (add-hook 'your-favorite-mode 'viper-change-state-to-emacs)
 ;; 
-;; whichever applies. The right thing to do, however, is to complain to the
+;; whichever applies.  The right thing to do, however, is to complain to the
 ;; author of the respective package. (Sometimes they also neglect to equip
 ;; their  modes with hooks, which is one more reason for complaining.)
 ;; 
@@ -148,47 +148,47 @@
 ;;  the second, which, in turn, overshadows those done to the third, etc.
 ;;
 ;;  The last viper-vi-basic-minor-mode contains most of the usual Vi bindings
-;;  in its edit mode. This mode provides access to all Emacs facilities.
+;;  in its edit mode.  This mode provides access to all Emacs facilities.
 ;;  Novice users, however, may want to set their viper-expert-level to 1
-;;  in their .viper file. This will enable viper-vi-diehard-minor-mode. This
+;;  in their .viper file.  This will enable viper-vi-diehard-minor-mode.  This
 ;;  minor mode's bindings make Viper simulate the usual Vi very closely.
 ;;  For instance,  C-c will not have its standard Emacs binding
 ;;  and so many of the goodies of Emacs are not available.
 ;;
-;;  A skilled user should set viper-expert-level to at least 3. This will
+;;  A skilled user should set viper-expert-level to at least 3.  This will
 ;;  enable `C-c' and many Emacs facilities will become available.
 ;;  In this case, viper-vi-diehard-minor-mode is inactive.
 ;;
 ;;  Viper gurus should have at least
 ;;      (setq viper-expert-level 4)
-;;  in their ~/.viper files. This will unsuppress all Emacs keys that are not
+;;  in their ~/.viper files.  This will unsuppress all Emacs keys that are not
 ;;  essential for VI-style editing.
 ;;  Pick-and-choose users may want to put
 ;;      (setq viper-expert-level 5)
-;;  in ~/.viper. Viper will then leave it up to the user to set the variables
+;;  in ~/.viper.  Viper will then leave it up to the user to set the variables
 ;;  viper-want-*  See viper-set-expert-level for details.
 ;;
 ;;  The very first minor mode, viper-vi-intercept-minor-mode, is of no
-;;  concern for the user. It is needed to bind Viper's vital keys, such as
+;;  concern for the user.  It is needed to bind Viper's vital keys, such as
 ;;  ESC and C-z.
 ;;
 ;;  The second mode,  viper-vi-local-user-minor-mode, usually has an
-;;  empty keymap. However, the user can set bindings in this keymap, which
+;;  empty keymap.  However, the user can set bindings in this keymap, which
 ;;  will overshadow the corresponding bindings in the other two minor
-;;  modes. This is useful, for example, for setting up ZZ in gnus,
+;;  modes.  This is useful, for example, for setting up ZZ in gnus,
 ;;  rmail, mh-e, etc., to send  message instead of saving it in a file.
 ;;  Likewise, in Dired mode, you may want to bind ZN and ZP to commands
 ;;  that would visit the next or the previous file in the Dired buffer.
-;;  Setting local keys is tricky, so don't do it directly. Instead, use
+;;  Setting local keys is tricky, so don't do it directly.  Instead, use
 ;;  viper-add-local-keys function (see its doc).
 ;;
 ;;  The third minor mode, viper-vi-global-user-minor-mode, is also intended
 ;;  for the users but, unlike viper-vi-local-user-minor-mode, its key
-;;  bindings are seen in all Viper buffers. This mode keys can be done
+;;  bindings are seen in all Viper buffers.  This mode keys can be done
 ;;  with define-key command.
 ;;
 ;;  The fourth minor mode, viper-vi-kbd-minor-mode, is used by keyboard
-;;  macros. Users are NOT supposed to modify this keymap directly.
+;;  macros.  Users are NOT supposed to modify this keymap directly.
 ;;
 ;;  The fifth mode, viper-vi-state-modifier-minor-mode, can be used to set
 ;;  key bindings that are visible in some major modes but not in others.
@@ -212,11 +212,11 @@
 ;;  to be changed by the user.
 ;;
 ;;  The next mode, viper-insert-local-user-minor-mode, is used to customize
-;;  bindings in the insert state of Viper. The third mode,
+;;  bindings in the insert state of Viper.  The third mode,
 ;;  viper-insert-global-user-minor-mode is like
 ;;  viper-insert-local-user-minor-mode, except that its bindings are seen in
-;;  all Viper buffers. As with viper-vi-local-user-minor-mode, its bindings
-;;  should be done via the function viper-add-local-keys. Bindings for
+;;  all Viper buffers.  As with viper-vi-local-user-minor-mode, its bindings
+;;  should be done via the function viper-add-local-keys.  Bindings for
 ;;  viper-insert-global-user-minor-mode can be set with the define-key command.
 ;;
 ;;  The next minor mode, viper-insert-kbd-minor-mode,
@@ -229,7 +229,7 @@
 ;;  The minor mode viper-insert-diehard-minor-mode is in effect when
 ;;  the user wants a high degree of Vi compatibility (a bad idea, really!).
 ;;  The last minor mode, viper-insert-basic-minor-mode, is always in effect
-;;  when Viper is in insert state. It binds a small number of keys needed for
+;;  when Viper is in insert state.  It binds a small number of keys needed for
 ;;  Viper's operation. 
 ;;
 ;;  Finally, Viper provides minor modes for overriding bindings set by Emacs
@@ -240,24 +240,24 @@
 ;;      viper-emacs-kbd-minor-mode
 ;;      viper-emacs-state-modifier-minor-mode
 ;;
-;;  These minor modes are in effect when Viper is in Emacs state. The keymap
+;;  These minor modes are in effect when Viper is in Emacs state.  The keymap
 ;;  associated with viper-emacs-global-user-minor-mode,
 ;;  viper-emacs-global-user-map, overrides the global and local keymaps as
-;;  well as the minor mode keymaps set by other modes. The keymap of
+;;  well as the minor mode keymaps set by other modes.  The keymap of
 ;;  viper-emacs-local-user-minor-mode, viper-emacs-local-user-map, overrides
 ;;  everything, but it is used on a per buffer basis.
 ;;  The keymap associated with viper-emacs-state-modifier-minor-mode
-;;  overrides keys on a per-major-mode basis. The mode
+;;  overrides keys on a per-major-mode basis.  The mode
 ;;  viper-emacs-kbd-minor-mode is used to define Vi-style macros in Emacs
 ;;  state.
 ;;
 ;;  3. There is also one minor mode that is used when Viper is in its
-;;     replace-state (used for commands like cw, C, etc.). This mode is
+;;     replace-state (used for commands like cw, C, etc.).  This mode is
 ;;     called
 ;;
 ;;       viper-replace-minor-mode
 ;;
-;;     and its keymap is viper-replace-map. Replace minor mode is always
+;;     and its keymap is viper-replace-map.  Replace minor mode is always
 ;;     used in conjunction with the minor modes for insert-state, and its
 ;;     keymap overshadows the keymaps for insert minor modes.
 ;;
@@ -265,32 +265,32 @@
 ;;  As mentioned before, sometimes, it is convenient to have
 ;;  buffer-specific of mode-specific key bindings in Vi and insert modes.
 ;;  Viper provides a special function, viper-add-local-keys, to do precisely
-;;  this. For instance, is you need to add couple of mode-specific bindings
+;;  this.  For instance, is you need to add couple of mode-specific bindings
 ;;  to Insert mode, you can put 
 ;;
 ;;       (viper-add-local-keys 'insert-state '((key1 . func1) (key2 .func2))) 
 ;;
-;;  somewhere in a hook of this major mode. If you put something like this
+;;  somewhere in a hook of this major mode.  If you put something like this
 ;;  in your own elisp function, this will define bindings specific to the
 ;;  buffer that was current at the time of the call to viper-add-local-keys.
 ;;  The only thing to make sure here is that the major mode of this buffer
 ;;  is written according to Emacs conventions, which includes a call to
-;;  (kill-all-local-variables). See viper-add-local-keys for more details.
+;;  (kill-all-local-variables).  See viper-add-local-keys for more details.
 ;;
 ;;
 ;;  TO DO (volunteers?):
 ;;
 ;; 1. Some of the code that is inherited from VIP-3.5 is rather
-;;    convoluted. Instead of viper-command-argument, keymaps should bind the
-;;    actual commands. E.g., "dw" should be bound to a generic command
+;;    convoluted.  Instead of viper-command-argument, keymaps should bind the
+;;    actual commands.  E.g., "dw" should be bound to a generic command
 ;;    viper-delete that will delete things based on the value of
-;;    last-command-char. This would greatly simplify the logic and the code.
+;;    last-command-char.  This would greatly simplify the logic and the code.
 ;;
 ;; 2. Somebody should venture to write a customization package a la
 ;;    options.el that would allow the user to change values of variables
 ;;    that meet certain specs (e.g., match a regexp) and whose doc string
-;;    starts with a '*'. Then, the user should be offered to save
-;;    variables that were changed. This will make user's customization job
+;;    starts with a '*'.  Then, the user should be offered to save
+;;    variables that were changed.  This will make user's customization job
 ;;    much easier.
 ;;
 
@@ -360,7 +360,7 @@ user decide when to invoke Viper in a major mode."
 (defcustom viper-mode (cond (noninteractive nil)
 			    (t 'ask))
   "To Viperize or not to Viperize.
-If t, viperize emacs. If nil -- don't. If `ask', ask the user.
+If t, viperize emacs.  If nil -- don't.  If `ask', ask the user.
 This variable is used primatily when Viper is being loaded.
 
 Must be set in `~/.emacs' before Viper is loaded.
@@ -377,22 +377,27 @@ widget."
     
     awk-mode
     m4-mode
+    xrdb-mode
+    winmgr-mode
+    autoconf-mode
+    cvs-edit-mode
     
     html-mode html-helper-mode
     emacs-lisp-mode lisp-mode lisp-interaction-mode
 				  
-    java-mode cc-mode c-mode c++-mode
+    jde-mode java-mode 
+    cc-mode c-mode c++-mode objc-mode
     fortran-mode f90-mode
     basic-mode
     bat-mode
     asm-mode
     prolog-mode
+    flora-mode
 
     text-mode indented-text-mode
     tex-mode latex-mode bibtex-mode
 				  
     completion-list-mode
-    compilation-mode
     
     perl-mode
     javascript-mode
@@ -421,6 +426,7 @@ widget."
     
     Info-mode
     Buffer-menu-mode
+    compilation-mode
     
     view-mode
     vm-mode
@@ -428,8 +434,8 @@ widget."
   "*A list of major modes that should come up in Emacs state.
 Normally, Viper would bring buffers up in Emacs state, unless the corresponding
 major mode has been placed on `viper-vi-state-mode-list' or
-`viper-insert-state-mode-list'. So, don't place a new mode on this list, unless
-it is coming up in a wrong Viper state."
+`viper-insert-state-mode-list'.  So, don't place a new mode on this list,
+unless it is coming up in a wrong Viper state."
   :type '(repeat symbol)
   :group 'viper-misc)
 
@@ -444,10 +450,9 @@ it is coming up in a wrong Viper state."
 (defun viper-apply-major-mode-modifiers (&optional symbol value)
   (if symbol
       (set symbol value))
-  (mapcar (function
-	   (lambda (triple)
-	     (viper-modify-major-mode
-	      (nth 0 triple) (nth 1 triple) (eval (nth 2 triple)))))
+  (mapcar (lambda (triple)
+	    (viper-modify-major-mode
+	     (nth 0 triple) (nth 1 triple) (eval (nth 2 triple))))
 	  viper-major-mode-modifier-list))
 
 (defcustom viper-major-mode-modifier-list
@@ -470,12 +475,12 @@ it is coming up in a wrong Viper state."
     )
   "List specifying how to modify the various major modes to enable some Viperisms.
 The list has the structure: ((mode viper-state keymap) (mode viper-state
-keymap) ...). If `mode' is on the list, the `kemap' will be made active (on the
-minor-mode-map-alist) in the specified viper state.
+keymap) ...).  If `mode' is on the list, the `kemap' will be made active (on
+the minor-mode-map-alist) in the specified viper state.
 If you change this list, have to restart emacs for the change to take effect.
 However, if you did the change through the customization widget, then emacs
 needs to be restarted only if you deleted a triple mode-state-keymap from the
-list. No need to restart emacs in case of insertion or modification of an
+list.  No need to restart emacs in case of insertion or modification of an
 existing triple."
   :type '(repeat
 	  (list symbol
@@ -493,7 +498,7 @@ existing triple."
 ;;;###autoload
 (defun toggle-viper-mode ()
   "Toggle Viper on/off.
-If Viper is enabled, turn it off. Otherwise, turn it on."
+If Viper is enabled, turn it off.  Otherwise, turn it on."
   (interactive)
   (if (eq viper-mode t)
       (viper-go-away)
@@ -512,9 +517,11 @@ If Viper is enabled, turn it off. Otherwise, turn it on."
 	  (setq viper-mode t)
 	  (load-library "viper"))
 
-	(if viper-first-time ; Important check. Prevents mix-up of startup and 
-	    (progn	     ; expert-level msgs when viper-mode recurses
+	(if viper-first-time ; Important check.  Prevents mix-up of startup 
+	    (progn	     ; and expert-level msgs when viper-mode recurses
 	      (setq viper-first-time nil)
+	      (setq viper-vi-state-cursor-color
+		    (viper-get-cursor-color))
 	      (if (not viper-inhibit-startup-message)
 		  (save-window-excursion
 		    (setq viper-inhibit-startup-message t)
@@ -530,13 +537,13 @@ Incidentally, Viper emulates Vi under GNU Emacs 20 and XEmacs 20.
 It supports all of what is good in Vi and Ex, while extending
 and improving upon much of it.
 
-   1. Viper supports Vi at several levels. Level 1 is the closest to Vi,
+   1. Viper supports Vi at several levels.  Level 1 is the closest to Vi,
       level 5 provides the most flexibility to depart from many Vi conventions.
       
       You will be asked to specify your user level in a following screen.
    
       If you select user level 1 then the keys ^X, ^C, ^Z, and ^G will behave
-      as in VI, to smooth transition to Viper for the beginners. However, to
+      as in VI, to smooth transition to Viper for the beginners.  However, to
       use Emacs productively, you are advised to reach user level 3 or higher. 
       
       At user level 2 or higher, ^X and ^C have Emacs, not Vi, bindings;
@@ -545,13 +552,13 @@ and improving upon much of it.
    2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
       do not cause Emacs to quit, except at user level 1 (for a novice).
    3. ^X^C EXITS EMACS.
-   4. Viper supports multiple undo: `u' will undo. Typing `.' will repeat
-      undo. Another `u' changes direction.
+   4. Viper supports multiple undo: `u' will undo.  Typing `.' will repeat
+      undo.  Another `u' changes direction.
    
    6. Emacs Meta key is `C-\\' (in all modes) or `\\ ESC' (in Vi command mode).
       On a window system, the best way is to use the Meta-key on your keyboard.
    7. Try \\[keyboard-quit] and \\[abort-recursive-edit] repeatedly,if
-      something funny happens. This would abort the current editing command. 
+      something funny happens.  This would abort the current editing command. 
       
 For more information on Viper:
 
@@ -560,7 +567,7 @@ For more information on Viper:
    c. Print the Quick Reference, found in ./etc/viperCard.dvi
 
 To submit a bug report or to contact the author, type :submitReport in Vi
-command mode. To shoo Viper away and return to pure Emacs (horror!), type:
+command mode.  To shoo Viper away and return to pure Emacs (horror!), type:
 
    M-x viper-go-away
     
@@ -606,20 +613,19 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 ;; Remove local value in all existing buffers
 ;; This doesn't delocalize vars (which would have been desirable)
 (defun viper-delocalize-var (symbol)
-  (mapcar (function (lambda (buf)
-		      (save-excursion
-			(set-buffer buf)
-			(kill-local-variable symbol))))
+  (mapcar (lambda (buf) (save-excursion
+			  (set-buffer buf)
+			  (kill-local-variable symbol)))
 	  (buffer-list)))
 
 
 (defun viper-go-away ()
   "De-Viperize Emacs.
-This function tries to do as good a job as possible. However, it may undo some
-user customization, unrelated to Viper. For instance, if the user advised
+This function tries to do as good a job as possible.  However, it may undo some
+user customization, unrelated to Viper.  For instance, if the user advised
 `read-file-name', `describe-key', and some others, then this advice will be
 undone.
-It also doesn't undo some Viper settings. For instance, `minor-mode-map-alist'
+It also doesn't undo some Viper settings.  For instance, `minor-mode-map-alist'
 remains buffer-local."
   (interactive)
 
@@ -740,24 +746,23 @@ remains buffer-local."
 ;; set appropriate Viper state in buffers that changed major mode
 (defun set-viper-state-in-major-mode ()
   (mapcar
-   (function
-    (lambda (buf)
-      (if (viper-buffer-live-p buf)
-	  (with-current-buffer buf
-	    (cond ((and (memq major-mode viper-vi-state-mode-list)
-			(eq viper-current-state 'emacs-state))
-		   (viper-mode))
-		  ((memq major-mode viper-emacs-state-mode-list)
-		   ;; not checking (eq viper-current-state 'emacs-state)
-		   ;; because viper-current-state could have gotten it by
-		   ;; default. we need viper-change-state-to-emacs here to have
-		   ;; the keymaps take effect.
-		   (viper-change-state-to-emacs))
-		  ((and (memq major-mode viper-insert-state-mode-list)
-			(not (eq viper-current-state 'insert-state)))
-		   (viper-change-state-to-insert))
-		  )) ; with-current-buffer
-	))) ; function
+   (lambda (buf)
+     (if (viper-buffer-live-p buf)
+	 (with-current-buffer buf
+	   (cond ((and (memq major-mode viper-vi-state-mode-list)
+		       (eq viper-current-state 'emacs-state))
+		  (viper-mode))
+		 ((memq major-mode viper-emacs-state-mode-list)
+		  ;; not checking (eq viper-current-state 'emacs-state)
+		  ;; because viper-current-state could have gotten it by
+		  ;; default.  We need viper-change-state-to-emacs here to have
+		  ;; the keymaps take effect.
+		  (viper-change-state-to-emacs))
+		 ((and (memq major-mode viper-insert-state-mode-list)
+		       (not (eq viper-current-state 'insert-state)))
+		  (viper-change-state-to-insert))
+		 )) ; with-current-buffer
+       )) ; function
    viper-new-major-mode-buffer-list)
   ;; clear the list of bufs that changed major mode
   (setq viper-new-major-mode-buffer-list nil)
@@ -817,7 +822,7 @@ remains buffer-local."
     (viper-change-state-to-vi))
   
   ;; passwd.el sets up its own buffer, which turns up in Vi mode,
-  ;; thus overriding the local map. We don't need Vi mode here.
+  ;; thus overriding the local map.  We don't need Vi mode here.
   (eval-after-load
    "passwd"
    '(defadvice read-passwd-1 (before viper-passwd-ad activate)
@@ -913,7 +918,7 @@ remains buffer-local."
 
   ;; This var is not local in Emacs, so we make it local.  It must be local
   ;; because although the stack of minor modes can be the same for all buffers,
-  ;; the associated *keymaps* can be different. In Viper,
+  ;; the associated *keymaps* can be different.  In Viper,
   ;; viper-vi-local-user-map, viper-insert-local-user-map, and others can have
   ;; different keymaps for different buffers.  Also, the keymaps associated
   ;; with viper-vi/insert-state-modifier-minor-mode can be different.
@@ -941,7 +946,7 @@ remains buffer-local."
 	    (append '("" viper-mode-string) (cdr global-mode-string))))
 
   (defadvice read-key-sequence (around viper-read-keyseq-ad activate)
-    "Harness to work for Viper. This advice is harmless---don't worry!"
+    "Harness to work for Viper.  This advice is harmless---don't worry!"
     (let (inhibit-quit event keyseq)
       (setq keyseq ad-do-it)
       (setq event (if viper-xemacs-p
@@ -1078,11 +1083,11 @@ These two lines must come in the order given.
 	 (message "")
 	 (kill-buffer " *viper-info*")))
 
-      ;; If viper-mode is t, then just continue. Viper will kick in.
+      ;; If viper-mode is t, then just continue.  Viper will kick in.
       ((eq viper-mode t))
       ;; Otherwise, it was asking Viper was not loaded through .emacs
       ;; In this case, it was either through M-x viper-mode or via something
-      ;; else, like the custom widget. If Viper was loaded through 
+      ;; else, like the custom widget.  If Viper was loaded through 
       ;; M-x viper-mode, then viper will kick in anyway.
       (t (setq viper-mode nil)))
 
@@ -1094,8 +1099,8 @@ These two lines must come in the order given.
 
 
 
-;; Get viper standard value of SYMBOL. If symbol is customized, get its
-;; standard value. Otherwise, get the value saved in the alist STORAGE.  If
+;; Get viper standard value of SYMBOL.  If symbol is customized, get its
+;; standard value.  Otherwise, get the value saved in the alist STORAGE.  If
 ;; STORAGE is nil, use viper-saved-user-settings. 
 (defun viper-standard-value (symbol &optional storage)
   (or (eval (car (get symbol 'customized-value)))
@@ -1197,6 +1202,7 @@ These two lines must come in the order given.
       (viper-harness-minor-mode "view-less")
       (viper-harness-minor-mode "view")
       (viper-harness-minor-mode "reftex")
+      (viper-harness-minor-mode "flyspell")
       ))
 
 

@@ -42,11 +42,11 @@
 ;;	   in the following format:
 ;;	  	(descriptor (obj1 obj2 obj3) (...) ...)
 ;;	   Actually, the format of this list is pretty much up to the
-;;	   developer. The only thing is that it must be a list of lists,
+;;	   developer.  The only thing is that it must be a list of lists,
 ;;	   and the first list must describe the meta session, and subsequent
 ;;	   elements must describe individual sessions.
 ;;	   This descriptor must be a list of two, three, or four elements (nil
-;;	   or string). The function ediff-redraw-registry-buffer displays the
+;;	   or string).  The function ediff-redraw-registry-buffer displays the
 ;;	   second through last of these in the registry buffer. 
 ;;	   Also, keep in mind that the function ediff-prepare-meta-buffer
 ;;	   (which see) prepends the session group buffer to the descriptor and
@@ -61,11 +61,11 @@
 ;;	   See how this is done in ediff-filegroup-action.
 ;;
 ;;	   Session descriptions are of the form (obj1 obj2 obj3), which
-;;	   describe objects relevant to the session. Usually they are names of
-;;	   files, but sometimes they may be other things. For instance, obj3 is
-;;	   nil for jobs that involve only two files. For patch jobs, obj2 and
-;;	   obj3 are markers that specify the patch corresponding to the file
-;;	   (whose name is obj1).
+;;	   describe objects relevant to the session.  Usually they are names of
+;;	   files, but sometimes they may be other things.  For instance, obj3
+;;	   is nil for jobs that involve only two files.  For patch jobs, obj2
+;;	   and obj3 are markers that specify the patch corresponding to the
+;;	   file (whose name is obj1).
 ;;	4. Write a function that makes a call to ediff-prepare-meta-buffer
 ;;	   passing all this info. 
 ;;	   You may be able to use ediff-directories-internal as a template.
@@ -78,14 +78,14 @@
 ;;	   ediff-directories-internal. 
 ;;
 ;; A useful addition here could be session groups selected by patterns
-;; (which are different in each directory). For instance, one may want to
+;; (which are different in each directory).  For instance, one may want to
 ;; compare files of the form abc{something}.c to files old{something}.d
-;; which may be in the same or different directories. Or, one may want to
+;; which may be in the same or different directories.  Or, one may want to
 ;; compare all files of the form {something} to files of the form {something}~.
 ;;
 ;; Implementing this requires writing an collating function, which should pair
-;; up appropriate files. It will also require a generalization of the functions
-;; that do the layout of the meta- and differences buffers and of
+;; up appropriate files.  It will also require a generalization of the
+;; functions that do the layout of the meta- and differences buffers and of
 ;; ediff-filegroup-action.
 
 ;;; Code:
@@ -141,7 +141,7 @@ Useful commands:
 directories.")
 
 ;; Variable specifying the action to take when the use invokes ediff in the
-;; meta buffer. This is usually ediff-registry-action or ediff-filegroup-action
+;; meta buffer.  This is usually ediff-registry-action or ediff-filegroup-action
 (ediff-defvar-local ediff-meta-action-function nil "")
 ;; Tells ediff-update-meta-buffer how to redraw it
 (ediff-defvar-local ediff-meta-redraw-function nil "")
@@ -161,8 +161,8 @@ directories.")
 ;; (ctl-buf session-status (file1 . eq-status) (file2 . eq-status) (file3
 ;; . eq-status)) (ctl-buf session-status (file1 . eq-status) (file2
 ;; . eq-status)) ...)
-;; If ctl-buf is nil, the file-pair hasn't processed yet. If it is
-;; killed-buffer object, the file pair has been processed. If it is a live
+;; If ctl-buf is nil, the file-pair hasn't processed yet.  If it is
+;; killed-buffer object, the file pair has been processed.  If it is a live
 ;; buffer, this means ediff is still working on the pair.
 ;; Eq-status of a file is t if the file equals some other file in the same
 ;; group.
@@ -175,7 +175,7 @@ directories.")
 (ediff-defvar-local ediff-dir-difference-list nil "")
 (ediff-defvar-local ediff-dir-diffs-buffer nil "")
 
-;; The registry of Ediff sessions. A list of control buffers.
+;; The registry of Ediff sessions.  A list of control buffers.
 (defvar ediff-session-registry nil)
 
 (defcustom ediff-meta-truncate-filenames t
@@ -200,7 +200,7 @@ ediff-directories, is run."
   "*Hooks run just after the registry buffer is shown."
   :type 'hook
   :group 'ediff-mult)
-(defcustom ediff-show-session-group-hook nil
+(defcustom ediff-show-session-group-hook '(delete-other-windows)
   "*Hooks run just after a session group buffer is shown."
   :type 'hook
   :group 'ediff-mult)
@@ -212,7 +212,7 @@ buffers."
   :type 'hook
   :group 'ediff-mult)
 
-;; buffer holding the multi-file patch. local to the meta buffer
+;; Buffer holding the multi-file patch.  Local to the meta buffer
 (ediff-defvar-local ediff-meta-patchbufer nil "")
 
 ;;; API for ediff-meta-list
@@ -261,7 +261,7 @@ buffers."
 
 ;; The activity marker is either or + (active session, i.e., ediff is currently
 ;; run in it), or - (finished session, i.e., we've ran ediff in it and then
-;; exited). Return nil, if session is neither active nor finished
+;; exited).  Return nil, if session is neither active nor finished
 (defun ediff-get-session-activity-marker (session)
   (let ((session-buf (ediff-get-session-buffer session)))
     (cond ((null session-buf) nil) ; virgin session
@@ -346,7 +346,7 @@ Commands:
 
 (defun ediff-next-meta-item (count)
   "Move to the next item in Ediff registry or session group buffer.
-Moves in circular fashion. With numeric prefix arg, skip this many items."
+Moves in circular fashion.  With numeric prefix arg, skip this many items."
   (interactive "p")
   (or count (setq count 1))
   (let (overl)
@@ -374,7 +374,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 
 (defun ediff-previous-meta-item (count)
   "Move to the previous item in Ediff registry or session group buffer.
-Moves in circular fashion. With numeric prefix arg, skip this many items."
+Moves in circular fashion.  With numeric prefix arg, skip this many items."
   (interactive "p")
   (or count (setq count 1))
   (let (overl)
@@ -418,20 +418,20 @@ behavior."
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 
-;; DIR1, DIR2, DIR3 are directories. DIR3 can be nil.
+;; DIR1, DIR2, DIR3 are directories.  DIR3 can be nil.
 ;; OUTPUT-DIR is a directory for auto-storing the results of merge jobs.
 ;;	      Can be nil.
 ;; REGEXP is a regexp used to filter out files in the directories.
 ;; If a file is a directory in dir1 but not dir2 (or vice versa), it is not
-;; included in the intersection. However, a regular file that is a dir in dir3
+;; included in the intersection.  However, a regular file that is a dir in dir3
 ;; is included, since dir3 files are supposed to be ancestors for merging.
 ;; Returns a list of the form:
 ;;	((dir1 dir2 dir3) (f1 f2 f3) (f1 f2 f3) ...)
 ;; dir3, f3 can be nil if intersecting only 2 directories.
-;; If COMPARISON-FUNC is given, use it. Otherwise, use string=
+;; If COMPARISON-FUNC is given, use it.  Otherwise, use string=
 ;; DIFF-VAR contains the name of the variable in which to return the
 ;; difference list (which represents the differences among the contents of
-;; directories). The diff list is of the form:
+;; directories).  The diff list is of the form:
 ;;	((dir1 dir2 dir3) (file . num) (file . num)...)
 ;; where num encodes the set of dirs where the file is found:
 ;; 2 - only dir1; 3 - only dir2; 5 - only dir3; 6 - dir1&2; 10 - dir1&3; etc.
@@ -447,26 +447,23 @@ behavior."
 	  lis1 		(delete "."  lis1)
 	  lis1 		(delete ".." lis1)
 	  lis1 		(mapcar 
-			 (function 
-			  (lambda (elt)
-				  (ediff-add-slash-if-directory auxdir1 elt)))
+			 (lambda (elt)
+			   (ediff-add-slash-if-directory auxdir1 elt))
 			 lis1)
 	  auxdir2	(file-name-as-directory dir2)
 	  lis2		(mapcar 
-			 (function
-			  (lambda (elt)
-				  (ediff-add-slash-if-directory auxdir2 elt)))
+			 (lambda (elt)
+			   (ediff-add-slash-if-directory auxdir2 elt))
 			 (directory-files auxdir2 nil regexp)))
 
     (if (stringp dir3)
 	(setq auxdir3	(file-name-as-directory dir3)
 	      lis3	(mapcar 
-			 (function
-			  (lambda (elt)
-				  (ediff-add-slash-if-directory auxdir3 elt)))
+			 (lambda (elt)
+			   (ediff-add-slash-if-directory auxdir3 elt))
 			 (directory-files auxdir3 nil regexp))))
 
-    (if (stringp merge-autostore-dir)
+    (if (ediff-nonempty-string-p merge-autostore-dir)
 	(setq merge-autostore-dir
 	      (file-name-as-directory merge-autostore-dir)))
     (setq common (ediff-intersection lis1 lis2 comparison-func))
@@ -492,17 +489,17 @@ behavior."
 	  difflist (sort (ediff-copy-list (delete ".." difflist))
 			 'string-lessp))
 
-    (setq difflist (mapcar (function (lambda (elt) (cons elt 1))) difflist))
+    (setq difflist (mapcar (lambda (elt) (cons elt 1)) difflist))
 
     ;; check for files belonging to lis1/2/3
-    (mapcar (function (lambda (elt) 
-			(if (member (car elt) lis1)
-			    (setcdr elt (* (cdr elt) 2)))
-			(if (member (car elt) lis2)
-			    (setcdr elt (* (cdr elt) 3)))
-			(if (member (car elt) lis3)
-			    (setcdr elt (* (cdr elt) 5)))
-			))
+    (mapcar (lambda (elt)
+	      (if (member (car elt) lis1)
+		  (setcdr elt (* (cdr elt) 2)))
+	      (if (member (car elt) lis2)
+		  (setcdr elt (* (cdr elt) 3)))
+	      (if (member (car elt) lis3)
+		  (setcdr elt (* (cdr elt) 5)))
+	      )
 	    difflist)
     (setq difflist (cons (list regexp auxdir1 auxdir2 auxdir3) difflist))
     
@@ -512,29 +509,28 @@ behavior."
     ;; return result
     (cons (list regexp auxdir1 auxdir2 auxdir3 merge-autostore-dir)
 	  (mapcar
-	   (function
-	    (lambda (elt) 
-	      (list (concat auxdir1 elt)
-		    (concat auxdir2 elt)
-		    (if lis3
-			(progn
-			  ;; The following is done because:
-			  ;;   In merging with ancestor, we don't intersect
-			  ;;   with lis3. So, it is possible that elt is a
-			  ;;   file in auxdir1/2 but a directory in auxdir3
-			  ;;   Or elt may not exist in auxdir3 at all.
-			  ;;   In the first case, we add a slash at the end.
-			  ;;   In the second case, we insert nil.
-			  (setq elt (ediff-add-slash-if-directory auxdir3 elt))
-			  (if (file-exists-p (concat auxdir3 elt))
-			      (concat auxdir3 elt)))))))
+	   (lambda (elt) 
+	     (list (concat auxdir1 elt)
+		   (concat auxdir2 elt)
+		   (if lis3
+		       (progn
+			 ;; The following is done because:
+			 ;;   In merging with ancestor, we don't intersect
+			 ;;   with lis3.  So, it is possible that elt is a
+			 ;;   file in auxdir1/2 but a directory in auxdir3
+			 ;;   Or elt may not exist in auxdir3 at all.
+			 ;;   In the first case, we add a slash at the end.
+			 ;;   In the second case, we insert nil.
+			 (setq elt (ediff-add-slash-if-directory auxdir3 elt))
+			 (if (file-exists-p (concat auxdir3 elt))
+			     (concat auxdir3 elt))))))
 	   common))
     ))
 
 ;; find directory files that are under revision.  Include subdirectories, since
 ;; we may visit them recursively.  DIR1 is the directory to inspect.
 ;; MERGE-AUTOSTORE-DIR is the directory where to auto-store the results of
-;; merges. Can be nil.
+;; merges.  Can be nil.
 (defun ediff-get-directory-files-under-revision (jobname
 						 regexp dir1
 						 &optional merge-autostore-dir)
@@ -542,7 +538,7 @@ behavior."
     (setq auxdir1 (file-name-as-directory dir1)
 	  lis1	  (directory-files auxdir1 nil regexp))
 
-    (if (stringp merge-autostore-dir)
+    (if (ediff-nonempty-string-p merge-autostore-dir)
 	(setq merge-autostore-dir
 	      (file-name-as-directory merge-autostore-dir)))
 
@@ -553,6 +549,10 @@ behavior."
       (cond ((file-directory-p (concat auxdir1 elt))
 	     (setq common
 		   (cons (ediff-add-slash-if-directory auxdir1 elt) common)))
+	    ((and (featurep 'vc-hooks) (vc-backend (concat auxdir1 elt)))
+	     (setq common (cons elt common)))
+	    ;; The following two are needed only if vc-hooks isn't loaded.
+	    ;; They won't recognize CVS files.
 	    ((file-exists-p (concat auxdir1 elt ",v"))
 	     (setq common (cons elt common)))
 	    ((file-exists-p (concat auxdir1 "RCS/" elt ",v"))
@@ -562,16 +562,16 @@ behavior."
 
     (setq common (delete "./"  common)
 	  common (delete "../" common)
-	  common (delete "RCS" common))
+	  common (delete "RCS" common)
+	  common (delete "CVS" common)
+	  )
 
     ;; copying is needed because sort sorts via side effects
     (setq common (sort (ediff-copy-list common) 'string-lessp))
 
     ;; return result
     (cons (list regexp auxdir1 nil nil merge-autostore-dir)
-	  (mapcar (function (lambda (elt) 
-			      (list (concat auxdir1 elt)
-				    nil nil)))
+	  (mapcar (lambda (elt) (list (concat auxdir1 elt) nil nil))
 		  common))
     ))
       
@@ -607,7 +607,7 @@ behavior."
 
 
 ;; Prepare meta-buffer in accordance with the argument-function and
-;; redraw-function. Must return the created  meta-buffer.
+;; redraw-function.  Must return the created  meta-buffer.
 (defun ediff-prepare-meta-buffer (action-func meta-list
 				  meta-buffer-name redraw-function
 				  jobname &optional startup-hooks)
@@ -638,28 +638,26 @@ behavior."
 	;; Initialize the meta list -- don't do this for registry.
 	;;
 	;; We prepend '(nil nil) to all elts of meta-list, except the first.
-	;; The first nil will later be replaced by the session buffer. The
+	;; The first nil will later be replaced by the session buffer.  The
 	;; second is reserved for session status.
 	;;
 	;; (car ediff-meta-list) gets cons'ed with the session group buffer.
 	;; Also, session objects A/B/C are turned into lists of the form
-	;; (obj eq-indicator). Eq-indicator is either nil or =. Initialized to
-	;; nil. If later it is discovered that this file is = to some other
+	;; (obj eq-indicator).  Eq-indicator is either nil or =. Initialized to
+	;; nil.  If later it is discovered that this file is = to some other
 	;; file in the same session, eq-indicator is changed to `='.
 	;; For now, the eq-indicator is used only for 2 and 3-file jobs.
 	(setq ediff-meta-list
 	      (cons (cons meta-buffer (car meta-list))
 		    (mapcar
-		     (function
-		      (lambda (elt)
-			(cons nil
-			      (cons nil
-				    ;; convert each obj to (obj nil),
-				    ;; where nil is the initial value
-				    ;; for eq-indicator -- see above
-				    (mapcar
-				     (function (lambda (obj) (list obj nil)))
-				     elt)))))
+		     (lambda (elt)
+		       (cons nil
+			     (cons nil
+				   ;; convert each obj to (obj nil),
+				   ;; where nil is the initial value
+				   ;; for eq-indicator -- see above
+				   (mapcar (lambda (obj) (list obj nil))
+					   elt))))
 		     (cdr meta-list)))))
 	
       (or (eq meta-buffer ediff-registry-buffer)
@@ -722,7 +720,7 @@ behavior."
 	 ;; virgin session
 	 (t " "))))
 
-;; Insert session status at point. Status is either ?H (marked for hiding), or
+;; Insert session status at point.  Status is either ?H (marked for hiding), or
 ;; ?I (hidden or invalid), or ?* (meaning marked for an operation; currently,
 ;; such op can only be checking for equality)), or SPC (meaning neither marked
 ;; nor invalid) 
@@ -733,7 +731,7 @@ behavior."
 	 (t " "))))
 
 ;; If NEW-MARKER is non-nil, use it to substitute the current activity marker
-;; in the meta buffer. If nil, use SPC
+;; in the meta buffer.  If nil, use SPC
 (defun ediff-replace-session-activity-marker-in-meta-buffer (point new-marker)
   (let* ((overl (ediff-get-meta-overlay-at-pos point))
 	 (session-info (ediff-overlay-get overl 'ediff-meta-info))
@@ -748,7 +746,7 @@ behavior."
       (set-buffer-modified-p nil))))
 
 ;; If NEW-STATUS is non-nil, use it to substitute the current status marker in
-;; the meta buffer. If nil, use SPC
+;; the meta buffer.  If nil, use SPC
 (defun ediff-replace-session-status-in-meta-buffer (point new-status)
   (let* ((overl (ediff-get-meta-overlay-at-pos point))
 	 (session-info (ediff-overlay-get overl 'ediff-meta-info))
@@ -827,7 +825,7 @@ behavior."
 	   (format "*** Filter-through regular expression: %s\n" regexp)))
       (ediff-insert-dirs-in-meta-buffer meta-list)
       (if (and ediff-autostore-merges (ediff-merge-metajob)
-	       (stringp merge-autostore-dir))
+	       (ediff-nonempty-string-p merge-autostore-dir))
 	  (insert (format
 		   "\nMerge results are automatically stored in:\n\t%s\n"
 		   merge-autostore-dir)))
@@ -900,13 +898,12 @@ behavior."
     (setq overl
 	  (if ediff-xemacs-p
 	      (map-extents
-	       (function
-		(lambda (ext maparg)
-		  (if (and
-		       (ediff-overlay-get ext 'ediff-meta-info)
-		       (eq (ediff-overlay-get ext 'ediff-meta-session-number)
-			   session-num))
-		      ext))))
+	       (lambda (ext maparg)
+		 (if (and
+		      (ediff-overlay-get ext 'ediff-meta-info)
+		      (eq (ediff-overlay-get ext 'ediff-meta-session-number)
+			  session-num))
+		     ext)))
 	    ;; Emacs doesn't have map-extents, so try harder
 	    ;; Splice overlay lists to get all buffer overlays
 	    (setq buffer-meta-overlays (overlay-lists)
@@ -915,14 +912,13 @@ behavior."
 	    (car
 	     (delq nil
 		   (mapcar
-		    (function
-		     (lambda (overl)
-		       (if (and
-			    (ediff-overlay-get overl 'ediff-meta-info)
-			    (eq (ediff-overlay-get
-				 overl 'ediff-meta-session-number)
-				session-num))
-			   overl)))
+		    (lambda (overl)
+		      (if (and
+			   (ediff-overlay-get overl 'ediff-meta-info)
+			   (eq (ediff-overlay-get
+				overl 'ediff-meta-session-number)
+			       session-num))
+			  overl))
 		    buffer-meta-overlays)))))
     (or overl
 	(error
@@ -941,7 +937,7 @@ behavior."
 
 
 ;; Check if this is a problematic session.
-;; Return nil if not. Otherwise, return symbol representing the problem
+;; Return nil if not.  Otherwise, return symbol representing the problem
 ;; At present, problematic sessions occur only in -with-ancestor comparisons
 ;; when the ancestor is a directory rather than a file, or when there is no
 ;; suitable ancestor file in the ancestor directory
@@ -1120,7 +1116,7 @@ Useful commands:
   ))
 
 (defun ediff-bury-dir-diffs-buffer ()
-  "Bury the directory difference buffer. Display the meta buffer instead."
+  "Bury the directory difference buffer.  Display the meta buffer instead."
   (interactive)
   (let ((buf ediff-meta-buffer)
 	wind)
@@ -1182,10 +1178,10 @@ Useful commands:
 
 ")
       ;; purge registry list from dead buffers
-      (mapcar (function (lambda (elt)
-			  (if (not (ediff-buffer-live-p elt))
-			      (setq ediff-session-registry
-				    (delq elt ediff-session-registry)))))
+      (mapcar (lambda (elt)
+		(if (not (ediff-buffer-live-p elt))
+		    (setq ediff-session-registry
+			  (delq elt ediff-session-registry))))
 	      ediff-session-registry)
 
       (if (null ediff-session-registry)
@@ -1271,7 +1267,7 @@ Useful commands:
 	(ediff-overlay-put overl 'ediff-meta-session-number session-number))))
 
 (defun ediff-mark-for-hiding-at-pos (unmark)
-  "Mark session for hiding. With prefix arg, unmark."
+  "Mark session for hiding.  With prefix arg, unmark."
   (interactive "P")
   (let* ((pos (ediff-event-point last-command-event))
 	 (meta-buf (ediff-event-buffer last-command-event))
@@ -1301,7 +1297,7 @@ Useful commands:
   
 
 (defun ediff-mark-for-operation-at-pos (unmark)
-  "Mark session for a group operation. With prefix arg, unmark."
+  "Mark session for a group operation.  With prefix arg, unmark."
   (interactive "P")
   (let* ((pos (ediff-event-point last-command-event))
 	 (meta-buf (ediff-event-buffer last-command-event))
@@ -1330,7 +1326,7 @@ Useful commands:
 
 
 (defun ediff-hide-marked-sessions (unhide)
-  "Hide marked sessions. With prefix arg, unhide."
+  "Hide marked sessions.  With prefix arg, unhide."
   (interactive "P")
   (let ((grp-buf (ediff-get-group-buffer ediff-meta-list))
 	(meta-list (cdr ediff-meta-list))
@@ -1351,7 +1347,7 @@ Useful commands:
 		(setq active-sessions-exist t)
 	      (ediff-set-session-status elt to)))))
     (if (> numMarked 0)
-	(ediff-update-meta-buffer grp-buf)
+	(ediff-update-meta-buffer grp-buf 'must-redraw)
       (beep)
       (if unhide
 	  (message "Nothing to reveal...")
@@ -1360,7 +1356,7 @@ Useful commands:
 	(message "Note: Ediff didn't hide active sessions!"))
     ))
 
-;; Apply OPERATION to marked sessions. Operation expects one argument of type
+;; Apply OPERATION to marked sessions.  Operation expects one argument of type
 ;; meta-list member (not the first one), i.e., a regular session description.
 ;; Returns number of marked sessions on which operation was performed
 (defun ediff-operate-on-marked-sessions (operation)
@@ -1442,7 +1438,7 @@ Useful commands:
   "Collect custom diffs of marked sessions in buffer `*Ediff Multifile Diffs*'.
 This operation is defined only for `ediff-directories' and
 `ediff-directory-revisions', since its intent is to produce
-multifile patches. For `ediff-directory-revisions', we insist that
+multifile patches.  For `ediff-directory-revisions', we insist that
 all marked sessions must be active."
   (interactive)
   (or (ediff-buffer-live-p ediff-meta-diff-buffer)
@@ -1453,7 +1449,11 @@ all marked sessions must be active."
     (erase-buffer))
   (if (> (ediff-operate-on-marked-sessions 'ediff-append-custom-diff) 0)
       ;; did something
-      (display-buffer ediff-meta-diff-buffer 'not-this-window)
+      (progn
+	(display-buffer ediff-meta-diff-buffer 'not-this-window)
+	(ediff-with-current-buffer ediff-meta-diff-buffer
+	  (set-buffer-modified-p nil)
+	  (setq buffer-read-only t)))
     (beep)
     (message "No marked sessions found")))
 
@@ -1480,7 +1480,7 @@ all marked sessions must be active."
       (error "The patch buffer wasn't found"))))
 
 	      
-;; This function executes in meta buffer. It knows where event happened.
+;; This function executes in meta buffer.  It knows where event happened.
 (defun ediff-filegroup-action ()
   "Execute appropriate action for the selected session."
   (interactive)
@@ -1524,7 +1524,7 @@ all marked sessions must be active."
 		file1 file2 file3 regexp
 		ediff-session-action-function
 		ediff-metajob-name 
-		;; make it update car info after startup
+		;; make it update (car info) after startup
 		(` (list (lambda () 
 			   ;; child session group should know its parent
 			   (setq ediff-parent-meta-buffer
@@ -1545,7 +1545,7 @@ all marked sessions must be active."
 	       (ediff-directory-revisions-internal
 		file1 regexp
 		ediff-session-action-function ediff-metajob-name
-		;; make it update car info after startup
+		;; make it update (car info) after startup
 		(` (list (lambda () 
 			   ;; child session group should know its parent and
 			   ;; its number
@@ -1567,19 +1567,29 @@ all marked sessions must be active."
 	    ((ediff-problematic-session-p info)
 	     (beep)
 	     (if (y-or-n-p
-		  "This session has no ancestor. Merge without the ancestor? ")
+		  "This session has no ancestor.  Merge without the ancestor? ")
 		 (ediff-merge-files
 		  file1 file2
 		  ;; provide startup hooks 
 		  (` (list (lambda () 
+			     (add-hook
+			      'ediff-after-quit-hook-internal
+			      (lambda ()
+				(if (ediff-buffer-live-p (, (current-buffer)))
+				    (ediff-show-meta-buffer
+				     (, (current-buffer)) (, session-number))))
+			      nil 'local)
 			     (setq ediff-meta-buffer (, (current-buffer))
 				   ediff-meta-session-number
 				   (, session-number))
 			     (setq ediff-merge-store-file
-				   (, (concat
-				       merge-autostore-dir
-				       "merge_"
-				       (file-name-nondirectory file1))))
+				   (, (if (ediff-nonempty-string-p
+					   merge-autostore-dir)
+					  (concat
+					   merge-autostore-dir
+					   "merge_"
+					   (file-name-nondirectory file1)))
+				      ))
 			     ;; make ediff-startup pass
 			     ;; ediff-control-buffer back to the meta
 			     ;; level; see below
@@ -1591,14 +1601,26 @@ all marked sessions must be active."
 		      file1
 		      ;; provide startup hooks 
 		      (` (list (lambda () 
+				 (add-hook
+				  'ediff-after-quit-hook-internal
+				  (lambda ()
+				    (if (ediff-buffer-live-p
+					 (, (current-buffer)))
+					(ediff-show-meta-buffer
+					 (, (current-buffer))
+					 (, session-number))))
+				  nil 'local)
 				 (setq ediff-meta-buffer (, (current-buffer))
 				       ediff-meta-session-number
 				       (, session-number))
 				 (setq ediff-merge-store-file
-				       (, (concat
-					   merge-autostore-dir
-					   "merge_"
-					   (file-name-nondirectory file1))))
+				       (, (if (ediff-nonempty-string-p
+					       merge-autostore-dir)
+					      (concat
+					       merge-autostore-dir
+					       "merge_"
+					       (file-name-nondirectory file1)))
+					  ))
 				 ;; make ediff-startup pass
 				 ;; ediff-control-buffer back to the meta
 				 ;; level; see below
@@ -1609,14 +1631,26 @@ all marked sessions must be active."
 		      file1 file2
 		      ;; provide startup hooks 
 		      (` (list (lambda () 
+				 (add-hook
+				  'ediff-after-quit-hook-internal
+				  (lambda ()
+				    (if (ediff-buffer-live-p
+					 (, (current-buffer)))
+					(ediff-show-meta-buffer
+					 (, (current-buffer))
+					 (, session-number))))
+				  nil 'local)
 				 (setq ediff-meta-buffer (, (current-buffer))
 				       ediff-meta-session-number
 				       (, session-number))
 				 (setq ediff-merge-store-file
-				       (, (concat
-					   merge-autostore-dir
-					   "merge_"
-					   (file-name-nondirectory file1))))
+				       (, (if (ediff-nonempty-string-p
+					       merge-autostore-dir)
+					      (concat
+					       merge-autostore-dir
+					       "merge_"
+					       (file-name-nondirectory file1)))
+					  ))
 				 ;; make ediff-startup pass
 				 ;; ediff-control-buffer back to the meta
 				 ;; level; see below
@@ -1627,11 +1661,23 @@ all marked sessions must be active."
 		      file1 file2 file3
 		      ;; arrange startup hooks 
 		      (` (list (lambda () 
+				 (add-hook
+				  'ediff-after-quit-hook-internal
+				  (lambda ()
+				    (if (ediff-buffer-live-p
+					 (, (current-buffer)))
+					(ediff-show-meta-buffer
+					 (, (current-buffer))
+					 (, session-number))))
+				  nil 'local)
 				 (setq ediff-merge-store-file
-				       (, (concat
-					   merge-autostore-dir
-					   "merge_"
-					   (file-name-nondirectory file1))))
+				       (, (if (ediff-nonempty-string-p
+					       merge-autostore-dir)
+					      (concat
+					       merge-autostore-dir
+					       "merge_"
+					       (file-name-nondirectory file1)))
+					  ))
 				 (setq ediff-meta-buffer (, (current-buffer))
 				       ediff-meta-session-number
 				       (, session-number))
@@ -1791,23 +1837,30 @@ all marked sessions must be active."
 ;;;###autoload
 (defalias 'eregistry 'ediff-show-registry)
 
-;; If meta-buf doesn't exist, it is created. In that case, id doesn't have a
+;; If meta-buf doesn't exist, it is created.  In that case, id doesn't have a
 ;; parent meta-buf
 ;; Check if META-BUF exists before calling this function
 ;; Optional MUST-REDRAW, if non-nil, would force redrawal of the whole meta
-;; buffer. Otherwise, it will just go over the buffer and update activity marks
+;; buffer.  Otherwise, it will just go over the buffer and update activity marks
 ;; and session status.
 ;; SESSION-NUMBER, if specified, says which session caused the update.
 (defun ediff-update-meta-buffer (meta-buf &optional must-redraw session-number)
   (if (ediff-buffer-live-p meta-buf)
       (ediff-with-current-buffer meta-buf
-	(cond (must-redraw ; completely redraw the meta buffer
-	       (funcall ediff-meta-redraw-function ediff-meta-list))
-	      ((numberp session-number) ; redraw only for the given session
-	       (ediff-update-session-marker-in-dir-meta-buffer session-number))
-	      (t ; update only what's changed, but scan the entire meta buffer
-	       (ediff-update-markers-in-dir-meta-buffer ediff-meta-list)))
-	)))
+	(let (overl)
+	  (cond (must-redraw ; completely redraw the meta buffer
+		 (funcall ediff-meta-redraw-function ediff-meta-list))
+		((numberp session-number) ; redraw only for the given session
+		 (ediff-update-session-marker-in-dir-meta-buffer
+		  session-number))
+		(t ; update what changed only, but scan the entire meta buffer
+		 (ediff-update-markers-in-dir-meta-buffer ediff-meta-list)))
+	  (setq overl (ediff-get-meta-overlay-at-pos (point)))
+	  ;; skip the invisible sessions
+	  (while (and overl (ediff-overlay-get overl 'invisible))
+	    (ediff-next-meta-item1)
+	    (setq overl (ediff-get-meta-overlay-at-pos (point))))
+	  ))))
 
 (defun ediff-update-registry ()
   (ediff-with-current-buffer (current-buffer)
@@ -1905,8 +1958,7 @@ If this is a session registry buffer then just bury it."
 			(ediff-overlay-get tmp 'ediff-meta-info)))
 	    (setq olist (overlays-at point))
 	    (setq olist
-		  (mapcar (function (lambda (elt)
-				      (overlay-get elt 'ediff-meta-info)))
+		  (mapcar (lambda (elt) (overlay-get elt 'ediff-meta-info))
 			  olist))
 	    (while (and olist (null (car olist))
 			(overlay-get (car olist) 'invisible))
@@ -1979,7 +2031,7 @@ If this is a session registry buffer then just bury it."
 	    (setq point (1- point)))
 	(setq point (previous-overlay-change point))
 	;; If we are not over an overlay after subtracting 1, it means we are
-	;; in the description area preceding session records. In this case,
+	;; in the description area preceding session records.  In this case,
 	;; goto the top of the registry buffer.
 	(or (car (overlays-at point))
 	    (setq point (point-min)))
@@ -2016,7 +2068,8 @@ If this is a session registry buffer then just bury it."
 (defun ediff-unmark-all-for-operation ()
   "Unmark all sessions marked for operation."
   (interactive)
-  (let ((list (cdr ediff-meta-list)))
+  (let ((list (cdr ediff-meta-list))
+	elt)
     (while (setq elt (car list))
       (ediff-mark-session-for-operation elt 'unmark)
       (setq list (cdr list))))
@@ -2025,7 +2078,8 @@ If this is a session registry buffer then just bury it."
 (defun ediff-unmark-all-for-hiding ()
   "Unmark all sessions marked for hiding."
   (interactive)
-  (let ((list (cdr ediff-meta-list)))
+  (let ((list (cdr ediff-meta-list))
+	elt)
     (while (setq elt (car list))
       (ediff-mark-session-for-hiding elt 'unmark)
       (setq list (cdr list))))
@@ -2039,6 +2093,7 @@ This is used only for sessions that involve 2 or 3 files at the same time."
   (let ((list (cdr ediff-meta-list))
 	marked1 marked2 marked3
 	fileinfo1 fileinfo2 fileinfo3 elt)
+    (message "Comparing files ...")
     (while (setq elt (car list))
       (setq fileinfo1 (ediff-get-session-objA elt)
 	    fileinfo2 (ediff-get-session-objB elt)
@@ -2064,7 +2119,8 @@ This is used only for sessions that involve 2 or 3 files at the same time."
 		((eq last-command-char ?m)
 		 (ediff-mark-session-for-operation elt 'mark))
 		))
-      (setq list (cdr list))))
+      (setq list (cdr list)))
+    (message "Comparing files ... Done"))
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 ;; mark files 1 and 2 as equal, if they are.

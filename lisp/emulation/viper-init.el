@@ -208,8 +208,8 @@ the Ex command :map!.")
   "Minor mode in effect in replace state (cw, C, and the like commands).")
 
 ;; Mode for vital things like \C-z and \C-x) This is set to t, when viper-mode
-;; is invoked. So, any new buffer will have C-z defined as switch to Vi, unless
-;; we switched states in this buffer
+;; is invoked.  So, any new buffer will have C-z defined as switch to Vi,
+;; unless we switched states in this buffer
 (viper-deflocalvar viper-emacs-intercept-minor-mode nil)
   
 (viper-deflocalvar viper-emacs-local-user-minor-mode nil
@@ -225,7 +225,7 @@ state.")
 (viper-deflocalvar viper-emacs-kbd-minor-mode nil
   "Minor mode for Vi style macros in Emacs state.
 The corresponding keymap stores key bindings of Vi macros defined with
-`viper-record-kbd-macro' command. There is no Ex-level command to do this
+`viper-record-kbd-macro' command.  There is no Ex-level command to do this
 interactively.")
 
 (viper-deflocalvar viper-emacs-state-modifier-minor-mode nil
@@ -268,7 +268,7 @@ The minor mode viper-insert-diehard-minor-mode is in effect when
 viper-expert-level is 1 or 2 or if viper-want-emacs-keys-in-insert is t.
 Use `M-x viper-set-expert-level' to change this.")
 
-;; Max expert level supported by Viper. This is NOT a user option.
+;; Max expert level supported by Viper.  This is NOT a user option.
 ;; It is here to make it hard for the user from resetting it.
 (defconst viper-max-expert-level 5)
 
@@ -277,9 +277,9 @@ Use `M-x viper-set-expert-level' to change this.")
 
 ;; If non-nil, ISO accents will be turned on in insert/replace emacs states and
 ;; turned off in vi-state.  For some users, this behavior may be too
-;; primitive. In this case, use insert/emacs/vi state hooks.
+;; primitive.  In this case, use insert/emacs/vi state hooks.
 (viper-deflocalvar viper-automatic-iso-accents nil "")
-;; Set iso-accents-mode to ARG. Check if it is bound first
+;; Set iso-accents-mode to ARG.  Check if it is bound first
 (defsubst viper-set-iso-accents-mode (arg)
   (if (boundp 'iso-accents-mode)
       (setq iso-accents-mode arg)))
@@ -287,7 +287,7 @@ Use `M-x viper-set-expert-level' to change this.")
 ;; Internal flag used to control when viper mule hooks are run.
 ;; Don't change this!
 (defvar viper-mule-hook-flag t)
-;; If non-nil, the default intl. input method is turned on.
+;; If non-nil, the default intl.  input method is turned on.
 (viper-deflocalvar viper-special-input-method nil "")
   
 ;; viper hook to run on input-method activation
@@ -357,13 +357,13 @@ Use `M-x viper-set-expert-level' to change this.")
 (put 'viper-undo-needs-adjustment 'permanent-local t)
 
 ;; A mark that Viper puts on buffer-undo-list.  Marks the beginning of a
-;; complex command that must be undone atomically. If inserted, it is
+;; complex command that must be undone atomically.  If inserted, it is
 ;; erased by viper-change-state-to-vi and viper-repeat.
 (defconst viper-buffer-undo-list-mark 'viper)
 
 (defcustom viper-keep-point-on-undo nil
   "*Non-nil means not to move point while undoing commands.
-This style is different from Emacs and Vi. Try it to see if
+This style is different from Emacs and Vi.  Try it to see if
 it better fits your working style."
   :type 'boolean
   :tag "Preserve Position of Point After Undo"
@@ -376,8 +376,9 @@ it better fits your working style."
 
 ;; This is used to pass the right Vi command key sequence to
 ;; viper-set-destructive-command whenever (this-command-keys) doesn't give the
-;; right result. For instance, in commands like c/bla<RET>, (this-command-keys)
-;; will return ^M, which invoked exit-minibuffer, while we need "c/"
+;; right result.  For instance, in commands like c/bla<RET>,
+;; (this-command-keys) will return ^M, which invoked exit-minibuffer, while we
+;; need "c/" 
 (defconst viper-this-command-keys nil)
 
 ;; Indicates that the current destructive command has started in replace mode.
@@ -400,8 +401,8 @@ delete the text being replaced, as in standard Vi."
   :type 'string
   :group 'viper)
 
-;; place to save cursor colow when switching to insert mode
-(viper-deflocalvar viper-saved-cursor-color nil "")
+;; internal var, used to remember the default cursor color of emacs frames
+(defvar viper-vi-state-cursor-color nil)
   
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
@@ -423,8 +424,13 @@ is non-nil."
       (and viper-xemacs-p (eq (viper-device-type) 'tty)))
   "*If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
 `viper-replace-region-start-delimiter' to delimit replacement regions, even on
-color displays. By default, the delimiters are used only on TTYs."
+color displays.  By default, the delimiters are used only on TTYs."
   :type 'boolean
+  :group 'viper)
+
+(defcustom viper-read-buffer-function 'read-buffer
+  "Function to use for prompting the user for a buffer name."
+  :type 'symbol
   :group 'viper)
   
 ;; XEmacs requires glyphs
@@ -456,7 +462,7 @@ color displays. By default, the delimiters are used only on TTYs."
 ;; mode to compensate for the inserted characters.
 (viper-deflocalvar viper-replace-chars-to-delete 0 "")
 ;; This variable is used internally by the before/after changed functions to
-;; determine how many chars were deleted by the change. This can't be
+;; determine how many chars were deleted by the change.  This can't be
 ;; determined inside after-change-functions because those get the length of the
 ;; deleted region, not the number of chars deleted (which are two different
 ;; things under MULE).
@@ -471,7 +477,7 @@ text."
   :group 'viper-misc)
 ;; The insertion ring.
 (defvar viper-insertion-ring nil)
-;; This is temp insertion ring. Used to do rotation for display purposes.
+;; This is temp insertion ring.  Used to do rotation for display purposes.
 ;; When rotation just started, it is initialized to viper-insertion-ring.
 (defvar viper-temp-insertion-ring nil)
 (defvar viper-last-inserted-string-from-insertion-ring "")
@@ -482,14 +488,14 @@ text."
   :group 'viper-misc)
 ;; The command ring.
 (defvar viper-command-ring nil)
-;; This is temp command ring. Used to do rotation for display purposes.
+;; This is temp command ring.  Used to do rotation for display purposes.
 ;; When rotation just started, it is initialized to viper-command-ring.
 (defvar viper-temp-command-ring nil)
 
 ;; Fast keyseq and ESC keyseq timeouts
 (defcustom viper-fast-keyseq-timeout 200
   "*Key sequence separated by no more than this many milliseconds is viewed as a Vi-style macro, if such a macro is defined.
-Setting this too high may slow down your typing. Setting this value too low
+Setting this too high may slow down your typing.  Setting this value too low
 will make it hard to use Vi-stile timeout macros."
   :type 'integer
   :group 'viper-misc)
@@ -497,7 +503,7 @@ will make it hard to use Vi-stile timeout macros."
 (defcustom viper-ESC-keyseq-timeout (if (viper-window-display-p)
 				      0 viper-fast-keyseq-timeout)
   "*Key sequence beginning with ESC and separated by no more than this many milliseconds is considered to be generated by a keyboard function key.
-Setting this too high may slow down switching from insert to vi state. Setting
+Setting this too high may slow down switching from insert to vi state.  Setting
 this value too low will make it impossible to use function keys in insert mode
 on a dumb terminal."
   :type 'integer
@@ -533,7 +539,7 @@ This is a buffer-local variable."
 Currently, this only electrifies auto-indentation, making it appropriate to the
 mode of the buffer.
 This means that auto-indentation will depart from standard Vi and will indent
-appropriate to the mode of the buffer. This is especially useful for editing
+appropriate to the mode of the buffer.  This is especially useful for editing
 programs and LaTeX documents."
   :type 'boolean
   :group 'viper)
@@ -565,17 +571,17 @@ to a new place after repeating previous Vi command."
 ;; back to viper-pre-command-point.
 ;; The reason this is needed is because dabbrev-expand (and possibly
 ;; others) may jump to before the insertion point, delete something and
-;; then reinsert a bigger piece. For instance:  bla^blo
+;; then reinsert a bigger piece.  For instance:  bla^blo
 ;; If dabbrev-expand is called after `blo' and ^ undicates viper-insert-point,
-;; then point jumps to the beginning of `blo'. If expansion is found, `blablo'
-;; is deleted, and we have |^, where | denotes point. Next, dabbrev-expand
+;; then point jumps to the beginning of `blo'.  If expansion is found, `blablo'
+;; is deleted, and we have |^, where | denotes point.  Next, dabbrev-expand
 ;; will insert the expansion, and we get: blablo^
 ;; Whatever we insert next goes before the ^, i.e., before the
-;; viper-insert-point marker. So, Viper will think that nothing was
-;; inserted. Remembering the orig position of the marker circumvents the
+;; viper-insert-point marker.  So, Viper will think that nothing was
+;; inserted.  Remembering the orig position of the marker circumvents the
 ;; problem.
 ;; We don't know of any command, except dabbrev-expand, that has the same
-;; problem. However, the same trick can be used if such a command is
+;; problem.  However, the same trick can be used if such a command is
 ;; discovered later.
 ;;
 (viper-deflocalvar viper-pre-command-point nil)
@@ -588,7 +594,7 @@ to a new place after repeating previous Vi command."
 (defvar viper-last-replace-region "")
   
 ;; Remember com point as a marker.
-;; This is a local marker. Should be moved with `viper-move-marker-locally'
+;; This is a local marker.  Should be moved with `viper-move-marker-locally'
 (viper-deflocalvar viper-com-point nil)
 
 ;; If non-nil, the value is a list (M-COM VAL COM REG inserted-text cmd-keys)
@@ -666,7 +672,7 @@ negative number."
   :group 'viper-search)
 
 (defcustom viper-re-replace t
-  "*If t, do regexp replace. nil means do string replace."
+  "*If t, do regexp replace.  nil means do string replace."
   :type 'boolean
   :tag "Regexp Replace"
   :group 'viper-search)
@@ -689,7 +695,7 @@ If nil, these commands cross line boundaries."
 `Backspace' and `Delete' don't cross line boundaries in insert.
 `X' and `x' can't delete characters across line boundary in Vi, etc.
 Note: this doesn't preclude `Backspace' and `Delete' from deleting characters
-by moving past the insertion point. This is a feature, not a bug.
+by moving past the insertion point.  This is a feature, not a bug.
 
 If nil, the above commands can work across lines."
   :type 'boolean
@@ -710,7 +716,7 @@ If nil, the cursor will move backwards without deleting anything."
   :group 'viper)
 
 (defcustom viper-buffer-search-char nil
-  "*Key used for buffer-searching. Must be a character type, e.g., ?g."
+  "*Key used for buffer-searching.  Must be a character type, e.g., ?g."
   :type '(choice (const nil) character)
   :group 'viper-search)
 
@@ -744,7 +750,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		; latex
 	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	; texinfo
 	  "^.+:-")			                        ; prolog
-  "*Regexps for Headings. Used by \[\[ and \]\].")
+  "*Regexps for Headings.  Used by \[\[ and \]\].")
 
 (defvar viper-heading-end 
   (concat "^}\\|"						; C/C++
@@ -752,7 +758,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^@end \\|"						; texinfo
 	  ")\n\n[ \t\n]*\\|"					; lisp
 	  "\\.\\s-*$")						; prolog
-      "*Regexps to end Headings/Sections. Used by \[\].")
+      "*Regexps to end Headings/Sections.  Used by \[\].")
 
 
 ;; These two vars control the interaction of jumps performed by ' and `.
@@ -781,7 +787,7 @@ Related buffers can be cycled through via :R and :P commands."
 (defvar viper-shell-history nil)
 
 
-;; Last shell command. There are two of these, one for Ex (in viper-ex)
+;; Last shell command.  There are two of these, one for Ex (in viper-ex)
 ;; and one for Vi.
 
 ;; Last shell command executed with ! command.
@@ -806,10 +812,10 @@ Related buffers can be cycled through via :R and :P commands."
     (t (:underline t :stipple "gray3")))
   "*Face used to flash out the search pattern."
   :group 'viper-highlighting)
-;; An internal variable. Viper takes the face from here.
+;; An internal variable.  Viper takes the face from here.
 (defvar viper-search-face 'viper-search-face
   "Face used to flash out the search pattern.
-DO NOT CHANGE this variable. Instead, use the customization widget
+DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-search-face'
 this variable represents.")
 (viper-hide-face 'viper-search-face)
@@ -820,10 +826,10 @@ this variable represents.")
     (t (:underline t :stipple "gray3")))
   "*Face for highlighting replace regions on a window display."
   :group 'viper-highlighting)
-;; An internal variable. Viper takes the face from here.
+;; An internal variable.  Viper takes the face from here.
 (defvar viper-replace-overlay-face 'viper-replace-overlay-face
   "Face for highlighting replace regions on a window display.
-DO NOT CHANGE this variable. Instead, use the customization widget
+DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-replace-overlay-face'
 this variable represents.")
 (viper-hide-face 'viper-replace-overlay-face)
@@ -834,10 +840,10 @@ this variable represents.")
     (t (:bold t)))
   "Face used in the Minibuffer when it is in Emacs state."
   :group 'viper-highlighting)
-;; An internal variable. Viper takes the face from here.
+;; An internal variable.  Viper takes the face from here.
 (defvar viper-minibuffer-emacs-face 'viper-minibuffer-emacs-face
   "Face used in the Minibuffer when it is in Emacs state.
-DO NOT CHANGE this variable. Instead, use the customization widget
+DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-emacs-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-emacs-face)
@@ -848,10 +854,10 @@ this variable represents.")
     (t (:italic t)))
   "Face used in the Minibuffer when it is in Insert state."
   :group 'viper-highlighting)
-;; An internal variable. Viper takes the face from here.
+;; An internal variable.  Viper takes the face from here.
 (defvar viper-minibuffer-insert-face 'viper-minibuffer-insert-face
   "Face used in the Minibuffer when it is in Insert state.
-DO NOT CHANGE this variable. Instead, use the customization widget
+DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-insert-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-insert-face)
@@ -862,10 +868,10 @@ this variable represents.")
     (t (:inverse-video t)))
   "Face used in the Minibuffer when it is in Vi state."
   :group 'viper-highlighting)
-;; An internal variable. Viper takes the face from here.
+;; An internal variable.  Viper takes the face from here.
 (defvar viper-minibuffer-vi-face 'viper-minibuffer-vi-face
   "Face used in the Minibuffer when it is in Vi state.
-DO NOT CHANGE this variable. Instead, use the customization widget
+DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-vi-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-vi-face)
@@ -890,6 +896,14 @@ this variable represents.")
   :type 'string
   :group 'viper-misc)
 
+(defcustom viper-change-notification-threshold 1
+  "Notify the user when this many lines or characters have been deleted/yanked.
+For line-deleting/yanking commands (like `dd', `yy'), the value denotes the
+number of lines.  For character-based commands (such as `x', `dw', etc.), the
+value refers to the number of characters affected."
+  :type 'integer
+  :group 'viper-misc)
+
 ;; Minibuffer
 
 (defcustom viper-vi-style-in-minibuffer t
@@ -900,6 +914,7 @@ Should be set in `~/.viper' file."
   
 ;; overlay used in the minibuffer to indicate which state it is in
 (viper-deflocalvar viper-minibuffer-overlay nil)
+(put 'viper-minibuffer-overlay 'permanent-local t)
 
 ;; Hook, specific to Viper, which is run just *before* exiting the minibuffer.
 ;; This is needed because beginning with Emacs 19.26, the standard

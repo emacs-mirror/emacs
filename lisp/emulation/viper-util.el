@@ -114,7 +114,7 @@
 ;; OS/2
 (cond ((eq (viper-device-type) 'pm)
        (fset 'viper-color-defined-p
-	     (function (lambda (color) (assoc color pm-color-alist))))))
+	     (lambda (color) (assoc color pm-color-alist)))))
     
 
 ;; cursor colors
@@ -125,20 +125,48 @@
       (modify-frame-parameters
        (selected-frame) (list (cons 'cursor-color new-color)))))
 	 
-(defun viper-save-cursor-color ()
+;; By default, saves current frame cursor color in the
+;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
+(defun viper-save-cursor-color (before-which-mode)
   (if (and (viper-window-display-p) (viper-color-display-p))
       (let ((color (viper-get-cursor-color)))
 	(if (and (stringp color) (viper-color-defined-p color)
 		 (not (string= color viper-replace-overlay-cursor-color)))
-	    (viper-overlay-put viper-replace-overlay 'viper-cursor-color color)))))
+	    (modify-frame-parameters
+	     (selected-frame)
+	     (list
+	      (cons
+	       (if (eq before-which-mode 'before-replace-mode)
+		   'viper-saved-cursor-color-in-replace-mode
+		 'viper-saved-cursor-color-in-insert-mode)
+	       color)))
+	  ))))
 	
-;; restore cursor color from replace overlay
-(defsubst viper-restore-cursor-color-after-replace ()
-  (viper-change-cursor-color
-   (viper-overlay-get viper-replace-overlay 'viper-cursor-color)))
-(defsubst viper-restore-cursor-color-after-insert ()
-  (viper-change-cursor-color viper-saved-cursor-color))
+
+(defsubst viper-get-saved-cursor-color-in-replace-mode ()
+  (or
+   (funcall
+    (if viper-emacs-p 'frame-parameter 'frame-property)
+    (selected-frame)
+    'viper-saved-cursor-color-in-replace-mode)
+   viper-vi-state-cursor-color))
+
+(defsubst viper-get-saved-cursor-color-in-insert-mode ()
+  (or
+   (funcall
+    (if viper-emacs-p 'frame-parameter 'frame-property)
+    (selected-frame)
+    'viper-saved-cursor-color-in-insert-mode)
+   viper-vi-state-cursor-color))
 	 
+;; restore cursor color from replace overlay
+(defun viper-restore-cursor-color(after-which-mode)
+  (if (viper-overlay-p viper-replace-overlay)
+      (viper-change-cursor-color
+       (if (eq after-which-mode 'after-replace-mode)
+	   (viper-get-saved-cursor-color-in-replace-mode)
+	 (viper-get-saved-cursor-color-in-insert-mode))
+       )))
    
 
 ;; Check the current version against the major and minor version numbers
@@ -148,7 +176,7 @@
 ;; emacs-minor-version are defined.  Otherwise, for Emacs/XEmacs 19, if the
 ;; current minor version is < 10 (xemacs) or < 23 (emacs) the return value
 ;; will be nil (when op is =, >, or >=) and t (when op is <, <=), which may be
-;; incorrect. However, this gives correct result in our cases, since we are
+;; incorrect.  However, this gives correct result in our cases, since we are
 ;; testing for sufficiently high Emacs versions.
 (defun viper-check-version (op major minor &optional type-of-emacs)
   (if (and (boundp 'emacs-major-version) (boundp 'emacs-minor-version))
@@ -177,9 +205,9 @@
     
 ;; Return line position.
 ;; If pos is 'start then returns position of line start.
-;; If pos is 'end, returns line end. If pos is 'mid, returns line center.
+;; If pos is 'end, returns line end.  If pos is 'mid, returns line center.
 ;; Pos = 'indent returns beginning of indentation.
-;; Otherwise, returns point. Current point is not moved in any case."
+;; Otherwise, returns point.  Current point is not moved in any case."
 (defun viper-line-pos (pos)
   (let ((cur-pos (point))
         (result))
@@ -198,7 +226,7 @@
     result))
 
 ;; Emacs counts each multibyte character as several positions in the buffer, so
-;; we use Emacs' chars-in-region. XEmacs is counting each char as just one pos,
+;; we use Emacs' chars-in-region.  XEmacs is counting each char as just one pos,
 ;; so we can simply subtract. 
 (defun viper-chars-in-region (beg end &optional preserve-sign)
   (let ((count (abs (if (fboundp 'chars-in-region)
@@ -256,7 +284,7 @@
       (setq alst (cdr alst)))
     lst))
 
-;; Filter ALIST using REGEXP. Return alist whose elements match the regexp.
+;; Filter ALIST using REGEXP.  Return alist whose elements match the regexp.
 (defun viper-filter-alist (regexp alst)
   (interactive "s x")
   (let ((outalst) (inalst alst))
@@ -266,7 +294,7 @@
       (setq inalst (cdr inalst)))
     outalst))    
        
-;; Filter LIST using REGEXP. Return list whose elements match the regexp.
+;; Filter LIST using REGEXP.  Return list whose elements match the regexp.
 (defun viper-filter-list (regexp lst)
   (interactive "s x")
   (let ((outlst) (inlst lst))
@@ -294,15 +322,11 @@
     (nconc lis1 lis2)))
 
 
-;;; Support for :e and file globbing
+;;; Support for :e, :r, :w file globbing
 
-(defun viper-ex-nontrivial-find-file-unix (filespec)
-  "Glob the file spec and visit all files matching the spec.
-This function is designed to work under Unix. It may also work under VMS.
-
-Users who prefer other types of shells should write their own version of this
-function and set the variable `ex-nontrivial-find-file-function'
-appropriately." 
+;; Glob the file spec.
+;; This function is designed to work under Unix.  It might also work under VMS.
+(defun viper-glob-unix-files (filespec)
   (let ((gshell
 	 (cond (ex-unix-type-shell shell-file-name)
 	       ((memq system-type '(vax-vms axp-vms)) "*dcl*") ; VAX VMS
@@ -313,7 +337,7 @@ appropriately."
 	       ))
 	(command (cond (viper-ms-style-os-p (format "\"ls -1 -d %s\"" filespec))
 		       (t (format "ls -1 -d %s" filespec))))
-	file-list status)
+	status)
     (save-excursion 
       (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
       (erase-buffer)
@@ -340,27 +364,7 @@ appropriately."
 		   (buffer-substring (point) (viper-line-pos 'end)))
 	    ))
       (goto-char (point-min))
-      (setq file-list (viper-get-filenames-from-buffer 'one-per-line)))
-
-    (mapcar 'find-file file-list)
-    ))
-
-(defun viper-ex-nontrivial-find-file-ms (filespec)
-  "Glob the file spec and visit all files matching the spec.
-This function is designed to work under MS type systems, such as NT, W95, and
-DOS. It may also work under OS/2.
-
-The users of Unix-type shells should be able to use
-`viper-ex-nontrivial-find-file-unix', making it into the value of the variable 
-`ex-nontrivial-find-file-function'. If this doesn't work, the user may have
-to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
-  (save-excursion 
-    (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
-    (erase-buffer)
-    (insert filespec)
-    (goto-char (point-min))
-    (mapcar 'find-file
-	    (viper-glob-ms-windows-files (viper-get-filenames-from-buffer)))
+      (viper-get-filenames-from-buffer 'one-per-line))
     ))
 
 
@@ -410,29 +414,34 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 
 ;; glob windows files
 ;; LIST is expected to be in reverse order
-(defun viper-glob-ms-windows-files (list)
-  (let ((tmp list)
-	(case-fold-search t)
-	tmp2)
-    (while tmp
-      (setq tmp2 (cons (directory-files 
-			;; the directory part
-			(or (file-name-directory (car tmp))
-			    "")
-			t  ; return full names
-			;; the regexp part: globs the file names
-			(concat "^"
-				(viper-wildcard-to-regexp
-				 (file-name-nondirectory (car tmp)))
-				"$"))
-		       tmp2))
-      (setq tmp (cdr tmp)))
-    (reverse (apply 'append tmp2))))
+(defun viper-glob-mswindows-files (filespec)
+  (let ((case-fold-search t)
+	tmp tmp2)
+    (save-excursion 
+      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
+      (erase-buffer)
+      (insert filespec)
+      (goto-char (point-min))
+      (setq tmp (viper-get-filenames-from-buffer))
+      (while tmp
+	(setq tmp2 (cons (directory-files 
+			  ;; the directory part
+			  (or (file-name-directory (car tmp))
+			      "")
+			  t  ; return full names
+			  ;; the regexp part: globs the file names
+			  (concat "^"
+				  (viper-wildcard-to-regexp
+				   (file-name-nondirectory (car tmp)))
+				  "$"))
+			 tmp2))
+	(setq tmp (cdr tmp)))
+      (reverse (apply 'append tmp2)))))
 
 
 ;;; Insertion ring
 
-;; Rotate RING's index. DIRection can be positive or negative.
+;; Rotate RING's index.  DIRection can be positive or negative.
 (defun viper-ring-rotate1 (ring dir)
   (if (and (ring-p ring) (> (ring-length ring) 0))
       (progn
@@ -460,7 +469,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
   (if (and (ring-p ring) (> (ring-length ring) 0))
       (aref (cdr (cdr ring)) (mod (- (car ring) 1 n) (ring-length ring)))))
     
-;; push item onto ring. the second argument is a ring-variable, not value.
+;; Push item onto ring.  The second argument is a ring-variable, not value.
 (defun viper-push-onto-ring (item ring-var)
   (or (ring-p (eval ring-var))
       (set ring-var (make-ring (eval (intern (format "%S-size" ring-var))))))
@@ -470,7 +479,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
       ;; Since viper-set-destructive-command checks if we are inside
       ;; viper-repeat, we don't check whether this-command-keys is a `.'.  The
       ;; cmd viper-repeat makes a call to the current function only if `.' is
-      ;; executing a command from the command history. It doesn't call the
+      ;; executing a command from the command history.  It doesn't call the
       ;; push-onto-ring function if `.' is simply repeating the last
       ;; destructive command.  We only check for ESC (which happens when we do
       ;; insert with a prefix argument, or if this-command-keys doesn't give
@@ -594,7 +603,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 	    (message "")))
       ))
       
-;; Save STRING in CUSTOM-FILE. If PATTERN is non-nil, remove strings that
+;; Save STRING in CUSTOM-FILE.  If PATTERN is non-nil, remove strings that
 ;; match this pattern.
 (defun viper-save-string-in-file (string custom-file &optional pattern)
   (let ((buf (find-file-noselect (substitute-in-file-name custom-file))))
@@ -647,8 +656,11 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 
 
 (defsubst viper-file-checked-in-p (file)
-  (and (vc-backend file)
+  (and (featurep 'vc-hooks)
+       ;; CVS files are considered not checked in
+       (not (memq (vc-backend file) '(nil CVS)))
        (not (vc-locking-user file))))
+
 ;; checkout if visited file is checked in
 (defun viper-maybe-checkout (buf)
   (let ((file (expand-file-name (buffer-file-name buf)))
@@ -657,7 +669,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 	     (or (beep 1) t)
 	     (y-or-n-p
 	      (format
-	       "File %s is checked in. Check it out? "
+	       "File %s is checked in.  Check it out? "
 	       (viper-abbreviate-file-name file))))
 	(with-current-buffer buf
 	  (command-execute checkout-function)))))
@@ -711,7 +723,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
   (if (viper-has-face-support-p)
       (viper-overlay-put
        viper-replace-overlay 'face viper-replace-overlay-face))
-  (viper-save-cursor-color)
+  (viper-save-cursor-color 'before-replace-mode)
   (viper-change-cursor-color viper-replace-overlay-cursor-color)
   )
   
@@ -726,8 +738,8 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
   
 (defun viper-hide-replace-overlay ()
   (viper-set-replace-overlay-glyphs nil nil)
-  (viper-restore-cursor-color-after-replace)
-  (viper-restore-cursor-color-after-insert)
+  (viper-restore-cursor-color 'after-replace-mode)
+  (viper-restore-cursor-color 'after-insert-mode)
   (if (viper-has-face-support-p)
       (viper-overlay-put viper-replace-overlay 'face nil)))
 
@@ -786,7 +798,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
     ;; XEmacs requires addl argument
     (abbreviate-file-name file t)))
     
-;; Sit for VAL milliseconds. XEmacs doesn't support the millisecond arg 
+;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg 
 ;; in sit-for, so this function smoothes out the differences.
 (defsubst viper-sit-for-short (val &optional nodisp)
   (if viper-xemacs-p
@@ -817,10 +829,11 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 ;; is the same as (mark t).
 (defsubst viper-set-mark-if-necessary ()
   (setq mark-ring (delete (viper-mark-marker) mark-ring))
-  (set-mark-command nil))
+  (set-mark-command nil)
+  (setq viper-saved-mark (point)))
        
 ;; In transient mark mode (zmacs mode), it is annoying when regions become
-;; highlighted due to Viper's pushing marks. So, we deactivate marks, unless
+;; highlighted due to Viper's pushing marks.  So, we deactivate marks, unless
 ;; the user explicitly wants highlighting, e.g., by hitting '' or ``
 (defun viper-deactivate-mark ()
   (if viper-xemacs-p
@@ -870,7 +883,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
     ))
 
 ;; This function lets function-key-map convert key sequences into logical
-;; keys. This does a better job than viper-read-event when it comes to kbd
+;; keys.  This does a better job than viper-read-event when it comes to kbd
 ;; macros, since it enables certain macros to be shared between X and TTY modes
 ;; by correctly mapping key sequences for Left/Right/... (one an ascii
 ;; terminal) into logical keys left, right, etc.
@@ -908,7 +921,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 	     (t 
 	      ;; Emacs doesn't handle capital letters correctly, since
 	      ;; \S-a isn't considered the same as A (it behaves as
-	      ;; plain `a' instead). So we take care of this here
+	      ;; plain `a' instead).  So we take care of this here
 	      (cond ((and (viper-characterp event) (<= ?A event) (<= event ?Z))
 		     (setq mod nil
 			   event event))
@@ -985,8 +998,8 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 
 ;; Args can be a sequence of events, a string, or a Viper macro.  Will try to
 ;; convert events to keys and, if all keys are regular printable
-;; characters, will return a string. Otherwise, will return a string
-;; representing a vector of converted events. If the input was a Viper macro,
+;; characters, will return a string.  Otherwise, will return a string
+;; representing a vector of converted events.  If the input was a Viper macro,
 ;; will return a string that represents this macro as a vector.
 (defun viper-array-to-string (event-seq)
   (let (temp temp2)
@@ -1010,8 +1023,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 (defun viper-key-press-events-to-chars (events)
   (mapconcat (if viper-emacs-p
 		 'char-to-string
-	       (function
-		(lambda (elt) (char-to-string (event-to-character elt)))))
+	       (lambda (elt) (char-to-string (event-to-character elt))))
 	     events
 	     ""))
 	   
@@ -1055,7 +1067,7 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
       
 (defun viper-setup-master-buffer (&rest other-files-or-buffers)
   "Set up the current buffer as a master buffer.
-Arguments become related buffers. This function should normally be used in
+Arguments become related buffers.  This function should normally be used in
 the `Local variables' section of a file."
   (setq viper-related-files-and-buffers-ring 
 	(make-ring (1+ (length other-files-or-buffers))))
@@ -1117,11 +1129,11 @@ Usually contains ` ', linefeed, TAB or formfeed.")
     ))
 
 ;; SYMBOL is used because customize requires it, but it is ignored, unless it
-;; is `nil'. If nil, use setq.
+;; is `nil'.  If nil, use setq.
 (defun viper-set-syntax-preference (&optional symbol value)
   "Set Viper syntax preference.
 If called interactively or if SYMBOL is nil, sets syntax preference in current
-buffer. If called non-interactively, preferably via the customization widget,
+buffer.  If called non-interactively, preferably via the customization widget,
 sets the default value."
   (interactive)
   (or value

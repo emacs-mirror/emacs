@@ -42,27 +42,33 @@
 ;; end pacifier
 
 ;; allow menus to be set up without ediff-wind.el being loaded
+;;;###autoload
 (defvar ediff-window-setup-function)
-
-
-(defun ediff-xemacs-init-menus ()
-  (if (featurep 'menubar)
-      (progn
-	(add-submenu
-	 '("Tools") ediff-menu "OO-Browser...")
-	(add-submenu
-	 '("Tools") ediff-merge-menu "OO-Browser...")
-	(add-submenu
-	 '("Tools") epatch-menu "OO-Browser...")
-	(add-submenu
-	 '("Tools") ediff-misc-menu "OO-Browser...")
-	(add-menu-button
-	 '("Tools")
-	 ["-------" nil nil] "OO-Browser...")
-	)))
+ 
+;; Note we wrap this in a progn so that we pick up the whole def
+;; for auto-autoload. That way we do not load ediff-hook.el when defining
+;; the menus.
+;;;###autoload
+(progn
+  (defun ediff-xemacs-init-menus ()
+    (if (featurep 'menubar)
+	(progn
+	  (add-submenu
+	   '("Tools") ediff-menu "OO-Browser...")
+	  (add-submenu
+	   '("Tools") ediff-merge-menu "OO-Browser...")
+	  (add-submenu
+	   '("Tools") epatch-menu "OO-Browser...")
+	  (add-submenu
+	   '("Tools") ediff-misc-menu "OO-Browser...")
+	  (add-menu-button
+	   '("Tools")
+	   ["-------" nil nil] "OO-Browser...")
+	  ))))
 
 
 ;; explicit string-match is needed: ediff-xemacs-p is not defined at build time
+;;;###autoload
 (cond ((string-match "XEmacs" emacs-version)
        (defvar ediff-menu
 	 '("Compare"
@@ -110,6 +116,7 @@
        (defvar ediff-misc-menu
 	 '("Ediff Miscellanea"
 	   ["Ediff Manual..." ediff-documentation t]
+	   ["Customize Ediff..." ediff-customize t]
 	   ["List Ediff Sessions..." ediff-show-registry t]
 	   ["Use separate frame for Ediff control buffer..."
 	    ediff-toggle-multiframe
@@ -124,13 +131,15 @@
 	    :selected (if (featurep 'ediff-tbar)
 			  (ediff-use-toolbar-p))]
 	   ))
-
+       
        ;; put these menus before Object-Oriented-Browser in Tools menu
-;;       (add-hook 'before-init-hook 'ediff-xemacs-init-menus)
-;;       (if (not purify-flag)
-;;	   (ediff-xemacs-init-menus))
-;;       )
-       (ediff-xemacs-init-menus))
+;;;      (add-hook 'before-init-hook 'ediff-xemacs-init-menus)
+;;;      (if (not purify-flag)
+;;;	   (ediff-xemacs-init-menus))
+;;;      )       
+       (if (and (featurep 'menubar) (not (featurep 'infodock))
+		(not (featurep 'ediff-hook)))
+	   (ediff-xemacs-init-menus)))
       
       ;; Emacs--only if menu-bar is loaded
       ((featurep 'menu-bar)
@@ -224,6 +233,8 @@
 	   . ediff-toggle-multiframe))
        (define-key menu-bar-ediff-misc-menu [eregistry]
 	 '("List Ediff Sessions..." . ediff-show-registry))
+       (define-key menu-bar-ediff-misc-menu [ediff-cust]
+	 '("Customize Ediff..." . ediff-customize))
        (define-key menu-bar-ediff-misc-menu [ediff-doc]
 	 '("Ediff Manual..." . ediff-documentation))
        )

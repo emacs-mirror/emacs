@@ -1,13 +1,13 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994 -- 1999 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.70.2" "The current version of Ediff")
-(defconst ediff-date "May 21, 1998" "Date of last update")  
+(defconst ediff-version "2.74" "The current version of Ediff")
+(defconst ediff-date "October 31, 1999" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -42,7 +42,7 @@
 ;; another (and recover old differences if you change your mind).
 
 ;; Ediff also supports merging operations on files and buffers, including
-;; merging using ancestor versions. Both comparison and merging operations can
+;; merging using ancestor versions.  Both comparison and merging operations can
 ;; be performed on directories, i.e., by pairwise comparison of files in those
 ;; directories.
 
@@ -56,18 +56,18 @@
 ;; you don't like).
 
 ;; Ediff is aware of version control, which lets the user compare
-;; files with their older versions. Ediff can also work with remote and
-;; compressed files. Details are given below.
+;; files with their older versions.  Ediff can also work with remote and
+;; compressed files.  Details are given below.
 
 ;; Finally, Ediff supports directory-level comparison, merging and patching.
 ;; See the on-line manual for details.
 
 ;; This package builds upon the ideas borrowed from emerge.el and several
-;; Ediff's functions are adaptations from emerge.el. Much of the functionality
+;; Ediff's functions are adaptations from emerge.el.  Much of the functionality
 ;; Ediff provides is also influenced by emerge.el.
 
-;; The present version of Ediff supersedes Emerge. It provides a superior user
-;; interface and has numerous major features not found in Emerge. In
+;; The present version of Ediff supersedes Emerge.  It provides a superior user
+;; interface and has numerous major features not found in Emerge.  In
 ;; particular, it can do patching, and 2-way and 3-way file comparison,
 ;; merging, and directory operations.
 
@@ -75,7 +75,7 @@
 
 ;;; Bugs:
 
-;;  1. The undo command doesn't restore deleted regions well. That is, if
+;;  1. The undo command doesn't restore deleted regions well.  That is, if
 ;;  you delete all characters in a difference region and then invoke
 ;;  `undo', the reinstated text will most likely be inserted outside of
 ;;  what Ediff thinks is the current difference region. (This problem
@@ -85,13 +85,13 @@
 ;;  you can hit '!' to recompute the differences.
 
 ;;  2. On a monochrome display, the repertoire of faces with which to
-;;  highlight fine differences is limited. By default, Ediff is using
-;;  underlining. However, if the region is already underlined by some other
+;;  highlight fine differences is limited.  By default, Ediff is using
+;;  underlining.  However, if the region is already underlined by some other
 ;;  overlays, there is no simple way to temporarily remove that residual
-;;  underlining. This problem occurs when a buffer is highlighted with
-;;  hilit19.el or font-lock.el packages. If this residual highlighting gets
-;;  in the way, you can do the following. Both font-lock.el and hilit19.el
-;;  provide commands for unhighlighting buffers. You can either place these
+;;  underlining.  This problem occurs when a buffer is highlighted with
+;;  hilit19.el or font-lock.el packages.  If this residual highlighting gets
+;;  in the way, you can do the following.  Both font-lock.el and hilit19.el
+;;  provide commands for unhighlighting buffers.  You can either place these
 ;;  commands in `ediff-prepare-buffer-hook' (which will unhighlight every
 ;;  buffer used by Ediff) or you can execute them interactively, at any time
 ;;  and on any buffer.
@@ -101,8 +101,8 @@
 
 ;; Ediff was inspired by Dale R. Worley's <drw@math.mit.edu> emerge.el.
 ;; Ediff would not have been possible without the help and encouragement of
-;; its many users. See Ediff on-line Info for the full list of those who
-;; helped. Improved defaults in Ediff file-name reading commands.
+;; its many users.  See Ediff on-line Info for the full list of those who
+;; helped.  Improved defaults in Ediff file-name reading commands.
 
 ;;; Code:
 
@@ -269,7 +269,7 @@
 ;; BUFFER-NAME is a variable symbol, which will get the buffer object into
 ;; which FILE is read.
 ;; LAST-DIR is the directory variable symbol where FILE's
-;; directory name should be returned. HOOKS-VAR is a variable symbol that will
+;; directory name should be returned.  HOOKS-VAR is a variable symbol that will
 ;; be assigned the hook to be executed after `ediff-startup' is finished.
 ;; `ediff-find-file' arranges that the temp files it might create will be
 ;; deleted.
@@ -459,8 +459,8 @@
 ;;;###autoload
 (defun ediff-directories (dir1 dir2 regexp)
   "Run Ediff on a pair of directories, DIR1 and DIR2, comparing files that have
-the same name in both. The third argument, REGEXP, is a regular expression that
-can be used to filter out certain file names."
+the same name in both.  The third argument, REGEXP, is a regular expression
+that can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
@@ -485,7 +485,7 @@ can be used to filter out certain file names."
 (defun ediff-directory-revisions (dir1 regexp)
   "Run Ediff on a directory, DIR1, comparing its files with their revisions.
 The second argument, REGEXP, is a regular expression that filters the file
-names. Only the files that are under revision control are taken into account."
+names.  Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
@@ -504,7 +504,7 @@ names. Only the files that are under revision control are taken into account."
 ;;;###autoload
 (defun ediff-directories3 (dir1 dir2 dir3 regexp)
   "Run Ediff on three directories, DIR1, DIR2, and DIR3, comparing files that
-have the same name in all three. The last argument, REGEXP, is a regular
+have the same name in all three.  The last argument, REGEXP, is a regular
 expression that can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
@@ -531,10 +531,10 @@ expression that can be used to filter out certain file names."
 (defalias 'edirs3 'ediff-directories3)
 
 ;;;###autoload
-(defun ediff-merge-directories (dir1 dir2 regexp)
+(defun ediff-merge-directories (dir1 dir2 regexp &optional merge-autostore-dir)
   "Run Ediff on a pair of directories, DIR1 and DIR2, merging files that have
-the same name in both. The third argument, REGEXP, is a regular expression that
-can be used to filter out certain file names."
+the same name in both.  The third argument, REGEXP, is a regular expression
+that can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
@@ -549,17 +549,20 @@ can be used to filter out certain file names."
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-merge-files 'ediff-merge-directories
+   nil merge-autostore-dir
    ))
 
 ;;;###autoload
 (defalias 'edirs-merge 'ediff-merge-directories)
 
 ;;;###autoload
-(defun ediff-merge-directories-with-ancestor (dir1 dir2 ancestor-dir regexp)
+(defun ediff-merge-directories-with-ancestor (dir1 dir2 ancestor-dir regexp
+						   &optional
+						   merge-autostore-dir)
   "Merge files in directories DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
-Ediff merges files that have identical names in DIR1, DIR2. If a pair of files
+Ediff merges files that have identical names in DIR1, DIR2.  If a pair of files
 in DIR1 and DIR2 doesn't have an ancestor in ANCESTOR-DIR, Ediff will merge
-without ancestor. The fourth argument, REGEXP, is a regular expression that
+without ancestor.  The fourth argument, REGEXP, is a regular expression that
 can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
@@ -581,13 +584,15 @@ can be used to filter out certain file names."
   (ediff-directories-internal
    dir1 dir2 ancestor-dir regexp
    'ediff-merge-files-with-ancestor 'ediff-merge-directories-with-ancestor
+   nil merge-autostore-dir
    ))
 
 ;;;###autoload
-(defun ediff-merge-directory-revisions (dir1 regexp)
+(defun ediff-merge-directory-revisions (dir1 regexp
+					     &optional merge-autostore-dir)
   "Run Ediff on a directory, DIR1, merging its files with their revisions.
 The second argument, REGEXP, is a regular expression that filters the file
-names. Only the files that are under revision control are taken into account."
+names.  Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
@@ -597,16 +602,19 @@ names. Only the files that are under revision control are taken into account."
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions 'ediff-merge-directory-revisions
+   nil merge-autostore-dir
    ))
 
 ;;;###autoload
 (defalias 'edir-merge-revisions 'ediff-merge-directory-revisions)
 
 ;;;###autoload
-(defun ediff-merge-directory-revisions-with-ancestor (dir1 regexp)
+(defun ediff-merge-directory-revisions-with-ancestor (dir1 regexp
+							   &optional
+							   merge-autostore-dir)
   "Run Ediff on a directory, DIR1, merging its files with their revisions and ancestors.
 The second argument, REGEXP, is a regular expression that filters the file
-names. Only the files that are under revision control are taken into account."
+names.  Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
@@ -617,6 +625,7 @@ names. Only the files that are under revision control are taken into account."
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions-with-ancestor
    'ediff-merge-directory-revisions-with-ancestor
+   nil merge-autostore-dir
    ))
 
 ;;;###autoload
@@ -632,11 +641,12 @@ names. Only the files that are under revision control are taken into account."
 ;; The third argument, REGEXP, is a regular expression that can be used to
 ;; filter out certain file names.
 ;; JOBNAME is the symbol indicating the meta-job to be performed.
-;; MERGE-DIR is the directory in which to store merged files.
+;; MERGE-AUTOSTORE-DIR is the directory in which to store merged files.
 (defun ediff-directories-internal (dir1 dir2 dir3 regexp action jobname 
-					&optional startup-hooks)
+					&optional startup-hooks
+					merge-autostore-dir)
   ;; ediff-read-file-name is set to attach a previously entered file name if
-  ;; the currently entered file is a directory. This code takes care of that.
+  ;; the currently entered file is a directory.  This code takes care of that.
   (setq dir1 (if (file-directory-p dir1) dir1 (file-name-directory dir1))
 	dir2 (if (file-directory-p dir2) dir2 (file-name-directory dir2)))
 
@@ -652,27 +662,35 @@ names. Only the files that are under revision control are taken into account."
 	      (string= dir2 dir3))
 	 (error "Directories B and C are the same: %s" dir1)))
 
+  (if merge-autostore-dir
+      (or (stringp merge-autostore-dir)
+	  (error "%s: Directory for storing merged files must be a string"
+		 jobname)))
   (let (diffs ; var where ediff-intersect-directories returns the diff list
-	merge-autostore-dir
 	file-list meta-buf)
-    (if (and ediff-autostore-merges (ediff-merge-metajob jobname))
+    (if (and ediff-autostore-merges
+	     (ediff-merge-metajob jobname)
+	     (not merge-autostore-dir))
 	(setq merge-autostore-dir 
-	      (ediff-read-file-name "Directory to save merged files:"
-				    (if ediff-use-last-dir
+	      (read-file-name "Save merged files in directory: "
+			      (if ediff-use-last-dir
 					ediff-last-merge-autostore-dir
 				      (ediff-strip-last-dir dir1))
-				    nil)))
+			      nil
+			      'must-match)))
     ;; verify we are not merging into an orig directory
-    (if (stringp merge-autostore-dir)
+    (if merge-autostore-dir
 	(cond ((and (stringp dir1) (string= merge-autostore-dir dir1))
-	       (or (y-or-n-p "Merge directory same as directory A, sure? ")
+	       (or (y-or-n-p
+		    "Directory for saving merged files = Directory A.  Sure? ")
 		   (error "Directory merge aborted")))
 	      ((and (stringp dir2) (string= merge-autostore-dir dir2))
-	       (or (y-or-n-p "Merge directory same as directory B, sure? ")
+	       (or (y-or-n-p
+		    "Directory for saving merged files = Directory B.  Sure? ")
 		   (error "Directory merge aborted")))
 	      ((and (stringp dir3) (string= merge-autostore-dir dir3))
 	       (or (y-or-n-p
-		    "Merge directory same as ancestor directory, sure? ")
+		    "Directory for saving merged files = Ancestor Directory.  Sure? ")
 		   (error "Directory merge aborted")))))
     
     (setq file-list (ediff-intersect-directories 
@@ -697,24 +715,34 @@ names. Only the files that are under revision control are taken into account."
     (ediff-show-meta-buffer meta-buf)
     ))
 
+;; MERGE-AUTOSTORE-DIR can be given to tell ediff where to store the merged
+;; files
 (defun ediff-directory-revisions-internal (dir1 regexp action jobname 
-						&optional startup-hooks)
+						&optional startup-hooks
+						merge-autostore-dir)
   (setq dir1 (if (file-directory-p dir1) dir1 (file-name-directory dir1)))
 
-  (let (file-list meta-buf merge-autostore-dir)
-    (if (and ediff-autostore-merges (ediff-merge-metajob jobname))
+  (if merge-autostore-dir
+      (or (stringp merge-autostore-dir)
+	  (error "%S: Directory for storing merged files must be a string"
+		 jobname)))
+  (let (file-list meta-buf)
+    (if (and ediff-autostore-merges 
+	     (ediff-merge-metajob jobname)
+	     (not merge-autostore-dir))
 	(setq merge-autostore-dir 
-	      (ediff-read-file-name "Directory to save merged files:"
-				    (if ediff-use-last-dir
-					ediff-last-merge-autostore-dir
-				      (ediff-strip-last-dir dir1))
-				    nil)))
+	      (read-file-name "Save merged files in directory: "
+			      (if ediff-use-last-dir
+				  ediff-last-merge-autostore-dir
+				(ediff-strip-last-dir dir1))
+			      nil
+			      'must-match)))
     ;; verify merge-autostore-dir != dir1
-    (if (and (stringp merge-autostore-dir)
+    (if (and merge-autostore-dir
 	     (stringp dir1)
 	     (string= merge-autostore-dir dir1))
 	(or (y-or-n-p
-	     "Directory for saving merges is the same as directory A. Sure? ")
+	     "Directory for saving merged file = directory A.  Sure? ")
 	    (error "Merge of directory revisions aborted")))
     
     (setq file-list
@@ -797,7 +825,7 @@ If WIND-B is nil, use window next to WIND-A."
   "Run Ediff on a pair of regions in two different buffers.
 Regions \(i.e., point and mark\) are assumed to be set in advance.
 This function is effective only for relatively small regions, up to 200
-lines. For large regions, use `ediff-regions-linewise'."
+lines.  For large regions, use `ediff-regions-linewise'."
   (interactive 
    (let (bf)
      (list (setq bf (read-buffer "Region's A buffer: "
@@ -835,7 +863,7 @@ lines. For large regions, use `ediff-regions-linewise'."
 Regions \(i.e., point and mark\) are assumed to be set in advance.
 Each region is enlarged to contain full lines.
 This function is effective for large regions, over 100-200
-lines. For small regions, use `ediff-regions-wordwise'."
+lines.  For small regions, use `ediff-regions-wordwise'."
   (interactive 
    (let (bf)
      (list (setq bf (read-buffer "Region A's buffer: "
@@ -1171,7 +1199,7 @@ buffer."
 	  ancestor-rev
 	  (read-string
 	   (format
-	    "Ancestor version (default: %s): "
+	    "Ancestor version (default: %s's base revision): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
@@ -1182,7 +1210,7 @@ buffer."
 ;;;###autoload
 (defun run-ediff-from-cvs-buffer (pos)
   "Run Ediff-merge on appropriate revisions of the selected file.
-First run after `M-x cvs-update'. Then place the cursor on a line describing a
+First run after `M-x cvs-update'.  Then place the cursor on a line describing a
 file and then run `run-ediff-from-cvs-buffer'."
   (interactive "d")
   (ediff-load-version-control)
@@ -1195,13 +1223,18 @@ file and then run `run-ediff-from-cvs-buffer'."
 ;;; Apply patch
 
 ;;;###autoload
-(defun ediff-patch-file ()
-  "Run Ediff by patching SOURCE-FILENAME."
-  ;; This now returns the control buffer
-  (interactive)
-  (let (source-dir source-file patch-buf)
+(defun ediff-patch-file (&optional arg patch-buf)
+  "Run Ediff by patching SOURCE-FILENAME.
+If optional PATCH-BUF is given, use the patch in that buffer
+and don't ask the user.
+If prefix argument, then: if even argument, assume that the patch is in a
+buffer. If odd -- assume it is in a file."
+  (interactive "P")
+  (let (source-dir source-file)
     (require 'ediff-ptch)
-    (setq patch-buf (ediff-get-patch-buffer))
+    (setq patch-buf
+	  (ediff-get-patch-buffer
+	   (if arg (prefix-numeric-value arg)) patch-buf))
     (setq source-dir (cond (ediff-use-last-dir ediff-last-dir-patch)
 			   ((and (not ediff-patch-default-directory)
 				 (buffer-file-name patch-buf))
@@ -1211,25 +1244,26 @@ file and then run `run-ediff-from-cvs-buffer'."
 			   (t default-directory)))
     (setq source-file
 	  ;; the default is the directory, not the visited file name
-	  (ediff-read-file-name 
-	   "Which file to patch? " source-dir (ediff-get-default-file-name)))
+	  (read-file-name 
+	   "File to patch (directory, if multifile patch): "
+	   source-dir (ediff-get-default-file-name)))
     (ediff-dispatch-file-patching-job patch-buf source-file)))
 
 ;;;###autoload
-(defun ediff-patch-buffer ()
+(defun ediff-patch-buffer (&optional arg patch-buf)
   "Run Ediff by patching BUFFER-NAME."
-  (interactive)
-  (let (patch-buf)
-    (require 'ediff-ptch)
-    (setq patch-buf (ediff-get-patch-buffer))
-    (ediff-patch-buffer-internal
-     patch-buf
-     (read-buffer "Which buffer to patch? "
-		  (cond ((eq patch-buf (current-buffer))
-			 (ediff-other-buffer (current-buffer)))
-			(t (current-buffer)))
-		  'must-match))))
+  (interactive "P")
+  (require 'ediff-ptch)
+  (setq patch-buf
+	(ediff-get-patch-buffer
+	 (if arg (prefix-numeric-value arg)) patch-buf))
+  (ediff-patch-buffer-internal
+   patch-buf
+   (read-buffer
+    "Which buffer to patch? "
+    (ediff-prompt-for-patch-buffer))))
   
+
 ;;;###autoload
 (defalias 'epatch 'ediff-patch-file)
 ;;;###autoload
@@ -1244,7 +1278,7 @@ file and then run `run-ediff-from-cvs-buffer'."
 (defun ediff-revision (&optional file startup-hooks)
   "Run Ediff by comparing versions of a file.
 The file is an optional FILE argument or the file visited by the current
-buffer. Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
+buffer.  Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   ;; if buffer is non-nil, use that buffer instead of the current buffer
   (interactive "P")
   (if (stringp file) (find-file file))
@@ -1280,7 +1314,7 @@ buffer. Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 	    (message "") ; kill the message from `locate-library'
 	    (require ediff-version-control-package))
 	(or silent
-	    (error "Version control package %S.el not found. Use vc.el instead"
+	    (error "Version control package %S.el not found.  Use vc.el instead"
 		   ediff-version-control-package)))))
 
 
@@ -1329,5 +1363,7 @@ With optional NODE, goes to that node."
 ;;; End:
 
 (require 'ediff-util)
+
+(run-hooks 'ediff-load-hook)
 
 ;;; ediff.el ends here

@@ -74,7 +74,7 @@ Full Vi compatibility is not recommended for power use of Viper."
 (defcustom viper-no-multiple-ESC  t
   "*If true, multiple ESC in Vi mode will cause bell to ring.
 This is set to t on a windowing terminal and to 'twice on a dumb
-terminal (unless the user level is 1, 2, or 5). On a dumb terminal, this
+terminal (unless the user level is 1, 2, or 5).  On a dumb terminal, this
 enables cursor keys and is generally more convenient, as terminals usually
 don't have a convenient Meta key.
 Setting viper-no-multiple-ESC to nil will allow as many multiple ESC,
@@ -104,7 +104,7 @@ as is allowed by the major mode in effect."
   "Keymap for user-defined local bindings.
 Useful for changing bindings such as ZZ in certain major modes.
 For instance, in letter-mode, one may want to bind ZZ to
-mh-send-letter. In a newsreader such as gnus, tin, or rn, ZZ could be bound
+mh-send-letter.  In a newsreader such as gnus, tin, or rn, ZZ could be bound
 to save-buffers-kill-emacs then post article, etc.")
 (put 'viper-vi-local-user-map 'permanent-local t)	
 
@@ -121,7 +121,7 @@ This map is global, shared by all buffers.")
 
 (defvar viper-vi-diehard-map (make-sparse-keymap)
   "This keymap is in use when the user asks Viper to simulate Vi very closely.
-This happens when viper-expert-level is 1 or 2. See viper-set-expert-level.")
+This happens when viper-expert-level is 1 or 2.  See viper-set-expert-level.")
   
 
 (viper-deflocalvar viper-insert-local-user-map (make-sparse-keymap)
@@ -136,8 +136,8 @@ This happens when viper-expert-level is 1 or 2. See viper-set-expert-level.")
 
 (defvar viper-insert-diehard-map (make-keymap)
   "Map used when user wants vi-style keys in insert mode.
-Most of the Emacs keys are suppressed. This map overshadows
-viper-insert-basic-map. Not recommended, except for novice users.")
+Most of the Emacs keys are suppressed.  This map overshadows
+viper-insert-basic-map.  Not recommended, except for novice users.")
 
 (defvar  viper-insert-kbd-map  (make-sparse-keymap)
   "This keymap keeps VI-style kbd macros for insert mode.")
@@ -159,7 +159,7 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (defvar viper-empty-keymap (make-sparse-keymap))
 
 ;; This was the main Vi mode in old versions of VIP which may have been
-;; extensively used by VIP users. We declare it as a global var
+;; extensively used by VIP users.  We declare it as a global var
 ;; and, after .viper is loaded, we add this keymap to viper-vi-basic-map.
 (defvar viper-mode-map (make-sparse-keymap))
 
@@ -185,17 +185,17 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (defvar viper-emacs-state-modifier-alist nil)
 
 ;; Tells viper-add-local-keys to create a new viper-vi-local-user-map for new
-;; buffers. Not a user option.
+;; buffers.  Not a user option.
 (viper-deflocalvar viper-need-new-vi-local-map t "")
 (put 'viper-need-new-vi-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-insert-local-user-map for
-;; new buffers. Not a user option.
+;; new buffers.  Not a user option.
 (viper-deflocalvar viper-need-new-insert-local-map t "")
 (put 'viper-need-new-insert-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-emacs-local-user-map for
-;; new buffers. Not a user option.
+;; new buffers.  Not a user option.
 (viper-deflocalvar viper-need-new-emacs-local-map t "")
 (put 'viper-need-new-emacs-local-map  'permanent-local t)
 
@@ -260,8 +260,8 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 
 ;; Vi keymaps
 
-(define-key viper-vi-basic-map "\C-^" 
-  (function (lambda () (interactive) (viper-ex "e#"))))
+(define-key viper-vi-basic-map "\C-^" (lambda ()
+					(interactive) (viper-ex nil "e#")))
 (define-key viper-vi-basic-map "\C-b" 'viper-scroll-screen-back)
 (define-key viper-vi-basic-map "\C-d" 'viper-scroll-up)
 (define-key viper-vi-basic-map "\C-e" 'viper-scroll-up-one)
@@ -272,7 +272,7 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (define-key viper-vi-basic-map "\C-s" 'viper-isearch-forward)
 (define-key viper-vi-basic-map "\C-r" 'viper-isearch-backward)
 (define-key viper-vi-basic-map "\C-c/" 'viper-toggle-search-style)
-(define-key viper-vi-basic-map "\C-cg" 'viper-info-on-file)
+(define-key viper-vi-basic-map "\C-c\C-g" 'viper-info-on-file)
 
 (define-key viper-vi-basic-map "\C-c\M-p" 'viper-prev-destructive-command)
 (define-key viper-vi-basic-map "\C-c\M-n" 'viper-next-destructive-command)
@@ -284,8 +284,8 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (define-key viper-vi-basic-map "#" 'viper-command-argument)
 (define-key viper-vi-basic-map "$" 'viper-goto-eol)
 (define-key viper-vi-basic-map "%" 'viper-paren-match)
-(define-key viper-vi-basic-map "&"
-  (function (lambda () (interactive) (viper-ex "&"))))
+(define-key viper-vi-basic-map "&" (lambda ()
+				     (interactive) (viper-ex nil "&")))
 (define-key viper-vi-basic-map "'" 'viper-goto-mark-and-skip-white)
 (define-key viper-vi-basic-map "(" 'viper-backward-sentence)
 (define-key viper-vi-basic-map ")" 'viper-forward-sentence)
@@ -390,7 +390,7 @@ viper-insert-basic-map. Not recommended, except for novice users.")
 (define-key viper-vi-basic-map "\C-?" 'viper-backward-char)
 (define-key viper-vi-basic-map "_" 'viper-nil)
 
-;;; This is viper-vi-diehard-map. Used when viper-vi-diehard-minor-mode is on.
+;;; This is viper-vi-diehard-map.  Used when viper-vi-diehard-minor-mode is on.
 
 (define-key viper-vi-diehard-map "\C-a" 'viper-nil)
 (define-key viper-vi-diehard-map "\C-c" 'viper-nil)
@@ -484,7 +484,7 @@ Usage:
 		 map viper-emacs-local-user-map))
 	  (t 
 	   (error
-	    "Invalid state in viper-add-local-keys: %S. Valid states: vi-state, insert-state or emacs-state" state)))
+	    "Invalid state in viper-add-local-keys: %S.  Valid states: vi-state, insert-state or emacs-state" state)))
 
     (viper-modify-keymap map alist)
     (viper-normalize-minor-mode-map-alist)
@@ -510,9 +510,9 @@ sanity."
 
 If the default for a major mode is emacs-state, then modifications to this
 major mode may not take effect until the buffer switches state to Vi,
-Insert or Emacs. If this happens, add viper-change-state-to-emacs to this
-major mode's hook. If no such hook exists, you may have to put an advice on
-the function that invokes the major mode. See viper-set-hooks for hints.
+Insert or Emacs.  If this happens, add viper-change-state-to-emacs to this
+major mode's hook.  If no such hook exists, you may have to put an advice on
+the function that invokes the major mode.  See viper-set-hooks for hints.
 
 The above needs not to be done for major modes that come up in Vi or Insert
 state by default.
@@ -529,7 +529,7 @@ Arguments: (major-mode viper-state keymap)"
     
     ;; Normalization usually doesn't help here, since one needs to
     ;; normalize in the actual buffer where changes to the keymap are
-    ;; to take place. However, it doesn't hurt, and it helps whenever this
+    ;; to take place.  However, it doesn't hurt, and it helps whenever this
     ;; function is actually called from within the affected buffer.
     (viper-normalize-minor-mode-map-alist)
     
@@ -611,22 +611,17 @@ Arguments: (major-mode viper-state keymap)"
 ;;; Keymap utils
 	     
 (defun viper-add-keymap (mapsrc mapdst) 
-  "Add contents of mapsrc to mapdst. It is assumed that mapsrc is sparse."
+  "Add contents of mapsrc to mapdst.  It is assumed that mapsrc is sparse."
   (if viper-xemacs-p
-      (map-keymap (function (lambda (key binding)
-			      (define-key mapdst key binding)))
+      (map-keymap (lambda (key binding) (define-key mapdst key binding))
 		  mapsrc)
-    (mapcar 
-     (function (lambda (p) 
-		 (define-key mapdst (vector (car p)) (cdr p))
-		 ))
-     (cdr mapsrc))))
+    (mapcar (lambda (p) (define-key mapdst (vector (car p)) (cdr p)))
+	    (cdr mapsrc))))
   
 (defun viper-modify-keymap (map alist)
-   "Modifies MAP with bindings specified in the ALIST. The alist has the
+   "Modifies MAP with bindings specified in the ALIST.  The alist has the
 form ((key . function) (key . function) ... )."
-   (mapcar (function (lambda (p)
-		       (define-key map (eval (car p)) (cdr p)))) 
+   (mapcar (lambda (p) (define-key map (eval (car p)) (cdr p))) 
 	   alist))
 
 

@@ -217,6 +217,11 @@ multi-file patch, then a session group interface will be used and the user
 will be able to patch the files selectively.  @xref{Session Groups}, for
 more details.
 
+Since the patch might be in a buffer or a file, you will be asked which is
+the case. To avoid this extra prompt, you can invoke this command with a
+prefix argument.  With an odd prefix argument, Ediff assumes the patch
+is in a file; with an even argument, a buffer is assumed.
+
 Note that @code{ediff-patch-file} will actually use the @file{patch}
 utility to change the the original files on disk.  This is not that
 dangerous, since you will always have the original contents of the file
@@ -245,6 +250,11 @@ appears in some other buffer that has the name ending with @emph{_patched}.
 This function would refuse to apply a multifile patch to a buffer.  Use
 @code{ediff-patch-file} for that (and when you want the original file to be
 modified by the @file{patch} utility).
+
+Since the patch might be in a buffer or a file, you will be asked which is
+the case. To avoid this extra prompt, you can invoke this command with a
+prefix argument.  With an odd prefix argument, Ediff assumes the patch
+is in a file; with an even argument, a buffer is assumed.
 
 @item ediff-merge-files
 @itemx ediff-merge
@@ -702,7 +712,7 @@ Restores the usual Ediff window setup.  This is the quickest way to resume
 an Ediff session, but it works only if the control panel of that session is
 visible.
 
-@item $
+@item $$
 While merging with an ancestor file, Ediff is determined to reduce user's
 wear and tear by saving him and her much of unproductive, repetitive
 typing.  If it notices that, say, file A's difference region is identical to
@@ -719,7 +729,22 @@ had different ideas on how to do this.
 
 The above command does this for you by skipping the regions where only one
 of the variants clashes with the ancestor but the other variant agrees with
-it.  Typing @kbd{$} again undoes this setting.
+it.  Typing @kbd{$$} again undoes this setting.
+
+@item $*
+When merging files with large number of differences, it is sometimes
+convenient to be able to skip the difference regions for which you already
+decided which variant is most appropriate. Typing @kbd{$*} will accomplish
+precisely this.
+
+To be more precise, this toggles the check for whether the current merge is
+identical to its default setting, as originally decided by Ediff.  For
+instance, if Ediff is merging according to the `combined' policy, then the
+merge region is skipped over if it is different from the combination of the
+regions in buffers A and B.  (Warning: swapping buffers A and B will confuse
+things in this respect).  If the merge region is marked as `prefer-A' then
+this region will be skipped if it differs from the current difference
+region in buffer A, etc.
 
 @item /
 Displays the ancestor file during merges.
@@ -1291,7 +1316,8 @@ the control frame.
 To start Ediff with an iconified Control Panel, you should set this
 variable to @code{t} and @code{ediff-prefer-long-help-message} to
 @code{nil} (@pxref{Quick Help Customization}).  This behavior is useful
-only if the window manager is TWM or a derivative.
+only if icons are allowed to accept keybord input (which depend on the
+window manager and other factors).
 @end table
 
 @findex ediff-setup-windows
@@ -1552,10 +1578,9 @@ faces, you can modify them when Ediff is being loaded using
                         ediff-current-diff-face-B))))
 @end smallexample
 
-@strong{Note:} it is not recommended to use @code{internal-get-face}
-when defining Ediff's faces, since this may cause problems when there
-are several frames with different font sizes.  Instead, use
-@code{copy-face} or @code{set/make-face-@dots{}} as shown above.
+@strong{Note:} To set Ediff's faces, use only @code{copy-face} or
+@code{set/make-face-@dots{}} as shown above. Emacs' low-level
+face-manipulation functions should be avoided.
 
 @node Narrowing, Refinement of Difference Regions, Highlighting Difference Regions, Customization
 @section Narrowing
@@ -1904,7 +1929,7 @@ Ediff lets you automatically ignore the regions where only one of the
 buffers A and B disagrees with the ancestor.  To do this, set the
 variable @code{ediff-show-clashes-only} to non-@code{nil}.
 
-You can toggle this feature interactively by typing @kbd{$}.
+You can toggle this feature interactively by typing @kbd{$$}.
 
 Note that this variable affects only the show next/previous difference
 commands.  You can still jump directly to any difference region directly
@@ -2192,6 +2217,7 @@ Without them, Ediff would not be nearly as useful as it is today.
 Here is a full list of contributors (I hope I didn't miss anyone):
 
 @example
+Adrian Aichner (aichner@@ecf.teradyne.com),
 Steve Baur (steve@@xemacs.org),
 Neal Becker (neal@@ctd.comsat.com),
 E.@: Jay Berkenbilt (ejb@@ql.org),
@@ -2206,6 +2232,7 @@ Scott Cummings (cummings@@adc.com),
 Albert Dvornik (bert@@mit.edu),
 Eric Eide (eeide@@asylum.cs.utah.edu),
 Paul Eggert (eggert@@twinsun.com),
+Urban Engberg (ue@@cci.dk),
 Kevin Esler (esler@@ch.hp.com),
 Robert Estes (estes@@ece.ucdavis.edu),
 Jay Finger (jayf@@microsoft.com),
@@ -2214,8 +2241,10 @@ Eric Freudenthal (freudent@@jan.ultra.nyu.edu),
 Job Ganzevoort (Job.Ganzevoort@@cwi.nl),
 Boris Goldowsky (boris@@cs.rochester.edu),
 Allan Gottlieb (gottlieb@@allan.ultra.nyu.edu),
+Aaron Gross (aaron@@bfr.co.il),
 Thorbjoern Hansen (thorbjoern.hansen@@mchp.siemens.de),
 Xiaoli Huang (hxl@@epic.com),
+Andreas Jaeger (aj@@suse.de),
 Lars Magne Ingebrigtsen (larsi@@ifi.uio.no),
 Larry Gouge (larry@@itginc.com),
 Karl Heuer (kwzh@@gnu.org),
@@ -2223,6 +2252,7 @@ Karl Heuer (kwzh@@gnu.org),
 (jaffe@@chipmunk.cita.utoronto.ca),
 David Karr (dkarr@@nmo.gtegsc.com),
 Norbert Kiesel (norbert@@i3.informatik.rwth-aachen.de),
+Sam Steingold (sds@@goems.com),
 Leigh L Klotz (klotz@@adoc.xerox.com),
 Fritz Knabe (Fritz.Knabe@@ecrc.de),
 Heinz Knutzen (hk@@informatik.uni-kiel.d400.de),
@@ -2240,6 +2270,7 @@ Eyvind Ness (Eyvind.Ness@@hrp.no),
 Ray Nickson (nickson@@cs.uq.oz.au),
 David Petchey (petchey_david@@jpmorgan.com),
 Benjamin Pierce (benjamin.pierce@@cl.cam.ac.uk),
+Francois Pinard (pinard@@iro.umontreal.ca),
 Tibor Polgar (tlp00@@spg.amdahl.com),
 David Prince (dave0d@@fegs.co.uk),
 Paul Raines (raines@@slac.stanford.edu),

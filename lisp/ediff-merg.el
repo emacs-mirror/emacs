@@ -59,7 +59,7 @@ Valid values are the symbols `default-A', `default-B', and `combined'."
 (defcustom ediff-combination-pattern 
   '("<<<<<<<<<<<<<< variant A" ">>>>>>>>>>>>>> variant B" "======= end of combination")
   "*Pattern to be used for combining difference regions in buffers A and B.
-The value is (STRING1 STRING2 STRING3). The combined text will look like this:
+The value is (STRING1 STRING2 STRING3).  The combined text will look like this:
 
 STRING1
 diff region from variant A
@@ -70,16 +70,43 @@ STRING3
   :type '(list string string string)
   :group 'ediff-merge)
 
-(ediff-defvar-local ediff-show-clashes-only  nil
+(defcustom ediff-show-clashes-only nil
   "*If t, show only those diff regions where both buffers disagree with the ancestor.
 This means that regions that have status prefer-A or prefer-B will be
-skiped over. Nil means show all regions.")
+skiped over.  Nil means show all regions."
+  :type 'boolean
+  :group 'ediff-merge
+  )
+(make-variable-buffer-local 'ediff-show-clashes-only)
+
+(defcustom ediff-skip-merge-regions-that-differ-from-default nil
+  "*If t, show only the regions that have not been changed by the user.
+A region is considered to have been changed if it is different from the current
+default (`default-A', `default-B', `combined') and it hasn't been marked as
+`prefer-A' or `prefer-B'.
+A region is considered to have been changed also when it is marked as 
+as `prefer-A', but is different from the corresponding difference region in
+Buffer A or if it is marked as `prefer-B' and is different from the region in
+Buffer B."
+  :type 'boolean
+  :group 'ediff-merge
+  )
+(make-variable-buffer-local 'ediff-skip-merge-regions-that-differ-from-default)
 
 ;; If ediff-show-clashes-only, check if there is no clash between the ancestor
 ;; and one of the variants.
 (defsubst ediff-merge-region-is-non-clash (n)
   (and ediff-show-clashes-only
        (string-match "prefer" (or (ediff-get-state-of-merge n) ""))))
+
+;; If ediff-skip-changed-regions, check if the merge region differs from
+;; the current default. If a region is different from the default, it means
+;; that the user has made determination as to how to merge for this particular
+;; region. 
+(defsubst ediff-skip-merge-region-if-changed-from-default-p (n)
+  (and ediff-skip-merge-regions-that-differ-from-default
+       (ediff-merge-changed-from-default-p n 'prefers-too)))
+
 
 	
 (defsubst ediff-get-combined-region (n)
@@ -166,17 +193,10 @@ skiped over. Nil means show all regions.")
 		(reg-C (ediff-get-region-contents n 'C ediff-control-buffer)))
 		
 	    ;; if region was edited since it was first set by default
-	    (if (or (and (string= state-of-merge "default-A")
-			 (not (string= reg-A reg-C)))
-		    ;; was edited since first set by default
-		    (and (string= state-of-merge "default-B")
-			 (not (string= reg-B reg-C)))
-		    ;; was edited since first set by default
-		    (and (string= state-of-merge "combined")
-			 (not (string=
-			       (ediff-make-combined-diff reg-A reg-B) reg-C)))
-		    ;; was preferred--ignore
+	    (if (or (ediff-merge-changed-from-default-p n)
+		    ;; was preferred
 		    (string-match "prefer" state-of-merge))
+		;; then ignore
 		(setq do-not-copy t))
 		
 	    ;; change state of merge for this diff, if necessary
@@ -203,7 +223,7 @@ skiped over. Nil means show all regions.")
     
 
 (defun ediff-re-merge ()
-  "Remerge unmodified diff regions using a new default. Start with the current region."
+  "Remerge unmodified diff regions using a new default.  Start with the current region."
   (interactive)
   (let* ((default-variant-alist
 	   (list '("default-A") '("default-B") '("combined")))
@@ -213,7 +233,7 @@ skiped over. Nil means show all regions.")
     (setq ediff-default-variant
 	  (intern
 	   (completing-read 
-	    (format "Current merge default is `%S'. New default: "
+	    (format "Current merge default is `%S'.  New default: "
 		    ediff-default-variant)
 	    actual-alist nil 'must-match)))
     (ediff-do-merge ediff-current-difference 'remerge)
@@ -245,10 +265,10 @@ Used only for merging jobs."
 	 (ediff-recenter 'no-rehighlight))))
 
 
-;; N here is the user's region number. It is 1+ what Ediff uses internally.
+;; N here is the user's region number.  It is 1+ what Ediff uses internally.
 (defun ediff-combine-diffs (n &optional batch-invocation)
   "Combine Nth diff regions of buffers A and B and place the combination in C.
-N is a prefix argument. If nil, combine the current difference regions.
+N is a prefix argument.  If nil, combine the current difference regions.
 Combining is done according to the specifications in variable
 `ediff-combination-pattern'."
   (interactive "P")
@@ -265,7 +285,7 @@ Combining is done according to the specifications in variable
     
 
 ;; Checks if the region in buff C looks like a combination of the regions
-;; in buffers A and B. Returns a list (reg-a-beg reg-a-end reg-b-beg reg-b-end)
+;; in buffers A and B.  Return a list (reg-a-beg reg-a-end reg-b-beg reg-b-end)
 ;; These refer to where the copies of region A and B start and end in buffer C
 (defun ediff-looks-like-combined-merge (region-num)
   (if ediff-merge-job
@@ -294,6 +314,33 @@ Combining is done according to the specifications in variable
 	
 	(if (and reg-a-beg reg-a-end reg-b-beg reg-b-end)
 	    (list reg-a-beg reg-a-end reg-b-beg reg-b-end reg-c-beg reg-c-end))
+	)))
+
+
+;; Check if the non-preferred merge has been modified since originally set.
+;; This affects only the regions that are marked as default-A/B or combined.
+;; If PREFERS-TOO is non-nil, then look at the regions marked as prefers-A/B as
+;; well.
+(defun ediff-merge-changed-from-default-p (diff-num &optional prefers-too)
+  (let ((reg-A (ediff-get-region-contents diff-num 'A ediff-control-buffer))
+	(reg-B (ediff-get-region-contents diff-num 'B ediff-control-buffer))
+	(reg-C (ediff-get-region-contents diff-num 'C ediff-control-buffer)))
+
+    (setq state-of-merge (ediff-get-state-of-merge diff-num))
+		
+    ;; if region was edited since it was first set by default
+    (or (and (string= state-of-merge "default-A")
+	     (not (string= reg-A reg-C)))
+	(and (string= state-of-merge "default-B")
+	     (not (string= reg-B reg-C)))
+	(and (string= state-of-merge "combined")
+	     (not (string= (ediff-make-combined-diff reg-A reg-B) reg-C)))
+	(and prefers-too
+	     (string= state-of-merge "prefer-A")
+	     (not (string= reg-A reg-C)))
+	(and prefers-too
+	     (string= state-of-merge "prefer-B")
+	     (not (string= reg-B reg-C)))
 	)))
   
 

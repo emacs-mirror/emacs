@@ -342,6 +342,12 @@ The location of Viper customization file can be changed by setting the
 variable @code{viper-custom-file-name} in @file{.emacs} @emph{prior} to loading
 Viper.
 
+The latest versions of Emacs have an interactive customization facility,
+which allows you to (mostly) bypass the use of the @file{.emacs} and
+@file{.viper} files. You can reach this customization
+facility from within Viper's VI state by executing the Ex command
+@kbd{:customize}.
+
 Once invoked, Viper will arrange to bring up Emacs buffers in Vi state
 whenever this makes sense.
 @xref{Packages that Change Keymaps}, to find out when forcing Vi command state
@@ -1141,7 +1147,7 @@ under the cursor.  You have to turn this on in @file{.viper} either by calling
 @noindent
 or by setting @code{viper-buffer-search-char} to, say, @kbd{f3}:
 @example
-(setq viper-buffer-search-char [f3])
+(setq viper-buffer-search-char ?g)
 @end example
 
 @noindent
@@ -1406,9 +1412,9 @@ example is @kbd{gw} to search for the word under the cursor.
 @kindex @kbd{C-]}
 Quit and Abort Recursive edit.  These may be necessary on occasion.
 @xref{Vi State}, for a reason.
-@item C-c g
-@kindex @kbd{C-c g}
-Hitting @kbd{C-c} followed by @kbd{g} will display the information on the
+@item C-c C-g
+@kindex @kbd{C-c C-g}
+Hitting @kbd{C-c} followed by @kbd{C-g} will display the information on the
 current buffer.  This is the same as hitting @kbd{C-g} in Vi, but, as
 explained above, @kbd{C-g} is needed for other purposes in Emacs.
 @item C-c /
@@ -1760,21 +1766,19 @@ before Viper is loaded.  Note that you
 have to set it as a string inside double quotes.
 @item viper-spell-function 'ispell-region
 Function used by the command @kbd{#c<move>} to spell.
-@item ex-nontrivial-find-file-function
-The value of this variable is the function used to find all files that
-match a wildcard.  This is usually done when the user types @kbd{:e} and
-specifies a wildcard in the file name (or if the file name contains unusual
-symbols (e.g., a space).  Viper provides two functions for this: one for
-Unix-like systems (@code{viper-ex-nontrivial-find-file-unix}) and one for
-DOS, W95, and NT (@code{viper-ex-nontrivial-find-file-ms}).  If the default
-function doesn't quite do what you expect or if you prefer to use ``fancy''
-shells, you may have to write your own version of this function and make it
-into the value of @code{ex-nontrivial-find-file-function}.  Use
-@code{viper-ex-nontrivial-find-file-unix} and
-@code{viper-ex-nontrivial-find-file-ms} as examples.
-@vindex @code{ex-nontrivial-find-file-function}.
-@findex @code{viper-ex-nontrivial-find-file-ms}
-@findex @code{viper-ex-nontrivial-find-file-unix}
+@item viper-glob-function
+The value of this variable is the function symbol used to expand wildcard
+symbols. This is platform-dependent. The default tries to set this variable
+to work with most Unix shells, MS Windows, OS/2, etc. However, if it
+doesn't work the way you expect, you should write your own.
+Use @code{viper-glob-unix-files} and @code{viper-glob-mswindows-files} in
+@file{viper-util.el} as examples.
+
+This feature is used to expand wildcards in the Ex command @kbd{:e}.
+Note that Viper doesn't support wildcards in the @kbd{:r} and @kbd{:w}
+commands, because file completion is a better mechanism.
+@findex @code{viper-glob-function}
+
 @item ex-cycle-other-window t
 If not @code{nil}, @kbd{:n} and @kbd{:b} will cycle through files in another
 window, if one exists.
@@ -2638,8 +2642,9 @@ menubar.
 @item viper-multiclick-timeout
 This variable controls the rate at which double-clicking must occur for the
 purpose of mouse search and mouse insert.  By default, this is set to
-@code{double-click-time}.
-@end table
+@code{double-click-time} in Emacs and to
+@code{mouse-track-multi-click-time} milliseconds in XEmacs.
+@end table        
 @kindex @kbd{S-mouse-1}
 @kindex @kbd{S-mouse-2}
 @kindex @kbd{meta shift button1up}
@@ -3068,8 +3073,11 @@ lines.
 @end table
 
 @cindex % (Current file)
-Note that @samp{%} is used in Ex commands to mean current file.  If you
-want a @samp{%} in your command, it must be escaped as @samp{\%}.
+Note that @samp{%} is used in Ex commands @kbd{:e} and @kbd{:r <shell-cmd>}
+to mean current file.  If you want a @samp{%} in your command, it must be
+escaped as @samp{\%}. Note that @kbd{:w} and the regular @kbd{:r <file>}
+command doesn't support the meta symbols @samp{%} and @samp{#}, because
+file history is a better mechanism.
 @cindex # (Previous file)
 Similarly, @samp{#} expands to the previous file.  The previous file is
 the first file in @kbd{:args} listing.  This defaults to previous window
@@ -3415,6 +3423,11 @@ the Emacs mark ring.
 Mark the current file and position with the specified letter.
 @item m .
 Set the Emacs mark (@pxref{Emacs Preliminaries}) at point.
+@item m ^
+Set the Emacs mark (@xref{Emacs Preliminaries}) back to where it was last
+set with the @kbd{m.} command. This is useful when you set the mark with
+@kbd{m.}, but then some other command (such as @kbd{L} or @kbd{G}) changes
+it in a way that you didn't like.
 @item m <
 Set the Emacs mark at beginning of buffer.
 @item m >
@@ -3439,6 +3452,7 @@ Go to specified Viper mark and go to the first CHAR on line.
 @kindex @kbd{m>}
 @kindex @kbd{m<}
 @kindex @kbd{m,}
+@kindex @kbd{m^}
 @findex @kbd{:mark}
 @findex @kbd{:k}
 @kindex @kbd{''}
@@ -3907,6 +3921,11 @@ In all file handling commands, space should be typed before entering the file
 name.  If you need to type a modifier, such as @kbd{>>} or @kbd{!}, don't
 put any space between the command and the modifier.
 
+Note that many Ex commands, e.g., @kbd{:w}, accept command arguments. The
+effect is that the command would start acting on the current region. For
+instance, if the current region spans the lines 11 through 22, then if you
+type @kbd{1:w} you would see @samp{:11,22w} in the minibuffer.
+
 @table @kbd
 @item :q
 Quit buffer except if modified.
@@ -3984,13 +4003,18 @@ Obsolete
 @item :args
 List files not shown anywhere with counts for next
 @item :n [count]  [+<cmd>] [<files>]
-Edit <count> file, or edit files.  The count comes from @kbd{:args}.
-@item :N [count] [+<cmd>] [<files>]
+Edit <count> file, or edit files.  The count comes from @kbd{:args}.  
+@item :N [count] [+<cmd>] [<files>] 
 Like @kbd{:n}, but the meaning of the variable
 @var{ex-cycle-other-window} is reversed.
 @item :b
 Switch to another buffer.  If @var{ex-cycle-other-window} is @code{t},
 switch in another window.  Buffer completion is supported.
+The variable @var{viper-read-buffer-function} controls which function is
+actually used to read the buffer name. The default is @code{read-buffer},
+but better alternatives are also available in Emacs (e.g.,
+@code{iswitchb-read-buffer}).
+@vindex @var{viper-read-buffer-function}
 @item :B
 Like @kbd{:b}, but the meaning of @var{ex-cycle-other-window} is reversed.
 @item :<address>r <name>
@@ -4110,15 +4134,20 @@ Show contents of register.
 
 @cindex % (Current file)
 
-Note that % is used in Ex commands to mean current file.  If you want a %
-in your command, it must be escaped as @samp{\%}.
-@cindex % (Ex address)
-However if % is the
-first character, it stands as the address for the whole file.
-@cindex # (Previous file)
-Similarly, @samp{#} expands to the previous file.  The previous file is
-the first file in @kbd{:args} listing.  This defaults
-to the previous file in the VI sense if you have one window.@refill
+The symbol @samp{%} is used in Ex shell commands to mean current file.  If
+you want a @samp{%} in your command, it must be escaped as @samp{\%}.
+@cindex @samp{%} (Ex address)
+However if @samp{%} is the first character, it stands as the address for
+the whole file.
+@cindex @samp{#} (Previous file)
+Similarly, @samp{#} expands to the previous file.  The previous file is the
+first file in @kbd{:args} listing.  This defaults to the previous file in
+the VI sense if you have one window.@refill
+
+Symbols @samp{%} and @samp{#} are also used in the Ex commands @kbd{:e} and
+@kbd{:r <shell-cmd>}.  The commands @kbd{:w} and the regular @kbd{:r
+<file>} command don't support these meta symbols, because file history is a
+better mechanism.
 
 @cindex shell commands
 
