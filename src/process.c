@@ -1835,7 +1835,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
   /* It would not be safe to call this below,
      where we call redisplay_preserve_echo_area.  */
-  prepare_menu_bars ();
+  if (do_display && frame_garbaged)
+    prepare_menu_bars ();
 
   while (1)
     {
@@ -2215,6 +2216,9 @@ read_process_output (proc, channel)
       if (! EQ (Fcurrent_buffer (), obuffer))
 	record_asynch_buffer_change ();
 
+      if (waiting_for_user_input_p)
+	prepare_menu_bars ();
+
 #ifdef VMS
       start_vms_process_read (vs);
 #endif
@@ -2289,11 +2293,11 @@ read_process_output (proc, channel)
 
 DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
        0, 0, 0,
-  "Returns non-NIL if emacs is waiting for input from the user.\n\
+  "Returns non-nil if emacs is waiting for input from the user.\n\
 This is intended for use by asynchronous process output filters and sentinels.")
        ()
 {
-  return ((waiting_for_user_input_p) ? Qt : Qnil);
+  return (waiting_for_user_input_p ? Qt : Qnil);
 }
 
 /* Sending data to subprocess */
@@ -3017,6 +3021,8 @@ exec_sentinel (proc, reason)
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
   call2 (sentinel, proc, reason);
+  if (waiting_for_user_input_p)
+    prepare_menu_bars ();
   unbind_to (count, Qnil);
 }
 
