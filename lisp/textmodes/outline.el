@@ -220,6 +220,7 @@ Commands:\\<outline-mode-map>
 
 \\[hide-body]	make all text invisible (not headings).
 \\[show-all]	make everything in buffer visible.
+\\[hide-sublevels]  make only the first N levels of headers visible.
 
 The remaining commands are used when point is on a heading line.
 They apply to some of the body or subheadings of that heading.
