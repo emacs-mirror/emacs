@@ -733,22 +733,22 @@ Its value and function definition are void, and its property list is nil.")
   return val;
 }
 
-/* Allocation of markers.
+/* Allocation of markers and other objects that share that structure.
    Works like allocation of conses. */
 
 #define MARKER_BLOCK_SIZE \
-  ((1020 - sizeof (struct marker_block *)) / sizeof (struct Lisp_Marker))
+  ((1020 - sizeof (struct marker_block *)) / sizeof (union Lisp_Misc))
 
 struct marker_block
   {
     struct marker_block *next;
-    struct Lisp_Marker markers[MARKER_BLOCK_SIZE];
+    union Lisp_Misc markers[MARKER_BLOCK_SIZE];
   };
 
 struct marker_block *marker_block;
 int marker_block_index;
 
-struct Lisp_Marker *marker_free_list;
+union Lisp_Misc *marker_free_list;
 
 void
 init_marker ()
@@ -760,6 +760,34 @@ init_marker ()
   marker_free_list = 0;
 }
 
+/* Return a newly allocated Lisp_Misc object, with no substructure.  */
+Lisp_Object
+allocate_misc ()
+{
+  Lisp_Object val;
+
+  if (marker_free_list)
+    {
+      XSETMISC (val, marker_free_list);
+      marker_free_list = marker_free_list->u_free.chain;
+    }
+  else
+    {
+      if (marker_block_index == MARKER_BLOCK_SIZE)
+	{
+	  struct marker_block *new
+	    = (struct marker_block *) xmalloc (sizeof (struct marker_block));
+	  VALIDATE_LISP_STORAGE (new, sizeof *new);
+	  new->next = marker_block;
+	  marker_block = new;
+	  marker_block_index = 0;
+	}
+      XSETMISC (val, &marker_block->markers[marker_block_index++]);
+    }
+  consing_since_gc += sizeof (union Lisp_Misc);
+  return val;
+}
+
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   "Return a newly allocated marker which does not point at any place.")
   ()
@@ -767,29 +795,12 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   register Lisp_Object val;
   register struct Lisp_Marker *p;
 
-  if (marker_free_list)
-    {
-      XSETMARKER (val, marker_free_list);
-      marker_free_list
-	= (struct Lisp_Marker *) XFASTINT (marker_free_list->chain);
-    }
-  else
-    {
-      if (marker_block_index == MARKER_BLOCK_SIZE)
-	{
-	  struct marker_block *new = (struct marker_block *) xmalloc (sizeof (struct marker_block));
-	  VALIDATE_LISP_STORAGE (new, sizeof *new);
-	  new->next = marker_block;
-	  marker_block = new;
-	  marker_block_index = 0;
-	}
-      XSETMARKER (val, &marker_block->markers[marker_block_index++]);
-    }
+  val = allocate_misc ();
+  XMISC (val)->type = Lisp_Misc_Marker;
   p = XMARKER (val);
   p->buffer = 0;
   p->bufpos = 0;
   p->chain = Qnil;
-  consing_since_gc += sizeof (struct Lisp_Marker);
   return val;
 }
 
@@ -1125,8 +1136,15 @@ Does not copy symbols.")
   switch (XTYPE (obj))
 #endif
     {
-    case Lisp_Marker:
-      error ("Attempt to copy a marker to pure storage");
+    case Lisp_Misc:
+      switch (XMISC (obj)->type)
+	{
+	case Lisp_Misc_Marker:
+	  error ("Attempt to copy a marker to pure storage");
+
+	default:
+	  abort ();
+	}
 
     case Lisp_Cons:
       return pure_cons (XCONS (obj)->car, XCONS (obj)->cdr);
@@ -1426,7 +1444,8 @@ clear_marks ()
       {
 	register int i;
 	for (i = 0; i < lim; i++)
-	  XUNMARK (sblk->markers[i].chain);
+	  if (sblk->markers[i].type == Lisp_Misc_Marker)
+	    XUNMARK (sblk->markers[i].u_marker.chain);
 	lim = MARKER_BLOCK_SIZE;
       }
   }
@@ -1613,11 +1632,19 @@ mark_object (objptr)
       }
       break;
 
-    case Lisp_Marker:
-      XMARK (XMARKER (obj)->chain);
-      /* DO NOT mark thru the marker's chain.
-	 The buffer's markers chain does not preserve markers from gc;
-	 instead, markers are removed from the chain when freed by gc.  */
+    case Lisp_Misc:
+      switch (XMISC (obj)->type)
+	{
+	case Lisp_Misc_Marker:
+	  XMARK (XMARKER (obj)->chain);
+	  /* DO NOT mark thru the marker's chain.
+	     The buffer's markers chain does not preserve markers from gc;
+	     instead, markers are removed from the chain when freed by gc.  */
+	  break;
+
+	default:
+	  abort ();
+	}
       break;
 
     case Lisp_Cons:
@@ -1855,20 +1882,26 @@ gc_sweep ()
       {
 	register int i;
 	for (i = 0; i < lim; i++)
-	  if (!XMARKBIT (mblk->markers[i].chain))
+	  if (mblk->markers[i].type == Lisp_Misc_Marker)
 	    {
-	      Lisp_Object tem;
-	      tem1 = &mblk->markers[i];  /* tem1 avoids Sun compiler bug */
-	      XSETMARKER (tem, tem1);
-	      unchain_marker (tem);
-	      XSETFASTINT (mblk->markers[i].chain, (EMACS_INT) marker_free_list);
-	      marker_free_list = &mblk->markers[i];
-	      num_free++;
-	    }
-	  else
-	    {
-	      num_used++;
-	      XUNMARK (mblk->markers[i].chain);
+	      if (!XMARKBIT (mblk->markers[i].u_marker.chain))
+		{
+		  Lisp_Object tem;
+		  tem1 = &mblk->markers[i].u_marker;  /* tem1 avoids Sun compiler bug */
+		  XSETMARKER (tem, tem1);
+		  unchain_marker (tem);
+		  /* We could leave the type alone, since nobody checks it,
+		     but this might catch bugs faster.  */
+		  mblk->markers[i].type = Lisp_Misc_Free;
+		  mblk->markers[i].u_free.chain = marker_free_list;
+		  marker_free_list = &mblk->markers[i];
+		  num_free++;
+		}
+	      else
+		{
+		  num_used++;
+		  XUNMARK (mblk->markers[i].u_marker.chain);
+		}
 	    }
 	lim = MARKER_BLOCK_SIZE;
       }
