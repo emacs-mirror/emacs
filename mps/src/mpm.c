@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpm.c(trunk.21) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -13,9 +13,11 @@
 
 #include "mpm.h"
 #include <stdarg.h>
+/* Get some floating constants for WriteDouble */
+#include <float.h>
 
 
-SRCID(mpm, "$HopeName$");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.21) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -58,6 +60,14 @@ Bool MPMCheck(void)
   CHECKL(sizeof(WriteFU) <= sizeof(Word));
   CHECKL(sizeof(WriteFB) <= sizeof(Word));
   CHECKL(sizeof(WriteFC) <= sizeof(Word));
+  /* .check.write.double: See .write.double.check */
+  {
+    int e, DBL_EXP_DIG = 1;
+    for (e = DBL_MAX_10_EXP; e > 0; e /= 10)
+      DBL_EXP_DIG++;
+    CHECKL(DBL_EXP_DIG < DBL_DIG);
+    CHECKL(-DBL_MIN_10_EXP <= DBL_MAX_10_EXP);
+  }
 
   return TRUE;  
 }
@@ -313,6 +323,151 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
   return ResOK;
 }
 
+/*
+ * WriteDouble -- write a double float to a stream
+ *
+ * Cf.: Guy L. Steele, Jr. and Jon L. White, "How to print
+ * floating-point numbers accurately", ACM SIGPLAN Notices, Vol. 25,
+ * No. 6 (Jun. 1990), Pages 112-126
+ *
+ * .write.double.limitation: Only the "simple" printer is implemented
+ * here.
+ *
+ * .write.double.check: There being no DBL_EXP_DIG, we assume that it
+ * is less than DBL_DIG.
+ */
+
+static Res WriteDouble(mps_lib_FILE *stream, double d) 
+{
+  double F = d;
+  int E = 0, i, x = 0;
+  /* Largest exponent that will print in %f style.  Larger will use %e
+     style.  DBL_DIG is chosen for use of doubles as extra-large
+     intergers. */
+  int expmax = DBL_DIG;
+  /* Smallest exponent that will print in %f style.  Smaller will use
+     %e style.  -4 is chosen because it is the %g default. */
+  int expmin = -4;
+  /* Epsilon defines how many digits will be printed.  Using
+     DBL_EPSILON prints all the significant digits.  To print fewer
+     digits, set epsilon to 10 ^ - N, where N is the desired number of
+     digits */
+  double epsilon = DBL_EPSILON / 2;
+  char digits[] = "0123456789";
+  /* sign, DBL_DIG, '0.', 'e', '+/-', log10(DBL_MAX_10_EXP),
+     terminator.  See .write.double.check */
+  char buf[1+DBL_DIG+2+1+1+DBL_DIG+1];
+  int j = 0;
+  
+  if (F == 0.0) {
+    if(mps_lib_fputs("0", stream) == mps_lib_EOF)
+      return ResIO;
+    return ResOK;
+  }
+
+  if (F < 0) {
+    buf[j] = '-';
+    j++;
+    F = - F;
+  }
+  
+  /* This scaling operation could introduce rounding errors */
+  for ( ; F >= 1.0 ; F /= 10.0) {
+    E++;
+    if (E > DBL_MAX_10_EXP) {
+      if(mps_lib_fputs("Infinity", stream) == mps_lib_EOF)
+        return ResIO;
+      return ResOK;
+    }
+  }
+  for ( ; F < 0.1; F *= 10)
+    E--;
+    
+  /* See if %e notation is required */
+  if (E > expmax || E <= expmin) {
+    x = E - 1;
+    E = 1;
+  }
+
+  /* Insert leading 0's */
+  if (E <= 0) {
+    buf[j] = '0';
+    j++;
+  }
+  if (E < 0) {
+    buf[j] = '.';
+    j++;
+  }
+  for (i = -E; i > 0; i--) {
+    buf[j] = '0';
+    j++;
+  }
+
+  /* Convert the fraction to base 10, inserting a decimal according to
+     the exponent.  This is Steele and White's FP3 algorithm. */
+  do {
+    int U;
+    
+    if (E == 0) {
+      buf[j] = '.';
+      j++;
+    }
+    F *= 10.0;
+    U = (int)F;
+    F = F - U;
+    epsilon *= 10.0;
+    E--;
+    if (F < epsilon || F > 1.0 - epsilon) {
+      if (F < 0.5)
+        buf[j] = digits[U];
+      else
+        buf[j] = digits[U + 1];
+      j++;
+      break;
+    }
+    buf[j] = digits[U];
+    j++;
+  } while (1);
+  
+  /* Insert trailing 0's */
+  for (i = E; i > 0; i--) {
+    buf[j] = '0';
+    j++;
+  }
+
+  /* If %e notation is selected, append the exponent indicator and
+     sign  */
+  if (x != 0) {
+    buf[j] = 'e';
+    j++;
+    if (x < 0) {
+      buf[j] = '-';
+      j++;
+      x = - x;
+    }
+    else {
+      buf[j] = '+';
+      j++;
+    }
+
+    /* Format the exponent to at least two digits */
+    for (i = 100; i <= x; )
+      i *= 10;
+    i /= 10;
+    do {
+      buf[j] = digits[x / i];
+      j++;
+      x %= i;
+      i /= 10;
+    } while (i > 0);
+  }
+  buf[j] = '\0';                /* arnold */
+  
+  if(mps_lib_fputs(buf, stream) == mps_lib_EOF)
+    return ResIO;
+  return ResOK;
+}
+
 
 /* WriteF -- write formatted output
  *
@@ -418,6 +573,12 @@ Res WriteF(mps_lib_FILE *stream, ...)
               return ResIO;
           } break;
 
+          case 'D': {                   /* double */
+            WriteFD d = va_arg(args, WriteFD);
+            res = WriteDouble(stream, d);
+            if (res != ResOK) return res;
+          } break;
+               
           default:
           NOTREACHED;
         }

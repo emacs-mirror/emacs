@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.49) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.50) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -76,6 +76,29 @@ typedef struct ThreadStruct *Thread;    /* impl.c.th* */
 typedef struct ActionStruct *Action;    /* design.mps.action */
 typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* design.mps.prot */
+
+
+/* Splay* -- See design.mps.splay */
+
+typedef struct SplayTreeStruct *SplayTree;
+typedef struct SplayNodeStruct *SplayNode;
+typedef unsigned Compare;
+typedef Compare (*SplayCompareMethod)(void *key, SplayNode node);
+typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
+enum {
+  CompareLESS,
+  CompareEQUAL,
+  CompareGREATER
+};
+
+/* CBS* -- See design.mps.cbs */
+
+typedef struct CBSStruct *CBS;
+typedef struct CBSBlockStruct *CBSBlock;
+typedef void (*CBSNewMethod)(CBS cbs, CBSBlock block);
+typedef void (*CBSDeleteMethod)(CBS cbs, CBSBlock block);
+typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
+				 void *closureP, unsigned long closureS);
 
 
 /* Arena*Method -- see @@@@ */
@@ -334,5 +357,7 @@ typedef unsigned long WriteFU;
 typedef unsigned long WriteFB;
 typedef void *(*WriteFF)(void);
 typedef int WriteFC; /* Promoted */
+typedef double WriteFD;
+
 
 #endif /* mpmtypes_h */
