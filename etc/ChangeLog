@@ -1,3 +1,9 @@
+2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print0.ps: New file.
+	
+	* ps-prin1.ps, ps-prin3.ps: Eliminate CheckConfig.
+
 2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps, ps-prin2.ps, ps-prin3.ps: New files.

@@ -1,0 +1,115 @@
+% === BEGIN ps-print prologue 0
+
+%%BeginProcSet: ErrorHandler
+% Downloaded Error Break-page handler
+% Adapted from:
+%     PostScript Language Program Design,
+%     Adobe Systems Incorporated.
+%     Appendix A, pages 217-219
+
+/ps$brkpage where{pop}
+{
+ /ps$brkpage 64 dict def
+ ps$brkpage begin
+  /tx 0 def /ty 0 def /toy 0 def /tox 0 def
+  /prnt{
+   dup type /stringtype ne{=string cvs}if
+   dup length 6 mul
+   /tx exch def /ty 10 def
+   currentpoint /toy exch def /tox exch def
+   1 setgray newpath
+   tox toy 2 sub moveto
+   0 ty rlineto tx 0 rlineto
+   0 ty neg rlineto
+   closepath fill
+   tox toy moveto 0 setgray show
+  }bind def
+  /nl{currentpoint exch pop lmargin exch moveto 0 -10 rmoveto}def
+  /=={/cp 0 def typeprint nl}def
+  /typeprint{dup type dup currentdict exch known{exec}{unknowntype}ifelse}readonly def
+  /lmargin 72 def
+  /rmargin 72 def
+  /tprint{
+   dup length cp add rmargin gt{nl /cp 0 def}if
+   dup length cp add /cp exch def
+   prnt
+  }readonly def
+  /cvsprint{=string cvs tprint( )tprint}readonly def
+  /unknowntype{exch pop cvlit(??)tprint cvsprint}readonly def
+  /integertype{cvsprint}readonly def
+  /realtype{cvsprint}readonly def
+  /booleantype{cvsprint}readonly def
+  /operatortype{(//)tprint cvsprint}readonly def
+  /marktype{pop(-mark-)tprint}readonly def
+  /dicttype{pop(-dictionary-)tprint}readonly def
+  /nulltype{pop(-null-)tprint}readonly def
+  /filetype{pop(-filestream-)tprint}readonly def
+  /savetype{pop(-savelevel-)tprint}readonly def
+  /fonttype{pop(-fontid-)tprint}readonly def
+  /nametype{dup xcheck not{(/)tprint}if cvsprint}readonly def
+  /stringtype{
+   dup rcheck
+   {(\()tprint tprint(\))tprint}
+   {pop(-string-)tprint}ifelse}readonly def
+  /arraytype{
+   dup rcheck
+   {dup xcheck
+    {({)tprint{typeprint}forall(})tprint}
+    {([)tprint{typeprint}forall(])tprint}ifelse}
+   {pop(-array-)tprint}ifelse}readonly def
+  /packedarraytype{
+   dup rcheck
+   {dup xcheck
+    {({)tprint{typeprint}forall(})tprint}
+    {([)tprint{typeprint}forall(])tprint}ifelse}
+   {pop(-packedarray-)tprint}ifelse}readonly def
+  /courier /Courier findfont 10 scalefont def
+  /OLDhandleerror errordict /handleerror get def
+ end %ps$brkpage
+
+ /handleerror{
+  systemdict begin $error begin ps$brkpage begin
+  newerror
+  {/newerror false store vmstatus pop pop 0 ne{grestoreall}if
+   initgraphics
+   ErrorMessage 1 and 0 ne{ % print on paper
+    courier setfont lmargin 720 moveto
+    (# ERROR: )prnt errorname prnt nl
+    (# OFFENDING COMMAND: )prnt /command load prnt
+    $error /ostack known
+    {nl nl(# STACK:)prnt nl nl $error /ostack get aload length{==}repeat}if
+    $error /errorinfo known
+    {nl nl(# ERRORINFO:)prnt nl nl $error /errorinfo get aload length{==}repeat}if
+    systemdict /showpage get exec}if
+   ErrorMessage 2 and 0 ne{ % send back to printing system
+    (\%\%[ Error: )print errorname =print
+    (; OffendingCommand: )print/command load =print
+    $error /errorinfo known
+    {(; ErrorInfo:)print $error /errorinfo get aload length{( )=print =print}repeat}if
+    ( ]\%\%)= flush
+    (\%\%[ Rest of job is ignored ]\%\%)= flush}if
+   /newerror true store}if
+  end end end
+  stop
+ } % handleerror
+ dup 0 systemdict put % replace name by actual dict object
+ dup 4 ps$brkpage put % replace name by dict object
+ bind readonly
+
+ errordict 3 1 roll put % put proc in errordict as /handleerror
+}ifelse
+%%EndProcSet
+
+gs_languagelevel 2 ne{ % operators for language level 2 only
+ /<<{mark}bind def
+ />>{counttomark 2 idiv dup dict begin{def}repeat pop currentdict end}bind def
+ /setpagedevice{pop}bind def
+}if
+
+/setduplexmode where{pop}
+{/setduplexmode /duplexmode where{pop{duplexmode}}{{pop}}ifelse bind def}ifelse
+
+/settumble where{pop}
+{/settumble /tumble where{pop{tumble}}{{pop}}ifelse bind def}ifelse
+
+% === END ps-print prologue 0

@@ -1,3 +1,13 @@
+2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: PostScript user-defined prologue, PostScript error
+	handler, doc fix.
+	(ps-print-version): New version number (5.1).
+	(ps-user-defined-prologue, ps-error-handler-message)
+	(ps-print-prologue-0, ps-error-handler-alist): New vars.
+	(ps-setup, ps-begin-file, ps-begin-job): Code fix.
+	(ps-insert-string): New function.
+	
 2000-03-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ccl.el (ccl-compile-expression): Don't generate
