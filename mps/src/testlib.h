@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName$
+ * $HopeName: MMsrc!testlib.h(trunk.15) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -99,6 +99,18 @@ extern void die(mps_res_t res, const char *s);
  */
 
 extern void die_expect(mps_res_t res, mps_res_t expected, const char *s);
+
+
+/* cdie -- succeed or die
+ *
+ * If the first argument is not true (non-zero) then prints the second
+ * argument on stderr and exits the program.  Otherwise does nothing.
+ *
+ * Typical use:
+ *   cdie(foo != NULL, "No foo");
+ */
+
+extern void cdie(int res, const char *s);
 
 
 /* rnd -- random number generator
