@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.50) $
+ * $HopeName: MMsrc!mps.h(trunk.51) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -69,14 +69,13 @@ enum {
 /* Not meant to be used by clients, they should use the macros below. */
 enum {
   MPS_MESSAGE_TYPE_FINALIZATION,
-  MPS_MESSAGE_TYPE_COLLECTION_STATS
+  MPS_MESSAGE_TYPE_GC
 };
 
 /* Message Types
  * This is what clients should use. */
 #define mps_message_type_finalization() MPS_MESSAGE_TYPE_FINALIZATION
-#define mps_message_type_collection_stats() \
-  MPS_MESSAGE_TYPE_COLLECTION_STATS
+#define mps_message_type_gc() MPS_MESSAGE_TYPE_GC
 
 
 /* Reference Ranks
@@ -406,16 +405,14 @@ extern mps_message_type_t mps_message_type(mps_arena_t, mps_message_t);
 extern void mps_message_finalization_ref(mps_addr_t *,
                                          mps_arena_t, mps_message_t);
 
-/* MPS_MESSAGE_TYPE_COLLECTION_STATS */
+/* MPS_MESSAGE_TYPE_GC */
 
-extern size_t mps_message_collection_stats_live_size(mps_arena_t, 
-                                                     mps_message_t);
+extern size_t mps_message_gc_live_size(mps_arena_t, mps_message_t);
 
-extern size_t mps_message_collection_stats_condemned_size(mps_arena_t, 
-                                                          mps_message_t);
+extern size_t mps_message_gc_condemned_size(mps_arena_t, mps_message_t);
 
-extern size_t mps_message_collection_stats_not_condemned_size(mps_arena_t, 
-                                                              mps_message_t);
+extern size_t mps_message_gc_not_condemned_size(mps_arena_t, 
+                                                mps_message_t);
 
 
 /* Finalization */

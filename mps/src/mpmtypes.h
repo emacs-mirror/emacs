@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.66) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.67) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -210,12 +210,9 @@ typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
 typedef void (*MessageDeleteMethod)(Message message);
 typedef void (*MessageFinalizationRefMethod)
   (Ref *refReturn, Arena arena, Message message);
-typedef Size (*MessageCollectionStatsLiveSizeMethod)
-  (Message message);
-typedef Size (*MessageCollectionStatsCondemnedSizeMethod)
-  (Message message);
-typedef Size (*MessageCollectionStatsNotCondemnedSizeMethod)
-  (Message message);
+typedef Size (*MessageGCLiveSizeMethod)(Message message);
+typedef Size (*MessageGCCondemnedSizeMethod)(Message message);
+typedef Size (*MessageGCNotCondemnedSizeMethod)(Message message);
 
 
 /* Message Types -- design.mps.message and elsewhere */
@@ -385,7 +382,7 @@ enum {
 
 enum {
   MessageTypeFinalization,
-  MessageTypeCollectionStats,
+  MessageTypeGC,
   MessageTypeMAX
 };
 

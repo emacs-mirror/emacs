@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.62) $
+ * $HopeName: MMsrc!mpsi.c(trunk.63) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.62) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.63) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1391,9 +1391,9 @@ void mps_message_finalization_ref(mps_addr_t *mps_addr_return,
   ArenaLeave(arena);
 }
 
-/* MPS_MESSAGE_TYPE_COLLECTION_STATS */
+/* MPS_MESSAGE_TYPE_GC */
 
-size_t mps_message_collection_stats_live_size(mps_arena_t mps_arena, 
+size_t mps_message_gc_live_size(mps_arena_t mps_arena, 
                                               mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
@@ -1403,15 +1403,15 @@ size_t mps_message_collection_stats_live_size(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
-  size = MessageCollectionStatsLiveSize(message);
+  size = MessageGCLiveSize(message);
 
   ArenaLeave(arena);
 
   return (size_t)size;
 }
 
-size_t mps_message_collection_stats_condemned_size(mps_arena_t mps_arena,
-                                                   mps_message_t mps_message)
+size_t mps_message_gc_condemned_size(mps_arena_t mps_arena,
+                                     mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
   Message message = (Message)mps_message;
@@ -1420,15 +1420,15 @@ size_t mps_message_collection_stats_condemned_size(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
-  size = MessageCollectionStatsCondemnedSize(message);
+  size = MessageGCCondemnedSize(message);
 
   ArenaLeave(arena);
 
   return (size_t)size;
 }
 
-size_t mps_message_collection_stats_not_condemned_size(mps_arena_t mps_arena,
-                                                       mps_message_t mps_message)
+size_t mps_message_gc_not_condemned_size(mps_arena_t mps_arena,
+                                         mps_message_t mps_message)
 {
   Arena arena = (Arena)mps_arena;
   Message message = (Message)mps_message;
@@ -1437,7 +1437,7 @@ size_t mps_message_collection_stats_not_condemned_size(mps_arena_t mps_arena,
   ArenaEnter(arena);
 
   AVERT(Arena, arena);
-  size = MessageCollectionStatsNotCondemnedSize(message);
+  size = MessageGCNotCondemnedSize(message);
 
   ArenaLeave(arena);
 
