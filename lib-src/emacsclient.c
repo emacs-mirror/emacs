@@ -169,9 +169,8 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (0);
 }
 
-/* Inserting a &
-   before each &, each space, each newline, and any initial -.
-   Change spaces to underscores, too, so that the
+/* In NAME, insert a & before each &, each space, each newline, and
+   any initial -.  Change spaces to underscores, too, so that the
    return value never contains a space.  */
 
 void
