@@ -23,6 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "syntax.h"
+#include "window.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
 
@@ -253,6 +254,11 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
      features all do nothing in that case.  */
 
   flag = point > BEGV && FETCH_CHAR (point - 1) == '\n';
+  /* Don't do this if at the beginning of the window.  */
+  if (XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer
+      && marker_position (XWINDOW (selected_window)->start) == PT)
+    flag = 0;
+
 #ifdef USE_TEXT_PROPERTIES
   /* We cannot use this optimization if properties change
      in the vicinity.
