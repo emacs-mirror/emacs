@@ -163,7 +163,7 @@ Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
 Calls the value of  view-hook  if that is non-nil."
-  (interactive \"bView buffer:\\nP\")
+  (interactive "bView buffer:\nP")
   (let ((return-to (and not-return (current-window-configuration))))
     (switch-to-buffer-other-window buffer-name)
     (view-mode return-to)))
