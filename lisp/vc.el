@@ -451,7 +451,7 @@ lock steals will raise an error."
 	    (vc-start-entry nil nil nil
 			    "Enter a change comment for the marked files."
 			    'vc-next-action-dired)
-	    (throw 'nogo))))
+	    (throw 'nogo nil))))
     (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
     (if buffer-file-name
@@ -653,8 +653,9 @@ If nil, uses `change-log-default-name'."
     (error "No log operation is pending"))
   ;; Return to "parent" buffer of this checkin and remove checkin window
   (pop-to-buffer vc-parent-buffer)
-  (delete-windows-on (get-buffer "*VC-log*"))
-  (kill-buffer "*VC-log*")
+  (let ((logbuf (get-buffer "*VC-log*")))
+    (delete-windows-on logbuf)
+    (kill-buffer logbuf))
   ;; Now make sure we see the expanded headers
   (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
