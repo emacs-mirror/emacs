@@ -4130,9 +4130,11 @@ update_window (w, force_p)
 	      goto set_cursor;
 	    }
 	  else if (rc > 0)
-	    /* We've scrolled the display.  */
-	    force_p = 1;
-	  changed_p = 1;
+	    {
+	      /* We've scrolled the display.  */
+	      force_p = 1;
+	      changed_p = 1;
+	    }
 	}
 
       /* Update the rest of the lines.  */
@@ -5049,8 +5051,8 @@ scrolling_window (w, header_line_p)
   for (i = 0; i < row_entry_idx; ++i)
     row_table[row_entry_pool[i].bucket] = NULL;
 
-  /* Value is non-zero to indicate that we scrolled the display.  */
-  return 1;
+  /* Value is > 0 to indicate that we scrolled the display.  */
+  return nruns;
 }
 
 
@@ -5909,13 +5911,13 @@ marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
 	 it's the one we were looking for.  */
       if (area == RIGHT_MARGIN_AREA)
 	x0 = ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-	       ? WINDOW_LEFT_FRINGE_WIDTH (w) 
+	       ? WINDOW_LEFT_FRINGE_WIDTH (w)
 	       : WINDOW_TOTAL_FRINGE_WIDTH (w))
 	      + window_box_width (w, LEFT_MARGIN_AREA)
 	      + window_box_width (w, TEXT_AREA));
       else
 	x0 = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-	      ? WINDOW_LEFT_FRINGE_WIDTH (w) 
+	      ? WINDOW_LEFT_FRINGE_WIDTH (w)
 	      : 0);
 
       glyph = row->glyphs[area];
