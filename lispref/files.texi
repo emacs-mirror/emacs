@@ -859,10 +859,10 @@ as directories, symbolic links, and ordinary files.
 
 @defun file-symlink-p filename
 @cindex file symbolic links
-If the file @var{filename} is a symbolic link, the @code{file-symlink-p}
-function returns the file name to which it is linked.  This may be the
-name of a text file, a directory, or even another symbolic link, or it
-may be a nonexistent file name.
+If the file @var{filename} is a symbolic link, the
+@code{file-symlink-p} function returns the link target as a string.
+(Determining the file name that the link points to from the target is
+nontrivial.)
 
 If the file @var{filename} is not a symbolic link (or there is no such file),
 @code{file-symlink-p} returns @code{nil}.
