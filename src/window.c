@@ -429,10 +429,12 @@ column 0.")
 {
   int part;
 
+#ifdef MULTI_FRAME
   if (NILP (frame))
     XSET (frame, Lisp_Frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 2);
+#endif
   CHECK_NUMBER (row, 0);
   CHECK_NUMBER (column, 1);
 
@@ -1001,9 +1003,10 @@ window_loop (type, obj, mini, frames)
   register Lisp_Object w;
   register Lisp_Object best_window;
   register Lisp_Object next_window;
-  register Lisp_Object first_window;
+  register Lisp_Object last_window;
   FRAME_PTR frame;
 
+#ifdef MULTI_FRAME
   /* If we're only looping through windows on a particular frame,
      frame points to that frame.  If we're looping through windows
      on all frames, frame is 0.  */
@@ -1013,18 +1016,36 @@ window_loop (type, obj, mini, frames)
     frame = selected_frame;
   else
     frame = 0;
+#else
+  frame = 0;
+#endif
 
   /* Pick a window to start with.  */
   if (XTYPE (obj) == Lisp_Window)
-    first_window = obj;
+    w = obj;
   else if (frame)
-    first_window = FRAME_SELECTED_WINDOW (frame);
+    w = FRAME_SELECTED_WINDOW (frame);
   else
-    first_window = FRAME_SELECTED_WINDOW (selected_frame);
+    w = FRAME_SELECTED_WINDOW (selected_frame);
 
-  w = first_window;
+  /* Figure out the last window we're going to mess with.  Since
+     Fnext_window, given the same options, is guaranteed to go in a
+     ring, we can just use Fprevious_window to find the last one.
+
+     We can't just wait until we hit the first window again, because
+     it might be deleted.  */
+
+#ifdef MULTI_FRAME
+  if (frame)
+    last_window = Fprevious_window (w, (mini ? Qt : Qnil), Qlambda);
+  else
+#endif	/* MULTI_FRAME */
+    /* We know frame is 0, so we're looping through all frames.
+       Or we know this isn't a MULTI_FRAME Emacs, so who cares?  */
+    last_window = Fprevious_window (w, mini ? Qt : Qnil, Qt);
+
   best_window = Qnil;
-  do
+  for (;;)
     {
       /* Pick the next window now, since some operations will delete
 	 the current window.  */
@@ -1032,7 +1053,7 @@ window_loop (type, obj, mini, frames)
       if (frame)
 	next_window = Fnext_window (w, (mini ? Qt : Qnil), Qlambda);
       else
-#endif	/* MULTI_FRAME */
+#endif				/* MULTI_FRAME */
 	/* We know frame is 0, so we're looping through all frames.
 	   Or we know this isn't a MULTI_FRAME Emacs, so who cares?  */
 	next_window = Fnext_window (w, mini ? Qt : Qnil, Qt);
@@ -1133,9 +1154,12 @@ window_loop (type, obj, mini, frames)
 	      }
 	    break;
 	  }
+
+      if (EQ (w, last_window))
+	break;
+
       w = next_window;
     }
-  while (! EQ (w, first_window));
 
   return best_window;
 }     
@@ -2642,11 +2666,12 @@ init_window_once ()
 #else /* not MULTI_FRAME */
   extern Lisp_Object get_minibuffer ();
 
-  FRAME_ROOT_WINDOW (selected_frame) = make_window ();
   minibuf_window = make_window ();
+  FRAME_ROOT_WINDOW (selected_frame) = make_window ();
 
   XWINDOW (FRAME_ROOT_WINDOW (selected_frame))->next = minibuf_window;
   XWINDOW (minibuf_window)->prev = FRAME_ROOT_WINDOW (selected_frame);
+  XWINDOW (minibuf_window)->mini_p = Qt;
 
   /* These values 9 and 10 are arbitrary,
      just so that there is "something there."
