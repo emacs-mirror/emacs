@@ -1,5 +1,12 @@
 2001-10-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_window_id): Undo last change.  Give up if
+	window ends in strings.
+	
+	* xdisp.c (try_window_id): Don't display lines after the window
+	end if the rest of the window after the window end was already
+	blank.
+	
 	* xdisp.c (display_line): Don't indicate empty lines in
 	mini-windows.
 

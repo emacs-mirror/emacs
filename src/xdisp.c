@@ -11482,6 +11482,12 @@ try_window_id (w)
   if (!TEXT_POS_EQUAL_P (start, row->start.pos))
     GIVE_UP (16);
 
+  /* Give up if the window ends in strings.  Overlay strings
+     at the end are difficult to handle, so don't try.  */
+  row = MATRIX_ROW (current_matrix, XFASTINT (w->window_end_vpos));
+  if (MATRIX_ROW_START_CHARPOS (row) == MATRIX_ROW_END_CHARPOS (row))
+    GIVE_UP (20);
+
   /* Compute the position at which we have to start displaying new
      lines.  Some of the lines at the top of the window might be
      reusable because they are not displaying changed text.  Find the
@@ -11586,7 +11592,7 @@ try_window_id (w)
 	}
     }
   else if (last_unchanged_at_beg_row == NULL)
-    GIVE_UP (18);
+    GIVE_UP (19);
 
 
 #if GLYPH_DEBUG
@@ -11848,29 +11854,23 @@ try_window_id (w)
 	  ++last_row;
 	}
 
-      if (IT_CHARPOS (it) < ZV)
+      /* We may start in a continuation line.  If so, we have to
+	 get the right continuation_lines_width and current_x.  */
+      it.continuation_lines_width = last_row->continuation_lines_width;
+      it.hpos = it.current_x = 0;
+      
+      /* Display the rest of the lines at the window end.  */
+      it.glyph_row = MATRIX_ROW (desired_matrix, it.vpos);
+      while (it.current_y < it.last_visible_y
+	     && !fonts_changed_p)
 	{
-	  /* Otherwise, the rest of the window after the window
-	     end was blank, and scrolling didn't change that.  */
-
-	  /* We may start in a continuation line.  If so, we have to
-	     get the right continuation_lines_width and current_x.  */
-	  it.continuation_lines_width = last_row->continuation_lines_width;
-	  it.hpos = it.current_x = 0;
-
-	  /* Display the rest of the lines at the window end.  */
-	  it.glyph_row = MATRIX_ROW (desired_matrix, it.vpos);
-	  while (it.current_y < it.last_visible_y
-		 && !fonts_changed_p)
-	    {
-	      /* Is it always sure that the display agrees with lines in
-		 the current matrix?  I don't think so, so we mark rows
-		 displayed invalid in the current matrix by setting their
-		 enabled_p flag to zero.  */
-	      MATRIX_ROW (w->current_matrix, it.vpos)->enabled_p = 0;
-	      if (display_line (&it))
-		last_text_row_at_end = it.glyph_row - 1;
-	    }
+	  /* Is it always sure that the display agrees with lines in
+	     the current matrix?  I don't think so, so we mark rows
+	     displayed invalid in the current matrix by setting their
+	     enabled_p flag to zero.  */
+	  MATRIX_ROW (w->current_matrix, it.vpos)->enabled_p = 0;
+	  if (display_line (&it))
+	    last_text_row_at_end = it.glyph_row - 1;
 	}
     }
 
@@ -11961,7 +11961,7 @@ try_window_id (w)
 			    XFASTINT (w->window_end_vpos) + 1,
 			    bottom_vpos, 0);
 #endif
-  
+
   IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
 
