@@ -1,5 +1,9 @@
 2000-09-20  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* faces.el (face-valid-attribute-values): Make sure directories we
+	search for stipples both exist and are readable before trying to
+	search them.
+
 	* diff-mode.el (diff-apply-hunk): Jump to the correct line offset
 	in the dry-run case.
 
