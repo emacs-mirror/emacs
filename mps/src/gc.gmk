@@ -1,14 +1,13 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!gc.gmk(trunk.12) $
+# $HopeName: MMsrc!gc.gmk(trunk.13) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
 #
 # This makefile fragment is included in more specific makefiles for
-
 # platforms which use the "gc" builder, which includes GNU make (see
 # build.gc).
 #
@@ -36,7 +35,6 @@
 # makefile to define the source list for that part, and the GNUmakefile
 # to include a recursive call to the name of that part.
 # 
-
 # CHECK PARAMETERS
 #
 # GNU make doesn't really have an "error" directive, but these lines
@@ -215,6 +213,7 @@ $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
+	$(PFM)/$(VARIETY)/fmtdy.o \
 	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
