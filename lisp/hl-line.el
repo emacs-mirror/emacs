@@ -1,6 +1,6 @@
 ;;; hl-line.el --- highlight the current line
 
-;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-13
@@ -25,26 +25,36 @@
 
 ;;; Commentary:
 
-;; Provides a minor mode (toggled by M-x hl-line-mode) and a global minor
-;; mode (toggled by M-x global-hl-line-mode) to highlight, on a
-;; suitable terminal, the line in the current window on which point is
-;; (except in a minibuffer window).  Done to satisfy a request for a
-;; feature of Lesser Editors.
+;; Provides a buffer-local minor mode (toggled by M-x hl-line-mode)
+;; and a global minor mode (toggled by M-x global-hl-line-mode) to
+;; highlight, on a suitable terminal, the line on which point is.  The
+;; global mode highlights the current line in the selected window only
+;; (except when the minibuffer window is selected).  This was
+;; implemented to satisfy a request for a feature of Lesser Editors.
+;; The local mode is sticky: it highlights the line about the buffer's
+;; point even if the buffer's window is not selected.  Caveat: the
+;; buffer's point might be different from the point of a non-selected
+;; window.  Set the variable `hl-line-sticky-flag' to nil to make the
+;; local mode behave like the global mode.
 
-;; You probably don't really want this; if the cursor is difficult to
-;; spot, try changing its colour, relying on `blink-cursor-mode' or
-;; both.  The hookery used might affect response noticeably on a slow
-;; machine.  It may be useful in "non-text" buffers such as Gnus or
-;; PCL-CVS though.
+;; You probably don't really want to use the global mode; if the
+;; cursor is difficult to spot, try changing its colour, relying on
+;; `blink-cursor-mode' or both.  The hookery used might affect
+;; response noticeably on a slow machine.  The local mode may be
+;; useful in non-editing buffers such as Gnus or PCL-CVS though.
 
-;; An overlay is used, active only on the selected window.  Hooks are
-;; added to `pre-command-hook' and `post-command-hook' to activate and
-;; deactivate (by deleting) the overlay.  `hl-line-unhighlight', on
-;; `pre-command-hook', deactivates it unconditionally in case the
-;; command changes the selected window.  (It does so rather than
-;; keeping track of changes in the selected window).
-;; `hl-line-highlight', on `post-command-hook', activates it again
-;; across the window width.
+;; An overlay is used.  In the non-sticky cases, this overlay is
+;; active only on the selected window.  A hook is added to
+;; `post-command-hook' to activate the overlay and move it to the line
+;; about point.  To get the non-sticky behavior, `hl-line-unhighlight'
+;; is added to `pre-command-hook' as well.  This function deactivates
+;; the overlay unconditionally in case the command changes the
+;; selected window.  (It does so rather than keeping track of changes
+;; in the selected window).
+
+;; You could make variable `global-hl-line-mode' buffer-local and set
+;; it to nil to avoid highlighting specific buffers, when the global
+;; mode is used.
 
 ;;; Code:
 
@@ -58,45 +68,102 @@
   :type 'face
   :group 'hl-line)
 
-(defvar hl-line-overlay nil)
+(defcustom hl-line-sticky-flag t
+  "*Non-nil means highlight the current line in all windows.
+Otherwise Hl-Line mode will highlight only in the selected
+window.  Setting this variable takes effect the next time you use
+the command `hl-line-mode' to turn Hl-Line mode on."
+  :type 'boolean
+  :version "21.4"
+  :group 'hl-line)
+
+(defvar hl-line-overlay nil
+  "Overlay used by Hl-Line mode to highlight the current line.")
+(make-variable-buffer-local 'hl-line-overlay)
+
+(defvar global-hl-line-overlay nil
+  "Overlay used by Global-Hl-Line mode to highlight the current line.")
 
 ;;;###autoload
 (define-minor-mode hl-line-mode
-  "Minor mode to highlight the line about point in the current window.
+  "Buffer-local minor mode to highlight the line about point.
 With ARG, turn Hl-Line mode on if ARG is positive, off otherwise.
-Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
-`pre-command-hook' and `post-command-hook'."
+
+If `hl-line-sticky-flag' is non-nil, Hl-Line mode highlights the
+line about the buffer's point in all windows.  Caveat: the
+buffer's point might be different from the point of a
+non-selected window.  Hl-Line mode uses the function
+`hl-line-highlight' on `post-command-hook' in this case.
+
+When `hl-line-sticky-flag' is nil, Hl-Line mode highlights the
+line about point in the selected window only.  In this case, it
+uses the function `hl-line-unhighlight' on `pre-command-hook' in
+addition to `hl-line-highlight' on `post-command-hook'."
   nil nil nil
   (if hl-line-mode
       (progn
-	(add-hook 'pre-command-hook #'hl-line-unhighlight nil t)
+        ;; In case `kill-all-local-variables' is called.
+        (add-hook 'change-major-mode-hook #'hl-line-unhighlight nil t)
+        (if hl-line-sticky-flag
+            (remove-hook 'pre-command-hook #'hl-line-unhighlight t)
+          (add-hook 'pre-command-hook #'hl-line-unhighlight nil t))
+        (hl-line-highlight)
 	(add-hook 'post-command-hook #'hl-line-highlight nil t))
+    (remove-hook 'post-command-hook #'hl-line-highlight t)
     (hl-line-unhighlight)
-    (remove-hook 'pre-command-hook #'hl-line-unhighlight t)
-    (remove-hook 'post-command-hook #'hl-line-highlight t)))
-
-;;;###autoload
-(easy-mmode-define-global-mode
- global-hl-line-mode hl-line-mode (lambda () (hl-line-mode 1))
- :group 'hl-line)
+    (remove-hook 'change-major-mode-hook #'hl-line-unhighlight t)
+    (remove-hook 'pre-command-hook #'hl-line-unhighlight t)))
 
 (defun hl-line-highlight ()
-  "Active the Hl-Line overlay on the current line in the current window.
-\(Unless it's a minibuffer window.)"
-  (when hl-line-mode		; Might be changed outside the mode function.
-    (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
-      (unless hl-line-overlay
-	(setq hl-line-overlay (make-overlay 1 1)) ; to be moved
-	(overlay-put hl-line-overlay 'face hl-line-face))
-      (overlay-put hl-line-overlay 'window (selected-window))
-      (move-overlay hl-line-overlay
-		    (line-beginning-position) (1+ (line-end-position))
-		    (current-buffer)))))
+  "Active the Hl-Line overlay on the current line."
+  (if hl-line-mode	; Might be changed outside the mode function.
+      (progn
+        (unless hl-line-overlay
+          (setq hl-line-overlay (make-overlay 1 1)) ; to be moved
+          (overlay-put hl-line-overlay 'face hl-line-face))
+        (overlay-put hl-line-overlay
+                     'window (unless hl-line-sticky-flag (selected-window)))
+        (move-overlay hl-line-overlay
+                      (line-beginning-position) (1+ (line-end-position))))
+    (hl-line-unhighlight)))
 
 (defun hl-line-unhighlight ()
-  "Deactivate the Hl-Line overlay on the current line in the current window."
+  "Deactivate the Hl-Line overlay on the current line."
   (if hl-line-overlay
       (delete-overlay hl-line-overlay)))
+
+;;;###autoload
+(define-minor-mode global-hl-line-mode
+  "Global minor mode to highlight the line about point in the current window.
+With ARG, turn Global-Hl-Line mode on if ARG is positive, off otherwise.
+
+Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
+`global-hl-line-highlight' on `pre-command-hook' and `post-command-hook'."
+  :global t
+  :group 'hl-line
+  (if global-hl-line-mode
+      (progn
+	(add-hook 'pre-command-hook #'global-hl-line-unhighlight)
+	(add-hook 'post-command-hook #'global-hl-line-highlight))
+    (global-hl-line-unhighlight)
+    (remove-hook 'pre-command-hook #'global-hl-line-unhighlight)
+    (remove-hook 'post-command-hook #'global-hl-line-highlight)))
+
+(defun global-hl-line-highlight ()
+  "Active the Global-Hl-Line overlay on the current line in the current window."
+  (when global-hl-line-mode	; Might be changed outside the mode function.
+    (unless (window-minibuffer-p (selected-window))
+      (unless global-hl-line-overlay
+        (setq global-hl-line-overlay (make-overlay 1 1)) ; to be moved
+        (overlay-put global-hl-line-overlay 'face hl-line-face))
+      (overlay-put global-hl-line-overlay 'window (selected-window))
+      (move-overlay global-hl-line-overlay
+                    (line-beginning-position) (1+ (line-end-position))))))
+
+(defun global-hl-line-unhighlight ()
+  "Deactivate the Global-Hl-Line overlay on the current line."
+  (if global-hl-line-overlay
+      (delete-overlay global-hl-line-overlay)))
 
 (provide 'hl-line)
 
