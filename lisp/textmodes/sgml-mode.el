@@ -304,7 +304,6 @@ varables of same name)."
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-indent-function)
-  (make-local-variable 'comment-start-skip)
   (make-local-variable 'comment-indent-function)
   (make-local-variable 'sgml-tags-invisible)
   (make-local-variable 'skeleton-transformation)
@@ -336,9 +335,6 @@ varables of same name)."
 	comment-start "<!-- "
 	comment-end " -->"
 	comment-indent-function 'sgml-comment-indent
-	;; This will allow existing comments within declarations to be
-	;; recognized.
-	comment-start-skip "--[ \t]*"
 	skeleton-transformation sgml-transformation
 	skeleton-further-elements '((completion-ignore-case t))
 	skeleton-end-hook (lambda ()
@@ -355,10 +351,12 @@ varables of same name)."
 			     nil
 			     t)
 	facemenu-add-face-function 'sgml-mode-facemenu-add-face-function)
-  (while sgml-display-text
-    (put (car (car sgml-display-text)) 'before-string
-	 (cdr (car sgml-display-text)))
-    (setq sgml-display-text (cdr sgml-display-text))))
+  ;; This will allow existing comments within declarations to be
+  ;; recognized.
+  (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
+  (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?")
+  (dolist (pair sgml-display-text)
+    (put (car pair) 'before-string (cdr pair))))
 
 
 (defun sgml-mode-facemenu-add-face-function (face end)
@@ -371,7 +369,7 @@ varables of same name)."
 
 
 ;;;###autoload
-(defun sgml-mode (&optional function)
+(defun sgml-mode ()
   "Major mode for editing SGML documents.
 Makes > match <.  Makes / blink matching /.
 Keys <, &, SPC within <>, \" and ' can be electric depending on
@@ -404,13 +402,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
 
 
 (defun sgml-comment-indent ()
-  (if (and (looking-at "--")
-	   (not (and (eq (preceding-char) ?!)
-		     (eq (char-after (- (point) 2)) ?<))))
-      (progn
-	(skip-chars-backward " \t")
-	(max comment-column (1+ (current-column))))
-    0))
+  (if (looking-at "--") comment-column 0))
 
 
 
@@ -509,24 +501,23 @@ Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase do \\[set-variable]
 skeleton-transformation RET upcase RET, or put this in your `.emacs':
   (setq sgml-transformation 'upcase)"
-  (funcall skeleton-transformation
-	   (completing-read "Tag: " sgml-tag-alist))
-  ?< (setq v1 (eval str)) |
+  (completing-read "Tag: " sgml-tag-alist)
+  ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
-  (("") '(setq v2 (sgml-attributes v1 t)) ?>
-   (if (string= "![" v1)
-       (prog1 '(("") " [ " _ " ]]")
-	 (backward-char))
-     (if (or (eq v2 t)
-	     (string-match "^[/!?]" v1))
-	 ()
-       (if (symbolp v2)
-	   '(("") v2 _ v2 "</" v1 ?>)
-	 (if (eq (car v2) t)
-	     (cons '("") (cdr v2))
-	   (append '(("") (car v2))
-		   (cdr v2)
-		   '(resume: (car v2) _ "</" v1 ?>))))))))
+  `(("") '(setq v2 (sgml-attributes ,str t)) ?>
+    (if (string= "![" ,str)
+	(prog1 '(("") " [ " _ " ]]")
+	  (backward-char))
+      (if (or (eq v2 t)
+	      (string-match "^[/!?]" ,str))
+	  ()
+	(if (symbolp v2)
+	    '(("") v2 _ v2 "</" ,str ?>)
+	  (if (eq (car v2) t)
+	      (cons '("") (cdr v2))
+	    (append '(("") (car v2))
+		    (cdr v2)
+		    '(resume: (car v2) _ "</" ,str ?>))))))))
 
 (autoload 'skeleton-read "skeleton")
 
@@ -1261,7 +1252,6 @@ Can be used as a value for `html-mode-hook'."
 		  (and (boundp 'after-save-hook)
 		       (memq 'browse-url-of-buffer after-save-hook))))
       (setq after-save-hook (delq 'browse-url-of-buffer after-save-hook))
-    (make-local-hook 'after-save-hook)
     (add-hook 'after-save-hook 'browse-url-of-buffer nil t))
   (message "Autoviewing turned %s."
 	   (if arg "off" "on")))
