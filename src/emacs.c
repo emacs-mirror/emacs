@@ -505,6 +505,11 @@ main (argc, argv, envp)
     }
 #endif
 
+#ifdef RUN_TIME_REMAP
+  if (initialized)
+    run_time_remap (argv[0]);
+#endif
+
   sort_args (argc, argv);
 
   if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
@@ -614,11 +619,6 @@ main (argc, argv, envp)
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
-
-#ifdef RUN_TIME_REMAP
-  if (initialized)
-    run_time_remap (argv[0]);
-#endif
 
 #ifdef USG_SHARED_LIBRARIES
   if (bss_end)
