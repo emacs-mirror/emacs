@@ -272,6 +272,13 @@ mark_byte_stack ()
 
   for (stack = byte_stack_list; stack; stack = stack->next)
     {
+      /* If STACK->top is null here, this means there's an opcode in
+	 Fbyte_code that wasn't expected to GC, but did.  To find out
+	 which opcode this is, record the value of `stack', and walk
+	 up the stack in a debugger, stopping in frames of Fbyte_code.
+	 The culprit is found in the frame of Fbyte_code where the
+	 address of its local variable `stack' is equal to the
+	 recorded value of `stack' here.  */
       if (!stack->top)
 	abort ();
       
