@@ -1,3 +1,9 @@
+2003-03-03  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuf-macs.el (ibuffer-aif): Use `make-symbol' instead of
+	`gensym' in case user calls macro at runtime.
+	(ibuffer-save-marks): Likewise.
+
 2003-03-03  Kenichi Handa  <handa@m17n.org>
 
 	* language/japan-util.el (japanese-symbol-table): Add two entries
@@ -18,14 +24,14 @@
 	that first docstring lines ending with a comma are respected.  Add
 	"`(" to same so that function and macro bodies beginning with a
 	backquote do not get disturbed.  Revise the comments.
-	
+
 2003-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 	
 	* startup.el (command-line): Call menu-bar-mode with 1 instead of t.
 
 	* menu-bar.el (menu-bar-mode): Change to define-minor-mode
 	and initialize as for tool-bar-mode.
-	
+
 2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp.el: Version 2.0.30 released.
