@@ -1,5 +1,8 @@
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-head): Don't change the colors of the
+	XPM image on a dark background.
+
 	* comint.el (comint-exec-1): Set columns of the terminal to
 	window-width instead of frame-width.
 
