@@ -150,7 +150,7 @@ echo Version numbers are $version and $shortversion
 
 if [ $update = yes ];
 then
-  if grep -s "GNU Emacs version ${shortversion}" ./man/emacs.texi > /dev/null; then
+  if grep -s "@set EMACSVER ${shortversion}" ./man/emacs.texi > /dev/null; then
     true
   else
     echo "You must update the version number in \`./man/emacs.texi'"
