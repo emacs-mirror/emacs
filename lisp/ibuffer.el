@@ -157,7 +157,7 @@ recreate it for the change to take effect."
   :group 'ibuffer)
 
 (defcustom ibuffer-use-other-window nil
-  "If non-nil, display the Ibuffer in another window by default."
+  "If non-nil, display Ibuffer in another window by default."
   :type 'boolean
   :group 'ibuffer)
 
@@ -272,8 +272,7 @@ takes precedence over filtering, and even
   :group 'ibuffer)
 
 (defcustom ibuffer-use-header-line (boundp 'header-line-format)
-  "If non-nil, display a header line containing current filters.
-This feature only works on Emacs 21 or later."
+  "If non-nil, display a header line containing current filters."
   :type 'boolean
   :group 'ibuffer)
 
@@ -784,8 +783,6 @@ directory, like `default-directory'."
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
     (setq ibuffer-mode-filter-group-map map)))
 
-(defvar ibuffer-mode-hooks nil)
-
 (defvar ibuffer-delete-window-on-quit nil
   "Whether or not to delete the window upon exiting `ibuffer'.")
 
@@ -957,7 +954,6 @@ width and the longest string in LIST."
 
 (defun ibuffer-visit-buffer (&optional single)
   "Visit the buffer on this line.
-
 If optional argument SINGLE is non-nil, then also ensure there is only
 one window."
   (interactive "P")
@@ -1082,7 +1078,7 @@ a new window in the current frame, splitting vertically."
 	    (save-window-excursion
 	      (select-window lastwin)
 	      ;; The window might be too small to split; in that case,
-	     ;; try a few times to increase its size before giving up.
+	      ;; try a few times to increase its size before giving up.
 	      (let ((attempts 0)
 		    (trying t))
 		(while trying
@@ -1098,7 +1094,7 @@ a new window in the current frame, splitting vertically."
 				  (not (string-match "too small" (cadr err)))))
 			 (apply #'signal err)
 		       (enlarge-window 3))))))
-	   ;; This part doesn't work correctly sometimes under XEmacs.
+	      ;; This part doesn't work correctly sometimes under XEmacs.
 	      (select-window (next-window))
 	      (switch-to-buffer buf)
 	      (unwind-protect
@@ -1982,10 +1978,9 @@ the value of point at the beginning of the line for that buffer."
 
 (defun ibuffer-redisplay (&optional silent)
   "Redisplay the current list of buffers.
-
 This does not show new buffers; use `ibuffer-update' for that.
 
-If SILENT is non-`nil', do not generate progress messages."
+If optional arg SILENT is non-nil, do not display progress messages."
   (interactive)
   (ibuffer-forward-line 0)
   (unless silent
@@ -2004,11 +1999,10 @@ If SILENT is non-`nil', do not generate progress messages."
 
 (defun ibuffer-update (arg &optional silent)
   "Regenerate the list of all buffers.
-
 Display buffers whose name matches one of `ibuffer-maybe-show-predicates'
 iff arg ARG is non-nil.  
 
-Do not display messages if SILENT is non-nil."
+If optional arg SILENT is non-nil, do not display progress messages."
   (interactive "P")
   (ibuffer-forward-line 0)
   (let* ((bufs (buffer-list))
@@ -2203,7 +2197,7 @@ locally in this buffer."
 	(unwind-protect
 	    (progn
 	      (setq buffer-read-only nil)
-	      (run-hooks 'ibuffer-hooks))
+	      (run-hooks 'ibuffer-hook))
 	  (setq buffer-read-only t))
 	(unless ibuffer-expert
 	  (message "Commands: m, u, t, RET, g, k, S, D, Q; q to quit; h for help"))))))
@@ -2421,7 +2415,7 @@ will be inserted before the group at point."
   (when ibuffer-default-directory
     (setq default-directory ibuffer-default-directory))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (run-hooks 'ibuffer-mode-hooks)
+  (run-hooks 'ibuffer-mode-hook)
   ;; called after mode hooks to allow the user to add filters
   (ibuffer-update-mode-name))
 
