@@ -3712,11 +3712,11 @@ make_lispy_event (event)
 
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
-		for (i = 0; i < XVECTOR (items)->size; i += 3)
+		for (i = 0; i < XVECTOR (items)->size; i += 4)
 		  {
 		    Lisp_Object pos, string;
 		    string = XVECTOR (items)->contents[i + 1];
-		    pos = XVECTOR (items)->contents[i + 2];
+		    pos = XVECTOR (items)->contents[i + 3];
 		    if (NILP (string))
 		      break;
 		    if (column >= XINT (pos)
@@ -5045,29 +5045,31 @@ menu_bar_items (old)
       int i;
       int end = menu_bar_items_index;
 
-      for (i = 0; i < end; i += 3)
+      for (i = 0; i < end; i += 4)
 	if (EQ (XCONS (tail)->car, XVECTOR (menu_bar_items_vector)->contents[i]))
 	  {
-	    Lisp_Object tem0, tem1, tem2;
+	    Lisp_Object tem0, tem1, tem2, tem3;
 	    /* Move the item at index I to the end,
 	       shifting all the others forward.  */
 	    tem0 = XVECTOR (menu_bar_items_vector)->contents[i + 0];
 	    tem1 = XVECTOR (menu_bar_items_vector)->contents[i + 1];
 	    tem2 = XVECTOR (menu_bar_items_vector)->contents[i + 2];
-	    if (end > i + 3)
-	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 3],
+	    tem3 = XVECTOR (menu_bar_items_vector)->contents[i + 3];
+	    if (end > i + 4)
+	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 4],
 		     &XVECTOR (menu_bar_items_vector)->contents[i],
-		     (end - i - 3) * sizeof (Lisp_Object));
-	    XVECTOR (menu_bar_items_vector)->contents[end - 3] = tem0;
-	    XVECTOR (menu_bar_items_vector)->contents[end - 2] = tem1;
-	    XVECTOR (menu_bar_items_vector)->contents[end - 1] = tem2;
+		     (end - i - 4) * sizeof (Lisp_Object));
+	    XVECTOR (menu_bar_items_vector)->contents[end - 4] = tem0;
+	    XVECTOR (menu_bar_items_vector)->contents[end - 3] = tem1;
+	    XVECTOR (menu_bar_items_vector)->contents[end - 2] = tem2;
+	    XVECTOR (menu_bar_items_vector)->contents[end - 1] = tem3;
 	    break;
 	  }
     }
 
   /* Add nil, nil, nil at the end.  */
   i = menu_bar_items_index;
-  if (i + 3 > XVECTOR (menu_bar_items_vector)->size)
+  if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
     {
       Lisp_Object tem;
       int newsize = 2 * i;
@@ -5077,6 +5079,7 @@ menu_bar_items (old)
       menu_bar_items_vector = tem;
     }
   /* Add this item.  */
+  XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
@@ -5161,14 +5164,14 @@ menu_bar_item (key, item_string, def)
       /* If a map has an explicit `undefined' as definition,
 	 discard any previously made menu bar item.  */
 
-      for (i = 0; i < menu_bar_items_index; i += 3)
+      for (i = 0; i < menu_bar_items_index; i += 4)
 	if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
 	  {
-	    if (menu_bar_items_index > i + 3)
-	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 3],
+	    if (menu_bar_items_index > i + 4)
+	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 4],
 		     &XVECTOR (menu_bar_items_vector)->contents[i],
-		     (menu_bar_items_index - i - 3) * sizeof (Lisp_Object));
-	    menu_bar_items_index -= 3;
+		     (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
+	    menu_bar_items_index -= 4;
 	    return;
 	  }
 
@@ -5197,7 +5200,7 @@ menu_bar_item (key, item_string, def)
     return;
 
   /* Find any existing item for this KEY.  */
-  for (i = 0; i < menu_bar_items_index; i += 3)
+  for (i = 0; i < menu_bar_items_index; i += 4)
     if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
       break;
 
@@ -5205,7 +5208,7 @@ menu_bar_item (key, item_string, def)
   if (i == menu_bar_items_index)
     {
       /* If vector is too small, get a bigger one.  */
-      if (i + 3 > XVECTOR (menu_bar_items_vector)->size)
+      if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
 	{
 	  Lisp_Object tem;
 	  int newsize = 2 * i;
@@ -5218,6 +5221,7 @@ menu_bar_item (key, item_string, def)
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
       XVECTOR (menu_bar_items_vector)->contents[i++] = item_string;
       XVECTOR (menu_bar_items_vector)->contents[i++] = Fcons (def, Qnil);
+      XVECTOR (menu_bar_items_vector)->contents[i++] = make_number (0);
       menu_bar_items_index = i;
     }
   /* We did find an item for this KEY.  Add DEF to its list of maps.  */
