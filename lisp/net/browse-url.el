@@ -32,19 +32,21 @@
 ;; URL associated with the current buffer.  Different browsers use
 ;; different methods of remote control so there is one function for
 ;; each supported browser.  If the chosen browser is not running, it
-;; is started.  Currently there is support for:
+;; is started.  Currently there is support for the following browsers,
+;; some of them probably now obsolete:
 
-;; Function              Browser     Earliest version
-;; browse-url-netscape   Netscape    1.1b1
-;; browse-url-mosaic     XMosaic/mMosaic <= 2.4
-;; browse-url-cci        XMosaic     2.5
-;; browse-url-w3         w3          0
-;; browse-url-w3-gnudoit w3 remotely
-;; browse-url-iximosaic  IXI Mosaic  ?
-;; browse-url-lynx-*	 Lynx	     0
-;; browse-url-grail      Grail       0.3b1
-;; browse-url-mmm        MMM         ?
-;; browse-url-generic    arbitrary
+;; Function                           Browser     Earliest version
+;; browse-url-netscape                Netscape    1.1b1
+;; browse-url-mosaic                  XMosaic/mMosaic <= 2.4
+;; browse-url-cci                     XMosaic     2.5
+;; browse-url-w3                      w3          0
+;; browse-url-w3-gnudoit              w3 remotely
+;; browse-url-iximosaic               IXI Mosaic  ?
+;; browse-url-lynx-*	              Lynx	     0
+;; browse-url-grail                   Grail       0.3b1
+;; browse-url-mmm                     MMM         ?
+;; browse-url-generic                 arbitrary
+;; browse-url-default-windows-browser MS-Windows browser
 
 ;; [A version of the Netscape browser is now free software
 ;; <URL:http://www.mozilla.org/>, albeit not GPLed, so it is
@@ -168,16 +170,13 @@
 ;;		  (lambda ()
 ;;	             (local-set-key "\C-c\C-zf" 'browse-url-of-dired-file)))
 
-;; Browse URLs in mail messages by clicking mouse-2:
+;; Browse URLs in mail messages under RMAIL by clicking mouse-2:
 ;;	(add-hook 'rmail-mode-hook (lambda () ; rmail-mode startup
 ;;	  (define-key rmail-mode-map [mouse-2] 'browse-url-at-mouse)))
+;; Alternatively, add `goto-address' to `rmail-show-message-hook'.
 
-;; Browse URLs in Usenet messages by clicking mouse-2:
-;;	(eval-after-load "gnus"
-;;	  '(define-key gnus-article-mode-map [mouse-2] 'browse-url-at-mouse))
-;; [The current version of Gnus provides a standard feature to
-;; activate URLs in article buffers for invocation of browse-url with
-;; mouse-2.]
+;; Gnus provides a standard feature to activate URLs in article
+;; buffers for invocation of browse-url.
 
 ;; Use the Emacs w3 browser when not running under X11:
 ;;	(or (eq window-system 'x)
@@ -321,11 +320,13 @@ commands reverses the effect of this variable.  Requires Netscape version
   :group 'browse-url)
 
 (defcustom browse-url-filename-alist
-  '(("^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*" . "ftp://\\2/")
+  `(("^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*" . "ftp://\\2/")
     ;; The above loses the username to avoid the browser prompting for
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
+    ,@(if (memq system-type '(windows-nt ms-dos))
+	  '("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/"))
     ("^/+" . "file:/"))
   "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
 Any substring of a filename matching one of the REGEXPs is replaced by
@@ -610,19 +611,17 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (interactive-p)
-    (setq args (list browse-url-new-window-p)))
+    (setq args (or args (list browse-url-new-window-p))))
   (if (functionp browse-url-browser-function)
       (apply browse-url-browser-function url args)
     ;; The `function' can be an alist; look down it for first match
     ;; and apply the function (which might be a lambda).
     (catch 'done
-      (mapcar
-       (lambda (bf)
-	 (when (string-match (car bf) url)
-	   (apply (cdr bf) url args)
-	   (throw 'done t)))
-       browse-url-browser-function)
-      (error "No browser in browse-url-browser-function matching URL %s"
+      (dolist (bf browse-url-browser-function)
+	(when (string-match (car bf) url)
+	  (apply (cdr bf) url args)
+	  (throw 'done t)))
+      (error "No browse-url-browser-function matching URL %s"
 	     url))))
 
 ;;;###autoload
@@ -631,16 +630,12 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 Doesn't let you edit the URL like `browse-url'.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive "P")
-  (browse-url (browse-url-url-at-point)
-	      (if arg
-		  (not browse-url-new-window-p)
-		browse-url-new-window-p)))
-
-(defun browse-url-event-buffer (event)
-  (window-buffer (posn-window (event-start event))))
-
-(defun browse-url-event-point (event)
-  (posn-point (event-start event)))
+  (let ((url (browse-url-url-at-point)))
+    (if url
+	(browse-url url (if arg
+			    (not browse-url-new-window-p)
+			  browse-url-new-window-p))
+      (error "No URL found"))))
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
@@ -651,12 +646,8 @@ but point is not changed.  Doesn't let you edit the URL like
 to use."
   (interactive "e")
   (save-excursion
-    (set-buffer (browse-url-event-buffer event))
-    (goto-char (browse-url-event-point event))
-    (let ((url (browse-url-url-at-point)))
-      (if (string-equal url "")
-	  (error "No URL found"))
-      (browse-url url browse-url-new-window-p))))
+    (mouse-set-point event)
+    (browse-url-at-point browse-url-new-window-p)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browser-specific commands
@@ -726,8 +717,8 @@ used instead of `browse-url-new-window-p'."
 					       ",new-window")
 					   ")"))))))))
     (set-process-sentinel process
-			  (list 'lambda '(process change)
-				(list 'browse-url-netscape-sentinel 'process url)))))
+			  `(lambda (process change)
+			     (browse-url-netscape-sentinel process ,url)))))
 
 (defun browse-url-netscape-sentinel (process url)
   "Handle a change to the process communicating with Netscape."
