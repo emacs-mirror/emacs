@@ -6522,7 +6522,8 @@ note_mouse_highlight (f, x, y)
 	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL);
 	  }
-	  
+
+	/* Sort overlays into increasing priority order.  */
 	noverlays = sort_overlays (overlay_vec, noverlays, w);
 
 	/* Check mouse-face highlighting.  */
@@ -6540,7 +6541,7 @@ note_mouse_highlight (f, x, y)
 
 	    /* Find the highest priority overlay that has a mouse-face prop.  */
 	    overlay = Qnil;
-	    for (i = 0; i < noverlays; i++)
+	    for (i = noverlays - 1; i >= 0; --i)
 	      {
 		mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
 		if (!NILP (mouse_face))
@@ -6630,7 +6631,7 @@ note_mouse_highlight (f, x, y)
 
 	  /* Check overlays first.  */
 	  help = Qnil;
-	  for (i = 0; i < noverlays && NILP (help); ++i)
+	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
 	    {
 	      overlay = overlay_vec[i];
 	      help = Foverlay_get (overlay, Qhelp_echo);
