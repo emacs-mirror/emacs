@@ -2002,6 +2002,23 @@ make a difference to some code.
 ** The new treatment of the minibuffer prompt might affect code which
 operates on the minibuffer.
 
+** The new character sets `eight-bit-control' and `eight-bit-graphic'
+cause `no-conversion' and `emacs-mule-unix' coding systems to produce
+different results when reading files with non-ASCII characters
+(previously, both coding systems would produce the same results).
+Specifically, `no-conversion' interprets each 8-bit byte as a separate
+character.  This makes `no-conversion' inappropriate for reading
+multibyte text, e.g. buffers written to disk in their internal MULE
+encoding (auto-saving does that, for example).  If a Lisp program
+reads such files with `no-conversion', each byte of the multibyte
+sequence, including the MULE leading codes such as \201, is treated as
+a separate character, which prevents them from being interpreted in
+the buffer as multibyte characters.
+
+Therefore, Lisp programs that read files which contain the internal
+MULE encoding should use `emacs-mule-unix'.  `no-conversion' is only
+appropriate for reading truly binary files.
+
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
