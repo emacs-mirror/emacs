@@ -213,16 +213,6 @@ DIARY OF CHANGES
 
    (Seems to be working OK.)
 
--- Enable select on ttys (sys_select disables the native select on
-   non-X systems).  There are some systems (OSS, SCO, maybe cygwin?)
-   that don't support this, so make sure the emulation remains
-   available for them.  
-
-   (This was a bogus issue, select is only #defined to be sys_select
-   by sysselect.h if BROKEN_SELECT_NON_X.  Fixed sysdep.c to compile
-   sys_select only then.)
-
-
 THINGS TO DO
 ------------
 
@@ -236,16 +226,16 @@ THINGS TO DO
 
    Emacs usually dumps core after a few dozen iterations.  (The bug
    seems to be related to the xfree()ing or bzero()ing of
-   tty_output.Wcm or some other tty_output part.  Maybe there are
-   outside references to struct Wcm?  Why were these vars collected
-   into a struct before multi-tty support?)
+   tty_output.Wcm.  Maybe there are outside references to struct Wcm?
+   Why were these vars collected into a struct before multi-tty
+   support?)
 
    The bug does not seem to happen if the error occurs before terminal
    initialization or if I comment out all xfree()s in delete_frame.
    Update: yes it does, although it is much rarer.  Or maybe it's
    another bug.
 
-   Update: Some of these errors may have been caused by having more
+   Idea: Some of these errors may have been caused by having more
    file handles than FD_SETSIZE.
 
 ** Find out why does Emacs abort when it wants to close its
