@@ -759,6 +759,19 @@ It is not recommended to set this variable permanently to anything but nil.")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
+;;;###autoload
+(defcustom auto-compression-mode nil
+  "Toggle automatic file compression and uncompression.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `auto-compression-mode'."
+  :set (lambda (symbol value)
+	 (auto-compression-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :group 'jka-compr
+  :version "21.1"
+  :type 'boolean
+  :require 'jka-compr)
+
 ;;;###autoload(defun auto-compression-mode (&optional arg)
 ;;;###autoload  "\
 ;;;###autoloadToggle automatic file compression and uncompression.
