@@ -7161,7 +7161,7 @@ build_desired_tool_bar_string (f)
   size_needed = f->n_tool_bar_items;
   
   /* Reuse f->desired_tool_bar_string, if possible.  */
-  if (size < size_needed)
+  if (size < size_needed || NILP (f->desired_tool_bar_string))
     f->desired_tool_bar_string = Fmake_string (make_number (size_needed),
 					       make_number (' '));
   else
