@@ -545,6 +545,47 @@ argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
     }
 }
 
+#ifdef DOUG_LEA_MALLOC
+
+/* malloc can be invoked even before main (e.g. by the dynamic
+   linker), so the dumped malloc state must be restored as early as
+   possible using this special hook.  */
+
+static void
+malloc_initialize_hook ()
+{
+  extern char **environ;
+
+  if (initialized)
+    {
+      if (!malloc_using_checking)
+	/* Work around a bug in glibc's malloc.  MALLOC_CHECK_ must be
+	   ignored if the heap to be restored was constructed without
+	   malloc checking.  Can't use unsetenv, since that calls malloc.  */
+	{
+	  char **p;
+
+	  for (p = environ; *p; p++)
+	    if (strncmp (*p, "MALLOC_CHECK_=", 14) == 0)
+	      {
+		do
+		  *p = p[1];
+		while (*++p);
+		break;
+	      }
+	}
+
+      malloc_set_state (malloc_state_ptr);
+      free (malloc_state_ptr);
+    }
+  else
+    malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
+}
+
+void (*__malloc_initialize_hook) () = malloc_initialize_hook;
+
+#endif /* DOUG_LEA_MALLOC */
+
 /* ARGSUSED */
 int
 main (argc, argv, envp)
@@ -563,32 +604,6 @@ main (argc, argv, envp)
 
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
-#endif
-
-#ifdef DOUG_LEA_MALLOC
-  if (initialized)
-    {
-      if (!malloc_using_checking)
-	/* Work around a bug in glibc's malloc.  MALLOC_CHECK_ must be
-	   ignored if the heap to be restored was constructed without
-	   malloc checking.  Can't use unsetenv, since that calls malloc.  */
-	{
-	  char **p;
-
-	  for (p = envp; *p; p++)
-	    if (strncmp (*p, "MALLOC_CHECK_=", 14) == 0)
-	      {
-		do
-		  *p = p[1];
-		while (*++p);
-		break;
-	      }
-	}
-      malloc_set_state (malloc_state_ptr);
-      free (malloc_state_ptr);
-    }
-  else
-    malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
 #endif
 
 #ifdef RUN_TIME_REMAP
