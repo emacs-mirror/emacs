@@ -1,7 +1,7 @@
 2001-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (make-coding-system): Add description
-	about recognized properties.
+	about recognized properties in the docstring.
 
 	* international/mule-conf.el: Remove unused charsets
 	mac-roman-lower and mac-roman-upper.
