@@ -1,6 +1,6 @@
 # impl.nmk.w3almv: WINDOWS (ALPHA) NMAKE FILE
 #
-# $HopeName: MMsrc!w3almv.nmk(trunk.40) $
+# $HopeName: MMsrc!w3almv.nmk(trunk.41) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3almv
@@ -10,10 +10,10 @@ DONGLELIB = $(RAINBOWPATH)\spromeps.lib
 
 PFMDEFS = /DWIN32 /D_WINDOWS /I$(RAINBOWPATH)
 
-MPM = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+MPM = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <lockw3> \
+      <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <protw3> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
       <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \

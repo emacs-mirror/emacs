@@ -1,68 +1,26 @@
-/* impl.c.arena: ARENA IMPLEMENTATION
+/* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName: MMsrc!arena.c(trunk.73) $
+ * $HopeName$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
- *
- * .intro: This is the implementation of Arenas.
- *
- * .purpose: An arena is an instantiation of the memory manager.
  * 
  * .sources: design.mps.arena is the main design document.
- * design.mps.thread-safety is relevant to the functions ArenaEnter and
- * ArenaLeave in this file.
- * 
- * .req: The arena is required to support all per-instantiation
- * behaviour of the memory manager.
- * 
- * NOTES
  *
- * .non-mod: The Arena structure has many fields which properly belong
- * to other modules (see impl.h.mpmst); ArenaCreate contains code which
- * breaks the usual module abstractions.  Such instances are documented
- * with a tag to the relevant module implementation.
- *
- * TRANSGRESSIONS
- *
- * .static: Static data is used in ArenaAccess (in order to find the
- * appropriate arena) and ArenaCreate (in order to get a fresh serial
- * number).  See design.mps.arena.static.
+ * .improve.modular: The allocation stuff should be in a separate
+ * structure.  We don't need to AVERT the whole Arena here (or
+ * anywhere else, for that matter), but if everything's in the same
+ * structure, then that's the rule.
  */
 
+#include "tract.h"
+#include "poolmv.h"
 #include "mpm.h"
-#include "dongle.h"
 
-
-/* finalization */
-#include "poolmrg.h"
-#include "mps.h"
-
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.73) $");
-
-
-/* All static data objects are declared here. See .static */
-
-/* design.mps.arena.static.ring.init */
-static Bool arenaRingInit = FALSE; 
-static RingStruct arenaRing;       /* design.mps.arena.static.ring */
-static Serial arenaSerial;         /* design.mps.arena.static.serial */
+SRCID(arena, "$HopeName$");
 
 
 /* ArenaControlPool -- get the control pool */
 
 #define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
-
-
-/* Functions to lock the arena ring. design.mps.arena.static.ring.lock */
-
-static void arenaClaimRingLock(void)
-{
-  LockClaimGlobal();  /* claim the global lock to protect arenaRing */
-}
-
-static void arenaReleaseRingLock(void)
-{
-  LockReleaseGlobal();  /* release the global lock protecting arenaRing */
-}
 
 
 /* ArenaReservoir - return the reservoir for the arena */
@@ -91,17 +49,12 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->init = NULL;
   class->finish = NULL;
   class->reserved = NULL;
-  class->committed = NULL;
   class->spareCommitExceeded = ArenaNoSpareCommitExceeded;
   class->extend = ArenaNoExtend;
-  class->retract = ArenaNoRetract;
-  class->isReserved = NULL;
   class->alloc = NULL;
   class->free = NULL;
-  class->tractOfAddr = NULL;
-  class->tractFirst = NULL;
-  class->tractNext = NULL;
-  class->tractNextContig = NULL;
+  class->chunkInit = NULL;
+  class->chunkFinish = NULL;
   class->describe = ArenaTrivDescribe;
   class->sig = ArenaClassSig;
 }
@@ -116,41 +69,29 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(class->size >= sizeof(ArenaStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
   /* greater than the size of the class-specific portion of the */
-  /* instance */
+  /* instance. */
   CHECKL(class->offset <= (size_t)(class->size - sizeof(ArenaStruct)));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
   CHECKL(FUNCHECK(class->reserved));
-  CHECKL(FUNCHECK(class->committed));
+  CHECKL(FUNCHECK(class->spareCommitExceeded));
   CHECKL(FUNCHECK(class->extend));
-  CHECKL(FUNCHECK(class->retract));
   CHECKL(FUNCHECK(class->alloc));
   CHECKL(FUNCHECK(class->free));
-  CHECKL(FUNCHECK(class->tractOfAddr));
-  CHECKL(FUNCHECK(class->tractFirst));
-  CHECKL(FUNCHECK(class->tractNext));
+  CHECKL(FUNCHECK(class->chunkInit));
+  CHECKL(FUNCHECK(class->chunkFinish));
   CHECKL(FUNCHECK(class->describe));
   CHECKS(ArenaClass, class);
   return TRUE;
 }
 
 
-/* ArenaCheck -- check the consistency of a generic arena structure */
+/* ArenaAllocCheck -- check the consistency of the allocation fields */
 
-Bool ArenaCheck(Arena arena)
+Bool ArenaAllocCheck(Arena arena)
 {
-  TraceId ti;
-  Index i;
-  Size depth;
-  RefSet rs;
-  Rank rank;
-
   CHECKS(Arena, arena);
-  /* design.mps.arena.static.serial */
-  CHECKL(arena->serial < arenaSerial); 
   CHECKD(ArenaClass, arena->class);
-  CHECKL(RingCheck(&arena->globalRing));
-  CHECKL(MPSVersion() == arena->mpsVersionString);
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* design.mps.arena.pool.ready */
@@ -160,13 +101,6 @@ Bool ArenaCheck(Arena arena)
   /* Can't check that limit>=size because we may call ArenaCheck */
   /* while the size is being adjusted. */
 
-  CHECKL(LockCheck(arena->lock));
-
-  /* no check possible on arena->pollThreshold */
-  CHECKL(BoolCheck(arena->insidePoll));
-  CHECKL(BoolCheck(arena->clamped));
-
-  CHECKL(BoolCheck(arena->bufferLogging));
   CHECKL(arena->fillMutatorSize >= 0.0);
   CHECKL(arena->emptyMutatorSize >= 0.0);
   CHECKL(arena->allocMutatorSize >= 0.0);
@@ -174,645 +108,160 @@ Bool ArenaCheck(Arena arena)
          arena->allocMutatorSize);
   CHECKL(arena->fillInternalSize >= 0.0);
   CHECKL(arena->emptyInternalSize >= 0.0);
-  /* commitLimit is arbitrary, can't be checked. */
-  /* (it's probably >= ArenaCommitted(), but we can't call that */
-  /* due to recursion problems) */
+  CHECKL(arena->committed <= arena->commitLimit);
+  CHECKL(arena->spareCommitted <= arena->committed);
+  CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
   CHECKL(ShiftCheck(arena->zoneShift));
   CHECKL(AlignCheck(arena->alignment));
+  /* Tract allocation must be platform-aligned. */
+  CHECKL(arena->alignment >= MPS_PF_ALIGN);
+  /* Stripes can't be smaller than pages. */
+  CHECKL(((Size)1 << arena->zoneShift) >= arena->alignment);
 
-  CHECKL(RingCheck(&arena->poolRing));
-  CHECKL(RingCheck(&arena->rootRing));
-  CHECKL(RingCheck(&arena->formatRing));
-  CHECKL(RingCheck(&arena->messageRing));
-  /* Don't check enabledMessageTypes */
-  CHECKL(BoolCheck(arena->isFinalPool));
-  if (arena->isFinalPool) {
-    CHECKD(Pool, arena->finalPool);
-  } else {
-    CHECKL(arena->finalPool == NULL);
-  }
-
-  CHECKL(RingCheck(&arena->threadRing));
-
-  CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
-  CHECKL(arena->shCacheI < arena->shCacheLimit);
-  CHECKL(BoolCheck(arena->suspended));
-
-  depth = 0;
-  for (i=0; i < arena->shCacheLimit; ++i) {
-    Seg seg = arena->shCache[i];
-    if (seg != (Seg)0) {
-      CHECKL(SegCheck(seg));
-      depth += SegDepth(seg);
-    }
-  }
-  CHECKL(depth <= arena->shDepth);
-
-  CHECKL(TraceSetCheck(arena->busyTraces));
-  CHECKL(TraceSetCheck(arena->flippedTraces));
-  CHECKL(TraceSetSuper(arena->busyTraces, arena->flippedTraces));
-
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    /* design.mps.arena.trace */
-    if (TraceSetIsMember(arena->busyTraces, ti)) {
-      Trace trace = ArenaTrace(arena, ti);
-      CHECKD(Trace,trace);
-    } else {
-      /* design.mps.arena.trace.invalid */
-      CHECKL(ArenaTrace(arena,ti)->sig == SigInvalid);
-    }
-  }
-
-  /* can't write a check for arena->epoch */
-
-  /* check that each history entry is a subset of the next oldest */
-  rs = RefSetEMPTY;
-  /* note this loop starts from 1; there is no history age 0 */
-  for (i=1; i <= ARENA_LD_LENGTH; ++ i) {
-    /* check history age 'i'; 'j' is the history index. */
-    Index j = (arena->epoch + ARENA_LD_LENGTH - i) % ARENA_LD_LENGTH;
-    CHECKL(RefSetSub(rs, arena->history[j]));
-    rs = arena->history[j];
-  }
-  /* the oldest history entry must be a subset of the prehistory */
-  CHECKL(RefSetSub(rs, arena->prehistory));
-           
-  /* we also check the statics now. design.mps.arena.static.check */
-  CHECKL(BoolCheck(arenaRingInit));
-  CHECKL(RingCheck(&arenaRing));
-  /* can't check arenaSerial */
-  
-  for(rank = 0; rank < RankMAX; ++rank)
-    CHECKL(RingCheck(&arena->greyRing[rank]));
-
-  if (NULL == arena->lastTract) {
-    CHECKL(NULL == arena->lastTractBase);
+  if (arena->lastTract == NULL) {
+    CHECKL(arena->lastTractBase == (Addr)0);
   } else {
     CHECKL(TractBase(arena->lastTract) == arena->lastTractBase);
   }
+
+  if (arena->primary != NULL) {
+    CHECKD(Chunk, arena->primary);
+  }
+  CHECKL(RingCheck(&arena->chunkRing));
+  /* nothing to check for chunkSerial */
+  CHECKD(ChunkCacheEntry, &arena->chunkCache);
 
   return TRUE;
 }
 
 
-/* ArenaInit -- initialize the generic part of the arena
- *
- * .init.caller: Unlike PoolInit, this is called by the class init
- * methods, not the generic Create.  This is because the class is
- * responsible for allocating the descriptor.
- */
+/* ArenaAllocInit -- initialize the allocation fields */
 
-void ArenaInit(Arena arena, Lock lock, ArenaClass class)
+void ArenaAllocInit(Arena arena, ArenaClass class)
 {
-  Index i;
-  Rank rank;
-
   /* We do not check the arena argument, because it's _supposed_ to */
   /* point to an uninitialized block of memory. */
   AVERT(ArenaClass, class);
 
   arena->class = class;
-  RingInit(&arena->globalRing);
-  arena->mpsVersionString = MPSVersion();
-  RingInit(&arena->poolRing);
-  arena->poolSerial = (Serial)0;
-  RingInit(&arena->rootRing);
-  arena->rootSerial = (Serial)0;
-  RingInit(&arena->threadRing);
-  arena->threadSerial = (Serial)0;
-  RingInit(&arena->formatRing);
-  arena->formatSerial = (Serial)0;
-  RingInit(&arena->messageRing);
-  arena->enabledMessageTypes = NULL;
-  arena->isFinalPool = FALSE;
-  arena->finalPool = NULL;
-  arena->busyTraces = TraceSetEMPTY;    /* impl.c.trace */
-  arena->flippedTraces = TraceSetEMPTY; /* impl.c.trace */
-  for (i=0; i < TRACE_MAX; i++) {
-    /* design.mps.arena.trace.invalid */
-    arena->trace[i].sig = SigInvalid;   
-  }
-  LockInit(lock);
-  arena->lock = lock;
-  arena->insideShield = FALSE;          /* impl.c.shield */
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
-  arena->shDepth = (Size)0;
-  arena->suspended = FALSE;
-  for(i = 0; i < SHIELD_CACHE_SIZE; i++)
-    arena->shCache[i] = (Seg)0;
-  arena->pollThreshold = 0.0;
-  arena->insidePoll = FALSE;
-  arena->clamped = FALSE;
-  arena->epoch = (Epoch)0;              /* impl.c.ld */
-  arena->prehistory = RefSetEMPTY;
-  for(i = 0; i < ARENA_LD_LENGTH; ++i)
-    arena->history[i] = RefSetEMPTY;
-  arena->bufferLogging = FALSE;
+
   arena->fillMutatorSize = 0.0;
   arena->emptyMutatorSize = 0.0;
   arena->allocMutatorSize = 0.0;
   arena->fillInternalSize = 0.0;
   arena->emptyInternalSize = 0.0;
+  arena->committed = (Size)0;
   /* commitLimit may be overridden by init (but probably not */
   /* as there's not much point) */
   arena->commitLimit = (Size)-1;
   arena->spareCommitted = (Size)0;
   arena->spareCommitLimit = ARENA_INIT_SPARE_COMMIT_LIMIT;
   /* alignment is usually overridden by init */
-  arena->alignment = MPS_PF_ALIGN;
-  /* usually overridden by init */
+  arena->alignment = 1 << ARENA_ZONESHIFT;
+  /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
   arena->poolReady = FALSE;     /* design.mps.arena.pool.ready */
-  for(rank = 0; rank < RankMAX; ++rank)
-    RingInit(&arena->greyRing[rank]);
-  STATISTIC(arena->writeBarrierHitCount = 0);
   arena->lastTract = NULL;
   arena->lastTractBase = NULL;
 
-  arena->sig = ArenaSig;
-  arena->serial = arenaSerial;  /* design.mps.arena.static.serial */
-  ++arenaSerial;
-  
-  AVERT(Arena, arena);
+  arena->primary = NULL;
+  RingInit(&arena->chunkRing);
+  arena->chunkSerial = (Serial)0;
+  ChunkCacheEntryInit(&arena->chunkCache);
 }
 
 
-/* ArenaCreateV -- create and bootstrap the arena */
+/* ArenaAllocFinish -- finish the allocation fields */
 
-Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
+void ArenaAllocFinish(Arena arena)
 {
-  Res res;
+  RingFinish(&arena->chunkRing);
+}
+
+
+/* ArenaAllocCreate -- create the arena and call initializers */
+
+Res ArenaAllocCreate(Arena *arenaReturn, ArenaClass class, va_list args)
+{
   Arena arena;
-
-  AVER(MPMCheck());
-  AVER(arenaReturn != NULL);
-  AVERT(ArenaClass, class);
-
-  if (!DongleTestFull())
-    return ResFAIL;
-  arenaClaimRingLock();
-  EventInit();
-  if (!arenaRingInit) {
-    /* there isn't an arena ring yet */
-    /* design.mps.arena.static.init */
-    arenaRingInit = TRUE;
-    RingInit(&arenaRing);
-    arenaSerial = (Serial)0;
-    ProtSetup();
-  }
+  Res res;
 
   /* Do initialization.  This will call ArenaInit (see .init.caller). */
   res = (*class->init)(&arena, class, args);
   if (res != ResOK)
     goto failInit;
-  
-  ArenaEnter(arena);
-  AVERT(Arena, arena);
 
-  /* initialize the reservoir, design.mps.reservoir */
-  res = ReservoirInit(&arena->reservoirStruct, arena);
-  if (res != ResOK) 
-    goto failReservoirInit;
-
-  /* design.mps.arena.pool.init */
-  res = PoolInit(ArenaControlPool(arena), arena, PoolClassMV(),
-                 ARENA_CONTROL_EXTENDBY, ARENA_CONTROL_AVGSIZE,
-                 ARENA_CONTROL_MAXSIZE);
-  if (res != ResOK) 
-    goto failControlInit;
-  arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
-  
-  /* initialize the message stuff, design.mps.message */
-  {
-    void *v;
-
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeMAX), 
-                       /* withReservoirPermit */ FALSE);
-    if (res != ResOK)
-      goto failEnabledBTAlloc;
-    arena->enabledMessageTypes = v;
-    BTResRange(arena->enabledMessageTypes, 0, MessageTypeMAX);
+  arena->alignment = ChunkPageSize(arena->primary);
+  if (arena->alignment > ((Size)1 << arena->zoneShift)) {
+    res = ResMEMORY; /* size was too small */
+    goto failStripeSize;
   }
 
-  /* Add initialized arena to the global list of arenas. */
-  RingAppend(&arenaRing, &arena->globalRing);
-  arenaReleaseRingLock();
+  /* load cache */
+  ChunkEncache(arena, arena->primary);
 
+  AVERT(Arena, arena);
   *arenaReturn = arena;
   return ResOK;
 
-failEnabledBTAlloc:
-  PoolFinish(ArenaControlPool(arena));
-failControlInit:
-  ReservoirFinish(&arena->reservoirStruct);
-failReservoirInit:
+failStripeSize:
   (*class->finish)(arena);
 failInit:
-  arenaReleaseRingLock();
-
   return res;
 }
 
 
-/* ArenaFinish -- finish the generic part of the arena
- *
- * .finish.caller: Unlike PoolFinish, this is called by the class finish
- * methods, not the generic Destroy.  This is because the class is
- * responsible for deallocating the descriptor.
- */
+/* ArenaAllocDestroy -- destroy the arena */
 
-void ArenaFinish(Arena arena)
+void ArenaAllocDestroy(Arena arena)
 {
-  Rank rank;
-
-  STATISTIC_STAT(EVENT_PW(ArenaWriteFaults, arena,
-                          arena->writeBarrierHitCount));
-
-  arena->sig = SigInvalid;
-  LockFinish(arena->lock);
-  RingFinish(&arena->poolRing);
-  RingFinish(&arena->formatRing);
-  RingFinish(&arena->messageRing);
-  RingFinish(&arena->rootRing);
-  RingFinish(&arena->threadRing);
-  RingFinish(&arena->globalRing);
-  for(rank = 0; rank < RankMAX; ++rank)
-    RingFinish(&arena->greyRing[rank]);
-}
-
-
-/* ArenaDestroy -- deallocate and destroy the arena */
-
-void ArenaDestroy(Arena arena)
-{
-  ArenaClass class;
-  Reservoir reservoir;
-
-  AVERT(Arena, arena);
-  AVER(!arena->insidePoll);
-  reservoir = ArenaReservoir(arena);
-  AVERT(Reservoir, reservoir);
-
-  /* Empty the reservoir - see .reservoir.finish */
-  ReservoirSetLimit(reservoir, 0);
-
-  /* Temporarily give up the arena lock to avoid deadlock */
-  /* see design.mps.arena.lock.avoid.conflict */
-  ArenaLeave(arena);
-
-  /* Detach the arena from the global list. */
-  arenaClaimRingLock();
-  RingRemove(&arena->globalRing);
-  arenaReleaseRingLock();
-
-  /* Reclaim the arena lock and re-test assumptions */
-  ArenaEnter(arena);
-  AVERT(Arena, arena);
-  AVER(!arena->insidePoll);
-
-  class = arena->class;
-
-  /* throw away the BT used by messages */
-  if (arena->enabledMessageTypes != NULL) {
-    ControlFree(arena, (void *)arena->enabledMessageTypes, 
-                BTSize(MessageTypeMAX));
-    arena->enabledMessageTypes = NULL;
-  }
-
-  /* .message.queue.empty: Empty the queue of messages before */
-  /* proceeding to finish the arena.  It is important that this */
-  /* is done before destroying the finalization pool as otherwise */
-  /* the message queue would have dangling pointers to messages */
-  /* whose memory has been unmapped. */
-  MessageEmpty(arena);
-
-  /* destroy the final pool (see design.mps.finalize) */
-  if (arena->isFinalPool) {
-    /* All this subtlety is because PoolDestroy will call */
-    /* ArenaCheck several times.  The invariant on finalPool */
-    /* and isFinalPool should hold before, after, and during */
-    /* the PoolDestroy call */
-    Pool pool = arena->finalPool;
-
-    arena->isFinalPool = FALSE;
-    arena->finalPool = NULL;
-    PoolDestroy(pool);
-  }
-
-  /* Destroy the control pool & reservoir pool. */
-  arena->poolReady = FALSE;
-  PoolFinish(ArenaControlPool(arena));
-  ReservoirFinish(reservoir);
-
-  ArenaLeave(arena);
-
   /* Call class-specific finishing.  This will call ArenaFinish. */
-  (*class->finish)(arena);
-
-  EventFinish();
+  (*arena->class->finish)(arena);
 }
 
 
-/* ArenaEnter -- enter the state where you can look at MPM data 
- *               structures
- */
+/* ControlInit -- initialize the control pool */
 
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
-void (ArenaEnter)(Arena arena)
+Res ControlInit(Arena arena)
 {
-  /* Don't need to lock, just check. */
-  AVERT(Arena, arena);
-}
-#else
-void ArenaEnter(Arena arena)
-{
-  AVER(arena != NULL);
-  AVER(arena->sig == ArenaSig);
-
-  StackProbe(STACK_PROBE_DEPTH);
-  LockClaim(arena->lock);
-  AVERT(Arena, arena); /* can't AVER it until we've got the lock */
-  ShieldEnter(arena);
-}
-#endif
-
-
-/* ArenaLeave -- leave the state where you can look at MPM data 
- *               structures
- */
-
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
-void (ArenaLeave)(Arena arena)
-{
-  /* Don't need to lock, just check. */
-  AVERT(Arena, arena);
-}
-#else
-void ArenaLeave(Arena arena)
-{
-  AVERT(Arena, arena);
-  ShieldLeave(arena);
-  ProtSync(arena);              /* design.mps.prot.if.sync */
-  LockReleaseMPM(arena->lock);
-}
-#endif
-
-
-/* mps_exception_info -- pointer to exception info
- *
- * This is a hack to make exception info easier to find in a release
- * version.  The format is platform-specific.  We won't necessarily
- * publish this.
- */
-
-MutatorFaultContext mps_exception_info = NULL;
-
-
-/* ArenaAccess -- deal with an access fault
- *
- * This is called when a protected address is accessed.  The mode
- * corresponds to which mode flags need to be cleared in order
- * for the access to continue.
- */
-
-Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
-{
-  Seg seg;
-  Ring node, nextNode;
   Res res;
 
-  arenaClaimRingLock();    /* design.mps.arena.lock.ring */
-  mps_exception_info = context;
-  RING_FOR(node, &arenaRing, nextNode) {
-    Arena arena = RING_ELT(Arena, globalRing, node);
-    Root root;
-
-    ArenaEnter(arena);     /* design.mps.arena.lock.arena */
-    AVERT(Arena, arena);   /* can't AVER until we've got the lock */
-    /* @@@@ The code below assumes that Roots and Segs are disjoint. */
-    /* It will fall over (in TraceSegAccess probably) if there is a */
-    /* protected root on a segment. */
-    /* It is possible to overcome this restriction. */
-    if (SegOfAddr(&seg, arena, addr)) {
-      mps_exception_info = NULL;
-      arenaReleaseRingLock();
-      /* An access in a different thread may have already caused
-       * the protection to be cleared.  This avoids calling
-       * TraceAccess on protection that has already been cleared on
-       * a separate thread.
-       */
-      mode &= SegPM(seg);
-      if (mode != AccessSetEMPTY) {
-        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
-        AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
-      }
-      ArenaLeave(arena);
-      return TRUE;
-    } else if (RootOfAddr(&root, arena, addr)) {
-      mps_exception_info = NULL;
-      arenaReleaseRingLock();
-      mode &= RootPM(root);
-      if (mode != AccessSetEMPTY)
-        RootAccess(root, mode);
-      ArenaLeave(arena);
-      return TRUE;
-    }
-
-    ArenaLeave(arena);
-  }
-
-  mps_exception_info = NULL;
-  arenaReleaseRingLock();
-  return FALSE;
-}
-
-
-/* ArenaPoll -- trigger periodic actions
- *
- * Poll all background activities to see if they need to do anything.
- * ArenaPoll does nothing if the amount of committed memory is less
- * than the arena poll threshold.  This means that actions are taken
- * as the memory demands increase.
- * 
- * @@@@ This is where time is "stolen" from the mutator in addition
- * to doing what it asks and servicing accesses.  This is where the
- * amount of time should be controlled, perhaps by passing time
- * limits to the various other activities.
- *
- * @@@@ Perhaps this should be based on a process table rather than
- * a series of manual steps for looking around.  This might be
- * worthwhile if we introduce background activities other than
- * tracing.
- */
-
-#ifdef MPS_PROD_EPCORE
-void (ArenaPoll)(Arena arena)
-{
-  /* Don't poll, just check. */
   AVERT(Arena, arena);
-}
-#else
-void ArenaPoll(Arena arena)
-{
-  double size;
-
-  AVERT(Arena, arena);
-
-  if (!DONGLE_TEST_QUICK()) {
-    /* Cripple it by deleting the control pool. */
-    arena->poolReady = FALSE; /* suppress check */
-    PoolFinish(ArenaControlPool(arena));
-    return;
-  }
-  if (arena->clamped)
-    return;
-  size = arena->fillMutatorSize;
-  if (arena->insidePoll || size < arena->pollThreshold)
-    return;
-
-  arena->insidePoll = TRUE;
-
-  /* Poll actions to see if any new action is to be taken. */
-  ActionPoll(arena);
-
-  /* Temporary hacky progress control added here and in trace.c */
-  /* for change.dylan.honeybee.170466, and substantially modified */
-  /* for change.epcore.minnow.160062. */
-  if (arena->busyTraces != TraceSetEMPTY) {
-    Trace trace = ArenaTrace(arena, (TraceId)0);
-    AVER(arena->busyTraces == TraceSetSingle((TraceId)0));
-    TracePoll(trace);
-    if (trace->state == TraceFINISHED) {
-      TraceDestroy(trace);
-    }
-  }
-
-  size = arena->fillMutatorSize;
-  arena->pollThreshold = size + ARENA_POLL_MAX;
-  AVER(arena->pollThreshold > size); /* enough precision? */
-
-  arena->insidePoll = FALSE;
-}
-#endif
-
-
-void ArenaClamp(Arena arena)
-{
-  AVERT(Arena, arena);
-  arena->clamped = TRUE;
-}
- 
-void ArenaRelease(Arena arena)
-{
-  AVERT(Arena, arena);
-  arena->clamped = FALSE;
-}
- 
-void ArenaPark(Arena arena)
-{
-  TraceId ti;
- 
-  AVERT(Arena, arena);
- 
-  arena->clamped = TRUE;
- 
-  while(arena->busyTraces != TraceSetEMPTY) {
-    /* Poll active traces to make progress. */
-    for(ti = 0; ti < TRACE_MAX; ++ti)
-      if (TraceSetIsMember(arena->busyTraces, ti)) {
-        Trace trace = ArenaTrace(arena, ti);
- 
-        TracePoll(trace);
- 
-        if (trace->state == TraceFINISHED)
-          TraceDestroy(trace);
-      }
-  }
-}
-
-
-/* ArenaCollect -- collect everything */
-
-Res ArenaCollect(Arena arena)
-{
-  Trace trace;
-  Res res;
-  Ring poolNode, nextPoolNode;
-  Bool haveWhiteSegs = FALSE;
-
-  AVERT(Arena, arena);
-  ArenaPark(arena);
-
-  res = TraceCreate(&trace, arena);
-  /* should be a trace available -- we're parked */
-  AVER(res != ResLIMIT);
-  if (res != ResOK)
-    goto failCreate;
-
-  /* Identify the condemned set and turn it white. */
-  RING_FOR(poolNode, ArenaPoolRing(arena), nextPoolNode) {
-    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
-    Ring segNode, nextSegNode;
-
-    if ((pool->class->attr & AttrGC) != 0) {
-      res = PoolTraceBegin(pool, trace);
-      if (res != ResOK)
-        goto failBegin;
-
-      RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
-        Seg seg = SegOfPoolRing(segNode);
-
-        res = TraceAddWhite(trace, seg);
-        if (res != ResOK)
-          goto failBegin;
-        haveWhiteSegs = TRUE;
-      }
-    }
-  }
-
-  TraceStart(trace, 0.0, 0.0);
-  ArenaPark(arena);
+  res = PoolInit(&arena->controlPoolStruct.poolStruct, 
+                 arena, PoolClassMV(),
+                 ARENA_CONTROL_EXTENDBY, ARENA_CONTROL_AVGSIZE,
+                 ARENA_CONTROL_MAXSIZE);
+  if (res != ResOK) 
+    return res;
+  arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
   return ResOK;
-
-failBegin:
-  AVER(!haveWhiteSegs); /* @@@@ Would leave white sets inconsistent. */
-  TraceDestroy(trace);
-failCreate:
-  return res;
 }
 
 
-/* ArenaDescribe -- describe the arena
- *
- * See design.mps.describe.
- */
+/* ControlFinish -- finish the control pool */
 
-Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
+void ControlFinish(Arena arena)
+{
+  AVERT(Arena, arena);
+  arena->poolReady = FALSE;
+  PoolFinish(&arena->controlPoolStruct.poolStruct);
+}
+
+
+/* ArenaAllocDescribe -- describe the allocation fields */
+
+Res ArenaAllocDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
-  Ring node, nextNode;
-  Index i;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
-               "Arena $P ($U) {\n",    
-               (WriteFP)arena, (WriteFU)arena->serial,
-               "  class $P (\"$S\")\n", 
-               (WriteFP)arena->class, arena->class->name,
-	       "  mpsVersion $S\n",
-	       arena->mpsVersionString,
                "  poolReady $S\n",     arena->poolReady ? "YES" : "NO",
                "  controlPool $P\n",   
                (WriteFP)&arena->controlPoolStruct,
-               "  lock $P\n",          (WriteFP)arena->lock,
-               "  pollThreshold $U KB\n",
-               (WriteFU)(arena->pollThreshold / 1024),
-               "  insidePoll $S\n",    arena->insidePoll ? "YES" : "NO",
                "  fillMutatorSize $U KB\n",
                  (WriteFU)(arena->fillMutatorSize / 1024),
                "  emptyMutatorSize $U KB\n",
@@ -823,86 +272,20 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                  (WriteFU)(arena->fillInternalSize / 1024),
                "  emptyInternalSize $U KB\n",
                  (WriteFU)(arena->emptyInternalSize / 1024),
-               NULL);
-  if (res != ResOK) return res;
-
-  res = WriteF(stream,
                "  commitLimit $W\n", (WriteFW)arena->commitLimit,
 	       "  spareCommitted $W\n", (WriteFW)arena->spareCommitted,
 	       "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
                "  zoneShift $U\n", (WriteFU)arena->zoneShift,
                "  alignment $W\n", (WriteFW)arena->alignment,
-               "  poolSerial $U\n", (WriteFU)arena->poolSerial,
-               "  rootSerial $U\n", (WriteFU)arena->rootSerial,
-               "  formatSerial $U\n", (WriteFU)arena->formatSerial,
-               "  threadSerial $U\n", (WriteFU)arena->threadSerial,
-               "  insideShield $S\n",  
-               arena->insideShield ? "YES" : "NO",
-               "  busyTraces    $B\n", (WriteFB)arena->busyTraces,
-               "  flippedTraces $B\n", (WriteFB)arena->flippedTraces,
-               "    (no TraceDescribe function)\n",
-               "  epoch $U\n",         (WriteFU)arena->epoch,
                NULL);
   if (res != ResOK) return res;
 
   res = (*arena->class->describe)(arena, stream);
-  if (res != ResOK) return res;
-
-  for(i=0; i < ARENA_LD_LENGTH; ++ i) {
-    res = WriteF(stream,
-                 "    history[$U] = $B\n", i, arena->history[i],
-                 NULL);
-    if (res != ResOK) return res;
-  }
-  
-  res = WriteF(stream,
-               "    [note: indices are raw, not rotated]\n"
-               "    prehistory = $B\n",    (WriteFB)arena->prehistory,
-               NULL);
-  if(res != ResOK) return res;
-
-  res = WriteF(stream,
-               "  suspended $S\n", arena->suspended ? "YES" : "NO",
-               "  shDepth $U\n", arena->shDepth,
-               "  shCacheI $U\n", arena->shCacheI,
-               "    (no SegDescribe function)\n",
-               NULL);
-  if (res != ResOK) return res;
-
-  RING_FOR(node, &arena->rootRing, nextNode) {
-    Root root = RING_ELT(Root, arenaRing, node);
-    res = RootDescribe(root, stream);
-    if (res != ResOK) return res;
-  }
-
-  RING_FOR(node, &arena->poolRing, nextNode) {
-    Pool pool = RING_ELT(Pool, arenaRing, node);
-    res = PoolDescribe(pool, stream);
-    if (res != ResOK) return res;
-  }
-
-  RING_FOR(node, &arena->formatRing, nextNode) {
-    Format format = RING_ELT(Format, arenaRing, node);
-    res = FormatDescribe(format, stream);
-    if (res != ResOK) return res;
-  }
-
-  RING_FOR(node, &arena->threadRing, nextNode) {
-    Thread thread = ThreadRingThread(node);
-    res = ThreadDescribe(thread, stream);
-    if (res != ResOK) return res;
-  }
-
-  /* @@@@ What about grey rings? */
-
-  res = WriteF(stream,
-               "} Arena $P ($U)\n", (WriteFP)arena, 
-               (WriteFU)arena->serial,
-               NULL);
-  if (res != ResOK) return res;
-
-  return ResOK;
+  return res;
 }
+
+
+/* ArenaDescribeTracts -- describe all the tracts in the arena */
 
 Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
 {
@@ -917,7 +300,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
 
   b = TractFirst(&tract, arena); 
   oldLimit = TractBase(tract);
-  while(b) {
+  while (b) {
     base = TractBase(tract);
     limit = TractLimit(tract);
     size = ArenaAlign(arena);
@@ -970,6 +353,7 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
   AVER(baseReturn != NULL);
   AVER(size > 0);
   AVER(BoolCheck(withReservoirPermit));
+  AVER(arena->poolReady);
 
   res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
                   withReservoirPermit);
@@ -988,6 +372,7 @@ void ControlFree(Arena arena, void* base, size_t size)
   AVERT(Arena, arena);
   AVER(base != NULL);
   AVER(size > 0);
+  AVER(arena->poolReady);
 
   PoolFree(ArenaControlPool(arena), (Addr)base, (Size)size);
 }
@@ -1069,7 +454,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
   limit = AddrAdd(base, size);
   if ((arena->lastTractBase >= base) && (arena->lastTractBase < limit)) {
     arena->lastTract = NULL;
-    arena->lastTractBase = NULL;
+    arena->lastTractBase = (Addr)0;
   }
 
   res = ReservoirEnsureFull(reservoir);
@@ -1091,11 +476,10 @@ Size ArenaReserved(Arena arena)
   return (*arena->class->reserved)(arena);
 }
 
-
 Size ArenaCommitted(Arena arena)
 {
   AVERT(Arena, arena);
-  return (*arena->class->committed)(arena);
+  return arena->committed;
 }
 
 Size ArenaSpareCommitted(Arena arena)
@@ -1167,12 +551,16 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
 }
 
 
+/* ArenaMutatorAllocSize -- total amount allocated by the mutator */
+
 double ArenaMutatorAllocSize(Arena arena)
 {
   AVERT(Arena, arena);
   return arena->fillMutatorSize - arena->emptyMutatorSize;
 }
 
+
+/* ArenaExtend -- Add a new chunk in the arena */
 
 Res ArenaExtend(Arena arena, Addr base, Size size)
 {
@@ -1185,56 +573,15 @@ Res ArenaExtend(Arena arena, Addr base, Size size)
   res = (*arena->class->extend)(arena, base, size);
   if (res != ResOK) 
     return res;
-  
+
   EVENT_PAW(ArenaExtend, arena, base, size);
-
   return ResOK;
-}
-
-
-Res ArenaRetract(Arena arena, Addr base, Size size)
-{
-  Res res;
-
-  AVERT(Arena, arena);
-  AVER(base != (Addr)0);
-  AVER(size > 0);
-
-  res = (*arena->class->retract)(arena, base, size);
-  if (res != ResOK) 
-    return res;
-  
-  EVENT_PAW(ArenaRetract, arena, base, size);
-
-  return ResOK;
-}
-
-
-Bool ArenaIsReservedAddr(Arena arena, Addr addr)
-{
-  AVERT(Arena, arena);
-  /* addr is arbitrary */
-
-  return (*arena->class->isReserved)(arena, addr);
 }
 
 
 /* ArenaNoExtend -- fail to extend the arena by a chunk */
 
 Res ArenaNoExtend(Arena arena, Addr base, Size size)
-{
-  AVERT(Arena, arena);
-  AVER(base != (Addr)0);
-  AVER(size > (Size)0);
-
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-
-/* ArenaNoRetract -- fail to retract a chunk from the arena */
-
-Res ArenaNoRetract(Arena arena, Addr base, Size size)
 {
   AVERT(Arena, arena);
   AVER(base != (Addr)0);
@@ -1254,217 +601,4 @@ Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream)
 
   return WriteF(stream, 
     "  No class-specific description available.\n", NULL);
-}
-
-
-/* SegPrefCheck -- check the consistency of a segment preference */
-
-Bool SegPrefCheck(SegPref pref)
-{
-  CHECKS(SegPref, pref);
-  CHECKL(BoolCheck(pref->high));
-  /* refSet can't be checked because it's an arbitrary bit pattern. */
-  CHECKL(BoolCheck(pref->isGen));
-  CHECKL(BoolCheck(pref->isCollected));
-  /* gen is an arbitrary serial */
-  return TRUE;
-}
-
-
-/* SegPrefDefault -- return a segment preference representing the 
- *                   defaults
- */
-
-static SegPrefStruct segPrefDefault = {
-  SegPrefSig,                           /* sig */
-  ARENA_DEFAULT_SEG_HIGH,               /* high */
-  ARENA_DEFAULT_REFSET,                 /* refSet */
-  FALSE,                                /* isCollected */
-  FALSE,                                /* isGen */
-  (Serial)0,                            /* gen */
-};
-
-SegPref SegPrefDefault(void)
-{
-  return &segPrefDefault;
-}
-
-
-/* SegPrefExpress -- express a segment preference */
-
-Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
-{
-  AVERT(SegPref, pref);
-  AVER(pref != &segPrefDefault);
-
-  switch(kind) {
-  case SegPrefHigh:
-    AVER(p == NULL);
-    pref->high = TRUE;
-    break;
-
-  case SegPrefLow:
-    AVER(p == NULL);
-    pref->high = FALSE;
-    break;
-
-  case SegPrefRefSet:
-    AVER(p != NULL);
-    pref->refSet = *(RefSet *)p;
-    break;
-
-  case SegPrefCollected:
-    AVER(p == NULL);
-    pref->isCollected = TRUE;
-    break;
-
-  case SegPrefGen:
-    AVER(p != NULL);
-    pref->isGen = TRUE;
-    pref->gen = *(Serial *)p;
-    break;
-
-  default:
-    /* Unknown kinds are ignored for binary compatibility. */
-    /* See design.mps.pref. */
-    break;
-  }
-
-  return ResOK;
-}
-
-
-/* ArenaFinalize -- registers an object for finalization
- *
- * See design.mps.finalize.
- */
-
-Res ArenaFinalize(Arena arena, Ref obj)
-{
-  Res res;
-
-  AVERT(Arena, arena);
-  /* Could consider checking that Ref is valid. */
-
-  if (!arena->isFinalPool) {
-    Pool pool;
-
-    res = PoolCreate(&pool, arena, PoolClassMRG());
-    if (res != ResOK)
-      return res;
-    arena->finalPool = pool;
-    arena->isFinalPool = TRUE;
-  }
-  AVER(arena->isFinalPool);
-
-  res = MRGRegister(arena->finalPool, (Ref)obj);
-
-  return res;
-}
-
-
-/* Peek / Poke */
-
-Ref ArenaPeek(Arena arena, Addr addr)
-{
-  Seg seg;
-  Bool b;
-
-  AVERT(Arena, arena);
-
-  b = SegOfAddr(&seg, arena, addr);
-  if (b) {
-    return ArenaPeekSeg(arena, seg, addr);
-  } else {
-    Ref ref;
-    ref = *(Ref *)addr;
-    return ref;
-  }
-}
-
-Ref ArenaPeekSeg(Arena arena, Seg seg, Addr addr)
-{
-  Ref ref;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  /* Consider checking addr's alignment using seg->pool->alignment */
-
-  ShieldExpose(arena, seg);
-  ref = *(Ref *)addr;
-  ShieldCover(arena, seg);
-  return ref;
-}
-
-void ArenaPoke(Arena arena, Addr addr, Ref ref)
-{
-  Seg seg;
-  Bool b;
-
-  AVERT(Arena, arena);
-  /* Can't check addr as it is arbitrary */
-  /* Can't check ref as it is arbitrary */
-
-  b = SegOfAddr(&seg, arena, addr);
-  if (b) {
-    ArenaPokeSeg(arena, seg, addr, ref);
-  } else {
-    *(Ref *)addr = ref;
-  }
-}
-
-void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
-{
-  RefSet summary;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  /* Consider checking addr's alignment using seg->pool->alignment */
-  /* ref is arbitrary and can't be checked */
-
-  ShieldExpose(arena, seg);
-  *(Ref *)addr = ref;
-  summary = SegSummary(seg);
-  summary = RefSetAdd(arena, summary, (Addr)ref);
-  SegSetSummary(seg, summary);
-  ShieldCover(arena, seg);
-}
-
-
-/* ArenaRead -- read a single reference, possibly through a barrier
- *
- * This forms part of a software barrier.  It provides fine-grain access
- * to single references in segments.
- */
-
-Ref ArenaRead(Arena arena, Addr addr)
-{
-  Bool b;
-  Seg seg;
-
-  AVERT(Arena, arena);
-  
-  b = SegOfAddr(&seg, arena, addr);
-  AVER(b == TRUE);
-
-  /* .read.flipped: We AVER that the reference that we are reading */
-  /* refers to an object for which all the traces that the object is */
-  /* white for are also flipped.  This is because we don't have any */
-  /* write-barrier (in the sense of write-barrier collectors) */
-  /* mechanism in place for reading (strictly speaking, writing */
-  /* it somewhere after having read it) references that are white. */
-  AVER(TraceSetSub(SegWhite(seg), arena->flippedTraces));
-
-  /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
-  /* not RankEXACT which is conservative.  See also */
-  /* impl.c.trace.scan.conservative for a similar nasty. */
-  TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
-                     seg, (Ref *)addr);
-  /* get the possibly fixed reference */
-  return ArenaPeekSeg(arena, seg, addr);
 }

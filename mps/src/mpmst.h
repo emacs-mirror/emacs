@@ -1,20 +1,15 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.87) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpmst.h(trunk.88) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
  * design a module's structures should be found in that module's design
  * document.
  *
- * .rationale: Almost all MPM data structures are defined in this
- * header, or in headers selected from here.  Most structures have
- * already been declared as incomplete types in impl.h.mpmtypes.  This
- * organization means that there is an easily browsable view of the
- * data structures, and that it is easy to experiment.
- *
- * Most of the structures are the underlying aggregate types for an
- * abstract data type.  See
+ * .structure: Most structures have already been declared as incomplete
+ * types in impl.h.mpmtypes.  Most of the structures are the underlying
+ * aggregate types for an abstract data type.  See
  * guide.impl.c.naming.type.adt-aggregate.relate.
  *
  * .rationale.sig: Object signatures (PoolSig, etc.) are defined
@@ -31,17 +26,7 @@
 #include "mpmtypes.h"
 
 #include "protocol.h"
-
-
-/* RingStruct -- double-ended queue structure
- *
- * .ring: The ring structure is used as a field in other structures
- * in order to link them together into "rings".  See impl.c.ring.
- */
-
-typedef struct RingStruct {     /* double-ended queue structure */
-  Ring next, prev;              /* links to next and prev element */
-} RingStruct;
+#include "ring.h"
 
 
 /* PoolClassStruct -- pool class structure
@@ -251,24 +236,6 @@ typedef struct MessageStruct {
   MessageClass class;           /* Message Class Structure */
   RingStruct queueRing;         /* Message queue ring */
 } MessageStruct;
-
-
-/* TractStruct -- tract structure
- *
- * .tract: Tracts represent the grains of memory allocation from
- * the arena.  See design.mps.arena.
- * 
- * .bool: The hasSeg field is a boolean, but can't be represented
- * as type Bool. See design.mps.arena.tract.field.hasSeg.
- */
-
-typedef struct TractStruct { /* Tract structure */
-  Pool pool;      /* MUST BE FIRST (design.mps.arena.tract.field pool) */
-  void *p;                    /* pointer for use of owning pool */
-  Addr base;                  /* Base address of the tract */
-  TraceSet white : TRACE_MAX; /* traces for which tract is white */
-  unsigned int hasSeg : 1;    /* does tract have a seg in p? See .bool */
-} TractStruct;
 
 
 /* SegClassStruct -- segment class structure
@@ -662,6 +629,21 @@ typedef struct ActionStruct {
 } ActionStruct;
 
 
+/* ChunkCacheEntryStruct */
+
+/* SIGnature Arena VM Chunk Cache */
+#define ChunkCacheEntrySig ((Sig)0x519C80CE) /* SIGnature CHUnk Cache Entry */
+
+typedef struct ChunkCacheEntryStruct {
+  Sig sig;
+  Chunk chunk;
+  Addr base;
+  Addr limit;
+  Page pageTableBase;
+  Page pageTableLimit;
+} ChunkCacheEntryStruct;
+
+
 /* ArenaClassStruct -- generic arena class interface */
 
 #define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
@@ -674,17 +656,12 @@ typedef struct ArenaClassStruct {
   ArenaInitMethod init;
   ArenaFinishMethod finish;
   ArenaReservedMethod reserved;
-  ArenaCommittedMethod committed;
   ArenaSpareCommitExceededMethod spareCommitExceeded;
   ArenaExtendMethod extend;
-  ArenaRetractMethod retract;
-  ArenaIsReservedAddrMethod isReserved;
   ArenaAllocMethod alloc;
   ArenaFreeMethod free;
-  ArenaTractOfAddrMethod tractOfAddr;
-  ArenaTractFirstMethod tractFirst;
-  ArenaTractNextMethod tractNext;
-  ArenaTractNextContigMethod tractNextContig;
+  ArenaChunkInitMethod chunkInit;
+  ArenaChunkFinishMethod chunkFinish;
   ArenaDescribeMethod describe;
   Sig sig;
 } ArenaClassStruct;
@@ -703,35 +680,48 @@ typedef struct ArenaClassStruct {
 #define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
 typedef struct ArenaStruct {
-  /* arena fields (impl.c.arena) */
+  /* arena fields (impl.c.global) */
   Sig sig;                      /* design.mps.sig */
   Serial serial;                /* design.mps.arena.static.serial */
-  ArenaClass class;             /* arena class structure */
   RingStruct globalRing;        /* node in global ring of arenas */
   const char *mpsVersionString; /* MPSVersion() */
 
-  Bool poolReady;               /* design.mps.arena.pool.ready */
-  MVStruct controlPoolStruct;   /* design.mps.arena.pool */
-  ReservoirStruct reservoirStruct; /* design.mps.reservoir */
   Lock lock;                    /* arena's lock */
+
   double pollThreshold;         /* design.mps.arena.poll */
   Bool insidePoll;
   Bool clamped;                 /* prevent background activity */
 
   Bool bufferLogging;           /* design.mps.buffer.logging.control */
+
+  /* arena allocation fields (impl.c.arena) */
+  ArenaClass class;             /* arena class structure */
+  Bool poolReady;               /* design.mps.arena.pool.ready */
+  MVStruct controlPoolStruct;   /* design.mps.arena.pool */
+  ReservoirStruct reservoirStruct; /* design.mps.reservoir */
+
   double fillMutatorSize;       /* total bytes filled, mutator buffers */
   double emptyMutatorSize;      /* total bytes emptied, mutator buffers */
   double allocMutatorSize;      /* fill-empty, only asymptotically accurate */
   double fillInternalSize;      /* total bytes filled, internal buffers */
   double emptyInternalSize;     /* total bytes emptied, internal buffers */
 
-  Size commitLimit;             /* Client configurable commit limit */
+  Size committed;               /* amount of committed RAM */
+  Size commitLimit;             /* client-configurable commit limit */
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */
   Size spareCommitLimit;        /* Limit on spareCommitted */
 
   Shift zoneShift;              /* see also impl.c.ref */
   Align alignment;              /* minimum alignment of tracts */
+
+  Tract lastTract;              /* most recently allocated tract */
+  Addr lastTractBase;           /* base address of lastTract */
+
+  Chunk primary;                /* the primary chunk */
+  RingStruct chunkRing;         /* all the chunks */
+  Serial chunkSerial;           /* next chunk number */
+  ChunkCacheEntryStruct chunkCache; /* just one entry */
 
   /* pool fields (impl.c.pool) */
   RingStruct poolRing;          /* ring of pools in arena */
@@ -749,7 +739,7 @@ typedef struct ArenaStruct {
   RingStruct messageRing;       /* ring of pending messages */
   BT enabledMessageTypes;       /* map of which types are enabled */
 
-  /* finalization fields (design.mps.finalize), impl.c.space */
+  /* finalization fields (design.mps.finalize), impl.c.poolmrg */
   Bool isFinalPool;             /* indicator for finalPool */
   Pool finalPool;               /* either NULL or an MRG pool */
 
@@ -777,10 +767,6 @@ typedef struct ArenaStruct {
   Epoch epoch;                     /* design.mps.arena.ld.epoch */
   RefSet prehistory;               /* design.mps.arena.ld.prehistory */
   RefSet history[ARENA_LD_LENGTH]; /* design.mps.arena.ld.history */
-
-  /* last allocated tract cache fields (impl.c.arena) */
-  Tract lastTract;              /* most recently allocated tract */
-  Addr lastTractBase;           /* base address of lastTract */
 } ArenaStruct;
 
 

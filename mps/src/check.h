@@ -1,15 +1,15 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.12) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * This header defines a family of AVER and NOTREACHED macros. The
- * macros should be used to instrument and annotate code with
+ * .aver: This header defines a family of AVER and NOTREACHED macros.
+ * These macros should be used to instrument and annotate code with
  * invariants, and so provide both interface and internal consistency
  * checks.
  *
- * Non-obvious AVER statements should always be accompanied by a
- * comment.
+ * .comment: Non-obvious AVER statements should always be accompanied by
+ * a comment.
  *
  * .disable: When assertions are disabled, AVER expands to something
  * which evaluates the condition but discards the result. Compilers
@@ -22,6 +22,11 @@
 #include "config.h"
 #include "misc.h"
 #include "mpslib.h"
+
+
+/* CheckLevel -- Control check method behaviour; see impl.c.assert */
+
+extern unsigned CheckLevel;
 
 
 /* AVER, AVERT -- MPM assertions

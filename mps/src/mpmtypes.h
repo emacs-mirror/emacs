@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.79) $
+ * $HopeName$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -8,8 +8,7 @@
  * .rationale: Types and type constants are almost all defined
  * in this header, in advance of any declarations of prototypes
  * or structures.  This avoids difficulties in defining recursive
- * data structures, and also provides a nice browsable list of
- * types.
+ * data structures.
  */
 
 #ifndef mpmtypes_h
@@ -24,7 +23,6 @@
 /* TYPES */
 
 typedef unsigned long Sig;              /* design.mps.sig */
-typedef int Bool;                       /* design.mps.type.bool */
 typedef int Res;                        /* design.mps.type.res */
 typedef void (*Fun)(void);              /* design.mps.type.fun */
 typedef MPS_T_WORD Word;                /* design.mps.type.word */
@@ -50,8 +48,8 @@ typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef unsigned FormatVariety;         
 typedef int RootVar;                    /* design.mps.type.rootvar */
 typedef unsigned Serial;                /* design.mps.type.serial */
-typedef struct RingStruct *Ring;        /* design.mps.ring */
 typedef Word *BT;                       /* design.mps.bt */
+typedef struct BootBlockStruct *BootBlock; /* impl.c.boot */
 typedef struct BufferStruct *Buffer;    /* design.mps.buffer */
 typedef struct SegBufStruct *SegBuf;    /* design.mps.buffer */
 typedef struct BufferClassStruct *BufferClass; /* design.mps.buffer */
@@ -74,12 +72,15 @@ typedef PoolClass AbstractCollectPoolClass; /* impl.c.poolabs */
 typedef struct TraceStruct *Trace;      /* design.mps.tracer */
 typedef struct ScanStateStruct *ScanState; /* design.mps.tracer */
 typedef struct TractStruct *Tract;      /* design.mps.arena */
+typedef struct ChunkStruct *Chunk;      /* impl.c.tract */
+typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* impl.c.tract */
+typedef struct PageStruct *Page;        /* impl.c.tract */
 typedef struct SegStruct *Seg;          /* impl.c.seg */
 typedef struct GCSegStruct *GCSeg;      /* impl.c.seg */
 typedef struct SegClassStruct *SegClass; /* impl.c.seg */
 typedef SegClass GCSegClass;            /* impl.c.seg */
-typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, impl.c.arena* */
-typedef int SegPrefKind;                /* design.mps.pref, impl.c.arena* */
+typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, impl.c.locus */
+typedef int SegPrefKind;                /* design.mps.pref, impl.c.locus */
 typedef struct ArenaClassStruct *ArenaClass; /* design.mps.arena */
 typedef ArenaClass AbstractArenaClass;  /* impl.c.arena */
 typedef struct ArenaStruct *Arena;      /* design.mps.arena */
@@ -96,27 +97,20 @@ typedef struct AllocFrameStruct *AllocFrame; /* design.mps.alloc-frame */
 typedef struct ReservoirStruct *Reservoir;   /* design.mps.reservoir */
 
 
-/* Arena*Method -- see @@@@ */
+/* Arena*Method -- see impl.h.mpmst.ArenaClassStruct */
 
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, va_list args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
-typedef Size (*ArenaCommittedMethod)(Arena arena);
 typedef void (*ArenaSpareCommitExceededMethod)(Arena arena);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
-typedef Res (*ArenaRetractMethod)(Arena arena, Addr base, Size size);
-typedef Bool (*ArenaIsReservedAddrMethod)(Arena arena, Addr addr);
 typedef Res (*ArenaAllocMethod)(Addr *baseReturn, 
                                 Tract *baseTractReturn,
                                 SegPref pref, Size size, Pool pool);
 typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
-typedef Bool (*ArenaTractOfAddrMethod)(Tract *tractReturn, 
-                                       Arena arena, Addr addr);
-typedef Bool (*ArenaTractFirstMethod)(Tract *tractReturn, Arena arena);
-typedef Bool (*ArenaTractNextMethod)(Tract *tractReturn, 
-                                     Arena arena, Addr addr);
-typedef Tract (*ArenaTractNextContigMethod)(Arena arena, Tract tract);
+typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
+typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
 
 
@@ -260,6 +254,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 
 /* CONSTANTS */
 
+
 /* design.mps.sig SIGnature IS BAD */
 #define SigInvalid      ((Sig)0x51915BAD) 
 
@@ -268,7 +263,6 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
 #define AccessMAX       ((Size)2)
-#define RingNONE        ((Ring)0)       /* design.mps.ring */
 #define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
@@ -350,13 +344,6 @@ enum {
   RootTABLE_MASKED,
   RootREG,
   RootFMT
-};
-
-/* Boolean Constants -- see design.mps.type.bool */
-
-enum {
-  FALSE = 0,
-  TRUE = 1
 };
 
 

@@ -1,7 +1,7 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.24) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
  * memory manager itself.  The only reason that this file exists is
@@ -16,12 +16,19 @@
 #include <limits.h>
 
 
+typedef int Bool;                       /* design.mps.type.bool */
+enum {
+  FALSE = 0,
+  TRUE = 1
+};
+
+
 /* offsetof -- offset of field within structure
  *
  * .hack.offsetof: On platform.sus8lc the offsetof macro is not defined
  * (because LCC does not bother fixing up SunOS's broken header files).
  * We define it here using normal C constructs.  This hack is only
- * required on platform.sus8lc and no other platforms. See
+ * required on platform.sus8lc and no other platforms.  See
  * change.mps.tracer2.170226
  */
 
@@ -89,7 +96,7 @@ typedef const struct SrcIdStruct {
  * cause an error if it is not used in a statement context.
  */
 
-#define NOOP            do {} while(0)
+#define NOOP   do {} while(0)
 
 
 /* STR -- expands into a string of the expansion of the argument
@@ -127,7 +134,7 @@ typedef const struct SrcIdStruct {
 
 #define DISCARD_STAT(stat) \
   BEGIN \
-    if (FALSE) stat; \
+    if (0) stat; \
   END
 
 

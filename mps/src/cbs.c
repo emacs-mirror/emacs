@@ -1,7 +1,7 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $HopeName$
- * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -15,10 +15,11 @@
 #include "cbs.h"
 #include "splay.h"
 #include "meter.h"
+#include "poolmfs.h"
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.17) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.18) $");
 
 
 /* See design.mps.cbs.align */

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.134) $
+ * $HopeName: MMsrc!mpm.h(trunk.135) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -11,20 +11,15 @@
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "check.h"      /* assertion and consistency checking support */
 
-#include "mpmtypes.h"
-#include "mpmst.h"
 #include "event.h"
 #include "lock.h"
 #include "th.h"
-#include "poolmv.h"
-#include "poolmfs.h"
 #include "ss.h"
 #include "mpslib.h"
-
-
-/* CheckLevel -- Control check method behaviour; see impl.c.assert */
-
-extern Word CheckLevel;
+#include "ring.h"
+#include "tract.h" /* only for certain Seg macros */
+#include "mpmtypes.h"
+#include "mpmst.h"
 
 
 /* MPMCheck -- check MPM assumptions */
@@ -38,11 +33,13 @@ extern Bool MPMCheck(void);
 extern Bool (BoolCheck)(Bool b);
 /* design.mps.type.bool.check.inline */
 #define BoolCheck(b) ((unsigned)(b) <= 1)
+
 extern Bool FunCheck(Fun f);
+#define FUNCHECK(f)     (FunCheck((Fun)f))
+
 extern Bool ShiftCheck(Shift shift);
 extern Bool AttrCheck(Attr attr);
 extern Bool RootVarCheck(RootVar rootVar);
-#define FUNCHECK(f)     (FunCheck((Fun)f))
 
 
 /* Address/Size Interface -- see impl.c.mpm */
@@ -161,93 +158,10 @@ extern Res WriteF(mps_lib_FILE *stream, ...);
 extern size_t StringLength(const char *s);
 
 
-/* Ring Interface -- see design.mps.ring, impl.c.ring */
-
-extern Bool RingCheck(Ring ring);
-extern Bool RingCheckSingle(Ring ring);
-extern Bool RingIsSingle(Ring ring);
-
-/* .ring.init: */
-extern void (RingInit)(Ring ring);
-#define RingInit(ring) \
-  BEGIN \
-    Ring _ring = (ring); \
-    AVER(NULL != _ring); \
-    _ring->next = _ring; \
-    _ring->prev = _ring; \
-    AVER(RingCheck(_ring)); \
-  END
-
-/* .ring.finish: */
-extern void (RingFinish)(Ring ring);
-#define RingFinish(ring) \
-  BEGIN \
-    Ring _ring = (ring); \
-    AVER(RingCheckSingle(_ring)); \
-    _ring->next = RingNONE; \
-    _ring->prev = RingNONE; \
-  END
-
-/* .ring.append: */
-extern void (RingAppend)(Ring ring, Ring new);
-#define RingAppend(ring, new) \
-  BEGIN \
-    Ring _ring = (ring), _new = (new); \
-    AVER(RingCheck(_ring)); \
-    AVER(RingCheckSingle(_new)); \
-    _new->prev = _ring->prev; \
-    _new->next = _ring; \
-    _ring->prev->next = _new; \
-    _ring->prev = _new; \
-  END
-
-/* .ring.insert: */
-extern void (RingInsert)(Ring ring, Ring new);
-#define RingInsert(ring, new) \
-  BEGIN \
-    Ring _ring = (ring), _new = (new); \
-    AVER(RingCheck(_ring)); \
-    AVER(RingCheckSingle(_new)); \
-    _new->prev = _ring; \
-    _new->next = _ring->next; \
-    _ring->next->prev = _new; \
-    _ring->next = _new; \
-  END
-
-/* .ring.remove: */
-extern void (RingRemove)(Ring old);
-#define RingRemove(old) \
-  BEGIN \
-    Ring _old = (old); \
-    AVER(RingCheck(_old)); \
-    AVER(!RingIsSingle(_old)); \
-    _old->next->prev = _old->prev; \
-    _old->prev->next = _old->next; \
-    _old->next = _old; \
-    _old->prev = _old; \
-  END
-
-/* .ring.next: */
-extern Ring (RingNext)(Ring ring);
-#define RingNext(ring)  ((ring)->next)
-
-/* .ring.elt: See design.mps.ring.elt */
-#define RING_ELT(type, field, node) \
-   ((type)((char *)(node) - (size_t)(&((type)0)->field)))
-
-/* .ring.for: See design.mps.ring.for */
-#define RING_FOR(node, ring, next)                              \
-  for(node = RingNext(ring), next = RingNext(node);             \
-      node != (ring) ;                                          \
-      node = (next), next = RingNext(node))
-
-
 /* Version Determination
  *
  * See design.mps.version-library.
  */
-
-/* Defined in impl.c.version */
 extern char *MPSVersion(void);
 
 
@@ -310,7 +224,6 @@ extern void BTCopyRange(BT fromBT, BT toBT,
 extern void BTCopyOffsetRange(BT fromBT, BT toBT,
                               Index fromBase, Index fromLimit,
                               Index toBase, Index toLimit);
-
 
 
 /* Pool Interface -- see impl.c.pool */
@@ -629,18 +542,23 @@ extern void ActionPoll(Arena arena);
   ((ArenaClass)SUPERCLASS(className))
 
 extern AbstractArenaClass EnsureAbstractArenaClass(void);
-extern Bool ArenaClassCheck(ArenaClass class);
 extern Bool ArenaCheck(Arena arena);
-/* backward compatibility */
-#define SpaceCheck(space) ArenaCheck(space)
 extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
 extern void ArenaDestroy(Arena arena);
 extern void ArenaInit(Arena arena, Lock lock, ArenaClass class);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
-extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode,
 			MutatorFaultContext context);
+
+extern Bool ArenaAllocCheck(Arena arena);
+extern Res ArenaAllocCreate(Arena *arenaReturn, ArenaClass class, va_list args);
+extern void ArenaAllocInit(Arena arena, ArenaClass class);
+extern void ArenaAllocDestroy(Arena arena);
+extern void ArenaAllocFinish(Arena arena);
+extern Bool ArenaClassCheck(ArenaClass class);
+extern Res ArenaAllocDescribe(Arena arena, mps_lib_FILE *stream);
+extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
@@ -662,6 +580,8 @@ extern void ArenaRelease(Arena arena);
 extern void ArenaPark(Arena arena);
 extern Res ArenaCollect(Arena arena);
 
+extern Res ControlInit(Arena arena);
+extern void ControlFinish(Arena arena);
 extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size, 
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
@@ -696,6 +616,7 @@ extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref);
 
 Ref ArenaRead(Arena arena, Addr addr);
 
+
 #define ArenaPoolRing(arena)    (&(arena)->poolRing)
 #define ArenaRootRing(arena)    (&(arena)->rootRing)
 #define ArenaTraceRing(arena)   (&(arena)->traceRing)
@@ -720,7 +641,7 @@ extern void ArenaNoSpareCommitExceeded(Arena arena);
 extern double ArenaMutatorAllocSize(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
-extern Res ArenaRetract(Arena, Addr base, Size size);
+
 extern Res ArenaFinalize(Arena arena, Ref obj);
 
 extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
@@ -742,69 +663,9 @@ extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
 extern Res ArenaAlloc(Addr *baseReturn, SegPref pref,
                       Size size, Pool pool, Bool withReservoirPermit);
 extern void ArenaFree(Addr base, Size size, Pool pool);
-extern Addr (TractBase)(Tract tract);
-#define TractBase(tract)        ((tract)->base)
-extern Addr TractLimit(Tract tract);
-extern Tract TractOfBaseAddr(Arena arena, Addr addr);
-extern Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
-/* TractOfAddr macro, see design.mps.trace.fix.tractofaddr */
-#define TRACT_OF_ADDR(tractReturn, arena, addr) \
-  ((*(arena)->class->tractOfAddr)(tractReturn, arena, addr))
-extern Bool TractFirst(Tract *tractReturn, Arena arena);
-extern Bool TractNext(Tract *tractReturn, Arena arena, Addr addr);
-extern Tract TractNextContig(Arena arena, Tract tract);
-extern Bool TractCheck(Tract tract);
-extern void TractInit(Tract tract, Pool pool, Addr base);
-extern void TractFinish(Tract tract);
-#define TractPool(tract)        ((tract)->pool)
-#define TractP(tract)           ((tract)->p)
-#define TractSetP(tract, pp)    ((void)((tract)->p = (pp)))
-#define TractHasSeg(tract)      ((Bool)(tract)->hasSeg)
-#define TractSetHasSeg(tract, b) ((void)((tract)->hasSeg = (b)))
-#define TractWhite(tract)       ((tract)->white)
-#define TractSetWhite(tract, w) ((void)((tract)->white = w))
-
-/* TRACT_*SEG -- Test / set / unset seg->tract associations
- *
- * These macros all multiply evaluate the tract parameter 
- */
-
-#define TRACT_SEG(segReturn, tract) \
-  (TractHasSeg(tract) && ((*(segReturn) = (Seg)TractP(tract)), TRUE))
-
-#define TRACT_SET_SEG(tract, seg) \
-  (TractSetHasSeg(tract, TRUE), TractSetP(tract, seg))
-
-#define TRACT_UNSET_SEG(tract) \
-  (TractSetHasSeg(tract, FALSE), TractSetP(tract, NULL))
-
-/* Macro version of TractNextContig for use in iteration macros */
-#define TRACT_NEXT_CONTIG(arena, tract) \
-  (*(arena)->class->tractNextContig)(arena, tract)
-
-/* .tract.tract.for: See design.mps.arena.tract.tract.for */
-/* paremeters arena & limit are evaluated multiple times */
-#define TRACT_TRACT_FOR(tract, addr, arena, firstTract, limit)     \
-  for((tract = (firstTract)), (addr = TractBase(tract)); \
-      tract != NULL;  \
-      (addr = AddrAdd((addr),(arena)->alignment)), \
-      ((addr < (limit)) ? \
-         (tract = TRACT_NEXT_CONTIG((arena), tract)) : \
-         (tract = NULL) /* terminate loop */))
-
-/* .tract.for: See design.mps.arena.tract.for */
-/* paremeters arena & limit are evaluated multiple times */
-#define TRACT_FOR(tract, addr, arena, base, limit)     \
-  for((tract = TractOfBaseAddr((arena), (base))), (addr = (base)); \
-      tract != NULL;  \
-      (addr = AddrAdd((addr),(arena)->alignment)), \
-      ((addr < (limit)) ? \
-         (tract = TRACT_NEXT_CONTIG((arena), tract)) : \
-         (tract = NULL) /* terminate loop */))
 
 
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
-extern Res ArenaNoRetract(Arena arena, Addr base, Size size);
 extern Res ArenaTrivDescribe(Arena arena, mps_lib_FILE *stream);
 
 extern Bool SegPrefCheck(SegPref pref);

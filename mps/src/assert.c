@@ -1,6 +1,7 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- * $HopeName: MMsrc!assert.c(trunk.8) $
+ * $HopeName$
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * This source provides the AssertFail function which is
  * invoked by the assertion macros (see impl.h.assert).
@@ -13,16 +14,19 @@
  * we probably ought to use it. (see .buffer.* below)
  */
 
+#include "check.h"
 #include "mpm.h"
+
+SRCID(assert, "$HopeName$");
 
 
 /* CheckLevel -- Control check level 
+ *
  * This controls the behaviour of Check methods unless MPS_HOT_RED 
  * is defined, when it is effectively stuck at "CheckNONE".
- * See impl.h.mpm for extern declaration.
  */
 
-Word CheckLevel = CheckSHALLOW;
+unsigned CheckLevel = CheckSHALLOW;
 
 
 /* Assertion buffer

@@ -1,7 +1,7 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.22) $
- * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
  *
@@ -26,9 +26,10 @@
  * etc. richard 1997-04-03
  */
 
+#include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.22) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.23) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -76,24 +77,21 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
 
   /* allocate the memory from the arena */
   res = ArenaAlloc(&base, pref, size, pool, withReservoirPermit);
-  if(res != ResOK) {
+  if (res != ResOK)
     goto failArena;
-  }
 
   /* allocate the segment object from the control pool */
   res = ControlAlloc((void **)&seg, arena, class->size,
                      withReservoirPermit);
-  if(res != ResOK) {
+  if (res != ResOK)
     goto failControl;
-  }
 
   va_start(args, withReservoirPermit);
   seg->class = class;
   res = SegInit(seg, pool, base, size, withReservoirPermit, args);
   va_end(args);
-  if(res != ResOK) {
+  if (res != ResOK)
     goto failInit;
-  }
 
   EVENT_PPAWP(SegAlloc, arena, seg, SegBase(seg), size, pool);
   *segReturn = seg;
@@ -190,9 +188,8 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 
   /* Class specific initialization comes last */
   res = class->init(seg, pool, base, size, withReservoirPermit, args);
-  if(res != ResOK) {
+  if (res != ResOK)
     goto failInit;
-  }
     
   AVERT(Seg, seg);
   RingAppend(&pool->segRing, SegPoolRing(seg));
@@ -222,7 +219,7 @@ static void SegFinish(Seg seg)
   AVERT(SegClass, class);
 
   arena = PoolArena(SegPool(seg));
-  if(seg->sm != AccessSetEMPTY) {
+  if (seg->sm != AccessSetEMPTY) {
     ShieldLower(arena, seg, seg->sm);
   }
 
@@ -354,10 +351,8 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
   Res res;
   Pool pool;
 
-  if(!CHECKT(Seg, seg)) 
-    return ResFAIL;
-  if(stream == NULL) 
-    return ResFAIL;
+  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   pool = SegPool(seg);
 
@@ -369,12 +364,10 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = seg->class->describe(seg, stream);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = WriteF(stream, "\n",
                "} Segment $P\n", (WriteFP)seg, NULL);
@@ -658,7 +651,7 @@ Bool SegCheck(Seg seg)
     
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
   CHECKL(RankSetCheck(seg->rankSet));
-  if(seg->rankSet == RankSetEMPTY) {
+  if (seg->rankSet == RankSetEMPTY) {
     /* design.mps.seg.field.rankSet.empty: If there are no refs */
     /* in the segment then it cannot contain black or grey refs. */
     CHECKL(seg->grey == TraceSetEMPTY);
@@ -972,61 +965,49 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
 {
   Res res;
 
-  if(!CHECKT(Seg, seg)) 
-    return ResFAIL;
-  if(stream == NULL) 
-    return ResFAIL;
+  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "  shield depth $U\n", (WriteFU)seg->depth,
                "  protection mode:",
                NULL);
-  if(res != ResOK)
-    return res;
-  if(AccessSetIsMember(seg->pm, AccessREAD)) {
+  if (res != ResOK) return res;
+  if (AccessSetIsMember(seg->pm, AccessREAD)) {
      res = WriteF(stream, " read", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
-  if(AccessSetIsMember(seg->pm, AccessWRITE)) {
+  if (AccessSetIsMember(seg->pm, AccessWRITE)) {
      res = WriteF(stream, " write", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
   res = WriteF(stream, "\n  shield mode:", NULL);
-  if(res != ResOK)
-    return res;
-  if(AccessSetIsMember(seg->sm, AccessREAD)) {
+  if (res != ResOK) return res;
+  if (AccessSetIsMember(seg->sm, AccessREAD)) {
      res = WriteF(stream, " read", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
-  if(AccessSetIsMember(seg->sm, AccessWRITE)) {
+  if (AccessSetIsMember(seg->sm, AccessWRITE)) {
      res = WriteF(stream, " write", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
   res = WriteF(stream, "\n  ranks:", NULL);
   /* This bit ought to be in a RankSetDescribe in ref.c. */
-  if(RankSetIsMember(seg->rankSet, RankAMBIG)) {
+  if (RankSetIsMember(seg->rankSet, RankAMBIG)) {
      res = WriteF(stream, " ambiguous", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
-  if(RankSetIsMember(seg->rankSet, RankEXACT)) {
+  if (RankSetIsMember(seg->rankSet, RankEXACT)) {
      res = WriteF(stream, " exact", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
-  if(RankSetIsMember(seg->rankSet, RankFINAL)) {
+  if (RankSetIsMember(seg->rankSet, RankFINAL)) {
      res = WriteF(stream, " final", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
-  if(RankSetIsMember(seg->rankSet, RankWEAK)) {
+  if (RankSetIsMember(seg->rankSet, RankWEAK)) {
      res = WriteF(stream, " weak", NULL);
-     if(res != ResOK)
-       return res;
+     if (res != ResOK) return res;
   }
   res = WriteF(stream, "\n",
                "  white  $B\n", (WriteFB)seg->white,
@@ -1050,7 +1031,7 @@ Bool GCSegCheck(GCSeg gcseg)
   seg = &gcseg->segStruct;
   CHECKL(SegCheck(seg));
 
-  if(gcseg->buffer != NULL) {
+  if (gcseg->buffer != NULL) {
     CHECKU(Buffer, gcseg->buffer);
     /* design.mps.seg.field.buffer.owner */
     CHECKL(BufferPool(gcseg->buffer) == SegPool(seg));
@@ -1062,7 +1043,7 @@ Bool GCSegCheck(GCSeg gcseg)
   CHECKL((seg->grey == TraceSetEMPTY) ==
          RingIsSingle(&gcseg->greyRing));
 
-  if(seg->rankSet == RankSetEMPTY) {
+  if (seg->rankSet == RankSetEMPTY) {
     /* design.mps.seg.field.rankSet.empty */
     CHECKL(gcseg->summary == RefSetEMPTY);
   } 
@@ -1120,7 +1101,7 @@ static void gcSegFinish(Seg seg)
   AVERT(GCSeg, gcseg);
   AVER(&gcseg->segStruct == seg);
 
-  if(SegGrey(seg) != TraceSetEMPTY) {
+  if (SegGrey(seg) != TraceSetEMPTY) {
     RingRemove(&gcseg->greyRing);
     seg->grey = TraceSetEMPTY;
   }
@@ -1162,18 +1143,18 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
   /* appropriate grey list so that TraceFindGrey can locate it */
   /* quickly later.  If it is no longer grey and was before, */
   /* remove it from the list. */
-  if(oldGrey == TraceSetEMPTY) {
-    if(grey != TraceSetEMPTY) {
+  if (oldGrey == TraceSetEMPTY) {
+    if (grey != TraceSetEMPTY) {
       AVER(RankSetIsSingle(seg->rankSet));
       for(rank = 0; rank < RankMAX; ++rank)
-	if(RankSetIsMember(seg->rankSet, rank)) {
+	if (RankSetIsMember(seg->rankSet, rank)) {
 	  RingInsert(ArenaGreyRing(arena, rank), &gcseg->greyRing);
 	  break;
 	}
       AVER(rank != RankMAX); /* there should've been a match */
     }
   } else {
-    if(grey == TraceSetEMPTY)
+    if (grey == TraceSetEMPTY)
       RingRemove(&gcseg->greyRing);
   }
 
@@ -1185,7 +1166,7 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
        diff = TraceSetDiff(grey, oldGrey);
        TRACE_SET_ITER(ti, trace, diff, arena)
          ++trace->greySegCount;
-         if(trace->greySegCount > trace->greySegMax)
+         if (trace->greySegCount > trace->greySegMax)
            trace->greySegMax = trace->greySegCount;
        TRACE_SET_ITER_END(ti, trace, diff, arena);
 
@@ -1226,11 +1207,11 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
   /* some _flipped_ trace, i.e., is grey for a trace for which */
   /* the mutator is black. */
   flippedTraces = arena->flippedTraces;
-  if(TraceSetInter(oldGrey, flippedTraces) == TraceSetEMPTY) {
-    if(TraceSetInter(grey, flippedTraces) != TraceSetEMPTY)
+  if (TraceSetInter(oldGrey, flippedTraces) == TraceSetEMPTY) {
+    if (TraceSetInter(grey, flippedTraces) != TraceSetEMPTY)
       ShieldRaise(arena, seg, AccessREAD);
   } else {
-    if(TraceSetInter(grey, flippedTraces) == TraceSetEMPTY)
+    if (TraceSetInter(grey, flippedTraces) == TraceSetEMPTY)
       ShieldLower(arena, seg, AccessREAD);
   }
 
@@ -1302,13 +1283,13 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
   oldRankSet = seg->rankSet;
   seg->rankSet = rankSet;
 
-  if(oldRankSet == RankSetEMPTY) {
-    if(rankSet != RankSetEMPTY) {
+  if (oldRankSet == RankSetEMPTY) {
+    if (rankSet != RankSetEMPTY) {
       AVER(gcseg->summary == RefSetEMPTY);
       ShieldRaise(arena, seg, AccessWRITE);
     }
   } else {
-    if(rankSet == RankSetEMPTY) {
+    if (rankSet == RankSetEMPTY) {
       AVER(gcseg->summary == RefSetEMPTY);
       ShieldLower(arena, seg, AccessWRITE);
     }
@@ -1358,11 +1339,11 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
   AVER(seg->rankSet != RankSetEMPTY);
 
   /* Note: !RefSetSuper is a test for a strict subset */
-  if(!RefSetSuper(summary, RefSetUNIV)) {
-    if(RefSetSuper(oldSummary, RefSetUNIV))
+  if (!RefSetSuper(summary, RefSetUNIV)) {
+    if (RefSetSuper(oldSummary, RefSetUNIV))
       ShieldRaise(arena, seg, AccessWRITE);
   } else {
-    if(!RefSetSuper(oldSummary, RefSetUNIV))
+    if (!RefSetSuper(oldSummary, RefSetUNIV))
       ShieldLower(arena, seg, AccessWRITE);
   }
 }
@@ -1391,13 +1372,13 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   arena = PoolArena(SegPool(seg));
 
-  if(seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV) {
+  if (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV) {
     wasShielded = TRUE;
   } else {
     wasShielded = FALSE;
   }
 
-  if(rankSet != RankSetEMPTY && summary != RefSetUNIV) {
+  if (rankSet != RankSetEMPTY && summary != RefSetUNIV) {
     willbeShielded = TRUE;
   } else {
     willbeShielded = FALSE;
@@ -1406,9 +1387,9 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   seg->rankSet = rankSet;
   gcseg->summary = summary;
 
-  if(willbeShielded && !wasShielded) {
+  if (willbeShielded && !wasShielded) {
     ShieldRaise(arena, seg, AccessWRITE);
-  } else if(wasShielded && !willbeShielded) {
+  } else if (wasShielded && !willbeShielded) {
     ShieldLower(arena, seg, AccessWRITE);
   }
 }
@@ -1487,7 +1468,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   super = SEG_SUPERCLASS(GCSegClass);
   res = super->merge(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failSuper;
 
   /* Update fields of gcseg. Finish gcsegHi. */
@@ -1559,7 +1540,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   super = SEG_SUPERCLASS(GCSegClass);
   res = super->split(seg, segHi, base, mid, limit, 
                      withReservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failSuper;
 
   /* Full initialization for segHi. */
@@ -1594,24 +1575,19 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
   SegClass super;
   GCSeg gcseg;
 
-  if(!CHECKT(Seg, seg)) 
-    return ResFAIL;
-  if(stream == NULL) 
-    return ResFAIL;
+  if (!CHECKT(Seg, seg)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
   gcseg = SegGCSeg(seg);
-  if(!CHECKT(GCSeg, gcseg)) 
-    return ResFAIL;
+  if (!CHECKT(GCSeg, gcseg)) return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
   res = super->describe(seg, stream);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
-  if(gcseg->buffer != NULL) {
+  if (gcseg->buffer != NULL) {
     res = BufferDescribe(gcseg->buffer, stream);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
   }
   res = WriteF(stream,
                "  summary $W\n", (WriteFW)gcseg->summary,

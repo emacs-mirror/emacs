@@ -1,6 +1,6 @@
 # impl.nmk.w3ppmv: WINDOWS (POWERPC) NMAKE FILE
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.41) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.42) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3ppmv
@@ -10,18 +10,18 @@ DONGLELIB = $(RAINBOWPATH)\spromeps.lib
 
 PFMDEFS = /DWIN32 /D_WINDOWS /I$(RAINBOWPATH)
 
-MPM = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+MPM = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <lockw3> \
+      <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <protw3> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
       <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version>
-SW  = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+SW  = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> \
+      <root> <format> <buffer> <walk> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
