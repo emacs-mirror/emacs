@@ -2,22 +2,6 @@
 
 	* termcap.src: New version from http://www.tuxedo.org/~esr/terminfo/.
 
-2001-01-14  Francesco Potorti`  <pot@gnu.org>
-
-	* etags.c (get_language_from_langname): Renamed from
-	get_language_from_name.
-	(get_language_from_filename): Renamed from
-	get_language_from_suffix.  Now first looks for the complete file
-	name.
-	(language): New member char **filenames.
-	(Makefile_filenames): List of possible filenames for makefiles.
-	(lang_names): Added a NULL member for every entry, added an entry
-	for makefiles.
-	(Makefile_targets): New function, inspired by Assar Westerlund
-	<assar@sics.se>.
-	(Texinfo_nodes): Renamed from Texinfo_fuctions and made
-	it conformant to the style of the rest of the code.
-
 2001-01-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* TUTORIAL.es: New file.
