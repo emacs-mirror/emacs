@@ -223,7 +223,7 @@ prefix argument.  With an odd prefix argument, Ediff assumes the patch
 is in a file; with an even argument, a buffer is assumed.
 
 Note that @code{ediff-patch-file} will actually use the @code{patch}
-utility to change the the original files on disk.  This is not that
+utility to change the original files on disk.  This is not that
 dangerous, since you will always have the original contents of the file
 saved in another file that has the extension @file{.orig}.
 Furthermore, if the file is under version control, then you can always back
