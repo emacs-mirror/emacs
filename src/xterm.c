@@ -14675,4 +14675,4 @@ Otherwise, value is a symbol describing the X toolkit.");
   last_mouse_motion_frame = Qnil;
 }
 
-#endif /* not HAVE_X_WINDOWS */
+#endif /* HAVE_X_WINDOWS */
