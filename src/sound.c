@@ -347,7 +347,8 @@ sound_cleanup (arg)
 {
   if (current_sound_device)
     {
-      current_sound_device->close (current_sound_device);
+      if (current_sound_device->close)
+	current_sound_device->close (current_sound_device);
       if (current_sound->fd > 0)
 	emacs_close (current_sound->fd);
     }

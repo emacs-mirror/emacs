@@ -1,3 +1,8 @@
+2000-02-06  Ken Raeburn  <raeburn@gnu.org>
+
+	* sound.c (sound_cleanup): Don't call device close routine if the
+	function pointer is null.
+
 2000-02-06  Andrew Innes  <andrewi@gnu.org>
 
 	* dispextern.h: Change HAVE_X_WINDOWS to HAVE_WINDOW_SYSTEM,
@@ -51,13 +56,13 @@
 
 	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Enlarge to 60000.
 
-2000-02-03  Ken Raeburn  <raeburn@raeburn.org>
+2000-02-03  Ken Raeburn  <raeburn@gnu.org>
 
 	* search.c (compile_pattern): If a cache entry has a nil regexp,
 	fill in that entry instead of clobbering a previously cached
 	string regexp.
 
-2000-02-02  Ken Raeburn  <raeburn@raeburn.org>
+2000-02-02  Ken Raeburn  <raeburn@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 610000.
 
@@ -2051,7 +2056,7 @@
 
 	* regex.c (POP_FAILURE_POINT): Extract failure_id as an integer.
 
-1999-10-24  Ken Raeburn  <raeburn@raeburn.org>
+1999-10-24  Ken Raeburn  <raeburn@gnu.org>
 
 	* alloc.c: Undef HIDE_LISP_IMPLEMENTATION before including
 	lisp.h.
