@@ -5,7 +5,7 @@
 ;; Authors: Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>
 ;;	Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
-;; Keywords: multilingual, input method, Slovak
+;; Keywords: i18, multilingual, input method, Slovak
 
 ;; This file is part of GNU Emacs.
 
@@ -26,13 +26,14 @@
 
 ;;; Commentary:
 
-;; This setups some Slovak keyboards:
+;; This file defines the following Slovak keyboards:
 ;; - standard Slovak keyboard
 ;; - three Slovak keyboards for programmers
 
 ;;; Code:
 
 (require 'quail)
+
 
 (quail-define-package
  "slovak" "Slovak" "SK" t
