@@ -811,23 +811,33 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   (ediff-overlay-put extent 'face face)
   (ediff-overlay-put extent 'help-echo 'ediff-region-help-echo))
  
-;; This does nothing in Emacs, since overlays there have no help-echo property
-(defun ediff-region-help-echo (extent)
-  (let ((is-current (ediff-overlay-get extent 'ediff))
-	(face (ediff-overlay-get extent 'face))
-	(diff-num (ediff-overlay-get extent 'ediff-diff-num))
-	face-help)
+(defun ediff-region-help-echo (extent-or-window &optional buffer point)
+  (let (is-current face diff-num face-help)
+    (if buffer
+	;; Emacs 21 calling sequence.
+	(progn
+	  (setq is-current (get-char-property point 'ediff buffer))
+	  (setq face (get-char-property point 'face buffer))
+	  (if (stringp face)
+	      (setq face (intern face)))
+	  (setq diff-num (get-char-property point 'ediff-diff-num buffer)))
+      ;; XEmacs calling sequence.
+      (setq is-current (ediff-overlay-get extent-or-window 'ediff))
+      (setq face (ediff-overlay-get extent-or-window 'face))
+      (setq diff-num (ediff-overlay-get extent-or-window 'ediff-diff-num)))
 
     ;; This happens only for refinement overlays
     (setq face-help (and face (get face 'ediff-help-echo)))
 
-    (cond ((and is-current diff-num) ; current diff region
+    (cond ((and is-current diff-num)	; current diff region
 	   (format "Difference region %S -- current" (1+ diff-num)))
-	  (face-help) ; refinement of current diff region
-	  (diff-num ; non-current
+;; This doesn't DTRT because we may have got it from the wrong goverlay.
+;; Fixme.
+;;;	  (face-help)			; refinement of current diff region
+	  (diff-num			; non-current
 	   (format "Difference region %S -- non-current" (1+ diff-num)))
-	  (t ""))   ; none
-    ))
+	  (t ""))			; none
+    )))
 
 
 (defun ediff-set-face-pixmap (face pixmap)
