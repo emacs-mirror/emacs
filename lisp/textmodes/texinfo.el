@@ -24,8 +24,8 @@
 
 ;;; Code:
 
-(require 'texnfo-upd)
-(require 'tex-mode)
+;;; Don't you dare insert any `require' calls in this file--rms.
+
 (defvar texinfo-mode-syntax-table nil)
 
 (if texinfo-mode-syntax-table
@@ -67,7 +67,7 @@
 
   (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
 
-  (define-key texinfo-mode-map "\""           'tex-insert-quote)
+;;;  (define-key texinfo-mode-map "\""           'texinfo-insert-quote)
   (define-key texinfo-mode-map "\C-c}"          'up-list)
   (define-key texinfo-mode-map "\C-c{"          'texinfo-insert-braces)
 
@@ -81,6 +81,27 @@
   (define-key texinfo-mode-map "\C-c\C-ce"    'texinfo-insert-@end-example)
   (define-key texinfo-mode-map "\C-c\C-cd"    'texinfo-insert-@dfn)
   (define-key texinfo-mode-map "\C-c\C-cc"    'texinfo-insert-@code))
+
+;;; I turned this off because it is inconvenient.
+;;; The real " character is used often in texinfo files.  --rms.
+;;;(defun texinfo-insert-quote (arg)
+;;;  "Insert the appropriate quote marks for TeX.
+;;;Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
+;;;\(normally '') depending on the context.  With prefix argument, always
+;;;inserts \" characters."
+;;;  (interactive "*P")
+;;;  (if arg
+;;;      (self-insert-command (prefix-numeric-value arg))
+;;;    (insert
+;;;     (cond ((or (bobp)
+;;;		(save-excursion
+;;;		  (forward-char -1)
+;;;		  (looking-at "\\s(\\|\\s \\|\\s>")))
+;;;	    tex-open-quote)
+;;;	   ((= (preceding-char) ?\\)
+;;;	    ?\")
+;;;	   (t
+;;;	    tex-close-quote)))))
 
 (defun texinfo-insert-@var ()
   "Insert the string @var in a texinfo buffer."
@@ -328,6 +349,7 @@ between the strings defined by `tex-start-of-header' and `tex-end-of-header'
 inclusive.  The header must start in the first 100 lines.  The value of
 tex-trailer is appended to the temporary file after the region."
   (interactive "r")
+  (require 'tex-mode)
   (if (get-buffer "*tex-shell*")
       (tex-kill-job)
     (tex-start-shell))
@@ -411,6 +433,7 @@ See \\[texinfo-tex-region] for more information."
   "Print .dvi file made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
 Runs the shell command defined by `tex-dvi-print-command'."
   (interactive)
+  (require 'tex-mode)
   (send-string "tex-shell"
 	       (concat tex-dvi-print-command
                        " " tex-zap-file ".dvi" "\n"))
