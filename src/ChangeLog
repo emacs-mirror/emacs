@@ -1,3 +1,20 @@
+2005-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (enum it_method): New enum.
+	(GET_FROM_*): Its members.
+	(struct it): Change member method from function pointer to enum.
+
+	* xdisp.c (check_it, init_from_display_pos, handle_stop)
+	(setup_for_ellipsis, handle_single_display_spec)
+	(handle_composition_prop, next_overlay_string)
+	(get_overlay_strings, reseat_1, reseat_to_string)
+	(next_element_from_ellipsis, BUFFER_POS_REACHED_P)
+	(in_display_vector_p, display_line, get_next_display_element):
+	Change it->method from function pointer to enum.
+	(get_next_element): New array to map it->method to function.
+	(get_next_display_element): Use it.
+	(set_iterator_to_next): Use switch instead of if/else chain.
+
 2005-02-15  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
 
 	* w32select.c: Summary: Thorough rework to implement Unicode
@@ -41,7 +58,7 @@
 	* emacs.c: Include w32.h to get function prototypes.
 	(main): Call globals_of_w32select.
 
-	* w32.c (term_ntproc): Call term_w32select. 
+	* w32.c (term_ntproc): Call term_w32select.
 
 	* s/ms-w32.h: Guard MSC-specific #pragmas with an #ifdef.
 
