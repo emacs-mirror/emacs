@@ -119,6 +119,14 @@ the user that originally logged in.
 In all cases, `(concat \"~\" init-file-user \"/\")' evaluates to the
 directory name of the directory where the `.emacs' file was looked for.")
 
+(defvar site-run-file "site-start"
+  "File containing site-wide run-time initializations.
+This file is loaded at run-time before `~/.emacs'.  It contains inits
+that need to be in place for the entire site, but which, due to their
+higher incidence of change, don't make sense to load into emacs'
+dumped image.  Thus, the run-time load order is: 1. file described in
+this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
+
 (defvar init-file-debug nil)
 
 (defun normal-top-level ()
@@ -212,6 +220,9 @@ directory name of the directory where the `.emacs' file was looked for.")
 	  (setq args (cdr args)
 		init-file-user (car args)
 		args (cdr args)))
+	 ((string-equal argi "-no-site-file")
+	  (setq site-run-file nil
+		args (cdr args)))
 	 ((string-equal argi "-debug-init")
 	  (setq init-file-debug t
 		args (cdr args)))
@@ -231,7 +242,8 @@ directory name of the directory where the `.emacs' file was looked for.")
   ;; Run the site-start library if it exists.  The point of this file is
   ;; that it is run before .emacs.  There is no point in doing this after
   ;; .emacs; that is useless.
-  (load "site-start" t t)
+  (if site-run-file 
+      (load site-run-file t t))
 
   ;; Load that user's init file, or the default one, or none.
   (let ((debug-on-error init-file-debug)
