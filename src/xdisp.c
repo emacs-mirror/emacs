@@ -36,7 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 #include "keyboard.h"
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 extern void set_frame_menubar ();
 #endif
 
@@ -612,7 +612,7 @@ echo_area_display ()
   previous_echo_glyphs = echo_area_glyphs;
 }
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 static char frame_title_buf[512];
 static char *frame_title_ptr;
 
@@ -641,7 +641,7 @@ x_consider_frame_title (frame)
   int len;
   FRAME_PTR f = XFRAME (frame);
 
-  if (!FRAME_X_P (f) || FRAME_MINIBUF_ONLY_P (f) || f->explicit_name)
+  if (!(FRAME_WINDOW_P (f) || FRAME_MINIBUF_ONLY_P (f) || f->explicit_name))
     return;
 
   /* Do we have more than one visible frame on this X display?  */
@@ -706,7 +706,7 @@ prepare_menu_bars ()
      create its menu bar using the name `emacs' if no other name
      has yet been specified."
      I think that is no longer a concern.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (windows_or_buffers_changed)
     {
       Lisp_Object tail, frame;
@@ -1285,7 +1285,7 @@ update_menu_bar (f, save_match_data)
     w->update_mode_line = Qt;
 
   if (
-#ifdef USE_X_TOOLKIT
+#ifdef FRAME_EXTERNAL_MENU_BAR
       FRAME_EXTERNAL_MENU_BAR (f) 
 #else
       FRAME_MENU_BAR_LINES (f) > 0
@@ -1328,9 +1328,9 @@ update_menu_bar (f, save_match_data)
 	    call0 (Qrecompute_lucid_menubar);
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	  set_frame_menubar (f, 0, 0);
-#endif /* USE_X_TOOLKIT */
+#endif /* USE_X_TOOLKIT || HAVE_NTGUI */
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
@@ -1741,7 +1741,7 @@ done:
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
   if (update_mode_line
-#ifdef USE_X_TOOLKIT
+#ifdef FRAME_EXTERNAL_MENU_BAR
       && FRAME_EXTERNAL_MENU_BAR (f) 
 #else
       && FRAME_MENU_BAR_LINES (f) > 0
@@ -2704,7 +2704,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  /* Did we hit a face change?  Figure out what face we should
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
-	  if (pos >= next_face_change && FRAME_X_P (f))
+	  if (pos >= next_face_change && (FRAME_WINDOW_P (f)))
 	    current_face = compute_char_face (f, w, pos,
 					      region_beg, region_end,
 					      &next_face_change, pos + 50, 0);
@@ -3158,7 +3158,7 @@ display_menu_bar (w)
   int hpos = 0;
   int i;
 
-#ifndef USE_X_TOOLKIT
+#if !defined (USE_X_TOOLKIT) && !defined (HAVE_NTGUI)
   if (FRAME_MENU_BAR_LINES (f) <= 0)
     return;
 
@@ -3212,7 +3212,7 @@ display_menu_bar (w)
   vpos++;
   while (vpos < FRAME_MENU_BAR_LINES (f))
     get_display_line (f, vpos++, 0);
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT && not HAVE_NTGUI */
 }
 
 /* Display the mode line for window w */
