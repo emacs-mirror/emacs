@@ -154,7 +154,7 @@ int display_busy_cursor_p;
    over text or in the modeline.  */
 
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_busy_pointer_shape;
+Lisp_Object Vx_busy_pointer_shape, Vx_window_horizontal_drag_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
@@ -2088,6 +2088,17 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     cross_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
+
+  if (!NILP (Vx_window_horizontal_drag_shape))
+    {
+      CHECK_NUMBER (Vx_window_horizontal_drag_shape, 0);
+      horizontal_drag_cursor
+	= XCreateFontCursor (FRAME_X_DISPLAY (f),
+			     XINT (Vx_window_horizontal_drag_shape));
+    }
+  else
+    horizontal_drag_cursor
+      = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
 
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
@@ -5385,6 +5396,13 @@ This function is an internal primitive--use `make-frame' instead.")
   BLOCK_INPUT;
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
+
+  /* Set up faces after all frame parameters are known.  This call
+     also merges in face attributes specified for new frames.  If we
+     don't do this, the `menu' face for instance won't have the right
+     colors, and the menu bar won't appear in the specified colors for
+     new frames.  */
+  call1 (Qface_set_after_frame_default, frame);
 
   /* Make the window appear on the frame and enable display, unless
      the caller says not to.  However, with explicit parent, Emacs
@@ -13359,6 +13377,13 @@ Value must be an integer or float.");
 This variable takes effect when you create a new frame\n\
 or when you set the mouse color.");
   Vx_sensitive_text_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-horizontal-drag-cursor",
+	      &Vx_window_horizontal_drag_shape,
+  "Pointer shape to use for indicating a window can be dragged horizontally.\n\
+This variable takes effect when you create a new frame\n\
+or when you set the mouse color.");
+  Vx_window_horizontal_drag_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       "A string indicating the foreground color of the cursor box.");
