@@ -1,5 +1,9 @@
 2000-09-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (handle_fontified_prop): While running fontification
+	functions, bind `fontification-functions' and
+	`after-change-functions' to nil.
+
 	* s/freebsd.h, s/irix-5.0.h, s/sol2.h, s/template.h
 	(USE_MMAP_FOR_BUFFERS): Define instead of REL_ALLOC_MMAP.
 
