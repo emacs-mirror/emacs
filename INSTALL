@@ -163,13 +163,12 @@ compile Emacs using GCC.  If you don't want to use GCC, specify
 `--with-gcc=no'.  If you omit this option, `configure' will search
 for GCC in your path, and use it if present.
 
-If you want the Emacs mail reader RMAIL to read mail from a POP
-server, you must specify `--with-pop'.  This provides support for the
-POP3 protocol; older versions are not supported.  For
-Kerberos-authenticated POP add `--with-kerberos', for Hesiod support
-add `--with-hesiod'.  These options enable Emacs to use POP; whether
-Emacs uses POP is controlled by individual users--see the Rmail
-chapter of the Emacs manual.
+The Emacs mail reader RMAIL is configured to be able to read mail from
+a POP3 server by default.  Versions of the POP protocol older than
+POP3 are not supported.  For Kerberos-authenticated POP add
+`--with-kerberos', for Hesiod support add `--with-hesiod'.  While POP3
+is always enabled, whether Emacs actually uses POP is controlled by
+individual users--see the Rmail chapter of the Emacs manual.
 
 For image support you may have to download, build, and install the
 appropriate image support libraries for image types other than XBM and
