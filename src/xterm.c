@@ -118,13 +118,21 @@ extern void _XEditResCheckMessages ();
 #include <Xm/Xm.h>		/* for LESSTIF_VERSION */
 #include <Xm/ScrollBar.h>
 #include <Xm/ScrollBarP.h>
-#elif defined HAVE_XAW3D
+#else /* !USE_MOTIF i.e. use Xaw */
+
+#ifdef HAVE_XAW3D
 #include <X11/Xaw3d/Simple.h>
-#include <X11/Xaw3d/ThreeD.h>
 #include <X11/Xaw3d/Scrollbar.h>
 #define ARROW_SCROLLBAR
 #include <X11/Xaw3d/ScrollbarP.h>
-#endif /* HAVE_XAW3D */
+#else /* !HAVE_XAW3D */
+#include <X11/Xaw/Simple.h>
+#include <X11/Xaw/Scrollbar.h>
+#endif /* !HAVE_XAW3D */
+#ifndef XtNpickTop
+#define XtNpickTop "pickTop"
+#endif /* !XtNpickTop */
+#endif /* !USE_MOTIF */
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
 #endif /* USE_X_TOOLKIT */
@@ -7101,9 +7109,20 @@ static Lisp_Object window_being_scrolled;
 
 static int last_scroll_bar_part;
 
+/* Whether this is an Xaw with arrow-scrollbars.  This should imply
+   that movements of 1/20 of the screen size are mapped to up/down.  */
+
+static Boolean xaw3d_arrow_scroll;
+
+/* Whether the drag scrolling maintains the mouse at the top of the
+   thumb.  If not, resizing the thumb needs to be done more carefully
+   to avoid jerkyness.  */
+
+static Boolean xaw3d_pick_top;
+
 
 /* Action hook installed via XtAppAddActionHook when toolkit scroll
-   bars are used..  The hoos is responsible for detecting when
+   bars are used..  The hook is responsible for detecting when
    the user ends an interaction with the scroll bar, and generates
    a `end-scroll' scroll_bar_click' event if so.  */
 
@@ -7123,12 +7142,10 @@ xt_action_hook (widget, client_data, action_name, event, params,
 #ifdef USE_MOTIF
   scroll_bar_p = XmIsScrollBar (widget);
   end_action = "Release";
-#elif defined HAVE_XAW3D
+#else /* !USE_MOTIF i.e. use Xaw */
   scroll_bar_p = XtIsSubclass (widget, scrollbarWidgetClass);
   end_action = "EndScroll";
-#else
-  #error unknown scroll bar toolkit
-#endif /* HAVE_XAW3D */
+#endif /* USE_MOTIF */
 
   /* Although LessTif uses XtTimeouts like Xaw3d, the timer hack to
      let Xt timeouts be processed doesn't work.  */
@@ -7313,40 +7330,39 @@ xm_scroll_callback (widget, client_data, call_data)
 }
 
 
-#else /* not USE_MOTIF, i.e. XAW3D.  */
+#else /* !USE_MOTIF, i.e. Xaw.  */
 
 
-/* Xaw3d scroll bar callback.  Invoked when the thumb is dragged.
+/* Xaw scroll bar callback.  Invoked when the thumb is dragged.
    WIDGET is the scroll bar widget.  CLIENT_DATA is a pointer to the
    scroll bar struct.  CALL_DATA is a pointer to a float saying where
    the thumb is.  */
 
 static void
-xaw3d_jump_callback (widget, client_data, call_data)
+xaw_jump_callback (widget, client_data, call_data)
      Widget widget;
      XtPointer client_data, call_data;
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   float top = *(float *) call_data;
   float shown;
-  int whole, portion;
-  int dragging_down_p, part;
-  double epsilon = 0.01;
+  int whole, portion, height;
+  int part;
 
   /* Get the size of the thumb, a value between 0 and 1.  */
   BLOCK_INPUT;
-  XtVaGetValues (widget, XtNshown, &shown, NULL);
+  XtVaGetValues (widget, XtNshown, &shown, XtNheight, &height, NULL);
   UNBLOCK_INPUT;
 
   whole = 10000000;
   portion = shown < 1 ? top * whole : 0;
-  dragging_down_p = (INTEGERP (bar->dragging)
-		     && XINT (bar->dragging) < portion);
 
-  if (shown < 1
-      && (abs (top + shown - 1) < epsilon
-	  || (dragging_down_p
-	      && last_scroll_bar_part == scroll_bar_down_arrow)))
+  if (shown < 1 && (abs (top + shown - 1) < 1.0/height))
+    /* Some derivatives of Xaw refuse to shrink the thumb when you reach
+       the bottom, so we force the scrolling whenever we see that we're
+       too close to the bottom (in x_set_toolkit_scroll_bar_thumb
+       we try to ensure that we always stay two pixels away from the
+       bottom).  */
     part = scroll_bar_down_arrow;
   else
     part = scroll_bar_handle;
@@ -7358,8 +7374,8 @@ xaw3d_jump_callback (widget, client_data, call_data)
 }
 
 
-/* Xaw3d scroll bar callback.  Invoked for incremental scrolling.,
-   i.e. line or page up or down.  WIDGET is the Xaw3d scroll bar
+/* Xaw scroll bar callback.  Invoked for incremental scrolling.,
+   i.e. line or page up or down.  WIDGET is the Xaw scroll bar
    widget.  CLIENT_DATA is a pointer to the scroll_bar structure for
    the scroll bar.  CALL_DATA is an integer specifying the action that
    has taken place.  It's magnitude is in the range 0..height of the
@@ -7367,7 +7383,7 @@ xaw3d_jump_callback (widget, client_data, call_data)
    Values < height of scroll bar mean line-wise movement.  */
 
 static void
-xaw3d_scroll_callback (widget, client_data, call_data)
+xaw_scroll_callback (widget, client_data, call_data)
      Widget widget;
      XtPointer client_data, call_data;
 {
@@ -7381,25 +7397,20 @@ xaw3d_scroll_callback (widget, client_data, call_data)
   XtVaGetValues (widget, XtNheight, &height, NULL);
   UNBLOCK_INPUT;
 
-  if (position < 0)
-    {
-      if (abs (position) < height)
-	part = scroll_bar_up_arrow;
-      else
-	part = scroll_bar_above_handle;
-    }
+  if (abs (position) >= height)
+    part = (position < 0) ? scroll_bar_above_handle : scroll_bar_below_handle;
+
+  /* If Xaw3d was compiled with ARROW_SCROLLBAR,
+     it maps line-movement to call_data = max(5, height/20).  */
+  else if (xaw3d_arrow_scroll && abs (position) <= max (5, height / 20))
+    part = (position < 0) ? scroll_bar_up_arrow : scroll_bar_down_arrow;
   else
-    {
-      if (abs (position) < height)
-	part = scroll_bar_down_arrow;
-      else
-	part = scroll_bar_below_handle;
-    }
+    part = scroll_bar_move_ratio;
 
   window_being_scrolled = bar->window;
   bar->dragging = Qnil;
   last_scroll_bar_part = part;
-  x_send_scroll_bar_event (bar->window, part, 0, 0);
+  x_send_scroll_bar_event (bar->window, part, position, height);
 }
 
 
@@ -7482,7 +7493,7 @@ x_create_toolkit_scroll_bar (f, bar)
   XDefineCursor (XtDisplay (widget), XtWindow (widget),
 		 f->output_data.x->nontext_cursor);
   
-#elif defined HAVE_XAW3D
+#else /* !USE_MOTIF i.e. use Xaw */
   
   /* Set resources.  Create the widget.  The background of the
      Xaw3d scroll bar widget is a little bit light for my taste.
@@ -7490,8 +7501,9 @@ x_create_toolkit_scroll_bar (f, bar)
      to their taste with `emacs*verticalScrollBar.background: xxx'.  */
   XtSetArg (av[ac], XtNmappedWhenManaged, False); ++ac;
   XtSetArg (av[ac], XtNorientation, XtorientVertical); ++ac;
-  XtSetArg (av[ac], XtNcursorName, "left_ptr"); ++ac;
-  XtSetArg (av[ac], XtNbeNiceToColormap, True); ++ac;
+  /* For smoother scrolling with Xaw3d   -sm */
+  /* XtSetArg (av[ac], XtNpickTop, True); ++ac; */
+  /* XtSetArg (av[ac], XtNbeNiceToColormap, True); ++ac; */
   
   pixel = f->output_data.x->scroll_bar_foreground_pixel;
   if (pixel != -1)
@@ -7509,16 +7521,29 @@ x_create_toolkit_scroll_bar (f, bar)
   
   widget = XtCreateWidget (scroll_bar_name, scrollbarWidgetClass,
 			   f->output_data.x->edit_widget, av, ac);
+
+  {
+    char *initial = "";
+    char *val = initial;
+    XtVaGetValues (widget, XtNscrollVCursor, (XtPointer) &val,
+		   XtNpickTop, (XtPointer) &xaw3d_pick_top, NULL);
+    if (val == initial)
+      {	/* ARROW_SCROLL */
+	xaw3d_arrow_scroll = True;
+	/* Isn't that just a personal preference ?   -sm */
+	XtVaSetValues (widget, XtNcursorName, "top_left_arrow", NULL);
+      }
+  }
   
   /* Define callbacks.  */
-  XtAddCallback (widget, XtNjumpProc, xaw3d_jump_callback, (XtPointer) bar);
-  XtAddCallback (widget, XtNscrollProc, xaw3d_scroll_callback,
+  XtAddCallback (widget, XtNjumpProc, xaw_jump_callback, (XtPointer) bar);
+  XtAddCallback (widget, XtNscrollProc, xaw_scroll_callback,
 		 (XtPointer) bar);
   
   /* Realize the widget.  Only after that is the X window created.  */
   XtRealizeWidget (widget);
   
-#endif /* HAVE_XAW3D */
+#endif /* !USE_MOTIF */
 
   /* Install an action hook that let's us detect when the user
      finishes interacting with a scroll bar.  */
@@ -7562,7 +7587,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
     unsigned char flags;
     XmScrollBarWidget sb;
 
-    /* Slider size.  Must be in the range [1 .. MAX - MIN] where NAX
+    /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
        is the scroll bar's maximum and MIN is the scroll bar's minimum
        value.  */
     size = shown * XM_SB_RANGE;
@@ -7590,7 +7615,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       XmScrollBarSetValues (widget, value, size, 0, 0, False);
     else if (last_scroll_bar_part == scroll_bar_down_arrow)
       /* This has the negative side effect that the slider value is
-	 not would it would be if we scrolled here using line-wise or
+	 not what it would be if we scrolled here using line-wise or
 	 page-wise movement.  */
       XmScrollBarSetValues (widget, value, XM_SB_RANGE - value, 0, 0, False);
     else
@@ -7610,43 +7635,61 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
     sb->scrollBar.arrow2_selected = arrow2_selected;
     sb->scrollBar.flags = flags;
   }
-#elif defined HAVE_XAW3D
+#else /* !USE_MOTIF i.e. use Xaw */
   {
-    /* Restrict to [0 1].  */
-    top = max (0, min (1, top));
-    shown = max (0, min (1, shown));
+    float old_top, old_shown;
+    Dimension height;
+    XtVaGetValues (widget,
+		   XtNtopOfThumb, &old_top,
+		   XtNshown, &old_shown,
+		   XtNheight, &height,
+		   NULL);
+
+    /* Massage the top+shown values.  */
+    if (NILP (bar->dragging) || last_scroll_bar_part == scroll_bar_down_arrow)
+      top = max (0, min (1, top));
+    else
+      top = old_top;
+    /* Keep two pixels available for moving the thumb down.  */
+    shown = max (0, min (1 - top - (2.0 / height), shown));
 
     /* If the call to XawScrollbarSetThumb below doesn't seem to work,
        check that your system's configuration file contains a define
        for `NARROWPROTO'.  See s/freebsd.h for an example.  */
-    if (NILP (bar->dragging))
+    if (top != old_top || shown != old_shown)
       {
-	float old_top, old_shown;
-	XtVaGetValues (widget, XtNtopOfThumb, &old_top, XtNshown, &old_shown,
-		       NULL);
-	if (top != old_top || shown != old_shown)
+	if (NILP (bar->dragging))
 	  XawScrollbarSetThumb (widget, top, shown);
-      }
-    else
-      {
-	ScrollbarWidget sb = (ScrollbarWidget) widget;
-	int scroll_mode = sb->scrollbar.scroll_mode;
-
-	sb->scrollbar.scroll_mode = 0;
-	
-	if (last_scroll_bar_part == scroll_bar_down_arrow)
-	  XawScrollbarSetThumb (widget, top, 1 - top);
 	else
 	  {
-	    float old_top;
-	    XtVaGetValues (widget, XtNtopOfThumb, &old_top, NULL);
-	    XawScrollbarSetThumb (widget, old_top, min (shown, 1 - old_top));
+#ifdef HAVE_XAW3D
+	    ScrollbarWidget sb = (ScrollbarWidget) widget;
+	    int scroll_mode;
+	    
+	    /* `scroll_mode' only exists with Xaw3d + ARROW_SCROLLBAR.  */
+	    if (xaw3d_arrow_scroll)
+	      {
+		/* Xaw3d stupidly ignores resize requests while dragging
+		   so we have to make it believe it's not in dragging mode.  */
+		scroll_mode = sb->scrollbar.scroll_mode;
+		if (scroll_mode == 2)
+		  sb->scrollbar.scroll_mode = 0;
+	      }
+#endif
+	    /* Try to make the scrolling a tad smoother.  */
+	    if (!xaw3d_pick_top)
+	      shown = min (shown, old_shown);
+	    
+	    XawScrollbarSetThumb (widget, top, shown);
+	    
+#ifdef HAVE_XAW3D
+	    if (xaw3d_arrow_scroll && scroll_mode == 2)
+	      sb->scrollbar.scroll_mode = scroll_mode;
+#endif
 	  }
-	
-	sb->scrollbar.scroll_mode = scroll_mode;
       }
   }
-#endif /* HAVE_XAW3D */
+#endif /* !USE_MOTIF */
 
   UNBLOCK_INPUT;
 }
@@ -12824,6 +12867,8 @@ x_initialize ()
   XtToolkitInitialize ();
   Xt_app_con = XtCreateApplicationContext ();
   XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
+  xaw3d_arrow_scroll = False;
+  xaw3d_pick_top = True;
 #endif
 
   /* Note that there is no real way portable across R3/R4 to get the
