@@ -71,7 +71,10 @@ After each update, `display-time-hook' is run with `run-hooks'."
   ;; Setup the time timer.
   (and display-time-timer (cancel-timer display-time-timer))
   (setq display-time-timer
-	(run-at-time nil display-time-interval 'display-time-event-handler))
+        ;; Start timer at the beginning of the current minute so that
+        ;; it updates as soon as the minute changes.
+	(run-at-time (apply 'encode-time 0 (cdr (decode-time)))
+                     display-time-interval 'display-time-event-handler))
   ;; When you get new mail, clear "Mail" from the mode line.
   (add-hook 'rmail-after-get-new-mail-hook 'display-time-event-handler))
 
