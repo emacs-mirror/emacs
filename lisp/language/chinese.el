@@ -207,7 +207,7 @@ accepts Big5 for input also (which is then converted to CNS)."))
 (define-coding-system-alias 'gb18030 'chinese-gb18030)
 
 (set-language-info-alist
- "Chinese-GB18030" '((charset chinese-gb18030)
+ "Chinese-GB18030" '((charset gb18030)
 		     (coding-system chinese-gb18030)
 		     (coding-priority gb18030 gbk iso-2022-cn chinese-big5
 				      chinese-iso-8bit) ; fixme?
