@@ -1579,10 +1579,13 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
       Lisp_Object buf;
       if (!inherit && ! NULL_INTERVAL_P (tree))
 	{
+	  int saved_inhibit_modification_hooks = inhibit_modification_hooks;
 	  XSETBUFFER (buf, buffer);
+	  inhibit_modification_hooks = 1;
 	  Fset_text_properties (make_number (position),
 				make_number (position + length),
 				Qnil, buf);
+	  inhibit_modification_hooks = saved_inhibit_modification_hooks;
 	}
       if (! NULL_INTERVAL_P (BUF_INTERVALS (buffer)))
 	BUF_INTERVALS (buffer) = balance_an_interval (BUF_INTERVALS (buffer));
