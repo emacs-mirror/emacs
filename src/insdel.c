@@ -741,34 +741,6 @@ prepare_to_modify_buffer (start, end)
   Vdeactivate_mark = Qt;
 }
 
-static Lisp_Object
-before_change_function_restore (value)
-     Lisp_Object value;
-{
-  Vbefore_change_function = value;
-}
-
-static Lisp_Object
-after_change_function_restore (value)
-     Lisp_Object value;
-{
-  Vafter_change_function = value;
-}
-
-static Lisp_Object
-before_change_functions_restore (value)
-     Lisp_Object value;
-{
-  Vbefore_change_functions = value;
-}
-
-static Lisp_Object
-after_change_functions_restore (value)
-     Lisp_Object value;
-{
-  Vafter_change_functions = value;
-}
-
 /* Signal a change to the buffer immediately before it happens.
    START and END are the bounds of the text to be changed,
    as Lisp objects.  */
@@ -777,64 +749,45 @@ void
 signal_before_change (start, end)
      Lisp_Object start, end;
 {
-  Lisp_Object args[2];
-
   /* If buffer is unmodified, run a special hook for that case.  */
   if (SAVE_MODIFF >= MODIFF
       && !NILP (Vfirst_change_hook)
       && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qfirst_change_hook);
 
-  /* Now in any case run the before-change-function if any.  */
+  /* Run the before-change-function if any.
+     We don't bother "binding" this variable to nil
+     because it is obsolete anyway and new code should not use it.  */
   if (!NILP (Vbefore_change_function))
-    {
-      int count = specpdl_ptr - specpdl;
-      Lisp_Object function;
+    call2 (Vbefore_change_function, start, end);
 
-      function = Vbefore_change_function;
-
-      record_unwind_protect (after_change_function_restore,
-			     Vafter_change_function);
-      record_unwind_protect (before_change_function_restore,
-			     Vbefore_change_function);
-      record_unwind_protect (after_change_functions_restore,
-			     Vafter_change_functions);
-      record_unwind_protect (before_change_functions_restore,
-			     Vbefore_change_functions);
-      Vafter_change_function = Qnil;
-      Vbefore_change_function = Qnil;
-      Vafter_change_functions = Qnil;
-      Vbefore_change_functions = Qnil;
-
-      call2 (function, start, end);
-      unbind_to (count, Qnil);
-    }
-
-  /* Now in any case run the before-change-function if any.  */
+  /* Now run the before-change-functions if any.  */
   if (!NILP (Vbefore_change_functions))
     {
-      int count = specpdl_ptr - specpdl;
-      Lisp_Object functions;
+      Lisp_Object args[3];
+      Lisp_Object before_change_functions;
+      Lisp_Object after_change_functions;
+      struct gcpro gcpro1, gcpro2;
 
-      functions = Vbefore_change_functions;
-
-      record_unwind_protect (after_change_function_restore,
-			     Vafter_change_function);
-      record_unwind_protect (before_change_function_restore,
-			     Vbefore_change_function);
-      record_unwind_protect (after_change_functions_restore,
-			     Vafter_change_functions);
-      record_unwind_protect (before_change_functions_restore,
-			     Vbefore_change_functions);
-      Vafter_change_function = Qnil;
+      /* "Bind" before-change-functions and after-change-functions
+	 to nil--but in a way that errors don't know about.
+	 That way, if there's an error in them, they will stay nil.  */
+      before_change_functions = Vbefore_change_functions;
+      after_change_functions = Vafter_change_functions;
       Vbefore_change_function = Qnil;
-      Vafter_change_functions = Qnil;
-      Vbefore_change_functions = Qnil;
+      Vafter_change_function = Qnil;
+      GCPRO2 (before_change_functions, after_change_functions);
 
-      args[0] = start;
-      args[1] = end;
-      Frun_hook_with_args (intern ("before-change-functions"), 2, args);
-      unbind_to (count, Qnil);
+      /* Actually run the hook functions.  */
+      args[0] = Qbefore_change_functions;
+      args[1] = start;
+      args[2] = end;
+      run_hook_list_with_args (before_change_functions, 3, args);
+
+      /* "Unbind" the variables we "bound" to nil.  */
+      Vbefore_change_functions = before_change_functions;
+      Vafter_change_functions = after_change_functions;
+      UNGCPRO;
     }
 
   if (!NILP (current_buffer->overlays_before)
@@ -854,55 +807,42 @@ void
 signal_after_change (pos, lendel, lenins)
      int pos, lendel, lenins;
 {
-  Lisp_Object args[3];
-
+  /* Run the after-change-function if any.
+     We don't bother "binding" this variable to nil
+     because it is obsolete anyway and new code should not use it.  */
   if (!NILP (Vafter_change_function))
-    {
-      int count = specpdl_ptr - specpdl;
-      Lisp_Object function;
-      function = Vafter_change_function;
+    call3 (Vafter_change_function,
+	   make_number (pos), make_number (pos + lenins),
+	   make_number (lendel));
 
-      record_unwind_protect (after_change_function_restore,
-			     Vafter_change_function);
-      record_unwind_protect (before_change_function_restore,
-			     Vbefore_change_function);
-      record_unwind_protect (after_change_functions_restore,
-			     Vafter_change_functions);
-      record_unwind_protect (before_change_functions_restore,
-			     Vbefore_change_functions);
-      Vafter_change_function = Qnil;
-      Vbefore_change_function = Qnil;
-      Vafter_change_functions = Qnil;
-      Vbefore_change_functions = Qnil;
-
-      call3 (function, make_number (pos), make_number (pos + lenins),
-	     make_number (lendel));
-      unbind_to (count, Qnil);
-    }
   if (!NILP (Vafter_change_functions))
     {
-      int count = specpdl_ptr - specpdl;
-      Lisp_Object functions;
-      functions = Vafter_change_functions;
+      Lisp_Object args[4];
+      Lisp_Object before_change_functions;
+      Lisp_Object after_change_functions;
+      struct gcpro gcpro1, gcpro2;
 
-      record_unwind_protect (after_change_function_restore,
-			     Vafter_change_function);
-      record_unwind_protect (before_change_function_restore,
-			     Vbefore_change_function);
-      record_unwind_protect (after_change_functions_restore,
-			     Vafter_change_functions);
-      record_unwind_protect (before_change_functions_restore,
-			     Vbefore_change_functions);
-      Vafter_change_function = Qnil;
+      /* "Bind" before-change-functions and after-change-functions
+	 to nil--but in a way that errors don't know about.
+	 That way, if there's an error in them, they will stay nil.  */
+      before_change_functions = Vbefore_change_functions;
+      after_change_functions = Vafter_change_functions;
       Vbefore_change_function = Qnil;
-      Vafter_change_functions = Qnil;
-      Vbefore_change_functions = Qnil;
+      Vafter_change_function = Qnil;
+      GCPRO2 (before_change_functions, after_change_functions);
 
-      XSETFASTINT (args[0], pos);
-      XSETFASTINT (args[1], pos + lenins);
-      XSETFASTINT (args[2], lendel);
-      Frun_hook_with_args (intern ("after-change-functions"), 3, args);
-      unbind_to (count, Qnil);
+      /* Actually run the hook functions.  */
+      args[0] = Qafter_change_functions;
+      XSETFASTINT (args[1], pos);
+      XSETFASTINT (args[2], pos + lenins);
+      XSETFASTINT (args[3], lendel);
+      run_hook_list_with_args (after_change_functions,
+			       4, args);
+
+      /* "Unbind" the variables we "bound" to nil.  */
+      Vbefore_change_functions = before_change_functions;
+      Vafter_change_functions = after_change_functions;
+      UNGCPRO;
     }
 
   if (!NILP (current_buffer->overlays_before)
