@@ -1812,7 +1812,7 @@ and for inserting character codes specified by number.\n\n\
 Conversion is performed only when multibyte characters are enabled,\n\
 and it serves to convert a Latin-1 or similar 8-bit character code\n\
 to the corresponding Emacs character code.\n\n\
-If this is nil, `nonascii-insert-offset' is used instead.
+If this is nil, `nonascii-insert-offset' is used instead.\n\
 See also the docstring of `make-translation-table'.");
   Vnonascii_translation_table = Qnil;
 
