@@ -459,7 +459,7 @@ static int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 				       XRectangle *));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
 static void expose_window_tree P_ ((struct window *, XRectangle *));
-static void expose_window P_ ((struct window *, XRectangle *));
+static int expose_window P_ ((struct window *, XRectangle *));
 static void expose_area P_ ((struct window *, struct glyph_row *,
 			     XRectangle *, enum glyph_row_area));
 static void expose_line P_ ((struct window *, struct glyph_row *,
@@ -5864,8 +5864,8 @@ expose_window_tree (w, r)
 	expose_window_tree (XWINDOW (w->hchild), r);
       else if (!NILP (w->vchild))
 	expose_window_tree (XWINDOW (w->vchild), r);
-      else
-	expose_window (w, r);
+      else if (expose_window (w, r) == 0)
+	break;
       w = NILP (w->next) ? NULL : XWINDOW (w->next);
     }
 }
@@ -5991,88 +5991,96 @@ x_phys_cursor_in_rect_p (w, r)
    coordinates in FR are frame-relative.  Call this function with
    input blocked.  */
 
-static void
+static int
 expose_window (w, fr)
      struct window *w;
      XRectangle *fr;
 {
   struct frame *f = XFRAME (w->frame);
-  struct glyph_row *row;
-  int y, yb, cursor_cleared_p;
   XRectangle wr, r;
 
   /* If window is not yet fully initialized, do nothing.  This can
      happen when toolkit scroll bars are used and a window is split.
      Reconfiguring the scroll bar will generate an expose for a newly
      created window.  */
-  if (w->current_matrix == NULL || w == updated_window)
-    return;
+  if (w->current_matrix == NULL)
+    return 1;
 
-    /* Frame-relative pixel rectangle of W.  */
+  /* When we're currently updating the window, display and current
+     matrix usually don't agree.  Arrange for a thorough display
+     later.  */
+  if (w == updated_window)
+    {
+      SET_FRAME_GARBAGED (f);
+      return 0;
+    }
+
+  /* Frame-relative pixel rectangle of W.  */
   wr.x = XFASTINT (w->left) * CANON_X_UNIT (f);
   wr.y = XFASTINT (w->top) * CANON_Y_UNIT (f);
   wr.width = XFASTINT (w->width) * CANON_X_UNIT (f);
   wr.height = XFASTINT (w->height) * CANON_Y_UNIT (f);
 
-  if (!x_intersect_rectangles (fr, &wr, &r))
-    return;
-
-  yb = window_text_bottom_y (w);
+  if (x_intersect_rectangles (fr, &wr, &r))
+    {
+      int yb = window_text_bottom_y (w);
+      struct glyph_row *row;
+      int cursor_cleared_p;
   
-  TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
-	  r.x, r.y, r.width, r.height));
+      TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
+	      r.x, r.y, r.width, r.height));
 
-  /* Convert to window coordinates.  */
-  r.x = FRAME_TO_WINDOW_PIXEL_X (w, r.x);
-  r.y = FRAME_TO_WINDOW_PIXEL_Y (w, r.y);
+      /* Convert to window coordinates.  */
+      r.x = FRAME_TO_WINDOW_PIXEL_X (w, r.x);
+      r.y = FRAME_TO_WINDOW_PIXEL_Y (w, r.y);
 
-  /* Turn off the cursor.  */
-  if (!w->pseudo_window_p
-      && x_phys_cursor_in_rect_p (w, &r))
-    {
-      x_clear_cursor (w);
-      cursor_cleared_p = 1;
-    }
-  else
-    cursor_cleared_p = 0;
+      /* Turn off the cursor.  */
+      if (!w->pseudo_window_p
+	  && x_phys_cursor_in_rect_p (w, &r))
+	{
+	  x_clear_cursor (w);
+	  cursor_cleared_p = 1;
+	}
+      else
+	cursor_cleared_p = 0;
 
-  /* Find the first row intersecting the rectangle R.  */
-  row = w->current_matrix->rows;
-  y = 0;
-  while (row->enabled_p
-	 && y < yb
-	 && y + row->height < r.y)
-    {
-      y += row->height;
-      ++row;
-    }
-	
-  /* Display the text in the rectangle, one text line at a time.  */
-  while (row->enabled_p
-	 && y < yb
-	 && y < r.y + r.height)
-    {
-      expose_line (w, row, &r);
-      y += row->height;
-      ++row;
-    }
+      /* Find the first row intersecting the rectangle R.  */
+      for (row = w->current_matrix->rows;
+	   row->enabled_p;
+	   ++row)
+	{
+	  int y0 = row->y;
+	  int y1 = MATRIX_ROW_BOTTOM_Y (row);
+	  
+	  if ((y0 >= r.y && y0 < r.y + r.height)
+	      || (y1 > r.y && y1 < r.y + r.height)
+	      || (r.y >= y0 && r.y < y1)
+	      || (r.y + r.height > y0 && r.y + r.height < y1))
+	    expose_line (w, row, &r);
 
-  /* Display the mode line if there is one.  */
-  if (WINDOW_WANTS_MODELINE_P (w)
-      && (row = MATRIX_MODE_LINE_ROW (w->current_matrix),
-	  row->enabled_p)
-      && row->y < r.y + r.height)
-    expose_line (w, row, &r);
+	  if (y1 >= yb)
+	    break;
+	}
 
-  if (!w->pseudo_window_p)
-    {
-      /* Draw border between windows.  */
-      x_draw_vertical_border (w);
+      /* Display the mode line if there is one.  */
+      if (WINDOW_WANTS_MODELINE_P (w)
+	  && (row = MATRIX_MODE_LINE_ROW (w->current_matrix),
+	      row->enabled_p)
+	  && row->y < r.y + r.height)
+	expose_line (w, row, &r);
+
+      if (!w->pseudo_window_p)
+	{
+	  /* Draw border between windows.  */
+	  x_draw_vertical_border (w);
       
-      /* Turn the cursor on again.  */
-      if (cursor_cleared_p)
-	x_update_window_cursor (w, 1);
+	  /* Turn the cursor on again.  */
+	  if (cursor_cleared_p)
+	    x_update_window_cursor (w, 1);
+	}
     }
+  
+  return 1;
 }
 
 
