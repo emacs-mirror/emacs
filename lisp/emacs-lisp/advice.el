@@ -4050,7 +4050,12 @@ functions in `ad-definition-hooks' will be run after the re/definition with
 	       (if (not (ad-get-arg 1))
 		   (setq ad-return-value
 			 (substitute-command-keys ad-return-value))))))))
-		   
+
+;; Make sure advice-infos are not allocated in pure space (right now they
+;; are constants that are part of `ad-execute-defadvices's definition):
+(ad-dolist (advised-function '(defun defmacro fset defalias
+				define-function documentation))
+  (ad-set-advice-info advised-function (ad-copy-advice-info advised-function)))
 
 ) ;; end of ad-execute-defadvices
 
