@@ -13988,8 +13988,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	  eol_str = XSTRING (eoltype)->data;
 	  eol_str_len = XSTRING (eoltype)->size;
 	}
-      else if (INTEGERP (eoltype)
-	       && CHAR_VALID_P (XINT (eoltype), 0))
+      else if (CHARACTERP (eoltype))
 	{
 	  eol_str = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
 	  eol_str_len = CHAR_STRING (XINT (eoltype), eol_str);
