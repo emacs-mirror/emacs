@@ -3377,6 +3377,9 @@ DEFUN ("x-get-cut-buffer", Fx_get_cut_buffer, Sx_get_cut_buffer, 0, 0, 0,
 }
 #endif	/* X10 */
 
+#if 0 /* I'm told these functions are superfluous
+	 given the ability to bind function keys.  */
+
 #ifdef HAVE_X11
 DEFUN ("x-rebind-key", Fx_rebind_key, Sx_rebind_key, 3, 3, 0,
 "Rebind X keysym KEYSYM, with MODIFIERS, to generate NEWSTRING.\n\
@@ -3473,6 +3476,7 @@ See the documentation of `x-rebind-key' for more information.")
   return Qnil;
 }
 #endif /* HAVE_X11 */
+#endif /* 0 */
 
 #ifdef HAVE_X11
 Visual *
@@ -3768,9 +3772,9 @@ switches, if present.");
   defsubr (&Sx_display_visual_class);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
+#if 0
   defsubr (&Sx_rebind_key);
   defsubr (&Sx_rebind_keys);
-#if 0
   defsubr (&Sx_track_pointer);
   defsubr (&Sx_grab_pointer);
   defsubr (&Sx_ungrab_pointer);
