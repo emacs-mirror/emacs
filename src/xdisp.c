@@ -10034,7 +10034,9 @@ try_window_id (w)
      only if buffer has really changed.  The reason is that the gap is
      initially at Z for freshly visited files.  The code below would
      set end_unchanged to 0 in that case.  */
-  if (MODIFF > SAVE_MODIFF)
+  if (MODIFF > SAVE_MODIFF
+      /* This seems to happen sometimes after saving a buffer.  */
+      || BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
     {
       if (GPT - BEG < BEG_UNCHANGED)
 	BEG_UNCHANGED = GPT - BEG;
@@ -10042,10 +10044,6 @@ try_window_id (w)
 	END_UNCHANGED = Z - GPT;
     }
 
-  /* Some strange bug seems to be causing that to happen sometimes.  */
-  if (BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
-    abort ();
-  
   /* If window starts after a line end, and the last change is in
      front of that newline, then changes don't affect the display.
      This case happens with stealth-fontification.  */
