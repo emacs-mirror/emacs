@@ -5,7 +5,7 @@
 	doesn't look like what the Internet draft for FTP extensions
 	specifies.
 
-Mon Jul 09 2001  Martin Stjernholm  <bug-cc-mode@gnu.org>
+2001-07-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* cc-cmds.el: Extended the kludge to interoperate with the
 	delsel and pending-del packages wrt to the new function
