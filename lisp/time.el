@@ -1,6 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs.
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
