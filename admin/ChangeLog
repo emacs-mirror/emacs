@@ -1,3 +1,8 @@
+2004-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* FOR-RELEASE (Indications): Removed entry about GTK and geometry,
+	(now behaves as well as other ports).
+
 2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE: Removed entry about GTK and monochrome displays (done).

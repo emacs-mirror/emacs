@@ -38,8 +38,6 @@ isearch faces.
 
 * GTK RELATED BUGS
 
-** Make geometry specifications work correctly for GTK.
-
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
 
 
