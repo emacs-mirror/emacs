@@ -576,9 +576,17 @@ beginning of a line in the text being matched.  Otherwise it fails to
 match anything.  Thus, @samp{^foo} matches a @samp{foo} that occurs at
 the beginning of a line.
 
+For historical compatibility reasons, @samp{^} can be used with this
+meaning only at the beginning of the regular expression, or after
+@samp{\(} or @samp{\|}.
+
 @item @kbd{$}
 is similar to @samp{^} but matches only at the end of a line.  Thus,
 @samp{x+$} matches a string of one @samp{x} or more at the end of a line.
+
+For historical compatibility reasons, @samp{$} can be used with this
+meaning only at the end of the regular expression, or before @samp{\)}
+or @samp{\|}.
 
 @item @kbd{\}
 has two functions: it quotes the special characters (including

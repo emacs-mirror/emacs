@@ -1087,7 +1087,6 @@ static char *magick[] = {
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
-    (message "pt=%S posn=%S" (posn-point posn) posn)
     (if (numberp (posn-point posn))
 	(with-selected-window (posn-window posn)
 	  (save-excursion
@@ -1808,32 +1807,6 @@ BUFFER nil or omitted means use the current buffer."
 			    left-margin-width
 			    right-margin-width))))
 
-(defun gdb-put-arrow (putstring pos)
-  "Put arrow string PUTSTRING in the left margin in front of POS
-in the current buffer.  PUTSTRING is displayed by putting an
-overlay into the current buffer with a `before-string'
-\"gdb-arrow\" that has a `display' property whose value is
-PUTSTRING. POS may be an integer or marker."
-  (let ((gdb-string "gdb-arrow")
-	(buffer (current-buffer)))
-    (let ((overlay (make-overlay pos pos buffer))
-	  (prop (list (list 'margin 'left-margin) putstring)))
-      (put-text-property 0 (length gdb-string) 'display prop gdb-string)
-      (overlay-put overlay 'put-arrow t)
-      (overlay-put overlay 'before-string gdb-string))))
-
-(defun gdb-remove-arrow (&optional buffer)
-  "Remove arrow in BUFFER.
-Remove only images that were put in BUFFER with calls to `put-arrow'.
-BUFFER nil or omitted means use the current buffer."
-  (unless buffer
-    (setq buffer (current-buffer)))
-  (let ((overlays (overlays-in (point-min) (point-max))))
-    (while overlays
-      (let ((overlay (car overlays)))
-	(when (overlay-get overlay 'put-arrow)
-	  (delete-overlay overlay)))
-      (setq overlays (cdr overlays)))))
 
 ;;
 ;; Assembler buffer.
@@ -1850,16 +1823,20 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
-	(gdb-arrow-position 1) (address) (flag))
+	(pos 1) (address) (flag))
     (with-current-buffer buffer
       (if (not (equal gdb-current-address "main"))
 	  (progn
-	    (gdb-remove-arrow)
 	    (goto-char (point-min))
 	    (if (re-search-forward gdb-current-address nil t)
 		(progn
-		  (setq gdb-arrow-position (point))
-		  (gdb-put-arrow "=>" (point))))))
+		  (setq pos (point))
+		  (setq gdb-overlay-arrow-string "=>")
+		  (beginning-of-line)
+		  (or gdb-overlay-arrow-position
+		      (setq gdb-overlay-arrow-position (make-marker)))
+		  (set-marker gdb-overlay-arrow-position
+			      (point) (current-buffer))))))
       ;; remove all breakpoint-icons in assembler buffer before updating.
       (gdb-remove-breakpoint-icons (point-min) (point-max)))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
@@ -1880,7 +1857,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (re-search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y))))))))
     (if (not (equal gdb-current-address "main"))
-	(set-window-point (get-buffer-window buffer) gdb-arrow-position))))
+	(set-window-point (get-buffer-window buffer) pos))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1893,6 +1870,8 @@ BUFFER nil or omitted means use the current buffer."
 \\{gdb-assembler-mode-map}"
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Machine")
+  (push 'gdb-overlay-arrow-position overlay-arrow-variable-list)
+  (setq gdb-overlay-arrow-position nil)
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)

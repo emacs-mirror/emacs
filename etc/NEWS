@@ -122,12 +122,12 @@ and the bitmap on the bottom line in the right fringe.
 
 If value is a cons (ANGLES . ARROWS), the car specifies the position
 of the angle bitmaps, and the cdr specifies the position of the arrow
-bitmaps.  
+bitmaps.
 
 For example, (t .  right) places the top angle bitmap in left fringe,
 the bottom angle bitmap in right fringe, and both arrow bitmaps in
 right fringe.  To show just the angle bitmaps in the left fringe, but
-no arrow bitmaps, use (left . nil).  
+no arrow bitmaps, use (left . nil).
 
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
@@ -318,9 +318,6 @@ speed up Emacs with slow networking to the X server.
 
 If the configure option `--without-xim' was used to turn off use of
 XIM by default, the X resource useXIM can be used to turn it on.
-
-** `describe-char' can show data from the Unicode database file.  See
-user option `unicode-data'.
 
 ** `undo-only' does an undo which does not redo any previous undo.
 
@@ -1829,6 +1826,11 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** New macro with-local-quit temporarily sets inhibit-quit to nil for use
+around potentially blocking or long-running code in timers
+and post-command-hooks.
+
 +++
 ** New face attribute `min-colors' can be used to tailor the face color
 to the number of colors supported by a display, and define the
@@ -1865,6 +1867,18 @@ for displaying the bitmap.
 ** New function `fringe-bitmaps-at-pos' returns a cons (LEFT . RIGHT)
 identifying the current fringe bitmaps in the display line at a given
 buffer position.  A nil value means no bitmap.
+
+** Multiple overlay arrows can now be defined and managed via the new
+variable `overlay-arrow-variable-list'.  It contains a list of
+varibles which contain overlay arrow position markers, including
+the original `overlay-arrow-position' variable.
+
+Each variable on this list may have individual `overlay-arrow-string'
+and `overlay-arrow-bitmap' properties that specify an overlay arrow
+string (for non-window terminals) or fringe bitmap (for window
+systems) to display at the corresponding overlay arrow position.
+If either property is not set, the default `overlay-arrow-string' or
+'overlay-arrow-fringe-bitmap' will be used.
 
 +++
 ** New function `line-number-at-pos' returns line number of current

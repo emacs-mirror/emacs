@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/22 14:25:06 vinicius>
+;; Time-stamp: <2004/02/28 18:25:52 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.8
 
@@ -54,7 +54,10 @@
 ;;    C D		sequence (C occurs before D)
 ;;    C | D		alternative (C or D occurs)
 ;;    A - B		exception (A excluding B, B without any non-terminal)
-;;    n * A		repetition (A repeats n (integer) times)
+;;    n * A		repetition (A repeats at least n (integer) times)
+;;    n * n A		repetition (A repeats exactly n (integer) times)
+;;    n * m A		repetition (A repeats at least n (integer) and at most
+;;			m (integer) times)
 ;;    (C)		group (expression C is grouped together)
 ;;    [C]		optional (C may or not occurs)
 ;;    C+		one or more occurrences of C
@@ -78,7 +81,7 @@
 ;;
 ;;    exception = repeat [ "-" repeat].         ;; exception
 ;;
-;;    repeat = [ integer "*" ] term.            ;; repetition
+;;    repeat = [ integer "*" [ integer ]] term. ;; repetition
 ;;
 ;;    term = factor
 ;;         | [factor] "+"                       ;; one-or-more
@@ -96,14 +99,30 @@
 ;;           .
 ;;
 ;;    non_terminal = "[!#%&'*-,0-:<>@-Z\\\\^-z~\\240-\\377]+".
+;;    ;; that is, a valid non_terminal accepts decimal digits, letters (upper
+;;    ;; and lower), 8-bit accentuated characters,
+;;    ;; "!", "#", "%", "&", "'", "*", "+", ",", ":",
+;;    ;; "<", ">", "@", "\", "^", "_", "`" and "~".
 ;;
 ;;    terminal = "\\([^\"\\]\\|\\\\[ -~\\240-\\377]\\)+".
+;;    ;; that is, a valid terminal accepts any printable character (including
+;;    ;; 8-bit accentuated characters) except `"', as `"' is used to delimit a
+;;    ;; terminal.  Also, accepts escaped characters, that is, a character
+;;    ;; pair starting with `\' followed by a printable character, for
+;;    ;; example: \", \\. 
 ;;
-;;    special = "[^?\\n\\000-\\010\\016-\\037\\177-\\237]*".
+;;    special = "[^?\\000-\\010\\012-\\037\\177-\\237]*".
+;;    ;; that is, a valid special accepts any printable character (including
+;;    ;; 8-bit accentuated characters) and tabs except `?', as `?' is used to
+;;    ;; delimit a special.
 ;;
 ;;    integer = "[0-9]+".
+;;    ;; that is, an integer is a sequence of one or more decimal digits.
 ;;
 ;;    comment = ";" "[^\\n\\000-\\010\\016-\\037\\177-\\237]*" "\\n".
+;;    ;; that is, a comment starts with the character `;' and terminates at end
+;;    ;; of line.  Also, it only accepts printable characters (including 8-bit
+;;    ;; accentuated characters) and tabs.
 ;;
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -234,15 +253,20 @@
 	  ))))
 
 
-;;; repeat = [ integer "*" ] term.
+;;; repeat = [ integer "*" [ integer ]] term.
 
 (defun ebnf-repeat (token)
   (if (not (eq token 'integer))
       (ebnf-term token)
-    (let ((times ebnf-bnf-lex))
+    (let ((times ebnf-bnf-lex)
+	  upper)
       (or (eq (ebnf-bnf-lex) 'repeat)
 	  (error "Missing `*'"))
-      (ebnf-token-repeat times (ebnf-term (ebnf-bnf-lex))))))
+      (setq token (ebnf-bnf-lex))
+      (when (eq token 'integer)
+	(setq upper ebnf-bnf-lex
+	      token (ebnf-bnf-lex)))
+      (ebnf-token-repeat times (ebnf-term token) upper))))
 
 
 ;;; term = factor

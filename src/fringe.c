@@ -636,7 +636,10 @@ draw_fringe_bitmap (w, row, left_p)
   draw_fringe_bitmap_1 (w, row, left_p, overlay, NO_FRINGE_BITMAP);
 
   if (left_p && row->overlay_arrow_p)
-    draw_fringe_bitmap_1 (w, row, 1, 1, OVERLAY_ARROW_BITMAP);
+    draw_fringe_bitmap_1 (w, row, 1, 1,
+			  (w->overlay_arrow_bitmap
+			   ? w->overlay_arrow_bitmap
+			   : OVERLAY_ARROW_BITMAP));
 }
 
 
@@ -737,7 +740,7 @@ update_window_fringes (w, force_p)
 	{
 	  unsigned indicate_bob_p, indicate_top_line_p;
 	  unsigned indicate_eob_p, indicate_bottom_line_p;
-	  
+
 	  row = w->desired_matrix->rows + rn;
 	  if (!row->enabled_p)
 	    row = w->current_matrix->rows + rn;
@@ -746,7 +749,7 @@ update_window_fringes (w, force_p)
 	  indicate_top_line_p = row->indicate_top_line_p;
 	  indicate_eob_p = row->indicate_eob_p;
 	  indicate_bottom_line_p = row->indicate_bottom_line_p;
-	  
+
 	  row->indicate_bob_p = row->indicate_top_line_p = 0;
 	  row->indicate_eob_p = row->indicate_bottom_line_p = 0;
 
@@ -799,10 +802,6 @@ update_window_fringes (w, force_p)
 	  left = row->left_user_fringe_bitmap;
 	  left_face_id = row->left_user_fringe_face_id;
 	}
-#if 0  /* this is now done via an overlay */
-      else if (row->overlay_arrow_p)
-	left = OVERLAY_ARROW_BITMAP;
-#endif
       else if (row->indicate_bob_p && boundary_pos <= 0)
 	left = ((row->indicate_eob_p && boundary_pos < 0)
 		? LEFT_BRACKET_BITMAP : TOP_LEFT_ANGLE_BITMAP);
@@ -881,7 +880,7 @@ update_window_fringes (w, force_p)
 }
 
 
-/* Compute actual fringe widths for frame F.  
+/* Compute actual fringe widths for frame F.
 
    If REDRAW is 1, redraw F if the fringe settings was actually
    modified and F is visible.
@@ -1096,7 +1095,7 @@ DEFUN ("define-fringe-bitmap", Fdefine_fringe_bitmap, Sdefine_fringe_bitmap,
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
 WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
-Optional forth arg ALIGN may be one of `top', `center', or `bottom',
+Optional fourth arg ALIGN may be one of `top', `center', or `bottom',
 indicating the positioning of the bitmap relative to the rows where it
 is used; the default is to center the bitmap.  Fourth arg may also be a
 list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap
@@ -1130,7 +1129,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 	  fill2 = fb.height - h - fill1;
 	}
     }
-  
+
   if (NILP (width))
     fb.width = 8;
   else
@@ -1217,7 +1216,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 
 DEFUN ("set-fringe-bitmap-face", Fset_fringe_bitmap_face, Sset_fringe_bitmap_face,
        1, 2, 0,
-       doc:  /* Set face for fringe bitmap FRINGE-ID to FACE.
+       doc: /* Set face for fringe bitmap FRINGE-ID to FACE.
 If FACE is nil, reset face to default fringe face.  */)
   (fringe_id, face)
      Lisp_Object fringe_id, face;
@@ -1244,7 +1243,7 @@ If FACE is nil, reset face to default fringe face.  */)
 
 DEFUN ("fringe-bitmaps-at-pos", Ffringe_bitmaps_at_pos, Sfringe_bitmaps_at_pos,
        0, 2, 0,
-       doc:  /* Return fringe bitmaps of row containing position POS in window WINDOW.
+       doc: /* Return fringe bitmaps of row containing position POS in window WINDOW.
 If WINDOW is nil, use selected window.  If POS is nil, use value of point
 in that window.  Return value is a cons (LEFT . RIGHT) where LEFT and RIGHT
 are the fringe bitmap numbers for the bitmaps in the left and right fringe,
@@ -1346,7 +1345,7 @@ w32_reset_fringes ()
 {
   /* Destroy row bitmaps.  */
   int bt;
-  
+
   for (bt = NO_FRINGE_BITMAP + 1; bt < max_used_fringe_bitmap; bt++)
     rif->destroy_fringe_bitmap (bt);
 }

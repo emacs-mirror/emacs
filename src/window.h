@@ -254,6 +254,9 @@ struct window
     /* This is handy for undrawing the cursor.  */
     int phys_cursor_ascent, phys_cursor_height;
 
+    /* Alternate overlay-arrow-bitmap in this window.  */
+    int overlay_arrow_bitmap;
+
     /* Non-zero means the cursor is currently displayed.  This can be
        set to zero by functions overpainting the cursor image.  */
     unsigned phys_cursor_on_p : 1;

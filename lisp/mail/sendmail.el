@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -512,6 +512,9 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; Allow using comment commands to add/remove quoting (this only does
   ;; anything if mail-yank-prefix is set to a non-nil value).
   (set (make-local-variable 'comment-start) mail-yank-prefix)
+  (if mail-yank-prefix
+      (set (make-local-variable 'comment-start-skip)
+	   (concat "^" (regexp-quote mail-yank-prefix) "[ \t]*")))
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
 	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"

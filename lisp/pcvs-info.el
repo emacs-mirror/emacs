@@ -1,6 +1,7 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -219,8 +220,8 @@ to confuse some users sometimes."
 	 (file (cvs-fileinfo->file fileinfo))
 	 (default-directory (file-name-as-directory (expand-file-name dir)))
 	 (files (directory-files "." nil
-				 (concat "^" (regexp-quote cvs-bakprefix)
-					 (regexp-quote file) "\\.")))
+				 (concat "\\`" (regexp-quote cvs-bakprefix)
+					 (regexp-quote file) "\\(\\.[0-9]+\\.[0-9]+\\)+\\'")))
 	 bf)
     (dolist (f files bf)
       (when (and (file-readable-p f)

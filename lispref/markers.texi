@@ -337,9 +337,10 @@ text is inserted at its position.  If @var{type} is @code{nil},
 This function reports the current insertion type of @var{marker}.
 @end defun
 
-Most functions that create markers, without explicitly specifying an
-insertion type, create them with insertion type @code{nil}.  Also, the
-mark has, by default, insertion type @code{nil}.
+Most functions that create markers, without an argument allowing to
+specify the insertion type, create them with insertion type
+@code{nil}.  Also, the mark has, by default, insertion type
+@code{nil}.
 
 @node Moving Markers
 @section Moving Marker Positions

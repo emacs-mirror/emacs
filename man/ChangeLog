@@ -1,6 +1,50 @@
+2004-03-04  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexps): Explain that ^ and $ have their
+	special meanings only in certain contexts.
+
+	* programs.texi (Expressions): Doc C-M-SPC as alias for C-M-@.
+
+	* mule.texi (Specify Coding): Doc C-x RET F.
+
+	* buffers.texi (Misc Buffer): Explain use of M-x rename-uniquely
+	for multiple compile and grep buffers.
+	(Indirect Buffers): Don't recommand clone-indirect-buffer
+	for multiple compile and grep buffers.
+
+2004-02-29  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Changed the list of supported
+	authentication mechanisms from CRAM-MD5, PLAIN and LOGIN-MD5 to
+	CRAM-MD5 and LOGIN, tiny patch from Andreas Voegele
+	<voegelas@gmx.net>.
+
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (mostlyclean, clean, maintainer-clean): Use
+	$(DEL) instead of rm, and ignore exit code.
+
+2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
+
+	Tramp version 2.0.39 released.
+
+2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Customizing Completion): Explain new functions
+	`tramp-parse-shostkeys' and `tramp-parse-sknownhosts'.
+	(all): Savannah URLs unified to "http://savannah.nongnu.org".
+	(Top): Refer to Savannah mailing list as the major one.  Mention
+	older mailing lists in HTML mode only.
+	(Auto-save and Backup): Add auto-save.  Based on wording of Kai.
+	(Frequently Asked Questions): Remote hosts must not be Unix-like
+	for "smb" method.
+	(Password caching): New node.
+	(External transfer methods): Refer to password caching for "smb"
+	method.
+
 2004-02-23  Nick Roberts  <nick@nick.uklinux.net>
 
-	* building.texi (Watch Expressions):  Update.
+	* building.texi (Watch Expressions): Update.
 
 2004-02-21  Juri Linkov  <juri@jurta.org>
 
@@ -41,7 +85,7 @@
 
 	* calendar.texi (Appointments): Update section.
 
-2003-12-29  Kevin Ryde <user42@zip.com.au>
+2003-12-29  Kevin Ryde  <user42@zip.com.au>
 
 	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
 
@@ -59,6 +103,7 @@
 	<acm@muc.de>.
 
 2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
 	Tramp version 2.0.38 released.
 
 	* tramp.texi (Remote shell setup): Warn of environment variables
@@ -316,6 +361,7 @@
 	* buffers.texi (List Buffers): Fix previous change.
 
 2003-07-20  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
 	Tramp version 2.0.36 released.
 
 	* tramp.texi (Remote shell setup): Explain about problems with
@@ -478,11 +524,11 @@
 	(Installation): Explain what to do if files from the tramp/contrib
 	directory are needed.
 
-2003-02-23  Alex Schroeder <alex@emacswiki.org>
+2003-02-23  Alex Schroeder  <alex@emacswiki.org>
 
 	* smtpmail.texi (How Mail Works): New.
 
-2003-02-22  Alex Schroeder <alex@emacswiki.org>
+2003-02-22  Alex Schroeder  <alex@emacswiki.org>
 
 	* cmdargs.texi (General Variables): Document SMTPSERVER.
 
@@ -494,7 +540,7 @@
 
 	* Makefile.in: Build SMTP manual.
 
-2003-02-22  Alex Schroeder <alex@emacswiki.org>
+2003-02-22  Alex Schroeder  <alex@emacswiki.org>
 
 	* sending.texi (Sending via SMTP): Explain MTA/MUA.
 
@@ -589,7 +635,7 @@
 
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
-	* reftex.texi: Update to RefTeX 4.19
+	* reftex.texi: Update to RefTeX 4.19.
 
 2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 

@@ -110,14 +110,14 @@ elisp.dvi: $(srcs)
 	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
 
 clean:
-	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
-              *.vr *.vrs *.pg *.pgs *.ky *.kys
-	rm -f make.out core 
-	rm -f $(infodir)/elisp*
+	- $(DEL) *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
+                 *.vr *.vrs *.pg *.pgs *.ky *.kys
+	- $(DEL) make.out core
+	- $(DEL) $(infodir)/elisp*
 
 distclean: clean
 
 maintainer-clean: clean
-	rm -f elisp elisp-* elisp.dvi elisp.oaux
+	- $(DEL) elisp elisp-* elisp.dvi elisp.oaux
 
 # arch-tag: da68f1c2-536d-4d41-9150-7b01434eda3f

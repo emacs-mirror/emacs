@@ -8137,65 +8137,24 @@ x_calc_absolute_position (f)
   Window child;
   int win_x = 0, win_y = 0;
   int flags = f->size_hint_flags;
-  int this_window;
 
   /* We have nothing to do if the current position
      is already for the top-left corner.  */
   if (! ((flags & XNegative) || (flags & YNegative)))
     return;
 
-  this_window = FRAME_OUTER_WINDOW (f);
-
-  /* Find the position of the outside upper-left corner of
+  /* Find the offsets of the outside upper-left corner of
      the inner window, with respect to the outer window.
      But do this only if we will need the results.  */
   if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-    {
-      int count;
-
-      BLOCK_INPUT;
-      count = x_catch_errors (FRAME_X_DISPLAY (f));
-      while (1)
-	{
-	  x_clear_errors (FRAME_X_DISPLAY (f));
-	  XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-				 /* From-window, to-window.  */
-				 this_window,
-				 f->output_data.x->parent_desc,
-
-				 /* From-position, to-position.  */
-				 0, 0, &win_x, &win_y,
-
-				 /* Child of win.  */
-				 &child);
-	  if (x_had_errors_p (FRAME_X_DISPLAY (f)))
-	    {
-	      Window newroot, newparent = 0xdeadbeef;
-	      Window *newchildren;
-	      unsigned int nchildren;
-
-	      if (! XQueryTree (FRAME_X_DISPLAY (f), this_window, &newroot,
-				&newparent, &newchildren, &nchildren))
-		break;
-
-	      XFree ((char *) newchildren);
-
-	      f->output_data.x->parent_desc = newparent;
-	    }
-	  else
-	    break;
-	}
-
-      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
-      UNBLOCK_INPUT;
-    }
+    /* This is to get *_pixels_outer_diff.  */
+    x_real_positions (f, &win_x, &win_y);
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
     f->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
-		   - 2 * f->border_width - win_x
+                   - 2 * FRAME_X_OUTPUT (f)->x_pixels_outer_diff
 		   - FRAME_PIXEL_WIDTH (f)
 		   + f->left_pos);
 
@@ -8220,8 +8179,12 @@ x_calc_absolute_position (f)
 
   if (flags & YNegative)
     f->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
-		  - 2 * f->border_width
-		  - win_y
+                  - FRAME_X_OUTPUT (f)->y_pixels_outer_diff
+
+                  /* Assume the window manager decorations are the same size on
+                     three sides, i.e. left, right and bottom.  This is to
+                     compensate for the bottom part.  */
+                  - FRAME_X_OUTPUT (f)->x_pixels_outer_diff
 		  - height
 		  + f->top_pos);
   }
@@ -8264,17 +8227,6 @@ x_set_offset (f, xoff, yoff, change_gravity)
 
   modified_left = f->left_pos;
   modified_top = f->top_pos;
-
-#if 0 /* Running on psilocin (Debian), and displaying on the NCD X-terminal,
-	 this seems to be unnecessary and incorrect.  rms, 4/17/97.  */
-  /* It is a mystery why we need to add the border_width here
-     when the frame is already visible, but experiment says we do.  */
-  if (change_gravity != 0)
-    {
-      modified_left += f->border_width;
-      modified_top += f->border_width;
-    }
-#endif
 
   if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A)
     {

@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,2003
+;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,03,2004
 ;;               Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -732,7 +732,7 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
       ;; Then try our syntax-aware filling code.
       (and fill-paragraph-handle-comment
 	   ;; Our code only handles \n-terminated comments right now.
-	   comment-start comment-start-skip (equal comment-end "")
+	   comment-start (equal comment-end "")
 	   (let ((fill-paragraph-handle-comment nil))
 	     (fill-comment-paragraph arg)))
       ;; If it all fails, default to the good ol' text paragraph filling.
@@ -822,7 +822,11 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 			     (looking-at comment-re)))
 		 ;; We may have gone too far.  Go forward again.
 		 (line-beginning-position
-		  (if (looking-at (concat ".*\\(?:" comment-start-skip "\\)"))
+		  (if (progn
+			(goto-char
+			 (or (comment-search-forward (line-end-position) t)
+			     (point)))
+			(looking-at comment-re))
 		      1 2))))
 	   ;; Find the beginning of the first line past the region to fill.
 	   (save-excursion

@@ -1,7 +1,7 @@
-;; ffap.el --- find file (or url) at point
-;;
-;; Copyright (C) 1995, 96, 97, 2000  Free Software Foundation, Inc.
-;;
+;;; ffap.el --- find file (or url) at point
+
+;; Copyright (C) 1995, 96, 97, 2000, 2004  Free Software Foundation, Inc.
+
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: Rajesh Vaidheeswarran  <rv@gnu.org>
 ;; Created: 29 Mar 1993
@@ -701,7 +701,7 @@ kpathsea, a library used by some versions of TeX."
 
 (defun ffap-locate-file (file &optional nosuffix path dir-ok)
   ;; The Emacs 20 version of locate-library could almost replace this,
-  ;; except it does not let us overrride the suffix list.  The
+  ;; except it does not let us override the suffix list.  The
   ;; compression-suffixes search moved to ffap-file-exists-string.
   "A generic path-searching function, mimics `load' by default.
 Returns path to file that \(load FILE\) would load, or nil.
@@ -966,6 +966,7 @@ possibly a major-mode name, or one of the symbol
 MODE (defaults to value of `major-mode') is a symbol used to look up string
 syntax parameters in `ffap-string-at-point-mode-alist'.
 If MODE is not found, we use `file' instead of MODE.
+If the region is active, return a string from the region.
 Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
   (let* ((args
 	  (cdr
@@ -973,15 +974,19 @@ Sets `ffap-string-at-point' and `ffap-string-at-point-region'."
 	       (assq 'file ffap-string-at-point-mode-alist))))
 	 (pt (point))
 	 (str
-	  (buffer-substring
-	   (save-excursion
-	     (skip-chars-backward (car args))
-	     (skip-chars-forward (nth 1 args) pt)
-	     (setcar ffap-string-at-point-region (point)))
-	   (save-excursion
-	     (skip-chars-forward (car args))
-	     (skip-chars-backward (nth 2 args) pt)
-	     (setcar (cdr ffap-string-at-point-region) (point))))))
+	  (if (and transient-mark-mode mark-active)
+	      (buffer-substring
+	       (setcar ffap-string-at-point-region (region-beginning))
+	       (setcar (cdr ffap-string-at-point-region) (region-end)))
+	    (buffer-substring
+	     (save-excursion
+	       (skip-chars-backward (car args))
+	       (skip-chars-forward (nth 1 args) pt)
+	       (setcar ffap-string-at-point-region (point)))
+	     (save-excursion
+	       (skip-chars-forward (car args))
+	       (skip-chars-backward (nth 2 args) pt)
+	       (setcar (cdr ffap-string-at-point-region) (point)))))))
     (set-text-properties 0 (length str) nil str)
     (setq ffap-string-at-point str)))
 
@@ -1128,9 +1133,6 @@ which may actually result in an url rather than a filename."
          ((and ffap-shell-prompt-regexp
 	       (not abs) (string-match ffap-shell-prompt-regexp name)
                (ffap-file-exists-string (substring name (match-end 0)))))
-	 ;; Immediately test local filenames.  If default-directory is
-	 ;; remote, you probably already have a connection.
-	 ((and (not abs) (ffap-file-exists-string name)))
 	 ;; Accept remote names without actual checking (too slow):
 	 ((if abs
 	      (ffap-file-remote-p name)
@@ -1675,7 +1677,9 @@ ffap most of the time."
       (if (file-directory-p filename)
 	  (dired (expand-file-name filename))
 	(dired (concat (expand-file-name filename) "*"))))
-     ((and (file-writable-p (file-name-directory filename))
+     ((and (file-writable-p
+            (or (file-name-directory (directory-file-name filename))
+                filename))
            (y-or-n-p "Directory does not exist, create it? "))
       (make-directory filename)
       (dired filename))
@@ -1688,9 +1692,24 @@ ffap most of the time."
       (ffap-read-file-or-url
        (if ffap-url-regexp "Dired file or URL: " "Dired file: ")
        (prog1
-	   (setq guess (or guess (ffap-guesser)))
-	 (and guess (ffap-highlight))
-	 ))
+	   (setq guess (or guess
+                           (let ((guess (ffap-guesser)))
+                             (if (or (not guess)
+                                     (ffap-url-p guess)
+                                     (ffap-file-remote-p guess))
+                                 guess
+                               (setq guess (abbreviate-file-name
+                                            (expand-file-name guess)))
+                               (cond
+                                ;; Interpret local directory as a directory.
+                                ((file-directory-p guess)
+                                 (file-name-as-directory guess))
+                                ;; Get directory component from local files.
+                                ((file-regular-p guess)
+                                 (file-name-directory guess))
+                                (guess))))
+                           ))
+	 (and guess (ffap-highlight))))
     (ffap-highlight t)))
 
 ;;; Offer default global bindings (`ffap-bindings'):

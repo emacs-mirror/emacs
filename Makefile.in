@@ -2,8 +2,8 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#  2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,2004
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -634,6 +634,7 @@ maintainer-clean: FRC
 	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -734,7 +735,7 @@ maybe_bootstrap:
 	fi
 
 bootstrap: bootstrap-clean-before info FRC
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
 	(cd src; $(MAKE) $(MFLAGS) mostlyclean)

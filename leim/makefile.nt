@@ -132,7 +132,7 @@ WORLD=$(ASIA) $(EUROPEAN) $(MISC)
 TIT=$(CHINESE_TIT)
 NON_TIT=$(CHINESE_NON_TIT) $(JAPANESE) $(KOREAN) $(EUROPEAN) $(MISC)
 
-all: $(BUILT_EMACS) $(SUBDIRS) $(TIT) $(MISC_DIC) leim-list.el
+all: $(BUILT_EMACS) $(SUBDIRS) $(WORLD) leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -196,11 +196,13 @@ clean mostlyclean:
 	for %%f in ($(TIT_EL:/=\)) do $(DEL) %%f
 	for %%f in ($(MISC_DIC:/=\)) do $(DEL) %%f
 	for %%f in ($(MISC_DIC_EL:/=\)) do $(DEL) %%f
-	for %%f in ($(WORLD:/=\)) do $(DEL) %%f
 	$(DEL) leim-list.el
 
-distclean maintainer-clean:
+distclean: clean
 	if exist stamp-subdir $(DELTREE) $(SUBDIRS)
 	$(DEL) stamp-subdir
+
+maintainer-clean: distclean
+	for %%f in ($(WORLD:/=\)) do $(DEL) %%f
 
 # arch-tag: cded53b4-4803-496b-8c05-7daff80e5b3b

@@ -825,7 +825,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  start = strp;
 	  start_idx = start - SDATA (string);
 
-	  while ((strp - SDATA (string) < SCHARS (string))
+	  while ((strp - SDATA (string) < SBYTES (string))
 		 && *strp != '}' && *strp != '>')
 	    strp++;
 

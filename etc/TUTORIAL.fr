@@ -638,7 +638,7 @@ fichiers mais la liste obtenue par C-x C-b. Le tampon "*Messages*" ne
 correspond pas non plus à un fichier ; il contient la liste des
 messages apparus dans la ligne d'état pendant votre session Emacs.
 
->> Faites C-x C-b *Messages* <Entrée> pour visualiser le tampon des
+>> Faites C-x b *Messages* <Entrée> pour visualiser le tampon des
    messages.
    Puis, faites C-x b TUTORIAL <Entrée> pour revenir à ce didacticiel.
 

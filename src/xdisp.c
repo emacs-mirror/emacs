@@ -403,6 +403,13 @@ int multiple_frames;
 
 Lisp_Object Vglobal_mode_string;
 
+
+/* List of variables (symbols) which hold markers for overlay arrows.
+   The symbols on this list are examined during redisplay to determine
+   where to display overlay arrows.  */ 
+
+Lisp_Object Voverlay_arrow_variable_list;
+
 /* Marker for where to display an arrow on top of the buffer text.  */
 
 Lisp_Object Voverlay_arrow_position;
@@ -411,11 +418,17 @@ Lisp_Object Voverlay_arrow_position;
 
 Lisp_Object Voverlay_arrow_string;
 
-/* Values of those variables at last redisplay.  However, if
-   Voverlay_arrow_position is a marker, last_arrow_position is its
+/* Values of those variables at last redisplay are stored as
+   properties on `overlay-arrow-position' symbol.  However, if
+   Voverlay_arrow_position is a marker, last-arrow-position is its
    numerical position.  */
 
-static Lisp_Object last_arrow_position, last_arrow_string;
+Lisp_Object Qlast_arrow_position, Qlast_arrow_string;
+
+/* Alternative overlay-arrow-string and overlay-arrow-bitmap
+   properties on a symbol in overlay-arrow-variable-list.  */
+
+Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
 
 /* Like mode-line-format, but for the title bar on a visible frame.  */
 
@@ -832,7 +845,8 @@ static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
 static int compute_window_start_on_continuation_line P_ ((struct window *));
 static Lisp_Object safe_eval_handler P_ ((Lisp_Object));
 static void insert_left_trunc_glyphs P_ ((struct it *));
-static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
+static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *,
+							  Lisp_Object));
 static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space P_ ((struct it *, int));
 static int make_cursor_line_fully_visible P_ ((struct window *));
@@ -9320,6 +9334,153 @@ redisplay ()
 }
 
 
+static Lisp_Object
+overlay_arrow_string_or_property (var, pbitmap)
+     Lisp_Object var;
+     int *pbitmap;
+{
+  Lisp_Object pstr = Fget (var, Qoverlay_arrow_string);
+  Lisp_Object bitmap;
+
+  if (pbitmap)
+    {
+      *pbitmap = 0;
+      if (bitmap  = Fget (var, Qoverlay_arrow_bitmap), INTEGERP (bitmap))
+	*pbitmap = XINT (bitmap);
+    }
+
+  if (!NILP (pstr))
+    return pstr;
+  return Voverlay_arrow_string;
+}
+
+/* Return 1 if there are any overlay-arrows in current_buffer.  */
+static int
+overlay_arrow_in_current_buffer_p ()
+{
+  Lisp_Object vlist;
+
+  for (vlist = Voverlay_arrow_variable_list;
+       CONSP (vlist);
+       vlist = XCDR (vlist))
+    {
+      Lisp_Object var = XCAR (vlist);
+      Lisp_Object val;
+
+      if (!SYMBOLP (var))
+	continue;
+      val = find_symbol_value (var);
+      if (MARKERP (val)
+	  && current_buffer == XMARKER (val)->buffer)
+	return 1;
+    }
+  return 0;
+}
+
+
+/* Return 1 if any overlay_arrows have moved or overlay-arrow-string
+   has changed.  */
+
+static int
+overlay_arrows_changed_p ()
+{
+  Lisp_Object vlist;
+
+  for (vlist = Voverlay_arrow_variable_list;
+       CONSP (vlist);
+       vlist = XCDR (vlist))
+    {
+      Lisp_Object var = XCAR (vlist);
+      Lisp_Object val, pstr;
+
+      if (!SYMBOLP (var))
+	continue;
+      val = find_symbol_value (var);
+      if (!MARKERP (val))
+	continue;
+      if (! EQ (COERCE_MARKER (val),
+		Fget (var, Qlast_arrow_position))
+	  || ! (pstr = overlay_arrow_string_or_property (var, 0),
+		EQ (pstr, Fget (var, Qlast_arrow_string))))
+	return 1;
+    }
+  return 0;
+}
+
+/* Mark overlay arrows to be updated on next redisplay.  */
+
+static void
+update_overlay_arrows (up_to_date)
+     int up_to_date;
+{
+  Lisp_Object vlist;
+
+  for (vlist = Voverlay_arrow_variable_list;
+       CONSP (vlist);
+       vlist = XCDR (vlist))
+    {
+      Lisp_Object var = XCAR (vlist);
+
+      if (!SYMBOLP (var))
+	continue;
+
+      if (up_to_date)
+	{
+	  Lisp_Object val = find_symbol_value (var);
+	  Fput (var, Qlast_arrow_position,
+		COERCE_MARKER (val));
+	  Fput (var, Qlast_arrow_string,
+		overlay_arrow_string_or_property (var, 0));
+	}
+      else if (up_to_date < 0
+	       || !NILP (Fget (var, Qlast_arrow_position)))
+	{
+	  Fput (var, Qlast_arrow_position, Qt);
+	  Fput (var, Qlast_arrow_string, Qt);
+	}
+    }
+}
+
+
+/* Return overlay arrow string at row, or nil.  */
+
+static Lisp_Object
+overlay_arrow_at_row (f, row, pbitmap)
+     struct frame *f;
+     struct glyph_row *row;
+     int *pbitmap;
+{
+  Lisp_Object vlist;
+
+  for (vlist = Voverlay_arrow_variable_list;
+       CONSP (vlist);
+       vlist = XCDR (vlist))
+    {
+      Lisp_Object var = XCAR (vlist);
+      Lisp_Object val;
+
+      if (!SYMBOLP (var))
+	continue;
+
+      val = find_symbol_value (var);
+      
+      if (MARKERP (val)
+	  && current_buffer == XMARKER (val)->buffer
+	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
+	{
+	  val = overlay_arrow_string_or_property (var, pbitmap);
+	  if (FRAME_WINDOW_P (f))
+	    return Qt;
+	  else if (STRINGP (val))
+	    return val;
+	  break;
+	}
+    }
+
+  *pbitmap = 0;
+  return Qnil;
+}
+
 /* Return 1 if point moved out of or into a composition.  Otherwise
    return 0.  PREV_BUF and PREV_PT are the last point buffer and
    position.  BUF and PT are the current point buffer and position.  */
@@ -9599,8 +9760,7 @@ redisplay_internal (preserve_echo_area)
 
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
-  if (! EQ (COERCE_MARKER (Voverlay_arrow_position), last_arrow_position)
-      || ! EQ (Voverlay_arrow_string, last_arrow_string))
+  if (overlay_arrows_changed_p ())
     consider_all_windows_p = windows_or_buffers_changed = 1;
 
   /* Normally the message* functions will have already displayed and
@@ -10060,11 +10220,7 @@ redisplay_internal (preserve_echo_area)
       CHARPOS (this_line_start_pos) = 0;
 
       /* Let the overlay arrow be updated the next time.  */
-      if (!NILP (last_arrow_position))
-	{
-	  last_arrow_position = Qt;
-	  last_arrow_string = Qt;
-	}
+      update_overlay_arrows (0);
 
       /* If we pause after scrolling, some rows in the current
 	 matrices of some windows are not valid.  */
@@ -10080,8 +10236,8 @@ redisplay_internal (preserve_echo_area)
 	     consider_all_windows_p is set.  */
 	  mark_window_display_accurate_1 (w, 1);
 
-	  last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
-	  last_arrow_string = Voverlay_arrow_string;
+	  /* Say overlay arrows are up to date.  */
+	  update_overlay_arrows (1);
 
 	  if (frame_up_to_date_hook != 0)
 	    frame_up_to_date_hook (sf);
@@ -10277,16 +10433,14 @@ mark_window_display_accurate (window, accurate_p)
 
   if (accurate_p)
     {
-      last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
-      last_arrow_string = Voverlay_arrow_string;
+      update_overlay_arrows (1);
     }
   else
     {
       /* Force a thorough redisplay the next time by setting
 	 last_arrow_position and last_arrow_string to t, which is
 	 unequal to any useful value of Voverlay_arrow_...  */
-      last_arrow_position = Qt;
-      last_arrow_string = Qt;
+      update_overlay_arrows (-1);
     }
 }
 
@@ -11037,8 +11191,7 @@ try_cursor_movement (window, startp, scroll_step)
       && INTEGERP (w->window_end_vpos)
       && XFASTINT (w->window_end_vpos) < w->current_matrix->nrows
       && (FRAME_WINDOW_P (f)
-	  || !MARKERP (Voverlay_arrow_position)
-	  || current_buffer != XMARKER (Voverlay_arrow_position)->buffer))
+	  || !overlay_arrow_in_current_buffer_p ()))
     {
       int this_scroll_margin;
       struct glyph_row *row = NULL;
@@ -12787,8 +12940,7 @@ try_window_id (w)
     GIVE_UP (10);
 
   /* Can use this if overlay arrow position and or string have changed.  */
-  if (!EQ (last_arrow_position, COERCE_MARKER (Voverlay_arrow_position))
-      || !EQ (last_arrow_string, Voverlay_arrow_string))
+  if (overlay_arrows_changed_p ())
     GIVE_UP (12);
 
 
@@ -13725,14 +13877,15 @@ usage: (trace-to-stderr STRING &rest OBJECTS)  */)
    arrow.  Only used for non-window-redisplay windows.  */
 
 static struct glyph_row *
-get_overlay_arrow_glyph_row (w)
+get_overlay_arrow_glyph_row (w, overlay_arrow_string)
      struct window *w;
+     Lisp_Object overlay_arrow_string;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct buffer *buffer = XBUFFER (w->buffer);
   struct buffer *old = current_buffer;
-  const unsigned char *arrow_string = SDATA (Voverlay_arrow_string);
-  int arrow_len = SCHARS (Voverlay_arrow_string);
+  const unsigned char *arrow_string = SDATA (overlay_arrow_string);
+  int arrow_len = SCHARS (overlay_arrow_string);
   const unsigned char *arrow_end = arrow_string + arrow_len;
   const unsigned char *p;
   struct it it;
@@ -13759,7 +13912,7 @@ get_overlay_arrow_glyph_row (w)
 
       /* Get its face.  */
       ilisp = make_number (p - arrow_string);
-      face = Fget_text_property (ilisp, Qface, Voverlay_arrow_string);
+      face = Fget_text_property (ilisp, Qface, overlay_arrow_string);
       it.face_id = compute_char_face (f, it.c, face);
 
       /* Compute its width, get its glyphs.  */
@@ -14198,6 +14351,8 @@ display_line (it)
      struct it *it;
 {
   struct glyph_row *row = it->glyph_row;
+  int overlay_arrow_bitmap;
+  Lisp_Object overlay_arrow_string;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   xassert (it->hpos == 0 && it->current_x == 0);
@@ -14593,17 +14748,16 @@ display_line (it)
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
      better to let it be displayed like cursors under X.  */
-  if (MARKERP (Voverlay_arrow_position)
-      && current_buffer == XMARKER (Voverlay_arrow_position)->buffer
-      && (MATRIX_ROW_START_CHARPOS (row)
-	  == marker_position (Voverlay_arrow_position))
-      && STRINGP (Voverlay_arrow_string)
-      && ! overlay_arrow_seen)
+  if (! overlay_arrow_seen
+      && (overlay_arrow_string
+	    = overlay_arrow_at_row (it->f, row, &overlay_arrow_bitmap),
+	  !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (!FRAME_WINDOW_P (it->f))
 	{
-	  struct glyph_row *arrow_row = get_overlay_arrow_glyph_row (it->w);
+	  struct glyph_row *arrow_row
+	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string);
 	  struct glyph *glyph = arrow_row->glyphs[TEXT_AREA];
 	  struct glyph *arrow_end = glyph + arrow_row->used[TEXT_AREA];
 	  struct glyph *p = row->glyphs[TEXT_AREA];
@@ -14627,6 +14781,7 @@ display_line (it)
 	}
 
       overlay_arrow_seen = 1;
+      it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
       row->overlay_arrow_p = 1;
     }
 
@@ -17708,6 +17863,9 @@ produce_image_glyph (it)
   if (it->image_id < 0)
     {
       /* Fringe bitmap.  */
+      it->ascent = it->phys_ascent = 0;
+      it->descent = it->phys_descent = 0;
+      it->pixel_width = 0;
       it->nglyphs = 0;
       return;
     }
@@ -21433,10 +21591,15 @@ syms_of_xdisp ()
   list_of_error = Fcons (intern ("error"), Qnil);
   staticpro (&list_of_error);
 
-  last_arrow_position = Qnil;
-  last_arrow_string = Qnil;
-  staticpro (&last_arrow_position);
-  staticpro (&last_arrow_string);
+  Qlast_arrow_position = intern ("last-arrow-position");
+  staticpro (&Qlast_arrow_position);
+  Qlast_arrow_string = intern ("last-arrow-string");
+  staticpro (&Qlast_arrow_string);
+
+  Qoverlay_arrow_string = intern ("overlay-arrow-string");
+  staticpro (&Qoverlay_arrow_string);
+  Qoverlay_arrow_bitmap = intern ("overlay-arrow-bitmap");
+  staticpro (&Qoverlay_arrow_bitmap);
 
   echo_buffer[0] = echo_buffer[1] = Qnil;
   staticpro (&echo_buffer[0]);
@@ -21500,8 +21663,16 @@ See also `overlay-arrow-string'.  */);
   Voverlay_arrow_position = Qnil;
 
   DEFVAR_LISP ("overlay-arrow-string", &Voverlay_arrow_string,
-    doc: /* String to display as an arrow.  See also `overlay-arrow-position'.  */);
+    doc: /* String to display as an arrow in non-window frames.
+See also `overlay-arrow-position'.  */);
   Voverlay_arrow_string = Qnil;
+
+  DEFVAR_LISP ("overlay-arrow-variable-list", &Voverlay_arrow_variable_list,
+    doc: /* List of variables (symbols) which hold markers for overlay arrows.
+The symbols on this list are examined during redisplay to determine
+where to display overlay arrows.  */);
+  Voverlay_arrow_variable_list
+    = Fcons (intern ("overlay-arrow-position"), Qnil);
 
   DEFVAR_INT ("scroll-step", &scroll_step,
     doc: /* *The number of lines to try scrolling a window by when point moves out.

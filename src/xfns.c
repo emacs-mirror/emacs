@@ -2837,7 +2837,7 @@ x_window (f)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-if (use_xim)
+  if (use_xim)
   {
     BLOCK_INPUT;
     create_frame_xic (f);
@@ -3758,8 +3758,17 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
 
-  return make_number (DisplayCells (dpyinfo->display,
-				    XScreenNumberOfScreen (dpyinfo->screen)));
+  int nr_planes = DisplayPlanes (dpyinfo->display,
+                                 XScreenNumberOfScreen (dpyinfo->screen));
+
+  /* Truncate nr_planes to 24 to avoid integer overflow.
+     Some displays says 32, but only 24 bits are actually significant.
+     There are only very few and rare video cards that have more than
+     24 significant bits.  Also 24 bits is more than 16 million colors,
+     it "should be enough for everyone".  */
+  if (nr_planes > 24) nr_planes = 24;
+
+  return make_number (1 << nr_planes);
 }
 
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,

@@ -288,12 +288,12 @@ expansion.
 @end defopt
 
 @defvar abbrev-start-location
-This is a marker pointing to the buffer position for
-@code{expand-abbrev} to use as the start of the next abbrev to be
-expanded.  (@code{nil} means use the word before point instead.)
-@code{abbrev-start-location} is set to @code{nil} each time
-@code{expand-abbrev} is called.  This variable is also set by
-@code{abbrev-prefix-mark}.
+The value of this variable is a marker pointing to the buffer position
+for @code{expand-abbrev} to use as the start of the next abbrev to be
+expanded.  The value can also be @code{nil}, which means to use the
+word before point instead.  @code{abbrev-start-location} is set to
+@code{nil} each time @code{expand-abbrev} is called.  This variable is
+also set by @code{abbrev-prefix-mark}.
 @end defvar
 
 @defvar abbrev-start-location-buffer

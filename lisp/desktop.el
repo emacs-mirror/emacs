@@ -90,7 +90,7 @@
   (mapcar 'require '(info dired reporter)))
 
 (defvar desktop-file-version "206"
-  "Verion number of desktop file format.
+  "Version number of desktop file format.
 Written into the desktop file and used at desktop read to provide
 backward compatibility.")
 
@@ -163,7 +163,7 @@ May e.g. be used to show a dired buffer."
   :group 'desktop)
 
 (defcustom desktop-after-read-hook nil
-  "Normal hook run after a sucessful `desktop-read'.
+  "Normal hook run after a successful `desktop-read'.
 May e.g. be used to show a buffer list."
   :type 'hook
   :group 'desktop)
@@ -212,8 +212,7 @@ to the value obtained by evaluateing FORM."
 ;; Maintained for backward compatibility
 (defcustom desktop-clear-preserve-buffers nil
   "*List of buffer names that `desktop-clear' should not delete.
-This variable is maintained for backward compatibility only.  Use
-`desktop-clear-preserve-buffers-regexp' instead."
+This variable is maintained for backward compatibility only."
   :type '(repeat string)
   :group 'desktop)
 (make-obsolete-variable 'desktop-clear-preserve-buffers
@@ -349,9 +348,9 @@ this table."
   "Hooks run after all buffers are loaded; intended for internal use.")
 
 ;; ----------------------------------------------------------------------------
-(defun desktop-truncate (l n)
+(defun desktop-truncate (list n)
   "Truncate LIST to at most N elements destructively."
-  (let ((here (nthcdr (1- n) l)))
+  (let ((here (nthcdr (1- n) list)))
     (if (consp here)
 	(setcdr here nil))))
 
@@ -424,22 +423,22 @@ is nil, ask the user where to save the desktop."
       value)))
 
 ;; ----------------------------------------------------------------------------
-(defun desktop-internal-v2s (val)
+(defun desktop-internal-v2s (value)
   "Convert VALUE to a pair (QUOTE . TXT); (eval (read TXT)) gives VALUE.
 TXT is a string that when read and evaluated yields value.
 QUOTE may be `may' (value may be quoted),
 `must' (values must be quoted), or nil (value may not be quoted)."
   (cond
-   ((or (numberp val) (null val) (eq t val))
-    (cons 'may (prin1-to-string val)))
-   ((stringp val)
-    (let ((copy (copy-sequence val)))
+   ((or (numberp value) (null value) (eq t value))
+    (cons 'may (prin1-to-string value)))
+   ((stringp value)
+    (let ((copy (copy-sequence value)))
       (set-text-properties 0 (length copy) nil copy)
       ;; Get rid of text properties because we cannot read them
       (cons 'may (prin1-to-string copy))))
-   ((symbolp val)
-    (cons 'must (prin1-to-string val)))
-   ((vectorp val)
+   ((symbolp value)
+    (cons 'must (prin1-to-string value)))
+   ((vectorp value)
     (let* ((special nil)
 	   (pass1 (mapcar
 		   (lambda (el)
@@ -447,7 +446,7 @@ QUOTE may be `may' (value may be quoted),
 		       (if (null (car res))
 			   (setq special t))
 		       res))
-		   val)))
+		   value)))
       (if special
 	  (cons nil (concat "(vector "
 			    (mapconcat (lambda (el)
@@ -458,8 +457,8 @@ QUOTE may be `may' (value may be quoted),
 				       " ")
 			    ")"))
 	(cons 'may (concat "[" (mapconcat 'cdr pass1 " ") "]")))))
-   ((consp val)
-    (let ((p val)
+   ((consp value)
+    (let ((p value)
 	  newlist
 	  use-list*
 	  anynil)
@@ -489,13 +488,13 @@ QUOTE may be `may' (value may be quoted),
 			")"))
 	(cons 'must
 	      (concat "(" (mapconcat 'cdr newlist " ") ")")))))
-   ((subrp val)
+   ((subrp value)
     (cons nil (concat "(symbol-function '"
-		      (substring (prin1-to-string val) 7 -1)
+		      (substring (prin1-to-string value) 7 -1)
 		      ")")))
-   ((markerp val)
-    (let ((pos (prin1-to-string (marker-position val)))
-	  (buf (prin1-to-string (buffer-name (marker-buffer val)))))
+   ((markerp value)
+    (let ((pos (prin1-to-string (marker-position value)))
+	  (buf (prin1-to-string (buffer-name (marker-buffer value)))))
       (cons nil (concat "(let ((mk (make-marker)))"
 			" (add-hook 'desktop-delay-hook"
 			" (list 'lambda '() (list 'set-marker mk "
@@ -504,12 +503,12 @@ QUOTE may be `may' (value may be quoted),
     (cons 'may "\"Unprintable entity\""))))
 
 ;; ----------------------------------------------------------------------------
-(defun desktop-value-to-string (val)
+(defun desktop-value-to-string (value)
   "Convert VALUE to a string that when read evaluates to the same value.
 Not all types of values are supported."
   (let* ((print-escape-newlines t)
 	 (float-output-format nil)
-	 (quote.txt (desktop-internal-v2s val))
+	 (quote.txt (desktop-internal-v2s value))
 	 (quote (car quote.txt))
 	 (txt (cdr quote.txt)))
     (if (eq quote 'must)

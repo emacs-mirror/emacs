@@ -242,7 +242,7 @@ The options are `begin', `after' or `end'."
 
 (defun eshell-smart-maybe-jump-to-end ()
   "Jump to the end of the input buffer.
-This is done whenever a command exits sucessfully and both the command
+This is done whenever a command exits successfully and both the command
 and the end of the buffer are still visible."
   (when (and (= eshell-last-command-status 0)
 	     (if (eq eshell-review-quick-commands 'not-even-short-output)

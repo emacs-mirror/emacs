@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
+# Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -110,6 +110,13 @@ DONTCOMPILE = \
 	$(lisp)/term/wyse50.el \
 	$(lisp)/version.el
 
+# Elisp files auto-generated.
+AUTOGENEL = loaddefs.el \
+	cus-load.el \
+	finder-inf.el \
+	subdirs.el \
+	eshell/esh-groups.el
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
 # because CC mode tweaks the compilation process, and requiring
@@ -132,14 +139,14 @@ emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
 
 setwins=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.arch-ids | */.arch-ids/* | */=* ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
 
 setwins_almost=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term ) ;; \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */obsolete | */term ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done
@@ -295,11 +302,8 @@ $(lisp)/progmodes/cc-mode.elc: \
 # it's necessary for generating the binary (because loaddefs.el is an
 # automatically generated file, we don't want to store it in the source
 # repository).
-#
-# Remove compiled Lisp files so that bootstrap-emacs will be built from
-# sources only.
 
-bootstrap-clean:
+bootstrap-prepare:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	else							\
@@ -307,7 +311,9 @@ bootstrap-clean:
 	    cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;	\
 	  fi							\
 	fi
-	cd $(lisp); rm -f *.elc */*.elc
+
+maintainer-clean:
+	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
 
 # Generate/update files for the bootstrap process.
 

@@ -217,14 +217,18 @@ the new name as a minibuffer argument.  There is no default.  If you
 specify a name that is in use for some other buffer, an error happens and
 no renaming is done.
 
-  @kbd{M-x rename-uniquely} renames the current buffer to a similar name
-with a numeric suffix added to make it both different and unique.  This
-command does not need an argument.  It is useful for creating multiple
-shell buffers: if you rename the @samp{*Shell*} buffer, then do @kbd{M-x
-shell} again, it makes a new shell buffer named @samp{*Shell*};
-meanwhile, the old shell buffer continues to exist under its new name.
-This method is also good for mail buffers, compilation buffers, and most
-Emacs features that create special buffers with particular names.
+  @kbd{M-x rename-uniquely} renames the current buffer to a similar
+name with a numeric suffix added to make it both different and unique.
+This command does not need an argument.  It is useful for creating
+multiple shell buffers: if you rename the @samp{*Shell*} buffer, then
+do @kbd{M-x shell} again, it makes a new shell buffer named
+@samp{*Shell*}; meanwhile, the old shell buffer continues to exist
+under its new name.  This method is also good for mail buffers,
+compilation buffers, and most Emacs features that create special
+buffers with particular names.  (With some of these features, such as
+@kbd{M-x compile}, @kbd{M-x grep} an @kbd{M-x info}, you need to
+switch to some other buffer before using the command, in order for it
+to make a different buffer.)
 
 @findex view-buffer
   @kbd{M-x view-buffer} is much like @kbd{M-x view-file} (@pxref{Misc
@@ -471,22 +475,21 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
   One way to use indirect buffers is to display multiple views of an
 outline.  @xref{Outline Views}.
 
-@cindex multiple @samp{*info*} and @samp{*Help*} buffers
   A quick and handy way to make an indirect buffer is with the command
 @kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
 buffer whose base buffer is the current buffer.  With a numeric
 argument, it prompts for the name of the indirect buffer; otherwise it
 defaults to the name of the current buffer, modifying it by adding a
-@samp{<@var{n}>} prefix if required.  @kbd{C-x 4 c}
+@samp{<@var{n}>} suffix if required.  @kbd{C-x 4 c}
 (@code{clone-indirect-buffer-other-window}) works like @kbd{M-x
-clone-indirect-buffer}, but it selects the cloned buffer in another
-window.  These commands come in handy if you want to create new
-@samp{*info*} or @samp{*Help*} buffers, for example.
+clone-indirect-buffer}, but it selects the new buffer in another
+window.
 
-  The more general way is with the command @kbd{M-x
-make-indirect-buffer}.  It creates an indirect buffer from buffer
-@var{base-buffer}, under the name @var{indirect-name}.  It prompts for
-both @var{base-buffer} and @var{indirect-name} using the minibuffer.
+  The more general way to make an indirect buffer is with the command
+@kbd{M-x make-indirect-buffer}.  It creates an indirect buffer from
+buffer @var{base-buffer}, under the name @var{indirect-name}.  It
+prompts for both @var{base-buffer} and @var{indirect-name} using the
+minibuffer.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling

@@ -917,6 +917,12 @@ subprocess input and output in the current buffer.
 Use coding system @var{coding} for transferring selections to and from
 other programs through the window system.
 
+@item C-x @key{RET} F @var{coding} @key{RET}
+Use coding system @var{coding} for encoding and decoding file
+@emph{names}.  This affects the use of non-ASCII characters in file
+names.  It has no effect on reading and writing the @emph{contents} of
+files.
+
 @item C-x @key{RET} X @var{coding} @key{RET}
 Use coding system @var{coding} for transferring @emph{one}
 selection---the next one---to or from the window system.
@@ -1044,12 +1050,16 @@ current language environment.
 
 @vindex file-name-coding-system
 @cindex file names with non-@acronym{ASCII} characters
-  The variable @code{file-name-coding-system} specifies a coding system
-to use for encoding file names.  If you set the variable to a coding
-system name (as a Lisp symbol or a string), Emacs encodes file names
-using that coding system for all file operations.  This makes it
-possible to use non-@acronym{ASCII} characters in file names---or, at least, those
-non-@acronym{ASCII} characters which the specified coding system can encode.
+@findex set-file-name-coding-system
+@kindex C-x @key{RET} F
+  The variable @code{file-name-coding-system} specifies a coding
+system to use for encoding file names.  If you set the variable to a
+coding system name (as a Lisp symbol or a string), Emacs encodes file
+names using that coding system for all file operations.  This makes it
+possible to use non-@acronym{ASCII} characters in file names---or, at
+least, those non-@acronym{ASCII} characters which the specified coding
+system can encode.  Use @kbd{C-x @key{RET} F}
+(@code{set-file-name-coding-system}) to specify this interactively.
 
   If @code{file-name-coding-system} is @code{nil}, Emacs uses a default
 coding system determined by the selected language environment.  In the

@@ -1,3 +1,17 @@
+2004-03-04  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi: Fix typos.
+
+	* lists.texi (Building Lists): Minor clarification.
+
+	* hash.texi (Creating Hash): Correct the meaning of t for WEAK
+	in make-hash-table.
+
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (clean, maintainer-clean): Use $(DEL) instead of
+	rm, and ignore exit code.
+
 2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* display.texi (Defining Faces): Add description for min-colors.
@@ -490,7 +504,7 @@
 	arguments.
 	(String Conversion): More completely describe argument BASE in
 	`string-to-number'.
-	(Formatting Strings): `%s' and `%S" in `format' do require
+	(Formatting Strings): `%s' and `%S' in `format' do require
 	corresponding object.  Clarify behavior of numeric prefix after
 	`%' in `format'.
 	(Case Conversion): The argument to `upcase-initials' can be a

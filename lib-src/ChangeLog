@@ -1,3 +1,7 @@
+2004-03-01  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (obj): Add fringe.c.
+
 2004-02-14  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs2log: Work correctly if CVSROOT specifies :fork: or
@@ -9,7 +13,7 @@
 	along with some related bugs I discovered by inspecting how
 	CVS itself parses $CVSROOT.
 
-2004-02-04  J,bi(Br,bt(Bme Marant <jmarant@nerim.net> (tiny)
+2004-02-04  J,bi(Br,bt(Bme Marant  <jmarant@nerim.net>  (tiny change)
 
 	* emacsclient.c (decode_options): Fix handling of alternate editor.
 
@@ -1638,7 +1642,7 @@
 	Now used as element of a linked list.
 	(patterns, num_patterns): Global variables deleted.
 	(p_head): New global variable.
-	(forced_lang):  New global variable (replaces lang_func).
+	(forced_lang): New global variable (replaces lang_func).
 	(get_language_from_name, get_language_from_interpreter)
 	(get_language_from_suffix): Semantics changed.  All callers changed.
 	(last_node): New global variable.
@@ -2902,7 +2906,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* etags.c (lowcase): Use the standard tolower function.
 	(substitute): Remove some wrong and some useless code related with
-	escape `\` character in regexp replacement string.
+	escape '\' character in regexp replacement string.
 	(TEX_defenv): Added part, appendix, entry, index.  Removed typeout.
 	(lang_suffixes): New suffixes: .hpp for C++; .f90 for Fortran;
 	.bib, .ltx, .TeX for TeX (.bbl, .dtx removed); .ml for Lisp;
@@ -3923,7 +3927,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1994-02-17  Francesco Potorti`  (pot@cnuce.cnr.it)
 
-	* etags.c (--absolute-pathnames):  option removed.
+	* etags.c (--absolute-pathnames): Option removed.
 
 1994-02-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4384,8 +4388,8 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1993-05-30  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* Makefile.in: (${archlibdir}): Use `(cd foo && pwd)` instead of
-	`(cd foo ; pwd)` to get the canonical name of a directory; cd
+	* Makefile.in: (${archlibdir}): Use `(cd foo && pwd)' instead of
+	`(cd foo ; pwd)' to get the canonical name of a directory; cd
 	might fail, and have pwd print out the current directory.
 
 	* movemail.c [MAIL_USE_POP] (main): Don't use non-portable
@@ -5070,7 +5074,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* etags.c (C_entries): Process token before handling end of line.
 	When inner loops reach end of line, just back up.
 	Let the real end of line processing happen in just one place.
-	(consider_token):  Likewise.
+	(consider_token): Likewise.
 
 1991-04-11  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -5183,7 +5187,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 1990-03-14  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* etags.c (getit):  Recognize '$' as beginning identifiers.
+	* etags.c (getit): Recognize '$' as beginning identifiers.
 
 1990-02-22  David Lawrence  (tale@pogo.ai.mit.edu)
 

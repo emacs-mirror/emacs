@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/02/26 00:43:07 vinicius>
+;; Time-stamp: <2004/02/29 23:18:15 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.7.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst pr-version "6.7.2"
-  "printing.el, v 6.7.2 <2004/02/26 vinicius>
+  "printing.el, v 6.7.2 <2004/02/29 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
@@ -517,7 +517,7 @@ Please send all bug fixes and enhancements to
 ;;     5  |   Print                    >|---\ | |Despool... |  |
 ;;     6  |   Text Printer: name       >|-\ | | +-----------+  |
 ;;        +-----------------------------+ | | | +---------+   +------------+
-;; III 7  |[ ]Landscape                 | | | \-|Directory|   |   As Is... | Ia
+;; III 7  |[ ]Landscape                 | | | \-|Directory|   | No Prep... | Ia
 ;;     8  |[ ]Print Header              | | |   |Buffer   |   +------------+ Ib
 ;;     9  |[ ]Print Header Frame        | | |   |Region   |   |   name    >|- C
 ;;     10 |[ ]Line Number               | | |   +---------+   +------------+
@@ -581,8 +581,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;;	 NOTE 2: There are the following options for PostScript file
 ;;		 processing:
-;;		 Ia. Print the file *as is*, that is, send it directly to
-;;		     PostScript printer.
+;;		 Ia. Print the file *No Preprocessing*, that is, send it
+;;		     directly to PostScript printer.
 ;;		 Ib. PostScript utility processing selection.
 ;;		     See `pr-ps-utility-alist' and `pr-setting-database' for
 ;;		     documentation.
@@ -2415,7 +2415,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-preview nil t)
 	   :keys "\\[pr-ps-mode-preview]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-preview)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
 	   :keys "\\[pr-ps-file-preview]"
 	   :help "Preview PostScript file"]
 	  "--"
@@ -2470,7 +2470,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-ps-print nil t)
 	   :keys "\\[pr-ps-mode-ps-print]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-ps-print)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
 	   :keys "\\[pr-ps-file-ps-print]"
 	   :help "Send PostScript file to printer"]
 	  "--"
@@ -2624,7 +2624,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-preview nil t)
 	   :keys "\\[pr-ps-mode-preview]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-preview)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-preview)
 	   :keys "\\[pr-ps-file-preview]"]
 	  "--"
 	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist]
@@ -2672,7 +2672,7 @@ See `pr-ps-printer-alist'.")
 	  ["Other..." (pr-ps-mode-ps-print nil t)
 	   :keys "\\[pr-ps-mode-ps-print]"])
 	 ("File"
-	  ["As Is..."  (call-interactively 'pr-ps-file-ps-print)
+	  ["No Preprocessing..." (call-interactively 'pr-ps-file-ps-print)
 	   :keys "\\[pr-ps-file-ps-print]"]
 	  "--"
 	  ["PostScript Utility" pr-update-menus :active pr-ps-utility-alist]
@@ -2861,7 +2861,7 @@ II  4  |   Printify                 >|-----\\ |File      >|--\\  +--------+
     5  |   Print                    >|---\\ | |Despool... |  |
     6  |   Text Printer: name       >|-\\ | | +-----------+  |
        +-----------------------------+ | | | +---------+   +------------+
-III 7  |[ ]Landscape                 | | | \\-|Directory|   |   As Is... | Ia
+III 7  |[ ]Landscape                 | | | \\-|Directory|   | No Prep... | Ia
     8  |[ ]Print Header              | | |   |Buffer   |   +------------+ Ib
     9  |[ ]Print Header Frame        | | |   |Region   |   |   name    >|- C
     10 |[ ]Line Number               | | |   +---------+   +------------+
@@ -2923,8 +2923,8 @@ I. PostScript printing:
 	      switch from gnus *Summary* buffer first.
 
       NOTE 2: There are the following options for PostScript file processing:
-	      Ia. Print the file *as is*, that is, send it directly to
-		  PostScript printer.
+	      Ia. Print the file *No Preprocessing*, that is, send it
+		  directly to PostScript printer.
 	      Ib. PostScript utility processing selection.
 		  See `pr-ps-utility-alist' and `pr-setting-database' for
 		  documentation.
@@ -3130,7 +3130,7 @@ The printing interface buffer has the following sections:
       NOTE 2: Don't forget to download and install the utilities declared on
 	      `pr-ps-utility-alist'.
 
-      * Use It AS-IS :
+      * No Preprocessing:
 	 If it's turned on, don't use the PostScript utility to preprocess the
 	 PostScript file before printing/previewing.
 
@@ -5752,9 +5752,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 		  (pr-choice-alist pr-ps-utility-alist)
 		  "\n      PostScript Utility : "
 		  "    ")
-  ;;    1c. PostScript File: Use It AS-IS
-  (pr-insert-toggle 'pr-i-ps-as-is " Use It ")
-  (pr-insert-italic "AS-IS"))
+  ;;    1c. PostScript File: No Preprocessing
+  (pr-insert-toggle 'pr-i-ps-as-is " No Preprocessing"))
 
 
 (defun pr-insert-section-2 ()
@@ -5882,7 +5881,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (pr-insert-toggle 'pr-print-using-ghostscript " Print via Ghostscript\n  ")
 
   ;; 4. Settings: Upside-Down           Page Parity
-  (pr-insert-toggle 'ps-print-upside-down " Upside-Down           ")
+  (pr-insert-toggle 'ps-print-upside-down " Upside-Down")
+  (pr-insert-italic "\n\nSelect Pages  :   " 2 14)
   (pr-insert-menu "Page Parity" 'ps-even-or-odd-pages
 		  (mapcar #'(lambda (alist)
 			      (list 'quote

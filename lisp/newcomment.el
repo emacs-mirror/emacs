@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999,2000,2003  Free Software Foundation Inc.
+;; Copyright (C) 1999,2000,2003,2004  Free Software Foundation Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
@@ -251,8 +251,10 @@ this function before any other, so the rest of the code can assume that
 the variables are properly set."
   (unless (and (not comment-start) noerror)
     (unless comment-start
-      (set (make-local-variable 'comment-start)
-	   (read-string "No comment syntax is defined.  Use: ")))
+      (let ((cs (read-string "No comment syntax is defined.  Use: ")))
+	(if (zerop (length cs))
+	    (error "No comment syntax defined")
+	  (set (make-local-variable 'comment-start) cs))))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)
@@ -716,35 +718,9 @@ comment markers."
 		;; Find the end of the comment.
 		(ept (progn
 		       (goto-char spt)
-		       (unless
-			   (or
-			    (comment-forward)
-			    ;; Allow eob as comment-end instead of \n.
-			    (and
-			     (eobp)
-			     (let ((s1 (aref (syntax-table) (char-after spt)))
-				   (s2 (aref (syntax-table)
-					     (or (char-after (1+ spt)) 0)))
-				   (sn (aref (syntax-table) ?\n))
-				   (flag->b (car (string-to-syntax "> b")))
-				   (flag-1b (car (string-to-syntax "  1b")))
-				   (flag-2b (car (string-to-syntax "  2b"))))
-			       (cond
-				;; One-character comment-start terminated by
-				;; \n.
-				((and
-				  (equal sn (string-to-syntax ">"))
-				  (equal s1 (string-to-syntax "<")))
-				 (insert-char ?\n 1)
-				 t)
-				;; Two-character type b comment-start
-				;; terminated by \n.
-				((and
-				  (= (logand (car sn) flag->b) flag->b)
-				  (= (logand (car s1) flag-1b) flag-1b)
-				  (= (logand (car s2) flag-2b) flag-2b))
-				 (insert-char ?\n 1)
-				 t)))))
+		       (unless (or (comment-forward)
+				   ;; Allow non-terminated comments.
+				   (eobp))
 			 (error "Can't find the comment end"))
 		       (point)))
 		(box nil)
