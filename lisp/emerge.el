@@ -21,6 +21,26 @@
 
 ;;; Code:
 
+;;;###autoload (autoload 'menu-bar-emerge-map "emerge" nil t 'keymap)
+
+(defvar menu-bar-emerge-menu (make-sparse-keymap "menu-bar-emerge-map"))
+(fset 'menu-bar-emerge-map (symbol-value 'menu-bar-emerge-map))
+
+(define-key menu-bar-emerge-menu [emerge-merge-directories]
+  '("Merge Directories ..." . emerge-merge-directories))
+(define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
+  '("Revisions with Ancestor ..." . emerge-revisions-with-ancestor))
+(define-key menu-bar-emerge-menu [emerge-revisions]
+  '("Revisions ..." . emerge-revisions))
+(define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
+  '("Files with Ancestor ..." . emerge-files-with-ancestor))
+(define-key menu-bar-emerge-menu [emerge-files]
+  '("Files ..." . emerge-files))
+(define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
+  '("Buffers with Ancestor ..." . emerge-buffers-with-ancestor))
+(define-key menu-bar-emerge-menu [emerge-buffers]
+  '("Buffers ..." . emerge-buffers))
+
 ;;; Macros
 
 (defmacro emerge-eval-in-buffer (buffer &rest forms)
