@@ -60,9 +60,6 @@ Lisp_Object Vminibuf_scroll_window;
 /* Non-nil means this is the buffer whose window C-M-v should scroll.  */
 Lisp_Object Vother_window_scroll_buffer;
 
-/* Window that the mouse is over (nil if no mouse support).  */
-Lisp_Object Vmouse_window;
-
 /* Last mouse click data structure (nil if no mouse support).  */
 Lisp_Object Vmouse_event;
 
@@ -811,7 +808,12 @@ minibuffer does not count, only windows from WINDOW's frame count.\n\
 \n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
-above.  If neither nil nor t, restrict to WINDOW's frame.")
+above.  If neither nil nor t, restrict to WINDOW's frame.\n\
+\n\
+If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
+`next-window' to iterate through the entire cycle of acceptable\n\
+windows, eventually ending up back at the window you started with.\n\
+`previous-window' traverses the same cycle, in the reverse order.")
   (window, minibuf, all_frames)
      register Lisp_Object window, minibuf, all_frames;
 {
@@ -908,7 +910,12 @@ count.\n\
 \n\
 Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
-above.  If neither nil nor t, restrict to WINDOW's frame.")
+above.  If neither nil nor t, restrict to WINDOW's frame.\n\
+\n\
+If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
+`previous-window' to iterate through the entire cycle of acceptable\n\
+windows, eventually ending up back at the window you started with.\n\
+`next-window' traverses the same cycle, in the reverse order.")
   (window, minibuf, all_frames)
      register Lisp_Object window, minibuf, all_frames;
 {
@@ -955,7 +962,16 @@ above.  If neither nil nor t, restrict to WINDOW's frame.")
 	    tem = WINDOW_FRAME (XWINDOW (window));
 #ifdef MULTI_FRAME
 	    if (! NILP (all_frames))
-	      tem = next_frame (tem, all_frames);
+	      /* It's actually important that we use prev_frame here,
+		 rather than next_frame.  All the windows acceptable
+		 according to the given parameters should form a ring;
+		 Fnext_window and Fprevious_window should go back and
+		 forth around the ring.  If we use next_frame here,
+		 then Fnext_window and Fprevious_window take different
+		 paths through the set of acceptable windows.
+		 window_loop assumes that these `ring' requirement are
+		 met.  */
+	      tem = prev_frame (tem, all_frames);
 #endif
 	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
@@ -2205,8 +2221,20 @@ showing that buffer, popping the buffer up if necessary.")
 	window = Fdisplay_buffer (Vother_window_scroll_buffer, Qt);
     }
   else
-    /* Nothing specified; pick a neighboring window.  */
-    window = Fnext_window (selected_window, Qnil, Qt);
+    {
+      /* Nothing specified; look for a neighboring window on the same
+	 frame.  */
+      window = Fnext_window (selected_window, Qnil, Qnil);
+
+      if (EQ (window, selected_window))
+	/* That didn't get us anywhere; look for a window on another
+           visible frame.  */
+	do
+	  window = Fnext_window (window, Qnil, Qt);
+	while (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (window))))
+	       && ! EQ (window, selected_window));
+    }
+
   CHECK_LIVE_WINDOW (window, 0);
 
   if (EQ (window, selected_window))
@@ -2865,10 +2893,6 @@ It will receive two args, the buffer and a flag which if non-nil means\n\
 Commands such as `switch-to-buffer-other-window' and `find-file-other-window'\n\
 work using this function.");
   Vdisplay_buffer_function = Qnil;
-
-  DEFVAR_LISP ("mouse-window", &Vmouse_window,
-     "Window that the last mouse click occurred on.");
-  Vmouse_window = Qnil;
 
   DEFVAR_LISP ("mouse-event", &Vmouse_event,
      "The last mouse-event object.  A list of four elements:\n\

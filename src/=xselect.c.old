@@ -1,5 +1,5 @@
 /* X Selection processing for emacs
-   Copyright (C) 1990, 1992 Free Software Foundation.
+   Copyright (C) 1990, 1992, 1993 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -188,17 +188,41 @@ own_selection (selection_type, time)
    If we are already the owner, merely change data and timestamp values.
    This avoids generating SelectionClear events for ourselves. */
 
-DEFUN ("x-own-selection", Fx_own_selection, Sx_own_selection,
-  1, 2, "",
-  "Make STRING the selection value.  Default is the primary selection,\n\
-but optional second argument TYPE may specify secondary or clipboard.\n\
+DEFUN ("x-set-selection", Fx_set_selection, Sx_set_selection,
+  2, 2, "",
+  "Set the value of SELECTION to STRING.\n\
+SELECTION may be `primary', `secondary', or `clipboard'.\n\
 \n\
-TYPE may also be cut-buffer0, indicating that Emacs should set the X\n\
-cut buffer 0 to STRING.  This is for compatibility with older X\n\
-applications which still use the cut buffers; new applications should\n\
-use X selections.")
-  (string, type)
-     register Lisp_Object string, type;
+Selections are a mechanism for cutting and pasting information between\n\
+X Windows clients.  Emacs's kill ring commands set the `primary'\n\
+selection to the top string of the kill ring, making it available to\n\
+other clients, like xterm.  Those commands also use the `primary'\n\
+selection to retrieve information from other clients.\n\
+\n\
+According to the Inter-Client Communications Conventions Manual:\n\
+\n\
+The `primary' selection \"... is used for all commands that take only a\n\
+   single argument and is the principal means of communication between\n\
+   clients that use the selection mechanism.\"  In Emacs, this means\n\
+   that the kill ring commands set the primary selection to the text\n\
+   put in the kill ring.\n\
+\n\
+The `secondary' selection \"... is used as the second argument to\n\
+   commands taking two arguments (for example, `exchange primary and\n\
+   secondary selections'), and as a means of obtaining data when there\n\
+   is a primary selection and the user does not want to disturb it.\"\n\
+   I am not sure how Emacs should use the secondary selection; if you\n\
+   come up with ideas, this function will at least let you get at it.\n\
+\n\
+The `clipboard' selection \"... is used to hold data that is being\n\
+   transferred between clients, that is, data that usually is being\n\
+   cut or copied, and then pasted.\"  It seems that the `clipboard'\n\
+   selection is for the most part equivalent to the `primary'\n\
+   selection, so Emacs sets them both.\n\
+\n\
+Also see `x-selection', and the `interprogram-cut-function' variable.")
+  (selection, string)
+     register Lisp_Object selection, string;
 {
   Atom selection_type;
   Lisp_Object val;
@@ -207,7 +231,7 @@ use X selections.")
 
   val = Qnil;
 
-  if (NILP (type) || EQ (type, Qprimary))
+  if (NILP (selection) || EQ (selection, Qprimary))
     {
       BLOCK_INPUT;
       if (own_selection (XA_PRIMARY, event_time))
@@ -217,7 +241,7 @@ use X selections.")
 	}
       UNBLOCK_INPUT;
     }
-  else if (EQ (type, Qsecondary))
+  else if (EQ (selection, Qsecondary))
     {
       BLOCK_INPUT;
       if (own_selection (XA_SECONDARY, event_time))
@@ -227,7 +251,7 @@ use X selections.")
 	}
       UNBLOCK_INPUT;
     }
-  else if (EQ (type, Qclipboard))
+  else if (EQ (selection, Qclipboard))
     {
       BLOCK_INPUT;
       if (own_selection (Xatom_clipboard, event_time))
@@ -237,33 +261,6 @@ use X selections.")
 	}
       UNBLOCK_INPUT;
     }
-#if 0
-  else if (EQ (type, Qcut_buffer0))
-    {
-      /* DECwindows and some other servers don't seem to like setting
-	 properties to values larger than about 20k.  For very large
-	 values, they signal an error, but for intermediate values
-	 they just seem to hang.
-
-	 We could just truncate the request, but it's better to let
-	 the user know that the strategy he/she's using isn't going to
-	 work than to have it work partially, but incorrectly.  */
-      BLOCK_INPUT;
-      if (XSTRING (string)->size > MAX_SELECTION (x_current_display))
-	{
-	  XStoreBytes (x_current_display, (char *) 0, 0);
-	  val = Qnil;
-	}
-      else
-	{
-	  XStoreBytes (x_current_display,
-		       (char *) XSTRING (string)->data,
-		       XSTRING (string)->size);
-	  val = string;
-	}
-      UNBLOCK_INPUT;
-    }
-#endif
   else
     error ("Invalid X selection type");
 
@@ -621,54 +618,45 @@ get_selection_value (type)
    simply return our selection value.  If we are not the owner, this
    will block until all of the data has arrived. */
 
-DEFUN ("x-selection-value", Fx_selection_value, Sx_selection_value,
-  0, 1, "",
-  "Return the value of one of the selections.  Default is the primary\n\
-selection, but optional argument TYPE may specify secondary or clipboard.")
-  (type)
-     register Lisp_Object type;
+DEFUN ("x-selection", Fx_selection, Sx_selection,
+  1, 1, "",
+  "Return the value of SELECTION.\n\
+SELECTION is one of `primary', `secondary', or `clipboard'.\n\
+\n\
+Selections are a mechanism for cutting and pasting information between\n\
+X Windows clients.  When the user selects text in an X application,\n\
+the application should set the primary selection to that text; Emacs's\n\
+kill ring commands will then check the value of the `primary'\n\
+selection, and return it as the most recent kill.\n\
+The documentation for `x-set-selection' gives more information on how\n\
+the different selection types are intended to be used.\n\
+Also see the `interprogram-paste-function' variable.")
+  (selection)
+     register Lisp_Object selection;
 {
   Atom selection_type;
 
-  if (NILP (type) || EQ (type, Qprimary))
+  if (NILP (selection) || EQ (selection, Qprimary))
     {
       if (!NILP (Vx_selection_value))
 	return Vx_selection_value;
 
       return get_selection_value (XA_PRIMARY);
     }
-  else if (EQ (type, Qsecondary))
+  else if (EQ (selection, Qsecondary))
     {
       if (!NILP (Vx_secondary_selection_value))
 	return Vx_secondary_selection_value;
 
       return get_selection_value (XA_SECONDARY);
     }
-  else if (EQ (type, Qclipboard))
+  else if (EQ (selection, Qclipboard))
     {
       if (!NILP (Vx_clipboard_value))
 	return Vx_clipboard_value;
 
       return get_selection_value (Xatom_clipboard);
     }
-#if 0
-  else if (EQ (type, Qcut_buffer0))
-    {
-      char *data;
-      int size;
-      Lisp_Object string;
-
-      BLOCK_INPUT;
-      data = XFetchBytes (x_current_display, &size);
-      if (data == 0)
-	string = Qnil;
-      else
-	string = make_string (data, size);
-      UNBLOCK_INPUT;
-      
-      return string;
-    }
-#endif
   else
     error ("Invalid X selection type");
 }
@@ -950,8 +938,8 @@ syms_of_xselect ()
   Qclipboard = intern ("clipboard");
   staticpro (&Qclipboard);
 
-  defsubr (&Sx_own_selection);
-  defsubr (&Sx_selection_value);
+  defsubr (&Sx_set_selection);
+  defsubr (&Sx_selection);
 
   cut_buffer_value = Fmake_vector (make_number (NUM_CUT_BUFFERS), Qnil);
   staticpro (&cut_buffer_value);

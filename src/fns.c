@@ -836,8 +836,12 @@ internal_equal (o1, o2, depth)
     error ("Stack overflow in equal");
 do_cdr:
   QUIT;
+  if (EQ (o1, o2)) return Qt;
+  if (NUMBERP (o1) && NUMBERP (o2))
+    {
+      return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
+    }
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
-  if (XINT (o1) == XINT (o2)) return Qt;
   if (XTYPE (o1) == Lisp_Cons)
     {
       Lisp_Object v1;
@@ -853,7 +857,8 @@ do_cdr:
 	      && XMARKER (o1)->bufpos == XMARKER (o2)->bufpos)
 	? Qt : Qnil;
     }
-  if (XTYPE (o1) == Lisp_Vector)
+  if (XTYPE (o1) == Lisp_Vector
+      || XTYPE (o1) == Lisp_Compiled)
     {
       register int index;
       if (XVECTOR (o1)->size != XVECTOR (o2)->size)

@@ -39,7 +39,7 @@
 ;;; This file may be used with GNU Emacs version 18.xx if the following
 ;;; variable and function substutions are made.
 ;;;    Replace:
-;;;             unread-command-event with unread-command-char
+;;;             unread-command-events with unread-command-char
 ;;;             frame-width          with screen-width
 ;;;             auto-fill-function   with auto-fill-hook
 
@@ -469,7 +469,7 @@ Any other key combination is executed normally."
     (if (or (= (setq c (read-char)) ??)	;insert char if not equal to `?'
 	    (= c help-char))
 	(fortran-abbrev-help)
-      (setq unread-command-event c))))
+      (setq unread-command-events (list c)))))
 
 (defun fortran-abbrev-help ()
   "List the currently defined abbrevs in Fortran mode."
@@ -535,7 +535,7 @@ See also `fortran-window-create'."
 	    (progn (message "Type SPC to continue editing.")
 		   (let ((char (read-char)))
 		     (or (equal char (string-to-char " "))
-			 (setq unread-command-event char))))))
+			 (setq unread-command-events (list char)))))))
     (fortran-window-create)))
 
 (defun fortran-split-line ()

@@ -74,7 +74,7 @@ Lisp_Object Vdefault_frame_alist;
 
 /*&&& symbols declared here &&&*/
 Lisp_Object Qframep;
-Lisp_Object Qlive_frame_p;
+Lisp_Object Qframe_live_p;
 Lisp_Object Qheight;
 Lisp_Object Qicon;
 Lisp_Object Qminibuffer;
@@ -110,7 +110,7 @@ Also see `live-frame-p'.")
     }
 }
 
-DEFUN ("live-frame-p", Flive_frame_p, Slive_frame_p, 1, 1, 0,
+DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
   "Return non-nil if OBJECT is a frame which has not been deleted.\n\
 Value is nil if OBJECT is not a live frame.  If object is a live\n\
 frame, the return value indicates what sort of output device it is\n\
@@ -381,14 +381,13 @@ Changing the selected frame can change focus redirections.  See\n\
 
   Fselect_window (XFRAME (frame)->selected_window);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
-#ifdef MULTI_FRAME
   if (FRAME_X_P (XFRAME (frame))
       && NILP (no_enter))
     {
       Ffocus_frame (frame);
     }
-#endif
 #endif
   choose_minibuf_frame ();
 
@@ -450,8 +449,6 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
   return Fcopy_sequence (Vframe_list);
 }
 
-#ifdef MULTI_FRAME
-
 /* Return the next frame in the frame list after FRAME.
    If MINIBUF is nil, exclude minibuffer-only frames.
    If MINIBUF is a window, include only frames using that window for
@@ -468,6 +465,10 @@ next_frame (frame, minibuf)
   /* There must always be at least one frame in Vframe_list.  */
   if (! CONSP (Vframe_list))
     abort ();
+
+  /* If this frame is dead, it won't be in Vframe_list, and we'll loop
+     forever.  Forestall that.  */
+  CHECK_LIVE_FRAME (frame, 0);
 
   while (1)
     for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
@@ -502,9 +503,6 @@ next_frame (frame, minibuf)
 	  passed++;
       }
 }
-
-#if 0
-/* Nobody seems to be using this code right now.  */
 
 /* Return the previous frame in the frame list before FRAME.
    If MINIBUF is nil, exclude minibuffer-only frames.
@@ -561,7 +559,6 @@ prev_frame (frame, minibuf)
        acceptable frame in the list, return it.  */
     return prev;
 }
-#endif
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
@@ -583,7 +580,7 @@ If MINIFRAME is non-nil and not a window, include all frames.")
 
   return next_frame (frame, miniframe);
 }
-#endif /* MULTI_FRAME */
+
 
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 1, "",
   "Delete FRAME, permanently eliminating it from use.\n\
@@ -659,6 +656,8 @@ A frame may not be deleted if its minibuffer is used by other frames.")
      now, then we may trip up the event-handling code.  Instead, we'll
      promise that the display of the frame must be valid until we have
      called the window-system-dependent frame destruction routine.  */
+
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     x_destroy_window (f);
@@ -739,19 +738,25 @@ to read the mouse position, it returns the selected frame for FRAME\n\
 and nil for X and Y.")
   ()
 {
-  Lisp_Object x, y, dummy;
   FRAME_PTR f;
+  Lisp_Object lispy_dummy;
+  enum scrollbar_part party_dummy;
+  Lisp_Object x, y;
+  unsigned long long_dummy;
 
   if (mouse_position_hook)
-    (*mouse_position_hook) (&f, &x, &y, &dummy);
+    (*mouse_position_hook) (&f,
+			    &lispy_dummy, &party_dummy,
+			    &x, &y,
+			    &long_dummy);
   else
     {
       f = selected_frame;
       x = y = Qnil;
     }
 
-  XSET (dummy, Lisp_Frame, f);
-  return Fcons (dummy, Fcons (make_number (x), make_number (y)));
+  XSET (lispy_dummy, Lisp_Frame, f);
+  return Fcons (lispy_dummy, Fcons (make_number (x), make_number (y)));
 }
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
@@ -764,6 +769,7 @@ WARNING:  If you use this under X, you should do `unfocus-frame' afterwards.")
   CHECK_NUMBER (x, 2);
   CHECK_NUMBER (y, 1);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
@@ -842,6 +848,7 @@ If omitted, FRAME defaults to the currently selected frame.")
 
   CHECK_LIVE_FRAME (frame, 0);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (XFRAME (frame)))
     x_make_frame_visible (XFRAME (frame));
@@ -862,6 +869,7 @@ If omitted, FRAME defaults to the currently selected frame.")
 
   CHECK_LIVE_FRAME (frame, 0);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (XFRAME (frame)))
     x_make_frame_invisible (XFRAME (frame));
@@ -882,6 +890,7 @@ If omitted, FRAME defaults to the currently selected frame.")
   
   CHECK_LIVE_FRAME (frame, 0);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (XFRAME (frame)))
       x_iconify_frame (XFRAME (frame));
@@ -930,6 +939,37 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
   return value;
 }
 
+
+DEFUN ("frame-to-front", Fframe_to_front, Sframe_to_front, 1, 1, 0,
+  "Bring FRAME to the front, so it occludes any frames it overlaps.\n\
+If FRAME is invisible, make it visible.\n\
+If Emacs is displaying on an ordinary terminal or some other device which\n\
+doesn't support multiple overlapping frames, this function does nothing.")
+  (frame)
+     Lisp_Object frame;
+{
+  CHECK_LIVE_FRAME (frame, 0);
+  
+  if (frame_raise_lower_hook)
+    (*frame_raise_lower_hook) (XFRAME (frame), 1);
+
+  return Qnil;
+}
+
+DEFUN ("frame-to-back", Fframe_to_back, Sframe_to_back, 1, 1, 0,
+  "Send FRAME to the back, so it is occluded by any frames that overlap it.\n\
+If Emacs is displaying on an ordinary terminal or some other device which\n\
+doesn't support multiple overlapping frames, this function does nothing.")
+  (frame)
+     Lisp_Object frame;
+{
+  CHECK_LIVE_FRAME (frame, 0);
+  
+  if (frame_raise_lower_hook)
+    (*frame_raise_lower_hook) (XFRAME (frame), 0);
+
+  return Qnil;
+}
 
 
 DEFUN ("redirect-frame-focus", Fredirect_frame_focus, Sredirect_frame_focus,
@@ -1075,6 +1115,7 @@ If FRAME is omitted, return information on the currently selected frame.")
                    : FRAME_MINIBUF_WINDOW (f))));
   store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     x_report_frame_params (f, &alist);
@@ -1102,6 +1143,7 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
       f = XFRAME (frame);
     }
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
 #if 1
@@ -1180,6 +1222,7 @@ but that the idea of the actual height of the frame should not be changed.")
       f = XFRAME (frame);
     }
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     {
@@ -1209,6 +1252,7 @@ but that the idea of the actual width of the frame should not be changed.")
       f = XFRAME (frame);
     }
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     {
@@ -1234,6 +1278,7 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   CHECK_NUMBER (rows, 1);
   f = XFRAME (frame);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     {
@@ -1264,6 +1309,7 @@ off the screen.")
   CHECK_NUMBER (yoffset, 2);
   f = XFRAME (frame);
 
+  /* I think this should be done with a hook.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     x_set_offset (f, XINT (xoffset), XINT (yoffset));
@@ -1338,8 +1384,8 @@ syms_of_frame ()
   /*&&& init symbols here &&&*/
   Qframep = intern ("framep");
   staticpro (&Qframep);
-  Qlive_frame_p = intern ("live-frame-p");
-  staticpro (&Qlive_frame_p);
+  Qframe_live_p = intern ("frame-live-p");
+  staticpro (&Qframe_live_p);
   Qheight = intern ("height");
   staticpro (&Qheight);
   Qicon = intern ("icon");
@@ -1396,7 +1442,7 @@ For values specific to the separate minibuffer frame, see\n\
   Vdefault_frame_alist = Qnil;
 
   defsubr (&Sframep);
-  defsubr (&Slive_frame_p);
+  defsubr (&Sframe_live_p);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
   defsubr (&Swindow_frame);
@@ -1416,6 +1462,8 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Siconify_frame);
   defsubr (&Sframe_visible_p);
   defsubr (&Svisible_frame_list);
+  defsubr (&Sframe_to_front);
+  defsubr (&Sframe_to_back);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);

@@ -1480,7 +1480,7 @@ Should be 0 at the top level.")
 	(last-command last-command) 
 	(this-command this-command)
 	(last-input-char last-input-char)
-	;; Assume no edebug command sets unread-command-char.
+	;; Assume no edebug command sets unread-command-events.
 ;;	(unread-command-char -1)
 
 	(debug-on-error debug-on-error)

@@ -293,7 +293,7 @@ C-w print information on absence of warranty for GNU Emacs."
       (princ (cond ((stringp def) "a keyboard macro.")
 		   ((subrp def)
 		    (concat beg "built-in function."))
-		   ((compiled-function-p def)
+		   ((byte-code-function-p def)
 		    (concat beg "compiled Lisp function."))
 		   ((symbolp def)
 		    (format "alias for `%s'." def))

@@ -1,11 +1,11 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -89,10 +89,11 @@ X -- Lisp expression read and evaluated.\n\
 In addition, if the string begins with `*'\n\
  then an error is signaled if the buffer is read-only.\n\
  This happens before reading any arguments.\n\
-If the string begins with `@', then the window the mouse is over is selected\n\
- before anything else is done.  You may use both `@' and `*';\n\
-they are processed in the order that they appear."
-*/
+If the string begins with `@', then Emacs searches the key sequence\n\
+ which invoked the command for its first mouse click (or any other\n\
+ event which specifies a window), and selects that window before\n\
+ reading any arguments.  You may use both `@' and `*'; they are\n\
+ processed in the order that they appear." */
 
 /* ARGSUSED */
 DEFUN ("interactive", Finteractive, Sinteractive, 0, UNEVALLED, 0,
@@ -167,7 +168,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
   /* The index of the next element of this_command_keys to examine for
      the 'e' interactive code.  */
-  int next_event = 0;
+  int next_event;
 
   Lisp_Object prefix_arg;
   unsigned char *string;
@@ -296,6 +297,12 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
   /* Here if function specifies a string to control parsing the defaults */
 
+  /* Set next_event to point to the first event with parameters.  */
+  for (next_event = 0; next_event < this_command_key_count; next_event++)
+    if (EVENT_HAS_PARAMETERS
+	(XVECTOR (this_command_keys)->contents[next_event]))
+      break;
+  
   /* Handle special starting chars `*' and `@'.  */
   while (1)
     {
@@ -307,9 +314,15 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	}
       else if (*string == '@')
 	{
+	  Lisp_Object event =
+	    XVECTOR (this_command_keys)->contents[next_event];
+
+	  if (EVENT_HAS_PARAMETERS (event)
+	      && XTYPE (event = XCONS (event)->cdr) == Lisp_Cons
+	      && XTYPE (event = XCONS (event)->car) == Lisp_Cons
+	      && XTYPE (event = XCONS (event)->car) == Lisp_Window)
+	    Fselect_window (event);
 	  string++;
-	  if (!NILP (Vmouse_window))
-	    Fselect_window (Vmouse_window);
 	}
       else break;
     }
@@ -433,11 +446,6 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'e':		/* The invoking event.  */
-	  /* Find the next parameterized event.  */
-	  while (next_event < this_command_key_count
-		 && ! (EVENT_HAS_PARAMETERS
-		       (XVECTOR (this_command_keys)->contents[next_event])))
-	    next_event++;
 	  if (next_event >= this_command_key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (XTYPE (function) == Lisp_Symbol
@@ -445,6 +453,13 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		    : "command"));
 	  args[i] = XVECTOR (this_command_keys)->contents[next_event++];
 	  varies[i] = -1;
+
+	  /* Find the next parameterized event.  */
+	  while (next_event < this_command_key_count
+		 && ! (EVENT_HAS_PARAMETERS
+		       (XVECTOR (this_command_keys)->contents[next_event])))
+	    next_event++;
+
 	  break;
 
 	case 'm':		/* Value of mark.  Does not do I/O.  */

@@ -657,94 +657,127 @@ XTclear_frame ()
   curs_y = 0;
   
   BLOCK_INPUT;
+
   XClear (FRAME_X_WINDOW (f));
+
+  /* We have to clear the scrollbars, too.  If we have changed
+     colors or something like that, then they should be notified.  */
+  x_scrollbar_clear (f);
+
 #ifndef HAVE_X11
   dumpborder (f, 0);
 #endif /* HAVE_X11 */
+
   XFlushQueue ();
   UNBLOCK_INPUT;
 }
 
-/* Paint horzontal bars down the frame for a visible bell.
-   Note that this may be way too slow on some machines. */
+/* Invert the middle quarter of the frame for .15 sec.  */
+
+/* We use the select system call to do the waiting, so we have to make sure
+   it's avaliable.  If it isn't, we just won't do visual bells.  */
+#if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
+
+/* Subtract the `struct timeval' values X and Y,
+   storing the result in RESULT.
+   Return 1 if the difference is negative, otherwise 0.  */
+
+static int
+timeval_subtract (result, x, y)
+     struct timeval *result, x, y;
+{
+  /* Perform the carry for the later subtraction by updating y.
+     This is safer because on some systems
+     the tv_sec member is unsigned.  */
+  if (x.tv_usec < y.tv_usec)
+    {
+      int nsec = (y.tv_usec - x.tv_usec) / 1000000 + 1;
+      y.tv_usec -= 1000000 * nsec;
+      y.tv_sec += nsec;
+    }
+  if (x.tv_usec - y.tv_usec > 1000000)
+    {
+      int nsec = (y.tv_usec - x.tv_usec) / 1000000;
+      y.tv_usec += 1000000 * nsec;
+      y.tv_sec -= nsec;
+    }
+
+  /* Compute the time remaining to wait.  tv_usec is certainly positive.  */
+  result->tv_sec = x.tv_sec - y.tv_sec;
+  result->tv_usec = x.tv_usec - y.tv_usec;
+
+  /* Return indication of whether the result should be considered negative.  */
+  return x.tv_sec < y.tv_sec;
+}
 
 XTflash (f)
      struct frame *f;
 {
-  register struct frame_glyphs *active_frame = FRAME_CURRENT_GLYPHS (f);
-  register int i;
-  int x, y;
-
-  if (updating_frame != 0)
-    abort ();
-
   BLOCK_INPUT;
-#ifdef HAVE_X11
-#if 0
-  for (i = f->height * FONT_HEIGHT (f->display.x->font) - 10;
-       i >= 0;    
-       i -= 100)	   /* Should be NO LOWER than 75 for speed reasons. */
-    XFillRectangle (x_current_display, FRAME_X_WINDOW (f),
-		    f->display.x->cursor_gc,
-		    0, i, f->width * FONT_WIDTH (f->display.x->font)
-		    + 2 * f->display.x->internal_border_width, 25);
-#endif /* ! 0 */
 
-  x = (f->width * FONT_WIDTH (f->display.x->font)) / 4;
-  y = (f->height * FONT_HEIGHT (f->display.x->font)) / 4;
-  XFillRectangle (x_current_display, FRAME_X_WINDOW (f),
-		  f->display.x->cursor_gc,
-		  x, y, 2 * x, 2 * y);
-  dumpglyphs (f, (x + f->display.x->internal_border_width),
-	     (y + f->display.x->internal_border_width),
-	     &active_frame->glyphs[(f->height / 4) + 1][(f->width / 4)],
-	     1, 0, f->display.x->font);
+  {
+    GC gc;
 
-#else /* ! defined (HAVE_X11) */
-  for (i = f->height * FONT_HEIGHT (f->display.x->font) - 10;
-       i >= 0;
-       i -= 50)
-    XPixFill (FRAME_X_WINDOW (f), 0, i,
-	      f->width * FONT_WIDTH (f->display.x->font)
-	      + 2 * f->display.x->internal_border_width, 10,
-	      WHITE_PIX_DEFAULT, ClipModeClipped, GXinvert, AllPlanes);
-#endif /* ! defined (HAVE_X11) */
+    /* Create a GC that will use the GXxor function to flip foreground pixels
+       into background pixels.  */
+    {
+      XGCValues values;
 
-  XFlushQueue ();
+      values.function = GXxor;
+      values.foreground = (f->display.x->foreground_pixel
+			   ^ f->display.x->background_pixel);
+      
+      gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+		      GCFunction | GCForeground, &values);
+    }
+
+    {
+      int width  = PIXEL_WIDTH  (f);
+      int height = PIXEL_HEIGHT (f);
+
+      XFillRectangle (x_current_display, FRAME_X_WINDOW (f), gc,
+		      width/4, height/4, width/2, height/2);
+      XFlush (x_current_display);
+
+      {
+	struct timeval wakeup, now;
+
+	gettimeofday (&wakeup, (struct timezone *) 0);
+
+	/* Compute time to wait until, propagating carry from usecs.  */
+	wakeup.tv_usec += 150000;
+	wakeup.tv_sec += (wakeup.tv_usec / 1000000);
+	wakeup.tv_usec %= 1000000;
+
+	/* Keep waiting until past the time wakeup.  */
+	while (1)
+	  {
+	    struct timeval timeout;
+
+	    gettimeofday (&timeout, (struct timezone *)0);
+
+	    /* In effect, timeout = wakeup - timeout.
+	       Break if result would be negative.  */
+	    if (timeval_subtract (&timeout, wakeup, timeout))
+	      break;
+
+	    /* Try to wait that long--but we might wake up sooner.  */
+	    select (0, 0, 0, 0, &timeout);
+	  }
+      }
+	
+      XFillRectangle (x_current_display, FRAME_X_WINDOW (f), gc,
+		      width/4, height/4, width/2, height/2);
+      XFreeGC (x_current_display, gc);
+      XFlush (x_current_display);
+    }
+  }
+
   UNBLOCK_INPUT;
 }
 
-/* Flip background and forground colors of the frame. */
+#endif
 
-x_invert_frame (f)
-     struct frame *f;
-{
-#ifdef HAVE_X11
-  GC temp;
-  unsigned long pix_temp;
-
-  x_display_cursor (f, 0);
-  XClearWindow (x_current_display, FRAME_X_WINDOW (f));
-  temp = f->display.x->normal_gc;
-  f->display.x->normal_gc = f->display.x->reverse_gc;
-  f->display.x->reverse_gc = temp;
-  pix_temp = f->display.x->foreground_pixel;
-  f->display.x->foreground_pixel = f->display.x->background_pixel;
-  f->display.x->background_pixel = pix_temp;
-
-  XSetWindowBackground (x_current_display, FRAME_X_WINDOW (f),
-			f->display.x->background_pixel);
-  if (f->display.x->background_pixel == f->display.x->cursor_pixel)
-    {
-      f->display.x->cursor_pixel = f->display.x->foreground_pixel;
-      XSetBackground (x_current_display, f->display.x->cursor_gc,
-		      f->display.x->cursor_pixel);
-      XSetForeground (x_current_display, f->display.x->cursor_gc,
-		      f->display.x->background_pixel);
-    }
-  redraw_frame (f);
-#endif /* ! defined (HAVE_X11) */
-}
 
 /* Make audible bell.  */
 
@@ -756,15 +789,11 @@ x_invert_frame (f)
 
 XTring_bell ()
 {
+#if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
   if (visible_bell)
-#if 0
     XTflash (selected_frame);
-#endif /* ! 0 */
-    {
-      x_invert_frame (selected_frame);
-      x_invert_frame (selected_frame);
-    }
   else
+#endif
     {
       BLOCK_INPUT;
       XRINGBELL;
@@ -1758,9 +1787,8 @@ x_scrollbar_create (window, top, left, width, height)
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
     a.cursor = x_vertical_scrollbar_cursor;
-    a.win_gravity = EastGravity;
 
-    mask = (CWBackPixel | CWEventMask | CWCursor | CWWinGravity);
+    mask = (CWBackPixel | CWEventMask | CWCursor);
 
     SET_SCROLLBAR_X_WINDOW
       (bar, 
@@ -2321,6 +2349,24 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
 }
 
 
+/* The screen has been cleared so we may have changed foreground or
+   background colors, and the scrollbars may need to be redrawn.
+   Clear out the scrollbars, and ask for expose events, so we can
+   redraw them.  */
+
+x_scrollbar_clear (f)
+     FRAME_PTR f;
+{
+  Lisp_Object bar;
+
+  for (bar = FRAME_SCROLLBARS (f);
+       XTYPE (bar) == Lisp_Vector;
+       bar = XSCROLLBAR (bar)->next)
+    XClearArea (x_current_display, SCROLLBAR_X_WINDOW (XSCROLLBAR (bar)),
+		0, 0, 0, 0, True);
+}
+
+
 
 /* The main X event-reading loop - XTread_socket.  */
 
@@ -2865,33 +2911,30 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case ConfigureNotify:
-	  {
-	    int rows, columns;
-	    f = x_window_to_frame (event.xconfigure.window);
-	    if (!f)
-	      break;
+	  f = x_window_to_frame (event.xconfigure.window);
+	  if (f)
+	    {
+	      int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
+	      int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
 
-	    columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
-	    rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
+	      /* Even if the number of character rows and columns has
+		 not changed, the font size may have changed, so we need
+		 to check the pixel dimensions as well.  */
+	      if (columns != f->width
+		  || rows != f->height
+		  || event.xconfigure.width != f->display.x->pixel_width
+		  || event.xconfigure.height != f->display.x->pixel_height)
+		{
+		  change_frame_size (f, rows, columns, 0, 1);
+		  SET_FRAME_GARBAGED (f);
+		}
 
-	    /* Even if the number of character rows and columns has
-	       not changed, the font size may have changed, so we need
-	       to check the pixel dimensions as well.  */
-	    if (columns != f->width
-		|| rows != f->height
-		|| event.xconfigure.width != f->display.x->pixel_width
-		|| event.xconfigure.height != f->display.x->pixel_height)
-	      {
-		change_frame_size (f, rows, columns, 0, 1);
-		SET_FRAME_GARBAGED (f);
-	      }
-
-	    f->display.x->pixel_width = event.xconfigure.width;
-	    f->display.x->pixel_height = event.xconfigure.height;
-	    f->display.x->left_pos = event.xconfigure.x;
-	    f->display.x->top_pos = event.xconfigure.y;
-	    break;
-	  }
+	      f->display.x->pixel_width = event.xconfigure.width;
+	      f->display.x->pixel_height = event.xconfigure.height;
+	      f->display.x->left_pos = event.xconfigure.x;
+	      f->display.x->top_pos = event.xconfigure.y;
+	    }
+	  break;
 
 	case ButtonPress:
 	case ButtonRelease:
@@ -3153,52 +3196,6 @@ clear_cursor (f)
   f->phys_cursor_x = -1;
 }
 
-static void
-x_display_bar_cursor (f, on)
-     struct frame *f;
-     int on;
-{
-  register int phys_x = f->phys_cursor_x;
-  register int phys_y = f->phys_cursor_y;
-  register int x1;
-  register int y1;
-  register int y2;
-
-  if (! FRAME_VISIBLE_P (f) || (! on && f->phys_cursor_x < 0))
-    return;
-
-#ifdef HAVE_X11
-  if (phys_x >= 0 &&
-      (!on || phys_x != f->cursor_x || phys_y != f->cursor_y))
-    {
-      x1 = CHAR_TO_PIXEL_COL (f, phys_x);
-      y1 = CHAR_TO_PIXEL_ROW (f, phys_y) - 1;
-      y2 = y1 + FONT_HEIGHT (f->display.x->font) + 1;
-
-      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
-		 f->display.x->reverse_gc, x1, y1, x1, y2);
-
-      f->phys_cursor_x = phys_x = -1;
-    }
-
-  if (on && f == x_highlight_frame)
-    {
-      x1 = CHAR_TO_PIXEL_COL (f, f->cursor_x);
-      y1 = CHAR_TO_PIXEL_ROW (f, f->cursor_y) - 1;
-      y2 = y1 + FONT_HEIGHT (f->display.x->font) + 1;
-
-      XDrawLine (x_current_display, FRAME_X_WINDOW (f),
-		 f->display.x->cursor_gc, x1, y1, x1, y2);
-
-      f->phys_cursor_x = f->cursor_x;
-      f->phys_cursor_y = f->cursor_y;
-    }
-#else /* ! defined (HAVE_X11) */
-  Give it up, dude.
-#endif /* ! defined (HAVE_X11) */
-}
-
-
 /* Redraw the glyph at ROW, COLUMN on frame F, in the style
    HIGHLIGHT.  HIGHLIGHT is as defined for dumpglyphs.  Return the
    glyph drawn.  */
@@ -3216,6 +3213,68 @@ x_draw_single_glyph (f, row, column, glyph, highlight)
 	      &glyph, 1, highlight, f->display.x->font);
 }
 
+static void
+x_display_bar_cursor (f, on)
+     struct frame *f;
+     int on;
+{
+  struct frame_glyphs *current_glyphs = FRAME_CURRENT_GLYPHS (f);
+
+  if (! FRAME_VISIBLE_P (f))
+    return;
+
+  if (! on && f->phys_cursor_x < 0)
+    return;
+
+  /* If we're not updating, then we want to use the current frame's
+     cursor position, not our local idea of where the cursor ought to be.  */
+  if (f != updating_frame)
+    {
+      curs_x = FRAME_CURSOR_X (f);
+      curs_y = FRAME_CURSOR_Y (f);
+    }
+
+  /* If there is anything wrong with the current cursor state, remove it.  */
+  if (f->phys_cursor_x >= 0
+      && (!on
+	  || f->phys_cursor_x != curs_x
+	  || f->phys_cursor_y != curs_y
+	  || f->display.x->current_cursor != bar_cursor))
+    {
+      /* Erase the cursor by redrawing the character underneath it.  */
+      x_draw_single_glyph (f, f->phys_cursor_y, f->phys_cursor_x,
+			   f->phys_cursor_glyph,
+			   current_glyphs->highlight[f->phys_cursor_y]);
+      f->phys_cursor_x = -1;
+    }
+
+  /* If we now need a cursor in the new place or in the new form, do it so.  */
+  if (on
+      && (f->phys_cursor_x < 0
+	  || (f->display.x->current_cursor != bar_cursor)))
+    {
+      f->phys_cursor_glyph
+	= ((current_glyphs->enable[curs_y]
+	    && curs_x < current_glyphs->used[curs_y])
+	   ? current_glyphs->glyphs[curs_y][curs_x]
+	   : SPACEGLYPH);
+      XFillRectangle (x_current_display, FRAME_X_WINDOW (f),
+		      f->display.x->cursor_gc,
+		      CHAR_TO_PIXEL_COL (f, curs_x),
+		      CHAR_TO_PIXEL_ROW (f, curs_y),
+		      1, FONT_HEIGHT (f->display.x->font));
+
+      f->phys_cursor_x = curs_x;
+      f->phys_cursor_y = curs_y;
+
+      f->display.x->current_cursor = bar_cursor;
+    }
+
+  if (updating_frame != f)
+    XFlushQueue ();
+}
+
+
 /* Turn the displayed cursor of frame F on or off according to ON.
    If ON is nonzero, where to put the cursor is specified
    by F->cursor_x and F->cursor_y.  */
@@ -3227,6 +3286,13 @@ x_display_box_cursor (f, on)
 {
   struct frame_glyphs *current_glyphs = FRAME_CURRENT_GLYPHS (f);
 
+  if (! FRAME_VISIBLE_P (f))
+    return;
+
+  /* If cursor is off and we want it off, return quickly.  */
+  if (!on && f->phys_cursor_x < 0)
+    return;
+
   /* If we're not updating, then we want to use the current frame's
      cursor position, not our local idea of where the cursor ought to be.  */
   if (f != updating_frame)
@@ -3234,13 +3300,6 @@ x_display_box_cursor (f, on)
       curs_x = FRAME_CURSOR_X (f);
       curs_y = FRAME_CURSOR_Y (f);
     }
-
-  if (! FRAME_VISIBLE_P (f))
-    return;
-
-  /* If cursor is off and we want it off, return quickly.  */
-  if (!on && f->phys_cursor_x < 0)
-    return;
 
   /* If cursor is currently being shown and we don't want it to be
      or it is in the wrong place,
@@ -3250,7 +3309,7 @@ x_display_box_cursor (f, on)
       && (!on
 	  || f->phys_cursor_x != curs_x
 	  || f->phys_cursor_y != curs_y
-	  || (f->display.x->text_cursor_kind != hollow_box_cursor
+	  || (f->display.x->current_cursor != hollow_box_cursor
 	      && (f != x_highlight_frame))))
     {
       /* Erase the cursor by redrawing the character underneath it.  */
@@ -3265,7 +3324,7 @@ x_display_box_cursor (f, on)
      write it in the right place.  */
   if (on
       && (f->phys_cursor_x < 0
-	  || (f->display.x->text_cursor_kind != filled_box_cursor
+	  || (f->display.x->current_cursor != filled_box_cursor
 	      && f == x_highlight_frame)))
     {
       f->phys_cursor_glyph
@@ -3276,13 +3335,13 @@ x_display_box_cursor (f, on)
       if (f != x_highlight_frame)
 	{
 	  x_draw_box (f);
-	  f->display.x->text_cursor_kind = hollow_box_cursor;
+	  f->display.x->current_cursor = hollow_box_cursor;
 	}
       else
 	{
 	  x_draw_single_glyph (f, curs_y, curs_x,
 			       f->phys_cursor_glyph, 2);
-	  f->display.x->text_cursor_kind = filled_box_cursor;
+	  f->display.x->current_cursor = filled_box_cursor;
 	}
 
       f->phys_cursor_x = curs_x;
@@ -3293,16 +3352,17 @@ x_display_box_cursor (f, on)
     XFlushQueue ();
 }
 
-extern Lisp_Object Vbar_cursor;
-
 x_display_cursor (f, on)
      struct frame *f;
      int on;
 {
-  if (EQ (Vbar_cursor, Qnil))
+  if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
     x_display_box_cursor (f, on);
-  else
+  else if (FRAME_DESIRED_CURSOR (f) == bar_cursor)
     x_display_bar_cursor (f, on);
+  else
+    /* Those are the only two we have implemented!  */
+    abort ();
 }
 
 /* Icons.  */
@@ -3347,8 +3407,7 @@ refreshicon (f)
 #endif /* ! defined (HAVE_X11) */
 }
 
-/* Make the x-window of frame F use the kitchen-sink icon
-   that's a window generated by Emacs.  */
+/* Make the x-window of frame F use the gnu icon bitmap.  */
 
 int
 x_bitmap_icon (f)
@@ -3424,12 +3483,6 @@ x_text_icon (f, icon_name)
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-  if (icon_font_info == 0)
-    icon_font_info
-      = XGetFont (XGetDefault (XDISPLAY
-			       (char *) XSTRING (invocation_name)->data,
-			       "BodyFont"));
-
 #ifdef HAVE_X11
   if (icon_name)
     f->display.x->icon_label = icon_name;
@@ -3443,6 +3496,12 @@ x_text_icon (f, icon_name)
   f->display.x->icon_bitmap_flag = 0;
   x_wm_set_icon_pixmap (f, 0);
 #else /* ! defined (HAVE_X11) */
+  if (icon_font_info == 0)
+    icon_font_info
+      = XGetFont (XGetDefault (XDISPLAY
+			       (char *) XSTRING (invocation_name)->data,
+			       "BodyFont"));
+
   if (f->display.x->icon_desc)
     {
       XClearIconWindow (XDISPLAY FRAME_X_WINDOW (f));
@@ -3801,11 +3860,23 @@ x_set_window_size (f, cols, rows)
   /* Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
      change request eventually, and we'll hear how it went when the
-     ConfigureNotify event gets here.  */
+     ConfigureNotify event gets here.
+
+     We could just not bother storing any of this information here,
+     and let the ConfigureNotify event set everything up, but that
+     might be kind of confusing to the lisp code, since size changes
+     wouldn't be reported in the frame parameters until some random
+     point in the future when the ConfigureNotify event arrives.  */
   FRAME_WIDTH (f) = cols;
   FRAME_HEIGHT (f) = rows;
   PIXEL_WIDTH (f) = pixelwidth;
   PIXEL_HEIGHT (f) = pixelheight;
+
+  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
+     receive in the ConfigureNotify event; if we get what we asked
+     for, then the event won't cause the screen to become garbaged, so
+     we have to make sure to do it here.  */
+  SET_FRAME_GARBAGED (f);
 
   XFlushQueue ();
   UNBLOCK_INPUT;
@@ -3902,6 +3973,18 @@ x_lower_frame (f)
       UNBLOCK_INPUT;
     }
 }
+
+static void
+XTframe_raise_lower (f, raise)
+     FRAME_PTR f;
+     int raise;
+{
+  if (raise)
+    x_raise_frame (f);
+  else
+    x_lower_frame (f);
+}
+
 
 /* Change from withdrawn state to mapped state. */
 
@@ -4259,8 +4342,13 @@ x_wm_set_icon_pixmap (f, icon_pixmap)
 {
   Window window = FRAME_X_WINDOW (f);
 
-  f->display.x->wm_hints.flags |= IconPixmapHint;
-  f->display.x->wm_hints.icon_pixmap = icon_pixmap ? icon_pixmap : None;
+  if (icon_pixmap)
+    {
+      f->display.x->wm_hints.icon_pixmap = icon_pixmap;
+      f->display.x->wm_hints.flags |= IconPixmapHint;
+    }
+  else
+    f->display.x->wm_hints.flags &= ~IconPixmapHint;
 
   XSetWMHints (x_current_display, window, &f->display.x->wm_hints);
 }
@@ -4395,6 +4483,7 @@ x_term_init (display_name)
   reassert_line_highlight_hook = XTreassert_line_highlight;
   mouse_position_hook = XTmouse_position;
   frame_rehighlight_hook = XTframe_rehighlight;
+  frame_raise_lower_hook = XTframe_raise_lower;
   set_vertical_scrollbar_hook = XTset_vertical_scrollbar;
   condemn_scrollbars_hook = XTcondemn_scrollbars;
   redeem_scrollbar_hook = XTredeem_scrollbar;

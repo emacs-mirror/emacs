@@ -59,7 +59,10 @@ With arg N, insert N newlines."
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.
-You may also type up to 3 octal digits, to insert a character with that code"
+You may also type up to 3 octal digits, to insert a character with that code.
+`quoted-insert' inserts the character even in overstrike mode; if you
+use overstrike as your normal editing mode, you can use this function
+to insert characters when necessary."
   (interactive "*p")
   (let ((char (read-quoted-char)))
     (while (> arg 0)
@@ -789,13 +792,7 @@ Repeating \\[universal-argument] without digits or minus sign
 	(progn
 	  (describe-arg value sign)
 	  (setq key (read-key-sequence nil t))))
-    (if (= (length key) 1)
-	;; Make sure self-insert-command finds the proper character;
-	;; unread the character and let the command loop process it.
-	(setq unread-command-event (aref key 0))
-      ;; We can't push back a longer string, so we'll emulate the
-      ;; command loop ourselves.
-      (command-execute (key-binding key)))))
+    (setq unread-command-events (append key '()))))
 
 (defun describe-arg (value sign)
   (cond ((numberp value)

@@ -231,7 +231,6 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	 -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'		\
 	 -e '/^# DIST: /d') > lib-src/Makefile.tmp
 	${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
-	# Remind people not to edit this.
 	chmod -w lib-src/Makefile
 
 src/Makefile: ${srcdir}/src/Makefile.in Makefile
@@ -248,7 +247,6 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
 	 -e '/^# DIST: /d') > src/Makefile.tmp
 	${srcdir}/move-if-change src/Makefile.tmp src/Makefile
-	# Remind people not to edit this.
 	chmod -w src/Makefile
 
 oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile Makefile
@@ -262,10 +260,10 @@ Makefile:
 
 # ==================== Installation ====================
 
+## If we let lib-src do its own installation, that means we
+## don't have to duplicate the list of utilities to install in
+## this Makefile as well.
 install: all mkdir
-	## If we let lib-src do its own installation, that means we
-	## don't have to duplicate the list of utilities to install in
-	## this Makefile as well.
 	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
@@ -297,10 +295,10 @@ install: all mkdir
 	-rm -f ${bindir}/emacs
 	ln ${bindir}/emacs-${version} ${bindir}/emacs
 
+## If we let lib-src do its own installation, that means we
+## don't have to duplicate the list of utilities to install in
+## this Makefile as well.
 install.sysv: all mkdir
-	## If we let lib-src do its own installation, that means we
-	## don't have to duplicate the list of utilities to install in
-	## this Makefile as well.
 	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
@@ -330,10 +328,10 @@ install.sysv: all mkdir
 	-cpset src/emacs ${bindir}/emacs-${version} 1755 bin bin
 	-ln ${bindir}/emacs-${version} ${bindir}/emacs
   
+## If we let lib-src do its own installation, that means we
+## don't have to duplicate the list of utilities to install in
+## this Makefile as well.
 install.xenix: all mkdir
-	## If we let lib-src do its own installation, that means we
-	## don't have to duplicate the list of utilities to install in
-	## this Makefile as well.
 	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
@@ -368,10 +366,10 @@ install.xenix: all mkdir
 	chmod 1755 ${bindir}/emacs
 	-rm -f ${bindir}/emacs.old
 
+## If we let lib-src do its own installation, that means we
+## don't have to duplicate the list of utilities to install in
+## this Makefile as well.
 install.aix: all mkdir
-	## If we let lib-src do its own installation, that means we
-	## don't have to duplicate the list of utilities to install in
-	## this Makefile as well.
 	(cd lib-src; $(MAKE) install ${MFLAGS} bindir=${bindir} libdir=${libdir})
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \

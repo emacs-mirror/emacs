@@ -103,7 +103,7 @@ Alternatively, you can specify a menu of multiple panes\n\
   with a list of the form\n\
 \(TITLE PANE1 PANE2...), where each pane is a list of form\n\
 \(TITLE (LINE ITEM)...).  Each line should be a string, and item should\n\
-be the return value for that line (i.e. if it is selected.")
+be the return value for that line (i.e. if it is selected).")
   (position, menu)
      Lisp_Object position, menu;
 {

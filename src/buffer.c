@@ -112,8 +112,9 @@ Lisp_Object Vbuffer_alist;
 Lisp_Object Vbefore_change_function;
 Lisp_Object Vafter_change_function;
 
-/* Function to call before changing an unmodified buffer.  */
-Lisp_Object Vfirst_change_function;
+/* List of functions to call before changing an unmodified buffer.  */
+Lisp_Object Vfirst_change_hook;
+Lisp_Object Qfirst_change_hook;
 
 Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
 
@@ -1655,10 +1656,12 @@ While executing the `after-change-function', changes to buffers do not\n\
 cause calls to any `before-change-function' or `after-change-function'.");
   Vafter_change_function = Qnil;
 
-  DEFVAR_LISP ("first-change-function", &Vfirst_change_function,
-  "Function to call before changing a buffer which is unmodified.\n\
-The function is called, with no arguments, if it is non-nil.");
-  Vfirst_change_function = Qnil;
+  DEFVAR_LISP ("first-change-hook", &Vfirst_change_hook,
+  "A list of functions to call before changing a buffer which is unmodified.\n\
+The functions are run using the `run-hooks' function.");
+  Vfirst_change_hook = Qnil;
+  Qfirst_change_hook = intern ("first-change-hook");
+  staticpro (&Qfirst_change_hook);
 
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
     "List of undo entries in current buffer.\n\

@@ -203,7 +203,7 @@ If you want to read non-character events, or ignore them, call\n\
     /* Only ASCII characters are acceptable.  */
     if (XTYPE (val) != Lisp_Int)
       {
-	unread_command_event = val;
+	unread_command_events = Fcons (val, Qnil);
 	error ("Object read was not a character");
       }
   }
@@ -1045,9 +1045,17 @@ read1 (readcharfun)
 	  if (p1 != p)
 	    {
 	      while (p1 != p && (c = *p1) >= '0' && c <= '9') p1++;
+#ifdef LISP_FLOAT_TYPE
+	      /* Integers can have trailing decimal points.  */
+	      if (p1 < p && *p1 == '.') p1++;
+#endif
 	      if (p1 == p)
-		/* It is. */
+		/* It is an integer. */
 		{
+#ifdef LISP_FLOAT_TYPE
+		  if (p1[-1] == '.')
+		    p1[-1] = '\0';
+#endif
 		  XSET (val, Lisp_Int, atoi (read_buffer));
 		  return val;
 		}

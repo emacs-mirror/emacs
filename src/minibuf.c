@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -930,7 +930,7 @@ temp_echo_area_glyphs (m)
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
-      XFASTINT (unread_command_event) = Ctl ('g');
+      unread_command_events = Fcons (make_number (Ctl ('g')), Qnil);
     }
   Vinhibit_quit = oinhibit;
 }

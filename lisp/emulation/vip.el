@@ -333,9 +333,9 @@ vi mode.  ARG is used as the prefix value for the executed command.  If
 CHAR is given it becomes the first character of the command."
   (interactive "P")
   (let (com (buff (current-buffer)) (first t))
-    (if char (setq unread-command-event char))
+    (if char (setq unread-command-events (list char)))
     (setq prefix-arg arg)
-    (while (or first unread-command-event)
+    (while (or first unread-command-events)
       ;; this while loop is executed until unread command char will be
       ;; exhausted.
       (setq first nil)
@@ -393,7 +393,7 @@ obtained so far, and COM is the command part obtained so far."
   (while (= char ?U)
     (vip-describe-arg prefix-arg)
     (setq char (read-char)))
-  (setq unread-command-event char))
+  (setq unread-command-events (list char)))
 
 (defun vip-prefix-arg-com (char value com)
   "Vi operator as prefix argument."
@@ -447,7 +447,7 @@ obtained so far, and COM is the command part obtained so far."
 	(while (= char ?U)
 	  (vip-describe-arg prefix-arg)
 	  (setq char (read-char)))
-	(setq unread-command-event char))
+	(setq unread-command-events (list char)))
     ;; as com is non-nil, this means that we have a command to execute
     (if (or (= (car com) ?r) (= (car com) ?R))
 	;; execute apropriate region command.

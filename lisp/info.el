@@ -768,7 +768,7 @@ N is the digit argument used to invoke this command."
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
 		    (if (/= ?\  (setq ch (read-char)))
-			(progn (setq unread-command-event ch) nil)
+			(progn (setq unread-command-events (list ch)) nil)
 		      flag))
 	(scroll-up)))))
 

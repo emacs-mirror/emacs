@@ -340,7 +340,8 @@ extern void reset_buffer ();
 /* Functions to call before and after each text change. */
 extern Lisp_Object Vbefore_change_function;
 extern Lisp_Object Vafter_change_function;
-extern Lisp_Object Vfirst_change_function;
+extern Lisp_Object Vfirst_change_hook;
+extern Lisp_Object Qfirst_change_hook;
 
 /* Fields.
 

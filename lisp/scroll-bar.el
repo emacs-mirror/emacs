@@ -21,6 +21,8 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+(require 'mouse)
+
 
 ;;;; Utilities.
 
@@ -43,7 +45,7 @@ that scrollbar position."
   "Set the window start according to where the scrollbar is dragged.
 EVENT should be a scrollbar click or drag event."
   (interactive "e")
-  (let* ((end-position (nth (1- (length event)) event))
+  (let* ((end-position (event-end event))
 	 (window (nth 0 end-position))
 	 (portion-whole (nth 2 end-position)))
     (save-excursion
@@ -60,7 +62,7 @@ EVENT should be a scrollbar click."
   (let ((old-selected-window (selected-window)))
     (unwind-protect
 	(progn
-	  (let* ((end-position (nth (1- (length event)) event))
+	  (let* ((end-position (event-end event))
 		 (window (nth 0 end-position))
 		 (portion-whole (nth 2 end-position)))
 	    (select-window window)
@@ -75,7 +77,7 @@ EVENT should be a scrollbar click."
   (let ((old-selected-window (selected-window)))
     (unwind-protect
 	(progn
-	  (let* ((end-position (nth (1- (length event)) event))
+	  (let* ((end-position (event-end event))
 		 (window (nth 0 end-position))
 		 (portion-whole (nth 2 end-position)))
 	    (select-window window)

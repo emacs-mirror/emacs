@@ -65,7 +65,7 @@ Optional argument PROMPT specifies a string to use to prompt the user."
 	     (and prompt (message (setq prompt
 					(format "%s %c" prompt char)))))
 	    ((> count 0)
-	     (setq unread-command-event char count 259))
+	     (setq unread-command-events (list char) count 259))
 	    (t (setq code char count 259))))
     (logand 255 code)))
 
@@ -222,6 +222,7 @@ Accept any number of arguments, but ignore them."
 (fset 'show-buffer 'set-window-buffer)
 (fset 'buffer-flush-undo 'buffer-disable-undo)
 (fset 'eval-current-buffer 'eval-buffer)
+(fset 'compiled-function-p 'byte-code-function-p)
 
 ; alternate names
 (fset 'string= 'string-equal)
@@ -229,7 +230,6 @@ Accept any number of arguments, but ignore them."
 (fset 'move-marker 'set-marker)
 (fset 'eql 'eq)
 (fset 'not 'null)
-(fset 'numberp 'integerp)
 (fset 'rplaca 'setcar)
 (fset 'rplacd 'setcdr)
 (fset 'beep 'ding) ;preserve lingual purtity
@@ -325,7 +325,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 		   (single-key-description exit-char))
 	  (let ((char (read-char)))
 	    (or (eq char exit-char)
-		(setq unread-command-event char))))
+		(setq unread-command-events (list char)))))
       (if insert-end
 	  (save-excursion
 	    (delete-region pos insert-end)))

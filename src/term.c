@@ -125,6 +125,18 @@ void (*mouse_position_hook) ( /* FRAME_PTR *f,
    the highlight.  */
 void (*frame_rehighlight_hook) ( /* FRAME_PTR f */ );
 
+/* If we're displaying frames using a window system that can stack
+   frames on top of each other, this hook allows you to bring a frame
+   to the front, or bury it behind all the other windows.  If this
+   hook is zero, that means the device we're displaying on doesn't
+   support overlapping frames, so there's no need to raise or lower
+   anything.
+
+   If RAISE is non-zero, F is brought to the front, before all other
+   windows.  If RAISE is zero, F is sent to the back, behind all other
+   windows.  */
+void (*frame_raise_lower_hook) ( /* FRAME_PTR f, int raise */ );
+
 /* Set the vertical scrollbar for WINDOW to have its upper left corner
    at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
    indicate that we are displaying PORTION characters out of a total

@@ -401,7 +401,7 @@ The relative indentation among the lines of the statement are preserved."
 	(case-fold-search t)
 	;; don't mix a label with an assignment operator := :-
 	;; therefore look at next typed character...
-	(next-char (setq unread-command-event (read-char)))
+	(next-char (setq unread-command-events (list (read-char))))
 	(com-char last-command-char))
     (unwind-protect
 	;; Problem: find out if character just read is a command char

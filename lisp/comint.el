@@ -1091,7 +1091,7 @@ it just adds completion characters to the end of the filename."
 	     (let ((ch (read-char)))
 	       (if (= ch ?\ )
 		   (set-window-configuration conf)
-		   (setq unread-command-event ch))))))))
+		   (setq unread-command-events (list ch)))))))))
 
 ;;; Converting process modes to use comint mode
 ;;; ===========================================================================

@@ -37,6 +37,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
 
+#include <X11/bitmaps/gray>
+
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
@@ -57,9 +59,6 @@ Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
 
 /* Color of chars displayed in cursor box. */
 Lisp_Object Vx_cursor_fore_pixel;
-
-/* If non-nil, use vertical bar cursor. */
-Lisp_Object Vbar_cursor;
 
 /* The X Visual we are using for X windows (the default) */
 Visual *screen_visual;
@@ -115,16 +114,12 @@ static char *x_visual_strings[] =
 Lisp_Object Vmouse_depressed;
 
 extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
-extern Lisp_Object unread_command_event;
 
 /* Atom for indicating window state to the window manager. */
 Atom Xatom_wm_change_state;
 
 /* When emacs became the selection owner. */
 extern Time x_begin_selection_own;
-
-/* The value of the current emacs selection. */
-extern Lisp_Object Vx_selection_value;
 
 /* Emacs' selection property identifier. */
 extern Atom Xatom_emacs_selection;
@@ -228,9 +223,12 @@ Time mouse_timestamp;
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
 Lisp_Object Qbackground_color;
+Lisp_Object Qbar;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
+Lisp_Object Qbox;
 Lisp_Object Qcursor_color;
+Lisp_Object Qcursor_type;
 Lisp_Object Qfont;
 Lisp_Object Qforeground_color;
 Lisp_Object Qgeometry;
@@ -261,14 +259,6 @@ extern Lisp_Object Vglobal_mouse_map;
 
 /* Points to table of defined typefaces.  */
 struct face *x_face_table[MAX_FACES_AND_GLYPHS];
-
-static char gray_bits[] =
- {
-   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa,
-   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa,
-   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa,
-   0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa
- };
 
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
@@ -330,6 +320,7 @@ void x_set_background_color ();
 void x_set_mouse_color ();
 void x_set_cursor_color ();
 void x_set_border_color ();
+void x_set_cursor_type ();
 void x_set_icon_type ();
 void x_set_font ();
 void x_set_border_width ();
@@ -346,6 +337,7 @@ static struct x_frame_parm_table x_frame_parms[] =
   "mouse-color", x_set_mouse_color,
   "cursor-color", x_set_cursor_color,
   "border-color", x_set_border_color,
+  "cursor-type", x_set_cursor_type,
   "icon-type", x_set_icon_type,
   "font", x_set_font,
   "border-width", x_set_border_width,
@@ -808,7 +800,8 @@ x_set_border_pixel (f, pix)
        		 pix);
 #else
       if (pix < 0)
-        temp = XMakePixmap ((Bitmap) XStoreBitmap (16, 16, gray_bits),
+        temp = XMakePixmap ((Bitmap) XStoreBitmap (gray_width, gray_height,
+						   gray_bits),
        		     BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
       else
         temp = XMakeTile (pix);
@@ -820,6 +813,24 @@ x_set_border_pixel (f, pix)
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
+}
+
+void
+x_set_cursor_type (f, arg, oldval)
+     FRAME_PTR f;
+     Lisp_Object arg, oldval;
+{
+  if (EQ (arg, Qbar))
+    FRAME_DESIRED_CURSOR (f) = bar_cursor;
+  else if (EQ (arg, Qbox))
+    FRAME_DESIRED_CURSOR (f) = filled_box_cursor;
+  else
+    error
+      ("the `cursor-type' frame parameter should be either `bar' or `box'");
+
+  /* Make sure the cursor gets redrawn.  This is overkill, but how
+     often do people change cursor types?  */
+  update_mode_lines++;
 }
 
 void
@@ -1796,31 +1807,12 @@ x_make_gc (f)
      the frame.  Since this depends on the frame's pixel values,
      this must be done on a per-frame basis. */
   f->display.x->border_tile =
-    XCreatePixmap (x_current_display, ROOT_WINDOW, 16, 16,
-		   DefaultDepth (x_current_display,
-				 XDefaultScreen (x_current_display)));
-  gc_values.foreground = f->display.x->foreground_pixel;
-  gc_values.background = f->display.x->background_pixel;
-  temp_gc = XCreateGC (x_current_display,
-		       (Drawable) f->display.x->border_tile,
-		       GCForeground | GCBackground, &gc_values);
-
-  /* These are things that should be determined by the server, in
-     Fx_open_connection */
-  tileimage.height = 16;
-  tileimage.width = 16;
-  tileimage.xoffset = 0;
-  tileimage.format = XYBitmap;
-  tileimage.data = gray_bits;
-  tileimage.byte_order = LSBFirst;
-  tileimage.bitmap_unit = 8;
-  tileimage.bitmap_bit_order = LSBFirst;
-  tileimage.bitmap_pad = 8;
-  tileimage.bytes_per_line = (16 + 7) >> 3;
-  tileimage.depth = 1;
-  XPutImage (x_current_display, f->display.x->border_tile, temp_gc,
-	     &tileimage, 0, 0, 0, 0, 16, 16);
-  XFreeGC (x_current_display, temp_gc);
+    XCreatePixmapFromBitmapData
+      (x_current_display, ROOT_WINDOW, 
+       gray_bits, gray_width, gray_height,
+       f->display.x->foreground_pixel,
+       f->display.x->background_pixel,
+       DefaultDepth (x_current_display, XDefaultScreen (x_current_display)));
 }
 #endif /* HAVE_X11 */
 
@@ -1930,6 +1922,8 @@ be shared by the new frame.")
 		       "autoRaise", "AutoRaiseLower", boolean);
   x_default_parameter (f, parms, Qauto_lower, Qnil,
 		       "autoLower", "AutoRaiseLower", boolean);
+  x_default_parameter (f, parms, Qcursor_type, Qbox,
+		       "cursorType", "CursorType", symbol);
 
   /* Dimensions, especially f->height, must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -3784,12 +3778,18 @@ syms_of_xfns ()
   staticpro (&Qauto_lower);
   Qbackground_color = intern ("background-color");
   staticpro (&Qbackground_color);
+  Qbar = intern ("bar");
+  staticpro (&Qbar);
   Qborder_color = intern ("border-color");
   staticpro (&Qborder_color);
   Qborder_width = intern ("border-width");
   staticpro (&Qborder_width);
+  Qbox = intern ("box");
+  staticpro (&Qbox);
   Qcursor_color = intern ("cursor-color");
   staticpro (&Qcursor_color);
+  Qcursor_type = intern ("cursor-type");
+  staticpro (&Qcursor_type);
   Qfont = intern ("font");
   staticpro (&Qfont);
   Qforeground_color = intern ("foreground-color");
@@ -3850,10 +3850,6 @@ syms_of_xfns ()
   DEFVAR_INT ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
 	      "The shape of the pointer when over the mode line.");
   Vx_mode_pointer_shape = Qnil;
-
-  DEFVAR_LISP ("x-bar-cursor", &Vbar_cursor,
-	       "*If non-nil, use a vertical bar cursor.  Otherwise, use the traditional box.");
-  Vbar_cursor = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", &Vx_cursor_fore_pixel,
 	       "A string indicating the foreground color of the cursor box.");

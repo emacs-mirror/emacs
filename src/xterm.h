@@ -239,9 +239,6 @@ enum text_cursor_kinds {
   filled_box_cursor, hollow_box_cursor, bar_cursor
 };
 
-#define PIXEL_WIDTH(f) ((f)->display.x->pixel_width)
-#define PIXEL_HEIGHT(f) ((f)->display.x->pixel_height)
-
 /* Each X frame object points to its own struct x_display object
    in the display.x field.  The x_display structure contains all
    the information that is specific to X windows.  */
@@ -316,9 +313,13 @@ struct x_display
   /* Flag to set when the X window needs to be completely repainted. */
   int needs_exposure;
 
-  /* What kind of text cursor is drawn in this window right now?  (If
-     there is no cursor (phys_cursor_x < 0), then this means nothing.  */
-  enum text_cursor_kinds text_cursor_kind;
+  /* What kind of text cursor is drawn in this window right now?
+     (If there is no cursor (phys_cursor_x < 0), then this means nothing.)  */
+  enum text_cursor_kinds current_cursor;
+
+  /* What kind of text cursor should we draw in the future?
+     This should always be filled_box_cursor or bar_cursor.  */
+  enum text_cursor_kinds desired_cursor;
 
   /* These are the current window manager hints.  It seems that
      XSetWMHints, when presented with an unset bit in the `flags'
@@ -340,6 +341,12 @@ struct x_display
 
 /* Return the window associated with the frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
+
+/* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
+#define PIXEL_WIDTH(f) ((f)->display.x->pixel_width)
+#define PIXEL_HEIGHT(f) ((f)->display.x->pixel_height)
+
+#define FRAME_DESIRED_CURSOR(f) ((f)->display.x->desired_cursor)
 
 
 /* When X windows are used, a glyf may be a 16 bit unsigned datum.

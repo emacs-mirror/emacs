@@ -545,10 +545,10 @@ signal_before_change (start, end)
 {
   /* If buffer is unmodified, run a special hook for that case.  */
   if (current_buffer->save_modified >= MODIFF
-      && !NILP (Vfirst_change_function))
-    {
-      call0 (Vfirst_change_function);
-    }
+      && !NILP (Vfirst_change_hook)
+      && !NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qfirst_change_hook);
+
   /* Now in any case run the before-change-function if any.  */
   if (!NILP (Vbefore_change_function))
     {

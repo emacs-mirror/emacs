@@ -152,12 +152,12 @@ Lisp_Object last_nonmenu_event;
 /* Last input character read for any purpose.  */
 Lisp_Object last_input_char;
 
-/* If not Qnil, an object to be read as the next command input.  */
-Lisp_Object unread_command_event;
+/* If not Qnil, a list of objects to be read as subsequent command input.  */
+Lisp_Object unread_command_events;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
-   next command input, after any unread_command_event.
+   next command input, after any unread_command_events.
 
    read_key_sequence uses this to delay switch-frame events until the
    end of the key sequence; Fread_char uses it to put off switch-frame
@@ -867,7 +867,7 @@ command_loop_1 ()
 	  if (!NILP (Vquit_flag))
 	    {
 	      Vquit_flag = Qnil;
-	      unread_command_event = make_number (quit_char);
+	      unread_command_events = Fcons (make_number (quit_char), Qnil);
 	    }
 	}
 
@@ -1145,10 +1145,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   int count;
   jmp_buf save_jump;
 
-  if (!NILP (unread_command_event))
+  if (CONSP (unread_command_events))
     {
-      c = unread_command_event;
-      unread_command_event = Qnil;
+      c = XCONS (unread_command_events)->car;
+      unread_command_events = XCONS (unread_command_events)->cdr;
 
       if (this_command_key_count == 0)
 	goto reread_first;
@@ -1229,7 +1229,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* After a mouse event, start echoing right away.
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
-      if (XTYPE (prev_event) == Lisp_Cons)
+      if (EVENT_HAS_PARAMETERS (prev_event))
 	echo ();
       else
 	{
@@ -1880,7 +1880,8 @@ make_lispy_event (event)
       {
 	int button = XFASTINT (event->code);
 	Lisp_Object position;
-	Lisp_Object *start_pos;
+	Lisp_Object *start_pos_ptr;
+	Lisp_Object start_pos;
 
 	if (button < 0 || button >= NUM_MOUSE_BUTTONS)
 	  abort ();
@@ -1899,21 +1900,20 @@ make_lispy_event (event)
 	      posn = Qnil;
 	    else
 	      {
+		XSETINT (event->x, 
+			 (XINT (event->x) - XINT (XWINDOW (window)->left)));
+		XSETINT (event->y,
+			 (XINT (event->y) - XINT (XWINDOW (window)->top)));
+
 		if (part == 1)
 		  posn = Qmode_line;
 		else if (part == 2)
 		  posn = Qvertical_line;
 		else
-		  {
-		    XSETINT (event->x, (XINT (event->x)
-					- XINT (XWINDOW (window)->left)));
-		    XSETINT (event->y, (XINT (event->y)
-					- XINT (XWINDOW (window)->top)));
-		    XSET (posn, Lisp_Int,
-			  buffer_posn_from_coords (XWINDOW (window),
-						   XINT (event->x),
-						   XINT (event->y)));
-		  }
+		  XSET (posn, Lisp_Int,
+			buffer_posn_from_coords (XWINDOW (window),
+						 XINT (event->x),
+						 XINT (event->y)));
 	      }
 
 	    position =
@@ -1938,29 +1938,43 @@ make_lispy_event (event)
 						 Qnil)))));
 	  }
 
-	start_pos = &XVECTOR (button_down_location)->contents[button];
+	start_pos_ptr = &XVECTOR (button_down_location)->contents[button];
+
+	start_pos = *start_pos_ptr;
+	*start_pos_ptr = Qnil;
 
 	/* If this is a button press, squirrel away the location, so
            we can decide later whether it was a click or a drag.  */
 	if (event->modifiers & down_modifier)
-	  *start_pos = Fcopy_alist (position);
+	  *start_pos_ptr = Fcopy_alist (position);
 
 	/* Now we're releasing a button - check the co-ordinates to
            see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {
-	    Lisp_Object down = Fnth (make_number (2), *start_pos);
+	    /* Is there a start position stored at all for this
+	       button?
 
-	    /* The third element of every position should be the (x,y)
-	       pair.  */
-	    if (! CONSP (down))
-	      abort ();
-
+	       It would be nice if we could assume that if we're
+	       getting a button release, we must therefore have gotten
+	       a button press.  Unfortunately, the X menu code thwarts
+	       this assumption, so we'll have to be more robust.  We
+	       treat a button release with no stored start position as
+	       a click.  */
 	    event->modifiers &= ~up_modifier;
-	    event->modifiers |= ((EQ (event->x, XCONS (down)->car)
-				  && EQ (event->y, XCONS (down)->cdr))
-				 ? click_modifier
-				 : drag_modifier);
+	    if (XTYPE (start_pos) != Lisp_Cons)
+	      event->modifiers |= click_modifier;
+	    else
+	      {
+		/* The third element of every position should be the (x,y)
+		   pair.  */
+		Lisp_Object down = Fnth (make_number (2), start_pos);
+
+		event->modifiers |= ((EQ (event->x, XCONS (down)->car)
+				      && EQ (event->y, XCONS (down)->cdr))
+				     ? click_modifier
+				     : drag_modifier);
+	      }
 	  }
 	else
 	  /* Every mouse event should either have the down_modifier or
@@ -1978,18 +1992,10 @@ make_lispy_event (event)
 				  / sizeof (lispy_mouse_names[0])));
 	  
 	  if (event->modifiers & drag_modifier)
-	    {
-	      Lisp_Object lispy_event =
-		Fcons (head,
-		       Fcons (*start_pos,
-			      Fcons (position,
-				     Qnil)));
-	      
-	      /* Allow this to be GC'd.  */
-	      *start_pos = Qnil;
-
-	      return lispy_event;
-	    }
+	    return Fcons (head,
+			  Fcons (start_pos,
+				 Fcons (position,
+					Qnil)));
 	  else
 	    return Fcons (head,
 			  Fcons (position,
@@ -2454,21 +2460,6 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
 }
 
 
-DEFUN ("mouse-click-p", Fmouse_click_p, Smouse_click_p, 1, 1, 0,
-  "Return non-nil iff OBJECT is a representation of a mouse event.\n\
-A mouse event is a list of five elements whose car is a symbol of the\n\
-form <MODIFIERS>mouse-<DIGIT>.  I hope this is a temporary hack.")
-  (object)
-     Lisp_Object object;
-{
-  if (EVENT_HAS_PARAMETERS (object)
-      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (object)),
-	     Qmouse_click))
-    return Qt;
-  else
-    return Qnil;
-}
-
 /* Store into *addr a value nonzero if terminal input chars are available.
    Serves the purpose of ioctl (0, FIONREAD, addr)
    but works even if FIONREAD does not exist.
@@ -2686,7 +2677,9 @@ static int echo_flag;
 static int echo_now;
 
 /* Read a character like read_char but optionally prompt based on maps
-   in the array MAPS.  NMAPS is the length of MAPS.
+   in the array MAPS.  NMAPS is the length of MAPS.  Return nil if we
+   decided not to read a character, because there are no menu items in
+   MAPS.
 
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence.
@@ -2730,14 +2723,14 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* If we don't have any menus, just read a character normally.  */
-  if (NILP (name))
+  if (mapno >= nmaps)
     return Qnil;
 
-#ifdef HAVE_X_WINDOW
-#ifndef NO_X_MENU
+#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_X_MENU
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
-  if (XTYPE (prev_event) == Lisp_Cons)
+  if (EVENT_HAS_PARAMETERS (prev_event))
     {
       /* Display the menu and get the selection.  */
       Lisp_Object *realmaps
@@ -2757,8 +2750,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	*used_mouse_menu = 1;
       return value;
     }
-#endif /* not NO_X_MENU */
-#endif /* HAVE_X_WINDOW */
+#endif /* HAVE_X_MENU */
+#endif /* HAVE_X_WINDOWS */
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, XSTRING (name)->data);
@@ -3677,7 +3670,7 @@ DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
 Actually, the value is nil only if we can be sure that no input is available.")
   ()
 {
-  if (!NILP (unread_command_event))
+  if (!NILP (unread_command_events))
     return (Qt);
 
   return detect_input_pending () ? Qt : Qnil;
@@ -3749,7 +3742,7 @@ Also cancel any kbd macro being defined.")
   defining_kbd_macro = 0;
   update_mode_lines++;
 
-  unread_command_event = Qnil;
+  unread_command_events = Qnil;
 
   discard_tty_input ();
 
@@ -3997,7 +3990,7 @@ quit_throw_to_read_char ()
   clear_waiting_for_input ();
   input_pending = 0;
 
-  unread_command_event = Qnil;
+  unread_command_events = Qnil;
 
   _longjmp (getcjmp, 1);
 }
@@ -4051,7 +4044,7 @@ init_keyboard ()
   command_loop_level = -1;
   immediate_quit = 0;
   quit_char = Ctl ('g');
-  unread_command_event = Qnil;
+  unread_command_events = Qnil;
   total_keys = 0;
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
@@ -4219,7 +4212,6 @@ syms_of_keyboard ()
   defsubr (&Sread_key_sequence);
   defsubr (&Srecursive_edit);
   defsubr (&Strack_mouse);
-  defsubr (&Smouse_click_p);
   defsubr (&Sinput_pending_p);
   defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
@@ -4250,8 +4242,8 @@ so that you can determine whether the command was run by mouse or not.");
   DEFVAR_LISP ("last-input-char", &last_input_char,
     "Last terminal input key.");
 
-  DEFVAR_LISP ("unread-command-event", &unread_command_event,
-    "Object to be read as next input from input stream, or nil if none.");
+  DEFVAR_LISP ("unread-command-events", &unread_command_events,
+    "Lisp of object to be read as next input from input stream, or nil if none.");
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
     "Meta-prefix character code.  Meta-foo as command input\n\

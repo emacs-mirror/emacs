@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,7 +84,6 @@ extern Lisp_Object Qmode_line, Qvertical_line;
 extern Lisp_Object get_keymap_1 ();
 extern Lisp_Object Fkeymapp ();
 extern Lisp_Object reorder_modifiers ();
-extern Lisp_Object Fmouse_click_p ();
 extern Lisp_Object read_char ();
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;

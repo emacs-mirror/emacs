@@ -306,7 +306,7 @@ typedef struct frame *FRAME_PTR;
   {							\
     if (! FRAMEP (x)					\
 	|| ! FRAME_LIVE_P (XFRAME (x)))		\
-      x = wrong_type_argument (Qlive_frame_p, (x));	\
+      x = wrong_type_argument (Qframe_live_p, (x));	\
   }
 
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
@@ -325,7 +325,7 @@ typedef struct frame *FRAME_PTR;
        list_var = XCONS (list_var)->cdr)
 
 
-extern Lisp_Object Qframep, Qlive_frame_p;
+extern Lisp_Object Qframep, Qframe_live_p;
 
 extern struct frame *selected_frame;
 extern struct frame *last_nonminibuf_frame;

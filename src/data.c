@@ -256,8 +256,8 @@ DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0, "T if OBJECT is a built-in function.")
   return Qnil;
 }
 
-DEFUN ("compiled-function-p", Fcompiled_function_p, Scompiled_function_p,
-       1, 1, 0, "T if OBJECT is a compiled function object.")
+DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
+       1, 1, 0, "T if OBJECT is a byte-compiled function object.")
   (obj)
      Lisp_Object obj;
 {
@@ -308,13 +308,10 @@ DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
   (obj)
      Lisp_Object obj;
 {
-  if (0
-#ifdef LISP_FLOAT_TYPE
-      || XTYPE (obj) == Lisp_Float
-#endif
-      || XTYPE (obj) == Lisp_Int)
+  if (NUMBERP (obj))
     return Qt;
-  return Qnil;
+  else
+    return Qnil;
 }
 
 DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
@@ -323,10 +320,7 @@ DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
   (obj)
      Lisp_Object obj;
 {
-  if (XTYPE (obj) == Lisp_Int
-#ifdef LISP_FLOAT_TYPE
-      || XTYPE (obj) == Lisp_Float
-#endif
+  if (NUMBERP (obj)
       || XTYPE (obj) == Lisp_Marker)
     return Qt;
   return Qnil;
@@ -2037,7 +2031,7 @@ syms_of_data ()
   defsubr (&Sbufferp);
   defsubr (&Smarkerp);
   defsubr (&Ssubrp);
-  defsubr (&Scompiled_function_p);
+  defsubr (&Sbyte_code_function_p);
   defsubr (&Schar_or_string_p);
   defsubr (&Scar);
   defsubr (&Scdr);

@@ -322,11 +322,13 @@ preserving the comment indentation or line-starting decorations."
 	      (paragraph-start
 	       ;; Lines containing just a comment start or just an end
 	       ;; should not be filled into paragraphs they are next to.
-	       (concat paragraph-start
-		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]"))
+	       (concat 
+		paragraph-start
+		"\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[ \t/*]*$"))
 	      (paragraph-separate
-	       (concat paragraph-separate
-		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]"))
+	       (concat
+		paragraph-separate
+		"\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[ \t/*]*$"))
 	      (chars-to-delete 0))
 	  (save-restriction
 	    ;; Don't fill the comment together with the code following it.

@@ -2910,7 +2910,7 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	      (enlarge-window 1))
 	    (let ((c (read-char)))
 	      (if (/= c 32)
-		  (setq unread-command-event c))))))))
+		  (setq unread-command-events (list c)))))))))
 
 ;; Improved auto-save file names.
 ;; This function fixes many problems with the standard auto-save file names:

@@ -113,7 +113,7 @@ These supercede the values given in default-frame-alist.")
 ;;; need to see if it should go away or change.  Create a text frame
 ;;; here.
 (defun frame-notice-user-settings ()
-  (if (live-frame-p frame-initial-frame)
+  (if (frame-live-p frame-initial-frame)
       (progn
 	;; If the user wants a minibuffer-only frame, we'll have to
 	;; make a new one; you can't remove or add a root window to/from

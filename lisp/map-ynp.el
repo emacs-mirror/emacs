@@ -100,7 +100,7 @@ the current %s and exit."
 	 prompt char elt tail
 	 (next (if (or (symbolp list)
 		       (subrp list)
-		       (compiled-function-p list)
+		       (byte-code-function-p list)
 		       (and (consp list)
 			    (eq (car list) 'lambda)))
 		   (function (lambda ()
@@ -157,7 +157,7 @@ the current %s and exit."
 			   (funcall actor elt)
 			   (setq actions (1+ actions))))))
 		  ((= ?? char)
-		   (setq unread-command-event help-char)
+		   (setq unread-command-events (list help-char))
 		   (setq next (` (lambda ()
 				   (setq next '(, next))
 				   '(, elt)))))

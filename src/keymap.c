@@ -555,8 +555,14 @@ the front of KEYMAP.")
 
       keymap = get_keymap_1 (cmd, 0, 1);
       if (NILP (keymap))
-	error ("Key sequence %s uses invalid prefix characters",
-	       XSTRING (key)->data);
+	{
+	  /* We must use Fkey_description rather than just passing key to
+	     error; key might be a vector, not a string.  */
+	  Lisp_Object description = Fkey_description (key);
+
+	  error ("Key sequence %s uses invalid prefix characters",
+		 XSTRING (description)->data);
+	}
     }
 }
 

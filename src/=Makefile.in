@@ -47,14 +47,17 @@ temacs: dotemacs
 dotemacs: xmakefile
 	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} temacs
 
-# If you have a problem with cc -E here, changing
-# the definition of CPP above may fix it.
+### Some makes, like Ultrix's make, complain if you put a comment in
+### the middle of a rule's command list!  Dummies.
+
+### The flags for optimization and debugging depend on the
+### system, so take an ordinary CFLAGS value and choose the
+### appropriate CPP symbols to use in ymakefile.
+### If you have a problem with cc -E here, changing
+### the definition of CPP above may fix it.
 xmakefile: ymakefile config.h
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ymakefile junk.c
-	## The flags for optimization and debugging depend on the
-	## system, so take an ordinary CFLAGS value and choose the
-	## appropriate CPP symbols to use in ymakefile.
 	$(CPP) junk.c > junk.cpp \
 	-DC_SWITCH_SITE="`echo ${CFLAGS}' ' \
 			  | sed -e 's/-g /C_DEBUG_SWITCH /' \
