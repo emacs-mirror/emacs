@@ -1,3 +1,8 @@
+2000-10-04  Dave Love  <fx@gnu.org>
+
+	* subr.el (substitute-key-definition): Doc fix.
+	(play-sound-file): New command.
+
 2000-10-04  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-before-save, vc-default-make-version-backups, 
