@@ -224,6 +224,21 @@ This is the contents of buffer foo
 @end example
 @end defun
 
+@tindex current-word
+@defun current-word &optional strict really-word
+This function returns the symbol (or word) at or near point, as a string.
+The return value includes no text properties.
+
+The optional argument @var{really-word} is non-@code{nil}, it finds a
+word; otherwise, it finds a symbol (which includes word characters and
+both symbol constituent characters).
+
+If the optional argument @var{strict} is non-@code{nil}, then point
+must be in or next to the symbol or word---if no symbol or word is
+there, the function returns @code{nil}.  Otherwise, a nearby symbol or
+word on the same line is acceptable.
+@end defun
+
 @defun thing-at-point thing
 Return the @var{thing} around or next to point, as a string.
 
@@ -2322,7 +2337,7 @@ overlays.
 This variable holds an alist which maps property names to a list of
 alternative property names.  If a character does not specify a direct
 value for a property, the alternative property names are consulted in
-order; the first non-nil value is used.  This variable takes
+order; the first non-@code{nil} value is used.  This variable takes
 precedence over @code{default-text-properties}, and @code{category}
 properties take precedence over this variable.
 @end defvar
@@ -3296,7 +3311,7 @@ name, then any field boundaries are ignored.
 
 You can cause @code{constrain-to-field} to ignore all field boundaries
 (and so never constrain anything) by binding the variable
-@code{inhibit-field-text-motion} to a non-nil value.
+@code{inhibit-field-text-motion} to a non-@code{nil} value.
 @end defun
 
 @node Not Intervals
@@ -3714,6 +3729,9 @@ before and after that text as it was before the change.  As for the
 changed text, its length is simply the difference between the first two
 arguments.
 @end defvar
+
+  Output of messges into the @samp{*Messages*} buffer does not
+call these functions.
 
 @defmac combine-after-change-calls body...
 The macro executes @var{body} normally, but arranges to call the
