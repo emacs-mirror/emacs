@@ -57,6 +57,21 @@ Setting this variable to nil disables highlighting."
 (defvar info-lookup-highlight-overlay nil
   "Overlay object used for highlighting.")
 
+(defcustom info-lookup-file-name-alist
+  '(("\\`configure\\.in\\'" . autoconf-mode)
+    ("\\`aclocal\\.m4\\'" . autoconf-mode)
+    ("\\`acsite\\.m4\\'" . autoconf-mode)
+    ("\\`acinclude\\.m4\\'" . autoconf-mode))
+  "Alist of file names handled specially.
+List elements are cons cells of the form
+
+    (REGEXP . MODE)
+
+If a file name matches REGEXP, then use help mode MODE instead of the
+buffer's major mode."
+  :group 'info-lookup :type '(repeat (cons (string :tag "Regexp")
+					   (symbol :tag "Mode"))))
+
 (defvar info-lookup-history nil
   "History of previous input lines.")
 
@@ -266,9 +281,8 @@ The default file name is the one found at point."
 
 (defun info-lookup-interactive-arguments (topic)
   "Return default value and help mode for help topic TOPIC."
-  (let* ((mode (if (info-lookup->mode-value
-		    topic (or info-lookup-mode major-mode))
-		   (or info-lookup-mode major-mode)
+  (let* ((mode (if (info-lookup->mode-value topic (info-lookup-select-mode))
+		   info-lookup-mode
 		 (info-lookup-change-mode topic)))
 	 (completions (info-lookup->completions topic mode))
 	 (default (info-lookup-guess-default topic mode))
@@ -282,6 +296,16 @@ The default file name is the one found at point."
 		   (format "Describe %s: " topic))
 		 completions nil nil input 'info-lookup-history)))
     (list (if (equal value "") default value) mode)))
+
+(defun info-lookup-select-mode ()
+  (when (and (not info-lookup-mode) (buffer-file-name))
+    (let ((file-name (file-name-nondirectory (buffer-file-name)))
+	  (file-name-alist info-lookup-file-name-alist))
+      (while (and (not info-lookup-mode) file-name-alist)
+	(when (string-match (caar file-name-alist) file-name)
+	  (setq info-lookup-mode (cdar file-name-alist)))
+	(setq file-name-alist (cdr file-name-alist)))))
+  (or info-lookup-mode (setq info-lookup-mode major-mode)))
 
 (defun info-lookup-change-mode (topic)
   (let* ((completions (mapcar (lambda (arg)
@@ -298,8 +322,7 @@ The default file name is the one found at point."
 
 (defun info-lookup (topic item mode)
   "Display the documentation of a help item."
-  (if (not mode)
-      (setq mode (or info-lookup-mode major-mode)))
+  (or mode (setq mode (info-lookup-select-mode)))
   (or (info-lookup->mode-value topic mode)
       (error "No %s help available for `%s'" topic mode))
   (let ((entry (or (assoc (if (info-lookup->ignore-case topic mode)
@@ -522,8 +545,8 @@ Return nil if there is nothing appropriate."
   (info-complete 'symbol
 		 (or mode
 		     (if (info-lookup->mode-value
-			  'symbol (or info-lookup-mode major-mode))
-			 (or info-lookup-mode major-mode)
+			  'symbol (info-lookup-select-mode))
+			 info-lookup-mode
 		       (info-lookup-change-mode 'symbol)))))
 
 ;;;###autoload
@@ -533,15 +556,14 @@ Return nil if there is nothing appropriate."
   (info-complete 'file
 		 (or mode
 		     (if (info-lookup->mode-value
-			  'file (or info-lookup-mode major-mode))
-			 (or info-lookup-mode major-mode)
+			  'file (info-lookup-select-mode))
+			 info-lookup-mode
 		       (info-lookup-change-mode 'file)))))
 
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
-  (if (not mode)
-      (setq mode (or info-lookup-mode major-mode)))
+  (or mode (setq mode (info-lookup-select-mode)))
   (or (info-lookup->mode-value topic mode)
       (error "No %s completion available for `%s'" topic mode))
   (let ((modes (info-lookup-quick-all-modes topic mode))
@@ -572,63 +594,6 @@ Return nil if there is nothing appropriate."
 	    (t
 	     (message "%s is complete"
 		      (capitalize (prin1-to-string topic))))))))
-
-
-;;; Info-lookup minor mode.
-
-(defvar info-lookup-minor-mode nil
-  "Non-`nil' enables Info-lookup mode.")
-(make-variable-buffer-local 'info-lookup-minor-mode)
-
-(defvar info-lookup-minor-mode-string " Info"
-  "Indicator included in the mode line when in Info-lookup mode.")
-
-(or (assq 'info-lookup-minor-mode minor-mode-alist)
-    (setq minor-mode-alist (cons '(info-lookup-minor-mode
-				   info-lookup-minor-mode-string)
-				 minor-mode-alist)))
-
-(defvar info-lookup-minor-mode-map (make-sparse-keymap)
-  "Minor mode map for Info-lookup mode.")
-
-(or (assq 'info-lookup-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'info-lookup-minor-mode
-					   info-lookup-minor-mode-map)
-				     minor-mode-map-alist)))
-
-;;;### autoload
-(defun info-lookup-minor-mode (&optional arg)
-  "Minor mode for looking up the documentation of a symbol or file.
-Special commands:
-
-\\{info-lookup-minor-mode-map}"
-  (interactive "P")
-  (setq info-lookup-minor-mode (if (null arg)
-				   (not info-lookup-minor-mode)
-				 (> (prefix-numeric-value arg) 0)))
-  (set-buffer-modified-p (buffer-modified-p)))
-
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-hf" 'info-lookup-symbol)	; Describe function.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-hv" 'info-lookup-symbol)	; Describe variable.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-ht" 'info-lookup-symbol)	; Describe type.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-hp" 'info-lookup-file)	; Describe program.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-if" 'info-complete-symbol)	; Complete function.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-iv" 'info-complete-symbol)	; Complete variable.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-it" 'info-complete-symbol)	; Complete type.
-(define-key info-lookup-minor-mode-map
-  "\C-c\C-ip" 'info-complete-file)	; Complete program.
-
-;;;### autoload
-(defun turn-on-info-lookup ()
-  "Unconditionally turn on Info-lookup mode."
-  (info-lookup-minor-mode 1))
 
 
 ;;; Initialize some common modes.
@@ -779,6 +744,13 @@ Special commands:
  :regexp "[^()' \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
+
+(info-lookup-maybe-add-help
+ :mode 'scheme-mode
+ :regexp "[^()' \t\n]+"
+ :ignore-case t
+ :doc-spec '(("(r5rs)Index" nil
+	      "^[ \t]+- [^:]+:[ \t]*" "\\b")))
 
 
 (provide 'info-look)
