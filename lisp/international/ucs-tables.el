@@ -1182,9 +1182,8 @@ everything on input operations."
 
     ;; Translate Quail input globally.
     (setq-default translation-table-for-input ucs-mule-to-mule-unicode)
-    ;; In case these are set up, but we should use the global
+    ;; In case this is set up, but we should use the global
     ;; translation-table.
-    (remove-hook 'set-buffer-major-mode-hook 'ucs-set-table-for-input)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
 
   (when for-encode
@@ -1212,10 +1211,6 @@ everything on input operations."
 	;; Update the table of what encodes to what.
 	(register-char-codings coding-system table)
 	(coding-system-put coding-system 'translation-table-for-encode table)))
-    ;; Arrange local translation-tables for keyboard input.  See also
-    ;; `set-buffer-file-coding-system' and `normal-mode'.  These
-    ;; _appear_ to be the best places to hook in.
-    (add-hook 'set-buffer-major-mode-hook 'ucs-set-table-for-input)
     (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-fragment-8859 (for-encode for-decode)
@@ -1279,7 +1274,6 @@ unification on input operations."
 	  (set-char-table-parent safe nil))
 	(coding-system-put coding-system 'translation-table-for-encode nil)))
     (optimize-char-table char-coding-system-table)
-    (remove-hook 'set-buffer-major-mode-hook 'ucs-set-table-for-input)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
@@ -2519,15 +2513,18 @@ See also command `unify-8859-on-encoding-mode' and the user option
 (ucs-unify-8859 t nil)
 
 ;; Arrange to set up the translation-table for keyboard input.  This
-;; probably isn't foolproof.
-(defun ucs-set-table-for-input ()
-  "Set up an appropriate `translation-table-for-input' for current buffer."
+;; is called from get-buffer-create, set-buffer-file-coding-system,
+;; normal-mode and minibuffer-setup-hook.
+(defun ucs-set-table-for-input (&optional buffer)
+  "Set up an appropriate `translation-table-for-input' for BUFFER.
+BUFFER defaults to the current buffer."
   (when (and unify-8859-on-encoding-mode
 	     (char-table-p translation-table-for-input))
     (let ((cs (and buffer-file-coding-system
 		   (coding-system-base buffer-file-coding-system)))
 	  table)
-      (if (eq cs 'undecided)
+      (if (or (null cs)
+	      (eq cs 'undecided))
 	  (setq cs
 		(and default-buffer-file-coding-system
 		     (coding-system-base default-buffer-file-coding-system))))
@@ -2536,8 +2533,12 @@ See also command `unify-8859-on-encoding-mode' and the user option
 	(unless (char-table-p table)
 	  (setq table (coding-system-get cs 'translation-table-for-input)))
 	(when (char-table-p table)
-	  (set (make-variable-buffer-local 'translation-table-for-input)
-	       table))))))
+	  (if buffer
+	      (with-current-buffer buffer
+		(set (make-variable-buffer-local 'translation-table-for-input)
+		     table))
+	    (set (make-variable-buffer-local 'translation-table-for-input)
+		 table)))))))
 
 ;; The minibuffer needs to acquire a `buffer-file-coding-system' for
 ;; the above to work in it.
