@@ -589,7 +589,7 @@ and TO is ignored."
   (let ((tail coding-category-list)
 	preferred base)
     (while (and tail
-		(not (setq preferred (symbol-name (car tail)))))
+		(not (setq preferred (symbol-value (car tail)))))
       (setq tail (cdr tail)))
     (and (coding-system-p preferred)
 	 (setq base (coding-system-base preferred))
