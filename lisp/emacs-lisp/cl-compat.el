@@ -186,4 +186,3 @@
 (provide 'cl-compat)
 
 ;;; cl-compat.el ends here
-

@@ -1071,7 +1071,7 @@ kills modified buffers without asking."
   (interactive)
   (let ((list (tpu-make-file-buffer-list (buffer-list))))
     (setq list (delq (current-buffer) list))
-    (if (not list) (error "No other buffers."))
+    (if (not list) (error "No other buffers"))
     (switch-to-buffer (car (reverse list)))))
 
 (defun tpu-make-file-buffer-list (buffer-list)
@@ -1343,7 +1343,7 @@ The text is saved for the tpu-paste command."
 	   (delete-region beg end)
 	   (tpu-unset-match)))
 	(t
-	 (error "No selection active."))))
+	 (error "No selection active"))))
 
 (defun tpu-store-text nil
   "Copy the selected region to the cut buffer without deleting it.
@@ -1365,7 +1365,7 @@ The text is saved for the tpu-paste command."
 	       (buffer-substring (tpu-match-beginning) (tpu-match-end)))
 	 (tpu-unset-match))
 	(t
-	 (error "No selection active."))))
+	 (error "No selection active"))))
 
 (defun tpu-cut (arg)
   "Copy selected region to the cut buffer.  In the absence of an
@@ -1392,7 +1392,7 @@ argument, delete the selected region too."
 	   (if (not arg) (delete-region beg end))
 	   (tpu-unset-match)))
 	(t
-	 (error "No selection active."))))
+	 (error "No selection active"))))
 
 (defun tpu-delete-current-line (num)
   "Delete one or specified number of lines after point.
@@ -1532,7 +1532,7 @@ With argument reinserts the character that many times."
 			  (not case-replace) (not tpu-regexp-p))
 	   (tpu-unset-match)))
 	(t
-	 (error "No selection active."))))
+	 (error "No selection active"))))
 
 (defun tpu-substitute (num)
   "Replace the selected region with the contents of the cut buffer, and
@@ -1548,7 +1548,7 @@ A negative argument means replace all occurrences of the search string."
 	       (tpu-search-internal-core tpu-search-last-string)))
 	   (setq num (1- num))))
 	(t
-	 (error "No selection active."))))
+	 (error "No selection active"))))
 
 (defun tpu-lm-replace (from to)
   "Interactively search for OLD-string and substitute NEW-string."
@@ -1558,7 +1558,7 @@ A negative argument means replace all occurrences of the search string."
   (let ((doit t) (strings 0))
 
     ;; Can't replace null strings
-    (if (string= "" from) (error "No string to replace."))
+    (if (string= "" from) (error "No string to replace"))
 
     ;; Find the first occurrence
     (tpu-set-search)
@@ -1631,7 +1631,7 @@ are performed without asking.  Only works in forward direction."
 or each line in the entire buffer if no region is selected."
   (interactive
    (list (tpu-string-prompt "String to add: " 'tpu-add-at-bol-hist)))
-  (if (string= "" text) (error "No string specified."))
+  (if (string= "" text) (error "No string specified"))
   (cond ((tpu-mark)
 	 (save-excursion
 	   (if (> (point) (tpu-mark)) (exchange-point-and-mark))
@@ -1649,7 +1649,7 @@ or each line in the entire buffer if no region is selected."
 or each line of the entire buffer if no region is selected."
   (interactive
    (list (tpu-string-prompt "String to add: " 'tpu-add-at-eol-hist)))
-  (if (string= "" text) (error "No string specified."))
+  (if (string= "" text) (error "No string specified"))
   (cond ((tpu-mark)
 	 (save-excursion
 	   (if (> (point) (tpu-mark)) (exchange-point-and-mark))

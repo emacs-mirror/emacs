@@ -1,4 +1,4 @@
-;;; cus-edit.el --- Tools for customizing Emacs and Lisp packages.
+;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;

@@ -1,4 +1,4 @@
-;;; autorevert --- revert buffers when files on disk change
+;;; autorevert.el --- revert buffers when files on disk change
 
 ;; Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
 
@@ -373,4 +373,4 @@ the timer when no buffers need to be checked."
 (if global-auto-revert-mode
     (global-auto-revert-mode 1))
 
-;; autorevert.el ends here.
+;;; autorevert.el ends here

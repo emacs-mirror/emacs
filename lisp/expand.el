@@ -1,4 +1,4 @@
-;;; expand.el --- make abbreviations more usable.
+;;; expand.el --- make abbreviations more usable
 
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 

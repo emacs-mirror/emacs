@@ -1,4 +1,4 @@
-;;; follow.el --- Minor mode, Synchronize windows showing the same buffer.
+;;; follow.el --- synchronize windows showing the same buffer
 
 ;; Copyright (C) 1995, 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
 

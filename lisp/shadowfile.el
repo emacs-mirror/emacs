@@ -842,4 +842,3 @@ look for files that have been changed and need to be copied to other systems."
 (provide 'shadowfile)
 
 ;;; shadowfile.el ends here
-

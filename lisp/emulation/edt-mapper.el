@@ -1,4 +1,4 @@
-;;; edt-mapper.el --- Create an EDT LK-201 Map File for X-Windows Emacs
+;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
 
 ;; Copyright (C) 1994, 1995, 2000, 2001  Free Software Foundation, Inc.
 

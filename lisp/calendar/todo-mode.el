@@ -1,11 +1,11 @@
-;; todo-mode.el -- Major mode for editing TODO list files
+;;; todo-mode.el --- major mode for editing TODO list files
 
 ;; Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.45 2001/07/05 13:44:53 gerd Exp $
+;; Version: $Id: todo-mode.el,v 1.46 2001/07/05 13:51:17 gerd Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.45 2001/07/05 13:44:53 gerd Exp $
+;;      $Id: todo-mode.el,v 1.46 2001/07/05 13:51:17 gerd Exp $
 ;;
 ;;  Pre-Requisites
 ;;

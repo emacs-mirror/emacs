@@ -1,11 +1,11 @@
-;;; ps-bdf.el --- BDF font file handler for ps-print.
+;;; ps-bdf.el --- BDF font file handler for ps-print
 
 ;; Copyright (C) 1998,99,2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: wp, BDF, font, PostScript
-;; Maintainer:	Kenichi Handa <handa@etl.go.jp>
-;; Time-stamp:	<2001/03/05 09:04:32 vinicius>
+;; Maintainer: Kenichi Handa <handa@etl.go.jp>
+;; Time-stamp: <2001-07-15 12:25:51 pavel>
 
 ;; This file is part of GNU Emacs.
 

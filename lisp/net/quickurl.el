@@ -1,4 +1,4 @@
-;;; quickurl.el --- Insert an URL based on text at point in buffer.
+;;; quickurl.el --- insert an URL based on text at point in buffer
 
 ;; Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
 
@@ -7,7 +7,7 @@
 ;; Created: 1999-05-28
 ;; Keywords: hypermedia
 
-;; This file is part of GNU emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

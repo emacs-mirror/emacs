@@ -2,6 +2,8 @@
 
 ;;; The author has placed this file in the public domain.
 
+;; This file is part of GNU Emacs.
+
 ;; Author: Dale R. Worley <worley@world.std.com>
 ;; Version: 5fsf
 ;; Keywords: unix, tools
@@ -18,6 +20,8 @@
 ;; USE OF THIS SOFTWARE, INCLUDING, WITHOUT LIMITATION, DAMAGES RESULTING FROM
 ;; LOST DATA OR LOST PROFITS, OR FOR ANY SPECIAL, INCIDENTAL OR CONSEQUENTIAL
 ;; DAMAGES.
+
+;;; Commentary:
 
 ;;; Code:
 

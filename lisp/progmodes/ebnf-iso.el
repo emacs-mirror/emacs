@@ -1,11 +1,11 @@
-;;; ebnf-iso --- Parser for ISO EBNF
+;;; ebnf-iso.el --- parser for ISO EBNF
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2000/12/19 15:25:16 vinicius>
+;; Time-stamp: <2001-07-15 01:03:20 pavel>
 ;; Version:    1.5
 
 ;; This file is part of GNU Emacs.
@@ -117,7 +117,7 @@
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; code:
+;;; Code:
 
 
 (require 'ebnf-otz)
@@ -145,7 +145,7 @@
     (goto-char start)
     (setq token (ebnf-iso-lex))
     (and (eq token 'end-of-input)
-	 (error "Invalid ISO EBNF file format."))
+	 (error "Invalid ISO EBNF file format"))
     (while (not (eq token 'end-of-input))
       (ebnf-message-float
        "Parsing...%s%%"
@@ -167,12 +167,12 @@
 	body)
     (setq ebnf-action nil)
     (or (eq token 'non-terminal)
-	(error "Invalid meta identifier syntax rule."))
+	(error "Invalid meta identifier syntax rule"))
     (or (eq (ebnf-iso-lex) 'equal)
-	(error "Invalid syntax rule: missing `='."))
+	(error "Invalid syntax rule: missing `='"))
     (setq body (ebnf-iso-definition-list))
     (or (eq (car body) 'period)
-	(error "Invalid syntax rule: missing `;' or `.'."))
+	(error "Invalid syntax rule: missing `;' or `.'"))
     (setq body (cdr body))
     (ebnf-eps-add-production header)
     (cons (ebnf-iso-lex)
@@ -233,7 +233,7 @@
   (if (eq token 'integer)
       (let ((times ebnf-iso-lex))
 	(or (eq (ebnf-iso-lex) 'repeat)
-	    (error "Missing `*'."))
+	    (error "Missing `*'"))
 	(ebnf-token-repeat times (ebnf-iso-primary (ebnf-iso-lex))))
     (ebnf-iso-primary token)))
 
@@ -273,20 +273,20 @@
 	  ((eq token 'begin-group)
 	   (let ((body (ebnf-iso-definition-list)))
 	     (or (eq (car body) 'end-group)
-		 (error "Missing `)'."))
+		 (error "Missing `)'"))
 	     (cdr body)))
 	  ;; optional sequence
 	  ((eq token 'begin-optional)
 	   (let ((body (ebnf-iso-definition-list)))
 	     (or (eq (car body) 'end-optional)
-		 (error "Missing `]' or `/)'."))
+		 (error "Missing `]' or `/)'"))
 	     (ebnf-token-optional (cdr body))))
 	  ;; repeated sequence
 	  ((eq token 'begin-zero-or-more)
 	   (let* ((body   (ebnf-iso-definition-list))
 		  (repeat (cdr body)))
 	     (or (eq (car body) 'end-zero-or-more)
-		 (error "Missing `}' or `:)'."))
+		 (error "Missing `}' or `:)'"))
 	     (ebnf-make-zero-or-more repeat)))
 	  ;; empty
 	  (t
@@ -426,7 +426,7 @@ See documentation for variable `ebnf-iso-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character."))
+	(error "Illegal character"))
        ;; integer
        ((eq token 'integer)
 	(setq ebnf-iso-lex (ebnf-buffer-substring "0-9"))
@@ -451,7 +451,7 @@ See documentation for variable `ebnf-iso-lex'."
 			    (ebnf-trim-right
 			     (ebnf-buffer-substring " 0-9A-Za-z\240-\377"))))
 	(and ebnf-no-meta-identifier
-	     (error "Exception sequence should not contain a meta identifier."))
+	     (error "Exception sequence should not contain a meta identifier"))
 	'non-terminal)
        ;; begin optional, begin list or begin group
        ((eq token 'left-parenthesis)
@@ -511,7 +511,7 @@ See documentation for variable `ebnf-iso-lex'."
     (while (> pair 0)
       (skip-chars-forward ebnf-iso-comment-chars ebnf-limit)
       (cond ((>= (point) ebnf-limit)
-	     (error "Missing end of comment: `*)'."))
+	     (error "Missing end of comment: `*)'"))
 	    ((= (following-char) ?*)
 	     (skip-chars-forward "*" ebnf-limit)
 	     (when (= (following-char) ?\))
@@ -525,7 +525,7 @@ See documentation for variable `ebnf-iso-lex'."
 	       (forward-char)
 	       (setq pair (1+ pair))))
 	    (t
-	     (error "Illegal character."))
+	     (error "Illegal character"))
 	    ))))
 
 

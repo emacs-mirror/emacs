@@ -1,10 +1,10 @@
-;;; autoconf.el --- Mode for editing Autoconf configure.in files.
+;;; autoconf.el --- mode for editing Autoconf configure.in files
 
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
-;; $Revision: $
+;; $Revision: 1.1 $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-;;; texinfmt.el --- format Texinfo files into Info files.
+;;; texinfmt.el --- format Texinfo files into Info files
 
 ;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 
 ;;               1994, 1995, 1996, 1997, 1998, 2000, 2001
@@ -23,6 +23,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -362,7 +364,7 @@ if large.  You can use Info-split to do this manually."
     (save-excursion
       (goto-char (point-min))
       (or (search-forward "@setfilename" nil t)
-          (error "Texinfo file needs an `@setfilename FILENAME' line."))
+          (error "Texinfo file needs an `@setfilename FILENAME' line"))
       (setq texinfo-command-end (point))
       (setq outfile (texinfo-parse-line-arg)))
 
@@ -1105,10 +1107,10 @@ Leave point after argument."
   (goto-char texinfo-command-end)
   (skip-chars-forward " \t")
   (or (eolp)
-      (error "Extraneous text at end of command line."))
+      (error "Extraneous text at end of command line"))
   (goto-char texinfo-command-start)
   (or (bolp)
-      (error "Extraneous text at beginning of command line."))
+      (error "Extraneous text at beginning of command line"))
   (delete-region (point) (progn (forward-line 1) (point))))
 
 (defun texinfo-discard-line-with-args ()
@@ -1670,7 +1672,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
   (texinfo-discard-line)
   (let ((next (1+ (car (cdr (car texinfo-stack))))))
     (if (> next ?z)
-        (error "More than 26 items in @alphaenumerate; get a bigger alphabet."))
+        (error "More than 26 items in @alphaenumerate; get a bigger alphabet"))
     (setcar (cdr (car texinfo-stack)) next)
     (insert "\b  " next ". \n"))
   (forward-line -1))
@@ -1680,7 +1682,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
   (texinfo-discard-line)
   (let ((next (1+ (car (cdr (car texinfo-stack))))))
     (if (> next ?Z)
-        (error "More than 26 items in @capsenumerate; get a bigger alphabet."))
+        (error "More than 26 items in @capsenumerate; get a bigger alphabet"))
     (setcar (cdr (car texinfo-stack)) next)
     (insert "\b  " next ". \n"))
   (forward-line -1))
@@ -2045,7 +2047,7 @@ This command is executed when texinfmt sees @item inside @multitable."
       (while (search-forward "@tab" nil t)
         (setq tab-number (1+ tab-number)))
       (if (/= tab-number (length table-widths))
-          (error "Wrong number of @tab's in a @multitable row.")))
+          (error "Wrong number of @tab's in a @multitable row")))
     (goto-char (point-min))
 ;; 2. Format each cell, and copy to a rectangle
     ;; buffer looks like this:    A1  @tab  A2  @tab  A3
@@ -4131,7 +4133,7 @@ Each file will be processed even if an error occurred previously.
 For example, invoke
   \"emacs -batch -funcall batch-texinfo-format $docs/ ~/*.texinfo\"."
   (if (not noninteractive)
-      (error "batch-texinfo-format may only be used -batch."))
+      (error "batch-texinfo-format may only be used -batch"))
   (let ((version-control t)
         (auto-save-default nil)
         (find-file-run-dired nil)
@@ -4188,4 +4190,4 @@ For example, invoke
 ;;; Place `provide' at end of file.
 (provide 'texinfmt)
 
-;;; texinfmt.el ends here.
+;;; texinfmt.el ends here

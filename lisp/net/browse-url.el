@@ -1,4 +1,4 @@
-;;; browse-url.el --- Pass a URL to a WWW browser
+;;; browse-url.el --- pass a URL to a WWW browser
 
 ;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001
 ;;   Free Software Foundation, Inc.
@@ -1012,13 +1012,13 @@ used instead of `browse-url-new-window-flag'."
 	  (switch-to-buffer buf)))
       (if (eq (following-char) ?_)
 	  (cond ((eq browse-url-lynx-input-field 'warn)
-		 (error "Please move out of the input field first."))
+		 (error "Please move out of the input field first"))
 		((eq browse-url-lynx-input-field 'avoid)
 		 (while (and (eq (following-char) ?_) (> n 0))
 		   (term-send-down) ; down arrow
 		   (sit-for browse-url-lynx-input-delay))
 		 (if (eq (following-char) ?_)
-		     (error "Cannot move out of the input field, sorry.")))))
+		     (error "Cannot move out of the input field, sorry")))))
       (term-send-string proc (concat "g" ; goto
 				     "\C-u" ; kill default url
 				     url

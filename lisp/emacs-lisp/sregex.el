@@ -606,4 +606,3 @@ has one of the following forms:
 (provide 'sregex)
 
 ;;; sregex.el ends here
-

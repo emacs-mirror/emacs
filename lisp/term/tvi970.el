@@ -123,4 +123,4 @@ With a negative argument, select numeric keypad mode."
 
 (tvi970-set-keypad-mode 1)
 
-;;; tv970 ends here
+;;; tvi970.el ends here

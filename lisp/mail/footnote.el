@@ -1,4 +1,4 @@
-;;; footnote.el --- Footnote support for message mode  -*- coding: iso-latin-1;-*-
+;;; footnote.el --- footnote support for message mode  -*- coding: iso-latin-1;-*-
 
 ;; Copyright (C) 1997, 2000 by Free Software Foundation, Inc.
 
@@ -670,7 +670,7 @@ specified, jump to the text of that footnote."
 	    (goto-char (point-max))
 	    (re-search-backward (concat "^" footnote-section-tag-regexp))
 	    (forward-line 1))
-	(error "I don't see a footnote here.")))))
+	(error "I don't see a footnote here")))))
 
 (defun Footnote-back-to-message (&optional arg)
   "Move cursor back to footnote referent.

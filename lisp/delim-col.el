@@ -1,13 +1,13 @@
-;;; delim-col.el --- Prettify all columns in a region or rectangle.
+;;; delim-col.el --- prettify all columns in a region or rectangle
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
-;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp:	<2000/10/28 09:34:15 Vinicius>
-;; Version:	2.1
-;; Keywords:	internal
-;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Time-stamp: <2001-07-15 11:12:35 pavel>
+;; Version: 2.1
+;; Keywords: internal
+;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 ;; This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-;;; hippie-exp.el --- expand text trying various ways to find its expansion.
+;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 

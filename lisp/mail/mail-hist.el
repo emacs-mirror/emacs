@@ -1,4 +1,4 @@
-;;; mail-hist.el --- Headers and message body history for outgoing mail.
+;;; mail-hist.el --- headers and message body history for outgoing mail
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
@@ -245,7 +245,7 @@ This function normally would be called when the message is sent."
           (ding)
           (message "No history for \"%s\"." header))
       (if (ring-empty-p ring)
-          (error "\"%s\" ring is empty." header)
+          (error "\"%s\" ring is empty" header)
         (and repeat
              (delete-region (car mail-hist-last-bounds)
                             (cdr mail-hist-last-bounds)))
@@ -293,4 +293,4 @@ received mail."
 
 (provide 'mail-hist)
 
-;; mail-hist.el ends here
+;;; mail-hist.el ends here

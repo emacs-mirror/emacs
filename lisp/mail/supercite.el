@@ -32,7 +32,9 @@
 ;; |Mail and news reply citation package
 ;; |1993/09/22 18:58:46|3.1|
 
-;; Code:
+;;; Commentary:
+
+;;; Code:
 
 
 (require 'regi)
@@ -2096,7 +2098,7 @@ cited."
 	    (looking-at "^[ \t]*$")
 	    (consp arg))
 	(insert (sc-mail-field "sc-citation"))
-      (error "Line is already cited."))))
+      (error "Line is already cited"))))
 
 (defun sc-version (arg)
   "Echo the current version of Supercite in the minibuffer.

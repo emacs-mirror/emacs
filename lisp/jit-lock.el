@@ -1,4 +1,4 @@
-;;; jit-lock.el --- just-in-time fontification.
+;;; jit-lock.el --- just-in-time fontification
 
 ;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
 
@@ -451,4 +451,4 @@ will take place when text is fontified stealthily."
   
 (provide 'jit-lock)
 
-;; jit-lock.el ends here
+;;; jit-lock.el ends here

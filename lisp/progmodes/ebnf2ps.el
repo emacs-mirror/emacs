@@ -1,11 +1,11 @@
-;;; ebnf2ps --- Translate an EBNF to a syntatic chart on PostScript
+;;; ebnf2ps.el --- translate an EBNF to a syntatic chart on PostScript
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp:        <2001/02/02 15:23:39 vinicius>
+;; Time-stamp:        <2001-07-15 01:05:00 pavel>
 ;; Version:   3.5
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
 
@@ -1000,7 +1000,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; code:
+;;; Code:
 
 
 (require 'ps-print)
@@ -4974,7 +4974,7 @@ end
      ;;(skip-chars-forward (concat chars "\240-\377") ebnf-limit)
      (skip-chars-forward (concat chars ebnf-8-bit-chars) ebnf-limit)
      (if (or (eobp) (/= (following-char) eos-char))
-	 (error "Illegal %s: missing `%c'." kind eos-char)
+	 (error "Illegal %s: missing `%c'" kind eos-char)
        (forward-char)
        (1- (point))))))
 
@@ -4992,7 +4992,7 @@ end
       (goto-char (+ (point) n 1))))
   (if (= (preceding-char) ?\")
       (1- (point))
-    (error "Missing `\"'.")))
+    (error "Missing `\"'")))
 
 
 (defun ebnf-trim-right (str)
@@ -5299,6 +5299,5 @@ end
 
 
 (provide 'ebnf2ps)
-
 
 ;;; ebnf2ps.el ends here

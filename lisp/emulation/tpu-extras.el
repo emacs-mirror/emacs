@@ -1,4 +1,4 @@
-;;; tpu-extras.el --- Scroll margins and free cursor mode for TPU-edt
+;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
 
 ;; Copyright (C) 1993, 1994, 1995, 2000 Free Software Foundation, Inc.
 

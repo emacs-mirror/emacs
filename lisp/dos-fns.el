@@ -1,4 +1,4 @@
-;;; dos-fns.el --- MS-Dos specific functions.
+;;; dos-fns.el --- MS-Dos specific functions
 
 ;; Copyright (C) 1991, 1993, 1995, 1996 Free Software Foundation, Inc.
 
@@ -244,4 +244,4 @@ that your video hardware might not support 50-line mode."
 
 (provide 'dos-fns)
 
-; dos-fns.el ends here
+;;; dos-fns.el ends here

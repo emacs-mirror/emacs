@@ -5493,4 +5493,4 @@ The event, EV, is the mouse event."
 ;; Don't hesitate to ask me any questions.
 
 
-;; artist.el ends here
+;;; artist.el ends here

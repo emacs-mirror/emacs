@@ -1,4 +1,4 @@
-;;; double.el --- Support for keyboard remapping with double clicking
+;;; double.el --- support for keyboard remapping with double clicking
 
 ;; Copyright (C) 1994, 1997, 1998 Free Software Foundation, Inc.
 
@@ -208,4 +208,3 @@ when pressed twice.  See variable `double-map' for details."
 (provide 'double)
 
 ;;; double.el ends here
-

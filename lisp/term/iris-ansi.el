@@ -1,4 +1,4 @@
-;; term/iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps
+;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -20,6 +20,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (define-key function-key-map "\e[120q" [S-escape])
 (define-key function-key-map "\e[121q" [C-escape])
@@ -318,4 +322,4 @@
 (define-key function-key-map "\e[196q" [C-delete])
 (define-key function-key-map "\e[197q" [M-delete])
 
-;;; term/iris-ansi.el ends here
+;;; iris-ansi.el ends here

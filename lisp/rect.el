@@ -1,4 +1,4 @@
-;;; rect.el --- rectangle functions for GNU Emacs.
+;;; rect.el --- rectangle functions for GNU Emacs
 
 ;; Copyright (C) 1985, 1999, 2000, 2001 Free Software Foundation, Inc.
 

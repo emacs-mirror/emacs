@@ -1,4 +1,4 @@
-;;; align --- align text to a specific column, by regexp
+;;; align.el --- align text to a specific column, by regexp
 
 ;; Copyright (C) 1999, 2000 Free Sofware Foundation
 

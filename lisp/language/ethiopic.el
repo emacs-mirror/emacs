@@ -1,4 +1,4 @@
-;;; ethiopic.el --- Support for Ethiopic -*- coding: iso-2022-7bit; -*-
+;;; ethiopic.el --- support for Ethiopic -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -23,6 +23,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
+
+;;; Commentary:
 
 ;;; Code:
 

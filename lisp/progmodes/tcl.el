@@ -1,4 +1,4 @@
-;; tcl.el --- Tcl code editing commands for Emacs
+;;; tcl.el --- Tcl code editing commands for Emacs
 
 ;; Copyright (C) 1994, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.61 $
+;; Version: $Revision: 1.62 $
 
 ;; This file is part of GNU Emacs.
 
@@ -132,7 +132,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.61 $")
+(defconst tcl-version "$Revision: 1.62 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;

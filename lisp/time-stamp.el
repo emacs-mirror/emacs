@@ -3,7 +3,9 @@
 ;; Copyright 1989, 1993, 1994, 1995, 1997, 2000, 2001
 ;;;	Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <2000-12-04 16:06:50 gildea>
+;; This file is part of GNU Emacs.
+
+;; Maintainer's Time-stamp: <2001-07-15 12:35:58 pavel>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 

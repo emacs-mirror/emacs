@@ -538,7 +538,7 @@ Signal an error if not end of menu."
   (save-excursion
     (if (re-search-forward "^@end menu" nil t)
 	(point)
-      (error "Menu does not have an end."))))
+      (error "Menu does not have an end"))))
 
 (defun texinfo-delete-old-menu (beginning first)
   "Delete the old menu.  Point must be in or after menu.
@@ -626,7 +626,7 @@ complements the node name rather than repeats it as a title does."
 	;; "Double colon" entry line; menu entry and node name are the same,
        ((search-forward "::" (save-excursion (end-of-line) (point)) t)
 	(if (looking-at "[ \t]*[^ \t\n]+")
-	    (error "Descriptive text already exists."))
+	    (error "Descriptive text already exists"))
 	(skip-chars-backward ": \t")
 	(setq node-name (buffer-substring beginning (point))))
 
@@ -639,7 +639,7 @@ complements the node name rather than repeats it as a title does."
 			       (save-excursion (forward-line 1) (point)) t)
 	    (progn
 	      (if (looking-at "[ \t]*[^ \t\n]+")
-		  (error "Descriptive text already exists."))
+		  (error "Descriptive text already exists"))
 	      (skip-chars-backward "., \t")
 	      (setq node-name (buffer-substring beginning (point))))
 	  ;; Menu entry line ends in a return.
@@ -648,9 +648,9 @@ complements the node name rather than repeats it as a title does."
 	  (skip-chars-backward " \t\n")
 	  (setq node-name (buffer-substring beginning (point)))
 	  (if (= 0 (length node-name))
-	      (error "No node name on this line.")
+	      (error "No node name on this line")
 	    (insert "."))))
-       (t (error "No node name on this line.")))
+       (t (error "No node name on this line")))
       ;; Search for node that matches node name, and copy the section title.
       (if (re-search-forward
 	   (concat
@@ -674,7 +674,7 @@ complements the node name rather than repeats it as a title does."
 		   (progn (end-of-line)
 			  (skip-chars-backward " \t")
 			  (point)))))
-	(error "Cannot find node to match node name in menu entry.")))
+	(error "Cannot find node to match node name in menu entry")))
     ;; Return point to the menu and insert the title.
     (end-of-line)
     (delete-region
@@ -990,7 +990,7 @@ and leave point on the line before the `@end menu' line."
 		      (goto-char end-of-menu)
 		      ;; handle multi-line description
 		      (if (not (re-search-backward "^\\* " nil t))
-			  (error "No entries in menu."))
+			  (error "No entries in menu"))
 		      (point))))
     (while (< (point) last-entry)
       (if (re-search-forward  "^\\* " end-of-menu t)
@@ -1487,7 +1487,7 @@ Info `g*' command is inadequate."
       ;; update a single node
       (let ((auto-fill-function nil) (auto-fill-hook nil))
 	(if (not (re-search-backward "^@node" (point-min) t))
-	    (error "Node line not found before this position."))
+	    (error "Node line not found before this position"))
 	(texinfo-sequentially-update-the-node)
 	(message
 	 "Done...sequentially updated the node .  You may save the buffer."))

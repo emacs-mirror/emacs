@@ -1,4 +1,4 @@
-;;; scroll-all.el -- scroll all buffers together minor mode
+;;; scroll-all.el --- scroll all buffers together minor mode
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Commentary
+;;; Commentary:
 ;;    This mode allows multiple buffers to be 'locked' so that scrolling
 ;;    up or down lines in any buffer causes all the buffers to mirror
 ;;    the scrolling.  It hooks into the post-command-hook to check for
@@ -36,6 +36,8 @@
 ;; Suggestions/ideas from:
 ;;    Rick Macdonald <rickm@vsl.com>
 ;;    Anders Lindgren <andersl@csd.uu.se>
+
+;;; Code:
 
 (defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version))
 
@@ -132,4 +134,4 @@ use either M-x customize or the function `scroll-all-mode'."
 
 (provide 'scroll-all)
 
-;; scroll-all.el ends here
+;;; scroll-all.el ends here

@@ -1,4 +1,4 @@
-;;; foldout.el --- Folding extensions for outline-mode and outline-minor-mode.
+;;; foldout.el --- folding extensions for outline-mode and outline-minor-mode
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
@@ -568,4 +568,3 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
 (provide 'foldout)
 
 ;;; foldout.el ends here
-

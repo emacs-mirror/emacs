@@ -1,4 +1,4 @@
-;;; shadow.el --- Locate Emacs Lisp file shadowings.
+;;; shadow.el --- locate Emacs Lisp file shadowings
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 

@@ -287,14 +287,14 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 		       ((symbolp expr)
 			(if (fboundp expr)
 			    (funcall expr name)
-			  (error "WebJump URL function \"%s\" undefined." 
+			  (error "WebJump URL function \"%s\" undefined" 
 				 expr)))
-		       (t (error "WebJump URL expression for \"%s\" invalid."
+		       (t (error "WebJump URL expression for \"%s\" invalid"
 				 name)))))))
 
 (defun webjump-builtin (expr name)
   (if (< (length expr) 1)
-      (error "WebJump URL builtin for \"%s\" empty." name))
+      (error "WebJump URL builtin for \"%s\" empty" name))
   (let ((builtin (aref expr 0)))
     (cond
      ((eq builtin 'mirrors)
@@ -307,12 +307,12 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
      ((eq builtin 'simple-query)
       (webjump-builtin-check-args expr name 3)
       (webjump-do-simple-query name (aref expr 1) (aref expr 2) (aref expr 3)))
-     (t (error "WebJump URL builtin \"%s\" for \"%s\" invalid."
+     (t (error "WebJump URL builtin \"%s\" for \"%s\" invalid"
 	       builtin name)))))
 
 (defun webjump-builtin-check-args (expr name count)
   (or (= (length expr) (1+ count))
-      (error "WebJump URL builtin \"%s\" for \"%s\" needs %d args."
+      (error "WebJump URL builtin \"%s\" for \"%s\" needs %d args"
 	     (aref expr 0) name count)))
 
 (defun webjump-choose-mirror (name urls)
@@ -400,4 +400,4 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 (provide 'webjump)
 
-;; webjump.el ends here
+;;; webjump.el ends here

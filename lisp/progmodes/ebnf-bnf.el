@@ -1,11 +1,11 @@
-;;; ebnf-bnf --- Parser for EBNF
+;;; ebnf-bnf.el --- parser for EBNF
 
 ;; Copyright (C) 1999, 2000 Free Sofware Foundation, Inc.
 
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2000/12/19 15:29:04 vinicius>
+;; Time-stamp: <2001-07-15 01:02:12 pavel>
 ;; Version:    1.5
 
 ;; This file is part of GNU Emacs.
@@ -107,7 +107,7 @@
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; code:
+;;; Code:
 
 
 (require 'ebnf-otz)
@@ -132,7 +132,7 @@
     (goto-char start)
     (setq token (ebnf-bnf-lex))
     (and (eq token 'end-of-input)
-	 (error "Invalid EBNF file format."))
+	 (error "Invalid EBNF file format"))
     (while (not (eq token 'end-of-input))
       (ebnf-message-float
        "Parsing...%s%%"
@@ -154,12 +154,12 @@
 	body)
     (setq ebnf-action nil)
     (or (eq token 'non-terminal)
-	(error "Invalid header production."))
+	(error "Invalid header production"))
     (or (eq (ebnf-bnf-lex) 'equal)
-	(error "Invalid production: missing `='."))
+	(error "Invalid production: missing `='"))
     (setq body (ebnf-body))
     (or (eq (car body) 'period)
-	(error "Invalid production: missing `.'."))
+	(error "Invalid production: missing `.'"))
     (setq body (cdr body))
     (ebnf-eps-add-production header)
     (cons (ebnf-bnf-lex)
@@ -217,7 +217,7 @@
        (let ((kind (ebnf-node-kind node)))
 	 (cond
 	  ((eq kind 'ebnf-generate-non-terminal)
-	   (error "Exception sequence should not contain a non-terminal."))
+	   (error "Exception sequence should not contain a non-terminal"))
 	  ((eq kind 'ebnf-generate-repeat)
 	   (ebnf-no-non-terminal (ebnf-node-separator node)))
 	  ((memq kind '(ebnf-generate-optional ebnf-generate-except))
@@ -240,7 +240,7 @@
       (ebnf-term token)
     (let ((times ebnf-bnf-lex))
       (or (eq (ebnf-bnf-lex) 'repeat)
-	  (error "Missing `*'."))
+	  (error "Missing `*'"))
       (ebnf-token-repeat times (ebnf-term (ebnf-bnf-lex))))))
 
 
@@ -314,13 +314,13 @@
    ((eq token 'begin-group)
     (let ((body (ebnf-body)))
       (or (eq (car body) 'end-group)
-	  (error "Missing `)'."))
+	  (error "Missing `)'"))
       (cdr body)))
    ;; optional
    ((eq token 'begin-optional)
     (let ((body (ebnf-body)))
       (or (eq (car body) 'end-optional)
-	  (error "Missing `]'."))
+	  (error "Missing `]'"))
       (ebnf-token-optional (cdr body))))
    ;; list
    ((eq token 'begin-list)
@@ -341,7 +341,7 @@
        ((eq token 'end-zero-or-more)
 	(ebnf-make-zero-or-more list-part sep-part))
        (t
-	(error "Missing `}+', `}*' or `}'."))
+	(error "Missing `}+', `}*' or `}'"))
        )))
    ;; no term
    (t
@@ -441,7 +441,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character."))
+	(error "Illegal character"))
        ;; default
        ((eq token 'default)
 	(forward-char)
@@ -450,7 +450,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	    (prog1
 		(ebnf-bnf-lex)
 	      (setq ebnf-default-p t))
-	  (error "Illegal `default' element.")))
+	  (error "Illegal `default' element")))
        ;; integer
        ((eq token 'integer)
 	(setq ebnf-bnf-lex (ebnf-buffer-substring "0-9"))
@@ -533,7 +533,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	 (forward-char)
 	 t)
 	(t
-	 (error "Illegal character."))
+	 (error "Illegal character"))
 	))
 
 

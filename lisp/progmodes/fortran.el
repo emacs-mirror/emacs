@@ -813,7 +813,7 @@ See also `fortran-window-create-momentarily'."
 	  (other-window 1)
 	  (switch-to-buffer " fortran-window-extra" t)
 	  (select-window (previous-window))))
-    (error (message "No room for Fortran window.")
+    (error (message "No room for Fortran window")
 	   'error)))
 
 (defun fortran-window-create-momentarily (&optional arg)

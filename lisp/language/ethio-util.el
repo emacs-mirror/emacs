@@ -24,6 +24,8 @@
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 
+;;; Commentary:
+
 ;;; Code:
 
 ;; Information for exiting Ethiopic environment.
@@ -1296,7 +1298,7 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
 	    composite t))
      ;; neither gemination nor fidel
      ((not (eq (char-charset ch) 'ethiopic))
-      (error "Not a valid character.")))
+      (error "Not a valid character")))
 
     ;; set frequently referred character features
     (setq ch     (ethio-char-to-ethiocode ch)
@@ -1306,7 +1308,7 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
     (if (or (and (>= ch 344) (<= ch 380)) ;; mYa - `10000
 	    (and (>= ch 448) (<= ch 452)) ;; \~X - \~A
 	    (>= ch 458))		  ;; private punctuations
-	(error "Not a valid character."))
+	(error "Not a valid character"))
 
     (setq
      newch

@@ -1,4 +1,4 @@
-;;; windmove.el --- directional window-selection routines.
+;;; windmove.el --- directional window-selection routines
 ;;
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 ;;

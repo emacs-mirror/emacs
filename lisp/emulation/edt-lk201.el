@@ -1,4 +1,4 @@
-;;; edt-lk201.el --- Enhanced EDT Keypad Mode Emulation for LK-201 Keyboards
+;;; edt-lk201.el --- enhanced EDT keypad mode emulation for LK-201 keyboards
 
 ;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Usage:
+;;; Commentary:
 
 ;;  See edt-user.doc in the Emacs etc directory.
 
@@ -39,6 +39,9 @@
 ;; F1 - F5 are not available on many DEC VT series terminals.
 ;; However, this is not always the case.  So support for F1 - F5 is
 ;; provided here and in lisp/term/lk201.el.
+
+;;; Code:
+
 (defconst *EDT-keys*
   '(("KP0" . [kp-0]) ("KP1" . [kp-1]) ("KP2" . [kp-2]) ("KP3" . [kp-3]) 
     ("KP4" . [kp-4]) ("KP5" . [kp-5]) ("KP6" . [kp-6]) ("KP7" . [kp-7])
@@ -53,3 +56,5 @@
     ("F11" . [f11]) ("F12" . [f12]) ("F13" . [f13]) ("F14" . [f14])
     ("HELP" . [help]) ("DO" . [menu]) ("F17" . [f17]) ("F18" . [f18])
     ("F19" . [f19]) ("F20" . [f20])))
+
+;;; edt-lk201.el ends here

@@ -1,4 +1,4 @@
-;;; mailheader.el --- Mail header parsing, merging, formatting
+;;; mailheader.el --- mail header parsing, merging, formatting
 
 ;; Copyright (C) 1996 by Free Software Foundation, Inc.
 

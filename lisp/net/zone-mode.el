@@ -1,4 +1,4 @@
-;;; zone-mode.el -- major mode for editing DNS zone files.
+;;; zone-mode.el --- major mode for editing DNS zone files
 
 ;; Copyright (C) 1998 Free Software Foundation, Inc.
 
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;;
 ;;; See the comments in ``define-derived-mode zone-mode''
@@ -52,7 +54,7 @@
 	       ((not (string= old-date cur-date))
 		"00") ;; reset sequeence number
 	       ((>= old-seq-num 99)
-		(error "Serial number's sequenece cannot increment beyond 99."))
+		(error "Serial number's sequenece cannot increment beyond 99"))
 	       (t
 		(format "%02d" (1+ old-seq-num)))))
 	     (old-serial (concat old-date old-seq))

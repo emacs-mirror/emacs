@@ -1,4 +1,4 @@
-;;; pcomplete --- programmable completion
+;;; pcomplete.el --- programmable completion
 
 ;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation
 

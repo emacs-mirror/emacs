@@ -1,4 +1,4 @@
-;; recentf.el --- setup a menu of recently opened files
+;;; recentf.el --- setup a menu of recently opened files
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 

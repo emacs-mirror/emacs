@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.18 2001/02/01 17:42:03 fx Exp $
+;; $Id: vc-rcs.el,v 1.19 2001/03/10 10:50:16 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary:   see vc.el
+;;; Commentary:
+
+;; See vc.el
 
 ;;; Code:
 

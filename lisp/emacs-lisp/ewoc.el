@@ -1,4 +1,4 @@
-;;; ewoc.el -- Utility to maintain a view of a list of objects in a buffer
+;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer
 
 ;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000   Free Software Foundation
 

@@ -165,4 +165,4 @@ copyright, if any, are updated as well."
 ;; coding: emacs-mule
 ;; End:
 
-;; copyright.el ends here
+;;; copyright.el ends here

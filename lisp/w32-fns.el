@@ -1,4 +1,4 @@
-;;; w32-fns.el --- Lisp routines for Windows NT.
+;;; w32-fns.el --- Lisp routines for Windows NT
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 

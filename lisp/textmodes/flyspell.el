@@ -1,11 +1,11 @@
-;;; flyspell.el --- On-the-fly spell checker
+;;; flyspell.el --- on-the-fly spell checker
 
 ;; Copyright (C) 1998, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@unice.fr>
 ;; Keywords: convenience
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -2096,4 +2096,5 @@ This function is meant to be added to 'flyspell-incorrect-hook'."
   (set (abbrev-symbol old table) new))
   
 (provide 'flyspell)
+
 ;;; flyspell.el ends here

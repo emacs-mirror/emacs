@@ -1,4 +1,4 @@
-;;; speedbar --- quick access to files and tags in a frame
+;;; speedbar.el --- quick access to files and tags in a frame
 
 ;;; Copyright (C) 1996, 97, 98, 99, 2000, 01 Free Software Foundation
 
@@ -4337,7 +4337,8 @@ If we have an image associated with it, use that image."
 	    (def-edebug-spec speedbar-with-writable def-body)))
 
 (provide 'speedbar)
-;;; speedbar ends here
 
 ;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
+
+;;; speedbar.el ends here

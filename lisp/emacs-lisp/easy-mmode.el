@@ -1,4 +1,4 @@
-;;; easy-mmode.el --- easy definition for major and minor modes.
+;;; easy-mmode.el --- easy definition for major and minor modes
 
 ;; Copyright (C) 1997,2000  Free Software Foundation, Inc.
 

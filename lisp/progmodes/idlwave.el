@@ -4,10 +4,10 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.7
-;; Date: $Date: 2000/12/11 12:44:44 $
+;; Date: $Date: 2000/12/19 11:12:40 $
 ;; Keywords: languages
 
-;; This file is part of the GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -4256,7 +4256,7 @@ will pop up."
 		(file-name-directory idlwave-libinfo-file))
 	       (not (string= "" (file-name-nondirectory 
 				 idlwave-libinfo-file))))
-    (error "`idlwave-libinfo-file' does not point to file in accessible directory."))
+    (error "`idlwave-libinfo-file' does not point to file in accessible directory"))
   
   (cond
    ((and arg idlwave-path-alist
@@ -5952,7 +5952,7 @@ The list is cashed in `idlwave-class-info' for faster access."
 	(let* ((class (nth 2 (idlwave-current-routine))))
 	  ;; Check if we are in a class routine
 	  (unless class
-	    (error "Not in a method procedure or function."))
+	    (error "Not in a method procedure or function"))
 	  ;; Check if we need to update the "current" class
 	  (if (not (equal class idlwave-current-tags-class))
 	      (idlwave-prepare-class-tag-completion class))
@@ -6200,7 +6200,7 @@ Works for system routines and keywords only."
   (if idlwave-help-is-loaded
       t  ;; everything is OK.
     (let* ((dir (or (idlwave-help-directory)
-		    (error "Online Help is not installed (idlwave-help-directory is unknown).")))
+		    (error "Online Help is not installed (idlwave-help-directory is unknown)")))
 	   (lfile1 (expand-file-name "idlw-help.elc" dir))
 	   (lfile2 (expand-file-name "idlw-help.el" dir))
 	   (hfile (expand-file-name "idlw-help.txt" dir)))
@@ -6260,7 +6260,7 @@ prefix arg, the class property is cleared out."
       (if (car module)
 	  (apply 'idlwave-display-calling-sequence
 		 (idlwave-fix-module-if-obj_new module))
-	(error "Don't know which calling sequence to show.")))))
+	(error "Don't know which calling sequence to show")))))
 
 (defun idlwave-resolve (&optional arg)
   "Call RESOLVE on the module name at point.
@@ -6364,10 +6364,10 @@ use.  With ARG force class query for object methods."
      ((null entry)
       (error "Nothing known about a module %s" name2))
      ((eq (car source) 'system)
-      (error "Source code for system routine %s is not available." 
+      (error "Source code for system routine %s is not available" 
 	     name2))
      ((equal (cdr source) "")
-      (error "Source code for routine %s is not available."
+      (error "Source code for routine %s is not available"
 	     name2))
      ((memq (car source) '(buffer lib compiled))
       (setq buf1 
@@ -6663,7 +6663,7 @@ If we do not know about MODULE, just return KEYWORD literally."
       (error "No %s %s known %s" type name
 	     (if initial-class (concat "in class " initial-class) "")))
      ((or (null name) (equal name ""))
-      (error "No function or procedure call at point."))
+      (error "No function or procedure call at point"))
      ((null calling-seq)
       (error "Calling sequence of %s %s is not available" type name))
      (t
@@ -6945,7 +6945,7 @@ with this command."
 	(not (idlwave-shell-is-running)))
     (error "Shell is not running"))
    ((null idlwave-compiled-routines)
-    (error "No compiled routines.  Maybe you need to update with `C-c C-i'."))
+    (error "No compiled routines.  Maybe you need to update with `C-c C-i'"))
    (t
     (idlwave-list-load-path-shadows nil idlwave-compiled-routines
 				    "in the shell"))))
@@ -7603,5 +7603,3 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 (provide 'idlwave)
 
 ;;; idlwave.el ends here
-
-

@@ -1,4 +1,4 @@
-;;; apropos.el --- apropos commands for users and programmers.
+;;; apropos.el --- apropos commands for users and programmers
 
 ;; Copyright (C) 1989, 1994, 1995 Free Software Foundation, Inc.
 

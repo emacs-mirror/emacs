@@ -284,4 +284,4 @@ file modes."
 
 (provide 'executable)
 
-;; executable.el ends here
+;;; executable.el ends here

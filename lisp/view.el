@@ -1,4 +1,4 @@
-;;; view.el --- peruse file or buffer without editing.
+;;; view.el --- peruse file or buffer without editing
 
 ;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000
 ;;   Free Software Foundation, Inc.

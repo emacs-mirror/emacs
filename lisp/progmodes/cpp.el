@@ -1,4 +1,4 @@
-;;; cpp.el --- Highlight or hide text according to cpp conditionals.
+;;; cpp.el --- highlight or hide text according to cpp conditionals
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation
 

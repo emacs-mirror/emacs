@@ -172,4 +172,4 @@
 ;;;		  "m4_syscmd" "m4_sysval" "m4_traceoff" "m4_traceon" "m4_translit" 
 ;;;		  "m4_m4_undefine" "m4_undivert"))
 
-;;; m4.el ends here
+;;; m4-mode.el ends here

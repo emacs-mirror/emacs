@@ -1,4 +1,4 @@
-;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later.
+;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001 Free Software Foundation
 
@@ -77,7 +77,7 @@
 ;; Boy, that's a tough one.  Probably Hong Min, or maybe Emperor's
 ;; Choice (both in Chicago's Chinatown).  Well, both.  How about you?
 
-;;;; Code:
+;;; Code:
 
 (require 'pp)
 

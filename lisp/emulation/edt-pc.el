@@ -1,4 +1,4 @@
-;;; edt-pc.el --- Enhanced EDT Keypad Mode Emulation for PC 101 Keyboards
+;;; edt-pc.el --- enhanced EDT keypad mode emulation for PC 101 keyboards
 
 ;; Copyright (C) 1986, 1994, 1995 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Usage:
+;;; Commentary:
 
 ;;  See edt-user.doc in the Emacs etc directory.
 
@@ -68,6 +68,9 @@
 ;; and F17 through F20 do not exist on the PC, so the EDT emulation is
 ;; configured below to ignore attempts to bind functions to those keys.
 ;;
+
+;;; Code:
+
 (defconst *EDT-keys*
   '(("KP0" . [kp-0]) ("KP1" . [kp-1]) ("KP2" . [kp-2]) ("KP3" . [kp-3]) 
     ("KP4" . [kp-4]) ("KP5" . [kp-5]) ("KP6" . [kp-6]) ("KP7" . [kp-7])
@@ -83,3 +86,5 @@
     ("F11" . [f11]) ("F12" . [f12]) ("F13" . "" ) ("F14" . "" )
     ("HELP" . "" ) ("DO" . "" ) ("F17" . "" ) ("F18" . "" )
     ("F19" . "" ) ("F20" . "" )))
+
+;;; edt-pc.el ends here

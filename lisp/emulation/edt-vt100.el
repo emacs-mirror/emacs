@@ -1,4 +1,4 @@
-;;; edt-vt100.el --- Enhanced EDT Keypad Mode Emulation for VT Series Terminals
+;;; edt-vt100.el --- enhanced EDT keypad mode emulation for VT series terminals
 
 ;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
 
@@ -23,12 +23,15 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Usage:
+;;; Commentary:
 
 ;;  See edt-user.doc in the Emacs etc directory.
 
 ;; ====================================================================
 
+
+;;; Code:
+
 ;; Get keyboard function key mapping to EDT keys.
 (load "edt-lk201" nil t)
 
@@ -42,3 +45,5 @@
 (defun edt-set-term-width-132 ()
   "Set terminal width to 132 columns."
   (vt100-wide-mode 1))
+
+;;; edt-vt100.el ends here

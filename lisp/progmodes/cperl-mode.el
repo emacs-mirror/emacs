@@ -1001,7 +1001,7 @@ the faces: please specify bold, italic, underline, shadow and box.)
       (defmacro cperl-ps-extend-face-list (arg)
 	`(ps-extend-face-list ,arg))
     (defmacro cperl-ps-extend-face-list (arg)
-      `(error "This version of Emacs has no `ps-extend-face-list'.")))
+      `(error "This version of Emacs has no `ps-extend-face-list'")))
   ;; Calling `cperl-enable-font-lock' below doesn't compile on XEmacs,
   ;; macros instead of defsubsts don't work on Emacs, so we do the
   ;; expansion manually.  Any other suggestions?

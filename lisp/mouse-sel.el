@@ -1,4 +1,4 @@
-;;; mouse-sel.el --- Multi-click selection support for Emacs 19
+;;; mouse-sel.el --- multi-click selection support for Emacs 19
 
 ;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -737,4 +737,4 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
 
 (provide 'mouse-sel)
 
-;; mouse-sel.el ends here.
+;;; mouse-sel.el ends here

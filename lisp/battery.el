@@ -1,4 +1,4 @@
-;;; battery.el --- display battery status information.
+;;; battery.el --- display battery status information
 
 ;; Copyright (C) 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
 

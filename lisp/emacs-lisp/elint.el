@@ -1,4 +1,4 @@
-;;; elint.el -- Lint Emacs Lisp
+;;; elint.el --- Lint Emacs Lisp
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -806,4 +806,3 @@ If no documentation could be found args will be `unknown'."
 (provide 'elint)
 
 ;;; elint.el ends here
-

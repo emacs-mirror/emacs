@@ -1,4 +1,4 @@
-;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode.
+;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
 
 ;; Copyright (C) 1995,1998  Free Software Foundation, Inc.
 
@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;; INTRODUCTION
 ;; ------------
@@ -81,6 +83,8 @@
 ;;
 ;; Enabling global-font-lock-mode is also sufficient.
 ;;
+
+;;; Code:
 
 ;;;----------------------------------------------------------------------------
 ;;
@@ -713,4 +717,4 @@ controls whether case is significant."
 
 (provide 'snmp-mode)
 
-;; snmp-mode.el ends here
+;;; snmp-mode.el ends here

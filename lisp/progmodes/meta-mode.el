@@ -1,4 +1,4 @@
-;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources.
+;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 

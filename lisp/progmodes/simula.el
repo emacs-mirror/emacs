@@ -259,7 +259,7 @@ for SIMULA mode to function correctly."
 					       (match-beginning 2)
 					       (match-end 2)))))
     (if (not (and major minor))
-	(error "Cannot figure out the major and minor version numbers."))
+	(error "Cannot figure out the major and minor version numbers"))
     ;; calculate the major version
     (cond
      ((= major 18) (setq major 'v18))	;Emacs 18

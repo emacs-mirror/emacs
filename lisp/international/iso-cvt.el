@@ -1,4 +1,4 @@
-;;; iso-cvt.-el -- translate ISO 8859-1 from/to various encodings -*- coding: iso-latin-1 -*-
+;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- coding: iso-latin-1 -*-
 ;; This file was formerly called gm-lingo.el.
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1998, 2000 Free Software Foundation, Inc.

@@ -718,7 +718,7 @@ to the same line in the pages buffer."
       (progn
 	(setq pages-buffer nil
 	      pages-pos-list nil)
-	(error "Buffer in which pages were found is deleted.")))
+	(error "Buffer in which pages were found is deleted")))
   (beginning-of-line)
   (let* ((pages-number (1- (count-lines (point-min) (point))))
 	 (pos (nth pages-number pages-pos-list))
@@ -806,5 +806,4 @@ to the same line in the pages buffer."
 ;;; Place `provide' at end of file.
 (provide 'page-ext)
 
-;;;;;;;;;;;;;;;; end of page-ext.el ;;;;;;;;;;;;;;;;
-
+;;; page-ext.el ends here

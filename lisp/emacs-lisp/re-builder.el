@@ -1,4 +1,4 @@
-;;; re-builder.el --- Building Regexps with visual feedback
+;;; re-builder.el --- building Regexps with visual feedback
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 

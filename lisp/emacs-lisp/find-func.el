@@ -43,7 +43,7 @@
 ;; ("help.el") and `fff-find-loaded-emacs-lisp-function' (Noah Friedman's
 ;; "fff.el").
 
-;;;; Code:
+;;; Code:
 
 (require 'loadhist)
 

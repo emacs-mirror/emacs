@@ -1,4 +1,4 @@
-;;; checkdoc --- Check documentation strings for style requirements
+;;; checkdoc.el --- check documentation strings for style requirements
 
 ;;;  Copyright (C) 1997, 1998, 2001  Free Software Foundation
 

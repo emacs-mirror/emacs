@@ -77,6 +77,8 @@
 ;;    other programs.
 ;;
 
+;;; Code:
+
 ;;;; Customization:
 (defgroup pc-select nil
   "Emulate pc bindings."

@@ -1,4 +1,4 @@
-;;; antlr-mode.el --- Major mode for ANTLR grammar files
+;;; antlr-mode.el --- major mode for ANTLR grammar files
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
@@ -1532,8 +1532,6 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 		     indent-tabs-mode (cadddr elem)
 		     alist nil))))))
 
-;;; antlr-mode.el ends here
-
 ; LocalWords:  antlr ANother ANTLR's Cpp Lexer TreeParser esp refs VALUEs ea ee
 ; LocalWords:  Java's Nomencl ruledef tokendef ruleref tokenref setType ader ev
 ; LocalWords:  ivate syntab lexer treeparser lic rotected rivate bor boi AFAIK
@@ -1541,3 +1539,5 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 ; LocalWords:  VOCAB EVOCAB Antlr's TokenTypes exportVocab incl excl SUPERS gen
 ; LocalWords:  VOCABS IVOCAB exportVocabs importVocabs superclasses vocab kens
 ; LocalWords:  sclass evocab ivocab importVocab deps glibs supers sep dep lang
+
+;;; antlr-mode.el ends here

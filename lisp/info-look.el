@@ -1,4 +1,4 @@
-;;; info-look.el --- major-mode-sensitive Info index lookup facility.
+;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.

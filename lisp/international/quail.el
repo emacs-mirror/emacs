@@ -1,4 +1,4 @@
-;;; quail.el --- Provides simple input method for multilingual text
+;;; quail.el --- provides simple input method for multilingual text
 
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

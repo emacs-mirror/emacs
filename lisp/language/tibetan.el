@@ -1,4 +1,4 @@
-;;; tibetan.el --- Support for Tibetan language -*- coding: iso-2022-7bit; -*-
+;;; tibetan.el --- support for Tibetan language -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -28,6 +28,8 @@
 
 ;; History:
 ;; 1997.03.13 Modification for special signs and punctuations. 
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -625,4 +627,4 @@ This also matches some punctuation characters which need conversion.")
 
 (provide 'tibetan)
 
-;;; language/tibetan.el ends here
+;;; tibetan.el ends here

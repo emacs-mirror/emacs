@@ -946,4 +946,4 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 
 (provide 'complete)
 
-;;; End.
+;;; complete.el ends here

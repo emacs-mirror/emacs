@@ -1,4 +1,4 @@
-;;; romanian.el --- Support for Romanian -*- coding: iso-latin-2; -*-
+;;; romanian.el --- support for Romanian -*- coding: iso-latin-2; -*-
 
 ;; Copyright (C) 1998 Free Software Foundation.
 
@@ -43,5 +43,4 @@
 
 (provide 'romanian)
 
-;; romanian.el ends here
-
+;;; romanian.el ends here

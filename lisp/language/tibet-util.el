@@ -26,10 +26,12 @@
 
 ;; Created: Feb. 17. 1997
 
-;; History:
+;;; History:
 ;; 1997.03.13 Modification in treatment of text properties;
 ;;            Support for some special signs and punctuations.
 ;; 1999.10.25 Modification for a new composition way by K.Handa.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -350,4 +352,4 @@ See also docstring of the function tibetan-compose-region."
 
 (provide 'tibet-util)
 
-;;; language/tibet-util.el ends here.
+;;; tibet-util.el ends here

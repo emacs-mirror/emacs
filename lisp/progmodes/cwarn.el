@@ -1,4 +1,4 @@
-;;; cwarn.el --- Highlight suspicious C and C++ constructions.
+;;; cwarn.el --- highlight suspicious C and C++ constructions
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; tool-bar.el --- Setting up the tool bar
+;;; tool-bar.el --- setting up the tool bar
 ;;
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 ;;

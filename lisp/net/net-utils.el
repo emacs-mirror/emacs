@@ -1,11 +1,11 @@
-;;; net-utils.el --- Network functions
+;;; net-utils.el --- network functions
 
 ;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
-;; Time-stamp: <2000-10-04 22:39:05 pbreton>
+;; Time-stamp: <2001-07-15 00:34:52 pavel>
 
 ;; This file is part of GNU Emacs.
 

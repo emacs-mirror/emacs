@@ -1,4 +1,4 @@
-;;; which-func.el --- Print current function in mode line
+;;; which-func.el --- print current function in mode line
 
 ;; Copyright (C) 1994, 1997, 1998, 2001 Free Software Foundation, Inc.
 
@@ -219,4 +219,4 @@ If no function name is found, return nil."
 
 (provide 'which-func)
 
-;; which-func.el ends here
+;;; which-func.el ends here

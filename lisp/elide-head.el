@@ -1,4 +1,4 @@
-;;; elid-head.el --- hide headers in files
+;;; elide-head.el --- hide headers in files
 
 ;; Copyright (C) 1999 Free Software Foundation, Inc.
 

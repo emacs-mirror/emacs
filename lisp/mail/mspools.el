@@ -1,4 +1,4 @@
-;;; mspools.el --- show mail spools waiting to be read.
+;;; mspools.el --- show mail spools waiting to be read
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -403,5 +403,5 @@ nil."
       nil)))
 
 (provide 'mspools)
-;;; mspools.el ends here
 
+;;; mspools.el ends here

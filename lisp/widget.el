@@ -1,4 +1,4 @@
-;;; widget.el --- a library of user interface components.
+;;; widget.el --- a library of user interface components
 ;;
 ;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 ;;
@@ -95,4 +95,4 @@ The third argument DOC is a documentation string for the widget."
 
 (provide 'widget)
 
-;; widget.el ends here
+;;; widget.el ends here

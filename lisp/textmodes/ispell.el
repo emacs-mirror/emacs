@@ -1,9 +1,9 @@
-;;; ispell.el --- Interface to International Ispell Versions 3.1 and 3.2
+;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
-;; Author:	     Ken Stevens <k.stevens@ieee.org>
-;; Maintainer:	     Ken Stevens <k.stevens@ieee.org>
+;; Author:           Ken Stevens <k.stevens@ieee.org>
+;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
 ;; Stevens Mod Date: Fri Aug  4 09:41:50 PDT 2000
 ;; Stevens Revision: 3.4
 ;; Status          : Release with 3.1.12+ and 3.2.0+ ispell.
@@ -1357,7 +1357,7 @@ quit          spell session exited."
 	(setq ispell-filter (cdr ispell-filter)) ; remove extra \n
 	(if (and ispell-filter (listp ispell-filter))
 	    (if (> (length ispell-filter) 1)
-		(error "Ispell and its process have different character maps.")
+		(error "Ispell and its process have different character maps")
 	      (setq poss (ispell-parse-output (car ispell-filter)))))
 	(cond ((eq poss t)
 	       (or quietly

@@ -1,4 +1,4 @@
-;;; s-region.el --- set region using shift key.
+;;; s-region.el --- set region using shift key
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
@@ -121,4 +121,4 @@ to global keymap."
 
 (provide 's-region)
 
-;; s-region.el ends here.
+;;; s-region.el ends here

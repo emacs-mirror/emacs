@@ -7,7 +7,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: minibuffer, window, frame, display
 
-;; $Id: rsz-mini.el,v 1.27 1999/09/13 20:49:05 gerd Exp $
+;; $Id: rsz-mini.el,v 1.28 2000/12/06 19:36:57 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -81,4 +81,4 @@
 
 (provide 'rsz-mini)
 
-;; rsz-mini.el ends here
+;;; rsz-mini.el ends here

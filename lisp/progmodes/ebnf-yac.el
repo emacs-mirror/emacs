@@ -1,11 +1,11 @@
-;;; ebnf-yac --- Parser for Yacc/Bison
+;;; ebnf-yac.el --- parser for Yacc/Bison
 
 ;; Copyright (C) 1999, 2000 Free Sofware Foundation, Inc.
 
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2000/12/19 15:47:23 vinicius>
+;; Time-stamp: <2001-07-15 01:04:02 pavel>
 ;; Version:    1.1
 
 ;; This file is part of GNU Emacs.
@@ -70,7 +70,7 @@
 ;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; code:
+;;; Code:
 
 
 (require 'ebnf-otz)
@@ -109,9 +109,9 @@
     (goto-char start)
     (setq token (ebnf-yac-lex))
     (and (eq token 'end-of-input)
-	 (error "Invalid Yacc/Bison file format."))
+	 (error "Invalid Yacc/Bison file format"))
     (or (eq (ebnf-yac-definitions token) 'yac-separator)
-	(error "Missing `%%%%'."))
+	(error "Missing `%%%%'"))
     (setq token (ebnf-yac-lex))
     (while (not (memq token '(end-of-input yac-separator)))
       (ebnf-message-float
@@ -140,9 +140,9 @@
 	      (setq token (ebnf-yac-lex))
 	      (when (eq token 'open-angle)
 		(or (eq (ebnf-yac-lex) 'non-terminal)
-		    (error "Missing type name."))
+		    (error "Missing type name"))
 		(or (eq (ebnf-yac-lex) 'close-angle)
-		    (error "Missing `>'."))
+		    (error "Missing `>'"))
 		(setq token (ebnf-yac-lex)))
 	      (setq token               (ebnf-yac-name-list token)
 		    ebnf-yac-token-list (nconc (cdr token)
@@ -163,12 +163,12 @@
 	body)
     (setq ebnf-action nil)
     (or (eq token 'non-terminal)
-	(error "Invalid rule name."))
+	(error "Invalid rule name"))
     (or (eq (ebnf-yac-lex) 'colon)
-	(error "Invalid rule: missing `:'."))
+	(error "Invalid rule: missing `:'"))
     (setq body (ebnf-yac-alternative))
     (or (eq (car body) 'period)
-	(error "Invalid rule: missing `;'."))
+	(error "Invalid rule: missing `;'"))
     (setq body (cdr body))
     (ebnf-eps-add-production header)
     (cons (ebnf-yac-lex)
@@ -243,7 +243,7 @@
 		     token (ebnf-yac-lex))
 	       (eq token 'comma))
 	(or (eq (ebnf-yac-lex) 'non-terminal)
-	    (error "Missing token name."))))
+	    (error "Missing token name"))))
     (cons token names)))
 
 
@@ -332,7 +332,7 @@ See documentation for variable `ebnf-yac-lex'."
 	'end-of-input)
        ;; error
        ((eq token 'error)
-	(error "Illegal character."))
+	(error "Illegal character"))
        ;; "string"
        ((eq token 'string)
 	(setq ebnf-yac-lex (ebnf-get-string))
@@ -405,7 +405,7 @@ See documentation for variable `ebnf-yac-lex'."
        ((= (following-char) ?\')
 	(ebnf-string " -&(-~" ?\' "character"))
        (t
-	(error "Illegal character."))
+	(error "Illegal character"))
        )))
   (ebnf-yac-skip-spaces))
 
@@ -448,7 +448,7 @@ See documentation for variable `ebnf-yac-lex'."
     (while not-end
       (skip-chars-forward ebnf-yac-comment-chars ebnf-limit)
       (cond ((>= (point) ebnf-limit)
-	     (error "Missing end of comment: `*/'."))
+	     (error "Missing end of comment: `*/'"))
 	    ((= (following-char) ?*)
 	     (skip-chars-forward "*" ebnf-limit)
 	     (when (= (following-char) ?/)
@@ -456,7 +456,7 @@ See documentation for variable `ebnf-yac-lex'."
 	       (forward-char)
 	       (setq not-end nil)))
 	    (t
-	     (error "Illegal character."))
+	     (error "Illegal character"))
 	    ))))
 
 

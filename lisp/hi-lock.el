@@ -1,4 +1,4 @@
-;;; hi-lock.el --- Minor mode for interactive automatic highlighting.
+;;; hi-lock.el --- minor mode for interactive automatic highlighting
 
 ;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary
+;;; Commentary:
 ;; 
 ;;  With the hi-lock commands text matching interactively entered
 ;;  regexp's can be highlighted.  For example, `M-x highlight-regexp

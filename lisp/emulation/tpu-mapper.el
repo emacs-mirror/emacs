@@ -1,4 +1,4 @@
-;;; tpu-mapper.el --- Create a TPU-edt X-windows keymap file
+;;; tpu-mapper.el --- create a TPU-edt X-windows keymap file
 
 ;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 

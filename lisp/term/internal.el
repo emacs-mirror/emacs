@@ -21,6 +21,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; Code:
 
 ;; ---------------------------------------------------------------------------
@@ -714,4 +716,3 @@ list.  You can (and should) also run it whenever the value of
 (standard-display-8bit 127 255)
 
 ;;; internal.el ends here
-

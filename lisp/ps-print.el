@@ -3597,7 +3597,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	    ((fboundp 'x-color-values)
 	     (ps-e-x-color-values x-color))
 	    (t
-	     (error "No available function to determine X color values."))))
+	     (error "No available function to determine X color values"))))
 
 	 (defalias 'ps-face-foreground-name 'face-foreground)
 	 (defalias 'ps-face-background-name 'face-background)
@@ -3630,7 +3630,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 		    x-color
 		  (ps-x-make-color-instance color))))
 	      (t
-	       (error "No available function to determine X color values.")))))
+	       (error "No available function to determine X color values")))))
 
 	 (defun ps-face-foreground-name (face)
 	   (ps-xemacs-color-name (face-foreground face)))
@@ -3676,7 +3676,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 	(with-temp-buffer
 	  (insert-file-contents filename)
 	  (buffer-string))
-      (error "ps-print PostScript prologue `%s' file was not found."
+      (error "ps-print PostScript prologue `%s' file was not found"
 	     filename))))
 
 

@@ -5,6 +5,8 @@
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
 
+;; This file is part of GNU Emacs.
+
 ;; Esperanto:				 English:
 
 ;; ^Ci dosiero estas ero de GNU Emacs.	 This file is part of GNU Emacs.
@@ -33,6 +35,7 @@
 ;; Free Software Foundation, 59 Temple Place - Suite 330
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
 
 ;;; Komentario:				 Commentary:
 
@@ -284,7 +287,7 @@ minus this value."
 		(kill-local-variable '2C-mode)
 		(kill-local-variable 'mode-line-format)
 		nil)))
-      (if req (error "You must first set two-column minor mode."))))
+      (if req (error "You must first set two-column minor mode"))))
 
 
 
@@ -385,7 +388,7 @@ accepting the proposed default buffer.
       (set-buffer b2)
       (and (2C-other)
 	   (not (eq b1 (2C-other)))
-	   (error "Buffer already associated with buffer `%s'."
+	   (error "Buffer already associated with buffer `%s'"
 		  (buffer-name (2C-other))))
       (setq b1 (and (assq '2C-window-width (buffer-local-variables))
 		    2C-window-width)))

@@ -318,7 +318,7 @@ PROMPT is a string to be shown when the user is asked for a new prefix."
           (format "%s (default %s): " prompt 
                   (char-to-string (eval default-prefix-var))))))
     (if (> (length prefix-string) 1)
-        (error "! Only one character expected.") 
+        (error "! Only one character expected") 
       ;; set the default prefix character to the one just read
       (set default-prefix-var
            (if (string= prefix-string "") 
@@ -333,7 +333,7 @@ Before returning a result test whether the string ENCODING is in
 the list `ogonek-name-encoding-alist'"
   (let ((code-list (assoc encoding ogonek-name-encoding-alist)))
     (if (null code-list)
-      (error "! Name `%s' not known in `ogonek-name-encoding-alist'."
+      (error "! Name `%s' not known in `ogonek-name-encoding-alist'"
                encoding)
       (cdr code-list))))
 

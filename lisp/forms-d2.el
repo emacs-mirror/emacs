@@ -3,7 +3,13 @@
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 ;; Created: 1989
 
+;; This file is part of GNU Emacs.
+
+;;; Commentary:
+
 ;; This sample forms exploit most of the features of forms mode.
+
+;;; Code:
 
 ;; Set the name of the data file.
 (setq forms-file "forms-d2.dat")
@@ -78,3 +84,5 @@ used to fill to the column."
      ))
 
 ;; That's all, folks!
+
+;;; forms-d2.el ends here

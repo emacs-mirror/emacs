@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@holonexus.org
 ;; |Edebug specs for cl.el
-;; |$Date: 2000/04/13 19:10:09 $|1.1|
+;; |$Date: 2000/08/15 12:39:03 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -26,12 +26,14 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;;; Commentary:
+;;; Commentary:
 
 ;; These specs are to be used with edebug.el version 3.3 or later and
 ;; cl.el version 2.03 or later, by Dave Gillespie <daveg@synaptics.com>.
 
 ;; This file need not be byte-compiled, but it shouldn't hurt.
+
+;;; Code:
 
 (provide 'cl-specs)
 ;; Do the above provide before the following require.
@@ -468,3 +470,4 @@
 (def-edebug-spec loop-d-type-spec
   (&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
 
+;;; cl-specs.el ends here

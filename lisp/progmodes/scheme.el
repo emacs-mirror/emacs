@@ -1,4 +1,4 @@
-;;; scheme.el --- Scheme (and DSSSL) editing mode.
+;;; scheme.el --- Scheme (and DSSSL) editing mode
 
 ;; Copyright (C) 1986, 87, 88, 97, 1998 Free Software Foundation, Inc.
 

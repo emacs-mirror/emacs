@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.40 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.41 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.40 1999/11/13 22:05:56 gerd Exp $")
+  $Id: forms.el,v 2.41 2001/02/07 23:40:52 fx Exp $")
 
 (defcustom forms-mode-hooks nil
   "Hook run upon entering Forms mode."
@@ -1219,7 +1219,7 @@ Commands:                        Equivalent keys in read-only mode:
 
       ;; Need a file to do this.
       (if (not (file-exists-p forms-file))
-	  (error "Need existing file or explicit 'forms-number-of-records'.")
+	  (error "Need existing file or explicit 'forms-number-of-records'")
 
 	;; Visit the file and extract the first record.
 	(setq forms--file-buffer (find-file-noselect forms-file))
@@ -2090,4 +2090,4 @@ Usage: (setq forms-number-of-fields
 	  (goto-char (point-max))
 	  (insert ret)))))
 
-;;; forms.el ends here.
+;;; forms.el ends here

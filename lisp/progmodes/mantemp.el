@@ -1,4 +1,4 @@
-;;; mantemp.el --- Create manual template instantiations from g++ 2.7.2 output.
+;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 

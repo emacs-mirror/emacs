@@ -33,7 +33,7 @@
   ;; The terminal initialization should already have set up some keys
   (setq AT386-keypad-map (lookup-key function-key-map "\e["))
   (if (not (keymapp AT386-keypad-map))
-      (error "What?  Your AT386 termcap/terminfo has no keycaps in it."))
+      (error "What?  Your AT386 termcap/terminfo has no keycaps in it"))
 
   ;; Equivalents of these are set up automatically by termcap/terminfo
   ;;  (define-key AT386-keypad-map "A" [up])

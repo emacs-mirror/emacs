@@ -1,4 +1,4 @@
-;;; ps-mode.el --- PostScript mode for GNU Emacs.
+;;; ps-mode.el --- PostScript mode for GNU Emacs
 
 ;; Copyright (C) 1999 Free Software Foundation, Inc.
 

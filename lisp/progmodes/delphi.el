@@ -1,4 +1,4 @@
-;; delphi.el --- Major mode for editing Delphi source (Object Pascal) in Emacs
+;;; delphi.el --- major mode for editing Delphi source (Object Pascal) in Emacs
 
 ;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 
@@ -65,11 +65,15 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.4 $"))
+  (let ((revision "$Revision: 3.5 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
+;;; Revision 3.5  2001/01/26 20:54:03  fx
+;;; (delphi-comment-face, delphi-string-face)
+;;; (delphi-keyword-face, delphi-other-face): Fix :type.
+;;;
 ;;; Revision 3.4  2000/02/09 07:04:15  blaak
 ;;; Make resourcestring a declaration region, like const and var.
 ;;;
@@ -2029,3 +2033,5 @@ no args, if that value is non-nil."
        (delphi-progress-done))))
 
   (run-hooks 'delphi-mode-hook))
+
+;;; delphi.el ends here

@@ -1,13 +1,13 @@
-;;; ps-mule.el --- Provide multi-byte character facility to ps-print.
+;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
 ;; Copyright (C) 1998,99,00,2001 Free Software Foundation, Inc.
 
-;; Author:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Author:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; 	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:	wp, print, PostScript, multibyte, mule
-;; Time-stamp:	<2001/03/16 18:50:59 Handa>
+;; 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Keywords: wp, print, PostScript, multibyte, mule
+;; Time-stamp: <2001/03/16 18:50:59 Handa>
 
 ;; This file is part of GNU Emacs.
 

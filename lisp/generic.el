@@ -1,4 +1,4 @@
-;;; generic.el --- Defining simple major modes with comment and font-lock.
+;;; generic.el --- defining simple major modes with comment and font-lock
 ;;
 ;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
 ;;

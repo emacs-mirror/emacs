@@ -1,11 +1,11 @@
-;;; whitespace.el --- Warn about and clean bogus whitespaces in the file.
+;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: $
+;; $Id: whitespace.el,v 1.15 2001/03/22 21:31:51 rv Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify

@@ -722,4 +722,3 @@ If START or END is negative, it counts from the end."
 (provide 'edmacro)
 
 ;;; edmacro.el ends here
-

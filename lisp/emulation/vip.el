@@ -817,7 +817,7 @@ is the name of the register for COM."
 	  (com (car (cdr (cdr vip-d-com))))
 	  (reg (nth 3 vip-d-com)))
       (if (null val) (setq val (car (cdr vip-d-com))))
-      (if (null m-com) (error "No previous command to repeat."))
+      (if (null m-com) (error "No previous command to repeat"))
       (setq vip-use-register reg)
       (funcall m-com (cons val com)))))
 
@@ -1499,7 +1499,7 @@ used.  This behaviour is controlled by the sign of prefix numeric value."
   (let ((com (vip-getcom arg)))
     (if (numberp arg)
 	(if (or (> arg 99) (< arg 1))
-	    (error "Prefix must be between 1 and 99.")
+	    (error "Prefix must be between 1 and 99")
 	  (goto-char
 	   (if (> (point-max) 80000)
 	       (* (/ (point-max) 100) arg)
@@ -1693,7 +1693,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   "Repeat previous search."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getcom arg)))
-    (if (null vip-s-string) (error "No previous search string."))
+    (if (null vip-s-string) (error "No previous search string"))
     (vip-search vip-s-string vip-s-forward arg)
     (if com (vip-execute-com 'vip-search-next val com))))
 
@@ -1701,7 +1701,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
   "Repeat previous search in the reverse direction."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getcom arg)))
-    (if (null vip-s-string) (error "No previous search string."))
+    (if (null vip-s-string) (error "No previous search string"))
     (vip-search vip-s-string (not vip-s-forward) arg)
     (if com (vip-execute-com 'vip-search-Next val com))))
 
@@ -1742,11 +1742,11 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
 	  (if (null buffer-name)
 	      (current-buffer)
 	    (get-buffer buffer-name)))
-    (if (null buffer) (error "Buffer %s nonexistent." buffer-name))
+    (if (null buffer) (error "Buffer %s nonexistent" buffer-name))
     (if (or (not (buffer-modified-p buffer))
 	    (y-or-n-p "Buffer is modified, are you sure? "))
 	(kill-buffer buffer)
-      (error "Buffer not killed."))))
+      (error "Buffer not killed"))))
 
 (defun vip-find-file ()
   "Visit file in the current window."

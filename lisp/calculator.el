@@ -1,10 +1,10 @@
-;;; calculator.el --- A [not so] simple calculator for Emacs.
+;;; calculator.el --- a [not so] simple calculator for Emacs
 
 ;; Copyright (C) 1998, 2000 by Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2000-11-19 20:59:59 eli>
+;; Time-stamp: <2001-07-15 11:04:11 pavel>
 
 ;; This file is part of GNU Emacs.
 

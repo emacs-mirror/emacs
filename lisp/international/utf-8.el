@@ -1,4 +1,4 @@
-;;; utf-8.el --- Limited UTF-8 decoding/encoding support
+;;; utf-8.el --- limited UTF-8 decoding/encoding support
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -375,3 +375,5 @@ lower-casing commands won't work with them."
    (valid-codes (0 . 255))))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
+
+;;; utf-8.el ends here

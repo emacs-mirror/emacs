@@ -1,4 +1,4 @@
-;;; cus-face.el -- customization support for faces.
+;;; cus-face.el --- customization support for faces
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;

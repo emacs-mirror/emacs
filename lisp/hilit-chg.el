@@ -853,11 +853,11 @@ changes are made, so \\[highlight-changes-next-change] and
     (if (buffer-modified-p buf-a)
 	(if (y-or-n-p (format "OK to save %s?  " file-a))
 		       (save-buffer buf-a)
-	  (error "Buffer must be saved before comparing with a file.")))
+	  (error "Buffer must be saved before comparing with a file")))
     (if (and existing-buf (buffer-modified-p buf-b))
 	(if (y-or-n-p (format "OK to save %s?  " file-b))
 		       (save-buffer buf-b)
-	  (error "Cannot compare with a file in an unsaved buffer.")))
+	  (error "Cannot compare with a file in an unsaved buffer")))
     (highlight-changes-mode 'active)
     (if existing-buf (with-current-buffer buf-b
 		       (highlight-changes-mode 'active)))

@@ -1,4 +1,4 @@
-;;; cust-print.el --- handles print-level and print-circle.
+;;; cust-print.el --- handles print-level and print-circle
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -689,4 +689,3 @@ See `custom-format' for the details."
 (provide 'cust-print)
 
 ;;; cust-print.el ends here
-

@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 
-;; Author:		Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>
-;; Maintainer:		Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>
-;; Keywords:		help, man, UN*X, manual
-;; Adapted-By:		Eli Zaretskii <eliz@is.elta.co.il>
-;; Version:		see `woman-version'
-;; URL:			http://centaur.maths.qmw.ac.uk/Emacs/WoMan/
+;; Author: Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>
+;; Maintainer: Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>
+;; Keywords: help, man, UN*X, manual
+;; Adapted-By: Eli Zaretskii <eliz@is.elta.co.il>
+;; Version: see `woman-version'
+;; URL: http://centaur.maths.qmw.ac.uk/Emacs/WoMan/
 
 ;; This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-;;; refer.el --- look up references in bibliography files.
+;;; refer.el --- look up references in bibliography files
 
 ;; Copyright (C) 1992, 1996 Free Software Foundation, Inc.
 
@@ -175,7 +175,7 @@ found on the last refer-find-entry or refer-find-next-entry."
          (if (looking-at
               "[ \t\n]*@\\s-*[a-zA-Z][a-zA-Z0-9]*\\s-*{\\s-*\\([^ \t\n,]+\\)\\s-*,")
              (buffer-substring (match-beginning 1) (match-end 1))
-           (error "Cannot find key for entry in file %s."
+           (error "Cannot find key for entry in file %s"
                   (car refer-saved-state))))))
     (if (not (= (point) old-point))
       (set-mark old-point))))
@@ -395,4 +395,3 @@ found on the last refer-find-entry or refer-find-next-entry."
     files))
 
 ;;; refer.el ends here
-

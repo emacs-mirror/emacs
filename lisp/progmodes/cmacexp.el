@@ -23,6 +23,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;; USAGE =============================================================
 
 ;; In C mode C-C C-e is bound to c-macro-expand.  The result of the
@@ -84,6 +86,7 @@
 ;; If the start point of the region is inside a macro definition the
 ;; macro expansion is often inaccurate.
 
+;;; Code:
 
 (require 'cc-mode)
 
