@@ -1,7 +1,7 @@
-/*  impl.c.protlii3: PROTECTION FOR LINUX (Intel 386)
+/*  impl.c.protlii3: PROTECTION FOR LINUX (INTEL 386)
  *
- *  $HopeName: MMsrc!protlii3.c(trunk.2) $
- *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
+ *  $HopeName: MMsrc!protlii3.c(trunk.3) $
+ *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * SOURCES
  *
@@ -9,17 +9,15 @@
  * Reference Manual
  *
  * .source.linux.kernel: Linux kernel source files.
- *
  */
-
 
 #include "prmcli.h"
 
 #ifndef MPS_OS_LI
-#error "protlii3.c is Linux specific, but MPS_OS_LI is not set"
+#error "protlii3.c is Linux-specific, but MPS_OS_LI is not set"
 #endif
-#ifndef MPS_ARCH_I3
-#error "protlii3.c is i386 specific, but MPS_ARCH_I3 is not set"
+#if !defined(MPS_ARCH_I3) && !defined(MPS_ARCH_I4)
+#error "protlii3.c is Intel-specific, but MPS_ARCH_I3 or MPS_ARCH_I4 is not set"
 #endif
 #ifndef PROTECTION
 #error "protlii3.c implements protection, but PROTECTION is not set"
@@ -30,7 +28,8 @@
 #include <stdlib.h>
 #include <signal.h>
 
-SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.2) $");
+SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.3) $");
+
 
 /* Useful stuff that doesn't appear to be in any header files. */
 
@@ -42,12 +41,14 @@ SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.2) $");
 #define PAGE_FAULT_ERR_WRITE      0x2
 #define PAGE_FAULT_ERR_USERMODE   0x4
 
+
 /* The previously-installed signal action, as returned by */
 /* sigaction(3).  See ProtSetup. */
 
 static struct sigaction sigNext;
 
-typedef void (*__real_lii3_sighandler_t) (int, struct sigcontext);
+
+typedef void (*__real_lii3_sighandler_t)(int, struct sigcontext);
 
 
 /* sigHandle -- protection signal handler
@@ -148,4 +149,3 @@ void ProtSetup(void)
   result = sigaction(SIGSEGV, &sa, &sigNext);
   AVER(result == 0);
 }
-
