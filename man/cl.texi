@@ -3370,7 +3370,7 @@ which were left out of Emacs Lisp.
 * Predicates on Numbers::       `plusp', `oddp', `floatp-safe', etc.
 * Numerical Functions::         `abs', `floor*', etc.
 * Random Numbers::              `random*', `make-random-state'
-* Implementation Parameters::   `most-positive-fixnum', `most-positive-float'
+* Implementation Parameters::   `most-positive-float'
 @end menu
 
 @iftex
@@ -3576,16 +3576,6 @@ This predicate returns @code{t} if @var{object} is a
 
 @noindent
 This package defines several useful constants having to with numbers.
-
-@defvar most-positive-fixnum
-This constant equals the largest value a Lisp integer can hold.
-It is typically @code{2^23-1} or @code{2^25-1}.
-@end defvar
-
-@defvar most-negative-fixnum
-This constant equals the smallest (most negative) value a Lisp
-integer can hold.
-@end defvar
 
 The following parameters have to do with floating-point numbers.
 This package determines their values by exercising the computer's
