@@ -1,3 +1,8 @@
+2005-02-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Update documentation relating to GDB Graphical
+	Interface.
+
 2005-01-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Easy Customization): Adapt menu to node name change.
