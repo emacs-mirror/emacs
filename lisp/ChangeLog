@@ -21,6 +21,8 @@
 
 2001-12-21  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/cl-indent.el (define-modify-macro): Better indent spec.
+
 	* net/ange-ftp.el (ange-ftp-file-modtime): Use save-match-data.
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): 
