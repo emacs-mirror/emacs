@@ -3,6 +3,11 @@
 @rem $HopeName: !gathconf.bat(trunk.1) $
 @rem Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
+rmdir /s w3i3mv
+nmake /f w3i3mv.nmk VARIETY=we mps_conf.lib mpsplan.lib
+nmake /f w3i3mv.nmk VARIETY=wi mps_conf.lib mpsplan.lib
+nmake /f w3i3mv.nmk VARIETY=ce mps_conf.lib mpsplan.lib
+nmake /f w3i3mv.nmk VARIETY=ci mps_conf.lib mpsplan.lib
 mkdir release
 mkdir release\include
 mkdir release\lib
@@ -17,6 +22,7 @@ copy mpsavm.h release\include
 copy mpsacl.h release\include
 copy mpscamc.h release\include
 copy mpscams.h release\include
+copy mpscawl.h release\include
 copy mpsclo.h release\include
 copy mpscmv.h release\include
 copy mpscmvff.h release\include
