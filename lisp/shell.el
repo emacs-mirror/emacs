@@ -252,7 +252,7 @@ and controlling the subjobs of the shell.  See `shell-mode'.
 See also the variable `shell-prompt-pattern'.
 
 The shell file name (sans directories) is used to make a symbol name
-such as `explicit-csh-arguments'.  If that symbol is a variable,
+such as `explicit-csh-args'.  If that symbol is a variable,
 its value is used as a list of arguments when invoking the shell.
 Otherwise, one argument `-i' is passed to the shell.
 
