@@ -334,8 +334,13 @@ When called from a program the rectangle's corners are START and END.
 The left edge of the rectangle specifies the column for insertion.
 This command does not delete or overwrite any existing text."
   (interactive "*r\nsString rectangle: ")
-  (apply-on-rectangle 'string-rectangle-line start end string
-		      (bound-and-true-p 'delete-selection-mode)))
+  ;; XEmacs tests `pending-delete-mode' here, and replaces the
+  ;; rectangle if that's on.  Using `delete-selection-mode' here would
+  ;; only be useful if `mark-even-if-inactive' is on since otherwise
+  ;; we need the mark to be active, given the interactive spec, and
+  ;; then we'd always delete.  Maybe revisit this and consider testing
+  ;; `mark-even-if-inactive' too?
+  (apply-on-rectangle 'string-rectangle-line start end string nil))
 
 (defun string-rectangle-line (startcol endcol string delete)
   (move-to-column-force startcol)
