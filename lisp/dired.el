@@ -1438,6 +1438,9 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 			     file)
 			 "\"")))))
     (and file (file-name-absolute-p file)
+	 ;; A relative file name can start with ~.
+	 ;; Don't treat it as absolute in this context.
+	 (not (eq (aref file 0) ?~))
 	 (setq already-absolute t))
     (and file buffer-file-coding-system
 	 (not file-name-coding-system)
