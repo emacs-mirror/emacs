@@ -574,11 +574,12 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
   int pid = getpid ();
 
-#ifdef PRIO_PROCESS
+#ifdef SET_EMACS_PRIORITY
   {
     extern int emacs_priority;
 
-    nice (- emacs_priority);
+    if (emacs_priority < 0)
+      nice (- emacs_priority);
   }
 #endif
 
