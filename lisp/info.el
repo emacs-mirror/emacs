@@ -475,14 +475,14 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 				 nil t)
 	      (progn
 		(search-forward "\n\^_" nil 'move)
-		(beginning-of-line))
+		(beginning-of-line)
+		(insert "\n"))
 	    ;; If none exists, add one.
 	    (goto-char (point-max))
 	    (insert "\^_\nFile: dir\tNode: " nodename "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
-	  (apply 'insert-buffer-substring (cdr (car nodes)))
-	  (insert "\n"))
+	  (apply 'insert-buffer-substring (cdr (car nodes))))
 	(setq nodes (cdr nodes)))
       ;; Kill all the buffers we just made.
       (while buffers
