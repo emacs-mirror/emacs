@@ -82,12 +82,13 @@ file to specify a local value for @code{compile-command} (@pxref{File
 Variables}).
 
   Starting a compilation displays the buffer @samp{*compilation*} in
-another window but does not select it.  The buffer's mode line tells you
-whether compilation is finished, with the word @samp{run} or @samp{exit}
-inside the parentheses.  You do not have to keep this buffer visible;
-compilation continues in any case.  While a compilation is going on, the
-string @samp{Compiling} appears in the mode lines of all windows.  When
-this string disappears, the compilation is finished.
+another window but does not select it.  The buffer's mode line tells
+you whether compilation is finished, with the word @samp{run},
+@samp{signal} or @samp{exit} inside the parentheses.  You do not have
+to keep this buffer visible; compilation continues in any case.  While
+a compilation is going on, the string @samp{Compiling} appears in the
+mode lines of all windows.  When this string disappears, the
+compilation is finished.
 
   If you want to watch the compilation transcript as it appears, switch
 to the @samp{*compilation*} buffer and move point to the end of the
@@ -104,12 +105,14 @@ follow output as it comes in.
 
 @findex kill-compilation
   When the compiler process terminates, for whatever reason, the mode
-line of the @samp{*compilation*} buffer changes to say @samp{signal}
-instead of @samp{run}.  Starting a new compilation also kills any
-running compilation, as only one can exist at any time.  However,
-@kbd{M-x compile} asks for confirmation before actually killing a
-compilation that is running.  You can also kill the compilation
-process with @kbd{M-x kill-compilation}.
+line of the @samp{*compilation*} buffer changes to say @samp{exit}
+(followed by the exit code, @samp{[0]} for a normal exit), or
+@samp{signal} (if a signal terminated the process), instead of
+@samp{run}.  Starting a new compilation also kills any running
+compilation, as only one can exist at any time.  However, @kbd{M-x
+compile} asks for confirmation before actually killing a compilation
+that is running.  You can also kill the compilation process with
+@kbd{M-x kill-compilation}.
 
 @findex recompile
   To rerun the last compilation with the same command, type @kbd{M-x
