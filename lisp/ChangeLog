@@ -1,3 +1,8 @@
+2004-02-10  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-select-utf8-or-ctext): Use compare-strings
+	instead of while loop.
+
 2004-02-10  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/macroexp.el: New file, implements `macroexpand-all'.
