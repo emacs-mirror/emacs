@@ -675,7 +675,7 @@ also the same size as FACE on FRAME, or fail."
        (setq frame nil))
   (if pattern
       ;; Note that x-list-fonts has code to handle a face with nil as its font.
-      (let ((fonts (x-list-fonts pattern face frame)))
+      (let ((fonts (x-list-fonts pattern face frame 1)))
 	(or fonts
 	    (if face
 		(if (string-match "\\*" pattern)
