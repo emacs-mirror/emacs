@@ -197,9 +197,10 @@ This command must be bound to a mouse click."
 	(split-window-horizontally
 	 (min (max new-width first-col) last-col))))))
 
-(defun mouse-drag-mode-line (start-event)
-  "Change the height of a window by dragging on the mode line."
-  (interactive "e")
+(defun mouse-drag-mode-line-1 (start-event mode-line-p)
+  "Change the height of a window by dragging on the mode or header line.
+START-EVENT is the starting mouse-event of the drag action.
+MODE-LINE-P non-nil means a mode line is dragged."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (let ((done nil)
@@ -222,6 +223,7 @@ This command must be bound to a mouse click."
 	;; move its modeline the minibuffer must be enlarged.
 	(setq should-enlarge-minibuffer
 	      (and minibuffer
+		   mode-line-p
 		   (not (one-window-p t))
 		   (= (nth 1 (window-edges minibuffer))
 		      (nth 3 (window-edges)))))
@@ -260,18 +262,26 @@ This command must be bound to a mouse click."
 		       edges (window-edges)
 		       top (nth 1 edges)
 		       bot (nth 3 edges))
-		 ;; scale back a move that would make the
-		 ;; window too short.
-		 (cond ((< (- y top -1) window-min-height)
-			(setq y (+ top window-min-height -1))))
+		 
 		 ;; compute size change needed
-		 (setq growth (- y bot -1)
-		       wconfig (current-window-configuration))
+		 (cond (mode-line-p
+			;; Scale back a move that would make the
+			;; window too short.
+			(when (< (- y top -1) window-min-height)
+			  (setq y (+ top window-min-height -1)))
+			(setq growth (- y bot -1)))
+		       (t
+			(when (< (- bot y -1) window-min-height)
+			  (setq y (- bot window-min-height -1)))
+			(setq growth (- top y -1))))
+		 (setq wconfig (current-window-configuration))
+		 
 		 ;; Check for an error case.
 		 (if (and (/= growth 0)
 			  (not minibuffer)
 			  (one-window-p t))
 		     (error "Attempt to resize sole window"))
+		 
 		 ;; grow/shrink minibuffer?
 		 (if should-enlarge-minibuffer
 		     (progn
@@ -290,7 +300,9 @@ This command must be bound to a mouse click."
 		       (enlarge-window (- growth))
 		       (select-window start-event-window))
 		   ;; no.  grow/shrink the selected window
+		   (message "growth = %d" growth)
 		   (enlarge-window growth))
+		 
 		 ;; if this window's growth caused another
 		 ;; window to be deleted because it was too
 		 ;; short, rescind the change.
@@ -303,8 +315,20 @@ This command must be bound to a mouse click."
 		 ;; around it.
 		 (if (or (/= start-nwindows (count-windows t))
 			 (and (not should-enlarge-minibuffer)
+			      mode-line-p
 			      (/= top (nth 1 (window-edges)))))
 		     (set-window-configuration wconfig)))))))))
+
+(defun mouse-drag-mode-line (start-event)
+  "Change the height of a window by dragging on the mode line."
+  (interactive "e")
+  (mouse-drag-mode-line-1 start-event t))
+
+(defun mouse-drag-header-line (start-event)
+  "Change the height of a window by dragging on the header line."
+  (interactive "e")
+  (mouse-drag-mode-line-1 start-event nil))
+
 
 (defun mouse-drag-vertical-line (start-event)
   "Change the width of a window by dragging on the vertical line."
@@ -2015,6 +2039,7 @@ and selects that window."
 (global-set-key [mode-line mouse-1] 'mouse-select-window)
 (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
 (global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
+(global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
 (global-set-key [mode-line mouse-2] 'mouse-delete-other-windows)
 (global-set-key [mode-line mouse-3] 'mouse-delete-window)
 (global-set-key [mode-line C-mouse-2] 'mouse-split-window-horizontally)
