@@ -277,6 +277,15 @@ and the file name is displayed in the echo area."
 	    ((stringp arglist)
 	     (princ arglist)
 	     (terpri))))
+    (let ((obsolete (get function 'byte-obsolete-info)))
+      (when obsolete
+        (terpri)
+        (princ "This function is obsolete")
+        (if (nth 2 obsolete) (princ (format " since %s" (nth 2 obsolete))))
+        (princ ".") (terpri)
+        (princ (if (stringp (car obsolete)) (car obsolete)
+                 (format "Use `%s' instead." (car obsolete))))
+        (terpri)))
     (let ((doc (documentation function)))
       (if doc
 	  (progn (terpri)
@@ -310,7 +319,7 @@ and the file name is displayed in the echo area."
 			   (insert
 			    "[Missing arglist.  Please make a bug report.]\n")))
 		       (goto-char (point-max)))))
-	(princ "not documented")))))
+	(princ "Not documented.")))))
 
 
 ;; Variables
@@ -428,7 +437,7 @@ it is displayed along with the global value."
 			 (format "Use `%s' instead." (car obsolete))))
 		(terpri)))
 	    (let ((doc (documentation-property variable 'variable-documentation)))
-	      (princ (or doc "not documented as a variable.")))
+	      (princ (or doc "Not documented as a variable.")))
 	  
 	    ;; Make a link to customize if this variable can be customized.
 	    ;; Note, it is not reliable to test only for a custom-type property
