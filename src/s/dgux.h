@@ -271,10 +271,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define read  sys_read
 #define write sys_write
 
-#define INTERRUPTABLE_OPEN
-#define INTERRUPTABLE_CLOSE
+#define INTERRUPTIBLE_OPEN
+#define INTERRUPTIBLE_CLOSE
 /* can't hurt to define these, even though read/write should auto restart */
-#define INTERRUPTABLE_IO
+#define INTERRUPTIBLE_IO
 
 /* Can't use sys_signal because then etc/server.c would need sysdep.o.  */
 #define signal(SIG,FUNC) berk_signal(SIG,FUNC)
