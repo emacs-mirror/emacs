@@ -1,6 +1,11 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
+C 5.0 is known to fail, most probably due to compiler bugs. Using
+Sun Solaris 2.7 Sun WorkShop 6 update 1 C release was reported
+to work without problems.
+
 * On Windows 95/98/ME, subprocesses do not terminate properly.
 
 This is a limitation of the Operating System, and can cause problems
