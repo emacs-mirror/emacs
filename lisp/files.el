@@ -1279,6 +1279,10 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 			   ;; If writing the temp file fails,
 			   ;; delete the temp file.
 			   (or succeed (delete-file tempname)))
+			 ;; Since we have created an entirely new file
+			 ;; and renamed it, make sure it gets the
+			 ;; right permission bits set.
+			 (setq setmodes (file-modes buffer-file-name))
 			 ;; We succeeded in writing the temp file,
 			 ;; so rename it.
 			 (rename-file tempname buffer-file-name t))
