@@ -187,6 +187,11 @@ char *echo_area_glyphs;
 /* This is the length of the message in echo_area_glyphs.  */
 int echo_area_glyphs_length;
 
+/* This is the window where the echo area message was displayed.
+   It is always a minibuffer window, but it may not be the
+   same window currently active as a minibuffer.  */
+Lisp_Object echo_area_window;
+
 /* true iff we should redraw the mode lines on the next redisplay */
 int update_mode_lines;
 
@@ -392,15 +397,19 @@ message2_nolog (m, len)
      cmd_error, so this must be just an informative message; toss it.  */
   else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
     {
-#ifdef MULTI_FRAME
-      Lisp_Object minibuf_frame;
+      Lisp_Object mini_window;
+      FRAME_PTR f;
 
-      choose_minibuf_frame ();
-      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
-      FRAME_SAMPLE_VISIBILITY (XFRAME (minibuf_frame));
+      /* Get the frame containing the minibuffer
+	 that the selected frame is using.  */
+      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
+
+#ifdef MULTI_FRAME
+      FRAME_SAMPLE_VISIBILITY (f);
       if (FRAME_VISIBLE_P (selected_frame)
-	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
+	  && ! FRAME_VISIBLE_P (f))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (mini_window)));
 #endif
 
       if (m)
@@ -413,10 +422,10 @@ message2_nolog (m, len)
 
       do_pending_window_change ();
       echo_area_display ();
-      update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
+      update_frame (f, 1, 1);
       do_pending_window_change ();
       if (frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*frame_up_to_date_hook) (XFRAME (XWINDOW (minibuf_window)->frame));
+	(*frame_up_to_date_hook) (f);
     }
 }
 
@@ -478,18 +487,18 @@ message (m, a1, a2, a3)
       /* The frame whose minibuffer we're going to display the message on.
 	 It may be larger than the selected frame, so we need
 	 to use its buffer, not the selected frame's buffer.  */
-      FRAME_PTR echo_frame;
-#ifdef MULTI_FRAME
-      choose_minibuf_frame ();
-      echo_frame = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
-#else
-      echo_frame = selected_frame;
-#endif
+      Lisp_Object mini_window;
+      FRAME_PTR f;
+
+      /* Get the frame containing the minibuffer
+	 that the selected frame is using.  */
+      mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+      f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
       /* A null message buffer means that the frame hasn't really been
 	 initialized yet.  Error messages get reported properly by
 	 cmd_error, so this must be just an informative message; toss it.  */
-      if (FRAME_MESSAGE_BUF (echo_frame))
+      if (FRAME_MESSAGE_BUF (f))
 	{
 	  if (m)
 	    {
@@ -500,14 +509,14 @@ message (m, a1, a2, a3)
 	      a[1] = a2;
 	      a[2] = a3;
 
-	      len = doprnt (FRAME_MESSAGE_BUF (echo_frame),
-			    FRAME_WIDTH (echo_frame), m, (char *)0, 3, a);
+	      len = doprnt (FRAME_MESSAGE_BUF (f),
+			    FRAME_WIDTH (f), m, (char *)0, 3, a);
 #else
-	      len = doprnt (FRAME_MESSAGE_BUF (echo_frame),
-			    FRAME_WIDTH (echo_frame), m, (char *)0, 3, &a1);
+	      len = doprnt (FRAME_MESSAGE_BUF (f),
+			    FRAME_WIDTH (f), m, (char *)0, 3, &a1);
 #endif /* NO_ARG_ARRAY */
 
-	      message2 (FRAME_MESSAGE_BUF (echo_frame), len);
+	      message2 (FRAME_MESSAGE_BUF (f), len);
 	    }
 	  else
 	    message1 (0);
@@ -543,12 +552,13 @@ echo_area_display ()
 {
   register int vpos;
   FRAME_PTR f;
+  Lisp_Object mini_window;
 
-#ifdef MULTI_FRAME
-  choose_minibuf_frame ();
-#endif
-
-  f = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+  /* Choose the minibuffer window for this display.
+     It is the minibuffer window used by the selected frame.  */
+  mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+  /* This is the frame that window is in.  */
+  f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 
   if (! FRAME_VISIBLE_P (f))
     return;
@@ -561,9 +571,11 @@ echo_area_display ()
 
   if (echo_area_glyphs || minibuf_level == 0)
     {
-      vpos = XFASTINT (XWINDOW (minibuf_window)->top);
+      echo_area_window = mini_window;
+
+      vpos = XFASTINT (XWINDOW (mini_window)->top);
       get_display_line (f, vpos, 0);
-      display_string (XWINDOW (minibuf_window), vpos,
+      display_string (XWINDOW (mini_window), vpos,
 		      echo_area_glyphs ? echo_area_glyphs : "",
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
 		      0, 0, 0, 0, FRAME_WIDTH (f));
@@ -581,18 +593,18 @@ echo_area_display ()
 	int i;
 
 	for (i = vpos + 1;
-	     i < vpos + XFASTINT (XWINDOW (minibuf_window)->height); i++)
+	     i < vpos + XFASTINT (XWINDOW (mini_window)->height); i++)
 	  {
 	    get_display_line (f, i, 0);
-	    display_string (XWINDOW (minibuf_window), vpos,
+	    display_string (XWINDOW (mini_window), vpos,
 			    "", 0, 0, 0, 0, 0, FRAME_WIDTH (f));
 	  }
       }
     }
-  else if (!EQ (minibuf_window, selected_window))
+  else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
 
-  if (EQ (minibuf_window, selected_window))
+  if (EQ (mini_window, selected_window))
     this_line_bufpos = 0;
 
   previous_echo_glyphs = echo_area_glyphs;
@@ -861,6 +873,7 @@ redisplay ()
   tlbufpos = this_line_bufpos;
   tlendpos = this_line_endpos;
   if (!all_windows && tlbufpos > 0 && NILP (w->update_mode_line)
+      && !current_buffer->clip_changed
       && FRAME_VISIBLE_P (XFRAME (w->frame))
       /* Make sure recorded data applies to current buffer, etc */
       && this_line_buffer == current_buffer
@@ -1355,20 +1368,19 @@ redisplay_window (window, just_this_one)
   
   height = window_internal_height (w);
   update_mode_line = (!NILP (w->update_mode_line) || update_mode_lines);
+  if (XBUFFER (w->buffer)->clip_changed)
+    update_mode_line = 1;
 
   if (MINI_WINDOW_P (w))
     {
-      if (w == XWINDOW (minibuf_window))
+      if (w == XWINDOW (echo_area_window) && echo_area_glyphs)
+	/* We've already displayed the echo area glyphs in this window.  */
+	goto finish_scroll_bars;
+      else if (w != XWINDOW (minibuf_window))
 	{
-	  if (echo_area_glyphs)
-	    /* We've already displayed the echo area glyphs, if any.  */
-	    goto finish_scroll_bars;
-	}
-      else
-	{
-	  /* This is a minibuffer, but it's not the currently active one, so
-	     clear it.  */
-	  int vpos = XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top);
+	  /* This is a minibuffer, but it's not the currently active one,
+	     so clear it.  */
+	  int vpos = XFASTINT (w->top);
 	  int i;
 
 	  for (i = 0; i < height; i++)
