@@ -1,3 +1,8 @@
+2003-11-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* streams.texi (Output Streams): Clarify behavior of point for
+	marker output streams.
+
 2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* variables.texi (Defining Variables): Second argument to
