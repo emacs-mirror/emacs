@@ -1,3 +1,8 @@
+2001-04-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line): Output a newline after printing
+	an error from loading the window system's init file.
+
 2001-04-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/texinfo.el (texinfo-font-lock-keywords): Add

@@ -1,5 +1,7 @@
 2001-04-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c: Include blockinput.h.
+	
 	* fns.c (Fplist_get): Don't QUIT if interrupt_input_blocked.
 
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
