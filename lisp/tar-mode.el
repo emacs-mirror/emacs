@@ -265,7 +265,7 @@ write-date, checksum, link-type, and link-name."
     (tar-dotimes (i L)
        (if (or (< (aref string i) ?0)
 	       (> (aref string i) ?7))
-	   (error "'%c' is not an octal digit."))))
+	   (error "'%c' is not an octal digit"))))
   (tar-parse-octal-integer string))
 
 
@@ -393,13 +393,13 @@ is visible (and the real data of the buffer is hidden)."
 		 )
 	(if (eq tokens 'empty-tar-block)
 	    nil
-	  (if (null tokens) (error "premature EOF parsing tar file."))
+	  (if (null tokens) (error "premature EOF parsing tar file"))
 	  (if (eq (tar-header-link-type tokens) 20)
 	      ;; Foo.  There's an extra empty block after these.
 	      (setq pos (+ pos 512)))
 	  (let ((size (tar-header-size tokens)))
 	    (if (< size 0)
-		(error "%s has size %s - corrupted."
+		(error "%s has size %s - corrupted"
 		       (tar-header-name tokens) size))
 	    ;
 	    ; This is just too slow.  Don't really need it anyway....
@@ -431,7 +431,7 @@ is visible (and the real data of the buffer is hidden)."
       (set-buffer-modified-p nil)))
   (message "parsing tar file...done."))
 
-(defvar tar-mode-map nil "*Local keymap for tar-mode listings.")
+(defvar tar-mode-map nil "*Local keymap for Tar mode listings.")
 
 (if tar-mode-map
     nil
@@ -443,6 +443,7 @@ is visible (and the real data of the buffer is hidden)."
   (define-key tar-mode-map "\^D" 'tar-flag-deleted)
   (define-key tar-mode-map "e" 'tar-extract)
   (define-key tar-mode-map "f" 'tar-extract)
+  (define-key tar-mode-map [mouse-2] 'tar-mouse-extract)
   (define-key tar-mode-map "g" 'revert-buffer)
   (define-key tar-mode-map "h" 'describe-mode)
   (define-key tar-mode-map "n" 'tar-next-line)
@@ -513,7 +514,8 @@ is visible (and the real data of the buffer is hidden)."
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands. 
 Letters no longer insert themselves.
-Type `e' to pull a file out of the tar file and into its own buffer.
+Type `e' to pull a file out of the tar file and into its own buffer;
+or click mouse-2 on the file's line in the Tar mode buffer.
 Type `c' to copy an entry from the tar file into another file on disk.
 
 If you edit a sub-file of this archive (as with the `e' command) and 
@@ -604,29 +606,47 @@ save your changes to disk."
 	   tar-parse-info)
       (if noerror
 	  nil
-	  (error "This line does not describe a tar-file entry."))))
+	  (error "This line does not describe a tar-file entry"))))
 
-
-(defun tar-extract (&optional other-window-p)
-  "In Tar mode, extract this entry of the tar file into its own buffer."
-  (interactive)
-  (let* ((view-p (eq other-window-p 'view))
-	 (descriptor (tar-current-descriptor))
+(defun tar-get-descriptor ()
+  (let* ((descriptor (tar-current-descriptor))
 	 (tokens (tar-desc-tokens descriptor))
-	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (link-p (tar-header-link-type tokens))
-	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
-	 (end (+ start size)))
+	 (link-p (tar-header-link-type tokens)))
     (if link-p
-	(error "This is a %s, not a real file."
+	(error "This is a %s, not a real file"
 	       (cond ((eq link-p 5) "directory")
 		     ((eq link-p 20) "tar directory header")
 		     ((eq link-p 29) "multivolume-continuation")
 		     ((eq link-p 35) "sparse entry")
 		     ((eq link-p 38) "volume header")
 		     (t "link"))))
-    (if (zerop size) (error "This is a zero-length file."))
+    (if (zerop size) (error "This is a zero-length file"))
+    descriptor))
+
+(defun tar-mouse-extract (event)
+  "Extract a file whose tar directory line you click on."
+  (interactive "e")
+  (save-excursion
+    (set-buffer (window-buffer (posn-window (event-end event))))
+    (save-excursion
+      (goto-char (posn-point (event-end event)))
+      ;; Just make sure this doesn't get an error.
+      (tar-get-descriptor)))
+  (select-window (posn-window (event-end event)))
+  (goto-char (posn-point (event-end event)))
+  (tar-extract))
+
+(defun tar-extract (&optional other-window-p)
+  "In Tar mode, extract this entry of the tar file into its own buffer."
+  (interactive)
+  (let* ((view-p (eq other-window-p 'view))
+	 (descriptor (tar-get-descriptor))
+	 (tokens (tar-desc-tokens descriptor))
+	 (name (tar-header-name tokens))
+	 (size (tar-header-size tokens))
+	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (bufname (concat (file-name-nondirectory name)
 			    " (" name " in "
@@ -714,15 +734,12 @@ save your changes to disk."
 If TO-FILE is not supplied, it is prompted for, defaulting to the name of
 the current tar-entry."
   (interactive (list (tar-read-file-name)))
-  (let* ((descriptor (tar-current-descriptor))
+  (let* ((descriptor (tar-get-descriptor))
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (link-p (tar-header-link-type tokens))
 	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
 	 (end (+ start size)))
-    (if link-p (error "This is a link, not a real file."))
-    (if (zerop size) (error "This is a zero-length file."))
     (let* ((tar-buffer (current-buffer))
 	   buffer)
       (unwind-protect
@@ -908,8 +925,8 @@ for this to be permanent."
   (interactive
     (list (read-string "New name: "
 	    (tar-header-name (tar-desc-tokens (tar-current-descriptor))))))
-  (if (string= "" new-name) (error "zero length name."))
-  (if (> (length new-name) 98) (error "name too long."))
+  (if (string= "" new-name) (error "zero length name"))
+  (if (> (length new-name) 98) (error "name too long"))
   (tar-setf (tar-header-name (tar-desc-tokens (tar-current-descriptor)))
 	    new-name)
   (tar-alter-one-field 0
@@ -983,9 +1000,9 @@ This doesn't write anything to disk; you must save the parent tar-file buffer
 to make your changes permanent."
   (interactive)
   (if (not (and (boundp 'tar-superior-buffer) tar-superior-buffer))
-    (error "this buffer has no superior tar file buffer."))
+    (error "This buffer has no superior tar file buffer"))
   (if (not (and (boundp 'tar-superior-descriptor) tar-superior-descriptor))
-    (error "this buffer doesn't have an index into its superior tar file!"))
+    (error "This buffer doesn't have an index into its superior tar file!"))
   (save-excursion
   (let ((subfile (current-buffer))
 	(subfile-size (buffer-size))
@@ -1101,8 +1118,8 @@ Leaves the region wide."
       )))
 
 
-(defun maybe-write-tar-file ()
-  "Used as a write-file-hook to write tar-files out correctly."
+;; Used in write-file-hook to write tar-files out correctly.
+(defun tar-mode-maybe-write-tar-file ()
   ;;
   ;; If the current buffer is in Tar mode and has its header-offset set,
   ;; only write out the part of the file after the header-offset.
@@ -1127,9 +1144,9 @@ Leaves the region wide."
 
 ;;; Patch it in.
 
-(or (memq 'maybe-write-tar-file write-file-hooks)
+(or (memq 'tar-mode-maybe-write-tar-file write-file-hooks)
     (setq write-file-hooks
-	  (cons 'maybe-write-tar-file write-file-hooks)))
+	  (cons 'tar-mode-maybe-write-tar-file write-file-hooks)))
 
 (provide 'tar-mode)
 
