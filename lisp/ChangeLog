@@ -1,3 +1,7 @@
+2001-10-28  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-start.el (recursive-load-depth-limit): Added.
+
 2001-10-28  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (version18p, version20p): Vars deleted.
