@@ -528,7 +528,7 @@ from overriding motion of point in order to display at this exact start.")
 DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
        1, 1, 0,
   "Return WINDOW's dedicated object, usually t or nil.\n\
-See also `set-window-buffer-dedicated'.")
+See also `set-window-dedicated-p'.")
   (window)
      Lisp_Object window;
 {
