@@ -2262,7 +2262,8 @@ be shared by the new frame.")
 	/ FONT_WIDTH (f->display.x->font);
       f->display.x->left_pos = wininfo.x;
       f->display.x->top_pos = wininfo.y;
-      f->visible = wininfo.mapped != 0;
+      f->async_visible = wininfo.mapped != 0;
+      f->visible = f->async_visible;
       f->display.x->border_width = wininfo.bdrwidth;
       f->display.x->parent_desc = parent;
     }
