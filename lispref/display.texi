@@ -1224,8 +1224,9 @@ This is a synonym for @code{ding}.
 @defvar visible-bell
 This variable determines whether Emacs should flash the screen to
 represent a bell.  Non-@code{nil} means yes, @code{nil} means no.  This
-is effective only if the Termcap entry for the terminal in use has the
-visible bell flag (@samp{vb}) set.
+is effective under X windows, and on a character-only terminal provided
+the terminal's Termcap entry defines the visible bell capability
+(@samp{vb}).
 @end defvar
 
 @node Window Systems
