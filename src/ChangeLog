@@ -1,5 +1,10 @@
 2000-11-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (init_from_display_pos): If POS says we're already after
+	 an overlay string ending at POS, make sure to pop the iterator
+	 because it will be in front of that overlay string.  When POS is
+	 ZV, we've thereby also ``processed'' overlay strings at ZV.
+
 	* xfaces.c (lface_from_face_name): Function comment fix.
 
 2000-11-24  Miles Bader  <miles@gnu.org>
