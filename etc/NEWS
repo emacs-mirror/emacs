@@ -377,6 +377,8 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** New function substring-no-properties.
+
 +++
 ** New function window-body-height.
 

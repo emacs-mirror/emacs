@@ -1,5 +1,12 @@
 2002-01-24  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/compile.el (compilation-handle-exit):
+	Add a compilation-handle-exit property to the "finished" message.
+	(compilation-parse-errors): Stop parsing when that property is seen.
+
+	* subr.el (substring-no-properties): New function.
+	(copy-without-properties): Function deleted.
+	
 	* term/x-win.el (x-handle-geometry): Put sizes on both
 	initial-frame-alist and default-frame-alist.
 
