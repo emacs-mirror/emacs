@@ -1606,12 +1606,28 @@ specification can be
 +++
 ** Support functions for colors on text-only terminals.
 
-The function `face-register-tty-color' can be used to define colors
-for use on TTY frames.  It maps a color name to a color number on the
-terminal.  Emacs defines a couple of default color mappings by
+The function `tty-color-define' can be used to define colors for use
+on TTY and MSDOS frames.  It maps a color name to a color number on
+the terminal.  Emacs defines a couple of common color mappings by
 default.  You can get defined colors with a call to
-`tty-defined-colors'.  The function `face-clear-tty-colors' can be
+`defined-colors'.  The function `tty-color-clear' can be
 used to clear the mapping table.
+
+** Unified support for colors independent of frame type.
+
+The new functions `defined-colors', `color-defined-p', `color-values',
+and `display-color-p' work for any type of frame.  On frames whose
+type is neither x nor w32, these functions transparently map X-style
+color specifications to the closest colors supported by the frame
+display.  Lisp programs should use these new functions instead of the
+old `x-defined-colors', `x-color-defined-p', `x-color-values', and
+`x-display-color-p'.  (The old function names are still available for
+compatibility; they are now aliases of the new names.)  Lisp programs
+should no more look at the value of the variable window-system to
+modify their color-related behavior.
+
+The primitives `color-gray-p' and `color-supported-p' also work for
+any frame type.
 
 +++
 ** The minibuffer prompt is now actually inserted in the minibuffer.
