@@ -2458,17 +2458,6 @@ If optional NODAY is t, does not ask for day, but just returns
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
-(defun calendar-day-name (date &optional width absolute)
-  "Return a string with the name of the day of the week of DATE.
-If WIDTH is non-nil, return just the first WIDTH characters of the name.
-If ABSOLUTE is non-nil, then DATE is actually the day-of-the-week
-rather than a date."
-  (let ((string (aref calendar-day-name-array
-		      (if absolute date (calendar-day-of-week date)))))
-    (cond ((null width) string)
-	  (enable-multibyte-characters (truncate-string-to-width string width))
-	  (t (substring string 0 width)))))
-
 (defvar calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
   "Array of capitalized strings giving, in order, the day names.")
@@ -2491,6 +2480,16 @@ rather than a date."
      . font-lock-reference-face))
   "Default keywords to highlight in Calendar mode.")
 
+(defun calendar-day-name (date &optional width absolute)
+  "Return a string with the name of the day of the week of DATE.
+If WIDTH is non-nil, return just the first WIDTH characters of the name.
+If ABSOLUTE is non-nil, then DATE is actually the day-of-the-week
+rather than a date."
+  (let ((string (aref calendar-day-name-array
+		      (if absolute date (calendar-day-of-week date)))))
+    (cond ((null width) string)
+	  (enable-multibyte-characters (truncate-string-to-width string width))
+	  (t (substring string 0 width)))))
 
 (defun calendar-make-alist (sequence &optional start-index filter)
   "Make an assoc list corresponding to SEQUENCE.
