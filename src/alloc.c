@@ -778,16 +778,32 @@ The property's value should be an integer between 0 and 10.")
   Lisp_Object vector;
   Lisp_Object n;
   CHECK_SYMBOL (purpose, 1);
-  /* For a deeper char-table, PURPOSE can be nil.  */
-  n = NILP (purpose) ? 0 : Fget (purpose, Qchar_table_extra_slots);
+  n = Fget (purpose, Qchar_table_extra_slots);
   CHECK_NUMBER (n, 0);
   if (XINT (n) < 0 || XINT (n) > 10)
     args_out_of_range (n, Qnil);
   /* Add 2 to the size for the defalt and parent slots.  */
   vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
 			 init);
+  XCHAR_TABLE (vector)->top = Qt;
   XCHAR_TABLE (vector)->parent = Qnil;
   XCHAR_TABLE (vector)->purpose = purpose;
+  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
+  return vector;
+}
+
+/* Return a newly created sub char table with default value DEFALT.
+   Since a sub char table does not appear as a top level Emacs Lisp
+   object, we don't need a Lisp interface to make it.  */
+
+Lisp_Object
+make_sub_char_table (defalt)
+     Lisp_Object defalt;
+{
+  Lisp_Object vector
+    = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), Qnil);
+  XCHAR_TABLE (vector)->top = Qnil;
+  XCHAR_TABLE (vector)->defalt = defalt;
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
