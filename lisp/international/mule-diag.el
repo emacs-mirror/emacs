@@ -973,76 +973,57 @@ but still contains full information about each coding system."
 If optional arg PRINT-FONTS is non-nil, also print names of all opened
 fonts for FONTSET.  This function actually inserts the information in
 the current buffer."
-  (let ((tail (aref (fontset-info fontset) 2))
-	elt chars font-spec opened prev-charset charset from to)
-    (beginning-of-line)
-    (insert "Fontset: " fontset "\n")
-    (insert "CHARSET or CHAR RANGE")
-    (indent-to 24)
-    (insert "FONT NAME\n")
-    (insert "---------------------")
-    (indent-to 24)
-    (insert "---------")
-    (insert "\n")
-    (while tail
-      (setq elt (car tail) tail (cdr tail))
-      (setq chars (car elt) font-spec (car (cdr elt)) opened (cdr (cdr elt)))
-      (if (symbolp chars)
-	  (setq charset chars from nil to nil)
-	(if (integerp chars)
-	    (setq charset (char-charset chars) from chars to chars)
-	  (setq charset (char-charset (car chars))
-		from (car chars) to (cdr chars))))
-      (unless (eq charset prev-charset)
-	(insert (symbol-name charset))
-	(if from
-	    (insert "\n")))
-      (when from
-	(let ((split (split-char from)))
-	  (if (and (= (charset-dimension charset) 2)
-		   (= (nth 2 split) 0))
-	      (setq from
-		    (make-char charset (nth 1 split)
-			       (if (= (charset-chars charset) 94) 33 32))))
-	  (insert "  " from))
-	(when (/= from to)
-	  (insert "-")
-	  (let ((split (split-char to)))
-	    (if (and (= (charset-dimension charset) 2)
-		     (= (nth 2 split) 0))
-		(setq to
-		      (make-char charset (nth 1 split)
-				 (if (= (charset-chars charset) 94) 126 127))))
-	    (insert to))))
-      (indent-to 24)
-      (cond ((stringp font-spec)
-	     (insert font-spec))
-	    ((vectorp font-spec)
-	     (insert "*-" (or (aref font-spec 0) ?*) ; family
-		     ?- (or (aref font-spec 1) ?*) ; weight
-		     ?- (or (aref font-spec 2) ?*) ; slant
-		     "-*-" (or (aref font-spec 3) ?*) ; width
-		     "-*-" (or (aref font-spec 4) ?*) ; adstyle
-		     "-*-*-*-*-*-*-" (aref font-spec 5))) ; registry
-	    (t
-	     (if (car font-spec)
-		 (if (string-match "-" (car font-spec))
-		     (insert "-" (car font-spec) "-*-")
-		   (insert "-*-" (car font-spec) "-*-"))
-	       (insert "-*-"))
-	     (if (cdr font-spec)
-		 (if (string-match "-" (cdr font-spec))
-		     (insert (cdr font-spec))
-		   (insert (cdr font-spec) "-*"))
-	       (insert "*"))))
-      (insert "\n")
-      (when print-fonts
-	(while opened
-	  (indent-to 5)
-	  (insert "[" (car opened) "]\n")
-	  (setq opened (cdr opened))))
-      (setq prev-charset charset)
-      )))
+  (beginning-of-line)
+  (insert "Fontset: " fontset "\n")
+  (insert "CHAR RANGE (CODE RANGE)\n")
+  (insert "-----------------------\n")
+  (insert "    FONT NAME (REQUESTED and [OPENED])\n")
+  (insert "    ----------------------------------")
+  (describe-vector
+   (fontset-info fontset)
+   #'(lambda (val)
+       ;; VAL has this format:
+       ;;  ((REQUESTED-FONT-NAME OPENED-FONT-NAME ...) ...)
+
+       ;; CHAR RANGE is already inserted.  Get character codes from
+       ;; the current line.
+       (beginning-of-line)
+       (let ((from (following-char))
+	     (to (if (looking-at "[^.]*[.]* ")
+		     (char-after (match-end 0)))))
+	 (if (re-search-forward "[ \t]*$" nil t)
+	     (delete-region (match-beginning 0) (match-end 0)))
+
+	 ;; For non-ASCII characters, insert also CODE RANGE.
+	 (if (>= from 128)
+	     (if to
+		 (insert (format "\t(#x%02X .. #x%02X)" from to))
+	       (insert (format "\t(#x%02X)" from))))
+
+	 ;; Insert a requested font name.
+	 (dolist (elt val)
+	   (let ((requested (car elt)))
+	     (if (stringp requested)
+		 (insert requested)
+	       (let ((family (aref requested 0))
+		     (registry (aref requested 5)))
+		 (if (not family)
+		     (setq family "*-*")
+		   (or (string-match "-" family)
+		       (setq family (concat "*-" family))))
+		 (or (string-match "-" registry)
+		     (= (aref registry (1- (length registry))) ?*)
+		     (setq registry (concat registry "*")))
+		 (insert "\n    -" family
+			 ?- (or (aref requested 1) ?*) ; weight
+			 ?- (or (aref requested 2) ?*) ; slant
+			 "-*-" (or (aref requested 3) ?*) ; width
+			 "-*-" (or (aref requested 4) ?*) ; adstyle
+			 "-*-*-*-*-*-*-" registry))))
+
+	   ;; Insert opened font names (if any).
+	   (dolist (opened (cdr elt))
+	     (insert "\n\t[" opened "]")))))))
 
 ;;;###autoload
 (defun describe-fontset (fontset)
