@@ -179,8 +179,10 @@
       (repeat))))
 
   "CCL program to decode UTF-8.
-Decoding is done into the charsets ascii, eight-bit-control,
-latin-iso8859-1 and mule-unicode-* only.")
+Basic decoding is done into the charsets ascii, latin-iso8859-1 and
+mule-unicode-*.  Encodings of un-representable Unicode characters are
+decoded asis into eight-bit-control and eight-bit-graphic
+characters.")
 
 (define-ccl-program ccl-encode-mule-utf-8
   `(1
@@ -266,8 +268,8 @@ latin-iso8859-1 and mule-unicode-* only.")
 
   "CCL program to encode into UTF-8.
 Only characters from the charsets ascii, eight-bit-control,
-latin-iso8859-1 and mule-unicode-* are recognized.  Others are encoded
-as U+FFFD.")
+eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are recognized.
+Others are encoded as U+FFFD.")
 
 (make-coding-system
  'mule-utf-8 4 ?u

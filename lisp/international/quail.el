@@ -593,7 +593,7 @@ We assume there are six rows and each row has 15 keys (columns),
 	the first column of the fifth row is left of key `z',
 	the sixth row is below the `z' - `/' row.
 Nth (N is even) and (N+1)th characters in the string are non-shifted
- and shifted characters respectively at the same location.
+and shifted characters respectively at the same location.
 The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
 The command `quail-set-keyboard-layout' usually sets this variable.")
 
@@ -733,9 +733,9 @@ you type is correctly handled."
 	 (mapcar (function (lambda (x) (quail-keyboard-translate x)))
 		 keyseq)))
 
-;; Insert the visual keyboard layout table according to KBD-LAYOUT.
-;; The format of KBD-LAYOUT is the same as `quail-keyboard-layout'.
 (defun quail-insert-kbd-layout (kbd-layout)
+"Insert the visual keyboard layout table according to KBD-LAYOUT.
+The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
   (let (done-list layout i ch)
     ;; At first, convert KBD-LAYOUT to the same size vector that
     ;; contains translated character or string.
@@ -1208,7 +1208,7 @@ The returned value is a Quail map specific to KEY."
 	    (if (not (equal def translation))
 		;; We must reflect TRANSLATION to car part of MAP.
 		(setcar map translation)))
-	  (if (and (consp translation) (vectorp (cdr translation))) 
+	  (if (and (consp translation) (vectorp (cdr translation)))
 	      (progn
 		(setq quail-current-translations translation)
 		(if (quail-forget-last-selection)
@@ -1223,12 +1223,11 @@ The returned value is a Quail map specific to KEY."
   (signal 'quail-error (apply 'format args)))
 
 
-;; Convert input string STR to a list of events while interleaving
-;; with the following special events:
-;;	(compose-last-chars LEN COMPONENTS)
-;;	(quail-advice INPUT-STRING)
-
 (defun quail-input-string-to-events (str)
+  "Convert input string STR to a list of events.
+Do so while interleaving with the following special events:
+\(compose-last-chars LEN COMPONENTS)
+\(quail-advice INPUT-STRING)"
   (let* ((events (string-to-list str))
 	 (len (length str))
 	 (idx len)
@@ -1444,15 +1443,14 @@ Return the input string."
   (interactive)
   (quail-terminate-translation))
 
-;; Update the current translation status according to CONTROL-FLAG.
-;; If CONTROL-FLAG is integer value, it is the number of keys in the
-;; head quail-current-key which can be translated.  The remaining keys
-;; are put back to unread-command-events to be handled again.  If
-;; CONTROL-FLAG is t, terminate the translation for the whole keys in
-;; quail-current-key.  If CONTROL-FLAG is nil, proceed the translation
-;; with more keys.
-
 (defun quail-update-translation (control-flag)
+"Update the current translation status according to CONTROL-FLAG.
+If CONTROL-FLAG is integer value, it is the number of keys in the
+head `quail-current-key' which can be translated.  The remaining keys
+are put back to `unread-command-events' to be handled again.  If
+CONTROL-FLAG is t, terminate the translation for the whole keys in
+`quail-current-key'.  If CONTROL-FLAG is nil, proceed the translation
+with more keys."
   (let ((func (quail-update-translation-function)))
     (if func
 	(setq control-flag (funcall func control-flag))
@@ -1501,8 +1499,8 @@ Return the input string."
       ;; translation mode.
       (setq quail-translating nil)))
 
-;; Return the actual definition part of Quail map MAP.
 (defun quail-map-definition (map)
+"Return the actual definition part of Quail map MAP."
   (let ((def (car map)))
     (if (and (consp def) (not (vectorp (cdr def))))
 	(setq def (car def)))
@@ -1510,10 +1508,10 @@ Return the input string."
 	(setq def nil))
     def))
 
-;; Return a string to be shown as the current translation of key
-;; sequence of length LEN.  DEF is a definition part of Quail map for
-;; the sequence.
 (defun quail-get-current-str (len def)
+  "Return string to be shown as current translation of key sequence.
+LEN is the length of the sequence.  DEF is a definition part of the
+Quail map for the sequence."
   (or (and (consp def) (aref (cdr def) (car (car def))))
       def
       (and (> len 1)
@@ -1527,9 +1525,9 @@ Return the input string."
 
 (defvar quail-guidance-translations-starting-column 20)
 
-;; Update `quail-current-translations' to make RELATIVE-INDEX the
-;; current translation.
 (defun quail-update-current-translations (&optional relative-index)
+  "Update `quail-current-translations'.
+Make RELATIVE-INDEX the current translation."
   (let* ((indices (car quail-current-translations))
 	 (cur (car indices))
 	 (start (nth 1 indices))
@@ -1807,8 +1805,8 @@ Remaining args are for FUNC."
 
 ;; Guidance, Completion, and Help buffer handlers.
 
-;; Make a new one-line frame for Quail guidance buffer.
 (defun quail-make-guidance-frame (buf)
+  "Make a new one-line frame for Quail guidance buffer."
   (let* ((fparam (frame-parameters))
 	 (top (cdr (assq 'top fparam)))
 	 (border (cdr (assq 'border-width fparam)))
@@ -1825,8 +1823,8 @@ Remaining args are for FUNC."
       ;;(set-window-dedicated-p win t)
       )))
 
-;; Setup Quail completion buffer.
 (defun quail-setup-completion-buf ()
+  "Setup Quail completion buffer."
   (unless (buffer-live-p quail-completion-buf)
     (let ((default-enable-multibyte-characters enable-multibyte-characters))
       (setq quail-completion-buf (get-buffer-create "*Quail Completions*")))
@@ -1835,9 +1833,8 @@ Remaining args are for FUNC."
       (setq quail-overlay (make-overlay 1 1))
       (overlay-put quail-overlay 'face 'highlight))))
 
-;; Return t iff the current Quail package requires showing guidance
-;; buffer.
 (defun quail-require-guidance-buf ()
+  "Return t iff the current Quail package requires showing guidance buffer."
   (and input-method-verbose-flag
        (if (eq input-method-verbose-flag 'default)
 	   (not (and (eq (selected-window) (minibuffer-window))
@@ -2094,8 +2091,8 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	(quail-update-guidance)))
   (setq this-command 'quail-completion))
 
-;; List all completions of KEY in MAP with indentation INDENT.
 (defun quail-completion-1 (key map indent)
+"List all completions of KEY in MAP with indentation INDENT."
   (let ((len (length key)))
     (indent-to indent)
     (insert key ":")
@@ -2120,9 +2117,8 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	    (quail-completion-1 newkey (cdr (car l)) indent)
 	    (setq l (cdr l)))))))
 
-;; List all possible translations of KEY in Quail map MAP with
-;; indentation INDENT.
 (defun quail-completion-list-translations (map key indent)
+  "List all possible translations of KEY in Quail MAP with indentation INDENT."
   (let (beg (translations
 	 (quail-get-translation (car map) key (length key))))
     (if (integerp translations)
@@ -2162,7 +2158,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   "Click on an alternative in the `*Quail Completions*' buffer to choose it."
   (interactive "e")
   ;; This function is an exact copy of the mouse.el function
-  ;; `mouse-choose-completion' except that we: 
+  ;; `mouse-choose-completion' except that we:
   ;; 1) add two lines from `choose-completion' in simple.el to give
   ;;    the `mouse-2' click a little more leeway.
   ;; 2) don't bury *Quail Completions* buffer so comment a section, and 
@@ -2238,17 +2234,17 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	       (select-window (active-minibuffer-window))
 	     (exit-minibuffer))))))
 
-;; Accumulate in the cdr part of DECODE-MAP all pairs of key sequences
-;; vs the corresponding translations defined in the Quail map
-;; specified by the first element MAP-LIST.  Each pair has the form
-;; (KEYSEQ . TRANSLATION).  DECODE-MAP should have the form
-;; (decode-map . ALIST), where ALIST is an alist of length NUM.  KEY
-;; is a key sequence to reach MAP.
-;; Optional 5th arg MAXNUM limits the number of accumulated pairs.
-;; Optional 6th arg IGNORES is a list of translations to ignore.
-
 (defun quail-build-decode-map (map-list key decode-map num
 					&optional maxnum ignores)
+  "Build a decoding map.
+Accumulate in the cdr part of DECODE-MAP all pairs of key sequences
+vs the corresponding translations defined in the Quail map
+specified by the first element MAP-LIST.  Each pair has the form
+\(KEYSEQ . TRANSLATION).  DECODE-MAP should have the form
+\(decode-map . ALIST), where ALIST is an alist of length NUM.  KEY
+is a key sequence to reach MAP.
+Optional 5th arg MAXNUM limits the number of accumulated pairs.
+Optional 6th arg IGNORES is a list of translations to ignore."
   (let* ((map (car map-list))
 	 (translation (quail-get-translation (car map) key (length key)))
 	 elt)
@@ -2286,11 +2282,10 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 					    decode-map num maxnum ignores))))
       num)))
 
-;; Insert the pairs of key sequences vs the corresponding translations
-;; stored in DECODE-MAP by the concise format.  DECODE-MAP should be
-;; made by `quail-build-decode-map' (which see).
-
 (defun quail-insert-decode-map (decode-map)
+  "Insert pairs of key sequences vs the corresponding translations.
+These are stored in DECODE-MAP using the concise format.  DECODE-MAP
+should be made by `quail-build-decode-map' (which see)."
   (setq decode-map
 	(sort (cdr decode-map)
 	      (function (lambda (x y)
@@ -2491,7 +2486,7 @@ KEY BINDINGS FOR CONVERSION
 ---------------------------\n"))
       (help-setup-xref (list #'quail-help (quail-name))
 		       (interactive-p))
-      (setq quail-current-package nil)      
+      (setq quail-current-package nil)
       ;; Resize the help window again, now that it has all its contents.
       (save-selected-window
  	(select-window (get-buffer-window (current-buffer)))
@@ -2807,7 +2802,7 @@ of each directory."
     (message "Updating %s ... done" leim-list)))
 
 (defun quail-advice (args)
-  "Advice users about the characters input by the current Quail package.
+  "Advise users about the characters input by the current Quail package.
 The argument is a parameterized event of the form:
    (quail-advice STRING)
 where STRING is a string containing the input characters.
