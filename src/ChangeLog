@@ -1,3 +1,9 @@
+2002-07-11  Richard M. Stallman  <rms@gnu.org>
+
+	* s/hpux11.h (BROKEN_SA_RESTART): Defined.
+
+	* sysdep.c (sys_signal): Test BROKEN_SA_RESTART.
+
 2002-07-11  Juanma Barranquero  <lektu@terra.es>
 
 	* alloc.c, buffer.c, bytecode.c, callint.c, callproc.c, coding.c,
