@@ -319,16 +319,11 @@ is non-nil."
        ;; If score is equally good, choose randomly. But first check freeness:
        ((not (zerop (aref gomoku-board square)))
 	(aset gomoku-score-table square -1))
-       ((= count (random-number (setq count (1+ count))))
+       ((zerop (random (setq count (1+ count))))
 	(setq best-square square
 	      score-max	  score)))
       (setq square (1+ square)))	; try next square
     best-square))
-
-(defun random-number (n)
-  "Return a random integer between 0 and N-1 inclusive."
-  (setq n (% (random) n))
-  (if (< n 0) (- n) n))
 
 ;;;
 ;;; INITIALIZING THE SCORE TABLE.
