@@ -1,8 +1,8 @@
-# $HopeName: HOMEmm!etc:trillian.cron(trunk.24) $
+# $HopeName: HOMEmm!etc:trillian.cron(trunk.25) $
 # minutes hours day-of-month month day-of-week command
 00 21  *  *  *  sh -c ". etc/shenv && overnight checkout"
 05 21  *  *  *  sh -c "./bin/tidy"
 10 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk sos8gc"
 30 21  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_salamander sos8gc"
-30 00  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_sardine sos8gc"
-30 04  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_minnow sos8gc"
+30 00  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MMdevel_sw_eq sospgc"
+00 06  *  *  *  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_minnow sos8gc"
