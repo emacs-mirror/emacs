@@ -979,12 +979,45 @@ This returns @code{t} if the connected X display has color, and
 @end defun
 
 @defun x-color-defined-p color
-This function reports whether a color name is meaningful and supported
-on the X display Emacs is using.  It returns @code{t} if the display
-supports that color; otherwise, @code{nil}.
+This function reports whether a color name is meaningful.  It returns
+@code{t} if so; otherwise, @code{nil}.
 
-Black-and-white displays support just two colors, @code{"black"} or
-@code{"white"}.  Color displays support many other colors.
+Note that this does not tell you whether the display you are using
+really supports that color.  You can ask for any defined color on any
+kind of display, and you will get some result---that is how the X server
+works.  Here's an approximate way to test whether your display supports
+the color @var{color}:
+
+@example
+(defun x-color-supported-p (color)
+  (and (x-color-defined-p color)
+       (or (x-display-color-p)
+           (member color '("black" "white"))
+           (and (> (x-display-planes) 1)
+                (equal color "gray")))))
+@end example
+@end defun
+
+@defun x-color-values color
+This function returns a value that describes what @var{color} should
+ideally look like.  If @var{color} is defined, the value is a list of
+three integers, which give the amount of red, the amount of green, and
+the amount of blue.  Each integer ranges in principle from 0 to 65535,
+but in practice no value seems to be above 65280.  If @var{color} is not
+defined, the value is @code{nil}.
+
+@example
+(x-color-values "black")
+     @result{} (0 0 0)
+(x-color-values "white")
+     @result{} (65280 65280 65280)
+(x-color-values "red")
+     @result{} (65280 0 0)
+(x-color-values "pink")
+     @result{} (65280 49152 51968)
+(x-color-values "hungry")
+     @result{} nil
+@end example
 @end defun
 
 @defun x-synchronize flag
