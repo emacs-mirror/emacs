@@ -28,10 +28,10 @@
 progname="$0"
 
 ### Exit if a command fails.
-set -e
+#set -e
 
 ### Print out each line we read, for debugging's sake.
-### set -v
+#set -v
 
 ## Don't restrict access to any files.
 umask 0
@@ -427,7 +427,7 @@ echo "Making links to \`src'"
  ln makefile.nt makefile.w32-in vms-pp.trans ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h paths.h Makefile Makefile.c
+ rm -f config.h epaths.h Makefile Makefile.c
  rm -f =* TAGS)
 
 echo "Making links to \`src/bitmaps'"
