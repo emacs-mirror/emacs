@@ -349,7 +349,7 @@ will be used as is.")
         (">" outline-shift-in)
         ("<" outline-shift-out)
         ("\C-m" outline-rebullet-topic)
-        ("b" outline-rebullet-current-heading)
+        ("*" outline-rebullet-current-heading)
         ("#" outline-number-siblings)
         ("\C-k" outline-kill-line t)
         ("\C-y" outline-yank t)
@@ -886,7 +886,7 @@ C-c <	outline-shift-out	... less deep.
 C-c<CR>	outline-rebullet-topic	Reconcile bullets of topic and its' offspring
 				- distinctive bullets are not changed, others
 				  alternated according to nesting depth.
-C-c b	outline-rebullet-current-heading Prompt for alternate bullet for
+C-c *	outline-rebullet-current-heading Prompt for alternate bullet for
 					 current topic.
 C-c #	outline-number-siblings	Number bullets of topic and siblings - the
 				offspring are not affected.  With repeat
