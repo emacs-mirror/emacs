@@ -1,3 +1,12 @@
+1999-10-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/mule-cmds.el (select-safe-coding-system)
+	(leim-list-header): avoid the use of strings that start with backslash
+	  newline since lread.c:read1 has a hack to turn those strings into
+	  integer 0 during the loadup.el process.
+
+	* diff-mode.el (diff-find-file-name): use `Index:' preferentially.
+
 1999-10-13  Dave Love  <fx@gnu.org>
 
 	* image.el (insert-image): Copy the image spec and add an
