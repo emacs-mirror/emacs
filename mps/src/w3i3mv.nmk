@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.42) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.43) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -8,7 +8,7 @@ PFM = w3i3mv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
 MPM = <assert> <ring> <mpm> <bt> \
-      <arenavm> <arenaan> <arenacl> <arena> <pool> <poolmfs> \
+      <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protw3> <shield> <vmw3> \
       <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> \
@@ -25,6 +25,8 @@ AMS = <poolams>
 AWL = <poolawl>
 LO = <lo>
 DW  = <fmtdy>
+POOLN = <pooln>
+ARENAAN = <arenaan>
 TESTLIB = <testlib>
 
 
@@ -60,6 +62,10 @@ LOOBJ0 = $(LO:<=w3i3mv\he\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\he\)
 DWOBJ = $(DWOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\he\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\he\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\he\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -83,6 +89,10 @@ LOOBJ0 = $(LO:<=w3i3mv\ce\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\ce\)
 DWOBJ = $(DWOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\ce\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\ce\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\ce\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -106,6 +116,10 @@ LOOBJ0 = $(LO:<=w3i3mv\hi\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\hi\)
 DWOBJ = $(DWOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\hi\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\hi\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\hi\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -129,6 +143,10 @@ LOOBJ0 = $(LO:<=w3i3mv\ci\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\ci\)
 DWOBJ = $(DWOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\ci\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\ci\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\ci\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -152,6 +170,10 @@ LOOBJ0 = $(LO:<=w3i3mv\ti\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\ti\)
 DWOBJ = $(DWOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\ti\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\ti\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\ti\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -175,6 +197,10 @@ LOOBJ0 = $(LO:<=w3i3mv\wi\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\wi\)
 DWOBJ = $(DWOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\wi\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\wi\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\wi\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -196,6 +222,10 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 #LOOBJ = $(LOOBJ0:>=.obj)
 #DWOBJ0 = $(DW:<=w3i3mv\cv\)
 #DWOBJ = $(DWOBJ0:>=.obj)
+#POOLNOBJ0 = $(POOLN:<=w3i3mv\cv\)
+#POOLNOBJ = $(POOLNOBJ0:>=.obj)
+#ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\cv\)
+#ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 #TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\cv\)
 #TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 

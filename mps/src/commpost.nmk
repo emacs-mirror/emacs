@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.10) $
+# $HopeName: MMsrc!commpost.nmk(trunk.11) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -11,7 +11,7 @@
 # == Pseudo-targets
 
 # "all" builds all the varieties of all targets
-# %%TARGET: Add the target  to the all dependencies
+# %%TARGET: Add the target to the all dependencies
 
 all: mpmss.exe amcss.exe amsss.exe lockutw3.exe lockcov.exe \
      mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe \
@@ -110,7 +110,7 @@ $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) 
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(ARENAANOBJ) $(POOLNOBJ)
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
@@ -120,7 +120,7 @@ $(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
 
 $(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
 	$(ECHO) $@
