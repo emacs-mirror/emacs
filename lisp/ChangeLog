@@ -1,3 +1,7 @@
+2005-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-3): #n is atomic.
+
 2005-02-24  Kim F. Storm  <storm@cua.dk>
 
 	* international/iso-acc.el (iso-accents-compose): Fix crash
@@ -26,13 +30,13 @@
 
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
-	* progmodes/hideif.el (hide-ifdef-use-define-alist): Use
-	completing-read.  Suggested by Juan-Leon Lahoz Garcia.
+	* progmodes/hideif.el (hide-ifdef-use-define-alist):
+	Use completing-read.  Suggested by Juan-Leon Lahoz Garcia.
 
 2005-02-22  Simon Josefsson  <jas@extundo.com>
 
-	* net/browse-url.el (browse-url-netscape-new-window-is-tab): New
-	variable.
+	* net/browse-url.el (browse-url-netscape-new-window-is-tab):
+	New variable.
 	(browse-url-netscape): Use it.  Suggested by "Johann 'Myrkraverk'
 	Oskarsson" <myrkraverk@users.sourceforget.net>.
 
