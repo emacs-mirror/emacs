@@ -32,6 +32,9 @@
 
 ;;; Code:
 
+(require 'lisp-mode)			;for `doc-string-elt' properties.
+
+
 (defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
 A `.el' file can set this in its local variables section to make its
@@ -121,36 +124,7 @@ or macro definition or a defcustom)."
 ;;; Forms which have doc-strings which should be printed specially.
 ;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
 ;;; the doc-string in FORM.
-;;;
-;;; There used to be the following note here:
-;;; ;;; Note: defconst and defvar should NOT be marked in this way.
-;;; ;;; We don't want to produce defconsts and defvars that
-;;; ;;; make-docfile can grok, because then it would grok them twice,
-;;; ;;; once in foo.el (where they are given with ;;;###autoload) and
-;;; ;;; once in loaddefs.el.
-;;;
-;;; Counter-note: Yes, they should be marked in this way.
-;;; make-docfile only processes those files that are loaded into the
-;;; dumped Emacs, and those files should never have anything
-;;; autoloaded here.  The above-feared problem only occurs with files
-;;; which have autoloaded entries *and* are processed by make-docfile;
-;;; there should be no such files.
-
-(put 'autoload 'doc-string-elt 3)
-(put 'defun    'doc-string-elt 3)
-(put 'defun*    'doc-string-elt 3)
-(put 'defvar   'doc-string-elt 3)
-(put 'defcustom 'doc-string-elt 3)
-(put 'defconst 'doc-string-elt 3)
-(put 'defmacro 'doc-string-elt 3)
-(put 'defsubst 'doc-string-elt 3)
-(put 'define-skeleton 'doc-string-elt 2)
-(put 'define-derived-mode 'doc-string-elt 4)
-(put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
-(put 'define-minor-mode 'doc-string-elt 2)
-(put 'define-generic-mode 'doc-string-elt 7)
-;; defin-global-mode has no explicit docstring.
-(put 'easy-mmode-define-global-mode 'doc-string-elt 1000)
+;;; Those properties are now set in lisp-mode.el.
 
 
 (defun autoload-trim-file-name (file)
