@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; $Id: re-builder.el,v 1.3 2000/01/25 23:42:24 dzu Exp $
+;; $Id: re-builder.el,v 1.1 2000/03/09 20:20:32 gerd Exp $
 
 ;; When I have to come up with regular expressions that are more
 ;; complex than simple string matchers, especially if they contain sub
@@ -109,6 +109,11 @@
 ;;     target-buffer
 ;;   - Fixed XEmacs support
 ;;
+;; Changes from Version 1.2:
+;;   - Fixed a bug preventing normal startup after killing the (previous)
+;;     target-buffer
+;;   - Fixed XEmacs support
+;;
 ;; Changes from Version 1.1:
 ;;   - The editing is now done through two major-modes rather than
 ;;     having one minor-mode that behaves exactly like a major-mode
@@ -142,13 +147,13 @@
 
 (defcustom reb-re-syntax 'read
   "*Syntax for the REs in the RE Builder.
-Can either be `read', `string' or `lisp-re'."
+Can either be `read', `string', `sregex' or `lisp-re'."
   :group 're-builder
   :type '(choice (const :tag "Read syntax" read)
 		 (const :tag "String syntax" string)
 		 (const :tag "`sregex' syntax" sregex)
 		 (const :tag "`lisp-re' syntax" lisp-re)
-		 (value: sring)))
+		 (value: string)))
 
 (defcustom reb-auto-match-limit 200
   "*Positive integer limiting the matches for RE Builder auto updates.
