@@ -1,8 +1,17 @@
+1999-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
+
+	* progmodes/ps-mode.el (ps-mode-maintainer-address): New
+        constant.
+	(ps-mode-submit-bug-report): New function. Entry added to menu.
+
 1999-11-10  William M. Perry  <wmperry@aventail.com>
 
 	* mwheel.el: New file to support the new style wheeled mice.
 
 1999-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (initial-scratch-message): Add ";;" to the front of
+	lines in the message.
 
 	* files.el (file-local-copy): Remove optional BUFFER argument
 	because that's not used by anything.

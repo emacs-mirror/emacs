@@ -1,3 +1,9 @@
+1999-11-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* print.c, keymap.c, indent.c, insdel.c, keyboard.c, intervals.c,
+	lread.c, textprop.c, undo.c, emacs.c, lisp.h, intervals.h,
+	buffer.h, config.in, Makefile.in: Remove USE_TEXT_PROPERTIES.
+
 1999-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (QCuser_data): Removed.
