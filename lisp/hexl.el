@@ -831,7 +831,6 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (define-key hexl-mode-map "\ej" 'hexl-goto-address)
   (define-key hexl-mode-map "\ek" 'undefined)
   (define-key hexl-mode-map "\el" 'undefined)
-  (define-key hexl-mode-map "\eo" 'undefined)
   (define-key hexl-mode-map "\eq" 'undefined)
   (define-key hexl-mode-map "\es" 'undefined)
   (define-key hexl-mode-map "\et" 'undefined)
