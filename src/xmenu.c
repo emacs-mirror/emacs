@@ -101,10 +101,11 @@ the keymap as a top-level element.\n\n\
 You can also use a list of keymaps as MENU.\n\
   Then each keymap makes a separate pane.\n\n\
 Alternatively, you can specify a menu of multiple panes\n\
-  with a list of the form\n\
-\(TITLE PANE1 PANE2...), where each pane is a list of form\n\
-\(TITLE (LINE ITEM)...).  Each line should be a string, and item should\n\
-be the return value for that line (i.e. if it is selected).")
+  with a list of the form (TITLE PANE1 PANE2...),\n\
+where each pane is a list of form (TITLE ITEM1 ITEM2...).\n\
+Each ITEM is normally a cons cell (STRING . VALUE);\n\
+but a string can appear as an item--that makes a nonselectable line\n\
+in the menu.")
   (position, menu)
      Lisp_Object position, menu;
 {
@@ -567,8 +568,7 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
 		      /* The menu item "value" is the key bound here.  */
 		      (*vector)[*p_ptr][i] = XCONS (item)->car;
 		      (*enables)[*p_ptr][i]
-			= (!NILP (enabled) ? 1
-			   : NILP (def) ? -1 : 0);
+			= (NILP (def) ? -1 : !NILP (enabled) ? 1 : 0);
 		      i++;
 		    }
 		}
@@ -614,8 +614,7 @@ single_keymap_panes (keymap, panes, vector, names, enables, items,
 			  /* The menu item "value" is the key bound here.  */
 			  (*vector)[*p_ptr][i] = character;
 			  (*enables)[*p_ptr][i]
-			    = (!NILP (enabled) ? 1
-			       : NILP (def) ? -1 : 0);
+			    = (NILP (def) ? -1 : !NILP (enabled) ? 1 : 0);
 			  i++;
 			}
 		    }
@@ -726,19 +725,21 @@ list_of_items (vector, names, enables, pane)
   for (i = 0, tail = pane; !NILP (tail); tail = Fcdr (tail), i++)
     {
       item = Fcar (tail);
-      if (XTYPE (item) != Lisp_Cons) (void) wrong_type_argument (Qlistp, item);
-#ifdef XDEBUG
-      fprintf (stderr, "list_of_items check tail, i=%d\n", i);
-#endif
-      (*vector)[i] =  Fcdr (item);
-      item1 = Fcar (item);
-      CHECK_STRING (item1, 1);
-#ifdef XDEBUG
-      fprintf (stderr, "list_of_items check item, i=%d%s\n", i,
-	       XSTRING (item1)->data);
-#endif
-      (*names)[i] = (char *) XSTRING (item1)->data;
-      (*enables)[i] = 1;
+      if (STRINGP (item))
+	{
+	  (*vector)[i] = Qnil;
+	  (*names)[i] = (char *) XSTRING (item)->data;
+	  (*enables)[i] = -1;
+	}
+      else
+	{
+	  CHECK_CONS (item, 0);
+	  (*vector)[i] = Fcdr (item);
+	  item1 = Fcar (item);
+	  CHECK_STRING (item1, 1);
+	  (*names)[i] = (char *) XSTRING (item1)->data;
+	  (*enables)[i] = 1;
+	}
     }
   return i;
 }
