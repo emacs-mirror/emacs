@@ -1,5 +1,9 @@
 2004-04-25  Kim F. Storm  <storm@cua.dk>
 
+	* macterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
+
+	* xterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
+
 	* xdisp.c (append_space_for_newline): Rename from append_space.
 	Remove DEFAULT_FACE_P arg; always use current face.  Callers changed.
 	(x_produce_glyphs): Handle line-spacing property on newline char.

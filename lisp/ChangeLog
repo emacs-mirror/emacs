@@ -1,3 +1,8 @@
+2004-04-25  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Add line-spacing t property
+	to newlines separating image lines.
+
 2004-04-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-delete-output): Bind inhibit-read-only to t.
