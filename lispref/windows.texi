@@ -793,6 +793,44 @@ This variable holds an alist specifying frame parameters used when
 more information about frame parameters.
 @end defvar
 
+@defvar special-display-buffer-names
+A list of buffer names for buffers that should be displayed specially.
+If the buffer's name is in this list, @code{display-buffer} handles the
+buffer specially.
+
+By default, special display means to give the buffer a dedicated frame.
+@end defvar
+
+@defvar special-display-regexps
+A list of regular expressions that specify buffers that should be
+displayed specially.  If the buffer's name matches any of the regular
+expressions in this list, @code{display-buffer} handles the buffer
+specially.
+
+By default, special display means to give the buffer a dedicated frame.
+@end defvar
+
+@defvar special-display-function
+This variable holds the function to call to display a buffer specially.
+It receives the buffer as an argument, and should return the window in
+which it is displayed.
+
+The default value of this variable is
+@code{special-display-popup-frame}.
+@end defvar
+
+@defun special-display-popup-frame buffer
+This function makes @var{buffer} visible in a frame of its own.  If
+@var{buffer} is already displayed in a window in some frame, it makes
+the frame visible and raises it, to use that window.  Otherwise, it
+creates a frame that will be dedicated to @var{buffer}.
+@end defun
+
+@defopt special-display-frame-alist
+This variable holds frame parameters for
+@code{special-display-popup-frame} to use when it creates a frame.
+@end defopt
+
 @c Emacs 19 feature
 @defvar display-buffer-function
 This variable is the most flexible way to customize the behavior of
