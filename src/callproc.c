@@ -380,12 +380,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     {
       register int i;
 
-      if (! CODING_REQUIRE_ENCODING (&argument_coding))
-	{
-	  for (i = 4; i < nargs; i++)
-	    new_argv[i - 3] = XSTRING (args[i])->data;
-	}
-      else
+      if (CODING_REQUIRE_ENCODING (&argument_coding))
 	{
 	  /* We must encode the arguments.  */
 	  struct gcpro gcpro1, gcpro2, gcpro3;
@@ -393,25 +388,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  GCPRO3 (infile, buffer, current_dir);
 	  for (i = 4; i < nargs; i++)
 	    {
-	      int size = encoding_buffer_size (&argument_coding,
-					       STRING_BYTES (XSTRING (args[i])));
-	      unsigned char *dummy1 = (unsigned char *) alloca (size);
-
-	      /* The Irix 4.0 compiler barfs if we eliminate dummy.  */
-	      new_argv[i - 3] = dummy1;
-	      argument_coding.mode |= CODING_MODE_LAST_BLOCK;
-	      encode_coding (&argument_coding,
-			     XSTRING (args[i])->data,
-			     new_argv[i - 3],
-			     STRING_BYTES (XSTRING (args[i])),
-			     size);
-	      new_argv[i - 3][argument_coding.produced] = 0;
-	      /* We have to initialize CCL program status again.  */
-	      if (argument_coding.type == coding_type_ccl)
-		setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
+	      args[i] = code_convert_string (args[i], &argument_coding, 1, 0);
+	      setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
 	    }
 	  UNGCPRO;
 	}
+      for (i = 4; i < nargs; i++)
+	new_argv[i - 3] = XSTRING (args[i])->data;
       new_argv[nargs - 3] = 0;
     }
   else
@@ -765,7 +748,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	
 	if (!NILP (buffer))
 	  {
-	    if (process_coding.type == coding_type_no_conversion)
+	    if (! CODING_REQUIRE_DECODING (&process_coding))
 	      insert (bufptr, nread);
 	    else
 	      {			/* We have to decode the input.  */
@@ -831,13 +814,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       }
   give_up: ;
 
-  Vlast_coding_system_used = process_coding.symbol;
+    Vlast_coding_system_used = process_coding.symbol;
 
-  /* If the caller required, let the buffer inherit the
-     coding-system used to decode the process output.  */
-  if (inherit_process_coding_system)
-    call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
-	   make_number (total_read));
+    /* If the caller required, let the buffer inherit the
+       coding-system used to decode the process output.  */
+    if (inherit_process_coding_system)
+      call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+	     make_number (total_read));
   }
 
   /* Wait for it to terminate, unless it already has.  */
