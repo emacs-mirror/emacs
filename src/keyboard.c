@@ -2894,18 +2894,43 @@ record_char (c)
   Lisp_Object help;
 
   /* Don't record `help-echo' in recent_keys unless it shows some help
-     message.  */
-  if (!CONSP (c)
-      || !EQ (XCAR (c), Qhelp_echo)
-      || (help = Fnth (make_number (2), c),
-	  !NILP (help)))
+     message, and a different help than the previoiusly recorded
+     event.  */
+  if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
+    {
+      Lisp_Object help;
+
+      help = Fnth (make_number (2), c);
+      if (STRINGP (help))
+	{
+	  int last_idx;
+	  Lisp_Object last_c, last_help;
+	  
+	  last_idx = recent_keys_index - 1;
+	  if (last_idx < 0)
+	    last_idx = NUM_RECENT_KEYS - 1;
+	  last_c = AREF (recent_keys, last_idx);
+	  
+	  if (!CONSP (last_c)
+	      || !EQ (XCAR (last_c), Qhelp_echo)
+	      || (last_help = Fnth (make_number (2), last_c),
+		  !EQ (last_help, help)))
+	    {
+	      total_keys++;
+	      ASET (recent_keys, recent_keys_index, c);
+	      if (++recent_keys_index >= NUM_RECENT_KEYS)
+		recent_keys_index = 0;
+	    }
+	}
+    }
+  else
     {
       total_keys++;
       ASET (recent_keys, recent_keys_index, c);
       if (++recent_keys_index >= NUM_RECENT_KEYS)
 	recent_keys_index = 0;
     }
-
+      
   /* Write c to the dribble file.  If c is a lispy event, write
      the event's symbol to the dribble file, in <brackets>.  Bleaugh.
      If you, dear reader, have a better idea, you've got the source.  :-) */
