@@ -7,8 +7,8 @@
 ;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.16 $" 11 -2)
-  "$Id: find-dired.el,v 1.16 1994/05/03 23:39:55 kwzh Exp rms $")
+(defconst find-dired-version (substring "$Revision: 1.17 $" 11 -2)
+  "$Id: find-dired.el,v 1.17 1994/11/19 14:03:23 rms Exp rms $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 ;;    find-dired|Roland McGrath, Sebastian Kremer
 ;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
 ;;    |Run a `find' command and dired the output
-;;    |$Date: 1994/05/03 23:39:55 $|$Revision: 1.16 $|
+;;    |$Date: 1994/11/19 14:03:23 $|$Revision: 1.17 $|
 
 ;; INSTALLATION ======================================================
 
@@ -60,15 +60,14 @@
 
 ;;;###autoload
 (defvar find-ls-option (if (eq system-type 'berkeley-unix) "-ls"
-			 "-exec ls -ldi {} \\;")
+			 "-exec ls -ld {} \\;")
   "*Option to `find' to produce an `ls -l'-type listing.")
 
 ;;;###autoload
-(defvar find-grep-options (if (eq system-type 'berkeley-unix) "-s" "-l")
+(defvar find-grep-options (if (eq system-type 'berkeley-unix) "-s" "-q")
   "*Option to grep to be as silent as possible.
-On Berkeley systems, this is `-s', for others it seems impossible to
-suppress all output, so `-l' is used to print nothing more than the
-file name.")
+On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
+On other systems, the closest you can come is to use `-l'.")
 
 (defvar find-args nil
   "Last arguments given to `find' by \\[find-dired].")
@@ -157,7 +156,7 @@ The command run (after changing into DIR) is
     find . -exec grep -s ARG {} \\\; -ls
 
 Thus ARG can also contain additional grep options."
-  (interactive "DFind-grep (directory): \nsFind-grep (grep args): ")
+  (interactive "DFind-grep (directory): \nsFind-grep (grep regexp): ")
   ;; find -exec doesn't allow shell i/o redirections in the command,
   ;; or we could use `grep -l >/dev/null'
   (find-dired dir
