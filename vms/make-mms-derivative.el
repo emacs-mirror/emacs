@@ -55,7 +55,7 @@
 
 ;;; Code:
 
-(defvar make-mms-derivative-root-dir "~/build/GNU/emacs"
+(defvar make-mms-derivative-root-dir "AXPA:[TTN.EMACS.EMACS212_3]"
   "Source tree root directory.")
 
 (defvar make-mms-derivative-data nil
@@ -111,14 +111,14 @@
   (interactive "fSource File: ")
   (let ((root (expand-file-name make-mms-derivative-root-dir))
         (file (expand-file-name file)))
-    (unless (string-match (concat "^" root) file)
+    (when (file-name-absolute-p (file-relative-name file root))
       (error "Not under root (%s)" root))
     (let ((edits-filename (concat file "-2mms")))
       (unless (file-exists-p edits-filename)
         (error "Could not find %s" edits-filename))
-      (let* ((pre (+ (length root) (if (string= "/" (substring root -1)) 0 1)))
-             (buf (get-buffer-create (format "*mms-derivative: %s"
-                                             (substring file pre)))))
+      (let ((buf (get-buffer-create
+		  (format "*mms-derivative: %s"
+			  (file-relative-name file root)))))
         (message "Munging ...")
         (switch-to-buffer buf)
         (erase-buffer)
