@@ -591,6 +591,24 @@ struct coding_system
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
+#ifdef WINDOWSNT
+/* Encode the string STR using the specified coding system
+   for w32 system functions, if any.  */
+#define ENCODE_SYSTEM(str)						   \
+  (! NILP (Vw32_system_coding_system)					   \
+   && XFASTINT (Vw32_system_coding_system) != 0				   \
+   ? code_convert_string_norecord (str, Vw32_system_coding_system, 1)	   \
+   : str)
+
+/* Decode the string STR using the specified coding system
+   for w32 system functions, if any.  */
+#define DECODE_SYSTEM(name)						   \
+  (! NILP (Vw32_system_coding_system)					   \
+   && XFASTINT (Vw32_system_coding_system) != 0				   \
+   ? code_convert_string_norecord (str, Vw32_system_coding_system, 0)	   \
+   : str)
+#endif
+
 /* Extern declarations.  */
 extern int decode_coding P_ ((struct coding_system *, unsigned char *,
 			      unsigned char *, int, int));
@@ -681,6 +699,11 @@ extern Lisp_Object Vfile_name_coding_system;
 /* Coding system for file names used only when
    Vfile_name_coding_system is nil.  */
 extern Lisp_Object Vdefault_file_name_coding_system;
+
+#ifdef WINDOWSNT
+/* Coding system for w32 system strings, or nil if none.  */
+extern Lisp_Object Vw32_system_coding_system;
+#endif
 #endif
 
 #endif /* _CODING_H */
