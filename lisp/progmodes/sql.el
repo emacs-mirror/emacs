@@ -1,10 +1,10 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998, 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.24
+;; Version: 1.4.25
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -1276,7 +1276,8 @@ If buffer exists and a process is running, just switch to buffer
 
 Interpreter used comes from variable `sql-sybase-program'.  Login uses
 the variables `sql-server', `sql-user', `sql-password', and
-`sql-database' as defaults, if set.
+`sql-database' as defaults, if set.  Additional command line parameters
+can be stored in the list `sql-sybase-options'.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
@@ -1292,7 +1293,7 @@ The default comes from `process-coding-system-alist' and
   (interactive)
   (if (comint-check-proc "*SQL*")
       (pop-to-buffer "*SQL*")
-    (sql-get-login 'server 'user 'password 'server)
+    (sql-get-login 'server 'user 'password 'database)
     (message "Login...")
     ;; Put all parameters to the program (if defined) in a list and call
     ;; make-comint.
@@ -1369,7 +1370,8 @@ If buffer exists and a process is running, just switch to buffer
 
 Interpreter used comes from variable `sql-mysql-program'.  Login uses
 the variables `sql-user', `sql-password', `sql-database', and
-`sql-server' as defaults, if set.
+`sql-server' as defaults, if set.  Additional command line parameters
+can be stored in the list `sql-mysql-options'.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
@@ -1563,6 +1565,8 @@ If buffer exists and a process is running, just switch to buffer
 
 Interpreter used comes from variable `sql-postgres-program'.  Login uses
 the variables `sql-database' and `sql-server' as default, if set.
+Additional command line parameters can be stored in the list
+`sql-postgres-options'.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
