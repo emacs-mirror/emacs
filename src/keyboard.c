@@ -2425,6 +2425,12 @@ kbd_buffer_store_event (event)
 	  return;
 	}
     }
+  /* Don't insert two buffer_switch_event's in a row.
+     Just ignore the second one.  */
+  else if (event->kind == buffer_switch_event
+	   && kbd_fetch_ptr != kbd_store_ptr
+	   && kbd_store_ptr->kind == buffer_switch_event)
+    return;
 
   if (kbd_store_ptr - kbd_buffer == KBD_BUFFER_SIZE)
     kbd_store_ptr = kbd_buffer;
@@ -5191,6 +5197,16 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   int function_key_possible = 0;
   int key_translation_possible = 0;
 
+  /* Save the status of key translation before each step,
+     so that we can restore this after downcasing.  */
+  Lisp_Object prev_fkey_map;
+  Lisp_Object prev_fkey_start;
+  Lisp_Object prev_fkey_end;
+
+  Lisp_Object prev_keytran_map;
+  Lisp_Object prev_keytran_start;
+  Lisp_Object prev_keytran_end;
+
   int junk;
 
   last_nonmenu_event = Qnil;
@@ -5335,7 +5351,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       int echo_local_start, keys_local_start, local_first_binding;
 
       if (t >= bufsize)
-	error ("key sequence too long");
+	error ("Key sequence too long");
 
       if (INTERACTIVE)
 	echo_local_start = echo_length ();
@@ -5544,7 +5560,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      if (SYMBOLP (posn))
 		{
 		  if (t + 1 >= bufsize)
-		    error ("key sequence too long");
+		    error ("Key sequence too long");
 		  keybuf[t] = posn;
 		  keybuf[t+1] = key;
 		  mock_input = t + 2;
@@ -5579,7 +5595,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      if (EQ (posn, Qmenu_bar))
 		{
 		  if (t + 1 >= bufsize)
-		    error ("key sequence too long");
+		    error ("Key sequence too long");
 		  keybuf[t] = posn;
 		  keybuf[t+1] = key;
 
@@ -5738,6 +5754,14 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (!used_mouse_menu)
 	last_nonmenu_event = key;
 
+      prev_fkey_map = fkey_map;
+      prev_fkey_start = fkey_start;
+      prev_fkey_end = fkey_end;
+
+      prev_keytran_map = keytran_map;
+      prev_keytran_start = keytran_start;
+      prev_keytran_end = keytran_end;
+
       /* If the sequence is unbound, see if we can hang a function key
 	 off the end of it.  We only want to scan real keyboard input
 	 for function key sequences, so if mock_input says that we're
@@ -5814,7 +5838,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  t = fkey_start + len;
 		  if (t >= bufsize)
-		    error ("key sequence too long");
+		    error ("Key sequence too long");
 
 		  if (VECTORP (fkey_next))
 		    bcopy (XVECTOR (fkey_next)->contents,
@@ -5914,7 +5938,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		t = keytran_start + len;
 		if (t >= bufsize)
-		  error ("key sequence too long");
+		  error ("Key sequence too long");
 
 		if (VECTORP (keytran_next))
 		  bcopy (XVECTOR (keytran_next)->contents,
@@ -5967,7 +5991,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      || (XINT (key) & shift_modifier)))
 	{
 	  Lisp_Object new_key;
-	  int new_first_binding;
 
 	  original_uppercase = key;
 	  original_uppercase_position = t - 1;
@@ -5978,23 +6001,21 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
 			       | (XINT (key) & ~0x3ffff)));
 
-	  /* See if new_key has a binding.
-	     If it does not have one, this does not alter SUBMAPS.  */
-	  new_first_binding
-	    = (follow_key (new_key,
-			   nmaps   - local_first_binding,
-			   submaps + local_first_binding,
-			   defs    + local_first_binding,
-			   submaps + local_first_binding)
-	       + local_first_binding);
+	  /* We have to do this unconditionally, regardless of whether
+	     the lower-case char is defined in the keymaps, because they
+	     might get translated through function-key-map.  */
+	  keybuf[t - 1] = new_key;
+	  mock_input = t;
 
-	  /* If that lower-case char is bound, use it instead.  */
-	  if (new_first_binding < nmaps)
-	    {
-	      keybuf[t - 1] = new_key;
-	      mock_input = t;
-	      goto replay_sequence;
-	    }
+	  fkey_map = prev_fkey_map;
+	  fkey_start = prev_fkey_start;
+	  fkey_end = prev_fkey_end;
+
+	  keytran_map = prev_keytran_map;
+	  keytran_start = prev_keytran_start;
+	  keytran_end = prev_keytran_end;
+
+	  goto replay_sequence;
 	}
       /* If KEY is not defined in any of the keymaps,
 	 and cannot be part of a function key or translation,
@@ -6007,37 +6028,31 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  Lisp_Object breakdown;
 	  int modifiers;
 
-	  original_uppercase = key;
-	  original_uppercase_position = t - 1;
-
 	  breakdown = parse_modifiers (key);
 	  modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
 	  if (modifiers & shift_modifier)
 	    {
 	      Lisp_Object new_key;
-	      int new_first_binding;
+
+	      original_uppercase = key;
+	      original_uppercase_position = t - 1;
 
 	      modifiers &= ~shift_modifier;
 	      new_key = apply_modifiers (modifiers,
 					 XCONS (breakdown)->car);
 
-	      /* See if new_key has a binding.
-		 If it does not have one, this does not alter SUBMAPS.  */
-	      new_first_binding
-		= (follow_key (new_key,
-			       nmaps   - local_first_binding,
-			       submaps + local_first_binding,
-			       defs    + local_first_binding,
-			       submaps + local_first_binding)
-		   + local_first_binding);
+	      keybuf[t - 1] = new_key;
+	      mock_input = t;
 
-	      /* If that unshifted key is bound, use it instead.  */
-	      if (new_first_binding < nmaps)
-		{
-		  keybuf[t - 1] = new_key;
-		  mock_input = t;
-		  goto replay_sequence;
-		}
+	      fkey_map = prev_fkey_map;
+	      fkey_start = prev_fkey_start;
+	      fkey_end = prev_fkey_end;
+
+	      keytran_map = prev_keytran_map;
+	      keytran_start = prev_keytran_start;
+	      keytran_end = prev_keytran_end;
+
+	      goto replay_sequence;
 	    }
 	}
     }
@@ -6050,7 +6065,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   unread_switch_frame = delayed_switch_frame;
   unbind_to (count, Qnil);
 
-  if (dont_downcase_last && t - 1 == original_uppercase_position)
+  /* Don't downcase the last character if the caller says don't.
+     Don't downcase it if the result is undefined, either.  */
+  if ((dont_downcase_last || first_binding >= nmaps)
+      && t - 1 == original_uppercase_position)
     keybuf[t - 1] = original_uppercase;
 
   /* Occasionally we fabricate events, perhaps by expanding something
