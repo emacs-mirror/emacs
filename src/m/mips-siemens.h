@@ -16,10 +16,6 @@
 #undef C_DEBUG_SWITCH
 #define C_DEBUG_SWITCH -g
 
-/* w.prediger@m30x.nbg.scn.de seems to say this is needed.
-   But let's try without it.  */
-/* #define C_ALLOCA */
-
 /* This system uses a slightly nonstandard variant of elf format.  */
 #undef UNEXEC
 #define UNEXEC unexelf.o
