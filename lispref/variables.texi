@@ -1319,9 +1319,10 @@ This returns @code{t} if @var{variable} is buffer-local in buffer
 @end defun
 
 @defun buffer-local-value variable buffer
-This returns the value of @var{variable} that is currently in
-effect in @var{buffer}.  If it has no buffer-local binding in
-@var{buffer}, this function returns the default value.
+This function returns the buffer-local binding of @var{variable} (a
+symbol) in buffer @var{buffer}.  If @var{variable} does not have a
+buffer-local binding in buffer @var{buffer}, it returns the default
+value (@pxref{Default Value}) of @var{variable} instead.
 @end defun
 
 @defun buffer-local-variables &optional buffer
@@ -1356,13 +1357,6 @@ then the variable appears directly in the resulting list.
 
 Note that storing new values into the @sc{cdr}s of cons cells in this
 list does @emph{not} change the buffer-local values of the variables.
-@end defun
-
-@defun buffer-local-value variable buffer
-This function returns the buffer-local binding of @var{variable} (a
-symbol) in buffer @var{buffer}.  If @var{variable} does not have a
-buffer-local binding in buffer @var{buffer}, it returns the default
-value (@pxref{Default Value}) of @var{variable} instead.
 @end defun
 
 @deffn Command kill-local-variable variable
@@ -1769,6 +1763,11 @@ lists in files being visited.  A value of @code{t} means process them
 unconditionally; @code{nil} means ignore them; anything else means ask
 the user what to do for each file.  The default value is @code{maybe}.
 @end defopt
+
+  Text properties are also potential loopholes, since their values
+could include functions to call.  So Emacs discards all text
+properties from string values specified in a file's local variables
+list.
 
 @ignore
    arch-tag: 5ff62c44-2b51-47bb-99d4-fea5aeec5d3e
