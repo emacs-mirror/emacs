@@ -1,3 +1,8 @@
+2002-08-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* case-table.el (describe-buffer-case-table): Handle the case
+	that KEY is a cons within map-char-table.
+
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Fix categories ?A and ?C.  Treat
