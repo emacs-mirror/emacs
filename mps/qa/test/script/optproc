@@ -110,10 +110,12 @@ sub optioncode {
 }
 
 sub applydefaults {
- local ($opt, $val);
+ local ($opt, $val, %arr);
 
- foreach (keys %qa_options) {
-  $opt = $qa_options{$_};
+ %arr = (%qa_options, %qa_flags);
+
+ foreach (keys %arr) {
+  $opt = ($qa_options{$_} || $qa_flags{$_});
   unless (&getoption($opt)) {
    $val = $ENV{"MMQA_".$opt};
    unless ($val) {
