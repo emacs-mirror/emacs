@@ -2,7 +2,7 @@
  *
  *            Leaf Object Pool Class Coverage Test
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!locv.c(trunk.1) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -22,12 +22,11 @@
 #include "space.h"
 
 
-static Error scan(Addr *objectIO, Trace trace);
+
+static Error scan(ScanState ss, Addr base, Addr limit);
 static Addr skip(Addr object);
-static Addr length(Addr object);
-static Bool probe(Addr object);
 static void move(Addr object, Addr to);
-static Bool isMoved(Addr object, Addr *toReturn);
+static Addr isMoved(Addr object);
 static void copy(Addr object, Addr to);
 
 static Addr roots[4];
@@ -50,8 +49,9 @@ main(void)
                       RootFIXABLE || RootMUTABLE || RootATOMIC,
                       roots, roots + (sizeof(roots)/sizeof(*roots))),
       "RootCreate");
-  die(FormatCreate(&format, space, (Addr)4, scan, skip, length,
-		   probe, move, isMoved, copy), "FormatCreate");
+
+  die(FormatCreate(&format, space, (Addr)4, scan, skip,
+		   move, isMoved, copy), "FormatCreate");
   die(PoolCreate(&pool, PoolClassLO(), space, format), "LOCreate");
 
   die(BufferCreate(&buffer, pool), "BufferCreate");
@@ -94,7 +94,7 @@ main(void)
 
 static
 Error
-scan(Addr *objectIO, Trace trace)
+scan(ScanState ss, Addr base, Addr limit)
 {
   NOTREACHED;
   return ErrFAILURE;
@@ -112,22 +112,6 @@ skip(Addr object)
 }
 
 static
-Addr
-length(Addr object)
-{
-  NOTREACHED;
-  return ErrUNIMPL;
-}
-
-static
-Bool
-probe(Addr object)
-{
-  NOTREACHED;
-  return ErrUNIMPL;
-}
-
-static
 void
 move(Addr object, Addr to)
 {
@@ -135,8 +119,8 @@ move(Addr object, Addr to)
 }
 
 static
-Bool
-isMoved(Addr object, Addr *toReturn)
+Addr
+isMoved(Addr object)
 {
   NOTREACHED;
   return ErrFAILURE;
