@@ -2659,15 +2659,22 @@ move the mouse onto that text, Emacs displays that string in the echo
 area, or in the tooltip window.  This feature is used in the mode line.
 It is available starting in Emacs 21.
 
-@item local-map
+@item keymap
 @cindex keymap of character
-@kindex local-map @r{(text property)}
+@kindex keymap @r{(text property)}
 You can specify a different keymap for some of the text in a buffer by
-means of the @code{local-map} property.  The property's value for the
+means of the @code{keymap} property.  The property's value for the
 character after point, if non-@code{nil}, is used for key lookup instead
 of the buffer's local map.  If the property value is a symbol, the
 symbol's function definition is used as the keymap.  @xref{Active
 Keymaps}.
+
+@item local-map
+@cindex keymap of character
+@kindex local-map @r{(text property)}
+This property is like the @code{keymap} property, except that it doesn't
+replace the buffer's local map.  Keys not defined in the keymap
+specified with @code{local-map} are looked up in the buffer's local map.
 
 @item syntax-table
 The @code{syntax-table} property overrides what the syntax table says
@@ -3062,7 +3069,7 @@ file to visit, based on the position found in the event.
 
   Instead of defining a mouse command for the major mode, you can define
 a key binding for the clickable text itself, using the @code{local-map}
-text property:
+or @code{keymap} text properties:
 
 @example
 (let ((map (make-sparse-keymap)))
