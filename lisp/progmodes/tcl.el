@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision$
+;; Version: $Revision: 1.2 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; 6-Apr-94|$Revision$|
+;; 6-Apr-94|$Revision: 1.2 $|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -1756,7 +1756,7 @@ The first line is assumed to look like \"#!.../program ...\"."
   (and tcl-using-emacs-19
        (not tcl-using-lemacs-19)
        (if tcl-using-emacs-19.23
-	   (require 'menubar)
+	   (require 'lmenu)
 	 ;; CAVEATS:
 	 ;; * lmenu.el provides 'menubar, which is bogus.
 	 ;; * lmenu.el causes menubars to be turned on everywhere.
@@ -1781,7 +1781,7 @@ The first line is assumed to look like \"#!.../program ...\"."
   (and tcl-using-emacs-19
        (not tcl-using-lemacs-19)
        (if tcl-using-emacs-19.23
-	   (require 'menubar)
+	   (require 'lmenu)
 	 ;; CAVEATS:
 	 ;; * lmenu.el provides 'menubar, which is bogus.
 	 ;; * lmenu.el causes menubars to be turned on everywhere.
