@@ -498,7 +498,6 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
   (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-start)
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'mail-mode-auto-fill)
   (make-local-variable 'fill-paragraph-function)
@@ -518,12 +517,11 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
-  (setq paragraph-start (concat (regexp-quote mail-header-separator)
+  (setq paragraph-separate (concat (regexp-quote mail-header-separator)
 				"$\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
 				"\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
-				"-- $\\|---+$\\|"
-				page-delimiter))
-  (setq paragraph-separate paragraph-start))
+				"--\\( \\|-+\\)$\\|"
+				page-delimiter)))
 
 
 (defun mail-header-end ()
