@@ -58,6 +58,7 @@
 
 (defvar hl-line-overlay nil)
 (make-variable-buffer-local 'hl-line-overlay)
+(put 'hl-line-overlay 'permanent-local t)
 
 (defun hl-line-highlight ()
   "Active the Hl-Line overlay on the current line in the current window.
