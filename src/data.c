@@ -1650,6 +1650,10 @@ arith_driver (code, nargs, args)
 }
 
 #ifdef LISP_FLOAT_TYPE
+
+#undef isnan
+#define isnan(x) ((x) != (x))
+
 Lisp_Object
 float_arith_driver (accum, argnum, code, nargs, args)
      double accum;
@@ -1707,11 +1711,11 @@ float_arith_driver (accum, argnum, code, nargs, args)
 	case Alogxor:
 	  return wrong_type_argument (Qinteger_or_marker_p, val);
 	case Amax:
-	  if (!argnum || next > accum)
+	  if (!argnum || isnan (next) || next > accum)
 	    accum = next;
 	  break;
 	case Amin:
-	  if (!argnum || next < accum)
+	  if (!argnum || isnan (next) || next < accum)
 	    accum = next;
 	  break;
 	}
