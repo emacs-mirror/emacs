@@ -766,6 +766,8 @@ read_escape (readcharfun)
       return '\007';
     case 'b':
       return '\b';
+    case 'd':
+      return 0177;
     case 'e':
       return 033;
     case 'f':
@@ -788,7 +790,16 @@ read_escape (readcharfun)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun);
-      return c | 0200;
+      return c | CHAR_META;
+
+    case 'S':
+      c = READCHAR;
+      if (c != '-')
+	error ("Invalid escape character syntax");
+      c = READCHAR;
+      if (c == '\\')
+	c = read_escape (readcharfun);
+      return c | CHAR_SHIFT;
 
     case 'C':
       c = READCHAR;
@@ -798,10 +809,16 @@ read_escape (readcharfun)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun);
-      if (c == '?')
-	return 0177;
+      if ((c & 0177) == '?')
+	return 0177 | c;
+      /* ASCII control chars are made from letters (both cases),
+	 as well as the non-letters within 0100...0137.  */
+      else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
+	return (c & (037 | ~0177));
+      else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
+	return (c & (037 | ~0177));
       else
-	return (c & (0200 | 037));
+	return c | CHAR_CTL;
 
     case '0':
     case '1':
@@ -989,11 +1006,14 @@ read1 (readcharfun)
 	    if (c == '\\')
 	      c = read_escape (readcharfun);
 	    /* c is -1 if \ newline has just been seen */
-	    if (c < 0)
+	    if (c == -1)
 	      {
 		if (p == read_buffer)
 		  cancel = 1;
 	      }
+	    else if (c & CHAR_META)
+	      /* Move the meta bit to the right place for a string.  */
+	      *p++ = (c & ~CHAR_META) | 0x80;
 	    else
 	      *p++ = c;
 	  }
