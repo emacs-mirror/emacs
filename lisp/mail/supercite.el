@@ -68,7 +68,7 @@ This should NOT have a leading `^' character.  See also
 (defvar sc-citation-nonnested-root-regexp "[-._a-zA-Z0-9]+"
   "*Regexp describing the variable root part of a nested citation.
 This should NOT have a leading `^' character.  This variable is
-related to `sc-citation-root-regexp' but where as that varariable
+related to `sc-citation-root-regexp' but whereas that variable
 describes both nested and non-nested citation roots, this variable
 describes only nested citation roots.")
 (defvar sc-citation-delimiter-regexp "[>]+"
@@ -1326,7 +1326,7 @@ buffer."
      nesting)))
 
 (defun sc-add-citation-level ()
-  "Add a citation level for nested citation style w/ coersion."
+  "Add a citation level for nested citation style w/ coercion."
   (let* ((nesting (sc-guess-nesting))
 	 (citation (make-string (1+ (length nesting))
 				(string-to-char sc-citation-delimiter)))
@@ -1428,7 +1428,7 @@ non-nil."
   ())
 
 (defun sc-no-blank-line-or-header()
-  "Similar to `sc-no-header' except it removes the preceeding blank line."
+  "Similar to `sc-no-header' except it removes the preceding blank line."
   (if (not (bobp))
       (if (and (eolp)
 	       (progn (forward-line -1)
