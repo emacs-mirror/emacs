@@ -1,7 +1,63 @@
+2004-11-26  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-sort-entry-class)
+	(bibtex-comment-start): Use defcustom.
+	(bibtex-entry-field-alist): Use nil if initial content of the
+	field is undefined.  Fix docstring.
+	(bibtex-parse-keys-timeout, bibtex-autokey-additional-names)
+	(bibtex-generate-autokey, bibtex-parse-buffers-stealthily)
+	(bibtex-mode, bibtex-field-list, bibtex-entry-updat)
+	(bibtex-autofill-entry, bibtex-entry-index, bibtex-next-field):
+	Fix docstring.
+	(bibtex-autokey-title-terminators): Use only one regexp.
+	(bibtex-string-maybe-empty-head): New variable.
+	(bibtex-remove-delimiters-string): New function.
+	(bibtex-text-in-field-bounds, bibtex-text-in-string):
+	Use bibtex-remove-delimiters-string.
+	(bibtex-progress-message, bibtex-field-left-delimiter)
+	(bibtex-field-right-delimiter, bibtex-entry-left-delimiter)
+	(bibtex-entry-right-delimiter, bibtex-search-entry): Use eq.
+	(bibtex-insert-kill): Rename from `bibtex-insert-current-kill'.
+	Simplify.
+	(bibtex-format-entry): Use save-excursion for inherited booktitle.
+	Use eq and bibtex-remove-delimiters-string.  For end markers use
+	insertion type so that marker stays after inserted text.
+	(bibtex-autokey-get-names): Return empty string if name is missing.
+	(bibtex-autokey-demangle-name): Call bibtex-autokey-abbrev before
+	calling bibtex-autokey-name-case-convert.
+	(bibtex-autokey-demangle-title):
+	Call bibtex-autokey-titleword-case-convert.  Remove call to
+	bibtex-autokey-titleword-case-convert from bibtex-autokey-get-title.
+	(bibtex-global-key-alist, bibtex-read-string-key): New functions.
+	(bibtex-read-key): New optional arg global.
+	(bibtex-files-expand): New optional arg force.
+	(bibtex-complete-string-cleanup): Expansion of abbrev can be absent.
+	(bibtex-complete-crossref-cleanup): Rename from
+	bibtex-complete-key-cleanup.  Simplify code.
+	(bibtex-copy-summary-as-kill): Remove arg key.  Use looking-at.
+	Operate on current entry.
+	(bibtex-button): Add docstring.
+	(bibtex-entry): Simplify.
+	(bibtex-make-field): Replace optional arg called-by-yank with more
+	specific args move and interactive.
+	(bibtex-end-of-entry): Use forward-sexp.
+	(bibtex-find-entry-globally): Remove.
+	(bibtex-find-crossref): Allow for crossref key located in other buffer.
+	Bound to C-c C-x.
+	(bibtex-find-entry): New optional args global and display.
+	(bibtex-find-text): Fix docstring.  Remove arg as-if-interactive.
+	(bibtex-validate): Use arg force of bibtex-files-expand.
+	(bibtex-clean-entry): Bugfix, clean string entries properly.
+	Always keep point at beginning of entry.
+	(bibtex-complete): Bugfix.  Handle string entries properly.
+	Call cleanup functions only if needed.
+	(bibtex-String): Use bibtex-read-string-key.
+	(bibtex-url): Use bibtex-remove-delimiters-string.  Do not alter
+	case of replacement text.
+
 2004-11-26  Lars Hansen  <larsh@math.ku.dk>
 
-	* tramp.el (tramp-handle-directory-files-and-attributes): New
-	function.
+	* tramp.el (tramp-handle-directory-files-and-attributes): New function.
 	(tramp-perl-directory-files-and-attributes): New constant.
 	(tramp-file-name-handler-alist): Delete file-directory-files, add
 	directory-files-and-attributes.
@@ -22,8 +78,8 @@
 2004-11-26  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-read): Replace mapcar with mapc.
-	(desktop-create-buffer): Replace mapcar with mapc. Remove
-	redundant piece of code.
+	(desktop-create-buffer): Replace mapcar with mapc.
+	Remove redundant piece of code.
 
 2004-11-27  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -33,8 +89,7 @@
 	* progmodes/gdb-ui.el (gdb-view-source, gdb-selected-view):
 	Delete variables.
 	(gdb-ann3): Don't make GUD buffer dedicated.
-	(gdb-goto-breakpoint, gdb-display-buffer): Don't always
-	dedicate.
+	(gdb-goto-breakpoint, gdb-display-buffer): Don't always dedicate.
 	(gdb-display-source-buffer): Delete function.
 	(gdb-view-source-function, gdb-view-assembler): Delete functions.
 	(menu): Delete menu bindings for viewing source/assembler.
@@ -58,10 +113,10 @@
 
 	* progmodes/flymake.el: Reindent.
 	(flymake-split-string):	Turn into defalias.
-	(flymake-fix-file-name): Renamed from flymake-fix-path-name.
+	(flymake-fix-file-name): Rename from flymake-fix-path-name.
 	(flymake-ensure-ends-with-slash): Rename arg to FILENAME.
-	(flymake-get-common-file-prefix): Renamed from ...path...  Doc fix.
-	(flymake-build-relative-filename): Renamed from ...path.
+	(flymake-get-common-file-prefix): Rename from ...path...  Doc fix.
+	(flymake-build-relative-filename): Rename from ...path.
 	Fix error message.
 
 2004-11-25  Cheng Gao  <chenggao@gmail.com>
@@ -116,7 +171,6 @@
 	(math-simplify-units-quotient): Replace variable try-cancel-units by
 	declared variable.
 
->>>>>>> 1.6669
 2004-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-check-version):
