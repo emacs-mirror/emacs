@@ -1446,7 +1446,7 @@ Similarly for Soar, Scheme, etc."
 
 	  (let ((beg (marker-position pmark))
 		(end (if no-newline (point) (1- (point)))))
-	    (when (not (> beg end))	; handle a special case
+	    (when (> end beg)
 	      ;; Set text-properties for the input field
 	      (add-text-properties
 	       beg end
@@ -1461,7 +1461,7 @@ Similarly for Soar, Scheme, etc."
 		;; `boundary' field to make cursor movement between input
 		;; and output fields smoother.
 		(put-text-property beg end 'field 'input)))
-	    (unless comint-use-prompt-regexp-instead-of-fields
+	    (unless (or no-newline comint-use-prompt-regexp-instead-of-fields)
 	      ;; Cover the terminating newline
 	      (add-text-properties end (1+ end)
 				   '(rear-nonsticky t
