@@ -89,12 +89,6 @@ fi
 echo "Creating top directory: \`${tempdir}'"
 mkdir ${tempdir}
 
-echo
-
-echo "Don't worry if `ln' complains that it can't make
-echo "cross-filesystem links for these files; we take care of them
-echo "later.
-
 ### We copy in the top-level files before creating the subdirectories in
 ### hopes that this will make the top-level files appear first in the
 ### tar file; this means that people can start reading the INSTALL and
