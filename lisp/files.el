@@ -2057,16 +2057,21 @@ is specified, returning t if it is specified."
 (put 'mode-line-position 'risky-local-variable t)
 (put 'display-time-string 'risky-local-variable t)
 
-;; This one is safe because the user gets to check it before it is used.
-(put 'compile-command 'safe-local-variable t)
+;; This case is safe because the user gets to check it before it is used.
+(put 'compile-command 'safe-local-variable 'stringp)
 
-(defun risky-local-variable-p (sym)
-  "Returns non-nil if SYM could be dangerous as a file-local variable."
-  (or (memq sym ignored-local-variables)
-      (get sym 'risky-local-variable)
-      (and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
-			 (symbol-name sym))
-	   (not (get sym 'safe-local-variable)))))
+(defun risky-local-variable-p (sym val)
+  "Non-nil if SYM could be dangerous as a file-local variable with value VAL."
+  (let ((safep (get sym 'safe-local-variable)))
+    (or (memq sym ignored-local-variables)
+	(get sym 'risky-local-variable)
+	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
+			   (symbol-name sym))
+	     (not safep))
+	;; If the safe-local-variable property isn't t or nil,
+	;; then it must return non-nil on the proposed value to be safe.
+	(and (not (memq safep '(t nil)))
+	     (not (funcall safep val))))))
 
 (defcustom safe-local-eval-forms nil
   "*Expressions that are considered \"safe\" in an `eval:' local variable.
@@ -2134,7 +2139,7 @@ is considered risky."
 	 nil)
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
-	((risky-local-variable-p var)
+	((risky-local-variable-p var val)
 	 ;; Permit evalling a put of a harmless property.
 	 ;; if the args do nothing tricky.
 	 (if (or (and (eq var 'eval)
@@ -2157,7 +2162,7 @@ is considered risky."
 		 (save-excursion (eval val))
 	       (make-local-variable var)
 	       (set var val))
-	   (message "Ignoring `eval:' in the local variables list")))
+	   (message "Ignoring risky spec in the local variables list")))
 	;; Ordinary variable, really set it.
 	(t (make-local-variable var)
 	   ;; Make sure the string has no text properties.
