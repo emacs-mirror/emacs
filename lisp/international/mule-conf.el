@@ -870,7 +870,7 @@
   :iso-final-char ?7
   :emacs-mule-id 252
   :unify-map "tibetan"
-  :code-space [33 126 33 126]
+  :code-space [33 126 33 37]
   :code-offset #x190000)
 
 (define-charset 'tibetan-1-column
@@ -880,7 +880,7 @@
   :iso-final-char ?8
   :emacs-mule-id 241
   :code-space [33 126 33 37]
-  :superset '(tibetan))
+  :code-offset #x190000)
 
 ;; Subsets of Unicode.
 (define-charset 'mule-unicode-2500-33ff
