@@ -1,6 +1,11 @@
 2003-11-22  Kenichi Handa  <handa@m17n.org>
 
+	* charset.c (find_charsets_in_text): Delete unused locale
+	variable.
+	(Fset_charset_priority): Update Vemacs_mule_charset_list too.
+
 	* coding.c (encode_coding_emacs_mule): Emit bytes with MSB.
+	Resync charset_list to Vemacs_mule_charset_list.
 
 	* keymap.c (store_in_keymap): Pay attention to the case that idx
 	is a cons specifying a character range.
