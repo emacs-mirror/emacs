@@ -153,7 +153,14 @@ Emacs features use it anyway.  Some use the @code{TMP} environment
 variable, and some use the @code{TMPDIR} environment variable.
 
 @item
-The variable  @code{inhibit-modification-hooks}
+If the second argument of @code{save-some-buffers}, @var{pred}, is not
+@code{nil}, then the precise value no longer matters.  Any
+non-@code{nil} value means the same as @code{t}: offer to save each
+non-file buffer that has a non-@code{nil} value for
+@code{buffer-offer-save}.
+
+@item
+The variable @code{inhibit-modification-hooks}
 has no special meaning.
 
 @item
