@@ -40,8 +40,7 @@
     (mid-left . 3) (mid-center . 10) (mid-right . 5))
   "Alist of symbols vs integer codes of glyph reference points.
 A glyph reference point symbol is to be used to specify a composition
-rule in COMPONENTS argument to such functions as `compose-region' and
-`make-composition'.
+rule in COMPONENTS argument to such functions as `compose-region'.
 
 Meanings of glyph reference point codes are as follows:
 
@@ -164,9 +163,9 @@ When called from a program, expects these four arguments.
 First two arguments START and END are positions (integers or markers)
 specifying the region.
 
-Optional 3rd argument COMPONENTS, if non-nil, is a character or a
-sequence (vector, list, or string) of integers.  In this case,
-characters are composed not relatively but according to COMPONENTS.
+Optional 3rd argument COMPONENTS, if non-nil, is a character, a string
+Optional 3rd argument COMPONENTS, if non-nil, is a character, a string
+or a vector or list of integers and rules.
 
 If it is a character, it is an alternate character to display instead
 of the text in the region.
@@ -315,7 +314,7 @@ is:
 Optional 2nd arg LIMIT, if non-nil, limits the matching of text.
 
 Optional 3rd arg OBJECT, if non-nil, is a string that contains the
-text to compose.  In that case, POS and LIMIT index to the string.
+text to compose.  In that case, POS and LIMIT index into the string.
 
 This function is the default value of `compose-chars-after-function'."
   (let ((tail (aref composition-function-table (char-after pos)))
@@ -373,7 +372,7 @@ If STRING is nil, POS is a position in the current buffer, and the
 function has to compose a character at POS with surrounding characters
 in the current buffer.
 
-Otherwise, STRING is a string, and POS is an index to the string.  In
+Otherwise, STRING is a string, and POS is an index into the string.  In
 this case, the function has to compose a character at POS with
 surrounding characters in the string.
 
@@ -381,10 +380,6 @@ See also the command `toggle-auto-composition'.")
 
 ;; Copied from font-lock.el.
 (eval-when-compile
-  ;;
-  ;; We don't do this at the top-level as we only use non-autoloaded macros.
-  (require 'cl)
-  ;;
   ;; Borrowed from lazy-lock.el.
   ;; We use this to preserve or protect things when modifying text properties.
   (defmacro save-buffer-state (varlist &rest body)
@@ -398,17 +393,17 @@ See also the command `toggle-auto-composition'.")
        (unless modified
 	 (restore-buffer-modified-p nil))))
   (put 'save-buffer-state 'lisp-indent-function 1)
-  ;; Fixme: This makes bootstrapping fails by this error.
+  ;; Fixme: This makes bootstrapping fail with this error.
   ;;   Symbol's function definition is void: eval-defun
   ;;(def-edebug-spec save-buffer-state let)
   )
 
 (defvar auto-composition-chunk-size 500
-  "*Automatic composition chunks of this many characters, or smaller.")
+  "*Automatic composition uses chunks of this many characters, or smaller.")
 
 (defun auto-compose-chars (pos string)
   "Compose characters after the buffer position POS.
-If STRING is non-nil, it is a string, and POS is an index to the string.
+If STRING is non-nil, it is a string, and POS is an index into the string.
 In that case, compose characters in the string.
 
 This function is the default value of `auto-composition-function' (which see)."
@@ -430,7 +425,7 @@ This function is the default value of `auto-composition-function' (which see)."
 			(or (< pos limit)
 			    (/= ch ?\n)))
 	      (setq func (aref composition-function-table ch))
-	      (if (fboundp func)
+	      (if (functionp func)
 		  (setq newpos (funcall func pos string)
 			pos (if (and (integerp newpos) (> newpos pos))
 				newpos
