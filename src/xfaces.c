@@ -1,5 +1,5 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999 Free Software Foundation.
+   Copyright (C) 1993, 1994, 1998, 1999, 2000 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -6350,7 +6350,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
     len = 40;
     overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
     noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-			     &next_overlay, NULL);
+			     &next_overlay, NULL, 0);
 
     /* If there are more than 40, make enough space for all, and try
        again.  */
@@ -6359,7 +6359,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 	len = noverlays;
 	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
 	noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-				 &next_overlay, NULL);
+				 &next_overlay, NULL, 0);
       }
 
     if (next_overlay < endpos)
