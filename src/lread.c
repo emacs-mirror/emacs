@@ -350,7 +350,7 @@ Return t if file exists.")
   str = Fsubstitute_in_file_name (str);
 
   /* If file name is magic, call the handler.  */
-  handler = Ffind_file_name_handler (str);
+  handler = Ffind_file_name_handler (str, Qload);
   if (!NILP (handler))
     return call5 (handler, Qload, str, noerror, nomessage, nosuffix);
 

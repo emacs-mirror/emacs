@@ -94,12 +94,9 @@ extern struct re_pattern_buffer searchbuf;
 
 extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
-extern Lisp_Object Ffind_file_name_handler ();
 
 Lisp_Object Vcompletion_ignored_extensions;
-
 Lisp_Object Qcompletion_ignore_case;
-
 Lisp_Object Qdirectory_files;
 Lisp_Object Qfile_name_completion;
 Lisp_Object Qfile_name_all_completions;
@@ -122,7 +119,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (dirname);
+  handler = Ffind_file_name_handler (dirname, Qdirectory_files);
   if (!NILP (handler))
     {
       Lisp_Object args[6];
@@ -246,7 +243,7 @@ Returns nil if DIR contains no name starting with FILE.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (dirname);
+  handler = Ffind_file_name_handler (dirname, Qfile_name_completion);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_completion, file, dirname);
 
@@ -264,7 +261,7 @@ These are all file names in directory DIR which begin with FILE.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (dirname);
+  handler = Ffind_file_name_handler (dirname, Qfile_name_all_completions);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, dirname);
 
@@ -594,7 +591,7 @@ If file does not exist, returns nil.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qfile_attributes);
   if (!NILP (handler))
     return call2 (handler, Qfile_attributes, filename);
 

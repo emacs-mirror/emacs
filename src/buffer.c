@@ -196,7 +196,7 @@ If there is no such live buffer, return nil.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qget_file_buffer);
   if (!NILP (handler))
     return call2 (handler, Qget_file_buffer, filename);
 
