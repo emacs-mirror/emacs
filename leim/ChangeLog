@@ -1,3 +1,8 @@
+2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* quail/latin-pre.el (latin-2-prefix): Add ,BL(B and ,Bl(B.
+	From "Dr. Eduard Werner" <edi.werner@gmx.de>.
+
 2002-01-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/greek.el: Changed the behavior of the "greek" input
