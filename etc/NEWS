@@ -2003,7 +2003,7 @@ specifies the minimum line height in pixels.  If necessary, the line
 height it increased by increasing the line's ascent.
 
 If the line-height property value is a float, the minimum line height
-is calculated by multiplying the current height of the display row by
+is calculated by multiplying the height of the current face font by
 the given value.
 
 If the line-height property value is t, the minimum line height is

@@ -1,5 +1,7 @@
 2004-04-27  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h (struct it): New member use_default_face.
+
 	* xdisp.c (Qline_height): New variable.
 	(syms_of_xdisp): Intern and staticpro it.
 	(append_space_for_newline): Partially undo 2004-04-25 change;
