@@ -97,7 +97,11 @@ main (argc, argv)
 
     if (stat (server.sun_path, &statbfr) == -1)
       {
-	perror ("stat");
+	if (errno == ENOENT)
+	  fprintf (stderr,
+		   "Can't find socket; have you started the server?\n");
+	else
+	  perror ("stat");
 	exit (1);
       }
     if (statbfr.st_uid != geteuid())
