@@ -1,6 +1,6 @@
 # Makefile for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 1990,1991,1992,1993,1994,1995,1996,1998,1999,2000,2001,2003
+# Copyright (C) 1990,1991,1992,1993,1994,1995,1996,1998,1999,2000,2001,2003,2004
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -135,5 +135,3 @@ dist: elisp elisp.dvi
 	(cd temp/$(manual); rm -f *~)
 	(cd temp; tar chf - $(manual)) | gzip > $(manual).tar.gz
 	-rm -rf temp
-
-# arch-tag: f5a1a94d-62e1-4460-a2d1-f02e538ab554

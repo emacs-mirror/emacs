@@ -1812,10 +1812,10 @@ This function takes some pains to conform to `ls -lR' output."
 	(push (cons dirname switches) dired-switches-alist)))
     (when switches-have-R
       (dired-build-subdir-alist switches)
+      (setq switches (dired-replace-in-string "R" "" switches))
       (dolist (cur-ass dired-subdir-alist)
 	(let ((cur-dir (car cur-ass)))
 	  (and (dired-in-this-tree cur-dir dirname)
-	       (not (string= cur-dir dirname))
 	       (let ((cur-cons (assoc-string cur-dir dired-switches-alist)))
 		 (if cur-cons
 		     (setcdr cur-cons switches)

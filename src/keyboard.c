@@ -10672,7 +10672,7 @@ DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 Return nil if position is not visible in window.  Otherwise,
-the return value is similar to that returned by event-start for
+the return value is similar to that returned by `event-start' for
 a mouse click at the upper left corner of the glyph corresponding
 to the given buffer position:
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)

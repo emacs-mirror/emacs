@@ -2622,9 +2622,9 @@ match_limit (num, beginningp)
 
   CHECK_NUMBER (num);
   n = XINT (num);
-  if (n < 0 || n >= search_regs.num_regs)
+  if (n < 0 || search_regs.num_regs <= 0)
     args_out_of_range (num, make_number (search_regs.num_regs));
-  if (search_regs.num_regs <= 0
+  if (n >= search_regs.num_regs
       || search_regs.start[n] < 0)
     return Qnil;
   return (make_number ((beginningp) ? search_regs.start[n]

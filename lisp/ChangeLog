@@ -1,3 +1,27 @@
+2004-06-10  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* eshell/esh-module.el (eshell-load-defgroups): Bind
+	`vc-handled-backends' to nil when opening files.
+
+2004-06-11  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (parse-colon-path, cd): Doc fixes (refer to
+	`path-separator', not colon).
+
+2004-06-10  Juanma Barranquero  <lektu@terra.es>
+
+	* newcomment.el (comment-search-forward)
+	(comment-search-backward): Fix typos in docstring.
+	(comment-region): Doc fix.
+
+2004-06-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-insert-old-subdirs): Adapt to fact that the R
+	switch is no longer stored in `dired-switches-alist'.
+
+	* dired-aux.el (dired-insert-subdir): Do not store R switch in
+	`dired-switches-alist'.
+
 2004-06-10  Kim F. Storm  <storm@cua.dk>
 
 	* pcvs.el (cvs-mode-diff-yesterday): New command.
