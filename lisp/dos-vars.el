@@ -23,7 +23,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 (defgroup dos-fns nil
-  "MS-Dos specific functions."
+  "MS-DOS specific functions."
   :group 'environment)
 
 (defcustom msdos-shells '("command.com" "4dos.com" "ndos.com")
