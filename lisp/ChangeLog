@@ -1,3 +1,125 @@
+2004-07-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.
+
+2004-07-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (modify-all-frames-parameters): Minor doc fix.
+
+2004-07-20  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (fill-comment-paragraph): Handle indent-tabs-mode.
+	(fill-delete-newlines): Call sentence-end as function.
+	(fill-nobreak-p, canonically-space-region): Likewise.
+	(fill-nobreak-p): If this break point is at the end of the line,
+	don't consider the newline which follows as a reason to return t.
+
+2004-07-19  John Paul Wallington  <jpw@gnu.org>
+
+	* dired-aux.el (dired-file-set-difference): Don't use `caddr'.
+
+2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-kill-lines): Expand docstring.
+	Delete irrelevant code.
+
+2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime): New
+	docstring.  From Luc Teirlinck.
+
+2004-07-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el: Describe `Auto Revert Tail Mode' in `Commentary'
+	section.
+	(auto-revert-handler): Do not check `auto-revert-tail-mode' for
+	non-file buffers.  We know it is nil.
+
+2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	Sync with Tramp 2.0.43.
+
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime): Remove
+	outdated comment.
+	(tramp-locked, tramp-locker): New variables for implementing a
+	global lock.
+	(tramp-sh-file-name-handler): Use them to implement the global
+	lock.
+
+2004-07-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (all): Code cleanup.  Change all `tramp-handle-xxx'
+	calls to respective `xxx` calls.
+	(tramp-process-alive-regexp): Precise doc string.
+	(tramp-multi-action-process-alive): New defun.
+	(tramp-multi-actions): Use it.
+	(tramp-handle-find-backup-file-name): `copy-tree' is available
+	since Emacs 21.4 only (XEmacs has it).  Implementation rewritten
+	in order to avoid this function.
+	(tramp-handle-write-region): Set current buffer.  If connection
+	wasn't open, `file-modes' has changed it accidently.  Reported by
+	David Kastrup <dak@gnu.org>.
+	(tramp-enter-password, tramp-read-passwd): New arguments USER and
+	HOST.
+	(tramp-action-password, tramp-multi-action-password): Apply it.
+	(tramp-open-connection-rsh): If a port is given, the Tramp buffer
+	name must still contain the port number.  Otherwise, we have two
+	Tramp buffers, with all the confusion.  Reported by Myron Selby
+	<myron@xytech.com> and Rolf Dubitzky
+	<Dubitzky@physi.uni-heidelberg.de>.
+
+	* net/tramp-smb.el (tramp-smb-open-connection): Apply USER and
+	HOST to `tramp-enter-passwd'.
+
+	* net/tramp-vc.el (all): Code cleanup.  Change all
+	`tramp-handle-xxx' calls to respective `xxx` calls.
+
+2004-07-17  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* emacs-lisp/testcover.el: New category "potentially-1valued" for
+	functions that are not erroneous if either 1-valued or
+	multi-valued.  Detect functions in this class.
+	(testcover-1value-functions, testcover-compose-functions,
+	testcover-progn-functions) Added some additional functions to lists.
+	(testcover-mark): Bugfix when marking up the definition for an
+	empty function.
+
+2004-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-read-primary-args): Pass default to read-from-minibuffer.
+
+	* mail/footnote.el (footnote-section-tag): Use defcustom.
+
+	* font-lock.el (font-lock-add-keywords, font-lock-remove-keywords):
+	Compile font-lock-keywords, not KEYWORDS.
+	(lisp-font-lock-keywords-2): Add multiple-value-prog1, go.
+	Add warn, check-type.  Handle cerror like error.
+
+2004-07-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/which-func.el (which-func-keymap): New var.
+	(which-func-face): New face.
+	(which-func-format): Use them.
+
+2004-07-16  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
+
+	* buff-menu.el (list-buffers-noselect): Append the buffer's
+	process status to its mode name.
+
+2004-07-16  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (inhibit-mark-movement): New defvar.
+	(beginning-of-buffer, end-of-buffer): Do not push mark if
+	inhibit-mark-movement is non-nil or C-u prefix is given.
+
+	* emulation/cua-base.el (cua--preserve-mark-commands): New defvar.
+	Init to beginning-of-buffer and end-of-buffer.
+	(cua--undo-push-mark): New defvar.
+	(cua--pre-command-handler): Set inhibit-mark-movement if mark is
+	already active and command is in cua--preserve-mark-commands.
+	Also fix check for shift modifier on non-window systems.
+	(cua--post-command-handler): Clear inhibit-mark-movement if set.
+
 2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* calendar/cal-dst.el (calendar-time-from-absolute): Return a list

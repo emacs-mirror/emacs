@@ -613,7 +613,7 @@ For more information, see the function `buffer-menu'."
 			 "  "
 			 (Buffer-menu-make-sort-button "Mode" 4) mode-end
 			 (Buffer-menu-make-sort-button "File" 5) "\n"))
-	 list desired-point name file)
+	 list desired-point name mode file)
     (when Buffer-menu-use-header-line
       (let ((pos 0))
 	;; Turn spaces in the header into stretch specs so they work
@@ -638,8 +638,14 @@ For more information, see the function `buffer-menu'."
 		  (mapcar
 		   (lambda (buffer)
 		     (with-current-buffer buffer
-		       (setq name (buffer-name)
-			     file (buffer-file-name))
+		       (save-window-excursion
+			 (setq name (buffer-name)
+			       mode (progn
+				      (set-window-buffer (selected-window) buffer)
+				      (concat (format-mode-line mode-name)
+					      (if mode-line-process
+						  (format-mode-line mode-line-process))))
+			       file (buffer-file-name)))
 		       (cond
 			;; Don't mention internal buffers.
 			((and (string= (substring name 0 1) " ") (null file)))
@@ -665,7 +671,7 @@ For more information, see the function `buffer-menu'."
 					   ?% ? )
 				       ;; Identify modified buffers.
 				       (if (buffer-modified-p) ?* ? ))
-			       name (buffer-size) mode-name file)))))
+			       name (buffer-size) mode file)))))
 		   (buffer-list))))
       (dolist (buffer
 	       (if Buffer-menu-sort-column

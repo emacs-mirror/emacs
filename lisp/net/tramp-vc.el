@@ -77,7 +77,7 @@
   "Like `vc-do-command' but invoked for tramp files.
 See `vc-do-command' for more information."
   (save-match-data
-    (and file (setq file (tramp-handle-expand-file-name file)))
+    (and file (setq file (expand-file-name file)))
     (if (not buffer) (setq buffer "*vc*"))
     (if vc-command-messages
 	(message "Running `%s' on `%s'..." command file))
@@ -85,7 +85,7 @@ See `vc-do-command' for more information."
 	  (squeezed nil)
 	  (olddir default-directory)
 	  vc-file status)
-      (let* ((v (tramp-dissect-file-name (tramp-handle-expand-file-name file)))
+      (let* ((v (tramp-dissect-file-name (expand-file-name file)))
 	     (multi-method (tramp-file-name-multi-method v))
 	     (method (tramp-file-name-method v))
 	     (user (tramp-file-name-user v))
@@ -130,7 +130,7 @@ See `vc-do-command' for more information."
 	(save-excursion
 	  (save-window-excursion
 	    ;; Actually execute remote command
-	    (tramp-handle-shell-command
+	    (shell-command
 	     (mapconcat 'tramp-shell-quote-argument
 			(cons command squeezed) " ") t)
 	    ;;(tramp-wait-for-output)
@@ -190,7 +190,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
       (let ((w32-quote-process-args t))
         (when (eq okstatus 'async)
           (message "Tramp doesn't do async commands, running synchronously."))
-        (setq status (tramp-handle-shell-command
+        (setq status (shell-command
                       (mapconcat 'tramp-shell-quote-argument
                                  (cons command squeezed) " ") t))
         (when (or (not (integerp status))
@@ -257,7 +257,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
   ;; Don't switch to the *vc-info* buffer before running the
   ;; command, because that would change its default directory
   (save-match-data
-    (let* ((v (tramp-dissect-file-name (tramp-handle-expand-file-name file)))
+    (let* ((v (tramp-dissect-file-name (expand-file-name file)))
 	   (multi-method (tramp-file-name-multi-method v))
 	   (method (tramp-file-name-method v))
 	   (user (tramp-file-name-user v))
@@ -284,7 +284,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 	(save-excursion
 	  (save-window-excursion
 	    ;; Actually execute remote command
-	    (tramp-handle-shell-command
+	    (shell-command
 	     (mapconcat 'tramp-shell-quote-argument
 			(append (list command) args (list localname)) " ")
 	     (get-buffer-create"*vc-info*"))
@@ -414,7 +414,7 @@ filename we are thinking about..."
 	    (nth 2 (file-attributes file)))))
     (if (and uid (/= uid remote-uid))
 	(error "tramp-handle-vc-user-login-name cannot map a uid to a name")
-      (let* ((v (tramp-dissect-file-name (tramp-handle-expand-file-name file)))
+      (let* ((v (tramp-dissect-file-name (expand-file-name file)))
 	     (u (tramp-file-name-user v)))
 	(cond ((stringp u) u)
 	      ((vectorp u) (elt u (1- (length u))))
@@ -445,8 +445,8 @@ filename we are thinking about..."
 (defun tramp-file-owner (filename)
   "Return who owns FILE (user name, as a string)."
   (let ((v (tramp-dissect-file-name 
-	    (tramp-handle-expand-file-name filename))))
-    (if (not (tramp-handle-file-exists-p filename))
+	    (expand-file-name filename))))
+    (if (not (file-exists-p filename))
         nil                             ; file cannot be opened
       ;; file exists, find out stuff
       (save-excursion

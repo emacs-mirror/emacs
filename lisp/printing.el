@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/07/12 21:10:35 vinicius>
+;; Time-stamp: <2004/07/20 21:44:43 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -40,37 +40,22 @@ Please send all bug fixes and enhancements to
 ;; Introduction
 ;; ------------
 ;;
-;; This package provides an user interface to some printing utilities that
-;; includes previewing/printing a PostScript file, printing a text file and
-;; previewing/printing some major modes (like mh-folder-mode,
-;; rmail-summary-mode, gnus-summary-mode, etc).  It also includes a
-;; PostScript/text printer database.
+;; With `printing' you can preview or print a PostScript file.  You can also
+;; print a text file using PostScript, and preview or print buffers that use
+;; certain special modes like mh-folder-mode, rmail-summary-mode,
+;; gnus-summary-mode, etc.  This package also includes a PostScript/text
+;; printer database.
 ;;
-;; Indeed, there are two user interfaces:
+;; There are two user interfaces:
 ;;
 ;;    * Menu interface:
-;;      When `printing' is loaded, the menubar is modified to use `printing'
-;;      menu instead of the print options in menubar.
+;;      The `printing' menu replaces the usual print options in the menu bar.
 ;;      This is the default user interface.
 ;;
 ;;    * Buffer interface:
-;;      It is an option of `printing' menu, but it can be binded into another
-;;      key, so user can activate the buffer interface directly without using
-;;      a menu.  See `pr-interface' command.
-;;
-;; `printing' was inspired on:
-;;
-;;    print-nt.el	      Frederic Corne <frederic.corne@erli.fr>
-;;	 Special printing functions for Windows NT
-;;
-;;    mh-e-init.el	      Tom Vogels <tov@ece.cmu.edu>
-;;	 PS-print for mail messages
-;;
-;;    win32-ps-print.el	      Matthew O. Persico <mpersico@erols.com>
-;;	 PostScript printing with ghostscript
-;;
-;;    ps-print-interface.el   Volker Franz <volker.franz@tuebingen.mpg.de>
-;;	 Graphical front end for ps-print and previewing
+;;      You can use a buffer interface instead of menus.  It looks like a
+;;      customization buffer.  Basically, it has the same options found in the
+;;      menu and some extra options, all this on a buffer.
 ;;
 ;; `printing' is prepared to run on GNU, Unix and NT systems.
 ;; On GNU or Unix system, `printing' depends on gs and gv utilities.
@@ -85,6 +70,20 @@ Please send all bug fixes and enhancements to
 ;; To download the latest ps-print package see
 ;; `http://www.cpqd.com.br/~vinicius/emacs/ps-print.tar.gz'.
 ;; Please, see README file for ps-print installation instructions.
+;;
+;; `printing' was inspired on:
+;;
+;;    print-nt.el	      Frederic Corne <frederic.corne@erli.fr>
+;;	 Special printing functions for Windows NT
+;;
+;;    mh-e-init.el	      Tom Vogels <tov@ece.cmu.edu>
+;;	 PS-print for mail messages
+;;
+;;    win32-ps-print.el	      Matthew O. Persico <mpersico@erols.com>
+;;	 PostScript printing with ghostscript
+;;
+;;    ps-print-interface.el   Volker Franz <volker.franz@tuebingen.mpg.de>
+;;	 Graphical front end for ps-print and previewing
 ;;
 ;;
 ;; Log Messages

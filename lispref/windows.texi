@@ -1195,7 +1195,7 @@ forms.  But that value is hard to find.
 
 @defun set-window-point window position
 This function positions point in @var{window} at position
-@var{position} in @var{window}'s buffer.
+@var{position} in @var{window}'s buffer.  It returns @var{position}.
 @end defun
 
 @node Window Start
@@ -1233,7 +1233,7 @@ window-start position to change in response until after the next
 redisplay.
 
 For a realistic example of using @code{window-start}, see the
-description of @code{count-lines} in @ref{Text Lines}.
+description of @code{count-lines}.  @xref{Definition of count-lines}.
 @end defun
 
 @defun window-end &optional window update
@@ -1324,13 +1324,26 @@ position that works well with point, and thus @var{position} is not used.
 @end defun
 
 @defun pos-visible-in-window-p &optional position window partially
-This function returns @code{t} if @var{position} is within the range of
-text currently visible on the screen in @var{window}.  It returns
-@code{nil} if @var{position} is scrolled vertically or horizontally out
-of view.  Locations that are partially obscured are not considered
+This function returns non-@code{nil} if @var{position} is within the
+range of text currently visible on the screen in @var{window}.  It
+returns @code{nil} if @var{position} is scrolled vertically out of
+view.  Locations that are partially obscured are not considered
 visible unless @var{partially} is non-@code{nil}.  The argument
 @var{position} defaults to the current position of point in
 @var{window}; @var{window}, to the selected window.
+
+The @code{pos-visible-in-window-p} function considers only vertical
+scrolling.  If @var{position} is out of view only because @var{window}
+has been scrolled horizontally, @code{pos-visible-in-window-p} returns
+non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
+
+If @var{position} is visible, @code{pos-visible-in-window-p} returns
+@code{t} if @var{partially} is @code{nil}; if @var{partially} is
+non-@code{nil}, it returns a list of the form @code{(@var{x} @var{y}
+@var{fully})}, where @var{x} and @var{y} are the pixel coordinates
+relative to the top left corner of the window, and @var{fully} is
+@code{t} if the character after @var{position} is fully visible and
+@code{nil} otherwise.
 
 Here is an example:
 
@@ -1348,7 +1361,7 @@ Here is an example:
 @cindex textual scrolling
 @cindex scrolling textually
 
-  @dfn{Textual scrolling} means moving the text up or down though a
+  @dfn{Textual scrolling} means moving the text up or down through a
 window.  It works by changing the value of the window's display-start
 location.  It may also change the value of @code{window-point} to keep
 point on the screen.
@@ -1419,7 +1432,10 @@ When the selected window is the minibuffer, the next window is normally
 the one at the top left corner.  You can specify a different window to
 scroll, when the minibuffer is selected, by setting the variable
 @code{minibuffer-scroll-window}.  This variable has no effect when any
-other window is selected.  @xref{Minibuffer Misc}.
+other window is selected.  When it is non-@code{nil} and the
+minibuffer is selected, it takes precedence over
+@code{other-window-scroll-buffer}.  @xref{Definition of
+minibuffer-scroll-window}.
 
 When the minibuffer is active, it is the next window if the selected
 window is the one at the bottom right corner.  In this case,
@@ -1563,10 +1579,11 @@ lines, depends on what the lines contain.  A value of .5 could scroll a
 line whose height is very short off the screen, while a value of 3.3
 could scroll just part of the way through a tall line or an image.
 
-@defun window-vscroll &optional window
+@defun window-vscroll &optional window pixels-p
 This function returns the current vertical scroll position of
-@var{window}, If @var{window} is @code{nil}, the selected window is
-used.
+@var{window}.  If @var{window} is @code{nil}, the selected window is
+used.  If @var{pixels-p} is non-@code{nil}, the return value is
+measured in pixels, rather than in units of the normal line height.
 
 @example
 @group
@@ -1576,7 +1593,7 @@ used.
 @end example
 @end defun
 
-@defun set-window-vscroll window lines
+@defun set-window-vscroll window lines &optional pixels-p
 This function sets @var{window}'s vertical scroll position to
 @var{lines}.  The argument @var{lines} should be zero or positive; if
 not, it is taken as zero.
@@ -1595,6 +1612,9 @@ The return value is the result of this rounding.
      @result{} 1.13
 @end group
 @end example
+
+If @var{pixels-p} is non-@code{nil}, @var{lines} specifies a number of
+pixels.  In this case, the return value is @var{lines}.
 @end defun
 
 @node Horizontal Scrolling
@@ -1803,15 +1823,16 @@ the frame.  The element @var{right} of the value is one more than the
 rightmost column used by @var{window}, and @var{bottom} is one more than
 the bottommost row used by @var{window} and its mode-line.
 
-If a window has a scroll bar, the right edge value includes the width of
-the scroll bar.  Otherwise, if the window has a neighbor on the right,
-its right edge value includes the width of the separator line between
-the window and that neighbor.  Since the width of the window does not
-include this separator, the width does not usually equal the difference
-between the right and left edges.
+The edges include the space used by the window's scroll bar, display
+margins, fringes, header line, and mode line, if it has them.  Also,
+if the window has a neighbor on the right, its right edge value
+includes the width of the separator line between the window and that
+neighbor.  Since the width of the window does not include this
+separator, the width does not usually equal the difference between the
+right and left edges.
 @end defun
 
-@defun window-inside-edges window
+@defun window-inside-edges &optional window
 This is similar to @code{window-edges}, but the edge values
 it returns include only the text area of the window.  They
 do not include the header line, mode line, scroll bar or
@@ -1877,13 +1898,13 @@ and the inside edges of the right window are @w{@samp{4 0 7 2}},
 @end group
 @end example
 
-@defun window-pixel-edges window
+@defun window-pixel-edges &optional window
 This function is like @code{window-edges} except that, on a graphical
 display, the edge values are measured in pixels instead of in
 character lines and columns.
 @end defun
 
-@defun window-inside-pixel-edges window
+@defun window-inside-pixel-edges &optional window
 This function is like @code{window-inside-edges} except that, on a
 graphical display, the edge values are measured in pixels instead of
 in character lines and columns.
@@ -1975,6 +1996,9 @@ However, the command does nothing if the window is already too small to
 display the whole text of the buffer, or if part of the contents are
 currently scrolled off screen, or if the window is not the full width of
 its frame, or if the window is the only window in its frame.
+
+This command returns non-@code{nil} if it actually shrank the window
+and @code{nil} otherwise.
 @end deffn
 
 @tindex window-size-fixed
@@ -1988,9 +2012,7 @@ If the value is @code{height}, then only the window's height is fixed;
 if the value is @code{width}, then only the window's width is fixed.
 Any other non-@code{nil} value fixes both the width and the height.
 
-The usual way to use this variable is to give it a buffer-local value in
-a particular buffer.  That way, the windows (but usually there is only
-one) displaying that buffer have fixed size.
+This variable automatically becomes buffer-local when set.
 
 Explicit size-change functions such as @code{enlarge-window}
 get an error if they would have to change a window size which is fixed.
@@ -2132,7 +2154,8 @@ old one.
 
 If the frame which @var{configuration} was saved from is dead, all this
 function does is restore the three variables @code{window-min-height},
-@code{window-min-width} and @code{minibuffer-scroll-window}.
+@code{window-min-width} and @code{minibuffer-scroll-window}. In this
+case, the function returns @code{nil}.  Otherwise, it returns @code{t}.
 
 Here is a way of using this function to get the same effect
 as @code{save-window-excursion}:
@@ -2151,10 +2174,11 @@ as @code{save-window-excursion}:
 @defspec save-window-excursion forms@dots{}
 This special form records the window configuration, executes @var{forms}
 in sequence, then restores the earlier window configuration.  The window
-configuration includes the value of point and the portion of the buffer
-that is visible.  It also includes the choice of selected window.
-However, it does not include the value of point in the current buffer;
-use @code{save-excursion} also, if you wish to preserve that.
+configuration includes, for each window, the value of point and the
+portion of the buffer that is visible.  It also includes the choice of
+selected window.  However, it does not include the value of point in
+the current buffer; use @code{save-excursion} also, if you wish to
+preserve that.
 
 Don't use this construct when @code{save-selected-window} is sufficient.
 
@@ -2275,6 +2299,7 @@ This function sets @var{window}'s end trigger position at
 
 @defun window-redisplay-end-trigger &optional window
 This function returns @var{window}'s current end trigger position.
+If @var{window} is @code{nil} or omitted, it uses the selected window.
 @end defun
 
 @defvar window-configuration-change-hook

@@ -666,6 +666,19 @@ word-constituent character follows.
 matches the empty string, but only at the end of a word.  @samp{\>}
 matches at the end of the buffer (or string) only if the contents end
 with a word-constituent character.
+
+@item \_<
+@cindex @samp{\_<} in regexp
+matches the empty string, but only at the beginning of a symbol.  A
+symbol is a sequence of one or more word or symbol constituent
+characters.  @samp{\_<} matches at the beginning of the buffer (or
+string) only if a symbol-constituent character follows.
+
+@item \_>
+@cindex @samp{\_>} in regexp
+matches the empty string, but only at the end of a symbol.  @samp{\_>}
+matches at the end of the buffer (or string) only if the contents end
+with a symbol-constituent character.
 @end table
 
 @kindex invalid-regexp

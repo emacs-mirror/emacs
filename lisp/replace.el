@@ -786,7 +786,8 @@ If the value is nil, don't highlight the buffer names specially."
 		 nil
 		 nil
 		 nil
-		 'regexp-history)))
+		 'regexp-history
+		 default)))
 	  (if (equal input "")
 	      default
 	    input))

@@ -236,6 +236,11 @@ struct window
     struct glyph_matrix *current_matrix;
     struct glyph_matrix *desired_matrix;
 
+    /* Scaling factor for the glyph_matrix size calculation in this window.
+       Used if window contains many small images or uses proportional fonts,
+       as the normal  may yield a matrix which is too small.  */
+    int nrows_scale_factor, ncols_scale_factor;
+
     /* Cursor position as of last update that completed without
        pause.  This is the position of last_point.  */
     struct cursor_pos last_cursor;

@@ -520,7 +520,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 ;;;; Creation of additional frames, and other frame miscellanea
 
 (defun modify-all-frames-parameters (alist)
-  "modify all current and future frames parameters according to ALIST.
+  "Modify all current and future frames parameters according to ALIST.
 This changes `default-frame-alist' and possibly `initial-frame-alist'.
 See help of `modify-frame-parameters' for more information."
   (let (element)			;; temp
