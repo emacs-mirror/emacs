@@ -1312,17 +1312,16 @@
 ;;;
 (defconst byte-boolean-vars
   '(abbrev-all-caps abbrevs-changed byte-metering-on
-    check-protected-fields completion-auto-help completion-ignore-case
+    cannot-suspend completion-auto-help completion-ignore-case
     cursor-in-echo-area debug-on-next-call debug-on-quit
-    defining-kbd-macro delete-exited-processes
-    enable-recursive-minibuffers
-    highlight-nonselected-windows indent-tabs-mode
-    insert-default-directory inverse-video load-in-progress
-    menu-prompting mode-line-inverse-video no-redraw-on-reenter
-    noninteractive parse-sexp-ignore-comments pop-up-frames
-    pop-up-windows print-escape-newlines print-escape-newlines
-    truncate-partial-width-windows visible-bell vms-stmlf-recfm
-    words-include-escapes x-save-under)
+    delete-exited-processes enable-recursive-minibuffers
+    highlight-nonselected-windows indent-tabs-mode inhibit-local-menu-bar-menus
+    insert-default-directory inverse-video load-force-doc-strings
+    load-in-progress menu-prompting minibuffer-auto-raise
+    mode-line-inverse-video multiple-frames no-redraw-on-reenter noninteractive
+    parse-sexp-ignore-comments pop-up-frames pop-up-windows
+    print-escape-newlines system-uses-terminfo truncate-partial-width-windows
+    visible-bell vms-stmlf-recfm words-include-escapes)
   "DEFVAR_BOOL variables.  Giving these any non-nil value sets them to t.
 If this does not enumerate all DEFVAR_BOOL variables, the byte-optimizer
 may generate incorrect code.")
