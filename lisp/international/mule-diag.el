@@ -618,6 +618,16 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
     (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
       (princ "\n")
+      (let ((vars (coding-system-get coding-system 'dependency)))
+	(when vars
+	  (princ "See also the documentation of these customizable variables
+which alter the behaviour of this coding system.\n")
+	  (dolist (v vars)
+	    (princ "  `")
+	    (princ v)
+	    (princ "'\n"))
+	  (princ "\n")))
+
       (princ "Type: ")
       (let ((type (coding-system-type coding-system))
 	    (flags (coding-system-flags coding-system)))
