@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1877,7 +1877,7 @@ not end the comment.  Blank lines do not get comments."
   "Move backward until encountering the end of a word.
 With argument, do this that many times.
 In programs, it is faster to call `forward-word' with negative arg."
-  (INTERACTIVE "p")
+  (interactive "p")
   (forward-word (- arg)))
 
 (defun mark-word (arg)
