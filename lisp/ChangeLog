@@ -1,3 +1,10 @@
+2002-08-21  Kim F. Storm  <storm@cua.dk>
+
+	* bindings.el (mode-line-format): Moved global-mode-string last.
+	(mode-line-position): Moved %p first.  Added padding to %l/%c to
+	eliminate jumpyness in modeline.  Use (%l,%c) format if both
+	line-number-mode and column-number-mode are enabled.
+
 2002-08-20  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-engine.el (c-forward-syntactic-ws): Fixed a bug
