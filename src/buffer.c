@@ -2256,12 +2256,15 @@ overlay_strings (pos, w, pstr)
     {
       Lisp_Object tem;
       int i;
-      char *p;
+      unsigned char *p;
       int total = overlay_heads.bytes + overlay_tails.bytes;
 
       if (total > overlay_str_len)
-	overlay_str_buf = (char *)xrealloc (overlay_str_buf,
-					    overlay_str_len = total);
+	{
+	  overlay_str_len = total;
+	  overlay_str_buf = (unsigned char *)xrealloc (overlay_str_buf,
+						       total);
+	}
       p = overlay_str_buf;
       for (i = overlay_tails.used; --i >= 0;)
 	{
