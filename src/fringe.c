@@ -1238,6 +1238,7 @@ in that window.  Return value is a cons (LEFT . RIGHT) where LEFT and RIGHT
 are the fringe bitmap numbers for the bitmaps in the left and right fringe,
 resp.  Return nil if POS is not visible in WINDOW.  */)
   (pos, window)
+     Lisp_Object pos, window;
 {
   struct window *w;
   struct buffer *old_buffer = NULL;
