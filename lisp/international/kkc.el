@@ -71,8 +71,14 @@ This string is shown at mode line when users are in KKC mode.")
 (defvar kkc-show-conversion-list-index-chars
   "1234567890")
 
+(defun kkc-help ()
+  "Show key bindings available while converting by KKC."
+  (interactive)
+  (with-output-to-temp-buffer "*Help*"
+    (princ (substitute-command-keys "\\{kkc-keymap}"))))
+
 (defvar kkc-keymap
-  (let ((map (make-keymap))
+  (let ((map (make-sparse-keymap))
 	(len (length kkc-show-conversion-list-index-chars))
 	(i 0))
     (while (< i len)
@@ -99,6 +105,7 @@ This string is shown at mode line when users are in KKC mode.")
     (define-key map [?\C- ] 'kkc-first-char-only)
     (define-key map [delete] 'kkc-cancel)
     (define-key map [return] 'kkc-terminate)
+    (define-key map "\C-h" 'kkc-help)
     map)
   "Keymap for KKC (Kana Kanji Converter).")
 
@@ -235,6 +242,7 @@ and the return value is the length of the conversion."
 	(setq kkc-converting t)
 	(while kkc-converting
 	  (let* ((overriding-terminal-local-map kkc-keymap)
+		 (help-char nil)
 		 (keyseq (read-key-sequence nil))
 		 (cmd (lookup-key kkc-keymap keyseq)))
 	    (if (commandp cmd)
