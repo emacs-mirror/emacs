@@ -2166,7 +2166,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     else							\
       {								\
 	c1 &= 0x7F, c2 &= 0x7F;					\
-	if (sjis_p && charset_alt == charset_jisx0208)		\
+	if (sjis_p && (charset_alt == charset_jisx0208		\
+		       || charset_alt == charset_jisx0208_1978))\
 	  {							\
 	    unsigned char s1, s2;				\
 	    							\
