@@ -470,9 +470,9 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     ["Indent Region"      f90-indent-region  mark-active]
     ["Fill Region"        f90-fill-region    mark-active]
     "--"
-    ["Break Line at Point" f90-break-line t]
-    ["Join with Next Line" f90-join-lines t]
-    ["Insert Block End"    f90-insert-end t]
+    ["Break Line at Point"     f90-break-line t]
+    ["Join with Previous Line" f90-join-lines t]
+    ["Insert Block End"        f90-insert-end t]
     "--"
     ("Highlighting"
      ["Toggle font-lock-mode" font-lock-mode :selected font-lock-mode
@@ -1534,28 +1534,25 @@ Update keyword case first."
         (goto-char pos-mark)
         (set-marker pos-mark nil)))))
 
-
-(defun f90-join-lines ()
-  "Join present line with next line, if this line ends with \&."
-  (interactive)
-  (let (pos (oldpos (point)))
-    (end-of-line)
+(defun f90-join-lines (&optional arg)
+  "Join current line to previous, fix whitespace, continuation, comments.
+With an argument, join current line to following line.
+Like `join-line', but handles F90 syntax."
+  (interactive "*P")
+  (beginning-of-line)
+  (if arg (forward-line 1))
+  (when (eq (preceding-char) ?\n)
+    (skip-chars-forward " \t")
+    (if (looking-at "\&") (delete-char 1))
+    (beginning-of-line)
+    (delete-region (point) (1- (point)))
     (skip-chars-backward " \t")
-    (when (= (preceding-char) ?&)
-      (delete-char -1)
-      (setq pos (point))
-      (forward-line 1)
-      (skip-chars-forward " \t")
-      (if (looking-at "\&") (delete-char 1))
-      (delete-region pos (point))
-      (unless (f90-in-string)
-        (delete-horizontal-space)
-        (insert " "))
-      (if (and auto-fill-function
-               (> (line-end-position) fill-column))
-          (f90-do-auto-fill))
-      (goto-char oldpos)
-      t)))                              ; return t if joined something
+    (and (eq (preceding-char) ?&) (delete-char -1))
+    (and (f90-in-comment)
+         (looking-at "[ \t]*!+")
+         (replace-match ""))
+    (or (f90-in-string)
+        (fixup-whitespace))))
 
 (defun f90-fill-region (beg-region end-region)
   "Fill every line in region by forward parsing.  Join lines if possible."
@@ -1567,7 +1564,11 @@ Update keyword case first."
     (goto-char beg-region)
     (while go-on
       ;; Join as much as possible.
-      (while (f90-join-lines))
+      (while (progn 
+               (end-of-line)
+               (skip-chars-backward " \t")
+               (eq (preceding-char) ?&))
+        (f90-join-lines 'forward))
       ;; Chop the line if necessary.
       (while (> (save-excursion (end-of-line) (current-column))
 		fill-column)
