@@ -652,11 +652,12 @@ detect_coding_emacs_mule (src, src_end)
 
 enum iso_code_class_type iso_code_class[256];
 
-#define CHARSET_OK(idx, charset)			\
-  (coding_system_table[idx]->safe_charsets[charset]	\
-   || (CODING_SPEC_ISO_REQUESTED_DESIGNATION		\
-       (coding_system_table[idx], charset)		\
-       != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
+#define CHARSET_OK(idx, charset)				\
+  (coding_system_table[idx]					\
+   && (coding_system_table[idx]->safe_charsets[charset]		\
+       || (CODING_SPEC_ISO_REQUESTED_DESIGNATION		\
+            (coding_system_table[idx], charset)			\
+           != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION)))
 
 #define SHIFT_OUT_OK(idx) \
   (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding_system_table[idx], 1) >= 0)
