@@ -1,5 +1,8 @@
 2001-01-12  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-cmds.el (prefer-coding-system): Fix
+	docstring.
+
 	* international/ccl.el (define-ccl-program): Fix docstring.
 
 2001-01-11  Dave Love  <fx@gnu.org>
