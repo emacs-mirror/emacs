@@ -1,3 +1,7 @@
+2003-11-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* symbols.texi (Symbol Plists): Mention return value of `setplist'.
+
 2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* lispref/anti.texi, lispref/backups.texi, lispref/commands.texi
@@ -5,7 +9,7 @@
 	lispref/internals.texi, lispref/keymaps.texi, lispref/loading.texi,
 	lispref/modes.texi, lispref/nonascii.texi, lispref/numbers.texi,
 	lispref/objects.texi, lispref/os.texi, lispref/positions.texi,
-	lispref/processes.texi, lispref/searching.texi, 
+	lispref/processes.texi, lispref/searching.texi,
 	lispref/sequences.texi, lispref/streams.texi, lispref/strings.texi,
 	lispref/syntax.texi, lispref/text.texi: Replace @sc{foo} with
 	@acronym{FOO}.
