@@ -1,6 +1,6 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2000 Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
 ;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<99/12/18 13:21:51 vinicius>
-;; Version:	5.0.3
+;; Time-stamp:	<2000/03/10 15:49:24 vinicius>
+;; Version:	5.1
 
-(defconst ps-print-version "5.0.3"
-  "ps-print.el, v 5.0.3 <99/12/18 vinicius>
+(defconst ps-print-version "5.1"
+  "ps-print.el, v 5.1 <2000/03/10 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -393,6 +393,55 @@ Please send all bug fixes and enhancements to
 ;;    PostScript Language Reference Manual (2nd edition)
 ;;    Adobe Systems Incorporated
 ;;    Appendix G: Document Structuring Conventions -- Version 3.0
+;;
+;; It is also possible to add an user defined PostScript prologue code before
+;; all generated prologue code by setting the variable
+;; `ps-user-defined-prologue'.
+;;
+;; `ps-user-defined-prologue' may be a string or a symbol function which returns
+;; a string.  Note that this string is inserted after `ps-adobe-tag' and
+;; PostScript prologue comments, and before ps-print PostScript prologue code
+;; section.  That is, this string is inserted after error handler initialization
+;; and before ps-print settings.
+;;
+;; By default `ps-user-defined-prologue' is nil.
+;;
+;; It's recommended to initiate and terminate the string with "\n".
+;;
+;; It's strongly recommended only insert PostScript code and/or comments
+;; specific for your printing system particularities.  For example, some special
+;; initialization that only your printing system needs.
+;;
+;; Do not insert code for duplex printing, n-up printing or error handler,
+;; ps-print handles this in a suitable way.
+;;
+;; For more information about PostScript, see:
+;;    PostScript Language Reference Manual (2nd edition)
+;;    Adobe Systems Incorporated
+;;
+;;
+;; PostScript Error Handler
+;; ------------------------
+;;
+;; ps-print instruments generated PostScript code with an error handler.
+;;
+;; The variable `ps-error-handler-message' specifies where the error handler
+;; message should be sent.
+;;
+;; Valid values are:
+;;
+;; none			catch the error and *DON'T* send any message.
+;;
+;; paper		catch the error and print on paper the error message.
+;;			This is the default value.
+;;
+;; system		catch the error and send back the error message to
+;;			printing system.
+;;
+;; paper-and-system	catch the error, print on paper the error message and
+;;			send back the error message to printing system.
+;;
+;; Any other value is treated as `paper'.
 ;;
 ;;
 ;; Duplex Printers
@@ -890,6 +939,11 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
+;; [vinicius] 20000310 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; PostScript error handler.
+;; `ps-user-defined-prologue' and `ps-error-handler-message'.
+;;
 ;; [vinicius] 991211 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
 ;; `ps-print-customize'.
@@ -996,6 +1050,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Klaus Berndl <klaus.berndl@sdm.de> for user defined PostScript
+;; prologue code suggestion.
 ;;
 ;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
 ;;
@@ -1162,6 +1219,52 @@ Please send all bug fixes and enhancements to
   :tag "Page"
   :group 'ps-print)
 
+
+(defcustom ps-error-handler-message 'paper
+  "*Specify where the error handler message should be sent.
+
+Valid values are:
+
+   `none'		catch the error and *DON'T* send any message.
+
+   `paper'		catch the error and print on paper the error message.
+
+   `system'		catch the error and send back the error message to
+			printing system.
+
+   `paper-and-system'	catch the error, print on paper the error message and
+			send back the error message to printing system.
+
+Any other value is treated as `paper'."
+  :type '(choice :tag "Error Handler Message"
+		 (const none)   (const paper)
+		 (const system) (const paper-and-system))
+  :group 'ps-print)
+
+(defcustom ps-user-defined-prologue nil
+  "*User defined PostScript prologue code inserted before all prologue code.
+
+`ps-user-defined-prologue' may be a string or a symbol function which returns a
+string.  Note that this string is inserted after `ps-adobe-tag' and PostScript
+prologue comments, and before ps-print PostScript prologue code section.  That
+is, this string is inserted after error handler initialization and before
+ps-print settings.
+
+It's recommended to initiate and terminate the string with \"\\n\".
+
+It's strongly recommended only insert PostScript code and/or comments specific
+for your printing system particularities.  For example, some special
+initialization that only your printing system needs.
+
+Do not insert code for duplex printing, n-up printing or error handler, ps-print
+handles this in a suitable way.
+
+For more information about PostScript, see:
+   PostScript Language Reference Manual (2nd edition)
+   Adobe Systems Incorporated"
+  :type '(choice :tag "User Defined Prologue"
+		 string symbol (other :tag "nil" nil))
+  :group 'ps-print)
 
 (defcustom ps-print-prologue-header nil
   "*PostScript prologue header comments besides that ps-print generates.
@@ -2137,6 +2240,8 @@ The table depends on the current ps-print setup."
 
       ps-print-background-text %s
 
+      ps-error-handler-message %s
+      ps-user-defined-prologue %s
       ps-print-prologue-header %s
 
       ps-left-margin                %s
@@ -2183,6 +2288,8 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-print-control-characters)
    (ps-print-quote ps-print-background-image)
    (ps-print-quote ps-print-background-text)
+   (ps-print-quote ps-error-handler-message)
+   (ps-print-quote ps-user-defined-prologue)
    (ps-print-quote ps-print-prologue-header)
    ps-left-margin
    ps-right-margin
@@ -2273,6 +2380,9 @@ The table depends on the current ps-print setup."
 
 
 (defvar ps-mark-code-directory nil)
+
+(defvar ps-print-prologue-0 ""
+  "ps-print PostScript error handler.")
 
 (defvar ps-print-prologue-1 ""
   "ps-print PostScript prologue begin.")
@@ -3567,6 +3677,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 (defmacro ps-n-up-ystart  (init) `(nth 7 ,init))
 
 
+(defconst ps-error-handler-alist
+  '((none             . 0)
+    (paper            . 1)
+    (system           . 2)
+    (paper-and-system . 3))
+  "Alist for error handler message")
+
+
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
   (setq ps-page-postscript 0
@@ -3606,15 +3724,21 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	 (format " duplex%s" (if tumble "(tumble)\n" "\n"))
        "\n"))
 
-    (let ((comments (if (functionp ps-print-prologue-header)
-			(funcall ps-print-prologue-header)
-		      ps-print-prologue-header)))
-      (and (stringp comments)
-	   (ps-output comments)))
+    (ps-insert-string ps-print-prologue-header)
 
     (ps-output "%%EndComments\n\n%%BeginPrologue\n\n"
-	       "/gs_languagelevel /languagelevel where "
-	       "{pop languagelevel}{1}ifelse def\n\n")
+	       "/gs_languagelevel /languagelevel where"
+	       "{pop languagelevel}{1}ifelse def\n"
+	       (format "/ErrorMessage     %s def\n\n"
+		       (or (cdr (assoc ps-error-handler-message
+				       ps-error-handler-alist))
+			   1))		; send to paper
+	       ps-print-prologue-0
+	       "\n%%BeginProcSet: UserDefinedPrologue\n\n")
+
+    (ps-insert-string ps-user-defined-prologue)
+
+    (ps-output "\n%%EndProcSet\n\n")
 
     (ps-output-boolean "SkipFirstPage      " ps-banner-page-when-duplexing)
     (ps-output-boolean "LandscapeMode      "
@@ -3733,6 +3857,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n"))
 
 
+(defun ps-insert-string (prologue)
+  (let ((str (if (functionp prologue)
+		 (funcall prologue)
+	       prologue)))
+    (and (stringp str)
+	 (ps-output str))))
+
+
 (defun ps-boolean-capitalized (bool)
   (if bool "True" "False"))
 
@@ -3776,7 +3908,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-begin-job ()
   (or (equal ps-mark-code-directory ps-postscript-code-directory)
-      (setq ps-print-prologue-1     (ps-prologue-file 1)
+      (setq ps-print-prologue-0     (ps-prologue-file 0)
+	    ps-print-prologue-1     (ps-prologue-file 1)
 	    ps-print-prologue-2     (ps-prologue-file 2)
 	    ps-print-duplex-feature (ps-prologue-file 3)
 	    ps-mark-code-directory  ps-postscript-code-directory))
