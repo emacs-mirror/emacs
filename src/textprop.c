@@ -159,6 +159,7 @@ validate_interval_range (object, begin, end, force)
 
 static Lisp_Object
 validate_plist (list)
+     Lisp_Object list;
 {
   if (NILP (list))
     return Qnil;
