@@ -524,7 +524,7 @@ single_menu_item (key, item, dummy, skp_v)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-  
+
   if (skp->notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
@@ -1098,7 +1098,7 @@ on the left of the dialog box and all following items on the right.
          the dialog.  Also, the lesstif/motif version crashes if there are
          no buttons.  */
       contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
-    
+
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */
@@ -1178,6 +1178,7 @@ pop_down_menu (dummy)
      int dummy;
 {
   popup_activated_flag = 0;
+  return Qnil;
 }
 
 /* Loop in Xt until the menu pulldown or dialog popup has been
@@ -1272,6 +1273,7 @@ pop_down_menu (dummy)
       current_menu = 0;
       popup_activated_flag = 0;
     }
+  return Qnil;
 }
 
 static void
@@ -2417,7 +2419,7 @@ menu_position_func (menu, x, y, push_in, user_data)
   GtkRequisition req;
   int disp_width = FRAME_X_DISPLAY_INFO (data->f)->width;
   int disp_height = FRAME_X_DISPLAY_INFO (data->f)->height;
-  
+
   *x = data->x;
   *y = data->y;
 
