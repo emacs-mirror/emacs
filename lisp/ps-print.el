@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2001/04/24 15:31:37 vinicius>
-;; Version:	6.5.1.1
+;; Time-stamp:	<2001/05/30 17:44:36 vinicius>
+;; Version:	6.5.2
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.1.1"
-  "ps-print.el, v 6.5.1.1 <2001/04/24 vinicius>
+(defconst ps-print-version "6.5.2"
+  "ps-print.el, v 6.5.2 <2001/05/30 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1484,6 +1484,7 @@ Please send all bug fixes and enhancements to
   (defalias 'ps-e-next-overlay-change 'next-overlay-change)
   (defalias 'ps-e-overlays-at         'overlays-at)
   (defalias 'ps-e-overlay-get         'overlay-get)
+  (defalias 'ps-e-overlay-end         'overlay-end)
   (defalias 'ps-e-x-color-values      'x-color-values)
   (defalias 'ps-e-color-values        'color-values)
   (if (fboundp 'find-composition)
@@ -3274,7 +3275,8 @@ The table depends on the current ps-print setup."
   (interactive (list (count-lines (mark) (point))))
   (ps-nb-pages nb-lines))
 
-(defvar ps-prefix-quote nil)
+(defvar ps-prefix-quote nil
+  "Used for `ps-print-quote' (which see).")
 
 ;;;###autoload
 (defun ps-setup ()
@@ -3387,7 +3389,7 @@ The table depends on the current ps-print setup."
       '(20 . ps-bold-faces)
       '(20 . ps-italic-faces)
       '(20 . ps-underlined-faces)
-      ")\n
+      "      )\n
 ;; The following customized variables have long lists and are seldom modified:
 ;;    ps-page-dimensions-database
 ;;    ps-font-info-database
@@ -3401,6 +3403,27 @@ The table depends on the current ps-print setup."
 
 
 (defun ps-print-quote (elt)
+  "Quote ELT for printing (used for showing settings).
+
+If ELT is nil, return an empty string.
+If ELT is string, return it.
+Otherwise, ELT should be a cons (LEN . SYM) where SYM is a variable symbol and
+LEN is the field length where SYM name will be inserted.  The variable
+`ps-prefix-quote' is used to form the string, if `ps-prefix-quote' is nil, it's
+used \"(setq \" as prefix; otherwise, it's used \"      \".  So, the string
+generated is:
+
+   * If `ps-prefix-quote' is nil:
+      \"(setq SYM-NAME   SYM-VALUE\"
+	     |<------->|
+		 LEN
+
+   * If `ps-prefix-quote' is non-nil:
+      \"      SYM-NAME   SYM-VALUE\"
+	     |<------->|
+		 LEN
+
+If `ps-prefix-quote' is nil, it's set to t after generating string."
   (cond
    ((null elt)    "")
    ((stringp elt) elt)
@@ -3411,8 +3434,8 @@ The table depends on the current ps-print setup."
 	   (len (length key))
 	   (val (symbol-value sym)))
       (concat (if ps-prefix-quote
-		  ps-prefix-quote
-		(setq ps-prefix-quote "      ")
+		  "      "
+		(setq ps-prefix-quote t)
 		"(setq ")
 	      key
 	      (if (> col len)
@@ -5585,6 +5608,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	(cons to (* todo char-width))
       (cons (+ from avail) ps-width-remaining))))
 
+(defun ps-basic-plot-str (from to string)
+  (let* ((wrappoint (ps-find-wrappoint from to
+				       (ps-avg-char-width 'ps-font-for-text)))
+	 (to (car wrappoint))
+	 (str (substring string from to)))
+    (ps-mule-prepare-ascii-font str)
+    (ps-output-string str)
+    (ps-output " S\n")
+    wrappoint))
+
 (defun ps-basic-plot-string (from to &optional bg-color)
   (let* ((wrappoint (ps-find-wrappoint from to
 				       (ps-avg-char-width 'ps-font-for-text)))
@@ -5644,6 +5677,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		     (nth 0 ps-current-color)
 		     (nth 1 ps-current-color) (nth 2 ps-current-color))
 	     " FG\n"))
+
+
+(defsubst ps-plot-string (string)
+  (ps-plot 'ps-basic-plot-str 0 (length string) string))
 
 
 (defvar ps-current-effect 0)
@@ -6020,7 +6057,8 @@ If FACE is not a valid face name, it is used default face."
 	(let ((property-change from)
 	      (overlay-change from)
 	      (save-buffer-invisibility-spec buffer-invisibility-spec)
-	      (buffer-invisibility-spec nil))
+	      (buffer-invisibility-spec nil)
+	      before-string after-string)
 	  (while (< from to)
 	    (and (< property-change to)	; Don't search for property change
 					; unless previous search succeeded.
@@ -6029,7 +6067,9 @@ If FACE is not a valid face name, it is used default face."
 					; unless previous search succeeded.
 		 (setq overlay-change (min (ps-e-next-overlay-change from)
 					   to)))
-	    (setq position (min property-change overlay-change))
+	    (setq position (min property-change overlay-change)
+		  before-string nil
+		  after-string nil)
 	    ;; The code below is not quite correct,
 	    ;; because a non-nil overlay invisible property
 	    ;; which is inactive according to the current value
@@ -6051,24 +6091,38 @@ If FACE is not a valid face name, it is used default face."
 	      (while (and overlays
 			  (not (eq face 'emacs--invisible--face)))
 		(let* ((overlay (car overlays))
-		       (overlay-invisible (ps-e-overlay-get overlay 'invisible))
-		       (overlay-priority (or (ps-e-overlay-get overlay 'priority)
-					     0)))
+		       (overlay-invisible
+			(ps-e-overlay-get overlay 'invisible))
+		       (overlay-priority
+			(or (ps-e-overlay-get overlay 'priority) 0)))
 		  (and (> overlay-priority face-priority)
-		       (setq face
-			     (cond ((if (eq save-buffer-invisibility-spec t)
-					(not (null overlay-invisible))
-				      (or (memq overlay-invisible
-						save-buffer-invisibility-spec)
-					  (assq overlay-invisible
-						save-buffer-invisibility-spec)))
-				    'emacs--invisible--face)
-				   ((ps-e-overlay-get overlay 'face))
-				   (t face))
-			     face-priority overlay-priority)))
+		       (setq before-string
+			     (or (ps-e-overlay-get overlay 'before-string)
+				 before-string)
+			     after-string
+			     (or (and (<= (ps-e-overlay-end overlay) position)
+				      (ps-e-overlay-get overlay 'after-string))
+				 after-string)
+			     face-priority overlay-priority
+			     face
+			     (cond
+			      ((if (eq save-buffer-invisibility-spec t)
+				   (not (null overlay-invisible))
+				 (or (memq overlay-invisible
+					   save-buffer-invisibility-spec)
+				     (assq overlay-invisible
+					   save-buffer-invisibility-spec)))
+			       'emacs--invisible--face)
+			      ((ps-e-overlay-get overlay 'face))
+			      (t face)
+			      ))))
 		(setq overlays (cdr overlays))))
 	    ;; Plot up to this record.
+	    (and before-string
+		 (ps-plot-string before-string))
 	    (ps-plot-with-face from position face)
+	    (and after-string
+		 (ps-plot-string after-string))
 	    (setq from position)))))
       (ps-plot-with-face from to face))))
 
