@@ -107,36 +107,32 @@ objects which you can examine in turn with the x... commands.
 Even with a live process, these x...  commands are useful for
 examining the fields in a buffer, window, process, frame or marker.
 Here's an example using concepts explained in the node "Value History"
-of the GDB manual to print the variable frame from this line in
-xmenu.c:
-
-		  buf.frame_or_window = frame;
-
-First, use these commands:
+of the GDB manual to print values associated with the variable
+called frame.  First, use these commands:
 
     cd src
     gdb emacs
-    b xmenu.c:1296
+    b set_frame_buffer_list
     r -q
 
-Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
+Then when Emacs it hits the breakpoint:
 
     (gdb) p frame
-    $1 = 1077872640
+    $1 = 139854428
     (gdb) xtype
     Lisp_Vectorlike
     PVEC_FRAME
     (gdb) xframe
-    $2 = (struct frame *) 0x3f0800
+    $2 = (struct frame *) 0x8560258
     (gdb) p *$
     $3 = {
-      size = 536871989,
-      next = 0x366240,
-      name = 809661752,
+      size = 1073742931,
+      next = 0x85dfe58,
+      name = 140615219,
       [...]
     }
     (gdb) p $3->name
-    $4 = 809661752
+    $4 = 140615219
 
 Now we can use `pr' to print the name of the frame:
 
