@@ -573,10 +573,7 @@ There should be no more than seven characters after the final `/'."
 						  uncompress-args)))
 		      (setq size (- (point) start))
 		      (if replace
-			  (let* ((del-beg (point))
-				 (del-end (+ del-beg size)))
-			    (delete-region del-beg
-					   (min del-end (point-max)))))
+			  (delete-region (point) (point-max)))
 		      (goto-char start))
 		  (error
 		   (if (and (eq (car error-code) 'file-error)
