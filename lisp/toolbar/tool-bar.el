@@ -32,7 +32,7 @@
 ;; `tool-bar-map' as the actual keymap used to define the tool bar.
 ;; Modes may either bind items under the [tool-bar] prefix key of the
 ;; local map to add to the global bar or may set `tool-bar-map'
-;; buffer-locally to overirde it.  (Some items are removed from the
+;; buffer-locally to override it.  (Some items are removed from the
 ;; global bar in modes which have `special' as their `mode-class'
 ;; properlty.)
 
