@@ -780,7 +780,7 @@ Environment Variables
 * General Variables::	Environment variables that all versions of Emacs use.
 * Misc Variables::	Certain system specific variables.
 
-MS-DOS and Windows NT/95
+MS-DOS and Windows 95/98/NT
 
 * MS-DOS Input::        Keyboard and mouse usage on MS-DOS.
 * MS-DOS Display::      Fonts, frames and display size on MS-DOS.
