@@ -1222,8 +1222,7 @@ typedef unsigned char UCHAR;
 #define GLYPH_FACE(f, g) (FAST_GLYPH_FACE (g))
 
 /* Return 1 iff GLYPH contains valid character code.  */
-#define GLYPH_CHAR_VALID_P(glyph) \
-  ((GLYPH) (FAST_GLYPH_CHAR (glyph)) <= MAX_CHAR)
+#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (FAST_GLYPH_CHAR (glyph), 1)
 
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
