@@ -6076,6 +6076,8 @@ Other orders of $ and _ seem to all work just fine.")
 		    ange-ftp-bs2000-host-regexp)
 	    ange-ftp-host-cache nil)))
 
+(defvar ange-ftp-bs2000-posix-hook-installed nil)
+
 (defun ange-ftp-add-bs2000-posix-host (host)
   "Mark HOST as the name of a machine running BS2000 with POSIX subsystem."
   (interactive
@@ -6145,7 +6147,6 @@ Other orders of $ and _ seem to all work just fine.")
 	  (cons '(bs2000 . ange-ftp-parse-bs2000-listing)
 		ange-ftp-parse-list-func-alist)))
 
-(defvar ange-ftp-bs2000-posix-hook-installed nil)
 (defun ange-ftp-bs2000-cd-to-posix ()
   "cd to POSIX subsystem if the current host matches
 ange-ftp-bs2000-posix-host-regexp.  All BS2000 hosts with POSIX subsystem
@@ -6157,6 +6158,7 @@ be recognized automatically (they are all valid BS2000 hosts too)."
 ;	(ange-ftp-raw-send-cmd proc "cd %POSIX")
 	(ange-ftp-cd host user "%POSIX")
 	;; put new home directory in the expand-dir hashtable.
+	;; `host' and `user' are bound in ange-ftp-get-process.
 	(ange-ftp-put-hash-entry (concat host "/" user "/~")
 				 (car (ange-ftp-get-pwd host user))
 				 ange-ftp-expand-dir-hashtable))))
