@@ -2729,13 +2729,17 @@ make_lispy_event (event)
 	      return Qnil;
 
 	    pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
-				   &column, &row, 0, 0);
+				   &column, &row, 0, 1);
 
-#ifdef USE_X_TOOLKIT
-	    if (FRAME_EXTERNAL_MENU_BAR (f) && XINT (event->y) == -1)
-#else
-	    if (row < FRAME_MENU_BAR_LINES (f))
-#endif
+#ifndef USE_X_TOOLKIT
+	    /* In the non-toolkit version, clicks on the menu bar
+	       are ordinary button events in the event buffer.
+	       Distinguish them, and invoke the menu.
+
+	       (In the toolkit version, the toolkit handles the menu bar
+	       and Emacs doesn't know about it until after the user
+	       makes a selection.)  */
+	    if (row >= 0 && row < FRAME_MENU_BAR_LINES (f))
 	      {
 		Lisp_Object items, item;
 		int hpos;
@@ -2747,7 +2751,6 @@ make_lispy_event (event)
 		if (! (event->modifiers & down_modifier))
 		  return Qnil;
 
-#ifndef USE_X_TOOLKIT
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
 		for (i = 0; i < XVECTOR (items)->size; i += 3)
@@ -2764,7 +2767,6 @@ make_lispy_event (event)
 			break;
 		      }
 		  }
-#endif /* not USE_X_TOOLKIT  */
 
 		position
 		  = Fcons (event->frame_or_window,
@@ -2775,6 +2777,7 @@ make_lispy_event (event)
 
 		return Fcons (item, Fcons (position, Qnil));
 	      }
+#endif /* not USE_X_TOOLKIT */
 
 	    window = window_from_coordinates (f, column, row, &part);
 
