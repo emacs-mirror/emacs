@@ -242,7 +242,7 @@ A value of nil means highlight all matches."
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
 
-(defface lazy-highlight-face
+(defface lazy-highlight
   '((((class color) (min-colors 88) (background light))
      (:background "paleturquoise"))
     (((class color) (min-colors 88) (background dark))
@@ -2264,7 +2264,7 @@ since they have special meaning in a regexp."
 
 ;; When active, *every* match for the current search string is
 ;; highlighted: the current one using the normal isearch match color
-;; and all the others using `isearch-lazy-highlight-face'.  The extra
+;; and all the others using `isearch-lazy-highlight'.  The extra
 ;; highlighting makes it easier to anticipate where the cursor will
 ;; land each time you press C-s or C-r to repeat a pending search.
 ;; Highlighting of these additional matches happens in a deferred
@@ -2305,7 +2305,7 @@ since they have special meaning in a regexp."
   :group 'isearch-faces)
 (defvar isearch 'isearch)
 
-(defvar isearch-lazy-highlight-face 'lazy-highlight-face)
+(defvar isearch-lazy-highlight-face 'lazy-highlight)
 
 (defvar isearch-lazy-highlight-overlays nil)
 (defvar isearch-lazy-highlight-wrapped nil)
