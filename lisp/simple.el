@@ -65,7 +65,7 @@
 	    (setq found buffer)))
       (setq list (cdr list)))
     (switch-to-buffer found)))
-
+
 ;;; next-error support framework
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
@@ -200,7 +200,8 @@ backwards, if negative).
 Finds and highlights the source line like \\[next-error], but does not
 select the source buffer."
   (interactive "p")
-  (next-error n)
+  (let ((next-error-highlight next-error-highlight-no-select))
+    (next-error n))
   (pop-to-buffer next-error-last-buffer))
 
 (defun previous-error-no-select (&optional n)
@@ -212,6 +213,43 @@ select the source buffer."
   (interactive "p")
   (next-error-no-select (- (or n 1))))
 
+(defgroup next-error nil
+  "next-error support framework."
+  :group 'compilation
+  :version "21.4")
+
+(defface next-error
+  '((t (:inherit region)))
+  "Face used to highlight next error locus."
+  :group 'next-error
+  :version "21.4")
+
+(defcustom next-error-highlight 0.1
+  "*Highlighting of locations in selected source buffers.
+If number, highlight the locus in next-error face for given time in seconds.
+If t, use persistent overlays fontified in next-error face.
+If nil, don't highlight the locus in the source buffer.
+If `fringe-arrow', indicate the locus by the fringe arrow."
+  :type '(choice (number :tag "Delay")
+                 (const :tag "Persistent overlay" t)
+                 (const :tag "No highlighting" nil)
+                 (const :tag "Fringe arrow" 'fringe-arrow))
+  :group 'next-error
+  :version "21.4")
+
+(defcustom next-error-highlight-no-select 0.1
+  "*Highlighting of locations in non-selected source buffers.
+If number, highlight the locus in next-error face for given time in seconds.
+If t, use persistent overlays fontified in next-error face.
+If nil, don't highlight the locus in the source buffer.
+If `fringe-arrow', indicate the locus by the fringe arrow."
+  :type '(choice (number :tag "Delay")
+                 (const :tag "Persistent overlay" t)
+                 (const :tag "No highlighting" nil)
+                 (const :tag "Fringe arrow" 'fringe-arrow))
+  :group 'next-error
+  :version "21.4")
+
 ;;;
 
 (defun fundamental-mode ()
