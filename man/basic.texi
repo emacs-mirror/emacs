@@ -43,22 +43,30 @@ in the buffer is @samp{FOOBAR}, with the cursor before the @samp{B},
 then if you type @kbd{XX}, you get @samp{FOOXXBAR}, with the cursor
 still before the @samp{B}.
 
-   To @dfn{delete} text you have just inserted, use @key{DEL}.  @key{DEL}
-deletes the character @emph{before} the cursor (not the one that the cursor
-is on top of or under; that is the character @var{after} the cursor).  The
-cursor and all characters after it move backwards.  Therefore, if you type
-a printing character and then type @key{DEL}, they cancel out.
+   To @dfn{delete} text you have just inserted, use the large key
+labeled @key{DEL}, @key{BACKSPACE} or @key{DELETE} which is a short
+distance above the @key{RET} or @key{ENTER} key.  This is the key you
+normally use for erasing the last character that you typed.
+Regardless of the actual name on the key, Emacs always thinks of it as
+@key{DEL}, and that's what we call it in the manual.
 
-@kindex BS
-@kindex backspace
-   Note that many keyboards label the @key{DEL} key as @key{BS} or
-@key{<-}, and you might be used to refer to it as the ``backspace key''.
-In addition, many modern keyboards have a separate function key labeled
-@key{Delete} or @key{Del}, which is normally bound to the
-@code{delete-char} command and deletes the character @emph{after} the
-cursor (@pxref{Deletion}).  Do not confuse @key{Delete} with
-@key{DEL}---these are two different keys!  @xref{Named ASCII Chars}, for
-more details about special function keys recognized by Emacs.
+  The @key{DEL} key deletes the character @emph{before} the cursor.
+As a consequence, the cursor and all the characters after it move
+backwards.  If you type a printing character and then type @key{DEL},
+they cancel out.
+
+  Many keyboards have both a @key{BACKSPACE} key a short ways above
+@key{RET} or @key{ENTER}, and a @key{DELETE} key elsewhere.  In that
+case, the @key{BACKSPACE} key is @key{DEL}, and the @key{DELETE} key
+does something else---it deletes ``forwards,'' deleting the character
+after point, the one underneath the cursor, like @kbd{C-d} (see
+below).
+
+  On a text-only terminal, Emacs cannot automatically tell which keys
+it has and where they are located.  If the convenient key for deletion
+is @key{BACKSPACE}, you must type @kbd{M-x
+delete-key-deletes-forward-mode @key{RET}} to make that key behave as
+@key{DEL}.  @xref{Deletion}, for more explanation of this.
 
 @kindex RET
 @cindex newline
@@ -133,10 +141,6 @@ rebind @key{DEL} to other commands.
 @section Changing the Location of Point
 
 @cindex arrow keys
-@kindex LEFT
-@kindex RIGHT
-@kindex UP
-@kindex DOWN
 @cindex moving point
 @cindex movement
 @cindex cursor motion
@@ -159,6 +163,10 @@ them).  Others do more sophisticated things.
 @kindex M->
 @kindex M-<
 @kindex M-r
+@kindex LEFT
+@kindex RIGHT
+@kindex UP
+@kindex DOWN
 @findex beginning-of-line
 @findex end-of-line
 @findex forward-char
@@ -176,11 +184,11 @@ Move to the beginning of the line (@code{beginning-of-line}).
 @item C-e
 Move to the end of the line (@code{end-of-line}).
 @item C-f
-Move forward one character (@code{forward-char}).  The @key{->} right
-arrow key, if your keyboard has it, does the same.
+Move forward one character (@code{forward-char}).  The right-arrow key
+does the same thing.
 @item C-b
-Move backward one character (@code{backward-char}).  The @key{<-} left
-arrow key has the same effect.
+Move backward one character (@code{backward-char}).  The left-arrow
+key has the same effect.
 @item M-f
 Move forward one word (@code{forward-word}).
 @item M-b
@@ -188,10 +196,10 @@ Move backward one word (@code{backward-word}).
 @item C-n
 Move down one line, vertically (@code{next-line}).  This command
 attempts to keep the horizontal position unchanged, so if you start in
-the middle of one line, you end in the middle of the next.  The down
-arrow key, if your keyboard has it, does the same.
+the middle of one line, you end in the middle of the next.  The
+down-arrow key does the same thing.
 @item C-p
-Move up one line, vertically (@code{previous-line}).  The up arrow key
+Move up one line, vertically (@code{previous-line}).  The up-arrow key
 has the same effect.
 @item M-r
 Move point to left margin, vertically centered in the window
@@ -201,19 +209,24 @@ A numeric argument says which screen line to place point on.  It counts
 screen lines down from the top of the window (zero for the top line).  A
 negative argument counts lines from the bottom (@minus{}1 for the bottom
 line).
-@item C-v
-Scroll the display forward one windowfull.  If your keyboard has a
-@key{PageDown} key, it does the same.  Scrolling commands are further
-described in @ref{Scrolling}.
-@item M-v
-Scroll the display backward one windowfull.  The @key{PageUp} key has
-the same effect.  @xref{Scrolling}.
 @item M-<
 Move to the top of the buffer (@code{beginning-of-buffer}).  With
 numeric argument @var{n}, move to @var{n}/10 of the way from the top.
 @xref{Arguments}, for more information on numeric arguments.@refill
 @item M->
 Move to the end of the buffer (@code{end-of-buffer}).
+@item C-v
+Scroll the display one screen forward, and move point if necessary to put
+it on the screen (@code{scroll-up}).  This doesn't always
+move point, but it is commonly used to do so.
+If your keyboard has a @key{PAGEDOWN} key, it does the same thing.
+
+Scrolling commands are further described in @ref{Scrolling}.
+@item M-v
+Scroll one screen backward, and move point if necessary to put it on
+the screen (@code{scroll-down}).  This doesn't always move point, but
+it is commonly used to do so.  The @key{PAGEUP} key has the same
+effect.
 @item M-x goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.
@@ -254,6 +267,12 @@ an additional line at the end and moves down onto it.
 Delete the character before point (@code{delete-backward-char}).
 @item C-d
 Delete the character after point (@code{delete-char}).
+@item @key{DELETE}
+@itemx @key{BACKSPACE}
+One of these keys, whichever is the large key above the @key{RET} or
+@key{ENTER} key, deletes the character before point, like @key{DEL}.
+If that is @key{BACKSPACE}, and your keyboard also has @key{DELETE},
+then @key{DELETE} deletes forwards, like @kbd{C-d}.
 @item C-k
 Kill to the end of the line (@code{kill-line}).
 @item M-d
