@@ -2145,7 +2145,7 @@ ARRAY is a vector, string, char-table, or bool-vector.")
 
 DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
-  "Return the subtype of char-table CHAR-TABLE.   The value is a symbol.")
+  "Return the subtype of char-table CHAR-TABLE.  The value is a symbol.")
   (char_table)
      Lisp_Object char_table;
 {
@@ -4953,7 +4953,7 @@ In hash tables create with NAME specified as test, use TEST to compare\n\
 keys, and HASH for computing hash codes of keys.\n\
 \n\
 TEST must be a function taking two arguments and returning non-nil\n\
-if both arguments are the same.   HASH must be a function taking\n\
+if both arguments are the same.  HASH must be a function taking\n\
 one argument and return an integer that is the hash code of the\n\
 argument.  Hash code computation should use the whole value range of\n\
 integers, including negative integers.")
