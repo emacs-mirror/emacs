@@ -1,10 +1,10 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.12 2001/03/07 00:16:29 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.13 2001/07/31 08:26:47 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -465,7 +465,7 @@ The point is moved to the end of the conflict."
   "Minor mode to simplify editing output from the diff3 program.
 \\{smerge-mode-map}"
   nil " SMerge" nil
-  (when font-lock-mode
+  (when (and (boundp 'font-lock-mode) font-lock-mode)
     (set (make-local-variable 'font-lock-multiline) t)
     (save-excursion
       (if smerge-mode
