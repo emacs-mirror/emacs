@@ -18,6 +18,14 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
+/* These are default choices for the types to use.  */
+#ifndef EMACS_INT
+#define EMACS_INT int
+#endif
+#ifndef EMACS_UINT
+#define EMACS_UINT unsigned int
+#endif
+
 /* Define the fundamental Lisp data structures */
 
 /* This is the set of Lisp data types */
