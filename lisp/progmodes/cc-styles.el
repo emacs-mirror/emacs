@@ -247,31 +247,36 @@ the existing style.")
     (cond
      ;; first special variable
      ((eq attr 'c-offsets-alist)
-      (mapcar
-       (function
-	(lambda (langentry)
-	  (let ((langelem (car langentry))
-		(offset (cdr langentry)))
-	    (unless (and dont-override
-			 (assq langelem c-offsets-alist))
-	      (c-set-offset langelem offset))
-	    )))
-       (if dont-override (reverse val) val)))
+      (let ((offsets (cond ((eq dont-override t)
+			    c-offsets-alist)
+			   (dont-override
+			    (default-value 'c-offsets-alist)))))
+	(mapcar (lambda (langentry)
+		  (let ((langelem (car langentry))
+			(offset (cdr langentry)))
+		    (unless (assq langelem offsets)
+		      (c-set-offset langelem offset))))
+		val)))
      ;; second special variable
      ((eq attr 'c-special-indent-hook)
-      (let ((add-func (if dont-override
-			  (lambda (func)
-			    (unless (memq func c-special-indent-hook)
-			      (add-hook 'c-special-indent-hook func t)))
-			(lambda (func)
-			  (add-hook 'c-special-indent-hook func)))))
+      ;; Maybe we should ignore dont-override here and always add new
+      ;; hooks?
+      (unless (cond ((eq dont-override t)
+		     c-special-indent-hook)
+		    (dont-override
+		     (default-value 'c-special-indent-hook)))
 	(if (listp val)
-	    (mapcar add-func (if dont-override (reverse val) val))
-	  (funcall add-func val))))
+	    (mapcar (lambda (func)
+		      (add-hook 'c-special-indent-hook func t t))
+		    val)
+	  (add-hook 'c-special-indent-hook val t t))))
      ;; all other variables
      (t (when (or (not dont-override)
 		  (not (memq attr c-style-variables))
-		  (eq (symbol-value attr) 'set-from-style))
+		  (eq (if (eq dont-override t)
+			  (symbol-value attr)
+			(default-value attr))
+		      'set-from-style))
 	  (set attr val)
 	  ;; Must update a number of other variables if
 	  ;; c-comment-prefix-regexp is set.
@@ -309,15 +314,23 @@ for details of setting up styles.
 The variable `c-indentation-style' always contains the buffer's current
 style name.
 
-If the optional argument DONT-OVERRIDE is non-nil, no style variables
-that already have values will be overridden.  I.e. in the case of
+If the optional argument DONT-OVERRIDE is t, no style variables that
+already have values will be overridden.  I.e. in the case of
 `c-offsets-alist', syntactic symbols will only be added, and in the
 case of all other style variables, only those set to `set-from-style'
 will be reassigned.
 
-Obviously, specifying DONT-OVERRIDE is useful mainly when the initial
-style is chosen for a CC Mode buffer by a major mode.  Since this is
-done internally by CC Mode, there's hardly ever a reason to use it."
+If DONT-OVERRIDE is neither nil nor t, only those style variables that
+have default (i.e. non-buffer local) values will keep their settings
+while the rest will be overridden.  This is useful to avoid overriding
+global settings done in ~/.emacs when setting a style from a mode hook
+\(providing the style variables are buffer local, which is the
+default).
+
+Obviously, setting DONT-OVERRIDE to t is useful mainly when the
+initial style is chosen for a CC Mode buffer by a major mode.  Since
+that is done internally by CC Mode, it typically won't have any effect
+when used elsewhere."
   (interactive
    (list (let ((completion-ignore-case t)
 	       (prompt (format "Which %s indentation style? "
@@ -348,8 +361,8 @@ done internally by CC Mode, there's hardly ever a reason to use it."
     (mapcar (lambda (elem)
 	      (c-set-style-1 elem dont-override))
 	    ;; Need to go through the variables backwards when we
-	    ;; don't override.
-	    (if dont-override (nreverse vars) vars)))
+	    ;; don't override any settings.
+	    (if (eq dont-override t) (nreverse vars) vars)))
   (setq c-indentation-style stylename)
   (c-keep-region-active))
 
