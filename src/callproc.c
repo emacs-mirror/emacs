@@ -712,7 +712,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 			       nread, size);
 		if (process_coding.produced > 0)
 		  insert (decoding_buf, process_coding.produced);
-		carryover = process_coding.produced - process_coding.consumed;
+		carryover = nread - process_coding.consumed;
 		if (carryover > 0)
 		  {
 		    /* As CARRYOVER should not be that large, we had
