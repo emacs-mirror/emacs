@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.12) $
+ * $HopeName: MMsrc!poolams.c(trunk.13) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.12) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.13) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -231,9 +231,12 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   
   group->seg = seg;
   SegSetP(seg, (void*)group);
-  SegSetRankSet(seg, rankSet);
-  if (rankSet != RankSetEMPTY) /* see design.mps.seg.field.rankSet */
-    SegSetSummary(seg, RefSetUNIV);
+  /* see design.mps.seg.field.rankSet */
+  if(rankSet != RankSetEMPTY) {
+    SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
+  } else {
+    SegSetRankAndSummary(seg, rankSet, RefSetEMPTY);
+  }
 
   group->grains = size >> ams->grainShift;
   group->marked = FALSE; /* design.mps.poolams.marked.unused */

@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.9) $
+ * $HopeName: MMsrc!seg.c(trunk.10) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -16,7 +16,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.9) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.10) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -256,5 +256,41 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
       AVER(seg->_summary == RefSetEMPTY);
       ShieldLower(arena, seg, AccessWRITE);
     }
+  }
+}
+
+void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
+{
+  Bool wasShielded, willbeShielded;
+  Arena arena;
+
+  AVERT(Seg, seg);
+  AVER(RankSetCheck(rankSet));
+  AVER(rankSet == RankSetEMPTY || RankSetIsSingle(rankSet));
+
+  /* rankSet == RankSetEMPTY implies summary == RefSetEMPTY */
+  AVER(rankSet != RankSetEMPTY || summary == RefSetEMPTY);
+
+  arena = PoolArena(seg->_pool);
+
+  if(seg->_rankSet != RankSetEMPTY && seg->_summary != RefSetUNIV) {
+    wasShielded = TRUE;
+  } else {
+    wasShielded = FALSE;
+  }
+
+  if(rankSet != RankSetEMPTY && summary != RefSetUNIV) {
+    willbeShielded = TRUE;
+  } else {
+    willbeShielded = FALSE;
+  }
+
+  seg->_rankSet = rankSet;
+  seg->_summary = summary;
+
+  if(willbeShielded && !wasShielded) {
+    ShieldRaise(arena, seg, AccessWRITE);
+  } else if(wasShielded && !willbeShielded) {
+    ShieldLower(arena, seg, AccessWRITE);
   }
 }

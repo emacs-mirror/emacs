@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.26) $
+ * $HopeName: MMsrc!poolawl.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.26) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.27) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -144,8 +144,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   BTResRange(group->mark, 0, bits);
   BTResRange(group->scanned, 0, bits);
   BTResRange(group->alloc, 0, bits);
-  SegSetRankSet(seg, rankSet);
-  SegSetSummary(seg, RefSetUNIV);
+  SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
   SegSetP(seg, group);
   group->seg = seg;
   group->free = bits;
