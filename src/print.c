@@ -413,33 +413,47 @@ printchar (ch, fun)
 	    }
 	}
 
-      message_dolog (str, len, 0, len > 1);
-
-      /* Convert message to multibyte if we are now adding multibyte text.  */
-      if (! NILP (current_buffer->enable_multibyte_characters)
-	  && ! message_enable_multibyte
-	  && printbufidx > 0)
+      if (len == 1
+	  && ! NILP (current_buffer->enable_multibyte_characters)
+	  && ! CHAR_HEAD_P (*str))
 	{
-	  int size = count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
-					      printbufidx);
-	  unsigned char *tembuf = (unsigned char *) alloca (size + 1);
-	  copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
-		     0, 1);
-	  printbufidx = size;
-	  if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
-	    {
-	      printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
-	      /* Rewind incomplete multi-byte form.  */
-	      while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
-		printbufidx--;
-	    }
-	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
+	  /* Convert the unibyte character to multibyte.  */
+	  unsigned char c = *str;
+
+	  len = count_size_as_multibyte (&c, 1);
+	  copy_text (&c, work, 1, 0, 1);
+	  str = work;
 	}
 
-      /* Record whether the message buffer is multibyte.
-	 (If at any point some multibyte characters are added, then it is.)  */
-      if (len > 0 && ! NILP (current_buffer->enable_multibyte_characters))
-	message_enable_multibyte = 1;
+      message_dolog (str, len, 0, len > 1);
+
+      if (! NILP (current_buffer->enable_multibyte_characters)
+	  && ! message_enable_multibyte)
+	{
+	  /* Record that the message buffer is multibyte.  */
+	  message_enable_multibyte = 1;
+
+	  /* If we have already had some message text in the messsage
+             buffer, we convert it to multibyte.  */
+	  if (printbufidx > 0)
+	    {
+	      int size
+		= count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
+					   printbufidx);
+	      unsigned char *tembuf = (unsigned char *) alloca (size + 1);
+	      copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
+			 0, 1);
+	      printbufidx = size;
+	      if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
+		{
+		  printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
+		  /* Rewind incomplete multi-byte form.  */
+		  while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
+		    printbufidx--;
+		}
+	      bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
+	    }
+	}
 
       if (printbufidx < FRAME_MESSAGE_BUF_SIZE (mini_frame) - len)
 	{
