@@ -1,3 +1,23 @@
+2004-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (MAX_ANNOTATION_LENGTH): Adjusted for the change of
+	annotation data format.
+	(ADD_ANNOTATION_DATA, ADD_COMPOSITION_DATA, ADD_CHARSET_DATA):
+	Change arguments FROM and TO to single argument NCHARS.  Caller
+	changed.
+	(decode_coding_utf_8): Pay attention to coding->charbuf_used.
+	(decode_coding_utf_16, decode_coding_emacs_mule)
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_ccl, decode_coding_charset): Likewise.
+	(get_translation): New function.
+	(produce_chars): New arguments translation_table and last_block.
+	Translate characters here.  Return number of carryover chars.
+	Caller changed.
+	(produce_composition): New argument pos.  Caller changed.
+	Adjusted for the change of annotation data format.
+	(produce_charset, produce_annotation): Likewise.
+	(decode_coding): Don't call translate_chars.
+
 2004-03-09  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (simple_search): Fix setting this_pos_byte in backward
