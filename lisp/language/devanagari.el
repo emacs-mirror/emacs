@@ -35,10 +35,11 @@
  "Coding-system used for ASCII(MSB=0) & IS13194-Devanagari(MSB=1)."
  '((ascii t) (indian-is13194 t) nil nil
    nil ascii-eol))
+devanagari-compose-from-is13194-region
 (put 'in-is13194-devanagari
-     'post-read-conversion 'devanagari-compose-from-is13194-region)
+     'post-read-conversion 'in-is13194-devanagari-post-read-conversion)
 (put 'in-is13194-devanagari
-     'pre-write-conversion 'devanagari-decompose-to-is13194-region)
+     'pre-write-conversion 'in-is13194-devanagari-pre-write-conversion)
 
 (register-input-method
  "Devanagari" '("quail-devanagari-transliteration" quail-use-package
@@ -57,6 +58,8 @@
 		"quail/devanagari"))
 
 (defun setup-devanagari-environment ()
+  "Setup multilingual environment (MULE) for languages using Devanagari."
+  (interactive)
   (setq coding-category-iso-8-1 'in-is13194-devanagari)
 
   (set-coding-priority
@@ -68,40 +71,17 @@
   (setq default-input-method '("Devanagari" . "quail-devanagari-itrans"))
   )
 
+(defun describe-devanagari-support ()
+  "Describe how Emacs support languages using Devanagari script."
+  (interactive)
+  (describe-language-support-internal "Devanagari"))
+
 (set-language-info-alist
  "Devanagari" '((setup-function . setup-devanagari-environment)
+		(describe-function . describe-devanagari-support)
 		(charset . (indian-is13194 indian-2-column indian-1-column))
 		(coding-system . (in-is13194-devanagari))
-		(documentation . t)))
-
-(let ((deflist	'(;; chars	syntax	category
-		  ("$(5!!!"!#(B"	"w"	?7) ; vowel-modifying diacritical mark
-					    ; chandrabindu, anuswar, visarga
-		  ("$(5!$(B-$(5!2(B"	"w"	?5) ; independent vowel
-		  ("$(5!3(B-$(5!X(B"	"w"	?0) ; consonant
-		  ("$(5!Z(B-$(5!g(B"	"w"	?8) ; matra
-		  ("$(5!q(B-$(5!z(B"	"w"	?6) ; digit
-		  ))
-      elm chars len syntax category to ch i)
-  (while deflist
-    (setq elm (car deflist))
-    (setq chars (car elm)
-	  len (length chars)
-	  syntax (nth 1 elm)
-	  category (nth 2 elm)
-	  i 0)
-    (while (< i len)
-      (if (= (aref chars i) ?-)
-	  (setq i (1+ i)
-		to (sref chars i))
-	(setq ch (sref chars i)
-	      to ch))
-      (while (<= ch to)
-	(modify-syntax-entry ch syntax)
-	(modify-category-entry ch category)
-	(setq ch (1+ ch)))
-      (setq i (+ i (char-bytes to))))
-    (setq deflist (cdr deflist))))
+		(documentation . nil)))
 
 ;;
 ;; Devanagari Glyph List
