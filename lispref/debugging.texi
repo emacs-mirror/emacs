@@ -30,6 +30,7 @@ compiler, you need to know how to examine the compiler's input buffer.
 * Debugger::            How the Emacs Lisp debugger is implemented.
 * Edebug::		A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
+* Test Coverage::       Ensuring you have tested all branches in your code.
 * Compilation Errors::  How to find errors that show up in byte compilation.
 @end menu
 
@@ -737,6 +738,42 @@ old indentation is probably appropriate to the intended parentheses.
 the old indentation actually fits the intended nesting of parentheses,
 and you have put back those parentheses, @kbd{C-M-q} should not change
 anything.
+
+@node Test Coverage
+@section Test Coverage
+@cindex coverage testing
+
+@findex testcover-start
+@findex testcover-mark-all
+@findex testcover-next-mark
+  You can do coverage testing for a file of Lisp code by first using
+the command @kbd{M-x testcover-start @key{RET} @var{file} @key{RET}}
+to instrument it.  Then test your code by calling it one or more
+times.  Then use the command @kbd{M-x testcover-mark-all} to display
+``splotches'' on the code to show where coverage is insufficient.  The
+command @kbd{M-x testcover-next-mark} will move point forward to the
+next spot that has a splotch.
+
+  Normally, a red splotch indicates the form was never completely
+evaluated; a brown splotch means it always evaluated to the same value
+(meaning there has been little testing of what is done with the
+result).  However, the red splotch is skipped for forms that can't
+possibly complete their evaluation, such as @code{error}.  The brown
+splotch is skipped for forms that are expected to always evaluate to
+the same value, such as @code{(setq x 14)}.
+
+  For difficult cases, you can add do-nothing macros to your code to
+give advice to the test coverage tool.
+
+@defmac 1value form
+Evaluate @var{form} and return its value, but inform coverage testing
+that @var{form}'s value should always be the same.
+@end defmac
+
+@defmac noreturn form
+Evaluate @var{form}, informing coverage testing that @var{form} should
+never return.  If it ever does return, you get a run-time error.
+@end defmac
 
 @node Compilation Errors
 @section Debugging Problems in Compilation
