@@ -274,9 +274,9 @@ struct coding_system
   /* Type of the coding system.  */
   enum coding_type type;
 
-  /* If the coding system requires specific code to be attached at the
-     tail of converted text, this value should be set to `1'.  */
-  int require_flushing;
+  /* Flag bits of the coding system.  The meaning of each bit is common
+     to any type of coding systems.  */
+  unsigned int common_flags;
 
   /* Flag bits of the coding system.  The meaning of each bit depends
      on the type of the coding system.  */
@@ -340,21 +340,31 @@ struct coding_system
   int carryover_size;
 };
 
-/* Return 1 if coding system CODING never requires any code conversion.  */
-#define CODING_REQUIRE_NO_CONVERSION(coding)		\
-  ((coding)->type == coding_type_no_conversion		\
-   || (((coding)->type == coding_type_emacs_mule	\
-	|| (coding)->type == coding_type_raw_text)	\
-       && (coding)->eol_type == CODING_EOL_LF))
+#define CODING_REQUIRE_FLUSHING_MASK	1
+#define CODING_REQUIRE_DECODING_MASK	2
+#define CODING_REQUIRE_ENCODING_MASK	4
+#define CODING_REQUIRE_DETECTION_MASK	8
 
-/* Return 1 if coding system CODING may not require code conversion.  */
-#define CODING_MAY_REQUIRE_NO_CONVERSION(coding)	\
-  ((coding)->type == coding_type_no_conversion		\
-   || (((coding)->type == coding_type_emacs_mule	\
-	|| (coding)->type == coding_type_undecided	\
-	|| (coding)->type == coding_type_raw_text)	\
-       && ((coding)->eol_type == CODING_EOL_LF		\
-	   || (coding)->eol_type == CODING_EOL_UNDECIDED)))
+/* Return 1 if the coding system CODING requires specific code to be
+   attached at the tail of converted text.  */
+#define CODING_REQUIRE_FLUSHING(coding) \
+  ((coding)->common_flags & CODING_REQUIRE_FLUSHING_MASK)
+
+/* Return 1 if the coding system CODING requires code conversion on
+   decoding.  */
+#define CODING_REQUIRE_DECODING(coding)	\
+  ((coding)->common_flags & CODING_REQUIRE_DECODING_MASK)
+
+/* Return 1 if the coding system CODING requires code conversion on
+   encoding.  */
+#define CODING_REQUIRE_ENCODING(coding)	\
+  ((coding)->common_flags & CODING_REQUIRE_ENCODING_MASK)
+
+/* Return 1 if the coding system CODING requires some kind of code
+   detection.  */
+#define CODING_REQUIRE_DETECTION(coding) \
+  ((coding)->common_flags & CODING_REQUIRE_DETECTION_MASK)
+
 
 /* Index for each coding category in `coding_category_table' */
 #define CODING_CATEGORY_IDX_EMACS_MULE	0
