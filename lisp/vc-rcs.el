@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.10 2000/10/03 11:33:59 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.11 2000/10/03 12:08:40 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +27,10 @@
 ;;; Commentary:   see vc.el
 
 ;;; Code:
+
+;;;
+;;; Customization options
+;;;
 
 (eval-when-compile
   (require 'cl))
@@ -99,6 +103,11 @@ For a description of possible values, see `vc-check-master-templates'."
   :version "21.1"
   :group 'vc)
 
+
+;;;
+;;; State-querying functions
+;;;
+
 ;;;###autoload
 (progn (defun vc-rcs-registered (f) (vc-default-registered 'RCS f)))
 
@@ -164,16 +173,6 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
 
-(defun vc-rcs-workfile-is-newer (file)
-  "Return non-nil if FILE is newer than its RCS master.
-This likely means that FILE has been changed with respect
-to its master version."
-  (let ((file-time (nth 5 (file-attributes file)))
-	(master-time (nth 5 (file-attributes (vc-name file)))))
-    (or (> (nth 0 file-time) (nth 0 master-time))
-	(and (= (nth 0 file-time) (nth 0 master-time))
-	     (> (nth 1 file-time) (nth 1 master-time))))))
-
 (defun vc-rcs-workfile-version (file)
   "RCS-specific version of `vc-workfile-version'."
   (or (and vc-consult-headers
@@ -183,6 +182,22 @@ to its master version."
         (vc-rcs-fetch-master-state file)
         (vc-file-getprop file 'vc-workfile-version))))
 
+(defun vc-rcs-latest-on-branch-p (file &optional version)
+  "Return non-nil if workfile version of FILE is the latest on its branch.
+When VERSION is given, perform check for that version."
+  (unless version (setq version (vc-workfile-version file)))
+  (with-temp-buffer
+    (string= version
+	     (if (vc-rcs-trunk-p version)
+		 (progn
+		   ;; Compare VERSION to the head version number.
+		   (vc-insert-file (vc-name file) "^[0-9]")
+		   (vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
+	       ;; If we are not on the trunk, we need to examine the
+	       ;; whole current branch.
+	       (vc-insert-file (vc-name file) "^desc")
+	       (vc-rcs-find-most-recent-rev (vc-rcs-branch-part version))))))
+
 (defun vc-rcs-checkout-model (file)
   "RCS-specific version of `vc-checkout-model'."
   (vc-rcs-consult-headers file)
@@ -190,7 +205,423 @@ to its master version."
       (progn (vc-rcs-fetch-master-state file)
 	     (vc-file-getprop file 'vc-checkout-model))))
 
-;;; internal code
+(defun vc-rcs-workfile-unchanged-p (file)
+  "RCS-specific implementation of vc-workfile-unchanged-p."
+  ;; Try to use rcsdiff --brief.  If rcsdiff does not understand that,
+  ;; do a double take and remember the fact for the future
+  (let* ((version (concat "-r" (vc-workfile-version file)))
+         (status (if (eq vc-rcsdiff-knows-brief 'no)
+                     (vc-do-command nil 1 "rcsdiff" file version)
+                   (vc-do-command nil 2 "rcsdiff" file "--brief" version))))
+    (if (eq status 2)
+        (if (not vc-rcsdiff-knows-brief)
+            (setq vc-rcsdiff-knows-brief 'no
+                  status (vc-do-command nil 1 "rcsdiff" file version))
+          (error "rcsdiff failed"))
+      (if (not vc-rcsdiff-knows-brief) (setq vc-rcsdiff-knows-brief 'yes)))
+    ;; The workfile is unchanged if rcsdiff found no differences.
+    (zerop status)))
+
+
+;;;
+;;; State-changing functions
+;;;
+
+(defun vc-rcs-register (file &optional rev comment)
+  "Register FILE into the RCS version-control system.
+REV is the optional revision number for the file.  COMMENT can be used
+to provide an initial description of FILE.
+
+`vc-register-switches' and `vc-rcs-register-switches' are passed to
+the RCS command (in that order).
+
+Automatically retrieve a read-only version of the file with keywords
+expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
+    (let ((subdir (expand-file-name "RCS" (file-name-directory file)))
+	  (switches (list
+		     (if (stringp vc-register-switches)
+			 (list vc-register-switches)
+		       vc-register-switches)
+		     (if (stringp vc-rcs-register-switches)
+		     (list vc-rcs-register-switches)
+		     vc-rcs-register-switches))))
+      
+      (and (not (file-exists-p subdir))
+	   (not (directory-files (file-name-directory file)
+				 nil ".*,v$" t))
+	   (yes-or-no-p "Create RCS subdirectory? ")
+	   (make-directory subdir))
+      (apply 'vc-do-command nil 0 "ci" file
+	     ;; if available, use the secure registering option
+	     (and (vc-rcs-release-p "5.6.4") "-i")
+	     (concat (if vc-keep-workfiles "-u" "-r") rev)
+	     (and comment (concat "-t-" comment))
+	     switches)
+      ;; parse output to find master file name and workfile version
+      (with-current-buffer "*vc*"
+        (goto-char (point-min))
+        (let ((name (if (looking-at (concat "^\\(.*\\)  <--  "
+                                            (file-name-nondirectory file)))
+                        (match-string 1))))
+          (if (not name)
+              ;; if we couldn't find the master name,
+              ;; run vc-rcs-registered to get it
+              ;; (will be stored into the vc-name property)
+              (vc-rcs-registered file)
+            (vc-file-setprop file 'vc-name
+                             (if (file-name-absolute-p name)
+                                 name
+                               (expand-file-name
+                                name
+                                (file-name-directory file))))))
+        (vc-file-setprop file 'vc-workfile-version
+                         (if (re-search-forward
+                              "^initial revision: \\([0-9.]+\\).*\n"
+                              nil t)
+                             (match-string 1))))))
+
+(defun vc-rcs-responsible-p (file)
+  "Return non-nil if RCS thinks it would be responsible for registering FILE."
+  ;; TODO: check for all the patterns in vc-rcs-master-templates
+  (file-directory-p (expand-file-name "RCS" (file-name-directory file))))
+
+(defun vc-rcs-receive-file (file rev)
+  "Implementation of receive-file for RCS."
+  (let ((checkout-model (vc-checkout-model file)))
+    (vc-rcs-register file rev "")
+    (when (eq checkout-model 'implicit)
+      (vc-rcs-set-non-strict-locking file))
+    (vc-rcs-set-default-branch file (concat rev ".1"))))
+
+(defun vc-rcs-unregister (file)
+  "Unregister FILE from RCS.
+If this leaves the RCS subdirectory empty, ask the user
+whether to remove it."
+  (let* ((master (vc-name file))
+	 (dir (file-name-directory master))
+	 (backup-info (find-backup-file-name master)))
+    (if (not backup-info)
+	(delete-file master)
+      (rename-file master (car backup-info) 'ok-if-already-exists)
+      (dolist (f (cdr backup-info)) (ignore-errors (delete-file f))))
+    (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
+	 ;; check whether RCS dir is empty, i.e. it does not
+	 ;; contain any files except "." and ".."
+	 (not (directory-files dir nil 
+			       "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
+	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
+	 (delete-directory dir))))
+
+(defun vc-rcs-checkin (file rev comment)
+  "RCS-specific version of `vc-backend-checkin'."
+  (let ((switches (if (stringp vc-checkin-switches)
+		      (list vc-checkin-switches)
+		    vc-checkin-switches)))
+    (let ((old-version (vc-workfile-version file)) new-version
+	  (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
+      ;; Force branch creation if an appropriate 
+      ;; default branch has been set.
+      (and (not rev)
+	   default-branch
+	   (string-match (concat "^" (regexp-quote old-version) "\\.")
+			 default-branch)
+	   (setq rev default-branch)
+	   (setq switches (cons "-f" switches)))
+      (apply 'vc-do-command nil 0 "ci" (vc-name file)
+	     ;; if available, use the secure check-in option
+	     (and (vc-rcs-release-p "5.6.4") "-j")
+	     (concat (if vc-keep-workfiles "-u" "-r") rev)
+	     (concat "-m" comment)
+	     switches)
+      (vc-file-setprop file 'vc-workfile-version nil)
+
+      ;; determine the new workfile version
+      (set-buffer "*vc*")
+      (goto-char (point-min))
+      (when (or (re-search-forward
+		 "new revision: \\([0-9.]+\\);" nil t)
+		(re-search-forward
+		 "reverting to previous revision \\([0-9.]+\\)" nil t))
+	(setq new-version (match-string 1))
+	(vc-file-setprop file 'vc-workfile-version new-version))
+
+      ;; if we got to a different branch, adjust the default
+      ;; branch accordingly
+      (cond
+       ((and old-version new-version
+	     (not (string= (vc-rcs-branch-part old-version)
+			   (vc-rcs-branch-part new-version))))
+	(vc-rcs-set-default-branch file 
+				   (if (vc-rcs-trunk-p new-version) nil
+				     (vc-rcs-branch-part new-version)))
+	;; If this is an old RCS release, we might have
+	;; to remove a remaining lock.
+	(if (not (vc-rcs-release-p "5.6.2"))
+	    ;; exit status of 1 is also accepted.
+	    ;; It means that the lock was removed before.
+	    (vc-do-command nil 1 "rcs" (vc-name file)
+			   (concat "-u" old-version))))))))
+
+(defun vc-rcs-checkout (file &optional writable rev workfile)
+  "Retrieve a copy of a saved version of FILE into a workfile."
+  (let ((filename (or workfile file))
+	(file-buffer (get-file-buffer file))
+	switches)
+    (message "Checking out %s..." filename)
+    (save-excursion
+      ;; Change buffers to get local value of vc-checkout-switches.
+      (if file-buffer (set-buffer file-buffer))
+      (setq switches (if (stringp vc-checkout-switches)
+			 (list vc-checkout-switches)
+		       vc-checkout-switches))
+      ;; Save this buffer's default-directory
+      ;; and use save-excursion to make sure it is restored
+      ;; in the same buffer it was saved in.
+      (let ((default-directory default-directory))
+	(save-excursion
+	  ;; Adjust the default-directory so that the check-out creates
+	  ;; the file in the right place.
+	  (setq default-directory (file-name-directory filename))
+	  (if workfile  ;; RCS
+	      ;; RCS can't check out into arbitrary file names directly.
+	      ;; Use `co -p' and make stdout point to the correct file.
+	      (let ((vc-modes (logior (file-modes (vc-name file))
+				      (if writable 128 0)))
+		    (failed t))
+		(unwind-protect
+		    (progn
+                      (let ((coding-system-for-read 'no-conversion)
+                            (coding-system-for-write 'no-conversion))
+                        (with-temp-file filename
+                          (apply 'vc-do-command
+                                 (current-buffer) 0 "co" (vc-name file)
+                                 "-q" ;; suppress diagnostic output
+                                 (if writable "-l")
+                                 (concat "-p" rev)
+                                 switches)))
+                      (set-file-modes filename
+				      (logior (file-modes (vc-name file))
+					      (if writable 128 0)))
+		      (setq failed nil))
+		  (and failed (file-exists-p filename)
+		       (delete-file filename))))
+	    (let (new-version)
+	      ;; if we should go to the head of the trunk,
+	      ;; clear the default branch first
+	      (and rev (string= rev "")
+		   (vc-rcs-set-default-branch file nil))
+	      ;; now do the checkout
+	      (apply 'vc-do-command
+		     nil 0 "co" (vc-name file)
+		     ;; If locking is not strict, force to overwrite
+		     ;; the writable workfile.
+		     (if (eq (vc-checkout-model file) 'implicit) "-f")
+		     (if writable "-l")
+		     (if rev (concat "-r" rev)
+		       ;; if no explicit revision was specified,
+		       ;; check out that of the working file
+		       (let ((workrev (vc-workfile-version file)))
+			 (if workrev (concat "-r" workrev)
+			   nil)))
+		     switches)
+	      ;; determine the new workfile version
+	      (with-current-buffer "*vc*"
+		(setq new-version
+		      (vc-parse-buffer "^revision \\([0-9.]+\\).*\n" 1)))
+	      (vc-file-setprop file 'vc-workfile-version new-version)
+	      ;; if necessary, adjust the default branch
+	      (and rev (not (string= rev ""))
+		   (vc-rcs-set-default-branch 
+		    file
+		    (if (vc-rcs-latest-on-branch-p file new-version)
+			(if (vc-rcs-trunk-p new-version) nil
+			  (vc-rcs-branch-part new-version))
+		      new-version))))))
+	(message "Checking out %s...done" filename)))))
+
+(defun vc-rcs-revert (file)
+  "Revert FILE to the version it was based on."
+  (vc-do-command nil 0 "co" (vc-name file) "-f"
+		 (concat "-u" (vc-workfile-version file))))
+
+(defun vc-rcs-cancel-version (file writable)
+  "Undo the most recent checkin of FILE.
+WRITABLE non-nil means previous version should be locked."
+  (let* ((target (vc-workfile-version file))
+	 (previous (if (vc-trunk-p target) "" (vc-branch-part target)))
+	 (config (current-window-configuration))
+	 (done nil))
+    (vc-do-command nil 0 "rcs" (vc-name file) (concat "-o" target))
+    ;; Check out the most recent remaining version.  If it fails, because
+    ;; the whole branch got deleted, do a double-take and check out the
+    ;; version where the branch started.
+    (while (not done)
+      (condition-case err
+	  (progn
+	    (vc-do-command nil 0 "co" (vc-name file) "-f"
+			   (concat (if writable "-l" "-u") previous))
+	    (setq done t))
+	(error (set-buffer "*vc*")
+	       (goto-char (point-min))
+	       (if (search-forward "no side branches present for" nil t)
+		   (progn (setq previous (vc-branch-part previous))
+			  (vc-rcs-set-default-branch file previous)
+			  ;; vc-do-command popped up a window with
+			  ;; the error message.  Get rid of it, by
+			  ;; restoring the old window configuration.
+			  (set-window-configuration config))
+		 ;; No, it was some other error: re-signal it.
+		 (signal (car err) (cdr err))))))))
+
+(defun vc-rcs-merge (file first-version &optional second-version)
+  "Merge changes into current working copy of FILE.
+The changes are between FIRST-VERSION and SECOND-VERSION."
+  (vc-do-command nil 1 "rcsmerge" (vc-name file)
+		 "-kk"			; ignore keyword conflicts
+		 (concat "-r" first-version)
+		 (if second-version (concat "-r" second-version))))
+
+(defun vc-rcs-steal-lock (file &optional rev)
+  "Steal the lock on the current workfile for FILE and revision REV.
+Needs RCS 5.6.2 or later for -M."
+  (vc-do-command nil 0 "rcs" (vc-name file) "-M"
+		 (concat "-u" rev) (concat "-l" rev)))
+
+
+
+;;;
+;;; History functions
+;;;
+
+(defun vc-rcs-print-log (file)
+  "Get change log associated with FILE."
+  (vc-do-command t 0 "rlog" (vc-name file)))
+
+(defun vc-rcs-show-log-entry (version)
+  (when (re-search-forward
+	 ;; also match some context, for safety
+	 (concat "----\nrevision " version
+		 "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
+    ;; set the display window so that
+    ;; the whole log entry is displayed
+    (let (start end lines)
+      (beginning-of-line) (forward-line -1) (setq start (point))
+      (if (not (re-search-forward "^----*\nrevision" nil t))
+	  (setq end (point-max))
+	(beginning-of-line) (forward-line -1) (setq end (point)))
+      (setq lines (count-lines start end))
+      (cond
+       ;; if the global information and this log entry fit
+       ;; into the window, display from the beginning
+       ((< (count-lines (point-min) end) (window-height))
+	(goto-char (point-min))
+	(recenter 0)
+	(goto-char start))
+       ;; if the whole entry fits into the window,
+       ;; display it centered
+       ((< (1+ lines) (window-height))
+	(goto-char start)
+	(recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
+       ;; otherwise (the entry is too large for the window),
+       ;; display from the start
+       (t
+	(goto-char start)
+	(recenter 0))))))
+
+(defun vc-rcs-diff (file &optional oldvers newvers)
+  "Get a difference report using RCS between two versions of FILE."
+  (if (not oldvers) (setq oldvers (vc-workfile-version file)))
+  ;; If we know that --brief is not supported, don't try it.
+  (let* ((diff-switches-list (if (listp diff-switches)
+				 diff-switches
+			       (list diff-switches)))
+	 (options (append (list "-q"
+				(concat "-r" oldvers)
+				(and newvers (concat "-r" newvers)))
+			  diff-switches-list)))
+    (apply 'vc-do-command t 1 "rcsdiff" file options)))
+
+
+;;;
+;;; Snapshot system
+;;;
+
+(defun vc-rcs-assign-name (file name)
+  "Assign to FILE's latest version a given NAME."
+  (vc-do-command nil 0 "rcs" (vc-name file) (concat "-n" name ":")))
+
+
+;;;
+;;; Miscellaneous
+;;;
+
+(defun vc-rcs-check-headers ()
+  "Check if the current file has any headers in it."
+  (save-excursion
+    (goto-char (point-min))
+         (re-search-forward "\\$[A-Za-z\300-\326\330-\366\370-\377]+\
+\\(: [\t -#%-\176\240-\377]*\\)?\\$" nil t)))
+
+(defun vc-rcs-clear-headers ()
+  "Implementation of vc-clear-headers for RCS."
+  (let ((case-fold-search nil))
+    (goto-char (point-min))
+    (while (re-search-forward
+            (concat "\\$\\(Author\\|Date\\|Header\\|Id\\|Locker\\|Name\\|"
+                    "RCSfile\\|Revision\\|Source\\|State\\): [^$\n]+\\$")
+            nil t)
+      (replace-match "$\\1$"))))
+
+(defun vc-rcs-rename-file (old new)
+  ;; Just move the master file (using vc-rcs-master-templates).
+  (vc-rename-master (vc-name old) new vc-rcs-master-templates))
+
+
+;;;
+;;; Internal functions
+;;;
+
+(defun vc-rcs-trunk-p (rev)
+  "Return t if REV is an RCS revision on the trunk."
+  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
+
+(defun vc-rcs-branch-part (rev)
+  "Return the branch part of an RCS revision number REV"
+  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
+
+(defun vc-rcs-branch-p (rev)
+  "Return t if REV is an RCS branch revision"
+  (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
+
+(defun vc-rcs-minor-part (rev)
+  "Return the minor version number of an RCS revision number REV."
+  (string-match "[0-9]+\\'" rev)
+  (substring rev (match-beginning 0) (match-end 0)))
+
+(defun vc-rcs-previous-version (rev)
+  "Guess the previous RCS version number"
+  (let ((branch (vc-rcs-branch-part rev))
+        (minor-num (string-to-number (vc-rcs-minor-part rev))))
+    (if (> minor-num 1)
+        ;; version does probably not start a branch or release
+        (concat branch "." (number-to-string (1- minor-num)))
+      (if (vc-rcs-trunk-p rev)
+          ;; we are at the beginning of the trunk --
+          ;; don't know anything to return here
+          ""
+        ;; we are at the beginning of a branch --
+        ;; return version of starting point
+        (vc-rcs-branch-part branch)))))
+
+(defun vc-rcs-workfile-is-newer (file)
+  "Return non-nil if FILE is newer than its RCS master.
+This likely means that FILE has been changed with respect
+to its master version."
+  (let ((file-time (nth 5 (file-attributes file)))
+	(master-time (nth 5 (file-attributes (vc-name file)))))
+    (or (> (nth 0 file-time) (nth 0 master-time))
+	(and (= (nth 0 file-time) (nth 0 master-time))
+	     (> (nth 1 file-time) (nth 1 master-time))))))
 
 (defun vc-rcs-find-most-recent-rev (branch)
   "Find most recent revision on BRANCH."
@@ -373,179 +804,6 @@ Returns: nil            if no headers were found
 	    (vc-file-setprop file 'vc-checkout-model 'implicit)))
      status))))
 
-(defun vc-rcs-workfile-unchanged-p (file)
-  "RCS-specific implementation of vc-workfile-unchanged-p."
-  ;; Try to use rcsdiff --brief.  If rcsdiff does not understand that,
-  ;; do a double take and remember the fact for the future
-  (let* ((version (concat "-r" (vc-workfile-version file)))
-         (status (if (eq vc-rcsdiff-knows-brief 'no)
-                     (vc-do-command nil 1 "rcsdiff" file version)
-                   (vc-do-command nil 2 "rcsdiff" file "--brief" version))))
-    (if (eq status 2)
-        (if (not vc-rcsdiff-knows-brief)
-            (setq vc-rcsdiff-knows-brief 'no
-                  status (vc-do-command nil 1 "rcsdiff" file version))
-          (error "rcsdiff failed"))
-      (if (not vc-rcsdiff-knows-brief) (setq vc-rcsdiff-knows-brief 'yes)))
-    ;; The workfile is unchanged if rcsdiff found no differences.
-    (zerop status)))
-
-(defun vc-rcs-trunk-p (rev)
-  "Return t if REV is an RCS revision on the trunk."
-  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
-
-(defun vc-rcs-branch-part (rev)
-  "Return the branch part of an RCS revision number REV"
-  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
-
-(defun vc-rcs-latest-on-branch-p (file &optional version)
-  "Return non-nil if workfile version of FILE is the latest on its branch.
-When VERSION is given, perform check for that version."
-  (unless version (setq version (vc-workfile-version file)))
-  (with-temp-buffer
-    (string= version
-	     (if (vc-rcs-trunk-p version)
-		 (progn
-		   ;; Compare VERSION to the head version number.
-		   (vc-insert-file (vc-name file) "^[0-9]")
-		   (vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
-	       ;; If we are not on the trunk, we need to examine the
-	       ;; whole current branch.
-	       (vc-insert-file (vc-name file) "^desc")
-	       (vc-rcs-find-most-recent-rev (vc-rcs-branch-part version))))))
-
-(defun vc-rcs-branch-p (rev)
-  "Return t if REV is an RCS branch revision"
-  (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
-
-(defun vc-rcs-minor-part (rev)
-  "Return the minor version number of an RCS revision number REV."
-  (string-match "[0-9]+\\'" rev)
-  (substring rev (match-beginning 0) (match-end 0)))
-
-(defun vc-rcs-previous-version (rev)
-  "Guess the previous RCS version number"
-  (let ((branch (vc-rcs-branch-part rev))
-        (minor-num (string-to-number (vc-rcs-minor-part rev))))
-    (if (> minor-num 1)
-        ;; version does probably not start a branch or release
-        (concat branch "." (number-to-string (1- minor-num)))
-      (if (vc-rcs-trunk-p rev)
-          ;; we are at the beginning of the trunk --
-          ;; don't know anything to return here
-          ""
-        ;; we are at the beginning of a branch --
-        ;; return version of starting point
-        (vc-rcs-branch-part branch)))))
-
-(defun vc-rcs-print-log (file)
-  "Get change log associated with FILE."
-  (vc-do-command t 0 "rlog" (vc-name file)))
-
-(defun vc-rcs-show-log-entry (version)
-  (when (re-search-forward
-	 ;; also match some context, for safety
-	 (concat "----\nrevision " version
-		 "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
-    ;; set the display window so that
-    ;; the whole log entry is displayed
-    (let (start end lines)
-      (beginning-of-line) (forward-line -1) (setq start (point))
-      (if (not (re-search-forward "^----*\nrevision" nil t))
-	  (setq end (point-max))
-	(beginning-of-line) (forward-line -1) (setq end (point)))
-      (setq lines (count-lines start end))
-      (cond
-       ;; if the global information and this log entry fit
-       ;; into the window, display from the beginning
-       ((< (count-lines (point-min) end) (window-height))
-	(goto-char (point-min))
-	(recenter 0)
-	(goto-char start))
-       ;; if the whole entry fits into the window,
-       ;; display it centered
-       ((< (1+ lines) (window-height))
-	(goto-char start)
-	(recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
-       ;; otherwise (the entry is too large for the window),
-       ;; display from the start
-       (t
-	(goto-char start)
-	(recenter 0))))))
-
-(defun vc-rcs-assign-name (file name)
-  "Assign to FILE's latest version a given NAME."
-  (vc-do-command nil 0 "rcs" (vc-name file) (concat "-n" name ":")))
-
-(defun vc-rcs-merge (file first-version &optional second-version)
-  "Merge changes into current working copy of FILE.
-The changes are between FIRST-VERSION and SECOND-VERSION."
-  (vc-do-command nil 1 "rcsmerge" (vc-name file)
-		 "-kk"			; ignore keyword conflicts
-		 (concat "-r" first-version)
-		 (if second-version (concat "-r" second-version))))
-
-(defun vc-rcs-check-headers ()
-  "Check if the current file has any headers in it."
-  (save-excursion
-    (goto-char (point-min))
-         (re-search-forward "\\$[A-Za-z\300-\326\330-\366\370-\377]+\
-\\(: [\t -#%-\176\240-\377]*\\)?\\$" nil t)))
-
-(defun vc-rcs-clear-headers ()
-  "Implementation of vc-clear-headers for RCS."
-  (let ((case-fold-search nil))
-    (goto-char (point-min))
-    (while (re-search-forward
-            (concat "\\$\\(Author\\|Date\\|Header\\|Id\\|Locker\\|Name\\|"
-                    "RCSfile\\|Revision\\|Source\\|State\\): [^$\n]+\\$")
-            nil t)
-      (replace-match "$\\1$"))))
-
-(defun vc-rcs-steal-lock (file &optional rev)
-  "Steal the lock on the current workfile for FILE and revision REV.
-Needs RCS 5.6.2 or later for -M."
-  (vc-do-command nil 0 "rcs" (vc-name file) "-M"
-		 (concat "-u" rev) (concat "-l" rev)))
-
-(defun vc-rcs-cancel-version (file writable)
-  "Undo the most recent checkin of FILE.
-WRITABLE non-nil means previous version should be locked."
-  (let* ((target (vc-workfile-version file))
-	 (previous (if (vc-trunk-p target) "" (vc-branch-part target)))
-	 (config (current-window-configuration))
-	 (done nil))
-    (vc-do-command nil 0 "rcs" (vc-name file) (concat "-o" target))
-    ;; Check out the most recent remaining version.  If it fails, because
-    ;; the whole branch got deleted, do a double-take and check out the
-    ;; version where the branch started.
-    (while (not done)
-      (condition-case err
-	  (progn
-	    (vc-do-command nil 0 "co" (vc-name file) "-f"
-			   (concat (if writable "-l" "-u") previous))
-	    (setq done t))
-	(error (set-buffer "*vc*")
-	       (goto-char (point-min))
-	       (if (search-forward "no side branches present for" nil t)
-		   (progn (setq previous (vc-branch-part previous))
-			  (vc-rcs-set-default-branch file previous)
-			  ;; vc-do-command popped up a window with
-			  ;; the error message.  Get rid of it, by
-			  ;; restoring the old window configuration.
-			  (set-window-configuration config))
-		 ;; No, it was some other error: re-signal it.
-		 (signal (car err) (cdr err))))))))
-
-(defun vc-rcs-revert (file)
-  "Revert FILE to the version it was based on."
-  (vc-do-command nil 0 "co" (vc-name file) "-f"
-		 (concat "-u" (vc-workfile-version file))))
-
-(defun vc-rcs-rename-file (old new)
-  ;; Just move the master file (using vc-rcs-master-templates).
-  (vc-rename-master (vc-name old) new vc-rcs-master-templates))
-
 (defun vc-release-greater-or-equal (r1 r2)
   "Compare release numbers, represented as strings.
 Release components are assumed cardinal numbers, not decimal fractions
@@ -581,55 +839,6 @@ CVS releases are handled reasonably, too \(1.3 < 1.4* < 1.5\)."
 	     (not (eq installation 'unknown)))
 	(vc-release-greater-or-equal installation release))))
 
-(defun vc-rcs-checkin (file rev comment)
-  "RCS-specific version of `vc-backend-checkin'."
-  (let ((switches (if (stringp vc-checkin-switches)
-		      (list vc-checkin-switches)
-		    vc-checkin-switches)))
-    (let ((old-version (vc-workfile-version file)) new-version
-	  (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
-      ;; Force branch creation if an appropriate 
-      ;; default branch has been set.
-      (and (not rev)
-	   default-branch
-	   (string-match (concat "^" (regexp-quote old-version) "\\.")
-			 default-branch)
-	   (setq rev default-branch)
-	   (setq switches (cons "-f" switches)))
-      (apply 'vc-do-command nil 0 "ci" (vc-name file)
-	     ;; if available, use the secure check-in option
-	     (and (vc-rcs-release-p "5.6.4") "-j")
-	     (concat (if vc-keep-workfiles "-u" "-r") rev)
-	     (concat "-m" comment)
-	     switches)
-      (vc-file-setprop file 'vc-workfile-version nil)
-
-      ;; determine the new workfile version
-      (set-buffer "*vc*")
-      (goto-char (point-min))
-      (when (or (re-search-forward
-		 "new revision: \\([0-9.]+\\);" nil t)
-		(re-search-forward
-		 "reverting to previous revision \\([0-9.]+\\)" nil t))
-	(setq new-version (match-string 1))
-	(vc-file-setprop file 'vc-workfile-version new-version))
-
-      ;; if we got to a different branch, adjust the default
-      ;; branch accordingly
-      (cond
-       ((and old-version new-version
-	     (not (string= (vc-rcs-branch-part old-version)
-			   (vc-rcs-branch-part new-version))))
-	(vc-rcs-set-default-branch file 
-				   (if (vc-rcs-trunk-p new-version) nil
-				     (vc-rcs-branch-part new-version)))
-	;; If this is an old RCS release, we might have
-	;; to remove a remaining lock.
-	(if (not (vc-rcs-release-p "5.6.2"))
-	    ;; exit status of 1 is also accepted.
-	    ;; It means that the lock was removed before.
-	    (vc-do-command nil 1 "rcs" (vc-name file)
-			   (concat "-u" old-version))))))))
 
 (defun vc-rcs-system-release ()
   "Return the RCS release installed on this system, as a string.
@@ -645,104 +854,6 @@ variable `vc-rcs-release' is set to the returned value."
 		       (vc-parse-buffer "^RCS version \\([0-9.]+ *.*\\)" 1)))
 		'unknown))))
 
-(defun vc-rcs-diff (file &optional oldvers newvers)
-  "Get a difference report using RCS between two versions of FILE."
-  (if (not oldvers) (setq oldvers (vc-workfile-version file)))
-  ;; If we know that --brief is not supported, don't try it.
-  (let* ((diff-switches-list (if (listp diff-switches)
-				 diff-switches
-			       (list diff-switches)))
-	 (options (append (list "-q"
-				(concat "-r" oldvers)
-				(and newvers (concat "-r" newvers)))
-			  diff-switches-list)))
-    (apply 'vc-do-command t 1 "rcsdiff" file options)))
-
-(defun vc-rcs-responsible-p (file)
-  "Return non-nil if RCS thinks it would be responsible for registering FILE."
-  ;; TODO: check for all the patterns in vc-rcs-master-templates
-  (file-directory-p (expand-file-name "RCS" (file-name-directory file))))
-
-(defun vc-rcs-register (file &optional rev comment)
-  "Register FILE into the RCS version-control system.
-REV is the optional revision number for the file.  COMMENT can be used
-to provide an initial description of FILE.
-
-`vc-register-switches' and `vc-rcs-register-switches' are passed to
-the RCS command (in that order).
-
-Automatically retrieve a read-only version of the file with keywords
-expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
-    (let ((subdir (expand-file-name "RCS" (file-name-directory file)))
-	  (switches (list
-		     (if (stringp vc-register-switches)
-			 (list vc-register-switches)
-		       vc-register-switches)
-		     (if (stringp vc-rcs-register-switches)
-		     (list vc-rcs-register-switches)
-		     vc-rcs-register-switches))))
-      
-      (and (not (file-exists-p subdir))
-	   (not (directory-files (file-name-directory file)
-				 nil ".*,v$" t))
-	   (yes-or-no-p "Create RCS subdirectory? ")
-	   (make-directory subdir))
-      (apply 'vc-do-command nil 0 "ci" file
-	     ;; if available, use the secure registering option
-	     (and (vc-rcs-release-p "5.6.4") "-i")
-	     (concat (if vc-keep-workfiles "-u" "-r") rev)
-	     (and comment (concat "-t-" comment))
-	     switches)
-      ;; parse output to find master file name and workfile version
-      (with-current-buffer "*vc*"
-        (goto-char (point-min))
-        (let ((name (if (looking-at (concat "^\\(.*\\)  <--  "
-                                            (file-name-nondirectory file)))
-                        (match-string 1))))
-          (if (not name)
-              ;; if we couldn't find the master name,
-              ;; run vc-rcs-registered to get it
-              ;; (will be stored into the vc-name property)
-              (vc-rcs-registered file)
-            (vc-file-setprop file 'vc-name
-                             (if (file-name-absolute-p name)
-                                 name
-                               (expand-file-name
-                                name
-                                (file-name-directory file))))))
-        (vc-file-setprop file 'vc-workfile-version
-                         (if (re-search-forward
-                              "^initial revision: \\([0-9.]+\\).*\n"
-                              nil t)
-                             (match-string 1))))))
-
-(defun vc-rcs-unregister (file)
-  "Unregister FILE from RCS.
-If this leaves the RCS subdirectory empty, ask the user
-whether to remove it."
-  (let* ((master (vc-name file))
-	 (dir (file-name-directory master))
-	 (backup-info (find-backup-file-name master)))
-    (if (not backup-info)
-	(delete-file master)
-      (rename-file master (car backup-info) 'ok-if-already-exists)
-      (dolist (f (cdr backup-info)) (ignore-errors (delete-file f))))
-    (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
-	 ;; check whether RCS dir is empty, i.e. it does not
-	 ;; contain any files except "." and ".."
-	 (not (directory-files dir nil 
-			       "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
-	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
-	 (delete-directory dir))))
-
-(defun vc-rcs-receive-file (file rev)
-  "Implementation of receive-file for RCS."
-  (let ((checkout-model (vc-checkout-model file)))
-    (vc-rcs-register file rev "")
-    (when (eq checkout-model 'implicit)
-      (vc-rcs-set-non-strict-locking file))
-    (vc-rcs-set-default-branch file (concat rev ".1"))))
-
 (defun vc-rcs-set-non-strict-locking (file)
   (vc-do-command nil 0 "rcs" file "-U")
   (vc-file-setprop file 'vc-checkout-model 'implicit)
@@ -751,83 +862,6 @@ whether to remove it."
 (defun vc-rcs-set-default-branch (file branch)
   (vc-do-command nil 0 "rcs" (vc-name file) (concat "-b" branch))
   (vc-file-setprop file 'vc-rcs-default-branch branch))
-
-(defun vc-rcs-checkout (file &optional writable rev workfile)
-  "Retrieve a copy of a saved version of FILE into a workfile."
-  (let ((filename (or workfile file))
-	(file-buffer (get-file-buffer file))
-	switches)
-    (message "Checking out %s..." filename)
-    (save-excursion
-      ;; Change buffers to get local value of vc-checkout-switches.
-      (if file-buffer (set-buffer file-buffer))
-      (setq switches (if (stringp vc-checkout-switches)
-			 (list vc-checkout-switches)
-		       vc-checkout-switches))
-      ;; Save this buffer's default-directory
-      ;; and use save-excursion to make sure it is restored
-      ;; in the same buffer it was saved in.
-      (let ((default-directory default-directory))
-	(save-excursion
-	  ;; Adjust the default-directory so that the check-out creates
-	  ;; the file in the right place.
-	  (setq default-directory (file-name-directory filename))
-	  (if workfile  ;; RCS
-	      ;; RCS can't check out into arbitrary file names directly.
-	      ;; Use `co -p' and make stdout point to the correct file.
-	      (let ((vc-modes (logior (file-modes (vc-name file))
-				      (if writable 128 0)))
-		    (failed t))
-		(unwind-protect
-		    (progn
-                      (let ((coding-system-for-read 'no-conversion)
-                            (coding-system-for-write 'no-conversion))
-                        (with-temp-file filename
-                          (apply 'vc-do-command
-                                 (current-buffer) 0 "co" (vc-name file)
-                                 "-q" ;; suppress diagnostic output
-                                 (if writable "-l")
-                                 (concat "-p" rev)
-                                 switches)))
-                      (set-file-modes filename
-				      (logior (file-modes (vc-name file))
-					      (if writable 128 0)))
-		      (setq failed nil))
-		  (and failed (file-exists-p filename)
-		       (delete-file filename))))
-	    (let (new-version)
-	      ;; if we should go to the head of the trunk,
-	      ;; clear the default branch first
-	      (and rev (string= rev "")
-		   (vc-rcs-set-default-branch file nil))
-	      ;; now do the checkout
-	      (apply 'vc-do-command
-		     nil 0 "co" (vc-name file)
-		     ;; If locking is not strict, force to overwrite
-		     ;; the writable workfile.
-		     (if (eq (vc-checkout-model file) 'implicit) "-f")
-		     (if writable "-l")
-		     (if rev (concat "-r" rev)
-		       ;; if no explicit revision was specified,
-		       ;; check out that of the working file
-		       (let ((workrev (vc-workfile-version file)))
-			 (if workrev (concat "-r" workrev)
-			   nil)))
-		     switches)
-	      ;; determine the new workfile version
-	      (with-current-buffer "*vc*"
-		(setq new-version
-		      (vc-parse-buffer "^revision \\([0-9.]+\\).*\n" 1)))
-	      (vc-file-setprop file 'vc-workfile-version new-version)
-	      ;; if necessary, adjust the default branch
-	      (and rev (not (string= rev ""))
-		   (vc-rcs-set-default-branch 
-		    file
-		    (if (vc-rcs-latest-on-branch-p file new-version)
-			(if (vc-rcs-trunk-p new-version) nil
-			  (vc-rcs-branch-part new-version))
-		      new-version))))))
-	(message "Checking out %s...done" filename)))))
 
 (provide 'vc-rcs)
 
