@@ -2844,13 +2844,18 @@ ignored."
 
 (defun normal-backup-enable-predicate (name)
   "Default `backup-enable-predicate' function.
-Checks for files in `temporary-file-directory' or
-`small-temporary-file-directory'."
+Checks for files in `temporary-file-directory',
+`small-temporary-file-directory', and /tmp."
   (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
 					name 0 nil)))
 	     ;; Directory is under temporary-file-directory.
 	     (and (not (eq comp t))
 		  (< comp (- (length temporary-file-directory)))))
+	   (let ((comp (compare-strings "/tmp" 0 nil
+					name 0 nil)))
+	     ;; Directory is under /tmp.
+	     (and (not (eq comp t))
+		  (< comp (- (length "/tmp")))))
 	   (if small-temporary-file-directory
 	       (let ((comp (compare-strings small-temporary-file-directory
 					    0 nil
