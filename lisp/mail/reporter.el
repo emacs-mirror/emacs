@@ -33,12 +33,6 @@
 ;; Emacs mail package end users would like to use to compose outgoing
 ;; mail.  See that variable for details.
 
-;; Mail Package Interface
-;; ======================
-;; Mail package authors can configure reporter to support their
-;; package by calling the function `define-mail-user-agent' See that
-;; function for details.
-
 ;; Lisp Package Authors
 ;; ====================
 ;; Reporter was written primarily for Emacs Lisp package authors so
@@ -83,31 +77,9 @@
 ;; pgp, eos, hm--html, efs.
 ;;
 ;; If you know of others, please email me!
-
+
 ;;; Code:
 
-
-;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-;; End user interface
-
-;;;###autoload
-(defvar mail-user-agent 'sendmail-user-agent
-  "*Your preference for a mail composition package.
-Various Emacs Lisp packages (e.g. reporter) require you to compose an
-outgoing email message.  As there are several such packages available
-for Emacs, you can indicate your preference by setting this variable.
-
-Valid values currently are:
-
-    'sendmail-user-agent -- use Emacs built-in Mail package
-    'vm-user-agent       -- use Kyle Jones' VM package
-    'mh-e-user-agent     -- use the Emacs interface to the MH mail system
-
-Additional valid symbols may be available; check with the author of
-your package for details.")
-
-
-
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; Package author interface variables
 
@@ -330,12 +302,6 @@ composed.")
     (buffer-substring (match-beginning 0) (match-end 0))))
 
 
-;; Serves as an interface to `mail' (sendmail.el), but when the user
-;; answers "no" to discarding an unsent message, it gives an error.
-(defun reporter-mail (&rest args)
-  (or (apply 'mail args)
-      (error "Bug report aborted")))
-
 (defun reporter-compose-outgoing ()
   ;; compose the outgoing mail buffer, and return the selected
   ;; paradigm, with the current-buffer tacked onto the beginning of
@@ -349,9 +315,9 @@ composed.")
 	  (setq agent 'sendmail-user-agent
 		compose (get agent 'composefunc))
 	  (if (not (and compose (fboundp compose)))
-	      (error "Could not find a valid `mail-user-agent'.")
+	      (error "Could not find a valid `mail-user-agent'")
 	    (ding)
-	    (message "`%s' is an invalid `mail-user-agent'; using `sendmail-user-agent'."
+	    (message "`%s' is an invalid `mail-user-agent'; using `sendmail-user-agent'"
 		     mail-user-agent)
 	    )))
     (funcall compose)
@@ -463,50 +429,8 @@ composed.")
 		  (length reporter-initial-text))
 	       (string= (buffer-substring after-sep-pos (point))
 			reporter-initial-text))
-	  (error "Empty bug report cannot be sent."))
+	  (error "Bug report was empty--not sent"))
       )))
-
-
-;; paradigm definitions
-(defun define-mail-user-agent (symbol composefunc sendfunc
-				      &optional abortfunc hookvar)
-  "Define a symbol appropriate for `mail-user-agent'.
-
-SYMBOL can be any meaningful lisp symbol.  It need not have a function
-or variable definition, as it is only used for its property list.
-The property names are equivalent to the formal argument described
-below (but in lower case).  Additional properties can be placed on the
-symbol.
-
-COMPOSEFUNC is program callable function that composes an outgoing
-mail message buffer.  This function should set up the basics of the
-buffer without requiring user interaction.  It should populate the
-standard mail headers, leaving the `to:' and `subject:' headers blank.
-
-SENDFUNC is the command a user would type to send the message.
-
-Optional ABORTFUNC is the command a user would type to abort the
-message.  For mail packages that don't have a separate abort function,
-this can be `kill-buffer' (the equivalent of omitting this argument).
-
-Optional HOOKVAR is a hook variable that gets run before the message
-is actually sent.  Reporter will install `reporter-bug-hook' onto this
-hook so that empty bug reports can be suppressed by raising an error.
-If not supplied, `mail-send-hook' will be used."
-  (put symbol 'composefunc composefunc)
-  (put symbol 'sendfunc sendfunc)
-  (put symbol 'abortfunc (or abortfunc 'kill-buffer))
-  (put symbol 'hookvar (or hookvar 'mail-send-hook)))
-
-(define-mail-user-agent 'sendmail-user-agent
-  'reporter-mail 'mail-send-and-exit)
-
-(define-mail-user-agent 'vm-user-agent
-  'vm-mail 'vm-mail-send-and-exit)
-
-(define-mail-user-agent 'mh-e-user-agent
-  'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
-  'mh-before-send-letter-hook)
 
 
 (provide 'reporter)
