@@ -1,5 +1,9 @@
 2001-10-05  Miles Bader  <miles@gnu.org>
 
+	* rfn-eshadow.el: New file.
+
+2001-10-05  Miles Bader  <miles@gnu.org>
+
 	* cus-face.el (custom-face-attributes): Make sure each attribute
 	has a valid default value.  Remove hacks that mapped `nil' to
 	`off' and used nil to mean `unspecified'.  Remove `unspecified'
