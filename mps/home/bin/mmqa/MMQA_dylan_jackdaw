@@ -2,7 +2,7 @@
 #
 # Build the MMsrc compound at tip of branch MM_dylan_jackdaw, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_dylan_jackdaw(trunk.3) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_dylan_jackdaw(trunk.4) $
 
 
 script="`basename $0`"
@@ -34,8 +34,9 @@ hope co -compound MMsrc -branch MM_dylan_jackdaw -recursive \
   -writable-files quit -missing-dir create -extra-files skip ||
   die "Unable to check out MMsrc(MM_dylan_jackdaw) from HOPE"
 
-mmsrc=`pwd`/src
-
+build=`pwd`
+mmsrc=$build/src
+mmqa=$build/MMQA
 
 
 ## Build a library
@@ -65,11 +66,10 @@ mmqa_tests () {
 }
 
 
-cd $HOME/Builds &&
-rm -rf MMQA &&
+cd $build &&
 mkdir MMQA &&
-cd MMQA ||
-  die "Unable to get to Builds/MMQA directory"
+cd $mmqa ||
+  die "Unable to get to MMQA directory"
 
 hope co -compound MMQA -branch trunk -recursive -missing-dir create ||
   die "Unable to check out MMQA(trunk) from HOPE"
@@ -80,11 +80,10 @@ build_lib mmdw.a
 build_lib mpsplan.a
 
 
-cd $HOME/Builds/MMQA &&
+cd $mmqa &&
 mmqa_tests testsets/dailydw
 
 
 # If the tests succeeded, delete the junk
 cd $HOME/Builds &&
-rm -rf MMQA_dylan_jackdaw &&
-rm -rf MMQA
+rm -rf MMQA_dylan_jackdaw 
