@@ -178,13 +178,22 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
 
   CHECK_LIVE_FRAME (frame, 0);
   f = XFRAME (frame);
-  update_begin (f);
-  if (FRAME_MSDOS_P (f))
-    set_terminal_modes ();
-  clear_frame ();
-  clear_frame_records (f);
-  update_end (f);
-  fflush (stdout);
+
+  /* Erase the frame and its glyph records--if it has any records.
+     It may have none, in the case of the terminal frame
+     that initially exists but is never used
+     when Emacs is using a window system.  */
+  if (FRAME_CURRENT_GLYPHS (f) != 0)
+    {
+      update_begin (f);
+      if (FRAME_MSDOS_P (f))
+	set_terminal_modes ();
+      clear_frame ();
+      clear_frame_records (f);
+      update_end (f);
+      fflush (stdout);
+    }
+
   windows_or_buffers_changed++;
   /* Mark all windows as INaccurate,
      so that every window will have its redisplay done.  */
