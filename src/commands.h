@@ -20,17 +20,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define Ctl(c) ((c)&037)
 
-/* Define the names of keymaps, just so people can refer to
-   them in calls to initial_define_key */
-
+/* Define the names of keymaps, just so people can refer to them in
+   calls to initial_define_key.  These should *not* be used after
+   initialization; use-global-map doesn't affect these; it sets
+   current_global_map instead.  */
 extern Lisp_Object global_map;
-
 extern Lisp_Object meta_map;
-
 extern Lisp_Object control_x_map;
-
-/* Keymap for mouse commands.  */
-extern Lisp_Object Vglobal_mouse_map;
 
 extern Lisp_Object Vminibuffer_local_map;
 
