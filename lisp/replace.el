@@ -217,7 +217,11 @@ Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (let ((common
-		      (query-replace-read-args "Query replace" nil)))
+		      (query-replace-read-args 
+		       (if (and transient-mark-mode mark-active)
+			 "Query replace in region"
+			 "Query replace")
+			 nil)))
 		 (list (nth 0 common) (nth 1 common) (nth 2 common)
 		       ;; These are done separately here
 		       ;; so that command-history will record these expressions
@@ -277,7 +281,11 @@ text, TO-STRING is actually made a list instead of a string.
 Use \\[repeat-complex-command] after this command for details."
   (interactive
    (let ((common
-	  (query-replace-read-args "Query replace regexp" t)))
+	  (query-replace-read-args 
+	   (if (and transient-mark-mode mark-active)
+	       "Query replace regexp in region"
+	     "Query replace regexp")
+	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   ;; These are done separately here
 	   ;; so that command-history will record these expressions
@@ -423,7 +431,11 @@ which will run faster and will not set the mark or print anything.
 and TO-STRING is also null.)"
   (interactive
    (let ((common
-	  (query-replace-read-args "Replace string" nil)))
+	  (query-replace-read-args 
+	   (if (and transient-mark-mode mark-active)
+	       "Replace string in region"
+	     "Replace string")
+	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
 	       (region-beginning))
@@ -477,7 +489,11 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything."
   (interactive
    (let ((common
-	  (query-replace-read-args "Replace regexp" t)))
+	  (query-replace-read-args 
+	   (if (and transient-mark-mode mark-active)
+	       "Replace regexp in region" 
+	     "Replace regexp") 
+	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
 	       (region-beginning))

@@ -1,5 +1,9 @@
 2005-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* replace.el (query-replace, query-replace-regexp)
+	(replace-string, replace-regexp): When operating on region, make
+	the minibuffer prompt say so.
+
 	* isearch.el (isearch-forward): Document isearch-query-replace and
 	isearch-query-replace-regexp keybindings.
 	
