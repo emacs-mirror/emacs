@@ -698,10 +698,9 @@ to provide correct modes for autoloaded files."
       (cond ((equal '(t) mim)   (auto-fill-mode 1))	; backwards compatible
 	    ((equal '(nil) mim) (auto-fill-mode 0))
 	    (t (mapcar #'(lambda (minor-mode)
-			   (unless (or (eq minor-mode t) (eq minor-mode nil))
-			     (if (and minor-mode (fboundp minor-mode))
-				 (funcall minor-mode 1))))
-			   mim)))
+			   (when (functionp minor-mode)
+			     (funcall minor-mode 1)))
+		       mim)))
       (goto-char pt)
       (if (consp mk)
 	  (progn
