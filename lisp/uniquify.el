@@ -385,21 +385,23 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 ;; (This ought to set some global variables so the work is done only for
 ;; buffers with names similar to the deleted buffer.  -MDE)
 
-(defun delay-uniquify-rationalize-file-buffer-names ()
+(defun uniquify-delay-rationalize-file-buffer-names ()
   "Add `delayed-uniquify-rationalize-file-buffer-names' to `post-command-hook'.
 For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
   (if (and uniquify-buffer-name-style
-	   uniquify-after-kill-buffer-p)
+	   uniquify-after-kill-buffer-p
+	   ;; Rationalizing is costly, so don't do it for temp buffers.
+	   (uniquify-buffer-file-name (current-buffer)))
       (add-hook 'post-command-hook
-		'delayed-uniquify-rationalize-file-buffer-names)))
+		'uniquify-delayed-rationalize-file-buffer-names)))
 
-(defun delayed-uniquify-rationalize-file-buffer-names ()
+(defun uniquify-delayed-rationalize-file-buffer-names ()
   "Rerationalize buffer names and remove self from `post-command-hook'.
 See also `delay-rationalize-file-buffer-names' for hook setter."
   (uniquify-rationalize-file-buffer-names)
   (remove-hook 'post-command-hook
-	       'delayed-uniquify-rationalize-file-buffer-names))
+	       'uniquify-delayed-rationalize-file-buffer-names))
 
-(add-hook 'kill-buffer-hook 'delay-uniquify-rationalize-file-buffer-names)
+(add-hook 'kill-buffer-hook 'uniquify-delay-rationalize-file-buffer-names)
 
 ;;; uniquify.el ends here
