@@ -3590,7 +3590,7 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (start1_addr, start1_addr + len2_byte, len1_byte);
           bcopy (temp, start1_addr, len2_byte);
 	  if (len2_byte > 20000)
-	    free (temp);
+	    xfree (temp);
         }
       else
 	/* First region not smaller than second.  */
@@ -3605,7 +3605,7 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start1_addr + len2_byte, len1_byte);
 	  if (len1_byte > 20000)
-	    free (temp);
+	    xfree (temp);
         }
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
                                    len1, current_buffer, 0);
@@ -3643,7 +3643,7 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start2_addr, len1_byte);
 	  if (len1_byte > 20000)
-	    free (temp);
+	    xfree (temp);
           graft_intervals_into_buffer (tmp_interval1, start2,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval2, start1,
@@ -3673,7 +3673,7 @@ Transposing beyond buffer boundaries is an error.")
           safe_bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
           bcopy (temp, start1_addr, len2_byte);
 	  if (len2_byte > 20000)
-	    free (temp);
+	    xfree (temp);
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
@@ -3705,7 +3705,7 @@ Transposing beyond buffer boundaries is an error.")
           bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
           bcopy (temp, start1_addr + len2_byte + len_mid, len1_byte);
 	  if (len1_byte > 20000)
-	    free (temp);
+	    xfree (temp);
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
