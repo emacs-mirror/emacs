@@ -7516,7 +7516,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
   int i, past_end = 0;
 
   first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  row = row_containing_pos (w, charpos, first, NULL);
+  row = row_containing_pos (w, charpos, first, NULL, 0);
   if (row == NULL)
     {
       if (charpos < MATRIX_ROW_START_CHARPOS (first))
