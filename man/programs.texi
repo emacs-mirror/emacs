@@ -2372,8 +2372,10 @@ Most major modes for which it is appropriate have Imenu support.
 @findex imenu-add-menu-bar-index
 @kbd{M-x imenu} builds the index if necessary and presents you with an
 electric buffer menu from which to select an entry (with completion).
-You can add an index menubar on the menubar with
-@kbd{imenu-add-menu-bar-index}.
+If you bind @code{imenu} to a mouse event (@pxref{Mouse Buttons}) and
+invoke it that way, the index will appear as a popup menu; there is no
+such binding by default.  You can add an index menubar on the menubar
+with @kbd{imenu-add-menu-bar-index}.
 
 Some major modes provide facilities for invoking Imenu; otherwise you
 could add @code{imenu-add-menu-bar-index} to a major mode's hook to
