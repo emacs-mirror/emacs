@@ -1,3 +1,9 @@
+2000-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cl-extra.el (cl-old-mapc): Removed; don't defalias
+	mapc.
+	(cl-mapc): Use mapc instead of cl-old-mapc.
+	
 2000-07-05  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt: Add support for `bootstrap' and related targets.
