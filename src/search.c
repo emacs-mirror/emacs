@@ -172,11 +172,9 @@ data if you want to preserve them.")
       s2 = 0;
     }
   
-  BLOCK_INPUT;
   i = re_match_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
 		  point - BEGV, &search_regs,
 		  ZV - BEGV);
-  UNBLOCK_INPUT;
   if (i == -2)
     matcher_overflow ();
 
@@ -224,11 +222,9 @@ matched by parenthesis constructs in the pattern.")
   compile_pattern (regexp, &searchbuf, &search_regs,
 		   !NILP (current_buffer->case_fold_search) ? DOWNCASE_TABLE : 0);
   immediate_quit = 1;
-  BLOCK_INPUT;
   val = re_search (&searchbuf, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
 		   &search_regs);
-  UNBLOCK_INPUT;
   immediate_quit = 0;
   last_thing_searched = Qt;
   if (val == -2)
@@ -249,11 +245,9 @@ fast_string_match (regexp, string)
 
   compile_pattern (regexp, &searchbuf, 0, 0);
   immediate_quit = 1;
-  BLOCK_INPUT;
   val = re_search (&searchbuf, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, 0, XSTRING (string)->size,
 		   0);
-  UNBLOCK_INPUT;
   immediate_quit = 0;
   return val;
 }
@@ -671,12 +665,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
       while (n < 0)
 	{
 	  int val;
-	  BLOCK_INPUT;
 	  val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
 			     pos - BEGV, lim - pos, &search_regs,
 			     /* Don't allow match past current point */
 			     pos - BEGV);
-	  UNBLOCK_INPUT;
 	  if (val == -2)
 	    matcher_overflow ();
 	  if (val >= 0)
@@ -702,11 +694,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
       while (n > 0)
 	{
 	  int val;
-	  BLOCK_INPUT;
 	  val = re_search_2 (&searchbuf, (char *) p1, s1, (char *) p2, s2,
 			     pos - BEGV, lim - pos, &search_regs,
 			     lim - BEGV);
-	  UNBLOCK_INPUT;
 	  if (val == -2)
 	    matcher_overflow ();
 	  if (val >= 0)
