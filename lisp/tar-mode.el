@@ -369,6 +369,8 @@ write-date, checksum, link-type, and link-name."
 	  (progn
 	    (tar-dotimes (i 3) (aset string (+ namestart 1 (length name) i) (aref (if (= link-p 1) "==>" "-->") i)))
 	    (tar-dotimes (i (length link-name)) (aset string (+ namestart 5 (length name) i) (aref link-name i)))))
+      (put-text-property namestart (length string)
+			 'mouse-face 'highlight string)
       string)))
 
 
