@@ -381,7 +381,7 @@ done
 
 ### Canonicalize the configuration name.
 echo "Checking the configuration name."
-if configuration=`${srcdir}/config.sub "${configuration}"` ; then : ; else
+if canonical=`${srcdir}/config.sub "${configuration}"` ; then : ; else
   exit $?
 fi
 
@@ -409,7 +409,7 @@ fi
 ### confusion between `system' and `release' levels'."
 
 machine='' opsys='' unported='false'
-case "${configuration}" in
+case "${canonical}" in
 
   ## Alliant machines
   ## Strictly speaking, we need the version of the alliant operating
@@ -778,7 +778,7 @@ case "${configuration}" in
 
   ## Suns
   *-sun-sunos* | *-sun-bsd* | *-sun-solaris* )
-    case "${configuration}" in
+    case "${canonical}" in
       m68*-sunos1* )	machine=sun1 ;;
       m68*-sunos2* )	machine=sun2 ;;
       m68* )		machine=sun3 ;;
@@ -786,7 +786,7 @@ case "${configuration}" in
       sparc* )		machine=sparc ;;
       * )		unported=true ;;
     esac
-    case "${configuration}" in
+    case "${canonical}" in
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4.1.3*	  ) opsys=sunos4-1-3 ;;
       *-sunos4* | *-sunos ) opsys=sunos4-1 ;;
@@ -842,7 +842,7 @@ case "${configuration}" in
   ## Vaxen.
   vax-dec-* )
     machine=vax
-    case "${configuration}" in
+    case "${canonical}" in
       *-bsd4.1 ) 					opsys=bsd4-1 ;;
       *-bsd4.2 | *-ultrix[0-3].* | *-ultrix4.0 )	opsys=bsd4-2 ;;
       *-bsd4.3 | *-ultrix* ) 				opsys=bsd4-3 ;;
@@ -869,7 +869,7 @@ case "${configuration}" in
   ## Intel 386 machines where we don't care about the manufacturer
   i[34]86-*-* )
     machine=intel386
-    case "${configuration}" in
+    case "${canonical}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2 )		opsys=isc2-2 ;;
       *-isc* )			opsys=isc3-0 ;;
@@ -896,7 +896,7 @@ esac
 ### runs, it's cleaner to make it explicit in the case statement
 ### above.
 if [ x"${opsys}" = x ]; then
-  case "${configuration}" in
+  case "${canonical}" in
     *-bsd4.[01] )	opsys=bsd4-1 ;;
     *-bsd4.2 )		opsys=bsd4-2 ;;
     *-bsd4.3 )		opsys=bsd4-3 ;;
@@ -913,7 +913,7 @@ if [ x"${opsys}" = x ]; then
 fi
 
 if $unported ; then
-  (echo "${progname}: Emacs hasn't been ported to \`${configuration}' systems."
+  (echo "${progname}: Emacs hasn't been ported to \`${canonical}' systems."
    echo "${progname}: Check \`etc/MACHINES' for recognized configuration names."
   ) >&2
   exit 1
@@ -1167,6 +1167,7 @@ fi
 
 
 #### Specify what sort of things we'll be editing into Makefile and config.h.
+### Use configuration here uncanonicalized to avoid exceeding size limits.
 ]
 AC_SUBST(configuration)
 AC_SUBST(version)
@@ -1214,7 +1215,7 @@ fi
 #### Report on what we decided to do.
 echo "
 
-Configured for \`${configuration}'.
+Configured for \`${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
   What operating system and machine description files should Emacs use?
