@@ -1628,7 +1628,7 @@ and only used if a buffer is displayed."
 
 (defun shell-command-on-region (start end command
 				      &optional output-buffer replace
-				      error-buffer)
+				      error-buffer display-error-buffer)
   "Execute string COMMAND in inferior shell with region as input.
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.  Return the exit code of
@@ -1641,10 +1641,10 @@ is encoded in the same coding system that will be used to save the file,
 `buffer-file-coding-system'.  If the output is going to replace the region,
 then it is decoded from that same coding system.
 
-The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER,
-REPLACE, ERROR-BUFFER.  Noninteractive callers can specify coding
-systems by binding `coding-system-for-read' and
-`coding-system-for-write'.
+The noninteractive arguments are START, END, COMMAND,
+OUTPUT-BUFFER, REPLACE, ERROR-BUFFER, and DISPLAY-ERROR-BUFFER.
+Noninteractive callers can specify coding systems by binding
+`coding-system-for-read' and `coding-system-for-write'.
 
 If the command generates output, the output may be displayed
 in the echo area or in a buffer.
@@ -1674,6 +1674,8 @@ around it.
 If optional sixth argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output.
+If DISPLAY-ERROR-BUFFER is non-nil, display the error buffer if there
+were any errors.  (This is always t, interactively.)
 In an interactive call, the variable `shell-command-default-error-buffer'
 specifies the value of ERROR-BUFFER."
   (interactive (let (string)
@@ -1691,7 +1693,8 @@ specifies the value of ERROR-BUFFER."
 		       string
 		       current-prefix-arg
 		       current-prefix-arg
-		       shell-command-default-error-buffer)))
+		       shell-command-default-error-buffer
+		       t)))
   (let ((error-file
 	 (if error-buffer
 	     (make-temp-file
@@ -1800,7 +1803,8 @@ specifies the value of ERROR-BUFFER."
 	      (format-insert-file error-file nil)
 	      ;; Put point after the inserted errors.
 	      (goto-char (- (point-max) pos-from-end)))
-	    (display-buffer (current-buffer))))
+	    (and display-error-buffer
+		 (display-buffer (current-buffer)))))
       (delete-file error-file))
     exit-status))
 
