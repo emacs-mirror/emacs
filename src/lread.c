@@ -423,11 +423,15 @@ extern Lisp_Object read_char ();
    If ERROR_NONASCII is non-zero, we signal an error if the input we
    get isn't an ASCII character with modifiers.  If it's zero but
    ASCII_REQUIRED is non-zero, we just re-read until we get an ASCII
-   character.  */
+   character.
+
+   If INPUT_METHOD is nonzero, we invoke the current input method
+   if the character warrants that.  */
 
 Lisp_Object
-read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
-     int no_switch_frame, ascii_required, error_nonascii;
+read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
+		     input_method)
+     int no_switch_frame, ascii_required, error_nonascii, input_method;
 {
 #ifdef standalone
   return make_number (getchar ());
@@ -438,7 +442,9 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
 
   /* Read until we get an acceptable event.  */
  retry:
-  val = read_char (0, 0, 0, Qnil, 0);
+  val = read_char (0, 0, 0,
+		   (input_method ? Qnil : Qt),
+		   0);
 
   if (BUFFERP (val))
     goto retry;
@@ -493,7 +499,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
 #endif
 }
 
-DEFUN ("read-char", Fread_char, Sread_char, 0, 0, 0,
+DEFUN ("read-char", Fread_char, Sread_char, 0, 2, 0,
   "Read a character from the command input (keyboard or macro).\n\
 It is returned as a number.\n\
 If the user generates an event which is not a character (i.e. a mouse\n\
@@ -501,25 +507,45 @@ click or function key event), `read-char' signals an error.  As an\n\
 exception, switch-frame events are put off until non-ASCII events can\n\
 be read.\n\
 If you want to read non-character events, or ignore them, call\n\
-`read-event' or `read-char-exclusive' instead.")
-  ()
+`read-event' or `read-char-exclusive' instead.\n\
+\n\
+If the optional argument PROMPT is non-nil, display that as a prompt.\n\
+If the optional argument SUPPRESS-INPUT-METHOD is non-nil,\n\
+disable input method processing for this character.")
+  (prompt, suppress_input_method)
+     Lisp_Object prompt, suppress_input_method;
 {
-  return read_filtered_event (1, 1, 1);
+  if (! NILP (prompt))
+    message_with_string ("%s", prompt, 0);
+  return read_filtered_event (1, 1, 1, NILP (suppress_input_method));
 }
 
-DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
-  "Read an event object from the input stream.")
-  ()
+DEFUN ("read-event", Fread_event, Sread_event, 0, 2, 0,
+  "Read an event object from the input stream.\n\
+If the optional argument PROMPT is non-nil, display that as a prompt.\n\
+If the optional argument SUPPRESS-INPUT-METHOD is non-nil,\n\
+disable input method processing for this character.")
+  (prompt, suppress_input_method)
+     Lisp_Object prompt, suppress_input_method;
 {
-  return read_filtered_event (0, 0, 0);
+  if (! NILP (prompt))
+    message_with_string ("%s", prompt, 0);
+  return read_filtered_event (0, 0, 0, NILP (suppress_input_method));
 }
 
-DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 0, 0,
+DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 2, 0,
   "Read a character from the command input (keyboard or macro).\n\
-It is returned as a number.  Non-character events are ignored.")
-  ()
+It is returned as a number.  Non-character events are ignored.\n\
+\n\
+If the optional argument PROMPT is non-nil, display that as a prompt.\n\
+If the optional argument SUPPRESS-INPUT-METHOD is non-nil,\n\
+disable input method processing for this character.")
+  (prompt, suppress_input_method)
+     Lisp_Object prompt, suppress_input_method;
 {
-  return read_filtered_event (1, 1, 0);
+  if (! NILP (prompt))
+    message_with_string ("%s", prompt, 0);
+  return read_filtered_event (1, 1, 0, NILP (suppress_input_method));
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
