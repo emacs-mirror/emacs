@@ -3,7 +3,7 @@
 	* movemail.c (fatal): Accept third parameter and pass down to
 	error.
 	(pfatal_with_name): Pass error string as format parameter instead
-	of as part of format.
+	of as part of format string.
 	(pfatal_and_delete): Likewise.
 	(main): Adjust call to fatal.
 	(xmalloc): Likewise.
