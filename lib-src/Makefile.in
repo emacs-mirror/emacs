@@ -185,27 +185,27 @@ MOVE_FLAGS=
 
 #ifdef KERBEROS
 # ifdef HAVE_LIBKRB
-	KRB4LIB = -lkrb
+    KRB4LIB = -lkrb
 # else
 #  ifdef HAVE_LIBKRB4
-	KRB4LIB = -lkrb4
+     KRB4LIB = -lkrb4
 #  endif
 # endif
 # ifdef HAVE_LIBDES
-	DESLIB = -ldes
+    DESLIB = -ldes
 # else
 #  ifdef HAVE_LIBDES425
-	DESLIB = -ldes425
+    DESLIB = -ldes425
 #  endif
 # endif
 # ifdef HAVE_LIBKRB5
-	KRB5LIB = -lkrb5
+    KRB5LIB = -lkrb5
 # endif
 # ifdef HAVE_LIBCRYPTO
-	CRYPTOLIB = -lcrypto
+    CRYPTOLIB = -lcrypto
 # endif
 # ifdef HAVE_LIBCOM_ERR
-	COM_ERRLIB = -lcom_err
+    COM_ERRLIB = -lcom_err
 # endif
 #endif /* KERBEROS */
 
