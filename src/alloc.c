@@ -768,7 +768,7 @@ See also the function `vector'.")
 DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
   "Return a newly created char-table, with purpose PURPOSE.\n\
 Each element is initialized to INIT, which defaults to nil.\n\
-PURPOSE should be a symbol which has a `char-table-extra-slot' property.\n\
+PURPOSE should be a symbol which has a `char-table-extra-slots' property.\n\
 The property's value should be an integer between 0 and 10.")
   (purpose, init)
      register Lisp_Object purpose, init;
