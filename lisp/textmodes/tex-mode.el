@@ -2342,15 +2342,15 @@ There might be text before point."
 	 (+ indent (current-column) tex-indent-item))
 	(t
 	 (let ((col (current-column)))
-	   (if (not (eq (char-syntax char) ?\())
+	   (if (or (null char) (not (eq (char-syntax char) ?\()))
 	       ;; If the first char was not an open-paren, there's
 	       ;; a risk that this is really not an argument to the
 	       ;; macro at all.
-		 (+ indent col)
-	       (forward-sexp 1)
-	       (if (< (line-end-position)
-		      (save-excursion (forward-comment (point-max))
-				      (point)))
+	       (+ indent col)
+	     (forward-sexp 1)
+	     (if (< (line-end-position)
+		    (save-excursion (forward-comment (point-max))
+				    (point)))
 		 ;; we're indenting the first argument.
 		 (min (current-column) (+ tex-indent-arg col))
 	       (skip-syntax-forward " ")
