@@ -16,6 +16,9 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** M-; now calls comment-dwim which tries to do something clever based
+on the context.
+
 ** The function `getenv' is now callable interactively.
 
 ** The many obsolete language `setup-...-environment' commands have
@@ -960,6 +963,10 @@ containing a list of regular expressions.  Buffers matching a regular
 expression from that list, are not checked.
 
 ** New modes and packages
+
+*** The comment operations are now provided by the newcomment.el
+package which allows different styles of comment-region and should
+be more robust while offering the same functionality.
 
 *** The Ebrowse package implements a C++ class browser and tags
 facilities tailored for use with C++.  It is documented in a
