@@ -1,3 +1,13 @@
+2000-11-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-flag-region):
+	Don't bind inhibit-read-only since we don't modify the buffer.
+	(outline-isearch-open-invisible): Don't jump to overlay-start
+	since we're trying to unhide text around point.
+	(outline-discard-overlays): Use dolist.
+
+	* autoinsert.el (auto-insert-alist): Add `provide' to elisp skeleton.
+
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmail.el (rmail-confirm-expunge): Default to 
