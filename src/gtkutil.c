@@ -1167,7 +1167,7 @@ xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
   filewin = gtk_file_chooser_dialog_new (prompt, gwin, action,
                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
                                          (mustmatch_p || only_dir_p ?
-                                          GTK_STOCK_OPEN : GTK_STOCK_SAVE),
+                                          GTK_STOCK_OPEN : GTK_STOCK_OK),
                                          GTK_RESPONSE_OK,
                                          NULL);
 
