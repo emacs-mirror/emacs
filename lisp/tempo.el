@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
-;; Author: David K}gedal <davidk@lysator.liu.se >
+;; Author: David K}gedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994
 ;; K}gedal's last version number: 1.2.4
 ;; Keywords: extensions, languages, tools
@@ -106,8 +106,6 @@
 ;; Glen Whitney <Glen.Whitney@math.lsa.umich.edu>
 
 ;;; Code:
-
-;; (provide 'tempo)
 
 ;;; User options
 
