@@ -271,7 +271,7 @@
                                    x))) calc-user-formula-alist))
      (if cmd
 	 (progn
-	   (calc-need-macros)
+	   (require 'calc-macs)
 	   (fset cmd
 		 (list 'lambda
 		       '()
@@ -1711,7 +1711,7 @@
 ;;; Compiling Lisp-like forms to use the math library.
 
 (defun math-do-defmath (func args body)
-  (calc-need-macros)
+  (require 'calc-macs)
   (let* ((fname (intern (concat "calcFunc-" (symbol-name func))))
 	 (doc (if (stringp (car body)) (list (car body))))
 	 (clargs (mapcar 'math-clean-arg args))
