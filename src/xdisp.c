@@ -11105,8 +11105,8 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  start_display (&it, w, startp);
 
 	  if (scroll_conservatively)
-	    amount_to_scroll =
-	      max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
+	    amount_to_scroll
+	      = max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
 	    amount_to_scroll = scroll_max;
 	  else
@@ -11385,8 +11385,7 @@ try_cursor_movement (window, startp, scroll_step)
 	  else if (PT < XFASTINT (w->last_point))
 	    {
 	      /* Cursor has to be moved backward.  Note that PT >=
-		 CHARPOS (startp) because of the outer
-		 if-statement.  */
+		 CHARPOS (startp) because of the outer if-statement.  */
 	      while (!row->mode_line_p
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
@@ -11898,8 +11897,8 @@ redisplay_window (window, just_this_one_p)
 	     buffer.  */
 	  || !NILP (Vwindow_scroll_functions)
 	  || MINI_WINDOW_P (w)
-	  || !(used_current_matrix_p =
-	       try_window_reusing_current_matrix (w)))
+	  || !(used_current_matrix_p
+	       = try_window_reusing_current_matrix (w)))
 	{
 	  IF_DEBUG (debug_method_add (w, "1"));
 	  try_window (window, startp);
@@ -12028,8 +12027,8 @@ redisplay_window (window, just_this_one_p)
       || !NILP (Vwindow_scroll_functions)
       || !just_this_one_p
       || MINI_WINDOW_P (w)
-      || !(used_current_matrix_p =
-	   try_window_reusing_current_matrix (w)))
+      || !(used_current_matrix_p
+	   = try_window_reusing_current_matrix (w)))
     try_window (window, startp);
 
   /* If new fonts have been loaded (due to fontsets), give up.  We
@@ -15806,32 +15805,32 @@ If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
 
   if (NILP (format) || EQ (format, Qt))
     {
-      face_id = NILP (format)
-	? CURRENT_MODE_LINE_FACE_ID (w) :
-	HEADER_LINE_FACE_ID;
-      format = NILP (format)
-	? current_buffer->mode_line_format
-	: current_buffer->header_line_format;
+      face_id = (NILP (format)
+		 ? CURRENT_MODE_LINE_FACE_ID (w)
+		 : HEADER_LINE_FACE_ID);
+      format = (NILP (format)
+		? current_buffer->mode_line_format
+		: current_buffer->header_line_format);
     }
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
   if (NILP (no_props))
     {
-      mode_line_string_face =
-	(face_id == MODE_LINE_FACE_ID ? Qmode_line :
-	 face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive :
-	 face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
+      mode_line_string_face
+	= (face_id == MODE_LINE_FACE_ID ? Qmode_line
+	   : face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive
+	   : face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
 
-      mode_line_string_face_prop =
-	NILP (mode_line_string_face) ? Qnil :
-	Fcons (Qface, Fcons (mode_line_string_face, Qnil));
+      mode_line_string_face_prop
+	= (NILP (mode_line_string_face) ? Qnil
+	   : Fcons (Qface, Fcons (mode_line_string_face, Qnil)));
 
       /* We need a dummy last element in mode_line_string_list to
 	 indicate we are building the propertized mode-line string.
 	 Using mode_line_string_face_prop here GC protects it.  */
-      mode_line_string_list =
-	Fcons (mode_line_string_face_prop, Qnil);
+      mode_line_string_list
+	= Fcons (mode_line_string_face_prop, Qnil);
       frame_title_ptr = NULL;
     }
   else
