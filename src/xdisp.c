@@ -2678,7 +2678,6 @@ handle_display_prop (it)
     {
       for (; CONSP (prop); prop = XCDR (prop))
 	{
-	  debug_print (XCAR (prop));
 	  if (handle_single_display_prop (it, XCAR (prop), object,
 					  position, display_replaced_p))
 	    display_replaced_p = 1;
