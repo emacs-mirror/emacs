@@ -102,7 +102,7 @@ Element 0 is ignored.")
 (defvar tetris-score-y (+ tetris-next-y 6)
   "Y position of score.")
 
-(defvar tetris-score-file "/tmp/tetris-scores"
+(defvar tetris-score-file (concat temporary-file-directory "tetris-scores")
 ;; anybody with a well-connected server want to host this?
 ;(defvar tetris-score-file "/anonymous@ftp.pgt.com:/pub/cgw/tetris-scores"
   "File for holding high scores.")
