@@ -1660,15 +1660,9 @@ region, clear header."
   (eq -1 (% (save-excursion (skip-chars-backward "\\\\")) 2)))
 
 ;; Indentation stuff.
-(defun sh-must-be-shell-mode ()
-  "Signal an error if not in Shell-script mode."
-  (unless (derived-mode-p 'sh-mode)
-    (error "This buffer is not in Shell-script mode")))
-
 (defun sh-must-support-indent ()
   "*Signal an error if the shell type for this buffer is not supported.
 Also, the buffer must be in Shell-script mode."
-  (sh-must-be-shell-mode)
   (unless sh-indent-supported-here
     (error "This buffer's shell does not support indentation through Emacs")))
 
@@ -1680,7 +1674,6 @@ variable `sh-make-vars-local' has been set to nil.
 To revert all these variables to the global values, use
 command `sh-reset-indent-vars-to-global-values'."
   (interactive)
-  (sh-must-be-shell-mode)
   (mapcar 'make-local-variable sh-var-list)
   (message "Indentation variable are now local."))
 
@@ -1688,7 +1681,6 @@ command `sh-reset-indent-vars-to-global-values'."
   "Reset local indentation variables to the global values.
 Then, if variable `sh-make-vars-local' is non-nil, make them local."
   (interactive)
-  (sh-must-be-shell-mode)
   (mapcar 'kill-local-variable sh-var-list)
   (if sh-make-vars-local
       (mapcar 'make-local-variable sh-var-list)))
@@ -2147,7 +2139,6 @@ If INFO is supplied it is used, else it is calculated."
   "Back to end of previous non-comment non-empty line.
 Go to beginning of logical line unless END is non-nil, in which case
 we go to the end of the previous line and do not check for continuations."
-  (sh-must-be-shell-mode)
   (save-excursion
     (beginning-of-line)
     (forward-comment (- (point-max)))
@@ -2478,7 +2469,6 @@ If INFO is supplied it is used, else it is calculated from current line."
 (defun sh-indent-line ()
   "Indent the current line."
   (interactive)
-  (sh-must-be-shell-mode)
   (let ((indent (sh-calculate-indent)) shift-amt beg end
 	(pos (- (point-max) (point))))
     (when indent
