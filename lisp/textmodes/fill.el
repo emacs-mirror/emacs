@@ -1156,7 +1156,10 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 				 (not (progn (forward-char (length fill-prefix))
 					     (or (looking-at "[ \t]")
 						 (looking-at paragraph-separate)
-						 (looking-at paragraph-start))))))))))
+						 (looking-at paragraph-start)))))
+			       (not (and (equal fill-prefix "")
+					 citation-regexp
+					 (looking-at citation-regexp))))))))
 	  ;; Fill this paragraph, but don't add a newline at the end.
 	  (let ((had-newline (bolp)))
 	    (fill-region-as-paragraph start (point) justify)
