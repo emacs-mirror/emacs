@@ -1,7 +1,11 @@
+2001-06-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-mode-map): Fix thinko.
+
 2001-06-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* international/quail.el (quail-start-conversion): Reset
-	quail-translating to nil.
+	* international/quail.el (quail-start-conversion):
+	Reset quail-translating to nil.
 
 	* antlr-mode.el (antlr-mode): Check that `c-Java-access-key' is
 	bound.  Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
@@ -27,8 +31,8 @@
 	* textmodes/tex-mode.el (tex-validate-buffer): Add help-echo to
 	mouse-highlighted text.
 
-	* textmodes/page-ext.el (pages-copy-header-and-position): Add
-	help-echo to mouse-highlighted text.
+	* textmodes/page-ext.el (pages-copy-header-and-position):
+	Add help-echo to mouse-highlighted text.
 
 	* tar-mode.el (tar-header-block-summarize): Add help-echo to
 	mouse-highlighted text.
@@ -41,20 +45,19 @@
 	* progmodes/cpp.el (cpp-make-button): Add help-echo to
 	mouse-highlighted text.
 
-	* progmodes/compile.el (compile-reinitialize-errors): Add
-	help-echo to mouse-highlighted messages.
+	* progmodes/compile.el (compile-reinitialize-errors):
+	Add help-echo to mouse-highlighted messages.
 	(compilation-forget-errors): Remove help-echo property as well.
 
-	* play/landmark.el (lm-plot-square, lm-init-display): Add
-	help-echo to mouse-highlighted text.
+	* play/landmark.el (lm-plot-square, lm-init-display):
+	Add help-echo to mouse-highlighted text.
 
-	* play/gomoku.el (gomoku-plot-square, gomoku-init-display): Add
-	help-echo to mouse-highlighted text.
+	* play/gomoku.el (gomoku-plot-square, gomoku-init-display):
+	Add help-echo to mouse-highlighted text.
 
 	* dired.el (dired-insert-set-properties): Add help-echo to
 	mouse-highlighted text.
-	(dired-mark-pop-up): Remove help-echo property from the file
-	name.
+	(dired-mark-pop-up): Remove help-echo property from the file name.
 
 	* comint.el (comint-send-input): Add help-echo to
 	mouse-highlighted text.
@@ -246,6 +249,10 @@
 	(rmail-resend): Modify to work in `rmail-view-buffer'; call
 	`rmail-insert-mime-resent-message-function' if `rmail-enable-mime'
 	is non-nil.
+
+2001-05-30  Stefan Monnier  <monnier@rum.cs.yale.edu>
+
+	* textmodes/tex-mode.el (latex-find-indent): Handle the BOBP case.
 
 2001-05-29  Sam Steingold  <sds@gnu.org>
 
