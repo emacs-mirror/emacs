@@ -1902,8 +1902,7 @@ mark_kboards ()
       if (kb->kbd_macro_buffer)
 	for (p = kb->kbd_macro_buffer; p < kb->kbd_macro_ptr; p++)
 	  mark_object (p);
-      mark_object (&kb->prefix_factor);
-      mark_object (&kb->prefix_value);
+      mark_object (&kb->Vprefix_arg);
       mark_object (&kb->kbd_queue);
       mark_object (&kb->Vlast_kbd_macro);
       mark_object (&kb->Vsystem_key_alist);
