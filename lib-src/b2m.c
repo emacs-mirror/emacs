@@ -33,6 +33,10 @@
 #undef static
 #endif
 
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
 #undef TRUE
 #define TRUE	1
 #undef FALSE
@@ -88,6 +92,7 @@ struct option longopts[] =
 
 extern int optind;
 
+int
 main (argc, argv)
      int argc;
      char **argv;
