@@ -1,3 +1,9 @@
+2000-11-14  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* xterm.c (x_alloc_lighter_color): Use real brightness calculation.
+	Just use FACTOR/2 instead of HIGHLIGHT_COLOR_DARK_BOOST.
+	(HIGHLIGHT_COLOR_DARK_BOOST): Macro removed.
+
 2000-11-14  Miles Bader  <miles@gnu.org>
 
 	* xterm.c (x_alloc_lighter_color): Include an additive component
