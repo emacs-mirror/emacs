@@ -1,3 +1,7 @@
+2002-11-21  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el : General tidying. Patches from Stefan Monnier.
+
 2002-11-20  Simon Josefsson  <jas@extundo.com>
 
 	* play/morse.el (morse-code): Add non-ASCII characters, according
