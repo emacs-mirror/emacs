@@ -1,9 +1,12 @@
 More Neat Stuff for your Emacs         -*-mode: text; outline-minor-mode: t-*-
 
-This file describes GNU Emacs programs and resources that are maintained
-by other people.  Some of these may become part of the Emacs
-distribution in the future.  Also included are sites where development
-versions of some packages distributed with Emacs may be found.
+This file describes GNU Emacs programs and resources that are
+maintained by other people.  Some of these may become part of the
+Emacs distribution in the future.  Others we unfortunately can't
+distribute, even though they are free software, because we lack legal
+papers for copyright purposes.  Also included are sites where
+development versions of some packages distributed with Emacs may be
+found.
 
 You might also look at the Emacs web page
 <URL:http://www.gnu.org/software/emacs/emacs.html>.  If you use the
@@ -195,8 +198,7 @@ the future.
    Todo list maintenance, interfacing to Diary mode.
 
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
-   mail reader.  Apparently not currently supported under Emacs 20.
-   There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
+   mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
 
  * W3: <URL:http://www.cs.indiana.edu/elisp/w3/docs.html>
    Web browser.  There's a W3 mail list/newsgroup
@@ -205,6 +207,5 @@ the future.
 
 * Unpacked Emacs sources
 
-Erik Naggum maintains an unpacked copy of the Emacs distribution
-<URL:ftp://ftp.uio.no/pub/emacs/>, which may be useful for checking
-something in a later release without downloading the whole distribution.
+An unpacked current source tree is available from
+<URL:ftp://ftp.emacs.org/pub/>.
