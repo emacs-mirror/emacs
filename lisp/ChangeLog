@@ -1,3 +1,9 @@
+2001-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs-lisp/copyright.el (copyright-current-year): Now a defvar.
+	(copyright, copyright-update): Compute the current year at run
+	time.
+
 2001-01-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-old-signal-hook): Removed.
