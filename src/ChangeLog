@@ -2,7 +2,7 @@
 
 	* xdisp.c (display_mode_lines): Temporarily set selected_frame
 	and selected_window to the frame of the window whose mode-lines
-	are display, and to the window itself.
+	are displayed, and to the window itself.
 	(redisplay_window, redisplay_mode_lines): Don't set selected_frame
 	here. 
 
