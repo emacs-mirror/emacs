@@ -27,16 +27,10 @@
 
 ;;; Usage:
 
-;;  See edt-user.doc
+;;  See edt-user.doc in the Emacs etc directory.
 
 ;; ====================================================================
 
-;;;
-;;;  Revision Information
-;;;
-(defconst edt-pc-revision "$Revision: 1.1 $"
-    "Revision Number of EDT PC 101 Keyboard Support.")
-
 ;;;;
 ;;;; KEY TRANSLATIONS
 ;;;;
