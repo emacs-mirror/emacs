@@ -3995,7 +3995,7 @@ syms_of_editfns ()
   staticpro (&Qbuffer_access_fontify_functions);
 
   DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion,
-	       doc: /* Non-nil means.text motion commands don't notice fields.  */);
+	       doc: /* Non-nil means text motion commands don't notice fields.  */);
   Vinhibit_field_text_motion = Qnil;
 
   DEFVAR_LISP ("buffer-access-fontify-functions",
