@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate October 27, 1998
+@set lastupdate November 25, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -205,11 +205,9 @@ A manual for Ghostscript.
 A manual for TCSH.
 
 @item
-A good free reference manual for Perl.  The free Perl on-line reference
-documentation is good, for what it is--a list of functions and a
-description of each--but that is not the same as a reference manual.
-(Compare, for example, the Emacs Lisp Reference Manual with the
-collection of documentation strings of Emacs Lisp functions.)
+A coherent free reference manual for Perl.  Most of the Perl on-line
+reference documentation can be used as a starting point, but work is
+needed to weld them together into a coherent manual.
 
 @item
 A good free Perl language tutorial introduction.  The existing Perl
@@ -403,12 +401,18 @@ the US expired in 1997.  This library can probably be developed from
 the code for the GNU Privacy Guard (now in development).
 
 @item
+An implementation of SSLv3 (more precisely, TLSv1) which is patent-free
+(uses the non-RSA algorithms) and has distribution terms compatible with
+the GNU GPL.  We know of a GPL-covered implemention of a version of SSL
+that you can use as a starting point.
+
+@item
 Free software for doing secure commercial transactions on the web.
 This too needs public key encryption.
 @end itemize
 
-A free replacement for PGP is no longer listed here because the GNU
-Privacy Guard will do that job.
+The projects to provide free replacements for PGP and SSH are no longer
+listed here, because projects to do those jobs are well under way.
 
 @node Other Projects
 @chapter Other Projects
@@ -565,9 +569,6 @@ information compiled by the USDA at
 @url{http://www.nal.usda.gov/fnic/foodcomp}.
 
 @item
-A translator from Scheme to C.
-
-@item
 A fast emulator for the i386 which works by translating
 machine instructions into the machine language of the host machine.
 (Support for emulation of other machines would enhance the program
@@ -614,7 +615,7 @@ finger -l fortran@@gnu.org
 @end example
 
 We would like to have translators from various languages into Scheme.
-These languages include TCL, Python, Perl, Java and Rexx.
+These languages include TCL, Python, Perl, Java, Javascript, and Rexx.
 
 We would like to have an implementation of Clipper, perhaps a GCC front
 end, and perhaps a translator into Scheme.
