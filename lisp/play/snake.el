@@ -34,10 +34,10 @@
 
 ;; ;;;;;;;;;;;;; customization variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar snake-use-glyphs t
+(defvar snake-use-glyphs-flag t
   "Non-nil means use glyphs when available.")
 
-(defvar snake-use-color t
+(defvar snake-use-color-flag t
   "Non-nil means use color when available.")
 
 (defvar snake-buffer-name "*Snake*"
@@ -146,6 +146,18 @@
 (defvar snake-cycle 0)
 (defvar snake-score 0)
 (defvar snake-paused nil)
+(defvar snake-moved-p nil)
+(defvar snake-velocity-queue nil
+  "This queue stores the velocities requested too quickly by user.
+They will take effect one at a time at each clock-interval.
+This is necessary for proper behavior.
+
+For instance, if you are moving right, you press up and then left, you
+want the snake to move up just once before starting to move left.  If
+we implemented all your keystrokes immediately, the snake would
+effectively never move up.  Thus, we need to move it up for one turn
+and then start moving it leftwards.")
+
 
 (make-variable-buffer-local 'snake-length)
 (make-variable-buffer-local 'snake-velocity-x)
@@ -154,6 +166,8 @@
 (make-variable-buffer-local 'snake-cycle)
 (make-variable-buffer-local 'snake-score)
 (make-variable-buffer-local 'snake-paused)
+(make-variable-buffer-local 'snake-moved-p)
+(make-variable-buffer-local 'snake-velocity-queue)
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -223,7 +237,9 @@
 	snake-positions		nil
 	snake-cycle		1
 	snake-score		0
-	snake-paused		nil)
+	snake-paused		nil
+	snake-moved-p           nil
+	snake-velocity-queue    nil)
   (let ((x snake-initial-x)
 	(y snake-initial-y))
     (dotimes (i snake-length)
@@ -235,80 +251,97 @@
 
 (defun snake-update-game (snake-buffer)
   "Called on each clock tick.
-Advances the snake one square, testing for collision."
-  (if (and (not snake-paused)
-	   (eq (current-buffer) snake-buffer))
-      (let* ((pos (car snake-positions))
-	     (x (+ (aref pos 0) snake-velocity-x))
-	     (y (+ (aref pos 1) snake-velocity-y))
-	     (c (gamegrid-get-cell x y)))
-	(if (or (= c snake-border)
-		(= c snake-snake))
-	    (snake-end-game)
-	  (cond ((= c snake-dot)
-		 (incf snake-length)
-		 (incf snake-score)
-		 (snake-update-score))
-		(t
-		 (let* ((last-cons (nthcdr (- snake-length 2)
-					   snake-positions))
-			(tail-pos (cadr last-cons))
-			(x0 (aref tail-pos 0))
-			(y0 (aref tail-pos 1)))
-		   (gamegrid-set-cell x0 y0
-				      (if (= (% snake-cycle 5) 0)
-					  snake-dot
-					snake-blank))
-		   (incf snake-cycle)
-		   (setcdr last-cons nil))))
-	  (gamegrid-set-cell x y snake-snake)
-	  (setq snake-positions
-		(cons (vector x y) snake-positions))))))
+Advances the snake one square, testing for collision.
+Argument SNAKE-BUFFER is the name of the buffer."
+  (when (and (not snake-paused)
+	     (eq (current-buffer) snake-buffer))
+    (snake-update-velocity)
+    (let* ((pos (car snake-positions))
+	   (x (+ (aref pos 0) snake-velocity-x))
+	   (y (+ (aref pos 1) snake-velocity-y))
+	   (c (gamegrid-get-cell x y)))
+      (if (or (= c snake-border)
+	      (= c snake-snake))
+	  (snake-end-game)
+	(cond ((= c snake-dot)
+	       (incf snake-length)
+	       (incf snake-score)
+	       (snake-update-score))
+	      (t
+	       (let* ((last-cons (nthcdr (- snake-length 2)
+					 snake-positions))
+		      (tail-pos (cadr last-cons))
+		      (x0 (aref tail-pos 0))
+		      (y0 (aref tail-pos 1)))
+		 (gamegrid-set-cell x0 y0
+				    (if (= (% snake-cycle 5) 0)
+					snake-dot
+				      snake-blank))
+		 (incf snake-cycle)
+		 (setcdr last-cons nil))))
+	(gamegrid-set-cell x y snake-snake)
+	(setq snake-positions
+	      (cons (vector x y) snake-positions))
+	  (setq snake-moved-p nil)))))
+
+(defun snake-update-velocity ()
+  (unless snake-moved-p
+    (if snake-velocity-queue
+	(let ((new-vel (car (last snake-velocity-queue))))
+	  (setq snake-velocity-x (car new-vel)
+		snake-velocity-y (cadr new-vel))
+	  (setq snake-velocity-queue
+		(nreverse (cdr (nreverse snake-velocity-queue))))))
+    (setq snake-moved-p t)))
+
+(defun snake-final-x-velocity ()
+  (or (caar snake-velocity-queue)
+      snake-velocity-x))
+
+(defun snake-final-y-velocity ()
+  (or (cadr (car snake-velocity-queue))
+      snake-velocity-y))
 
 (defun snake-move-left ()
-  "Makes the snake move left"
+  "Make the snake move left."
   (interactive)
-  (unless (= snake-velocity-x 1)
-    (setq snake-velocity-x -1
-	  snake-velocity-y 0)))
+  (when (zerop (snake-final-x-velocity))
+    (push '(-1 0) snake-velocity-queue)))
 
 (defun snake-move-right ()
-  "Makes the snake move right"
+  "Make the snake move right."
   (interactive)
-  (unless (= snake-velocity-x -1)
-    (setq snake-velocity-x 1
-	  snake-velocity-y 0)))
+  (when (zerop (snake-final-x-velocity))
+    (push '(1 0) snake-velocity-queue)))
 
 (defun snake-move-up ()
-  "Makes the snake move up"
+  "Make the snake move up."
   (interactive)
-  (unless (= snake-velocity-y 1)
-    (setq snake-velocity-x 0
-	  snake-velocity-y -1)))
+  (when (zerop (snake-final-y-velocity))
+    (push '(0 -1) snake-velocity-queue)))
 
 (defun snake-move-down ()
-  "Makes the snake move down"
+  "Make the snake move down."
   (interactive)
-  (unless (= snake-velocity-y -1)
-    (setq snake-velocity-x 0
-	  snake-velocity-y 1)))
+  (when (zerop (snake-final-y-velocity))
+    (push '(0 1) snake-velocity-queue)))
 
 (defun snake-end-game ()
-  "Terminates the current game"
+  "Terminate the current game."
   (interactive)
   (gamegrid-kill-timer)
   (use-local-map snake-null-map)
   (gamegrid-add-score snake-score-file snake-score))
 
 (defun snake-start-game ()
-  "Starts a new game of Snake"
+  "Start a new game of Snake."
   (interactive)
   (snake-reset-game)
   (use-local-map snake-mode-map)
   (gamegrid-start-timer snake-tick-period 'snake-update-game))
 
 (defun snake-pause-game ()
-  "Pauses (or resumes) the current game"
+  "Pause (or resume) the current game."
   (interactive)
   (setq snake-paused (not snake-paused))
   (message (and snake-paused "Game paused (press p to resume)")))
@@ -321,7 +354,7 @@ Advances the snake one square, testing for collision."
 (defun snake-mode ()
   "A mode for playing Snake.
 
-snake-mode keybindings:
+Snake mode keybindings:
    \\{snake-mode-map}
 "
   (kill-all-local-variables)
@@ -343,8 +376,8 @@ snake-mode keybindings:
 	  ["Resume"		snake-pause-game
 	   (and (snake-active-p) snake-paused)]))
 
-  (setq gamegrid-use-glyphs snake-use-glyphs)
-  (setq gamegrid-use-color snake-use-color)
+  (setq gamegrid-use-glyphs snake-use-glyphs-flag)
+  (setq gamegrid-use-color snake-use-color-flag)
 
   (gamegrid-init (snake-display-options))
 
@@ -357,7 +390,7 @@ Move the snake around without colliding with its tail or with the border.
 
 Eating dots causes the snake to get longer.
 
-snake-mode keybindings:
+Snake mode keybindings:
    \\<snake-mode-map>
 \\[snake-start-game]	Starts a new game of Snake
 \\[snake-end-game]	Terminates the current game
@@ -365,9 +398,7 @@ snake-mode keybindings:
 \\[snake-move-left]	Makes the snake move left
 \\[snake-move-right]	Makes the snake move right
 \\[snake-move-up]	Makes the snake move up
-\\[snake-move-down]	Makes the snake move down
-
-"
+\\[snake-move-down]	Makes the snake move down"
   (interactive)
 
   (switch-to-buffer snake-buffer-name)
