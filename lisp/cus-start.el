@@ -155,6 +155,9 @@
 	     ;; minibuf.c
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
+	     (history-length minibuffer
+			     (choice (const :tag "Infinite" t)
+				     integer))
 	     (minibuffer-prompt-properties
 	      minibuffer
 	      (list
