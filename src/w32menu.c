@@ -1355,12 +1355,13 @@ set_frame_menubar (f, first_time, deep_p)
       inhibit_garbage_collection ();
 
       /* Save the frame's previous menu bar contents data.  */
-      bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	     previous_menu_items_used * sizeof (Lisp_Object));
+      if (previous_menu_items_used)
+	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
+	       previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in the current menu bar contents.  */
       menu_items = f->menu_bar_vector;
-      menu_items_allocated = XVECTOR (menu_items)->size;
+      menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       init_menu_items ();
       for (i = 0; i < XVECTOR (items)->size; i += 4)
 	{
