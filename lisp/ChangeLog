@@ -1,5 +1,8 @@
 2001-09-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* env.el (setenv): Interactively, if VARIABLE has a current value,
+	add that to the front of the history, as the doc string says.
+
 	* comint.el (comint-send-input): Change help-echo.
 	From "Dr Francis J. Wright" <F.J.Wright@qmw.ac.uk>.
 	
