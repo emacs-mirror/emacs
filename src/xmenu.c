@@ -1669,6 +1669,11 @@ set_frame_menubar (f, first_time, deep_p)
 	= (Lisp_Object *) alloca (previous_menu_items_used
 				  * sizeof (Lisp_Object));
 
+      /* If we are making a new widget, its contents are empty,
+	 do always reinitialize them.  */
+      if (! menubar_widget)
+	previous_menu_items_used = 0;
+
       buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
