@@ -7020,6 +7020,7 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif /* ! defined (SIGIO) */
 
 #ifdef USE_LUCID
+#ifdef HAVE_X11R5 /* It seems X11R4 lacks XtCvtStringToFont, and XPointer.  */
   /* Make sure that we have a valid font for dialog boxes
      so that Xt does not crash.  */
   {
@@ -7041,6 +7042,7 @@ x_term_init (display_name, xrm_option, resource_name)
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
     x_uncatch_errors (dpy, count);
   }
+#endif
 #endif
 
 
