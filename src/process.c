@@ -598,6 +598,9 @@ setup_process_coding_systems (process)
   int inch = XINT (p->infd);
   int outch = XINT (p->outfd);
 
+  if (inch < 0 || outch < 0)
+    return;
+
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
