@@ -1727,7 +1727,7 @@ EXFUN (Fmapconcat, 3);
 EXFUN (Fy_or_n_p, 1);
 extern Lisp_Object do_yes_or_no_p P_ ((Lisp_Object));
 EXFUN (Ffeaturep, 1);
-EXFUN (Frequire, 2);
+EXFUN (Frequire, 3);
 EXFUN (Fprovide, 1);
 extern Lisp_Object concat2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object concat3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
