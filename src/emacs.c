@@ -497,8 +497,9 @@ main (argc, argv, envp)
 
   init_buffer ();	/* Init default directory of main buffer */
 
-  init_callproc ();	/* Must precede init_cmdargs and init_sys_modes.  */
+  init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
   init_cmdargs (argc, argv, skip_args);	/* Must precede init_lread.  */
+  init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
 
   if (!noninteractive)
