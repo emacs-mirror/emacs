@@ -3508,6 +3508,11 @@ status, and other information about a specific network interface.
 +++
 ** New function `call-process-shell-command'.
 
+** New function `process-file'.
+
+This is similar to `call-process', but obeys file handlers.  The file
+handler is chosen based on default-directory.
+
 ---
 ** The dummy function keys made by easymenu
 are now always lower case.  If you specify the
