@@ -2193,7 +2193,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #endif
 	    }
 	  else
-	    error("select error: %s", strerror (xerrno));
+	    error ("select error: %s", strerror (xerrno));
 	}
 #if defined(sun) && !defined(USG5_4)
       else if (nfds > 0 && keyboard_bit_set (&Available)
@@ -2212,13 +2212,18 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      /* We used to do this if wait_for_cell,
-	 but that caused infinite recursion in selection request events.  */
-      if ((XINT (read_kbd) || wait_for_cell)
-	  && detect_input_pending ())
+      if (XINT (read_kbd) < 0 && detect_input_pending ())
 	{
-	  swallow_events ();
+	  swallow_events (do_display);
 	  if (detect_input_pending ())
+	    break;
+	}
+
+      if ((XINT (read_kbd) > 0 || wait_for_cell)
+	  && detect_input_pending_run_timers ())
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending_run_timers ())
 	    break;
 	}
 
