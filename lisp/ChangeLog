@@ -1,3 +1,23 @@
+2000-05-21  Dave Love  <fx@gnu.org>
+
+	* international/mule-util.el (detect-coding-with-priority): Use
+	mapc.  Remove redundant lambda.
+
+	* international/mule-diag.el (list-non-iso-charset-chars)
+	(describe-fontset): Remove redundant lambda.
+
+	* emulation/crisp.el (brief-mode): New alias.
+
+	* emacs-lisp/ring.el (ring-elements): New function.
+
+	* emacs-lisp/easymenu.el (easy-menu-create-menu)
+	(easy-menu-do-add-item): Use keywordp.
+
+	* emacs-lisp/byte-opt.el: Update side-effect free function lists.
+
+	* replace.el: Doc and error message fixes.
+	(replace-highlight): Use facep, not internal-find-face.
+
 2000-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/ccl.el (ccl-compile-map-multiple): Don't quote lambda.
