@@ -2,6 +2,9 @@
 
 	* Makefile.in (mallocobj): Simplify logic using auxiliary vars.
 
+	* Makefile.in (mostlyclean): Delete bootstrap-emacs here.
+	(clean): Not here.
+
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textprop.c (set_text_properties_1): Clearly mark that the

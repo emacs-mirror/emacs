@@ -1,3 +1,9 @@
+2001-11-26  Richard M. Stallman  <rms@gnu.org>
+
+	* window.el (save-selected-window): No error if saved window is dead.
+
+	* help-funs.el (describe-syntax): Put (interactive) after doc string.
+
 2001-11-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* international/quail.el (quail-help): Require help-mode in
@@ -18,7 +24,7 @@
 	(diff-find-approx-text): New fun.
 	(diff-find-source-location): Use it.
 	(diff-apply-hunk, diff-test-hunk, diff-goto-source):
-	Adapt to new retval of diff-find-source-location.
+	Adapt to new retval of diff-find-text.
 
 	* vc-cvs.el (vc-cvs-parse-entry): Rewrite, comparing the string-
 	rather than integer- representation of dates.
