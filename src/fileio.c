@@ -935,6 +935,7 @@ See also the function `substitute-in-file-name'.")
 #ifdef DOS_NT
   int drive = 0;
   int collapse_newdir = 1;
+  int is_escaped = 0;
 #endif /* DOS_NT */
   int length;
   Lisp_Object handler;
@@ -978,7 +979,7 @@ See also the function `substitute-in-file-name'.")
 	 is needed at all) without requiring it to be expanded now.  */
 #ifdef DOS_NT
       /* Detect MSDOS file names with drive specifiers.  */
-      && ! (IS_DRIVE (o[0]) && (IS_DEVICE_SEP (o[1]) && IS_DIRECTORY_SEP (o[2])))
+      && ! (IS_DRIVE (o[0]) && IS_DEVICE_SEP (o[1]) && IS_DIRECTORY_SEP (o[2]))
 #ifdef WINDOWSNT
       /* Detect Windows file names in UNC format.  */
       && ! (IS_DIRECTORY_SEP (o[0]) && IS_DIRECTORY_SEP (o[1]))
@@ -1012,33 +1013,21 @@ See also the function `substitute-in-file-name'.")
      a local copy to modify, even if there ends up being no change. */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
 
-  /* Find and remove drive specifier if present; this makes nm absolute
-     even if the rest of the name appears to be relative. */
-  {
-    unsigned char *colon = rindex (nm, ':');
+  /* Note if special escape prefix is present, but remove for now.  */
+  if (nm[0] == '/' && nm[1] == ':')
+    {
+      is_escaped = 1;
+      nm += 2;
+    }
 
-    if (colon)
-      /* Only recognize colon as part of drive specifier if there is a
-	 single alphabetic character preceeding the colon (and if the
-	 character before the drive letter, if present, is a directory
-	 separator); this is to support the remote system syntax used by
-	 ange-ftp, and the "po:username" syntax for POP mailboxes. */
-    look_again:
-      if (nm == colon)
-	nm++;
-      else if (IS_DRIVE (colon[-1])
-	       && (colon == nm + 1 || IS_DIRECTORY_SEP (colon[-2])))
-	{
-	  drive = colon[-1];
-	  nm = colon + 1;
-	}
-      else
-	{
-	  while (--colon >= nm)
-	    if (colon[0] == ':')
-	      goto look_again;
-	}
-  }
+  /* Find and remove drive specifier if present; this makes nm absolute
+     even if the rest of the name appears to be relative.  Only look for
+     drive specifier at the beginning.  */
+  if (IS_DRIVE (nm[0]) && IS_DEVICE_SEP (nm[1]))
+    {
+      drive = nm[0];
+      nm += 2;
+    }
 
 #ifdef WINDOWSNT
   /* If we see "c://somedir", we want to strip the first slash after the
@@ -1063,10 +1052,10 @@ See also the function `substitute-in-file-name'.")
   if (
       IS_DIRECTORY_SEP (nm[0])
 #ifdef MSDOS
-      && drive
+      && drive && !is_escaped
 #endif
 #ifdef WINDOWSNT
-      && (drive || IS_DIRECTORY_SEP (nm[1]))
+      && (drive || IS_DIRECTORY_SEP (nm[1])) && !is_escaped
 #endif
 #ifdef VMS
       || index (nm, ':')
@@ -1312,6 +1301,14 @@ See also the function `substitute-in-file-name'.")
       && !newdir)
     {
       newdir = XSTRING (default_directory)->data;
+#ifdef DOS_NT
+      /* Note if special escape prefix is present, but remove for now.  */
+      if (newdir[0] == '/' && newdir[1] == ':')
+	{
+	  is_escaped = 1;
+	  newdir += 2;
+	}
+#endif
     }
 
 #ifdef DOS_NT
@@ -1387,9 +1384,9 @@ See also the function `substitute-in-file-name'.")
   if (newdir)
     {
       /* Get rid of any slash at the end of newdir, unless newdir is
-	 just // (an incomplete UNC name).  */
+	 just / or // (an incomplete UNC name).  */
       length = strlen (newdir);
-      if (length > 0 && IS_DIRECTORY_SEP (newdir[length - 1])
+      if (length > 1 && IS_DIRECTORY_SEP (newdir[length - 1])
 #ifdef WINDOWSNT
 	  && !(length == 2 && IS_DIRECTORY_SEP (newdir[0]))
 #endif
@@ -1408,10 +1405,11 @@ See also the function `substitute-in-file-name'.")
   /* Now concatenate the directory and name to new space in the stack frame */
   tlen += strlen (nm) + 1;
 #ifdef DOS_NT
-  /* Add reserved space for drive name.  (The Microsoft x86 compiler
+  /* Reserve space for drive specifier and escape prefix, since either
+     or both may need to be inserted.  (The Microsoft x86 compiler
      produces incorrect code if the following two lines are combined.)  */
-  target = (unsigned char *) alloca (tlen + 2);
-  target += 2;
+  target = (unsigned char *) alloca (tlen + 4);
+  target += 4;
 #else  /* not DOS_NT */
   target = (unsigned char *) alloca (tlen);
 #endif /* not DOS_NT */
@@ -1528,6 +1526,13 @@ See also the function `substitute-in-file-name'.")
       if (!drive) abort ();
       target -= 2;
       target[0] = DRIVE_LETTER (drive);
+      target[1] = ':';
+    }
+  /* Reinsert the escape prefix if required.  */
+  if (is_escaped)
+    {
+      target -= 2;
+      target[0] = '/';
       target[1] = ':';
     }
   CORRECT_DIR_SEPS (target);
