@@ -157,7 +157,8 @@ visiting FILE."
   ;; If FILE is registered but not locked, return " REV" if there is a head
   ;; revision and " @@" otherwise.
   ;; If FILE is locked then return all locks in a string of the
-  ;; form " LOCKER1:REV1 LOCKER2:REV2 ...".
+  ;; form " LOCKER1:REV1 LOCKER2:REV2 ...", where "LOCKERi:" is empty if you
+  ;; are the locker, and otherwise is the name of the locker followed by ":".
 
   ;; Algorithm: 
 
@@ -205,12 +206,16 @@ visiting FILE."
 	    (setq found (re-search-forward "^locks\\([^;]*\\);" nil t)))
 
           (if found
-	      ;; Clean control characters from text.
-	      (let* ((locks
+	      ;; Clean control characters and self-locks from text.
+	      (let* ((lock-pattern
+		      (concat "[ \b\t\n\v\f\r]+\\("
+			      (regexp-quote (user-login-name))
+			      ":\\|\\)"))
+		     (locks
 		      (save-restriction
 			(narrow-to-region (match-beginning 1) (match-end 1))
 			(goto-char (point-min))
-			(while (re-search-forward "[ \b\t\n\v\f\r]+" nil t)
+			(while (re-search-forward lock-pattern nil t)
 			  (replace-match " " t t))
 			(buffer-string)))
 		     (status
