@@ -4275,7 +4275,7 @@ mmap_enlarge (r, npages)
 	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
 		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
 	  if (p == MAP_FAILED)
-	    fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
+	    ; /* fprintf (stderr, "mmap: %s\n", emacs_strerror (errno)); */
 	  else if (p != (POINTER_TYPE *) region_end)
 	    {
 	      /* Kernels are free to choose a different address.  In
