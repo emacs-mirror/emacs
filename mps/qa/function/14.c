@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!14.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!14.c(trunk.5) $
  summary = regression test for bug when commit fails
  language = c
  link = testlib.o newfmt.o
@@ -19,6 +19,7 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "newfmt.h"
 
 
@@ -70,7 +71,7 @@ static void test(void)
  die(mps_ap_create(&apA, pool, MPS_RANK_EXACT), "create apA");
  die(mps_ap_create(&apB, pool, MPS_RANK_EXACT), "create apB");
 
- bytes = offsetof(struct data, ref)+sizeof(struct refitem);
+ bytes = offsetof(struct data, ref) + sizeof(struct refitem);
  alignment = MPS_PF_ALIGN;
  bytes = (bytes+alignment-1)&~(alignment-1);
  die(mps_reserve(&q, apB, bytes), "reserve: ");
@@ -83,15 +84,15 @@ static void test(void)
  ambigref->data.size = bytes;
 
  comment("Midallocation");
- for(i=0; i<40; i++) {
+ for(i = 0; i < 40; i++) {
   allocdumb(apA, 1024*256);
  }
 
  comment("Commit");
- asserts(mps_commit(apB, q, bytes)==0, "Commit succeeded!");
+ asserts(mps_commit(apB, q, bytes) == 0, "Commit succeeded!");
 
  comment("Postallocation");
- for(i=0; i<40; i++) {
+ for(i = 0; i < 40; i++) {
   allocdumb(apA, 1024*256);
  }
 
