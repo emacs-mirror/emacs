@@ -1177,6 +1177,19 @@ names that are temporary.
 returns immediately without waiting for you to ``finish'' the buffer in
 Emacs.
 
+  If you have forgotten to start Emacs, then the option
+@samp{--alternate-editor=@var{command}} may be useful.  It specifies a
+command to run if @code{emacsclient} fails to contact Emacs.  For
+example, the following setting for the @var{EDITOR} environment variable
+will always give an editor, even if Emacs is not running.
+
+@example
+EDITOR="emacsclient --alternate-editor vi +%d %s"
+@end example
+
+The environment variable @var{ALTERNATE_EDITOR} has the same effect, but
+the value of the @samp{--alternate-editor} takes precedence.
+
 @menu
 * Invoking emacsclient::
 @end menu
