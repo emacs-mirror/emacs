@@ -48,8 +48,6 @@
 (load "custom")
 (load "cus-start")
 (garbage-collect)
-(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
-(garbage-collect)
 (load "international/mule")
 (garbage-collect)
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
@@ -189,6 +187,8 @@
     (progn		; floating pt. functions if 
       (garbage-collect)	; we have float support.
       (load "float-sup")))
+(garbage-collect)
+(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 
 (garbage-collect)
 (load "vc-hooks")
