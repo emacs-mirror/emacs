@@ -544,13 +544,16 @@ scan_c_file (filename, mode)
  When we find that, we save it for the following defining-form,
  and we use that instead of reading a doc string within that defining-form.
 
- For defun, defmacro, and autoload, we know how to skip over the arglist.
  For defvar, defconst, and fset we skip to the docstring with a kludgy 
  formatting convention: all docstrings must appear on the same line as the
  initial open-paren (the one in column zero) and must contain a backslash 
- and a double-quote immediately after the initial double-quote.  No newlines
+ and a newline immediately after the initial double-quote.  No newlines
  must appear between the beginning of the form and the first double-quote.
- The only source file that must follow this convention is loaddefs.el; aside
+ For defun, defmacro, and autoload, we know how to skip over the
+ arglist, but the doc string must still have a backslash and newline
+ immediately after the double quote. 
+ The only source files that must follow this convention are preloaded
+ uncompiled ones like loaddefs.el and bindings.el; aside
  from that, it is always the .elc file that we look at, and they are no
  problem because byte-compiler output follows this convention.
  The NAME and DOCSTRING are output.
