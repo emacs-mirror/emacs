@@ -1,3 +1,8 @@
+2000-05-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (PREFETCH_NOLIMIT): New function.
+	(re_match_2_internal): Use it and adjust the end_match_2 logic.
+
 2000-05-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* syntax.c (find_defun_start): Move test for
