@@ -773,7 +773,7 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  sparc-*-linux-gnu* )
+  sparc-*-linux-gnu* | sparc64-*-linux-gnu* )
     machine=sparc opsys=gnu-linux
   ;;
 
