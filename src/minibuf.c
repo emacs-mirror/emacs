@@ -338,7 +338,10 @@ get_minibuffer (depth)
       XCONS (tail)->car = buf;
     }
   else
-    reset_buffer (XBUFFER (buf));
+    {
+      reset_buffer (XBUFFER (buf));
+      Fkill_all_local_variables (buf);
+    }
 
   return buf;
 }
