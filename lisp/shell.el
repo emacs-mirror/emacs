@@ -52,16 +52,7 @@
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
 ;;
-;; ; If shell lives in some non-standard directory, you must tell emacs
-;; ; where to get it. This may or may not be necessary.
-;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
-;;
-;; ; Autoload shell from file shell.el
-;; (autoload 'shell "shell"
-;;           "Run an inferior shell process."
-;;           t)
-;;
-;; ; Define C-c t to run my favorite command in shell mode:
+;; ;; Define C-c t to run my favorite command in shell mode:
 ;; (setq shell-mode-hook
 ;;       '((lambda () 
 ;;           (define-key shell-mode-map "\C-ct" 'favorite-cmd))))
