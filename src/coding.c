@@ -2529,18 +2529,20 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 	    if (c == '\r')
 	      {
 		ONE_MORE_BYTE (c);
-		if (c != '\n')
+		if (c == '\n')
+		  *dst++ = c;
+		else
 		  {
 		    if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
 		      {
 			result = CODING_FINISH_INCONSISTENT_EOL;
 			goto label_end_of_loop_2;
 		      }
+		    src--;
 		    *dst++ = '\r';
 		    if (BASE_LEADING_CODE_P (c))
 		      coding->fake_multibyte = 1;
 		  }
-		*dst++ = c;
 	      }
 	    else if (c == '\n'
 		     && (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL))
@@ -2562,9 +2564,23 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 	    src = src_base;
 	    break;
 	  }
-	if (result == CODING_FINISH_NORMAL
-	    && src < src_end)
-	  result = CODING_FINISH_INSUFFICIENT_DST;
+	if (src < src_end)
+	  {
+	    if (result == CODING_FINISH_NORMAL)
+	      result = CODING_FINISH_INSUFFICIENT_DST;
+	    else if (result != CODING_FINISH_INCONSISTENT_EOL
+		     && coding->mode & CODING_MODE_LAST_BLOCK)
+	      {
+		/* This is the last block of the text to be decoded.
+		   We flush out all remaining codes.  */
+		src_bytes = src_end - src;
+		if (dst_bytes && (dst_end - dst < src_bytes))
+		  src_bytes = dst_end - dst;
+		bcopy (src, dst, src_bytes);
+		dst += src_bytes;
+		src += src_bytes;
+	      }
+	  }
       }
       break;
 
@@ -3926,11 +3942,11 @@ shrink_decoding_region (beg, end, coding, str)
              the following 2-byte at the tail.  */
 	  if (eol_conversion)
 	    while (begp < endp
-		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC && c != '\r')
+		   && (c = endp[-1]) != ISO_CODE_ESC && c != '\r')
 	      endp--;
 	  else
 	    while (begp < endp
-		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC)
+		   && (c = endp[-1]) != ISO_CODE_ESC)
 	      endp--;
 	  /* Do not consider LF as ascii if preceded by CR, since that
              confuses eol decoding. */
