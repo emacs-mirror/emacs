@@ -3,7 +3,7 @@
 cd $1
 for file in *; do
     case $file in
-	*.elc | *.el | term | RCS | Old | . | .. | =* | *~ | *.orig | *.rej)
+	*.elc | *.el | term | RCS | CVS | Old | . | .. | =* | *~ | *.orig | *.rej)
 	  ;;	
 	*)
 	    if [ -d $file ]; then
