@@ -1,3 +1,11 @@
+2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-file): Doc fix for defcustom.
+	(custom-file): The function no longer sets the variable
+	`custom-file' to its return value.
+
+	* startup.el (command-line): No longer load `custom-file'.
+
 2005-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/find-func.el (find-variable-regexp): Avoid defface.
