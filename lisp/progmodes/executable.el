@@ -141,6 +141,31 @@ See `compilation-error-regexp-alist'.")
 (defvaralias 'executable-binary-suffixes 'exec-suffixes)
 
 ;;;###autoload
+(defun executable-command-find-posix-p (&optional program)
+  "Check if PROGRAM handles arguments Posix-style.
+If PROGRAM is non-nil, use that instead of "find"."
+  ;;  Pick file to search from location we know
+  (let* ((dir   (car load-path))
+         (file  (find-if
+                 (lambda (x)
+                   ;; Filter directories . and ..
+                   (not (string-match "^\\.\\.?$" x)))
+                 (directory-files dir))))
+    (with-temp-buffer
+      (call-process (or program "find")
+                    nil
+                    (current-buffer)
+                    nil
+                    dir
+                    "-name"
+                    file
+                    "-maxdepth"
+                    "1")
+        (goto-char (point-min))
+        (if (search-forward file nil t)
+            t))))
+
+;;;###autoload
 (defun executable-find (command)
   "Search for COMMAND in `exec-path' and return the absolute file name.
 Return nil if COMMAND is not found anywhere in `exec-path'."
