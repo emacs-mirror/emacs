@@ -1,7 +1,7 @@
 ;;; calendar.el --- calendar functions
 
 ;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
-;;	2000, 2001, 2003 Free Software Foundation, Inc.
+;;	2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -154,10 +154,11 @@ the screen."
 
 ;;;###autoload
 (defcustom view-diary-entries-initially nil
-  "*Non-nil means display current date's diary entries on entry.
+  "*Non-nil means display current date's diary entries on entry to calendar.
 The diary is displayed in another window when the calendar is first displayed,
 if the current date is visible.  The number of days of diary entries displayed
-is governed by the variable `number-of-diary-entries'."
+is governed by the variable `number-of-diary-entries'.  This variable can
+be overridden by the value of `calendar-setup'."
   :type 'boolean
   :group 'diary)
 
@@ -573,7 +574,10 @@ are
 
 Names can be capitalized or not, written in full (as specified by the
 variable `calendar-day-name-array'), or abbreviated (as specified by
-`calendar-day-abbrev-array') with or without a period."
+`calendar-day-abbrev-array') with or without a period.  To take effect,
+this variable should be set before the calendar package and its associates
+are loaded.  Otherwise, use one of the functions `european-calendar' or
+`american-calendar' to force the appropriate update."
   :type 'boolean
   :group 'diary)
 
@@ -1445,12 +1449,19 @@ return negative results."
   "Start calendar and diary in separate, dedicated frames.")
 
 ;;;###autoload
-(defvar calendar-setup nil
-  "The frame set up of the calendar.
-The choices are `one-frame' (calendar and diary together in one separate,
-dedicated frame), `two-frames' (calendar and diary in separate, dedicated
-frames), `calendar-only' (calendar in a separate, dedicated frame); with
-any other value the current frame is used.")
+(defcustom calendar-setup nil
+  "The frame setup of the calendar.
+The choices are: `one-frame' (calendar and diary together in one separate,
+dedicated frame); `two-frames' (calendar and diary in separate, dedicated
+frames); `calendar-only' (calendar in a separate, dedicated frame); with
+any other value the current frame is used.  Using any of the first 
+three options overrides the value of `view-diary-entries-initially'."
+  :type '(choice
+          (const :tag "calendar and diary in separate frame" one-frame)
+          (const :tag "calendar and diary each in own frame" two-frames)
+          (const :tag "calendar in separate frame" calendar-only)
+          (const :tag "use current frame" nil))
+  :group 'calendar)
 
 ;;;###autoload
 (defun calendar (&optional arg)
@@ -2746,16 +2757,16 @@ MARK defaults to `diary-entry-marker'."
 		  (delete-char 1)
 		  (insert mark)
 		  (forward-char -2))
-	      (progn ; attr list 
-		(setq temp-face 
-		      (make-symbol (apply 'concat "temp-face-" 
-					  (mapcar '(lambda (sym) 
-						     (cond ((symbolp sym) (symbol-name sym))
-							   ((numberp sym) (int-to-string sym))
-							   (t sym))) mark))))
+              (let ; attr list 
+                  ((temp-face 
+                    (make-symbol (apply 'concat "temp-face-" 
+                                        (mapcar '(lambda (sym) 
+                                                   (cond ((symbolp sym) (symbol-name sym))
+                                                         ((numberp sym) (int-to-string sym))
+                                                         (t sym))) mark))))
+                   (faceinfo mark))
 		(make-face temp-face)
 		;; Remove :face info from the mark, copy the face info into temp-face
-		(setq faceinfo mark)
 		(while (setq faceinfo (memq :face faceinfo))
 		  (copy-face (read (nth 1 faceinfo)) temp-face)
 		  (setcar faceinfo nil)
