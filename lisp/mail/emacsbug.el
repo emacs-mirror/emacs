@@ -91,7 +91,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       ;; Discourage users to write non-English text.
       (set-buffer-multibyte nil)
       (delete-region (point) (point-max))
-      (insert signature))
+      (insert signature)
+      (backward-char (length signature)))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
       (insert "This bug report will be sent to the Free Software Foundation,\n")
