@@ -10,6 +10,11 @@
 	descent are greater than the font's ascent or descent, this means
 	glyphs overlap, which should be handled now by redisplay.
 
+	* window.c (Veven_window_heights): New variable.
+	(syms_of_window): DEFVAR_LISP it.
+	(Fdisplay_buffer): Check Veven_window_heights before evening the
+	window heights.
+	
 2000-12-06  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): If FRAME is `t',
