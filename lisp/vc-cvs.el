@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.66 2003/10/01 13:22:53 fx Exp $
+;; $Id: vc-cvs.el,v 1.67 2004/01/20 17:41:18 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -624,6 +624,14 @@ systime, or nil if there is none."
 	(progn
 	  (beginning-of-line nil)
 	    (vc-cvs-annotate-time))))))
+
+(defun vc-cvs-annotate-extract-revision-at-line ()
+  (save-excursion
+    (beginning-of-line)
+    (if (re-search-forward "^\\([0-9]+\\.[0-9]+\\(\\.[0-9]+\\)*\\) +("
+			   (line-end-position) t)
+	(match-string-no-properties 1)
+      nil)))
 
 ;;;
 ;;; Snapshot system

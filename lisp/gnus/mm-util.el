@@ -454,7 +454,7 @@ If the charset is `composition', return the actual one."
     (mm-mule-charset-to-mime-charset charset)))
 
 (defun mm-delete-duplicates (list)
-  "Simple  substitute for CL `delete-duplicates', testing with `equal'."
+  "Simple substitute for CL `delete-duplicates', testing with `equal'."
   (let (result head)
     (while list
       (setq head (car list))

@@ -2429,7 +2429,7 @@ This makes the buffer visit that file, and marks it as not modified.
 
 If you specify just a directory name as FILENAME, that means to use
 the default file name but in that directory.  You can also yank
-the default file name into the minibuffer to edit it, using M-n.
+the default file name into the minibuffer to edit it, using \\<minibuffer-local-map>\\[next-history-element].
 
 If the buffer is not already visiting a file, the default file name
 for the output file is the buffer name.

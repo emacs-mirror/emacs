@@ -1,5 +1,5 @@
 /* System description header file for Darwin (Mac OS X).
-   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2001, 02, 2004  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -202,9 +202,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* Fix compilation problem for regex.c.  */
 #define __restrict
-
-/* Fix compilation problem for md5.c.  */
-#define __attribute__(x)
 
 /* Used in dispnew.c.  Copied from freebsd.h. */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)

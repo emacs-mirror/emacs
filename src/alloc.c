@@ -1,5 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001, 2002, 2003
+   Copyright (C) 1985,86,88,93,94,95,97,98,1999,2000,01,02,03,2004
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -599,6 +599,7 @@ lisp_malloc (nbytes, type)
 
   val = (void *) malloc (nbytes);
 
+#ifndef USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
      object's pointer, and it needs to be,
      that's equivalent to running out of memory.  */
@@ -613,6 +614,7 @@ lisp_malloc (nbytes, type)
 	  val = 0;
 	}
     }
+#endif
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
@@ -773,6 +775,7 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
+#ifndef USE_LSB_TAG
       /* If the memory just allocated cannot be addressed thru a Lisp
 	 object's pointer, and it needs to be, that's equivalent to
 	 running out of memory.  */
@@ -789,6 +792,7 @@ lisp_align_malloc (nbytes, type)
 	      memory_full ();
 	    }
 	}
+#endif
 
       /* Initialize the blocks and put them on the free list.
 	 Is `base' was not properly aligned, we can't use the last block.  */
@@ -1105,8 +1109,9 @@ uninterrupt_malloc ()
 
 struct interval_block
 {
-  struct interval_block *next;
+  /* Place `intervals' first, to preserve alignment.  */
   struct interval intervals[INTERVAL_BLOCK_SIZE];
+  struct interval_block *next;
 };
 
 /* Current interval block.  Its `next' pointer points to older
@@ -1344,8 +1349,9 @@ struct sblock
 
 struct string_block
 {
-  struct string_block *next;
+  /* Place `strings' first, to preserve alignment.  */
   struct Lisp_String strings[STRING_BLOCK_SIZE];
+  struct string_block *next;
 };
 
 /* Head and tail of the list of sblock structures holding Lisp string
@@ -2126,8 +2132,10 @@ make_uninit_multibyte_string (nchars, nbytes)
    by GC are put on a free list to be reallocated before allocating
    any new float cells from the latest float_block.  */
 
-#define FLOAT_BLOCK_SIZE \
-  (((BLOCK_BYTES - sizeof (struct float_block *)) * CHAR_BIT) \
+#define FLOAT_BLOCK_SIZE					\
+  (((BLOCK_BYTES - sizeof (struct float_block *)		\
+     /* The compiler might add padding at the end.  */		\
+     - (sizeof (struct Lisp_Float) - sizeof (int))) * CHAR_BIT) \
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
 #define GETMARKBIT(block,n)				\
@@ -2754,8 +2762,9 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 
 struct symbol_block
 {
-  struct symbol_block *next;
+  /* Place `symbols' first, to preserve alignment.  */
   struct Lisp_Symbol symbols[SYMBOL_BLOCK_SIZE];
+  struct symbol_block *next;
 };
 
 /* Current symbol block and index of first unused Lisp_Symbol
@@ -2846,8 +2855,9 @@ Its value and function definition are void, and its property list is nil.  */)
 
 struct marker_block
 {
-  struct marker_block *next;
+  /* Place `markers' first, to preserve alignment.  */
   union Lisp_Misc markers[MARKER_BLOCK_SIZE];
+  struct marker_block *next;
 };
 
 struct marker_block *marker_block;
@@ -3428,6 +3438,7 @@ live_string_p (m, p)
 	 must not be on the free-list.  */
       return (offset >= 0
 	      && offset % sizeof b->strings[0] == 0
+	      && offset < (STRING_BLOCK_SIZE * sizeof b->strings[0])
 	      && ((struct Lisp_String *) p)->data != NULL);
     }
   else
@@ -3452,8 +3463,8 @@ live_cons_p (m, p)
 	 one of the unused cells in the current cons block,
 	 and not be on the free-list.  */
       return (offset >= 0
-	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && offset % sizeof b->conses[0] == 0
+	      && offset < (CONS_BLOCK_SIZE * sizeof b->conses[0])
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
 	      && !EQ (((struct Lisp_Cons *) p)->car, Vdead));
@@ -3481,6 +3492,7 @@ live_symbol_p (m, p)
 	 and not be on the free-list.  */
       return (offset >= 0
 	      && offset % sizeof b->symbols[0] == 0
+	      && offset < (SYMBOL_BLOCK_SIZE * sizeof b->symbols[0])
 	      && (b != symbol_block
 		  || offset / sizeof b->symbols[0] < symbol_block_index)
 	      && !EQ (((struct Lisp_Symbol *) p)->function, Vdead));
@@ -3506,8 +3518,8 @@ live_float_p (m, p)
       /* P must point to the start of a Lisp_Float and not be
 	 one of the unused cells in the current float block.  */
       return (offset >= 0
-	      && offset < (FLOAT_BLOCK_SIZE * sizeof b->floats[0])
 	      && offset % sizeof b->floats[0] == 0
+	      && offset < (FLOAT_BLOCK_SIZE * sizeof b->floats[0])
 	      && (b != float_block
 		  || offset / sizeof b->floats[0] < float_block_index));
     }
@@ -3534,6 +3546,7 @@ live_misc_p (m, p)
 	 and not be on the free-list.  */
       return (offset >= 0
 	      && offset % sizeof b->markers[0] == 0
+	      && offset < (MARKER_BLOCK_SIZE * sizeof b->markers[0])
 	      && (b != marker_block
 		  || offset / sizeof b->markers[0] < marker_block_index)
 	      && ((union Lisp_Misc *) p)->u_marker.type != Lisp_Misc_Free);
@@ -4068,6 +4081,9 @@ pure_alloc (size, type)
      int type;
 {
   POINTER_TYPE *result;
+#ifdef USE_LSB_TAG
+  size_t alignment = (1 << GCTYPEBITS);
+#else
   size_t alignment = sizeof (EMACS_INT);
 
   /* Give Lisp_Floats an extra alignment.  */
@@ -4079,6 +4095,7 @@ pure_alloc (size, type)
       alignment = sizeof (struct Lisp_Float);
 #endif
     }
+#endif
 
  again:
   result = ALIGN (purebeg + pure_bytes_used, alignment);

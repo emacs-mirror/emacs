@@ -1,6 +1,6 @@
 ;;; vc-mcvs.el --- VC backend for the Meta-CVS version-control system
 
-;; Copyright (C) 1995,98,99,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995,98,99,2000,01,02,03,2004  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -170,13 +170,6 @@ This is only meaningful if you don't use the implicit checkout model
 			 0))
       t)))
 
-(defmacro vc-mcvs-cvs (op file &rest args)
-  (declare (debug t))
-  `(,(intern (concat "vc-cvs-" (symbol-name op)))
-    (expand-file-name (vc-file-getprop ,file 'mcvs-inode)
-		      (vc-file-getprop ,file 'mcvs-root))
-    ,@args))
-
 (defun vc-mcvs-state (file)
   ;; This would assume the Meta-CVS sandbox is synchronized.
   ;; (vc-mcvs-cvs state file))
@@ -215,18 +208,12 @@ This is only meaningful if you don't use the implicit checkout model
 	    (goto-char (point-max))
 	    (widen)))))))
 
-(defun vc-mcvs-workfile-version (file) (vc-mcvs-cvs workfile-version file))
+(defun vc-mcvs-workfile-version (file)
+  (vc-cvs-workfile-version
+   (expand-file-name (vc-file-getprop file 'mcvs-inode)
+		     (vc-file-getprop file 'mcvs-root))))
 
 (defalias 'vc-mcvs-checkout-model 'vc-cvs-checkout-model)
-
-(defun vc-mcvs-mode-line-string (file)
-  (let ((s (vc-mcvs-cvs mode-line-string file)))
-    (when s
-      (if (and (not (memq (vc-state file) '(up-to-date needs-patch)))
-	       (string-match "\\`CVS-" s))
-	  ;; The CVS file is not in sync, so we need to adjust the state.
-	  (concat "MCVS:" (substring s 4))
-	(concat "M" s)))))
 
 ;;;
 ;;; State-changing functions
@@ -589,7 +576,7 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
       ;; We need to filter the output.
       ;; The output of the filter uses filenames relative to the root,
       ;; so we need to change the default-directory.
-      (assert (equal default-directory (vc-mcvs-root file)))
+      ;; (assert (equal default-directory (vc-mcvs-root file)))
       (vc-do-command
        buffer okstatus "sh" nil "-c"
        (concat "mcvs "

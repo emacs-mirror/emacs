@@ -680,13 +680,8 @@ This is relative to `smtpmail-queue-dir'.")
 				 ;; size estimate:
 				 (+ (- (point-max) (point-min))
 				    ;; Add one byte for each change-of-line
-				    ;; because or CR-LF representation:
-				    (count-lines (point-min) (point-max))
-				    ;; For some reason, an empty line is
-				    ;; added to the message.  Maybe this
-				    ;; is a bug, but it can't hurt to add
-				    ;; those two bytes anyway:
-				    2)))
+				    ;; because of CR-LF representation:
+				    (count-lines (point-min) (point-max)))))
 		     ""))
 		  (body-part
 		   (if (member '8bitmime supported-extensions)
@@ -858,31 +853,15 @@ This is relative to `smtpmail-queue-dir'.")
   )
 
 (defun smtpmail-send-data (process buffer)
-  (let
-      ((data-continue t)
-       (sending-data nil)
-       this-line
-       this-line-end)
-
+  (let ((data-continue t) sending-data)
     (with-current-buffer buffer
       (goto-char (point-min)))
-
     (while data-continue
       (with-current-buffer buffer
-	(beginning-of-line)
-	(setq this-line (point))
-	(end-of-line)
-	(setq this-line-end (point))
-	(setq sending-data nil)
-	(setq sending-data (buffer-substring this-line this-line-end))
-	(if (/= (forward-line 1) 0)
-	    (setq data-continue nil)))
-
-      (smtpmail-send-data-1 process sending-data)
-      )
-    )
-  )
-
+        (setq sending-data (buffer-substring (point-at-bol) (point-at-eol)))
+	(end-of-line 2)
+        (setq data-continue (not (eobp))))
+      (smtpmail-send-data-1 process sending-data))))
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."

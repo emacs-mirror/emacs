@@ -416,9 +416,9 @@ calling @code{set-visited-file-name} does not.
 @defopt before-save-hook
 This normal hook runs before a buffer is saved in its visited file,
 regardless of whether that is done normally or by one of the hooks
-described above.  One use of this hook is for the Copyright package;
-it uses this hook to make sure the file has the current year in the
-copyright header.
+described above.  For instance, the @file{copyright.el} program uses
+this hook to make sure the file you are saving has the current year in
+its copyright notice.
 @end defopt
 
 @c Emacs 19 feature

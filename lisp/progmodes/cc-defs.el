@@ -100,7 +100,7 @@
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
-(cc-external-require 'cl)
+(eval-when-compile (require 'cl))
 
 
 ;;; Variables also used at compile time.

@@ -733,6 +733,9 @@ struct buffer
      like vi).  */
   Lisp_Object indicate_empty_lines;
 
+  /* Non-nil means indicate buffer boundaries and scrolling.  */
+  Lisp_Object indicate_buffer_boundaries;
+
   /* Time stamp updated each time this buffer is displayed in a window.  */
   Lisp_Object display_time;
 

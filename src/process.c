@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
    Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 96, 98, 1999,
-      2001, 2002, 2003 Free Software Foundation, Inc.
+      2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4080,6 +4080,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 Otherwise, do pending quit if requested.  */
       if (XINT (read_kbd) >= 0)
 	QUIT;
+#ifdef SYNC_INPUT
+      else if (interrupt_input_pending)
+	handle_async_input ();
+#endif
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
@@ -4296,7 +4300,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		  proc = chan_process[channel];
 		  if (NILP (proc))
 		    continue;
-		  if (XPROCESS (proc)->read_output_delay > 0)
+		  if (XINT (XPROCESS (proc)->read_output_delay) > 0)
 		    {
 		      check_delay--;
 		      if (NILP (XPROCESS (proc)->read_output_skip))

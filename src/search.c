@@ -2553,8 +2553,16 @@ since only regular expressions have distinguished subexpressions.  */)
 	}
 
       if (really_changed)
-	newtext = make_string (substed, substed_len);
+	{
+	  if (buf_multibyte)
+	    {
+	      int nchars = multibyte_chars_in_text (substed, substed_len);
 
+	      newtext = make_multibyte_string (substed, nchars, substed_len);
+	    }
+	  else
+	    newtext = make_unibyte_string (substed, substed_len);
+	}
       xfree (substed);
     }
 

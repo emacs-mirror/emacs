@@ -198,7 +198,8 @@ and off otherwise."
                   (or (eq which-func-modes t)
                       (member major-mode which-func-modes))))))
     ;; Turn it off
-    (cancel-timer which-func-update-timer)
+    (when (timerp which-func-update-timer)
+      (cancel-timer which-func-update-timer))
     (setq which-func-update-timer nil)
     (dolist (buf (buffer-list))
       (with-current-buffer buf (setq which-func-mode nil)))))

@@ -79,6 +79,7 @@ we add the wrapper characters =?ISO-8859-1?Q?....?=."
 	(concat result (substring string i))))))
 
 (defun mail-unquote-printable-hexdigit (char)
+  (setq char (upcase char))
   (if (>= char ?A)
       (+ (- char ?A) 10)
     (- char ?0)))
@@ -107,31 +108,41 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
       (apply 'concat (nreverse (cons (substring string i) strings))))))
 
 ;;;###autoload
-(defun mail-unquote-printable-region (beg end &optional wrapper)
+(defun mail-unquote-printable-region (beg end &optional wrapper noerror)
   "Undo the \"quoted printable\" encoding in buffer from BEG to END.
 If the optional argument WRAPPER is non-nil,
-we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
+we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=.
+If NOERROR is non-nil, return t if successful."
   (interactive "r\nP")
-  (save-match-data
-    (save-excursion
-      (save-restriction
-	(narrow-to-region beg end)
-	(goto-char (point-min))
-	(when (and wrapper
-		   (looking-at "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?"))
-	  (delete-region (match-end 1) end)
-	  (delete-region (point) (match-beginning 1)))
-	(while (re-search-forward "=\\(..\\|\n\\)" nil t)
-	  (goto-char (match-end 0))
-	  (replace-match
-	   (if (= (char-after (match-beginning 1)) ?\n)
-	       ""
-	     (make-string 1
-			  (+ (* 16 (mail-unquote-printable-hexdigit
-				    (char-after (match-beginning 1))))
-			     (mail-unquote-printable-hexdigit
-			      (char-after (1+ (match-beginning 1)))))))
-	   t t))))))
+  (let (failed)
+    (save-match-data
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region beg end)
+	  (goto-char (point-min))
+	  (when (and wrapper
+		     (looking-at "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?"))
+	    (delete-region (match-end 1) end)
+	    (delete-region (point) (match-beginning 1)))
+	  (while (re-search-forward "=\\(\\([0-9A-F][0-9A-F]\\)\\|[=\n]\\|..\\)" nil t)
+	    (goto-char (match-end 0))
+	    (cond ((= (char-after (match-beginning 1)) ?\n)
+		   (replace-match ""))
+		  ((= (char-after (match-beginning 1)) ?=)
+		   (replace-match "="))
+		  ((match-beginning 2)
+		   (replace-match
+		    (make-string 1
+				 (+ (* 16 (mail-unquote-printable-hexdigit
+					   (char-after (match-beginning 2))))
+				    (mail-unquote-printable-hexdigit
+				     (char-after (1+ (match-beginning 2))))))
+		    t t))
+		  (noerror
+		   (setq failed t))
+		  (t
+		   (error "Malformed MIME quoted-printable message"))))
+	  (not failed))))))
 
 (eval-when-compile (require 'rfc822))
 

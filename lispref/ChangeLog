@@ -1,3 +1,23 @@
+2004-01-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Add delete-dups.
+
+2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Instrumenting Macro Calls): `declare' is not a
+	special form.
+	* macros.texi (Defining Macros): Update description of `declare',
+	which now is a macro.
+	(Wrong Time): Fix typos.
+
+2004-01-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* compile.texi (Compilation Functions): Expand descriptions of
+	`compile-defun', `byte-compile-file', `byte-recompile-directory'
+	and `batch-byte-compile'.  In particular, mention and describe
+	all optional arguments.
+	(Disassembly): Correct and clarify the description of `disassemble'.
+
 2004-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* searching.texi: Various small changes in addition to the

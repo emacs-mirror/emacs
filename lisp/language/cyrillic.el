@@ -476,11 +476,11 @@ Support for Russian using koi8-r and the russian-computer input method.")
     (push elt ctext-non-standard-encodings-alist)))
 
 (define-ccl-program ccl-encode-windows-1251-font
-  '(0
-    ((r1 <<= 7)
-     (r1 += r2)
-     (translate-character encode-windows-1251 r0 r1)
-     )))
+  `(0
+    ((if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	 ((r1 <<= 7)
+	  (r1 += r2)))
+     (translate-character encode-windows-1251 r0 r1))))
 
 (add-to-list 'font-ccl-encoder-alist
 	     '("microsoft-cp1251" . ccl-encode-windows-1251-font))

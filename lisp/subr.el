@@ -65,7 +65,7 @@ The return value of this function is not used."
 (defmacro noreturn (form)
   "Evaluates FORM, with the expectation that the evaluation will signal an error
 instead of returning to its caller.  If FORM does return, an error is
-signalled." 
+signalled."
   `(prog1 ,form
      (error "Form marked with `noreturn' did return")))
 
@@ -158,6 +158,12 @@ the return value (nil if RESULT is omitted).
 	 (setq ,(car spec) (1+ ,(car spec))))
        ,@(cdr (cdr spec)))))
 
+(defmacro declare (&rest specs)
+  "Do not evaluate any arguments and return nil.
+Treated as a declaration when used at the right place in a
+`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'."
+  nil)
+
 (defsubst caar (x)
   "Return the car of the car of X."
   (car (car x)))
@@ -202,6 +208,21 @@ If N is bigger than the length of X, return X."
 	 (progn
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
+
+(defun delete-dups (list)
+  "Destructively return LIST, with `equal' duplicates removed.
+LIST must be a proper list.  The value of LIST after a call to
+this function is undefined.  Use \(setq LIST (delete-dups LIST))
+if you want to store the return value in LIST.  Of several
+`equal' occurrences of an element in LIST, the last one is kept."
+  (while (member (car list) (cdr list))
+    (pop list))
+  (let ((tail list))
+    (while tail
+      (while (member (cadr tail) (cddr tail))
+	(setcdr tail (cddr tail)))
+      (pop tail)))
+  list)
 
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
@@ -689,13 +710,13 @@ The return value is a positive integer."
 (defsubst posn-window (position)
   "Return the window in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 0 position))
 
 (defsubst posn-area (position)
   "Return the window area recorded in POSITION, or nil for the text area.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (let ((area (if (consp (nth 1 position))
 		  (car (nth 1 position))
 		(nth 1 position))))
@@ -704,7 +725,7 @@ and `event-end' functions."
 (defsubst posn-point (position)
   "Return the buffer location in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (or (nth 5 position)
       (if (consp (nth 1 position))
 	  (car (nth 1 position))
@@ -713,18 +734,18 @@ and `event-end' functions."
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 2 position))
 
 (defun posn-col-row (position)
   "Return the nominal column and row in POSITION, measured in characters.
 The column and row values are approximations calculated from the x
 and y coordinates in POSITION and the frame's default character width
-and height. 
+and height.
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (let* ((pair   (posn-x-y position))
 	 (window (posn-window position))
 	 (area   (posn-area position)))
@@ -750,43 +771,43 @@ These are the actual row number in the window and character number in that row.
 Return nil if POSITION does not contain the actual position; in that case
 `posn-col-row' can be used to get approximate values.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 3 position))
 
 (defsubst posn-string (position)
   "Return the string object of POSITION, or nil if a buffer position.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 4 position))
 
 (defsubst posn-image (position)
   "Return the image object of POSITION, or nil if a not an image.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 7 position))
 
 (defsubst posn-object (position)
   "Return the object (image or string) of POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
   "Return the x and y coordinates relative to the object of POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
   "Return the pixel width and height of the object of POSITION.
 POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions." 
+and `event-end' functions."
   (nth 9 position))
 
 

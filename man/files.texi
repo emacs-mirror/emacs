@@ -1536,6 +1536,46 @@ range from red to blue spans the past 36 days instead of 360 days.  A
 stretch factor greater than 1 means the color range spans more than a
 year.
 
+From the annotate buffer, you can use the following keys to browse the
+annotations of past revisions, view diffs, or view log entries:
+
+@itemize @bullet
+
+@item
+Pressing @kbd{P} annotates the previous revision.  It also takes a
+numeric prefix argument, so for example @kbd{C-u 10 P} would take you
+back 10 revisions.
+
+@item
+Pressing @kbd{N} annotates the next revision.  It also takes a numeric
+prefix argument, so for example @kbd{C-u 10 N} would take you forward
+10 revisions.
+
+@item
+Pressing @kbd{J} annotates the revision at line (as denoted by the
+version number on the same line).
+
+@item
+Pressing @kbd{A} annotates the revision previous to line (as denoted
+by the version number on the same line).  This is useful to see the
+state the file was in before the change on the current line was made.
+
+@item
+Pressing @kbd{D} shows the diff of the revision at line with its
+previous revision.  This is useful to see what actually changed when
+the revision denoted on the current line was committed.
+
+@item
+Pressing @kbd{L} shows the log of the revision at line.  This is
+useful to see the author's description of the changes that occured
+when the revision denoted on the current line was committed.
+
+@item
+Pressing @kbd{W} annotates the workfile (most up to date) version.  If
+you used @kbd{P} and @kbd{N} to browse to other revisions, use this
+key to return to the latest version.
+@end itemize
+
 @node Secondary VC Commands
 @subsection The Secondary Commands of VC
 

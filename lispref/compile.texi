@@ -173,14 +173,18 @@ variable names and function names used by the function, except for
 certain primitives that are coded as special instructions.
 @end defun
 
-@deffn Command compile-defun
+@deffn Command compile-defun &optional arg
 This command reads the defun containing point, compiles it, and
 evaluates the result.  If you use this on a defun that is actually a
 function definition, the effect is to install a compiled version of that
 function.
+
+@code{compile-defun} normally displays the result of evaluation in the
+echo area, but if @var{arg} is non-@code{nil}, it inserts the result
+in the current buffer after the form it compiled.
 @end deffn
 
-@deffn Command byte-compile-file filename
+@deffn Command byte-compile-file filename &optional load
 This function compiles a file of Lisp code named @var{filename} into a
 file of byte-code.  The output file's name is made by changing the
 @samp{.el} suffix into @samp{.elc}; if @var{filename} does not end in
@@ -193,8 +197,11 @@ batch is compiled, and written so that its compiled code will be
 executed when the file is read.  All comments are discarded when the
 input file is read.
 
-This command returns @code{t}.  When called interactively, it prompts
-for the file name.
+This command returns @code{t} if there were no errors and @code{nil}
+otherwise.  When called interactively, it prompts for the file name.
+
+If @var{load} is non-@code{nil}, this command loads the compiled file
+after compiling it.  Interactively, @var{load} is the prefix argument.
 
 @example
 @group
@@ -215,26 +222,37 @@ for the file name.
 @end example
 @end deffn
 
-@deffn Command byte-recompile-directory directory flag
+@deffn Command byte-recompile-directory directory &optional flag force
 @cindex library compilation
-This function recompiles every @samp{.el} file in @var{directory} that
-needs recompilation.  A file needs recompilation if a @samp{.elc} file
-exists but is older than the @samp{.el} file.
+This command recompiles every @samp{.el} file in @var{directory} (or
+its subdirectories) that needs recompilation.  A file needs
+recompilation if a @samp{.elc} file exists but is older than the
+@samp{.el} file.
 
-When a @samp{.el} file has no corresponding @samp{.elc} file, @var{flag}
-says what to do.  If it is @code{nil}, these files are ignored.  If it
-is non-@code{nil}, the user is asked whether to compile each such file.
+When a @samp{.el} file has no corresponding @samp{.elc} file,
+@var{flag} says what to do.  If it is @code{nil}, this command ignores
+these files.  If @var{flag} is 0, it compiles them.  If it is neither
+@code{nil} nor 0, it asks the user whether to compile each such file.
 
-The returned value of this command is unpredictable.
+Interactively, @code{byte-recompile-directory} prompts for
+@var{directory} and @var{flag} is the prefix argument.
+
+If @var{force} is non-@code{nil}, this command recompiles every
+@samp{.el} file that has a @samp{.elc} file.
+
+The returned value is unpredictable.
 @end deffn
 
-@defun batch-byte-compile
+@defun batch-byte-compile &optional noforce
 This function runs @code{byte-compile-file} on files specified on the
 command line.  This function must be used only in a batch execution of
 Emacs, as it kills Emacs on completion.  An error in one file does not
 prevent processing of subsequent files, but no output file will be
 generated for it, and the Emacs process will terminate with a nonzero
 status code.
+
+If @var{noforce} is non-@code{nil}, this function does not recompile
+files that have an up-to-date @samp{.elc} file.
 
 @example
 % emacs -batch -f batch-byte-compile *.el
@@ -420,7 +438,7 @@ these messages.
 defined are always ``located'' at the end of the file, so these
 commands won't find the places they are really used.  To do that,
 you must search for the function names.
- 
+
   You can suppress the compiler warning for calling an undefined
 function @var{func} by conditionalizing the function call on a
 @code{fboundp} test, like this:
@@ -549,14 +567,16 @@ returns it as the value of the function.
 ordinary Lisp variables, by transferring values between variables and
 the stack.
 
-@deffn Command disassemble object &optional stream
-This function prints the disassembled code for @var{object}.  If
-@var{stream} is supplied, then output goes there.  Otherwise, the
-disassembled code is printed to the stream @code{standard-output}.  The
-argument @var{object} can be a function name or a lambda expression.
+@deffn Command disassemble object &optional buffer-or-name
+This command displays the disassembled code for @var{object}.  In
+interactive use, or if @var{buffer-or-name} is @code{nil} or omitted,
+the output goes in a buffer named @samp{*Disassemble*}.  If
+@var{buffer-or-name} is non-@code{nil}, it must be a buffer or the
+name of an existing buffer.  Then the output goes there, at point, and
+point is left before the output.
 
-As a special exception, if this function is used interactively,
-it outputs to a buffer named @samp{*Disassemble*}.
+The argument @var{object} can be a function name, a lambda expression
+or a byte-code object.
 @end deffn
 
   Here are two examples of using the @code{disassemble} function.  We
