@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Buffers, Windows, Files, Top
 @chapter Using Multiple Buffers
@@ -444,10 +445,12 @@ create new @samp{*info*} or @samp{*Help*} buffers, for example.
 @section Convenience Features and Customization of Buffer Handling
 
 @menu
-* Uniquify::                    
-* BS::                          
-* Iswitchb::                    
-* MSB::                         
+* Uniquify::               Buffer names can contain directory parts.
+* BS::                     Configurable buffer menu.     
+@ignore
+* Iswitchb::               Switching between buffers with substrings.
+* MSB::                    
+@end ignore
 @end menu
 
 @node Uniquify
@@ -471,10 +474,35 @@ buffer name styles by customizing the user option
 toggle-uniquify-buffer-names} can also be used to toggle the mode.  
 
 @node BS
-@subsection BS Mode: Configurable Buffer Menus
+@subsection Configurable Buffer Menus
 
+@findex bs-show
+@findex bs-cycle-next
+@findex bs-cycle-previous
+@cindex buffer list, customizable
+@table @kbd
+@item M-x bs-show
+Make a list of buffers similarly to @kbd{M-x list-buffers} but
+customizable.
+@item M-x bs-cycle-next
+Cycle to the next buffer in the configuration.
+@item M-x bs-cycle-previous
+Cycle to the previous buffer in the configuration.
+@end table
+
+@kbd{M-x bs-show} pops up a buffer list similar to the one normally
+displayed by @kbd{C-x C-b} but which can be customized.  You might like
+to bind it to @kbd{C-x C-b}.  You can customize the display, for
+instance to display a subset of buffers, in the @code{bs} Custom group.
+A special subset of all buffers is available---for instance avoiding
+ones like @samp{*Messages*}---through which you can cycle with @kbd{M-x
+bs-cycle-next} and @kbd{M-x bs-cycle-previous}.  Those commands could be
+bound to convenient keys.
+
+@ignore
 @node Iswitchb
-@subsection Iswitchb Mode: Switching Between Buffers using Substrings
+@subsection Switching Between Buffers using Substrings
 
 @node MSB
-@subsection MSB Mode: Customizable Buffer Selection with Multiple Menus
+@subsection Customizable Buffer Selection with Multiple Menus
+@end ignore
