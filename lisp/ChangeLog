@@ -1,10 +1,14 @@
+2000-05-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* gud.el (gud-jdb-directories): Doc fix.
+
 2000-05-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el: New file.
 
 2000-05-19  Gerd Moellmann  <gerd@gnu.org>
 
-	* files.el (auto-mode-alist): Add pattern for `.shrc'.
+	* files.el (auto-mode-alist): Add pattern for POSIX `.shrc'.
 
 2000-05-18  Andreas Schwab  <schwab@suse.de>
 

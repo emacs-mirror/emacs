@@ -1,5 +1,8 @@
 2000-05-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fbury_buffer): Avoid trouble from burying a killed
+	buffer.
+
 	* dispextern.h (Vimage_types): Add extern declaration.
 
 	* xdisp.c (Vimage_types): Moved here from xfns.c.
