@@ -86,6 +86,8 @@ Boston, MA 02111-1307, USA.  */
 #define FALSE 0
 #endif /* no TRUE */
 
+Lisp_Object Vmenu_updating_frame;
+
 Lisp_Object Qdebug_on_next_call;
 
 Lisp_Object Qmenu_alias;
@@ -856,7 +858,10 @@ cached information about equivalent key sequences.")
 
       xpos += XINT (x);
       ypos += XINT (y);
+
+      XSETFRAME (Vmenu_updating_frame, f);
     }
+  Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
   title = Qnil;
@@ -1617,6 +1622,8 @@ set_frame_menubar (f, first_time, deep_p)
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
   LWLIB_ID id;
+
+  XSETFRAME (Vmenu_updating_frame, f);
 
   if (f->output_data.x->id == 0)
     f->output_data.x->id = next_menubar_widget_id++;
@@ -2707,6 +2714,11 @@ syms_of_xmenu ()
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
+
+  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+    "Frame for which we are updating a menu.\n\
+The enable predicate for a menu command should check this variable.");
+  Vmenu_updating_frame = Qnil;
 
 #ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);	
