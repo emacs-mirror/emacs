@@ -1841,8 +1841,8 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
      int partial;
      Lisp_Object shadow;
 {
-  Lisp_Object this;
-  Lisp_Object tem1, tem2 = Qnil;
+  Lisp_Object definition, event;
+  Lisp_Object tem;
   Lisp_Object suppress;
   Lisp_Object kludge;
   int first = 1;
@@ -1855,8 +1855,9 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
      that is done once per keymap element, we don't want to cons up a
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
+  definition = Qnil;
 
-  GCPRO3 (elt_prefix, tem2, kludge);
+  GCPRO3 (elt_prefix, definition, kludge);
 
   for (; CONSP (keymap); keymap = Fcdr (keymap))
     {
@@ -1867,29 +1868,30 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
 			 elt_prefix, elt_describer, partial, shadow);
       else
 	{
-	  tem1 =             Fcar_safe (Fcar (keymap));
-	  tem2 = get_keyelt (Fcdr_safe (Fcar (keymap)));
+	  event = Fcar_safe (Fcar (keymap));
+	  definition = get_keyelt (Fcdr_safe (Fcar (keymap)));
 
 	  /* Don't show undefined commands or suppressed commands.  */
-	  if (NILP (tem2)) continue;
-	  if (XTYPE (tem2) == Lisp_Symbol && partial)
+	  if (NILP (definition)) continue;
+	  if (XTYPE (definition) == Lisp_Symbol && partial)
 	    {
-	      this = Fget (tem2, suppress);
-	      if (!NILP (this))
+	      tem = Fget (definition, suppress);
+	      if (!NILP (tem))
 		continue;
 	    }
 
 	  /* Don't show a command that isn't really visible
 	     because a local definition of the same key shadows it.  */
 
+	  XVECTOR (kludge)->contents[0] = event;
 	  if (!NILP (shadow))
 	    {
-	      Lisp_Object tem;
-
-	      XVECTOR (kludge)->contents[0] = tem1;
 	      tem = Flookup_key (shadow, kludge, Qt);
 	      if (!NILP (tem)) continue;
 	    }
+
+	  tem = Flookup_key (map, kludge, Qt);
+	  if (! EQ (tem, definition)) continue;
 
 	  if (first)
 	    {
@@ -1900,14 +1902,13 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
 	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
 
-	  /* THIS gets the string to describe the character TEM1.  */
-	  this = Fsingle_key_description (tem1);
-	  insert1 (this);
+	  /* THIS gets the string to describe the character EVENT.  */
+	  insert1 (Fsingle_key_description (event));
 
 	  /* Print a description of the definition of this character.
 	     elt_describer will take care of spacing out far enough
 	     for alignment purposes.  */
-	  (*elt_describer) (tem2);
+	  (*elt_describer) (definition);
 	}
     }
 
