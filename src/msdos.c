@@ -951,8 +951,8 @@ static void
 IT_write_glyphs (struct glyph *str, int str_len)
 {
   unsigned char *screen_buf, *screen_bp, *screen_buf_end, *bp;
-  int unsupported_face = FAST_GLYPH_FACE (Vdos_unsupported_char_glyph);
-  unsigned unsupported_char= FAST_GLYPH_CHAR (Vdos_unsupported_char_glyph);
+  int unsupported_face = 0;
+  unsigned unsupported_char = '\177';
   int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
   register int sl = str_len;
   register int tlen = GLYPH_TABLE_LENGTH;
@@ -977,6 +977,13 @@ IT_write_glyphs (struct glyph *str, int str_len)
   int conversion_buffer_size = sizeof conversion_buffer;
 
   if (str_len <= 0) return;
+
+  /* Set up the unsupported character glyph */
+  if (!NILP (Vdos_unsupported_char_glyph))
+    {
+      unsupported_char = FAST_GLYPH_CHAR (XINT (Vdos_unsupported_char_glyph));
+      unsupported_face = FAST_GLYPH_FACE (XINT (Vdos_unsupported_char_glyph));
+    }
 
   screen_buf = screen_bp = alloca (str_len * 2);
   screen_buf_end = screen_buf + str_len * 2;
@@ -1042,7 +1049,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	  if (! CHAR_VALID_P (ch, 0))
 	    {
 	      g = !NILP (Vdos_unsupported_char_glyph)
-		? Vdos_unsupported_char_glyph
+		? XINT (Vdos_unsupported_char_glyph)
 		: MAKE_GLYPH (sf, '\177', GLYPH_FACE (sf, g));
 	      ch = FAST_GLYPH_CHAR (g);
 	    }
@@ -5280,7 +5287,7 @@ syms_of_msdos ()
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
 This variable is used only by MSDOS terminals.  */);
-  Vdos_unsupported_char_glyph = '\177';
+  Vdos_unsupported_char_glyph = make_number ('\177');
 
 #endif
 #ifndef subprocesses
