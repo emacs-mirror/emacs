@@ -1,3 +1,17 @@
+2004-02-06  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (FONTSET_DEFAULT): New macro.
+	(FONTSET_ADD): Handle the case that range is nil.
+	(fontset_add): Likewise.
+	(Fset_fontset_font): Change the 2nd arg name to TARGET, and handle
+	the case that it is nil.
+	(dump_fontset): Call FONTSET_DEFAULT, not FONTSET_FALLBACK.
+	(syms_of_fontset): Set char-table-extra-slots property of fontset
+	to 9.
+
+	* charset.h (CHAR_CHARSET_P): Fix for the case that the method is
+	subset or superset.
+
 2004-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* emacs.c (main): Call init_charset after syms_of_XXX.

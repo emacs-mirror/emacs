@@ -1,3 +1,12 @@
+2004-02-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (list-charset-chars): Put charset
+	text property.
+
+	* international/fontset.el (setup-default-fontset): Delete the
+	entry for symbol script, add JISX0213 to kana script, specify
+	fallback fonts.
+
 2004-02-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Register
