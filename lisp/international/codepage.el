@@ -515,8 +515,8 @@ decoder and encoder created by this function."
 	   (symbol-value decode-table) iso-name offset)))
     (define-translation-table encode-translation
       (char-table-extra-slot (symbol-value nonascii-table) 0))
-    ;; For charsets other than ascii and ISO-NAME, set `?' for
-    ;; one-column charsets, and some Japanese character for
+    ;; For charsets other than ascii, eight-bit-* and ISO-NAME, set
+    ;; `?' for one-column charsets, and some Japanese character for
     ;; wide-column charsets.  CCL encoder convert that Japanese
     ;; character to either dos-unsupported-char-glyph or "??".
     (let ((tbl (char-table-extra-slot (symbol-value nonascii-table) 0))
@@ -525,8 +525,11 @@ decoder and encoder created by this function."
 			 (logand dos-unsupported-char-glyph 255)
 		       127)
 		   ??))
-	  (charsets (delq 'ascii (delq iso-name
-				       (copy-sequence charset-list))))
+	  (charsets (delq 'ascii
+			  (delq 'eight-bit-control
+				(delq 'eight-bit-graphic
+				      (delq iso-name
+					    (copy-sequence charset-list))))))
 	  (wide-column-char (make-char 'japanese-jisx0208 32 32)))
       (while charsets
 	(aset tbl (make-char (car charsets))
