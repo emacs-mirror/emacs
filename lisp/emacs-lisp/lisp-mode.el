@@ -149,7 +149,7 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
       '("Instrument Function for Debugging" . edebug-defun))
     (define-key map [byte-recompile]
       '("Byte-recompile Directory..." . byte-recompile-directory))
-    (define-key map [byte-compile]
+    (define-key map [emacs-byte-compile-and-load]
       '("Byte-compile And Load" . emacs-lisp-compile-and-load))
     (define-key map [byte-compile]
       '("Byte-compile This File" . emacs-lisp-byte-compile))
