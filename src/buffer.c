@@ -814,7 +814,8 @@ the window-buffer correspondences.")
     record_buffer (buf);
 
   Fset_window_buffer (EQ (selected_window, minibuf_window)
-		      ? Fnext_window (minibuf_window, Qnil) : selected_window,
+		      ? Fnext_window (minibuf_window, Qnil, Qnil)
+		      : selected_window,
 		      buf);
 
   return Qnil;
@@ -946,7 +947,7 @@ selected window if it is displayed there.")
       XSET (buf, Lisp_Buffer, current_buffer);
 
       /* If we're burying the current buffer, unshow it.  */
-      Fswitch_to_buffer (Fother_buffer (buf), Qnil);
+      Fswitch_to_buffer (Fother_buffer (buf, Qnil), Qnil);
     }
   else
     {
@@ -1247,7 +1248,7 @@ buffer_slot_type_mismatch (valcontents, newval)
      Lisp_Object valcontents, newval;
 {
   unsigned int offset = XUINT (valcontents);
-  char *symbol_name =
+  unsigned char *symbol_name =
     (XSYMBOL (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols))
      ->name->data);
   char *type_name;
@@ -1259,7 +1260,7 @@ buffer_slot_type_mismatch (valcontents, newval)
     case Lisp_Marker:	type_name = "markers";   break;
     case Lisp_Symbol:	type_name = "symbols";   break;
     case Lisp_Cons:	type_name = "lists";     break;
-    case Lisp_Vector:	type_name = "vector";    break;
+    case Lisp_Vector:	type_name = "vectors";   break;
     default:
       abort ();
     }
@@ -1624,7 +1625,7 @@ Each window can have its own, overriding display table.");
   DEFVAR_PER_BUFFER ("buffer-field-list", &current_buffer->fieldlist, Qnil,
     "List of fields in the current buffer.  See `add-field'.");
 
-  DEFVAR_BOOL ("check-protected-fields", check_protected_fields,
+  DEFVAR_BOOL ("check-protected-fields", &check_protected_fields,
     "Non-nil means don't allow modification of a protected field.\n\
 See `add-field'.");
   check_protected_fields = 0;
