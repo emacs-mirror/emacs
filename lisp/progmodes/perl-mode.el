@@ -146,6 +146,25 @@ The expansion is entirely correct because it uses the C preprocessor."
   (modify-syntax-entry ?| "." perl-mode-syntax-table)
 )
 
+(defvar perl-font-lock-keywords
+  (list
+;   ("if" "until" "while" "elsif" "else" "unless" "for" "foreach" "continue"
+;    "exit" "die" "last" "goto" "next" "redo" "return" "local" "exec")
+   (concat "\\<\\("
+	   "continue\\|die\\|e\\(ls\\(e\\|if\\)\\|x\\(ec\\|it\\)\\)\\|"
+	   "for\\(\\|each\\)\\|goto\\|if\\|l\\(ast\\|ocal\\)\\|next\\|"
+	   "re\\(do\\|turn\\)\\|un\\(less\\|til\\)\\|while"
+	   "\\)\\>")
+;   ("#endif" "#else" "#ifdef" "#ifndef" "#if" "#include" "#define" "#undef")
+   (cons (concat "#\\(define\\|e\\(lse\\|ndif\\)\\|"
+		 "i\\(f\\(\\|def\\|ndef\\)\\|nclude\\)\\|undef\\)\\>")
+	 'font-lock-reference-face)
+   '("^[ \n\t]*sub[ \t]+\\([^ \t{]+\\)[ \t]*[{]" 1 font-lock-function-name-face)
+   '("[ \n\t{]*\\(eval\\)[ \n\t(;]" 1 font-lock-function-name-face)
+   '("\\(--- .* ---\\|=== .* ===\\)" . font-lock-string-face)
+   )
+  "Additional expressions to highlight in Perl mode.")
+
 (defvar perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block.")
 (defvar perl-continued-statement-offset 4
@@ -249,6 +268,8 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq comment-indent-function 'perl-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords perl-font-lock-keywords)
   (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment
