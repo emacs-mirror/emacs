@@ -18,6 +18,9 @@
 	* dired.el (dired-insert-directory): Fix check for indentation
 	from ls --dired.
 
+	* vc.el (vc-dired-reformat-line): As a temporary fix, remove all text
+	properties from the reformatted line.
+
 2002-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* finder-inf.el, subdirs.el, cus-load.el: Remove.
