@@ -198,13 +198,13 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (setq local-abbrev-table text-mode-abbrev-table)
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat paragraph-start "\\|^\\("
+  (setq paragraph-start (concat paragraph-start "\\|\\("
 				outline-regexp "\\)"))
   ;; Inhibit auto-filling of header lines.
   (make-local-variable 'auto-fill-inhibit-regexp)
   (setq auto-fill-inhibit-regexp outline-regexp)
   (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (concat paragraph-separate "\\|^\\("
+  (setq paragraph-separate (concat paragraph-separate "\\|\\("
 				   outline-regexp "\\)"))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(outline-font-lock-keywords t))
