@@ -1,3 +1,8 @@
+2004-01-30  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-print-cell): If print format too wide for column
+	width, truncate decimal places if that helps to avoid "#####" fill.
+
 2004-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-context-time, jit-lock-context-timer): New var.
