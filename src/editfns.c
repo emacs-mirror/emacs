@@ -656,7 +656,12 @@ the data it can't find.")
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
 	s = t->tm_zone;
+#else /* not HAVE_TM_ZONE */
+#ifdef HAVE_TZNAME
+      if (t->tm_isdst == 0 || t->tm_isdst == 1)
+	s = tzname[t->tm_isdst];
 #endif
+#endif /* not HAVE_TM_ZONE */
       if (!s)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
