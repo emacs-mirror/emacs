@@ -1,5 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993, 1994, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 2000, 2002, 2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -134,7 +134,7 @@ Boston, MA 02111-1307, USA.  */
 { \
     (i)->total_length = (i)->position = 0;    \
     (i)->left = (i)->right = NULL_INTERVAL;   \
-    SET_INTERVAL_PARENT (i, NULL_INTERVAL);	      \
+    SET_INTERVAL_PARENT (i, NULL_INTERVAL);   \
     (i)->write_protect = 0;                   \
     (i)->visible = 0;                         \
     (i)->front_sticky = (i)->rear_sticky = 0; \
@@ -304,7 +304,7 @@ int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 void extend_property_ranges P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 Lisp_Object get_char_property_and_overlay P_ ((Lisp_Object, Lisp_Object,
 					       Lisp_Object, Lisp_Object*));
-extern int text_property_stickiness P_ ((Lisp_Object prop, Lisp_Object pos));
+extern int text_property_stickiness P_ ((Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer));
 
 extern void syms_of_textprop ();
 
