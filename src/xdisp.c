@@ -1049,7 +1049,7 @@ compute_string_pos (newpos, pos, string)
 			Lisp form evaluation
  ***********************************************************************/
 
-/* Error handler for eval_form.  */
+/* Error handler for eval_form and call_function.  */
 
 static Lisp_Object
 eval_handler (arg)
@@ -1067,9 +1067,35 @@ eval_form (sexpr)
      Lisp_Object sexpr;
 {
   int count = specpdl_ptr - specpdl;
+  struct gcpro gcpro1;
   Lisp_Object val;
+
+  GCPRO1 (sexpr);
   specbind (Qinhibit_redisplay, Qt);
   val = internal_condition_case_1 (Feval, sexpr, Qerror, eval_handler);
+  UNGCPRO;
+  return unbind_to (count, val);
+}
+
+
+/* Call function ARGS[0] with arguments ARGS[1] to ARGS[NARGS - 1].
+   Return the result, or nil if something went wrong.  */
+
+Lisp_Object
+call_function (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  int count = specpdl_ptr - specpdl;
+  Lisp_Object val;
+  struct gcpro gcpro1;
+
+  GCPRO1 (args[0]);
+  gcpro1.nvars = nargs;
+  specbind (Qinhibit_redisplay, Qt);
+  val = internal_condition_case_2 (Ffuncall, nargs, args, Qerror,
+				   eval_handler);
+  UNGCPRO;
   return unbind_to (count, val);
 }
 
@@ -2373,20 +2399,18 @@ handle_single_display_prop (it, prop, object, position)
 		steps = - steps;
 	      it->face_id = smaller_face (it->f, it->face_id, steps);
 	    }
-	  else if (SYMBOLP (it->font_height))
+	  else if (FUNCTIONP (it->font_height))
 	    {
 	      /* Call function with current height as argument.
 		 Value is the new height.  */
-	      Lisp_Object form, height;
-	      struct gcpro gcpro1;
+	      Lisp_Object args[2], height;
 	      
-	      height = face->lface[LFACE_HEIGHT_INDEX];
-	      form = Fcons (it->font_height, Fcons (height, Qnil));
-	      GCPRO1 (form);
-	      height = eval_form (form);
+	      args[0] = it->font_height;
+	      args[1] = face->lface[LFACE_HEIGHT_INDEX];
+	      height = call_function (2, args);
+	      
 	      if (NUMBERP (height))
 		new_height = XFLOATINT (height);
-	      UNGCPRO;
 	    }
 	  else if (NUMBERP (it->font_height))
 	    {
