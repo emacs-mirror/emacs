@@ -1,3 +1,16 @@
+2000-12-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Handle form feed better when ps-zebra-stripe-follow is
+	non-nil.  Adding almost all customization variables on ps-setup.  Doc
+	Fix.
+	(ps-print-version): New version number (6.3.3).
+	(ps-end-with-control-d): Initialization fix.
+	(ps-lines-printed): New var.
+	(ps-skip-newline): New fun.
+	(ps-setup, ps-prologue-file, ps-begin-job, ps-begin-page)
+	(ps-next-line, ps-continue-line, ps-plot-region)
+	(ps-generate-postscript-with-faces, ps-end-job): Code fix.
+	
 2000-12-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (x-complement-fontset-spec): Resolve
