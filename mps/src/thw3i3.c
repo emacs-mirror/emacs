@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc/!thntmv.c(MMdevel_dsm_0.1)$
+ *  $HopeName: MMsrc/!thnti3.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -119,7 +119,8 @@ Error ThreadRegister(Thread *threadReturn, Space space, Addr *stackBot)
   AVER(stackBot != NULL);
   AVER(ISVALID(Space, space));
 
-  e = PoolAllocP(&thread, SpaceControlPool(space), sizeof(ThreadStruct));
+  e = PoolAlloc((Addr *)&thread, SpaceControlPool(space),
+    sizeof(ThreadStruct));
   if(e != ErrSUCCESS)
     goto return_e;
 
@@ -176,7 +177,7 @@ void ThreadDeregister(Thread thread, Space space)
   b = CloseHandle(thread->handle);
   AVER(b); /* .error.close-handle */
 
-  PoolFreeP(SpaceControlPool(space), thread, sizeof(ThreadStruct));
+  PoolFree(SpaceControlPool(space), (Addr)thread, sizeof(ThreadStruct));
 }
 
 

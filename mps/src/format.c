@@ -2,7 +2,7 @@
  *
  *           OBJECT FORMATS
  *
- *  $HopeName: MMsrc/!format.c(trunk.1)$
+ *  $HopeName: MMsrc/!format.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -25,6 +25,7 @@ Bool FormatIsValid(Format format, ValidationType validParam)
   AVER(ISVALIDNESTED(Sig, &FormatSigStruct));
   AVER(format->sig == &FormatSigStruct);
 #endif
+  AVER(ISVALIDNESTED(Space, format->space));
   AVER(IsPoT(format->alignment));
   /* **** alignment should be less than maximum allowed */
   AVER(format->scan != NULL);
@@ -40,17 +41,27 @@ Bool FormatIsValid(Format format, ValidationType validParam)
 #endif /* DEBUG_ASSERT */
 
 
-Error FormatInit(Format format, Addr alignment,
-		 FormatScanMethod scan,
-		 FormatSkipMethod skip,
-		 FormatLengthMethod length,
-		 FormatProbeMethod probe,
-		 FormatMoveMethod move,
-		 FormatIsMovedMethod isMoved,
-		 FormatCopyMethod copy)
+Error FormatCreate(Format *formatReturn, Space space,
+                   Addr alignment,
+                   FormatScanMethod scan,
+                   FormatSkipMethod skip,
+                   FormatLengthMethod length,
+                   FormatProbeMethod probe,
+                   FormatMoveMethod move,
+                   FormatIsMovedMethod isMoved,
+                   FormatCopyMethod copy)
 {
-  AVER(format != NULL);
+  Format format;
+  Error e;
 
+  AVER(formatReturn != NULL);
+
+  e = PoolAlloc((Addr *)&format, SpaceControlPool(space),
+                 sizeof(FormatStruct));
+  if(e != ErrSUCCESS)
+    return e;
+
+  format->space = space;
   format->alignment = alignment;
   format->scan = scan;
   format->skip = skip;
@@ -67,17 +78,18 @@ Error FormatInit(Format format, Addr alignment,
 
   AVER(ISVALID(Format, format));
   
-  return(ErrSUCCESS);
+  *formatReturn = format;
+  return ErrSUCCESS;
 }
 
 
-void FormatFinish(Format format)
+void FormatDestroy(Format format)
 {
-#if !defined(DEBUG_ASSERT) && !defined(DEBUG_SIGN)
-  UNUSED(format);
-#endif
   AVER(ISVALID(Format, format));
 #ifdef DEBUG_SIGN
   format->sig = SigInvalid;
 #endif
+
+  PoolFree(SpaceControlPool(format->space),
+           (Addr)format, sizeof(FormatStruct));
 }

@@ -2,7 +2,7 @@
  *
  *                GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!trace.c(trunk.2)$
+ *  $HopeName: MMsrc/!trace.c(trunk.3)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -31,7 +31,7 @@ static SigStruct TraceSetSigStruct;
 #endif
 
 
-#define TRACEBIT(id)    ((Addr)(1uL << (id)))
+#define TRACEBIT(id)    ((Addr)((Addr)1 << (id)))
 
 
 #ifdef DEBUG_ASSERT
@@ -211,12 +211,12 @@ Error TraceCreate(Trace *traceReturn, Space space)
   
   controlPool = SpaceControlPool(space);
 
-  e = PoolAllocP((void **)&trace, controlPool, sizeof(TraceStruct));
+  e = PoolAlloc((Addr *)&trace, controlPool, sizeof(TraceStruct));
   if(e != ErrSUCCESS) return e;
   
   e = TraceInit(trace, space);
   if(e != ErrSUCCESS) {
-    PoolFreeP(controlPool, (void *)trace, sizeof(TraceStruct));
+    PoolFree(controlPool, (Addr)trace, sizeof(TraceStruct));
     return e;
   }
   
@@ -231,7 +231,7 @@ void TraceDestroy(Trace trace)
   AVER(ISVALID(Trace, trace));
   controlPool = SpaceControlPool(trace->space);;
   TraceFinish(trace);
-  PoolFreeP(controlPool, (void *)trace, sizeof(TraceStruct));
+  PoolFree(controlPool, (Addr)trace, sizeof(TraceStruct));
 }
 
 

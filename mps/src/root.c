@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!root.c(trunk.2)$
+ *  $HopeName: MMsrc/!root.c(trunk.3)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -18,6 +18,7 @@
 #include "mpmconf.h"
 #include "ref.h"
 #include "trace.h"
+#include "spacest.h"
 
 
 #ifdef DEBUG_SIGN
@@ -67,7 +68,7 @@ Bool RootIsValid(Root root, ValidationType validParam)
 }
 
 
-static Error create(Root *rootReturn, Pool pool,
+static Error create(Root *rootReturn, Space space,
                     RefRank rank, RootMode mode,
                     RootType type, RootUnion theUnion)
 {
@@ -75,14 +76,15 @@ static Error create(Root *rootReturn, Pool pool,
   Error e;
 
   AVER(rootReturn != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVER(ISVALID(Space, space));
   AVER(modeIsValid(mode));
   AVER(ISVALID(RefRank, rank));
 
-  e = PoolAllocP((void **)&root, pool, sizeof(RootStruct));
-  if(e != ErrSUCCESS) return e;
+  e = PoolAlloc((Addr *)&root, SpaceControlPool(space),
+                sizeof(RootStruct));
+  if(e != ErrSUCCESS)
+    return e;
 
-  root->pool = pool;
   root->rank = rank;
   root->mode = mode;
   root->type = type;
@@ -98,12 +100,14 @@ static Error create(Root *rootReturn, Pool pool,
 
   AVER(ISVALID(Root, root));
 
+  DequeAppend(SpaceRootDeque(space), &root->spaceDeque);
+
   *rootReturn = root;
   return ErrSUCCESS;
 }
 
 
-Error RootCreateTable(Root *rootReturn, Pool pool,
+Error RootCreateTable(Root *rootReturn, Space space,
                       RefRank rank, RootMode mode,
                       Addr *base, Addr *limit)
 {
@@ -115,14 +119,14 @@ Error RootCreateTable(Root *rootReturn, Pool pool,
   theUnion.table.base = base;
   theUnion.table.limit = limit;
   
-  return create(rootReturn, pool, rank, mode, RootTABLE, theUnion);
+  return create(rootReturn, space, rank, mode, RootTABLE, theUnion);
 }
 
 
-Error RootCreateFun(Root *rootReturn, Pool pool,
-                    RefRank rank, RootMode mode,
-                    Error (*scan)(void *p, int i, Trace trace),
-                    void *p, int i)
+Error RootCreate(Root *rootReturn, Space space,
+                 RefRank rank, RootMode mode,
+                 Error (*scan)(void *p, int i, Trace trace),
+                 void *p, int i)
 {
   RootUnion theUnion;
   
@@ -132,22 +136,31 @@ Error RootCreateFun(Root *rootReturn, Pool pool,
   theUnion.fun.p = p;
   theUnion.fun.i = i;
 
-  return create(rootReturn, pool, rank, mode, RootFUN, theUnion);
+  return create(rootReturn, space, rank, mode, RootFUN, theUnion);
 }
 
 
 void RootDestroy(Root root)
 {
+  Space space;
+
   AVER(ISVALID(Root, root));
+
+  space = PARENT(SpaceStruct, rootDeque,
+                 DequeNodeParent(&root->spaceDeque));
+
+  AVER(ISVALID(Space, space));
+
+  DequeNodeRemove(&root->spaceDeque);
+  DequeNodeFinish(&root->spaceDeque);
   
   TraceSetFinish(&root->marked);
-  DequeNodeFinish(&root->spaceDeque);
 
 #ifdef DEBUG_SIGN
   root->sig = SigInvalid;
 #endif
 
-  PoolFreeP(root->pool, root, sizeof(RootStruct));
+  PoolFree(SpaceControlPool(space), (Addr)root, sizeof(RootStruct));
 }
 
 

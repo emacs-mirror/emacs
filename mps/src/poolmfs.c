@@ -1,6 +1,6 @@
 /*  ==== MANUAL FIXED SMALL UNIT POOL ====
  *
- *  $HopeName: MMsrc/!poolmfs.c(trunk.1)$
+ *  $HopeName: MMsrc/!poolmfs.c(trunk.3)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -20,12 +20,12 @@
  *  Notes
  *   1. The simple freelist policy might lead to poor locality of allocation
  *      if the list gets fragmented.  richard 1994-11-03
- *   2. freeP should check that the pointer it is asked to free is in a
+ *   2. free should check that the pointer it is asked to free is in a
  *      segment owned by the pool.  This required more support from the
  *      arena manager than is currently available.  richard 1994-11-03
  *   3. A describe method is needed.  richard 1994-11-03
  *   4. By not using the rounded extent of a segment some space may be
- *      wasted at the end in allocP.  richard 1994-11-03
+ *      wasted at the end in alloc.  richard 1994-11-03
  *   5. isValid should check that free list points into the pool.
  *      richard 1994-11-03
  *   6. This pool doesn't support fast cache allocation, which is a shame.
@@ -57,8 +57,8 @@
 
 static Error create(Pool *poolReturn, Space space, va_list arg);
 static void  destroy(Pool pool);
-static Error allocP(void **pReturn, Pool pool, size_t size);
-static void freeP(Pool pool, void *old, size_t size);
+static Error alloc(Addr *pReturn, Pool pool, Size size);
+static void free_(Pool pool, Addr old, Size size);
 static Error describe(Pool pool, LibStream stream);
 
 static PoolClassStruct PoolClassMFSStruct;
@@ -69,7 +69,7 @@ PoolClass PoolClassMFS(void)
                 "MFS",
                 sizeof(PoolMFSStruct), offsetof(PoolMFSStruct, poolStruct),
                 create, destroy,
-                allocP, freeP,
+                alloc, free_,
                 NULL, NULL,		/* bufferCreate, bufferDestroy */
                 NULL, NULL, NULL,	/* comdemn, mark, scan */
                 NULL, NULL,		/* fix, relcaim */
@@ -138,14 +138,15 @@ Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
   AVER(poolMFSReturn != NULL);
   AVER(ISVALID(Space, space));
 
-  e = PoolAllocP((void **)&poolMFS, SpaceControlPool(space),
+  e = PoolAlloc((Addr *)&poolMFS, SpaceControlPool(space),
                  sizeof(PoolMFSStruct));
-  if(e != ErrSUCCESS) return(e);
+  if(e != ErrSUCCESS)
+    return e;
   
   e = PoolMFSInit(poolMFS, space, extendBy, unitSize);
   if(e != ErrSUCCESS) {
-    PoolFreeP(SpaceControlPool(space), poolMFS, sizeof(PoolMFSStruct));
-    return(e);
+    PoolFree(SpaceControlPool(space), (Addr)poolMFS, sizeof(PoolMFSStruct));
+    return e;
   }
   
   *poolMFSReturn = poolMFS;
@@ -178,7 +179,7 @@ void PoolMFSDestroy(PoolMFS poolMFS)
   AVER(ISVALID(PoolMFS, poolMFS));
   control = SpaceControlPool(PoolSpace(PoolMFSPool(poolMFS)));
   PoolMFSFinish(poolMFS);
-  PoolFreeP(control, poolMFS, sizeof(PoolMFSStruct));
+  PoolFree(control, (Addr)poolMFS, sizeof(PoolMFSStruct));
 }
 
 static void destroy(Pool pool)
@@ -243,7 +244,7 @@ void PoolMFSFinish(PoolMFS poolMFS)
  *  and returning it.  If there are none, a new segment is allocated.
  */
 
-static Error allocP(void **pReturn, Pool pool, size_t size)
+static Error alloc(Addr *pReturn, Pool pool, Size size)
 {
   Header f;
   Error e;
@@ -255,7 +256,7 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
 
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassMFSStruct);
-  AVER(pReturn != NULL);
+  AVER(pReturn != (Addr)0);
 
   MFS = PARENT(PoolMFSStruct, poolStruct, pool);
 
@@ -275,7 +276,7 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
     /* Create a new segment and attach it to the pool. */
     e = PoolSegAlloc(&seg, pool, MFS->extendBy);
     if(e != ErrSUCCESS)
-      return(e);
+      return e;
 
     /* chain segs through Key1; can find them when finishing */
     arena = SpaceArena(PoolSpace(pool));
@@ -314,8 +315,8 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
 
   MFS->freeList = f->next;
 
-  *pReturn = (void *)f;
-  return(ErrSUCCESS);
+  *pReturn = (Addr)f;
+  return ErrSUCCESS;
 }
 
 
@@ -326,7 +327,7 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
  *  locations throughout the pool.
  */
 
-static void freeP(Pool pool, void *old, size_t size)
+static void free_(Pool pool, Addr old, Size size)
 {
   Header h;
   PoolMFS MFS;
@@ -337,7 +338,7 @@ static void freeP(Pool pool, void *old, size_t size)
 
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassMFSStruct);
-  AVER(old != NULL);
+  AVER(old != (Addr)0);
 
   MFS = PARENT(PoolMFSStruct, poolStruct, pool);
 

@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName: MMsrc/!poolmv.c(trunk.1)$
+ *  $HopeName: MMsrc/!poolmv.c(trunk.3)$
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
@@ -16,7 +16,7 @@
  *  Notes
  *   1. Need to measure typical fragmentation levels and adjust the
  *      blockExtendBy parameter appropriately.  richard 1994-11-08
- *   2. freeP can lose memory if it can't allocate a block descriptor.  The
+ *   2. free can lose memory if it can't allocate a block descriptor.  The
  *      memory could be pushed onto a special chain to be reclaimed later.
  *      richard 1994-11-09
  *   3. The span chain could be adaptive.  richard 1994-11-09
@@ -52,8 +52,8 @@
 
 static Error create(Pool *poolReturn, Space space, va_list arg);
 static void  destroy(Pool pool);
-static Error allocP(void **pReturn, Pool pool, size_t size);
-static void freeP(Pool pool, void *old, size_t size);
+static Error alloc(Addr *pReturn, Pool pool, Size size);
+static void free_(Pool pool, Addr old, Size size);
 static Error describe(Pool pool, LibStream stream);
 
 static PoolClassStruct PoolClassMVStruct;
@@ -64,7 +64,7 @@ PoolClass PoolClassMV(void)
                 "MV",
                 sizeof(PoolMVStruct), offsetof(PoolMVStruct, poolStruct),
                 create, destroy,
-                allocP, freeP,
+                alloc, free_,
                 NULL, NULL,		/* bufferCreate, bufferDestroy */
                 NULL, NULL, NULL,	/* condemn, mark, scan */
                 NULL, NULL,		/* fix, relcaim */
@@ -190,7 +190,7 @@ Pool PoolMVPool(PoolMV poolMV)
 
 
 Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
-                   size_t extendBy, size_t avgSize, size_t maxSize)
+                   Size extendBy, Size avgSize, Size maxSize)
 {
   Error e;
   PoolMV poolMV;
@@ -198,13 +198,15 @@ Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
   AVER(poolMVReturn != NULL);
   AVER(ISVALID(Space, space));
 
-  e = PoolAllocP((void **)&poolMV, SpaceControlPool(space), sizeof(PoolMVStruct));
-  if(e != ErrSUCCESS) return(e);
+  e = PoolAlloc((Addr *)&poolMV, SpaceControlPool(space),
+    sizeof(PoolMVStruct));
+  if(e != ErrSUCCESS)
+    return(e);
   
   e = PoolMVInit(poolMV, space, extendBy, avgSize, maxSize);
   if(e != ErrSUCCESS) {
-    PoolFreeP(SpaceControlPool(space), poolMV, sizeof(PoolMVStruct));
-    return(e);
+    PoolFree(SpaceControlPool(space), (Addr)poolMV, sizeof(PoolMVStruct));
+    return e;
   }
   
   *poolMVReturn = poolMV;
@@ -213,22 +215,23 @@ Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
 
 static Error create(Pool *poolReturn, Space space, va_list arg)
 {
-  size_t extendBy, avgSize, maxSize;
+  Size extendBy, avgSize, maxSize;
   PoolMV poolMV;
   Error e;
 
   AVER(poolReturn != NULL);
   AVER(ISVALID(Space, space));
   
-  extendBy = va_arg(arg, size_t);
-  avgSize = va_arg(arg, size_t);
-  maxSize = va_arg(arg, size_t);
+  extendBy = va_arg(arg, Size);
+  avgSize = va_arg(arg, Size);
+  maxSize = va_arg(arg, Size);
   
   e = PoolMVCreate(&poolMV, space, extendBy, avgSize, maxSize);
-  if(e != ErrSUCCESS) return(e);
+  if(e != ErrSUCCESS)
+    return e;
   
   *poolReturn = PoolMVPool(poolMV);
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
@@ -238,7 +241,7 @@ void PoolMVDestroy(PoolMV poolMV)
   AVER(ISVALID(PoolMV, poolMV));
   control = SpaceControlPool(PoolSpace(PoolMVPool(poolMV)));
   PoolMVFinish(poolMV);
-  PoolFreeP(control, poolMV, sizeof(PoolMVStruct));
+  PoolFree(control, (Addr)poolMV, sizeof(PoolMVStruct));
 }
 
 static void destroy(Pool pool)
@@ -249,11 +252,11 @@ static void destroy(Pool pool)
 }
 
 
-Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy,
-                 size_t avgSize, size_t maxSize)
+Error PoolMVInit(PoolMV poolMV, Space space, Size extendBy,
+                 Size avgSize, Size maxSize)
 {
   Error e;
-  size_t blockExtendBy, spanExtendBy;
+  Size blockExtendBy, spanExtendBy;
 
   AVER(poolMV != NULL);
   AVER(ISVALID(Space, space));
@@ -270,13 +273,17 @@ Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy,
 
   blockExtendBy = sizeof(BlockStruct) * (extendBy/avgSize)/2;
 
-  e = PoolMFSInit(&poolMV->blockPoolStruct, space, blockExtendBy, sizeof(BlockStruct));
-  if(e != ErrSUCCESS) return(e);
+  e = PoolMFSInit(&poolMV->blockPoolStruct, space,
+    blockExtendBy, sizeof(BlockStruct));
+  if(e != ErrSUCCESS)
+    return e;
 
   spanExtendBy = sizeof(SpanStruct) * (maxSize/extendBy);
 
-  e = PoolMFSInit(&poolMV->spanPoolStruct, space, spanExtendBy, sizeof(SpanStruct));
-  if(e != ErrSUCCESS) return(e);
+  e = PoolMFSInit(&poolMV->spanPoolStruct, space,
+    spanExtendBy, sizeof(SpanStruct));
+  if(e != ErrSUCCESS)
+    return e;
 
   poolMV->extendBy = extendBy;
   poolMV->avgSize  = avgSize;
@@ -287,7 +294,7 @@ Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy,
 
   AVER(ISVALID(PoolMV, poolMV));
 
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
@@ -356,7 +363,7 @@ static Bool SpanAlloc(Addr *addrReturn, Span span, Addr size,
 	Block old = block->next;
 	block->limit = old->limit;
 	block->next = old->next;
-	PoolFreeP(blockPool, old, sizeof(BlockStruct));
+	PoolFree(blockPool, (Addr)old, sizeof(BlockStruct));
 	--span->blockCount;
       }
       else
@@ -410,7 +417,7 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
       {
 	AVER(block->next != NULL); /* should at least be a sentinel */
 	*prev = block->next;
-	PoolFreeP(blockPool, block, sizeof(BlockStruct));
+	PoolFree(blockPool, (Addr)block, sizeof(BlockStruct));
 	--span->blockCount;
       }
       else if(!isBase && block->base == base)
@@ -425,7 +432,7 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
 	/* The freed area is buried in the middle of the block, so the */
 	/* block must be split into two parts.  */
 
-	e = PoolAllocP((void **)&new, blockPool, sizeof(BlockStruct));
+	e = PoolAlloc((Addr *)&new, blockPool, sizeof(BlockStruct));
 	if(e != ErrSUCCESS) return(e);
 
 	/* If the freed area is in the base sentinel then insert the new */
@@ -465,23 +472,23 @@ static Error SpanFree(Span span, Addr base, Addr limit, Pool blockPool)
   while(block != NULL);
 
   /* The freed area is in the span, but not within a block. */
-  ASSERT2(PoolFreeP(poolMV), FALSE,
+  ASSERT2(PoolFree(poolMV), FALSE,
     "Block %p size %lu is already partially free in pool.",
     (void *)base, (unsigned long)(limit-base));
 
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
 /*  == Allocate ==  */
 
-static Error allocP(void **pReturn, Pool pool, size_t size)
+static Error alloc(Addr *pReturn, Pool pool, Size size)
 {
   Error e;
   Arena arena;
   Span span;
   PoolMV poolMV;
-  size_t segSize;
+  Size segSize;
 
   AVER(pReturn != NULL);
   AVER(ISVALID(Pool, pool));
@@ -506,8 +513,8 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
 	{
 	  poolMV->space -= size;
 	  AVER(IsAligned(pool->alignment, new));
-	  *pReturn = (void *)new;
-	  return(ErrSUCCESS);
+	  *pReturn = new;
+	  return ErrSUCCESS;
 	}
       }
 
@@ -521,9 +528,9 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
  *  segment.
  */
 
-  e = PoolAllocP((void **)&span, SPANPOOL(poolMV), sizeof(SpanStruct));
+  e = PoolAlloc((Addr *)&span, SPANPOOL(poolMV), sizeof(SpanStruct));
   if(e != ErrSUCCESS)
-    return(e);
+    return e;
 
   if(size <= poolMV->extendBy)
     segSize = poolMV->extendBy;
@@ -536,8 +543,8 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
   e = PoolSegAlloc(&span->seg, pool, segSize);
   if(e != ErrSUCCESS)
   {
-    PoolFreeP(SPANPOOL(poolMV), span, sizeof(SpanStruct));
-    return(e);
+    PoolFree(SPANPOOL(poolMV), (Addr)span, sizeof(SpanStruct));
+    return e;
   }
   ArenaPut(arena, span->seg, ARENA_CLASS, (void *)span);
 
@@ -560,12 +567,12 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
   poolMV->space += span->space;
   poolMV->spans = span;
 
-  *pReturn = (void *)span->base.base;
-  return(ErrSUCCESS);
+  *pReturn = span->base.base;
+  return ErrSUCCESS;
 }
 
 
-static void freeP(Pool pool, void *old, size_t size)
+static void free_(Pool pool, Addr old, Size size)
 {
   Addr base, limit;
   Arena arena;
@@ -582,7 +589,7 @@ static void freeP(Pool pool, void *old, size_t size)
 
   poolMV = PARENT(PoolMVStruct, poolStruct, pool);
   size = AlignUp(pool->alignment, size);
-  base = (Addr)old;
+  base = old;
   limit = base + size;
 
   /* Map the pointer onto the segment which contains it, and thence */
