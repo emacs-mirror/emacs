@@ -1,5 +1,31 @@
 1999-11-23  Dave Love  <fx@gnu.org>
 
+	* fortran.el (fortran-comment-line-start): Renamed from
+	comment-line-start.
+	(fortran-comment-line-start-skip): Renamed from
+	comment-line-start-skip.
+	(fortran-mode-map): Use renamed functions.  Add manual and custom
+	entries to menu.
+	(fortran-mode-hook): Customize.
+	(fortran-comment-indent-function): Renamed from
+	fortran-comment-hook.
+	(delete-horizontal-regexp): Function deleted.
+	(fortran-electric-line-number): Simplified.
+	(fortran-beginning-of-subprogram): Renamed from
+	beginning-of-fortran-subprogram.
+	(fortran-end-of-subprogram): Renamed from
+	end-of-fortran-subprogram.
+	(fortran-mark-subprogram): Renamed from mark-fortran-subprogram.
+	(fortran-previous-statement, fortran-next-statement): Simplified.
+	(fortran-blink-match): New function.
+	(fortran-blink-matching-if, fortran-blink-matching-do): Use it.
+	(fortran-indent-to-column): Don't use delete-horizontal-regexp.
+	(fortran-find-comment-start-skip, fortran-is-in-string-p): Use
+	line-end-position.
+	(fortran-fill): No longer interactive.  Simplified.
+	(fortran-break-line): Simplified.
+	(fortran-analyze-file-format): Use char-after, not looking-at.
+
 	* find-func.el (find-function-regexp): Use `define-minor-mode'
 	after easy-menu change.
 
