@@ -169,6 +169,8 @@ With arg, turn Winner mode on if and only if arg is positive."
 
 (defvar winner-stacks nil) ; ------ " ------
 
+;; This works around a bug in defstruct.
+(defvar custom-print-functions nil)
 
 ;; A stack of window configurations with some additional information.
 (defstruct (winner-stack
