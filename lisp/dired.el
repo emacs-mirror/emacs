@@ -489,13 +489,17 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (if (consp dir-or-list)
 	(setq dirname (car dir-or-list))
       (setq dirname dir-or-list))
-    (if (equal default-directory dirname)	;; i.e., (file-directory-p dirname)
+    (if (and (equal default-directory dirname)
+	     (not (consp dir-or-list)))
+	;; If we are reading a whole single directory...
 	(dired-insert-directory dir-or-list dired-actual-switches nil t)
       (if (not (file-readable-p
 		(directory-file-name (file-name-directory dirname))))
 	  (error "Directory %s inaccessible or nonexistent" dirname)
-	;; else assume it contains wildcards:
-	(dired-insert-directory dir-or-list dired-actual-switches t)
+	;; Else assume it contains wildcards,
+	;; unless it is an explicit list of files.
+	(dired-insert-directory dir-or-list dired-actual-switches
+				(not (listp dir-or-list)))
 	(save-excursion		;; insert wildcard instead of total line:
 	  (goto-char (point-min))
 	  (insert "wildcard " (file-name-nondirectory dirname) "\n"))))))
@@ -506,9 +510,9 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; list.
   (if (consp dir-or-list)
       (progn
-      (mapcar
-       (function (lambda (x) (insert-directory x switches wildcard full-p)))
-       (cdr dir-or-list)))
+	(mapcar
+	 (function (lambda (x) (insert-directory x switches wildcard full-p)))
+	 (cdr dir-or-list)))
     (insert-directory dir-or-list switches wildcard full-p))
   (setq dired-directory dir-or-list))
 
