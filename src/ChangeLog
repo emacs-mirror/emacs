@@ -1,3 +1,8 @@
+2001-03-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (highlight_trailing_whitespace): Glyphs whose object
+	is an integer don't have to be for space characters.
+
 2001-03-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* indent.c (current_column, current_column_1, Fmove_to_column) 
