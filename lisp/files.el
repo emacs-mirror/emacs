@@ -1204,6 +1204,7 @@ run `normal-mode' explicitly."
     ("\\`/tmp/Re" . text-mode)
     ("/Message[0-9]*\\'" . text-mode)
     ("/drafts/[0-9]+\\'" . mh-letter-mode)
+    ("\\.zone\\'" . zone-mode)
     ;; some news reader is reported to use this
     ("\\`/tmp/fol/" . text-mode)
     ("\\.y\\'" . c-mode)
@@ -1229,6 +1230,20 @@ mode function to use.  FUNCTION will be called, unless it is nil.
 If the element has the form (REGEXP FUNCTION NON-NIL), then after
 calling FUNCTION (if it's not nil), we delete the suffix that matched
 REGEXP and search the list again for another match.")
+
+
+
+
+To install,  put this in your .emacs:
+  (setq auto-mode-alist (cons '(\".zone$\" . zone-mode)
+  				  auto-mode-alist))
+or put ;-*-zone-*-
+on an the first line of the zone files.
+
+You may also need to add
+  (autoload 'zone-mode \"zone-mode\" "")
+
+Font-lock support assumes emacs-20.
 
 (defvar interpreter-mode-alist
   '(("perl" . perl-mode)
