@@ -1,3 +1,8 @@
+2002-07-01  Dave Love  <fx@gnu.org>
+
+	* charset.c: Doc fixes.
+	(Funify_charset): Extra checking.
+
 2002-06-24  Dave Love  <fx@gnu.org>
 
 	* lread.c: Remove some unused variables.

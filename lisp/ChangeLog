@@ -1,4 +1,7 @@
-2002-06-30  Dave Love  <fx@gnu.org>
+2002-07-01  Dave Love  <fx@gnu.org>
+
+	* language/devanagari.el ("Devanagari"): Fix coding-system,
+	coding-priority.
 
 	* international/mule-diag.el (describe-char-after): Modify display
 	list processing.

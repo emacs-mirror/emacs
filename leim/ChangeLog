@@ -1,3 +1,7 @@
+2002-07-01  Dave Love  <fx@gnu.org>
+
+	* quail/indian.el: Update from head.
+
 2002-06-27  Dave Love  <fx@gnu.org>
 
 	* ja-dic/ja-dic.el: Add coding tag.
