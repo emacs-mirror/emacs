@@ -1478,10 +1478,10 @@ XTframe_rehighlight ()
 
   if (x_focus_frame)
     {
-      x_highlight_frame =
-	((XGCTYPE (FRAME_FOCUS_FRAME (x_focus_frame)) == Lisp_Frame)
-	 ? XFRAME (FRAME_FOCUS_FRAME (x_focus_frame))
-	 : x_focus_frame);
+      x_highlight_frame
+	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (x_focus_frame)))
+	   ? XFRAME (FRAME_FOCUS_FRAME (x_focus_frame))
+	   : x_focus_frame);
       if (! FRAME_LIVE_P (x_highlight_frame))
 	{
 	  FRAME_FOCUS_FRAME (x_focus_frame) = Qnil;
@@ -1538,8 +1538,8 @@ x_find_modifier_meanings (dpyinfo)
     for (row = 3; row < 8; row++)
       for (col = 0; col < mods->max_keypermod; col++)
 	{
-	  KeyCode code =
-	    mods->modifiermap[(row * mods->max_keypermod) + col];
+	  KeyCode code
+	    = mods->modifiermap[(row * mods->max_keypermod) + col];
 
 	  /* Zeroes are used for filler.  Skip them.  */
 	  if (code == 0)
@@ -2362,7 +2362,7 @@ x_window_to_scroll_bar (window_id)
 
       frame = XCONS (tail)->car;
       /* All elements of Vframe_list should be frames.  */
-      if (XGCTYPE (frame) != Lisp_Frame)
+      if (! GC_FRAMEP (frame))
 	abort ();
 
       /* Scan this frame's scroll bar list for a scroll bar with the
@@ -2657,8 +2657,7 @@ XTset_vertical_scroll_bar (window, portion, whole, position)
      dragged.  */
   if (NILP (bar->dragging))
     {
-      int top_range =
-	VERTICAL_SCROLL_BAR_TOP_RANGE (pixel_height);
+      int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (pixel_height);
 
       if (whole == 0)
 	x_scroll_bar_set_handle (bar, 0, top_range, 0);
@@ -2814,24 +2813,25 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
      XEvent *event;
      struct input_event *emacs_event;
 {
-  if (XGCTYPE (bar->window) != Lisp_Window)
+  if (! GC_WINDOWP (bar->window))
     abort ();
 
   emacs_event->kind = scroll_bar_click;
   emacs_event->code = event->xbutton.button - Button1;
-  emacs_event->modifiers =
-    (x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (XFRAME (WINDOW_FRAME (XWINDOW (bar->window)))),
-			     event->xbutton.state)
-     | (event->type == ButtonRelease
-	? up_modifier
-	: down_modifier));
+  emacs_event->modifiers
+    = (x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO 
+			       (XFRAME (WINDOW_FRAME (XWINDOW (bar->window)))),
+			       event->xbutton.state)
+       | (event->type == ButtonRelease
+	  ? up_modifier
+	  : down_modifier));
   emacs_event->frame_or_window = bar->window;
   emacs_event->timestamp = event->xbutton.time;
   {
-    int internal_height =
-      VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
-    int top_range =
-      VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height));
+    int internal_height
+      = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
+    int top_range
+      = VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height));
     int y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
 
     if (y < 0) y = 0;
@@ -3536,9 +3536,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  /* make_lispy_event turns chars into control chars.
 		     Don't do it here because XLookupString is too eager.  */
 		  event.xkey.state &= ~ControlMask;
-		  nbytes =
-		    XLookupString (&event.xkey, copy_buffer, 80, &keysym,
-				   &compose_status);
+		  nbytes = XLookupString (&event.xkey, copy_buffer,
+					  80, &keysym, &compose_status);
 
 		  orig_keysym = keysym;
 
