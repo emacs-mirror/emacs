@@ -3053,7 +3053,8 @@ If FILENAME is omitted, the printname of FEATURE is used as the file name,\n\
 but in this case `load' insists on adding the suffix `.el' or `.elc'.\n\
 If the optional third argument NOERROR is non-nil,\n\
 then return nil if the file is not found.\n\
-Normally the return value is FEATURE.")
+Normally the return value is FEATURE.\n\
+This normal messages at start and end of loading FILENAME are suppressed.")
   (feature, file_name, noerror)
      Lisp_Object feature, file_name, noerror;
 {
