@@ -1,3 +1,7 @@
+2003-01-18  Vasily Korytov  <deskpot@myrealbox.com>  (tiny change)
+
+	* progmodes/cperl-mode.el: Don't make faces depend on window-system.
+
 2003-01-18  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-edit.el (customize-changed-options): Undo last doc change.
@@ -47,7 +51,7 @@
 
 2003-01-15  Deepak Goel  <deego@gnufans.org>
 
-	* calc/README: Add new maintainer. 
+	* calc/README: Add new maintainer.
 
 	* calc/*: Ditto.
 
@@ -90,7 +94,7 @@
 
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-read-internal, ido-file-internal) 
+	* ido.el (ido-read-internal, ido-file-internal)
 	(ido-copy-current-file-name, ido-wide-find-dirs-or-files):
 	Don't use `path' as name of local variables holding a file name.
 
@@ -109,7 +113,7 @@
 
 2003-01-14  John Paul Wallington  <jpw@shootybangbang.com>
 
-	* apropos.el (apropos): Restore autoload cookie.  Fix typo in 
+	* apropos.el (apropos): Restore autoload cookie.  Fix typo in
 	"error retrieving function documentation" output.
 
 2003-01-14  Kim F. Storm  <storm@cua.dk>
