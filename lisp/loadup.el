@@ -118,7 +118,7 @@
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
-      (and (boundp 'x-toolkit-scroll-bars-p)
+      (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
 (load "isearch")
