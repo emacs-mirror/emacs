@@ -1,11 +1,7 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
- * $HopeName: MMsrc!splay.c(trunk.7) $
- * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
- *
- * .readership: Any MPS developer.
- *
- * .intro: This is a portable implementation of splay trees.
+ * $HopeName: MMsrc!splay.c(trunk.8) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: Splay trees are used to manage potentially unbounded 
  * collections of ordered things.
@@ -22,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.7) $");
+SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.8) $");
 
 /* Basic getter and setter methods */
 #define SplayTreeRoot(t) RVALUE((t)->root)
@@ -874,8 +870,6 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
  * The given callbacks testNode and testTree detect this property in
  * a single node or a sub-tree rooted at a node, and both receive the
  * arbitrary closures closureP and closureS.
- *
- * This function does not perturb the tree.
  */
 
 Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
@@ -912,8 +906,7 @@ Bool SplayFindFirst(SplayNode *nodeReturn, SplayTree tree,
 }
 
 
-/* SplayFindLast -- As SplayFindFirst but in reverse address order
- */
+/* SplayFindLast -- As SplayFindFirst but in reverse address order */
 
 Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
                           SplayTestNodeMethod testNode,
@@ -1004,9 +997,9 @@ Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                       SplayNodeDescribeMethod nodeDescribe) {
   Res res;
 
-  AVERT(SplayTree, tree);
-  AVER(stream != NULL);
-  AVER(FUNCHECK(nodeDescribe));
+  if(!SplayTreeCheck(tree)) return ResFAIL;
+  if(stream == NULL) return ResFAIL;
+  if(!FUNCHECK(nodeDescribe)) return ResFAIL;
 
   res = WriteF(stream,
                "Splay $P {\n", (WriteFP)tree,
@@ -1021,11 +1014,6 @@ Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
       return res;
   }
 
-  res = WriteF(stream, 
-               "\n}\n", 
-               NULL);
-  if(res != ResOK)
-    return res;
-
-  return ResOK;
+  res = WriteF(stream, "\n}\n", NULL);
+  return res;
 }
