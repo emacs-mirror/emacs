@@ -2,10 +2,10 @@
 
 ;;; Copyright (C) 1985, 86, 87, 88, 90, 92, 93 Free Software Foundation
 
-(defconst mh-e-time-stamp "Time-stamp: <93/05/27 18:02:50 gildea>")
+(defconst mh-e-time-stamp "Time-stamp: <93/05/30 18:37:43 gildea>")
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Version: 3.8.1
+;; Version: 3.8.2
 ;; Keywords: mail
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -48,7 +48,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@bbn.com
-(defconst mh-e-RCS-id "$Header: mh-e.el,v 3.9 93/01/11 11:49:18 gildea Exp $")
+(defconst mh-e-RCS-id "$Header: mh-e.el,v 3.6.1.1 93/05/30 07:36:57 gildea Exp $")
 
 ;;; Code:
 
@@ -173,6 +173,10 @@ value and it should be one of \"from\", \"to\", or \"cc\".")
 
 (defvar mh-unshar-default-directory ""
   "*Default for directory name prompted for by mh-unshar-msg.")
+
+(defvar mh-signature-file-name "~/.signature"
+  "*Name of file containing the user's signature.
+Inserted into message by \\<mh-letter-mode-map>\\[mh-insert-signature].")
 
 
 ;;; Parameterize mh-e to work with different scan formats.  The defaults work
@@ -1824,6 +1828,9 @@ Variables controlling this mode (defaults in parentheses):
     If nil, only the portion of the message following the point will be yanked.
     If there is a region, this variable is ignored.
 
+ mh-signature-file-name (\"~/.signature\")
+    File to be inserted into message by \\[mh-insert-signature].
+
 Upon invoking mh-letter-mode, text-mode-hook and mh-letter-mode-hook are
 invoked with no args, if those values are non-nil.
 
@@ -1913,9 +1920,9 @@ Prompt for the field name with a completion list of the current folders."
 
 
 (defun mh-insert-signature ()
-  "Insert the file ~/.signature at the current point."
+  "Insert the file named by mh-signature-file-name at the current point."
   (interactive)
-  (insert-file-contents "~/.signature")
+  (insert-file-contents mh-signature-file-name)
   (set-buffer-modified-p (buffer-modified-p))) ; force mode line update
 
 
@@ -2924,4 +2931,3 @@ Assumes that any filename that starts with '+' is a folder name."
 (provide 'mh-e)
 
 ;;; mh-e.el ends here
-
