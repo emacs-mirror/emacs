@@ -1,3 +1,11 @@
+2004-02-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_window): Fixed indentation.
+
+	* xterm.c (x_calc_absolute_position): Call x_real_positions
+	to get WM window sizes and use those to calculate position.
+	(x_set_offset): Removed code commented out.
+
 2004-02-28  Miles Bader  <miles@gnu.org>
 
 	* keyboard.c (adjust_point_for_property): #ifdef-out dodgy xassert.
