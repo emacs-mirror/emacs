@@ -245,10 +245,8 @@ store_function_docstring (fun, offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
-	abort ();
-
-      XFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING]) = offset;
+      if (XVECTOR (fun)->size > COMPILED_DOC_STRING)
+	XFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING]) = offset;
     }
 }
 
