@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
 ;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.1.5
+;; Version: 1.1.6
 ;; Keywords: processes SQL
 
 ;; This file is part of GNU Emacs.
@@ -364,9 +364,9 @@ add functions and PL/SQL keywords.")
 ;; ANSI Reserved Word that look like types
 "char" "integer" "smallint" ) t) "\\b"))))
     (setq sql-mode-ansi-font-lock-keywords
-	  (list (cons ansi-keywords font-lock-function-name-face)
-		(cons ansi-reserved-words font-lock-keyword-face)
-		(cons ansi-types font-lock-type-face)))))
+	  (list (cons ansi-keywords 'font-lock-function-name-face)
+		(cons ansi-reserved-words 'font-lock-keyword-face)
+		(cons ansi-types 'font-lock-type-face)))))
 
 (defvar sql-mode-oracle-font-lock-keywords nil
   "Oracle SQL keywords used by font-lock.
@@ -434,17 +434,17 @@ to add functions and PL/SQL keywords.")
 "translate" "trunc" "uid" "upper" "userenv" "variance" "vsize") t) "\\b"))))
     (setq sql-mode-oracle-font-lock-keywords
 	  (append sql-mode-ansi-font-lock-keywords
-		  (list (cons oracle-keywords font-lock-function-name-face)
-			(cons oracle-reserved-words font-lock-keyword-face)
+		  (list (cons oracle-keywords 'font-lock-function-name-face)
+			(cons oracle-reserved-words 'font-lock-keyword-face)
 			;; XEmacs doesn't have font-lock-builtin-face
 			(if (string-match "XEmacs\\|Lucid" emacs-version)
-			    (cons oracle-builtin-functions font-lock-preprocessor-face)
+			    (cons oracle-builtin-functions 'font-lock-preprocessor-face)
 			  ;; GNU Emacs 19 doesn't have it either
 			  (if (string-match "GNU Emacs 19" emacs-version)
-			      (cons oracle-builtin-functions font-lock-function-name-face)
+			      (cons oracle-builtin-functions 'font-lock-function-name-face)
 			    ;; Emacs
-			    (cons oracle-builtin-functions font-lock-builtin-face)))
-			(cons oracle-types font-lock-type-face))))))
+			    (cons oracle-builtin-functions 'font-lock-builtin-face)))
+			(cons oracle-types 'font-lock-type-face))))))
 
 (defvar sql-mode-postgres-font-lock-keywords nil
   "Postgres SQL keywords used by font-lock.
@@ -482,13 +482,13 @@ you define your own sql-mode-postgres-font-lock-keywords.")
 ) t) "\\b"))))
     (setq sql-mode-postgres-font-lock-keywords
 	  (append sql-mode-ansi-font-lock-keywords
-		  (list (cons postgres-reserved-words font-lock-keyword-face)
-			;; XEmacs doesn't have font-lock-builtin-face
+		  (list (cons postgres-reserved-words 'font-lock-keyword-face)
+			;; XEmacs doesn't have 'font-lock-builtin-face
 			(if (string-match "XEmacs\\|Lucid" emacs-version)
-			    (cons postgres-builtin-functions font-lock-preprocessor-face)
+			    (cons postgres-builtin-functions 'font-lock-preprocessor-face)
 			  ;; Emacs
-			  (cons postgres-builtin-functions font-lock-builtin-face))
-			(cons postgres-types font-lock-type-face))))))
+			  (cons postgres-builtin-functions 'font-lock-builtin-face))
+			(cons postgres-types 'font-lock-type-face))))))
 
 
 (defvar sql-mode-font-lock-keywords sql-mode-ansi-font-lock-keywords
