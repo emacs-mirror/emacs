@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.29) $
+ * $HopeName: MMsrc!poolamc.c(trunk.30) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.29) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.30) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -28,8 +28,9 @@ typedef struct AMCGenStruct *AMCGen;
 
 static Bool AMCCheck(AMC amc);
 static Bool AMCGenCheck(AMCGen gen);
-static PoolClass EnsureAMCPoolClass(void);
-static BufferClass EnsureAMCBufClass(void);
+extern PoolClass EnsureAMCPoolClass(void);
+extern BufferClass EnsureAMCBufClass(void);
+extern SegClass EnsureAMCSegClass(void);
 
 
 /* AMCGenStruct -- pool AMC generation descriptor */
@@ -123,7 +124,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(BoolCheck(reservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(AMCSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;
@@ -296,6 +297,7 @@ typedef struct AMCBufStruct {
 #define BufferAMCBuf(buffer) ((AMCBuf)(buffer))
 
 
+
 /* AMCBufCheck -- check consistency of an AMCBuf */
 
 static Bool AMCBufCheck(AMCBuf amcbuf)
@@ -345,7 +347,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
 {
   AMC amc;
   AMCBuf amcbuf;
-  BufferClass superclass = EnsureSegBufClass();
+  BufferClass superclass;
   Res res;
 
   AVERT(Buffer, buffer);
@@ -354,6 +356,7 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
   AVERT(AMC, amc);
 
   /* call next method */
+  superclass = BUFFER_SUPERCLASS(AMCBufClass);
   res = (*superclass->init)(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -384,7 +387,7 @@ static void AMCBufFinish(Buffer buffer)
   amcbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureSegBufClass();
+  super = BUFFER_SUPERCLASS(AMCBufClass);
   super->finish(buffer);
 }
 
