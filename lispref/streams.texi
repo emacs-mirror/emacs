@@ -390,6 +390,11 @@ initially located as shown immediately before the @samp{h} in
 @cindex print example
 @example
 @group
+(setq m (set-marker (make-marker) 10 (get-buffer "foo")))
+     @result{} #<marker at 10 in foo>
+@end group
+
+@group
 ---------- Buffer: foo ----------
 This is t@point{}he contents of foo.
 ---------- Buffer: foo ----------
@@ -398,6 +403,10 @@ This is t@point{}he contents of foo.
 (print "This is the output" (get-buffer "foo"))
      @result{} "This is the output"
 
+@group
+m
+     @result{} #<marker at 32 in foo>
+@end group
 @group
 ---------- Buffer: foo ----------
 This is t
