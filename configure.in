@@ -1408,7 +1408,7 @@ fi
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h fcntl.h term.h strings.h coff.h pty.h sys/mman.h \
+  termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h)
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
@@ -2229,7 +2229,7 @@ utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
-memset memcmp memmove)
+memset memcmp memmove difftime)
 
 AC_CHECK_HEADERS(sys/un.h)
 
