@@ -198,8 +198,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #ifdef MAC_OS
 #include "macterm.h"
-
-Cursor No_Cursor;
 #endif
 
 #ifndef FRAME_X_OUTPUT
@@ -20638,11 +20636,7 @@ define_frame_cursor1 (f, cursor, pointer)
 	cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
     }
 
-#ifndef HAVE_CARBON
   if (cursor != No_Cursor)
-#else
-  if (bcmp (&cursor, &No_Cursor, sizeof (Cursor)))
-#endif
     rif->define_frame_cursor (f, cursor);
 }
 

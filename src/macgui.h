@@ -57,15 +57,26 @@ typedef unsigned long Time;
 #undef init_process
 #define init_process emacs_init_process
 #undef INFINITY
-typedef struct OpaqueWindowPtr* Window;
 #else
 #include <QuickDraw.h>		/* for WindowPtr */
 #include <QDOffscreen.h>	/* for GWorldPtr */
 #include <Controls.h>		/* for ControlHandle in xdisp.c */
-typedef WindowPtr Window;
+#include <Gestalt.h>
 #endif
 
 typedef GWorldPtr Pixmap;
+
+#if TARGET_API_MAC_CARBON
+typedef struct OpaqueWindowPtr *Window;
+#define Cursor ThemeCursor
+#define No_Cursor (-1)
+#else
+typedef WindowPtr Window;
+#define SetPortWindowPort(w) SetPort(w)
+#define Cursor CursHandle
+#define No_Cursor (0)
+extern CursPtr arrow_cursor;
+#endif
 
 #define FACE_DEFAULT (~0)
 

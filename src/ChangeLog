@@ -1,3 +1,78 @@
+2004-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c: Don't include ccl.h.
+	[MAC_OSX]: Don't include QuickTime/QuickTime.h.
+	[!MAC_OSX]: Don't include alloca.h, Windows.h, Gestalt.h, or
+	TextUtils.h.
+	(Fx_create_frame): Sync with xfns.c.  Initialize cursor
+	descriptors.
+	(Fx_display_mm_height, Fx_display_mm_width): Calculate length from
+	display height/width.
+	(compute_tip_xy, Vx_max_tooltip_size): Declare.
+	(unwind_create_tip_frame, compute_tip_xy): New functions.
+	(x_create_tip_frame, Fx_show_tip, Fx_hide_tip): Sync with xfns.c.
+	(syms_of_macfns): Initialize Qcancel_timer, Vx_max_tooltip_size,
+	and last_show_tip_args.
+	
+	* macgui.h [!MAC_OSX]: Include Gestalt.h.
+	(Cursor, No_Cursor): New defines.
+	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility
+	macro.
+	[!TARGET_API_MAC_CARBON] (arrow_cursor): Declare.
+
+	* macmenu.c (mac_menu_show, mac_dialog): Use SetPortWindowPort.
+
+	* macterm.c: Don't include Gestalt.h.
+	(enum mouse_tracking_type, mouse_tracking_in_progress): Remove.
+	(XDrawLine, XClearArea, XClearWindow, mac_draw_bitmap)
+	(mac_set_clip_rectangle, mac_reset_clipping, XCreatePixmap)
+	(XFillRectangle, mac_draw_rectangle, mac_draw_string_common)
+	(mac_copy_area, mac_copy_area_with_mask, x_update_end)
+	(construct_mouse_click, XTmouse_position)
+	(x_scroll_bar_report_motion, x_calc_absolute_position)
+	(do_mouse_moved, do_zoom_window, mac_do_receive_drag)
+	(XTread_socket, make_mac_frame): Use SetPortWindowPort.
+	(note_mouse_movement): Clear the mouse face and reset the pointer
+	shape when the pointer goes outside the frame without grabbing.
+	(mac_front_window): New function.
+	(mac_window_to_frame): New macro.
+	(XTmouse_position, x_scroll_bar_report_motion, do_window_update)
+	(do_window_activate, do_window_deactivate, do_app_resume)
+	(do_app_suspend, do_mouse_moved, do_menu_choice, do_grow_window)
+	(do_zoom_window, mac_do_receive_drag, XTread_socket)
+	(mac_check_for_quit_char): Use mac_front_window and/or
+	mac_window_to_frame.
+	(x_scroll_bar_handle_click): Set `(PORTION . WHOLE)' part in a
+	scroll-bar click event.
+	(mac_define_frame_cursor): Change the pointer shape.
+	(x_free_frame_resources): Reset tip_window to NULL when it is
+	disposed.
+	[!TARGET_API_MAC_CARBON] (arrow_cursor): New variable.
+	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize
+	arrow_cursor.
+	(do_window_update): Don't do anything if the updated window is the
+	tooltip window.
+	(do_mouse_moved): Handle mouse movement events here (previously in
+	XTread_socket).  Clear the mouse face if
+	dpyinfo->mouse_face_hidden is set.
+	(do_os_event, do_events): Remove (now in XTread_socket).
+	(XTread_socket): Immediately return if interrupt_input_blocked.
+	Loop until all the events in the queue are processed.  Rearrange
+	codes for mouse grabbing.  Add tooltip support.  Include the
+	contents of do_os_event and do_events.  Remove mouse movement
+	handling (now in do_mouse_moved).  Add the case where
+	Vmouse_highlight has an integer value.
+	(NewMacWindow): Remove.
+	(make_mac_frame): Do what NewMacWindow previously did.  Don't do
+	excess initializations.
+	(make_mac_terminal_frame): Previous initializations in
+	make_mac_frame are moved here.
+	(mac_initialize_display_info): Initialize
+	dpyinfo->mouse_face_overlay and dpyinfo->mouse_face_hidden.
+
+	* xdisp.c [MAC_OS] (No_Cursor): Remove variable.
+	(define_frame_cursor1): Don't treat HAVE_CARBON as a special case.
+
 2004-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* lisp.h (truncate_undo_list): Update decl.
