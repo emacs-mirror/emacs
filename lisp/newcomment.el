@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.21 2000/10/05 22:43:22 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.22 2000/10/08 19:07:41 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -399,7 +399,9 @@ Point is assumed to be just at the end of a comment."
 ;;;###autoload
 (defun comment-indent-default ()
   "Default for `comment-indent-function'."
-  (if (looking-at "\\s<\\s<\\s<") 0
+  (if (and (looking-at "\\s<\\s<\\(\\s<\\)?")
+	   (or (match-end 1) (/= (current-column) (current-indentation))))
+      0
     (when (or (/= (current-column) (current-indentation))
 	      (and (> comment-add 0) (looking-at "\\s<\\S<")))
       comment-column)))
