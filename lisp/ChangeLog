@@ -1,3 +1,22 @@
+2002-09-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/find-func.el (find-library-name): Don't forget
+	the empty suffix.  Fix stale variable name.
+
+	* gud.el (gud-gdb-massage-args, gud-sdb-massage-args)
+	(gud-pdb-massage-args): Delete.
+	(gdb, sdb, pdb): Don't pass gud-*-massage-args any more.
+	(gud-gdb-command-name): New var.  Put "--fullname" in there.
+	(gud-query-cmdline): Use the most recent executable as the default.
+	Don't add "--fullname" (it's only valid/meaningful for GDB).
+	(gud-xdb-marker-filter): Use match-string.
+	(gud-perldb-massage-args): Don't add "-d".
+	(gud-perldb-command-name): Add "-d".
+	(gud-common-init): If `massage-args' is nil, don't call it.
+	(gud-format-command): Don't hardcode point-min==1.
+
+	* derived.el: Require CL when compiling.
+
 2002-09-13  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-keymap): Changed bindings:
@@ -30,7 +49,7 @@
 
 2002-09-11  Dave Love  <fx@gnu.org>
 
-	* international/mule.el (non-standard-designations-alist) 
+	* international/mule.el (non-standard-designations-alist)
 	(ctext-pre-write-conversion): Don't generate invalid extended
 	segments for iso8859.
 
@@ -39,8 +58,7 @@
 
 	* international/ucs-tables.el: Fix last change.
 
-	* international/utf-8.el (utf-8-fragment-on-decoding): Fix last
-	change.
+	* international/utf-8.el (utf-8-fragment-on-decoding): Fix last change.
 
 2002-09-11  Kim F. Storm  <storm@cua.dk>
 
@@ -74,25 +92,50 @@
 	(kmacro-step-edit-pre-command): Activate `append-end' at end of
 	macro when required.
 
+2002-09-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* derived.el (define-derived-mode): Fix typo.
+
+	* menu-bar.el (line-number-mode, column-number-mode)
+	(transient-mark-mode): Use minor mode directly.
+	(menu-bar-make-toggle): Remove `props' arg.
+	Move customize-mark-as-set directly into the toggle function.
+
+	* whitespace.el (whitespace-global-mode): Use define-minor-mode.
+	Use the new file hook names.
+	(whitespace-describe): Remove.  Move the text to `Commentary:'.
+	(whitespace-unload-hook): Use the new file hook names.
+
+	* finder.el (finder-find-library): Remove.
+	(finder-commentary): Use find-library-name and add completion.
+
+	* simple.el (transient-mark-mode, line-number-mode)
+	(column-number-mode): Use define-minor-mode.
+	(define-mail-user-agent): Delete.  Moved to subr.el.
+
+	* loadup.el ("simple.el"): Move to after loaddefs.el.
+
+	* subr.el (define-mail-user-agent): Moved from simple.el.
+
+	* newcomment.el (comment-with-narrowing): Use the `declare' thingy.
+
 2002-09-10  Dave Love  <fx@gnu.org>
 
-	* international/utf-8.el (ucs-mule-to-mule-unicode): Define
-	unconditionally.
+	* international/utf-8.el (ucs-mule-to-mule-unicode):
+	Define unconditionally.
 	(utf-8-fragmentation-table): New.  Use it in top-level mapc.
 	(utf-8-fragment-on-decoding): Use it to keep
 	utf-8-translation-table-for-decode variable and translation table
 	in sync.
 
-	* international/ucs-tables.el: Bind
-	utf-8-translation-table-for-decode when setting up tables and
-	remove useless optimize-char-table.
+	* international/ucs-tables.el: Bind utf-8-translation-table-for-decode
+	when setting up tables and remove useless optimize-char-table.
 	(ucs-mule-to-mule-unicode): Deleted.
 	(ucs-unify-8859): Maybe optimize ucs-mule-to-mule-unicode.
 
 	* international/utf-16.el (utf-16-le-pre-write-conversion)
 	(utf-16-be-pre-write-conversion): Deleted.
-	(mule-utf-16-le, mule-utf-16-be): Register encoding translation
-	table.
+	(mule-utf-16-le, mule-utf-16-be): Register encoding translation table.
 
 2002-09-10  Richard M. Stallman  <rms@gnu.org>
 
@@ -129,8 +172,8 @@
 
 2002-09-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: Adjust ps-postscript-code-directory setting.  XEmacs
-	version check was adjusted.
+	* ps-print.el: Adjust ps-postscript-code-directory setting.
+	XEmacs version check was adjusted.
 	(ps-print-version): New version number (6.5.6).
 	(ps-print-color-p, ps-page-dimensions-database): Autoload var.
 	(ps-print-code, ps-print-preprint-region): Adjust code.
@@ -139,6 +182,10 @@
 
 	* files.el (auto-mode-alist): ~/.gnus, ~/.viper are in
 	emacs-lisp-mode, like ~/.emacs.
+
+2002-09-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (uncomment-region): Be more careful with `='.
 
 2002-09-10  Deepak Goel  <deego@glue.umd.edu>
 
