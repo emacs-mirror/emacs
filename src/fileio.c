@@ -3823,7 +3823,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
       if (XTYPE (val) != Lisp_String)
 	{
 	  if (changed)
-	    return string;
+	    return double_dollars (string);
 	  return val;
 	}
 
