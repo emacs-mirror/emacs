@@ -1,3 +1,14 @@
+2000-09-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (lookup_image): Block input while loading the image so
+	that we won't get interrupted in a state where the image isn't yet
+	set up completely.
+	(xbm_load_image, xbm_load, xpm_load, xpm_load, lookup_rgb_color)
+	(lookup_pixel_color, x_to_xcolors, x_from_xcolors)
+	(x_disable_image, x_build_heuristic_mask, pbm_load, png_load)
+	(jpeg_load, tiff_load, gif_load, gs_load): Don't block/unblock
+	input.
+
 2000-09-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_window): Make sure to make desired rows
@@ -17,7 +28,7 @@
 	* xdisp.c (build_desired_tool_bar_string): For a toolbar item in
 	disabled state, don't apply an image transformation algorithm if
 	the user specified an image for the disabled state.  Use
-	`:algorthm disabled' for creating a disabled item's image if the
+	`:algorithm disabled' for creating a disabled item's image if the
 	user hasn't specified an image.
 
 	* xfns.c (ALLOC_XPM_COLORS): Define if we can use Emacs' color
