@@ -2176,9 +2176,7 @@ Lisp_Object
 font_name_registry (fontname)
      Lisp_Object fontname;
 {
-  Lisp_Object registry;
   struct font_name font;
-  char *p;
 
   font.name = LSTRDUPA (fontname);
   if (! split_font_name (NULL, &font, 0))
@@ -6123,7 +6121,7 @@ try_alternative_families (f, family, registry, fonts)
 static int
 try_font_list (f, pattern, family, registry, fonts)
      struct frame *f;
-     Lisp_Object family, registry;
+     Lisp_Object pattern, family, registry;
      struct font_name **fonts;
 {
   int nfonts = 0;
@@ -6196,9 +6194,7 @@ choose_face_font (f, attrs, font_spec)
      Lisp_Object *attrs;
      Lisp_Object font_spec;
 {
-  Lisp_Object val;
   Lisp_Object pattern, family, adstyle, registry;
-  Lisp_Object new_attrs[LFACE_VECTOR_SIZE];
   char *font_name = NULL;
   struct font_name *fonts;
   int nfonts;
