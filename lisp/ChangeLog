@@ -1,3 +1,43 @@
+2001-11-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* mouse.el (mouse-drag-region): Don't run the up-event 
+	handler if window start changed due to the down-mouse event.
+
+2001-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-show-mark): Either move point to the mark
+	or use highlighting, never both.
+	(mouse-buffer-menu): If WINDOW is a frame, select its selected window.
+
+2001-11-13  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el: Cleanup previous patch, by "Stefan Monnier"
+	<monnier+gnu/emacs@RUM.cs.yale.edu>.
+
+	* mail/smtpmail.el (top-level): Autoload starttls, mail-utils and
+	rfc2104.  Require base64 and cl.
+	(smtpmail-smtp-service): Doc fix.  :type fix.
+	(smtpmail-debug-info): Doc fix.
+	(smtpmail-debug-verb, smtpmail-auth-credentials)
+	(smtpmail-starttls-credentials, smtpmail-auth-supported): New
+	variables.
+	(smtpmail-deduce-address-list, smtpmail-send-it): Don't require
+	mail-utils (it is autoloaded).
+	(smtpmail-cred-server, smtpmail-cred-port, smtpmail-cred-key)
+	(smtpmail-cred-user, smtpmail-cred-cert, smtpmail-cred-passwd)
+	(smtpmail-find-credentials, smtpmail-intersection): New utility
+	functions.
+	(smtpmail-via-smtp): Support STARTTLS, if binary is installed.
+	(smtpmail-via-smtp): Support AUTH.
+	(smtpmail-via-smtp): Use `smtpmail-debug-verb' to control VERB.
+
+2001-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* ebuff-menu.el (electric-buffer-update-highlight): New function.
+	(electric-buffer-overlay): New variable.
+	(electric-buffer-menu-looper): Call electric-buffer-update-highlight.
+	(electric-buffer-list): Likewise.
+
 2001-11-13  Per Starback  <starback@ling.uu.se>
 
 	* isearch.el (isearch-whitespace-chars): Doc fix.
