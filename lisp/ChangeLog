@@ -1,3 +1,8 @@
+2003-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (insert-directory): Add workaround for the case that we
+	can't trust ls's output as to byte positions of filenames.
+
 2003-02-15  Richard M. Stallman  <rms@gnu.org>
 
 	* ffap.el: Many doc fixes.
