@@ -51,14 +51,16 @@ static void tty_hide_cursor P_ ((void));
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-#define OUTPUT(a) tputs (a, (int) (FRAME_HEIGHT (selected_frame) - curY), cmputc)
+#define OUTPUT(a) \
+     tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame)) - curY), cmputc)
 #define OUTPUT1(a) tputs (a, 1, cmputc)
 #define OUTPUTL(a, lines) tputs (a, lines, cmputc)
 
-#define OUTPUT_IF(a)							\
-     if (a)								\
-       tputs (a, (int) (FRAME_HEIGHT (selected_frame) - curY), cmputc);	\
-     else								\
+#define OUTPUT_IF(a)						\
+     if (a)							\
+       tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame))	\
+			- curY), cmputc);			\
+     else							\
        (void) 0
      
 #define OUTPUT1_IF(a) if (a) tputs (a, 1, cmputc); else (void) 0
@@ -419,7 +421,7 @@ ring_bell ()
       return;
     }
 
-  if (! FRAME_TERMCAP_P (selected_frame))
+  if (! FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
       (*ring_bell_hook) ();
       return;
@@ -430,7 +432,7 @@ ring_bell ()
 void
 set_terminal_modes ()
 {
-  if (! FRAME_TERMCAP_P (selected_frame))
+  if (! FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
       (*set_terminal_modes_hook) ();
       return;
@@ -444,7 +446,7 @@ set_terminal_modes ()
 void
 reset_terminal_modes ()
 {
-  if (! FRAME_TERMCAP_P (selected_frame))
+  if (! FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
       if (reset_terminal_modes_hook)
 	(*reset_terminal_modes_hook) ();
@@ -505,7 +507,7 @@ set_terminal_window (size)
       (*set_terminal_window_hook) (size);
       return;
     }
-  specified_window = size ? size : FRAME_HEIGHT (selected_frame);
+  specified_window = size ? size : FRAME_HEIGHT (XFRAME (selected_frame));
   if (!scroll_region_ok)
     return;
   set_scroll_region (0, specified_window);
@@ -516,6 +518,8 @@ set_scroll_region (start, stop)
      int start, stop;
 {
   char *buf;
+  struct frame *sf = XFRAME (selected_frame);
+  
   if (TS_set_scroll_region)
     {
       buf = tparam (TS_set_scroll_region, 0, 0, start, stop - 1);
@@ -523,13 +527,13 @@ set_scroll_region (start, stop)
   else if (TS_set_scroll_region_1)
     {
       buf = tparam (TS_set_scroll_region_1, 0, 0,
-		    FRAME_HEIGHT (selected_frame), start,
-		    FRAME_HEIGHT (selected_frame) - stop,
-		    FRAME_HEIGHT (selected_frame));
+		    FRAME_HEIGHT (sf), start,
+		    FRAME_HEIGHT (sf) - stop,
+		    FRAME_HEIGHT (sf));
     }
   else
     {
-      buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_WIDTH (selected_frame));
+      buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_WIDTH (sf));
     }
   OUTPUT (buf);
   xfree (buf);
@@ -663,7 +667,8 @@ reassert_line_highlight (highlight, vpos)
      int highlight;
      int vpos;
 {
-  if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
+  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
+  if (! FRAME_TERMCAP_P (f))
     {
       (*reassert_line_highlight_hook) (highlight, vpos);
       return;
@@ -702,7 +707,7 @@ change_line_highlight (new_highlight, vpos, y, first_unused_hpos)
       /* On Teleray, make sure to erase the SO marker.  */
       if (TF_teleray)
 	{
-	  cmgoto (curY - 1, FRAME_WIDTH (selected_frame) - 4);
+	  cmgoto (curY - 1, FRAME_WIDTH (XFRAME (selected_frame)) - 4);
 	  OUTPUT ("\033S");
 	  curY++;		/* ESC S moves to next line where the TS_standout_mode was */
 	  curX = 0;
@@ -722,8 +727,9 @@ void
 cursor_to (vpos, hpos)
      int vpos, hpos;
 {
-  if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame))
-      && cursor_to_hook)
+  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
+  
+  if (! FRAME_TERMCAP_P (f) && cursor_to_hook)
     {
       (*cursor_to_hook) (vpos, hpos);
       return;
@@ -750,7 +756,8 @@ void
 raw_cursor_to (row, col)
      int row, col;
 {
-  if (! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
+  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
+  if (! FRAME_TERMCAP_P (f))
     {
       (*raw_cursor_to_hook) (row, col);
       return;
@@ -781,14 +788,15 @@ clear_to_end ()
     {
       background_highlight ();
       OUTPUT (TS_clr_to_bottom);
-      bzero (chars_wasted + curY, FRAME_HEIGHT (selected_frame) - curY);
+      bzero (chars_wasted + curY,
+	     FRAME_HEIGHT (XFRAME (selected_frame)) - curY);
     }
   else
     {
-      for (i = curY; i < FRAME_HEIGHT (selected_frame); i++)
+      for (i = curY; i < FRAME_HEIGHT (XFRAME (selected_frame)); i++)
 	{
 	  cursor_to (i, 0);
-	  clear_end_of_line_raw (FRAME_WIDTH (selected_frame));
+	  clear_end_of_line_raw (FRAME_WIDTH (XFRAME (selected_frame)));
 	}
     }
 }
@@ -798,8 +806,10 @@ clear_to_end ()
 void
 clear_frame ()
 {
+  struct frame *sf = XFRAME (selected_frame);
+  
   if (clear_frame_hook
-      && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : selected_frame)))
+      && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : sf)))
     {
       (*clear_frame_hook) ();
       return;
@@ -808,7 +818,7 @@ clear_frame ()
     {
       background_highlight ();
       OUTPUT (TS_clr_frame);
-      bzero (chars_wasted, FRAME_HEIGHT (selected_frame));
+      bzero (chars_wasted, FRAME_HEIGHT (sf));
       cmat (0, 0);
     }
   else
@@ -829,7 +839,7 @@ void
 clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
-  if (FRAME_TERMCAP_P (selected_frame)
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
       && chars_wasted != 0
       && TN_standout_width == 0 && curX == 0 && chars_wasted[curY] != 0)
     write_glyphs (&space_glyph, 1);
@@ -851,7 +861,7 @@ clear_end_of_line_raw (first_unused_hpos)
   if (clear_end_of_line_hook
       && ! FRAME_TERMCAP_P ((updating_frame
 			       ? updating_frame
-			       : selected_frame)))
+			     : XFRAME (selected_frame))))
     {
       (*clear_end_of_line_hook) (first_unused_hpos);
       return;
@@ -875,11 +885,12 @@ clear_end_of_line_raw (first_unused_hpos)
     }
   else
     {			/* have to do it the hard way */
+      struct frame *sf = XFRAME (selected_frame);
       turn_off_insert ();
 
       /* Do not write in last row last col with Auto-wrap on. */
-      if (AutoWrap && curY == FRAME_HEIGHT (selected_frame) - 1
-	  && first_unused_hpos == FRAME_WIDTH (selected_frame))
+      if (AutoWrap && curY == FRAME_HEIGHT (sf) - 1
+	  && first_unused_hpos == FRAME_WIDTH (sf))
 	first_unused_hpos--;
 
       for (i = curX; i < first_unused_hpos; i++)
@@ -929,26 +940,27 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
       /* We must skip glyphs to be padded for a wide character.  */
       if (! CHAR_GLYPH_PADDING_P (*src))
 	{
+	  struct frame *sf = XFRAME (selected_frame);
+	  
 	  c = src->u.ch.code;
 	  if (! GLYPH_CHAR_VALID_P (c))
 	    {
 	      c = ' ';
-	      g = MAKE_GLYPH (selected_frame, c,
-			      GLYPH_FACE (selected_frame, g));
+	      g = MAKE_GLYPH (sf, c, GLYPH_FACE (sf, g));
 	    }
 	  if (COMPOSITE_CHAR_P (c))
 	    {
 	      /* If C is a composite character, we can display
 		 only the first component.  */
 	      g = cmpchar_table[COMPOSITE_CHAR_ID (c)]->glyph[0],
-	      c = GLYPH_CHAR (selected_frame, g);
+	      c = GLYPH_CHAR (sf, g);
 	    }
 	  if (c < tlen)
 	    {
 	      /* G has an entry in Vglyph_table,
 		 so process any alias before testing for simpleness.  */
 	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-	      c = GLYPH_CHAR (selected_frame, g);
+	      c = GLYPH_CHAR (sf, g);
 	    }
 	  if (GLYPH_SIMPLE_P (tbase, tlen, g))
 	    /* We set the multi-byte form of C at BUF.  */
@@ -994,7 +1006,8 @@ write_glyphs (string, len)
      register int len;
 {
   int produced, consumed;
-  struct frame *f = updating_frame ? updating_frame : selected_frame;
+  struct frame *sf = XFRAME (selected_frame);
+  struct frame *f = updating_frame ? updating_frame : sf;
 
   if (write_glyphs_hook
       && ! FRAME_TERMCAP_P (f))
@@ -1010,9 +1023,8 @@ write_glyphs (string, len)
      since that would scroll the whole frame on some terminals.  */
 
   if (AutoWrap
-      && curY + 1 == FRAME_HEIGHT (selected_frame)
-      && (curX + len - (chars_wasted[curY] & 077)
-	  == FRAME_WIDTH (selected_frame)))
+      && curY + 1 == FRAME_HEIGHT (sf)
+      && (curX + len - (chars_wasted[curY] & 077) == FRAME_WIDTH (sf)))
     len --;
   if (len <= 0)
     return;
@@ -1090,7 +1102,7 @@ insert_glyphs (start, len)
 {
   char *buf;
   GLYPH g;
-  struct frame *f;
+  struct frame *f, *sf;
 
   if (len <= 0)
     return;
@@ -1101,7 +1113,8 @@ insert_glyphs (start, len)
       return;
     }
 
-  f = updating_frame ? updating_frame : selected_frame;
+  sf = XFRAME (selected_frame);
+  f = updating_frame ? updating_frame : sf;
   highlight_if_desired ();
 
   if (TS_ins_multi_chars)
@@ -1210,6 +1223,7 @@ ins_del_lines (vpos, n)
   char *multi = n > 0 ? TS_ins_multi_lines : TS_del_multi_lines;
   char *single = n > 0 ? TS_ins_line : TS_del_line;
   char *scroll = n > 0 ? TS_rev_scroll : TS_fwd_scroll;
+  struct frame *sf;
 
   register int i = n > 0 ? n : -n;
   register char *buf;
@@ -1220,6 +1234,8 @@ ins_del_lines (vpos, n)
       return;
     }
 
+  sf = XFRAME (selected_frame);
+  
   /* If the lines below the insertion are being pushed
      into the end of the window, this is the same as clearing;
      and we know the lines are already clear, since the matching
@@ -1229,7 +1245,7 @@ ins_del_lines (vpos, n)
      as there will be a matching inslines later that will flush them. */
   if (scroll_region_ok && vpos + i >= specified_window)
     return;
-  if (!memory_below_frame && vpos + i >= FRAME_HEIGHT (selected_frame))
+  if (!memory_below_frame && vpos + i >= FRAME_HEIGHT (sf))
     return;
 
   if (multi)
@@ -1267,7 +1283,7 @@ ins_del_lines (vpos, n)
       register int lower_limit
 	= (scroll_region_ok
 	   ? specified_window
-	   : FRAME_HEIGHT (selected_frame));
+	   : FRAME_HEIGHT (sf));
 
       if (n < 0)
 	{
@@ -1285,7 +1301,7 @@ ins_del_lines (vpos, n)
     }
   if (!scroll_region_ok && memory_below_frame && n < 0)
     {
-      cursor_to (FRAME_HEIGHT (selected_frame) + n, 0);
+      cursor_to (FRAME_HEIGHT (sf) + n, 0);
       clear_to_end ();
     }
 }
@@ -2046,6 +2062,7 @@ term_init (terminal_type)
   char buffer[2044];
   register char *p;
   int status;
+  struct frame *sf = XFRAME (selected_frame);
 
 #ifdef WINDOWSNT
   initialize_w32_display ();
@@ -2057,9 +2074,9 @@ term_init (terminal_type)
   if (area == 0)
     abort ();
 
-  FrameRows = FRAME_HEIGHT (selected_frame);
-  FrameCols = FRAME_WIDTH (selected_frame);
-  specified_window = FRAME_HEIGHT (selected_frame);
+  FrameRows = FRAME_HEIGHT (sf);
+  FrameCols = FRAME_WIDTH (sf);
+  specified_window = FRAME_HEIGHT (sf);
 
   delete_in_insert_mode = 1;
 
@@ -2076,8 +2093,8 @@ term_init (terminal_type)
 
   baud_rate = 19200;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (selected_frame) = 0;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (selected_frame) = vertical_scroll_bar_none;
+  FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
 
   return;
 #else  /* not WINDOWSNT */
@@ -2228,22 +2245,21 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   {
     int height, width;
     get_frame_size (&width, &height);
-    FRAME_WIDTH (selected_frame) = width;
-    FRAME_HEIGHT (selected_frame) = height;
+    FRAME_WIDTH (sf) = width;
+    FRAME_HEIGHT (sf) = height;
   }
 
-  if (FRAME_WIDTH (selected_frame) <= 0)
-    SET_FRAME_WIDTH (selected_frame, tgetnum ("co"));
+  if (FRAME_WIDTH (sf) <= 0)
+    SET_FRAME_WIDTH (sf, tgetnum ("co"));
   else
     /* Keep width and external_width consistent */
-    SET_FRAME_WIDTH (selected_frame, FRAME_WIDTH (selected_frame));
-  if (FRAME_HEIGHT (selected_frame) <= 0)
-    FRAME_HEIGHT (selected_frame) = tgetnum ("li");
+    SET_FRAME_WIDTH (sf, FRAME_WIDTH (sf));
+  if (FRAME_HEIGHT (sf) <= 0)
+    FRAME_HEIGHT (sf) = tgetnum ("li");
   
-  if (FRAME_HEIGHT (selected_frame) < 3
-      || FRAME_WIDTH (selected_frame) < 3)
+  if (FRAME_HEIGHT (sf) < 3 || FRAME_WIDTH (sf) < 3)
     fatal ("Screen size %dx%d is too small",
-	   FRAME_HEIGHT (selected_frame), FRAME_WIDTH (selected_frame));
+	   FRAME_HEIGHT (sf), FRAME_WIDTH (sf));
 
   min_padding_speed = tgetnum ("pb");
   TN_standout_width = tgetnum ("sg");
@@ -2356,9 +2372,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	}
     }
 
-  FrameRows = FRAME_HEIGHT (selected_frame);
-  FrameCols = FRAME_WIDTH (selected_frame);
-  specified_window = FRAME_HEIGHT (selected_frame);
+  FrameRows = FRAME_HEIGHT (sf);
+  FrameCols = FRAME_WIDTH (sf);
+  specified_window = FRAME_HEIGHT (sf);
 
   if (Wcm_init () == -1)	/* can't do cursor motion */
 #ifdef VMS
@@ -2387,8 +2403,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	   terminal_type);
 # endif /* TERMINFO */
 #endif /*VMS */
-  if (FRAME_HEIGHT (selected_frame) <= 0
-      || FRAME_WIDTH (selected_frame) <= 0)
+  if (FRAME_HEIGHT (sf) <= 0
+      || FRAME_WIDTH (sf) <= 0)
     fatal ("The frame size has not been specified");
 
   delete_in_insert_mode
@@ -2401,8 +2417,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   /* Remove width of standout marker from usable width of line */
   if (TN_standout_width > 0)
-    SET_FRAME_WIDTH (selected_frame,
-		     FRAME_WIDTH (selected_frame) - TN_standout_width);
+    SET_FRAME_WIDTH (sf, FRAME_WIDTH (sf) - TN_standout_width);
 
   UseTabs = tabs_safe_p () && TabWidth == 8;
 
@@ -2425,8 +2440,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 				/* meaningless in this case */
     baud_rate = 9600;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (selected_frame) = 0;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (selected_frame) = vertical_scroll_bar_none;
+  FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
 #endif /* WINDOWSNT */
 }
 
