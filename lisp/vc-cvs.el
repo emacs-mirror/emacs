@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.1 2000/09/04 19:48:04 gerd Exp $
+;; $Id: vc-cvs.el,v 1.2 2000/09/05 20:08:20 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -37,10 +37,12 @@ A string or list of strings passed to the checkin program by
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-cvs-header (or (cdr (assoc 'CVS vc-header-alist)) '("\$Id\$"))
   "*Header keywords to be inserted by `vc-insert-headers'."
+  :version "21.1"
   :type 'string
   :group 'vc)
 
@@ -49,19 +51,20 @@ A string or list of strings passed to the checkin program by
 This is only meaningful if you don't use the implicit checkout model
 \(i.e. if you have $CVSREAD set)."
   :type 'boolean
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-cvs-stay-local t
-  "*Non-nil means that for remote CVS repositories, VC will
-use local operations whenever possible, avoiding slow queries
-over the network.  Turning this option on will instruct VC to use only
-heuristics and past information to determine the current status of a
-file.  The value can also be a regular expression to match against the 
-host name of a repository; then VC only stays local for hosts that match 
-it."
+  "*Non-nil means use local operations when possible for remote repositories.
+This avoids slow queries over the network.  Turning this option on
+will instruct VC to use only heuristics and past information to
+determine the current status of a file.  The value can also be a
+regular expression to match against the host name of a repository;
+then VC only stays local for hosts that match it."
   :type '(choice (const :tag "Always stay local" t)
 		 (string :tag "Host regexp")
 		 (const :tag "Don't stay local" nil))
+  :version "21.1"
   :group 'vc)
 
 ;;;###autoload (defun vc-cvs-registered (f)
@@ -80,8 +83,8 @@ it."
 	(with-temp-buffer
           (vc-insert-file (expand-file-name "CVS/Entries" dirname))
           (goto-char (point-min))
-	  (cond 
-	   ((re-search-forward 
+	  (cond
+	   ((re-search-forward
 	     (concat "^/" (regexp-quote basename) "/") nil t)
 	    (beginning-of-line)
 	    (vc-cvs-parse-entry file)
@@ -95,17 +98,17 @@ it."
       (let* ((dirname (if (file-directory-p file)
 			  (directory-file-name file)
 			(file-name-directory file)))
-	     (prop 
+	     (prop
 	      (or (vc-file-getprop dirname 'vc-cvs-stay-local-p)
 		  (let ((rootname (expand-file-name "CVS/Root" dirname)))
-		    (vc-file-setprop 
+		    (vc-file-setprop
 		     dirname 'vc-cvs-stay-local-p
 		     (when (file-readable-p rootname)
 		       (with-temp-buffer
 			 (vc-insert-file rootname)
 			 (goto-char (point-min))
 			 (if (looking-at "\\([^:]*\\):")
-			     (if (not (stringp vc-cvs-stay-local)) 
+			     (if (not (stringp vc-cvs-stay-local))
 				 'yes
 			       (let ((hostname (match-string 1)))
 				 (if (string-match vc-cvs-stay-local hostname)
@@ -253,9 +256,10 @@ special case of a CVS file that is added but not yet comitted."
       (forward-line 1))))
 
 (defun vc-cvs-parse-entry (file &optional set-state)
-  "Parse a line from CVS/Entries, compare modification time to that of
-the FILE, set file properties accordingly.  However, vc-state is set only
-if optional arg SET-STATE is non-nil."
+  "Parse a line from CVS/Entries.
+Compare modification time to that of the FILE, set file properties
+accordingly.  However, `vc-state' is set only if optional arg SET-STATE
+is non-nil."
   (cond
    ;; entry for a "locally added" file (not yet committed)
    ((looking-at "/[^/]+/0/")
@@ -263,7 +267,7 @@ if optional arg SET-STATE is non-nil."
     (vc-file-setprop file 'vc-workfile-version "0")
     (if set-state (vc-file-setprop file 'vc-state 'edited)))
    ;; normal entry
-   ((looking-at 
+   ((looking-at
      (concat "/[^/]+"
 	     ;; revision
 	     "/\\([^/]*\\)"
@@ -368,7 +372,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		     (state (match-string 1))
 		     (buffer (find-buffer-visiting file)))
 		(when buffer
-		  (cond 
+		  (cond
 		   ((or (string= state "U")
 			(string= state "P"))
 		    (vc-file-setprop file 'vc-state 'up-to-date)
@@ -493,8 +497,7 @@ Inappropriate for CVS"
     1))
 
 (defun vc-cvs-latest-on-branch-p (file)
-  "Return t iff the current workfile version of FILE is the latest on
-its branch."
+  "Return t iff current workfile version of FILE is the latest on its branch."
   ;; Since this is only used as a sanity check for vc-cancel-version,
   ;; and that is not supported under CVS at all, we can safely return t here.
   ;; TODO: Think of getting rid of this altogether.
@@ -538,7 +541,7 @@ its branch."
 
 (defun vc-cvs-responsible-p (file)
   "Return non-nil if CVS thinks it is responsible for FILE."
-  (file-directory-p (expand-file-name "CVS" 
+  (file-directory-p (expand-file-name "CVS"
 				      (if (file-directory-p file)
 					  file
 					(file-name-directory file)))))
@@ -621,33 +624,33 @@ REV is the revision to check out into WORKFILE."
 	      (apply 'vc-do-command nil 0 "cvs" file
 		     (and writable
 			  (or (not (file-exists-p file))
-			      (not (eq (vc-cvs-checkout-model file) 
+			      (not (eq (vc-cvs-checkout-model file)
 				       'implicit)))
 			  "-w")
 		     "update"
 		     ;; default for verbose checkout: clear the sticky tag so
 		     ;; that the actual update will get the head of the trunk
-		     (if (or (not rev) (string= rev "")) 
-			 "-A" 
+		     (if (or (not rev) (string= rev ""))
+			 "-A"
 		       (concat "-r" rev))
 		     switches))))
 	(vc-mode-line file)
 	(message "Checking out %s...done" filename)))))
 
 (defun vc-cvs-annotate-command (file buffer)
-  "Execute \"cvs annotate\" on FILE by using `call-process' and insert
-the contents in BUFFER."
+  "Execute \"cvs annotate\" on FILE.
+Use `call-process' and insert the contents in BUFFER."
   (call-process "cvs" nil buffer nil "annotate" file))
 
 (defvar vc-cvs-local-month-numbers
   '(("Jan" . 1) ("Feb" .  2) ("Mar" .  3) ("Apr" .  4)
     ("May" . 5) ("Jun" .  6) ("Jul" .  7) ("Aug" .  8)
     ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
-  "Local association list of month numbers")
+  "Local association list of month numbers.")
 
 (defun vc-cvs-annotate-difference (point)
-  "Return the difference between the time of the line and the current
-time.  Return values are as defined for `current-time'."
+  "Return the difference between the time of the line and the current time.
+Return values are as defined for `current-time'."
   ;; We need a list of months and their corresponding numbers.
   (if (looking-at "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): ")
       (progn
@@ -666,7 +669,7 @@ time.  Return values are as defined for `current-time'."
     ;; If we did not look directly at an annotation, there might be
     ;; some further down.  This is the case if we are positioned at
     ;; the very top of the buffer, for instance.
-    (if (re-search-forward 
+    (if (re-search-forward
 	 "^\\S-+\\s-+\\S-+\\s-+\\([0-9]+\\)-\\(\\sw+\\)-\\([0-9]+\\)): " nil t)
 	(progn
 	  (beginning-of-line nil)
