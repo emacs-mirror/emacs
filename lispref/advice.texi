@@ -36,7 +36,7 @@ function (or a new command) which uses the existing function.
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
 * Argument Access in Advice:: How advice can access the function's arguments.
-* Subr Arguments::          Accessing arguments when advising a primitive.
+* Advising Primitives::     Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 @end menu
 
@@ -656,16 +656,23 @@ will be 3, and @var{r} will be @code{(2 1 0)} inside the body of
   These argument constructs are not really implemented as Lisp macros.
 Instead they are implemented specially by the advice mechanism.
 
-@node Subr Arguments
-@section Definition of Subr Argument Lists
+@node Advising Primitives
+@section Advising Primitives
 
-  When the advice facility constructs the combined definition, it needs
-to know the argument list of the original function.  This is not always
-possible for primitive functions.  When advice cannot determine the
-argument list, it uses @code{(&rest ad-subr-args)}, which always works
-but is inefficient because it constructs a list of the argument values.
-You can use @code{ad-define-subr-args} to declare the proper argument
-names for a primitive function:
+  Advising a primitive function (also called a ``subr'') is risky.
+Some primitive functions are used by the advice mechanism; advising
+them could cause an infinite recursion.  Also, many primitive
+functions are called directly from C code.  Calls to the primitive
+from Lisp code will take note of the advice, but calls from C code
+will ignore the advice.
+
+When the advice facility constructs the combined definition, it needs
+to know the argument list of the original function.  This is not
+always possible for primitive functions.  When advice cannot determine
+the argument list, it uses @code{(&rest ad-subr-args)}, which always
+works but is inefficient because it constructs a list of the argument
+values.  You can use @code{ad-define-subr-args} to declare the proper
+argument names for a primitive function:
 
 @defun ad-define-subr-args function arglist
 This function specifies that @var{arglist} should be used as the
