@@ -80,6 +80,14 @@ int width_by_char_head[256];
    CHARS, and FINAL-CHAR) to Emacs' charset.  */
 int iso_charset_table[2][2][128];
 
+/* Table of pointers to the structure `cmpchar_info' indexed by
+   CMPCHAR-ID.  */
+struct cmpchar_info **cmpchar_table;
+/* The current size of `cmpchar_table'.  */
+static int cmpchar_table_size;
+/* Number of the current composite characters.  */
+int n_cmpchars;
+
 /* Variables used locally in the macro FETCH_MULTIBYTE_CHAR.  */
 unsigned char *_fetch_multibyte_char_p;
 int _fetch_multibyte_char_len;
@@ -293,7 +301,7 @@ update_charset_table (charset_id, dimension, chars, width, direction,
        is set to nil.  */
     int i;
 
-    for (i = 0; i < MAX_CHARSET; i++)
+    for (i = 0; i <= MAX_CHARSET; i++)
       if (!NILP (CHARSET_TABLE_ENTRY (i)))
 	{
 	  if (CHARSET_DIMENSION (i) == XINT (dimension)
@@ -307,7 +315,7 @@ update_charset_table (charset_id, dimension, chars, width, direction,
 	      break;
 	    }
 	}
-    if (i >= MAX_CHARSET)
+    if (i > MAX_CHARSET)
       /* No such a charset.  */
       CHARSET_TABLE_INFO (charset, CHARSET_REVERSE_CHARSET_IDX)
 	= make_number (-1);
@@ -487,7 +495,7 @@ CHARSET should be defined by `defined-charset' in advance.")
 
 /* Return number of different charsets in STR of length LEN.  In
    addition, for each found charset N, CHARSETS[N] is set 1.  The
-   caller should allocate CHARSETS (MAX_CHARSET bytes) in advance.  */
+   caller should allocate CHARSETS (MAX_CHARSET + 1 bytes) in advance.  */
 
 int
 find_charset_in_str (str, len, charsets)
@@ -519,7 +527,7 @@ BEG and END are buffer positions.")
   (beg, end)
      Lisp_Object beg, end;
 {
-  char charsets[MAX_CHARSET];
+  char charsets[MAX_CHARSET + 1];
   int from, to, stop, i;
   Lisp_Object val;
 
@@ -528,7 +536,7 @@ BEG and END are buffer positions.")
   stop = to = XFASTINT (end);
   if (from < GPT && GPT < to)
     stop = GPT;
-  bzero (charsets, MAX_CHARSET);
+  bzero (charsets, MAX_CHARSET + 1);
   while (1)
     {
       find_charset_in_str (POS_ADDR (from), stop - from, charsets);
@@ -538,7 +546,7 @@ BEG and END are buffer positions.")
 	break;
     }
   val = Qnil;
-  for (i = MAX_CHARSET - 1; i >= 0; i--)
+  for (i = MAX_CHARSET; i >= 0; i--)
     if (charsets[i])
       val = Fcons (CHARSET_SYMBOL (i), val);
   return val;
@@ -550,27 +558,22 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
   (str)
      Lisp_Object str;
 {
-  char charsets[MAX_CHARSET];
+  char charsets[MAX_CHARSET + 1];
   int i;
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
-  bzero (charsets, MAX_CHARSET);
+  bzero (charsets, MAX_CHARSET + 1);
   find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size, charsets);
   val = Qnil;
-  for (i = MAX_CHARSET - 1; i >= 0; i--)
+  for (i = MAX_CHARSET; i >= 0; i--)
     if (charsets[i])
       val = Fcons (CHARSET_SYMBOL (i), val);
   return val;
 }
 
 DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
-  "Return a character of CHARSET and position-codes CODE1 and CODE2.\n\
-CODE1 and CODE2 are optional, but if you don't supply\n\
- sufficient position-codes, return a generic character which stands for\n\
-all characters or group of characters in the character sets.\n\
-A generic character can be an argument of `modify-syntax-entry' and\n\
-`modify-category-entry'.")
+  "")
   (charset, code1, code2)
      Lisp_Object charset, code1, code2;
 {
@@ -910,14 +913,6 @@ hash_string (ptr, len)
 }
 #endif
 
-/* Table of pointers to the structure `cmpchar_info' indexed by
-   CMPCHAR-ID.  */
-struct cmpchar_info **cmpchar_table;
-/* The current size of `cmpchar_table'.  */
-static int cmpchar_table_size;
-/* Number of the current composite characters.  */
-int n_cmpchars;
-
 #define CMPCHAR_HASH_TABLE_SIZE 0xFFF
 
 static int *cmpchar_hash_table[CMPCHAR_HASH_TABLE_SIZE];
@@ -993,6 +988,10 @@ str_cmpchar_id (str, len)
       }
 
   /* We have to register the composite character in cmpchar_table.  */
+  if (n_cmpchars > (CHAR_FIELD2_MASK | CHAR_FIELD3_MASK))
+    /* No, we have no more room for a new composite character.  */
+    return -1;
+
   /* Make the entry in hash table.  */
   if (hashp == NULL)
     {
@@ -1345,7 +1344,7 @@ init_charset_once ()
   Fput (Qcharset_table, Qchar_table_extra_slots, make_number (0));
   Vcharset_table = Fmake_char_table (Qcharset_table, Qnil);
 
-  Vcharset_symbol_table = Fmake_vector (make_number (MAX_CHARSET), Qnil);
+  Vcharset_symbol_table = Fmake_vector (make_number (MAX_CHARSET + 1), Qnil);
 
   /* Setup tables.  */
   for (i = 0; i < 2; i++)
