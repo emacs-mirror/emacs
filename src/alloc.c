@@ -248,8 +248,9 @@ static int total_free_intervals, total_intervals;
 /* Mark the pointers of one interval. */
 
 static void
-mark_interval (i)
+mark_interval (i, dummy)
      register INTERVAL i;
+     Lisp_Object dummy;
 {
   if (XMARKBIT (i->plist))
     abort ();
@@ -264,7 +265,7 @@ mark_interval_tree (tree)
   if (XMARKBIT (tree->plist))
     return;
 
-  traverse_intervals (tree, 1, 0, mark_interval);
+  traverse_intervals (tree, 1, 0, mark_interval, Qnil);
 }
 
 #define MARK_INTERVAL_TREE(i) \
