@@ -44,9 +44,9 @@ Use the `etags' program to make a tags table file.")
 
 ;;;###autoload
 (defvar tags-add-tables 'ask-user
-  "*T means always add a new tags table to the current list.
-Nil means never add to the current list; always start a new list.
-Non-nil but not t says to ask the user whether to add a new tags table
+  "*Control whether to add a new tags table to the current list.
+t means do; nil means don't (always start a new list).
+Any other value means ask the user whether to add a new tags table
 to the current list (as opposed to starting a new list).")
 
 (defvar tags-table-list-pointer nil
