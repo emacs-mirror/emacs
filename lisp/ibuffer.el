@@ -36,6 +36,9 @@
   (require 'ibuf-macs)
   (require 'dired))
 
+;; This is loaded lazily, via byte-compile-dynamic
+(require 'ibuf-ext)
+
 ;;; Compatibility
 (eval-and-compile
   (if (fboundp 'window-list)
