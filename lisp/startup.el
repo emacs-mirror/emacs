@@ -88,6 +88,10 @@
 ;; of these are also found in term/pc-win.el
 ;; -------------------------
 ;; FILE                      Visit FILE.
+;; -visit FILE
+;; --visit FILE
+;; -file FILE
+;; --file FILE
 ;;
 ;; -L DIRNAME                Add DIRNAME to load-path
 ;; -directory DIRNAME
@@ -104,6 +108,8 @@
 ;;
 ;; -eval FORM                Execute Emacs lisp form FORM.
 ;; --eval FORM
+;; -execute EXPR
+;; --execute EXPR
 ;;
 ;; -insert FILE              Insert the contents of FILE into buffer.
 ;; --insert FILE
@@ -956,7 +962,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  ;; and long versions of what's on command-switch-alist.
 	  (longopts
 	   (append '(("--funcall") ("--load") ("--insert") ("--kill")
-		     ("--directory") ("--eval") ("--find-file") ("--visit"))
+		     ("--directory") ("--eval") ("--execute")
+		     ("--find-file") ("--visit") ("--file"))
 		   (mapcar '(lambda (elt)
 			      (list (concat "-" (car elt))))
 			   command-switch-alist)))
@@ -1008,6 +1015,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 			    (cons argval command-line-args-left)))
 		       (funcall (cdr tem) argi))
 		   (funcall (cdr tem) argi)))
+		
 		((or (string-equal argi "-f")  ;what the manual claims
 		     (string-equal argi "-funcall")
 		     (string-equal argi "-e")) ; what the source used to say
@@ -1018,13 +1026,16 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (if (arrayp (symbol-function tem))
 		     (command-execute tem)
 		   (funcall tem)))
-		((string-equal argi "-eval")
+		
+		((or (string-equal argi "-eval")
+		     (string-equal argi "-execute"))
 		 (if argval
 		     (setq tem argval)
 		   (setq tem (car command-line-args-left))
 		   (setq command-line-args-left (cdr command-line-args-left)))
 		 (eval (read tem)))
 		;; Set the default directory as specified in -L.
+		
 		((or (string-equal argi "-L")
 		     (string-equal argi "-directory"))
 		 (if argval
@@ -1036,6 +1047,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (cons (expand-file-name tem) extra-load-path))
 		 (setq load-path (append (nreverse extra-load-path)
 					 initial-load-path)))
+		
 		((or (string-equal argi "-l")
 		     (string-equal argi "-load"))
 		 (if argval
@@ -1048,6 +1060,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		   (if (file-exists-p (expand-file-name file))
 		       (setq file (expand-file-name file)))
 		   (load file nil t)))
+		
 		((string-equal argi "-insert")
 		 (if argval
 		     (setq tem argval)
@@ -1056,28 +1069,38 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (or (stringp tem)
 		     (error "File name omitted from `-insert' option"))
 		 (insert-file-contents (command-line-normalize-file-name tem)))
+		
 		((string-equal argi "-kill")
 		 (kill-emacs t))
+		
 		((string-match "^\\+[0-9]+\\'" argi)
 		 (setq line (string-to-int argi)))
+		
 		((setq tem (assoc argi command-line-x-option-alist))
 		 ;; Ignore X-windows options and their args if not using X.
 		 (setq command-line-args-left
 		       (nthcdr (nth 1 tem) command-line-args-left)))
+		
 		((or (string-equal argi "-find-file")
+		     (string-equal argi "-file")
 		     (string-equal argi "-visit"))
 		 ;; An explicit option to specify visiting a file.
+		 (if argval
+		     (setq tem argval)
+		   (setq tem (car command-line-args-left)
+			 command-line-args-left (cdr command-line-args-left)))
+		 (unless (stringp tem)
+		   (error "File name omitted from `%s' option" argi))
 		 (setq file-count (1+ file-count))
-		 (let ((file
-			(expand-file-name
-			 (command-line-normalize-file-name orig-argi)
-			 dir)))
+		 (let ((file (expand-file-name
+			      (command-line-normalize-file-name tem) dir)))
 		   (if (= file-count 1)
 		       (setq first-file-buffer (find-file file))
 		     (find-file-other-window file)))
 		 (or (zerop line)
 		     (goto-line line))
 		 (setq line 0))
+		
 		((equal argi "--")
 		 (setq just-files t))
 		(t
