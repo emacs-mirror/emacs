@@ -1387,6 +1387,11 @@ The goal column is stored in the variable `goal-column'."
 	     goal-column))
   nil)
 
+;;; Make arrow keys do the right thing for improved terminal support
+;;; When we implement true horizontal autoscrolling, right-arrow and
+;;; left-arrow can lose the (if truncate-lines ...) clause and become
+;;; aliases.
+
 (defun right-arrow (arg)
   "Move right one character on the screen (with prefix ARG, that many chars).
 Scroll right if needed to keep point horizontally onscreen."
@@ -1404,6 +1409,15 @@ Scroll left if needed to keep point horizontally onscreen."
   (if truncate-lines
       (let ((x (current-column)) (w (- (window-width) 2)))
 	(set-window-hscroll (selected-window) (- x (% x w)) ))))
+
+(defun down-arrow (arg)
+  "Move down one line on the screen (with prefix ARG, that many lines).
+If doing so would add lines to the end of the buffer, raise an error."
+  (interactive "P")
+  (let ((next-line-add-newlines nil))
+    (next-line 1)))
+
+(defalias 'up-arrow 'previous-line)
 
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
