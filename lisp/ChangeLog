@@ -1,3 +1,16 @@
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace-read-args): Swallow space after \,SYMBOL.
+
+	* font-lock.el (font-lock-keywords): Change format of compiled values.
+	Document it.
+	(font-lock-add-keywords): If font-lock-keywords is compiled,
+	extract the uncompiled version, modify, then recompile.
+	(font-lock-remove-keywords): Likewise.
+	(font-lock-fontify-keywords-region): Handle changed format.
+	(font-lock-compile-keywords): Handle changed format.
+	(font-lock-set-defaults): Compile the keywords explicitly here.
+
 2004-06-24  David Kastrup  <dak@gnu.org>
 
 	* replace.el (query-replace-read-args): Implement `\,' and `\#'

@@ -1,5 +1,7 @@
 2004-06-24  Richard M. Stallman  <rms@gnu.org>
 
+	* commands.texi (Misc Events): Describe usr1-signal, usr2-signal event.
+
 	* customize.texi (Variable Definitions): Note about doc strings
 	and :set.
 
