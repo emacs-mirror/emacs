@@ -833,8 +833,8 @@ Return t if file exists.")
 
   GCPRO1 (file);
   lispstream = Fcons (Qnil, Qnil);
-  XSETFASTINT (XCAR (lispstream), (EMACS_UINT)stream >> 16);
-  XSETFASTINT (XCDR (lispstream), (EMACS_UINT)stream & 0xffff);
+  XSETCARFASTINT (lispstream, (EMACS_UINT)stream >> 16);
+  XSETCDRFASTINT (lispstream, (EMACS_UINT)stream & 0xffff);
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
@@ -966,7 +966,7 @@ openp (path, str, suffixes, storeptr, exec_only)
 
   for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
     {
-      CHECK_STRING (XCAR (tail));
+      CHECK_STRING_CAR (tail);
       max_suffix_len = max (max_suffix_len,
 			    STRING_BYTES (XSTRING (XCAR (tail))));
     }
@@ -2761,7 +2761,7 @@ read_list (flag, readcharfun)
 	    {
 	      GCPRO2 (val, tail);
 	      if (!NILP (tail))
-		XCDR (tail) = read0 (readcharfun);
+		XSETCDR (tail, read0 (readcharfun));
 	      else
 		val = read0 (readcharfun);
 	      read1 (readcharfun, &ch, 0);
@@ -2854,7 +2854,7 @@ read_list (flag, readcharfun)
 	     ? pure_cons (elt, Qnil)
 	     : Fcons (elt, Qnil));
       if (!NILP (tail))
-	XCDR (tail) = tem;
+	XSETCDR (tail, tem);
       else
 	val = tem;
       tail = tem;
