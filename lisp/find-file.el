@@ -498,7 +498,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
             (ff-find-file pathname in-other-window t)))
 
          (t                        ;; don't create the file, just whinge
-          (message "no file found for %s" fname))))
+          (message "No file found for %s" fname))))
 
        (t                          ;; matching file found
         nil))))
@@ -562,10 +562,10 @@ Arguments: (search-dirs fname-stub &optional suffix-list)
       (setq filename (concat fname-stub this-suffix))
 
       (if (not ff-quiet-mode)
-          (message "finding buffer %s..." filename))
+          (message "Finding buffer %s..." filename))
 
-      (if (bufferp (get-buffer filename))
-          (setq found (buffer-file-name (get-buffer filename))))
+      (if (bufferp (get-file-buffer filename))
+          (setq found (buffer-file-name (get-file-buffer filename))))
 
       (setq blist (buffer-list))
       (setq buf (buffer-name (car blist)))
@@ -604,7 +604,7 @@ Arguments: (search-dirs fname-stub &optional suffix-list)
               (setq file (concat dir "/" filename))
               
               (if (not ff-quiet-mode)
-                  (message "finding %s..." file))
+                  (message "Finding %s..." file))
 
               (if (file-exists-p file)
                   (setq found file))
