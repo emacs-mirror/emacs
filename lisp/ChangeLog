@@ -1,5 +1,7 @@
 2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (window-buffer-height): Use count-screen-lines.
+
 	* progmodes/python.el (python-preoutput-leftover): New var.
 	(python-preoutput-filter): Use it.
 	(python-send-receive): Loop until all the result has been received.
