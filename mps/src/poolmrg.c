@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.22) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.22) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.23) $");
 
 
 /* Types */
@@ -675,29 +675,30 @@ static Res MRGScan(ScanState ss, Pool pool, Seg seg)
 
 
 static PoolClassStruct PoolClassMRGStruct = {
-  PoolClassSig,                         /* sig */
+  PoolClassSig,
   "MRG",                                /* name */
   sizeof(MRGStruct),                    /* size */
   offsetof(MRGStruct, poolStruct),      /* offset */
   AttrSCAN | AttrFREE | AttrINCR_RB,
-  MRGInit,                              /* init */
-  MRGFinish,                            /* finish */
-  PoolNoAlloc,                          /* alloc */
-  MRGFree,                              /* free */
-  PoolNoBufferInit,                     /* bufferInit */
-  PoolNoBufferFill,                     /* bufferFill */
-  PoolNoBufferEmpty,                    /* bufferEmpty */
-  PoolNoBufferFinish,                   /* bufferFinish */
-  PoolNoTraceBegin,			/* traceBegin */
-  PoolNoWhiten,                         /* whiten */
-  PoolTrivGrey,                         /* grey */
-  PoolTrivBlacken,                      /* blacken */
-  MRGScan,                              /* scan */
-  PoolNoFix,                            /* fix */
-  PoolNoReclaim,                        /* reclaim */
-  PoolNoBenefit,			/* benefit */
-  PoolNoAct,                            /* act */
-  MRGDescribe,                          /* describe */
+  MRGInit,
+  MRGFinish,
+  PoolNoAlloc,
+  MRGFree,
+  PoolNoBufferInit,
+  PoolNoBufferFill,
+  PoolNoBufferEmpty,
+  PoolNoBufferFinish,
+  PoolNoTraceBegin,
+  PoolNoWhiten,
+  PoolTrivGrey,
+  PoolTrivBlacken,
+  MRGScan,
+  PoolNoFix,
+  PoolNoReclaim,
+  PoolNoBenefit,
+  PoolNoAct,
+  PoolNoWalk,
+  MRGDescribe,
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
 
