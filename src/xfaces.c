@@ -511,6 +511,40 @@ static void clear_font_table P_ ((struct frame *));
 
 #ifdef HAVE_X_WINDOWS
 
+/* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
+   color values.  Interrupt input must be blocked when this function
+   is called.  */
+
+void
+x_free_colors (f, pixels, npixels)
+     struct frame *f;
+     unsigned long *pixels;
+     int npixels;
+{
+  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
+
+  /* If display has an immutable color map, freeing colors is not
+     necessary and some servers don't allow it.  So don't do it.  */
+  if (class != StaticColor && class != StaticGray && class != TrueColor)
+    {
+      Display *dpy = FRAME_X_DISPLAY (f);
+      Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+      int screen_no = XScreenNumberOfScreen (FRAME_X_SCREEN (f));
+      unsigned long black = BlackPixel (dpy, screen_no);
+      unsigned long white = WhitePixel (dpy, screen_no);
+      unsigned long *px;
+      int i, j;
+
+      px = (unsigned long *) alloca (npixels * sizeof *px);
+      for (i = j = 0; i < npixels; ++i)
+	if (pixels[i] != black && pixels[i] != white)
+	  px[j++] = pixels[i];
+
+      if (j)
+	XFreeColors (dpy, cmap, px, j, 0);
+    }
+}
+
 /* Create and return a GC for use on frame F.  GC values and mask
    are given by XGCV and MASK.  */
 
@@ -1420,23 +1454,8 @@ unload_color (f, pixel)
      struct frame *f;
      unsigned long pixel;
 {
-  Display *dpy = FRAME_X_DISPLAY (f);
-  int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
-
-  if (pixel == BLACK_PIX_DEFAULT (f)
-      || pixel == WHITE_PIX_DEFAULT (f))
-    return;
-
   BLOCK_INPUT;
-  
-  /* If display has an immutable color map, freeing colors is not
-     necessary and some servers don't allow it.  So don't do it.  */
-  if (! (class == StaticColor || class == StaticGray || class == TrueColor))
-    {
-      Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
-      XFreeColors (dpy, cmap, &pixel, 1, 0);
-    }
-  
+  x_free_colors (f, &pixel, 1);
   UNBLOCK_INPUT;
 }
 
@@ -1456,62 +1475,45 @@ free_face_colors (f, face)
       && class != StaticGray
       && class != TrueColor)
     {
-      Display *dpy;
-      Colormap cmap;
-      
       BLOCK_INPUT;
-      dpy = FRAME_X_DISPLAY (f);
-      cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
       
-      if (face->foreground != BLACK_PIX_DEFAULT (f)
-	  && face->foreground != WHITE_PIX_DEFAULT (f)
-	  && !face->foreground_defaulted_p)
+      if (!face->foreground_defaulted_p)
 	{
-	  XFreeColors (dpy, cmap, &face->foreground, 1, 0);
+	  x_free_colors (f, &face->foreground, 1);
 	  IF_DEBUG (--ncolors_allocated);
 	}
       
-      if (face->background != BLACK_PIX_DEFAULT (f)
-	  && face->background != WHITE_PIX_DEFAULT (f)
-	  && !face->background_defaulted_p)
+      if (!face->background_defaulted_p)
 	{
-	  XFreeColors (dpy, cmap, &face->background, 1, 0);
+	  x_free_colors (f, &face->background, 1);
 	  IF_DEBUG (--ncolors_allocated);
 	}
 
       if (face->underline_p
-	  && !face->underline_defaulted_p
-	  && face->underline_color != BLACK_PIX_DEFAULT (f)
-	  && face->underline_color != WHITE_PIX_DEFAULT (f))
+	  && !face->underline_defaulted_p)
 	{
-	  XFreeColors (dpy, cmap, &face->underline_color, 1, 0);
+	  x_free_colors (f, &face->underline_color, 1);
 	  IF_DEBUG (--ncolors_allocated);
 	}
 
       if (face->overline_p
-	  && !face->overline_color_defaulted_p
-	  && face->overline_color != BLACK_PIX_DEFAULT (f)
-	  && face->overline_color != WHITE_PIX_DEFAULT (f))
+	  && !face->overline_color_defaulted_p)
 	{
-	  XFreeColors (dpy, cmap, &face->overline_color, 1, 0);
+	  x_free_colors (f, &face->overline_color, 1);
 	  IF_DEBUG (--ncolors_allocated);
 	}
 
       if (face->strike_through_p
-	  && !face->strike_through_color_defaulted_p
-	  && face->strike_through_color != BLACK_PIX_DEFAULT (f)
-	  && face->strike_through_color != WHITE_PIX_DEFAULT (f))
+	  && !face->strike_through_color_defaulted_p)
 	{
-	  XFreeColors (dpy, cmap, &face->strike_through_color, 1, 0);
+	  x_free_colors (f, &face->strike_through_color, 1);
 	  IF_DEBUG (--ncolors_allocated);
 	}
 
       if (face->box != FACE_NO_BOX
-	  && !face->box_color_defaulted_p
-	  && face->box_color != BLACK_PIX_DEFAULT (f)
-	  && face->box_color != WHITE_PIX_DEFAULT (f))
+	  && !face->box_color_defaulted_p)
 	{
-	  XFreeColors (dpy, cmap, &face->box_color, 1, 0);
+	  x_free_colors (f, &face->box_color, 1);
 	  IF_DEBUG (--ncolors_allocated);
 	}
 
