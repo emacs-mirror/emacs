@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.43) $
+ * $HopeName: MMsrc!arenavm.c(trunk.44) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.43) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.44) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -1007,8 +1007,26 @@ static Serial vmGenOfSegPref(VMArena vmArena, SegPref pref)
   return gen;
 }
 
+/* VMSegFind
+ *
+ * Finds space for a segment (note it does not create or allocate a
+ * segment).
+ *
+ * .vmsegfind.arg.basereturn: return parameter for the index in the
+ *   chunk's page table of the base of the free area found.
+ * .vmsegfind.arg.chunkreturn: return parameter for the chunk in which
+ *   the free space has been found.
+ * .vmsegfind.arg.vmarena:
+ * .vmsegfind.arg.pref: the SegPref object to be used when considering
+ *   which zones to try.
+ * .vmsegfind.arg.size: Size of segment to find space for.
+ * .vmsegfind.arg.barge: TRUE iff stealing space in zones used
+ *   by other SegPrefs should be considered (if it's FALSE then only
+ * zones already used by this segpref or free zones will be used).
+ */
+
 static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
-                      VMArena vmArena, SegPref pref, Size size)
+                      VMArena vmArena, SegPref pref, Size size, Bool barge)
 {
   RefSet refSet;
 
@@ -1048,12 +1066,17 @@ static Bool VMSegFind(Index *baseReturn, VMArenaChunk *chunkReturn,
                          RefSetUnion(refSet,
 				     RefSetDiff(vmArena->freeSet, 
 						vmArena->blacklist)),
-						pref->high) && 
-       !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
+						pref->high) &&
+       !barge)
+    {
+      return FALSE;
+    }
+    if(!findFreeInRefSet(baseReturn, chunkReturn, vmArena, size, 
 			 RefSetDiff(RefSetUNIV, vmArena->blacklist),
 			 pref->high) && 
        !findFreeInRefSet(baseReturn, chunkReturn, vmArena, size,
-			 RefSetUNIV, pref->high)) {
+			 RefSetUNIV, pref->high))
+    {
       return FALSE;
     }
   } else { /* non-GC'd segment */
@@ -1110,7 +1133,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* must be non-NULL. */
   AVER(pool != NULL);
 
-  if(!VMSegFind(&base, &chunk, vmArena, pref, size)) {
+  if(!VMSegFind(&base, &chunk, vmArena, pref, size, FALSE)) {
     VMArenaChunk newChunk;
     Size chunkSize;
     chunkSize = vmArena->extendBy + size;
@@ -1123,7 +1146,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
       return res;
     }
     RingAppend(&vmArena->chunkRing, &newChunk->arenaRing);
-    if(!VMSegFind(&base, &chunk, vmArena, pref, size)) {
+    if(!VMSegFind(&base, &chunk, vmArena, pref, size, TRUE)) {
       /* even with new chunk didn't work... */
       /* @@@@ .improve.debug: If the tables of the new chunk */
       /* were more than vmArena->extendBy then we will have failed */
