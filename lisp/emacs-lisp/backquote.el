@@ -141,8 +141,18 @@ Vectors work just like lists.  Nested backquotes are permitted."
    ((eq (car s) backquote-backquote-symbol)
     (backquote-process (cdr (backquote-process (nth 1 s)))))
    (t
-    (let ((rest s) (item nil) (firstlist nil) (list nil) (lists nil))
+    (let ((rest s)
+	  item firstlist list lists expression)
+      ;; Scan this list-level, setting LISTS to a list of forms,
+      ;; each of which produces a list of elements
+      ;; that should go in this level.
+      ;; The order of LISTS is backwards. 
+      ;; If there are non-splicing elements (constant or variable)
+      ;; at the beginning, put them in FIRSTLIST,
+      ;; as a list of tagged values (TAG . FORM).
+      ;; If there are any at the end, they go in LIST, likewise.
       (while (consp rest)
+	;; Turn . (, foo) into (,@ foo).
 	(if (eq (car rest) backquote-unquote-symbol)
 	    (setq rest (list (list backquote-splice-symbol (nth 1 rest)))))
 	(setq item (backquote-process (car rest)))
@@ -158,20 +168,23 @@ Vectors work just like lists.  Nested backquotes are permitted."
 	 (t
 	  (setq list (cons item list))))
 	(setq rest (cdr rest)))
+      ;; Handle nonsplicing final elements, and the tail of the list
+      ;; (which remains in REST).
       (if (or rest list)
 	  (setq lists (cons (backquote-listify list (backquote-process rest))
 			    lists)))
-      (setq lists
+      ;; Turn LISTS into a form that produces the combined list. 
+      (setq expression
 	    (if (or (cdr lists)
-		    (and (consp (car lists))
-			 (eq (car (car lists)) backquote-splice-symbol)))
+		    (eq (car-safe (car lists)) backquote-splice-symbol))
 		(cons 'append (nreverse lists))
 	      (car lists)))
+      ;; Tack on any initial elements.
       (if firstlist
-	  (setq lists (backquote-listify firstlist (cons 1 lists))))
-      (if (eq (car lists) 'quote)
+	  (setq expression (backquote-listify firstlist (cons 1 expression))))
+      (if (eq (car-safe expression) 'quote)
 	  (cons 0 (list 'quote s))
-	(cons 1 lists))))))
+	(cons 1 expression))))))
 
 ;; backquote-listify takes (tag . structure) pairs from backquote-process
 ;; and decides between append, list, backquote-list*, and cons depending
