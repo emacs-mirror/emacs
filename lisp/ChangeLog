@@ -1,3 +1,10 @@
+2000-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/texinfo.el (texinfo-insert-@uref): Renamed from
+	texinfo-insert-@url.
+	(texinfo-insert-@url): A defalias for texinfo-insert-@uref.
+	(texinfo-mode-map): Bind "C-c C-c u" to texinfo-insert-@uref.
+
 2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/checkdoc.el (checkdoc-minor-mode) <defvar>: Remove.
