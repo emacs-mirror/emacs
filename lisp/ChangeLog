@@ -1,3 +1,11 @@
+2000-10-22  Miles Bader  <miles@gnu.org>
+
+	* faces.el (color-values, color-defined-p): Use `member', not
+	`memq', because it works correctly for strings.
+	(frame-set-background-mode): Actually, "unspecified-fg" and
+	"unspecified-bg" *are* strings.  Use `member', not `memq', and
+	`equal', not `eq', when a string value is possible.
+
 2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-file-list-for-emacs): Add an entry for Speedbar.
@@ -35,6 +43,8 @@
 
 	* window.el (fit-window-to-buffer): New function.
 	(shrink-window-if-larger-than-buffer): Use it.
+	(window-text-height): Don't expect minibuffers to have mode-lines.
+
 	* help.el (resize-temp-buffer-window): Use `fit-window-to-buffer'.
 	* international/quail.el (quail-update-guidance): Use
 	`fit-window-to-buffer' instead of `set-window-text-height'.
