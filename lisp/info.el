@@ -1073,10 +1073,14 @@ N is the digit argument used to invoke this command."
   (interactive)
   (save-excursion
     (forward-line 1)
-    (search-backward "\n* menu:" nil t)
-    (or (search-backward "\n* " nil t)
-	(error "No previous items in menu"))
-    (Info-goto-node (Info-extract-menu-node-name))))
+    (let ((beg (save-excursion
+		 (and (search-backward "\n* menu:" nil t)
+		      (point)))))
+      (or (and beg (search-backward "\n* " beg t))
+	  (error "No previous items in menu")))
+    (Info-goto-node (save-excursion
+		      (goto-char (match-end 0))
+		      (Info-extract-menu-node-name)))))
 
 (defmacro Info-no-error (&rest body)
   (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
@@ -1103,23 +1107,42 @@ N is the digit argument used to invoke this command."
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
   (interactive)
-  (cond ((Info-no-error (Info-last-menu-item))	)
+  (cond ((Info-no-error
+	  (Info-last-menu-item)
+	  ;; If we go down a menu item, go to the end of the node
+	  ;; so we can scroll back through it.
+	  (goto-char (point-max))))
 	((Info-no-error (Info-up))		(forward-line -1))
 	(t 					(error "No previous nodes"))))
 
 (defun Info-scroll-up ()
   "Read the next screen.  If end of buffer is visible, go to next entry."
   (interactive)
-  (if (pos-visible-in-window-p (point-max))
-      (Info-next-preorder)
-    (scroll-up)))
+  (if (or (< (window-start) (point-min))
+	  (> (window-start) (point-max)))
+      (set-window-start (selected-window) (point)))
+  (let ((virtual-end (save-excursion
+		       (goto-char (point-min))
+		       (if (search-forward "\n* Menu:" nil t)
+			   (point)
+			 (point-max)))))
+    (if (or (< virtual-end (window-start))
+	    (pos-visible-in-window-p virtual-end))
+	(Info-next-preorder)
+      (scroll-up))))
 
 (defun Info-scroll-down ()
   "Read the previous screen.  If start of buffer is visible, go to last entry."
   (interactive)
-  (if (pos-visible-in-window-p (point-min))
-      (Info-last-preorder)
-    (scroll-down)))
+  (if (or (< (window-start) (point-min))
+	  (> (window-start) (point-max)))
+      (set-window-start (selected-window) (point)))
+  (let ((virtual-end (save-excursion
+		       (goto-char (point-min))
+		       (search-forward "\n* Menu:" nil t))))
+    (if (or virtual-end (pos-visible-in-window-p (point-min)))
+	(Info-last-preorder)
+      (scroll-down))))
 
 (defun Info-next-reference ()
   "Move cursor to the next cross-reference or menu item in the node."
