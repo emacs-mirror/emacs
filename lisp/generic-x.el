@@ -164,7 +164,7 @@ you must reload generic-x to enable the specified modes."
    (list ?#)
    nil
    '(("^\\s-*\\(<.*>\\)"       1 'font-lock-constant-face)
-     ("^\\(\\sw+\\)\\s-"  1 'font-lock-variable-name-face))
+     ("^\\s-*\\(\\sw+\\)\\s-"  1 'font-lock-variable-name-face))
    (list "srm\\.conf\\'" "httpd\\.conf\\'" "access\\.conf\\'")
    (list
     (function
