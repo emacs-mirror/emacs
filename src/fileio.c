@@ -4184,8 +4184,9 @@ actually used.")
       if (not_regular && GAP_SIZE < trytry)
 	make_gap (total - GAP_SIZE);
 
-      /* Allow quitting out of the actual I/O.  If we do,
-         remove 's */
+      /* Allow quitting out of the actual I/O.  If a C-g interrupts
+	 this, make sure that no invalid characters remain
+	 in the undecoded part read.  */
       record_unwind_protect (unwind_read,
 			     Fcons (make_number (inserted), visit));
       immediate_quit = 1;
