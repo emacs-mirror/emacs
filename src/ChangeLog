@@ -1,10 +1,16 @@
 2000-05-26  Kenichi Handa  <handa@etl.go.jp>
 
-	* fontset.c (syms_of_fontset): Adjust the font name for ascii of
-	the default fontset to what Emacs uses by default.
-
 	* charset.c (init_charset_once): Set the table bytes_by_char_head
 	correctly.
+
+	* fontset.c (syms_of_fontset): Adjust the font name for ascii of
+	the default fontset to what Emacs uses by default.
+	(check_registry_encoding): This function deleted.
+	(Fset_fontset_font): Remove the adhoc condition for the default
+	fontset.  Allow cons in FONTNAME.
+
+	* fns.c (map_char_table): Ignore char-table entries for
+	charsets eight-bit-control and eight-bit-graphic.
 
 2000-05-25  Ken Raeburn  <raeburn@gnu.org>
 

@@ -1,5 +1,8 @@
 2000-05-26  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/fontset.el: Set family names of non-latin charsets
+	in default fontset to "*".
+
 	* international/mule-diag.el (print-fontset): Combine family part
 	and registry part of the fontname by "-*-" instead of "-".
 
