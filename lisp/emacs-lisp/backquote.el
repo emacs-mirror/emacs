@@ -1,6 +1,6 @@
 ;;; backquote.el --- implement the ` Lisp construct
 
-;;; Copyright (C) 1990, 1992, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1990, 1992, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF
@@ -72,13 +72,13 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 ;; A few advertised variables that control which symbols are used
 ;; to represent the backquote, unquote, and splice operations.
 (defconst backquote-backquote-symbol '\`
-  "*Symbol used to represent a backquote or nested backquote.")
+  "Symbol used to represent a backquote or nested backquote.")
 
 (defconst backquote-unquote-symbol ',
-  "*Symbol used to represent an unquote inside a backquote.")
+  "Symbol used to represent an unquote inside a backquote.")
 
 (defconst backquote-splice-symbol ',@
-  "*Symbol used to represent a splice inside a backquote.")
+  "Symbol used to represent a splice inside a backquote.")
 
 ;;;###autoload
 (defmacro backquote (arg)
