@@ -813,8 +813,9 @@ If FILE, find the \".../etc/PACKAGE\" file instead."
 	(setq path (cdr path))))
     result))
 
-(defvar ange-ftp-path-format)
-(defvar efs-path-regexp)
+(eval-when-compile
+  (defvar ange-ftp-path-format)
+  (defvar efs-path-regexp))
 (defun nnheader-re-read-dir (path)
   "Re-read directory PATH if PATH is on a remote system."
   (if (and (fboundp 'efs-re-read-dir) (boundp 'efs-path-regexp))

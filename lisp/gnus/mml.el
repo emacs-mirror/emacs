@@ -507,8 +507,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	 (mail-header-encode-parameter
 	  (symbol-name type) value))))))
 
-(defvar ange-ftp-name-format)
-(defvar efs-path-regexp)
+(eval-when-compile
+  (defvar ange-ftp-name-format)
+  (defvar efs-path-regexp))
 (defun mml-parse-file-name (path)
   (if (if (boundp 'efs-path-regexp)
 	  (string-match efs-path-regexp path)

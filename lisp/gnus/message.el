@@ -260,7 +260,8 @@ should return the new buffer name."
   :group 'message-buffers
   :type 'boolean)
 
-(defvar gnus-local-organization)
+(eval-when-compile
+  (defvar gnus-local-organization))
 (defcustom message-user-organization
   (or (and (boundp 'gnus-local-organization)
 	   (stringp gnus-local-organization)
@@ -421,8 +422,9 @@ might set this variable to '(\"-f\" \"you@some.where\")."
 Folding `References' makes ancient versions of INN create incorrect
 NOV lines.")
 
-(defvar gnus-post-method)
-(defvar gnus-select-method)
+(eval-when-compile
+  (defvar gnus-post-method)
+  (defvar gnus-select-method))
 (defcustom message-post-method
   (cond ((and (boundp 'gnus-post-method)
 	      (listp gnus-post-method)
@@ -921,8 +923,9 @@ The first matched address (not primary one) is used in the From field."
 (defvar message-posting-charset nil)
 
 ;; Byte-compiler warning
-(defvar gnus-active-hashtb)
-(defvar gnus-read-active-file)
+(eval-when-compile
+  (defvar gnus-active-hashtb)
+  (defvar gnus-read-active-file))
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
 ;;; (UNIX From lines), minus the initial ^.  It should be a copy
@@ -1423,8 +1426,9 @@ Point is left at the beginning of the narrowed-to region."
    ["Body" message-goto-body t]
    ["Signature" message-goto-signature t]))
 
-(defvar facemenu-add-face-function)
-(defvar facemenu-remove-face-function)
+(eval-when-compile
+  (defvar facemenu-add-face-function)
+  (defvar facemenu-remove-face-function))
 
 ;;;###autoload
 (defun message-mode ()
@@ -1977,7 +1981,7 @@ prefix, and don't delete any headers."
 	(insert "\n"))
       (funcall message-citation-line-function))))
 
-(defvar mail-citation-hook)		;Compiler directive
+(eval-when-compile (defvar mail-citation-hook))		;Compiler directive
 (defun message-cite-original ()
   "Cite function in the standard Message manner."
   (if (and (boundp 'mail-citation-hook)
@@ -3538,7 +3542,7 @@ than 988 characters long, and if they are not, trim them until they are."
     (setq message-buffer-list
 	  (nconc message-buffer-list (list (current-buffer))))))
 
-(defvar mc-modes-alist)
+(eval-when-compile (defvar mc-modes-alist))
 (defun message-setup (headers &optional replybuffer actions)
   (when (and (boundp 'mc-modes-alist)
 	     (not (assq 'message-mode mc-modes-alist)))
@@ -4361,7 +4365,6 @@ Do a `tab-to-tab-stop' if not in those headers."
       (message-expand-group)
     (tab-to-tab-stop)))
 
-(defvar gnus-active-hashtb)
 (defun message-expand-group ()
   "Expand the group name under point."
   (let* ((b (save-excursion
