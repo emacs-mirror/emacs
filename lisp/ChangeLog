@@ -1,3 +1,17 @@
+2004-07-16  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (inhibit-mark-movement): New defvar.
+	(beginning-of-buffer, end-of-buffer): Do not push mark if
+	inhibit-mark-movement is non-nil or C-u prefix is given.
+
+	* emulation/cua-base.el (cua--preserve-mark-commands): New defvar.
+	Init to beginning-of-buffer and end-of-buffer.
+	(cua--undo-push-mark): New defvar.
+	(cua--pre-command-handler): Set inhibit-mark-movement if mark is
+	already active and command is in cua--preserve-mark-commands.
+	Also fix check for shift modifier on non-window systems.
+	(cua--post-command-handler): Clear inhibit-mark-movement if set.
+
 2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* calendar/cal-dst.el (calendar-time-from-absolute): Return a list
