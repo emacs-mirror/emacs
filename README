@@ -63,13 +63,14 @@ There are several subdirectories:
     subdirectories are architecture-independent too.
 
 `info' holds the Info documentation tree for Emacs.
-`man' holds the source code for the Emacs manual.  If you modify the
+`man' holds the source code for the Emacs Manual.  If you modify the
       manual sources, you will need the `makeinfo' program to produce
       an updated manual.  `makeinfo' is part of the GNU Texinfo
       package; you need version 4.0 or later of Texinfo.
 
-   Note that the Emacs Lisp manual sources are distributed separately.
-(They are twice as large as the Emacs manual in the man subdirectory.)
+   Note that the Emacs Lisp Reference Manual sources are distributed
+separately.  (They are twice as large as the Emacs Manual in the man
+subdirectory.)
 
 `msdos' holds configuration files for compiling Emacs under MSDOG.
 `vms' holds instructions and useful files for running Emacs under VMS.
