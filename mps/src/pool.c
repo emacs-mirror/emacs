@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.55) $
+ * $HopeName: MMsrc!pool.c(trunk.56) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.55) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.56) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -1024,10 +1024,26 @@ void PoolNoRampBegin(Pool pool, Buffer buf)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
+  NOTREACHED;
 }
 
 
 void PoolNoRampEnd(Pool pool, Buffer buf)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  NOTREACHED;
+}
+
+
+void PoolTrivRampBegin(Pool pool, Buffer buf)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+}
+
+
+void PoolTrivRampEnd(Pool pool, Buffer buf)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
