@@ -572,6 +572,12 @@ extern Lisp_Object Vdefault_process_coding_system;
    system.  */
 extern Lisp_Object Vselect_safe_coding_system_function;
 
+/* Coding system for file names, or nil if none.  */
+extern Lisp_Object Vfile_name_coding_system;
+
+/* Coding system for file names used only when
+   Vfile_name_coding_system is nil.  */
+extern Lisp_Object Vdefault_file_name_coding_system;
 #endif
 
 #endif /* _CODING_H */
