@@ -1,5 +1,16 @@
 2002-09-08  Dave Love  <fx@gnu.org>
 
+	* language/ind-util.el (ucs-devanagari-to-is13194-alist)
+	(indian-glyph-char, indian-char-glyph): Deleted.
+	(is13194-default-repertory): Renamed from
+	is13194-default-repartory,
+	(iscii-to-ucs-region): Hoist evals from loop.
+
+	* language/devan-util.el (dev-charseq): Avoid indian-glyph-char.
+
+	* language/indian.el (indian-script-table)
+	(ccl-encode-indian-glyph-font): Deleted.
+
 	* international/mule-conf.el (emacs-mule, iso-2022-7bit) 
 	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2) 
 	(compound-text, ctext-no-compositions): Remove :charset-list.
