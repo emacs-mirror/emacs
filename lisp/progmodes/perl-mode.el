@@ -139,7 +139,9 @@ The expansion is entirely correct because it uses the C preprocessor."
   (let ((st (make-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?\n ">" st)
     (modify-syntax-entry ?# "<" st)
-    (modify-syntax-entry ?$ "/ p" st)
+    ;; `$' is also a prefix char so I was tempted to say "/ p",
+    ;; but the `p' thingy basically overrides the `/' :-(   --stef
+    (modify-syntax-entry ?$ "/" st)
     (modify-syntax-entry ?% ". p" st)
     (modify-syntax-entry ?@ ". p" st)
     (modify-syntax-entry ?& "." st)
@@ -250,7 +252,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Catch ${ so that ${var} doesn't screw up indentation.
     ;; This also catches $' to handle 'foo$', although it should really
     ;; check that it occurs inside a '..' string.
-    ("\\(\\$\\)[{']" (1 "."))
+    ("\\(\\$\\)[{']" (1 ". p"))
     ;; Handle funny names like $DB'stop.
     ("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
     ;; format statements
