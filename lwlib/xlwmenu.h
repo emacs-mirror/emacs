@@ -52,6 +52,6 @@ typedef struct _XlwMenuClassRec *XlwMenuWidgetClass;
 extern WidgetClass xlwMenuWidgetClass;
 
 void
-pop_up_menu ();
+pop_up_menu __P ((XlwMenuWidget, XButtonPressedEvent*));
 
 #endif /* _XlwMenu_h */
