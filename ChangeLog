@@ -1,7 +1,7 @@
 2004-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to
-	AC_MSG_WARN.
+	AC_MSG_WARN.  Move output of warning message to end of configure run.
 
 2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 

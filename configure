@@ -7854,26 +7854,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   else
-    { echo "$as_me:$LINENO: WARNING:
-**********************************************************************
-
-Heap start address is randomized and no workaround is known.
-Emacs will probably dump core when temacs is run in the build phase.
-Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
-for further information.
-
-**********************************************************************
-" >&5
-echo "$as_me: WARNING:
-**********************************************************************
-
-Heap start address is randomized and no workaround is known.
-Emacs will probably dump core when temacs is run in the build phase.
-Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
-for further information.
-
-**********************************************************************
-" >&2;}
+        emacs_cv_randomheap=warn
   fi
 fi
 
@@ -21451,6 +21432,29 @@ echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
+
+if test "$emacs_cv_randomheap" = warn; then
+  { echo "$as_me:$LINENO: WARNING:
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+" >&5
+echo "$as_me: WARNING:
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+" >&2;}
+fi
 
 # Remove any trailing slashes in these variables.
 test "${prefix}" != NONE &&

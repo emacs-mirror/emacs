@@ -1613,16 +1613,8 @@ if test "$emacs_cv_randomheap" = yes; then
     AC_DEFINE(HAVE_RANDOM_HEAPSTART, 1,
     [Define to 1 if this OS randomizes the start address of the heap.])
   else
-    AC_MSG_WARN([
-**********************************************************************
-
-Heap start address is randomized and no workaround is known.
-Emacs will probably dump core when temacs is run in the build phase.
-Maybe exec-shield is turned on.  Read about exec-shield in `etc/PROBLEMS'
-for further information.
-
-**********************************************************************
-])
+    dnl We do the warning at the end of the configure run so it is seen.
+    emacs_cv_randomheap=warn
   fi
 fi
 
@@ -3093,6 +3085,19 @@ echo "  Does Emacs use -lungif?                                 ${HAVE_GIF}"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
+
+if test "$emacs_cv_randomheap" = warn; then 
+  AC_MSG_WARN([
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in `etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+])
+fi
 
 # Remove any trailing slashes in these variables.
 [test "${prefix}" != NONE &&
