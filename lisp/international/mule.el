@@ -49,13 +49,14 @@ Return t if file exists."
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
-	   (enable-multibyte-characters t)
 	   (load-in-progress t))
       (or nomessage (message "Loading %s..." file))
       (unwind-protect
 	  (progn
 	    (save-excursion
 	      (set-buffer buffer)
+	      ;; This is buffer-local.
+	      (setq enable-multibyte-characters t)
 	      (insert-file-contents fullname)
 	      ;; We must set `buffer-file-name' for `eval-buffer' and
 	      ;; `load-history'.
