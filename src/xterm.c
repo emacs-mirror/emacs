@@ -264,19 +264,6 @@ x_display_info_for_display (dpy)
 
   return 0;
 }
-
-#ifdef MULTI_PERDISPLAY
-/* Return the perdisplay struct corresponding to FRAME.  */
-#undef get_perdisplay
-
-PERDISPLAY *
-get_perdisplay(frame)
-     FRAME_PTR frame;
-{
-  return get_perdisplay_macro (frame);
-}
-#define get_perdisplay(frame) get_perdisplay_macro (frame)
-#endif
 
 /* Starting and ending updates.
 
@@ -5540,6 +5527,27 @@ static XrmOptionDescRec emacs_options[] = {
 
 static int x_initialized;
 
+#ifdef MULTI_KBOARD
+/* Test whether two display-name strings agree up to the dot that separates
+   the screen number from the server number.  */
+static int
+same_x_server (name1, name2)
+     char *name1, *name2;
+{
+  int seen_colon = 0;
+  for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
+    {
+      if (*name1 == ':')
+	seen_colon++;
+      if (seen_colon && *name1 == '.')
+	return 1;
+    }
+  return (seen_colon
+	  && (*name1 == '.' || *name1 == '\0')
+	  && (*name2 == '.' || *name2 == '\0'));
+}
+#endif
+
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -5596,10 +5604,27 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
 
-#ifdef MULTI_PERDISPLAY
-  init_perdisplay (&dpyinfo->perdisplay);
-  dpyinfo->perdisplay.next_perdisplay = all_perdisplays;
-  all_perdisplays = &dpyinfo->perdisplay;
+#ifdef MULTI_KBOARD
+  {
+    struct x_display_info *share;
+    Lisp_Object tail;
+
+    for (share = x_display_list, tail = x_display_name_list; share;
+	 share = share->next, tail = XCONS (tail)->cdr)
+      if (same_x_server (XSTRING (XCONS (XCONS (tail)->car)->car)->data,
+			 XSTRING (display_name)->data))
+	break;
+    if (share)
+      dpyinfo->kboard = share->kboard;
+    else
+      {
+	dpyinfo->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	init_kboard (dpyinfo->kboard);
+	dpyinfo->kboard->next_kboard = all_kboards;
+	all_kboards = dpyinfo->kboard;
+      }
+    dpyinfo->kboard->reference_count++;
+  }
 #endif
 
   /* Put this display on the chain.  */
@@ -5777,16 +5802,18 @@ x_delete_display (dpyinfo)
   /* I'm told Xt does this itself.  */
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
-#ifdef MULTI_PERDISPLAY
-  {
-    PERDISPLAY **perdp;
-    for (perdp = &all_perdisplays; *perdp != &dpyinfo->perdisplay;
-	 perdp = &(*perdp)->next_perdisplay)
-      if (*perdp == NULL)
-	abort ();
-    *perdp = dpyinfo->perdisplay.next_perdisplay;
-  }
-  wipe_perdisplay (&dpyinfo->perdisplay);
+#ifdef MULTI_KBOARD
+  if (--dpyinfo->kboard->reference_count == 0)
+    {
+      KBOARD **kbp;
+      for (kbp = &all_kboards; *kbp != dpyinfo->kboard;
+	   kbp = &(*kbp)->next_kboard)
+	if (*kbp == NULL)
+	  abort ();
+      *kbp = dpyinfo->kboard->next_kboard;
+      wipe_kboard (dpyinfo->kboard);
+      xfree (dpyinfo->kboard);
+    }
 #endif
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->x_id_name);
