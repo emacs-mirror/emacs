@@ -1,3 +1,13 @@
+2001-11-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* play/snake.el (snake-mode): Remove make-local-hook.
+
+	* play/tetris.el (tetris-mode): Likewise.
+
+	* play/decipher.el (decipher-mode): Likewise.
+
+	* tmm.el (tmm-add-prompt): Likewise.
+
 2001-11-25  Sam Steingold  <sds@gnu.org>
 
 	* menu-bar.el (menu-bar-apropos-menu): New variable.
