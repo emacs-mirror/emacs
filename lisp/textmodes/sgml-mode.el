@@ -1235,7 +1235,7 @@ Add this to `sgml-mode-hook' for convenience."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward "^\\([ \t]+\\)<" 100 'noerror)
+    (if (re-search-forward "^\\([ \t]+\\)<" 500 'noerror)
         (progn
           (set (make-local-variable 'sgml-basic-offset)
                (length (match-string 1)))
