@@ -1,3 +1,7 @@
+2001-04-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmail.el (rmail-message-regexp-p): Yet another fix.
+
 2001-04-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/tty-colors.el (tty-color-define, tty-color-off-gray-diag)
