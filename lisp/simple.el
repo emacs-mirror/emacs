@@ -2378,8 +2378,14 @@ Setting this variable automatically makes it local to the current buffer.")
 	(let ((fill-point
 	       (let ((opoint (point))
 		     bounce
-		     (first t))
+		     (first t)
+		     after-prefix)
 		 (save-excursion
+		   (beginning-of-line)
+		   (setq after-prefix (point))
+		   (and fill-prefix
+			(looking-at (regexp-quote fill-prefix))
+			(setq after-prefix (match-end 0)))
 		   (move-to-column (1+ fc))
 		   ;; Move back to a word boundary.
 		   (while (or first
@@ -2398,7 +2404,7 @@ Setting this variable automatically makes it local to the current buffer.")
 		     ;; If we find nowhere on the line to break it,
 		     ;; break after one word.  Set bounce to t
 		     ;; so we will not keep going in this while loop.
-		     (if (bolp)
+		     (if (<= (point) after-prefix)
 			 (progn
 			   (re-search-forward "[ \t]" opoint t)
 			   (setq bounce t)))
@@ -2792,6 +2798,60 @@ or go back to just one window (by deleting all but the selected window)."
 	 (delete-other-windows))))
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
+
+(defvar mail-user-agent 'sendmail-user-agent
+  "*Your preference for a mail composition package.
+Various Emacs Lisp packages (e.g. reporter) require you to compose an
+outgoing email message.  This variable lets you specify which
+mail-sending package you prefer.
+
+Valid values include:
+
+    'sendmail-user-agent -- use Emacs built-in Mail package
+    'mh-e-user-agent     -- use the Emacs interface to the MH mail system
+
+Additional valid symbols may be available; check with the author of
+your package for details.")
+
+(defun define-mail-user-agent (symbol composefunc sendfunc
+				      &optional abortfunc hookvar)
+  "Define a symbol to identify a mail-sending package for `mail-user-agent'.
+
+SYMBOL can be any Lisp symbol.  Its function definition and/or
+value as a variable do not matter for this usage; we use only certain
+properties on its property list, to encode the rest of the arguments.
+
+COMPOSEFUNC is program callable function that composes an outgoing
+mail message buffer.  This function should set up the basics of the
+buffer without requiring user interaction.  It should populate the
+standard mail headers, leaving the `to:' and `subject:' headers blank.
+
+SENDFUNC is the command a user would type to send the message.
+
+Optional ABORTFUNC is the command a user would type to abort the
+message.  For mail packages that don't have a separate abort function,
+this can be `kill-buffer' (the equivalent of omitting this argument).
+
+Optional HOOKVAR is a hook variable that gets run before the message
+is actually sent.  Reporter will install `reporter-bug-hook' onto this
+hook so that empty bug reports can be suppressed by raising an error.
+If not supplied, `mail-send-hook' will be used.
+
+The properties used on SYMBOL are `composefunc', `sendfunc',
+`abortfunc', and `hookvar'."
+  (put symbol 'composefunc composefunc)
+  (put symbol 'sendfunc sendfunc)
+  (put symbol 'abortfunc (or abortfunc 'kill-buffer))
+  (put symbol 'hookvar (or hookvar 'mail-send-hook)))
+
+(define-mail-user-agent 'sendmail-user-agent
+  '(lambda (&rest args) (or (apply 'mail args)
+			    (error "Message aborted")))
+  'mail-send-and-exit)
+
+(define-mail-user-agent 'mh-e-user-agent
+  'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
+  'mh-before-send-letter-hook)
 
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
