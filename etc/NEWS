@@ -736,8 +736,8 @@ code when called with a prefix argument.
 
 ** Ispell changes
 
-*** The command `ispell' new spell-checks a region if
-transient-mark-mode is on, and the mark is active.  Otherise it
+*** The command `ispell' now spell-checks a region if
+transient-mark-mode is on, and the mark is active.  Otherwise it
 spell-checks the current buffer.
 
 ** Dired changes
