@@ -1372,46 +1372,6 @@ off the screen.")
 }
 
 
-#ifndef HAVE_X11
-DEFUN ("rubber-band-rectangle", Frubber_band_rectangle, Srubber_band_rectangle,
-       3, 3, "",
-  "Ask user to specify a window position and size on FRAME with the mouse.\n\
-Arguments are FRAME, NAME and GEO.  NAME is a name to be displayed as\n\
-the purpose of this rectangle.  GEO is an X-windows size spec that can\n\
-specify defaults for some sizes/positions.  If GEO specifies everything,\n\
-the mouse is not used.\n\
-Returns a list of five values: (FRAME LEFT TOP WIDTH HEIGHT).")
-  (frame, name, geo)
-     Lisp_Object frame;
-     Lisp_Object name;
-     Lisp_Object geo;
-{
-  int vals[4];
-  Lisp_Object nums[4];
-  int i;
-
-  CHECK_FRAME (frame, 0);
-  CHECK_STRING (name, 1);
-  CHECK_STRING (geo, 2);
-
-  switch (XFRAME (frame)->output_method)
-    {
-    case output_x_window:
-      x_rubber_band (XFRAME (frame), &vals[0], &vals[1], &vals[2], &vals[3],
-		     XSTRING (geo)->data, XSTRING (name)->data);
-      break;
-
-    default:
-      return Qnil;
-    }
-
-  for (i = 0; i < 4; i++)
-    XFASTINT (nums[i]) = vals[i];
-  return Fcons (frame, Flist (4, nums));
-  return Qnil;
-}
-#endif /* not HAVE_X11 */
-
 choose_minibuf_frame ()
 {
   /* For lowest-level minibuf, put it on currently selected frame
@@ -1530,9 +1490,6 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
   defsubr (&Sset_frame_position);
-#ifndef HAVE_X11
-  defsubr (&Srubber_band_rectangle);
-#endif	/* HAVE_X11 */
 }
 
 keys_of_frame ()
