@@ -1382,79 +1382,79 @@ struct fkey_table {
 
 static struct fkey_table keys[] =
 {
-  "kh", "home",		/* termcap */
-  "kl", "left",		/* termcap */
-  "ku", "up",		/* termcap */
-  "kr", "right",	/* termcap */
-  "kd", "down",		/* termcap */
-  "%8", "prior",	/* terminfo */
-  "%5", "next",		/* terminfo */
-  "@7",	"end",		/* terminfo */
-  "@1", "begin",	/* terminfo */
-  "*6", "select",	/* terminfo */
-  "%9", "print",	/* terminfo */
-  "@4", "execute",	/* terminfo --- actually the `command' key */
+  {"kh", "home"},	/* termcap */
+  {"kl", "left"},	/* termcap */
+  {"ku", "up"},		/* termcap */
+  {"kr", "right"},	/* termcap */
+  {"kd", "down"},	/* termcap */
+  {"%8", "prior"},	/* terminfo */
+  {"%5", "next"},	/* terminfo */
+  {"@7", "end"},	/* terminfo */
+  {"@1", "begin"},	/* terminfo */
+  {"*6", "select"},	/* terminfo */
+  {"%9", "print"},	/* terminfo */
+  {"@4", "execute"},	/* terminfo --- actually the `command' key */
   /*
    * "insert" --- see below
    */
-  "&8",	"undo",		/* terminfo */
-  "%0",	"redo",		/* terminfo */
-  "%7",	"menu",		/* terminfo --- actually the `options' key */
-  "@0",	"find",		/* terminfo */
-  "@2",	"cancel",	/* terminfo */
-  "%1", "help",		/* terminfo */
+  {"&8", "undo"},	/* terminfo */
+  {"%0", "redo"},	/* terminfo */
+  {"%7", "menu"},	/* terminfo --- actually the `options' key */
+  {"@0", "find"},	/* terminfo */
+  {"@2", "cancel"},	/* terminfo */
+  {"%1", "help"},	/* terminfo */
   /*
    * "break" goes here, but can't be reliably intercepted with termcap
    */
-  "&4", "reset",	/* terminfo --- actually `restart' */
+  {"&4", "reset"},	/* terminfo --- actually `restart' */
   /*
    * "system" and "user" --- no termcaps
    */
-  "kE", "clearline",	/* terminfo */
-  "kA", "insertline",	/* terminfo */
-  "kL", "deleteline",	/* terminfo */
-  "kI", "insertchar",	/* terminfo */
-  "kD", "deletechar",	/* terminfo */
-  "kB", "backtab",	/* terminfo */
+  {"kE", "clearline"},	/* terminfo */
+  {"kA", "insertline"},	/* terminfo */
+  {"kL", "deleteline"},	/* terminfo */
+  {"kI", "insertchar"},	/* terminfo */
+  {"kD", "deletechar"},	/* terminfo */
+  {"kB", "backtab"},	/* terminfo */
   /*
    * "kp_backtab", "kp-space", "kp-tab" --- no termcaps
    */
-  "@8", "kp-enter",	/* terminfo */
+  {"@8", "kp-enter"},	/* terminfo */
   /*
    * "kp-f1", "kp-f2", "kp-f3" "kp-f4",
    * "kp-multiply", "kp-add", "kp-separator",
    * "kp-subtract", "kp-decimal", "kp-divide", "kp-0";
    * --- no termcaps for any of these.
    */
-  "K4", "kp-1",		/* terminfo */
+  {"K4", "kp-1"},	/* terminfo */
   /*
    * "kp-2" --- no termcap
    */
-  "K5", "kp-3",		/* terminfo */
+  {"K5", "kp-3"},	/* terminfo */
   /*
    * "kp-4" --- no termcap
    */
-  "K2", "kp-5",		/* terminfo */
+  {"K2", "kp-5"},	/* terminfo */
   /*
    * "kp-6" --- no termcap
    */
-  "K1", "kp-7",		/* terminfo */
+  {"K1", "kp-7"},	/* terminfo */
   /*
    * "kp-8" --- no termcap
    */
-  "K3", "kp-9",		/* terminfo */
+  {"K3", "kp-9"},	/* terminfo */
   /*
    * "kp-equal" --- no termcap
    */
-  "k1",	"f1",
-  "k2",	"f2",
-  "k3",	"f3",
-  "k4",	"f4",
-  "k5",	"f5",
-  "k6",	"f6",
-  "k7",	"f7",
-  "k8",	"f8",
-  "k9",	"f9",
+  {"k1", "f1"},
+  {"k2", "f2"},
+  {"k3", "f3"},
+  {"k4", "f4"},
+  {"k5", "f5"},
+  {"k6", "f6"},
+  {"k7", "f7"},
+  {"k8", "f8"},
+  {"k9", "f9"}
   };
 
 static char **term_get_fkeys_arg;
