@@ -26,9 +26,14 @@
 
 ;; implement (small subset of) RFC 2369
 
+;;; Usage:
+
+;; (add-hook 'gnus-summary-mode-hook 'turn-on-gnus-mailing-list-mode)
+
 ;;; Code:
 
 (require 'gnus)
+(require 'gnus-msg)
 (eval-when-compile (require 'cl))
 
 ;;; Mailing list minor mode
@@ -37,6 +42,8 @@
   "Minor mode for providing mailing-list commands.")
 
 (defvar gnus-mailing-list-mode-map nil)
+
+(defvar gnus-mailing-list-menu)
 
 (unless gnus-mailing-list-mode-map
   (setq gnus-mailing-list-mode-map (make-sparse-keymap))
@@ -62,10 +69,12 @@
        ["Mail to owner" gnus-mailing-list-owner t]
        ["Browse archive" gnus-mailing-list-archive t]))))
 
+;;;###autoload
 (defun turn-on-gnus-mailing-list-mode ()
-  (when (gnus-group-get-parameter group 'to-list)
+  (when (gnus-group-get-parameter gnus-newsgroup-name 'to-list)
     (gnus-mailing-list-mode 1)))
 
+;;;###autoload
 (defun gnus-mailing-list-mode (&optional arg)
   "Minor mode for providing mailing-list commands.
 
@@ -86,50 +95,58 @@
 (defun gnus-mailing-list-help ()
   "Get help from mailing list server."
   (interactive)  
-  (cond (list-help (gnus-mailing-list-message list-help))
-	(t (display-message 'no-log "no list-help in this group"))))
+  (let ((list-help 
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-help"))))
+    (cond (list-help (gnus-mailing-list-message list-help))
+	  (t (gnus-message 1 "no list-help in this group")))))
 
 (defun gnus-mailing-list-subscribe ()
   "Subscribe"
   (interactive)
-  (cond (list-subscribe (gnus-mailing-list-message list-subscribe))
-	(t (display-message 'no-log "no list-subscribe in this group"))))
-
+  (let ((list-subscribe 
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-subscribe"))))
+    (cond (list-subscribe (gnus-mailing-list-message list-subscribe))
+	  (t (gnus-message 1 "no list-subscribe in this group")))))
 
 (defun gnus-mailing-list-unsubscribe ()
   "Unsubscribe"
   (interactive)
-  (cond (list-unsubscribe (gnus-mailing-list-message list-unsubscribe))
-	(t (display-message 'no-log "no list-unsubscribe in this group"))))
+  (let ((list-unsubscribe 
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-unsubscribe"))))
+    (cond (list-unsubscribe (gnus-mailing-list-message list-unsubscribe))
+	  (t (gnus-message 1 "no list-unsubscribe in this group")))))
 
 (defun gnus-mailing-list-post ()
   "Post message (really useful ?)"
   (interactive)
-  (cond (list-post (gnus-mailing-list-message list-post))
-	(t (display-message 'no-log "no list-post in this group")))
-  )
+  (let ((list-post 
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-post"))))
+    (cond (list-post (gnus-mailing-list-message list-post))
+	  (t (gnus-message 1 "no list-post in this group")))))
 
 (defun gnus-mailing-list-owner ()
   "Mail to the owner"
   (interactive)
-  (cond (list-owner (gnus-mailing-list-message list-owner))
-	(t (display-message 'no-log "no list-owner in this group")))
-  )
+  (let ((list-owner 
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-owner"))))
+    (cond (list-owner (gnus-mailing-list-message list-owner))
+	  (t (gnus-message 1 "no list-owner in this group")))))
 
 (defun gnus-mailing-list-archive ()
   "Browse archive"
   (interactive)
-  (cond (list-archive (gnus-mailing-list-message list-archive))
-	(t (display-message 'no-log "no list-owner in this group")))
-  )
+  (let ((list-archive 
+	 (with-current-buffer gnus-original-article-buffer
+	   (gnus-fetch-field "list-archive"))))
+    (cond (list-archive (gnus-mailing-list-message list-archive))
+	  (t (gnus-message 1 "no list-owner in this group")))))
 
 ;;; Utility functions
-
-(defun gnus-xmas-mailing-list-menu-add ()
-  (gnus-xmas-menu-add mailing-list
-    gnus-mailing-list-menu))
-
-(add-hook 'gnus-mailing-list-mode-hook 'gnus-xmas-mailing-list-menu-add)
 
 (defun gnus-mailing-list-message (address)
   ""
