@@ -4381,9 +4381,9 @@ Garbage collection happens automatically if you cons more than
   EMACS_GET_TIME (t2);
   EMACS_SUB_TIME (t3, t2, t1);
   if (FLOATP (Vgc_elapsed))
-    XSETFLOAT (Vgc_elapsed, make_float (XFLOAT_DATA (Vgc_elapsed) +
-					EMACS_SECS (t3) +
-					EMACS_USECS (t3) * 1.0e-6));
+    Vgc_elapsed = make_float (XFLOAT_DATA (Vgc_elapsed) +
+			      EMACS_SECS (t3) +
+			      EMACS_USECS (t3) * 1.0e-6);
   gcs_done++;
 
   return Flist (sizeof total / sizeof *total, total);
