@@ -125,7 +125,7 @@ the ones defined from the buffer now."
    (while (and (not (eobp)) (re-search-forward "^(" nil t))
      (let* ((buf (current-buffer))
 	    (table (read buf))
-	    abbrevs)
+	    abbrevs name hook exp count)
        (forward-line 1)
        (while (progn (forward-line 1)
 		     (not (eolp)))

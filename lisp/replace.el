@@ -1,8 +1,6 @@
 ;;; replace.el --- replace commands for Emacs.
 
-;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 92 Free Software Foundation, Inc.
-
-;; Maintainer: FSF
+;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -367,7 +365,7 @@ which will run faster and do exactly what you probably want."
 	(next-rotate-count 0)
 	(replace-count 0)
 	(lastrepl nil)			;Position after last match considered.
-	(match-after t))
+	(match-again t))
     (if (stringp replacements)
 	(setq next-replacement replacements)
       (or repeat-count (setq repeat-count 1)))
@@ -502,33 +500,5 @@ which will run faster and do exactly what you probably want."
 	  (if replaced (setq replace-count (1+ replace-count)))))
       (setq lastrepl (point)))
     (and keep-going stack)))
-
-(defun map-query-replace-regexp (regexp to-strings &optional arg)
-  "Replace some matches for REGEXP with various strings, in rotation.
-The second argument TO-STRINGS contains the replacement strings, separated
-by spaces.  This command works like `query-replace-regexp' except
-that each successive replacement uses the next successive replacement
-string, wrapping around from the last such string to the first.
-
-Non-interactively, TO-STRINGS may be a list of replacement strings.
-
-A prefix argument N says to use each replacement string N times
-before rotating to the next."
-  (interactive "sMap query replace (regexp): \nsQuery replace %s with (space-separated strings): \nP")
-  (let (replacements)
-    (if (listp to-strings)
-	(setq replacements to-strings)
-      (while (/= (length to-strings) 0)
-	(if (string-match " " to-strings)
-	    (setq replacements
-		  (append replacements
-			  (list (substring to-strings 0
-					   (string-match " " to-strings))))
-		  to-strings (substring to-strings
-				       (1+ (string-match " " to-strings))))
-	  (setq replacements (append replacements (list to-strings))
-		to-strings ""))))
-    (perform-replace regexp replacements t t nil arg))
-  (message "Done"))
 
 ;;; replace.el ends here

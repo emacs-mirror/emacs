@@ -353,8 +353,9 @@ the minibuffer, then read and evaluate the result."
 ;; (defvar repeat-complex-command nil)
 
 (defvar minibuffer-history nil)
-(defvar minibuffer-history-variable 'minibuffer-history)
-(defvar minibuffer-history-position nil)
+(defvar minibuffer-history-sexp-flag nil)
+(setq minibuffer-history-variable 'minibuffer-history)
+(setq minibuffer-history-position nil)
 
 (define-key minibuffer-local-map "\en" 'next-history-element)
 (define-key minibuffer-local-ns-map "\en" 'next-history-element)
@@ -380,8 +381,9 @@ it is added to the front of the command history.
 Whilst editing the command, the following commands are available:
 \\{repeat-complex-command-map}"
   (interactive "p")
-  (let ((elt (nth (1- repeat-complex-command-arg) command-history))
+  (let ((elt (nth (1- arg) command-history))
 	(minibuffer-history-position arg)
+	(minibuffer-history-sexp-flag t)
 	(repeat-complex-command-flag t)
 	newcmd)
     (if elt
@@ -408,8 +410,12 @@ Whilst editing the command, the following commands are available:
 		 "No preceding item in minibuffer history"))
       (erase-buffer)
       (setq minibuffer-history-position narg)
-      (insert (prin1-to-string (nth (1- minibuffer-history-position)
-				    (symbol-value minibuffer-history-variable))))
+      (let ((elt (nth (1- minibuffer-history-position)
+		      (symbol-value minibuffer-history-variable))))
+	(insert
+	 (if minibuffer-history-sexp-flag
+	     (prin1-to-string elt)
+	   elt))))
       (goto-char (point-min)))))
 
 (defun previous-history-element (n)
