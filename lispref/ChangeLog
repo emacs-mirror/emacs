@@ -1,6 +1,18 @@
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi: Delete file (and move contents to emacs-xtra.texi
+	in the Emacs Manual).
+	* Makefile.in (srcs): Remove calendar.texi.
+	* makefile.w32-in (srcs): Remove calendar.texi.
+	* display.texi (Display): Change name of next node.
+	* os.texi (System In): Change name of previous node.
+	* elisp.texi (Top): Remove Calendar references.
+	* vol1.texi (Top): Remove Calendar references.
+	* vol2.texi (Top): Remove Calendar references.
+
 2005-03-25  Richard M. Stallman  <rms@gnu.org>
 
-	* display.texi (Standard Faces, Fringe Bitmaps, Customizing Bitmaps): 
+	* display.texi (Standard Faces, Fringe Bitmaps, Customizing Bitmaps):
 	Cleanup previous change.
 
 2005-03-25  Chong Yidong  <cyd@stupidchicken.com>

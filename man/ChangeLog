@@ -1,3 +1,11 @@
+2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* emacs-xtra.texi (Advanced Calendar/Diary Usage): New section;
+	move here from Emacs Lisp Reference Manual.
+	* calendar.texi (Calendar/Diary, Diary Commands)
+	(Special Diary Entries, Importing Diary): Change some xrefs to
+	point to emacs-xtra rather than elisp.
+
 2005-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* misc.texi (Emacs Server): Fix the command for setting
