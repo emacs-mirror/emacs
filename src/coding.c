@@ -4660,7 +4660,8 @@ coding_restore_composition (coding, obj)
     {
       int i;
 
-      for (i = 0; i < cmp_data->used; i += cmp_data->data[i])
+      for (i = 0; i < cmp_data->used && cmp_data->data[i] > 0;
+	   i += cmp_data->data[i])
 	{
 	  int *data = cmp_data->data + i;
 	  enum composition_method method = (enum composition_method) data[3];
@@ -5184,7 +5185,7 @@ run_pre_post_conversion_on_str (str, coding, encodep)
       call1 (coding->post_read_conversion, make_number (Z - BEG));
     }
   inhibit_pre_post_conversion = 0;
-  str = make_buffer_string (BEG, Z, 0);
+  str = make_buffer_string (BEG, Z, 1);
   return unbind_to (count, str);
 }
 
@@ -5200,6 +5201,7 @@ decode_coding_string (str, coding, nocopy)
   struct gcpro gcpro1;
   Lisp_Object saved_coding_symbol;
   int result;
+  int require_decoding;
 
   from = 0;
   to = XSTRING (str)->size;
@@ -5228,15 +5230,7 @@ decode_coding_string (str, coding, nocopy)
 	}
     }
 
-  if (! CODING_REQUIRE_DECODING (coding))
-    {
-      if (!STRING_MULTIBYTE (str))
-	{
-	  str = Fstring_as_multibyte (str);
-	  nocopy = 1;
-	}
-      return (nocopy ? str : Fcopy_sequence (str));
-    }
+  require_decoding = CODING_REQUIRE_DECODING (coding);
 
   if (STRING_MULTIBYTE (str))
     {
@@ -5244,23 +5238,38 @@ decode_coding_string (str, coding, nocopy)
       str = Fstring_as_unibyte (str);
       to_byte = STRING_BYTES (XSTRING (str));
       nocopy = 1;
-      coding->src_multibyte = 0;
     }
-  coding->dst_multibyte = 1;
-
-  if (coding->composing != COMPOSITION_DISABLED)
-    coding_allocate_composition_data (coding, from);
+  coding->src_multibyte = 0;
+  coding->dst_multibyte = (coding->type != coding_type_no_conversion
+			   && coding->type != coding_type_raw_text);
 
   /* Try to skip the heading and tailing ASCIIs.  */
-  if (coding->type != coding_type_ccl)
+  if (require_decoding && coding->type != coding_type_ccl)
     {
       int from_orig = from;
 
       SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
 				0);
       if (from == to_byte)
-	return (nocopy ? str : Fcopy_sequence (str));
+	require_decoding = 0;
     }
+
+  if (!require_decoding)
+    {
+      coding->consumed = STRING_BYTES (XSTRING (str));
+      coding->consumed_char = XSTRING (str)->size;
+      if (coding->dst_multibyte)
+	{
+	  str = Fstring_as_multibyte (str);
+	  nocopy = 1;
+	}
+      coding->produced = STRING_BYTES (XSTRING (str));
+      coding->produced_char = XSTRING (str)->size;
+      return (nocopy ? str : Fcopy_sequence (str));
+    }
+
+  if (coding->composing != COMPOSITION_DISABLED)
+    coding_allocate_composition_data (coding, from);
 
   len = decoding_buffer_size (coding, to_byte - from);
   len += from + STRING_BYTES (XSTRING (str)) - to_byte;
@@ -5286,8 +5295,11 @@ decode_coding_string (str, coding, nocopy)
 	 STRING_BYTES (XSTRING (str)) - to_byte);
 
   len = from + STRING_BYTES (XSTRING (str)) - to_byte;
-  str = make_multibyte_string (buf, len + coding->produced_char,
-			       len + coding->produced);
+  if (coding->dst_multibyte)
+    str = make_multibyte_string (buf, len + coding->produced_char,
+				 len + coding->produced);
+  else
+    str = make_unibyte_string (buf, len + coding->produced);
 
   if (coding->cmp_data && coding->cmp_data->used)
     coding_restore_composition (coding, str);
