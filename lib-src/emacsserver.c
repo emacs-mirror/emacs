@@ -252,6 +252,11 @@ main ()
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <setjmp.h>
+#include <errno.h>
+
+#ifndef errno
+extern int errno;
+#endif
 
 jmp_buf msgenv;
 
@@ -303,11 +308,13 @@ main ()
   if (setjmp (msgenv))
     {
       msgctl (s, IPC_RMID, 0);
-      kill (p, SIGKILL);
+      if (p > 0)
+	kill (p, SIGKILL);
       exit (0);
     }
   signal (SIGTERM, msgcatch);
   signal (SIGINT, msgcatch);
+  signal (SIGHUP, msgcatch);
   if (p > 0)
     {
       /* This is executed in the original process that did the fork above.  */
@@ -349,6 +356,10 @@ main ()
     {
       if ((fromlen = msgrcv (s, msgp, BUFSIZ - 1, 1, 0)) < 0)
         {
+#ifdef EINTR
+	  if (errno == EINTR)
+	    continue;
+#endif
 	  perror ("msgrcv");
 	  exit (1);
         }
