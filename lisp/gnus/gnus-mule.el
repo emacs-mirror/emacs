@@ -31,15 +31,23 @@
 ;; If you want to specify some coding system for a specific news
 ;; group, add the fllowing line in your .emacs:
 ;;	(gnus-mule-add-group "xxx.yyy.zzz" 'some-coding-system)
-;;
-;; Decoding of summary buffer is not yet implemented.
+
+;; By default, only few news groups are registered as the target of
+;; code conversion.  So, each regional users had better set an
+;; appropriate coding system for as below:
+;;	(gnus-mule-add-group "" 'iso-2022-jp)  ;; the case for Japanese
 
 (require 'gnus)
+(require 'message)
 
 (defvar gnus-newsgroup-coding-systems nil
   "Assoc list of news groups vs corresponding coding systems.
-Each element is a list of news group name and cons of coding systems
-for reading and posting.")
+Each element is has the form (PATTERN CODING-FOR-READ . CODING-FOR-POST),
+where,
+PATTERN is a regular expression matching news group names,
+CODING-FOR-READ is a coding system of articles of the news groups, and
+CODING-FOR-POST is a coding system to be encoded for posting articles
+to the news groups.")
 
 ;;;###autoload
 (defun gnus-mule-add-group (name coding-system)
@@ -72,7 +80,7 @@ coding-system for reading and writing respectively."
 
 ;; Flag to indicate if article buffer is already decoded or not.")
 (defvar gnus-mule-article-decoded nil)
-;; Codingsystem for reading articles of the current news group.
+;; Coding system for reading articles of the current news group.
 (defvar gnus-mule-coding-system nil)
 (defvar gnus-mule-subject nil)
 (defvar gnus-mule-decoded-subject nil)
@@ -160,6 +168,31 @@ coding-system for reading and writing respectively."
 	    (setq gnus-mule-article-decoded (not gnus-mule-article-decoded))
 	    (set-buffer-modified-p modif))))))
 
+;; Encode a news article before sending it.
+(defun gnus-mule-message-send-news-function ()
+  (let ((groups (message-fetch-field "newsgroups"))
+	(idx 0)
+	coding-system coding-system-list group-list)
+    (if (not groups)
+	;; We are not sending the current buffer via news.
+	nil
+      (while (string-match "[^ ,]+" groups idx)
+	(setq idx (match-end 0))
+	(setq coding-system
+	      (cdr (gnus-mule-get-coding-system
+		    (substring groups (match-beginning 0) idx))))
+	(if (not (memq coding-system coding-system-list))
+	    (setq coding-system-list (cons coding-system coding-system-list))))
+      (if (> (length coding-system-list) 1)
+	  (setq coding-system (read-coding-system "Coding system: ")))
+      (if coding-system
+	  (encode-coding-region (point-min) (point-max) coding-system)))))
+
+;; Encode a mail message before sending it.
+(defun gnus-mule-message-send-mail-function ()
+  (if sendmail-coding-system
+      (encode-coding-region (point-min) (point-max) sendmail-coding-system)))
+
 ;;;###autoload
 (defun gnus-mule-initialize ()
   "Do several settings for GNUS to enable automatic code conversion."
@@ -169,15 +202,14 @@ coding-system for reading and writing respectively."
   ;; Hook definition
   (add-hook 'gnus-select-group-hook 'gnus-mule-select-coding-system)
   (add-hook 'gnus-summary-generate-hook 'gnus-mule-decode-summary)
-  (add-hook 'gnus-article-prepare-hook 'gnus-mule-decode-article))
+  (add-hook 'gnus-article-prepare-hook 'gnus-mule-decode-article)
+  (add-hook 'message-send-news-hook
+	    'gnus-mule-message-send-news-function)
+  (add-hook 'message-send-mail-hook
+	    'gnus-mule-message-send-mail-function))
 
-(gnus-mule-add-group "" 'iso-2022-7) ;; default coding system
-(gnus-mule-add-group "alt" 'no-conversion)
-(gnus-mule-add-group "comp" 'no-conversion)
-(gnus-mule-add-group "gnu" 'no-conversion)
-(gnus-mule-add-group "rec" 'no-conversion)
-(gnus-mule-add-group "sci" 'no-conversion)
-(gnus-mule-add-group "soc" 'no-conversion)
+(gnus-mule-add-group "" 'automatic-conversion)
+(gnus-mule-add-group "fj" 'iso-2022-7)
 (gnus-mule-add-group "alt.chinese.text" 'hz-gb-2312)
 (gnus-mule-add-group "alt.hk" 'hz-gb-2312)
 (gnus-mule-add-group "alt.chinese.text.big5" 'cn-big5)
