@@ -271,9 +271,9 @@ KIND should be `var' for a variable or `subr' for a subroutine."
               (search-backward "(")
               (goto-char (scan-sexps (point) 1)))))
         ;; Highlight aguments in the USAGE string
-        (setq usage (help-do-arg-highlight (buffer-string) args))))
-    ;; Highlight arguments in the DOC string
-    (setq doc (and doc (help-do-arg-highlight doc args)))
+        (setq usage (help-do-arg-highlight (buffer-string) args))
+        ;; Highlight arguments in the DOC string
+        (setq doc (and doc (help-do-arg-highlight doc args)))))
     ;; Return value is like the one from help-split-fundoc, but highlighted
     (cons usage doc)))
 
