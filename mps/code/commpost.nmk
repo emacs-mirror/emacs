@@ -256,7 +256,7 @@ $(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
 $(PFM)\$(VARIETY)\mps.dll: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
         $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /dll /OUT:$@ $**
+	$(LINKER) $(LINKFLAGS) /def:w3gen.def /dll /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
