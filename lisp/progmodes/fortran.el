@@ -746,12 +746,12 @@ non-comment Fortran statement in the file, and nil otherwise."
 			      "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
 					; Keep local to subprogram
 	      (skip-chars-forward " \t0-9")
-	      (cond ((looking-at "do[ \t]+")
+	      (cond ((looking-at "do[ \t]+[^0-9]")
                      (setq count (- count 1)))
 		    ((looking-at "end[ \t]*do\\b")
 		     (setq count (+ count 1)))))
 	    (if (not (= count 0))
-		(setq message "No matching do.")
+		(setq message "No matching do")
 	      (if (< (point) top-of-window)
 		  (setq message (concat "Matches " (buffer-substring
 						    (progn (beginning-of-line)
