@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.42) $
+ * $HopeName: MMsrc!mpmst.h(trunk.43) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -546,6 +546,7 @@ typedef struct ArenaClassStruct {
   ArenaCommittedMethod committed;
   ArenaExtendMethod extend;
   ArenaRetractMethod retract;
+  ArenaIsReservedAddrMethod isReserved;
   ArenaSegAllocMethod segAlloc;
   ArenaSegFreeMethod segFree;
   ArenaSegBaseMethod segBase;

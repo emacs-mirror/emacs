@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.57) $
+ * $HopeName: MMsrc!mpm.h(trunk.58) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -507,6 +507,8 @@ extern Size ArenaCommitted(Arena arena);
 extern Res ArenaExtend(Arena, Addr base, Size size);
 extern Res ArenaRetract(Arena, Addr base, Size size);
 extern Res ArenaFinalize(Arena arena, Addr addr);
+
+extern Bool ArenaIsReservedAddr(Arena arena, Addr addr);
 
 extern Res SegAlloc(Seg *segReturn, SegPref pref,
                     Size size, Pool pool);

@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.33) $
+ * $HopeName: MMsrc!arenavm.c(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.33) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.34) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -826,6 +826,19 @@ static Bool VMSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
   return FALSE;
 }
 
+static Bool VMIsReservedAddr(Arena arena, Addr addr)
+{
+  VMArena vmArena;
+
+  AVERT(Arena, arena);
+  /* addr is arbitrary */
+
+  vmArena = ArenaVMArena(arena);
+  AVERT(VMArena, vmArena);
+
+  return vmArena->base <= addr && addr < vmArena->limit;
+}
+
 
 /* segSearch -- search for a segment
  *
@@ -922,6 +935,7 @@ static ArenaClassStruct ArenaClassVMStruct = {
   VMArenaCommitted,                     /* committed */
   ArenaNoExtend,                        /* extend */
   ArenaNoRetract,                       /* retract */
+  VMIsReservedAddr,                     /* isReserved */
   VMSegAlloc,                           /* segAlloc */
   VMSegFree,                            /* segFree */
   VMSegBase,                            /* segBase */

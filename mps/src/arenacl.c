@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.9) $
+ * $HopeName: MMsrc!arenacl.c(trunk.10) $
  * 
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
@@ -36,7 +36,7 @@
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.9) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.10) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
@@ -736,6 +736,26 @@ static Bool ClientSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
   return FALSE;
 }
 
+static Bool ClientIsReserved(Arena arena, Addr addr)
+{
+  ClientArena clientArena;
+  Ring node, nextNode;
+
+  AVERT(Arena, arena);
+  /* addr is arbitrary */
+
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
+
+  RING_FOR(node, &clientArena->chunkRing, nextNode) {
+    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
+    if(chunk->base <= addr && addr < chunk->limit) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 
 /* SegSearchChunk -- search for a segment in a given chunk
  *
@@ -843,6 +863,7 @@ static ArenaClassStruct ArenaClassCLStruct = {
   ClientArenaCommitted,                     /* committed */
   ClientArenaExtend,                        /* extend */
   ClientArenaRetract,                       /* retract */
+  ClientIsReserved,                         /* isReserved */
   ClientSegAlloc,                           /* segAlloc */
   ClientSegFree,                            /* segFree */
   ClientSegBase,                            /* segBase */
