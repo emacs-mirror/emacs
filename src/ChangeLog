@@ -10,6 +10,11 @@
 	* w32fns.c (add_system_logical_colors_to_map): New function.
 	(Fx_open_connection): Use it.
 
+2003-06-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* process.c (allocate_pty): Revert part of the previous patch.
+	(Faccept_process_output): Simplify.
+
 2003-06-04  Jason Rumney  <jasonr@gnu.org>
 
 	* termhooks.h (enum event_kind): Remove MOUSE_WHEEL_EVENT.
@@ -23,6 +28,8 @@
 	WHEEL_EVENT events.
 
 2003-06-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (update_tool_bar): Add missing UNGCPRO.
 
 	* buffer.c (init_buffer_once): Make kill-buffer-hook permanent-local.
 
