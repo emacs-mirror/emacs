@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.
 hacked on by jwz@lucid.com 17-jun-91
   o  added a compile-time switch to turn on simple sanity checking;
   o  put back the obsolete byte-codes for error-detection;
-  o  added a new instruction, unbind_all, which I will use for 
+  o  added a new instruction, unbind_all, which I will use for
      tail-recursion elimination;
   o  made temp_output_buffer_show be called with the right number
      of args;
@@ -46,10 +46,10 @@ by Hallvard:
 #endif
 
 /*
- * define BYTE_CODE_SAFE to enable some minor sanity checking (useful for 
+ * define BYTE_CODE_SAFE to enable some minor sanity checking (useful for
  * debugging the byte compiler...)
  *
- * define BYTE_CODE_METER to enable generation of a byte-op usage histogram. 
+ * define BYTE_CODE_METER to enable generation of a byte-op usage histogram.
  */
 /* #define BYTE_CODE_SAFE */
 /* #define BYTE_CODE_METER */
@@ -287,7 +287,7 @@ mark_byte_stack ()
 	 recorded value of `stack' here.  */
       if (!stack->top)
 	abort ();
-      
+
       for (obj = stack->bottom; obj <= stack->top; ++obj)
 	if (!XMARKBIT (*obj))
 	  {
@@ -313,7 +313,7 @@ mark_byte_stack ()
 /* Unmark objects in the stacks on byte_stack_list.  Relocate program
    counters.  Called when GC has completed.  */
 
-void 
+void
 unmark_byte_stack ()
 {
   struct byte_stack *stack;
@@ -466,7 +466,7 @@ If the third argument is incorrect, Emacs may crash.  */)
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = XSTRING (bytestr)->data;
   stack.constants = vector;
-  stack.bottom = (Lisp_Object *) alloca (XFASTINT (maxdepth) 
+  stack.bottom = (Lisp_Object *) alloca (XFASTINT (maxdepth)
                                          * sizeof (Lisp_Object));
   top = stack.bottom - 1;
   stack.top = NULL;
@@ -476,7 +476,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 #ifdef BYTE_CODE_SAFE
   stacke = stack.bottom - 1 + XFASTINT (maxdepth);
 #endif
-  
+
   while (1)
     {
 #ifdef BYTE_CODE_SAFE
@@ -500,11 +500,11 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  op = FETCH2;
 	  goto varref;
 
-	case Bvarref: 
-	case Bvarref + 1: 
-	case Bvarref + 2: 
+	case Bvarref:
+	case Bvarref + 1:
+	case Bvarref + 2:
 	case Bvarref + 3:
-	case Bvarref + 4: 
+	case Bvarref + 4:
 	case Bvarref + 5:
 	  op = op - Bvarref;
 	  goto varref;
@@ -619,7 +619,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	varset:
 	  {
 	    Lisp_Object sym, val;
-	      
+
 	    sym = vectorp[op];
 	    val = TOP;
 
@@ -1352,7 +1352,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
-	    XSETFASTINT (v1, current_column ());
+	    XSETFASTINT (v1, (int) current_column ()); /* iftc */
 	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
 	    break;
@@ -1731,7 +1731,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 #else
     abort ();
 #endif
-  
+
   return result;
 }
 
@@ -1752,7 +1752,7 @@ opcode CODE has been executed.
 \(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,
 indicates how many times the byte opcodes CODE1 and CODE2 have been
 executed in succession.  */);
-  
+
   DEFVAR_BOOL ("byte-metering-on", &byte_metering_on,
 	       doc: /* If non-nil, keep profiling information on byte code usage.
 The variable byte-code-meter indicates how often each byte opcode is used.
