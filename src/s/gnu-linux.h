@@ -1,5 +1,5 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 86, 92, 94, 96, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 92, 94, 96, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -341,4 +341,7 @@ Boston, MA 02111-1307, USA.  */
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ || defined __alpha__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
+#ifdef __mc68000__
+#define GC_LISP_OBJECT_ALIGNMENT 2
+#endif
 #endif
