@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.h(trunk.4) $
+/* $HopeName: MMQA_harness!testlib:rankfmt.h(trunk.5) $
 
    Format like exfmt but with rank-checking built in.
    This format will work without register roots, but to use it,
@@ -16,7 +16,7 @@
 #ifndef exfmt_h
 #define exfmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern int formatcomments;
 extern int checkcomments;
