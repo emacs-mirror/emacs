@@ -468,7 +468,7 @@ times of sunrise and sunset for any date.
 @item S
 Display times of sunrise and sunset for the selected date
 (@code{calendar-sunrise-sunset}).
-@item Mouse-2 Sunrise/Sunset
+@item Mouse-2 Sunrise/sunset
 Display times of sunrise and sunset for the date you click on.
 @item M-x sunrise-sunset
 Display times of sunrise and sunset for today's date.
@@ -482,7 +482,7 @@ Display times of sunrise and sunset for a specified date.
   Within the calendar, to display the @emph{local times} of sunrise and
 sunset in the echo area, move point to the date you want, and type
 @kbd{S}.  Alternatively, click @kbd{Mouse-2} on the date, then choose
-@kbd{Sunrise/Sunset} from the menu that appears.  The command @kbd{M-x
+@samp{Sunrise/sunset} from the menu that appears.  The command @kbd{M-x
 sunrise-sunset} is available outside the calendar to display this
 information for today's date or a specified date.  To specify a date
 other than today, use @kbd{C-u M-x sunrise-sunset}, which prompts for
@@ -680,7 +680,7 @@ repeated in a cycle of sixty.
 in various other calendar systems:
 
 @table @kbd
-@item Mouse-2  Other Calendars
+@item Mouse-2  Other calendars
 Display the date that you click on, expressed in various other calendars.
 @kindex p @r{(Calendar mode)}
 @findex calendar-print-iso-date
@@ -727,14 +727,15 @@ Display Mayan date for selected day (@code{calendar-print-mayan-date}).
 
   If you are using X, the easiest way to translate a date into other
 calendars is to click on it with @kbd{Mouse-2}, then choose @kbd{Other
-Calendars} from the menu that appears.  This displays the equivalent
+calendars} from the menu that appears.  This displays the equivalent
 forms of the date in all the calendars Emacs understands, in the form of
 a menu.  (Choosing an alternative from this menu doesn't actually do
 anything---the menu is used only for display.)
 
-  Put point on the desired date of the Gregorian calendar, then type the
-appropriate keys.  The @kbd{p} is a mnemonic for ``print'' since Emacs
-``prints'' the equivalent date in the echo area.
+  Otherwise, move point to the date you want to convert, then type the
+appropriate command starting with @kbd{p} from the table above.  The
+prefix @kbd{p} is a mnemonic for ``print,'' since Emacs ``prints'' the
+equivalent date in the echo area.
 
 @node From Other Calendar
 @subsection Converting From Other Calendars
@@ -973,8 +974,8 @@ it shows all the diary entries for that many successive days.  Thus,
 following day.
 
   Another way to display the diary entries for a date is to click
-@kbd{Mouse-2} on the date, and then choose @kbd{Diary} from the menu
-that appears.
+@kbd{Mouse-2} on the date, and then choose @kbd{Diary entries} from
+the menu that appears.
 
 @kindex m @r{(Calendar mode)}
 @findex mark-diary-entries
@@ -1482,7 +1483,7 @@ tells Emacs that the current interval is over.
 @cindex @file{.timelog} file
 @vindex timeclock-file
 @findex timeclock-reread-log
-  The timeclock functions work by accumulating the data on a file
+  The timeclock functions work by accumulating the data in a file
 called @file{.timelog} in your home directory.  (On MS-DOS, this file
 is called @file{_timelog}, since an initial period is not allowed in
 file names on MS-DOS.)  You can specify a different name for this file
