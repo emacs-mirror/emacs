@@ -468,7 +468,7 @@ to write these unknown annotations back into the file."
 		  (message "Extra closing annotation (%s) in file" name)
 	      ;; If one is open, but not on the top of the stack, close
 	      ;; the things in between as well.  Set `found' when the real
-	      ;; oneis closed.
+	      ;; one is closed.
 		(while (not found)
 		  (let* ((top (car open-ans)) ; first on stack: should match.
 			 (top-name (car top))
@@ -759,7 +759,7 @@ Annotations to open and to close are returned as a dotted pair."
 
 (defun format-annotate-atomic-property-change (prop-alist old new)
   "Internal function annotate a single property change.
-PROP-ALIST is the relevant segement of a TRANSLATIONS list.
+PROP-ALIST is the relevant segment of a TRANSLATIONS list.
 OLD and NEW are the values."
   (cond
    ;; Numerical annotation - use difference
