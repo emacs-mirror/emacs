@@ -27,9 +27,9 @@
 
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
 
-	* speedbar.texi: New file
+	* speedbar.texi: New file.
 
-	* Makefile.in (Speedbar): Added build targets for speedbar.texi
+	* Makefile.in (Speedbar): Added build targets for speedbar.texi.
 
 2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
