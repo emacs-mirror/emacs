@@ -83,14 +83,15 @@
 ;;; comint-mode-hook is the comint mode hook.
 
 ;;; Shell Mode Commands:
-;;;         shell			    Fires up the shell process
-;;; tab     comint-dynamic-complete	    Complete filename/command/history
-;;; m-?     comint-dynamic-list-filename-completions List completions in help buffer
-;;; m-c-f   shell-forward-command           Forward a shell command
-;;; m-c-b   shell-backward-command          Backward a shell command
-;;; 	    dirs    			    Resync the buffer's dir stack
-;;; 	    dirtrack-toggle                 Turn dir tracking on/off
-;;;         comint-strip-ctrl-m             Remove trailing ^Ms from output
+;;;         shell			Fires up the shell process
+;;; tab     comint-dynamic-complete	Complete filename/command/history
+;;; m-?     comint-dynamic-list-filename-completions
+;;;					List completions in help buffer
+;;; m-c-f   shell-forward-command	Forward a shell command
+;;; m-c-b   shell-backward-command	Backward a shell command
+;;; 	    dirs			Resync the buffer's dir stack
+;;; 	    dirtrack-toggle		Turn dir tracking on/off
+;;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
 ;;;
 ;;; The shell mode hook is shell-mode-hook
 ;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
@@ -131,6 +132,15 @@ This is a fine thing to set in your `.emacs' file.")
   "List of characters to recognise as separate arguments.
 This variable is used to initialize `comint-delimiter-argument-list' in the
 shell buffer.  The default is (?\\| ?& ?< ?> ?\\( ?\\) ?\\;).
+
+This is a fine thing to set in your `.emacs' file.")
+
+(defvar shell-file-name-quote-list
+  (append shell-delimiter-argument-list '(?\  ?\* ?\! ?\" ?\' ?\`))
+  "List of characters to quote when in a file name.
+This variable is used to initialize `comint-file-name-quote-list' in the
+shell buffer.  The default is (?\  ?\* ?\! ?\" ?\' ?\`) plus characters
+in `shell-delimiter-argument-list'.
 
 This is a fine thing to set in your `.emacs' file.")
 
@@ -307,6 +317,7 @@ buffer."
   (setq comint-prompt-regexp shell-prompt-pattern)
   (setq comint-completion-fignore shell-completion-fignore)
   (setq comint-delimiter-argument-list shell-delimiter-argument-list)
+  (setq comint-file-name-quote-list shell-file-name-quote-list)
   (setq comint-dynamic-complete-functions shell-dynamic-complete-functions)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start comint-prompt-regexp)
