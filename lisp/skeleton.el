@@ -280,7 +280,7 @@ symmetrical ones, and the same character twice for the others."
 		    last-command-char))))))
 
 
-;; a more serious example can be found in shell-script.el
+;; a more serious example can be found in sh-script.el
 ;;;(defun mirror-mode ()
 ;;;  "This major mode is an amusing little example of paired insertion.
 ;;;All printable characters do a paired self insert, while the other commands
