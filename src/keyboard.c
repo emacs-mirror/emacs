@@ -8959,7 +8959,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (first_binding == nmaps && ! function_key_possible
 	  && ! key_translation_possible
 	  && INTEGERP (key)
-	  && ((CHARACTERP (XINT (key) & ~CHAR_MODIFIER_MASK)
+	  && ((CHARACTERP (make_number (XINT (key) & ~CHAR_MODIFIER_MASK))
 	       && UPPERCASEP (XINT (key) & ~CHAR_MODIFIER_MASK))
 	      || (XINT (key) & shift_modifier)))
 	{
