@@ -1767,7 +1767,7 @@ the data it can't find.")
 	  /* On Japanese w32, we can get a Japanese string as time
 	     zone name.  Don't accept that.  */
 	  char *p;
-	  for (p = s; *p && isalnum (*p); ++p)
+	  for (p = s; *p && (isalnum (*p) || *p == ' '); ++p)
 	    ;
 	  if (p == s || *p)
 	    s = NULL;
