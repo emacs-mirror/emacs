@@ -73,6 +73,7 @@ struct ccl_spec {
   struct ccl_program encoder;
   unsigned char valid_codes[256];
   int cr_carryover;		/* CR carryover flag.  */
+  unsigned char eight_bit_carryover[MAX_MULTIBYTE_LENGTH];
 };
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
