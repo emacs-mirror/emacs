@@ -1946,6 +1946,8 @@ else
   AC_MSG_RESULT(no)
 fi
 
+AC_FUNC_VFORK
+
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 
