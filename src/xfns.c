@@ -5819,8 +5819,8 @@ prepare_image_for_display (f, img)
 
   /* If IMG doesn't have a pixmap yet, load it now, using the image
      type dependent loader function.  */
-  if (img->pixmap == 0)
-    img->type->load (f, img);
+  if (img->pixmap == 0 && !img->load_failed_p)
+    img->load_failed_p = img->type->load (f, img) == 0;
 }
      
 
@@ -6066,16 +6066,15 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
-      int loading_failed_p;
-      
       img = make_image (spec, hash);
       cache_image (f, img);
-      loading_failed_p = img->type->load (f, img) == 0;
+      img->load_failed_p = img->type->load (f, img) == 0;
+      xassert (!interrupt_input_blocked);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
 	 draw a rectangle for it.  */
-      if (loading_failed_p)
+      if (img->load_failed_p)
 	{
 	  Lisp_Object value;
 
@@ -7088,6 +7087,7 @@ xpm_load (f, img)
       if (!STRINGP (file))
 	{
 	  image_error ("Cannot find image file %s", specified_file, Qnil);
+	  UNBLOCK_INPUT;
 	  return 0;
 	}
       
