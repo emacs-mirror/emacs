@@ -873,17 +873,17 @@ indentation to be kept as it was before narrowing."
 		   (setq ,bindent (- ,bindent n)))))))))))
 
 (defun comment-region-internal (beg end cs ce
-				    &optional ccs cce block lines indent)
+                                &optional ccs cce block lines indent)
   "Comment region BEG .. END.
-CS and CE are the comment start resp end string.
-CCS and CCE are the comment continuation strings for the start resp end
-of lines (default to CS and CE).
-BLOCK indicates that end of lines should be marked with either CCE, CE or CS
-\(if CE is empty) and that those markers should be aligned.
-LINES indicates that an extra lines will be used at the beginning and end
-of the region for CE and CS.
-INDENT indicates to put CS and CCS at the current indentation of the region
-rather than at left margin."
+CS and CE are the comment start string and comment end string,
+respectively.  CCS and CCE are the comment continuation strings
+for the start and end of lines, respectively (default to CS and CE).
+BLOCK indicates that end of lines should be marked with either CCE,
+CE or CS \(if CE is empty) and that those markers should be aligned.
+LINES indicates that an extra lines will be used at the beginning
+and end of the region for CE and CS.
+INDENT indicates to put CS and CCS at the current indentation of
+the region rather than at left margin."
   ;;(assert (< beg end))
   (let ((no-empty (not (or (eq comment-empty-lines t)
 			   (and comment-empty-lines (zerop (length ce)))))))
