@@ -61,6 +61,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "commands.h"
 #include "blockinput.h"
+#include "keyboard.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
@@ -309,11 +310,26 @@ mouse_check_moved ()
   mouse_last_y = y;
 }
 
+/* Force the mouse driver to ``forget'' about any button clicks until
+   now.  */
+static void
+mouse_clear_clicks (void)
+{
+  int b;
+
+  for (b = 0; b < mouse_button_count; b++)
+    {
+      int dummy_x, dummy_y;
+
+      (void) mouse_pressed (b, &dummy_x, &dummy_y);
+      (void) mouse_released (b, &dummy_x, &dummy_y);
+    }
+}
+
 void
 mouse_init ()
 {
   union REGS regs;
-  int b;
 
   if (termscript)
     fprintf (termscript, "<M_INIT>");
@@ -325,13 +341,7 @@ mouse_init ()
      doesn't do that automatically when function 21h is called, which
      causes Emacs to ``remember'' the click that switched focus to the
      window just before Emacs was started from that window.  */
-  for (b = 0; b < mouse_button_count; b++)
-    {
-      int dummy_x, dummy_y;
-
-      (void) mouse_pressed (b, &dummy_x, &dummy_y);
-      (void) mouse_released (b, &dummy_x, &dummy_y);
-    }
+  mouse_clear_clicks ();
 
   regs.x.ax = 0x0007;
   regs.x.cx = 0;
@@ -3916,6 +3926,9 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      (which invoked the menu) too quickly.  If we don't remove these events,
      Emacs will process them after we return and surprise the user.  */
   discard_mouse_events ();
+  mouse_clear_clicks ();
+  if (!kbd_buffer_events_waiting (1))
+    clear_input_pending ();
   /* Allow mouse events generation by dos_rawgetc.  */
   mouse_preempted--;
   return result;
