@@ -1,6 +1,6 @@
 ;;; disp-table.el --- functions for dealing with char tables.
 
-;; Copyright (C) 1987, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1994, 1995, 1999 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Based on a previous version by Howard Gayle
@@ -178,9 +178,11 @@ X frame."
 ;;;###autoload
 (defun standard-display-european (arg &optional auto)
   "Toggle display of European characters encoded with ISO 8859.
-This function is semi-obsolete; it is better to use
-`set-language-environment' and `set-terminal-coding-system',
-coupled with the `--unibyte' option if you prefer to use unibyte characters.
+
+This function is semi-obsolete; you can use `set-language-environment'
+coupled with either the `--unibyte' option, the EMACS_UNIBYTE
+environment variable or customizing `enable-multibyte-characters' if
+you prefer to use unibyte characters.
 
 When enabled, characters in the range of 160 to 255 display not
 as octal escapes, but as accented characters.  Codes 146 and 160
@@ -189,10 +191,10 @@ codes for apostrophe and space.
 
 With prefix argument, enable European character display iff arg is positive.
 
-Normally, this function turns off `enable-multibyte-characters'
-for subsequently created Emacs buffers, and for `*scratch*.
-This is because users who call this function
-probably want to edit European characters in single-byte mode."
+Normally, this function turns off `enable-multibyte-characters' for
+existing and subsequently created Emacs buffers.  This is because
+users who call this function probably want to edit European characters
+in single-byte mode."
 
   ;; If the optional argument AUTO is non-nil, this function
   ;; does not alter `enable-multibyte-characters'.
@@ -213,9 +215,11 @@ probably want to edit European characters in single-byte mode."
     ;; turn off multibyte chars for more compatibility.
     (unless auto
       (setq-default enable-multibyte-characters nil)
-      (if (get-buffer "*scratch*")
-	  (with-current-buffer "*scratch*"
-	    (set-buffer-multibyte nil))))
+      (mapcar (lambda (buffer)
+		(with-current-buffer buffer
+		  (if enable-multibyte-characters
+		      (set-buffer-multibyte nil))))
+	      (buffer-list)))
     ;; If the user does this explicitly,
     ;; switch to Latin-1 language environment
     ;; unless some other has been specified.
