@@ -287,21 +287,25 @@ The return value has the form (NAME . ADDRESS)."
   (lm-with-file file
     (lm-header "created")))
 
-(defun lm-last-modified-date (&optional file)
-  "Return the modify-date given in file FILE, or current buffer if FILE is nil."
+(defun lm-last-modified-date (&optional file iso-date)
+  "Return the modify-date given in file FILE, or current buffer if FILE is nil.
+ISO-DATE non-nil means return the date in ISO 8601 format."
   (lm-with-file file
-    (if (progn
-	  (goto-char (point-min))
-	  (re-search-forward
-	   "\\$[I]d: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
-	   (lm-code-mark) t))
-	(format "%s %s %s"
-		(match-string 3)
-		(nth (string-to-int
-		      (match-string 2))
-		     '("" "Jan" "Feb" "Mar" "Apr" "May" "Jun"
-		       "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
-		(match-string 1)))))
+    (when (progn (goto-char (point-min))
+		 (re-search-forward
+		  "\\$[I]d: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
+		  (lm-code-mark) t))
+      (let ((dd (match-string 3))
+	    (mm (match-string 2))
+	    (yyyy (match-string 1)))
+	(if iso-date
+	    (format "%s-%s-%s" yyyy mm dd)
+	  (format "%s %s %s"
+		  dd
+		  (nth (string-to-int mm)
+		       '("" "Jan" "Feb" "Mar" "Apr" "May" "Jun"
+			 "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
+		  yyyy))))))
 
 (defun lm-version (&optional file)
   "Return the version listed in file FILE, or current buffer if FILE is nil.
@@ -474,4 +478,3 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 (provide 'lisp-mnt)
 
 ;;; lisp-mnt.el ends here
-
