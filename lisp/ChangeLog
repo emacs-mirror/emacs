@@ -1,3 +1,12 @@
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint): Define as fringe bitmap.
+	(gdb-mouse-toggle-breakpoint): Fix fringe-bitmaps-at-pos usage.
+	(gdb-put-breakpoint-icon): Use breakpoint bitmap.
+
+	* fringe.el (fringe-bitmap-p): New macro.
+	(fringe-bitmaps): Add standard fringe bitmaps on load.
+
 2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
 
 	* calendar/diary-lib.el (list-diary-entries): Save diary buffer
