@@ -3377,6 +3377,8 @@ by `current-window-configuration' (which see).")
 
       FRAME_ROOT_WINDOW (f) = data->root_window;
       Fselect_window (data->current_window);
+      XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
+	= selected_window;
 
       if (NILP (data->focus_frame)
 	  || (FRAMEP (data->focus_frame)
