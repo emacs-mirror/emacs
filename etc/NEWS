@@ -576,6 +576,22 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** The `defmacro' form may contain declarations specifying how to
+indent the macro in Lisp mode and how to debug it with Edebug.  The
+syntax of defmacro has been extended to
+
+   (defmacro NAME LAMBDA-LIST [DOC-STRING] [DECLARATION ...] ...)
+
+DECLARATION is a list `(declare DECLARATION-SPECIFIER ...)'.  The
+declaration specifiers supported are:
+
+(indent INDENT)
+	Set NAME's `lisp-indent-function' property to INDENT.
+
+(edebug DEBUG)
+	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
+	equivalent to writing a `def-edebug-spec' for the macro.
+
 ** Interactive commands can be remapped through keymaps.
 
 This is an alternative to using defadvice or substitute-key-definition
