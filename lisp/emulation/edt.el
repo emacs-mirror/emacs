@@ -290,7 +290,7 @@ Accepts a prefix argument for the number of paragraphs."
   "Set EDT Advance mode so keypad commands move forward."
   (interactive)
   (setq edt-direction-string " ADVANCE")
-  (global-set-key [kp-f1] 'isearch-forward)
+  (global-set-key [kp-f3] 'isearch-forward)
   (global-set-key [kp-8] 'scroll-window-up)
   (global-set-key [kp-7] 'next-paragraph)
   (global-set-key [kp-1] 'forward-to-word)
