@@ -1,3 +1,22 @@
+2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
+
+	* custom.el (custom-autoload, custom-variable-p): New functions.
+
+	* emacs-lisp/autoload.el (make-autoload): Generate
+	custom-autoload for autoloaded defcustoms.
+
+	* help-fns.el (describe-variable): Use custom-variable-p.
+
+	* simple.el (set-variable): Load deps of custom variables without
+	type.
+
+	* cus-edit.el (custom-variable-prompt): Doc change. Use
+	custom-variable-p.
+	(customize-option): Remove search in loaddefs.el.
+	(customize-apropos):  Use custom-variable-p.
+	(custom-save-variables): Use custom-variable-p to detect
+	non-rogue variables.
+
 2003-01-07  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Skip all newlines

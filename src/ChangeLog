@@ -1,3 +1,10 @@
+2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
+
+	* minibuf.c (Fread_variable): Doc fix.
+
+	* eval.c (Fuser_variable_p): Doc change.  For custom variables,
+	use the same test as for custom-variable-p.
+
 2003-01-05  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (try_scrolling): New arg LAST_LINE_MISFIT.
