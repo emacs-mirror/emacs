@@ -489,27 +489,42 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
     (save-excursion
       (set-buffer standard-output)
       (setq truncate-lines t)
-      (dolist (color list)
-	(if (consp color)
-	    (if (cdr color)
-		(setq color (sort color (lambda (a b)
-					  (string< (downcase a)
-						   (downcase b))))))
-	  (setq color (list color)))
-	(put-text-property
-	 (prog1 (point)
-	   (insert (car color))
-	   (indent-to 22))
-	 (point)
-	 'face (cons 'background-color (car color)))
-	(put-text-property
-	 (prog1 (point)
-	   (insert "  " (if (cdr color)
-			    (mapconcat 'identity (cdr color) ", ")
-			  (car color))
-		   "\n"))
-	 (point)
-	 'face (cons 'foreground-color (car color)))))))
+      (if temp-buffer-show-function
+	  (list-colors-print list)
+	;; Call list-colors-print from temp-buffer-show-hook
+	;; to get the right value of window-width in list-colors-print
+	;; after the buffer is displayed.
+	(add-hook 'temp-buffer-show-hook
+		  (lambda () (list-colors-print list)) nil t)))))
+
+(defun list-colors-print (list)
+  (dolist (color list)
+    (if (consp color)
+	(if (cdr color)
+	    (setq color (sort color (lambda (a b)
+				      (string< (downcase a)
+					       (downcase b))))))
+      (setq color (list color)))
+    (put-text-property
+     (prog1 (point)
+       (insert (car color))
+       (indent-to 22))
+     (point)
+     'face (cons 'background-color (car color)))
+    (put-text-property
+     (prog1 (point)
+       (insert "  " (if (cdr color)
+			(mapconcat 'identity (cdr color) ", ")
+		      (car color)))
+       (indent-to (max (- (window-width) 8) 44))
+       (insert (apply 'format " #%02x%02x%02x"
+		      (mapcar (lambda (c) (lsh c -8))
+			      (color-values (car color)))))
+
+       (insert "\n"))
+     (point)
+     'face (cons 'foreground-color (car color))))
+  (goto-char (point-min)))
 
 (defun list-colors-duplicates (&optional list)
   "Return a list of colors with grouped duplicate colors.
