@@ -109,22 +109,19 @@ would have the following buffer names in the various styles:
 		(const post-forward)
 		(const post-forward-angle-brackets)
 		(const :tag "standard Emacs behavior (nil)" nil))
-  :require 'uniquify
-  :group 'uniquify)
+  :require 'uniquify)
 
 (defcustom uniquify-after-kill-buffer-p nil
   "*If non-nil, rerationalize buffer names after a buffer has been killed.
 This can be dangerous if Emacs Lisp code is keeping track of buffers by their
 names (rather than keeping pointers to the buffers themselves)."
-  :type 'boolean
-  :group 'uniquify)
+  :type 'boolean)
 
 (defcustom uniquify-ask-about-buffer-names-p nil
   "*If non-nil, permit user to choose names for buffers with same base file.
 If the user chooses to name a buffer, uniquification is preempted and no
 other buffer names are changed."
-  :type 'boolean
-  :group 'uniquify)
+  :type 'boolean)
 
 ;; The default value matches certain Gnus buffers.
 (defcustom uniquify-ignore-buffers-re "^\\*\\(un\\)?sent "
@@ -132,13 +129,11 @@ other buffer names are changed."
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
 draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
 visited file name isn't the same as that of the buffer."
-  :type '(choice (const :tag "Uniquify all buffers" nil) regexp)
-  :group 'uniquify)
+  :type '(choice (const :tag "Uniquify all buffers" nil) regexp))
 
 (defcustom uniquify-min-dir-content 0
   "*Minimum number of directory name components included in buffer name."
-  :type 'integer
-  :group 'uniquify)
+  :type 'integer)
 
 (defcustom uniquify-separator nil
   "*String separator for buffer name components.
@@ -146,16 +141,14 @@ When `uniquify-buffer-name-style' is `post-forward', separates
 base file name from directory part in buffer names (default \"|\").
 When `uniquify-buffer-name-style' is `reverse', separates all
 file name components (default \"\\\")."
-  :type '(choice (const nil) string)
-  :group 'uniquify)
+  :type '(choice (const nil) string))
 
 (defcustom uniquify-trailing-separator-p nil
   "*If non-nil, add a file name separator to dired buffer names.
 If `uniquify-buffer-name-style' is `forward', add the separator at the end;
 if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored."
-  :type 'boolean
-  :group 'uniquify)
+  :type 'boolean)
 
 (defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode)
   "List of modes for which uniquify should obey `list-buffers-directory'.
@@ -163,10 +156,6 @@ That means that when `buffer-file-name' is set to nil, `list-buffers-directory'
 contains the name of the directory which the buffer is visiting.")
 
 ;;; Utilities
-
-;; For directories, return the last component, not the empty string.
-(defun uniquify-file-name-nondirectory (file-name)
-  (file-name-nondirectory (directory-file-name file-name)))
 
 ;; uniquify-fix-list data structure
 (defstruct (uniquify-item
@@ -185,25 +174,25 @@ If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.
 Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
   (interactive)
-  (let (fix-list
-	(newbuffile-nd (and newbuffile
-			    (uniquify-file-name-nondirectory newbuffile))))
+  (when newbuffile
+    (setq newbuffile (expand-file-name (directory-file-name newbuffile))))
+  (let ((fix-list nil)
+	(base (and newbuffile (file-name-nondirectory newbuffile))))
     (dolist (buffer (buffer-list))
       (let ((bufname (buffer-name buffer))
-	    bfn rawname proposed)
-	(if (and (not (and uniquify-ignore-buffers-re
-			   (string-match uniquify-ignore-buffers-re
-					 bufname)))
-		 (setq bfn (if (eq buffer newbuf)
-			       (when newbuffile
-				 (expand-file-name
-				  (directory-file-name newbuffile)))
-			     (uniquify-buffer-file-name buffer)))
-		 (setq rawname (uniquify-file-name-nondirectory bfn))
-		 (or (not newbuffile)
-		     (equal rawname newbuffile-nd))
-		 (setq proposed (uniquify-get-proposed-name rawname bfn)))
-	    (push (uniquify-make-item rawname bfn buffer proposed) fix-list))))
+	    bfn rawname)
+	(when (and (not (and uniquify-ignore-buffers-re
+			     (string-match uniquify-ignore-buffers-re
+					   bufname)))
+		   (setq bfn (if (eq buffer newbuf) newbuffile
+			       (uniquify-buffer-file-name buffer)))
+		   (setq rawname (file-name-nondirectory bfn))
+		   (or (null base) (equal rawname base)))
+	  (when (setq bfn (file-name-directory bfn)) ;Strip off the `base'.
+	    (setq bfn (directory-file-name bfn)))    ;Strip trailing slash.
+	  (push (uniquify-make-item rawname bfn buffer
+				    (uniquify-get-proposed-name rawname bfn))
+		fix-list))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict, then bring conflicting names together
     (uniquify-rationalize-a-list fix-list)))
@@ -252,12 +241,11 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 (defun uniquify-get-proposed-name (base filename &optional depth)
   (unless depth (setq depth uniquify-min-dir-content))
-  (assert (equal base (uniquify-file-name-nondirectory filename)))
-  (assert (equal (directory-file-name filename) filename))
+  (assert (equal (directory-file-name filename) filename))  ;No trailing slash.
 
   ;; Distinguish directories by adding extra separator.
   (if (and uniquify-trailing-separator-p
-	   (file-directory-p filename)
+	   (file-directory-p (expand-file-name base filename))
 	   (not (string-equal base "")))
       (cond ((eq uniquify-buffer-name-style 'forward)
 	     (setq base (file-name-as-directory base)))
@@ -267,10 +255,10 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
   (let ((extra-string nil)
 	(n depth))
-    (while (and (> n 0) filename
-		(setq filename (file-name-directory filename))
-		(setq filename (directory-file-name filename)))
+    (while (and (> n 0) filename)
       (let ((file (file-name-nondirectory filename)))
+	(when (setq filename (file-name-directory filename))
+	  (setq filename (directory-file-name filename)))
 	(setq n (1- n))
 	(push (if (zerop (length file)) ;nil or "".
 		  (prog1 "" (setq filename nil)) ;Could be `filename' iso "".
@@ -278,9 +266,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	      extra-string)))
     (when (zerop n)
       (if (and filename extra-string
-	       (setq filename (file-name-directory filename))
-	       (equal filename
-		      (file-name-directory (directory-file-name filename))))
+	       (equal filename (file-name-directory filename)))
 	  ;; We're just before the root.  Let's add the leading / already.
 	  ;; With "/a/b"+"/c/d/b" this leads to "/a/b" and "d/b" but with
 	  ;; "/a/b"+"/c/a/b" this leads to "/a/b" and "a/b".
