@@ -1,11 +1,10 @@
 ;;; webjump.el --- programmable Web hotlist
      
-;; Copyright (C) 1996 Free Software Foundation
+;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author:    Neil W. Van Dyke <nwv@acm.org>
-;; Created:   Fri 09 Aug 1996
+;; Created:   09-Aug-1996
 ;; Keywords:  comm www
-;; X-URL:     http://www.cs.brown.edu/people/nwv/
 
 ;; This file is part of GNU Emacs.
 
@@ -43,7 +42,7 @@
 
 ;; You may wish to add something like the following to your `.emacs' file:
 ;;
-;;   (load "webjump")
+;;   (require 'webjump)
 ;;   (global-set-key "\C-cj" 'webjump)
 ;;   (setq webjump-sites
 ;;         (append '(
@@ -52,24 +51,15 @@
 ;;                   )
 ;;                 webjump-sample-sites))
 ;;
-;; The above loads this package, binds `C-c j' to invoke WebJump, and adds
-;; your personal favorite sites to the hotlist.
+;; The above loads this package, binds `C-c j' to invoke WebJump, and adds your
+;; personal favorite sites to the hotlist.
 
-;; The `webjump-sample-sites' constant mostly contains sites that are expected
-;; to be generally useful to Emacs users or that have some sort of query which
-;; can be coded in WebJump.  There are two main goals of this sample site list:
-;; (1) demonstrate WebJump capabilities and usage; (2) provide definitions for
-;; many popular sites so that people don't have to reinvent the wheel.  A few
-;; assorted other sites have been thrown in on a whim.  No commercial sites are
-;; included unless they provide a free, generally-useful service.  Inclusion of
-;; a site does not represent an endorsement.  Please contact the maintainer
-;; with change requests.
+;; The `webjump-sample-sites' variable mostly contains some site entries that
+;; are expected to be generally relevant to many users, but excluding
+;; those that the GNU project would not want to recommend.
 
 ;; The `browse-url' package is used to submit URLs to the browser, so any
 ;; browser-specific configuration should be done there.
-
-;; WebJump inherits a small amount code from my `altavista.el' package, and is
-;; intended to obsolete that package.
 
 ;;; Code:
 
@@ -80,92 +70,109 @@
 ;;------------------------------------------------------------------- Constants
 
 (defvar webjump-sample-sites
-  '(("AltaVista" . 
+  '(
+
+    ;; FSF, not including Emacs-specific.
+    ("GNU Project FTP Archive" .
+     [mirrors "ftp://prep.ai.mit.edu/pub/gnu/"
+              ;; ASIA:
+              "ftp://ftp.cs.titech.ac.jp"
+              "ftp://tron.um.u-tokyo.ac.jp/pub/GNU/prep"
+              "ftp://cair-archive.kaist.ac.kr/pub/gnu"
+              "ftp://ftp.nectec.or.th/pub/mirrors/gnu"
+              ;; AUSTRALIA:
+              "ftp://archie.au/gnu"
+              "ftp://archie.oz/gnu"
+              "ftp://archie.oz.au/gnu"
+              ;; AFRICA:
+              "ftp://ftp.sun.ac.za/pub/gnu"
+              ;; MIDDLE-EAST:
+              "ftp://ftp.technion.ac.il/pub/unsupported/gnu"
+              ;; EUROPE:
+              "ftp://irisa.irisa.fr/pub/gnu"
+              "ftp://ftp.univ-lyon1.fr/pub/gnu"
+              "ftp://ftp.mcc.ac.uk"
+              "ftp://unix.hensa.ac.uk/mirrors/uunet/systems/gnu"
+              "ftp://src.doc.ic.ac.uk/gnu"
+              "ftp://ftp.ieunet.ie/pub/gnu"
+              "ftp://ftp.eunet.ch"
+              "ftp://nic.switch.ch/mirror/gnu"
+              "ftp://ftp.informatik.rwth-aachen.de/pub/gnu"
+              "ftp://ftp.informatik.tu-muenchen.de"
+              "ftp://ftp.win.tue.nl/pub/gnu"
+              "ftp://ftp.nl.net"
+              "ftp://ftp.etsimo.uniovi.es/pub/gnu"
+              "ftp://ftp.funet.fi/pub/gnu"
+              "ftp://ftp.denet.dk"
+              "ftp://ftp.stacken.kth.se"
+              "ftp://isy.liu.se"
+              "ftp://ftp.luth.se/pub/unix/gnu"
+              "ftp://ftp.sunet.se/pub/gnu"
+              "ftp://archive.eu.net"
+              ;; SOUTH AMERICA: 
+              "ftp://ftp.inf.utfsm.cl/pub/gnu"
+              "ftp://ftp.unicamp.br/pub/gnu"
+              ;; WESTERN CANADA:
+              "ftp://ftp.cs.ubc.ca/mirror2/gnu"
+              ;; USA:
+              "ftp://wuarchive.wustl.edu/systems/gnu"
+              "ftp://labrea.stanford.edu"
+              "ftp://ftp.digex.net/pub/gnu"
+              "ftp://ftp.kpc.com/pub/mirror/gnu"
+              "ftp://f.ms.uky.edu/pub3/gnu"
+              "ftp://jaguar.utah.edu/gnustuff"
+              "ftp://ftp.hawaii.edu/mirrors/gnu"
+              "ftp://uiarchive.cso.uiuc.edu/pub/gnu"
+              "ftp://ftp.cs.columbia.edu/archives/gnu/prep"
+              "ftp://gatekeeper.dec.com/pub/GNU"
+              "ftp://ftp.uu.net/systems/gnu"])
+    ("GNU Project Home Page" . "www.gnu.ai.mit.edu")
+
+    ;; Emacs.
+    ("Emacs Lisp Archive" .
+     "ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/")
+
+    ;; Internet search engines.
+    ("AltaVista" . 
      [simple-query
       "www.altavista.digital.com"
       "www.altavista.digital.com/cgi-bin/query?pg=aq&what=web&fmt=.&q="
       "&r=&d0=&d1="])
     ("Archie" .
-     [simple-query "http://hoohoo.ncsa.uiuc.edu/cgi-bin/AA.pl"
-		   "http://hoohoo.ncsa.uiuc.edu/cgi-bin/AA.pl?query=" ""])
-    ("Bastard Operator from Hell" . "www.replay.com/bofh/")
-    ("Computer Professionals for Social Responsibility" . "www.cpsr.org/dox/")
-    ("Electronic Frontier Foundation" . "www.eff.org")
-    ("Emacs Lisp Archive" .
-     "ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/")
-    ("GNU Project" . "www.gnu.ai.mit.edu")
-    ("GNU FTP Archive". [mirrors
-                         "ftp://prep.ai.mit.edu/pub/gnu/"
-                         ;; ASIA:
-                         "ftp://ftp.cs.titech.ac.jp"
-                         "ftp://tron.um.u-tokyo.ac.jp/pub/GNU/prep"
-                         "ftp://cair-archive.kaist.ac.kr/pub/gnu"
-                         "ftp://ftp.nectec.or.th/pub/mirrors/gnu"
-                         ;; AUSTRALIA:
-                         "ftp://archie.au/gnu"
-                         "ftp://archie.oz/gnu"
-                         "ftp://archie.oz.au/gnu"
-                         ;; AFRICA:
-                         "ftp://ftp.sun.ac.za/pub/gnu"
-                         ;; MIDDLE-EAST:
-                         "ftp://ftp.technion.ac.il/pub/unsupported/gnu"
-                         ;; EUROPE:
-                         "ftp://irisa.irisa.fr/pub/gnu"
-                         "ftp://ftp.univ-lyon1.fr/pub/gnu"
-                         "ftp://ftp.mcc.ac.uk"
-                         "ftp://unix.hensa.ac.uk/mirrors/uunet/systems/gnu"
-                         "ftp://src.doc.ic.ac.uk/gnu"
-                         "ftp://ftp.ieunet.ie/pub/gnu"
-                         "ftp://ftp.eunet.ch"
-                         "ftp://nic.switch.ch/mirror/gnu"
-                         "ftp://ftp.informatik.rwth-aachen.de/pub/gnu"
-                         "ftp://ftp.informatik.tu-muenchen.de"
-                         "ftp://ftp.win.tue.nl/pub/gnu"
-                         "ftp://ftp.nl.net"
-                         "ftp://ftp.etsimo.uniovi.es/pub/gnu"
-                         "ftp://ftp.funet.fi/pub/gnu"
-                         "ftp://ftp.denet.dk"
-                         "ftp://ftp.stacken.kth.se"
-                         "ftp://isy.liu.se"
-                         "ftp://ftp.luth.se/pub/unix/gnu"
-                         "ftp://ftp.sunet.se/pub/gnu"
-                         "ftp://archive.eu.net"
-                         ;; SOUTH AMERICA: 
-                         "ftp://ftp.inf.utfsm.cl/pub/gnu"
-                         "ftp://ftp.unicamp.br/pub/gnu"
-                         ;; WESTERN CANADA:
-                         "ftp://ftp.cs.ubc.ca/mirror2/gnu"
-                         ;; USA:
-                         "ftp://wuarchive.wustl.edu/systems/gnu"
-                         "ftp://labrea.stanford.edu"
-                         "ftp://ftp.digex.net/pub/gnu"
-                         "ftp://ftp.kpc.com/pub/mirror/gnu"
-                         "ftp://f.ms.uky.edu/pub3/gnu"
-                         "ftp://jaguar.utah.edu/gnustuff"
-                         "ftp://ftp.hawaii.edu/mirrors/gnu"
-                         "ftp://uiarchive.cso.uiuc.edu/pub/gnu"
-                         "ftp://ftp.cs.columbia.edu/archives/gnu/prep"
-                         "ftp://gatekeeper.dec.com/pub/GNU"
-                         "ftp://ftp.uu.net/systems/gnu"
-                         ])
-    ("Interactive Weather Information Network" . webjump-to-iwin)
+     [simple-query "hoohoo.ncsa.uiuc.edu/cgi-bin/AA.pl"
+		   "hoohoo.ncsa.uiuc.edu/cgi-bin/AA.pl?query=" ""])
     ("Lycos" .
-     [simple-query "www.lycos.com" "www.lycos.com/cgi-bin/pursuit?query=" ""])
+     [simple-query "www.lycos.com"
+                   "www.lycos.com/cgi-bin/pursuit?cat=lycos&query=" ""])
+    ("Yahoo" . 
+     [simple-query "www.yahoo.com" "search.yahoo.com/bin/search?p=" ""])
+
+    ;; Misc. general interest.
+    ("Interactive Weather Information Network" . webjump-to-iwin)
     ("Usenet FAQs" . 
      [simple-query "www.cis.ohio-state.edu/hypertext/faq/usenet/FAQ-List.html"
 		   "www.cis.ohio-state.edu/htbin/search-usenet-faqs/form?find="
 		   ""])
-    ("Risks Digest" . webjump-to-risks)
     ("RTFM Usenet FAQs by Group" .
      "ftp://rtfm.mit.edu/pub/usenet-by-group/")
     ("RTFM Usenet FAQs by Hierachy" .
      "ftp://rtfm.mit.edu/pub/usenet-by-hierarchy/")
-    ("X Consortium Archive". "ftp.x.org")
-    ("Yahoo" . 
-     [simple-query "www.yahoo.com" "search.yahoo.com/bin/search?p=" ""])
-    ("Yahoo Reference" "www.yahoo.com/Reference/")
+    ("X Consortium Archive" . "ftp.x.org")
+    ("Yahoo: Reference" . "www.yahoo.com/Reference/")
+
+    ;; Computer social issues, privacy, professionalism.
+    ("Association for Computing Machinery" . "www.acm.org")
+    ("Computer Professionals for Social Responsibility" . "www.cpsr.org/dox/")
+    ("Electronic Frontier Foundation" . "www.eff.org")
+    ("IEEE Computer Society" . "www.computer.org")
+    ("Risks Digest" . webjump-to-risks)
+
+    ;; Fun.
+    ("Bastard Operator from Hell" . "www.replay.com/bofh/")
+
     )
-  "Sample hotlist for WebJump.")
+  "Sample hotlist for WebJump.  See the documentation for the `webjump'
+function and the `webjump-sites' variable.")
 
 (defvar webjump-state-to-postal-alist
   '(("Alabama" . "al") ("Alaska" . "ak") ("Arizona" . "az") ("Arkansas" . "ar")
@@ -263,9 +270,8 @@ submitting the URL.")
 See the documentation for the `webjump-sites' variable for how to customize the
 hotlist.
 
-Feedback on WebJump can be sent to the author, Neil W. Van Dyke <nwv@acm.org>,
-or submitted via `\\[webjump-submit-bug-report]'.  The latest version can be
-gotten from `http://www.cs.brown.edu/people/nwv/'."
+Please submit bug reports and other feedback to the author, Neil W. Van Dyke
+<nwv@acm.org>."
   (interactive)
   (let* ((completion-ignore-case t)
 	 (item (assoc (completing-read "WebJump to site: " webjump-sites nil t)
@@ -322,7 +328,7 @@ gotten from `http://www.cs.brown.edu/people/nwv/'."
 (defun webjump-mirror-default (urls)
   ;; Note: This should be modified to apply some simple kludges/heuristics to
   ;; pick a site which is likely "close".  As a tie-breaker among candidates
-  ;; judged equally desirable, randomness should be used.
+  ;; judged equally desirable, randomness might be used.
   (car urls))
 
 (defun webjump-read-choice (name what choices &optional default)
