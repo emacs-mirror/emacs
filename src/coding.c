@@ -279,8 +279,8 @@ Lisp_Object Vcoding_system_for_write;
 Lisp_Object Vlast_coding_system_used;
 
 /* A vector of length 256 which contains information about special
-   Microsoft codes.  */
-Lisp_Object Vmicrosoft_code_table;
+   Latin codes (espepcially for dealing with Microsoft code).  */
+Lisp_Object Vlatin_extra_code_table;
 
 /* Flag to inhibit code conversion of end-of-line format.  */
 int inhibit_eol_conversion;
@@ -621,8 +621,17 @@ detect_coding_iso2022 (src, src_end)
 	      );
   int g1 = 0;			/* 1 iff designating to G1.  */
   int c, i;
+  struct coding_system coding_iso_8_1, coding_iso_8_2;
 
-  while (src < src_end)
+  /* Coding systems of these categories may accept latin extra codes.  */
+  setup_coding_system
+    (XSYMBOL (coding_category_table[CODING_CATEGORY_IDX_ISO_8_1])->value,
+     &coding_iso_8_1);
+  setup_coding_system
+    (XSYMBOL (coding_category_table[CODING_CATEGORY_IDX_ISO_8_2])->value,
+     &coding_iso_8_2);
+
+  while (mask && src < src_end)
     {
       c = *src++;
       switch (c)
@@ -683,21 +692,39 @@ detect_coding_iso2022 (src, src_end)
 	case ISO_CODE_CSI:
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
-	  return CODING_CATEGORY_MASK_ISO_8_ELSE;
+	  {
+	    int newmask = CODING_CATEGORY_MASK_ISO_8_ELSE;
+
+	    if (VECTORP (Vlatin_extra_code_table)
+		&& !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	      {
+		if (coding_iso_8_1.flags & CODING_FLAG_ISO_LATIN_EXTRA)
+		  newmask |= CODING_CATEGORY_MASK_ISO_8_1;
+		if (coding_iso_8_2.flags & CODING_FLAG_ISO_LATIN_EXTRA)
+		  newmask |= CODING_CATEGORY_MASK_ISO_8_2;
+	      }
+	    mask &= newmask;
+	  }
+	  break;
 
 	default:
 	  if (c < 0x80)
 	    break;
 	  else if (c < 0xA0)
 	    {
-	      if (VECTORP (Vmicrosoft_code_table)
-		  && !NILP (XVECTOR (Vmicrosoft_code_table)->contents[c]))
+	      if (VECTORP (Vlatin_extra_code_table)
+		  && !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
 		{
-		  mask &= ~(CODING_CATEGORY_MASK_ISO_7
-			    | CODING_CATEGORY_MASK_ISO_7_ELSE);
-		  break;
+		  int newmask = 0;
+
+		  if (coding_iso_8_1.flags & CODING_FLAG_ISO_LATIN_EXTRA)
+		    newmask |= CODING_CATEGORY_MASK_ISO_8_1;
+		  if (coding_iso_8_2.flags & CODING_FLAG_ISO_LATIN_EXTRA)
+		    newmask |= CODING_CATEGORY_MASK_ISO_8_2;
+		  mask &= newmask;
 		}
-	      return 0;
+	      else
+		return 0;
 	    }
 	  else
 	    {
@@ -2370,6 +2397,7 @@ setup_coding_system (coding_system, coding)
 	     | (NILP (flags[13]) ? 0 : CODING_FLAG_ISO_INIT_AT_BOL)
 	     | (NILP (flags[14]) ? 0 : CODING_FLAG_ISO_DESIGNATE_AT_BOL)
 	     | (NILP (flags[15]) ? 0 : CODING_FLAG_ISO_SAFE)
+	     | (NILP (flags[16]) ? 0 : CODING_FLAG_ISO_LATIN_EXTRA)
 	     );
 
 	/* Invoke graphic register 0 to plane 0.  */
@@ -2656,12 +2684,12 @@ detect_coding_mask (src, src_bytes)
     }
   else if (c < 0xA0)
     {
-      /* If C is a special Microsoft code,
+      /* If C is a special latin extra code,
 	 or is an ISO2022 specific control code of C1 (SS2 or SS3), 
 	 or is an ISO2022 control-sequence-introducer (CSI),
 	 we should also consider the possibility of someof ISO2022 codings.  */
-      if ((VECTORP (Vmicrosoft_code_table)
-	   && !NILP (XVECTOR (Vmicrosoft_code_table)->contents[c]))
+      if ((VECTORP (Vlatin_extra_code_table)
+	   && !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
 	  || (c == ISO_CODE_SS2 || c == ISO_CODE_SS3)
 	  || (c == ISO_CODE_CSI
 	      && (src < src_end
@@ -4017,15 +4045,16 @@ The car part is used for decoding a process output,\n\
 the cdr part is used for encoding a text to be sent to a process.");
   Vdefault_process_coding_system = Qnil;
 
-  DEFVAR_LISP ("special-microsoft-code-table", &Vmicrosoft_code_table,
-    "Table of special Microsoft codes in the range 128..159 (inclusive).\n\
+  DEFVAR_LISP ("latin-extra-code-table", &Vlatin_extra_code_table,
+    "Table of extra Latin codes in the range 128..159 (inclusive).\n\
 This is a vector of length 256.\n\
 If Nth element is non-nil, the existence of code N in a file\n\
 (or output of subprocess) doesn't prevent it to be detected as\n\
-a coding system of ISO 2022 variant (e.g. iso-latin-1) on reading a file\n\
+a coding system of ISO 2022 variant which has a flag\n\
+`accept-latin-extra-code' t (e.g. iso-latin-1) on reading a file\n\
 or reading output of a subprocess.\n\
 Only 128th through 159th elements has a meaning.");
-  Vmicrosoft_code_table = Fmake_vector (make_number (256), Qnil);
+  Vlatin_extra_code_table = Fmake_vector (make_number (256), Qnil);
 }
 
 #endif /* emacs */
