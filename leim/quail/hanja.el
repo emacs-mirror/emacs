@@ -1,4 +1,4 @@
-;;; quail/hanja-ksc.el --- Quail-package for Korean Hanja (KSC5601)
+;;; quail/hanja.el --- Quail-package for Korean Hanja (KSC5601)
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -25,22 +25,14 @@
 ;;; Code:
 
 (require 'quail)
-
-(defun quail-hanja-switch-to-symbol-ksc (&rest ignore)
-  "Swith to `korean-symbol' package."
-  (quail-delete-region)
-  (select-input-method "korean-symbol")
-  (throw 'quail-tag nil))
-
+(require 'korea-util)
 
 (quail-define-package 
- "korean-hanja" "Korean" "벌漢" t
+ "korean-hanja" "Korean" "漢2" t
  "2벌식KSC漢字: 該當하는 漢字의 韻을 한글2벌式으로 呼出하여 選擇"
 		      nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("\\" quail-hanja-switch-to-symbol-ksc)
-
  ("rk"	"伽佳假價加可呵哥嘉嫁家暇架枷柯歌珂痂稼苛茄街袈訶賈跏軻迦駕")
  ("rkr"	"刻却各恪慤殼珏脚覺角閣")
  ("rks"	"侃刊墾奸姦干幹懇揀杆柬桿澗癎看磵稈竿簡肝艮艱諫間")
