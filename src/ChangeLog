@@ -1,5 +1,9 @@
 1999-11-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (ensure_echo_area_buffers): New.
+	(with_echo_area_buffer): Use it.
+	(setup_echo_area_for_printing): Ditto.
+
 	* buffer.c (indicate-empty-lines): Doc-fix.
 
 1999-11-12  Gerd Moellmann  <gerd@gnu.org>
