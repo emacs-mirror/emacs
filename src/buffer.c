@@ -477,6 +477,7 @@ reset_buffer (b)
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
   b->last_selected_window = Qnil;
+  XSETINT (b->display_count, 0);
   b->extra2 = Qnil;
   b->extra3 = Qnil;
 }
@@ -848,10 +849,26 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
      register Lisp_Object buffer, visible_ok;
 {
   Lisp_Object Fset_buffer_major_mode ();
-  register Lisp_Object tail, buf, notsogood, tem;
+  register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
   notsogood = Qnil;
 
-  for (tail = Vbuffer_alist; !NILP (tail); tail = Fcdr (tail))
+  tail = Vbuffer_alist;
+  pred = frame_buffer_predicate ();
+
+  /* Consider buffers that have been seen in the selected frame
+     before other buffers.  */
+    
+  tem = frame_buffer_list ();
+  add_ons = Qnil;
+  while (CONSP (tem))
+    {
+      if (BUFFERP (XCONS (tem)->car))
+	add_ons = Fcons (Fcons (Qnil, XCONS (tem)->car), add_ons);
+      tem = XCONS (tem)->cdr;
+    }
+  tail = nconc2 (Fnreverse (add_ons), tail);
+
+  for (; !NILP (tail); tail = Fcdr (tail))
     {
       buf = Fcdr (Fcar (tail));
       if (EQ (buf, buffer))
@@ -860,10 +877,9 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
 	continue;
       /* If the selected frame has a buffer_predicate,
 	 disregard buffers that don't fit the predicate.  */
-      tem = frame_buffer_predicate ();
-      if (!NILP (tem))
+      if (!NILP (pred))
 	{
-	  tem = call1 (tem, buf);
+	  tem = call1 (pred, buf);
 	  if (NILP (tem))
 	    continue;
 	}
@@ -1063,6 +1079,7 @@ with SIGHUP.")
   Vinhibit_quit = Qt;
   replace_buffer_in_all_windows (buf);
   Vbuffer_alist = Fdelq (Frassq (buf, Vbuffer_alist), Vbuffer_alist);
+  frames_discard_buffer (buf);
   Vinhibit_quit = tem;
 
   /* Delete any auto-save file, if we saved it in this session.  */
@@ -1167,8 +1184,33 @@ record_buffer (buf)
   else
     XCONS (prev)->cdr = XCONS (XCONS (prev)->cdr)->cdr;
 	
-  XCONS(link)->cdr = Vbuffer_alist;
+  XCONS (link)->cdr = Vbuffer_alist;
   Vbuffer_alist = link;
+
+  /* Now move this buffer to the front of frame_buffer_list also.  */
+
+  prev = Qnil;
+  for (link = frame_buffer_list (); CONSP (link); link = XCONS (link)->cdr)
+    {
+      if (EQ (XCONS (link)->car, buf))
+	break;
+      prev = link;
+    }
+
+  /* Effectively do delq.  */
+
+  if (CONSP (link))
+    {
+      if (NILP (prev))
+	set_frame_buffer_list (XCONS (frame_buffer_list ())->cdr);
+      else
+	XCONS (prev)->cdr = XCONS (XCONS (prev)->cdr)->cdr;
+	
+      XCONS (link)->cdr = frame_buffer_list ();
+      set_frame_buffer_list (link);
+    }
+  else
+    set_frame_buffer_list (Fcons (buf, frame_buffer_list ()));
 }
 
 DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 1, 1, 0,
@@ -3521,6 +3563,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_defaults.left_margin, 0);
   buffer_defaults.cache_long_line_scans = Qnil;
   buffer_defaults.file_truename = Qnil;
+  XSETFASTINT (buffer_defaults.display_count, 0);
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -3546,6 +3589,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
+  XSETINT (buffer_local_flags.display_count, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -4136,6 +4180,10 @@ property is an element in that list.\n\
 If an element is a cons cell of the form (PROP . ELLIPSIS),\n\
 then characters with property value PROP are invisible,\n\
 and they have an ellipsis as well if ELLIPSIS is non-nil.");
+
+  DEFVAR_PER_BUFFER ("buffer-display-count",
+		     &current_buffer->display_count, Qnil,
+  "A number incremented each time the buffer is displayed in a window.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.\n\
