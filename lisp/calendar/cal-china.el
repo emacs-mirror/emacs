@@ -319,12 +319,10 @@ Gregorian date Sunday, December 31, 1 BC."
                (calendar-gregorian-from-absolute
                 (cdr (assoc 1 (chinese-year y))))))
           (if (calendar-date-is-visible-p chinese-new-year)
-          (list (list chinese-new-year
-                      (format "Chinese New Year (%s-%s)"
-                              (aref chinese-calendar-celestial-stem
-                                    (% (+ y 6) 10))
-                              (aref chinese-calendar-terrestrial-branch
-                                    (% (+ y 8) 12))))))))))
+          (list
+           (list chinese-new-year
+                 (format "Chinese New Year (%s)"
+                         (calendar-chinese-sexagisimal-name (+ y 57))))))))))
 
 (defun calendar-chinese-date-string (&optional date)
   "String of Chinese date of Gregorian DATE.
@@ -344,20 +342,28 @@ Defaults to today's date if DATE is not given."
                             (calendar-mod (1+ (floor month)) 12)
                             1)))
          (m-cycle (% (+ (* year 5) (floor month)) 60)))
-    (format "Cycle %s, year %s (%s-%s), %smonth %s, day %s (%s-%s)"
+    (format "Cycle %s, year %s (%s), %smonth %s%s, day %s (%s)"
             cycle
-            year
-            (aref chinese-calendar-celestial-stem (% (+ year 9) 10))
-            (aref chinese-calendar-terrestrial-branch (% (+ year 11) 12))
+            year (calendar-chinese-sexagisimal-name year)
             (if (not (integerp month))
                 "second "
               (if (< 30 (- next-month this-month))
                   "first "
                 ""))
             (floor month)
-            day
-            (aref chinese-calendar-celestial-stem (% (+ a-date 4) 10))
-            (aref chinese-calendar-terrestrial-branch (% (+ a-date 2) 12)))))
+            (if (integerp month)
+                (format " (%s)" (calendar-chinese-sexagisimal-name
+                                 (+ (* 5 year) month 44)))
+              "")
+            day (calendar-chinese-sexagisimal-name (+ a-date 15)))))
+
+(defun calendar-chinese-sexagisimal-name (n)
+  "The N-th name of the Chinese sexagisimal cycle.
+N congruent to 1 gives the first name, N congruent to 2 gives the second name,
+..., N congruent to 60 gives the sixtieth name."
+  (format "%s-%s"
+          (aref chinese-calendar-celestial-stem (% (1- n) 10))
+          (aref chinese-calendar-terrestrial-branch (% (1- n) 12))))
 
 (defun calendar-print-chinese-date ()
   "Show the Chinese date equivalents of date."
