@@ -1,3 +1,8 @@
+2003-01-10  Dave Love  <fx@gnu.org>
+
+	* international/code-pages.el (cp-make-coding-system): Fix last
+	change.
+
 2003-01-10  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* dired.el (dired-garbage-files-regexp): Use \\' instead of $ and
