@@ -49,8 +49,6 @@
   (setq-default buffer-file-coding-system 'chinese-iso-8bit)
   (setq default-terminal-coding-system 'chinese-iso-8bit)
   (setq default-keyboard-coding-system 'chinese-iso-8bit)
-  (setq sendmail-coding-system nil
-	rmail-file-coding-system 'chinese-iso-7bit)
 
   (setq default-input-method  "chinese-py-punct")
   (setq-default default-input-method "chinese-py-punct"))
@@ -79,8 +77,6 @@
   (setq-default buffer-file-coding-system 'chinese-big5)
   (setq default-terminal-coding-system 'chinese-big5)
   (setq default-keyboard-coding-system 'chinese-big5)
-  (setq sendmail-coding-system nil
-	rmail-file-coding-system 'chienese-iso-7bit)
 
   (setq default-input-method "chinese-py-punct-b5")
   (setq-default default-input-method "chinese-py-punct-b5"))
@@ -108,8 +104,6 @@
   (setq-default buffer-file-coding-system 'chinese-iso-7bit)
   (setq default-terminal-coding-system 'chinese-iso-7bit)
   (setq default-keyboard-coding-system 'chinese-iso-7bit)
-  (setq sendmail-coding-system nil
-	rmail-file-coding-system 'chinese-iso-7bit)
 
   (setq default-input-method "chinese-quick-cns")
   (setq-default default-input-method "chinese-quick-cns"))
