@@ -216,6 +216,7 @@ extern void set_point P_ ((struct buffer *, int));
 extern INLINE void temp_set_point P_ ((struct buffer *, int));
 extern void set_point_both P_ ((struct buffer *, int, int));
 extern INLINE void temp_set_point_both P_ ((struct buffer *, int, int));
+extern void enlarge_buffer_text P_ ((struct buffer *, int));
 
 
 /* Macros for setting the BEGV, ZV or PT of a given buffer.
@@ -837,28 +838,7 @@ extern Lisp_Object Vtransient_mark_mode;
 #define OVERLAY_POSITION(P) \
  (GC_MARKERP (P) ? marker_position (P) : (abort (), 0))
 
-/* Allocation of buffer text.  */
-
-#ifdef REL_ALLOC
-
-extern POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
-extern POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
-extern void r_alloc_free P_ ((POINTER_TYPE **ptr));
-
-#define BUFFER_ALLOC(data, size) \
-     ((unsigned char *) r_alloc ((POINTER_TYPE **) &data, (size)))
-#define BUFFER_REALLOC(data, size) \
-     ((unsigned char *) r_re_alloc ((POINTER_TYPE **) &data, (size)))
-#define BUFFER_FREE(data) (r_alloc_free ((POINTER_TYPE **) &data))
-
-#else /* not REL_ALLOC */
-
-#define BUFFER_ALLOC(data,size) (data = (unsigned char *) malloc ((size)))
-#define BUFFER_REALLOC(data,size) ((unsigned char *) realloc ((data), (size)))
-#define BUFFER_FREE(data) (free ((data)))
-
-#endif /* not REL_ALLOC */
-
+
 /***********************************************************************
 			Buffer-local Variables
  ***********************************************************************/
