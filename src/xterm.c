@@ -110,6 +110,11 @@ extern void _XEditResCheckMessages ();
 #include <locale.h>
 #endif
 
+#ifdef SOLARIS2
+/* For XlibDisplayWriting */
+#include <X11/Xlibint.h>
+#endif
+
 #define min(a,b) ((a)<(b) ? (a) : (b))
 #define max(a,b) ((a)>(b) ? (a) : (b))
 
@@ -4632,15 +4637,18 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
       signal (SIGPIPE, x_connection_signal_1);
       signal (SIGALRM, x_connection_signal_1);
 
-      /* According to Jim Campbell <jec@murzim.ca.boeing.com>,
-	 On Solaris 2.4, XNoOp can hang when the connection
-	 has already died.  Since XNoOp should not wait,
-	 let's assume that if it hangs for 3 seconds
-	 that means the connection is dead.
-	 This is a kludge, but I don't see any other way that works.  */
-      alarm (3);
+#ifdef SOLARIS2
+#ifdef XlibDisplayWriting
+      /* If the thread-interlock is locked, assume this connection is dead.
+	 This assumes that the library does not make other threads
+	 that can be locking the display legitimately.  */
+      if (x_connection_signal_dpyinfo->display->flags & XlibDisplayWriting)
+	x_connection_closed (x_connection_signal_dpyinfo,
+			     "connection was lost");
+#endif
+#endif
+
       XNoOp (x_connection_signal_dpyinfo->display);
-      alarm (0);
 
       XSync (x_connection_signal_dpyinfo->display, False);
 
