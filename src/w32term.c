@@ -5474,53 +5474,6 @@ x_check_fullscreen_move (f)
 }
 
 
-/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
-   wanted positions of the WM window (not emacs window).
-   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
-   window (FRAME_X_WINDOW).
- */
-void
-x_fullscreen_adjust (f, width, height, top_pos, left_pos)
-     struct frame *f;
-     int *width;
-     int *height;
-     int *top_pos;
-     int *left_pos;
-{
-  int newwidth = f->width, newheight = f->height;
-
-  *top_pos = f->output_data.w32->top_pos;
-  *left_pos = f->output_data.w32->left_pos;
-
-  if (f->output_data.w32->want_fullscreen & FULLSCREEN_HEIGHT)
-    {
-      int ph;
-
-      ph = FRAME_X_DISPLAY_INFO (f)->height;
-      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
-      ph = CHAR_TO_PIXEL_HEIGHT (f, newheight)
-        - f->output_data.w32->y_pixels_diff;
-      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
-      *top_pos = 0;
-    }
-
-  if (f->output_data.w32->want_fullscreen & FULLSCREEN_WIDTH)
-    {
-      int pw;
-
-      pw = FRAME_X_DISPLAY_INFO (f)->width;
-      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
-      pw = CHAR_TO_PIXEL_WIDTH (f, newwidth)
-        - f->output_data.w32->x_pixels_diff;
-      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
-      *left_pos = 0;
-    }
-
-  *width = newwidth;
-  *height = newheight;
-}
-
-
 /* Call this to change the size of frame F's x-window.
    If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
    for this size change and subsequent size changes.
@@ -6380,8 +6333,11 @@ void
 x_flush (struct frame * f)
 { /* Nothing to do */ }
 
+extern frame_parm_handler w32_frame_parm_handlers[];
+
 static struct redisplay_interface w32_redisplay_interface =
 {
+  w32_frame_parm_handlers,
   x_produce_glyphs,
   x_write_glyphs,
   x_insert_glyphs,
