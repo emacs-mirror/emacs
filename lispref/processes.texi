@@ -328,7 +328,7 @@ The arguments are handled in almost the same way as for
 
 Some file handlers may not support all combinations and forms of the
 arguments @var{infile}, @var{buffer}, and @var{display}.  For example,
-some file handlers might behave as if @var{display} was nil,
+some file handlers might behave as if @var{display} was @code{nil},
 regardless of the value actually passed.  As another example, some
 file handlers might not support separating standard output and error
 output by way of the @var{buffer} argument.
@@ -975,7 +975,7 @@ On some systems, when Emacs reads the output from a subprocess, the
 output data is read in very small blocks, potentially resulting in
 very poor performance.  This behaviour can be remedied to some extent
 by setting the variable @var{process-adaptive-read-buffering} to a
-non-nil value (the default), as it will automatically delay reading
+non-@code{nil} value (the default), as it will automatically delay reading
 from such processes, thus allowing them to produce more output before
 Emacs tries to read it.
 @end defvar
@@ -1316,7 +1316,7 @@ nonzero @var{millisec}.
 
 @c Emacs 21.4 feature
 If @var{process} is a process, and the argument @var{just-this-one} is
-non-nil, only output from that process is handled, suspending output
+non-@code{nil}, only output from that process is handled, suspending output
 from other processes until some output has been received from that
 process or the timeout expires.  If @var{just-this-one} is an integer,
 also inhibit running timers.  This feature is generally not

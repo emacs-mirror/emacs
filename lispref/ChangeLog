@@ -1,3 +1,8 @@
+2004-11-21  Jesper Harder  <harder@ifa.au.dk>
+
+	* processes.texi (Synchronous Processes, Output from Processes):
+	Markup fix.
+
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
 	* positions.texi (Skipping Characters): skip-chars-forward
