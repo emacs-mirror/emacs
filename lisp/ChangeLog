@@ -1,3 +1,10 @@
+2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* simple.el (normal-erase-is-backspace): Set default to t if
+	running on Mac.
+
+	* term/mac-win.el (function-key-map): Sync with x-win.el.
+
 2005-03-15  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (locale-language-names): Modify the

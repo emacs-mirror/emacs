@@ -1,3 +1,9 @@
+2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (keycode_to_xkeysym_table): Change mapping so that it
+	coincide with that in Apple X11 except `clear', `enter' on
+	laptops, and fn + `enter' on laptops.
+
 2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (ENCODE_MENU_STRING): Explicitly use string_make_unibyte.
