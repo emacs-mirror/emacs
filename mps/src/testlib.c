@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.c(trunk.6) $
+ *  $HopeName: MMsrc!testlib.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -9,7 +9,7 @@
  *  Notes
  */
 
-#include "mpm.h"
+#include "mps.h"
 #include "testlib.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
@@ -36,9 +36,9 @@ unsigned long rnd(void)
   return seed;
 }
 
-void die(Res res, const char *s)
+void die(mps_res_t res, const char *s)
 {
-  if(res != ResOK)
+  if(res != MPS_RES_OK)
   {
     fprintf(stderr, "%s: %d\n", s, res);
     exit(1);
