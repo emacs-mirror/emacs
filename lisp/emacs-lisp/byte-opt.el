@@ -511,8 +511,7 @@
 	  ;; Support compiler macros as in cl.el.
 	  ((and (fboundp 'compiler-macroexpand)
 	        (not (eq form
-		         (setq form (compiler-macroexpand form
-		                     byte-compile-macro-environment)))))
+		         (setq form (compiler-macroexpand form)))))
 	   (byte-optimize-form form for-effect))
 	  
 	  ((not (symbolp fn))
