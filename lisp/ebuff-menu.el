@@ -269,15 +269,16 @@ Returns to Electric Buffer Menu when done."
 
 (defvar electric-buffer-overlay nil)
 (defun electric-buffer-update-highlight ()
-  ;; Make sure we have an overlay to use.
-  (or electric-buffer-overlay
-      (progn
-        (make-local-variable 'electric-buffer-overlay)
-        (setq electric-buffer-overlay (make-overlay (point) (point)))))
-  (move-overlay electric-buffer-overlay
-                (save-excursion (beginning-of-line) (point))
-                (save-excursion (end-of-line) (point)))
-  (overlay-put electric-buffer-overlay 'face 'highlight))
+  (when (eq major-mode 'Electric-buffer-menu-mode)
+    ;; Make sure we have an overlay to use.
+    (or electric-buffer-overlay
+	(progn
+	  (make-local-variable 'electric-buffer-overlay)
+	  (setq electric-buffer-overlay (make-overlay (point) (point)))))
+    (move-overlay electric-buffer-overlay
+		  (save-excursion (beginning-of-line) (point))
+		  (save-excursion (end-of-line) (point)))
+    (overlay-put electric-buffer-overlay 'face 'highlight)))
 
 (provide 'ebuff-menu)
 
