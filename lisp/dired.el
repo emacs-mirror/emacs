@@ -406,8 +406,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 		    (and (= (car (nth 5 attributes)) (car modtime))
 			 (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
 	      nil
-	    (if (yes-or-no-p "Directory has changed on disk; update the buffer? ")
-		(dired-revert))))
+	    (message "Directory has changed on disk; type `g' to update Dired")))
       ;; Else a new buffer
       (setq default-directory
 	    (abbreviate-file-name
@@ -1752,7 +1751,8 @@ Optional argument means return a file name relative to `default-directory'."
   ;; Should be equivalent to (save-excursion (not (dired-move-to-filename)))
   ;; but is about 1.5..2.0 times as fast. (Actually that's not worth it)
   (or (looking-at "^$\\|^. *$\\|^. total\\|^. wildcard")
-      (looking-at dired-subdir-regexp)))
+      (and (looking-at dired-subdir-regexp)
+	   (save-excursion (not (dired-move-to-filename))))))
 
 (defun dired-next-marked-file (arg &optional wrap opoint)
   "Move to the next marked file, wrapping around the end of the buffer."
