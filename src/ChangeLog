@@ -1,6 +1,7 @@
 2004-10-15  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (x_draw_vertical_border): Do nothing if non-window system.
+	* xdisp.c (redisplay_window): Only update fringes and vertical
+	border on window frames.
 
 2004-10-14  Andreas Schwab  <schwab@suse.de>
 
