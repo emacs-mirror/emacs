@@ -527,7 +527,7 @@ struct x_output
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
 
-#define FRAME_XIC(f) ((f)->display.x->xic)
+#define FRAME_XIC(f) ((f)->output_data.x->xic)
 
 /* X-specific scroll bar stuff.  */
 
