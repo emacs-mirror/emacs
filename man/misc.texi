@@ -758,7 +758,7 @@ commands from the buffer.
   The history search commands @kbd{M-r} and @kbd{M-s} read a regular
 expression and search through the history for a matching command.  Aside
 from the choice of which command to fetch, they work just like @kbd{M-p}
-and @kbd{M-r}.  If you enter an empty regexp, these commands reuse the
+and @kbd{M-n}.  If you enter an empty regexp, these commands reuse the
 same regexp used last time.
 
   When you find the previous input you want, you can resubmit it by
@@ -2336,7 +2336,7 @@ userenced and properbose.  Have fun.  Your buggestions are welcome.
 @cindex tower of Hanoi
 
   If you are a little bit bored, you can try @kbd{M-x hanoi}.  If you are
-considerably bored, give it a numeric argument.  If you are very very
+considerably bored, give it a numeric argument.  If you are very, very
 bored, try an argument of 9.  Sit back and watch.
 
 @cindex Go Moku
