@@ -571,6 +571,12 @@ case "${canonical}" in
   ;;
 
   ## Data General AViiON Machines
+  m88k-dg-dgux5.4R3* )
+    machine=aviion opsys=dgux5-4R3
+  ;;
+  m88k-dg-dgux5.4R2* )
+    machine=aviion opsys=dgux5-4R2
+  ;;
   m88k-dg-dgux* )
     machine=aviion opsys=dgux
   ;;
