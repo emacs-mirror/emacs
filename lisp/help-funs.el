@@ -33,6 +33,9 @@
 
 ;;; Code:
 
+(require 'help-mode)
+
+
 ;;;###autoload
 (defun help-with-tutorial (&optional arg)
   "Select the Emacs learn-by-doing tutorial.
@@ -144,23 +147,24 @@ and the file name is displayed in the echo area."
 	       fn (intern val)))))
   (if (null function)
       (message "You didn't specify a function")
-    (with-output-to-temp-buffer "*Help*"
+    (help-setup-xref (list #'describe-function function) (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
       (prin1 function)
       ;; Use " is " instead of a colon so that
       ;; it is easier to get out the function name using forward-sexp.
       (princ " is ")
-      (describe-function-1 function nil (interactive-p))
+      (describe-function-1 function)
       (print-help-return-message)
-	(save-excursion
-	  (set-buffer standard-output)
-	  ;; Return the text we displayed.
+      (with-current-buffer standard-output
+	;; Return the text we displayed.
 	(buffer-string)))))
 
-(defun describe-function-1 (function parens interactive-p)
+;;;###autoload
+(defun describe-function-1 (function)
   (let* ((def (if (symbolp function)
 		  (symbol-function function)
 		function))
-	 file-name string need-close
+	 file-name string
 	 (beg (if (commandp def) "an interactive " "a ")))
     (setq string
 	  (cond ((or (stringp def)
@@ -202,30 +206,26 @@ and the file name is displayed in the echo area."
                        "a full keymap"
                      "a sparse keymap")))
 		(t "")))
-    (when (and parens (not (equal string "")))
-      (setq need-close t)
-      (princ "("))
     (princ string)
-    (with-current-buffer "*Help*"
+    (with-current-buffer standard-output
       (save-excursion
 	(save-match-data
 	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
 	      (help-xref-button 1 'help-function def)))))
     (or file-name
 	(setq file-name (symbol-file function)))
-    (if file-name
-	(progn
+    (cond
+     (file-name
 	  (princ " in `")
 	  ;; We used to add .el to the file name,
 	  ;; but that's completely wrong when the user used load-file.
 	  (princ file-name)
 	  (princ "'")
 	  ;; Make a hyperlink to the library.
-	  (with-current-buffer "*Help*"
+      (with-current-buffer standard-output
 	    (save-excursion
 	      (re-search-backward "`\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 'help-function-def function file-name)))))
-    (if need-close (princ ")"))
+	  (help-xref-button 1 'help-function-def function file-name)))))
     (princ ".")
     (terpri)
     (when (commandp function)
@@ -294,9 +294,7 @@ and the file name is displayed in the echo area."
 			   (forward-paragraph)
 			   (insert
 			    "[Missing arglist.  Please make a bug report.]\n")))
-		       (goto-char (point-max))))
-		 (help-setup-xref (list #'describe-function function)
-				  interactive-p))
+		       (goto-char (point-max)))))
 	(princ "not documented")))))
 
 
@@ -341,8 +339,10 @@ it is displayed along with the global value."
   (if (not (symbolp variable))
       (message "You did not specify a variable")
     (let (valvoid)
+      (help-setup-xref (list #'describe-variable variable buffer)
+		       (interactive-p))
+      (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer buffer
-	(with-output-to-temp-buffer "*Help*"
 	  (prin1 variable)
 	  (if (not (boundp variable))
 	      (progn
@@ -407,8 +407,6 @@ it is displayed along with the global value."
 	  (terpri)
 	  (let ((doc (documentation-property variable 'variable-documentation)))
 	    (princ (or doc "not documented as a variable.")))
-          (help-setup-xref (list #'describe-variable variable (current-buffer))
-			   (interactive-p))
 	  
 	  ;; Make a link to customize if this variable can be customized.
 	  ;; Note, it is not reliable to test only for a custom-type property
