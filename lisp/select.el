@@ -144,6 +144,11 @@ Cut buffers are considered obsolete; you should use selections instead."
   (or (stringp string) (signal 'wrong-type-argument (list 'string string)))
   (if push
       (x-rotate-cut-buffers-internal 1))
+  (if (> (string-bytes string) (length string))
+      ;; STRING is a multibyte string contains non-ASCII characters.
+      (if locale-coding-system
+	  (setq string (encode-coding-string string locale-coding-system))
+	(setq string (string-make-unibyte string))))
   (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
 
 
