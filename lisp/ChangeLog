@@ -1,3 +1,9 @@
+2003-06-06  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* progmodes/sh-script.el: Fix bug in "Options Loop" skeleton for
+	ksh.  Add newlines to a few skeletons, add "select" keyword for
+	bash.
+
 2003-06-06  Andreas Schwab  <schwab@suse.de>
 
 	* info.el (Info-select-node): Doc fix.
