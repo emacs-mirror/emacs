@@ -112,7 +112,6 @@ system, `read-file-name-electric-shadow-properties' is used instead."
   :type read-file-name-electric-shadow-properties-custom-type
   :group 'minibuffer)
 
-;;;###autoload
 (defface read-file-name-electric-shadow
   '((((background dark))
      :foreground "grey50")
