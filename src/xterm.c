@@ -1076,7 +1076,7 @@ XTcursor_to (vpos, hpos, y, x)
     {
       BLOCK_INPUT;
       x_display_cursor (w, 1, hpos, vpos, x, y);
-      XFlush (FRAME_X_DISPLAY (selected_frame));
+      XFlush (FRAME_X_DISPLAY (SELECTED_FRAME ()));
       UNBLOCK_INPUT;
     }
 }
@@ -4739,7 +4739,7 @@ x_clear_end_of_line (to_x)
 
 
 /* Clear entire frame.  If updating_frame is non-null, clear that
-   frame.  Otherwise clear selected_frame.  */
+   frame.  Otherwise clear the selected frame.  */
 
 static void
 x_clear_frame ()
@@ -4749,7 +4749,7 @@ x_clear_frame ()
   if (updating_frame)
     f = updating_frame;
   else
-    f = selected_frame;
+    f = SELECTED_FRAME ();
 
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
@@ -4946,24 +4946,24 @@ XTflash (f)
 
 /* Make audible bell.  */
 
-#define XRINGBELL XBell (FRAME_X_DISPLAY (selected_frame), 0)
-
 void
 XTring_bell ()
 {
-  if (FRAME_X_DISPLAY (selected_frame) == 0)
-    return;
-
-#if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
-  if (visible_bell)
-    XTflash (selected_frame);
-  else
-#endif
+  struct frame *f = SELECTED_FRAME ();
+  
+  if (FRAME_X_DISPLAY (f))
     {
-      BLOCK_INPUT;
-      XRINGBELL;
-      XFlush (FRAME_X_DISPLAY (selected_frame));
-      UNBLOCK_INPUT;
+#if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
+      if (visible_bell)
+	XTflash (f);
+      else
+#endif
+	{
+	  BLOCK_INPUT;
+	  XBell (FRAME_X_DISPLAY (f), 0);
+	  XFlush (FRAME_X_DISPLAY (f));
+	  UNBLOCK_INPUT;
+	}
     }
 }
 
@@ -6979,7 +6979,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	  }
 
 	if (f1 == 0 && insist > 0)
-	  f1 = selected_frame;
+	  f1 = SELECTED_FRAME ();
 
 	if (f1)
 	  {
@@ -8765,7 +8765,7 @@ XTread_socket (sd, bufp, numchars, expected)
 
 			    /* This is just so we only give real data once
 			       for a single Emacs process.  */
-			    if (f == selected_frame)
+			    if (f == SELECTED_FRAME ())
 			      XSetCommand (FRAME_X_DISPLAY (f),
 					   event.xclient.window,
 					   initial_argv, initial_argc);
