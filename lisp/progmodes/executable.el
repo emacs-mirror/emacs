@@ -267,16 +267,13 @@ The magic number of such a command displays all lines but itself."
   (executable-set-magic executable-self-display "+2"))
 
 ;;;###autoload
-(defun make-buffer-file-executable-if-script-p ()
+(defun executable-make-buffer-file-executable-if-script-p ()
   "Make file executable according to umask if not already executable.
 If file already has any execute bits set at all, do not change existing
 file modes."
-  (and (save-excursion
-         (save-restriction
-           (widen)
-           (goto-char (point-min))
-           (save-match-data
-             (looking-at "^#!"))))
+  (and (save-restriction
+	 (widen)
+	 (string= "#!" (buffer-substring 1 3)))
        (let* ((current-mode (file-modes (buffer-file-name)))
               (add-mode (logand ?\111 (default-file-modes))))
          (or (/= (logand ?\111 current-mode) 0)
