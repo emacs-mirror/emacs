@@ -520,8 +520,8 @@ WIDTH (integer) is the number of columns a character in the charset\n\
 occupies on the screen: one of 0, 1, and 2.\n\
 \n\
 DIRECTION (integer) is the rendering direction of characters in the\n\
-charset when rendering.  If 0, render from right to left, else\n\
-render from left to right.\n\
+charset when rendering.  If 0, render from left to right, else\n\
+render from right to left.\n\
 \n\
 ISO-FINAL-CHAR (character) is the final character of the\n\
 corresponding ISO 2022 charset.\n\
