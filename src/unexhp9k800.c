@@ -107,7 +107,7 @@ unexec(new_name, old_name, new_end_of_text, dummy1, dummy2)
   /* Close the binary file */
   close(old);
   close(new);
-  exit(0);
+  return 0;
 }
 
 /* Save current data space in the file, update header.  */
