@@ -299,7 +299,7 @@ Hostname matching is stricter in this case than for
   'browse-url-netscape
   "*Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
-`browse-url-of-file' commands."
+`browse-url-of-file' commands.
 The function should take one argument, an URL."
   :type 'function
   :group 'browse-url)
