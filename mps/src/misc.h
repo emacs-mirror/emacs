@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.14) $
+ * $HopeName: MMsrc!misc.h(trunk.15) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -99,6 +99,16 @@ typedef const struct SrcIdStruct {
  */
 
 #define UNUSED(param)   ((void)param)
+/* MSVC 2.0 generates a warning when using UNUSED */
+#ifdef MPS_BUILD_MV
+#ifdef _MSC_VER
+#if _MSC_VER < 1000
+#pragma warning(disable: 4705)
+#endif /* _MSC_VER < 1000 */
+#else /* _MSC_VER */
+#error "Expected _MSC_VER to be defined for builder.mv"
+#endif /* _MSC_VER */
+#endif /* MPS_BUILD_MV */
 
 
 /* PARENT -- parent structure

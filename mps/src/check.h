@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.4) $
+ * $HopeName: MMsrc!check.h(trunk.5) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -63,7 +63,7 @@ extern void AssertFail(const char *cond, const char *id,
 /* if cond is constantly true). */
 #ifdef MPS_BUILD_MV
 #pragma warning(disable: 4702)
-#endif
+#endif /* MPS_BUILD_MV */
 
 		 
 #define NOCHECK(cond) \
@@ -184,5 +184,18 @@ extern void AssertFail(const char *cond, const char *id,
 #else
 #error "No heat defined."
 #endif
+
+/* MSVC 2.0 generates a warning when using NOCHECK */
+#if defined(MPS_HOT_RED) || defined(MPS_HOT_WHITE)
+#ifdef MPS_BUILD_MV
+#ifdef _MSC_VER
+#if _MSC_VER < 1000
+#pragma warning(disable: 4705)
+#endif /* _MSC_VER < 1000 */
+#else /* _MSC_VER */
+#error "Expected _MSC_VER to be defined for builder.mv"
+#endif /* _MSC_VER */
+#endif /* MPS_BUILD_MV */
+#endif /* MPS_HOT_RED || MPS_HOT_WHITE */
 
 #endif /* check_h */
