@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -1391,26 +1391,69 @@ DIR must be a directory name, not a file name."
   ;; killed buffer, it is removed from this list.
   "Alist of expanded directories and their associated dired buffers.")
 
-(defun dired-buffers-for-dir (dir)
+(defun dired-buffers-for-dir (dir &optional file)
 ;; Return a list of buffers that dired DIR (top level or in-situ subdir).
+;; If FILE is non-nil, include only those whose wildcard pattern (if any)
+;; matches FILE.
 ;; The list is in reverse order of buffer creation, most recent last.
 ;; As a side effect, killed dired buffers for DIR are removed from
 ;; dired-buffers.
   (setq dir (file-name-as-directory dir))
-  (let ((alist dired-buffers) result elt buf)
+  (let ((alist dired-buffers) result elt buf pattern)
     (while alist
       (setq elt (car alist)
 	    buf (cdr elt))
       (if (buffer-name buf)
 	  (if (dired-in-this-tree dir (car elt))
-	      (if (assoc dir (save-excursion
-			       (set-buffer buf)
-			       dired-subdir-alist))
-		  (setq result (cons buf result))))
+	      (with-current-buffer buf
+		(and (assoc dir dired-subdir-alist)
+		     (or (null file)
+			 (let ((wildcards
+				(file-name-nondirectory dired-directory)))
+			   (or (= 0 (length wildcards))
+			       (string-match (dired-glob-regexp wildcards)
+					     file))))
+		     (setq result (cons buf result)))))
 	;; else buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
       (setq alist (cdr alist)))
     result))
+
+(defun dired-glob-regexp (pattern)
+  "Convert glob-pattern PATTERN to a regular expression."
+  (let ((matched-in-pattern 0)  ;; How many chars of PATTERN we've handled.
+	regexp)
+    (while (string-match "[[?*]" pattern matched-in-pattern)
+      (let ((op-end (match-end 0))
+	    (next-op (aref pattern (match-beginning 0))))
+	(setq regexp (concat regexp
+			     (regexp-quote
+			      (substring pattern matched-in-pattern
+					 (match-beginning 0)))))
+	(cond ((= next-op ??)
+	       (setq regexp (concat regexp "."))
+	       (setq matched-in-pattern op-end))
+	      ((= next-op ?\[)
+	       ;; Fails to handle ^ yet ????
+	       (let* ((set-start (match-beginning 0))
+		      (set-cont
+		       (if (= (aref pattern (1+ set-start)) ?^)
+			   (+ 3 set-start)
+			 (+ 2 set-start)))
+		      (set-end (string-match "]" pattern set-cont))
+		      (set (substring pattern set-start (1+ set-end))))
+		 (setq regexp (concat regexp set))
+		 (setq matched-in-pattern (1+ set-end))))
+	      ((= next-op ?*)
+	       (setq regexp (concat regexp ".*"))
+	       (setq matched-in-pattern op-end)))))
+    (concat "\\`"
+	    regexp
+	    (regexp-quote
+	     (substring pattern matched-in-pattern))
+	    "\\'")))
+
+		 
 
 (defun dired-advertise ()
   ;;"Advertise in variable `dired-buffers' that we dired `default-directory'."
