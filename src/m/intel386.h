@@ -154,14 +154,20 @@ NOTE-END */
 #define LIB_STANDARD /lib/386/Slibcfp.a /lib/386/Slibc.a
 #else /* not XENIX */
 
+/* this brings in alloca() if we're using cc */
 #ifdef USG
 #ifndef LIB_STANDARD
+#ifdef USG5_4
+#define LIB_STANDARD -lc
+#else /* not USG5_4 */
 #define LIB_STANDARD -lPW -lc
-#endif
+#endif /* not USG5_4 */
+#endif /* LIB_STANDARD */
+
 #define HAVE_ALLOCA
 #define NO_REMAP 
 #define TEXT_START 0
-#endif /* USG */
+#endif /* not USG */
 #endif /* not XENIX */
 
 #ifdef BSD
