@@ -34,11 +34,7 @@
 #error "lockfr.c is FreeBSD specific but MPS_OS_FR not defined"
 #endif
 
-SRCID(lockli, "$HopeName$");
-
-
-#define LockAttrSetRecursive(attrptr) \
-  pthread_mutexattr_settype(attrptr, PTHREAD_MUTEX_ERRORCHECK)
+SRCID(lockfr, "$HopeName$");
 
 
 /* LockStruct -- the MPS lock structure
@@ -83,7 +79,7 @@ void LockInit(Lock lock)
   lock->claims = 0;
   res = pthread_mutexattr_init(&attr);
   AVER(res == 0);
-  res = LockAttrSetRecursive(&attr);
+  res = pthread_mutexattr_settype(attrptr, PTHREAD_MUTEX_ERRORCHECK);
   AVER(res == 0);
   res = pthread_mutex_init(&lock->mut, &attr);
   AVER(res == 0);
