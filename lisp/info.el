@@ -2311,10 +2311,11 @@ Advanced commands:
     (setq Info-tag-table-buffer
 	  (with-current-buffer Info-tag-table-buffer (clone-buffer)))
     (let ((m Info-tag-table-marker))
-      (when (and (markerp m) (marker-position m))
-	(setq Info-tag-table-marker
-	      (with-current-buffer Info-tag-table-buffer
-		(copy-marker (marker-position m))))))))
+      (setq Info-tag-table-marker
+	    (if (and (markerp m) (marker-position m))
+		(with-current-buffer Info-tag-table-buffer
+		  (copy-marker (marker-position m)))
+	      (make-marker))))))
 
 (defvar Info-edit-map (let ((map (make-sparse-keymap)))
 			(set-keymap-parent map text-mode-map)
