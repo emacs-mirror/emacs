@@ -2269,14 +2269,4 @@ a completion with the mouse."
    (kp-divide ?/)
    (kp-equal ?=)))
 
-;; These tell read-char how to convert
-;; these special chars to ASCII.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
-(put 'tab 'ascii-character ?\t)
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
-
 ;;; simple.el ends here
