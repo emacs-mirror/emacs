@@ -18,6 +18,14 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
+
+# Note that this file is edited by msdos/sed1v2.inp for MSDOS.  That
+# script may need modifying in sync with changes made here.  Try to
+# avoid shell-ism because the DOS build has to use the DOS shell.
+
+# Don't try to replace the ccp processing using autoconf facilities,
+# says rms.
+
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
@@ -31,7 +39,9 @@ LN_S=@LN_S@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
-LIBS = @LIBS@
+# Don't use LIBS.  configure puts stuff in it that either shouldn't be
+# linked with Emacs or is duplicated by the cpp stuff below.
+# LIBS = @LIBS@
 LIBOBJS = @LIBOBJS@
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
@@ -503,6 +513,12 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
 
 INTERVAL_SRC = intervals.h composite.h
 
+#ifdef HAVE_GETLOADAVG
+#define GETLOADAVG_OBJ
+#else
+#define GETLOADAVG_OBJ getloadavg.o
+#endif
+
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
 MSDOS_OBJ = dosfns.o msdos.o
@@ -591,7 +607,7 @@ widgetobj=
 
 /* define otherobj as list of object files that make-docfile
    should not be told about.  */
-otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBOBJS)
+otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBOBJS) GETLOADAVG_OBJ
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
