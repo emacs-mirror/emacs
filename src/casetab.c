@@ -29,7 +29,13 @@ Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
 Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
-static void compute_trt_inverse ();
+/* Used as a temporary in DOWNCASE and other macros in lisp.h.  No
+   need to mark it, since it is used only very temporarily.  */
+Lisp_Object case_temp1, case_temp2;
+
+static void set_canon ();
+static void set_identity ();
+static void shuffle ();
 
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
   "Return t iff OBJECT is a case table.\n\
@@ -120,6 +126,7 @@ set_case_table (table, standard)
      int standard;
 {
   Lisp_Object up, canon, eqv;
+  Lisp_Object indices[3];
 
   check_case_table (table);
 
@@ -130,30 +137,23 @@ set_case_table (table, standard)
   if (NILP (up))
     {
       up = Fmake_char_table (Qcase_table, Qnil);
-      compute_trt_inverse (table, up);
+      map_char_table (set_identity, Qnil, table, up, 0, indices);
+      map_char_table (shuffle, Qnil, table, up, 0, indices);
       XCHAR_TABLE (table)->extras[0] = up;
     }
 
   if (NILP (canon))
     {
-      register int i;
-      Lisp_Object *upvec = XCHAR_TABLE (up)->contents;
-      Lisp_Object *downvec = XCHAR_TABLE (table)->contents;
-
       canon = Fmake_char_table (Qcase_table, Qnil);
-
-      /* Set up the CANON vector; for each character,
-	 this sequence of upcasing and downcasing ought to
-	 get the "preferred" lowercase equivalent.  */
-      for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
-	XCHAR_TABLE (canon)->contents[i] = downvec[upvec[downvec[i]]];
       XCHAR_TABLE (table)->extras[1] = canon;
+      map_char_table (set_canon, Qnil, table, table, 0, indices);
     }
 
   if (NILP (eqv))
     {
       eqv = Fmake_char_table (Qcase_table, Qnil);
-      compute_trt_inverse (canon, eqv);
+      map_char_table (set_identity, Qnil, canon, eqv, 0, indices);
+      map_char_table (shuffle, Qnil, canon, eqv, 0, indices);
       XCHAR_TABLE (table)->extras[2] = eqv;
     }
 
@@ -170,99 +170,49 @@ set_case_table (table, standard)
   return table;
 }
 
-/* Using the scratch array at BYTES of which the first DEPTH elements
-   are already set, and using the multi-byte structure inherited from
-   TRT, make INVERSE be an identity mapping.  That is, for each slot
-   that's indexed by a single byte, store that byte in INVERSE.
-   Where TRT has a subtable, make a corresponding subtable in INVERSE
-   and recursively initialize that subtable so that its elements are
-   the multi-byte characters that correspond to the index bytes.
-   This is the first step in generating an inverse mapping.  */
+/* The following functions are called in map_char_table.  */
+
+/*  Set CANON char-table element for C to a translated ELT by UP and
+   DOWN char-tables.  This is done only when ELT is a character.  The
+   char-tables CANON, UP, and DOWN are in CASE_TABLE.  */
 
 static void
-compute_trt_identity (bytes, depth, trt, inverse)
-     unsigned char *bytes;
-     int depth;
-     struct Lisp_Char_Table *trt, *inverse;
+set_canon (case_table, c, elt)
+     Lisp_Object case_table, c, elt;
 {
-  register int i;
-  int lim = (depth == 0 ? CHAR_TABLE_ORDINARY_SLOTS : SUB_CHAR_TABLE_ORDINARY_SLOTS);
+  Lisp_Object up = XCHAR_TABLE (case_table)->extras[0];
+  Lisp_Object canon = XCHAR_TABLE (case_table)->extras[1];
 
-  for (i = 0; i < lim; i++)
-    {
-      if (NATNUMP (trt->contents[i]))
-	{
-	  bytes[depth] = i;
-	  XSETFASTINT (inverse->contents[i],
-		       (depth == 0 && i < CHAR_TABLE_SINGLE_BYTE_SLOTS ? i
-			: MAKE_NON_ASCII_CHAR (bytes[0], bytes[1], bytes[2])));
-	}
-      else if (SUB_CHAR_TABLE_P (trt->contents[i]))
-	{
-	  bytes[depth] = i - 128;
-	  inverse->contents[i] = make_sub_char_table (Qnil);
-	  compute_trt_identity (bytes, depth + 1,
-				XCHAR_TABLE (trt->contents[i]),
-				XCHAR_TABLE (inverse->contents[i]));
-	}
-      else /* must be Qnil or Qidentity */
-	inverse->contents[i] = trt->contents[i];
-    }
+  if (NATNUMP (elt))
+    Faset (canon, c, Faref (case_table, Faref (up, elt)));
 }
 
-/* Using the scratch array at BYTES of which the first DEPTH elements
-   are already set, permute the elements of INVERSE (which is initially
-   an identity mapping) so that it has one cycle for each equivalence
-   class induced by the translation table TRT.  IBASE is the lispy
-   version of the outermost (depth 0) instance of INVERSE.  */
+/* Set elements of char-table TABLE for C to C itself.  This is done
+   only when ELT is a character.  This is called in map_char_table.  */
 
 static void
-compute_trt_shuffle (bytes, depth, ibase, trt, inverse)
-     unsigned char *bytes;
-     int depth;
-     Lisp_Object ibase;
-     struct Lisp_Char_Table *trt, *inverse;
+set_identity (table, c, elt)
+     Lisp_Object table, c, elt;
 {
-  register int i;
-  Lisp_Object j, tem, q;
-  int lim = (depth == 0 ? CHAR_TABLE_ORDINARY_SLOTS : SUB_CHAR_TABLE_ORDINARY_SLOTS);
-
-  for (i = 0; i < lim; i++)
-    {
-      bytes[depth] = i;
-      XSETFASTINT (j,
-		   (depth == 0 && i < CHAR_TABLE_SINGLE_BYTE_SLOTS ? i
-		    : MAKE_NON_ASCII_CHAR (bytes[0], bytes[1], bytes[2])));
-      q = trt->contents[i];
-      if (NATNUMP (q) && XFASTINT (q) != XFASTINT (j))
-	{
-	  tem = Faref (ibase, q);
-	  Faset (ibase, q, j);
-	  Faset (ibase, j, tem);
-	}
-      else if (SUB_CHAR_TABLE_P (q))
-	{
-	  bytes[depth] = i - 128;
-	  compute_trt_shuffle (bytes, depth + 1, ibase,
-			       XCHAR_TABLE (trt->contents[i]),
-			       XCHAR_TABLE (inverse->contents[i]));
-	}
-    }
+  if (NATNUMP (elt))
+    Faset (table, c, c);
 }
 
-/* Given a translate table TRT, store the inverse mapping into INVERSE.
-   Since TRT is not one-to-one, INVERSE is not a simple mapping.
-   Instead, it divides the space of characters into equivalence classes.
-   All characters in a given class form one circular list, chained through
-   the elements of INVERSE.  */
+/* Permute the elements of TABLE (which is initially an identity
+   mapping) so that it has one cycle for each equivalence class
+   induced by the translation table on which map_char_table is
+   operated.  */
 
 static void
-compute_trt_inverse (trt, inv)
-     Lisp_Object trt, inv;
+shuffle (table, c, elt)
+     Lisp_Object table, c, elt;
 {
-  unsigned char bytes[3];
-  compute_trt_identity (bytes, 0, XCHAR_TABLE (trt), XCHAR_TABLE (inv));
-  compute_trt_shuffle (bytes, 0, inv, XCHAR_TABLE (trt), XCHAR_TABLE (inv));
+  if (NATNUMP (elt) && c != elt)
+    {
+      Lisp_Object tem = Faref (table, elt);
+      Faset (table, elt, c);
+      Faset (table, c, tem);
+    }
 }
 
 init_casetab_once ()
