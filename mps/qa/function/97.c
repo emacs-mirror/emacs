@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!97.c(trunk.5) $
  summary = test of mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o
@@ -239,6 +239,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
- report("result", "unknown");
+ pass();
  return 0;
 }
