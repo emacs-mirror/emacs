@@ -1,3 +1,12 @@
+2005-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-get-reply-headers, message-followup):
+	Mention related variables `message-use-followup-to' and
+	`message-use-mail-followup-to', in the information buffer.
+
+	* nnweb.el (nnweb-type-definition): Use groups.google.de instead
+	of broken groups(-beta).google.com.
+
 2005-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el (gnus-summary-exit): Undo last change and fix it in
