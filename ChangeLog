@@ -1,3 +1,8 @@
+2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* AUTHORS (JonathanYavner): Rename testcover-*.el to tcover-*.el
+	to match previous changes by Eli Zaretskii.
+
 2004-02-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in: Set CDPATH to an empty string.
