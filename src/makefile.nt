@@ -183,8 +183,8 @@ SRC		= .
 
 $(BLD)\abbrev.obj : \
 	$(SRC)\abbrev.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -193,8 +193,8 @@ $(BLD)\abbrev.obj : \
 
 $(BLD)\alloc.obj : \
 	$(SRC)\alloc.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
@@ -208,19 +208,19 @@ $(BLD)\alloc.obj : \
 
 $(BLD)\alloca.obj : \
 	$(SRC)\alloca.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(SRC)\blockinput.h
 
 $(BLD)\buffer.obj : \
 	$(SRC)\buffer.c \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
@@ -248,8 +248,8 @@ $(BLD)\callint.obj : \
 
 $(BLD)\callproc.obj : \
 	$(SRC)\callproc.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\msdos.h \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
@@ -264,8 +264,8 @@ $(BLD)\callproc.obj : \
 
 $(BLD)\casefiddle.obj : \
 	$(SRC)\casefiddle.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -275,24 +275,24 @@ $(BLD)\casefiddle.obj : \
 
 $(BLD)\casetab.obj : \
 	$(SRC)\casetab.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h
 
 $(BLD)\cm.obj : \
 	$(SRC)\cm.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\cm.h \
 	$(SRC)\termhooks.h
 
 $(BLD)\cmds.obj : \
 	$(SRC)\cmds.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -301,8 +301,8 @@ $(BLD)\cmds.obj : \
 
 $(BLD)\data.obj : \
 	$(SRC)\data.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\puresize.h \
@@ -311,8 +311,8 @@ $(BLD)\data.obj : \
 
 $(BLD)\dired.obj : \
 	$(SRC)\dired.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\vmsdir.h \
 	$(SRC)\ndir.h \
@@ -323,8 +323,8 @@ $(BLD)\dired.obj : \
 
 $(BLD)\dispnew.obj : \
 	$(SRC)\dispnew.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\termchar.h \
@@ -348,8 +348,8 @@ $(BLD)\dispnew.obj : \
 
 $(BLD)\doc.obj : \
 	$(SRC)\doc.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\lisp.h \
@@ -358,14 +358,14 @@ $(BLD)\doc.obj : \
 
 $(BLD)\doprnt.obj : \
 	$(SRC)\doprnt.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\dosfns.obj : \
 	$(SRC)\dosfns.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -377,8 +377,8 @@ $(BLD)\dosfns.obj : \
 
 $(BLD)\editfns.obj : \
 	$(SRC)\editfns.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\uaf.h \
 	$(SRC)\vms-pwd.h \
@@ -393,8 +393,8 @@ $(BLD)\editfns.obj : \
 
 $(BLD)\emacs.obj : \
 	$(SRC)\emacs.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -408,8 +408,8 @@ $(BLD)\emacs.obj : \
 
 $(BLD)\eval.obj : \
 	$(SRC)\eval.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
@@ -418,8 +418,8 @@ $(BLD)\eval.obj : \
 
 $(BLD)\fileio.obj : \
 	$(SRC)\fileio.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\uaf.h \
 	$(SRC)\vms-pwd.h \
@@ -438,8 +438,8 @@ $(BLD)\fileio.obj : \
 
 $(BLD)\filelock.obj : \
 	$(SRC)\filelock.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\uaf.h \
 	$(SRC)\vms-pwd.h \
@@ -453,25 +453,25 @@ $(BLD)\filelock.obj : \
 
 $(BLD)\filemode.obj : \
 	$(SRC)\filemode.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h
 
 $(BLD)\floatfns.obj : \
 	$(SRC)\floatfns.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\syssignal.h
 
 $(BLD)\fns.obj : \
 	$(SRC)\fns.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -482,8 +482,8 @@ $(BLD)\fns.obj : \
 
 $(BLD)\frame.obj : \
 	$(SRC)\frame.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
@@ -496,18 +496,18 @@ $(BLD)\frame.obj : \
 $(BLD)\getloadavg.obj : \
 	$(SRC)\getloadavg.c \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h
 
 $(BLD)\gmalloc.obj : \
 	$(SRC)\gmalloc.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
 	$(SRC)\getpagesize.h
@@ -515,15 +515,15 @@ $(BLD)\gmalloc.obj : \
 
 $(BLD)\hftctl.obj : \
 	$(SRC)\hftctl.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h
 
 $(BLD)\indent.obj : \
 	$(SRC)\indent.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -538,8 +538,8 @@ $(BLD)\indent.obj : \
 
 $(BLD)\insdel.obj : \
 	$(SRC)\insdel.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
@@ -550,8 +550,8 @@ $(BLD)\insdel.obj : \
 
 $(BLD)\intervals.obj : \
 	$(SRC)\intervals.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
@@ -562,8 +562,8 @@ $(BLD)\intervals.obj : \
 
 $(BLD)\keyboard.obj : \
 	$(SRC)\keyboard.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
@@ -590,8 +590,8 @@ $(BLD)\keyboard.obj : \
 
 $(BLD)\keymap.obj : \
 	$(SRC)\keymap.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -605,8 +605,8 @@ $(BLD)\lastfile.obj : \
 
 $(BLD)\lread.obj : \
 	$(SRC)\lread.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(SRC)\lisp.h \
@@ -619,8 +619,8 @@ $(BLD)\lread.obj : \
 
 $(BLD)\macros.obj : \
 	$(SRC)\macros.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\macros.h \
@@ -630,16 +630,16 @@ $(BLD)\macros.obj : \
 
 $(BLD)\marker.obj : \
 	$(SRC)\marker.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h
 
 $(BLD)\minibuf.obj : \
 	$(SRC)\minibuf.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -651,16 +651,16 @@ $(BLD)\minibuf.obj : \
 
 $(BLD)\mocklisp.obj : \
 	$(SRC)\mocklisp.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h
 
 $(BLD)\nt.obj : \
 	$(SRC)\nt.c \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(SRC)\lisp.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h \
@@ -672,8 +672,8 @@ $(BLD)\ntheap.obj : \
 
 $(BLD)\ntinevt.obj : \
 	$(SRC)\ntinevt.c \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
@@ -682,8 +682,8 @@ $(BLD)\ntinevt.obj : \
 
 $(BLD)\ntproc.obj : \
 	$(SRC)\ntproc.c \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\nt.h \
@@ -692,8 +692,8 @@ $(BLD)\ntproc.obj : \
 
 $(BLD)\ntterm.obj : \
 	$(SRC)\ntterm.c \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\frame.h \
@@ -706,8 +706,8 @@ $(BLD)\prefix-args.obj : \
 
 $(BLD)\print.obj : \
 	$(SRC)\print.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -720,8 +720,8 @@ $(BLD)\print.obj : \
 
 $(BLD)\process.obj : \
 	$(SRC)\process.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\ioctl.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
@@ -742,23 +742,23 @@ $(BLD)\process.obj : \
 
 $(BLD)\ralloc.obj : \
 	$(SRC)\ralloc.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
 	$(SRC)\getpagesize.h
 
 $(BLD)\regex.obj : \
 	$(SRC)\regex.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\s\s-windowsnt.h \
-	$(SRC)\m\m-windowsnt.h \
+	$(SRC)\s\windowsnt.h \
+	$(SRC)\m\intel386.h \
 	$(SRC)\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -767,8 +767,8 @@ $(BLD)\regex.obj : \
 
 $(BLD)\scroll.obj : \
 	$(SRC)\scroll.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\termchar.h \
 	$(SRC)\lisp.h \
@@ -777,8 +777,8 @@ $(BLD)\scroll.obj : \
 
 $(BLD)\search.obj : \
 	$(SRC)\search.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\syntax.h \
@@ -789,8 +789,8 @@ $(BLD)\search.obj : \
 
 $(BLD)\sunfns.obj : \
 	$(SRC)\sunfns.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\window.h \
@@ -799,8 +799,8 @@ $(BLD)\sunfns.obj : \
 
 $(BLD)\syntax.obj : \
 	$(SRC)\syntax.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\commands.h \
@@ -809,8 +809,8 @@ $(BLD)\syntax.obj : \
 
 $(BLD)\sysdep.obj : \
 	$(SRC)\sysdep.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
@@ -842,8 +842,8 @@ $(BLD)\sysdep.obj : \
 
 $(BLD)\term.obj : \
 	$(SRC)\term.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\termchar.h \
 	$(SRC)\termopts.h \
@@ -856,8 +856,8 @@ $(BLD)\term.obj : \
 
 $(BLD)\termcap.obj : \
 	$(SRC)\termcap.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h
 
@@ -866,8 +866,8 @@ $(BLD)\terminfo.obj : \
 
 $(BLD)\textprop.obj : \
 	$(SRC)\textprop.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\dispextern.h \
@@ -877,14 +877,14 @@ $(BLD)\textprop.obj : \
 
 $(BLD)\tparam.obj : \
 	$(SRC)\tparam.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\undo.obj : \
 	$(SRC)\undo.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -896,8 +896,8 @@ $(BLD)\unexnt.obj : \
 
 $(BLD)\widget.obj : \
 	$(SRC)\widget.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\xterm.h \
@@ -908,8 +908,8 @@ $(BLD)\widget.obj : \
 
 $(BLD)\window.obj : \
 	$(SRC)\window.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\buffer.h \
@@ -923,8 +923,8 @@ $(BLD)\window.obj : \
 
 $(BLD)\xdisp.obj : \
 	$(SRC)\xdisp.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\lisp.h \
 	$(SRC)\frame.h \

@@ -197,15 +197,15 @@ SRC		= .
 
 $(BLD)\alloca.obj : \
 	$(SRC)\alloca.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(EMACS_ROOT)\src\blockinput.h
 
 $(BLD)\b2m.obj : \
 	$(SRC)\b2m.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h
 
 $(BLD)\cvtmail.obj : \
@@ -216,14 +216,14 @@ $(BLD)\digest-doc.obj : \
 
 $(BLD)\emacsclient.obj : \
 	$(SRC)\emacsclient.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h
 
 $(BLD)\emacsserver.obj : \
 	$(SRC)\emacsserver.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h
 
@@ -234,36 +234,36 @@ $(BLD)\emacstool.obj : \
 $(BLD)\etags.obj : \
 	$(SRC)\etags.c \
 	$(EMACS_ROOT)\nt\inc\sys\param.h \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
 	$(SRC)\getopt.h
 
 $(BLD)\fakemail.obj : \
 	$(SRC)\fakemail.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
 	$(EMACS_ROOT)\nt\inc\pwd.h
 
 $(BLD)\getdate.obj : \
 	$(SRC)\getdate.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(MSTOOLS_SYS)\types.h
 
 $(BLD)\getopt.obj : \
 	$(SRC)\getopt.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\getopt.h
 
 $(BLD)\getopt1.obj : \
 	$(SRC)\getopt1.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\getopt.h
 
@@ -281,8 +281,8 @@ $(BLD)\make-path.obj : \
 
 $(BLD)\movemail.obj : \
 	$(SRC)\movemail.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(EMACS_ROOT)\src\vmsproc.h \
@@ -291,8 +291,8 @@ $(BLD)\movemail.obj : \
 
 $(BLD)\profile.obj : \
 	$(SRC)\profile.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
 	$(EMACS_ROOT)\src\vmstime.h \
 	$(EMACS_ROOT)\lib-src\..\src\systime.h
@@ -311,14 +311,14 @@ $(BLD)\test-distrib.obj : \
 
 $(BLD)\timer.obj : \
 	$(SRC)\timer.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h
 
 $(BLD)\wakeup.obj : \
 	$(SRC)\wakeup.c \
-	$(EMACS_ROOT)\src\s\s-windowsnt.h \
-	$(EMACS_ROOT)\src\m\m-windowsnt.h \
+	$(EMACS_ROOT)\src\s\windowsnt.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\yow.obj : \
