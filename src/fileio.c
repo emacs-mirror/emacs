@@ -2383,6 +2383,7 @@ searchable directory.")
 {
   Lisp_Object handler;
   int tem;
+  struct gcpro gcpro1;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2390,10 +2391,16 @@ searchable directory.")
   if (!NILP (handler))
     return call2 (handler, Qfile_accessible_directory_p, filename);
 
-  /* Need to gcpro in case the first function call has a handler that
-     causes filename to be relocated.  */
+  /* It's an unlikely combination, but yes we really do need to gcpro:
+     Suppose that file-accessible-directory-p has no handler, but
+     file-directory-p does have a handler; this handler causes a GC which
+     relocates the string in `filename'; and finally file-directory-p
+     returns non-nil.  Then we would end up passing a garbaged string
+     to file-executable-p.  */
+  GCPRO1 (filename);
   tem = (NILP (Ffile_directory_p (filename))
 	 || NILP (Ffile_executable_p (filename)));
+  UNGCPRO;
   return tem ? Qnil : Qt;
 }
 
