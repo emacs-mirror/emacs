@@ -1,3 +1,14 @@
+2004-02-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* syntax.texi (Syntax Table Functions): Clarify and correct
+	descriptions of make-syntax-table and copy-syntax-table.
+	(Motion and Syntax): Clarify SYNTAXES argument to
+	skip-syntax-forward.
+	(Parsing Expressions): Mention that the return value of
+	parse-partial-sexp is currently a list of ten rather than nine
+	elements.
+	(Categories): Various corrections and clarifications.
+
 2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* markers.texi (Marker Insertion Types): Minor change.
