@@ -371,6 +371,10 @@ struct frame
 
   /* Additional space to put between text lines on this frame.  */
   int extra_line_spacing;
+
+  /* Set to non-zero in change_frame_size when size of frame changed
+     Clear the frame in clear_garbaged_frames if set.  */
+  unsigned resized_p : 1;
 };
 
 #ifdef MULTI_KBOARD
