@@ -678,6 +678,7 @@ DEFUN ("process-mark", Fprocess_mark, Sprocess_mark,
 DEFUN ("set-process-filter", Fset_process_filter, Sset_process_filter,
   2, 2, 0,
   "Give PROCESS the filter function FILTER; nil means no filter.\n\
+t means stop accepting output from the process.\n\
 When a process has a filter, each time it does output\n\
 the entire string of output is passed to the filter.\n\
 The filter gets two arguments: the process and the string of output.\n\
@@ -686,6 +687,10 @@ If the process has a filter, its buffer is not used for output.")
      register Lisp_Object proc, filter;
 {
   CHECK_PROCESS (proc, 0);
+  if (EQ (filter, Qt))
+    FD_CLR (XPROCESS (proc)->infd, &input_wait_mask);
+  else if (EQ (XPROCESS (proc)->filter, Qt))
+    FD_SET (XPROCESS (proc)->infd, &input_wait_mask);
   XPROCESS (proc)->filter = filter;
   return filter;
 }
@@ -2849,7 +2854,8 @@ status_notify ()
 
 	  /* If process is still active, read any output that remains.  */
 	  if (XFASTINT (p->infd))
-	    while (read_process_output (proc, XFASTINT (p->infd)) > 0);
+	    while (! EQ (p->filter, Qt)
+		   && read_process_output (proc, XFASTINT (p->infd)) > 0);
 
 	  buffer = p->buffer;
 
