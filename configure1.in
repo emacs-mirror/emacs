@@ -944,7 +944,11 @@ echo '
 #ifndef LIBS_SYSTEM
 #define LIBS_SYSTEM
 #endif
+#ifndef C_SWITCH_SYSTEM
+#define C_SWITCH_SYSTEM
+#endf
 @configure@ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+@configure@ c_switch_system=C_SWITCH_SYSTEM
 #ifdef SYSTEM_MALLOC
 @configure@ system_malloc=yes
 #else
@@ -1027,13 +1031,14 @@ rm -f Makefile.tmp
 # If you are thinking about editing it, you should seriously consider
 # running \`${progname}' instead, or editing
 # \`${srcdir}/Makefile.in' itself."
- /bin/sed < ${srcdir}/Makefile.in				\
- -e 's|^configname *=.*$|configname='"${configuration}"'|'	\
- -e 's|^version *=.*$|version='"${version}"'|' 		\
- -e 's|^srcdir *=.*$|srcdir='"${srcdir}"'|' 			\
- -e 's|^CC *=.*$|CC='"${default_cc}"'|'			\
+ /bin/sed < ${srcdir}/Makefile.in					\
+ -e 's|^configname *=.*$|configname='"${configuration}"'|'		\
+ -e 's|^version *=.*$|version='"${version}"'|' 				\
+ -e 's|^srcdir *=.*$|srcdir='"${srcdir}"'|' 				\
+ -e 's|^CC *=.*$|CC='"${default_cc}"'|'					\
  -e 's|^CONFIG_CFLAGS *=.*$|CONFIG_CFLAGS='"${default_cflags}"'|'	\
- -e 's|^LOADLIBES *=.*$|LOADLIBES='"${libsrc_libs}"'|'	\
+ -e 's|^C_SWITCH_SYSTEM *=.*$|C_SWITCH_SYSTEM='"${c_switch_system}"'|'	\
+ -e 's|^LOADLIBES *=.*$|LOADLIBES='"${libsrc_libs}"'|'			\
  -e '/^# DIST: /d') > Makefile.tmp
 ${srcdir}/move-if-change Makefile.tmp Makefile
 

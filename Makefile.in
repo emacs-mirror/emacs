@@ -42,6 +42,7 @@ MAKE = make  # BSD doesn't have it as a default.
 
 CC=cc
 CONFIG_CFLAGS=-g
+C_SWITCH_SYSTEM=
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -253,6 +254,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	 -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	 -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
 	 -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'		\
 	 -e '/^# DIST: /d') > lib-src/Makefile.tmp
 	${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
