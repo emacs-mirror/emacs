@@ -2327,6 +2327,10 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** The new primitive `get-internal-run-time' returns the processor
+run time used by Emacs since start-up.
+
++++
 ** The new function `called-interactively-p' does what many people
 have mistakenly believed `interactively-p' did: it returns t if the
 calling function was called through `call-interactively'.
