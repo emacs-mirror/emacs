@@ -1,3 +1,34 @@
+2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-init-language-vars-for): Add argument
+	MODE.  Renamed from c-init-c-language-vars'.
+	(c-initialize-cc-mode): Change accordingly.
+	(c-common-init): Ditto.
+	(c-mode): Ditto.
+	(c++-mode): Use function.
+	(objc-mode): Ditto.
+	(java-mode): Ditto.
+	(idl-mode): Ditto.
+	(pike-mode): Ditto.
+	(awk-mode): Ditto.
+
+2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-end-of-current-token): Return whether
+	or not the point moved.
+
+	(c-search-decl-header-end): Don't trip up on operator identifiers
+	in C++ and operators like == in all languages.
+
+	* progmodes/cc-engine.el (c-backward-to-decl-anchor): Detect
+	leading labels correctly.
+
+2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-defs.el (c-langelem-sym, c-langelem-pos,
+	c-langelem-2nd-pos): Added accessor functions for syntactic
+	elements.
+
 2003-08-02  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/ispell.el: Don't redo key bindings on loading, put
