@@ -954,7 +954,10 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   int result;
   struct coding_system *coding;
 
-  coding = (CODING_REQUIRE_ENCODING (&terminal_coding)
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
 	    ? &terminal_coding
 	    : &safe_terminal_coding);
 
@@ -1780,7 +1783,7 @@ append_glyph (it)
        ++i)
     {
       glyph->type = CHAR_GLYPH;
-      glyph->pixel_width = 1;
+      glyph->pixel_width = it->pixel_width;
       glyph->u.ch = it->c;
       glyph->face_id = it->face_id;
       glyph->padding_p = i > 0;
