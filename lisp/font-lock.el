@@ -437,6 +437,7 @@ This can take a while for large buffers."
 		  ((eq major-mode 'perl-mode) 	    perl-font-lock-keywords)
 		  ((eq major-mode 'tex-mode)        tex-font-lock-keywords)
 		  ((eq major-mode 'texinfo-mode)    texi-font-lock-keywords)
+		  ((eq major-mode 'shell-mode)      shell-font-lock-keywords)
 		  (t nil)))))
 
 (defconst lisp-font-lock-keywords-1
@@ -633,6 +634,15 @@ This does a lot more highlighting.")
    '("@item \\(.*\\)$" 1 font-lock-function-name-face t)
    '("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
    )
+  "Additional expressions to highlight in TeXinfo mode.")
+
+(defvar shell-font-lock-keywords
+  (list (cons shell-prompt-pattern 'font-lock-keyword-face)
+	(list (concat shell-prompt-pattern "\\([^ \t]+\\)")
+	      1 'font-lock-function-name-face)
+	'("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
+	'("^[^ \t]+:.*$" . font-lock-string-face)
+	'("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
   "Additional expressions to highlight in TeXinfo mode.")
 
 (provide 'font-lock)
