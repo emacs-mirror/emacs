@@ -246,7 +246,7 @@ Makefile: $(srcdir)/Makefile.in config.status
 config.status: configure
 	./config.status --recheck
 
-${srcdir}/configure: configure.in
+${srcdir}/configure: configure.in aclocal.m4
 	cd ${srcdir} && autoconf
 
 src/Makefile: $(srcdir)/src/Makefile.in config.status
