@@ -581,8 +581,8 @@ If EXAMINE is non-nil the group is selected read-only."
 	       (cons low high) group server))
 	    (when (buffer-modified-p)
 	      (nnmail-write-region
-	       1 (point-max) (nnimap-group-overview-filename group server)
-	       nil 'nomesg))
+	       (point-min) (point-max)
+	       (nnimap-group-overview-filename group server) nil 'nomesg))
 	    (nnheader-nov-delete-outside-range low high))))
       'nov)))
 
