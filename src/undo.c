@@ -651,7 +651,7 @@ In fact, this calls the function which is the value of
 `undo-outer-limit-function' with one argument, the size.
 The text above describes the behavior of the function
 that variable usually specifies.  */);
-  Vundo_outer_limit = make_number (300000);
+  Vundo_outer_limit = make_number (3000000);
 
   DEFVAR_LISP ("undo-outer-limit-function", &Vundo_outer_limit_function,
 	       doc: /* Function to call when an undo list exceeds `undo-outer-limit'.
