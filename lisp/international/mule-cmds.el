@@ -810,6 +810,8 @@ This is the input method activated automatically by the command
   :group 'mule
   :type '(choice (const nil) string))
 
+(put 'input-method-function 'permanent-local t)
+
 (defvar input-method-history nil
   "History list for some commands that read input methods.")
 (make-variable-buffer-local 'input-method-history)
