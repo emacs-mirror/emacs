@@ -2509,11 +2509,12 @@ or forward if N is negative."
 	      ;; header, we didn't yet get past the EOOH line.
 	      (if (looking-at "^\\*\\*\\* EOOH \\*\\*\\*\n")
 		  (forward-line 1))
+	      (setq beg (point))
 	      (narrow-to-region (point) end))
 	    (rfc822-goto-eoh)
+	  (setq beg (point))
 	  (search-forward "\n*** EOOH ***\n" end t))
-	(narrow-to-region beg (point))
-	(goto-char (point-min))
+	(goto-char beg)
 	(re-search-forward regexp end t)))))
 
 (defvar rmail-search-last-regexp nil)
