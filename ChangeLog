@@ -1,3 +1,11 @@
+2002-04-15  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in ($(srcdir)/src/config.in): Generate using
+	autoheader.
+	* configure.in: Add config header templates to all AC_DEFINE and
+	AC_DEFINE_UNQUOTED symbols.
+	* make-dist: Run autoheader if necessary.
+
 2002-04-10  Colin Walters  <walters@verbum.org>
 
 	* configure.in: Add --game-dir, --game-user.  Test to see if we
