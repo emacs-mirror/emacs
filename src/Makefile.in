@@ -651,10 +651,10 @@ lisp= \
 	${lispsource}loaddefs.el \
 	${lispsource}map-ynp.elc \
 	${lispsource}menu-bar.elc \
-	${lispsource}mule.elc \
-	${lispsource}mule-conf.el \
-	${lispsource}mule-cmds.elc \
-	${lispsource}characters.elc \
+	${lispsource}international/mule.elc \
+	${lispsource}international/mule-conf.el \
+	${lispsource}international/mule-cmds.elc \
+	${lispsource}international/characters.elc \
 	${lispsource}language/chinese.elc \
 	${lispsource}language/cyrillic.elc \
 	${lispsource}language/devanagari.elc \
@@ -710,10 +710,10 @@ shortlisp= \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/map-ynp.elc \
-	../lisp/mule.elc \
-	../lisp/mule-conf.el \
-	../lisp/mule-cmds.elc \
-	../lisp/characters.elc \
+	../lisp/international/mule.elc \
+	../lisp/international/mule-conf.el \
+	../lisp/international/mule-cmds.elc \
+	../lisp/ainternational/characters.elc \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/devanagari.elc \
