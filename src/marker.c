@@ -65,7 +65,7 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
       if (i < BUF_BEG (buf) || i > BUF_Z (buf))
 	abort ();
 
-      XFASTINT (pos) = i;
+      XSETFASTINT (pos, i);
       return pos;
     }
   return Qnil;
