@@ -99,7 +99,14 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
   The code for existing major modes follows various coding conventions,
 including conventions for local keymap and syntax table initialization,
 global names, and hooks.  Please follow these conventions when you
-define a new major mode:
+define a new major mode.
+
+  This list of conventions is only partial, because each major mode
+should aim for consistency in general with other Emacs major modes.
+This makes Emacs as a whole more coherent.  It is impossible to list
+here all the possible points where this issue might come up; if the
+Emacs developers point out an area where your major mode deviates from
+the usual conventions, please make it compatible.
 
 @itemize @bullet
 @item
@@ -142,6 +149,13 @@ have names that start with the major mode name (or with an abbreviation
 of it if the name is long).  @xref{Coding Conventions}.
 
 @item
+In a major mode for editing some kind of structured text, such as a
+programming language, indentation of text according to structure is
+probably useful.  So the mode should set @code{indent-line-function}
+to a suitable function, and probably customize other variables
+for indentation.
+
+@item
 @cindex keymaps in modes
 The major mode should usually have its own keymap, which is used as the
 local keymap in all buffers in that mode.  The major mode command should
@@ -176,8 +190,14 @@ editing commands.  Dired and Rmail both do this.
 @item
 Major modes must not define @key{RET} to do anything other than insert
 a newline.  The command to insert a newline and then indent is
-@kbd{C-j}.  These conventions are supposed to be uniform for all
-modes; please keep them that way.
+@kbd{C-j}.  Please keep this distinction uniform for all major modes.
+
+@item
+Major modes should not alter options that are primary a matter of user
+preference, such as whether Auto-Fill mode is enabled.  Leave this to
+each user to decide.  However, a major mode should customize other
+variables so that Auto-Fill mode will work usefully @emph{if} the user
+decides to use it.
 
 @item
 @cindex syntax tables in modes
