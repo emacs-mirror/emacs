@@ -68,9 +68,12 @@ this function useful in editing binary files."
 		      (eq overwrite-mode 'overwrite-mode-binary))
 		  (read-quoted-char)
 		(read-char))))
-    (if (eq overwrite-mode 'overwrite-mode-binary)
-	(delete-char arg))
-    (insert-char char arg)))
+    (if (> arg 0)
+	(if (eq overwrite-mode 'overwrite-mode-binary)
+	    (delete-char arg)))
+    (while (> arg 0)
+      (insert-and-inherit char)
+      (setq arg (1- arg)))))
 
 (defun delete-indentation (&optional arg)
   "Join this line to previous and fix up whitespace at join.
