@@ -938,7 +938,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       numenv++;
     }
   /* extra env vars... */
-  sprintf (ppid_env_var_buffer, "__PARENT_PROCESS_ID=%d", 
+  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d", 
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
   numenv++;
