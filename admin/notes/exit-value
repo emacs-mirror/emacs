@@ -21,3 +21,15 @@ value requirements outlined in the first paragraph!  That is the job of the
    #endif
 
 Values aside from EXIT_SUCCESS and EXIT_FAILURE are tricky.
+
+
+
+ttn 2004-05-12
+
+Values aside from EXIT_SUCCESS and EXIT_FAILURE can be used to indicate
+finer gradations of failure.  If this is the only information available
+to the caller, clamping such values to EXIT_FAILURE loses information.
+If there are other ways to indicate the problem to the caller (such as
+a message to stderr) it may be ok to clamp.  In all cases, it is the
+relationship between the program and its caller that must be examined.
+[Insert ZAMM quote here.]
