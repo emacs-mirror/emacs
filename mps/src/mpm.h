@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.131) $
+ * $HopeName: MMsrc!mpm.h(trunk.132) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
@@ -357,7 +357,7 @@ extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
-  ((*(pool)->class->fix)(pool, ss, seg, refIO))
+  ((*(pool)->fix)(pool, ss, seg, refIO))
 extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolBenefit(Pool pool, Action action);
@@ -973,7 +973,8 @@ extern Res FormatCreate(Format *formatReturn, Arena arena,
                         FormatIsMovedMethod isMoved,
                         FormatCopyMethod copy,
                         FormatPadMethod pad,
-			FormatClassMethod class);
+			FormatClassMethod class,
+                        Size headerSize);
 extern void FormatDestroy(Format format);
 extern Arena FormatArena(Format format);
 extern Res FormatDescribe(Format format, mps_lib_FILE *stream);
