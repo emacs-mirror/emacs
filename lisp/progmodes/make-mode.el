@@ -279,7 +279,9 @@ not be enclosed in { } or ( )."
    (list
     (concat "^\\(?: [ \t]*\\)?"
 	    (regexp-opt '("-include" "-sinclude" "include" "sinclude" "ifeq"
-			  "if" "ifneq" "ifdef" "ifndef" "endif" "else") t)
+			  "if" "ifneq" "ifdef" "ifndef" "endif" "else"
+			  "define" "endef" "override"
+			  "export" "unexport" "vpath") t)
 	    "\\>[ \t]*\\([^: \t\n#]*\\)")
     '(1 font-lock-keyword-face) '(2 font-lock-variable-name-face))
 
