@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef standalone
 #include "buffer.h"
+#include "keyboard.h"
 #endif
 
 #include "syssignal.h"

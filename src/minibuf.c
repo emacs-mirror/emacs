@@ -26,6 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "syntax.h"
+#include "keyboard.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 

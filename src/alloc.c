@@ -28,6 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "frame.h"
 #include "blockinput.h"
+#include "keyboard.h"
 #endif
 
 #include "syssignal.h"

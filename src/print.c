@@ -30,6 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "process.h"
 #include "dispextern.h"
 #include "termchar.h"
+#include "keyboard.h"
 #endif /* not standalone */
 
 #ifdef USE_TEXT_PROPERTIES
