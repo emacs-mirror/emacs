@@ -1551,7 +1551,9 @@ mark_object (objptr)
 	    if (i != COMPILED_CONSTANTS)
 	      mark_object (&ptr1->contents[i]);
 	  }
-	objptr = &ptr1->contents[COMPILED_CONSTANTS];
+	/* This cast should be unnecessary, but some Mips compiler complains
+	   (MIPS-ABI + SysVR4, DC/OSx, etc).  */
+	objptr = (Lisp_Object *) &ptr1->contents[COMPILED_CONSTANTS];
 	goto loop;
       }
 
