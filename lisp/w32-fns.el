@@ -324,4 +324,25 @@ CODING-SYSTEM, use \\[list-coding-systems]."
 (put 'backspace 'ascii-character 127)
 (put 'delete 'ascii-character 127)
 
+;; W32 uses different color indexes than standard:
+
+(defvar w32-tty-standard-colors
+  '(("white"         15 65535 65535 65535)
+    ("yellow"        14 65535 65535     0) ; Yellow
+    ("lightmagenta"  13 65535     0 65535) ; Magenta
+    ("lightred"      12 65535     0     0) ; Red
+    ("lightcyan"     11     0 65535 65535) ; Cyan
+    ("lightgreen"    10     0 65535     0) ; Green
+    ("lightblue"      9     0     0 65535) ; Blue
+    ("darkgray"       8 26112 26112 26112) ; Gray40
+    ("lightgray"      7 48640 48640 48640) ; Gray
+    ("brown"          6 40960 20992 11520) ; Sienna
+    ("magenta"        5 35584     0 35584) ; DarkMagenta
+    ("red"            4 45568  8704  8704) ; FireBrick
+    ("cyan"           3     0 52736 53504) ; DarkTurquoise
+    ("green"          2  8704 35584  8704) ; ForestGreen
+    ("blue"           1     0     0 52480) ; MediumBlue
+    ("black"          0     0     0     0))
+"A list of VGA console colors, their indices and 16-bit RGB values.")
+
 ;;; w32-fns.el ends here
