@@ -89,6 +89,8 @@ Global Auto-Revert Mode applies to all buffers."
 
 ;; Variables:
 
+;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
+;;;###autoload
 (defvar auto-revert-mode nil
   "*Non-nil when Auto-Revert Mode is active.
 
