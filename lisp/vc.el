@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.336 2002/09/04 20:47:08 spiegel Exp $
+;; $Id: vc.el,v 1.337 2002/10/03 22:43:01 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2491,7 +2491,7 @@ allowed and simply skipped)."
 			 ',(vc-workfile-version file))
         (set-buffer-modified-p nil)))))
 
-(defun vc-default-show-log-entry (backend ver)
+(defun vc-default-show-log-entry (backend rev)
   (if (fboundp 'log-view-goto-rev)
       (log-view-goto-rev rev)))
 
