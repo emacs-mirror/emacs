@@ -1,3 +1,8 @@
+2002-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix
+	typo.
+
 2002-12-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-next-action-on-file): Use t argument to vc-checkout in
