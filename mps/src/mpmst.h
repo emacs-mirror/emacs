@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.31) $
+ * $HopeName: MMsrc!mpmst.h(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -412,7 +412,7 @@ typedef struct RootStruct {
  *   ss->fix            mps_ss->fix
  *   ss->zoneShift      mps_ss->w0
  *   ss->white          mps_ss->w1
- *   ss->summary        mps_ss->w2
+ *   ss->unfixedSummary mps_ss->w2
  * See impl.h.mps.ss and impl.c.mpsi.check.ss.  This is why the
  * Sig field is in the middle of this structure.
  *
@@ -426,13 +426,13 @@ typedef struct ScanStateStruct {
   Res (*fix)(ScanState, Addr *);/* fix function */
   Word zoneShift;               /* copy of arena->zoneShift.  See .ss.zone */
   RefSet white;                 /* white set, for inline fix test */
-  RefSet summary;               /* accumulated summary of scanned references */
+  RefSet unfixedSummary;        /* accumulated summary of scanned references */
   Sig sig;                      /* design.mps.sig */
   Arena arena;                  /* owning arena */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
-  RefSet fixed;                 /* accumulated summary of fixed references */
+  RefSet fixedSummary;          /* accumulated summary of fixed references */
 } ScanStateStruct;
 
 

@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.4) $
+ * $HopeName: MMsrc!poolams.c(trunk.5) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.4) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.5) $");
 
 /* These two BT utility functions should be in the BT module.
  * See design.mps.poolams.bt.utilities */
@@ -632,9 +632,6 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
   Bool scanAllObjects;
 
   AVERT(ScanState, ss);
-  AVER(ss->summary == RefSetEMPTY); /* to make afterSummary correct */
-  AVER(ss->fixed == RefSetEMPTY);   /* to make afterSummary correct */
-  
   AVERT(Pool, pool);
   ams = PoolPoolAMS(pool);
   AVERT(AMS, ams);
@@ -651,6 +648,15 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
 
   AVER(!scanOnce || scanAllObjects); /* scanOnce implies scanAllObjects */
   
+
+  /* If the scanner isn't going to scan all the objects then the */
+  /* summary of the unscanned objects must be added into the scan */
+  /* state summary, so that it's a valid summary of the entire */
+  /* segment on return.  See design.mps.poolams.summary.scan.part. */
+  if(!scanAllObjects)
+    ScanStateSetSummary(ss, RefSetUnion(ScanStateSummary(ss),
+                                        SegSummary(seg)));
+
   if (scanOnce) {
 
     Bool wasMarked = group->marked; /* for checking */
@@ -673,16 +679,6 @@ static Res AMSScan(ScanState ss, Pool pool, Seg seg)
       }
     } while(group->marked);
 
-  }
-
-  AVER(RefSetSub(ss->summary, SegSummary(seg)));
-
-  if (!scanAllObjects) { /* design.mps.poolams.summary */
-    /* design.mps.poolams.summary.scan.part.summary */
-    ss->summary = RefSetUnion(ss->summary, SegSummary(seg));
-    /* design.mps.poolams.summary.scan.part.fixed */
-    ss->fixed = RefSetUnion(ss->fixed, RefSetInter(SegSummary(seg),
-                                                   ss->white));
   }
 
   return ResOK;
