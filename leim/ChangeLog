@@ -1,7 +1,12 @@
 2002-07-24  Dave Love  <fx@gnu.org>
 
+	* quail/latin-alt.el ("latin-alt-postfix"): New.
+
+	* quail/latin-post.el ("latin-postfix"): New.
+
 	* quail/latin-pre.el ("latin-1-prefix"): Add nbsp.
 	("latin-3-prefix"): Doc fix.
+	("latin-prefix"): New.
 
 2002-07-12  Dave Love  <fx@gnu.org>
 
