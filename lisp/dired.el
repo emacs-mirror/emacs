@@ -1716,7 +1716,7 @@ A prefix argument says to unflag those files instead."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-del-marker)))
     (dired-mark-if
-     ;; It is less than general to check for ~ here,
+     ;; It is less than general to check for # here,
      ;; but it's the only way this runs fast enough.
      (and (save-excursion (end-of-line)
                           (or
