@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 94, 95, 97, 98, 99, 2000, 2001
 ;;  Free Software Foundation, Inc.
 
-;; Author: Lars Lindberg <Lars.G.Lindberg@capgemini.se>
+;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: FSF
 ;; Created: 8 Oct 1993
 ;; Lindberg's last update version: 3.34
