@@ -1248,8 +1248,7 @@ The returned value is a Quail map specific to KEY."
 	    (save-excursion
 	      (set-buffer quail-guidance-buf)
 	      (erase-buffer)))
-	(if input-method-use-echo-area
-	    (quail-hide-guidance-buf))
+	(quail-hide-guidance-buf)
 	(set-buffer-modified-p modified-p)
 	;; Run this hook only when the current input method doesn't require
 	;; conversion.  When conversion is required, the conversion function
