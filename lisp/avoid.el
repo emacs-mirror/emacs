@@ -1,6 +1,6 @@
 ;;; avoid.el -- make mouse pointer stay out of the way of editing.
 
-;;; Copyright (C) 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@cs.rochester.edu>
 ;; Keywords: mouse
@@ -36,6 +36,8 @@
 ;;;        (mouse-avoidance-mode 'cat-and-mouse)))
 ;;;
 ;;; The 'animate can be 'jump or 'banish or 'protean if you prefer.
+;;; See the documentation for function `mouse-avoidance-mode' for
+;;; details of the different modes.
 ;;;
 ;;; For added silliness, make the animatee animate...
 ;;; put something similar to the following into your .emacs:
@@ -52,9 +54,10 @@
 ;;; 
 ;;; Bugs & Warnings:
 ;;;
-;;; - THIS CODE IS FOR USE WITH FSF EMACS 19.21 or later.
-;;;   It can cause earlier versions of emacs to crash, due to a bug in the
-;;;   mouse code. 
+;;; - Due to a bug in (mouse-position), this code can cause emacs
+;;;   19.22 to crash when deleting a frame if the mouse has not moved
+;;;   since creating the frame.  Versions earlier than 19.21 will
+;;;   crash more easily; this program should not be used with them.
 ;;;
 ;;; - Using this code does slow emacs down.  "banish" mode shouldn't
 ;;;   ever be too bad though, and on my workstation even "animate" doesn't
@@ -137,8 +140,8 @@ Only applies in mouse-avoidance-modes `animate' and `jump'.")
 	  (while (<= i 1)
 	    (set-mouse-position 
 	     (car cur) 
-	     (mod (+ (car (cdr cur)) (round (* i deltax))) (window-width))
-	     (mod (+ (cdr (cdr cur)) (round (* i deltay))) (window-height)))
+	     (mod (+ (car (cdr cur)) (round (* i deltax))) (frame-width))
+	     (mod (+ (cdr (cdr cur)) (round (* i deltay))) (frame-height)))
 	    (setq i (+ i (/ 1.0 mouse-avoidance-nudge-dist)))
 	    (if (eq mouse-avoidance-mode 'proteus)
 		(progn
@@ -170,12 +173,17 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-simple-hook ()
   (if (and (mouse-avoidance-keyboard-command (this-command-keys)))
-      (mouse-avoidance-banish-mouse)))
+      (progn
+	(raise-frame (selected-frame))
+	(mouse-avoidance-banish-mouse))))
 
 (defun mouse-avoidance-fancy-hook ()
   (if (and (mouse-avoidance-keyboard-command (this-command-keys))
 	   (mouse-avoidance-too-close-p))
-      (mouse-avoidance-nudge-mouse)))
+      (let ((old-pos (mouse-position)))
+	(mouse-avoidance-nudge-mouse)
+	(if (not (eq (selected-frame) (car old-pos)))
+	    (apply 'set-mouse-position old-pos)))))
 
 (defun mouse-avoidance-keyboard-command (key)
   "Return t if the KEYSEQENCE is composed of keyboard events only.
@@ -195,10 +203,25 @@ Returns nil if there are any lists in the key sequence."
 (defun mouse-avoidance-mode (&optional mode)
   "Set cursor avoidance mode to MODE.
 MODE should be one of the symbols `banish', `jump', `animate',
-`cat-and-mouse', or `none'.  `Animate' is the same as `cat-and-mouse'.
-If MODE is nil, toggle mouse avoidance.  Positive numbers and
-symbols other than the above are treated as equivalent to `banish';
-negative numbers and `-' are equivalent to `none'."
+`cat-and-mouse', `proteus', or `none'.
+
+If MODE is nil, toggle mouse avoidance between `none' and `banish'
+modes.  Positive numbers and symbols other than the above are treated
+as equivalent to `banish'; negative numbers and `-' are equivalent to `none'.
+
+Effects of the different modes: 
+ * BANISH: Move the mouse to the upper-right corner on any keypress.
+           Also raises the frame.
+ * JUMP: If the cursor gets too close to the mouse, displace the mouse
+         a random distance & direction.  If this would put it in another,
+         overlapping frame, it is put back \(until the next keypress).
+ * ANIMATE: As `jump', but shows steps along the way for illusion of motion.
+ * CAT-AND-MOUSE: Same as `animate'.
+ * PROTEUS: As `animate', but changes the shape of the mouse pointer too.
+
+\(see `mouse-avoidance-threshhold' for definition of \"too close\",
+and `mouse-avoidance-nudge-dist' and `mouse-avoidance-nudge-var' for
+definition of \"random distance\".)"
   (interactive
    (list (intern (completing-read
 		  "Select cursor avoidance technique (SPACE for list): "
