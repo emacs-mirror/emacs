@@ -18,7 +18,7 @@
 
 This file documents Message, the Emacs message composition mode.
 
-Copyright (C) 1996,97,98,99,2000 Free Software Foundation, Inc.
+Copyright (C) 1996,97,98,99,2000,2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -47,7 +47,7 @@ license to the document, as described in section 6 of the license.
 @page
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1996,97,98,99,2000 Free Software Foundation, Inc.
+Copyright @copyright{} 1996,97,98,99,2000,2001 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -537,8 +537,9 @@ If this variable is @code{nil}, no signature will be inserted at all.
 
 @item message-signature-file
 @vindex message-signature-file
-File containing the signature to be inserted at the end of the buffer.
-The default is @samp{~/.signature}.
+If non-@code{nil} the name of a file containing the signature to be
+inserted at the end of the buffer.  This is ignored if the file
+doesn't exist.  The default is @samp{~/.signature}.
 
 @end table
 
