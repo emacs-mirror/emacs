@@ -18,6 +18,7 @@ Emacs
 * Info: (info).		How to use the documentation browsing system.
 * Emacs: (emacs).	The extensible self-documenting text editor.
 * Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+* Elisp: (elisp).	The Emacs Lisp Reference Manual.
 
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * Dired-X: (dired-x).   Dired Extra Features.
