@@ -328,19 +328,26 @@ Long count is a list (baktun katun tun uinal kin)"
      (-                          ; days before absolute date 0
       calendar-mayan-days-before-absolute-zero)))
 
-(defun calendar-print-mayan-date ()
-  "Show the Mayan long count, tzolkin, and haab equivalents of date."
-  (interactive)
-  (let* ((d (calendar-absolute-from-gregorian
-            (or (calendar-cursor-to-date)
-                (error "Cursor is not on a date!"))))
+(defun calendar-mayan-date-string (&optional date)
+  "String of Mayan date of Gregorian DATE.
+Defaults to today's date if DATE is not given."
+  (let* ((d (calendar-absolute-from-gregorian 
+             (or date (calendar-current-date))))
          (tzolkin (calendar-mayan-tzolkin-from-absolute d))
          (haab (calendar-mayan-haab-from-absolute d))
          (long-count (calendar-mayan-long-count-from-absolute d)))
-      (message "Mayan date: Long count = %s; tzolkin = %s; haab = %s"
-               (calendar-mayan-long-count-to-string long-count)
-               (calendar-mayan-tzolkin-to-string tzolkin)
-               (calendar-mayan-haab-to-string haab))))
+      (format "Long count = %s; tzolkin = %s; haab = %s"
+              (calendar-mayan-long-count-to-string long-count)
+              (calendar-mayan-tzolkin-to-string tzolkin)
+              (calendar-mayan-haab-to-string haab))))
+
+(defun calendar-print-mayan-date ()
+  "Show the Mayan long count, tzolkin, and haab equivalents of date."
+  (interactive)
+  (message "Mayan date: %s"
+           (calendar-mayan-date-string
+            (or (calendar-cursor-to-date)
+                (error "Cursor is not on a date!")))))
 
 (defun calendar-goto-mayan-long-count-date (date &optional noecho)
   "Move cursor to Mayan long count DATE.  Echo Mayan date unless NOECHO is t."
@@ -372,14 +379,7 @@ Long count is a list (baktun katun tun uinal kin)"
 
 (defun diary-mayan-date ()
   "Show the Mayan long count, haab, and tzolkin dates as a diary entry."
-  (let* ((d (calendar-absolute-from-gregorian date))
-         (tzolkin (calendar-mayan-tzolkin-from-absolute d))
-         (haab (calendar-mayan-haab-from-absolute d))
-         (long-count (calendar-mayan-long-count-from-absolute d)))
-    (format "Mayan date: Long count = %s; tzolkin = %s; haab = %s"
-            (calendar-mayan-long-count-to-string  long-count)
-            (calendar-mayan-tzolkin-to-string haab)
-            (calendar-mayan-haab-to-string tzolkin))))
+  (format "Mayan date: %s" (calendar-mayan-date-string date)))
 
 (provide 'cal-mayan)
 
