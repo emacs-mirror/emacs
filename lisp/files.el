@@ -652,7 +652,11 @@ The buffer is not selected, just returned to the caller."
 	     ;; Run find-file-not-found-hooks until one returns non-nil.
 	     (let ((hooks find-file-not-found-hooks))
 	       (while (and hooks
-			   (not (funcall (car hooks))))
+			   (not (and (funcall (car hooks))
+				     ;; If a hook succeeded, clear error.
+				     (progn (setq error nil)
+					    ;; Also exit the loop.
+					    t))))
 		 (setq hooks (cdr hooks))))))
 	  ;; Find the file's truename, and maybe use that as visited name.
 	  (setq buffer-file-truename (abbreviate-file-name truename))
