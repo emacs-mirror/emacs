@@ -1,3 +1,7 @@
+2001-11-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Configure in `lispref'.
+
 2001-11-09  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (bootstrap-lisp): Don't suppress error messages.
