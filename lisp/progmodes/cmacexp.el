@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.9 1994/02/07 05:40:46 rms Exp rms $
+;; Version: $Id: cmacexp.el,v 1.10 1994/02/25 06:27:24 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -23,35 +23,23 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Commentary:
+;; USAGE =============================================================
 
 ;; In C mode C-M-x is bound to c-macro-expand.  The result of the
-;; expansion is put in a separate buffer.  A user option
+;; expansion is put in a separate buffer.  The buffer is put in
+;; view-mode if the Inge Frick's view.el is installed.  A user option
 ;; allows the window displaying the buffer to be optimally sized.
 ;;
 ;; When called with a C-u prefix, c-macro-expand replaces the selected
-;; region with the expansion.  With two C-u's the user is offered to
-;; change the flags to the preprocessor (while the results of the
-;; expansion go to a separate buffer).  Preprocessor arguments default
-;; to the last ones entered.  Both the preprocessor name and the
-;; initial flag defaults can be set by the user.  Setting
-;; c-macro-always-prompt to a non-nil value allows one to be always
-;; prompted for the flags, regardless of the prefix used.
+;; region with the expansion.  Both the preprocessor name and the
+;; initial flag can be set by the user.  If c-macro-prompt-p
+;; is set to a non-nil value the user is offered to change the flags
+;; to the preprocessor each time c-macro-expand is invoked.
+;; Preprocessor arguments default to the last ones entered.
+;; If c-macro-prompt is nil, one must use M-x set-variable to set a
+;; different value for c-macro-cppflags.
 
 ;; A c-macro-expansion function is provided for non-interactive use.
-;; A still experimental function c-macro-eval is provided.  It aims at
-;; evaluating the contents of a region by using calc (by Dave
-;; Gillespie).  Select a region and type C-x C-e (if you followed the
-;; suggestions in the INSTALLATION section) or type M-x c-ma RET v
-;; RET.  If you have calc installed, the computed value of the
-;; expression will appear in the message area.  If you give an
-;; interactive C-u prefix the computed value will be shown in signed,
-;; unsigned, hex and boolean representations.  Two C-u's allow to
-;; change the preprocessor flags via prompt.  c-macro-eval works well
-;; for constant expressions, but see the BUG section.
-
-;; A patch to calc 2.02 has been written by Dave Gillespie.  It can
-;; be downloaded via anonymous ftp at fly.cnuce.cnr.it:pub/calc.diff.
 
 ;; INSTALLATION ======================================================
 
@@ -61,9 +49,11 @@
 ;; To make a directory ~/emacs be in front of your load-path:
 ;;(setq load-path (cons (expand-file-name "~/emacs") load-path))
 ;;
-;; Suggested keybindings (work only in c-mode):
-;;(define-key c-mode-map "\C-\M-x" 'c-macro-expand)
-;;(define-key c-mode-map "\C-x\C-e" 'c-macro-eval)
+;; Suggested keybinding (work only in c-mode):
+;;(if (boundp 'c-mode-map)
+;;  (define-key c-mode-map "\C-x\C-e" 'c-macro-expand))
+;;(if (boundp 'c++-mode-map)
+;;  (define-key c++-mode-map "\C-x\C-e" 'c-macro-expand))
 ;;
 ;; If you want the *Macroexpansion* window to be not higher than
 ;; necessary: 
@@ -74,18 +64,11 @@
 ;; strip the comments):
 ;;(setq c-macro-preprocessor "gpp -C")
 ;;
-;; If you often use a particular set of flags, and want them to be
-;; the default:
-;;(setq c-macro-default-cppflags "-I /usr/include/local -DDEBUG"
+;; If you often use a particular set of flags:
+;;(setq c-macro-cppflags "-I /usr/include/local -DDEBUG"
 ;;
-;; If you always want the "Preprocessor arguments: " prompt,
-;; regardless of the arguments provided:
-;;(setq c-macro-always-prompt-p t)
-;;
-;; If you want to experiment with the C constant expressions
-;; evaluation feature:
-;;(autoload 'c-macro-eval "cmacexp"
-;;  "C constant expressions evaluation.  Requires calc.  Experimental." t)
+;; If you want the "Preprocessor arguments: " prompt:
+;;(setq c-macro-prompt-p t)
 
 ;; BUG REPORTS =======================================================
 
@@ -108,31 +91,29 @@
 ;; ACKNOWLEDGEMENTS ==================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug
-;; reporting and suggestion of new features and to Dave Gillespie for
-;; his suggestions about calc.  This work has been partially inspired by
-;; Don Maszle and Jonathan Segal's.
+;; reporting and suggestion of new features and to Inge Fricks for her
+;; help with view.el.  This work has been partially inspired by Don
+;; Maszle and Jonathan Segal's.
+
+;; By the way, I recommend you Inge Frick's view.el.  It works like
+;; the standard view, but *it is not recursive* and has some more
+;; commands.  Moreover it is a minor mode, so you preserve all your
+;; major mode keybindings (well, not always :).  Mail me to obtain a
+;; copy, or get it by anonymous ftp in fly.cnuce.cnr.it:pub/view.el.
 
 ;; BUGS ==============================================================
-
-;; calc 2.02 does not handle the C operators "->", ".", "*" (as a
-;; prefix), the composite assignement operators "+=" etc.  It cannot
-;; handle the "," operator and will be confused by ";".  Almost all
-;; these can be defined as no-ops using the Calc's Syntax Tables
-;; feature.  The built-in calc functions will cause problems in
-;; certain circumstances.  c-macro-eval behaves correctly only on
-;; expressions not containing such operators.  Does not distinguish
-;; among integer and real division.
 
 ;; If the start point of the region is inside a macro definition the
 ;; macro expansion is often inaccurate.
 
-;;; Code:
+
+(provide 'cmacexp)
 
 (defvar c-macro-shrink-window-p nil
   "*Non-nil means shrink the *Macroexpansion* window to fit its contents.")
 
-(defvar c-macro-always-prompt-p nil
-  "*Non-nil means always prompt for preprocessor arguments.")
+(defvar c-macro-prompt-p nil
+  "*Non-nil makes c-macro-expand prompt for preprocessor arguments.")
 
 (defvar c-macro-preprocessor "/lib/cpp -C" "\
 The preprocessor used by the cmacexp package.
@@ -140,33 +121,37 @@ The preprocessor used by the cmacexp package.
 If you change this, be sure to preserve the -C (don't strip comments)
 option, or to set an equivalent one.")
 
-(defvar c-macro-default-cppflags ""
-  "Default cpp flags used by c-macro-expand.")
+(defvar c-macro-cppflags ""
+  "*Preprocessor flags used by c-macro-expand.")
 
 (defconst c-macro-buffer-name "*Macroexpansion*")
 
-(defun c-macro-expand (start end &optional flag) "\
+(defun c-macro-expand (start end subst) "\
 Expand all C macros occurring in the region using c-macro-preprocessor.
 Normally display output in temp buffer.
 Prefix arg means replace the region with it.
-Prompt for a string of arguments to the preprocessor, (e.g.
--DDEBUG -I ./include) when prefixed with two C-u's.
+Prompt for a string of arguments to the preprocessor
+\(e.g. -DDEBUG -I ./include) if the user option c-macro-prompt-p is non-nil.
 
-It is intended for interactive use only.
-For non interactive use, see the c-macro-expansion function."
+Noninteractive args are START, END, SUBST.
+For use inside programs see also c-macro-expansion."
 
   (interactive "r\nP")
-  (let* ((subst (and flag (not (equal flag '(16)))))
-	 (inbuf (current-buffer))
-	 (displaybuf (if subst
-			 (get-buffer c-macro-buffer-name)
-		       (get-buffer-create c-macro-buffer-name)))
-	 (expansion ""))
+  (let ((inbuf (current-buffer))
+	(displaybuf (if subst
+			(get-buffer c-macro-buffer-name)
+		      (get-buffer-create c-macro-buffer-name)))
+	(expansion "")
+	(mymsg ""))
     ;; Build the command string.
-    (if (or c-macro-always-prompt-p (equal flag '(16)))
-	(setq c-macro-default-cppflags
+    (if c-macro-prompt-p
+	(setq c-macro-cppflags
 	      (read-string "Preprocessor arguments: "
-			   c-macro-default-cppflags)))
+			   c-macro-cppflags)))
+    (setq mymsg (format "Invoking %s%s%s on region..."
+			c-macro-preprocessor
+			(if (string= "" c-macro-cppflags) "" " ")
+			c-macro-cppflags))
     ;; Decide where to display output.
     (if (and subst
 	     (and buffer-read-only (not inhibit-read-only))
@@ -179,12 +164,11 @@ For non interactive use, see the c-macro-expansion function."
 	  (or displaybuf
 	      (setq displaybuf (get-buffer-create c-macro-buffer-name)))))
     ;; Expand the macro and output it.
-    (if (interactive-p) (message (c-macro-default-message)))
-    (setq expansion
-	  (c-macro-expansion start end
-			     (concat c-macro-preprocessor " "
-				     c-macro-default-cppflags)))
-    (message (concat (c-macro-default-message) "done"))
+    (message mymsg)
+    (setq expansion (c-macro-expansion start end
+				       (concat c-macro-preprocessor " "
+					       c-macro-cppflags)))
+    (message (concat mymsg "done"))
     (if subst
 	(let ((exchange (= (point) start)))
 	  (delete-region start end)
@@ -199,16 +183,16 @@ For non interactive use, see the c-macro-expansion function."
       (set-buffer-modified-p nil)
       (if (string= "" expansion)
 	  (message "Null expansion")
-	(c-macro-display-buffer inbuf))
+	(c-macro-display-buffer))
       (setq buffer-read-only t)
+      (setq buffer-auto-save-file-name nil)
       (bury-buffer displaybuf))))
 
 
 ;; Display the current buffer in a window which is either just large
 ;; enough to contain the entire buffer, or half the size of the
-;; screen, whichever is smaller.  Put the current buffer in view-mode
-;; if the Inge Frick's view-mode is installed, with buffer to return
-;; to set to RETBUF (if sensible). Do not select the new window.
+;; screen, whichever is smaller.  Do not select the new
+;; window.
 ;;
 ;; Several factors influence window resizing so that the window is
 ;; sized optimally if it is created anew, and so that it is messed
@@ -218,7 +202,7 @@ For non interactive use, see the c-macro-expansion function."
 ;; buffer, it is never shrunk, but possibly expanded.  Finally, if the
 ;; variable c-macro-shrink-window-p is nil the window size is *never*
 ;; changed.
-(defun c-macro-display-buffer (retbuf)
+(defun c-macro-display-buffer ()
 
   (goto-char (point-min))
   (c-mode)
@@ -244,17 +228,17 @@ For non interactive use, see the c-macro-expansion function."
 	    (setq maxheight (/ (screen-height) 2))
 	    (enlarge-window (- (min maxheight
 				    (max minheight
-					 (+ 2 (vertical-motion 1000000))))
+					 (+ 2 (vertical-motion (point-max)))))
 			       (window-height)))
 	    (goto-char (point-min))
 	    (select-window oldwin))))))
 
 
 (defun c-macro-expansion (start end cppcommand) "\
-Expands the region between START and END in the current buffer using
-the shell command CPPCOMMAND (e.g. \"/lib/cpp -C -DDEBUG\").  Be sure
-to use a -C (don't strip comments) or equivalent option.
-Returns the output as a string."
+Run a preprocessor on region and return the output as a string.
+Expand the region between START and END in the current buffer using
+the shell command CPPCOMMAND (e.g. \"/lib/cpp -C -DDEBUG\").
+Be sure to use a -C (don't strip comments) or equivalent option."
 
 ;; Copy the current buffer's contents to a temporary hidden buffer.
 ;; Delete from END to end of buffer.  Insert a preprocessor #line
@@ -305,7 +289,7 @@ Returns the output as a string."
 					 ;comment nor after quote
 		(progn
 		  (goto-char (match-end 0))
-;;		  (setq linenum (count-lines 1 (point)))
+;;;		  (setq linenum (count-lines 1 (point)))
 		  (setq linelist
 			;; This used to be a #line command
 			;; but it's not guaranteed that the output
@@ -330,9 +314,11 @@ Returns the output as a string."
 			(startincomment (nth 4 startstat))
 			(startafterquote (nth 5 startstat)))
 		   (concat (if startafterquote " ")
-			   (cond (startinstring "\"") (startincomment "*/"))
+			   (cond (startinstring (char-to-string startinstring))
+				 (startincomment "*/"))
 			   (format "\n???!!!???!!!!")
-			   (cond (startinstring "\"") (startincomment "/*"))
+			   (cond (startinstring (char-to-string startinstring))
+				 (startincomment "/*"))
 			   (if startafterquote "\\")))
 		 linelist))
 	  (insert (car linelist))
@@ -353,91 +339,4 @@ Returns the output as a string."
       ;; Cleanup.
       (kill-buffer outbuf))))
 
-
-;; Experimental.  With an argument, print signed, unsigned, hex and
-;; boolean representations.
-(defun c-macro-eval (start end &optional flag) "\
-Expand region using cpp and evaluate it using calc.
-Interactively print value in minibuffer and push it on the kill ring.
-With a C-u argument shows the evaluation in a variety of formats.
-With two C-u's prompts the user for a string of flags to the preprocessor.
-
-Non interactively returns value of region between START and END
-as a string.  Several formats are used if optional FLAG is non-nil."
-
-  (interactive "r\nP")
-  (or (fboundp 'calc-eval)
-      (require 'calc))
-  (if (or c-macro-always-prompt-p (equal flag '(16)))
-      (setq c-macro-default-cppflags
-	    (read-string "Preprocessor arguments: "
-			 c-macro-default-cppflags)))
-
-  ;; Expand the region.
-  (if (interactive-p) (message (c-macro-default-message)))
-  (let ((evaluation
-	 (c-macro-expansion start end
-			    (concat c-macro-preprocessor " "
-				    c-macro-default-cppflags)))
-	(evalbuf (get-buffer-create " *Macro Evaluation*")))
-    (unwind-protect
-	(save-excursion
-	  (set-buffer evalbuf)
-	  (setq buffer-read-only nil)
-	  (erase-buffer)
-	  (insert evaluation)
-
-	  ;; Evaluate expression(s).
-	  (if (interactive-p)
-	      (message "Invoking calc..."))
-	  (setq evaluation
-		(let ((calc-eval-error t))
-		  (calc-eval (list (buffer-string) 'calc-language 'c))))
-	  (erase-buffer)
-	  (cond
-	   (flag
-	    (insert (calc-eval (list evaluation
-				     'calc-language 'c
-				     'calc-simplify-mode 'binary))
-		    "(u)" " == "
-		    (calc-eval (list evaluation
-				     'calc-language 'c
-				     'calc-word-size (- calc-word-size)
-				     'calc-simplify-mode 'binary))
-		    "(d)" " == "
-		    (calc-eval (list evaluation
-				     'calc-language 'c
-				     'calc-number-radix 16
-				     'calc-simplify-mode 'binary))
-		    "(x)")
-	    (save-excursion
-	      (insert " == " (calc-eval (list evaluation
-					      'calc-language 'c
-					      'calc-number-radix 16
-					      'calc-simplify-mode 'binary))))
-	    (while (re-search-forward "0x\\([^,]+\\)\\(, \\|\\'\\)" nil t)
-	      (if (string= "0"
-			   (buffer-substring (match-beginning 1)
-					     (match-end 1)))
-		  (replace-match "FALSE\\2")
-		(replace-match "TRUE\\2"))))
-	   (t
-	    (insert evaluation)))
-
-	  ;; Output the evaluation.
-	  (if (interactive-p)
-	      (progn
-		(copy-region-as-kill 1 (point-max))
-		(message (buffer-string)))
-	    (buffer-string)))
-      (kill-buffer evalbuf))))
-
-(defun c-macro-default-message ()
-  (format "Invoking %s%s%s on region..."
-	  c-macro-preprocessor
-	  (if (string= "" c-macro-default-cppflags) "" " ")
-	  c-macro-default-cppflags))
-
-(provide 'cmacexp)
-
-;;; cmacexp.el ends here.
+;;; cmacexp.el ends here
