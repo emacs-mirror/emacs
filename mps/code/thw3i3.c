@@ -1,7 +1,7 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
  * $Id$
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * Implements thread registration, suspension, and stack
  * scanning.  See design.mps.thread-manager

@@ -2,7 +2,7 @@
 # impl.sh.hqbuild
 #
 # $Id$
-# Copyright (C) 1996 Harlequin Group, all rights reserved
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # Build script for SWIG autobuild system.
 # The SWIG autobuild system expects to execute this file passing it

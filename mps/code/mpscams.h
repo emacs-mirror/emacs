@@ -1,7 +1,7 @@
 /* impl.h.mpscams: MEMORY POOL SYSTEM CLASS "AMS"
  *
  * $Id$
- * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  */
 
 #ifndef mpscams_h

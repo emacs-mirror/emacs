@@ -1,7 +1,7 @@
 /* impl.h.meter: METER INTERFACE
  *
  * $Id$
- * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: mps.design.metrics.
  *

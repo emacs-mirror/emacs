@@ -1,5 +1,5 @@
 /* impl.h.table: Interface for a dictionary
- * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
  */

@@ -1,7 +1,7 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: design.mps.poolamc.
  */

@@ -1,7 +1,7 @@
 /* impl.c.event: EVENT LOGGING
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .sources: mps.design.event
  *

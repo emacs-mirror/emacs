@@ -1,7 +1,7 @@
 /* impl.c.btss: BIT TABLE COVERAGE TEST
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers
  *

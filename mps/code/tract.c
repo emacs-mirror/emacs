@@ -1,7 +1,7 @@
 /* impl.c.tract: PAGE TABLES
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
  * free but never allocated as alloc starts searching after the tables.

@@ -1,7 +1,7 @@
 /* impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .design: See design.mps.vm.
  *

@@ -1,7 +1,7 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * This source provides the AssertFail function which is
  * invoked by the assertion macros (see impl.h.assert).

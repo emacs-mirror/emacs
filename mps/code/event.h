@@ -1,6 +1,6 @@
 /* impl.h.event -- Event Logging Interface
  *
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  * $Id$
  *
  * READERSHIP

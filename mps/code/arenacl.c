@@ -1,7 +1,7 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  * 
  * .design: See design.mps.arena.client.
  * 

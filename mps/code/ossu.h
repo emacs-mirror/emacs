@@ -2,7 +2,7 @@
  *
  *  $Id$
  *
- *  Copyright (C) 1997 Harlequin Limited.  All rights reserved.
+ *  Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This header defines some things which are part of the ANSI
  * standard but missing from the C compiler / environment.

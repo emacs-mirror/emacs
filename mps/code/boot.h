@@ -1,7 +1,7 @@
 /* impl.h.boot: BOOTSTRAP ALLOCATOR INTERFACE
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .overview:  A protocol for allocating memory from a given block.
  */

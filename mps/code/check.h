@@ -1,7 +1,7 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
  * These macros should be used to instrument and annotate code with

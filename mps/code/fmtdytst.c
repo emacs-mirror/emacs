@@ -1,7 +1,7 @@
 /* impl.c.fmtdytst: DYLAN FORMAT TEST CODE
  *
  * $Id$
- * Copyright (C) 1998 Harlequin Group.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers, Dylan developers.
  */

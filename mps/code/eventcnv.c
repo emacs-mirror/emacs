@@ -1,5 +1,5 @@
 /* impl.c.eventcnv: Simple event log converter
- * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * $Id$
  */

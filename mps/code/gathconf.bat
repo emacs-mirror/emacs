@@ -1,7 +1,7 @@
 @rem impl.bat.gathconf: GATHERING A RELEASE FOR CONFIGURA
 @rem
 @rem $Id$
-@rem Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+@rem Copyright (c) 2001 Ravenbrook Limited.
 
 mkdir release
 mkdir release\include

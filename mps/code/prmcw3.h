@@ -1,7 +1,7 @@
 /* impl.h.prmcw3:  PROTECTION FOR WIN32
  *
  * $Id$
- * Copyright (C) 1998, 1999 The Harlequin Group Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers.
  */

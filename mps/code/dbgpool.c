@@ -1,7 +1,7 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .source: design.mps.object-debug
  */

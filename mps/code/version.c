@@ -1,7 +1,7 @@
 /* impl.c.version: VERSION INSPECTION
  *
  * $Id$
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * PURPOSE
  *
@@ -38,7 +38,7 @@ SRCID(version, "$Id$");
  */
 
 char MPSCopyrightNotice[] =
-  "Copyright (C) 2000 Harlequin Limited.  All rights reserved.";
+  "Copyright (c) 2001 Ravenbrook Limited.";
 
 
 /* MPSVersion -- return version string

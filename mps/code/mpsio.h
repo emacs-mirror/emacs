@@ -1,7 +1,7 @@
 /* impl.h.mpsio: HARLEQUIN MEMORY POOL SYSTEM I/O INTERFACE
  *
  * $Id$
- * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: For MPS client application developers, MPS developers.
  * .sources: design.mps.io

@@ -1,7 +1,7 @@
 # impl.gmk.sos8cx: BUILD FOR SOLARIS/SPARC v8/CXREF PLATFORM
 #
 # $Id$
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# Copyright (c) 2001 Ravenbrook Limited.
 #
 # Instead of compiling object files, this platform (using the cxref
 # builder) generates a C cross reference listing.

@@ -1,7 +1,7 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.

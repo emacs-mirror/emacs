@@ -1,6 +1,6 @@
 @REM impl.bat.hqbuild: setup for SWIG autobuild system
 @REM $Id$
-@REM Copyright (C) 1996-1998 Harlequin Group plc.  All rights reserved.
+@REM Copyright (c) 2001 Ravenbrook Limited.
 @REM Called by SWIG autobuild system
 @
 @REM we expect whatcom to have set MSVCNT and possibly MSMASM and MSTOOLS

@@ -1,7 +1,7 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * impl.h.mps, and the internal MPM interfaces, as defined by

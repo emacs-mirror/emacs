@@ -1,7 +1,7 @@
 /* impl.h.prmci3: PROTECTION MUTATOR CONTEXT (Intel 386)
  *
  * $Id$
- * Copyright (C) 1999 The Harlequin Group Limited.  All rights reserved.
+ * Copyright (c) 2001 Ravenbrook Limited.
  *
  * .readership: MPS developers.
  */

@@ -1,7 +1,7 @@
  # impl.s.sso1al: STACK SCANNING FOR DIGITAL UNIX / ALPHA
  #
  # $Id$
- # Copyright (C) 1997 Harlequin Group, all rights reserved
+ # Copyright (c) 2001 Ravenbrook Limited.
  #
  # .readership: Any MPS developer that is prepared to read Alpha
  # assembly code in DIGITAL UNIX 'as' syntax.
