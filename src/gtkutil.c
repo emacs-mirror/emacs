@@ -2740,7 +2740,14 @@ update_frame_tool_bar (f)
 
       img_id = lookup_image (f, image);
       img = IMAGE_FROM_ID (f, img_id);
+      prepare_image_for_display (f, img);
 
+      if (img->load_failed_p || img->pixmap == None)
+        {
+          if (wicon) gtk_widget_hide (wicon);
+          continue;
+        }
+          
       if (! wicon)
         {
           GdkPixmap *gpix = gdk_pixmap_foreign_new (img->pixmap);

@@ -1,3 +1,8 @@
+2003-01-26  Jan D.  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Call prepare_image_for_display
+	and handle image load failure.
+
 2003-01-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (init_jpeg_functions, jpeg_resync_to_restart_wrapper):
