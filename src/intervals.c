@@ -898,8 +898,9 @@ merge_properties_sticky (pleft, pright)
 {
   register Lisp_Object props, front, rear;
   Lisp_Object lfront, lrear, rfront, rrear;
-  register Lisp_Object tail1, tail2, sym, lval, rval;
+  register Lisp_Object tail1, tail2, sym, lval, rval, cat;
   int use_left, use_right;
+  int lpresent;
 
   props = Qnil;
   front = Qnil;
@@ -922,21 +923,27 @@ merge_properties_sticky (pleft, pright)
       for (tail2 = pleft; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
 	if (EQ (sym, Fcar (tail2)))
 	  break;
-      lval = (NILP (tail2) ? Qnil : Fcar( Fcdr (tail2)));
 
-      use_left = ! TMEM (sym, lrear);
+      /* Indicate whether the property is explicitly defined on the left.
+	 (We know it is defined explicitly on the right
+	 because otherwise we don't get here.)  */
+      lpresent = ! NILP (tail2);
+      lval = (NILP (tail2) ? Qnil : Fcar (Fcdr (tail2)));
+
+      use_left = ! TMEM (sym, lrear) && lpresent;
       use_right = TMEM (sym, rfront);
       if (use_left && use_right)
 	{
-	  use_left = ! NILP (lval);
-	  use_right = ! NILP (rval);
+	  if (NILP (lval))
+	    use_left = 0;
+	  else if (NILP (rval))
+	    use_right = 0;
 	}
       if (use_left)
 	{
 	  /* We build props as (value sym ...) rather than (sym value ...)
 	     because we plan to nreverse it when we're done.  */
-	  if (! NILP (lval))
-	    props = Fcons (lval, Fcons (sym, props));
+	  props = Fcons (lval, Fcons (sym, props));
 	  if (TMEM (sym, lfront))
 	    front = Fcons (sym, front);
 	  if (TMEM (sym, lrear))
@@ -944,8 +951,7 @@ merge_properties_sticky (pleft, pright)
 	}
       else if (use_right)
 	{
-	  if (! NILP (rval))
-	    props = Fcons (rval, Fcons (sym, props));
+	  props = Fcons (rval, Fcons (sym, props));
 	  if (TMEM (sym, rfront))
 	    front = Fcons (sym, front);
 	  if (TMEM (sym, rrear))
@@ -974,8 +980,7 @@ merge_properties_sticky (pleft, pright)
       /* Since rval is known to be nil in this loop, the test simplifies.  */
       if (! TMEM (sym, lrear))
 	{
-	  if (! NILP (lval))
-	    props = Fcons (lval, Fcons (sym, props));
+	  props = Fcons (lval, Fcons (sym, props));
 	  if (TMEM (sym, lfront))
 	    front = Fcons (sym, front);
 	}
@@ -991,7 +996,14 @@ merge_properties_sticky (pleft, pright)
   props = Fnreverse (props);
   if (! NILP (rear))
     props = Fcons (Qrear_nonsticky, Fcons (Fnreverse (rear), props));
-  if (! NILP (front))
+
+  cat = textget (props, Qcategory);
+  if (! NILP (front)
+      && 
+      /* If we have inherited a front-stick category property that is t,
+	 we don't need to set up a detailed one.  */
+      ! (! NILP (cat) && SYMBOLP (cat)
+	 && EQ (Fget (cat, Qfront_sticky), Qt)))
     props = Fcons (Qfront_sticky, Fcons (Fnreverse (front), props));
   return props;
 }
