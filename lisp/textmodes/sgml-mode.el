@@ -287,6 +287,7 @@ varables of same name)."
   (make-local-variable 'indent-line-function)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
+  (make-local-variable 'adaptive-fill-regexp)
   (make-local-variable 'sgml-saved-validate-command)
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
