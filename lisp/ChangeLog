@@ -1,3 +1,9 @@
+2003-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-fontify-node): Don't refill over lines ending in a
+	period; this should fix problems with lists like one in the
+	(emacs)Library Keywords section.
+
 2003-06-05  Markus Rost  <rost@math.ohio-state.edu>
 
 	* dired.el (dired-get-filename): Don't err for . and .. for calls
