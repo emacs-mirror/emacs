@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.63 $
+;; Version: $Revision: 1.64 $
 
 ;; This file is part of GNU Emacs.
 
@@ -132,7 +132,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.63 $")
+(defconst tcl-version "$Revision: 1.64 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1877,7 +1877,7 @@ Parts of this were taken from `indent-for-comment'."
 		(backward-char))))))
   ;; Point is just after the "#" starting a comment.  Move it as
   ;; appropriate.
-  (let* ((indent (funcall comment-indent-function))
+  (let* ((indent (or (funcall comment-indent-function) comment-column))
 	 (begpos (progn
 		   (backward-char)
 		   (point))))

@@ -1,3 +1,8 @@
+2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/tcl.el (tcl-indent-for-comment): Handle the case where
+	`comment-indent-function' returns nil.
+
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-system-coding-system): Initialize from
