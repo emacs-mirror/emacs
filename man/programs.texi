@@ -1558,7 +1558,6 @@ Hide all blocks @var{n} levels below this block
 @end table
 
 @vindex hs-hide-comments-when-hiding-all
-@vindex hs-show-hidden-short-form
 @vindex hs-isearch-open
 @vindex hs-special-modes-alist
   These user options exist for customizing Hideshow mode.
@@ -1566,9 +1565,6 @@ Hide all blocks @var{n} levels below this block
 @table @code
 @item hs-hide-comments-when-hiding-all
 Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
-@item hs-show-hidden-short-form
-Non-@code{nil} says to omit the last line in a form (saving screen
-space).
 @item hs-isearch-open
 Specifies what kind of hidden blocks to open in Isearch mode.
 @item hs-special-modes-alist
