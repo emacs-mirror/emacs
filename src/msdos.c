@@ -813,6 +813,9 @@ IT_set_menu_bar_lines (window, n)
 
 /* This was copied from xfns.c  */
 
+Lisp_Object Qbackground_color;
+Lisp_Object Qforeground_color;
+
 void
 x_set_menu_bar_lines (f, value, oldval)
      struct frame *f;
