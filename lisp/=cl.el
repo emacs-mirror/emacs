@@ -4,7 +4,7 @@
 ;; Author: Cesar Quiroz <quiroz@cs.rochester.edu>
 ;; Keywords: extensions
 
-(defvar cl-version "3.0 beta 01 November 1992")
+(defvar cl-version "3.0	07-February-1993")
 
 ;; This file is part of GNU Emacs.
 
