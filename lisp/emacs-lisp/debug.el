@@ -40,6 +40,8 @@
   "This is the buffer that was current when the debugger was entered.")
 
 (defvar debugger-outer-match-data)
+(defvar debugger-outer-load-read-function)
+(defvar debugger-outer-overriding-local-map)
 (defvar debugger-outer-track-mouse)
 (defvar debugger-outer-last-command)
 (defvar debugger-outer-this-command)
@@ -77,6 +79,8 @@ first will be printed into the backtrace buffer."
 	;; Save the outer values of these vars for the `e' command
 	;; before we replace the values.
 	(debugger-outer-match-data (match-data))
+	(debugger-outer-load-read-function load-read-function)
+	(debugger-outer-overriding-local-map overriding-local-map)
 	(debugger-outer-track-mouse track-mouse)
 	(debugger-outer-last-command last-command)
 	(debugger-outer-this-command this-command)
@@ -94,6 +98,8 @@ first will be printed into the backtrace buffer."
 	  (unread-command-char -1) unread-command-events
 	  last-input-event last-command-event last-nonmenu-event
 	  last-event-frame
+	  overriding-local-map
+	  load-read-function
 	  (standard-input t) (standard-output t)
 	  (cursor-in-echo-area nil))
       (unwind-protect
@@ -169,6 +175,8 @@ first will be printed into the backtrace buffer."
 	(store-match-data debugger-outer-match-data)))
     ;; Put into effect the modified values of these variables
     ;; in case the user set them with the `e' command.
+    (setq load-read-function debugger-outer-load-read-function)
+    (setq overriding-local-map debugger-outer-overriding-local-map)
     (setq track-mouse debugger-outer-track-mouse)
     (setq last-command debugger-outer-last-command)
     (setq this-command debugger-outer-this-command)
@@ -314,10 +322,14 @@ Applies to the frame whose line point is on in the backtrace."
 	  (last-event-frame debugger-outer-last-event-frame)
 	  (standard-input debugger-outer-standard-input)
 	  (standard-output debugger-outer-standard-output)
-	  (cursor-in-echo-area debugger-outer-cursor-in-echo-area))
+	  (cursor-in-echo-area debugger-outer-cursor-in-echo-area)
+	  (overriding-local-map debugger-outer-overriding-local-map)
+	  (load-read-function debugger-outer-load-read-function))
       (store-match-data debugger-outer-match-data)
       (prog1 (eval-expression exp)
 	(setq debugger-outer-match-data (match-data))
+	(setq debugger-outer-load-read-function load-read-function)
+	(setq debugger-outer-overriding-local-map overriding-local-map)
 	(setq debugger-outer-track-mouse track-mouse)
 	(setq debugger-outer-last-command last-command)
 	(setq debugger-outer-this-command this-command)
