@@ -1489,7 +1489,11 @@ init_callproc ()
 #ifndef DOS_NT
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
       if (NILP (Fmember (tem, Vexec_path)))
-	Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
+	{
+	  Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC);
+	  Vexec_path = Fcons (tem, Vexec_path);
+	  Vexec_path = nconc2 (decode_env_path ("PATH", ""), Vexec_path);
+	}
       
       Vexec_directory = Ffile_name_as_directory (tem);
 #endif /* not DOS_NT */
@@ -1512,12 +1516,15 @@ init_callproc ()
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, tem1, newdir;
+      Lisp_Object tem, tem1, srcdir;
 
+      srcdir = Fexpand_file_name (build_string ("../src/"),
+				  build_string (PATH_DUMPLOADSEARCH));
       tem = Fexpand_file_name (build_string ("GNU"), Vdata_directory);
       tem1 = Ffile_exists_p (tem);
-      if (NILP (tem1))
+      if (!NILP (Fequal (srcdir, Vinvocation_directory)) || NILP (tem1))
 	{
+	  Lisp_Object newdir;
 	  newdir = Fexpand_file_name (build_string ("../etc/"),
 				      build_string (PATH_DUMPLOADSEARCH));
 	  tem = Fexpand_file_name (build_string ("GNU"), newdir);
