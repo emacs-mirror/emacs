@@ -450,6 +450,14 @@ is okay.  See `mode-line-format'.")
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
 
+;; Suffixes used for executables.
+(setq exec-suffixes
+      (cond
+       ((memq system-type '(ms-dos windows-nt))
+	'(".exe" ".com" ".bat" ".cmd" ".btm" ""))
+       (t
+	'(""))))
+
 ;; Packages should add to this list appropriately when they are
 ;; loaded, rather than listing everything here.
 (setq debug-ignored-errors
