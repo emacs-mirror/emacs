@@ -3678,11 +3678,13 @@ Optional EVENT is the location for the menu."
 (defcustom custom-file nil
   "File used for storing customization information.
 The default is nil, which means to use your init file
-as specified by `user-init-file'.  To make this feature work,
-you'll need to put something in your init file to specify
-the value of `custom-file'.  Just customizing the variable
-won't suffice, because Emacs won't know which file to load
-unless the init file sets `custom-file'.
+as specified by `user-init-file'.  If the value is not nil,
+it should be an absolute file name.
+
+To make this feature work, you'll need to put something in your
+init file to specify the value of `custom-file'.  Just
+customizing the variable won't suffice, because Emacs won't know
+which file to load unless the init file sets `custom-file'.
 
 When you change this variable, look in the previous custom file
 \(usually your init file) for the forms `(custom-set-variables ...)'
