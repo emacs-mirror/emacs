@@ -52,6 +52,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    This ought to be built in in stdio, but it isn't.
    Some s- files override this because their stdio internals differ.  */
 #ifdef __GNU_LIBRARY__
+/* The s- file might have overridden the definition with one that works for
+   the system's C library.  But we are using the GNU C library, so this is
+   the right definition for every system.  */
 #undef	PENDING_OUTPUT_COUNT
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__bufp - (FILE)->__buffer)
 #else
