@@ -222,7 +222,8 @@
 ;; Variables
 
 (eval-when-compile (require 'thingatpt)
-                   (require 'term))
+                   (require 'term)
+		   (require 'w3-auto nil t))
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
@@ -491,10 +492,12 @@ negation if a prefix argument was given."
 	(not (eq (null browse-url-new-window-p)
 		 (null current-prefix-arg)))))
 
-(defun browse-url-maybe-new-window (arg interactive)
-  (if interactive
-      arg
-    browse-url-new-window-p))
+;; interactive-p needs to be called at a function's top-level, hence
+;; the macro.
+(defmacro browse-url-maybe-new-window (arg)
+  `(if (interactive-p)
+       'arg
+     browse-url-new-window-p))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browse current buffer
@@ -713,7 +716,7 @@ used instead of `browse-url-new-window-p'."
 				  (list "-remote"
 					(concat "openURL(" url
 						(if (browse-url-maybe-new-window
-						     new-window (interactive-p))
+						     new-window)
 						    ",new-window")
 						")")))))))
     (set-process-sentinel process
@@ -780,7 +783,7 @@ used instead of `browse-url-new-window-p'."
 	(save-excursion
 	  (find-file (format "/tmp/Mosaic.%d" pid))
 	  (erase-buffer)
-	  (insert (if (browse-url-maybe-new-window new-window (interactive-p))
+	  (insert (if (browse-url-maybe-new-window new-window)
 		      "newwin\n"
 		      "goto\n")
 		  url "\n")
@@ -847,8 +850,7 @@ used instead of `browse-url-new-window-p'."
   ;; Todo: start browser if fails
   (process-send-string "browse-url"
 		       (concat "get url (" url ") output "
-			       (if (browse-url-maybe-new-window
-				    new-window (interactive-p))
+			       (if (browse-url-maybe-new-window new-window)
 				   "new"
 				 "current")
 			       "\r\n"))
@@ -880,8 +882,9 @@ prefix argument reverses the effect of `browse-url-new-window-p'.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
   (interactive (browse-url-interactive-arg "W3 URL: "))
-  (if (browse-url-maybe-new-window new-window (interactive-p))
-      (w3-fetch-other-window)
+  (require 'w3)				; w3-fetch-other-window not autoloaded
+  (if (browse-url-maybe-new-window new-window)
+      (w3-fetch-other-window url)
     (w3-fetch url)))
 
 ;;;###autoload
@@ -929,13 +932,13 @@ used instead of `browse-url-new-window-p'."
 	 (buf (get-buffer "*lynx*"))
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-lynx-input-attempts))
-    (if (and (browse-url-maybe-new-window new-buffer (interactive-p)) buf)
+    (if (and (browse-url-maybe-new-window new-buffer) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
 	;; choke on *lynx*<1>
 	(progn (set-buffer buf)
 	       (rename-uniquely)))
-    (if (or (browse-url-maybe-new-window new-buffer (interactive-p))
+    (if (or (browse-url-maybe-new-window new-buffer)
 	    (not buf)
 	    (not proc)
 	    (not (memq (process-status proc) '(run stop))))
@@ -1014,7 +1017,7 @@ used instead of `browse-url-new-window-p'."
     (let ((to (if (string-match "^mailto:" url)
 		  (substring url 7)
 		url)))
-      (if (browse-url-maybe-new-window new-window (interactive-p))
+      (if (browse-url-maybe-new-window new-window)
 	  (compose-mail-other-window to nil nil nil
 				     (list 'insert-buffer (current-buffer)))
 	(compose-mail to nil nil nil nil
