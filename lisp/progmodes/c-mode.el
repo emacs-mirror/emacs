@@ -69,6 +69,8 @@
   '("Indent Line" . c-indent-command))
 (define-key c-mode-map [menu-bar c fill]
   '("Fill Comment Paragraph" . c-fill-paragraph))
+(define-key c-mode-map [menu-bar c cpp-highlight-buffer]
+  '("Highlight Conditionals" . cpp-highlight-buffer))
 (define-key c-mode-map [menu-bar c up]
   '("Up Conditional" . c-up-conditional))
 (define-key c-mode-map [menu-bar c backward]
