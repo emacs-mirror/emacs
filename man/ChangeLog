@@ -1,3 +1,8 @@
+2004-05-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (../info/flymake, flymake.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add Flymake.
+
 2004-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Init File): Two dashes start --no-site-file.
@@ -9,28 +14,28 @@
 
 2004-05-29  Alan Mackenzie  <acm@muc.de>
 
-	* programs.texi: Updated for CC Mode 5.30 and incidental amendments.
-	("AWK"): is consistently thus spelt throughout.
-	(AWK, Pike): documented as "C-like modes".
-	(@kbd{M-j}): documented as alternative to @kbd{C-M-j}.
-	(M-x man): supersedes M-x manual-entry.
-	Added numerous index entries.  Corrected "ESC a/e" to "M-a/e".
+	* programs.texi: Update for CC Mode 5.30 and incidental amendments.
+	("AWK"): Is consistently thus spelt throughout.
+	(AWK, Pike): Document as "C-like modes".
+	(@kbd{M-j}): Document as alternative to @kbd{C-M-j}.
+	(M-x man): Supersedes M-x manual-entry.
+	Add numerous index entries.  Correct "ESC a/e" to "M-a/e".
 
-	("Comments in C"): Node deleted; the info is in CC Mode manual.
-	(c-comment-only-line-offset): Description removed.
+	("Comments in C"): Delete node; the info is in CC Mode manual.
+	(c-comment-only-line-offset): Remove description.
 
-	(C-c ., C-c C-c): New C Mode bindings described.
+	(C-c ., C-c C-c): Describe new C Mode bindings.
 
 	(C-u TAB, indent-code-rigidly, c-indent-exp, c-tab-always-indent)
 	(@dfn{Style}, c-default-style, comment-column, comment-padding)
 	(c-up-conditional, c-beginning-of-statement, c-end-of-statement):
-	Definitions amended.
+	Amend definitions.
 
 	(c-beginning-of-defun, c-end-of-defun, c-context-line-break):
-	Functions described.
-	
+	Describe functions.
+
 	(c-comment-start-regexp, c-hanging-comment-ender-p)
-	(c-hanging-comment-starter-p): obsolete definitions removed.
+	(c-hanging-comment-starter-p): Remove obsolete definitions.
 
 	* emacs.texi: Remove the menu entry "Comments in C".
 
@@ -73,7 +78,8 @@
 
 	* tramp.texi (Auto-save and Backup): Explain exploitation of new
 	variables `tramp-backup-directory-alist' and
-	`tramp-bkup-backup-directory-info'. (Overview, Connection types)
+	`tramp-bkup-backup-directory-info'.
+	(Overview, Connection types)
 	(External transfer methods, Default Method)
 	(Windows setup hints): Remove restriction of password entering
 	with external methods.
@@ -91,7 +97,7 @@
 
 2004-05-04  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in: Revert last change
+	* makefile.w32-in: Revert last change.
 
 2004-05-03  Jason Rumney  <jasonr@gnu.org>
 
@@ -99,8 +105,7 @@
 
 2004-04-28  Masatake YAMATO  <jet@gyve.org>
 
-	* widget.texi (Programming Example): Remove
-	overlays.
+	* widget.texi (Programming Example): Remove overlays.
 
 2004-04-27  Jesper Harder  <harder@ifa.au.dk>
 
@@ -237,7 +242,7 @@
 
 	* ses.texi (Advanced Features): New functionality for
 	ses-set-header-row (defaults to current row unless C-u used).
-	(Acknowledgements): Added Stefan Monnier.
+	(Acknowledgements): Add Stefan Monnier.
 
 2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -299,7 +304,7 @@
 
 2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* frames.texi (Dialog Boxes): Added use-file-dialog.
+	* frames.texi (Dialog Boxes): Add use-file-dialog.
 
 2003-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -312,7 +317,7 @@
 
 2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-mode.texi: Updated for CC Mode 5.30.
+	* cc-mode.texi: Update for CC Mode 5.30.
 
 	Note: Please refrain from doing purely cosmetic changes like
 	removing trailing whitespace in this manual; it clobbers cvs
@@ -365,8 +370,8 @@
 
 2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xresources.texi (GTK resources): Added a note that some themes
-	disallow customizations.  Added scroll theme example.
+	* xresources.texi (GTK resources): Add a note that some themes
+	disallow customizations.  Add scroll theme example.
 
 2003-10-08  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -424,7 +429,7 @@
 
 2003-09-21  Karl Berry  <karl@gnu.org>
 
-	* info.texi (] and [ commands): no period at end of section title.
+	* info.texi (] and [ commands): No period at end of section title.
 
 2003-09-08  Lute Kamstra  <lute@gnu.org>
 
@@ -437,7 +442,7 @@
 2003-09-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* xresources.texi (Resources): Refer to `editres' man page.
-	(Lucid Resources): Update defaults.  Expand desciption of
+	(Lucid Resources): Update defaults.  Expand description of
 	`shadowThickness'.
 
 2003-09-04  Miles Bader  <miles@gnu.org>
@@ -477,7 +482,7 @@
 	section.
 	* emacs.texi (Intro): Include kmacro.texi after custom.texi.
 	(Suggested by Kim Storm.)
-	* Makefile (EMACSSOURCES): Add kmacro.texi. (Suggested by Kim
+	* Makefile (EMACSSOURCES): Add kmacro.texi.  (Suggested by Kim
 	Storm.)
 
 2003-08-18  Kim F. Storm  <storm@cua.dk>
@@ -517,7 +522,7 @@
 
 2003-08-03  Karl Berry  <karl@gnu.org>
 
-	* info.texi: need @contents.
+	* info.texi: Need @contents.
 
 2003-08-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -655,7 +660,7 @@
 2003-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* tramp.texi (Top): Undo the previous renaming.
-	(emacs-other-name, emacs-other-dir, emacs-other-file-name): Deleted.
+	(emacs-other-name, emacs-other-dir, emacs-other-file-name): Delete.
 
 2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
@@ -759,7 +764,7 @@
 
 2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* maintaining.texi (Create Tags Table): Added reference to the new
+	* maintaining.texi (Create Tags Table): Add reference to the new
 	`etags --help --lang=LANG' option.
 
 2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
@@ -769,7 +774,7 @@
 
 2002-11-05  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Info-fontify): reorder face list to avoid bad line
+	* info.texi (Info-fontify): Reorder face list to avoid bad line
 	breaks.
 
 2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
@@ -787,8 +792,8 @@
 	Per rms, update all manuals to use @copying instead of @ifinfo.
 	Also use @ifnottex instead of @ifinfo around the top node, where
 	needed for the sake of the HTML output.
-	(The gnus manual is not fixed since it's not clear to me how it
-	 works; and the tramp manual already uses @copying, although in an
+	(The Gnus manual is not fixed since it's not clear to me how it
+	 works; and the Tramp manual already uses @copying, although in an
 	 unusual way.  All others were changed.)
 
 2002-09-10  Jonathan Yavner  <jyavner@engineer.com>
@@ -799,7 +804,7 @@
 
 2002-09-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* texinfo.tex: Updated to texinfo 4.2.
+	* texinfo.tex: Update to texinfo 4.2.
 
 2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
 
@@ -857,11 +862,11 @@
 
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
 
-	* Makefile.in (Speedbar): Added build targets for speedbar.texi.
+	* Makefile.in (Speedbar): Add build targets for speedbar.texi.
 
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
-	* Makefile.in: Added build targets for eshell.texi.
+	* Makefile.in: Add build targets for eshell.texi.
 
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
@@ -893,14 +898,14 @@
 2000-01-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (INFO_TARGETS): Add eudc.
-	(DVI_TARGETS): Add eudc.dvi
+	(DVI_TARGETS): Add eudc.dvi.
 	(../info/eudc, eudc.dvi): New targets.
 
 2000-01-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (INFO_TARGETS): Rename emacs-faq to efaq (for
 	compatibility with 8+3 filesystems).
-	(../info/efaq): Renamed from emacs-faq.
+	(../info/efaq): Rename from emacs-faq.
 
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -913,7 +918,7 @@
 
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* Makefile.in (faq): use ../info/emacs-faq.info (as specified in the
+	* Makefile.in (faq): Use ../info/emacs-faq.info (as specified in the
 	  faq.texi file) rather than ../info/faq.
 
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
@@ -952,7 +957,7 @@
 
 1998-03-11  Carsten Dominik  <cd@delysid.gnu.org>
 
-	* reftex.texi Updated for RefTeX version 3.22.
+	* reftex.texi: Update for RefTeX version 3.22.
 
 1998-02-08  Richard Stallman  <rms@psilocin.gnu.org>
 
@@ -963,7 +968,7 @@
 
 	* Makefile.in: Merge changes mistakenly made to `Makefile'.
 	(INFO_TARGETS): Change ../info/custom to ../info/customize.
-	(../info/customize): Renamed from ../info/custom.
+	(../info/customize): Rename from ../info/custom.
 	(../info/viper, viper.dvi): Remove dependency on viper-cmd.texi.
 
 1997-09-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1018,7 +1023,7 @@
 
 1996-01-07  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
-	* Makefile.in (../info/ccmode): Renamed from ../info/cc-mode.
+	* Makefile.in (../info/ccmode): Rename from ../info/cc-mode.
 	(INFO_TARGETS): Use new name.  This avoids name conflict on MSDOS.
 
 1995-11-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -1067,7 +1072,7 @@
 
 1995-02-07  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
 
-	* Makefile.in (maintainer-clean): Renamed from realclean.
+	* Makefile.in (maintainer-clean): Rename from realclean.
 
 1994-11-23  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1118,7 +1123,7 @@
 
 1994-01-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* Makefile (../info/sc): Renamed frin sc.info.
+	* Makefile (../info/sc): Rename frin sc.info.
 	(../info/cl): Likewise.
 	(INFO_TARGETS): Use new names.
 
@@ -1133,7 +1138,7 @@
 
 1993-12-03  Richard Stallman  (rms@srarc2)
 
-	* Makefile (../info/sc.info): Renamed from ../info/sc.
+	* Makefile (../info/sc.info): Rename from ../info/sc.
 	(TEXI2DVI): New variable.
 	(emacs.dvi, cl.dvi forms.dvi, sc.dvi, vip.dvi, gnus.dvi, info.dvi):
 	Add explicit commands.
@@ -1153,7 +1158,7 @@
 
 1993-11-15  Paul Eggert  (eggert@twinsun.com)
 
-	* man/Makefile (../info/cl.info): Renamed from ../info/cl.
+	* man/Makefile (../info/cl.info): Rename from ../info/cl.
 
 1993-11-15  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1167,7 +1172,7 @@
 1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
 
 	* forms.texi: Fix forms.texi so that it will format correctly.
-	Added missing `@end iftex', fixed bad reference.
+	Add missing `@end iftex', fix bad reference.
 
 	* info.texi, info-stn.texi: New files implement texinfo version of
 	`info' file.
@@ -1180,7 +1185,7 @@
 	* Makefile: Fix targets for texindex, new info.texi files.
 	* info-stnd.texi: New file implements info for standalone info
 	reader.
-	* info.texi: Updated to include recent changes to "../info/info".
+	* info.texi: Update to include recent changes to "../info/info".
 	New source file for ../info/info; includes info-stnd.texi.
 
 	* texindex.c: Include "../src/config.h" if building in emacs.
@@ -1200,8 +1205,8 @@
 
 	* sc.texinfo: Fix info file name.
 
-	* Makefile (info): Added gnus and sc.
-	(dvi): Added gnus.dvi and sc.dvi.
+	* Makefile (info): Add gnus and sc.
+	(dvi): Add gnus.dvi and sc.dvi.
 	(../info/sc, sc.dvi): New targets.
 
 1993-08-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -1273,42 +1278,42 @@
 
 1993-04-25  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* basic.texi: Documented next-line-add-lines variable used to
+	* basic.texi: Document next-line-add-lines variable used to
 	implement down-arrow.
 
-	* killing.texi: Documented kill-whole-line.
+	* killing.texi: Document kill-whole-line.
 
 1993-04-18  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
 
-	* text.texi: Updated unix TeX ordering information.
+	* text.texi: Update unix TeX ordering information.
 
 1993-03-26  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* news.texi: Mentioned fill-rectangle in keybinding list.
+	* news.texi: Mention fill-rectangle in keybinding list.
 
-	* killing.texi: Documented fill-rectangle.
+	* killing.texi: Document fill-rectangle.
 
 1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* vc.texi: Brought the docs up to date with VC 5.2.
+	* vc.texi: Bring the docs up to date with VC 5.2.
 
 1992-01-10  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* emacs.tex: Mentioned blackbox and gomoku under Amusements.
-		     Assembler mode is now mentioned and appropriately
-		     indexed under Programming Modes.
+	* emacs.tex: Mention blackbox and gomoku under Amusements.
+	Assembler mode is now mentioned and appropriately indexed
+	under Programming Modes.
 
 1991-02-15  Robert J. Chassell  (bob@wookumz.ai.mit.edu)
 
-        * emacs.tex: Updated TeX ordering information.
+	* emacs.tex: Update TeX ordering information.
 
 1990-08-30  David Lawrence  (tale@pogo.ai.mit.edu)
 
-	* gnus.texinfo:  New file.  Removed installation instructions.
+	* gnus.texinfo: New file.  Removed installation instructions.
 
 1990-06-26  David Lawrence  (tale@geech)
 
-	* emacs.tex:  Noted that completion-ignored-extensions is not used
+	* emacs.tex:  Note that completion-ignored-extensions is not used
 	to filter out names when all completions are displayed in
 	*Completions*.
 
@@ -1322,22 +1327,22 @@
 
 1989-01-17  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
-	* texinfo.tex:  Changed spelling of `\sc' font to `\smallcaps' and
-	then defined `\sc' as the command for smallcaps in Texinfo.  This
-	measns that the @sc command will produce small caps.  bfox has
+	* texinfo.tex: Change spelling of `\sc' font to `\smallcaps' and
+	then define `\sc' as the command for smallcaps in Texinfo.  This
+	means that the @sc command will produce small caps.  bfox has
 	made the corresponding change to makeinfo and texinfm.el.
 
 1988-08-16  Robert J. Chassell  (bob@frosted-flakes.ai.mit.edu)
 
-	* emacs.tex:  Corrected two typos.  No other changes before
+	* emacs.tex: Correct two typos.  No other changes before
 	Version 19 will be made.
 
-	* vip.texinfo: Removed menu entry Adding Lisp Code in node
+	* vip.texinfo: Remove menu entry Adding Lisp Code in node
 	Customization since the menu entry did not point to anything.
-	Also added an @finalout command to remove overfull hboxes from the
+	Also add an @finalout command to remove overfull hboxes from the
 	printed output.
 
-	* cl.texinfo:  Added @bye, \input line and @settitle to file.
+	* cl.texinfo:  Add @bye, \input line and @settitle to file.
 	This file is clearly intended to be a chapter of some other work,
 	but the other work does not yet exist.
 
