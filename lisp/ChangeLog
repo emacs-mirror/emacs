@@ -1,3 +1,22 @@
+2003-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-use-filename-at-point, ido-use-url-at-point):
+	New defcustoms to add ffap-like functionality to ido.
+	(ido-saved-vc-hb): Rename from ido-saved-vc-mt.  Uses changed.
+	(ido-no-final-slash): New defun.
+	(ido-make-prompt, ido-file-internal, ido-toggle-vc)
+	(ido-read-file-name): ): Toggle VC checking via
+	vc-handled-backends instead of vc-master-templates.
+	(ido-file-internal): Handle ido-use-url-at-point and
+	ido-use-filename-at-point via code borrowed from ffap-guesser.
+	Handle new ido-exit code ffap.
+	(ido-sort-list): Ignore final slash when sorting file names.
+
+2003-11-25  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--standard-movement-commands): 
+	Add forward-sentence and backward-sentence.
+
 2003-11-25  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer,iswitchb-exit-minibuffer):
