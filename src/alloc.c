@@ -25,9 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef standalone
 #include "buffer.h"
 #include "window.h"
-#ifdef MULTI_FRAME
 #include "frame.h"
-#endif	/* MULTI_FRAME */
 #endif
 
 #include "syssignal.h"
