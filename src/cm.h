@@ -125,8 +125,8 @@ extern short ospeed;		/* Output speed (from sg_ospeed) */
 #define AutoWrap	Wcm.cm_autowrap
 #define MagicWrap	Wcm.cm_magicwrap
 #define UseTabs		Wcm.cm_usetabs
-#define ScreenRows	Wcm.cm_rows
-#define ScreenCols	Wcm.cm_cols
+#define FrameRows	Wcm.cm_rows
+#define FrameCols	Wcm.cm_cols
 
 #define UpCost		Wcm.cc_up
 #define DownCost	Wcm.cc_down
@@ -149,7 +149,7 @@ extern short ospeed;		/* Output speed (from sg_ospeed) */
 #define cmat(row,col)	(curY = (row), curX = (col))
 #define cmplus(n)					\
   {							\
-    if ((curX += (n)) >= ScreenCols && !MagicWrap)	\
+    if ((curX += (n)) >= FrameCols && !MagicWrap)	\
       {							\
 	if (Wcm.cm_losewrap) losecursor ();		\
 	else if (AutoWrap) curX = 0, curY++;		\

@@ -36,5 +36,5 @@ extern int interrupts_deferred;
 /* Terminal has meta key */
 extern int meta_key;
 
-/* Nonzero means truncate lines in all windows less wide than the screen */
+/* Nonzero means truncate lines in all windows less wide than the frame */
 extern int truncate_partial_width_windows;
