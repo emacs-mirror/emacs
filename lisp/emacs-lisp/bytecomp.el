@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.49 $")
+(defconst byte-compile-version "$Revision: 2.50 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1907,8 +1907,7 @@ list that represents a doc string reference.
 ;; and return the file position it will have.
 ;; If QUOTED is non-nil, print with quoting; otherwise, print without quoting.
 (defun byte-compile-output-as-comment (exp quoted)
-  (let ((position (point))
-	total-bytes)
+  (let ((position (point)))
     (set-buffer
      (prog1 (current-buffer)
        (set-buffer outbuffer)
@@ -1932,12 +1931,8 @@ list that represents a doc string reference.
        (goto-char (point-max))
        (insert "\037")
        (goto-char position)
-       (setq total-bytes 0)
-       (while (not (eobp))
-	 (setq total-bytes (+ total-bytes (char-bytes (char-after (point)))))
-	 (forward-char 1))
-       (goto-char position)
-       (insert "#@" (format "%d" total-bytes))
+       (insert "#@" (format "%d" (- (position-bytes (point-max))
+				    (position-bytes position))))
 
        ;; Save the file position of the object.
        ;; Note we should add 1 to skip the space
