@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.14) $
+ * $HopeName: MMsrc!poolamc.c(trunk.15) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.14) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.15) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -970,7 +970,9 @@ static Res AMCScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   /* arguments checked by AMCScan */
 
-  UNUSED(pool);
+  /* Actually ownly unused when telemetry is off.  Needs */
+  /* fixing when EVENT_* is fixed. @@@@ */
+  UNUSED(amc);
 
   EVENT_PPP(AMCScanBegin, amc, seg, ss); /* @@@@ use own event */
 
