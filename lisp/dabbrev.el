@@ -433,22 +433,57 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (setq abbrev dabbrev--last-abbreviation)
 	    (setq old dabbrev--last-expansion)
 	    (setq direction dabbrev--last-direction))
-	;; We have a different abbrev to expand.
-	(dabbrev--reset-global-variables)
-	(setq direction (if (null arg)
-			    (if dabbrev-backward-only 1 0)
-			  (prefix-numeric-value arg)))
-	(setq abbrev (dabbrev--abbrev-at-point))
-	(setq old nil))
+	;; If the user inserts a space after expanding
+	;; and then asks to expand again, always fetch the next word.
+	(if (and (eq (preceding-char) ?\ )
+		 (markerp dabbrev--last-abbrev-location)
+		 (marker-position dabbrev--last-abbrev-location)
+		 (= (point) (1+ dabbrev--last-abbrev-location)))
+	    (progn
+	      ;; The "abbrev" to expand is just the space.
+	      (setq abbrev " ")
+	      (save-excursion
+		(if dabbrev--last-buffer
+		    (set-buffer dabbrev--last-buffer))
+		;; Find the end of the last "expansion" word.
+		(if (or (eq dabbrev--last-direction 1)
+			(and (eq dabbrev--last-direction 0)
+			     (< dabbrev--last-expansion-location (point))))
+		    (setq dabbrev--last-expansion-location
+			  (+ dabbrev--last-expansion-location
+			     (length dabbrev--last-expansion))))
+		(goto-char dabbrev--last-expansion-location)
+		;; Take the following word, with intermediate separators,
+		;; as our expansion this time.
+		(re-search-forward
+		 (concat "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
+		(setq expansion
+		      (buffer-substring dabbrev--last-expansion-location
+					(point)))
+
+		;; Record the end of this expansion, in case we repeat this.
+		(setq dabbrev--last-expansion-location (point)))
+	      ;; Indicate that dabbrev--last-expansion-location is
+	      ;; at the end of the expansion.
+	      (setq dabbrev--last-direction -1))
+
+	  ;; We have a different abbrev to expand.
+	  (dabbrev--reset-global-variables)
+	  (setq direction (if (null arg)
+			      (if dabbrev-backward-only 1 0)
+			    (prefix-numeric-value arg)))
+	  (setq abbrev (dabbrev--abbrev-at-point))
+	  (setq old nil)))
 
       ;;--------------------------------
       ;; Find the expansion
       ;;--------------------------------
-      (setq expansion
-	    (dabbrev--find-expansion abbrev direction
-				     (and (eval dabbrev-case-fold-search)
-					  (or (not dabbrev-upcase-means-case-search)
-					      (string= abbrev (downcase abbrev)))))))
+      (or expansion
+	  (setq expansion
+		(dabbrev--find-expansion abbrev direction
+					 (and (eval dabbrev-case-fold-search)
+					      (or (not dabbrev-upcase-means-case-search)
+						  (string= abbrev (downcase abbrev))))))))
     (cond
      ((not expansion)
       (dabbrev--reset-global-variables)
@@ -465,6 +500,12 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		     (buffer-name dabbrev--last-buffer))
 	    (setq dabbrev--last-buffer-found dabbrev--last-buffer))
 	(message nil))
+      (if (and (or (eq (current-buffer) dabbrev--last-buffer)
+		   (null dabbrev--last-buffer))
+	       (numberp dabbrev--last-expansion-location)
+	       (and (> dabbrev--last-expansion-location (point))))
+	  (setq dabbrev--last-expansion-location
+		(copy-marker dabbrev--last-expansion-location)))
       ;; Success: stick it in and return.
       (dabbrev--substitute-expansion old abbrev expansion)
       ;; Save state for re-expand.
@@ -505,22 +546,32 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 ;;; Extract the symbol at point to serve as abbreviation.
 (defun dabbrev--abbrev-at-point ()
   ;; Check for error
-  (save-excursion
-    (save-match-data
-      (if (or (bobp)
-	      (progn 
-		(forward-char -1)
-		(not (looking-at (concat "\\("
-					 (or dabbrev-abbrev-char-regexp
-					     "\\sw\\|\\s_")
-					 "\\)+")))))
-	  (error "Not positioned immediately after an abbreviation"))))
+  (if (bobp)
+      (error "No possible abbreviation preceding point"))
   ;; Return abbrev at point
   (save-excursion
+    ;; Record the end of the abbreviation.
     (setq dabbrev--last-abbrev-location (point))
-    (buffer-substring (point) 
-		      (progn (dabbrev--goto-start-of-abbrev)
-			     (point)))))
+    ;; If we aren't right after an abbreviation,
+    ;; move point back to just after one.
+    ;; This is so the user can get successive words
+    ;; by typing the punctuation followed by M-/.
+    (save-match-data
+      (if (save-excursion
+	    (forward-char -1)
+	    (not (looking-at (concat "\\("
+				     (or dabbrev-abbrev-char-regexp
+					 "\\sw\\|\\s_")
+				     "\\)+"))))
+	  (if (re-search-backward (or dabbrev-abbrev-char-regexp
+				      "\\sw\\|\\s_")
+				  nil t)
+	      (forward-char 1)
+	    (error "No possible abbreviation preceding point"))))
+    ;; Now find the beginning of that one.
+    (dabbrev--goto-start-of-abbrev)
+    (buffer-substring dabbrev--last-abbrev-location
+		      (point))))
 	
 ;;; Initializes all global variables
 (defun dabbrev--reset-global-variables ()
