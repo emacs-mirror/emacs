@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.31) $
+ * $HopeName: MMsrc!arenavm.c(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.31) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.32) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -719,8 +719,9 @@ static void VMSegFree(Seg seg)
   EVENT_PP(SegFree, vmArena, seg);
 }
 
-/* These Seg functions are low-level and are on the critical path in
- * various ways.  The more common therefore use AVER_CRITICAL
+/* .seg.crirical: These Seg functions are low-level and are on 
+ * the critical path in various ways.  The more common therefore 
+ * use AVER_CRITICAL
  */
 
 /* VMSegBase -- return the base address of a segment
@@ -736,7 +737,7 @@ static Addr VMSegBase(Seg seg)
   Page page;
   Index i;
   
-  AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(Seg, seg); /* .seg.critical */
 
   vmArena = SegVMArena(seg);
   AVERT_CRITICAL(VMArena, vmArena);
@@ -760,7 +761,7 @@ static Addr VMSegLimit(Seg seg)
   VMArena vmArena;
   Page page;
 
-  AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(Seg, seg); /* .seg.critical */
 
   vmArena = SegVMArena(seg);
   AVERT_CRITICAL(VMArena, vmArena);
@@ -782,7 +783,7 @@ static Addr VMSegLimit(Seg seg)
 
 static Size VMSegSize(Seg seg)
 {
-  AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(Seg, seg); /* .seg.critical */
 
   return AddrOffset(VMSegBase(seg), VMSegLimit(seg));
 }
@@ -801,7 +802,7 @@ static Bool VMSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
   VMArena vmArena;
   
   /* design.mps.trace.fix.noaver */
-  AVER_CRITICAL(segReturn != NULL);
+  AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
   vmArena = ArenaVMArena(arena);
   AVERT_CRITICAL(VMArena, vmArena);
   
@@ -893,7 +894,7 @@ static Bool VMSegNext(Seg *segReturn, Arena arena, Addr addr)
   VMArena vmArena;
   Index i;
 
-  AVER_CRITICAL(segReturn != NULL);
+  AVER_CRITICAL(segReturn != NULL); /* .seg.critical */
   vmArena = ArenaVMArena(arena);
   AVERT_CRITICAL(VMArena, vmArena);
   AVER_CRITICAL(AddrIsAligned(addr, arena->alignment));
