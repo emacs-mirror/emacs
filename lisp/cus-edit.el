@@ -1186,7 +1186,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		   'sexp))
 	 (options (get symbol 'custom-options))
 	 (tmp (if (listp type)
-		  (copy-list type)
+		  (copy-sequence type)
 		(list type))))
     (when options
       (widget-put tmp :options options))
