@@ -766,6 +766,58 @@ unlike `file-truename'."
 	(setq newname (expand-file-name tem (file-name-directory newname)))
 	(setq count (1- count))))
     newname))
+
+(defun recode-file-name (file coding new-coding &optional ok-if-already-exists)
+  "Change the encoding of FILE's name from CODING to NEW-CODING.
+The value is a new name of FILE.
+Signals a `file-already-exists' error if a file of the new name
+already exists unless optional third argument OK-IF-ALREADY-EXISTS
+is non-nil.  A number as third arg means request confirmation if
+the new name already exists.  This is what happens in interactive
+use with M-x."
+  (interactive
+   (let ((default-coding (or file-name-coding-system
+			     default-file-name-coding-system))
+	 (filename (read-file-name "Recode filename: " nil nil t))
+	 from-coding to-coding)
+     (if (and default-coding
+	      ;; We provide the default coding only when it seems that
+	      ;; the filename is correctly decoded by the default
+	      ;; coding.
+	      (let ((charsets (find-charset-string filename)))
+		(and (not (memq 'eight-bit-control charsets))
+		     (not (memq 'eight-bit-graphic charsets)))))
+	 (setq from-coding (read-coding-system
+			    (format "Recode filename %s from (default %s): "
+				    filename default-coding)
+			    default-coding))
+       (setq from-coding (read-coding-system
+			  (format "Recode filename %s from: " filename))))
+     
+     ;; We provide the default coding only when a user is going to
+     ;; change the encoding not from the default coding.
+     (if (eq from-coding default-coding)
+	 (setq to-coding (read-coding-system
+			  (format "Recode filename %s from %s to: "
+				  filename from-coding)))
+       (setq to-coding (read-coding-system
+			(format "Recode filename %s from %s to (default %s): "
+				filename from-coding default-coding)
+			default-coding)))
+     (list filename from-coding to-coding)))
+
+  (let* ((default-coding (or file-name-coding-system
+			     default-file-name-coding-system))
+	 ;; FILE should have been decoded by DEFAULT-CODING.
+	 (encoded (encode-coding-string file default-coding))
+	 (newname (decode-coding-string encoded coding))
+	 (new-encoded (encode-coding-string newname new-coding))
+	 ;; Suppress further encoding.
+	 (file-name-coding-system nil)
+	 (default-file-name-coding-system nil)
+	 (locale-coding-system nil))
+    (rename-file encoded new-encoded ok-if-already-exists)
+    newname))
 
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
