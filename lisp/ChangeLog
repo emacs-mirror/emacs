@@ -1,3 +1,9 @@
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):
+	Don't expand if the character is @, period, dash, etc.
+	(define-mail-abbrev): Quote names that contain problem characters.
+
 2005-01-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el: No longer require `cl'; `dolist' is standard.
