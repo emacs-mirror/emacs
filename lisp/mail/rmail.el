@@ -85,6 +85,10 @@ and the value of the environment variable MAIL overrides it).")
 (defvar rmail-mail-new-frame nil
   "*Non-nil means Rmail makes a new frame for composing outgoing mail.")
 
+;;;###autoload
+(defvar rmail-retry-setup-hook nil
+  "Hook that `rmail-retry-failure' uses in place of `mail-setup-hook'.")
+
 ;; These may be altered by site-init.el to match the format of mmdf files
 ;;  delimiting used on a given host (delim1 and delim2 from the config
 ;;  files).
@@ -1949,7 +1953,8 @@ the body of the original message; otherwise copy the current message."
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
-    (let (mail-signature mail-setup-hook)
+    (let (mail-signature
+	  (mail-setup-hook rmail-retry-setup-hook))
       (if (rmail-start-mail nil to subj irp2 cc (current-buffer))
 	  ;; Insert original text as initial text of new draft message.
 	  (progn
