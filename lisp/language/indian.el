@@ -45,6 +45,15 @@
 Currently supported foundries are `cdac' and `akruti'.")
 
 (defvar indian-script-language-alist
+  '((devanagari (hindi sanskrit) nil)
+    (bengali (bengali assamese) nil)
+    (gurmukhi (punjabi) nil)
+    (gujarati (gujarati) nil)
+    (oriya (oriya) nil)
+    (tamil (tamil) nil)
+    (telugu (telugu) nil)
+    (kannada (kannada) nil)
+    (malayalam (malayalam) nil))
   "Alist of Indian scripts vs the corresponding language list and font foundry.
 Each element has this form:
 
@@ -57,16 +66,7 @@ The list is in the priority order.
 
 FONT-FOUNDRY is a font foundry representing a group of Indian
 fonts.  If the value is nil, the value of `indian-font-foundry'
-is used."
-  '((devanagari (hindi sanskrit) nil)
-    (bengali (bengali assamese) nil)
-    (gurmukhi (punjabi) nil)
-    (gujarati (gujarati) nil)
-    (oriya (oriya) nil)
-    (tamil (tamil) nil)
-    (telugu (telugu) nil)
-    (kannada (kannada) nil)
-    (malayalam (malayalam) nil)))
+is used.")
 
 (defconst indian-font-char-index-table
   '(					; for which language(s)
@@ -94,14 +94,14 @@ is used."
     (#x1200 . akruti:knd)		; kannada
     (#x1300 . akruti:mal)		; malayalam
     )
-  "Aliat of indices of `indian-glyph' character vs Indian font identifiers.
+  "Alist of indices of `indian-glyph' character vs Indian font identifiers.
 Each element has this form: (INDEX . FONT-IDENTIFIER)
 
 INDEX is an index number of the first character in the charset
 `indian-glyph' assigned for glyphs in the font specified by
 FONT-IDENTIFIER.  Currently FONT-IDENTIFIERs are defined for CDAC
 and AKRUTI font groups.")
-  
+
 (defun indian-font-char (index font-identifier)
   "Return character of charset `indian-glyph' made from glyph index INDEX.
 FONT-IDENTIFIER is an identifier of an Indian font listed in the
@@ -122,7 +122,7 @@ font INDEX is for."
 (defun indian-font-char-range (font-identifier)
   (cons (indian-font-char 0 font-identifier)
 	(indian-font-char 255 font-identifier)))
-	 
+
 (defvar indian-script-table
   '[
     devanagari

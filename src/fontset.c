@@ -1126,18 +1126,17 @@ fs_query_fontset (name, regexpp)
 
   for (i = 0; i < ASIZE (Vfontset_table); i++)
     {
-      Lisp_Object fontset;
-      unsigned char *this_name;
+      Lisp_Object fontset, this_name;
 
       fontset = FONTSET_FROM_ID (i);
       if (NILP (fontset)
 	  || !BASE_FONTSET_P (fontset))
 	continue;
 
-      this_name = SDATA (FONTSET_NAME (fontset));
+      this_name = FONTSET_NAME (fontset);
       if (regexpp
-	  ? fast_c_string_match_ignore_case (name, this_name) >= 0
-	  : !strcmp (SDATA (name), this_name))
+	  ? fast_string_match (name, this_name) >= 0
+	  : !strcmp (SDATA (name), SDATA (this_name)))
 	return i;
     }
   return -1;
@@ -1189,19 +1188,18 @@ list_fontsets (f, pattern, size)
 
   for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
-      Lisp_Object fontset;
-      unsigned char *name;
+      Lisp_Object fontset, name;
 
       fontset = FONTSET_FROM_ID (id);
       if (NILP (fontset)
 	  || !BASE_FONTSET_P (fontset)
 	  || !EQ (frame, FONTSET_FRAME (fontset)))
 	continue;
-      name = SDATA (FONTSET_NAME (fontset));
+      name = FONTSET_NAME (fontset);
 
       if (STRINGP (regexp)
-	  ? (fast_c_string_match_ignore_case (regexp, name) < 0)
-	  : strcmp (SDATA (pattern), name))
+	  ? (fast_string_match (regexp, name) < 0)
+	  : strcmp (SDATA (pattern), SDATA (name)))
 	continue;
 
       val = Fcons (Fcopy_sequence (FONTSET_NAME (fontset)), val);

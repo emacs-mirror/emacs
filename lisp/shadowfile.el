@@ -837,6 +837,8 @@ look for files that have been changed and need to be copied to other systems."
 	    (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
   (remove-hook 'write-file-hooks 'shadow-add-to-todo))
 
+(add-hook 'shadowfile-unload-hook 'shadowfile-unload-hook)
+
 (provide 'shadowfile)
 
 ;;; arch-tag: e2f4cdd7-2bab-4def-9130-9e69b412b79e

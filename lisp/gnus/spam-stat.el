@@ -594,6 +594,8 @@ COUNT defaults to 5"
   (remove-hook 'gnus-select-article-hook
 	       'spam-stat-store-gnus-article-buffer))
 
+(add-hook 'spam-stat-unload-hook 'spam-stat-unload-hook)
+
 (provide 'spam-stat)
 
 ;;; arch-tag: ff1d2200-8ddb-42fb-bb7b-1b5e20448554

@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SETARCH SET_MAKE PKG_CONFIG GTK_CFLAGS GTK_LIBS ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SET_MAKE PKG_CONFIG GTK_CFLAGS GTK_LIBS ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -5440,6 +5440,65 @@ fi
 done
 
 
+echo "$as_me:$LINENO: checking if personality LINUX32 can be set" >&5
+echo $ECHO_N "checking if personality LINUX32 can be set... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <sys/personality.h>
+int
+main ()
+{
+personality (PER_LINUX32)
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  emacs_cv_personality_linux32=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+emacs_cv_personality_linux32=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+echo "$as_me:$LINENO: result: $emacs_cv_personality_linux32" >&5
+echo "${ECHO_T}$emacs_cv_personality_linux32" >&6
+
+if test $emacs_cv_personality_linux32 = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_PERSONALITY_LINUX32 1
+_ACEOF
+
+fi
+
+
 for ac_header in term.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -7741,122 +7800,6 @@ _ACEOF
 fi
 
 
-echo "$as_me:$LINENO: checking whether heap start address is randomized" >&5
-echo $ECHO_N "checking whether heap start address is randomized... $ECHO_C" >&6
-if test x"$ac_cv_header_unistd_h" != x && test x"$ac_cv_header_stdlib_h" != x
-then
-  if test "$cross_compiling" = yes; then
-  emacs_cv_randomheap='assuming no'
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-int main (int argc, char *argv[])
-{
-  unsigned long old_sbrk = 0;
-  unsigned long this_sbrk = (unsigned long) sbrk(0);
-  int nr = 1;
-  if (argc != 1) {
-    old_sbrk = strtoul (argv[1], 0, 0);
-    nr = atoi (argv[2])+1;
-  }
-  if (argc == 1 || (old_sbrk == this_sbrk && nr < 3))
-  {
-    char buf1[32], buf2[32];
-    sprintf (buf1, "%lu", this_sbrk);
-    sprintf (buf2, "%d", nr);
-    execl (argv[0], argv[0], buf1, buf2, 0);
-    exit (-1);
-  }
-  exit (this_sbrk == old_sbrk);
-}
-_ACEOF
-rm -f conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  emacs_cv_randomheap=yes
-else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-( exit $ac_status )
-emacs_cv_randomheap=no
-fi
-rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
-fi
-else
-  emacs_cv_randomheap='assuming no'
-fi
-echo "$as_me:$LINENO: result: $emacs_cv_randomheap" >&5
-echo "${ECHO_T}$emacs_cv_randomheap" >&6
-
-if test "$emacs_cv_randomheap" = yes; then
-  # Extract the first word of "setarch", so it can be a program name with args.
-set dummy setarch; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_path_SETARCH+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $SETARCH in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SETARCH="$SETARCH" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SETARCH="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-  test -z "$ac_cv_path_SETARCH" && ac_cv_path_SETARCH="no"
-  ;;
-esac
-fi
-SETARCH=$ac_cv_path_SETARCH
-
-if test -n "$SETARCH"; then
-  echo "$as_me:$LINENO: result: $SETARCH" >&5
-echo "${ECHO_T}$SETARCH" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
-fi
-
-
-  if test "$SETARCH" != no && test "$machine" = "intel386"; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_RANDOM_HEAPSTART 1
-_ACEOF
-
-  else
-        emacs_cv_randomheap=warn
-  fi
-fi
 
 
 
@@ -22291,7 +22234,6 @@ s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
 s,@INSTALL_INFO@,$INSTALL_INFO,;t t
 s,@EGREP@,$EGREP,;t t
 s,@LIBSOUND@,$LIBSOUND,;t t
-s,@SETARCH@,$SETARCH,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t
 s,@GTK_CFLAGS@,$GTK_CFLAGS,;t t

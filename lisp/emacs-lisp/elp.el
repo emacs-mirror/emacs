@@ -626,6 +626,7 @@ displayed."
 
 (defun elp-unload-hook ()
   (elp-restore-all))
+(add-hook 'elp-unload-hook 'elp-unload-hook)
 
 (provide 'elp)
 

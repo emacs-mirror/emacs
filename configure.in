@@ -1450,6 +1450,18 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h)
+
+AC_MSG_CHECKING(if personality LINUX32 can be set)
+AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
+               emacs_cv_personality_linux32=yes,
+	       emacs_cv_personality_linux32=no)
+AC_MSG_RESULT($emacs_cv_personality_linux32)
+
+if test $emacs_cv_personality_linux32 = yes; then
+  AC_DEFINE(HAVE_PERSONALITY_LINUX32, 1,
+            [Define to 1 if personality LINUX32 can be set.])
+fi
+
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
@@ -1572,51 +1584,6 @@ AH_TEMPLATE(POINTER_TYPE,
 	    [Define as `void' if your compiler accepts `void *'; otherwise
 	     define as `char'.])dnl
 
-dnl Test if heap start address is randomized (exec-shield does this).
-dnl The test program requires unistd.h and stdlib.h.  They are present
-dnl on the systems that currently have exec-shield.
-AC_MSG_CHECKING(whether heap start address is randomized)
-if test x"$ac_cv_header_unistd_h" != x && test x"$ac_cv_header_stdlib_h" != x
-then
-  AC_TRY_RUN([#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-int main (int argc, char *argv[])
-{
-  unsigned long old_sbrk = 0;
-  unsigned long this_sbrk = (unsigned long) sbrk(0);
-  int nr = 1;
-  if (argc != 1) {
-    old_sbrk = strtoul (argv[1], 0, 0);
-    nr = atoi (argv[2])+1;
-  }
-  if (argc == 1 || (old_sbrk == this_sbrk && nr < 3))
-  {
-    char buf1[32], buf2[32];
-    sprintf (buf1, "%lu", this_sbrk);
-    sprintf (buf2, "%d", nr);
-    execl (argv[0], argv[0], buf1, buf2, 0);
-    exit (-1);
-  }
-  exit (this_sbrk == old_sbrk);
-}], emacs_cv_randomheap=yes, emacs_cv_randomheap=no,
-     emacs_cv_randomheap='assuming no')
-else
-  emacs_cv_randomheap='assuming no'
-fi
-AC_MSG_RESULT($emacs_cv_randomheap)
-
-if test "$emacs_cv_randomheap" = yes; then
-  AC_PATH_PROG(SETARCH, setarch, no)
-  AC_SUBST(SETARCH)
-  if test "$SETARCH" != no && test "$machine" = "intel386"; then
-    AC_DEFINE(HAVE_RANDOM_HEAPSTART, 1,
-    [Define to 1 if this OS randomizes the start address of the heap.])
-  else
-    dnl We do the warning at the end of the configure run so it is seen.
-    emacs_cv_randomheap=warn
-  fi
-fi
 
 
 dnl This could be used for targets which can have both byte sexes.

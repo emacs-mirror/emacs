@@ -656,12 +656,7 @@ If nil, selections displayed but ignored.")
 
 
 ;; Verify that Calc is running on the right kind of system.
-(defconst calc-emacs-type-epoch (and (fboundp 'epoch::version) epoch::version))
-(defvar calc-emacs-type-19 (not (or calc-emacs-type-epoch
-				    (string-lessp emacs-version "19"))))
 (defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
-(defvar calc-emacs-type-gnu19 (and calc-emacs-type-19
-				   (not calc-emacs-type-lucid)))
 
 ;; Set up the standard keystroke (M-#) to run the Calculator, if that key
 ;; has not yet been bound to anything.  For best results, the user should
@@ -827,8 +822,8 @@ If nil, selections displayed but ignored.")
 			 (if (eq bind 'undefined)
 			     'undefined 'calcDigit-nondigit))))
 		    calc-mode-map)
-      (let ((cmap (if calc-emacs-type-19 (nth 1 calc-mode-map) calc-mode-map))
-	    (dmap (if calc-emacs-type-19 (nth 1 map) map))
+      (let ((cmap (nth 1 calc-mode-map))
+	    (dmap (nth 1 map))
 	    (i 0))
 	(while (< i 128)
 	  (aset dmap i
@@ -998,9 +993,7 @@ If nil, selections displayed but ignored.")
 	    (use-global-map map)
 	    (use-local-map nil)
 	    (read-key-sequence
-	     (if (commandp (key-binding (if calc-emacs-type-19
-					    (vector (cdr key))
-					  (char-to-string (cdr key)))))
+	     (if (commandp (key-binding (vector (cdr key))))
 		 "" prompt2)))
 	(use-global-map glob)
 	(use-local-map loc)))))
@@ -3425,11 +3418,8 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 	   (let ((key (event-to-character event t t)))
 	     (or key optkey (error "Expected a plain keystroke"))
 	     (cons key event))))
-	(calc-emacs-type-gnu19
-	 (let ((key (read-event)))
-	   (cons key key)))
 	(t
-	 (let ((key (read-char)))
+	 (let ((key (read-event)))
 	   (cons key key)))))
 
 (defun calc-unread-command (&optional input)

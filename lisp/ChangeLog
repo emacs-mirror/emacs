@@ -1,10 +1,255 @@
+2004-10-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (calc-alg-ent-map, calc-alg-ent-esc-map):
+	Declared these variables with defvar.
+
+	* calc/calc-aent.el (calc-do-alg-entry): Since `calc-alg-ent-map'
+	is bound, only check to see if it is bound.
+
+2004-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calc/calc-help.el (calc-describe-bindings): Fix last change.
+
+2004-10-21  John Paul Wallington  <jpw@gnu.org>
+
+	* calc/calc-graph.el (calc-graph-init):
+	Use `set-process-query-on-exit-flag'.
+
+2004-10-21  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-start): Rely on `cd' to get
+	dir right and also allow argumentless cd.
+
+2004-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): Doc fix.
+
+	* eshell/em-unix.el (eshell-grep):
+	Don't bind compilation-process-setup-function.
+
+	* comint.el (comint-insert-input): Use @ in `interactive'.
+	(comint-input-filter-functions): Doc fix.
+	(comint-kill-whole-line, comint-get-source): Doc fix.
+
+	* progmodes/compile.el (compilation-setup):
+	Don't set buffer-read-only if MINOR is non-nil.
+
+2004-10-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-emacs-type-19, calc-emacs-type-epoch)
+	(calc-emacs-type-gnu19): Remove.
+	(calc-digit-map, calc-read-key-sequence, calc-read-key):
+	Remove check for old emacs versions.
+
+	* calc/calc-ext.el (calc-fancy-prefix): Remove emacs version check.
+	(calc-init-extensions): Define `calc-alg-map' and `calc-alg-esc-map'
+	for current Emacs.
+
+	* calc/calc-aent.el (calcAlg-previous): Check to see if looking at
+	the end of the minibuffer.
+	(calc-do-alg-entry): Remove Emacs version check.  Use `copy-keymap' to
+	copy `esc-map'.
+
+	* calc/calc-graph.el (calc-graph-plot): Remove emacs version check.
+
+	* calc/calc-mode.el (calc-total-algebraic-mode): Remove error
+	call that would be given when the current emacs was used.
+
+2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el: Set coding to utf-8.
+	(icalendar-version): Increase to 0.07.
+	(icalendar-monthnumber-table): Change March pattern.
+	(icalendar-get-all-event-properties)
+	(icalendar-set-event-property): Delete.
+	(icalendar-all-events): No longer interactive.
+	(icalendar-convert-diary-to-ical)
+	(icalendar-extract-ical-from-buffer): Make obsolete, and alias to
+	their replacements.
+	(icalendar-export-file, icalendar-export-region): New functions;
+	essentially old `icalendar-convert-diary-to-ical' but appending to
+	target rather than overwriting.
+	(icalendar-import-file): Append to target file rather than
+	overwriting.  Fourth arg deleted.
+	(icalendar-import-buffer): New name for old
+	`icalendar-extract-ical-from-buffer'.
+	(icalendar--convert-string-for-import): New name for
+	old `icalendar-convert-for-import'.
+	(include-icalendar-files): Delete.
+	Prefix for all internal functions changed from `icalendar-'
+	to `icalendar--'.
+
+2004-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* paths.el (news-path): Fix previous change.
+
+2004-10-18 Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-describe-bindings):
+	Set `buffer-read-only' to nil while working in the keybindings buffer;
+	remove some extra information from the keybindings buffer.
+
+2004-10-18  David Ponce  <david@dponce.com>
+
+	* mouse.el (mouse-drag-move-window-top): New function.
+	(mouse-drag-mode-line-1): Use it.
+
+2004-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* info.el (Info-fontify-node): For multiline refs,
+	arrange to unfontify newline and surrounding whitespace.
+
+2004-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-workfile-version): Don't burp if the patch-log
+	directory is missing.
+
+2004-10-17  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-default-display-maybe-show-predicates):
+	New customizable variable; whether to display buffers that match
+	`ibuffer-maybe-show-predicates' by default.
+	(ibuffer-maybe-show-predicates): Mention it in docstring.
+	(ibuffer-display-maybe-show-predicates): New variable.
+	(ibuffer-update): Prefix arg now toggles whether buffers that
+	match `ibuffer-maybe-show-predicates' should be displayed.
+	(ibuffer-mode): Set `ibuffer-display-maybe-show-predicates'
+	locally to heed `ibuffer-default-display-maybe-show-predicates'.
+	(ibuffer-redisplay-engine): Rename optional second arg to `ignore'.
+
+2004-10-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el: Redo sync with Tramp 2.0.45.  Last commit did not
+	work correctly.
+
+2004-10-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* buff-menu.el (Buffer-menu-revert-function): Emulate save-excursion.
+	(Buffer-menu-beginning): New helper function.
+	(Buffer-menu-execute): Use it.
+	(Buffer-menu-select): Use it.
+	(Buffer-menu-sort): Use it and also keep markers.
+
+2004-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* paths.el (news-directory): Rename from news-path.  Old name alias.
+	(rmail-spool-directory): Use defvar.
+	(sendmail-program): Use defcustom.
+	(remote-shell-program): Use defcustom.
+	(term-file-prefix): Use defvar.
+	(abbrev-file-name): Use defvar.
+
+	* term.el: Add maintainer.
+
+	* subr.el (with-local-quit): Return nil if there's a quit.
+	(read-passwd): Use with-local-quit.  Doc fix.
+
+	* strokes.el (strokes-list-strokes): Don't try to delete char at eob.
+	(strokes-unload-hook): Set as a variable with add-hook.
+
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright year.
+
+	* shadowfile.el (shadowfile-unload-hook): Set as variable w/ add-hook.
+
+	* server.el (server-unload-hook): Set as a variable with add-hook.
+
+	* help-at-pt.el (help-at-pt-unload-hook): Use add-hook; no defvar.
+
+	* frame.el (special-display-popup-frame):
+	Make the buffer current as its frame is created.
+
+	* delsel.el (delsel-unload-hook): Set as a variable.
+
+	* comint.el (comint-output-filter-functions):
+	Add comint-watch-for-password-prompt.
+	(comint-read-noecho): Function deleted.
+	(send-invisible): Use read-passwd.
+
+	* fringe.el (fringe-mode-initialize): New function.
+	(fringe-mode): Use fringe-mode-initialize as :initialize.
+
+2004-10-17  Kim F. Storm  <storm@cua.dk>
+
+	* language/indian.el (indian-script-language-alist): Swap value and doc.
+	(indian-font-char-index-table): Doc fix.
+
+2004-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-file-hook): Call vc-backend with absolute name.
+
+2004-10-16  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Move let-binding of
+	`process-environment' into `with-current-buffer' body.
+	Reported by Matt Hodges <MPHodges@member.fsf.org>.
+
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs-util.el (cvs-bury-buffer):
+	Don't call get-buffer-window for effect.
+
+	* outline.el (hide-other): Call outline-up-heading with INVISIBLE-OK=t.
+
+	* newcomment.el (comment-auto-fill-only-comments): Add autoload.
+
+	* msb.el (msb-unload-hook): Set the variable.
+
+	* mouse.el (mouse-yank-at-click, mouse-yank-secondary):
+	Use * to err if buffer is readonly.
+
+	* subr.el (looking-back): Return only t or nil.
+
+	* whitespace.el (whitespace-unload-hook): Set the variable.
+
+	* view.el (view-mode-enable): Set view-page-size and
+	view-half-page-size to nil.
+	(view-set-half-page-size-default): view-half-page-size = nil
+	means the default.
+	(View-scroll-page-forward): Use view-page-size-default.
+	(View-scroll-page-backward): Likewise.
+	(view-page-size, view-half-page-size): Doc fixes.
+
+	* emacs-lisp/elp.el (elp-unload-hook): Set the variable.
+
+	* emacs-lisp/cl.el (cl-unload-hook): Don't defvar it, just set it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Don't process
+	"cl" like other files.  Instead, call byte-compile-find-cl-functions.
+	(byte-compile-log-1): Bind inhibit-read-only.
+	(byte-compile-warning-prefix, byte-compile-log-file): Likewise.
+	(byte-compile-log-warning): Likewise.
+	(byte-compile-file-form-require): Detect "cl" from the arg value.
+
+	* progmodes/compile.el (compilation-start): Assume compilation-mode
+	will make the buffer read-only.
+	(compilation-mode): Take arg name-of-mode.
+	(compilation-setup): Make buffer read-only.
+	(compilation-handle-exit): Bind inhibit-read-only.
+
+	* textmodes/ispell.el (ispell-command-loop): Use with-no-warnings.
+	(ispell-message): Likewise.
+	(ispell-show-choices): Don't call get-buffer-window uselessly.
+	(ispell-init-process): Use set-process-query-on-exit-flag.
+
+2004-10-16  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (fringe-bitmaps): Only initialize when defined.
+
+	* pcvs.el (cvs-mode-view-file, cvs-mode-view-file-other-window): Add.
+	(cvs-mode-find-file): Add optional `view' arg to enter view mode.
+
+	* pcvs-defs.el (cvs-mode-map): Bind v to cvs-mode-view-file.
+
+2004-10-15  Simon Josefsson  <jas@extundo.com>
+
+	* net/password.el: Add.
+
 2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* button.el (button-activate): Allow a marker to display as an
-	action.
+	* button.el (button-activate): Allow a marker to display as an action.
 
-	* help-fns.el (describe-variable): Use it to make "below" a
-	hyperlink.
+	* help-fns.el (describe-variable): Use it to make "below" a hyperlink.
 
 	* help.el (describe-mode): Use it to make minor mode list into
 	hyperlinks.
@@ -24,6 +269,25 @@
 	(substitute-key-definition): Use it with map-keymap.
 	(event-modifiers): Use push.
 	(mouse-movement-p, with-temp-buffer): Simplify.
+
+2004-10-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-help-function-list, calc-help-variable-list):
+	New variables.
+	(calc-help-index-entries): New function.
+	(calc-describe-function): Use `calc-help-function-list' instead of
+	obarray for completion.
+	(calc-describe-variable): Use `calc-help-variable-list' instead
+	of obarray for completion.
+
+2004-10-12  Richard M. Stallman  <rms@gnu.org>
+
+	* info-look.el (info-lookup-file): Add info-file property.
+	(info-lookup-symbol): Likewise.
+
+	* info.el (info-xref): Add underlining.
+	(info): Add info-file property.
+	(Info-find-emacs-command-nodes): Specify case-sensitive search.
 
 2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -77,6 +341,15 @@
 
 	* subr.el (substitute-key-definition): Mention command remapping
 	in doc string.
+
+2004-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-misc.el (calc-info-goto-node): New function.
+	(calc-tutorial, calc-info-summary): Go to appropriate Calc info
+	node in one step.
+	(calc-describe-copying, calc-describe-distribution)
+	(calc-describe-thing, calc-describe-no-warranty, calc-describe-key):
+	Go to appropriate info node in one step.
 
 2004-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -201,7 +474,7 @@
 2004-10-05  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-done): Set mark after running hook.
-	Suggested by Drew Adams <drew.adams@oracle.com>.
+	Reported by Drew Adams <drew.adams@oracle.com>.
 
 	* info.el (Info-history, Info-toc): Fix Info headers.
 	(Info-toc): Narrow buffer before Info-fontify-node.
@@ -443,6 +716,12 @@
 
 	* progmodes/tcl.el (inferior-tcl): Use pop-to-buffer.
 
+2004-09-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-graph-add-curve): Moved the call to
+	`calc-graph-set-styles' so the gnuplot buffer will appear in a
+	separate window. 
+
 2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (after-change-major-mode-hook): Doc fix.
@@ -456,6 +735,10 @@
 
 	* descr-text.el (describe-char): Checking of quail activation
 	fixed.
+
+2004-09-21  Jay Belanger  <belanger@truman.edu>
+	
+	* calc/calc.el (calc-mode-var-list): Removed unnecessary quotes.
 
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -542,6 +825,11 @@
 	* calc/calc-units.el (calc-quick-units): Fix overzealous
 	s/or/unless/.
 
+2004-09-17  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-var-list): Fixed the value of
+	`calc-matrix-brackets'. 
+	
 2004-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (define-ibuffer-filter filename):
@@ -572,6 +860,44 @@
 	(term-mem): Delete ununsed function.
 	(term-protocol-version): Increment.
 	(term-current-face): Set to default.
+
+2004-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-var-list): Define this variable.
+	(calc-always-load-extensions, calc-line-numbering)
+	(calc-line-breaking, calc-display-just, calc-display-origin)
+	(calc-number-radix, calc-leading-zeros, calc-group-digits)
+	(calc-group-char, calc-point-char, calc-frac-format)
+	(calc-prefer-frac, calc-hms-format, calc-date-format)
+	(calc-float-format, calc-full-float-format, calc-complex-format)
+	(calc-complex-mode, calc-infinite-mode, calc-display-strings)
+	(calc-matrix-just, calc-break-vectors, calc-full-vectors)
+	(calc-full-trail-vectors, calc-vector-commas, calc-vector-brackets)
+	(calc-matrix-brackets, calc-language, calc-language-option)
+	(calc-left-label, calc-right-label, calc-word-size)
+	(calc-previous-modulo, calc-simplify-mode, calc-auto-recompute)
+	(calc-display-raw, calc-internal-prec, calc-angle-mode)
+	(calc-algebraic-mode, calc-incomplete-algebraic-mode)
+	(calc-symbolic-mode, calc-matrix-mode, calc-shift-prefix)
+	(calc-window-height, calc-display-trail, calc-show-selections)
+	(calc-use-selections, calc-assoc-selections)
+	(calc-display-working-message, calc-auto-why, calc-timing)
+	(calc-mode-save-mode, calc-standard-date-formats)
+	(calc-autorange-units, calc-was-keypad-mode, calc-full-mode)
+	(calc-user-parse-tables, calc-gnuplot-default-device)
+	(calc-gnuplot-default-output, calc-gnuplot-print-device)
+	(calc-gnuplot-print-output, calc-gnuplot-geometry)
+	(calc-graph-default-resolution, calc-graph-default-resolution-3d)
+	(calc-invocation-macro, calc-show-banner): Give these values as
+	part of `calc-mode-var-list's initialization after the variables
+	are declared with defvar.
+	(calc-bug-address):  Changed email address to send bug
+	reports to. Also changed the maintainer address at the top.
+	(calc-mode): Compare `calc-settings-file' to `user-init-file' rather
+	than "\\.emacs" to determine if it is the user-init-file.
+
+	* calc/calc-embed.el (calc-embedded-set-modes): Use
+	`calc-mode-var-list' correctly.
 
 2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
 

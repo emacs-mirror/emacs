@@ -25,7 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-vars)
 (require 'url-parse)
 (require 'url-util)
@@ -85,7 +84,7 @@
 	(setq args (cons (list "x-url-from" source-url) args)))
 
     (if (assoc "to" args)
-	(push to (cdr (assoc "to" args)))
+	(push (cdr (assoc "to" args)) to)
       (setq args (cons (list "to" to) args)))
     (setq subject (cdr-safe (assoc "subject" args)))
     (if (fboundp url-mail-command) (funcall url-mail-command) (mail))

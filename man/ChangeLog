@@ -1,3 +1,43 @@
+2004-10-21  Jay Belanger  <belanger@truman.edu>
+	* calc.texi (Algebraic-Style Calculations): Removed a comment.
+
+2004-10-19  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (info): Change order of arguments to makeinfo.
+
+2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar.texi (iCalendar): Update for package changes.
+
+2004-10-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* calc.texi (Reporting Bugs): Double up `@'.
+
+2004-10-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Reporting Bugs):  Changed the address that bugs
+	should be sent to. 
+	
+2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (New Features): Add 5.11.
+
+	* message.texi (Resending): Remove wrong default value.
+
+	* gnus.texi (Mail Source Specifiers): Describe possible problems
+	of `pop3-leave-mail-on-server'.  Add `pop3-movemail' and
+	`pop3-leave-mail-on-server' to the index.
+
+2004-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Canceling News): Add how to set a password.
+
+2004-10-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Help Commands):  Changed the descriptions of
+	calc-describe-function and calc-describe-variable to match their
+	current behavior. 
+
 2004-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi ([5.9]): Improve code for reply-in-news.
@@ -154,6 +194,16 @@
 	* display.texi (Display Custom): Add `overflow-newline-into-fringe',
 	`indicate-buffer-boundaries' and `default-indicate-buffer-boundaries'.
 
+2004-09-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Vectors as Lists): Added a warning that the tutorial
+	might be hidden during part of the session.
+
+2004-09-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Notations Used in This Manual): Put in an earlier
+	mention that DEL could be called Backspace.
+	
 2004-09-20  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Hooks): Explain using setq to clear out a hook.

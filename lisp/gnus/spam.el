@@ -78,7 +78,7 @@
 (defgroup spam nil
   "Spam configuration.")
 
-(defcustom spam-directory "~/News/spam/"
+(defcustom spam-directory (nnheader-concat gnus-directory "spam/")
   "Directory for spam whitelists and blacklists."
   :type 'directory
   :group 'spam)
@@ -1814,12 +1814,10 @@ REMOVE not nil, remove the ADDRESSES."
   (remove-hook 'gnus-get-new-news-hook 'spam-setup-widening)
   (remove-hook 'gnus-summary-prepare-hook 'spam-find-spam))
 
+(add-hook 'spam-unload-hook 'spam-unload-hook)
+
 (when spam-install-hooks
   (spam-initialize))
-
-(provide 'spam)
-
-;;; spam.el ends here.
 
 (provide 'spam)
 

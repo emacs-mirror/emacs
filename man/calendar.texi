@@ -1402,21 +1402,19 @@ progress, so usage may evolve in future.
 
   To activate the package, use @code{(require 'icalendar)}.
 
-@findex icalendar-extract-ical-from-buffer
-  The command @code{icalendar-extract-ical-from-buffer} extracts
+@findex icalendar-import-buffer
+  The command @code{icalendar-import-buffer} extracts
 iCalendar data from the current buffer and adds it to your (default)
 diary file.  This function is also suitable for automatic extraction of
 iCalendar data; for example with the Rmail mail client one could use:
 
 @example
-(add-hook 'rmail-show-message-hook 'icalendar-extract-ical-from-buffer)
+(add-hook 'rmail-show-message-hook 'icalendar-import-buffer)
 @end example
 
 @findex icalendar-import-file
-  The command @code{icalendar-import-file} imports an iCalendar file.
-@strong{Caution:} the contents of the target diary file are
-@emph{deleted} by default!  It is highly recommended to use a dedicated
-diary file for importing.  For example:
+  The command @code{icalendar-import-file} imports an iCalendar file
+and adds the results to an Emacs diary file.  For example:
 
 @example
 (icalendar-import-file "/here/is/calendar.ics" "/there/goes/ical-diary")
@@ -1424,13 +1422,14 @@ diary file for importing.  For example:
 
 @noindent
 You can use an @code{#include} directive to add the import file contents
-to the diary.  @xref{Fancy Diary Display,,, elisp, The Emacs Lisp
-Reference Manual}.
+to the main diary file, if these are distinct.  @xref{Fancy Diary
+Display,,, elisp, The Emacs Lisp Reference Manual}.
 
-@findex icalendar-convert-diary-to-ical
-  The command @code{icalendar-convert-diary-to-ical} exports an Emacs
-diary file to iCalendar format.  @strong{Caution:} the contents of the
-target file are @emph{deleted} by default!
+@findex icalendar-export-file, icalendar-export-region
+  Use @code{icalendar-export-file} to interactively export an entire
+Emacs diary file to iCalendar format.  To export only a part of a diary
+file, mark the relevant area, and call @code{icalendar-export-region}.
+In both cases the result is appended to the target file.
 
 
 @node Daylight Savings

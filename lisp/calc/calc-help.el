@@ -1,6 +1,7 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainers: D. Goel <deego@gnufans.org>
@@ -112,34 +113,27 @@ C-w  Describe how there is no warranty for Calc."
   (describe-bindings)
   (save-excursion
     (set-buffer "*Help*")
-    (goto-char (point-min))
-    (if (search-forward "Global bindings:" nil t)
-	(delete-region (match-beginning 0) (point-max)))
-    (goto-char (point-min))
-    (while (re-search-forward "\n[a-z] ESC" nil t)
-      (end-of-line)
-      (delete-region (match-beginning 0) (point)))
-    (goto-char (point-min))
-    (while (re-search-forward "\nESC m" nil t)
-      (end-of-line)
-      (delete-region (match-beginning 0) (point)))
-    (goto-char (point-min))
-    (while (search-forward "\n\n\n" nil t)
-      (backward-delete-char 1)
-      (backward-char 2))
-    (goto-char (point-min))
-    (while
-	(re-search-forward
-	 "\n[a-z] [0-9]\\(\t\t.*\n\\)\\([a-z] [0-9]\\1\\)*[a-z] \\([0-9]\\)\\1"
-	 nil t)
-      (let ((dig1 (char-after (1- (match-beginning 1))))
-	    (dig2 (char-after (match-beginning 3))))
-	(delete-region (match-end 1) (match-end 0))
-	(goto-char (match-beginning 1))
-	(delete-backward-char 1)
-	(delete-char 1)
-	(insert (format "%c .. %c" (min dig1 dig2) (max dig1 dig2)))))
-    (goto-char (point-min))))
+    (let ((inhibit-read-only t))
+      (goto-char (point-min))
+      (when (search-forward "Major Mode Bindings:" nil t)
+        (delete-region (point-min) (point))
+        (insert "Calc Mode Bindings:"))
+      (when (search-forward "Global bindings:" nil t)
+        (forward-line -1)
+        (delete-region (point) (point-max)))
+      (goto-char (point-min))
+      (while
+          (re-search-forward
+           "\n[a-z] [0-9]\\( .*\n\\)\\([a-z] [0-9]\\1\\)*[a-z] \\([0-9]\\)\\1"
+           nil t)
+        (let ((dig1 (char-after (1- (match-beginning 1))))
+              (dig2 (char-after (match-beginning 3))))
+          (delete-region (match-end 1) (match-end 0))
+          (goto-char (match-beginning 1))
+          (delete-backward-char 1)
+          (delete-char 5)
+          (insert (format "%c .. %c" (min dig1 dig2) (max dig1 dig2)))))
+      (goto-char (point-min)))))
 
 (defun calc-describe-key-briefly (key)
   (interactive "kDescribe key briefly: ")
@@ -680,5 +674,5 @@ C-w  Describe how there is no warranty for Calc."
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
    "vec/mat" ?v))
 
-;;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
+;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here

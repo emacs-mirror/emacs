@@ -104,7 +104,7 @@ info: $(infodir)/elisp
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)
-	$(MAKEINFO) -I. -I$(srcdir) $(srcdir)/elisp.texi -o $(infodir)/elisp
+	$(MAKEINFO) -I. -I$(srcdir) -o $(infodir)/elisp $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
 	$(texinputdir) $(TEX) $(srcdir)/elisp.texi

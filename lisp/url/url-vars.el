@@ -1,26 +1,27 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
+
+;; Copyright (c) 1996,1997,1998,1999,2001,2004 Free Software Foundation, Inc.
+
 ;; Keywords: comm, data, processes, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996,1997,1998,1999,2001,2004 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
 
 (require 'mm-util)
 
@@ -191,19 +192,6 @@ from the ACCESS_proxy environment variables."
 		       (string :tag "Proxy")))
   :group 'url)
 
-(defcustom url-passwd-entry-func nil
-  "*Symbol indicating which function to call to read in a password.
-It will be set up depending on whether you are running EFS or ange-ftp
-at startup if it is nil.  This function should accept the prompt
-string as its first argument, and the default value as its second
-argument."
-  :type '(choice (const :tag "Guess" :value nil)
-		 (const :tag "Use Ange-FTP" :value ange-ftp-read-passwd)
-		 (const :tag "Use EFS"      :value efs-read-passwd)
-		 (const :tag "Use Password Package" :value read-passwd)
-		 (function :tag "Other"))
-  :group 'url-hairy)
-
 (defcustom url-standalone-mode nil
   "*Rely solely on the cache?"
   :type 'boolean
@@ -239,24 +227,6 @@ Should be an assoc list of headers/contents.")
 ;; FIXME!!  (RFC 2616 gives examples like `compress, gzip'.)
 (defvar url-mime-encoding-string nil
   "*String to send in the Accept-encoding: field in HTTP requests.")
-
-;; `mm-mime-mule-charset-alist' in Gnus 5.8/9 contains elements whose
-;; cars aren't valid MIME charsets/coding systems, at least in Emacs.
-;; This gets it correct by construction in Emacs.  Fixme: DTRT for
-;; XEmacs -- its `coding-system-list' doesn't have the BASE-ONLY arg.
-(when (and (not (featurep 'xemacs))
-	   (fboundp 'coding-system-list))
-  (setq mm-mime-mule-charset-alist
-	(apply
-	 'nconc
-	 (mapcar
-	  (lambda (cs)
-	    (when (and (coding-system-get cs 'mime-charset)
-		       (not (eq t (coding-system-get cs 'safe-charsets))))
-	      (list (cons (coding-system-get cs 'mime-charset)
-			  (delq 'ascii
-				(coding-system-get cs 'safe-charsets))))))
-	  (coding-system-list 'base-only)))))
 
 ;; Perhaps the first few should actually be given decreasing `q's and
 ;; the list should be trimmed significantly.
@@ -381,14 +351,14 @@ Currently supported methods:
 
 (defvar url-setup-done nil "Has setup configuration been done?")
 
-(defconst weekday-alist
+(defconst url-weekday-alist
   '(("Sunday" . 0) ("Monday" . 1) ("Tuesday" . 2) ("Wednesday" . 3)
     ("Thursday" . 4) ("Friday" . 5) ("Saturday" . 6)
     ("Tues" . 2) ("Thurs" . 4)
     ("Sun" . 0) ("Mon" . 1) ("Tue" . 2) ("Wed" . 3)
     ("Thu" . 4) ("Fri" . 5) ("Sat" . 6)))
 
-(defconst monthabbrev-alist
+(defconst url-monthabbrev-alist
   '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4) ("May" . 5) ("Jun" . 6)
     ("Jul" . 7) ("Aug" . 8) ("Sep" . 9) ("Oct" . 10) ("Nov" . 11)
     ("Dec" . 12)))
@@ -424,6 +394,8 @@ This should be set, e.g. by mail user agents rendering HTML to avoid
 
 (defun url-vars-unload-hook ()
   (remove-hook 'set-language-environment-hook 'url-set-mime-charset-string))
+
+(add-hook 'url-vars-unload-hook 'url-vars-unload-hook)
 
 (provide 'url-vars)
 

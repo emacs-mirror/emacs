@@ -1354,7 +1354,8 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 			   :color-symbols
 			   `(("foreground"
 			      . ,(frame-parameter nil 'foreground-color))))))
-	  finally do (kill-region (1+ (point)) (point-max)))
+	  finally do (unless (eobp)
+		       (kill-region (1+ (point)) (point-max))))
     (view-buffer "*Strokes List*" nil)
     (set (make-local-variable 'view-mode-map)
 	 (let ((map (copy-keymap view-mode-map)))
@@ -1744,6 +1745,8 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
 (defun strokes-unload-hook ()
   (strokes-mode -1)
   (remove-hook 'kill-emacs-query-functions 'strokes-prompt-user-save-strokes))
+
+(add-hooks 'strokes-unload-hook 'strokes-unload-hook)
 
 (run-hooks 'strokes-load-hook)
 (provide 'strokes)

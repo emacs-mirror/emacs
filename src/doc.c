@@ -774,27 +774,17 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 
 	  /* Save STRP in IDX.  */
 	  idx = strp - SDATA (string);
-	  tem = Fintern (make_string (start, length_byte), Qnil);
+	  name = Fintern (make_string (start, length_byte), Qnil);
 
 	  /* Ignore remappings unless there are no ordinary bindings. */
- 	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qt);
+ 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qt);
  	  if (NILP (tem))
-	    tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qnil);
+	    tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
 
 	  /* Note the Fwhere_is_internal can GC, so we have to take
 	     relocation of string contents into account.  */
 	  strp = SDATA (string) + idx;
 	  start = SDATA (string) + start_idx;
-
-	  /* Disregard menu bar bindings; it is positively annoying to
-	     mention them when there's no menu bar, and it isn't terribly
-	     useful even when there is a menu bar.  */
-	  if (!NILP (tem))
-	    {
-	      firstkey = Faref (tem, make_number (0));
-	      if (EQ (firstkey, Qmenu_bar))
-		tem = Qnil;
-	    }
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {

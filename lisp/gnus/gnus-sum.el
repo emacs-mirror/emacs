@@ -44,6 +44,7 @@
 (autoload 'gnus-cache-write-active "gnus-cache")
 (autoload 'gnus-mailing-list-insinuate "gnus-ml" nil t)
 (autoload 'turn-on-gnus-mailing-list-mode "gnus-ml" nil t)
+(autoload 'gnus-pick-line-number "gnus-salt" nil t)
 (autoload 'mm-uu-dissect "mm-uu")
 (autoload 'gnus-article-outlook-deuglify-article "deuglify"
   "Deuglify broken Outlook (Express) articles and redisplay."
@@ -2238,8 +2239,12 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Pipe through a filter..." gnus-summary-pipe-output t]
 	      ["Add to SOUP packet" gnus-soup-add-article t]
 	      ["Print with Muttprint..." gnus-summary-muttprint t]
-	      ["Print" gnus-summary-print-article t])
-	     ("Backend"
+	      ["Print" gnus-summary-print-article
+	       ,@(if (featurep 'xemacs) '(t)
+		   '(:help "Generate and print a PostScript image"))])
+	     ("Copy, move,... (Backend)"
+	      ,@(if (featurep 'xemacs) '(t)
+		  '(:help "Copying, moving, expiring articles..."))
 	      ["Respool article..." gnus-summary-respool-article t]
 	      ["Move article..." gnus-summary-move-article
 	       (gnus-check-backend-function
@@ -2330,7 +2335,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
       `("Post"
 	["Send a message (mail or news)" gnus-summary-post-news
 	 ,@(if (featurep 'xemacs) '(t)
-	     '(:help "Post an article"))]
+	     '(:help "Compose a new message (mail or news)"))]
 	["Followup" gnus-summary-followup
 	 ,@(if (featurep 'xemacs) '(t)
 	     '(:help "Post followup to this article"))]
@@ -3229,28 +3234,34 @@ buffer that was in action when the last article was fetched."
       (save-excursion
 	(gnus-set-work-buffer)
 	(let ((gnus-summary-line-format-spec spec)
-	      (gnus-newsgroup-downloadable '(0)))
+	      (gnus-newsgroup-downloadable '(0))
+	      marks)
+	  (insert ?\200 "\200" ?\201 "\201" ?\202 "\202" ?\203 "\203")
+	  (while (not (bobp))
+	    (push (buffer-substring (1- (point)) (point)) marks)
+	    (backward-char))
+	  (erase-buffer)
 	  (gnus-summary-insert-line
 	   [0 "" "" "05 Apr 2001 23:33:09 +0400" "" "" 0 0 "" nil]
 	   0 nil t 128 t nil "" nil 1)
 	  (goto-char (point-min))
 	  (setq pos (list (cons 'unread
-				(and (search-forward
-				      (mm-string-as-multibyte "\200") nil t)
+				(and (or (search-forward (nth 0 marks) nil t)
+					 (search-forward (nth 1 marks) nil t))
 				     (- (point) (point-min) 1)))))
 	  (goto-char (point-min))
-	  (push (cons 'replied (and (search-forward
-				     (mm-string-as-multibyte "\201") nil t)
+	  (push (cons 'replied (and (or (search-forward (nth 2 marks) nil t)
+					(search-forward (nth 3 marks) nil t))
 				    (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'score (and (search-forward
-				   (mm-string-as-multibyte "\202") nil t)
+	  (push (cons 'score (and (or (search-forward (nth 4 marks) nil t)
+				      (search-forward (nth 5 marks) nil t))
 				  (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'download (and (search-forward
-				      (mm-string-as-multibyte "\203") nil t)
+	  (push (cons 'download (and (or (search-forward (nth 6 marks) nil t)
+					 (search-forward (nth 7 marks) nil t))
 				     (- (point) (point-min) 1)))
 		pos)))
       (setq gnus-summary-mark-positions pos))))
@@ -5065,17 +5076,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	     group (gnus-status-message group)))
 
     (when gnus-agent
-      ;; The agent may be storing articles that are no longer in the
-      ;; server's active range.  If that is the case, the active range
-      ;; needs to be expanded such that the agent's articles can be
-      ;; included in the summary.
-      (let* ((gnus-command-method (gnus-find-method-for-group group))
-             (alist (gnus-agent-load-alist group))
-             (active (gnus-active group)))
-        (if (and (car alist)
-                 (< (caar alist) (car active)))
-            (gnus-set-active group (cons (caar alist) (cdr active)))))
-
+      (gnus-agent-possibly-alter-active group (gnus-active group) info)
+      
       (setq gnus-summary-use-undownloaded-faces
 	    (gnus-agent-find-parameter
 	     group
@@ -5404,7 +5406,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	 (min (car active))
 	 (max (cdr active))
 	 (types gnus-article-mark-lists)
-	 marks var articles article mark mark-type)
+	 marks var articles article mark mark-type
+         bgn end)
 
     (dolist (marks marked-lists)
       (setq mark (car marks)
@@ -5414,13 +5417,30 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       ;; We set the variable according to the type of the marks list,
       ;; and then adjust the marks to a subset of the active articles.
       (cond
-       ;; Adjust "simple" lists.
+       ;; Adjust "simple" lists - compressed yet unsorted
        ((eq mark-type 'list)
-	(set var (setq articles (gnus-uncompress-range (cdr marks))))
-	(when (memq mark '(tick dormant expire reply save))
-	  (while articles
-	    (when (or (< (setq article (pop articles)) min) (> article max))
-	      (set var (delq article (symbol-value var)))))))
+        ;; Simultaneously uncompress and clip to active range
+        ;; See gnus-uncompress-range for a description of possible marks
+        (let (l lh)
+          (if (not (cadr marks))
+              (set var nil)
+            (setq articles (if (numberp (cddr marks))
+                               (list (cdr marks))
+                             (cdr marks))
+                  lh (cons nil nil)
+                  l lh)
+
+            (while (setq article (pop articles))
+              (cond ((consp article)
+                     (setq bgn (max (car article) min)
+                           end (min (cdr article) max))
+                     (while (<= bgn end)
+                       (setq l (setcdr l (cons bgn nil))
+                             bgn (1+ bgn))))
+                    ((and (<= min article)
+                          (>= max article))
+                     (setq l (setcdr l (cons article nil))))))
+            (set var (cdr lh)))))
        ;; Adjust assocs.
        ((eq mark-type 'tuple)
 	(set var (setq articles (cdr marks)))
@@ -6353,15 +6373,15 @@ displayed, no centering will be performed."
 	(while read
 	  (when first
 	    (while (< first nlast)
-	      (push first unread)
-	      (setq first (1+ first))))
+	      (setq unread (cons first unread)
+                    first (1+ first))))
 	  (setq first (1+ (if (atom (car read)) (car read) (cdar read))))
 	  (setq nlast (if (atom (cadr read)) (cadr read) (caadr read)))
 	  (setq read (cdr read)))))
     ;; And add the last unread articles.
     (while (<= first last)
-      (push first unread)
-      (setq first (1+ first)))
+      (setq unread (cons first unread)
+            first (1+ first)))
     ;; Return the list of unread articles.
     (delq 0 (nreverse unread))))
 
@@ -6378,6 +6398,44 @@ displayed, no centering will be performed."
 	    (gnus-list-of-unread-articles group))
 	   (cdr (assq 'dormant marked)))
 	  (cdr (assq 'tick marked))))))
+
+;; This function returns a sequence of article numbers based on the
+;; difference between the ranges of read articles in this group and
+;; the range of active articles.
+(defun gnus-sequence-of-unread-articles (group)
+  (let* ((read (gnus-info-read (gnus-get-info group)))
+	 (active (or (gnus-active group) (gnus-activate-group group)))
+	 (last (cdr active))
+	 first nlast unread)
+    ;; If none are read, then all are unread.
+    (if (not read)
+	(setq first (car active))
+      ;; If the range of read articles is a single range, then the
+      ;; first unread article is the article after the last read
+      ;; article.  Sounds logical, doesn't it?
+      (if (and (not (listp (cdr read)))
+	       (or (< (car read) (car active))
+		   (progn (setq read (list read))
+			  nil)))
+	  (setq first (max (car active) (1+ (cdr read))))
+	;; `read' is a list of ranges.
+	(when (/= (setq nlast (or (and (numberp (car read)) (car read))
+				  (caar read)))
+		  1)
+	  (setq first (car active)))
+	(while read
+	  (when first
+            (push (cons first nlast) unread))
+	  (setq first (1+ (if (atom (car read)) (car read) (cdar read))))
+	  (setq nlast (if (atom (cadr read)) (cadr read) (caadr read)))
+	  (setq read (cdr read)))))
+    ;; And add the last unread articles.
+    (cond ((< first last)
+           (push (cons first last) unread))
+          ((= first last)
+           (push first unread)))
+    ;; Return the sequence of unread articles.
+    (delq 0 (nreverse unread))))
 
 ;; Various summary commands
 
@@ -11305,7 +11363,8 @@ If REVERSE, save parts that do not match TYPE."
 	 (default-high gnus-summary-default-high-score)
 	 (default-low gnus-summary-default-low-score)
 	 (uncached (and gnus-summary-use-undownloaded-faces
-                        (memq article gnus-newsgroup-undownloaded))))
+                        (memq article gnus-newsgroup-undownloaded)
+                        (not (memq article gnus-newsgroup-cached)))))
     (let ((face (funcall (gnus-summary-highlight-line-0))))
       (unless (eq face (get-text-property beg 'face))
 	(gnus-put-text-property-excluding-characters-with-faces

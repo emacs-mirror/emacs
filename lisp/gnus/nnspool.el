@@ -44,7 +44,7 @@ This is most commonly `inews' or `injnews'.")
   "Switches for nnspool-request-post to pass to `inews' for posting news.
 If you are using Cnews, you probably should set this variable to nil.")
 
-(defvoo nnspool-spool-directory (file-name-as-directory news-path)
+(defvoo nnspool-spool-directory (file-name-as-directory news-directory)
   "Local news spool directory.")
 
 (defvoo nnspool-nov-directory (concat nnspool-spool-directory "over.view/")

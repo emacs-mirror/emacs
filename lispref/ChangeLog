@@ -1,3 +1,7 @@
+2004-10-19  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (elisp): Change order of arguments to makeinfo.
+
 2004-10-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* text.texi (Filling): Add anchor for definition of

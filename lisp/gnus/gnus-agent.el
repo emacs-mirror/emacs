@@ -114,7 +114,7 @@ If nil, only read articles will be expired."
   :group 'gnus-agent
   :type 'function)
 
-(defcustom gnus-agent-synchronize-flags 'ask
+(defcustom gnus-agent-synchronize-flags nil
   "Indicate if flags are synchronized when you plug in.
 If this is `ask' the hook will query the user."
   :version "21.1"
@@ -362,9 +362,23 @@ manipulated as follows:
 (gnus-agent-cat-defaccessor
  gnus-agent-cat-enable-undownloaded-faces agent-enable-undownloaded-faces)
 
+
+;; This form is equivalent to defsetf except that it calls make-symbol
+;; whereas defsetf calls gensym (Using gensym creates a run-time
+;; dependency on the CL library).
+
 (eval-and-compile
-  (defsetf gnus-agent-cat-groups (category) (groups)
-    (list 'gnus-agent-set-cat-groups category groups)))
+  (define-setf-method gnus-agent-cat-groups (category)
+    (let* ((--category--temp-- (make-symbol "--category--"))
+	   (--groups--temp-- (make-symbol "--groups--")))
+      (list (list --category--temp--)
+	    (list category)
+	    (list --groups--temp--)
+	    (let* ((category --category--temp--)
+		   (groups --groups--temp--))
+	      (list (quote gnus-agent-set-cat-groups) category groups))
+	    (list (quote gnus-agent-cat-groups) --category--temp--))))
+  )
 
 (defun gnus-agent-set-cat-groups (category groups)
   (unless (eq groups 'ignore)
@@ -624,7 +638,7 @@ minor mode in all Gnus buffers."
   (unless gnus-agent-send-mail-function
     (setq gnus-agent-send-mail-function
 	  (or message-send-mail-real-function
-	      message-send-mail-function)
+	      (function (lambda () (funcall message-send-mail-function))))
 	  message-send-mail-real-function 'gnus-agent-send-mail))
 
   ;; If the servers file doesn't exist, auto-agentize some servers and
@@ -790,25 +804,39 @@ be a select method."
   (interactive)
   (save-excursion
     (dolist (gnus-command-method (gnus-agent-covered-methods))
-      (when (file-exists-p (gnus-agent-lib-file "flags"))
+      (when (and (file-exists-p (gnus-agent-lib-file "flags"))
+		 (not (eq (gnus-server-status gnus-command-method) 'offline)))
 	(gnus-agent-possibly-synchronize-flags-server gnus-command-method)))))
 
 (defun gnus-agent-synchronize-flags-server (method)
   "Synchronize flags set when unplugged for server."
-  (let ((gnus-command-method method))
+  (let ((gnus-command-method method)
+	(gnus-agent nil))
     (when (file-exists-p (gnus-agent-lib-file "flags"))
       (set-buffer (get-buffer-create " *Gnus Agent flag synchronize*"))
       (erase-buffer)
       (nnheader-insert-file-contents (gnus-agent-lib-file "flags"))
-      (if (null (gnus-check-server gnus-command-method))
-	  (gnus-message 1 "Couldn't open server %s" (nth 1 gnus-command-method))
-	(while (not (eobp))
-	  (if (null (eval (read (current-buffer))))
-	      (gnus-delete-line)
-	    (write-file (gnus-agent-lib-file "flags"))
-	    (error "Couldn't set flags from file %s"
-		   (gnus-agent-lib-file "flags"))))
-	(delete-file (gnus-agent-lib-file "flags")))
+      (cond ((null gnus-plugged)
+	     (gnus-message 
+	      1 "You must be plugged to synchronize flags with server %s" 
+	      (nth 1 gnus-command-method)))
+	    ((null (gnus-check-server gnus-command-method))
+	     (gnus-message 
+	      1 "Couldn't open server %s" (nth 1 gnus-command-method)))
+	    (t
+	     (condition-case err
+		 (while t
+		   (let ((bgn (point)))
+		     (eval (read (current-buffer)))
+		     (delete-region bgn (point))))
+	       (end-of-file
+		(delete-file (gnus-agent-lib-file "flags")))
+	       (error
+		(let ((file (gnus-agent-lib-file "flags")))
+		  (write-region (point-min) (point-max)
+				(gnus-agent-lib-file "flags") nil 'silent)
+		  (error "Couldn't set flags from file %s due to %s"
+			 file (error-message-string err)))))))
       (kill-buffer nil))))
 
 (defun gnus-agent-possibly-synchronize-flags-server (method)
@@ -819,6 +847,56 @@ be a select method."
 		 (gnus-y-or-n-p (format "Synchronize flags on server `%s'? "
 					(cadr method)))))
     (gnus-agent-synchronize-flags-server method)))
+
+;;;###autoload
+(defun gnus-agent-rename-group (old-group new-group)
+  "Rename fully-qualified OLD-GROUP as NEW-GROUP.  Always updates the agent, even when
+disabled, as the old agent files would corrupt gnus when the agent was
+next enabled. Depends upon the caller to determine whether group renaming is supported."
+  (let* ((old-command-method (gnus-find-method-for-group old-group))
+	 (old-path           (directory-file-name
+			      (let (gnus-command-method old-command-method)
+				(gnus-agent-group-pathname old-group))))
+	 (new-command-method (gnus-find-method-for-group new-group))
+	 (new-path           (directory-file-name
+			      (let (gnus-command-method new-command-method)
+				(gnus-agent-group-pathname new-group)))))
+    (gnus-rename-file old-path new-path t)
+
+    (let* ((old-real-group (gnus-group-real-name old-group))
+	   (new-real-group (gnus-group-real-name new-group))
+	   (old-active (gnus-agent-get-group-info old-command-method old-real-group)))
+      (gnus-agent-save-group-info old-command-method old-real-group nil)
+      (gnus-agent-save-group-info new-command-method new-real-group old-active)
+
+      (let ((old-local (gnus-agent-get-local old-group 
+					     old-real-group old-command-method)))
+	(gnus-agent-set-local old-group
+			      nil nil
+			      old-real-group old-command-method)
+	(gnus-agent-set-local new-group
+			      (car old-local) (cdr old-local)
+			      new-real-group new-command-method)))))
+
+;;;###autoload
+(defun gnus-agent-delete-group (group)
+  "Delete fully-qualified GROUP.  Always updates the agent, even when
+disabled, as the old agent files would corrupt gnus when the agent was
+next enabled. Depends upon the caller to determine whether group deletion is supported."
+  (let* ((command-method (gnus-find-method-for-group group))
+	 (path           (directory-file-name
+			  (let (gnus-command-method command-method)
+			    (gnus-agent-group-pathname group)))))
+    (gnus-delete-file path)
+
+    (let* ((real-group (gnus-group-real-name group)))
+      (gnus-agent-save-group-info command-method real-group nil)
+
+      (let ((local (gnus-agent-get-local group 
+					 real-group command-method)))
+	(gnus-agent-set-local group
+			      nil nil
+			      real-group command-method)))))
 
 ;;;
 ;;; Server mode commands
@@ -969,6 +1047,7 @@ article's mark is toggled."
 	 gnus-downloadable-mark)
        'unread))))
 
+;;;###autoload
 (defun gnus-agent-get-undownloaded-list ()
   "Construct list of articles that have not been downloaded."
   (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
@@ -1113,6 +1192,49 @@ This can be added to `gnus-select-article-hook' or
 ;;; Internal functions
 ;;;
 
+(defun gnus-agent-synchronize-group-flags (group actions server)
+"Update a plugged group by performing the indicated actions."
+  (let* ((gnus-command-method (gnus-server-to-method server))
+	 (info
+	  ;; This initializer is required as gnus-request-set-mark
+	  ;; calls gnus-group-real-name to strip off the host name
+	  ;; before calling the backend.  Now that the backend is
+	  ;; trying to call gnus-request-set-mark, I have to
+	  ;; reconstruct the original group name.
+	  (or (gnus-get-info group)
+	      (gnus-get-info 
+	       (setq group (gnus-group-full-name 
+			    group gnus-command-method))))))
+    (gnus-request-set-mark group actions)
+
+    (when info
+      (dolist (action actions)
+	(let ((range (nth 0 action))
+	      (what  (nth 1 action))
+	      (marks (nth 2 action)))
+	  (dolist (mark marks)
+	    (cond ((eq mark 'read)
+		   (gnus-info-set-read 
+		    info
+		    (funcall (if (eq what 'add)
+				 'gnus-range-add
+			       'gnus-remove-from-range)
+			     (gnus-info-read info)
+			     range))
+		   (gnus-get-unread-articles-in-group 
+		    info
+		    (gnus-active (gnus-info-group info))))
+		  ((memq mark '(tick))
+		   (let ((info-marks (assoc mark (gnus-info-marks info))))
+		     (unless info-marks
+		       (gnus-info-set-marks info (cons (setq info-marks (list mark)) (gnus-info-marks info))))
+		     (setcdr info-marks (funcall (if (eq what 'add)
+				  'gnus-range-add
+				'gnus-remove-from-range)
+			      (cdr info-marks)
+			      range)))))))))
+    nil))
+
 (defun gnus-agent-save-active (method)
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method method)
@@ -1131,6 +1253,7 @@ This can be added to `gnus-select-article-hook' or
       ;; will add it while reading the file.
       (gnus-write-active-file file new nil)))
 
+;;;###autoload
 (defun gnus-agent-possibly-alter-active (group active &optional info)
   "Possibly expand a group's active range to include articles
 downloaded into the agent."
@@ -1183,7 +1306,7 @@ downloaded into the agent."
 (defun gnus-agent-save-group-info (method group active)
   "Update a single group's active range in the agent's copy of the server's active file."
   (when (gnus-agent-method-p method)
-    (let* ((gnus-command-method method)
+    (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
 	   (file-name-coding-system nnmail-pathname-coding-system)
 	   (file (gnus-agent-lib-file "active"))
@@ -1199,15 +1322,39 @@ downloaded into the agent."
           (when (re-search-forward
                  (concat "^" (regexp-quote group) " ") nil t)
             (save-excursion
-              (setq oactive-max (read (current-buffer)) ;; max
+	      (setq oactive-max (read (current-buffer)) ;; max
                     oactive-min (read (current-buffer)))) ;; min
             (gnus-delete-line)))
-	(insert (format "%S %d %d y\n" (intern group)
-			(max (or oactive-max (cdr active)) (cdr active))
-                        (min (or oactive-min (car active)) (car active))))
-	(goto-char (point-max))
-	(while (search-backward "\\." nil t)
-	  (delete-char 1))))))
+	(when active
+	  (insert (format "%S %d %d y\n" (intern group)
+			  (max (or oactive-max (cdr active)) (cdr active))
+			  (min (or oactive-min (car active)) (car active))))
+	  (goto-char (point-max))
+	  (while (search-backward "\\." nil t)
+	    (delete-char 1)))))))
+
+(defun gnus-agent-get-group-info (method group)
+  "Get a single group's active range in the agent's copy of the server's active file."
+  (when (gnus-agent-method-p method)
+    (let* ((gnus-command-method (or method gnus-command-method))
+	   (coding-system-for-write nnheader-file-coding-system)
+	   (file-name-coding-system nnmail-pathname-coding-system)
+	   (file (gnus-agent-lib-file "active"))
+	   oactive-min oactive-max)
+      (gnus-make-directory (file-name-directory file))
+      (with-temp-buffer
+	;; Emacs got problem to match non-ASCII group in multibyte buffer.
+	(mm-disable-multibyte)
+	(when (file-exists-p file)
+	  (nnheader-insert-file-contents file)
+
+          (goto-char (point-min))
+          (when (re-search-forward
+                 (concat "^" (regexp-quote group) " ") nil t)
+            (save-excursion
+              (setq oactive-max (read (current-buffer))	;; max
+                    oactive-min (read (current-buffer))) ;; min
+	      (cons oactive-min oactive-max))))))))
 
 (defun gnus-agent-group-path (group)
   "Translate GROUP into a file name."
@@ -1413,6 +1560,31 @@ downloaded into the agent."
             (gnus-message 7 ""))
           (cdr fetched-articles))))))
 
+(defun gnus-agent-unfetch-articles (group articles)
+  "Delete ARTICLES that were fetched from GROUP into the agent."
+  (when articles
+    (gnus-agent-load-alist group)
+    (let* ((alist (cons nil gnus-agent-article-alist))
+	   (articles (sort articles #'<))
+	   (next-possibility alist)
+	   (delete-this (pop articles)))
+      (while (and (cdr next-possibility) delete-this)
+	(let ((have-this (caar (cdr next-possibility))))
+	  (cond ((< delete-this have-this)
+		 (setq delete-this (pop articles)))
+		((= delete-this have-this)
+		 (let ((timestamp (cdar (cdr next-possibility))))
+		   (when timestamp
+		     (let* ((file-name (concat (gnus-agent-group-pathname group)
+					       (number-to-string have-this))))
+		       (delete-file file-name))))
+
+		 (setcdr next-possibility (cddr next-possibility)))
+		(t
+		 (setq next-possibility (cdr next-possibility))))))
+      (setq gnus-agent-article-alist (cdr alist))
+      (gnus-agent-save-alist group))))
+
 (defun gnus-agent-crosspost (crosses article &optional date)
   (setq date (or date t))
 
@@ -1487,7 +1659,7 @@ and that there are no duplicates."
                   (setq backed-up (gnus-agent-backup-overview-buffer)))
               (gnus-message 1
 			    "Duplicate overview line for %d" cur)
-	      (delete-region (point) (progn (forward-line 1) (point))))
+	      (delete-region p (progn (forward-line 1) (point))))
 	     ((< cur prev-num)
 	      (or backed-up
                   (setq backed-up (gnus-agent-backup-overview-buffer)))
@@ -1519,6 +1691,7 @@ and that there are no duplicates."
 	(insert "\n"))
       (setq gnus-agent-group-alist (cdr gnus-agent-group-alist)))))
 
+;;;###autoload
 (defun gnus-agent-find-parameter (group symbol)
   "Search for GROUPs SYMBOL in the group's parameters, the group's
 topic parameters, the group's category, or the customizable
@@ -1623,8 +1796,10 @@ article numbers will be returned."
               ;; of FILE.
               (copy-to-buffer
 	       gnus-agent-overview-buffer (point-min) (point-max))
-              (when (file-exists-p file)
-                (gnus-agent-braid-nov group articles file))
+	      ;; NOTE: Call g-a-brand-nov even when the file does not
+	      ;; exist.  As a minimum, it will validate the article
+	      ;; numbers already in the buffer.
+	      (gnus-agent-braid-nov group articles file)
               (let ((coding-system-for-write
                      gnus-agent-file-coding-system))
                 (gnus-agent-check-overview-buffer)
@@ -1636,11 +1811,32 @@ article numbers will be returned."
             (nnheader-insert-file-contents file)))))
     articles))
 
+(defsubst gnus-agent-read-article-number ()
+  "Reads the article number at point.  Returns nil when a valid article number can not be read."
+
+  ;; It is unfortunite but the read function quietly overflows
+  ;; integer.  As a result, I have to use string operations to test
+  ;; for overflow BEFORE calling read.
+  (when (looking-at "[0-9]+\t")
+    (let ((len (- (match-end 0) (match-beginning 0))))
+      (cond ((< len 9)
+	     (read (current-buffer)))
+	    ((= len 9)
+	     ;; Many 9 digit base-10 numbers can be represented in a 27-bit int
+	     ;; Back convert from int to string to ensure that this is one of them.
+	     (let* ((str1 (buffer-substring (match-beginning 0) (1- (match-end 0))))
+		    (num (read (current-buffer)))
+		    (str2 (int-to-string num)))
+	       (when (equal str1 str2)
+		 num)))))))
+
 (defsubst gnus-agent-copy-nov-line (article)
+  "Copy the indicated ARTICLE from the overview buffer to the nntp server buffer."
   (let (art b e)
     (set-buffer gnus-agent-overview-buffer)
     (while (and (not (eobp))
-		(< (setq art (read (current-buffer))) article))
+		(or (not (setq art (gnus-agent-read-article-number)))
+		    (< art article)))
       (forward-line 1))
     (beginning-of-line)
     (if (or (eobp)
@@ -1653,64 +1849,77 @@ article numbers will be returned."
 
 (defun gnus-agent-braid-nov (group articles file)
   "Merge agent overview data with given file.
-Takes headers for ARTICLES from `gnus-agent-overview-buffer' and the given
-FILE and places the combined headers into `nntp-server-buffer'."
+Takes unvalidated headers for ARTICLES from
+`gnus-agent-overview-buffer' and validated headers from the given
+FILE and places the combined valid headers into
+`nntp-server-buffer'.  This function can be used, when file
+doesn't exist, to valid the overview buffer."
   (let (start last)
     (set-buffer gnus-agent-overview-buffer)
     (goto-char (point-min))
     (set-buffer nntp-server-buffer)
     (erase-buffer)
-    (nnheader-insert-file-contents file)
+    (when (file-exists-p file)
+      (nnheader-insert-file-contents file))
     (goto-char (point-max))
     (forward-line -1)
-    (unless (looking-at "[0-9]+\t")
-      ;; Remove corrupted lines
-      (gnus-message
-       1 "Overview %s is corrupted. Removing corrupted lines..." file)
-      (goto-char (point-min))
-      (while (not (eobp))
-	(if (looking-at "[0-9]+\t")
-	    (forward-line 1)
-	  (delete-region (point) (progn (forward-line 1) (point)))))
-      (forward-line -1))
+
     (unless (or (= (point-min) (point-max))
 		(< (setq last (read (current-buffer))) (car articles)))
-      ;; We do it the hard way.
+      ;; Old and new overlap -- We do it the hard way.
       (when (nnheader-find-nov-line (car articles))
         ;; Replacing existing NOV entry
         (delete-region (point) (progn (forward-line 1) (point))))
       (gnus-agent-copy-nov-line (pop articles))
 
       (ignore-errors
-        (while articles
-          (while (let ((art (read (current-buffer))))
-                   (cond ((< art (car articles))
-                          (forward-line 1)
-                          t)
-                         ((= art (car articles))
-                          (beginning-of-line)
-                          (delete-region
-			   (point) (progn (forward-line 1) (point)))
-                          nil)
-                         (t
-                          (beginning-of-line)
-                          nil))))
+       (while articles
+	 (while (let ((art (read (current-buffer))))
+		  (cond ((< art (car articles))
+			 (forward-line 1)
+			 t)
+			((= art (car articles))
+			 (beginning-of-line)
+			 (delete-region
+			  (point) (progn (forward-line 1) (point)))
+			 nil)
+			(t
+			 (beginning-of-line)
+			 nil))))
 
-	  (gnus-agent-copy-nov-line (pop articles)))))
+	 (gnus-agent-copy-nov-line (pop articles)))))
 
-    ;; Copy the rest lines
-    (set-buffer nntp-server-buffer)
     (goto-char (point-max))
+
+    ;; Append the remaining lines
     (when articles
       (when last
 	(set-buffer gnus-agent-overview-buffer)
-	(ignore-errors
-          (while (<= (read (current-buffer)) last)
-            (forward-line 1)))
-	(beginning-of-line)
 	(setq start (point))
 	(set-buffer nntp-server-buffer))
-      (insert-buffer-substring gnus-agent-overview-buffer start))))
+
+      (let ((p (point)))
+	(insert-buffer-substring gnus-agent-overview-buffer start)
+	(goto-char p))
+
+      (setq last (or last -134217728))
+      (let (sort art)
+	(while (not (eobp))
+	  (setq art (gnus-agent-read-article-number))
+	  (cond ((not art)
+		 ;; Bad art num - delete this line
+		 (beginning-of-line)
+		 (delete-region (point) (progn (forward-line 1) (point))))
+		((< art last)
+		 ;; Art num out of order - enable sort
+		 (setq sort t)
+		 (forward-line 1))
+		(t
+		 ;; Good art num
+		 (setq last art)
+		 (forward-line 1))))
+	(when sort
+	  (sort-numeric-fields 1 (point-min) (point-max)))))))
 
 ;; Keeps the compiler from warning about the free variable in
 ;; gnus-agent-read-agentview.
@@ -1735,7 +1944,8 @@ FILE and places the combined headers into `nntp-server-buffer'."
 (defun gnus-agent-read-agentview (file)
   "Load FILE and do a `read' there."
   (with-temp-buffer
-    (ignore-errors
+    (condition-case nil
+      (progn
         (nnheader-insert-file-contents file)
         (goto-char (point-min))
         (let ((alist (read (current-buffer)))
@@ -1744,6 +1954,8 @@ FILE and places the combined headers into `nntp-server-buffer'."
               changed-version)
 
           (cond
+           ((< version 2)
+            (error "gnus-agent-read-agentview no longer supports version %d.  Stop gnus, manually evaluate gnus-agent-convert-to-compressed-agentview, then restart gnus." version))
            ((= version 0)
             (let ((inhibit-quit t)
                   entry)
@@ -1767,8 +1979,9 @@ FILE and places the combined headers into `nntp-server-buffer'."
               (mapcar
                (lambda (comp-list)
                  (let ((state (car comp-list))
-                       (sequence (gnus-uncompress-sequence
-                                  (cdr comp-list))))
+                       (sequence (inline
+				   (gnus-uncompress-range
+				    (cdr comp-list)))))
                    (mapcar (lambda (article-id)
                              (setq uncomp (cons (cons article-id state) uncomp)))
                            sequence)))
@@ -1777,7 +1990,8 @@ FILE and places the combined headers into `nntp-server-buffer'."
           (when changed-version
             (let ((gnus-agent-article-alist alist))
               (gnus-agent-save-alist gnus-agent-read-agentview)))
-        alist))))
+          alist))
+      (file-error nil))))
 
 (defun gnus-agent-save-alist (group &optional articles state)
   "Save the article-state alist for GROUP."
@@ -1860,7 +2074,8 @@ modified) original contents, they are first saved to their own file."
         (line 1))
     (with-temp-buffer
       (condition-case nil
-          (nnheader-insert-file-contents file)
+	  (let ((nnheader-file-coding-system gnus-agent-file-coding-system))
+	    (nnheader-insert-file-contents file))
         (file-error))
 
       (goto-char (point-min))
@@ -1903,31 +2118,31 @@ modified) original contents, they are first saved to their own file."
              ;; NOTE: gnus-command-method is used within gnus-agent-lib-file.
              (dest (gnus-agent-lib-file "local")))
         (gnus-make-directory (gnus-agent-lib-file ""))
-        (with-temp-file dest
-          (let ((gnus-command-method (symbol-value (intern "+method" my-obarray)))
-                (file-name-coding-system nnmail-pathname-coding-system)
-                (coding-system-for-write
-                 gnus-agent-file-coding-system)
-                print-level print-length item article
-                (standard-output (current-buffer)))
-            (mapatoms (lambda (symbol)
-                        (cond ((not (boundp symbol))
-                               nil)
-                              ((member (symbol-name symbol) '("+dirty" "+method"))
-                               nil)
-                              (t
-                               (prin1 symbol)
-                               (let ((range (symbol-value symbol)))
-                                 (princ " ")
-                                 (princ (car range))
-                                 (princ " ")
-                                 (princ (cdr range))
-                                 (princ "\n"))))) 
-                      my-obarray)))))))
 
-(defun gnus-agent-get-local (group)
-  (let* ((gmane (gnus-group-real-name group))
-         (gnus-command-method (gnus-find-method-for-group group))
+	(let ((buffer-file-coding-system gnus-agent-file-coding-system))
+	  (with-temp-file dest
+	    (let ((gnus-command-method (symbol-value (intern "+method" my-obarray)))
+		  (file-name-coding-system nnmail-pathname-coding-system)
+		  print-level print-length item article
+		  (standard-output (current-buffer)))
+	      (mapatoms (lambda (symbol)
+			  (cond ((not (boundp symbol))
+				 nil)
+				((member (symbol-name symbol) '("+dirty" "+method"))
+				 nil)
+				(t
+				 (prin1 symbol)
+				 (let ((range (symbol-value symbol)))
+				   (princ " ")
+				   (princ (car range))
+				   (princ " ")
+				   (princ (cdr range))
+				   (princ "\n"))))) 
+			my-obarray))))))))
+
+(defun gnus-agent-get-local (group &optional gmane method)
+  (let* ((gmane (or gmane (gnus-group-real-name group)))
+         (gnus-command-method (or method (gnus-find-method-for-group group)))
          (local (gnus-agent-load-local))
          (symb (intern gmane local))
          (minmax (and (boundp symb) (symbol-value symb))))
@@ -1962,7 +2177,9 @@ modified) original contents, they are first saved to their own file."
                nil)
               ((and min max)
                (set symb (cons min max))
-               t))
+               t)
+	      (t
+	       (unintern symb local)))
         (set (intern "+dirty" local) t))))
 
 (defun gnus-agent-article-name (article group)
@@ -2012,13 +2229,14 @@ modified) original contents, they are first saved to their own file."
 		       group gnus-command-method)
 		    (error
 		     (unless (funcall gnus-agent-confirmation-function
-				      (format "Error %s.  Continue? "
+				      (format "Error %s while fetching session.  Should gnus continue? "
 					      (error-message-string err)))
 		       (error "Cannot fetch articles into the Gnus agent")))
 		    (quit
+		     (gnus-agent-regenerate-group group)
 		     (unless (funcall gnus-agent-confirmation-function
 				      (format
-				       "Quit fetching session %s.  Continue? "
+				       "%s while fetching session.  Should gnus continue? "
 				       (error-message-string err)))
 		       (signal 'quit
 			       "Cannot fetch articles into the Gnus agent")))))))))
@@ -2736,328 +2954,334 @@ FORCE is equivalent to setting the expiration predicates to true."
   (let ((dir (gnus-agent-group-pathname group)))
     (when (boundp 'gnus-agent-expire-current-dirs)
       (set 'gnus-agent-expire-current-dirs 
-           (cons dir 
-                 (symbol-value 'gnus-agent-expire-current-dirs))))
+	   (cons dir 
+		 (symbol-value 'gnus-agent-expire-current-dirs))))
 
     (if (and (not force)
-             (eq 'DISABLE (gnus-agent-find-parameter group 
-                                                     'agent-enable-expiration)))
-        (gnus-message 5 "Expiry skipping over %s" group)
+	     (eq 'DISABLE (gnus-agent-find-parameter group 
+						     'agent-enable-expiration)))
+	(gnus-message 5 "Expiry skipping over %s" group)
       (gnus-message 5 "Expiring articles in %s" group)
       (gnus-agent-load-alist group)
-      (let* ((stats (if (boundp 'gnus-agent-expire-stats)
-                        ;; Use the list provided by my caller
-                        (symbol-value 'gnus-agent-expire-stats)
-                      ;; otherwise use my own temporary list
-                      (list 0 0 0.0)))
-             (info (gnus-get-info group))
-             (alist gnus-agent-article-alist)
-             (day (- (time-to-days (current-time))
-                     (gnus-agent-find-parameter group 'agent-days-until-old)))
-             (specials (if (and alist
-                                (not force))
-                           ;; This could be a bit of a problem.  I need to
-                           ;; keep the last article to avoid refetching
-                           ;; headers when using nntp in the backend.  At
-                           ;; the same time, if someone uses a backend
-                           ;; that supports article moving then I may have
-                           ;; to remove the last article to complete the
-                           ;; move.  Right now, I'm going to assume that
-                           ;; FORCE overrides specials.
-                           (list (caar (last alist)))))
-             (unreads ;; Articles that are excluded from the
-              ;; expiration process
-              (cond (gnus-agent-expire-all
-                     ;; All articles are marked read by global decree
-                     nil)
-                    ((eq articles t)
-                     ;; All articles are marked read by function
-                     ;; parameter
-                     nil)
-                    ((not articles)
-                     ;; Unread articles are marked protected from
-                     ;; expiration Don't call
-                     ;; gnus-list-of-unread-articles as it returns
-                     ;; articles that have not been fetched into the
-                     ;; agent.
-                     (ignore-errors
-                       (gnus-agent-unread-articles group)))
-                    (t
-                     ;; All articles EXCEPT those named by the caller
-                     ;; are protected from expiration
-                     (gnus-sorted-difference
-                      (gnus-uncompress-range
-                       (cons (caar alist)
-                             (caar (last alist))))
-                      (sort articles '<)))))
-             (marked ;; More articles that are excluded from the
-              ;; expiration process
-              (cond (gnus-agent-expire-all
-                     ;; All articles are unmarked by global decree
-                     nil)
-                    ((eq articles t)
-                     ;; All articles are unmarked by function
-                     ;; parameter
-                     nil)
-                    (articles
-                     ;; All articles may as well be unmarked as the
-                     ;; unreads list already names the articles we are
-                     ;; going to keep
-                     nil)
-                    (t
-                     ;; Ticked and/or dormant articles are excluded
-                     ;; from expiration
-                     (nconc
-                      (gnus-uncompress-range
-                       (cdr (assq 'tick (gnus-info-marks info))))
-                      (gnus-uncompress-range
-                       (cdr (assq 'dormant
-                                  (gnus-info-marks info))))))))
-             (nov-file (concat dir ".overview"))
-             (cnt 0)
-             (completed -1)
-             dlist
-             type)
+      (let* ((bytes-freed 0)
+	     (files-deleted 0)
+	     (nov-entries-deleted 0)
+	     (info (gnus-get-info group))
+	     (alist gnus-agent-article-alist)
+	     (day (- (time-to-days (current-time))
+		     (gnus-agent-find-parameter group 'agent-days-until-old)))
+	     (specials (if (and alist
+				(not force))
+			   ;; This could be a bit of a problem.  I need to
+			   ;; keep the last article to avoid refetching
+			   ;; headers when using nntp in the backend.  At
+			   ;; the same time, if someone uses a backend
+			   ;; that supports article moving then I may have
+			   ;; to remove the last article to complete the
+			   ;; move.  Right now, I'm going to assume that
+			   ;; FORCE overrides specials.
+			   (list (caar (last alist)))))
+	     (unreads ;; Articles that are excluded from the
+	      ;; expiration process
+	      (cond (gnus-agent-expire-all
+		     ;; All articles are marked read by global decree
+		     nil)
+		    ((eq articles t)
+		     ;; All articles are marked read by function
+		     ;; parameter
+		     nil)
+		    ((not articles)
+		     ;; Unread articles are marked protected from
+		     ;; expiration Don't call
+		     ;; gnus-list-of-unread-articles as it returns
+		     ;; articles that have not been fetched into the
+		     ;; agent.
+		     (ignore-errors
+		      (gnus-agent-unread-articles group)))
+		    (t
+		     ;; All articles EXCEPT those named by the caller
+		     ;; are protected from expiration
+		     (gnus-sorted-difference
+		      (gnus-uncompress-range
+		       (cons (caar alist)
+			     (caar (last alist))))
+		      (sort articles '<)))))
+	     (marked ;; More articles that are excluded from the
+	      ;; expiration process
+	      (cond (gnus-agent-expire-all
+		     ;; All articles are unmarked by global decree
+		     nil)
+		    ((eq articles t)
+		     ;; All articles are unmarked by function
+		     ;; parameter
+		     nil)
+		    (articles
+		     ;; All articles may as well be unmarked as the
+		     ;; unreads list already names the articles we are
+		     ;; going to keep
+		     nil)
+		    (t
+		     ;; Ticked and/or dormant articles are excluded
+		     ;; from expiration
+		     (nconc
+		      (gnus-uncompress-range
+		       (cdr (assq 'tick (gnus-info-marks info))))
+		      (gnus-uncompress-range
+		       (cdr (assq 'dormant
+				  (gnus-info-marks info))))))))
+	     (nov-file (concat dir ".overview"))
+	     (cnt 0)
+	     (completed -1)
+	     dlist
+	     type)
 
-        ;; The normal article alist contains elements that look like
-        ;; (article# .  fetch_date) I need to combine other
-        ;; information with this list.  For example, a flag indicating
-        ;; that a particular article MUST BE KEPT.  To do this, I'm
-        ;; going to transform the elements to look like (article#
-        ;; fetch_date keep_flag NOV_entry_marker) Later, I'll reverse
-        ;; the process to generate the expired article alist.
+	;; The normal article alist contains elements that look like
+	;; (article# .  fetch_date) I need to combine other
+	;; information with this list.  For example, a flag indicating
+	;; that a particular article MUST BE KEPT.  To do this, I'm
+	;; going to transform the elements to look like (article#
+	;; fetch_date keep_flag NOV_entry_marker) Later, I'll reverse
+	;; the process to generate the expired article alist.
 
-        ;; Convert the alist elements to (article# fetch_date nil
-        ;; nil).
-        (setq dlist (mapcar (lambda (e)
-                              (list (car e) (cdr e) nil nil)) alist))
+	;; Convert the alist elements to (article# fetch_date nil
+	;; nil).
+	(setq dlist (mapcar (lambda (e)
+			      (list (car e) (cdr e) nil nil)) alist))
 
-        ;; Convert the keep lists to elements that look like (article#
-        ;; nil keep_flag nil) then append it to the expanded dlist
-        ;; These statements are sorted by ascending precidence of the
-        ;; keep_flag.
-        (setq dlist (nconc dlist
-                           (mapcar (lambda (e)
-                                     (list e nil 'unread  nil))
-                                   unreads)))
-        (setq dlist (nconc dlist
-                           (mapcar (lambda (e)
-                                     (list e nil 'marked  nil))
-                                   marked)))
-        (setq dlist (nconc dlist
-                           (mapcar (lambda (e)
-                                     (list e nil 'special nil))
-                                   specials)))
+	;; Convert the keep lists to elements that look like (article#
+	;; nil keep_flag nil) then append it to the expanded dlist
+	;; These statements are sorted by ascending precidence of the
+	;; keep_flag.
+	(setq dlist (nconc dlist
+			   (mapcar (lambda (e)
+				     (list e nil 'unread  nil))
+				   unreads)))
+	(setq dlist (nconc dlist
+			   (mapcar (lambda (e)
+				     (list e nil 'marked  nil))
+				   marked)))
+	(setq dlist (nconc dlist
+			   (mapcar (lambda (e)
+				     (list e nil 'special nil))
+				   specials)))
 
-        (set-buffer overview)
-        (erase-buffer)
-        (buffer-disable-undo)
-        (when (file-exists-p nov-file)
-          (gnus-message 7 "gnus-agent-expire: Loading overview...")
-          (nnheader-insert-file-contents nov-file)
-          (goto-char (point-min))
+	(set-buffer overview)
+	(erase-buffer)
+	(buffer-disable-undo)
+	(when (file-exists-p nov-file)
+	  (gnus-message 7 "gnus-agent-expire: Loading overview...")
+	  (nnheader-insert-file-contents nov-file)
+	  (goto-char (point-min))
 
-          (let (p)
-            (while (< (setq p (point)) (point-max))
-              (condition-case nil
-                  ;; If I successfully read an integer (the plus zero
-                  ;; ensures a numeric type), prepend a marker entry
-                  ;; to the list
-                  (push (list (+ 0 (read (current-buffer))) nil nil
-                              (set-marker (make-marker) p))
-                        dlist)
-                (error
-                 (gnus-message 1 "gnus-agent-expire: read error \
+	  (let (p)
+	    (while (< (setq p (point)) (point-max))
+	      (condition-case nil
+		  ;; If I successfully read an integer (the plus zero
+		  ;; ensures a numeric type), prepend a marker entry
+		  ;; to the list
+		  (push (list (+ 0 (read (current-buffer))) nil nil
+			      (set-marker (make-marker) p))
+			dlist)
+		(error
+		 (gnus-message 1 "gnus-agent-expire: read error \
 occurred when reading expression at %s in %s.  Skipping to next \
 line." (point) nov-file)))
-              ;; Whether I succeeded, or failed, it doesn't matter.
-              ;; Move to the next line then try again.
-              (forward-line 1)))
+	      ;; Whether I succeeded, or failed, it doesn't matter.
+	      ;; Move to the next line then try again.
+	      (forward-line 1)))
 
-          (gnus-message
-           7 "gnus-agent-expire: Loading overview... Done"))
-        (set-buffer-modified-p nil)
+	  (gnus-message
+	   7 "gnus-agent-expire: Loading overview... Done"))
+	(set-buffer-modified-p nil)
 
-        ;; At this point, all of the information is in dlist.  The
-        ;; only problem is that much of it is spread across multiple
-        ;; entries.  Sort then MERGE!!
-        (gnus-message 7 "gnus-agent-expire: Sorting entries... ")
-        ;; If two entries have the same article-number then sort by
-        ;; ascending keep_flag.
-        (let ((special 0)
-              (marked 1)
-              (unread 2))
-          (setq dlist
-                (sort dlist
-                      (lambda (a b)
-                        (cond ((< (nth 0 a) (nth 0 b))
-                               t)
-                              ((> (nth 0 a) (nth 0 b))
-                               nil)
-                              (t
-                               (let ((a (or (symbol-value (nth 2 a))
-                                            3))
-                                     (b (or (symbol-value (nth 2 b))
-                                            3)))
-                                 (<= a b))))))))
-        (gnus-message 7 "gnus-agent-expire: Sorting entries... Done")
-        (gnus-message 7 "gnus-agent-expire: Merging entries... ")
-        (let ((dlist dlist))
-          (while (cdr dlist)            ; I'm not at the end-of-list
-            (if (eq (caar dlist) (caadr dlist))
-                (let ((first (cdr (car dlist)))
-                      (secnd (cdr (cadr dlist))))
-                  (setcar first (or (car first)
-                                    (car secnd))) ; fetch_date
-                  (setq first (cdr first)
-                        secnd (cdr secnd))
-                  (setcar first (or (car first)
-                                    (car secnd))) ; Keep_flag
-                  (setq first (cdr first)
-                        secnd (cdr secnd))
-                  (setcar first (or (car first)
-                                    (car secnd))) ; NOV_entry_marker
+	;; At this point, all of the information is in dlist.  The
+	;; only problem is that much of it is spread across multiple
+	;; entries.  Sort then MERGE!!
+	(gnus-message 7 "gnus-agent-expire: Sorting entries... ")
+	;; If two entries have the same article-number then sort by
+	;; ascending keep_flag.
+	(let ((special 0)
+	      (marked 1)
+	      (unread 2))
+	  (setq dlist
+		(sort dlist
+		      (lambda (a b)
+			(cond ((< (nth 0 a) (nth 0 b))
+			       t)
+			      ((> (nth 0 a) (nth 0 b))
+			       nil)
+			      (t
+			       (let ((a (or (symbol-value (nth 2 a))
+					    3))
+				     (b (or (symbol-value (nth 2 b))
+					    3)))
+				 (<= a b))))))))
+	(gnus-message 7 "gnus-agent-expire: Sorting entries... Done")
+	(gnus-message 7 "gnus-agent-expire: Merging entries... ")
+	(let ((dlist dlist))
+	  (while (cdr dlist)		; I'm not at the end-of-list
+	    (if (eq (caar dlist) (caadr dlist))
+		(let ((first (cdr (car dlist)))
+		      (secnd (cdr (cadr dlist))))
+		  (setcar first (or (car first)
+				    (car secnd))) ; fetch_date
+		  (setq first (cdr first)
+			secnd (cdr secnd))
+		  (setcar first (or (car first)
+				    (car secnd))) ; Keep_flag
+		  (setq first (cdr first)
+			secnd (cdr secnd))
+		  (setcar first (or (car first)
+				    (car secnd))) ; NOV_entry_marker
 
-                  (setcdr dlist (cddr dlist)))
-              (setq dlist (cdr dlist)))))
-        (gnus-message 7 "gnus-agent-expire: Merging entries... Done")
+		  (setcdr dlist (cddr dlist)))
+	      (setq dlist (cdr dlist)))))
+	(gnus-message 7 "gnus-agent-expire: Merging entries... Done")
 
-        (let* ((len (float (length dlist)))
-               (alist (list nil))
-               (tail-alist alist))
-          (while dlist
-            (let ((new-completed (truncate (* 100.0
-                                              (/ (setq cnt (1+ cnt))
-                                                 len))))
+	(let* ((len (float (length dlist)))
+	       (alist (list nil))
+	       (tail-alist alist))
+	  (while dlist
+	    (let ((new-completed (truncate (* 100.0
+					      (/ (setq cnt (1+ cnt))
+						 len))))
 		  message-log-max)
-              (when (> new-completed completed)
-                (setq completed new-completed)
-                (gnus-message 7 "%3d%% completed..."  completed)))
-            (let* ((entry          (car dlist))
-                   (article-number (nth 0 entry))
-                   (fetch-date     (nth 1 entry))
-                   (keep           (nth 2 entry))
-                   (marker         (nth 3 entry)))
+	      (when (> new-completed completed)
+		(setq completed new-completed)
+		(gnus-message 7 "%3d%% completed..."  completed)))
+	    (let* ((entry          (car dlist))
+		   (article-number (nth 0 entry))
+		   (fetch-date     (nth 1 entry))
+		   (keep           (nth 2 entry))
+		   (marker         (nth 3 entry)))
 
-              (cond
-               ;; Kept articles are unread, marked, or special.
-               (keep
-                (gnus-agent-message 10
-                                    "gnus-agent-expire: %s:%d: Kept %s article%s."
-                                    group article-number keep (if fetch-date " and file" ""))
-                (when fetch-date
-                  (unless (file-exists-p
-                           (concat dir (number-to-string
-                                        article-number)))
-                    (setf (nth 1 entry) nil)
-                    (gnus-agent-message 3 "gnus-agent-expire cleared \
+	      (cond
+	       ;; Kept articles are unread, marked, or special.
+	       (keep
+		(gnus-agent-message 10
+				    "gnus-agent-expire: %s:%d: Kept %s article%s."
+				    group article-number keep (if fetch-date " and file" ""))
+		(when fetch-date
+		  (unless (file-exists-p
+			   (concat dir (number-to-string
+					article-number)))
+		    (setf (nth 1 entry) nil)
+		    (gnus-agent-message 3 "gnus-agent-expire cleared \
 download flag on %s:%d as the cached article file is missing."
-                                        group (caar dlist)))
-                  (unless marker
-                    (gnus-message 1 "gnus-agent-expire detected a \
+					group (caar dlist)))
+		  (unless marker
+		    (gnus-message 1 "gnus-agent-expire detected a \
 missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
-                (gnus-agent-append-to-list
-                 tail-alist
-                 (cons article-number fetch-date)))
+		(gnus-agent-append-to-list
+		 tail-alist
+		 (cons article-number fetch-date)))
 
-               ;; The following articles are READ, UNMARKED, and
-               ;; ORDINARY.  See if they can be EXPIRED!!!
-               ((setq type
-                      (cond
-                       ((not (integerp fetch-date))
-                        'read) ;; never fetched article (may expire
-                       ;; right now)
-                       ((not (file-exists-p
-                              (concat dir (number-to-string
-                                           article-number))))
-                        (setf (nth 1 entry) nil)
-                        'externally-expired) ;; Can't find the cached
-                       ;; article.  Handle case
-                       ;; as though this article
-                       ;; was never fetched.
+	       ;; The following articles are READ, UNMARKED, and
+	       ;; ORDINARY.  See if they can be EXPIRED!!!
+	       ((setq type
+		      (cond
+		       ((not (integerp fetch-date))
+			'read) ;; never fetched article (may expire
+		       ;; right now)
+		       ((not (file-exists-p
+			      (concat dir (number-to-string
+					   article-number))))
+			(setf (nth 1 entry) nil)
+			'externally-expired) ;; Can't find the cached
+		       ;; article.  Handle case
+		       ;; as though this article
+		       ;; was never fetched.
 
-                       ;; We now have the arrival day, so we see
-                       ;; whether it's old enough to be expired.
-                       ((< fetch-date day)
-                        'expired)
-                       (force
-                        'forced)))
+		       ;; We now have the arrival day, so we see
+		       ;; whether it's old enough to be expired.
+		       ((< fetch-date day)
+			'expired)
+		       (force
+			'forced)))
 
-                ;; I found some reason to expire this entry.
+		;; I found some reason to expire this entry.
 
-                (let ((actions nil))
-                  (when (memq type '(forced expired))
-                    (ignore-errors      ; Just being paranoid.
-                      (let ((file-name (concat dir (number-to-string
-                                                article-number))))
-                        (incf (nth 2 stats) (nth 7 (file-attributes file-name)))
-                        (incf (nth 1 stats))
-                        (delete-file file-name))
-                      (push "expired cached article" actions))
-                    (setf (nth 1 entry) nil)
-                    )
+		(let ((actions nil))
+		  (when (memq type '(forced expired))
+		    (ignore-errors	; Just being paranoid.
+		     (let* ((file-name (nnheader-concat dir (number-to-string
+							     article-number)))
+			    (size (float (nth 7 (file-attributes file-name)))))
+		       (incf bytes-freed size)
+		       (incf files-deleted)
+		       (delete-file file-name))
+		     (push "expired cached article" actions))
+		    (setf (nth 1 entry) nil)
+		    )
 
-                  (when marker
-                    (push "NOV entry removed" actions)
-                    (goto-char marker)
+		  (when marker
+		    (push "NOV entry removed" actions)
+		    (goto-char marker)
 
-                    (incf (nth 0 stats))
+		    (incf nov-entries-deleted)
 
-                    (let ((from (gnus-point-at-bol))
-                          (to (progn (forward-line 1) (point))))
-                      (incf (nth 2 stats) (- to from))
-                      (delete-region from to)))
+		    (let ((from (gnus-point-at-bol))
+			  (to (progn (forward-line 1) (point))))
+		      (incf bytes-freed (- to from))
+		      (delete-region from to)))
 
-                  ;; If considering all articles is set, I can only
-                  ;; expire article IDs that are no longer in the
-                  ;; active range (That is, articles that preceed the
-                  ;; first article in the new alist).
-                  (if (and gnus-agent-consider-all-articles
-                           (>= article-number (car active)))
-                      ;; I have to keep this ID in the alist
-                      (gnus-agent-append-to-list
-                       tail-alist (cons article-number fetch-date))
-                    (push (format "Removed %s article number from \
+		  ;; If considering all articles is set, I can only
+		  ;; expire article IDs that are no longer in the
+		  ;; active range (That is, articles that preceed the
+		  ;; first article in the new alist).
+		  (if (and gnus-agent-consider-all-articles
+			   (>= article-number (car active)))
+		      ;; I have to keep this ID in the alist
+		      (gnus-agent-append-to-list
+		       tail-alist (cons article-number fetch-date))
+		    (push (format "Removed %s article number from \
 article alist" type) actions))
 
 		  (when actions
 		    (gnus-agent-message 8 "gnus-agent-expire: %s:%d: %s"
 					group article-number
 					(mapconcat 'identity actions ", ")))))
-               (t
-                (gnus-agent-message
-                 10 "gnus-agent-expire: %s:%d: Article kept as \
+	       (t
+		(gnus-agent-message
+		 10 "gnus-agent-expire: %s:%d: Article kept as \
 expiration tests failed." group article-number)
-                (gnus-agent-append-to-list
-                 tail-alist (cons article-number fetch-date)))
-               )
+		(gnus-agent-append-to-list
+		 tail-alist (cons article-number fetch-date)))
+	       )
 
-              ;; Clean up markers as I want to recycle this buffer
-              ;; over several groups.
-              (when marker
-                (set-marker marker nil))
+	      ;; Clean up markers as I want to recycle this buffer
+	      ;; over several groups.
+	      (when marker
+		(set-marker marker nil))
 
-              (setq dlist (cdr dlist))))
+	      (setq dlist (cdr dlist))))
 
-          (setq alist (cdr alist))
+	  (setq alist (cdr alist))
 
-          (let ((inhibit-quit t))
-            (unless (equal alist gnus-agent-article-alist)
-              (setq gnus-agent-article-alist alist)
-              (gnus-agent-save-alist group))
+	  (let ((inhibit-quit t))
+	    (unless (equal alist gnus-agent-article-alist)
+	      (setq gnus-agent-article-alist alist)
+	      (gnus-agent-save-alist group))
 
-            (when (buffer-modified-p)
-              (let ((coding-system-for-write
-                     gnus-agent-file-coding-system))
-                (gnus-make-directory dir)
-                (write-region (point-min) (point-max) nov-file nil
-                              'silent)
-                ;; clear the modified flag as that I'm not confused by
-                ;; its status on the next pass through this routine.
-                (set-buffer-modified-p nil)))
+	    (when (buffer-modified-p)
+	      (let ((coding-system-for-write
+		     gnus-agent-file-coding-system))
+		(gnus-make-directory dir)
+		(write-region (point-min) (point-max) nov-file nil
+			      'silent)
+		;; clear the modified flag as that I'm not confused by
+		;; its status on the next pass through this routine.
+		(set-buffer-modified-p nil)))
 
-            (when (eq articles t)
-              (gnus-summary-update-info))))))))
+	    (when (eq articles t)
+	      (gnus-summary-update-info))))
+
+	(when (boundp 'gnus-agent-expire-stats)
+	  (let ((stats (symbol-value 'gnus-agent-expire-stats)))
+	    (incf (nth 2 stats) bytes-freed)
+	    (incf (nth 1 stats) files-deleted)
+	    (incf (nth 0 stats) nov-entries-deleted)))
+	))))
 
 (defun gnus-agent-expire (&optional articles group force)
   "Expire all old articles.
@@ -3248,7 +3472,7 @@ articles in every agentized group."))
 
 (defun gnus-agent-uncached-articles (articles group &optional cached-header)
   "Restrict ARTICLES to numbers already fetched.
-Returns a sublist of ARTICLES that excludes thos article ids in GROUP
+Returns a sublist of ARTICLES that excludes those article ids in GROUP
 that have already been fetched.
 If CACHED-HEADER is nil, articles are only excluded if the article itself
 has been fetched."
@@ -3338,12 +3562,11 @@ has been fetched."
 
                      ;; Get the list of articles that were fetched
                      (goto-char (point-min))
-                     (let ((pm (point-max)))
+                     (let ((pm (point-max))
+			   art)
                        (while (< (point) pm)
-                         (when (looking-at "[0-9]+\t")
-                           (gnus-agent-append-to-list
-                            tail-fetched-articles
-                            (read (current-buffer))))
+			 (when (setq art (gnus-agent-read-article-number))
+                           (gnus-agent-append-to-list tail-fetched-articles art))
                          (forward-line 1)))
 
                      ;; Clip this list to the headers that will
@@ -3380,12 +3603,12 @@ has been fetched."
 	    (set-buffer nntp-server-buffer)
 	    (copy-to-buffer gnus-agent-overview-buffer (point-min) (point-max))
 
-            ;; Merge the temp buffer with the known headers (found on
-            ;; disk in FILE) into the nntp-server-buffer
-	    (when (and uncached-articles (file-exists-p file))
+	    ;; Merge the temp buffer with the known headers (found on
+	    ;; disk in FILE) into the nntp-server-buffer
+	    (when uncached-articles
 	      (gnus-agent-braid-nov group uncached-articles file))
 
-            ;; Save the new set of known headers to FILE
+	    ;; Save the new set of known headers to FILE
 	    (set-buffer nntp-server-buffer)
 	    (let ((coding-system-for-write
 		   gnus-agent-file-coding-system))
@@ -3465,7 +3688,6 @@ If REREAD is not nil, downloaded articles are marked as unread."
                     (gnus-message 3 "Ignoring unexpected input")
                     (sit-for 1)
                     t)))))
-
   (when group
       (gnus-message 5 "Regenerating in %s" group)
       (let* ((gnus-command-method (or gnus-command-method
@@ -3506,7 +3728,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
                                 (gnus-delete-line)
                                 (setq nov-arts (cdr nov-arts))
                                 (gnus-message 4 "gnus-agent-regenerate-group: NOV\
-entry of article %s deleted." l1))
+ entry of article %s deleted." l1))
                                ((not l2)
                                 nil)
                                ((< l1 l2)
@@ -3651,10 +3873,9 @@ entry of article %s deleted." l1))
                                gnus-agent-article-alist))))
 
           (when (gnus-buffer-live-p gnus-group-buffer)
-            (gnus-group-update-group group t)
-            (sit-for 0)))
+            (gnus-group-update-group group t)))
 
-        (gnus-message 5 nil)
+        (gnus-message 5 "")
         regenerated)))
 
 ;;;###autoload
@@ -3699,49 +3920,6 @@ If CLEAN, obsolete (ignore)."
 
 (defun gnus-agent-group-covered-p (group)
   (gnus-agent-method-p (gnus-group-method group)))
-
-(add-hook 'gnus-group-prepare-hook
-          (lambda ()
-            'gnus-agent-do-once
-
-            (when (listp gnus-agent-expire-days)
-              (beep)
-              (beep)
-              (gnus-message 1 "WARNING: gnus-agent-expire-days no longer\
- supports being set to a list.")(sleep-for 3)
-              (gnus-message 1 "Change your configuration to set it to an\
- integer.")(sleep-for 3)
-              (gnus-message 1 "I am now setting group parameters on each\
- group to match the configuration that the list offered.")
-
-              (save-excursion
-                (let ((groups (gnus-group-listed-groups)))
-                  (while groups
-                    (let* ((group (pop groups))
-                           (days gnus-agent-expire-days)
-                           (day (catch 'found
-                                  (while days
-                                    (when (eq 0 (string-match
-                                                 (caar days)
-                                                 group))
-                                      (throw 'found (cadar days)))
-                                    (setq days (cdr days)))
-                                  nil)))
-                      (when day
-                        (gnus-group-set-parameter group 'agent-days-until-old
-                                                  day))))))
-
-              (let ((h gnus-group-prepare-hook))
-                (while h
-                  (let ((func (pop h)))
-                    (when (and (listp func)
-                               (eq (cadr (caddr func)) 'gnus-agent-do-once))
-                      (remove-hook 'gnus-group-prepare-hook func)
-                      (setq h nil)))))
-
-              (gnus-message 1 "I have finished setting group parameters on\
- each group. You may now customize your groups and/or topics to control the\
- agent."))))
 
 (provide 'gnus-agent)
 
