@@ -1,3 +1,19 @@
+2002-08-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.12 released.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Comment out possibly obsolete "echo hello" commands.
+	(tramp-run-real-handler): If operation is
+	`ange-ftp-hook-function', use first arg as the real operation.
+	(tramp-check-ls-commands): Use / instead of \ as directory
+	separator.  (Relevant for XEmacs on Windows.)
+	(tramp-maybe-open-connection): Use tramp-wait-for-output when
+	waiting for the "are you awake" command.  Use a different string
+	for the "are you awake" command.
+	(tramp-send-command): New optional arg NEVEROPEN means to never
+	invoke tramp-maybe-open-connection.
+	(tramp-maybe-open-connection): Use it
+
 2002-08-07  Richard M. Stallman  <rms@gnu.org>
 
 	* warnings.el (warning-prefix-function, warning-series) 

@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.11"
+(defconst tramp-version "2.0.12"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -3127,11 +3127,14 @@ This will break if COMMAND prints a newline, followed by the value of
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let ((inhibit-file-name-handlers
-         (list 'tramp-file-name-handler
-               (and (eq inhibit-file-name-operation operation)
-                    inhibit-file-name-handlers)))
-        (inhibit-file-name-operation operation))
+  (let* ((op (if (eq operation 'ange-ftp-hook-function)
+		 (car args)
+	       operation))
+	 (inhibit-file-name-handlers
+	  (list 'tramp-file-name-handler
+		(and (eq inhibit-file-name-operation op)
+		     inhibit-file-name-handlers)))
+	 (inhibit-file-name-operation op))
     (apply operation args)))
 
 ;; Main function.
@@ -3528,14 +3531,15 @@ file exists and nonzero exit status otherwise."
       (tramp-wait-for-output)
       (tramp-message
        10 "Setting remote shell prompt...done")
-      (tramp-send-command multi-method method user host "echo hello")
-      (tramp-message 5 "Waiting for remote `%s' to start up..." shell)
-      (unless (tramp-wait-for-output 5)
-        (unless (tramp-wait-for-output 5)
-          (pop-to-buffer (buffer-name))
-          (error "Couldn't start remote `%s', see buffer `%s' for details"
-                 shell (buffer-name))))
-      (tramp-message 5 "Waiting for remote `%s' to start up...done" shell))
+;;       (tramp-send-command multi-method method user host "echo hello")
+;;       (tramp-message 5 "Waiting for remote `%s' to start up..." shell)
+;;       (unless (tramp-wait-for-output 5)
+;;         (unless (tramp-wait-for-output 5)
+;;           (pop-to-buffer (buffer-name))
+;;           (error "Couldn't start remote `%s', see buffer `%s' for details"
+;;                  shell (buffer-name))))
+;;       (tramp-message 5 "Waiting for remote `%s' to start up...done" shell)
+      )
      (t (tramp-message 5 "Remote `%s' groks tilde expansion, good"
 		       (tramp-get-remote-sh multi-method method))))))
 
@@ -3564,7 +3568,8 @@ otherwise."
   "Checks whether the given `ls' executable in one of the dirs groks `-n'.
 Returns nil if none was found, else the command is returned."
   (let ((dl dirlist)
-        (result nil))
+        (result nil)
+	(directory-sep-char ?/))	;for XEmacs
     ;; It would be better to use the CL function `find', but
     ;; we don't want run-time dependencies on CL.
     (while (and dl (not result))
@@ -4417,16 +4422,17 @@ to set up.  METHOD, USER and HOST specify the connection."
            tramp-end-of-output
            tramp-rsh-end-of-line))
   (tramp-wait-for-output)
-  (tramp-send-command multi-method method user host "echo hello")
-  (tramp-message 9 "Waiting for remote `%s' to come up..."
-               (tramp-get-remote-sh multi-method method))
-  (unless (tramp-wait-for-output 5)
-    (unless (tramp-wait-for-output 5)
-      (pop-to-buffer (buffer-name))
-      (error "Couldn't set remote shell prompt.  See buffer `%s' for details"
-             (buffer-name))))
-  (tramp-message 7 "Waiting for remote `%s' to come up...done"
-               (tramp-get-remote-sh multi-method method)))
+;;   (tramp-send-command multi-method method user host "echo hello")
+;;   (tramp-message 9 "Waiting for remote `%s' to come up..."
+;;                (tramp-get-remote-sh multi-method method))
+;;   (unless (tramp-wait-for-output 5)
+;;     (unless (tramp-wait-for-output 5)
+;;       (pop-to-buffer (buffer-name))
+;;       (error "Couldn't set remote shell prompt.  See buffer `%s' for details"
+;;              (buffer-name))))
+;;   (tramp-message 7 "Waiting for remote `%s' to come up...done"
+;;                (tramp-get-remote-sh multi-method method))
+  )
 
 (defun tramp-post-connection (multi-method method user host)
   "Prepare a remote shell before being able to work on it.
@@ -4733,8 +4739,9 @@ connection if a previous connection has died for some reason."
       (set-buffer (tramp-get-buffer multi-method method user host))
       (when (and tramp-last-cmd-time
 		 (> (tramp-time-diff tramp-last-cmd-time (current-time)) 60))
-	(process-send-string p (concat "echo hello" tramp-rsh-end-of-line))
-	(unless (accept-process-output p 2)
+	(tramp-send-command
+	 multi-method method user host "echo are you awake" nil t)
+	(unless (tramp-wait-for-output 10)
 	  (delete-process p)
 	  (setq p nil))
 	(erase-buffer)))
@@ -4745,11 +4752,15 @@ connection if a previous connection has died for some reason."
                multi-method method user host))))
 
 (defun tramp-send-command
-  (multi-method method user host command &optional noerase)
+  (multi-method method user host command &optional noerase neveropen)
   "Send the COMMAND to USER at HOST (logged in using METHOD).
 Erases temporary buffer before sending the command (unless NOERASE
-is true)."
-  (tramp-maybe-open-connection multi-method method user host)
+is true).
+If optional seventh arg NEVEROPEN is non-nil, never try to open the
+connection.  This is meant to be used from
+`tramp-maybe-open-connection' only."
+  (or neveropen
+      (tramp-maybe-open-connection multi-method method user host))
   (setq tramp-last-cmd-time (current-time))
   (when tramp-debug-buffer
     (save-excursion
@@ -5662,6 +5673,7 @@ Only works for Bourne-like shells."
        tramp-coding-commands
        tramp-actions-before-shell
        tramp-multi-actions
+       tramp-terminal-type
 
        ;; Non-tramp variables of interest
        shell-prompt-pattern
