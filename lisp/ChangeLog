@@ -1,3 +1,7 @@
+2003-02-25  Ramakrishnan M  <rama@gnu.org>  (tiny change)
+
+	* language/mlm-util.el (mlm-char-glyph): Fix more rules.
+
 2003-02-24  Dave Love  <fx@gnu.org>
 
 	* obsolete/cplus-md.el: Deleted.  (Requires removed c-mode.el.)
