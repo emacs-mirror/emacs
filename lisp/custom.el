@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.97
+;; Version: 1.9900
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -56,7 +56,7 @@ the car of that and used as the default binding for symbol.
 Otherwise, VALUE will be evaluated and used as the default binding for
 symbol."
   (unless (default-boundp symbol)
-    ;; Use the saved value if it exists, otherwise the factory setting.
+    ;; Use the saved value if it exists, otherwise the standard setting.
     (set-default symbol (if (get symbol 'saved-value)
 			    (eval (car (get symbol 'saved-value)))
 			  (eval value)))))
@@ -89,7 +89,7 @@ Like `custom-initialize-set', but use the function specified by
 (defun custom-initialize-changed (symbol value)
   "Initialize SYMBOL with VALUE.
 Like `custom-initialize-reset', but only use the `:set' function if the 
-not using the factory setting.  Otherwise, use the `set-default'."
+not using the standard setting.  Otherwise, use the `set-default'."
   (cond ((default-boundp symbol)
 	 (funcall (or (get symbol 'custom-set) 'set-default)
 		  symbol
@@ -104,8 +104,8 @@ not using the factory setting.  Otherwise, use the `set-default'."
 
 (defun custom-declare-variable (symbol value doc &rest args)
   "Like `defcustom', but SYMBOL and VALUE are evaluated as normal arguments."
-  ;; Remember the factory setting.
-  (put symbol 'factory-value (list value))
+  ;; Remember the standard setting.
+  (put symbol 'standard-value (list value))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
     ;; It no longer is.    
