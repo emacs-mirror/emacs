@@ -61,8 +61,8 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
-Returns nil if FORM is not a defun, define-skeleton, define-derived-mode, 
-defmacro or defcustom."
+Returns nil if FORM is not a `defun', `define-skeleton', `define-derived-mode',
+`defmacro' or `defcustom'."
   (let ((car (car-safe form)))
     (if (memq car '(defun define-skeleton defmacro define-derived-mode))
 	(let ((macrop (eq car 'defmacro))
