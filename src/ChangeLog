@@ -1,3 +1,7 @@
+2002-01-03  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (read_key_sequence): Fixed cast of submaps arg to bcopy.
+
 2002-01-02  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (read_key_sequence): Handle the keymap property
