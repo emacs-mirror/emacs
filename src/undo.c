@@ -89,6 +89,7 @@ record_delete (beg, length)
      int beg, length;
 {
   Lisp_Object lbeg, lend, sbeg;
+  int at_boundary;
 
   if (EQ (current_buffer->undo_list, Qt))
     return;
@@ -101,6 +102,9 @@ record_delete (beg, length)
     Fundo_boundary ();
   XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
 
+  at_boundary = (CONSP (current_buffer->undo_list)
+		 && NILP (XCONS (current_buffer->undo_list)->car));
+
   if (MODIFF <= current_buffer->save_modified)
     record_first_change ();
 
@@ -111,8 +115,11 @@ record_delete (beg, length)
   XFASTINT (lbeg) = beg;
   XFASTINT (lend) = beg + length;
 
-  /* If point wasn't at start of deleted range, record where it was.  */
-  if (last_point_position != XFASTINT (sbeg))
+  /* If we are just after an undo boundary, and 
+     point wasn't at start of deleted range, record where it was.  */
+  if (at_boundary
+      && last_point_position != XFASTINT (sbeg)
+      && current_buffer == XBUFFER (last_point_position_buffer))
     current_buffer->undo_list
       = Fcons (make_number (last_point_position), current_buffer->undo_list);
 
