@@ -139,7 +139,8 @@ static void pop_trash _P((popserver));
 static char *find_crlf _P((char *, int));
 
 #define ERROR_MAX 160		/* a pretty arbitrary size, but needs
-				   to be bigger than the one-time 80 */
+				   to be bigger than the original
+				   value of 80 */
 #define POP_PORT 110
 #define KPOP_PORT 1109
 #define POP_SERVICE "pop3"	/* we don't want the POP2 port! */
