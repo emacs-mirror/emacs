@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 14 August 1996
+@set lastupdate 26 August 1996
 @c %**end of header
 
 @setchapternewpage off
@@ -130,6 +130,11 @@ Various other libraries.
 @item
 An emulation of SCCS that works using RCS.
 
+@item
+A free version of @code{units}---or some other kind of program to do the
+same job in a more modern way.
+
+@item
 Less urgent: @code{diction}, @code{explain}, and @code{style}, or
 something to do the same kind of job.  Compatibility with Unix is not
 especially important for these programs.
@@ -234,10 +239,6 @@ component-oriented operations.  @code{xpaint} exists, but isn't very
 usable.
 
 @item
-A program for manipulating photographs---something vaguely like Photo
-Shop (though not exactly like it).
-
-@item
 An interactive 3D modeling utility with rendering/raytracing capabilities.
 
 @item
@@ -310,7 +311,13 @@ Speech-generation programs (there is a program from Brown U that you
 could improve).
 
 @item
-Speech-recognition programs (single-speaker, disconnected speech).
+Speech-recognition programs (single-speaker, disconnected speech is sufficient).
+
+@item
+A program to play sound distributed in ``Real Audio'' format.
+
+@item
+A program to generate ``Real Audio'' format from audio input.
 
 @item
 Scientific mathematical subroutines, including clones of SPSS.
