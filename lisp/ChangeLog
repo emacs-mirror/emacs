@@ -34,12 +34,6 @@
 	* version.el (emacs-version): Remove `%a' from the time format
 	because the weekday doesn't fit well into each locale.
 
-2000-12-17  Stefan Monnier  <monnier@cs.yale.edu>
-
-	* pcvs.el (cvs-diff-backup-extractor): Return full-path for file.
-	(cvs-execute-single-file): Don't change directory.
-	Patch from Per Cederqvist.
-
 2000-12-18  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (image-file-name-extensions): Add "pgm" and "ppm".
