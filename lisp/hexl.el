@@ -269,7 +269,7 @@ With arg, don't unhexlify buffer."
 	    (inhibit-read-only t)
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-hook 'hexl-save-buffer)
+	(remove-hook 'write-contents-hooks 'hexl-save-buffer)
 	(set-buffer-modified-p modified)
 	(goto-char original-point)))
 
@@ -292,7 +292,7 @@ Ask the user for confirmation."
 	    (inhibit-read-only t)
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-hook 'hexl-save-buffer)
+	(remove-hook 'write-contents-hooks 'hexl-save-buffer)
 	(set-buffer-modified-p modified)
 	(goto-char original-point))))
 
