@@ -202,7 +202,7 @@ The default is nil.
 See variable `comint-scroll-show-maximum-output' and function
 `comint-postoutput-scroll-to-bottom'.  This variable is buffer-local.")
 
-(defvar comint-scroll-show-maximum-output t
+(defvar comint-scroll-show-maximum-output nil
   "*Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
 
