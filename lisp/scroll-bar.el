@@ -250,16 +250,17 @@ EVENT should be a scroll bar click."
 	 (before-scroll))
     (with-current-buffer (window-buffer window)
       (setq before-scroll point-before-scroll))
-    (save-selected-window
-      (let ((portion-whole (nth 2 end-position)))
-	(select-window window)
-	(setq before-scroll
-	      (or before-scroll (point)))
-	(scroll-down
-	 (scroll-bar-scale portion-whole (1- (window-height))))))
-    (sit-for 0)
-    (with-current-buffer (window-buffer window)
-      (setq point-before-scroll before-scroll))))
+    (unwind-protect
+	(save-selected-window
+	  (let ((portion-whole (nth 2 end-position)))
+	    (select-window window)
+	    (setq before-scroll
+		  (or before-scroll (point)))
+	    (scroll-down
+	     (scroll-bar-scale portion-whole (1- (window-height)))))
+	  (sit-for 0))
+      (with-current-buffer (window-buffer window)
+	(setq point-before-scroll before-scroll)))))
 
 (defun scroll-bar-scroll-up (event)
   "Scroll the line next to the scroll bar click to the top of the window.
@@ -270,16 +271,17 @@ EVENT should be a scroll bar click."
 	 (before-scroll))
     (with-current-buffer (window-buffer window)
       (setq before-scroll point-before-scroll))
-    (save-selected-window
-      (let ((portion-whole (nth 2 end-position)))
-	(select-window window)
-	(setq before-scroll
-	      (or before-scroll (point)))
-	(scroll-up
-	 (scroll-bar-scale portion-whole (1- (window-height))))))
-    (sit-for 0)
-    (with-current-buffer (window-buffer window)
-      (setq point-before-scroll before-scroll))))
+    (unwind-protect
+	(save-selected-window
+	  (let ((portion-whole (nth 2 end-position)))
+	    (select-window window)
+	    (setq before-scroll
+		  (or before-scroll (point)))
+	    (scroll-up
+	     (scroll-bar-scale portion-whole (1- (window-height)))))
+	  (sit-for 0))
+      (with-current-buffer (window-buffer window)
+	(setq point-before-scroll before-scroll)))))
 
 
 ;;;; Bindings.
