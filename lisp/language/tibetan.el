@@ -107,8 +107,18 @@
 	     (features tibet-util)
 	     (documentation . t)
 	     (sample-text .
-"Tibetan (2$(7"70"](B1$(7"2$(8!;(B2$(7%P`"Q(B1$(7"2$(8!;(B) 2$(7#RP#SP#S(B1$(7!>"7(B2$(7$P`"Q(B1$(8!;(B2$(7"E0"S(B1$(7"G$(8!;$(7"7(B2$(7"20"[(B1$(8!;(B2$(7"D0"[(B1$(7"#"G!>(B2$(7"I0"]0"_(B1$(8!;(B2$(7"9`"Q(B1$(8!;(B2$(7"/0"S(B1$(8!;(B2$(7"5`"Q(B12$(7#2`#90"[(B1$(8!;(B2$(7"H`#A`"U0"c(B1$(7!>(B")))
+"Tibetan (4$(7"7r'"]0"7"]1"2$(8!;4$(7%Px!"Q0%P"Q1"2$(8!;(B) 4$(7#Rv##Sv##S0#R#S#S1!>"74$Px!"Q0$P"Q1$(8!;4$(7"Er'"S0"E"S1"G$(8!;$(7"74"2r'"[0"2"[1$(8!;4$(7"Dr'"[0"D"[1"#"G!>4"Ir'"]r'"_0"I"]"_1$(8!;4$(7"9x!"Q0"9"Q1$(8!;4$(7"/r'"S0"/"S1$(8!;4$(7"5x!"Q0"5"Q14#2x!#9r'"[0#2#9"[1$(8!;4$(7"Hx!#Ax!"Ur'"c0"H#A"U"c1!>(B")))
 
+
+;; `$(7"A(B' is included in the pattern for subjoined consonants because we
+;; treat it specially in tibetan-add-components.
+(defconst tibetan-composable-pattern
+  "[$(7"!(B-$(7"J(B][$(7"A#!(B-$(7#J(B]*[$(7"Q(B-$(7"^"a"e(B]?[$(7"_"c"d"g(B-$(7"l!I!e!g(B]?"
+  "Regexp matching a composable sequence of Tibetan characters.")
+
+;; Register a function to compose Tibetan characters.
+(aset composition-function-table (make-char 'tibetan)
+      (list (cons tibetan-composable-pattern 'tibetan-composition-function)))
 
 ;;;
 ;;; Definitions of conversion data.
@@ -175,20 +185,22 @@
     ("E" . "$(7"\(B")
     ("O" . "$(7"^(B")
     ("I" . "$(7"a(B")
-    ("M" . "$(7"_(B")
-    ("~" . "$(7"c(B")			; not specified in Ext.wylie
-    ("`" . "$(7"d(B")			; idem.
     ("," . "$(7"e(B")			; idem.
-    ("v" . "$(7"g(B")			; idem.
-    ("V" . "$(7"h(B")			; idem.
-    ("x" . "$(7"i(B")			; idem.
-    ("X" . "$(7"j(B")			; idem.
-    ("q" . "$(7"k(B")			; idem.
-    ("Q" . "$(7"l(B")			; idem.
-    ("_o" . "$(7!g(B")			; idem.
-    ("_O" . "$(7!e(B")			; idem.
-    ("_/" . "$(7!I(B")                       ; idem.
     ))
+
+(defconst tibetan-modifier-transcription-alist
+  '(("M" . "$(7"_(B")
+    ("~" . "$(7"c(B")
+    ("`" . "$(7"d(B")
+    ("x" . "$(7"i(B")
+    ("X" . "$(7"j(B")
+    ("v" . "$(7"g(B")
+    ("V" . "$(7"h(B")
+    ("q" . "$(7"k(B")
+    ("Q" . "$(7"l(B")
+    ("_/" . "$(7!I(B")
+    ("_o" . "$(7!g(B")
+    ("_O" . "$(7!e(B")))
 
 (defconst tibetan-precomposed-transcription-alist
   '(("phyw" . "$(7$G(B")
@@ -302,48 +314,49 @@
     ("sm" . "$(7%Y(B")))
 
 (defconst tibetan-subjoined-transcription-alist
-  '(("+k"  . "$(7#!(B")
-    ("+kh" . "$(7#"(B")
-    ("+g"  . "$(7##(B")
-    ("+gh" . "$(7#$(B")
-    ("+ng" . "$(7#%(B")
-    ("+c"  . "$(7#&(B")
-    ("+ch" . "$(7#'(B")
-    ("+j"  . "$(7#((B")
-    ("+ny"  . "$(7#*(B")
-    ("+T"  . "$(7#+(B")
-    ("+TH" . "$(7#,(B")
-    ("+D"  . "$(7#-(B")
-    ("+DH" . "$(7#.(B")
-    ("+N"  . "$(7#/(B")
-    ("+t"  . "$(7#0(B")
-    ("+th" . "$(7#1(B")
-    ("+d"  . "$(7#2(B")
-    ("+dh" . "$(7#3(B")
-    ("+n"  . "$(7#4(B")
-    ("+p"  . "$(7#5(B")
-    ("+ph" . "$(7#6(B")
-    ("+b"  . "$(7#7(B")
-    ("+bh" . "$(7#8(B")
-    ("+m"  . "$(7#9(B")
-    ("+ts" . "$(7#:(B")
-    ("+tsh" . "$(7#;(B")
-    ("+dz" . "$(7#<(B")
-    ("+dzh" . "$(7#=(B")
-    ("+w"  . "$(7#>(B")
-    ("+zh" . "$(7#?(B")
-    ("+z"  . "$(7#@(B")
-    ("+'"  . "$(7#A(B")
-    ("+y"  . "$(7#B(B")
-    ("+r"  . "$(7#C(B")
-    ("+l"  . "$(7#D(B")
-    ("+sh" . "$(7#E(B")
-    ("+SH" . "$(7#F(B")
-    ("+s"  . "$(7#G(B")
-    ("+h"  . "$(7#H(B")
-    ("+A"  . "$(7#I(B")
-    ("+kSH" . "$(7#J(B")
-    ("R"   . "$(7#P(B")))
+  (sort '(("+k"  . "$(7#!(B")
+	  ("+kh" . "$(7#"(B")
+	  ("+g"  . "$(7##(B")
+	  ("+gh" . "$(7#$(B")
+	  ("+ng" . "$(7#%(B")
+	  ("+c"  . "$(7#&(B")
+	  ("+ch" . "$(7#'(B")
+	  ("+j"  . "$(7#((B")
+	  ("+ny"  . "$(7#*(B")
+	  ("+T"  . "$(7#+(B")
+	  ("+TH" . "$(7#,(B")
+	  ("+D"  . "$(7#-(B")
+	  ("+DH" . "$(7#.(B")
+	  ("+N"  . "$(7#/(B")
+	  ("+t"  . "$(7#0(B")
+	  ("+th" . "$(7#1(B")
+	  ("+d"  . "$(7#2(B")
+	  ("+dh" . "$(7#3(B")
+	  ("+n"  . "$(7#4(B")
+	  ("+p"  . "$(7#5(B")
+	  ("+ph" . "$(7#6(B")
+	  ("+b"  . "$(7#7(B")
+	  ("+bh" . "$(7#8(B")
+	  ("+m"  . "$(7#9(B")
+	  ("+ts" . "$(7#:(B")
+	  ("+tsh" . "$(7#;(B")
+	  ("+dz" . "$(7#<(B")
+	  ("+dzh" . "$(7#=(B")
+	  ("+w"  . "$(7#>(B")
+	  ("+zh" . "$(7#?(B")
+	  ("+z"  . "$(7#@(B")
+	  ("+'"  . "$(7#A(B")
+	  ("+y"  . "$(7#B(B")
+	  ("+r"  . "$(7#C(B")
+	  ("+l"  . "$(7#D(B")
+	  ("+sh" . "$(7#E(B")
+	  ("+SH" . "$(7#F(B")
+	  ("+s"  . "$(7#G(B")
+	  ("+h"  . "$(7#H(B")
+	  ("+A"  . "$(7#I(B")
+	  ("+kSH" . "$(7#J(B")
+	  ("+R"   . "$(7#P(B"))
+	(lambda (x y) (> (length (car x)) (length (car y))))))
 
 ;;;
 ;;; alist for Tibetan base consonant <-> subjoined consonant conversion.
@@ -396,7 +409,7 @@
 ;;; (includes some punctuation conversion rules)
 ;;;
 (defconst tibetan-precomposition-rule-alist
-  '(("$(7"6#B#>(B" . "$(7$G(B")
+  `(("$(7"6#B#>(B" . "$(7$G(B")
     ("$(7"##C#>(B" . "$(7$_(B")
     ("$(7";#>(B" . "$(7$)(B")
     ("$(7"C#:#>(B" . "$(7%.(B")
@@ -490,36 +503,42 @@
     ("$(7"G#4(B" . "$(7%V(B")
     ("$(7"G#5(B" . "$(7%W(B")
     ("$(7"G#7(B" . "$(7%X(B")
-    ("$(7"G#9(B" . "$(7%Y(B")
-    ("$(7!=(B" . "$(8!=(B")			; 2 col <-> 1 col
+    ("$(7"G#9(B" . "$(7%Y(B")))
+
+(defconst tibetan-obsolete-glyphs
+  `(("$(7!=(B" . "$(8!=(B")			; 2 col <-> 1 col
     ("$(7!?(B" . "$(8!?(B")
     ("$(7!@(B" . "$(8!@(B")
     ("$(7!A(B" . "$(8!A(B")
     ("$(7"`(B" . "$(8"`(B")
     ("$(7!;(B" . "$(8!;(B")
     ("$(7!D(B" . "$(8!D(B")
-    ("$(7!>(B $(7!>(B" . "2$(7!>P(B P$(7!>(B1")			; Yes this is dirty. But ...
-    ("$(7!4!5!5(B" . "2$(7#RP#SP#SP#S(B1")
-    ("$(7!4!5(B" . "2$(7#RP#SP#S(B1")
-    ("$(7!6(B" . "2$(7#RP#S_!I(B1")
-    ("$(7!4(B"   . "2$(7#RP#S(B1")))
+    ;; Yes these are dirty. But ...
+    ("$(7!>(B $(7!>(B" . ,(compose-string "$(7!>(B $(7!>(B" 0 3 [?$(7!>(B (Br . Bl) ?  (Br . Bl) ?$(7!>(B]))
+    ("$(7!4!5!5(B" . ,(compose-string
+		  "$(7#R#S#S#S(B" 0 4
+		  [?$(7#R(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B]))
+    ("$(7!4!5(B" . ,(compose-string "$(7#R#S#S(B" 0 3 [?$(7#R(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B]))
+    ("$(7!6(B" . ,(compose-string "$(7#R#S!I(B" 0 3 [?$(7#R(B (Br . Bl) ?$(7#S(B (br . tr) ?$(7!I(B]))
+    ("$(7!4(B"   . ,(compose-string "$(7#R#S(B" 0 2 [?$(7#R(B (Br . Bl) ?$(7#S(B]))))
 
-(defvar tibetan-regexp
-  (let ((l (append tibetan-consonant-transcription-alist
-		   tibetan-vowel-transcription-alist
-		   tibetan-subjoined-transcription-alist))
-	temp)
-    (setq temp "\\(")
-    (setq temp (concat temp (car (car l))))
-    (setq l (cdr l))
+(defconst tibetan-regexp
+  (let ((l (list tibetan-precomposed-transcription-alist
+		 tibetan-consonant-transcription-alist
+		 tibetan-vowel-transcription-alist
+		 tibetan-modifier-transcription-alist
+		 tibetan-subjoined-transcription-alist))
+	(separator "\\|")
+	tail pattern)
     (while l
-      (setq temp (concat temp "\\|" (car (car l))))
-      (setq l (cdr l)))
-    (concat temp "\\)$"))
-  "Regexp string to match a romanized Tibetan character component, i.e.,
-base and subjoined consonant, vowel and vowel modifier. The result of matching
-is to be used for indexing alists at conversion from a roman transcription to
-the corresponding Tibetan character.")
+      (setq tail (car l) l (cdr l))
+      (while tail
+	(setq pattern (cons separator (cons (car (car tail)) pattern))
+	      tail (cdr tail))))
+    (apply 'concat (nreverse (cdr pattern))))
+  "Regexp matching a Tibetan transcription of a composable Tibetan sequence.
+The result of matching is to be used for indexing alists at conversion
+from a roman transcription to the corresponding Tibetan character.")
 
 (defvar tibetan-precomposed-regexp
   (let ((l tibetan-precomposed-transcription-alist)
