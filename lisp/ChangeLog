@@ -26,14 +26,14 @@
 	Use file-name-nondirectory when passing files to CVS.
 	
 	* ediff-diff.el (ediff-cmp-options): New var.
-	(ediff-same-file-contents): use ediff-cmp-options.
+	(ediff-same-file-contents): Use ediff-cmp-options.
 	
 	* ediff-ptch.el (ediff-prompt-for-patch-buffer,
 	ediff-get-patch-buffer): Use current buffer if it appears to be a
 	patch.
 	
 	* viper-keym.el: Fixed calls to viper-ex,
-	change key C-cg to C-cC-g
+	change key C-c g to C-c C-g
 
 	* viper-util.el (viper-nontrivial-find-file-function): Deleted.
 	(viper-glob-unix-files, viper-glob-mswindows-files): New functions.
@@ -55,8 +55,8 @@
 	viper-insert-state-post-command-sentinel,
 	viper-insert-state-pre-command-sentinel): Takes better care of
 	 cursor colors.
-	
-        * viper.el: Version change.
+
+	* viper.el: Version change.
 
 1999-10-31  Rajesh Vaidheeswarran  <rv@dsmit.com>
 
