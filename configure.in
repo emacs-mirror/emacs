@@ -618,7 +618,7 @@ case "${canonical}" in
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
-  s390-*-linux-gnu)
+  s390-*-linux-gnu* )
     machine=ibms390 opsys=gnu-linux
   ;;
   rs6000-ibm-aix3.1* | powerpc-ibm-aix3.1*  )
@@ -2198,10 +2198,10 @@ AC_FUNC_ALLOCA
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 AC_CHECK_LIB(m, sqrt)
 
-# Check for mail-locking functions in a "mail" library
+# Check for mail-locking functions in a "mail" library.  Probably this should
+# have the same check as for liblockfile below.
 AC_CHECK_LIB(mail, maillock)
 dnl Debian, at least:
-dnl AC_CHECK_LIB(lockfile, maillock, [AC_DEFINE(HAVE_LIBMAIL)])
 AC_CHECK_LIB(lockfile, maillock)
 # If we have the shared liblockfile, assume we must use it for mail
 # locking (e.g. Debian).  If we couldn't link against liblockfile
@@ -2215,9 +2215,8 @@ if test "$ac_cv_lib_lockfile_maillock" = no; then
     AC_MSG_ERROR([Shared liblockfile found but can't link against it.
 This probably means that movemail could lose mail.
 There may be a `development' package to install containing liblockfile.])
-  else AC_DEFINE(LIBMAIL, -llockfile, [Define to -llockfile if it is usable.])
-  fi
   else :
+  fi
 fi
 AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS(maillock.h)
@@ -2483,6 +2482,14 @@ AC_CHECK_HEADERS(nlist.h, [AC_DEFINE(NLIST_STRUCT, 1,
 
 dnl Fixme: AC_SYS_POSIX_TERMIOS should probably be used, but it's not clear
 dnl how the tty code is related to POSIX and/or other versions of termios.
+dnl The following looks like a useful start.
+dnl
+dnl AC_SYS_POSIX_TERMIOS
+dnl if test $ac_cv_sys_posix_termios = yes; then
+dnl    AC_DEFINE(HAVE_TERMIOS, 1, [Define to 1 if you have POSIX-style functions 
+dnl                                and macros for terminal control.])
+dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
+dnl fi
 
 dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
 
