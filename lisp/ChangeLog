@@ -1,3 +1,108 @@
+2003-07-13  Karl Eichwalder  <ke@suse.de>
+
+	* textmodes/po.el (po-find-charset): White space at the start of the
+	Content-Type field body is non-mandatory.
+
+2003-07-13  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
+
+	* textmodes/texinfo.el (texinfo-section-list): Append
+	appendixsection; a synonym for appendixsec.
+
+2003-07-13  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* man.el (Man-translate-cleanup): New.
+	(Man-translate-references): Call `Man-translate-cleanup' to clean
+	leading, trailing and middle spaces.
+
+2003-07-13  Michael Mauger  <mmaug@yahoo.com>
+
+	Version 1.8.0 of sql-mode.
+
+	Simplify selection of SQL products to define highlighting and
+	interactive mode.  Includes detailed instructions on adding support
+	for new products.
+
+	* progmodes/sql.el (sql-product): New variable.  Identifies SQL
+	product for use in highlighting and interactive mode.
+	(sql-interactive-product): New variable.  SQL product for
+	sql-interactive-mode.
+	(sql-product-support): New variable.  Specifies product-specific
+	parameters to drive highlighting and interactive mode.
+	(sql-imenu-generic-expression): Add more object types.
+	(sql-sqlite-options): Correct comment.
+	(sql-ms-program): Use "osql" rather than "isql".
+	(sql-prompt-regexp, sql-prompt-length): Update comment.
+	(sql-mode-menu): Add "Start SQLi session" entry.  Replace
+	Highlighting submenu with Product menu.  Fix Send Region entry.
+	(sql-mode-abbrev-table): Add abbreviations.  Support of SYSTEM-FLAG
+	on define-abbrev.  Support was removed with last check-in; it now
+	handles older Emacsen without the SYSTEM-FLAG.
+	(sql-mode-font-lock-object-name): Add font-lock pattern for object
+	names.
+	(sql-mode-ansi-font-lock-keywords): Set as default value.
+	(sql-mode-oracle-font-lock-keywords): Set as default value.  Support
+	Oracle 9i keywords.
+	(sql-mode-postgres-font-lock-keywords): Set as default value.
+	(sql-mode-linter-font-lock-keywords): Set as default value.
+	(sql-mode-ms-font-lock-keywords): New variable.  Support Microsoft
+	SQLServer 2000.
+	(sql-mode-sybase-font-lock-keywords)
+	(sql-mode-interbase-font-lock-keywords)
+	(sql-mode-sqlite-font-lock-keywords)
+	(sql-mode-strong-font-lock-keywords)
+	(sql-mode-mysql-font-lock-keywords)
+	(sql-mode-db2-font-lock-keywords): New variables.  Default to ANSI
+	keywords.
+	(sql-mode-font-lock-defaults): Update comment.
+	(sql-product-feature): New function.  Returns feature associated
+	with a product from `sql-product-support' alist.
+	(sql-product-font-lock): New function.  Set font-lock support based
+	on `sql-product'.
+	(sql-add-product-keywords): New function.  Add font-lock rules to
+	product-specific keyword variables.
+	(sql-set-product): New function.  Set `sql-product' and apply
+	appropriate font-lock highlighting.
+	(sql-highlight-product): New function.  Set font-lock support based
+	on a product.  Also set mode name to include product name.
+	(sql-highlight-ansi-keywords, sql-highlight-oracle-keywords)
+	(sql-highlight-postgres-keywords, sql-highlight-linter-keywords):
+	Use `sql-set-product'.
+	(sql-highlight-ms-keywords)
+	(sql-highlight-sybase-keywords)
+	(sql-highlight-interbase-keywords)
+	(sql-highlight-strong-keywords)
+	(sql-highlight-mysql-keywords)
+	(sql-highlight-sqlite-keywords)
+	(sql-highlight-db2-keywords): New functions.  Use `sql-set-product'.
+	(sql-get-login): Prompt in the same order as the tokens.
+	(sql-mode): Uses `sql-product-highlight' and
+	`sql-product-font-lock'.
+	(sql-product-interactive): New function.  Common portions of
+	product-specific interactive mode wrappers.
+	(sql-interactive-mode): Rewritten to use product features.
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql)
+	(sql-solid, sql-ingres, sql-ms, sql-postgres, sql-interbase)
+	(sql-db2, sql-linter): Use `sql-product-interactive'.
+	(sql-connect-oracle, sql-connect-sybase, sql-connect-informix)
+	(sql-connect-sqlite, sql-connect-mysql, sql-connect-solid)
+	(sql-connect-ingres, sql-connect-postgres)
+	(sql-connect-interbase, sql-connect-db2, sql-connect-linter): New
+	functions.  Format command line parameters and invoke comint on the
+	appropriate interpreter.  Code was in the corresponding `sql-xyz'
+	function before.
+	(sql-connect-ms): New function.  Support -E argument to use
+	operating system credentials for authentication.
+
+2003-07-13  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-dired-misc-data, desktop-buffer-dired):
+	Handle `dired-directory' being a list.
+
+2003-07-13  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* mail/smtpmail.el (smtpmail-send-it): Create smtpmail-queue-dir if
+	it doesn't exist.
+
 2003-07-12  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/cc-engine.el (c-declare-lang-variables): Don't use mapcan.
