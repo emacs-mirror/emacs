@@ -504,7 +504,7 @@ keymap_panes (keymaps, nmaps, notreal)
      But don't make a pane that is empty--ignore that map instead.
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
-    single_keymap_panes (keymaps[mapno], Qnil, Qnil, notreal);
+    single_keymap_panes (keymaps[mapno], Qnil, Qnil, notreal, 10);
 
   finish_menu_items ();
 }
@@ -514,18 +514,24 @@ keymap_panes (keymaps, nmaps, notreal)
    The other arguments are passed along
    or point to local variables of the previous function.
    If NOTREAL is nonzero,
-   don't bother really computing whether an item is enabled.  */
+   don't bother really computing whether an item is enabled.
+
+   If we encounter submenus deeper than MAXDEPTH levels, ignore them.  */
 
 static void
-single_keymap_panes (keymap, pane_name, prefix, notreal)
+single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
      Lisp_Object keymap;
      Lisp_Object pane_name;
      Lisp_Object prefix;
      int notreal;
+     int maxdepth;
 {
   Lisp_Object pending_maps;
   Lisp_Object tail, item, item1, item_string, table;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+  if (maxdepth <= 0)
+    return;
 
   pending_maps = Qnil;
 
@@ -593,7 +599,8 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 			{
 			  push_submenu_start ();
 			  single_keymap_panes (submap, Qnil,
-					       XCONS (item)->car, notreal);
+					       XCONS (item)->car, notreal,
+					       maxdepth - 1);
 			  push_submenu_end ();
 			}
 #endif
@@ -662,7 +669,8 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 			    {
 			      push_submenu_start ();
 			      single_keymap_panes (submap, Qnil,
-						   character, notreal);
+						   character, notreal,
+						   maxdepth - 1);
 			      push_submenu_end ();
 			    }
 #endif
@@ -683,7 +691,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
       /* We no longer discard the @ from the beginning of the string here.
 	 Instead, we do this in xmenu_show.  */
       single_keymap_panes (Fcar (elt), string,
-			   XCONS (eltcdr)->cdr, notreal);
+			   XCONS (eltcdr)->cdr, notreal, maxdepth - 1);
       pending_maps = Fcdr (pending_maps);
     }
 }
@@ -1425,7 +1433,7 @@ single_submenu (item_key, item_name, maps)
 	  push_menu_item (item_name, Qt, item_key, mapvec[i], Qnil);
 	}
       else
-	single_keymap_panes (mapvec[i], item_name, item_key, 0);
+	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
     }
 
   /* Create a tree of widget_value objects
