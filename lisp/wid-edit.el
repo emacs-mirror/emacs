@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -468,6 +468,14 @@ new value.")
   "Return the type of WIDGET, a symbol."
   (car widget))
 
+;;;###autoload
+(defun widgetp (widget)
+  "Return non-nil iff WIDGET is a widget."
+  (if (symbolp widget)
+      (get widget 'widget-type)
+    (and (consp widget)
+	 (get (widget-type widget) 'widget-type))))
+
 (defun widget-get-indirect (widget property)
   "In WIDGET, get the value of PROPERTY.
 If the value is a symbol, return its binding.
@@ -747,6 +755,7 @@ The optional ARGS are additional keyword arguments."
     ;; Return the newly create widget.
     widget))
 
+;;;###autoload
 (defun widget-insert (&rest args)
   "Call `insert' with ARGS even if surrounding text is read only."
   (let ((inhibit-read-only t)
@@ -801,6 +810,7 @@ button end points."
 
 ;;; Keymap and Commands.
 
+;;;###autoload
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'widget-forward)
@@ -1083,6 +1093,7 @@ When not inside a field, move to the previous button or field."
   (or (get-char-property (or pos (point)) 'button)
       (widget-field-at pos)))
 
+;;;###autoload
 (defun widget-setup ()
   "Setup current buffer so editing string widgets works."
   (let ((inhibit-read-only t)

@@ -1,3 +1,26 @@
+2002-02-14  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* facemenu.el (describe-text-done): New function.
+	(describe-text-mode-map): New variable.
+	(describe-text-mode-hook): New option.
+	(describe-text-mode): New function.
+	(describe-text-widget): New function.
+	(describe-text-sexp): New function.
+	(describe-text-properties): New function.
+	(describe-text-category): New command.
+	(describe-text-at): New command.
+	(facemenu-menu): Replace `list-text-properties-at' with
+	`describe-text-at' in the menu.  
+        (button): Require.
+	
+	* wid-edit.el (widgetp): New function.
+	* wid-edit.el (widget-keymap, widget-insert, widget-setup):
+	Autoloaded. 
+
+	* emacs-lisp/pp.el (pp-to-string): Autoloaded.
+
+	* wid-browse.el: Removed version and x-url keywords.
+
 2002-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* cus-start.el (mode-line-in-non-selected-windows):

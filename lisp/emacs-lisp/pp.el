@@ -36,6 +36,7 @@
   :type 'boolean
   :group 'pp)
 
+;;;###autoload
 (defun pp-to-string (object)
   "Return a string containing the pretty-printed representation of OBJECT.
 OBJECT can be any Lisp object.  Quoting characters are used as needed
