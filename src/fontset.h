@@ -178,7 +178,7 @@ extern void (*check_window_system_func) P_ ((void));
 
 struct face;
 
-extern void fs_free_face_fontset P_ ((FRAME_PTR, struct face *));
+extern void free_face_fontset P_ ((FRAME_PTR, struct face *));
 extern Lisp_Object fontset_font_pattern P_ ((FRAME_PTR, int, int));
 extern int face_suitable_for_char_p P_ ((struct face *, int));
 extern int face_for_char P_ ((FRAME_PTR, struct face *, int));
