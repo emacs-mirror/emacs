@@ -2474,6 +2474,132 @@ my_post_msg (wmsg, hwnd, msg, wParam, lParam)
   post_msg (wmsg);
 }
 
+/* GetKeyState and MapVirtualKey on Win95 do not actually distinguish
+   between left and right keys as advertised.  We test for this
+   support dynamically, and set a flag when the support is absent.  If
+   absent, we keep track of the left and right control and alt keys
+   ourselves.  This is particularly necessary on keyboards that rely
+   upon the AltGr key, which is represented as having the left control
+   and right alt keys pressed.  For these keyboards, we need to know
+   when the left alt key has been pressed in addition to the AltGr key
+   so that we can properly support M-AltGr-key sequences (such as M-@
+   on Swedish keyboards).  */
+
+#define EMACS_LCONTROL 0
+#define EMACS_RCONTROL 1
+#define EMACS_LMENU    2
+#define EMACS_RMENU    3
+
+static int modifiers[4];
+static int modifiers_recorded;
+static int modifier_key_support_tested;
+
+static void
+test_modifier_support (unsigned int wparam)
+{
+  unsigned int l, r;
+
+  if (wparam != VK_CONTROL && wparam != VK_MENU)
+    return;
+  if (wparam == VK_CONTROL)
+    {
+      l = VK_LCONTROL;
+      r = VK_RCONTROL;
+    }
+  else
+    {
+      l = VK_LMENU;
+      r = VK_RMENU;
+    }
+  if (!(GetKeyState (l) & 0x8000) && !(GetKeyState (r) & 0x8000))
+    modifiers_recorded = 1;
+  else
+    modifiers_recorded = 0;
+  modifier_key_support_tested = 1;
+}
+
+static void
+record_keydown (unsigned int wparam, unsigned int lparam)
+{
+  int i;
+
+  if (!modifier_key_support_tested)
+    test_modifier_support (wparam);
+
+  if ((wparam != VK_CONTROL && wparam != VK_MENU) || !modifiers_recorded)
+    return;
+
+  if (wparam == VK_CONTROL)
+    i = (lparam & 0x1000000) ? EMACS_RCONTROL : EMACS_LCONTROL;
+  else
+    i = (lparam & 0x1000000) ? EMACS_RMENU : EMACS_LMENU;
+
+  modifiers[i] = 1;
+}
+
+static void
+record_keyup (unsigned int wparam, unsigned int lparam)
+{
+  int i;
+
+  if ((wparam != VK_CONTROL && wparam != VK_MENU) || !modifiers_recorded)
+    return;
+
+  if (wparam == VK_CONTROL)
+    i = (lparam & 0x1000000) ? EMACS_RCONTROL : EMACS_LCONTROL;
+  else
+    i = (lparam & 0x1000000) ? EMACS_RMENU : EMACS_LMENU;
+
+  modifiers[i] = 0;
+}
+
+static int
+modifier_set (int vkey)
+{
+  if (!modifiers_recorded)
+    return (GetKeyState (vkey) & 0x8000);
+
+  switch (vkey)
+    {
+    case VK_LCONTROL:
+      return modifiers[EMACS_LCONTROL];
+    case VK_RCONTROL:
+      return modifiers[EMACS_RCONTROL];
+    case VK_LMENU:
+      return modifiers[EMACS_LMENU];
+    case VK_RMENU:
+      return modifiers[EMACS_RMENU];
+    case VK_CAPITAL:
+      return (GetKeyState (vkey) & 0x1);
+    default:
+      break;
+    }
+  return (GetKeyState (vkey) & 0x8000);
+}
+
+/* We map the VK_* modifiers into console modifier constants
+   so that we can use the same routines to handle both console
+   and window input.  */
+
+static int
+construct_modifiers (unsigned int wparam, unsigned int lparam)
+{
+  int mods;
+
+  if (wparam != VK_CONTROL && wparam != VK_MENU)
+    mods = GetLastError ();
+
+  mods = 0;
+  mods |= (modifier_set (VK_SHIFT)) ? SHIFT_PRESSED : 0;
+  mods |= (modifier_set (VK_CAPITAL)) ? CAPSLOCK_ON : 0;
+  mods |= (modifier_set (VK_LCONTROL)) ? LEFT_CTRL_PRESSED : 0;
+  mods |= (modifier_set (VK_RCONTROL)) ? RIGHT_CTRL_PRESSED : 0;
+  mods |= (modifier_set (VK_LMENU)) ? LEFT_ALT_PRESSED : 0;
+  mods |= (modifier_set (VK_RMENU)) ? RIGHT_ALT_PRESSED : 0;
+
+  return mods;
+}
+
 /* Main window procedure */
 
 extern char *lispy_function_keys[];
@@ -2537,55 +2663,31 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       }
       
       return (0);
+
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+      record_keyup (wParam, lParam);
+      goto dflt;
+
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
-#if 0
-      if (! ((wParam >= VK_BACK && wParam <= VK_TAB)
-	     || (wParam >= VK_CLEAR && wParam <= VK_RETURN)
-	     || (wParam == VK_ESCAPE)
-	     || (wParam >= VK_PRIOR && wParam <= VK_HELP)
-	     || (wParam >= VK_LWIN && wParam <= VK_APPS)
-	     || (wParam >= VK_NUMPAD0 && wParam <= VK_F24)
-	     || (wParam >= VK_NUMLOCK && wParam <= VK_SCROLL)
-	     || (wParam >= VK_ATTN && wParam <= VK_OEM_CLEAR)
-	     || !TranslateMessage (&msg1)))
-	{
-	  goto dflt;
-	}
-#endif
-      
-      /* Check for special characters since translate message 
-	 seems to always indicate true.  */
-      
-      if (wParam == VK_MENU
-	  || wParam == VK_SHIFT
-	  || wParam == VK_CONTROL
-	  || wParam == VK_CAPITAL)
+      record_keydown (wParam, lParam);
+
+      switch (wParam) {
+      case VK_CONTROL: case VK_CAPITAL: case VK_MENU: case VK_SHIFT:
+	goto dflt;
+      default:
 	break;
-      
-      /* Anything we do not have a name for needs to be translated or 
-	 returned as ascii keystroke.  */
-      
+      }
+
       if (lispy_function_keys[wParam] == 0)
-	{
-	  MSG msg1;
-	    
-	  msg1.hwnd = hwnd;
-	  msg1.message = msg;
-	  msg1.wParam = wParam;
-	  msg1.lParam = lParam;
-	    
-	  if (TranslateMessage (&msg1))
-	    break;
-	  else
-	    msg = WM_CHAR;
-	}
-      
+	msg = WM_CHAR;
+
       /* Fall through */
       
     case WM_SYSCHAR:
     case WM_CHAR:
-      wmsg.dwModifiers = win32_get_modifiers ();
+      wmsg.dwModifiers = construct_modifiers (wParam, lParam);
       
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       break;
@@ -2929,7 +3031,7 @@ This function is an internal primitive--use `make-frame' instead.")
       font = x_new_font (f, "-*-system-medium-r-normal-*-*-200-*-*-c-120-*-*");
 #endif
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-terminal-medium-r-normal-*-*-180-*-*-c-120-*-*");
+      font = x_new_font (f, "-*-Fixedsys-*-r-*-*-12-90-*-*-c-*-*-*");
     UNBLOCK_INPUT;
     if (! STRINGP (font))
       font = build_string ("-*-system");
@@ -3379,6 +3481,8 @@ x_to_win32_font (lpxstr, lplogfont)
     
     if (fields > 0 && width[0] != '*')
       lplogfont->lfWidth = (atoi (width) * one_win32_display_info.width_in) / 1440;
+
+    lplogfont->lfCharSet = ANSI_CHARSET;
   }
   
   return (TRUE);
