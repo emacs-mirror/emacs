@@ -1,3 +1,7 @@
+2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.

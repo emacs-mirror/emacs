@@ -4703,7 +4703,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (15735 20643))
+;;;;;;  "dired" "dired.el" (15939 40189))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -8335,7 +8335,7 @@ Provide help for current mode." t nil)
 ;;;***
 
 ;;;### (autoloads (hexlify-buffer hexl-find-file hexl-mode) "hexl"
-;;;;;;  "hexl.el" (15735 20644))
+;;;;;;  "hexl.el" (15935 39794))
 ;;; Generated autoloads from hexl.el
 
 (autoload (quote hexl-mode) "hexl" "\
@@ -9968,7 +9968,7 @@ This mode enables switching between buffers using substrings.  See
 ;;;### (autoloads (read-hiragana-string japanese-zenkaku-region japanese-hankaku-region
 ;;;;;;  japanese-hiragana-region japanese-katakana-region japanese-zenkaku
 ;;;;;;  japanese-hankaku japanese-hiragana japanese-katakana setup-japanese-environment-internal)
-;;;;;;  "japan-util" "language/japan-util.el" (15186 41422))
+;;;;;;  "japan-util" "language/japan-util.el" (15988 62792))
 ;;; Generated autoloads from language/japan-util.el
 
 (autoload (quote setup-japanese-environment-internal) "japan-util" nil nil nil)
@@ -13814,7 +13814,7 @@ If FILE-NAME is empty, remove any existing inbox list." t nil)
 
 ;;;### (autoloads (rmail-output-body-to-file rmail-output rmail-fields-not-to-output
 ;;;;;;  rmail-output-to-rmail-file rmail-output-file-alist) "rmailout"
-;;;;;;  "mail/rmailout.el" (15186 41423))
+;;;;;;  "mail/rmailout.el" (15935 39795))
 ;;; Generated autoloads from mail/rmailout.el
 
 (defvar rmail-output-file-alist nil "\
@@ -17547,7 +17547,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 ;;;***
 
 ;;;### (autoloads (vhdl-mode) "vhdl-mode" "progmodes/vhdl-mode.el"
-;;;;;;  (15792 45959))
+;;;;;;  (15972 47137))
 ;;; Generated autoloads from progmodes/vhdl-mode.el
 
 (autoload (quote vhdl-mode) "vhdl-mode" "\

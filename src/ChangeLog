@@ -1,3 +1,7 @@
+2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2003-03-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (cancel_hourglass_unwind): New function.

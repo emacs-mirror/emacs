@@ -1,3 +1,7 @@
+2003-03-18  Francesco Potortì  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2002-01-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (VERSION): Set to 2.8.

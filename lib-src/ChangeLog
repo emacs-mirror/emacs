@@ -1,3 +1,7 @@
+2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2002-12-18  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in ($(DOC)): Use -o and -a options to make-docfile,
