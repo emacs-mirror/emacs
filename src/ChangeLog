@@ -1,3 +1,8 @@
+2001-04-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (redisplay_window): Make sure to clear the desired glyph
+	matrix of mini-windows.
+
 2001-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* intervals.c (find_interval): Don't rebalance during signal handling.

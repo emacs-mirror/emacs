@@ -1,5 +1,8 @@
 2001-04-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* indent.el (indent-for-tab-command): Call indent-line-function
+	with no argument if PREFIX-ARG is non-nil.
+
 	* frame.el (delete-other-frames): Handle minibuffer-only frames.
 
 2001-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
