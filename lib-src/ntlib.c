@@ -58,7 +58,7 @@ getppid(void)
   char *ppid;
   DWORD result;
 
-  ppid = getenv ("__PARENT_PROCESS_ID");
+  ppid = getenv ("EM_PARENT_PROCESS_ID");
   if (!ppid) 
     {
       printf("no pid.\n");
