@@ -398,7 +398,16 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (set-buffer buffer)
     (if (not new-buffer-p)		; existing buffer ...
 	(if switches			; ... but new switches
-	    (dired-sort-other switches))	; this calls dired-revert
+	    (dired-sort-other switches)	; this calls dired-revert
+	  ;; If directory has changed on disk, offer to revert.
+	  (if (let ((attributes (file-attributes dirname))
+		    (modtime (visited-file-modtime)))
+		(or (not (eq (car attributes) t))
+		    (and (= (car (nth 5 attributes)) (car modtime))
+			 (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
+	      nil
+	    (if (yes-or-no-p "Directory has changed on disk; update the buffer? ")
+		(dired-revert))))
       ;; Else a new buffer
       (setq default-directory
 	    (abbreviate-file-name
@@ -482,6 +491,9 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       ;; dired-build-subdir-alist will call dired-clear-alist first
       (set (make-local-variable 'dired-subdir-alist) nil)
       (dired-build-subdir-alist)
+      (let ((attributes (file-attributes dirname)))
+	(if (eq (car attributes) t)
+	    (set-visited-file-modtime (nth 5 attributes))))
       (set-buffer-modified-p nil))))
 
 ;; Subroutines of dired-readin
