@@ -1,5 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -178,6 +179,7 @@ xmalloc (size)
   Try to run a different command, or --if no alternate editor is
   defined-- exit with an errorcode.
 */
+void
 fail (argc, argv)
      int argc;
      char **argv;
@@ -198,6 +200,7 @@ fail (argc, argv)
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
+int
 main (argc, argv)
      int argc;
      char **argv;
