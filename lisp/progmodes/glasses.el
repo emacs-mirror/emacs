@@ -213,11 +213,14 @@ This function modifies buffer contents, it removes all the separators,
 recognized according to the current value of the variable `glasses-separator'."
   (when (and glasses-convert-on-write-p
 	     (not (string= glasses-separator "")))
-    (let ((case-fold-search nil))
+    (let ((case-fold-search nil)
+	  (separator (regexp-quote glasses-separator)))
       (save-excursion
 	(goto-char (point-min))
 	(while (re-search-forward
-		"[a-z]\\(_\\)[A-Z]\\|[A-Z]\\(_\\)[A-Z][a-z]" nil t)
+		(format "[a-z]\\(%s\\)[A-Z]\\|[A-Z]\\(%s\\)[A-Z][a-z]"
+			separator separator)
+		nil t)
 	  (let ((n (if (match-string 1) 1 2)))
 	    (replace-match "" t nil nil n)
 	    (goto-char (match-end n))))
@@ -260,17 +263,16 @@ at places they belong to."
       (save-excursion
 	(save-restriction
 	  (widen)
+	  ;; We erase the all overlays anyway, to avoid dual sight in some
+	  ;; circumstances
+	  (glasses-make-unreadable (point-min) (point-max))
 	  (if new-flag
 	      (progn
-		;; We erase the all overlays to avoid dual sight in some
-		;; circumstances
-		(glasses-make-unreadable (point-min) (point-max))
 		(glasses-make-readable (point-min) (point-max))
 		(make-local-hook 'after-change-functions)
 		(add-hook 'after-change-functions 'glasses-change nil t)
 		(add-hook 'local-write-file-hooks
 			  'glasses-convert-to-unreadable nil t))
-	    (glasses-make-unreadable (point-min) (point-max))
 	    (remove-hook 'after-change-functions 'glasses-change t)
 	    (remove-hook 'local-write-file-hooks
 			 'glasses-convert-to-unreadable t))))
