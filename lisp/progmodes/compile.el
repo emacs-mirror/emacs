@@ -580,10 +580,13 @@ to a function that generates a unique name."
 
 ;; run compile with the default command line
 (defun recompile ()
-  "Re-compile the program including the current buffer."
+  "Re-compile the program including the current buffer.
+If this is run in a compilation-mode buffer, re-use the arguments from the
+original use.  Otherwise, it recompiles using `compile-command'."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (compile-internal (eval compile-command) "No more errors"))
+  (apply 'compile-internal (or compilation-arguments
+			      `(,(eval compile-command) "No more errors"))))
 
 (defun grep-process-setup ()
   "Set up `compilation-exit-message-function' for `grep'."
