@@ -45,7 +45,6 @@ SUBDIRS=quail
 
 # Files generated from TIT dictionaries for Chinese GB character set.
 TIT_GB=\
-	quail/CTLau.elc		\
 	quail/CCDOSPY.elc	\
 	quail/Punct.elc		\
 	quail/QJ.elc		\
@@ -56,7 +55,6 @@ TIT_GB=\
 TIT_BIG5=\
 	quail/4Corner.elc	\
 	quail/ARRAY30.elc	\
-	quail/CTLauB.elc	\
 	quail/ECDICT.elc	\
 	quail/ETZY.elc		\
 	quail/Punct-b5.elc	\
@@ -119,7 +117,9 @@ MISC_DIC=\
 	quail/tsang-cns.elc	\
 	quail/quick-cns.elc	\
 	quail/PY.elc		\
-	quail/ZIRANMA.elc
+	quail/ZIRANMA.elc	\
+	quail/CTLau.elc		\
+	quail/CTLau-b5.elc
 
 CHINESE=$(CHINESE_GB) $(CHINESE_BIG5)
 EASTASIA=$(CHINESE) $(JAPANESE) $(KOREAN)
@@ -185,7 +185,6 @@ install: all
 
 clean mostlyclean:
 	- $(FOREACH) $(TIT) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
-	- $(FOREACH) $(NONTIT) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 	- $(FOREACH) $(WORLD) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 	- $(FOREACH) $(MISC_DIC) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 	- $(FOREACH) $(TIT:.elc=.el) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
