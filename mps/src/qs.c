@@ -1,6 +1,6 @@
 /*  impl.c.qs:                QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.9) $
+ *  $HopeName: MMsrc!qs.c(trunk.10) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -367,8 +367,8 @@ static
 void *
 go(void *p, size_t s)
 {
-  UNUSED(p);
-  UNUSED(s);
+  testlib_unused(p);
+  testlib_unused(s);
 
   die(mps_pool_create(&mpool, space, mps_class_mv(), 
                       (size_t)65536, sizeof(QSCellStruct) * 1000,
