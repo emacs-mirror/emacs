@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.79) $
+ * $HopeName: MMsrc!trace.c(trunk.80) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.79) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.80) $");
 
 
 /* Types
@@ -166,6 +166,10 @@ Bool TraceCheck(Trace trace)
 }
 
 
+/* TraceUpdateCounts
+ *
+ * Dumps the counts accummulated in a ScanState into the Trace. */
+
 static void TraceUpdateCounts(Trace trace, ScanState ss,
                               TraceAccountingPhase phase)
 {
@@ -203,6 +207,11 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
   return;
 }
 
+
+/* TraceSetUpdateCounts
+ *
+ * As TraceUpdateCounts, but for a set of traces. */
+
 static void TraceSetUpdateCounts(TraceSet ts, Arena arena,
                                  ScanState ss,
                                  TraceAccountingPhase phase)
@@ -214,6 +223,27 @@ static void TraceSetUpdateCounts(TraceSet ts, Arena arena,
       Trace trace = ArenaTrace(arena, ti);
 
       TraceUpdateCounts(trace, ss, phase);
+    }
+  }
+
+  return;
+}
+
+
+/* TraceSetSignalEmergency
+ *
+ * Moves a set of traces into emergency mode. */
+
+static void TraceSetSignalEmergency(TraceSet ts, Arena arena)
+{
+  TraceId ti;
+  
+  AVER(TraceSetCheck(ts));
+  AVERT(Arena, arena);
+
+  for(ti = 0; ti < TRACE_MAX; ++ti) {
+    if(TraceSetIsMember(ts, ti)) {
+      ArenaTrace(arena, ti)->emergency = TRUE;
     }
   }
 
@@ -242,37 +272,25 @@ double TraceGen0IncrementalityMultiple = 0.5;
 double TraceMortalityEstimate = 0.5;
 
 
-/* Calls a scanner.
+/* TraceSetWhiteUnion
  *
- * If the call fails then the traces are put into emergency mode
- * and the call is tried again */
-void TraceScan(TraceScanMethod scanner, TraceSet ts, Rank rank,
-               Arena arena, void *p, unsigned long l)
+ * Returns a RefSet describing the union of the white sets
+ * of all the specified traces. */
+static RefSet TraceSetWhiteUnion(TraceSet ts, Arena arena)
 {
-  Res res;
+  TraceId ti;
+  RefSet white = RefSetEMPTY;
 
-  AVER(FUNCHECK(scanner));
-  AVER(TraceSetCheck(ts));
-  AVERT(Arena, arena);
-  AVER(RankCheck(rank));
-  /* p and l are arbitrary closures */
+  /* static function used internally, no checking */
 
-  res = scanner(ts, rank, arena, p, l);
-  if(res != ResOK) {
-    TraceId ti;
-    for(ti = 0; ti < TRACE_MAX; ++ti) {
-      if(TraceSetIsMember(ts, ti)) {
-	ArenaTrace(arena, ti)->emergency = TRUE;
-      }
+  for(ti = 0; ti < TRACE_MAX; ++ti) {
+    if(TraceSetIsMember(ts, ti)) {
+      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
     }
-    res = scanner(ts, rank, arena, p, l);
-    /* should be OK now */
   }
-  AVER(ResOK == res);
 
-  return;
+  return white;
 }
-    
 
 
 /* TraceAddWhite -- add a segment to the white set of a trace */
@@ -403,73 +421,19 @@ static void TraceFlipBuffers(Arena arena)
 }
 
 
-/* TraceSetWhiteUnion
+/* TraceRootScanRes
  *
- * Returns a RefSet describing the union of the white sets
- * of all the specified traces. */
-static RefSet TraceSetWhiteUnion(TraceSet ts, Arena arena)
-{
-  TraceId ti;
-  RefSet white = RefSetEMPTY;
+ * Scans a root.  By calling RootScan mostly.
+ * This version is allowed to fail and returns an appropriate result
+ * code. */
 
-  /* static function used internally, no checking */
-
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti)) {
-      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
-    }
-  }
-
-  return white;
-}
-
-static Bool TraceScanRootClosureCheck(TraceScanRootClosure closure)
-{
-  CHECKS(TraceScanRootClosure, closure);
-  CHECKD(Root, closure->root);
-
-  return TRUE;
-}
-
-static void TraceScanRootClosureInit(TraceScanRootClosureStruct *closure,
-                                     Root root)
-{
-  AVER(closure != NULL);
-  AVERT(Root, root);
-
-  closure->root = root;
-  closure->sig = TraceScanRootClosureSig;
-
-  return;
-}
-
-static void TraceScanRootClosureFinish(TraceScanRootClosure closure)
-{
-  AVERT(TraceScanRootClosure, closure);
-
-  closure->sig = SigInvalid;
-
-  return;
-}
-
-static Res TraceScanRoot(TraceSet ts, Rank rank, Arena arena,
-                         void *p, unsigned long l)
+static Res TraceScanRootRes(TraceSet ts, Rank rank, Arena arena, Root root)
 {
   RefSet white;
   Res res;
-  Root root;
   ScanStateStruct ss;
-  TraceScanRootClosure closure;
 
-  AVER(TraceSetCheck(ts));
-  AVER(RankCheck(rank));
-  AVERT(Arena, arena);
-  AVER(p != NULL);
-  AVER(0 == l);
-
-  closure = p;
-  AVERT(TraceScanRootClosure, closure);
-  root = closure->root;
+  /* static function used internaly, no checking */
 
   white = TraceSetWhiteUnion(ts, arena);
 
@@ -482,6 +446,32 @@ static Res TraceScanRoot(TraceSet ts, Rank rank, Arena arena,
   ScanStateFinish(&ss);
 
   return res;
+}
+
+
+/* TraceScanRoot
+ *
+ * Scan a root without fail.  The traces may enter emergency mode
+ * to ensure this. */
+
+static void TraceScanRoot(TraceSet ts, Rank rank, Arena arena, Root root)
+{
+  Res res;
+
+  AVER(TraceSetCheck(ts));
+  AVER(RankCheck(rank));
+  AVERT(Arena, arena);
+  AVERT(Root, root);
+
+  res = TraceScanRootRes(ts, rank, arena, root);
+  if(res != ResOK) {
+    TraceSetSignalEmergency(ts, arena);
+    res = TraceScanRootRes(ts, rank, arena, root);
+    /* Should be OK in emergency mode */
+  }
+  AVER(ResOK == res);
+
+  return;
 }
 
 
@@ -529,12 +519,7 @@ static void TraceFlip(Trace trace)
       AVER(RootRank(root) <= RankEXACT); /* see above */
 
       if(RootRank(root) == rank) {
-        TraceScanRootClosureStruct closure;
-
-        TraceScanRootClosureInit(&closure, root);
-        TraceScan(TraceScanRoot, traceSingleton, rank, arena,
-	          &closure, 0);
-        TraceScanRootClosureFinish(&closure);
+        TraceScanRoot(traceSingleton, rank, arena, root);
       }
     }
   }
@@ -902,35 +887,8 @@ RefSet ScanStateSummary(ScanState ss)
                        TraceSetDiff(ss->unfixedSummary, ss->white));
 }
 
-static Bool TraceScanSegClosureCheck(TraceScanSegClosure closure)
-{
-  CHECKS(TraceScanSegClosure, closure);
-  CHECKL(SegCheck(closure->seg));
 
-  return TRUE;
-}
-
-static void TraceScanSegClosureInit(TraceScanSegClosureStruct *closure,
-                                    Seg seg)
-{
-  AVER(closure != NULL);
-  AVERT(Seg, seg);
-
-  closure->seg = seg;
-  closure->sig = TraceScanSegClosureSig;
-
-  return;
-}
-
-static void TraceScanSegClosureFinish(TraceScanSegClosure closure)
-{
-  AVERT(TraceScanSegClosure, closure);
-  closure->sig = SigInvalid;
-  return;
-}
-
-
-/* TraceScanSeg -- scan a segment to remove greyness
+/* TraceScanSegRes -- scan a segment to remove greyness
  *
  * @@@@ During scanning, the segment should be write-shielded to
  * prevent any other threads from updating it while fix is being
@@ -938,22 +896,16 @@ static void TraceScanSegClosureFinish(TraceScanSegClosure closure)
  * don't bother, because we know that all threads are suspended.
  */
 
-static Res TraceScanSeg(TraceSet ts, Rank rank,
-                        Arena arena, void *p, unsigned long l)
+static Res TraceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 {
   Bool wasTotal;
   RefSet white;
   Res res;
-  Seg seg;
-  TraceScanSegClosure closure;
 
   AVER(TraceSetCheck(ts));
   AVER(RankCheck(rank));
   AVERT(Arena, arena);
-  closure = p;
-  AVERT(TraceScanSegClosure, closure);
-  seg = closure->seg;
-  AVER(0 == l);
+  AVER(SegCheck(seg));
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
@@ -1005,6 +957,31 @@ static Res TraceScanSeg(TraceSet ts, Rank rank,
   return res;
 }
 
+/* TraceScanSeg
+ *
+ * Scans a segment without fail.  May put the traces into emergency
+ * mode to ensure this. */
+
+static void TraceScanSeg(TraceSet ts, Rank rank, Arena arena, Seg seg)
+{
+  Res res;
+
+  AVER(TraceSetCheck(ts));
+  AVER(RankCheck(rank));
+  AVERT(Arena, arena);
+  AVER(SegCheck(seg));
+
+  res = TraceScanSegRes(ts, rank, arena, seg);
+  if(res != ResOK) {
+    TraceSetSignalEmergency(ts, arena);
+    res = TraceScanSegRes(ts, rank, arena, seg);
+    /* should be OK in emergency mode */
+  }
+  AVER(ResOK == res);
+
+  return;
+}
+
 
 void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
@@ -1031,15 +1008,11 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
     /* Pick set of traces to scan for: */
     TraceSet traces = arena->flippedTraces;
-    TraceScanSegClosureStruct closure;
-
-    TraceScanSegClosureInit(&closure, seg);
 
     /* .scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
     /* minimum rank of all grey segments. (see request.mps.170160) */
-    TraceScan(TraceScanSeg, traces, RankEXACT, arena, &closure, 0);
-    TraceScanSegClosureFinish(&closure);
+    TraceScanSeg(traces, RankEXACT, arena, seg);
 
     /* The pool should've done the job of removing the greyness that */
     /* was causing the segment to be protected, so that the mutator */
@@ -1075,12 +1048,8 @@ static Res TraceRun(Trace trace)
   arena = trace->arena;
 
   if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
-    TraceScanSegClosureStruct closure;
-    TraceScanSegClosureInit(&closure, seg);
     AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-    res = TraceScanSeg(TraceSetSingle(trace->ti), rank, arena,
-                       &closure, 0);
-    TraceScanSegClosureFinish(&closure);
+    res = TraceScanSegRes(TraceSetSingle(trace->ti), rank, arena, seg);
     if(res != ResOK)
       return res;
   } else
@@ -1281,57 +1250,22 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
 }
 
 
-static Bool TraceScanSingleRefClosureCheck(TraceScanSingleRefClosure closure)
+/* TraceScanSingleRefRes
+ *
+ * (internal variant on TraceScanSingleRef)
+ * Scans a single reference (in the location specified by refIO).
+ * This version is allowed to fail and return an appropriate result
+ * code. */
+
+static Res TraceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena, 
+                                 Seg seg, Ref *refIO)
 {
-  CHECKS(TraceScanSingleRefClosure, closure);
-  CHECKL(SegCheck(closure->seg));
-  CHECKL(closure->refLocation != NULL);
-  return TRUE;
-}
-
-void TraceScanSingleRefClosureInit(TraceScanSingleRefClosureStruct *closure,
-                                   Seg seg, Ref *refLocation)
-{
-  AVER(closure != NULL);
-  AVERT(Seg, seg);
-  AVER(refLocation != NULL);
-
-  closure->seg = seg;
-  closure->refLocation = refLocation;
-  closure->sig = TraceScanSingleRefClosureSig;
-
-  return;
-}
-
-void TraceScanSingleRefClosureFinish(TraceScanSingleRefClosure closure)
-{
-  AVERT(TraceScanSingleRefClosure, closure);
-
-  closure->sig = SigInvalid;
-  
-  return;
-}
-
-Res TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
-                       void *p, unsigned long l)
-{
-  Ref *refIO;
   RefSet summary;
   RefSet white;
   Res res;
   ScanStateStruct ss;
-  Seg seg;
-  TraceScanSingleRefClosure closure;
 
-  AVER(TraceSetCheck(ts));
-  AVER(RankCheck(rank));
-  AVERT(Arena, arena);
-  AVER(p != NULL);
-  AVER(0 == l);
-  closure = p;
-  AVERT(TraceScanSingleRefClosure, closure);
-  seg = closure->seg;
-  refIO = closure->refLocation;
+  /* static function used internally, no checking */
 
   EVENT_UUPA(TraceScanSingleRef, ts, rank, arena, (Addr)refIO);
 
@@ -1358,6 +1292,35 @@ Res TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
   ScanStateFinish(&ss);
 
   return res;
+}
+
+
+/* TraceScanSingleRef
+ *
+ * The exported function to scan a single reference.  This one can't
+ * fail.  It may put the traces into emergency mode in order to
+ * achieve this. */
+
+void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+                        Seg seg, Ref *refIO)
+{
+  Res res;
+
+  AVER(TraceSetCheck(ts));
+  AVER(RankCheck(rank));
+  AVERT(Arena, arena);
+  AVER(SegCheck(seg));
+  AVER(refIO != NULL);
+
+  res = TraceScanSingleRefRes(ts, rank, arena, seg, refIO);
+  if(res != ResOK) {
+    TraceSetSignalEmergency(ts, arena);
+    res = TraceScanSingleRefRes(ts, rank, arena, seg, refIO);
+    /* ought to be OK in emergency mode now */
+  }
+  AVER(ResOK == res);
+
+  return;
 }
 
 
