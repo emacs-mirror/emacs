@@ -1621,7 +1621,7 @@ Example: (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))."
 (defsetf mark set-mark t)
 (defsetf mark-marker set-mark t)
 (defsetf marker-position set-marker t)
-(defsetf match-data store-match-data t)
+(defsetf match-data set-match-data t)
 (defsetf mouse-position (scr) (store)
   (list 'set-mouse-position scr (list 'car store) (list 'cadr store)
 	(list 'cddr store)))
