@@ -486,13 +486,15 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	    (rmail-set-message-counters)
 	    (rmail-show-message)
 	    (setq msg-shown t))))
-    (or (and (null file-name-arg)
-	     (rmail-get-new-mail))
-	(or msg-shown (rmail-show-message (rmail-first-unseen-message))))
-    (if rmail-display-summary (rmail-summary))
-    (rmail-construct-io-menu)
-    (if run-mail-hook
-	(run-hooks 'rmail-mode-hook))))
+    (unwind-protect
+	(or (and (null file-name-arg)
+		 (rmail-get-new-mail))
+	    (or msg-shown (rmail-show-message (rmail-first-unseen-message))))
+      (progn
+	(if rmail-display-summary (rmail-summary))
+	(rmail-construct-io-menu)
+	(if run-mail-hook
+	    (run-hooks 'rmail-mode-hook))))))
 
 ;; Given the value of MAILPATH, return a list of inbox file names.
 ;; This is turned off because it is not clear that the user wants
