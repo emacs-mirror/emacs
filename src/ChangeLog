@@ -1,5 +1,14 @@
 2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* w32fns.c (XPutPixel):
+	* w32bdf.c (w32_init_bdf_font): 
+	* sunfns.c (sel_read): 
+	* process.c (Fmake_network_process): 
+	* frame.c (store_frame_param): 
+	* fontset.c (Fset_fontset_font): 
+	* emacs.c (shut_down_emacs): 
+	* ccl.c (ccl_driver):  Remove period at end of error message.
+
 	* config.in: Regenerate.
 
 	* xfns.c (x_window_to_frame, x_any_window_to_frame)

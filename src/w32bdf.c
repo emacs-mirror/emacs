@@ -247,7 +247,7 @@ w32_init_bdf_font(char *filename)
     hbdf_bmp_heap = HeapCreate(0, BDF_BITMAP_HEAP_INITIAL_SIZE, 0);
 
   if (!hbdf_cp_heap || !hbdf_bmp_heap)
-    error("Fail to create heap for BDF.");
+    error("Fail to create heap for BDF");
 
   hfile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL,
 		     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -257,13 +257,13 @@ w32_init_bdf_font(char *filename)
       (fileinfo.nFileSizeLow > BDF_FILE_SIZE_MAX))
     {
       CloseHandle(hfile);
-      error("Fail to open BDF file.");
+      error("Fail to open BDF file");
     }
   hfilemap = CreateFileMapping(hfile, NULL, PAGE_READONLY, 0, 0, NULL);
   if (hfilemap == INVALID_HANDLE_VALUE)
     {
       CloseHandle(hfile);
-      error("Can't map font.");
+      error("Can't map font");
     }
 
   font = MapViewOfFile(hfilemap, FILE_MAP_READ, 0, 0, 0);
@@ -272,7 +272,7 @@ w32_init_bdf_font(char *filename)
     {
       CloseHandle(hfile);
       CloseHandle(hfilemap);
-      error("Can't view font.");
+      error("Can't view font");
     }
 
   bdffontp = (bdffont *) xmalloc(sizeof(bdffont));

@@ -1872,7 +1872,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  break;
 
 	default:
-	  sprintf(msg, "\nCCL: Unknown error type (%d).", ccl->status);
+	  sprintf(msg, "\nCCL: Unknown error type (%d)", ccl->status);
 	}
 
       msglen = strlen (msg);

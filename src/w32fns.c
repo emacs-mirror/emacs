@@ -9679,7 +9679,7 @@ static void XPutPixel (ximg, x, y, color)
 	*pixel = *pixel & ~(1 << x % 8);
     }
   else
-    image_error ("XPutPixel: palette image not supported.", Qnil, Qnil);
+    image_error ("XPutPixel: palette image not supported", Qnil, Qnil);
 }
 
 /* Create IMG->pixmap from an array COLORS of XColor structures, whose

@@ -3028,7 +3028,7 @@ usage: (make-network-process &rest ARGS)  */)
 	      {
 		int optval = 1;
 		if (setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval))
-		  report_file_error ("Cannot set reuse option on server socket.", Qnil);
+		  report_file_error ("Cannot set reuse option on server socket", Qnil);
 	      }
 
 	  if (bind (s, lres->ai_addr, lres->ai_addrlen))
