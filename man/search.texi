@@ -434,7 +434,7 @@ Search}.
   This manual describes regular expression features that users
 typically want to use.  There are additional features that are
 mainly used in Lisp programs; see @ref{Regular Expressions,,,
-elisp, the same manual}.
+elisp, The Emacs Lisp Reference Manual}.
 
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary
@@ -921,7 +921,8 @@ The buffer contents.
 @item
 The selected window and selected frame.
 @item
-The current match-data @xref{Match Data,,,elisp}.
+The current match-data.  @xref{Match Data,,, elisp, The Emacs Lisp
+Reference Manual}.
 @end enumerate
 
 Additionally, the command must not delete the current window and must
@@ -930,7 +931,7 @@ window's size, or create or delete other windows and frames.
 
 Note that an attempt by a command to scroll the text
 @emph{horizontally} won't work, although it will do no harm---any such
-scrolling will be overriden and nullified by the display code.
+scrolling will be overridden and nullified by the display code.
 
 @node Replace, Other Repeating Search, Configuring Scrolling, Search
 @section Replacement Commands
@@ -1063,7 +1064,7 @@ M-x replace-regexp @key{RET} \(x\)\|y @key{RET}
 @end example
 
   For computing replacement strings for @samp{\,}, the @code{format}
-function is often useful (@pxref{Formatting Strings,,,elisp, GNU Emacs
+function is often useful (@pxref{Formatting Strings,,, elisp, The Emacs
 Lisp Reference Manual}).  For example, to add consecutively numbered
 strings like @samp{ABC00042} to columns 73 @w{to 80} (unless they are
 already occupied), you can use
@@ -1084,7 +1085,7 @@ M-x replace-regexp @key{RET} \footnote@{ @key{RET}
 @end example
 
 @noindent
-will add labels starting with @samp{\label@{fn:0@}} to occurences of
+will add labels starting with @samp{\label@{fn:0@}} to occurrences of
 @samp{\footnote@{}, but letting you edit each replacement before
 performing it.  To number the labels starting at 1, use @samp{\,(1+
 \#)} instead of @samp{\#}.
