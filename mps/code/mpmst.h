@@ -504,11 +504,11 @@ typedef struct TraceStruct {
   STATISTIC_DECL(Count greySegCount); /* number of grey segs */
   STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
   STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
-  STATISTIC_DECL(Count rootScanSize); /* total size of scanned roots */
-  STATISTIC_DECL(Size rootCopiedSize); /* bytes copied by scanning roots */
+  Count rootScanSize;           /* total size of scanned roots */
+  Size rootCopiedSize;          /* bytes copied by scanning roots */
   STATISTIC_DECL(Count segScanCount); /* number of segs scanned */
   Count segScanSize;            /* total size of scanned segments */
-  STATISTIC_DECL(Size segCopiedSize); /* bytes copied by scanning segments */
+  Size segCopiedSize;           /* bytes copied by scanning segments */
   STATISTIC_DECL(Count singleScanCount); /* number of single refs scanned */
   STATISTIC_DECL(Count singleScanSize); /* total size of single refs scanned */
   STATISTIC_DECL(Size singleCopiedSize); /* bytes copied by scanning single refs */
@@ -673,6 +673,12 @@ typedef struct ArenaStruct {
   TraceSet flippedTraces;       /* set of running and flipped traces */
   TraceStruct trace[TraceLIMIT]; /* trace structures.  See
                                    <design/trace/#intance.limit> */
+
+  /* policy fields */
+  double tracedSize;
+  double tracedTime;
+  Word lastWorldCollect;
+
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */
   RingStruct chainRing;         /* ring of chains */

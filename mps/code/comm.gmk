@@ -317,6 +317,7 @@ target: phony
 	$(MAKE) -f $(PFM).gmk VARIETY=hi variety
 	$(MAKE) -f $(PFM).gmk VARIETY=ci variety
 	$(MAKE) -f $(PFM).gmk VARIETY=ti variety
+	$(MAKE) -f $(PFM).gmk VARIETY=wi variety
 endif
 endif
 

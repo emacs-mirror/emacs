@@ -38,6 +38,7 @@ extern int (mps_lib_memcmp)(const void *, const void *, size_t);
 
 typedef unsigned long mps_clock_t;
 extern mps_clock_t mps_clock(void);
+extern mps_clock_t mps_clocks_per_sec(void);
 
 
 extern unsigned long mps_lib_telemetry_control(void);
