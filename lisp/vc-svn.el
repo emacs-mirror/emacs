@@ -291,6 +291,9 @@ This is only possible if SVN is responsible for FILE's directory.")
 	     (concat "-r" rev))
 	   switches)))
 
+(defun vc-svn-rename-file (old new)
+  (vc-svn-command nil 0 new "move" (file-relative-name old)))
+
 (defun vc-svn-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (unless contents-done
@@ -395,17 +398,16 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (let* ((switches (vc-switches 'SVN 'diff))
 	   (async (and (vc-svn-stay-local-p file)
 		       (or oldvers newvers) ; Svn diffs those locally.
-		       (fboundp 'start-process)))
-	   (status
-	    (apply 'vc-svn-command "*vc-diff*"
-		   (if async 'async 1)
-		   file "diff"
-		   (append
-		    (when switches
-		      (list "-x" (mapconcat 'identity switches " ")))
-		    (when oldvers
-		      (list "-r" (if newvers (concat oldvers ":" newvers)
-				   oldvers)))))))
+		       (fboundp 'start-process))))
+      (apply 'vc-svn-command "*vc-diff*"
+	     (if async 'async 0)
+	     file "diff"
+	     (append
+	      (when switches
+		(list "-x" (mapconcat 'identity switches " ")))
+	      (when oldvers
+		(list "-r" (if newvers (concat oldvers ":" newvers)
+			     oldvers)))))
       (if async 1		      ; async diff => pessimistic assumption
 	;; For some reason `svn diff' does not return a useful
 	;; status w.r.t whether the diff was empty or not.
