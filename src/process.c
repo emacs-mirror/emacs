@@ -1274,7 +1274,9 @@ create_process (process, new_argv)
 #if defined (BSD) || defined (UNIPLUS) || defined (HPUX)
 	sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
+#if 0
 	signal (SIGCHLD, sigchld);
+#endif
 #endif /* ordinary USG */
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
