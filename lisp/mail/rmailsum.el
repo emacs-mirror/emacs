@@ -528,6 +528,9 @@ Commands for sorting the summary:
   (if (get-buffer-window rmail-buffer)
       (let (buffer-read-only)
 	(save-excursion
+	  ;; If at end of buffer, pretend we are on the last text line.
+	  (if (eobp)
+	      (forward-line -1))
 	  (beginning-of-line)
 	  (skip-chars-forward " ")
 	  (let ((beg (point))
@@ -744,9 +747,11 @@ Commands for sorting the summary:
     (beginning-of-line)
     (if skip-rmail
 	nil
-      (pop-to-buffer buf)
-      (rmail-show-message n)
-      (pop-to-buffer rmail-summary-buffer))))
+      (let ((selwin (selected-window)))
+	(unwind-protect
+	    (progn (pop-to-buffer buf)
+		   (rmail-show-message n))
+	  (select-window selwin))))))
 
 (defun rmail-summary-scroll-msg-up (&optional dist)
   "Scroll other window forward."
