@@ -587,7 +587,7 @@ DEFUN ("next-single-property-change", Fnext_single_property_change,
 Scans characters forward from POS till it finds\n\
 a change in the PROP property, then returns the position of the change.\n\
 The optional third argument OBJECT is the string or buffer to scan.\n\
-The property values are compared with `eq'.
+The property values are compared with `eq'.\n\
 Return nil if the property is constant all the way to the end of OBJECT.\n\
 If the value is non-nil, it is a position greater than POS, never equal.")
   (pos, prop, object)
