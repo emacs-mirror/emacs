@@ -1435,6 +1435,10 @@ topics.  Info has commands to follow the references and show you other nodes.
 \\[Info-help]	Invoke the Info tutorial.
 
 Selecting other nodes:
+\\[Info-mouse-follow-nearest-node]
+	Follow a node reference you click on.
+	  This works with menu items, cross references, and
+	  the \"next\", \"previous\" and \"up\", depending on where you click.
 \\[Info-next]	Move to the \"next\" node of this node.
 \\[Info-prev]	Move to the \"previous\" node of this node.
 \\[Info-up]	Move \"up\" from this node.
