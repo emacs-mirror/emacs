@@ -1,5 +1,9 @@
 2001-08-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (describe-function-1): Use
+	find-function-search-for-symbol instead of find-functin-noselect
+	because the latter follows aliases.
+
 	* play/animate.el (animate-birthday-present): Re-insert.
 
 	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Handle

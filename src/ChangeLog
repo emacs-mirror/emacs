@@ -1,3 +1,7 @@
+2001-08-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_dump_glyph_string): Put in #if GLYPH_DEBUG.
+
 2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* alloc.c (init_stack): Remove declaration.
