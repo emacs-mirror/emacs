@@ -735,16 +735,17 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 Compatibility function for \\[next-error] invocations."
   (interactive "p")
   ;; we need to run occur-find-match from within the Occur buffer
-  (with-current-buffer 
+  (with-current-buffer
       (if (next-error-buffer-p (current-buffer))
 	  (current-buffer)
 	(next-error-find-buffer nil nil (lambda() (eq major-mode 'occur-mode))))
-    
-    (when reset
-      (goto-char (point-min)))
+
+    (goto-char (cond (reset (point-min))
+		     ((< argp 0) (line-beginning-position))
+		     ((line-end-position))))
     (occur-find-match
-     (abs (prefix-numeric-value argp))
-     (if (> 0 (prefix-numeric-value argp))
+     (abs argp)
+     (if (> 0 argp)
 	 #'previous-single-property-change
        #'next-single-property-change)
      "No more matches")
@@ -790,18 +791,22 @@ If the value is nil, don't highlight the buffer names specially."
 (defun occur-accumulate-lines (count &optional keep-props)
   (save-excursion
     (let ((forwardp (> count 0))
-	  (result nil))
+	  result beg end)
       (while (not (or (zerop count)
 		      (if forwardp
 			  (eobp)
 			(bobp))))
 	(setq count (+ count (if forwardp -1 1)))
+	(setq beg (line-beginning-position)
+	      end (line-end-position))
+	(if (and keep-props font-lock-mode
+		 (text-property-not-all beg end 'fontified t))
+	    (font-lock-fontify-region beg end))
 	(push
 	 (funcall (if keep-props
 		      #'buffer-substring
 		    #'buffer-substring-no-properties)
-	  (line-beginning-position)
-	  (line-end-position))
+		  beg end)
 	 result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
@@ -996,14 +1001,17 @@ See also `multi-occur'."
 		  (when (setq endpt (re-search-forward regexp nil t))
 		    (setq matches (1+ matches)) ;; increment match count
 		    (setq matchbeg (match-beginning 0))
-		    (setq begpt (save-excursion
-				  (goto-char matchbeg)
-				  (line-beginning-position)))
 		    (setq lines (+ lines (1- (count-lines origpt endpt))))
+		    (save-excursion
+		      (goto-char matchbeg)
+		      (setq begpt (line-beginning-position)
+			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (setq curstring (buffer-substring begpt
-						      (line-end-position)))
+		    (if (and keep-props font-lock-mode
+			     (text-property-not-all begpt endpt 'fontified t))
+			(font-lock-fontify-region begpt endpt))
+		    (setq curstring (buffer-substring begpt endpt))
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
 		    (let ((len (length curstring))
@@ -1012,17 +1020,15 @@ See also `multi-occur'."
 			(set-text-properties 0 len nil curstring))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
-			(add-text-properties (match-beginning 0)
-					     (match-end 0)
-					     (append
-					      `(occur-match t)
-					      (when match-face
-						;; Use `face' rather than
-						;; `font-lock-face' here
-						;; so as to override faces
-						;; copied from the buffer.
-						`(face ,match-face)))
-					     curstring)
+			(add-text-properties
+			 (match-beginning 0) (match-end 0)
+			 (append
+			  `(occur-match t)
+			  (when match-face
+			    ;; Use `face' rather than `font-lock-face' here
+			    ;; so as to override faces copied from the buffer.
+			    `(face ,match-face)))
+			 curstring)
 			(setq start (match-end 0))))
 		    ;; Generate the string to insert for this match
 		    (let* ((out-line
@@ -1033,7 +1039,10 @@ See also `multi-occur'."
 				     (when prefix-face
 				       `(font-lock-face prefix-face))
 				     '(occur-prefix t)))
-			     curstring
+			     ;; We don't put `mouse-face' on the newline,
+			     ;; because that loses.  And don't put it
+			     ;; on context lines to reduce flicker.
+			     (propertize curstring 'mouse-face 'highlight)
 			     "\n"))
 			   (data
 			    (if (= nlines 0)
@@ -1057,10 +1066,7 @@ See also `multi-occur'."
 			    (insert "-------\n"))
 			  (add-text-properties
 			   beg end
-			   `(occur-target ,marker help-echo "mouse-2: go to this occurrence"))
-			  ;; We don't put `mouse-face' on the newline,
-			  ;; because that loses.
-			  (add-text-properties beg (1- end) '(mouse-face highlight)))))
+			   `(occur-target ,marker help-echo "mouse-2: go to this occurrence")))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
