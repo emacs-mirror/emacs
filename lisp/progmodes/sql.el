@@ -540,13 +540,18 @@ usually named *SQL*.  The name of the major mode is SQLi.
 
 Use the following commands to start a specific SQL interpreter:
 
-psql by PostGres: \\[sql-postgres]
-mysql by TcX: \\[sql-mysql]
-SQL*Plus by Oracle: \\[sql-oracle]
-dbaccess by Informix: \\[sql-informix]
-isql by Sybase: \\[sql-sybase]
-sql by Ingres: \\[sql-ingres]
-isql by Microsoft: \\[sql-ms]
+    psql (PostGres): \\[sql-postgres]
+
+Other non-free SQL implementations are also supported:
+
+    mysql: \\[sql-mysql]
+    SQL*Plus: \\[sql-oracle]
+    dbaccess Informix: \\[sql-informix]
+    Sybase: \\[sql-sybase]
+    Ingres: \\[sql-ingres]
+    Microsoft: \\[sql-ms]
+
+But we urge you to choose a free implementation instead of these.
 
 Once you have the SQLi buffer, you can enter SQL statements in the
 buffer.  The output generated is appended to the buffer and a new prompt
@@ -954,8 +959,11 @@ The default comes from `process-coding-system-alist' and
 
 (defun sql-mysql ()
   "Run mysql by TcX as an inferior process.
+Note that the widespread idea that mysql is free software
+is inaccurate; its license is too restrictive.
+We urge you to use PostGres instead.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
