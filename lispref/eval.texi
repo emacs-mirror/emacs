@@ -625,18 +625,22 @@ The number of currently active calls to @code{eval} is limited to
 @code{max-lisp-eval-depth} (see below).
 @end defun
 
-@deffn Command eval-region start end &optional stream
+@deffn Command eval-region start end &optional stream read-function
 This function evaluates the forms in the current buffer in the region
 defined by the positions @var{start} and @var{end}.  It reads forms from
 the region and calls @code{eval} on them until the end of the region is
 reached, or until an error is signaled and not handled.
 
-If @var{stream} is supplied, @code{standard-output} is bound to it
-during the evaluation.
+If @var{stream} is non-@code{nil}, the values that result from
+evaluating the expressions in the region are printed using @var{stream}.
+@xref{Output Streams}.
 
-You can use the variable @code{load-read-function} to specify a function
-for @code{eval-region} to use instead of @code{read} for reading
-expressions.  @xref{How Programs Do Loading}.
+If @var{read-function} is non-@code{nil}, it should be a function, which
+is used instead of @code{read} to read expressions one by one.  This
+function is called with one argument, the stream for reading input.  You
+can also use the variable @code{load-read-function} (@pxref{How Programs
+Do Loading}) to specify this function, but it is more robust to use the
+@var{read-function} argument.
 
 @code{eval-region} always returns @code{nil}.
 @end deffn

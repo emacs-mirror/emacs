@@ -146,6 +146,10 @@ The function should accept one argument, just as @code{read} does.
 
 Normally, the variable's value is @code{nil}, which means those
 functions should use @code{read}.
+
+@strong{Note:} Instead of using this variable, it is cleaner to use
+another, newer feature: to pass the function as the @var{read-function}
+argument to @code{eval-region}.  @xref{Eval}.
 @end defvar
 
   For information about how @code{load} is used in building Emacs, see
@@ -720,7 +724,7 @@ The value of @code{load-history} may have one element whose @sc{car} is
 
   The command @code{eval-region} updates @code{load-history}, but does so
 by adding the symbols defined to the element for the file being visited,
-rather than replacing that element.
+rather than replacing that element.  @xref{Eval}.
 
 @node Hooks for Loading
 @section Hooks for Loading
