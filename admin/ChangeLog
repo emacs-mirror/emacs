@@ -1,3 +1,7 @@
+2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* notes/BRANCH: New file, to be maintained per CVS branch.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 21.1 released.
