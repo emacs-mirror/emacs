@@ -1,3 +1,7 @@
+2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fbuffer_base_buffer): Doc fix.
+
 2004-04-17  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (Fkey_description): Add optional PREFIX arg.
