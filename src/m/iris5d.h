@@ -120,7 +120,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
-#define UNEXEC unexmips.o
+#ifdef UNEXEC
+#undef UNEXEC
+#endif
+#define UNEXEC unexelfsgi.o
 
 #define TEXT_START 0x400000
 

@@ -630,8 +630,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if ((OLD_SECTION_H (old_bss_index)).sh_addralign > alignment)
 	alignment = OLD_SECTION_H (old_bss_index).sh_addralign;
 
+      /* Supposedly this condition is okay for the SGI.  */
+#if 0
       if (NEW_PROGRAM_H(n).p_vaddr + NEW_PROGRAM_H(n).p_filesz > old_bss_addr)
 	fatal ("Program segment above .bss in %s\n", old_name, 0);
+#endif
 
       if (NEW_PROGRAM_H(n).p_type == PT_LOAD
 	  && (round_up ((NEW_PROGRAM_H (n)).p_vaddr
@@ -646,7 +649,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   NEW_PROGRAM_H(n).p_filesz += new_data2_size;
   NEW_PROGRAM_H(n).p_memsz = NEW_PROGRAM_H(n).p_filesz;
 
-#if 0 /* Maybe allow section after data2 - does this ever happen? */
+#if 1 /* Maybe allow section after data2 - does this ever happen? */
   for (n = new_file_h->e_phnum - 1; n >= 0; n--)
     {
       if (NEW_PROGRAM_H(n).p_vaddr

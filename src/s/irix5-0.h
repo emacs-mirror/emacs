@@ -1,6 +1,17 @@
-#include "irix3-3.h"
+#include "s-usg5-4.h"
+#ifdef LIBS_SYSTEM
+#undef LIBS_SYSTEM
+#endif
 
-#define USG5_3
+#ifdef SYSTEM_TYPE
+#undef SYSTEM_TYPE
+#endif
+#define SYSTEM_TYPE "silicon-graphics-unix"
+
+#ifdef SETUP_SLAVE_PTY
+#undef SETUP_SLAVE_PTY
+#endif
+
 
 /* Define HAVE_ALLOCA to say that the system provides a properly
    working alloca function and it should be used. */
@@ -18,11 +29,17 @@
    we'll just define WNOHANG right here.
    (An implicit decl is good enough for wait3.)  */
 
-#define WNOHANG		0x1
+/* #define WNOHANG		0x1 */
 
 /* No need to use sprintf to get the tty name--we get that from _getpty.  */
+#ifdef PTY_TTY_NAME_SPRINTF
+#undef PTY_TTY_NAME_SPRINTF
+#endif
 #define PTY_TTY_NAME_SPRINTF
 /* No need to get the pty name at all.  */
+#ifdef PTY_NAME_SPRINTF
+#undef PTY_NAME_SPRINTF
+#endif
 #define PTY_NAME_SPRINTF
 #ifdef emacs
 char *_getpty();
