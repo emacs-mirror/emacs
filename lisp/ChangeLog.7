@@ -105,7 +105,7 @@
 
 	* which-func.el (which-func-modes): Add fortran-mode.
 
-	* ediff-util.el (ediff-next-difference, ediff-previous-difference): 
+	* ediff-util.el (ediff-next-difference, ediff-previous-difference):
 	Handle nil as arg.
 
 1998-08-14  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
@@ -246,7 +246,7 @@
 	* progmodes/compile.el (next-error): Doc fix.
 	(grep): Doc fix.
 
-	* loadup.el: Load byte-run and format a little earlier.   
+	* loadup.el: Load byte-run and format a little earlier.
 
 1998-08-08  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -265,10 +265,10 @@
 	* hilit-chg.el: New file.
 	Delete the undo-in-progress compatibility code.
 
-	* mail/rmailmsc.el (set-rmail-inbox-list): 
+	* mail/rmailmsc.el (set-rmail-inbox-list):
 	Error if not in Rmail mode.
 
-	* textmodes/paragraphs.el (forward-paragraph): 
+	* textmodes/paragraphs.el (forward-paragraph):
 	Fix the logic for handling beginning of buffer
 	in the "no fill-prefix" case.
 
@@ -407,7 +407,7 @@
 
 1998-08-05  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* gnus/message.el: Require sendmail. 
+	* gnus/message.el: Require sendmail.
 	(message-fill-yanked-message): Use mail-citation-prefix-regexp
 	as an arg to fill-individual-paragraphs.
 
@@ -613,20 +613,20 @@
 	* font-lock.el (lisp-font-lock-keywords-1): Fontify `defconstant'
 	and `defparameter'.
 	(lisp-font-lock-keywords-2): Fontify `lambda', `in-package'
-	and `locally'. 
+	and `locally'.
 
 	* emacs-lisp/cl-indent.el (lisp-indent-defun-method): New variable.
 	(common-lisp-indent-function): Use it.
 	(lisp-indent-259): Uncomment the `&lambda' code.
 	(top-level let): Remove duplicate `catch' and `block'.  Use
 	`&lambda' when appropriate.  Now the lambda lists are indented
-	appropriately. 
+	appropriately.
 
 1998-07-30  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* dired.el (dired-garbage-files-regexp): Finish fixing regexp syntax.
 
-	* mail/sendmail.el (mail-yank-region): 
+	* mail/sendmail.el (mail-yank-region):
 	Bind mark-even-if-inactive to t.
 	(mail-yank-original was similarly changed, a few versions ago.)
 
@@ -765,7 +765,7 @@
 
 1998-07-25  Dan Nicolaescu  <done@ece.arizona.edu>
 
-	* files.el (auto-mode-alist): Move nroff-modes down the list. 
+	* files.el (auto-mode-alist): Move nroff-modes down the list.
 
 1998-07-25  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -1107,7 +1107,7 @@
 
 1998-07-14  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* info.el (Info-read-node-name-1, Info-read-node-name): 
+	* info.el (Info-read-node-name-1, Info-read-node-name):
 	Rename completion-table to Info-read-node-completion-table.
 	(Info-read-node-completion-table): Add defvar.
 	(Info-complete-menu-buffer): Add defvar.
@@ -1350,7 +1350,7 @@
 
 1998-07-04  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* textmodes/fill.el (fill-individual-paragraphs): 
+	* textmodes/fill.el (fill-individual-paragraphs):
 	If JUST-ONE-LINE-PREFIX matches TWO-LINES-PREFIX except with
 	longer whitespace, treat that as a match even is spaces
 	are replaced with a tab.
@@ -1375,7 +1375,7 @@
 	* emacs-lisp/byte-opt.el (byte-boolean-vars):
 	Add print-escape-multibyte.
 
-	* progmodes/make-mode.el (makefile-font-lock-keywords): 
+	* progmodes/make-mode.el (makefile-font-lock-keywords):
 	Recognize automatic variable references.
 	(makefile-dependency-regex): Don't be fooled by colons in deps.
 
@@ -1430,7 +1430,7 @@
 	(texinfo-format-buffer): Now always tagify, on accout of @anchor.
 	(texi-format-region): Always tagify.
 	(texi2info):          Always tagify
-	(texinfo-anchor):     Add @anchor command as place to which 
+	(texinfo-anchor):     Add @anchor command as place to which
 	 a cross reference may go.
 	(texinfo-no-refill-regexp): Add smalldisplay, smallformat
 	(texinfo-format-uref):            New command: @uref
@@ -1464,7 +1464,7 @@
 	(checkdoc-next-error): Added parameter ENABLE-FIX.
 	(checkdoc-next-message-error,checkdoc-recursive-edit): New functions.
 	(checkdoc-start): was `checkdoc', uses new note taking system.
-	(checkdoc-current-buffer, checkdoc-continue, checkdoc-comments): 
+	(checkdoc-current-buffer, checkdoc-continue, checkdoc-comments):
 	Updated to use new note taking system.
 	(checkdoc-rogue-spaces, checkdoc-rogue-space-check-engine):
 	Added INTERACT parameter, uses new warnings functions.
@@ -1626,7 +1626,7 @@
 1998-06-28  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
 
 	* message.el (message-cite-function): Initialized from
-	`mail-citation-hook', if that variable is bound and non-nil. 
+	`mail-citation-hook', if that variable is bound and non-nil.
 
 1998-06-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -1959,7 +1959,7 @@
 	(custom-buffer-create-internal): Move the ... before %.
 
 	* cus-dep.el (custom-make-dependencies): Also remeber if the
-	variable is autoloaded or not. 
+	variable is autoloaded or not.
 	Create the information needed by customize-changed-options.
 
 1998-06-21  Eli Zaretskii  <eliz@mescaline.gnu.org>
@@ -2138,7 +2138,7 @@
 
 	* vc.el (vc-dired-hook): Don't use dired-kill-line to remove
 	directory lines in terse mode.
-	(vc-dired-purge): If the top level dir is empty, make it look 
+	(vc-dired-purge): If the top level dir is empty, make it look
 	a little nicer.
 
 1998-06-12  Dave Love  <fx@gnu.org>
@@ -2199,10 +2199,10 @@
 
 1998-06-11  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
-	* help.el (describe-key, describe-key-briefly): 
+	* help.el (describe-key, describe-key-briefly):
 	Don't discard up event after down event.
 
-	* emacs-lisp/find-func.el (find-function-on-key): 
+	* emacs-lisp/find-func.el (find-function-on-key):
 	Don't discard up event after down event.
 
 1998-06-11  Felix Lee  <flee@cygnus.com>
@@ -2219,7 +2219,7 @@
 
 1998-06-11  Andre Spiegel  <spiegel@inf.fu-berlin.de>
 
-	* dired.el (dired-readin): Insert headerline only if necessary.  
+	* dired.el (dired-readin): Insert headerline only if necessary.
 	(Not in recursive listings.)
 
 	* vc.el (vc-dired-recurse, vc-dired-terse-display): New user options.
@@ -2307,7 +2307,7 @@
 
 1998-06-09  stanislav shalunov  <shalunov@mccme.ru>
 
-	* mail/uce.el (uce-message-text): 
+	* mail/uce.el (uce-message-text):
 	Change the text of message that is sent.
 
 	* mail/uce.el (uce-reply-to-uce): Do not assume all Received lines
@@ -2472,7 +2472,7 @@
 
 1998-06-04  Dan Nicolaescu  <done@ece.arizona.edu>
 
-	* rsz-mini.el (resize-minibuffer-mode): 
+	* rsz-mini.el (resize-minibuffer-mode):
 	* iswitchb.el (iswitchb-read-buffer): Add autoload cookie.
 
 1998-06-03  Kevin Rodgers <kevinr@ihs.com>
@@ -2516,8 +2516,8 @@
 
 1998-06-03  Dan Nicolaescu  <done@ece.arizona.edu>
 
-	* locate.el (locate): 
-	(locate-with-filter): 
+	* locate.el (locate):
+	(locate-with-filter):
 	* generic.el (define-generic-mode): Correct typo in autoload
 	cookie that prevented appropriate autoloads to be generated.
 
@@ -13783,7 +13783,7 @@
 
 	* cus-edit.el (customize-browse): Don't take an argument.
 
-1997-07-09  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-07-09  Noah Friedman  <friedman@splode.com>
 
 	* emacs-lisp/eldoc.el: Add `up-list' and `down-list' to
 	eldoc-message-commands.
@@ -14601,7 +14601,7 @@
 	* dired-aux.el (dired-add-entry): New optional arg RELATIVE.
 	(dired-update-file-line): Pass t for RELATIVE.
 
-1997-06-22  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-06-22  Noah Friedman  <friedman@splode.com>
 
 	* type-break.el: Do not use defsubst anywhere; use defuns.
 	Don't require timer; use autoloaded functions.
@@ -17406,7 +17406,7 @@
 
 	* custom.el (defface): Doc fix.
 
-1997-05-21  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-05-21  Noah Friedman  <friedman@splode.com>
 
 	* eldoc.el (eldoc-message-commands): Move docstring into comments,
 	since this isn't a user variable.
@@ -18978,7 +18978,7 @@
 	parens.
 	Fixed message.
 
-1997-04-15  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-04-15  Noah Friedman  <friedman@splode.com>
 
 	* rlogin.el (rlogin-process-connection-type): Default to t
 	for solaris 2.x.
@@ -20313,7 +20313,7 @@
 	default-fontset-spec, X resources, and "-fn" command line
 	argument.
 
-1997-02-19  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-02-19  Noah Friedman  <friedman@splode.com>
 
 	* eldoc.el (eldoc-message-commands): Doc fixes.
 	(eldoc-message): Make function, not macro.
@@ -20430,7 +20430,7 @@
 
 	* edmacro.el (edmacro-parse-keys): Remove redundant test for ?.
 
-1997-02-04  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-02-04  Noah Friedman  <friedman@splode.com>
 
 	* eldoc.el (eldoc-display-message-p): New function.
 	Return nil if cursor-in-echo-area, or using idle timers and a
@@ -20454,7 +20454,7 @@
 
 	* rmail.el (rmail-ignored-headers): Add Delivered-to: header.
 
-1997-02-02  Noah Friedman  <friedman@prep.ai.mit.edu>
+1997-02-02  Noah Friedman  <friedman@splode.com>
 
 	* eldoc.el: New file.
 

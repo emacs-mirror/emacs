@@ -2012,7 +2012,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* window.el (walk-windows): Doc fix.
 
-1995-04-08  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-04-08  Noah Friedman  <friedman@splode.com>
 
         * rsz-mini.el (resize-minibuffer-window): Make sure minibuffer
         window is selected.
@@ -2036,7 +2036,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* term/x-win.el (mode-line-buffer-identification): Eliminate %F.
 
-1995-04-07  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-04-07  Noah Friedman  <friedman@splode.com>
 
         * rlogin.el (rlogin): Use format, not concat, to generate numeric
         buffer names.
@@ -2945,7 +2945,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* server.el (server-switch-buffer): New optional arg KILLED-ONE.
 	Avoid the other-buffer at the end in that case.
 
-1995-02-28  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-02-28  Noah Friedman  <friedman@splode.com>
 
         * rlogin.el (rlogin-carriage-filter): Don't assume buffer is
         narrowed to region with most recent output.
@@ -3543,7 +3543,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* fill.el (fill-paragraph-function): New variable.
 	(fill-paragraph): Use it.
 
-1995-02-01  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-02-01  Noah Friedman  <friedman@splode.com>
 
         * sendmail.el (mail-mailer-swallows-blank-line): Handle full range
           of RFC822-legal header names.
@@ -4158,7 +4158,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* dired.el (dired-insert-directory): Don't call expand-file-name
 	when dir-or-list is a list.
 
-1995-01-10  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-01-10  Noah Friedman  <friedman@splode.com>
 
         * rlogin.el (rlogin-tab-or-complete): Insert tab in buffer, don't
         send directly to process.
@@ -4190,7 +4190,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* files.el (find-backup-file-name): Run a file name handler.
 	(backup-buffer): Do nothing if backup-info is nil.
 
-1995-01-09  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-01-09  Noah Friedman  <friedman@splode.com>
 
         * rlogin.el: Removed several more gratuitous autoload cookies.
         (rlogin-initially-track-cwd): Variable deleted.
@@ -4286,7 +4286,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* tex-mode.el (tex-print): Better check for when to print current
 	buffer's file over last processed file.
 
-1995-01-03  Noah Friedman  <friedman@prep.ai.mit.edu>
+1995-01-03  Noah Friedman  <friedman@splode.com>
 
         * sendmail.el (mail-personal-alias-file): New variable.
         Use globally in place of hardwired "~/.mailrc".
@@ -5667,7 +5667,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* emerge.el (emerge-auto-advance): Fix criterion for which message.
 
-1994-10-20  Noah Friedman  <friedman@prep.ai.mit.edu>
+1994-10-20  Noah Friedman  <friedman@splode.com>
 
         * timer.el (timer-error, timer-abnormal-termination,
         timer-filter-error): New error conditions.
@@ -5703,7 +5703,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	(default-command-history-filter-garbage): Fix doc string.
 	(list-command-history-filter, list-command-history-max): Likewise.
 
-1994-10-19  Noah Friedman  <friedman@prep.ai.mit.edu>
+1994-10-19  Noah Friedman  <friedman@splode.com>
 
         * timer.el (timer-program): Make defvar, not defconst.
         Expand name of timer program in exec-directory here.
@@ -6152,7 +6152,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* menu-bar.el (query-replace): Add missing quote.
 
-1994-10-06  Noah Friedman  <friedman@prep.ai.mit.edu>
+1994-10-06  Noah Friedman  <friedman@splode.com>
 
         * type-break.el: Do not call type-break-mode upon loading.
         (type-break-time-sum): New function.
@@ -8209,7 +8209,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* help-macro.el (make-help-screen): Bind overriding-local-map
 	just for short sections of code.
 
-1994-07-13  Noah Friedman  (friedman@prep.ai.mit.edu)
+1994-07-13  Noah Friedman  (friedman@splode.com)
 
         * rsz-mini.el: (resize-minibuffer-setup): Copy post-command-hook
         when handling minibuffer windows in other frames, not just
@@ -8556,7 +8556,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* rmail.el (rmail-highlight-headers): Do nothing if
 	rmail-highlighted-headers is nil.
 
-1994-06-30  Noah Friedman  (friedman@prep.ai.mit.edu)
+1994-06-30  Noah Friedman  (friedman@splode.com)
 
 	* rsz-mini.el (resize-minibuffer-window-restore): Don't do
 	anything if the window height is already 1.
@@ -8566,7 +8566,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	* mouse.el (mouse-drag-secondary): Don't treat end of buffer
 	specially when within the window.
 
-1994-06-29  Noah Friedman  (friedman@prep.ai.mit.edu)
+1994-06-29  Noah Friedman  (friedman@splode.com)
 
         * comint.el (comint-password-prompt-regexp): New variable.
         (comint-watch-for-password-prompt): Use it.
@@ -8718,7 +8718,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 	core, make sure TABLES is non-nil before using it.  At end, find
 	the table in the user's list which includes FOUND.
 
-1994-06-22  Noah Friedman  (friedman@prep.ai.mit.edu)
+1994-06-22  Noah Friedman  (friedman@splode.com)
 
         * rsz-mini.el (resize-minibuffer-window-exactly,
         resize-minibuffer-frame, resize-minibuffer-frame-exactly): Doc
@@ -8942,7 +8942,7 @@ o	* noutline.el (outline-minor-mode): Likewise.
 
 	* ange-ftp.el (ange-ftp-canonize-filename): Fix wrong var name.
 
-1994-06-16  Noah Friedman  (friedman@prep.ai.mit.edu)
+1994-06-16  Noah Friedman  (friedman@splode.com)
 
         * rlogin.el (rlogin-password-paranoia): Variable deleted.
         (rlogin-password): Function deleted.

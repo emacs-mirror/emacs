@@ -231,7 +231,7 @@
 	* server.el (server-done-hook): New hook.
 	(server-buffer-done): Run it.
 
-	* mouse.el (mouse-choose-completion): 
+	* mouse.el (mouse-choose-completion):
 	Include words separated by single spaces in the completion.
 
 	* simple.el (choose-completion):
@@ -243,7 +243,7 @@
 
 	* bookmark.el (bookmark-file): Alternate default on ms-dos.
 
-1994-05-20  Noah Friedman  (friedman@kropotkin.gnu.ai.mit.edu)
+1994-05-20  Noah Friedman  (friedman@splode.com)
 
         * rsz-mini.el: Enable resize-minibuffer-mode when this file is
         loaded.
@@ -480,7 +480,7 @@
 	(texinfo-all-menus-update): Bind mark-active to t.
 
 	* texinfo.el (texinfo-environment-regexp): Split lines.
-	Add def..., ifset, ifclear.	
+	Add def..., ifset, ifclear.
 	(texinfo-show-structure): Fix typo.
 
 1994-05-10  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
@@ -569,7 +569,7 @@
 
 	* rmail.el (rmail-toggle-header): Call rmail-highlight-headers.
 
-	* sendmail.el (mail-mailer-swallows-blank-line): 
+	* sendmail.el (mail-mailer-swallows-blank-line):
 	Put space and tab into brackets.
 
 1994-05-07  Morten Welinder  (terra@diku.dk)
@@ -690,7 +690,7 @@
 	making the replacement for the initial frame.  Put it on as nil.
 	(new-frame): Use make-frame instead.
 
-	* rmail.el (rmail-input-menu): 
+	* rmail.el (rmail-input-menu):
 	Do nothing if rmail-secondary-file-menu return nil.
 	Don't call expand-file-name.
 	(rmail-secondary-file-menu): If no files match, warn and return nil.
@@ -747,7 +747,7 @@
 	(gnus-uu-do-sloppy-uudecode): Variable deleted.
 	(gnus-uu-decode-and-save-articles): Rewritten.
 	(gnus-uu-grab-articles, gnus-uu-uustrip-article-as): Rewritten to
-	properly handle multiple encoded files in one gulp. 
+	properly handle multiple encoded files in one gulp.
 	(gnus-uu-uustrip-article-as): Replace spaces in file names with
 	underscores before giving the file to uudecode.
 
@@ -761,9 +761,9 @@
 	(gnus-uu-mark-by-regexp): Changed to add articles instead of
 	clearing before adding.
 	(gnus-uu-check-for-generated-files): First delete files, then
-	directories. 
+	directories.
 	(gnus-uu-edit-begin-line, gnus-uu-decode-and-show-in-buffer):
-	Select the current article before starting work. 
+	Select the current article before starting work.
 	(gnus-uu-decode-and-view-all-unread-articles)
 	(gnus-uu-decode-and-view-all-articles):  Two new functions for
 	decoding and viewing all (unread) articles in a newsgroup.
@@ -786,7 +786,7 @@
 	encoded files to be decoded (and viewed) in one fell swoop.
 	(gnus-uu-work-dir): New variable.
 
-	* gnus-uu.el (gnus-uu-view-file): Changed to work with metamail. 
+	* gnus-uu.el (gnus-uu-view-file): Changed to work with metamail.
 	(gnus-uu-get-action, gnus-uu-toggle-view-with-metamail): New functions.
 	(gnus-uu-ext-to-mime, gnus-uu-view-with-metamail): New variables.
 	(gnus-uu-ctl-map): Add C-a binding.
@@ -794,11 +794,11 @@
 	article is moved to.
 	(gnus-uu-default-interactive-view-rules-end): New variable to
 	provide a "catch-all" when using interactive mode.
-	(gnus-uu-get-action): Changed viewing rules in interactive mode.  
+	(gnus-uu-get-action): Changed viewing rules in interactive mode.
 
 	* gnus-uu.el (gnus-uu-uustrip-article-as): Disabled
 	case-fold-search and changed gnus-uu-body-line to be more
-	restrictive. 
+	restrictive.
 	(gnus-uu-multi-decode-and-view-or-save,
 	gnus-uu-uustrip-article-as): Changed hard returns to \r.
 	(gnus-uu-post-reply-mode): New mode for sending encoded files.
@@ -833,13 +833,13 @@
 	  put chown in /etc).
 
 1994-05-02  Per Abrahamsen  (abraham@eupectic)
- 
+
         * double.el (double-translate-key): Changed 'delete to 127 to make
         the non-X11 version work.
- 
+
 1994-05-02  David M. Smith  (maa036@lancaster.ac.uk)
 
-	* ielm.el (ielm-dynamic-multiline-inputs): New variable.  
+	* ielm.el (ielm-dynamic-multiline-inputs): New variable.
 	(ielm-return): Support it.
 
 	* ielm.el (ielm-print-working-buffer): New command
@@ -897,7 +897,7 @@
 	(set-register-value): Fixed test so the value 0 can be set.
 	(set-register-value): Rewrote to use bit operations instead of
 	multiplication and division.
-	(register-name-by-word-alist, register-name-by-byte-alist): 
+	(register-name-by-word-alist, register-name-by-byte-alist):
 	Combined into one list, register-name-alist.
 	(register-value, set-register-value): Use combined list.
 	(mode-line-format): Make the %n pure.
@@ -951,7 +951,7 @@
 
 	* gnus.el (gnus-summary-mode-map): Bind # to gnus-uu-mark-article.
 	(gnus-uu-mark-article): Autoload it from gnus-uu.
-	
+
 	* gnus.el (gnus-summary-mode-map): Bind C-c C-v to gnus-uu-ctl-map.
 	(gnus-uu-ctl-map): Autoload it from gnus-uu.
 
@@ -1047,7 +1047,7 @@
 	this is a general problem, because of the \n for some reason.)
 
 	* gud.el (gud-dbx-mips-p, gud-dbx-irix-p): Use system-type to
-	choose system-dependent dbx incantations.  
+	choose system-dependent dbx incantations.
 
 	* gud.el (gud-dbx-mips-p): Use "-emacs" for OSF/1 dbx as for MIPS.
 
@@ -1094,7 +1094,7 @@
 
 	* compile.el (compilation-error-regexp-alist): Add fortran pattern.
 
-1994-04-27  Noah Friedman  (friedman@kropotkin.gnu.ai.mit.edu)
+1994-04-27  Noah Friedman  (friedman@splode.com)
 
         * yow.el: Added comment indicating author.
 
@@ -1200,7 +1200,7 @@
 
 1994-04-23  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* mail-extr.el (mail-extr-all-top-level-domains): 
+	* mail-extr.el (mail-extr-all-top-level-domains):
 	Renamed from all-top-level-domains.
 
 	* lisp-mode.el (lisp-mode-variables): In comment-start-skip,
@@ -1265,7 +1265,7 @@
 1994-04-22  Per Abrahamsen  (abraham@eupectic)
 
 	* makefile.el (makefile-mode): Removed extra quote before
-	makefile-warn-suspicious-lines. 
+	makefile-warn-suspicious-lines.
 
 1994-04-21  Boris Goldowsky  (boris@moose.cs.rochester.edu)
 
@@ -1324,7 +1324,7 @@
 	* comint.el (comint-send-input): Use comint-output-filter to run
 	functions on comint-output-filter-functions.
 
-	* comint.el (comint-kill-output): Use delete-region to remove, and 
+	* comint.el (comint-kill-output): Use delete-region to remove, and
 	comint-output-filter to insert.
 
 1994-04-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -1503,7 +1503,7 @@
 
 	* dired.el (dired-subdir-regexp): Allow a space in dir name.
 
-	* rmailout.el (rmail-default-file, rmail-default-rmail-file): 
+	* rmailout.el (rmail-default-file, rmail-default-rmail-file):
 	New defvars.
 
 	* apropos.el (super-apropos-check-doc-file): Force Fundamental mode.
@@ -2075,8 +2075,8 @@
 1994-03-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* select.el (x-valid-simple-selection-p): Accept an overlay.
-	(xselect-convert-to-string, xselect-convert-to-length): 
-	(xselect-convert-to-filename xselect-convert-to-charpos): 
+	(xselect-convert-to-string, xselect-convert-to-length):
+	(xselect-convert-to-filename xselect-convert-to-charpos):
 	(xselect-convert-to-lineno, xselect-convert-to-colno): Likewise.
 
 	* subr.el (one-window-p): New argument all-frames.
@@ -2118,7 +2118,7 @@
 	(standard-display-ascii): Error if using a windowing system.
 	(standard-display-g1, standard-display-graphic): Ditto.
 	(standard-display-underline): If window system, use underline font.
-	
+
 
 1994-03-18  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -2423,7 +2423,7 @@
 	* bytecomp.el (byte-compile-track-mouse): Handle >1 body form.
 	Generate code that binds track-mouse.
 
-	* font-lock.el (c++-font-lock-keywords-1, c++-font-lock-keywords-2): 
+	* font-lock.el (c++-font-lock-keywords-1, c++-font-lock-keywords-2):
 	New variables.
 	(c++-font-lock-keywords): Use c++-font-lock-keywords-1.
 
@@ -2583,7 +2583,7 @@
 
 1994-03-02  Espen Skoglund  (espensk@stud.cs.uit.no)
 
-	* pascal.el (pascal-calculate-indent): Fixed indentation bug 
+	* pascal.el (pascal-calculate-indent): Fixed indentation bug
 	in for-loops, with-structures and else-structures.
 	(pascal-noindent-re): Add `else'.
 
@@ -2779,7 +2779,7 @@
 	Removed autoload for `backquote'.
 	Removed arglist specifications for `documentation' and `fset'.
 	(ad-emacs19-p, ad-use-jwz-compiler): Removed these variables.
-	(ad-lemacs-p, ad-v19-compiled-p, ad-subr-arglist, 
+	(ad-lemacs-p, ad-v19-compiled-p, ad-subr-arglist,
 	ad-make-advised-docstring): Removed reference to `ad-emacs19-p'.
 	(ad-compiled-p): Renamed from `ad-v19-compiled-p'.  Removed old
 	definition of `ad-compiled-p'.
@@ -2793,11 +2793,11 @@
 	are now at the top level.
 	(ad-advised-byte-code-definition): Renamed to `ad-advised-byte-code'
 	and removed the definition of `ad-advised-byte-code' via `fset'.
-	(ad-advised-byte-code-definition, ad-recover-byte-code, 
+	(ad-advised-byte-code-definition, ad-recover-byte-code,
 	ad-stop-advice, ad-recover-normality): Removed
 	`ad-real-byte-codify'-cation of their definitions.
 	(ad-adjust-stack-sizes): Removed.
-	(ad-enable-definition-hooks, ad-disable-definition-hooks): 
+	(ad-enable-definition-hooks, ad-disable-definition-hooks):
 	Removed v19 conditionalization.
 
 	* advice.el: Fixed the problematic interaction between the
@@ -2820,7 +2820,7 @@
 	changed the default formatting of advised docstrings.
 	(ad-make-plain-docstring, ad-make-freeze-docstring): New functions.
 
-	* advice.el: (ad-recover-all, ad-scan-byte-code-for-fsets): 
+	* advice.el: (ad-recover-all, ad-scan-byte-code-for-fsets):
 	Removed unused condition variable `ignore-errors'.
 
 	* advice.el (ad-save-real-definition): New macro to save real
@@ -2888,10 +2888,10 @@
 
 	* files.el (revert-buffer): Use new insert-file-contents replace arg.
 
-1994-02-17  Noah Friedman  (friedman@prep.ai.mit.edu)
+1994-02-17  Noah Friedman  (friedman@splode.com)
 
         * files.el (interpreter-mode-alist): Add entries for awk, gawk, and
-        scm scripts. 
+        scm scripts.
 
 1994-02-16  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -3162,13 +3162,13 @@
 
 	* iso-insert.el: Change the sequences aa and ae to just a and e.
 
-	* gomoku.el (gomoku-init-display, gomoku-put-char): 
+	* gomoku.el (gomoku-init-display, gomoku-put-char):
 	Bind inhibit-read-only; don't set buffer-read-only.
 
-	* tar-mode.el (tar-pad-to-blocksize): 
+	* tar-mode.el (tar-pad-to-blocksize):
 	Bind inhibit-read-only, not buffer-read-only.
 
-	* makefile.el (makefile-browser-fill, makefile-browser-toggle): 
+	* makefile.el (makefile-browser-fill, makefile-browser-toggle):
 	Bind inhibit-read-only; don't set buffer-read-only.
 
 	* hideif.el (show-ifdefs, hide-ifdefs): Bind inhibit-read-only.
@@ -3288,13 +3288,13 @@
 	* terminal.el (te-escape-help, te-more-break-help, terminal-emulator):
 	Pass just one KEYMAP arg to where-is-internal.
 
-	* calendar.el (calendar-mode-map): 
+	* calendar.el (calendar-mode-map):
 	Pass (keymap) as KEYMAP arg to where-is-internal.
 	* edmacro.el (edit-kbd-macro, edmacro-finish-edit, insert-kbd-macro):
 	Pass (keymap) as KEYMAP arg to where-is-internal.
-	* hideif.el (define-hide-ifdef-mode-map): 
+	* hideif.el (define-hide-ifdef-mode-map):
 	Pass (keymap) as KEYMAP arg to where-is-internal.
-	* macros.el (insert-kbd-macro): 
+	* macros.el (insert-kbd-macro):
 	Pass (keymap) as KEYMAP arg to where-is-internal.
 
 1994-02-04  Morten Welinder  (terra@tyr.diku.dk)
@@ -3341,7 +3341,7 @@
 
 1994-02-03  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* cplus-md1.el: Fix terminology used to name various Emacs versions. 
+	* cplus-md1.el: Fix terminology used to name various Emacs versions.
 
 	* server.el (server-done): If we kill the old buffer,
 	and server-buffer-done gives us nil, return the new current buffer.
@@ -3380,7 +3380,7 @@
 	* mouse-sel.el (mouse-sel-version): Don't base version number on
 	RCS revision.  Updated to version 2.0.
 	(mouse-sel-set-selection-function, mouse-sel-get-selection-function,
-	 mouse-sel-check-selection-function): 
+	 mouse-sel-check-selection-function):
 	Check whether X11 functions are bound when setting defaults.
 	(mouse-extend): Check whether modify-frame-parameters is bound before
 	calling it.  Add support to kill region with double-mouse-3.
@@ -3526,7 +3526,7 @@
 	(calendar-day-of-year-string, calendar-iso-date-string,
 	calendar-julian-date-string,calendar-islamic-date-string,
 	calendar-hebrew-date-string,calendar-astro-date-string): New functions
-	(calendar-print-day-of-year, calendar-print-iso-date, 
+	(calendar-print-day-of-year, calendar-print-iso-date,
 	calendar-print-iso-date,calendar-print-julian-date,
 	calendar-print-islamic-date,calendar-print-hebrew-date,
 	calendar-print-astro-day-number): Use them.
@@ -3628,7 +3628,7 @@
 	* font-lock.el (font-lock-mode): Set after-revert-hook
 	to refontify after revert.
 
-	* files.el (revert-buffer): Run after-revert-hook. 
+	* files.el (revert-buffer): Run after-revert-hook.
 
 1994-01-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -3713,7 +3713,7 @@
 
 1994-01-12  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* comint.el (comint-show-output): Leave point at start of output, 
+	* comint.el (comint-show-output): Leave point at start of output,
 	but push the mark.
 
 1994-01-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -3793,7 +3793,7 @@
 
 	* rmailsum.el (rmail-summary-by-senders):
 	Add missing arg to rmail-new-summary.
-	(rmail-summary-output, rmail-summary-output-to-rmail-file): 
+	(rmail-summary-output, rmail-summary-output-to-rmail-file):
 	Handle rmail-delete-after-output explicitly here.
 
 	* flow-ctrl.el (enable-flow-control): Use prefix argument
@@ -4081,7 +4081,7 @@
 1993-12-29  Ken Manheimer (klm@nist.gov)
 
 	* icomplete.el (icomplete-pre-command-hook): Reconciled with
-	keyboard macro operation.  
+	keyboard macro operation.
 	(icomplete-post-command-hook): Likewise.
 	(window-minibuffer-p): Cleaned up according to suggestion from
 	Richard Mlynarik.
@@ -4150,7 +4150,7 @@
 	* tex-mode.el (tex-common-initialization): Make paragraph-start
 	and paragraph-separate match a line of $$.
 
-1993-12-22  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-12-22  Noah Friedman  (friedman@splode.com)
 
         * lisp-mnt.el (Bogus-Bureaucratic-Cruft): Changed to
         `X-Bogus-Bureaucratic-Cruft'.
@@ -4308,7 +4308,7 @@
 
 	* bytecomp.el (byte-recompile-directory): Don't treat symlinks as dirs.
 
-1993-12-06  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-12-06  Noah Friedman  (friedman@splode.com)
 
         * loaddefs.el: Remove autoload for `rlogin-with-args', which no
         longer exists.
@@ -4338,7 +4338,7 @@
         (he-regexp-member): New function.
         (hippie-expand-try-functions-list): Added `try-expand-list'.
         (try-expand-line-all-buffers, try-expand-list-all-buffers,
-        try-expand-dabbrev-all-buffers): Use `he-regexp-member' and 
+        try-expand-dabbrev-all-buffers): Use `he-regexp-member' and
         `hippie-expand-ignore-buffers'.
         (he-list-search): Don't find list containing point.
         (he-dab-search-regexp): Just match at beginning of words.
@@ -4368,7 +4368,7 @@
 
 	* comint.el (comint-mode-map): Put comint-show-output on C-M-l.
 
-	* cplus-md.el (c++-indent-line, calculate-c++-indent): 
+	* cplus-md.el (c++-indent-line, calculate-c++-indent):
 	(indent-c++-exp): Recognize `friend' without `class'.
 
 	* rmail.el (rmail): Doc fix.
@@ -4425,7 +4425,7 @@
 	reflect changes to some prompt regexps.
 
 	* gud.el (dbx): Let `comint-prompt-regexp' not match more than
-	one line. 
+	one line.
 
 	* inf-lisp.el (inferior-lisp-prompt): Don't match more than
 	one line.
@@ -4517,7 +4517,7 @@
 	(desktop-save-buffer-p): doc fix.
 	(desktop-save): bug in mark-activity saving.
 	(desktop-buffer-rmail): doc fix.
-	(desktop-buffer-rmail, desktop-buffer-dired, desktop-buffer): use 
+	(desktop-buffer-rmail, desktop-buffer-dired, desktop-buffer): use
 	`eq' instead of `equal'.
 	(desktop-clear): end up with one window.
 
@@ -4531,9 +4531,9 @@
 
 	* bytecomp.el (batch-byte-recompile-directory): Add autoload cookie.
 
-1993-12-01  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-12-01  Noah Friedman  (friedman@splode.com)
 
-        * rlogin.el (rlogin-filter): initialize `region-begin' to 
+        * rlogin.el (rlogin-filter): initialize `region-begin' to
         (marker-position proc-mark), not just (point), whatever random
         value that may be.
         Put bindings for `proc-mark', `region-begin', and `window' in
@@ -4813,9 +4813,9 @@
         (narrow-to-page): Enable page-delimiter to span lines.
 
         * page-ext.el: Revise documentation.  Add `provide'.
-        (pages-directory-for-adding-addresses-narrowing-p): 
+        (pages-directory-for-adding-addresses-narrowing-p):
         New user option for adding addresses.  Default to narrowing.
-        (pages-directory-for-addresses): Intall user settable options. 
+        (pages-directory-for-addresses): Intall user settable options.
         (add-new-page): Insert new page in specified location.
         (original-page-delimiter): Set default value to "^^L".
 
@@ -4906,7 +4906,7 @@
 	command from `tex' command so `texinfo-format-region' can use
 	straight `tex' command.
         (texinfo-format-buffer): Use `texinfo-texi2dvi-command'
-        (texinfo-delete-from-print-queue): Revise documentation. 
+        (texinfo-delete-from-print-queue): Revise documentation.
 	(texinfo-quit-job): Use comint-send-input.
 
 	* texinfmt.el (texinfo-format-region): Change `texinfo-[start
@@ -5115,7 +5115,7 @@
 	Got rid of ###autoload to put a bookmark menu on the menu-bar.
 	Now it will appear on the File menu -- that change is made in
         menu-bar.el.  See below:
-	
+
         * menu-bar.el: Added a define-key for menu-bar-bookmark-map, so
         that bookmarks will appear on the File menu of the menu-bar, right
         after the Print Buffer item.
@@ -5365,7 +5365,7 @@
 	`forms-view-mode' and `forms-edit-mode'.
 	(forms-view-mode, forms-edit-mode): Deleted.
 	(forms-insert-record): Replaced `forms--new-record-filter' by
-	`forms-new-record-filter'. 
+	`forms-new-record-filter'.
 	(forms-insert-record, forms-delete-record): Disallow in read-only
 	mode.
 	(forms-prev-field): New function.
@@ -5379,7 +5379,7 @@
 	calendar-beginning-of-week, calendar-end-of-week): Rewritten to
 	use new var calendar-week-start-day.
 
-	* holidays.el (holiday-easter-etc): Fix Ascension Day string. 
+	* holidays.el (holiday-easter-etc): Fix Ascension Day string.
 
 	* diary.el (list-sexp-diary-entries): Fix doc string.
 
@@ -5400,7 +5400,7 @@
 	TABLE and PREDICATE args were reversed, and more processing was
 	needed on tags-table-files.
 
-1993-10-18  Noah Friedman  (friedman@gnu.ai.mit.edu)
+1993-10-18  Noah Friedman  (friedman@splode.com)
 
         * rlogin.el (rlogin-initially-track-cwd): New variable.
         (rlogin): Use it to determine whether enable directory tracking
@@ -5479,10 +5479,10 @@
 
 	* bookmark.el (menu-bar-bookmark-map): Supply t as 4th arg of autoload.
 
-	* bookmark.el (bookmark-jump-noselect): New subroutine taken from 
+	* bookmark.el (bookmark-jump-noselect): New subroutine taken from
 	bookmark-jump.  Support compressed files.
 	(bookmark-jump): Call bookmark-jump-noselect.
-	Offer to relocate if necessary, but change default dir to that of 
+	Offer to relocate if necessary, but change default dir to that of
         the old	bookmark in read-file-name.
 
 	* bookmark.el: (bookmark-set, bookmark-rename, bookmark-delete,
@@ -5491,7 +5491,7 @@
 	Bookmark-menu-save, Bookmark-menu-load): Fixed the save-excursion
 	bugs by wrapping things in save-window-excursion as well.
 
-	(bookmark-make-menu-bar-alist): Added sorting. 
+	(bookmark-make-menu-bar-alist): Added sorting.
 
 	(bookmark-map): Added new keybindings.
 	(bookmark-try-default-file): Set bookmarks-already-loaded to t
@@ -5548,7 +5548,7 @@
 
 	* vc.el	(vc-next-action): Fix (throw ... ) invocation to work with 19;
 	allows vc-next-action on all marked files in a dired buffer to work.
-	
+
 	(vc-finish-logentry) There isn't necessarily a *VC-log-entry* buffer
 	to remove if this function was called from within a dired buffer.  Fix
 	its handling of this case.
@@ -5611,11 +5611,11 @@
 	`forms-view-mode' and `forms-edit-mode'.
 	(forms-view-mode, forms-edit-mode): Deleted.
 	(forms-insert-record): Replaced `forms--new-record-filter' by
-	`forms-new-record-filter'. 
+	`forms-new-record-filter'.
 	(forms-insert-record, forms-delete-record): Disallow in read-only
 	mode.
 	(forms-prev-field): New function.
-	
+
 1993-09-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* disass.el (disassemble-internal): Allow a call to byte-code
@@ -5684,7 +5684,7 @@
 
 	* comint.el (comint-backward-matching-input): New command.
 	(comint-forward-matching-input): New command.
-	
+
 	* comint.el (comint-next-prompt, comint-previous-prompt):
 	Error if reach beg/end of buffer.
 
@@ -5963,7 +5963,7 @@
         - added hilit-rehighlight-buffer-quietly to dired-after-readin-hook
         - fixed bug in hilit-string-find that mishandled some strings: "\\"
         - work-around for bug in next-overlay-change
-        - the pattern matcher now starts it's searches from the end of the 
+        - the pattern matcher now starts it's searches from the end of the
 	  most recently highlighted region (which is not necessarily the end
 	  of the most recently matched regex).
         - code moved from hilit-highlight-region to hilit-set-mode-patterns.
@@ -6033,11 +6033,11 @@
 
 	* forms.el: Release 2.1 for Emacs 19.19.
 	(forms--process-format-list): No need to prepend a text item
-	anymore. 
+	anymore.
 	(forms--ro-modification-start): Renamed to `forms--iif-start.
 	(forms--ro-properties): Renamed to `forms--iif-properties'.
 	(forms--romh): Renamed to `forms--iif-hook'.  Rewritten to use
-	`insert-in-front-hooks' instead of `modification-hooks'. 
+	`insert-in-front-hooks' instead of `modification-hooks'.
 	(forms--romh-post-command-hook): Renamed to
 	`forms--iif-post-command-hook'.  Rewritten to use
 	`insert-in-front-hooks' instead of `modification-hooks'.
@@ -6066,7 +6066,7 @@
 	* paths.el (rmail-spool-directory): Use "/var/mail/" if
 	system-type is netbsd.
 
-1993-09-09  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-09-09  Noah Friedman  (friedman@splode.com)
 
         * rlogin.el: require 'shell.
 
@@ -6173,19 +6173,19 @@
 	common).  If possible, don't convert back and forth between gregorian
 	and absolute; this speeds things up noticeably.  This uses the new
 	calendar-nth-named-absday function.
-	
+
 	(calendar-current-time-zone): Some locales start DST at a different
 	time of day than they end; allow for this by yielding both times.  The
 	performance speedups in calendar.el are great enough that we now no
 	longer need the "Checking time zone data..." message.  If
 	current-time-zone yields nil, don't bother with
 	calendar-next-time-zone-transition.  Use clearer names for local vars.
-	
+
 	(calendar-time-zone, calendar-daylight-time-offset,
 	calendar-{standard,daylight}-time-zone-name,
 	calendar-daylight-savings-{starts,ends}): Default to US Eastern rules
 	for information that is not available.
-	
+
 	(calendar-daylight-savings-{starts,ends}-time): New vars, replacing
 	calendar-daylight-savings-switchover-time, to support locales that
 	start DST at a different time of day than they end.
@@ -6195,10 +6195,10 @@
 	* calendar.el (solar-holidays): Use new
 	calendar-daylight-savings-{starts,ends}-time vars instead of old
 	calendar-daylight-savings-switchover-time var.
-	
+
 	(calendar-last-day-of-month): Tune by testing month before year.
 	(calendar-absolute-from-gregorian): Tune by computing (1- year) once.
-	
+
 	(calendar-nth-named-absday): New function, used to improve performance
 	in calendar-time-zone-daylight-rules.
 	(calendar-nth-named-day): Use it.
@@ -7177,7 +7177,7 @@
 1993-07-17  Johan Vromans  (jv@mh.nl)
 
 	* forms.el: New version 2.0.
-	Redesigned and rewritten to use Emacs 19 text properties. 
+	Redesigned and rewritten to use Emacs 19 text properties.
 	Requires Emacs 19.16 or later.
 
 1993-07-17  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
@@ -7298,7 +7298,7 @@
 	Rewritten to use gud-chop-words instead of temp buffer and kludge
 	involving read.  Find the program name as the first word of the
 	command line.  Use make-comint and gud-massage-args in place of
-	gud-debugger-startup. 
+	gud-debugger-startup.
 	Expand the file name before passing it to gud-massage-args.
 
 1993-07-14  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -7322,7 +7322,7 @@
 	the old position of point.
 	(try-expand-all-abbrevs): handle case the same way as the
         usual expand-abbrev (which is not a very good way, but for
-        consistency...). 
+        consistency...).
 	(he-dabbrev-beg): Use `skip-syntax' instead of `skip-chars', to
         adjust its behavior to different modes.
 	(hippie-expand): Don't messages which try function it is using,
@@ -7337,7 +7337,7 @@
 	marked as changed, although nothing was done, among other things).
 	(he-reset-string): Undoing of last expansion at a later occasion, now
         undoes correctly (before, it garbled things up).
-	(make-hippie-expand-function): now uses "(function ...)" 
+	(make-hippie-expand-function): now uses "(function ...)"
         instead of "'" (matters for compilation).
 	(try-expand-line, try-expand-line-all-buffers,
 	he-line-search-regexp): uses `comint-prompt-regexp' instead of
@@ -7508,7 +7508,7 @@
 	Rewrite messages.  Avoid using `mark-whole-buffer'.
 
 	(texinfo-start-menu-description):
-        New function to insert title as description in a menu. 
+        New function to insert title as description in a menu.
         (texinfo-make-menu-list): Remove automatic title insertion.
 	(texinfo-master-menu): Error message if file
         contains too few nodes for a master menu.
@@ -7537,7 +7537,7 @@
         caused the function to create a master menu when it shouldn't.
         Update pre-existing master menu, if there is one.
 
-	(texinfo-incorporate-descriptions): Use a regexp search to look for 
+	(texinfo-incorporate-descriptions): Use a regexp search to look for
 	both kinds of menu item.
 	(texinfo-menu-indent-description): Likewise.
 	(texinfo-incorporate-menu-entry-names): New function.
@@ -8118,7 +8118,7 @@
         hebrew-calendar-year-Monday-complete-Saturday,
         hebrew-calendar-year-Thursday-incomplete-Sunday): Fix doc strings.
         (diary-sexp-entry): Use calendar-sexp-debug to turn off error catching.
-        
+
         * diary-ins.el (insert-cyclic-diary-entry): Fix date form.
 
         * cal-mayan.el (calendar-mayan-days-before-absolute-zero,
@@ -8331,7 +8331,7 @@
 
 1993-06-12  Johan Vromans  (jv@mh.nl)
 
-	* forms.el (forms--change-commands): 
+	* forms.el (forms--change-commands):
 	Use (function (lambda ...)) instead of '(lambda...).
 
 	* forms.el: Provide `forms' as well as `forms-mode'.
@@ -8339,7 +8339,7 @@
 
 1993-06-12  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* files.el (make-directory): By default create dir default-dir. 
+	* files.el (make-directory): By default create dir default-dir.
 
 1993-06-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8353,7 +8353,7 @@
 	* mailabbrev.el (sendmail-pre-abbrev-expand-hook):
 	If last-command-char is not a character, don't check char-syntax.
 
-	* inf-lisp.el: Doc fixes. 
+	* inf-lisp.el: Doc fixes.
 	(run-lisp): Add autoload.
 	(inferior-lisp-mode-map): Explicitly make local prefix keys.
 
@@ -8556,7 +8556,7 @@
 	mouse-union-first-prefered.
 
 1993-06-06  Paul Eggert  (eggert@twinsun.com)
-	
+
 	* sc.el (sc-consistent-cite-p): Renamed from sc-consistant-cite-p.
 
 	* etags.el (etags-recognize-tags-table): Fix misspelling of
@@ -8591,7 +8591,7 @@
 
 	* vip.el (vip-ctl-key-equivalent): Use vip-escape-to-emacs.
 	(vip-escape-to-emacs): Use read-key-sequence and key-binding.
-	Arg EVENTS replaces arg CHAR.  
+	Arg EVENTS replaces arg CHAR.
 	(vip-ESC, vip-ctl-c, vip-ctl-x, vip-ctl-h): These callers changed.
 
 	* compile.el (compile-internal): Alter current buffer only temporarily.
@@ -8764,7 +8764,7 @@
         (calendar-mode): Mention them.
         (calendar-time-zone, calendar-print-astro-day-number,
         calendar-time-display-form): Change Universal Time (UT) to
-        Coordinated Universal Time (UTC). 
+        Coordinated Universal Time (UTC).
 
         *solar.el (solar-setup, solar-ephemeris-time, sunrise-sunset): Change
         Universal Time (UT) to Coordinated Universal Time (UTC).
@@ -8881,7 +8881,7 @@
 	in ordinary fashion with no args.
 	(gnus-inews-article-hook, gnus-prepare-article-hook):
 	Initialize to a list.
-	(gnus-read-newsrc-file): If timestamps are equal, reload .newsrc. 
+	(gnus-read-newsrc-file): If timestamps are equal, reload .newsrc.
 
 	* bibtex.el (bibtex-mode): Add autoload.
 

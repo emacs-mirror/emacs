@@ -231,7 +231,7 @@
 	of dired-check-process properly.
 	Fix use of nonexistent var `name'.
 
-	* info.el (Info-edit, Info-last-search, Info-enable-edit): 
+	* info.el (Info-edit, Info-last-search, Info-enable-edit):
 	Correct case in `Info-mode-map'.
 
 	* rmail.el (rmail-bury): Fix call to set-window-buffer.
@@ -275,7 +275,7 @@
 
 1993-05-24  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* files.el (find-file-read-only-other-window): 
+	* files.el (find-file-read-only-other-window):
 	Use find-file-other-window.
 
 	* paths.el (Info-default-directory-list): Add ../../info.
@@ -381,11 +381,11 @@
 	* levents.el (event-modifiers): Function deleted.
 	(read-command-event): For switch-frame event, call select-frame.
 
-1993-05-22  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-05-22  Noah Friedman  (friedman@splode.com)
 
         * rlogin.el (rlogin-filter): Yet another rewrite which handles
         unusual values of scroll-step in a winning way by window-start
-        frobnication. 
+        frobnication.
 
 1993-05-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -803,7 +803,7 @@
 1993-05-08  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
 	* faces.el: Call internal-set-face-1, not internat-set-face-1.
-	
+
 	* faces.el: Don't set frame-creation-function here; term/x-win.el is
 	the appropriate place to set it.
 
@@ -1133,10 +1133,10 @@
 	* subr.el (listify-key-sequence): Use a character constant to
 	decide which bits to flip, not an integer constant.
 
-1993-04-24  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-04-24  Noah Friedman  (friedman@splode.com)
 
         * shell.el (shell-prompt-pattern): Add `;' as potential prompt
-          delimiter (for `es' and `rc' shells most particularly). 
+          delimiter (for `es' and `rc' shells most particularly).
 
 1993-04-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -1252,7 +1252,7 @@
 	with a slash, don't remove the corresponding slash from filename
 	when we collapse the home directory to ~.
 
-1993-04-16  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-04-16  Noah Friedman  (friedman@splode.com)
 
         * rlogin.el: Add autoload cookies for all defvars.
         (rlogin-process-connection-type): New variable.
@@ -1261,8 +1261,8 @@
         (rlogin-with-args): Put `+' inside \(\) pair in string-match.
         (rlogin-password): Take optional arg `proc' for use by rlogin-filter.
         Write docstring.  Call new winning version of comint-read-noecho
-        instead of doing reading by hand. 
-        (rlogin-mode): Wrote docstring. 
+        instead of doing reading by hand.
+        (rlogin-mode): Wrote docstring.
         (rlogin-filter): Completely rewritten to be more efficient.
 
 1993-04-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -1290,7 +1290,7 @@
 
 	* gud.el (gud-mode): Created C-c synonym bindings in the GUD
 	buffer's local map.
-	
+
 	(gud-key-prefix): Changed to C-x C-a.
 
 1993-04-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
@@ -1304,13 +1304,13 @@
 1993-04-14  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* finder.el: Rewritten.  The Finder is now a major mode with the
-	ability to browse package commentary sections and a completely 
+	ability to browse package commentary sections and a completely
 	point-and-shoot interface similar to Dired's.
 
 	* window.el (shrink-window-if-larger-than-buffer): Moved from
 	electric.el to windows.el, minor bug fix.  This is to avoid code
 	duplication between vc.el, electric.el, and finder.el.
-	
+
 	(ctl-x-map): Added C-x - and C-x + as experimental bindings for
 	shrink-window-if-larger-than-buffer and balance-windows
 	respectively.  Since shrink-window-if-larger-than-buffer has to
@@ -1337,13 +1337,13 @@
 
 	* rot13.el (rot13-other-window): Add autoload.
 
-1993-04-12  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-04-12  Noah Friedman  (friedman@splode.com)
 
         * comint.el (comint-process-echoes): New variable.
-        (comint-mode): Make it buffer-local. 
+        (comint-mode): Make it buffer-local.
         (comint-send-input): Delete text from process mark to point if
         variable `comint-process-echoes' is non-`nil', since it is assumed
-        process will re-echo the text. 
+        process will re-echo the text.
 
 1993-04-12  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1364,12 +1364,12 @@
 	defsubsts.
 
 1993-04-10  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
-	
+
 	* paragraphs.el (sentence-end, forward-sentence): Doc fixes.
 
         * finder.el (finder-by-keyword): Build an alist to pass to
 	completing-read, instead of building an invalid obarray.
-	
+
 	* finder.el (finder-by-keyword): If the user quits or enters the
 	empty string in response to the keyword prompt, restore the old
 	window configuration properly.
@@ -1397,7 +1397,7 @@
 
 	* finder.el (finder-by-keyword): If the user quits or enters the
 	empty string in response to the keyword prompt, restore the old
-	window configuration properly. 
+	window configuration properly.
 
 1993-04-08  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -1525,7 +1525,7 @@
 	* finder.el, help-screen.el, faces.el: Added or corrected
 	documentation headers
 
-1993-04-03  Noah Friedman  (friedman@geech.gnu.ai.mit.edu)
+1993-04-03  Noah Friedman  (friedman@splode.com)
 
 	* comint.el: New comint-read-noecho.
 
@@ -1584,7 +1584,7 @@
 	prototype call before the docstring, instead of an argument
 	description after it.
 
-1993-03-30  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-03-30  Noah Friedman  (friedman@splode.com)
 
 	* files.el (find-backup-file-name): Delete nothing if overflow
 	in number of versions to keep.
@@ -1599,7 +1599,7 @@
 	* isearch.el (isearch-mode-map): Delete the binding for C-h.
 	(isearch-done): Customize the message about mark.
 
-1993-03-30  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-03-30  Noah Friedman  (friedman@splode.com)
 
         * comint.el (comint-read-noecho): Rewritten to provide some simple
         editing ability and be able to abort when called from a process
@@ -1645,13 +1645,13 @@
 	Just use it if input is empty.
 	Use save-match-data around count-lines.
 
-1993-03-28  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-03-28  Noah Friedman  (friedman@splode.com)
 
-        * setenv.el: Renamed to env.el.  Provide `env', not `setenv'. 
+        * setenv.el: Renamed to env.el.  Provide `env', not `setenv'.
         (setenv): Renamed to `putenv', which is the more proper complement
-        of `getenv'.  `setenv' retained as an alias. 
+        of `getenv'.  `setenv' retained as an alias.
         Make VALUE parameter optional; if not set, remove VARIABLE from
-        process-environment. 
+        process-environment.
 
         * rlogin.el (rlogin): If given a prefix argument and an rlogin
         session for HOST is already running, start a new rlogin process
@@ -1659,14 +1659,14 @@
 	Bound `proc' in let*.
         (rlogin-explicit-args, rlogin-password-paranoia): New variables.
         (rlogin-filter): Prompt for passwords in minibuffer if
-        rlogin-password-paranoia is set. 
+        rlogin-password-paranoia is set.
         (rlogin-with-args, rlogin-password): New functions.
 
 1993-03-28  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
 	* vc.el (vc-comment-to-changelog): A useful vc-checkin hook, added.
 	(vc-checkout): Now rejects attempts to check out files via FTP.
-	
+
 	* vc.el: The `derived buffers' in the mode (the VC log buffer,
 	status buffers, and most buffer output commands) now know which
 	file buffer was their parent, and most commands will try to find
@@ -1697,7 +1697,7 @@
 	* abbrevlist.el, old-inf-lisp.el, old-screen.el old-shell.el,
 	oshell.el: Removed.
 
-1993-03-27  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+1993-03-27  Noah Friedman  (friedman@splode.com)
 
         * rlogin.el: Updated copyright year and added autoload cookies.
         (rlogin): Set process marker to beginning of buffer.
@@ -1738,7 +1738,7 @@
 	* subr.el (add-hook):  Added optional arg to cause hook to be
 	appended rather than prepended to the hook list.  This obviates
 	the 23 different hook-bashing packages in LCD.
-	
+
 	* subr.el (current-word): Added.  Lots of help and default-generator
 	functions in LCD use it, and it's remarkably difficult to get
 	right, especially given the new syntax primitives.
@@ -2011,7 +2011,7 @@
 
 	* finder.el (finder-compile-keywords): Treat nil in a path
 	argument as $PWD.
-	
+
 	(finder-by-keyword): Handle LFD as input gracefully.
 
 1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
@@ -2020,7 +2020,7 @@
 
 	* vc.el (vc-header-strings): Name changed to vc-header-alist, to match
 	the docs.
-	
+
 	(vc-finish-logentry, vc-next-comment, vc-previous-comment,
 	vc-comment-search-forward, vc-comment-search-backward) The VC comment
 	ring is now a separate buffer from *VC-log*; editing of old comments
@@ -2158,7 +2158,7 @@
 	A boatload of changes to terminal support and terminal capability
 	initialization that make it a lot smarter, with a more uniform
 	and featureful interface across many different keyboard types.
- 
+
 	* term.c (fkey_table): has been expanded to handle the entire
 	  intersection of the capability sets defined by X keysyms and
 	  terminfo.  That is, every keysym for which there is a natural
@@ -2711,7 +2711,7 @@
 	(set-auto-raise, set-auto-lower, set-vertical-bar,
 	set-horizontal-bar): Make these toggle or look at the prefix
 	argument, like minor modes.
-	
+
 	* frame.el (set-vertical-bar): Use the proper parameter symbol.
 	(set-horizontal-bar): Signal an error indicating that horizontal
 	scrollbars are not implemented.
@@ -3292,7 +3292,7 @@
 	* lpr.el (lpr-command, lpr-switches): Removed strings starting
 	with \newline; this file is loaded in loaddefs.el, and doesn't
 	need to follow that convention.
-	
+
 	* lpr.el (lpr-command): Add dgux-unix to the list of systems which
 	want "lp".
 
@@ -3411,7 +3411,7 @@
 	gnu conventions.
 
 	(fortran-mode): Fix `comment-line-start-skip' by changing \\1 to
-	\\2 and include cpp statements in matching.  Changes for auto fill.  
+	\\2 and include cpp statements in matching.  Changes for auto fill.
 
 	(fortran-auto-fill-mode, fortran-do-auto-fill,
 	fortran-break-line): New functions to implement auto fill.
@@ -3606,7 +3606,7 @@
 
 1992-10-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* paragraphs.el (kill-sentence, backward-kill-sentence): 
+	* paragraphs.el (kill-sentence, backward-kill-sentence):
 	(kill-paragraph, backward-kill-paragraph):
 	Don't change point before calling kill-region.
 
@@ -3652,7 +3652,7 @@
 
 1992-10-13  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* isearch-mode.el (isearch-mode-map): Bind t in top-level map 
+	* isearch-mode.el (isearch-mode-map): Bind t in top-level map
 	and in the submap for meta keys.  Don't bind the individual chars.
 
 1992-10-12  Roland McGrath  (roland@geech.gnu.ai.mit.edu)
@@ -3876,7 +3876,7 @@
 	This allows us to truncate cut buffers to the empty string (if the
 	text is too large, say) without causing
 	interprogram-paste-function to wipe out the latest kill.
-	
+
 	* gud.el: When we send a command to the debugger via gud-call,
 	it's annoying to see the command and the new prompt in the
 	debugger interaction buffer; nuke the command and the old prompt.
@@ -3953,7 +3953,7 @@
 	(vc-log-after-operation-hook): New internal defvar.
 	(vc-checkin): Set vc-log-after-operation-hook to 'vc-checkin-hook.
 	(vc-finish-logentry): (run-hooks vc-log-after-operation-hook) at end.
-	
+
 	(vc-update-change-log): When doing all visited files, remove directory
 	names from file names that are in default-directory.
 
@@ -3976,7 +3976,7 @@
 
 1992-09-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* two-column.el (tc-window-width, tc-separator, tc-other): 
+	* two-column.el (tc-window-width, tc-separator, tc-other):
 	Add permanent-local property.
 	(tc-two-columns): Renamed from tc-split.
 	(tc-split): Renamed from tc-unmerge.  Put it on C-x 6 s.
@@ -4060,8 +4060,8 @@
 	* c-mode.el (calculate-c-indent): When checking for DEFUN macro,
 	stop moving down at line with # or /.
 	(c-fill-paragraph): Set first-line whenever we find a comment start
-	on the current line.  Protect text before the comment start 
-	by excluding it from the region and adding spaces to bring back 
+	on the current line.  Protect text before the comment start
+	by excluding it from the region and adding spaces to bring back
 	proper indentation of that point.
 
 1992-09-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -4283,9 +4283,9 @@
 	(diff-prepare): New function.
 
 	* files.el (file-name-sans-versions): Support file-name-handler-alist.
-	New arg KEEP-BACKUP-VERSION means don't delete backup versions. 
+	New arg KEEP-BACKUP-VERSION means don't delete backup versions.
 
-	* dired.el (dired-display-file, dired-find-file-other-window): 
+	* dired.el (dired-display-file, dired-find-file-other-window):
 	(dired-view-file, dired-find-file): Call file-name-sans-versions
 	to remove non-backup version numbers.
 
@@ -4306,7 +4306,7 @@
 
 	* loaddefs.el: Sort alphabetically by file name.
 
-	* files.el (backup-buffer): If backup file to copy into exists 
+	* files.el (backup-buffer): If backup file to copy into exists
 	and is not writable, try deleting it.
 
 	* ange-ftp.el: New version from Andrew Norman.
@@ -4325,7 +4325,7 @@
 	* dired.el (dired-next-subdir, dired-subdir-index): Moved here
 	* dired-aux.el: From here.
 	* dired.el (dired-build-subdir-alist): Don't print msg after each dir.
-	Clarify final message.	
+	Clarify final message.
 
 	* files.el (auto-mode-alist): Recognize ChangeLog.N as change-log-mode.
 	Move *.N pattern for nroff mode after ChangeLog.N.
@@ -4650,7 +4650,7 @@
 
 	* bytecomp.el (byte-compile-warnings): Have this default to t,
 	since Zawinski says everyone likes the warnings about unbound
-	variables.  
+	variables.
 
 	* appt.el (appt-issue-message, appt-message-warning-time,
 	appt-audible, appt-visible, appt-display-mode-line,
@@ -4719,7 +4719,7 @@
 1992-08-04  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* rmail.el (rmail-search): Fix typo (premature ref to reversep).
-	Choice of amount to increment n by was backwards.	
+	Choice of amount to increment n by was backwards.
 	(rmail-search-backwards): Setting of reversep was backwards.
 
 1992-08-04  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -4810,7 +4810,7 @@
 1992-08-03  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* simple.el (current-kill): Reinstate interprogram-paste feature.
-	It doesn't seem to be wedged for me, and I can't find out how it is 
+	It doesn't seem to be wedged for me, and I can't find out how it is
 	wedged unless it's enabled.
 
 	* terminal.el (terminal-map, terminal-escape-map,
@@ -4850,7 +4850,7 @@
 	* map-ynp.el: Fix prompt.
 
 	* dired.el (dired-why): Don't use save-excursion.
-	(dired-change-marks): New command.	
+	(dired-change-marks): New command.
 	(dired-mode-map): Put dired-change-marks on c.
 	Put dired-do-kill-lines on k.
 
@@ -4861,10 +4861,10 @@
 	(dired-run-shell-command): Return nil.
 	(dired-do-shell-command): Accept COMMAND as arg; use minibuf
 	within `interactive'.
-	(dired-create-files, dired-handle-overwrite): 
+	(dired-create-files, dired-handle-overwrite):
 	Rename overwrite-confirmed to dired-overwrite-confirmed.
 	(dired-do-kill-lines): Handle prefix arg as number of lines to kill.
-	(dired-kill-line-or-subdir): Deleted. 
+	(dired-kill-line-or-subdir): Deleted.
 
 1992-08-01  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -4887,7 +4887,7 @@
 
 	* ring.el (ring-mod): Renamed from comint-mod.
 	Provide `ring', not history'.
-	(make-ring, ring-p): Add autoloads.	
+	(make-ring, ring-p): Add autoloads.
 	* history.el: Link deleted.
 
 	* c-mode.el (c-up-conditional): New function.
@@ -4980,7 +4980,7 @@
 
 1992-07-31  Robert J. Chassell  (bob@churchy.gnu.ai.mit.edu)
 
-	* loaddefs.el: New keybinding, `C-x r y', for `yank-rectangle'. 
+	* loaddefs.el: New keybinding, `C-x r y', for `yank-rectangle'.
 
 1992-07-31  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
@@ -5027,9 +5027,9 @@
 
 	* comint.el (comint-mode-map): comint-previous-similar-input now M-r.
 	(comint-previous-similar-input):
-	Initialize comint-input-ring-index if nil.	
+	Initialize comint-input-ring-index if nil.
 	(comint-previous-input-matching): Report ordinary error if fail.
-	Initialize comint-input-ring-index if nil.	
+	Initialize comint-input-ring-index if nil.
 	(comint-next-similar-input): New command, on M-s.
 	(comint-previous-input): Always delete what was already given
 	for the next input.  Initialize comint-input-ring-index if nil.
@@ -5108,7 +5108,7 @@
 	(find-backup-file-name): Use that.
 
 	* dired-aux.el (dired-clean-directory): Moved here.
-	(dired-map-dired-file-lines, dired-collect-file-versions): 
+	(dired-map-dired-file-lines, dired-collect-file-versions):
 	(dired-trample-file-versions): Likewise.
 	* dired.el: Moved from here.
 	(dired-clean-directory): Auto load added.
@@ -5120,7 +5120,7 @@
 	* gud.el (gdb, dbx, sdb): Change C-c LETTER commands to C-c C-LETTER.
 
 	* add-log.el (add-log-current-defun): Handle C macros.
-	Handle the DEFUN macro used in Emacs C sources.	
+	Handle the DEFUN macro used in Emacs C sources.
 
 1992-07-27  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -5164,7 +5164,7 @@
 	* lisp-mode.el (emacs-lisp-mode-map, lisp-interaction-mode-map):
 	Add M-TAB as lisp-complete-symbol.
 	* loaddefs.el: Delete binding of M-TAB.
-	* etags.el: Add binding of M-TAB.	
+	* etags.el: Add binding of M-TAB.
 
 1992-07-26  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -5189,13 +5189,13 @@
 1992-07-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* diff.el (diff-backup): New function.
-	(diff-last-backup-file): Renamed from dired-last-backup-file.	
+	(diff-last-backup-file): Renamed from dired-last-backup-file.
 	* dired-aux.el (dired-backup-diff): Use diff-backup.
 	(dired-last-backup-file): Moved and renamed.
 	* dired.el, dired-aux.el (dired-diff, dired-backup-diff): Doc fixes.
 
 	* help.el (command-apropos): Fix call to apropos for new arg.
-	
+
 	* finder.el (finder-by-keyword): Rewrite to read args in `interactive'
 	and use with-output-to-temp-buffer.
 
@@ -5230,7 +5230,7 @@
 	(grep-command): Variable deleted.
 
 	* replace.el (query-replace-read-args): New function.
-	It reads two args using query-replace-history.	
+	It reads two args using query-replace-history.
 	(query-replace, query-replace-regexp, replace-string):
 	(replace-regexp): Use query-replace-read-args.
 	(map-query-replace-regexp): Read args using query-replace-history.
@@ -5238,7 +5238,7 @@
 
 	* dired.el: Don't check for version 18.
 	(dired-file-version-alist): New defvar.
-	Use this instead of file-version-assoc-list.	
+	Use this instead of file-version-assoc-list.
 	(dired-shrink-to-fit): Default is always t.
 	(dired-internal-do-deletions): remove-directory => delete-directory.
 
@@ -5258,14 +5258,14 @@
 
 	* case-table.el (describe-buffer-case-table): Move the describe-vector
 	inside the let.
-		
+
 	* c++-mode.el (indent-c++-exp): Fix typo "innerloop-done".
 	Make last-depth local.
 
 1992-07-23  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* flow-ctrl.el: fixed set-input-mode call broken by new third
-	  arg for meta control.  
+	  arg for meta control.
 
 1992-07-23  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
@@ -5280,21 +5280,21 @@
         * diary.el (diary-julian-date): New function.
 
 1992-07-23  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
-	
+
 	* simple.el (current-kill): Ignore the interprogram paste feature;
 	it is wedged.
-	
+
 	* paths.el (mh-lib, mh-prog): Add more alternatives.
 
 1992-07-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
-	
+
 	* emerge.el (emerge-startup-hook, emerge-quit-hook):
 	Renamed from ...-hooks.
-		
-	* dired.el (dired-display-file): New command, on C-o.	
-		
+
+	* dired.el (dired-display-file): New command, on C-o.
+
 	* files.el (ctl-x-4-map): display-buffer is now C-x 4 C-o.
-	
+
 1992-07-22  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* etags.el (visit-tags-table-buffer): Look for a tags table
@@ -5332,11 +5332,11 @@
 	* Removed all Last-Modified headers.
 
 1992-07-21  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
-	
+
 	* files.el (trim-versions-without-asking): Non-nil, non-t value
 	suppresses all trimming of excess backups.  This is so we can make
 	the @!%$@ question at save time go away....
-	
+
 1992-07-21  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* simple.el (kill-ring-save): Display only if interactive-p.
@@ -5346,7 +5346,7 @@
 	* c++-mode.el (c++-macroize-region, backslashify-current-line):
 	Deleted.
 	(c++-comment-region, c++-uncomment-region): Deleted.
-	comment-region works just fine.	
+	comment-region works just fine.
 	(c++-beginning-of-defun, c++-end-defun, c++-indent-defun): Deleted.
 	(c++-point-bol): Renamed from point-bol.
 	(c++-within-string-p): Renamed from within-string-p.
@@ -5382,20 +5382,20 @@
 
 	* add-log.el (add-change-log-entry): Avoid spurious whitespace
 	when making new entry.  Delete excess blank lines.
-	Really don't use "ChangeLog" as the file name in the entry.	
-	Always put a space after the colon.	
+	Really don't use "ChangeLog" as the file name in the entry.
+	Always put a space after the colon.
 	(add-log-current-defun): Verify the defun actually contains point.
 	Handle the lines of a C function before the open brace.
 
 	* rmail.el (rmail-undelete-previous-message): Don't catch errors.
-	
+
 	* simple.el (end-of-buffer): If buffer end is on screen, don't scroll.
-		
+
 	* c-mode.el (set-c-style): Deleted the first version of this function.
 	It was badly written.
 	Modified the remaining version by adding new argument GLOBAL
 	and setting the parameters locally if GLOBAL is nil.
-	
+
 1992-07-21  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* Turfed r2bibtex.el.  Refbib.el turns out to be a newer version
@@ -5404,16 +5404,16 @@
 	* Installed co-isearch.el, new gud.el (1.19)
 
 1992-07-21  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
-	
+
 	* frame.el (get-frame): Renamed to get-other-frame; get-frame
 	sounds like a parallel to get-buffer or get-process.
 
 	* c-mode.el (set-c-style): Remove the extraneous copy of this
 	function.
-		
+
 	* c++-mode.el (within-string-p): Use `%', not `mod', as the name
 	of the modulus function.
-		
+
 	* frame.el (frame-height, frame-width): Fixed several confusions
 	here.
 
@@ -5422,18 +5422,18 @@
 	movement functions.  Define the insert and kp-enter keys.
 
 1992-07-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
-	
-	* blackbox.el (blackbox): Doc fix.	
+
+	* blackbox.el (blackbox): Doc fix.
 	(bb-outside-box): For some reason, this function was replaced by
 	the comment ";; blackbox.el ends here"
-	
-	* dired.el (dired): Doc fix.	
-	
+
+	* dired.el (dired): Doc fix.
+
 1992-07-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
-	
+
 	* sendmail.el (mail-send-and-exit): Just switch windows
 	if the next window is in Rmail mode.
-	
+
 1992-07-20  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* simple.el (set-variable): If VAR has a `variable-interactive'
@@ -5449,27 +5449,27 @@
 	* startup.el (command-line): Fixed typo in comment.
 
 1992-07-20  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
-	
+
 	* bytecomp.el (byte-compile-warnings): Include the full
 	documentation given in the comments at the top of the file in this
 	variable's docstring.
-	
+
 1992-07-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
-	
+
 	* dired.el (dired-mark): Use prefix-numeric-value.
-		
+
 	* simple.el (kill-ring-save): Say "saved", not "killed", in messages.
 	Let message do the formatting.
-			
+
 	* fill.el (fill-individual-paragraphs): If MAILP, skip indented headers
 	and blank lines.
-		
-	* register.el (window-configuration-to-register): New function.	
+
+	* register.el (window-configuration-to-register): New function.
 	(frame-configuration-to-register): New function.
 	* loaddefs.el: Put them on C-x r w, C-x r f.
 	* window.el (window-config-to-register, register-to-window-config):
 	Deleted, along with keybindings C-x 6 and C-x 7.
-	
+
 1992-07-19  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
         * cal-mayan.el: New file.  The only functions visible to the
@@ -5525,15 +5525,15 @@
         diary-lunar-phase, and diary-sabbath-candles to doc string.
 
 1992-07-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
-	
+
 	* bytecomp.el (compile-defun): Use displaying-byte-compile-warnings.
 	(byte-compile-warn): Don't display the warning now, just log it.
 
 	* files.el (auto-mode-alist): Recognize .texi.
-		
+
 	* rmail.el (rmail-delete-forward): Removed the feature
-	of moving back if there's nowhere to go forward.	
-	
+	of moving back if there's nowhere to go forward.
+
 1992-07-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* etags.el (visit-tags-table-buffer): Call abbreviate-file-name on
@@ -5574,9 +5574,9 @@
 	* Finished decorating the library files with new standard headers.
 
 1992-07-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
-	
+
 	* disass.el: Require `byte-compile', not 'bytecomp'.
-		
+
 	* bytecomp.el (byte-compile-file): Correct parens in interactive
 	form so that it returns a list containing the filename and the
 	prefix argument, not just the prefix argument by itself.
@@ -5587,17 +5587,17 @@
 	* bytecomp.el (byte-recompile-directory, byte-compile-file,
 	batch-byte-compile, byte-compile, compile-defun,
 	display-call-tree): Added autoload cookies for these functions.
-	
+
 1992-07-16  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* etags.el: Major rewrite with many new features.
 	* ctags.el: New file; goes with new etags.el.
 
 1992-07-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
-	
+
 	* byte-run.el (defsubst): Removed extra closing paren at the end
 	of this function.
-	
+
 1992-07-16  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* At RMS's request, all occurrences of `elisp' changed to `Emacs Lisp'.
@@ -5606,9 +5606,9 @@
 	  keyword-based code finder via Keywords header.
 
 1992-07-15  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
-	
-	* New library headers for [opqrst]*.el.  Ghod, this is boring.	
-	
+
+	* New library headers for [opqrst]*.el.  Ghod, this is boring.
+
 1992-07-15  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
         * lunar.el: New file.  The only functions known to outside world
@@ -5745,10 +5745,10 @@
         nodayname form of display.
 
 1992-07-11  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
-	
+
 	* c-mode.el (calculate-c-indent): Don't indent as argdecl
-	after apparent function decl inside a comment.	
-	
+	after apparent function decl inside a comment.
+
 1992-07-10  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* bytecomp.el: Replaced with Jamie Zawinksi's byte compiler.
@@ -5935,21 +5935,21 @@
         calendar-holiday-function-solar-equinoxes-solstices.
 
 1992-06-27  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
-	
+
 	* info.el: Bindings for Info-goto-emacs-command-node and
 	Info-goto-emacs-key-command-node in help-map moved from here...
 	* help.el: to here.
-	
+
 	* compile.el (compile-internal): Make the buffer read-only, to
 	remind people that they probably don't want to mess with it.
 	(compilation-sentinel): Make the buffer temporarily writable, so
 	we can insert the termination message.
-	
+
 	* help.el, indent.el, paragraphs.el, isearch.el, replace.el:
 	Deleted autoload cookies from these files; they are all loaded
 	into Emacs by loadup.el.
 	* loaddefs.el: Removed autoload sections for the above files.
-	
+
         * loaddefs.el: Put autoload sections in alphabetical order by file
 	name.
 
@@ -6240,7 +6240,7 @@
 	* add-log.el (change-log-mode): Set version-control to 'never
         locally.  Set adaptive-fill-regexp.  Make paragraph-separate
         match date lines.
-	
+
 	* bytecomp.el (byte-compile-file): Don't put file name in minibuffer.
 	(byte-compile-buffer): Function commented out.
 
@@ -6316,36 +6316,36 @@
 	* flow-ctrl.el (evade-flow-control-memstr=): Renamed from memstr=.
 
 1992-05-31  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
-	
+
 	* bibtex.el: merged in alarson's changes
-			
+
 	* simula.el: replaced Bj|rn Hessen's version with Hans Henrik
 	  Eriksen's improved version (both of them wanted it this way).
-	
-1992-05-31  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+
+1992-05-31  Noah Friedman  (friedman@splode.com)
 
         * subr.el (lambda): Added docstring.
 
 1992-05-31  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
-	
-	* gdb.el nuked --- subsumed by gdb entry point of gud.el	
-		
+
+	* gdb.el nuked --- subsumed by gdb entry point of gud.el
+
 	* dbx.el nuked --- subsumed by dbx entry point of gud.el
-		
-	* session.el nuked --- saveconf.el is better	
-		
+
+	* session.el nuked --- saveconf.el is better
+
 	* add-log.el now contains the add-log-new.el changes which merge
-	consecutive entries by the same user on the same day and try to 
+	consecutive entries by the same user on the same day and try to
 	auto-generate both the file key and function changed fields --- the
 	old version still exists in the ~n~ files if this loses, but
 	the code looks good.
-	
+
 1992-05-30  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
-	
+
 	* profile.el: installed
 
 	* cus-print.el:	installed
-	
+
 1992-05-30  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* startup.el (normal-top-level): Call abbreviate-file-name instead
@@ -6495,14 +6495,14 @@
 	the files; re-enable them before we dump.
 
 1992-05-12  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
-	
+
 	* startup.el (normal-top-level): If (getenv "PWD") or (getenv
 	"HOME") refer to the same directory as default-directory, change
 	default-directory to the shortest of the three.
 
 	* disass.el (disassemble-internal): Use indirect-function instead
 	of just looping.
-	
+
 1992-05-12  Joseph Arceneaux  (jla@churchy.gnu.ai.mit.edu)
 
         * simple.el (kill-region): Call the interprogram-cut-function if
@@ -6650,7 +6650,7 @@
 
 	* files.el (write-contents-hooks): New variable.
 	(basic-save-buffer): Use write-contents-hooks like write-file-hooks.
- 
+
 1992-03-31  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
 	* bytecomp.el (byte-compile-let, byte-compile-let*): Signal an
@@ -6752,7 +6752,7 @@
 	(describe-arg): New function (actually, uncommented).
 	(digit-argument, negative): Call prefix-arg-internal with a
 	string for KEY argument, not a character.
-	
+
 	* simple.el (digit-argument): Strip off high bit of
 	last-command-char.
 
@@ -6761,7 +6761,7 @@
 	* term/tvi970.el: New file.
 
 1992-01-16  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
-	
+
 	* screen.el: Don't automatically bind C-z to iconify; this is
 	inappropriate on terminals.
 	* term/x-win.el: Bind C-z to iconify here.
@@ -6783,9 +6783,9 @@
 	* term/new-at386.el: Rewritten to use function-key-map.
 
 1992-01-10  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
-	
-	* flow-ctrl.el: installed.	
-	
+
+	* flow-ctrl.el: installed.
+
 1992-01-08  Jim Blandy  (jimb at occs.cs.oberlin.edu)
 
 	* simple.el (temporary-goal-column): Added missing closing paren.
@@ -6967,7 +6967,7 @@
 	add lines.
 
 1991-10-26  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
-	
+
 	* disass.el (disassemble): Correctly distinguish functions with no
 	interactive spec and functions that are (interactive).  Correctly
 	extract components of explicit calls to byte-code (old-style
@@ -7097,13 +7097,13 @@
 	Come on, guys.
 
 1991-08-20  Michael I Bushnell  (mib@geech.gnu.ai.mit.edu)
-	
+
 	* rmail.el (rmail-convert-to-babyl-format): Roland added the
-	missing paren in the wrong place; fixed.	
-		
+	missing paren in the wrong place; fixed.
+
 	* screen.el (screen-initialize): Added missing `function' around
 	lambda expression.
-		
+
 1991-08-20  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* files.el (switch-to-buffer-other-screen,
@@ -7283,7 +7283,7 @@
 	into its place - the new version seemed to have half-completed
 	major changes.  Added autoload marks and changed it to (provide
 	'etags) instead of tags.
-    
+
     	* help.el: Autoload the (defvar help-map ...) so that info.el
 	can define keys in it.
 	* loaddefs.el: Updated.
@@ -7315,18 +7315,18 @@
 	alternate names.
 
 1991-07-24  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
-	
+
 	* diff.el (diff): Turn off read-only flag to insert "no
 	differences" message.
-	
+
 1991-07-23  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
-	
+
 	* isearch.el (isearch): If the user switches to a different
 	screen, exit the isearch.
-		
+
 	* isearch.el (isearch): Changed reference to `cmds' to use
 	variable's new name `history'.
-	
+
 1991-07-23  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* rmail.el (rmail-first-unseen-message): Make loop looking for
@@ -7335,15 +7335,15 @@
 	* rmail.el (rmail-widen-to-current-msgbeg): Added missing close paren.
 
 1991-07-21  Jim Blandy  (jimb@pogo.gnu.ai.mit.edu)
-	
+
 	* isearch.el (isearch): Don't assume that we're repeating a search
 	that found an empty string; check history to make sure we're
 	repeating a search and not starting one up with a pattern from the
 	ring.
-		
+
 	* view.el: When initializing view-mode-map, use the new-style key
 	maps.
-		
+
 	* screen.el (auto-new-screen-function): Set this to a lambda which
 	calls the screen-creation-func.
 
@@ -7390,7 +7390,7 @@
 	(fortran-setup-tab-format-style):  Set `fortran-comment-line-column' and
 	`fortran-minimum-statement-indent' to (max tab-width 6) instead of 8.
 	The minimum 6 insures legal indenting for lines with line numbers.
-	
+
 1991-07-13  Jim Blandy  (jimb at churchy.gnu.ai.mit.edu)
 
 	* info.el (Info-find-node): Call buffer-flush-undo with one arg,
@@ -7405,7 +7405,7 @@
 	* replace.el (occur): Set tem to the location of the match before
 	adding it to occur-pos-list, so we don't end up with an
 	occur-pos-list of nulls.  And allocate the final-context-start
-	marker once, so we don't allocate jillions of markers in the 
+	marker once, so we don't allocate jillions of markers in the
 
 1991-07-11  Jim Blandy  (jimb at geech.gnu.ai.mit.edu)
 
@@ -7514,9 +7514,9 @@
 	* upd-copyr.el (update-copyright): Fixed typo in help text.
 
 1991-05-26  Roland McGrath  (roland@albert.gnu.ai.mit.edu)
-	
+
 	* disass.el (disassemble-internal): Fixed typo string? -> stringp.
-	
+
 1991-05-26  Edward M. Reingold  (reingold at emr.cs.uiuc.edu)
 
         * holiday.el (calendar-holiday-function-passover-etc): Correct
@@ -7535,28 +7535,28 @@
 
 	* sendmail.el (mail-archive-file-name): Make this a defvar, not a
 	defconst.  There seems to be no entry saying why this was made a
-	defconst. 
+	defconst.
 
 	* text-mode.el (indented-text-mode-map): When redefining TAB,
 	don't clobber the definition in text-mode-map, but DO share the
 	rest of text-mode-map.
 
 1991-05-23  Michael I Bushnell  (mib@geech.gnu.ai.mit.edu)
-	
+
 	* startup.el (command-line): don't do anything if $VERSION_CONTROL
 	is not set; move code to import environment var ahead of .emacs
-	load.	
-	
+	load.
+
 1991-05-22  Brian Preble  (rassilon at mole.gnu.ai.mit.edu)
 
 	* forms.el (scroll-up, scroll-down): Made argument &optional.
 
 1991-05-22  Michael I Bushnell  (mib@churchy.gnu.ai.mit.edu)
-	
+
 	* rmail.el (rmail-variables): Rmail should not be a
 	save-buffer-skip buffer.  If the user wants this confusing
-	behavior, it can be personally customized.	
-	
+	behavior, it can be personally customized.
+
 1991-05-22  Jim Blandy  (jimb at wookumz.gnu.ai.mit.edu)
 
 	* term/x-win.el (x-switches-specified): Variable deleted; the
@@ -7777,7 +7777,7 @@
 	minimum.
 
 	(fortran-current-line-indentation, fortran-indent-to-column):
-	(fortran-split-line, fortran-numerical-continuation-char): 
+	(fortran-split-line, fortran-numerical-continuation-char):
 	(fortran-line-number-indented-correctly-p): Handle tab format style.
 
 	(fortran-analyze-file-format):
@@ -7935,12 +7935,12 @@
 	* fill.el (justify-current-line): Handle extra indent after prefix.
 
 1991-03-14  Robert J. Chassell (bob@gnu.ai.mit.edu)
-	
+
         * info.el (Info-forward-node): Go up several levels, if necessary.
-        Add two new arguments. 
+        Add two new arguments.
         (Info-final-node): Go forward from last node in menu.
 	(Info-find-node): Turn off undo in Info's buffers.
-	
+
 1991-03-14  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* add-log.el (add-change-log-entry): Use `@', not ` at '.
@@ -7988,7 +7988,7 @@
 
 1991-03-04  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* info.el (Info-extract-menu-item): Use regexp search. 
+	* info.el (Info-extract-menu-item): Use regexp search.
 	(Info-extract-menu-node-name): Fix typo in arglist.
 
 	* info.el (Info-top-node, Info-final-node): New functions.
@@ -8177,7 +8177,7 @@
 1991-01-21  Mike Newton  (newton@fig)
 
 	* bibtex.el -- updated to conform better with bibtex 0.99c by:
-	bibtex-mode : updated comments to indicate new use of 
+	bibtex-mode : updated comments to indicate new use of
 	address, add minor explanations and fix small omissions.
 	bibtex-entry : fixed spelling of variable
 
@@ -8186,7 +8186,7 @@
 	Needs to have more work done to accept all cases.  Added code for
 	the bibtex 'crossref' command, which subsumes other options.  Made
 	field ordering different when this option on.  Also allow user to
-	have a list of field to be added to all entries 
+	have a list of field to be added to all entries
 	(bibtex-mode-user-optional-fields).  Merged in Bengt Martensson's
 	changes.
 
@@ -8201,7 +8201,7 @@
 	* info.el (Info): Init Info-directory-list from INFOPATH.
 
 1991-01-12  Jim Blandy  (jimb@gnu.ai.mit.edu)
-	
+
 	* etags.el (visit-tags-file-buffer): use progn instead of
 	save-excursion, so the buffer actually gets visited.
 
@@ -8498,19 +8498,19 @@
 
 	* bibtex.el (bibtex-make-entry) : renamed  bibtex-make-field
 
-	* bibtex.el (bibtex-make-optional-entry) : renamed  
+	* bibtex.el (bibtex-make-optional-entry) : renamed
 	bibtex-make-optional-field.
 
-	* bibtex.el (bibtex-Article) : change order of presentation 
+	* bibtex.el (bibtex-Article) : change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-InBook) : change order of presentation 
+	* bibtex.el (bibtex-InBook) : change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-InCollection) : change order of presentation 
+	* bibtex.el (bibtex-InCollection) : change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-InProceedings) : change order of presentation 
+	* bibtex.el (bibtex-InProceedings) : change order of presentation
 	if OPTcrossref is set.
 
 	* bibtex.el (bibtex-MastersThesis) : added "note".
@@ -8519,7 +8519,7 @@
 
 	* bibtex.el (bibtex-inside-field) : only go backwards if quote is there.
 
-	* bibtex.el (bibtex-clean-entry) : added call to 
+	* bibtex.el (bibtex-clean-entry) : added call to
 	bibtex-clean-entry-zap-empty-opts, OPT field testing for errors.
 
 	* bibtex.el (bibtex-x-help) : added options Conference and preamble,
@@ -8649,7 +8649,7 @@
 
 1990-10-19  Neil Mager  (neilm@juliet.ll.mit.edu)
 
-        * appt.el: Changed issue-appointments-message to 
+        * appt.el: Changed issue-appointments-message to
         appt.issue.message in header.
 
         * appt.el: Using copy modified by rms.
@@ -8668,14 +8668,14 @@
 	* files.el (basic-save-buffer): Run after-save-hooks.
 
 1990-11-21  Robert J. Chassell  (bob@gnu.ai.mit.edu)
-	
+
         * texinfmt.el (texinfo-parse-line-arg): Ignore spaces@end of
         line.
         (texinfo-format-make-node): Handle Info file names with periods in
         them.
-        
+
         * history.el: Specify `(provide 'history)'.
-	
+
 1990-11-20  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
         * calendar.el:
@@ -8699,7 +8699,7 @@
         made are marking.
         (insert-block-diary-entry), (insert-anniversary-diary-entry),
         (insert-cyclic-diary-entry): New functions.
-        
+
         * calendar.el:
         Autoload them.
 	(calendar-mode-map): Put them on keys.
@@ -8830,7 +8830,7 @@
         (calendar-forward-day): Fixed movement when cursor is not on a date
         and arg is negative.
         Added description of new `if' form to doc string for calendar-holidays.
-        
+
 
         * diary.el:
         Changed all calls to `mod' to call `%' to avoid problem with cl.
@@ -9024,7 +9024,7 @@
         (texinfo-optional-braces-discard): Discard optional braces.
 
         * texnfo-upd.el (texinfo-incorporate-descriptions): Require exact
-        match for item names.  
+        match for item names.
         (texinfo-update-menu-region-beginning): Do not accidentally copy
         an info-only title for the top node into the main menu.
         (texinfo-section-types-regexp): Add `@chapheading'.
@@ -9107,7 +9107,7 @@
 	* compile.el:  Major overhauls.  Remove references to mode, since
 	it never really was a mode.
 	(compile-regexp-list):  Don't use a single regexp, but try
-	multiple ones from a list. 
+	multiple ones from a list.
 	(next-error): Don't read in every single file when doing
 	next-error, just go to the line of the next file, reading it in if
 	need be.  The old method was slow and could end up creating a lot
@@ -9325,16 +9325,16 @@
 	* cl.el:
         (defstruct):  The copier function invoked the non-existent
 	copy-vector.  Calling copy-sequence does the job.
-        (defsetf for point):  Point's inverse is goto-char.  Of course, 
+        (defsetf for point):  Point's inverse is goto-char.  Of course,
         what do we do with the other basic types of Emacs Lisp?
         (member):  Another, perhaps counterproductive, speed hack.  When
 	test or testnot are symbols (hopefully, non-null), they are
 	replaced by their symbol-function slots.  This presumably reduces
-	one indirection per each funcall in the inner loop.  
+	one indirection per each funcall in the inner loop.
         (byte-compile-named-list-accessors):  Another byte-compile
 	handler, this one eliminates the extra call incurred when using
 	first, ..., tenth, or rest.  This makes those list accessors
-	essentially as primitive as car, cdr, or nth. 
+	essentially as primitive as car, cdr, or nth.
         (with-keyword-args): Macro that simplifies most of the handling of
 	klists.  The only neglected functionality is that no supplied-p
 	forms exist (although that is true also of lambda lists in Emacs Lisp).
@@ -9345,14 +9345,14 @@
 	These are dummies, and have no effect whatsoever.  (Perhaps `the'
 	could be made to check in  interpreter, and to ignore in the
 	compiler.  Then again, writing `typecase' would be also useful and
-	I haven't done it yet.) 
+	I haven't done it yet.)
         (byte-compile-ca*d*r):  New function, used as a handler from
 	byte-compile-form to eliminate the extra call to the c*r functions
-	in compiled code. 
+	in compiled code.
         (adjoin, map):  Changed to use `memq' instead of `member', too.
         (case, ecase):  Via a change in case-clausify, these macros now
 	generate tests using the primitive `memq', instead of the heavier
-	`member'. 
+	`member'.
         (member):  Rewrote it to exploit the keyword argument machinery.
 	It also tries to call memq whenever possible.
 	(many funcs):  Two-branch conds changed into simple ifs here and
@@ -9366,7 +9366,7 @@
         (concatenate, map):  New functions.
         (extract-from-klist):  Swapped arguments for convenience.
         (keyword-argument-supplied-p, cl$subseq-as-list):  New auxiliary
-	functions. 
+	functions.
         (build-klist):  Better error messages.
         (psetf):  Rewrote, patterned after the new psetq.
         (psetq):  Added early check for even number of arguments.  This
@@ -9384,7 +9384,7 @@
         subst, subst-if, subst-if-not, sublis,
         member-if, member-if-not, tailp):  New functions, developed apart
 	and now merged with the main file.  They still don't take :keyword
-	arguments. 
+	arguments.
 
 	* sort.el (sort-subr):  Support floating point numbers.
 	(sort-float-fields, reverse-region):  New functions.
@@ -9603,7 +9603,7 @@
 
         * texnfo-upd.el (texinfo-all-menus-update): With a non-nil
           argument, now updates all the nodes in the buffer before
-          updating the menus. 
+          updating the menus.
 
         * texnfo-upd.el (texinfo-master-menu): With non-nil argument
           (prefix, if interactive) means first update all existing nodes
@@ -9650,7 +9650,7 @@
 	* dired.el (dired-flag-regexp-files): Added function to flag all
 	files matching a REGEXP for deletion.
 	(): Bound this function to key "F" in dired-mode ("D" was already
-	taken). 
+	taken).
 
 1990-06-22  Richard Stallman  (rms@albert.ai.mit.edu)
 
@@ -9896,7 +9896,7 @@
 1990-04-30  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* float.el (float-to-string):
-	Adjust POWER when rounding makes new digit. 
+	Adjust POWER when rounding makes new digit.
 
 1990-04-26  Joseph Arceneaux  (jla@gnu.ai.mit.edu)
 
@@ -10109,7 +10109,7 @@
 
 1990-03-07  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* sendmail.el (mail-do-fcc): Temporarily unwiden 
+	* sendmail.el (mail-do-fcc): Temporarily unwiden
 
 1990-03-06  Joseph Arceneaux  (jla@gnu.ai.mit.edu)
 
@@ -10357,7 +10357,7 @@
 
 	* loaddefs.el: Removed above from dired-listing-switches doc string.
 
-        * mh-e.el (c/o James Larus <larus@cs.wisc.edu>): 
+        * mh-e.el (c/o James Larus <larus@cs.wisc.edu>):
 	  Accepts message range specifications.
 	  Defaults sequence name to previous sequence name when reading.
 	  Made mode-line id user-setable.
@@ -10484,7 +10484,7 @@
         * calendar.el (mark-diary-entries): Made "sticky" so effect continues
         whenever the calendar is redisplayed.
         (mark-calendar-holidays, calendar-unmark): Likewise.
-        
+
 1989-12-26  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
         * calendar.el: Fixed many minor bugs throughout the code. The major
@@ -10589,7 +10589,7 @@
 	* telnet.el: Converted to use comint.  Removed
         delete-char-or-send-eof and telnet-copy-last-input.  Added
         telnet-mode-hook.  Modified telnet-filter to insert-before-markers
-	at the process-mark.	
+	at the process-mark.
 
 1989-12-10  David Lawrence  (tale@cocoa-puffs)
 
@@ -10600,7 +10600,7 @@
 	kermit-clean-filter with a more efficient version.
 
 	* comint.el: Added optional arguments ``terminator'' and
-	``delete'' to 	comint-send-input, for processes that want to see 
+	``delete'' to 	comint-send-input, for processes that want to see
 	a CR or CR-LFD pair instead of LFD and for processes that do echoing.
 
 1989-12-08  David Lawrence  (tale@cocoa-puffs)
@@ -10613,9 +10613,9 @@
 	than append to it (user option?).  comint-kill-output will only
 	nuke through the last newline, to retain prompt.
 	comint-show-output will start window@line before output start,
-	to show command. 
+	to show command.
 
-	* dbx.el: Converted to use comint-mode. 
+	* dbx.el: Converted to use comint-mode.
 
 1989-12-06  David Lawrence  (tale@wheat-chex)
 
@@ -10858,7 +10858,7 @@
 
           Added keybindings for `texinfo-format-buffer',
           `texinfo-update-node', `texinfo-every-node-update',
-          `texinfo-make-menu', and `texinfo-all-menus-update'. 
+          `texinfo-make-menu', and `texinfo-all-menus-update'.
 
         * texinfo-update.el (texinfo-sequential-node-update): now updates
           node in which point is located so pointer are to next and
@@ -10876,7 +10876,7 @@
           menu following point to specified column.  Non-nil argument
           (prefix, if interactive) means indent every description in every
           menu in the region.  Does not indent second and subsequent lines
-          of a multi-line description. 
+          of a multi-line description.
 
           (texinfo-insert-menu, texinfo-column-for-description): starts a
           menu description@column specified by variable
@@ -11059,7 +11059,7 @@
 	* c-mode.el (indent-c-exp): Remove indentation from blank lines.
 	When trying to move up to init contain-stack, don't go past
 	start of function.  If no containing open is found thus,
-	set opoint to prev. function-start, so calculate-c-indent wins.	
+	set opoint to prev. function-start, so calculate-c-indent wins.
 
 1989-08-12  Richard Stallman  (rms@hobbes.ai.mit.edu)
 
@@ -11425,7 +11425,7 @@
 
 1989-05-11  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* loaddefs.el (completion-ignored-extensions): Add .sbin.	
+	* loaddefs.el (completion-ignored-extensions): Add .sbin.
 
 	* c-mode.el (c-fill-paragraph): Recognize first line of comment.
 	Move to second line to get fill prefix.
@@ -12026,7 +12026,7 @@
 1989-01-13  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* files.el (find-alternate-file): Don't change prefix to `~'
-	unless a slash follows. 
+	unless a slash follows.
 
 	* lisp.el (insert-parentheses): skip leading spaces if arg,
 	maybe insert one if no arg.
