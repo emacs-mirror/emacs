@@ -1,3 +1,16 @@
+2004-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (struct interval_block, struct string_block)
+	(struct symbol_block, struct marker_block, live_string_p)
+	(live_cons_p, live_symbol_p, live_float_p, live_misc_p):
+	Better preserve alignment for objects in blocks.
+	(FLOAT_BLOCK_SIZE): Adjust for possible alignment padding.
+
+	* lread.c (defvar_per_buffer): Remove dead declaration.
+
+	* macterm.c (do_check_ram_size): Don't hardcode the lisp address
+	space size.
+
 2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (popup_get_selection): Check new parameter down_on_keypress

@@ -1,3 +1,8 @@
+2004-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Test window-system rather than system-type (for X11/Mac).
+
 2004-01-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/bytecomp.el (compile-defun): Doc fix.
