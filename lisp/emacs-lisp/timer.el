@@ -161,7 +161,7 @@ fire repeatedly that many seconds apart."
   (aset timer 6 args)
   timer)
 
-(defun timer-activate (timer)
+(defun timer-activate (timer &optional triggered-p)
   "Put TIMER on the list of active timers."
   (if (and (timerp timer)
 	   (integerp (aref timer 1))
@@ -184,7 +184,7 @@ fire repeatedly that many seconds apart."
 	(if last
 	    (setcdr last (cons timer timers))
 	  (setq timer-list (cons timer timers)))
-	(aset timer 0 nil)
+	(aset timer 0 triggered-p)
 	(aset timer 7 nil)
 	nil)
     (error "Invalid or uninitialized timer")))
@@ -270,7 +270,7 @@ This function is called, by name, directly by the C code."
   (setq timer-event-last timer)
   (let ((inhibit-quit t))
     (if (timerp timer)
-	(progn
+	(let (retrigger)
 	  ;; Delete from queue.
 	  (cancel-timer timer)
 	  ;; Re-schedule if requested.
@@ -287,13 +287,16 @@ This function is called, by name, directly by the C code."
 				      (aref timer 4))))
 		      (if (> repeats timer-max-repeats)
 			  (timer-inc-time timer (* (aref timer 4) repeats)))))
-		(timer-activate timer)))
+		(timer-activate timer t)
+		(setq retrigger t)))
 	  ;; Run handler.
 	  ;; We do this after rescheduling so that the handler function
 	  ;; can cancel its own timer successfully with cancel-timer.
 	  (condition-case nil
 	      (apply (aref timer 5) (aref timer 6))
-	    (error nil)))
+	    (error nil))
+	  (if retrigger
+	      (aset timer 7 nil)))
       (error "Bogus timer event"))))
 
 ;; This function is incompatible with the one in levents.el.
