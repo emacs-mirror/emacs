@@ -2683,9 +2683,11 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 (defun rmail-expunge ()
   "Erase deleted messages from Rmail file and summary buffer."
   (interactive)
-  (when (or (null rmail-confirm-expunge)
-	    (funcall rmail-confirm-expunge
-		     "Erase deleted messages from Rmail file? "))
+  (when (and (stringp rmail-deleted-vector)
+	     (string-match "D" rmail-deleted-vector)
+	     (or (null rmail-confirm-expunge)
+		 (funcall rmail-confirm-expunge
+			  "Erase deleted messages from Rmail file? ")))
     (rmail-only-expunge)
     (if (rmail-summary-exists)
 	(rmail-select-summary
