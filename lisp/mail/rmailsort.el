@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: rmailsort.el,v 1.6 93/05/26 22:24:42 umerin Exp $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/rmailsort.el,v 1.14 1993/05/26 20:28:11 rms Exp rms $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -22,47 +22,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Commentary:
-
-;; LCD Archive Entry:
-;; rmailsort|Masanobu UMEDA|umerin@mse.kyutech.ac.jp|
-;; Rmail: sort messages.|
-;; $Date: 93/05/26 22:24:42 $|$Revision: 1.6 $|~/misc/rmailsort.el.Z|
-
 ;;; Code:
 
-(require 'rmail)
 (require 'sort)
 
 (autoload 'timezone-make-date-sortable "timezone")
 
-;; GNUS compatible key bindings.
-
-(define-key rmail-mode-map "\C-c\C-s\C-d" 'rmail-sort-by-date)
-(define-key rmail-mode-map "\C-c\C-s\C-s" 'rmail-sort-by-subject)
-(define-key rmail-mode-map "\C-c\C-s\C-a" 'rmail-sort-by-author)
-(define-key rmail-mode-map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
-(define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
-(define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
-
-;; Key binding may not be installed unless Rmail Summary mode is loaded.
-(if (boundp 'rmail-summary-mode-map)
-    (progn
-      (define-key rmail-summary-mode-map
-	"\C-c\C-s\C-d" 'rmail-summary-sort-by-date)
-      (define-key rmail-summary-mode-map
-	"\C-c\C-s\C-s" 'rmail-summary-sort-by-subject)
-      (define-key rmail-summary-mode-map
-	"\C-c\C-s\C-a" 'rmail-summary-sort-by-author)
-      (define-key rmail-summary-mode-map
-	"\C-c\C-s\C-r" 'rmail-summary-sort-by-recipient)
-      (define-key rmail-summary-mode-map
-	"\C-c\C-s\C-c" 'rmail-summary-sort-by-correspondent)
-      (define-key rmail-summary-mode-map
-	"\C-c\C-s\C-l" 'rmail-summary-sort-by-lines)
-      ))
-
-
 ;; Sorting messages in Rmail buffer
 
 (defun rmail-sort-by-date (reverse)
@@ -135,7 +100,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
     ans))
 
 (defun rmail-sort-by-lines (reverse)
-  "Sort messages of current Rmail file by lines of the message.
+  "Sort messages of current Rmail file by number of lines.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
   (interactive "P")
   (rmail-sort-messages reverse
@@ -143,45 +108,6 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			(lambda (msg)
 			  (count-lines (rmail-msgbeg msgnum)
 				       (rmail-msgend msgnum))))))
-
-;; Sorting messages in Rmail Summary buffer.
-
-(defun rmail-summary-sort-by-date (reverse)
-  "Sort messages of current Rmail summary by date.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
-  (interactive "P")
-  (rmail-sort-from-summary (function rmail-sort-by-date) reverse))
-
-(defun rmail-summary-sort-by-subject (reverse)
-  "Sort messages of current Rmail summary by subject.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
-  (interactive "P")
-  (rmail-sort-from-summary (function rmail-sort-by-subject) reverse))
-
-(defun rmail-summary-sort-by-author (reverse)
-  "Sort messages of current Rmail summary by author.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
-  (interactive "P")
-  (rmail-sort-from-summary (function rmail-sort-by-author) reverse))
-
-(defun rmail-summary-sort-by-recipient (reverse)
-  "Sort messages of current Rmail summary by recipient.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
-  (interactive "P")
-  (rmail-sort-from-summary (function rmail-sort-by-recipient) reverse))
-
-(defun rmail-summary-sort-by-correspondent (reverse)
-  "Sort messages of current Rmail summary by other correspondent.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
-  (interactive "P")
-  (rmail-sort-from-summary (function rmail-sort-by-correspondent) reverse))
-
-(defun rmail-summary-sort-by-lines (reverse)
-  "Sort messages of current Rmail summary by lines of the message.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
-  (interactive "P")
-  (rmail-sort-from-summary (function rmail-sort-by-lines) reverse))
-
 
 ;; Basic functions
 
@@ -250,12 +176,6 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
       (rmail-show-message current-message))
     ))
 
-(defun rmail-sort-from-summary (sortfun reverse)
-  "Sort Rmail messages from Summary buffer and update it after sorting."
-  (pop-to-buffer rmail-buffer)
-  (funcall sortfun reverse)
-  (rmail-summary))
-
 (defun rmail-fetch-field (msg field)
   "Return the value of the header FIELD of MSG.
 Arguments are MSG and FIELD."
@@ -274,38 +194,6 @@ Arguments are MSG and FIELD."
   "Make DATE sortable using the function string-lessp."
   ;; Assume the default time zone is GMT.
   (timezone-make-date-sortable date "GMT" "GMT"))
-
-;; Copy of the function gnus-comparable-date in gnus.el version 3.13
-;
-;(defun rmail-make-date-sortable (date)
-;  "Make sortable string by string-lessp from DATE."
-;  (let ((month '(("JAN" . " 1")("FEB" . " 2")("MAR" . " 3")
-;		 ("APR" . " 4")("MAY" . " 5")("JUN" . " 6")
-;		 ("JUL" . " 7")("AUG" . " 8")("SEP" . " 9")
-;		 ("OCT" . "10")("NOV" . "11")("DEC" . "12")))
-;	(date (or date "")))
-;    ;; Can understand the following styles:
-;    ;; (1) 14 Apr 89 03:20:12 GMT
-;    ;; (2) Fri, 17 Mar 89 4:01:33 GMT
-;    (if (string-match
-;	 "\\([0-9]+\\) \\([^ ,]+\\) \\([0-9]+\\) \\([0-9:]+\\)" date)
-;	(concat
-;	 ;; Year
-;	 (substring date (match-beginning 3) (match-end 3))
-;	 ;; Month
-;	 (cdr
-;	  (assoc
-;	   (upcase (substring date (match-beginning 2) (match-end 2))) month))
-;	 ;; Day
-;	 (format "%2d" (string-to-int
-;			(substring date
-;				   (match-beginning 1) (match-end 1))))
-;	 ;; Time
-;	 (substring date (match-beginning 4) (match-end 4)))
-;      ;; Cannot understand DATE string.
-;      date
-;      )
-;    ))
 
 (provide 'rmailsort)
 
