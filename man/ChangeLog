@@ -1,3 +1,8 @@
+2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and drop): Add Motif to list of supported
+	protocols.
+
 2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.texi (Advanced Features): New functionality for
