@@ -77,7 +77,7 @@ int undo_strong_limit;
 Lisp_Object Vpurify_flag;
 
 #ifndef HAVE_SHM
-int pure[PURESIZE / sizeof (int)] = {0,};   /* Force it into data space! */
+EMACS_INT pure[PURESIZE / sizeof (EMACS_INT)] = {0,};   /* Force it into data space! */
 #define PUREBEG (char *) pure
 #else
 #define pure PURE_SEG_BITS   /* Use shared memory segment */
@@ -89,7 +89,7 @@ int pure[PURESIZE / sizeof (int)] = {0,};   /* Force it into data space! */
    you should be able to change that without too much recompilation.
    So map_in_data initializes pure_size, and the dependencies work
    out.  */
-int pure_size;
+EMACS_INT pure_size;
 #endif /* not HAVE_SHM */
 
 /* Index in pure at which next pure object will be allocated. */
@@ -435,7 +435,7 @@ init_float ()
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  XFASTINT (ptr->type) = (int) float_free_list;
+  XFASTINT (ptr->type) = (EMACS_INT) float_free_list;
   float_free_list = ptr;
 }
 
@@ -508,7 +508,7 @@ init_cons ()
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  XFASTINT (ptr->car) = (int) cons_free_list;
+  XFASTINT (ptr->car) = (EMACS_INT) cons_free_list;
   cons_free_list = ptr;
 }
 
@@ -826,7 +826,7 @@ struct string_block_head
 struct string_block
   {
     struct string_block *next, *prev;
-    int pos;
+    EMACS_INT pos;
     char chars[STRING_BLOCK_SIZE];
   };
 
@@ -847,11 +847,11 @@ struct string_block *large_string_blocks;
 
 #define STRING_FULLSIZE(size) (((size) + sizeof (struct Lisp_String) + PAD) \
 			       & ~(PAD - 1))
-#define PAD (sizeof (int))
+#define PAD (sizeof (EMACS_INT))
 
 #if 0
 #define STRING_FULLSIZE(SIZE)   \
-(((SIZE) + 2 * sizeof (int)) & ~(sizeof (int) - 1))
+(((SIZE) + 2 * sizeof (EMACS_INT)) & ~(sizeof (EMACS_INT) - 1))
 #endif
 
 void
@@ -1010,7 +1010,7 @@ make_pure_string (data, length)
      int length;
 {
   register Lisp_Object new;
-  register int size = sizeof (int) + INTERVAL_PTR_SIZE + length + 1;
+  register int size = sizeof (EMACS_INT) + INTERVAL_PTR_SIZE + length + 1;
 
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
@@ -1024,8 +1024,8 @@ make_pure_string (data, length)
 #if defined (USE_TEXT_PROPERTIES)
   XSTRING (new)->intervals = NULL_INTERVAL;
 #endif
-  pureptr += (size + sizeof (int) - 1)
-	     / sizeof (int) * sizeof (int);
+  pureptr += (size + sizeof (EMACS_INT) - 1)
+	     / sizeof (EMACS_INT) * sizeof (EMACS_INT);
   return new;
 }
 
@@ -1086,10 +1086,10 @@ make_pure_float (num)
 
 Lisp_Object
 make_pure_vector (len)
-     int len;
+     EMACS_INT len;
 {
   register Lisp_Object new;
-  register int size = sizeof (struct Lisp_Vector) + (len - 1) * sizeof (Lisp_Object);
+  register EMACS_INT size = sizeof (struct Lisp_Vector) + (len - 1) * sizeof (Lisp_Object);
 
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
@@ -1235,7 +1235,7 @@ Garbage collection happens automatically if you cons more than\n\
 	    stack_copy = (char *) xrealloc (stack_copy, (stack_copy_size = i));
 	  if (stack_copy)
 	    {
-	      if ((int) (&stack_top_variable - stack_bottom) > 0)
+	      if ((EMACS_INT) (&stack_top_variable - stack_bottom) > 0)
 		bcopy (stack_bottom, stack_copy, i);
 	      else
 		bcopy (&stack_top_variable, stack_copy, i);
@@ -1503,9 +1503,9 @@ mark_object (objptr)
 	      }
 	    else
 	      XFASTINT (*objptr) = ptr->size;
-	    if ((int)objptr & 1) abort ();
-	    ptr->size = (int) objptr & ~MARKBIT;
-	    if ((int) objptr & MARKBIT)
+	    if ((EMACS_INT) objptr & 1) abort ();
+	    ptr->size = (EMACS_INT) objptr & ~MARKBIT;
+	    if ((EMACS_INT) objptr & MARKBIT)
 	      ptr->size ++;
 	  }
       }
@@ -1517,7 +1517,7 @@ mark_object (objptr)
     case Lisp_Window_Configuration:
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
-	register int size = ptr->size;
+	register EMACS_INT size = ptr->size;
 	/* The reason we use ptr1 is to avoid an apparent hardware bug
 	   that happens occasionally on the FSF's HP 300s.
 	   The bug is that a2 gets clobbered by recursive calls to mark_object.
@@ -1540,7 +1540,7 @@ mark_object (objptr)
 	 there.  */
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
-	register int size = ptr->size;
+	register EMACS_INT size = ptr->size;
 	/* See comment above under Lisp_Vector.  */
 	struct Lisp_Vector *volatile ptr1 = ptr;
 	register int i;
@@ -1563,7 +1563,7 @@ mark_object (objptr)
       {
 	/* See comment above under Lisp_Vector for why this is volatile.  */
 	register struct frame *volatile ptr = XFRAME (obj);
-	register int size = ptr->size;
+	register EMACS_INT size = ptr->size;
 
 	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
@@ -1733,7 +1733,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (cblk->conses[i].car))
 	    {
-	      XFASTINT (cblk->conses[i].car) = (int) cons_free_list;
+	      XFASTINT (cblk->conses[i].car) = (EMACS_INT) cons_free_list;
 	      num_free++;
 	      cons_free_list = &cblk->conses[i];
 	    }
@@ -1763,7 +1763,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (fblk->floats[i].type))
 	    {
-	      XFASTINT (fblk->floats[i].type) = (int) float_free_list;
+	      XFASTINT (fblk->floats[i].type) = (EMACS_INT) float_free_list;
 	      num_free++;
 	      float_free_list = &fblk->floats[i];
 	    }
@@ -1827,7 +1827,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (sblk->symbols[i].plist))
 	    {
-	      XFASTINT (sblk->symbols[i].value) = (int) symbol_free_list;
+	      XFASTINT (sblk->symbols[i].value) = (EMACS_INT) symbol_free_list;
 	      symbol_free_list = &sblk->symbols[i];
 	      num_free++;
 	    }
@@ -1865,7 +1865,7 @@ gc_sweep ()
 	      tem1 = &mblk->markers[i];  /* tem1 avoids Sun compiler bug */
 	      XSET (tem, Lisp_Marker, tem1);
 	      unchain_marker (tem);
-	      XFASTINT (mblk->markers[i].chain) = (int) marker_free_list;
+	      XFASTINT (mblk->markers[i].chain) = (EMACS_INT) marker_free_list;
 	      marker_free_list = &mblk->markers[i];
 	      num_free++;
 	    }
@@ -2002,18 +2002,18 @@ compact_strings ()
 	    = (struct Lisp_String *) &from_sb->chars[pos];
 
 	  register struct Lisp_String *newaddr;
-	  register int size = nextstr->size;
+	  register EMACS_INT size = nextstr->size;
 
 	  /* NEXTSTR is the old address of the next string.
 	     Just skip it if it isn't marked.  */
-	  if ((unsigned) size > STRING_BLOCK_SIZE)
+	  if ((EMACS_UINT) size > STRING_BLOCK_SIZE)
 	    {
 	      /* It is marked, so its size field is really a chain of refs.
 		 Find the end of the chain, where the actual size lives.  */
-	      while ((unsigned) size > STRING_BLOCK_SIZE)
+	      while ((EMACS_UINT) size > STRING_BLOCK_SIZE)
 		{
 		  if (size & 1) size ^= MARKBIT | 1;
-		  size = *(int *)size & ~MARKBIT;
+		  size = *(EMACS_INT *)size & ~MARKBIT;
 		}
 
 	      total_string_size += size;
@@ -2039,14 +2039,14 @@ compact_strings ()
 
 	      /* Copy the string itself to the new place.  */
 	      if (nextstr != newaddr)
-		bcopy (nextstr, newaddr, size + 1 + sizeof (int)
+		bcopy (nextstr, newaddr, size + 1 + sizeof (EMACS_INT)
 		       + INTERVAL_PTR_SIZE);
 
 	      /* Go through NEXTSTR's chain of references
 		 and make each slot in the chain point to
 		 the new address of this string.  */
 	      size = newaddr->size;
-	      while ((unsigned) size > STRING_BLOCK_SIZE)
+	      while ((EMACS_UINT) size > STRING_BLOCK_SIZE)
 		{
 		  register Lisp_Object *objptr;
 		  if (size & 1) size ^= MARKBIT | 1;
@@ -2121,7 +2121,7 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.")
 {
   Lisp_Object end;
 
-  XSET (end, Lisp_Int, (int) sbrk (0) / 1024);
+  XSET (end, Lisp_Int, (EMACS_INT) sbrk (0) / 1024);
 
   return end;
 }
