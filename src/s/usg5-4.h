@@ -23,7 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Use the SysVr3 file for at least base configuration. */
 
-#include "s-usg5-3.h"
+#include "usg5-3.h"
 
 #define USG5_4
 
