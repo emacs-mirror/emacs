@@ -1,5 +1,9 @@
 2004-05-06  Juanma Barranquero  <lektu@terra.es>
 
+	* help-fns.el (help-argument-name): Default to bold; don't inherit
+	from font-lock-variable-name-face.
+	(help-do-arg-highlight): Grok also ARGth occurrences in the docstring.
+
 	* ehelp.el (electric-help-command-loop): Check whether the last
 	character is visible, not (point-max).
 
