@@ -63,7 +63,7 @@
 
 (put 'buffer-file-format 'permanent-local t)
 
-(defconst format-alist 
+(defvar format-alist 
   '((text/enriched "Extended MIME text/enriched format."
 		   "Content-[Tt]ype:[ \t]*text/enriched"
 		   enriched-decode enriched-encode t enriched-mode)
