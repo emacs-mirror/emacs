@@ -294,7 +294,7 @@ Leaves the point on the first non-blank character after the tag."
       ;;  or a simple word ?
       (if (looking-at "\"\\([^\"]*\\)\"")
 	  (setq start-pos (match-beginning 0))
-	(if (looking-at "'\\([^']*\\)")
+	(if (looking-at "'\\([^']*\\)'")
 	    (setq start-pos (match-beginning 0))
 	  (error "XML: Attribute values must be given between quotes")))
 
@@ -314,7 +314,7 @@ Leaves the point on the first non-blank character after the tag."
       (goto-char start-pos)
       (if (looking-at "\"\\([^\"]*\\)\"")
 	  (goto-char (match-end 0))
-	(if (looking-at "'\\([^']*\\)")
+	(if (looking-at "'\\([^']*\\)'")
 	    (goto-char (match-end 0))))
 
       (goto-char (- (re-search-forward "[^ \t\n\r]") 1))
