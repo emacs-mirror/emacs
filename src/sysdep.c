@@ -1318,7 +1318,8 @@ init_sys_modes ()
 #ifdef F_SETFL
 #ifndef F_SETOWN_BUG
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
-  if (interrupt_input)
+  if (interrupt_input
+      && ! read_socket_hook && EQ (Vwindow_system, Qnil))
     {
       old_fcntl_owner = fcntl (input_fd, F_GETOWN, 0);
       fcntl (input_fd, F_SETOWN, getpid ());
