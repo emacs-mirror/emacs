@@ -73,9 +73,9 @@
     (indian-is13194 . "IS13194-Devanagari")
     (indian-2-column . "MuleIndian-2")
     (indian-1-column . "MuleIndian-1")
-    (lao . "lao.mule-1")
-    (tibetan . "Mule.Tibetan-0")
-    (tibetan-1-column . "Mule.Tibetan-1")
+    (lao . "MuleLao-1")
+    (tibetan . "MuleTibetan-0")
+    (tibetan-1-column . "MuleTibetan-1")
     ))
 
 (let ((l x-charset-registries))
@@ -225,7 +225,7 @@ XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
 FONTLIST is an alist of cons of charset and fontname.
 
 Fontnames for charsets not listed in FONTLIST are generated from
-XLFD-FIELDS and a property of x-charset-register of each charset
+XLFD-FIELDS and a property of x-charset-registry of each charset
 automatically."
   (let ((charsets charset-list)
 	(style-ignored (copy-sequence xlfd-fields))
@@ -270,6 +270,14 @@ automatically."
 			      alternative-fontname-alist)))
 	      )))
       (setq charsets (cdr charsets))))
+
+  ;; Here's a trick for the charset latin-iso8859-1.  If font for
+  ;; ascii also contains Latin-1 characters, use it also for
+  ;; latin-iso8859-1.  This prevent loading a font for latin-iso8859-1
+  ;; by a different name.
+  (if (string-match (cdr (assq 'latin-iso8859-1 x-charset-registries))
+		    (cdr (assq 'ascii fontlist)))
+      (setcdr (assq 'latin-iso8859-1 fontlist) (cdr (assq 'ascii fontlist))))
   fontlist)
 
 ;; Return a list to be appended to `x-fixed-font-alist' when
