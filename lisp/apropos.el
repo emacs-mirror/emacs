@@ -232,7 +232,8 @@ Returns list of symbols and documentation found."
 		   (if (> (length substed) 67)
 		       (princ "\n  ")))
 		 (princ substed))))
-	(or (bolp) (terpri)))))
+	(or (bolp) (terpri)))
+      (help-mode)))
   t)
 
 ;; Find key bindings for symbols that are cars in ALIST.  Optionally, first
