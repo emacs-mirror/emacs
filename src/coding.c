@@ -5587,7 +5587,8 @@ There are three such tables, `file-coding-system-alist',\n\
 
   DEFVAR_BOOL ("inhibit-eol-conversion", &inhibit_eol_conversion,
     "*Non-nil means always inhibit code conversion of end-of-line format.\n\
-See info node `Text and Binary' concerning such conversion.");
+See info node `Coding Systems' and info node `Text and Binary' concerning\n\
+such conversion.");
   inhibit_eol_conversion = 0;
 
   DEFVAR_BOOL ("inherit-process-coding-system", &inherit_process_coding_system,
