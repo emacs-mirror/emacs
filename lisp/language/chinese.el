@@ -127,7 +127,9 @@
  'chinese-big5 3 ?B "BIG5 8-bit encoding for Chinese (MIME:CN-BIG5)"
  nil
  '((safe-charsets ascii chinese-big5-1 chinese-big5-2)
-   (mime-charset . cn-big5)))
+   (mime-charset . cn-big5)
+   (charset-origin-alist (chinese-big5-1  "BIG5" encode-big5-char)
+			 (chinese-big5-2  "BIG5" encode-big5-char))))
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
@@ -153,9 +155,6 @@
 (set-language-info-alist
  "Chinese-BIG5" '((charset chinese-big5-1 chinese-big5-2)
 		  (coding-system chinese-big5 chinese-iso-7bit)
-		  (charset-origin-alist
-		   (chinese-big5-1 "BIG5" encode-big5-char)
-		   (chinese-big5-2 "BIG5" encode-big5-char))
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit)
 		  (input-method . "chinese-py-punct-b5")
 		  (features china-util)
