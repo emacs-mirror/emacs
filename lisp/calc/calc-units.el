@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-units.el]
+;;; calc-units.el --- unit conversion functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -27,347 +32,6 @@
 (require 'calc-macs)
 
 (defun calc-Need-calc-units () nil)
-
-
-;;; Units commands.
-
-(defun calc-base-units ()
-  (interactive)
-  (calc-slow-wrapper
-   (let ((calc-autorange-units nil))
-     (calc-enter-result 1 "bsun" (math-simplify-units
-				  (math-to-standard-units (calc-top-n 1)
-							  nil))))))
-
-(defun calc-quick-units ()
-  (interactive)
-  (calc-slow-wrapper
-   (let* ((num (- last-command-char ?0))
-	  (pos (if (= num 0) 10 num))
-	  (units (calc-var-value 'var-Units))
-	  (expr (calc-top-n 1)))
-     (or (and (>= num 0) (<= num 9))
-	 (error "Bad unit number"))
-     (or (math-vectorp units)
-	 (error "No \"quick units\" are defined"))
-     (or (< pos (length units))
-	 (error "Unit number %d not defined" pos))
-     (if (math-units-in-expr-p expr nil)
-	 (calc-enter-result 1 (format "cun%d" num)
-			    (math-convert-units expr (nth pos units)))
-       (calc-enter-result 1 (format "*un%d" num)
-			  (math-simplify-units
-			   (math-mul expr (nth pos units))))))))
-
-(defun calc-convert-units (&optional old-units new-units)
-  (interactive)
-  (calc-slow-wrapper
-   (let ((expr (calc-top-n 1))
-	 (uoldname nil)
-	 unew)
-     (or (math-units-in-expr-p expr t)
-	 (let ((uold (or old-units
-			 (progn
-			   (setq uoldname (read-string "Old units: "))
-			   (if (equal uoldname "")
-			       (progn
-				 (setq uoldname "1")
-				 1)
-			     (if (string-match "\\` */" uoldname)
-				 (setq uoldname (concat "1" uoldname)))
-			     (math-read-expr uoldname))))))
-	   (if (eq (car-safe uold) 'error)
-	       (error "Bad format in units expression: %s" (nth 1 uold)))
-	   (setq expr (math-mul expr uold))))
-     (or new-units
-	 (setq new-units (read-string (if uoldname
-					  (concat "Old units: "
-						  uoldname
-						  ", new units: ")
-					"New units: "))))
-     (if (string-match "\\` */" new-units)
-	 (setq new-units (concat "1" new-units)))
-     (setq units (math-read-expr new-units))
-     (if (eq (car-safe units) 'error)
-	 (error "Bad format in units expression: %s" (nth 2 units)))
-     (let ((unew (math-units-in-expr-p units t))
-	   (std (and (eq (car-safe units) 'var)
-		     (assq (nth 1 units) math-standard-units-systems))))
-       (if std
-	   (calc-enter-result 1 "cvun" (math-simplify-units
-					(math-to-standard-units expr
-								(nth 1 std))))
-	 (or unew
-	     (error "No units specified"))
-	 (calc-enter-result 1 "cvun"
-			    (math-convert-units
-			     expr units
-			     (and uoldname (not (equal uoldname "1"))))))))))
-
-(defun calc-autorange-units (arg)
-  (interactive "P")
-  (calc-wrapper
-   (calc-change-mode 'calc-autorange-units arg nil t)
-   (message (if calc-autorange-units
-		"Adjusting target unit prefix automatically."
-	      "Using target units exactly."))))
-
-(defun calc-convert-temperature (&optional old-units new-units)
-  (interactive)
-  (calc-slow-wrapper
-   (let ((expr (calc-top-n 1))
-	 (uold nil)
-	 (uoldname nil)
-	 unew)
-     (setq uold (or old-units
-		    (let ((units (math-single-units-in-expr-p expr)))
-		      (if units
-			  (if (consp units)
-			      (list 'var (car units)
-				    (intern (concat "var-"
-						    (symbol-name
-						     (car units)))))
-			    (error "Not a pure temperature expression"))
-			(math-read-expr
-			 (setq uoldname (read-string
-					 "Old temperature units: ")))))))
-     (if (eq (car-safe uold) 'error)
-	 (error "Bad format in units expression: %s" (nth 2 uold)))
-     (or (math-units-in-expr-p expr nil)
-	 (setq expr (math-mul expr uold)))
-     (setq unew (or new-units
-		    (math-read-expr
-		     (read-string (if uoldname
-				      (concat "Old temperature units: "
-					      uoldname
-					      ", new units: ")
-				    "New temperature units: ")))))
-     (if (eq (car-safe unew) 'error)
-	 (error "Bad format in units expression: %s" (nth 2 unew)))
-     (calc-enter-result 1 "cvtm" (math-simplify-units
-				  (math-convert-temperature expr uold unew
-							    uoldname))))))
-
-(defun calc-remove-units ()
-  (interactive)
-  (calc-slow-wrapper
-   (calc-enter-result 1 "rmun" (math-simplify-units
-				(math-remove-units (calc-top-n 1))))))
-
-(defun calc-extract-units ()
-  (interactive)
-  (calc-slow-wrapper
-   (calc-enter-result 1 "rmun" (math-simplify-units
-				(math-extract-units (calc-top-n 1))))))
-
-(defun calc-explain-units ()
-  (interactive)
-  (calc-wrapper
-   (let ((num-units nil)
-	 (den-units nil))
-     (calc-explain-units-rec (calc-top-n 1) 1)
-     (and den-units (string-match "^[^(].* .*[^)]$" den-units)
-	  (setq den-units (concat "(" den-units ")")))
-     (if num-units
-	 (if den-units
-	     (message "%s per %s" num-units den-units)
-	   (message "%s" num-units))
-       (if den-units
-	   (message "1 per %s" den-units)
-	 (message "No units in expression"))))))
-
-(defun calc-explain-units-rec (expr pow)
-  (let ((u (math-check-unit-name expr))
-	pos)
-    (if (and u (not (math-zerop pow)))
-	(let ((name (or (nth 2 u) (symbol-name (car u)))))
-	  (if (eq (aref name 0) ?\*)
-	      (setq name (substring name 1)))
-	  (if (string-match "[^a-zA-Z0-9']" name)
-	      (if (string-match "^[a-zA-Z0-9' ()]*$" name)
-		  (while (setq pos (string-match "[ ()]" name))
-		    (setq name (concat (substring name 0 pos)
-				       (if (eq (aref name pos) 32) "-" "")
-				       (substring name (1+ pos)))))
-		(setq name (concat "(" name ")"))))
-	  (or (eq (nth 1 expr) (car u))
-	      (setq name (concat (nth 2 (assq (aref (symbol-name
-						     (nth 1 expr)) 0)
-					      math-unit-prefixes))
-				 (if (and (string-match "[^a-zA-Z0-9']" name)
-					  (not (memq (car u) '(mHg gf))))
-				     (concat "-" name)
-				   (downcase name)))))
-	  (cond ((or (math-equal-int pow 1)
-		     (math-equal-int pow -1)))
-		((or (math-equal-int pow 2)
-		     (math-equal-int pow -2))
-		 (if (equal (nth 4 u) '((m . 1)))
-		     (setq name (concat "Square-" name))
-		   (setq name (concat name "-squared"))))
-		((or (math-equal-int pow 3)
-		     (math-equal-int pow -3))
-		 (if (equal (nth 4 u) '((m . 1)))
-		     (setq name (concat "Cubic-" name))
-		   (setq name (concat name "-cubed"))))
-		(t
-		 (setq name (concat name "^"
-				    (math-format-number (math-abs pow))))))
-	  (if (math-posp pow)
-	      (setq num-units (if num-units
-				  (concat num-units " " name)
-				name))
-	    (setq den-units (if den-units
-				(concat den-units " " name)
-			      name))))
-      (cond ((eq (car-safe expr) '*)
-	     (calc-explain-units-rec (nth 1 expr) pow)
-	     (calc-explain-units-rec (nth 2 expr) pow))
-	    ((eq (car-safe expr) '/)
-	     (calc-explain-units-rec (nth 1 expr) pow)
-	     (calc-explain-units-rec (nth 2 expr) (- pow)))
-	    ((memq (car-safe expr) '(neg + -))
-	     (calc-explain-units-rec (nth 1 expr) pow))
-	    ((and (eq (car-safe expr) '^)
-		  (math-realp (nth 2 expr)))
-	     (calc-explain-units-rec (nth 1 expr)
-				     (math-mul pow (nth 2 expr))))))))
-
-(defun calc-simplify-units ()
-  (interactive)
-  (calc-slow-wrapper
-   (calc-with-default-simplification
-    (calc-enter-result 1 "smun" (math-simplify-units (calc-top-n 1))))))
-
-(defun calc-view-units-table (n)
-  (interactive "P")
-  (and n (setq math-units-table-buffer-valid nil))
-  (let ((win (get-buffer-window "*Units Table*")))
-    (if (and win
-	     math-units-table
-	     math-units-table-buffer-valid)
-	(progn
-	  (bury-buffer (window-buffer win))
-	  (let ((curwin (selected-window)))
-	    (select-window win)
-	    (switch-to-buffer nil)
-	    (select-window curwin)))
-      (math-build-units-table-buffer nil))))
-
-(defun calc-enter-units-table (n)
-  (interactive "P")
-  (and n (setq math-units-table-buffer-valid nil))
-  (math-build-units-table-buffer t)
-  (message (substitute-command-keys "Type \\[calc] to return to the Calculator.")))
-
-(defun calc-define-unit (uname desc)
-  (interactive "SDefine unit name: \nsDescription: ")
-  (calc-wrapper
-   (let ((form (calc-top-n 1))
-	 (unit (assq uname math-additional-units)))
-     (or unit
-	 (setq math-additional-units
-	       (cons (setq unit (list uname nil nil))
-		     math-additional-units)
-	       math-units-table nil))
-     (setcar (cdr unit) (and (not (and (eq (car-safe form) 'var)
-				       (eq (nth 1 form) uname)))
-			     (not (math-equal-int form 1))
-			     (math-format-flat-expr form 0)))
-     (setcar (cdr (cdr unit)) (and (not (equal desc ""))
-				   desc))))
-  (calc-invalidate-units-table))
-
-(defun calc-undefine-unit (uname)
-  (interactive "SUndefine unit name: ")
-  (calc-wrapper
-   (let ((unit (assq uname math-additional-units)))
-     (or unit
-	 (if (assq uname math-standard-units)
-	     (error "\"%s\" is a predefined unit name" uname)
-	   (error "Unit name \"%s\" not found" uname)))
-     (setq math-additional-units (delq unit math-additional-units)
-	   math-units-table nil)))
-  (calc-invalidate-units-table))
-
-(defun calc-invalidate-units-table ()
-  (setq math-units-table nil)
-  (let ((buf (get-buffer "*Units Table*")))
-    (and buf
-	 (save-excursion
-	   (set-buffer buf)
-	   (save-excursion
-	     (goto-char (point-min))
-	     (if (looking-at "Calculator Units Table")
-		 (let ((buffer-read-only nil))
-		   (insert "(Obsolete) "))))))))
-
-(defun calc-get-unit-definition (uname)
-  (interactive "SGet definition for unit: ")
-  (calc-wrapper
-   (math-build-units-table)
-   (let ((unit (assq uname math-units-table)))
-     (or unit
-	 (error "Unit name \"%s\" not found" uname))
-     (let ((msg (nth 2 unit)))
-       (if (stringp msg)
-	   (if (string-match "^\\*" msg)
-	       (setq msg (substring msg 1)))
-	 (setq msg (symbol-name uname)))
-       (if (nth 1 unit)
-	   (progn
-	     (calc-enter-result 0 "ugdf" (nth 1 unit))
-	     (message "Derived unit: %s" msg))
-	 (calc-enter-result 0 "ugdf" (list 'var uname
-					   (intern
-					    (concat "var-"
-						    (symbol-name uname)))))
-	 (message "Base unit: %s" msg))))))
-
-(defun calc-permanent-units ()
-  (interactive)
-  (calc-wrapper
-   (let (pos)
-     (set-buffer (find-file-noselect (substitute-in-file-name
-				      calc-settings-file)))
-     (goto-char (point-min))
-     (if (and (search-forward ";;; Custom units stored by Calc" nil t)
-	      (progn
-		(beginning-of-line)
-		(setq pos (point))
-		(search-forward "\n;;; End of custom units" nil t)))
-	 (progn
-	   (beginning-of-line)
-	   (forward-line 1)
-	   (delete-region pos (point)))
-       (goto-char (point-max))
-       (insert "\n\n")
-       (forward-char -1))
-     (insert ";;; Custom units stored by Calc on " (current-time-string) "\n")
-     (if math-additional-units
-	 (progn
-	   (insert "(setq math-additional-units '(\n")
-	   (let ((list math-additional-units))
-	     (while list
-	       (insert "  (" (symbol-name (car (car list))) " "
-		       (if (nth 1 (car list))
-			   (if (stringp (nth 1 (car list)))
-			       (prin1-to-string (nth 1 (car list)))
-			     (prin1-to-string (math-format-flat-expr
-					       (nth 1 (car list)) 0)))
-			 "nil")
-		       " "
-		       (prin1-to-string (nth 2 (car list)))
-		       ")\n")
-	       (setq list (cdr list))))
-	   (insert "))\n"))
-       (insert ";;; (no custom units defined)\n"))
-     (insert ";;; End of custom units\n")
-     (save-buffer))))
-
-
-
-
 
 ;;; Units operations.
 
@@ -567,8 +231,7 @@
      ( mue     "1.001159652193 muB"  "Electron magnetic moment" )
      ( mup     "2.792847386 muN"     "Proton magnetic moment" )
      ( R0      "Nav k"               "Molar gas constant" )
-     ( V0      "22.413992 L/mol"     "Standard volume of ideal gas" )
-))
+     ( V0      "22.413992 L/mol"     "Standard volume of ideal gas" )))
 
 
 (defvar math-additional-units nil
@@ -596,21 +259,356 @@ that the combined units table will be rebuilt.")
      ( ?n  (float 1 -9)  "Nano"	  )
      ( ?p  (float 1 -12) "Pico"	  )
      ( ?f  (float 1 -15) "Femto"  )
-     ( ?a  (float 1 -18) "Atto"   )
-))
+     ( ?a  (float 1 -18) "Atto"   )))
 
 (defvar math-standard-units-systems
   '( ( base  nil )
      ( si    ( ( g   '(* (var kg var-kg) (float 1 -3)) ) ) )
      ( mks   ( ( g   '(* (var kg var-kg) (float 1 -3)) ) ) )
-     ( cgs   ( ( m   '(* (var cm var-cm) 100         ) ) ) )
-))
+     ( cgs   ( ( m   '(* (var cm var-cm) 100         ) ) ) )))
 
 (defvar math-units-table nil
   "Internal units table derived from math-defined-units.
 Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 
 (defvar math-units-table-buffer-valid nil)
+
+;;; Units commands.
+
+(defun calc-base-units ()
+  (interactive)
+  (calc-slow-wrapper
+   (let ((calc-autorange-units nil))
+     (calc-enter-result 1 "bsun" (math-simplify-units
+				  (math-to-standard-units (calc-top-n 1)
+							  nil))))))
+
+(defun calc-quick-units ()
+  (interactive)
+  (calc-slow-wrapper
+   (let* ((num (- last-command-char ?0))
+	  (pos (if (= num 0) 10 num))
+	  (units (calc-var-value 'var-Units))
+	  (expr (calc-top-n 1)))
+     (unless (and (>= num 0) (<= num 9))
+       (errunless "Bad unit number"))
+     (unless (math-vectorp units)
+       (errunless "No \"quick units\" are defined"))
+     (unless (< pos (length units))
+       (errunless "Unit number %d not defined" pos))
+     (if (math-units-in-expr-p expr nil)
+	 (calc-enter-result 1 (format "cun%d" num)
+			    (math-convert-units expr (nth pos units)))
+       (calc-enter-result 1 (format "*un%d" num)
+			  (math-simplify-units
+			   (math-mul expr (nth pos units))))))))
+
+(defun calc-convert-units (&optional old-units new-units)
+  (interactive)
+  (calc-slow-wrapper
+   (let ((expr (calc-top-n 1))
+	 (uoldname nil)
+	 unew)
+     (unless (math-units-in-expr-p expr t)
+       (let ((uold (or old-units
+		       (progn
+			 (setq uoldname (read-string "Old units: "))
+			 (if (equal uoldname "")
+			     (progn
+			       (setq uoldname "1")
+			       1)
+			   (if (string-match "\\` */" uoldname)
+			       (setq uoldname (concat "1" uoldname)))
+			   (math-read-expr uoldname))))))
+	 (when (eq (car-safe uold) 'error)
+	   (error "Bad format in units expression: %s" (nth 1 uold)))
+	 (setq expr (math-mul expr uold))))
+     (unless new-units
+       (setq new-units (read-string (if uoldname
+					(concat "Old units: "
+						uoldname
+						", new units: ")
+				      "New units: "))))
+     (when (string-match "\\` */" new-units)
+       (setq new-units (concat "1" new-units)))
+     (setq units (math-read-expr new-units))
+     (when (eq (car-safe units) 'error)
+       (error "Bad format in units expression: %s" (nth 2 units)))
+     (let ((unew (math-units-in-expr-p units t))
+	   (std (and (eq (car-safe units) 'var)
+		     (assq (nth 1 units) math-standard-units-systems))))
+       (if std
+	   (calc-enter-result 1 "cvun" (math-simplify-units
+					(math-to-standard-units expr
+								(nth 1 std))))
+	 (unless unew
+	   (error "No units specified"))
+	 (calc-enter-result 1 "cvun"
+			    (math-convert-units
+			     expr units
+			     (and uoldname (not (equal uoldname "1"))))))))))
+
+(defun calc-autorange-units (arg)
+  (interactive "P")
+  (calc-wrapper
+   (calc-change-mode 'calc-autorange-units arg nil t)
+   (message (if calc-autorange-units
+		"Adjusting target unit prefix automatically"
+	      "Using target units exactly"))))
+
+(defun calc-convert-temperature (&optional old-units new-units)
+  (interactive)
+  (calc-slow-wrapper
+   (let ((expr (calc-top-n 1))
+	 (uold nil)
+	 (uoldname nil)
+	 unew)
+     (setq uold (or old-units
+		    (let ((units (math-single-units-in-expr-p expr)))
+		      (if units
+			  (if (consp units)
+			      (list 'var (car units)
+				    (intern (concat "var-"
+						    (symbol-name
+						     (car units)))))
+			    (error "Not a pure temperature expression"))
+			(math-read-expr
+			 (setq uoldname (read-string
+					 "Old temperature units: ")))))))
+     (when (eq (car-safe uold) 'error)
+       (error "Bad format in units expression: %s" (nth 2 uold)))
+     (or (math-units-in-expr-p expr nil)
+	 (setq expr (math-mul expr uold)))
+     (setq unew (or new-units
+		    (math-read-expr
+		     (read-string (if uoldname
+				      (concat "Old temperature units: "
+					      uoldname
+					      ", new units: ")
+				    "New temperature units: ")))))
+     (when (eq (car-safe unew) 'error)
+       (error "Bad format in units expression: %s" (nth 2 unew)))
+     (calc-enter-result 1 "cvtm" (math-simplify-units
+				  (math-convert-temperature expr uold unew
+							    uoldname))))))
+
+(defun calc-remove-units ()
+  (interactive)
+  (calc-slow-wrapper
+   (calc-enter-result 1 "rmun" (math-simplify-units
+				(math-remove-units (calc-top-n 1))))))
+
+(defun calc-extract-units ()
+  (interactive)
+  (calc-slow-wrapper
+   (calc-enter-result 1 "rmun" (math-simplify-units
+				(math-extract-units (calc-top-n 1))))))
+
+(defun calc-explain-units ()
+  (interactive)
+  (calc-wrapper
+   (let ((num-units nil)
+	 (den-units nil))
+     (calc-explain-units-rec (calc-top-n 1) 1)
+     (and den-units (string-match "^[^(].* .*[^)]$" den-units)
+	  (setq den-units (concat "(" den-units ")")))
+     (if num-units
+	 (if den-units
+	     (message "%s per %s" num-units den-units)
+	   (message "%s" num-units))
+       (if den-units
+	   (message "1 per %s" den-units)
+	 (message "No units in expression"))))))
+
+(defun calc-explain-units-rec (expr pow)
+  (let ((u (math-check-unit-name expr))
+	pos)
+    (if (and u (not (math-zerop pow)))
+	(let ((name (or (nth 2 u) (symbol-name (car u)))))
+	  (if (eq (aref name 0) ?\*)
+	      (setq name (substring name 1)))
+	  (if (string-match "[^a-zA-Z0-9']" name)
+	      (if (string-match "^[a-zA-Z0-9' ()]*$" name)
+		  (while (setq pos (string-match "[ ()]" name))
+		    (setq name (concat (substring name 0 pos)
+				       (if (eq (aref name pos) 32) "-" "")
+				       (substring name (1+ pos)))))
+		(setq name (concat "(" name ")"))))
+	  (or (eq (nth 1 expr) (car u))
+	      (setq name (concat (nth 2 (assq (aref (symbol-name
+						     (nth 1 expr)) 0)
+					      math-unit-prefixes))
+				 (if (and (string-match "[^a-zA-Z0-9']" name)
+					  (not (memq (car u) '(mHg gf))))
+				     (concat "-" name)
+				   (downcase name)))))
+	  (cond ((or (math-equal-int pow 1)
+		     (math-equal-int pow -1)))
+		((or (math-equal-int pow 2)
+		     (math-equal-int pow -2))
+		 (if (equal (nth 4 u) '((m . 1)))
+		     (setq name (concat "Square-" name))
+		   (setq name (concat name "-squared"))))
+		((or (math-equal-int pow 3)
+		     (math-equal-int pow -3))
+		 (if (equal (nth 4 u) '((m . 1)))
+		     (setq name (concat "Cubic-" name))
+		   (setq name (concat name "-cubed"))))
+		(t
+		 (setq name (concat name "^"
+				    (math-format-number (math-abs pow))))))
+	  (if (math-posp pow)
+	      (setq num-units (if num-units
+				  (concat num-units " " name)
+				name))
+	    (setq den-units (if den-units
+				(concat den-units " " name)
+			      name))))
+      (cond ((eq (car-safe expr) '*)
+	     (calc-explain-units-rec (nth 1 expr) pow)
+	     (calc-explain-units-rec (nth 2 expr) pow))
+	    ((eq (car-safe expr) '/)
+	     (calc-explain-units-rec (nth 1 expr) pow)
+	     (calc-explain-units-rec (nth 2 expr) (- pow)))
+	    ((memq (car-safe expr) '(neg + -))
+	     (calc-explain-units-rec (nth 1 expr) pow))
+	    ((and (eq (car-safe expr) '^)
+		  (math-realp (nth 2 expr)))
+	     (calc-explain-units-rec (nth 1 expr)
+				     (math-mul pow (nth 2 expr))))))))
+
+(defun calc-simplify-units ()
+  (interactive)
+  (calc-slow-wrapper
+   (calc-with-default-simplification
+    (calc-enter-result 1 "smun" (math-simplify-units (calc-top-n 1))))))
+
+(defun calc-view-units-table (n)
+  (interactive "P")
+  (and n (setq math-units-table-buffer-valid nil))
+  (let ((win (get-buffer-window "*Units Table*")))
+    (if (and win
+	     math-units-table
+	     math-units-table-buffer-valid)
+	(progn
+	  (bury-buffer (window-buffer win))
+	  (let ((curwin (selected-window)))
+	    (select-window win)
+	    (switch-to-buffer nil)
+	    (select-window curwin)))
+      (math-build-units-table-buffer nil))))
+
+(defun calc-enter-units-table (n)
+  (interactive "P")
+  (and n (setq math-units-table-buffer-valid nil))
+  (math-build-units-table-buffer t)
+  (message (substitute-command-keys "Type \\[calc] to return to the Calculator")))
+
+(defun calc-define-unit (uname desc)
+  (interactive "SDefine unit name: \nsDescription: ")
+  (calc-wrapper
+   (let ((form (calc-top-n 1))
+	 (unit (assq uname math-additional-units)))
+     (or unit
+	 (setq math-additional-units
+	       (cons (setq unit (list uname nil nil))
+		     math-additional-units)
+	       math-units-table nil))
+     (setcar (cdr unit) (and (not (and (eq (car-safe form) 'var)
+				       (eq (nth 1 form) uname)))
+			     (not (math-equal-int form 1))
+			     (math-format-flat-expr form 0)))
+     (setcar (cdr (cdr unit)) (and (not (equal desc ""))
+				   desc))))
+  (calc-invalidate-units-table))
+
+(defun calc-undefine-unit (uname)
+  (interactive "SUndefine unit name: ")
+  (calc-wrapper
+   (let ((unit (assq uname math-additional-units)))
+     (or unit
+	 (if (assq uname math-standard-units)
+	     (error "\"%s\" is a predefined unit name" uname)
+	   (error "Unit name \"%s\" not found" uname)))
+     (setq math-additional-units (delq unit math-additional-units)
+	   math-units-table nil)))
+  (calc-invalidate-units-table))
+
+(defun calc-invalidate-units-table ()
+  (setq math-units-table nil)
+  (let ((buf (get-buffer "*Units Table*")))
+    (and buf
+	 (save-excursion
+	   (set-buffer buf)
+	   (save-excursion
+	     (goto-char (point-min))
+	     (if (looking-at "Calculator Units Table")
+		 (let ((buffer-read-only nil))
+		   (insert "(Obsolete) "))))))))
+
+(defun calc-get-unit-definition (uname)
+  (interactive "SGet definition for unit: ")
+  (calc-wrapper
+   (math-build-units-table)
+   (let ((unit (assq uname math-units-table)))
+     (or unit
+	 (error "Unit name \"%s\" not found" uname))
+     (let ((msg (nth 2 unit)))
+       (if (stringp msg)
+	   (if (string-match "^\\*" msg)
+	       (setq msg (substring msg 1)))
+	 (setq msg (symbol-name uname)))
+       (if (nth 1 unit)
+	   (progn
+	     (calc-enter-result 0 "ugdf" (nth 1 unit))
+	     (message "Derived unit: %s" msg))
+	 (calc-enter-result 0 "ugdf" (list 'var uname
+					   (intern
+					    (concat "var-"
+						    (symbol-name uname)))))
+	 (message "Base unit: %s" msg))))))
+
+(defun calc-permanent-units ()
+  (interactive)
+  (calc-wrapper
+   (let (pos)
+     (set-buffer (find-file-noselect (substitute-in-file-name
+				      calc-settings-file)))
+     (goto-char (point-min))
+     (if (and (search-forward ";;; Custom units stored by Calc" nil t)
+	      (progn
+		(beginning-of-line)
+		(setq pos (point))
+		(search-forward "\n;;; End of custom units" nil t)))
+	 (progn
+	   (beginning-of-line)
+	   (forward-line 1)
+	   (delete-region pos (point)))
+       (goto-char (point-max))
+       (insert "\n\n")
+       (forward-char -1))
+     (insert ";;; Custom units stored by Calc on " (current-time-string) "\n")
+     (if math-additional-units
+	 (progn
+	   (insert "(setq math-additional-units '(\n")
+	   (let ((list math-additional-units))
+	     (while list
+	       (insert "  (" (symbol-name (car (car list))) " "
+		       (if (nth 1 (car list))
+			   (if (stringp (nth 1 (car list)))
+			       (prin1-to-string (nth 1 (car list)))
+			     (prin1-to-string (math-format-flat-expr
+					       (nth 1 (car list)) 0)))
+			 "nil")
+		       " "
+		       (prin1-to-string (nth 2 (car list)))
+		       ")\n")
+	       (setq list (cdr list))))
+	   (insert "))\n"))
+       (insert ";;; (no custom units defined)\n"))
+     (insert ";;; End of custom units\n")
+     (save-buffer))))
+
 
 
 (defun math-build-units-table ()
@@ -803,6 +801,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 			     expr
 			   (list '* expr units)))))
 
+(defvar math-decompose-units-cache nil)
 (defun math-decompose-units (units)
   (let ((u (math-check-unit-name units)))
     (and u (eq (car-safe (nth 1 u)) '+)
@@ -821,8 +820,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	       (setq ulist (cons (math-decompose-unit-part utemp) ulist)
 		     utemp ulist)
 	       (while (setq utemp (cdr utemp))
-		 (or (equal (nth 2 (car utemp)) (nth 2 (car ulist)))
-		     (error "Inconsistent units in sum")))
+		 (unless (equal (nth 2 (car utemp)) (nth 2 (car ulist)))
+		   (error "Inconsistent units in sum")))
 	       (setq math-decompose-units-cache
 		     (cons entry
 			   (sort ulist
@@ -831,7 +830,6 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 				    (not (Math-lessp (nth 1 x)
 						     (nth 1 y))))))))))
 	 (cdr math-decompose-units-cache))))
-(setq math-decompose-units-cache nil)
 
 (defun math-decompose-unit-part (unit)
   (cons unit
@@ -875,10 +873,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		       (math-pow (math-div (car compat) new-units)
 				 (cdr compat))
 		       nil))))
-	(if (setq unit-list (math-decompose-units new-units))
-	    (setq new-units (nth 2 (car unit-list))))
-	(if (eq (car-safe expr) '+)
-	    (setq expr (math-simplify-units expr)))
+	(when (setq unit-list (math-decompose-units new-units))
+	  (setq new-units (nth 2 (car unit-list))))
+	(when (eq (car-safe expr) '+)
+	  (setq expr (math-simplify-units expr)))
 	(if (math-units-in-expr-p expr t)
 	    (math-convert-units-rec expr)
 	  (math-apply-units (math-to-standard-units
@@ -903,10 +901,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		     (error "Inconsistent temperature units"))
 		 units))
 	 (unew (math-check-unit-name new)))
-    (or (and (consp unew) (nth 3 unew))
-	(error "Not a valid temperature unit"))
-    (or (and (consp uold) (nth 3 uold))
-	(error "Not a pure temperature expression"))
+    (unless (and (consp unew) (nth 3 unew))
+      (error "Not a valid temperature unit"))
+    (unless (and (consp uold) (nth 3 uold))
+      (error "Not a pure temperature expression"))
     (let ((v (car uold)))
       (setq expr (list '/ expr (list 'var v
 				     (intern (concat "var-"
@@ -934,7 +932,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
   (let ((math-simplifying-units t)
 	(calc-matrix-mode 'scalar))
     (math-simplify a)))
-(defalias calcFunc-usimplify 'math-simplify-units)
+(defalias 'calcFunc-usimplify 'math-simplify-units)
 
 (math-defsimplify (+ -)
   (and math-simplifying-units
@@ -1049,26 +1047,24 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
   (let ((n (car np))
 	d dd temp)
     (while (eq (car-safe (setq d (car dp))) '*)
-      (if (setq temp (math-simplify-units-quotient n (nth 1 d)))
-	  (progn
-	    (setcar np (setq n temp))
-	    (setcar (cdr d) 1)))
+      (when (setq temp (math-simplify-units-quotient n (nth 1 d)))
+	(setcar np (setq n temp))
+	(setcar (cdr d) 1))
       (setq dp (cdr (cdr d))))
-    (if (setq temp (math-simplify-units-quotient n d))
-	(progn
-	  (setcar np (setq n temp))
-	  (setcar dp 1)))))
+    (when (setq temp (math-simplify-units-quotient n d))
+      (setcar np (setq n temp))
+      (setcar dp 1))))
 
 ;; Simplify, e.g., "in / cm" to "2.54" in a units expression.
 (defun math-simplify-units-quotient (n d)
   (let ((pow1 1)
 	(pow2 1))
-    (and (eq (car-safe n) '^)
-	 (integerp (nth 2 n))
-	 (setq pow1 (nth 2 n) n (nth 1 n)))
-    (and (eq (car-safe d) '^)
-	 (integerp (nth 2 d))
-	 (setq pow2 (nth 2 d) d (nth 1 d)))
+    (when (and (eq (car-safe n) '^)
+	       (integerp (nth 2 n)))
+      (setq pow1 (nth 2 n) n (nth 1 n)))
+    (when (and (eq (car-safe d) '^)
+	       (integerp (nth 2 d)))
+      (setq pow2 (nth 2 d) d (nth 1 d)))
     (let ((un (math-check-unit-name n))
 	  (ud (math-check-unit-name d)))
       (and un ud
@@ -1229,16 +1225,15 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	  (while uptr
 	    (setq u (car uptr)
 		  name (nth 2 u))
-	    (if (eq (car u) 'm)
-		(setq std t))
+	    (when (eq (car u) 'm)
+	      (setq std t))
 	    (setq shadowed (and std (assq (car u) math-additional-units)))
-	    (if (and name
-		     (> (length name) 1)
-		     (eq (aref name 0) ?\*))
-		(progn
-		  (or (eq uptr math-units-table)
-		      (insert "\n"))
-		  (setq name (substring name 1))))
+	    (when (and name
+		       (> (length name) 1)
+		       (eq (aref name 0) ?\*))
+	      (unless (eq uptr math-units-table)
+		(insert "\n"))
+	      (setq name (substring name 1)))
 	    (insert " ")
 	    (and shadowed (insert "("))
 	    (insert (symbol-name (car u)))
@@ -1259,12 +1254,12 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	    (and shadowed (insert ")"))
 	    (indent-to 41)
 	    (insert " ")
-	    (if name
-		(insert name))
+	    (when name
+	      (insert name))
 	    (if shadowed
 		(insert " (redefined above)")
-	      (or (nth 1 u)
-		  (insert " (base unit)")))
+	      (unless (nth 1 u)
+		(insert " (base unit)")))
 	    (insert "\n")
 	    (setq uptr (cdr uptr)))
 	  (insert "\n\nUnit Prefix Table:\n\n")
