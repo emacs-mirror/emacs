@@ -59,7 +59,7 @@ Boston, MA 02111-1307, USA.  */
 #endif /* NEED_NET_ERRNO_H */
 
 /* Are local (unix) sockets supported?  */
-#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+#if defined (HAVE_SYS_UN_H) && !defined (NO_SOCKETS_IN_FILE_SYSTEM)
 #if !defined (AF_LOCAL) && defined (AF_UNIX)
 #define AF_LOCAL AF_UNIX
 #endif
@@ -216,14 +216,6 @@ int update_tick;
    this system.  We need to read full packets, so we need a
    "non-destructive" select.  So we require either native select,
    or emulation of select using FIONREAD.  */
-
-#ifdef GNU_LINUX
-/* These are not yet in configure.in (they will be eventually)
-   -- so add them here temporarily.  ++kfs */
-#define HAVE_RECVFROM
-#define HAVE_SENDTO
-#define HAVE_GETSOCKNAME
-#endif
 
 #ifdef BROKEN_DATAGRAM_SOCKETS
 #undef DATAGRAM_SOCKETS
