@@ -1,3 +1,13 @@
+2001-10-18  Andrew Innes  <andrewi@gnu.org>
+
+	* fontset.h (struct font_info) [WINDOWSNT]: Add codepage field.
+
+	* w32fns.c (w32_load_system_font): Cache codepage in font_info.
+
+	* w32term.c (w32_encode_char): Get cached codepage from font_info,
+	rather than working it out by calling w32_codepage_for_font for
+	every glyph.
+
 2001-10-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): Indicate empty lines in active
