@@ -676,8 +676,9 @@
 			(setq str (substring str 1)
 			      int (math-add int 1))))
 		  (setq str (concat (math-format-number int) point str)))
-		(if calc-group-digits
-		    (setq str (math-group-float str))))
+		(when calc-group-digits
+		  (require 'calc-ext)
+		  (setq str (math-group-float str))))
 	    (setq figs 0))))
     (or str
 	(let* ((prec calc-internal-prec)
@@ -745,8 +746,8 @@
 	  (while (eq (aref str (1- pos)) ?0) (setq pos (1- pos)))
 	  (and explo (eq (aref str (1- pos)) ?.) (setq pos (1- pos)))
 	  (setq str (substring str 0 pos))
-	  (if calc-group-digits
-	      (setq str (math-group-float str)))
+	  (when calc-group-digits
+	    (setq str (math-group-float str)))
 	  (if explo
 	      (let ((estr (let ((calc-number-radix 10)
 				(calc-group-digits nil))
