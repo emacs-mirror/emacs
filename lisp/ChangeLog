@@ -1,3 +1,8 @@
+2003-06-27  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* international/mule-cmds.el (menu-bar-options-menu): Move
+	`mouse-set-fonts' here from Options/Mule submenu.
+
 2003-06-26  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): Remove redudant variable

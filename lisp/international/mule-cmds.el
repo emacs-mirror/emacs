@@ -64,7 +64,7 @@
 (define-key-after mule-menu-keymap [set-language-environment]
   (list 'menu-item  "Set Language Environment" setup-language-environment-map
 	:help "Multilingual environment suitable for a specific language"))
-(define-key-after mule-menu-keymap [mouse-set-font]
+(define-key-after menu-bar-options-menu [mouse-set-font]
   '(menu-item "Set Font/Fontset" mouse-set-font
 	       :visible (fboundp 'generate-fontset-menu)
 	       :help "Select a font from list of known fonts/fontsets"))
