@@ -1,3 +1,27 @@
+2000-10-01  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Update mode line only if file 
+	is visited.
+	(vc-start-entry): New argument initial-contents.  Don't visit the file
+	if it isn't already visited.  Brought documentation up-to-date.
+	(vc-next-action, vc-register): Updated calls to vc-start-entry. 
+	(vc-checkin): New optional arg initial-contents, which is passed to 
+	vc-start-entry.
+	(vc-finish-logentry): Make sure to bury log buffer only if there
+	really is one.  Call `vc-resynch-buffer' on log-file, not
+	buffer-file-name.
+	(vc-default-comment-history, vc-default-wash-log): New functions.
+	(vc-index-of): Removed.
+	(vc-transfer-file): Make do without the above.
+	(vc-default-receive-file): Call comment-history unconditionally.  Pass
+	the resulting string to vc-checkin, instead of inserting it into the
+	comment ring.
+
+	* vc-rcs.el (vc-rcs-receive-file): Call comment-history
+	unconditionally.  Use the comments as initial contents of the log
+	entry buffer.  Document the trick to force branch creation with no 
+	changes.
+
 2000-10-01  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Call
