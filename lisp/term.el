@@ -1,5 +1,5 @@
 ;; term.el --- general command interpreter in a window stuff
-;; Copyright (C) 1988, 1990, 1992, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <bothner@cygnus.com>
 ;; Based on comint mode written by: Olin Shivers <shivers@cs.cmu.edu>
@@ -82,7 +82,7 @@
 
 ;;; This is passed to the inferior in the EMACS environment variable,
 ;;; so it is important to increase it if there are protocol-relevant changes.
-(defconst term-version "0.93")
+(defconst term-version "0.94")
 
 (require 'ring)
 (require 'ehelp)
@@ -268,26 +268,28 @@ Buffer local variable.")
 (put 'term-scroll-show-maximum-output 'permanent-local t)
 (put 'term-ptyp 'permanent-local t)
 
-(defmacro term-is-emacs19 ()  '(string-match "^19" emacs-version))
-;; True if running under XEmacs (perviously Lucid emacs).
+;; Do FORMS if running under Emacs-19.
+(defmacro term-if-emacs19 (&rest forms)
+  (if (string-match "^19" emacs-version) (cons 'progn forms)))
+;; True if running under XEmacs (previously Lucid emacs).
 (defmacro term-is-xemacs ()  '(string-match "Lucid" emacs-version))
+;; Do FORM if running under XEmacs (previously Lucid emacs).
+(defmacro term-if-xemacs (&rest forms)
+  (if (term-is-xemacs) (cons 'progn forms)))
+;; Do FORM if NOT running under XEmacs (previously Lucid emacs).
+(defmacro term-ifnot-xemacs (&rest forms)
+  (if (not (term-is-xemacs)) (cons 'progn forms)))
 
 (defmacro term-in-char-mode () '(eq (current-local-map) term-raw-map))
 (defmacro term-in-line-mode () '(not (term-in-char-mode)))
 
-(if (term-is-xemacs)
-  (defvar term-terminal-menu
-    '("Terminal"
-      [ "Character mode" term-char-mode (term-in-line-mode)]
-      [ "Line mode" term-line-mode (term-in-char-mode)]
-      [ "Enable paging" term-pager-enable (not term-pager-count)]
-      [ "Disable paging" term-pager-disable term-pager-count]))
-)
-
-(put 'term-char-mode 'menu-enable '(term-in-line-mode))
-(put 'term-line-mode 'menu-enable '(term-in-char-mode))
-(put 'term-pager-enable 'menu-enable '(not term-pager-count))
-(put 'term-pager-disable 'menu-enable 'term-pager-count)
+(term-if-xemacs
+ (defvar term-terminal-menu
+   '("Terminal"
+     [ "Character mode" term-char-mode (term-in-line-mode)]
+     [ "Line mode" term-line-mode (term-in-char-mode)]
+     [ "Enable paging" term-pager-toggle (not term-pager-count)]
+     [ "Disable paging" term-pager-toggle term-pager-count])))
 
 (defun term-mode ()
   "Major mode for interacting with an inferior interpreter.
@@ -429,9 +431,9 @@ Entry to this mode runs the hooks on term-mode-hook"
     (make-local-variable 'term-chars-mode)
     (setq term-chars-mode nil)
     (run-hooks 'term-mode-hook)
-    (if (term-is-xemacs)
-	(set-buffer-menubar
-	 (append current-menubar (list term-terminal-menu))))
+    (term-if-xemacs
+     (set-buffer-menubar
+      (append current-menubar (list term-terminal-menu))))
     (or term-input-ring
 	(setq term-input-ring (make-ring term-input-ring-size))))
 
@@ -442,10 +444,9 @@ Entry to this mode runs the hooks on term-mode-hook"
   (define-key term-mode-map "\en" 'term-next-input)
   (define-key term-mode-map "\er" 'term-previous-matching-input)
   (define-key term-mode-map "\es" 'term-next-matching-input)
-  (if (term-is-xemacs)
-      t
-    (define-key term-mode-map [?\A-\M-r] 'term-previous-matching-input-from-input)
-    (define-key term-mode-map [?\A-\M-s] 'term-next-matching-input-from-input))
+  (term-ifnot-xemacs
+   (define-key term-mode-map [?\A-\M-r] 'term-previous-matching-input-from-input)
+   (define-key term-mode-map [?\A-\M-s] 'term-next-matching-input-from-input))
   (define-key term-mode-map "\e\C-l" 'term-show-output)
   (define-key term-mode-map "\C-m" 'term-send-input)
   (define-key term-mode-map "\C-d" 'term-delchar-or-maybe-eof)
@@ -463,9 +464,9 @@ Entry to this mode runs the hooks on term-mode-hook"
   (define-key term-mode-map "\C-c\C-n" 'term-next-prompt)
   (define-key term-mode-map "\C-c\C-p" 'term-previous-prompt)
   (define-key term-mode-map "\C-c\C-d" 'term-send-eof)
-  (define-key term-mode-map "\C-cc" 'term-char-mode)
-  (define-key term-mode-map "\C-cp" 'term-pager-enable)
-  (define-key term-mode-map "\C-cD" 'term-pager-disable)
+  (define-key term-mode-map "\C-c\C-k" 'term-char-mode)
+  (define-key term-mode-map "\C-c\C-j" 'term-line-mode)
+  (define-key term-mode-map "\C-c\C-q" 'term-pager-toggle)
 
   (copy-face 'default 'term-underline-face)
   (set-face-underline-p 'term-underline-face t)
@@ -487,21 +488,20 @@ Entry to this mode runs the hooks on term-mode-hook"
   )
 
 ;; Menu bars:
-(if (and (not (boundp 'term-terminal-menu))
-	 (term-is-emacs19) (not (term-is-xemacs)))
-    (progn
+(term-ifnot-xemacs
+ (term-if-emacs19
       ;; terminal:
       (defvar term-terminal-menu (make-sparse-keymap "Terminal"))
-      (define-key term-mode-map [menu-bar terminal] 
-	(cons "Terminal" term-terminal-menu))
+      (define-key term-terminal-menu [terminal-pager-enable]
+	'("Enable paging" . term-fake-pager-enable))
+      (define-key term-terminal-menu [terminal-pager-disable]
+	'("Disable paging" . term-fake-pager-disable))
       (define-key term-terminal-menu [terminal-char-mode]
 	'("Character mode" . term-char-mode))
       (define-key term-terminal-menu [terminal-line-mode]
 	'("Line mode" . term-line-mode))
-      (define-key term-terminal-menu [terminal-pager-enable]
-	'("Enable paging" . term-pager-enable))
-      (define-key term-terminal-menu [terminal-pager-disable]
-	'("Disable paging" . term-pager-disable))
+      (define-key term-mode-map [menu-bar terminal] 
+	(setq term-terminal-menu (cons "Terminal" term-terminal-menu)))
 
       ;; completion:  (line mode only)
       (defvar term-completion-menu (make-sparse-keymap "Complete"))
@@ -557,14 +557,14 @@ Entry to this mode runs the hooks on term-mode-hook"
 
       ;; Signals
       (defvar term-signals-menu (make-sparse-keymap "Signals"))
-      (define-key term-mode-map [menu-bar signals]
-	(cons "Signals" term-signals-menu))
       (define-key term-signals-menu [eof] '("EOF" . term-send-eof))
       (define-key term-signals-menu [kill] '("KILL" . term-kill-subjob))
       (define-key term-signals-menu [quit] '("QUIT" . term-quit-subjob))
       (define-key term-signals-menu [cont] '("CONT" . term-continue-subjob))
       (define-key term-signals-menu [stop] '("STOP" . term-stop-subjob))
       (define-key term-signals-menu [] '("BREAK" . term-interrupt-subjob))
+      (define-key term-mode-map [menu-bar signals]
+	(setq term-signals-menu (cons "Signals" term-signals-menu)))
       ))
 
 (defun term-reset-size (height width)
@@ -670,13 +670,15 @@ without any interpretation."
   (define-key term-raw-escape-map "\C-u"
     (lookup-key (current-global-map) "\C-u"))
   (define-key term-raw-escape-map c 'term-send-raw)
-  (define-key term-raw-escape-map "p" 'term-pager-enable)
-  (define-key term-raw-escape-map "D" 'term-pager-disable)
-  (define-key term-raw-escape-map "l" 'term-line-mode))
+  (define-key term-raw-escape-map "\C-q" 'term-pager-toggle)
+  ;; The keybinding for term-char-mode is needed by the menubar code.
+  (define-key term-raw-escape-map "\C-k" 'term-char-mode)
+  (define-key term-raw-escape-map "\C-j" 'term-line-mode))
     
 (defun term-char-mode ()
-  "Start using raw keyboard mode to send each character
-to inferior process until a key bound to term-line-mode is encountered."
+  "Switch to char (\"raw\") sub-mode of term mode.
+Each character you type is sent directly to the inferior without
+intervention from emacs, except for the escape character (usually C-c)."
   (interactive)
   (if (not term-raw-map)
       (let* ((map (make-keymap))
@@ -690,44 +692,49 @@ to inferior process until a key bound to term-line-mode is encountered."
 	(setq term-raw-map map)
 	(setq term-raw-escape-map
 	      (copy-keymap (lookup-key (current-global-map) "\C-x")))
-	(if (term-is-emacs19)
-	    (progn
-	      (if (term-is-xemacs)
-		  (define-key term-raw-map [(button2)] 'term-mouse-paste)
-		(progn
-		  (define-key term-raw-map [mouse-2] 'term-mouse-paste)
-		  (define-key term-raw-map [menu-bar terminal] 
-		    (cons "Terminal" term-terminal-menu))
-		  (define-key term-raw-map [menu-bar signals]
-		    (cons "Signals" term-signals-menu)) ))
-	      (define-key term-raw-map [up] 'term-send-up)
-	      (define-key term-raw-map [down] 'term-send-down)
-	      (define-key term-raw-map [right] 'term-send-right)
-	      (define-key term-raw-map [left] 'term-send-left)))
-	(term-set-escape-char ?\C-c)))
+	(term-if-emacs19
+	 (term-if-xemacs
+	  (define-key term-raw-map [(button2)] 'term-mouse-paste))
+	 (term-ifnot-xemacs
+	  (define-key term-raw-map [mouse-2] 'term-mouse-paste)
+	  (define-key term-raw-map [menu-bar terminal] term-terminal-menu)
+	  (define-key term-raw-map [menu-bar signals] term-signals-menu)
+	 (define-key term-raw-map [up] 'term-send-up)
+	 (define-key term-raw-map [down] 'term-send-down)
+	 (define-key term-raw-map [right] 'term-send-right)
+	 (define-key term-raw-map [left] 'term-send-left))
+	(term-set-escape-char ?\C-c))))
   ;; FIXME: Emit message? Cfr ilisp-raw-message
-  (setq term-old-mode-map (current-local-map))
-  (use-local-map term-raw-map)
+  (if (term-in-line-mode)
+      (progn
+	(setq term-old-mode-map (current-local-map))
+	(use-local-map term-raw-map)
 
-  ;; Send existing partial line to inferior (without newline).
-  (let ((pmark (process-mark (get-buffer-process (current-buffer))))
-	(save-input-sender term-input-sender))
-    (if (> (point) pmark)
-	(unwind-protect
-	    (progn
-	      (setq term-input-sender (symbol-function 'term-send-string))
-	      (end-of-line)
-	      (term-send-input))
-	  (setq term-input-sender save-input-sender))))
+	;; Send existing partial line to inferior (without newline).
+	(let ((pmark (process-mark (get-buffer-process (current-buffer))))
+	      (save-input-sender term-input-sender))
+	  (if (> (point) pmark)
+	      (unwind-protect
+		  (progn
+		    (setq term-input-sender
+			  (symbol-function 'term-send-string))
+		    (end-of-line)
+		    (term-send-input))
+		(setq term-input-sender save-input-sender))))
 
-  (setq mode-line-process '(": char %s"))
-  (set-buffer-modified-p (buffer-modified-p))) ;;No-op, but updates mode line.
+	(setq mode-line-process '(": char %s"))
+	(set-buffer-modified-p (buffer-modified-p))))) ;; Updates mode line.
 
 (defun term-line-mode  ()
+  "Switch to line (\"cooked\") sub-mode of term mode.
+This means that emacs editing commands work as normally, until
+you type \\[term-send-input] which sends the current line to the inferior."
   (interactive)
-  (use-local-map term-old-mode-map)
-  (setq mode-line-process '(": line %s"))
-  (set-buffer-modified-p (buffer-modified-p))) ;;No-op, but updates mode line.
+  (if (term-in-char-mode)
+      (progn
+	(use-local-map term-old-mode-map)
+	(setq mode-line-process '(": line %s"))
+	(set-buffer-modified-p (buffer-modified-p))))) ;; Updates mode line.
 
 (defun term-check-proc (buffer)
   "True if there is a process associated w/buffer BUFFER, and
@@ -2387,8 +2394,10 @@ The top-most line is line 0."
 	   (setq term-pending-frame (cons filename fileline))))
 	((= (aref string 0) ?/)
 	 (cd (substring string 1)))
-	((= (aref string 0) ?!)
-	    (eval (car (read-from-string string 1))))
+	;; Allowing the inferior to call functions in emacs is
+	;; probably too big a security hole.
+	;; ((= (aref string 0) ?!)
+	;; (eval (car (read-from-string string 1))))
 	(t)));; Otherwise ignore it
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
@@ -2437,7 +2446,7 @@ The top-most line is line 0."
 (defun term-process-pager ()
   (if (not term-pager-break-map)
       (let* ((map (make-keymap))
-	    (i 0))
+	    (i 0) tmp)
 ;	(while (< i 128)
 ;	  (define-key map (make-string 1 i) 'term-send-raw)
 ;	  (setq i (1+ i)))
@@ -2457,6 +2466,27 @@ The top-most line is line 0."
 	(define-key map "D" 'term-pager-disable)
 	(define-key map "<" 'term-pager-bob)
 	(define-key map ">" 'term-pager-eob)
+
+	;; Add menu bar.
+	(term-if-emacs19
+	 (term-ifnot-xemacs
+	  (define-key map [menu-bar terminal] term-terminal-menu)
+	  (define-key map [menu-bar signals] term-signals-menu)
+	  (setq tmp (make-sparse-keymap "More pages?"))
+	  (define-key tmp [help] '("Help" . term-pager-help))
+	  (define-key tmp [disable]
+	    '("Diable paging" . term-fake-pager-disable))
+	  (define-key tmp [discard]
+	    '("Discard remaining output" . term-pager-discard))
+	  (define-key tmp [eob] '("Goto to end" . term-pager-eob))
+	  (define-key tmp [bob] '("Goto to beginning" . term-pager-bob))
+	  (define-key tmp [line] '("1 line forwards" . term-pager-line))
+	  (define-key tmp [bline] '("1 line backwards" . term-pager-back-line))
+	  (define-key tmp [back] '("1 page backwards" . term-pager-back-page))
+	  (define-key tmp [page] '("1 page forwards" . term-pager-page))
+	  (define-key map [menu-bar page] (cons "More pages?" tmp))
+	  ))
+
 	(setq term-pager-break-map map)))
 ;  (let ((process (get-buffer-process (current-buffer))))
 ;    (stop-process process))  
@@ -2468,7 +2498,8 @@ The top-most line is line 0."
 	(list "--  **MORE**  "
 	      mode-line-buffer-identification
 	      " [Type ? for help] "
-	      "%-")))
+	      "%-"))
+  (set-buffer-modified-p (buffer-modified-p))) ;;No-op, but updates mode line.
 
 (defun term-pager-line (lines)
   (interactive "p")
@@ -2535,6 +2566,18 @@ The top-most line is line 0."
   (or term-pager-count
       (setq term-pager-count 0))) ;; Or maybe set to (term-current-row) ??
 
+(defun term-pager-toggle ()
+  (interactive)
+  (if term-pager-count (term-pager-disable) (term-pager-enable)))
+
+(term-ifnot-xemacs
+ (defalias 'term-fake-pager-enable 'term-pager-toggle)
+ (defalias 'term-fake-pager-disable 'term-pager-toggle)
+ (put 'term-char-mode 'menu-enable '(term-in-line-mode))
+ (put 'term-line-mode 'menu-enable '(term-in-char-mode))
+ (put 'term-fake-pager-enable 'menu-enable '(not term-pager-count))
+ (put 'term-fake-pager-disable 'menu-enable 'term-pager-count))
+
 (defun term-pager-help ()
   "Provide help on commands available in a terminal-emulator **MORE** break"
   (interactive)
@@ -2567,6 +2610,7 @@ all pending output has been dealt with."))
     (use-local-map term-pager-old-local-map)
     (setq term-pager-old-local-map nil)
     (setq mode-line-format term-old-mode-line-format)
+    (set-buffer-modified-p (buffer-modified-p)) ;; Updates mode line.
     (setq term-pager-count new-count)
     (set-process-filter process term-pager-old-filter)
     (funcall term-pager-old-filter process "")
