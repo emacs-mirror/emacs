@@ -12,9 +12,9 @@ CPP = $(CC) -E -Is -Im
 # Just to avoid uncertainty.
 SHELL = /bin/sh
 
-all: xmakefile doall
+all: doall
 
-doall:
+doall: xmakefile
 	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} all
 
 #This is used in making a distribution.
@@ -25,14 +25,14 @@ distclean:
 clean:
 	-rm -f temacs xemacs xmakefile* core \#* *.o
 
-xemacs: xmakefile doxemacs
+xemacs: doxemacs
 
-doxemacs:
+doxemacs: xmakefile
 	$(MAKE) -f xmakefile ${MFLAGS} xemacs
 
-temacs: xmakefile dotemacs
+temacs: dotemacs
 
-dotemacs:
+dotemacs: xmakefile
 	$(MAKE) -f xmakefile ${MFLAGS} temacs
 
 # If you have a problem with cc -E here, changing
