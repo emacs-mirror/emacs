@@ -1722,7 +1722,7 @@ form.
 (file-relative-name "/foo/bar" "/foo/")
      @result{} "bar"
 (file-relative-name "/foo/bar" "/hack/")
-     @result{} "/foo/bar"
+     @result{} "../foo/bar"
 @end example
 @end defun
 
