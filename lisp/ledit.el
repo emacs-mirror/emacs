@@ -33,12 +33,14 @@
 
 (defvar ledit-mode-map nil)
 
-(defconst ledit-zap-file (concat "/tmp/" (user-login-name) ".l1")
+(defconst ledit-zap-file
+  (expand-file-name (concat (user-login-name) ".l1") temporary-file-directory)
   "File name for data sent to Lisp by Ledit.")
-(defconst ledit-read-file (concat "/tmp/" (user-login-name) ".l2")
+(defconst ledit-read-file
+  (expand-file-name (concat (user-login-name) ".l2") temporary-file-directory)
   "File name for data sent to Ledit by Lisp.")
 (defconst ledit-compile-file 
-  (concat "/tmp/" (user-login-name) ".l4")
+  (expand-file-name (concat (user-login-name) ".l4") temporary-file-directory)
   "File name for data sent to Lisp compiler by Ledit.")
 (defconst ledit-buffer "*LEDIT*"
   "Name of buffer in which Ledit accumulates data to send to Lisp.")
