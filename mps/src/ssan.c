@@ -1,6 +1,6 @@
 /* impl.c.ssan: ANSI STACK SCANNER
  *
- * $HopeName: MMsrc!ssan.c(trunk.1) $
+ * $HopeName: !ssan.c(trunk.2) $
  *
  * This module provides zero functionality.  It exists to feed the
  * linker (prevent linker errors).

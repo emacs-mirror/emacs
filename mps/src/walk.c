@@ -1,6 +1,6 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(MMdevel_tony_sunset.3) $
+ * $HopeName: !walk.c(trunk.2) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -11,7 +11,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(MMdevel_tony_sunset.3) $");
+SRCID(walk, "$HopeName: !walk.c(trunk.2) $");
 
 
 

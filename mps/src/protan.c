@@ -1,6 +1,6 @@
 /* impl.c.protan: ANSI MEMORY PROTECTION
  *
- * $HopeName: MMsrc!protan.c(trunk.7) $
+ * $HopeName: !protan.c(trunk.8) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -15,7 +15,7 @@
 
 #include "mpm.h"
 
-SRCID(protan, "$HopeName: MMsrc!protan.c(trunk.7) $");
+SRCID(protan, "$HopeName: !protan.c(trunk.8) $");
 
 void ProtSetup(void)
 {

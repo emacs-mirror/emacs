@@ -1,6 +1,6 @@
 /* impl.c.lockw3: RECURSIVE LOCKS IN WIN32
  *
- * $HopeName: MMsrc!lockw3.c(trunk.11) $
+ * $HopeName: !lockw3.c(trunk.12) $
  * Copyright (C) 1995, 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .design: These are implemented using critical sections.
@@ -29,7 +29,7 @@
 
 #include "mpswin.h"
 
-SRCID(lockw3, "$HopeName: MMsrc!lockw3.c(trunk.11) $");
+SRCID(lockw3, "$HopeName: !lockw3.c(trunk.12) $");
 
 
 /* .lock.win32: Win32 lock structure; uses CRITICAL_SECTION */

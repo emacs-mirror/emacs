@@ -1,6 +1,6 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- * $HopeName: MMsrc!thw3i3.c(trunk.24) $
+ * $HopeName: !thw3i3.c(trunk.25) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * Implements thread registration, suspension, and stack
@@ -80,7 +80,7 @@
 
 #include "mpswin.h"
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.24) $");
+SRCID(thw3i3, "$HopeName: !thw3i3.c(trunk.25) $");
 
 
 typedef struct ThreadStruct {   /* Win32 thread structure */

@@ -1,6 +1,6 @@
 /* impl.c.version: Version Inspection
  *
- * $HopeName: MMsrc!version.c(trunk.1) $
+ * $HopeName: !version.c(trunk.2) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -24,7 +24,7 @@
 /* .release: When making a new release, change the expansion of
  * MPS_RELEASE to be a string of the form "release.dylan.crow.2"
  * or whatever. */
-#define MPS_RELEASE "$HopeName: MMsrc!version.c(trunk.1) $ *** DEVELOPMENT ONLY ***"
+#define MPS_RELEASE "$HopeName: !version.c(trunk.2) $ *** DEVELOPMENT ONLY ***"
 
 /* Version String
  *

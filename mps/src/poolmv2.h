@@ -1,6 +1,6 @@
 /*  impl.h.poolmv2: ELECTRONIC PUBLISHING DISPLAY LIST POOL
  *
- * $HopeName: MMsrc!poolmv2.h(MMdevel_gavinm_splay.1) $
+ * $HopeName: !poolmv2.h(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
  * 
  * .purpose: The implementation of the new manual-variable pool class

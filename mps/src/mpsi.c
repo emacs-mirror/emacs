@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.74) $
+ * $HopeName: !mpsi.c(trunk.75) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mpsavm.h" /* only for mps_space_create */
 #include "sac.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.74) $");
+SRCID(mpsi, "$HopeName: !mpsi.c(trunk.75) $");
 
 
 /* mpsi_check -- check consistency of interface mappings

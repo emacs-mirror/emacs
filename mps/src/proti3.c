@@ -1,6 +1,6 @@
 /* impl.c.proti3: PROTECTION MUTATOR CONTEXT (Intel 386)
  *
- * $HopeName: $
+ * $HopeName: !proti3.c(trunk.1) $
  * Copyright (C) 1998, 1999. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP

@@ -1,6 +1,6 @@
 /* impl.c.thawlut: THREADING UNIT TEST USING POOL CLASS AWL
  *
- * $HopeName: $
+ * $HopeName: !awlutth.c(trunk.1) $
  * Copyright (C) 2000, Harlequin Limited.  All rights reserved.
  *
  * READERSHIP

@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.19) $
+ * $HopeName: !poolmvff.c(trunk.20) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -24,7 +24,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.19) $");
+SRCID(poolmvff, "$HopeName: !poolmvff.c(trunk.20) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */

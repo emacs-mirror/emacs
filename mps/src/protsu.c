@@ -1,6 +1,6 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
- * $HopeName: MMsrc!protsu.c(trunk.9) $
+ * $HopeName: !protsu.c(trunk.10) $
  * Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -32,7 +32,7 @@
 #include <sys/mman.h>
 #include <signal.h>
 
-SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.9) $");
+SRCID(protsu, "$HopeName: !protsu.c(trunk.10) $");
 
 
 /* Fix up unprototyped system calls. */

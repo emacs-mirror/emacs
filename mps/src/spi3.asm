@@ -2,7 +2,7 @@
 ;
 ;                    STACK PROBE
 ;
-;  $HopeName$
+;  $HopeName: !spi3.asm(trunk.1) $
 ;
 ;  Copyright (C) 1997 Harlequin Group PLC, all rights reserved
 ;

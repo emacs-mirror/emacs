@@ -1,6 +1,6 @@
 /* impl.c.prmci3w3: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
- * $HopeName: $
+ * $HopeName: !prmci3w3.c(trunk.1) $
  * Copyright (C) 1999. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP

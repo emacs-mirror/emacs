@@ -1,7 +1,7 @@
 #!/bin/sh
 # impl.sh.hqbuild
 #
-# $HopeName: MMsrc!tools:swbuild(trunk.1) $
+# $HopeName: !hqbuild:tools:hqbuild(trunk.1) $
 # Copyright (C) 1996 Harlequin Group, all rights reserved
 #
 # Build script for SWIG autobuild system.

@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.7) $
+ *  $HopeName: !cbstest.c(trunk.8) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -15,7 +15,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.7) $");
+SRCID(cbstest, "$HopeName: !cbstest.c(trunk.8) $");
 
 
 #define ArraySize ((Size)123456)

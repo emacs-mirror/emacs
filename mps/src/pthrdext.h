@@ -1,6 +1,6 @@
 /*  impl.h.pthreadext: POSIX THREAD EXTENSIONS
  *
- *  $HopeName: $
+ *  $HopeName: !pthrdext.h(trunk.1) $
  *  Copyright (C) 2000 Harlequin Ltd, all rights reserved
  *
  * .readership: MM developers.

@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.7) $
+ * $HopeName: !ld.c(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -48,7 +48,7 @@
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.7) $");
+SRCID(ld, "$HopeName: !ld.c(trunk.8) $");
 
 
 /* LDReset -- reset a dependency to empty
