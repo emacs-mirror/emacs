@@ -90,8 +90,16 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** A New package flymake.el does on-the-fly syntax checking of program
-source files.  See the Flymake's Info manual for more details.
+** New features in evaluation commands
+
+*** The function `eval-defun' (C-M-x) called on defface reinitializes
+the face to the value specified in the defface expression.
+
+*** Typing C-x C-e twice prints the value of the integer result
+in additional formats (octal, hexadecimal, character) specified
+by the new function `eval-expression-print-format'.  The same
+function also defines the result format for `eval-expression' (M-:),
+`eval-print-last-sexp' (C-j) and some edebug evaluation functions.
 
 ** New input method chinese-sisheng for inputting Chinese Pinyin
 characters.
@@ -1810,6 +1818,9 @@ to view diffs or log entries directly from vc-annotate-mode:
     W:  annotates the workfile (most up to date) version
 
 * New modes and packages in Emacs 21.4
+
+** The new package flymake.el does on-the-fly syntax checking of program
+source files.  See the Flymake's Info manual for more details.
 
 ** The library tree-widget.el provides a new widget to display a set
 of hierarchical data as an outline.  For example, the tree-widget is
