@@ -261,10 +261,10 @@ These hooks have the following distinct roles:
               (if (not (looking-at "\^M\\|\n"))
                   (progn
                     (goto-char (point-max))
-                    (insert-string "\^M")))
+                    (insert "\^M")))
               (goto-char (point-min))
               (if (not (looking-at "\^M\\|\n"))
-                  (insert-string "\^M"))
+                  (insert "\^M"))
               (subst-char-in-region (point-min) (point-max) ?\n ?\^M t)
               (calendar-for-loop i from 1 to number do
                  (let ((d diary-date-forms)
