@@ -1569,6 +1569,10 @@ It is the column where point was
 at the start of current run of vertical motion commands.
 When the `track-eol' feature is doing its job, the value is 9999.")
 
+(defvar line-move-ignore-invisible nil
+  "*Non-nil means \\[next-line] and \\[previous-line] ignore invisible lines.
+Outline mode sets this.")
+
 (defun line-move (arg)
   (if (not (or (eq last-command 'next-line)
 	       (eq last-command 'previous-line)))
@@ -1579,7 +1583,9 @@ When the `track-eol' feature is doing its job, the value is 9999.")
 		     (or (not (bolp)) (eq last-command 'end-of-line)))
 		9999
 	      (current-column))))
-  (if (not (integerp selective-display))
+  (if (and (not (integerp selective-display))
+	   (not line-move-ignore-invisible))
+      ;; Use just newline characters.
       (or (if (> arg 0)
 	      (progn (if (> arg 1) (forward-line (1- arg)))
 		     ;; This way of moving forward ARG lines
@@ -1598,11 +1604,27 @@ When the `track-eol' feature is doing its job, the value is 9999.")
       (end-of-line)
       (and (zerop (vertical-motion 1))
 	   (signal 'end-of-buffer nil))
+      ;; If the following character is currently invisible,
+      ;; skip all characters with that same `invisible' property value.
+      (while (and (not (eobp))
+		  (let ((prop
+			 (get-char-property (point) 'invisible)))
+		    (if (eq buffer-invisibility-spec t)
+			prop
+		      (memq prop buffer-invisibility-spec))))
+	(goto-char (next-single-property-change (point) 'invisible)))
       (setq arg (1- arg)))
     (while (< arg 0)
       (beginning-of-line)
       (and (zerop (vertical-motion -1))
 	   (signal 'beginning-of-buffer nil))
+      (while (and (not (bobp))
+		  (let ((prop
+			 (get-char-property (point) 'invisible)))
+		    (if (eq buffer-invisibility-spec t)
+			prop
+		      (memq prop buffer-invisibility-spec))))
+	(goto-char (previous-single-property-change (point) 'invisible)))
       (setq arg (1+ arg))))
   (move-to-column (or goal-column temporary-goal-column))
   nil)
