@@ -25,47 +25,50 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
+;; 
+;; The widget library is partially documented in the `widget' Info
+;; file.
 ;;
-;; If you want to use this code, please visit the URL above.
-;;
-;; This file only contain the code needed to define new widget types.
+;; This file only contains the code needed to define new widget types.
 ;; Everything else is autoloaded from `wid-edit.el'.
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
+;; Doing this is unnecessary in Emacs 20.  Kept as dummy in case
+;; external libraries call it.  We save a kb or two of purespace by
+;; dummying-out such definitions generally.
 (defmacro define-widget-keywords (&rest keys)
-  ;; Don't use backquote, since that makes trouble trying to
-  ;; re-bootstrap from just the .el files.
-  (list 'eval-and-compile
-    (list 'let (list (list 'keywords (list 'quote keys)))
-      (list 'while 'keywords
-       (list 'or (list 'boundp (list 'car 'keywords))
-           (list 'set (list 'car 'keywords) (list 'car 'keywords)))
-       (list 'setq 'keywords (list 'cdr 'keywords))))))
+;;;  ;; Don't use backquote, since that makes trouble trying to
+;;;  ;; re-bootstrap from just the .el files.
+;;;  (list 'eval-and-compile
+;;;    (list 'let (list (list 'keywords (list 'quote keys)))
+;;;	 (list 'while 'keywords
+;;;	  (list 'or (list 'boundp (list 'car 'keywords))
+;;;	      (list 'set (list 'car 'keywords) (list 'car 'keywords)))
+;;;	  (list 'setq 'keywords (list 'cdr 'keywords)))))
+  )
 
-(define-widget-keywords :documentation-indent
-  :complete-function :complete :button-overlay
-  :field-overlay  
-  :documentation-shown :button-prefix  
-  :button-suffix :mouse-down-action :glyph-up :glyph-down :glyph-inactive  
-  :prompt-internal :prompt-history :prompt-match
-  :prompt-value  :deactivate :active  
-  :inactive :activate :sibling-args :delete-button-args
-  :insert-button-args :append-button-args :button-args 
-  :tag-glyph :off-glyph :on-glyph :valid-regexp
-  :secret :sample-face :sample-face-get :case-fold 
-  :create :convert-widget :format :value-create :offset :extra-offset
-  :tag :doc :from :to :args :value :action
-  :value-set :value-delete :match :parent :delete :menu-tag-get
-  :value-get :choice :void :menu-tag :on :off :on-type :off-type
-  :notify :entry-format :button :children :buttons :insert-before
-  :delete-at :format-handler :widget :value-pos :value-to-internal
-  :indent :size :value-to-external :validate :error :directory
-  :must-match :type-error :value-inline :inline :match-inline :greedy
-  :button-face-get :button-face :value-face :keymap :entry-from
-  :entry-to :help-echo :documentation-property :tab-order) 
+;;;(define-widget-keywords :documentation-indent
+;;;  :complete-function :complete :button-overlay
+;;;  :field-overlay  
+;;;  :documentation-shown :button-prefix  
+;;;  :button-suffix :mouse-down-action :glyph-up :glyph-down :glyph-inactive  
+;;;  :prompt-internal :prompt-history :prompt-match
+;;;  :prompt-value  :deactivate :active  
+;;;  :inactive :activate :sibling-args :delete-button-args
+;;;  :insert-button-args :append-button-args :button-args 
+;;;  :tag-glyph :off-glyph :on-glyph :valid-regexp
+;;;  :secret :sample-face :sample-face-get :case-fold 
+;;;  :create :convert-widget :format :value-create :offset :extra-offset
+;;;  :tag :doc :from :to :args :value :action
+;;;  :value-set :value-delete :match :parent :delete :menu-tag-get
+;;;  :value-get :choice :void :menu-tag :on :off :on-type :off-type
+;;;  :notify :entry-format :button :children :buttons :insert-before
+;;;  :delete-at :format-handler :widget :value-pos :value-to-internal
+;;;  :indent :size :value-to-external :validate :error :directory
+;;;  :must-match :type-error :value-inline :inline :match-inline :greedy
+;;;  :button-face-get :button-face :value-face :keymap :entry-from
+;;;  :entry-to :help-echo :documentation-property :tab-order) 
 
 (defun define-widget (name class doc &rest args)
   "Define a new widget type named NAME from CLASS.
