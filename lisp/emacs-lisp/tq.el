@@ -49,8 +49,8 @@ to a tcp server on another machine."
 			     (concat " tq-temp-"
 				     (process-name process)))))))
     (set-process-filter process
-			(`(lambda (proc string)
-			   (tq-filter  '(, tq) string))))
+			`(lambda (proc string)
+			   (tq-filter '(, tq) string)))
     tq))
 
 ;;; accessors
