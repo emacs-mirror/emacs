@@ -1,5 +1,11 @@
 2004-11-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* vc-cvs.el (vc-cvs-local-month-numbers): Delete var.
+	(vc-cvs-annotate-time): Incorporate value of deleted var.
+	Remove special-case handling of beginning-of-buffer cruft.
+	Cache ending position (point) and return value in text property
+	`vc-cvs-annotate-time', and consult it on subsequent invocations.
+
 	* vc-cvs.el (vc-cvs-annotate-command):
 	Delete extraneous lines from beginning of buffer.
 	* vc-mcvs.el (vc-mcvs-annotate-command): Likewise.
