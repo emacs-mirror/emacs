@@ -397,16 +397,16 @@ DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
   "Lock FILE, if current buffer is modified.\n\
 FILE defaults to current buffer's visited file,\n\
 or else nothing is done if current buffer isn't visiting a file.")
-  (fn)
-     Lisp_Object fn;
+  (file)
+     Lisp_Object file;
 {
-  if (NILP (fn))
-    fn = current_buffer->file_truename;
+  if (NILP (file))
+    file = current_buffer->file_truename;
   else
-    CHECK_STRING (fn, 0);
+    CHECK_STRING (file, 0);
   if (SAVE_MODIFF < MODIFF
-      && !NILP (fn))
-    lock_file (fn);
+      && !NILP (file))
+    lock_file (file);
   return Qnil;    
 }
 
@@ -436,15 +436,15 @@ unlock_buffer (buffer)
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 0, 1, 0,
   "Return nil if the FILENAME is not locked,\n\
 t if it is locked by you, else a string of the name of the locker.")
-  (fn)
-  Lisp_Object fn;
+  (filename)
+  Lisp_Object filename;
 {
   register char *lfname;
   int owner;
 
-  fn = Fexpand_file_name (fn, Qnil);
+  filename = Fexpand_file_name (filename, Qnil);
 
-  MAKE_LOCK_NAME (lfname, fn);
+  MAKE_LOCK_NAME (lfname, filename);
 
   owner = current_lock_owner (lfname);
   if (owner <= 0)
