@@ -1,6 +1,6 @@
 ;;; ispell.el --- Interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author:	     Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:	     Ken Stevens <k.stevens@ieee.org>
@@ -1505,7 +1505,8 @@ used.
 Global `ispell-quit' set to start location to continue spell session."
   (let ((count ?0)
 	(line ispell-choices-win-default-height)
-	(max-lines (- (window-height) 4)) ; ensure 4 context lines.
+	;; ensure 4 context lines.
+	(max-lines (- (ispell-adjusted-window-height) 4))
 	(choices miss)
 	(window-min-height (min window-min-height
 				ispell-choices-win-default-height))
@@ -1775,11 +1776,12 @@ Global `ispell-quit' set to start location to continue spell session."
     ;; standard selection by splitting a small buffer out of this window.
     (let ((choices-window (get-buffer-window ispell-choices-buffer)))
       (if choices-window
-	  (if (= line (window-height choices-window))
+	  (if (= line (ispell-adjusted-window-height choices-window))
 	      (select-window choices-window)
 	    ;; *Choices* window changed size.  Adjust the choices window
 	    ;; without scrolling the spelled window when possible
-	    (let ((window-line (- line (window-height choices-window)))
+	    (let ((window-line
+		   (- line (ispell-adjusted-window-height choices-window)))
 		  (visible (progn (vertical-motion -1) (point))))
 	      (if (< line ispell-choices-win-default-height)
 		  (setq window-line (+ window-line
@@ -1832,7 +1834,8 @@ SPC:   Accept word this time.
 		     ;; an optional argument telling it about the smallest
 		     ;; acceptable window-height of the help buffer.
 		     (if (< (window-height) 15)
-			 (enlarge-window (- 15 (window-height))))
+			 (enlarge-window
+			  (- 15 (ispell-adjusted-window-height))))
 		     (princ "Selections are:
 
 DIGIT: Replace the word with a digit offered in the *Choices* buffer.
@@ -2050,6 +2053,19 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
     (ispell-highlight-spelling-error-overlay start end highlight))
    (t (ispell-highlight-spelling-error-generic start end highlight refresh))))
 
+(defun ispell-adjusted-window-height (&optional window)
+  "Like `window-height', adjusted to correct for the effect of tall mode-lines.
+The value returned is actually the nominal number of text-lines in the
+window plus 1.  On a terminal, this is the same value returned by
+`window-height', but if the window has a mode-line is taller than a normal
+text line, the returned value may be smaller than that from
+`window-height'."
+  (cond ((fboundp 'window-text-height)
+	 (1+ (window-text-height window)))
+	(ispell-graphic-p
+	 (1- (window-height window)))
+	(t
+	 (window-height window))))
 
 (defun ispell-overlay-window (height)
   "Create a window covering the top HEIGHT lines of the current window.
@@ -2069,18 +2085,10 @@ scrolling the current window.  Leave the new window selected."
 	    (split-window nil height)
 	    (modify-frame-parameters frame '((unsplittable . t))))
 	(split-window nil height))
-      (let ((deficit
-	      ;; Number of lines the window is still too short.  We
-	      ;; ensure that there are at least (1- HEIGHT) lines
-	      ;; visible in the window.
-	      (- height
-		 (cond ((fboundp 'window-text-height)
-			(1+ (window-text-height)))
-		       (ispell-graphic-p
-			(1- (window-height)))
-		       (t
-			(window-height))))))
+      (let ((deficit (- height (ispell-adjusted-window-height))))
 	(when (> deficit 0)
+	  ;; Number of lines the window is still too short.  We ensure that
+	  ;; there are at least (1- HEIGHT) lines visible in the window.
 	  (enlarge-window deficit)
 	  (goto-char top)
 	  (vertical-motion deficit)
