@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99,
-;;               2000, 01, 02, 03, 2004
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;               2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -736,7 +736,7 @@ that uses or sets the mark."
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
-  (let ((opoint (point)) (start (point-min))
+  (let ((start (point-min))
 	(n (line-number-at-pos)))
     (if (= start 1)
 	(message "Line %d" n)
@@ -3124,8 +3124,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
-	(forward (> arg 0))
-	new line-end line-beg)
+	(forward (> arg 0)))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
@@ -3928,16 +3927,12 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(save-excursion
-		  (goto-char blinkpos)
-		  (not (looking-at "\\s$")))
+		(not (eq (car (syntax-after blinkpos)) 8)) ;Not syntax '$'.
 		(setq matching-paren
-		      (or (and parse-sexp-lookup-properties
-			       (let ((prop (get-text-property blinkpos 'syntax-table)))
-				 (and (consp prop)
-				      (eq (car prop) 4)
-				      (cdr prop))))
-			  (matching-paren (char-after blinkpos)))
+		      (let ((syntax (syntax-after blinkpos)))
+			(and (consp syntax)
+			     (eq (car syntax) 4)
+			     (cdr syntax)))
 		      mismatch
 		      (or (null matching-paren)
 			  (/= (char-after (1- oldpos))
