@@ -5549,29 +5549,32 @@ process_send_signal (process, signo, current_group, nomsg)
          work.  If the system has it, use it.  */
 #ifdef HAVE_TERMIOS
       struct termios t;
+      cc_t *sig_char = NULL;
+
+      tcgetattr (XINT (p->infd), &t);
 
       switch (signo)
 	{
 	case SIGINT:
-	  tcgetattr (XINT (p->infd), &t);
-	  send_process (proc, &t.c_cc[VINTR], 1, Qnil);
-	  return;
+	  sig_char = &t.c_cc[VINTR];
+	  break;
 
 	case SIGQUIT:
-	  tcgetattr (XINT (p->infd), &t);
-  	  send_process (proc, &t.c_cc[VQUIT], 1, Qnil);
-  	  return;
+	  sig_char = &t.c_cc[VQUIT];
+	  break;
 
   	case SIGTSTP:
-	  tcgetattr (XINT (p->infd), &t);
 #if defined (VSWTCH) && !defined (PREFER_VSUSP)
-  	  send_process (proc, &t.c_cc[VSWTCH], 1, Qnil);
+	  sig_char = &t.c_cc[VSWTCH];
 #else
-	  send_process (proc, &t.c_cc[VSUSP], 1, Qnil);
+	  sig_char = &t.c_cc[VSUSP];
 #endif
-  	  return;
+	  break;
 	}
 
+      if (sig_char && *sig_char != CVDISABLE)
+	send_process (proc, sig_char, 1, Qnil);
+      return;
 #else /* ! HAVE_TERMIOS */
 
       /* On Berkeley descendants, the following IOCTL's retrieve the
