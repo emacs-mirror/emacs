@@ -52,22 +52,6 @@ struct window;
 
 
 /***********************************************************************
-			      Configuration
- ***********************************************************************/
-
-/* If NO_PROMPT_IN_BUFFER is zero or undefined (default), prompts are
-   inserted into minibuffers as read-only text.  Otherwise, the
-   behavior of Emacs 20.2 is restored.  Define this as part of CFLAGS
-   because dispextern.h is not included in every C source file
-   containing conditional code for it.  */
-
-#if 0
-#define NO_PROMPT_IN_BUFFER 1
-#endif
-
-
-
-/***********************************************************************
 			      Debugging
  ***********************************************************************/
 
@@ -2136,8 +2120,9 @@ extern int display_busy_cursor_p;
 
 int popup_activated P_ ((void));
 
-/* Defined in dispnw.c  */
+/* Defined in dispnew.c  */
 
+int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 Lisp_Object mode_line_string P_ ((struct window *, int, int, int, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
@@ -2148,8 +2133,6 @@ extern int direct_output_for_insert P_ ((int));
 extern int direct_output_forward_char P_ ((int));
 extern int update_frame P_ ((struct frame *, int, int));
 extern int scrolling P_ ((struct frame *));
-extern void do_pending_window_change P_ ((void));
-extern void change_frame_size P_ ((struct frame *, int, int, int, int));
 extern void bitch_at_user P_ ((void));
 void adjust_glyphs P_ ((struct frame *));
 void free_glyphs P_ ((struct frame *));
@@ -2182,8 +2165,8 @@ int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
 int buffer_posn_from_coords P_ ((struct window *, int *, int *));
-void do_pending_window_change P_ ((void));
-void change_frame_size P_ ((struct frame *, int, int, int, int));
+void do_pending_window_change P_ ((int));
+void change_frame_size P_ ((struct frame *, int, int, int, int, int));
 void bitch_at_user P_ ((void));
 Lisp_Object sit_for P_ ((int, int, int, int, int));
 void init_display P_ ((void));
