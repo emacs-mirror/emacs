@@ -3679,7 +3679,9 @@ Optional EVENT is the location for the menu."
   "File used for storing customization information.
 The default is nil, which means to use your init file
 as specified by `user-init-file'.  If you specify some other file,
-you need to explicitly load that file for the settings to take effect.
+you need to explicitly load that file in order for
+the settings it contains to take effect.  You might want to
+put code in your init file to load it: `(load "CUSTOM-FILENAME")'.
 
 When you change this variable, look in the previous custom file
 \(usually your init file) for the forms `(custom-set-variables ...)'
