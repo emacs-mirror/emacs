@@ -159,11 +159,17 @@ rm -f /tmp/el /tmp/elc
 losers="`comm -23 /tmp/el /tmp/elc`"
 bogosities=
 for file in $losers; do
-  if ! grep -q "dontcompilefiles:.* $file\($\| \)" lisp/Makefile; then
-    if [ "$file" != site-init.el ] && [ "$file" != site-load.el ] \
-       && [ "$file" != site-start.el ] && [ "$file" != default.el ]; then
-      bogosities="$file $bogosities"
-    fi
+  file1=`echo $file | sed -e "s|.*/||"`
+  if ! grep -q "dontcompilefiles:.* $file1\($\| \)" lisp/Makefile; then
+    case $file in
+      site-init.el | site-load.el | site-start.el | default.el)
+        ;;
+      term/*)
+        ;;
+      *)
+        bogosities="$file $bogosities"
+	;;
+    esac
   fi
 done
 if [ x"${bogosities}" != x"" ]; then
