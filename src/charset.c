@@ -1128,6 +1128,9 @@ DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
 {
   int from, to;
 
+  CHECK_NUMBER_COERCE_MARKER (beg, 0);
+  CHECK_NUMBER_COERCE_MARKER (end, 1);
+
   from = min (XFASTINT (beg), XFASTINT (end));
   to = max (XFASTINT (beg), XFASTINT (end));
 
