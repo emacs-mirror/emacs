@@ -185,6 +185,10 @@ The following keywords are meaningful:
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
 	it does (require VALUE) first.
+:version
+        VALUE should be a string specifying that the variable was
+        first introduced, or its default value was changed, in Emacs
+        version VERSION.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
@@ -298,10 +302,13 @@ The remaining arguments should have the form
 
    [KEYWORD VALUE]...
 
-The following KEYWORD's are defined:
+The following KEYWORDs are defined:
 
-:group  VALUE should be a customization group.
-        Add SYMBOL to that group.
+:group   VALUE should be a customization group.
+         Add SYMBOL to that group.
+
+:version VALUE should be a string specifying that the group was introduced
+         in Emacs version VERSION.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
