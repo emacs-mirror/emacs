@@ -1587,14 +1587,18 @@
 (defvar math-poly-base-const-ok)
 (defvar math-poly-base-pred)
 
-(defun math-polynomial-base (mpb-top-expr &optional math-poly-base-pred)
+;; The variable math-poly-base-top-expr is local to math-polynomial-base,
+;; but is used by math-polynomial-p1 in calc-poly.el, which is called
+;; by math-polynomial-base.
+
+(defun math-polynomial-base (math-poly-base-top-expr &optional math-poly-base-pred)
   (or math-poly-base-pred
       (setq math-poly-base-pred (function (lambda (base) (math-polynomial-p
-					       mpb-top-expr base)))))
+					       math-poly-base-top-expr base)))))
   (or (let ((math-poly-base-const-ok nil))
-	(math-polynomial-base-rec mpb-top-expr))
+	(math-polynomial-base-rec math-poly-base-top-expr))
       (let ((math-poly-base-const-ok t))
-	(math-polynomial-base-rec mpb-top-expr))))
+	(math-polynomial-base-rec math-poly-base-top-expr))))
 
 (defun math-polynomial-base-rec (mpb-expr)
   (and (not (Math-objvecp mpb-expr))
