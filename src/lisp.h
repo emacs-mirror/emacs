@@ -278,6 +278,10 @@ enum pvec_type
 
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
+
+/* Number of bits to put in each character in the internal representation
+   of bool vectors.  This should not vary across implementations.  */
+#define BOOL_VECTOR_BITS_PER_CHAR 8
 
 /***** Select the tagging scheme.  *****/
 
