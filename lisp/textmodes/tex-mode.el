@@ -1220,7 +1220,7 @@ Mark is left at original location."
   (with-current-buffer
       (make-comint
        "tex-shell"
-       (or tex-shell-file-name (getenv "ESHELL") (getenv "SHELL") "/bin/sh")
+       (or tex-shell-file-name (getenv "ESHELL") shell-file-name)
        nil)
     (let ((proc (get-process "tex-shell")))
       (set-process-sentinel proc 'tex-shell-sentinel)
@@ -1347,11 +1347,8 @@ ALL other buffers."
 		       (re-search-forward header-re 10000 t)))
 	    (throw 'found (expand-file-name buffer-file-name))))))))
 
-(defun tex-main-file (&optional realfile)
-  "Return the name of the main file with the `.tex' extension stripped.
-If REALFILE is non-nil, return the pair (FILE . REALFILE) where FILE
-is the filename without the extension while REALFILE is the filename
-with extension."
+(defun tex-main-file ()
+  "Return the relative name of the main file."
   (let* ((file (or tex-main-file
 		   ;; Compatibility with AUCTeX.
 		   (and (boundp 'TeX-master) (stringp TeX-master)
@@ -1368,11 +1365,8 @@ with extension."
 			;; This isn't the main file, let's try to find better,
 			(or (tex-guess-main-file)
 			    ;; (tex-guess-main-file t)
-			    buffer-file-name))))))
-	 (real (if (file-exists-p file) file (concat file ".tex"))))
-    (when (string-match "\\.tex\\'" file)
-      (setq file (substring file 0 (match-beginning 0))))
-    (if realfile (cons file real) file)))
+			    buffer-file-name)))))))
+    (if (file-exists-p file) file (concat file ".tex"))))
 
 
 (defun tex-start-tex (command file &optional dir)
@@ -1599,8 +1593,7 @@ This function is more useful than \\[tex-buffer] when you need the
 `.aux' file of LaTeX to have the correct name."
   (interactive)
   (let* ((source-file (tex-main-file))
-	 (file-dir (expand-file-name (or (file-name-directory source-file)
-                                         default-directory))))
+	 (file-dir (file-name-directory (expand-file-name source-file))))
     (if tex-offer-save
         (save-some-buffers))
     (if (tex-shell-running)
@@ -1617,13 +1610,7 @@ This function is more useful than \\[tex-buffer] when you need the
   ;; don't work with file names that start with #.
   (format "_TZ_%d-%s"
           (process-id (get-buffer-process "*tex-shell*"))
-	  (tex-strip-dots (system-name))))
-
-(defun tex-strip-dots (s)
-  (setq s (copy-sequence s))
-  (while (string-match "\\." s)
-    (aset s (match-beginning 0) ?-))
-  s)
+	  (subst-char-in-string ?. ?- (system-name))))
 
 ;; This will perhaps be useful for modifying TEXINPUTS.
 ;; Expand each file name, separated by colons, in the string S.
