@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-incom () nil)
-
 
 ;;; Incomplete forms.
 
@@ -231,6 +228,8 @@
 	((eq (nth 1 a) 'intv)
 	 (error "Interval form is incomplete"))
 	(t (error "Object is incomplete"))))
+
+(provide 'calc-incom)
 
 ;;; arch-tag: b8001270-4dc7-481b-a3e3-a952e19b390d
 ;;; calc-incom.el ends here
