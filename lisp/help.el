@@ -483,17 +483,19 @@ C-f Info-goto-emacs-command-node.  Type a function name;
 i  info. The  info  documentation reader.
 I  describe-input-method.  Describe a specific input method (if you type
 	its name) or the current input method (if you type just RET).
+C-i  info-lookup-symbol.  Display the definition of a specific symbol
+        as found in the manual for the language this buffer is written in.
 k  describe-key.  Type a command key sequence;
 	it displays the full documentation.
 C-k Info-goto-emacs-key-command-node.  Type a command key sequence;
 	it takes you to the Info node for the command bound to that key.
-l  view-lossage.  Shows last 100 characters you typed.
+l  view-lossage.  Show last 100 characters you typed.
 L  describe-language-environment.  This describes either the a
 	specific language environment (if you type its name)
 	or the current language environment (if you type just RET).
 m  describe-mode.  Print documentation of current minor modes,
 	and the current major mode, including their special commands.
-n  view-emacs-news.  Shows emacs news file.
+n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 s  describe-syntax.  Display contents of syntax table, plus explanations
 t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
