@@ -464,14 +464,18 @@ child_setup_tty (out)
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
   s.main.c_oflag |= OPOST;	/* Enable output postprocessing */
   s.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL on output */
+#ifdef NLDLY
   s.main.c_oflag &= ~(NLDLY|CRDLY|TABDLY|BSDLY|VTDLY|FFDLY);
   				/* No output delays */
+#endif
   s.main.c_lflag &= ~ECHO;	/* Disable echo */
   s.main.c_lflag |= ISIG;	/* Enable signals */
-  s.main.c_iflag &= ~IUCLC;	/* Disable map of upper case to lower on
-				   input */
-  s.main.c_oflag &= ~OLCUC;	/* Disable map of lower case to upper on
-				   output */
+#ifdef IUCLC
+  s.main.c_iflag &= ~IUCLC;	/* Disable downcasing on input.  */
+#endif
+@ifdef OLCUC
+  s.main.c_oflag &= ~OLCUC;	/* Disable upcasing on output.  */
+#endif
   s.main.c_cflag = (s.main.c_cflag & ~CSIZE) | CS8; /* Don't strip 8th bit */
 #if 0
   /* Said to be unnecessary:  */
