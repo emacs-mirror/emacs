@@ -1,3 +1,9 @@
+2004-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (GET_UNSIGNED_NUMBER): Signal an error when reaching the end.
+	Remove redundant correctness checks.
+	(regex_compile): Fix up error codes for \{..\} expressions.
+
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (regex_compile): Fix end-of-pattern case for space.

@@ -1950,28 +1950,27 @@ struct range_table_work_area
 
 /* Get the next unsigned number in the uncompiled pattern.  */
 #define GET_UNSIGNED_NUMBER(num)					\
- do { if (p != pend)							\
-     {									\
-       PATFETCH (c);							\
-       if (c == ' ')							\
-	 FREE_STACK_RETURN (REG_BADBR);					\
-       while ('0' <= c && c <= '9')					\
-	 {								\
-           int prev;							\
-	   if (num < 0)							\
-	     num = 0;							\
-	   prev = num;							\
-	   num = num * 10 + c - '0';					\
-	   if (num / 10 != prev)					\
-	     FREE_STACK_RETURN (REG_BADBR);				\
-	   if (p == pend)						\
-	     break;							\
-	   PATFETCH (c);						\
-	 }								\
-       if (c == ' ')							\
-	 FREE_STACK_RETURN (REG_BADBR);					\
-       }								\
-    } while (0)
+  do {									\
+    if (p == pend)							\
+      FREE_STACK_RETURN (REG_EBRACE);					\
+    else								\
+      {									\
+	PATFETCH (c);							\
+	while ('0' <= c && c <= '9')					\
+	  {								\
+	    int prev;							\
+	    if (num < 0)						\
+	      num = 0;							\
+	    prev = num;							\
+	    num = num * 10 + c - '0';					\
+	    if (num / 10 != prev)					\
+	      FREE_STACK_RETURN (REG_BADBR);				\
+	    if (p == pend)						\
+	      FREE_STACK_RETURN (REG_EBRACE);				\
+	    PATFETCH (c);						\
+	  }								\
+      }									\
+  } while (0)
 
 #if ! WIDE_CHAR_SUPPORT
 
@@ -3234,9 +3233,6 @@ regex_compile (pattern, size, syntax, bufp)
 
 		beg_interval = p;
 
-		if (p == pend)
-		  FREE_STACK_RETURN (REG_EBRACE);
-
 		GET_UNSIGNED_NUMBER (lower_bound);
 
 		if (c == ',')
@@ -3253,7 +3249,8 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 		    if (c != '\\')
 		      FREE_STACK_RETURN (REG_BADBR);
-
+		    if (p == pend)
+		      FREE_STACK_RETURN (REG_EESCAPE);
 		    PATFETCH (c);
 		  }
 
