@@ -77,7 +77,7 @@ however, ^M is treated as end of line when `selective-display' is t.")
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = current_column ();
+  XSETFASTINT (temp, current_column ());
   return temp;
 }
 
@@ -187,7 +187,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
 
   CHECK_NUMBER (col, 0);
   if (NILP (minimum))
-    XFASTINT (minimum) = 0;
+    XSETFASTINT (minimum, 0);
   CHECK_NUMBER (minimum, 1);
 
   fromcol = current_column ();
@@ -202,7 +202,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
   if (indent_tabs_mode)
     {
       Lisp_Object n;
-      XFASTINT (n) = mincol / tab_width - fromcol / tab_width;
+      XSETFASTINT (n, mincol / tab_width - fromcol / tab_width);
       if (XFASTINT (n) != 0)
 	{
 	  Finsert_char (make_number ('\t'), n, Qt);
@@ -211,7 +211,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
 	}
     }
 
-  XFASTINT (col) = mincol - fromcol;
+  XSETFASTINT (col, mincol - fromcol);
   Finsert_char (make_number (' '), col, Qt);
 
   last_known_column = mincol;
@@ -231,7 +231,7 @@ following any initial whitespace.")
 {
   Lisp_Object val;
 
-  XFASTINT (val) = position_indentation (find_next_newline (point, -1));
+  XSETFASTINT (val, position_indentation (find_next_newline (point, -1)));
   return val;
 }
 
@@ -376,7 +376,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
   last_known_column_point = point;
   last_known_column_modified = MODIFF;
 
-  XFASTINT (val) = col;
+  XSETFASTINT (val, col);
   return val;
 }
 
@@ -478,7 +478,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	 the next property change */
       while (pos == next_invisible && pos < to)
 	{
-	  XFASTINT (position) = pos;
+	  XSETFASTINT (position, pos);
 	  prop = Fget_char_property (position,
 				     Qinvisible,
 				     Fcurrent_buffer ());
@@ -490,7 +490,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	       performance; nothing should go wrong if it is too small.  */
 	    limit = Fnext_overlay_change (position);
 	    if (XFASTINT (limit) > pos + 100)
-	      XFASTINT (limit) = pos + 100;
+	      XSETFASTINT (limit, pos + 100);
 	    end = Fnext_single_property_change (position, Qinvisible,
 						Fcurrent_buffer (), limit);
 	    if (INTEGERP (end))
@@ -697,7 +697,7 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
 			XINT (width), hscroll, tab_offset,
 			XWINDOW (window));
 
-  XFASTINT (bufpos) = pos->bufpos;
+  XSETFASTINT (bufpos, pos->bufpos);
   XSETINT (hpos, pos->hpos);
   XSETINT (vpos, pos->vpos);
   XSETINT (prevhpos, pos->prevhpos);
@@ -767,7 +767,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	 to determine hpos of starting point */
       if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
 	{
-	  XFASTINT (prevline) = find_next_newline_no_quit (from, -1);
+	  XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
 	  while (XFASTINT (prevline) > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (XFASTINT (prevline), selective))
@@ -778,8 +778,9 @@ vmotion (from, vtarget, width, hscroll, window)
 						    window))
 #endif
 		 ))
-	    XFASTINT (prevline)
-	      = find_next_newline_no_quit (XFASTINT (prevline) - 1, -1);
+	    XSETFASTINT (prevline,
+			 find_next_newline_no_quit (XFASTINT (prevline) - 1,
+						    -1));
 	  pos = *compute_motion (XFASTINT (prevline), 0,
 				 lmargin + (XFASTINT (prevline) == 1
 					    ? start_hpos : 0),
@@ -804,11 +805,12 @@ vmotion (from, vtarget, width, hscroll, window)
 
   while ((vpos > vtarget || first) && from > BEGV)
     {
-      XFASTINT (prevline) = from;
+      XSETFASTINT (prevline, from);
       while (1)
 	{
-	  XFASTINT (prevline)
-	    = find_next_newline_no_quit (XFASTINT (prevline) - 1, -1);
+	  XSETFASTINT (prevline,
+		       find_next_newline_no_quit (XFASTINT (prevline) - 1,
+						  -1));
 	  if (XFASTINT (prevline) == BEGV
 	      || ((selective <= 0
 		   || ! indented_beyond_p (XFASTINT (prevline), selective))
