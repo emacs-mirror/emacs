@@ -1,5 +1,10 @@
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* ps-print.el: Update copyright notice.
+	
+	* tooltip.el (tooltip-x-offset, tooltip-y-offset): New user-options.
+	(tooltip-show): Use the offsets.
+
 	* bindings.el (mode-line-modified): Fix a typo.
 	(mode-line-toggle-modified, mode-line-widen) 
 	(mode-line-abbrev-mode, mode-line-auto-fill-mode): Fix typos.

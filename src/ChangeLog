@@ -1,3 +1,12 @@
+2000-11-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fx_show_tip): Use default y-offset of -10 so that
+	the tooltip obscures less text under it.
+
+2000-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 700000.
+
 2000-11-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_draw_bitmap): Use face to set colors.
