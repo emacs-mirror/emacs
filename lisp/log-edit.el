@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.15 2001/03/07 00:26:25 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.16 2001/05/11 20:42:58 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -188,9 +188,9 @@ If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
     (set (make-local-variable 'log-edit-callback) callback)
     (set (make-local-variable 'log-edit-listfun) listfun)
     (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
+    (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
     (when setup (run-hooks 'log-edit-hook))
     (goto-char (point-min)) (push-mark (point-max))
-    (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
     (message (substitute-command-keys
 	      "Press \\[log-edit-done] when you are done editing."))))
 
