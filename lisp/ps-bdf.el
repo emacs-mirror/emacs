@@ -34,7 +34,10 @@
 (eval-when-compile (require 'ps-mule))
 
 ;;;###autoload
-(defvar bdf-directory-list '("/usr/local/share/emacs/fonts/bdf")
+(defvar bdf-directory-list
+  (if (eq system-type 'ms-dos)
+      (list (expand-file-name "../fonts/bdf" invocation-directory))
+    '("/usr/local/share/emacs/fonts/bdf"))
   "*List of directories to search for `BDF' font files.
 The default value is '("/usr/local/share/emacs/fonts/bdf").")
 
