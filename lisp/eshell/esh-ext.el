@@ -257,7 +257,7 @@ Return nil, or a list of the form:
 	     (file-regular-p file))
 	(with-temp-buffer
 	  (insert-file-contents-literally file nil 0 maxlen)
-	  (if (looking-at "#![ \t]*\\([^ \t\n]+\\)\\([ \t]+\\(.+\\)\\)?")
+	  (if (looking-at "#![ \t]*\\([^ \r\t\n]+\\)\\([ \t]+\\(.+\\)\\)?")
 	      (if (match-string 3)
 		  (list (match-string 1)
 			(match-string 3)
