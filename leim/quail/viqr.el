@@ -58,7 +58,7 @@
  ------------+---------+----------
     d bar    |   dd    | dd -> ,1p(B
  ------------+---------+----------
-  no compose |    \    | a\. -> a.
+  no compose |    \\    | a\\. -> a.
  ------------+---------+----------
   combination|   (~    | a(~ -> ,1G(B
 " nil t t nil nil t nil nil nil nil t)
