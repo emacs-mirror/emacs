@@ -613,7 +613,7 @@ If they are on the border between WINDOW and its right sibling,\n\
 
    Check if window W contains coordinates *CW->x and *CW->y.  If it
    does, return W in *CW->window, as Lisp_Object, and return in
-   *CW->part the part of the window under coordinates *X/*Y.  Return
+   *CW->part the part of the window under coordinates *X,*Y.  Return
    zero from this function to stop iterating over windows.  */
 
 struct check_window_data
@@ -5372,7 +5372,7 @@ work using this function.");
   pop_up_frames = 0;
 
   DEFVAR_BOOL ("display-buffer-reuse-frames", &display_buffer_reuse_frames,
-    "*Non-nil means `display-buffer' should reuse frames.
+    "*Non-nil means `display-buffer' should reuse frames.\n\
 If the buffer in question is already displayed in a frame, raise that frame.");
   display_buffer_reuse_frames = 0;
 
