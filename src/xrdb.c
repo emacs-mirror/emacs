@@ -55,6 +55,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define MAXPATHLEN	256
 #endif
 
+#if !defined(S_ISDIR) && defined(S_IFDIR)
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
 extern char *getenv ();
 
 /* This does cause trouble on AIX.  I'm going to take the comment at
@@ -320,7 +324,7 @@ file_p (path)
 
   return (access (path, 4) == 0			/* exists and is readable */
 	  && stat (path, &status) == 0		/* get the status */
-	  && (status.st_mode & S_IFDIR) == 0);	/* not a directory */
+	  && (S_ISDIR (status.st_mode)) == 0);	/* not a directory */
 }
 
 
@@ -339,23 +343,18 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
       for (p = s; *p && *p != ':'; p++)
 	;
       
-      if (*p == ':' && *(p + 1) == ':')
+      if (p > s)
+	{
+	  char *path = magic_file_p (s, p - s, class, escaped_suffix, suffix);
+	  if (path)
+	    return path;
+	}
+      else if (*p == ':')
 	{
 	  char *path;
 
 	  s = "%N%S";
 	  path = magic_file_p (s, strlen (s), class, escaped_suffix, suffix);
-	  if (path)
-	    return path;
-
-	  /* Skip the first colon.  */
-	  p++;
-	  continue;
-	}
-
-      if (p > s)
-	{
-	  char *path = magic_file_p (s, p - s, class, escaped_suffix, suffix);
 	  if (path)
 	    return path;
 	}
