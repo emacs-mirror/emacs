@@ -329,7 +329,7 @@ install-arch-indep: mkdir
 	   dest=$$1 ; shift ; \
 	   [ -d $${dir} ] \
 	   && [ `(cd $${dir} && /bin/pwd)` != `(cd $${dest} && /bin/pwd)` ] \
-	   && (echo "Copying $${dir}..." ; \
+	   && (echo "Copying $${dir} to $${dest}..." ; \
 	       (cd $${dir}; tar -cf - . )|(cd $${dest};umask 022; tar -xvf - ); \
 	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 		 rm -rf $${subdir}/RCS ; \
@@ -347,7 +347,7 @@ install-arch-indep: mkdir
 	$(srcdir)/update-subdirs ${lispdir}
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
-	   echo "Copying etc/DOC-* ..." ; \
+	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
 	   (cd $(docdir); rm DOC) \
 	else true; fi
