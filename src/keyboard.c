@@ -1785,47 +1785,67 @@ extern Lisp_Object Qcomposition, Qdisplay;
 
 /* Adjust point to a boundary of a region that has such a property
    that should be treated intangible.  For the moment, we check
-   `composition' and `display' property.  LAST_PT is the last position
-   of point.  */
+   `composition', `display' and `invisible' properties.
+   LAST_PT is the last position of point.  */
 
 static void
 adjust_point_for_property (last_pt)
      int last_pt;
 {
-  int start, end;
-  Lisp_Object val;
-  int check_composition = 1, check_display = 1;
+  int beg, end;
+  Lisp_Object val, overlay, tmp;
+  int check_composition = 1, check_display = 1, check_invisible = 1;
 
-  while (check_composition || check_display)
+  while (check_composition || check_display || check_invisible)
     {
       if (check_composition
 	  && PT > BEGV && PT < ZV
-	  && get_property_and_range (PT, Qcomposition, &val, &start, &end, Qnil)
-	  && COMPOSITION_VALID_P (start, end, val)
-	  && start < PT && end > PT
-	  && (last_pt <= start || last_pt >= end))
+	  && get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
+	  && COMPOSITION_VALID_P (beg, end, val)
+	  && beg < PT /* && end > PT   <- It's always the case.  */
+	  && (last_pt <= beg || last_pt >= end))
 	{
-	  if (PT < last_pt)
-	    SET_PT (start);
-	  else
-	    SET_PT (end);
+	  SET_PT (PT < last_pt ? beg : end);
 	  check_display = 1;
+	  check_invisible = 1;
 	}
       check_composition = 0;
       if (check_display
 	  && PT > BEGV && PT < ZV
-	  && get_property_and_range (PT, Qdisplay, &val, &start, &end, Qnil)
+	  && !NILP (val = get_char_property_and_overlay
+		              (make_number (PT), Qdisplay, Qnil, &overlay))
 	  && display_prop_intangible_p (val)
-	  && start < PT && end > PT
-	  && (last_pt <= start || last_pt >= end))
+	  && (!OVERLAYP (overlay)
+	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
+	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
+		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
+	  && beg < PT /* && end > PT   <- It's always the case.  */
+	  && (last_pt <= beg || last_pt >= end))
 	{
-	  if (PT < last_pt)
-	    SET_PT (start);
-	  else
-	    SET_PT (end);
+	  SET_PT (PT < last_pt ? beg : end);
 	  check_composition = 1;
+	  check_invisible = 1;
 	}
       check_display = 0;
+      if (check_invisible
+	  && PT > BEGV && PT < ZV
+	  && !NILP (val = get_char_property_and_overlay
+		              (make_number (PT), Qinvisible, Qnil, &overlay))
+	  && TEXT_PROP_MEANS_INVISIBLE (val)
+	  && (tmp = Fprevious_single_char_property_change
+	                (make_number (PT + 1), Qinvisible, Qnil, Qnil),
+	      beg = NILP (tmp) ? BEGV : XFASTINT (tmp),
+	      beg < PT)
+	  && (tmp = Fnext_single_char_property_change
+	                (make_number (PT), Qinvisible, Qnil, Qnil),
+	      end = NILP (tmp) ? BEGV : XFASTINT (tmp),
+	      (last_pt <= beg || last_pt >= end)))
+	{
+	  SET_PT (PT < last_pt ? beg : end);
+	  check_composition = 1;
+	  check_display = 1;
+	}
+      check_invisible = 0;
     }
 }
 
