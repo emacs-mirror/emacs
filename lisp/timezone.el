@@ -120,7 +120,10 @@ Optional argument TIMEZONE specifies a time zone."
 
 (defun timezone-parse-date (date)
   "Parse DATE and return a vector [YEAR MONTH DAY TIME TIMEZONE].
-19 is prepended to year if necessary.  Timezone may be nil if nothing.
+Two-digit dates are `windowed'.  Those <69 have 2000 added; otherwise 1900
+is added.  Three-digit dates have 1900 added.
+TIMEZONE is nil for DATEs without a zone field.
+
 Understands the following styles:
  (1) 14 Apr 89 03:20[:12] [GMT]
  (2) Fri, 17 Mar 89 4:01[:33] [GMT]
@@ -182,11 +185,11 @@ Understands the following styles:
 	   ;; Styles: (5) without timezone.
 	   (setq year 3 month 2 day 1 time 4 zone nil))
 	  ((string-match
-	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]+\\([-+a-zA-Z0-9]+\\)" date)
 	   ;; Styles: (8) with timezone.
 	   (setq year 1 month 2 day 3 time 4 zone 5))
 	  ((string-match
-	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+\\)[ \t]*\\([-+a-zA-Z0-9:]+\\)" date)
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+\\)[ \t]+\\([-+a-zA-Z0-9:]+\\)" date)
 	   ;; Styles: (8) with timezone with a colon in it.
 	   (setq year 1 month 2 day 3 time 4 zone 5))
 	  ((string-match
@@ -339,30 +342,21 @@ If TIMEZONE is nil, use the local time zone."
     (cond ((<= 24 hour)			;24 -> 00
 	   (setq hour (- hour 24))
 	   (setq day  (1+ day))
-	   (if (< (timezone-last-day-of-month month year) day)
-	       (progn
-		 (setq month (1+ month))
-		 (setq day 1)
-		 (if (< 12 month)
-		     (progn
-		       (setq month 1)
-		       (setq year (1+ year))
-		       ))
-		 )))
+	   (when (< (timezone-last-day-of-month month year) day)
+	     (setq month (1+ month))
+	     (setq day 1)
+	     (when (< 12 month)
+	       (setq month 1)
+	       (setq year (1+ year)))))
 	  ((> 0 hour)
 	   (setq hour (+ hour 24))
 	   (setq day  (1- day))
-	   (if (> 1 day)
-	       (progn
-		 (setq month (1- month))
-		 (if (> 1 month)
-		     (progn
-		       (setq month 12)
-		       (setq year (1- year))
-		       ))
-		 (setq day (timezone-last-day-of-month month year))
-		 )))
-	  )
+	   (when (> 1 day)
+	     (setq month (1- month))
+	     (when (> 1 month)
+	       (setq month 12)
+	       (setq year (1- year)))
+	     (setq day (timezone-last-day-of-month month year)))))
     (vector year month day hour minute second timezone)))
 
 ;; Partly copied from Calendar program by Edward M. Reingold.
