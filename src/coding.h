@@ -493,10 +493,10 @@ struct coding_system
 #define ENCODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
    && XFASTINT (Vfile_name_coding_system) != 0				   \
-   ? Fencode_coding_string (name, Vfile_name_coding_system, Qt)		   \
+   ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system)			   \
-      ? Fencode_coding_string (name, Vdefault_file_name_coding_system, Qt) \
+      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
       : name))
 
 /* Decode the file name NAME using the specified coding system
@@ -504,10 +504,10 @@ struct coding_system
 #define DECODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
    && XFASTINT (Vfile_name_coding_system) != 0				   \
-   ? Fdecode_coding_string (name, Vfile_name_coding_system, Qt)		   \
+   ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system)			   \
-      ? Fdecode_coding_string (name, Vdefault_file_name_coding_system, Qt) \
+      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
 /* Extern declarations.  */
