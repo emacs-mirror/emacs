@@ -566,11 +566,7 @@ See `compilation-mode'."
 	      ;; buffer killed
 	      (set-process-buffer proc nil)
 	    (let ((obuf (current-buffer))
-		  omax opoint
-		  (status (if compilation-exit-message-function
-			      (funcall compilation-exit-message-function
-				       proc msg)
-			    (cons msg (process-exit-status proc)))))
+		  omax opoint)
 	      ;; save-excursion isn't the right thing if
 	      ;; process-buffer is current-buffer
 	      (unwind-protect
@@ -578,7 +574,11 @@ See `compilation-mode'."
 		    ;; Write something in the compilation buffer
 		    ;; and hack its mode line.
 		    (set-buffer buffer)
-		    (let ((buffer-read-only nil))
+		    (let ((buffer-read-only nil)
+			  (status (if compilation-exit-message-function
+				      (funcall compilation-exit-message-function
+					       proc msg)
+				    (cons msg (process-exit-status proc)))))
 		      (setq omax (point-max)
 			    opoint (point))
 		      (goto-char omax)
