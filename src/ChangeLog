@@ -1,3 +1,8 @@
+2001-11-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (direct_output_forward_char): Fix character/byte
+	position comparison.
+
 2001-11-15  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (find_field): Add BEG_LIMIT and END_LIMIT parameters.
