@@ -41,11 +41,12 @@
 (define-key menu-bar-file-menu [kill-buffer]
   '("Kill Buffer" . kill-this-buffer))
 (define-key menu-bar-file-menu [delete-frame] '("Delete Frame" . delete-frame))
+(define-key menu-bar-file-menu [emerge] '("Emerge >" . menu-bar-emerge-menu))
 (define-key menu-bar-file-menu [calendar] '("Calendar" . calendar))
 (define-key menu-bar-file-menu [rmail] '("Read Mail" . rmail))
 (define-key menu-bar-file-menu [gnus] '("Read Net News" . gnus))
 (define-key menu-bar-file-menu [bookmark]
-  '("Bookmarks..." . menu-bar-bookmark-map))
+  '("Bookmarks >" . menu-bar-bookmark-map))
 (define-key menu-bar-file-menu [print-buffer] '("Print Buffer" . print-buffer))
 (define-key menu-bar-file-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
@@ -56,7 +57,7 @@
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
 (define-key menu-bar-file-menu [new-frame] '("New Frame" . new-frame))
 
-(define-key menu-bar-edit-menu [spell] '("Spell..." . ispell-menu-map))
+(define-key menu-bar-edit-menu [spell] '("Spell >" . ispell-menu-map))
 (define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
 (define-key menu-bar-edit-menu [query-replace]
@@ -70,7 +71,7 @@
 (define-key menu-bar-edit-menu [search-fwd]
   '("Search" . search-forward))
 (define-key menu-bar-edit-menu [choose-next-paste]
-  '("Choose Next Paste" . mouse-menu-choose-yank))
+  '("Choose Next Paste >" . mouse-menu-choose-yank))
 (define-key menu-bar-edit-menu [paste] '("Paste" . yank))
 (define-key menu-bar-edit-menu [copy] '("Copy" . kill-ring-save))
 (define-key menu-bar-edit-menu [cut] '("Cut" . kill-region))
