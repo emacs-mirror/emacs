@@ -4583,7 +4583,7 @@ build_annotations_unwind (buf)
 
 /* Decide the coding-system to encode the data with.  */
 
-void
+static Lisp_Object
 choose_write_coding_system (start, end, filename,
 			    append, visit, lockname, coding)
      Lisp_Object start, end, filename, append, visit, lockname;
@@ -4631,8 +4631,7 @@ choose_write_coding_system (start, end, filename,
 	    val = XCDR (coding_systems);
 	}
 
-      if (NILP (val)
-	  && !NILP (current_buffer->buffer_file_coding_system))
+      if (NILP (val))
 	{
 	  /* If we still have not decided a coding system, use the
 	     default value of buffer-file-coding-system.  */
@@ -4658,7 +4657,8 @@ choose_write_coding_system (start, end, filename,
       /* If the decided coding-system doesn't specify end-of-line
 	 format, we use that of
 	 `default-buffer-file-coding-system'.  */
-      if (! using_default_coding)
+      if (! using_default_coding
+	  && ! NILP (buffer_defaults.buffer_file_coding_system))
 	val = (coding_inherit_eol_type
 	       (val, buffer_defaults.buffer_file_coding_system));
 
@@ -4668,10 +4668,14 @@ choose_write_coding_system (start, end, filename,
 	val = raw_text_coding_system (val);
     }
 
-  setup_coding_system (Fcheck_coding_system (val), coding);
+  setup_coding_system (val, coding);
+  if (! NILP (val)
+      && VECTORP (CODING_ID_EOL_TYPE (coding->id)))
+    val = AREF (CODING_ID_EOL_TYPE (coding->id), 0);
 
   if (!STRINGP (start) && !NILP (current_buffer->selective_display))
     coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
+  return val;
 }
 
 DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
@@ -4807,9 +4811,9 @@ This does code conversion according to the value of
      We used to make this choice before calling build_annotations, but that
      leads to problems when a write-annotate-function takes care of
      unsavable chars (as was the case with X-Symbol).  */
-  choose_write_coding_system (start, end, filename,
-			      append, visit, lockname, &coding);
-  Vlast_coding_system_used = CODING_ID_NAME (coding.id);
+  Vlast_coding_system_used
+    = choose_write_coding_system (start, end, filename,
+				  append, visit, lockname, &coding);
 
   given_buffer = current_buffer;
   if (current_buffer != given_buffer)
