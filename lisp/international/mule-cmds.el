@@ -952,16 +952,16 @@ This also sets the default input method to the one you specify."
 (defun toggle-input-method (&optional arg)
   "Turn on or off a multilingual text input method for the current buffer.
 
-With no prefix argument, if some input method is currently activated,
-turn it off.  Otherwise, activate an input method--the one most recently used,
-or the one specified in `default-input-method', or one read from the
-minibuffer.
+With no prefix argument, if an input method is currently activated,
+turn it off.  Otherwise, activate an input method -- the one most
+recently used, or the one specified in `default-input-method', or
+the one read from the minibuffer.
 
-With a prefix arg, read an input method from minibuffer and turn it on.
-The default is the most recent input method specified
-\(not including the currently active input method, if any).
+With a prefix argument, read an input method from the minibuffer and
+turn it on.
 
-When there's no input method to turn on, turn on what read from minibuffer."
+The default is to use the most recent input method specified
+\(not including the currently active input method, if any)."
   (interactive "P")
   (if (and current-input-method (not arg))
       (inactivate-input-method)
@@ -1000,7 +1000,7 @@ When there's no input method to turn on, turn on what read from minibuffer."
 	       (fboundp describe-current-input-method-function))
 	  (funcall describe-current-input-method-function)
 	(message "No way to describe the current input method `%s'"
-		 (cdr current-input-method))
+		 current-input-method)
 	(ding))
     (error "No input method is activated now")))
 
