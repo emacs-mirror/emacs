@@ -1,3 +1,7 @@
+2001-11-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/ada-mode.el (ada-fill-comment-prefix): GNAT wants 2 spaces.
+
 2001-11-13  Colin Walters  <walters@debian.org>
 
 	* calc/calc.el (calc-unread-command): Use `unread-command-events'.
@@ -6,8 +10,8 @@
 	"~/.emacs"; use `read-file-name'.
 
 	* calc/calc-graph.el, calc/calc-embed.el, calc/calc-graph.el
-        * calc/calc-misc.el, calc/calc-mode.el, calc/calc-prog.el
- 	* calc/calc-sel.el, calc/calc-store.el, calc/calc-yank.el
+	* calc/calc-misc.el, calc/calc-mode.el, calc/calc-prog.el
+	* calc/calc-sel.el, calc/calc-store.el, calc/calc-yank.el
 	* calc/calc.el: Use `frame-width' instead of `screen-width',
 	`frame-height' instead of `screen-height', and,
 	`executing-kbd-macro' instead of `executing-macro'.
@@ -15,8 +19,8 @@
 	* calc/calc-embed.el (calc-do-embedded): Call `y-or-n-p' with
 	correct number of arguments.
 
-	* calc/calc-aent.el (calc-do-alg-entry): Use
-	`blink-paren-function' instead of `blink-paren-hook'.
+	* calc/calc-aent.el (calc-do-alg-entry):
+	Use `blink-paren-function' instead of `blink-paren-hook'.
 
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -84,8 +88,8 @@
 
 2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* textmodes/flyspell.el (flyspell-default-dictionary): Fix
-	previous change.
+	* textmodes/flyspell.el (flyspell-default-dictionary):
+	Fix previous change.
 
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -171,8 +175,8 @@
 
 2001-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
 
-	* progmodes/ps-mode.el (ps-mode-font-lock-keywords-1): Merge
-	two regular expressions into one.
+	* progmodes/ps-mode.el (ps-mode-font-lock-keywords-1):
+	Merge two regular expressions into one.
 	(ps-mode): Make local bindings for `comment-start' and
 	`comment-start-skip'.
 	(ps-mode-looking-at-nested): Simplify an if-else construct;
