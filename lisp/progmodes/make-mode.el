@@ -490,7 +490,7 @@ makefile-special-targets-list:
   (make-local-variable 'makefile-need-macro-pickup)
 
   ;; Font lock.
-  (if (fboundp 'makefile-define-space-face)
+  (if (fboundp 'make-face)
       (makefile-define-space-face))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(makefile-font-lock-keywords))
