@@ -34,17 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #if 1
 #include <sys/types.h>
 
-/* Old code included a comment that HPUX version 7 has broken
-   definitions of some of the macros and `the convex' does too.
-   HAVE_SYS_WAIT_H probably won't be defined on them if they still get
-   used, but for safety...  -- fx */
-/* ISC 4.1 doesn't have wait3, but does have sys/wait.h.  */
-#if (defined(HPUX) && !defined(HPUX8)) || defined(convex) || defined(ISC4_1)
-#undef HAVE_SYS_WAIT_H
-#endif
-
-#if defined HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid
-				   definitions. */
+#ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
 
 #include <sys/wait.h>
 #ifndef WCOREDUMP		/* not POSIX */
