@@ -3177,11 +3177,12 @@ struct save_window_data
     /* Record the values of window-min-width and window-min-height
        so that window sizes remain consistent with them.  */
     Lisp_Object min_width, min_height;
-    /* A vector, interpreted as a struct saved_window */
+    /* A vector, each of whose elements is a struct saved_window
+       for one window.  */
     Lisp_Object saved_windows;
   };
 
-/* This is saved as a Lisp_Vector */
+/* This is saved as a Lisp_Vector  */
 struct saved_window
   {
     /* these first two must agree with struct Lisp_Vector in lisp.h */
@@ -3201,7 +3202,7 @@ struct saved_window
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
-  "T if OBJECT is a window-configuration object.")
+  "Return t if OBJECT is a window-configuration object.")
   (object)
      Lisp_Object object;
 {
@@ -3209,7 +3210,6 @@ DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_
     return Qt;
   return Qnil;
 }
-
 
 DEFUN ("set-window-configuration", Fset_window_configuration,
   Sset_window_configuration, 1, 1, 0,
@@ -3242,6 +3242,7 @@ by `current-window-configuration' (which see).")
     {
       if (XBUFFER (new_current_buffer) == current_buffer)
 	old_point = PT;
+
     }
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
@@ -3651,6 +3652,100 @@ Does not restore the value of point in current buffer.")
 			 Fcurrent_window_configuration (Qnil));
   val = Fprogn (args);
   return unbind_to (count, val);
+}
+
+/* Return 1 if window configurations C1 and C2
+   describe the same state of affairs.  This is used by Fequal.   */
+
+int
+compare_window_configurations (c1, c2)
+     Lisp_Object c1, c2;
+{
+  register struct save_window_data *d1, *d2;
+  struct Lisp_Vector *sw1, *sw2;
+  int i;
+
+  d1 = (struct save_window_data *) XVECTOR (c1);
+  d2 = (struct save_window_data *) XVECTOR (c2);
+  sw1 = XVECTOR (d1->saved_windows);
+  sw2 = XVECTOR (d2->saved_windows);
+
+  if (! EQ (d1->frame_width, d2->frame_width))
+    return 0;
+  if (! EQ (d1->frame_height, d2->frame_height))
+    return 0;
+  if (! EQ (d1->frame_menu_bar_lines, d2->frame_menu_bar_lines))
+    return 0;
+  if (! EQ (d1->selected_frame, d2->selected_frame))
+    return 0;
+  /* Don't compare the current_window field directly.
+     Instead see w1_is_current and w2_is_current, below.  */
+  if (! EQ (d1->current_buffer, d2->current_buffer))
+    return 0;
+  if (! EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window))
+    return 0;
+  /* Don't compare the root_window field.
+     We don't require the two configurations
+     to use the same window object,
+     and the two root windows must be equivalent
+     if everything else compares equal.  */
+  if (! EQ (d1->focus_frame, d2->focus_frame))
+    return 0;
+  if (! EQ (d1->min_width, d2->min_width))
+    return 0;
+  if (! EQ (d1->min_height, d2->min_height))
+    return 0;
+
+  /* Verify that the two confis have the same number of windows.  */
+  if (sw1->size != sw2->size)
+    return 0;
+
+  for (i = 0; i < sw1->size; i++)
+    {
+      struct saved_window *p1, *p2;
+      int w1_is_current, w2_is_current;
+
+      p1 = SAVED_WINDOW_N (sw1, i);
+      p2 = SAVED_WINDOW_N (sw2, i);
+
+      /* Verify that the current windows in the two
+	 configurations correspond to each other.  */
+      w1_is_current = EQ (d1->current_window, p1->window);
+      w2_is_current = EQ (d2->current_window, p2->window);
+
+      if (w1_is_current != w2_is_current)
+	return 0;
+
+      /* Verify that the corresponding windows do match.  */
+      if (! EQ (p1->buffer, p2->buffer))
+	return 0;
+      if (! EQ (p1->left, p2->left))
+	return 0;
+      if (! EQ (p1->top, p2->top))
+	return 0;
+      if (! EQ (p1->width, p2->width))
+	return 0;
+      if (! EQ (p1->height, p2->height))
+	return 0;
+      if (! EQ (p1->hscroll, p2->hscroll))
+	return 0;
+      if (! EQ (p1->start_at_line_beg, p2->start_at_line_beg))
+	return 0;
+      if (! EQ (p1->display_table, p2->display_table))
+	return 0;
+      if (! EQ (p1->parent, p2->parent))
+	return 0;
+      if (! EQ (p1->prev, p2->prev))
+	return 0;
+      if (NILP (Fequal (p1->start, p2->start)))
+	return 0;
+      if (NILP (Fequal (p1->pointm, p2->pointm)))
+	return 0;
+      if (NILP (Fequal (p1->mark, p2->mark)))
+	return 0;
+    }
+
+  return 1;
 }
 
 init_window_once ()
