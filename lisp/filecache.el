@@ -337,9 +337,10 @@ in each directory, not to the directory list itself."
 Find is run in DIRECTORY."
   (interactive "DAdd files under directory: ")
   (let ((dir (expand-file-name directory)))
-    (if (eq file-cache-find-command-posix-flag 'not-defined)
-        (setq file-cache-find-command-posix-flag
-	      (executable-command-find-posix-p file-cache-find-command)))
+    (when (memq system-type '(windows-nt cygwin))
+      (if (eq file-cache-find-command-posix-flag 'not-defined)
+	  (setq file-cache-find-command-posix-flag
+		(executable-command-find-posix-p file-cache-find-command))))
     (set-buffer (get-buffer-create file-cache-buffer))
     (erase-buffer)
     (call-process file-cache-find-command nil
