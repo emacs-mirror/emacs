@@ -943,22 +943,11 @@ next_frame (frame, minibuf)
 	      }
 	    else if (WINDOWP (minibuf))
 	      {
-#if 0 /* I don't think the test for frame focus redirection is
-         correct.  This excludes frames "using the current minibuffer"
-         when their focus isn't redirected, which contradicts the doc
-         string of next-frame.  --gerd, 2000-06-30 */
 		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-		    /* Check that F either is, or has forwarded its focus to,
-		       MINIBUF's frame.  */
-		    && (EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
-			|| EQ (WINDOW_FRAME (XWINDOW (minibuf)),
-			       FRAME_FOCUS_FRAME (XFRAME (f)))))
+		    || EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
+		    || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
+			   FRAME_FOCUS_FRAME (XFRAME (f))))
 		  return f;
-#else /* not 0 */
-		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-		    || EQ (WINDOW_FRAME (XWINDOW (minibuf)), f))
-		  return f;
-#endif /* not 0 */
 	      }
 	    else
 	      return f;
@@ -1013,11 +1002,9 @@ prev_frame (frame, minibuf)
 	  else if (WINDOWP (minibuf))
 	    {
 	      if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-		  /* Check that F either is, or has forwarded its focus to,
-		     MINIBUF's frame.  */
-		  && (EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
-		      || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
-			     FRAME_FOCUS_FRAME (XFRAME (f)))))
+		  || EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
+		  || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
+			 FRAME_FOCUS_FRAME (XFRAME (f))))
 		prev = f;
 	    }
 	  else if (EQ (minibuf, Qvisible))
