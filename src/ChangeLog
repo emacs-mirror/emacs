@@ -1,5 +1,10 @@
 2001-12-01  Jason Rumney  <jasonr@gnu.org>
 
+	* window.c (Qleft_fringe, Qright_fringe): Remove. Now in frame.c.
+
+	* w32term.h (WM_MOUSELEAVE, TME_LEAVE, TRACKMOUSEEVENT)
+	[!WM_MOUSELEAVE]: Define.
+
 	* w32menu.c (current_popup_menu, get_menu_item_info):
 	(set_menu_item_info): New vars.
 	(set_frame_menubar): Doc fix clarifying GC interaction with menus.
