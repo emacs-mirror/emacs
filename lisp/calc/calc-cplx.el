@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-cplx.el]
+;;; calc-cplx.el --- Complex number functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -61,19 +66,19 @@
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-complex-format nil t)
-   (message "Displaying complex numbers in (X,Y) format.")))
+   (message "Displaying complex numbers in (X,Y) format")))
 
 (defun calc-i-notation ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-complex-format 'i t)
-   (message "Displaying complex numbers in X+Yi format.")))
+   (message "Displaying complex numbers in X+Yi format")))
 
 (defun calc-j-notation ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-complex-format 'j t)
-   (message "Displaying complex numbers in X+Yj format.")))
+   (message "Displaying complex numbers in X+Yj format")))
 
 
 (defun calc-polar-mode (n)
@@ -84,9 +89,9 @@
 	 (eq calc-complex-mode 'cplx))
        (progn
 	 (calc-change-mode 'calc-complex-mode 'polar)
-	 (message "Preferred complex form is polar."))
+	 (message "Preferred complex form is polar"))
      (calc-change-mode 'calc-complex-mode 'cplx)
-     (message "Preferred complex form is rectangular."))))
+     (message "Preferred complex form is rectangular"))))
 
 
 ;;;; Complex numbers.

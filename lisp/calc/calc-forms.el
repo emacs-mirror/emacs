@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-forms.el]
+;;; calc-forms.el --- data format conversion functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -69,7 +74,7 @@
 				   "%s" (math-match-substring fmt 5))
 			   t)
 	 (setq-default calc-hms-format calc-hms-format))  ; for minibuffer
-     (error "Bad hours-minutes-seconds format."))))
+     (error "Bad hours-minutes-seconds format"))))
 
 (defun calc-date-notation (fmt arg)
   (interactive "sDate format (e.g., M/D/YY h:mm:ss): \nP")
@@ -154,7 +159,7 @@
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-angle-mode 'hms)
-   (message "Angles measured in degrees-minutes-seconds.")))
+   (message "Angles measured in degrees-minutes-seconds")))
 
 
 (defun calc-now (arg)
@@ -503,6 +508,7 @@
 				  "Jul" "Aug" "Sep" "Oct" "Nov" "Dec" ))
 
 
+(defvar math-format-date-cache nil)
 (defun math-format-date (date)
   (if (eq (car-safe date) 'date)
       (setq date (nth 1 date)))
@@ -521,7 +527,6 @@
 	  (and (setq dt (nthcdr 10 math-format-date-cache))
 	       (setcdr dt nil))
 	  fmt))))
-(setq math-format-date-cache nil)
 
 (defun math-format-date-part (x)
   (cond ((stringp x)
@@ -1399,6 +1404,8 @@ and ends on the last Sunday of October at 2 a.m."
 		    (if (and (cdr db) (not (cdr da))) 1 0))))
     (calcFunc-badd a (math-neg b))))
 
+(defvar math-holidays-cache nil)
+(defvar math-holidays-cache-tag t)
 (defun calcFunc-badd (a b)
   (if (eq (car-safe b) 'date)
       (if (eq (car-safe a) 'date)
@@ -1425,11 +1432,6 @@ and ends on the last Sunday of October at 2 a.m."
 
 (defun calcFunc-holiday (a)
   (if (cdr (math-to-business-day a)) 1 0))
-
-
-(setq math-holidays-cache nil)
-(setq math-holidays-cache-tag t)
-
 
 ;;; Compute the number of business days since Jan 1, 1 AD.
 

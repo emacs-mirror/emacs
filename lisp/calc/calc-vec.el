@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-vec.el]
+;;; calc-vec.el --- vector functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -33,8 +38,8 @@
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-display-strings n t t)
-		"Displaying vectors of integers as quoted strings."
-	      "Displaying vectors of integers normally."))))
+		"Displaying vectors of integers as quoted strings"
+	      "Displaying vectors of integers normally"))))
 
 
 (defun calc-pack (n)
@@ -204,6 +209,7 @@
 	(t
 	 (error "Invalid packing mode: %d" mode))))
 
+(defvar calc-unpack-with-type nil)
 (defun calc-unpack (mode)
   (interactive "P")
   (calc-wrapper
@@ -328,7 +334,6 @@
 	   (error "Expected a floating-point number")))
 	(t
 	 (error "Invalid unpacking mode: %d" mode))))
-(setq calc-unpack-with-type nil)
 
 (defun calc-diag (n)
   (interactive "P")

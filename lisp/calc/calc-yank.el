@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-yank.el]
+;;; calc-yank.el --- kill-ring functionality for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -140,8 +145,8 @@
 
 
 (defun calc-do-grab-region (top bot arg)
-  (and (memq major-mode '(calc-mode calc-trail-mode))
-       (error "This command works only in a regular text buffer."))
+  (when (memq major-mode '(calc-mode calc-trail-mode))
+    (error "This command works only in a regular text buffer"))
   (let* ((from-buffer (current-buffer))
 	 (calc-was-started (get-buffer-window "*Calculator*"))
 	 (single nil)
@@ -187,7 +192,7 @@
 
 (defun calc-do-grab-rectangle (top bot arg &optional reduce)
   (and (memq major-mode '(calc-mode calc-trail-mode))
-       (error "This command works only in a regular text buffer."))
+       (error "This command works only in a regular text buffer"))
   (let* ((col1 (save-excursion (goto-char top) (current-column)))
 	 (col2 (save-excursion (goto-char bot) (current-column)))
 	 (from-buffer (current-buffer))
@@ -195,8 +200,8 @@
 	 data mat vals lnum pt pos)
     (if (= col1 col2)
 	(save-excursion
-	  (or (= col1 0)
-	      (error "Point and mark must be at beginning of line, or define a rectangle"))
+	  (unless (= col1 0)
+	    (error "Point and mark must be at beginning of line, or define a rectangle"))
 	  (goto-char top)
 	  (while (< (point) bot)
 	    (setq pt (point))
@@ -207,8 +212,8 @@
     (calc)
     (setq mat (list 'vec)
 	  lnum 0)
-    (and arg
-	 (setq arg (if (consp arg) 0 (prefix-numeric-value arg))))
+    (when arg
+      (setq arg (if (consp arg) 0 (prefix-numeric-value arg))))
     (while data
       (if (natnump arg)
 	  (progn
@@ -243,8 +248,8 @@
 		    vals (math-read-expr (concat "[" s "]")))
 	      (if (eq (car-safe vals) 'error)
 		  (let ((v2 (math-read-expr s)))
-		    (or (eq (car-safe v2) 'error)
-			(setq vals (list 'vec v2)))))))))
+		    (unless (eq (car-safe v2) 'error)
+		      (setq vals (list 'vec v2)))))))))
       (if (eq (car-safe vals) 'error)
 	  (progn
 	    (if calc-was-started
@@ -255,8 +260,8 @@
 	    (forward-line lnum)
 	    (forward-char (+ (nth 1 vals) (min col1 col2) pos))
 	    (error (nth 2 vals))))
-      (or (equal vals '(vec))
-	  (setq mat (cons vals mat)))
+      (unless (equal vals '(vec))
+	(setq mat (cons vals mat)))
       (setq data (cdr data)
 	    lnum (1+ lnum)))
     (calc-slow-wrapper
@@ -334,22 +339,23 @@
 		      (delete-char 4)
 		      (setq n (1+ n)))
 		    (forward-line n))))
-	   (if thebuf (setq movept (point)))
-	   (if (get-buffer-window (current-buffer))
-	       (set-window-point (get-buffer-window (current-buffer))
-				 (point)))))))
-    (if movept (goto-char movept))
-    (and (consp nn)
-	 (not thebuf)
-	 (progn
-	   (calc-quit t)
-	   (switch-to-buffer newbuf)))))
+	   (when thebuf
+	     (setq movept (point)))
+	   (when (get-buffer-window (current-buffer))
+	     (set-window-point (get-buffer-window (current-buffer))
+			       (point)))))))
+    (when movept
+      (goto-char movept))
+    (when (and (consp nn)
+	       (not thebuf))
+      (calc-quit t)
+      (switch-to-buffer newbuf))))
 
 (defun calc-overwrite-string (str eat-lnums)
-  (if (string-match "\n\\'" str)
-      (setq str (substring str 0 -1)))
-  (if eat-lnums
-      (setq str (substring str 4)))
+  (when (string-match "\n\\'" str)
+    (setq str (substring str 0 -1)))
+  (when eat-lnums
+    (setq str (substring str 4)))
   (if (and (string-match "\\`[-+]?[0-9.]+\\(e-?[0-9]+\\)?\\'" str)
 	   (looking-at "[-+]?[0-9.]+\\(e-?[0-9]+\\)?"))
       (progn
@@ -385,8 +391,8 @@
 (defun calc-edit (n)
   (interactive "p")
   (calc-slow-wrapper
-   (if (eq n 0)
-       (setq n (calc-stack-size)))
+   (when (eq n 0)
+     (setq n (calc-stack-size)))
    (let* ((flag nil)
 	  (allow-ret (> n 1))
 	  (list (math-showing-full-precision
@@ -425,8 +431,8 @@
   "Calculator editing mode.  Press RET, LFD, or C-c C-c to finish.
 To cancel the edit, simply kill the *Calc Edit* buffer."
   (interactive)
-  (or handler
-      (error "This command can be used only indirectly through calc-edit."))
+  (unless handler
+    (error "This command can be used only indirectly through calc-edit"))
   (let ((oldbuf (current-buffer))
 	(buf (get-buffer-create "*Calc Edit*")))
     (set-buffer buf)
@@ -495,21 +501,21 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	   (boundp 'calc-edit-handler)
 	   (boundp 'calc-restore-trail)
 	   (eq major-mode 'calc-edit-mode))
-      (error "This command is valid only in buffers created by calc-edit."))
+      (error "This command is valid only in buffers created by calc-edit"))
   (let ((buf (current-buffer))
 	(original calc-original-buffer)
 	(return calc-return-buffer)
 	(one-window calc-one-window)
 	(disp-trail calc-restore-trail))
     (save-excursion
-      (if (or (null (buffer-name original))
-	      (progn
-		(set-buffer original)
-		(not (eq major-mode 'calc-mode))))
-	  (error "Original calculator buffer has been corrupted.")))
+      (when (or (null (buffer-name original))
+		(progn
+		  (set-buffer original)
+		  (not (eq major-mode 'calc-mode))))
+	(error "Original calculator buffer has been corrupted")))
     (goto-char (point-min))
-    (if (looking-at "Calc Edit\\|Editing ")
-	(forward-line 1))
+    (when (looking-at "Calc Edit\\|Editing ")
+      (forward-line 1))
     (if (buffer-modified-p)
 	(eval calc-edit-handler))
     (if one-window
@@ -545,11 +551,10 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 		      (math-expr-opers math-standard-opers))
 		  (and (string-match "[^\n\t ]" str)
 		       (math-read-exprs str)))))
-      (if (eq (car-safe vals) 'error)
-	  (progn
-	    (switch-to-buffer buf)
-	    (goto-char (+ start (nth 1 vals)))
-	    (error (nth 2 vals))))
+      (when (eq (car-safe vals) 'error)
+	(switch-to-buffer buf)
+	(goto-char (+ start (nth 1 vals)))
+	(error (nth 2 vals)))
       (calc-wrapper
        (if (symbolp num)
 	   (progn

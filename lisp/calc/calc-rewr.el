@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-rewr.el]
+;;; calc-rewr.el --- rewriting functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -29,6 +34,7 @@
 (defun calc-Need-calc-rewr () nil)
 
 
+(defvar math-rewrite-default-iters 100)
 (defun calc-rewrite-selection (rules-str &optional many prefix)
   (interactive "sRewrite rule(s): \np")
   (calc-slow-wrapper
@@ -43,7 +49,7 @@
 	  (math-rewrite-default-iters 1))
      (if (or (null rules-str) (equal rules-str "") (equal rules-str "$"))
 	 (if (= num 1)
-	     (error "Can't use same stack entry for formula and rules.")
+	     (error "Can't use same stack entry for formula and rules")
 	   (setq rules (calc-top-n 1 t)
 		 pop-rules t))
        (setq rules (if (stringp rules-str)
@@ -203,7 +209,6 @@
 		    (if (= mmt-many 0) " (reached iteration limit)" "")
 		    ":\n" fmt "\n"))))
     whole-expr))
-(setq math-rewrite-default-iters 100)
 
 (defun math-rewrite-phase (sched)
   (while (and sched (/= mmt-many 0))
@@ -479,9 +484,9 @@
 					   (if (eq (car-safe pats) 'vec)
 					       (cdr pats)
 					     (list pats)))))))))
-(setq math-rewrite-whole nil)
-(setq math-make-import-list nil)
 
+(defvar math-rewrite-whole nil)
+(defvar math-make-import-list nil)
 (defun math-compile-rewrites (rules &optional name)
   (if (eq (car-safe rules) 'var)
       (let ((prop (get (nth 2 rules) 'math-rewrite-cache))
@@ -805,10 +810,11 @@
 	     (cons (car expr)
 		   (mapcar 'math-rwcomp-subst-rec (cdr expr)))))))
 
-(setq math-rwcomp-tracing nil)
+(defvar math-rwcomp-tracing nil)
 
 (defun math-rwcomp-trace (instr)
-  (if math-rwcomp-tracing (progn (terpri) (princ instr)))
+  (when math-rwcomp-tracing
+    (terpri) (princ instr))
   instr)
 
 (defun math-rwcomp-instr (&rest instr)

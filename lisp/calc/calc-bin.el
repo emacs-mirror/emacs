@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-bin.el]
+;;; calc-bin.el --- binary functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -143,8 +148,8 @@
 			   (list n (math-power-of-2 (math-abs n)))
 			   calc-leading-zeros)))
    (if (< n 0)
-       (message "Binary word size is %d bits (2's complement)." (- n))
-     (message "Binary word size is %d bits." n))))
+       (message "Binary word size is %d bits (2's complement)" (- n))
+     (message "Binary word size is %d bits" n))))
 
 
 
@@ -161,7 +166,7 @@
 	 ;; also change global value so minibuffer sees it
 	 (setq-default calc-number-radix calc-number-radix))
      (setq n calc-number-radix))
-   (message "Number radix is %d." n)))
+   (message "Number radix is %d" n)))
 
 (defun calc-decimal-radix ()
   (interactive)
@@ -183,12 +188,12 @@
   (interactive "P")
   (calc-wrapper
    (if (calc-change-mode 'calc-leading-zeros n t t)
-       (message "Zero-padding integers to %d digits (assuming radix %d)."
+       (message "Zero-padding integers to %d digits (assuming radix %d)"
 		(let* ((calc-internal-prec 6))
 		  (math-compute-max-digits (math-abs calc-word-size)
 					   calc-number-radix))
 		calc-number-radix)
-     (message "Omitting leading zeros on integers."))))
+     (message "Omitting leading zeros on integers"))))
 
 
 (defvar math-power-of-2-cache (list 1 2 4 8 16 32 64 128 256 512 1024))
@@ -562,6 +567,9 @@
 			     "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T"
 			     "U" "V" "W" "X" "Y" "Z"])
 
+(defsubst math-format-radix-digit (a)   ; [X D]
+  (aref math-radix-digits a))
+
 (defun math-format-radix (a)   ; [X S]
   (if (< a calc-number-radix)
       (if (< a 0)
@@ -750,6 +758,8 @@
 			    (format "%se%s" str estr)))))))
     str))
 
+(defvar math-radix-digits-cache nil)
+
 (defun math-convert-radix-digits (n &optional to-dec)
   (let ((key (cons n (cons to-dec calc-number-radix))))
     (or (cdr (assoc key math-radix-digits-cache))
@@ -762,7 +772,7 @@
 							  (math-div n log))))
 				math-radix-digits-cache))))))))
 
-(setq math-radix-digits-cache nil)
+(defvar math-radix-float-cache-tag nil)
 
 (defun math-radix-float-power (n)
   (if (eq n 0)
@@ -792,6 +802,5 @@
 						       calc-number-radix))))))
 			       math-radix-float-cache))))))))
 
-(setq math-radix-float-cache-tag nil)
 
 ;;; calc-bin.el ends here

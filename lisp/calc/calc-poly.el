@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-poly.el]
+;;; calc-poly.el --- polynomial functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -133,7 +138,7 @@
 ;;; Originally by Ove Ewerlid (ewerlid@mizar.DoCS.UU.SE).
 ;;; Modifications and simplifications by daveg.
 
-(setq math-poly-modulus 1)
+(defvar math-poly-modulus 1)
 
 ;;; Return gcd of two polynomials
 (defun calcFunc-pgcd (pn pd)
@@ -233,11 +238,11 @@
 
 
 ;;; Divide two polynomials.  Return (quotient . remainder).
+(defvar math-poly-div-base nil)
 (defun math-poly-div (u v &optional math-poly-div-base)
   (if math-poly-div-base
       (math-do-poly-div u v)
     (math-do-poly-div (calcFunc-expand u) (calcFunc-expand v))))
-(setq math-poly-div-base nil)
 
 (defun math-poly-div-exact (u v &optional base)
   (let ((res (math-poly-div u v base)))

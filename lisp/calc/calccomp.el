@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-comp.el]
+;;; calccomp.el --- composition functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -28,6 +33,13 @@
 
 (defun calc-Need-calc-comp () nil)
 
+(defconst math-eqn-special-funcs
+  '( calcFunc-log
+     calcFunc-ln calcFunc-exp
+     calcFunc-sin calcFunc-cos calcFunc-tan
+     calcFunc-sinh calcFunc-cosh calcFunc-tanh
+     calcFunc-arcsin calcFunc-arccos calcFunc-arctan
+     calcFunc-arcsinh calcFunc-arccosh calcFunc-arctanh))
 
 ;;; A "composition" has one of the following forms:
 ;;;
@@ -880,15 +892,6 @@
 					    0)
 		       right)))))))))
 
-(defconst math-eqn-special-funcs
-  '( calcFunc-log
-     calcFunc-ln calcFunc-exp
-     calcFunc-sin calcFunc-cos calcFunc-tan
-     calcFunc-sinh calcFunc-cosh calcFunc-tanh
-     calcFunc-arcsin calcFunc-arccos calcFunc-arctan
-     calcFunc-arcsinh calcFunc-arccosh calcFunc-arctanh
-))
-
 
 (defun math-prod-first-term (x)
   (while (eq (car-safe x) '*)
@@ -993,6 +996,17 @@
 		       (<= (nth 1 (car a)) 255)))))
   (null a))
 
+(defconst math-vector-to-string-chars '( ( ?\" . "\\\"" )
+					 ( ?\\ . "\\\\" )
+					 ( ?\a . "\\a" )
+					 ( ?\b . "\\b" )
+					 ( ?\e . "\\e" )
+					 ( ?\f . "\\f" )
+					 ( ?\n . "\\n" )
+					 ( ?\r . "\\r" )
+					 ( ?\t . "\\t" )
+					 ( ?\^? . "\\^?" )))
+
 (defun math-vector-to-string (a &optional quoted)
   (setq a (concat (mapcar (function (lambda (x) (if (consp x) (nth 1 x) x)))
 			  (cdr a))))
@@ -1015,17 +1029,7 @@
   (if quoted
       (concat "\"" a "\"")
     a))
-(defconst math-vector-to-string-chars '( ( ?\" . "\\\"" )
-					 ( ?\\ . "\\\\" )
-					 ( ?\a . "\\a" )
-					 ( ?\b . "\\b" )
-					 ( ?\e . "\\e" )
-					 ( ?\f . "\\f" )
-					 ( ?\n . "\\n" )
-					 ( ?\r . "\\r" )
-					 ( ?\t . "\\t" )
-					 ( ?\^? . "\\^?" )
-))
+
 
 (defun math-to-underscores (x)
   (if (string-match "\\`\\(.*\\)#\\(.*\\)\\'" x)
@@ -1067,38 +1071,38 @@
 (put 'calcFunc-deriv 'math-compose-big 'math-compose-deriv)
 (put 'calcFunc-tderiv 'math-compose-big 'math-compose-deriv)
 (defun math-compose-deriv (a prec)
-  (and (= (length a) 3)
-       (math-compose-expr (list '/
-				(list 'calcFunc-choriz
-				      (list 'vec
-					    '(calcFunc-string (vec ?d))
-					    (nth 1 a)))
-				(list 'calcFunc-choriz
-				      (list 'vec
-					    '(calcFunc-string (vec ?d))
-					    (nth 2 a))))
-			  prec)))
+  (when (= (length a) 3)
+    (math-compose-expr (list '/
+			     (list 'calcFunc-choriz
+				   (list 'vec
+					 '(calcFunc-string (vec ?d))
+					 (nth 1 a)))
+			     (list 'calcFunc-choriz
+				   (list 'vec
+					 '(calcFunc-string (vec ?d))
+					 (nth 2 a))))
+		       prec)))
 
 (put 'calcFunc-sqrt 'math-compose-big 'math-compose-sqrt)
 (defun math-compose-sqrt (a prec)
-  (and (= (length a) 2)
-       (let* ((c (math-compose-expr (nth 1 a) 0))
-	      (a (math-comp-ascent c))
-	      (d (math-comp-descent c))
-	      (h (+ a d))
-	      (w (math-comp-width c)))
-	 (list 'vleft
-	       a
-	       (concat (if (= h 1) " " "  ")
-		       (make-string (+ w 2) ?\_))
-	       (list 'horiz
-		     (if (= h 1)
-			 "V"
-		       (append (list 'vleft (1- a))
-			       (make-list (1- h) " |")
-			       '("\\|")))
-		     " "
-		     c)))))
+  (when (= (length a) 2)
+    (let* ((c (math-compose-expr (nth 1 a) 0))
+	   (a (math-comp-ascent c))
+	   (d (math-comp-descent c))
+	   (h (+ a d))
+	   (w (math-comp-width c)))
+      (list 'vleft
+	    a
+	    (concat (if (= h 1) " " "  ")
+		    (make-string (+ w 2) ?\_))
+	    (list 'horiz
+		  (if (= h 1)
+		      "V"
+		    (append (list 'vleft (1- a))
+			    (make-list (1- h) " |")
+			    '("\\|")))
+		  " "
+		  c)))))
 
 (put 'calcFunc-choose 'math-compose-big 'math-compose-choose)
 (defun math-compose-choose (a prec)
@@ -1245,6 +1249,9 @@
       (math-vert-comp-to-string
        (math-comp-simplify c width)))))
 
+(defvar math-comp-buf-string (make-vector 10 ""))
+(defvar math-comp-buf-margin (make-vector 10 0))
+(defvar math-comp-buf-level (make-vector 10 0))
 (defun math-comp-is-flat (c)     ; check if c's height is 1.
   (cond ((not (consp c)) t)
 	((memq (car c) '(set break)) t)
@@ -1292,9 +1299,6 @@
 		     (setq prefix " "))
 		 (setq prefix "\n"))))
 	(concat comp-buf prefix str)))))
-(setq math-comp-buf-string (make-vector 10 ""))
-(setq math-comp-buf-margin (make-vector 10 0))
-(setq math-comp-buf-level (make-vector 10 0))
 
 (defun math-comp-to-string-flat-term (c)
   (cond ((not (consp c))

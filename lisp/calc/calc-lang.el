@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-lang.el]
+;;; calc-lang.el --- calc language functions
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;;; Code:
 
 
 ;; This file is autoloaded from calc-ext.el.
@@ -52,32 +58,32 @@
   (interactive)
   (calc-wrapper
    (calc-set-language nil)
-   (message "Normal language mode.")))
+   (message "Normal language mode")))
 
 (defun calc-flat-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'flat)
-   (message "Flat language mode (all stack entries shown on one line).")))
+   (message "Flat language mode (all stack entries shown on one line)")))
 
 (defun calc-big-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'big)
-   (message "\"Big\" language mode.")))
+   (message "\"Big\" language mode")))
 
 (defun calc-unformatted-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'unform)
-   (message "Unformatted language mode.")))
+   (message "Unformatted language mode")))
 
 
 (defun calc-c-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'c)
-   (message "`C' language mode.")))
+   (message "`C' language mode")))
 
 (put 'c 'math-oper-table
   '( ( "u+"    ident	     -1 1000 )
@@ -139,9 +145,9 @@
    (calc-set-language 'pascal n)
    (message (if (and n (/= n 0))
 		(if (> n 0)
-		    "Pascal language mode (all uppercase)."
-		  "Pascal language mode (all lowercase).")
-	      "Pascal language mode."))))
+		    "Pascal language mode (all uppercase)"
+		  "Pascal language mode (all lowercase)")
+	      "Pascal language mode"))))
 
 (put 'pascal 'math-oper-table
   '( ( "not"   calcFunc-lnot -1 1000 )
@@ -201,9 +207,9 @@
    (calc-set-language 'fortran n)
    (message (if (and n (/= n 0))
 		(if (> n 0)
-		    "FORTRAN language mode (all uppercase)."
-		  "FORTRAN language mode (all lowercase).")
-	      "FORTRAN language mode."))))
+		    "FORTRAN language mode (all uppercase)"
+		  "FORTRAN language mode (all lowercase)")
+	      "FORTRAN language mode"))))
 
 (put 'fortran 'math-oper-table
   '( ( "u/"    (math-parse-fortran-vector) -1 1 )
@@ -251,6 +257,7 @@
 (put 'fortran 'math-input-filter 'calc-input-case-filter)
 (put 'fortran 'math-output-filter 'calc-output-case-filter)
 
+(defvar math-parsing-fortran-vector nil)
 (defun math-parse-fortran-vector (op)
   (let ((math-parsing-fortran-vector '(end . "\000")))
     (prog1
@@ -266,7 +273,6 @@
 	      exp-data "\000")
 	x)
     (throw 'syntax "Unmatched closing `/'")))
-(setq math-parsing-fortran-vector nil)
 
 (defun math-parse-fortran-subscr (sym args)
   (setq sym (math-build-var-name sym))
@@ -283,9 +289,9 @@
    (calc-set-language 'tex n)
    (message (if (and n (/= n 0))
 		(if (> n 0)
-		    "TeX language mode with \\hbox{func}(\\hbox{var})."
-		  "TeX language mode with \\func{\\hbox{var}}.")
-	      "TeX language mode."))))
+		    "TeX language mode with \\hbox{func}(\\hbox{var})"
+		  "TeX language mode with \\func{\\hbox{var}}")
+	      "TeX language mode"))))
 
 (put 'tex 'math-oper-table
   '( ( "u+"       ident		   -1 1000 )
@@ -402,7 +408,7 @@
   (interactive "P")
   (calc-wrapper
    (calc-set-language 'eqn)
-   (message "Eqn language mode.")))
+   (message "Eqn language mode")))
 
 (put 'eqn 'math-oper-table
   '( ( "u+"       ident		   -1 1000 )
@@ -515,7 +521,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'math)
-   (message "Mathematica language mode.")))
+   (message "Mathematica language mode")))
 
 (put 'math 'math-oper-table
   '( ( "[["    (math-read-math-subscr) 250 -1 )
@@ -628,7 +634,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'maple)
-   (message "Maple language mode.")))
+   (message "Maple language mode")))
 
 (put 'maple 'math-oper-table
   '( ( "matrix" ident	     -1  300 )

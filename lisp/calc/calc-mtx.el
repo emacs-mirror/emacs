@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-mat.el]
+;;; calc-mtx.el --- matrix functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;;; Code:
 
 
 ;; This file is autoloaded from calc-ext.el.
@@ -215,6 +221,7 @@
 
 ;;; This returns a list (LU index d), or NIL if not possible.
 ;;; Argument M must be a square matrix.
+(defvar math-lud-cache nil)
 (defun math-matrix-lud (m)
   (let ((old (assoc m math-lud-cache))
 	(context (list calc-internal-prec calc-prefer-frac)))
@@ -226,7 +233,6 @@
 	    (setcdr old entry)
 	  (setq math-lud-cache (cons (cons m entry) math-lud-cache)))
 	lud))))
-(defvar math-lud-cache nil)
 
 ;;; Numerical Recipes section 2.3; implicit pivoting omitted.
 (defun math-do-matrix-lud (m)

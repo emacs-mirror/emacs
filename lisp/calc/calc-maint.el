@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, maintenance routines
+;;; calc-maint.el --- maintenance routines for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
-
+;;; Code:
 
 (defun calc-compile ()
   "Compile all parts of Calc.
@@ -58,7 +62,7 @@ Unix usage:
     ;; Make sure we're in the right directory.
     (find-file "calc.el")
     (if (= (buffer-size) 0)
-	(error "This command must be used in the Calc source directory."))
+	(error "This command must be used in the Calc source directory"))
 
     ;; Make sure current directory is in load-path.
     (setq load-path (cons default-directory load-path))
@@ -82,7 +86,7 @@ Unix usage:
 		  (setq changed-units t))
 	      (or message-bug (message ""))
 	      (byte-compile-file (car files)))
-	  (message "File %s is up to date." (car files)))
+	  (message "File %s is up to date" (car files)))
 	(if (string-match "calc\\(-ext\\)?.el" (car files))
 	    (load (concat (car files) "c") nil t t))
 	(setq files (cdr files))))
@@ -132,7 +136,7 @@ Unix usage:
 			    (sort rules 'string<))
 		    (save-buffer))))
 	  (error (message "Unable to pre-build tables %s" err))))
-    (message "Done.  Don't forget to install with \"make public\" or \"make private\".")))
+    (message "Done.  Don't forget to install with \"make public\" or \"make private\"")))
 
 (defun calc-compile-message (fmt &rest args)
   (cond ((and (= (length args) 2)
@@ -158,8 +162,8 @@ Unix usage:
 	      (= (length args) 1)
 	      (stringp (car args))
 	      (string-match ".elc?\\'" (car args)))
-	 (or (string-match "Saving file %s..." fmt)
-	     (funcall old-message fmt (file-name-nondirectory (car args)))))
+	 (unless (string-match "Saving file %s..." fmt)
+	   (funcall old-message fmt (file-name-nondirectory (car args)))))
 	((string-match "\\(Preparing\\|Building\\).*\\.\\.\\.$" fmt)
 	 (send-string-to-terminal (apply 'format fmt args)))
 	((string-match "\\(Preparing\\|Building\\).*\\.\\.\\. *done$" fmt)
@@ -203,7 +207,7 @@ Usage:  C-x C-f calc.texinfo RET
   (or (let ((case-fold-search t))
 	(string-match "calc\\.texinfo" (buffer-name)))
       force
-      (error "This command should be used in the calc.texinfo buffer."))
+      (error "This command should be used in the calc.texinfo buffer"))
   (let ((srcbuf (current-buffer))
 	tutpos refpos endpos (maxpos (point-max)))
     (goto-char 1)
@@ -278,7 +282,7 @@ Usage:  C-x C-f calc.texinfo RET
   (or (let ((case-fold-search t))
 	(string-match "calc\\.texinfo" (buffer-name)))
       force
-      (error "This command should be used in the calc.texinfo buffer."))
+      (error "This command should be used in the calc.texinfo buffer"))
   (let ((srcbuf (current-buffer))
 	begpos sumpos endpos midpos)
     (goto-char 1)
@@ -402,7 +406,8 @@ global-set-key commands for Calc."
 		(not (file-exists-p
 		      (setq name (expand-file-name "default.el" (car p))))))
       (setq p (cdr p)))
-    (or p (error "Unable to find \"default\" file.  Create one and try again."))
+    (unless p
+      (error "Unable to find \"default\" file.  Create one and try again"))
     (find-file name)
     (if buffer-read-only (error "No write permission for \"%s\"" buffer-file-name))
     (goto-char (point-max))

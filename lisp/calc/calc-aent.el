@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part I [calc-aent.el]
+;;; calc-aent.el --- algebraic entry functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: Dave Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc.el.
 (require 'calc)
@@ -55,15 +60,14 @@
 				     (calc-extensions)
 				     (math-evaluate-expr x))))
 				entry)))
-	  (if (and (= (length alg-exp) 1)
-		   (eq (car-safe (car alg-exp)) 'calcFunc-assign)
-		   (= (length (car alg-exp)) 3)
-		   (eq (car-safe (nth 1 (car alg-exp))) 'var))
-	      (progn
-		(calc-extensions)
-		(set (nth 2 (nth 1 (car alg-exp))) (nth 2 (car alg-exp)))
-		(calc-refresh-evaltos (nth 2 (nth 1 (car alg-exp))))
-		(setq alg-exp (list (nth 2 (car alg-exp))))))
+	  (when (and (= (length alg-exp) 1)
+		     (eq (car-safe (car alg-exp)) 'calcFunc-assign)
+		     (= (length (car alg-exp)) 3)
+		     (eq (car-safe (nth 1 (car alg-exp))) 'var))
+	    (calc-extensions)
+	    (set (nth 2 (nth 1 (car alg-exp))) (nth 2 (car alg-exp)))
+	    (calc-refresh-evaltos (nth 2 (nth 1 (car alg-exp))))
+	    (setq alg-exp (list (nth 2 (car alg-exp)))))
 	  (setq calc-quick-prev-results alg-exp
 		buf (mapconcat (function (lambda (x)
 					   (math-format-value x 1000)))
@@ -97,8 +101,8 @@
       (if (eq last-command-char 10)
 	  (insert shortbuf)
 	(setq kill-ring (cons shortbuf kill-ring))
-	(if (> (length kill-ring) kill-ring-max)
-	    (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
+	(when (> (length kill-ring) kill-ring-max)
+	  (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
 	(setq kill-ring-yank-pointer kill-ring)))))
 
 (defun calc-do-calc-eval (str separator args)
@@ -294,8 +298,7 @@
   (let* ((calc-buffer (current-buffer))
 	 (blink-paren-function 'calcAlg-blink-matching-open)
 	 (alg-exp 'error))
-    (if (boundp 'calc-alg-ent-map)
-	()
+    (unless (boundp 'calc-alg-ent-map)
       (setq calc-alg-ent-map (copy-keymap minibuffer-local-map))
       (define-key calc-alg-ent-map "'" 'calcAlg-previous)
       (define-key calc-alg-ent-map "`" 'calcAlg-edit)
@@ -307,8 +310,8 @@
 	    (while (< i 127)
 	      (aset calc-alg-ent-esc-map i 'calcAlg-escape)
 	      (setq i (1+ i))))))
-    (or calc-emacs-type-19
-	(define-key calc-alg-ent-map "\e" nil))
+    (unless calc-emacs-type-19
+      (define-key calc-alg-ent-map "\e" nil))
     (if (eq calc-algebraic-mode 'total)
 	(define-key calc-alg-ent-map "\e" calc-alg-ent-esc-map)
       (define-key calc-alg-ent-map "\ep" 'calcAlg-plus-minus)
@@ -320,9 +323,9 @@
     (let ((buf (read-from-minibuffer (or prompt "Algebraic: ")
 				     (or initial "")
 				     calc-alg-ent-map nil)))
-      (if (eq alg-exp 'error)
-	  (if (eq (car-safe (setq alg-exp (math-read-exprs buf))) 'error)
-	      (setq alg-exp nil)))
+      (when (eq alg-exp 'error)
+	(when (eq (car-safe (setq alg-exp (math-read-exprs buf))) 'error)
+	  (setq alg-exp nil)))
       (setq calc-aborted-prefix "alg'")
       (or no-normalize
 	  (and alg-exp (setq alg-exp (mapcar 'calc-normalize alg-exp))))
@@ -368,6 +371,7 @@
     (use-local-map calc-mode-map))
   (calcAlg-enter))
 
+(defvar calc-plain-entry nil)
 (defun calcAlg-edit ()
   (interactive)
   (if (or (not calc-plain-entry)
@@ -377,7 +381,6 @@
     (setq alg-exp (minibuffer-contents))
     (and (> (length alg-exp) 0) (setq calc-previous-alg-entry alg-exp))
     (exit-minibuffer)))
-(setq calc-plain-entry nil)
 
 (defun calcAlg-enter ()
   (interactive)
@@ -482,11 +485,11 @@
 	(setq last rest)))
     val))
 
-(setq calc-user-parse-table nil)
-(setq calc-last-main-parse-table nil)
-(setq calc-last-lang-parse-table nil)
-(setq calc-user-tokens nil)
-(setq calc-user-token-chars nil)
+(defvar calc-user-parse-table nil)
+(defvar calc-last-main-parse-table nil)
+(defvar calc-last-lang-parse-table nil)
+(defvar calc-user-tokens nil)
+(defvar calc-user-token-chars nil)
 
 (defun math-build-parse-table ()
   (let ((mtab (cdr (assq nil calc-user-parse-tables)))

@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-alg-3.el]
+;;; calcalg3.el --- more algebraic functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -601,9 +606,9 @@
       (set (nth 2 (aref math-root-vars m)) (car p)))
     (setq expr-val (math-evaluate-expr expr)
 	  jacob-val (math-evaluate-expr jacob))
-    (or (and (math-constp expr-val)
-	     (math-constp jacob-val))
-	(math-reject-arg guess "*Newton's method encountered a singularity"))
+    (unless (and (math-constp expr-val)
+		 (math-constp jacob-val))
+      (math-reject-arg guess "*Newton's method encountered a singularity"))
     (setq next (math-add guess (math-div (math-float (math-neg expr-val))
 					 (math-float jacob-val)))
 	  p guess p2 next)
@@ -626,10 +631,10 @@
 	    (var-DUMMY nil)
 	    (jacob (list 'vec))
 	    p p2 m row)
-	(or (eq (car-safe var) 'vec)
-	    (math-reject-arg var 'vectorp))
-	(or (= (length var) (1+ n))
-	    (math-dimension-error))
+	(unless (eq (car-safe var) 'vec)
+	  (math-reject-arg var 'vectorp))
+	(unless (= (length var) (1+ n))
+	  (math-dimension-error))
 	(setq expr (copy-sequence expr))
 	(while (>= n (length math-root-vars))
 	  (let ((symb (intern (concat "math-root-v"
@@ -648,10 +653,10 @@
 	  (while (setq p2 (cdr p2))
 	    (setcar p2 (math-expr-subst (car p2) (car p)
 					(aref math-root-vars m)))))
-	(or (eq (car-safe guess) 'vec)
-	    (math-reject-arg guess 'vectorp))
-	(or (= (length guess) (1+ n))
-	    (math-dimension-error))
+	(unless (eq (car-safe guess) 'vec)
+	  (math-reject-arg guess 'vectorp))
+	(unless (= (length guess) (1+ n))
+	  (math-dimension-error))
 	(setq guess (copy-sequence guess)
 	      p guess)
 	(while (setq p (cdr p))
@@ -677,10 +682,10 @@
 	(setq m (math-abs-approx guess))
 	(math-newton-multi expr jacob n guess guess
 			   (if (math-zerop m) '(float 1 3) (math-mul m 10))))
-    (or (eq (car-safe var) 'var)
-	(math-reject-arg var "*Expected a variable"))
-    (or (math-expr-contains expr var)
-	(math-reject-arg expr "*Formula does not contain specified variable"))
+    (unless (eq (car-safe var) 'var)
+      (math-reject-arg var "*Expected a variable"))
+    (unless (math-expr-contains expr var)
+      (math-reject-arg expr "*Formula does not contain specified variable"))
     (if (assq (car expr) calc-tweak-eqn-table)
 	(setq expr (math-sub (nth 1 expr) (nth 2 expr))))
     (math-with-extra-prec 2
@@ -758,6 +763,7 @@
 	a
       (math-reject-arg a 'realp))))
 
+(defvar math-min-or-max "minimum")
 
 ;;; A bracket for a minimum is a < b < c where f(b) < f(a) and f(b) < f(c).
 
@@ -1145,7 +1151,6 @@
 	(if isvec
 	    (list 'vec vec (nth 2 res))
 	  (list 'vec (nth 1 vec) (nth 2 res)))))))
-(setq math-min-or-max "minimum")
 
 (defun calcFunc-minimize (expr var guess)
   (let ((calc-internal-prec (max (/ calc-internal-prec 2) 3))
@@ -1390,9 +1395,8 @@
 
 ;;; The following algorithms come from Numerical Recipes, chapter 14.
 
-(setq math-dummy-vars [(var DUMMY var-DUMMY)])
-(setq math-dummy-counter 0)
-
+(defvar math-dummy-vars [(var DUMMY var-DUMMY)])
+(defvar math-dummy-counter 0)
 (defun math-dummy-variable ()
   (if (= math-dummy-counter (length math-dummy-vars))
       (let ((symb (intern (format "math-dummy-%d" math-dummy-counter))))
@@ -1403,7 +1407,8 @@
       (aref math-dummy-vars math-dummy-counter)
     (setq math-dummy-counter (1+ math-dummy-counter))))
 
-
+(defvar math-in-fit 0)
+(defvar calc-fit-to-trail nil)
 
 (defun calcFunc-fit (expr vars &optional coefs data)
   (let ((math-in-fit 10))
@@ -1708,8 +1713,6 @@
 		 '(var nan var-nan)))
        expr))))
 
-(setq math-in-fit 0)
-(setq calc-fit-to-trail nil)
 
 (defun calcFunc-fitvar (x)
   (if (>= math-in-fit 2)

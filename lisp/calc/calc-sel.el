@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-sel.el]
+;;; calc-sel.el --- data selection functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -30,6 +35,8 @@
 
 
 ;;; Selection commands.
+
+(defvar calc-keep-selection t)
 
 (defun calc-select-here (num &optional once keep)
   (interactive "P")
@@ -349,6 +356,7 @@
 		"Selection treats a+b+c as a sum of three terms"
 	      "Selection treats a+b+c as (a+b)+c"))))
 
+(defvar calc-selection-cache-entry nil)
 (defun calc-prepare-selection (&optional num)
   (or num (setq num (calc-locate-cursor-element (point))))
   (setq calc-selection-true-num num
@@ -371,7 +379,6 @@
 		   (length calc-left-label)
 		   (if calc-line-numbering 4 0))))))
   (calc-preserve-point))
-(setq calc-selection-cache-entry nil)
 
 ;;; The following ensures that no two subformulas will be "eq" to each other!
 (defun calc-encase-atoms (x)
@@ -508,7 +515,6 @@
 	 (t (calc-sel-error))))
     (calc-pop-stack n m t)
     (calc-push-list vals m)))
-(setq calc-keep-selection t)
 
 (defun calc-delete-selection (n)
   (let ((entry (calc-top n 'entry)))

@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-undo.el]
+;;; calc-undo.el --- undo functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -33,15 +38,15 @@
 
 (defun calc-undo (n)
   (interactive "p")
-  (and calc-executing-macro
-       (error "Use C-x e, not X, to run a keyboard macro that uses Undo."))
+  (when calc-executing-macro
+    (error "Use C-x e, not X, to run a keyboard macro that uses Undo"))
   (if (<= n 0)
       (if (< n 0)
 	  (calc-redo (- n))
 	(calc-last-args 1))
     (calc-wrapper
-     (if (null (nthcdr (1- n) calc-undo-list))
-	 (error "No further undo information available"))
+     (when (null (nthcdr (1- n) calc-undo-list))
+       (error "No further undo information available"))
      (setq calc-undo-list
 	   (prog1
 	       (nthcdr n calc-undo-list)
@@ -52,16 +57,15 @@
      (message "Undo!"))))
 
 (defun calc-handle-undos (cl n)
-  (if (> n 0)
-      (progn
-	(let ((old-redo calc-redo-list))
-	  (setq calc-undo-list nil)
-	  (calc-handle-undo (car cl))
-	  (setq calc-redo-list (append calc-undo-list old-redo)))
-	(calc-handle-undos (cdr cl) (1- n)))))
+  (when (> n 0)
+    (let ((old-redo calc-redo-list))
+      (setq calc-undo-list nil)
+      (calc-handle-undo (car cl))
+      (setq calc-redo-list (append calc-undo-list old-redo)))
+    (calc-handle-undos (cdr cl) (1- n))))
 
 (defun calc-handle-undo (list)
-  (and list
+  (when list
        (let ((action (car list)))
 	 (cond
 	  ((eq (car action) 'push)
@@ -90,13 +94,13 @@
 
 (defun calc-redo (n)
   (interactive "p")
-  (and calc-executing-macro
-       (error "Use C-x e, not X, to run a keyboard macro that uses Redo."))
+  (when calc-executing-macro
+    (error "Use C-x e, not X, to run a keyboard macro that uses Redo"))
   (if (<= n 0)
       (calc-undo (- n))
     (calc-wrapper
-     (if (null (nthcdr (1- n) calc-redo-list))
-	 (error "Unable to redo"))
+     (when (null (nthcdr (1- n) calc-redo-list))
+       (error "Unable to redo"))
      (setq calc-redo-list
 	   (prog1
 	       (nthcdr n calc-redo-list)
@@ -107,18 +111,17 @@
      (message "Redo!"))))
 
 (defun calc-handle-redos (cl n)
-  (if (> n 0)
-      (progn
-	(let ((old-undo calc-undo-list))
-	  (setq calc-undo-list nil)
-	  (calc-handle-undo (car cl))
-	  (setq calc-undo-list (append calc-undo-list old-undo)))
-	(calc-handle-redos (cdr cl) (1- n)))))
+  (when (> n 0)
+    (let ((old-undo calc-undo-list))
+      (setq calc-undo-list nil)
+      (calc-handle-undo (car cl))
+      (setq calc-undo-list (append calc-undo-list old-undo)))
+    (calc-handle-redos (cdr cl) (1- n))))
 
 (defun calc-last-args (n)
   (interactive "p")
-  (and calc-executing-macro
-       (error "Use C-x e, not X, to run a keyboard macro that uses last-args."))
+  (when calc-executing-macro
+    (error "Use C-x e, not X, to run a keyboard macro that uses last-args"))
   (calc-wrapper
    (let ((urec (calc-find-last-x calc-undo-list n)))
      (if urec
@@ -126,20 +129,20 @@
        (error "Not enough undo information available")))))
 
 (defun calc-handle-last-x (list)
-  (and list
-       (let ((action (car list)))
-	 (if (eq (car action) 'pop)
-	     (calc-pop-push-record-list 0 "larg"
-					(delq 'top-of-stack (nth 2 action))))
-	 (calc-handle-last-x (cdr list)))))
+  (when list
+    (let ((action (car list)))
+      (if (eq (car action) 'pop)
+	  (calc-pop-push-record-list 0 "larg"
+				     (delq 'top-of-stack (nth 2 action))))
+      (calc-handle-last-x (cdr list)))))
 
 (defun calc-find-last-x (ul n)
-  (and ul
-       (if (calc-undo-does-pushes (car ul))
-	   (if (<= n 1)
-	       (car ul)
-	     (calc-find-last-x (cdr ul) (1- n)))
-	 (calc-find-last-x (cdr ul) n))))
+  (when ul
+    (if (calc-undo-does-pushes (car ul))
+	(if (<= n 1)
+	    (car ul)
+	  (calc-find-last-x (cdr ul) (1- n)))
+      (calc-find-last-x (cdr ul) n))))
 
 (defun calc-undo-does-pushes (list)
   (and list

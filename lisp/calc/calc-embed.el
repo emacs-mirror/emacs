@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-embed.el]
+;;; calc-embed.el --- embed Calc in a buffer
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -28,37 +33,22 @@
 
 (defun calc-Need-calc-embed () nil)
 
-
 (defun calc-show-plain (n)
   (interactive "P")
   (calc-wrapper
    (calc-set-command-flag 'renum-stack)
    (message (if (calc-change-mode 'calc-show-plain n nil t)
-		"Including \"plain\" formulas in Calc Embedded mode."
-	      "Omitting \"plain\" formulas in Calc Embedded mode."))))
-
-
-
-
-;;; Things to do for Embedded Mode:
-;;; 
-;;;  Detect and strip off unexpected labels during reading.
-;;;
-;;;  Get calc-grab-region to use math-read-big-expr.
-;;;  If calc-show-plain, main body should have only righthand side of => expr.
-;;;  Handle tabs that have crept into embedded formulas.
-;;;  After "switching to new formula", home cursor to that formula.
-;;;  Do something like \evalto ... \to for \gets operators.
-;;;
+		"Including \"plain\" formulas in Calc Embedded mode"
+	      "Omitting \"plain\" formulas in Calc Embedded mode"))))
 
 
 (defvar calc-embedded-modes nil)
 (defvar calc-embedded-globals nil)
 (defvar calc-embedded-active nil)
-
+(defvar calc-embedded-all-active nil)
 (make-variable-buffer-local 'calc-embedded-all-active)
+(defvar calc-embedded-some-active nil)
 (make-variable-buffer-local 'calc-embedded-some-active)
-
 
 (defvar calc-embedded-open-formula "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the opening delimiter of a formula used by
@@ -162,6 +152,7 @@ This is not required to be present for user-written mode annotations.")
 ;;; thrown away when a buffer changes major modes.
 
 
+(defvar calc-embedded-quiet nil)
 (defun calc-do-embedded (arg end obeg oend)
   (if calc-embedded-info
 
@@ -195,7 +186,7 @@ This is not required to be present for user-written mode annotations.")
 	       (use-local-map (nth 1 mode))
 	       (set-buffer-modified-p (buffer-modified-p))
 	       (or calc-embedded-quiet
-		   (message "Back to %s mode." mode-name))))
+		   (message "Back to %s mode" mode-name))))
 
 	    (t
 	     (if (buffer-name (aref calc-embedded-info 0))
@@ -246,12 +237,11 @@ This is not required to be present for user-written mode annotations.")
       (setq calc-no-refresh-evaltos nil)
       (and chg calc-any-evaltos (calc-wrapper (calc-refresh-evaltos)))
       (or (eq calc-embedded-quiet t)
-	  (message "Embedded Calc mode enabled.  %s to return to normal."
+	  (message "Embedded Calc mode enabled; %s to return to normal"
 		   (if calc-embedded-quiet
 		       "Type `M-# x'"
 		     "Give this command again")))))
   (scroll-down 0))    ; fix a bug which occurs when truncate-lines is changed.
-(setq calc-embedded-quiet nil)
 
 
 (defun calc-embedded-select (arg)
@@ -335,7 +325,7 @@ This is not required to be present for user-written mode annotations.")
       (calc-embedded-forget))
   (calc-find-globals)
   (if (< (prefix-numeric-value arg) 0)
-      (message "Deactivating %s for Calc Embedded mode." (buffer-name))
+      (message "Deactivating %s for Calc Embedded mode" (buffer-name))
     (message "Activating %s for Calc Embedded mode..." (buffer-name))
     (save-excursion
       (let* ((active (assq (current-buffer) calc-embedded-active))
@@ -1002,6 +992,7 @@ The command \\[yank] can retrieve it from there."
 
 ;;; These are hooks called by the main part of Calc.
 
+(defvar calc-embedded-no-reselect nil)
 (defun calc-embedded-select-buffer ()
   (if (eq (current-buffer) (aref calc-embedded-info 0))
       (let ((info calc-embedded-info)
@@ -1031,7 +1022,6 @@ The command \\[yank] can retrieve it from there."
 	(forward-char (min horiz
 			   (- (point-max) (point)))))
     (calc-select-buffer)))
-(setq calc-embedded-no-reselect nil)
 
 (defun calc-embedded-finish-command ()
   (let ((buf (current-buffer))
@@ -1206,12 +1196,9 @@ The command \\[yank] can retrieve it from there."
 			 (calc-embedded-update (car p) 14 t nil)))
 		    (setcdr (car bp) (delq (car p) (cdr (car bp))))
 		    (message
-		     "(Tried to recompute but formula was changed or missing.)"))))
+		     "(Tried to recompute but formula was changed or missing)"))))
 	    (setq p (cdr p))))
 	(setq bp (if buf nil (cdr bp))))
       (or first calc-embedded-quiet (message "")))))
 
 ;;; calc-embed.el ends here
-
-
-

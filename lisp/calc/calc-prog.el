@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-prog.el]
+;;; calc-prog.el --- user programmability functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;;; Code:
 
 
 ;; This file is autoloaded from calc-ext.el.
@@ -102,8 +108,8 @@
   (calc-wrapper
    (calc-change-mode 'calc-timing n nil t)
    (message (if calc-timing
-		"Reporting timing of slow commands in Trail."
-	      "Not reporting timing of commands."))))
+		"Reporting timing of slow commands in Trail"
+	      "Not reporting timing of commands"))))
 
 (defun calc-pass-errors ()
   (interactive)
@@ -116,7 +122,7 @@
 	(or (memq (car (car place)) '(error xxxerror))
 	    (error "foo"))
 	(setcar (car place) 'xxxerror))
-    (error (error "The calc-do function has been modified; unable to patch."))))
+    (error (error "The calc-do function has been modified; unable to patch"))))
 
 (defun calc-user-define ()
   (interactive)
@@ -1106,7 +1112,7 @@
      (calc-pop-stack 1)
      (if (math-is-true cond)
 	 (if defining-kbd-macro
-	     (message "If true..."))
+	     (message "If true.."))
        (if defining-kbd-macro
 	   (message "Condition is false; skipping to Z: or Z] ..."))
        (calc-kbd-skip-to-else-if t)))))
@@ -1218,7 +1224,7 @@
 	 (null parts)
 	 (null counter)
 	 (progn
-	   (message "Warning: Infinite loop!  Not executing.")
+	   (message "Warning: Infinite loop! Not executing")
 	   (setq rpt-count 0)))
     (or (not initial) dir
 	(setq dir (math-compare final initial)))
@@ -1266,9 +1272,10 @@
    (let ((cond (calc-top-n 1)))
      (calc-pop-stack 1)
      (if (math-is-true cond)
-	 (error "Keyboard macro aborted.")))))
+	 (error "Keyboard macro aborted")))))
 
 
+(defvar calc-kbd-push-level 0)
 (defun calc-kbd-push (arg)
   (interactive "P")
   (calc-wrapper
@@ -1324,7 +1331,6 @@
        (let ((calc-kbd-push-level (1+ calc-kbd-push-level)))
 	 (message "Saving modes; type Z' to restore")
 	 (recursive-edit))))))
-(setq calc-kbd-push-level 0)
 
 (defun calc-kbd-pop ()
   (interactive)
@@ -1670,7 +1676,6 @@
   (if (math-is-true a)
       1
     0))
-
 
 
 
@@ -2118,7 +2123,7 @@
     (if (math-body-refers-to body 'math-break)
 	(cons 'catch (cons '(quote math-break) (list body)))
       body)))
-
+;; (put 'math-while 'lisp-indent-hook 1)
 
 (defmacro math-for (head &rest body)
   (let ((body (if head
@@ -2127,6 +2132,7 @@
     (if (math-body-refers-to body 'math-break)
 	(cons 'catch (cons '(quote math-break) (list body)))
       body)))
+;; (put 'math-for 'lisp-indent-hook 1)
 
 (defun math-handle-for (head body)
   (let* ((var (nth 0 (car head)))
@@ -2184,13 +2190,12 @@
 						       var
 						       save-step)))))))))))
 
-
 (defmacro math-foreach (head &rest body)
   (let ((body (math-handle-foreach head body)))
     (if (math-body-refers-to body 'math-break)
 	(cons 'catch (cons '(quote math-break) (list body)))
       body)))
-
+;; (put 'math-foreach 'lisp-indent-hook 1)
 
 (defun math-handle-foreach (head body)
   (let ((var (nth 0 (car head)))

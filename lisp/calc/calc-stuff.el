@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-stuff.el]
+;;; calc-stuff.el --- miscellaneous functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -68,6 +73,8 @@ With a prefix, push that prefix as a number onto the stack."
   (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth))
 
 
+(defvar calc-which-why nil)
+(defvar calc-last-why-command nil)
 (defun calc-explain-why (why &optional more)
   (if (eq (car why) '*)
       (setq why (cdr why)))
@@ -151,13 +158,11 @@ With a prefix, push that prefix as a number onto the stack."
 	  (message "(No further explanations available)")
 	  (setq calc-which-why calc-why))
       (message "No explanations available"))))
-(setq calc-which-why nil)
-(setq calc-last-why-command nil)
 
 
 (defun calc-version ()
   (interactive)
-  (message "Calc %s, installed %s" calc-version calc-installed-date))
+  (message "Calc %s" calc-version))
 
 
 (defun calc-flush-caches ()
@@ -179,7 +184,7 @@ With a prefix, push that prefix as a number onto the stack."
 	 math-format-date-cache nil
 	 math-holidays-cache-tag t)
    (mapcar (function (lambda (x) (set x -100))) math-cache-list)
-   (message "All internal calculator caches have been reset.")))
+   (message "All internal calculator caches have been reset")))
 
 
 ;;; Conversions.
@@ -209,6 +214,7 @@ With a prefix, push that prefix as a number onto the stack."
 		     (error "Number required"))))))
 
 
+(defvar math-chopping-small nil)
 (defun calcFunc-clean (a &optional prec)   ; [X X S] [Public]
   (if prec
       (cond ((Math-messy-integerp prec)
@@ -250,7 +256,6 @@ With a prefix, push that prefix as a number onto the stack."
 	  ((Math-objectp a) a)
 	  ((math-infinitep a) a)
 	  (t (list 'calcFunc-clean a)))))
-(setq math-chopping-small nil)
 
 (defun calcFunc-pclean (a &optional prec)
   (math-map-over-constants (function (lambda (x) (calcFunc-clean x prec)))

@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-alg-2.el]
+;;; calcalg2.el --- more algebraic functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -32,7 +37,8 @@
 (defun calc-derivative (var num)
   (interactive "sDifferentiate with respect to: \np")
   (calc-slow-wrapper
-   (and (< num 0) (error "Order of derivative must be positive"))
+   (when (< num 0)
+     (error "Order of derivative must be positive"))
    (let ((func (if (calc-is-hyperbolic) 'calcFunc-tderiv 'calcFunc-deriv))
 	 n expr)
      (if (or (equal var "") (equal var "$"))
@@ -40,8 +46,8 @@
 	       expr (calc-top-n 2)
 	       var (calc-top-n 1))
        (setq var (math-read-expr var))
-       (if (eq (car-safe var) 'error)
-	   (error "Bad format in expression: %s" (nth 1 var)))
+       (when (eq (car-safe var) 'error)
+	 (error "Bad format in expression: %s" (nth 1 var)))
        (setq n 1
 	     expr (calc-top-n 1)))
      (while (>= (setq num (1- num)) 0)
@@ -592,14 +598,11 @@
 		   (math-derivative (nth 2 expr)))))))
 
 
-
-
-
-(setq math-integ-var '(var X ---))
-(setq math-integ-var-2 '(var Y ---))
-(setq math-integ-vars (list 'f math-integ-var math-integ-var-2))
-(setq math-integ-var-list (list math-integ-var))
-(setq math-integ-var-list-list (list math-integ-var-list))
+(defvar math-integ-var '(var X ---))
+(defvar math-integ-var-2 '(var Y ---))
+(defvar math-integ-vars (list 'f math-integ-var math-integ-var-2))
+(defvar math-integ-var-list (list math-integ-var))
+(defvar math-integ-var-list-list (list math-integ-var-list))
 
 (defmacro math-tracing-integral (&rest parts)
   (list 'and
@@ -1704,6 +1707,8 @@
 
 
 
+(defvar math-tabulate-initial nil)
+(defvar math-tabulate-function nil)
 (defun calcFunc-table (expr var &optional low high step)
   (or low (setq low '(neg (var inf var-inf)) high '(var inf var-inf)))
   (or high (setq high low low 1))
@@ -1761,9 +1766,6 @@
 		   (list low high))
 	      (and step (list step))))))
 
-(setq math-tabulate-initial nil)
-(setq math-tabulate-function nil)
-
 (defun math-scan-for-limits (x)
   (cond ((Math-primp x))
 	((and (eq (car x) 'calcFunc-subscr)
@@ -1785,13 +1787,13 @@
 	   (math-scan-for-limits (car x))))))
 
 
+(defvar math-disable-sums nil)
 (defun calcFunc-sum (expr var &optional low high step)
   (if math-disable-sums (math-reject-arg))
   (let* ((res (let* ((calc-internal-prec (+ calc-internal-prec 2)))
 		(math-sum-rec expr var low high step)))
 	 (math-disable-sums t))
     (math-normalize res)))
-(setq math-disable-sums nil)
 
 (defun math-sum-rec (expr var &optional low high step)
   (or low (setq low '(neg (var inf var-inf)) high '(var inf var-inf)))
@@ -1941,6 +1943,7 @@
 		   (setq temp (list '* (car not-const) temp)))
 		 temp)))))
 
+(defvar math-sum-int-pow-cache (list '(0 1)))
 ;; Following is from CRC Math Tables, 27th ed, pp. 52-53.
 (defun math-sum-integer-power (pow)
   (let ((calc-prefer-frac t)
@@ -1963,7 +1966,6 @@
 	      (nconc math-sum-int-pow-cache (list (nreverse new)))
 	      n (1+ n))))
     (nth pow math-sum-int-pow-cache)))
-(setq math-sum-int-pow-cache (list '(0 1)))
 
 (defun math-to-exponentials (expr)
   (and (consp expr)
@@ -2013,13 +2015,13 @@
 	 (cons (car expr) (mapcar 'math-to-exps (cdr expr))))))
 
 
+(defvar math-disable-prods nil)
 (defun calcFunc-prod (expr var &optional low high step)
   (if math-disable-prods (math-reject-arg))
   (let* ((res (let* ((calc-internal-prec (+ calc-internal-prec 2)))
 		(math-prod-rec expr var low high step)))
 	 (math-disable-prods t))
     (math-normalize res)))
-(setq math-disable-prods nil)
 
 (defun math-prod-rec (expr var &optional low high step)
   (or low (setq low '(neg (var inf var-inf)) high '(var inf var-inf)))
@@ -2165,6 +2167,7 @@
 
 
 
+(defvar math-solve-ranges nil)
 ;;; Attempt to reduce lhs = rhs to solve-var = rhs', where solve-var appears
 ;;; in lhs but not in rhs or rhs'; return rhs'.
 ;;; Uses global values: solve-*.
@@ -2311,7 +2314,6 @@
 	   (calc-record-why "*No inverse known" lhs)
 	   nil))))
 
-(setq math-solve-ranges nil)
 
 (defun math-try-solve-prod ()
   (cond ((eq (car lhs) '*)
@@ -2656,6 +2658,8 @@
 		(math-div a 4))))
    nil t))
 
+(defvar math-symbolic-solve nil)
+(defvar math-int-coefs nil)
 (defun math-poly-all-roots (var p &optional math-factoring)
   (catch 'ouch
     (let* ((math-symbolic-solve calc-symbolic-mode)
@@ -2750,7 +2754,6 @@
 		    vec
 		    (math-solve-get-int 1 (1- (length orig-p)) 1))
 	    vec))))))
-(setq math-symbolic-solve nil)
 
 (defun math-lcm-denoms (&rest fracs)
   (let ((den 1))
@@ -2870,7 +2873,6 @@
 				(math-mul (math-sqrt (math-sub (math-sqr aa)
 							       rnd0))
 					  (if (math-negp xim) -1 1)))))))))))
-(setq math-int-coefs nil)
 
 ;;; The following routine is from Numerical Recipes, section 9.5.
 (defun math-poly-laguerre-root (p x polish)

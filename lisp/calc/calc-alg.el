@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-alg.el]
+;;; calc-alg.el --- algebraic functions for Calc 
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -27,7 +32,6 @@
 (require 'calc-macs)
 
 (defun calc-Need-calc-alg () nil)
-
 
 ;;; Algebra commands.
 
@@ -169,7 +173,7 @@
        (if (eq (car-safe old) 'error)
 	   (error "Bad format in expression: %s" (nth 1 old)))
        (or (math-expr-contains expr old)
-	   (error "No occurrences found.")))
+	   (error "No occurrences found")))
      (calc-enter-result num "sbst" (math-expr-subst expr old new)))))
 
 

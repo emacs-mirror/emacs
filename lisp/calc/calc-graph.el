@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-graph.el]
+;;; calc-graph.el --- graph output functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -32,7 +37,7 @@
 ;;; Graphics
 
 ;;; Note that some of the following initial values also occur in calc.el.
-(defvar calc-gnuplot-tempfile "/tmp/calc")
+(defvar calc-gnuplot-tempfile (expand-file-name "calc" temporary-file-directory))
 
 (defvar calc-gnuplot-default-device "default")
 (defvar calc-gnuplot-default-output "STDOUT")
@@ -58,6 +63,8 @@
 (defvar calc-graph-var-cache nil)
 (defvar calc-graph-data-cache nil)
 (defvar calc-graph-data-cache-limit 10)
+(defvar calc-graph-no-auto-view nil)
+(defvar calc-graph-no-wait nil)
 
 (defun calc-graph-fast (many)
   (interactive "P")
@@ -908,7 +915,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (define-key calc-dumb-map "\C-c\C-c" 'exit-recursive-edit)))
     (use-local-map calc-dumb-map)
     (setq truncate-lines t)
-    (message "Type `q'%s to return to Calc."
+    (message "Type `q'%s to return to Calc"
 	     (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
 		    " or `M-# M-#'" ""))
     (recursive-edit)
@@ -1151,11 +1158,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
   (if flag
       (if (> (prefix-numeric-value flag) 0)
 	  (if (equal res "")
-	      (message "Default resolution is %d."
+	      (message "Default resolution is %d"
 		       calc-graph-default-resolution)
 	    (setq calc-graph-default-resolution (string-to-int res)))
 	(if (equal res "")
-	    (message "Default 3D resolution is %d."
+	    (message "Default 3D resolution is %d"
 		     calc-graph-default-resolution-3d)
 	  (setq calc-graph-default-resolution-3d (string-to-int res))))
     (calc-graph-set-command "samples" (if (not (equal res "")) res))))
@@ -1169,11 +1176,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
     (if flag
 	(if (> (prefix-numeric-value flag) 0)
 	    (if (equal name "")
-		(message "Default GNUPLOT device is \"%s\"."
+		(message "Default GNUPLOT device is \"%s\""
 			 calc-gnuplot-default-device)
 	      (setq calc-gnuplot-default-device name))
 	  (if (equal name "")
-	      (message "GNUPLOT device for Print command is \"%s\"."
+	      (message "GNUPLOT device for Print command is \"%s\""
 		       calc-gnuplot-print-device)
 	    (setq calc-gnuplot-print-device name)))
       (calc-graph-set-command "terminal" (if (not (equal name ""))
@@ -1193,11 +1200,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
   (if flag
       (if (> (prefix-numeric-value flag) 0)
 	  (if (equal name "")
-	      (message "Default GNUPLOT output file is \"%s\"."
+	      (message "Default GNUPLOT output file is \"%s\""
 		       calc-gnuplot-default-output)
 	    (setq calc-gnuplot-default-output name))
 	(if (equal name "")
-	    (message "GNUPLOT output file for Print command is \"%s\"."
+	    (message "GNUPLOT output file for Print command is \"%s\""
 		     calc-gnuplot-print-output)
 	  (setq calc-gnuplot-print-output name)))
     (calc-graph-set-command "output" (if (not (equal name ""))
@@ -1206,7 +1213,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 (defun calc-graph-display (name)
   (interactive "sX display name: ")
   (if (equal name "")
-      (message "Current X display is \"%s\"."
+      (message "Current X display is \"%s\""
 	       (or calc-gnuplot-display "<none>"))
     (setq calc-gnuplot-display name)
     (if (calc-gnuplot-alive)
@@ -1215,7 +1222,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 (defun calc-graph-geometry (name)
   (interactive "sX geometry spec (or \"default\"): ")
   (if (equal name "")
-      (message "Current X geometry is \"%s\"."
+      (message "Current X geometry is \"%s\""
 	       (or calc-gnuplot-geometry "default"))
     (setq calc-gnuplot-geometry (and (not (equal name "default")) name))
     (if (calc-gnuplot-alive)
@@ -1326,7 +1333,6 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	    (set-window-start win (point))
 	    (goto-char (point-max)))))
     (or calc-graph-no-auto-view (sit-for 0))))
-(setq calc-graph-no-auto-view nil)
 
 (defun calc-gnuplot-check-for-errors ()
   (if (save-excursion
@@ -1359,7 +1365,6 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (calc-gnuplot-check-for-errors)
       (if (get-buffer-window calc-gnuplot-buffer)
 	  (calc-graph-view-trail)))))
-(setq calc-graph-no-wait nil)
 
 (defun calc-graph-init-buffers ()
   (or (and calc-gnuplot-buffer
@@ -1401,7 +1406,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 			   args))
 	      (process-kill-without-query calc-gnuplot-process))
 	  (file-error
-	   (error "Sorry, can't find \"%s\" on your system."
+	   (error "Sorry, can't find \"%s\" on your system"
 		  calc-gnuplot-name)))
 	(save-excursion
 	  (set-buffer calc-gnuplot-buffer)
@@ -1411,7 +1416,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 		      (memq (process-status calc-gnuplot-process) '(run stop)))
 	    (accept-process-output calc-gnuplot-process))
 	  (or (memq (process-status calc-gnuplot-process) '(run stop))
-	      (error "Unable to start GNUPLOT process."))
+	      (error "Unable to start GNUPLOT process"))
 	  (if (save-excursion
 		(goto-char origin)
 		(re-search-forward

@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-help.el]
+;;; calc-help.el --- help display functions for Calc,
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -381,7 +386,6 @@ C-w  Describe how there is no warranty for Calc."
     (princ (format "GNU Emacs Calculator version %s of %s.\n"
 		   calc-version calc-version-date))
     (princ "  By Dave Gillespie, daveg@synaptics.com.\n")
-    (princ (format "  Installed %s.\n" calc-installed-date))
     (princ "  Copyright (C) 1990, 1993 Free Software Foundation, Inc.\n\n")
     (princ "Type `h s' for a more detailed summary.\n")
     (princ "Or type `h i' to read the full Calc manual on-line.\n\n")

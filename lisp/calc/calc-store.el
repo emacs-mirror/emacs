@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-store.el]
+;;; calc-store.el --- value storage functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -31,12 +36,13 @@
 
 ;;; Memory commands.
 
+(defvar calc-store-keep nil)
 (defun calc-store (&optional var)
   (interactive)
   (let ((calc-store-keep t))
     (calc-store-into var)))
-(setq calc-store-keep nil)
 
+(defvar calc-given-value-flag nil)
 (defun calc-store-into (&optional var)
   (interactive)
   (calc-wrapper
@@ -170,7 +176,6 @@
 		 (setq calc-given-value (math-evaluate-expr calc-given-value))
 		 svar))
 	   (intern var)))))
-(setq calc-given-value-flag nil)
 
 (defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
 (if calc-var-name-map
@@ -369,6 +374,7 @@
 	 (if var2
 	     (calc-store-value var2 value ""))))))
 
+(defvar calc-last-edited-variable nil)
 (defun calc-edit-variable (&optional var)
   (interactive)
   (calc-wrapper
@@ -389,7 +395,6 @@
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))
-(setq calc-last-edited-variable nil)
 
 (defun calc-edit-Decls ()
   (interactive)
@@ -513,6 +518,17 @@
 						 decl)))))))
      (calc-refresh-evaltos 'var-Decls))))
 
+(defvar calc-dont-insert-variables '(var-FitRules var-FactorRules
+				     var-CommuteRules var-JumpRules
+				     var-DistribRules var-MergeRules
+				     var-NegateRules var-InvertRules
+				     var-IntegAfterRules
+				     var-TimeZone var-PlotRejects
+				     var-PlotData1 var-PlotData2
+				     var-PlotData3 var-PlotData4
+				     var-PlotData5 var-PlotData6
+				     var-DUMMY))
+
 (defun calc-permanent-variable (&optional var)
   (interactive)
   (calc-wrapper
@@ -532,17 +548,8 @@
 			 (not (eq (car-safe (symbol-value x)) 'special-const))
 			 (calc-insert-permanent-variable x))))))
      (save-buffer))))
-(defvar calc-dont-insert-variables '(var-FitRules var-FactorRules
-				     var-CommuteRules var-JumpRules
-				     var-DistribRules var-MergeRules
-				     var-NegateRules var-InvertRules
-				     var-IntegAfterRules
-				     var-TimeZone var-PlotRejects
-				     var-PlotData1 var-PlotData2
-				     var-PlotData3 var-PlotData4
-				     var-PlotData5 var-PlotData6
-				     var-DUMMY
-))
+
+
 
 (defun calc-insert-permanent-variable (var)
   (goto-char (point-min))

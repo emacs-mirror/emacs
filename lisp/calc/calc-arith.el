@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-arith.el]
+;;; calc-arith.el --- arithmetic functions for Calc
+ 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -148,9 +153,9 @@
 
 ;;;; Declarations.
 
-(setq math-decls-cache-tag nil)
-(setq math-decls-cache nil)
-(setq math-decls-all nil)
+(defvar math-decls-cache-tag nil)
+(defvar math-decls-cache nil)
+(defvar math-decls-all nil)
 
 ;;; Math-decls-cache is an a-list where each entry is a list of the form:
 ;;;   (VAR TYPES RANGE)
@@ -880,7 +885,7 @@
 
 ;;;; Arithmetic.
 
-(defun calcFunc-neg (a)
+(defsubst calcFunc-neg (a)
   (math-normalize (list 'neg a)))
 
 (defun math-neg-fancy (a)
@@ -2351,7 +2356,7 @@
       a
     (math-float (math-ceiling a prec))))
 
-(setq math-rounding-mode nil)
+(defvar math-rounding-mode nil)
 
 ;;; Coerce A to be an integer (by rounding to nearest integer).  [I N] [Public]
 (defun math-round (a &optional prec)
@@ -2620,6 +2625,8 @@
       (math-normalize (list '+ a b))
     (math-add a b)))
 
+(defvar math-combine-prod-e '(var e var-e))
+
 ;;; The following is expanded out four ways for speed.
 (defun math-combine-prod (a b inva invb scalar-okay)
   (cond
@@ -2734,7 +2741,6 @@
 			(condition-case err
 			    (math-pow a apow)
 			  (inexact-result (list '^ a apow)))))))))))
-(setq math-combine-prod-e '(var e var-e))
 
 (defun math-mul-or-div (a b ainv binv)
   (if (or (Math-vectorp a) (Math-vectorp b))

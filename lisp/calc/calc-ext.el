@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II
+;;; calc-ext.el --- various extension functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 (provide 'calc-ext)
 (require 'calc)
@@ -39,14 +44,26 @@
   (if (fboundp 'calc)
       (and (eq (car-safe (symbol-function 'calc)) 'autoload)
 	   (load (nth 1 (symbol-function 'calc))))
-    (error "Main part of Calc must be present in order to load this file.")))
+    (error "Main part of Calc must be present in order to load this file")))
 
 (require 'calc-macs)
 
+(defvar math-simplifying nil)
+(defvar math-living-dangerously nil)   ; true if unsafe simplifications are okay.
+(defvar math-integrating nil)
+
+(defvar math-rewrite-selections nil)
+
+(defvar math-compose-level 0)
+(defvar math-comp-selected nil)
+(defvar math-comp-tagged nil)
+(defvar math-comp-sel-hpos nil)
+(defvar math-comp-sel-vpos nil)
+(defvar math-comp-sel-cpos nil)
+(defvar math-compose-hash-args nil)
+
 ;;; The following was made a function so that it could be byte-compiled.
 (defun calc-init-extensions ()
-
-  (setq gc-cons-threshold (max gc-cons-threshold 250000))
 
   (define-key calc-mode-map ":" 'calc-fdiv)
   (define-key calc-mode-map "\\" 'calc-idiv)
@@ -1129,10 +1146,7 @@ calc-unpack calc-unpack-bits calc-vector-find calc-vlength)
 
  ("calc-yank" calc-copy-as-kill calc-copy-region-as-kill
 calc-copy-to-buffer calc-edit calc-edit-cancel calc-edit-mode
-calc-kill calc-kill-region calc-yank)
-
-))
-)
+calc-kill calc-kill-region calc-yank))))
 
 (defun calc-init-prefixes ()
   (if calc-shift-prefix
@@ -1220,7 +1234,7 @@ calc-kill calc-kill-region calc-yank)
   (define-key calc-help-map "?" 'calc-help-for-help)
   (define-key calc-help-map "\C-h" 'calc-help-for-help))
 
-
+(defvar calc-prefix-help-phase 0)
 (defun calc-do-prefix-help (msgs group key)
   (if calc-full-help-flag
       (list msgs group key)
@@ -1249,10 +1263,6 @@ calc-kill calc-kill-region calc-yank)
 	    (message "%s: (none)  %c-" group (car msgs) key))
 	(message "%s: %s" group (car msgs))))
     (and key (calc-unread-command key))))
-(defvar calc-prefix-help-phase 0)
-
-
-
 
 ;;;; Commands.
 
@@ -1327,13 +1337,13 @@ calc-kill calc-kill-region calc-yank)
   (interactive "NPrecision: ")
   (calc-wrapper
    (if (< (prefix-numeric-value n) 3)
-       (error "Precision must be at least 3 digits.")
+       (error "Precision must be at least 3 digits")
      (calc-change-mode 'calc-internal-prec (prefix-numeric-value n)
 		       (and (memq (car calc-float-format) '(float sci eng))
 			    (< (nth 1 calc-float-format)
 				(if (= calc-number-radix 10) 0 1))))
      (calc-record calc-internal-prec "prec"))
-   (message "Floating-point precision is %d digits." calc-internal-prec)))
+   (message "Floating-point precision is %d digits" calc-internal-prec)))
 
 
 (defun calc-inverse (&optional n)
@@ -1359,6 +1369,7 @@ calc-kill calc-kill-region calc-yank)
     map)
   "Keymap used while processing calc-fancy-prefix.")
 
+(defvar calc-is-keypad-press nil)
 (defun calc-fancy-prefix (flag msg n)
   (let (prefix)
     (calc-wrapper
@@ -1384,7 +1395,6 @@ calc-kill calc-kill-region calc-yank)
 		       (eq last-command-char ?-))
 		   (calc-unread-command)
 		 (digit-argument n))))))))
-(setq calc-is-keypad-press nil)
 
 (defun calc-fancy-prefix-other-key (arg)
   (interactive "P")
@@ -1497,6 +1507,8 @@ calc-kill calc-kill-region calc-yank)
 			    (mapcar (function (lambda (x) (nth 2 x)))
 				    entries)))))))
 
+(defvar calc-refreshing-evaltos nil)
+(defvar calc-no-refresh-evaltos nil)
 (defun calc-refresh-evaltos (&optional which-var)
   (and calc-any-evaltos calc-auto-recompute (not calc-no-refresh-evaltos)
        (let ((calc-refreshing-evaltos t)
@@ -1519,8 +1531,6 @@ calc-kill calc-kill-region calc-yank)
 	   (setq num (1- num)))))
   (and calc-embedded-active which-var
        (calc-embedded-var-change which-var)))
-(setq calc-refreshing-evaltos nil)
-(setq calc-no-refresh-evaltos nil)
 
 
 (defun calc-push (&rest vals)
@@ -1589,12 +1599,7 @@ calc-kill calc-kill-region calc-yank)
        (if (get-buffer-window (current-buffer))
 	   (set-window-hscroll (get-buffer-window (current-buffer)) 0))))))
 
-
-
-(setq math-cache-list nil)
-
-
-
+(defvar math-cache-list nil)
 
 (defun calc-var-value (v)
   (and (symbolp v)
@@ -1608,10 +1613,6 @@ calc-kill calc-kill-region calc-yank)
 		   (error "Bad format in variable contents: %s" (nth 2 val))
 		 (set v val)))
 	   (symbol-value v)))))
-
-
-
-
 
 ;;; In the following table, ( OP LOPS ROPS ) means that if an OP
 ;;; term appears as the first argument to any LOPS term, or as the
@@ -1713,7 +1714,7 @@ calc-kill calc-kill-region calc-yank)
   (calc-Need-calc-vec)
   (calc-Need-calc-yank)
 
-  (message "All parts of Calc are now loaded."))
+  (message "All parts of Calc are now loaded"))
 
 
 ;;; Vector commands.
@@ -1940,8 +1941,7 @@ calc-kill calc-kill-region calc-yank)
 (defun math-quarter-circle (symb)
   (math-div (math-half-circle symb) 2))
 
-
-
+(defvar math-expand-formulas nil)
 
 ;;;; Miscellaneous math routines.
 
@@ -2144,6 +2144,7 @@ calc-kill calc-kill-region calc-yank)
       (+ (car a) (* (math-fixnum-big (cdr a)) 1000))
     (car a)))
 
+(defvar math-simplify-only nil)
 
 (defun math-normalize-fancy (a)
   (cond ((eq (car a) 'frac)
@@ -2233,7 +2234,6 @@ calc-kill calc-kill-region calc-yank)
 
 
 
-(setq math-expand-formulas nil)
 
 
 ;;; Normalize a bignum digit list by trimming high-end zeros.  [L l]
@@ -2487,17 +2487,9 @@ calc-kill calc-kill-region calc-yank)
 			      (list func (calc-top-n (- n)))
 			      (- n))))))
 
-
-
 (defvar var-Holidays '(vec (var sat var-sat) (var sun var-sun)))
-
-
-
 (defvar var-Decls (list 'vec))
 
-
-
-(setq math-simplify-only nil)
 
 (defun math-inexact-result ()
   (and calc-symbolic-mode
@@ -2510,8 +2502,6 @@ calc-kill calc-kill-region calc-yank)
 
 (defun math-underflow ()
   (signal 'math-underflow nil))
-
-
 
 ;;; Compute the greatest common divisor of A and B.   [I I I] [Public]
 (defun math-gcd (a b)
@@ -2599,10 +2589,6 @@ calc-kill calc-kill-region calc-yank)
 	    (cons (car x) (mapcar 'math-evaluate-expr-rec (cdr x))))))
     x))
 
-(setq math-simplifying nil)
-(setq math-living-dangerously nil)   ; true if unsafe simplifications are okay.
-(setq math-integrating nil)
-
 (defmacro math-defsimplify (funcs &rest code)
   (append '(progn (math-need-std-simps))
 	  (mapcar (function
@@ -2649,8 +2635,6 @@ calc-kill calc-kill-region calc-yank)
 		(setq mmt-done t)
 	      (setq mmt-expr mmt-nextval))))))
   mmt-expr)
-
-(setq math-rewrite-selections nil)
 
 (defun math-is-true (expr)
   (if (Math-numberp expr)
@@ -2700,11 +2684,11 @@ calc-kill calc-kill-region calc-yank)
 
 (defvar var-FitRules 'calc-FitRules)
 
-(setq math-poly-base-variable nil)
-(setq math-poly-neg-powers nil)
-(setq math-poly-mult-powers 1)
-(setq math-poly-frac-powers nil)
-(setq math-poly-exp-base nil)
+(defvar math-poly-base-variable nil)
+(defvar math-poly-neg-powers nil)
+(defvar math-poly-mult-powers 1)
+(defvar math-poly-frac-powers nil)
+(defvar math-poly-exp-base nil)
 
 (defun math-build-var-name (name)
   (if (stringp name)
@@ -2713,14 +2697,8 @@ calc-kill calc-kill-region calc-yank)
       (list 'var (intern (substring (symbol-name name) 4)) name)
     (list 'var name (intern (concat "var-" (symbol-name name))))))
 
-(setq math-simplifying-units nil)
-(setq math-combining-units t)
-
-
-(put 'math-while 'lisp-indent-hook 1)
-(put 'math-for 'lisp-indent-hook 1)
-(put 'math-foreach 'lisp-indent-hook 1)
-
+(defvar math-simplifying-units nil)
+(defvar math-combining-units t)
 
 ;;; Nontrivial number parsing.
 
@@ -3013,9 +2991,10 @@ calc-kill calc-kill-region calc-yank)
 		  (not (cdr lines)))
 	     matrix))))
 
-
-
 ;;; Nontrivial "flat" formatting.
+
+(defvar math-format-hash-args nil)
+(defvar calc-can-abbrev-vectors nil)
 
 (defun math-format-flat-expr-fancy (a prec)
   (cond
@@ -3094,7 +3073,6 @@ calc-kill calc-kill-region calc-yank)
 		     "("
 		     (math-format-flat-vector (cdr a) ", " 0)
 		     ")")))))))
-(setq math-format-hash-args nil)
 
 (defun math-format-flat-vector (vec sep prec)
   (if vec
@@ -3103,7 +3081,6 @@ calc-kill calc-kill-region calc-yank)
 	  (setq buf (concat buf sep (math-format-flat-expr (car vec) prec))))
 	buf)
     ""))
-(setq calc-can-abbrev-vectors nil)
 
 (defun math-format-nice-expr (x w)
   (cond ((and (eq (car-safe x) 'vec)
@@ -3135,7 +3112,6 @@ calc-kill calc-kill-region calc-yank)
   (while (and a (not (eq v (nth 1 (car a)))))
     (setq a (cdr a)))
   (car a))
-
 
 (defun math-format-number-fancy (a prec)
   (cond
@@ -3290,15 +3266,6 @@ calc-kill calc-kill-region calc-yank)
 			calc-group-char
 			(substring str i))))
     str))
-
-(setq math-compose-level 0)
-(setq math-comp-selected nil)
-(setq math-comp-tagged nil)
-(setq math-comp-sel-hpos nil)
-(setq math-comp-sel-vpos nil)
-(setq math-comp-sel-cpos nil)
-(setq math-compose-hash-args nil)
-
 
 ;;; Users can redefine this in their .emacs files.
 (defvar calc-keypad-user-menu nil

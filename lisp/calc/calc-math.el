@@ -1,6 +1,9 @@
-;; Calculator for GNU Emacs, part II [calc-math.el]
+;;; calc-math.el --- mathematical functions for Calc
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
-;; Written by Dave Gillespie, daveg@synaptics.com.
+
+;; Author: David Gillespie <daveg@synaptics.com>
+;; Maintainer: Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
+;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
 (require 'calc-ext)
@@ -236,7 +241,7 @@
   (cond ((= arg 1)
 	 (calc-wrapper
 	  (calc-change-mode 'calc-angle-mode 'deg)
-	  (message "Angles measured in degrees.")))
+	  (message "Angles measured in degrees")))
 	((= arg 2) (calc-radians-mode))
 	((= arg 3) (calc-hms-mode))
 	(t (error "Prefix argument out of range"))))
@@ -245,7 +250,7 @@
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-angle-mode 'rad)
-   (message "Angles measured in radians.")))
+   (message "Angles measured in radians")))
 
 
 ;;; Compute the integer square-root floor(sqrt(A)).  A > 0.  [I I] [Public]
@@ -412,7 +417,7 @@
    (progn
      (calc-record-why 'numberp a)
      (list 'calcFunc-sqrt a))))
-(defalias calcFunc-sqrt 'math-sqrt)
+(defalias 'calcFunc-sqrt 'math-sqrt)
 
 (defun math-infinite-dir (a &optional inf)
   (or inf (setq inf (math-infinitep a)))
@@ -532,7 +537,7 @@
 	((eq (car-safe b) 'hms)
 	 (math-to-hms (math-hypot a (math-from-hms b 'deg))))
 	(t nil)))
-(defalias calcFunc-hypot 'math-hypot)
+(defalias 'calcFunc-hypot 'math-hypot)
 
 (defun calcFunc-sqr (x)
   (math-pow x 2))
@@ -1324,13 +1329,13 @@
     (cons (equal pow x) sum)))
 
 
+(defvar math-log-base-cache nil)
 (defun math-log-base-raw (b)   ; [N N]
   (if (not (and (equal (car math-log-base-cache) b)
 		(eq (nth 1 math-log-base-cache) calc-internal-prec)))
       (setq math-log-base-cache (list b calc-internal-prec
 				      (math-ln-raw (math-float b)))))
   (nth 2 math-log-base-cache))
-(setq math-log-base-cache nil)
 
 (defun calcFunc-lnp1 (x)   ; [N N] [Public]
   (cond ((Math-equal-int x -1)
