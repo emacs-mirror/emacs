@@ -124,6 +124,41 @@ record_first_change ()
   current_buffer->undo_list = Fcons (Fcons (Qt, Fcons (high, low)), current_buffer->undo_list);
 }
 
+/* Record a change in property PROP (whose old value was VAL)
+   for LENGTH characters starting at position BEG in BUFFER.  */
+
+record_property_change (beg, length, prop, value, buffer)
+     int beg, length;
+     Lisp_Object prop, value, buffer;
+{
+  Lisp_Object lbeg, lend, entry;
+  struct buffer *obuf = current_buffer;
+  int boundary = 0;
+
+  if (!EQ (buffer, last_undo_buffer))
+    boundary = 1;
+  last_undo_buffer = buffer;
+
+  if (EQ (current_buffer->undo_list, Qt))
+    return;
+
+  /* Switch temporarily to the buffer that was changed.  */
+  current_buffer = XBUFFER (buffer);
+
+  if (boundary)
+    Fundo_boundary ();
+
+  if (MODIFF <= current_buffer->save_modified)
+    record_first_change ();
+
+  XSET (lbeg, Lisp_Int, beg);
+  XSET (lend, Lisp_Int, beg + length);
+  entry = Fcons (Qnil, Fcons (prop, Fcons (value, Fcons (lbeg, lend))));
+  current_buffer->undo_list = Fcons (entry, current_buffer->undo_list);
+
+  current_buffer = obuf;
+}
+
 DEFUN ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
   "Mark a boundary between units of undo.\n\
 An undo command will stop at this point,\n\
@@ -298,6 +333,20 @@ Return what remains of the list.")
 		  Funlock_buffer ();
 #endif /* CLASH_DETECTION */
 		  Fset_buffer_modified_p (Qnil);
+		}
+	      if (EQ (car, Qnil))
+		{
+		  /* Element (t prop val beg . end) records property change.  */
+		  Lisp_Object beg, end, prop, val;
+
+		  prop = Fcar (cdr);
+		  cdr = Fcdr (cdr);
+		  val = Fcar (cdr);
+		  cdr = Fcdr (cdr);
+		  beg = Fcar (cdr);
+		  end = Fcdr (cdr);
+
+		  Fput_text_property (beg, end, prop, val, Qnil);
 		}
 	      else if (XTYPE (car) == Lisp_Int && XTYPE (cdr) == Lisp_Int)
 		{
