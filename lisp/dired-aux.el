@@ -649,6 +649,8 @@ and use this command with a prefix argument (the value does not matter)."
       (error
        (setq failure err)))
     (setq elc-file (byte-compile-dest-file filename))
+    (or (file-exists-p elc-file)
+	(setq failure t))
     (if failure
 	(progn
 	  (dired-log "Byte compile error for %s:\n%s\n" filename failure)
