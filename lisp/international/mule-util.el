@@ -336,18 +336,29 @@ Composite characters are broken up into individual components.
 When called from a program, expects two arguments,
 positions (integers or markers) specifying the region."
   (interactive "r")
-  (save-excursion
-    (save-restriction
-      (narrow-to-region start end)
+  (let ((buf (current-buffer))
+	(cmpchar-head (char-to-string leading-code-composition)))
+    (with-temp-buffer
+      (insert-buffer-substring buf start end)
+      (set-buffer-multibyte nil)
       (goto-char (point-min))
-      (let ((cmpchar-head (char-to-string leading-code-composition)))
-	(while (search-forward cmpchar-head nil t)
-	  (let ((ch (preceding-char)))
-	    (if (>= ch min-composite-char)
-		(progn
-		  (delete-char -1)
-		  (insert (decompose-composite-char ch)))
-	      (forward-char 1))))))))
+      (while (search-forward cmpchar-head nil t)
+	(if (looking-at "[\240-\377][\240-\377][\240-\377][\240-\377]+")
+	    (let* ((from (1- (point)))
+		   (to (match-end 0))
+		   (str (string-as-multibyte (buffer-substring from to))))
+	      (if (cmpcharp (string-to-char str))
+		  (progn
+		    (delete-region from to)
+		    (insert (string-as-unibyte (decompose-string str))))
+		(goto-char to)))))
+      (set-buffer-multibyte t)
+      (let ((tempbuf (current-buffer)))
+	(save-excursion
+	  (set-buffer buf)
+	  (goto-char start)
+	  (delete-region start end)
+	  (insert-buffer tempbuf))))))
 
 ;;;###autoload
 (defun decompose-string (string)
