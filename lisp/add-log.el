@@ -265,7 +265,8 @@ Runs `change-log-mode-hook'."
   (set (make-local-variable 'page-delimiter) "^\\<\\|^\f")
   (set (make-local-variable 'version-control) 'never)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
-  (set (make-local-variable 'font-lock-keywords) change-log-font-lock-keywords)
+  (set (make-local-variable 'font-lock-defaults)
+       '(change-log-font-lock-keywords t))
   (run-hooks 'change-log-mode-hook))
 
 (defvar change-log-mode-map nil
