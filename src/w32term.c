@@ -2394,6 +2394,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
     {
       switch (msg.msg.message)
 	{
+#if 0
 	case WM_ERASEBKGND:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 	  if (f)
@@ -2401,6 +2402,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	      win32_clear_rect (f, NULL, &msg.rect);
 	    }
 	  break;
+#endif
 	case WM_PAINT:
 	  {
 	    f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
@@ -2415,12 +2417,15 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		  }
 		else
 		  {
+		    /* WM_ERASEBKGND is only generated (and processed)
+		       in response to WM_PAINT, so emulate that
+		       behaviour here. */
+		    win32_clear_rect (f, NULL, &msg.rect);
 		    dumprectangle (f,
 				   msg.rect.left,
 				   msg.rect.top,
 				   msg.rect.right-msg.rect.left+1,
 				   msg.rect.bottom-msg.rect.top+1);
-		      
 		  }
 	      }
 	  }
