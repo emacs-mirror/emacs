@@ -470,7 +470,7 @@ is visible (and the real data of the buffer is hidden)."
 (put 'tar-mode 'mode-class 'special)
 (put 'tar-subfile-mode 'mode-class 'special)
 
-;;;##autoload
+;;;###autoload
 (defun tar-mode ()
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands. 
