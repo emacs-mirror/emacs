@@ -932,7 +932,9 @@ as an argument limits undo to changes within the current region."
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
     (or (eq (selected-window) (minibuffer-window))
-	(message "Undo!"))
+	(message (if (and transient-mark-mode mark-active) 
+		     "Undo in region!"
+		   "Undo!")))
     (unless (eq last-command 'undo)
       (if (if transient-mark-mode mark-active (and arg (not (numberp arg))))
 	  (undo-start (region-beginning) (region-end))
@@ -979,7 +981,9 @@ Some change-hooks test this variable to do something different.")
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or pending-undo-list
-      (error "No further undo information"))
+      (error (format "No further undo information%s" 
+		     (if (and transient-mark-mode mark-active) 
+			 " for region" ""))))
   (let ((undo-in-progress t))
     (setq pending-undo-list (primitive-undo count pending-undo-list))))
 
