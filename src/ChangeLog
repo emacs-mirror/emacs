@@ -1,5 +1,10 @@
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xmenu.c (Fx_popup_menu): Correct documentation about position.
+	(xmenu_show): Do not call XTranslateCoordinates.  Adjust position
+	if not given by a mouse click to correspond with x-popup-menu
+	documentation.
+
 	* config.in: Regenerate.
 
 	* gtkutil.c: Include signal.h and syssignal.h.
