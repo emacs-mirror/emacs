@@ -1124,7 +1124,11 @@ selected frame."
   (let ((faces (sort (face-list) (function string-lessp)))
 	(face nil)
 	(frame (selected-frame))
-	disp-frame window)
+	disp-frame window
+        (face-name-max-length
+         (car (sort (mapcar (function string-width)
+			    (mapcar (function symbol-name) (face-list)))
+                    (function >)))))
     (with-output-to-temp-buffer "*Faces*"
       (save-excursion
 	(set-buffer standard-output)
@@ -1132,7 +1136,10 @@ selected frame."
 	(while faces
 	  (setq face (car faces))
 	  (setq faces (cdr faces))
-	  (insert (format "%25s " (symbol-name face)))
+	  (insert (format 
+                   (format "%%-%ds "
+                           face-name-max-length)
+                   (symbol-name face)))
 	  (let ((beg (point)))
 	    (insert list-faces-sample-text)
 	    (insert "\n")
