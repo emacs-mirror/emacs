@@ -25,10 +25,11 @@ Boston, MA 02111-1307, USA.  */
   2. Emacs' internal format (emacs-mule) handlers
   3. ISO2022 handlers
   4. Shift-JIS and BIG5 handlers
-  5. End-of-line handlers
-  6. C library functions
-  7. Emacs Lisp library functions
-  8. Post-amble
+  5. CCL handlers
+  6. End-of-line handlers
+  7. C library functions
+  8. Emacs Lisp library functions
+  9. Post-amble
 
 */
 
@@ -277,6 +278,7 @@ Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qno_conversion, Qundecided;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qsafe_charsets;
+Lisp_Object Qvalid_codes;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
@@ -360,7 +362,8 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-iso-8-else",
   "coding-category-big5",
   "coding-category-raw-text",
-  "coding-category-binary"
+  "coding-category-binary",
+  "coding-category-ccl"
 };
 
 /* Table of pointers to coding systems corresponding to each coding
@@ -2451,7 +2454,34 @@ encode_coding_sjis_big5 (coding, source, destination,
 }
 
 
-/*** 5. End-of-line handlers ***/
+/*** 5. CCL handlers ***/
+
+/* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
+   Check if a text is encoded in a coding system of which
+   encoder/decoder are written in CCL program.  If it is, return
+   CODING_CATEGORY_MASK_CCL, else return 0.  */
+
+int
+detect_coding_ccl (src, src_end)
+     unsigned char *src, *src_end;
+{
+  unsigned char *valid;
+
+  /* No coding system is assigned to coding-category-ccl.  */
+  if (!coding_system_table[CODING_CATEGORY_IDX_CCL])
+    return 0;
+
+  valid = coding_system_table[CODING_CATEGORY_IDX_CCL]->spec.ccl.valid_codes;
+  while (src < src_end)
+    {
+      if (! valid[*src]) return 0;
+      src++;
+    }
+  return CODING_CATEGORY_MASK_CCL;
+}
+
+
+/*** 6. End-of-line handlers ***/
 
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".
    This function is called only when `coding->eol_type' is
@@ -2671,7 +2701,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 }
 
 
-/*** 6. C library functions ***/
+/*** 7. C library functions ***/
 
 /* In Emacs Lisp, coding system is represented by a Lisp symbol which
    has a property `coding-system'.  The value of this property is a
@@ -3043,6 +3073,31 @@ setup_coding_system (coding_system, coding)
 	  }
 	else
 	  goto label_invalid_coding_system;
+
+	bzero (coding->spec.ccl.valid_codes, 256);
+	val = Fplist_get (plist, Qvalid_codes);
+	if (CONSP (val))
+	  {
+	    Lisp_Object this;
+
+	    for (this = XCONS (val)->car; CONSP (val); val = XCONS (val)->cdr)
+	      {
+		if (INTEGERP (this)
+		    && XINT (this) >= 0 && XINT (this) < 256)
+		  coding->spec.ccl.valid_codes[XINT (this)] = 1;
+		else if (CONSP (this)
+			 && INTEGERP (XCONS (this)->car)
+			 && INTEGERP (XCONS (this)->cdr))
+		  {
+		    int start = XINT (XCONS (this)->car);
+		    int end = XINT (XCONS (this)->cdr);
+
+		    if (start >= 0 && start <= end && end < 256)
+		      while (start < end)
+			coding->spec.ccl.valid_codes[start++] = 1;
+		  }
+	      }
+	  }
       }
       coding->common_flags |= CODING_REQUIRE_FLUSHING_MASK;
       break;
@@ -3158,6 +3213,12 @@ setup_raw_text_coding_system (coding)
 	as BIG5.  Assigned the coding-system (Lisp symbol)
 	`cn-big5' by default.
 
+   o coding-category-ccl
+
+	The category for a coding system of which encoder/decoder is
+	written in CCL programs.  The default value is nil, i.e., no
+	coding system is assigned.
+
    o coding-category-binary
 
    	The category for a coding system not categorized in any of the
@@ -3264,6 +3325,12 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 		| CODING_CATEGORY_MASK_SJIS
 		| CODING_CATEGORY_MASK_BIG5);
 
+      /* Or, we may have to consider the possibility of CCL.  */
+      if (coding_system_table[CODING_CATEGORY_IDX_CCL]
+	  && (coding_system_table[CODING_CATEGORY_IDX_CCL]
+	      ->spec.ccl.valid_codes)[c])
+	try |= CODING_CATEGORY_MASK_CCL;
+
       mask = 0;
       if (priorities)
 	{
@@ -3277,6 +3344,8 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 		mask = detect_coding_big5 (src, src_end);      
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_EMACS_MULE)
 		mask = detect_coding_emacs_mule (src, src_end);      
+	      else if (priorities[i] & CODING_CATEGORY_MASK_CCL)
+		mask = detect_coding_ccl (src, src_end);
 	      else if (priorities[i] & CODING_CATEGORY_MASK_RAW_TEXT)
 		mask = CODING_CATEGORY_MASK_RAW_TEXT;
 	      else if (priorities[i] & CODING_CATEGORY_MASK_BINARY)
@@ -3293,7 +3362,9 @@ detect_coding_mask (source, src_bytes, priorities, skip)
       if (try & CODING_CATEGORY_MASK_BIG5)
 	mask |= detect_coding_big5 (src, src_end);      
       if (try & CODING_CATEGORY_MASK_EMACS_MULE)
-	mask |= detect_coding_emacs_mule (src, src_end);      
+	mask |= detect_coding_emacs_mule (src, src_end);
+      if (try & CODING_CATEGORY_MASK_CCL)
+	mask |= detect_coding_ccl (src, src_end);
     }
   return (mask | CODING_CATEGORY_MASK_RAW_TEXT | CODING_CATEGORY_MASK_BINARY);
 
@@ -4445,7 +4516,7 @@ code_convert_string (str, coding, encodep, nocopy)
 
 
 #ifdef emacs
-/*** 7. Emacs Lisp library functions ***/
+/*** 8. Emacs Lisp library functions ***/
 
 DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
   "Return t if OBJECT is nil or a coding-system.\n\
@@ -4979,28 +5050,38 @@ which is a list of all the arguments given to this function.")
   return Qnil;
 }
 
-DEFUN ("update-iso-coding-systems", Fupdate_iso_coding_systems,
-       Supdate_iso_coding_systems, 0, 0, 0,
-  "Update internal database for ISO2022 based coding systems.\n\
+DEFUN ("update-coding-systems-internal",  Fupdate_coding_systems_internal,
+       Supdate_coding_systems_internal, 0, 0, 0,
+  "Update internal database for ISO2022 and CCL based coding systems.\n\
 When values of the following coding categories are changed, you must\n\
 call this function:\n\
   coding-category-iso-7, coding-category-iso-7-tight,\n\
   coding-category-iso-8-1, coding-category-iso-8-2,\n\
-  coding-category-iso-7-else, coding-category-iso-8-else")
+  coding-category-iso-7-else, coding-category-iso-8-else,\n\
+  coding-category-ccl")
   ()
 {
   int i;
 
-  for (i = CODING_CATEGORY_IDX_ISO_7; i <= CODING_CATEGORY_IDX_ISO_8_ELSE;
-       i++)
+  for (i = CODING_CATEGORY_IDX_ISO_7; i <= CODING_CATEGORY_IDX_CCL; i++)
     {
-      if (! coding_system_table[i])
-	coding_system_table[i]
-	  = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-      setup_coding_system
-	(XSYMBOL (XVECTOR (Vcoding_category_table)->contents[i])->value,
-	 coding_system_table[i]);
+      Lisp_Object val;
+
+      val = XSYMBOL (XVECTOR (Vcoding_category_table)->contents[i])->value;
+      if (!NILP (val))
+	{
+	  if (! coding_system_table[i])
+	    coding_system_table[i] = ((struct coding_system *)
+				      xmalloc (sizeof (struct coding_system)));
+	  setup_coding_system (val, coding_system_table[i]);
+	}
+      else if (coding_system_table[i])
+	{
+	  xfree (coding_system_table[i]);
+	  coding_system_table[i] = NULL;
+	}
     }
+
   return Qnil;
 }
 
@@ -5035,7 +5116,7 @@ This function is internal use only.")
 #endif /* emacs */
 
 
-/*** 8. Post-amble ***/
+/*** 9. Post-amble ***/
 
 void
 init_coding ()
@@ -5193,7 +5274,7 @@ syms_of_coding ()
 
   Qtranslation_table = intern ("translation-table");
   staticpro (&Qtranslation_table);
-  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (0));
+  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (1));
 
   Qtranslation_table_id = intern ("translation-table-id");
   staticpro (&Qtranslation_table_id);
@@ -5206,6 +5287,9 @@ syms_of_coding ()
 
   Qsafe_charsets = intern ("safe-charsets");
   staticpro (&Qsafe_charsets);
+
+  Qvalid_codes = intern ("valid-codes");
+  staticpro (&Qvalid_codes);
 
   Qemacs_mule = intern ("emacs-mule");
   staticpro (&Qemacs_mule);
@@ -5233,7 +5317,7 @@ syms_of_coding ()
   defsubr (&Sset_keyboard_coding_system_internal);
   defsubr (&Skeyboard_coding_system);
   defsubr (&Sfind_operation_coding_system);
-  defsubr (&Supdate_iso_coding_systems);
+  defsubr (&Supdate_coding_systems_internal);
   defsubr (&Sset_coding_priority_internal);
 
   DEFVAR_LISP ("coding-system-list", &Vcoding_system_list,
