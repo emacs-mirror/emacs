@@ -1,147 +1,40 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(MMdevel_lib.3) $
+ * $HopeName: MMsrc!buffer.c(trunk.12) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
- * This is the interface to allocation buffers.
+ * This is (part of) the implementation of allocation buffers.
  *
- * An allocation buffer is an interface to a pool which provides
- * very fast allocation, and defers the need for synchronization in
- * a multi-threaded environment.
+ * Several macros which also form part of the implementation are
+ * in impl.h.mps.
  *
- * Pools which contain formatted objects must be synchronized so
- * that the pool can know when an object is valid.  Allocation from
- * such pools is done in two stages: reserve and commit.  The client
- * first reserves memory, then initializes it, then commits.
- * Committing the memory declares that it contains a valid formatted
- * object.  Under certain conditions, some pools may cause the
- * commit operation to fail.  (See the documentation for the pool.)
- * Failure to commit indicates that the whole allocation failed and
- * must be restarted.  When a pool with commit failure, the
- * allocation sequence could look something like this:
+ * Several macros forming part of impl.h.mps should be consistent
+ * with the macros and functions in this module.
  *
- * do {
- *   res = BufferReserve(&p, buffer, size);
- *   if(res != ResOK) return res;       // allocation fails, reason res
- *   initialize(p);                     // p now points at valid object
- * } while(!BufferCommit(buffer, p, size));
+ * Declarations for functions defined here are in impl.h.mpm.
  *
- * Pools which do not contain formatted objects can use a one-step
- * allocation as usual.  Effectively any random rubbish counts as a
- * "valid object" to such pools.
+ * Declarations for the relevant structures are in impl.h.mpmst.
  *
- * An allocation buffer is an area of memory which is pre-allocated
- * from a pool, plus a buffer descriptor, which contains, inter
- * alia, four pointers: base, init, alloc, and limit.  Base points
- * to the base address of the area, limit to the last address plus
- * one.  Init points to the first uninitialized address in the
- * buffer, and alloc points to the first unallocated address.
+ * DESIGN
  *
- *    L . - - - - - .
- *      |           |
- *      |   junk    |
- *      |           |       the "busy" state, after Reserve
- *    A |-----------|
- *      |  uninit   |
- *    I |-----------|
- *      |   init    |
- *      |           |
- *    B `-----------'
+ * See design.mps.buffer.
  *
- *    L . - - - - - .
- *      |           |
- *      |   junk    |
- *      |           |       the "ready" state, after Commit
- *  A=I |-----------|
- *      |           |
- *      |           |
- *      |   init    |
- *      |           |
- *    B `-----------'
+ * TRANSGRESSIONS
  *
- * Access to these pointers is restricted in order to allow
- * synchronization between the pool and the client.  The client may
- * only write to init and alloc, but in a restricted and atomic way
- * detailed below.  The pool may read the contents of the buffer
- * descriptor at _any_ time.  During calls to the fill and trip
- * methods, the pool may update any or all of the fields
- * in the buffer descriptor.  The pool may update the limit at _any_
- * time.
- *
- * Only one thread may use a buffer at once, unless the client
- * places a mutual exclusion around the buffer access in the usual
- * way.  In such cases it is usually better to create one buffer for
- * each thread.
- *
- * Here are pseudo-code descriptions of the reserve and commit
- * operations.  These may be implemented in-line by the client.
- * Note that the client is responsible for ensuring that the size
- * (and therefore the alloc and init pointers) are aligned according
- * to the buffer's alignment.
- *
- * Reserve(buf, size)                   ; size must be aligned to pool
- *   if buf->limit - buf->alloc >= size then
- *     buf->alloc +=size                ; must be atomic update
- *     p = buf->init
- *   else
- *     res = BufferFill(&p, buf, size)  ; buf contents may change
- *
- * Commit(buf, p, size)
- *   buf->init = buf->alloc             ; must be atomic update
- *   if buf->limit == 0 then
- *     b = BufferTrip(buf, p, size)     ; buf contents may change
- *
- * The pool must allocate the buffer descriptor and initialize it by
- * calling BufferInit.  The descriptor this creates will fall
- * through to the fill method on the first allocation.  In general,
- * pools should not assign resources to the buffer until the first
- * allocation, since the buffer may never be used.
- *
- * The pool may update the base, init, alloc, and limit fields when
- * the fallback methods are called.  In addition, the pool may set
- * the limit to zero at any time.  The effect of this is either:
- *
- *   1. cause the _next_ allocation in the buffer to fall through to
- *      the buffer fill method, and allow the buffer to be flushed
- *      and relocated;
- *
- *   2. cause the buffer trip method to be called if the client was
- *      between reserve and commit.
- *
- * A buffer may not be relocated under other circumstances because
- * there is a race between updating the descriptor and the client
- * allocation sequence.
+ * .trans.mod: There are several instances where pool structures are
+ * directly accessed by this module (because impl.c.pool does not
+ * provide an adequate (or adequately documented) interface.  They
+ * bear this tag.
  */
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_lib.3) $");
-
-
-Ring BufferPoolRing(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return &buffer->poolRing;
-}
-
-Pool (BufferPool)(Buffer buffer)
-{
-  AVERT(Buffer, buffer);
-  return buffer->pool;
-}
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.11) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
- *
- * The buffer structure is allocated from the space control pool,
- * and initialized with generic valid contents.  If the pool
- * provides a bufferInit method then it is called and may perform
- * additional initialization, otherwise the base, init,
- * alloc, and limit fields are set to zero, so that the fill method
- * will get called the first time a reserve operation is attempted.
- *
- * Iff successful, *bufferReturn is updated with a pointer to the
- * buffer descriptor, and ResOK is returned.
+ * 
+ * design.mps.buffer.method.create
  */
 
 Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
@@ -149,33 +42,39 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   Res res;
   Buffer buffer;
   Space space;
+  Addr a;
 
   AVER(bufferReturn != NULL);
   AVERT(Pool, pool);
-  AVER((pool->class->attr & AttrBUF) != 0);
+  /* The PoolClass should support buffer protocols */
+  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(RankCheck(rank));
   
   space = PoolSpace(pool);
 
   /* Allocate the buffer structure. */  
-  res = SpaceAlloc((Addr *)&buffer, space, sizeof(BufferStruct));
+  res = SpaceAlloc(&a, space, sizeof(BufferStruct));
   if(res != ResOK) return res;
+  buffer = (Buffer)a;
 
-  /* Initialize the generic fields of the buffer. */
-  buffer->base = 0;
-  buffer->pool = pool;
+  /* Initialize the buffer.  See impl.h.mpmst for a definition of the
+   * structure */
+  /* sig and serial comes later .init.sig-serial */
   buffer->space = space;
-  buffer->ap.init = 0;
-  buffer->ap.alloc = 0;
-  buffer->ap.limit = 0;
-  buffer->alignment = pool->alignment;
-  buffer->exposed = FALSE;
+  buffer->pool = pool;
   buffer->seg = NULL;
   buffer->rank = rank;
+  buffer->base = (Addr)0;
+  buffer->ap.init = (Addr)0;
+  buffer->ap.alloc = (Addr)0;
+  buffer->ap.limit = (Addr)0;
+  buffer->alignment = pool->alignment; /* .trans.mod */
+  buffer->exposed = FALSE;
+  RingInit(&buffer->poolRing);
   buffer->shieldMode = AccessSetEMPTY;
   buffer->grey = TraceSetEMPTY;
   buffer->p = NULL;
   buffer->i = 0;
-  RingInit(&buffer->poolRing);
 
   /* Dispatch to the pool class method to perform any extra */
   /* initialization of the buffer. */
@@ -185,9 +84,10 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
     return res;
   }
 
-  /* Now that it's initialized, sign the buffer and check it. */
+  /* .init.sig-serial: Now that it's initialized, sign the buffer,
+   * give it a serial number, and check it. */
   buffer->sig = BufferSig;
-  buffer->serial = pool->bufferSerial;
+  buffer->serial = pool->bufferSerial; /* .trans.mod */
   ++pool->bufferSerial;
   AVERT(Buffer, buffer);
 
@@ -201,17 +101,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
 
 /* BufferDestroy -- destroy an allocation buffer
  *
- * Destroy frees a buffer descriptor.  The buffer must be in the
- * "ready" state, i.e. not between a Reserve and Commit.  Allocation
- * in the area of memory to which the descriptor refers must cease
- * after Destroy is called.
- *
- * Destroying an allocation buffer does not affect objects which have
- * been allocated, it just frees resources associated with the buffer
- * itself.
- *
- * The pool class's bufferDestroy method is called and then the
- * buffer structure is uninitialized and freed.
+ * design.mps.buffer.method.destroy
  */
 
 void BufferDestroy(Buffer buffer)
@@ -225,7 +115,8 @@ void BufferDestroy(Buffer buffer)
   space = buffer->space;
   pool = buffer->pool;
 
-  AVER((pool->class->attr & AttrBUF) != 0);
+  /* The PoolClass should support buffer protocols */
+  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
   AVER(BufferIsReady(buffer));
   AVER(buffer->exposed == FALSE);
 
@@ -244,15 +135,24 @@ void BufferDestroy(Buffer buffer)
   SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
 }
 
+/* BufferCheck
+ *
+ * See design.mps.buffer.method.check for design.
+ * See impl.h.mpmst for structure definition.
+ */
 
 Bool BufferCheck(Buffer buffer)
 {
   CHECKS(Buffer, buffer);
-  CHECKU(Pool, buffer->pool);
-  CHECKL(buffer->serial < buffer->pool->bufferSerial);
+  CHECKL(buffer->serial < buffer->pool->bufferSerial); /* .trans.mod */
   CHECKU(Space, buffer->space);
-  CHECKL(RingCheck(&buffer->poolRing));
-  CHECKL(TraceSetCheck(buffer->grey));
+  CHECKU(Pool, buffer->pool);
+  /* seg and rank checked in anomalous order */
+  CHECKL(RankCheck(buffer->rank));	/* design.mps.check.type.no-sig */
+  if(buffer->seg != NULL) {
+    CHECKL(SegCheck(buffer->seg));	/* design.mps.check.type.no-sig */
+    CHECKL(buffer->rank == buffer->seg->rank);
+  }
   CHECKL(buffer->base <= buffer->ap.init);
   CHECKL(buffer->ap.init <= buffer->ap.alloc);
   CHECKL(buffer->ap.alloc <= buffer->ap.limit || buffer->ap.limit == 0);
@@ -262,10 +162,12 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(AddrIsAligned(buffer->ap.init, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->ap.alloc, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->ap.limit, buffer->alignment));
-  if(buffer->seg != NULL) {
-    CHECKL(SegCheck(buffer->seg));
-    CHECKL(buffer->rank == buffer->seg->rank);
-  }
+  /* .improve.bool-check: */
+  CHECKL(buffer->exposed == TRUE || buffer->exposed == FALSE);
+  CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
+  /* .improve.accessset: There is no AccessSetCheck */
+  CHECKL(TraceSetCheck(buffer->grey));	/* design.mps.check.type.no-sig */
+  /* buffer->p, and buffer->i are arbitrary and cannot be checked */
   return TRUE;
 }
 
@@ -276,17 +178,16 @@ Bool BufferCheck(Buffer buffer)
  * the buffer is ready to start allocating in area of memory.  The
  * alloc field is a copy of the init field.
  *
- * Reset sets the buffer base, init, alloc, and limit fields to
+ * Reset sets the seg, base, init, alloc, and limit fields to
  * zero, so that the next reserve request will call the fill
  * method.
- *
- * BufferIsReset returns TRUE iff the buffer is in the reset state,
- * i.e.  with base, init, alloc, and limit set to zero.
  */
 
 void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit)
 {
   AVERT(Buffer, buffer);
+  AVER(SegCheck(seg));
+  /* No check for base, init, limit */
 
   buffer->seg = seg;
   buffer->base = base;
@@ -300,19 +201,17 @@ void BufferReset(Buffer buffer)
   AVERT(Buffer, buffer);
 
   buffer->seg = NULL;
-  buffer->base = 0;
-  buffer->ap.init = 0;
-  buffer->ap.alloc = 0;
-  buffer->ap.limit = 0;
+  buffer->base = (Addr)0;
+  buffer->ap.init = (Addr)0;
+  buffer->ap.alloc = (Addr)0;
+  buffer->ap.limit = (Addr)0;
 }
 
 
 /* Buffer Information
  *
- * BufferPoolRing is a convenience function for accessing the ring
- * node which attaches a buffer descriptor to a pool.
- *
- * BufferPool returns the pool to which a buffer is attached.
+ * BufferIsReset returns TRUE if and only if the buffer is in the
+ * reset state, i.e.  with base, init, alloc, and limit set to zero.
  *
  * BufferIsReady returns TRUE iff the buffer is not between a
  * reserve and commit.  The result is only reliable if the client is
@@ -326,21 +225,23 @@ void BufferReset(Buffer buffer)
  *
  * BufferSpace is a thread-safe (impl.c.mpsi.thread-safety) method of
  * getting the space which owns a buffer.
+ *
+ * BufferPool returns the pool to which a buffer is attached.
  */
 
 Bool BufferIsReset(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  if(buffer->base == 0 &&
-     buffer->ap.init == 0 &&
-     buffer->ap.alloc == 0 &&
-     buffer->ap.limit == 0)
+  if(buffer->seg == NULL &&
+     buffer->base == (Addr)0 &&
+     buffer->ap.init == (Addr)0 &&
+     buffer->ap.alloc == (Addr)0 &&
+     buffer->ap.limit == (Addr)0)
     return TRUE;
 
   return FALSE;
 }
-
 
 Bool BufferIsReady(Buffer buffer)
 {
@@ -358,35 +259,32 @@ AP BufferAP(Buffer buffer)
   return &buffer->ap;
 }
 
-/* This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
+/* design.mps.buffer.method.ofap
+ * This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Buffer BufferOfAP(AP ap)
 {
+  /* .design.mps.misc.parent.thread-safe */
   return PARENT(BufferStruct, ap, ap);
 }
 
-/* This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
+/* design.mps.buffer.method.space
+ * This method must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Space BufferSpace(Buffer buffer)
 {
   return buffer->space;
 }
 
+Pool (BufferPool)(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+  return buffer->pool;
+}
+
 
 /* BufferReserve -- reserve memory from an allocation buffer
- *
- * This is a provided version of the reserve procedure described
- * above.  The size must be aligned according to the buffer
- * alignment.  Iff successful, ResOK is returned and
- * *pReturn updated with a pointer to the reserved memory.
- * Otherwise *pReturn it not touched.  The reserved memory is not
- * guaranteed to have any particular contents.  The memory must be
- * initialized with a valid object (according to the pool to which
- * the buffer belongs) and then passed to the Commit method (see
- * below).  Reserve may not be applied twice to a buffer without a
- * commit in-between.  In other words, Reserve/Commit pairs do not
- * nest.
  */
 
-Res BufferReserve(Addr *pReturn, Buffer buffer, Word size)
+Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
 {
   Addr next;
 
@@ -416,13 +314,9 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Word size)
 
 
 /* BufferFill -- refill an empty buffer
- *
- * If there is not enough space in a buffer to allocate in-line,
- * BufferFill must be called to "refill" the buffer.  (See the
- * description of the in-line Reserve method in the leader comment.)
  */
 
-Res BufferFill(Addr *pReturn, Buffer buffer, Word size)
+Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 {
   Res res;
   Pool pool;
@@ -443,36 +337,23 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Word size)
 
 
 /* BufferCommit -- commit memory previously reserved
- *
- * Commit notifies the pool that memory which has been previously
- * reserved (see above) has been initialized with a valid object
- * (according to the pool to which the buffer belongs).  The pointer
- * p must be the same as that returned by Reserve, and the size must
- * match the size passed to Reserve.
- *
- * Commit may not be applied twice to a buffer without a reserve
- * in-between.  In other words, objects must be reserved,
- * initialized, then committed only once.
- *
- * Commit returns TRUE iff successful.  If commit fails and returns
- * FALSE, the client may try to allocate again by going back to the
- * reserve stage, and may not use the memory at p again for any
- * purpose.
- *
- * Some classes of pool may cause commit to fail under rare
- * circumstances.
  */
 
-Bool BufferCommit(Buffer buffer, Addr p, Word size)
+Bool BufferCommit(Buffer buffer, Addr p, Size size)
 {
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
+  /* Buffer is "busy" */
+  AVER(!BufferIsReady(buffer));
 
-  /* If a flip occurs before this point, the pool will see init */
-  /* below the object, so it will be trashed and the commit */
-  /* must fail when trip is called.  The pool will also see */
-  /* a pointer p which points to the invalid object at init. */
+  /* See design.mps.collection.flip.
+   * If a flip occurs before this point, when the pool reads
+   * buffer->init it will point below the object, so it will be trashed
+   * and the commit must fail when trip is called.  The pool will also
+   * read p (during the call to trip) which points to the invalid
+   * object at init.
+   */
 
   AVER(p == buffer->ap.init);
   AVER(AddrAdd(buffer->ap.init, size) == buffer->ap.alloc);
@@ -482,14 +363,15 @@ Bool BufferCommit(Buffer buffer, Addr p, Word size)
 
   buffer->ap.init = buffer->ap.alloc;
 
-  /* **** Memory barrier here on the DEC Alpha. */
+  /* .improve.memory-barrier: Memory barrier here on the DEC Alpha
+   * (and other relaxed memory order architectures). */
 
   /* If a flip occurs at this point, the pool will see init */
-  /* above the object, which is valid, so it will be collected */
-  /* the commit must succeed when trip is called.  The pointer */
+  /* above the object, which is valid, so it will be collected. */
+  /* The commit must succeed when trip is called.  The pointer */
   /* p will have been fixed up. */
 
-  /* trip the buffer if a flip has occurred. */
+  /* Trip the buffer if a flip has occurred. */
 
   if(buffer->ap.limit == 0)
     return BufferTrip(buffer, p, size);
@@ -501,31 +383,26 @@ Bool BufferCommit(Buffer buffer, Addr p, Word size)
 
 
 /* BufferTrip -- act on a tripped buffer
- *
- * The pool which owns a buffer may asyncronously set the buffer limit
- * to zero in order to get control over the buffer.  If this occurs
- * after a Reserve, then the Commit method calls BufferTrip.  (See
- * the description of the in-line Commit in the leader comment.)
  */
 
-Bool BufferTrip(Buffer buffer, Addr p, Word size)
+Bool BufferTrip(Buffer buffer, Addr p, Size size)
 {
   Pool pool;
 
   AVERT(Buffer, buffer);
+  AVER(p == buffer->ap.init);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
+  AVER(SizeIsAligned(size, buffer->alignment));
+  AVER(AddrAdd(buffer->ap.init, size) == buffer->ap.alloc);
 
   pool = BufferPool(buffer);
   return (*pool->class->bufferTrip)(pool, buffer, p, size);
 }
 
 
-/* BufferShieldExpose/Cover -- buffer shield control
+/* BufferExpose/Cover -- buffer shield control
  *
- * BufferExpose guarantees that buffered memory is exposed between a
- * reserve and commit operation.  BufferCover guarantees that
- * buffered memory is covered.
+ * See design.mps.buffer.method.expose.cover
  */
 
 void BufferExpose(Buffer buffer)
@@ -551,24 +428,30 @@ void BufferCover(Buffer buffer)
 }
 
 
+/* See impl.h.mpmst for structure definitions */
 Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
+  int res;
+
   AVERT(Buffer, buffer);
   AVER(stream != NULL);
 
-  WriteF(stream,
+  res = WriteF(stream,
          "Buffer $P ($U) {\n", (void *)buffer, (unsigned long)buffer->serial,
-         "  base $A  init $A  alloc $A  limit $A\n",
-         buffer->base, buffer->ap.init, buffer->ap.alloc, buffer->ap.limit,
+	 "  Space $P\n",       (void *)buffer->space,
          "  Pool $P\n",        (void *)buffer->pool,
          "  Seg $P\n",         (void *)buffer->seg,
          "  rank $U\n",        (unsigned long)buffer->rank,
+         "  base $A  init $A  alloc $A  limit $A\n",
+         buffer->base, buffer->ap.init, buffer->ap.alloc, buffer->ap.limit,
          "  alignment $W\n",   (Word)buffer->alignment,
+	 "  exposed $U\n",     (unsigned long)buffer->exposed,
+	 /* poolRing is uninteresting */
          "  grey $B\n",        (unsigned long)buffer->grey,
          "  shieldMode $B\n",  (unsigned long)buffer->shieldMode,
          "  p $P  i $U\n",     buffer->p, (unsigned long)buffer->i,
          "} Buffer $P ($U)\n", (void *)buffer, (unsigned long)buffer->serial,
          NULL);
 
-  return ResOK;
+  return res;
 }

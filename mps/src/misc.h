@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(MMdevel_restr.2) $
+ * $HopeName: MMsrc!misc.h(trunk.4) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * Small general things which are useful for C but aren't part of the
@@ -96,6 +96,8 @@ enum
  *
  * Given a pointer to a field of a structure this returns a pointer to
  * the main structure.  PARENT(foo_t, x, foo->x) == foo.
+ *
+ * This macro is thread-safe.  design.mps.misc.parent.thread-safe
  */
 
 #define PARENT(type, field, p) \
