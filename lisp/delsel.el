@@ -1,11 +1,10 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
 ;; Created: 14 Jul 92
-;; Last change  18-Feb-93, devin.
 
 ;; This file is part of GNU Emacs.
 
@@ -63,18 +62,9 @@ typed text replaces the selection if the selection is active.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
 	 (delete-selection-mode (or value 0)))
-  :initialize 'custom-initialize-default
   :type 'boolean
   :group 'editing-basics
   :require 'delsel)
-;; Force loading of this file in order to customize delete-selection-mode.
-(put 'delete-selection-mode 'custom-loads '(delsel))
-
-;; This is the standard way mechanism to put the mode into effect
-;; if delete-selection-mode has already been set to t
-;; when this file is loaded.
-(when delete-selection-mode
-  (delete-selection-mode t))
 
 (defun delete-active-region (&optional killp)
   (if killp
