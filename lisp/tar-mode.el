@@ -542,7 +542,7 @@ is visible (and the real data of the buffer is hidden)."
   (define-key tar-mode-map [down] 'tar-next-line)
   (define-key tar-mode-map "o" 'tar-extract-other-window)
   (define-key tar-mode-map "p" 'tar-previous-line)
-  (define-key tar-mode-map "q" 'tar-quit)
+  (define-key tar-mode-map "q" 'quit-window)
   (define-key tar-mode-map "\^P" 'tar-previous-line)
   (define-key tar-mode-map [up] 'tar-previous-line)
   (define-key tar-mode-map "R" 'tar-rename-entry)
@@ -1328,14 +1328,8 @@ Leaves the region wide."
 	(tar-clear-modification-flags)
 	(set-buffer-modified-p nil))
     (narrow-to-region 1 (byte-to-position tar-header-offset)))
-  ;; return T because we've written the file.
+  ;; Return t because we've written the file.
   t)
-
-(defun tar-quit ()
-  "Kill the current tar buffer."
-  (interactive)
-  (kill-buffer nil))
-
 
 (provide 'tar-mode)
 
