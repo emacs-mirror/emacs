@@ -1613,7 +1613,7 @@ function,command,variable,option or symbol." ms1))))))
 		      (not (string-match "-flag$" (car fp))))
 		 (if (checkdoc-y-or-n-p
 		      (format
-		       "Rename to %s and Query-Replace all occurances? "
+		       "Rename to %s and Query-Replace all occurrences? "
 		       (concat (car fp) "-flag")))
 		     (progn
 		       (beginning-of-defun)
