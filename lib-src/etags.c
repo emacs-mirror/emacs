@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` is the current maintainer.	8.3
+ *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.4
  */
 
 #ifdef HAVE_CONFIG_H
@@ -36,6 +36,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#if !defined (S_ISREG) && defined (S_IFREG)
+# define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
+#endif
 
 #include "getopt.h"
 
@@ -784,12 +788,7 @@ process_file (file)
 {
   struct stat stat_buf;
 
-  stat (file, &stat_buf);
-  if (!(stat_buf.st_mode & S_IFREG)
-#ifdef S_IFLNK
-      || !(stat_buf.st_mode & S_IFLNK)
-#endif
-      )
+  if (stat (file, &stat_buf) || !S_ISREG (stat_buf.st_mode))
     {
       fprintf (stderr, "Skipping %s: it is not a regular file.\n", file);
       return;
@@ -800,19 +799,10 @@ process_file (file)
       fprintf (stderr, "Skipping inclusion of %s in self.\n", file);
       return;
     }
-  if (emacs_tags_format)
-    {
-      char *cp = etags_rindex (file, '/');
-      if (cp)
-	++cp;
-      else
-	cp = file;
-    }
   find_entries (file);
   if (emacs_tags_format)
     {
-      fprintf (outf, "\f\n%s,%d\n",
-	       file, total_size_of_entries (head));
+      fprintf (outf, "\f\n%s,%d\n", file, total_size_of_entries (head));
       put_entries (head);
       free_tree (head);
       head = NULL;
