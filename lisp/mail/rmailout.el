@@ -40,8 +40,8 @@ a file name as a string."
 			       sexp)))
   :group 'rmail-output)
 
-;;; There are functions elsewhere in Emacs that use this function; check
-;;; them out before you change the calling method.
+;;; There are functions elsewhere in Emacs that use this function;
+;;; look at them before you change the calling method.
 ;;;###autoload
 (defun rmail-output-to-rmail-file (file-name &optional count)
   "Append the current message to an Rmail file named FILE-NAME.
@@ -206,8 +206,8 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		(delete-region (point)
 			       (progn (forward-line 1) (point)))))))))
 
-;;; There are functions elsewhere in Emacs that use this function; check
-;;; them out before you change the calling method.
+;;; There are functions elsewhere in Emacs that use this function;
+;;; look at them before you change the calling method.
 ;;;###autoload
 (defun rmail-output (file-name &optional count noattribute from-gnus)
   "Append this message to system-inbox-format mail file named FILE-NAME.
@@ -274,18 +274,22 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		    (forward-line 1)
 		    (= (following-char) ?0)))))
 	  header-beginning
-	  mail-from)
+	  mail-from mime-version)
       (while (> count 0)
+	;; Preserve the Mail-From and MIME-Version fields
+	;; even if they have been pruned.
 	(or from-gnus
-	    (setq mail-from
-		  (save-excursion
-		    (save-restriction
-		      (widen)
-		      (goto-char (rmail-msgbeg rmail-current-message))
-		      (setq header-beginning (point))
-		      (search-forward "\n*** EOOH ***\n")
-		      (narrow-to-region header-beginning (point))
-		      (mail-fetch-field "Mail-From")))))
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char (rmail-msgbeg rmail-current-message))
+		(setq header-beginning (point))
+		(search-forward "\n*** EOOH ***\n")
+		(narrow-to-region header-beginning (point))
+		(setq mail-from
+		      (mail-fetch-field "Mail-From")
+		      mime-version
+		      (mail-fetch-field "MIME-Version")))))
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
@@ -301,6 +305,8 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 						 (mail-fetch-field "sender")
 						 "unknown"))
 		    " " (current-time-string) "\n"))
+	  (if mime-version
+	      (insert "MIME-Version: " mime-version "\n"))
 	  ;; ``Quote'' "\nFrom " as "\n>From "
 	  ;;  (note that this isn't really quoting, as there is no requirement
 	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
