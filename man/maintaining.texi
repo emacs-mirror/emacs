@@ -851,7 +851,7 @@ It's not unusual for programmers to get their signals crossed and modify
 the same program in two different directions.  To recover from this
 confusion, you need to merge the two versions.  Emerge makes this
 easier.  See also @ref{Comparing Files}, for commands to compare
-in a more manual fashion, and @ref{,Ediff,, ediff, The Ediff Manual}.
+in a more manual fashion, and @ref{Top, Ediff,, ediff, The Ediff Manual}.
 
 @menu
 * Overview of Emerge::	How to start Emerge.  Basic concepts.
