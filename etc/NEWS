@@ -1155,20 +1155,12 @@ protocols.  It has a separate manual.
 
 *** autoconf.el provides a major mode for editing configure.in files
 for Autoconf, selected automatically.
-<<<<<<< NEWS
-
-*** windmove.el
-=======
 
 *** windmove.el provides moving between windows.
->>>>>>> 1.127
 
-<<<<<<< NEWS
-=======
 *** crm.el provides a facility to read multiple strings from the 
 minibuffer with completion.
 
->>>>>>> 1.127
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
