@@ -2,7 +2,7 @@
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!locknt.c(trunk.5) $
+ *  $HopeName: MMsrc!locknt.c(MMdevel_restr.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -24,9 +24,7 @@
  *  while we are inside the critical section.
  */
 
-#include "std.h"
-#include "lock.h"
-#include "lockst.h"
+#include "mpm.h"
 
 #ifndef MPS_OS_W3
 #error "locknt.c is specific to Win32 but MPS_OS_W3 not defined"
@@ -34,30 +32,26 @@
 
 #include <windows.h>
 
-SRCID("$HopeName: MMsrc!locknt.c(trunk.5) $");
+SRCID(locknt, "$HopeName: MMsrc!locknt.c(MMdevel_restr.2) $");
 
-#ifdef DEBUG
-
-Bool LockIsValid(Lock lock, ValidationType validParam)
+Bool LockCheck(Lock lock)
 {
-  AVER(lock->sig == LockSig);
+  CHECKS(Lock, lock);
   return TRUE;
-}  
-
-#endif
+}
 
 void LockInit(Lock lock)
 {
   AVER(lock != NULL);
-  lock->claims = 0; 
+  lock->claims = 0;
   InitializeCriticalSection(&lock->cs);
   lock->sig = LockSig;
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
 }
 
 void LockFinish(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   /* Lock should not be finished while held */
   AVER(lock->claims == 0);
   DeleteCriticalSection(&lock->cs);
@@ -66,17 +60,17 @@ void LockFinish(Lock lock)
 
 void LockClaim(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   EnterCriticalSection(&lock->cs);
   /* This should be the first claim.  Now we are inside the
    * critical section it is ok to check this. */
   AVER(lock->claims == 0);
-  lock->claims = 1;        
+  lock->claims = 1;
 }
 
 void LockRelease(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   AVER(lock->claims == 1);  /* The lock should only be held once */
   lock->claims = 0;  /* Must set this before leaving CS */
   LeaveCriticalSection(&lock->cs);
@@ -84,7 +78,7 @@ void LockRelease(Lock lock)
 
 void LockClaimRecursive(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   EnterCriticalSection(&lock->cs);
   ++lock->claims;
   AVER(lock->claims > 0);
@@ -92,7 +86,7 @@ void LockClaimRecursive(Lock lock)
 
 void LockReleaseRecursive(Lock lock)
 {
-  AVER(ISVALID(Lock, lock));
+  AVERT(Lock, lock);
   AVER(lock->claims > 0);
   --lock->claims;
   LeaveCriticalSection(&lock->cs);

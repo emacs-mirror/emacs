@@ -2,52 +2,44 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.12) $
+ *  $HopeName: MMsrc!root.c(MMdevel_restr.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  *  This is the implementation of roots.
  */
 
-#include "std.h"
-#include "lib.h"
-#include "deque.h"
-#include "root.h"
-#include "rootst.h"
-#include "pool.h"
-#include "mpmconf.h"
-#include "ref.h"
-#include "trace.h"
-#include "space.h"
+#include "mpm.h"
 
-SRCID("$HopeName: MMsrc!root.c(trunk.12) $");
+SRCID(root, "$HopeName: MMsrc!root.c(MMdevel_restr.3) $");
 
-Bool RootIsValid(Root root, ValidationType validParam)
+Bool RootCheck(Root root)
 {
-  AVER(root != NULL);
-  AVER(root->sig == RootSig);
-  AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
-  AVER(ISVALIDNESTED(RefRank, root->rank));
-  switch(root->type)
+  CHECKS(Root, root);
+  CHECKU(Space, root->space);
+  CHECKL(root->serial < root->space->rootSerial);
+  CHECKL(RingCheck(&root->spaceRing));
+  CHECKL(RankCheck(root->rank));
+  switch(root->var)
   {
     case RootTABLE:
-    AVER(root->the.table.base != 0);
-    AVER(root->the.table.base < root->the.table.limit);
+    CHECKL(root->the.table.base != 0);
+    CHECKL(root->the.table.base < root->the.table.limit);
     break;
-    
+
     case RootFUN:
-    AVER(root->the.fun.scan != NULL);
+    CHECKL(root->the.fun.scan != NULL);
     break;
 
     case RootREG:
-    AVER(root->the.reg.scan != NULL);
-    AVER(ISVALIDNESTED(Thread, root->the.reg.thread));
+    CHECKL(root->the.reg.scan != NULL);
+    CHECKD(Thread, root->the.reg.thread);
     break;
 
     case RootFMT:
-    AVER(root->the.fmt.scan != NULL);
-    AVER(root->the.fmt.base != 0);
-    AVER(root->the.fmt.base < root->the.fmt.limit);
+    CHECKL(root->the.fmt.scan != NULL);
+    CHECKL(root->the.fmt.base != 0);
+    CHECKL(root->the.fmt.base < root->the.fmt.limit);
     break;
 
     default:
@@ -56,60 +48,63 @@ Bool RootIsValid(Root root, ValidationType validParam)
   return TRUE;
 }
 
-static Error create(Root *rootReturn, Space space,
-                    RefRank rank, RootType type, RootUnion theUnion)
+static Res create(Root *rootReturn, Space space,
+                  Rank rank, RootVar type,
+                  union RootUnion theUnion)
 {
   Root root;
-  Error e;
+  Res res;
 
   AVER(rootReturn != NULL);
-  AVER(ISVALID(Space, space));
-  AVER(ISVALID(RefRank, rank));
+  AVERT(Space, space);
+  AVERT(Rank, rank);
 
-  e = PoolAlloc((Addr *)&root, SpaceControlPool(space),
-                sizeof(RootStruct));
-  if(e != ErrSUCCESS)
-    return e;
+  res = SpaceAlloc((Addr *)&root, space, sizeof(RootStruct));
+  if(res != ResOK)
+    return res;
 
+  root->space = space;
   root->rank = rank;
-  root->type = type;
+  root->var = type;
   root->the  = theUnion;
-  root->marked = TraceSetEmpty;
+  root->grey = TraceSetEMPTY;
 
-  DequeNodeInit(&root->spaceDeque);
+  RingInit(&root->spaceRing);
 
   root->sig = RootSig;
+  root->serial = space->rootSerial;
+  ++space->rootSerial;
 
-  AVER(ISVALID(Root, root));
+  AVERT(Root, root);
 
-  DequeAppend(SpaceRootDeque(space), &root->spaceDeque);
+  RingAppend(SpaceRootRing(space), &root->spaceRing);
 
   *rootReturn = root;
-  return ErrSUCCESS;
+  return ResOK;
 }
 
-Error RootCreateTable(Root *rootReturn, Space space,
-                      RefRank rank, Addr *base, Addr *limit)
+Res RootCreateTable(Root *rootReturn, Space space,
+                      Rank rank, Addr *base, Addr *limit)
 {
-  RootUnion theUnion;
+  union RootUnion theUnion;
 
   AVER(base != 0);
   AVER(base < limit);
 
   theUnion.table.base = base;
   theUnion.table.limit = limit;
-  
+
   return create(rootReturn, space, rank, RootTABLE, theUnion);
 }
 
-Error RootCreateReg(Root *rootReturn, Space space,
-                    RefRank rank, Thread thread,
+Res RootCreateReg(Root *rootReturn, Space space,
+                    Rank rank, Thread thread,
                     RootScanRegMethod scan, void *p)
 {
-  RootUnion theUnion;
+  union RootUnion theUnion;
 
   AVER(scan != NULL);
-  AVER(ISVALID(Thread, thread));
+  AVERT(Thread, thread);
 
   theUnion.reg.scan = scan;
   theUnion.reg.thread = thread;
@@ -118,11 +113,11 @@ Error RootCreateReg(Root *rootReturn, Space space,
   return create(rootReturn, space, rank, RootREG, theUnion);
 }
 
-Error RootCreateFmt(Root *rootReturn, Space space,
-                    RefRank rank, FormatScanMethod scan,
-                    Addr base, Addr limit)
+Res RootCreateFmt(Root *rootReturn, Space space,
+                  Rank rank, FormatScanMethod scan,
+                  Addr base, Addr limit)
 {
-  RootUnion theUnion;
+  union RootUnion theUnion;
 
   AVER(scan != NULL);
   AVER(base != 0);
@@ -135,13 +130,13 @@ Error RootCreateFmt(Root *rootReturn, Space space,
   return create(rootReturn, space, rank, RootFMT, theUnion);
 }
 
-Error RootCreate(Root *rootReturn, Space space,
-                 RefRank rank,
+Res RootCreate(Root *rootReturn, Space space,
+                 Rank rank,
                  RootScanMethod scan,
                  void *p, size_t s)
 {
-  RootUnion theUnion;
-  
+  union RootUnion theUnion;
+
   AVER(scan != NULL);
 
   theUnion.fun.scan = scan;
@@ -155,44 +150,44 @@ void RootDestroy(Root root)
 {
   Space space;
 
-  AVER(ISVALID(Root, root));
+  AVERT(Root, root);
 
   space = RootSpace(root);
 
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
 
-  DequeNodeRemove(&root->spaceDeque);
-  DequeNodeFinish(&root->spaceDeque);
-  
+  RingRemove(&root->spaceRing);
+  RingFinish(&root->spaceRing);
+
   root->sig = SigInvalid;
 
-  PoolFree(SpaceControlPool(space), (Addr)root, sizeof(RootStruct));
+  SpaceFree(space, (Addr)root, sizeof(RootStruct));
 }
 
-RefRank RootRank(Root root)
+Rank RootRank(Root root)
 {
-  AVER(ISVALID(Root, root));
+  AVERT(Root, root);
   return root->rank;
 }
 
 void RootGrey(Root root, Space space, TraceId ti)
 {
-  AVER(ISVALID(Root, root));
-  root->marked = TraceSetAdd(root->marked, ti);
+  AVERT(Root, root);
+  root->grey = TraceSetAdd(root->grey, ti);
 }
 
-Error RootScan(ScanState ss, Root root)
+Res RootScan(ScanState ss, Root root)
 {
-  Error e;
+  Res res;
 
-  AVER(ISVALID(Root, root));
-  AVER(ISVALID(ScanState, ss));
+  AVERT(Root, root);
+  AVERT(ScanState, ss);
   AVER(root->rank == ss->rank);
 
-  if(!TraceSetIsMember(root->marked, ss->traceId))
-    return ErrSUCCESS;
+  if(!TraceSetIsMember(root->grey, ss->traceId))
+    return ResOK;
 
-  switch(root->type) {
+  switch(root->var) {
     case RootTABLE:
     TraceScanArea(ss,
       (Addr *)root->the.table.base,
@@ -200,82 +195,82 @@ Error RootScan(ScanState ss, Root root)
     break;
 
     case RootFUN:
-    e = (*root->the.fun.scan)(ss, root->the.fun.p, root->the.fun.s);
-    if(e != ErrSUCCESS)
-      return e;
+    res = (*root->the.fun.scan)(ss, root->the.fun.p, root->the.fun.s);
+    if(res != ResOK)
+      return res;
     break;
 
     case RootREG:
-    e = (*root->the.reg.scan)(ss, root->the.reg.thread,
+    res = (*root->the.reg.scan)(ss, root->the.reg.thread,
                               root->the.reg.p);
-    if(e != ErrSUCCESS)
-      return e;
+    if(res != ResOK)
+      return res;
     break;
 
     case RootFMT:
-    e = (*root->the.fmt.scan)(ss, root->the.fmt.base,
+    res = (*root->the.fmt.scan)(ss, root->the.fmt.base,
                               root->the.fmt.limit);
-    if(e != ErrSUCCESS)
-      return e;
+    if(res != ResOK)
+      return res;
     break;
 
     default:
     NOTREACHED;
   }
 
-  root->marked = TraceSetDelete(root->marked, ss->traceId);
-  
-  return ErrSUCCESS;
+  root->grey = TraceSetDelete(root->grey, ss->traceId);
+
+  return ResOK;
 }
 
 /* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Space RootSpace(Root root)
 {
-  return PARENT(SpaceStruct, rootDeque, root->spaceDeque.deque);
+  return root->space;
 }
 
-Error RootDescribe(Root root, LibStream stream)
+Res RootDescribe(Root root, Lib_FILE *stream)
 {
   TraceId id;
 
-  AVER(ISVALID(Root, root));
+  AVERT(Root, root);
   AVER(stream != NULL);
-  
-  LibFormat(stream,
-            "Root %lX {\n"
-            "  rank %d\n",
-            (unsigned long)root,
-            root->rank);
 
-  LibFormat(stream, "  Trace status\n");
+  Lib_fprintf(stream,
+             "Root %lX {\n"
+             "  rank %d\n",
+             (unsigned long)root,
+             root->rank);
+
+  Lib_fprintf(stream, "  Trace status\n");
   for(id = 0; id < TRACE_MAX; ++id)
-    LibFormat(stream, "    %2lu %s\n",
-              (unsigned long)id,
-              TraceSetIsMember(root->marked, id) ? 
-                "marked" : "not marked");
-  
-  switch(root->type)
+    Lib_fprintf(stream, "    %2lu %s\n",
+               (unsigned long)id,
+               TraceSetIsMember(root->grey, id) ?
+                 "grey" : "not grey");
+
+  switch(root->var)
   {
     case RootTABLE:
-    LibFormat(stream, "  table base 0x%lX limit 0x%lX\n",
-            (unsigned long)root->the.table.base,
-            (unsigned long)root->the.table.limit);
+    Lib_fprintf(stream, "  table base 0x%lX limit 0x%lX\n",
+                (unsigned long)root->the.table.base,
+                (unsigned long)root->the.table.limit);
     break;
-    
+
     case RootFUN:
-    LibFormat(stream,
-            "  scan function 0x%lX\n"
-            "  environment p 0x%lX s 0x%lX\n",
-            (unsigned long)root->the.fun.scan,
-            (unsigned long)root->the.fun.p,
-            root->the.fun.s);
+    Lib_fprintf(stream,
+                "  scan function 0x%lX\n"
+                "  environment p 0x%lX s 0x%lX\n",
+                (unsigned long)root->the.fun.scan,
+                (unsigned long)root->the.fun.p,
+                root->the.fun.s);
     break;
 
     default:
     NOTREACHED;
   }
-  
-  LibFormat(stream, "} Root 0x%lX\n", (unsigned long)root);
-  
-  return ErrSUCCESS;
+
+  Lib_fprintf(stream, "} Root 0x%lX\n", (unsigned long)root);
+
+  return ResOK;
 }

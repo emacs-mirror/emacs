@@ -1,13 +1,11 @@
 /* impl.c.lockutnt
  *                     LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockutnt.c(trunk.3) $
+ * $HopeName: MMsrc!lockutnt.c(MMdevel_restr.2) $
  */
 
-#include "std.h"
+#include "mpm.h"
 #include "testlib.h"
-#include "lock.h"
-#include "lockst.h"
 
 #ifndef MPS_OS_W3
 #error "Relies on Win32 threads"
@@ -15,7 +13,7 @@
 
 #include <windows.h>
 
-SRCID("$HopeName$");
+SRCID(lockutnt, "$HopeName: MMsrc!lockutnt.c(MMdevel_restr.2) $");
 
 static LockStruct lockStruct;
 unsigned long shared,tmp;
@@ -38,7 +36,7 @@ void incR(unsigned long i)
 void inc(unsigned long i)
 {
   incR(i+1>>1);
-  i>>=1;  
+  i>>=1;
   while(i){
     LockClaim(&lockStruct);
     if(i>10000){
@@ -57,7 +55,7 @@ DWORD WINAPI thread0(void *p)
 {
   inc(COUNT);
   return 0;
-}  
+}
 
 int main(void)
 {
@@ -79,7 +77,7 @@ int main(void)
 
   AVER(shared == nthreads*COUNT);
 
-  LockFinish(&lockStruct);  
+  LockFinish(&lockStruct);
 
   return 0;
 }

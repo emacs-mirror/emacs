@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $Id: testlib.c,v 1.2 1996/02/08 14:22:07 richard Exp $
+ *  $Id: testlib.c,v 1.3.2.2 1996/03/12 13:04:08 richard Exp $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -33,11 +33,11 @@ unsigned long rnd(void)
   return seed;
 }
 
-void die(Error e, const char *s)
+void die(Res res, const char *s)
 {
-  if(e != ErrSUCCESS)
+  if(res != ResOK)
   {
-    fprintf(stderr, "%s: %s\n", s, ErrorName(e));
+    fprintf(stderr, "%s: %d\n", s, res);
     exit(1);
   }
 }

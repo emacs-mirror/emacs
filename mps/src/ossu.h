@@ -1,12 +1,12 @@
 /*  ==== SUNOS ANSI COMPATABILITY HEADER ====
  *
- *  $HopeName: MMsrc!ossu.h(trunk.1) $
+ *  $HopeName: MMsrc!ossu.h(MMdevel_restr.2) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
  *  This header defines some things which are part of the ANSI standard but
  *  missing from the C compiler / environment.
- * 
+ *
  *  See also syscalls.h, which contains prototypes for system calls
  *  which are not prototyped in include files
  *
@@ -44,7 +44,7 @@ extern int sscanf (const char *s, const char *format, ...);
 extern int fseek (FILE *stream, long int offset, int whence);
 extern size_t fread (void *ptr, size_t size, size_t nmemb, FILE *stream);
 extern size_t fwrite (const void *ptr, size_t size, size_t nmemb,
-		      FILE *stream);
+                      FILE *stream);
 
 /* these functions are used in the macro definitions of putc and getc
 but not declared in stdio.h */
@@ -63,7 +63,7 @@ extern int _flsbuf(FILE *stream);
 typedef long clock_t;
 #endif
 extern size_t strftime (char *s, size_t maxsize, const char *format,
-			const struct tm *timeptr);
+                        const struct tm *timeptr);
 extern time_t time (time_t *timer);
 extern clock_t clock(void);
 

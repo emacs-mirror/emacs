@@ -1,11 +1,10 @@
 /* impl.c.assert: ASSERTION IMPLEMENTATION
  *
- * $HopeName: MMsrc!assert.c(trunk.3) $
+ * $HopeName: MMsrc!assert.c(MMdevel_restr.2) $
  *
- * When DEBUG is defined (see debug.h) this source provides
- * the AssertFail function which is invoked by the assertion macros
- * (see impl.h.assert).  It also provides for user-installed
- * assertion failure handlers.
+ * This source provides the AssertFail function which is
+ * invoked by the assertion macros (see impl.h.assert).
+ * It also provides for user-installed assertion failure handlers.
  *
  * Notes
  *
@@ -17,20 +16,19 @@
 #include "std.h"
 #include "assert.h"
 #include "lib.h"
-#include <stdarg.h>
 
 
 static void AssertLib(const char *cond, const char *id,
                       const char *file, unsigned line)
 {
-  LibFormat(LibStreamErr(),
-            "\nMPS ASSERTION FAILURE\n\n"
-            "Id:        %s\n"
-            "File:      %s\n"
-            "Line:      %u\n"
-            "Condition: %s\n\n",
-            id, file, line, cond);
-  LibAbort();
+  Lib_fprintf(Lib_stderr,
+              "\nMPS ASSERTION FAILURE\n\n"
+              "Id:        %s\n"
+              "File:      %s\n"
+              "Line:      %u\n"
+              "Condition: %s\n\n",
+              id, file, line, cond);
+  Lib_abort();
 }
 
 static AssertHandler handler = AssertLib;
@@ -48,25 +46,16 @@ AssertHandler AssertInstall(AssertHandler new)
 }
 
 
-#ifdef DEBUG
-
-
-/*  === FAIL ASSERTION ===
+/* AssertFail -- fail an assertion
  *
- *  This function is called when an ASSERT macro fails a test.  It
- *  calls the installed assertion handler, if it is not NULL, then
- *  exits the program.
+ * This function is called when an ASSERT macro fails a test.  It
+ * calls the installed assertion handler, if it is not NULL.  If
+ * handler returns the progam continues.
  */
 
-void AssertFail(const char *cond, const char *id, 
+void AssertFail(const char *cond, const char *id,
                 const char *file, unsigned line)
 {
-  if(handler != NULL) {
+  if(handler != NULL)
     (*handler)(cond, id, file, line);
-    LibAbort();
-    /* not reached, but we can't assert that */
-  }
 }
-
-
-#endif /* DEBUG */

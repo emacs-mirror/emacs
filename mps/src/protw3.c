@@ -1,14 +1,12 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName: MMsrc!protnt.c(trunk.5) $
+ *  $HopeName: MMsrc!protnt.c(MMdevel_restr.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
 
-#include "std.h"
-#include "prot.h"
-#include "space.h"
+#include "mpm.h"
 
 #ifndef MPS_OS_W3
 #error "protnt.c is Win32 specific, but MPS_OS_W3 is not set"
@@ -16,7 +14,7 @@
 
 #include <windows.h>
 
-SRCID("$HopeName$");
+SRCID(protnt, "$HopeName: MMsrc!protnt.c(MMdevel_restr.4) $");
 
 
 void ProtSetup(void)
@@ -24,7 +22,7 @@ void ProtSetup(void)
   return;
 }
 
-void ProtSet(Addr base, Addr limit, ProtMode mode)
+void ProtSet(Addr base, Addr limit, AccessSet mode)
 {
   DWORD newProtect;
   DWORD oldProtect;
@@ -34,9 +32,9 @@ void ProtSet(Addr base, Addr limit, ProtMode mode)
   AVER(base != 0);
 
   newProtect = PAGE_EXECUTE_READWRITE;
-  if((mode & ProtWRITE) != 0)
+  if((mode & AccessWRITE) != 0)
     newProtect = PAGE_EXECUTE_READ;
-  if((mode & ProtREAD) != 0)
+  if((mode & AccessREAD) != 0)
     newProtect = PAGE_NOACCESS;
 
   if(VirtualProtect((LPVOID)base, (DWORD)(limit - base),
@@ -49,7 +47,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   LPEXCEPTION_RECORD er;
   DWORD iswrite;
   DWORD address;
-  ProtMode mode;
+  AccessSet mode;
   Addr base, limit;
   LONG action;
 
@@ -57,7 +55,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
-   
+
   AVER(er->ExceptionFlags == 0); /* continuable exception */
 
   /* er->ExceptionRecord is pointer to next exception in chain */
@@ -68,10 +66,12 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   iswrite = er->ExceptionInformation[0]; /* 0 read; 1 write */
   AVER(iswrite == 0 || iswrite == 1);
 
+  /* Pages cannot be made write-only, so an attempt to write must
+   * also cause a read-access if necessary */
   if(iswrite)
-    mode = ProtWRITE; 
+    mode = AccessREAD | AccessWRITE;
   else
-    mode = ProtREAD;
+    mode = AccessREAD;
 
   address = er->ExceptionInformation[1];
 
@@ -82,7 +82,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
   if(SpaceAccess(base, mode))
     action = EXCEPTION_CONTINUE_EXECUTION;
-  else 
+  else
     action = EXCEPTION_CONTINUE_SEARCH;
 
   return action;

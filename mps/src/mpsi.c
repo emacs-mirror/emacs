@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.11) $
+ * $HopeName: MMsrc!mpsi.c(MMdevel_restr.4) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -14,23 +14,10 @@
  * the tag of this note.
  */
 
-#include "std.h"
+#include "mpm.h"
 #include "mps.h"
-#include "ref.h"
-#include "space.h"
-#include "format.h"
-#include "pool.h"
-#include "poolclas.h"
-#include "buffer.h"
-#include "root.h"
-#include "prot.h"
-#include "th.h"
-#include "ld.h"
-#include "mps.h"
-#include <stdarg.h>
-#include <stddef.h>
 
-SRCID("$HopeName: MMsrc!mpsi.c(trunk.11) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(MMdevel_restr.4) $");
 
 
 /* Check consistency of interface mappings. */
@@ -53,47 +40,47 @@ SRCID("$HopeName: MMsrc!mpsi.c(trunk.11) $");
 static Bool mpsi_check(void)
 {
   /* Check that external and internal result codes match. */
-  AVER(CHECKTYPE(mps_res_t, Error));
-  AVER(MPS_RES_OK == ErrSUCCESS);
-  AVER(MPS_RES_FAIL == ErrFAILURE);
-  AVER(MPS_RES_RESOURCE == ErrRESOURCE);
-  AVER(MPS_RES_MEMORY == ErrRESMEM);
-  AVER(MPS_RES_LIMIT == ErrLIMIT);
-  AVER(MPS_RES_UNIMPL == ErrUNIMPL);
-  AVER(MPS_RES_IO == ErrIO);
+  CHECKL(CHECKTYPE(mps_res_t, Res));
+  CHECKL(MPS_RES_OK == ResOK);
+  CHECKL(MPS_RES_FAIL == ResFAIL);
+  CHECKL(MPS_RES_RESOURCE == ResRESOURCE);
+  CHECKL(MPS_RES_MEMORY == ResMEMORY);
+  CHECKL(MPS_RES_LIMIT == ResLIMIT);
+  CHECKL(MPS_RES_UNIMPL == ResUNIMPL);
+  CHECKL(MPS_RES_IO == ResIO);
 
   /* Check that external and internal rank numbers match. */
-  AVER(CHECKTYPE(mps_rank_t, RefRank));
-  AVER(MPS_RANK_AMBIG == RefRankAMBIG);
-  AVER(MPS_RANK_EXACT == RefRankEXACT);
-  AVER(MPS_RANK_WEAK == RefRankWEAK);
-  AVER(MPS_RANK_FINAL == RefRankFINAL);
-  
+  CHECKL(CHECKTYPE(mps_rank_t, Rank));
+  CHECKL(MPS_RANK_AMBIG == RankAMBIG);
+  CHECKL(MPS_RANK_EXACT == RankEXACT);
+  CHECKL(MPS_RANK_WEAK == RankWEAK);
+  CHECKL(MPS_RANK_FINAL == RankFINAL);
+
   /* The external idea of a word width and the internal one */
   /* had better match. */
-  AVER(MPS_WORD_WIDTH == ADDRWIDTH);
-  AVER(sizeof(mps_word_t) == sizeof(void *));
-  AVER(CHECKTYPE(mps_word_t, Addr));
+  CHECKL(MPS_WORD_WIDTH == WORD_WIDTH);
+  CHECKL(sizeof(mps_word_t) == sizeof(void *));
+  CHECKL(CHECKTYPE(mps_word_t, Word));
 
-  /* Check ap_s/ApStruct compatibility by hand */
+  /* Check ap_s/APStruct compatibility by hand */
   /* .check.ap: See also impl.h.buffer.ap. */
-  AVER(sizeof(mps_ap_s) == sizeof(ApStruct));
-  AVER(CHECKFIELDAPPROX(mps_ap_s, init,  ApStruct, init));
-  AVER(CHECKFIELDAPPROX(mps_ap_s, alloc, ApStruct, alloc));
-  AVER(CHECKFIELDAPPROX(mps_ap_s, limit, ApStruct, limit));
+  CHECKL(sizeof(mps_ap_s) == sizeof(APStruct));
+  CHECKL(CHECKFIELD(mps_ap_s, init,  APStruct, init));
+  CHECKL(CHECKFIELD(mps_ap_s, alloc, APStruct, alloc));
+  CHECKL(CHECKFIELD(mps_ap_s, limit, APStruct, limit));
 
   /* Check ss_s/ScanStateStruct compatibility by hand */
   /* .check.ss: See also impl.h.trace.ss. */
-  AVER(CHECKFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
-  AVER(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
-  AVER(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, condemned));
-  AVER(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, summary));
+  CHECKL(CHECKFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
+  CHECKL(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
+  CHECKL(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, condemned));
+  CHECKL(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, summary));
 
   /* Check ld_s/LDStruct compatibility by hand */
   /* .check.ld: See also impl.h.ld.struct */
-  AVER(sizeof(mps_ld_s) == sizeof(LDStruct));
-  AVER(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
-  AVER(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
+  CHECKL(sizeof(mps_ld_s) == sizeof(LDStruct));
+  CHECKL(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
+  CHECKL(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
 
   return TRUE;
 }
@@ -122,7 +109,7 @@ mps_res_t mps_space_create(mps_space_t *mps_space_o)
 void mps_space_destroy(mps_space_t mps_space)
 {
   Space space = (Space)mps_space;
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
   SpaceDestroy(space);
 }
 
@@ -132,30 +119,30 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
 {
   Format *formatReturn = (Format *)mps_fmt_o;
   Space space = (Space)mps_space;
-  Error e;
-  SpaceLockClaim(space);
+  Res res;
+  SpaceEnter(space);
   AVER(mps_fmt_A != NULL);
-  e = FormatCreate(formatReturn,
-                   (Space)mps_space,
-                   (Addr)mps_fmt_A->align,
-                   (FormatScanMethod)mps_fmt_A->scan,
-                   (FormatSkipMethod)mps_fmt_A->skip,
-                   (FormatMoveMethod)mps_fmt_A->fwd,
-                   (FormatIsMovedMethod)mps_fmt_A->isfwd,
-                   (FormatCopyMethod)mps_fmt_A->copy,
-                   (FormatPadMethod)mps_fmt_A->pad);
-  SpaceLockRelease(space);
-  return e;
+  res = FormatCreate(formatReturn,
+                     (Space)mps_space,
+                     (Align)mps_fmt_A->align,
+                     (FormatScanMethod)mps_fmt_A->scan,
+                     (FormatSkipMethod)mps_fmt_A->skip,
+                     (FormatMoveMethod)mps_fmt_A->fwd,
+                     (FormatIsMovedMethod)mps_fmt_A->isfwd,
+                     (FormatCopyMethod)mps_fmt_A->copy,
+                     (FormatPadMethod)mps_fmt_A->pad);
+  SpaceLeave(space);
+  return res;
 }
 
 void mps_fmt_destroy(mps_fmt_t mps_fmt)
 {
   Format format = (Format)mps_fmt;
   Space space = FormatSpace(format);
-  SpaceLockClaim(space);
-  AVER(ISVALID(Format, format));
+  SpaceEnter(space);
+  AVERT(Format, format);
   FormatDestroy((Format)mps_fmt);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
@@ -166,20 +153,20 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
   Space space = (Space)mps_space;
   PoolClass class = (PoolClass)mps_class;
   va_list args;
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(poolReturn != NULL);
-  AVER(ISVALID(Space, space));
-  AVER(ISVALID(PoolClass, class));
+  AVERT(Space, space);
+  AVERT(PoolClass, class);
 
   va_start(args, mps_class);
-  e = PoolCreateV(poolReturn, class, space, args);
+  res = PoolCreateV(poolReturn, class, space, args);
   va_end(args);
 
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
@@ -190,18 +177,18 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
   Pool *poolReturn = (Pool *)mps_pool_o;
   Space space = (Space)mps_space;
   PoolClass class = (PoolClass)mps_class;
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(poolReturn != NULL);
-  AVER(ISVALID(Space, space));
-  AVER(ISVALID(PoolClass, class));
+  AVERT(Space, space);
+  AVERT(PoolClass, class);
 
-  e = PoolCreateV(poolReturn, class, space, args);
+  res = PoolCreateV(poolReturn, class, space, args);
 
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 void mps_pool_destroy(mps_pool_t mps_pool)
@@ -209,12 +196,12 @@ void mps_pool_destroy(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Space space = PoolSpace(pool);
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   PoolDestroy(pool);
 
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 mps_res_t mps_alloc(mps_addr_t *p_o,
@@ -223,24 +210,24 @@ mps_res_t mps_alloc(mps_addr_t *p_o,
 {
   Pool pool = (Pool)mps_pool;
   Space space = PoolSpace(pool);
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   /* Give the space the opportunity to steal CPU time. */
   SpacePoll(space);
-  
+
   AVER(p_o != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(size > 0);
   /* Note: class may allow unaligned size. */
 
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
-  e = PoolAlloc((Addr *)p_o, pool, size);
+  res = PoolAlloc((Addr *)p_o, pool, size);
 
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 mps_res_t mps_alloc_v(mps_addr_t *p_o,
@@ -249,25 +236,25 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o,
 {
   Pool pool = (Pool)mps_pool;
   Space space = PoolSpace(pool);
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   /* Give the space the opportunity to steal CPU time. */
   SpacePoll(space);
-  
+
   AVER(p_o != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(size > 0);
   UNUSED(args);
   /* Note: class may allow unaligned size. */
 
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
-  e = PoolAlloc((Addr *)p_o, pool, size);
+  res = PoolAlloc((Addr *)p_o, pool, size);
 
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
@@ -275,37 +262,37 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
   Pool pool = (Pool)mps_pool;
   Space space = PoolSpace(pool);
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   AVER(size > 0);
   /* Note: class may allow unaligned size. */
 
   PoolFree(pool, (Addr)p, size);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
 {
-  Ap *apReturn = (Ap *)mps_ap_o;
+  AP *apReturn = (AP *)mps_ap_o;
   Pool pool = (Pool)mps_pool;
   Space space = PoolSpace(pool);
   Buffer buf;
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(apReturn != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
 
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
-  e = BufferCreate(&buf, pool);
-  if(e != ErrSUCCESS)
-    return e;
+  res = BufferCreate(&buf, pool);
+  if(res != ResOK)
+    return res;
 
-  *apReturn = BufferAp(buf);
-  SpaceLockRelease(space);
+  *apReturn = BufferAP(buf);
+  SpaceLeave(space);
   return MPS_RES_OK;
 }
 
@@ -313,39 +300,39 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o,
                           mps_pool_t mps_pool,
                           va_list args)
 {
-  Ap *apReturn = (Ap *)mps_ap_o;
+  AP *apReturn = (AP *)mps_ap_o;
   Pool pool = (Pool)mps_pool;
   Space space = PoolSpace(pool);
   Buffer buf;
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(apReturn != NULL);
-  AVER(ISVALID(Pool, pool));
+  AVERT(Pool, pool);
   UNUSED(args);
 
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
-  e = BufferCreate(&buf, pool);
-  if(e != ErrSUCCESS)
-    return e;
+  res = BufferCreate(&buf, pool);
+  if(res != ResOK)
+    return res;
 
-  *apReturn = BufferAp(buf);
-  SpaceLockRelease(space);
+  *apReturn = BufferAP(buf);
+  SpaceLeave(space);
   return MPS_RES_OK;
 }
 
 void mps_ap_destroy(mps_ap_t mps_ap)
 {
-  Buffer buf = BufferOfAp((Ap)mps_ap);
+  Buffer buf = BufferOfAP((AP)mps_ap);
   Space space = BufferSpace(buf);
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
-  AVER(ISVALID(Buffer, buf));
+  AVERT(Buffer, buf);
   BufferDestroy(buf);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
@@ -385,40 +372,40 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 
 mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 {
-  Buffer buf = BufferOfAp((Ap)mps_ap);
+  Buffer buf = BufferOfAP((AP)mps_ap);
   Space space = BufferSpace(buf);
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   /* Give the space the opportunity to steal CPU time. */
   SpacePoll(space);
 
   AVER(p_o != NULL);
-  AVER(ISVALID(Buffer, buf));
+  AVERT(Buffer, buf);
   AVER(size > 0);
-  AVER(IsAligned(BufferPool(buf)->alignment, size));
+  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
 
-  e = BufferFill((Addr *)p_o, buf, size);
+  res = BufferFill((Addr *)p_o, buf, size);
 
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
-  Buffer buf = BufferOfAp((Ap)mps_ap);
+  Buffer buf = BufferOfAP((AP)mps_ap);
   Space space = BufferSpace(buf);
   Bool b;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
-  AVER(ISVALID(Buffer, buf));
+  AVERT(Buffer, buf);
   AVER(size > 0);
-  AVER(IsAligned(BufferPool(buf)->alignment, size));
+  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
 
   b = BufferTrip(buf, (Addr)p, size);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
   return b;
 }
 
@@ -431,21 +418,21 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
 {
   Root *rootReturn = (Root *)mps_root_o;
   Space space = (Space)mps_space;
-  RefRank rank = (RefRank)mps_rank;
-  Error e;
+  Rank rank = (Rank)mps_rank;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(rootReturn != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
   AVER(mps_root_scan != NULL);
   AVER(mps_rm == (mps_rm_t)0);
 
   /* The root mode is ignored. */
-  e = RootCreate(rootReturn, space, rank,
+  res = RootCreate(rootReturn, space, rank,
                  (RootScanMethod)mps_root_scan, p, s);
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
@@ -456,23 +443,23 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
 {
   Root *rootReturn = (Root *)mps_root_o;
   Space space = (Space)mps_space;
-  RefRank rank = (RefRank)mps_rank;
-  Error e;
+  Rank rank = (Rank)mps_rank;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(mps_root_o != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
   AVER(base != NULL);
   AVER((unsigned long)size > 0);
   /* Note, size is the length of the array at base, not */
   /* the size in bytes.  However, RootCreateTable expects */
   /* base and limit pointers.  Be careful. */
   /* The root mode is ignored. */
-  e = RootCreateTable(rootReturn, space, rank,
-                      (Addr *)base, (Addr *)base + size);
-  SpaceLockRelease(space);
-  return e;
+  res = RootCreateTable(rootReturn, space, rank,
+                        (Addr *)base, (Addr *)base + size);
+  SpaceLeave(space);
+  return res;
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
@@ -485,11 +472,11 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
 {
   Root *rootReturn = (Root *)mps_root_o;
   Space space = (Space)mps_space;
-  RefRank rank = (RefRank)mps_rank;
+  Rank rank = (Rank)mps_rank;
   FormatScanMethod scan = (FormatScanMethod)mps_fmt_scan;
 
   AVER(mps_root_o != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
   AVER(scan != NULL);
   AVER(base != NULL);
   AVER(base < limit);
@@ -508,15 +495,15 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
 {
   Root *rootReturn = (Root *)mps_root_o;
   Space space = (Space)mps_space;
-  RefRank rank = (RefRank)mps_rank;
+  Rank rank = (Rank)mps_rank;
   Thread thread = (Thread)mps_thr;
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(mps_root_o != NULL);
-  AVER(ISVALID(Space, space));
-  AVER(ISVALID(Thread, thread));
+  AVERT(Space, space);
+  AVERT(Thread, thread);
   AVER(mps_reg_scan != NULL);
 
   /* At present, we only support register scanning using our */
@@ -526,11 +513,11 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
   AVER(rank == MPS_RANK_AMBIG);
   AVER(mps_rm == (mps_rm_t)0);
 
-  e = RootCreateReg(rootReturn, space, rank, thread,
+  res = RootCreateReg(rootReturn, space, rank, thread,
                     (RootScanRegMethod)mps_reg_scan,
                     reg_scan_p);
-  SpaceLockRelease(space);
-  return e;
+  SpaceLeave(space);
+  return res;
 }
 
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
@@ -545,10 +532,10 @@ void mps_root_destroy(mps_root_t mps_root)
 {
   Root root = (Root)mps_root;
   Space space = RootSpace(root);
-  SpaceLockClaim(space);
-  AVER(ISVALID(Root, root));
+  SpaceEnter(space);
+  AVERT(Root, root);
   RootDestroy(root);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 void (mps_tramp)(void **r_o,
@@ -564,34 +551,34 @@ mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o,
 {
   Thread *threadReturn = (Thread *)mps_thr_o;
   Space space = (Space)mps_space;
-  Error e;
+  Res res;
 
-  SpaceLockClaim(space);
+  SpaceEnter(space);
 
   AVER(mps_thr_o != NULL);
-  AVER(ISVALID(Space, space));
+  AVERT(Space, space);
 
-  e = ThreadRegister(threadReturn, space);
-  SpaceLockRelease(space);
-  return e;
+  res = ThreadRegister(threadReturn, space);
+  SpaceLeave(space);
+  return res;
 }
 
 void mps_thread_dereg(mps_thr_t mps_thr)
 {
   Thread thread = (Thread)mps_thr;
   Space space = ThreadSpace(thread);
-  SpaceLockClaim(space);
+  SpaceEnter(space);
   ThreadDeregister(thread, space);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 void mps_ld_reset(mps_ld_t mps_ld, mps_space_t mps_space)
 {
   Space space = (Space)mps_space;
   LD ld = (LD)mps_ld;
-  SpaceLockClaim(space);
+  SpaceEnter(space);
   LDReset(ld, space);
-  SpaceLockRelease(space);
+  SpaceLeave(space);
 }
 
 /* .lock-free */

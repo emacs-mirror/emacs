@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.3) $
+ *  $HopeName: MMsrc!fmtdy.c(MMdevel_restr.2) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -45,7 +45,7 @@
 
 #define notreached()    do assert(0); while(0)
 
-#define ALIGN		sizeof(mps_word_t)
+#define ALIGN           sizeof(mps_word_t)
 
 static int dylan_wrapper_check(mps_word_t *w)
 {
@@ -60,7 +60,7 @@ static int dylan_wrapper_check(mps_word_t *w)
 
   /* The first word of the wrapper is a pointer to a wrapper wrapper, */
   /* which always has the same contents.  Check it. */
-  
+
   /* @@@@ When this becomes part of the Dylan run-time, it would be */
   /* possible to know the address of a unique wrapper wrapper and */
   /* check that instead. */
@@ -112,7 +112,7 @@ static int dylan_wrapper_check(mps_word_t *w)
   /* size.  This assumes that DylanWorks is only going to use byte */
   /* vectors in the non-word case. */
 
-  /* Variable part format 6 is reserved. */  
+  /* Variable part format 6 is reserved. */
   assert(vh != 6);
 
   /* There should be no shift in word vector formats. */
@@ -138,9 +138,9 @@ static int dylan_wrapper_check(mps_word_t *w)
 
   /* The patterns are random bits, so we can't check them.  However, */
   /* the left-over bits in the last pattern should be zero. */
-  
+
   assert(ff != 2 || (w[4+t] >> ((fh>>2) & (MPS_WORD_WIDTH-1))) == 0);
-  
+
   return 1;
 }
 
@@ -161,15 +161,15 @@ static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
           p = base;
     loop: if(p >= limit) goto out;
           r = *p++;
-	  if(((mps_word_t)r&3) != 0) /* pointers tagged with 0 */
-	    goto loop;             /* not a pointer */
+          if(((mps_word_t)r&3) != 0) /* pointers tagged with 0 */
+            goto loop;             /* not a pointer */
           if(!MPS_FIX1(mps_ss, r)) goto loop;
           res = MPS_FIX2(mps_ss, p-1);
           if(res == MPS_RES_OK) goto loop;
           return res;
     out:  assert(p == limit);
   } MPS_SCAN_END(mps_ss);
-  
+
   return MPS_RES_OK;
 }
 
@@ -205,8 +205,8 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
           pat >>= 1;
           if(b == 0) goto loop;
           r = *(pp-1);
-	  if(((mps_word_t)r&3) != 0) /* pointers tagged with 0 */
-	    goto loop;             /* not a pointer */
+          if(((mps_word_t)r&3) != 0) /* pointers tagged with 0 */
+            goto loop;             /* not a pointer */
           if(!MPS_FIX1(mps_ss, r)) goto loop;
           res = MPS_FIX2(mps_ss, pp-1);
           if(res == MPS_RES_OK) goto loop;
@@ -216,7 +216,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
   } MPS_SCAN_END(mps_ss);
 
   return MPS_RES_OK;
-}                           
+}
 
 #define NONWORD_LENGTH(_vt, _vs) \
   ((_vs) < MPS_WORD_SHIFT ? \
@@ -260,7 +260,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
     *object_io = l;
     return MPS_RES_OK;
   }
-      
+
   mps_fix(mps_ss, p);           /* fix the wrapper */
   w = (mps_word_t *)p[0];       /* wrapper is header word */
   assert(dylan_wrapper_check(w));
@@ -269,7 +269,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   /* Fixed Part */
 
-  fh = w[2];  
+  fh = w[2];
   fl = fh >> 2;                 /* get the fixed part length */
 
   /* It might be worth inlining common cases here, for example, */
@@ -314,7 +314,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       case 0:                   /* non-stretchy non-traceable */
       p += vt;
       break;
-  
+
       case 1:                   /* stretchy non-traceable */
       notreached();             /* Not used by DylanWorks yet */
       p += vt + 1;
@@ -326,7 +326,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       if(res) return res;
       p = q;
       break;
-  
+
       case 3:                   /* stretchy traceable */
       notreached();             /* DW doesn't create them yet */
       vl = *(mps_word_t *)p;    /* vector length */
@@ -342,7 +342,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       vs = vh >> 3;
       p += NONWORD_LENGTH(vt, vs);
       break;
-    
+
       case 5:                   /* stretchy non-word */
       notreached();             /* DW doesn't create them yet */
       vs = vh >> 3;
@@ -368,9 +368,9 @@ static mps_res_t dylan_scan(mps_ss_t mps_ss,
     res = dylan_scan1(mps_ss, &base);
     if(res) return res;
   }
-  
+
   assert(base == limit);
-  
+
   return MPS_RES_OK;
 }
 
@@ -402,7 +402,7 @@ static mps_addr_t dylan_skip(mps_addr_t object)
 
     return l;
   }
-      
+
   w = (mps_word_t *)h;          /* load the fixed wrapper */
   assert(dylan_wrapper_check(w));
   ++p;

@@ -2,7 +2,7 @@
  *
  *                          QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.5) $
+ *  $HopeName: MMsrc!qs.c(MMdevel_restr.2) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -55,8 +55,7 @@ struct mps_fmt_A_s fmt_A_s =
 enum {QSInt, QSRef, QSEvac, QSPadOne, QSPadMany};
 
 typedef struct QSCellStruct *QSCell;
-typedef struct QSCellStruct
-{
+typedef struct QSCellStruct {
   mps_word_t tag;
   mps_word_t value;
   QSCell tail;
@@ -105,7 +104,7 @@ cons(mps_word_t tag0, mps_word_t value0, QSCell tail)
 
   do {
     die(mps_reserve(&p, ap, sizeof(QSCellStruct)),
-	"cons");
+        "cons");
     new = (QSCell)p;
     new->tag = tag0;
     new->value = value0;
@@ -275,7 +274,7 @@ qs(void)
 
   /* check that we have an int list */
   assert(((QSCell)reg[0])->tag == QSInt);
-   
+
   pivot = ((QSCell)reg[0])->value;
   reg[0] = (mps_word_t)((QSCell)reg[0])->tail;
   part(pivot);
@@ -352,9 +351,9 @@ validate(void)
   for(i = 0; i < listl; ++i) {
     assert(((QSCell)reg[1])->tag == QSInt);
     if(((QSCell)reg[1])->value != list[i]) {
-      fprintf(stdout, 
+      fprintf(stdout,
               "mps_res_t: Element %lu of the two lists do not match.\n",
-	      (unsigned long)i);
+              (unsigned long)i);
       return;
     }
     reg[1] = (mps_word_t)((QSCell)reg[1])->tail;
@@ -372,8 +371,8 @@ go(void *p, size_t s)
   UNUSED(s);
 
   die(mps_pool_create(&mpool, space, mps_class_mv(),
-		      (size_t)65536, sizeof(QSCellStruct) * 1000,
-		      (size_t)65536), "MVCreate");
+                      (size_t)65536, sizeof(QSCellStruct) * 1000,
+                      (size_t)65536), "MVCreate");
 
   die(mps_fmt_create_A(&format, space, &fmt_A_s), "FormatCreate");
   die(mps_pool_create(&pool, space, mps_class_amc(), format),
@@ -408,7 +407,7 @@ go(void *p, size_t s)
   return NULL;
 }
 
-int 
+int
 main(void)
 {
   void *r;
@@ -442,7 +441,7 @@ mps_res_t
 scan1(mps_ss_t ss, mps_addr_t *objectIO)
 {
   QSCell cell;
-  mps_res_t e;
+  mps_res_t res;
 
   assert(objectIO != NULL);
 
@@ -452,19 +451,19 @@ scan1(mps_ss_t ss, mps_addr_t *objectIO)
     switch(cell->tag) {
     case QSRef:
       if(!MPS_FIX1(ss, (mps_addr_t)cell->value))
-	goto fixTail;
-      e = MPS_FIX2(ss, (mps_addr_t *)&cell->value);
-      if(e != MPS_RES_OK)
-	return e;
+        goto fixTail;
+      res = MPS_FIX2(ss, (mps_addr_t *)&cell->value);
+      if(res != MPS_RES_OK)
+        return res;
     /* fall */
 
     case QSInt:
     fixTail:
       if(!MPS_FIX1(ss, (mps_addr_t)cell->tail))
-	break;
-      e = MPS_FIX2(ss, (mps_addr_t *)&cell->tail);
-      if(e != MPS_RES_OK)
-	return e;
+        break;
+      res = MPS_FIX2(ss, (mps_addr_t *)&cell->tail);
+      if(res != MPS_RES_OK)
+        return res;
       break;
 
     case QSEvac:
@@ -496,11 +495,11 @@ scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
 
   while(base < limit) {
-    mps_res_t e;
+    mps_res_t res;
 
-    e = scan1(ss, &base);
-    if(e != MPS_RES_OK) {
-      return e;
+    res = scan1(ss, &base);
+    if(res != MPS_RES_OK) {
+      return res;
     }
   }
 

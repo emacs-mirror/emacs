@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $Id: testlib.h,v 1.1 1995/04/13 17:27:40 drj Exp $
+ *  $Id: testlib.h,v 1.1.5.2 1996/03/12 13:04:10 richard Exp $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -19,14 +19,14 @@
 
 /*  == SUCCEED OR DIE ==
  *
- *  If the first argument is not ErrSUCCESS then prints the second
+ *  If the first argument is not ResOK then prints the second
  *  argument on stderr and exits the program.  Otherwise does nothing.
- *  
+ *
  *  Typical use:
  *   die(SpaceInit(space), "SpaceInit");
  */
 
-extern void die(Error e, const char *s);
+extern void die(Res res, const char *s);
 
 /*  == RANDOM NUMBER GENERATOR ==
  *

@@ -1,6 +1,6 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: !mpmss.c(trunk.2) $
+ *  $HopeName: MMsrc!mpmss.c(MMdevel_restr.2) $
  */
 
 
@@ -14,12 +14,12 @@
 #include "poolmv.h"
 
 
-#define TEST_SET_SIZE		500
+#define TEST_SET_SIZE           500
 
 
 static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int i), ...)
 {
-  mps_res_t e;
+  mps_res_t res;
   mps_pool_t pool;
   va_list arg;
   int i;
@@ -27,16 +27,16 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   size_t ss[TEST_SET_SIZE];
 
   va_start(arg, size);
-  e = mps_pool_create_v(&pool, space, class, arg);
+  res = mps_pool_create_v(&pool, space, class, arg);
   va_end(arg);
-  if(e != MPS_RES_OK) return e;
+  if(res != MPS_RES_OK) return res;
 
   for(i=0; i<TEST_SET_SIZE; ++i)
   {
     ss[i] = (*size)(i);
 
-    e = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
-    if(e != MPS_RES_OK) return e;
+    res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
+    if(res != MPS_RES_OK) return res;
 
     if(i && i%5==0) putchar('\n');
     printf("%8lX %4lu ", (unsigned long)ps[i], (unsigned long)ss[i]);
@@ -57,8 +57,8 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   for(i=0; i<TEST_SET_SIZE; ++i)
   {
     mps_free(pool, (mps_addr_t)ps[i], ss[i]);
-    if(i == TEST_SET_SIZE/2)
-      PoolDescribe((Pool)pool, LibStreamOut());
+/*    if(i == TEST_SET_SIZE/2)
+      PoolDescribe((Pool)pool, Lib_stdout); */
   }
 
   mps_pool_destroy(pool);
@@ -83,11 +83,11 @@ static size_t fixedSize(int i)
 }
 
 
-static void die(mps_res_t e, const char *s)
+static void die(mps_res_t res, const char *s)
 {
-  if(e != MPS_RES_OK)
+  if(res != MPS_RES_OK)
   {
-    fprintf(stderr, "%s: %s\n", s, ErrorName(e));
+    fprintf(stderr, "%s: %d\n", s, res);
     exit(1);
   }
 }
@@ -96,7 +96,7 @@ static void die(mps_res_t e, const char *s)
 int main(void)
 {
   mps_space_t space;
-  
+
   die(mps_space_create(&space), "SpaceInit");
   die(stress((mps_class_t)PoolClassMV(),
       space, randomSize, (size_t)65536,

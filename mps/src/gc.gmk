@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!gc.gmk(trunk.15) $
+# $HopeName: MMsrc!gc.gmk(MMdevel_restr.3) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -14,8 +14,6 @@
 # %%PART: Add a new parameter for the files included in the part.
 # Parameters:
 #   PFM		platform code, e.g. "suspgc"
-#   STD		list of sources which make up the "std" part for this
-#               platform
 #   MPM		as above for the "mpm" part
 #   MPMS	assembler sources for the "mpm" part
 #   AMC		as above for the "amc" part
@@ -48,9 +46,6 @@
 
 ifndef PFM
 error "gc.gmk: PFM not defined"
-endif
-ifndef STD
-error "gc.gmk: STD not defined"
 endif
 ifndef MPM
 error "gc.gmk: MPM not defined"
@@ -91,20 +86,17 @@ CFLAGSCOMMON = \
 	-Winline -Waggregate-return -Wnested-externs \
 	-Wcast-qual -Wshadow
 
-# These flags are added to compilations for the "debug" variety.
-CFDEBUG = \
-	-DDEBUG -DVALID_NONESTED \
-	-g -ggdb3
+# These flags are added to compilations for the "df" variety.
+CFDF = -DTARGET_VAR_DF -g -ggdb3
 
-# These flags are added to compilations for the "release" variety.
-CFRELEASE = \
-	-DVALID_NONE \
-	-O
+# These flags are added to compilations for the "dp" variety.
+CFDP = -DTARGET_VAR_DP -g -ggdb3
 
-# These flags are added to compilations for the "devel" variety.
-CFDEVEL = \
-	-DDEBUG -DVALID_ALL \
-	-g -ggdb3
+# These flags are added to compilations for the "ds" variety.
+CFDS = -DTARGET_VAR_DS -g -ggdb3
+
+# These flags are added to compilations for the "ro" variety.
+CFRO = -DTARGET_VAR_RO -O
 
 # These map the source file lists onto object files and dependency files
 # in the platform/variety directory.
@@ -113,8 +105,6 @@ CFDEVEL = \
 #         part.
 
 ifdef VARIETY
-STDOBJ = $(STD:%.c=$(PFM)/$(VARIETY)/%.o)
-STDDEP = $(STD:%.c=$(PFM)/$(VARIETY)/%.d)
 MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) $(MPMS:%.s=$(PFM)/$(VARIETY)/%.o)
 MPMDEP = $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
 AMCOBJ = $(AMC:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -128,14 +118,18 @@ TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
 
 # Bind CFLAGS to the appropriate set of flags for the variety.
-ifeq ($(VARIETY),debug)
-CFLAGS=$(CFLAGSCOMMON) $(CFDEBUG)
+ifeq ($(VARIETY),dp)
+CFLAGS=$(CFLAGSCOMMON) $(CFDP)
 else
-ifeq ($(VARIETY),release)
-CFLAGS=$(CFLAGSCOMMON) $(CFRELEASE)
+ifeq ($(VARIETY),ro)
+CFLAGS=$(CFLAGSCOMMON) $(CFRO)
 else
-ifeq ($(VARIETY),devel)
-CFLAGS=$(CFLAGSCOMMON) $(CFDEVEL)
+ifeq ($(VARIETY),df)
+CFLAGS=$(CFLAGSCOMMON) $(CFDF)
+else
+ifeq ($(VARIETY),ds)
+CFLAGS=$(CFLAGSCOMMON) $(CFDS)
+endif
 endif
 endif
 endif
@@ -146,14 +140,14 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: mpmss amcss dwstress mpsicv lockcov stdcover std.a poolncv lo.a locv qs
+all: mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss amcss dwstress mpsicv lockcov stdcover std.a poolncv lo.a locv qs: phony
+mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the
@@ -169,9 +163,10 @@ clean: phony
 ifdef TARGET
 ifndef VARIETY
 target: phony
-	$(MAKE) -f $(PFM).gmk VARIETY=devel variety
-	$(MAKE) -f $(PFM).gmk VARIETY=debug variety
-	$(MAKE) -f $(PFM).gmk VARIETY=release variety
+	$(MAKE) -f $(PFM).gmk VARIETY=df variety
+	$(MAKE) -f $(PFM).gmk VARIETY=dp variety
+	$(MAKE) -f $(PFM).gmk VARIETY=ds variety
+	$(MAKE) -f $(PFM).gmk VARIETY=ro variety
 endif
 endif
 
@@ -196,36 +191,31 @@ endif
 ifdef VARIETY
 
 $(PFM)/$(VARIETY)/locv: $(PFM)/$(VARIETY)/locv.o \
-	$(STDOBJ) $(MPMOBJ) $(LOOBJ) $(TESTLIBOBJ)
-
-$(PFM)/$(VARIETY)/stdcover: $(PFM)/$(VARIETY)/stdcover.o \
-	$(STDOBJ)
+	$(MPMOBJ) $(LOOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
-	$(MPMOBJ) $(STDOBJ)
+	$(MPMOBJ)
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
-	$(MPMOBJ) $(STDOBJ)
+	$(MPMOBJ)
 
 $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 	$(PFM)/$(VARIETY)/fmtdy.o \
-	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
-	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(PFM)/$(VARIETY)/pooln.o \
-	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/qs: $(PFM)/$(VARIETY)/qs.o \
-	$(AMCOBJ) $(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
-
-$(PFM)/$(VARIETY)/std.a: $(STDOBJ)
+	$(AMCOBJ) $(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/mpm.a: $(MPMOBJ)
 
@@ -275,7 +265,7 @@ $(PFM)/$(VARIETY)/%.d: %.c
 ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the depency file macro for the new part here.
-include $(STDDEP) $(MPMDEP) $(AMCDEP) $(LODEP)
+include $(MPMDEP) $(AMCDEP) $(LODEP)
 endif
 endif
 

@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOLS ====
  *
- *  $HopeName: MMsrc!poolmv.h(trunk.2) $
+ *  $HopeName: MMsrc!poolmv.h(MMdevel_restr.2) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -44,27 +44,19 @@
 #ifndef poolmv_h
 #define poolmv_h
 
+#include "mpm.h"
 
-#include "std.h"
-#include "pool.h"
-#include "poolclas.h"
-#include "space.h"
-#include <stddef.h>
-
-
-typedef struct PoolMVStruct *PoolMV;
-
+typedef struct MVStruct *MV;
 
 extern PoolClass PoolClassMV(void);
 
-extern Error PoolMVCreate(PoolMV *poolMVReturn, Space space,
-                          Size extendBy, Size avgSize, Size maxSize);
-extern void PoolMVDestroy(PoolMV poolMV);
-extern Error PoolMVInit(PoolMV poolMV, Space space,
-                        Size extendBy, Size avgSize, Size maxSize);
-extern void PoolMVFinish(PoolMV poolMV);
-extern Bool PoolMVIsValid(PoolMV poolMV, ValidationType validParam);
-extern Pool (PoolMVPool)(PoolMV poolMV);
-
+extern Res MVCreate(MV *mvReturn, Space space,
+                    Size extendBy, Size avgSize, Size maxSize);
+extern void MVDestroy(MV mv);
+extern Res MVInit(MV mv, Space space,
+                  Size extendBy, Size avgSize, Size maxSize);
+extern void MVFinish(MV mv);
+extern Bool MVCheck(MV mv);
+extern Pool (MVPool)(MV mv);
 
 #endif /* poolmv_h */

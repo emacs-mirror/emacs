@@ -1,6 +1,6 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.1) $
+ * $HopeName: MMsrc!mpsicv.c(MMdevel_restr.2) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -149,7 +149,7 @@ static void *test(void *arg, size_t s)
                       MPS_RANK_EXACT, (mps_rm_t)0,
                       &root_single, &obj, 0),
                       "root_create(single)");
-    
+
   /* test non-inlined reserve/commit */
   obj = make_no_inline();
 
@@ -164,7 +164,7 @@ static void *test(void *arg, size_t s)
                           alloced_obj,
                           (mps_addr_t)(((char*)alloced_obj)+asize)),
                           "root_create_fmt");
-    
+
   mps_ld_reset(&ld, space);
   mps_ld_add(&ld, space, obj);
 
@@ -198,7 +198,7 @@ static void *test(void *arg, size_t s)
     if(exact_roots[r] != OBJNULL)
       assert(dylan_check(exact_roots[r]));
   }
-  
+
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
   mps_pool_destroy(mv);
@@ -220,7 +220,7 @@ int main(void)
   mps_root_t reg_root;
   void *r;
   void *marker = &marker;
-  
+
   (void)mps_assert_install(mps_assert_default());
   die(mps_space_create(&space), "space_create");
   die(mps_thread_reg(&thread, space), "thread_reg");
@@ -235,6 +235,6 @@ int main(void)
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
   mps_space_destroy(space);
-  
+
   return 0;
 }

@@ -2,7 +2,7 @@
  *
  *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.6) $
+ *  $HopeName: MMsrc!mps.h(MMdevel_restr.2) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
@@ -126,8 +126,7 @@ enum
  * .ap: Keep in sync with impl.h.buffer.ap.
  */
 
-typedef struct mps_ap_s         /* allocation point descriptor */
-{
+typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
   mps_addr_t alloc;             /* limit of reserved memory */
   mps_addr_t limit;             /* limit of buffered memory */
@@ -143,8 +142,7 @@ typedef struct mps_ap_s         /* allocation point descriptor */
  * .ld: Keep in sync with impl.h.ld.struct.
  */
 
-typedef struct mps_ld_s         /* location dependency descriptor */
-{
+typedef struct mps_ld_s {       /* location dependency descriptor */
   mps_word_t w0, w1;
 } mps_ld_s;
 
@@ -175,8 +173,7 @@ typedef void       (*mps_fmt_pad_t)    (mps_addr_t base, size_t size);
  * See also impl.c.mpsi.check.ss and impl.h.trace.ss.
  */
 
-typedef struct mps_ss_s
-{
+typedef struct mps_ss_s {
   mps_res_t (*fix)(mps_ss_t mps_ss, mps_addr_t *ref_io);
   mps_word_t w0, w1, w2;
 } mps_ss_s;
@@ -185,8 +182,7 @@ typedef struct mps_ss_s
 /* Format Variants */
 
 typedef struct mps_fmt_A_s *mps_fmt_A_t;
-typedef struct mps_fmt_A_s
-{
+typedef struct mps_fmt_A_s {
   mps_align_t     align;
   mps_fmt_scan_t  scan;
   mps_fmt_skip_t  skip;
@@ -314,7 +310,7 @@ extern mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p,
  * function with two closure elements, p and s.
  *
  * mps_root_create_table creates a root from a block of memory which
- * contains a contiguous array of references.  Pages containing table 
+ * contains a contiguous array of references.  Pages containing table
  * roots may be protected by the MPS if MPS_RM_PROT is set in the
  * root mode.
  *

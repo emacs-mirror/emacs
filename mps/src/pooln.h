@@ -1,8 +1,8 @@
 /*  impl.h.pooln
  *
  *                          NULL POOL
- * 
- *  $HopeName$
+ *
+ *  $HopeName: MMsrc!pooln.h(MMdevel_restr.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -18,16 +18,14 @@
 #define pooln_h
 
 
-#include "std.h"
+#include "mpm.h"
 
 
 /*  Instance Type  */
 typedef struct PoolNStruct *PoolN;
 
 
-#include "pool.h"
-#include "poolclas.h"
-#include "space.h"
+#include "mpm.h"
 
 
 /*  PoolClass
@@ -41,7 +39,7 @@ extern PoolClass PoolClassN(void);
  *  Validates a PoolN object.  This function conforms to the validation
  *  protocol defined in impl.h.valid
  */
-extern Bool PoolNIsValid(PoolN poolN, ValidationType validParam);
+extern Bool PoolNCheck(PoolN poolN);
 
 
 /*  Create / Destroy; Class Specific
@@ -50,7 +48,7 @@ extern Bool PoolNIsValid(PoolN poolN, ValidationType validParam);
  *  that the generic pool create and destroy (PoolCreate/Destroy)
  *  methods can also be used.
  */
-extern Error PoolNCreate(PoolN *poolNReturn, Space space);
+extern Res PoolNCreate(PoolN *poolNReturn, Space space);
 extern void PoolNDestroy(PoolN poolN);
 
 
@@ -61,7 +59,7 @@ extern void PoolNDestroy(PoolN poolN);
  *  Finish does not release it.  They are expected to be used
  *  when you have already allocated a PoolNStruct object.
  */
-extern Error PoolNInit(PoolN poolN, Space space);
+extern Res PoolNInit(PoolN poolN, Space space);
 extern void PoolNFinish(PoolN poolN);
 
 
