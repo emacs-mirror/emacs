@@ -1,3 +1,7 @@
+2000-07-26  Dave Love  <fx@gnu.org>
+
+	* configure.in (AC_SYS_LARGEFILE): Moved earlier.
+
 2000-07-24  Dave Love  <fx@gnu.org>
 
 	* configure.in: Add AC_SIZE_T.

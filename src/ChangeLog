@@ -1,3 +1,11 @@
+2000-07-26  Dave Love  <fx@gnu.org>
+
+	* syswait.h: Move some definitions.
+	(HAVE_SYS_WAIT_H): Undef for HPUX7, Convex.
+	[!HAVE_SYS_WAIT_H]: Define things unconditionally.   More
+	perspicuous definitions.
+	(WTERMSIG): Fix bit pattern used.
+
 2000-07-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* print.c (print_object): If vector printing is truncated, print
