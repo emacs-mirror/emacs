@@ -82,9 +82,9 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
 	    (if (> (length hiragana) 1)
 		(let ((hira (aref hiragana 0)))
 		  (put-char-code-property
-		   hira 'composition
+		   hira 'kana-composition
 		   (cons (cons (aref hiragana 1) katakana)
-			 (get-char-code-property hira 'composition)))))
+			 (get-char-code-property hira 'kana-composition)))))
 	  (put-char-code-property hiragana 'katakana katakana)
 	  (put-char-code-property hiragana 'jisx0201 jisx0201)))
     (when (integerp katakana)
@@ -95,9 +95,9 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
 	    (if (> (length jisx0201) 1)
 		(let ((kana (aref jisx0201 0)))
 		  (put-char-code-property
-		   kana 'composition
+		   kana 'kana-composition
 		   (cons (cons (aref jisx0201 1) katakana)
-			 (get-char-code-property kana 'composition)))))
+			 (get-char-code-property kana 'kana-composition)))))
 	  (put-char-code-property jisx0201 'hiragana hiragana)
 	  (put-char-code-property jisx0201 'katakana katakana)
 	  (put-char-code-property jisx0201 'jisx0208 katakana)))))
@@ -218,6 +218,12 @@ The argument object is not altered--the value is a copy."
     (or (get-char-code-property obj 'jisx0208)
 	obj)))
 
+(defun japanese-replace-region (from to string)
+  "Replace the region specified by FROM and TO to STRING."
+  (goto-char from)
+  (insert string)
+  (delete-char (- to from)))
+
 ;;;###autoload
 (defun japanese-katakana-region (from to &optional hankaku)
   "Convert Japanese `hiragana' chars in the region to `katakana' chars.
@@ -226,21 +232,21 @@ of which charset is `japanese-jisx0201-kana'."
   (interactive "r\nP")
   (save-restriction
     (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward "\\cH\\|\\cK" nil t)
-      (let* ((kana (preceding-char))
-	     (composition (get-char-code-property kana 'composition))
-	     next slot)
-	(if (and composition (setq slot (assq (following-char) composition)))
-	    (progn
-	      (delete-region (match-beginning 0) (1+ (point)))
-	      (insert (cdr slot)))
-	  (let ((kata (get-char-code-property
-		       kana (if hankaku 'jisx0201 'katakana))))
-	    (if kata
-		(progn
-		  (delete-region (match-beginning 0) (match-end 0))
-		  (insert kata)))))))))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\cH\\|\\cK" nil t)
+	(let* ((kana (preceding-char))
+	       (composition (get-char-code-property kana 'kana-composition))
+	       next slot)
+	  (if (and composition (setq slot (assq (following-char) composition)))
+	      (japanese-replace-region (match-beginning 0) (1+ (point))
+				       (cdr slot))
+	    (let ((kata (get-char-code-property
+			 kana (if hankaku 'jisx0201 'katakana))))
+	      (if kata
+		  (japanese-replace-region (match-beginning 0) (point)
+					   kata)))))))))
+
 
 ;;;###autoload
 (defun japanese-hiragana-region (from to)
@@ -248,20 +254,20 @@ of which charset is `japanese-jisx0201-kana'."
   (interactive "r")
   (save-restriction
     (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward "\\cK\\|\\ck" nil t)
-      (let* ((kata (preceding-char))
-	     (composition (get-char-code-property kata 'composition))
-	     next slot)
-	(if (and composition (setq slot (assq (following-char) composition)))
-	    (progn
-	      (delete-region (match-beginning 0) (1+ (point)))
-	      (insert (get-char-code-property (cdr slot) 'hiragana)))
-	  (let ((hira (get-char-code-property kata 'hiragana)))
-	    (if hira
-		(progn
-		  (delete-region (match-beginning 0) (match-end 0))
-		  (insert hira)))))))))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\cK\\|\\ck" nil t)
+	(let* ((kata (preceding-char))
+	       (composition (get-char-code-property kata 'kana-composition))
+	       next slot)
+	  (if (and composition (setq slot (assq (following-char) composition)))
+	      (japanese-replace-region (match-beginning 0) (1+ (point))
+				       (get-char-code-property
+					(cdr slot) 'hiragana))
+	    (let ((hira (get-char-code-property kata 'hiragana)))
+	      (if hira
+		  (japanese-replace-region (match-beginning 0) (point)
+					   hira)))))))))
 
 ;;;###autoload
 (defun japanese-hankaku-region (from to &optional ascii-only)
@@ -272,16 +278,16 @@ Optional argument ASCII-ONLY non-nil means to convert only to ASCII char."
   (interactive "r\nP")
   (save-restriction
     (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward "\\cj" nil t)
-      (let* ((zenkaku (preceding-char))
-	     (hankaku (or (get-char-code-property zenkaku 'ascii)
-			  (and (not ascii-only)
-			       (get-char-code-property zenkaku 'jisx0201)))))
-	(if hankaku
-	    (progn
-	      (delete-region (match-beginning 0) (match-end 0))
-	      (insert hankaku)))))))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\cj" nil t)
+	(let* ((zenkaku (preceding-char))
+	       (hankaku (or (get-char-code-property zenkaku 'ascii)
+			    (and (not ascii-only)
+				 (get-char-code-property zenkaku 'jisx0201)))))
+	  (if hankaku
+	      (japanese-replace-region (match-beginning 0) (match-end 0)
+				       hankaku)))))))
 
 ;;;###autoload
 (defun japanese-zenkaku-region (from to)
@@ -291,20 +297,19 @@ Optional argument ASCII-ONLY non-nil means to convert only to ASCII char."
   (interactive "r")
   (save-restriction
     (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward "\\ca\\|\\ck" nil t)
-      (let* ((hankaku (preceding-char))
-	     (composition (get-char-code-property hankaku 'composition))
-	     next slot)
-	(if (and composition (setq slot (assq (following-char) composition)))
-	    (progn
-	      (delete-region (match-beginning 0) (1+ (point)))
-	      (insert (cdr slot)))
-	  (let ((zenkaku (japanese-zenkaku hankaku)))
-	    (if zenkaku
-		(progn
-		  (delete-region (match-beginning 0) (match-end 0))
-		  (insert zenkaku)))))))))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "\\ca\\|\\ck" nil t)
+	(let* ((hankaku (preceding-char))
+	       (composition (get-char-code-property hankaku 'kana-composition))
+	       next slot)
+	  (if (and composition (setq slot (assq (following-char) composition)))
+	      (japanese-replace-region (match-beginning 0) (1+ (point))
+				       (cdr slot))
+	    (let ((zenkaku (japanese-zenkaku hankaku)))
+	      (if zenkaku
+		  (japanese-replace-region (match-beginning 0) (match-end 0)
+					   zenkaku)))))))))
 
 ;;;###autoload
 (defun read-hiragana-string (prompt &optional initial-input)
