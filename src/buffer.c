@@ -921,7 +921,7 @@ if not void, is a list of functions to be called, with no arguments,\n\
 before the buffer is actually killed.  The buffer to be killed is current\n\
 when the hook functions are called.\n\n\
 Any processes that have this buffer as the `process-buffer' are killed\n\
-with `delete-process'.")
+with SIGHUP.")
   (buffer)
      Lisp_Object buffer;
 {
