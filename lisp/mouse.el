@@ -1253,6 +1253,10 @@ and selects that window."
      ("11x18" "-misc-fixed-medium-r-normal--18-*-*-*-c-110-iso8859-1" "11x18")
      ("12x24" "-misc-fixed-medium-r-normal--24-*-*-*-c-120-iso8859-1" "12x24")
      ("")
+     ("clean 5x8"
+      "-schumacher-clean-medium-r-normal--8-*-*-*-c-50-iso8859-1")
+     ("clean 6x8"
+      "-schumacher-clean-medium-r-normal--8-*-*-*-c-60-iso8859-1")
      ("clean 8x8"
       "-schumacher-clean-medium-r-normal--8-*-*-*-c-80-iso8859-1")
      ("clean 8x10"
