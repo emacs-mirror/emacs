@@ -1817,13 +1817,22 @@ default directory."
 	  ;; relative to the curent directory if none supplied.
 	  nil)))
   (let ((odefault default-directory)
+	(changelog (find-change-log))
+	;; Presumably not portable to non-Unixy systems, along with rcs2log:
+	(tempfile (make-temp-name
+		   (concat (file-name-as-directory
+			    (directory-file-name (or (getenv "TMPDIR")
+						     (getenv "TMP")
+						     (getenv "TEMP")
+						     "/tmp")))
+			   "vc")))
 	(full-name (or add-log-full-name
 		       (user-full-name)
 		       (user-login-name)
 		       (format "uid%d" (number-to-string (user-uid)))))
 	(mailing-address (or add-log-mailing-address
 			     user-mail-address)))
-    (find-file-other-window (find-change-log))
+    (find-file-other-window changelog)
     (barf-if-buffer-read-only)
     (vc-buffer-sync)
     (undo-boundary)
@@ -1831,21 +1840,31 @@ default directory."
     (push-mark)
     (message "Computing change log entries...")
     (message "Computing change log entries... %s"
-	     (if (eq 0 (apply 'call-process "rcs2log" nil '(t nil) nil
-			      "-u"
-			      (concat (vc-user-login-name)
-				      "\t"
-				      full-name
-				      "\t"
-				      mailing-address)
-			      (mapcar (function
-				       (lambda (f)
-					 (file-relative-name
-					  (if (file-name-absolute-p f)
-					      f
-					    (concat odefault f)))))
-				      args)))
-		 "done" "failed"))))
+	     (unwind-protect
+		 (progn
+		   (cd odefault)
+		   (if (eq 0 (apply 'call-process "rcs2log" nil
+				       (list t tempfile) nil
+				       "-c" changelog
+				       "-u" (concat (vc-user-login-name)
+						    "\t" full-name
+						    "\t" mailing-address)
+				       (mapcar
+					(function
+					 (lambda (f)
+					   (file-relative-name
+					    (if (file-name-absolute-p f)
+						f
+					      (concat odefault f)))))
+					args)))
+			  "done"
+		     (pop-to-buffer
+		      (set-buffer (get-buffer-create "*vc*")))
+		     (erase-buffer)
+		     (insert-file tempfile)
+		     "failed"))
+	       (cd (file-name-directory changelog))
+	       (delete-file tempfile)))))
 
 ;; Collect back-end-dependent stuff here
 
