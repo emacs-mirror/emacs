@@ -1,7 +1,7 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName: MMsrc!protnt.c(MMdevel_restr.5) $
+ *  $HopeName: MMsrc!protnt.c(trunk.8) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -14,7 +14,7 @@
 
 #include <windows.h>
 
-SRCID(protnt, "$HopeName: MMsrc!protnt.c(MMdevel_restr.5) $");
+SRCID(protnt, "$HopeName: MMsrc!protnt.c(trunk.8) $");
 
 
 void ProtSetup(void)
@@ -38,7 +38,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
     newProtect = PAGE_NOACCESS;
 
   if(VirtualProtect((LPVOID)base, (DWORD)AddrOffset(base, limit),
-                    newProtect, &oldProtect) != TRUE)
+                    newProtect, &oldProtect) == 0)
     NOTREACHED;
 }
 
