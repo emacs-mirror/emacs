@@ -43,10 +43,22 @@ if necessary to attain exactly the specified column."
 	  (let (indent-tabs-mode)
 	    (delete-char -1)
             (indent-to col)
-            (move-to-column column))))))
+            (move-to-column column))))
+    ;; This call will go away when Emacs gets real horizonal autoscrolling
+    (hscroll-point-visible)))
 
 
 ;; Picture Movement Commands
+
+(defun picture-beginning-of-line (&optional arg)
+  "Position point at the beginning of the line.
+With ARG not nil, move forward ARG - 1 lines first.
+If scan reaches end of buffer, stop there without error."
+  (interactive "P")
+  (if arg (forward-line (1- (prefix-numeric-value arg))))
+  (beginning-of-line)
+  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  (hscroll-point-visible))
 
 (defun picture-end-of-line (&optional arg)
   "Position point after last non-blank character on current line.
@@ -55,7 +67,9 @@ If scan reaches end of buffer, stop there without error."
   (interactive "P")
   (if arg (forward-line (1- (prefix-numeric-value arg))))
   (beginning-of-line)
-  (skip-chars-backward " \t" (prog1 (point) (end-of-line))))
+  (skip-chars-backward " \t" (prog1 (point) (end-of-line)))
+  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  (hscroll-point-visible))
 
 (defun picture-forward-column (arg)
   "Move cursor right, making whitespace if necessary.
@@ -223,7 +237,9 @@ always moves to the beginning of a line."
     (while (> arg 0)
       (end-of-line)
       (if (eobp) (newline) (forward-char 1))
-      (setq arg (1- arg)))))
+      (setq arg (1- arg))))
+  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  (hscroll-point-visible))
 
 (defun picture-open-line (arg)
   "Insert an empty line after the current line.
@@ -231,7 +247,9 @@ With positive argument insert that many lines."
   (interactive "p")
   (save-excursion
    (end-of-line)
-   (open-line arg)))
+   (open-line arg))
+  ;; This call will go away when Emacs gets real horizonal autoscrolling
+  (hscroll-point-visible))
 
 (defun picture-duplicate-line ()
   "Insert a duplicate of the current line, below it."
@@ -417,24 +435,30 @@ Leaves the region surrounding the rectangle."
 
 (defconst picture-mode-map nil)
 
+(defun picture-substitute (oldfun newfun)
+  (substitute-key-definition oldfun newfun picture-mode-map global-map))
+
 (if (not picture-mode-map)
     (let ((i ?\ ))
       (setq picture-mode-map (make-keymap))
       (while (< i ?\177)
 	(define-key picture-mode-map (make-string 1 i) 'picture-self-insert)
 	(setq i (1+ i)))
-      (define-key picture-mode-map "\C-f" 'picture-forward-column)
-      (define-key picture-mode-map "\C-b" 'picture-backward-column)
-      (define-key picture-mode-map "\C-d" 'picture-clear-column)
+
+      (picture-substitute 'forward-char 'picture-forward-column)
+      (picture-substitute 'backward-char 'picture-backward-column)
+      (picture-substitute 'delete-char 'picture-clear-column)
+      (picture-substitute 'backward-delete-char-untabify 'picture-backward-clear-column)
+      (picture-substitute 'kill-line 'picture-clear-line)
+      (picture-substitute 'open-line 'picture-open-line)
+      (picture-substitute 'newline 'picture-newline)
+      (picture-substitute 'newline-andindent 'picture-duplicate-line)
+      (picture-substitute 'next-line 'picture-move-down)
+      (picture-substitute 'previous-line 'picture-move-up)
+      (picture-substitute 'beginning-of-line 'picture-beginning-of-line)
+      (picture-substitute 'end-of-line 'picture-end-of-line)
+
       (define-key picture-mode-map "\C-c\C-d" 'delete-char)
-      (define-key picture-mode-map "\177" 'picture-backward-clear-column)
-      (define-key picture-mode-map "\C-k" 'picture-clear-line)
-      (define-key picture-mode-map "\C-o" 'picture-open-line)
-      (define-key picture-mode-map "\C-m" 'picture-newline)
-      (define-key picture-mode-map "\C-j" 'picture-duplicate-line)
-      (define-key picture-mode-map "\C-n" 'picture-move-down)
-      (define-key picture-mode-map "\C-p" 'picture-move-up)
-      (define-key picture-mode-map "\C-e" 'picture-end-of-line)
       (define-key picture-mode-map "\e\t" 'picture-toggle-tab-state)
       (define-key picture-mode-map "\t" 'picture-tab)
       (define-key picture-mode-map "\e\t" 'picture-tab-search)
@@ -455,16 +479,16 @@ Leaves the region surrounding the rectangle."
       (define-key picture-mode-map "\C-c/" 'picture-movement-sw)
       (define-key picture-mode-map "\C-c\\" 'picture-movement-se)))
 
-(defvar edit-picture-hook nil
-  "If non-nil, it's value is called on entry to Picture mode.
-Picture mode is invoked by the command \\[edit-picture].")
+(defvar picture-mode-hook nil
+  "If non-nil, its value is called on entry to Picture mode.
+Picture mode is invoked by the command \\[picture-mode].")
 
 (defvar picture-mode-old-local-map)
 (defvar picture-mode-old-mode-name)
 (defvar picture-mode-old-major-mode)
 
 ;;;###autoload
-(defun edit-picture ()
+(defun picture-mode ()
   "Switch to Picture mode, in which a quarter-plane screen model is used.
 Printing characters replace instead of inserting themselves with motion
 afterwards settable by these commands:
@@ -480,11 +504,11 @@ The current direction is displayed in the mode line.  The initial
 direction is right.  Whitespace is inserted and tabs are changed to
 spaces when required by movement.  You can move around in the buffer
 with these commands:
-  C-p	  Move vertically to SAME column in previous line.
-  C-n	  Move vertically to SAME column in next line.
-  C-e	  Move to column following last non-whitespace character.
-  C-f	  Move right inserting spaces if required.
-  C-b	  Move left changing tabs to spaces if required.
+  \\[picture-move-down]	  Move vertically to SAME column in previous line.
+  \\[picture-move-up]	  Move vertically to SAME column in next line.
+  \\[picture-end-of-line]	  Move to column following last non-whitespace character.
+  \\[picture-forward-column]	  Move right inserting spaces if required.
+  \\[picture-backward-column]	  Move left changing tabs to spaces if required.
   C-c C-f Move in direction of current picture motion.
   C-c C-b Move in opposite direction of current picture motion.
   Return  Move to beginning of next line.
@@ -500,10 +524,10 @@ You can edit tabular text with these commands:
 You can manipulate text with these commands:
   C-d	  Clear (replace) ARG columns after point without moving.
   C-c C-d Delete char at point - the command normally assigned to C-d.
-  Delete  Clear (replace) ARG columns before point, moving back over them.
-  C-k	  Clear ARG lines, advancing over them.	 The cleared
+  \\[picture-backward-clear-column]  Clear (replace) ARG columns before point, moving back over them.
+  \\[picture-clear-line]	  Clear ARG lines, advancing over them.	 The cleared
 	    text is saved in the kill ring.
-  C-o	  Open blank line(s) beneath current line.
+  \\[picture-open-line]	  Open blank line(s) beneath current line.
 You can manipulate rectangles with these commands:
   C-c C-k Clear (or kill) a rectangle and save it.
   C-c C-w Like C-c C-k except rectangle is saved in named register.
@@ -516,13 +540,13 @@ You can return to the previous mode with:
   C-c C-c Which also strips trailing whitespace from every line.
 	    Stripping is suppressed by supplying an argument.
 
-Entry to this mode calls the value of  edit-picture-hook  if non-nil.
+Entry to this mode calls the value of  picture-mode-hook  if non-nil.
 
 Note that Picture mode commands will work outside of Picture mode, but
 they are not defaultly assigned to keys."
   (interactive)
-  (if (eq major-mode 'edit-picture)
-      (error "You are already editing a Picture.")
+  (if (eq major-mode 'picture-mode)
+      (error "You are already editing a picture.")
     (make-local-variable 'picture-mode-old-local-map)
     (setq picture-mode-old-local-map (current-local-map))
     (use-local-map picture-mode-map)
@@ -530,7 +554,7 @@ they are not defaultly assigned to keys."
     (setq picture-mode-old-mode-name mode-name)
     (make-local-variable 'picture-mode-old-major-mode)
     (setq picture-mode-old-major-mode major-mode)
-    (setq major-mode 'edit-picture)
+    (setq major-mode 'picture-mode)
     (make-local-variable 'picture-killed-rectangle)
     (setq picture-killed-rectangle nil)
     (make-local-variable 'tab-stop-list)
@@ -539,7 +563,9 @@ they are not defaultly assigned to keys."
     (setq picture-tab-chars (default-value 'picture-tab-chars))
     (make-local-variable 'picture-vertical-step)
     (make-local-variable 'picture-horizontal-step)
+    (setq truncate-lines t)
     (picture-set-motion 0 1)
+
     ;; edit-picture-hook is what we used to run, picture-mode-hook is in doc.
     (run-hooks 'edit-picture-hook 'picture-mode-hook)
     (message
@@ -548,14 +574,14 @@ they are not defaultly assigned to keys."
      picture-mode-old-mode-name)))
 
 ;;;###autoload
-(defalias 'picture-mode 'edit-picture)
+(defalias 'edit-picture 'picture-mode)
 
 (defun picture-mode-exit (&optional nostrip)
-  "Undo edit-picture and return to previous major mode.
+  "Undo picture-mode and return to previous major mode.
 With no argument strips whitespace from end of every line in Picture buffer
   otherwise just return to previous mode."
   (interactive "P")
-  (if (not (eq major-mode 'edit-picture))
+  (if (not (eq major-mode 'picture-mode))
       (error "You aren't editing a Picture.")
     (if (not nostrip) (picture-clean))
     (setq mode-name picture-mode-old-mode-name)
