@@ -64,7 +64,7 @@
 
 (provide 'iso-acc)
 
-(defvar iso-accents-insert-offset quoted-insert-character-offset
+(defvar iso-accents-insert-offset nonascii-insert-offset
   "*Offset added by ISO Accents mode to character codes 0200 and above.")
 
 (defvar iso-languages
