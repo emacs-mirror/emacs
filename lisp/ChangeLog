@@ -1,3 +1,11 @@
+2005-03-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-do-embedded): Reset mode line when
+	embedded mode begins.
+	(calc-embedded-language-alist): New variable.
+	(calc-embedded-find-modes): Use calc-embedded-language-alist to
+	set default language mode.
+
 2005-03-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/ccl.el (define-ccl-program): Fix docstring about
