@@ -1,3 +1,9 @@
+2002-05-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Re-enable since
+	the last patch works around the wu-ftpd misfeature that prompted
+	the disabling of this optimization.
+
 2002-05-21  Colin Walters  <walters@gnu.org>
 
 	* international/mule.el (make-coding-system): Doc fixes.
@@ -7,11 +13,11 @@
 	(set-auto-coding): Update docs.
 	(sgml-xml-auto-coding-function): New function.
 
-	* international/mule-util.el (truncate-string-to-width): New
-	optional argument `ellipsis'.  Add commented-out test suite, and
+	* international/mule-util.el (truncate-string-to-width):
+	New optional argument `ellipsis'.  Add commented-out test suite, and
 	change coding to iso-2022-7bit.
 
-2002-05-21  Colin Walters  <walters@verbum.org>	
+2002-05-21  Colin Walters  <walters@verbum.org>
 
 	* font-lock.el (font-lock-defaults, font-lock-defaults-alist)
 	(font-lock-multiline, font-lock-fontified, font-lock-mode)
@@ -22,8 +28,8 @@
 	* font-core.el: New file, with functions taken from font-lock.el.
 	(font-lock-category-alist): New variable.
 	(font-lock-mode): Use it.
-	(font-lock-set-defaults): Partially taken from font-lock.el.  Only
-	load font-lock.el when necessary.
+	(font-lock-set-defaults): Partially taken from font-lock.el.
+	Only load font-lock.el when necessary.
 
 	* loadup.el: Add font-core.el.
 
@@ -35,7 +41,7 @@
 	(occur-engine): Use categories from `font-lock-category-alist'.
 
 	* info.el (Info-fontify): Deleted.
-	(Info-select-node): Don't use it.	
+	(Info-select-node): Don't use it.
 	(Info-mode-hook): New variable.
 	(Info-mode): Set up categories.
 	(Info-fontify-menu-headers, Info-fontify-node): Use categories.
@@ -57,7 +63,7 @@
 	(ibuffer-insert-filter-group): Ditto.
 	(ibuffer-mode): Set up category properties.
 
-2002-05-21  Colin Walters  <walters@debian.org>	
+2002-05-21  Colin Walters  <walters@debian.org>
 
 	* replace.el (occur-engine): Increment globalcount all at once
 	after searching a buffer.
@@ -65,19 +71,18 @@
 
 	* ibuf-macs.el (define-ibuffer-column): Add third argument
 	`ibuffer-buf'.
-	
+
 	* ibuffer.el (toplevel): Require font-lock, to get the face
 	definitions.
 	(ibuffer-use-fontification): Deleted.
 	(column filename-and-process): New column.
 	(ibuffer-formats): Use it by default.
 	(ibuffer-name-map, ibuffer-mode-name-map)
-	(ibuffer-filter-group-map): Don't set parent to
-	`ibuffer-mode-map'.
+	(ibuffer-filter-group-map): Don't set parent to `ibuffer-mode-map'.
 	(ibuffer-do-save, ibuffer-do-toggle-modified)
 	(ibuffer-do-toggle-read-only, ibuffer-do-delete)
 	(ibuffer-do-kill-on-deletion-marks): Include name in definition.
-	(ibuffer): New optional argument `formats'.  
+	(ibuffer): New optional argument `formats'.
 
 2002-05-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
