@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.58) $
+ * $HopeName: MMsrc!buffer.c(trunk.59) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -10,7 +10,12 @@
  *
  * DESIGN
  *
- * See design.mps.buffer.
+ * .design: See design.mps.buffer.
+ *
+ * .ap.async: The mutator is allowed to change certain AP fields
+ * asynchronously.  Functions that can be called on buffers not
+ * synchronized with the mutator must take care when reading these
+ * fields.  Such functions are marked with this tag.
  *
  * TRANSGRESSIONS
  *
@@ -22,17 +27,18 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.58) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.59) $");
 
 
 /* forward declarations */
 static void BufferFrameNotifyPopPending(Buffer buffer);
 
 
-/* BufferCheck -- check consistency of a buffer */
-/* .check.use-trapped: This checking function uses BufferIsTrapped, */
-/* So BufferIsTrapped can't do checking as that would cause an */
-/* inifinite loop. */
+/* BufferCheck -- check consistency of a buffer
+ *
+ * See .ap.async.
+ */
+
 Bool BufferCheck(Buffer buffer)
 {
   CHECKS(Buffer, buffer);
@@ -102,8 +108,7 @@ Bool BufferCheck(Buffer buffer)
     /* Read a snapshot value of the limit field. Use this to determine */
     /* if we are trapped, and to permit more useful checking when not */
     /* yet trapped. */
-
-    aplimit = buffer->apStruct.limit; /* .lwcheck */
+    aplimit = buffer->apStruct.limit;
 
     /* If the buffer isn't trapped then "limit" should be the limit */
     /* set by the owning pool.  Otherwise, "init" is either at the */
@@ -114,8 +119,11 @@ Bool BufferCheck(Buffer buffer)
     /* is kept at zero to avoid misuse (see */
     /* request.dylan.170429.sol.zero). */
 
-    if((buffer->apStruct.enabled && aplimit == (Addr)0) ||
-       BufferIsTrapped(buffer)) { /* .lwcheck, .check.use-trapped */
+    if((buffer->apStruct.enabled && aplimit == (Addr)0) /* see .lwcheck */
+       || (!buffer->apStruct.enabled && BufferIsTrapped(buffer))) {
+      /* .check.use-trapped: This checking function uses BufferIsTrapped, */
+      /* So BufferIsTrapped can't do checking as that would cause an */
+      /* infinite loop. */
       CHECKL(aplimit == (Addr)0);
       if(buffer->mode & BufferModeFLIPPED) {
         CHECKL(buffer->apStruct.init == buffer->initAtFlip ||
@@ -123,12 +131,9 @@ Bool BufferCheck(Buffer buffer)
         CHECKL(buffer->base <= buffer->initAtFlip);
         CHECKL(buffer->initAtFlip <= buffer->apStruct.init);
       }
-      if(buffer->mode & BufferModeLOGGED) {
-        /* Nothing special to check in the logged mode */
-	NOOP;
-      }
+      /* Nothing special to check in the logged mode. */
     } else {
-      CHECKL(aplimit == buffer->poolLimit);
+      CHECKL(aplimit == buffer->poolLimit); /* see .lwcheck */
       CHECKL(buffer->initAtFlip == (Addr)0);
     }
   }
@@ -456,6 +461,7 @@ Bool BufferIsReady(Buffer buffer)
   return FALSE;
 }
 
+
 /* BufferIsMutator
  *
  * returns TRUE iff mutator was created at mutator request (ie a
@@ -510,6 +516,7 @@ FrameState BufferFrameState(Buffer buffer)
     return BufferFrameDISABLED;
   }
 }
+
 
 /* BufferFrameSetState
  *
@@ -824,7 +831,9 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
  *
  * Called from BufferCommit (and its equivalents) when invoked on a
  * trapped buffer (indicated by limit == 0).  This function can
- * decide whether to succeed or fail the commit. */
+ * decide whether to succeed or fail the commit.
+ */
+
 Bool BufferTrip(Buffer buffer, Addr p, Size size)
 {
   Pool pool;
@@ -936,6 +945,7 @@ void BufferFlip(Buffer buffer)
  * "init" of the AP.  When the buffer is flipped, it is the value
  * that "init" had at flip time.  [Could make BufferScanLimit
  * return the AP "alloc" when using ambiguous scanning.]
+ * See .ap.async.
  */
 
 Addr BufferScanLimit(Buffer buffer)
@@ -1044,7 +1054,8 @@ void BufferReassignSeg(Buffer buffer, Seg seg)
 
 /* BufferIsTrapped
  *
- * Indicates whether the buffer is trapped - either by MPS or the mutator
+ * Indicates whether the buffer is trapped - either by MPS or the mutator.
+ * See .ap.async.
  */
 
 Bool BufferIsTrapped(Buffer buffer)
@@ -1058,7 +1069,7 @@ Bool BufferIsTrapped(Buffer buffer)
 /* BufferIsTrappedByMutator
  *
  * Indicates whether the mutator trapped the buffer.
- * See design.mps.alloc-frame.lw-frame.sync.trip
+ * See design.mps.alloc-frame.lw-frame.sync.trip and .ap.async.
  */
 
 Bool BufferIsTrappedByMutator(Buffer buffer)
