@@ -897,8 +897,8 @@ character.")
 
 DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
   "Return number of characters between BEG and END.\n\
-When using multibyte characters, this is not the necessarily same as\n\
-(- END BEG); that subtraction gives you the number of bytes, which\n\
+When using multibyte characters, this is not the necessarily same\n\
+as (- END BEG); that subtraction gives you the number of bytes, which\n\
 may be more than the number of characters.")
   (beg, end)
      Lisp_Object beg, end;
@@ -911,25 +911,30 @@ may be more than the number of characters.")
   validate_region (&beg, &end);
 
   from = min (XFASTINT (beg), XFASTINT (end));
-  stop = to = max (XFASTINT (beg), XFASTINT (end));
+  to = max (XFASTINT (beg), XFASTINT (end));
   p = POS_ADDR (from);
-  endp = POS_ADDR (stop);
 
-  if (from < GPT && GPT < to)
-    stop = GPT;
+  if (from < GPT && GPT <= to)
+    {
+      stop = GPT;
+      endp = GPT_ADDR;
+    }
+  else
+    {
+      stop = to;
+      endp = POS_ADDR (stop);
+    }
 
   while (1)
     {
       if (p == endp)
 	{
-	  if (stop == GPT)
-	    {
-	      p = POS_ADDR (stop);
-	      stop = to;
-	      endp = POS_ADDR (stop);
-	    }
-	  else
+	  if (stop == to)
 	    break;
+
+	  p = POS_ADDR (stop);
+	  stop = to;
+	  endp = POS_ADDR (stop);
 	}
 
       if (*p == LEADING_CODE_COMPOSITION)
