@@ -1,3 +1,13 @@
+2002-04-01  Ville Skytt,Ad(B  <ville.skytta@xemacs.org>
+
+	* tcl.el (tcl-imenu-generic-expression): New value.
+	(tcl-imenu-create-index-function): Function deleted.
+	(tcl-mode): Check for filladapt-mode.
+	Use tcl-imenu-generic-expression instead of
+	tcl-imenu-create-index-function.
+	(inferior-tcl-mode): Doc fix.
+	Change not legally significant.
+	
 2002-04-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* cus-start.el: Rename `x-autoselect-window' to `autoselect-window'.
