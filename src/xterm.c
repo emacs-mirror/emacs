@@ -580,7 +580,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
       cf = (cmpcharp ? cmpcharp->face_work : FAST_GLYPH_FACE (g));
       ch = FAST_GLYPH_CHAR (g);
-      if (x_display_unibyte_char_with_fontset
+      if (unibyte_display_via_language_environment
 	  && SINGLE_BYTE_CHAR_P (ch)
 	  && ch >= 160)
 	ch = unibyte_char_to_multibyte (ch);
@@ -621,7 +621,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	  g = *gp;
 	  GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
 	  ch = FAST_GLYPH_CHAR (g);
-	  if (x_display_unibyte_char_with_fontset
+	  if (unibyte_display_via_language_environment
 	      && SINGLE_BYTE_CHAR_P (ch)
 	      && ch >= 160)
 	    ch = unibyte_char_to_multibyte (ch);
