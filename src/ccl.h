@@ -72,4 +72,11 @@ extern void setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
 extern int ccl_driver P_ ((struct ccl_program *, unsigned char *,
 			   unsigned char *, int, int, int *));
 
+/* Vector of CCL program names vs corresponding program data.  */
+extern Lisp_Object Vccl_program_table;
+
+/* Symbols of ccl program have this property, a value of the property
+   is an index for Vccl_protram_table. */
+extern Lisp_Object Qccl_program_idx;
+
 #endif /* _CCL_H */
