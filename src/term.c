@@ -1588,7 +1588,7 @@ term_init (terminal_type)
 
   Wcm_clear ();
 
-  area = (char *) malloc (2044);
+  area = (char *) xmalloc (2044);
 
   if (area == 0)
     abort ();
@@ -1648,9 +1648,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif
     }
 #ifdef TERMINFO
-  area = (char *) malloc (2044);
+  area = (char *) xmalloc (2044);
 #else
-  area = (char *) malloc (strlen (buffer));
+  area = (char *) xmalloc (strlen (buffer));
 #endif /* not TERMINFO */
   if (area == 0)
     abort ();
