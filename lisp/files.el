@@ -133,23 +133,6 @@ This variable is relevant only if `backup-by-copying' and
   :type '(choice (const nil) integer)
   :group 'backup)
 
-(defun normal-backup-enable-predicate (name)
-  "Default `backup-enable-predicate' function.
-Checks for files in `temporary-file-directory' or
-`small-temporary-file-directory'."
-  (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
-					name 0 nil)))
-	     ;; Directory is under temporary-file-directory.
-	     (and (not (eq comp t))
-		  (< comp (- (length temporary-file-directory)))))
-	   (if small-temporary-file-directory
-	       (let ((comp (compare-strings small-temporary-file-directory
-					    0 nil
-					    name 0 nil)))
-		 ;; Directory is under small-temporary-file-directory.
-		 (and (not (eq comp t))
-		      (< comp (- (length small-temporary-file-directory)))))))))
-
 (defvar backup-enable-predicate 'normal-backup-enable-predicate
   "Predicate that looks at a file name and decides whether to make backups.
 Called with an absolute file name as argument, it returns t to enable backup.")
@@ -201,7 +184,7 @@ If the buffer is visiting a new file, the value is nil.")
   "Non-nil if visited file was read-only when visited.")
 (make-variable-buffer-local 'buffer-file-read-only)
 
-(defvar temporary-file-directory
+(defcustom temporary-file-directory
   (file-name-as-directory
    (cond ((memq system-type '(ms-dos windows-nt))
 	  (or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
@@ -209,14 +192,18 @@ If the buffer is visiting a new file, the value is nil.")
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
 	 (t
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
-  "The directory for writing temporary files.")
+  "The directory for writing temporary files."
+  :group 'files
+  :type 'directory)
 
-(defvar small-temporary-file-directory
+(defcustom small-temporary-file-directory
   (if (eq system-type 'ms-dos) (getenv "TMPDIR"))
   "The directory for writing small temporary files.
 If non-nil, this directory is used instead of `temporary-file-directory'
 by programs that create small temporary files.  This is for systems that
-have fast storage with limited space, such as a RAM disk.")
+have fast storage with limited space, such as a RAM disk."
+  :group 'files
+  :type 'directory)
 
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar null-device "/dev/null" "The system null device.")
@@ -2312,6 +2299,23 @@ ignored."
   :group 'backup
   :type '(repeat (cons (regexp :tag "Regexp matching filename")
 		       (directory :tag "Backup directory name"))))
+
+(defun normal-backup-enable-predicate (name)
+  "Default `backup-enable-predicate' function.
+Checks for files in `temporary-file-directory' or
+`small-temporary-file-directory'."
+  (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
+					name 0 nil)))
+	     ;; Directory is under temporary-file-directory.
+	     (and (not (eq comp t))
+		  (< comp (- (length temporary-file-directory)))))
+	   (if small-temporary-file-directory
+	       (let ((comp (compare-strings small-temporary-file-directory
+					    0 nil
+					    name 0 nil)))
+		 ;; Directory is under small-temporary-file-directory.
+		 (and (not (eq comp t))
+		      (< comp (- (length small-temporary-file-directory)))))))))
 
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
