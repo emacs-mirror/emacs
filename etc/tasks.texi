@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate June 24, 1999
+@set lastupdate July  2, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -127,8 +127,11 @@ Help develop software to emulate Windows NT on top of GNU systems.
 For example, you could help work on Willows Twin.
 See @uref{http://www.willows.com/}.
 
+@ignore  The Kermit developers say they will provide a free program
+to do this.
 @item
 Implement the Kermit data transfer protocol.  (See below.)
+@end ignore
 
 @ignore This is being done (Harmony)
 @item
@@ -501,9 +504,6 @@ Addison-Wesley, ISBN 0-201-10745-7
 
 But you don't have to do exactly what they propose.
 @end ignore
-
-@item
-A program to reformat HTML source to make it easier to read as HTML.
 
 @ignore
 @c This is now being worked on -- rms, 22 June 1998
