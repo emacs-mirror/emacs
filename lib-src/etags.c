@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.29";
+char pot_etags_version[] = "@(#) pot revision number is 16.32";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -353,7 +353,7 @@ static language *get_language_from_filename __P((char *, bool));
 static void readline __P((linebuffer *, FILE *));
 static long readline_internal __P((linebuffer *, FILE *));
 static bool nocase_tail __P((char *));
-static char *get_tag __P((char *));
+static void get_tag __P((char *, char **));
 
 #ifdef ETAGS_REGEXPS
 static void analyse_regex __P((char *));
@@ -1776,6 +1776,69 @@ find_entries (inf)
 }
 
 
+/*
+ * Check whether an implicitly named tag should be created,
+ * then call `pfnote'.
+ * NAME is a string that is internally copied by this function.
+ *
+ * TAGS format specification
+ * Idea by Sam Kendall <kendall@mv.mv.com> (1997)
+ * The following is explained in some more detail in etc/ETAGS.EBNF.
+ *
+ * make_tag creates tags with "implicit tag names" (unnamed tags)
+ * if the following are all true, assuming NONAM=" \f\t\n\r()=,;":
+ *  1. NAME does not contain any of the characters in NONAM;
+ *  2. LINESTART contains name as either a rightmost, or rightmost but
+ *     one character, substring;
+ *  3. the character, if any, immediately before NAME in LINESTART must
+ *     be a character in NONAM;
+ *  4. the character, if any, immediately after NAME in LINESTART must
+ *     also be a character in NONAM.
+ *
+ * The implementation uses the notinname() macro, which recognises the
+ * characters stored in the string `nonam'.
+ * etags.el needs to use the same characters that are in NONAM.
+ */
+static void
+make_tag (name, namelen, is_func, linestart, linelen, lno, cno)
+     char *name;		/* tag name, or NULL if unnamed */
+     int namelen;		/* tag length */
+     bool is_func;		/* tag is a function */
+     char *linestart;		/* start of the line where tag is */
+     int linelen;		/* length of the line where tag is */
+     int lno;			/* line number */
+     long cno;			/* character number */
+{
+  bool named = TRUE;
+
+  if (!CTAGS && name != NULL && namelen > 0)
+    {
+      int i;
+      register char *cp = name;
+
+      for (i = 0; i < namelen; i++)
+	if (notinname (*cp++))
+	  break;
+      if (i == namelen)				/* rule #1 */
+	{
+	  cp = linestart + linelen - namelen;
+	  if (notinname (linestart[linelen-1]))
+	    cp -= 1;				/* rule #4 */
+	  if (cp >= linestart			/* rule #2 */
+	      && (cp == linestart
+		  || notinname (cp[-1]))	/* rule #3 */
+	      && strneq (name, cp, namelen))	/* rule #2 */
+	    named = FALSE;	/* use implicit tag name */
+	}
+    }
+
+  if (named)
+    name = savenstr (name, namelen);
+  else
+    name = NULL;
+  pfnote (name, is_func, linestart, linelen, lno, cno);
+}
+
 /* Record a tag. */
 static void
 pfnote (name, is_func, linestart, linelen, lno, cno)
@@ -1830,68 +1893,6 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
     np->pat = savenstr (linestart, linelen);
 
   add_node (np, &nodehead);
-}
-
-/*
- * Check whether an implicitly named tag should be created,
- * then call `pfnote'.
- * NAME is a string that is internally copied by this function.
- *
- * TAGS format specification
- * Idea by Sam Kendall <kendall@mv.mv.com> (1997)
- *
- * make_tag creates tags with "implicit tag names" (unnamed tags)
- * if the following are all true, assuming NONAM=" \f\t\n\r()=,;":
- *  1. NAME does not contain any of the characters in NONAM;
- *  2. LINESTART contains name as either a rightmost, or rightmost but
- *     one character, substring;
- *  3. the character, if any, immediately before NAME in LINESTART must
- *     be a character in NONAM;
- *  4. the character, if any, immediately after NAME in LINESTART must
- *     also be a character in NONAM.
- *
- * The implementation uses the notinname() macro, which recognises the
- * characters stored in the string `nonam'.
- * etags.el needs to use the same characters that are in NONAM.
- */
-static void
-make_tag (name, namelen, is_func, linestart, linelen, lno, cno)
-     char *name;		/* tag name, or NULL if unnamed */
-     int namelen;		/* tag length */
-     bool is_func;		/* tag is a function */
-     char *linestart;		/* start of the line where tag is */
-     int linelen;		/* length of the line where tag is */
-     int lno;			/* line number */
-     long cno;			/* character number */
-{
-  bool named = TRUE;
-
-  if (!CTAGS)
-    {
-      int i;
-      register char *cp = name;
-
-      for (i = 0; i < namelen; i++)
-	if (notinname (*cp++))
-	  break;
-      if (i == namelen)				/* rule #1 */
-	{
-	  cp = linestart + linelen - namelen;
-	  if (notinname (linestart[linelen-1]))
-	    cp -= 1;				/* rule #4 */
-	  if (cp >= linestart			/* rule #2 */
-	      && (cp == linestart
-		  || notinname (cp[-1]))	/* rule #3 */
-	      && strneq (name, cp, namelen))	/* rule #2 */
-	    named = FALSE;	/* use implicit tag name */
-	}
-    }
-
-  if (named)
-    name = savenstr (name, namelen);
-  else
-    name = NULL;
-  pfnote (name, is_func, linestart, linelen, lno, cno);
 }
 
 /*
@@ -3898,8 +3899,8 @@ F_getit (inf)
     return;
   for (cp = dbp + 1; *cp != '\0' && intoken (*cp); cp++)
     continue;
-  pfnote (savenstr (dbp, cp-dbp), TRUE,
-	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+  make_tag (dbp, cp-dbp, TRUE,
+	    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
 
@@ -3966,8 +3967,8 @@ Fortran_functions (inf)
 	    {
 	      dbp = skip_spaces (dbp);
 	      if (*dbp == '\0')	/* assume un-named */
-		pfnote (savestr ("blockdata"), TRUE,
-			lb.buffer, dbp - lb.buffer, lineno, linecharno);
+		make_tag ("blockdata", 9, TRUE,
+			  lb.buffer, dbp - lb.buffer, lineno, linecharno);
 	      else
 		F_getit (inf);	/* look for name */
 	    }
@@ -4043,7 +4044,9 @@ Ada_getit (inf, name_qualifier)
       *cp = '\0';
       name = concat (dbp, name_qualifier, "");
       *cp = c;
-      pfnote (name, TRUE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+      make_tag (name, strlen (name), TRUE,
+		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+      free (name);
       if (c == '"')
 	dbp = cp + 1;
       return;
@@ -4162,11 +4165,9 @@ Asm_labels (inf)
  	  while (ISALNUM (*cp) || *cp == '_' || *cp == '.' || *cp == '$')
  	    cp++;
  	  if (*cp == ':' || iswhite (*cp))
- 	    {
- 	      /* Found end of label, so copy it and add it to the table. */
- 	      pfnote (savenstr(lb.buffer, cp-lb.buffer), TRUE,
+	    /* Found end of label, so copy it and add it to the table. */
+	    make_tag (lb.buffer, cp - lb.buffer, TRUE,
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
- 	    }
  	}
     }
 }
@@ -4194,56 +4195,63 @@ Perl_functions (inf)
       if (LOOKING_AT (cp, "package"))
 	{
 	  free (package);
-	  package = get_tag (cp);
-	  if (package == NULL)	/* can't parse package name */
-	    package = savestr ("");
-	  else
-	    package = savestr(package);	/* make a copy */
+	  get_tag (cp, &package);
 	}
       else if (LOOKING_AT (cp, "sub"))
 	{
-	  char *name, *fullname, *pos;
+	  char *pos;
 	  char *sp = cp;
 
 	  while (!notinname (*cp))
 	    cp++;
 	  if (cp == sp)
-	    continue;
-	  name = savenstr (sp, cp-sp);
-	  if ((pos = etags_strchr (name, ':')) != NULL && pos[1] == ':')
-	    fullname = name;
+	    continue;		/* nothing found */
+	  if ((pos = etags_strchr (sp, ':')) != NULL
+	      && pos < cp && pos[1] == ':')
+	    /* The name is already qualified. */
+	    make_tag (sp, cp - sp, TRUE,
+		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	  else
-	    fullname = concat (package, "::", name);
-	  pfnote (fullname, TRUE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
-	  if (name != fullname)
-	    free (name);
- 	}
-       else if (globals		/* only if tagging global vars is enabled */
-		&& (LOOKING_AT (cp, "my") || LOOKING_AT (cp, "local")))
- 	{
- 	  /* After "my" or "local", but before any following paren or space. */
- 	  char *varname = NULL;
+	    /* Qualify it. */
+	    {
+	      char savechar, *name;
 
- 	  if (*cp == '$' || *cp == '@' || *cp == '%')
+	      savechar = *cp;
+	      *cp = '\0';
+	      name = concat (package, "::", sp);
+	      *cp = savechar;
+	      make_tag (name, strlen(name), TRUE,
+			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	      free (name);
+	    }
+ 	}
+       else if (globals)	/* only if we are tagging global vars */
+ 	{
+	  /* Skip a qualifier, if any. */
+	  bool qual = LOOKING_AT (cp, "my") || LOOKING_AT (cp, "local");
+ 	  /* After "my" or "local", but before any following paren or space. */
+	  char *varstart = cp;
+
+ 	  if (qual		/* should this be removed?  If yes, how? */
+	      && (*cp == '$' || *cp == '@' || *cp == '%'))
  	    {
- 	      char* varstart = ++cp;
- 	      while (ISALNUM (*cp) || *cp == '_')
+ 	      varstart += 1;
+	      do
  		cp++;
- 	      varname = savenstr (varstart, cp-varstart);
+ 	      while (ISALNUM (*cp) || *cp == '_');
  	    }
- 	  else
+ 	  else if (qual)
  	    {
  	      /* Should be examining a variable list at this point;
  		 could insist on seeing an open parenthesis. */
  	      while (*cp != '\0' && *cp != ';' && *cp != '=' &&  *cp != ')')
  		cp++;
  	    }
+	  else
+	    continue;
 
- 	  /* Perhaps I should back cp up one character, so the TAGS table
- 	     doesn't mention (and so depend upon) the following char. */
- 	  pfnote (varname, FALSE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+ 	  make_tag (varstart, cp - varstart, FALSE,
+		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
 }
@@ -4269,8 +4277,8 @@ Python_functions (inf)
 	  char *name = cp;
 	  while (!notinname (*cp) && *cp != ':')
 	    cp++;
-	  pfnote (savenstr (name, cp-name), TRUE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	  make_tag (name, cp - name, TRUE,
+		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
 }
@@ -4302,8 +4310,8 @@ PHP_functions (inf)
 	{
 	  while (!notinname (*cp))
 	    cp++;
-	  pfnote (savenstr (name, cp-name), TRUE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	  make_tag (name, cp - name, TRUE,
+		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	  search_identifier = FALSE;
 	}
       else if (LOOKING_AT (cp, "function"))
@@ -4315,8 +4323,8 @@ PHP_functions (inf)
 	      name = cp;
 	      while (!notinname (*cp))
 		cp++;
-	      pfnote (savenstr (name, cp-name), TRUE,
-		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	      make_tag (name, cp - name, TRUE,
+			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	    }
 	  else
 	    search_identifier = TRUE;
@@ -4328,8 +4336,8 @@ PHP_functions (inf)
 	      name = cp;
 	      while (*cp != '\0' && !iswhite (*cp))
 		cp++;
-	      pfnote (savenstr (name, cp-name), FALSE,
-		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	      make_tag (name, cp - name, FALSE,
+			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	    }
 	  else
 	    search_identifier = TRUE;
@@ -4343,8 +4351,8 @@ PHP_functions (inf)
 	  name = cp;
 	  while (*cp != quote && *cp != '\0')
 	    cp++;
-	  pfnote (savenstr (name, cp-name), FALSE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	  make_tag (name, cp - name, FALSE,
+		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
       else if (members
 	       && LOOKING_AT (cp, "var")
@@ -4353,8 +4361,8 @@ PHP_functions (inf)
 	  name = cp;
 	  while (!notinname(*cp))
 	    cp++;
-	  pfnote (savenstr (name, cp-name), FALSE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	  make_tag (name, cp - name, FALSE,
+		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
 }
@@ -4385,8 +4393,8 @@ Cobol_paragraphs (inf)
       for (ep = bp; ISALNUM (*ep) || *ep == '-'; ep++)
 	continue;
       if (*ep++ == '.')
-	pfnote (savenstr (bp, ep-bp), TRUE,
-		lb.buffer, ep - lb.buffer + 1, lineno, linecharno);
+	make_tag (bp, ep - bp, TRUE,
+		  lb.buffer, ep - lb.buffer + 1, lineno, linecharno);
     }
 }
 
@@ -4408,8 +4416,8 @@ Makefile_targets (inf)
       while (*bp != '\0' && *bp != '=' && *bp != ':')
 	bp++;
       if (*bp == ':' || (globals && *bp == '='))
-	pfnote (savenstr (lb.buffer, bp - lb.buffer), TRUE,
-		lb.buffer, bp - lb.buffer + 1, lineno, linecharno);
+	make_tag (lb.buffer, bp - lb.buffer, TRUE,
+		  lb.buffer, bp - lb.buffer + 1, lineno, linecharno);
     }
 }
 
@@ -4429,8 +4437,8 @@ Pascal_functions (inf)
 {
   linebuffer tline;		/* mostly copied from C_entries */
   long save_lcno;
-  int save_lineno, save_len;
-  char c, *cp, *namebuf;
+  int save_lineno, namelen, taglen;
+  char c, *name;
 
   bool				/* each of these flags is TRUE iff: */
     incomment,			/* point is inside a comment */
@@ -4444,15 +4452,15 @@ Pascal_functions (inf)
 				   is a FORWARD/EXTERN to be ignored, or
 				   whether it is a real tag */
 
-  save_lcno = save_lineno = save_len = 0; /* keep compiler quiet */
-  namebuf = NULL;		/* keep compiler quiet */
+  save_lcno = save_lineno = namelen = taglen = 0; /* keep compiler quiet */
+  name = NULL;			/* keep compiler quiet */
   dbp = lb.buffer;
   *dbp = '\0';
   initbuffer (&tline);
 
   incomment = inquote = FALSE;
   found_tag = FALSE;		/* have a proc name; check if extern */
-  get_tagname = FALSE;		/* have found "procedure" keyword    */
+  get_tagname = FALSE;		/* found "procedure" keyword	     */
   inparms = FALSE;		/* found '(' after "proc"            */
   verify_tag = FALSE;		/* check if "extern" is ahead        */
 
@@ -4521,7 +4529,7 @@ Pascal_functions (inf)
 	  }
       if (found_tag && verify_tag && (*dbp != ' '))
 	{
-	  /* check if this is an "extern" declaration */
+	  /* Check if this is an "extern" declaration. */
 	  if (*dbp == '\0')
 	    continue;
 	  if (lowcase (*dbp == 'e'))
@@ -4544,37 +4552,41 @@ Pascal_functions (inf)
 	    {
 	      found_tag = FALSE;
 	      verify_tag = FALSE;
-	      pfnote (namebuf, TRUE,
-		      tline.buffer, save_len, save_lineno, save_lcno);
+	      make_tag (name, namelen, TRUE,
+			tline.buffer, taglen, save_lineno, save_lcno);
 	      continue;
 	    }
 	}
       if (get_tagname)		/* grab name of proc or fn */
 	{
+	  char *cp;
+
 	  if (*dbp == '\0')
 	    continue;
 
-	  /* save all values for later tagging */
+	  /* Find block name. */
+	  for (cp = dbp + 1; *cp != '\0' && !endtoken (*cp); cp++)
+	    continue;
+
+	  /* Save all values for later tagging. */
 	  linebuffer_setlen (&tline, lb.len);
 	  strcpy (tline.buffer, lb.buffer);
 	  save_lineno = lineno;
 	  save_lcno = linecharno;
+	  name = tline.buffer + (dbp - lb.buffer);
+	  namelen = cp - dbp;
+	  taglen = cp - lb.buffer + 1;
 
-	  /* grab block name */
-	  for (cp = dbp + 1; *cp != '\0' && !endtoken (*cp); cp++)
-	    continue;
-	  namebuf = savenstr (dbp, cp-dbp);
 	  dbp = cp;		/* set dbp to e-o-token */
-	  save_len = dbp - lb.buffer + 1;
 	  get_tagname = FALSE;
 	  found_tag = TRUE;
 	  continue;
 
-	  /* and proceed to check for "extern" */
+	  /* And proceed to check for "extern". */
 	}
       else if (!incomment && !inquote && !found_tag)
 	{
-	  /* check for proc/fn keywords */
+	  /* Check for proc/fn keywords. */
 	  switch (lowcase (c))
 	    {
 	    case 'p':
@@ -4587,7 +4599,7 @@ Pascal_functions (inf)
 	      continue;
 	    }
 	}
-    }				/* while not eof */
+    } /* while not eof */
 
   free (tline.buffer);
 }
@@ -4613,7 +4625,7 @@ L_getit ()
       /* Ok, then skip "(" before name in (defstruct (foo)) */
       dbp = skip_spaces (dbp);
   }
-  get_tag (dbp);
+  get_tag (dbp, NULL);
 }
 
 static void
@@ -4677,11 +4689,11 @@ Postscript_functions (inf)
 	       *ep != '\0' && *ep != ' ' && *ep != '{';
 	       ep++)
 	    continue;
-	  pfnote (savenstr (bp, ep-bp), TRUE,
-		  lb.buffer, ep - lb.buffer + 1, lineno, linecharno);
+	  make_tag (bp, ep - bp, TRUE,
+		    lb.buffer, ep - lb.buffer + 1, lineno, linecharno);
 	}
       else if (LOOKING_AT (bp, "defineps"))
-	get_tag (bp);
+	get_tag (bp, NULL);
     }
 }
 
@@ -4709,10 +4721,10 @@ Scheme_functions (inf)
 	  /* Skip over open parens and white space */
 	  while (notinname (*bp))
 	    bp++;
-	  get_tag (bp);
+	  get_tag (bp, NULL);
 	}
       if (LOOKING_AT (bp, "(SET!") || LOOKING_AT (bp, "(set!"))
-	get_tag (bp);
+	get_tag (bp, NULL);
     }
 }
 
@@ -4774,8 +4786,7 @@ TeX_commands (inf)
 	    if (strneq (cp, key->buffer, key->len))
 	      {
 		register char *p;
-		char *name;
-		int linelen;
+		int namelen, linelen;
 		bool opgrp = FALSE;
 
 		cp = skip_spaces (cp + key->len);
@@ -4789,7 +4800,7 @@ TeX_commands (inf)
 		      *p != TEX_opgrp && *p != TEX_clgrp);
 		     p++)
 		  continue;
-		name = savenstr (cp, p-cp);
+		namelen = p - cp;
 		linelen = lb.len;
 		if (!opgrp || *p == TEX_clgrp)
 		  {
@@ -4797,7 +4808,8 @@ TeX_commands (inf)
 		      *p++;
 		    linelen = p - lb.buffer + 1;
 		  }
-		pfnote (name, TRUE, lb.buffer, linelen, lineno, linecharno);
+		make_tag (cp, namelen, TRUE,
+			  lb.buffer, linelen, lineno, linecharno);
 		goto tex_next_line; /* We only tag a line once */
 	      }
 	}
@@ -4907,8 +4919,8 @@ Texinfo_nodes (inf)
 	start = cp;
 	while (*cp != '\0' && *cp != ',')
 	  cp++;
-	pfnote (savenstr (start, cp - start), TRUE,
-		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	make_tag (start, cp - start, TRUE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
       }
 }
 
@@ -5011,7 +5023,7 @@ prolog_pr (s, last)
 	  || len != strlen (last)
 	  || !strneq (s, last, len)))
 	{
-	  pfnote (savenstr (s, len), TRUE, s, pos, lineno, linecharno);
+	  make_tag (s, len, TRUE, s, pos, lineno, linecharno);
 	  return len;
 	}
   else
@@ -5165,7 +5177,7 @@ erlang_func (s, last)
 	  || len != (int)strlen (last)
 	  || !strneq (s, last, len)))
 	{
-	  pfnote (savenstr (s, len), TRUE, s, pos, lineno, linecharno);
+	  make_tag (s, len, TRUE, s, pos, lineno, linecharno);
 	  return len;
 	}
 
@@ -5193,8 +5205,7 @@ erlang_attribute (s)
     {
       int len = erlang_atom (skip_spaces (cp));
       if (len > 0)
-	pfnote (savenstr (cp, len), TRUE,
-		s, cp + len - s, lineno, linecharno);
+	make_tag (cp, len, TRUE, s, cp + len - s, lineno, linecharno);
     }
   return;
 }
@@ -5610,7 +5621,10 @@ regex_tag_multiline ()
 		  lineno++, linecharno = charno;
 	      if (pp->name_pattern[0] != '\0')
 		{
-		  /* Make a named tag. */
+		  /* Make a named tag.
+		     Do not use make_tag here, as it would make the name
+		     implicit if possible, while we want to respect the user's
+		     request to create an explicit tag name. */
 		  char *name = substitute (buffer,
 					   pp->name_pattern, &pp->regs);
 		  if (name != NULL)
@@ -5648,21 +5662,24 @@ nocase_tail (cp)
   return FALSE;
 }
 
-static char *
-get_tag (bp)
+static void
+get_tag (bp, namepp)
      register char *bp;
+     char **namepp;
 {
-  register char *cp, *name;
+  register char *cp = bp;
 
-  if (*bp == '\0')
-    return NULL;
-  /* Go till you get to white space or a syntactic break */
-  for (cp = bp + 1; !notinname (*cp); cp++)
-    continue;
-  name = savenstr (bp, cp-bp);
-  pfnote (name, TRUE,
-	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
-  return name;
+  if (*bp != '\0')
+    {
+      /* Go till you get to white space or a syntactic break */
+      for (cp = bp + 1; !notinname (*cp); cp++)
+	continue;
+      make_tag (bp, cp - bp, TRUE,
+		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+    }
+
+  if (namepp != NULL)
+    *namepp = savenstr (bp, cp - bp);
 }
 
 /* Initialize a linebuffer for use */
@@ -5943,7 +5960,10 @@ readline (lbp, stream)
 	      /* Match occurred.  Construct a tag. */
 	      if (pp->name_pattern[0] != '\0')
 		{
-		  /* Make a named tag. */
+		  /* Make a named tag.
+		     Do not use make_tag here, as it would make the name
+		     implicit if possible, while we want to respect the user's
+		     request to create an explicit tag name. */
 		  char *name = substitute (lbp->buffer,
 					   pp->name_pattern, &pp->regs);
 		  if (name != NULL)
