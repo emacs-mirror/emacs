@@ -11256,11 +11256,11 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 /* Handle the loss of connection to display DISPLAY.  */
 
 static SIGTYPE
-x_connection_closed (display, error_message)
-     Display *display;
+x_connection_closed (dpy, error_message)
+     Display *dpy;
      char *error_message;
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (display);
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
 
   /* We have to close the display to inform Xt that it doesn't
@@ -11279,7 +11279,15 @@ x_connection_closed (display, error_message)
      in OpenWindows.  I don't know how to cicumvent it here.  */
   
 #ifdef USE_X_TOOLKIT
-  XtCloseDisplay (display);
+  {
+    /* Prevent being called recursively because of an error condition
+       in XtCloseDisplay.  Otherwise, we might end up with printing
+       ``can't find per display information'' in the recursive call
+       instead of printing the original message here.  */
+    int count = x_catch_errors (dpy);
+    XtCloseDisplay (dpy);
+    x_uncatch_errors (dpy, count);
+  }
 #endif
 
   /* Indicate that this display is dead.  */
