@@ -120,7 +120,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
     num = ((nbytes <= 2	/* Check the possibility of short cut.  */
 	    || NILP (buffer_defaults.enable_multibyte_characters))
 	   ? 0
-	   : find_charset_in_str (src, nbytes, charsets, Qnil, 1));
+	   : find_charset_in_str (src, nbytes, charsets, Qnil, 0));
 
     if (!num || (num == 1 && charsets[CHARSET_ASCII]))
       {
