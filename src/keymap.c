@@ -954,10 +954,12 @@ is not copied.  */)
 
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
        doc: /* Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.
-KEYMAP is a keymap.  KEY is a string or a vector of symbols and characters
-meaning a sequence of keystrokes and events.
-Non-ASCII characters with codes above 127 (such as ISO Latin-1)
-can be included if you use a vector.
+KEYMAP is a keymap.
+
+KEY is a string or a vector of symbols and characters meaning a
+sequence of keystrokes and events.  Non-ASCII characters with codes
+above 127 (such as ISO Latin-1) can be included if you use a vector.
+
 DEF is anything that can be a key's definition:
  nil (means key is undefined in this keymap),
  a command (a Lisp function suitable for interactive calling)
@@ -971,7 +973,10 @@ DEF is anything that can be a key's definition:
  or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.
 
 If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at
-the front of KEYMAP.  */)
+the front of KEYMAP.  
+
+KEY may also be a command name which is remapped to DEF.  In this case,
+DEF must be a symbol or nil (to remove a previous binding of KEY).  */)
      (keymap, key, def)
      Lisp_Object keymap;
      Lisp_Object key;
@@ -987,8 +992,24 @@ the front of KEYMAP.  */)
 
   keymap = get_keymap (keymap, 1, 1);
 
-  if (!VECTORP (key) && !STRINGP (key))
-    key = wrong_type_argument (Qarrayp, key);
+  if (SYMBOLP (key))
+    {
+      /* A command may only be remapped to another command.  */
+
+      /* I thought of using is_command_symbol above and below instead
+	 of SYMBOLP, since remapping only works for sych symbols.
+	 However, to make that a requirement would make it impossible
+	 to remap a command before it has been defined, e.g. if a minor
+	 mode were to remap a command of another minor mode which has
+	 not yet been loaded, it would fail.  So just use the least
+	 restrictive sanity check here.  */
+      if (!SYMBOLP (def))
+	key = wrong_type_argument (Qsymbolp, def);
+      else
+	key = Fmake_vector (make_number (1), key);
+    }
+  else if (!VECTORP (key) && !STRINGP (key))
+      key = wrong_type_argument (Qarrayp, key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
@@ -1083,6 +1104,10 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   struct gcpro gcpro1;
 
   keymap = get_keymap (keymap, 1, 1);
+
+  /* Command remapping is simple.  */
+  if (SYMBOLP (key))
+    return access_keymap (keymap, key, t_ok, 0, 1);
 
   if (!VECTORP (key) && !STRINGP (key))
     key = wrong_type_argument (Qarrayp, key);
@@ -1361,9 +1386,44 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
   return keymaps;
 }
 
+/* Like Fcommandp, but looks specifically for a command symbol, and
+   doesn't signal errors.  Returns 1 if FUNCTION is a command symbol.  */
+int
+is_command_symbol (function)
+     Lisp_Object function;
+{
+  if (!SYMBOLP (function) || EQ (function, Qunbound))
+    return 0;
+
+  function = indirect_function (function);
+  if (SYMBOLP (function) && EQ (function, Qunbound))
+    return 0;
+
+  if (SUBRP (function))
+    return (XSUBR (function)->prompt != 0);
+
+  if (COMPILEDP (function))
+    return ((ASIZE (function) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_INTERACTIVE);
+  
+  if (CONSP (function))
+    {
+      Lisp_Object funcar;
+
+      funcar = Fcar (function);
+      if (SYMBOLP (funcar))
+	{
+	  if (EQ (funcar, Qlambda))
+	    return !NILP (Fassq (Qinteractive, Fcdr (Fcdr (function))));
+	  if (EQ (funcar, Qautoload))
+	    return !NILP (Fcar (Fcdr (Fcdr (Fcdr (function)))));
+	}
+    }
+  return 0;
+}
+
 /* GC is possible in this function if it autoloads a keymap.  */
 
-DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 2, 0,
+DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 3, 0,
        doc: /* Return the binding for command KEY in current keymaps.
 KEY is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
@@ -1372,9 +1432,14 @@ Normally, `key-binding' ignores bindings for t, which act as default
 bindings, used when nothing else in the keymap applies; this makes it
 usable as a general function for probing keymaps.  However, if the
 optional second argument ACCEPT-DEFAULT is non-nil, `key-binding' does
-recognize the default bindings, just as `read-key-sequence' does.  */)
-     (key, accept_default)
-     Lisp_Object key, accept_default;
+recognize the default bindings, just as `read-key-sequence' does.
+
+Like the normal command loop, `key-binding' will remap the command
+resulting from looking up KEY by looking up the command in the
+currrent keymaps.  However, if the optional third argument NO-REMAP
+is non-nil, `key-binding' returns the unmapped command.  */)
+     (key, accept_default, no_remap)
+     Lisp_Object key, accept_default, no_remap;
 {
   Lisp_Object *maps, value;
   int nmaps, i;
@@ -1387,13 +1452,13 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       value = Flookup_key (current_kboard->Voverriding_terminal_local_map,
 			   key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
-	RETURN_UNGCPRO (value);
+	goto done;
     }
   else if (!NILP (Voverriding_local_map))
     {
       value = Flookup_key (Voverriding_local_map, key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
-	RETURN_UNGCPRO (value);
+	goto done;
     }
   else
     { 
@@ -1404,7 +1469,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	{
 	  value = Flookup_key (local, key, accept_default);
 	  if (! NILP (value) && !INTEGERP (value))
-	    RETURN_UNGCPRO (value);
+	    goto done;
 	}
 
       nmaps = current_minor_maps (0, &maps);
@@ -1416,7 +1481,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	  {
 	    value = Flookup_key (maps[i], key, accept_default);
 	    if (! NILP (value) && !INTEGERP (value))
-	      RETURN_UNGCPRO (value);
+	      goto done;
 	  }
 
       local = get_local_map (PT, current_buffer, Qlocal_map);
@@ -1424,16 +1489,30 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 	{
 	  value = Flookup_key (local, key, accept_default);
 	  if (! NILP (value) && !INTEGERP (value))
-	    RETURN_UNGCPRO (value);
+	    goto done;
 	}
     }
 
   value = Flookup_key (current_global_map, key, accept_default);
+
+ done:
   UNGCPRO;
-  if (! NILP (value) && !INTEGERP (value))
-    return value;
+  if (NILP (value) || INTEGERP (value))
+    return Qnil;
+
+  /* If the result of the ordinary keymap lookup is an interactive
+     command, look for a key binding (ie. remapping) for that command.  */
+     
+  if (NILP (no_remap) && is_command_symbol (value))
+    {
+      Lisp_Object value1;
+
+      value1 = Fkey_binding (value, accept_default, Qt);
+      if (!NILP (value1) && is_command_symbol (value1))
+	value = value1;
+    }
   
-  return Qnil;
+  return value;
 }
 
 /* GC is possible in this function if it autoloads a keymap.  */
@@ -2156,6 +2235,7 @@ ascii_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
+static Lisp_Object where_is_internal ();
 static Lisp_Object where_is_internal_1 ();
 static void where_is_internal_2 ();
 
@@ -2180,15 +2260,21 @@ shadow_lookup (shadow, key, flag)
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
 static Lisp_Object
-where_is_internal (definition, keymaps, firstonly, noindirect)
+where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
      Lisp_Object definition, keymaps;
-     Lisp_Object firstonly, noindirect;
+     Lisp_Object firstonly, noindirect, no_remap;
 {
   Lisp_Object maps = Qnil;
   Lisp_Object found, sequences;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
+
+  /* If this command is remapped, then it has no key bindings
+     of its own.  */
+  if (NILP (no_remap)
+      && !NILP (Fkey_binding (definition, Qnil, Qt)))
+    return Qnil;
 
   found = keymaps;
   while (CONSP (found))
@@ -2295,11 +2381,41 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
 	    }
 
 
-	  for (; !NILP (sequences); sequences = XCDR (sequences))
+	  while (!NILP (sequences))
 	    {
 	      Lisp_Object sequence;
+	      Lisp_Object remapped;
 
 	      sequence = XCAR (sequences);
+	      sequences = XCDR (sequences);
+
+	      /* If the current sequence is of the form [command],
+		 this may be a remapped command, so look for the key
+		 sequences which run that command, and return those
+		 sequences instead.  */
+	      remapped = Qnil;
+	      if (NILP (no_remap)
+		  && VECTORP (sequence) && XVECTOR (sequence)->size == 1)
+		{
+		  Lisp_Object function;
+
+		  function = AREF (sequence, 0);
+		  if (is_command_symbol (function))
+		    {
+		      Lisp_Object remapped1;
+		      remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
+		      if (CONSP (remapped1))
+			{
+			  /* Verify that this key binding actually maps to the
+			     remapped command (see below).  */
+			  if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
+			    continue;
+			  sequence = XCAR (remapped1);
+			  remapped = XCDR (remapped1);
+			  goto record_sequence;
+			}
+		    }
+		}
 
 	      /* Verify that this key binding is not shadowed by another
 		 binding for the same key, before we say it exists.
@@ -2313,6 +2429,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
 	      if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
 		continue;
 
+	    record_sequence:
 	      /* It is a true unshadowed match.  Record it, unless it's already
 		 been seen (as could happen when inheriting keymaps).  */
 	      if (NILP (Fmember (sequence, found)))
@@ -2326,6 +2443,13 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
 		RETURN_UNGCPRO (sequence);
 	      else if (!NILP (firstonly) && ascii_sequence_p (sequence))
 		RETURN_UNGCPRO (sequence);
+
+	      if (CONSP (remapped))
+		{
+		  sequence = XCAR (remapped);
+		  remapped = XCDR (remapped);
+		  goto record_sequence;
+		}
 	    }
 	}
     }
@@ -2343,7 +2467,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
   return found;
 }
 
-DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
+DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
 If KEYMAP is non-nil, search only KEYMAP and the global keymap.
 If KEYMAP is nil, search all the currently active keymaps.
@@ -2358,10 +2482,14 @@ and entirely reject menu bindings.
 
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
 to other keymaps or slots.  This makes it possible to search for an
-indirect definition itself.  */)
-     (definition, keymap, firstonly, noindirect)
+indirect definition itself.
+
+If optional 5th arg NO-REMAP is non-nil, don't search for key sequences
+that invoke a command which is remapped to DEFINITION, but include the
+remapped command in the returned list.  */)
+     (definition, keymap, firstonly, noindirect, no_remap)
      Lisp_Object definition, keymap;
-     Lisp_Object firstonly, noindirect;
+     Lisp_Object firstonly, noindirect, no_remap;
 {
   Lisp_Object sequences, keymaps;
   /* 1 means ignore all menu bindings entirely.  */
@@ -2382,7 +2510,7 @@ indirect definition itself.  */)
     {
       Lisp_Object *defns;
       int i, j, n;
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
       
       /* Check heuristic-consistency of the cache.  */
       if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
@@ -2396,8 +2524,8 @@ indirect definition itself.  */)
 	  where_is_cache_keymaps = Qt;
 	  
 	  /* Fill in the cache.  */
-	  GCPRO4 (definition, keymaps, firstonly, noindirect);
-	  where_is_internal (definition, keymaps, firstonly, noindirect);
+	  GCPRO5 (definition, keymaps, firstonly, noindirect, no_remap);
+	  where_is_internal (definition, keymaps, firstonly, noindirect, no_remap);
 	  UNGCPRO;
 
 	  where_is_cache_keymaps = keymaps;
@@ -2434,7 +2562,7 @@ indirect definition itself.  */)
       /* Kill the cache so that where_is_internal_1 doesn't think
 	 we're filling it up.  */
       where_is_cache = Qnil;
-      result = where_is_internal (definition, keymaps, firstonly, noindirect);
+      result = where_is_internal (definition, keymaps, firstonly, noindirect, no_remap);
     }
 
   return result;
