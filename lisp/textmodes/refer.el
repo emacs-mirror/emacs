@@ -122,7 +122,7 @@ entry by continuing search from previous point."
    (refer-find-entry-internal refer-previous-keywords t))
 
 (defun refer-find-entry-internal (keywords continue)
-   (let ((keywords-list (convert-string-to-list-of-strings keywords))
+   (let ((keywords-list (refer-convert-string-to-list-of-strings keywords))
          (files (if continue
                     refer-saved-state
                     (refer-get-bib-files))))
@@ -154,10 +154,10 @@ entry by continuing search from previous point."
          (forward-paragraph 1)
          (setq end (point))
          (setq found
-               (every (function (lambda (keyword)
-                                   (goto-char begin)
-                                   (re-search-forward keyword end t)))
-                      keywords-list))
+               (refer-every (function (lambda (keyword)
+					(goto-char begin)
+					(re-search-forward keyword end t)))
+			    keywords-list))
          (if (not found)
              (progn
                 (setq begin end)
@@ -169,13 +169,13 @@ entry by continuing search from previous point."
           (progn (message "Scanning %s... not found" file)
                  nil))))
 
-(defun every (pred l)
+(defun refer-every (pred l)
    (cond ((null l) nil)
          ((funcall pred (car l))
           (or (null (cdr l))
-              (every pred (cdr l))))))
+              (refer-every pred (cdr l))))))
 
-(defun convert-string-to-list-of-strings (s)
+(defun refer-convert-string-to-list-of-strings (s)
    (let ((current (current-buffer))
          (temp-buffer (get-buffer-create "*refer-temp*")))
       (set-buffer temp-buffer)
