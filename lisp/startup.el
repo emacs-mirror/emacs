@@ -504,6 +504,79 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (setq submap (cdr submap))))
     (setq define-key-rebound-commands t))
 
+;; Command-line options supported by tty's:
+(defconst tty-long-option-alist
+  '(("--name" .		"-name")
+    ("--title" .	"-T")
+    ("--reverse-video" . "-reverse")
+    ("--foreground-color" . "-fg")
+    ("--background-color" . "-bg")))
+
+;; Handle the X-like command line parameters "-fg", "-bg", "-name", etc.
+(defun tty-handle-args (args)
+  (let ((rest nil))
+    (message "%s" args)
+    (while (and args
+		(not (equal (car args) "--")))
+      (let* ((this (car args))
+	     (orig-this this)
+	     completion argval)
+	(setq args (cdr args))
+	;; Check for long options with attached arguments
+	;; and separate out the attached option argument into argval.
+	(if (string-match "^--[^=]*=" this)
+	    (setq argval (substring this (match-end 0))
+		  this (substring this 0 (1- (match-end 0)))))
+	(when (string-match "^--" this)
+	  (setq completion (try-completion this tty-long-option-alist))
+	  (if (eq completion t)
+	      ;; Exact match for long option.
+	      (setq this (cdr (assoc this tty-long-option-alist)))
+	    (if (stringp completion)
+		(let ((elt (assoc completion tty-long-option-alist)))
+		  ;; Check for abbreviated long option.
+		  (or elt
+		      (error "Option `%s' is ambiguous" this))
+		  (setq this (cdr elt)))
+	      ;; Check for a short option.
+	      (setq argval nil this orig-this))))
+	(cond ((or (string= this "-fg") (string= this "-foreground"))
+	       (or argval (setq argval (car args) args (cdr args)))
+	       (setq default-frame-alist
+		     (cons (cons 'foreground-color argval)
+			   default-frame-alist)))
+	      ((or (string= this "-bg") (string= this "-background"))
+	       (or argval (setq argval (car args) args (cdr args)))
+	       (setq default-frame-alist
+		     (cons (cons 'background-color argval)
+			   default-frame-alist)))
+	      ((or (string= this "-T") (string= this "-name"))
+	       (or argval (setq argval (car args) args (cdr args)))
+	       (setq default-frame-alist
+		     (cons
+		      (cons 'title
+			    (if (stringp argval)
+				argval
+			      (let ((case-fold-search t)
+				    i)
+				(setq argval (invocation-name))
+
+				;; Change any . or * characters in name to
+				;; hyphens, so as to emulate behavior on X.
+				(while
+				    (setq i (string-match "[.*]" argval))
+				  (aset argval i ?-))
+				argval)))
+		      default-frame-alist)))
+	      ((or (string= this "-r")
+		   (string= this "-rv")
+		   (string= this "-reverse"))
+	       (setq default-frame-alist
+		     (cons '(reverse . t)
+			   default-frame-alist)))
+	      (t (setq rest (cons this rest))))))
+      (nreverse rest)))
+
 (defun command-line ()
   (setq command-line-default-directory default-directory)
 
@@ -579,6 +652,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       'external-debugging-output)
      (setq window-system nil)
      (kill-emacs)))
+
+  ;; Windowed displays do this inside their *-win.el.
+  (when (and (not (display-graphic-p))
+	     (not noninteractive))
+    (setq command-line-args (tty-handle-args command-line-args)))
 
   (let ((done nil)
 	(args (cdr command-line-args)))
