@@ -390,7 +390,7 @@ Use \\[toggle-read-only] to permit editing."
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only other window: ")
-  (find-file filename)
+  (find-file-other-window filename)
   (setq buffer-read-only t))
 
 (defun find-file-read-only-other-frame (filename)
