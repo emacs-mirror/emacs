@@ -235,6 +235,7 @@ ac_cv_func_working_mktime=no)])
 if test $ac_cv_func_working_mktime = no; then
   LIBOBJS="$LIBOBJS mktime.${ac_objext}"
 fi
+AC_SUBST(LIBOBJS)dnl
 ])# AC_FUNC_MKTIME
 
 # AC_C_VOLATILE
