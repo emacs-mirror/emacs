@@ -349,9 +349,9 @@ in the buffer to search for an expansion.
 buffers, unless you have set @code{dabbrev-check-all-buffers} to
 @code{nil}.
 
-@vindex dabbrev-ignored-regexps
+@vindex dabbrev-ignored-buffer-regexps
   A more fine control of the buffers that are scanned is possible by
-customizing the variable @code{dabbrev-ignored-regexps}, which should
+customizing the variable @code{dabbrev-ignored-buffer-regexps}, which should
 contain a list of regular expressions.  Buffers matching a regular
 expression from that list are not searched.
 
