@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cyclic.com>
 ;; Maintainer: Karl Fogel <kfogel@cyclic.com>
 ;; Created: July, 1993
-;; Author's Update Number: 2.6.13
+;; Author's Update Number: see variable `bookmark-version'.
 ;; Keywords: bookmarks, placeholders, annotations
 
 ;;; Summary:
@@ -69,6 +69,8 @@
 ;; Thanks to Mikio Nakajima <PBC01764@niftyserve.or.jp> for many bugs
 ;; reported and fixed.
 
+;; Thank you, Michael Kifer, for contributing the XEmacs support.
+
 ;; Enough with the credits already, get on to the good stuff:
 
 ;; FAVORITE CHINESE RESTAURANT: 
@@ -80,6 +82,11 @@
 
 
 ;;;; Code:
+
+(defconst bookmark-version "2.6.19"
+  "Version number of bookmark.el.  This is not related to the version
+of Emacs bookmark comes with; it is used solely by bookmark's
+maintainers to avoid version confusion.")
 
 ;;; Misc comments:
 ;;
@@ -176,12 +183,29 @@ following in your .emacs:
 
 ;;; No user-serviceable parts beyond this point.
 
+;; Is it XEmacs?
+(defconst bookmark-xemacsp
+  (string-match "\\(Lucid\\|Xemacs\\)" emacs-version))
+
+
 ;; Added  for lucid emacs  compatibility, db
 (or (fboundp 'defalias)  (fset 'defalias 'fset))
 
 ;; suggested for lucid compatibility by david hughes:
 (or (fboundp 'frame-height)  (defalias 'frame-height 'screen-height))
 
+;; This variable is probably obsolete now...
+(or (boundp 'baud-rate)
+    ;; some random value higher than 9600    
+    (setq baud-rate 19200))
+
+;; XEmacs apparently call this `buffer-substring-without-properties',
+;; sigh.
+(or (fboundp 'buffer-substring-no-properties)
+    (if (fboundp 'buffer-substring-without-properties)
+        (fset 'buffer-substring-no-properties
+              'buffer-substring-without-properties)
+      (fset 'buffer-substring-no-properties 'buffer-substring)))
 
 
 ;;; Keymap stuff:
@@ -474,7 +498,10 @@ Optional third arg OVERWRITE means replace any existing bookmarks with
 this name."
   (bookmark-maybe-load-default-file)
   (let ((stripped-name (copy-sequence name)))
-    (set-text-properties 0 (length stripped-name) nil stripped-name)
+    (or bookmark-xemacsp
+        ;; XEmacs's `set-text-properties' doesn't work on
+        ;; free-standing strings, apparently.
+        (set-text-properties 0 (length stripped-name) nil stripped-name))
     (if (and (bookmark-get-bookmark stripped-name) (not overwrite))
         ;; already existing boookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
@@ -1958,6 +1985,33 @@ strings returned are not."
     (cons (concat "-*- " name " -*-") pane-list)))
 
 
+(defun bookmark-build-xemacs-menu (name entries function)
+  "Build a menu named NAME from the strings in ENTRIES.
+That is, ENTRIES is a list of strings that appear as the choices
+in the menu.
+The visible entries are truncated to `bookmark-menu-length', but the
+strings returned are not."
+  (let* (lst 
+	 (pane-list
+	  (progn
+	    (while entries
+	      (let ((str (car entries)))
+		(setq lst (cons
+			   (vector
+			    (if (> (length str) bookmark-menu-length)
+				(substring str 0 bookmark-menu-length)
+			      str)
+			    (list function str)
+			    t)
+			   lst))
+		(setq entries (cdr entries))))
+	    (nreverse lst))))
+
+    ;; Return the menu:
+    (append (if popup-menu-titles (list (concat "-*- " name " -*-")))
+ 	    pane-list)))
+
+
 (defun bookmark-menu-popup-paned-menu (event name entries)
   "Pop up multi-paned menu at EVENT, return string chosen from ENTRIES.
 That is, ENTRIES is a list of strings which appear as the choices
@@ -2071,23 +2125,34 @@ corresponding bookmark function from Lisp \(the one without the
 ;; We MUST autoload EACH form used to set up this variable's value, so
 ;; that the whole job is done in loaddefs.el.
 
+;; FSF Emacs menubar stuff
+;; The odd conditional structure is due to the limitations of autoload
+;; cookies.
+
 ;;;###autoload
 (defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions"))
- 
+
 ;;;###autoload
 (defalias 'menu-bar-bookmark-map (symbol-value 'menu-bar-bookmark-map))
 
+;; make bookmarks appear toward the right side of the menu.
+(if (boundp 'menu-bar-final-items)
+    (if menu-bar-final-items 
+        (setq menu-bar-final-items
+              (cons 'bookmark menu-bar-final-items)))
+  (setq menu-bar-final-items '(bookmark)))
+
 ;;;###autoload
 (define-key menu-bar-bookmark-map [load]
-  '("Load a Bookmark File" . bookmark-load))
+  '("Load a Bookmark File..." . bookmark-load))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [write]
-  '("Write \(to another file\)" . bookmark-write))
+  '("Save Bookmarks As..." . bookmark-write))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [save]
-  '("Save  \(in default file\)" . bookmark-save))
+  '("Save Bookmarks" . bookmark-save))
 
 ;;;###autoload
 (define-key menu-bar-bookmark-map [edit]
