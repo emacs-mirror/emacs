@@ -300,6 +300,7 @@ active fields and other features.
 * Groups: Customization Groups.
                              How options are classified in a structure.
 * Changing an Option::       How to edit a value and set an option.
+* Saving Customizations::    Details of saving customizations.
 * Face Customization::       How to edit the attributes of a face.
 * Specific Customization::   Making a customization buffer for specific
                                 options, faces, or groups.
@@ -517,32 +518,15 @@ editable field, use @kbd{C-o} or @kbd{C-q C-j}.
 @cindex saving option value
 @cindex customized options, saving
   Setting the option changes its value in the current Emacs session;
-@dfn{saving} the value changes it for future sessions as well.  This
-works by writing code into your @file{~/.emacs} file so as to set the
-option variable again each time you start Emacs.  To save the option,
-invoke @samp{[State]} and select the @samp{Save for Future Sessions}
-operation.
-
-@vindex custom-file
-  The customization buffer normally saves customizations in
-@file{~/.emacs}.  If you wish, you can save customizations in another
-file instead.  To make this work, your @file{~/.emacs} should set
-@code{custom-file} to the name of that file.  Emacs will then load
-the file right after your @file{.emacs}.  For example:
-
-@example
-(setq custom-file "~/.emacs-custom")
-@end example
-
-  If Emacs was invoked with the @option{-q} or @option{--no-init-file}
-options (@pxref{Initial Options}), it will not let you save your
-customizations in your @file{~/.emacs} init file.  This is because
-saving customizations from such a session would wipe out all the other
-customizations you might have on your init file.
+@dfn{saving} the value changes it for future sessions as well.  To
+save the option, invoke @samp{[State]} and select the @samp{Save for
+Future Sessions} operation.  This works by writing code so as to set
+the option variable again each time you start Emacs (@pxref{Saving
+Customizations}).
 
   You can also restore the option to its standard value by invoking
-@samp{[State]} and selecting the @samp{Erase Customization}
-operation.  There are actually three reset operations:
+@samp{[State]} and selecting the @samp{Erase Customization} operation.
+There are actually three reset operations:
 
 @table @samp
 @item Reset
@@ -558,6 +542,12 @@ and updates the text accordingly.
 This sets the option to its standard value, and updates the text
 accordingly.  This also eliminates any saved value for the option,
 so that you will get the standard value in future Emacs sessions.
+
+@item Use Backup Value
+This sets the option to a previous value that was set in the
+customization buffer in this session.  If you customize a variable
+and then reset the variable, which discards the customized value,
+you can get the customized value back again with this operation.
 @end table
 
 @cindex comments on customized options
@@ -589,6 +579,38 @@ buffer according to the setting of the option
 Each of the other fields performs an operation---set, save or
 reset---on each of the items in the buffer that could meaningfully be
 set, saved or reset.
+
+@node Saving Customizations
+@subsubsection Saving Customizations
+
+@vindex custom-file
+  The customization buffer normally saves customizations in
+@file{~/.emacs}.  If you wish, you can save customizations in another
+file instead.  To make this work, your @file{~/.emacs} should set
+@code{custom-file} to the name of that file.  Emacs loads the file
+right after your @file{.emacs} if you did not load it already.  For
+example:
+
+@example
+(setq custom-file "~/.emacs-custom")
+@end example
+
+  The variable @code{custom-file} is useful if you want to have
+different customizations for different Emacs versions:
+
+@example
+(if (< emacs-major-version 21)
+    ;; @r{Emacs 20 customization.}
+    (setq custom-file "~/.custom-20.el")
+  ;; @r{Emacs 21 customization.}
+  (setq custom-file "~/.custom-21.el"))
+@end example
+
+  If Emacs was invoked with the @option{-q} or @option{--no-init-file}
+options (@pxref{Initial Options}), it will not let you save your
+customizations in your @file{~/.emacs} init file.  This is because
+saving customizations from such a session would wipe out all the other
+customizations you might have on your init file.
 
 @node Face Customization
 @subsubsection Customizing Faces
