@@ -289,7 +289,7 @@ do-install: mkdir
 	     if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
 	       ${INSTALL_DATA} dir ${infodir}/dir ; \
 	     fi ; \
-	     for f in cl* emacs* forms* gnus* info* sc* vip* ; do \
+	     for f in cl* emacs* dired-x* forms* gnus* info* sc* vip* ; do \
 	       ${INSTALL_DATA} $$f ${infodir}/$$f ; \
 	     done); \
 	else true; fi
