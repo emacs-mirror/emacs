@@ -609,7 +609,7 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 extern Bool ActionCheck(Action action);
 extern void ActionInit(Action action, Pool pool);
 extern void ActionFinish(Action action);
-extern void ActionPoll(Arena arena);
+extern Bool ActionPoll(Arena arena);
 
 
 /* Arena Interface -- see impl.c.arena */
@@ -653,7 +653,7 @@ extern void (ArenaPoll)(Arena arena);
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
 
-extern void ArenaStep(Arena arena);
+extern Bool ArenaStep(Arena arena, double interval);
 extern void ArenaClamp(Arena arena);
 extern void ArenaRelease(Arena arena);
 extern void ArenaPark(Arena arena);

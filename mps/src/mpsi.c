@@ -309,12 +309,14 @@ size_t mps_arena_spare_commit_limit(mps_arena_t mps_arena)
   return limit;
 }
 
-void mps_arena_step(mps_arena_t mps_arena)
+mps_bool_t mps_arena_step(mps_arena_t mps_arena, double time)
 {
+  Bool b;
   Arena arena = (Arena)mps_arena;
   ArenaEnter(arena);
-  ArenaStep(arena);
+  b = ArenaStep(arena, time);
   ArenaLeave(arena);
+  return b;
 }
 
 void mps_arena_clamp(mps_arena_t mps_arena)
