@@ -1,5 +1,18 @@
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_list_fonts): Allow scalable fonts if SIZE is < 0,
+	In the cache, use a key containing the information if scalable
+	fonts are included.
+	(x_load_font): Adapt to change of keys in the font cache.
+
+2001-01-17  Kim F. Storm  <storm@filanet.dk>
+	
+	* xterm.c (x_list_fonts): Ensure caching font information when
+	called for a null frame, which is the case frequently when Emacs
+	starts.
+
+2001-01-17  Gerd Moellmann  <gerd@gnu.org>
+
 	* xfns.c (QCconversion): Replaces QCalgorithm.
 
 	* w32fns.c (QCconversion): Replaces QCalgorithm.  Update copyright.
