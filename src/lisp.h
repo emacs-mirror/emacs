@@ -2380,7 +2380,7 @@ extern void init_editfns P_ ((void));
 extern void syms_of_editfns P_ ((void));
 EXFUN (Fcurrent_message, 0);
 extern Lisp_Object Vinhibit_field_text_motion;
-EXFUN (Fconstrain_to_field, 4);
+EXFUN (Fconstrain_to_field, 5);
 EXFUN (Ffield_string, 1);
 EXFUN (Fdelete_field, 1);
 EXFUN (Ffield_beginning, 2);
