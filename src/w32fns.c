@@ -2287,7 +2287,7 @@ x_set_cursor_color (f, arg, oldval)
 	fore_pixel = FRAME_BACKGROUND_PIXEL (f);
     }
 
-  FRAME_FOREGROUND_PIXEL (f) = fore_pixel;
+  f->output_data.w32->cursor_foreground_pixel = fore_pixel;
   f->output_data.w32->cursor_pixel = pixel;
 
   if (FRAME_W32_WINDOW (f) != 0)
@@ -6640,8 +6640,8 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   char height_dpi[8];
   char width_pixels[8];
   char *fontname_dash;
-  int display_resy = one_w32_display_info.resy;
-  int display_resx = one_w32_display_info.resx;
+  int display_resy = (int) one_w32_display_info.resy;
+  int display_resx = (int) one_w32_display_info.resx;
   int bufsz;
   struct coding_system coding;
 
@@ -6757,7 +6757,7 @@ x_to_w32_font (lpxstr, lplogfont)
       char name[50], weight[20], slant, pitch, pixels[10], height[10],
         width[10], resy[10], remainder[50];
       char * encoding;
-      int dpi = one_w32_display_info.resy;
+      int dpi = (int) one_w32_display_info.resy;
 
       fields = sscanf (lpxstr,
 		       "-%*[^-]-%49[^-]-%19[^-]-%c-%*[^-]-%*[^-]-%9[^-]-%9[^-]-%*[^-]-%9[^-]-%c-%9[^-]-%49s",
@@ -8499,6 +8499,64 @@ image_spec_value (spec, key, found)
 }
      
 
+#ifdef HAVE_IMAGES
+DEFUN ("image-size", Fimage_size, Simage_size, 1, 3, 0,
+       doc: /* Return the size of image SPEC as pair (WIDTH . HEIGHT).
+PIXELS non-nil means return the size in pixels, otherwise return the
+size in canonical character units.
+FRAME is the frame on which the image will be displayed.  FRAME nil
+or omitted means use the selected frame.  */)
+     (spec, pixels, frame)
+     Lisp_Object spec, pixels, frame;
+{
+  Lisp_Object size;
+
+  size = Qnil;
+  if (valid_image_p (spec))
+    {
+      struct frame *f = check_x_frame (frame);
+      int id = lookup_image (f, spec);
+      struct image *img = IMAGE_FROM_ID (f, id);
+      int width = img->width + 2 * img->hmargin;
+      int height = img->height + 2 * img->vmargin;
+  
+      if (NILP (pixels))
+	size = Fcons (make_float ((double) width / CANON_X_UNIT (f)),
+		      make_float ((double) height / CANON_Y_UNIT (f)));
+      else
+	size = Fcons (make_number (width), make_number (height));
+    }
+  else
+    error ("Invalid image specification");
+
+  return size;
+}
+
+
+DEFUN ("image-mask-p", Fimage_mask_p, Simage_mask_p, 1, 2, 0,
+       doc: /* Return t if image SPEC has a mask bitmap.
+FRAME is the frame on which the image will be displayed.  FRAME nil
+or omitted means use the selected frame.  */)
+     (spec, frame)
+     Lisp_Object spec, frame;
+{
+  Lisp_Object mask;
+
+  mask = Qnil;
+  if (valid_image_p (spec))
+    {
+      struct frame *f = check_x_frame (frame);
+      int id = lookup_image (f, spec);
+      struct image *img = IMAGE_FROM_ID (f, id);
+      if (img->mask)
+	mask = Qt;
+    }
+  else
+    error ("Invalid image specification");
+
+  return mask;
+}
+#endif
 
 
 /***********************************************************************
@@ -8601,7 +8659,7 @@ image_ascent (img, face)
 	ascent = height / 2;
     }
   else
-    ascent = height * img->ascent / 100.0;
+    ascent = (int) (height * img->ascent / 100.0);
 
   return ascent;
 }
@@ -8610,20 +8668,21 @@ image_ascent (img, face)
 
 /* Image background colors.  */
 
-static unsigned long
+/* Find the "best" corner color of a bitmap.  XIMG is assumed to a device
+   context with the bitmap selected.  */
+static COLORREF
 four_corners_best (ximg, width, height)
-     XImage *ximg;
+     HDC ximg;
      unsigned long width, height;
 {
-#if 0 /* TODO: Image support.  */
-  unsigned long corners[4], best;
+  COLORREF corners[4], best;
   int i, best_count;
 
   /* Get the colors at the corners of ximg.  */
-  corners[0] = XGetPixel (ximg, 0, 0);
-  corners[1] = XGetPixel (ximg, width - 1, 0);
-  corners[2] = XGetPixel (ximg, width - 1, height - 1);
-  corners[3] = XGetPixel (ximg, 0, height - 1);
+  corners[0] = GetPixel (ximg, 0, 0);
+  corners[1] = GetPixel (ximg, width - 1, 0);
+  corners[2] = GetPixel (ximg, width - 1, height - 1);
+  corners[3] = GetPixel (ximg, 0, height - 1);
 
   /* Choose the most frequently found color as background.  */
   for (i = best_count = 0; i < 4; ++i)
@@ -8639,9 +8698,6 @@ four_corners_best (ximg, width, height)
     }
 
   return best;
-#else
-  return 0;
-#endif
 }
 
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
@@ -8739,18 +8795,17 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
      struct image *img;
      int pixmap_p, mask_p, colors_p;
 {
-#if 0 /* TODO: W32 image support  */
   if (pixmap_p && img->pixmap)
     {
-      XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
-      img->pixmap = None;
+      DeleteObject (img->pixmap);
+      img->pixmap = NULL;
       img->background_valid = 0;
     }
 
   if (mask_p && img->mask)
     {
-      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
-      img->mask = None;
+      DeleteObject (img->mask);
+      img->mask = NULL;
       img->background_transparent_valid = 0;
     }
       
@@ -8761,7 +8816,6 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
       img->colors = NULL;
       img->ncolors = 0;
     }
-#endif
 }
 
 /* Free X resources of image IMG which is used on frame F.  */
@@ -8771,18 +8825,18 @@ x_clear_image (f, img)
      struct frame *f;
      struct image *img;
 {
-#if 0 /* TODO: W32 image support  */
-
   if (img->pixmap)
     {
       BLOCK_INPUT;
-      XFreePixmap (NULL, img->pixmap);
+      DeleteObject (img->pixmap);
       img->pixmap = 0;
       UNBLOCK_INPUT;
     }
 
   if (img->ncolors)
     {
+#if 0 /* TODO: color table support  */
+
       int class = FRAME_W32_DISPLAY_INFO (f)->visual->class;
       
       /* If display has an immutable color map, freeing colors is not
@@ -8798,12 +8852,12 @@ x_clear_image (f, img)
 		       img->ncolors, 0);
 	  UNBLOCK_INPUT;
 	}
+#endif
       
       xfree (img->colors);
       img->colors = NULL;
       img->ncolors = 0;
     }
-#endif
 }
 
 
@@ -8819,7 +8873,6 @@ x_alloc_image_color (f, img, color_name, dflt)
      Lisp_Object color_name;
      unsigned long dflt;
 {
-#if 0 /* TODO: allocing colors.  */
   XColor color;
   unsigned long result;
 
@@ -8839,8 +8892,6 @@ x_alloc_image_color (f, img, color_name, dflt)
   else
     result = dflt;
   return result;
-#endif
-  return 0;
 }
 
 
@@ -9016,7 +9067,7 @@ postprocess_image (f, img)
 	    }
 	  else if (NILP (mask) && found_p && img->mask)
 	    {
-	      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+	      DeleteObject (img->mask);
 	      img->mask = NULL;
 	    }
 	}
@@ -9231,8 +9282,6 @@ forall_images_in_image_cache (f, fn)
 			    W32 support code
  ***********************************************************************/
 
-#if 0 /* TODO: W32 specific image code.  */
-
 static int x_create_x_image_and_pixmap P_ ((struct frame *, int, int, int,
                                             XImage **, Pixmap *));
 static void x_destroy_x_image P_ ((XImage *));
@@ -9242,8 +9291,10 @@ static void x_put_x_image P_ ((struct frame *, XImage *, Pixmap, int, int));
 /* Create an XImage and a pixmap of size WIDTH x HEIGHT for use on
    frame F.  Set *XIMG and *PIXMAP to the XImage and Pixmap created.
    Set (*XIMG)->data to a raster of WIDTH x HEIGHT pixels allocated
-   via xmalloc.  Print error messages via image_error if an error
-   occurs.  Value is non-zero if successful.  */
+   via xmalloc.  DEPTH of zero signifies a 24 bit image, otherwise
+   DEPTH should indicate the bit depth of the image.  Print error
+   messages via image_error if an error occurs.  Value is non-zero if
+   successful.  */
 
 static int
 x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
@@ -9252,37 +9303,71 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
      XImage **ximg;
      Pixmap *pixmap;
 {
-#if 0 /* TODO: Image support for W32 */
-  Display *display = FRAME_W32_DISPLAY (f);
-  Screen *screen = FRAME_X_SCREEN (f);
-  Window window = FRAME_W32_WINDOW (f);
+  BITMAPINFOHEADER *header;
+  HDC hdc;
+  int scanline_width_bits;
+  int remainder;
+  int palette_colors = 0;
 
-  xassert (interrupt_input_blocked);
+  if (depth == 0)
+    depth = 24;
 
-  if (depth <= 0)
-    depth = one_w32_display_info.n_cbits;
-  *ximg = XCreateImage (display, DefaultVisualOfScreen (screen),
-			depth, ZPixmap, 0, NULL, width, height,
-			depth > 16 ? 32 : depth > 8 ? 16 : 8, 0);
+  if (depth != 1 && depth != 4 && depth != 8
+      && depth != 16 && depth != 24 && depth != 32)
+    {
+      image_error ("Invalid image bit depth specified", Qnil, Qnil);
+      return 0;
+    }
+
+  scanline_width_bits = width * depth;
+  remainder = scanline_width_bits % 32;
+
+  if (remainder)
+    scanline_width_bits += 32 - remainder;
+
+  /* Bitmaps with a depth less than 16 need a palette.  */
+  /* BITMAPINFO structure already contains the first RGBQUAD.  */
+  if (depth < 16)
+    palette_colors = 1 << depth - 1;
+
+  *ximg = xmalloc (sizeof (XImage) + palette_colors * sizeof (RGBQUAD));
   if (*ximg == NULL)
     {
-      image_error ("Unable to allocate X image", Qnil, Qnil);
+      image_error ("Unable to allocate memory for XImage", Qnil, Qnil);
       return 0;
     }
 
-  /* Allocate image raster.  */
-  (*ximg)->data = (char *) xmalloc ((*ximg)->bytes_per_line * height);
+  header = &((*ximg)->info.bmiHeader);
+  bzero (&((*ximg)->info), sizeof (BITMAPINFO));
+  header->biSize = sizeof (*header);
+  header->biWidth = width;
+  header->biHeight = -height;  /* negative indicates a top-down bitmap.  */
+  header->biPlanes = 1;
+  header->biBitCount = depth;
+  header->biCompression = BI_RGB;
+  header->biClrUsed = palette_colors;
 
-  /* Allocate a pixmap of the same size.  */
-  *pixmap = XCreatePixmap (display, window, width, height, depth);
-  if (*pixmap == 0)
+  hdc = get_frame_dc (f);
+
+  /* Create a DIBSection and raster array for the bitmap,
+     and store its handle in *pixmap.  */
+  *pixmap = CreateDIBSection (hdc, &((*ximg)->info), DIB_RGB_COLORS,
+			      &((*ximg)->data), NULL, 0);
+
+  /* Realize display palette and garbage all frames. */
+  release_frame_dc (f, hdc);
+
+  if (*pixmap == NULL)
     {
+      DWORD err = GetLastError();
+      Lisp_Object errcode;
+      /* All system errors are < 10000, so the following is safe.  */
+      XSETINT (errcode, (int) err);
+      image_error ("Unable to create bitmap, error code %d", errcode, Qnil);
       x_destroy_x_image (*ximg);
-      *ximg = NULL;
-      image_error ("Unable to create X pixmap", Qnil, Qnil);
       return 0;
     }
-#endif
+
   return 1;
 }
 
@@ -9296,9 +9381,9 @@ x_destroy_x_image (ximg)
   xassert (interrupt_input_blocked);
   if (ximg)
     {
-      xfree (ximg->data);
+      /* Data will be freed by DestroyObject.  */
       ximg->data = NULL;
-      XDestroyImage (ximg);
+      xfree (ximg);
     }
 }
 
@@ -9312,15 +9397,16 @@ x_put_x_image (f, ximg, pixmap, width, height)
      XImage *ximg;
      Pixmap pixmap;
 {
+
+#if TODO  /* W32 specific image code.  */
   GC gc;
-  
+
   xassert (interrupt_input_blocked);
   gc = XCreateGC (NULL, pixmap, 0, NULL);
   XPutImage (NULL, pixmap, gc, ximg, 0, 0, 0, 0, width, height);
   XFreeGC (NULL, gc);
-}
-
 #endif
+}
 
 
 /***********************************************************************
@@ -9844,6 +9930,8 @@ xbm_load_image (f, img, contents, end)
   if (rc)
     {
       int depth = one_w32_display_info.n_cbits;
+      int planes = one_w32_display_info.n_planes;
+
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
       Lisp_Object value;
@@ -9861,16 +9949,9 @@ xbm_load_image (f, img, contents, end)
 	  img->background = background;
 	  img->background_valid = 1;
 	}
-      
-#if 0 /* TODO : Port image display to W32 */
       img->pixmap
-	= XCreatePixmapFromBitmapData (FRAME_W32_DISPLAY (f),
-				       FRAME_W32_WINDOW (f),
-				       data,
-				       img->width, img->height,
-				       foreground, background,
-				       depth);
-#endif
+	= CreateBitmap (img->width, img->height, planes, depth, data);
+
       xfree (data);
 
       if (img->pixmap == 0)
@@ -10478,13 +10559,14 @@ colors_in_color_table (n)
 #endif /* TODO */
 
 
+#ifdef HAVE_IMAGES /* TODO */
 /***********************************************************************
 			      Algorithms
  ***********************************************************************/
-#if 0 /* TODO: image support. */
 static XColor *x_to_xcolors P_ ((struct frame *, struct image *, int));
 static void x_from_xcolors P_ ((struct frame *, struct image *, XColor *));
 static void x_detect_edges P_ ((struct frame *, struct image *, int[9], int));
+static void XPutPixel (XImage *, int, int, COLORREF);
 
 /* Non-zero means draw a cross on images having `:conversion
    disabled'.  */
@@ -10531,7 +10613,7 @@ x_to_xcolors (f, img, rgb_p)
   XImage *ximg;
 
   colors = (XColor *) xmalloc (img->width * img->height * sizeof *colors);
-
+#if 0 /* TODO: implement image colors.  */
   /* Get the X image IMG->pixmap.  */
   ximg = XGetImage (FRAME_X_DISPLAY (f), img->pixmap,
 		    0, 0, img->width, img->height, ~0, ZPixmap);
@@ -10551,7 +10633,35 @@ x_to_xcolors (f, img, rgb_p)
     }
 
   XDestroyImage (ximg);
+#endif
   return colors;
+}
+
+/* Put a pixel of COLOR at position X, Y in XIMG.  XIMG must have been
+   created with CreateDIBSection, with the pointer to the bit values
+   stored in ximg->data.  */
+
+static void XPutPixel (ximg, x, y, color)
+     XImage * ximg;
+     int x, y;
+     COLORREF color;
+{
+  int width = ximg->info.bmiHeader.biWidth;
+  int height = ximg->info.bmiHeader.biHeight;
+  int rowbytes = width * 3;
+  unsigned char * pixel;
+
+  /* Don't support putting pixels in images with palettes.  */
+  xassert (ximg->info.bmiHeader.biBitCount == 24);
+
+  /* Ensure scanlines are aligned on 4 byte boundaries.  */
+  if (rowbytes % 4)
+    rowbytes += 4 - (rowbytes % 4);
+
+  pixel = ximg->data + y * rowbytes + x * 3;
+  *pixel = 255 - GetRValue (color);
+  *(pixel + 1) = 255 - GetGValue (color);
+  *(pixel + 2) = 255 - GetBValue (color);
 }
 
 
@@ -10569,9 +10679,9 @@ x_from_xcolors (f, img, colors)
   XImage *oimg;
   Pixmap pixmap;
   XColor *p;
-  
+#if 0   /* TODO: color tables.  */
   init_color_table ();
-  
+#endif
   x_create_x_image_and_pixmap (f, img->width, img->height, 0,
 			       &oimg, &pixmap);
   p = colors;
@@ -10579,7 +10689,11 @@ x_from_xcolors (f, img, colors)
     for (x = 0; x < img->width; ++x, ++p)
       {
 	unsigned long pixel;
+#if 0  /* TODO: color tables.  */
 	pixel = lookup_rgb_color (f, p->red, p->green, p->blue);
+#else
+	pixel = PALETTERGB (p->red, p->green, p->blue);
+#endif
 	XPutPixel (oimg, x, y, pixel);
       }
 
@@ -10589,8 +10703,10 @@ x_from_xcolors (f, img, colors)
   x_put_x_image (f, oimg, pixmap, img->width, img->height);
   x_destroy_x_image (oimg);
   img->pixmap = pixmap;
+#if 0  /* TODO: color tables.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
+#endif
 }
 
 
@@ -10741,9 +10857,9 @@ x_disable_image (f, img)
      struct frame *f;
      struct image *img;
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
-  if (dpyinfo->n_planes >= 2)
+  if (dpyinfo->n_planes * dpyinfo->n_cbits >= 2)
     {
       /* Color (or grayscale).  Convert to gray, and equalize.  Just
 	 drawing such images with a stipple can look very odd, so
@@ -10767,8 +10883,9 @@ x_disable_image (f, img)
 
   /* Draw a cross over the disabled image, if we must or if we
      should.  */
-  if (dpyinfo->n_planes < 2 || cross_disabled_images)
+  if (dpyinfo->n_planes * dpyinfo->n_cbits < 2 || cross_disabled_images)
     {
+#if 0 /* TODO: full image support  */
       Display *dpy = FRAME_X_DISPLAY (f);
       GC gc;
 
@@ -10790,6 +10907,7 @@ x_disable_image (f, img)
 		     img->width - 1, 0);
 	  XFreeGC (dpy, gc);
 	}
+#endif
     }
 }
 
@@ -10807,6 +10925,7 @@ x_build_heuristic_mask (f, img, how)
      struct image *img;
      Lisp_Object how;
 {
+#if 0 /* TODO: full image support.  */
   Display *dpy = FRAME_W32_DISPLAY (f);
   XImage *ximg, *mask_img;
   int x, y, rc, use_img_background;
@@ -10870,9 +10989,11 @@ x_build_heuristic_mask (f, img, how)
   XDestroyImage (ximg);
 
   return 1;
+#else
+  return 0;
+#endif
 }
-#endif /* TODO */
-
+#endif
 
 /***********************************************************************
 		       PBM (mono, gray, color)
@@ -11137,12 +11258,13 @@ pbm_load (f, img)
       || (type != PBM_MONO && max_color_idx < 0))
     goto error;
 
-  if (!x_create_x_image_and_pixmap (f, width, height, 0,
-				    &ximg, &img->pixmap))
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     goto error;
 
+#if 0  /* TODO: color tables.  */
   /* Initialize the color hash table.  */
   init_color_table ();
+#endif
 
   if (type == PBM_MONO)
     {
@@ -11207,28 +11329,32 @@ pbm_load (f, img)
 	    
 	    if (r < 0 || g < 0 || b < 0)
 	      {
-		xfree (ximg->data);
-		ximg->data = NULL;
-		XDestroyImage (ximg);
+		x_destroy_x_image (ximg);
 		image_error ("Invalid pixel value in image `%s'",
 			     img->spec, Qnil);
                 goto error;
 	      }
 	    
 	    /* RGB values are now in the range 0..max_color_idx.
-	       Scale this to the range 0..0xffff supported by X.  */
-	    r = (double) r * 65535 / max_color_idx;
-	    g = (double) g * 65535 / max_color_idx;
-	    b = (double) b * 65535 / max_color_idx;
-	    XPutPixel (ximg, x, y, lookup_rgb_color (f, r, g, b));
+	       Scale this to the range 0..0xff supported by W32.  */
+	    r = (int) ((double) r * 255 / max_color_idx);
+	    g = (int) ((double) g * 255 / max_color_idx);
+	    b = (int) ((double) b * 255 / max_color_idx);
+	    XPutPixel (ximg, x, y,
+#if 0  /* TODO: color tables.  */
+		       lookup_rgb_color (f, r, g, b));
+#else
+	    PALETTERGB (r, g, b));
+#endif
 	  }
     }
-  
+
+#if 0  /* TODO: color tables.  */
   /* Store in IMG->colors the colors allocated for the image, and
      free the color table.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
-  
+#endif
   /* Maybe fill in the background field while we have ximg handy.  */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
     IMAGE_BACKGROUND (img, f, ximg);
@@ -14550,14 +14676,16 @@ If the underlying system call fails, value is nil.  */)
 
     if (pfn_GetDiskFreeSpaceEx)
       {
+	/* Unsigned large integers cannot be cast to double, so
+	   use signed ones instead.  */
 	LARGE_INTEGER availbytes;
 	LARGE_INTEGER freebytes;
 	LARGE_INTEGER totalbytes;
 
 	if (pfn_GetDiskFreeSpaceEx(rootname,
-				   &availbytes,
-				   &totalbytes,
-				   &freebytes))
+				   (ULARGE_INTEGER *)&availbytes,
+				   (ULARGE_INTEGER *)&totalbytes,
+				   (ULARGE_INTEGER *)&freebytes))
 	  value = list3 (make_float ((double) totalbytes.QuadPart),
 			 make_float ((double) freebytes.QuadPart),
 			 make_float ((double) availbytes.QuadPart));
@@ -15106,7 +15234,7 @@ versions of Windows) characters.  */);
   set_frame_fontset_func = x_set_font;
   check_window_system_func = check_w32;
 
-#if 0 /* TODO Image support for W32 */
+#ifdef IMAGES
   /* Images.  */
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
@@ -15126,6 +15254,7 @@ versions of Windows) characters.  */);
   staticpro (&QCrelief);
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);
+#if 0 /* TODO: These need entries at top of file.  */
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
@@ -15134,10 +15263,12 @@ versions of Windows) characters.  */);
   staticpro (&QCpt_width);
   QCpt_height = intern (":pt-height");
   staticpro (&QCpt_height);
+#endif
   QCindex = intern (":index");
   staticpro (&QCindex);
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
+#endif
 
 #if HAVE_XPM
   Qxpm = intern ("xpm");
@@ -15164,13 +15295,16 @@ versions of Windows) characters.  */);
   staticpro (&Qpng);
 #endif
 
+#ifdef HAVE_IMAGES
   defsubr (&Sclear_image_cache);
+  defsubr (&Simage_size);
+  defsubr (&Simage_mask_p);
+#endif
 
 #if GLYPH_DEBUG
   defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
-#endif /* TODO */
 
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
@@ -15194,10 +15328,14 @@ init_xfns ()
   image_types = NULL;
   Vimage_types = Qnil;
 
+#if HAVE_PBM
+  define_image_type (&pbm_type);
+#endif
+
 #if 0 /* TODO : Image support for W32 */
   define_image_type (&xbm_type);
   define_image_type (&gs_type);
-  define_image_type (&pbm_type);
+#endif
   
 #if HAVE_XPM
   define_image_type (&xpm_type);
@@ -15218,7 +15356,6 @@ init_xfns ()
 #if HAVE_PNG
   define_image_type (&png_type);
 #endif
-#endif /* TODO */
 }
 
 #undef abort
