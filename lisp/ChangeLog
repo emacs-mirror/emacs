@@ -1,5 +1,7 @@
 2002-01-08  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/regexp-opt.el (regexp-opt): Bind max-specpdl-size.
+
 	* emacs-lisp/eldoc.el (eldoc-minor-mode-string): Fix custom type.
 
 	* textmodes/flyspell.el (flyspell-mode-line-string): Fix custom type.
