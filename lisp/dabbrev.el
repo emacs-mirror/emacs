@@ -294,7 +294,7 @@ this list.")
 ;; The list of remaining buffers with the same mode as current buffer.
 (defvar dabbrev--friend-buffer-list nil)
 
-;; The buffer we looked in last.
+;; The buffer we looked in last, not counting the current buffer.
 (defvar dabbrev--last-buffer nil)
 
 ;; The buffer we found the expansion last time.
@@ -655,21 +655,21 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	dabbrev--check-other-buffers dabbrev-check-other-buffers))
 
 (defun dabbrev--select-buffers ()
-  "Return a list of all buffers that should be searched for a possible abbrev.
+  "Return a list of other buffers to search for a possible abbrev.
+The current buffer is not included in the list.
 
-This function makes a list of all the buffers returned by `buffer-list', and
-then filters out every buffer for which `dabbrev-friend-buffer-function',
-if it is bound, returns nil.  The resulting partial list is returned."
-  (save-excursion
-    (and (window-minibuffer-p (selected-window))
-	 (set-buffer (dabbrev--minibuffer-origin)))
-    (let ((orig-buffer (current-buffer)))
-      (dabbrev-filter-elements
-       buffer (buffer-list)
-       (and (not (eq orig-buffer buffer))
-	    (not (dabbrev--ignore-buffer-p buffer))
-	    (boundp 'dabbrev-friend-buffer-function)
-	    (funcall dabbrev-friend-buffer-function buffer))))))
+This function makes a list of all the buffers returned by `buffer-list',
+then discards buffers whose names match `dabbrev-ignored-buffer-names'
+or `dabbrev-ignored-buffer-regexps'.  It also discards buffers for which
+`dabbrev-friend-buffer-function', if it is bound, returns nil when called
+with the buffer as argument.
+It returns the list of the buffers that are not discarded."
+  (dabbrev-filter-elements
+   buffer (buffer-list)
+   (and (not (eq (current-buffer) buffer))
+	(not (dabbrev--ignore-buffer-p buffer))
+	(boundp 'dabbrev-friend-buffer-function)
+	(funcall dabbrev-friend-buffer-function buffer)))))
 
 (defun dabbrev--try-find (abbrev reverse n ignore-case)
   "Search for ABBREV, backwards if REVERSE, N times.
@@ -705,7 +705,8 @@ If IGNORE-CASE is non-nil, accept matches which differ in case."
     all-expansions))
 
 (defun dabbrev--scanning-message ()
-  (message "Scanning `%s'" (buffer-name (current-buffer))))
+  (unless (window-minibuffer-p (selected-window))
+    (message "Scanning `%s'" (buffer-name (current-buffer)))))
 
 (defun dabbrev--ignore-buffer-p (buffer)
   "Return non-nil if BUFFER should be ignored by dabbrev."
@@ -728,93 +729,104 @@ This sets `dabbrev--last-direction' to 1 or -1 according
 to the direction in which the occurrence was actually found.
 It sets `dabbrev--last-expansion-location' to the location 
 of the start of the occurrence."
-  (let (expansion)
-    (save-excursion
-      (cond
-       (dabbrev--last-buffer
-	(set-buffer dabbrev--last-buffer)
-	(dabbrev--scanning-message))
-       ((and (not dabbrev-search-these-buffers-only)
-	     (window-minibuffer-p (selected-window)))
-	(set-buffer (dabbrev--minibuffer-origin))
-	;; In the minibuffer-origin buffer we will only search from
-	;; the top and down.
-	(goto-char (point-min))
-	(setq direction -1)
-	(dabbrev--scanning-message)))
-      (cond
-       ;; ------------------------------------------
-       ;; Look backwards
-       ;; ------------------------------------------
-       ((and (not dabbrev-search-these-buffers-only)
-	     (>= direction 0)
-	     (setq dabbrev--last-direction (min 1 direction))
-	     (setq expansion (dabbrev--try-find abbrev t
-						(max 1 direction)
-						ignore-case)))
-	expansion)
-       ;; ------------------------------------------
-       ;; Look forward
-       ;; ------------------------------------------
-       ((and (or (not dabbrev-search-these-buffers-only)
-		 dabbrev--last-buffer)
-	     (<= direction 0)
-	     (setq dabbrev--last-direction -1)
-	     (setq expansion (dabbrev--try-find abbrev nil
-						(max 1 (- direction))
-						ignore-case)))
-	expansion)
-       ;; ------------------------------------------
-       ;; Look in other buffers.
-       ;; Start at (point-min) and look forward.
-       ;; ------------------------------------------
-       (t
-	(setq dabbrev--last-direction -1)
-	;; Make sure that we should check other buffers
-	(or dabbrev--friend-buffer-list
-	    dabbrev--last-buffer
-	    (setq dabbrev--friend-buffer-list
-		  (mapcar (function get-buffer)
-			  dabbrev-search-these-buffers-only))
-	    (not dabbrev--check-other-buffers)
-	    (not (or (eq dabbrev--check-other-buffers t)
-		     (progn
-		       (setq dabbrev--check-other-buffers
-			     (y-or-n-p "Scan other buffers also? ")))))
-	    (let* (friend-buffer-list non-friend-buffer-list)
-	      (setq dabbrev--friend-buffer-list
-		    (funcall dabbrev-select-buffers-function))
-	      (if dabbrev-check-all-buffers
-		  (setq non-friend-buffer-list
+  (save-excursion
+    ;; If we were scanning something other than the current buffer,
+    ;; continue scanning there.
+    (when dabbrev--last-buffer
+      (set-buffer dabbrev--last-buffer)
+      (dabbrev--scanning-message))
+    (or
+     ;; ------------------------------------------
+     ;; Look backward in current buffer.
+     ;; ------------------------------------------
+     (and (not dabbrev-search-these-buffers-only)
+	  (>= direction 0)
+	  (setq dabbrev--last-direction (min 1 direction))
+	  (dabbrev--try-find abbrev t
+			     (max 1 direction)
+			     ignore-case))
+     ;; ------------------------------------------
+     ;; Look forward in current buffer
+     ;; or whatever buffer we were last scanning.
+     ;; ------------------------------------------
+     (and (or (not dabbrev-search-these-buffers-only)
+	      dabbrev--last-buffer)
+	  (<= direction 0)
+	  (setq dabbrev--last-direction -1)
+	  (dabbrev--try-find abbrev nil
+			     (max 1 (- direction))
+			     ignore-case))
+     ;; ------------------------------------------
+     ;; Look in other buffers.
+     ;; Always start at (point-min) and look forward.
+     ;; ------------------------------------------
+     (progn
+       (setq dabbrev--last-direction -1)
+       (unless dabbrev--last-buffer
+	 ;; If we have just now begun to search other buffers,
+	 ;; determine which other buffers we should check.
+	 ;; Put that list in dabbrev--friend-buffer-list.
+	 (or dabbrev--friend-buffer-list
+	     (setq dabbrev--friend-buffer-list
+		   (dabbrev--make-friend-buffer-list))))
+       ;; Walk through the buffers till we find a match.
+       (let (expansion)
+	 (while (and (not expansion) dabbrev--friend-buffer-list)
+	   (setq dabbrev--last-buffer
+		 (car dabbrev--friend-buffer-list))
+	   (setq dabbrev--friend-buffer-list
+		 (cdr dabbrev--friend-buffer-list))
+	   (set-buffer dabbrev--last-buffer)
+	   (dabbrev--scanning-message)
+	   (setq dabbrev--last-expansion-location (point-min))
+	   (setq expansion (dabbrev--try-find abbrev nil 1 ignore-case)))
+	 expansion)))))
+
+;; Compute the list of buffers to scan.
+;; If dabbrev-search-these-buffers-only, then the current buffer
+;; is included in this list if it should be searched.
+;; Otherwise, the current buffer is searched first specially.,
+;; and it is not included in this list.
+(defun dabbrev--make-friend-buffer-list ()
+  (let ((list (mapcar (function get-buffer)
+		      dabbrev-search-these-buffers-only)))
+    (when (and (null dabbrev-search-these-buffers-only)
+	       dabbrev--check-other-buffers
+	       (or (eq dabbrev--check-other-buffers t)
+		   (setq dabbrev--check-other-buffers
+			 (y-or-n-p "Scan other buffers also? "))))
+      (setq list (funcall dabbrev-select-buffers-function))
+      ;; If dabbrev-check-all-buffers, tack on all the other
+      ;; buffers at the end of the list, except those which are
+      ;; specifically to be ignored.
+      (if dabbrev-check-all-buffers
+	  (setq list
+		(append list
 			(dabbrev-filter-elements
 			 buffer (buffer-list)
-			 (and (not (memq buffer dabbrev--friend-buffer-list))
-			      (not (dabbrev--ignore-buffer-p buffer))))
-			dabbrev--friend-buffer-list
-			(append dabbrev--friend-buffer-list
-				non-friend-buffer-list)))))
-	;; Move buffers that are visible on the screen
-	;; to the front of the list.  Remove the current buffer.
-	(when dabbrev--friend-buffer-list
-	  (walk-windows (lambda (w)
-			  (unless (eq w (selected-window))
-			    (setq dabbrev--friend-buffer-list
-				  (cons (window-buffer w)
-					(delq (window-buffer w)
-					      dabbrev--friend-buffer-list))))))
-	  (setq dabbrev--friend-buffer-list
-		(delq (current-buffer) dabbrev--friend-buffer-list)))
-	;; Walk through the buffers
-	(while (and (not expansion) dabbrev--friend-buffer-list)
-	  (setq dabbrev--last-buffer
-		(car dabbrev--friend-buffer-list))
-	  (setq dabbrev--friend-buffer-list
-		(cdr dabbrev--friend-buffer-list))
-	  (set-buffer dabbrev--last-buffer)
-	  (dabbrev--scanning-message)
-	  (setq dabbrev--last-expansion-location (point-min))
-	  (setq expansion (dabbrev--try-find abbrev nil 1 ignore-case)))
-	expansion)))))
+			 (and (not (memq buffer list))
+			      (not (dabbrev--ignore-buffer-p buffer)))))))
+      ;; Remove the current buffer.
+      (setq list (delq (current-buffer) list)))
+    ;; Move buffers in the list that are visible on the screen
+    ;; to the front of the list, but don't add anything to the list.
+    (if list
+	(walk-windows (lambda (w)
+			(unless (eq w (selected-window))
+			  (if (memq (window-buffer w) list)
+			      (setq list
+				    (cons (window-buffer w)
+					  (delq (window-buffer w)
+						list))))))))
+    ;; In a minibuffer, search the buffer it was activated from,
+    ;; first after the minibuffer itself.  Unless we aren't supposed
+    ;; to search the current buffer either.
+    (if (and (window-minibuffer-p (selected-window))
+	     (not dabbrev-search-these-buffers-only))
+	(setq list
+	      (cons (dabbrev--minibuffer-origin)
+		    (delq (dabbrev--minibuffer-origin) list))))
+    list))
 
 (defun dabbrev--safe-replace-match (string &optional fixedcase literal)
   (if (eq major-mode 'picture-mode)
