@@ -749,7 +749,9 @@ This is relative to `smtpmail-queue-dir'.")
 ;		    (>= (car response-code) 400))
 ;		(throw 'done nil)
 ;	      )
-	    (delete-process process))))))
+	    (delete-process process)
+	    (unless smtpmail-debug-info
+	      (kill-buffer process-buffer)))))))
 
 
 (defun smtpmail-process-filter (process output)
