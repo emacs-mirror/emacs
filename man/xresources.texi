@@ -5,11 +5,12 @@
 @appendix X Options and Resources
 
   You can customize some X-related aspects of Emacs behavior using X
-resources, as is usual for programs that use X.  X resources are the
-only way to customize tooltip windows and LessTif menus, since the
-libraries that implement them don't provide for customization through
-Emacs.  This appendix describes the X resources that Emacs recognizes
-and how to use them.
+resources, as is usual for programs that use X.  On MS-Windows, you
+can customize some of the same aspects using the system registry.
+@xref{MS-Windows Registry}.  X resources are the only way to customize
+tooltip windows and LessTif menus, since the libraries that implement
+them don't provide for customization through Emacs.  This appendix
+describes the X resources that Emacs recognizes and how to use them.
 
 @menu
 * Resources::           Using X resources with Emacs (in general).
