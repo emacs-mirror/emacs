@@ -608,19 +608,21 @@ is returned as a character.")
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
       n = XINT (pos);
-      if (n < BEGV || n >= ZV)
-	return Qnil;
     }
 
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
-      DEC_POS (pos);
-      XSETFASTINT (val, FETCH_CHAR (pos));
+      DEC_POS (n);
+      if (n < BEGV || n >= ZV)
+	return Qnil;
+      XSETFASTINT (val, FETCH_CHAR (n));
     }
   else
     {
-      pos--;
-      XSETFASTINT (val, FETCH_BYTE (pos));
+      n--;
+      if (n < BEGV || n >= ZV)
+	return Qnil;
+      XSETFASTINT (val, FETCH_BYTE (n));
     }
    return val;
 }
