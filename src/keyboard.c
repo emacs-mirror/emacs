@@ -690,6 +690,7 @@ static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
+static void any_kboard_state P_ ((void));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -984,30 +985,45 @@ This function is called by the editor initialization to begin editing.")
   ()
 {
   int count = specpdl_ptr - specpdl;
+  Lisp_Object buffer;
 
   command_loop_level++;
   update_mode_lines = 1;
 
+  if (command_loop_level
+      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
+    buffer = Fcurrent_buffer ();
+  else
+    buffer = Qnil;
+
+  /* If we leave recursive_edit_1 below with a `throw' for instance,
+     like it is done in the splash screen display, we have to
+     make sure that we restore single_kboard as command_loop_1
+     would have done if it were left normally.  */
   record_unwind_protect (recursive_edit_unwind,
-			 (command_loop_level
-			  && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
-			 ? Fcurrent_buffer ()
-			 : Qnil);
+			 Fcons (buffer, single_kboard ? Qt : Qnil));
+
   recursive_edit_1 ();
   return unbind_to (count, Qnil);
 }
 
 Lisp_Object
-recursive_edit_unwind (buffer)
-     Lisp_Object buffer;
+recursive_edit_unwind (info)
+     Lisp_Object info;
 {
-  if (!NILP (buffer))
-    Fset_buffer (buffer);
-
+  if (BUFFERP (XCAR (info)))
+    Fset_buffer (XCAR (info));
+  
+  if (NILP (XCDR (info)))
+    any_kboard_state ();
+  else
+    single_kboard_state ();
+      
   command_loop_level--;
   update_mode_lines = 1;
   return Qnil;
 }
+
 
 static void
 any_kboard_state ()
