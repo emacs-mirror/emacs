@@ -36,6 +36,7 @@ static mps_res_t dylan_header_scan(mps_ss_t mps_ss,
       int header = *(int*)((char*)p - headerSIZE);
       switch(headerType(header)) {
       case realTYPE:
+          assert(header == realHeader);
           break;
       case padTYPE:
           p = (mps_addr_t)((char*)p + headerPadSize(header));
@@ -66,6 +67,7 @@ static mps_res_t dylan_header_scan_weak(mps_ss_t mps_ss,
       header = *(int*)((char*)base - headerSIZE);
       switch(headerType(header)) {
       case realTYPE:
+          assert(header == realHeader);
           break;
       case padTYPE:
           base = (mps_addr_t)((char*)base + headerPadSize(header));
@@ -92,6 +94,7 @@ static mps_addr_t dylan_header_skip(mps_addr_t object)
   header = *(int*)((char*)object - headerSIZE);
   switch(headerType(header)) {
   case realTYPE:
+      assert(header == realHeader);
       break;
   case padTYPE:
       return (mps_addr_t)((char*)object + headerPadSize(header));
@@ -113,6 +116,8 @@ static mps_addr_t dylan_header_isfwd(mps_addr_t object)
   header = *(int*)((char*)object - headerSIZE);
   if (headerType(header) != realTYPE)
     return NULL;
+
+  assert(header == realHeader);
 
   return dylan_format->isfwd(object);
 }
@@ -199,18 +204,18 @@ mps_res_t HeaderWeakFormatCheck(mps_addr_t addr)
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -221,7 +226,7 @@ mps_res_t HeaderWeakFormatCheck(mps_addr_t addr)
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
