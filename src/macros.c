@@ -51,18 +51,24 @@ Non-nil arg (prefix arg) means append to last macro defined;\n\
     {
       current_kboard->kbd_macro_bufsize = 30;
       current_kboard->kbd_macro_buffer
-	= (Lisp_Object *)malloc (30 * sizeof (Lisp_Object));
+	= (Lisp_Object *)xmalloc (30 * sizeof (Lisp_Object));
     }
   update_mode_lines++;
   if (NILP (append))
     {
+      if (current_kboard->kbd_macro_bufsize > 200)
+	{
+	  current_kboard->kbd_macro_bufsize = 30;
+	  current_kboard->kbd_macro_buffer
+	    = (Lisp_Object *)xrealloc (30 * sizeof (Lisp_Object));
+	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
-      message("Defining kbd macro...");
+      message ("Defining kbd macro...");
     }
   else
     {
-      message("Appending to kbd macro...");
+      message ("Appending to kbd macro...");
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
       Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro,
 			  make_number (1));
@@ -101,7 +107,7 @@ An argument of zero means repeat until error.")
 	= make_event_array ((current_kboard->kbd_macro_end
 			     - current_kboard->kbd_macro_buffer),
 			    current_kboard->kbd_macro_buffer);
-      message("Keyboard macro defined");
+      message ("Keyboard macro defined");
     }
 
   if (XFASTINT (repeat) == 0)
