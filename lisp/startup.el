@@ -388,6 +388,8 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 			  (cond 
 			   ((eq system-type 'ms-dos)
 			    (concat "~" init-file-user "/_emacs"))
+			   ((eq system-type 'windows-nt)
+			    "~/_emacs")
 			   ((eq system-type 'vax-vms) 
 			    "sys$login:.emacs")
 			   (t 
