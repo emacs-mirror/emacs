@@ -99,7 +99,7 @@ rm -f /tmp/el /tmp/elc
 
 ### Make sure configure is newer than configure.in.
 if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
-  echo "`./configure.in' seems to be newer than `./configure.'" >&2
+  echo "\`./configure.in' seems to be newer than \`./configure.'" >&2
   echo "Attempting to run autoconf." >&2
   autoconf
 fi
