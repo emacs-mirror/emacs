@@ -35,7 +35,8 @@
 ;;;        (require 'avoid)
 ;;;        (mouse-avoidance-mode 'cat-and-mouse)))
 ;;;
-;;; The 'animate can be 'jump or 'banish or 'protean if you prefer.
+;;; The 'cat-and-mouse can be
+;;; 'banish or 'jump or 'animate or 'proteus if you prefer.
 ;;; See the documentation for function `mouse-avoidance-mode' for
 ;;; details of the different modes.
 ;;;
