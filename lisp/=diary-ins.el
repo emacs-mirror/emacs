@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(require 'diary)
+(require 'diary-lib)
 
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
