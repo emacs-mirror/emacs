@@ -1,5 +1,10 @@
 2000-12-06  Dave Love  <fx@gnu.org>
 
+	* international/mule.el (decode-char, encode-char): Doc fix.
+	(auto-coding-alist): Customize.
+
+	* files.el (load-file): Fix change of 2000-03-12.
+
 	* wid-edit.el (widget-text-keymap): Doc fix.
 
 2000-12-06  Andrew Innes  <andrewi@gnu.org>
