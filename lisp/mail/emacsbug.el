@@ -155,7 +155,7 @@ Type SPC to scroll through this section and its subsections.")))
     (make-local-variable 'mail-send-hook)
     (add-hook 'mail-send-hook 'report-emacs-bug-hook)
     ;; Discourage users to write non-English text.
-    (setq enable-multibyte-characters nil)
+    (set-buffer-multibyte nil)
     (save-excursion
       (goto-char (point-max))
       (skip-chars-backward " \t\n")
