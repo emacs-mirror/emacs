@@ -4810,7 +4810,8 @@ x_calc_absolute_position (f)
 /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
    to really change the position, and 0 when calling from
    x_make_frame_visible (in that case, XOFF and YOFF are the current
-   position values).  */
+   position values).  It is -1 when calling from x_set_frame_parameters,
+   which means, do adjust for borders but don't change the gravity.  */
 
 x_set_offset (f, xoff, yoff, change_gravity)
      struct frame *f;
@@ -4819,7 +4820,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   int modified_top, modified_left;
 
-  if (change_gravity)
+  if (change_gravity > 0)
     {
       f->display.x->top_pos = yoff;
       f->display.x->left_pos = xoff;
@@ -4839,7 +4840,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
      when the frame is already visible, but experiment says we do.  */
   modified_left = f->display.x->left_pos;
   modified_top = f->display.x->top_pos;
-  if (change_gravity)
+  if (change_gravity != 0)
     {
       modified_left += f->display.x->border_width;
       modified_top += f->display.x->border_width;
