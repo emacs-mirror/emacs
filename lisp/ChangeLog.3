@@ -3394,18 +3394,18 @@
 
 1992-11-05  Stephen A. Wood  (saw@cebaf.gov)
 
-	* fortran.el version 1.28.8
+	* fortran.el: version 1.28.8
 	(fortran-indent-to-column): Make turning of lines that begin with
 	`fortran-continuation-string' into properly formated continuation
 	lines work for fortran TAB mode.
 
-	* fortran.el version 1.28.7a
+	* fortran.el: version 1.28.7a
 	Cleaned up some doc strings.
 
 	(fortran-abbrev-help, fortran-prepare-abbrev-list-buffer): Use
 	`insert-abbrev-table-description' and make buffer in abbrevs-mode.
 
-	* fortran.el version 1.28.7
+	* fortran.el: version 1.28.7
 	Many changes since version 1.28.3.   Added auto-fill-mode, support
 	for some Fortran 90 statements.  Adjust comments to conform to new
 	gnu conventions.
@@ -8176,12 +8176,12 @@
 
 1991-01-21  Mike Newton  (newton@fig)
 
-	* bibtex.el -- updated to conform better with bibtex 0.99c by:
+	* bibtex.el: updated to conform better with bibtex 0.99c by:
 	bibtex-mode : updated comments to indicate new use of
 	address, add minor explanations and fix small omissions.
 	bibtex-entry : fixed spelling of variable
 
-	* bibtex.el - Expanded the various bibtex-field-* patterns to
+	* bibtex.el: Expanded the various bibtex-field-* patterns to
 	allow fields like 'title = poft # "Fifth Triquaterly" #	random-conf,'.
 	Needs to have more work done to accept all cases.  Added code for
 	the bibtex 'crossref' command, which subsumes other options.  Made
@@ -8471,58 +8471,58 @@
 
 1990-11-30  Mike Newton  (newton@gumby.cs.caltech.edu)
 
-	* bibtex.el (start comments) : added earlier comments of Bengt
+	* bibtex.el (start comments): added earlier comments of Bengt
 	Martensson.  Some of the changes listed below are originally his
 	(including clean-entry, OPTkey and OPTannote, the function
 	renaming and the preamble code).
 
-	* bibtex.el (bibtex-field-* patterns) : expanded to allow fields
+	* bibtex.el (bibtex-field-* patterns): expanded to allow fields
 	like 'title = poft # "Fifth Triquaterly" #	random-conf,'.
 	Needs to have more work done to accept all cases.
 
-	* bibtex.el (bibtex-clean-entry-zap-empty-opts) : added.
+	* bibtex.el (bibtex-clean-entry-zap-empty-opts): added.
 
-	* bibtex.el (bibtex-include-OPTcrossref) : added.  If set, changes
+	* bibtex.el (bibtex-include-OPTcrossref): added.  If set, changes
 	order of the the lists presented to luser.
 
-	* bibtex.el (bibtex-include-OPTkey & bibtex-include-OPTannote) : added
+	* bibtex.el (bibtex-include-OPTkey & bibtex-include-OPTannote): added
 
-	* bibtex.el (bibtex-mode-user-optional-fields) : can be set to a list
+	* bibtex.el (bibtex-mode-user-optional-fields): can be set to a list
 	of field the user wants to add to entries.
 
-	* bibtex.el (bibtex-mode documentation string) updated for new changes,
+	* bibtex.el (bibtex-mode documentation string): updated for new changes,
 	DEAthesis added back in, bibtex-preamble call added.
 
-	* bibtex.el (bibtex-entry) : add OPTkey/annote.  If OPTcrossref set
+	* bibtex.el (bibtex-entry): add OPTkey/annote.  If OPTcrossref set
 	then put it in.
 
-	* bibtex.el (bibtex-make-entry) : renamed  bibtex-make-field
+	* bibtex.el (bibtex-make-entry): renamed  bibtex-make-field
 
-	* bibtex.el (bibtex-make-optional-entry) : renamed
+	* bibtex.el (bibtex-make-optional-entry): renamed
 	bibtex-make-optional-field.
 
-	* bibtex.el (bibtex-Article) : change order of presentation
+	* bibtex.el (bibtex-Article): change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-InBook) : change order of presentation
+	* bibtex.el (bibtex-InBook): change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-InCollection) : change order of presentation
+	* bibtex.el (bibtex-InCollection): change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-InProceedings) : change order of presentation
+	* bibtex.el (bibtex-InProceedings): change order of presentation
 	if OPTcrossref is set.
 
-	* bibtex.el (bibtex-MastersThesis) : added "note".
+	* bibtex.el (bibtex-MastersThesis): added "note".
 
-	* bibtex.el (bibtex-preamble) : added.
+	* bibtex.el (bibtex-preamble): added.
 
 	* bibtex.el (bibtex-inside-field) : only go backwards if quote is there.
 
-	* bibtex.el (bibtex-clean-entry) : added call to
+	* bibtex.el (bibtex-clean-entry): added call to
 	bibtex-clean-entry-zap-empty-opts, OPT field testing for errors.
 
-	* bibtex.el (bibtex-x-help) : added options Conference and preamble,
+	* bibtex.el (bibtex-x-help): added options Conference and preamble,
 	restored DEAthesis.
 
 1990-11-30  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -11667,16 +11667,16 @@
 
 1989-04-06  Edward M. Reingold (reingold@cs.uiuc.edu)
 
-        * Hook added to list-diary-entries, along with a possible
+         Hook added to list-diary-entries, along with a possible
           value for that hook which prepares a fancy diary buffer
           for display.
 
-        * Holidays integrated into the diary: in the ordinary diary
+         Holidays integrated into the diary: in the ordinary diary
           buffer the holidays are given in the mode line.  In the
           fancy diary buffer the holidays are given in the heading
           for each date.
 
-        * Added a new command to tell the holidays on a specific date,
+         Added a new command to tell the holidays on a specific date,
           parallel to the way diary entries are given for a specific
           date.  This new command became `h' and the old `h' became
           `a' to show all the holidays in a three-month period.
