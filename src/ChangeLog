@@ -1,3 +1,12 @@
+2004-04-25  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (append_space_for_newline): Rename from append_space.
+	Remove DEFAULT_FACE_P arg; always use current face.  Callers changed.
+	(x_produce_glyphs): Handle line-spacing property on newline char.
+	If value is t, adjust ascent and descent to fit current row height.
+	If value is an integer or float, set extra_line_spacing to integer
+	value, or to float value x current line height.
+
 2004-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Finternal_char_font): If POSITION is nil, return
