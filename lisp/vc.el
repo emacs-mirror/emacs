@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.364 2004/01/22 23:34:33 uid65624 Exp $
+;; $Id: vc.el,v 1.365 2004/01/23 11:20:55 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -3144,7 +3144,7 @@ string, then it describes a revision number, so warp to that
 revision."
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let* ((oldline (line-at-pos))
+    (let* ((oldline (line-number-at-pos))
 	   (revspeccopy revspec)
 	   (newrev nil))
       (cond
@@ -3176,7 +3176,7 @@ revision."
 	(switch-to-buffer (car (car (last vc-annotate-buffers))))
 	(goto-line (min oldline (progn (goto-char (point-max))
 				       (previous-line)
-				       (line-at-pos))))))))
+				       (line-number-at-pos))))))))
 
 (defun vc-annotate-car-last-cons (a-list)
   "Return car of last cons in association list A-LIST."
