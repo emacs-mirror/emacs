@@ -477,6 +477,7 @@ Do the same for the keys of the same name."
        (frame-or-buffer-changed-p)
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
+	     (maxlen 0)
 	     buffers-menu frames-menu)
 	 ;; If requested, list only the N most recently selected buffers.
 	 (if (and (integerp buffers-menu-max-size)
@@ -491,7 +492,6 @@ Do the same for the keys of the same name."
 			     (mapcar 'list buffers))
 			    tail
 			    (menu-bar-update-buffers-maxbuf 0)
-			    (maxlen 0)
 			    alist
 			    head)
 		       ;; Put into each element of buffer-list
@@ -564,26 +564,26 @@ Do the same for the keys of the same name."
 
 	 ;; Make a Frames menu if we have more than one frame.
 	 (if (cdr frames)
-	     (setq frames-menu
-		   (cons "Select Frame"
-			 (mapcar '(lambda (frame)
-				    (nconc (list frame
-						 (cdr (assq 'name
-							    (frame-parameters frame)))
-						 (cons nil nil))
-					   'menu-bar-select-frame))
-				 frames))))
+	     (let ((name (concat (make-string (max (- (/ maxlen 2) 3) 0)
+					      ?\ )
+				 "Frames"))
+		   (frames-menu
+		    (cons 'keymap
+			  (cons "Select Frame"
+				(mapcar '(lambda (frame)
+					   (nconc (list frame
+							(cdr (assq 'name
+								   (frame-parameters frame)))
+							(cons nil nil))
+						  'menu-bar-select-frame))
+					frames)))))
+	       ;; Put it underneath the Buffers menu.
+	       (setq buffers-menu (cons (cons 'frames (cons name frames-menu))
+					buffers-menu))))
 	 (if buffers-menu
 	     (setq buffers-menu (cons 'keymap buffers-menu)))
-	 (if frames-menu
-	     (setq frames-menu (cons 'keymap frames-menu)))
 	 (define-key (current-global-map) [menu-bar buffer]
-	   (cons "Buffers"
-		 (if (and buffers-menu frames-menu)
-		     (list 'keymap "Buffers and Frames"
-			   (cons 'buffers (cons "Buffers" buffers-menu))
-			   (cons 'frames (cons "Frames" frames-menu)))
-		   (or buffers-menu frames-menu 'undefined)))))))
+	   (cons "Buffers" buffers-menu)))))
 
 (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
 
