@@ -2694,10 +2694,12 @@ and (2) it puts less data in the undo list.")
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start == st.st_size)
+      if (same_at_start - BEGV == st.st_size)
 	{
 	  close (fd);
 	  specpdl_ptr--;
+	  /* Truncate the buffer to the size of the file.  */
+	  del_range_1 (same_at_start, same_at_end, 0);
 	  goto handled;
 	}
       immediate_quit = 1;
