@@ -707,15 +707,14 @@ main (argc, argv, envp)
   clearerr (stdin);
 
 #ifndef SYSTEM_MALLOC
-  if (! initialized)
-    {
-      /* Arrange to get warning messages as memory fills up.  */
-      memory_warnings (0, malloc_warning);
+  /* Arrange to get warning messages as memory fills up.  */
+  memory_warnings (0, malloc_warning);
 
-      /* Arrange to disable interrupt input while malloc and friends are
-	 running.  */
-      uninterrupt_malloc ();
-    }
+  /* Call malloc at least once, to run the initial __malloc_hook.  */
+  malloc (4);
+
+  /* Arrange to disable interrupt input inside malloc etc.  */
+  uninterrupt_malloc ();
 #endif	/* not SYSTEM_MALLOC */
 
 #ifdef MSDOS
