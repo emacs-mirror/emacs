@@ -1213,7 +1213,7 @@ Obeying it means displaying in another window the specified file and line."
   (gud-set-buffer)
   (let ((command (concat command "\n"))
 	(proc (get-buffer-process gud-comint-buffer)))
-
+    (or proc (error "Current buffer has no process"))
     ;; Arrange for the current prompt to get deleted.
     (save-excursion
       (set-buffer gud-comint-buffer)
