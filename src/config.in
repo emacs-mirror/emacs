@@ -69,6 +69,7 @@ and this notice must be preserved on all copies.  */
 
 /* If we're using any sort of window system, define some consequences.  */
 #ifdef HAVE_X_WINDOWS
+#define MULTI_KBOARD
 #define HAVE_FACES
 #define HAVE_MOUSE
 #endif
