@@ -690,9 +690,7 @@ fs_load_font (f, c, fontname, id, face)
 	}
     }
 
-  fontp->font_encoder = (struct ccl_program *) 0;
-
-  if (find_ccl_program_func)
+  if (! fontp->font_encoder && find_ccl_program_func)
     (*find_ccl_program_func) (fontp);
 
   /* If we loaded a font for a face that has fontset, record the face
