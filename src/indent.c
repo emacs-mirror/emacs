@@ -349,10 +349,12 @@ current_column ()
 	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else if (c >= 040 && c < 0177)
 	col++;
-      else if (c == '\n')
-	break;
-      else if (c == '\r' && EQ (current_buffer->selective_display, Qt))
-	break;
+      else if (c == '\n'
+	       || (c == '\r' && EQ (current_buffer->selective_display, Qt)))
+	{
+	  ptr++;
+	  break;
+	}
       else if (c == '\t')
 	{
 	  if (tab_seen)
@@ -375,7 +377,7 @@ current_column ()
   if (ptr == BEGV_ADDR)
     current_column_bol_cache = BEGV;
   else
-    current_column_bol_cache = PTR_CHAR_POS ((ptr+1));
+    current_column_bol_cache = PTR_CHAR_POS (ptr);
   last_known_column = col;
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
