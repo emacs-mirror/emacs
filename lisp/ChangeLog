@@ -1,5 +1,8 @@
 2000-10-26  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* wid-edit.el (widget-field-end): When checking for a `boundary'
+	field, do so in the correct buffer.
+
 	* simple.el (undo): Correctly distinguish between numeric and
 	non-numeric prefix args in non-transient-mark-mode, as per the doc
 	string.  When in transient-mark-mode, treat all prefix-args as
