@@ -192,7 +192,7 @@ so we can use character sets rather than grouping parenthesis."
      ;;
      ;; We have a list of different length strings.
      (t
-      (let ((prefix (try-completion "" (mapcar 'list strings))))
+      (let ((prefix (try-completion "" strings)))
 	(if (> (length prefix) 0)
 	    ;; common prefix: take it and recurse on the suffixes.
 	    (let* ((n (length prefix))
@@ -205,7 +205,7 @@ so we can use character sets rather than grouping parenthesis."
 	  (let* ((sgnirts (mapcar (lambda (s)
 				    (concat (nreverse (string-to-list s))))
 				  strings))
-		 (xiffus (try-completion "" (mapcar 'list sgnirts))))
+		 (xiffus (try-completion "" sgnirts)))
 	    (if (> (length xiffus) 0)
 		;; common suffix: take it and recurse on the prefixes.
 		(let* ((n (- (length xiffus)))
@@ -222,7 +222,7 @@ so we can use character sets rather than grouping parenthesis."
 	      ;; Otherwise, divide the list into those that start with a
 	      ;; particular letter and those that do not, and recurse on them.
 	      (let* ((char (char-to-string (string-to-char (car strings))))
-		     (half1 (all-completions char (mapcar 'list strings)))
+		     (half1 (all-completions char strings))
 		     (half2 (nthcdr (length half1) strings)))
 		(concat open-group
 			(regexp-opt-group half1)
