@@ -17,6 +17,7 @@
 .\" Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 .\" Boston, MA 02111-1307, USA.
 .\"
+'\" t
 .TH EMACS 1 "1995 December 7"
 .UC 4
 .SH NAME
@@ -356,49 +357,34 @@ The following lists the mouse button bindings for the
 .I Emacs
 window under X11.
 
-.in +\w'CTRL-SHIFT-middle'u+4n
-.ta \w'CTRL-SHIFT-middle'u+4n
-.ti -\w'CTRL-SHIFT-middle'u+4n
+.TS
+l l.
 MOUSE BUTTON	FUNCTION
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
 left	Set point.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
 middle	Paste text.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
 right	Cut text into X cut buffer.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
 SHIFT-middle	Cut text into X cut buffer.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
 SHIFT-right	Paste text.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
 CTRL-middle	Cut text into X cut buffer and kill it.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
-CTRL-right	Select this window, then split it into 
+CTRL-right	T{
+Select this window, then split it into 
 two windows.  Same as typing CTRL-x 2.
+T}
 .\" START DELETING HERE IF YOU'RE NOT USING X MENUS
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
-CTRL-SHIFT-left	X buffer menu--hold the buttons and keys
+CTRL-SHIFT-left	T{
+X buffer menu--hold the buttons and keys
 down, wait for menu to appear, select 
 buffer, and release.  Move mouse out of
 menu and release to cancel.
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
-CTRL-SHIFT-middle	X help menu--pop up index card menu for
-Emacs help.
+T}
+CTRL-SHIFT-middle	X help menu--pop up index card menu for Emacs help.
 .\" STOP DELETING HERE IF YOU'RE NOT USING X MENUS
-.br
-.ti -\w'CTRL-SHIFT-middle'u+4n
-CTRL-SHIFT-right	Select window with mouse, and delete all
+CTRL-SHIFT-right	T{
+Select window with mouse, and delete all
 other windows.  Same as typing CTRL-x 1.
+T}
 .\" STOP DELETING HERE IF YOU'RE NOT USING X
+.TE
 .PP
 .SH MANUALS
 You can order printed copies of the GNU Emacs Manual from the Free
