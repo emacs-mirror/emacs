@@ -1,3 +1,7 @@
+2003-08-12  Markus Rost  <rost@math.ohio-state.edu>
+
+	* shell.el (shell): With prefix-arg, suggest a new buffer name.
+
 2003-08-12  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-sccs.el (vc-sccs-state-heuristic): Fix parentheses.
