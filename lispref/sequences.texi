@@ -345,11 +345,8 @@ x
 @end example
 
 If @var{array} is a string and @var{object} is not a character, a
-@code{wrong-type-argument} error results.  If @var{array} is a string
-and @var{object} is character, but @var{object} does not use the same
-number of bytes as the character currently stored in @code{(aref
-@var{object} @var{index})}, that is also an error.  @xref{Splitting
-Characters}.
+@code{wrong-type-argument} error results.  The function converts a
+unibyte string to multibyte if necessary to insert a character.
 @end defun
 
 @defun fillarray array object
