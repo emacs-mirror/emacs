@@ -334,7 +334,10 @@ from being initialized."
 (defvar init-file-had-error nil)
 
 (defun normal-top-level-add-subdirs-to-load-path ()
-  "Add all subdirectories of current directory to `load-path'."
+  "Add all subdirectories of current directory to `load-path'.
+More precisely, this uses only the subdirectories whose names
+start with letters or digits; it excludes any subdirectory named`RCS',
+and any subdirectory that contains a file named `.nosearch'."
   (let (dirs 
 	(pending (list default-directory)))
     ;; This loop does a breadth-first tree walk on DIR's subtree,
@@ -345,11 +348,13 @@ from being initialized."
       (let ((contents (directory-files (car dirs)))
 	    (default-directory (car dirs)))
 	(while contents
-	  (unless (member (car contents)
-			  '("." ".." "RCS"))
-	    (when (file-directory-p (car contents))
-	      (setq pending (nconc pending
-				   (list (expand-file-name (car contents)))))))
+	  (unless (member (car contents) '("." ".." "RCS"))
+	    (when (and (string-match "\\`[a-zA-Z0-9]" (car contents))
+		       (file-directory-p (car contents)))
+	      (let ((expanded (expand-file-name (car contents))))
+		(unless (file-exists-p (expand-file-name ".nosearch"
+							 expanded))
+		  (setq pending (nconc pending (list expanded)))))))
 	  (setq contents (cdr contents)))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
