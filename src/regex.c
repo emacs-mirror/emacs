@@ -5478,11 +5478,3 @@ regfree (preg)
 }
 
 #endif /* not emacs  */
-
-/*
-Local variables:
-make-backup-files: t
-version-control: t
-trim-versions-without-asking: nil
-End:
-*/
