@@ -3,7 +3,7 @@
 # ----------------------------------------------------------------------
 #
 # In case src/Makefile needs to rebuild `make-doc.exe' (might happen under
-# Win95), make sure it gets built with commands that DOS
+# Windows 95), make sure it gets built with commands that DOS
 # understands (one command per line).
 s/^#.*//
 s/^[ \f\t][ \f\t]*$//
