@@ -1,3 +1,8 @@
+2002-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (LIBS_MAIL): Renamed from LIB_MAIL.
+	(LIBS_MOVE): Renamed from MOVE_LIBS.
+
 2002-05-26  Paul Eggert  <eggert@twinsun.com>
 
 	Reinstate the following change from 2002-03-22, which was

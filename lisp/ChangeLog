@@ -1,3 +1,26 @@
+2002-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (find-file-default): Add defvar for var already used.
+
+	* menu-bar.el (menu-bar-showhide-fringe-menu): Use defvar.
+
+	* subr.el (open-network-stream, open-network-stream-nowait) 
+	(open-network-stream-server, process-kill-without-query):
+	Moved from simple.el.
+
+	* simple.el (open-network-stream, open-network-stream-nowait)
+	(open-network-stream-server, process-kill-without-query):
+	Moved to subr.el.
+
+	* simple.el (byte-compiling-files-p): Function deleted.
+
+	* textmodes/ispell.el (ispell-library-directory): Renamed from
+	ispell-library-path.  If Ispell is not installed, init to nil.
+	(check-ispell-version): Doc fix.
+	(ispell-menu-map): Get rid of byte-compiling-files-p hackery;
+	initialize this unconditionally when ispell-menu-map-needed is t.
+	Local `path' renamed to `dir'.
+
 2002-05-30  Miles Bader  <miles@gnu.org>
 
 	* calc/calc.el (calc-show-banner): New variable.
