@@ -176,20 +176,23 @@ If N is bigger than the length of X, return X."
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
 
-(defun number-sequence (from &optional to)
+(defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
-The Nth element of the list is (+ FROM N) where N counts from zero.
+INC is the increment used between numbers in the sequence.
+So, the Nth element of the list is (+ FROM (* N INC)) where N counts from
+zero.
+If INC is nil, it defaults to 1 (one).
 If TO is nil, it defaults to FROM.
-If TO is less than FROM, the value is nil."
-  (if to
-      (if (< to from)
-	  (setq to (1- from)))
-    (setq to from))
-  (let* ((list (make-list (- (1+ to) from) from))
-	 (tail list))
-    (while (setq tail (cdr tail))
-      (setcar tail (setq from (1+ from))))
-    list))
+If TO is less than FROM, the value is nil.
+Note that FROM, TO and INC can be integer or float."
+  (if (not to)
+      (list from)
+    (or inc (setq inc 1))
+    (let (seq)
+      (while (<= from to)
+	(setq seq (cons from seq)
+	      from (+ from inc)))
+      (nreverse seq))))
 
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurrences of ELT removed.

@@ -1,3 +1,7 @@
+2003-04-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* subr.el (number-sequence): Adjust code.
+
 2003-04-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/refill.el (refill-fill-paragraph-at): Undo last fix.
