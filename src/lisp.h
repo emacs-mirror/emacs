@@ -2425,6 +2425,7 @@ EXFUN (Ffield_string_no_properties, 1);
 extern void set_time_zone_rule P_ ((char *));
 
 /* defined in buffer.c */
+extern int mouse_face_overlay_overlaps P_ ((Lisp_Object));
 extern void nsberror P_ ((Lisp_Object));
 extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
@@ -2810,7 +2811,7 @@ extern void syms_of_undo P_ ((void));
 
 /* defined in textprop.c */
 extern Lisp_Object Qmodification_hooks;
-extern Lisp_Object Qrear_nonsticky, Qfont;
+extern Lisp_Object Qrear_nonsticky, Qfont, Qmouse_face;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
 EXFUN (Fnext_property_change, 3);
 EXFUN (Fnext_single_property_change, 4);
