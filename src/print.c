@@ -143,17 +143,33 @@ Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
 
 int print_quoted;
 
-/* Non-nil means print #: before uninterned symbols.
-   Neither t nor nil means so that and don't clear Vprint_gensym_alist
-   on entry to and exit from print functions.  */
+/* Non-nil means print #: before uninterned symbols.  */
 
 Lisp_Object Vprint_gensym;
 
-/* Association list of certain objects that are `eq' in the form being
-   printed and which should be `eq' when read back in, using the #n=object
-   and #n# reader forms.  Each element has the form (object . n).  */
+/* Non-nil means print recursive structures using #n= and #n# syntax.  */
 
-Lisp_Object Vprint_gensym_alist;
+Lisp_Object Vprint_circle;
+
+/* Non-nil means keep continuous number for #n= and #n# syntax
+   between several print functions.  */
+
+Lisp_Object Vprint_continuous_numbering;
+
+/* Vprint_number_table is a vector like [OBJ1 STAT1 OBJ2 STAT2 ...],
+   where OBJn are objects going to be printed, and STATn are their status,
+   which may be different meanings during process.  See the comments of
+   the functions print and print_preprocess for details.
+   print_number_index keeps the last position the next object should be added,
+   twice of which is the actual vector position in Vprint_number_table.  */
+int print_number_index;
+Lisp_Object Vprint_number_table;
+
+/* PRINT_NUMBER_OBJECT returns the I'th object in Vprint_number_table TABLE.
+   PRINT_NUMBER_STATUS returns the status of the I'th object in TABLE.
+   See the comment of the variable Vprint_number_table.  */
+#define PRINT_NUMBER_OBJECT(table,i) XVECTOR ((table))->contents[(i) * 2]
+#define PRINT_NUMBER_STATUS(table,i) XVECTOR ((table))->contents[(i) * 2 + 1]
 
 /* Nonzero means print newline to stdout before next minibuffer message.
    Defined in xdisp.c */
@@ -237,9 +253,7 @@ void print_interval ();
        print_buffer_pos_byte = 0;					\
      }									\
    if (EQ (printcharfun, Qt))						\
-     setup_echo_area_for_printing (multibyte);				\
-   if (!CONSP (Vprint_gensym))						\
-     Vprint_gensym_alist = Qnil
+     setup_echo_area_for_printing (multibyte);
 
 #define PRINTFINISH							\
    if (NILP (printcharfun))						\
@@ -272,9 +286,7 @@ void print_interval ();
 		  old_point_byte + (old_point_byte >= start_point_byte	\
 			       ? PT_BYTE - start_point_byte : 0));	\
    if (old != current_buffer)						\
-     set_buffer_internal (old);						\
-   if (!CONSP (Vprint_gensym))						\
-     Vprint_gensym_alist = Qnil
+     set_buffer_internal (old);
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
@@ -664,6 +676,11 @@ buffer and calling the hook.  It gets one argument, the buffer to display.")
 
 
 static void print ();
+static void print_preprocess ();
+#ifdef USE_TEXT_PROPERTIES
+static void print_preprocess_string ();
+#endif /* USE_TEXT_PROPERTIES */
+static void print_object ();
 
 DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
   "Output a newline to stream PRINTCHARFUN.\n\
@@ -697,7 +714,6 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
-  print_depth = 0;
   print (object, printcharfun, 1);
   PRINTFINISH;
   return object;
@@ -727,7 +743,6 @@ second argument NOESCAPE is non-nil.")
 
   printcharfun = Vprin1_to_string_buffer;
   PRINTPREPARE;
-  print_depth = 0;
   print (object, printcharfun, NILP (noescape));
   /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINSH */
   PRINTFINISH;
@@ -756,7 +771,6 @@ Output stream is PRINTCHARFUN, or value of standard-output (which see).")
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   PRINTPREPARE;
-  print_depth = 0;
   print (object, printcharfun, 0);
   PRINTFINISH;
   return object;
@@ -781,7 +795,6 @@ Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
     printcharfun = Vstandard_output;
   GCPRO1 (object);
   PRINTPREPARE;
-  print_depth = 0;
   PRINTCHAR ('\n');
   print (object, printcharfun, 1);
   PRINTCHAR ('\n');
@@ -1048,27 +1061,182 @@ print (obj, printcharfun, escapeflag)
      register Lisp_Object printcharfun;
      int escapeflag;
 {
+  print_depth = 0;
+
+  /* Reset print_number_index and Vprint_number_table only when
+     the variable Vprint_continuous_numbering is nil.  Otherwise,
+     the values of these variables will be kept between several
+     print functions.  */
+  if (NILP (Vprint_continuous_numbering))
+    {
+      print_number_index = 0;
+      Vprint_number_table = Qnil;
+    }
+
+  /* Construct Vprint_number_table for print-gensym and print-circle.  */
+  if (!NILP (Vprint_gensym) || !NILP (Vprint_circle))
+    {
+      int i, index = 0;
+      /* Construct Vprint_number_table.  */
+      print_preprocess (obj);
+      /* Remove unnecessary objects, which appear only once in OBJ;
+	 that is, whose status is Qnil.  */
+      for (i = 0; i < print_number_index; i++)
+	if (!NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
+	  {
+	    PRINT_NUMBER_OBJECT (Vprint_number_table, index)
+	      = PRINT_NUMBER_OBJECT (Vprint_number_table, i);
+	    /* Reset the status field for the next print step.  Now this
+	       field means whether the object has already been printed.  */
+	    PRINT_NUMBER_STATUS (Vprint_number_table, index) = Qnil;
+	    index++;
+	  }
+      print_number_index = index;
+    }
+
+  print_object (obj, printcharfun, escapeflag);
+}
+
+/* Construct Vprint_number_table according to the structure of OBJ.
+   OBJ itself and all its elements will be added to Vprint_number_table
+   recursively if it is a list, vector, compiled function, char-table,
+   string (its text properties will be traced), or a symbol that has
+   no obarray (this is for the print-gensym feature).
+   The status fields of Vprint_number_table mean whether each object appears
+   more than once in OBJ: Qnil at the first time, and Qt after that .  */
+static void
+print_preprocess (obj)
+     Lisp_Object obj;
+{
+  int i, size;
+
+ loop:
+  if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
+      || COMPILEDP (obj) || CHAR_TABLE_P (obj)
+      || (! NILP (Vprint_gensym)
+	  && SYMBOLP (obj) && NILP (XSYMBOL (obj)->obarray)))
+    {
+      for (i = 0; i < print_number_index; i++)
+	if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+	  {
+	    /* OBJ appears more than once.  Let's remember that.  */
+	    PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
+	    return;
+	  }
+
+      /* OBJ is not yet recorded.  Let's add to the table.  */
+      if (print_number_index == 0)
+	{
+	  /* Initialize the table.  */
+	  Vprint_number_table = Fmake_vector (make_number (40), Qnil);
+	}
+      else if (XVECTOR (Vprint_number_table)->size == print_number_index * 2)
+	{
+	  /* Reallocate the table.  */
+	  int i = print_number_index * 4;
+	  Lisp_Object old_table = Vprint_number_table;
+	  Vprint_number_table = Fmake_vector (make_number (i), Qnil);
+	  for (i = 0; i < print_number_index; i++)
+	    {
+	      PRINT_NUMBER_OBJECT (Vprint_number_table, i)
+		= PRINT_NUMBER_OBJECT (old_table, i);
+	      PRINT_NUMBER_STATUS (Vprint_number_table, i)
+		= PRINT_NUMBER_STATUS (old_table, i);
+	    }
+	}
+      PRINT_NUMBER_OBJECT (Vprint_number_table, print_number_index) = obj;
+      print_number_index++;
+
+      switch (XGCTYPE (obj))
+	{
+	case Lisp_String:
+#ifdef USE_TEXT_PROPERTIES
+	  /* A string may have text properties, which can be circular.  */
+	  traverse_intervals (XSTRING (obj)->intervals, 0, 0,
+			      print_preprocess_string, Qnil);
+#endif /* USE_TEXT_PROPERTIES */
+	  break;
+
+	case Lisp_Cons:
+	  print_preprocess (XCAR (obj));
+	  obj = XCDR (obj);
+	  goto loop;
+
+	case Lisp_Vectorlike:
+	  size = XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK;
+	  for (i = 0; i < size; i++)
+	    print_preprocess (XVECTOR (obj)->contents[i]);
+	}
+    }
+}
+
+#ifdef USE_TEXT_PROPERTIES
+static void
+print_preprocess_string (interval, arg)
+     INTERVAL interval;
+     Lisp_Object arg;
+{
+  print_preprocess (interval->plist);
+}
+#endif /* USE_TEXT_PROPERTIES */
+
+static void
+print_object (obj, printcharfun, escapeflag)
+     Lisp_Object obj;
+     register Lisp_Object printcharfun;
+     int escapeflag;
+{
   char buf[30];
 
   QUIT;
 
-#if 1  /* I'm not sure this is really worth doing.  */
-  /* Detect circularities and truncate them.
-     No need to offer any alternative--this is better than an error.  */
-  if (CONSP (obj) || VECTORP (obj) || COMPILEDP (obj))
+  /* Detect circularities and truncate them.  */
+  if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
+      || COMPILEDP (obj) || CHAR_TABLE_P (obj)
+      || (! NILP (Vprint_gensym)
+	  && SYMBOLP (obj) && NILP (XSYMBOL (obj)->obarray)))
     {
-      int i;
-      for (i = 0; i < print_depth; i++)
-	if (EQ (obj, being_printed[i]))
-	  {
-	    sprintf (buf, "#%d", i);
-	    strout (buf, -1, -1, printcharfun, 0);
-	    return;
-	  }
+      if (NILP (Vprint_circle) && NILP (Vprint_gensym))
+	{
+	  /* Simple but incomplete way.  */
+	  int i;
+	  for (i = 0; i < print_depth; i++)
+	    if (EQ (obj, being_printed[i]))
+	      {
+		sprintf (buf, "#%d", i);
+		strout (buf, -1, -1, printcharfun, 0);
+		return;
+	      }
+	  being_printed[print_depth] = obj;
+	}
+      else
+	{
+	  /* With the print-circle feature.  */
+	  int i;
+	  for (i = 0; i < print_number_index; i++)
+	    if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+	      {
+		if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
+		  {
+		    /* Add a prefix #n= if OBJ has not yet been printed;
+		       that is, its status field is nil.  */
+		    sprintf (buf, "#%d=", i + 1);
+		    strout (buf, -1, -1, printcharfun, 0);
+		    /* OBJ is going to be printed.  Set the status to t.  */
+		    PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
+		    break;
+		  }
+		else
+		  {
+		    /* Just print #n# if OBJ has already been printed.  */
+		    sprintf (buf, "#%d#", i + 1);
+		    strout (buf, -1, -1, printcharfun, 0);
+		    return;
+		  }
+	      }
+	}
     }
-#endif
 
-  being_printed[print_depth] = obj;
   print_depth++;
 
   if (print_depth > PRINT_CIRCLE)
@@ -1250,35 +1418,8 @@ print (obj, printcharfun, escapeflag)
 	else
 	  confusing = 0;
 
-	/* If we print an uninterned symbol as part of a complex object and
-	   the flag print-gensym is non-nil, prefix it with #n= to read the
-	   object back with the #n# reader syntax later if needed.  */
 	if (! NILP (Vprint_gensym) && NILP (XSYMBOL (obj)->obarray))
 	  {
-	    if (print_depth > 1)
-	      {
-		Lisp_Object tem;
-		tem = Fassq (obj, Vprint_gensym_alist);
-		if (CONSP (tem))
-		  {
-		    PRINTCHAR ('#');
-		    print (XCDR (tem), printcharfun, escapeflag);
-		    PRINTCHAR ('#');
-		    break;
-		  }
-		else
-		  {
-		    if (CONSP (Vprint_gensym_alist))
-		      XSETFASTINT (tem, XFASTINT (XCDR (XCAR (Vprint_gensym_alist))) + 1);
-		    else
-		      XSETFASTINT (tem, 1);
-		    Vprint_gensym_alist = Fcons (Fcons (obj, tem), Vprint_gensym_alist);
-
-		    PRINTCHAR ('#');
-		    print (tem, printcharfun, escapeflag);
-		    PRINTCHAR ('=');
-		  }
-	      }
 	    PRINTCHAR ('#');
 	    PRINTCHAR (':');
 	  }
@@ -1320,14 +1461,14 @@ print (obj, printcharfun, escapeflag)
 	       && (EQ (XCAR (obj), Qquote)))
 	{
 	  PRINTCHAR ('\'');
-	  print (XCAR (XCDR (obj)), printcharfun, escapeflag);
+	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
 	       && (EQ (XCAR (obj), Qfunction)))
 	{
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('\'');
-	  print (XCAR (XCDR (obj)), printcharfun, escapeflag);
+	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
 	       && ((EQ (XCAR (obj), Qbackquote)
@@ -1335,8 +1476,8 @@ print (obj, printcharfun, escapeflag)
 		    || EQ (XCAR (obj), Qcomma_at)
 		    || EQ (XCAR (obj), Qcomma_dot))))
 	{
-	  print (XCAR (obj), printcharfun, 0);
-	  print (XCAR (XCDR (obj)), printcharfun, escapeflag);
+	  print_object (XCAR (obj), printcharfun, 0);
+	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else
 	{
@@ -1351,21 +1492,47 @@ print (obj, printcharfun, escapeflag)
 	    while (CONSP (obj))
 	      {
 		/* Detect circular list.  */
-		if (i != 0 && EQ (obj, halftail))
+		if (NILP (Vprint_circle))
 		  {
-		    sprintf (buf, " . #%d", i / 2);
-		    strout (buf, -1, -1, printcharfun, 0);
-		    obj = Qnil;
-		    break;
+		    /* Simple but imcomplete way.  */
+		    if (i != 0 && EQ (obj, halftail))
+		      {
+			sprintf (buf, " . #%d", i / 2);
+			strout (buf, -1, -1, printcharfun, 0);
+			goto end_of_list;
+		      }
+		  }
+		else
+		  {
+		    /* With the print-circle feature.  */
+		    if (i != 0)
+		      {
+			int i;
+			for (i = 0; i < print_number_index; i++)
+			  if (PRINT_NUMBER_OBJECT (Vprint_number_table, i) == obj)
+			    {
+			      if (NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
+				{
+				  strout (" . ", 3, 3, printcharfun, 0);
+				  print_object (obj, printcharfun, escapeflag);
+				}
+			      else
+				{
+				  sprintf (buf, " . #%d#", i + 1);
+				  strout (buf, -1, -1, printcharfun, 0);
+				}
+			      goto end_of_list;
+			    }
+		      }
 		  }
 		if (i++)
 		  PRINTCHAR (' ');
 		if (print_length && i > print_length)
 		  {
 		    strout ("...", 3, 3, printcharfun, 0);
-		    break;
+		    goto end_of_list;
 		  }
-		print (XCAR (obj), printcharfun, escapeflag);
+		print_object (XCAR (obj), printcharfun, escapeflag);
 		obj = XCDR (obj);
 		if (!(i & 1))
 		  halftail = XCDR (halftail);
@@ -1374,8 +1541,9 @@ print (obj, printcharfun, escapeflag)
 	  if (!NILP (obj))
 	    {
 	      strout (" . ", 3, 3, printcharfun, 0);
-	      print (obj, printcharfun, escapeflag);
+	      print_object (obj, printcharfun, escapeflag);
 	    }
+	end_of_list:
 	  PRINTCHAR (')');
 	}
       break;
@@ -1539,7 +1707,7 @@ print (obj, printcharfun, escapeflag)
 	      {
 		if (i) PRINTCHAR (' ');
 		tem = XVECTOR (obj)->contents[i];
-		print (tem, printcharfun, escapeflag);
+		print_object (tem, printcharfun, escapeflag);
 	      }
 	  }
 	  PRINTCHAR (']');
@@ -1601,22 +1769,22 @@ print (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Objfwd:
 	  strout ("#<objfwd to ", -1, -1, printcharfun, 0);
-	  print (*XOBJFWD (obj)->objvar, printcharfun, escapeflag);
+	  print_object (*XOBJFWD (obj)->objvar, printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
 
 	case Lisp_Misc_Buffer_Objfwd:
 	  strout ("#<buffer_objfwd to ", -1, -1, printcharfun, 0);
-	  print (*(Lisp_Object *)((char *)current_buffer
-				  + XBUFFER_OBJFWD (obj)->offset),
+	  print_object (*(Lisp_Object *)((char *)current_buffer
+					 + XBUFFER_OBJFWD (obj)->offset),
 		 printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
 
 	case Lisp_Misc_Kboard_Objfwd:
 	  strout ("#<kboard_objfwd to ", -1, -1, printcharfun, 0);
-	  print (*(Lisp_Object *)((char *) current_kboard
-				  + XKBOARD_OBJFWD (obj)->offset),
+	  print_object (*(Lisp_Object *)((char *) current_kboard
+					 + XKBOARD_OBJFWD (obj)->offset),
 		 printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
@@ -1628,28 +1796,29 @@ print (obj, printcharfun, escapeflag)
 	  strout ("#<some_buffer_local_value ", -1, -1, printcharfun, 0);
 	do_buffer_local:
 	  strout ("[realvalue] ", -1, -1, printcharfun, 0);
-	  print (XBUFFER_LOCAL_VALUE (obj)->realvalue, printcharfun, escapeflag);
+	  print_object (XBUFFER_LOCAL_VALUE (obj)->realvalue,
+			printcharfun, escapeflag);
 	  if (XBUFFER_LOCAL_VALUE (obj)->found_for_buffer)
 	    strout ("[local in buffer] ", -1, -1, printcharfun, 0);
 	  else
 	    strout ("[buffer] ", -1, -1, printcharfun, 0);
-	  print (XBUFFER_LOCAL_VALUE (obj)->buffer,
-		 printcharfun, escapeflag);
+	  print_object (XBUFFER_LOCAL_VALUE (obj)->buffer,
+			printcharfun, escapeflag);
 	  if (XBUFFER_LOCAL_VALUE (obj)->check_frame)
 	    {
 	      if (XBUFFER_LOCAL_VALUE (obj)->found_for_frame)
 		strout ("[local in frame] ", -1, -1, printcharfun, 0);
 	      else
 		strout ("[frame] ", -1, -1, printcharfun, 0);
-	      print (XBUFFER_LOCAL_VALUE (obj)->frame,
-		     printcharfun, escapeflag);
+	      print_object (XBUFFER_LOCAL_VALUE (obj)->frame,
+			    printcharfun, escapeflag);
 	    }
 	  strout ("[alist-elt] ", -1, -1, printcharfun, 0);
-	  print (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->car,
-		 printcharfun, escapeflag);
+	  print_object (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->car,
+			printcharfun, escapeflag);
 	  strout ("[default-value] ", -1, -1, printcharfun, 0);
-	  print (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr,
-		 printcharfun, escapeflag);
+	  print_object (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr,
+			printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
 
@@ -1690,12 +1859,12 @@ print_interval (interval, printcharfun)
      Lisp_Object printcharfun;
 {
   PRINTCHAR (' ');
-  print (make_number (interval->position), printcharfun, 1);
+  print_object (make_number (interval->position), printcharfun, 1);
   PRINTCHAR (' ');
-  print (make_number (interval->position + LENGTH (interval)),
+  print_object (make_number (interval->position + LENGTH (interval)),
 	 printcharfun, 1);
   PRINTCHAR (' ');
-  print (interval->plist, printcharfun, 1);
+  print_object (interval->plist, printcharfun, 1);
 }
 
 #endif /* USE_TEXT_PROPERTIES */
@@ -1773,22 +1942,35 @@ forms print in the new syntax.");
   DEFVAR_LISP ("print-gensym", &Vprint_gensym,
     "Non-nil means print uninterned symbols so they will read as uninterned.\n\
 I.e., the value of (make-symbol \"foobar\") prints as #:foobar.\n\
-When the uninterned symbol appears within a larger data structure,\n\
-in addition use the #...# and #...= constructs as needed,\n\
-so that multiple references to the same symbol are shared once again\n\
-when the text is read back.\n\
-\n\
-If the value of `print-gensym' is a cons cell, then in addition refrain from\n\
-clearing `print-gensym-alist' on entry to and exit from printing functions,\n\
-so that the use of #...# and #...= can carry over for several separately\n\
-printed objects.");
+When the uninterned symbol appears within a recursive data structure\n\
+and the symbol appears more than once, in addition use the #N# and #N=\n\
+constructs as needed, so that multiple references to the same symbol are\n\
+shared once again when the text is read back.");
   Vprint_gensym = Qnil;
 
-  DEFVAR_LISP ("print-gensym-alist", &Vprint_gensym_alist,
-    "Association list of elements (GENSYM . N) to guide use of #N# and #N=.\n\
-In each element, GENSYM is an uninterned symbol that has been associated\n\
-with #N= for the specified value of N.");
-  Vprint_gensym_alist = Qnil;
+  DEFVAR_LISP ("print-circle", &Vprint_circle,
+    "*Non-nil means print recursive structures using #N= and #N# syntax.\n\
+If nil, printing proceeds recursively and may lead to\n\
+`max-lisp-eval-depth' being exceeded or an error may occur:\n\
+\"Apparently circular structure being printed.\"  Also see\n\
+`print-length' and `print-level'.\n\
+If non-nil, shared substructures anywhere in the structure are printed\n\
+with `#N=' before the first occurrence (in the order of the print\n\
+representation) and `#N#' in place of each subsequent occurrence,\n\
+where N is a positive decimal integer.");
+  Vprint_circle = Qnil;
+
+  DEFVAR_LISP ("print-continuous-numbering", &Vprint_continuous_numbering,
+  "*Non-nil means keep numbering between several print functions.\n\
+See `print-gensym' nad `print-circle'.  See also `print-number-table'.");
+  Vprint_continuous_numbering = Qnil;
+
+  DEFVAR_LISP ("print-number-table", &Vprint_number_table,
+  "A vector keeping the information of the current printed object.\n\
+This variable shouldn't be modified in Lisp level, but should be binded\n\
+with nil using let at the same position with `print-continuous-numbering',\n\
+so that the value of this variable can be freed after printing.");
+  Vprint_number_table = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
