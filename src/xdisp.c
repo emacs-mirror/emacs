@@ -638,7 +638,7 @@ redisplay ()
 	      && GPT >= tlbufpos
 	      /* If selective display, can't optimize
 		 if the changes start at the beginning of the line.  */
-	      && ((XTYPE (current_buffer->selective_display) == Lisp_Int
+	      && ((INTEGERP (current_buffer->selective_display)
 		   && XINT (current_buffer->selective_display) > 0
 		   ? (beg_unchanged >= tlbufpos
 		      && GPT > tlbufpos)
@@ -790,7 +790,7 @@ update:
 	{
 	  FRAME_PTR f;
 
-	  if (XTYPE (XCONS (tail)->car) != Lisp_Frame)
+	  if (!FRAMEP (XCONS (tail)->car))
 	    continue;
 
 	  f = XFRAME (XCONS (tail)->car);
@@ -928,7 +928,7 @@ mark_window_display_accurate (window, flag)
 
   for (;!NILP (window); window = w->next)
     {
-      if (XTYPE (window) != Lisp_Window) abort ();
+      if (!WINDOWP (window)) abort ();
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
@@ -1463,10 +1463,9 @@ try_window_id (window)
   register int i, tem;
   int last_text_vpos = 0;
   int stop_vpos;
-  int selective
-    = XTYPE (current_buffer->selective_display) == Lisp_Int
-      ? XINT (current_buffer->selective_display)
-	: !NILP (current_buffer->selective_display) ? -1 : 0;
+  int selective = (INTEGERP (current_buffer->selective_display)
+		   ? XINT (current_buffer->selective_display)
+		   : !NILP (current_buffer->selective_display) ? -1 : 0);
 
   struct position val, bp, ep, xp, pp;
   int scroll_amount = 0;
@@ -2033,10 +2032,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
     = !NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active);
   int region_beg, region_end;
 
-  int selective
-    = XTYPE (current_buffer->selective_display) == Lisp_Int
-      ? XINT (current_buffer->selective_display)
-	: !NILP (current_buffer->selective_display) ? -1 : 0;
+  int selective = (INTEGERP (current_buffer->selective_display)
+		   ? XINT (current_buffer->selective_display)
+		   : !NILP (current_buffer->selective_display) ? -1 : 0);
   register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
   register struct Lisp_Vector *dp = window_display_table (w);
 
@@ -2044,20 +2042,20 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* Nonzero means display something where there are invisible lines.
      The precise value is the number of glyphs to display.  */
   int selective_rlen
-    = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
+    = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size
        : selective && !NILP (current_buffer->selective_display_ellipses)
        ? 3 : 0);
   /* This is the sequence of Lisp objects to display
      when there are invisible lines.  */
   Lisp_Object *invis_vector_contents
-    = (dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
+    = (dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->contents
        : default_invis_vector);
 
-  GLYPH truncator = (dp == 0 || XTYPE (DISP_TRUNC_GLYPH (dp)) != Lisp_Int
+  GLYPH truncator = (dp == 0 || !INTEGERP (DISP_TRUNC_GLYPH (dp))
 		     ? '$' : XINT (DISP_TRUNC_GLYPH (dp)));
-  GLYPH continuer = (dp == 0 || XTYPE (DISP_CONTINUE_GLYPH (dp)) != Lisp_Int
+  GLYPH continuer = (dp == 0 || !INTEGERP (DISP_CONTINUE_GLYPH (dp))
 		     ? '\\' : XINT (DISP_CONTINUE_GLYPH (dp)));
 
   /* The next buffer location at which the face should change, due
@@ -2231,7 +2229,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	}
       c = *p++;
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
+	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
 	{
 	  if (p1 >= leftmargin)
 	    *p1 = MAKE_GLYPH (f, c, current_face);
@@ -2307,7 +2305,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 #endif
 	  break;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  p1 = copy_part_of_rope (f, p1, leftmargin,
 				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
@@ -2317,7 +2315,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
       else if (c < 0200 && ctl_arrow)
 	{
 	  if (p1 >= leftmargin)
-	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
+	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
 				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
 			     current_face);
 	  p1++;
@@ -2328,7 +2326,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
       else
 	{
 	  if (p1 >= leftmargin)
-	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
+	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
 				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
 			     current_face);
 	  p1++;
@@ -2522,10 +2520,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* If the start of this line is the overlay arrow-position,
      then put the arrow string into the display-line.  */
 
-  if (XTYPE (Voverlay_arrow_position) == Lisp_Marker
+  if (MARKERP (Voverlay_arrow_position)
       && current_buffer == XMARKER (Voverlay_arrow_position)->buffer
       && start == marker_position (Voverlay_arrow_position)
-      && XTYPE (Voverlay_arrow_string) == Lisp_String
+      && STRINGP (Voverlay_arrow_string)
       && ! overlay_arrow_seen)
     {
       unsigned char *p = XSTRING (Voverlay_arrow_string)->data;
@@ -2782,7 +2780,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    tem = Fsymbol_value (elt);
 	    /* If value is a string, output that string literally:
 	       don't check for % within it.  */
-	    if (XTYPE (tem) == Lisp_String)
+	    if (STRINGP (tem))
 	      {
 		if (frame_title_ptr)
 		  hpos = store_frame_title (XSTRING (tem)->data,
@@ -2812,11 +2810,11 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	   If first element is a symbol, process the cadr or caddr recursively
 	   according to whether the symbol's value is non-nil or nil.  */
 	car = XCONS (elt)->car;
-	if (XTYPE (car) == Lisp_Symbol)
+	if (SYMBOLP (car))
 	  {
 	    tem = Fboundp (car);
 	    elt = XCONS (elt)->cdr;
-	    if (XTYPE (elt) != Lisp_Cons)
+	    if (!CONSP (elt))
 	      goto invalid;
 	    /* elt is now the cdr, and we know it is a cons cell.
 	       Use its car if CAR has a non-nil value.  */
@@ -2832,12 +2830,12 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	    elt = XCONS (elt)->cdr;
 	    if (NILP (elt))
 	      break;
-	    else if (XTYPE (elt) != Lisp_Cons)
+	    else if (!CONSP (elt))
 	      goto invalid;
 	    elt = XCONS (elt)->car;
 	    goto tail_recurse;
 	  }
-	else if (XTYPE (car) == Lisp_Int)
+	else if (INTEGERP (car))
 	  {
 	    register int lim = XINT (car);
 	    elt = XCONS (elt)->cdr;
@@ -2862,11 +2860,11 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	      }
 	    goto tail_recurse;
 	  }
-	else if (XTYPE (car) == Lisp_String || XTYPE (car) == Lisp_Cons)
+	else if (STRINGP (car) || CONSP (car))
 	  {
 	    register int limit = 50;
 	    /* LIMIT is to protect against circular lists.  */
-	    while (XTYPE (elt) == Lisp_Cons && --limit > 0
+	    while (CONSP (elt) && --limit > 0
 		   && hpos < maxendcol)
 	      {
 		hpos = display_mode_element (w, vpos, hpos, depth,
@@ -2936,7 +2934,7 @@ decode_mode_spec (w, c, maxwidth)
 #if 0
       if (NILP (obj))
 	return "[none]";
-      else if (XTYPE (obj) == Lisp_String && XSTRING (obj)->size > maxwidth)
+      else if (STRINGP (obj) && XSTRING (obj)->size > maxwidth)
 	{
 	  bcopy ("...", decode_mode_spec_buf, 3);
 	  bcopy (XSTRING (obj)->data + XSTRING (obj)->size - maxwidth + 3,
@@ -3183,7 +3181,7 @@ decode_mode_spec (w, c, maxwidth)
       }
     }
 
-  if (XTYPE (obj) == Lisp_String)
+  if (STRINGP (obj))
     return (char *) XSTRING (obj)->data;
   else
     return "";
@@ -3369,7 +3367,7 @@ display_string (w, vpos, string, length, hpos, truncate,
   register struct Lisp_Vector *dp = 0;
   int i;
 
-  if (XTYPE (Vstandard_display_table) == Lisp_Vector
+  if (VECTORP (Vstandard_display_table)
       && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
     dp = XVECTOR (Vstandard_display_table);
 
@@ -3420,7 +3418,7 @@ display_string (w, vpos, string, length, hpos, truncate,
 	break;
 
       if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
+	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
 	{
 	  if (p1 >= start)
 	    *p1 = c;
@@ -3436,7 +3434,7 @@ display_string (w, vpos, string, length, hpos, truncate,
 	    }
 	  while ((p1 - start + hscroll - (hscroll > 0)) % tab_width);
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
+      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  p1 = copy_part_of_rope (f, p1, start,
 				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
@@ -3446,7 +3444,7 @@ display_string (w, vpos, string, length, hpos, truncate,
       else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
 	  if (p1 >= start)
-	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
+	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
 				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
 			     0);
 	  p1++;
@@ -3457,7 +3455,7 @@ display_string (w, vpos, string, length, hpos, truncate,
       else
 	{
 	  if (p1 >= start)
-	    *p1 = fix_glyph (f, (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
+	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
 				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
 			     0);
 	  p1++;
