@@ -40,6 +40,10 @@ Boston, MA 02111-1307, USA.  */
   ((f)->bdf ? (f)->bdf->width : (f)->tm.tmMaxCharWidth)
 
 #define CP_DEFAULT 1004
+/* Special psuedo-codepages. */
+#define CP_8BIT      -1
+#define CP_UNICODE   -2
+#define CP_INVALID   -3
 
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
@@ -50,7 +54,6 @@ Boston, MA 02111-1307, USA.  */
       f = XFRAME (frame);			\
     }						\
   if (! FRAME_W32_P (f))
-
 
 /* Indicates whether we are in the readsocket call and the message we
    are processing in the current loop */
