@@ -1,3 +1,8 @@
+2002-04-28  Jan D.  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c: Do not grab keyboard if installation-directory is
+	non-nil (not installed Emacs).  To simplify debugging.
+
 2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in: Remove OpenLook file dependencies.
