@@ -1,3 +1,15 @@
+2003-10-21  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-current-language): New variable.
+	(gdb-update-flag): Remove variable.
+	(gud-watch,gdb-frame-handler): Adapt for other languages (Fortran).
+	(gdb-take-last-elt): Remove function.
+	(gdb-dequeue-input): Avoid recursion by not using gdb-take-last-elt.
+	(gdb-post-prompt): Check for variable object changes here.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Check for variable
+	object changes in gdb-ui.el.
+
 2003-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-display-freq-count): Doc fix.

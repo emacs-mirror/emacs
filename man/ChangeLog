@@ -1,3 +1,8 @@
+2003-10-22  Nick Roberts  <nick@nick.uklinux.net>
+
+	* building.texi (Watch Expressions): Update section on data display
+	to reflect code changes (GDB Graphical Interface).
+
 2003-10-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* tramp.texi (Inline methods): Small grammar fix.
