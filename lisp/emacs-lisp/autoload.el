@@ -32,8 +32,8 @@
 ;;; Code:
 
 (defun make-autoload (form file)
-  "Turn FORM, a defun or defmacro, into an autoload for source file FILE.
-Returns nil if FORM is not a defun, define-skeleton or defmacro."
+  "Turn FORM into an autoload or defvar for source file FILE.
+Returns nil if FORM is not a defun, define-skeleton, defmacro or defcustom."
   (let ((car (car-safe form)))
     (if (memq car '(defun define-skeleton defmacro))
 	(let ((macrop (eq car 'defmacro))
@@ -52,7 +52,12 @@ Returns nil if FORM is not a defun, define-skeleton or defmacro."
 		(or (eq car 'define-skeleton)
 		    (eq (car-safe (car form)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
-      nil)))
+      (if (eq car 'defcustom)
+	  (let ((varname (car-safe (cdr-safe form)))
+		(init (car-safe (cdr-safe (cdr-safe form))))
+		(doc (car-safe (cdr-safe (cdr-safe (cdr-safe form))))))
+	    (list 'defvar varname init doc))
+	nil))))
 
 (put 'define-skeleton 'doc-string-elt 3)
 
@@ -98,6 +103,7 @@ the section of autoloads for a file.")
 (put 'autoload 'doc-string-elt 3)
 (put 'defun    'doc-string-elt 3)
 (put 'defvar   'doc-string-elt 3)
+(put 'defcustom 'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
 
