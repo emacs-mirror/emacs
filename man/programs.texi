@@ -1314,14 +1314,14 @@ Specifies what kind of hidden blocks to open in Isearch mode.
 The value should be one of these four symbols.
 
 @table @code
-@item block
-Open only blocks.
+@item code
+Open only code blocks.
 @item comment
 Open only comments.
 @item t
-Open both blocks and comments.
+Open both code blocks and comments.
 @item nil
-Open neither blocks nor comments.
+Open neither code blocks nor comments.
 @end table
 
 @item hs-special-modes-alist
