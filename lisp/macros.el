@@ -105,4 +105,60 @@ C-l -- redisplay screen and ask again."
 		     (recursive-edit))))))))))
 
 ;;;###autoload
+(defun apply-macro-to-region-lines (top bottom &optional macro)
+  "For each complete line in the current region, move to the beginning of
+the line, and run the last keyboard macro.
+
+When called from lisp, this function takes two arguments TOP and
+BOTTOM, describing the current region.  TOP must be before BOTTOM.
+The optional third argument MACRO specifies a keyboard macro to
+execute.
+
+This is useful for quoting or unquoting included text, adding and
+removing comments, or producing tables where the entries are regular.
+
+For example, in Usenet articles, sections of text quoted from another
+author are indented, or have each line start with `>'.  To quote a
+section of text, define a keyboard macro which inserts `>', put point
+and mark at opposite ends of the quoted section, and use
+`\\[apply-macro-to-region-lines]' to mark the entire section.
+
+Suppose you wanted to build a keyword table in C where each entry
+looked like this:
+
+    { \"foo\", foo_data, foo_function }, 
+    { \"bar\", bar_data, bar_function },
+    { \"baz\", baz_data, baz_function },
+
+You could enter the names in this format:
+
+    foo
+    bar
+    baz
+
+and write a macro to massage a word into a table entry:
+
+    \\C-x (
+       \\M-d { \"\\C-y\", \\C-y_data, \\C-y_function },
+    \\C-x )
+
+and then select the region of un-tablified names and use
+`\\[apply-macro-to-region-lines]' to build the table from the names.
+"
+  (interactive "r")
+  (if (null last-kbd-macro)
+      (error "No keyboard macro has been defined."))
+  (save-excursion
+    (let ((end-marker (progn
+			(goto-char bottom)
+			(beginning-of-line)
+			(point-marker))))
+      (goto-char top)
+      (if (not (bolp))
+	  (forward-line 1))
+      (while (< (point) end-marker)
+	(execute-kbd-macro (or macro last-kbd-macro))
+	(forward-line 1)))))
+
+;;;###autoload
 (define-key ctl-x-map "q" 'kbd-macro-query)

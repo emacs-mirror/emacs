@@ -58,38 +58,44 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
+(if (not (eq window-system 'x))
+    (error "Loading x-win.el but not compiled for X"))
+	 
 ;; This is a temporary work-around while we the separate keymap
 ;; stuff isn't yet fixed.  These variables aren't used anymore,
 ;; but the lisp code wants them to exist.  -JimB
 (setq global-mouse-map (make-sparse-keymap))
 (setq global-function-map (make-sparse-keymap))
 
+(require 'x-mouse)
+(require 'screen)
+
 (setq command-switch-alist
-      (append '(("-dm" . x-establish-daemon-mode)
-		("-bw" . x-handle-numeric-switch)
-		("-d" . x-handle-display)
-		("-display" . x-handle-display)
-		("-name" . x-handle-switch)
-		("-T" . x-handle-switch)
-		("-r" . x-handle-switch)
-		("-rv" . x-handle-switch)
-		("-reverse" . x-handle-switch)
-		("-fn" . x-handle-switch)
-		("-font" . x-handle-switch)
-		("-ib" . x-handle-switch)
-		("-g" . x-handle-geometry)
-		("-geometry" . x-handle-geometry)
-		("-fg" . x-handle-switch)
-		("-foreground" . x-handle-switch)
-		("-bg" . x-handle-switch)
-		("-background" . x-handle-switch)
-		("-ms" . x-handle-switch)
-		("-ib" . x-handle-switch)
-		("-iconic" . x-handle-switch)
-		("-cr" . x-handle-switch)
-		("-vb" . x-handle-switch)
-		("-hb" . x-handle-switch)
-		("-bd" . x-handle-switch))
+      (append '(("-dm" .	x-establish-daemon-mode)
+		("-bw" .	x-handle-numeric-switch)
+		("-d" .		x-handle-display)
+		("-display" .	x-handle-display)
+		("-name" .	x-handle-switch)
+		("-T" .		x-handle-switch)
+		("-r" .		x-handle-switch)
+		("-rv" .	x-handle-switch)
+		("-reverse" .	x-handle-switch)
+		("-fn" .	x-handle-switch)
+		("-font" .	x-handle-switch)
+		("-ib" .	x-handle-switch)
+		("-g" .		x-handle-geometry)
+		("-geometry" .	x-handle-geometry)
+		("-fg" .	x-handle-switch)
+		("-foreground".	x-handle-switch)
+		("-bg" .	x-handle-switch)
+		("-background".	x-handle-switch)
+		("-ms" .	x-handle-switch)
+		("-ib" .	x-handle-switch)
+		("-iconic" .	x-handle-switch)
+		("-cr" .	x-handle-switch)
+		("-vb" .	x-handle-switch)
+		("-hb" .	x-handle-switch)
+		("-bd" .	x-handle-switch))
 	      command-switch-alist))
 
 (defvar x-switches-specified nil)
@@ -161,53 +167,37 @@
   (setq x-display-name (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
 
-;; Here the X-related command line options are processed, before the user's
-;; startup file is loaded.  These  are present in ARGS (see startup.el).
-;; They are copied to x-invocation args from which the X-related things
-;; are extracted, first the switch (e.g., "-fg") in the following code,
-;; and possible values (e.g., "black") in the option handler code
-;; (e.g., x-handle-switch).
-
-;; When finished, only things not pertaining to X (e.g., "-q", filenames)
-;; are left in ARGS
-
 (defvar x-invocation-args nil)
 
-(if (eq window-system 'x)
-    (progn
-      (setq window-setup-hook 'x-pop-initial-window
-	    x-invocation-args args
-	    args nil)
-      (require 'x-mouse)
-      (require 'screen)
-      (setq suspend-hook
-	    '(lambda ()
-	       (error "Suspending an emacs running under X makes no sense")))
-      (define-key global-map "" 'iconify-emacs)
-      (while x-invocation-args
-	(let* ((this-switch (car x-invocation-args))
-	       (aelt (assoc this-switch command-switch-alist)))
-	  (setq x-invocation-args (cdr x-invocation-args))
-	  (if aelt
-	      (funcall (cdr aelt) this-switch)
-	    (setq args (cons this-switch args)))))
-      (setq args (nreverse args))
-      (x-open-connection (or x-display-name
-			     (setq x-display-name (getenv "DISPLAY"))))
-      ;;
-      ;; This is the place to handle Xresources
-      ;;
-      )
-  (error "Loading x-win.el but not compiled for X"))
+(defun x-handle-args ()
+  "Here the X-related command line options are processed, before the user's
+startup file is loaded.  These  are present in ARGS (see startup.el).
+They are copied to x-invocation args from which the X-related things
+are extracted, first the switch (e.g., \"-fg\") in the following code,
+and possible values (e.g., \"black\") in the option handler code (e.g.,
+x-handle-switch).
+When finished, only things not pertaining to X (e.g., \"-q\", filenames)
+are left in ARGS."
+  (setq x-invocation-args args
+	args nil)
+  (while x-invocation-args
+    (let* ((this-switch (car x-invocation-args))
+	   (aelt (assoc this-switch command-switch-alist)))
+      (setq x-invocation-args (cdr x-invocation-args))
+      (if aelt
+	  (funcall (cdr aelt) this-switch)
+	(setq args (cons this-switch args)))))
+  (setq args (nreverse args)))
+
+;;
+;; This is the place to handle Xresources
+;;
 
 
 ;; This is the function which creates the first X window.  It is called
-;; from startup.el after the user's init file is processed.
+;; from startup.el before the user's init file is processed.
 
 (defun x-pop-initial-window ()
-  ;; xterm.c depends on using interrupt-driven input.
-  (set-input-mode t nil t)
-  (setq mouse-motion-handler 'x-track-pointer)
   (setq x-switches-specified (append x-switches-specified
 				     initial-screen-alist
 				     screen-default-alist))
@@ -613,3 +603,18 @@
 (define-function-key global-function-map 'xk-f33 nil)
 (define-function-key global-function-map 'xk-f34 nil)
 (define-function-key global-function-map 'xk-f35 nil)
+
+;;; Here 
+
+;; xterm.c depends on using interrupt-driven input.
+(set-input-mode t nil t)
+(x-handle-args)
+(x-open-connection (or x-display-name
+		       (setq x-display-name (getenv "DISPLAY"))))
+(x-pop-initial-window)
+
+(setq suspend-hook
+      '(lambda ()
+	 (error "Suspending an emacs running under X makes no sense")))
+
+(define-key global-map "\C-z" 'iconify-emacs)
