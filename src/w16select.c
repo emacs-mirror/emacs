@@ -492,14 +492,14 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   int no_crlf_conversion;
 
   CHECK_STRING (string);
-  
+
   if (NILP (frame))
     frame = Fselected_frame ();
 
   CHECK_LIVE_FRAME (frame);
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
-  
+
   BLOCK_INPUT;
 
   nbytes = STRING_BYTES (XSTRING (string));
@@ -528,6 +528,13 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	Vnext_selection_coding_system = Vselection_coding_system;
       setup_coding_system
 	(Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+      if (SYMBOLP (coding.pre_write_conversion)
+	  && !NILP (Ffboundp (coding.pre_write_conversion)))
+	{
+	  string = run_pre_post_conversion_on_str (string, &coding, 1);
+	  src = XSTRING (string)->data;
+	  nbytes = STRING_BYTES (XSTRING (string));
+	}
       coding.src_multibyte = 1;
       coding.dst_multibyte = 0;
       Vnext_selection_coding_system = Qnil;
@@ -543,7 +550,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   if (!open_clipboard ())
     goto error;
-  
+
   ok = empty_clipboard ()
     && ((put_status
 	 = set_clipboard_data (CF_OEMTEXT, src, nbytes, no_crlf_conversion))
@@ -552,11 +559,11 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   if (!no_crlf_conversion)
     Vlast_coding_system_used = Qraw_text;
   close_clipboard ();
-  
+
   if (ok) goto unblock;
 
  error:
-  
+
   ok = 0;
 
  unblock:
@@ -585,7 +592,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	}
       sit_for (2, 0, 0, 1, 1);
     }
-  
+
  done:
 
   return (ok && put_status == 0 ? string : Qnil);
@@ -608,9 +615,9 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   CHECK_LIVE_FRAME (frame);
   if ( !FRAME_MSDOS_P (XFRAME (frame)))
     goto done;
-  
+
   BLOCK_INPUT;
-  
+
   if (!open_clipboard ())
     goto unblock;
 
@@ -625,27 +632,20 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
     goto closeclip;
 
   /* Do we need to decode it?  */
-  if (
-#if 1
-      1
-#else
-      ! NILP (buffer_defaults.enable_multibyte_characters)
-#endif
-      )
-    {
-      /* If the clipboard data contains any 8-bit Latin-1 code, we
-	 need to decode it.  */
-      int i;
+  {
+    /* If the clipboard data contains any 8-bit Latin-1 code, we
+       need to decode it.  */
+    int i;
 
-      for (i = 0; i < truelen; i++)
-	{
-	  if (htext[i] >= 0x80)
-	    {
-	      require_encoding = 1;
-	      break;
-	    }
-	}
-    }
+    for (i = 0; i < truelen; i++)
+      {
+	if (htext[i] >= 0x80)
+	  {
+	    require_encoding = 1;
+	    break;
+	  }
+      }
+  }
   if (require_encoding)
     {
       int bufsize;
@@ -667,6 +667,9 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       ret = make_string_from_bytes ((char *) buf,
 				    coding.produced_char, coding.produced);
       xfree (buf);
+      if (SYMBOLP (coding.post_read_conversion)
+	  && !NILP (Ffboundp (coding.post_read_conversion)))
+	ret = run_pre_post_conversion_on_str (ret, coding, 0);
       Vlast_coding_system_used = coding.symbol;
     }
   else
