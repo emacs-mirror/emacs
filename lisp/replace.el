@@ -489,6 +489,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (setq mode-name "Occur")
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (run-hooks 'occur-mode-hook))
 
 (defun occur-revert-function (ignore1 ignore2)
