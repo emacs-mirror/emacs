@@ -220,13 +220,13 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (i don\'t understand \.)
 	  (($ thlst))
 	  (($ areyou) ($ afraidof) that \?)))
-  (make-local-variable 'feelings)
+  (make-local-variable 'feelings-about)
   (setq feelings-about
 	'((feelings about)
 	  (aprehensions toward)
 	  (thoughts on)
 	  (emotions toward)))
-  (make-local-variable 'random)
+  (make-local-variable 'random-adjective)
   (setq random-adjective
 	'((vivid)
 	  (emotionally stimulating)
@@ -1183,7 +1183,9 @@ the subject noun, and return the portion of the sentence following it."
       (doctor-possessivepronounp x)))
 
 (defun doctor-adverbp (xx)
-  (string-equal (substring (doctor-make-string xx) -2) "ly"))
+  (let ((xxstr (doctor-make-string xx)))
+    (and (>= (length xxstr) 2)
+	 (string-equal (substring (doctor-make-string xx) -2) "ly"))))
 
 (defun doctor-articlep (x)
   (memq x '(the a an)))
