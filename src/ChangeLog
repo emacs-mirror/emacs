@@ -1,3 +1,22 @@
+2000-11-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.h (compose_chars_in_text): Add prototype.
+
+	* composite.c (Vcomposition_function_table): New variable.
+	(Qcomposition_function_table): New variable.
+	(run_composition_function): Call
+	Vcompose_chars_after_function with three arguments.
+	(compose_chars_in_text): New function.
+	(syms_of_composite): Modified the doc-string of
+	Vcompose_chars_after_function.  Declare composition-function-table
+	as a lisp variable, and initialize it.
+
+	* xfns.c (x_encode_text): Suppress producing escape sequences for
+	composition.
+
+	* xselect.c: Include composite.h.
+	(selection_data_to_lisp_data): Call compose_chars_in_text on STR.
+
 2000-11-05  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.c (x_produce_glyphs): Fix typo in enum name.

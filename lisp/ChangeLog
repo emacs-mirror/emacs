@@ -1,3 +1,9 @@
+2000-11-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.el (composition-function-table): Variable declaration
+	moved to src/composite.c.
+	(compose-chars-after): New optional arg object.
+
 2000-11-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-delay): Set to 10 seconds.
