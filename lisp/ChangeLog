@@ -1,5 +1,7 @@
 2002-12-16  Markus Rost  <rost@math.ohio-state.edu>
 
+	* filesets.el (filesets-build-menu-now): Don't clear messages.
+
 	* allout.el: Avoid name conflicts with outline.el.  Replace
 	globally string "outline-" with string "allout-".  Replaced 1446
 	occurrences; there was no string "allout-" before the change and
