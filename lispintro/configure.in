@@ -1,0 +1,5 @@
+dnl autoconf input file for the emacs lisp intro
+
+AC_INIT(emacs-lisp-intro.texi)
+AM_INIT_AUTOMAKE(emacs-lisp-intro, 2.00)
+AC_OUTPUT(Makefile)
