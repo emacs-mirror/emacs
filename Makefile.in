@@ -162,6 +162,9 @@ lockdir=@lockdir@
 # once.
 archlibdir=@archlibdir@
 
+# Where to put the docstring file.
+docdir=@docdir@
+
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
@@ -207,6 +210,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC.src.paths.h
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";')
 	@${srcdir}/move-if-change src/paths.h.tmp src/paths.h
 
