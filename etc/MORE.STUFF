@@ -117,6 +117,10 @@ the future.
    <URL:http:www.gnu.org/software/calc/calc.html>
    From GNU distribution mirrors.
 
+ * CJK-emacs: Converting MULE-encoded text to TeX:
+   <URL:ftp://ctan.tug.org/tex-archive/language/chinese/CJK/> and
+   mirrors of the `CTAN' TeX archives.
+
  * Dismal: spreadsheet:
    <URL:http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/
    dismal.html>
@@ -161,6 +165,11 @@ the future.
  * JDE: <URL:http://sunsite.auc.dk/jde/>
    Wrapper around Java development tools.
 
+ * MULE-UCS: Universal enCoding System
+   <URL:ftp://ftp.jaist.ac.jp/pub/GNU/elisp/mule-ucs/akr/>: 
+   Extended coding systems for MULE, specifically for reading and
+   writing UTF-8 encoded Unicode.
+
  * Mailcrypt:
    <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU
@@ -170,9 +179,7 @@ the future.
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
 
  * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
-   DTD-aware serious SGML/XML editing.  The 1.1 series (still in the
-   ALPHA directory at the time of writing) fixes a bug which causes
-   problems with Emacs 20.3 and later.
+   DTD-aware serious SGML/XML editing.
 
  * Todo mode:
    <URL:http://www.cl.cam.ac.uk/users/os10000/stuff/todo.html>
