@@ -49,7 +49,8 @@ static void (*warn_function) ();
 static void
 check_memory_limits ()
 {
-  POINTER result;
+  extern POINTER (*__morecore) ();
+
   register POINTER cp;
   int five_percent;
   int data_size;
