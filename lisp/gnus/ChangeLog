@@ -1,5 +1,7 @@
 2000-09-20  Dave Love  <fx@gnu.org>
 
+	* smiley-ems.el, frown.xbm, smile.xbm, wry.xbm: New files.
+
 	* mail-source.el (mail-source-delete-incoming): Set to t, assuming
 	we'll be careful merging development changes.
 
