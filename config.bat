@@ -204,6 +204,11 @@ cd man
 sed -f ../msdos/sed6.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
+Echo Configuring the lisp directory...
+cd lisp
+sed -f ../msdos/sedlisp.inp < Makefile.in > Makefile
+cd ..
+rem   ----------------------------------------------------------------------
 If not Exist leim\quail\latin-pre.el goto maindir
 Echo Configuring the leim directory...
 cd leim
