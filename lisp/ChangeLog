@@ -9210,7 +9210,6 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
 	Don't call string-match on non-string.
-	(displaying-byte-compile-warnings):
 
 	* textmodes/ispell.el (check-ispell-version): Bind default-directory
 	to avoid errors.  Kill the old temp buffer at the beginning.
