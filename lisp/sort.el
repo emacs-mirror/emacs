@@ -253,7 +253,7 @@ If you want to sort floating-point numbers, try `sort-float-fields'."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
-			     (sort-skip-fields (1- field))
+			     (sort-skip-fields field)
 			     (string-to-number
 			      (buffer-substring
 			        (point)
@@ -275,7 +275,7 @@ region to sort."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
-			     (sort-skip-fields (1- field))
+			     (sort-skip-fields field)
 			     (string-to-number
 			      (buffer-substring
 			       (point)
@@ -295,7 +295,7 @@ FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
-			     (sort-skip-fields (1- field))
+			     (sort-skip-fields field)
 			     nil))
 		 (function (lambda () (skip-chars-forward "^ \t\n")))))
 
@@ -313,21 +313,39 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 		       startkeyfun endkeyfun)))
       (set-syntax-table tbl))))
 
+;; Position at the beginning of field N on the current line,
+;; assuming point is initially at the beginning of the line.
 (defun sort-skip-fields (n)
-  (let ((bol (point))
-	(eol (save-excursion (end-of-line 1) (point))))
-    (if (> n 0) (forward-word n)
-      (end-of-line)
-      (forward-word (1+ n)))
-    (if (or (and (>= (point) eol) (> n 0))
-	    ;; this is marginally wrong; if the first line of the sort
-	    ;; at bob has the wrong number of fields the error won't be
-	    ;; reported until the next short line.
-	    (and (< (point) bol) (< n 0)))
+  (if (> n 0)
+      ;; Skip across N - 1 fields.
+      (let ((i (1- n)))
+	(while (> i 0)
+	  (skip-chars-forward " \t")
+	  (skip-chars-forward "^ \t\n")
+	  (setq i (1- i)))
+	(skip-chars-forward " \t")
+	(recursive-edit)
+	(if (eolp)
+	    (error "Line has too few fields: %s"
+		   (buffer-substring
+		    (save-excursion (beginning-of-line) (point))
+		    (save-excursion (end-of-line) (point))))))
+    (end-of-line)
+    ;; Skip back across - N - 1 fields.
+    (let ((i (1- (- n))))
+      (while (> i 0)
+	(skip-chars-backward " \t")
+	(skip-chars-backward "^ \t\n")
+	(setq i (1- i)))
+      (skip-chars-backward " \t"))
+    (if (bolp)
 	(error "Line has too few fields: %s"
-	       (buffer-substring bol eol)))
-    (skip-chars-forward " \t")))
-
+	       (buffer-substring
+		(save-excursion (beginning-of-line) (point))
+		(save-excursion (end-of-line) (point)))))
+    ;; Position at the front of the field
+    ;; even if moving backwards.
+    (skip-chars-backward "^ \t\n")))
 
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
