@@ -1,3 +1,10 @@
+2003-05-27  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (try_window_id): Avoid aborting if PT is inside a
+	partially visible line.
+
+	* alloc.c (Fgarbage_collect): Fix last change.
+
 2003-05-26  John Paul Wallington  <jpw@gnu.org>
 
 	* xfns.c (Fx_create_frame): Don't call Qface_set_after_frame_default.
