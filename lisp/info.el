@@ -2173,7 +2173,13 @@ Allowed only if variable `Info-enable-edit' is non-nil."
 
 (defvar Info-file-list-for-emacs
   '("ediff" "forms" "gnus" ("mh" . "mh-e") "sc" "message"
-    ("dired" . "dired-x") ("c" . "ccmode") "viper")
+    ("dired" . "dired-x") ("c" . "ccmode") "viper" "vip"
+    ("skeleton" . "autotype") ("auto-insert" . "autotype")
+    ("copyright" . "autotype") ("executable" . "autotype")
+    ("time-stamp" . "autotype") ("quickurl" . "autotype")
+    ("tempo" . "autotype") ("hippie-expand" . "autotype")
+    ("cvs" . "pcl-cvs")
+    "ebrowse" "cl" "idlwave" "reftex" "widget" "woman")
   "List of Info files that describe Emacs commands.
 An element can be a file name, or a list of the form (PREFIX . FILE)
 where PREFIX is a name prefix and FILE is the file to look in.
@@ -2211,9 +2217,23 @@ The locations are of the format used in `Info-history', i.e.
       (condition-case nil
 	  (Info-find-node info-file "Command Index")
 	;; Some manuals may not have a separate Command Index node,
-	;; so try just Index instead.
+	;; so try other variations as well.
 	(error
-	 (Info-find-node info-file "Index")))
+	 (condition-case nil
+	     (Info-find-node info-file "Function Index")
+	   (error
+	    (condition-case nil
+		(Info-find-node info-file "Function and Variable Index")
+	      (error
+	       (condition-case nil
+		   (Info-find-node info-file "Concept Index")
+		 (error
+		  (condition-case nil
+		      (Info-find-node info-file "Index")
+		    (error
+		     (message "Info file `%s' seems to lack an Index"
+			      info-file)
+		     (sit-for 2)))))))))))
       ;; Take the index node off the Info history.
       (setq Info-history (cdr Info-history))
       (goto-char (point-max))
