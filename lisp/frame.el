@@ -29,10 +29,10 @@
 The window system startup file should set this to its frame creation
 function, which should take an alist of parameters as its argument.")
 
-;;; The initial value given here for this must ask for a minibuffer.
-;;; There must always exist a frame with a minibuffer, and after we
-;;; delete the terminal frame, this will be the only frame.
-(defvar initial-frame-alist '((minibuffer . t))
+;;; The initial value given here for used to ask for a minibuffer.
+;;; But that's not necessary, because the default is to have one.
+;;; By not specifying it here, we let an X resource specify it.
+(defvar initial-frame-alist nil
   "Alist of frame parameters for creating the initial X window frame.
 You can set this in your `.emacs' file; for example,
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
