@@ -1435,7 +1435,7 @@ in that case, this function acts as if `enable-local-variables' were t."
     ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
     ("\\.[eE]?[pP][sS]$" . ps-mode)
     ("configure\\.in\\'" . autoconf-mode)
-    ("EBROWSE\\'" . ebrowse-tree-mode)
+    ("BROWSE\\'" . ebrowse-tree-mode)
     ("\\.ebrowse\\'" . ebrowse-tree-mode))
   "\
 Alist of filename patterns vs corresponding major mode functions.
