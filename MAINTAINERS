@@ -94,8 +94,6 @@ Stefan Monnier
 ==============================================================================
 
 src/Makefile.in
-src/TAGS
-src/TAGS-LISP
 src/abbrev.c
 src/alloc.c
 src/alloca.c
