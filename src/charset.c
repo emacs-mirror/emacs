@@ -1597,16 +1597,27 @@ str_cmpchar_id (str, len)
   return n_cmpchars++;
 }
 
-/* Return the Nth element of the composite character C.  */
+/* Return the Nth element of the composite character C.  If NOERROR is
+   nonzero, return 0 on error condition (C is an invalid composite
+   charcter, or N is out of range). */
 int
-cmpchar_component (c, n)
-     unsigned int c, n;
+cmpchar_component (c, n, noerror)
+     int c, n, noerror;
 {
   int id = COMPOSITE_CHAR_ID (c);
 
-  if (id >= n_cmpchars		/* C is not a valid composite character.  */
-      || n >= cmpchar_table[id]->glyph_len) /* No such component.  */
-    return -1;
+  if (id < 0 || id >= n_cmpchars)
+    {
+      /* C is not a valid composite character.  */
+      if (noerror) return 0;
+      error ("Invalid composite character: %d", c)  ;
+    }
+  if (n >= cmpchar_table[id]->glyph_len)
+    {
+      /* No such component.  */
+      if (noerror) return 0;
+      args_out_of_range (make_number (c), make_number (n));
+    }
   /* No face data is stored in glyph code.  */
   return ((int) (cmpchar_table[id]->glyph[n]));
 }
@@ -1622,30 +1633,28 @@ DEFUN ("cmpcharp", Fcmpcharp, Scmpcharp, 1, 1, 0,
 
 DEFUN ("composite-char-component", Fcmpchar_component, Scmpchar_component,
        2, 2, 0,
-  "Return the IDXth component character of composite character CHARACTER.")
-  (character, idx)
-     Lisp_Object character, idx;
+  "Return the Nth component character of composite character CHARACTER.")
+  (character, n)
+     Lisp_Object character, n;
 {
-  int c;
+  int id;
 
   CHECK_NUMBER (character, 0);
-  CHECK_NUMBER (idx, 1);
+  CHECK_NUMBER (n, 1);
 
-  if ((c = cmpchar_component (XINT (character), XINT (idx))) < 0)
-    args_out_of_range (character, idx);
-
-  return make_number (c);
+  return (make_number (cmpchar_component (XINT (character), XINT (n), 0)));
 }
 
 DEFUN ("composite-char-composition-rule", Fcmpchar_cmp_rule, Scmpchar_cmp_rule,
        2, 2, 0,
-  "Return the Nth composition rule embedded in composite character CHARACTER.\n\
+  "Return the Nth composition rule of composite character CHARACTER.\n\
 The returned rule is for composing the Nth component\n\
-on the (N-1)th component.  If N is 0, the returned value is always 255.")
+on the (N-1)th component.\n\
+If CHARACTER should be composed relatively or N is 0, return 255.")
   (character, n)
      Lisp_Object character, n;
 {
-  int id, i;
+  int id;
 
   CHECK_NUMBER (character, 0);
   CHECK_NUMBER (n, 1);
@@ -1653,11 +1662,12 @@ on the (N-1)th component.  If N is 0, the returned value is always 255.")
   id = COMPOSITE_CHAR_ID (XINT (character));
   if (id < 0 || id >= n_cmpchars)
     error ("Invalid composite character: %d", XINT (character));
-  i = XINT (n);
-  if (i > cmpchar_table[id]->glyph_len)
+  if (XINT (n) < 0 || XINT (n) >= cmpchar_table[id]->glyph_len)
     args_out_of_range (character, n);
 
-  return make_number (cmpchar_table[id]->cmp_rule[i]);
+  return make_number (cmpchar_table[id]->cmp_rule
+		      ? cmpchar_table[id]->cmp_rule[XINT (n)]
+		      : 255);
 }
 
 DEFUN ("composite-char-composition-rule-p", Fcmpchar_cmp_rule_p,
@@ -1726,6 +1736,8 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
              LEADING_CODE_COMPOSITION, keep the remaining bytes
              unchanged.  */
 	  p++;
+	  if (*p == 255)
+	    error ("Can't compose a rule-based composition character");
 	  ptemp = p;
 	  while (! CHAR_HEAD_P (*p)) p++;
 	  if (i + (p - ptemp) >= MAX_LENGTH_OF_MULTI_BYTE_FORM)
