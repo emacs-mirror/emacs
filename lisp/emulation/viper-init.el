@@ -947,19 +947,19 @@ Should be set in `~/.viper' file."
   :prefix "viper-"
   :group 'viper)
 
-(defcustom viper-vi-state-hook nil
+(defcustom viper-vi-state-hook 'viper-restore-cursor-type
   "*Hooks run just before the switch to Vi mode is completed."
   :type 'hook
   :group 'viper-hooks)
-(defcustom viper-insert-state-hook nil
+(defcustom viper-insert-state-hook 'viper-set-insert-cursor-type
   "*Hooks run just before the switch to Insert mode is completed."
   :type 'hook
   :group 'viper-hooks)
-(defcustom viper-replace-state-hook nil
+(defcustom viper-replace-state-hook 'viper-restore-cursor-type
   "*Hooks run just before the switch to Replace mode is completed."
   :type 'hook
   :group 'viper-hooks)
-(defcustom viper-emacs-state-hook nil
+(defcustom viper-emacs-state-hook 'viper-restore-cursor-type
   "*Hooks run just before the switch to Emacs mode is completed."
   :type 'hook
   :group 'viper-hooks)
@@ -968,6 +968,16 @@ Should be set in `~/.viper' file."
   "Hooks run just after loading Viper."
   :type 'hook
   :group 'viper-hooks)
+
+(defun viper-restore-cursor-type ()
+  (if viper-xemacs-p
+      (setq bar-cursor nil)
+    (setq cursor-type default-cursor-type)))
+
+(defun viper-set-insert-cursor-type ()
+  (if viper-xemacs-p
+      (setq bar-cursor 2)
+    (setq cursor-type '(bar . 2))))
 
 
 ;;; Local Variables:

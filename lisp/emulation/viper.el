@@ -592,6 +592,9 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 		    ))
 	      (viper-set-expert-level 'dont-change-unless)))
 
+	(if viper-xemacs-p
+	    (make-variable-buffer-local 'bar-cursor))
+
 	(or (memq major-mode viper-emacs-state-mode-list) ; don't switch to Vi
 	    (memq major-mode viper-insert-state-mode-list) ; don't switch
 	    (viper-change-state-to-vi)))))
@@ -660,6 +663,7 @@ remains buffer-local."
   ;; Ideally, we would like to be able to de-localize local variables 
   (viper-delocalize-var 'minor-mode-map-alist)
   (viper-delocalize-var 'require-final-newline)
+  (if viper-xemacs-p (viper-delocalize-var 'bar-cursor))
 
   
   ;; deactivate all advices done by Viper.

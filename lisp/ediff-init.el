@@ -1683,17 +1683,9 @@ Checks if overlay's buffer exists."
 	((eq jobname 'ediff-merge-directory-revisions-with-ancestor)
 	 "Merge dir versions via ancestors")
 	(t
-	 (let* ((str (substring (symbol-name jobname) 6))
-		(len (length str))
-		(pos 0))
-	   (while (< pos len)
-	     (if (= pos 0)
-		 (aset str pos (upcase (aref str pos))))
-	     (if (= (aref str pos) ?-)
-		 (aset str pos ?\ ))
-	     (setq pos (1+ pos)))
-	   str))))
-
+	 (capitalize
+	  (subst-char-in-string ?- ?\  (substring (symbol-name jobname) 6))))
+	))
 
 
 (defsubst ediff-get-region-contents (n buf-type ctrl-buf &optional start end)

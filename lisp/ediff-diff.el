@@ -44,6 +44,18 @@
   :prefix "ediff-"
   :group 'ediff)
 
+;; these two must be here to prevent ediff-test-utility from barking
+(defcustom ediff-diff-program "diff"
+  "*Program to use for generating the differential of the two files."
+  :type 'string
+  :group 'ediff-diff)
+(defcustom ediff-diff3-program "diff3"
+  "*Program to be used for three-way comparison.
+Must produce output compatible with Unix's diff3 program."
+  :type 'string
+  :group 'ediff-diff)
+
+;; The following functions must precede all defcustom-defined variables.
 
 ;; The following functions needed for setting diff/diff3 options
 ;; test if diff supports the --binary option
@@ -108,10 +120,6 @@ ignore changes whose lines all match RE."
   :type '(repeat string)
   :group 'ediff-diff)
 
-(defcustom ediff-diff-program "diff"
-  "*Program to use for generating the differential of the two files."
-  :type 'string
-  :group 'ediff-diff)
 (defcustom ediff-diff-options ""
   "*Options to pass to `ediff-diff-program'. 
 If diff\(1\) is used as `ediff-diff-program', then the most useful options are
@@ -135,11 +143,6 @@ This output is not used by Ediff internally."
 
 (defvar ediff-match-diff3-line "^====\\(.?\\)$"
   "Pattern to match lines produced by diff3 that describe differences.")
-(defcustom ediff-diff3-program "diff3"
-  "*Program to be used for three-way comparison.
-Must produce output compatible with Unix's diff3 program."
-  :type 'string
-  :group 'ediff-diff)
 (defcustom ediff-diff3-options ""  
   "*Options to pass to `ediff-diff3-program'."
   :set 'ediff-reset-diff-options

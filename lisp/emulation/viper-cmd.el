@@ -597,7 +597,7 @@
   (interactive)
   (if (and viper-first-time (not (viper-is-in-minibuffer)))
       (viper-mode)
-    (if overwrite-mode (overwrite-mode nil))
+    (if overwrite-mode (overwrite-mode -1))
     (or (viper-overlay-p viper-replace-overlay)
       (viper-set-replace-overlay (point-min) (point-min)))
     (viper-hide-replace-overlay)
@@ -646,8 +646,13 @@
      (viper-message-conditions conds))))
 
 (defsubst viper-downgrade-to-insert ()
- (setq viper-current-state 'insert-state
-       viper-replace-minor-mode nil))
+  ;; Protect against user errors in hooks
+  (condition-case conds
+      (run-hooks 'viper-insert-state-hook)
+    (error
+     (viper-message-conditions conds)))
+  (setq viper-current-state 'insert-state
+	viper-replace-minor-mode nil))
 
 
 
@@ -2210,7 +2215,7 @@ problems."
   ;; guard against a smartie who switched from R-replace to normal replace
   (remove-hook
    'viper-post-command-hooks 'viper-R-state-post-command-sentinel 'local)
-  (if overwrite-mode (overwrite-mode nil))
+  (if overwrite-mode (overwrite-mode -1))
   )
 
 

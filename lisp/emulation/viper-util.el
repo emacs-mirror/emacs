@@ -102,17 +102,15 @@
       (symbol-function
        (if viper-xemacs-p 'characterp 'integerp)))
 
-; CHAR is supposed to be a char or an integer; LIST is a list of chars, nil,
-; and negative numbers
-; Check if CHAR is a member by trying to convert into integers, if necessary.
-; Introduced for compatibility with XEmacs, where integers are not the same as
-; chars.
+;; CHAR is supposed to be a char or an integer (positive or negative)
+;; LIST is a list of chars, nil, and negative numbers
+;; Check if CHAR is a member by trying to convert into integers, if necessary.
+;; Introduced for compatibility with XEmacs, where integers are not the same as
+;; chars.
 (defun viper-memq-char (char list)
   (cond (viper-emacs-p (memq char list))
-	((null char) (memq char list))
-	((characterp char) (memq char list))
-	((integerp char) (memq (int-to-char char) list))
-	(t nil)))
+	((and (integerp char) (>= char 0)) (memq (int-to-char char) list))
+	((memq char list))))
 
 ;; Like =, but accommodates null and also is t for eq-objects
 (defun viper= (char char1)

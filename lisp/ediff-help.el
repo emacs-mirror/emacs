@@ -144,8 +144,10 @@ produce the brief help message.  This function must return a string.")
   "The long help message that the user can customize.
 See `ediff-brief-help-message-function' for more.")
 
-(defvar ediff-use-long-help-message nil
-  "*If t, Ediff displays a long help message.  Short help message otherwise.")
+(defcustom ediff-use-long-help-message nil
+  "*If t, Ediff displays a long help message.  Short help message otherwise."
+  :type 'boolean
+  :group 'ediff-window)
 
 ;; The actual help message.
 (ediff-defvar-local ediff-help-message ""

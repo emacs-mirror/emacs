@@ -1,3 +1,26 @@
+2000-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-diff.el: Moved variables around to have it compile under NT.
+	
+	* ediff-help.el (ediff-use-long-help-message): made it customizable.
+	
+	* ediff-init.el (ediff-abbrev-jobname): use capitalize.
+	
+	* ediff-wind.el (ediff-skip-unsuitable-frames): deleted the
+	redundant skip-small-frames test.
+	
+	* viper-cmd.el (viper-change-state-to-vi): disable overwrite mode.
+	(viper-downgrade-to-insert): protect against errors in hooks.
+	
+	* viper-init.el (viper-vi-state-hook,viper-insert-state-hook,
+	viper-replace-state-hook,viper-emacs-state-hook): do cursor handling.
+	(viper-restore-cursor-type,viper-set-insert-cursor-type): new
+	functions.
+	
+	* viper-util.el (viper-memq-char): bug fixes.
+	
+	* viper.el (viper-mode): fix cursor handling.
+	
 2000-11-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (list-iso-charset-chars): For

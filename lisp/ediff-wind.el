@@ -151,7 +151,7 @@ In this case, Ediff will use those frames to display these buffers."
    '(vertical-scroll-bars . nil)  ; Emacs only
    '(scrollbar-width . 0)         ; XEmacs only
    '(menu-bar-lines . 0)          ; Emacs only
-   '(tool-bar-lines . 0)      ; Emacs 21+ only
+   '(tool-bar-lines . 0)          ; Emacs 21+ only
    ;; don't lower and auto-raise
    '(auto-lower . nil)
    '(auto-raise . t)
@@ -842,9 +842,6 @@ into icons, regardless of the window manager."
 		    (or
 		     (ediff-frame-has-dedicated-windows (selected-frame))
 		     (ediff-frame-iconified-p (selected-frame))
-		     ;; skip small frames
-		     (< (frame-height (selected-frame))
-			(* 3 window-min-height))
 		     ;; skip small windows
 		     (< (window-height (selected-window))
 			(* 3 window-min-height))
