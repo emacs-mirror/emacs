@@ -566,7 +566,7 @@ FILE is created there."
 			  ((boundp 'user-mail-address)
 			   user-mail-address)
 			  (t ""))))
-    (sort-numeric-fields 1 (point-min) (point-max))
+    (sort-fields 1 (point-min) (point-max))
     (reverse-region (point-min) (point-max))
     (goto-line (1+ gamegrid-score-file-length))
     (delete-region (point) (point-max))

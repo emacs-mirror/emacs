@@ -1,3 +1,7 @@
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* play/gamegrid.el (gamegrid-add-score-insecure): Use sort-fields.
+
 2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-handler): If point (or a window
