@@ -3904,7 +3904,7 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	      int len = 0;
 
 	      /* Find the head of multibyte form.  */
-	      while (!CHAR_HEAD_P (p))
+	      while (!CHAR_HEAD_P (*p))
 		p--, len++;
 
 	      /* Adjust it. */
@@ -5319,15 +5319,17 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2, s1, s2;
 	      int pos1 = PTR_TO_OFFSET (d - 1);
+	      int charpos;
 
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
-	      UPDATE_SYNTAX_TABLE (pos1 ? pos1 : 1);
+	      charpos = BYTE_TO_CHAR (pos1 ? pos1 : 1);
+	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s1 = SYNTAX (c1);
 #ifdef emacs
-	      UPDATE_SYNTAX_TABLE_FORWARD (pos1 + 1);
+	      UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
 	      s2 = SYNTAX (c2);
 
@@ -5354,15 +5356,17 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2, s1, s2;
 	      int pos1 = PTR_TO_OFFSET (d - 1);
+	      int charpos;
 
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
-	      UPDATE_SYNTAX_TABLE (pos1);
+	      charpos = BYTE_TO_CHAR (pos1);
+	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      s1 = SYNTAX (c1);
 #ifdef emacs
-	      UPDATE_SYNTAX_TABLE_FORWARD (pos1 + 1);
+	      UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
 	      s2 = SYNTAX (c2);
 
@@ -5389,9 +5393,11 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2, s1, s2;
 	      int pos1 = PTR_TO_OFFSET (d);
+	      int charpos;
 
 	      GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
 #ifdef emacs
+	      charpos = BYTE_TO_CHAR (pos1);
 	      UPDATE_SYNTAX_TABLE (pos1);
 #endif
 	      s2 = SYNTAX (c2);
@@ -5405,7 +5411,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		{
 		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
 #ifdef emacs
-		  UPDATE_SYNTAX_TABLE_BACKWARD (pos1 - 1);
+		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
 #endif
 		  s1 = SYNTAX (c1);
 
@@ -5430,8 +5436,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      /* C1 is the character before D, S1 is the syntax of C1, C2
 		 is the character at D, and S2 is the syntax of C2.  */
 	      int c1, c2, s1, s2;
+	      int pos1 = PTR_TO_OFFSET (d);
+	      int charpos;
 
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+#ifdef emacs
+	      charpos = BYTE_TO_CHAR (pos1 - 1);
+	      UPDATE_SYNTAX_TABLE (pos1);
+#endif
 	      s1 = SYNTAX (c1);
 
 	      /* Case 2: S1 is not Sword.  */
@@ -5442,6 +5454,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      if (!AT_STRINGS_END (d))
 		{
 		  GET_CHAR_AFTER_2 (c2, d, string1, end1, string2, end2);
+#ifdef emacs
+		  UPDATE_SYNTAX_TABLE_FORWARD (charpos);
+#endif
 		  s2 = SYNTAX (c2);
 
 		  /* ... and S2 is Sword, and WORD_BOUNDARY_P (C1, C2)
@@ -5455,19 +5470,19 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 #ifdef emacs
 	case before_dot:
 	  DEBUG_PRINT1 ("EXECUTING before_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) >= PT)
+	  if (PTR_BYTE_POS ((unsigned char *) d) >= PT_BYTE)
 	    goto fail;
 	  break;
 
 	case at_dot:
 	  DEBUG_PRINT1 ("EXECUTING at_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) != PT)
+	  if (PTR_BYTE_POS ((unsigned char *) d) != PT_BYTE)
 	    goto fail;
 	  break;
 
 	case after_dot:
 	  DEBUG_PRINT1 ("EXECUTING after_dot.\n");
-	  if (PTR_CHAR_POS ((unsigned char *) d) <= PT)
+	  if (PTR_BYTE_POS ((unsigned char *) d) <= PT_BYTE)
 	    goto fail;
 	  break;
 
@@ -5483,7 +5498,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PREFETCH ();
 #ifdef emacs
 	  {
-	    int pos1 = PTR_TO_OFFSET (d);
+	    int pos1 = BYTE_TO_CHAR (PTR_TO_OFFSET (d));
 	    UPDATE_SYNTAX_TABLE (pos1);
 	  }
 #endif
@@ -5517,7 +5532,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PREFETCH ();
 #ifdef emacs
 	  {
-	    int pos1 = PTR_TO_OFFSET (d);
+	    int pos1 = BYTE_TO_CHAR (PTR_TO_OFFSET (d));
 	    UPDATE_SYNTAX_TABLE (pos1);
 	  }
 #endif
