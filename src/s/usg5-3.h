@@ -27,6 +27,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define USG5
 
+#define USG5_3
+
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
@@ -63,12 +65,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  
 /*
  *	Define HAVE_SELECT if the system supports the `select' system call.
- *	SVr3.2 X ports include an emulation.
  */
 
+/* SVr3.2 ports of X include an emulation of select in the libraries.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_SELECT
-#endif /* HAVE_X_WINDOWS */
+#endif
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
@@ -164,7 +166,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
-/* On USG systems the system calls are interruptable by signals
+/* On USG systems the system calls are interruptible by signals
  that the user program has elected to catch.  Thus the system call
  must be retried in these cases.  To handle this without massive
  changes in the source code, we remap the standard system call names
@@ -181,7 +183,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define INTERRUPTIBLE_IO
 
 /* On USG systems these have different names */
-
 #define index strchr
 #define rindex strrchr
 
@@ -199,6 +200,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define TERMINFO
 
+/* Some variants have TIOCGETC, but the structures to go with it
+   are not declared.  */
+
+#define BROKEN_TIOCGETC
+
 /* AT&T SVr3 X wants to be linked with shared libraries */
 
 #define LIB_X11_LIB -lX11_s
@@ -206,12 +212,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* X needs to talk on the network, so search the network library.  */
 
 #define LIBX10_SYSTEM -lnsl_s
-#define LIBX11_SYSTEM -lnls -lnsl_s -lpt -lc_s
+#define LIBX11_SYSTEM -lnsl -lnsl_s -lpt -lc_s
 
-/* Some variants have TIOCGETC, but the structures to go with it
-   are not declared.  */
-
-#define BROKEN_TIOCGETC
+/* The docs for system V/386 suggest v.3 has sigpause,
+   so let's give it a try.  */
+#define HAVE_SYSV_SIGPAUSE
 
 /* Some variants have TIOCGWINSZ, but the structures to go with it
    are not declared.  */

@@ -2546,13 +2546,13 @@ TEX_funcs (fi)
     TEX_toktab = TEX_decode_env ("TEXTAGS", TEX_defenv);
 
   while (!feof (fi))
-    {			/* Scan each line in file */
+    {				/* Scan each line in file */
       lineno++;
       linecharno = charno;
       charno += readline (&lb, fi);
       dbp = lb.buffer;
       lasthit = dbp;
-      while (dbp = etags_index (dbp, TEX_esc))	/* Look at each escape in line */
+      while (dbp = etags_index (dbp, TEX_esc)) /* Look at each escape in line */
 	{
 	  register int i;
 
@@ -2564,7 +2564,7 @@ TEX_funcs (fi)
 	  if (0 <= i)
 	    {
 	      TEX_getit (lasthit, TEX_toktab[i].len);
-	      break;	/* We only save a line once */
+	      break;		/* We only save a line once */
 	    }
 	}
     }

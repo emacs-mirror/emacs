@@ -41,7 +41,26 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_X11
 
-/* It turns out that we can auto-detect whether we're being compiled
+/* HAVE_X11R4 is defined if we have the features of X11R4.  It should
+   be defined when we're using X11R5, since X11R5 has the features of
+   X11R4.  If, in the future, we find we need more of these flags
+   (HAVE_X11R5, for example), code should always be written to test
+   the most recent flag first:
+
+      #ifdef HAVE_X11R5
+        ...
+      #elif HAVE_X11R4
+        ...
+      #elif HAVE_X11
+        ...
+      #endif
+
+   If you ever find yourself writing a "#ifdef HAVE_FOO" clause that
+   looks a lot like another one, consider moving the text into a macro
+   whose definition is configuration-dependent, but whose usage is
+   universal - like the stuff in systime.h.
+
+   It turns out that we can auto-detect whether we're being compiled
    with X11R3 or X11R4 by looking for the flag macros for R4 structure
    members that R3 doesn't have.  */
 #ifdef PBaseSize
@@ -333,6 +352,10 @@ struct x_display
      to the mask as we go.  */
   XWMHints wm_hints;
 };
+
+/* Return the window associated with the frame F.  */
+#define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
+
 
 /* When X windows are used, a glyf may be a 16 bit unsigned datum.
    The high order byte is the face number and is used as an index
