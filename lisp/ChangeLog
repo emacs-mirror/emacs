@@ -1,3 +1,7 @@
+2003-02-10  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.el (Info-follow-nearest-node): Implement new behavior.
+
 2003-02-10  Juanma Barranquero  <lektu@terra.es>
 
 	* progmodes/ebnf-otz.el (ebnf-optimize, ebnf-optimize1): Fix typo.
