@@ -3480,7 +3480,10 @@ this function is called.
 The idea behind the NOCONFIRM argument is that it should be
 non-nil if the buffer is going to be reverted without asking the
 user.  In such situations, one has to be careful with potentially
-time consuming operations.")
+time consuming operations.
+
+For more information on how this variable is used by Auto Revert mode,
+see Info node `(emacs-xtra)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
