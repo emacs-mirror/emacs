@@ -1,3 +1,9 @@
+2000-12-17  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (install): Copy directories to the correct
+	places.
+	(real_install): Remove obsolete target.
+
 2000-12-06  Andrew Innes  <andrewi@gnu.org>
 
 	* nmake.defs (CURDIR): New define.

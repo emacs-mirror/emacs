@@ -1,3 +1,13 @@
+2000-12-17  Andrew Innes  <andrewi@gnu.org>
+
+	* w32.c (sys_rename): Only check errno against EEXIST, and not
+	EACCES, when determining whether rename failed because the target
+	exists.  This was resulting in indefinite looping on Windows 9x if
+	the source file was locked by another process.
+
+	* w32fns.c (Ffile_system_info): New function.
+	(syms_of_w32fns): Defsubr it.
+
 2000-12-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (coordinates_in_window): Fix computation for
