@@ -585,7 +585,9 @@ static void
 x_update_begin (f)
      struct frame *f;
 {
-  /* Nothing to do.  */
+#ifdef HAVE_DBE
+  dbe_reset_region (f);
+#endif
 }
 
 
@@ -668,7 +670,7 @@ x_draw_vertical_border (w)
       x1 += FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f);
       y1 -= 1;
       
-      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 
+      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), 
 		 f->output_data.x->normal_gc, x1, y0, x1, y1);
     }
 }
@@ -730,6 +732,10 @@ x_update_end (f)
   /* Mouse highlight may be displayed again.  */
   FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
 
+#ifdef HAVE_DBE
+  dbe_show (f);
+#endif
+  
   BLOCK_INPUT;
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -798,8 +804,7 @@ x_after_update_window_line (desired_row)
 		   + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
 	  int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			x, y, width, height, False);
+	  x_clear_area (f, x, y, width, height);
 	}
       
       UNBLOCK_INPUT;
@@ -897,10 +902,11 @@ x_draw_bitmap (w, row, which)
   /* Draw the bitmap.  I believe these small pixmaps can be cached
      by the server.  */
   face = FACE_FROM_ID (f, BITMAP_AREA_FACE_ID);
-  pixmap = XCreatePixmapFromBitmapData (display, window, bits, wd, h,
+  pixmap = XCreatePixmapFromBitmapData (display, FRAME_X_DRAWABLE (f),
+					bits, wd, h,
 					face->foreground,
 					face->background, depth);
-  XCopyArea (display, pixmap, window, gc, 0, 0, wd, h, x, y + dy);
+  XCopyArea (display, pixmap, FRAME_X_DRAWABLE (f), gc, 0, 0, wd, h, x, y + dy);
   XFreePixmap (display, pixmap);
   XSetClipMask (display, gc, None);
 }
@@ -965,7 +971,7 @@ x_draw_row_bitmaps (w, row)
       else
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
       
-      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		      face->gc,
 		      (left
 		       - FRAME_X_LEFT_FLAGS_AREA_WIDTH (f)
@@ -1009,7 +1015,7 @@ x_draw_row_bitmaps (w, row)
 	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
       else
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
-      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		      face->gc,
 		      right,
 		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
@@ -2419,7 +2425,7 @@ struct glyph_string
 
   /* X display and window for convenience.  */
   Display *display;
-  Window window;
+  Drawable window;
 
   /* The glyph row for which this string was built.  It determines the
      y-origin and height of the string.  */
@@ -3902,14 +3908,14 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
 
   /* Top.  */
   for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+    XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
 	       left_x + i * left_p, top_y + i,
 	       right_x + 1 - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
 		 left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
 
   XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
@@ -3921,14 +3927,14 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   
   /* Bottom.  */
   for (i = 0; i < width; ++i)
-    XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+    XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
 	       left_x + i * left_p + 1, bottom_y - i,
 	       right_x + 1 - i * right_p, bottom_y - i);
   
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
+      XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
 		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
 
   XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
@@ -4425,6 +4431,10 @@ x_draw_glyph_string (s)
 {
   int relief_drawn_p = 0;
 
+#ifdef HAVE_DBE
+  dbe_record_region (s->f, s->x, s->y, s->background_width, s->height);
+#endif
+
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
@@ -4792,7 +4802,9 @@ x_init_glyph_string (s, char2b, w, row, area, start, hl)
   s->w = w;
   s->f = XFRAME (w->frame);
   s->display = FRAME_X_DISPLAY (s->f);
-  s->window = FRAME_X_WINDOW (s->f);
+  s->window = s->f->output_data.x->back_buffer;
+  if (s->window == None)
+    s->window = FRAME_X_WINDOW (s->f);
   s->char2b = char2b;
   s->hl = hl;
   s->row = row;
@@ -5346,7 +5358,7 @@ x_insert_glyphs (start, len)
   /* Shift right.  */
   frame_x = window_box_left (w, updated_area) + output_cursor.x;
   frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
-  XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
+  XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
 	     f->output_data.x->normal_gc,
 	     frame_x, frame_y,
 	     shifted_region_width, line_height,
@@ -5380,15 +5392,23 @@ x_delete_glyphs (n)
    If they are <= 0, this is probably an error.  */
 
 void
-x_clear_area (dpy, window, x, y, width, height, exposures)
-     Display *dpy;
-     Window window;
+x_clear_area (f, x, y, width, height)
+     struct frame *f;
      int x, y;
      int width, height;
-     int exposures;
 {
   xassert (width > 0 && height > 0);
-  XClearArea (dpy, window, x, y, width, height, exposures);
+
+#ifdef HAVE_DBE
+  dbe_record_region (f, x, y, width, height);
+#endif
+
+  if (f->output_data.x->back_buffer)
+    XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+		    f->output_data.x->reverse_gc, x, y, width, height);
+  else
+    XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), x, y,
+		width, height, False);
 }
 
 
@@ -5459,9 +5479,7 @@ x_clear_end_of_line (to_x)
   if (to_x > from_x && to_y > from_y)
     {
       BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    from_x, from_y, to_x - from_x, to_y - from_y,
-		    False);
+      x_clear_area (f, from_x, from_y, to_x - from_x, to_y - from_y);
       UNBLOCK_INPUT;
     }
 }
@@ -5778,11 +5796,15 @@ x_scroll_run (w, run)
   x_clear_cursor (w);
 
   XCopyArea (FRAME_X_DISPLAY (f),
-	     FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
+	     FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
 	     f->output_data.x->normal_gc,
 	     x, from_y,
 	     width, height,
 	     x, to_y);
+
+#ifdef HAVE_DBE
+  dbe_record_region (f, x, to_y, width, height);
+#endif
   
   UNBLOCK_INPUT;
 }
@@ -5848,6 +5870,10 @@ expose_frame (f, x, y, w, h)
   if (WINDOWP (f->menu_bar_window))
     expose_window (XWINDOW (f->menu_bar_window), &r);
 #endif /* not USE_X_TOOLKIT */
+
+#ifdef HAVE_DBE
+  dbe_show (f);
+#endif
 }
 
 
@@ -6829,7 +6855,7 @@ note_mouse_highlight (f, x, y)
 
   /* Not on a window -> return.  */
   if (!WINDOWP (window))
-    return;
+    goto end;
 
   /* Convert to window-relative pixel coordinates.  */
   w = XWINDOW (window);
@@ -6840,14 +6866,14 @@ note_mouse_highlight (f, x, y)
   if (EQ (window, f->tool_bar_window))
     {
       note_tool_bar_highlight (f, x, y);
-      return;
+      goto end;
     }
 
   /* Mouse is on the mode or header line?  */
   if (portion == 1 || portion == 3)
     {
       note_mode_line_highlight (w, x, portion == 1);
-      return;
+      goto end;
     }
   
   if (portion == 2)
@@ -7151,6 +7177,11 @@ note_mouse_highlight (f, x, y)
   
   if (cursor != None)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
+
+ end:
+#ifdef HAVE_DBE
+  dbe_show (f);
+#endif
 }
 
 static void
@@ -8763,9 +8794,7 @@ x_scroll_bar_create (w, top, left, width, height)
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
-    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  left, top, width,
-		  window_box_height (w), False);
+    x_clear_area (f, left, top, width, window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -8892,12 +8921,11 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     /* Draw the empty space above the handle.  Note that we can't clear
        zero-height areas; that means "clear to end of window."  */
     if (0 < start)
-      x_clear_area (FRAME_X_DISPLAY (f), w,
+      x_clear_area (f,
 		    /* x, y, width, height, and exposures.  */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER,
-		    inside_width, start,
-		    False);
+		    inside_width, start);
 
     /* Change to proper foreground color if one is specified.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -8919,12 +8947,11 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
     if (end < inside_height)
-      x_clear_area (FRAME_X_DISPLAY (f), w,
+      x_clear_area (f,
 		    /* x, y, width, height, and exposures.  */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		    inside_width, inside_height - end,
-		    False);
+		    inside_width, inside_height - end);
 
   }
 
@@ -9010,8 +9037,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
     {
       BLOCK_INPUT;
       if (width && height)
-	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      left, top, width, height, False);
+	x_clear_area (f, left, top, width, height);
       UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
     }
@@ -9038,8 +9064,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       /* Since toolkit scroll bars are smaller than the space reserved
 	 for them on the frame, we have to clear "under" them.  */
       if (width && height)
-	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      left, top, width, height, False);
+	x_clear_area (f, left, top, width, height);
 
       /* Move/size the scroll bar widget.  */
       if (mask)
@@ -9055,13 +9080,11 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	 VERTICAL_SCROLL_BAR_WIDTH_TRIM.  */
       if (VERTICAL_SCROLL_BAR_WIDTH_TRIM)
 	{
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			height, False);
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	  x_clear_area (f, left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM, height);
+	  x_clear_area (f,
 			left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 			top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-			height, False);
+			height);
 	}
 
       /* Clear areas not covered by the scroll bar because it's not as
@@ -9072,9 +9095,8 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	int area_width = FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f);
 	int rest = area_width - sb_width;
 	if (rest > 0)
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left + area_width -  rest, 0,
-			rest, max (height, 1), False);
+	  x_clear_area (f, left + area_width -  rest, 0,
+			rest, max (height, 1));
       }
       
       /* Move/size the scroll bar window.  */
@@ -10985,7 +11007,7 @@ x_draw_hollow_cursor (w, row)
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, gc, 0);
-  XDrawRectangle (dpy, FRAME_X_WINDOW (f), gc, x, y, wd, h);
+  XDrawRectangle (dpy, FRAME_X_DRAWABLE (f), gc, x, y, wd, h);
   XSetClipMask (dpy, gc, None);
 }
 
@@ -11005,12 +11027,7 @@ x_draw_bar_cursor (w, row, width)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
-  GC gc;
-  int x;
   unsigned long mask;
-  XGCValues xgcv;
-  Display *dpy;
-  Window window;
       
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
@@ -11030,14 +11047,21 @@ x_draw_bar_cursor (w, row, width)
     }
   else
     {
+      int x, y, height;
+      XGCValues xgcv;
+      Display *dpy;
+      Window window;
+      GC gc;
+      
+      dpy = FRAME_X_DISPLAY (f);
+      window = FRAME_X_DRAWABLE (f);
+      
       xgcv.background = f->output_data.x->cursor_pixel;
       xgcv.foreground = f->output_data.x->cursor_pixel;
       xgcv.graphics_exposures = 0;
       mask = GCForeground | GCBackground | GCGraphicsExposures;
-      dpy = FRAME_X_DISPLAY (f);
-      window = FRAME_X_WINDOW (f);
-      gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
   
+      gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
       if (gc)
 	XChangeGC (dpy, gc, mask, &xgcv);
       else
@@ -11050,13 +11074,17 @@ x_draw_bar_cursor (w, row, width)
 	width = f->output_data.x->cursor_width;
   
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
+      width = min (cursor_glyph->pixel_width, width);
+      height = row->height;
+      
       x_clip_to_row (w, row, gc, 0);
-      XFillRectangle (dpy, window, gc,
-		      x,
-		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-		      min (cursor_glyph->pixel_width, width),
-		      row->height);
+      XFillRectangle (dpy, window, gc, x, y, width, height);
       XSetClipMask (dpy, gc, None);
+
+#ifdef HAVE_DBE
+      dbe_record_region (f, x, y, width, height);
+#endif
     }
 }
 
@@ -11177,13 +11205,11 @@ x_erase_phys_cursor (w)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
       
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    x,
+      x_clear_area (f, x,
 		    WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 						     cursor_row->y)),
 		    cursor_glyph->pixel_width,
-		    cursor_row->visible_height,
-		    False);
+		    cursor_row->visible_height);
     }
   
   /* Erase the cursor by redrawing the character underneath it.  */
@@ -14207,6 +14233,9 @@ x_term_init (display_name, xrm_option, resource_name)
 
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
+#endif
+#ifdef HAVE_DBE
+  dpyinfo->dbe = init_dbe (dpyinfo->display);
 #endif
   
 #ifdef subprocesses
