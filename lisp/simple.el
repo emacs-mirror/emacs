@@ -1764,13 +1764,23 @@ Optional second argument REPLACE non-nil means that STRING will replace
 the front of the kill ring, rather than being added to the list.
 
 Optional third arguments YANK-HANDLER controls how the STRING is later
-inserted into a buffer; see `insert-for-yank' for details."
-  (when (> (length string) 0)
-    (if yank-handler 
-	(put-text-property 0 1 'yank-handler yank-handler string)
-      (remove-text-properties 0 1 '(yank-handler nil) string)))
-  (and (fboundp 'menu-bar-update-yank-menu)
-       (menu-bar-update-yank-menu string (and replace (car kill-ring))))
+inserted into a buffer; see `insert-for-yank' for details.  
+When a yank handler is specified, STRING must be non-empty (the yank
+handler is stored as a `yank-handler'text property on STRING).
+
+When the yank handler has a non-nil PARAM element, the original STRING
+argument is not used by `insert-for-yank'.  However, since Lisp code
+may access and use elements from the kill-ring directly, the STRING
+argument should still be a \"useful\" string for such uses."
+  (if (> (length string) 0)
+      (if yank-handler 
+	  (put-text-property 0 1 'yank-handler yank-handler string)
+	(remove-list-of-text-properties 0 1 '(yank-handler) string))
+    (if yank-handler
+	(signal 'args-out-of-range 
+		(list string "yank-handler specified for empty string"))))
+  (if (fboundp 'menu-bar-update-yank-menu)
+      (menu-bar-update-yank-menu string (and replace (car kill-ring))))
   (if (and replace kill-ring)
       (setcar kill-ring string)
     (setq kill-ring (cons string kill-ring))
