@@ -575,7 +575,7 @@ main (argc, argv)
   for (;;)
     {
       int opt;
-      opt = getopt_long (argc, argv, "aCdDo:StTi:BFuvxwVH", longopts, 0);
+      opt = getopt_long (argc, argv, "aCdDo:f:StTi:BFuvxwVH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -600,11 +600,12 @@ main (argc, argv)
 	case 'D':
 	  constantypedefs = 0;
 	  break;
+	case 'f':
 	case 'o':
 	  if (outfile)
 	    {
 	      fprintf (stderr,
-		       "%s: -o flag may only be given once\n", progname);
+		       "%s: -%c flag may only be given once\n", progname, opt);
 	      goto usage;
 	    }
 	  outfile = optarg;
