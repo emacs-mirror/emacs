@@ -1,3 +1,7 @@
+2004-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Don't require djecho.exe for the v1.x build.
+
 2004-11-08  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (bootstrap, bootstrap-clean-before): Remove .elc
