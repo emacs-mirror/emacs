@@ -2328,6 +2328,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
 ** The new function syntax-after returns the syntax code
 of the character after a specified buffer position, taking account
 of text properties as well as the character code.
