@@ -1182,6 +1182,8 @@ Remaining arguments are strings to give program as arguments.")
 	  UNGCPRO;
 	  if (CONSP (coding_systems))
 	    val = XCONS (coding_systems)->car;
+	  else if (CONSP (Vdefault_process_coding_system))
+	    val = XCONS (Vdefault_process_coding_system)->car;
 	}
       XPROCESS (proc)->decode_coding_system = val;
 
@@ -1198,6 +1200,8 @@ Remaining arguments are strings to give program as arguments.")
 	    }
 	  if (CONSP (coding_systems))
 	    val = XCONS (coding_systems)->cdr;
+	  else if (CONSP (Vdefault_process_coding_system))
+	    val = XCONS (Vdefault_process_coding_system)->cdr;
 	}
       XPROCESS (proc)->encode_coding_system = val;
     }
@@ -1907,7 +1911,10 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	  GCPRO1 (proc);
 	  coding_systems = Ffind_coding_system (5, args);
 	  UNGCPRO;
-	  val = (CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil);
+	  if (CONSP (coding_systems))
+	    val = XCONS (coding_systems)->car;
+	  else if (CONSP (Vdefault_process_coding_system))
+	    val = XCONS (Vdefault_process_coding_system)->car;
 	}
       XPROCESS (proc)->decode_coding_system = val;
 
@@ -1921,7 +1928,10 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	      coding_systems = Ffind_coding_system (5, args);
 	      UNGCPRO;
 	    }
-	  val = (CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil);
+	  if (CONSP (coding_systems))
+	    val = XCONS (coding_systems)->cdr;
+	  else if (CONSP (Vdefault_process_coding_system))
+	    val = XCONS (Vdefault_process_coding_system)->cdr;
 	}
       XPROCESS (proc)->encode_coding_system = val;
     }
