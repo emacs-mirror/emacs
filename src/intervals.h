@@ -140,12 +140,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   (! NULL_INTERVAL_P (i) && NILP (textget ((i)->plist, Qinvisible)))
 
 /* Is this interval writable?  Replace later with cache access */
-#define INTERVAL_WRITABLE_P(i) \
-  (! NULL_INTERVAL_P (i) && NILP (textget ((i)->plist, Qread_only))	\
-   && (NILP (Vinhibit_read_only)					\
-       || (CONSP (Vinhibit_read_only)					\
-	   && !NILP (Fmemq (textget ((i)->plist, Qread_only),		\
-			    Vinhibit_read_only)))))
+#define INTERVAL_WRITABLE_P(i)					\
+  (! NULL_INTERVAL_P (i)					\
+   && (NILP (textget ((i)->plist, Qread_only))			\
+       || ((CONSP (Vinhibit_read_only)				\
+	    ? !NILP (Fmemq (textget ((i)->plist, Qread_only),	\
+			    Vinhibit_read_only))		\
+	    : !NILP (Vinhibit_read_only)))))			\
 
 /* Macros to tell whether insertions before or after this interval
    should stick to it. */
