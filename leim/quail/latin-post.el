@@ -998,7 +998,7 @@ OEE -> OE
  )
 
 (quail-define-package
- "french-postfix" "Latin-1" "FR<" t
+ "french-postfix" "French" "FR<" t
  "French (Fran,Ag(Bais) input method with postfix modifiers
 
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
@@ -1073,7 +1073,7 @@ Par exemple: e'' -> e'
  )
 
 (quail-define-package
- "german-postfix" "Latin-1" "DE<" t
+ "german-postfix" "German" "DE<" t
  "German (Deutsch) input method
 
 ae  -> ,Ad(B
@@ -1291,7 +1291,7 @@ aee -> ae   o\"\" -> o\"   etc.
  )
 
 (quail-define-package
- "spanish-postfix" "Latin-1" "ES<" t
+ "spanish-postfix" "Spanish" "ES<" t
  "Spanish (Espa,Aq(Bol) input method with postfix modifiers
 
 A' -> ,AA(B
@@ -1371,7 +1371,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  )
 
 (quail-define-package
- "turkish-latin-3-postfix" "Latin-3" "TR3<" t
+ "turkish-latin-3-postfix" "Turkish" "TR3<" t
  "Turkish (T,C|(Brk,Cg(Be) input method with postfix modifiers.
 
 This is for those who use Latin-3 (ISO-8859-3) for Turkish.  If you
@@ -1433,7 +1433,7 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  )
 
 (quail-define-package
- "turkish-postfix" "Latin-5" "TR<" t
+ "turkish-postfix" "Turkish" "TR<" t
  "Turkish (T,M|(Brk,Mg(Be) input method with postfix modifiers.
 
 This is for those who use Latin-5 (ISO-8859-9) for Turkish.  If you
@@ -1524,7 +1524,7 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 
 ;;
 (quail-define-package
- "french-keyboard" "Latin-1" "FR@" t
+ "french-keyboard" "French" "FR@" t
  "French (Fran,Ag(Bais) input method simulating some French keyboard
 <e dans l'o> n'est pas disponible." nil t t t t nil nil nil nil nil t)
 
@@ -1566,7 +1566,7 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 
 ;;
 (quail-define-package
- "french-azerty" "Latin-1" "AZ@" t
+ "french-azerty" "French" "AZ@" t
  "French (Fran,Ag(Bais) input method simulating Azerty keyboard
 
 Similaire au clavier fran,Ag(Bais de SUN.
@@ -1910,7 +1910,7 @@ Dead accent is right to ,Af(B." nil t t t t nil nil nil nil nil t)
 
 ;;
 (quail-define-package
- "german" "Latin-1" "DE@" t
+ "german" "German" "DE@" t
  "German (Deutsch) input method simulating SUN German keyboard"
  nil t t t t nil nil nil nil nil t)
 
@@ -1997,7 +1997,7 @@ Dead accent is right to ,Af(B." nil t t t t nil nil nil nil nil t)
 
 ;;
 (quail-define-package
- "spanish-keyboard" "Latin-1" "ES@" t
+ "spanish-keyboard" "Spanish" "ES@" t
  "Spanish (Espa,Aq(Bol) input method simulating SUN Spanish keyboard"
  nil t t t t nil nil nil nil nil t)
 
