@@ -87,7 +87,7 @@ casify_object (flag, obj)
 	      char *buf
 		= (char *) alloca ((len - i) * MAX_LENGTH_OF_MULTI_BYTE_FORM
 				   + i);
-	      char *str, workbuf[4];
+	      unsigned char *str, workbuf[4];
 
 	      /* Copy data already handled.  */
 	      bcopy (XSTRING (obj)->data, buf, i);
@@ -174,6 +174,7 @@ casify_region (flag, b, e)
   register int inword = flag == CASE_DOWN;
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int start, end;
+  int start_byte, end_byte;
   Lisp_Object ch, downch, val;
 
   if (EQ (b, e))
@@ -189,8 +190,10 @@ casify_region (flag, b, e)
   end = XFASTINT (e);
   modify_region (current_buffer, start, end);
   record_change (start, end - start);
+  start_byte = CHAR_TO_BYTE (start);
+  end_byte = CHAR_TO_BYTE (end);
 
-  for (i = start; i < end; i++)
+  for (i = start_byte; i < end_byte; i++)
     {
       c = FETCH_BYTE (i);
       if (multibyte && c >= 0x80)
@@ -205,13 +208,15 @@ casify_region (flag, b, e)
       if ((int) flag >= (int) CASE_CAPITALIZE)
 	inword = SYNTAX (c) == Sword;
     }
-  if (i < end)
+  if (i < end_byte)
     {
       /* The work is not yet finished because of a multibyte character
 	 just encountered.  */
-      int opoint = PT, c2;
+      int opoint = PT;
+      int opoint_byte = PT_BYTE;
+      int c2;
 
-      while (i < end)
+      while (i < end_byte)
 	{
 	  if ((c = FETCH_BYTE (i)) >= 0x80)
 	    c = FETCH_MULTIBYTE_CHAR (i);
@@ -224,7 +229,7 @@ casify_region (flag, b, e)
 	  if (c != c2)
 	    {
 	      int fromlen, tolen, j;
-	      char workbuf[4], *str;
+	      unsigned char workbuf[4], *str;
 
 	      /* Handle the most likely case */
 	      if (c < 0400 && c2 < 0400)
@@ -245,7 +250,7 @@ casify_region (flag, b, e)
 		  else if (tolen > fromlen)
 		    {
 		      TEMP_SET_PT (i + fromlen);
-		      insert_1 (str + fromlen, tolen - fromlen, 1, 0);
+		      insert_1 (str + fromlen, tolen - fromlen, 1, 0, 0);
 		    }
 #endif
 		}
@@ -254,7 +259,7 @@ casify_region (flag, b, e)
 	    inword = SYNTAX (c2) == Sword;
 	  INC_POS (i);
 	}
-      TEMP_SET_PT (opoint);
+      TEMP_SET_PT_BOTH (opoint, opoint_byte);
     }
 
   signal_after_change (start, end - start, end - start);
