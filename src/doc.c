@@ -61,7 +61,7 @@ munge_doc_file_name (name)
 #ifndef NO_HYPHENS_IN_FILENAMES
   strcpy (name, sys_translate_unix (name));
 #else /* NO_HYPHENS_IN_FILENAMES */
-  p = name;
+  char *p = name;
   while (*p)
     {
       if (*p == '-')
