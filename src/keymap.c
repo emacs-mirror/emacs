@@ -1874,7 +1874,7 @@ nominal         alternate\n\
 
   if (!NILP (Vkey_translation_map))
     describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
-		       "Key translations", 0, 1);
+		       "Key translations", 0, 1, 0);
 
   {
     int i, nmaps;
@@ -1913,7 +1913,7 @@ nominal         alternate\n\
 	p += sizeof (" Minor Mode Bindings") - 1;
 	*p = 0;
 
-	describe_map_tree (maps[i], 0, shadow, prefix, title, 0, 0);
+	describe_map_tree (maps[i], 0, shadow, prefix, title, 0, 0, 0);
 	shadow = Fcons (maps[i], shadow);
       }
   }
@@ -1929,17 +1929,17 @@ nominal         alternate\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 0, shadow, prefix,
-			 "Major Mode Bindings", 0, 0);
+			 "Major Mode Bindings", 0, 0, 0);
       shadow = Fcons (start1, shadow);
     }
 
   describe_map_tree (current_global_map, 0, shadow, prefix,
-		     "Global Bindings", 0, 0);
+		     "Global Bindings", 0, 0, 1);
 
   /* Print the function-key-map translations under this prefix.  */
   if (!NILP (Vfunction_key_map))
     describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
-		       "Function key map translations", 0, 1);
+		       "Function key map translations", 0, 1, 0);
 
   call0 (intern ("help-mode"));
   Fset_buffer (descbuf);
@@ -1959,15 +1959,20 @@ nominal         alternate\n\
    If NOMENU is not 0, then omit menu-bar commands.
 
    If TRANSL is nonzero, the definitions are actually key translations
-   so print strings and vectors differently.  */
+   so print strings and vectors differently.
+
+   If ALWAYS_TITLE is nonzero, print the title even if there are no maps
+   to look through.  */
 
 void
-describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl)
+describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl,
+		   always_title)
      Lisp_Object startmap, shadow, prefix;
      int partial;
      char *title;
      int nomenu;
      int transl;
+     int always_title;
 {
   Lisp_Object maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -2002,7 +2007,7 @@ key             binding\n\
 	}
     }
 
-  if (!NILP (maps))
+  if (!NILP (maps) || always_title)
     {
       if (title)
 	{
