@@ -208,10 +208,11 @@ check_x ()
     error ("X windows are not in use or not initialized");
 }
 
-/* Nonzero if using X for display.  */
+/* Nonzero if we can use mouse menus.
+   You should not call this unless HAVE_MENUS is defined.  */
 
 int
-using_x_p ()
+have_menus_p ()
 {
   return x_in_use;
 }
@@ -233,7 +234,7 @@ check_x_frame (frame)
       f = XFRAME (frame);
     }
   if (! FRAME_X_P (f))
-    error ("non-X frame used");
+    error ("Non-X frame used");
   return f;
 }
 
@@ -263,7 +264,7 @@ check_x_display_info (frame)
       CHECK_LIVE_FRAME (frame, 0);
       f = XFRAME (frame);
       if (! FRAME_X_P (f))
-	error ("non-X frame used");
+	error ("Non-X frame used");
       return FRAME_X_DISPLAY_INFO (f);
     }
 }
@@ -1584,7 +1585,7 @@ x_set_font (f, arg, oldval)
   UNBLOCK_INPUT;
   
   if (EQ (result, Qnil))
-    error ("Font \"%s\" is not defined", XSTRING (arg)->data);
+    error ("Font `%s' is not defined", XSTRING (arg)->data);
   else if (EQ (result, Qt))
     error ("the characters of the given font have varying widths");
   else if (STRINGP (result))
@@ -3262,7 +3263,7 @@ even if they match PATTERN and FACE.")
 
       /* Don't die if we get called with a terminal frame.  */
       if (! FRAME_X_P (f))
-	error ("non-X frame used in `x-list-fonts'");
+	error ("Non-X frame used in `x-list-fonts'");
 
       face_id = face_name_id_number (f, face);
 
