@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.28 2001/07/16 07:46:48 pj Exp $
+;; Revision: $Id: pcvs.el,v 1.29 2001/09/22 20:23:16 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1313,6 +1313,11 @@ If FILE is non-nil, directory entries won't be selected."
   (interactive)
   (cvs-mode-commit 'force))
 
+(defcustom cvs-mode-commit-hook nil
+  "Hook run after setting up the commit buffer."
+  :type 'hook
+  :options '(cvs-mode-diff))
+
 (defun cvs-mode-commit (setup)
   "Check in all marked files, or the current file.
 The user will be asked for a log message in a buffer.
@@ -1332,7 +1337,8 @@ The POSTPROC specified there (typically `log-edit') is then called,
 		      'log-edit)))
     (funcall setupfun 'cvs-do-commit setup 'cvs-commit-filelist buf)
     (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
-    (set (make-local-variable 'list-buffers-directory) lbd)))
+    (set (make-local-variable 'list-buffers-directory) lbd)
+    (run-hooks 'cvs-mode-commit-hook)))
 
 (defun cvs-commit-minor-wrap (buf f)
   (let ((cvs-ignore-marks-modif (cvs-mode-mark-get-modif "commit")))
