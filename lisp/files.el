@@ -343,6 +343,17 @@ containing it, until no links are left at any level."
 	  ;; No, we are done!
 	  filename)))))
 
+(defun file-chase-links (filename)
+  "Chase links in FILENAME until a name that is not a link.
+Does not examine containing directories for links,
+unlike `file-truename'."
+  (let (tem (count 100) (newname filename))
+    (while (setq tem (file-symlink-p newname))
+      (if (= count 0)
+	  (error "Apparent cycle of symbolic links for %s" filename))
+      (setq newname (expand-file-name tem (file-name-directory newname)))
+      (setq count (1- count)))
+    newname))
 
 (defun switch-to-buffer-other-window (buffer)
   "Select buffer BUFFER in another window."
@@ -1092,12 +1103,7 @@ the modes of the new file to agree with the old modes."
 	    backup-info backupname targets setmodes)
 	;; If specified name is a symbolic link, chase it to the target.
 	;; Thus we make the backups in the directory where the real file is.
-	(while (let ((tem (file-symlink-p real-file-name)))
-		 (if tem
-		     (setq real-file-name
-			   (expand-file-name tem
-					     (file-name-directory real-file-name))))
-		 tem))
+	(setq real-file-name (file-chase-links real-file-name))
 	(setq backup-info (find-backup-file-name real-file-name)
 	      backupname (car backup-info)
 	      targets (cdr backup-info))
