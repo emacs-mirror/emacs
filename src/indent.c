@@ -1225,7 +1225,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
       /* Stop if past the target buffer position or screen position.  */
       if (pos > to
 	  || vpos > tovpos
-	  || vpos == tovpos && hpos > tohpos)
+	  || vpos == tovpos && tohpos >= 0 && hpos > tohpos)
 	{
 	  /* Go back to the previous position.  */
 	  pos = prev_pos;
