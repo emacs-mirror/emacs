@@ -1,5 +1,9 @@
 2001-01-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_connection_closed) [USE_X_TOOLKIT]: If
+	x_display_info_for_display returns null, don't try to close
+	the display; we didn't open it.
+
 	* dispnew.c (save_or_restore_current_matrices): Function removed.
 	(save_current_matrix, restore_current_matrix): New functions.
 	(adjust_frame_glyphs_for_frame_redisplay): Use them to save and
