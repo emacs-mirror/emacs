@@ -312,7 +312,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
     (ff-find-the-other-file in-other-window)
     (setq ff-ignore-include ignore)))
 
-;;;###
+;;;###autoload
 (defalias 'ff-find-related-file 'ff-find-other-file)
 
 ;;;###autoload
