@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.39) $
+ * $HopeName: MMsrc!config.h(trunk.40) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -203,6 +203,9 @@
 /* Tracer Configuration -- see impl.c.trace */
 
 #define TRACE_MAX               ((Size)1)
+/* I count 4 function calls to scan, 10 to copy. */
+#define TRACE_COPY_SCAN_RATIO   ((double)1.5)
+
 
 
 /* Events
