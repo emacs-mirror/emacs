@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.7) $
+ * $HopeName: MMsrc!mpmst.h(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -123,7 +123,7 @@ typedef struct MFSStruct {      /* MFS instance structure */
   Size unroundedUnitSize;       /* the unit size requested */
   Size extendBy;                /* segment size rounded using unitSize */
   Size unitSize;                /* rounded for management purposes */
-  unsigned unitsPerSeg;         /* number of units per segment */
+  Word unitsPerSeg;             /* number of units per segment */
   struct MFSHeaderStruct *freeList; /* head of the free list */
   Seg segList;                  /* the first segment */
   Sig sig;                      /* impl.h.misc.sig */
