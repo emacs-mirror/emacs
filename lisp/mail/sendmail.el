@@ -816,7 +816,7 @@ the user from the mailer."
 		(set-buffer buffer)
 		(setq buffer-matches-file
 		      (and (not (buffer-modified-p))
-			   (verify-visited-file-modtime)))
+			   (verify-visited-file-modtime buffer)))
 		;; Keep the end of the accessible portion at the same place
 		;; unless it is the end of the buffer.
 		(let ((max (if (/= (1+ (buffer-size)) (point-max))
