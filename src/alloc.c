@@ -4979,10 +4979,9 @@ mark_object (arg)
       if (XMISCTYPE (obj) == Lisp_Misc_Free)
 	{
 	  /* This is (probably) a freed marker which may still exist on
-	     a buffer undo list, so accept it here.  */
-	  /* If we reuse the marker, and it still exists on the undo
-	     list, and we do undo, behaviour is unpredictable --
-	     but at least we don't crash here.  KFS 2004-05-17 */
+	     a buffer undo list, so accept it here, as check below will
+	     fail (not live).  KFS 2004-05-17 */
+	  XMARKER (obj)->gcmarkbit = 1;
 	  break;
 	}
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
