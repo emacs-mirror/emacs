@@ -667,24 +667,24 @@
 
 	* xmenu.c: Include gtkutil.h for USE_GTK.
 	(Fx_popup_menu): Use current position if x and y is NIL.
-	(single_menu_item, single_menu_item, Fx_popup_dialog): Check
-	for USE_GTK.
+	(single_menu_item, single_menu_item, Fx_popup_dialog):
+	Check for USE_GTK.
 	(popup_widget_loop): New function for USE_GTK.
 	(x_activate_menubar): Add code for USE_GTK.
 	(popup_activate_callback, popup_deactivate_callback)
-	(menu_highlight_callback, menubar_selection_callback): USE_GTK versions
-	added.
+	(menu_highlight_callback, menubar_selection_callback):
+	Add USE_GTK versions.
 	(update_frame_menubar): Call xg_update_frame_menubar for USE_GTK.
 	(set_frame_menubar): Call xg_modify_menubar_widgets for USE_GTK.
 	(free_frame_menubar): Only compile if not USE_GTK.  GTK version
 	is in gtkutil.c.
 	(popup_selection_callback): New version for USE_GTK.
 	(create_and_show_popup_menu): New fuction, one USE_GTK version and
- 	one USE_X_TOOLKIT version.
+	one USE_X_TOOLKIT version.
 	(xmenu_show): Call create_and_show_popup_menu.
 	(dialog_selection_callback): New version for USE_GTK.
 	(create_and_show_dialog): New fuction, one USE_GTK version and
- 	one USE_X_TOOLKIT version.
+	one USE_X_TOOLKIT version.
 	(xdialog_show): Call create_and_show_dialog.
 
 	* xfns.c: Include gtkutil for USE_GTK.
@@ -720,8 +720,8 @@
 
 	* fileio.c (Fread_file_name): Add check for USE_GTK.
 
-	* dispnew.c (adjust_frame_glyphs_for_window_redisplay): Add
-	check for USE_GTK.
+	* dispnew.c (adjust_frame_glyphs_for_window_redisplay):
+	Add check for USE_GTK.
 
 	* config.in: Added HAVE_GTK
 
@@ -787,15 +787,15 @@
 	member private_vars.  All uses changed.
 
 	* process.c: Reworked 2003-01-12 change -- call a plist a plist!
-	(QCplist): Renamed from QCvars.  All uses changed.
+	(QCplist): Rename from QCvars.  Change all uses.
 	(Fprocess_plist): Replaces Fprocess_variable.  Simplified.
-	(Fset_process_plist): Replaces Fset_process_variable.  Simplified.
+	(Fset_process_plist): Replaces Fset_process_variable.  Simplify.
 	(syms_of_process): Intern, staticpro, defsubr these.
-	(Fmake_network_process): Describe :plist arg.  Removed :vars arg.
+	(Fmake_network_process): Describe :plist arg.  Remove :vars arg.
 
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* m/delta.h: Removed (obsolete).
+	* m/delta.h: Remove (obsolete).
 
 2003-01-13  Francesco Potort,Al(B  <pot@gnu.org>
 
@@ -878,11 +878,11 @@
 
 2003-01-08  Kim F. Storm  <storm@cua.dk>
 
-	* process.c (server_accept_connection): Fixed recording of new
+	* process.c (server_accept_connection): Fix recording of new
 	connection's local address in :local property of contact info.
 	(Fmake_network_process): Record local network address for new
 	client processes in :local property of contact info.
-	(format-network-address): Added arg OMIT-PORT.  Callers changed.
+	(format-network-address): Add arg OMIT-PORT.  Change callers.
 
 2003-01-07  Dave Love  <fx@gnu.org>
 
@@ -1059,7 +1059,7 @@
 
 	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token,
 	g_b_init_get_token_information, g_b_init_lookup_account_sid,
-	g_b_init_get_sid_identifier_authority ): Added several static
+	g_b_init_get_sid_identifier_authority ): Add several static
 	global variables.
 
 	* w32.c (globals_of_w32): New function.  Used to initialize those
@@ -1178,9 +1178,9 @@
 
 2002-12-10  Steven Tamm  <steventamm@mac.com>
 
-	* mac.c (sys_read): Fixed sys_read to not call select if IO is
+	* mac.c (sys_read): Fix sys_read to not call select if IO is
 	non-blocking.
-	(sys_select): Fixed sys_select to not use a timeout larger than
+	(sys_select): Fix sys_select to not use a timeout larger than
 	the one given.
 
 2002-12-10  Juanma Barranquero  <lektu@terra.es>
@@ -1216,7 +1216,7 @@
 
 	* macterm.c (mac_check_for_quit_char, quit_char_comp)
 	(init_quit_char_handler, mac_determine_quit_char_modifiers)
-	(mac_initialize): Added code to check for pressing of quit_char
+	(mac_initialize): Add code to check for pressing of quit_char
 	in the OS event queue.
 
 	* mac.c (sys_select): Call mac_check_for_quit_char every second
@@ -1460,7 +1460,7 @@
 	the version of advapi32.dll that is found in the 9x branch of
 	Microsoft Windows.
 
-	* w32.c (init_user_info): Replaced the calls to the win32 API
+	* w32.c (init_user_info): Replace the calls to the win32 API
 	functions OpenProcessToken, GetTokenInformation, LookupAccountSid,
 	and GetSidIdentifierAuthority with calls to the newly added
 	wrapper functions.
@@ -1469,11 +1469,11 @@
 	syms_of_w32term, syms_of_w32fns, syms_of_w32select,
 	syms_of_w32menu, and void syms_of_fontset.
 
-	* w32fns.c (w32_wnd_proc): Added code to reinitialize the
+	* w32fns.c (w32_wnd_proc): Add code to reinitialize the
 	function pointer track_mouse_event_fn in the handler for the
 	WM_SETFOCUS message.
 
-	* w32menu.c (initialize_frame_menubar): Added code to
+	* w32menu.c (initialize_frame_menubar): Add code to
 	reinitialize the function pointers set_menu_item_info and
 	get_menu_item_info.
 
@@ -1604,7 +1604,7 @@
 
 2002-11-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* process.c (Fformat_network_address): Removed unused locals p,
+	* process.c (Fformat_network_address): Remove unused locals p,
 	cp, and i.
 
 2002-11-06  Dave Love  <fx@gnu.org>
