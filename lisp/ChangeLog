@@ -1,3 +1,8 @@
+2000-11-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (face-spec-set-match-display): Revert the change from
+	2000-10-24.  Add a FIXME for after v21.1.
+
 2000-11-13  Miles Bader  <miles@gnu.org>
 
 	* textmodes/fill.el (skip-line-prefix): New function.
