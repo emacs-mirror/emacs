@@ -52,6 +52,12 @@ casify_object (flag, obj)
 			  | CHAR_SHIFT | CHAR_CTL | CHAR_META);
 	  int flags = XINT (obj) & flagbits;
 
+	  /* If the character has higher bits set
+	     above the flags, return it unchanged.
+	     It is not a real character.  */
+	  if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+	    return obj;
+
 	  c = DOWNCASE (XFASTINT (obj) & ~flagbits);
 	  if (inword)
 	    XSETFASTINT (obj, c | flags);
