@@ -1,3 +1,33 @@
+2003-04-03  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-define):
+	Don't make a defvar for nil.
+	(easy-menu-convert-item-1): Doc fix.
+	(easy-menu-change): Call easy-menu-create-menu.
+
+	* subr.el (read-quoted-char): Remember the input char
+	before translation thru function-key-map, and use that for unreading.
+
+	* shadowfile.el (shadow-parse-fullname):
+	Renamed from shadow-parse-fullpath.
+	(shadow-parse-name): Renamed from shadow-parse-path.
+	(shadow-make-fullname): Renamed from shadow-make-fullpath.
+	(shadow-replace-name-component): Was shadow-replace-path-component.
+	Callers of the above functions changed.
+	(shadow-expand-cluster-in-file-name): Doc fix.
+	(shadow-same-site, shadow-file-match): Doc fix.
+	(shadow-define-literal-group): Doc fix.
+
+	* kmacro.el (kmacro-end-and-call-macro): Doc fix.
+
+	* hexl.el (hexl-find-file): Ignore user's value of default-major-mode.
+
+	* files.el (hack-local-variables-prop-line): New arg MODE-ONLY.
+	(hack-local-variables): When MODE-ONLY is set, pass it along to
+	hack-local-variables-prop-line.
+
+	* delsel.el (delete-active-region): Don't explicitly deactivate mark.
+
 2003-04-03  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el: Require button.el.
@@ -221,9 +251,8 @@
 
 2003-03-26  Steve Youngs  <youngs@xemacs.org>
 
-	* em-unix.el (eshell-plain-locate-behavior): Make the default the
-	return value of `eshell-under-xemacs-p', ie, nil for GNU/Emacs and
-	non-nil for XEmacs.
+	* em-unix.el (eshell-plain-locate-behavior): Make the default
+	nil on Emacs, t on XEmacs.
 
 2003-03-25  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -3723,7 +3752,7 @@
 	are output with gdba in gdb-ui.el.
 	(tooltip-strip-annotations): New function.
 
-2002-12-29  Dave Love  <fx@gnu.org>
+2002-11-29  Dave Love  <fx@gnu.org>
 
 	* autoarg.el (autoarg-mode): Give it a :group.
 
