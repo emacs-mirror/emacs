@@ -724,17 +724,28 @@ It can also be nil, if the definition is not associated with any file."
 		       ;; Builtins get the calling sequence at the end of
 		       ;; the doc string.  Move it to the same place as
 		       ;; for other functions.
-		       (if (looking-at (format "(%S[ )]" function))
-			   (let ((start (point-marker)))
-			     (goto-char (point-min))
-			     (forward-paragraph)
-			     (insert-buffer-substring (current-buffer) start)
-			     (insert ?\n)
-			     (delete-region (1- start) (point-max)))
-			 (goto-char (point-min))
-			 (forward-paragraph)
-			 (insert
-			  "[Missing arglist.  Please make a bug report.]\n"))
+
+		       ;; In cases where `function' has been fset to a
+		       ;; subr we can't search for function's name in
+		       ;; the doc string.  Kluge round that using the
+		       ;; printed representation.  The arg list then
+		       ;; shows the wrong function name, but that
+		       ;; might be a useful hint.
+		       (let* ((rep (prin1-to-string def))
+			      (name (progn
+				      (string-match " \\([^ ]+\\)>$" rep)
+				      (match-string 1 rep))))
+			 (if (looking-at (format "(%s[ )]" name))
+			     (let ((start (point-marker)))
+			       (goto-char (point-min))
+			       (forward-paragraph)
+			       (insert-buffer-substring (current-buffer) start)
+			       (insert ?\n)
+			       (delete-region (1- start) (point-max)))
+			   (goto-char (point-min))
+			   (forward-paragraph)
+			   (insert
+			    "[Missing arglist.  Please make a bug report.]\n")))
 		       (goto-char (point-max))))
 		 (help-setup-xref (list #'describe-function function)
 				  interactive-p))
