@@ -229,7 +229,7 @@ all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES}
 
 #ifdef MOVEMAIL_NEEDS_BLESSING
 blessmail:
-	../src/emacs -batch -l ../lisp/blessmail.el
+	../src/emacs -batch -l $(srcdir)/../lisp/blessmail.el
 	chmod +x blessmail
 #endif
 
