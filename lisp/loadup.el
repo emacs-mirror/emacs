@@ -56,6 +56,11 @@
 (load "international/mule-cmds")
 (load "case-table")
 (load "international/characters")
+
+(message "%s" (garbage-collect))
+(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
+(message "%s" (garbage-collect))
+
 (let ((set-case-syntax-set-multibyte t))
   (load "international/latin-1")
   (load "international/latin-2")
@@ -83,6 +88,7 @@
 (load "language/vietnamese")
 (load "language/misc-lang")
 (update-iso-coding-systems)
+
 (load "indent")
 (load "isearch")
 (load "window")
@@ -96,6 +102,8 @@
       (load "mouse")
       (load "scroll-bar")
       (load "select")))
+
+(message "%s" (garbage-collect))
 (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (load "startup")
@@ -106,7 +114,8 @@
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
-(garbage-collect)
+(message "%s" (garbage-collect))
+
 (load "replace")
 (if (eq system-type 'vax-vms)
     (progn
@@ -132,12 +141,11 @@
 (if (fboundp 'atan)	; preload some constants and 
     (progn		; floating pt. functions if we have float support.
       (load "float-sup")))
-(garbage-collect)
-(load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
+(message "%s" (garbage-collect))
 
-(garbage-collect)
 (load "vc-hooks")
 (load "ediff-hook")
+(message "%s" (garbage-collect))
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
