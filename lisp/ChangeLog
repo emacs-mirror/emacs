@@ -1,3 +1,18 @@
+2002-07-23  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (DONTCOMPILE): Remove cus-start.el.
+	(DONTCOMPILE): Add various language files.
+	(DONTCOMPILE): Remove term/xterm.el.
+	(finder-inf.el): Remove.
+	(update-authors): New target.
+	(TAGS-LISP): Remove $(lispsource).
+	(compile-always): Renamed from `compile-files'.
+	(compile): New target, adapted from `compile-files'.
+	(compile-calc): New target.
+	(recompile): Change `.' to $(lisp).
+	(bootstrap): Add update-subdirs and finder-data
+	to dependencies; change compile-files to compile.
+
 2002-07-22  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-next-action-on-file): Preserve find-file-literally.
