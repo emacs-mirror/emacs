@@ -1,5 +1,10 @@
 2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
+	* files.el (file-relative-name): If FILENAME and DIRECTORY are on
+	different drives (on DOS/Windows) or use different handlers, do
+	like `expand-file-name' on FILENAME and return an absolute name.
+	From Lars Hansen <larsh@math.ku.dk>.
+
 	* tramp.el: Version 2.0.31 released.
 	(tramp-handle-expand-file-name): Do not allow ".." to
 	cross file handler boundaries, so that "/user@host:/../foo"

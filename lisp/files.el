@@ -2781,45 +2781,111 @@ Uses `backup-directory-alist' in the same way as does
   "Return number of names file FILENAME has."
   (car (cdr (file-attributes filename))))
 
+;; (defun file-relative-name (filename &optional directory)
+;;   "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
+;; This function returns a relative file name which is equivalent to FILENAME
+;; when used with that default directory as the default.
+;; If this is impossible (which can happen on MSDOS and Windows
+;; when the file name and directory use different drive names)
+;; then it returns FILENAME."
+;;   (save-match-data
+;;     (let ((fname (expand-file-name filename)))
+;;       (setq directory (file-name-as-directory
+;; 		       (expand-file-name (or directory default-directory))))
+;;       ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
+;;       ;; drive names, they can't be relative, so return the absolute name.
+;;       (if (and (or (eq system-type 'ms-dos)
+;; 		   (eq system-type 'cygwin)
+;; 		   (eq system-type 'windows-nt))
+;; 	       (not (string-equal (substring fname  0 2)
+;; 				  (substring directory 0 2))))
+;; 	  filename
+;; 	(let ((ancestor ".")
+;; 	      (fname-dir (file-name-as-directory fname)))
+;; 	  (while (and (not (string-match (concat "^" (regexp-quote directory)) fname-dir))
+;; 		      (not (string-match (concat "^" (regexp-quote directory)) fname)))
+;; 	    (setq directory (file-name-directory (substring directory 0 -1))
+;; 		  ancestor (if (equal ancestor ".")
+;; 			       ".."
+;; 			     (concat "../" ancestor))))
+;; 	  ;; Now ancestor is empty, or .., or ../.., etc.
+;; 	  (if (string-match (concat "^" (regexp-quote directory)) fname)
+;; 	      ;; We matched within FNAME's directory part.
+;; 	      ;; Add the rest of FNAME onto ANCESTOR.
+;; 	      (let ((rest (substring fname (match-end 0))))
+;; 		(if (and (equal ancestor ".")
+;; 			 (not (equal rest "")))
+;; 		    ;; But don't bother with ANCESTOR if it would give us `./'.
+;; 		    rest
+;; 		  (concat (file-name-as-directory ancestor) rest)))
+;; 	    ;; We matched FNAME's directory equivalent.
+;; 	    ancestor))))))
+
 (defun file-relative-name (filename &optional directory)
   "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
-If this is impossible (which can happen on MSDOS and Windows
-when the file name and directory use different drive names)
-then it returns FILENAME."
+If FILENAME and DIRECTORY lie on different machines or on different drives
+\(DOS/Windows), it returns FILENAME in expanded form."
   (save-match-data
-    (let ((fname (expand-file-name filename)))
-      (setq directory (file-name-as-directory
-		       (expand-file-name (or directory default-directory))))
-      ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
-      ;; drive names, they can't be relative, so return the absolute name.
-      (if (and (or (eq system-type 'ms-dos)
-		   (eq system-type 'cygwin)
-		   (eq system-type 'windows-nt))
-	       (not (string-equal (substring fname  0 2)
-				  (substring directory 0 2))))
+    (setq directory
+	  (file-name-as-directory (expand-file-name (or directory
+							default-directory))))
+    (setq filename (expand-file-name filename))
+    (let ((hf (find-file-name-handler filename 'file-local-copy))
+          (hd (find-file-name-handler directory 'file-local-copy)))
+      (when (and hf (not (get hf 'file-remote-p))) (setq hf nil))
+      (when (and hd (not (get hd 'file-remote-p))) (setq hd nil))
+      (if (and
+	   ;; Conditions for separate trees
+	   (or
+            ;; Test for different drives on DOS/Windows
+            (and
+	     (memq system-type '(ms-dos cygwin windows-nt))
+	     (not (string-equal (substring filename  0 2)
+				(substring directory 0 2))))
+            ;; Test for different remote file handlers
+            (not (eq hf hd))
+            ;; Test for different remote file system identification
+            (and
+	     hf
+	     (let ((re (car (rassq hf file-name-handler-alist))))
+	       (not
+		(equal
+		 (and
+		  (string-match re filename)
+		  (substring filename 0 (match-end 0)))
+		 (and
+		  (string-match re directory)
+		  (substring directory 0 (match-end 0)))))))))
 	  filename
-	(let ((ancestor ".")
-	      (fname-dir (file-name-as-directory fname)))
-	  (while (and (not (string-match (concat "^" (regexp-quote directory)) fname-dir))
-		      (not (string-match (concat "^" (regexp-quote directory)) fname)))
-	    (setq directory (file-name-directory (substring directory 0 -1))
+        (unless (eq (aref filename 0) ?/)
+	  (setq filename (concat "/" filename)))
+        (unless (eq (aref directory 0) ?/)
+	  (setq directory (concat "/" directory)))
+        (let ((ancestor ".")
+	      (filename-dir (file-name-as-directory filename)))
+          (while
+	      (and
+	       (not (string-match (concat "^" (regexp-quote directory))
+				  filename-dir))
+	       (not (string-match (concat "^" (regexp-quote directory))
+				  filename)))
+            (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
-	  ;; Now ancestor is empty, or .., or ../.., etc.
-	  (if (string-match (concat "^" (regexp-quote directory)) fname)
-	      ;; We matched within FNAME's directory part.
-	      ;; Add the rest of FNAME onto ANCESTOR.
-	      (let ((rest (substring fname (match-end 0))))
-		(if (and (equal ancestor ".")
-			 (not (equal rest "")))
+          ;; Now ancestor is empty, or .., or ../.., etc.
+          (if (string-match (concat "^" (regexp-quote directory)) filename)
+	      ;; We matched within FILENAME's directory part.
+	      ;; Add the rest of FILENAME onto ANCESTOR.
+	      (let ((rest (substring filename (match-end 0))))
+		(if (and (equal ancestor ".") (not (equal rest "")))
 		    ;; But don't bother with ANCESTOR if it would give us `./'.
 		    rest
 		  (concat (file-name-as-directory ancestor) rest)))
-	    ;; We matched FNAME's directory equivalent.
-	    ancestor))))))
+            ;; We matched FILENAME's directory equivalent.
+            ancestor))))))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
