@@ -22,55 +22,37 @@ Boston, MA 02111-1307, USA.
 */
 
 
-/* Define stat before including config.h.  */
-#include <string.h>
-#include <sys/stat.h>
-#include <malloc.h>
-
-static int is_toplevel_share_name (char *);
-static int stat_toplevel_share (char *, void *);
-
-int
-nt_stat (char *filename, struct stat *statbuf)
-{
-  int l = strlen (filename);
-  char *str = NULL;
-
-  /* stat has a bug when passed a name of a directory with a trailing
-     backslash (but a trailing forward slash works fine).  */
-  if (filename[l - 1] == '\\') 
-    {
-      str = (char *) alloca (l + 1);
-      strcpy (str, filename);
-      str[l - 1] = '/';
-      return stat (str, statbuf);
-    }
-
-  if (stat (filename, statbuf) == 0)
-    return 0;
-  else if (is_toplevel_share_name (filename))
-    return stat_toplevel_share (filename, statbuf);
-  else
-    return -1;
-}
-
-/* Place a wrapper around the NT version of ctime.  It returns NULL
-   on network directories, so we handle that case here.  
-   Define it before including config.h.  (Ulrich Leodolter, 1/11/95).  */
-char *
-nt_ctime (const time_t *t)
-{
-  char *str = (char *) ctime (t);
-  return (str ? str : "Sun Jan 01 00:00:00 1970");
-}
-
-#include <config.h>
-#include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <io.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <signal.h>
+#include <sys/time.h>
+
+/* must include CRT headers *before* config.h */
+#include "config.h"
+#undef access
+#undef chdir
+#undef chmod
+#undef creat
+#undef ctime
+#undef fopen
+#undef link
+#undef mkdir
+#undef mktemp
+#undef open
+#undef rename
+#undef rmdir
+#undef unlink
+
+#undef close
+#undef dup
+#undef dup2
+#undef pipe
+#undef read
+#undef write
 
 #define getwd _getwd
 #include "lisp.h"
@@ -78,114 +60,35 @@ nt_ctime (const time_t *t)
 
 #include <pwd.h>
 
+#include <windows.h>
+
+#ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
+#include <sys/socket.h>
+#undef socket
+#undef bind
+#undef connect
+#undef htons
+#undef ntohs
+#undef inet_addr
+#undef gethostname
+#undef gethostbyname
+#undef getservbyname
+#endif
+
+#include "nt.h"
 #include "ndir.h"
 #include "ntheap.h"
 
-extern int report_file_error (char *, Lisp_Object);
-
-/* Routines for extending stat above.  */
-static int
-get_unassigned_drive_letter ()
-{
-  int i;
-  unsigned int mask;
- 
-  mask = GetLogicalDrives ();
-  for (i = 0; i < 26; i++)
-    {
-      if (mask & (1 << i))
-	continue;
-      break;
-    }
-  return (i == 26 ? -1 : 'A' + i);
-}
-
-void dostounix_filename (char *);
-
-/* Return nonzero if NAME is of the form \\host\share (forward slashes
-   also valid), otherwise return 0.  */
-static int
-is_toplevel_share_name (char *filename)
-{
-  int len;
-  char *name;
-  char *host;
-  char *share;
-  char *suffix;
-
-  len = strlen (filename);
-  name = alloca (len + 1);
-  strcpy (name, filename);
-
-  dostounix_filename (name);
-  if (name[0] != '/' || name[1] != '/')
-    return 0;
-
-  host = strtok (&name[2], "/");
-  share = strtok (NULL, "/");
-  suffix = strtok (NULL, "/");
-  if (!host || !share || suffix)
-    return 0;
-
-  return 1;
-}
-
-
-/* FILENAME is of the form \\host\share, and stat can't handle names
-   of this form.  But stat can handle \\host\share if it's been
-   assigned a drive letter.  So we create a network connection to this
-   share, assign it a drive letter, stat the drive letter, and
-   disconnect from the share.  Hassle... */
-static int
-stat_toplevel_share (char *filename, void *statbuf)
-{
-  NETRESOURCE net;
-  int drive_letter;
-  char drive[4];
-  int result;
-
-  drive_letter = get_unassigned_drive_letter ();
-  if (drive_letter < 0)
-    return -1;
-  
-  drive[0] = drive_letter;
-  drive[1] = ':';
-  drive[2] = '\0';
-  net.dwType = RESOURCETYPE_DISK;
-  net.lpLocalName = drive;
-  net.lpRemoteName = filename;
-  net.lpProvider = NULL;
-  
-  switch (WNetAddConnection2 (&net, NULL, NULL, 0))
-    {
-    case NO_ERROR:
-      break;
-    case ERROR_ALREADY_ASSIGNED:
-    default:
-      return -1;
-    }
-  
-  /* Name the toplevel directory on the drive letter. */
-  drive[2] = '/';
-  drive[3] = '\0';
-  result = stat (drive, (void *) statbuf);
-  
-  /* Strip the slash so we can disconnect. */
-  drive[2] = '\0';
-  if (WNetCancelConnection2 (drive, 0, TRUE) != NO_ERROR)
-    result = -1;
-
-  return result;
-}
-
-
 /* Get the current working directory.  */
-int
+char *
 getwd (char *dir)
 {
-  return GetCurrentDirectory (MAXPATHLEN, dir);
+  if (GetCurrentDirectory (MAXPATHLEN, dir) > 0)
+    return dir;
+  return NULL;
 }
 
+#ifndef HAVE_SOCKETS
 /* Emulate gethostname.  */
 int
 gethostname (char *buffer, int size)
@@ -194,6 +97,7 @@ gethostname (char *buffer, int size)
      certainly large enough.  */
   return !GetComputerName (buffer, &size);
 }
+#endif /* HAVE_SOCKETS */
 
 /* Emulate getloadavg.  */
 int
@@ -209,124 +113,14 @@ getloadavg (double loadavg[], int nelem)
   return i;
 }
 
-/* Emulate sleep...we could have done this with a define, but that
-   would necessitate including windows.h in the files that used it.
-   This is much easier.  */
-void
-nt_sleep (int seconds)
-{
-  Sleep (seconds * 1000);
-}
-
-/* Emulate rename. */
-
-#ifndef ENOENT
-#define ENOENT 2
-#endif
-#ifndef EXDEV
-#define EXDEV 18
-#endif
-#ifndef EINVAL
-#define EINVAL 22
-#endif
-
-int
-rename (const char *oldname, const char *newname)
-{
-#ifdef WINDOWS95
-  int i, len, len0, len1;
-  char *dirs[2], *names[2], *ptr;
-
-  /* A bug in MoveFile under Windows 95 incorrectly renames files in
-     some cases.  If the old name is of the form FILENAME or
-     FILENAME.SUF, and the new name is of the form FILENAME~ or
-     FILENAME.SUF~, and both the source and target are in the same
-     directory, then MoveFile renames the long form of the filename to
-     FILENAME~ (FILENAME.SUF~) but leaves the DOS short form as
-     FILENAME (FILENAME.SUF).  The result is that the two different
-     filenames refer to the same file.  In this case, rename the
-     source to a temporary name that can then successfully be renamed
-     to the target.  */
-
-  dirs[0] = names[0] = oldname;
-  dirs[1] = names[1] = newname;
-  for (i = 0; i < 2; i++)
-    {
-      /* Canonicalize and remove prefix.  */
-      len = strlen (names[i]);
-      for (ptr = names[i] + len - 1; ptr > names[i]; ptr--)
-	{
-	  if (IS_ANY_SEP (ptr[0]) && ptr[1] != '\0')
-	    {
-	      names[i] = ptr + 1;
-	      break;
-	    }
-	}
-    }
-
-  len0 = strlen (names[0]);
-  len1 = strlen (names[1]);
-
-  /* The predicate is whether the file is being renamed to a filename
-     with ~ appended.  This is conservative, but should be correct.  */
-  if ((len0 == len1 - 1)
-      && (names[1][len0] == '~')
-      && (!strnicmp (names[0], names[1], len0)))
-    {
-      /* Rename the source to a temporary name that can succesfully be
-	 renamed to the target.  The temporary name is in the directory
-	 of the target.  */
-      char *tmp, *fulltmp;
-
-      tmp = "eXXXXXX";
-      fulltmp = alloca (strlen (dirs[1]) + strlen (tmp) + 1);
-      fulltmp[0] = '\0';
-      if (dirs[1] != names[1])
-	{
-	  len = names[1] - dirs[1];
-	  strncpy (fulltmp, dirs[1], len);
-	  fulltmp[len] = '\0';
-	}
-      strcat (fulltmp, tmp);
-      mktemp (fulltmp);
-
-      if (rename (oldname, fulltmp) < 0)
-	return -1;
-      
-      oldname = fulltmp;
-    }
-#endif
-
-  if (!MoveFile (oldname, newname))
-    {
-      switch (GetLastError ())
-	{
-	case ERROR_FILE_NOT_FOUND:
-	  errno = ENOENT;
-	  break;
-	case ERROR_ACCESS_DENIED:
-	  /* This gets returned when going across devices.  */
-	  errno = EXDEV;
-	  break;
-	case ERROR_FILE_EXISTS:
-	case ERROR_ALREADY_EXISTS:
-	default:
-	  errno = EINVAL;
-	  break;
-	}
-      return -1;
-    }
-  errno = 0;
-  return 0;
-}
-
 /* Emulate the Unix directory procedures opendir, closedir, 
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
 
 struct direct dir_static;       /* simulated directory contents */
-static int    dir_finding;
-static HANDLE dir_find_handle;
+static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
+static int    dir_is_fat;
+static char   dir_pathname[MAXPATHLEN+1];
 
 DIR *
 opendir (char *filename)
@@ -334,22 +128,21 @@ opendir (char *filename)
   DIR *dirp;
 
   /* Opening is done by FindFirstFile.  However, a read is inherent to
-     this operation, so we have a flag to handle the open at read
-     time.  This flag essentially means "there is a find-handle open and
-     it needs to be closed."  */
+     this operation, so we defer the open until read time.  */
 
-  if (!(dirp = (DIR *) malloc (sizeof (DIR)))) 
-    {
-      return 0;
-    }
+  if (!(dirp = (DIR *) malloc (sizeof (DIR))))
+    return NULL;
+  if (dir_find_handle != INVALID_HANDLE_VALUE)
+    return NULL;
 
   dirp->dd_fd = 0;
   dirp->dd_loc = 0;
   dirp->dd_size = 0;
 
-  /* This is tacky, but we need the directory name for our
-     implementation of readdir.  */
-  strncpy (dirp->dd_buf, filename, DIRBLKSIZ);
+  strncpy (dir_pathname, filename, MAXPATHLEN);
+  dir_pathname[MAXPATHLEN] = '\0';
+  dir_is_fat = is_fat_volume (filename, NULL);
+
   return dirp;
 }
 
@@ -357,10 +150,10 @@ void
 closedir (DIR *dirp)
 {
   /* If we have a find-handle open, close it.  */
-  if (dir_finding) 
+  if (dir_find_handle != INVALID_HANDLE_VALUE)
     {
       FindClose (dir_find_handle);
-      dir_finding = 0;
+      dir_find_handle = INVALID_HANDLE_VALUE;
     }
   xfree ((char *) dirp);
 }
@@ -371,46 +164,44 @@ readdir (DIR *dirp)
   WIN32_FIND_DATA find_data;
   
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
-  if (!dir_finding) 
+  if (dir_find_handle == INVALID_HANDLE_VALUE)
     {
       char filename[MAXNAMLEN + 3];
       int ln;
 
-      strncpy (filename, dirp->dd_buf, MAXNAMLEN);
-      ln = strlen (filename)-1;
-      if (!IS_ANY_SEP (filename[ln]))
+      strcpy (filename, dir_pathname);
+      ln = strlen (filename) - 1;
+      if (!IS_DIRECTORY_SEP (filename[ln]))
 	strcat (filename, "\\");
-      strcat (filename, "*.*");
+      strcat (filename, "*");
 
       dir_find_handle = FindFirstFile (filename, &find_data);
 
-      if (dir_find_handle == INVALID_HANDLE_VALUE) 
+      if (dir_find_handle == INVALID_HANDLE_VALUE)
 	return NULL;
-
-      dir_finding = 1;
-    } 
-  else 
+    }
+  else
     {
       if (!FindNextFile (dir_find_handle, &find_data))
 	return NULL;
     }
   
-  /* NT's unique ID for a file is 64 bits, so we have to fake it here.  
-     This should work as long as we never use 0.  */
+  /* Emacs never uses this value, so don't bother making it match
+     value returned by stat().  */
   dir_static.d_ino = 1;
   
   dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
   
   dir_static.d_namlen = strlen (find_data.cFileName);
-  strncpy (dir_static.d_name, find_data.cFileName, MAXNAMLEN);
+  strcpy (dir_static.d_name, find_data.cFileName);
+  if (dir_is_fat)
+    _strlwr (dir_static.d_name);
   
   return &dir_static;
 }
 
-/* Emulate getpwuid and getpwnam.  */
-
-int getuid ();	/* forward declaration */
+/* Emulate getpwuid, getpwnam and others.  */
 
 #define PASSWD_FIELD_SIZE 256
 
@@ -432,22 +223,39 @@ static struct passwd the_passwd =
   the_passwd_shell,
 };
 
+int 
+getuid () 
+{ 
+  return the_passwd.pw_uid;
+}
+
+int 
+geteuid () 
+{ 
+  /* I could imagine arguing for checking to see whether the user is
+     in the Administrators group and returning a UID of 0 for that
+     case, but I don't know how wise that would be in the long run.  */
+  return getuid (); 
+}
+
+int 
+getgid () 
+{ 
+  return the_passwd.pw_gid;
+}
+
+int 
+getegid () 
+{ 
+  return getgid ();
+}
+
 struct passwd *
 getpwuid (int uid)
 {
-  int size = PASSWD_FIELD_SIZE;
-  
-  if (!GetUserName (the_passwd.pw_name, &size))
-    return NULL;
-
-  the_passwd.pw_passwd[0] = '\0';
-  the_passwd.pw_uid = 0;
-  the_passwd.pw_gid = 0;
-  strcpy (the_passwd.pw_gecos, the_passwd.pw_name);
-  the_passwd.pw_dir[0] = '\0';
-  the_passwd.pw_shell[0] = '\0';
-
-  return &the_passwd;
+  if (uid == the_passwd.pw_uid)
+    return &the_passwd;
+  return NULL;
 }
 
 struct passwd *
@@ -459,12 +267,311 @@ getpwnam (char *name)
   if (!pw)
     return pw;
 
-  if (strcmp (name, pw->pw_name))
+  if (stricmp (name, pw->pw_name))
     return NULL;
 
   return pw;
 }
 
+void
+init_user_info ()
+{
+  /* Find the user's real name by opening the process token and
+     looking up the name associated with the user-sid in that token.
+
+     Use the relative portion of the identifier authority value from
+     the user-sid as the user id value (same for group id using the
+     primary group sid from the process token). */
+
+  char            user_sid[256], name[256], domain[256];
+  DWORD           length = sizeof (name), dlength = sizeof (domain), trash;
+  HANDLE          token = NULL;
+  SID_NAME_USE    user_type;
+
+  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &token)
+      && GetTokenInformation (token, TokenUser,
+			      (PVOID) user_sid, sizeof (user_sid), &trash)
+      && LookupAccountSid (NULL, *((PSID *) user_sid), name, &length,
+			   domain, &dlength, &user_type))
+    {
+      strcpy (the_passwd.pw_name, name);
+      /* Determine a reasonable uid value. */
+      if (stricmp ("administrator", name) == 0)
+	{
+	  the_passwd.pw_uid = 0;
+	  the_passwd.pw_gid = 0;
+	}
+      else
+	{
+	  SID_IDENTIFIER_AUTHORITY * pSIA;
+
+	  pSIA = GetSidIdentifierAuthority (*((PSID *) user_sid));
+	  /* I believe the relative portion is the last 4 bytes (of 6)
+	     with msb first. */
+	  the_passwd.pw_uid = ((pSIA->Value[2] << 24) +
+			       (pSIA->Value[3] << 16) +
+			       (pSIA->Value[4] << 8)  +
+			       (pSIA->Value[5] << 0));
+	  /* restrict to conventional uid range for normal users */
+	  the_passwd.pw_uid = the_passwd.pw_uid % 60001;
+
+	  /* Get group id */
+	  if (GetTokenInformation (token, TokenPrimaryGroup,
+				   (PVOID) user_sid, sizeof (user_sid), &trash))
+	    {
+	      SID_IDENTIFIER_AUTHORITY * pSIA;
+
+	      pSIA = GetSidIdentifierAuthority (*((PSID *) user_sid));
+	      the_passwd.pw_gid = ((pSIA->Value[2] << 24) +
+				   (pSIA->Value[3] << 16) +
+				   (pSIA->Value[4] << 8)  +
+				   (pSIA->Value[5] << 0));
+	      /* I don't know if this is necessary, but for safety... */
+	      the_passwd.pw_gid = the_passwd.pw_gid % 60001;
+	    }
+	  else
+	    the_passwd.pw_gid = the_passwd.pw_uid;
+	}
+    }
+  /* If security calls are not supported (presumably because we
+       are running under Windows 95), fallback to this. */
+  else if (GetUserName (name, &length))
+    {
+      strcpy (the_passwd.pw_name, name);
+      if (stricmp ("administrator", name) == 0)
+	the_passwd.pw_uid = 0;
+      else
+	the_passwd.pw_uid = 123;
+      the_passwd.pw_gid = the_passwd.pw_uid;
+    }
+  else
+    {
+      strcpy (the_passwd.pw_name, "unknown");
+      the_passwd.pw_uid = 123;
+      the_passwd.pw_gid = 123;
+    }
+
+  /* Ensure HOME and SHELL are defined. */
+  if (getenv ("HOME") == NULL)
+    putenv ("HOME=c:/");
+  if (getenv ("SHELL") == NULL)
+    putenv ((GetVersion () & 0x80000000) ? "SHELL=command" : "SHELL=cmd");
+
+  /* Set dir and shell from environment variables. */
+  strcpy (the_passwd.pw_dir, getenv ("HOME"));
+  strcpy (the_passwd.pw_shell, getenv ("SHELL"));
+
+  if (token)
+    CloseHandle (token);
+}
+
+int
+random ()
+{
+  /* rand () on NT gives us 15 random bits...hack together 30 bits.  */
+  return ((rand () << 15) | rand ());
+}
+
+void
+srandom (int seed)
+{
+  srand (seed);
+}
+
+/* Destructively turn backslashes into slashes.  */
+void
+dostounix_filename (p)
+     register char *p;
+{
+  while (*p)
+    {
+      if (*p == '\\')
+	*p = '/';
+      p++;
+    }
+}
+
+/* Destructively turn slashes into backslashes.  */
+void
+unixtodos_filename (p)
+     register char *p;
+{
+  while (*p)
+    {
+      if (*p == '/')
+	*p = '\\';
+      p++;
+    }
+}
+
+/* Remove all CR's that are followed by a LF.
+   (From msdos.c...probably should figure out a way to share it,
+   although this code isn't going to ever change.)  */
+int
+crlf_to_lf (n, buf)
+     register int n;
+     register unsigned char *buf;
+{
+  unsigned char *np = buf;
+  unsigned char *startp = buf;
+  unsigned char *endp = buf + n;
+
+  if (n == 0)
+    return n;
+  while (buf < endp - 1)
+    {
+      if (*buf == 0x0d)
+	{
+	  if (*(++buf) != 0x0a)
+	    *np++ = 0x0d;
+	}
+      else
+	*np++ = *buf++;
+    }
+  if (buf < endp)
+    *np++ = *buf++;
+  return np - startp;
+}
+
+/* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
+
+int 
+sigsetmask (int signal_mask) 
+{ 
+  return 0;
+}
+
+int 
+sigblock (int sig) 
+{ 
+  return 0;
+}
+
+int 
+setpgrp (int pid, int gid) 
+{ 
+  return 0;
+}
+
+int 
+alarm (int seconds) 
+{ 
+  return 0;
+}
+
+int 
+unrequest_sigio (void) 
+{ 
+  return 0;
+}
+
+int 
+request_sigio (void) 
+{ 
+  return 0;
+}
+
+#define REG_ROOT "SOFTWARE\\GNU\\Emacs"
+
+LPBYTE 
+nt_get_resource (key, lpdwtype)
+    char *key;
+    LPDWORD lpdwtype;
+{
+  LPBYTE lpvalue;
+  HKEY hrootkey = NULL;
+  DWORD cbData;
+  BOOL ok = FALSE;
+  
+  /* Check both the current user and the local machine to see if 
+     we have any resources.  */
+  
+  if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS 
+	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL 
+	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+	  return (lpvalue);
+	}
+
+      if (lpvalue) xfree (lpvalue);
+	
+      RegCloseKey (hrootkey);
+    } 
+  
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+	
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS &&
+	  (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL &&
+	  RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+	  return (lpvalue);
+	}
+	
+      if (lpvalue) xfree (lpvalue);
+	
+      RegCloseKey (hrootkey);
+    } 
+  
+  return (NULL);
+}
+
+void
+init_environment ()
+{
+  /* Check for environment variables and use registry if they don't exist */
+  {
+    int i;
+    LPBYTE lpval;
+    DWORD dwType;
+
+    static char * env_vars[] = 
+    {
+      "HOME",
+      "emacs_dir",
+      "EMACSLOADPATH",
+      "SHELL",
+      "EMACSDATA",
+      "EMACSPATH",
+      "EMACSLOCKDIR",
+      "INFOPATH",
+      "EMACSDOC",
+      "TERM",
+    };
+
+    for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
+      {
+	if (!getenv (env_vars[i]) &&
+	    (lpval = nt_get_resource (env_vars[i], &dwType)) != NULL)
+	  {
+	    if (dwType == REG_EXPAND_SZ)
+	      {
+		char buf1[500], buf2[500];
+
+		ExpandEnvironmentStrings ((LPSTR) lpval, buf1, 500);
+		_snprintf (buf2, 499, "%s=%s", env_vars[i], buf1);
+		putenv (strdup (buf2));
+	      }
+	    else if (dwType == REG_SZ)
+	      {
+		char buf[500];
+		  
+		_snprintf (buf, 499, "%s=%s", env_vars[i], lpval);
+		putenv (strdup (buf));
+	      }
+
+	    xfree (lpval);
+	  }
+      }
+  }
+
+  init_user_info ();
+}
 
 /* We don't have scripts to automatically determine the system configuration
    for Emacs before it's compiled, and we don't want to have to make the
@@ -518,478 +625,13 @@ get_emacs_configuration (void)
   /* Let oem be "*" until we figure out how to decode the OEM field.  */
   oem = "*";
 
-#ifdef WINDOWS95
-  os = "win";
-#else
-  os = "nt";
-#endif
+  os = (GetVersion () & 0x80000000) ? "win95" : "nt";
 
   sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
 	   get_nt_major_version (), get_nt_minor_version ());
   return configuration_buffer;
 }
 
-/* Conjure up inode and device numbers that will serve the purpose
-   of Emacs.  Return 1 upon success, 0 upon failure.  */
-int
-get_inode_and_device_vals (Lisp_Object filename, Lisp_Object *p_inode, 
-			   Lisp_Object *p_device)
-{
-  /* File uids on NT are found using a handle to a file, which
-     implies that it has been opened.  Since we want to be able
-     to stat an arbitrary file, we must open it, get the info,
-     and then close it.
-     
-     Also, NT file uids are 64-bits.  This is a problem.  */
-
-  HANDLE handle;
-  BOOL result;
-  DWORD attrs;
-  BY_HANDLE_FILE_INFORMATION info;
-
-  /* We have to stat files and directories differently, so check
-     to see what filename references.  */
-  attrs = GetFileAttributes (XSTRING (filename)->data);
-  if (attrs == 0xFFFFFFFF) {
-    return 0;
-  }
-  if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
-    /* Conjure up bogus, but unique, values.  */
-    attrs = GetTickCount ();
-    *p_inode = make_number (attrs);
-    *p_device = make_number (attrs);
-    return 1;
-  }
-
-  /* FIXME:  It shouldn't be opened without READ access, but NT on x86
-     doesn't allow GetFileInfo in that case (NT on mips does).  */
-     
-  handle = CreateFile (XSTRING (filename)->data,
-		       GENERIC_READ,
-		       FILE_SHARE_READ | FILE_SHARE_WRITE,
-		       NULL,
-		       OPEN_EXISTING,
-		       FILE_ATTRIBUTE_NORMAL,
-		       NULL);
-  if (handle == INVALID_HANDLE_VALUE)
-    return 0;
-
-  result = GetFileInformationByHandle (handle, &info);
-  CloseHandle (handle);
-  if (!result)
-    return 0;
-
-  *p_inode = make_number (info.nFileIndexLow);	        /* use the low value */
-  *p_device = make_number (info.dwVolumeSerialNumber);
-
-  return 1;
-}
-
-/* The following pipe routines are used to support our fork emulation.
-   Since NT's crt dup always creates inherited handles, we
-   must be careful in setting up pipes.  First create 
-   non-inherited pipe handles, then create an inherited handle
-   to the write end by dup-ing it, and then close the non-inherited
-   end that was just duped.  This gives us one non-inherited handle
-   on the read end and one inherited handle to the write end.  As
-   the parent, we close the inherited handle to the write end after
-   spawning the child.  */
-
-/* From callproc.c  */
-extern Lisp_Object Vbinary_process_input;
-extern Lisp_Object Vbinary_process_output;
-
-void
-pipe_with_inherited_out (int fds[2])
-{
-  int inherit_out;
-  unsigned int flags = _O_NOINHERIT;
-
-  if (!NILP (Vbinary_process_output))
-    flags |= _O_BINARY;
-
-  _pipe (fds, 0, flags);
-  inherit_out = dup (fds[1]);
-  close (fds[1]);
-  fds[1] = inherit_out;
-}
-
-void
-pipe_with_inherited_in (int fds[2])
-{
-  int inherit_in;
-  unsigned int flags = _O_NOINHERIT;
-
-  if (!NILP (Vbinary_process_input))
-    flags |= _O_BINARY;
-
-  _pipe (fds, 0, flags);
-  inherit_in = dup (fds[0]);
-  close (fds[0]);
-  fds[0] = inherit_in;
-}
-
-/* The following two routines are used to manipulate stdin, stdout, and
-   stderr of our child processes.
-
-   Assuming that in, out, and err are inherited, we make them stdin,
-   stdout, and stderr of the child as follows:
-
-   - Save the parent's current standard handles.
-   - Set the parent's standard handles to the handles being passed in.
-     (Note that _get_osfhandle is an io.h procedure that 
-     maps crt file descriptors to NT file handles.)
-   - Spawn the child, which inherits in, out, and err as stdin,
-     stdout, and stderr. (see Spawnve)
-   - Reset the parent's standard handles to the saved handles.
-     (see reset_standard_handles)
-   We assume that the caller closes in, out, and err after calling us.  */
-
-void
-prepare_standard_handles (int in, int out, int err, HANDLE handles[4])
-{
-  HANDLE parent, stdin_save, stdout_save, stderr_save, err_handle;
-
-#ifdef WINDOWS95
-  /* The Win95 beta doesn't set the standard handles correctly.
-     Handicap subprocesses until we get a version that works correctly.  
-     Undefining the subprocesses macro reveals other incompatibilities,
-     so, since we're expecting subprocs to work in the near future, 
-     disable them here.  */
-  report_file_error ("Subprocesses currently disabled on Win95", Qnil);
-#endif
-
-  parent = GetCurrentProcess ();
-  stdin_save = GetStdHandle (STD_INPUT_HANDLE);
-  stdout_save = GetStdHandle (STD_OUTPUT_HANDLE);
-  stderr_save = GetStdHandle (STD_ERROR_HANDLE);
-
-#ifndef HAVE_NTGUI
-  if (!DuplicateHandle (parent, 
-		       GetStdHandle (STD_INPUT_HANDLE), 
-		       parent,
-		       &stdin_save, 
-		       0, 
-		       FALSE, 
-		       DUPLICATE_SAME_ACCESS))
-    report_file_error ("Duplicating parent's input handle", Qnil);
-  
-  if (!DuplicateHandle (parent,
-		       GetStdHandle (STD_OUTPUT_HANDLE),
-		       parent,
-		       &stdout_save,
-		       0,
-		       FALSE,
-		       DUPLICATE_SAME_ACCESS))
-    report_file_error ("Duplicating parent's output handle", Qnil);
-  
-  if (!DuplicateHandle (parent,
-		       GetStdHandle (STD_ERROR_HANDLE),
-		       parent,
-		       &stderr_save,
-		       0,
-		       FALSE,
-		       DUPLICATE_SAME_ACCESS))
-    report_file_error ("Duplicating parent's error handle", Qnil);
-#endif /* !HAVE_NTGUI */
-  
-  if (!SetStdHandle (STD_INPUT_HANDLE, (HANDLE) _get_osfhandle (in)))
-    report_file_error ("Changing stdin handle", Qnil);
-  
-  if (!SetStdHandle (STD_OUTPUT_HANDLE, (HANDLE) _get_osfhandle (out)))
-    report_file_error ("Changing stdout handle", Qnil);
-  
-  /* We lose data if we use the same handle to the pipe for stdout and
-     stderr, so make a duplicate.  This took a while to find.  */
-  if (out == err) 
-    {
-      if (!DuplicateHandle (parent,
-			   (HANDLE) _get_osfhandle (err),
-			   parent,
-			   &err_handle,
-			   0,
-			   TRUE,
-			   DUPLICATE_SAME_ACCESS))
-	report_file_error ("Duplicating out handle to make err handle.",
-			  Qnil);
-    } 
-  else 
-    {
-      err_handle = (HANDLE) _get_osfhandle (err);
-    }
-
-  if (!SetStdHandle (STD_ERROR_HANDLE, err_handle))
-    report_file_error ("Changing stderr handle", Qnil);
-
-  handles[0] = stdin_save;
-  handles[1] = stdout_save;
-  handles[2] = stderr_save;
-  handles[3] = err_handle;
-}
-
-void
-reset_standard_handles (int in, int out, int err, HANDLE handles[4])
-{
-  HANDLE stdin_save = handles[0];
-  HANDLE stdout_save = handles[1];
-  HANDLE stderr_save = handles[2];
-  HANDLE err_handle = handles[3];
-  int i;
-
-#ifndef HAVE_NTGUI
-  if (!SetStdHandle (STD_INPUT_HANDLE, stdin_save))
-    report_file_error ("Resetting input handle", Qnil);
-  
-  if (!SetStdHandle (STD_OUTPUT_HANDLE, stdout_save))
-    {
-      i = GetLastError ();
-      report_file_error ("Resetting output handle", Qnil);
-    }
-  
-  if (!SetStdHandle (STD_ERROR_HANDLE, stderr_save))
-    report_file_error ("Resetting error handle", Qnil);
-#endif /* !HAVE_NTGUI */
-  
-  if (out == err) 
-    {
-      /* If out and err are the same handle, then we duplicated out
-	 and stuck it in err_handle.  Close the duplicate to clean up.  */
-      if (!CloseHandle (err_handle))
-	report_file_error ("Closing error handle duplicated from out.", 
-			  Qnil);
-    }
-}
-
-int
-random ()
-{
-  /* rand () on NT gives us 15 random bits...hack together 30 bits.  */
-  return ((rand () << 15) | rand ());
-}
-
-void
-srandom (int seed)
-{
-  srand (seed);
-}
-
-/* Destructively turn backslashes into slashes.  */
-void
-dostounix_filename (p)
-     register char *p;
-{
-  while (*p)
-    {
-      if (*p == '\\')
-	*p = '/';
-      p++;
-    }
-}
-
-/* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
-
-
-int 
-sigsetmask (int signal_mask) 
-{ 
-  return 0;
-}
-
-int 
-sigblock (int sig) 
-{ 
-  return 0;
-}
-
-int 
-kill (int pid, int signal) 
-{ 
-  return 0;
-}
-
-int 
-setpgrp (int pid, int gid) 
-{ 
-  return 0;
-}
-
-int 
-alarm (int seconds) 
-{ 
-  return 0;
-}
-
-int 
-unrequest_sigio (void) 
-{ 
-  return 0;
-}
-
-int 
-request_sigio (void) 
-{ 
-  return 0;
-}
-
-int 
-getuid () 
-{ 
-  char buffer[256];
-  int size = 256;
-
-  if (!GetUserName (buffer, &size))
-    /* Assume all powers upon failure.  */
-    return 0;
-
-  if (!stricmp ("administrator", buffer))
-    return 0;
-  else
-    /* A complete fabrication...is there anything to base it on? */
-    return 123;
-}
-
-int 
-geteuid () 
-{ 
-  /* I could imagine arguing for checking to see whether the user is
-     in the Administrators group and returning a UID of 0 for that
-     case, but I don't know how wise that would be in the long run.  */
-  return getuid (); 
-}
-
-/* Remove all CR's that are followed by a LF.
-   (From msdos.c...probably should figure out a way to share it,
-   although this code isn't going to ever change.)  */
-int
-crlf_to_lf (n, buf)
-     register int n;
-     register unsigned char *buf;
-{
-  unsigned char *np = buf;
-  unsigned char *startp = buf;
-  unsigned char *endp = buf + n;
-
-  if (n == 0)
-    return n;
-  while (buf < endp - 1)
-    {
-      if (*buf == 0x0d)
-	{
-	  if (*(++buf) != 0x0a)
-	    *np++ = 0x0d;
-	}
-      else
-	*np++ = *buf++;
-    }
-  if (buf < endp)
-    *np++ = *buf++;
-  return np - startp;
-}
-
-#define REG_ROOT "SOFTWARE\\GNU\\Emacs\\"
-
-LPBYTE 
-nt_get_resource (key, lpdwtype)
-    char *key;
-    LPDWORD lpdwtype;
-{
-  LPBYTE lpvalue;
-  HKEY hrootkey = NULL;
-  DWORD cbData;
-  BOOL ok = FALSE;
-  
-  /* Check both the current user and the local machine to see if 
-     we have any resources.  */
-  
-  if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS 
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL 
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-	  return (lpvalue);
-	}
-
-      if (lpvalue) xfree (lpvalue);
-	
-      RegCloseKey (hrootkey);
-    } 
-  
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-	
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS &&
-	  (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL &&
-	  RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-	  return (lpvalue);
-	}
-	
-      if (lpvalue) xfree (lpvalue);
-	
-      RegCloseKey (hrootkey);
-    } 
-  
-  return (NULL);
-}
-
-void
-init_environment ()
-{
-  /* Open a console window to display messages during dumping. */
-  if (!initialized)
-    AllocConsole ();
-
-  /* Check for environment variables and use registry if they don't exist */
-  {
-      int i;
-      LPBYTE lpval;
-      DWORD dwType;
-
-      static char * env_vars[] = 
-      {
-	  "emacs_path",
-	  "EMACSLOADPATH",
-	  "SHELL",
-	  "EMACSDATA",
-	  "EMACSPATH",
-	  "EMACSLOCKDIR",
-	  "INFOPATH",
-	  "EMACSDOC",
-	  "TERM",
-      };
-
-      for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
-	{
-	  if (!getenv (env_vars[i]) &&
-	      (lpval = nt_get_resource (env_vars[i], &dwType)) != NULL)
-	    {
-	      if (dwType == REG_EXPAND_SZ)
-		{
-		  char buf1[500], buf2[500];
-
-		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, 500);
-		  _snprintf (buf2, 499, "%s=%s", env_vars[i], buf1);
-		  putenv (strdup (buf2));
-		}
-	      else if (dwType == REG_SZ)
-		{
-		  char buf[500];
-		  
-		  _snprintf (buf, 499, "%s=%s", env_vars[i], lpval);
-		  putenv (strdup (buf));
-		}
-
-	      xfree (lpval);
-	    }
-	}
-    }
-}
-
-#ifdef HAVE_TIMEVAL
 #include <sys/timeb.h>
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
@@ -1007,44 +649,1381 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
       tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
     }
 }
-#endif /* HAVE_TIMEVAL */
 
+/* ------------------------------------------------------------------------- */
+/* IO support and wrapper functions for Win32 API. */
+/* ------------------------------------------------------------------------- */
 
-#ifdef PIGSFLY
-Keep this around...we might need it later.
-#ifdef WINDOWSNT
+/* Place a wrapper around the MSVC version of ctime.  It returns NULL
+   on network directories, so we handle that case here.  
+   (Ulrich Leodolter, 1/11/95).  */
+char *
+sys_ctime (const time_t *t)
 {
-  /*
-   * Find the user's real name by opening the process token and looking
-   * up the name associated with the user-sid in that token.
-   */
+  char *str = (char *) ctime (t);
+  return (str ? str : "Sun Jan 01 00:00:00 1970");
+}
 
-  char            b[256], Name[256], RefD[256];
-  DWORD           length = 256, rlength = 256, trash;
-  HANDLE          Token;
-  SID_NAME_USE    User;
+/* Emulate sleep...we could have done this with a define, but that
+   would necessitate including windows.h in the files that used it.
+   This is much easier.  */
+void
+sys_sleep (int seconds)
+{
+  Sleep (seconds * 1000);
+}
 
-  if (1)
-    Vuser_real_login_name = build_string ("foo");
-  else if (!OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &Token))
+/* Internal MSVC data and functions for low-level descriptor munging */
+#if (_MSC_VER == 900)
+extern char _osfile[];
+#endif
+extern int __cdecl _set_osfhnd (int fd, long h);
+extern int __cdecl _free_osfhnd (int fd);
+
+/* parallel array of private info on file handles */
+filedesc fd_info [ MAXDESC ];
+
+static struct {
+  DWORD     serialnum;
+  DWORD     maxcomp;
+  DWORD     flags;
+  char      name[32];
+  char      type[32];
+} volume_info;
+
+/* Get information on the volume where name is held; set path pointer to
+   start of pathname in name (past UNC header\volume header if present).  */
+int
+get_volume_info (const char * name, const char ** pPath)
+{
+  char temp[MAX_PATH];
+  char *rootname = NULL;  /* default to current volume */
+
+  if (name == NULL)
+    return FALSE;
+
+  /* find the root name of the volume if given */
+  if (isalpha (name[0]) && name[1] == ':')
     {
-      Vuser_real_login_name = build_string ("unknown");
+      rootname = temp;
+      temp[0] = *name++;
+      temp[1] = *name++;
+      temp[2] = '\\';
+      temp[3] = 0;
     }
-  else if (!GetTokenInformation (Token, TokenUser, (PVOID)b, 256,
-				 &trash))
+  else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
     {
-      CloseHandle (Token);
-      Vuser_real_login_name = build_string ("unknown");
+      char *str = temp;
+      int slashes = 4;
+      rootname = temp;
+      do
+        {
+	  if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
+	    break;
+	  *str++ = *name++;
+	}
+      while ( *name );
+
+      if (slashes > 1)
+	return FALSE;
+
+      *str++ = '\\';
+      *str = 0;
     }
-  else if (!LookupAccountSid ((void *)0, (PSID)b, Name, &length, RefD,
-			      &rlength, &User))
+
+  if (pPath)
+    *pPath = name;
+    
+  if (GetVolumeInformation (rootname,
+			    volume_info.name, 32,
+			    &volume_info.serialnum,
+			    &volume_info.maxcomp,
+			    &volume_info.flags,
+			    volume_info.type, 32))
     {
-      CloseHandle (Token);
-      Vuser_real_login_name = build_string ("unknown");
+      return TRUE;
+    }
+  return FALSE;
+}
+
+/* Determine if volume is FAT format (ie. only supports short 8.3
+   names); also set path pointer to start of pathname in name.  */
+int
+is_fat_volume (const char * name, const char ** pPath)
+{
+  if (get_volume_info (name, pPath))
+    return (volume_info.maxcomp == 12);
+  return FALSE;
+}
+
+/* Map filename to a legal 8.3 name if necessary. */
+const char *
+map_win32_filename (const char * name, const char ** pPath)
+{
+  static char shortname[MAX_PATH];
+  char * str = shortname;
+  char c;
+  const char * orig_name = name;
+  char * path;
+
+  if (is_fat_volume (name, &path)) /* truncate to 8.3 */
+    {
+      register int left = 8;	/* maximum number of chars in part */
+      register int extn = 0;	/* extension added? */
+      register int dots = 2;	/* maximum number of dots allowed */
+
+      while (name < path)
+	*str++ = *name++;	/* skip past UNC header */
+
+      while ((c = *name++))
+        {
+	  switch ( c )
+	    {
+	    case '\\':
+	    case '/':
+	      *str++ = '\\';
+	      extn = 0;		/* reset extension flags */
+	      dots = 2;		/* max 2 dots */
+	      left = 8;		/* max length 8 for main part */
+	      break;
+	    case ':':
+	      *str++ = ':';
+	      extn = 0;		/* reset extension flags */
+	      dots = 2;		/* max 2 dots */
+	      left = 8;		/* max length 8 for main part */
+	      break;
+	    case '.':
+	      if ( dots )
+	        {
+		  /* Convert path components of the form .xxx to _xxx,
+		     but leave . and .. as they are.  This allows .emacs
+		     to be read as _emacs, for example.  */
+
+		  if (! *name ||
+		      *name == '.' ||
+		      IS_DIRECTORY_SEP (*name))
+		    {
+		      *str++ = '.';
+		      dots--;
+		    }
+		  else
+		    {
+		      *str++ = '_';
+		      left--;
+		      dots = 0;
+		    }
+		}
+	      else if ( !extn )
+	        {
+		  *str++ = '.';
+		  extn = 1;		/* we've got an extension */
+		  left = 3;		/* 3 chars in extension */
+		}
+	      else
+	        {
+		  /* any embedded dots after the first are converted to _ */
+		  *str++ = '_';
+		}
+	      break;
+	    case '~':
+	    case '#':			/* don't lose these, they're important */
+	      if ( ! left )
+		str[-1] = c;		/* replace last character of part */
+	      /* FALLTHRU */
+	    default:
+	      if ( left )
+	        {
+		  *str++ = tolower (c);	/* map to lower case (looks nicer) */
+		  left--;
+		  dots = 0;		/* started a path component */
+		}
+	      break;
+	    }
+	}
+      *str = '\0';
+
+      name = shortname;
+    }
+
+  if (pPath)
+    *pPath = name + (path - orig_name);
+
+  return name;
+}
+
+
+/* Shadow some MSVC runtime functions to map requests for long filenames
+   to reasonable short names if necessary.  This was originally added to
+   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support 
+   long file names.  */
+
+int
+sys_access (const char * path, int mode)
+{
+  return _access (map_win32_filename (path, NULL), mode);
+}
+
+int
+sys_chdir (const char * path)
+{
+  return _chdir (map_win32_filename (path, NULL));
+}
+
+int
+sys_chmod (const char * path, int mode)
+{
+  return _chmod (map_win32_filename (path, NULL), mode);
+}
+
+int
+sys_creat (const char * path, int mode)
+{
+  return _creat (map_win32_filename (path, NULL), mode);
+}
+
+FILE *
+sys_fopen(const char * path, const char * mode)
+{
+  int fd;
+  int oflag;
+  const char * mode_save = mode;
+
+  /* Force all file handles to be non-inheritable.  This is necessary to
+     ensure child processes don't unwittingly inherit handles that might
+     prevent future file access. */
+
+  if (mode[0] == 'r')
+    oflag = O_RDONLY;
+  else if (mode[0] == 'w' || mode[0] == 'a')
+    oflag = O_WRONLY | O_CREAT | O_TRUNC;
+  else
+    return NULL;
+
+  /* Only do simplistic option parsing. */
+  while (*++mode)
+    if (mode[0] == '+')
+      {
+	oflag &= ~(O_RDONLY | O_WRONLY);
+	oflag |= O_RDWR;
+      }
+    else if (mode[0] == 'b')
+      {
+	oflag &= ~O_TEXT;
+	oflag |= O_BINARY;
+      }
+    else if (mode[0] == 't')
+      {
+	oflag &= ~O_BINARY;
+	oflag |= O_TEXT;
+      }
+    else break;
+
+  fd = _open (map_win32_filename (path, NULL), oflag | _O_NOINHERIT, 0644);
+  if (fd < 0)
+    return NULL;
+
+  return fdopen (fd, mode_save);
+}
+
+int
+sys_link (const char * path1, const char * path2)
+{
+  errno = EINVAL;
+  return -1;
+}
+
+int
+sys_mkdir (const char * path)
+{
+  return _mkdir (map_win32_filename (path, NULL));
+}
+
+char *
+sys_mktemp (char * template)
+{
+  return (char *) map_win32_filename ((const char *) _mktemp (template), NULL);
+}
+
+int
+sys_open (const char * path, int oflag, int mode)
+{
+  /* Force all file handles to be non-inheritable. */
+  return _open (map_win32_filename (path, NULL), oflag | _O_NOINHERIT, mode);
+}
+
+int
+sys_rename (const char * oldname, const char * newname)
+{
+  char temp[MAX_PATH];
+
+  /* MoveFile on Win95 doesn't correctly change the short file name
+     alias when oldname has a three char extension and newname has the
+     same first three chars in its extension.  To avoid problems, on
+     Win95 we rename to a temporary name first.  */
+
+  strcpy (temp, map_win32_filename (oldname, NULL));
+
+  if (GetVersion () & 0x80000000)
+    {
+      char * p;
+
+      unixtodos_filename (temp);
+      if (p = strrchr (temp, '\\'))
+	p++;
+      else
+	p = temp;
+      strcpy (p, "__XXXXXX");
+      _mktemp (temp);
+      if (rename (map_win32_filename (oldname, NULL), temp) < 0)
+	return -1;
+    }
+
+  /* Emulate Unix behaviour - newname is deleted if it already exists
+     (at least if it is a file; don't do this for directories). */
+  newname = map_win32_filename (newname, NULL);
+  if (GetFileAttributes (newname) != -1)
+    {
+      _chmod (newname, 0666);
+      _unlink (newname);
+    }
+
+  return rename (temp, newname);
+}
+
+int
+sys_rmdir (const char * path)
+{
+  return _rmdir (map_win32_filename (path, NULL));
+}
+
+int
+sys_unlink (const char * path)
+{
+  return _unlink (map_win32_filename (path, NULL));
+}
+
+static FILETIME utc_base_ft;
+static long double utc_base;
+static int init = 0;
+
+static time_t
+convert_time (FILETIME ft)
+{
+  long double ret;
+
+  if (!init)
+    {
+      /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
+      SYSTEMTIME st;
+
+      st.wYear = 1970;
+      st.wMonth = 1;
+      st.wDay = 1;
+      st.wHour = 0;
+      st.wMinute = 0;
+      st.wSecond = 0;
+      st.wMilliseconds = 0;
+
+      SystemTimeToFileTime (&st, &utc_base_ft);
+      utc_base = (long double) utc_base_ft.dwHighDateTime
+	* 4096 * 1024 * 1024 + utc_base_ft.dwLowDateTime;
+      init = 1;
+    }
+
+  if (CompareFileTime (&ft, &utc_base_ft) < 0)
+    return 0;
+
+  ret = (long double) ft.dwHighDateTime * 4096 * 1024 * 1024 + ft.dwLowDateTime;
+  ret -= utc_base;
+  return (time_t) (ret * 1e-7);
+}
+
+#if 0
+/* in case we ever have need of this */
+void
+convert_from_time_t (time_t time, FILETIME * pft)
+{
+  long double tmp;
+
+  if (!init)
+    {
+      /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
+      SYSTEMTIME st;
+
+      st.wYear = 1970;
+      st.wMonth = 1;
+      st.wDay = 1;
+      st.wHour = 0;
+      st.wMinute = 0;
+      st.wSecond = 0;
+      st.wMilliseconds = 0;
+
+      SystemTimeToFileTime (&st, &utc_base_ft);
+      utc_base = (long double) utc_base_ft.dwHighDateTime
+	* 4096 * 1024 * 1024 + utc_base_ft.dwLowDateTime;
+      init = 1;
+    }
+
+  /* time in 100ns units since 1-Jan-1601 */
+  tmp = (long double) time * 1e7 + utc_base;
+  pft->dwHighDateTime = (DWORD) (tmp / (4096.0 * 1024 * 1024));
+  pft->dwLowDateTime = (DWORD) (tmp - pft->dwHighDateTime);
+}
+#endif
+
+/*  "PJW" algorithm (see the "Dragon" compiler book). */
+static unsigned
+hashval (const char * str)
+{
+  unsigned h = 0;
+  unsigned g;
+  while (*str)
+    {
+      h = (h << 4) + *str++;
+      if ((g = h & 0xf0000000) != 0)
+	h = (h ^ (g >> 24)) & 0x0fffffff;
+    }
+  return h;
+}
+
+/* Return the hash value of the canonical pathname, excluding the
+   drive/UNC header, to get a hopefully unique inode number. */
+static _ino_t
+generate_inode_val (const char * name)
+{
+  char fullname[ MAX_PATH ];
+  char * p;
+  unsigned hash;
+
+  GetFullPathName (name, sizeof (fullname), fullname, &p);
+  get_volume_info (fullname, &p);
+  /* Normal Win32 filesystems are still case insensitive. */
+  _strlwr (p);
+  hash = hashval (p);
+  return (_ino_t) (hash ^ (hash >> 16));
+}
+
+/* MSVC stat function can't cope with UNC names and has other bugs, so
+   replace it with our own.  This also allows us to calculate consistent
+   inode values without hacks in the main Emacs code. */
+int
+stat (const char * path, struct stat * buf)
+{
+  char * name;
+  WIN32_FIND_DATA wfd;
+  HANDLE fh;
+  int permission;
+  int len;
+  int rootdir = FALSE;
+
+  if (path == NULL || buf == NULL)
+    {
+      errno = EFAULT;
+      return -1;
+    }
+
+  name = (char *) map_win32_filename (path, &path);
+  /* must be valid filename, no wild cards */
+  if (strchr (name, '*') || strchr (name, '?'))
+    {
+      errno = ENOENT;
+      return -1;
+    }
+
+  /* Remove trailing directory separator, unless name is the root
+     directory of a drive or UNC volume in which case ensure there
+     is a trailing separator. */
+  len = strlen (name);
+  rootdir = (path >= name + len - 1
+	     && (IS_DIRECTORY_SEP (*path) || *path == 0));
+  name = strcpy (alloca (len + 2), name);
+
+  if (rootdir)
+    {
+      if (!IS_DIRECTORY_SEP (name[len-1]))
+	strcat (name, "\\");
+      if (GetDriveType (name) < 2)
+	{
+	  errno = ENOENT;
+	  return -1;
+	}
+      memset (&wfd, 0, sizeof (wfd));
+      wfd.dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
+      wfd.ftCreationTime = utc_base_ft;
+      wfd.ftLastAccessTime = utc_base_ft;
+      wfd.ftLastWriteTime = utc_base_ft;
+      strcpy (wfd.cFileName, name);
     }
   else
-    Vuser_real_login_name = build_string (Name);
+    {
+      if (IS_DIRECTORY_SEP (name[len-1]))
+	name[len - 1] = 0;
+      fh = FindFirstFile (name, &wfd);
+      if (fh == INVALID_HANDLE_VALUE)
+	{
+	  errno = ENOENT;
+	  return -1;
+	}
+      FindClose (fh);
+    }
+
+  if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      buf->st_mode = _S_IFDIR;
+      buf->st_nlink = 2;	/* doesn't really matter */
+    }
+  else
+    {
+#if 0
+      /* This is more accurate in terms of gettting the correct number
+	 of links, but is quite slow (it is noticable when Emacs is
+	 making a list of file name completions). */
+      BY_HANDLE_FILE_INFORMATION info;
+
+      fh = CreateFile (name, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		       NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+      if (GetFileInformationByHandle (fh, &info))
+	{
+	  switch (GetFileType (fh))
+	    {
+	    case FILE_TYPE_DISK:
+	      buf->st_mode = _S_IFREG;
+	      break;
+	    case FILE_TYPE_PIPE:
+	      buf->st_mode = _S_IFIFO;
+	      break;
+	    case FILE_TYPE_CHAR:
+	    case FILE_TYPE_UNKNOWN:
+	    default:
+	      buf->st_mode = _S_IFCHR;
+	    }
+	  buf->st_nlink = info.nNumberOfLinks;
+	  /* Could use file index, but this is not guaranteed to be
+	     unique unless we keep a handle open all the time. */
+	  /* buf->st_ino = info.nFileIndexLow ^ info.nFileIndexHigh; */
+	  CloseHandle (fh);
+	}
+      else
+	{
+	  errno = EACCES;
+	  return -1;
+	}
+#else
+      buf->st_mode = _S_IFREG;
+      buf->st_nlink = 1;
+#endif
+    }
+
+  /* consider files to belong to current user */
+  buf->st_uid = the_passwd.pw_uid;
+  buf->st_gid = the_passwd.pw_gid;
+
+  /* volume_info is set indirectly by map_win32_filename */
+  buf->st_dev = volume_info.serialnum;
+  buf->st_rdev = volume_info.serialnum;
+
+  buf->st_ino = generate_inode_val (name);
+
+  buf->st_size = wfd.nFileSizeLow;
+
+  /* Convert timestamps to Unix format. */
+  buf->st_mtime = convert_time (wfd.ftLastWriteTime);
+  buf->st_atime = convert_time (wfd.ftLastAccessTime);
+  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
+  buf->st_ctime = convert_time (wfd.ftCreationTime);
+  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+
+  /* determine rwx permissions */
+  if (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+    permission = _S_IREAD;
+  else
+    permission = _S_IREAD | _S_IWRITE;
+  
+  if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    permission |= _S_IEXEC;
+  else
+    {
+      char * p = strrchr (name, '.');
+      if (p != NULL &&
+	  (stricmp (p, ".exe") == 0 ||
+	   stricmp (p, ".com") == 0 ||
+	   stricmp (p, ".bat") == 0 ||
+	   stricmp (p, ".cmd") == 0))
+	permission |= _S_IEXEC;
+    }
+
+  buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
+
+  return 0;
 }
-#else   /* not WINDOWSNT */
-#endif  /* not WINDOWSNT */
-#endif  /* PIGSFLY */
+
+#ifdef HAVE_SOCKETS
+
+/* Wrappers for  winsock functions to map between our file descriptors
+   and winsock's handles; also set h_errno for convenience.
+
+   To allow Emacs to run on systems which don't have winsock support
+   installed, we dynamically link to winsock on startup if present, and
+   otherwise provide the minimum necessary functionality
+   (eg. gethostname). */
+
+/* function pointers for relevant socket functions */
+int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
+void (PASCAL *pfn_WSASetLastError) (int iError);
+int (PASCAL *pfn_WSAGetLastError) (void);
+int (PASCAL *pfn_socket) (int af, int type, int protocol);
+int (PASCAL *pfn_bind) (SOCKET s, const struct sockaddr *addr, int namelen);
+int (PASCAL *pfn_connect) (SOCKET s, const struct sockaddr *addr, int namelen);
+int (PASCAL *pfn_ioctlsocket) (SOCKET s, long cmd, u_long *argp);
+int (PASCAL *pfn_recv) (SOCKET s, char * buf, int len, int flags);
+int (PASCAL *pfn_send) (SOCKET s, const char * buf, int len, int flags);
+int (PASCAL *pfn_closesocket) (SOCKET s);
+int (PASCAL *pfn_shutdown) (SOCKET s, int how);
+int (PASCAL *pfn_WSACleanup) (void);
+
+u_short (PASCAL *pfn_htons) (u_short hostshort);
+u_short (PASCAL *pfn_ntohs) (u_short netshort);
+unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
+int (PASCAL *pfn_gethostname) (char * name, int namelen);
+struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
+struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
+
+static int have_winsock;
+static HANDLE winsock_lib;
+
+static void
+term_winsock (void)
+{
+  if (have_winsock)
+    {
+      pfn_WSACleanup ();
+      FreeLibrary (winsock_lib);
+    }
+}
+
+static void
+init_winsock ()
+{
+  WSADATA  winsockData;
+
+  winsock_lib = LoadLibrary ("wsock32.dll");
+
+  if (winsock_lib != NULL)
+    {
+      /* dynamically link to socket functions */
+
+#define LOAD_PROC(fn) \
+      if ((pfn_##fn = (void *) GetProcAddress (winsock_lib, #fn)) == NULL) \
+        goto fail;
+
+      LOAD_PROC( WSAStartup );
+      LOAD_PROC( WSASetLastError );
+      LOAD_PROC( WSAGetLastError );
+      LOAD_PROC( socket );
+      LOAD_PROC( bind );
+      LOAD_PROC( connect );
+      LOAD_PROC( ioctlsocket );
+      LOAD_PROC( recv );
+      LOAD_PROC( send );
+      LOAD_PROC( closesocket );
+      LOAD_PROC( shutdown );
+      LOAD_PROC( htons );
+      LOAD_PROC( ntohs );
+      LOAD_PROC( inet_addr );
+      LOAD_PROC( gethostname );
+      LOAD_PROC( gethostbyname );
+      LOAD_PROC( getservbyname );
+      LOAD_PROC( WSACleanup );
+
+      /* specify version 1.1 of winsock */
+      if (pfn_WSAStartup (0x101, &winsockData) == 0)
+        {
+	  have_winsock = TRUE;
+	  return;
+	}
+
+    fail:
+      FreeLibrary (winsock_lib);
+    }
+  have_winsock = FALSE;
+}
+
+
+int h_errno = 0;
+
+/* function to set h_errno for compatability; map winsock error codes to
+   normal system codes where they overlap (non-overlapping definitions
+   are already in <sys/socket.h> */
+static void set_errno ()
+{
+  if (!have_winsock)
+    h_errno = EINVAL;
+  else
+    h_errno = pfn_WSAGetLastError ();
+
+  switch (h_errno)
+    {
+    case WSAEACCES:		h_errno = EACCES; break;
+    case WSAEBADF: 		h_errno = EBADF; break;
+    case WSAEFAULT:		h_errno = EFAULT; break;
+    case WSAEINTR: 		h_errno = EINTR; break;
+    case WSAEINVAL:		h_errno = EINVAL; break;
+    case WSAEMFILE:		h_errno = EMFILE; break;
+    case WSAENAMETOOLONG: 	h_errno = ENAMETOOLONG; break;
+    case WSAENOTEMPTY:		h_errno = ENOTEMPTY; break;
+    }
+  errno = h_errno;
+}
+
+static void check_errno ()
+{
+  if (h_errno == 0 && have_winsock)
+    pfn_WSASetLastError (0);
+}
+
+/* [andrewi 3-May-96] I've had conflicting results using both methods,
+   but I believe the method of keeping the socket handle separate (and
+   insuring it is not inheritable) is the correct one. */
+
+//#define SOCK_REPLACE_HANDLE
+
+#ifdef SOCK_REPLACE_HANDLE
+#define SOCK_HANDLE(fd) ((SOCKET) _get_osfhandle (fd))
+#else
+#define SOCK_HANDLE(fd) ((SOCKET) fd_info[fd].hnd)
+#endif
+
+int
+sys_socket(int af, int type, int protocol)
+{
+  int fd;
+  long s;
+  child_process * cp;
+
+  if (!have_winsock)
+    {
+      h_errno = ENETDOWN;
+      return INVALID_SOCKET;
+    }
+
+  check_errno ();
+
+  /* call the real socket function */
+  s = (long) pfn_socket (af, type, protocol);
+  
+  if (s != INVALID_SOCKET)
+    {
+      /* Although under NT 3.5 _open_osfhandle will accept a socket
+	 handle, if opened with SO_OPENTYPE == SO_SYNCHRONOUS_NONALERT,
+	 that does not work under NT 3.1.  However, we can get the same
+	 effect by using a backdoor function to replace an existing
+	 descriptor handle with the one we want. */
+
+      /* allocate a file descriptor (with appropriate flags) */
+      fd = _open ("NUL:", _O_RDWR);
+      if (fd >= 0)
+        {
+#ifdef SOCK_REPLACE_HANDLE
+	  /* now replace handle to NUL with our socket handle */
+	  CloseHandle ((HANDLE) _get_osfhandle (fd));
+	  _free_osfhnd (fd);
+	  _set_osfhnd (fd, s);
+	  /* setmode (fd, _O_BINARY); */
+#else
+	  /* Make a non-inheritable copy of the socket handle. */
+	  {
+	    HANDLE parent;
+	    HANDLE new_s = INVALID_HANDLE_VALUE;
+
+	    parent = GetCurrentProcess ();
+
+	    DuplicateHandle (parent,
+			     (HANDLE) s,
+			     parent,
+			     &new_s,
+			     0,
+			     FALSE,
+			     DUPLICATE_SAME_ACCESS);
+	    pfn_closesocket (s);
+	    fd_info[fd].hnd = new_s;
+	    s = (SOCKET) new_s;
+	  }
+#endif
+
+	  /* set our own internal flags */
+	  fd_info[fd].flags = FILE_SOCKET | FILE_BINARY | FILE_READ | FILE_WRITE;
+
+	  cp = new_child ();
+	  if (cp)
+	    {
+	      cp->fd = fd;
+	      cp->status = STATUS_READ_ACKNOWLEDGED;
+
+	      /* attach child_process to fd_info */
+	      if (fd_info[ fd ].cp != NULL)
+		{
+		  DebPrint (("sys_socket: fd_info[%d] apparently in use!\n", fd));
+		  abort ();
+		}
+
+	      fd_info[ fd ].cp = cp;
+
+	      /* success! */
+	      return fd;
+	    }
+
+	  /* clean up */
+	  _close (fd);
+	}
+      pfn_closesocket (s);
+      h_errno = EMFILE;
+    }
+  set_errno ();
+
+  return -1;
+}
+
+
+int
+sys_bind (int s, const struct sockaddr * addr, int namelen)
+{
+  if (!have_winsock)
+    {
+      h_errno = ENOTSOCK;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_bind (SOCK_HANDLE (s), addr, namelen);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
+}
+
+
+int
+sys_connect (int s, const struct sockaddr * name, int namelen)
+{
+  if (!have_winsock)
+    {
+      h_errno = ENOTSOCK;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_connect (SOCK_HANDLE (s), name, namelen);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
+}
+
+u_short
+sys_htons (u_short hostshort)
+{
+  return (have_winsock) ?
+    pfn_htons (hostshort) : hostshort;
+}
+
+u_short
+sys_ntohs (u_short netshort)
+{
+  return (have_winsock) ?
+    pfn_ntohs (netshort) : netshort;
+}
+
+unsigned long
+sys_inet_addr (const char * cp)
+{
+  return (have_winsock) ?
+    pfn_inet_addr (cp) : INADDR_NONE;
+}
+
+int
+sys_gethostname (char * name, int namelen)
+{
+  if (have_winsock)
+    return pfn_gethostname (name, namelen);
+
+  if (namelen > MAX_COMPUTERNAME_LENGTH)
+    return !GetComputerName (name, &namelen);
+
+  h_errno = EFAULT;
+  return SOCKET_ERROR;
+}
+
+struct hostent *
+sys_gethostbyname(const char * name)
+{
+  struct hostent * host;
+
+  if (!have_winsock)
+    {
+      h_errno = ENETDOWN;
+      return NULL;
+    }
+
+  check_errno ();
+  host = pfn_gethostbyname (name);
+  if (!host)
+    set_errno ();
+  return host;
+}
+
+struct servent *
+sys_getservbyname(const char * name, const char * proto)
+{
+  struct servent * serv;
+
+  if (!have_winsock)
+    {
+      h_errno = ENETDOWN;
+      return NULL;
+    }
+
+  check_errno ();
+  serv = pfn_getservbyname (name, proto);
+  if (!serv)
+    set_errno ();
+  return serv;
+}
+
+#endif /* HAVE_SOCKETS */
+
+
+/* Shadow main io functions: we need to handle pipes and sockets more
+   intelligently, and implement non-blocking mode as well. */
+
+int
+sys_close (int fd)
+{
+  int rc;
+
+  if (fd < 0 || fd >= MAXDESC)
+    {
+      errno = EBADF;
+      return -1;
+    }
+
+  if (fd_info[fd].cp)
+    {
+      child_process * cp = fd_info[fd].cp;
+
+      fd_info[fd].cp = NULL;
+
+      if (CHILD_ACTIVE (cp))
+        {
+	  /* if last descriptor to active child_process then cleanup */
+	  int i;
+	  for (i = 0; i < MAXDESC; i++)
+	    {
+	      if (i == fd)
+		continue;
+	      if (fd_info[i].cp == cp)
+		break;
+	    }
+	  if (i == MAXDESC)
+	    {
+#if defined (HAVE_SOCKETS) && !defined (SOCK_REPLACE_HANDLE)
+	      if (fd_info[fd].flags & FILE_SOCKET)
+		{
+		  if (!have_winsock) abort ();
+
+		  pfn_shutdown (SOCK_HANDLE (fd), 2);
+		  rc = pfn_closesocket (SOCK_HANDLE (fd));
+		}
+#endif
+	      delete_child (cp);
+	    }
+	}
+    }
+
+  /* Note that sockets do not need special treatment here (at least on
+     NT and Win95 using the standard tcp/ip stacks) - it appears that
+     closesocket is equivalent to CloseHandle, which is to be expected
+     because socket handles are fully fledged kernel handles. */
+  rc = _close (fd);
+
+  if (rc == 0)
+    fd_info[fd].flags = 0;
+
+  return rc;
+}
+
+int
+sys_dup (int fd)
+{
+  int new_fd;
+
+  new_fd = _dup (fd);
+  if (new_fd >= 0)
+    {
+      /* duplicate our internal info as well */
+      fd_info[new_fd] = fd_info[fd];
+    }
+  return new_fd;
+}
+
+
+int
+sys_dup2 (int src, int dst)
+{
+  int rc;
+
+  if (dst < 0 || dst >= MAXDESC)
+    {
+      errno = EBADF;
+      return -1;
+    }
+
+  /* make sure we close the destination first if it's a pipe or socket */
+  if (src != dst && fd_info[dst].flags != 0)
+    sys_close (dst);
+  
+  rc = _dup2 (src, dst);
+  if (rc == 0)
+    {
+      /* duplicate our internal info as well */
+      fd_info[dst] = fd_info[src];
+    }
+  return rc;
+}
+
+/* From callproc.c  */
+extern Lisp_Object Vbinary_process_input;
+extern Lisp_Object Vbinary_process_output;
+
+/* Unix pipe() has only one arg */
+int
+sys_pipe (int * phandles)
+{
+  int rc;
+  unsigned flags;
+  child_process * cp;
+
+  /* make pipe handles non-inheritable; when we spawn a child,
+     we replace the relevant handle with an inheritable one. */
+  rc = _pipe (phandles, 0, _O_NOINHERIT);
+
+  if (rc == 0)
+    {
+      /* set internal flags, and put read and write handles into binary
+	 mode as necessary; if not in binary mode, set the MSVC internal
+	 FDEV (0x40) flag to prevent _read from treating ^Z as eof (this
+	 could otherwise allow Emacs to hang because it then waits
+	 indefinitely for the child process to exit, when it might not be
+	 finished). */
+      flags = FILE_PIPE | FILE_READ;
+      if (!NILP (Vbinary_process_output))
+	{
+	  flags |= FILE_BINARY;
+	  setmode (phandles[0], _O_BINARY);
+	}
+#if (_MSC_VER == 900)
+      else
+	_osfile[phandles[0]] |= 0x40;
+#endif
+
+      fd_info[phandles[0]].flags = flags;
+
+      flags = FILE_PIPE | FILE_WRITE;
+      if (!NILP (Vbinary_process_input))
+	{
+	  flags |= FILE_BINARY;
+	  setmode (phandles[1], _O_BINARY);
+	}
+#if (_MSC_VER == 900)
+      else
+	_osfile[phandles[1]] |= 0x40;
+#endif
+
+      fd_info[phandles[1]].flags = flags;
+    }
+
+  return rc;
+}
+
+/* Function to do blocking read of one byte, needed to implement
+   select.  It is only allowed on sockets and pipes. */
+int
+_sys_read_ahead (int fd)
+{
+  child_process * cp;
+  int rc;
+
+  if (fd < 0 || fd >= MAXDESC)
+    return STATUS_READ_ERROR;
+
+  cp = fd_info[fd].cp;
+
+  if (cp == NULL || cp->fd != fd || cp->status != STATUS_READ_READY)
+    return STATUS_READ_ERROR;
+
+  if ((fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET)) == 0
+      || (fd_info[fd].flags & FILE_READ) == 0)
+    {
+      DebPrint (("_sys_read_ahead: internal error: fd %d is not a pipe or socket!\n", fd));
+      abort ();
+    }
+  
+  cp->status = STATUS_READ_IN_PROGRESS;
+  
+  if (fd_info[fd].flags & FILE_PIPE)
+    /* Use read to get CRLF translation */
+    rc = _read (fd, &cp->chr, sizeof (char));
+#ifdef HAVE_SOCKETS
+  else if (fd_info[fd].flags & FILE_SOCKET)
+    rc = pfn_recv (SOCK_HANDLE (fd), &cp->chr, sizeof (char), 0);
+#endif
+  
+  if (rc == sizeof (char))
+    cp->status = STATUS_READ_SUCCEEDED;
+  else
+    cp->status = STATUS_READ_FAILED;
+
+  return cp->status;
+}
+
+int
+sys_read (int fd, char * buffer, unsigned int count)
+{
+  int nchars;
+  int extra = 0;
+  int to_read;
+  DWORD waiting;
+
+  if (fd < 0 || fd >= MAXDESC)
+    {
+      errno = EBADF;
+      return -1;
+    }
+
+  if (fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
+    {
+      child_process *cp = fd_info[fd].cp;
+
+      if ((fd_info[fd].flags & FILE_READ) == 0)
+        {
+	  errno = EBADF;
+	  return -1;
+	}
+
+      /* presence of a child_process structure means we are operating in
+	 non-blocking mode - otherwise we just call _read directly.
+	 Note that the child_process structure might be missing because
+	 reap_subprocess has been called; in this case the pipe is
+	 already broken, so calling _read on it is okay. */
+      if (cp)
+        {
+	  int current_status = cp->status;
+
+	  switch (current_status)
+	    {
+	    case STATUS_READ_FAILED:
+	    case STATUS_READ_ERROR:
+	      /* report normal EOF */
+	      return 0;
+
+	    case STATUS_READ_READY:
+	    case STATUS_READ_IN_PROGRESS:
+	      DebPrint (("sys_read called when read is in progress\n"));
+	      errno = EWOULDBLOCK;
+	      return -1;
+
+	    case STATUS_READ_SUCCEEDED:
+	      /* consume read-ahead char */
+	      *buffer++ = cp->chr;
+	      count--;
+	      extra = 1;
+	      cp->status = STATUS_READ_ACKNOWLEDGED;
+	      ResetEvent (cp->char_avail);
+
+	    case STATUS_READ_ACKNOWLEDGED:
+	      break;
+
+	    default:
+	      DebPrint (("sys_read: bad status %d\n", current_status));
+	      errno = EBADF;
+	      return -1;
+	    }
+
+	  if (fd_info[fd].flags & FILE_PIPE)
+	    {
+	      PeekNamedPipe ((HANDLE) _get_osfhandle (fd), NULL, 0, NULL, &waiting, NULL);
+	      to_read = min (waiting, (DWORD) count);
+      
+	      /* Use read to get CRLF translation */
+	      nchars = _read (fd, buffer, to_read);
+	    }
+#ifdef HAVE_SOCKETS
+	  else /* FILE_SOCKET */
+	    {
+	      if (!have_winsock) abort ();
+
+	      /* do the equivalent of a non-blocking read */
+	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
+	      if (waiting == 0 && extra == 0)
+	        {
+		  h_errno = errno = EWOULDBLOCK;
+		  return -1;
+		}
+
+	      nchars = 0;
+	      if (waiting)
+	        {
+		  /* always use binary mode for sockets */
+		  nchars = pfn_recv (SOCK_HANDLE (fd), buffer, count, 0);
+		  if (nchars == SOCKET_ERROR)
+		    {
+		      DebPrint(("sys_read.recv failed with error %d on socket %ld\n",
+				pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+		      if (extra == 0)
+		        {
+			  set_errno ();
+			  return -1;
+			}
+		      nchars = 0;
+		    }
+		}
+	    }
+#endif
+	}
+      else
+	nchars = _read (fd, buffer, count);
+    }
+  else
+    nchars = _read (fd, buffer, count);
+
+  return nchars + extra;
+}
+
+/* For now, don't bother with a non-blocking mode */
+int
+sys_write (int fd, const void * buffer, unsigned int count)
+{
+  int nchars;
+
+  if (fd < 0 || fd >= MAXDESC)
+    {
+      errno = EBADF;
+      return -1;
+    }
+
+  if (fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
+    if ((fd_info[fd].flags & FILE_WRITE) == 0)
+      {
+	errno = EBADF;
+	return -1;
+      }
+#ifdef HAVE_SOCKETS
+  if (fd_info[fd].flags & FILE_SOCKET)
+    {
+      if (!have_winsock) abort ();
+      nchars =  pfn_send (SOCK_HANDLE (fd), buffer, count, 0);
+      if (nchars == SOCKET_ERROR)
+        {
+	  DebPrint(("sys_read.send failed with error %d on socket %ld\n",
+		    pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+	  set_errno ();
+	}
+    }
+  else
+#endif
+    nchars = _write (fd, buffer, count);
+
+  return nchars;
+}
+
+
+void
+term_ntproc ()
+{
+#ifdef HAVE_SOCKETS
+  /* shutdown the socket interface if necessary */
+  term_winsock ();
+#endif
+}
+
+void
+init_ntproc ()
+{
+#ifdef HAVE_SOCKETS
+  /* initialise the socket interface if available */
+  init_winsock ();
+#endif
+
+  /* Initial preparation for subprocess support: replace our standard
+     handles with non-inheritable versions. */
+  {
+    HANDLE parent;
+    HANDLE stdin_save =  INVALID_HANDLE_VALUE;
+    HANDLE stdout_save = INVALID_HANDLE_VALUE;
+    HANDLE stderr_save = INVALID_HANDLE_VALUE;
+
+    parent = GetCurrentProcess ();
+
+    /* ignore errors when duplicating and closing; typically the
+       handles will be invalid when running as a gui program. */
+    DuplicateHandle (parent, 
+		     GetStdHandle (STD_INPUT_HANDLE), 
+		     parent,
+		     &stdin_save, 
+		     0, 
+		     FALSE, 
+		     DUPLICATE_SAME_ACCESS);
+    
+    DuplicateHandle (parent,
+		     GetStdHandle (STD_OUTPUT_HANDLE),
+		     parent,
+		     &stdout_save,
+		     0,
+		     FALSE,
+		     DUPLICATE_SAME_ACCESS);
+    
+    DuplicateHandle (parent,
+		     GetStdHandle (STD_ERROR_HANDLE),
+		     parent,
+		     &stderr_save,
+		     0,
+		     FALSE,
+		     DUPLICATE_SAME_ACCESS);
+    
+    fclose (stdin);
+    fclose (stdout);
+    fclose (stderr);
+
+    if (stdin_save != INVALID_HANDLE_VALUE)
+      _open_osfhandle ((long) stdin_save, O_TEXT);
+    else
+      open ("nul", O_TEXT | O_NOINHERIT | O_RDONLY);
+    fdopen (0, "r");
+
+    if (stdout_save != INVALID_HANDLE_VALUE)
+      _open_osfhandle ((long) stdout_save, O_TEXT);
+    else
+      open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
+    fdopen (1, "w");
+
+    if (stderr_save != INVALID_HANDLE_VALUE)
+      _open_osfhandle ((long) stderr_save, O_TEXT);
+    else
+      open ("nul", O_TEXT | O_NOINHERIT | O_WRONLY);
+    fdopen (2, "w");
+  }
+
+  /* unfortunately, atexit depends on implementation of malloc */
+  /* atexit (term_ntproc); */
+  signal (SIGABRT, term_ntproc);
+}
+
+/* end of nt.c */
