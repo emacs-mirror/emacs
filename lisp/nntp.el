@@ -334,7 +334,10 @@ instead call function `nntp-status-message' to get status message.")
 	    'active)
 	'group))))
 
-(defun nntp-open-server (server &optional defs)
+(defun nntp-open-server (server &optional defs connectionless)
+  "Open the virtual server SERVER.
+If CONNECTIONLESS is non-nil, don't attempt to connect to any physical
+servers."
   (nnheader-init-server-buffer)
   (if (nntp-server-opened server)
       t
@@ -356,16 +359,20 @@ instead call function `nntp-status-message' to get status message.")
 	    (setq nntp-server-alist (delq state nntp-server-alist)))
 	(nnheader-set-init-variables nntp-server-variables defs)))
     (setq nntp-current-server server)
-    (or (nntp-server-opened server)
-	(progn
-	  (if (member nntp-address nntp-timeout-servers)
-	      nil
-	    (run-hooks 'nntp-prepare-server-hook)
-	    (nntp-open-server-semi-internal nntp-address nntp-port-number))))))
+    ;; We have now changed to the proper virtual server.  We then
+    ;; check that the physical server is opened.
+    (if (or (nntp-server-opened server)
+	    connectionless)
+	()
+      (if (member nntp-address nntp-timeout-servers)
+	  nil
+	;; We open a connection to the physical nntp server.
+	(run-hooks 'nntp-prepare-server-hook)
+	(nntp-open-server-semi-internal nntp-address nntp-port-number)))))
 
 (defun nntp-close-server (&optional server)
   "Close connection to SERVER."
-  (nntp-possibly-change-server nil server)
+  (nntp-possibly-change-server nil server t)
   (unwind-protect
       (progn
 	;; Un-set default sentinel function before closing connection.
@@ -525,10 +532,10 @@ instead call function `nntp-status-message' to get status message.")
 
 (defun nntp-request-group-description (group &optional server)
   "Get description of GROUP."
-  (if (nntp-possibly-change-server nil server)
-      (prog1
-	  (nntp-send-command "^.*\r?\n" "XGTITLE" group)
-	(nntp-decode-text))))
+  (nntp-possibly-change-server nil server)
+  (prog1
+      (nntp-send-command "^.*\r?\n" "XGTITLE" group)
+    (nntp-decode-text)))
 
 (defun nntp-close-group (group &optional server)
   (setq nntp-current-group nil)
@@ -1190,15 +1197,16 @@ defining this function as macro."
     (setq list (cdr list)))
   (car list))
 
-(defun nntp-possibly-change-server (newsgroup server)
-  ;; We see whether it is necessary to change the newsgroup.
-  (and newsgroup
-       (progn
-	 (not (equal newsgroup nntp-current-group))
-	 (nntp-request-group newsgroup server)))
-  (and server
-       (or (nntp-server-opened server)
-	   (nntp-open-server server))))
+(defun nntp-possibly-change-server (newsgroup server &optional connectionless)
+  "Check whether the virtual server needs changing."
+  (if (and server
+	   (not (nntp-server-opened server)))
+      ;; This virtual server isn't open, so we (re)open it here.
+      (nntp-open-server server nil t))
+  (if (and newsgroup 
+	   (not (equal newsgroup nntp-current-group)))
+      ;; Set the proper current group.
+      (nntp-request-group newsgroup server)))
 
 (defun nntp-try-list-active (group)
   (nntp-list-active-group group)
