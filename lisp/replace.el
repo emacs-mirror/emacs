@@ -704,22 +704,14 @@ See also `multi-occur'."
 			 (isearch-no-upper-case-p regexp t))
 		    list-matching-lines-buffer-name-face
 		    nil list-matching-lines-face nil)))
-	(let* ((diff (- (length bufs) (length active-bufs)))
-	       (bufcount (- (length bufs) diff))
-	       (msg (concat
-		     (format "Searched %d buffer%s" bufcount (if (= bufcount 1) "" "s"))
-		     "%s; "
-		     (format "%s match%s for `%s'"
-			     (if (zerop count)
-				 "no"
-			       (format "%d" count))
-			     (if (= count 1)
-				 ""
-			       "es")
-			     regexp))))
-	  (message msg (if (zerop diff)
-			   ""
-			 (format " (%d killed)" diff))))
+	(let* ((bufcount (length active-bufs))
+	       (diff (- (length bufs) bufcount)))
+	  (message "Searched %d buffer%s%s; %s match%s for `%s'"
+		   bufcount (if (= bufcount 1) "" "s")
+		   (if (zerop diff) "" (format " (%d killed)" diff))
+		   (if (zerop count) "no" (format "%d" count))
+		   (if (= count 1) "" "es")
+		   regexp))
 	;; If we had to make a temporary buffer, make it the *Occur*
 	;; buffer now.
 	(when made-temp-buf
