@@ -1198,13 +1198,20 @@ move to the previous message."
     (save-buffer))
   (set-buffer-modified-p nil))
 
-(defun rmail-summary-get-new-mail ()
-  "Get new mail and recompute summary headers."
-  (interactive)
+(defun rmail-summary-get-new-mail (&optional file-name)
+  "Get new mail and recompute summary headers.
+
+Optionally you can specify the file to get new mail from.  In this case,
+the file of new mail is not changed or deleted.  Noninteractively, you can
+pass the inbox file name as an argument.  Interactively, a prefix
+argument says to read a file name and use that file as the inbox."
+  (interactive
+   (list (if current-prefix-arg
+	     (read-file-name "Get new mail from file: "))))
   (let (msg)
     (save-excursion
       (set-buffer rmail-buffer)
-      (rmail-get-new-mail)
+      (rmail-get-new-mail file-name)
       ;; Get the proper new message number.
       (setq msg rmail-current-message))
     ;; Make sure that message is displayed.
