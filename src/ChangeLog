@@ -1,3 +1,25 @@
+2003-07-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* buffer.c (report_overlay_modification): Don't run hooks while
+	traversing the list of overlays.
+
+	* buffer.h (struct buffer): Use an int for overlay_center.
+	(overlays_at, evaporate_overlays, recenter_overlay_lists)
+	(overlay_strings, fix_overlays_before): Use EMACS_INT for positions.
+
+	* buffer.c (reset_buffer, recenter_overlay_lists)
+	(adjust_overlays_for_insert, adjust_overlays_for_delete)
+	(fix_overlays_in_range, Fmake_overlay, Fmove_overlay)
+	(evaporate_overlays, init_buffer_once): Update use of overlay_center.
+	(overlays_at, evaporate_overlays, recenter_overlay_lists)
+	(overlay_strings, fix_overlays_before): Use EMACS_INT for positions.
+
+	* xdisp.c (fast_find_position): Remove unused var.
+
+	* cmds.c (Qexpand_abbrev): New sym.
+	(syms_of_cmds): Initialize it.
+	(internal_self_insert): Use it to call expand-abbrev.
+
 2003-07-09  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if emacs
@@ -15,6 +37,9 @@
 	* buffer.c (Fkill_buffer): Clear charpos cache if necessary.
 
 2003-07-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (read_minibuf): UNGCPRO before returning.
+	(Ftry_completion, Fall_completions): Doc fix.
 
 	* alloc.c (live_float_p): Check that p is not past the `floats' array,
 	now that `floats' is not the last element of the struct any more.
