@@ -425,19 +425,30 @@ contains expressions rather than strings.")
 (defvar minibuffer-history-search-history nil)
 
 (mapcar
- (function (lambda (key-and-command)
-	     (mapcar
-	      (function (lambda (keymap)
-			  (define-key (symbol-value keymap)
-			    (car key-and-command)
-			    (cdr key-and-command))))
-	      '(minibuffer-local-map
-		minibuffer-local-ns-map
-		minibuffer-local-completion-map
-		minibuffer-local-must-match-map
-		read-expression-map))))
- '(("\en" . next-history-element) ([next] . next-history-element)
-   ("\ep" . previous-history-element) ([prior] . previous-history-element)
+ (lambda (key-and-command)
+   (mapcar
+    (lambda (keymap-and-completionp)
+      ;; Arg is (KEYMAP-SYMBOL . COMPLETION-MAP-P).
+      ;; If the cdr of KEY-AND-COMMAND (the command) is a cons,
+      ;; its car is used if COMPLETION-MAP-P is nil, its cdr if it is t.
+      (define-key (symbol-value (car keymap-and-completionp))
+	(car key-and-command)
+	(let ((command (cdr key-and-command)))
+	  (if (consp command)
+	      (if (cdr keymap-and-completionp)
+		  (cdr command)
+		(car command))
+	    command))))
+    '((minibuffer-local-map . nil)
+      (minibuffer-local-ns-map . nil)
+      (minibuffer-local-completion-map . t)
+      (minibuffer-local-must-match-map . t)
+      (read-expression-map . nil))))
+ ;; In completion maps, use the completion-oriented history commands.
+ '(("\en" . (next-history-element . next-complete-history-element))
+   ([next] . (next-history-element . next-complete-history-element))
+   ("\ep" . (previous-history-element . previous-complete-history-element))
+   ([prior] . (previous-history-element . previous-complete-history-element))
    ("\er" . previous-matching-history-element)
    ("\es" . next-matching-history-element)))
 
@@ -520,6 +531,18 @@ If N is negative, find the previous or Nth previous match."
   "Inserts the previous element of the minibuffer history into the minibuffer."
   (interactive "p")
   (next-history-element (- n)))
+
+(defun next-complete-history-element (n)
+  "\
+Get previous element of history which is a completion of minibuffer contents."
+  (interactive "p")
+  (next-matching-history-element (concat "^" (regexp-quote (buffer-string)))
+				 n))
+
+(defun previous-complete-history-element (n)
+  "Get next element of history which is a completion of minibuffer contents."
+  (interactive "p")
+  (next-complete-history-element (- n)))
 
 (defun goto-line (arg)
   "Goto line ARG, counting from line 1 at beginning of buffer."
