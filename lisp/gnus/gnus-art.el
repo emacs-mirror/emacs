@@ -5651,7 +5651,10 @@ groups."
   "Start editing the contents of the current article buffer."
   (let ((winconf (current-window-configuration)))
     (set-buffer gnus-article-buffer)
-    (gnus-article-edit-mode)
+    (let ((message-auto-save-directory
+	   ;; Don't associate the article buffer with a draft file.
+	   nil))
+      (gnus-article-edit-mode))
     (funcall start-func)
     (set-buffer-modified-p nil)
     (gnus-configure-windows 'edit-article)

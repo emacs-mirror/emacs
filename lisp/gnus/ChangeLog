@@ -1,3 +1,35 @@
+2004-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art. (gnus-article-edit-article): Don't associate the
+	article buffer with a draft file.  This is a temporary measure
+	against the 2004-08-22 change to gnus-article-edit-mode.
+
+2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* html2text.el (html2text-get-attr): Remove unused argument `tag'.
+	(html2text-format-tags): Remove unused variable `attr'.
+
+	* mm-util.el (mm-enrich-utf-8-by-mule-ucs): Fix cleaning of
+	after-load-alist.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
+	entry.  From Ilya N. Golubev <gin@mo.msk.ru>.
+	(mm-enrich-utf-8-by-mule-ucs): New function run when Mule-UCS is
+	loaded under XEmacs.
+	(): Don't make duplicated entries in mm-mime-mule-charset-alist.
+
+	* mm-util.el (mm-coding-system-p): Return a coding-system.
+	(mm-mime-mule-charset-alist): Use shift_jis instead of
+	iso-2022-jp-2 for the katakana-jisx0201 mule charset; add new
+	entries for the mime charsets iso-2022-jp-3 and shift_jis.
+	(mm-coding-system-priorities): Use shift_jis and iso-8859-1
+	instead of japanese-shift-jis and iso-latin-1 respectively in
+	order to share the default value with both Emacs and XEmacs-mule.
+	(mm-mule-charset-to-mime-charset): Make
+	mm-coding-system-priorities effective.
+	(mm-sort-coding-systems-predicate): Canonicalize coding-systems
+	while predicating of candidates upon the priorities.
+
 2004-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-msg.el (gnus-summary-resend-default-address): Add :version.

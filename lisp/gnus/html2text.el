@@ -144,7 +144,7 @@ formatting, and then moved afterward.")
   "Get value of ATTRIBUTE from LIST."
   (nth 1 (assoc attribute list)))
 
-(defun html2text-get-attr (p1 p2 tag)
+(defun html2text-get-attr (p1 p2)
   (goto-char p1)
   (re-search-forward " +[^ ]" p2 t)
   (let* ((attr-string (buffer-substring-no-properties (1- (point)) (1- p2)))
@@ -320,7 +320,7 @@ formatting, and then moved afterward.")
   ;; If someone can explain how to make the URL clickable I will surely
   ;; improve upon this.
   ;; Maybe `goto-addr.el' can be used here.
-  (let* ((attr-list (html2text-get-attr p1 p2 "a"))
+  (let* ((attr-list (html2text-get-attr p1 p2))
 	 (href (html2text-attr-value attr-list "href")))
     (delete-region p1 p4)
     (when href
@@ -418,8 +418,7 @@ See the documentation for that variable."
 				(point-max) t)
 	(let ((p1)
 	      (p2 (point))
-	      (p3) (p4)
-	      (attr (match-string 1)))
+	      (p3) (p4))
 	  (search-backward "<" (point-min) t)
 	  (setq p1 (point))
 	  (re-search-forward (format "</%s>" tag) (point-max) t)
