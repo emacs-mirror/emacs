@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.18
+;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -304,8 +304,8 @@ enforces this."
 (defcustom c-progress-interval 5
   "*Interval used to update progress status during long re-indentation.
 If a number, percentage complete gets updated after each interval of
-that many seconds.  Set to nil to inhibit updating.  This is only
-useful for Emacs 19."
+that many seconds.  To inhibit all messages during indentation, set
+this variable to nil."
   :type 'integer
   :group 'c)
 
