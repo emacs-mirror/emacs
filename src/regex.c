@@ -127,7 +127,18 @@ init_syntax_once ()
 /* isalpha etc. are used for the character classes.  */
 #include <ctype.h>
 
-#ifndef isascii
+/* Jim Meyering writes:
+
+   "... Some ctype macros are valid only for character codes that
+   isascii says are ASCII (SGI's IRIX-4.0.5 is one such system --when
+   using /bin/cc or gcc but without giving an ansi option).  So, all
+   ctype uses should be through macros like ISPRINT...  If
+   STDC_HEADERS is defined, then autoconf has verified that the ctype
+   macros don't need to be guarded with references to isascii. ...
+   Defining isascii to 1 should let any compiler worth its salt
+   eliminate the && through constant folding."  */
+#if ! defined (isascii) || defined (STDC_HEADERS)
+#undef isascii
 #define isascii(c) 1
 #endif
 
@@ -3463,7 +3474,11 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
                     }
                 }
               else
-                assert (bufp->regs_allocated == REGS_FIXED);
+		{
+		  /* These braces fend off a "empty body in an else-statement"
+		     warning under GCC when assert expands to nothing.  */
+		  assert (bufp->regs_allocated == REGS_FIXED);
+		}
 
               /* Convert the pointer data in `regstart' and `regend' to
                  indices.  Register zero has to be set differently,
