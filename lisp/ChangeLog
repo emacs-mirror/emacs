@@ -18,6 +18,11 @@
 
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-mcvs.el (vc-mcvs-mode-line-string): Remove.  Does not work.
+	(vc-mcvs-workfile-version): Manually macro expand vc-mcvs-cvs.
+	(vc-mcvs-cvs): Remove.
+	(vc-mcvs-command): Remove use of assert.
+
 	* outline.el (outline-insert-heading): Tighten up match.
 	(outline-demote, outline-move-subtree-down): Don't assume anything
 	about outline-regexp.
@@ -266,7 +271,7 @@
 
 	* textmodes/tex-mode.el (latex-find-indent): Avoid error at end of buf.
 
-	* emacs-lisp/lisp-mnt.el (lm-section-end): require outline.
+	* emacs-lisp/lisp-mnt.el (lm-section-end): Require outline.
 
 	* progmodes/grep.el (grep-mode-map):
 	Don't remap next-line, previous-line.

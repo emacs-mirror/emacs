@@ -1,3 +1,7 @@
+2004-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h [USE_LSB_TAG && !DECL_ALIGN]: Signal an error.
+
 2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lisp.h: Add undef DECL_ALIGN.
