@@ -177,7 +177,7 @@ as part of one command.")
 
 (defvar shell-completion-execonly t
   "*If non-nil, use executable files only for completion candidates.
-This mirrors the optional behaviour of the tcsh.
+This mirrors the optional behavior of tcsh.
 
 Detecting executability of files may slow command completion considerably.")
 
@@ -189,15 +189,15 @@ Detecting executability of files may slow command completion considerably.")
 
 (defvar shell-pushd-tohome nil
   "*If non-nil, make pushd with no arg behave as \"pushd ~\" (like cd).
-This mirrors the optional behaviour of the tcsh.")
+This mirrors the optional behavior of tcsh.")
 
 (defvar shell-pushd-dextract nil
   "*If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
-This mirrors the optional behaviour of the tcsh.")
+This mirrors the optional behavior of tcsh.")
 
 (defvar shell-pushd-dunique nil
   "*If non-nil, make pushd only add unique directories to the stack.
-This mirrors the optional behaviour of the tcsh.")
+This mirrors the optional behavior of tcsh.")
 
 (defvar shell-cd-regexp "cd"
   "*Regexp to match subshell commands equivalent to cd.")
@@ -265,24 +265,24 @@ M-x dirtrack-toggle turns directory tracking on and off.
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `shell-mode-hook' (in that order).  After each shell output, the hooks on
-`comint-output-filter-hook' are run.
+`comint-output-filter-functions' are run.
 
 Variables `shell-cd-regexp', `shell-pushd-regexp' and `shell-popd-regexp'
 are used to match their respective commands, while `shell-pushd-tohome',
-`shell-pushd-dextract' and `shell-pushd-dunique' control the behaviour of the
+`shell-pushd-dextract' and `shell-pushd-dunique' control the behavior of the
 relevant command.
 
 Variables `comint-completion-autolist', `comint-completion-addsuffix' and
-`comint-completion-recexact' control the behaviour of file name, command name
+`comint-completion-recexact' control the behavior of file name, command name
 and variable name completion.  Variable `shell-completion-execonly' controls
-the behaviour of command name completion.
+the behavior of command name completion.
 
 Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
 the initialisation of the input ring history, and history expansion.
 
-Variables `comint-output-filter-hook', `comint-scroll-to-bottom-on-input', and
-`comint-scroll-to-bottom-on-output' control whether input and output cause the
-window to scroll to the end of the buffer."
+Variables `comint-output-filter-functions', `comint-scroll-to-bottom-on-input',
+and `comint-scroll-to-bottom-on-output' control whether input and output
+cause the window to scroll to the end of the buffer."
   (interactive)
   (comint-mode)
   (setq major-mode 'shell-mode)
@@ -402,7 +402,7 @@ If emacs gets confused, you can resync with the shell with M-x dirs.
 
 See variables `shell-cd-regexp', `shell-pushd-regexp', and `shell-popd-regexp',
 while `shell-pushd-tohome', `shell-pushd-dextract' and `shell-pushd-dunique'
-control the behaviour of the relevant command.
+control the behavior of the relevant command.
 
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
