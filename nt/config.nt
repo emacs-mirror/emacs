@@ -378,6 +378,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif
 
+#ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
    the type of getenv.
@@ -386,6 +387,7 @@ Boston, MA 02111-1307, USA.  */
    includes config.h.  */
 #ifndef NOT_C_CODE
 extern char *getenv ();
+#endif
 #endif
 
 #endif /* EMACS_CONFIG_H */
