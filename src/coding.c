@@ -1271,7 +1271,7 @@ decode_coding_utf_16 (coding)
 {
   unsigned char *src = coding->source + coding->consumed;
   unsigned char *src_end = coding->source + coding->src_bytes;
-  unsigned char *src_base, *surrogate_high_base;
+  unsigned char *src_base;
   int *charbuf = coding->charbuf;
   int *charbuf_end = charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
@@ -1943,7 +1943,6 @@ encode_coding_emacs_mule (coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 8;
-  unsigned char *adjusted_dst_end =dst_end - 8;
   int produced_chars = 0;
   Lisp_Object attrs, eol_type, charset_list;
   int c;
@@ -4413,7 +4412,6 @@ setup_coding_system (coding_system, coding)
      Lisp_Object coding_system;
      struct coding_system *coding;
 {
-  int id;
   Lisp_Object attrs;
   Lisp_Object eol_type;
   Lisp_Object coding_type;
@@ -4581,7 +4579,7 @@ Lisp_Object
 raw_text_coding_system (coding_system)
      Lisp_Object coding_system;
 {
-  Lisp_Object spec, attrs, coding_type;
+  Lisp_Object spec, attrs;
   Lisp_Object eol_type, raw_text_eol_type;
 
   spec = CODING_SYSTEM_SPEC (coding_system);
@@ -4616,7 +4614,6 @@ coding_inherit_eol_type (coding_system, parent)
   if (VECTORP (eol_type))
     {
       Lisp_Object parent_spec;
-      Lisp_Object parent_attrs;
       Lisp_Object parent_eol_type;
 
       parent_spec
@@ -4763,7 +4760,6 @@ detect_eol (coding, source, src_bytes)
   unsigned char c;
   int total  = 0;
   int eol_seen = EOL_SEEN_NONE;
-  int first_eol_seen;
 
   attrs = CODING_ID_ATTRS (coding->id);
   coding_type = CODING_ATTR_TYPE (attrs);
@@ -4845,7 +4841,7 @@ adjust_coding_eol_type (coding, eol_seen)
      struct coding_system *coding;
      int eol_seen;
 {
-  Lisp_Object eol_type, coding_system;
+  Lisp_Object eol_type;
   
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (eol_seen & EOL_SEEN_LF)
@@ -5576,7 +5572,6 @@ static int
 encode_coding (coding)
      struct coding_system *coding;
 {
-  int error = 0;
   Lisp_Object attrs;
 
   attrs = CODING_ID_ATTRS (coding->id);
@@ -6286,7 +6281,6 @@ char_encodable_p (c, attrs)
      Lisp_Object attrs;
 {
   Lisp_Object tail;
-  int id;
   struct charset *charset;
 
   for (tail = CODING_ATTR_CHARSET_LIST (attrs);
@@ -6693,7 +6687,7 @@ code_convert_string_norecord (string, coding_system, encodep)
      Lisp_Object string, coding_system;
      int encodep;
 {
-  code_convert_string (string, coding_system, Qt, encodep, 0, 1);
+  return code_convert_string (string, coding_system, Qt, encodep, 0, 1);
 }
 
 
@@ -7349,7 +7343,7 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
     {
       Lisp_Object initial, reg_usage, request, flags;
       struct charset *charset;
-      int i, id, max_id = -1;
+      int i, id;
 
       if (nargs < coding_arg_iso2022_max)
 	goto short_args;
