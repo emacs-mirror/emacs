@@ -1699,6 +1699,7 @@ If FRAME is omitted, return information on the currently selected frame.")
 {
   Lisp_Object alist;
   FRAME_PTR f;
+  int height, width;
 
   if (EQ (frame, Qnil))
     f = selected_frame;
@@ -1713,8 +1714,10 @@ If FRAME is omitted, return information on the currently selected frame.")
 
   alist = Fcopy_alist (f->param_alist);
   store_in_alist (&alist, Qname, f->name);
-  store_in_alist (&alist, Qheight, make_number (FRAME_HEIGHT (f)));
-  store_in_alist (&alist, Qwidth, make_number (FRAME_WIDTH (f)));
+  height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
+  store_in_alist (&alist, Qheight, make_number (height));
+  width = (FRAME_NEW_WIDTH (f) ? FRAME_NEW_WIDTH (f) : FRAME_WIDTH (f));
+  store_in_alist (&alist, Qwidth, make_number (width));
   store_in_alist (&alist, Qmodeline, (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qminibuffer,
 		  (! FRAME_HAS_MINIBUF_P (f) ? Qnil
@@ -2339,6 +2342,7 @@ DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
 {
   Lisp_Object alist;
   FRAME_PTR f;
+  int height, width;
 
   if (EQ (frame, Qnil))
     f = selected_frame;
@@ -2369,8 +2373,10 @@ DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
 #endif
   store_in_alist (&alist, intern ("font"), build_string ("default"));
   store_in_alist (&alist, Qname, build_string ("emacs"));
-  store_in_alist (&alist, Qheight, make_number (FRAME_HEIGHT (f)));
-  store_in_alist (&alist, Qwidth, make_number (FRAME_WIDTH (f)));
+  height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
+  store_in_alist (&alist, Qheight, make_number (height));
+  width = (FRAME_NEW_WIDTH (f) ? FRAME_NEW_WIDTH (f) : FRAME_WIDTH (f));
+  store_in_alist (&alist, Qwidth, make_number (width));
   store_in_alist (&alist, Qmodeline, (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qminibuffer, FRAME_MINIBUF_WINDOW (f));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
