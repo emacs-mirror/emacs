@@ -130,7 +130,7 @@ Boston, MA 02111-1307, USA.  */
 #define LINK_CRTL_SHARE
 
 /* Define this if you want to read the file SYS$SYSTEM:SYSUAF.DAT for user
-   information.  If you do use this, you must either make SYSUAF.DAT world 
+   information.  If you do use this, you must either make SYSUAF.DAT world
    readable or install Emacs with SYSPRV.  */
 
 /* #define READ_SYSUAF */
@@ -192,7 +192,7 @@ extern double mth$dmod(double, double);
 
 /* If user asks for TERM, check first for EMACS_TERM.  */
 #define getenv sys_getenv
-  
+
 /* Standard C abort is less useful than it should be. */
 #define abort sys_abort
 
