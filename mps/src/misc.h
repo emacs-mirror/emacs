@@ -1,18 +1,12 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(MMdevel_action2.2) $
- * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!misc.h(trunk.11) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
  * memory manager itself.  The only reason that this file exists is
  * that these things are too small and trivial to be put in their own
  * headers.  If they ever become non-trivial they should be moved out.
- *
- * .hack.offsetof:
- * On platform.susplc the offsetof macro is not defined (because LCC
- * does not bother fixing up SunOS's broken header files).  We define
- * it here using normal C constructs.  This hack is only required
- * on platform.susplc and no other platforms.
  */
 
 #ifndef misc_h
@@ -21,7 +15,15 @@
 #include <stddef.h>
 
 
-/* .hack.offsetof */
+/* offsetof -- offset of field within structure
+ *
+ * .hack.offsetof: On platform.susplc the offsetof macro is not defined
+ * (because LCC does not bother fixing up SunOS's broken header files).
+ * We define it here using normal C constructs.  This hack is only
+ * required on platform.susplc and no other platforms. See
+ * change.mps.tracer2.170003.
+ */
+
 #ifdef MPS_PF_SUSPLC
 #ifdef offsetof
 #error "offsetof was unexpectedly already defined on platform SUSPLC"
