@@ -527,4 +527,5 @@ For details see `conf-mode'.  Example:
 
 (provide 'conf-mode)
 
+;; arch-tag: 0a3805b2-0371-4d3a-8498-8897116b2356
 ;;; conf-mode.el ends here
