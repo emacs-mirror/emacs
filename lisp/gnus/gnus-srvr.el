@@ -1,5 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,8 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -137,6 +136,9 @@ The following specs are understood:
     "D" gnus-server-deny-server
     "R" gnus-server-remove-denials
 
+    "n" next-line
+    "p" previous-line
+    
     "g" gnus-server-regenerate-server
 
     "\C-c\C-i" gnus-info-find-node
@@ -163,7 +165,7 @@ The following commands are available:
   (gnus-set-default-directory)
   (setq mode-line-process nil)
   (use-local-map gnus-server-mode-map)
-  (buffer-disable-undo (current-buffer))
+  (buffer-disable-undo)
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (gnus-run-hooks 'gnus-server-mode-hook))
@@ -173,12 +175,12 @@ The following commands are available:
 	 (gnus-tmp-where (nth 1 method))
 	 (elem (assoc method gnus-opened-servers))
 	 (gnus-tmp-status (cond ((eq (nth 1 elem) 'denied)
-			"(denied)")
-		       ((or (gnus-server-opened method)
-			    (eq (nth 1 elem) 'ok))
-			"(opened)")
-		       (t
-			"(closed)"))))
+				 "(denied)")
+				((or (gnus-server-opened method)
+				     (eq (nth 1 elem) 'ok))
+				 "(opened)")
+				(t
+				 "(closed)"))))
     (beginning-of-line)
     (gnus-add-text-properties
      (point)
@@ -295,6 +297,18 @@ The following commands are available:
   (push (assoc server gnus-server-alist) gnus-server-killed-servers)
   (setq gnus-server-alist (delq (car gnus-server-killed-servers)
 				gnus-server-alist))
+  (let ((groups (gnus-groups-from-server server)))
+    (when (and groups
+	       (gnus-yes-or-no-p
+		(format "Kill all %s groups from this server? "
+			(length groups))))
+      (dolist (group groups)
+	(setq gnus-newsrc-alist
+	      (delq (assoc group gnus-newsrc-alist)
+		    gnus-newsrc-alist))
+	(when gnus-group-change-level-function
+	  (funcall gnus-group-change-level-function
+		   group gnus-level-killed 3)))))
   (gnus-server-position-point))
 
 (defun gnus-server-yank-server ()
@@ -508,28 +522,28 @@ The following commands are available:
   (suppress-keymap gnus-browse-mode-map)
 
   (gnus-define-keys
-   gnus-browse-mode-map
-   " " gnus-browse-read-group
-   "=" gnus-browse-select-group
-   "n" gnus-browse-next-group
-   "p" gnus-browse-prev-group
-   "\177" gnus-browse-prev-group
-   [delete] gnus-browse-prev-group
-   "N" gnus-browse-next-group
-   "P" gnus-browse-prev-group
-   "\M-n" gnus-browse-next-group
-   "\M-p" gnus-browse-prev-group
-   "\r" gnus-browse-select-group
-   "u" gnus-browse-unsubscribe-current-group
-   "l" gnus-browse-exit
-   "L" gnus-browse-exit
-   "q" gnus-browse-exit
-   "Q" gnus-browse-exit
-   "\C-c\C-c" gnus-browse-exit
-   "?" gnus-browse-describe-briefly
+      gnus-browse-mode-map
+    " " gnus-browse-read-group
+    "=" gnus-browse-select-group
+    "n" gnus-browse-next-group
+    "p" gnus-browse-prev-group
+    "\177" gnus-browse-prev-group
+    [delete] gnus-browse-prev-group
+    "N" gnus-browse-next-group
+    "P" gnus-browse-prev-group
+    "\M-n" gnus-browse-next-group
+    "\M-p" gnus-browse-prev-group
+    "\r" gnus-browse-select-group
+    "u" gnus-browse-unsubscribe-current-group
+    "l" gnus-browse-exit
+    "L" gnus-browse-exit
+    "q" gnus-browse-exit
+    "Q" gnus-browse-exit
+    "\C-c\C-c" gnus-browse-exit
+    "?" gnus-browse-describe-briefly
 
-   "\C-c\C-i" gnus-info-find-node
-   "\C-c\C-b" gnus-bug))
+    "\C-c\C-i" gnus-info-find-node
+    "\C-c\C-b" gnus-bug))
 
 (defun gnus-browse-make-menu-bar ()
   (gnus-turn-off-edit-menu 'browse)
@@ -552,9 +566,9 @@ The following commands are available:
 
 (defun gnus-browse-foreign-server (server &optional return-buffer)
   "Browse the server SERVER."
-  (setq gnus-browse-current-method server)
+  (setq gnus-browse-current-method (gnus-server-to-method server))
   (setq gnus-browse-return-buffer return-buffer)
-  (let* ((method (gnus-server-to-method server))
+  (let* ((method gnus-browse-current-method)
 	 (gnus-select-method method)
 	 groups group)
     (gnus-message 5 "Connecting to %s..." (nth 1 method))
@@ -577,7 +591,7 @@ The following commands are available:
       (when gnus-carpal
 	(gnus-carpal-setup-buffer 'browse))
       (gnus-configure-windows 'browse)
-      (buffer-disable-undo (current-buffer))
+      (buffer-disable-undo)
       (let ((buffer-read-only nil))
 	(erase-buffer))
       (gnus-browse-mode)
@@ -591,22 +605,38 @@ The following commands are available:
 	  (goto-char (point-min))
 	  (unless (string= gnus-ignored-newsgroups "")
 	    (delete-matching-lines gnus-ignored-newsgroups))
-	  (while (re-search-forward
-		  "\\(^[^ \t]+\\)[ \t]+[0-9]+[ \t]+[0-9]+" nil t)
-	    (goto-char (match-end 1))
-	    (condition-case ()
-		(push (cons (match-string 1)
-			    (max 0 (- (1+ (read cur)) (read cur))))
-		      groups)
-	      (error nil)))))
+	  (while (not (eobp)) 
+	    (ignore-errors
+	      (push (cons 
+		     (if (eq (char-after) ?\")
+			 (read cur)
+		       (let ((p (point)) (name ""))
+			 (skip-chars-forward "^ \t\\\\")
+			 (setq name (buffer-substring p (point)))
+			 (while (eq (char-after) ?\\)
+			   (setq p (1+ (point)))
+			   (forward-char 2)
+			   (skip-chars-forward "^ \t\\\\")
+			   (setq name (concat name (buffer-substring
+						    p (point)))))
+			 name))
+		     (max 0 (- (1+ (read cur)) (read cur))))
+		    groups))
+	    (forward-line))))
       (setq groups (sort groups
 			 (lambda (l1 l2)
 			   (string< (car l1) (car l2)))))
-      (let ((buffer-read-only nil))
+      (let ((buffer-read-only nil) charset)
 	(while groups
 	  (setq group (car groups))
-	  (insert
-	   (format "K%7d: %s\n" (cdr group) (car group)))
+	  (setq charset (gnus-group-name-charset method group))
+	  (gnus-add-text-properties
+	   (point)
+	   (prog1 (1+ (point))
+	     (insert
+	      (format "K%7d: %s\n" (cdr group)
+		      (gnus-group-name-decode (car group) charset))))
+	   (list 'gnus-group (car group)))
 	  (setq groups (cdr groups))))
       (switch-to-buffer (current-buffer))
       (goto-char (point-min))
@@ -638,7 +668,7 @@ buffer.
   (setq mode-name "Browse Server")
   (setq mode-line-process nil)
   (use-local-map gnus-browse-mode-map)
-  (buffer-disable-undo (current-buffer))
+  (buffer-disable-undo)
   (setq truncate-lines t)
   (gnus-set-default-directory)
   (setq buffer-read-only t)
@@ -651,12 +681,12 @@ buffer.
     (if (or (not (gnus-get-info group))
 	    (gnus-ephemeral-group-p group))
 	(unless (gnus-group-read-ephemeral-group
-		 group gnus-browse-current-method nil
+		 (gnus-group-real-name group) gnus-browse-current-method nil
 		 (cons (current-buffer) 'browse))
 	  (error "Couldn't enter %s" group))
       (unless (gnus-group-read-group nil no-article group)
 	(error "Couldn't enter %s" group)))))
-      
+
 (defun gnus-browse-select-group ()
   "Select the current group."
   (interactive)
@@ -694,11 +724,12 @@ buffer.
 (defun gnus-browse-group-name ()
   (save-excursion
     (beginning-of-line)
-    (when (re-search-forward ": \\(.*\\)$" (gnus-point-at-eol) t)
-      (gnus-group-prefixed-name
-       ;; Remove text props.
-       (format "%s" (match-string 1))
-       gnus-browse-current-method))))
+    (let ((name (get-text-property (point) 'gnus-group)))
+      (when (re-search-forward ": \\(.*\\)$" (gnus-point-at-eol) t)
+	(gnus-group-prefixed-name
+	 (or name
+	     (match-string-no-properties 1))
+	 gnus-browse-current-method)))))
 
 (defun gnus-browse-unsubscribe-group ()
   "Toggle subscription of the current group in the browse buffer."
@@ -708,7 +739,7 @@ buffer.
     (save-excursion
       (beginning-of-line)
       ;; If this group it killed, then we want to subscribe it.
-      (when (= (following-char) ?K)
+      (when (eq (char-after) ?K)
 	(setq sub t))
       (setq group (gnus-browse-group-name))
       (when (and sub
@@ -725,7 +756,8 @@ buffer.
 		   nil nil (if (gnus-server-equal
 				gnus-browse-current-method "native")
 			       nil
-			     gnus-browse-current-method))
+			     (gnus-method-simplify 
+			      gnus-browse-current-method)))
 	     gnus-level-default-subscribed gnus-level-killed
 	     (and (car (nth 1 gnus-newsrc-alist))
 		  (gnus-gethash (car (nth 1 gnus-newsrc-alist))

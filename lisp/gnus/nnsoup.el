@@ -1,5 +1,7 @@
 ;;; nnsoup.el --- SOUP access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -38,19 +40,22 @@
 (defvoo nnsoup-directory "~/SOUP/"
   "*SOUP packet directory.")
 
-(defvoo nnsoup-tmp-directory temporary-file-directory
+(defvoo nnsoup-tmp-directory
+    (cond ((fboundp 'temp-directory) (temp-directory))
+	  ((boundp 'temporary-file-directory) temporary-file-directory)
+	  ("/tmp/"))
   "*Where nnsoup will store temporary files.")
 
-(defvoo nnsoup-replies-directory (concat nnsoup-directory "replies/")
+(defvoo nnsoup-replies-directory (expand-file-name "replies/" nnsoup-directory)
   "*Directory where outgoing packets will be composed.")
 
-(defvoo nnsoup-replies-format-type ?n
+(defvoo nnsoup-replies-format-type ?u  ;; u is USENET news format.
   "*Format of the replies packages.")
 
 (defvoo nnsoup-replies-index-type ?n
   "*Index type of the replies packages.")
 
-(defvoo nnsoup-active-file (concat nnsoup-directory "active")
+(defvoo nnsoup-active-file (expand-file-name "active" nnsoup-directory)
   "Active file.")
 
 (defvoo nnsoup-packer "tar cf - %s | gzip > $HOME/Soupin%d.tgz"
@@ -70,8 +75,8 @@ The SOUP packet file name will be inserted at the %s.")
   "*Regular expression matching SOUP packets in `nnsoup-packet-directory'.")
 
 (defvoo nnsoup-always-save t
-  "If non nil commit the reply buffer on each message send. 
-This is necessary if using message mode outside Gnus with nnsoup as a 
+  "If non nil commit the reply buffer on each message send.
+This is necessary if using message mode outside Gnus with nnsoup as a
 backend for the messages.")
 
 
@@ -252,7 +257,7 @@ backend for the messages.")
 		  (nth 1 (nnsoup-article-to-area
 			  article nnsoup-current-group))))))
       (cond ((= kind ?m) 'mail)
-	    ((= kind ?n) 'news)
+	    ((= kind ?n) 'news) 
 	    (t 'unknown)))))
 
 (deffoo nnsoup-close-group (group &optional server)
@@ -310,7 +315,7 @@ backend for the messages.")
       (setq info (pop infolist)
 	    range-list (gnus-uncompress-range (car info))
 	    prefix (gnus-soup-area-prefix (nth 1 info)))
-      (when ;; All the articles in this file are marked for expiry.
+      (when;; All the articles in this file are marked for expiry.
 	  (and (or (setq mod-time (nth 5 (file-attributes
 					  (nnsoup-file prefix))))
 		   (setq mod-time (nth 5 (file-attributes
@@ -376,7 +381,7 @@ backend for the messages.")
 	     (or force
 		 nnsoup-group-alist-touched))
     (setq nnsoup-group-alist-touched nil)
-    (nnheader-temp-write nnsoup-active-file
+    (with-temp-file nnsoup-active-file
       (gnus-prin1 `(setq nnsoup-group-alist ',nnsoup-group-alist))
       (insert "\n")
       (gnus-prin1 `(setq nnsoup-current-prefix ,nnsoup-current-prefix))
@@ -419,12 +424,15 @@ backend for the messages.")
 	    (setq cur-prefix (nnsoup-next-prefix))
 	    (nnheader-message 5 "Incorporating file %s..." cur-prefix)
 	    (when (file-exists-p
-		   (setq file (concat nnsoup-tmp-directory
-				      (gnus-soup-area-prefix area) ".IDX")))
+		   (setq file
+			 (expand-file-name
+			  (concat (gnus-soup-area-prefix area) ".IDX")
+			  nnsoup-tmp-directory)))
 	      (rename-file file (nnsoup-file cur-prefix)))
 	    (when (file-exists-p
-		   (setq file (concat nnsoup-tmp-directory
-				      (gnus-soup-area-prefix area) ".MSG")))
+		   (setq file (expand-file-name
+			       (concat (gnus-soup-area-prefix area) ".MSG")
+			       nnsoup-tmp-directory)))
 	      (rename-file file (nnsoup-file cur-prefix t))
 	      (gnus-soup-set-area-prefix area cur-prefix)
 	      ;; Find the number of new articles in this area.
@@ -473,7 +481,8 @@ backend for the messages.")
     (goto-char (point-min))
     (cond
      ;; rnews batch format
-     ((= format ?n)
+     ((or (= format ?u)
+	  (= format ?n)) ;; Gnus back compatibility.
       (while (looking-at "^#! *rnews \\(+[0-9]+\\) *$")
 	(forward-line 1)
 	(push (list
@@ -527,17 +536,19 @@ backend for the messages.")
   (let* ((file (concat prefix (if message ".MSG" ".IDX")))
 	 (buffer-name (concat " *nnsoup " file "*")))
     (or (get-buffer buffer-name)	; File already loaded.
-	(when (file-exists-p (concat nnsoup-directory file))
+	(when (file-exists-p (expand-file-name file nnsoup-directory))
 	  (save-excursion		; Load the file.
 	    (set-buffer (get-buffer-create buffer-name))
-	    (buffer-disable-undo (current-buffer))
+	    (buffer-disable-undo)
 	    (push (cons nnsoup-current-group (current-buffer)) nnsoup-buffers)
-	    (nnheader-insert-file-contents (concat nnsoup-directory file))
+	    (nnheader-insert-file-contents
+	     (expand-file-name file nnsoup-directory))
 	    (current-buffer))))))
 
 (defun nnsoup-file (prefix &optional message)
   (expand-file-name
-   (concat nnsoup-directory prefix (if message ".MSG" ".IDX"))))
+   (concat prefix (if message ".MSG" ".IDX"))
+   nnsoup-directory))
 
 (defun nnsoup-message-buffer (prefix)
   (nnsoup-index-buffer prefix 'msg))
@@ -587,7 +598,7 @@ backend for the messages.")
 		(let ((format (gnus-soup-encoding-format
 			       (gnus-soup-area-encoding (nth 1 area)))))
 		  (goto-char end)
-		  (when (or (= format ?n) (= format ?m))
+		  (when (or (= format ?u) (= format ?n) (= format ?m))
 		    (setq end (progn (forward-line -1) (point))))))
 	    (set-buffer msg-buf))
 	  (widen)
@@ -666,8 +677,6 @@ backend for the messages.")
   (require 'mail-utils)
   (let ((tembuf (generate-new-buffer " message temp"))
 	(case-fold-search nil)
-	(real-header-separator mail-header-separator)
-	(mail-header-separator "")
 	delimline
 	(mailbuf (current-buffer)))
     (unwind-protect
@@ -693,15 +702,11 @@ backend for the messages.")
 	    ;; Change header-delimiter to be what sendmail expects.
 	    (goto-char (point-min))
 	    (re-search-forward
-	     (concat "^" (regexp-quote real-header-separator) "\n"))
+	     (concat "^" (regexp-quote mail-header-separator) "\n"))
 	    (replace-match "\n")
 	    (backward-char 1)
 	    (setq delimline (point-marker))
-	    ;; Insert an extra newline if we need it to work around
-	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
-	    (when (eval message-mailer-swallows-blank-line)
-	      (newline))
 	    (let ((msg-buf
 		   (gnus-soup-store
 		    nnsoup-replies-directory
@@ -724,7 +729,7 @@ backend for the messages.")
   (unless nnsoup-replies-list
     (setq nnsoup-replies-list
 	  (gnus-soup-parse-replies
-	   (concat nnsoup-replies-directory "REPLIES"))))
+	   (expand-file-name "REPLIES" nnsoup-replies-directory))))
   (let ((replies nnsoup-replies-list))
     (while (and replies
 		(not (string= kind (gnus-soup-reply-kind (car replies)))))
@@ -752,7 +757,6 @@ backend for the messages.")
 				 (string-to-int (match-string 1 f2)))))))
 	active group lines ident elem min)
     (set-buffer (get-buffer-create " *nnsoup work*"))
-    (buffer-disable-undo (current-buffer))
     (while files
       (nnheader-message 5 "Doing %s..." (car files))
       (erase-buffer)
@@ -770,13 +774,13 @@ backend for the messages.")
       (if (not (setq elem (assoc group active)))
 	  (push (list group (cons 1 lines)
 		      (list (cons 1 lines)
-			    (vector ident group "ncm" "" lines)))
+			    (vector ident group "ucm" "" lines)))
 		active)
 	(nconc elem
 	       (list
 		(list (cons (1+ (setq min (cdadr elem)))
 			    (+ min lines))
-		      (vector ident group "ncm" "" lines))))
+		      (vector ident group "ucm" "" lines))))
 	(setcdr (cadr elem) (+ min lines)))
       (setq files (cdr files)))
     (nnheader-message 5 "")
@@ -804,7 +808,8 @@ backend for the messages.")
     ;; Sort and delete the files.
     (setq non-files (sort non-files 'string<))
     (map-y-or-n-p "Delete file %s? "
-		  (lambda (file) (delete-file (concat nnsoup-directory file)))
+		  (lambda (file) (delete-file
+				  (expand-file-name file nnsoup-directory)))
 		  non-files)))
 
 (provide 'nnsoup)

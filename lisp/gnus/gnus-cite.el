@@ -1,7 +1,13 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Per Abhiddenware; you can redistribute it and/or modify
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
+
+;; Author: Per Abhiddenware
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
@@ -19,8 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -44,10 +48,10 @@ article has citations."
   :type 'string)
 
 (defcustom gnus-cite-always-check nil
-  "Check article always for citations. Set it t to check all articles."
+  "Check article always for citations.  Set it t to check all articles."
   :group 'gnus-cite
   :type '(choice (const :tag "no" nil)
-		  (const :tag "yes" t)))
+		 (const :tag "yes" t)))
 
 (defcustom gnus-cited-opened-text-button-line-format "%(%{[-]%}%)\n"
   "Format of opened cited text buttons."
@@ -60,10 +64,13 @@ article has citations."
   :type 'string)
 
 (defcustom gnus-cited-lines-visible nil
-  "The number of lines of hidden cited text to remain visible."
+  "The number of lines of hidden cited text to remain visible.
+Or a pair (cons) of numbers which are the number of lines at the top
+and bottom of the text, respectively, to remain visible."
   :group 'gnus-cite
   :type '(choice (const :tag "none" nil)
-		 integer))
+		 integer
+		 (cons :tag "Top and Bottom" integer integer)))
 
 (defcustom gnus-cite-parse-max-size 25000
   "Maximum article size (in bytes) where parsing citations is allowed.
@@ -73,7 +80,7 @@ Set it to nil to parse all articles."
 		 integer))
 
 (defcustom gnus-cite-prefix-regexp
-  "^[]>|:}+ ]*[]>|:}+]\\(.*>\\)?\\|^.*>"
+  "^[]>»|:}+ ]*[]>»|:}+]\\(.*>»\\)?\\|^.*>"
   "*Regexp matching the longest possible citation prefix on a line."
   :group 'gnus-cite
   :type 'regexp)
@@ -103,13 +110,13 @@ The first regexp group should match the Supercite attribution."
   :type 'integer)
 
 (defcustom gnus-cite-attribution-prefix
-  "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),"
+  "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),\\|-----Original Message-----"
   "*Regexp matching the beginning of an attribution line."
   :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
-  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\)[ \t]*$"
+  "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\|-----Original Message-----\\)[ \t]*$"
   "*Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
   :group 'gnus-cite
@@ -237,8 +244,8 @@ It is merged with the face for the cited text belonging to the attribution."
 
 (defcustom gnus-cite-face-list
   '(gnus-cite-face-1 gnus-cite-face-2 gnus-cite-face-3 gnus-cite-face-4
-    gnus-cite-face-5 gnus-cite-face-6 gnus-cite-face-7 gnus-cite-face-8
-    gnus-cite-face-9 gnus-cite-face-10 gnus-cite-face-11)
+		     gnus-cite-face-5 gnus-cite-face-6 gnus-cite-face-7 gnus-cite-face-8
+		     gnus-cite-face-9 gnus-cite-face-10 gnus-cite-face-11)
   "*List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
@@ -342,7 +349,8 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	      skip (gnus-cite-find-prefix number)
 	      face (cdr (assoc prefix face-alist)))
 	;; Add attribution button.
-	(goto-line number)
+	(goto-char (point-min))
+	(forward-line (1- number))
 	(when (re-search-forward gnus-cite-attribution-suffix
 				 (save-excursion (end-of-line 1) (point))
 				 t)
@@ -364,7 +372,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
   "Dissect the article buffer looking for cited text."
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (gnus-cite-parse-maybe)
+    (gnus-cite-parse-maybe nil t)
     (let ((alist gnus-cite-prefix-alist)
 	  prefix numbers number marks m)
       ;; Loop through citation prefixes.
@@ -383,8 +391,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	  (forward-line (1- number))
 	  (push (cons (point-marker) prefix) marks)))
       ;; Skip to the beginning of the body.
-      (goto-char (point-min))
-      (search-forward "\n\n" nil t)
+      (article-goto-body)
       (push (cons (point-marker) "") marks)
       ;; Find the end of the body.
       (goto-char (point-max))
@@ -434,7 +441,6 @@ If WIDTH (the numerical prefix), use that text width when filling."
 	  (fill-column (if width (prefix-numeric-value width) fill-column)))
       (save-restriction
 	(while (cdr marks)
-	  (widen)
 	  (narrow-to-region (caar marks) (caadr marks))
 	  (let ((adaptive-fill-regexp
 		 (concat "^" (regexp-quote (cdar marks)) " *"))
@@ -488,10 +494,18 @@ always hide."
 	  ;; Skip past lines we want to leave visible.
 	  (when (and beg end gnus-cited-lines-visible)
 	    (goto-char beg)
-	    (forward-line gnus-cited-lines-visible)
+	    (forward-line (if (consp gnus-cited-lines-visible)
+			      (car gnus-cited-lines-visible)
+			    gnus-cited-lines-visible))
 	    (if (>= (point) end)
 		(setq beg nil)
-	      (setq beg (point-marker))))
+	      (setq beg (point-marker))
+	      (when (consp gnus-cited-lines-visible)
+		(goto-char end)
+		(forward-line (- (cdr gnus-cited-lines-visible)))
+		(if (<= (point) beg)
+		    (setq beg nil)
+		  (setq end (point-marker))))))
 	  (when (and beg end)
 	    ;; We use markers for the end-points to facilitate later
 	    ;; wrapping and mangling of text.
@@ -517,17 +531,19 @@ always hide."
 (defun gnus-article-toggle-cited-text (args)
   "Toggle hiding the text in REGION."
   (let* ((region (car args))
+	 (beg (car region))
+	 (end (cdr region))
 	 (start (cadr args))
 	 (hidden
 	  (text-property-any
-	   (car region) (1- (cdr region))
+	   beg (1- end)
 	   (car gnus-hidden-properties) (cadr gnus-hidden-properties)))
 	 (inhibit-point-motion-hooks t)
 	 buffer-read-only)
     (funcall
      (if hidden
 	 'remove-text-properties 'gnus-add-text-properties)
-     (car region) (cdr region) gnus-hidden-properties)
+     beg end gnus-hidden-properties)
     (save-excursion
       (goto-char start)
       (gnus-delete-line)
@@ -560,8 +576,7 @@ See also the documentation for `gnus-article-highlight-citation'."
     (save-excursion
       (set-buffer gnus-article-buffer)
       (gnus-cite-parse-maybe force)
-      (goto-char (point-min))
-      (search-forward "\n\n" nil t)
+      (article-goto-body)
       (let ((start (point))
 	    (atts gnus-cite-attribution-alist)
 	    (buffer-read-only nil)
@@ -585,7 +600,8 @@ See also the documentation for `gnus-article-highlight-citation'."
 	    (while total
 	      (setq hidden (car total)
 		    total (cdr total))
-	      (goto-line hidden)
+	      (goto-char (point-min))
+	      (forward-line (1- hidden))
 	      (unless (assq hidden gnus-cite-attribution-alist)
 		(gnus-add-text-properties
 		 (point) (progn (forward-line 1) (point))
@@ -605,45 +621,42 @@ See also the documentation for `gnus-article-highlight-citation'."
 
 ;;; Internal functions:
 
-(defun gnus-cite-parse-maybe (&optional force)
-  ;; Parse if the buffer has changes since last time.
-  (if (and (not force)
-	   (equal gnus-cite-article gnus-article-current))
+(defun gnus-cite-parse-maybe (&optional force no-overlay)
+  "Always parse the buffer."
+  (gnus-cite-localize)
+  ;;Reset parser information.
+  (setq gnus-cite-prefix-alist nil
+	gnus-cite-attribution-alist nil
+	gnus-cite-loose-prefix-alist nil
+	gnus-cite-loose-attribution-alist nil)
+  (unless no-overlay
+    (gnus-cite-delete-overlays))
+  ;; Parse if not too large.
+  (if (and gnus-cite-parse-max-size
+	   (> (buffer-size) gnus-cite-parse-max-size))
       ()
-    (gnus-cite-localize)
-    ;;Reset parser information.
-    (setq gnus-cite-prefix-alist nil
-	  gnus-cite-attribution-alist nil
-	  gnus-cite-loose-prefix-alist nil
-	  gnus-cite-loose-attribution-alist nil)
-    (while gnus-cite-overlay-list
-      (gnus-delete-overlay (pop gnus-cite-overlay-list)))
-    ;; Parse if not too large.
-    (if (and (not force)
-	     gnus-cite-parse-max-size
-	     (> (buffer-size) gnus-cite-parse-max-size))
-	()
-      (setq gnus-cite-article (cons (car gnus-article-current)
-				    (cdr gnus-article-current)))
-      (gnus-cite-parse-wrapper))))
+    (setq gnus-cite-article (cons (car gnus-article-current)
+				  (cdr gnus-article-current)))
+    (gnus-cite-parse-wrapper)))
+
+(defun gnus-cite-delete-overlays ()
+  (dolist (overlay gnus-cite-overlay-list)
+    (when (or (not (gnus-overlay-end overlay))
+	      (and (>= (gnus-overlay-end overlay) (point-min))
+		   (<= (gnus-overlay-end overlay) (point-max))))
+      (setq gnus-cite-overlay-list (delete overlay gnus-cite-overlay-list))
+      (gnus-delete-overlay overlay))))
 
 (defun gnus-cite-parse-wrapper ()
-  ;; Wrap chopped gnus-cite-parse
-  (goto-char (point-min))
-  (unless (search-forward "\n\n" nil t)
-    (goto-char (point-max)))
-  (save-excursion
-    (gnus-cite-parse-attributions))
-  ;; Try to avoid check citation if there is no reason to believe
-  ;; that article has citations
-  (if (or gnus-cite-always-check
-	  (save-excursion
-	    (re-search-backward gnus-cite-reply-regexp nil t))
-	  gnus-cite-loose-attribution-alist)
-      (progn (save-excursion
-	       (gnus-cite-parse))
-	     (save-excursion
-	       (gnus-cite-connect-attributions)))))
+  ;; Wrap chopped gnus-cite-parse.
+  (article-goto-body)
+  (let ((inhibit-point-motion-hooks t))
+    (save-excursion
+      (gnus-cite-parse-attributions))
+    (save-excursion
+      (gnus-cite-parse))
+    (save-excursion
+      (gnus-cite-connect-attributions))))
 
 (defun gnus-cite-parse ()
   ;; Parse and connect citation prefixes and attribution lines.
@@ -898,8 +911,8 @@ See also the documentation for `gnus-article-highlight-citation'."
   (when face
     (let ((inhibit-point-motion-hooks t)
 	  from to overlay)
-      (goto-line number)
-      (unless (eobp)			; Sometimes things become confused.
+      (goto-char (point-min))
+      (when (zerop (forward-line (1- number)))
 	(forward-char (length prefix))
 	(skip-chars-forward " \t")
 	(setq from (point))
@@ -914,7 +927,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 (defun gnus-cite-toggle (prefix)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (gnus-cite-parse-maybe)
+    (gnus-cite-parse-maybe nil t)
     (let ((buffer-read-only nil)
 	  (numbers (cdr (assoc prefix gnus-cite-prefix-alist)))
 	  (inhibit-point-motion-hooks t)
@@ -922,7 +935,8 @@ See also the documentation for `gnus-article-highlight-citation'."
       (while numbers
 	(setq number (car numbers)
 	      numbers (cdr numbers))
-	(goto-line number)
+	(goto-char (point-min))
+	(forward-line (1- number))
 	(cond ((get-text-property (point) 'invisible)
 	       (remove-text-properties (point) (progn (forward-line 1) (point))
 				       gnus-hidden-properties))
@@ -957,5 +971,9 @@ See also the documentation for `gnus-article-highlight-citation'."
 (gnus-ems-redefine)
 
 (provide 'gnus-cite)
+
+;; Local Variables:
+;; coding: iso-8859-1
+;; End:
 
 ;;; gnus-cite.el ends here

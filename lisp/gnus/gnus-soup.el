@@ -1,5 +1,7 @@
 ;;; gnus-soup.el --- SOUP packet writing support for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -25,8 +27,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -69,9 +69,9 @@ The SOUP packet file name will be inserted at the %s.")
 
 ;;; Internal Variables:
 
-(defvar gnus-soup-encoding-type ?n
+(defvar gnus-soup-encoding-type ?u
   "*Soup encoding type.
-`n' is news format, `m' is Unix mbox format, and `M' is MMDF mailbox
+`u' is USENET news format, `m' is Unix mbox format, and `M' is MMDF mailbox
 format.")
 
 (defvar gnus-soup-index-type ?c
@@ -142,21 +142,19 @@ move those articles instead."
     (buffer-disable-undo tmp-buf)
     (save-excursion
       (while articles
-	;; Find the header of the article.
-	(set-buffer gnus-summary-buffer)
-	(when (setq headers (gnus-summary-article-header (car articles)))
-	  ;; Put the article in a buffer.
-	  (set-buffer tmp-buf)
-	  (when (gnus-request-article-this-buffer
-		 (car articles) gnus-newsgroup-name)
-	    (save-restriction
-	      (message-narrow-to-head)
-	      (message-remove-header gnus-soup-ignored-headers t))
-	    (gnus-soup-store gnus-soup-directory prefix headers
-			     gnus-soup-encoding-type
-			     gnus-soup-index-type)
-	    (gnus-soup-area-set-number
-	     area (1+ (or (gnus-soup-area-number area) 0)))))
+	;; Put the article in a buffer.
+	(set-buffer tmp-buf)
+	(when (gnus-request-article-this-buffer
+	       (car articles) gnus-newsgroup-name)
+	  (setq headers (nnheader-parse-head t))
+	  (save-restriction
+	    (message-narrow-to-head)
+	    (message-remove-header gnus-soup-ignored-headers t))
+	  (gnus-soup-store gnus-soup-directory prefix headers
+			   gnus-soup-encoding-type
+			   gnus-soup-index-type)
+	  (gnus-soup-area-set-number
+	   area (1+ (or (gnus-soup-area-number area) 0))))
 	;; Mark article as read.
 	(set-buffer gnus-summary-buffer)
 	(gnus-summary-remove-process-mark (car articles))
@@ -170,11 +168,11 @@ move those articles instead."
   "Make a SOUP packet from the SOUP areas."
   (interactive)
   (gnus-soup-read-areas)
-  (unless (file-exists-p gnus-soup-directory)
-    (message "No such directory: %s" gnus-soup-directory))
-  (when (null (directory-files gnus-soup-directory nil "\\.MSG$"))
-    (message "No files to pack."))
-  (gnus-soup-pack gnus-soup-directory gnus-soup-packer))
+  (if (file-exists-p gnus-soup-directory)
+      (if (directory-files gnus-soup-directory nil "\\.MSG$")
+	  (gnus-soup-pack gnus-soup-directory gnus-soup-packer)
+	(message "No files to pack."))
+    (message "No such directory: %s" gnus-soup-directory)))
 
 (defun gnus-group-brew-soup (n)
   "Make a soup packet from the current group.
@@ -249,7 +247,8 @@ Note -- this function hasn't been implemented yet."
       ;; a soup header.
       (setq head-line
 	    (cond
-	     ((= gnus-soup-encoding-type ?n)
+	     ((or (= gnus-soup-encoding-type ?u)
+		  (= gnus-soup-encoding-type ?n)) ;;Gnus back compatibility.
 	      (format "#! rnews %d\n" (buffer-size)))
 	     ((= gnus-soup-encoding-type ?m)
 	      (while (search-forward "\nFrom " nil t)
@@ -339,7 +338,8 @@ If NOT-ALL, don't pack ticked articles."
       (while (setq prefix (pop prefixes))
 	(erase-buffer)
 	(insert (format "(setq gnus-soup-prev-prefix %d)\n" (cdr prefix)))
-	(gnus-write-buffer (concat (car prefix) gnus-soup-prefix-file))))))
+	(let ((coding-system-for-write mm-text-coding-system))
+	  (gnus-write-buffer (concat (car prefix) gnus-soup-prefix-file)))))))
 
 (defun gnus-soup-pack (dir packer)
   (let* ((files (mapconcat 'identity
@@ -376,7 +376,7 @@ though the two last may be nil if they are missing."
     (when (file-exists-p file)
       (save-excursion
 	(set-buffer (nnheader-find-file-noselect file 'force))
-	(buffer-disable-undo (current-buffer))
+	(buffer-disable-undo)
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (push (vector (gnus-soup-field)
@@ -399,7 +399,7 @@ file.  The vector contain three strings, [prefix name encoding]."
   (let (replies)
     (save-excursion
       (set-buffer (nnheader-find-file-noselect file))
-      (buffer-disable-undo (current-buffer))
+      (buffer-disable-undo)
       (goto-char (point-min))
       (while (not (eobp))
 	(push (vector (gnus-soup-field) (gnus-soup-field)
@@ -424,7 +424,7 @@ file.  The vector contain three strings, [prefix name encoding]."
   "Write the AREAS file."
   (interactive)
   (when gnus-soup-areas
-    (nnheader-temp-write (concat gnus-soup-directory "AREAS")
+    (with-temp-file (concat gnus-soup-directory "AREAS")
       (let ((areas gnus-soup-areas)
 	    area)
 	(while (setq area (pop areas))
@@ -445,7 +445,7 @@ file.  The vector contain three strings, [prefix name encoding]."
 
 (defun gnus-soup-write-replies (dir areas)
   "Write a REPLIES file in DIR containing AREAS."
-  (nnheader-temp-write (concat dir "REPLIES")
+  (with-temp-file (concat dir "REPLIES")
     (let (area)
       (while (setq area (pop areas))
 	(insert (format "%s\t%s\t%s\n"
@@ -517,9 +517,12 @@ Return whether the unpacking was successful."
 	       (tmp-buf (gnus-get-buffer-create " *soup send*"))
 	       beg end)
 	  (cond
-	   ((/= (gnus-soup-encoding-format
-		 (gnus-soup-reply-encoding (car replies)))
-		?n)
+	   ((and (/= (gnus-soup-encoding-format
+		      (gnus-soup-reply-encoding (car replies)))
+		     ?u)
+		 (/= (gnus-soup-encoding-format
+		      (gnus-soup-reply-encoding (car replies)))
+		     ?n)) ;; Gnus back compatibility.
 	    (error "Unsupported encoding"))
 	   ((null msg-buf)
 	    t)

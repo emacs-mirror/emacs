@@ -1,5 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -28,26 +29,24 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-when-compile (require 'cl))
-
 (require 'gnus)
 (require 'gnus-ems)
 (require 'message)
 (require 'gnus-art)
 
-(defcustom gnus-post-method nil
+(defcustom gnus-post-method 'current
   "*Preferred method for posting USENET news.
 
 If this variable is `current', Gnus will use the \"current\" select
 method when posting.  If it is nil (which is the default), Gnus will
-use the native posting method of the server.
+use the native select method when posting.
 
 This method will not be used in mail groups and the like, only in
 \"real\" newsgroups.
 
 If not nil nor `native', the value must be a valid method as discussed
-in the documentation of `gnus-select-method'. It can also be a list of
-methods. If that is the case, the user will be queried for what select
+in the documentation of `gnus-select-method'.  It can also be a list of
+methods.  If that is the case, the user will be queried for what select
 method to use when posting."
   :group 'gnus-group-foreign
   :type `(choice (const nil)
@@ -102,13 +101,37 @@ the second with the current group name.")
 (defvar gnus-posting-styles nil
   "*Alist of styles to use when posting.")
 
-(defvar gnus-posting-style-alist
-  '((organization . message-user-organization)
-    (signature . message-signature)
-    (signature-file . message-signature-file)
-    (address . user-mail-address)
-    (name . user-full-name))
-  "*Mapping from style parameters to variables.")
+(defcustom gnus-group-posting-charset-alist
+  '(("^\\(no\\|fr\\|dk\\)\\.[^,]*\\(,[ \t\n]*\\(no\\|fr\\|dk\\)\\.[^,]*\\)*$" iso-8859-1 (iso-8859-1))
+    ("^\\(fido7\\|relcom\\)\\.[^,]*\\(,[ \t\n]*\\(fido7\\|relcom\\)\\.[^,]*\\)*$" koi8-r (koi8-r))
+    (message-this-is-mail nil nil)
+    (message-this-is-news nil t))
+  "Alist of regexps and permitted unencoded charsets for posting.
+Each element of the alist has the form (TEST HEADER BODY-LIST), where
+TEST is either a regular expression matching the newsgroup header or a
+variable to query,
+HEADER is the charset which may be left unencoded in the header (nil
+means encode all charsets),
+BODY-LIST is a list of charsets which may be encoded using 8bit
+content-transfer encoding in the body, or one of the special values
+nil (always encode using quoted-printable) or t (always use 8bit).
+
+Note that any value other than nil for HEADER infringes some RFCs, so
+use this option with care."
+  :type '(repeat (list :tag "Permitted unencoded charsets"
+		  (choice :tag "Where"
+		   (regexp :tag "Group")
+		   (const :tag "Mail message" :value message-this-is-mail)
+		   (const :tag "News article" :value message-this-is-news))
+		  (choice :tag "Header"
+		   (const :tag "None" nil)
+		   (symbol :tag "Charset"))
+		  (choice :tag "Body"
+			  (const :tag "Any" :value t)
+			  (const :tag "None" :value nil)
+			  (repeat :tag "Charsets"
+				  (symbol :tag "Charset")))))
+  :group 'gnus-charset)
 
 ;;; Internal variables.
 
@@ -127,9 +150,10 @@ the second with the current group name.")
 The buffer below is a mail buffer.  When you press `C-c C-c', it will
 be sent to the Gnus Bug Exterminators.
 
-At the bottom of the buffer you'll see lots of variable settings.
-Please do not delete those.  They will tell the Bug People what your
-environment is, so that it will be easier to locate the bugs.
+The thing near the bottom of the buffer is how the environment
+settings will be included in the mail.  Please do not delete that.
+They will tell the Bug People what your environment is, so that it
+will be easier to locate the bugs.
 
 If you have found a bug that makes Emacs go \"beep\", set
 debug-on-error to t (`M-x set-variable RET debug-on-error RET t RET')
@@ -159,6 +183,7 @@ Thank you for your help in stamping out bugs.
   "c" gnus-summary-cancel-article
   "s" gnus-summary-supersede-article
   "r" gnus-summary-reply
+  "y" gnus-summary-yank-message
   "R" gnus-summary-reply-with-original
   "w" gnus-summary-wide-reply
   "W" gnus-summary-wide-reply-with-original
@@ -177,6 +202,20 @@ Thank you for your help in stamping out bugs.
   ;; "c" gnus-summary-send-draft
   "r" gnus-summary-resend-message)
 
+;;;###autoload
+(defun gnus-msg-mail (&rest args)
+  "Start editing a mail message to be sent.
+Like `message-mail', but with Gnus paraphernalia, particularly the
+the Gcc: header for archiving purposes."
+  (interactive)
+  (gnus-setup-message 'message
+    (apply 'message-mail args)))
+
+;;;###autoload
+(define-mail-user-agent 'gnus-user-agent
+      'gnus-msg-mail 'message-send-and-exit
+      'message-kill-buffer 'message-send-hook)
+
 ;;; Internal functions.
 
 (defvar gnus-article-reply nil)
@@ -191,7 +230,9 @@ Thank you for your help in stamping out bugs.
 	   (,group gnus-newsgroup-name)
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
+	   (mbl mml-buffer-list)
 	   (message-mode-hook (copy-sequence message-mode-hook)))
+       (setq mml-buffer-list nil)
        (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
        (add-hook 'message-header-setup-hook 'gnus-inews-insert-archive-gcc)
        (add-hook 'message-mode-hook 'gnus-configure-posting-styles)
@@ -202,11 +243,36 @@ Thank you for your help in stamping out bugs.
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)
 	      (cons ,group ,article))
-	 (make-local-variable 'gnus-newsgroup-name)
-	 (gnus-run-hooks 'gnus-message-setup-hook))
+	 (set (make-local-variable 'gnus-newsgroup-name) ,group)
+	 (gnus-run-hooks 'gnus-message-setup-hook)
+	 (if (eq major-mode 'message-mode)
+	     ;; Make mml-buffer-list local.
+	     ;; Restore global mml-buffer-list value as mbl.
+	     ;; What a hack! -- Shenghuo
+	     (let ((mml-buffer-list mml-buffer-list))
+	       (setq mml-buffer-list mbl)
+	       (make-local-variable 'mml-buffer-list)
+	       (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
+	   (mml-destroy-buffers)
+	   (setq mml-buffer-list mbl)))
        (gnus-add-buffer)
        (gnus-configure-windows ,config t)
        (set-buffer-modified-p nil))))
+
+(defun gnus-setup-posting-charset (group)
+  (let ((alist gnus-group-posting-charset-alist)
+	(group (or group ""))
+	elem)
+    (when group
+      (catch 'found
+	(while (setq elem (pop alist))
+	  (when (or (and (stringp (car elem))
+			 (string-match (car elem) group))
+		    (and (gnus-functionp (car elem))
+			 (funcall (car elem) group))
+		    (and (symbolp (car elem))
+			 (symbol-value (car elem))))
+	    (throw 'found (cons (cadr elem) (caddr elem)))))))))
 
 (defun gnus-inews-add-send-actions (winconf buffer article)
   (make-local-hook 'message-sent-hook)
@@ -230,11 +296,29 @@ Thank you for your help in stamping out bugs.
 
 ;;; Post news commands of Gnus group mode and summary mode
 
-(defun gnus-group-mail ()
-  "Start composing a mail."
-  (interactive)
-  (gnus-setup-message 'message
-    (message-mail)))
+(defun gnus-group-mail (&optional arg)
+  "Start composing a mail.
+If ARG, use the group under the point to find a posting style.
+If ARG is 1, prompt for a group name to find the posting style."
+  (interactive "P")
+  ;; We can't `let' gnus-newsgroup-name here, since that leads
+  ;; to local variables leaking.
+  (let ((group gnus-newsgroup-name)
+	(buffer (current-buffer)))
+    (unwind-protect
+	(progn
+	  (setq gnus-newsgroup-name
+		(if arg
+		    (if (= 1 (prefix-numeric-value arg))
+			(completing-read "Use posting style of group: "
+					 gnus-active-hashtb nil
+					 (gnus-read-active-file-p))
+		      (gnus-group-group-name))
+		  ""))
+	  (gnus-setup-message 'message (message-mail)))
+      (save-excursion
+	(set-buffer buffer)
+	(setq gnus-newsgroup-name group)))))
 
 (defun gnus-group-post-news (&optional arg)
   "Start composing a news message.
@@ -355,7 +439,9 @@ header line with the old Message-ID."
   ;; if ARTICLE-BUFFER is nil, gnus-article-buffer is used
   ;; this buffer should be passed to all mail/news reply/post routines.
   (setq gnus-article-copy (gnus-get-buffer-create " *gnus article copy*"))
-  (buffer-disable-undo gnus-article-copy)
+  (save-excursion
+    (set-buffer gnus-article-copy)
+    (mm-enable-multibyte))
   (let ((article-buffer (or article-buffer gnus-article-buffer))
 	end beg)
     (if (not (and (get-buffer article-buffer)
@@ -374,7 +460,7 @@ header line with the old Message-ID."
 	  (gnus-remove-text-with-property 'gnus-next)
 	  (insert
 	   (prog1
-	       (format "%s" (buffer-string))
+	       (buffer-substring-no-properties (point-min) (point-max))
 	     (erase-buffer)))
 	  ;; Find the original headers.
 	  (set-buffer gnus-original-article-buffer)
@@ -386,10 +472,10 @@ header line with the old Message-ID."
 	  ;; Delete the headers from the displayed articles.
 	  (set-buffer gnus-article-copy)
 	  (delete-region (goto-char (point-min))
-			 (or (search-forward "\n\n" nil t) (point)))
+			 (or (search-forward "\n\n" nil t) (point-max)))
 	  ;; Insert the original article headers.
 	  (insert-buffer-substring gnus-original-article-buffer beg end)
-	  (gnus-article-decode-rfc1522)))
+	  (article-decode-encoded-words)))
       gnus-article-copy)))
 
 (defun gnus-post-news (post &optional group header article-buffer yank subject
@@ -402,6 +488,7 @@ header line with the old Message-ID."
 			      (article-buffer 'reply)
 			      (t 'message))
       (let* ((group (or group gnus-newsgroup-name))
+	     (charset (gnus-group-name-charset nil group))
 	     (pgroup group)
 	     to-address to-group mailing-list to-list
 	     newsgroup-p)
@@ -412,7 +499,8 @@ header line with the old Message-ID."
 		newsgroup-p (gnus-group-find-parameter group 'newsgroup)
 		mailing-list (when gnus-mailing-list-groups
 			       (string-match gnus-mailing-list-groups group))
-		group (gnus-group-real-name group)))
+		group (gnus-group-name-decode (gnus-group-real-name group)
+					      charset)))
 	(if (or (and to-group
 		     (gnus-news-group-p to-group))
 		newsgroup-p
@@ -464,7 +552,7 @@ If SILENT, don't prompt the user."
      ;; the default method.
      ((null group-method)
       (or (and (null (eq gnus-post-method 'active)) gnus-post-method)
-	       gnus-select-method message-post-method))
+	  gnus-select-method message-post-method))
      ;; We want the inverse of the default
      ((and arg (not (eq arg 0)))
       (if (eq gnus-post-method 'active)
@@ -485,14 +573,16 @@ If SILENT, don't prompt the user."
 		   (list gnus-post-method)))
 	       gnus-secondary-select-methods
 	       (mapcar 'cdr gnus-server-alist)
+	       (mapcar 'car gnus-opened-servers)
 	       (list gnus-select-method)
 	       (list group-method)))
 	     method-alist post-methods method)
 	;; Weed out all mail methods.
 	(while methods
 	  (setq method (gnus-server-get-method "" (pop methods)))
-	  (when (or (gnus-method-option-p method 'post)
-		    (gnus-method-option-p method 'post-mail))
+	  (when (and (or (gnus-method-option-p method 'post)
+			 (gnus-method-option-p method 'post-mail))
+		     (not (member method post-methods)))
 	    (push method post-methods)))
 	;; Create a name-method alist.
 	(setq method-alist
@@ -515,8 +605,9 @@ If SILENT, don't prompt the user."
      ;; Override normal method.
      ((and (eq gnus-post-method 'current)
 	   (not (eq (car group-method) 'nndraft))
+	   (gnus-get-function group-method 'request-post t)
 	   (not arg))
-      group-method) 
+      group-method)
      ((and gnus-post-method
 	   (not (eq gnus-post-method 'current)))
       gnus-post-method)
@@ -525,68 +616,31 @@ If SILENT, don't prompt the user."
 
 
 
-;; Dummy to avoid byte-compile warning.
+;; Dummies to avoid byte-compile warning.
 (defvar nnspool-rejected-article-hook)
 (defvar xemacs-codename)
 
-;;; Since the X-Newsreader/X-Mailer are ``vanity'' headers, they might
-;;; as well include the Emacs version as well.
-;;; The following function works with later GNU Emacs, and XEmacs.
 (defun gnus-extended-version ()
   "Stringified Gnus version and Emacs version."
   (interactive)
   (concat
-   gnus-version
-   "/"
+   "Gnus/" (prin1-to-string (gnus-continuum-version gnus-version) t)
+   " (" gnus-version ")"
+   " "
    (cond
-    ((string-match "^\\([0-9]+\\.[0-9]+\\)\\.[.0-9]+$" emacs-version)
-     (concat "Emacs " (substring emacs-version
-				 (match-beginning 1)
-				 (match-end 1))))
+    ((string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
+     (concat "Emacs/" (match-string 1 emacs-version)))
     ((string-match "\\([A-Z]*[Mm][Aa][Cc][Ss]\\)[^(]*\\(\\((beta.*)\\|'\\)\\)?"
 		   emacs-version)
-     (concat (substring emacs-version
-			(match-beginning 1)
-			(match-end 1))
-	     (format " %d.%d" emacs-major-version emacs-minor-version)
+     (concat (match-string 1 emacs-version)
+	     (format "/%d.%d" emacs-major-version emacs-minor-version)
 	     (if (match-beginning 3)
-		 (substring emacs-version
-			    (match-beginning 3)
-			    (match-end 3))
+		 (match-string 3 emacs-version)
 	       "")
 	     (if (boundp 'xemacs-codename)
-		 (concat " - \"" xemacs-codename "\""))))
+		 (concat " (" xemacs-codename ")")
+	       "")))
     (t emacs-version))))
-
-;; Written by "Mr. Per Persson" <pp@gnu.org>.
-(defun gnus-inews-insert-mime-headers ()
-  "Insert MIME headers.
-Assumes ISO-Latin-1 is used iff 8-bit characters are present."
-  (goto-char (point-min))
-  (let ((mail-header-separator
-	 (progn
-	   (goto-char (point-min))
-	   (if (and (search-forward (concat "\n" mail-header-separator "\n")
-				    nil t)
-		    (not (search-backward "\n\n" nil t)))
-	       mail-header-separator
-	     ""))))
-    (or (mail-position-on-field "Mime-Version")
-	(insert "1.0")
-	(cond ((save-restriction
-		 (widen)
-		 (goto-char (point-min))
-		 (re-search-forward "[^\000-\177]" nil t))
-	       (or (mail-position-on-field "Content-Type")
-		   (insert "text/plain; charset=ISO-8859-1"))
-	       (or (mail-position-on-field "Content-Transfer-Encoding")
-		   (insert "8bit")))
-	      (t (or (mail-position-on-field "Content-Type")
-		     (insert "text/plain; charset=US-ASCII"))
-		 (or (mail-position-on-field "Content-Transfer-Encoding")
-		     (insert "7bit")))))))
-
-(custom-add-option 'message-header-hook 'gnus-inews-insert-mime-headers)
 
 
 ;;;
@@ -610,6 +664,10 @@ automatically."
       (gnus-summary-select-article)
       (set-buffer (gnus-copy-article-buffer))
       (gnus-msg-treat-broken-reply-to)
+      (save-restriction
+	(message-narrow-to-head)
+	(goto-char (point-max)))
+      (mml-quote-region (point) (point-max))
       (message-reply nil wide)
       (when yank
 	(gnus-inews-yank-articles yank)))))
@@ -635,16 +693,51 @@ The original article will be yanked."
   (interactive "P")
   (gnus-summary-reply-with-original n t))
 
-(defun gnus-summary-mail-forward (&optional full-headers post)
-  "Forward the current message to another user.
-If FULL-HEADERS (the prefix), include full headers when forwarding."
+(defun gnus-summary-mail-forward (&optional arg post)
+  "Forward the current message to another user.  
+If ARG is nil, see `message-forward-as-mime' and `message-forward-show-mml';
+if ARG is 1, decode the message and forward directly inline;
+if ARG is 2, foward message as an rfc822 MIME section;
+if ARG is 3, decode message and forward as an rfc822 MIME section;
+if ARG is 4, foward message directly inline;
+otherwise, use flipped `message-forward-as-mime'.
+If POST, post instead of mail."
   (interactive "P")
-  (gnus-setup-message 'forward
-    (gnus-summary-select-article)
-    (set-buffer gnus-original-article-buffer)
-    (let ((message-included-forward-headers
-	   (if full-headers "" message-included-forward-headers)))
-      (message-forward post))))
+  (let ((message-forward-as-mime message-forward-as-mime)
+	(message-forward-show-mml message-forward-show-mml))
+    (cond 
+     ((null arg))
+     ((eq arg 1) (setq message-forward-as-mime nil
+		       message-forward-show-mml t))
+     ((eq arg 2) (setq message-forward-as-mime t
+		       message-forward-show-mml nil))
+     ((eq arg 3) (setq message-forward-as-mime t
+		       message-forward-show-mml t))
+     ((eq arg 4) (setq message-forward-as-mime nil
+		       message-forward-show-mml nil))
+     (t (setq message-forward-as-mime (not message-forward-as-mime))))
+    (gnus-setup-message 'forward
+      (gnus-summary-select-article)
+      (let ((mail-parse-charset gnus-newsgroup-charset)
+	    (mail-parse-ignored-charsets gnus-newsgroup-ignored-charsets)
+	    text)
+	(save-excursion
+	  (set-buffer gnus-original-article-buffer)
+	  (mm-with-unibyte-current-buffer
+	    (setq text (buffer-string))))
+	(set-buffer 
+	 (gnus-get-buffer-create
+	  (generate-new-buffer-name " *Gnus forward*")))
+	(erase-buffer)
+	(mm-disable-multibyte)
+	(insert text)
+	(goto-char (point-min))
+	(when (looking-at "From ")
+	  (replace-match "X-From-Line: ") )
+	(when message-forward-show-mml
+	  (mm-enable-multibyte)
+	  (mime-to-mml))
+	(message-forward post)))))
 
 (defun gnus-summary-resend-message (address n)
   "Resend the current article to ADDRESS."
@@ -657,11 +750,11 @@ If FULL-HEADERS (the prefix), include full headers when forwarding."
 	(set-buffer gnus-original-article-buffer)
 	(message-resend address)))))
 
-(defun gnus-summary-post-forward (&optional full-headers)
+(defun gnus-summary-post-forward (&optional arg)
   "Forward the current article to a newsgroup.
-If FULL-HEADERS (the prefix), include full headers when forwarding."
+See `gnus-summary-mail-forward' for ARG."
   (interactive "P")
-  (gnus-summary-mail-forward full-headers t))
+  (gnus-summary-mail-forward arg t))
 
 (defvar gnus-nastygram-message
   "The following article was inappropriately posted to %s.\n\n"
@@ -694,7 +787,8 @@ The current group name will be inserted at \"%s\".")
 	(gnus-summary-select-article)
 	(set-buffer gnus-original-article-buffer)
 	(if (and (<= (length (message-tokenize-header
-			      (setq newsgroups (mail-fetch-field "newsgroups"))
+			      (setq newsgroups
+				    (mail-fetch-field "newsgroups"))
 			      ", "))
 		     1)
 		 (or (not (setq followup-to (mail-fetch-field "followup-to")))
@@ -833,7 +927,12 @@ If YANK is non-nil, include the original article."
 	       (stringp nntp-server-type))
       (insert nntp-server-type))
     (insert "\n\n\n\n\n")
-    (gnus-debug)
+    (let (text)
+      (save-excursion
+	(set-buffer (gnus-get-buffer-create " *gnus environment info*"))
+	(gnus-debug)
+	(setq text (buffer-string)))
+      (insert "<#part type=application/x-emacs-lisp disposition=inline description=\"User settings\">\n" text "\n<#/part>"))
     (goto-char (point-min))
     (search-forward "Subject: " nil t)
     (message "")))
@@ -841,6 +940,19 @@ If YANK is non-nil, include the original article."
 (defun gnus-bug-kill-buffer ()
   (when (get-buffer "*Gnus Help Bug*")
     (kill-buffer "*Gnus Help Bug*")))
+
+(defun gnus-summary-yank-message (buffer n)
+  "Yank the current article into a composed message."
+  (interactive
+   (list (completing-read "Buffer: " (mapcar 'list (message-buffers)) nil t)
+	 current-prefix-arg))
+  (gnus-summary-iterate n
+    (let ((gnus-display-mime-function nil)
+	  (gnus-inhibit-treatment t))
+      (gnus-summary-select-article))
+    (save-excursion
+      (set-buffer buffer)
+      (message-yank-buffer gnus-article-buffer))))
 
 (defun gnus-debug ()
   "Attempts to go through the Gnus source file and report what variables have been changed.
@@ -857,7 +969,6 @@ The source file has to be in the Emacs load path."
     ;; Go through all the files looking for non-default values for variables.
     (save-excursion
       (set-buffer (gnus-get-buffer-create " *gnus bug info*"))
-      (buffer-disable-undo (current-buffer))
       (while files
 	(erase-buffer)
 	(when (and (setq file (locate-library (pop files)))
@@ -940,7 +1051,8 @@ this is a reply."
 	  (when gcc
 	    (message-remove-header "gcc")
 	    (widen)
-	    (setq groups (message-tokenize-header gcc " ,"))
+	    (setq groups (message-unquote-tokens
+                          (message-tokenize-header gcc " ,")))
 	    ;; Copy the article over to some group(s).
 	    (while (setq group (pop groups))
 	      (gnus-check-server
@@ -964,12 +1076,20 @@ this is a reply."
 	      (save-excursion
 		(nnheader-set-temp-buffer " *acc*")
 		(insert-buffer-substring cur)
+		(message-encode-message-body)
+		(save-restriction
+		  (message-narrow-to-headers)
+		  (let ((mail-parse-charset message-default-charset)
+			(rfc2047-header-encoding-alist
+			 (cons '("Newsgroups" . default)
+			       rfc2047-header-encoding-alist)))
+		    (mail-encode-encoded-word-buffer)))
 		(goto-char (point-min))
 		(when (re-search-forward
 		       (concat "^" (regexp-quote mail-header-separator) "$")
 		       nil t)
 		  (replace-match "" t t ))
-		(unless (gnus-request-accept-article group method t)
+		(unless (gnus-request-accept-article group method t t)
 		  (gnus-message 1 "Couldn't store article in group %s: %s"
 				group (gnus-status-message method))
 		  (sit-for 2))
@@ -998,9 +1118,10 @@ this is a reply."
 	 (group (or group gnus-newsgroup-name ""))
 	 (gcc-self-val
 	  (and gnus-newsgroup-name
+	       (not (equal gnus-newsgroup-name ""))
 	       (gnus-group-find-parameter
 		gnus-newsgroup-name 'gcc-self)))
-	 result 
+	 result
 	 (groups
 	  (cond
 	   ((null gnus-message-archive-method)
@@ -1068,86 +1189,131 @@ this is a reply."
 
 ;;; Posting styles.
 
-(defvar gnus-message-style-insertions nil)
-
 (defun gnus-configure-posting-styles ()
   "Configure posting styles according to `gnus-posting-styles'."
   (unless gnus-inhibit-posting-styles
-    (let ((styles gnus-posting-styles)
-	  (gnus-newsgroup-name (or gnus-newsgroup-name ""))
-	  style match variable attribute value value-value)
-      (make-local-variable 'gnus-message-style-insertions)
+    (let ((group (or gnus-newsgroup-name ""))
+	  (styles gnus-posting-styles)
+	  style match variable attribute value v results
+	  filep name address element)
+      ;; If the group has a posting-style parameter, add it at the end with a
+      ;; regexp matching everything, to be sure it takes precedence over all
+      ;; the others.
+      (when gnus-newsgroup-name
+	(let ((tmp-style (gnus-group-find-parameter group 'posting-style t)))
+	  (when tmp-style
+	    (setq styles (append styles (list (cons ".*" tmp-style)))))))
       ;; Go through all styles and look for matches.
-      (while styles
-	(setq style (pop styles)
-	      match (pop style))
-	(when (cond ((stringp match)
-		     ;; Regexp string match on the group name.
-		     (string-match match gnus-newsgroup-name))
-		    ((or (symbolp match)
-			 (gnus-functionp match))
-		     (cond ((gnus-functionp match)
-			    ;; Function to be called.
-			    (funcall match))
-			   ((boundp match)
-			    ;; Variable to be checked.
-			    (symbol-value match))))
-		    ((listp match)
-		     ;; This is a form to be evaled.
-		     (eval match)))
+      (dolist (style styles)
+	(setq match (pop style))
+	(goto-char (point-min))
+	(when (cond
+	       ((stringp match)
+		;; Regexp string match on the group name.
+		(string-match match group))
+	       ((eq match 'header)
+		(let ((header (message-fetch-field (pop style))))
+		  (and header
+		       (string-match (pop style) header))))
+	       ((or (symbolp match)
+		    (gnus-functionp match))
+		(cond
+		 ((gnus-functionp match)
+		  ;; Function to be called.
+		  (funcall match))
+		 ((boundp match)
+		  ;; Variable to be checked.
+		  (symbol-value match))))
+	       ((listp match)
+		;; This is a form to be evaled.
+		(eval match)))
 	  ;; We have a match, so we set the variables.
-	  (while style
-	    (setq attribute (pop style)
-		  value (cadr attribute)
-		  variable nil)
-	    ;; We find the variable that is to be modified.
-	    (if (and (not (stringp (car attribute)))
-		     (not (eq 'body (car attribute)))
-		     (not (setq variable
-				(cdr (assq (car attribute) 
-					   gnus-posting-style-alist)))))
-		(message "Couldn't find attribute %s" (car attribute))
-	      ;; We get the value.
-	      (setq value-value
-		    (cond ((stringp value)
-			   value)
-			  ((or (symbolp value)
-			       (gnus-functionp value))
-			   (cond ((gnus-functionp value)
-				  (funcall value))
-				 ((boundp value)
-				  (symbol-value value))))
-			  ((listp value)
-			   (eval value))))
-	      (if variable
-		  ;; This is an ordinary variable.
-		  (set (make-local-variable variable) value-value)
-		;; This is either a body or a header to be inserted in the
-		;; message.
-		(when value-value
-		  (let ((attr (car attribute)))
-		    (make-local-variable 'message-setup-hook)
-		    (if (eq 'body attr)
-			(add-hook 'message-setup-hook
-				  `(lambda ()
-				     (save-excursion
-				       (message-goto-body)
-				       (insert ,value-value))))
-		      (add-hook 'message-setup-hook
-				'gnus-message-insert-stylings)
-		      (push (cons (if (stringp attr) attr
-				    (symbol-name attr))
-				  value-value)
-			    gnus-message-style-insertions))))))))))))
-
-(defun gnus-message-insert-stylings ()
-  (let (val)
-    (save-excursion
-      (message-goto-eoh)
-      (while (setq val (pop gnus-message-style-insertions))
-	(when (cdr val)
-	  (insert (car val) ": " (cdr val) "\n"))
-	(gnus-pull (car val) gnus-message-style-insertions)))))
+	  (dolist (attribute style)
+	    (setq element (pop attribute)
+		  variable nil
+		  filep nil)
+	    (setq value
+		  (cond
+		   ((eq (car attribute) :file)
+		    (setq filep t)
+		    (cadr attribute))
+		   ((eq (car attribute) :value)
+		    (cadr attribute))
+		   (t
+		    (car attribute))))
+	    ;; We get the value.
+	    (setq v
+		  (cond
+		   ((stringp value)
+		    value)
+		   ((or (symbolp value)
+			(gnus-functionp value))
+		    (cond ((gnus-functionp value)
+			   (funcall value))
+			  ((boundp value)
+			   (symbol-value value))))
+		   ((listp value)
+		    (eval value))))
+	    ;; Translate obsolescent value.
+	    (when (eq element 'signature-file)
+	      (setq element 'signature
+		    filep t))
+	    ;; Get the contents of file elems.
+	    (when (and filep v)
+	      (setq v (with-temp-buffer
+			(insert-file-contents v)
+			(buffer-string))))
+	    (setq results (delq (assoc element results) results))
+	    (push (cons element v) results))))
+      ;; Now we have all the styles, so we insert them.
+      (setq name (assq 'name results)
+	    address (assq 'address results))
+      (setq results (delq name (delq address results)))
+      (make-local-variable 'message-setup-hook)
+      (dolist (result results)
+	(add-hook 'message-setup-hook
+		  (cond
+		   ((eq 'eval (car result))
+		    'ignore)
+		   ((eq 'body (car result))
+		    `(lambda ()
+		       (save-excursion
+			 (message-goto-body)
+			 (insert ,(cdr result)))))
+		   ((eq 'signature (car result))
+		    (set (make-local-variable 'message-signature) nil)
+		    (set (make-local-variable 'message-signature-file) nil)
+		    (if (not (cdr result))
+			'ignore
+		      `(lambda ()
+			 (save-excursion
+			   (let ((message-signature ,(cdr result)))
+			     (when message-signature
+			       (message-insert-signature)))))))
+		   (t
+		    (let ((header
+			   (if (symbolp (car result))
+			       (capitalize (symbol-name (car result)))
+			     (car result))))
+		      `(lambda ()
+			 (save-excursion
+			   (message-remove-header ,header)
+			   (let ((value ,(cdr result)))
+			     (when value
+			       (message-goto-eoh)
+			       (insert ,header ": " value "\n"))))))))))
+      (when (or name address)
+	(add-hook 'message-setup-hook
+		  `(lambda ()
+ 		     (set (make-local-variable 'user-mail-address)
+ 			  ,(or (cdr address) user-mail-address))
+		     (let ((user-full-name ,(or (cdr name) (user-full-name)))
+			   (user-mail-address
+			    ,(or (cdr address) user-mail-address)))
+		       (save-excursion
+			 (message-remove-header "From")
+			 (message-goto-eoh)
+			 (insert "From: " (message-make-from) "\n")))))))))
 
 ;;; Allow redefinition of functions.
 

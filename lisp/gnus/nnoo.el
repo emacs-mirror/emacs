@@ -1,5 +1,7 @@
 ;;; nnoo.el --- OO Gnus Backends
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -105,11 +107,11 @@
 			(cdr (assq pbackend (nnoo-parents backend))))
     (prog1
 	(apply function args)
-    ;; Copy the changed variables back into the child.
-    (let ((vars (cdr (assq pbackend (nnoo-parents backend)))))
-      (while vars
-	(set (cadar vars) (symbol-value (caar vars)))
-	(setq vars (cdr vars)))))))
+      ;; Copy the changed variables back into the child.
+      (let ((vars (cdr (assq pbackend (nnoo-parents backend)))))
+	(while vars
+	  (set (cadar vars) (symbol-value (caar vars)))
+	  (setq vars (cdr vars)))))))
 
 (defun nnoo-execute (backend function &rest args)
   "Execute FUNCTION on behalf of BACKEND."

@@ -1,5 +1,5 @@
 ;;; gnus-bcklg.el --- backlog functions for Gnus
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -27,8 +27,6 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-when-compile (require 'cl))
-
 (require 'gnus)
 
 ;;;
@@ -44,7 +42,7 @@
   (or (get-buffer gnus-backlog-buffer)
       (save-excursion
 	(set-buffer (gnus-get-buffer-create gnus-backlog-buffer))
-	(buffer-disable-undo (current-buffer))
+	(buffer-disable-undo)
 	(setq buffer-read-only t)
 	(get-buffer gnus-backlog-buffer))))
 
@@ -84,7 +82,9 @@
 	  (setq b (point))
 	  (insert-buffer-substring buffer)
 	  ;; Tag the beginning of the article with the ident.
-	  (gnus-put-text-property b (1+ b) 'gnus-backlog ident))))))
+	  (if (> (point-max) b)
+	      (gnus-put-text-property b (1+ b) 'gnus-backlog ident)
+	    (gnus-error 3 "Article %d is blank" number)))))))
 
 (defun gnus-backlog-remove-oldest-article ()
   (save-excursion
@@ -126,7 +126,7 @@
 	      t))
 	  (setq gnus-backlog-articles (delq ident gnus-backlog-articles)))))))
 
-(defun gnus-backlog-request-article (group number buffer)
+(defun gnus-backlog-request-article (group number &optional buffer)
   (when (numberp number)
     (gnus-backlog-setup)
     (let ((ident (intern (concat group ":" (int-to-string number))
@@ -146,10 +146,12 @@
 	    (setq end
 		  (next-single-property-change
 		   (1+ beg) 'gnus-backlog (current-buffer) (point-max)))))
-	(let ((buffer-read-only nil))
-	  (erase-buffer)
-	  (insert-buffer-substring gnus-backlog-buffer beg end)
-	  t)))))
+	(save-excursion
+	  (and buffer (set-buffer buffer))
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (insert-buffer-substring gnus-backlog-buffer beg end)))
+	t))))
 
 (provide 'gnus-bcklg)
 

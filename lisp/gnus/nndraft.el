@@ -1,5 +1,6 @@
 ;;; nndraft.el --- draft article access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -30,6 +31,7 @@
 (require 'gnus-start)
 (require 'nnmh)
 (require 'nnoo)
+(require 'mm-util)
 (eval-when-compile
   (require 'cl)
   ;; This is just to shut up the byte-compiler.
@@ -77,16 +79,12 @@
   (save-excursion
     (set-buffer nntp-server-buffer)
     (erase-buffer)
-    (let* ((buf (get-buffer-create " *draft headers*"))
-	   article)
-      (set-buffer buf)
-      (buffer-disable-undo (current-buffer))
-      (erase-buffer)
+    (let* (article)
       ;; We don't support fetching by Message-ID.
       (if (stringp (car articles))
 	  'headers
 	(while articles
-	  (set-buffer buf)
+	  (narrow-to-region (point) (point))
 	  (when (nndraft-request-article
 		 (setq article (pop articles)) group server (current-buffer))
 	    (goto-char (point-min))
@@ -94,10 +92,10 @@
 		(forward-line -1)
 	      (goto-char (point-max)))
 	    (delete-region (point) (point-max))
-	    (set-buffer nntp-server-buffer)
-	    (goto-char (point-max))
+	    (goto-char (point-min))
 	    (insert (format "221 %d Article retrieved.\n" article))
-	    (insert-buffer-substring buf)
+	    (widen)
+	    (goto-char (point-max))
 	    (insert ".\n")))
 
 	(nnheader-fold-continuation-lines)
@@ -113,7 +111,13 @@
 	   (newest (if (file-newer-than-file-p file auto) file auto))
 	   (nntp-server-buffer (or buffer nntp-server-buffer)))
       (when (and (file-exists-p newest)
-		 (nnmail-find-file newest))
+		 (let ((nnmail-file-coding-system
+			(if (file-newer-than-file-p file auto)
+			    (if (equal group "drafts")
+				message-draft-coding-system
+			      mm-text-coding-system)
+			  mm-auto-save-coding-system)))
+		   (nnmail-find-file newest)))
 	(save-excursion
 	  (set-buffer nntp-server-buffer)
 	  (goto-char (point-min))
@@ -138,8 +142,9 @@
    info
    (gnus-update-read-articles (gnus-group-prefixed-name group '(nndraft ""))
 			      (nndraft-articles) t))
-  (let (marks)
-    (when (setq marks (nth 3 info))
+  (let ((marks (nth 3 info)))
+    (when marks
+      ;; Nix out all marks except the `unsend'-able article marks.
       (setcar (nthcdr 3 info)
 	      (if (assq 'unsend marks)
 		  (list (assq 'unsend marks))
@@ -153,14 +158,14 @@
   (nndraft-possibly-change-group group)
   (let ((gnus-verbose-backends nil)
 	(buf (current-buffer))
-	 article file)
-    (nnheader-temp-write nil
-      (insert-buffer buf)
+	article file)
+    (with-temp-buffer
+      (insert-buffer-substring buf)
       (setq article (nndraft-request-accept-article
-		     group (nnoo-current-server 'nndraft) t 'noinsert))
-      (setq file (nndraft-article-filename article)))
-    (setq buffer-file-name (expand-file-name file))
-    (setq buffer-auto-save-file-name (make-auto-save-file-name))
+		     group (nnoo-current-server 'nndraft) t 'noinsert)
+	    file (nndraft-article-filename article)))
+    (setq buffer-file-name (expand-file-name file)
+	  buffer-auto-save-file-name (make-auto-save-file-name))
     (clear-visited-file-modtime)
     article))
 
@@ -177,7 +182,14 @@
 	(let ((auto (nndraft-auto-save-file-name
 		     (nndraft-article-filename article))))
 	  (when (file-exists-p auto)
-	    (funcall nnmail-delete-file-function auto)))))
+	    (funcall nnmail-delete-file-function auto)))
+	(dolist (backup
+		 (let ((kept-new-versions 1)
+		       (kept-old-versions 0))
+		   (find-backup-file-name
+		    (nndraft-article-filename article))))
+	  (when (file-exists-p backup)
+	    (funcall nnmail-delete-file-function backup)))))
     res))
 
 (deffoo nndraft-request-accept-article (group &optional server last noinsert)
@@ -185,6 +197,15 @@
   (let ((gnus-verbose-backends nil))
     (nnoo-parent-function 'nndraft 'nnmh-request-accept-article
 			  (list group server last noinsert))))
+
+(deffoo nndraft-request-replace-article (article group buffer)
+  (nndraft-possibly-change-group group)
+  (let ((nnmail-file-coding-system
+	 (if (equal group "drafts")
+	     mm-auto-save-coding-system
+	   mm-text-coding-system)))
+    (nnoo-parent-function 'nndraft 'nnmh-request-replace-article
+			  (list article group buffer))))
 
 (deffoo nndraft-request-create-group (group &optional server args)
   (nndraft-possibly-change-group group)
@@ -237,10 +258,9 @@
    nnmh-retrieve-headers
    nnmh-request-group
    nnmh-close-group
-   nnmh-request-list 
+   nnmh-request-list
    nnmh-request-newsgroups
-   nnmh-request-move-article
-   nnmh-request-replace-article))
+   nnmh-request-move-article))
 
 (provide 'nndraft)
 

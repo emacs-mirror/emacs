@@ -1,5 +1,5 @@
 ;;; gnus-demon.el --- daemonic Gnus behaviour
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98,99 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,8 +24,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -84,10 +82,6 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 (defvar gnus-inhibit-demon nil
   "*If non-nil, no daemonic function will be run.")
 
-(eval-and-compile
-  (autoload 'timezone-parse-date "timezone")
-  (autoload 'timezone-make-arpa-date "timezone"))
-
 ;;; Functions.
 
 (defun gnus-demon-add-handler (function time idle)
@@ -121,8 +115,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 		   (nth 2 handler)))
 	   gnus-demon-handlers))
     (setq gnus-demon-idle-time 0)
-    (setq gnus-demon-idle-has-been-called nil)
-    (setq gnus-use-demon t)))
+    (setq gnus-demon-idle-has-been-called nil)))
 
 (gnus-add-shutdown 'gnus-demon-cancel 'gnus)
 
@@ -132,7 +125,6 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   (when gnus-demon-timer
     (nnheader-cancel-timer gnus-demon-timer))
   (setq gnus-demon-timer nil
-	gnus-use-demon nil
 	gnus-demon-idle-has-been-called nil)
   (condition-case ()
       (nnheader-cancel-function-timers 'gnus-demon)
@@ -157,17 +149,17 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
       time
     (let* ((now (current-time))
            ;; obtain NOW as discrete components -- make a vector for speed
-           (nowParts (apply 'vector (decode-time now)))
+           (nowParts (decode-time now))
            ;; obtain THEN as discrete components
-           (thenParts (timezone-parse-time time))
-           (thenHour (string-to-int (elt thenParts 0)))
-           (thenMin (string-to-int (elt thenParts 1)))
+           (thenParts (parse-time-string time))
+           (thenHour (elt thenParts 0))
+           (thenMin (elt thenParts 1))
            ;; convert time as elements into number of seconds since EPOCH.
            (then (encode-time 0
                               thenMin
                               thenHour
                               ;; If THEN is earlier than NOW, make it
-                              ;; same time tomorrow. Doc for encode-time
+                              ;; same time tomorrow.  Doc for encode-time
                               ;; says that this is OK.
                               (+ (elt nowParts 3)
                                  (if (or (< thenHour (elt nowParts 2))
@@ -199,6 +191,10 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
     ;; sufficiently ripe.
     (let ((handlers gnus-demon-handler-state)
 	  (gnus-inhibit-demon t)
+	  ;; Try to avoid dialog boxes, e.g. by Mailcrypt.
+	  ;; Unfortunately, Emacs 20's `message-or-box...' doesn't
+	  ;; obey `use-dialog-box'.
+	  use-dialog-box (last-nonmenu-event 10)
 	  handler time idle)
       (while handlers
 	(setq handler (pop handlers))
@@ -266,12 +262,11 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   "Add daemonic nntp server disconnection to Gnus.
 If no commands have gone out via nntp during the last five
 minutes, the connection is closed."
-  (gnus-demon-add-handler 'gnus-demon-close-connections 5 nil))
+  (gnus-demon-add-handler 'gnus-demon-nntp-close-connections 5 nil))
 
 (defun gnus-demon-nntp-close-connection ()
   (save-window-excursion
-    (when (nnmail-time-less '(0 300)
-			    (nnmail-time-since nntp-last-command-time))
+    (when (time-less-p '(0 300) (time-since nntp-last-command-time))
       (nntp-close-server))))
 
 (defun gnus-demon-add-scanmail ()
@@ -281,8 +276,8 @@ minutes, the connection is closed."
 (defun gnus-demon-scan-mail ()
   (save-window-excursion
     (let ((servers gnus-opened-servers)
-	  server)
-      (gnus-clear-inboxes-moved)
+	  server
+	  (nnmail-fetched-sources (list t)))
       (while (setq server (car (pop servers)))
 	(and (gnus-check-backend-function 'request-scan (car server))
 	     (or (gnus-server-opened server)

@@ -1,6 +1,6 @@
 ;;; gnus-cus.el --- customization commands for Gnus
 ;;
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996,1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: news
@@ -28,6 +28,7 @@
 
 (require 'wid-edit)
 (require 'gnus-score)
+(require 'gnus-topic)
 
 ;;; Widgets:
 
@@ -51,6 +52,21 @@ if that value is non-nil."
   (setq major-mode 'gnus-custom-mode
 	mode-name "Gnus Customize")
   (use-local-map widget-keymap)
+  ;; Emacs 21 stuff:
+  (when (and (facep 'custom-button-face)
+	     (facep 'custom-button-pressed-face))
+    (set (make-local-variable 'widget-button-face)
+	 'custom-button-face)
+    (set (make-local-variable 'widget-button-pressed-face)
+	 'custom-button-pressed-face)
+    (set (make-local-variable 'widget-mouse-face)
+	 'custom-button-pressed-face))
+  (when (and (boundp 'custom-raised-buttons)
+	     (symbol-value 'custom-raised-buttons))
+    (set (make-local-variable 'widget-push-button-prefix) "")
+    (set (make-local-variable 'widget-push-button-suffix) "")
+    (set (make-local-variable 'widget-link-prefix) "")
+    (set (make-local-variable 'widget-link-suffix) ""))
   (gnus-run-hooks 'gnus-custom-mode-hook))
 
 ;;; Group Customization:
@@ -70,14 +86,63 @@ not.  Let's say there's a group on the server that is called
 `fa.4ad-l'.  This is a real newsgroup, but the server has gotten the
 articles from a mail-to-news gateway.  Posting directly to this group
 is therefore impossible--you have to send mail to the mailing list
-address instead.")
+address instead.
+
+The gnus-group-split mail splitting mechanism will behave as if this
+address was listed in gnus-group-split Addresses (see below).")
 
     (to-list (gnus-email-address :tag "To List") "\
 This address will be used when doing a `a' in the group.
 
 It is totally ignored when doing a followup--except that if it is
 present in a news group, you'll get mail group semantics when doing
-`f'.")
+`f'.
+
+The gnus-group-split mail splitting mechanism will behave as if this
+address was listed in gnus-group-split Addresses (see below).")
+
+    (extra-aliases (choice
+		    :tag "Extra Aliases"
+		    (list
+		     :tag "List"
+		     (editable-list
+		      :inline t
+		      (gnus-email-address :tag "Address")))
+		    (gnus-email-address :tag "Address")) "\
+Store messages posted from or to this address in this group.
+
+You must be using gnus-group-split for this to work.  The VALUE of the
+nnmail-split-fancy SPLIT generated for this group will match these
+addresses.")
+
+    (split-regexp (regexp :tag "gnus-group-split Regular Expression") "\
+Like gnus-group-split Address, but expects a regular expression.")
+
+    (split-exclude (list :tag "gnus-group-split Restricts"
+			 (editable-list
+			  :inline t (regexp :tag "Restrict"))) "\
+Regular expression that cancels gnus-group-split matches.
+
+Each entry is added to the nnmail-split-fancy SPLIT as a separate
+RESTRICT clause.")
+
+    (split-spec (choice :tag "gnus-group-split Overrider"
+			(sexp :tag "Fancy Split")
+			(const :tag "Catch All" catch-all)
+			(const :tag "Ignore" nil)) "\
+Override all other gnus-group-split fields.
+
+In `Fancy Split', you can enter any nnmail-split-fancy SPLIT.  Note
+that the name of this group won't be automatically assumed, you have
+to add it to the SPLITs yourself.  This means you can use such splits
+to split messages to other groups too.
+
+If you select `Catch All', this group will get postings for any
+messages not matched in any other group.  It overrides the variable
+gnus-group-split-default-catch-all-group.
+
+Selecting `Ignore' forces no SPLIT to be generated for this group,
+disabling all other gnus-group-split fields.")
 
     (broken-reply-to (const :tag "Broken Reply To" t) "\
 Ignore `Reply-To' headers in this group.
@@ -87,7 +152,7 @@ listserv has inserted `Reply-To' headers that point back to the
 listserv itself.  This is broken behavior.  So there!")
 
     (to-group (string :tag "To Group") "\
-All posts will be send to the specified group.")
+All posts will be sent to the specified group.")
 
     (gcc-self (choice :tag  "GCC"
 		      :value t
@@ -97,11 +162,17 @@ All posts will be send to the specified group.")
 Specify default value for GCC header.
 
 If this symbol is present in the group parameter list and set to `t',
-new composed messages will be `Gcc''d to the current group. If it is
+new composed messages will be `Gcc''d to the current group.  If it is
 present and set to `none', no `Gcc:' header will be generated, if it
 is present and a string, this string will be inserted literally as a
 `gcc' header (this symbol takes precedence over any default `Gcc'
 rules as described later).")
+
+    (banner (choice :tag "Banner"
+		    (const signature)
+		    regexp
+		    (const :tag "None" nil)) "\
+Regular expression matching banners to be removed from articles.")
 
     (auto-expire (const :tag "Automatic Expire" t) "\
 All articles that are read will be marked as expirable.")
@@ -121,9 +192,18 @@ Use with caution.")
 When to expire.
 
 Overrides any `nnmail-expiry-wait' and `nnmail-expiry-wait-function'
-when expiring expirable messages. The value can either be a number of
+when expiring expirable messages.  The value can either be a number of
 days (not necessarily an integer) or the symbols `never' or
 `immediate'.")
+
+    (expiry-target (choice :tag "Expiry Target"
+                           :value delete
+                           (const delete)
+                           (function :format "%v" nnmail-)
+                           string) "\
+Where expired messages end up.
+
+Overrides `nnmail-expiry-target', which see.")
 
     (score-file (file :tag "Score File") "\
 Make the specified file into the current score file.
@@ -159,30 +239,78 @@ An arbitrary comment on the group.")
 
     (visible (const :tag "Permanently visible" t) "\
 Always display this group, even when there are no unread articles
-in it.."))
-  "Alist of valid group parameters.
+in it..")
+
+    (charset (symbol :tag "Charset") "\
+The default charset to use in the group.")
+	     
+    (ignored-charsets 
+     (choice :tag "Ignored charsets" 
+	     :value nil
+	     (repeat (symbol))) "\
+List of charsets that should be ignored.
+
+When these charsets are used in the \"charset\" parameter, the
+default charset will be used instead.")
+	     
+    (highlight-words 
+     (choice :tag "Highlight words"
+	     :value nil
+	     (repeat (list (regexp :tag "Highlight regexp")
+			   (number :tag "Group for entire word" 0)
+			   (number :tag "Group for displayed part" 0)
+			   (symbol :tag "Face" 
+				   gnus-emphasis-highlight-words))))
+     "highlight regexps.
+See gnus-emphasis-alist."))
+  "Alist of valid group or topic parameters.
 
 Each entry has the form (NAME TYPE DOC), where NAME is the parameter
 itself (a symbol), TYPE is the parameters type (a sexp widget), and
 DOC is a documentation string for the parameter.")
 
+(defconst gnus-extra-topic-parameters
+  '((subscribe (regexp :tag "Subscribe") "\
+If `gnus-subscribe-newsgroup-method' is set to
+`gnus-subscribe-topics', new groups that matches this regexp will
+automatically be subscribed to this topic")) 
+  "Alist of topic parameters that are not also group parameters.
+
+Each entry has the form (NAME TYPE DOC), where NAME is the parameter
+itself (a symbol), TYPE is the parameters type (a sexp widget), and
+DOC is a documentation string for the parameter.")
+
+(defconst gnus-extra-group-parameters
+  '((uidvalidity (string :tag "IMAP uidvalidity") "\
+Server-assigned value attached to IMAP groups, used to maintain consistency."))
+  "Alist of group parameters that are not also topic parameters.
+
+Each entry has the form (NAME TYPE DOC), where NAME is the parameter
+itself (a symbol), TYPE is the parameters type (a sexp widget), and
+DOC is a documentation string for the parameter.")
 (defvar gnus-custom-params)
 (defvar gnus-custom-method)
 (defvar gnus-custom-group)
+(defvar gnus-custom-topic)
 
-(defun gnus-group-customize (group)
-  "Edit the group on the current line."
-  (interactive (list (gnus-group-group-name)))
+(defun gnus-group-customize (group &optional topic)
+  "Edit the group or topic on the current line."
+  (interactive (list (gnus-group-group-name) (gnus-group-topic-name)))
   (let (info
 	(types (mapcar (lambda (entry)
 			 `(cons :format "%v%h\n"
 				:doc ,(nth 2 entry)
 				(const :format "" ,(nth 0 entry))
 				,(nth 1 entry)))
-		       gnus-group-parameters)))
-    (unless group
+		       (append gnus-group-parameters 
+			       (if group
+				   gnus-extra-group-parameters
+				 gnus-extra-topic-parameters)))))
+    (unless (or group topic)
       (error "No group on current line"))
-    (unless (setq info (gnus-get-info group))
+    (when (and group topic)
+      (error "Both a group an topic on current line"))
+    (unless (or topic (setq info (gnus-get-info group)))
       (error "Killed group; can't be edited"))
     ;; Ready.
     (kill-buffer (gnus-get-buffer-create "*Gnus Customize*"))
@@ -190,13 +318,21 @@ DOC is a documentation string for the parameter.")
     (gnus-custom-mode)
     (make-local-variable 'gnus-custom-group)
     (setq gnus-custom-group group)
+    (make-local-variable 'gnus-custom-topic)
+    (setq gnus-custom-topic topic)
+    (buffer-disable-undo)
     (widget-insert "Customize the ")
-    (widget-create 'info-link
-		   :help-echo "Push me to learn more."
-		   :tag "group parameters"
-		   "(gnus)Group Parameters")
+    (if group
+	(widget-create 'info-link
+		       :help-echo "Push me to learn more."
+		       :tag "group parameters"
+		       "(gnus)Group Parameters")
+      (widget-create 'info-link
+		     :help-echo "Push me to learn more."
+		     :tag  "topic parameters"
+		     "(gnus)Topic Parameters"))
     (widget-insert " for <")
-    (widget-insert group)
+    (widget-insert (gnus-group-decoded-name (or group topic)))
     (widget-insert "> and press ")
     (widget-create 'push-button
 		   :tag "done"
@@ -206,15 +342,17 @@ DOC is a documentation string for the parameter.")
     (make-local-variable 'gnus-custom-params)
     (setq gnus-custom-params
 	  (widget-create 'group
-			 :value (gnus-info-params info)
+			 :value (if group
+				    (gnus-info-params info)
+				  (gnus-topic-parameters topic))
 			 `(set :inline t
 			       :greedy t
 			       :tag "Parameters"
 			       :format "%t:\n%h%v"
 			       :doc "\
-These special paramerters are recognized by Gnus.
-Check the [ ] for the parameters you want to apply to this group, then
-edit the value to suit your taste."
+These special parameters are recognized by Gnus.
+Check the [ ] for the parameters you want to apply to this group or
+to the groups in this topic, then edit the value to suit your taste."
 			       ,@types)
 			 '(repeat :inline t
 				  :tag "Variables"
@@ -232,34 +370,40 @@ like.  If you want to hear a beep when you enter a group, you could
 put something like `(dummy-variable (ding))' in the parameters of that
 group.  `dummy-variable' will be set to the result of the `(ding)'
 form, but who cares?"
-				  (group :value (nil nil)
-					 (symbol :tag "Variable")
-					 (sexp :tag
-					       "Value")))
+				  (list :format "%v" :value (nil nil)
+					(symbol :tag "Variable")
+					(sexp :tag
+					      "Value")))
 
 			 '(repeat :inline t
 				  :tag "Unknown entries"
 				  sexp)))
-    (widget-insert "\n\nYou can also edit the ")
-    (widget-create 'info-link
-		   :tag "select method"
-		   :help-echo "Push me to learn more about select methods."
-		   "(gnus)Select Methods")
-    (widget-insert " for the group.\n")
-    (setq gnus-custom-method
-	  (widget-create 'sexp
-			 :tag "Method"
-			 :value (gnus-info-method info)))
+    (when group
+      (widget-insert "\n\nYou can also edit the ")
+      (widget-create 'info-link
+		     :tag "select method"
+		     :help-echo "Push me to learn more about select methods."
+		     "(gnus)Select Methods")
+      (widget-insert " for the group.\n")
+      (setq gnus-custom-method
+	    (widget-create 'sexp
+			   :tag "Method"
+			   :value (gnus-info-method info))))
     (use-local-map widget-keymap)
-    (widget-setup)))
+    (widget-setup)
+    (buffer-enable-undo)
+    (goto-char (point-min))))
 
 (defun gnus-group-customize-done (&rest ignore)
   "Apply changes and bury the buffer."
   (interactive)
-  (gnus-group-edit-group-done 'params gnus-custom-group
-			      (widget-value gnus-custom-params))
-  (gnus-group-edit-group-done 'method gnus-custom-group
-			      (widget-value gnus-custom-method))
+  (if gnus-custom-topic
+      (gnus-topic-set-parameters gnus-custom-topic
+				 (widget-value gnus-custom-params))
+    (gnus-group-edit-group-done 'params gnus-custom-group
+				(widget-value gnus-custom-params))
+    (gnus-group-edit-group-done 'method gnus-custom-group
+				(widget-value gnus-custom-method)))
   (bury-buffer))
 
 ;;; Score Customization:
@@ -375,9 +519,9 @@ documentation string for the parameter.")
 	 (item `(const :format "" :value ,(downcase tag)))
 	 (match '(string :tag "Match"))
 	 (score '(choice :tag "Score"
-			(const :tag "default" nil)
-			(integer :format "%v"
-				 :hide-front-space t)))
+			 (const :tag "default" nil)
+			 (integer :format "%v"
+				  :hide-front-space t)))
 	 (expire '(choice :tag "Expire"
 			  (const :tag "off" nil)
 			  (integer :format "%v"
@@ -448,9 +592,9 @@ each score entry has four elements:
 	 (item `(const :format "" :value ,(downcase tag)))
 	 (match '(integer :tag "Match"))
 	 (score '(choice :tag "Score"
-			(const :tag "default" nil)
-			(integer :format "%v"
-				 :hide-front-space t)))
+			 (const :tag "default" nil)
+			 (integer :format "%v"
+				  :hide-front-space t)))
 	 (expire '(choice :tag "Expire"
 			  (const :tag "off" nil)
 			  (integer :format "%v"
@@ -485,9 +629,9 @@ each score entry has four elements:
 	 (item `(const :format "" :value ,(downcase tag)))
 	 (match '(string :tag "Match"))
 	 (score '(choice :tag "Score"
-			(const :tag "default" nil)
-			(integer :format "%v"
-				 :hide-front-space t)))
+			 (const :tag "default" nil)
+			 (integer :format "%v"
+				  :hide-front-space t)))
 	 (expire '(choice :tag "Expire"
 			  (const :tag "off" nil)
 			  (integer :format "%v"
@@ -537,11 +681,11 @@ eh?")))
   (interactive (list gnus-current-score-file))
   (let ((scores (gnus-score-load file))
 	(types (mapcar (lambda (entry)
-		 `(group :format "%v%h\n"
-			 :doc ,(nth 2 entry)
-			 (const :format "" ,(nth 0 entry))
-			 ,(nth 1 entry)))
-	       gnus-score-parameters)))
+			 `(group :format "%v%h\n"
+				 :doc ,(nth 2 entry)
+				 (const :format "" ,(nth 0 entry))
+				 ,(nth 1 entry)))
+		       gnus-score-parameters)))
     ;; Ready.
     (kill-buffer (gnus-get-buffer-create "*Gnus Customize*"))
     (switch-to-buffer (gnus-get-buffer-create "*Gnus Customize*"))
@@ -580,6 +724,7 @@ if you do all your changes will be lost.  ")
 				     (gnus-score-string :tag "Subject")
 				     (gnus-score-string :tag "References")
 				     (gnus-score-string :tag "Xref")
+				     (gnus-score-string :tag "Extra")
 				     (gnus-score-string :tag "Message-ID")
 				     (gnus-score-integer :tag "Lines")
 				     (gnus-score-integer :tag "Chars")

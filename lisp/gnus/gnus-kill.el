@@ -1,5 +1,6 @@
 ;;; gnus-kill.el --- kill commands for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -28,8 +29,6 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-when-compile (require 'cl))
-
 (require 'gnus)
 (require 'gnus-art)
 (require 'gnus-range)
@@ -51,7 +50,8 @@
   :type 'boolean)
 
 (defcustom gnus-winconf-kill-file nil
-  "What does this do, Lars?"
+  "What does this do, Lars?
+I don't know, Per."
   :group 'gnus-score-kill
   :type 'sexp)
 
@@ -431,7 +431,7 @@ Returns the number of articles marked as read."
 (defun gnus-score-insert-help (string alist idx)
   (save-excursion
     (pop-to-buffer "*Score Help*")
-    (buffer-disable-undo (current-buffer))
+    (buffer-disable-undo)
     (erase-buffer)
     (insert string ":\n\n")
     (while alist
@@ -446,7 +446,7 @@ Returns the number of articles marked as read."
 	     (setq beg (point))
 	     (setq form (ignore-errors (read (current-buffer)))))
       (unless (listp form)
-	(error "Illegal kill entry (possibly rn kill file?): %s" form))
+	(error "Invalid kill entry (possibly rn kill file?): %s" form))
       (if (or (eq (car form) 'gnus-kill)
 	      (eq (car form) 'gnus-raise)
 	      (eq (car form) 'gnus-lower))
@@ -526,7 +526,7 @@ COMMAND must be a lisp expression or a string representing a key sequence."
 		  ;; It's on the form (regexp . date).
 		  (if (zerop (gnus-execute field (car kill-list)
 					   command nil (not all)))
-		      (when (> (gnus-days-between date (cdr kill-list))
+		      (when (> (days-between date (cdr kill-list))
 			       gnus-kill-expiry-days)
 			(setq regexp nil))
 		    (setcdr kill-list date))
@@ -537,7 +537,7 @@ COMMAND must be a lisp expression or a string representing a key sequence."
 			(setq kdate (cdr kill))
 			(if (zerop (gnus-execute
 				    field (car kill) command nil (not all)))
-			    (when (> (gnus-days-between date kdate)
+			    (when (> (days-between date kdate)
 				     gnus-kill-expiry-days)
 			      ;; Time limit has been exceeded, so we
 			      ;; remove the match.
@@ -568,7 +568,7 @@ COMMAND must be a lisp expression or a string representing a key sequence."
       (concat "\n" (gnus-prin1-to-string object))
     (save-excursion
       (set-buffer (gnus-get-buffer-create "*Gnus PP*"))
-      (buffer-disable-undo (current-buffer))
+      (buffer-disable-undo)
       (erase-buffer)
       (insert (format "\n(%S %S\n  '(" (nth 0 object) (nth 1 object)))
       (let ((klist (cadr (nth 2 object)))
@@ -685,6 +685,7 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 		   (mapconcat 'identity command-line-args-left " "))))
 	 (gnus-expert-user t)
 	 (nnmail-spool-file nil)
+	 (mail-sources nil)
 	 (gnus-use-dribble-file nil)
 	 (gnus-batch-mode t)
 	 info group newsrc entry
@@ -704,7 +705,8 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 		 (and (car entry)
 		      (or (eq (car entry) t)
 			  (not (zerop (car entry))))))
-	(gnus-summary-read-group group nil t nil t)
+	(ignore-errors
+	  (gnus-summary-read-group group nil t nil t))
 	(when (eq (current-buffer) (get-buffer gnus-summary-buffer))
 	  (gnus-summary-exit))))
     ;; Exit Emacs.

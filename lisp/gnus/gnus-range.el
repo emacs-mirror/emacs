@@ -1,5 +1,6 @@
 ;;; gnus-range.el --- range and sequence functions for Gnus
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,8 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -226,13 +225,81 @@ Note: LIST has to be sorted over `<'."
 	(setq ranges (cdr ranges)))
       out)))
 
-(defun gnus-remove-from-range (ranges list)
-  "Return a list of ranges that has all articles from LIST removed from RANGES.
-Note: LIST has to be sorted over `<'."
-  ;; !!! This function shouldn't look like this, but I've got a headache.
-  (gnus-compress-sequence
-   (gnus-sorted-complement
-    (gnus-uncompress-range ranges) list)))
+(defun gnus-remove-from-range (range1 range2)
+  "Return a range that has all articles from RANGE2 removed from RANGE1.
+The returned range is always a list.  RANGE2 can also be a unsorted
+list of articles.  RANGE1 is modified by side effects, RANGE2 is not
+modified."
+  (if (or (null range1) (null range2))
+      range1
+    (let (out r1 r2 r1_min r1_max r2_min r2_max
+	      (range2 (gnus-copy-sequence range2)))
+      (setq range1 (if (listp (cdr range1)) range1 (list range1))
+	    range2 (sort (if (listp (cdr range2)) range2 (list range2))
+			 (lambda (e1 e2)
+			   (< (if (consp e1) (car e1) e1)
+			      (if (consp e2) (car e2) e2))))
+	    r1 (car range1)
+	    r2 (car range2)
+	    r1_min (if (consp r1) (car r1) r1)
+	    r1_max (if (consp r1) (cdr r1) r1)
+	    r2_min (if (consp r2) (car r2) r2)
+	    r2_max (if (consp r2) (cdr r2) r2))
+      (while (and range1 range2)
+	(cond ((< r2_max r1_min)	; r2 < r1
+	       (pop range2)
+	       (setq r2 (car range2)
+		     r2_min (if (consp r2) (car r2) r2)
+		     r2_max (if (consp r2) (cdr r2) r2)))
+	      ((and (<= r2_min r1_min) (<= r1_max r2_max)) ; r2 overlap r1
+	       (pop range1)
+	       (setq r1 (car range1)
+		     r1_min (if (consp r1) (car r1) r1)
+		     r1_max (if (consp r1) (cdr r1) r1)))
+	      ((and (<= r2_min r1_min) (<= r2_max r1_max)) ; r2 overlap min r1
+	       (pop range2)
+	       (setq r1_min (1+ r2_max)
+		     r2 (car range2)
+		     r2_min (if (consp r2) (car r2) r2)
+		     r2_max (if (consp r2) (cdr r2) r2)))
+	      ((and (<= r1_min r2_min) (<= r2_max r1_max)) ; r2 contained in r1
+	       (if (eq r1_min (1- r2_min))
+		   (push r1_min out)
+		 (push (cons r1_min (1- r2_min)) out))
+	       (pop range2)
+	       (if (< r2_max r1_max)	; finished with r1?
+		   (setq r1_min (1+ r2_max))
+		 (pop range1)
+		 (setq r1 (car range1)
+		       r1_min (if (consp r1) (car r1) r1)
+		       r1_max (if (consp r1) (cdr r1) r1)))
+	       (setq r2 (car range2)
+		     r2_min (if (consp r2) (car r2) r2)
+		     r2_max (if (consp r2) (cdr r2) r2)))
+	      ((and (<= r2_min r1_max) (<= r1_max r2_max)) ; r2 overlap max r1
+	       (if (eq r1_min (1- r2_min))
+		   (push r1_min out)
+		 (push (cons r1_min (1- r2_min)) out))
+	       (pop range1)
+	       (setq r1 (car range1)
+		     r1_min (if (consp r1) (car r1) r1)
+		     r1_max (if (consp r1) (cdr r1) r1)))
+	      ((< r1_max r2_min)	; r2 > r1
+	       (pop range1)
+	       (if (eq r1_min r1_max)
+		   (push r1_min out)
+		 (push (cons r1_min r1_max) out))
+	       (setq r1 (car range1)
+		     r1_min (if (consp r1) (car r1) r1)
+		     r1_max (if (consp r1) (cdr r1) r1)))))
+      (when r1
+	(if (eq r1_min r1_max)
+	    (push r1_min out)
+	  (push (cons r1_min r1_max) out))
+	(pop range1))
+      (while range1
+	(push (pop range1) out))
+      (nreverse out))))
 
 (defun gnus-member-of-range (number ranges)
   (if (not (listp (cdr ranges)))
@@ -266,19 +333,59 @@ Note: LIST has to be sorted over `<'."
     sublistp))
 
 (defun gnus-range-add (range1 range2)
-  "Add RANGE2 to RANGE1 destructively."
-  (cond
-   ;; If either are nil, then the job is quite easy.
-   ((or (null range1) (null range2))
-    (or range1 range2))
-   (t
-    ;; I don't like thinking.
-    (gnus-compress-sequence
-     (sort
-      (nconc
-       (gnus-uncompress-range range1)
-       (gnus-uncompress-range range2))
-      '<)))))
+  "Add RANGE2 to RANGE1 (nondestructively)."
+  (unless (listp (cdr range1))
+    (setq range1 (list range1)))
+  (unless (listp (cdr range2))
+    (setq range2 (list range2)))
+  (let ((item1 (pop range1))
+	(item2 (pop range2))
+	range item selector)
+    (while (or item1 item2)
+      (setq selector
+	    (cond 
+	     ((null item1) nil)
+	     ((null item2) t)
+	     ((and (numberp item1) (numberp item2)) (< item1 item2))
+	     ((numberp item1) (< item1 (car item2)))
+	     ((numberp item2) (< (car item1) item2))
+	     (t (< (car item1) (car item2)))))
+      (setq item
+	    (or
+	     (let ((tmp1 item) (tmp2 (if selector item1 item2)))
+	       (cond 
+		((null tmp1) tmp2)
+		((null tmp2) tmp1)
+		((and (numberp tmp1) (numberp tmp2))
+		 (cond 
+		  ((eq tmp1 tmp2) tmp1)
+		  ((eq (1+ tmp1) tmp2) (cons tmp1 tmp2))
+		  ((eq (1+ tmp2) tmp1) (cons tmp2 tmp1))
+		  (t nil)))
+		((numberp tmp1)
+		 (cond 
+		  ((and (>= tmp1 (car tmp2)) (<= tmp1 (cdr tmp2))) tmp2)
+		  ((eq (1+ tmp1) (car tmp2)) (cons tmp1 (cdr tmp2)))
+		  ((eq (1- tmp1) (cdr tmp2)) (cons (car tmp2) tmp1))
+		  (t nil)))
+		((numberp tmp2)
+		 (cond 
+		  ((and (>= tmp2 (car tmp1)) (<= tmp2 (cdr tmp1))) tmp1)
+		  ((eq (1+ tmp2) (car tmp1)) (cons tmp2 (cdr tmp1)))
+		  ((eq (1- tmp2) (cdr tmp1)) (cons (car tmp1) tmp2))
+		  (t nil)))
+		((< (1+ (cdr tmp1)) (car tmp2)) nil)
+		((< (1+ (cdr tmp2)) (car tmp1)) nil)
+		(t (cons (min (car tmp1) (car tmp2)) 
+			 (max (cdr tmp1) (cdr tmp2))))))
+	     (progn
+	       (if item (push item range))
+	       (if selector item1 item2))))
+      (if selector
+	  (setq item1 (pop range1))
+	(setq item2 (pop range2))))
+    (if item (push item range))
+    (reverse range)))
 
 (provide 'gnus-range)
 

@@ -1,5 +1,7 @@
 ;;; nngateway.el --- posting news via mail gateways
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -55,7 +57,7 @@ parameter -- the gateway address.")
 	    (nngateway-open-server server))
     ;; Rewrite the header.
     (let ((buf (current-buffer)))
-      (nnheader-temp-write nil
+      (with-temp-buffer
 	(insert-buffer-substring buf)
 	(message-narrow-to-head)
 	(funcall nngateway-header-transformation nngateway-address)

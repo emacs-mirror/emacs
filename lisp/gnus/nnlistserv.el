@@ -1,5 +1,6 @@
 ;;; nnlistserv.el --- retrieving articles via web mailing list archives
-;; Copyright (C) 1997,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -31,8 +32,7 @@
 (eval-when-compile (require 'cl))
 
 (require 'nnoo)
-(eval-when-compile (ignore-errors (require 'nnweb)))
-(eval '(require 'nnweb))
+(require 'nnweb)
 
 (nnoo-declare nnlistserv
   nnweb)
@@ -46,15 +46,15 @@
   nnweb-type)
 
 (defvoo nnlistserv-type-definition
-  '((kk
-     (article . nnlistserv-kk-wash-article)
-     (map . nnlistserv-kk-create-mapping)
-     (search . nnlistserv-kk-search)
-     (address . "http://www.itk.ntnu.no/ansatte/Andresen_Trond/kk-f/%s/")
-     (pages "fra160396" "fra160796" "fra061196" "fra160197"
-	    "fra090997" "fra040797" "fra130397" "nye")
-     (index . "date.html")
-     (identifier . nnlistserv-kk-identity)))
+    '((kk
+       (article . nnlistserv-kk-wash-article)
+       (map . nnlistserv-kk-create-mapping)
+       (search . nnlistserv-kk-search)
+       (address . "http://www.itk.ntnu.no/ansatte/Andresen_Trond/kk-f/%s/")
+       (pages "fra160396" "fra160796" "fra061196" "fra160197"
+	      "fra090997" "fra040797" "fra130397" "nye")
+       (index . "date.html")
+       (identifier . nnlistserv-kk-identity)))
   "Type-definition alist."
   nnweb-type-definition)
 
@@ -112,8 +112,7 @@
 		 nil 0 0 url))
 	       map)
 	      (nnweb-set-hashtb (cadar map) (car map))
-	      (nnheader-message 5 "%s %s %s" (cdr active) (point) pages)
-	      ))))
+	      (nnheader-message 5 "%s %s %s" (cdr active) (point) pages)))))
       ;; Return the articles in the right order.
       (setq nnweb-articles
 	    (sort (nconc nnweb-articles map) 'car-less-than-car)))))
@@ -142,7 +141,7 @@
 
 (defun nnlistserv-kk-search (search)
   (url-insert-file-contents
-   (concat (format (nnweb-definition 'address) search) 
+   (concat (format (nnweb-definition 'address) search)
 	   (nnweb-definition 'index)))
   t)
 

@@ -1,5 +1,6 @@
 ;;; gnus-move.el --- commands for moving Gnus from one server to another
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -27,8 +28,6 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-when-compile (require 'cl))
-
 (require 'gnus)
 (require 'gnus-start)
 (require 'gnus-int)
@@ -47,6 +46,7 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 
   ;; First start Gnus.
   (let ((gnus-activate-level 0)
+	(mail-sources nil)
 	(nnmail-spool-file nil))
     (gnus))
 
@@ -92,6 +92,8 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 	;; Then we read the headers from the `from-server'.
 	(when (and (gnus-request-group group nil from-server)
 		   (gnus-active group)
+		   (gnus-uncompress-range
+		    (gnus-active group))
 		   (setq type (gnus-retrieve-headers
 			       (gnus-uncompress-range
 				(gnus-active group))

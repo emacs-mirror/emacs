@@ -1,6 +1,6 @@
 ;;; parse-time.el --- Parsing time strings
 
-;; Copyright (C) 1996 by Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000 by Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -36,12 +36,10 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))		;and ah ain't kiddin' 'bout it
+(eval-when-compile (require 'cl))	;and ah ain't kiddin' 'bout it
 
-(put 'parse-time-syntax 'char-table-extra-slots 0)
-
-(defvar parse-time-syntax (make-char-table 'parse-time-syntax))
-(defvar parse-time-digits (make-char-table 'parse-time-syntax))
+(defvar parse-time-syntax (make-vector 256 nil))
+(defvar parse-time-digits (make-vector 256 nil))
 
 ;; Byte-compiler warnings
 (defvar elt)
@@ -49,18 +47,18 @@
 
 (unless (aref parse-time-digits ?0)
   (loop for i from ?0 to ?9
-	do (set-char-table-range parse-time-digits i (- i ?0))))
+    do (aset parse-time-digits i (- i ?0))))
 
 (unless (aref parse-time-syntax ?0)
   (loop for i from ?0 to ?9
-	do (set-char-table-range parse-time-syntax i ?0))
+    do (aset parse-time-syntax i ?0))
   (loop for i from ?A to ?Z
-	do (set-char-table-range parse-time-syntax i ?A))
+    do (aset parse-time-syntax i ?A))
   (loop for i from ?a to ?z
-	do (set-char-table-range parse-time-syntax i ?a))
-  (set-char-table-range parse-time-syntax ?+ 1)
-  (set-char-table-range parse-time-syntax ?- -1)
-  (set-char-table-range parse-time-syntax ?: ?d)
+    do (aset parse-time-syntax i ?a))
+  (aset parse-time-syntax ?+ 1)
+  (aset parse-time-syntax ?- -1)
+  (aset parse-time-syntax ?: ?d)
   )
 
 (defsubst digit-char-p (char)
@@ -89,7 +87,8 @@
 	  (setq integer (+ (* integer 10) digit)
 		index (1+ index)))
 	(if (/= index end)
-	    (signal 'parse-error `("not an integer" ,(substring string (or start 0) end)))
+	    (signal 'parse-error `("not an integer"
+				   ,(substring string (or start 0) end)))
 	  (* sign integer))))))
 
 (defun parse-time-tokenize (string)
@@ -114,24 +113,24 @@
 		list)))
     (nreverse list)))
 
-(defvar parse-time-months '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3)
-			    ("Apr" . 4) ("May" . 5) ("Jun" . 6)
-			    ("Jul" . 7) ("Aug" . 8) ("Sep" . 9)
-			    ("Oct" . 10) ("Nov" . 11) ("Dec" . 12)))
-(defvar parse-time-weekdays '(("Sun" . 0) ("Mon" . 1) ("Tue" . 2)
-			      ("Wed" . 3) ("Thu" . 4) ("Fri" . 5) ("Sat" . 6)))
-(defvar parse-time-zoneinfo `(("Z" 0) ("UT" 0) ("GMT" 0)
-			      ("PST" ,(* -8 3600)) ("PDT" ,(* -7 3600) t)
-			      ("MST" ,(* -7 3600)) ("MDT" ,(* -6 3600) t)
-			      ("CST" ,(* -6 3600)) ("CDT" ,(* -5 3600) t)
-			      ("EST" ,(* -5 3600)) ("EDT" ,(* -4 3600) t))
+(defvar parse-time-months '(("jan" . 1) ("feb" . 2) ("mar" . 3)
+			    ("apr" . 4) ("may" . 5) ("jun" . 6)
+			    ("jul" . 7) ("aug" . 8) ("sep" . 9)
+			    ("oct" . 10) ("nov" . 11) ("dec" . 12)))
+(defvar parse-time-weekdays '(("sun" . 0) ("mon" . 1) ("tue" . 2)
+			      ("wed" . 3) ("thu" . 4) ("fri" . 5) ("sat" . 6)))
+(defvar parse-time-zoneinfo `(("z" 0) ("ut" 0) ("gmt" 0)
+			      ("pst" ,(* -8 3600)) ("pdt" ,(* -7 3600) t)
+			      ("mst" ,(* -7 3600)) ("mdt" ,(* -6 3600) t)
+			      ("cst" ,(* -6 3600)) ("cdt" ,(* -5 3600) t)
+			      ("est" ,(* -5 3600)) ("edt" ,(* -4 3600) t))
   "(zoneinfo seconds-off daylight-savings-time-p)")
 
 (defvar parse-time-rules
   `(((6) parse-time-weekdays)
     ((3) (1 31))
     ((4) parse-time-months)
-    ((5) (1970 2038))
+    ((5) (100 4038))
     ((2 1 0)
      ,#'(lambda () (and (stringp elt)
 			(= (length elt) 8)
@@ -150,20 +149,34 @@
 			    (* 60 (parse-integer elt 1 3)))
 		      (if (= (aref elt 0) ?-) -1 1))))
     ((5 4 3)
-     ,#'(lambda () (and (stringp elt) (= (length elt) 10) (= (aref elt 4) ?-) (= (aref elt 7) ?-)))
+     ,#'(lambda () (and (stringp elt)
+			(= (length elt) 10)
+			(= (aref elt 4) ?-)
+			(= (aref elt 7) ?-)))
      [0 4] [5 7] [8 10])
-    ((2 1)
+    ((2 1 0)
      ,#'(lambda () (and (stringp elt) (= (length elt) 5) (= (aref elt 2) ?:)))
-     [0 2] [3 5])
-    ((5) (70 99) ,#'(lambda () (+ 1900 elt))))
+     [0 2] [3 5] ,#'(lambda () 0))
+    ((2 1 0)
+     ,#'(lambda () (and (stringp elt)
+			(= (length elt) 4)
+			(= (aref elt 1) ?:)))
+     [0 1] [2 4] ,#'(lambda () 0))
+    ((2 1 0)
+     ,#'(lambda () (and (stringp elt)
+			(= (length elt) 7)
+			(= (aref elt 1) ?:)))
+     [0 1] [2 4] [5 7])
+    ((5) (50 110) ,#'(lambda () (+ 1900 elt)))
+    ((5) (0 49) ,#'(lambda () (+ 2000 elt))))
   "(slots predicate extractor...)")
 
 (defun parse-time-string (string)
   "Parse the time-string STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
 The values are identical to those of `decode-time', but any values that are
 unknown are returned as nil."
-  (let ((time (list nil nil nil nil nil nil nil nil nil nil))
-	(temp (parse-time-tokenize string)))
+  (let ((time (list nil nil nil nil nil nil nil nil nil))
+	(temp (parse-time-tokenize (downcase string))))
     (while temp
       (let ((elt (pop temp))
 	    (rules parse-time-rules)
@@ -173,25 +186,27 @@ unknown are returned as nil."
 		 (slots (pop rule))
 		 (predicate (pop rule))
 		 (val))
-	    (if (and (not (nth (car slots) time)) ;not already set
-		     (setq val (cond ((and (consp predicate)
-					   (not (eq (car predicate) 'lambda)))
-				      (and (numberp elt)
-					   (<= (car predicate) elt)
-					   (<= elt (cadr predicate))
-					   elt))
-				     ((symbolp predicate)
-				      (cdr (assoc elt (symbol-value predicate))))
-				     ((funcall predicate)))))
-		(progn
-		  (setq exit t)
-		  (while slots
-		    (let ((new-val (and rule
-					(let ((this (pop rule)))
-					  (if (vectorp this)
-					      (parse-integer elt (aref this 0) (aref this 1))
-					    (funcall this))))))
-		      (rplaca (nthcdr (pop slots) time) (or new-val val))))))))))
+	    (when (and (not (nth (car slots) time)) ;not already set
+		       (setq val (cond ((and (consp predicate)
+					     (not (eq (car predicate)
+						      'lambda)))
+					(and (numberp elt)
+					     (<= (car predicate) elt)
+					     (<= elt (cadr predicate))
+					     elt))
+				       ((symbolp predicate)
+					(cdr (assoc elt
+						    (symbol-value predicate))))
+				       ((funcall predicate)))))
+	      (setq exit t)
+	      (while slots
+		(let ((new-val (and rule
+				    (let ((this (pop rule)))
+				      (if (vectorp this)
+					  (parse-integer
+					   elt (aref this 0) (aref this 1))
+					(funcall this))))))
+		  (rplaca (nthcdr (pop slots) time) (or new-val val)))))))))
     time))
 
 (provide 'parse-time)

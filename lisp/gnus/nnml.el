@@ -1,5 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -41,11 +42,11 @@
   "Spool directory for the nnml mail backend.")
 
 (defvoo nnml-active-file
-  (concat (file-name-as-directory nnml-directory) "active")
+    (expand-file-name "active" nnml-directory)
   "Mail active file.")
 
 (defvoo nnml-newsgroups-file
-  (concat (file-name-as-directory nnml-directory) "newsgroups")
+    (expand-file-name "newsgroups" nnml-directory)
   "Mail newsgroups description file.")
 
 (defvoo nnml-get-new-mail t
@@ -86,6 +87,8 @@ all.  This may very well take some time.")
 
 (defvar nnml-nov-buffer-file-name nil)
 
+(defvoo nnml-file-coding-system nnmail-file-coding-system)
+
 
 
 ;;; Interface functions.
@@ -100,8 +103,7 @@ all.  This may very well take some time.")
       (let ((file nil)
 	    (number (length sequence))
 	    (count 0)
-	    (file-name-coding-system 'binary)
-	    (pathname-coding-system 'binary)
+	    (file-name-coding-system nnmail-pathname-coding-system)
 	    beg article)
 	(if (stringp (car sequence))
 	    'headers
@@ -141,9 +143,7 @@ all.  This may very well take some time.")
 (deffoo nnml-open-server (server &optional defs)
   (nnoo-change-server 'nnml server defs)
   (when (not (file-exists-p nnml-directory))
-    (condition-case ()
-	(make-directory nnml-directory t)
-      (error)))
+    (ignore-errors (make-directory nnml-directory t)))
   (cond
    ((not (file-exists-p nnml-directory))
     (nnml-close-server)
@@ -164,8 +164,7 @@ all.  This may very well take some time.")
 (deffoo nnml-request-article (id &optional group server buffer)
   (nnml-possibly-change-directory group server)
   (let* ((nntp-server-buffer (or buffer nntp-server-buffer))
-	 (file-name-coding-system 'binary)
-	 (pathname-coding-system 'binary)
+	 (file-name-coding-system nnmail-pathname-coding-system)
 	 path gpath group-num)
     (if (stringp id)
 	(when (and (setq group-num (nnml-find-group-number id))
@@ -185,7 +184,9 @@ all.  This may very well take some time.")
       (nnheader-report 'nnml "No such file: %s" path))
      ((file-directory-p path)
       (nnheader-report 'nnml "File is a directory: %s" path))
-     ((not (save-excursion (nnmail-find-file path)))
+     ((not (save-excursion (let ((nnmail-file-coding-system
+				  nnml-file-coding-system))
+			     (nnmail-find-file path))))
       (nnheader-report 'nnml "Couldn't read file: %s" path))
      (t
       (nnheader-report 'nnml "Article %s retrieved" id)
@@ -194,8 +195,7 @@ all.  This may very well take some time.")
 	    (string-to-int (file-name-nondirectory path)))))))
 
 (deffoo nnml-request-group (group &optional server dont-check)
-  (let ((pathname-coding-system 'binary)
-	(file-name-coding-system 'binary))
+  (let ((file-name-coding-system nnmail-pathname-coding-system))
     (cond
      ((not (nnml-possibly-change-directory group server))
       (nnheader-report 'nnml "Invalid group (no such directory)"))
@@ -228,6 +228,7 @@ all.  This may very well take some time.")
   t)
 
 (deffoo nnml-request-create-group (group &optional server args)
+  (nnml-possibly-change-directory nil server)
   (nnmail-activate 'nnml)
   (cond
    ((assoc group nnml-group-alist)
@@ -252,10 +253,8 @@ all.  This may very well take some time.")
 (deffoo nnml-request-list (&optional server)
   (save-excursion
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
-	  (file-name-coding-system 'binary)
-	  (pathname-coding-system 'binary))
-      (nnmail-find-file nnml-active-file)
-      )
+	  (file-name-coding-system nnmail-pathname-coding-system))
+      (nnmail-find-file nnml-active-file))
     (setq nnml-group-alist (nnmail-get-active))
     t))
 
@@ -266,8 +265,7 @@ all.  This may very well take some time.")
   (save-excursion
     (nnmail-find-file nnml-newsgroups-file)))
 
-(deffoo nnml-request-expire-articles (articles group
-					       &optional server force)
+(deffoo nnml-request-expire-articles (articles group &optional server force)
   (nnml-possibly-change-directory group server)
   (let ((active-articles
 	 (nnheader-directory-articles nnml-current-directory))
@@ -288,8 +286,16 @@ all.  This may very well take some time.")
 			 (nnmail-expired-article-p group mod-time force
 						   nnml-inhibit-expiry)))
 	      (progn
+		;; Allow a special target group.
+		(unless (eq nnmail-expiry-target 'delete)
+		  (with-temp-buffer
+		    (nnml-request-article number group server
+					  (current-buffer))
+		    (let ((nnml-current-directory nil))
+		      (nnmail-expiry-target-group
+		       nnmail-expiry-target group))))
 		(nnheader-message 5 "Deleting article %s in %s"
-				  article group)
+				  number group)
 		(condition-case ()
 		    (funcall nnmail-delete-file-function article)
 		  (file-error
@@ -307,7 +313,7 @@ all.  This may very well take some time.")
     (nconc rest articles)))
 
 (deffoo nnml-request-move-article
-  (article group server accept-form &optional last)
+    (article group server accept-form &optional last)
   (let ((buf (get-buffer-create " *nnml move*"))
 	result)
     (nnml-possibly-change-directory group server)
@@ -315,12 +321,15 @@ all.  This may very well take some time.")
     (and
      (nnml-deletable-article-p group article)
      (nnml-request-article article group server)
-     (save-excursion
-       (set-buffer buf)
-       (insert-buffer-substring nntp-server-buffer)
-       (setq result (eval accept-form))
-       (kill-buffer (current-buffer))
-       result)
+     (let (nnml-current-directory 
+	   nnml-current-group 
+	   nnml-article-file-alist)
+       (save-excursion
+	 (set-buffer buf)
+	 (insert-buffer-substring nntp-server-buffer)
+	 (setq result (eval accept-form))
+	 (kill-buffer (current-buffer))
+	 result))
      (progn
        (nnml-possibly-change-directory group server)
        (condition-case ()
@@ -368,16 +377,14 @@ all.  This may very well take some time.")
     (let ((chars (nnmail-insert-lines))
 	  (art (concat (int-to-string article) "\t"))
 	  headers)
-      (when (condition-case ()
-		(progn
-		  (nnmail-write-region
-		   (point-min) (point-max)
-		   (or (nnml-article-to-file article)
-		       (concat nnml-current-directory
-			       (int-to-string article)))
-		   nil (if (nnheader-be-verbose 5) nil 'nomesg))
-		  t)
-	      (error nil))
+      (when (ignore-errors
+	      (nnmail-write-region
+	       (point-min) (point-max)
+	       (or (nnml-article-to-file article)
+		   (expand-file-name (int-to-string article)
+				     nnml-current-directory))
+	       nil (if (nnheader-be-verbose 5) nil 'nomesg))
+	      t)
 	(setq headers (nnml-parse-head chars article))
 	;; Replace the NOV line in the NOV file.
 	(save-excursion
@@ -418,9 +425,7 @@ all.  This may very well take some time.")
 	  (nnheader-message 5 "Deleting article %s in %s..." article group)
 	  (funcall nnmail-delete-file-function article))))
     ;; Try to delete the directory itself.
-    (condition-case ()
-	(delete-directory nnml-current-directory)
-      (error nil)))
+    (ignore-errors (delete-directory nnml-current-directory)))
   ;; Remove the group from all structures.
   (setq nnml-group-alist
 	(delq (assoc group nnml-group-alist) nnml-group-alist)
@@ -434,11 +439,9 @@ all.  This may very well take some time.")
   (nnml-possibly-change-directory group server)
   (let ((new-dir (nnmail-group-pathname new-name nnml-directory))
 	(old-dir (nnmail-group-pathname group nnml-directory)))
-    (when (condition-case ()
-	      (progn
-		(make-directory new-dir t)
-		t)
-	    (error nil))
+    (when (ignore-errors
+	    (make-directory new-dir t)
+	    t)
       ;; We move the articles file by file instead of renaming
       ;; the directory -- there may be subgroups in this group.
       ;; One might be more clever, I guess.
@@ -453,9 +456,7 @@ all.  This may very well take some time.")
 	(when (file-exists-p overview)
 	  (rename-file overview (concat new-dir nnml-nov-file-name))))
       (when (<= (length (directory-files old-dir)) 2)
-	(condition-case ()
-	    (delete-directory old-dir)
-	  (error nil)))
+	(ignore-errors (delete-directory old-dir)))
       ;; That went ok, so we change the internal structures.
       (let ((entry (assoc group nnml-group-alist)))
 	(when entry
@@ -473,7 +474,7 @@ all.  This may very well take some time.")
      ((not (file-exists-p file))
       (nnheader-report 'nnml "File %s does not exist" file))
      (t
-      (nnheader-temp-write file
+      (with-temp-file file
 	(nnheader-insert-file-contents file)
 	(nnmail-replace-status name value))
       t))))
@@ -485,7 +486,7 @@ all.  This may very well take some time.")
   (nnml-update-file-alist)
   (let (file)
     (if (setq file (cdr (assq article nnml-article-file-alist)))
-	(concat nnml-current-directory file)
+	(expand-file-name file nnml-current-directory)
       ;; Just to make sure nothing went wrong when reading over NFS --
       ;; check once more.
       (when (file-exists-p
@@ -507,7 +508,6 @@ all.  This may very well take some time.")
 (defun nnml-find-group-number (id)
   (save-excursion
     (set-buffer (get-buffer-create " *nnml id*"))
-    (buffer-disable-undo (current-buffer))
     (let ((alist nnml-group-alist)
 	  number)
       ;; We want to look through all .overview files, but we want to
@@ -527,8 +527,8 @@ all.  This may very well take some time.")
 
 (defun nnml-find-id (group id)
   (erase-buffer)
-  (let ((nov (concat (nnmail-group-pathname group nnml-directory)
-		     nnml-nov-file-name))
+  (let ((nov (expand-file-name nnml-nov-file-name
+			       (nnmail-group-pathname group nnml-directory)))
 	number found)
     (when (file-exists-p nov)
       (nnheader-insert-file-contents nov)
@@ -542,15 +542,13 @@ all.  This may very well take some time.")
 	  (setq found t)
 	  ;; We return the article number.
 	  (setq number
-		(condition-case ()
-		    (read (current-buffer))
-		  (error nil)))))
+		(ignore-errors (read (current-buffer))))))
       number)))
 
 (defun nnml-retrieve-headers-with-nov (articles &optional fetch-old)
   (if (or gnus-nov-is-evil nnml-nov-is-evil)
       nil
-    (let ((nov (concat nnml-current-directory nnml-nov-file-name)))
+    (let ((nov (expand-file-name nnml-nov-file-name nnml-current-directory)))
       (when (file-exists-p nov)
 	(save-excursion
 	  (set-buffer nntp-server-buffer)
@@ -572,8 +570,7 @@ all.  This may very well take some time.")
   (if (not group)
       t
     (let ((pathname (nnmail-group-pathname group nnml-directory))
-	  (file-name-coding-system 'binary)
-	  (pathname-coding-system 'binary))
+	  (file-name-coding-system nnmail-pathname-coding-system))
       (when (not (equal pathname nnml-current-directory))
 	(setq nnml-current-directory pathname
 	      nnml-current-group group
@@ -581,15 +578,10 @@ all.  This may very well take some time.")
       (file-exists-p nnml-current-directory))))
 
 (defun nnml-possibly-create-directory (group)
-  (let (dir dirs)
-    (setq dir (nnmail-group-pathname group nnml-directory))
-    (while (not (file-directory-p dir))
-      (push dir dirs)
-      (setq dir (file-name-directory (directory-file-name dir))))
-    (while dirs
-      (make-directory (directory-file-name (car dirs)))
-      (nnheader-message 5 "Creating mail directory %s" (car dirs))
-      (setq dirs (cdr dirs)))))
+  (let ((dir (nnmail-group-pathname group nnml-directory)))
+    (unless (file-exists-p dir)
+      (make-directory (directory-file-name dir) t)
+      (nnheader-message 5 "Creating mail directory %s" dir))))
 
 (defun nnml-save-mail (group-art)
   "Called narrowed to an article."
@@ -652,8 +644,8 @@ all.  This may very well take some time.")
       (push (list group active) nnml-group-alist))
     (setcdr active (1+ (cdr active)))
     (while (file-exists-p
-	    (concat (nnmail-group-pathname group nnml-directory)
-		    (int-to-string (cdr active))))
+	    (expand-file-name (int-to-string (cdr active))
+			      (nnmail-group-pathname group nnml-directory)))
       (setcdr active (1+ (cdr active))))
     (cdr active)))
 
@@ -693,8 +685,9 @@ all.  This may very well take some time.")
 	(save-excursion
 	  (set-buffer buffer)
 	  (set (make-local-variable 'nnml-nov-buffer-file-name)
-	       (concat (nnmail-group-pathname group nnml-directory)
-		       nnml-nov-file-name))
+	       (expand-file-name
+		nnml-nov-file-name
+		(nnmail-group-pathname group nnml-directory)))
 	  (erase-buffer)
 	  (when (file-exists-p nnml-nov-buffer-file-name)
 	    (nnheader-insert-file-contents nnml-nov-buffer-file-name)))
@@ -738,7 +731,7 @@ all.  This may very well take some time.")
     (let ((dirs (directory-files dir t nil t))
 	  dir)
       (while (setq dir (pop dirs))
-	(when (and (not (member (file-name-nondirectory dir) '("." "..")))
+	(when (and (not (string-match "^\\." (file-name-nondirectory dir)))
 		   (file-directory-p dir))
 	  (nnml-generate-nov-databases-1 dir seen))))
     ;; Do this directory.
@@ -778,7 +771,7 @@ all.  This may very well take some time.")
     (save-excursion
       ;; Init the nov buffer.
       (set-buffer nov-buffer)
-      (buffer-disable-undo (current-buffer))
+      (buffer-disable-undo)
       (erase-buffer)
       (set-buffer nntp-server-buffer)
       ;; Delete the old NOV file.

@@ -1,5 +1,7 @@
 ;;; nnbabyl.el --- rmail mbox access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1099, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -32,7 +34,8 @@
 (require 'nnheader)
 (condition-case nil
     (require 'rmail)
-  (t (nnheader-message 5 "Ignore rmail errors from this file, you don't have rmail")))
+  (t (nnheader-message
+      5 "Ignore rmail errors from this file, you don't have rmail")))
 (require 'nnmail)
 (require 'nnoo)
 (eval-when-compile (require 'cl))
@@ -259,7 +262,7 @@
   (nnheader-report 'nnbabyl "nnbabyl: LIST NEWSGROUPS is not implemented."))
 
 (deffoo nnbabyl-request-expire-articles
-  (articles newsgroup &optional server force)
+    (articles newsgroup &optional server force)
   (nnbabyl-possibly-change-newsgroup newsgroup server)
   (let* ((is-old t)
 	 rest)
@@ -295,7 +298,7 @@
       (nconc rest articles))))
 
 (deffoo nnbabyl-request-move-article
-  (article group server accept-form &optional last)
+    (article group server accept-form &optional last)
   (let ((buf (get-buffer-create " *nnbabyl move*"))
 	result)
     (and
@@ -431,9 +434,9 @@
       (widen)
       (narrow-to-region
        (save-excursion
-	(unless (re-search-backward (concat "^" nnbabyl-mail-delimiter) nil t)
-	  (goto-char (point-min))
-	  (end-of-line))
+	 (unless (re-search-backward (concat "^" nnbabyl-mail-delimiter) nil t)
+	   (goto-char (point-min))
+	   (end-of-line))
 	 (if leave-delim (progn (forward-line 1) (point))
 	   (match-beginning 0)))
        (progn
@@ -557,10 +560,10 @@
   (nnbabyl-create-mbox)
 
   (unless (and nnbabyl-mbox-buffer
-	   (buffer-name nnbabyl-mbox-buffer)
-	   (save-excursion
-	     (set-buffer nnbabyl-mbox-buffer)
-	     (= (buffer-size) (nnheader-file-size nnbabyl-mbox-file))))
+	       (buffer-name nnbabyl-mbox-buffer)
+	       (save-excursion
+		 (set-buffer nnbabyl-mbox-buffer)
+		 (= (buffer-size) (nnheader-file-size nnbabyl-mbox-file))))
     ;; This buffer has changed since we read it last.  Possibly.
     (save-excursion
       (let ((delim (concat "^" nnbabyl-mail-delimiter))
@@ -568,13 +571,13 @@
 	    start end number)
 	(set-buffer (setq nnbabyl-mbox-buffer
 			  (nnheader-find-file-noselect
-			   nnbabyl-mbox-file nil 'raw)))
+			   nnbabyl-mbox-file nil t)))
 	;; Save previous buffer mode.
 	(setq nnbabyl-previous-buffer-mode
 	      (cons (cons (point-min) (point-max))
 		    major-mode))
 
-	(buffer-disable-undo (current-buffer))
+	(buffer-disable-undo)
 	(widen)
 	(setq buffer-read-only nil)
 	(fundamental-mode)

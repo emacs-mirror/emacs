@@ -1,5 +1,7 @@
 ;;; nnspool.el --- spool access for GNU Emacs
-;; Copyright (C) 1988,89,90,93,94,95,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
+;;	2000 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; 	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -28,7 +30,6 @@
 
 (require 'nnheader)
 (require 'nntp)
-(require 'timezone)
 (require 'nnoo)
 (eval-when-compile (require 'cl))
 
@@ -85,10 +86,6 @@ there.")
 (defvoo nnspool-file-coding-system nnheader-file-coding-system
   "Coding system for nnspool.")
 
-;; 1997/8/14 by MORIOKA Tomohiko
-(defvoo nnspool-file-coding-system nnheader-file-coding-system
-  "Coding system for nnspool.")
-
 
 
 (defconst nnspool-version "nnspool 2.0"
@@ -141,15 +138,20 @@ there.")
 	      (setq beg (point))
 	      (inline (nnheader-insert-head file))
 	      (goto-char beg)
-	      (search-forward "\n\n" nil t)
-	      (forward-char -1)
-	      (insert ".\n")
+	      (if (search-forward "\n\n" nil t)
+		  (progn
+		    (forward-char -1)
+		    (insert ".\n"))
+		(goto-char (point-max))
+		(if (bolp)
+		    (insert ".\n")
+		  (insert "\n.\n")))
 	      (delete-region (point) (point-max)))
 
 	    (and do-message
 		 (zerop (% (incf count) 20))
 		 (nnheader-message 5 "nnspool: Receiving headers... %d%%"
-			  (/ (* count 100) number))))
+				   (/ (* count 100) number))))
 
 	  (when do-message
 	    (nnheader-message 5 "nnspool: Receiving headers...done"))
@@ -284,7 +286,7 @@ there.")
 	(while (and (not (looking-at
 			  "\\([^ ]+\\) +\\([0-9]+\\)[0-9][0-9][0-9] "))
 		    (zerop (forward-line -1))))
-	(let ((seconds (nnspool-seconds-since-epoch date))
+	(let ((seconds (time-to-seconds (date-to-time date)))
 	      groups)
 	  ;; Go through lines and add the latest groups to a list.
 	  (while (and (looking-at "\\([^ ]+\\) +[0-9]+ ")
@@ -299,8 +301,8 @@ there.")
 			     (read (current-buffer)))
 			   seconds))
 		      (push (buffer-substring
-					  (match-beginning 1) (match-end 1))
-					 groups)
+			     (match-beginning 1) (match-end 1))
+			    groups)
 		      (zerop (forward-line -1))))
 	  (erase-buffer)
 	  (while groups
@@ -424,7 +426,6 @@ there.")
 (defun nnspool-find-id (id)
   (save-excursion
     (set-buffer (get-buffer-create " *nnspool work*"))
-    (buffer-disable-undo (current-buffer))
     (erase-buffer)
     (ignore-errors
       (call-process "grep" nil t nil (regexp-quote id) nnspool-history-file))
@@ -439,8 +440,8 @@ there.")
   (set-buffer nntp-server-buffer)
   (erase-buffer)
   (condition-case ()
-      (let ((nnheader-file-coding-system nnspool-file-coding-system))
-	(nnheader-insert-file-contents file)
+      (let ((coding-system-for-read nnspool-file-coding-system))
+	(mm-insert-file-contents file)
 	t)
     (file-error nil)))
 
@@ -456,18 +457,6 @@ there.")
 (defun nnspool-article-pathname (group &optional article)
   "Find the path for GROUP."
   (nnheader-group-pathname group nnspool-spool-directory article))
-
-(defun nnspool-seconds-since-epoch (date)
-  (let* ((tdate (mapcar (lambda (ti) (and ti (string-to-int ti)))
-			(timezone-parse-date date)))
-	 (ttime (mapcar (lambda (ti) (and ti (string-to-int ti)))
-			(timezone-parse-time
-			 (aref (timezone-parse-date date) 3))))
-	 (unix (encode-time (nth 2 ttime) (nth 1 ttime) (nth 0 ttime)
-			    (nth 2 tdate) (nth 1 tdate) (nth 0 tdate)
-			    (nth 4 tdate))))
-    (+ (* (car unix) 65536.0)
-       (cadr unix))))
 
 (provide 'nnspool)
 

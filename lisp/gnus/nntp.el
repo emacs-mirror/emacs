@@ -1,5 +1,7 @@
-;;; nntp.el --- nntp access for Gnus Copyright (C) 1987-90,92-97 Free
-;;; Software Foundation, Inc.
+;;; nntp.el --- nntp access for Gnus
+;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993, 1994, 1995, 1996,
+;;        1997, 1998, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -28,13 +30,9 @@
 (require 'nnoo)
 (require 'gnus-util)
 
-(eval-when-compile (require 'cl))
-
 (nnoo-declare nntp)
 
-(eval-and-compile
-  (unless (fboundp 'open-network-stream)
-    (require 'tcp)))
+(eval-when-compile (require 'cl))
 
 (defvoo nntp-address nil
   "Address of the physical nntp server.")
@@ -52,10 +50,10 @@ server spawn an nnrpd server.")
 It is called with no parameters.")
 
 (defvoo nntp-server-action-alist
-  '(("nntpd 1\\.5\\.11t"
-     (remove-hook 'nntp-server-opened-hook 'nntp-send-mode-reader))
-    ("NNRP server Netscape"
-     (setq nntp-server-list-active-group nil)))
+    '(("nntpd 1\\.5\\.11t"
+       (remove-hook 'nntp-server-opened-hook 'nntp-send-mode-reader))
+      ("NNRP server Netscape"
+       (setq nntp-server-list-active-group nil)))
   "Alist of regexps to match on server types and actions to be taken.
 For instance, if you want Gnus to beep every time you connect
 to innd, you could say something like:
@@ -89,7 +87,8 @@ case, this list will be used as the parameter list given to rsh.")
 (defvoo nntp-rlogin-user-name nil
   "*User name on remote system when using the rlogin connect method.")
 
-(defvoo nntp-telnet-parameters '("exec" "telnet" "-8" "${NNTPSERVER:=news}" "nntp")
+(defvoo nntp-telnet-parameters
+    '("exec" "telnet" "-8" "${NNTPSERVER:=news}" "nntp")
   "*Parameters to `nntp-open-telnet'.
 That function may be used as `nntp-open-connection-function'.  In that
 case, this list will be executed as a command after logging in
@@ -177,13 +176,6 @@ server there that you can connect to.  See also
 					  (const :format "" "password")
 					  (string :format "Password: %v")))))))
 
-;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
-(defvoo nntp-coding-system-for-read 'binary
-  "*Coding system to read from NNTP.")
-
-(defvoo nntp-coding-system-for-write 'binary
-  "*Coding system to write to NNTP.")
-
 
 
 (defvoo nntp-connection-timeout nil
@@ -220,8 +212,18 @@ If this variable is nil, which is the default, no timers are set.")
 (defvoo nntp-server-xover 'try)
 (defvoo nntp-server-list-active-group 'try)
 
+(defvar nntp-async-needs-kluge
+  (string-match "^GNU Emacs 20\\.3\\." (emacs-version))
+  "*When non-nil, nntp will poll asynchronous connections
+once a second.  By default, this is turned on only for Emacs
+20.3, which has a bug that breaks nntp's normal method of
+noticing asynchronous data.")
+
+(defvar nntp-async-timer nil)
+(defvar nntp-async-process-list nil)
+
 (eval-and-compile
-  (autoload 'nnmail-read-passwd "nnmail")
+  (autoload 'mail-source-read-passwd "mail-source")
   (autoload 'open-ssl-stream "ssl"))
 
 
@@ -281,9 +283,9 @@ If this variable is nil, which is the default, no timers are set.")
 	  (nntp-decode-text (not decode))
 	  (unless discard
 	    (save-excursion
-	      (set-buffer buffer)
-	      (goto-char (point-max))
-	      (insert-buffer-substring (process-buffer process))
+ 	      (set-buffer buffer)
+ 	      (goto-char (point-max))
+ 	      (insert-buffer-substring (process-buffer process))
 	      ;; Nix out "nntp reading...." message.
 	      (when nntp-have-messaged
 		(setq nntp-have-messaged nil)
@@ -291,6 +293,11 @@ If this variable is nil, which is the default, no timers are set.")
 	      t))))
       (unless discard
 	(erase-buffer)))))
+
+(defun nntp-kill-buffer (buffer)
+  (when (buffer-name buffer)
+    (kill-buffer buffer)
+    (nnheader-init-server-buffer)))
 
 (defsubst nntp-find-connection (buffer)
   "Find the connection delivering to BUFFER."
@@ -304,8 +311,7 @@ If this variable is nil, which is the default, no timers are set.")
     (when process
       (if (memq (process-status process) '(open run))
 	  process
-	(when (buffer-name (process-buffer process))
-	  (kill-buffer (process-buffer process)))
+	(nntp-kill-buffer (process-buffer process))
 	(setq nntp-connection-alist (delq entry nntp-connection-alist))
 	nil))))
 
@@ -330,27 +336,23 @@ If this variable is nil, which is the default, no timers are set.")
 	(save-excursion
 	  (set-buffer (process-buffer process))
 	  (erase-buffer)))
-      (when command
-	(nntp-send-string process command))
-      (cond
-       ((eq callback 'ignore)
-	t)
-       ((and callback wait-for)
-	(save-excursion
-	  (set-buffer (process-buffer process))
-	  (unless nntp-inside-change-function
-	    (erase-buffer))
-	  (setq nntp-process-decode decode
-		nntp-process-to-buffer buffer
-		nntp-process-wait-for wait-for
-		nntp-process-callback callback
-		nntp-process-start-point (point-max)
-		after-change-functions
-		(list 'nntp-after-change-function-callback)))
-	t)
-       (wait-for
-	(nntp-wait-for process wait-for buffer decode))
-       (t t)))))
+      (condition-case err
+	  (progn
+	    (when command
+	      (nntp-send-string process command))
+	    (cond
+	     ((eq callback 'ignore)
+	      t)
+	     ((and callback wait-for)
+	      (nntp-async-wait process wait-for buffer decode callback)
+	      t)
+	     (wait-for
+	      (nntp-wait-for process wait-for buffer decode))
+	     (t t)))
+	(error 
+	 (nnheader-report 'nntp "Couldn't open connection to %s: %s" 
+			  address err))
+	(quit nil)))))
 
 (defsubst nntp-send-command (wait-for &rest strings)
   "Send STRINGS to server and wait until WAIT-FOR returns."
@@ -407,7 +409,7 @@ If this variable is nil, which is the default, no timers are set.")
   (cond
    ;; A result that starts with a 2xx code is terminated by
    ;; a line with only a "." on it.
-   ((eq (following-char) ?2)
+   ((eq (char-after) ?2)
     (if (re-search-forward "\n\\.\r?\n" nil t)
 	t
       nil))
@@ -442,36 +444,36 @@ If this variable is nil, which is the default, no timers are set.")
 	    (nntp-inhibit-erase t)
 	    article)
 	;; Send HEAD commands.
-      (while (setq article (pop articles))
-	(nntp-send-command
-	 nil
-	 "HEAD" (if (numberp article)
-		    (int-to-string article)
-		  ;; `articles' is either a list of article numbers
-		  ;; or a list of article IDs.
-		  article))
-	(incf count)
-	;; Every 400 requests we have to read the stream in
-	;; order to avoid deadlocks.
-	(when (or (null articles)	;All requests have been sent.
-		  (zerop (% count nntp-maximum-request)))
-	  (nntp-accept-response)
-	  (while (progn
-		   (set-buffer buf)
-		   (goto-char last-point)
-		   ;; Count replies.
-		   (while (nntp-next-result-arrived-p)
-		     (setq last-point (point))
-		     (incf received))
-		   (< received count))
-	    ;; If number of headers is greater than 100, give
-	    ;;  informative messages.
-	    (and (numberp nntp-large-newsgroup)
-		 (> number nntp-large-newsgroup)
-		 (zerop (% received 20))
-		 (nnheader-message 6 "NNTP: Receiving headers... %d%%"
-				   (/ (* received 100) number)))
-	    (nntp-accept-response))))
+	(while (setq article (pop articles))
+	  (nntp-send-command
+	   nil
+	   "HEAD" (if (numberp article)
+		      (int-to-string article)
+		    ;; `articles' is either a list of article numbers
+		    ;; or a list of article IDs.
+		    article))
+	  (incf count)
+	  ;; Every 400 requests we have to read the stream in
+	  ;; order to avoid deadlocks.
+	  (when (or (null articles)	;All requests have been sent.
+		    (zerop (% count nntp-maximum-request)))
+	    (nntp-accept-response)
+	    (while (progn
+		     (set-buffer buf)
+		     (goto-char last-point)
+		     ;; Count replies.
+		     (while (nntp-next-result-arrived-p)
+		       (setq last-point (point))
+		       (incf received))
+		     (< received count))
+	      ;; If number of headers is greater than 100, give
+	      ;;  informative messages.
+	      (and (numberp nntp-large-newsgroup)
+		   (> number nntp-large-newsgroup)
+		   (zerop (% received 20))
+		   (nnheader-message 6 "NNTP: Receiving headers... %d%%"
+				     (/ (* received 100) number)))
+	      (nntp-accept-response))))
 	(and (numberp nntp-large-newsgroup)
 	     (> number nntp-large-newsgroup)
 	     (nnheader-message 6 "NNTP: Receiving headers...done"))
@@ -486,64 +488,75 @@ If this variable is nil, which is the default, no timers are set.")
 (deffoo nntp-retrieve-groups (groups &optional server)
   "Retrieve group info on GROUPS."
   (nntp-possibly-change-group nil server)
-  (save-excursion
-    (set-buffer (nntp-find-connection-buffer nntp-server-buffer))
-    ;; The first time this is run, this variable is `try'.  So we
-    ;; try.
-    (when (eq nntp-server-list-active-group 'try)
-      (nntp-try-list-active (car groups)))
-    (erase-buffer)
-    (let ((count 0)
-	  (received 0)
-	  (last-point (point-min))
-	  (nntp-inhibit-erase t)
-	  (command (if nntp-server-list-active-group "LIST ACTIVE" "GROUP")))
-      (while groups
-	;; Send the command to the server.
-	(nntp-send-command nil command (pop groups))
-	(incf count)
-	;; Every 400 requests we have to read the stream in
-	;; order to avoid deadlocks.
-	(when (or (null groups)		;All requests have been sent.
-		  (zerop (% count nntp-maximum-request)))
-	  (nntp-accept-response)
+  (when (nntp-find-connection-buffer nntp-server-buffer)
+    (save-excursion
+      ;; Erase nntp-server-buffer before nntp-inhibit-erase.
+      (set-buffer nntp-server-buffer)
+      (erase-buffer)
+      (set-buffer (nntp-find-connection-buffer nntp-server-buffer))
+      ;; The first time this is run, this variable is `try'.  So we
+      ;; try.
+      (when (eq nntp-server-list-active-group 'try)
+	(nntp-try-list-active (car groups)))
+      (erase-buffer)
+      (let ((count 0)
+	    (received 0)
+	    (last-point (point-min))
+	    (nntp-inhibit-erase t)
+	    (buf (nntp-find-connection-buffer nntp-server-buffer))
+	    (command (if nntp-server-list-active-group "LIST ACTIVE" "GROUP")))
+	(while groups
+	  ;; Send the command to the server.
+	  (nntp-send-command nil command (pop groups))
+	  (incf count)
+	  ;; Every 400 requests we have to read the stream in
+	  ;; order to avoid deadlocks.
+	  (when (or (null groups)	;All requests have been sent.
+		    (zerop (% count nntp-maximum-request)))
+	    (nntp-accept-response)
+	    (while (progn
+		     ;; Search `blue moon' in this file for the
+		     ;; reason why set-buffer here.
+		     (set-buffer buf)
+		     (goto-char last-point)
+		     ;; Count replies.
+		     (while (re-search-forward "^[0-9]" nil t)
+		       (incf received))
+		     (setq last-point (point))
+		     (< received count))
+	      (nntp-accept-response))))
+
+	;; Wait for the reply from the final command.
+	(set-buffer buf)
+	(goto-char (point-max))
+	(re-search-backward "^[0-9]" nil t)
+	(when (looking-at "^[23]")
 	  (while (progn
-		   (goto-char last-point)
-		   ;; Count replies.
-		   (while (re-search-forward "^[0-9]" nil t)
-		     (incf received))
-		   (setq last-point (point))
-		   (< received count))
-	    (nntp-accept-response))))
+		   (set-buffer buf)
+		   (goto-char (point-max))
+		   (if (not nntp-server-list-active-group)
+		       (not (re-search-backward "\r?\n" (- (point) 3) t))
+		     (not (re-search-backward "^\\.\r?\n" (- (point) 4) t))))
+	    (nntp-accept-response)))
 
-      ;; Wait for the reply from the final command.
-      (goto-char (point-max))
-      (re-search-backward "^[0-9]" nil t)
-      (when (looking-at "^[23]")
-	(while (progn
-		 (goto-char (point-max))
-		 (if (not nntp-server-list-active-group)
-		     (not (re-search-backward "\r?\n" (- (point) 3) t))
-		   (not (re-search-backward "^\\.\r?\n" (- (point) 4) t))))
-	  (nntp-accept-response)))
-
-      ;; Now all replies are received.  We remove CRs.
-      (goto-char (point-min))
-      (while (search-forward "\r" nil t)
-	(replace-match "" t t))
-
-      (if (not nntp-server-list-active-group)
-	  (progn
-	    (copy-to-buffer nntp-server-buffer (point-min) (point-max))
-	    'group)
-	;; We have read active entries, so we just delete the
-	;; superfluous gunk.
+	;; Now all replies are received.  We remove CRs.
+	(set-buffer buf)
 	(goto-char (point-min))
-	(while (re-search-forward "^[.2-5]" nil t)
-	  (delete-region (match-beginning 0)
-			 (progn (forward-line 1) (point))))
-	(copy-to-buffer nntp-server-buffer (point-min) (point-max))
-	'active))))
+	(while (search-forward "\r" nil t)
+	  (replace-match "" t t))
+
+	(if (not nntp-server-list-active-group)
+	    (progn
+	      (copy-to-buffer nntp-server-buffer (point-min) (point-max))
+	      'group)
+	  ;; We have read active entries, so we just delete the
+	  ;; superfluous gunk.
+	  (goto-char (point-min))
+	  (while (re-search-forward "^[.2-5]" nil t)
+	    (delete-region (match-beginning 0)
+			   (progn (forward-line 1) (point))))
+	  (copy-to-buffer nntp-server-buffer (point-min) (point-max))
+	  'active)))))
 
 (deffoo nntp-retrieve-articles (articles &optional group server)
   (nntp-possibly-change-group group server)
@@ -625,9 +638,14 @@ If this variable is nil, which is the default, no timers are set.")
 	   (setq nntp-server-list-active-group t)))))
 
 (deffoo nntp-list-active-group (group &optional server)
-  "Return the active info on GROUP (which can be a regexp."
+  "Return the active info on GROUP (which can be a regexp)."
   (nntp-possibly-change-group nil server)
-  (nntp-send-command "^.*\r?\n" "LIST ACTIVE" group))
+  (nntp-send-command "^\\.*\r?\n" "LIST ACTIVE" group))
+
+(deffoo nntp-request-group-articles (group &optional server)
+  "Return the list of existing articles in GROUP."
+  (nntp-possibly-change-group nil server)
+  (nntp-send-command "^\\.*\r?\n" "LISTGROUP" group))
 
 (deffoo nntp-request-article (article &optional group server buffer command)
   (nntp-possibly-change-group group server)
@@ -700,8 +718,7 @@ If this variable is nil, which is the default, no timers are set.")
 	    ;; QUIT command actually is sent out before we kill
 	    ;; the process.
 	    (sleep-for 1))))
-      (when (buffer-name (process-buffer process))
-	(kill-buffer (process-buffer process)))
+      (nntp-kill-buffer (process-buffer process))
       (setq process (car (pop nntp-connection-alist))))
     (nnoo-close-server 'nntp)))
 
@@ -717,8 +734,7 @@ If this variable is nil, which is the default, no timers are set.")
 	    ;; QUIT command actually is sent out before we kill
 	    ;; the process.
 	    (sleep-for 1))))
-      (when (buffer-name (process-buffer process))
-	(kill-buffer (process-buffer process))))))
+      (nntp-kill-buffer (process-buffer process)))))
 
 (deffoo nntp-request-list (&optional server)
   (nntp-possibly-change-group nil server)
@@ -735,7 +751,7 @@ If this variable is nil, which is the default, no timers are set.")
     (prog1
 	(nntp-send-command
 	 "^\\.\r?\n" "NEWGROUPS"
-	 (format-time-string "%y%m%d %H%M%S" (nnmail-date-to-time date)))
+	 (format-time-string "%y%m%d %H%M%S" (date-to-time date)))
       (nntp-decode-text))))
 
 (deffoo nntp-request-post (&optional server)
@@ -756,7 +772,7 @@ If this variable is nil, which is the default, no timers are set.")
 This function is supposed to be called from `nntp-server-opened-hook'.
 It will make innd servers spawn an nnrpd process to allow actual article
 reading."
-  (nntp-send-command "^.*\r?\n" "MODE READER"))
+  (nntp-send-command "^.*\n" "MODE READER"))
 
 (defun nntp-send-authinfo (&optional send-if-force)
   "Send the AUTHINFO to the nntp server.
@@ -767,7 +783,7 @@ and a password.
 If SEND-IF-FORCE, only send authinfo to the server if the
 .authinfo file has the FORCE token."
   (let* ((list (gnus-parse-netrc nntp-authinfo-file))
-	 (alist (gnus-netrc-machine list nntp-address))
+	 (alist (gnus-netrc-machine list nntp-address "nntp"))
 	 (force (gnus-netrc-get alist "force"))
 	 (user (or (gnus-netrc-get alist "login") nntp-authinfo-user))
 	 (passwd (gnus-netrc-get alist "password")))
@@ -779,13 +795,13 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (unless (member user '(nil ""))
 	(nntp-send-command "^3.*\r?\n" "AUTHINFO USER" user)
 	(when t				;???Should check if AUTHINFO succeeded
-      (nntp-send-command
-       "^2.*\r?\n" "AUTHINFO PASS"
-       (or passwd
-	   nntp-authinfo-password
-	   (setq nntp-authinfo-password
-		     (nnmail-read-passwd (format "NNTP (%s@%s) password: "
-						 user nntp-address))))))))))
+	  (nntp-send-command
+	   "^2.*\r?\n" "AUTHINFO PASS"
+	   (or passwd
+	       nntp-authinfo-password
+	       (setq nntp-authinfo-password
+		     (mail-source-read-passwd (format "NNTP (%s@%s) password: "
+						      user nntp-address))))))))))
 
 (defun nntp-send-nosy-authinfo ()
   "Send the AUTHINFO to the nntp server."
@@ -794,8 +810,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (nntp-send-command "^3.*\r?\n" "AUTHINFO USER" user)
       (when t				;???Should check if AUTHINFO succeeded
 	(nntp-send-command "^2.*\r?\n" "AUTHINFO PASS"
-			   (nnmail-read-passwd "NNTP (%s@%s) password: "
-					       user nntp-address))))))
+			   (mail-source-read-passwd "NNTP (%s@%s) password: "
+						    user nntp-address))))))
 
 (defun nntp-send-authinfo-from-file ()
   "Send the AUTHINFO to the nntp server.
@@ -803,7 +819,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 The authinfo login name is taken from the user's login name and the
 password contained in '~/.nntp-authinfo'."
   (when (file-exists-p "~/.nntp-authinfo")
-    (nnheader-temp-write nil
+    (with-temp-buffer
       (insert-file-contents "~/.nntp-authinfo")
       (goto-char (point-min))
       (nntp-send-command "^3.*\r?\n" "AUTHINFO USER" (user-login-name))
@@ -832,7 +848,7 @@ password contained in '~/.nntp-authinfo'."
       (format " *server %s %s %s*"
 	      nntp-address nntp-port-number
 	      (gnus-buffer-exists-p buffer))))
-    (buffer-disable-undo (current-buffer))
+    (mm-enable-multibyte)
     (set (make-local-variable 'after-change-functions) nil)
     (set (make-local-variable 'nntp-process-wait-for) nil)
     (set (make-local-variable 'nntp-process-callback) nil)
@@ -850,8 +866,7 @@ password contained in '~/.nntp-authinfo'."
 	       (nnheader-run-at-time
 		nntp-connection-timeout nil
 		`(lambda ()
-		   (when (buffer-name ,pbuffer)
-		     (kill-buffer ,pbuffer))))))
+		   (nntp-kill-buffer ,pbuffer)))))
 	 (process
 	  (condition-case ()
 	      (let ((coding-system-for-read nntp-coding-system-for-read)
@@ -877,8 +892,7 @@ password contained in '~/.nntp-authinfo'."
 	      (let ((nnheader-callback-function nil))
 		(run-hooks 'nntp-server-opened-hook)
 		(nntp-send-authinfo t))))
-	(when (buffer-name (process-buffer process))
-	  (kill-buffer (process-buffer process)))
+	(nntp-kill-buffer (process-buffer process))
 	nil))))
 
 (defun nntp-open-network-stream (buffer)
@@ -910,40 +924,97 @@ password contained in '~/.nntp-authinfo'."
 	    (eval (cadr entry))
 	  (funcall (cadr entry)))))))
 
-(defun nntp-after-change-function-callback (beg end len)
-  (when nntp-process-callback
-    (save-match-data
-      (if (and (= beg (point-min))
-	       (memq (char-after beg) '(?4 ?5)))
-	  ;; Report back error messages.
-	  (save-excursion
-	    (goto-char beg)
-	    (if (looking-at "480")
-		(nntp-handle-authinfo nntp-process-to-buffer)
-	      (nntp-snarf-error-message)
-	      (funcall nntp-process-callback nil)))
-	(goto-char end)
-	(when (and (> (point) nntp-process-start-point)
-		   (re-search-backward nntp-process-wait-for
-				       nntp-process-start-point t))
+(defun nntp-async-wait (process wait-for buffer decode callback)
+  (save-excursion
+    (set-buffer (process-buffer process))
+    (unless nntp-inside-change-function
+      (erase-buffer))
+    (setq nntp-process-wait-for wait-for
+	  nntp-process-to-buffer buffer
+	  nntp-process-decode decode
+	  nntp-process-callback callback
+	  nntp-process-start-point (point-max))
+    (setq after-change-functions '(nntp-after-change-function))
+    (if nntp-async-needs-kluge
+	(nntp-async-kluge process))))
+
+(defun nntp-async-kluge (process)
+  ;; emacs 20.3 bug: process output with encoding 'binary
+  ;; doesn't trigger after-change-functions.
+  (unless nntp-async-timer
+    (setq nntp-async-timer
+	  (nnheader-run-at-time 1 1 'nntp-async-timer-handler)))
+  (add-to-list 'nntp-async-process-list process))
+
+(defun nntp-async-timer-handler ()
+  (mapcar
+   (lambda (proc)
+     (if (memq (process-status proc) '(open run))
+	 (nntp-async-trigger proc)
+       (nntp-async-stop proc)))
+   nntp-async-process-list))
+
+(defun nntp-async-stop (proc)
+  (setq nntp-async-process-list (delq proc nntp-async-process-list))
+  (when (and nntp-async-timer (not nntp-async-process-list))
+    (nnheader-cancel-timer nntp-async-timer)
+    (setq nntp-async-timer nil)))
+
+(defun nntp-after-change-function (beg end len)
+  (unwind-protect
+      ;; we only care about insertions at eob
+      (when (and (eq 0 len) (eq (point-max) end))
+	(save-match-data
+	  (let ((proc (get-buffer-process (current-buffer))))
+	    (when proc
+	      (nntp-async-trigger proc)))))
+    ;; any throw from after-change-functions will leave it
+    ;; set to nil.  so we reset it here, if necessary.
+    (when quit-flag
+      (setq after-change-functions '(nntp-after-change-function)))))
+
+(defun nntp-async-trigger (process)
+  (save-excursion
+    (set-buffer (process-buffer process))
+    (when nntp-process-callback
+      ;; do we have an error message?
+      (goto-char nntp-process-start-point)
+      (if (memq (following-char) '(?4 ?5))
+	  ;; wants credentials?
+	  (if (looking-at "480")
+	      (nntp-handle-authinfo nntp-process-to-buffer)
+	    ;; report error message.
+	    (nntp-snarf-error-message)
+	    (nntp-do-callback nil))
+
+	;; got what we expect?
+	(goto-char (point-max))
+	(when (re-search-backward
+	       nntp-process-wait-for nntp-process-start-point t)
+	  (nntp-async-stop process)
+	  ;; convert it.
 	  (when (gnus-buffer-exists-p nntp-process-to-buffer)
-	    (let ((cur (current-buffer))
-		  (start nntp-process-start-point))
+	    (let ((buf (current-buffer))
+		  (start nntp-process-start-point)
+		  (decode nntp-process-decode))
 	      (save-excursion
 		(set-buffer nntp-process-to-buffer)
 		(goto-char (point-max))
-		(let ((b (point)))
-		  (insert-buffer-substring cur start)
-		  (narrow-to-region b (point-max))
-		  (nntp-decode-text)
-		  (widen)))))
-	  (goto-char end)
-	  (let ((callback nntp-process-callback)
-		(nntp-inside-change-function t))
-	    (setq nntp-process-callback nil)
-	    (save-excursion
-	      (funcall callback (buffer-name
-				 (get-buffer nntp-process-to-buffer))))))))))
+		(save-restriction
+		  (narrow-to-region (point) (point))
+		  (insert-buffer-substring buf start)
+		  (when decode
+		    (nntp-decode-text))))))
+	  ;; report it.
+	  (goto-char (point-max))
+	  (nntp-do-callback
+	   (buffer-name (get-buffer nntp-process-to-buffer))))))))
+
+(defun nntp-do-callback (arg)
+  (let ((callback nntp-process-callback)
+	(nntp-inside-change-function t))
+    (setq nntp-process-callback nil)
+    (funcall callback arg)))
 
 (defun nntp-snarf-error-message ()
   "Save the error message in the current buffer."
@@ -953,7 +1024,7 @@ password contained in '~/.nntp-authinfo'."
     (nnheader-report 'nntp message)
     message))
 
-(defun nntp-accept-process-output (process)
+(defun nntp-accept-process-output (process &optional timeout)
   "Wait for output from PROCESS and message some dots."
   (save-excursion
     (set-buffer (or (nntp-find-connection-buffer nntp-server-buffer)
@@ -963,7 +1034,7 @@ password contained in '~/.nntp-authinfo'."
       (unless (< len 10)
 	(setq nntp-have-messaged t)
 	(nnheader-message 7 "nntp read: %dk" len)))
-    (accept-process-output process 1)))
+    (accept-process-output process (or timeout 1))))
 
 (defun nntp-accept-response ()
   "Wait for output from the process that outputs to BUFFER."
@@ -985,10 +1056,7 @@ password contained in '~/.nntp-authinfo'."
 	(save-excursion
 	  (set-buffer (process-buffer (car entry)))
 	  (erase-buffer)
-	  (nntp-send-string (car entry) (concat "GROUP " group))
-	  ;; allow for unexpected responses, since this can be called
-	  ;; from a timer with quit inhibited
-	  (nntp-wait-for-string "^[245].*\n")
+	  (nntp-send-command "^[245].*\n" "GROUP" group)
 	  (setcar (cddr entry) group)
 	  (erase-buffer))))))
 
@@ -1051,7 +1119,7 @@ password contained in '~/.nntp-authinfo'."
      (car (last articles)) 'wait)
 
     (goto-char (point-min))
-    (when (looking-at "[1-5][0-9][0-9] ")
+    (when (looking-at "[1-5][0-9][0-9] .*\n")
       (delete-region (point) (progn (forward-line 1) (point))))
     (while (search-forward "\r" nil t)
       (replace-match "" t t))
@@ -1068,9 +1136,10 @@ password contained in '~/.nntp-authinfo'."
    ((numberp nntp-nov-gap)
     (let ((count 0)
 	  (received 0)
-	  (last-point (point-min))
+	  last-point
+	  in-process-buffer-p
 	  (buf nntp-server-buffer)
-	  ;;(process-buffer (nntp-find-connection (current-buffer))))
+	  (process-buffer (nntp-find-connection-buffer nntp-server-buffer))
 	  first)
       ;; We have to check `nntp-server-xover'.  If it gets set to nil,
       ;; that means that the server does not understand XOVER, but we
@@ -1083,40 +1152,58 @@ password contained in '~/.nntp-authinfo'."
 		    (< (- (nth 1 articles) (car articles)) nntp-nov-gap))
 	  (setq articles (cdr articles)))
 
-	(when (nntp-send-xover-command first (car articles))
-	  (setq articles (cdr articles)
-		count (1+ count))
-
+	(setq in-process-buffer-p (stringp nntp-server-xover))
+	(nntp-send-xover-command first (car articles))
+	(setq articles (cdr articles))
+	
+	(when (and nntp-server-xover in-process-buffer-p)
+	  ;; Don't count tried request.
+	  (setq count (1+ count))
+	  
 	  ;; Every 400 requests we have to read the stream in
 	  ;; order to avoid deadlocks.
 	  (when (or (null articles)	;All requests have been sent.
 		    (zerop (% count nntp-maximum-request)))
-	    (accept-process-output)
-	    ;; On some Emacs versions the preceding function has
-	    ;; a tendency to change the buffer.  Perhaps.  It's
-	    ;; quite difficult to reproduce, because it only
-	    ;; seems to happen once in a blue moon.
-	    (set-buffer buf)
+
+	    (nntp-accept-response)
+	    ;; On some Emacs versions the preceding function has a
+	    ;; tendency to change the buffer.  Perhaps.  It's quite
+	    ;; difficult to reproduce, because it only seems to happen
+	    ;; once in a blue moon.
+	    (set-buffer process-buffer)
 	    (while (progn
-		     (goto-char last-point)
+		     (goto-char (or last-point (point-min)))
 		     ;; Count replies.
-		     (while (re-search-forward "^[0-9][0-9][0-9] " nil t)
-		       (setq received (1+ received)))
+		     (while (re-search-forward "^[0-9][0-9][0-9] .*\n" nil t)
+		       (incf received))
 		     (setq last-point (point))
 		     (< received count))
-	      (accept-process-output)
-	      (set-buffer buf)))))
+	      (nntp-accept-response)
+	      (set-buffer process-buffer))
+	    (set-buffer buf))))
 
       (when nntp-server-xover
-	;; Wait for the reply from the final command.
-	(goto-char (point-max))
-	(re-search-backward "^[0-9][0-9][0-9] " nil t)
-	(when (looking-at "^[23]")
-	  (while (progn
-		   (goto-char (point-max))
-		   (forward-line -1)
-		   (not (looking-at "^\\.\r?\n")))
-	    (nntp-accept-response)))
+	(when in-process-buffer-p
+	  (set-buffer process-buffer)
+	  ;; Wait for the reply from the final command.
+	  (goto-char (point-max))
+	  (while (not (re-search-backward "^[0-9][0-9][0-9] " nil t))
+	    (nntp-accept-response)
+	    (set-buffer process-buffer)
+	    (goto-char (point-max)))
+	  (when (looking-at "^[23]")
+	    (while (progn
+		     (goto-char (point-max))
+		     (forward-line -1)
+		     (not (looking-at "^\\.\r?\n")))
+	      (nntp-accept-response)
+	      (set-buffer process-buffer)))
+	  (set-buffer buf)
+	  (goto-char (point-max))
+	  (insert-buffer-substring process-buffer)
+	  (set-buffer process-buffer)
+	  (erase-buffer)
+	  (set-buffer buf))
 
 	;; We remove any "." lines and status lines.
 	(goto-char (point-min))
@@ -1124,7 +1211,6 @@ password contained in '~/.nntp-authinfo'."
 	  (delete-char -1))
 	(goto-char (point-min))
 	(delete-matching-lines "^\\.$\\|^[1-5][0-9][0-9] ")
-	;;(copy-to-buffer nntp-server-buffer (point-min) (point-max))
 	t))))
 
   nntp-server-xover)
@@ -1140,7 +1226,7 @@ password contained in '~/.nntp-authinfo'."
 	    (nntp-send-command-nodelete
 	     "\r?\n\\.\r?\n" nntp-server-xover range)
 	  ;; We do not wait for the reply.
-	  (nntp-send-command-nodelete "\r?\n\\.\r?\n" nntp-server-xover range))
+	  (nntp-send-command-nodelete nil nntp-server-xover range))
       (let ((commands nntp-xover-commands))
 	;; `nntp-xover-commands' is a list of possible XOVER commands.
 	;; We try them all until we get at positive response.
@@ -1206,9 +1292,8 @@ password contained in '~/.nntp-authinfo'."
 	 proc (concat
 	       (or nntp-telnet-passwd
 		   (setq nntp-telnet-passwd
-			 (nnmail-read-passwd "Password: ")))
+			 (mail-source-read-passwd "Password: ")))
 	       "\n"))
-	(erase-buffer)
 	(nntp-wait-for-string nntp-telnet-shell-prompt)
 	(process-send-string
 	 proc (concat (mapconcat 'identity nntp-telnet-parameters " ") "\n"))

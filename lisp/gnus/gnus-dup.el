@@ -1,5 +1,6 @@
 ;;; gnus-dup.el --- suppression of duplicate articles in Gnus
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -29,8 +30,6 @@
 ;; servers.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -100,7 +99,7 @@ seen in the same session."
   "Save the duplicate suppression list."
   (when (and gnus-save-duplicate-list
 	     gnus-dup-list-dirty)
-    (nnheader-temp-write gnus-duplicate-file
+    (with-temp-file gnus-duplicate-file
       (gnus-prin1 `(setq gnus-dup-list ',gnus-dup-list))))
   (setq gnus-dup-list-dirty nil))
 
@@ -138,6 +137,8 @@ seen in the same session."
     (gnus-dup-open))
   (gnus-message 6 "Suppressing duplicates...")
   (let ((headers gnus-newsgroup-headers)
+	(auto (and gnus-newsgroup-auto-expire
+		   (memq gnus-duplicate-mark gnus-auto-expirable-marks)))
 	number header)
     (while (setq header (pop headers))
       (when (and (intern-soft (mail-header-id header) gnus-dup-hashtb)
@@ -145,8 +146,10 @@ seen in the same session."
 	(setq gnus-newsgroup-unreads
 	      (delq (setq number (mail-header-number header))
 		    gnus-newsgroup-unreads))
-	(push (cons number gnus-duplicate-mark)
-	      gnus-newsgroup-reads))))
+	(if (not auto)
+	    (push (cons number gnus-duplicate-mark) gnus-newsgroup-reads)
+	  (push number gnus-newsgroup-expirable)
+	  (push (cons number gnus-expirable-mark) gnus-newsgroup-reads)))))
   (gnus-message 6 "Suppressing duplicates...done"))
 
 (defun gnus-dup-unsuppress-article (article)

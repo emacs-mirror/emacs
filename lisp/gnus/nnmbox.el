@@ -1,5 +1,7 @@
 ;;; nnmbox.el --- mail mbox access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -58,6 +60,11 @@
 
 (defvoo nnmbox-group-alist nil)
 (defvoo nnmbox-active-timestamp nil)
+
+(defvoo nnmbox-file-coding-system mm-text-coding-system)
+(defvoo nnmbox-file-coding-system-for-write nil)
+(defvoo nnmbox-active-file-coding-system mm-text-coding-system)
+(defvoo nnmbox-active-file-coding-system-for-write nil)
 
 
 
@@ -166,6 +173,7 @@
 	    (nnmbox-article-group-number)))))))
 
 (deffoo nnmbox-request-group (group &optional server dont-check)
+  (nnmbox-possibly-change-newsgroup nil server)
   (let ((active (cadr (assoc group nnmbox-group-alist))))
     (cond
      ((or (null active)
@@ -180,6 +188,18 @@
 		       (1+ (- (cdr active) (car active)))
 		       (car active) (cdr active) group)))))
 
+(defun nnmbox-save-buffer ()
+  (let ((coding-system-for-write 
+	 (or nnmbox-file-coding-system-for-write
+	     nnmbox-file-coding-system)))
+    (save-buffer)))
+
+(defun nnmbox-save-active (group-alist active-file)
+  (let ((nnmail-active-file-coding-system
+	 (or nnmbox-active-file-coding-system-for-write
+	     nnmbox-active-file-coding-system)))
+    (nnmail-save-active group-alist active-file)))
+
 (deffoo nnmbox-request-scan (&optional group server)
   (nnmbox-possibly-change-newsgroup group server)
   (nnmbox-read-mbox)
@@ -188,7 +208,7 @@
    (lambda ()
      (save-excursion
        (set-buffer nnmbox-mbox-buffer)
-       (save-buffer)))
+       (nnmbox-save-buffer)))
    (file-name-directory nnmbox-mbox-file)
    group
    (lambda ()
@@ -197,7 +217,7 @@
 	 (set-buffer nnmbox-mbox-buffer)
 	 (goto-char (point-max))
 	 (insert-buffer-substring in-buf)))
-     (nnmail-save-active nnmbox-group-alist nnmbox-active-file))))
+     (nnmbox-save-active nnmbox-group-alist nnmbox-active-file))))
 
 (deffoo nnmbox-close-group (group &optional server)
   t)
@@ -207,12 +227,14 @@
   (unless (assoc group nnmbox-group-alist)
     (push (list group (cons 1 0))
 	  nnmbox-group-alist)
-    (nnmail-save-active nnmbox-group-alist nnmbox-active-file))
+    (nnmbox-save-active nnmbox-group-alist nnmbox-active-file))
   t)
 
 (deffoo nnmbox-request-list (&optional server)
   (save-excursion
-    (nnmail-find-file nnmbox-active-file)
+    (let ((nnmail-file-coding-system
+	   nnmbox-active-file-coding-system))
+      (nnmail-find-file nnmbox-active-file))
     (setq nnmbox-group-alist (nnmail-get-active))
     t))
 
@@ -223,7 +245,7 @@
   (nnheader-report 'nnmbox "LIST NEWSGROUPS is not implemented."))
 
 (deffoo nnmbox-request-expire-articles
-  (articles newsgroup &optional server force)
+    (articles newsgroup &optional server force)
   (nnmbox-possibly-change-newsgroup newsgroup server)
   (let* ((is-old t)
 	 rest)
@@ -245,7 +267,7 @@
 		(nnmbox-delete-mail))
 	    (push (car articles) rest)))
 	(setq articles (cdr articles)))
-      (save-buffer)
+      (nnmbox-save-buffer)
       ;; Find the lowest active article in this group.
       (let ((active (nth 1 (assoc newsgroup nnmbox-group-alist))))
 	(goto-char (point-min))
@@ -254,18 +276,17 @@
 		    (<= (car active) (cdr active)))
 	  (setcar active (1+ (car active)))
 	  (goto-char (point-min))))
-      (nnmail-save-active nnmbox-group-alist nnmbox-active-file)
+      (nnmbox-save-active nnmbox-group-alist nnmbox-active-file)
       (nconc rest articles))))
 
 (deffoo nnmbox-request-move-article
-  (article group server accept-form &optional last)
+    (article group server accept-form &optional last)
   (let ((buf (get-buffer-create " *nnmbox move*"))
 	result)
     (and
      (nnmbox-request-article article group server)
      (save-excursion
        (set-buffer buf)
-       (buffer-disable-undo (current-buffer))
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
        (goto-char (point-min))
@@ -283,7 +304,7 @@
        (goto-char (point-min))
        (when (search-forward (nnmbox-article-string article) nil t)
 	 (nnmbox-delete-mail))
-       (and last (save-buffer))))
+       (and last (nnmbox-save-buffer))))
     result))
 
 (deffoo nnmbox-request-accept-article (group &optional server last)
@@ -323,8 +344,8 @@
        (when last
 	 (when nnmail-cache-accepted-message-ids
 	   (nnmail-cache-close))
-	 (nnmail-save-active nnmbox-group-alist nnmbox-active-file)
-	 (save-buffer))))
+	 (nnmbox-save-active nnmbox-group-alist nnmbox-active-file)
+	 (nnmbox-save-buffer))))
     result))
 
 (deffoo nnmbox-request-replace-article (article group buffer)
@@ -336,7 +357,7 @@
 	nil
       (nnmbox-delete-mail t t)
       (insert-buffer-substring buffer)
-      (save-buffer)
+      (nnmbox-save-buffer)
       t)))
 
 (deffoo nnmbox-request-delete-group (group &optional force server)
@@ -354,13 +375,13 @@
 	  (setq found t)
 	  (nnmbox-delete-mail))
 	(when found
-	  (save-buffer)))))
+	  (nnmbox-save-buffer)))))
   ;; Remove the group from all structures.
   (setq nnmbox-group-alist
 	(delq (assoc group nnmbox-group-alist) nnmbox-group-alist)
 	nnmbox-current-group nil)
   ;; Save the active file.
-  (nnmail-save-active nnmbox-group-alist nnmbox-active-file)
+  (nnmbox-save-active nnmbox-group-alist nnmbox-active-file)
   t)
 
 (deffoo nnmbox-request-rename-group (group new-name &optional server)
@@ -375,13 +396,13 @@
 	(replace-match new-ident t t)
 	(setq found t))
       (when found
-	(save-buffer))))
+	(nnmbox-save-buffer))))
   (let ((entry (assoc group nnmbox-group-alist)))
     (when entry
       (setcar entry new-name))
     (setq nnmbox-current-group nil)
     ;; Save the new group alist.
-    (nnmail-save-active nnmbox-group-alist nnmbox-active-file)
+    (nnmbox-save-active nnmbox-group-alist nnmbox-active-file)
     t))
 
 
@@ -425,9 +446,12 @@
 	    (not (buffer-name nnmbox-mbox-buffer)))
     (save-excursion
       (set-buffer (setq nnmbox-mbox-buffer
-			(nnheader-find-file-noselect
-			 nnmbox-mbox-file nil 'raw)))
-      (buffer-disable-undo (current-buffer))))
+			(let ((nnheader-file-coding-system
+			       nnmbox-file-coding-system))
+			  (nnheader-find-file-noselect
+			   nnmbox-mbox-file nil t))))
+      (mm-enable-multibyte)
+      (buffer-disable-undo)))
   (when (not nnmbox-group-alist)
     (nnmail-activate 'nnmbox))
   (if newsgroup
@@ -496,7 +520,10 @@
 
 (defun nnmbox-create-mbox ()
   (when (not (file-exists-p nnmbox-mbox-file))
-    (nnmail-write-region 1 1 nnmbox-mbox-file t 'nomesg)))
+    (let ((nnmail-file-coding-system
+	   (or nnmbox-file-coding-system-for-write
+	       nnmbox-file-coding-system)))
+      (nnmail-write-region 1 1 nnmbox-mbox-file t 'nomesg))))
 
 (defun nnmbox-read-mbox ()
   (nnmail-activate 'nnmbox)
@@ -512,9 +539,12 @@
 	    (alist nnmbox-group-alist)
 	    start end number)
 	(set-buffer (setq nnmbox-mbox-buffer
-			  (nnheader-find-file-noselect
-			   nnmbox-mbox-file nil 'raw)))
-	(buffer-disable-undo (current-buffer))
+			  (let ((nnheader-file-coding-system
+				 nnmbox-file-coding-system))
+			    (nnheader-find-file-noselect
+			     nnmbox-mbox-file nil t))))
+	(mm-enable-multibyte)
+	(buffer-disable-undo)
 
 	;; Go through the group alist and compare against
 	;; the mbox file.
@@ -523,26 +553,31 @@
 	  (when (and (re-search-backward
 		      (format "^X-Gnus-Newsgroup: %s:\\([0-9]+\\) "
 			      (caar alist)) nil t)
-		     (>= (setq number
-			       (string-to-number
-				(buffer-substring
-				 (match-beginning 1) (match-end 1))))
-			 (cdadar alist)))
-	    (setcdr (cadar alist) (1+ number)))
+		     (> (setq number
+			      (string-to-number
+			       (buffer-substring
+				(match-beginning 1) (match-end 1))))
+			(cdadar alist)))
+	    (setcdr (cadar alist) number))
 	  (setq alist (cdr alist)))
 
 	(goto-char (point-min))
 	(while (re-search-forward delim nil t)
 	  (setq start (match-beginning 0))
-	  (when (not (search-forward "\nX-Gnus-Newsgroup: "
-				     (save-excursion
-				       (setq end
-					     (or
-					      (and
-					       (re-search-forward delim nil t)
-					       (match-beginning 0))
-					      (point-max))))
-				     t))
+	  (unless (search-forward
+		   "\nX-Gnus-Newsgroup: "
+		   (save-excursion
+		     (setq end
+			   (or
+			    (and
+			     ;; skip to end of headers first, since mail
+			     ;; which has been respooled has additional
+			     ;; "From nobody" lines.
+			     (search-forward "\n\n" nil t)
+			     (re-search-forward delim nil t)
+			     (match-beginning 0))
+			    (point-max))))
+		   t)
 	    (save-excursion
 	      (save-restriction
 		(narrow-to-region start end)

@@ -1,5 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
-;; Copyright (C) 1987,88,89,90,93,94,95,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
+;;        1997, 1998, 2000 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -29,19 +30,20 @@
 (eval '(run-hooks 'gnus-load-hook))
 
 (eval-when-compile (require 'cl))
+(require 'mm-util)
 
-(eval-when-compile (require 'cl))
-
-(require 'custom)
-(eval-and-compile
-  (if (< emacs-major-version 20)
-      (require 'gnus-load)))
 (require 'message)
 
 (defgroup gnus nil
   "The coffee-brewing, all singing, all dancing, kitchen sink newsreader."
   :group 'news
   :group 'mail)
+
+(defgroup gnus-charset nil
+  "Group character set issues."
+  :link '(custom-manual "(gnus)Charsets")
+  :version "21.1"
+  :group 'gnus)
 
 (defgroup gnus-cache nil
   "Cache interface."
@@ -247,12 +249,16 @@ is restarted, and sometimes reloaded."
   :link '(custom-manual "(gnus)Various Various")
   :group 'gnus)
 
+(defgroup gnus-mime nil
+  "Variables for controlling the Gnus MIME interface."
+  :group 'gnus)
+
 (defgroup gnus-exit nil
   "Exiting gnus."
   :link '(custom-manual "(gnus)Exiting Gnus")
   :group 'gnus)
 
-(defconst gnus-version-number "5.7"
+(defconst gnus-version-number "5.8.8"
   "Version number for this version of Gnus.")
 
 (defconst gnus-version (format "Gnus v%s" gnus-version-number)
@@ -270,8 +276,6 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
-;;; Kludges to help the transition from the old `custom.el'.
-
 (unless (featurep 'gnus-xmas)
   (defalias 'gnus-make-overlay 'make-overlay)
   (defalias 'gnus-delete-overlay 'delete-overlay)
@@ -287,11 +291,33 @@ be set in `.emacs' instead."
   (defalias 'gnus-character-to-event 'identity)
   (defalias 'gnus-add-text-properties 'add-text-properties)
   (defalias 'gnus-put-text-property 'put-text-property)
-  (defalias 'gnus-mode-line-buffer-identification 'identity)
+  (defvar gnus-mode-line-image-cache t)
+  (if (fboundp 'find-image)
+      (defun gnus-mode-line-buffer-identification (line)
+	(let ((str (car-safe line)))
+	  (if (and (stringp str)
+		   (string-match "^Gnus:" str))
+	      (progn (add-text-properties
+		      0 5
+		      (list 'display
+			    (if (eq t gnus-mode-line-image-cache)
+				(setq gnus-mode-line-image-cache
+				      (find-image
+				       '((:type xpm :file "gnus-pointer.xpm"
+						:ascent 100)
+					 (:type xbm :file "gnus-pointer.xbm"
+						:ascent 100))))
+			      gnus-mode-line-image-cache)
+			    'help-echo "This is Gnus")
+		      str)
+		     (list str))
+	    line)))
+    (defalias 'gnus-mode-line-buffer-identification 'identity))
   (defalias 'gnus-characterp 'numberp)
   (defalias 'gnus-deactivate-mark 'deactivate-mark)
   (defalias 'gnus-window-edges 'window-edges)
-  (defalias 'gnus-key-press-event-p 'numberp))
+  (defalias 'gnus-key-press-event-p 'numberp)
+  (defalias 'gnus-decode-rfc1522 'ignore))
 
 ;; We define these group faces here to avoid the display
 ;; update forced when creating new faces.
@@ -361,6 +387,72 @@ be set in `.emacs' instead."
     (t
      ()))
   "Level 3 empty newsgroup face.")
+
+(defface gnus-group-news-4-face
+  '((((class color)
+      (background dark))
+     (:bold t))
+    (((class color)
+      (background light))
+     (:bold t))
+    (t
+     ()))
+  "Level 4 newsgroup face.")
+
+(defface gnus-group-news-4-empty-face
+  '((((class color)
+      (background dark))
+     ())
+    (((class color)
+      (background light))
+     ())
+    (t
+     ()))
+  "Level 4 empty newsgroup face.")
+
+(defface gnus-group-news-5-face
+  '((((class color)
+      (background dark))
+     (:bold t))
+    (((class color)
+      (background light))
+     (:bold t))
+    (t
+     ()))
+  "Level 5 newsgroup face.")
+
+(defface gnus-group-news-5-empty-face
+  '((((class color)
+      (background dark))
+     ())
+    (((class color)
+      (background light))
+     ())
+    (t
+     ()))
+  "Level 5 empty newsgroup face.")
+
+(defface gnus-group-news-6-face
+  '((((class color)
+      (background dark))
+     (:bold t))
+    (((class color)
+      (background light))
+     (:bold t))
+    (t
+     ()))
+  "Level 6 newsgroup face.")
+
+(defface gnus-group-news-6-empty-face
+  '((((class color)
+      (background dark))
+     ())
+    (((class color)
+      (background light))
+     ())
+    (t
+     ()))
+  "Level 6 empty newsgroup face.")
 
 (defface gnus-group-news-low-face
   '((((class color)
@@ -639,13 +731,13 @@ be set in `.emacs' instead."
 (defface gnus-splash-face
   '((((class color)
       (background dark))
-     (:foreground "ForestGreen"))
+     (:foreground "Brown"))
     (((class color)
       (background light))
-     (:foreground "ForestGreen"))
+     (:foreground "Brown"))
     (t
      ()))
-  "Level 1 newsgroup face.")
+  "Face of the splash screen.")
 
 (defun gnus-splash ()
   (save-excursion
@@ -677,8 +769,28 @@ be set in `.emacs' instead."
   "Insert startup message in current buffer."
   ;; Insert the message.
   (erase-buffer)
-  (insert
-   (format "              %s
+  (cond
+   ((and
+     (fboundp 'find-image)
+     (display-graphic-p)
+     (let ((image (find-image
+		   `((:type xpm :file "gnus.xpm")
+		     (:type xbm :file "gnus.xbm"
+			    ;; Account for the xbm's blackground.
+			    :background ,(face-foreground 'gnus-splash-face)
+			    :foreground ,(face-background 'default))))))
+       (when image
+	 (let ((size (image-size image)))
+	   (insert-char ?\n (max 0 (round (- (window-height)
+					     (or y (cdr size)) 1) 2)))
+	   (insert-char ?\  (max 0 (round (- (window-width)
+					     (or x (car size))) 2)))
+	   (insert-image image))
+	 (setq gnus-simple-splash nil)
+	 t))))
+   (t
+    (insert
+     (format "              %s
           _    ___ _             _
           _ ___ __ ___  __    _ ___
           __   _     ___    __  ___
@@ -698,21 +810,21 @@ be set in `.emacs' instead."
           __
 
 "
-           ""))
-  ;; And then hack it.
-  (gnus-indent-rigidly (point-min) (point-max)
-		       (/ (max (- (window-width) (or x 46)) 0) 2))
-  (goto-char (point-min))
-  (forward-line 1)
-  (let* ((pheight (count-lines (point-min) (point-max)))
-	 (wheight (window-height))
-	 (rest (- wheight pheight)))
-    (insert (make-string (max 0 (* 2 (/ rest 3))) ?\n)))
-  ;; Fontify some.
-  (put-text-property (point-min) (point-max) 'face 'gnus-splash-face)
+	     ""))
+    ;; And then hack it.
+    (gnus-indent-rigidly (point-min) (point-max)
+			 (/ (max (- (window-width) (or x 46)) 0) 2))
+    (goto-char (point-min))
+    (forward-line 1)
+    (let* ((pheight (count-lines (point-min) (point-max)))
+	   (wheight (window-height))
+	   (rest (- wheight pheight)))
+      (insert (make-string (max 0 (* 2 (/ rest 3))) ?\n)))
+    ;; Fontify some.
+    (put-text-property (point-min) (point-max) 'face 'gnus-splash-face)
+    (setq gnus-simple-splash t)))
   (goto-char (point-min))
   (setq mode-line-buffer-identification (concat " " gnus-version))
-  (setq gnus-simple-splash t)
   (set-buffer-modified-p t))
 
 (eval-when (load)
@@ -784,31 +896,30 @@ used to 899, you would say something along these lines:
       (and (file-readable-p gnus-nntpserver-file)
 	   (save-excursion
 	     (set-buffer (gnus-get-buffer-create " *gnus nntp*"))
-	     (buffer-disable-undo (current-buffer))
 	     (insert-file-contents gnus-nntpserver-file)
 	     (let ((name (buffer-string)))
 	       (prog1
-		   (if (string-match "^[ \t\n]*$" name)
+		   (if (string-match "\\'[ \t\n]*$" name)
 		       nil
 		     name)
 		 (kill-buffer (current-buffer))))))))
 
 (defcustom gnus-select-method
   (condition-case nil
-    (nconc
-     (list 'nntp (or (condition-case nil
-			 (gnus-getenv-nntpserver)
-		       (error nil))
-		     (when (and gnus-default-nntp-server
-				(not (string= gnus-default-nntp-server "")))
-		       gnus-default-nntp-server)
-		     "news"))
-     (if (or (null gnus-nntp-service)
-	     (equal gnus-nntp-service "nntp"))
-	 nil
-       (list gnus-nntp-service)))
+      (nconc
+       (list 'nntp (or (condition-case nil
+			   (gnus-getenv-nntpserver)
+			 (error nil))
+		       (when (and gnus-default-nntp-server
+				  (not (string= gnus-default-nntp-server "")))
+			 gnus-default-nntp-server)
+		       "news"))
+       (if (or (null gnus-nntp-service)
+	       (equal gnus-nntp-service "nntp"))
+	   nil
+	 (list gnus-nntp-service)))
     (error nil))
-  "*Default method for selecting a newsgroup.
+  "Default method for selecting a newsgroup.
 This variable should be a list, where the first element is how the
 news is to be fetched, the second is the address.
 
@@ -839,7 +950,7 @@ see the manual for details."
   "*Method used for archiving messages you've sent.
 This should be a mail method.
 
-It's probably not a very effective to change this variable once you've
+It's probably not very effective to change this variable once you've
 run Gnus once.  After doing that, you must edit this server from the
 server buffer."
   :group 'gnus-server
@@ -868,6 +979,7 @@ that case, just return a fully prefixed name of the group --
 \"nnml+private:mail.misc\", for instance."
   :group 'gnus-message
   :type '(choice (const :tag "none" nil)
+		 function
 		 sexp
 		 string))
 
@@ -895,8 +1007,8 @@ If, for instance, you want to read your mail with the nnml backend,
 you could set this variable:
 
 \(setq gnus-secondary-select-methods '((nnml \"\")))"
-:group 'gnus-server
-:type '(repeat gnus-select-method))
+  :group 'gnus-server
+  :type '(repeat gnus-select-method))
 
 (defvar gnus-backup-default-subscribed-newsgroups
   '("news.announce.newusers" "news.groups.questions" "gnu.emacs.gnus")
@@ -925,10 +1037,23 @@ articles by Message-ID is painfully slow.  By setting this method to an
 nntp method, you might get acceptable results.
 
 The value of this variable must be a valid select method as discussed
-in the documentation of `gnus-select-method'."
+in the documentation of `gnus-select-method'.
+
+It can also be a list of select methods, as well as the special symbol
+`current', which means to use the current select method.  If it is a
+list, Gnus will try all the methods in the list until it finds a match."
   :group 'gnus-server
   :type '(choice (const :tag "default" nil)
-		 gnus-select-method))
+		 (const :tag "DejaNews" (nnweb "refer" (nnweb-type dejanews)))
+		 gnus-select-method
+		 (repeat :menu-tag "Try multiple"
+			 :tag "Multiple"
+			 :value (current (nnweb "refer" (nnweb-type dejanews)))
+			 (choice :tag "Method"
+				 (const current)
+				 (const :tag "DejaNews"
+					(nnweb "refer" (nnweb-type dejanews)))
+				 gnus-select-method))))
 
 (defcustom gnus-group-faq-directory
   '("/ftp@mirrors.aol.com:/pub/rtfm/usenet/"
@@ -986,11 +1111,6 @@ newsgroups."
   :group 'gnus-group-visual
   :group 'gnus-summary-marks
   :type 'character)
-
-(defcustom gnus-asynchronous nil
-  "*If non-nil, Gnus will supply backends with data needed for async article fetching."
-  :group 'gnus-asynchronous
-  :type 'boolean)
 
 (defcustom gnus-large-newsgroup 200
   "*The number of articles which indicates a large newsgroup.
@@ -1083,18 +1203,13 @@ articles.  This is not a good idea."
   :group 'gnus-meta
   :type 'boolean)
 
-(defcustom gnus-use-demon nil
-  "If non-nil, Gnus might use some demons."
-  :group 'gnus-meta
-  :type 'boolean)
-
 (defcustom gnus-use-scoring t
   "*If non-nil, enable scoring."
   :group 'gnus-meta
   :type 'boolean)
 
 (defcustom gnus-use-picons nil
-  "*If non-nil, display picons."
+  "*If non-nil, display picons in a frame of their own."
   :group 'gnus-meta
   :type 'boolean)
 
@@ -1167,8 +1282,12 @@ slower."
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
+    ("nnslashdot" post)
+    ("nnultimate" none)
+    ("nnwarchive" none)
     ("nnlistserv" none)
-    ("nnagent" post-mail))
+    ("nnagent" post-mail)
+    ("nnimap" post-mail address prompt-address physical-address))
   "*An alist of valid select methods.
 The first element of each list lists should be a string with the name
 of the select method.  The other elements may be the category of
@@ -1189,18 +1308,28 @@ this variable.	I think."
 				   (const :format "%v " virtual)
 				   (const respool)))))
 
-(define-widget 'gnus-select-method 'list
-  "Widget for entering a select method."
-  :args `((choice :tag "Method"
-		  ,@(mapcar (lambda (entry)
-			      (list 'const :format "%v\n"
-				    (intern (car entry))))
-			    gnus-valid-select-methods))
-	  (string :tag "Address")
-	  (editable-list  :inline t
-			  (list :format "%v"
-				variable
-				(sexp :tag "Value")))))
+(defun gnus-redefine-select-method-widget ()
+  "Recomputes the select-method widget based on the value of
+`gnus-valid-select-methods'."
+  (define-widget 'gnus-select-method 'list
+    "Widget for entering a select method."
+    :value '(nntp "")
+    :tag "Select Method"
+    :args `((choice :tag "Method"
+		    ,@(mapcar (lambda (entry)
+				(list 'const :format "%v\n"
+				      (intern (car entry))))
+			      gnus-valid-select-methods)
+		    (symbol :tag "other"))
+	    (string :tag "Address")
+	    (repeat :tag "Options"
+		    :inline t
+		    (list :format "%v"
+			  variable
+			  (sexp :tag "Value"))))
+    ))
+
+(gnus-redefine-select-method-widget)
 
 (defcustom gnus-updated-mode-lines '(group article summary tree)
   "List of buffers that should update their mode lines.
@@ -1283,7 +1412,7 @@ following hook:
 (defcustom gnus-group-change-level-function nil
   "Function run when a group level is changed.
 It is called with three parameters -- GROUP, LEVEL and OLDLEVEL."
-  :group 'gnus-group-level
+  :group 'gnus-group-levels
   :type 'function)
 
 ;;; Face thingies.
@@ -1345,60 +1474,6 @@ face."
   :group 'gnus-visual
   :type 'face)
 
-(defcustom gnus-article-display-hook
-  (if (and (string-match "XEmacs" emacs-version)
-	   (featurep 'xface))
-      '(gnus-article-hide-headers-if-wanted
-	gnus-article-hide-boring-headers
-	gnus-article-treat-overstrike
-	gnus-article-maybe-highlight
-	gnus-article-display-x-face)
-    '(gnus-article-hide-headers-if-wanted
-      gnus-article-hide-boring-headers
-      gnus-article-treat-overstrike
-      gnus-article-maybe-highlight))
-  "*Controls how the article buffer will look.
-
-If you leave the list empty, the article will appear exactly as it is
-stored on the disk.  The list entries will hide or highlight various
-parts of the article, making it easier to find the information you
-want."
-  :group 'gnus-article-highlight
-  :group 'gnus-visual
-  :type 'hook
-  :options '(gnus-article-add-buttons
-	     gnus-article-add-buttons-to-head
-	     gnus-article-emphasize
-	     gnus-article-fill-cited-article
-	     gnus-article-remove-cr
-	     gnus-article-de-quoted-unreadable
-	     gnus-summary-stop-page-breaking
-	     ;; gnus-summary-caesar-message
-	     ;; gnus-summary-verbose-headers
-	     gnus-summary-toggle-mime
-	     gnus-article-hide
-	     gnus-article-hide-headers
-	     gnus-article-hide-boring-headers
-	     gnus-article-hide-signature
-	     gnus-article-hide-citation
-	     gnus-article-hide-pgp
-	     gnus-article-hide-pem
-	     gnus-article-highlight
-	     gnus-article-highlight-headers
-	     gnus-article-highlight-citation
-	     gnus-article-highlight-signature
-	     gnus-article-date-ut
-	     gnus-article-date-local
-	     gnus-article-date-lapsed
-	     gnus-article-date-original
-	     gnus-article-remove-trailing-blank-lines
-	     gnus-article-strip-leading-blank-lines
-	     gnus-article-strip-multiple-blank-lines
-	     gnus-article-strip-blank-lines
-	     gnus-article-treat-overstrike
-	     gnus-article-display-x-face
-	     gnus-smiley-display))
-
 (defcustom gnus-article-save-directory gnus-directory
   "*Name of the directory articles will be saved in (default \"~/News\")."
   :group 'gnus-article-saving
@@ -1407,9 +1482,27 @@ want."
 (defvar gnus-plugged t
   "Whether Gnus is plugged or not.")
 
+(defcustom gnus-default-charset 'iso-8859-1
+  "Default charset assumed to be used when viewing non-ASCII characters.
+This variable is overridden on a group-to-group basis by the
+gnus-group-charset-alist variable and is only used on groups not
+covered by that variable."
+  :type 'symbol
+  :group 'gnus-charset)
+
+(defcustom gnus-default-posting-charset nil
+  "Default charset assumed to be used when posting non-ASCII characters.
+This variable is overridden on a group-to-group basis by the
+gnus-group-posting-charset-alist variable and is only used on groups not
+covered by that variable.
+If nil, no default charset is assumed when posting."
+  :type 'symbol
+  :group 'gnus-charset)
+
 
 ;;; Internal variables
 
+(defvar gnus-agent-meta-information-header "X-Gnus-Agent-Meta-Information")
 (defvar gnus-group-get-parameter-function 'gnus-group-get-parameter)
 (defvar gnus-original-article-buffer " *Original Article*")
 (defvar gnus-newsgroup-name nil)
@@ -1457,7 +1550,7 @@ want."
       ,(nnheader-concat gnus-cache-directory "active"))))
   "List of predefined (convenience) servers.")
 
-(defvar gnus-topic-indentation "") ;; Obsolete variable.
+(defvar gnus-topic-indentation "");; Obsolete variable.
 
 (defconst gnus-article-mark-lists
   '((marked . tick) (replied . reply)
@@ -1485,7 +1578,6 @@ want."
   '((gnus-group-mode "(gnus)The Group Buffer")
     (gnus-summary-mode "(gnus)The Summary Buffer")
     (gnus-article-mode "(gnus)The Article Buffer")
-    (mime/viewer-mode "(gnus)The Article Buffer")
     (gnus-server-mode "(gnus)The Server Buffer")
     (gnus-browse-mode "(gnus)Browse Foreign Server")
     (gnus-tree-mode "(gnus)Tree Display"))
@@ -1504,11 +1596,11 @@ want."
 
 (defvar gnus-variable-list
   '(gnus-newsrc-options gnus-newsrc-options-n
-    gnus-newsrc-last-checked-date
-    gnus-newsrc-alist gnus-server-alist
-    gnus-killed-list gnus-zombie-list
-    gnus-topic-topology gnus-topic-alist
-    gnus-format-specs)
+			gnus-newsrc-last-checked-date
+			gnus-newsrc-alist gnus-server-alist
+			gnus-killed-list gnus-zombie-list
+			gnus-topic-topology gnus-topic-alist
+			gnus-format-specs)
   "Gnus variables saved in the quick startup file.")
 
 (defvar gnus-newsrc-alist nil
@@ -1549,6 +1641,9 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
 
 (defvar gnus-dead-summary nil)
 
+(defvar gnus-invalid-group-regexp "[: `'\"/]\\|^$"
+  "Regexp matching invalid groups.")
+
 ;;; End of variables.
 
 ;; Define some autoload functions Gnus might use.
@@ -1565,24 +1660,22 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
 	    (when (consp function)
 	      (setq keymap (car (memq 'keymap function)))
 	      (setq function (car function)))
-	    (autoload function (car package) nil interactive keymap)))
+	    (unless (fboundp function)
+	      (autoload function (car package) nil interactive keymap))))
 	(if (eq (nth 1 package) ':interactive)
-	    (cdddr package)
+	    (nthcdr 3 package)
 	  (cdr package)))))
-   '(("metamail" metamail-buffer)
-     ("info" Info-goto-node)
-     ("hexl" hexl-hex-string-to-integer)
+   '(("info" :interactive t Info-goto-node)
      ("pp" pp pp-to-string pp-eval-expression)
+     ("qp" quoted-printable-decode-region quoted-printable-decode-string)
      ("ps-print" ps-print-preprint)
-     ("mail-extr" mail-extract-address-components)
-     ("browse-url" browse-url)
+     ("browse-url" :interactive t browse-url)
      ("message" :interactive t
       message-send-and-exit message-yank-original)
-     ("nnmail" nnmail-split-fancy nnmail-article-group nnmail-date-to-time)
+     ("babel" babel-as-string)
+     ("nnmail" nnmail-split-fancy nnmail-article-group)
      ("nnvirtual" nnvirtual-catchup-group nnvirtual-convert-headers)
-     ("timezone" timezone-make-date-arpa-standard timezone-fix-time
-      timezone-make-sortable-date timezone-make-time-string)
-     ("rmailout" rmail-output)
+     ("rmailout" rmail-output rmail-output-to-rmail-file)
      ("rmail" rmail-insert-rmail-file-header rmail-count-new-messages
       rmail-show-message rmail-summary-exists
       rmail-select-summary rmail-update-summary)
@@ -1615,35 +1708,36 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
       gnus-article-hide-citation-in-followups)
      ("gnus-kill" gnus-kill gnus-apply-kill-file-internal
       gnus-kill-file-edit-file gnus-kill-file-raise-followups-to-author
-      gnus-execute gnus-expunge)
+      gnus-execute gnus-expunge gnus-batch-kill gnus-batch-score)
      ("gnus-cache" gnus-cache-possibly-enter-article gnus-cache-save-buffers
       gnus-cache-possibly-remove-articles gnus-cache-request-article
       gnus-cache-retrieve-headers gnus-cache-possibly-alter-active
       gnus-cache-enter-remove-article gnus-cached-article-p
-      gnus-cache-open gnus-cache-close gnus-cache-update-article)
-      ("gnus-cache" :interactive t gnus-jog-cache gnus-cache-enter-article
-       gnus-cache-remove-article gnus-summary-insert-cached-articles)
-      ("gnus-score" :interactive t
-       gnus-summary-increase-score gnus-summary-set-score
-       gnus-summary-raise-thread gnus-summary-raise-same-subject
-       gnus-summary-raise-score gnus-summary-raise-same-subject-and-select
-       gnus-summary-lower-thread gnus-summary-lower-same-subject
-       gnus-summary-lower-score gnus-summary-lower-same-subject-and-select
-       gnus-summary-current-score gnus-score-default
-       gnus-score-flush-cache gnus-score-close
-       gnus-possibly-score-headers gnus-score-followup-article
-       gnus-score-followup-thread)
-      ("gnus-score"
-       (gnus-summary-score-map keymap) gnus-score-save gnus-score-headers
+      gnus-cache-open gnus-cache-close gnus-cache-update-article
+      gnus-cache-articles-in-group)
+     ("gnus-cache" :interactive t gnus-jog-cache gnus-cache-enter-article
+      gnus-cache-remove-article gnus-summary-insert-cached-articles)
+     ("gnus-score" :interactive t
+      gnus-summary-increase-score gnus-summary-set-score
+      gnus-summary-raise-thread gnus-summary-raise-same-subject
+      gnus-summary-raise-score gnus-summary-raise-same-subject-and-select
+      gnus-summary-lower-thread gnus-summary-lower-same-subject
+      gnus-summary-lower-score gnus-summary-lower-same-subject-and-select
+      gnus-summary-current-score gnus-score-delta-default
+      gnus-score-flush-cache gnus-score-close
+      gnus-possibly-score-headers gnus-score-followup-article
+      gnus-score-followup-thread)
+     ("gnus-score"
+      (gnus-summary-score-map keymap) gnus-score-save gnus-score-headers
       gnus-current-score-file-nondirectory gnus-score-adaptive
       gnus-score-find-trace gnus-score-file-name)
      ("gnus-cus" :interactive t gnus-group-customize gnus-score-customize)
      ("gnus-topic" :interactive t gnus-topic-mode)
-     ("gnus-topic" gnus-topic-remove-group gnus-topic-set-parameters)
+     ("gnus-topic" gnus-topic-remove-group gnus-topic-set-parameters
+      gnus-subscribe-topics)
      ("gnus-salt" :interactive t gnus-pick-mode gnus-binary-mode)
      ("gnus-uu" (gnus-uu-extract-map keymap) (gnus-uu-mark-map keymap))
      ("gnus-uu" :interactive t
-      gnus-uu-post-news
       gnus-uu-digest-mail-forward gnus-uu-digest-post-forward
       gnus-uu-mark-series gnus-uu-mark-region gnus-uu-mark-buffer
       gnus-uu-mark-by-regexp gnus-uu-mark-all
@@ -1654,17 +1748,11 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
       gnus-uu-decode-uu-and-save-view gnus-uu-decode-unshar-view
       gnus-uu-decode-unshar-and-save-view gnus-uu-decode-save-view
       gnus-uu-decode-binhex-view gnus-uu-unmark-thread
-      gnus-uu-mark-over gnus-uu-post-news gnus-uu-post-news)
-     ("gnus-uu" gnus-uu-delete-work-dir gnus-quote-arg-for-sh-or-csh
-      gnus-uu-unmark-thread)
+      gnus-uu-mark-over gnus-uu-post-news)
+     ("gnus-uu" gnus-uu-delete-work-dir gnus-uu-unmark-thread)
      ("gnus-msg" (gnus-summary-send-map keymap)
       gnus-article-mail gnus-copy-article-buffer gnus-extended-version)
      ("gnus-msg" :interactive t
-      gnus-summary-wide-reply
-      gnus-summary-wide-reply-with-original
-      gnus-summary-followup-to-mail
-      gnus-summary-followup-to-mail-with-original
-      gnus-summary-post-forward
       gnus-group-post-news gnus-group-mail gnus-summary-post-news
       gnus-summary-followup gnus-summary-followup-with-original
       gnus-summary-cancel-article gnus-summary-supersede-article
@@ -1679,6 +1767,7 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
      ("gnus-picon" :interactive t gnus-article-display-picons
       gnus-group-display-picons gnus-picons-article-display-x-face
       gnus-picons-display-x-face)
+     ("gnus-picon" gnus-picons-buffer-name)
      ("gnus-gl" bbb-login bbb-logout bbb-grouplens-group-p
       gnus-grouplens-mode)
      ("smiley" :interactive t gnus-smiley-display)
@@ -1694,8 +1783,7 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
       gnus-group-set-mode-line gnus-group-set-info gnus-group-save-newsrc
       gnus-group-setup-buffer gnus-group-get-new-news
       gnus-group-make-help-group gnus-group-update-group
-      gnus-clear-inboxes-moved gnus-group-iterate
-      gnus-group-group-name)
+      gnus-group-iterate gnus-group-group-name)
      ("gnus-bcklg" gnus-backlog-request-article gnus-backlog-enter-article
       gnus-backlog-remove-article)
      ("gnus-art" gnus-article-read-summary-keys gnus-article-save
@@ -1703,20 +1791,24 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
       gnus-article-next-page gnus-article-prev-page
       gnus-request-article-this-buffer gnus-article-mode
       gnus-article-setup-buffer gnus-narrow-to-page
-      gnus-article-delete-invisible-text gnus-hack-decode-rfc1522)
+      gnus-article-delete-invisible-text gnus-treat-article)
      ("gnus-art" :interactive t
       gnus-article-hide-headers gnus-article-hide-boring-headers
-      gnus-article-treat-overstrike gnus-article-word-wrap
+      gnus-article-treat-overstrike
       gnus-article-remove-cr gnus-article-remove-trailing-blank-lines
       gnus-article-display-x-face gnus-article-de-quoted-unreadable
-      gnus-article-mime-decode-quoted-printable gnus-article-hide-pgp
+      gnus-article-de-base64-unreadable
+      gnus-article-decode-HZ
+      gnus-article-wash-html
+      gnus-article-hide-pgp
       gnus-article-hide-pem gnus-article-hide-signature
       gnus-article-strip-leading-blank-lines gnus-article-date-local
       gnus-article-date-original gnus-article-date-lapsed
       gnus-article-show-all-headers
       gnus-article-edit-mode gnus-article-edit-article
-      gnus-article-edit-done gnus-decode-rfc1522 article-decode-rfc1522
-      gnus-start-date-timer gnus-stop-date-timer)
+      gnus-article-edit-done gnus-article-decode-encoded-words
+      gnus-start-date-timer gnus-stop-date-timer
+      gnus-mime-view-all-parts)
      ("gnus-int" gnus-request-type)
      ("gnus-start" gnus-newsrc-parse-options gnus-1 gnus-no-server-1
       gnus-dribble-enter gnus-read-init-file gnus-dribble-touch)
@@ -1739,7 +1831,10 @@ gnus-newsrc-hashtb should be kept so that both hold the same information.")
       gnus-unplugged gnus-agentize gnus-agent-batch)
      ("gnus-vm" :interactive t gnus-summary-save-in-vm
       gnus-summary-save-article-vm)
-     ("gnus-draft" :interactive t gnus-draft-mode gnus-group-send-drafts))))
+     ("gnus-draft" :interactive t gnus-draft-mode gnus-group-send-drafts)
+     ("gnus-mlspl" gnus-group-split gnus-group-split-fancy)
+     ("gnus-mlspl" :interactive t gnus-group-split-setup
+      gnus-group-split-update))))
 
 ;;; gnus-sum.el thingies
 
@@ -1757,6 +1852,7 @@ with some simple extensions.
 %a   Extracted name of the poster (string)
 %A   Extracted address of the poster (string)
 %F   Contents of the From: header (string)
+%f   Contents of the From: or To: headers (string)
 %x   Contents of the Xref: header (string)
 %D   Date of the article (string)
 %d   Date of the article (string) in DD-MMM format
@@ -1795,7 +1891,7 @@ such area.
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
 with care.  For reasons of efficiency, Gnus will compute what column
 these characters will end up in, and \"hard-code\" that.  This means that
-it is illegal to have these specs after a variable-length spec.	 Well,
+it is invalid to have these specs after a variable-length spec.	 Well,
 you might not be arrested, but your summary buffer will look strange,
 which is bad enough.
 
@@ -1817,7 +1913,7 @@ This restriction may disappear in later versions of Gnus."
       (define-key keymap (pop keys) 'undefined))))
 
 (defvar gnus-article-mode-map
-  (let ((keymap (make-keymap)))
+  (let ((keymap (make-sparse-keymap)))
     (gnus-suppress-keymap keymap)
     keymap))
 (defvar gnus-summary-mode-map
@@ -2012,14 +2108,13 @@ If ARG, insert string at point."
       (string-to-number
        (if (zerop major)
 	   (format "%s00%02d%02d"
-		   (cond
-		    ((member alpha '("(ding)" "d")) "4.99")
-		    ((member alpha '("September" "s")) "5.01")
-		    ((member alpha '("Red" "r")) "5.03")
-		    ((member alpha '("Quassia" "q")) "5.05")
-		    ((member alpha '("p")) "5.07")
-		    ((member alpha '("o")) "5.09")
-		    ((member alpha '("n")) "5.11"))
+		   (if (member alpha '("(ding)" "d"))
+		       "4.99"
+		     (+ 5 (* 0.02
+			     (abs
+			      (- (mm-char-int (aref (downcase alpha) 0))
+				 (mm-char-int ?t))))
+			-0.01))
 		   minor least)
 	 (format "%d.%02d%02d" major minor least))))))
 
@@ -2307,7 +2402,14 @@ that that variable is buffer-local to the summary buffers."
 		 (not (equal server (format "%s:%s" (caaar opened)
 					    (cadaar opened)))))
        (pop opened))
-     (caar opened))))
+     (caar opened))
+   ;; It could be a named method, search all servers
+   (let ((servers gnus-secondary-select-methods))
+     (while (and servers
+		 (not (equal server (format "%s:%s" (caar servers)
+					    (cadar servers)))))
+       (pop servers))
+     (car servers))))
 
 (defmacro gnus-method-equal (ss1 ss2)
   "Say whether two servers are equal."
@@ -2319,6 +2421,15 @@ that that variable is buffer-local to the summary buffers."
 		(while (and s1 (member (car s1) s2))
 		  (setq s1 (cdr s1)))
 		(null s1))))))
+
+(defun gnus-methods-equal-p (m1 m2)
+  (let ((m1 (or m1 gnus-select-method))
+	(m2 (or m2 gnus-select-method)))
+    (or (equal m1 m2)
+	(and (eq (car m1) (car m2))
+	     (or (not (memq 'address (assoc (symbol-name (car m1))
+					    gnus-valid-select-methods)))
+		 (equal (nth 1 m1) (nth 1 m2)))))))
 
 (defun gnus-server-equal (m1 m2)
   "Say whether two methods are equal."
@@ -2401,15 +2512,31 @@ You should probably use `gnus-find-method-for-group' instead."
 	    possible
 	    (list backend server))))))
 
+(defsubst gnus-native-method-p (method)
+  "Return whether METHOD is the native select method."
+  (gnus-method-equal method gnus-select-method))
+
 (defsubst gnus-secondary-method-p (method)
   "Return whether METHOD is a secondary select method."
   (let ((methods gnus-secondary-select-methods)
 	(gmethod (gnus-server-get-method nil method)))
     (while (and methods
-		(not (equal (gnus-server-get-method nil (car methods))
-			    gmethod)))
+		(not (gnus-method-equal
+		      (gnus-server-get-method nil (car methods))
+		      gmethod)))
       (setq methods (cdr methods)))
     methods))
+
+(defun gnus-method-simplify (method)
+  "Return the shortest uniquely identifying string or method for METHOD."
+  (cond ((stringp method)
+	 method)
+	((gnus-native-method-p method)
+	 nil)
+	((gnus-secondary-method-p method)
+	 (format "%s:%s" (nth 0 method) (nth 1 method)))
+	(t
+	 method)))
 
 (defun gnus-groups-from-server (server)
   "Return a list of all groups that are fetched from SERVER."
@@ -2510,7 +2637,6 @@ If SCORE is nil, add 1 to the score of GROUP."
     (when info
       (gnus-info-set-score info (+ (gnus-info-score info) (or score 1))))))
 
-;; Function written by Stainless Steel Rat <ratinox@peorth.gweep.net>
 (defun gnus-short-group-name (group &optional levels)
   "Collapse GROUP name LEVELS.
 Select methods are stripped and any remote host name is stripped down to
@@ -2520,40 +2646,51 @@ just the host name."
 	 (depth 0)
 	 (skip 1)
 	 (levels (or levels
+		     gnus-group-uncollapsed-levels
 		     (progn
 		       (while (string-match "\\." group skip)
 			 (setq skip (match-end 0)
 			       depth (+ depth 1)))
 		       depth))))
-    ;; separate foreign select method from group name and collapse.
-    ;; if method contains a server, collapse to non-domain server name,
-    ;; otherwise collapse to select method
-    (when (string-match ":" group)
-      (cond ((string-match "+" group)
-	     (let* ((plus (string-match "+" group))
-		    (colon (string-match ":" group (or plus 0)))
-		    (dot (string-match "\\." group)))
-	       (setq foreign (concat
-			      (substring group (+ 1 plus)
-					 (cond ((null dot) colon)
-					       ((< colon dot) colon)
-					       ((< dot colon) dot)))
-			      ":")
-		     group (substring group (+ 1 colon)))))
-	    (t
-	     (let* ((colon (string-match ":" group)))
-	       (setq foreign (concat (substring group 0 (+ 1 colon)))
-		     group (substring group (+ 1 colon)))))))
-    ;; collapse group name leaving LEVELS uncollapsed elements
-    (while group
-      (if (and (string-match "\\." group) (> levels 0))
-	  (setq name (concat name (substring group 0 1))
-		group (substring group (match-end 0))
-		levels (- levels 1)
-		name (concat name "."))
-	(setq name (concat foreign name group)
-	      group nil)))
-    name))
+    ;; Separate foreign select method from group name and collapse.
+    ;; If method contains a server, collapse to non-domain server name,
+    ;; otherwise collapse to select method.
+    (let* ((colon (string-match ":" group))
+	   (server (and colon (substring group 0 colon)))
+	   (plus (and server (string-match "+" server))))
+      (when server
+	(if plus
+	    (setq foreign (substring server (+ 1 plus)
+				     (string-match "\\." server))
+		  group (substring group (+ 1 colon)))
+	  (setq foreign server
+		group (substring group (+ 1 colon))))
+	(setq foreign (concat foreign ":")))
+      ;; Collapse group name leaving LEVELS uncollapsed elements
+      (let* ((slist (split-string group "/"))
+	     (slen (length slist))
+	     (dlist (split-string group "\\."))
+	     (dlen (length dlist))
+	     glist
+	     glen
+	     gsep
+	     res)
+	(if (> slen dlen)
+	    (setq glist slist
+		  glen slen
+		  gsep "/")
+	  (setq glist dlist
+		glen dlen
+		gsep "."))
+	(setq levels (- glen levels))
+	(dolist (g glist)
+	  (push (if (>= (decf levels) 0)
+		    (if (zerop (length g))
+			""
+		      (substring g 0 1))
+		  g)
+		res))
+	(concat foreign (mapconcat 'identity (nreverse res) gsep))))))
 
 (defun gnus-narrow-to-body ()
   "Narrow to the body of an article."
@@ -2631,6 +2768,7 @@ If NEWSGROUP is nil, return the global kill file name instead."
   (let ((opened gnus-opened-servers))
     (while (and method opened)
       (when (and (equal (cadr method) (cadaar opened))
+		 (equal (car method) (caaar opened))
 		 (not (equal method (caar opened))))
 	(setq method nil))
       (pop opened))
@@ -2667,6 +2805,8 @@ If NEWSGROUP is nil, return the global kill file name instead."
   (or gnus-override-method
       (and (not group)
 	   gnus-select-method)
+      (and (not (gnus-group-entry group));; a new group
+	   (gnus-group-name-to-method group))
       (let ((info (or info (gnus-get-info group)))
 	    method)
 	(if (or (not info)
@@ -2699,16 +2839,16 @@ If NEWSGROUP is nil, return the global kill file name instead."
 
 (defun gnus-read-group (prompt &optional default)
   "Prompt the user for a group name.
-Disallow illegal group names."
+Disallow invalid group names."
   (let ((prefix "")
 	group)
     (while (not group)
-      (when (string-match
-	     "[: `'\"/]\\|^$"
+      (when (string-match 
+	     gnus-invalid-group-regexp
 	     (setq group (read-string (concat prefix prompt)
 				      (cons (or default "") 0)
 				      'gnus-group-history)))
-	(setq prefix (format "Illegal group name: \"%s\".  " group)
+	(setq prefix (format "Invalid group name: \"%s\".  " group)
 	      group nil)))
     group))
 
@@ -2717,6 +2857,9 @@ Disallow illegal group names."
 Allow completion over sensible values."
   (let* ((servers
 	  (append gnus-valid-select-methods
+		  (mapcar (lambda (i) (list (format "%s:%s" (caar i)
+						    (cadar i))))
+			  gnus-opened-servers)
 		  gnus-predefined-server-alist
 		  gnus-server-alist))
 	 (method
@@ -2727,11 +2870,18 @@ Allow completion over sensible values."
      ((equal method "")
       (setq method gnus-select-method))
      ((assoc method gnus-valid-select-methods)
-      (list (intern method)
-	    (if (memq 'prompt-address
-		      (assoc method gnus-valid-select-methods))
-		(read-string "Address: ")
-	      "")))
+      (let ((address (if (memq 'prompt-address
+			       (assoc method gnus-valid-select-methods))
+			 (read-string "Address: ")
+		       "")))
+	(or (let ((opened gnus-opened-servers))
+	      (while (and opened
+			  (not (equal (format "%s:%s" method address)
+				      (format "%s:%s" (caaar opened)
+					      (cadaar opened)))))
+		(pop opened))
+	      (caar opened))
+	    (list (intern method) address))))
      ((assoc method servers)
       method)
      (t
@@ -2769,11 +2919,12 @@ As opposed to `gnus', this command will not connect to the local server."
   (let ((window (get-buffer-window gnus-group-buffer)))
     (cond (window
 	   (select-frame (window-frame window)))
-	  ((= (length (frame-list)) 1)
-	   (select-frame (make-frame)))
-	  (t
-	   (other-frame 1))))
+ 	  (t
+ 	   (select-frame (make-frame)))))
   (gnus arg))
+
+;;(setq thing ?				; this is a comment
+;;      more 'yes)
 
 ;;;###autoload
 (defun gnus (&optional arg dont-connect slave)

@@ -1,5 +1,7 @@
 ;;; nnkiboze.el --- select virtual news access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999,.2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -136,7 +138,7 @@
   ;; Remove NOV lines of articles that are marked as read.
   (when (and (file-exists-p (nnkiboze-nov-file-name))
 	     nnkiboze-remove-read-articles)
-    (nnheader-temp-write (nnkiboze-nov-file-name)
+    (with-temp-file (nnkiboze-nov-file-name)
       (let ((cur (current-buffer)))
 	(nnheader-insert-file-contents (nnkiboze-nov-file-name))
 	(goto-char (point-min))
@@ -155,15 +157,15 @@
 (deffoo nnkiboze-request-delete-group (group &optional force server)
   (nnkiboze-possibly-change-group group)
   (when force
-     (let ((files (nconc
-		   (nnkiboze-score-file group)
-		   (list (nnkiboze-nov-file-name)
-			 (nnkiboze-nov-file-name ".newsrc")))))
-       (while files
-	 (and (file-exists-p (car files))
-	      (file-writable-p (car files))
-	      (delete-file (car files)))
-	 (setq files (cdr files)))))
+    (let ((files (nconc
+		  (nnkiboze-score-file group)
+		  (list (nnkiboze-nov-file-name)
+			(nnkiboze-nov-file-name ".newsrc")))))
+      (while files
+	(and (file-exists-p (car files))
+	     (file-writable-p (car files))
+	     (delete-file (car files)))
+	(setq files (cdr files)))))
   (setq nnkiboze-current-group nil)
   t)
 
@@ -184,6 +186,7 @@
 Finds out what articles are to be part of the nnkiboze groups."
   (interactive)
   (let ((nnmail-spool-file nil)
+	(mail-sources nil)
 	(gnus-use-dribble-file nil)
 	(gnus-read-active-file t)
 	(gnus-expert-user t))
@@ -209,7 +212,7 @@ Finds out what articles are to be part of the nnkiboze groups."
 
 (defun nnkiboze-generate-group (group)
   (let* ((info (nth 2 (gnus-gethash group gnus-newsrc-hashtb)))
-	 (newsrc-file (concat nnkiboze-directory 
+	 (newsrc-file (concat nnkiboze-directory
                               (nnheader-translate-file-chars
                                (concat group ".newsrc"))))
 	 (nov-file (concat nnkiboze-directory
@@ -230,7 +233,7 @@ Finds out what articles are to be part of the nnkiboze groups."
     ;; Load the kiboze newsrc file for this group.
     (when (file-exists-p newsrc-file)
       (load newsrc-file))
-    (nnheader-temp-write nov-file
+    (with-temp-file nov-file
       (when (file-exists-p nov-file)
 	(insert-file-contents nov-file))
       (setq nov-buffer (current-buffer))
@@ -287,7 +290,7 @@ Finds out what articles are to be part of the nnkiboze groups."
 					   (car ginfo)))
 				  0))
 			   (progn
-			     (ignore-errors 
+			     (ignore-errors
 			       (gnus-group-select-group nil))
 			     (eq major-mode 'gnus-summary-mode)))
 		  ;; We are now in the group where we want to be.
@@ -318,7 +321,7 @@ Finds out what articles are to be part of the nnkiboze groups."
 	(gnus-message 3 "nnkiboze: Checking %s...done" (caar newsrc))
 	(setq newsrc (cdr newsrc))))
     ;; We save the kiboze newsrc for this group.
-    (nnheader-temp-write newsrc-file
+    (with-temp-file newsrc-file
       (insert "(setq nnkiboze-newsrc '")
       (gnus-prin1 nnkiboze-newsrc)
       (insert ")\n")))

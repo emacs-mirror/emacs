@@ -1,5 +1,7 @@
 ;;; gnus-undo.el --- minor mode for undoing in Gnus
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -46,8 +48,6 @@
 
 (eval-when-compile (require 'cl))
 
-(eval-when-compile (require 'cl))
-
 (require 'gnus-util)
 (require 'gnus)
 (require 'custom)
@@ -86,11 +86,11 @@
   (setq gnus-undo-mode-map (make-sparse-keymap))
 
   (gnus-define-keys gnus-undo-mode-map
-   "\M-\C-_"     gnus-undo
-   "\C-_"        gnus-undo
-   "\C-xu"       gnus-undo
-   ;; many people are used to type `C-/' on X terminals and get `C-_'.
-   [(control /)] gnus-undo))
+    "\M-\C-_"     gnus-undo
+    "\C-_"        gnus-undo
+    "\C-xu"       gnus-undo
+    ;; many people are used to type `C-/' on X terminals and get `C-_'.
+    [(control /)] gnus-undo))
 
 (defun gnus-undo-make-menu-bar ()
   ;; This is disabled for the time being.

@@ -1,5 +1,7 @@
 ;;; nneething.el --- arbitrary file access for Gnus
-;; Copyright (C) 1995,96,97,98 Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -45,6 +47,11 @@
   "Regexp saying what files to exclude from the group.
 If this variable is nil, no files will be excluded.")
 
+(defvoo nneething-include-files nil
+  "Regexp saying what files to include in the group.
+If this variable is non-nil, only files matching this regexp will be
+included.")
+
 
 
 ;;; Internal variables.
@@ -67,8 +74,6 @@ If this variable is nil, no files will be excluded.")
 (defvoo nneething-address nil)
 
 
-
-(autoload 'gnus-encode-coding-string "gnus-ems")
 
 ;;; Interface functions.
 
@@ -104,7 +109,7 @@ If this variable is nil, no files will be excluded.")
 	  (and large
 	       (zerop (% count 20))
 	       (nnheader-message 5 "nneething: Receiving headers... %d%%"
-			(/ (* count 100) number))))
+				 (/ (* count 100) number))))
 
 	(when large
 	  (nnheader-message 5 "nneething: Receiving headers...done"))
@@ -124,7 +129,8 @@ If this variable is nil, no files will be excluded.")
 	   (nnmail-find-file file)	; Insert the file in the nntp buf.
 	   (unless (nnheader-article-p)	; Either it's a real article...
 	     (goto-char (point-min))
-	     (nneething-make-head file (current-buffer)) ; ... or we fake some headers.
+	     (nneething-make-head
+	      file (current-buffer))	; ... or we fake some headers.
 	     (insert "\n"))
 	   t))))
 
@@ -213,17 +219,27 @@ If this variable is nil, no files will be excluded.")
 		  (setq files (cdr files)))
 	      (setq prev f))
 	    (setq f (cdr f)))))
+      ;; Remove files not matching the inclusion regexp.
+      (when nneething-include-files
+	(let ((f files)
+	      prev)
+	  (while f
+	    (if (not (string-match nneething-include-files (car f)))
+		(if prev (setcdr prev (cdr f))
+		  (setq files (cdr files)))
+	      (setq prev f))
+	    (setq f (cdr f)))))
       ;; Remove deleted files from the map.
       (let ((map nneething-map)
 	    prev)
 	(while map
-	  (if (and (member (cadar map) files)
+	  (if (and (member (cadr (car map)) files)
 		   ;; We also remove files that have changed mod times.
 		   (equal (nth 5 (file-attributes
-				  (nneething-file-name (cadar map))))
-			  (caddar map)))
+				  (nneething-file-name (cadr (car map)))))
+			  (cadr (cdar map))))
 	      (progn
-		(push (cadar map) map-files)
+		(push (cadr (car map)) map-files)
 		(setq prev map))
 	    (setq touched t)
 	    (if prev
@@ -243,7 +259,7 @@ If this variable is nil, no files will be excluded.")
 	(setq files (cdr files)))
       (when (and touched
 		 (not nneething-read-only))
-	(nnheader-temp-write map-file
+	(with-temp-file map-file
 	  (insert "(setq nneething-map '")
 	  (gnus-prin1 nneething-map)
 	  (insert ")\n(setq nneething-active '")
@@ -281,8 +297,7 @@ If this variable is nil, no files will be excluded.")
 	   (concat "Lines: " (int-to-string
 			      (count-lines (point-min) (point-max)))
 		   "\n"))
-       "")
-     )))
+       ""))))
 
 (defun nneething-from-line (uid &optional file)
   "Return a From header based of UID."
@@ -302,7 +317,8 @@ If this variable is nil, no files will be excluded.")
 		       (substring file
 				  (match-beginning 1)
 				  (match-end 1))
-		     (when (string-match "/\\(users\\|home\\)/\\([^/]+\\)/" file)
+		     (when (string-match
+			    "/\\(users\\|home\\)/\\([^/]+\\)/" file)
 		       (setq login (substring file
 					      (match-beginning 2)
 					      (match-end 2))
@@ -316,7 +332,7 @@ If this variable is nil, no files will be excluded.")
   (save-excursion
     (set-buffer (get-buffer-create nneething-work-buffer))
     (setq case-fold-search nil)
-    (buffer-disable-undo (current-buffer))
+    (buffer-disable-undo)
     (erase-buffer)
     (cond
      ((not (file-exists-p file))
@@ -344,10 +360,13 @@ If this variable is nil, no files will be excluded.")
 
 (defun nneething-file-name (article)
   "Return the file name of ARTICLE."
-  (concat (file-name-as-directory nneething-address)
-	  (if (numberp article)
-	      (cadr (assq article nneething-map))
-	    article)))
+  (let ((dir (file-name-as-directory nneething-address))
+        fname)
+    (if (numberp article)
+	(if (setq fname (cadr (assq article nneething-map)))
+	    (expand-file-name fname dir)
+	  (make-temp-name (expand-file-name "nneething" dir)))
+      (expand-file-name article dir))))
 
 (provide 'nneething)
 

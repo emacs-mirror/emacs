@@ -1,5 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
-;; Copyright (C) 1996,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,8 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-when-compile (require 'cl))
 
@@ -93,6 +92,7 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
        ;; gnus-open-server-hook might have opened it
        (gnus-server-opened gnus-select-method)
        (gnus-open-server gnus-select-method)
+       gnus-batch-mode
        (gnus-y-or-n-p
 	(format
 	 "%s (%s) open error: '%s'.  Continue? "
@@ -220,10 +220,12 @@ If it is down, start it up (again)."
 
 (defun gnus-server-opened (gnus-command-method)
   "Check whether a connection to GNUS-COMMAND-METHOD has been opened."
-  (when (stringp gnus-command-method)
-    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
-  (funcall (inline (gnus-get-function gnus-command-method 'server-opened))
-	   (nth 1 gnus-command-method)))
+  (unless (eq (gnus-server-status gnus-command-method)
+	      'denied)
+    (when (stringp gnus-command-method)
+      (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+    (funcall (inline (gnus-get-function gnus-command-method 'server-opened))
+	     (nth 1 gnus-command-method))))
 
 (defun gnus-status-message (gnus-command-method)
   "Return the status message from GNUS-COMMAND-METHOD.
@@ -270,6 +272,14 @@ this group uses will be queried."
       (funcall (gnus-get-function gnus-command-method func)
 	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
 
+(defun gnus-request-group-articles (group)
+  "Request a list of existing articles in GROUP."
+  (let ((gnus-command-method (gnus-find-method-for-group group))
+	(func 'request-group-articles))
+    (when (gnus-check-backend-function func group)
+      (funcall (gnus-get-function gnus-command-method func)
+	       (gnus-group-real-name group) (nth 1 gnus-command-method)))))
+
 (defun gnus-close-group (group)
   "Request the GROUP be closed."
   (let ((gnus-command-method (inline (gnus-find-method-for-group group))))
@@ -308,6 +318,16 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
 	'unknown
       (funcall (gnus-get-function gnus-command-method 'request-type)
 	       (gnus-group-real-name group) article))))
+
+(defun gnus-request-set-mark (group action)
+  "Set marks on articles in the backend."
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-set-mark (car gnus-command-method)))
+	action
+      (funcall (gnus-get-function gnus-command-method 'request-set-mark)
+	       (gnus-group-real-name group) action
+	       (nth 1 gnus-command-method)))))
 
 (defun gnus-request-update-mark (group article mark)
   "Allow the backend to change the mark the user tries to put on an article."
@@ -394,13 +414,14 @@ If BUFFER, insert the article in that group."
 (defun gnus-request-scan (group gnus-command-method)
   "Request a SCAN being performed in GROUP from GNUS-COMMAND-METHOD.
 If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
-  (when gnus-plugged
-    (let ((gnus-command-method
-	   (if group (gnus-find-method-for-group group) gnus-command-method))
-	  (gnus-inhibit-demon t))
-      (funcall (gnus-get-function gnus-command-method 'request-scan)
-	       (and group (gnus-group-real-name group))
-	       (nth 1 gnus-command-method)))))
+  (let ((gnus-command-method
+	 (if group (gnus-find-method-for-group group) gnus-command-method))
+	(gnus-inhibit-demon t)
+	(mail-source-plugged gnus-plugged))
+    (if (or gnus-plugged (not (gnus-agent-method-p gnus-command-method)))
+	(funcall (gnus-get-function gnus-command-method 'request-scan)
+		 (and group (gnus-group-real-name group))
+		 (nth 1 gnus-command-method)))))
 
 (defsubst gnus-request-update-info (info gnus-command-method)
   "Request that GNUS-COMMAND-METHOD update INFO."
@@ -425,7 +446,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) accept-function last)))
 
-(defun gnus-request-accept-article (group &optional gnus-command-method last)
+(defun gnus-request-accept-article (group &optional gnus-command-method last
+					  no-encode)
   ;; Make sure there's a newline at the end of the article.
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
@@ -435,6 +457,12 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
   (goto-char (point-max))
   (unless (bolp)
     (insert "\n"))
+  (unless no-encode
+    (save-restriction
+      (message-narrow-to-head)
+      (let ((mail-parse-charset message-default-charset))
+	(mail-encode-encoded-word-buffer)))
+    (message-encode-message-body))
   (let ((func (car (or gnus-command-method
 		       (gnus-find-method-for-group group)))))
     (funcall (intern (format "%s-request-accept-article" func))
@@ -442,7 +470,13 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	     (cadr gnus-command-method)
 	     last)))
 
-(defun gnus-request-replace-article (article group buffer)
+(defun gnus-request-replace-article (article group buffer &optional no-encode)
+  (unless no-encode
+    (save-restriction
+      (message-narrow-to-head)
+      (let ((mail-parse-charset message-default-charset))
+	(mail-encode-encoded-word-buffer)))
+    (message-encode-message-body))
   (let ((func (car (gnus-group-name-to-method group))))
     (funcall (intern (format "%s-request-replace-article" func))
 	     article (gnus-group-real-name group) buffer)))
