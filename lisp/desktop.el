@@ -815,7 +815,6 @@ This function always sets `desktop-enable' to t."
 (defun desktop-buffer-mh () "Load a folder in the mh system."
   (if (eq 'mh-folder-mode desktop-buffer-major-mode)
       (progn
-        (eval-and-compile (require 'mh-e))
 	(mh-find-path)
         (mh-visit-folder desktop-buffer-name)
 	(current-buffer))))
