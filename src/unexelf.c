@@ -1183,50 +1183,55 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   for (n = new_file_h->e_shnum - 1; n; n--)
     {
       ElfW(Shdr) section = NEW_SECTION_H (n);
-      switch (section.sh_type) {
-      default:
-	break;
-      case SHT_REL:
-      case SHT_RELA:
-	/* This code handles two different size structs, but there should
-	   be no harm in that provided that r_offset is always the first
-	   member.  */
-	nn = section.sh_info;
-	if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".data")
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".sdata")
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".lit4")
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".lit8")
+
+      /* Cause a compilation error if anyone uses n instead of nn below.  */
+      struct {int a;} n;
+
+      switch (section.sh_type) 
+	{
+	default:
+	  break;
+	case SHT_REL:
+	case SHT_RELA:
+	  /* This code handles two different size structs, but there should
+	     be no harm in that provided that r_offset is always the first
+	     member.  */
+	  nn = section.sh_info;
+	  if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".data")
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".sdata")
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".lit4")
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".lit8")
 #if __sgi
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".got")
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".got")
 #endif
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".sdata1")
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".data1"))
-	  {
-	    ElfW(Addr) offset = NEW_SECTION_H (nn).sh_addr -
-	      NEW_SECTION_H (nn).sh_offset;
-	    caddr_t reloc = old_base + section.sh_offset, end;
-	    for (end = reloc + section.sh_size; reloc < end;
-		 reloc += section.sh_entsize)
-	      {
-		ElfW(Addr) addr = ((ElfW(Rel) *) reloc)->r_offset - offset;
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".sdata1")
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".data1"))
+	    {
+	      ElfW(Addr) offset = (NEW_SECTION_H (nn).sh_addr
+				   - NEW_SECTION_H (nn).sh_offset);
+	      caddr_t reloc = old_base + section.sh_offset, end;
+	      for (end = reloc + section.sh_size; reloc < end;
+		   reloc += section.sh_entsize)
+		{
+		  ElfW(Addr) addr = ((ElfW(Rel) *) reloc)->r_offset - offset;
 #ifdef __alpha__
-		/* The Alpha ELF binutils currently have a bug that
-		   sometimes results in relocs that contain all
-		   zeroes.  Work around this for now...  */
-		if (((ElfW(Rel) *) reloc)->r_offset == 0)
+		  /* The Alpha ELF binutils currently have a bug that
+		     sometimes results in relocs that contain all
+		     zeroes.  Work around this for now...  */
+		  if (((ElfW(Rel) *) reloc)->r_offset == 0)
 		    continue;
 #endif
-		memcpy (new_base + addr, old_base + addr, sizeof(ElfW(Addr)));
-	      }
-	  }
-	break;
-      }
+		  memcpy (new_base + addr, old_base + addr, sizeof(ElfW(Addr)));
+		}
+	    }
+	  break;
+	}
     }
 
   /* Write out new_file, and free the buffers.  */
