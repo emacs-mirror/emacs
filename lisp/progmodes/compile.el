@@ -270,6 +270,33 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 \\([a-zA-Z]?:?[^:( \t\n]*[^:( \t\n0-9][^:( \t\n]*\\)[:(][ \t]*\\([0-9]+\\)\
 \\([) \t]\\|:\\(\\([0-9]+:\\)\\|[0-9]*[^:0-9]\\)\\)" 2 3 6)
 
+    ;; GNU utilities with precise locations (line and columns),
+    ;; possibly ranges:
+    ;;  foo.c:8.23-9.1: error message
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+\\([0-9]+\\)\\.\\([0-9]+\\)\
+-\\([0-9]+\\)\\.\\([0-9]+\\)\
+:" 1 2 3) ;; When ending points are supported, add line = 4 and col = 5.
+    ;;  foo.c:8.23-45: error message
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+\\([0-9]+\\)\\.\\([0-9]+\\)\
+-\\([0-9]+\\)\
+:" 1 2 3) ;; When ending points are supported, add line = 2 and col = 4.
+    ;;  foo.c:8-45.3: error message
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+\\([0-9]+\\)\
+-\\([0-9]+\\)\\.\\([0-9]+\\)\
+:" 1 2 nil) ;; When ending points are supported, add line = 2 and col = 4.
+    ;;  foo.c:8.23: error message
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+\\([0-9]+\\)\\.\\([0-9]+\\)\
+:" 1 2 3)
+    ;;  foo.c:8-23: error message
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+\\([0-9]+\\)\
+-\\([0-9]+\\)\
+:" 1 2 nil);; When ending points are supported, add line = 3.
+
     ;; Microsoft C/C++:
     ;;  keyboard.c(537) : warning C4005: 'min' : macro redefinition
     ;;  d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
