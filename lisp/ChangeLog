@@ -1,3 +1,43 @@
+2004-11-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el: Remove unnecessary eval-when-compile.
+	(calc-do-quick-calc, calc-do-calc-eval, calc-alg-entry)
+	(math-read-expr-level, calc-check-user-syntax, math-read-factor):
+	Replace calls to calc-extensions by appropriate require, replace
+	calc-extensions-loaded by appropriate featurep.
+
+	* calc/calc-ext.el: Move require to end of file.
+	Remove redundant loading of calc.el.
+	(calc-extensions-loaded): Remove unnecessary variable.
+	(calc-extensions): Remove unnecessary function.
+	(calc-load-everything): Replace calc-need-macros by appropriate require.
+
+	* calc/calc-macs.el: Move provide to end of file.
+	(calc-need-macros): Remove unnecessary function.
+
+	* calc/calc-misc.el (calc-do-handle-whys, calc-last-args-stub)
+	(calc-missing-key, calc-shift-Y-prefix-help, math-concat)
+	(math-trunc, math-floor, calcFunc-inv, math-mod, math-pow):
+	Replace calc-extensions by appropriate require.
+	(calc-power): Replace calc-extensions-loaded by appropriate featurep.
+
+	* calc/calc-prog.el (calc-user-define-formula, calc-do-defmath):
+	Replace calc-need-macros by appropriate require.
+
+	* calc/calc.el: Move require to end of file.
+	(calc-info-filename, calc-autoload-directory, calc-extensions-loaded):
+	Remove unnecessary variable.
+	(calc-do-dispatch, calc-mode, calc-check-defines, calc-create-buffer)
+	(calc, calc-keypad, full-calc-keypad, calc-do, calc-normalize)
+	(calc-binary-op, calc-unary-op, calcDigit-start, calcDigit-key)
+	(math-normalize, math-add, math-mul, math-div, math-format-stack-value)
+	(math-stack-value-offset, math-format-value, math-format-flat-expr)
+	(math-format-number, math-format-bignum, math-read-number)
+	(calc-grab-region, calc-grab-rectangle, calc-grab-sum-down)
+	(calc-grab-sum-across, calc-embedded, defmath): Replace calc-extensions
+	by appropriate require.
+	(calc-check-defines): Replace calc-need-macros by appropriate require.
+
 2004-11-29  Kim F. Storm  <storm@cua.dk>
 
 	* macros.el (insert-kbd-macro): Handle kmacro functions.
