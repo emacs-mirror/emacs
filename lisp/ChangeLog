@@ -1,3 +1,12 @@
+2004-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/supercite.el (sc-cite-region): Handle the case where
+	sc-cite-frame-alist is a symbol.
+	(sc-uncite-region): Handle the case where sc-uncite-frame-alist is
+	a symbol.
+	(sc-recite-region): Handle the case where sc-recite-frame-alist is
+	a symbol.
+
 2004-11-27  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
 
 	* wid-edit.el (widget-narrow-to-field): New function.
