@@ -1353,7 +1353,7 @@ This is a normal hook that is run whenever the minibuffer is entered.
 @xref{Hooks}.
 @end defvar
 
-@defvar minibuffer-setup-hook
+@defvar minibuffer-exit-hook
 This is a normal hook that is run whenever the minibuffer is exited.
 @xref{Hooks}.
 @end defvar
