@@ -1890,10 +1890,13 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "condition-case" "track-mouse"
 		    "eval-after-load" "eval-and-compile" "eval-when-compile"
 		    "eval-when"
+		    "with-category-table"
 		    "with-current-buffer" "with-electric-help"
+		    "with-local-quit" "with-no-warnings"
 		    "with-output-to-string" "with-output-to-temp-buffer"
+		    "with-selected-window" "with-syntax-table"
 		    "with-temp-buffer" "with-temp-file" "with-temp-message"
-		    "with-timeout") t)
+		    "with-timeout" "with-timeout-handler") t)
 	     "\\>")
 	    1)
       ;;
@@ -1908,7 +1911,13 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "proclaim" "declaim" "declare" "symbol-macrolet"
 		    "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
 		    "destructuring-bind" "macrolet" "tagbody" "block"
-		    "return" "return-from") t)
+		    "return" "return-from"
+		    "with-accessors" "with-compilation-unit"
+		    "with-condition-restarts" "with-hash-table-iterator"
+		    "with-input-from-string" "with-open-file"
+		    "with-open-stream" "with-output-to-string"
+		    "with-package-iterator" "with-simple-restart"
+		    "with-slots" "with-standard-io-syntax") t)
 	     "\\>")
 	    1)
       ;;
@@ -1933,8 +1942,11 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       ;; ELisp and CLisp `&' keywords as types.
       '("\\&\\sw+\\>" . font-lock-type-face)
       ;;
-      ;; CL `with-' and `do-' constructs
-      '("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+;;; This is too general -- rms.
+;;; A user complained that he has functions whose names start with `do'
+;;; and that they get the wrong color.
+;;;      ;; CL `with-' and `do-' constructs
+;;;      '("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 
