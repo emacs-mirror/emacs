@@ -110,18 +110,22 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
   "Change the mode of the marked (or next ARG) files.
 This calls chmod, thus symbolic modes like `g+w' are allowed."
   (interactive "P")
-  (dired-do-chxxx "Mode" "chmod" 'chmod arg))
+  (dired-do-chxxx "Mode" dired-chmod-program 'chmod arg))
 
 ;;;###autoload
 (defun dired-do-chgrp (&optional arg)
   "Change the group of the marked (or next ARG) files."
   (interactive "P")
+  (if (memq system-type '(ms-dos windows-nt))
+      (error "chgrp not supported on this system."))
   (dired-do-chxxx "Group" "chgrp" 'chgrp arg))
 
 ;;;###autoload
 (defun dired-do-chown (&optional arg)
   "Change the owner of the marked (or next ARG) files."
   (interactive "P")
+  (if (memq system-type '(ms-dos windows-nt))
+      (error "chown not supported on this system."))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
 
 ;; Process all the files in FILES in batches of a convenient size,
