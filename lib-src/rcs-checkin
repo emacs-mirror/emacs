@@ -21,7 +21,7 @@
 # This script is intended to be used to convert files with an old-Emacs-style
 # version history for use with VC (the Emacs 19 version-control interface),
 # which likes to use RCS as its back end.  It was written by Paul Eggert
-# and revised/documented for use with VC by Eric S. Raymond, Mr 19 1993.
+# and revised/documented for use with VC by Eric S. Raymond, Mar 19 1993.
 
 case $# in
 0)
