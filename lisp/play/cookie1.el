@@ -131,4 +131,4 @@ subsequent calls on the same file won't go to disk."
 
 (provide 'cookie1)
 
-;;; cookie.el ends here
+;;; cookie1.el ends here
