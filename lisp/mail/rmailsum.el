@@ -648,7 +648,7 @@ Commands for sorting the summary:
   (make-local-variable 'rmail-summary-redo)
   (setq rmail-summary-redo nil)
   (make-local-variable 'revert-buffer-function)
-  (make-local-variable 'post-command-hook)
+  (make-local-hook 'post-command-hook)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
   (rmail-summary-enable)
@@ -657,12 +657,12 @@ Commands for sorting the summary:
 ;; Summary features need to be disabled during edit mode.
 (defun rmail-summary-disable ()
   (use-local-map text-mode-map)
-  (remove-hook 'post-command-hook 'rmail-summary-rmail-update)
+  (remove-hook 'post-command-hook 'rmail-summary-rmail-update t)
   (setq revert-buffer-function nil))
 
 (defun rmail-summary-enable ()
   (use-local-map rmail-summary-mode-map)
-  (add-hook 'post-command-hook 'rmail-summary-rmail-update)
+  (add-hook 'post-command-hook 'rmail-summary-rmail-update nil t)
   (setq revert-buffer-function 'rmail-update-summary))
 
 ;; Show in Rmail the message described by the summary line that point is on,
