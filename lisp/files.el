@@ -2726,7 +2726,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 						(if (stringp switches)
 						    switches
 						  (mapconcat 'identity switches " "))
-						" "
+						" -- "
 						pattern)))
 		 ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 		 ;; directory if FILE is a symbolic link.
@@ -2745,6 +2745,8 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 					  switches (substring switches (match-end 0))))
 				  (setq list (nreverse (cons switches list))))))
 			  (append list
+				  ;; Avoid lossage if FILE starts with `-'.
+				  '("--")
 				  (list
 				   (if full-directory-p
 				       (concat (file-name-as-directory file) ".")
