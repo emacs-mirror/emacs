@@ -200,7 +200,7 @@ are left in ARGS."
 		    (tail (assq key screen-default-alist))
 		    (value
 		     (or (x-get-resource (nth 1 key-resname-default))
-			 (nth 3 key-resname-default))))
+			 (nth 2 key-resname-default))))
 	       (if tail (setcdr tail value)
 		 (setq screen-default-alist
 		       (cons (cons key value)
@@ -629,10 +629,10 @@ are left in ARGS."
 
 ;; xterm.c depends on using interrupt-driven input.
 (set-input-mode t nil t)
-(x-read-resources)
-(x-handle-args)
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
+(x-read-resources)
+(x-handle-args)
 (x-pop-initial-window)
 
 (setq suspend-hook
