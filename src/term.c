@@ -1696,7 +1696,16 @@ If that is not the actual type of terminal you have, use either the\n\
 DCL command `SET TERMINAL/DEVICE= ...' for DEC-compatible terminals,\n\
 or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.\n",
            terminal_type);
-#else
+#else /* not VMS */
+# ifdef TERMINFO
+    fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
+It lacks the ability to position the cursor.\n\
+If that is not the actual type of terminal you have,\n\
+use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
+`setenv TERM ...') to specify the correct type.  It may be necessary\n\
+to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.\n",
+	   terminal_type);
+# else /* TERMCAP */
     fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
@@ -1704,7 +1713,8 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
 	   terminal_type);
-#endif
+# endif /* TERMINFO */
+#endif /*VMS */
   if (FRAME_HEIGHT (selected_frame) <= 0
       || FRAME_WIDTH (selected_frame) <= 0)
     fatal ("The frame size has not been specified.");
