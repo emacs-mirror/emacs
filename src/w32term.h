@@ -258,8 +258,6 @@ extern Lisp_Object Vx_pixel_size_width_font_regexp;
 /* A flag to control how to display unibyte 8-bit character.  */
 extern int unibyte_display_via_language_environment;
 
-/* NTEMACS_TODO: This does not seem to be defined. Check and remove. */
-struct w32_display_info *x_display_info_for_display ();
 struct w32_display_info *x_display_info_for_name ();
 
 extern struct w32_display_info *w32_term_init ();
