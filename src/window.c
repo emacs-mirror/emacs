@@ -895,20 +895,21 @@ struct Lisp_Char_Table *
 window_display_table (w)
      struct window *w;
 {
-  Lisp_Object tem;
-  tem = w->display_table;
-  if (DISP_TABLE_P (tem))
-    return XCHAR_TABLE (tem);
-  if (NILP (w->buffer))
-    return 0;
+  struct Lisp_Char_Table *dp = NULL;
 
-  tem = XBUFFER (w->buffer)->display_table;
-  if (DISP_TABLE_P (tem))
-    return XCHAR_TABLE (tem);
-  tem = Vstandard_display_table;
-  if (DISP_TABLE_P (tem))
-    return XCHAR_TABLE (tem);
-  return 0;
+  if (DISP_TABLE_P (w->display_table))
+    dp = XCHAR_TABLE (w->display_table);
+  else if (BUFFERP (w->buffer))
+    {
+      struct buffer *b = XBUFFER (w->buffer);
+      
+      if (DISP_TABLE_P (b->display_table))
+	dp = XCHAR_TABLE (b->display_table);
+      else if (DISP_TABLE_P (Vstandard_display_table))
+	dp = XCHAR_TABLE (Vstandard_display_table);
+    }
+
+  return dp;
 }
 
 DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_display_table, 2, 2, 0,
