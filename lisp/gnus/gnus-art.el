@@ -268,7 +268,7 @@ each invocation of the saving commands."
   :group 'gnus-article-saving
   :type '(choice (item always)
 		 (item :tag "never" nil)
-		 (sexp :tag "once" :format "%t")))
+		 (other :tag "once" t)))
 
 (defcustom gnus-saved-headers gnus-visible-headers
   "Headers to keep if `gnus-save-all-headers' is nil.
