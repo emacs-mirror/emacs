@@ -204,7 +204,7 @@ Recreates a URL string from the parsed @var{url}.
 @defun url-retrieve-synchronously url
 Retrieve @var{url} synchronously and return a buffer containing the
 data.  @var{url} is either a string or a parsed URL structure.  Return
-@var{nil} if there are no data associated with it (the case for dired,
+@code{nil} if there are no data associated with it (the case for dired,
 info, or mailto URLs that need no further processing).
 @end defun
 
@@ -214,7 +214,7 @@ Retrieve @var{url} asynchronously and call @var{callback} with args
 has been completely retrieved, with the current buffer containing the
 object and any MIME headers associated with it.  @var{url} is either a
 string or a parsed URL structure.  Returns the buffer @var{url} will
-load into, or @var{nil} if the process has already completed.
+load into, or @code{nil} if the process has already completed.
 @end defun
 
 @node Supported URL Types
