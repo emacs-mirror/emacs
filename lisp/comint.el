@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
 ;;	Simon Marshall <simon@gnu.ai.mit.edu>
@@ -278,8 +278,9 @@ This variable is buffer-local."
   :group 'comint)
 
 ;; AIX puts the name of the person being su'd to in front of the prompt.
+;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\):\\s *\\'"
+  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\).*:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
