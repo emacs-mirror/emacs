@@ -1,3 +1,8 @@
+2001-10-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/compile.el (compilation-set-window-height): Select
+	old window only if it's still live.
+
 2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/sgml-mode.el (sgml-mode-map): Bind 8-bit codes above

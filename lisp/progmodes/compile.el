@@ -877,7 +877,10 @@ exited abnormally with code %d\n"
 		 (select-window window)
 		 (enlarge-window (- compilation-window-height
 				    (window-height))))
-	     (select-window w))))))
+	     ;; The enlarge-window above may have deleted W, if
+	     ;; compilation-window-height is large enough.
+	     (when (window-live-p w)
+	       (select-window w)))))))
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
