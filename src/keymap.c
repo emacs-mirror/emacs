@@ -628,7 +628,7 @@ the front of KEYMAP.")
 	}
 
       if (! INTEGERP (c) && ! SYMBOLP (c) && ! CONSP (c))
-	error ("Key sequence contains illegal events");
+	error ("Key sequence contains invalid events");
 
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
@@ -1519,7 +1519,7 @@ Control characters turn into C-whatever, etc.")
       return Fcopy_sequence (key);
 
     default:
-      error ("KEY must be an integer, cons, symbol, or string.");
+      error ("KEY must be an integer, cons, symbol, or string");
     }
 }
 
