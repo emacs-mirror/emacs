@@ -33,6 +33,7 @@ DONTCOMPILE = \
 	$(lisp)/cus-start.el \
 	$(lisp)/emacs-lisp/cl-specs.el \
 	$(lisp)/eshell/esh-maint.el \
+	$(lisp)/eshell/esh-group.el \
 	$(lisp)/finder-inf.el \
 	$(lisp)/forms-d2.el \
 	$(lisp)/forms-pass.el \
