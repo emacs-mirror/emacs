@@ -1,3 +1,23 @@
+2001-04-03  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (TIT_GB): Delete quail/PY.elc and
+	quail/ZIRANMA.elc.
+	(NON_TIT_BIG5): Delete $(srcdir)/quail/quick-b5.elc and
+	$(srcdir)/quail/tsang-b5.elc.
+	(NON_TIT_CNS): Delete.
+	(CHINESE_NON_TIT): Delete $(NON-TIT-CNS).
+	(CHINESE_CNS): Delete.
+	(KOREAN): Add ${srcdir}/quail/hanja3.elc.  From Kenichi Handa
+	<handa@etl.go.jp>.
+	(MISC_DIC): New variable.
+	(CHINESE): Delete $(CHINESE_CNS).
+	(WORLD): Add $(MISC_DIC).
+	(all): Depends on $(MISC_DIC).
+	(.NOTPARALLEL, .NO_PARALLEL): New special targets.
+	($(MISC_DIC)): New target.
+	(clean mostlyclean): Delete also $(NONTIT), $(WORLD), $(MISC_DIC)
+	and $(MISC_DIC:.elc=.el).
+
 2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (KOREAN): Add ${srcdir}/quail/hanja3.elc.  From
@@ -14,7 +34,7 @@
 	(CHINESE-CNS): Delete it.
 	(MISC-DIC): New variable.
 	(CHINESE): Delete ${CHINESE-CNS}.
-	(WORLD): Delete ${MISC-DIC}.
+	(WORLD): Add ${MISC-DIC}.
 	(all): Depends on ${MISC-DIC}.
 	(${MISC-DIC}): New target.
 	(clean mostlyclean): Delete also ${MISC-DIC} ${MISC-DIC:.elc=.el}.
