@@ -149,8 +149,8 @@ buf_charpos_to_bytepos (b, charpos)
   if (best_above == best_above_byte)
     return charpos;
 
-  best_below = 1;
-  best_below_byte = 1;
+  best_below = BEG;
+  best_below_byte = BEG_BYTE;
 
   /* We find in best_above and best_above_byte
      the closest known point above CHARPOS,
@@ -326,8 +326,8 @@ buf_bytepos_to_charpos (b, bytepos)
   if (best_above == best_above_byte)
     return bytepos;
 
-  best_below = 1;
-  best_below_byte = 1;
+  best_below = BEG;
+  best_below_byte = BEG_BYTE;
 
   CONSIDER (BUF_PT_BYTE (b), BUF_PT (b));
   CONSIDER (BUF_GPT_BYTE (b), BUF_GPT (b));
