@@ -2023,7 +2023,7 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
 
   consumed_chars = consumed_bytes = 0;
   produced_chars = 0;
-  while (consumed_bytes < str_bytes)
+  while (1)
     {
       const unsigned char *p = SDATA (str) + consumed_bytes;
       const unsigned char *endp = SDATA (str) + str_bytes;
@@ -2047,8 +2047,6 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
 	{
 	  ccl_driver (&ccl, src, destination, src_size, CCL_EXECUTE_BUF_SIZE,
 		      Qnil);
-	  if (ccl.status != CCL_STAT_SUSPEND_BY_DST)
-	    break;
 	  produced_chars += ccl.produced;
 	  if (NILP (unibyte_p))
 	    {
@@ -2077,6 +2075,8 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
 	    }
 	  src += ccl.consumed;
 	  src_size -= ccl.consumed;
+	  if (ccl.status != CCL_STAT_SUSPEND_BY_DST)
+	    break;
 	}
 
       if (ccl.status != CCL_STAT_SUSPEND_BY_SRC)
