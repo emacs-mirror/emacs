@@ -4156,20 +4156,24 @@ FRAME 0 means change the face on all frames, and change the default
 	  struct frame *f;
 	  Lisp_Object tmp;
 
-	  CHECK_STRING (value);
 	  if (EQ (frame, Qt))
 	    f = SELECTED_FRAME ();
 	  else
 	    f = check_x_frame (frame);
 
-	  /* VALUE may be a fontset name or an alias of fontset.  In
-	     such a case, use the base fontset name.  */
-	  tmp = Fquery_fontset (value, Qnil);
-	  if (!NILP (tmp))
-	    value = tmp;
+	  if (!UNSPECIFIEDP (value))
+	    {
+	      CHECK_STRING (value);
 
-	  if (!set_lface_from_font_name (f, lface, value, 1, 1))
-	    signal_error ("Invalid font or fontset name", value);
+	      /* VALUE may be a fontset name or an alias of fontset.  In
+		 such a case, use the base fontset name.  */
+	      tmp = Fquery_fontset (value, Qnil);
+	      if (!NILP (tmp))
+		value = tmp;
+
+	      if (!set_lface_from_font_name (f, lface, value, 1, 1))
+		signal_error ("Invalid font or fontset name", value);
+	    }
 
 	  font_attr_p = 1;
 	}
@@ -6590,11 +6594,7 @@ realize_default_face (f)
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
   if (NILP (lface))
-    {
-      Lisp_Object frame;
-      XSETFRAME (frame, f);
-      lface = Finternal_make_lisp_face (Qdefault, frame);
-    }
+    abort ();
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -6603,7 +6603,9 @@ realize_default_face (f)
       frame_font = Fassq (Qfont, f->param_alist);
       xassert (CONSP (frame_font) && STRINGP (XCDR (frame_font)));
       frame_font = XCDR (frame_font);
-      set_lface_from_font_name (f, lface, frame_font, 1, 1);
+      /* Specify 0 for FORCE_P here, so that we don't override
+	 a :family attribute specified for `default' for new frames.  */
+      set_lface_from_font_name (f, lface, frame_font, 0, 1);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
