@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../info/emacs-faq.info
+@setfilename ../info/efaq
 @settitle GNU Emacs FAQ
 @c %**end of header
 
@@ -10,7 +10,7 @@
 @ifinfo
 @dircategory Editors
 @direntry
-* Emacs FAQ: (emacs-faq).	Frequently Asked Questions about Emacs.
+* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
 @end direntry
 
 Copyright 1994-1999 Reuven M. Lerner@*
