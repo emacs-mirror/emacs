@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.58 1992/07/31 07:17:21 esr Exp $	
+;;	$Id: vc.el,v 1.3 1992/08/08 22:58:39 rms Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -758,22 +758,32 @@ to that version."
   )
 
 ;;;###autoload
-(defun vc-update-change-log ()
-  "Find change log file and add entries from recent RCS logs."
-  (interactive)
-    (find-file-other-window "ChangeLog")
-    (vc-buffer-sync)
-    (or (eq major-mode 'indented-text-mode)
-	(progn
-	  (indented-text-mode)
-	  (setq left-margin 8)
-	  (setq fill-column 74)))
-    (auto-fill-mode 1)
-    (undo-boundary)
-    (goto-char (point-min))
-    (message "Computing change log entries...")
-    (shell-command-on-region (point) (point) "rcs2log" t)
-    (message "Computing change log entries... done"))
+(defun vc-update-change-log (&rest args)
+  "Find change log file and add entries from recent RCS logs.
+The mark is left at the end of the text prepended to the change log.
+With prefix arg of C-u, only find log entries for the current buffer's file.
+With any numeric prefix arg, find log entries for all files currently visited.
+From a program, any arguments are passed to the `rcs2log' script."
+  (interactive (cond ((consp current-prefix-arg) ;C-u
+		      (list buffer-file-name))
+		     (current-prefix-arg ;Numeric argument.
+		      (let ((files nil)
+			    (buffers (buffer-list))
+			    file)
+			(while buffers
+			  (setq file (buffer-file-name (car buffers)))
+			  (and file
+			       (setq file (vc-name file))
+			       (setq files (cons file files)))
+			  (setq buffers (cdr buffers)))
+			files))))
+  (find-file-other-window "ChangeLog")
+  (vc-buffer-sync)
+  (undo-boundary)
+  (goto-char (point-min))
+  (message "Computing change log entries...")
+  (shell-command (mapconcat 'identity (cons "rcs2log" args) " ") t)
+  (message "Computing change log entries... done"))
 
 ;; Functions for querying the master and lock files.
 
