@@ -226,13 +226,7 @@ compile: subdirs.el doit
 	  if test -f $$el;						    \
 	  then								    \
 	    echo Compiling $$el;					    \
-	    case "$$el" in						    \
-	      */macroexp.el)						    \
-		$(emacs) --eval '(setq max-lisp-eval-depth 450)'	    \
-			 -f batch-byte-compile-if-not-done $$el || exit 1;; \
-	      *)							    \
-		$(emacs) -f batch-byte-compile-if-not-done $$el || exit 1;; \
-            esac;							    \
+	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1;	    \
 	  fi								    \
 	done
 
