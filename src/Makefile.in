@@ -876,6 +876,8 @@ shortnames:
    and remake temacs if lwlib gets changed by this.  */
 stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU) 
 	touch stamp-oldxmenu
+/* Supply an ordering for parallel make.  */
+../src/$(OLDXMENU): ${OLDXMENU}
 
 #ifdef USE_X_TOOLKIT
 $(OLDXMENU): really-lwlib
@@ -1149,6 +1151,7 @@ TAGS: $(srcdir)/$(ctagsfiles)
 	$$DIR/../lib-src/etags --include=../lisp/TAGS \
 	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
 ${lispsource}TAGS: ${lispsource}$(lisptagsfiles)
-	cd ${lispsource}; $(MAKE) TAGS
+	export DIR; DIR=`pwd`; cd ${lispsource}; \
+	$(MAKE) TAGS ETAGS=$$DIR/../lib-src/etags
 tags: TAGS ${lispsource}TAGS
 .PHONY: tags
