@@ -294,8 +294,8 @@ can easily correct the situation using @kbd{C-u i} or @kbd{C-u l}.
 Dired does not remember the @code{R} switch.  Inserting a subdirectory
 with switches that include the @code{R} switch is equivalent with
 inserting each of its subdirectories using all remaining switches.
-For instance, updating or deleting a subdirectory that was inserted
-with the @code{R} switch will not update or delete its subdirectories.
+For instance, updating or killing a subdirectory that was inserted
+with the @code{R} switch will not update or kill its subdirectories.
 
 The buffer's default switches do not affect subdirectories that were
 inserted using explicitly specified switches.  In particular,
