@@ -22,15 +22,17 @@
 
 (defun open-line (arg)
   "Insert a newline and leave point before it.
-If there is a fill prefix, insert the fill prefix after the newline
-that it inserts.  With arg N, insert N newlines."
+If there is a fill prefix, insert the fill prefix on the new line
+if the line would have been empty.
+With arg N, insert N newlines."
   (interactive "*p")
-  (let ((flag (and (bolp) (not (bobp)))))
+  (let* ((do-fill-prefix (and fill-prefix (bolp)))
+	 (flag (and (null do-fill-prefix) (bolp) (not (bobp)))))
     (if flag (forward-char -1))
     (while (> arg 0)
       (save-excursion
-        (insert ?\n)
-	(if fill-prefix (insert fill-prefix)))
+        (insert ?\n))
+      (if do-fill-prefix (insert fill-prefix))
       (setq arg (1- arg)))
     (if flag (forward-char 1))))
 
