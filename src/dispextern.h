@@ -2653,8 +2653,6 @@ void w32_reset_fringes P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-extern Lisp_Object Vimage_types;
-
 extern int x_bitmap_height P_ ((struct frame *, int));
 extern int x_bitmap_width P_ ((struct frame *, int));
 extern int x_bitmap_pixmap P_ ((struct frame *, int));
