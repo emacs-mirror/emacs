@@ -1,3 +1,67 @@
+2003-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-continued-construct,
+	c-guess-basic-syntax): Check a little more carefully if it's a
+	function declaration when an unknown construct followed by a block
+	is found inside a statement context.  This avoids macros followed
+	by blocks to be taken as function declarations.
+
+	(c-guess-continued-construct): Changed the analysis of a statement
+	continuation with a brace open to `substatement-block', for
+	consistency with recognized statements.
+
+	(c-add-stmt-syntax): Don't continue to the surrounding sexp if the
+	start is in a position so that `c-beginning-of-statement-1' jumped
+	to the beginning of the same statement.
+
+	* cc-fonts.el, cc-engine.el (c-forward-<>-arglist-recur): Don't
+	accept binary operators in the arglist if we're in a function call
+	context, i.e. if `c-restricted-<>-arglists' is set.  That avoids
+	template recognition in cases like "if (a < b || c > d)".
+
+	(c-restricted-<>-arglists): New more appropriate name for
+	`c-disallow-comma-in-<>-arglists'.
+
+	Accessing functions updated for the variable name change.
+
+	* cc-engine.el (c-syntactic-re-search-forward): Fix bug where the
+	match data could get clobbered if NOT-INSIDE-TOKEN is used.
+
+	* cc-engine.el (c-beginning-of-statement-1): Don't allow parens in
+	labels.
+
+	(c-backward-to-decl-anchor): Use `c-beginning-of-statement-1'
+	instead of duplicating parts of it.  This fixes bogus label
+	recognition.
+
+	* cc-align.el (c-gnu-impose-minimum): Reverted to the old method
+	of checking the context in which to apply the minimum indentation,
+	so that it isn't enforced in e.g. namespace blocks.
+
+	* cc-vars.el (c-inside-block-syms): New constant used by
+	`c-gnu-impose-minimum'.  It's defined close to `c-offsets-alist'
+	to somewhat reduce the risk of becoming stale.
+
+	* cc-cmds.el, cc-engine.el (c-shift-line-indentation): Moved from
+	cc-cmds to cc-engine to allow use from cc-align.
+
+	* cc-engine.el (c-beginning-of-inheritance-list): Cope with fully
+	qualified identifiers containing "::".
+
+	* cc-defs.el (c-make-keywords-re): Added kludge for bug in
+	`regexp-opt' in Emacs 20 and XEmacs when strings contain newlines.
+
+	* cc-vars.el (c-emacs-features): Use a space in front of the name
+	of the temporary buffer.  That also avoids dumping problems in
+	XEmacs due to undo info being left around after the buffer is
+	killed.
+
+	* cc-engine.el (c-in-knr-argdecl): Look closer at the function
+	arglist to see if it's a K&R style declaration.
+
+	(c-guess-basic-syntax): CASE 5B.2: Check with `c-in-knr-argdecl'
+	before returning `knr-argdecl-intro'.
+
 2003-11-16  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/em-ls.el (eshell-ls-file): Instead of making the size
