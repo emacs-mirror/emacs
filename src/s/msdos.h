@@ -40,6 +40,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define MSDOS
 #endif
 
+#ifdef __GO32__
+#ifndef __DJGPP__
+#define __DJGPP__ 1	/* V2 defines __DJGPP__ == 2 */
+#else
+You lose; /* Emacs for DOS must be compiled with DJGPP V1 */
+#endif
+#else
+You lose; /* Emacs for DOS must be compiled with DJGPP */
+#endif
+
 #define DOS_NT	/* MSDOS or WINDOWSNT */
 #undef BSD
 #undef VMS
@@ -185,15 +195,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* When $TERM is "internal" then this is substituted:  */
 #define INTERNAL_TERMINAL "pc|bios|IBM PC with colour display:\
-:co#80:li#25:km:\
-:cm=\E@%.%.:\
-:do=^J:le=^H:up=\EU:ri=\ER:\
-:ti=\EA\027:te=\EA\007\EE:\
-:so=\EA\077:se=\EA\027:\
-:ms:mb=\EX\200:md=\EX\010:mk=\EA\161:me=\EA\027:\
-:cl=\EC:ce=\EE:\
-:vb=\EB\140:bl=\007:"
-#define fflush internal_flush
+:co#80:li#25:km:ms:cm=<CM>:cl=<CL>:ce=<CE>:"
 
 /* Define this to a function (Fdowncase, Fupcase) if your file system
    likes that */
