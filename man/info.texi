@@ -152,7 +152,6 @@ the screen.
 * Help-M::              Menus
 * Help-Adv::            Some advanced Info commands
 * Help-Q::              Quitting Info
-* Using Stand-alone Info::  How to use the stand-alone Info reader.
 @end menu
 
 @node Help-Small-Screen, Help,  , Getting Started
@@ -968,11 +967,4 @@ Manual}, to learn how to create an Info file from a Texinfo file.
 @xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU Documentation
 Format}, to learn how to write a Texinfo file.
 
-@nwnode Using Stand-alone Info, Options, , Top
-@chapter Using the Stand-alone Info Reader
-@lowersections
-@c Make the paragraph indentation match the rest of this file.
-@paragraphindent 2
-@include info-stnd.texi
-@raisesections
 @bye
